@@ -4,6 +4,8 @@ package cnv.plots;
 import java.io.*;
 import java.util.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 import javax.swing.*;
 
@@ -16,19 +18,15 @@ import cnv.qc.SexChecks;
 public class SexPlot extends JFrame {
 	public static final long serialVersionUID = 1L;
 	
-	private static final String[] SEX_CHECKS_REQUIREMENTS = {"Sample", "Sex", SexChecks.EST_SEX_HEADER, "Check", "Median X LRR", "Median Y LRR"};
-
+	private static final String[] SEX_CHECKS_REQUIREMENTS = {"Sample", "Sex", SexChecks.EST_SEX_HEADER, "Check", "Median X LRR", "Median Y LRR", "Excluded"};
+	
 	SexPanel sexPanel;
 
-	public SexPlot(Project proj, String[][] samples, double[][] data) {
-		this(proj, samples, data, null, null);
-	}
-
-	public SexPlot(Project proj, String[][] samples, double[][] data, byte[] sexes, byte[] estimatedSexes) {
+	public SexPlot(Project proj, String[] samples, double[][] data, byte[] sexes, byte[] estimatedSexes, boolean[] excluded) {
 		super("Genvisis - Sex Plot - " + proj.PROJECT_NAME.getValue());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-		SexPanel sexPanel = new SexPanel(proj, samples, data, sexes, estimatedSexes);
+		sexPanel = new SexPanel(proj, samples, data, sexes, estimatedSexes, excluded);
 		// panel.setToolTipText("");
 		getContentPane().add(sexPanel, BorderLayout.CENTER);
 
@@ -44,6 +42,8 @@ public class SexPlot extends JFrame {
 
 		JPanel legendPanel = colorLegendPanel();
 		getContentPane().add(legendPanel, BorderLayout.SOUTH);
+		
+		setJMenuBar(createJMenuBar());
 
 		// TODO extra paint appears to be unnecessary
 //		repaint();
@@ -52,6 +52,34 @@ public class SexPlot extends JFrame {
 		setVisible(true);
 //		unnecessary leads to a double rendering
 //		sexPanel.createImage();
+	}
+	
+	private JMenuBar createJMenuBar() {
+
+		JMenuBar menuBar = new JMenuBar();
+	
+		JMenu viewMenu = new JMenu("View");
+		viewMenu.setMnemonic(KeyEvent.VK_V);
+		
+		final JCheckBoxMenuItem showExcludedSwitch = new JCheckBoxMenuItem();
+		
+		AbstractAction showExcludedAction = new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	sexPanel.setShowExcluded(showExcludedSwitch.isSelected());
+                sexPanel.paintAgain();          
+            }
+        };
+        showExcludedSwitch.setAction(showExcludedAction);
+		showExcludedSwitch.setText("Show Excluded Samples");
+		showExcludedSwitch.setMnemonic(KeyEvent.VK_X);
+		viewMenu.add(showExcludedSwitch);
+		
+		menuBar.add(viewMenu);
+		
+		return menuBar;
+	
 	}
 
 	private JPanel colorLegendPanel() {
@@ -73,23 +101,17 @@ public class SexPlot extends JFrame {
 	}
 
 	public static void loadSexCheckResults(Project proj) {
-		BufferedReader reader;
-		String[] line;
-		Vector<String[]> samples;
-		Vector<double[]> datapoints;
-		Vector<Byte> sexes;
-		Vector<Byte> estimatedSexes;
-	
-		samples = new Vector<String[]>();
-		datapoints = new Vector<double[]>();
-		sexes = new Vector<Byte>();
-		estimatedSexes = new Vector<Byte>();
+		Vector<String> samples = new Vector<String>();
+		Vector<double[]> datapoints = new Vector<double[]>();
+		Vector<Byte> sexes = new Vector<Byte>();
+		Vector<Byte> estimatedSexes = new Vector<Byte>();
+		Vector<Boolean> excluded = new Vector<Boolean>();
 		try {
-			reader = Files.getReader(proj.SEXCHECK_RESULTS_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, false);
+			BufferedReader reader = Files.getReader(proj.SEXCHECK_RESULTS_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, false);
 			if (reader == null) {
 				return;
 			}
-			line = reader.readLine().trim().split("\t");
+			String[] line = reader.readLine().trim().split("\t");
 			if (!ext.checkHeader(line, SexChecks.SEX_HEADER, false, proj.getLog(), false)) {
 				proj.message("The header in file '"+proj.SEXCHECK_RESULTS_FILENAME.getValue()+"' is not as expected and may cause problems; see log for more detail");
 			}
@@ -105,10 +127,11 @@ public class SexPlot extends JFrame {
 				if (ext.isMissingValue(line[indices[4]]) || ext.isMissingValue(line[indices[5]]) ) {
 					System.err.println("Error - sample '"+line[indices[0]]+"' does not have a valid medianLRR for X or Y");
 				} else {
-					samples.add(new String[] {line[indices[0]], "chr23"});
+					samples.add(line[indices[0]]);
 					datapoints.add(new double[] {Double.parseDouble(line[indices[4]]), Double.parseDouble(line[indices[5]])});
 					sexes.add(Byte.parseByte(line[indices[1]]));
 					estimatedSexes.add(Byte.parseByte(line[indices[2]]));
+					excluded.add(line[indices[6]].equals("1"));
 				}
 			}
 			reader.close();
@@ -120,7 +143,7 @@ public class SexPlot extends JFrame {
 			return;
 		}
 	
-		new SexPlot(proj, Matrix.toStringArrays(samples), Matrix.toDoubleArrays(datapoints), Array.toByteArray(sexes), Array.toByteArray(estimatedSexes));
+		new SexPlot(proj, samples.toArray(new String[samples.size()]), Matrix.toDoubleArrays(datapoints), Array.toByteArray(sexes), Array.toByteArray(estimatedSexes), Array.toBooleanArray(excluded));
 	}
 
 	public static void main(String[] args) {

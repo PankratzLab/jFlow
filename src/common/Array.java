@@ -5323,15 +5323,29 @@ public class Array {
 	}
 	
 	/**
-	 * Creates an array of byte and copies the contents of an ArrayList of byte into it
+	 * Creates an array of boolean and copies the contents of an ArrayList of Boolean into it
 	 * 
 	 * @param al
-	 * @return an array of byte copied from a ArrayList of byte
+	 * @return an array of boolean copied from an ArrayList of Boolean
 	 */
 	public static boolean[] toBooleanArray(ArrayList<Boolean> al) {
 		boolean[] result = new boolean[al.size()];
 		for (int i = 0; i < al.size(); i++) {
 			result[i] = al.get(i);
+		}
+		return result;
+	}
+	
+	/**
+	 * Creates an array of boolean and copies the contents of a Vector of Boolean into it
+	 * 
+	 * @param v
+	 * @return an array of boolean copied from a Vector of Boolean
+	 */
+	public static boolean[] toBooleanArray(Vector<Boolean> v) {
+		boolean[] result = new boolean[v.size()];
+		for (int i = 0; i < v.size(); i++) {
+			result[i] = v.get(i);
 		}
 		return result;
 	}
