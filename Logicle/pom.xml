@@ -16,6 +16,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 
 	<description></description>
+  <inceptionYear>2009</inceptionYear>
 
 	<properties>
 	</properties>
@@ -28,5 +29,19 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<configuration>
+					<licenseName>bsd_3</licenseName>
+					<projectName>The Logicle Data Scale</projectName>
+					<organizationName>The Board of Trustees of the Leland Stanford Junior University.</organizationName>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>
