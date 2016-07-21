@@ -1,30 +1,38 @@
 package one.ben.fcs.sub;
 
-import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTree;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 
 import net.miginfocom.swing.MigLayout;
 import one.ben.fcs.FCSPlot;
+import one.ben.fcs.gating.Gate;
+import one.ben.fcs.gating.GatingStrategy;
 import cnv.gui.JAccordionPanel;
 
 public class DataExportGUI extends JDialog {
 
     private JPanel contentPane;
+    private JTree tree;
+    private HashMap<DefaultMutableTreeNode, Gate> gateMap = new HashMap<DefaultMutableTreeNode, Gate>();
+    private GatingStrategy gating;
 
     /**
      * Launch the application.
@@ -46,6 +54,7 @@ public class DataExportGUI extends JDialog {
     ArrayList<JCheckBox> boxes;
     
     public DataExportGUI(FCSPlot fcsPlot) {
+        super(SwingUtilities.getWindowAncestor(fcsPlot), "Select a set of files and gates to export", ModalityType.APPLICATION_MODAL);
         this.plot = fcsPlot;
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 450, 300);
@@ -109,6 +118,20 @@ public class DataExportGUI extends JDialog {
             }
         }
         
+        pnl = gateAP.contentPanel;
+        pnl.setLayout(new MigLayout("", "[grow]", ""));
+        
+        tree = new JTree(new DefaultTreeModel(null));
+        tree.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
+        tree.setRootVisible(false);
+        tree.setShowsRootHandles(true);
+        
+        pnl.add(tree, "cell 0 0, grow");
+        
+        if (plot != null) {
+            this.gating = plot.getGatingStrategy();
+            resetGating();
+        }
         
         
         JPanel panel = new JPanel();
@@ -128,4 +151,35 @@ public class DataExportGUI extends JDialog {
         panel.add(btnCancel, "cell 2 0");
     }
 
+    private void resetGating() {
+        if (this.gating == null || this.tree == null) return;
+        ArrayList<Gate> roots = gating.getRootGates();
+        
+        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
+        for (Gate g : roots) {
+            addGatesToTree(rootNode, g);
+        }
+        
+        tree.setModel(new DefaultTreeModel(rootNode));        
+        expandAllNodes();
+    }
+    
+    private void expandAllNodes() {
+        int j = tree.getRowCount();
+        int i = 0;
+        while(i < j) {
+            tree.expandRow(i);
+            i += 1;
+            j = tree.getRowCount();
+        }
+    }
+    
+    private void addGatesToTree(DefaultMutableTreeNode root, Gate g) {
+        DefaultMutableTreeNode child = new DefaultMutableTreeNode(g.getName());
+        gateMap.put(child, g);
+        root.add(child);
+        for (Gate childGate : g.getChildGates()) {
+            addGatesToTree(child, childGate);
+        }
+    }
 }

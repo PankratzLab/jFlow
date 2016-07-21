@@ -564,6 +564,10 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         }
 	}
 	
+	public GatingStrategy getGatingStrategy() {
+	    return this.gating;
+	}
+	
 	public void setGating(GatingStrategy gateStrat) {
 	    this.gating = gateStrat;
 	    this.gatingSelector.setGating(gateStrat);
