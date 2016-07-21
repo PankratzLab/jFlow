@@ -14,8 +14,19 @@ import java.util.LinkedHashSet;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
-import org.genvisis.ejml.CommonOps;
-import org.genvisis.ejml.DenseMatrix64F;
+import org.ejml.data.DenseMatrix64F;
+import org.ejml.ops.CommonOps;
+import org.flowcyt.cfcs.CFCSAbstractData;
+import org.flowcyt.cfcs.CFCSData;
+import org.flowcyt.cfcs.CFCSDataSet;
+import org.flowcyt.cfcs.CFCSError;
+import org.flowcyt.cfcs.CFCSKeywords;
+import org.flowcyt.cfcs.CFCSListModeData;
+import org.flowcyt.cfcs.CFCSParameter;
+import org.flowcyt.cfcs.CFCSParameters;
+import org.flowcyt.cfcs.CFCSSpillover;
+import org.flowcyt.cfcs.CFCSSystem;
+import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 
 public class FCSDataLoader {

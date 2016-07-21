@@ -39,6 +39,11 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.googlecode.efficient-java-matrix-library</groupId>
+			<artifactId>ejml</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>be.ac.ulg.montefiore.run</groupId>
 			<artifactId>jahmm</artifactId>
 		</dependency>

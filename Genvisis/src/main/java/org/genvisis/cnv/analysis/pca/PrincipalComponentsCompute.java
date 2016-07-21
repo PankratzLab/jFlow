@@ -9,6 +9,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 
+import org.ejml.data.DenseMatrix64F;
+import org.ejml.factory.DecompositionFactory;
+import org.ejml.interfaces.decomposition.SingularValueDecomposition;
+import org.ejml.ops.CommonOps;
+import org.ejml.ops.SingularOps;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
@@ -21,11 +26,6 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
-import org.genvisis.ejml.CommonOps;
-import org.genvisis.ejml.DecompositionFactory;
-import org.genvisis.ejml.DenseMatrix64F;
-import org.genvisis.ejml.SingularOps;
-import org.genvisis.ejml.SingularValueDecomposition;
 
 /**
  * <p>
