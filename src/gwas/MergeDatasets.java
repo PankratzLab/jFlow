@@ -35,7 +35,6 @@ public class MergeDatasets {
         int index, temp;
         double p;
 		String filename;
-//		System.out.println(Array.toStr(dirs));
 		if (dirs == null) {
 			dirs = Files.listDirectories(dir, false);
 		} else if (dir == null) {
