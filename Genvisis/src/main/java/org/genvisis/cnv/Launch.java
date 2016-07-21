@@ -1,6 +1,8 @@
 package org.genvisis.cnv;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.jar.Attributes;
 import java.awt.*;
@@ -960,6 +962,46 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	}
 
 	public static void main(String[] args) {
+		// Check for alternate main requests
+		String mainClassName = args.length > 0 ? args[0] : null;
+		Class<?> mainClass = null;
+
+		if (mainClassName != null) {
+			// Check the given class. If it doesn't exist, prepend org.genvisis package and try again
+			try {
+				mainClass = Class.forName(mainClassName);
+			} catch (ClassNotFoundException exc) {
+				mainClassName = "org.genvisis." + mainClassName;
+			}
+
+			// Try again with the updated package name
+			if (mainClass == null) {
+				try {
+					mainClass = Class.forName(mainClassName);
+				} catch (ClassNotFoundException exc) {
+					// Requested class not found
+					System.err.println("Requested main class not found: " + mainClassName);
+				}
+			}
+
+			// If we found a main class, try running it
+			if (mainClass != null) {
+				Method meth;
+				try {
+					meth = mainClass.getMethod("main", String[].class);
+					String[] params = Arrays.copyOfRange(args, 1, args.length);
+					meth.invoke(null, (Object) params);
+				} catch (NoSuchMethodException exc) {
+					System.err.println("Requested main class does not have main method: " + mainClassName);
+				} catch (SecurityException | IllegalAccessException |
+						IllegalArgumentException | InvocationTargetException exc) {
+					System.err.println(exc.getMessage());
+				}
+			}
+			// Whether it worked or not, if we were given a main class parameter we skip the UI.
+			return;
+		}
+
     	try {
 //	        javax.swing.SwingUtilities.invokeLater(new Runnable() {
 //	            public void run() {
