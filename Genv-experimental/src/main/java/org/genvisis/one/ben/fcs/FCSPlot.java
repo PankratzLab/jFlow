@@ -106,9 +106,13 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     protected void saveProps() {
         try {
             Properties props = new Properties();
-            props.setProperty(PROPKEY_GATEFILE, this.gating.getFile() == null ? "" : this.gating.getFile());
+            if (this.gating != null) {
+                props.setProperty(PROPKEY_GATEFILE, this.gating.getFile() == null ? "" : this.gating.getFile());
+            }
             ArrayList<String> files = fcsControls.getAddedFiles();
-            props.setProperty(PROPKEY_FCSFILES, files.size() == 0 ? "" : Array.toStr(Array.toStringArray(files), ""));
+            if (files.size() > 0) {
+                props.setProperty(PROPKEY_FCSFILES, files.size() == 0 ? "" : Array.toStr(Array.toStringArray(files), ";"));
+            }
             File f = new File(PROPERTIES_FILE);
             OutputStream out = new FileOutputStream( f );
             props.store(out, "");
@@ -381,14 +385,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         }
     }
     
-	public ArrayList<String[]> getDataSelected() {
-		ArrayList<String[]> v = null;
-		
-		
-		
-		return v;
-	}
-
 	public void updateGUI() {
         fcsPanel.paintAgain();
 	}
@@ -428,6 +424,10 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
             data = null;
         } else {
             data = dataLoader.getData(xAxis ? getXDataName() : getYDataName(), wait);
+            if (this.parentGate != null && !(this.parentGate instanceof NullGate)) {
+                boolean[] gating = this.parentGate.gate(dataLoader);
+                data = Array.subArray(data, gating);
+            }
         }
         return data;
     }
@@ -661,7 +661,15 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     }
 	
 	public int getDataCount() {
-        return dataLoader == null ? -1 : dataLoader.getCount();
+	    int cnt = -1;
+	    if (dataLoader == null) return cnt;
+	    if (this.parentGate != null && !(this.parentGate instanceof NullGate)) {
+	        cnt = Array.booleanArraySum(this.parentGate.gate(dataLoader));
+	    } else {
+	        cnt = dataLoader.getCount();
+	    }
+	    
+        return cnt;
     }
     
     @Override
@@ -721,6 +729,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 
         @Override
         public boolean[] gate(FCSDataLoader dataLoader) {
+//            return Array.booleanArray(dataLoader.getCount(), true);
             return null;
         }
     }
@@ -740,12 +749,17 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     }
 
     public void gateSelected(Gate gate) {
-        ArrayList<GateDimension> gd = gate.getDimensions();
-        GateDimension gdX = gd.get(0);
-        GateDimension gdY = gd.get(1);
-        setXDataName(gdX.getParam());
-        setYDataName(gdY.getParam());
-        
+        if (gate == null) {
+            this.parentGate = new NullGate();
+        } else {
+            this.parentGate = gate;
+            ArrayList<GateDimension> gd = gate.getDimensions();
+            GateDimension gdX = gd.get(0);
+            GateDimension gdY = gd.get(1);
+            setXDataName(gdX.getParam());
+            setYDataName(gdY.getParam());
+        }
+        updateGUI();
         // TODO set axis scales, update and repaint
     }
     
