@@ -23,9 +23,6 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
-
 public final class CFCSDataSet implements CFCSErrorCodes
 {
     public static final int UNDEFINED = -1;

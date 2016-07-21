@@ -20,8 +20,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.genvisis.common.ext;
-
 public final class CFCSListModeData extends CFCSAbstractData implements CFCSErrorCodes
 {
 

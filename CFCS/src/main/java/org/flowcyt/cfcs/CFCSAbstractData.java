@@ -1,7 +1,5 @@
 package org.flowcyt.cfcs;
 
-import org.genvisis.common.ext;
-
 /* ------------------------------------------------------------------------- *\
 This software and documentation are provided 'as is' and Tree Star, Inc., its
 contractors and partners specifically disclaim all other warranties, expressed
