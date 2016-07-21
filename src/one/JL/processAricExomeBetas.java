@@ -75,7 +75,7 @@ public class processAricExomeBetas {
 		for (int i = 0; i < betas.size(); i++) {
 			String beta = betas.get(i);
 			System.out.println(beta);
-			
+
 			Logger log = proj.getLog();
 			String[] betaHeader = Files.getHeaderOfFile(beta, ",", new Logger());
 			for (int j = 0; j < betaHeader.length; j++) {
@@ -86,7 +86,7 @@ public class processAricExomeBetas {
 			int pvalIndex = ext.indexOfStr("p", betaHeader);
 
 			System.out.println(markerIndex + "\t" + Array.toStr(betaHeader));
-			String outDir = "/home/pankrat2/shared/MitoPipeLineResources/betasExome1flip/";
+			String outDir = "/home/pankrat2/shared/MitoPipeLineResources/betasExome2flip/";
 			new File(outDir).mkdirs();
 			String outBeta = outDir + ext.rootOf(beta) + "matched.txt";
 			String outBetaFinal = outDir + ext.rootOf(beta) + "matched.final.beta";
@@ -97,7 +97,9 @@ public class processAricExomeBetas {
 
 				BufferedReader reader = Files.getAppropriateReader(beta);
 				// writer.println(Array.toStr(betaHeader) + "\tMarkerName\tPos\trsID\trsRef\trsAlt\tmarkerA\tmarkerB\tconfig\tsiteType");
-				writerFinal.println("rsID\tref\talt\tbeta\tp\tA\tB\tF1\tF2\tconfig\toriginalbeta");
+				// writerFinal.println("rsID\tref\talt\ta2\tbeta\tp\tA\tB\tF1\tF2\tconfig\toriginalbeta");
+				writerFinal.println("rsID\tref\talt\tbeta\tp");
+
 				reader.readLine();
 				while (reader.ready()) {
 
@@ -151,10 +153,12 @@ public class processAricExomeBetas {
 					// line[betaIndex] = betaVal + "";
 					// writer.println(Array.toStr(line) + "\t" + m.getMarkerName() + "\t" + m.getPosMarker() + "\t" + m.getRs() + "\t" + Array.toStr(m.getDbSnpAlleles()) + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t" + m.getType());
 					if (m.isValidMatch() && Double.isFinite(betaVal)) {
-//						if (m.flipBetas()) {
-//							betaVal = -1 * betaVal;
-//						}
-						writerFinal.println(m.getRs() + "\t" + Array.toStr(effAllele.split("\t")) + "\t" + betaVal + "\t" + line[pvalIndex] + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t" + effAllele + "\t" + line[betaIndex]);
+						// if (m.flipBetas()) {
+						// betaVal = -1 * betaVal;
+						// }
+						// writerFinal.println(m.getRs() + "\t" + Array.toStr(effAllele.split("\t")) + "\t" + betaVal + "\t" + line[pvalIndex] + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t" + effAllele + "\t" + m.getConfig() + "\t" + line[betaIndex]);
+						writerFinal.println(m.getRs() + "\t" + Array.toStr(effAllele.split("\t")) + "\t" + line[betaIndex] + "\t" + line[pvalIndex]);
+
 					}
 
 				}

@@ -33,7 +33,6 @@ import cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustorParameter;
-import cnv.qc.MarkerMetrics;
 import cnv.var.SampleData;
 import common.Array;
 import common.Elision;
