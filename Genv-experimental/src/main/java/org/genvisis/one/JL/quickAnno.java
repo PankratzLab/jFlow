@@ -1,13 +1,15 @@
-package one.JL;
+package org.genvisis.one.JL;
+
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.seq.analysis.GATK_Genotyper;
+import org.genvisis.seq.analysis.VCFSourceReader;
+import org.genvisis.seq.manage.VCFOps;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
-import common.Logger;
-import common.ext;
-import seq.analysis.GATK_Genotyper;
-import seq.manage.VCFOps;
 
 public class quickAnno {
 
@@ -24,7 +26,7 @@ public class quickAnno {
 	}
 
 	private static String adjustPositions(String in, int adjust, Logger log) {
-		VCFFileReader reader = new VCFFileReader(in, false);
+		VCFFileReader reader = new VCFSourceReader(in, false);
 		String output = VCFOps.getAppropriateRoot(in, false)+ ".posAdjust_" + adjust+".vcf";
 		VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, output, VCFOps.DEFUALT_WRITER_OPTIONS, log);
 

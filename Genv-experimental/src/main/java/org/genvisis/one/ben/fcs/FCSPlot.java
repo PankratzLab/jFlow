@@ -37,8 +37,6 @@ import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.xml.sax.SAXException;
-
 import org.genvisis.cnv.gui.GuiManager;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
@@ -53,7 +51,9 @@ import org.genvisis.one.ben.fcs.gating.GateDimension;
 import org.genvisis.one.ben.fcs.gating.GateFileReader;
 import org.genvisis.one.ben.fcs.gating.GateTreePanel;
 import org.genvisis.one.ben.fcs.gating.GatingStrategy;
+import org.genvisis.one.ben.fcs.sub.DataExportGUI;
 import org.genvisis.one.ben.fcs.sub.RainbowTestGUI;
+import org.xml.sax.SAXException;
 
 public class FCSPlot extends JPanel implements WindowListener, ActionListener, PropertyChangeListener { 
     
@@ -750,9 +750,9 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     }
     
     private void setupDataExport() {
-//        DataExportGUI degui = new DataExportGUI(this);
-//        degui.setModal(true);
-//        degui.setVisible(true);
+        DataExportGUI degui = new DataExportGUI(this);
+        degui.setModal(true);
+        degui.setVisible(true);
         // choose files
         // choose gates
         // choose counts or pcts

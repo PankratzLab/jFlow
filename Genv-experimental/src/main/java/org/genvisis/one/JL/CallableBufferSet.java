@@ -1,10 +1,10 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
-import common.Logger;
-import common.WorkerHive;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerHive;
 
 public class CallableBufferSet<E, T> {
 

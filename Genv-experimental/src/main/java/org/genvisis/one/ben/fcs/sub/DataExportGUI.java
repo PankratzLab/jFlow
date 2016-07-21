@@ -1,4 +1,4 @@
-package one.ben.fcs.sub;
+package org.genvisis.one.ben.fcs.sub;
 
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -22,10 +22,11 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
 import net.miginfocom.swing.MigLayout;
-import one.ben.fcs.FCSPlot;
-import one.ben.fcs.gating.Gate;
-import one.ben.fcs.gating.GatingStrategy;
-import cnv.gui.JAccordionPanel;
+
+import org.genvisis.cnv.gui.JAccordionPanel;
+import org.genvisis.one.ben.fcs.FCSPlot;
+import org.genvisis.one.ben.fcs.gating.Gate;
+import org.genvisis.one.ben.fcs.gating.GatingStrategy;
 
 public class DataExportGUI extends JDialog {
 
