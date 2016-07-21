@@ -79,12 +79,14 @@ public class AffyPipeline {
 		}
 
 		for (int i = 0; i < AFFY_ANALYSIS_TYPES.values().length; i++) {
-			if (!Files.exists(aptExeDir + AFFY_ANALYSIS_TYPES.values()[i].getExe())) {
-				log.reportTimeError(aptExeDir + AFFY_ANALYSIS_TYPES.values()[i].getExe() + " did not exist");
+			String exeFile = aptExeDir + AFFY_ANALYSIS_TYPES.values()[i].getExe();
+			if (!Files.exists(exeFile)) {
+				log.reportTimeError(exeFile + " did not exist");
 				throw new IllegalArgumentException();
+			} else {
+				Files.chmod(exeFile, false);
 			}
 		}
-
 	}
 
 	/**
