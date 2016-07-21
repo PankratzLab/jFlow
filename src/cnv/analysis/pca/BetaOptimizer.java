@@ -151,14 +151,14 @@ public class BetaOptimizer {
 		private double maf;
 		private Logger log;
 
-		public BetaWorker(byte[][] genotypes, boolean[] sampleDef, double[] data, int comparisonIndex, ArrayList<MetaBeta> metaBetas,double maf, Logger log) {
+		public BetaWorker(byte[][] genotypes, boolean[] sampleDef, double[] data, int comparisonIndex, ArrayList<MetaBeta> metaBetas, double maf, Logger log) {
 			super();
 			this.genotypes = genotypes;
 			this.data = data;
 			this.metaBetas = metaBetas;
 			this.comparisonIndex = comparisonIndex;
 			this.sampleDef = sampleDef;
-			this.maf=maf;
+			this.maf = maf;
 			this.log = log;
 		}
 
@@ -172,11 +172,11 @@ public class BetaOptimizer {
 		private BetaCorrelationResult getResult(double[] data) {
 			ArrayList<Double> dataBetas = new ArrayList<Double>();
 			ArrayList<Double> meta = new ArrayList<Double>();
-			int countMafRemoved =0;
+			int countMafRemoved = 0;
 			for (int i = 0; i < genotypes.length; i++) {
 				if (i % 2000 == 0) {
 					log.reportTimeInfo("computing betas for genotype " + (i + 1) + " of " + genotypes.length + " for index " + comparisonIndex + " on " + Thread.currentThread().getName());
-					log.reportTimeInfo("removed "+ countMafRemoved + " markers for maf filter of "+maf);
+					log.reportTimeInfo("removed " + countMafRemoved + " markers for maf filter of " + maf);
 				}
 				ArrayList<Double> tmpGeno = new ArrayList<Double>();
 				ArrayList<Double> tmpData = new ArrayList<Double>();
@@ -188,17 +188,17 @@ public class BetaOptimizer {
 					}
 				}
 				if (tmpGeno.size() > 0) {
-					//whew, is this inefficient or what
-					double[] genos =Array.toDoubleArray(tmpGeno);
-					int[] tmpInt =Array.toIntArray(genos);
+					// whew, is this inefficient or what
+					double[] genos = Array.toDoubleArray(tmpGeno);
+					int[] tmpInt = Array.toIntArray(genos);
 					double mafMark = AlleleFreq.calcMAF(Array.countIf(tmpInt, 0), Array.countIf(tmpInt, 1), Array.countIf(tmpInt, 2));
-					if(mafMark>=maf){
-					RegressionModel model = (RegressionModel) new LeastSquares(Array.toDoubleArray(tmpData),genos );
-					if (!model.analysisFailed()) {
-						dataBetas.add(model.getBetas()[1]);
-						meta.add(metaBetas.get(i).getBeta());
-					}
-					}else{
+					if (mafMark >= maf) {
+						RegressionModel model = (RegressionModel) new LeastSquares(Array.toDoubleArray(tmpData), genos);
+						if (!model.analysisFailed()) {
+							dataBetas.add(model.getBetas()[1]);
+							meta.add(metaBetas.get(i).getBeta());
+						}
+					} else {
 						countMafRemoved++;
 					}
 				}
@@ -232,7 +232,7 @@ public class BetaOptimizer {
 		private double maf;
 		private Logger log;
 
-		public BetaProducer(byte[][] genotypes, boolean[] sampleDef, ArrayList<MetaBeta> metaBetas, ExtProjectDataParser parser, int max,double maf, Logger log) {
+		public BetaProducer(byte[][] genotypes, boolean[] sampleDef, ArrayList<MetaBeta> metaBetas, ExtProjectDataParser parser, int max, double maf, Logger log) {
 			super();
 			this.genotypes = genotypes;
 			this.metaBetas = metaBetas;
@@ -241,7 +241,7 @@ public class BetaOptimizer {
 			this.log = log;
 			this.index = 0;
 			this.max = max;
-			this.maf=maf;
+			this.maf = maf;
 		}
 
 		@Override
@@ -253,7 +253,7 @@ public class BetaOptimizer {
 		@Override
 		public Callable<BetaCorrelationResult[]> next() {
 			double[] data = parser.getNumericData()[index];
-			BetaWorker worker = new BetaWorker(genotypes, sampleDef, data, index, metaBetas,maf, log);
+			BetaWorker worker = new BetaWorker(genotypes, sampleDef, data, index, metaBetas, maf, log);
 			index++;
 			return worker;
 		}
@@ -439,7 +439,7 @@ public class BetaOptimizer {
 												ExtProjectDataParser parser = builder.build(proj, file);
 												parser.determineIndicesFromTitles();
 												parser.loadData();
-												BetaProducer producer = new BetaProducer(analysisGenos, sampleDef, current, parser, maxPCs,0.05, log);
+												BetaProducer producer = new BetaProducer(analysisGenos, sampleDef, current, parser, maxPCs, 0, log);
 												WorkerTrain<BetaCorrelationResult[]> train = new WorkerTrain<BetaOptimizer.BetaCorrelationResult[]>(producer, numthreads, 10, log);
 												while (train.hasNext()) {
 													BetaCorrelationResult[] results = train.next();
@@ -485,7 +485,7 @@ public class BetaOptimizer {
 
 			ArrayList<RScatter> rScattersBetas = new ArrayList<RScatter>();
 			ArrayList<RScatter> rScattersInvBetas = new ArrayList<RScatter>();
-			
+
 			String[] summHeader = Files.getHeaderOfFile(bigSummaryOut, log);
 			Hashtable<String, Hashtable<String, Vector<String>>> info = HashVec.loadFileToHashHashVec(bigSummaryOut, ext.indexOfStr("pvalCutoff", summHeader), ext.indexOfStr("Method", summHeader), new int[] { ext.indexOfStr("numberOfMarkers", summHeader), ext.indexOfStr("numSamples", summHeader) }, "\t", false, false);
 
