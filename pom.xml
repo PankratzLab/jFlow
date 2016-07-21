@@ -8,9 +8,9 @@
 	<packaging>pom</packaging>
 
 	<name>Genvisis Projects</name>
-	<description>.</description>
+	<description>Parent POM for all Genvisis projects.</description>
 	<url>http://www.genvisis.org/</url>
-	<inceptionYear>2016</inceptionYear>
+	<inceptionYear>2009</inceptionYear>
 	<organization>
 		<name>Genvisis</name>
 		<url>http://www.genvisis.org/</url>
@@ -473,6 +473,17 @@
 			</plugins>
 		</pluginManagement>
 		<plugins>
+			<!-- Default license information -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<configuration>
+					<licenseName>gpl_v2</licenseName>
+					<projectName>Genvisis</projectName>
+					<organizationName>Nathan Pankratz</organizationName>
+				</configuration>
+			</plugin>
+
 			<!-- Create -sources.jar when building. -->
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
