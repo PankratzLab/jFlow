@@ -3,6 +3,9 @@ All notable changes to Genvisis will be documented in this file.
 
 ##[Unreleased]
 
+### Fixed
+- attempted to fix file permission issues (make executable) associated with affymetrix power tools
+
 ##[0.1.5]
 
 ### Fixed
