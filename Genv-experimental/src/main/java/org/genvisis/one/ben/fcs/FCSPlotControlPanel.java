@@ -43,7 +43,6 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.miginfocom.swing.MigLayout;
@@ -432,9 +431,9 @@ public class FCSPlotControlPanel extends JPanel {
     protected void addFCSFiles(String[] files) {
         TreeSet<String> fileSet = new TreeSet<String>();
         for (String f : files) {
-            fileSet.add(f);
+            fileSet.add(f.trim());
         }
-        prevFCSDir = ext.parseDirectoryOfFile(files[0]);
+        prevFCSDir = ext.parseDirectoryOfFile(files[0].trim());
 
         for (String f : fileSet) {
             String sz = Files.getSizeScaledString(f, false);
@@ -496,7 +495,7 @@ public class FCSPlotControlPanel extends JPanel {
         public void actionPerformed(ActionEvent e) {
             DataControlPanel dcp = (DataControlPanel) e.getSource();
             String cmd = e.getActionCommand();
-            String file = cmd.split("::")[0];
+//            String file = cmd.split("::")[0];
             cmd = cmd.split("::")[1];
             int ind = -1;
             for (int i = 0; i < filePanels.size(); i++) {

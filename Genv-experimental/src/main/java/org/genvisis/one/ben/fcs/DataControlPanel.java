@@ -124,7 +124,7 @@ public class DataControlPanel extends JPanel {
         
         JLabel lblFileName = new JLabel("<html><p>" + file + "</p></html>");
         lblFileName.setFont(new Font("Arial", Font.PLAIN, 9));
-        add(lblFileName, "cell 0 1 6 1");
+        add(lblFileName, "cell 0 1 7 1, growy");
         
         JLabel lblDate = new JLabel("Date:");
         lblDate.setFont(new Font("Arial", Font.BOLD, 8));

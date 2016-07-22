@@ -473,7 +473,8 @@ public class Matrix {
 		double[] array = new double[data.length];
 
 		for (int i = 0; i<array.length; i++) {
-			array[i] = data[i] == null ? null : data[i][col];
+		    if (data[i] == null) continue;
+			array[i] = data[i][col];
 		}
 
 		return array;
@@ -489,10 +490,12 @@ public class Matrix {
 	 * @return array of the elements in specified column
 	 */
 	public static float[] extractColumn(float[][] data, int col) {
+	    if (data == null) return null;
 		float[] array = new float[data.length];
 
 		for (int i = 0; i<array.length; i++) {
-			array[i] = data[i] == null ? null : data[i][col];
+            if (data[i] == null) continue;
+			array[i] = data[i][col];
 		}
 
 		return array;
@@ -508,9 +511,11 @@ public class Matrix {
 	 * @return array of the elements in specified column
 	 */
 	public static int[] extractColumn(int[][] data, int col) {
+	    if (data == null) return null;
 		int[] array = new int[data.length];
 
 		for (int i = 0; i<array.length; i++) {
+            if (data[i] == null) continue;
 			array[i] = data[i][col];
 		}
 
@@ -527,9 +532,11 @@ public class Matrix {
 	 * @return array of the elements in specified column
 	 */
 	public static String[] extractColumn(String[][] data, int col) {
+	    if (data == null) return null;
 		String[] array = new String[data.length];
 
 		for (int i = 0; i<array.length; i++) {
+            if (data[i] == null) continue;
 			if (data[i].length - 1 < col) {
 				System.err.println("Error - trying to extract column index "+(col)+" from a row that doesn't have "+(col+1)+" columns (row index "+i+" only has "+(data[i].length-1)+" columns)");
 			}
