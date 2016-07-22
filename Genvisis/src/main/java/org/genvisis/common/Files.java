@@ -2290,25 +2290,61 @@ public class Files {
 	public static Object readSerial(String filename, boolean jar, Logger log, boolean kill) {
 		return readSerial(filename, jar, log, kill, filename.endsWith(".gz"));
 	}
-
-	public static Object readSerial(String filename, boolean jar, Logger log, boolean kill, boolean gzipped) {
-		ObjectInputStream ois;
+	
+	public static Object readSerial(String filename, boolean jar, Logger log, boolean kill, boolean gzipped){
+		InputStream in;
+		ObjectInputStream ois = null;
 		Object o = null;
 
 		try {
 			if (jar) {
-				ois = new ObjectInputStream(new BufferedInputStream(ClassLoader.getSystemResourceAsStream(filename)));
+				in = new BufferedInputStream(ClassLoader.getSystemResourceAsStream(filename));
 			} else if (gzipped) {
-				ois = new ObjectInputStream(new GZIPInputStream(new FileInputStream(filename)));
+				in = new GZIPInputStream(new FileInputStream(filename));
 			} else {
-				ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(filename)));
+				in = new BufferedInputStream(new FileInputStream(filename));
 			}
 			
+			try {
+				ois = new ObjectInputStream(in);
+				o = ois.readObject();
+				ois.close();
+			} catch (ClassNotFoundException cnfe) {
+				if (ois != null) {
+					ois.close();
+					if (jar) {
+						in = new BufferedInputStream(ClassLoader.getSystemResourceAsStream(filename));
+					} else if (gzipped) {
+						in = new GZIPInputStream(new FileInputStream(filename));
+					} else {
+						in = new BufferedInputStream(new FileInputStream(filename));
+					}
+				}
+				ois = new ObjectInputStream(in) {
+					@Override
+					protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
+						ObjectStreamClass resultClassDescriptor = null;
+						try {
+							resultClassDescriptor = super.readClassDescriptor();
+							Class.forName(resultClassDescriptor.getName());
+						} catch (ClassNotFoundException cnfe) {
+							String convertedClassDesc = "org.genvisis." + resultClassDescriptor.getName();
+							Class<?> convertedClass = Class.forName(convertedClassDesc);
+							log.reportTimeWarning("The Class (" + resultClassDescriptor.getName() +  ") for the Serialized Object " + filename + " cannot be resolved, attempting to use " + convertedClassDesc);
+							resultClassDescriptor = ObjectStreamClass.lookup(convertedClass);
+						}
+						return resultClassDescriptor;
+					}
+				};
+				o = ois.readObject();
+				ois.close();
+				log.report("Succesfully deserialized " + filename + " to " + o.getClass().getName());
+				writeSerial(o, filename, gzipped);
+				log.report("Succesfully rewrote " + filename + " as a serialized " + o.getClass().getName());
+			}
 			
-			o = ois.readObject();
-			ois.close();
 		} catch (Exception e) {
-			log.reportError("Error - failed to load "+filename);
+			log.reportError("Error - failed to load " + filename);
 			log.reportException(e);
 			if (kill) {
 				System.exit(1);
