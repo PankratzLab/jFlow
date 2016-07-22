@@ -97,7 +97,7 @@
 								<phase>package</phase>
 								<configuration>
 									<target>
-										<exec dir="${project.basedir}" executable="scp" failonerror="true">
+										<exec dir="${project.basedir}" executable="${genv.upload.exe}" failonerror="true">
 											<arg value="${project.build.directory}/${outname}.jar"/>
 											<arg value="${genv.upload.path}"/>
 										</exec>
