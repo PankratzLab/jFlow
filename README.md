@@ -72,8 +72,8 @@ You can use Maven to automatically upload `genvisis.jar` to a remote location af
 		<profile>
 			<id>genvisis-upload</id>
 			<properties>
-				<genv.upload.path>user@host:/path/to/output/</genv.upload.path>
-				<genv.upload.pass>ssh_key_pass</genv.upload.pass>
+				<genv.upload.exe>[p]scp</genv.upload.exe>
+				<genv.upload.path>user[:pass]@host:/path/to/output/</genv.upload.path>
 			</properties>
 		</profile>
 	</profiles>
