@@ -268,7 +268,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		if (columnsChangedX || columnsChangedY || dataChanged || gatesChanged) {
 		    updateGating();
 		}
-
+		
 		xData = columnsChangedX || dataChanged || xData == null ? fcp.getAxisData(false, true) : xData;
 		yData = columnsChangedY || dataChanged || yData == null ? isHistogram() ? null : fcp.getAxisData(false, false) : yData;
 		
@@ -338,13 +338,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     				type = PlotPoint.FILLED_CIRCLE;
     			}
     			
-    			color = (byte) 0; // TODO apply gating for colors
-    			for (int g = 0; g < gates.size(); g++) {
-    			    if (gates.get(g)[i]) {
-    			        color = (byte) 3;
-    			        break;
-    			    }
-    			}
+    			color = (byte) 0;
     			points[i] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte)0);
     		}
         }
@@ -362,7 +356,14 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     
     private void updateGateColor() {
         byte color = 0;
-        for (int i = 0; i < points.length; i++) {
+        boolean[] gating = fcp.getParentGate() == null ? null : fcp.getParentGate().gate(fcp.dataLoader); 
+
+        for (int i = 0, count = gating == null ? points.length : gating.length, index = 0; i < count; i++) {
+            if (gating != null) {
+                if (!gating[i]) {
+                    continue;
+                }
+            }
             color = (byte) 0; // TODO apply gating for colors
             for (int g = 0; g < gates.size(); g++) {
                 if (gates.get(g)[i]) {
@@ -370,7 +371,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                     break;
                 }
             }
-            points[i].setColor(color);
+            points[index++].setColor(color);
         }
     }
     
@@ -385,7 +386,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             boolean[] gt = g.gate(fcp.dataLoader);
             if (gt == null) continue;
             int sm = Array.booleanArraySum(gt);
-            float pctInt = 100 * ((float) sm / (float)gt.length);
+            float pctInt = 100 * ((float) sm / (float)Array.booleanArraySum(g.getParentGating(fcp.dataLoader)));
             String pct = ext.formDeci(pctInt, 2);
             String lbl = "(" + pct + "%)";
             gates.add(gt);
@@ -694,6 +695,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                                 mouseRects.add(gr);
                             }
                         }
+                    } else {
+                        selectedRects.clear();
+                        mouseRects.clear();
                     }
                 } else {
                     for (RectangleGate rect : closeRects) {
@@ -803,9 +807,14 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     public void mouseClicked(MouseEvent e) {   
         if (lackingData) return;
     	if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
-    	    if (currentTool == GATING_TOOL.POLY_TOOL) {
+    	    if (e.getClickCount() == 2) {
+    	        ArrayList<PolygonGate> polys = getPolysContainingClick(e);
+    	        ArrayList<RectangleGate> rects = getRectsContainingClick(e);
+    	        System.out.println("Found " + (polys.size() + rects.size()) + " gates");
     	        
     	    }
+    	    
+    	    
     	} else {
     
             // check mouse location vs all shapes

@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Random;
 
 import org.apache.poi.sl.usermodel.Shape;
+import org.genvisis.common.Array;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
 import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
@@ -420,9 +421,13 @@ public abstract class Gate {
                     paramIncludes[p][i] = rgd.min <= paramData[i] && rgd.max >= paramData[i]; 
                 }
             }
+            if (includes == null) {
+                return includes;
+            }
             for (int i = 0; i < dataLoader.getCount(); i++) {
                 boolean include = true;
-                if (includes == null || (this.parentGate != null && !includes[i])) {
+                if (this.parentGate != null && !includes[i]) {
+//                    includes[i] = false;
                     continue;
                 }
                 for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
@@ -524,8 +529,12 @@ public abstract class Gate {
                 }
                 paramData[p] = dataLoader.getData(gd.paramName, true);
             }
+            if (includes == null) {
+                return includes;
+            }
             for (int i = 0; i < dataLoader.getCount(); i++) {
-                if (includes == null || (this.parentGate != null && !includes[i])) {
+                if (this.parentGate != null && !includes[i]) {
+//                    includes[i] = false;
                     continue;
                 }
                 if (mimicFlowJo) {
@@ -541,7 +550,8 @@ public abstract class Gate {
                     }
                 }
                 
-            }
+            }            
+
 //            gatingCache.put(dataLoader.getLoadedFile(), includes);
             return includes;
         }

@@ -120,7 +120,7 @@ public class GateTreePanel extends JPanel {
         tree = new JTree(new DefaultTreeModel(null));
         scrollPane.setViewportView(tree);
         tree.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-        tree.setRootVisible(false);
+        tree.setRootVisible(true);
         tree.setShowsRootHandles(true);
         tree.addTreeSelectionListener(treeListener);
     }
