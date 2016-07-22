@@ -61,3 +61,27 @@ That's it! You can now develop Genvisis code.
 To build the `Genvisis.jar`, run either the `Assembly` or the `pom-genvisis` (if you need to rebuild other modules) project [as a Maven build](https://books.sonatype.com/m2eclipse-book/reference/running-sect-running-maven-builds.html), and select the **install** goal.
 
 All Maven output will print in the `Console` tab. When complete, your `Genvisis.jar` will be built in the `Assembly/target/` directory, per the standard directory layout.
+
+## Automatic uploads
+
+You can use Maven to automatically upload `genvisis.jar` to a remote location after each build. To enable this feature, create a `settings.xml` in your `${user.home}/.m2` directory with the following structure:
+
+```xml
+<settings>
+	<profiles>
+		<profile>
+			<id>genvisis-upload</id>
+			<properties>
+				<genv.upload.path>user@host:/path/to/output/</genv.upload.path>
+				<genv.upload.pass>ssh_key_pass</genv.upload.pass>
+			</properties>
+		</profile>
+	</profiles>
+
+	<activeProfiles>
+		<activeProfile>genvisis-upload</activeProfile>
+	</activeProfiles>
+</settings>
+```
+
+Once the `genv.upload.path` is set, every time the `Assembly` component builds the `Install` step, it will use this information to scp `genvisis.jar` to the specified remote path.
