@@ -185,13 +185,15 @@ public class SexChecks {
 		bafsX = new float[xMarkers.length][sampleNames.length];
 		genotypesX = new byte[xMarkers.length][sampleNames.length];
 		rs = new float[sampleNames.length][xMarkers.length];
+		ClusterFilterCollection clusterFilters = proj.getClusterFilterCollection();
+		float gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
 		for (int m = 0; mdl.hasNext(); m++) {
 			MarkerData markerData = mdl.next();
 			float[] xs = markerData.getXs();
 			float[] ys = markerData.getYs();
 			lrrsX[m] = markerData.getLRRs();
 			bafsX[m] = markerData.getBAFs();
-			genotypesX[m] = markerData.getAbGenotypesAfterFilters(proj.getClusterFilterCollection(), markerData.getMarkerName(), proj.GC_THRESHOLD.getValue().floatValue(), log);
+			genotypesX[m] = markerData.getAbGenotypesAfterFilters(clusterFilters, markerData.getMarkerName(), gcThreshold, log);
 			for (int s = 0; s < sampleNames.length; s++) {
 				rs[s][m] = Centroids.calcR(xs[s], ys[s]);
 			}
