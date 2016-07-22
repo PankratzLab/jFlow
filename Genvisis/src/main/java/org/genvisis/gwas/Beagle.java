@@ -109,7 +109,7 @@ public class Beagle {
 	        writer.println("	        /bin/hostname > $rep.host");
 	        writer.println("			tmpdir=temp.$rep");
 	        writer.println("			mkdir $tmpdir");
-	        writer.println("#			"+Files.JCP+"park.temp chr$chr/$tmpdir 4 $rep");
+	        writer.println("#			"+Files.getRunString() + " park.temp chr$chr/$tmpdir 4 $rep");
 	        writer.println("			"+Files.JAVA+" -Djava.io.tmpdir=$tmpdir -d64 -Xmx1600M -jar /home/npankrat/bin/beagle.jar unphased=ibds.pre_phase.bgl ibdpairs=../lists/$rep.list out=$rep missing=0 markers=markers.dat seed=1234 > $rep.out");
 	        writer.println("			rm -r $tmpdir");
 	        writer.println("			echo \"Finished rep $rep at \" `date` >> $rep_times.log");
@@ -183,7 +183,7 @@ public class Beagle {
 	        writer.println("echo \"Transposing chromosome $chr...\"");
 	        writer.println("cd chr$chr/");
 	        writer.println("/home/npankrat/bin/mine_ped_to_bgl plink.ped plink.map > ibds.pre_phase.bgl");
-	        writer.println(Files.JCP+"parse.GenParser plink.bim out=markers.dat 1 2 4 5 noHeader");
+	        writer.println(Files.getRunString() + " parse.GenParser plink.bim out=markers.dat 1 2 4 5 noHeader");
 	        writer.println("cd ..");
 	        writer.println("done");
 //	        writer.println("./script."+root);

@@ -146,24 +146,24 @@ public class Ancestry {
 		
 		if (!Files.exists(unrelatedsDir + "master")) {
 			log.report(ext.getTime() + "]\tCreating Eigenstrat");
-			CmdLine.runDefaults("jcp gwas.Eigenstrat source=plink -create", unrelatedsDir, log);
+			CmdLine.runDefaults(Files.getRunString() + " gwas.Eigenstrat source=plink -create", unrelatedsDir, log);
 		}
 		
 		if (!Files.exists(unrelatedsDir + "plink.pca.evec")) {
 			log.report(ext.getTime() + "]\tRunning master");
 			CmdLine.runDefaults("./master", unrelatedsDir, log);
-			CmdLine.runDefaults("jcp gwas.Eigenstrat convert=plink.pca.evec", unrelatedsDir, log);
+			CmdLine.runDefaults(Files.getRunString() + " gwas.Eigenstrat convert=plink.pca.evec", unrelatedsDir, log);
 		}
 		
 		if (!Files.exists(dir+"convertf.par")) {
 			log.report(ext.getTime() + "]\tRunning convertf");
-			CmdLine.runDefaults("jcp gwas.Eigenstrat source=combo -create", dir, log);
+			CmdLine.runDefaults(Files.getRunString() + " gwas.Eigenstrat source=combo -create", dir, log);
 			CmdLine.runDefaults("convertf -p convertf.par", dir, log);
 		}
 		
 		if (!Files.exists(dir+"combo_fancy_postnormed_eigens.xln")) {
 			CmdLine.runDefaults("plink2 --bfile unrelateds/plink --freq --out unrelateds/plink --noweb", dir, log);
-			CmdLine.runDefaults("jcp gwas.Eigenstrat source=unrelateds/plink target=combo -parse -eigenFormat", dir, log);
+			CmdLine.runDefaults(Files.getRunString() + " gwas.Eigenstrat source=unrelateds/plink target=combo -parse -eigenFormat", dir, log);
 		}
 	}
 	

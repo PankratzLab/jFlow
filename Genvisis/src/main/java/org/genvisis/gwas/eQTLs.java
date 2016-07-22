@@ -20,7 +20,7 @@ public class eQTLs {
 			
 	public static void parse(String filename) {
 		for (int chr = 1; chr <= 22; chr++) {
-			System.out.println("jcp gwas.Minimac extract=snps/EUR.chr"+chr+".snps hapFile=hap/EUR/unzipped/EUR.chr"+chr+".hap mapFile=map/EUR.chr"+chr+".map");
+			System.out.println(Files.getRunString() + " gwas.Minimac extract=snps/EUR.chr"+chr+".snps hapFile=hap/EUR/unzipped/EUR.chr"+chr+".hap mapFile=map/EUR.chr"+chr+".map");
 		}
 	}
 	

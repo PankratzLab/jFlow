@@ -376,7 +376,7 @@ public class Algorithm {
 		// commands += "plink --bfile pd_gwas --chr [%0] --out chr[%0] --recode
 		// --remove WGAs.txt\n";
 		commands += "plink --bfile plink --chr [%0] --out chr[%0].recode --recode\n\n";
-		commands += "jcp nrss.Nrss procMap=[%0]\n";
+		commands += Files.getRunString() + " nrss.Nrss procMap=[%0]\n";
 		commands += "java -Dsun.java2d.noddraw=true -Xmx1024m -classpath /home/npankrat/Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -log -pedfile chr[%0].recode.ped -info chr[%0].map -skipcheck -hwcutoff 0 -maxDistance 500 -dprime\n\n";
 
 		Files.batchIt("haplo", null, numBatches, commands, Array.stringArraySequence(23, ""));

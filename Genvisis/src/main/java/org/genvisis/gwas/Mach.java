@@ -40,8 +40,8 @@ public class Mach {
 				writer.println("cd chr"+i);
 				writer.println("plink --noweb --bfile ../"+root+(excludes==null?"":" --exclude ../"+excludes)+" --chr "+i+" --out "+prefixAll+".chr"+i+" --recode");
 				writer.println("plink --noweb --bfile ../"+root+(excludes==null?"":" --exclude ../"+excludes)+" --chr "+i+" --out "+prefixSubset+".chr"+i+" --recode"+(keeps==null?"":" --keep ../"+keeps));
-				writer.println("jcp gwas.Mach convert="+prefixSubset+".chr"+i);
-				writer.println("jcp gwas.Mach convert="+prefixAll+".chr"+i);
+				writer.println(Files.getRunString() + " gwas.Mach convert="+prefixSubset+".chr"+i);
+				writer.println(Files.getRunString() + " gwas.Mach convert="+prefixAll+".chr"+i);
 				writer.println("cd ..");
 				writer.println();
 			}
@@ -1401,8 +1401,8 @@ public class Mach {
         PrintWriter writer;
         
 		for (int chr = 1; chr<=22; chr++) {
-			System.out.println("jcp gwas.Mach -extractGenotypes rsq=0.98 prob=0.98 mach=MACH_step2_chr"+chr+" ped=../../plink.fam");
-			CmdLine.run("jcp gwas.Mach -extractGenotypes rsq=0.98 prob=0.98 mach=MACH_step2_chr"+chr+" ped=../../plink.fam", "chr"+chr+"/");
+			System.out.println(Files.getRunString() + " gwas.Mach -extractGenotypes rsq=0.98 prob=0.98 mach=MACH_step2_chr"+chr+" ped=../../plink.fam");
+			CmdLine.run(Files.getRunString() + " gwas.Mach -extractGenotypes rsq=0.98 prob=0.98 mach=MACH_step2_chr"+chr+" ped=../../plink.fam", "chr"+chr+"/");
         }
 		try {
 	        writer = new PrintWriter(new FileWriter("merge.dat"));

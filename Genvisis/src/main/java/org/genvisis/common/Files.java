@@ -38,6 +38,27 @@ public class Files {
 	public static final String JCP = JAVA+" -cp /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS;
 	public static final String SERIALIZED_FILE_EXTENSION = ".ser";
 
+	public static String getJarLocation() {
+        try {
+            return new File(Files.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getAbsolutePath();
+        } catch (URISyntaxException e) {
+            return "~/" + org.genvisis.common.PSF.Java.GENVISIS;
+        }
+	}
+	
+	public static String getRunString() {
+	    return getRunString(-1);
+	}
+	
+	public static String getRunString(int memInMeg) {
+	    return getRunString(memInMeg, false);
+	}
+	
+	public static String getRunString(int memInMeg, boolean interpretAsGig) {
+	    int mem = memInMeg == -1 ? -1 : interpretAsGig ? memInMeg / 1024 : memInMeg;
+	    return "java " + (memInMeg == -1 ? "" : "-Xmx" + mem + (interpretAsGig ? "G" : "M")) + " -jar " + getJarLocation();
+	}
+	
 	public static void batchIt(String root_batch_name, String init, int numBatches, String commands, String[] iterations) {
 		String[][] iters = new String[iterations.length][1];
 
@@ -169,6 +190,7 @@ public class Files {
 		return qsub(dir, filenameFormat, start, stop, commands, patterns, totalMemoryRequestedInMb, walltimeRequestedInHours, nodeToUse, null);
 	}
 	
+	@Deprecated
 	public static String[] qsub(String dir, String filenameFormat, int start, int stop, String commands, String[] patterns, int totalMemoryRequestedInMb, double walltimeRequestedInHours, String nodeToUse, String queueName) {
 		PrintWriter writer;
 		String filename;
@@ -3612,7 +3634,7 @@ public class Files {
 		if (multiple) { // could be more elegant and incorporated with those below if desired
 			System.out.println("Creating a ScriptExecutor");
 			numThreads = Math.min(24, Files.countLines(filename, 0));
-			qsub("scriptExecutorFor_"+ext.removeDirectoryInfo(filename), "cd "+ext.parseDirectoryOfFile(filename)+"\njcp one.ScriptExecutor file="+ext.removeDirectoryInfo(filename)+" threads="+numThreads, 63000, 12, numThreads);
+			qsub("scriptExecutorFor_"+ext.removeDirectoryInfo(filename), "cd "+ext.parseDirectoryOfFile(filename)+"\n" + Files.getRunString() + " one.ScriptExecutor file="+ext.removeDirectoryInfo(filename)+" threads="+numThreads, 63000, 12, numThreads);
 		} else if (separate) {
 			v = new Vector<String>();
 			for (int i = 0; i < lines.length; i++) {
@@ -4046,7 +4068,6 @@ public class Files {
 		"   (4) output file name (i.e. out=gwasHits.tdt (not the default))\n" +
 		"   (5) index of key column in data file (i.e. keyIndex=7 (not the default))\n" +
 		"   (6) order results by key order (i.e. ordered=TRUE (default))\n" +
-		
 		"";
 
 		for (int i = 0; i < args.length; i++) {

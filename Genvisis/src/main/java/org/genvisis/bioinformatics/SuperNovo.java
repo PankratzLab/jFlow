@@ -273,7 +273,7 @@ public class SuperNovo {
 			bamFilenamesByTrios = loadNamesFromList(fullPathToTrioNameList);
 		}
 		qsubFilesVec = new Vector<String>(bamFilenamesByTrios.length);
-		command = "cd " + outputDir + "\njcp one.SuperNovo -denovo bim=" + bimFilename + " outdir=" + outputDir + " bamdir=" + bamDir + " reffasta=" + refFastaFilename + " regionlengthatime=" + regionLegnthATime + " numthreads=" + numThreads + " -denovo";
+		command = "cd " + outputDir + "\n" + Files.getRunString() + " one.SuperNovo -denovo bim=" + bimFilename + " outdir=" + outputDir + " bamdir=" + bamDir + " reffasta=" + refFastaFilename + " regionlengthatime=" + regionLegnthATime + " numthreads=" + numThreads + " -denovo";
 		for (int i = 0; i < bamFilenamesByTrios.length; i++) {
 //			processGenomeOfOneTrio(bamDir, bamFilenames, refFastaFilename, bedFilename, outputDir, numThreads, log);
 			trioId = bamFilenamesByTrios[i][0];

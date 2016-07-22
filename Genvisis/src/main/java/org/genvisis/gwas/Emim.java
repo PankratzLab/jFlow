@@ -282,19 +282,19 @@ public class Emim {
         		log.report("Results already exist in " + currDir + " for " + model.toString() + " model, skipping " + model.toString() + " EMIM");
         	} else {
 	        	commands += "\n"+
-	                    	"jcp gwas.Emim run=C model=" + model.toString() + "\n"+
+	        	            Files.getRunString() + " gwas.Emim run=C model=" + model.toString() + "\n"+
 	                    	"emim\n"+
 	                    	"mv emimsummary.out emimsummary_C_" + model.toString() + ".out\n"+
 	                    	"rm emimresults.out\n"+
 	                    	"cp emimparams.dat emimparams_C_" + model.toString() + ".dat\n"+
 	                    	"\n"+
-	                    	"jcp gwas.Emim run=CM model=" + model.toString() + "\n"+
+	                    	Files.getRunString() + " gwas.Emim run=CM model=" + model.toString() + "\n"+
 	                    	"emim\n"+
 	                    	"mv emimsummary.out emimsummary_CM_" + model.toString() + ".out\n"+
 	                    	"rm emimresults.out\n"+
 	                    	"cp emimparams.dat emimparams_CM_" + model.toString() + ".dat\n"+
 	                    	"\n"+
-	                    	"jcp gwas.Emim run=M model=" + model.toString() + "\n"+
+	                    	Files.getRunString() + " gwas.Emim run=M model=" + model.toString() + "\n"+
 	                    	"emim\n"+
 	                    	"mv emimsummary.out emimsummary_M_" + model.toString() + ".out\n"+
 	                    	"rm emimresults.out\n"+
@@ -303,7 +303,7 @@ public class Emim {
         	}
         	
         	if (!skipModel || forceParse) {
-        		commands += "jcp gwas.Emim parse=./" 
+        		commands += Files.getRunString() + " gwas.Emim parse=./" 
 	                      + " hwe=plink.hwe" 
 	                      + " frq=plink.frq"
 	                      + " pThreshold=" + pThreshold 

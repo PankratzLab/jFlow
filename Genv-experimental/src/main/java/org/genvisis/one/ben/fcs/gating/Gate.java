@@ -314,15 +314,15 @@ public abstract class Gate {
     protected boolean[] parentGating = null;
     
     public boolean[] getParentGating(FCSDataLoader dataLoader) {
-//        if (parentGating == null) {
-//            if (this.parentGate == null) {
-//                return null;
-//            } else {
-//                return parentGating = this.parentGate.gate(dataLoader);
-//            }
-//        }
-//        return parentGating;
-        return this.parentGate == null ? null : this.parentGate.gate(dataLoader);
+        if (parentGating == null) {
+            if (this.parentGate == null) {
+                return null;
+            } else {
+                return parentGating = this.parentGate.gate(dataLoader);
+            }
+        }
+        return parentGating;
+//        return this.parentGate == null ? null : this.parentGate.gate(dataLoader);
     }
     
 //    public void clearCache() {
@@ -402,6 +402,7 @@ public abstract class Gate {
                 return;
             }
             this.dimensions.add(gd);
+            this.parentGating = null;
         }
         
         @Override
@@ -409,7 +410,8 @@ public abstract class Gate {
 //            if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
 //                return gatingCache.get(dataLoader.getLoadedFile());
 //            }
-            boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : (this.parentGating = this.parentGate.gate(dataLoader));
+            boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : this.parentGate.gate(dataLoader);
+            this.parentGating = includes == null ? null : includes.clone();
             boolean[][] paramIncludes = new boolean[dimensions.size()][dataLoader.getCount()];
             for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
                 RectangleGateDimension rgd = (RectangleGateDimension) dimensions.get(p);
@@ -466,6 +468,7 @@ public abstract class Gate {
         public void setShouldMimicFlowJoGating(boolean mimic) {
             this.mimicFlowJo = mimic;
             prepGating();
+            this.parentGating = null;
         }
         
         @Override
@@ -475,10 +478,12 @@ public abstract class Gate {
                 return;
             }
             this.dimensions.add(gd);
+            this.parentGating = null;
         }
         
         public void setPath(Path2D pth) {
             this.myPath = pth;
+            this.parentGating = null;
             resetVertices();
             prepGating();
 //            clearCache();
@@ -517,7 +522,8 @@ public abstract class Gate {
 //            if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
 //                return gatingCache.get(dataLoader.getLoadedFile());
 //            }
-            boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : (this.parentGating = this.parentGate.gate(dataLoader));
+            boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : this.parentGate.gate(dataLoader);
+            this.parentGating = includes == null ? null : includes.clone();
             if (myPath == null) {
                 myPath = constructPath();
             }
@@ -622,6 +628,7 @@ public abstract class Gate {
         public void addVertex(Double fX, Double fY) {
             this.verticesX.add(fX);
             this.verticesY.add(fY);
+            this.parentGating = null;
         }
         
         

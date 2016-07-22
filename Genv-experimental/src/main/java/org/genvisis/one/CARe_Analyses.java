@@ -890,7 +890,7 @@ public class CARe_Analyses {
 				for (int j = 0; j < RACES.length; j++) {
 					dir = STUDIES[i]+"_"+RACES[j][0]+"/";
 					if (new File(dir+phenofile).exists()) {
-						commands = "jcp gwas.GWAF "+
+						commands = Files.getRunString() + " gwas.GWAF "+
 						"phenoFile="+phenofile+" "+
 						"pheno="+pheno+" "+
 						"genoPrimer=gwaf/file#.fhsR.gz "+

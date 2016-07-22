@@ -208,7 +208,7 @@ public class PLINK2GenomePackager {
         for (String plinkDir : plinkRuns.keySet()) {
             StringBuilder procCmd = new StringBuilder();
             procCmd.append("cd " + plinkDir + "\n")
-            .append("jcp one.PLINK2GenomePackager -process dir=")
+            .append(Files.getRunString()).append(" one.PLINK2GenomePackager -process dir=")
             .append(plinkDir)
             .append(" pmFile=")
             .append(pmAllFile)

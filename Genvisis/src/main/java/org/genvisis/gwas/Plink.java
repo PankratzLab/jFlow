@@ -113,7 +113,7 @@ public class Plink {
 	        writer.println("mkdir batches/");
 	        writer.println("mv *.qsub* batches/");
 	        writer.println();
-	        writer.println("jcp gwas.Plink relate=cluster.genome");
+	        writer.println(Files.getRunString() + " gwas.Plink relate=cluster.genome");
 	        writer.println("mkdir unrelateds");
 	        writer.println("cd unrelateds/");
 	        writer.println("plink --bfile ../../plink --keep ../cluster.genome_keep.dat --make-bed --noweb");

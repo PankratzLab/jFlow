@@ -2081,7 +2081,7 @@ public class SeqMeta {
 							}
 							Files.writeMatrix(forestInputs, ext.rootOf(dir+hitsDirectory+filename, false)+"_forestPlot.input", "\t");
 							inputsToCat.add(ext.rootOf(dir+hitsDirectory+filename, false)+"_forestPlot.input");
-							batchesToCat.addElement("# jcp cnv.plots.ForestPlot markerList="+hitsDirectory+ext.rootOf(filename, false)+"_forestPlot.input");
+							batchesToCat.addElement("# " + Files.getRunString() + " cnv.plots.ForestPlot markerList="+hitsDirectory+ext.rootOf(filename, false)+"_forestPlot.input");
 						}
 						Files.writeMatrix(results, ext.rootOf(dir+hitsDirectory+filename, false)+"_regions.xln", "\t");
 	//					String temp = phenotypes[i][0];
@@ -2100,7 +2100,7 @@ public class SeqMeta {
 		}
 		if (inputsToCat.size() > 0) {
 			Files.cat(Array.toStringArray(inputsToCat), dir+hitsDirectory+"allForestPlots.input", new int[0], log);
-			batchesToCat.addElement("jcp cnv.plots.ForestPlot markerList="+hitsDirectory+"allForestPlots.input");
+			batchesToCat.addElement(Files.getRunString() + " cnv.plots.ForestPlot markerList="+hitsDirectory+"allForestPlots.input");
 			Files.writeList(Array.toStringArray(batchesToCat), dir+"allForestPlots.bat");
 		}
 	}

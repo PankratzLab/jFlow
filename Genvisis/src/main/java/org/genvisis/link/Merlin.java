@@ -71,7 +71,7 @@ public class Merlin {
 			} else {
 				commands = ""+
 				"cd "+qsub+"\n"+
-				Files.JCP+"link.Merlin chr=#\n"+
+				Files.getRunString() + " link.Merlin chr=#\n"+
 				"/share/apps/bin/merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --vc --tabulate --step 5 --markerNames --information --prefix vc-chr## > vc-chr##.log";
 				Files.qsub(qsub+"_vc", CHR_START, CHR_STOP, commands);
 			}
@@ -98,7 +98,7 @@ public class Merlin {
 				Files.qsub(qsub+"_regress", null, CHR_START, CHR_STOP, commands, 1, 48, null);
 			} else {
 				commands = "cd "+qsub+"\n"+
-				Files.JCP+"link.Merlin chr=#\n"+
+		        Files.getRunString() + " link.Merlin chr=#\n"+
 				"/share/apps/bin/merlin-regress -d chr##.dat -p re_chrom##.pre -m chr##.map --mean "+quant[0]+" --var "+quant[1]+" --her "+quant[2]+" --tabulate --step 5 --prefix regress-chr##";
 				Files.qsub(qsub+"_regress", CHR_START, CHR_STOP, commands);
 			}

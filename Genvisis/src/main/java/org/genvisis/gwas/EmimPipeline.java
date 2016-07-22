@@ -251,7 +251,7 @@ public class EmimPipeline {
         	log.reportError("No pipeline pbs scripts generated, to re-run EMIM remove/rename the existing directories");
         }
         
-        String processCommand = "jcp gwas.EmimPipeline -process dir=" + runDir;
+        String processCommand = Files.getRunString() + " gwas.EmimPipeline -process dir=" + runDir;
         if (cnvFiles != null) {
             processCommand += " cnvs=" + Array.toStr(cnvFiles, ",");
         }

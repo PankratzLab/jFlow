@@ -367,7 +367,7 @@ public class Minimac {
 			   			"rm updated.phased\n"
 			   			:BGL_TO_PED+" phased.pre_phase.bgl.phased plink.fam 0 > target.ped\n")+ // transform original
 			   			"gzip phased.pre_phase.bgl.phased\n"+
-			   			Files.JCP+"gwas.Minimac split=target.ped\n"+
+			   			Files.getRunString() + " gwas.Minimac split=target.ped\n"+
 			   			"awk '{print $2}' plink.map > target.snps\n";		// split
 
 		} else {
@@ -375,9 +375,9 @@ public class Minimac {
 						"awk '{print $2}' all.chr#.map > target.snps\n";
 		}
 		
-		commands += Files.JCP+"gwas.Minimac -freq hapFile=target.haps mapFile=target.snps\n"+	// compute allele frequencies
-		       		Files.JCP+"gwas.Minimac compStrand=target_freq.xln compRef="+REF_FREQ_ROOT+"/\n"+	// process strand issues
-		       		Files.JCP+"gwas.Minimac -filter hapFile=target.haps mapFile=target.snps flips=flips.txt drops=problems.txt newHapFile=final.haps newMapFile=final.snps\n"+	// filter
+		commands += Files.getRunString() + " gwas.Minimac -freq hapFile=target.haps mapFile=target.snps\n"+	// compute allele frequencies
+		            Files.getRunString() + " gwas.Minimac compStrand=target_freq.xln compRef="+REF_FREQ_ROOT+"/\n"+	// process strand issues
+		            Files.getRunString() + " gwas.Minimac -filter hapFile=target.haps mapFile=target.snps flips=flips.txt drops=problems.txt newHapFile=final.haps newMapFile=final.snps\n"+	// filter
 		       		"rm target.ped target.haps pre_phase.bgl plink.ped\n"+		// delete large files
 		       		"gzip final.haps\n"+	// compress
 		       		//			       "mkdir \n"+	// create temp directory
@@ -567,7 +567,7 @@ public class Minimac {
 			writer.println("mkdir /share/archive/1000G_phased/hap/EUR/unzipped/");
 			for (int chr = 1; chr <= 22; chr++) {
 				writer.println("gunzip -c /share/archive/1000G_phased/hap/EUR/EUR.chr"+chr+".hap.gz > /share/archive/1000G_phased/hap/EUR/unzipped/EUR.chr"+chr+".hap");
-				writer.println(Files.JCP+"gwas.Minimac -freq hapFile=/share/archive/1000G_phased/hap/EUR/unzipped/EUR.chr"+chr+".hap mapFile=/share/archive/1000G_phased/snps/EUR.chr"+chr+".snps");
+				writer.println(Files.getRunString() + " gwas.Minimac -freq hapFile=/share/archive/1000G_phased/hap/EUR/unzipped/EUR.chr"+chr+".hap mapFile=/share/archive/1000G_phased/snps/EUR.chr"+chr+".snps");
 				writer.println("rm /share/archive/1000G_phased/hap/EUR/unzipped/EUR.chr"+chr+".hap");
 				writer.println();
 			}

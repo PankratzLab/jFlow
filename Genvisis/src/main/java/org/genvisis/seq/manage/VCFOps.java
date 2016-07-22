@@ -480,7 +480,7 @@ public class VCFOps {
 			}
 		}
 		if (!Files.exists(dir + ".qc.pbs")) {
-			String gwasQC = Array.toStr(PSF.Load.getAllModules(), "\n") + "\njcp gwas.Qc dir=" + dir;
+			String gwasQC = Array.toStr(PSF.Load.getAllModules(), "\n") + "\n" + Files.getRunString() + " gwas.Qc dir=" + dir;
 			Files.qsub(dir + "qc.pbs", gwasQC, 62000, 24, 16);
 		}
 		return outFiles;

@@ -588,7 +588,7 @@ public class Metal {
 	
 	public static void splitCompFile(String filename, int numSplits) {
         Files.splitFile(filename, numSplits, 1, 1, ext.rootOf(filename, false), ".dat", false);
-        Files.batchIt("strand", -1, 1, numSplits, 6, "jcp gwas.Metal check="+ext.rootOf(filename, false)+"#.dat");
+        Files.batchIt("strand", -1, 1, numSplits, 6, Files.getRunString() + " gwas.Metal check="+ext.rootOf(filename, false)+"#.dat");
 	}
 
 	public static void sortCompResults(String filename) {

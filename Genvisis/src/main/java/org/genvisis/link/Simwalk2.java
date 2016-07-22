@@ -3,6 +3,8 @@ package org.genvisis.link;
 import java.io.*;
 import java.util.*;
 
+import org.genvisis.common.Files;
+
 public class Simwalk2 {
 	@SuppressWarnings("resource")
 	public static void batch(String models) throws IOException {
@@ -73,7 +75,7 @@ public class Simwalk2 {
 				writer.println("cp map"+chrome+".dat Model"+(j+1)+"/datain.dat");
 				writer.println("cp map."+chrome+" Model"+(j+1)+"/");
 				writer.println("cd Model"+(j+1));
-				writer.println("jcp makeMap4MLINK "+handle[0]+" "+handle[1]+" "+handle[2]+" "+handle[3]); // deprecated
+				writer.println(Files.getRunString() + " makeMap4MLINK "+handle[0]+" "+handle[1]+" "+handle[2]+" "+handle[3]); // deprecated
 				writer.println("mv datain.dat datain."+chrome);
 				writer.println("dos2unix map."+chrome+" map."+chrome);
 				writer.println("dos2unix pedin."+chrome+" pedin."+chrome);

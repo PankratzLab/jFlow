@@ -1,14 +1,12 @@
 package org.genvisis.one.ben.fcs;
 
 import java.awt.Color;
-import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -19,13 +17,11 @@ import org.genvisis.cnv.plots.GenericPath;
 import org.genvisis.cnv.plots.GenericRectangle;
 import org.genvisis.cnv.plots.PlotPoint;
 import org.genvisis.common.Array;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.gating.Gate;
-import org.genvisis.one.ben.fcs.gating.GateDimension;
 import org.genvisis.one.ben.fcs.gating.Gate.PolygonGate;
 import org.genvisis.one.ben.fcs.gating.Gate.RectangleGate;
+import org.genvisis.one.ben.fcs.gating.GateDimension;
 import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 
 public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMotionListener {
@@ -615,9 +611,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                         if (Math.abs(mouseEndX - startX) > DEFAULT_NEARBY_DIST) {
                             if (isHistogram() || (Math.abs(mouseEndY - startY) > DEFAULT_NEARBY_DIST)) {
                                 RectangleGate rg = new RectangleGate(fcp.getParentGate());
-                                rg.addDimension(new GateDimension.RectangleGateDimension(xCol, (float) getXValueFromXPixel(startX), (float) getXValueFromXPixel(mouseEndX)));
+                                rg.addDimension(new GateDimension.RectangleGateDimension(rg, xCol, (float) getXValueFromXPixel(startX), (float) getXValueFromXPixel(mouseEndX)));
                                 if (!isHistogram()) {
-                                    rg.addDimension(new GateDimension.RectangleGateDimension(yCol, (float) getYValueFromYPixel(startY), (float) getYValueFromYPixel(mouseEndY)));
+                                    rg.addDimension(new GateDimension.RectangleGateDimension(rg, yCol, (float) getYValueFromYPixel(startY), (float) getYValueFromYPixel(mouseEndY)));
                                 }
                                 fcp.addGate(rg);
                                 selectedRects.add(rg);
@@ -646,8 +642,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                                 }
                                 path.closePath();
                                 PolygonGate pg = new PolygonGate(fcp.getParentGate());
-                                pg.addDimension(new GateDimension(xCol));
-                                pg.addDimension(new GateDimension(yCol));
+                                pg.addDimension(new GateDimension(pg, xCol));
+                                pg.addDimension(new GateDimension(pg, yCol));
                                 pg.setPath(path);
                                 fcp.addGate(pg);
                                 selectedPolys.add(pg);

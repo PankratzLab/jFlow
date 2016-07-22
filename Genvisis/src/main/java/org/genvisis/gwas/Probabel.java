@@ -51,9 +51,9 @@ public class Probabel {
 						commands += "sed -n '"+(i*increment+1)+","+(i==numSplits-1?markerNames.length+1:(i+1)*increment)+" p' < "+Minimac.REF_SNPS_ROOT+" > quan"+(i+1)+".txt\n";
 						// if you get lots of errors about non-existent markers at this stage, check to make sure the right reference panel is hard coded
 						if (chr>5)
-						commands += Files.JCP+"filesys.DosageData dosageFile=chr#.dose idFile=plink.fam mapFile=chr#.minfo out=chr#_quan"+(i+1)+".dose extract=quan"+(i+1)+".txt -awk\n";
+						commands += Files.getRunString() + " filesys.DosageData dosageFile=chr#.dose idFile=plink.fam mapFile=chr#.minfo out=chr#_quan"+(i+1)+".dose extract=quan"+(i+1)+".txt -awk\n";
 						//commands += "awk '{print $1\"\\t\"$2\"\\t\"$3\"\\t\"$4\"\\t\"$5\"\\t\"$6\"\\t\"$7}' chr#_quan"+(i+1)+".minfo > chr#_quan"+(i+1)+".pinfo\n";
-						commands += Files.JCP+"filesys.SnpMarkerSet file=chr#.minfo extract=quan"+(i+1)+".txt out=chr#_quan"+(i+1)+".pinfo\n";
+						commands += Files.getRunString() + " filesys.SnpMarkerSet file=chr#.minfo extract=quan"+(i+1)+".txt out=chr#_quan"+(i+1)+".pinfo\n";
 					}
 					commands += "/home/npankrat/bin/palogist -p ../"+pheno+" -d chr#_quan"+(i+1)+".dose -i chr#_quan"+(i+1)+".pinfo -c 1 -o "+ext.rootOf(pheno)+"_chr#_quan"+(i+1)+"\n";
 					commands += "cd ..\n";
@@ -139,7 +139,7 @@ public class Probabel {
 		commands += "cp "+pheno+" chr[%0]\n";
 		commands += "cd chr[%0]\n";
 		commands += EXECS[type]+" -p "+pheno+" -d MACH_step2_chr[%0].mldose -i MACH_step2_chr[%0].mlinfo -c [%0] -o "+ext.rootOf(pheno)+"_chr[%0]\n";
-//		commands += "jcp gwas.Probabel parse=[%0] pheno="+pheno+"\n";
+//		commands += Files.getRunString() + " gwas.Probabel parse=[%0] pheno="+pheno+"\n";
 		commands += "cd ..\n\n";
 		Files.batchIt("prob", "", numBatches, commands, parameters);
 	}

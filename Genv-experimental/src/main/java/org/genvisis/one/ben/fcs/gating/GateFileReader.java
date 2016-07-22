@@ -110,7 +110,7 @@ public class GateFileReader {
             for (int i = 0; i < dimNodes.size(); i++) {
                 Node dimNode = dimNodes.get(i);
                 String param = ((Element) getFirstChild(dimNode, "data-type:fcs-dimension")).getAttribute("data-type:name");
-                RectangleGateDimension gd = new RectangleGateDimension(param);
+                RectangleGateDimension gd = new RectangleGateDimension((RectangleGate) gate, param);
                 String min = ((Element) dimNode).getAttribute("gating:min");
                 String max = ((Element) dimNode).getAttribute("gating:max");
 //                ((Element) dimNode).getAttribute("yRatio"); // TODO dunno what yRatio is used for yet
@@ -155,7 +155,7 @@ public class GateFileReader {
             for (int i = 0; i < dimNodes.size(); i++) {
                 Node dimNode = dimNodes.get(i);
                 String param = ((Element) getFirstChild(dimNode, "data-type:fcs-dimension")).getAttribute("data-type:name");
-                GateDimension gd = new GateDimension(param);
+                GateDimension gd = new GateDimension(gate, param);
                 gd.paramName = param;
                 gate.dimensions.add(gd);
             }

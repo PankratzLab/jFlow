@@ -213,7 +213,7 @@ public class sumOSA {
 				}
 				batch.println("cd sims");
 				batch.println("cp ../../trait.dat ../../re_chrom"+chrome+".pre ../../map"+chrome+".dat .");
-				batch.println("jcp permOSA trait.dat "+chr+" "+reps+" d "+plug+" >> perm"+chrome+".out");
+				batch.println(Files.getRunString() + " permOSA trait.dat "+chr+" "+reps+" d "+plug+" >> perm"+chrome+".out");
 			}
 		}
 

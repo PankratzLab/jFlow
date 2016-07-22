@@ -127,7 +127,7 @@ public class Qc {
             }
             int level = 4;
 //            Plink.flagRelateds(geno, fam, imiss, lrrsd, Plink.FLAGS, Plink.THRESHOLDS, level, false);
-            cmds.append("jcp gwas.Plink relate=").append(geno).append(" fam=").append(fam).append(" imiss=").append(imiss).append(" lrr_sd=").append(lrrsd).append(" level=").append(level).append("\n");
+            cmds.append(Files.getRunString() + " gwas.Plink relate=").append(geno).append(" fam=").append(fam).append(" imiss=").append(imiss).append(" lrr_sd=").append(lrrsd).append(" level=").append(level).append("\n");
         }
         
         // TODO fill in when ancestry method is finished, currently does nothing but create more files

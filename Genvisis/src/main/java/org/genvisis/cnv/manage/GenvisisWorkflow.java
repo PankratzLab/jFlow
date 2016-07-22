@@ -87,7 +87,7 @@ public class GenvisisWorkflow {
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projFile = proj.getPropertyFilename();
             String filename = variables.get(this).get(0);
-            return "jcp cnv.manage.Markers proj=" + projFile + " snps=" + filename;
+            return Files.getRunString() + " cnv.manage.Markers proj=" + projFile + " snps=" + filename;
         }
         
     };
@@ -165,7 +165,7 @@ public class GenvisisWorkflow {
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projPropFile = proj.getPropertyFilename();
-            StringBuilder kvCmd = new StringBuilder("jcp cnv.filesys.Project proj=").append(projPropFile);
+            StringBuilder kvCmd = new StringBuilder(Files.getRunString()).append(" cnv.filesys.Project proj=").append(projPropFile);
             StringBuilder kvPairs = new StringBuilder();
             String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
             String mkrFile = variables.get(this).get(0);
@@ -185,7 +185,7 @@ public class GenvisisWorkflow {
             if (kvPairs.length() != 0) {
                 command.append(kvCmd).append(kvPairs).append("\n");
             }
-            command.append("jcp cnv.manage.SourceFileParser proj=").append(projPropFile).append(" threads=").append(numThreads);
+            command.append(Files.getRunString()).append(" cnv.manage.SourceFileParser proj=").append(projPropFile).append(" threads=").append(numThreads);
             return command.toString();
         }
         
@@ -260,7 +260,7 @@ public class GenvisisWorkflow {
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projPropFile = proj.getPropertyFilename();
-            StringBuilder kvCmd = new StringBuilder("jcp cnv.filesys.Project proj=").append(projPropFile);
+            StringBuilder kvCmd = new StringBuilder(Files.getRunString()).append(" cnv.filesys.Project proj=").append(projPropFile);
             StringBuilder kvPairs = new StringBuilder();
             String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
             String mkrFile = variables.get(this).get(0);
@@ -280,7 +280,7 @@ public class GenvisisWorkflow {
             if (kvPairs.length() != 0) {
                 command.append(kvCmd).append(kvPairs).append("\n");
             }
-            command.append("jcp cnv.manage.SourceFileParser proj=").append(projPropFile).append(" threads=").append(numThreads);
+            command.append(Files.getRunString()).append(" cnv.manage.SourceFileParser proj=").append(projPropFile).append(" threads=").append(numThreads);
             return command.toString();
         }
         
@@ -383,7 +383,7 @@ public class GenvisisWorkflow {
             String pedFile = minimal ? "" : variables.get(this).get(1);
             String sampleMapCsv = minimal ? "" : variables.get(this).get(2);
             StringBuilder cmd = new StringBuilder();
-            cmd.append("jcp cnv.var.SampleData proj=").append(projPropFile);
+            cmd.append(Files.getRunString()).append(" cnv.var.SampleData proj=").append(projPropFile);
             if (!"".equals(pedFile)) {
                 cmd.append(" ped=").append(pedFile);
             }
@@ -435,7 +435,7 @@ public class GenvisisWorkflow {
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projPropFile = proj.getPropertyFilename();
             StringBuilder cmd = new StringBuilder();
-            return cmd.append("jcp cnv.manage.TransposeData -transpose proj=" + projPropFile + " max=" + 2000000000).toString();
+            return cmd.append(Files.getRunString()).append(" cnv.manage.TransposeData -transpose proj=" + projPropFile + " max=" + 2000000000).toString();
         }
         
     };
@@ -502,10 +502,10 @@ public class GenvisisWorkflow {
             String projPropFile = proj.getPropertyFilename();
             StringBuilder cmd = new StringBuilder();
             if (kvCmd.length() > 0) {
-                cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
+                cmd.append(Files.getRunString()).append(" cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
             }
             String gcBaseFile = variables.get(this).get(0);
-            return cmd.append("jcp cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " log=" + proj.getLog().getFilename() + " gc5base=" + gcBaseFile).toString();
+            return cmd.append(Files.getRunString()).append(" cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " log=" + proj.getLog().getFilename() + " gc5base=" + gcBaseFile).toString();
         }
         
     };
@@ -574,7 +574,7 @@ public class GenvisisWorkflow {
             }
             String projPropFile = proj.getPropertyFilename();
             StringBuilder cmd = new StringBuilder();
-            cmd.append("jcp cnv.qc.LrrSd").append(" proj=").append(projPropFile).append(" threads=").append(numThreads).append(" projectMarkers=TRUE");
+            cmd.append(Files.getRunString()).append(" cnv.qc.LrrSd").append(" proj=").append(projPropFile).append(" threads=").append(numThreads).append(" projectMarkers=TRUE");
             return cmd.toString();
         }
     };
@@ -638,7 +638,7 @@ public class GenvisisWorkflow {
             try {
                 numThreads = Integer.parseInt(variables.get(this).get(1));
             } catch (NumberFormatException e) {}
-            return "jcp cnv.qc.MarkerMetrics -fullQC" + 
+            return Files.getRunString() + " cnv.qc.MarkerMetrics -fullQC" + 
             		" proj=" + proj.getPropertyFilename() + 
             		(tgtFile == null ? "" : " markers=" + tgtFile) +
             		" threads=" + numThreads;
@@ -718,10 +718,10 @@ public class GenvisisWorkflow {
             } else {
             	discriminatingMarkersFile = variables.get(this).get(2);
             	if (!Files.exists(discriminatingMarkersFile)) {
-            		cmd.append("jcp cnv.qc.MarkerBlastQC proj=" + projPropFile + " blastVCF=" + variables.get(this).get(3));
+            		cmd.append(Files.getRunString()).append(" cnv.qc.MarkerBlastQC proj=" + projPropFile + " blastVCF=" + variables.get(this).get(3));
             	}
             }
-            return cmd.append("jcp cnv.qc.SexChecks -check proj=" + projPropFile).toString() + 
+            return cmd.append(Files.getRunString()).append(" cnv.qc.SexChecks -check proj=" + projPropFile).toString() + 
             		(discriminatingMarkersFile == null ? "" : " useMarkers=" + discriminatingMarkersFile) + 
             		(addToSampleData ? "" : " -skipSampleData");
         }
@@ -867,12 +867,12 @@ public class GenvisisWorkflow {
             String projPropFile = proj.getPropertyFilename();
             StringBuilder cmd = new StringBuilder();
             if (kvCmd.length() > 0) {
-                cmd.append("jcp cnv.filesys.Project proj=").append(projPropFile).append(kvCmd).append("\n");
+                cmd.append(Files.getRunString()).append(" cnv.filesys.Project proj=").append(projPropFile).append(kvCmd).append("\n");
             }
             if (Boolean.valueOf(variables.get(this).get(1))) {
-                cmd.append("jcp cnv.filesys.Pedigree proj=").append(projPropFile).append("\n");
+                cmd.append(Files.getRunString()).append(" cnv.filesys.Pedigree proj=").append(projPropFile).append("\n");
             }
-            cmd.append("jcp cnv.manage.PlinkData -genvisisToBed plinkdata=plink/plink gcthreshold=-1 proj=").append(proj.getPropertyFilename());
+            cmd.append(Files.getRunString()).append(" cnv.manage.PlinkData -genvisisToBed plinkdata=plink/plink gcthreshold=-1 proj=").append(proj.getPropertyFilename());
             return cmd.toString();
         }
     };
@@ -972,11 +972,11 @@ public class GenvisisWorkflow {
             	}
             }
             
-            String command = "jcp gwas.Qc dir=" + dir + " keepGenomeInfoForRelatedsOnly=" + keepUnrelatedsOnly;
+            String command = Files.getRunString() + " gwas.Qc dir=" + dir + " keepGenomeInfoForRelatedsOnly=" + keepUnrelatedsOnly;
             if (!skipAncestry) {
             	String ancestryDir = dir + Qc.ANCESTRY_DIR;
             	command += "\n";
-            	command += "jcp gwas.Ancestry -runPipeline dir=" + ancestryDir;
+            	command += Files.getRunString() + " gwas.Ancestry -runPipeline dir=" + ancestryDir;
             	command += " putativeWhites=" + putativeWhites;
             	command += " proj=" + proj.getPropertyFilename();
             	command += " hapMapPlinkRoot=" + hapMapPlinkRoot;
@@ -1182,9 +1182,9 @@ public class GenvisisWorkflow {
                 String projPropFile = proj.getPropertyFilename();
                 StringBuilder cmd = new StringBuilder();
                 if (kvCmd.length() > 0) {
-                    cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
+                    cmd.append(Files.getRunString()).append(" cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
                 }
-                return cmd.append("jcp cnv.analysis.Mosaicism proj=" + proj.getPropertyFilename()).toString();
+                return cmd.append(Files.getRunString()).append(" cnv.analysis.Mosaicism proj=" + proj.getPropertyFilename()).toString();
             }
             
         };
@@ -1327,9 +1327,9 @@ public class GenvisisWorkflow {
 
             StringBuilder cmd = new StringBuilder();
             if (kvCmd.length() > 0) {
-                cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
+                cmd.append(Files.getRunString()).append(" cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
             }
-            cmd.append("jcp cnv.qc.SampleQC proj=" + projPropFile + " numQ=" + numQ + " justQuantiles=false" + " gcCorrectedLrrSd=" + gcCorrectedLrrSd + " duplicatesSetFile=" + duplicatesSetFile + " correctFidIids=" + correctFidIids);
+            cmd.append(Files.getRunString()).append(" cnv.qc.SampleQC proj=" + projPropFile + " numQ=" + numQ + " justQuantiles=false" + " gcCorrectedLrrSd=" + gcCorrectedLrrSd + " duplicatesSetFile=" + duplicatesSetFile + " correctFidIids=" + correctFidIids);
             return cmd.toString();
         }
 
@@ -1619,9 +1619,9 @@ public class GenvisisWorkflow {
             String projPropFile = proj.getPropertyFilename();
             StringBuilder cmd = new StringBuilder();
             if (kvCmd.length() > 0) {
-                cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
+                cmd.append(Files.getRunString()).append(" cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
             }
-            return cmd.append("jcp cnv.analysis.PennCNV -pfb proj=" + proj.getPropertyFilename() + " log=" + proj.getLog().getFilename()).toString();
+            return cmd.append(Files.getRunString()).append(" cnv.analysis.PennCNV -pfb proj=" + proj.getPropertyFilename() + " log=" + proj.getLog().getFilename()).toString();
         }
         
     };
@@ -1701,9 +1701,9 @@ public class GenvisisWorkflow {
             try {
                 numThreads = Integer.parseInt(variables.get(this).get(1));
             } catch (NumberFormatException e) {}
-            String mainCmd = "jcp cnv.filesys.Centroids proj=" + proj.getPropertyFilename() + " threads=" + numThreads;
+            String mainCmd = Files.getRunString() + " cnv.filesys.Centroids proj=" + proj.getPropertyFilename() + " threads=" + numThreads;
             String gcModelFile = variables.get(this).get(0);
-            String gcCmd = "jcp cnv.analysis.AnalysisFormats proj=" + proj.getPropertyFilename() + " gcmodel=" + gcModelFile;
+            String gcCmd = Files.getRunString() + " cnv.analysis.AnalysisFormats proj=" + proj.getPropertyFilename() + " gcmodel=" + gcModelFile;
             return mainCmd + "\n" + gcCmd; 
         }
         
@@ -1822,9 +1822,9 @@ public class GenvisisWorkflow {
             String projPropFile = proj.getPropertyFilename();
             StringBuilder cmd = new StringBuilder();
             if (kvCmd.length() > 0) {
-                cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
+                cmd.append(Files.getRunString()).append(" cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
             }
-            return "jcp cnv.hmm.CNVCaller proj=" + projPropFile + " out=" + variables.get(this).get(4) + " threads=" + numThreads;
+            return Files.getRunString() + " cnv.hmm.CNVCaller proj=" + projPropFile + " out=" + variables.get(this).get(4) + " threads=" + numThreads;
         }
         
     };
