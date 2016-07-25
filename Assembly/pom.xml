@@ -112,6 +112,35 @@
 				</plugins>
 			</build>
 		</profile>
+		<profile>
+			<id>copy-genvisis</id>
+			<activation>
+				<property>
+					<name>genv.copy.path</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>copy-genvisis</id>
+								<phase>package</phase>
+								<configuration>
+									<target>
+										<copy todir="${genv.copy.path}" file="${project.build.directory}/${outname}.jar" />
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 
 </project>
