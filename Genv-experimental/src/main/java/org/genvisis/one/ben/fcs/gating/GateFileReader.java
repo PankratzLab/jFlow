@@ -37,6 +37,10 @@ public class GateFileReader {
         gs.gateMap = buildPopGraph(allPops);
         gs.gateRoots = connectGates(gs.gateMap);
         gs.paramGateMap = parameterizeGates(gs.gateMap);
+        for (Gate g : gs.gateMap.values()) {
+            gs.allNames.add(g.getName());
+        }
+        
         
         return gs;
     }

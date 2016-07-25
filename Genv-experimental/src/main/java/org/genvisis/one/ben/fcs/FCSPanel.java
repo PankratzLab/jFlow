@@ -638,9 +638,16 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                         if (Math.abs(mouseEndX - startX) > DEFAULT_NEARBY_DIST) {
                             if (isHistogram() || (Math.abs(mouseEndY - startY) > DEFAULT_NEARBY_DIST)) {
                                 String name = null;
+                                int msgCode = 0;
                                 do {
-                                    name = JOptionPane.showInputDialog(fcp, "Gate Name:", "Add Gate?", JOptionPane.QUESTION_MESSAGE);
-                                } while ("".equals(name));
+                                    String msg = "Gate Name:";
+                                    if (msgCode == 1) {
+                                        msg += " (must provide a name)";
+                                    } else if (msgCode == 2) {
+                                        msg += " (must be unique)";
+                                    }
+                                    name = JOptionPane.showInputDialog(fcp, msg, "Add Gate?", JOptionPane.QUESTION_MESSAGE);
+                                } while ((msgCode = ("".equals(name) ? 1 : (fcp.duplicateGateName(name) ? 2 : 0))) > 0);
                                 if (name != null) {
                                     RectangleGate rg = new RectangleGate(fcp.getParentGate(), name);
                                     rg.addDimension(new GateDimension.RectangleGateDimension(rg, xCol, (float) getXValueFromXPixel(startX), (float) getXValueFromXPixel(mouseEndX)));
@@ -670,9 +677,16 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                         if (Math.abs(initPtX - mouseEndX) < 5 && Math.abs(initPtY - mouseEndY) < 5) {
                             if (tempPoly.size() > 2) {
                                 String name = null;
+                                int msgCode = 0;
                                 do {
-                                    name = JOptionPane.showInputDialog(fcp, "Gate Name:", "Add Gate?", JOptionPane.QUESTION_MESSAGE);
-                                } while ("".equals(name));
+                                    String msg = "Gate Name:";
+                                    if (msgCode == 1) {
+                                        msg += " (must provide a name)";
+                                    } else if (msgCode == 2) {
+                                        msg += " (must be unique)";
+                                    }
+                                    name = JOptionPane.showInputDialog(fcp, msg, "Add Gate?", JOptionPane.QUESTION_MESSAGE);
+                                } while ((msgCode = ("".equals(name) ? 1 : (fcp.duplicateGateName(name) ? 2 : 0))) > 0);
                                 if (name != null) {
                                     Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
                                     path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
@@ -902,13 +916,18 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         if (lackingData) return;
     	if (SwingUtilities.isLeftMouseButton(e)) {
     	    if (e.getClickCount() == 2) {
-    	        ArrayList<PolygonGate> polys = getPolysContainingClick(e);
-    	        ArrayList<RectangleGate> rects = getRectsContainingClick(e);
-    	        System.out.println("Found " + (polys.size() + rects.size()) + " gates");
+    	        ArrayList<Gate> gates = new ArrayList<Gate>();
+    	        gates.addAll(getPolysContainingClick(e));
+    	        gates.addAll(getRectsContainingClick(e));
     	        
+    	        Gate lowest = null;
+    	        for (Gate g : gates) {
+    	            if (lowest == null || g.getLevel() < lowest.getLevel()) {
+    	                lowest = g;
+    	            }
+    	        }
+    	        fcp.gateSelected(lowest, true);
     	    }
-    	    
-    	    
     	} else {
     
             // check mouse location vs all shapes
@@ -1174,8 +1193,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 //			polys.remove(toRemove);
 		    selectedGates.remove(toRemove);
 		}
-
-		
 		super.mouseClicked(e);
 		paintAgain();
 	}
@@ -1196,4 +1213,11 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         setXAxisLabel(fcp.getXDataName());
         setYAxisLabel(fcp.getYDataName());
     }
+
+    public void clearGates() {
+        this.mouseGates.clear();
+        this.selectedGates.clear();
+        setForceGatesChanged();
+    }
+    
 }

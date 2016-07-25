@@ -380,6 +380,10 @@ public abstract class Gate {
         return children;
     }
     
+    public void addChildGate(Gate rg) {
+        this.children.add(rg);
+    }
+
     public ArrayList<GateDimension> getDimensions() {
         return dimensions;
     }
@@ -428,8 +432,8 @@ public abstract class Gate {
 //            if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
 //                return gatingCache.get(dataLoader.getLoadedFile());
 //            }
-            boolean[] includes = this.parentGate == null ? Array.booleanArray(dataLoader.getCount(), true) : this.parentGate.gate(dataLoader);
-            this.parentGating = includes == null ? null : Arrays.copyOf(includes, includes.length);
+            boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : this.parentGate.gate(dataLoader);
+            this.parentGating = this.parentGate == null ? Array.booleanArray(dataLoader.getCount(), true) : Arrays.copyOf(includes, includes.length);
             boolean[][] paramIncludes = new boolean[dimensions.size()][dataLoader.getCount()];
             for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
                 RectangleGateDimension rgd = (RectangleGateDimension) dimensions.get(p);
@@ -563,19 +567,20 @@ public abstract class Gate {
                 if (this.parentGate != null && !includes[i]) {
                     continue;
                 }
+                boolean include = true;
                 if (mimicFlowJo) {
                     for (Rectangle rect : myRects) {
-                        if (rect.contains(paramData[0][i], paramData[1][i])) {
-                            includes[i] = true;
+                        if (!rect.contains(paramData[0][i], paramData[1][i])) {
+                            include = false;
                             break;
                         }
                     }
                 } else {
-                    if (myPath.contains(paramData[0][i], paramData[1][i])) {
-                        includes[i] = true;
+                    if (!myPath.contains(paramData[0][i], paramData[1][i])) {
+                        include = false;
                     }
                 }
-                
+                includes[i] = include;
             }            
 
 //            gatingCache.put(dataLoader.getLoadedFile(), includes);

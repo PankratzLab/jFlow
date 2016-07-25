@@ -76,8 +76,9 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	Logger log;
 
     FCSDataLoader dataLoader;
-    private GatingStrategy gating;
-    private Gate parentGate = null;
+    private GatingStrategy gating = new GatingStrategy();
+    private NullGate rootGate = new NullGate();
+    private Gate parentGate = rootGate;
 
 //    volatile boolean isLoading = false;
 
@@ -567,8 +568,8 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	
 	public void setGating(GatingStrategy gateStrat) {
 	    this.gating = gateStrat;
-	    this.gatingSelector.setGating(gateStrat);
-	    this.parentGate = new NullGate();
+	    this.gatingSelector.resetGating(gateStrat);
+	    this.parentGate = rootGate = new NullGate();
 	    for (Gate g : this.gating.getRootGates()) {
 	        this.parentGate.getChildGates().add(g);
 	    }
@@ -580,7 +581,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	    if (this.parentGate != null) {
 	        ArrayList<Gate> children = parentGate.getChildGates();
 	        for (Gate g : children) {
-	            boolean x = false;
+//	            boolean x = false;
 	            boolean y = getYDataName().equals(FCSPlot.HISTOGRAM_COL) ? true : false;
 	            if (g.getDimensions().size() == 1) {
 	                if (y && g.getDimensions().get(0).getParam().equals(getXDataName())) {
@@ -594,18 +595,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	            if (g.getDimensions().get(0).getParam().equals(getXDataName()) && g.getDimensions().get(1).getParam().equals(getYDataName())) {
 	                gateList.add(g);
 	            }
-//	            for (int i = 0; i < g.getDimensions().size(); i++) {
-//	                GateDimension gd = g.getDimensions().get(i);
-//	                if (gd.getParam().equals(getXDataName())) {
-//	                    x = true;
-//	                }
-//	                if (gd.getParam().equals(getYDataName())) {
-//	                    y = true;
-//	                }
-//	            }
-//	            if (x && y) {
-//	                gateList.add(g);
-//	            }
 	        }
         }
 	    return gateList;
@@ -740,16 +729,25 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     
     public void addGate(Gate rg) {
         if (parentGate == null) {
-            parentGate = new NullGate();
+            parentGate = rootGate;
         }
-        parentGate.getChildGates().add(rg);
+        if (parentGate instanceof NullGate) {
+            this.gating.addRootGate(rg);
+        }
+        parentGate.addChildGate(rg);
+        this.gatingSelector.resetGating(this.gating);
+        
         // TODO export/save gate data
         // TODO addGate
     }
 
-    public void gateSelected(Gate gate) {
+    public boolean duplicateGateName(String name) {
+        return this.gating.gateNameExists(name);
+    }
+
+    public void gateSelected(Gate gate, boolean reset) {
         if (gate == null) {
-            this.parentGate = new NullGate();
+            this.parentGate = rootGate;
         } else {
             this.parentGate = gate;
             ArrayList<GateDimension> gd = gate.getDimensions();
@@ -758,6 +756,11 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
             setXDataName(gdX.getParam());
             setYDataName(gdY.getParam());
         }
+        if (reset) {
+            this.gatingSelector.resetGating(gating);
+            this.gatingSelector.selectGate(gate);
+        }
+        this.fcsPanel.clearGates();
         updateGUI();
         // TODO set axis scales, update and repaint
     }

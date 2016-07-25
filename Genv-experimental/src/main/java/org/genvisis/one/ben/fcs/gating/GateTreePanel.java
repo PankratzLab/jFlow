@@ -37,6 +37,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -53,6 +54,7 @@ public class GateTreePanel extends JPanel {
     private JScrollPane scrollPane;
     private FCSPlot plot;
     private HashMap<DefaultMutableTreeNode, Gate> gateMap = new HashMap<DefaultMutableTreeNode, Gate>();
+    private HashMap<Gate, DefaultMutableTreeNode> nodeMap = new HashMap<Gate, DefaultMutableTreeNode>();
     private volatile boolean showing = false;
     /**
      * Create the panel.
@@ -125,12 +127,20 @@ public class GateTreePanel extends JPanel {
         tree.addTreeSelectionListener(treeListener);
     }
     
-    public void setGating(GatingStrategy gating) {
-        this.gating = gating;
-        resetGating();
+    volatile boolean selecting = false;
+    public void selectGate(Gate selected) {
+        if (selected != null) {
+            selecting = true;
+            expandAllNodes();
+            DefaultMutableTreeNode selNode = nodeMap.get(selected);
+            TreeNode[] path = ((DefaultTreeModel) tree.getModel()).getPathToRoot(selNode);
+            tree.setSelectionPath(new TreePath(path));
+            selecting = false;
+        }
     }
     
-    private void resetGating() {
+    public void resetGating(GatingStrategy gating) {
+        this.gating = gating;
         ArrayList<Gate> roots = gating.getRootGates();
         
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
@@ -138,7 +148,8 @@ public class GateTreePanel extends JPanel {
             addGatesToTree(rootNode, g);
         }
         
-        tree.setModel(new DefaultTreeModel(rootNode));        
+        DefaultTreeModel newModel = new DefaultTreeModel(rootNode); 
+        tree.setModel(newModel);
         expandAllNodes();
     }
     
@@ -155,6 +166,7 @@ public class GateTreePanel extends JPanel {
     private void addGatesToTree(DefaultMutableTreeNode root, Gate g) {
         DefaultMutableTreeNode child = new DefaultMutableTreeNode(g.getName());
         gateMap.put(child, g);
+        nodeMap.put(g, child);
         root.add(child);
         for (Gate childGate : g.getChildGates()) {
             addGatesToTree(child, childGate);
@@ -168,6 +180,7 @@ public class GateTreePanel extends JPanel {
         public void valueChanged(TreeSelectionEvent e) {
             if (treePopup.isVisible()) {
                 treePopup.setVisible(false);
+                showing = false;
             }
             if (!e.isAddedPath()) {
                 return;
@@ -205,7 +218,9 @@ public class GateTreePanel extends JPanel {
             breadcrumbPanel.repaint();
             Rectangle rect = new Rectangle(breadcrumbPanel.getWidth() - 10, 10, breadcrumbPanel.getWidth(), 10);
             ((JComponent) breadcrumbPanel.getParent()).scrollRectToVisible(rect);
-            plot.gateSelected(gateMap.get(path[path.length - 1]));
+            if (!selecting) {
+                plot.gateSelected(gateMap.get(path[path.length - 1]), false);
+            }
         }
     };
     private JPanel breadcrumbPanel;
@@ -273,7 +288,7 @@ public class GateTreePanel extends JPanel {
         frame.setVisible(true);
         
         GatingStrategy gs = GateFileReader.readGateFile("F:/Flow/PBMC A&C comparison HB ZF DHS 20-Mar-2016.wspt");
-        gtp.setGating(gs);
+        gtp.resetGating(gs);
         frame.repaint();
     }
 

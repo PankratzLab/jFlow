@@ -2,11 +2,13 @@ package org.genvisis.one.ben.fcs.gating;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class GatingStrategy {
-    HashMap<String, Gate> gateMap; // ID -> Gate
-    HashMap<String, ArrayList<Gate>> paramGateMap; // paramName -> list of applicable Gates 
-    ArrayList<Gate> gateRoots;
+    HashSet<String> allNames = new HashSet<String>();
+    HashMap<String, Gate> gateMap = new HashMap<String, Gate>(); // ID -> Gate
+    HashMap<String, ArrayList<Gate>> paramGateMap = new HashMap<String, ArrayList<Gate>>(); // paramName -> list of applicable Gates 
+    ArrayList<Gate> gateRoots = new ArrayList<Gate>();
     
     private String fileName;
     
@@ -27,6 +29,24 @@ public class GatingStrategy {
         }
         return ret;
     }
+    
+    public boolean gateNameExists(String name) {
+        return allNames.contains(name);
+    }
+    
+    public void addRootGate(Gate g) {
+        gateRoots.add(g);
+        for (GateDimension gd : g.dimensions) {
+            ArrayList<Gate> gates = paramGateMap.get(gd.paramName);
+            if (gates == null) {
+                gates = new ArrayList<Gate>();
+                paramGateMap.put(gd.paramName, gates);
+            }
+            gates.add(g);
+        }
+        gateMap.put(g.getID(), g);
+        allNames.add(g.getName());
+    }
 
     @SuppressWarnings("unchecked")
     public ArrayList<Gate> getRootGates() {
@@ -40,23 +60,5 @@ public class GatingStrategy {
     public void setFile(String filename2) {
         this.fileName = filename2;
     }
-    
-    
-//    public ArrayList<Gate> getGatesForParams(String xCol, String yCol) {
-//        ArrayList<Gate> gates = paramGateMap.get(xCol);
-//        if (gates == null) return new ArrayList<Gate>();
-//        ArrayList<Gate> ret = new ArrayList<Gate>();
-//        gt : for (Gate g : gates) {
-//            if (g.dimensions.size() == 2) {
-//                for (GateDimension gd : g.dimensions) {
-//                    if (!gd.paramName.equals(yCol) && !gd.paramName.equals(xCol)) {
-//                        continue gt;
-//                    }
-//                }
-//                ret.add(g);
-//            }
-//        }
-//        return ret;
-//    }
     
 }
