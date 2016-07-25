@@ -57,7 +57,7 @@ public class MitoPipeline {
 	public static final String[] SAMPLE_DATA_ADDITION_HEADERS = { "LRR_SD", "Genotype_callrate", "CLASS=Exclude" };
 	public static final double[] DEFAULT_PVAL_OPTS = new double[] { 0.05, 0.01, 0.001 };
 	public static final double DEFAULT_MKR_CALLRATE_FILTER = 0.98;
-	public static final int DEFAULT_NUM_COMPONENTS = 100;
+	public static final int DEFAULT_NUM_COMPONENTS = -1;
 
 	public static final String DNA_LINKER = "DNA";
 	public static final String PCA_SAMPLES_SUMMARY = ".samples.QC_Summary.txt";
@@ -367,8 +367,16 @@ public class MitoPipeline {
 
 	public static void estimateMtDNACN(Project proj, int numThreads, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, double markerCallRateFilter, String betaOptFile, String pedFile, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean sampLrr, boolean imputeMeanForNaN, boolean gcCorrect, String refGenomeFasta, int bpGcModel, int regressionDistance, GENOME_BUILD build, double[] pvalOpt, String betaFile, boolean plot, Logger log) {
 		GcAdjustorParameters params = null;
+		String samps = proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES;
+		if (numComponents < 0) {
+			int filteredSampSize = Files.countLines(samps, 0);
+			int numCompsToUse = (int) 0.10 *filteredSampSize;
+			log.reportTimeInfo("Setting initial number of PCs computed to " + numCompsToUse
+					+ " (10% of filtered sample size (n="+filteredSampSize+") as reported in " + samps);
+			numComponents = numCompsToUse;
+
+		}
 		if (gcCorrect) {// forced from cmdline
-			String samps = proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES;
 			boolean[] sampsToUseRecompute = null;
 
 			if (sampLrr) {
@@ -782,7 +790,7 @@ public class MitoPipeline {
 		usage += "   (12) Data extension for files contained in the source data directory (i.e. dirExt=" + dataExtension + " (default))\n";
 		usage += "   (13) Log R Ratio standard deviation filter to exclude samples from PCs (i.e. LRRSD= (default for Affymetrix = 0.35, Illumina = 0.30))\n";
 		usage += "   (14) Call rate filter to exclude samples from PCs (i.e. sampleCallRate=" + sampleCallRateFilter + " (default))\n";
-		usage += "   (15) Number of principal components to compute (must be less than the number of samples AND the number of markers) (i.e. numComponents=" + numComponents + " (default))\n";
+		usage += "   (15) Number of principal components to compute (if altered from default, must be less than the number of samples AND the number of markers) (i.e. numComponents= (defaults to 10% of the filtered sample size))\n";
 		usage += "   (16) Number of threads to use for multi-threaded portions of the analysis (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + numThreads + " (default))\n";
 		usage += "   (17) Output file full path and baseName (i.e. output=" + output + " (default))\n";
 		usage += "   (18) Project filename (if you manually created a project properties file, or edited an existing project). Note that default arguments available here can overide existing project properties (i.e. proj=" + filename + " (no default))\n";
