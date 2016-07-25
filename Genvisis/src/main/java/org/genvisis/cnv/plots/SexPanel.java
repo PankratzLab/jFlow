@@ -9,7 +9,6 @@ import javax.swing.*;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.LaunchAction;
 import org.genvisis.cnv.qc.SexChecks;
-import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.*;
 import org.genvisis.mining.Distance;
 
@@ -18,14 +17,10 @@ import java.awt.image.BufferedImage;
 
 import javax.imageio.*;
 
-//public class MosaicPanel extends JPanel implements MouseListener, MouseMotionListener, ComponentListener {
-//public class SexPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener, ActionListener {
 public class SexPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
 	public static final int HEAD_BUFFER = 25;
-//	public static final int HEIGHT_X_AXIS = 55;
 	public static final int HEIGHT_X_AXIS = 105;
-//	public static final int WIDTH_Y_AXIS = 75;
 	public static final int WIDTH_Y_AXIS = 125;
 	public static final int WIDTH_BUFFER = 50;
 	public static final int SIZE = 12;
@@ -109,7 +104,6 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 
 		colorHash = new Hashtable<String,String>();
 		try {
-//			reader = Files.getReader(proj.getFilename(proj.MOSAIC_COLOR_CODES_FILENAME), proj.getJarStatus(), true, false);
 			reader = Files.getReader(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, false);
 			if (reader!=null) {
 				while (reader.ready()) {
@@ -119,7 +113,6 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 				reader.close();
 			}
 		} catch (IOException ioe) {
-//			System.err.println("Error reading file \""+proj.getFilename(proj.MOSAIC_COLOR_CODES_FILENAME)+"\"");
 			System.err.println("Error reading file \""+proj.MOSAIC_COLOR_CODES_FILENAME.getValue()+"\"");
 			System.exit(2);
 		}
@@ -127,9 +120,6 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 		image = null;
 		locLookup = new Hashtable<String,IntVector>();
 		sampLookup = new Hashtable<String,IntVector>();
-		
-		
-		// linkSamples = true;
 
 		for (int i = 0; i<data.length; i++) {
 			if (sampLookup.containsKey(samples[i])) {
@@ -145,11 +135,6 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 			minY = Math.min(data[j][1], minY);
 			maxY = Math.max(data[j][1], maxY);
 		}
-
-//		addMouseListener(this);
-//		addMouseMotionListener(this);
-		
-		//setFlow(true);
 	}
 	
 
@@ -158,8 +143,13 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 	}
 	
 	public void uncertainsToTrailer() {
-		String[][] uncertainsXRegions = new String[Array.booleanArraySum(uncertains)][];
-		String[][] uncertainsYRegions = new String[Array.booleanArraySum(uncertains)][];
+		int numUncertains = Array.booleanArraySum(uncertains);
+		if (numUncertains == 0) {
+			JOptionPane.showMessageDialog(null, "No uncertain sex calls to display");
+			return;
+		}
+		String[][] uncertainsXRegions = new String[numUncertains][];
+		String[][] uncertainsYRegions = new String[numUncertains][];
 		int writeIndex = 0;
 		for (int i = 0; i < samples.length; i++) {
 			if (uncertains[i]) {
@@ -167,12 +157,16 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 				uncertainsYRegions[writeIndex++] = new String[] {samples[i], "chr24", "Called as " + SexChecks.ESTIMATED_SEXES[estimatedSexes[i]] + " (" + notes[i] + ")"};
 			}
 		}
-		String xRegionsFile = proj.PROJECT_DIRECTORY.getValue() + proj.RESULTS_DIRECTORY.getValue() + "list_uncertainSexCallsXChr.txt";
-		String yRegionsFile = proj.PROJECT_DIRECTORY.getValue() + proj.RESULTS_DIRECTORY.getValue() + "list_uncertainSexCallsYChr.txt";
+		String xRegionsFile = proj.RESULTS_DIRECTORY.getValue() + "list_uncertainSexCallsXChr.txt";
+		String yRegionsFile = proj.RESULTS_DIRECTORY.getValue() + "list_uncertainSexCallsYChr.txt";
 		Files.writeMatrix(uncertainsXRegions, xRegionsFile, "\t");
 		Files.writeMatrix(uncertainsYRegions, yRegionsFile, "\t");
-
-		// TODO Launch Trailer Plot with lists
+		
+		Trailer xTrailer = new Trailer(proj, uncertainsXRegions[0][0], proj.CNV_FILENAMES.getValue(), uncertainsXRegions[0][1], Trailer.DEFAULT_STARTX, 1,  Toolkit.getDefaultToolkit().getScreenSize().width - 30 - Trailer.DEFAULT_STARTX, (Toolkit.getDefaultToolkit().getScreenSize().height-50)/2);
+		Trailer yTrailer = new Trailer(proj, uncertainsYRegions[0][0], proj.CNV_FILENAMES.getValue(), uncertainsYRegions[0][1], Trailer.DEFAULT_STARTX, 1 + (Toolkit.getDefaultToolkit().getScreenSize().height-50)/2,  Toolkit.getDefaultToolkit().getScreenSize().width - 30 - Trailer.DEFAULT_STARTX, (Toolkit.getDefaultToolkit().getScreenSize().height-50)/2);
+		
+		xTrailer.loadRegionFile(xRegionsFile);
+		yTrailer.loadRegionFile(yRegionsFile);
 	}
 
 	public void savePlotToFile() {
@@ -199,10 +193,8 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 				repaint();
 			}
 
-			//iv = locLookup.get(pos);
 			iv = lookupNearbyPoints(x, y, pos);
 			prox = new IntVector();
-//			System.out.println("pos: "+pos+"\t iv.size():"+(iv==null?"null":iv.size()));//zx test point
 			g.setColor(Color.RED);
 			for (int i = 0; iv!=null&&i<iv.size(); i++) {
 				if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(data[iv.elementAt(i)][0]), getYPixel(data[iv.elementAt(i)][1])})<HIGHLIGHT_DISTANCE) {
@@ -213,14 +205,8 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 					} else {
 						g.fillOval(getXPixel(data[iv.elementAt(i)][0])-SIZE/2, getYPixel(data[iv.elementAt(i)][1])-SIZE/2, SIZE, SIZE);
 					}
-
-					// } else {
-					// g.setColor(Color.BLACK);
-					// g.fillOval(getX(data[iv.elementAt(i)][0])-SIZE/2,
-					// getY(data[iv.elementAt(i)][1])-SIZE/2, SIZE, SIZE);
 				}
 			}
-			// if (linkSamples && prox != null && prox.size() > 0) {
 			if (prox!=null && prox.size()>0) {
 				for (int i = 0; i<prox.size(); i++) {
 					iv = sampLookup.get(samples[prox.elementAt(i)]);
@@ -242,16 +228,9 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 	public void mouseClicked(MouseEvent event) {
 		JPopupMenu menu;
 
-		if (event.getButton()==MouseEvent.BUTTON1) { // left click
-			// linkSamples = !linkSamples;
-		} else if (event.getButton()==MouseEvent.BUTTON3) { // right click
-		}
-
-		//System.out.println("Click with "+prox.size()+" in proximity");
 		if (prox!=null&&prox.size()>0) {
 			menu = new JPopupMenu();
 			for (int i = 0; i<prox.size(); i++) {
-//				System.out.println(i+"\t"+samples[prox.elementAt(i)][0]);
 				menu.add(new LaunchAction(proj,
 										  samples[prox.elementAt(i)],
 										  new String[] {"chr23", "chr24"},

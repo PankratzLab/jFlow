@@ -29,13 +29,6 @@ public class SexChecks {
 																 "Turner", 					// 8
 																 "Mosaic Turner"};			// 9
 	public static final String EST_SEX_HEADER = generateEstSexHeader();
-	private static String generateEstSexHeader() {
-		String header = "Estimated Sex";
-		for (int i = 0; i < ESTIMATED_SEXES.length; i++) {
-			header += ";" + i + "=" + ESTIMATED_SEXES[i];
-		}
-		return header;
-	}
 	
 	public static final int[] EST_SEX_MAPPING = {0, 1, 2, 1, 1, 1, 2, 2, 2, 2};
 	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note", "Check", "Excluded", "Median X R", "Median Y R", "R Ratio Y:X", "Number of X BAFs 10-90%", "Median X LRR", "Median Y LRR"};
@@ -139,6 +132,14 @@ public class SexChecks {
 		log.report("Writing outputs...");
 		writeToFile(appendToSampleData);
 		log.report("Finished estimating sample sexes in " + ext.getTimeElapsed(startTime));
+	}
+	
+	private static String generateEstSexHeader() {
+		String header = "Estimated Sex";
+		for (int i = 0; i < ESTIMATED_SEXES.length; i++) {
+			header += ";" + i + "=" + ESTIMATED_SEXES[i];
+		}
+		return header;
 	}
 	
 	private void generateMarkerLists(String nonCrossHybridizingMarkersFile) {
@@ -318,6 +319,7 @@ public class SexChecks {
 	}
 	
 	private float[] calcPctHets(byte[][] genotypes, int[] useMarkers) {
+		// TODO Decide whether to use this or Baf 10-90/15-85
 		int[] het_counts = Array.intArray(sampleNames.length, 0);
 		int[] genotype_counts = Array.intArray(sampleNames.length, 0);
 		for (int m = 0; m < useMarkers.length; m++) {
@@ -500,7 +502,9 @@ public class SexChecks {
 		}
 		notesAdd += "Total Mosaic Coverage: " + ext.formDeci(totalCoverage * 100, 4, true) + "%; ";
 		if (totalCoverage < MOSAIC_COVERAGE_CERTAINTY_THRESHOLD) {
-			if (totalCoverage > MOSAIC_COVERAGE_ABSOLUTE_THRESHOLD) uncertains[sample] = true;
+			if (totalCoverage > MOSAIC_COVERAGE_ABSOLUTE_THRESHOLD) {
+				uncertains[sample] = true;
+			}
 			else {
 				uncertains[sample] = false;
 				return false;

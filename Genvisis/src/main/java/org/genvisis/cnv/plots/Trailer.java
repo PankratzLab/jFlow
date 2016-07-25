@@ -864,11 +864,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		return null;
 	}
 	
-	private void addFileToList(String rawfile) {
+	private boolean addFileToList(String rawfile) {
 		String file = ext.verifyDirFormat(rawfile);
 		file = file.substring(0, file.length() - 1);
 		String name = ext.rootOf(file);
-		regionFileNameLoc.put(name, file);
+		if (regionFileNameLoc.putIfAbsent(name, file) != null) {
+			return false;
+		}
 		
 		JCheckBoxMenuItem item = new JCheckBoxMenuItem();
 		item.setAction(markerFileSelectAction);
@@ -877,6 +879,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		regionFileNameBtn.put(name, item);
 		regionButtonGroup.add(item);
 		loadRecentFileMenu.add(item);
+		return true;
 	}
 	
 	public void generateComponents() {
@@ -2070,7 +2073,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		zoomProportionally(e.getWheelRotation()>0, e.getPoint(), false);
 	}
-
+	
 	public void zoomProportionally(boolean outNotIn, Point p, boolean center) {
 		int width = lrrPanel.getWidth()-2*WIDTH_BUFFER;
 		double x = p.getX()-WIDTH_BUFFER;
@@ -2510,6 +2513,15 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                 repaint();
             }
         });
+	}
+
+	public void loadRegionFile(String filename) {
+		addFileToList(filename);
+	    String file = ext.verifyDirFormat(filename);
+	    file = file.substring(0, file.length() - 1);
+	    String name = ext.rootOf(file);
+	    regionFileNameBtn.get(name).setSelected(true);
+	    regionFileNameBtn.get(name).doClick();
 	}
 
 	public void loadRegions() {
