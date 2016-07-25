@@ -6,6 +6,7 @@ import java.awt.geom.IllegalPathStateException;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 
@@ -287,6 +288,7 @@ public abstract class Gate {
     protected ArrayList<Gate> children = new ArrayList<Gate>();
     protected ArrayList<GateDimension> dimensions = new ArrayList<GateDimension>();
 //    protected HashMap<String, boolean[]> gatingCache = new HashMap<String, boolean[]>();
+    protected int displayLevel = 0;
     
     static final Random rand = new Random();
     
@@ -316,7 +318,7 @@ public abstract class Gate {
     public boolean[] getParentGating(FCSDataLoader dataLoader) {
         if (parentGating == null) {
             if (this.parentGate == null) {
-                return null;
+                return parentGating = Array.booleanArray(dataLoader.getCount(), true);
             } else {
                 return parentGating = this.parentGate.gate(dataLoader);
             }
@@ -331,6 +333,14 @@ public abstract class Gate {
     
     public String getID() {
         return id;
+    }
+    
+    public void setLevel(int lvl) {
+        this.displayLevel = lvl;
+    }
+
+    public int getLevel() {
+        return this.displayLevel;
     }
     
     public String getFullNameAndGatingPath() {
@@ -410,8 +420,8 @@ public abstract class Gate {
 //            if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
 //                return gatingCache.get(dataLoader.getLoadedFile());
 //            }
-            boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : this.parentGate.gate(dataLoader);
-            this.parentGating = includes == null ? null : includes.clone();
+            boolean[] includes = this.parentGate == null ? Array.booleanArray(dataLoader.getCount(), true) : this.parentGate.gate(dataLoader);
+            this.parentGating = includes == null ? null : Arrays.copyOf(includes, includes.length);
             boolean[][] paramIncludes = new boolean[dimensions.size()][dataLoader.getCount()];
             for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
                 RectangleGateDimension rgd = (RectangleGateDimension) dimensions.get(p);
