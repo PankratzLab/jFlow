@@ -100,6 +100,11 @@ public class SomaticSniper {
 
 		}
 
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	private static TNSample[] matchSamples(String[] bamFiles, String outputDir, VcfPopulation vpop, SomaticParams somaticParams, Logger log) {

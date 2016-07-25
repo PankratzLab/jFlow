@@ -162,6 +162,11 @@ public class Mosaicism {
 		public void shutdown() {
 			index = samples.length;
 		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
 		
 		
 	}

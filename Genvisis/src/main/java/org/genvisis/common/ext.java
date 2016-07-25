@@ -907,10 +907,11 @@ public class ext {
 			
 			for (int i = 0; i < superset.length; i++){
 				if (targets.contains(superset[i])){
-					if (indices.putIfAbsent(superset[i], i) != null) {
+					if (indices.get(superset[i]) != null) {
 						if (verbose) log.reportError("Error - more than one factor was named '"+superset[i]+"'");
 						err = true;
 					}
+					indices.put(superset[i], i);
 				}
 			}
 

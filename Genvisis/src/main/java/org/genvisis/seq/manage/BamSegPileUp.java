@@ -187,6 +187,16 @@ public class BamSegPileUp implements Iterator<BamPile> {
 
 		}
 
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
+	}
+
+	@Override
+	public void remove() {
+		throw new UnsupportedOperationException();
 	}
 
 }

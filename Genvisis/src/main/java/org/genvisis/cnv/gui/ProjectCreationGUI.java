@@ -122,7 +122,7 @@ public class ProjectCreationGUI extends JDialog {
         }
     };
     
-    private JComboBox<Project.ARRAY> comboBoxArrayType;
+    private JComboBox comboBoxArrayType;
 //    private JComboBox<String> comboBoxArrayType;
     private JLabel lblSrcFileStatus;
     private JSpinner spinnerXY;
@@ -205,7 +205,7 @@ public class ProjectCreationGUI extends JDialog {
         JLabel lblArrayType = new JLabel("Array Type:");
         contentPane.add(lblArrayType, "cell 0 8,alignx trailing");
         
-        comboBoxArrayType = new JComboBox<Project.ARRAY>(Project.ARRAY.values());
+        comboBoxArrayType = new JComboBox(Project.ARRAY.values());
 //        comboBoxArrayType = new JComboBox<String>();
         comboBoxArrayType.setFont(comboBoxArrayType.getFont().deriveFont(Font.PLAIN));
         contentPane.add(comboBoxArrayType, "cell 2 8,growx");

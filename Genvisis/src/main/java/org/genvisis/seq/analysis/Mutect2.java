@@ -198,6 +198,11 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		@Override
 		public void shutdown() {
 		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
 	}
 
 	private static class Mutect2Worker implements Callable<Mutect2Normal> {
@@ -622,6 +627,11 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 
 		}
 
+	}
+
+	@Override
+	public void remove() {
+		throw new UnsupportedOperationException();
 	}
 
 }

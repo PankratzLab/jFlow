@@ -90,6 +90,11 @@ public class SDL implements Iterator<Sample> {
 
 		}
 
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	private static class SDLWorker implements Callable<Sample> {
@@ -120,5 +125,10 @@ public class SDL implements Iterator<Sample> {
 				return null;
 			}
 		}
+	}
+
+	@Override
+	public void remove() {
+		throw new UnsupportedOperationException();
 	}
 }

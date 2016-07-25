@@ -111,7 +111,7 @@ public class SerializedFiles {
 			return o;
 		}
 	
-	private static synchronized Object readSerialFixClassname(String filename, boolean jar, Logger log, boolean kill, boolean gzipped) throws FileNotFoundException, IOException, ClassNotFoundException {
+	private static synchronized Object readSerialFixClassname(final String filename, boolean jar, final Logger log, boolean kill, boolean gzipped) throws FileNotFoundException, IOException, ClassNotFoundException {
 		InputStream in;
 		ObjectInputStream ois;
 		Object o;

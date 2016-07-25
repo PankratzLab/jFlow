@@ -247,6 +247,11 @@ public class ExomeDepthRun {
 
 		}
 
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	// private Sample parseToSample(ExomeDepthAnalysis exomeDepthAnalysis, Logger log) {

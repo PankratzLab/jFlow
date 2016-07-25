@@ -83,7 +83,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 	private JButton first, previous, next, last;
 //	private JButton btnScreen, btnScreenAll;
 	private JTextField navigationField;
-	private JComboBox<String> markerFileList;
+	private JComboBox markerFileList;
 //	int curMarkerIndex;
     
 
@@ -360,7 +360,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 			}
 		}
 		items.add(MARKER_LIST_NEW_FILE);
-		markerFileList = new JComboBox<String>(items);
+		markerFileList = new JComboBox(items);
 		markerFileList.setFont(new Font("Arial", 0, 12));
 		markerFileList.setMinimumSize(new Dimension(200, 20));
 		markerFileList.setPreferredSize(new Dimension(200, 20));
@@ -371,7 +371,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 			@SuppressWarnings("unchecked")
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String shortName = (String) ((JComboBox<String>)e.getSource()).getSelectedItem();
+				String shortName = (String) ((JComboBox)e.getSource()).getSelectedItem();
 				if (!forestPlot.isLoadingFile() && !MARKER_LIST_NEW_FILE.equals(shortName) && !MARKER_LIST_PLACEHOLDER.equals(shortName)) {
 					String file = markerFileNameLoc.get(shortName);
 					if (file != null && file.equals(forestPlot.getMarkerFileName())) {
@@ -384,13 +384,13 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 				} else if (forestPlot.isLoadingFile() || MARKER_LIST_PLACEHOLDER.equals(shortName)) {
 					// leave as currently selected marker
 					if (forestPlot.getMarkerFileName() != "" && forestPlot.getMarkerFileName() != null) {
-						((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(forestPlot.getMarkerFileName()));
+						((JComboBox)e.getSource()).setSelectedItem(ext.rootOf(forestPlot.getMarkerFileName()));
 					}
 					return;
 				} else if (MARKER_LIST_NEW_FILE.equals(shortName)) {
 					chooseNewFiles();
 					if (forestPlot.getMarkerFileName() != null && !"".equals(forestPlot.getMarkerFileName())) {
-						((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(forestPlot.getMarkerFileName()));
+						((JComboBox)e.getSource()).setSelectedItem(ext.rootOf(forestPlot.getMarkerFileName()));
 					}
 				}
 			}
@@ -591,7 +591,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 		Vector<String> currFiles = new Vector<String>();
 		if (num > 0) {
 			for (int i = 1; i < num + 1; i++) {
-				currFiles.add(markerFileList.getModel().getElementAt(i));
+				currFiles.add((String)markerFileList.getModel().getElementAt(i));
 			}
 		}
 		String name = ext.rootOf(file);
@@ -600,7 +600,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 		currFiles.add(0, MARKER_LIST_PLACEHOLDER);
 		currFiles.add(MARKER_LIST_NEW_FILE);
 		
-		markerFileList.setModel(new DefaultComboBoxModel<String>(currFiles));
+		markerFileList.setModel(new DefaultComboBoxModel(currFiles));
 	}
 	
 	

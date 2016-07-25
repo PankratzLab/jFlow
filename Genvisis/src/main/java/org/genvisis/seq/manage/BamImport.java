@@ -180,6 +180,11 @@ public class BamImport {
 
 		}
 
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	private static class VariantSeg extends Segment {
@@ -580,6 +585,11 @@ public class BamImport {
 		public void shutdown() {
 			// TODO Auto-generated method stub
 
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
 		}
 
 	}

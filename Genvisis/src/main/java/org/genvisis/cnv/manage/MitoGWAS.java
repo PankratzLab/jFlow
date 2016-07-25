@@ -279,7 +279,7 @@ public class MitoGWAS {
 
 				for (int j = 0; j < emp1s.length; j++) {
 					if (valid) {
-						valid = Double.isFinite(emp1s[j][i]) && markerSet.getChrs()[i] > 0;
+						valid = !Double.isInfinite(emp1s[j][i]) && markerSet.getChrs()[i] > 0;
 						if (!valid) {
 							numInvalid++;
 							valids[i] = false;
@@ -611,6 +611,11 @@ public class MitoGWAS {
 
 		@Override
 		public void shutdown() {
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
 		}
 	}
 

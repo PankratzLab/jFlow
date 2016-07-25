@@ -1,7 +1,6 @@
 package org.genvisis.common;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class CmdLine {

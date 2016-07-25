@@ -321,6 +321,11 @@ public class BamOps {
 
 		}
 
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	/**

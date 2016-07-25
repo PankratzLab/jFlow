@@ -306,7 +306,7 @@ public class PennHmm {
 				p += (1 - uf) * pfb * pfb * pfb * pfb * opdfGaussianMinus.probability(o);
 			}
 		}
-		if (!Double.isFinite(p)) {
+		if (Double.isInfinite(p)) {
 			String error = "Non-finite p, " + p;
 			throw new IllegalStateException(error);
 

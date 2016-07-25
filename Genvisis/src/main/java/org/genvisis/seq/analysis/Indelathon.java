@@ -452,6 +452,11 @@ public class Indelathon {
 
 		}
 
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	private static void extractIndelVariants(String vcf, Logger log, String outIndelVCF, String outSegSer, Hashtable<String, ArrayList<Segment>> sampSegs) {

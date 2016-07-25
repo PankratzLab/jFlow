@@ -670,7 +670,7 @@ public class ProjectPropertiesEditor extends JFrame {
 				} else if (propVal instanceof Enum<?>) {
 				    @SuppressWarnings("rawtypes")
                     Object[] values = ((Enum)propVal).getDeclaringClass().getEnumConstants();
-                    DefaultCellEditor enumEditor = new DefaultCellEditor(new JComboBox<Object>(values));
+                    DefaultCellEditor enumEditor = new DefaultCellEditor(new JComboBox(values));
 				    editor = enumEditor;
 				} else {
 //				    System.out.println("Not found: Class<" + propVal.getClass().getName() + ">");

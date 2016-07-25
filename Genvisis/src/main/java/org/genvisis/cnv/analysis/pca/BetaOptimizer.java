@@ -266,6 +266,11 @@ public class BetaOptimizer {
 
 		}
 
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	private static void analyzeAll(Project proj, String pcFile, String samplesToBuildModels, MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outpuDir, String[] betas, double[] pvals, double markerCallRate, int maxPCs, int numthreads, String usedInPCFile, int pvalRefineCutoff, Logger log) {
@@ -702,7 +707,7 @@ public class BetaOptimizer {
 						try {
 							double beta = Double.parseDouble(line[indices[3]]);
 							double p = Double.parseDouble(line[indices[4]]);
-							if (Double.isFinite(beta) && Double.isFinite(p) && p < minPval) {
+							if (!Double.isInfinite(beta) && !Double.isInfinite(p) && p < minPval) {
 								MarkerRsFormat current = markerRsFormats.get(index.get(rsId));
 								String[] betaAlleles = new String[] { line[indices[1]].toUpperCase(), line[indices[2]].toUpperCase() };
 								String[] markerAlleles = new String[] { current.getMarkerAlleles()[0], current.getMarkerAlleles()[1] };
@@ -729,7 +734,7 @@ public class BetaOptimizer {
 									}
 									added.add(current.getMarkerName());
 								}
-							} else if (!Double.isFinite(beta) || !Double.isFinite(p)) {
+							} else if (Double.isInfinite(beta) || Double.isInfinite(p)) {
 								log.reportTimeWarning("Invalid number on line " + Array.toStr(line));
 								log.reportTimeWarning(line[indices[3]] + "\t" + line[indices[4]]);
 							}

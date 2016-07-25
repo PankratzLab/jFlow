@@ -699,6 +699,11 @@ public class CNVCaller {
 		public void shutdown() {
 
 		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
 	}
 
 	public static class CNVCallerIterator implements Iterator<CNVCallResult> {
@@ -717,6 +722,11 @@ public class CNVCaller {
 		@Override
 		public CNVCallResult next() {
 			return train.next();
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
 		}
 	}
 

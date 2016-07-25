@@ -187,6 +187,11 @@ public class GcCorrection {
 
 		}
 
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	private static class GcWorker implements Callable<GcCorrectedSample> {

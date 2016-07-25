@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.lang.ProcessBuilder.Redirect;
 import java.util.Iterator;
 
 public class CmdLineProcess implements Iterator<String> {
@@ -83,7 +82,6 @@ public class CmdLineProcess implements Iterator<String> {
 			probuilder.directory(new File(dir));
 		}
 		setupStandardError(probuilder);
-		setupStandardOutput(probuilder);
 
 		try {
 			this.proc = probuilder.start();
@@ -140,34 +138,17 @@ public class CmdLineProcess implements Iterator<String> {
 		new InputWriter().start();
 	}
 
-	/**
-	 * Confusing, but I think probuilder.redirectInput is correct.
-	 */
-	private void setupStandardOutput(ProcessBuilder probuilder) {
-		switch (outputMode) {
-		case NO_STOUT_CAPTURE:
-			probuilder.redirectInput(Redirect.INHERIT);
-			break;
-		case STOUT_CAPTURE_ITERATOR:
-			break;
-		default:
-			log.reportTimeWarning("Invalid output capture mode, inheriting...");
-			probuilder.redirectInput(Redirect.INHERIT);
-			break;
-		}
-	}
-
 	private void setupStandardError(ProcessBuilder probuilder) {
 		switch (errorMode) {
 		case NO_STERR_CAPTURE:
-			probuilder.redirectError(Redirect.INHERIT);
+			probuilder.redirectErrorStream(true);
 			break;
 
 		case STERR_CAPTURE_BY_LOG:
 			break;
 		default:
-			log.reportTimeWarning("Invalid error capture mode, inheriting...");
-			probuilder.redirectError(Redirect.INHERIT);
+			log.reportTimeWarning("Invalid error capture mode, directing to standard output...");
+			probuilder.redirectErrorStream(true);
 			break;
 		}
 	}

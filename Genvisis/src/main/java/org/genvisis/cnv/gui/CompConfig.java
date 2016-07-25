@@ -82,8 +82,8 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 		JLabel lblDisplayMode = new JLabel("Display Mode");
 		dmPanel.add(lblDisplayMode);
 
-		JComboBox<String> comboBox = new JComboBox<String>();
-		comboBox.setModel(new DefaultComboBoxModel<String>(new String[] { "Full", "Pack", "Collapsed" }));
+		JComboBox comboBox = new JComboBox();
+		comboBox.setModel(new DefaultComboBoxModel(new String[] { "Full", "Pack", "Collapsed" }));
 		comboBox.addActionListener(this);
 		dmPanel.add(comboBox);
 		configPanel.add(dmPanel);
@@ -190,7 +190,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		@SuppressWarnings("unchecked")
-		JComboBox<String> cb = (JComboBox<String>) arg0.getSource();
+		JComboBox cb = (JComboBox) arg0.getSource();
 		String mode = (String) cb.getSelectedItem();
 		firePropertyChange("displayMode", displayMode, mode);
 		displayMode = mode;
@@ -241,7 +241,7 @@ class CNVPanel extends JPanel implements ActionListener {
 	JLabel score; // Quality score
 	String displayMode;
 	JScrollPane cnvPane;
-	JComboBox<CNVariant> cnvList;
+	JComboBox cnvList;
 	JScrollPane cnvScroll;
 
 	JLabel cnvListLabel;

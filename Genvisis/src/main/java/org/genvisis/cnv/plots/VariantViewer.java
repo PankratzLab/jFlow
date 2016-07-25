@@ -161,7 +161,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     private volatile int dataPntSize = DATA_PNT_SIZE;
     private volatile int yStart = Y_START;
     
-	private JComboBox<String> isoformList;
+	private JComboBox isoformList;
 	private String[] isoformsPresent;
 	private JButton previousGene, nextGene;
 	private Project proj;
@@ -213,7 +213,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     private HashMap<String, String> regionFileNameLoc = new HashMap<String, String>();
     private String geneFileName;
     private volatile boolean loadingFile = false;
-    private JComboBox<String> geneListCmb;
+    private JComboBox geneListCmb;
     
 	Rectangle selectedRect;
     BlockDraw selectedBlockDraw;
@@ -619,7 +619,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             maxWidth = Math.max(maxWidth, fontMetrics.stringWidth(geneNames[i]));
         }
 
-        geneListCmb.setModel(new DefaultComboBoxModel<String>(geneNames));
+        geneListCmb.setModel(new DefaultComboBoxModel(geneNames));
         geneListCmb.setPreferredSize(new Dimension(maxWidth + 50, 30));
 	}
 	
@@ -1186,7 +1186,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                     hiddenDrawTypes.add(dt);
                     e.getComponent().setFont(e.getComponent().getFont().deriveFont(Font.ITALIC));
                 }
-                e.getComponent().revalidate();
+                e.getComponent().validate();
                 legendPanel.repaint();
                 updateGUI();
             }
@@ -1617,7 +1617,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		
 		JPanel regionPanel = new JPanel();
 		((FlowLayout)regionPanel.getLayout()).setVgap(0);
-		geneListCmb = new JComboBox<String>();
+		geneListCmb = new JComboBox();
         DefaultListCellRenderer dlcr = new DefaultListCellRenderer();
         dlcr.setHorizontalAlignment(DefaultListCellRenderer.CENTER);
         geneListCmb.setRenderer(dlcr);
@@ -1687,7 +1687,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         commentField.setVisible(false);
         compPanel.add(commentField, "cell 0 1, hidemode 3");
 		
-		isoformList = new JComboBox<String>();
+		isoformList = new JComboBox();
 		isoformList.setFont(font);
 		
 		dlcr = new DefaultListCellRenderer();
@@ -1700,7 +1700,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             @Override
             public void actionPerformed(ActionEvent e) {
                 @SuppressWarnings("unchecked")
-                JComboBox<String> jcb = (JComboBox<String>)e.getSource();
+                JComboBox jcb = (JComboBox)e.getSource();
                 int index = jcb.getSelectedIndex();
                 if (index == isoformsPresent.length-1) {
 //                    createIsoformList();
@@ -2571,7 +2571,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 			    isoformsPresent[index] = COLLAPSE_ISOFORMS_KEY;
 			}
 		}
-		DefaultComboBoxModel<String> dcbm = new DefaultComboBoxModel<String>(isoformsPresent);
+		DefaultComboBoxModel dcbm = new DefaultComboBoxModel(isoformsPresent);
 		isoformList.setModel(dcbm);
 		isoformList.setPreferredSize(new Dimension(maxWidth+50, 30));
 	}

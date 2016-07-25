@@ -75,10 +75,10 @@ public class ParseSNPlocations {
         } else {
             System.out.println("Processing " + lineCnt + " SNPs");
         }
-        
-        try (VCFFileReader vcfReader = new VCFFileReader(new File(vcfFile), true);
-        		VCFFileReader unmappedVCFReader = unmappedVCF == null ? null : new VCFFileReader(new File(unmappedVCF), true);
-                VCFFileReader mergedVCFReader = mergedVCF == null ? null : new VCFFileReader(new File(mergedVCF), true);){
+        VCFFileReader vcfReader = new VCFFileReader(new File(vcfFile), true);
+        VCFFileReader unmappedVCFReader = unmappedVCF == null ? null : new VCFFileReader(new File(unmappedVCF), true);
+        VCFFileReader mergedVCFReader = mergedVCF == null ? null : new VCFFileReader(new File(mergedVCF), true);
+        try {
             reader = Files.getAppropriateReader(snpListFile);
 
             while ((line = reader.readLine()) != null) {
@@ -194,6 +194,11 @@ public class ParseSNPlocations {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        finally {
+        	vcfReader.close();
+        	if (unmappedVCFReader != null) unmappedVCFReader.close();
+        	if (mergedVCFReader != null) mergedVCFReader.close();
+        }
         
         if (rsNotFound.size() > 0) {
             Files.writeArrayList(rsNotFound, ext.rootOf(snpListFile, false)+"_missing.txt");
@@ -223,10 +228,11 @@ public class ParseSNPlocations {
         } else {
             System.out.println("Processing " + lineCnt + " SNPs");
         }
-        
-        try (VCFFileReader vcfReader = new VCFFileReader(new File(vcfFile), true);
-        		VCFFileReader unmappedVCFReader = unmappedVCF == null ? null : new VCFFileReader(new File(unmappedVCF), true);
-        		VCFFileReader mergedVCFReader = mergedVCF == null ? null : new VCFFileReader(new File(mergedVCF), true);) {
+        VCFFileReader vcfReader = new VCFFileReader(new File(vcfFile), true);
+        VCFFileReader unmappedVCFReader = unmappedVCF == null ? null : new VCFFileReader(new File(unmappedVCF), true);
+        VCFFileReader mergedVCFReader = mergedVCF == null ? null : new VCFFileReader(new File(mergedVCF), true);
+
+        try {
             reader = Files.getAppropriateReader(snpListFile);
             writer = Files.getAppropriateWriter(ext.rootOf(snpListFile, false)+"_positions.xln");
             writer.println("SNP\tChr\tPosition\tRef\tAlt\tFunc\tPM/MUT\tGENENAME\tCAF");
@@ -402,6 +408,11 @@ public class ParseSNPlocations {
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+        }
+        finally {
+        	vcfReader.close();
+        	if (unmappedVCFReader != null) unmappedVCFReader.close();
+        	if (mergedVCFReader != null) mergedVCFReader.close();
         }
         
         if (rsNotFound.size() > 0) {

@@ -21,7 +21,7 @@ public class HelperCurrent extends JFrame {
 	public static final String BUTTON2 = "Next IGV";
 	public static final String BUTTON3 = "Button 3";
 	
-	private JComboBox<String> optionsBox;
+	private JComboBox optionsBox;
 	private JTextArea text;
 	
 	private AhkBot bot;
@@ -73,8 +73,8 @@ public class HelperCurrent extends JFrame {
 
         pane.add(panel);
 
-		optionsBox = new JComboBox<String>();
-		optionsBox.setModel(new DefaultComboBoxModel<String>(OPTIONS));
+		optionsBox = new JComboBox();
+		optionsBox.setModel(new DefaultComboBoxModel(OPTIONS));
 		optionsBox.setSelectedIndex(0);
 				
         panel = new JPanel();

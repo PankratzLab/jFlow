@@ -98,7 +98,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	
 	private Project proj;
 	private boolean jar;
-	private JComboBox<String> projectsBox;
+	private JComboBox projectsBox;
 	private String[] projects;
     private LaunchProperties launchProperties;
     private String launchPropertiesFile;
@@ -130,7 +130,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		for (int i = 0; i<projectNames.length; i++) {
 			projectNames[i] = ext.rootOf(projects[i], true);
         }
-		projectsBox.setModel(new DefaultComboBoxModel<String>(projectNames));
+		projectsBox.setModel(new DefaultComboBoxModel(projectNames));
 	}
 	
 
@@ -462,7 +462,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public void addComponentsToPane(final Container pane) {
 //		String lastProjectOpened;
         launchProperties = new LaunchProperties(launchPropertiesFile);
-        projectsBox = new JComboBox<String>();
+        projectsBox = new JComboBox();
         loadProjects();
         // In JDK1.4 this prevents action events from being fired when the  up/down arrow keys are used on the dropdown menu
         projectsBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
@@ -993,8 +993,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 					meth.invoke(null, (Object) params);
 				} catch (NoSuchMethodException exc) {
 					System.err.println("Requested main class does not have main method: " + mainClassName);
-				} catch (SecurityException | IllegalAccessException |
-						IllegalArgumentException | InvocationTargetException exc) {
+				} catch (Exception exc) {
+					if (exc instanceof RuntimeException) throw new RuntimeException(exc);
 					System.err.println(exc.getMessage());
 				}
 			}

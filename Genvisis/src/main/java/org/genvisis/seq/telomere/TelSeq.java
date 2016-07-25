@@ -116,6 +116,11 @@ public class TelSeq {
 
 		}
 
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	private static class Ran {

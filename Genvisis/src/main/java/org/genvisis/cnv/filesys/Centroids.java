@@ -460,6 +460,11 @@ public class Centroids implements Serializable, TextExport {
 			// TODO Auto-generated method stub
 			
 		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
 		
 	}
 	

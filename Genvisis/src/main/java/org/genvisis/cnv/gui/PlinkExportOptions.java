@@ -43,8 +43,8 @@ public class PlinkExportOptions extends JDialog {
     private final JPanel contentPanel = new JPanel();
     private JTextField textFieldPlinkFileroot;
     private JLabel lblNameConflict;
-    private JComboBox<String> comboBoxTargetMarkers;
-    private JComboBox<String> comboBoxClusterFilters;
+    private JComboBox comboBoxTargetMarkers;
+    private JComboBox comboBoxClusterFilters;
     private ButtonGroup exportTypeGroup;
     private JCheckBox chckbxOverwrite;
 
@@ -167,7 +167,7 @@ public class PlinkExportOptions extends JDialog {
             contentPanel.add(lblClusterFilterCollection, "flowx,cell 0 4");
         }
         {
-            comboBoxClusterFilters = new JComboBox<String>(getClusterFiltersOptions());
+            comboBoxClusterFilters = new JComboBox(getClusterFiltersOptions());
             comboBoxClusterFilters.setFont(comboBoxClusterFilters.getFont().deriveFont(Font.PLAIN));
             comboBoxClusterFilters.setSelectedItem(NO_CLUSTER_FILTERS);
             comboBoxClusterFilters.addItemListener(new ItemListener() {
@@ -194,7 +194,7 @@ public class PlinkExportOptions extends JDialog {
             contentPanel.add(lblTargetMarkersFile, "flowx,cell 0 2");
         }
         {
-            comboBoxTargetMarkers = new JComboBox<String>(getTargetMarkersOptions());
+            comboBoxTargetMarkers = new JComboBox(getTargetMarkersOptions());
             comboBoxTargetMarkers.addItemListener(new ItemListener() {
                 @Override
                 public void itemStateChanged(ItemEvent arg0) {
@@ -207,7 +207,7 @@ public class PlinkExportOptions extends JDialog {
                             if (nmld.getReturnCode() == JOptionPane.YES_OPTION) {
                                 String mkrFile = nmld.getFileName();
                                 proj.TARGET_MARKERS_FILENAMES.addValue(mkrFile);
-                                comboBoxTargetMarkers.setModel(new DefaultComboBoxModel<String>(getTargetMarkersOptions()));
+                                comboBoxTargetMarkers.setModel(new DefaultComboBoxModel(getTargetMarkersOptions()));
                                 comboBoxTargetMarkers.setSelectedItem(mkrFile);
                                 proj.saveProperties();
                             } else {
@@ -225,7 +225,7 @@ public class PlinkExportOptions extends JDialog {
                                 for (File newFile : newFiles) {
                                     proj.TARGET_MARKERS_FILENAMES.addValue(newFile.getAbsolutePath());
                                 }
-                                comboBoxTargetMarkers.setModel(new DefaultComboBoxModel<String>(getTargetMarkersOptions()));
+                                comboBoxTargetMarkers.setModel(new DefaultComboBoxModel(getTargetMarkersOptions()));
                                 comboBoxTargetMarkers.setSelectedItem(newFiles[0].getAbsolutePath());
                                 proj.saveProperties();
                             } else {

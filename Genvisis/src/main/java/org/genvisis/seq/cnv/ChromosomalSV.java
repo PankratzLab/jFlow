@@ -144,6 +144,11 @@ public class ChromosomalSV {
 
 		}
 
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	private static class ChrWorker implements Callable<ChrResult[][]> {

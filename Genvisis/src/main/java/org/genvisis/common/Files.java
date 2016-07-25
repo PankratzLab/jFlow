@@ -2493,12 +2493,7 @@ public class Files {
 			}
 			new File(targetDir).mkdirs();
 			for (int i = 2; i < params.length; i++) {
-				try {
-					java.nio.file.Files.copy(new File(sourceDir+params[i][0]).toPath(), new File(targetDir+(lower?params[i][0].toLowerCase():params[i][0])).toPath());
-				} catch (IOException e) {
-					log.reportError("Error - failed to copy '"+params[i][0]+"'");
-					e.printStackTrace();
-				}
+				Files.copyFile(new File(sourceDir+params[i][0]).toString(), new File(targetDir+(lower?params[i][0].toLowerCase():params[i][0])).toString());
 			}
 		}		
 	}

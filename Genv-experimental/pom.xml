@@ -17,6 +17,7 @@
 	<description>One-off, experimental, in-development projects</description>
 
 	<properties>
+		<genvisis.jvm.version>1.8</genvisis.jvm.version>
 	</properties>
 
 	<dependencies>

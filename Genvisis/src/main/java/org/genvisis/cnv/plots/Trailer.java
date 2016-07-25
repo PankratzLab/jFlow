@@ -103,7 +103,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private static final String REGION_LIST_NEW_FILE = "Load Region File";
 	private static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
 	private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
-	private JComboBox<String> sampleList;
+	private JComboBox sampleList;
 	private String[] samplesPresent;
 	private JTextField navigationField;
 //	private JTextField regionsField;
@@ -868,9 +868,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		String file = ext.verifyDirFormat(rawfile);
 		file = file.substring(0, file.length() - 1);
 		String name = ext.rootOf(file);
-		if (regionFileNameLoc.putIfAbsent(name, file) != null) {
+		if (regionFileNameLoc.get(name) != null) {
 			return false;
 		}
+		regionFileNameLoc.put(name, file);
 		
 		JCheckBoxMenuItem item = new JCheckBoxMenuItem();
 		item.setAction(markerFileSelectAction);
@@ -1039,7 +1040,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		previousRegion.setActionCommand(PREVIOUS_REGION);
 		previousRegion.setPreferredSize(new Dimension(25, 25));
 
-		sampleList = new JComboBox<String>();
+		sampleList = new JComboBox();
 		sampleList.setFont(new Font("Arial", 0, 20));
 		createSampleList();
 		
@@ -1053,7 +1054,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
             @Override
             public void actionPerformed(ActionEvent e) {
                 @SuppressWarnings("unchecked")
-                JComboBox<String> jcb = (JComboBox<String>)e.getSource();
+                JComboBox jcb = (JComboBox)e.getSource();
                 int index = jcb.getSelectedIndex();
                 if (index == samplesPresent.length-1) {
                     createSampleList();
@@ -2168,7 +2169,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			samplesPresent[filesPresent.length] = refresh;
 		}
 		
-		sampleList.setModel(new DefaultComboBoxModel<String>(samplesPresent));
+		sampleList.setModel(new DefaultComboBoxModel(samplesPresent));
 		sampleList.setPreferredSize(new Dimension(maxWidth+50, 30));
 
 	}

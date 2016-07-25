@@ -252,6 +252,11 @@ public class MitoSeqCN {
 			// TODO Auto-generated method stub
 
 		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
 	}
 
 	public static void main(String[] args) {

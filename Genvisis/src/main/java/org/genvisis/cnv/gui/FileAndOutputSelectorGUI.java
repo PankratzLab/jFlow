@@ -44,8 +44,8 @@ public class FileAndOutputSelectorGUI extends JDialog {
             String in = null;
             if (faosgui.inputComponent instanceof JTextComponent) {
                 in = ((JTextComponent) faosgui.inputComponent).getText();
-            } else if (faosgui.inputComponent instanceof JComboBox<?>) {
-                in = ((JComboBox<?>) faosgui.inputComponent).getSelectedItem().toString();
+            } else if (faosgui.inputComponent instanceof JComboBox) {
+                in = ((JComboBox) faosgui.inputComponent).getSelectedItem().toString();
             }
             retVals = new String[]{in, faosgui.txtFldOutputFile.getText()};
         }
@@ -61,8 +61,8 @@ public class FileAndOutputSelectorGUI extends JDialog {
             String in = null;
             if (faosgui.inputComponent instanceof JTextComponent) {
                 in = ((JTextComponent) faosgui.inputComponent).getText();
-            } else if (faosgui.inputComponent instanceof JComboBox<?>) {
-                in = ((JComboBox<?>) faosgui.inputComponent).getSelectedItem().toString();
+            } else if (faosgui.inputComponent instanceof JComboBox) {
+                in = ((JComboBox) faosgui.inputComponent).getSelectedItem().toString();
             }
             retVals = new String[]{in, faosgui.txtFldOutputFile.getText()};
         }
@@ -194,7 +194,7 @@ public class FileAndOutputSelectorGUI extends JDialog {
             contentPanel.add(lblInputFile, "cell 0 0");
         }
         if (inSuggAsCombo && inputSuggestions != null) {
-            JComboBox<String> cmbInputFile = new JComboBox<String>(inputSuggestions);
+            JComboBox cmbInputFile = new JComboBox(inputSuggestions);
             contentPanel.add(cmbInputFile, "flowx,cell 0 1, growx");
             inputComponent = cmbInputFile;
         } else {

@@ -389,7 +389,7 @@ public class Sort {
 			if (cmp == 0 && !s.equalsIgnoreCase(o.s)) {
 				cmp = s.compareToIgnoreCase(o.s);
 			}
-			return cmp == 0 ? Integer.compare(index, o.index) : cmp;
+			return cmp == 0 ? new Integer(index).compareTo(o.index) : cmp;
 		}
 
 	}
@@ -402,7 +402,7 @@ public class Sort {
 			if (cmp == 0 && !o1.s.equalsIgnoreCase(o2.s)) {
 				cmp = o1.s.compareToIgnoreCase(o2.s);
 			}
-			return cmp == 0 ? Integer.compare(o1.index, o2.index) : cmp;
+			return cmp == 0 ? new Integer(o1.index).compareTo(o2.index) : cmp;
 		}
 
 	}
@@ -451,7 +451,7 @@ public class Sort {
 		@Override
 		public int compareTo(ScoreDoubleIndex o) {
 			int cmp = Double.compare(score, o.score);
-			return cmp == 0 ? Integer.compare(index, o.index) : cmp;
+			return cmp == 0 ? new Integer(index).compareTo(o.index) : cmp;
 		}
 	}
 
@@ -460,7 +460,7 @@ public class Sort {
 		@Override
 		public int compare(ScoreDoubleIndex o1, ScoreDoubleIndex o2) {
 			int cmp = Double.compare(o1.getScore(), o2.getScore());
-			return cmp == 0 ? Integer.compare(o1.getIndex(), o2.getIndex()) : cmp;
+			return cmp == 0 ? new Integer(o1.getIndex()).compareTo(o2.getIndex()) : cmp;
 		}
 
 	}

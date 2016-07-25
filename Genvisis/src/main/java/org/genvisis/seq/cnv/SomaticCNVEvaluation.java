@@ -204,6 +204,11 @@ public class SomaticCNVEvaluation {
 
 		}
 
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	private static class SomaticEvaluation {

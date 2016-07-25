@@ -180,7 +180,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private boolean showAnnotatedOrUnannotated;
 	private boolean isInitilizing;
 	private char[] annotationKeys;
-	private JComboBox<String> newGenotype;
+	private JComboBox newGenotype;
 	private SpringLayout annotationPanelLowerPartLayout;
 
 
@@ -578,7 +578,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 				} else {
 					setFourView();
 				}
-				ScatterPlot.this.revalidate();
+				ScatterPlot.this.validate();
 				ScatterPlot.this.repaint();
 				updateGUI();
 			}
@@ -641,7 +641,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
             resetAfterLoad();
             proj.getProgressMonitor().endTask("SCATTERPLOT");
             ScatterPlot.this.setJMenuBar(ScatterPlot.this.createJMenuBar());
-            ScatterPlot.this.revalidate();
+            ScatterPlot.this.validate();
             finishProcessing();
         } else {
             proj.getLog().reportError("Error - file " + file + " not found");
@@ -861,7 +861,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
                 }
                 proj.DISPLAY_MARKERS_FILENAMES.removeValue(toDelete);
                 ScatterPlot.this.setJMenuBar(ScatterPlot.this.createJMenuBar());
-                ScatterPlot.this.revalidate();
+                ScatterPlot.this.validate();
                 ScatterPlot.this.repaint();
             }
         };
@@ -1362,14 +1362,14 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //		clusterFilterPanel.add(last1);
 		clusterFilterPanel.add(delete);
 
-    	newGenotype = new JComboBox<String>(GENOTYPE_OPTIONS);
+    	newGenotype = new JComboBox(GENOTYPE_OPTIONS);
 		ActionListener newGenotypeListener = new ActionListener() {
 			@SuppressWarnings("unchecked")
 			public void actionPerformed(ActionEvent e) {
 				byte newGenotypeSelected;
 				String newGenoSelected;
 
-				newGenoSelected = (String) ((JComboBox<String>) e.getSource()).getSelectedItem();
+				newGenoSelected = (String) ((JComboBox) e.getSource()).getSelectedItem();
 				newGenotypeSelected = -2;
 				for (int i = 0; i < GENOTYPE_OPTIONS.length; i++) {
 					if (newGenoSelected.equals(GENOTYPE_OPTIONS[i])) {

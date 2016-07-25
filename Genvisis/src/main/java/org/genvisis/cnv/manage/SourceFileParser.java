@@ -1782,6 +1782,11 @@ public class SourceFileParser implements Runnable {
 
 		}
 
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	private static class LongFileFormatWorker implements Callable<LongFormatParseResult> {

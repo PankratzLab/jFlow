@@ -509,7 +509,7 @@ public class MosaicismQuant implements Calcfc {
 		}
 
 		private boolean useBaf(double minBaf, double maxBaf, double baf) {
-			return Double.isFinite(baf) && baf > minBaf && baf < maxBaf;
+			return !Double.isInfinite(baf) && baf > minBaf && baf < maxBaf;
 		}
 
 		@Override
@@ -724,6 +724,11 @@ public class MosaicismQuant implements Calcfc {
 		public void shutdown() {
 		}
 
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	public static class FullMosiacResults implements Serializable {
@@ -892,7 +897,7 @@ public class MosaicismQuant implements Calcfc {
 						}
 
 					}
-					double test = Double.isFinite(baf) ? (double) (baf) : 0;
+					double test = Double.isInfinite(baf) ? 0 : (double) (baf); 
 					System.out.println(test);
 					double tmp = (double) gd.distributions()[j].probability(test) * Math.sqrt(vars[j]);
 
@@ -920,7 +925,7 @@ public class MosaicismQuant implements Calcfc {
 			for (int i = 0; i < currentIndices.length; i++) {
 				double baf = mosiacismQuant.getSampleMosiac().getSamp().getBAFs()[currentIndices[i]];
 
-				writer.print(markerSet.getPositions()[currentIndices[i]] + "\t" + (Double.isFinite(baf) ? baf : 0) + "\t" + rand[i] + "\t" + pvals[i] + "\t" + baseLine + "\t" + distMember[i]);
+				writer.print(markerSet.getPositions()[currentIndices[i]] + "\t" + (Double.isInfinite(baf) ? 0 : baf) + "\t" + rand[i] + "\t" + pvals[i] + "\t" + baseLine + "\t" + distMember[i]);
 				for (int j = 0; j < madatas.length; j++) {
 					writer.print("\t" + madatas[j][i]);
 				}

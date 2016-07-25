@@ -299,6 +299,11 @@ public class GcAdjustorParameter implements Serializable {
 		@Override
 		public void shutdown() {
 		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
 	}
 
 	/**

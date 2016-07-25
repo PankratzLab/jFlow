@@ -128,6 +128,11 @@ public class SRAUtils {
 
 		}
 
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 	// sam-dump.2.6.3 SRR1737697 |samtools view -bS -

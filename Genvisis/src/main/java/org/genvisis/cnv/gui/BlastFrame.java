@@ -325,7 +325,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
                         BlastFrame.this.addBlastLabel(bl);
                     }
                 }
-                BlastFrame.this.revalidate();
+                BlastFrame.this.validate();
                 BlastFrame.this.repaint();
             }
         });
@@ -423,7 +423,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         splitPane.setRightComponent(this.lowerPanel);
         splitPane.setDividerLocation(0.5);
         splitPane.setOneTouchExpandable(true);
-        revalidate();
+        validate();
         repaint();
     }
     
@@ -562,7 +562,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
                 String abLblStr = referenceAnnotation == null ? "" : "(A) " + a + " | (B) " + b; 
                 System.out.println(abLblStr);
                 abLbl.setText(abLblStr);
-                BlastFrame.this.revalidate();
+                BlastFrame.this.validate();
                 BlastFrame.this.repaint();
             }
         });        

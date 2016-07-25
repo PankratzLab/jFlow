@@ -278,6 +278,11 @@ public class Stepwise {
 			// TODO Auto-generated method stub
 			
 		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
 	}
 	
 	private static class RegressionWorker implements Callable<RegressionModel>{
