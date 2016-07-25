@@ -227,13 +227,20 @@ public class PrincipalComponentsCompute {
 		int numSamples = Array.booleanArraySum(samplesToUse);
 
 		if (numComponents > numSamples) {
-			log.reportError("Error - cannot request more principal components (n=" + numComponents + ") than there are valid samples (n=" + numSamples + ")");
-			return null;
+			int newNumComp = numSamples;
+			log.reportTimeWarning("cannot request more principal components (n=" + numComponents
+					+ ") than there are valid samples (n=" + numSamples + "), setting number of components to "
+					+ newNumComp);
+			numComponents = newNumComp;
+
 		}
 
 		if (numComponents > markers.length) {
-			log.reportError("Error - cannot request more principal components (n=" + numComponents + ") than there are markers (n=" + markers.length + ")");
-			return null;
+			int newNumComp = markers.length;
+			log.reportTimeWarning(
+					" cannot request more principal components (n=" + numComponents + ") than there are markers (n="
+							+ markers.length + "), setting number of components to " + newNumComp);
+			numComponents = newNumComp;
 		}
 
 		// deals with NaN on the fly
@@ -297,7 +304,7 @@ public class PrincipalComponentsCompute {
 			try {
 				pcs.computeBasis(numComponents, center);
 			} catch (IllegalArgumentException iae) {
-				log.reportError("Error - the number of components must be less than the number of markers used AND less than the number of samples used");
+				log.reportError("Error - the number of components must be less than or equal to the number of markers used AND less than or equal to the number of samples used");
 				log.reportError("Error - Please select a smaller number of principal components to compute, or add more markers or samples");
 				log.reportException(iae);
 			}
