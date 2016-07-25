@@ -62,9 +62,9 @@ To build the `Genvisis.jar`, run either the `Assembly` or the `pom-genvisis` (if
 
 All Maven output will print in the `Console` tab. When complete, your `Genvisis.jar` will be built in the `Assembly/target/` directory, per the standard directory layout.
 
-## Automatic uploads
+## Automatic upload and copy
 
-You can use Maven to automatically upload `genvisis.jar` to a remote location after each build. To enable this feature, create a `settings.xml` in your `${user.home}/.m2` directory with the following structure:
+You can use Maven to automatically upload `genvisis.jar` to a remote location after each build, and/or copy the output file to a directory on your local filesystem. To enable this feature, create a `settings.xml` in your `${user.home}/.m2` directory with the following structure:
 
 ```xml
 <settings>
@@ -72,8 +72,14 @@ You can use Maven to automatically upload `genvisis.jar` to a remote location af
 		<profile>
 			<id>genvisis-upload</id>
 			<properties>
+				<!-- Uncomment and edit this line to enable post-build copy
+				<genv.copy.path>path/to/output/dir/</genv.copy.path>
+				-->
+
+				<!-- Uncomment and edit these lines to enable post-build upload
 				<genv.upload.exe>[p]scp</genv.upload.exe>
 				<genv.upload.path>user[:pass]@host:/path/to/output/</genv.upload.path>
+				-->
 			</properties>
 		</profile>
 	</profiles>
