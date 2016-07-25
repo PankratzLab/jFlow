@@ -12,6 +12,7 @@ import org.genvisis.common.CountHash;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 
 public class MarkerDataLoader implements Runnable {
@@ -307,7 +308,7 @@ public class MarkerDataLoader implements Runnable {
 		allPosInProj = markerSet.getPositions();
 		allSampsInProj = proj.getSamples();
 		if (new File(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser").exists()) {
-			outlierHash = (Hashtable<String, Float>) Files.readSerial(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
+			outlierHash = (Hashtable<String, Float>) SerializedFiles.readSerial(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
 		} else {
 			outlierHash = new Hashtable<String, Float>();
 		}
@@ -409,7 +410,7 @@ public class MarkerDataLoader implements Runnable {
 	@SuppressWarnings("unchecked")
 	public static Hashtable<String, Float> loadOutliers(Project proj) {
 		if (new File(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser").exists()) {
-			return (Hashtable<String, Float>) Files.readSerial(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
+			return (Hashtable<String, Float>) SerializedFiles.readSerial(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
 		} else {
 			return new Hashtable<String, Float>();
 		}

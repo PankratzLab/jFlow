@@ -34,6 +34,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.common.PSF.Ext;
@@ -367,7 +368,7 @@ public class BamImport {
 					Files.writeList(mappedReadCounts, readCountFile);
 
 					if (allOutliers.size() > 0 || !Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {// currently do to all the skipping
-						Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+						SerializedFiles.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 					}
 
 					if (!Files.exists(proj.CUSTOM_CENTROIDS_FILENAME.getValue())) {// compute Log R ratio, since its not immediately available
@@ -408,7 +409,7 @@ public class BamImport {
 
 					proj.SAMPLE_DIRECTORY.setValue(newSampleDir);// Final resting place
 					if (recompallOutliers.size() > 0 || !Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {// currently do to all the skipping
-						Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+						SerializedFiles.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 					}
 					proj.MARKER_DATA_DIRECTORY.setValue(newtransposedDir);
 					TransposeData.transposeData(proj, 2000000000, false);// already recomputed with the correction

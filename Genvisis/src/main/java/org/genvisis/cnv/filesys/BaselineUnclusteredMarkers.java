@@ -5,6 +5,7 @@ import java.util.Hashtable;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.ProgressMonitor;
+import org.genvisis.common.SerializedFiles;
 
 public class BaselineUnclusteredMarkers implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -19,7 +20,7 @@ public class BaselineUnclusteredMarkers implements Serializable {
 	}
 	
 	private void serialize(Project proj){
-		Files.writeSerial(this, getBaselineUnclusteredMarkersFile(proj));
+		SerializedFiles.writeSerial(this, getBaselineUnclusteredMarkersFile(proj));
 	}
 	
 	public boolean markerUnclustered(String marker){
@@ -85,7 +86,7 @@ public class BaselineUnclusteredMarkers implements Serializable {
 	
 	public static BaselineUnclusteredMarkers getProjBaselineUnclusteredMarkers(Project proj){
 		if (baselineUnclusteredMarkersFileExists(proj)){
-			return (BaselineUnclusteredMarkers) Files.readSerial(getBaselineUnclusteredMarkersFile(proj));
+			return (BaselineUnclusteredMarkers) SerializedFiles.readSerial(getBaselineUnclusteredMarkersFile(proj));
 		}
 		return null;
 	}

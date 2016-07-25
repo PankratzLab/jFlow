@@ -27,6 +27,7 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.stats.CrossValidation;
 import org.genvisis.stats.ICC;
@@ -494,11 +495,11 @@ public class IntensityCorrectionQC {
 		}
 
 		public void serialize(String fullPathToOutput) {
-			Files.writeSerial(this, fullPathToOutput);
+			SerializedFiles.writeSerial(this, fullPathToOutput);
 		}
 
 		public static ICCMarkerResultsBatch loadSerial(String fullPathToSerial) {
-			return (ICCMarkerResultsBatch) Files.readSerial(fullPathToSerial);
+			return (ICCMarkerResultsBatch) SerializedFiles.readSerial(fullPathToSerial);
 		}
 	}
 

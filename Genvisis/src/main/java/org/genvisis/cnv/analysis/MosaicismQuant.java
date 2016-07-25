@@ -20,6 +20,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.WorkerTrain;
@@ -748,11 +749,11 @@ public class MosaicismQuant implements Calcfc {
 		}
 
 		private void writeSerial(String fileName) {
-			Files.writeSerial(this, fileName, true);
+			SerializedFiles.writeSerial(this, fileName, true);
 		}
 
 		private static FullMosiacResults readSerial(String fileName, Logger log) {
-			return (FullMosiacResults) Files.readSerial(fileName, false, log, false, true);
+			return (FullMosiacResults) SerializedFiles.readSerial(fileName, false, log, false, true);
 		}
 
 	}

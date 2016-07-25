@@ -26,6 +26,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
@@ -338,7 +339,7 @@ public class VCFImporter {
 		}
 
 		if (allOutliers.size() > 0) {
-			Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue() + "outliers.ser");
+			SerializedFiles.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue() + "outliers.ser");
 		}
 		processExt(proj, gc5Base);
 
@@ -375,7 +376,7 @@ public class VCFImporter {
 			}
 			train.shutdown();
 			if (allNewOutliers.size() > 0) {
-				Files.writeSerial(allNewOutliers, projNorm.SAMPLE_DIRECTORY.getValue() + "outliers.ser");
+				SerializedFiles.writeSerial(allNewOutliers, projNorm.SAMPLE_DIRECTORY.getValue() + "outliers.ser");
 			}
 			projNorm.getSamples();
 		} else {

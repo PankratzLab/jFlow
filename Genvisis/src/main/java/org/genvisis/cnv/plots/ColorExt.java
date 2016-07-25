@@ -18,6 +18,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 
 public class ColorExt {
@@ -229,12 +230,12 @@ public class ColorExt {
 		}
 
 		public void writeSerial(String fileName) {
-			Files.writeSerial(this, fileName, true);
+			SerializedFiles.writeSerial(this, fileName, true);
 		}
 
 		@SuppressWarnings("unchecked")
 		private static ColorManager<String> loadStringSerial(String fileName, Logger log) {
-			return (ColorManager<String>) Files.readSerial(fileName, false, log, false, true);
+			return (ColorManager<String>) SerializedFiles.readSerial(fileName, false, log, false, true);
 		}
 
 	}

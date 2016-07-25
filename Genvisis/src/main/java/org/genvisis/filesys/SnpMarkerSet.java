@@ -30,6 +30,7 @@ import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.Positions;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
 import org.genvisis.common.Unique;
 import org.genvisis.common.ext;
@@ -599,7 +600,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	}
 	
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static SnpMarkerSet load(String filename, boolean jar) {
@@ -607,7 +608,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	}
 	
 	public static SnpMarkerSet load(String filename, boolean jar, Logger log) {
-		return (SnpMarkerSet)Files.readSerial(filename, jar, log, true);
+		return (SnpMarkerSet)SerializedFiles.readSerial(filename, jar, log, true);
 	}
 
 	public static long fingerprint(int[] rsNumbers) {

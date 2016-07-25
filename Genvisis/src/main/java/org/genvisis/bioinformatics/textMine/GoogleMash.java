@@ -17,6 +17,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.common.WorkerTrain.Producer;
@@ -70,11 +71,11 @@ public class GoogleMash implements Serializable {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static GoogleMash load(String filename) {
-		return (GoogleMash) Files.readSerial(filename, false, false);
+		return (GoogleMash) SerializedFiles.readSerial(filename, false, false);
 	}
 
 	public void queryAll(int numThreads) {

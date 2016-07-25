@@ -14,6 +14,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 
 //TODO, this is a bit sprawling for a simple thing
@@ -365,11 +366,11 @@ public class HitWindowsLD {
 		}
 
 		public void serialize(String filename) {
-			Files.writeSerial(this, filename);
+			SerializedFiles.writeSerial(this, filename);
 		}
 
 		public static ReferenceMap load(String filename, boolean jar) {
-			return (ReferenceMap) Files.readSerial(filename, jar, true);
+			return (ReferenceMap) SerializedFiles.readSerial(filename, jar, true);
 		}
 
 		public boolean inReference(String marker) {

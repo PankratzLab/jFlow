@@ -8,7 +8,7 @@ public class DumpSerializedObject {
 	private static void dump(String projectPropertyFile, String filename, String logFile) {
 		Project proj = new Project(projectPropertyFile, logFile, false);
 	    Object object;
-		object = Files.readSerial(filename, false, proj.getLog(), false, false);
+		object = SerializedFiles.readSerial(filename, false, proj.getLog(), false, false);
 		
 		if (object instanceof TextExport) {
 		    ((TextExport) object).exportToText(proj, ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump.xln");

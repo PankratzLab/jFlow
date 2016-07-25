@@ -18,6 +18,7 @@ import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.common.WorkerTrain.Producer;
@@ -55,7 +56,7 @@ public class QuantNormProject {
 			index++;
 		}
 		if (!Files.exists(projNorm.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {
-			Files.writeSerial(outliers, projNorm.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+			SerializedFiles.writeSerial(outliers, projNorm.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 			TransposeData.transposeData(projNorm, 2000000000, false);
 			CentroidCompute.computeAndDumpCentroids(projNorm);
 			Centroids.recompute(projNorm, projNorm.CUSTOM_CENTROIDS_FILENAME.getValue());

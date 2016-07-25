@@ -9,8 +9,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.genvisis.common.Array;
-import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.filesys.Segment;
 
 /**
@@ -356,11 +356,11 @@ public class BamPile extends Segment implements Serializable {
 	}
 
 	public static void writeSerial(BamPile[] bamPiles, String filename) {
-		Files.writeSerial(bamPiles, filename, true);
+		SerializedFiles.writeSerial(bamPiles, filename, true);
 	}
 
 	public static BamPile[] readSerial(String filename, Logger log) {
-		return (BamPile[]) Files.readSerial(filename, false, log, false, true);
+		return (BamPile[]) SerializedFiles.readSerial(filename, false, log, false, true);
 	}
 
 }

@@ -19,6 +19,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.common.Array.BooleanClassifier;
@@ -364,11 +365,11 @@ public class CorrectionIterator implements Serializable {
 		}
 
 		public static void serialize(BasicPrep basicPrep, String fileName) {
-			Files.writeSerial(basicPrep, fileName, true);
+			SerializedFiles.writeSerial(basicPrep, fileName, true);
 		}
 
 		public static BasicPrep readSerial(String fileName, Logger log) {
-			return (BasicPrep) Files.readSerial(fileName, false, log, false, true);
+			return (BasicPrep) SerializedFiles.readSerial(fileName, false, log, false, true);
 		}
 
 	}

@@ -26,6 +26,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
@@ -272,11 +273,11 @@ public class PennCNVPrep {
 		}
 
 		public void serialize(String filename) {
-			Files.writeSerial(this, filename);
+			SerializedFiles.writeSerial(this, filename);
 		}
 
 		public static MarkerDataStorage load(String filename, boolean jar) {
-			return (MarkerDataStorage) Files.readSerial(filename, jar, true);
+			return (MarkerDataStorage) SerializedFiles.readSerial(filename, jar, true);
 		}
 
 		public MarkerData[] getMarkerDatas() {
@@ -556,7 +557,7 @@ public class PennCNVPrep {
 			} catch (InterruptedException e) {
 				proj.getLog().reportException(e);
 			}
-			Files.writeSerial(outliers, outlierFile);
+			SerializedFiles.writeSerial(outliers, outlierFile);
 		} else {
 			prepExport(proj, dir, tmpDir, numComponents, markerFile, numThreads, numMarkerThreads, lType, preserveBafs);
 		}

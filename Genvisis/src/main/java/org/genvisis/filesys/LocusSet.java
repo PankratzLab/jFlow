@@ -11,9 +11,9 @@ import java.util.Vector;
 
 import org.genvisis.cnv.var.MosaicRegion;
 import org.genvisis.common.Array;
-import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
+import org.genvisis.common.SerializedFiles;
 
 public abstract class LocusSet<T extends Segment> implements Serializable {
 	/**
@@ -458,17 +458,17 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 	}
 
 	public void writeSerial(String fileName) {
-		Files.writeSerial(this, fileName, true);
+		SerializedFiles.writeSerial(this, fileName, true);
 	}
 
 	@SuppressWarnings("unchecked")
 	public static LocusSet<CNVariant> readSerialCnvSet(String filename, Logger log) {
-		return ((LocusSet<CNVariant>) Files.readSerial(filename, false, log, false, true));
+		return ((LocusSet<CNVariant>) SerializedFiles.readSerial(filename, false, log, false, true));
 	}
 
 	@SuppressWarnings("unchecked")
 	public static LocusSet<MosaicRegion> readSerialMRSet(String filename, Logger log) {
-		return ((LocusSet<MosaicRegion>) Files.readSerial(filename, false, log, false, true));
+		return ((LocusSet<MosaicRegion>) SerializedFiles.readSerial(filename, false, log, false, true));
 	}
 
 }

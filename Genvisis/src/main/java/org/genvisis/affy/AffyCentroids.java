@@ -18,8 +18,8 @@ import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
-import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Maths;
@@ -47,11 +47,11 @@ public class AffyCentroids implements Serializable {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static AffyCentroids load(String filename, boolean jar) {
-		return (AffyCentroids) Files.readSerial(filename, jar, true);
+		return (AffyCentroids) SerializedFiles.readSerial(filename, jar, true);
 	}
 
 	public static float calcR(float x, float y) {

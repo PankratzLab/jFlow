@@ -34,6 +34,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ProgressMonitor;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.GeneSet;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
@@ -609,7 +610,7 @@ public class Project {
 	    file = PROJECT_DIRECTORY.getValue() + HEADERS_FILENAME;
 	    
 	    if (Files.exists(file)) {
-	        HashMap<String, SourceFileHeaderData> headers = (HashMap<String, SourceFileHeaderData>) Files.readSerial(file, JAR_STATUS.getValue().booleanValue(), getLog(), false);
+	        HashMap<String, SourceFileHeaderData> headers = (HashMap<String, SourceFileHeaderData>) SerializedFiles.readSerial(file, JAR_STATUS.getValue().booleanValue(), getLog(), false);
 	        if (headers != null) {
 	            return headers;
 	        } else {
@@ -648,7 +649,7 @@ public class Project {
     }
 	
 	private void writeHeadersFile() {
-	    Files.writeSerial(sourceFileHeaders, PROJECT_DIRECTORY.getValue() + HEADERS_FILENAME);
+	    SerializedFiles.writeSerial(sourceFileHeaders, PROJECT_DIRECTORY.getValue() + HEADERS_FILENAME);
 	}
 	
 	public Logger getLog() {

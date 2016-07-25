@@ -14,6 +14,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.link.Heritability;
 import org.genvisis.stats.ICC;
@@ -160,11 +161,11 @@ class EvaluationResult implements Serializable {
 	}
 
 	public static void serialize(EvaluationResult[] results, String fileName) {
-		Files.writeSerial(results, fileName, true);
+		SerializedFiles.writeSerial(results, fileName, true);
 	}
 
 	public static EvaluationResult[] readSerial(String fileName, Logger log) {
-		return (EvaluationResult[]) Files.readSerial(fileName, false, log, false, true);
+		return (EvaluationResult[]) SerializedFiles.readSerial(fileName, false, log, false, true);
 	}
 
 	public static EvalHeritabilityResult prepareHeritability(Project proj, String ped, boolean[] samplesToEvaluate, String serFile,double[] otherData, String otherDataTitle) {

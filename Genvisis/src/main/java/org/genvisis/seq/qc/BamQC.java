@@ -23,6 +23,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.analysis.SNPEFF;
@@ -82,7 +83,7 @@ public class BamQC {
 
 	public BamQC(String inputSamOrBamFile, String outputDir, FilterNGS filterNGS) {
 		this.inputSamOrBamFile = inputSamOrBamFile;
-		this.libraryReadDepthResultsFile = Files.getSerializedFileName(outputDir, inputSamOrBamFile);
+		this.libraryReadDepthResultsFile = SerializedFiles.getSerializedFileName(outputDir, inputSamOrBamFile);
 		this.numTotal = 0;
 		this.numUnique = 0;
 		this.numDuplicated = 0;

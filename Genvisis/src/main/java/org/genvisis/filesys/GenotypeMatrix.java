@@ -416,11 +416,11 @@ public class GenotypeMatrix implements Serializable {
 	
 	
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static GenotypeMatrix load(String filename, boolean jar) {
-		return (GenotypeMatrix)Files.readSerial(filename, jar, true);
+		return (GenotypeMatrix)SerializedFiles.readSerial(filename, jar, true);
 	}
 
 	public static int determineType(String dosageFile) {

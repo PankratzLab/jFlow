@@ -13,6 +13,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ProgressBarDialog;
+import org.genvisis.common.SerializedFiles;
 
 public class CNVariantHash implements Serializable {
     public static final long                                  serialVersionUID = 1L;
@@ -131,7 +132,7 @@ public class CNVariantHash implements Serializable {
     }
 
     public void serialize(String filename) {
-        Files.writeSerial(this, filename);
+        SerializedFiles.writeSerial(this, filename);
     }
 
     public static CNVariantHash load(String filename, int structureType, boolean jar, Logger log) {
@@ -150,7 +151,7 @@ public class CNVariantHash implements Serializable {
         boolean parse = Files.exists(filename + suffix, jar);
         
         if (parse) {
-            hashes = (CNVariantHash) Files.readSerial(filename + suffix, jar, log, false);
+            hashes = (CNVariantHash) SerializedFiles.readSerial(filename + suffix, jar, log, false);
         } 
         if (!parse || hashes == null) {
         	if (hashes == null) {

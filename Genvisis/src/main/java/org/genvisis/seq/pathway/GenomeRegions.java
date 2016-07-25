@@ -2,8 +2,8 @@ package org.genvisis.seq.pathway;
 
 import java.io.Serializable;
 
-import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.filesys.GeneTrack;
 
 public class GenomeRegions implements Serializable {
@@ -35,11 +35,11 @@ public class GenomeRegions implements Serializable {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static GenomeRegions load(String filename) {
-		return (GenomeRegions) Files.readSerial(filename, false, false);
+		return (GenomeRegions) SerializedFiles.readSerial(filename, false, false);
 	}
 
 }

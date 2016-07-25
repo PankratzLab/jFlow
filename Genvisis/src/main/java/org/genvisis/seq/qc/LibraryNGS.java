@@ -15,6 +15,7 @@ import java.util.List;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 
@@ -56,11 +57,11 @@ public class LibraryNGS implements Serializable {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static LibraryNGS load(String filename, boolean jar) {
-		return (LibraryNGS) Files.readSerial(filename, jar, true);
+		return (LibraryNGS) SerializedFiles.readSerial(filename, jar, true);
 	}
 
 	public int[] indicesInLibrary(Segment segment) {
@@ -367,11 +368,11 @@ public class LibraryNGS implements Serializable {
 		}
 
 		public void serialize(String filename) {
-			Files.writeSerial(this, filename);
+			SerializedFiles.writeSerial(this, filename);
 		}
 
 		public static LibraryReadDepthResults load(String filename, boolean jar) {
-			return (LibraryReadDepthResults) Files.readSerial(filename, jar, true);
+			return (LibraryReadDepthResults) SerializedFiles.readSerial(filename, jar, true);
 		}
 
 		public int getTotalNumReads() {
@@ -770,11 +771,11 @@ public class LibraryNGS implements Serializable {
 		}
 
 		public static BaitsLibrary loadSerial(String filename) {
-			return (BaitsLibrary) Files.readSerial(filename);
+			return (BaitsLibrary) SerializedFiles.readSerial(filename);
 		}
 
 		public void serialize(String filename) {
-			Files.writeSerial(this, filename);
+			SerializedFiles.writeSerial(this, filename);
 		}
 
 		public String[] getTargetIDs() {
@@ -794,9 +795,9 @@ public class LibraryNGS implements Serializable {
 		}
 
 		public static BaitsLibrary loadBaitLibrary(String fullPathToBaitLibrary, Logger log) {
-			if (Files.serializedVersionExists(null, fullPathToBaitLibrary)) {
-				log.report(ext.getTime() + " Info - loading baits library from " + Files.getSerializedFileName(null, fullPathToBaitLibrary));
-				return loadSerial(Files.getSerializedFileName(null, fullPathToBaitLibrary));
+			if (SerializedFiles.serializedVersionExists(null, fullPathToBaitLibrary)) {
+				log.report(ext.getTime() + " Info - loading baits library from " + SerializedFiles.getSerializedFileName(null, fullPathToBaitLibrary));
+				return loadSerial(SerializedFiles.getSerializedFileName(null, fullPathToBaitLibrary));
 			}
 			log.report(ext.getTime() + " Info - loading baits library from " + fullPathToBaitLibrary);
 			ArrayList<String> tmpTargetIDs = new ArrayList<String>(9000000);
@@ -849,7 +850,7 @@ public class LibraryNGS implements Serializable {
 				gcContentOfBait[i] = ((Double) tmpGCContent.get(sortedOrder[i])).doubleValue();
 			}
 			BaitsLibrary baitsLibrary = new BaitsLibrary(targetIDs, probeIDs, baits, gcContentOfBait, log);
-			baitsLibrary.serialize(Files.getSerializedFileName(null, fullPathToBaitLibrary));
+			baitsLibrary.serialize(SerializedFiles.getSerializedFileName(null, fullPathToBaitLibrary));
 			log.report(ext.getTime() + " Info - finished baits library from " + fullPathToBaitLibrary);
 
 			return baitsLibrary;

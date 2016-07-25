@@ -17,11 +17,11 @@ public class SerialStringArray implements Serializable {
 	}
 	
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static SerialStringArray load(String filename, boolean jar) {
-		return (SerialStringArray)Files.readSerial(filename, jar, true);
+		return (SerialStringArray)SerializedFiles.readSerial(filename, jar, true);
 	}
 
 	public static void dump(String filename) {

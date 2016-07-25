@@ -44,11 +44,11 @@ public class SerialStringMatrix implements Serializable {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static SerialStringMatrix load(String filename, boolean jar) {
-		return (SerialStringMatrix)Files.readSerial(filename, jar, true);
+		return (SerialStringMatrix)SerializedFiles.readSerial(filename, jar, true);
 	}
  	
 	public static void main(String[] args) {

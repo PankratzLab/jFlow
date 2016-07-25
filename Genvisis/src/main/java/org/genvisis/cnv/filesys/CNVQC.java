@@ -3,7 +3,7 @@ package org.genvisis.cnv.filesys;
 import java.io.Serializable;
 
 import org.genvisis.cnv.qc.CNVariantQC;
-import org.genvisis.common.Files;
+import org.genvisis.common.SerializedFiles;
 
 public class CNVQC implements Serializable {
 
@@ -15,11 +15,11 @@ public class CNVQC implements Serializable {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static CNVQC load(String filename, boolean jar) {
-		return (CNVQC) Files.readSerial(filename, jar, true);
+		return (CNVQC) SerializedFiles.readSerial(filename, jar, true);
 	}
 
 	public CNVariantQC[] getCnVariantQCs() {

@@ -42,7 +42,7 @@ public class Centroids implements Serializable, TextExport {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 	
 	public void exportToText(Project proj, String outputFile) {
@@ -88,7 +88,7 @@ public class Centroids implements Serializable, TextExport {
 	}
 	
 	public static Centroids load(String filename, boolean jar) {
-		return (Centroids)Files.readSerial(filename, jar, true);
+		return (Centroids)SerializedFiles.readSerial(filename, jar, true);
 	}
 	
 	public static float calcR(float x, float y) {
@@ -502,7 +502,7 @@ public class Centroids implements Serializable, TextExport {
 				Files.copyFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser", ext.addToRoot(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser", ext.getTimestampForFilename()));
 			}
 		}
-		Files.writeSerial(outliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+		SerializedFiles.writeSerial(outliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 
 	}
 

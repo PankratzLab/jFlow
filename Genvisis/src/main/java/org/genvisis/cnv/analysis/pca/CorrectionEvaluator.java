@@ -11,6 +11,7 @@ import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Array.BooleanClassifier;
 import org.genvisis.common.WorkerTrain.Producer;
 import org.genvisis.stats.Correlation;
@@ -66,11 +67,11 @@ public class CorrectionEvaluator implements Producer<EvaluationResult>, Serializ
 	}
 
 	public static void serialize(CorrectionEvaluator cEvaluator, String fileName) {
-		Files.writeSerial(cEvaluator, fileName, true);
+		SerializedFiles.writeSerial(cEvaluator, fileName, true);
 	}
 
 	public static CorrectionEvaluator readSerial(String fileName, Logger log) {
-		return (CorrectionEvaluator) Files.readSerial(fileName, false, log, false, true);
+		return (CorrectionEvaluator) SerializedFiles.readSerial(fileName, false, log, false, true);
 	}
 
 	public ExtProjectDataParser getParser() {

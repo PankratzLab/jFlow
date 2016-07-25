@@ -9,6 +9,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 
@@ -142,7 +143,7 @@ public class FocusedSample {
 		}
 		String outlierFileName = newFocus.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser";
 		newFocus.getLog().reportTimeInfo("Writing outliers to " + outlierFileName);
-		Files.writeSerial(outliers, outlierFileName);
+		SerializedFiles.writeSerial(outliers, outlierFileName);
 	
 	}
 

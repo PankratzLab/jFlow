@@ -20,6 +20,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
@@ -320,11 +321,11 @@ public class AnnotationCollection implements Serializable, TextExport {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static AnnotationCollection load(String filename, boolean jar) {
-		return (AnnotationCollection)Files.readSerial(filename, jar, true);
+		return (AnnotationCollection)SerializedFiles.readSerial(filename, jar, true);
 	}
 	
 	public static void recover(String dir) {

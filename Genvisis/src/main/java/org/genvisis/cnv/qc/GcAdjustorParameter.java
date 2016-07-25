@@ -17,6 +17,7 @@ import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.common.WorkerTrain.Producer;
@@ -535,11 +536,11 @@ public class GcAdjustorParameter implements Serializable {
 
 		public void writeSerial(String filename) {
 			System.out.println("writing " + filename);
-			Files.writeSerial(this, filename, true);
+			SerializedFiles.writeSerial(this, filename, true);
 		}
 
 		public static GcAdjustorParameters readSerial(String filename, Logger log) {
-			return (GcAdjustorParameters) Files.readSerial(filename, false, log, false, true);
+			return (GcAdjustorParameters) SerializedFiles.readSerial(filename, false, log, false, true);
 		}
 
 	}

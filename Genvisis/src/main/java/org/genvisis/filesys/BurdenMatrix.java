@@ -506,11 +506,11 @@ public class BurdenMatrix implements Serializable {
 	}
 	
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static BurdenMatrix load(String filename, boolean jar) {
-		return (BurdenMatrix)Files.readSerial(filename, jar, true);
+		return (BurdenMatrix)SerializedFiles.readSerial(filename, jar, true);
 	}
 
 	public static void main(String[] args) {

@@ -18,6 +18,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
@@ -70,7 +71,7 @@ public class Indelathon {
 		if (!Files.exists(outIndelVCF) || !Files.exists(outSegSer)) {
 			extractIndelVariants(vcf, log, outIndelVCF, outSegSer, sampSegs);
 		}
-		sampSegs = (Hashtable<String, ArrayList<Segment>>) Files.readSerial(outSegSer, false, log, false, true);
+		sampSegs = (Hashtable<String, ArrayList<Segment>>) SerializedFiles.readSerial(outSegSer, false, log, false, true);
 		String indelBamDir = outDir + "indel_bams/";
 		String[] indelBams = extractIndelSegments(indelBamDir, matchedSamps, sampSegs, buffer, numThreads, log);
 		Hashtable<String, String> matchedIndelSamps = BamOps.matchToVcfSamplesToBamFiles(samps, variantSets, indelBams, numThreads, log);
@@ -391,14 +392,14 @@ public class Indelathon {
 							}
 						}
 					}
-					Files.writeSerial(scAllCounts, scAllCountSerFile, true);
-					Files.writeSerial(scSegCounts, scSegCountSerFile, true);
-					Files.writeSerial(segScs, segScsSerFile, true);
+					SerializedFiles.writeSerial(scAllCounts, scAllCountSerFile, true);
+					SerializedFiles.writeSerial(scSegCounts, scSegCountSerFile, true);
+					SerializedFiles.writeSerial(segScs, segScsSerFile, true);
 				}
 
 				// }
-				scAllCounts = (Hashtable<String, Integer>) Files.readSerial(scAllCountSerFile, false, log, false, true);
-				segScs = (Hashtable<String, ArrayList<String>>) Files.readSerial(segScsSerFile, false, log, false, true);
+				scAllCounts = (Hashtable<String, Integer>) SerializedFiles.readSerial(scAllCountSerFile, false, log, false, true);
+				segScs = (Hashtable<String, ArrayList<String>>) SerializedFiles.readSerial(segScsSerFile, false, log, false, true);
 
 			} else {
 				log.reportTimeWarning("Skipping sample " + vcfSample + " could not determine bam file");
@@ -483,7 +484,7 @@ public class Indelathon {
 				sampSegs.put(allSamps[i], new ArrayList<Segment>());
 			}
 		}
-		Files.writeSerial(sampSegs, outSegSer, true);
+		SerializedFiles.writeSerial(sampSegs, outSegSer, true);
 	}
 
 	private static String[] extractIndelSegments(String indelBamDir, Hashtable<String, String> matchedSamps, Hashtable<String, ArrayList<Segment>> sampSegs, int buffer, int numThreads, Logger log) {

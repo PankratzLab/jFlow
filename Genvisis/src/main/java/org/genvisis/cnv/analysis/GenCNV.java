@@ -15,6 +15,7 @@ import org.genvisis.cnv.manage.ExportCNVsToPedFormat;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.PhenoPrep;
 import org.genvisis.stats.LeastSquares;
@@ -524,11 +525,11 @@ public class GenCNV implements Runnable {
 		}
 
 		public void serialize(String filename) {
-			Files.writeSerial(this, filename);
+			SerializedFiles.writeSerial(this, filename);
 		}
 
 		public static AllSigs load(String filename, boolean jar) {
-			return (AllSigs) Files.readSerial(filename, jar, true);
+			return (AllSigs) SerializedFiles.readSerial(filename, jar, true);
 		}
 
 	}

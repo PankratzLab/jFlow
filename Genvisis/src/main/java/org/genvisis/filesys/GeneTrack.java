@@ -7,10 +7,10 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
-import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
 
 public class GeneTrack implements Serializable {
@@ -178,7 +178,7 @@ public class GeneTrack implements Serializable {
 	}
 
 	public void serialize(String filename) {
-        Files.writeSerial(this, filename);
+        SerializedFiles.writeSerial(this, filename);
     }
 
 	public GeneData[] getOverlappingGenes(Segment seg) {
@@ -211,7 +211,7 @@ public class GeneTrack implements Serializable {
 	}
 
     public static GeneTrack load(String filename, boolean jar) {
-        return (GeneTrack) Files.readSerial(filename, jar, false);
+        return (GeneTrack) SerializedFiles.readSerial(filename, jar, false);
     }
     
     

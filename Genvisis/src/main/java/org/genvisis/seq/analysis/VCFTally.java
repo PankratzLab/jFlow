@@ -16,6 +16,7 @@ import java.util.Set;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.GeneData;
 import org.genvisis.filesys.Segment;
@@ -258,7 +259,7 @@ public class VCFTally implements Serializable {
 	// }
 
 	public static VCFTally load(String filename) {
-		return (VCFTally) Files.readSerial(filename, false, false);
+		return (VCFTally) SerializedFiles.readSerial(filename, false, false);
 	}
 
 	private void printGene(PrintWriter writer, String set) {

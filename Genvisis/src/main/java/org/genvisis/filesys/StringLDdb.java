@@ -86,12 +86,12 @@ public class StringLDdb implements Serializable {
 
 	public void serialize(String root) {
 		changed = false;
-		Files.writeSerial(this, root+".slddb");
+		SerializedFiles.writeSerial(this, root+".slddb");
 	}
 
 	public static StringLDdb load(String root, boolean jar, boolean createIfAbsent) {
 		if (Files.exists(root+".slddb", jar)) {
-			return (StringLDdb)Files.readSerial(root+".slddb", jar, false);
+			return (StringLDdb)SerializedFiles.readSerial(root+".slddb", jar, false);
 		} else if (createIfAbsent) {
 			return new StringLDdb();
 		} else {

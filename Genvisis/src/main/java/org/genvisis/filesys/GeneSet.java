@@ -42,11 +42,11 @@ public class GeneSet implements Serializable {
 	}
 	
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static GeneSet load(String filename, boolean jar) {
-		return (GeneSet)Files.readSerial(filename, jar, true);
+		return (GeneSet)SerializedFiles.readSerial(filename, jar, true);
 	}
 	
 	public SegmentLists determineGeneSegments(int window) {

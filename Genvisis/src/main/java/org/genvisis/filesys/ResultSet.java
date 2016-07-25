@@ -186,11 +186,11 @@ public class ResultSet implements Serializable {
 		}
 	}	
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static ResultSet load(String filename, boolean jar, boolean kill) {
-		return (ResultSet)Files.readSerial(filename, jar, kill);
+		return (ResultSet)SerializedFiles.readSerial(filename, jar, kill);
 	}
 	
 }

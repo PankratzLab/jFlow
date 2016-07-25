@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 
 /**
  * Serialized index for accessing java objects
@@ -71,11 +71,11 @@ public class RAOIndex implements RAObject {
 	}
 
 	public void serialize() {
-		Files.writeSerial(this, indexFileName, true);
+		SerializedFiles.writeSerial(this, indexFileName, true);
 	}
 
 	public static RAOIndex load(String indexFileName, Logger log) {
-		return (RAOIndex) Files.readSerial(indexFileName, false, log, false, true);
+		return (RAOIndex) SerializedFiles.readSerial(indexFileName, false, log, false, true);
 	}
 
 	public RAOIndex() {

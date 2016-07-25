@@ -29,6 +29,7 @@ import org.genvisis.common.ExcelConverter;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
@@ -1172,11 +1173,11 @@ public class VCFSimpleTally {
 		}
 
 		public static void writeSerial(GeneVariantPositionSummary[] geneVariantSummaries, String filename, Logger log) {
-			Files.writeSerial(geneVariantSummaries, filename, true);
+			SerializedFiles.writeSerial(geneVariantSummaries, filename, true);
 		}
 
 		public static GeneVariantPositionSummary[] readSerial(String filename, Logger log) {
-			return (GeneVariantPositionSummary[]) Files.readSerial(filename, false, log, false, true);
+			return (GeneVariantPositionSummary[]) SerializedFiles.readSerial(filename, false, log, false, true);
 		}
 
 		public static long getSerialversionuid() {

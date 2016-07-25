@@ -19,6 +19,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
 import org.genvisis.common.StringVector;
 import org.genvisis.common.ext;
@@ -495,11 +496,11 @@ public class CNVariant extends Segment {
 		}
 		
 		public void writeSerial(String fileName){
-			Files.writeSerial(this, fileName, true);
+			SerializedFiles.writeSerial(this, fileName, true);
 		}
 
 		public static MatchResults readSerial(String fileName, Logger log) {
-			return (MatchResults) Files.readSerial(fileName, false, log, false, true);
+			return (MatchResults) SerializedFiles.readSerial(fileName, false, log, false, true);
 		}
 		
 		

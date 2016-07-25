@@ -16,7 +16,7 @@ import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.Array;
-import org.genvisis.common.Files;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.common.WorkerTrain.Producer;
@@ -292,7 +292,7 @@ public class MDL implements Iterator<MarkerData> {
 			this.isGenotypeNull = Sample.isAbAndForwardGenotypeNull(nullStatus);
 			this.isNegativeXYAllowed = Sample.isNegativeXOrYAllowed(nullStatus);
 			if (new File(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser").exists()) {
-				outlierHash = (Hashtable<String, Float>) Files.readSerial(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
+				outlierHash = (Hashtable<String, Float>) SerializedFiles.readSerial(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
 				if (debugMode) {
 					proj.getLog().reportTimeInfo("Loading RAF: " + currentMarkFilename + " and outliers " + proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
 				}

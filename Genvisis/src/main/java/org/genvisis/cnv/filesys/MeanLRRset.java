@@ -2,7 +2,7 @@ package org.genvisis.cnv.filesys;
 
 import java.io.Serializable;
 
-import org.genvisis.common.Files;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.filesys.Segment;
 
 public class MeanLRRset implements Serializable {
@@ -43,10 +43,10 @@ public class MeanLRRset implements Serializable {
 	}
 	
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static MeanLRRset load(String filename, boolean jar) {
-		return (MeanLRRset)Files.readSerial(filename, jar, true);
+		return (MeanLRRset)SerializedFiles.readSerial(filename, jar, true);
 	}
 }

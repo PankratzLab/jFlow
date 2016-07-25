@@ -17,10 +17,10 @@ public class SerialDoubleArray implements Serializable {
 	}
 	
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static SerialDoubleArray load(String filename, boolean jar) {
-		return (SerialDoubleArray)Files.readSerial(filename, jar, true);
+		return (SerialDoubleArray)SerializedFiles.readSerial(filename, jar, true);
 	}
 }

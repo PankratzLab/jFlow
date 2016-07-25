@@ -23,6 +23,7 @@ import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 
@@ -618,11 +619,11 @@ public class Sample implements Serializable {
 		for (int i = 0; i<lrrs.length; i++) {
 			diffs[i] = lrrs[i]-compLRRs[i];
 		}
-		Files.writeSerial(diffs, proj.PROJECT_DIRECTORY.getValue()+"comps/"+sampleName+".comp");
+		SerializedFiles.writeSerial(diffs, proj.PROJECT_DIRECTORY.getValue()+"comps/"+sampleName+".comp");
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	/**
@@ -763,7 +764,7 @@ public class Sample implements Serializable {
 	}
 
 	public static Sample loadFromSerialized(String filename, boolean jar) {
-		return (Sample)Files.readSerial(filename, jar, true);
+		return (Sample)SerializedFiles.readSerial(filename, jar, true);
 	}
 
 	public static Sample loadFromRandomAccessFile(String filename, boolean jar) {
@@ -1160,7 +1161,7 @@ public class Sample implements Serializable {
 
 	@SuppressWarnings("unchecked")
 	public static Hashtable<String, Float> loadOutOfRangeValuesFromSerializable(String filenameOfSerializableOutOfRangeFile) throws Exception {
-		return (Hashtable<String, Float>) Files.readSerial(filenameOfSerializableOutOfRangeFile);
+		return (Hashtable<String, Float>) SerializedFiles.readSerial(filenameOfSerializableOutOfRangeFile);
 	}
 
 	public static void dumpOutOfRangeValues(String outOfRangeFileName, String outFileName, boolean includeKeysOnly) {
@@ -1267,14 +1268,14 @@ public class Sample implements Serializable {
 				}
 			}
 			proj.getLog().reportTimeInfo("Writing outliers to " + outlierFileName);
-			Files.writeSerial(outliers, outlierFileName);
+			SerializedFiles.writeSerial(outliers, outlierFileName);
 		}
 		if (!Files.exists(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser")) {
 			if (Files.exists(outlierFileName)) {
-				outliers = (Hashtable<String, Float>) Files.readSerial(outlierFileName);
+				outliers = (Hashtable<String, Float>) SerializedFiles.readSerial(outlierFileName);
 			}
 			proj.getLog().reportTimeInfo("Writing outliers to " + proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
-			Files.writeSerial(outliers, proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
+			SerializedFiles.writeSerial(outliers, proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
 		}
 	}
 	/**

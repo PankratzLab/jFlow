@@ -3,7 +3,7 @@ package org.genvisis.cnv.filesys;
 import java.io.*;
 import java.util.Hashtable;
 
-import org.genvisis.common.Files;
+import org.genvisis.common.SerializedFiles;
 
 public class OutlierHashtable implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -47,10 +47,10 @@ public class OutlierHashtable implements Serializable {
     }
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
     }
 
 	public static OutlierHashtable load(String filename) {
-		return (OutlierHashtable) Files.readSerial(filename);
+		return (OutlierHashtable) SerializedFiles.readSerial(filename);
     }
 }

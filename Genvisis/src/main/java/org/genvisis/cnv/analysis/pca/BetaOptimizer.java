@@ -37,6 +37,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
@@ -951,12 +952,12 @@ public class BetaOptimizer {
 		}
 
 		public static void writeSerial(ArrayList<MarkerRsFormat> markerRsFormats, String fileName) {
-			Files.writeSerial(markerRsFormats, fileName, true);
+			SerializedFiles.writeSerial(markerRsFormats, fileName, true);
 		}
 
 		@SuppressWarnings("unchecked")
 		public static ArrayList<MarkerRsFormat> readSerial(String fileName, Logger log) {
-			return (ArrayList<MarkerRsFormat>) Files.readSerial(fileName, false, log, false, true);
+			return (ArrayList<MarkerRsFormat>) SerializedFiles.readSerial(fileName, false, log, false, true);
 		}
 
 	}

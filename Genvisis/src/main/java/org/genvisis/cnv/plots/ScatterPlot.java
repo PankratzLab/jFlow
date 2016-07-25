@@ -112,6 +112,7 @@ import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ProgressMonitor;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.seq.manage.ReferenceGenome;
@@ -2916,7 +2917,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		filename = proj.ANNOTATION_FILENAME.getValue(false, false);
 		if (new File(filename).exists()) {
 			log.report("Loading annotation from: "+filename);
-			annotationCollection = (AnnotationCollection) Files.readSerial(filename);
+			annotationCollection = (AnnotationCollection) SerializedFiles.readSerial(filename);
 		} else {
 			log.report("Could not find annotation file: "+filename);
 			annotationCollection = new AnnotationCollection();

@@ -4,8 +4,8 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.filesys.CNVariant;
 
 public class RAOTests {
@@ -76,7 +76,7 @@ public class RAOTests {
 		log.reportTimeInfo("Beginning gz ser");
 
 		time = System.currentTimeMillis();
-		Files.writeSerial(segsdump, testFile + ".regSerGZ", true);
+		SerializedFiles.writeSerial(segsdump, testFile + ".regSerGZ", true);
 
 		log.reportTimeInfo("Ending gz ser");
 		log.reportTimeElapsed(time);
@@ -84,7 +84,7 @@ public class RAOTests {
 		log.reportTimeInfo("Beginning normal ser");
 
 		time = System.currentTimeMillis();
-		Files.writeSerial(segsdump, testFile + ".regSer", false);
+		SerializedFiles.writeSerial(segsdump, testFile + ".regSer", false);
 
 		log.reportTimeInfo("Ending normal ser");
 		log.reportTimeElapsed(time);

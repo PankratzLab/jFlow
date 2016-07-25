@@ -659,11 +659,11 @@ public class TrimToDependencies implements Serializable {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 	
 	public static TrimToDependencies load(String filename) {
-		return (TrimToDependencies)Files.readSerial(filename, false, new Logger(), false);
+		return (TrimToDependencies)SerializedFiles.readSerial(filename, false, new Logger(), false);
 	}
 
 	public static void main(String[] args) {

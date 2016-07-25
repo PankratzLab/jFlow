@@ -180,7 +180,7 @@ public class TransposeData {
 				}
 	
 				if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser").exists()) {
-					allOutliers = (Hashtable<String, Float>) Files.readSerial(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+					allOutliers = (Hashtable<String, Float>) SerializedFiles.readSerial(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 				} else {
 					allOutliers = new Hashtable<String, Float>();
 				}
@@ -286,7 +286,7 @@ public class TransposeData {
 				}
 
 				if (allOutliers != null && allOutliers.size() != 0) {
-					Files.writeSerial(allOutliers, proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
+					SerializedFiles.writeSerial(allOutliers, proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
 				}
 
 				done = true;
@@ -511,7 +511,7 @@ public class TransposeData {
 //				timerLoadFiles = 0;
 				timerTmp = new Date().getTime();
 				if (new File(proj.MARKER_DATA_DIRECTORY.getValue(true, true) + "outliers.ser").exists()) {
-					allOutliers = (Hashtable<String, Float>) Files.readSerial(proj.MARKER_DATA_DIRECTORY.getValue(true, true) + "outliers.ser");
+					allOutliers = (Hashtable<String, Float>) SerializedFiles.readSerial(proj.MARKER_DATA_DIRECTORY.getValue(true, true) + "outliers.ser");
 				} else {
 					allOutliers = new Hashtable<String, Float>();
 				}
@@ -567,7 +567,7 @@ public class TransposeData {
 				}
 
 				if (allOutliers != null && allOutliers.size() != 0) {
-					Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(false, true) + "outliers.ser");
+					SerializedFiles.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(false, true) + "outliers.ser");
 				}
 
 				done = true;

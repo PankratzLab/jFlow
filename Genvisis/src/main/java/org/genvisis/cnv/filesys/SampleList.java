@@ -5,6 +5,7 @@ import java.util.Hashtable;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
@@ -43,11 +44,11 @@ public class SampleList implements Serializable {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static SampleList load(String filename, boolean jar) {
-		return (SampleList)Files.readSerial(filename, jar, true);
+		return (SampleList)SerializedFiles.readSerial(filename, jar, true);
 	}
 
 	public static SampleList generateSampleList(Project proj) {
@@ -118,7 +119,7 @@ public class SampleList implements Serializable {
 			}
 			
 		}
-		Files.writeSerial(allOutliers, sampleDir + "outliers.ser");
+		SerializedFiles.writeSerial(allOutliers, sampleDir + "outliers.ser");
 		
 	}
 	

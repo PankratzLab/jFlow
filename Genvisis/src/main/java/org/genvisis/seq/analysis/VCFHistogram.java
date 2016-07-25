@@ -12,6 +12,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.common.WorkerTrain.Producer;
@@ -81,11 +82,11 @@ public class VCFHistogram implements Serializable {
 	}
 
 	public void writeSerial(String fileName) {
-		Files.writeSerial(this, fileName, true);
+		SerializedFiles.writeSerial(this, fileName, true);
 	}
 
 	public static VCFHistogram readSerial(String filename, Logger log) {
-		return (VCFHistogram) Files.readSerial(filename, false, log, false, true);
+		return (VCFHistogram) SerializedFiles.readSerial(filename, false, log, false, true);
 	}
 
 	public RScatters dumpAndPlot(String dir, String root) {

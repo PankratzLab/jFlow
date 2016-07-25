@@ -9,6 +9,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.filesys.PlainTextExport;
 
 public class SegmentLists implements Serializable, PlainTextExport {
@@ -25,7 +26,7 @@ public class SegmentLists implements Serializable, PlainTextExport {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 	
 	@Override
@@ -113,6 +114,6 @@ public class SegmentLists implements Serializable, PlainTextExport {
     }
 	
 	public static SegmentLists load(String filename, boolean jar) {
-		return (SegmentLists)Files.readSerial(filename, jar, true);
+		return (SegmentLists)SerializedFiles.readSerial(filename, jar, true);
 	}
 }

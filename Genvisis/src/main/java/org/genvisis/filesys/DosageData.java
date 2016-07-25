@@ -1214,11 +1214,11 @@ public class DosageData implements Serializable {
 	}
 	
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static DosageData load(String filename, boolean jar) {
-		return (DosageData)Files.readSerial(filename, jar, true);
+		return (DosageData)SerializedFiles.readSerial(filename, jar, true);
 	}
 
 	public static int determineType(String dosageFileName) {

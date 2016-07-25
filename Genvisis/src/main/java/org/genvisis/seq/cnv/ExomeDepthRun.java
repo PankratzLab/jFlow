@@ -18,6 +18,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.common.WorkerTrain.Producer;
@@ -88,7 +89,7 @@ public class ExomeDepthRun {
 			}
 		}
 		String outliersSer = proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser";
-		Files.writeSerial(allOutliers, outliersSer);
+		SerializedFiles.writeSerial(allOutliers, outliersSer);
 		TransposeData.transposeData(proj, 2000000000, false);
 		proj.saveProperties();
 		SampleData.createMinimalSampleData(proj);

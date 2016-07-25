@@ -13,8 +13,8 @@ import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
 import org.genvisis.common.Array;
-import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.common.WorkerTrain.Producer;
@@ -71,11 +71,11 @@ public class Pathways implements Serializable {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static Pathways load(String filename) {
-		return (Pathways) Files.readSerial(filename, false, false);
+		return (Pathways) SerializedFiles.readSerial(filename, false, false);
 	}
 
 	private static class KeggPathwayWorker implements Callable<Pathway> {

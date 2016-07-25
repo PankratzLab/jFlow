@@ -17,10 +17,10 @@ public class SerialIntMatrix implements Serializable {
 	}
 	
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static SerialIntMatrix load(String filename, boolean jar) {
-		return (SerialIntMatrix)Files.readSerial(filename, jar, true);
+		return (SerialIntMatrix)SerializedFiles.readSerial(filename, jar, true);
 	}
 }

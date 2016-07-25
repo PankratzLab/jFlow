@@ -86,7 +86,7 @@ public class Parallelize implements Runnable {
 	        counts = new int[markerNames.length];
 	        for (int i = 0; i<files.length; i++) {
 	        	System.out.println((i+1)+" of "+files.length);
-	        	diffs = (float[])Files.readSerial(proj.PROJECT_DIRECTORY.getValue()+"comps/"+files[i]);
+	        	diffs = (float[])SerializedFiles.readSerial(proj.PROJECT_DIRECTORY.getValue()+"comps/"+files[i]);
 	        	for (int j = 0; j<markerNames.length; j++) {
 	        		if (!Float.isNaN(diffs[j])) {
 	        			totalRaw[j] += diffs[j];

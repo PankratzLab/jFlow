@@ -19,11 +19,11 @@ public class SerialFloatArray implements Serializable {
 	}
 	
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static SerialFloatArray load(String filename, boolean jar) {
-		return (SerialFloatArray)Files.readSerial(filename, jar, true);
+		return (SerialFloatArray)SerializedFiles.readSerial(filename, jar, true);
 	}
 	
 	public static void dump(String filename) {

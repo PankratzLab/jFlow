@@ -5,6 +5,7 @@ import java.io.Serializable;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.filesys.PlainTextExport;
 
 public class SegmentList implements Serializable, PlainTextExport {
@@ -21,11 +22,11 @@ public class SegmentList implements Serializable, PlainTextExport {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static SegmentList load(String filename, boolean jar) {
-		return (SegmentList)Files.readSerial(filename, jar, true);
+		return (SegmentList)SerializedFiles.readSerial(filename, jar, true);
 	}
 	
 	@Override

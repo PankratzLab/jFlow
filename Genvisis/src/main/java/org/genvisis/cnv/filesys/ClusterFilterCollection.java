@@ -11,6 +11,7 @@ import org.genvisis.cnv.plots.GenericRectangle;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 
 /**
@@ -186,7 +187,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 	
 	@Override
@@ -215,7 +216,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 	}
 	
     public static ClusterFilterCollection load(String filename, boolean jar) {
-		return (ClusterFilterCollection)Files.readSerial(filename, jar, true);
+		return (ClusterFilterCollection)SerializedFiles.readSerial(filename, jar, true);
 	}
 	
 	public static String getClusterFilterFilenameSelection(Project proj) {

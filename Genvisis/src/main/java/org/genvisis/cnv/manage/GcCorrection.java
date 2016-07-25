@@ -20,6 +20,7 @@ import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.common.WorkerTrain.Producer;
@@ -64,7 +65,7 @@ public class GcCorrection {
 				outliers.putAll(gcCorrectedSample.getOutliers());
 			}
 			if (!Files.exists(outliersSer)) {
-				Files.writeSerial(outliers, outliersSer);
+				SerializedFiles.writeSerial(outliers, outliersSer);
 			} else {
 				projOriginal.getLog().reportTimeWarning("Did not write outliers, " + outliersSer + " already exists");
 			}

@@ -11,6 +11,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.GeneTrack;
 import org.genvisis.filesys.DumpMultiLoc;
@@ -72,11 +73,11 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static VCFTallyPSeq load(String filename) {
-		return (VCFTallyPSeq) Files.readSerial(filename, false, false);
+		return (VCFTallyPSeq) SerializedFiles.readSerial(filename, false, false);
 	}
 
 	public String getOutput() {

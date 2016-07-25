@@ -12,6 +12,7 @@ import java.util.Hashtable;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 
 //class to store markerQC metrics across all (or a subset of) samples , currently only Minor Allele Frequency
@@ -36,12 +37,12 @@ public class MarkerFreqs implements Serializable {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static MarkerFreqs load(String filename, boolean jar) {
 		if (Files.exists(filename)) {
-			return (MarkerFreqs) Files.readSerial(filename, jar, true);
+			return (MarkerFreqs) SerializedFiles.readSerial(filename, jar, true);
 		} else {
 			return null;
 		}

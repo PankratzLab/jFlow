@@ -3,8 +3,8 @@ package org.genvisis.cnv.filesys;
 import java.io.Serializable;
 import java.util.Hashtable;
 
-import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
+import org.genvisis.common.SerializedFiles;
 
 public class MarkerLookup implements Serializable {
 	public static final long serialVersionUID = 1L;
@@ -28,11 +28,11 @@ public class MarkerLookup implements Serializable {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	public static MarkerLookup load(String filename, boolean jar) {
-		return (MarkerLookup)Files.readSerial(filename, jar, true);
+		return (MarkerLookup)SerializedFiles.readSerial(filename, jar, true);
 	}
 	
 	public String[] getMarkerList() {

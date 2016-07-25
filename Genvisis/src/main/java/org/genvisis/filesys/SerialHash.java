@@ -113,10 +113,10 @@ public class SerialHash implements Serializable {
 	}
 
 	public void serialize(String filename) {
-		Files.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename);
 	}
 
 	private static SerialHash load(String filename, boolean jar) {
-		return (SerialHash)Files.readSerial(filename, jar, true);
+		return (SerialHash)SerializedFiles.readSerial(filename, jar, true);
 	}
 }

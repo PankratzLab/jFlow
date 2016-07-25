@@ -23,6 +23,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
@@ -670,7 +671,7 @@ public class GcAdjustor {
 		}
 
 		public void Serialize(String fullPathToGcSer) {
-			Files.writeSerial(this, fullPathToGcSer);
+			SerializedFiles.writeSerial(this, fullPathToGcSer);
 		}
 
 		public ColorManager<String> getGCColorManager() {
@@ -679,7 +680,7 @@ public class GcAdjustor {
 		}
 
 		public static GcModel loadSerial(String fullPathToGcSer) {
-			return (GcModel) Files.readSerial(fullPathToGcSer);
+			return (GcModel) SerializedFiles.readSerial(fullPathToGcSer);
 		}
 
 		/**
