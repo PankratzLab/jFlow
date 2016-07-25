@@ -300,6 +300,10 @@ public abstract class Gate {
         this(parentGate2, "PopulationName", generateID());
     }
 
+    public Gate(Gate parentGate2, String popName) {
+        this(parentGate2, popName, generateID());
+    }
+    
     public Gate(Gate parentGate2, String popName, String id) {
         if (parentGate2 != null) {
             this.parentGate = parentGate2;
@@ -396,6 +400,10 @@ public abstract class Gate {
             super(parentGate, popName, id);
         }
         
+        public RectangleGate(Gate parentGate, String popName) {
+            super(parentGate, popName);
+        }
+
         public RectangleGateDimension getDimension(String param) {
             for (GateDimension gd : this.dimensions) {
                 if (gd.paramName.equals(param)) {
@@ -439,7 +447,6 @@ public abstract class Gate {
             for (int i = 0; i < dataLoader.getCount(); i++) {
                 boolean include = true;
                 if (this.parentGate != null && !includes[i]) {
-//                    includes[i] = false;
                     continue;
                 }
                 for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
@@ -460,11 +467,15 @@ public abstract class Gate {
         private ArrayList<Double> verticesX = new ArrayList<Double>(); 
         private ArrayList<Double> verticesY = new ArrayList<Double>(); 
         private Path2D myPath;
-        private int gateResolution;
+        private int gateResolution = 256; // default
         private boolean mimicFlowJo = false;
         
         public PolygonGate(Gate parentGate, String name, String id) {
             super(parentGate, name, id);
+        }
+
+        public PolygonGate(Gate parentGate, String name) {
+            super(parentGate, name);
         }
         
         public PolygonGate(Gate parentGate) {
@@ -533,7 +544,7 @@ public abstract class Gate {
 //                return gatingCache.get(dataLoader.getLoadedFile());
 //            }
             boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : this.parentGate.gate(dataLoader);
-            this.parentGating = includes == null ? null : includes.clone();
+            this.parentGating = this.parentGate == null ? Array.booleanArray(dataLoader.getCount(), true) : Arrays.copyOf(includes, includes.length);
             if (myPath == null) {
                 myPath = constructPath();
             }
@@ -550,7 +561,6 @@ public abstract class Gate {
             }
             for (int i = 0; i < dataLoader.getCount(); i++) {
                 if (this.parentGate != null && !includes[i]) {
-//                    includes[i] = false;
                     continue;
                 }
                 if (mimicFlowJo) {
@@ -572,16 +582,15 @@ public abstract class Gate {
             return includes;
         }
         
-        int range = 262144;
-        int numBins = 256;
-        int binStep = range / numBins; // 1024
+        int range = 262144; // TODO make this dynamic based on data loader param range (set when dims are set) - may have different ranges for each dim
         ArrayList<Rectangle> myRects = new ArrayList<Rectangle>();
         
         void prepGating() {
             ArrayList<Rectangle> vertexRects = new ArrayList<Rectangle>();
             ArrayList<Rectangle> rects = new ArrayList<Rectangle>();
-            for (int i = 0; i < numBins; i++) {
-                for (int j = 0; j < numBins; j++) {
+            int binStep = range / gateResolution;
+            for (int i = 0; i < gateResolution; i++) {
+                for (int j = 0; j < gateResolution; j++) {
                     rects.add(new Rectangle(i * binStep + binStep / 2, j * binStep + binStep / 2, binStep, binStep));
                 }
             }

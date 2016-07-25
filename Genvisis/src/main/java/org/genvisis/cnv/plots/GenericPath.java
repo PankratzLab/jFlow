@@ -1,7 +1,5 @@
 package org.genvisis.cnv.plots;
 
-import java.awt.geom.Ellipse2D;
-//import java.awt.geom.Path2D;
 import java.awt.geom.Path2D;
 import java.util.Arrays;
 
@@ -50,14 +48,14 @@ public class GenericPath {
         return true;
     }
 
-    public String label;
-    public Path2D myPath;
+    private String label;
+    private Path2D myPath;
     private byte color;
     private byte fillColor;
     private byte layer;
     private boolean fill;
     private boolean editable;
-    public double[][] foci;
+    private double[][] foci;
     
     public GenericPath(String label, Path2D path, byte color, byte fillColor, byte layer, boolean fill, boolean editable) {
         this.label = label;
@@ -95,6 +93,14 @@ public class GenericPath {
 
     public void setEditable(boolean b) {
         this.editable = b;
+    }
+
+    public String getLabel() {
+        return this.label;
+    }
+
+    public Path2D getPath() {
+        return myPath;
     }
     
     

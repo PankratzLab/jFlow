@@ -1,7 +1,6 @@
 package org.genvisis.one.ben.fcs;
 
 import java.awt.Color;
-import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -13,6 +12,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.genvisis.cnv.plots.GenericLine;
@@ -109,8 +109,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         POLY_TOOL;
     };
 	
-//	private volatile GATING_TOOL currentTool = GATING_TOOL.POLY_TOOL;
-	private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_TOOL;
+	private volatile GATING_TOOL currentTool = GATING_TOOL.POLY_TOOL;
+//	private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_TOOL;
 	
 
     public void setGatingTool(GATING_TOOL tool) {
@@ -353,27 +353,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 //        repaint();
     }
     
-    private void updateGateColor() {
-        byte color = 0;
-        boolean[] gating = fcp.getParentGate() == null ? null : fcp.getParentGate().gate(fcp.dataLoader); 
-
-        for (int i = 0, count = gating == null ? points.length : gating.length, index = 0; i < count; i++) {
-            if (gating != null) {
-                if (!gating[i]) {
-                    continue;
-                }
-            }
-            color = (byte) 0; // TODO apply gating for colors
-            for (int g = 0; g < gates.size(); g++) {
-                if (gates.get(g)[i]) {
-                    color = (byte) 3;
-                    break;
-                }
-            }
-            points[index++].setColor(color);
-        }
-    }
-    
     private void updateGating() {
         gates.clear();
         rects.clear();
@@ -388,7 +367,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             int sm1 = Array.booleanArraySum(g.getParentGating(fcp.dataLoader));
             float pctInt = 100 * ((float) sm / (float)sm1);
             String pct = ext.formDeci(pctInt, 2);
-            String lbl = "(" + pct + "%)";
+            String lbl = g.getName() + "\n" + "(" + pct + "%)";
             gates.add(gt);
             if (g instanceof RectangleGate) {
                 RectangleGate rg = (RectangleGate) g;
@@ -410,7 +389,27 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         rectangles = rects.toArray(new GenericRectangle[rects.size()]);
         polygons = polys.toArray(new GenericPath[polys.size()]);
     }
-	
+
+    private void updateGateColor() {
+        byte color = 0;
+        boolean[] gating = fcp.getParentGate() == null ? null : fcp.getParentGate().gate(fcp.dataLoader); 
+
+        for (int i = 0, count = gating == null ? points.length : gating.length, index = 0; i < count; i++) {
+            if (gating != null) {
+                if (!gating[i]) {
+                    continue;
+                }
+            }
+            color = (byte) 0; // TODO apply gating for colors
+            for (int g = 0; g < gates.size(); g++) {
+                if (gates.get(g)[i]) {
+                    color = (byte) 3;
+                    break;
+                }
+            }
+            points[index++].setColor(color);
+        }
+    }
     
     private ArrayList<PolygonGate> getPolysWithVerticesNearClick(MouseEvent e) {
         int tempX = e.getX();
@@ -544,10 +543,10 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
      */
     
     private static final int DEFAULT_NEARBY_DIST = 4;
-    private HashSet<Gate> selectedGates = new HashSet<Gate>();
-
-    // in mouseReleased, if !drag && tempPoly.isEmpty (and not creating a rect gate), XAND mousePoly/Rect from selectedPoly/Rect (remove if in selected, add if not) 
+    /** mouseGates is altered during the mousePressed event */
     private HashSet<Gate> mouseGates = new HashSet<Gate>();
+    /** selectedGates is only removed-from during the mousePressed event */
+    private HashSet<Gate> selectedGates = new HashSet<Gate>();
     
     private ArrayList<RectangleGate> draggingVertexRects = new ArrayList<RectangleGate>();
     private ArrayList<Integer> draggingVertexInds = new ArrayList<Integer>();
@@ -602,7 +601,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             mouseEndY = e.getY();
             
             boolean didSelect = mouseGates.size() > 0;
-            boolean didClear = !didSelect && (selectedGates.size() > 0); 
+            boolean didClear = !didSelect && selectedGates.size() > 0; 
             boolean wasDrag = drag;
             if (!drag/* && (currentTool == GATING_TOOL.RECT_TOOL || tempPoly.isEmpty())*/) {
                 if (!didSelect) {
@@ -638,14 +637,20 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                         
                         if (Math.abs(mouseEndX - startX) > DEFAULT_NEARBY_DIST) {
                             if (isHistogram() || (Math.abs(mouseEndY - startY) > DEFAULT_NEARBY_DIST)) {
-                                RectangleGate rg = new RectangleGate(fcp.getParentGate());
-                                rg.addDimension(new GateDimension.RectangleGateDimension(rg, xCol, (float) getXValueFromXPixel(startX), (float) getXValueFromXPixel(mouseEndX)));
-                                if (!isHistogram()) {
-                                    rg.addDimension(new GateDimension.RectangleGateDimension(rg, yCol, (float) getYValueFromYPixel(startY), (float) getYValueFromYPixel(mouseEndY)));
+                                String name = null;
+                                do {
+                                    name = JOptionPane.showInputDialog(fcp, "Gate Name:", "Add Gate?", JOptionPane.QUESTION_MESSAGE);
+                                } while ("".equals(name));
+                                if (name != null) {
+                                    RectangleGate rg = new RectangleGate(fcp.getParentGate(), name);
+                                    rg.addDimension(new GateDimension.RectangleGateDimension(rg, xCol, (float) getXValueFromXPixel(startX), (float) getXValueFromXPixel(mouseEndX)));
+                                    if (!isHistogram()) {
+                                        rg.addDimension(new GateDimension.RectangleGateDimension(rg, yCol, (float) getYValueFromYPixel(startY), (float) getYValueFromYPixel(mouseEndY)));
+                                    }
+                                    setGateLevel(rg);
+                                    fcp.addGate(rg);
+                                    selectedGates.add(rg);
                                 }
-                                setGateLevel(rg);
-                                fcp.addGate(rg);
-                                selectedGates.add(rg);
                             }
                         }
                     }
@@ -664,19 +669,25 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                         int initPtY = getYPixel(tempPoly.get(0)[1]);
                         if (Math.abs(initPtX - mouseEndX) < 5 && Math.abs(initPtY - mouseEndY) < 5) {
                             if (tempPoly.size() > 2) {
-                                Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-                                path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
-                                for(int i = 1; i < tempPoly.size(); ++i) {
-                                   path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
+                                String name = null;
+                                do {
+                                    name = JOptionPane.showInputDialog(fcp, "Gate Name:", "Add Gate?", JOptionPane.QUESTION_MESSAGE);
+                                } while ("".equals(name));
+                                if (name != null) {
+                                    Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+                                    path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
+                                    for(int i = 1; i < tempPoly.size(); ++i) {
+                                       path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
+                                    }
+                                    path.closePath();
+                                    PolygonGate pg = new PolygonGate(fcp.getParentGate(), name);
+                                    pg.addDimension(new GateDimension(pg, xCol));
+                                    pg.addDimension(new GateDimension(pg, yCol));
+                                    pg.setPath(path);
+                                    setGateLevel(pg);
+                                    fcp.addGate(pg);
+                                    selectedGates.add(pg);
                                 }
-                                path.closePath();
-                                PolygonGate pg = new PolygonGate(fcp.getParentGate());
-                                pg.addDimension(new GateDimension(pg, xCol));
-                                pg.addDimension(new GateDimension(pg, yCol));
-                                pg.setPath(path);
-                                setGateLevel(pg);
-                                fcp.addGate(pg);
-                                selectedGates.add(pg);
                             }
                             tempPoly.clear();
                             highlightPoly = null;
@@ -774,7 +785,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                             mouseGates.clear();
                             mouseGates.add(lowestSel);
                         } else {
-                            selectedGates.clear();
                             mouseGates.clear();
                             Gate lowest = null;
                             for (Gate gr : insideGates) {
@@ -787,7 +797,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                             }
                         }
                     } else {
-                        selectedGates.clear();
                         mouseGates.clear();
                     }
                 } else {

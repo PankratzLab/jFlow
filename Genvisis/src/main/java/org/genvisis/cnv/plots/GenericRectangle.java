@@ -1,9 +1,5 @@
 package org.genvisis.cnv.plots;
 
-import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.Rectangle2D.Float;
-
 public class GenericRectangle {
     private String label;
 	private float startXValue;
@@ -17,7 +13,6 @@ public class GenericRectangle {
 	private byte fillColor;
 	private byte layer;
 	private boolean editable;
-//	private Rectangle2D myRect;
 
 	public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer, boolean editable) {
 	    this(null, startX, startY, stopX, stopY, thickness, fill, roundedCorners, color, layer, editable);
@@ -36,7 +31,6 @@ public class GenericRectangle {
 		this.fillColor = color;
 		this.layer = layer;
 		this.editable = editable;
-//		this.myRect = new Rectangle2D.Float(Math.min(startX, stopX), Math.min(startY, stopY), Math.max(startX, stopX) - Math.min(startX, stopX), Math.max(startY, stopY) - Math.min(startY, stopY));
 	}
 	
 	@Override
@@ -122,10 +116,6 @@ public class GenericRectangle {
 		return startYValue;
 	}
 
-//	public Rectangle2D getRectangle() {
-//	    return myRect;
-//	}
-	
 	public float getStopXValue() {
 		return stopXValue;
 	}
@@ -182,16 +172,4 @@ public class GenericRectangle {
         this.editable = b;
     }
 
-	// TODO remove if not currently being used
-//	public static GenericRectangle[] removeFromArray(GenericRectangle[] array, int index) {
-//		GenericRectangle[] newArray;
-//		
-//		newArray = new GenericRectangle[array.length+1];
-//		for (int i = 0; i < array.length; i++) {
-//			newArray[i] = array[i];
-//		}
-//		newArray[array.length] = rectangle;
-//		
-//		return null;
-//	}
 }

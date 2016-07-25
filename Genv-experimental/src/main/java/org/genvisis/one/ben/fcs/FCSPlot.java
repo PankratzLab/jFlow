@@ -729,7 +729,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 
         @Override
         public boolean[] gate(FCSDataLoader dataLoader) {
-//            return Array.booleanArray(dataLoader.getCount(), true);
             return null;
         }
     }

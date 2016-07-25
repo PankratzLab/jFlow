@@ -930,8 +930,15 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 				}
 				if (rectangles[i].getLabel() != null) {
 		            fontMetrics = g.getFontMetrics(g.getFont());
-				    int wid = fontMetrics.stringWidth(rectangles[i].getLabel());
-				    g.drawString(rectangles[i].getLabel(), xPixel + (widthPixel / 2) - (wid / 2), yPixel + (heightPixel / 2));
+		            String lbl = rectangles[i].getLabel();
+		            String[] lblParts = lbl.split("\n");
+		            int yTemp = yPixel + (heightPixel / 2);
+		            int h = fontMetrics.getHeight();
+				    for (int k = 0; k < lblParts.length; k++) {
+				        int t = fontMetrics.stringWidth(lblParts[k]);
+				        int comp = k - lblParts.length / 2;
+			            g.drawString(lblParts[k], xPixel + (widthPixel / 2) - (t / 2), yTemp + h * comp);
+				    }
 				}
 			}
         }
@@ -940,7 +947,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		    Graphics2D g2d = (Graphics2D) g;
 		    if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, polygons[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, polygons[i].getLayer()) >= 0)) {
 		        g.setColor(colorScheme[polygons[i].getColor()]);
-		        Path2D drawPoly = pt.transform(polygons[i].myPath);
+		        Path2D drawPoly = pt.transform(polygons[i].getPath());
 		        if (polygons[i].getFill()) {
 		            if (polygons[i].getColor() != polygons[i].getFillColor()) {
                         g.setColor(colorScheme[polygons[i].getFillColor()]);
@@ -956,7 +963,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		        
 	            double centroidX = 0, centroidY = 0, ptCnt = 0;
 		        if (polygons[i].getEditable()) {
-    	            PathIterator path = polygons[i].myPath.getPathIterator(null);
+    	            PathIterator path = polygons[i].getPath().getPathIterator(null);
     	            while (!path.isDone()) {
     	                double[] coords = new double[6];
     	                path.currentSegment(coords);
@@ -967,9 +974,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     	                path.next();
     	            }
 		        }
-		        if (polygons[i].label != null) {
+		        if (polygons[i].getLabel() != null) {
 		            if (ptCnt == 0) {
-	                    PathIterator path = polygons[i].myPath.getPathIterator(null);
+	                    PathIterator path = polygons[i].getPath().getPathIterator(null);
 	                    while (!path.isDone()) {
 	                        double[] coords = new double[6];
 	                        path.currentSegment(coords);
@@ -979,9 +986,18 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	                        path.next();
 	                    }
 		            }
+		            fontMetrics = g.getFontMetrics(g.getFont());
 		            int x = getXPixel(centroidX / ptCnt);
 		            int y = getYPixel(centroidY / ptCnt);
-		            g.drawString(polygons[i].label, x, y);
+                    String lbl = polygons[i].getLabel();
+                    String[] lblParts = lbl.split("\n");
+                    int h = fontMetrics.getHeight();
+                    for (int k = 0; k < lblParts.length; k++) {
+                        int t = fontMetrics.stringWidth(lblParts[k]);
+                        int comp = k - lblParts.length / 2;
+                        g.drawString(lblParts[k], x - (t / 2), y + h * comp);
+                    }
+//		            g.drawString(polygons[i].label, x, y);
 		        }
 		    }
 		}
@@ -1007,9 +1023,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 //
 		if (highlightPoly != null) {
 		    g.setColor(colorScheme[0]);
-		    ((Graphics2D) g).draw(pt.transform(highlightPoly.myPath));
+		    ((Graphics2D) g).draw(pt.transform(highlightPoly.getPath()));
 
-            PathIterator path = highlightPoly.myPath.getPathIterator(null);
+            PathIterator path = highlightPoly.getPath().getPathIterator(null);
             while (!path.isDone()) {
                 double[] coords = new double[6];
                 path.currentSegment(coords);
