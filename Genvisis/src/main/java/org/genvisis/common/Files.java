@@ -2350,9 +2350,17 @@ public class Files {
 							resultClassDescriptor = super.readClassDescriptor();
 							Class.forName(resultClassDescriptor.getName());
 						} catch (ClassNotFoundException cnfe) {
-							String convertedClassDesc = "org.genvisis." + resultClassDescriptor.getName();
+							String fileClassDesc = resultClassDescriptor.getName();
+							int startInsert = 0;
+							for (int i = 0; i < fileClassDesc.length(); i++) {
+								if (Character.isLowerCase(fileClassDesc.charAt(i))){
+									startInsert = i;
+									break;
+								}
+							}
+							String convertedClassDesc = fileClassDesc.substring(0, startInsert) + "org.genvisis." + fileClassDesc.substring(startInsert);
 							Class<?> convertedClass = Class.forName(convertedClassDesc);
-							log.reportTimeWarning("The Class (" + resultClassDescriptor.getName() +  ") for the Serialized Object " + filename + " cannot be resolved, attempting to use " + convertedClassDesc);
+							log.reportTimeWarning("The Class (" + fileClassDesc +  ") for the Serialized Object " + filename + " cannot be resolved, attempting to use " + convertedClassDesc);
 							resultClassDescriptor = ObjectStreamClass.lookup(convertedClass);
 						}
 						return resultClassDescriptor;
