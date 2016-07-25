@@ -30,15 +30,16 @@ public class SexChecks {
 																 "Mosaic Turner"};			// 9
 	public static final String EST_SEX_HEADER = generateEstSexHeader();
 	
-	public static final int[] EST_SEX_MAPPING = {0, 1, 2, 1, 1, 1, 2, 2, 2, 2};
-	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note", "Check", "Excluded", "Median X R", "Median Y R", "R Ratio Y:X", "Number of X BAFs 10-90%", "Median X LRR", "Median Y LRR"};
+	private static final int[] EST_SEX_MAPPING = {0, 1, 2, 1, 1, 1, 2, 2, 2, 2};
+	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note", "Check", "Excluded", "Median X R", "Median Y R", "R Ratio Y:X", "Number of X Heterozygote Calls", "Median X LRR", "Median Y LRR"};
 	public static final String[] KARYOTYPES = {"", "XY", "XX", "XXY", "XXY", "XXY", "XXX", "XXX", "X", "X"};
 	
 	private static final float XY_R_RATIO_MIN_SEED_MALE = 0.8f;
 	private static final float XY_R_RATIO_MAX_SEED_MALE = 1.2f;
 	private static final float XY_R_RATIO_MAX_SEED_FEMALE = 0.2f;
-	private static final float NUM_SD_FOR_BAF_10_90_OUTLIERS = 4.0f;
-	private static final float NUM_SD_FOR_MALE_X_OUTLIERS = 4.0f;
+	private static final float NUM_SD_FOR_HET_OUTLIERS = 4.0f;
+	private static final float NUM_SD_FOR_MALE_X_OUTLIERS = 1.5f;
+	private static final float NUM_SD_FOR_MALE_X_FULL_ANEUPLOIDY = 4.0f;
 	private static final float NUM_SD_FOR_FEMALE_X_OUTLIERS = 1.5f;
 	private static final float NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY = 4.0f;
 	private static final float MAX_SD_FOR_Y_OUTLIERS = 5.0f;
@@ -70,7 +71,6 @@ public class SexChecks {
 	private float[][] lrrsX;
 	private float[][] lrrsY;
 	
-	private float[][] bafsX;
 	private byte[][] genotypesX;
 	
 	private boolean[] seedMales;
@@ -79,7 +79,7 @@ public class SexChecks {
 	private float[] lrrMedX;
 	private float[] lrrMedY;
 	
-	private float[] pctXBaf10_90;
+	private float[] pctXHets;
 	
 	private int[] sexes;
 	private boolean[] uncertains;
@@ -124,7 +124,7 @@ public class SexChecks {
 		lrrMedY = calcMedianLRRs(lrrsY, Array.booleanArrayToIndices(yUseMarkers));
 		
 		log.report("Calculating sample counts of heterozygote calls for identified X chromosome markers...");
-		pctXBaf10_90 = calcPctBaf10_90(bafsX, Array.booleanArrayToIndices(xUseMarkers));
+		pctXHets = calcPctHets(genotypesX, Array.booleanArrayToIndices(xUseMarkers));
 		
 		log.report("Estimating sex for each sample...");
 		estimateSexes();
@@ -183,7 +183,6 @@ public class SexChecks {
 		float[][] rs;
 		
 		lrrsX = new float[xMarkers.length][sampleNames.length];
-		bafsX = new float[xMarkers.length][sampleNames.length];
 		genotypesX = new byte[xMarkers.length][sampleNames.length];
 		rs = new float[sampleNames.length][xMarkers.length];
 		ClusterFilterCollection clusterFilters = proj.getClusterFilterCollection();
@@ -193,7 +192,6 @@ public class SexChecks {
 			float[] xs = markerData.getXs();
 			float[] ys = markerData.getYs();
 			lrrsX[m] = markerData.getLRRs();
-			bafsX[m] = markerData.getBAFs();
 			genotypesX[m] = markerData.getAbGenotypesAfterFilters(clusterFilters, markerData.getMarkerName(), gcThreshold, log);
 			for (int s = 0; s < sampleNames.length; s++) {
 				rs[s][m] = Centroids.calcR(xs[s], ys[s]);
@@ -295,47 +293,24 @@ public class SexChecks {
 		
 		return medianLRRs;
 	}
-
-	private float[] calcPctBaf10_90(float[][] bafs, int[] useMarkers) {
-		int[] baf10_90_counts = Array.intArray(sampleNames.length, 0);
-		int[] baf_counts = Array.intArray(sampleNames.length, 0);
-		for (int m = 0; m < useMarkers.length; m++) {
-			for (int s = 0; s < sampleNames.length; s++) {
-				baf_counts[s]++;
-				if (bafs[useMarkers[m]][s] > 0.1f && bafs[useMarkers[m]][s] < 0.9f) {
-					baf10_90_counts[s]++;
-				}
-			}
-		}
-		float[] pctBaf10_90 = new float[sampleNames.length];
-		for (int s = 0; s < sampleNames.length; s++) {
-			if (baf_counts[s] == 0) {
-				pctBaf10_90[s] = 0.0f;
-			} else {
-				pctBaf10_90[s] = (float) baf10_90_counts[s] / baf_counts[s];
-			}
-		}
-		return pctBaf10_90;
-	}
 	
 	private float[] calcPctHets(byte[][] genotypes, int[] useMarkers) {
-		// TODO Decide whether to use this or Baf 10-90/15-85
-		int[] het_counts = Array.intArray(sampleNames.length, 0);
-		int[] genotype_counts = Array.intArray(sampleNames.length, 0);
+		int[] hetCounts = Array.intArray(sampleNames.length, 0);
+		int[] genotypeCounts = Array.intArray(sampleNames.length, 0);
 		for (int m = 0; m < useMarkers.length; m++) {
 			for (int s = 0; s < sampleNames.length; s++) {
-				genotype_counts[s]++;
+				genotypeCounts[s]++;
 				if (genotypes[useMarkers[m]][s] == 1) {
-					het_counts[s]++;
+					hetCounts[s]++;
 				}
 			}
 		}
 		float[] pctHets = new float[sampleNames.length];
 		for (int s = 0; s < sampleNames.length; s++) {
-			if (genotype_counts[s] == 0) {
+			if (genotypeCounts[s] == 0) {
 				pctHets[s] = 0.0f;
 			} else {
-				pctHets[s] = (float) het_counts[s] / genotype_counts[s];
+				pctHets[s] = (float) hetCounts[s] / genotypeCounts[s];
 			}
 		}
 		return pctHets;
@@ -350,10 +325,10 @@ public class SexChecks {
 		float femaleMeanX = Array.mean(femaleMedLRRsX, true);
 		float femaleStdDevX = Array.stdev(femaleMedLRRsX, true);
 		
-		float maleMeanBafX10_90 = Array.mean(Array.subArray(pctXBaf10_90, seedMales), true);
-		float maleStdDevBafX10_90 = Array.stdev(Array.subArray(pctXBaf10_90, seedMales), true);
-		float femaleMeanBafX10_90 = Array.mean(Array.subArray(pctXBaf10_90, seedFemales), true);
-		float femaleStdDevBafX10_90 = Array.stdev(Array.subArray(pctXBaf10_90, seedFemales), true);
+		float maleMeanPctXHets = Array.mean(Array.subArray(pctXHets, seedMales), true);
+		float maleStdDevPctXHets = Array.stdev(Array.subArray(pctXHets, seedMales), true);
+		float femaleMeanPctXHets = Array.mean(Array.subArray(pctXHets, seedFemales), true);
+		float femaleStdDevPctXHets = Array.stdev(Array.subArray(pctXHets, seedFemales), true);
 		
 		float[] maleMedLRRsY = Array.subArray(lrrMedY, seedMales);
 		float[] femaleMedLRRsY = Array.subArray(lrrMedY, seedFemales);
@@ -397,7 +372,7 @@ public class SexChecks {
 					female = true;
 				} else {
 					uncertains[i] = true;
-					notes[i] += "Median Y LRR (" + lrrMedY[i] + ") is outside of both male and female acceptance intervals; ";
+					notes[i] += "Median Y LRR (" + ext.formDeci(lrrMedY[i], 4) + ") is outside of both male and female acceptance intervals; ";
 					if (seedMales[i]) {
 						male = true;
 					} else if (seedFemales[i]) {
@@ -408,27 +383,34 @@ public class SexChecks {
 				if (male) {
 					if (seedFemales[i]) {
 						uncertains[i] = true;
-						notes[i] += "Ratio of Median X R to Median Y R indicated female; ";
+						notes[i] += "Ratio of Median X R to Median Y R (" + ext.formDeci(rMedY[i] / rMedX[i], 4) + ") indicated female; ";
 					} else if (!seedMales[i]) {
-						notes[i] += "Ratio of Median X R to Median Y R outlier; ";
-					}
-					if (pctXBaf10_90[i] > (maleMeanBafX10_90 + NUM_SD_FOR_BAF_10_90_OUTLIERS * maleStdDevBafX10_90)) {
+						notes[i] += "Ratio of Median X R to Median Y R (" + ext.formDeci(rMedY[i] / rMedX[i], 4) + ") outlier; ";
+					} if (pctXHets[i] > (maleMeanPctXHets + NUM_SD_FOR_HET_OUTLIERS * maleStdDevPctXHets) && lrrMedX[i] > (maleMeanX + NUM_SD_FOR_MALE_X_OUTLIERS * maleStdDevX)) {
+						if (lrrMedX[i] < (maleMeanX + NUM_SD_FOR_MALE_X_FULL_ANEUPLOIDY * maleStdDevX)) {
+							uncertains[i] = true;
+							notes[i] += "Median X LRR (" + ext.formDeci(lrrMedX[i], 4)  + ") not elevated enough to call Klinefelter without X heterozygosity (" + ext.formPercent(pctXHets[i], 4) + "); ";
+						}
 						if (checkXMosaicism(i, mosaicismCheckUse)) {
 							sexes[i] = 5; // Mosaic Klinefelter
 						} else {
 							sexes[i] = 3; // Full Klinefelter
 						}
-					} else if (lrrMedX[i] > (maleMeanX + NUM_SD_FOR_MALE_X_OUTLIERS * maleStdDevX)) {
+					} else if (lrrMedX[i] > (maleMeanX + NUM_SD_FOR_MALE_X_FULL_ANEUPLOIDY * maleStdDevX)) {
 						sexes[i] = 4; // UPD Klinefelter
 					} else {
+						if (pctXHets[i] > (maleMeanPctXHets + NUM_SD_FOR_HET_OUTLIERS * maleStdDevPctXHets)) {
+							uncertains[i] = true;
+							notes[i] += "X heterozygosity (" + ext.formPercent(pctXHets[i], 4) + ") suggests Klinefelter but Median X LRR (" + ext.formDeci(lrrMedX[i], 4) + ") is not elevated; ";
+						}
 						sexes[i] = 1; // Male
 					}
 				} else if (female) {
 					if (seedMales[i]) {
 						uncertains[i] = true;
-						notes[i] += "Ratio of Median X R to Median Y R indicated male; ";
+						notes[i] += "Ratio of Median X R to Median Y R (" + ext.formDeci(rMedY[i] / rMedX[i], 4) + ") indicated male; ";
 					} else if (!seedFemales[i]) {
-						notes[i] += "Ratio of Median X R to Median Y R outlier; ";
+						notes[i] += "Ratio of Median X R to Median Y R (" + ext.formDeci(rMedY[i] / rMedX[i], 4) + ") outlier; ";
 					}
 					
 					if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX) && checkXMosaicism(i, mosaicismCheckUse)) {
@@ -438,7 +420,7 @@ public class SexChecks {
 							sexes[i] = 7; // Mosaic Triple X
 						}
 					} else if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX) && checkXMosaicism(i, mosaicismCheckUse)) {
-						if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX) && pctXBaf10_90[i] < (femaleMeanBafX10_90 - NUM_SD_FOR_BAF_10_90_OUTLIERS * femaleStdDevBafX10_90)) {
+						if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX) && pctXHets[i] < (femaleMeanPctXHets - NUM_SD_FOR_HET_OUTLIERS * femaleStdDevPctXHets)) {
 							sexes[i] = 8; // Full Turner
 						} else {
 							sexes[i] = 9; // Mosaic Turner
@@ -491,24 +473,25 @@ public class SexChecks {
 			return false;
 		}
 		String notesAdd = (numRegions == 1 ? "Region" : (numRegions + " regions")) + " of X chromosome mocaicism identified: ";
-		double totalCoverage = 0;
+		double totalCoverage = 0.0;
+		double weightedSumF = 0.0;
 		for (MosaicRegion mr : xMosaic.getLoci()) {
-			if (mr.getCustomF() < MOSAIC_F_CERTAINTY_THRESHOLD) {
-				uncertains[sample] = true;
-			}
 			double regionCoverage = (double)mr.getSize() / xSegment.getSize();
 			totalCoverage += regionCoverage;
-			notesAdd += "F=" + mr.getCustomF() + ", " + ext.formDeci(regionCoverage * 100, 4, true) + "% coverage (" + mr.getStart() + " - " + mr.getStop() + "); ";
+			weightedSumF += mr.getCustomF() * regionCoverage;
+			notesAdd += "F=" + ext.formDeci(mr.getCustomF(), 4) + ", " + ext.formPercent(regionCoverage, 4) + " coverage (" + mr.getStart() + " - " + mr.getStop() + "); ";
 		}
-		notesAdd += "Total Mosaic Coverage: " + ext.formDeci(totalCoverage * 100, 4, true) + "%; ";
+		notesAdd += "Total Mosaic Coverage: " + ext.formPercent(totalCoverage, 4) + "; ";
 		if (totalCoverage < MOSAIC_COVERAGE_CERTAINTY_THRESHOLD) {
 			if (totalCoverage > MOSAIC_COVERAGE_ABSOLUTE_THRESHOLD) {
 				uncertains[sample] = true;
-			}
-			else {
-				uncertains[sample] = false;
+			} else {
 				return false;
 			}
+		}
+		double weightedAverageF = weightedSumF / totalCoverage;
+		if (weightedAverageF < MOSAIC_F_CERTAINTY_THRESHOLD) {
+			uncertains[sample] = true;
 		}
 		notes[sample] += notesAdd;
 		return true;
@@ -541,7 +524,7 @@ public class SexChecks {
 							   "\t" + rMedX[i] + 
 							   "\t" + rMedY[i] + 
 							   "\t" + (rMedY[i] / rMedX[i]) + 
-							   "\t" + pctXBaf10_90[i] +
+							   "\t" + pctXHets[i] +
 							   "\t" + lrrMedX[i] + 
 							   "\t" + lrrMedY[i]);
 			}

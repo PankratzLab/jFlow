@@ -403,7 +403,7 @@ public class ext {
 		String result;
 
 		if (Double.isNaN(num)) {
-			return num+"";
+			return Double.toString(num);
 		}
 
 		for (int i = 0; i<minSigFigs; i++) {
@@ -421,6 +421,37 @@ public class ext {
 		return result;
 	}
 
+	public static String formDeci(float num, int numPlaces) {
+		return formDeci(num, numPlaces, false);
+	}
+
+	public static String formDeci(float num, int numPlaces, boolean forceDigits) {
+		return formDeci(num, forceDigits?numPlaces:0, numPlaces);
+	}
+
+	public static String formDeci(float num, int minSigFigs, int maxSigFigs) {
+		String theFormat = (maxSigFigs>0?"0.":"0");
+		String result;
+
+		if (Double.isNaN(num)) {
+			return Float.toString(num);
+		}
+
+		for (int i = 0; i<minSigFigs; i++) {
+			theFormat += "0";
+		}
+
+		for (int i = minSigFigs; i<maxSigFigs; i++) {
+			theFormat += "#";
+		}
+
+		result = new DecimalFormat(theFormat).format(num);
+		if (ext.replaceAllWith(result, new String[][] {{"0", ""}, {".", ""}}).equals("-")) {
+			result = result.substring(1);
+		}
+		return result;
+	}
+	
 	public static String formPercent(double num, int numSigFigs) {
 		String theFormat = (numSigFigs>0?"0.":"0");
 
