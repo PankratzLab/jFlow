@@ -58,7 +58,7 @@ That's it! You can now develop Genvisis code.
 
 #### Building the Genvisis application
 
-To build the `Genvisis.jar`, run either the `Assembly` or the `pom-genvisis` (if you need to rebuild other modules) project [as a Maven build](https://books.sonatype.com/m2eclipse-book/reference/running-sect-running-maven-builds.html), and select the **install** goal.
+To build the `Genvisis.jar`, run either the `pom-genvisis` project [as a Maven build](https://books.sonatype.com/m2eclipse-book/reference/running-sect-running-maven-builds.html), and select the **install** goal.
 
 All Maven output will print in the `Console` tab. When complete, your `Genvisis.jar` will be built in the `Assembly/target/` directory, per the standard directory layout.
 
