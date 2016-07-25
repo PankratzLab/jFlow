@@ -318,6 +318,7 @@
 					<configuration>
 						<source>${genvisis.jvm.version}</source>
 						<target>${genvisis.jvm.version}</target>
+						<useIncrementalCompilation>false</useIncrementalCompilation>
 					</configuration>
 				</plugin>
 
