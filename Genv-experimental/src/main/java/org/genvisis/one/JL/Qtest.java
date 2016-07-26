@@ -4,11 +4,11 @@ import java.util.concurrent.Callable;
 
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 public class Qtest {
 
-	private static class HiProducer implements Producer<Hi> {
+	private static class HiProducer extends AbstractProducer<Hi> {
 
 		private int index;
 
@@ -25,13 +25,6 @@ public class Qtest {
 			index++;
 			return hi;
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
 	}
 
 	private static class Hi implements Callable<Hi> {

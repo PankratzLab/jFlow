@@ -6,7 +6,7 @@ import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 /**
  * similar to {@link MDL} but for sample data
@@ -59,7 +59,7 @@ public class SDL implements Iterator<Sample> {
 		return train.next();
 	}
 
-	private static class SDLProducer implements Producer<Sample> {
+	private static class SDLProducer extends AbstractProducer<Sample> {
 		private Project proj;
 		private String[] samples;
 		private int index;
@@ -84,17 +84,6 @@ public class SDL implements Iterator<Sample> {
 			index++;
 			return worker;
 		}
-
-		@Override
-		public void shutdown() {
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	private static class SDLWorker implements Callable<Sample> {

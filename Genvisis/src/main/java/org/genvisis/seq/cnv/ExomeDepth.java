@@ -19,7 +19,7 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
@@ -253,7 +253,7 @@ public class ExomeDepth {
 		return bamBaiV;
 	}
 
-	static class ExomeDepthAnalysisProducer implements Producer<ExomeDepthAnalysis> {
+	static class ExomeDepthAnalysisProducer extends AbstractProducer<ExomeDepthAnalysis> {
 		private ExomeDepth exomeDepth;
 		private int index;
 		private Logger log;
@@ -291,14 +291,6 @@ public class ExomeDepth {
 			};
 			index++;
 			return callable;
-		}
-
-		@Override
-		public void remove() {
-		}
-
-		@Override
-		public void shutdown() {
 		}
 	}
 

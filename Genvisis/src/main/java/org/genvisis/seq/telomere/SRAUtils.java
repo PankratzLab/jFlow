@@ -10,8 +10,8 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
 
 /**
  * @author lane0212 Converts .sra files to .bam format for future processing. So far, used for telomere length temp file creation
@@ -96,7 +96,7 @@ public class SRAUtils {
 
 	}
 
-	private static class SRABamProducer implements Producer<SRAConversionResult> {
+	private static class SRABamProducer extends AbstractProducer<SRAConversionResult> {
 		private String[] inputSras;
 		private String outDir;
 		private Logger log;
@@ -122,17 +122,6 @@ public class SRAUtils {
 			index++;
 			return worker;
 		}
-
-		@Override
-		public void shutdown() {
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	// sam-dump.2.6.3 SRR1737697 |samtools view -bS -

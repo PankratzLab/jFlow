@@ -14,7 +14,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 /**
  * @author lane0212
@@ -119,7 +119,7 @@ public class AffyProcess {
 		}
 	}
 
-	private static class CombineProducer implements Producer<Boolean> {
+	private static class CombineProducer extends AbstractProducer<Boolean> {
 		private Project proj;
 		private String[] chpFiles;
 		private String[] cn5chpFiles;
@@ -163,17 +163,6 @@ public class AffyProcess {
 
 			return callable;
 		}
-
-		@Override
-		public void remove() {
-
-		}
-
-		@Override
-		public void shutdown() {
-
-		}
-
 	}
 
 	private static boolean combineChp(final Project proj, final String chp, final String cnC5Chp, final String output, final String delimiter, final Logger log) {

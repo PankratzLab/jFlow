@@ -22,7 +22,7 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.analysis.Blast.BlastResults;
@@ -409,7 +409,7 @@ public class Indelathon {
 
 	}
 
-	private static class SoftClipResultProducer implements Producer<SoftClipResult> {
+	private static class SoftClipResultProducer extends AbstractProducer<SoftClipResult> {
 		private String[] samples;
 		private Hashtable<String, ArrayList<Segment>> sampSegs;
 		private Hashtable<String, String> matchedIndelSamps;
@@ -445,18 +445,6 @@ public class Indelathon {
 			index++;
 			return sc;
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	private static void extractIndelVariants(String vcf, Logger log, String outIndelVCF, String outSegSer, Hashtable<String, ArrayList<Segment>> sampSegs) {

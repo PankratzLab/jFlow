@@ -9,7 +9,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
@@ -58,7 +58,7 @@ public class VerifyBamID {
 		CmdLine.runCommandWithFileChecks(command, "", null, null, false, false, false, log);
 	}
 
-	public static class VerifyProducer implements Producer<Boolean> {
+	public static class VerifyProducer extends AbstractProducer<Boolean> {
 		private String[] bamFiles;
 		private String vcf;
 		private int index;
@@ -91,19 +91,6 @@ public class VerifyBamID {
 			// TODO Auto-generated method stub
 			return callable;
 		}
-
-		@Override
-		public void remove() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
 	}
 
 	public static void runVerifies(String bamDir, String vcf, int nThreads) {

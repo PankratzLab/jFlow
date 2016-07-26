@@ -17,7 +17,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.manage.VCOps.ALT_ALLELE_CONTEXT_TYPE;
@@ -113,7 +113,7 @@ public class SeqError {
 		}
 	}
 
-	private static class DuplicateProducer implements Producer<DuplicateETwo> {
+	private static class DuplicateProducer extends AbstractProducer<DuplicateETwo> {
 		private VariantContext vc;
 		private DuplicateETwo[] dETwos;
 		private ReferenceGenome referenceGenome;
@@ -138,17 +138,6 @@ public class SeqError {
 			index++;
 			return worker;
 		}
-
-		@Override
-		public void remove() {
-
-		}
-
-		@Override
-		public void shutdown() {
-
-		}
-
 	}
 
 	private static class DuplicateWorker implements Callable<DuplicateETwo> {

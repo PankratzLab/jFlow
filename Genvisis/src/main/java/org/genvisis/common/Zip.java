@@ -5,7 +5,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.zip.*;
 
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 public class Zip {
 
@@ -227,7 +227,7 @@ public class Zip {
 		}
 	}
 
-	private static class GzipProducer implements Producer<Boolean> {
+	private static class GzipProducer extends AbstractProducer<Boolean> {
 		private String[] filesToGzip;
 		private String outputDir;
 		private Logger log;
@@ -252,18 +252,6 @@ public class Zip {
 			GzipWorker worker = new GzipWorker(filesToGzip[index], outputDir + ext.removeDirectoryInfo(filesToGzip[index]) + ".gz", log);
 			index++;
 			return worker;
-		}
-
-		@Override
-		public void remove() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
 		}
 	}
 

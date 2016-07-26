@@ -11,7 +11,7 @@ import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 public class VCFSamplePrep {
 	private Project proj;
@@ -94,7 +94,7 @@ public class VCFSamplePrep {
 		return totalDepth;
 	}
 
-	public static class VCFSamplePrepWorker implements Producer<Hashtable<String, Float>> {
+	public static class VCFSamplePrepWorker extends AbstractProducer<Hashtable<String, Float>> {
 		private final Project proj;
 		private final PREPPED_SAMPLE_TYPE type;
 		private final String[] samples;
@@ -140,18 +140,5 @@ public class VCFSamplePrep {
 			index++;
 			return sampPrep;
 		}
-
-		@Override
-		public void remove() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
 	}
 }

@@ -12,7 +12,7 @@ import java.util.concurrent.Callable;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.Segment;
 
 import htsjdk.samtools.BAMIndex;
@@ -292,7 +292,7 @@ public class BamOps {
 
 	}
 
-	private static class SampleNameProducer implements Producer<SampleNameExtractor> {
+	private static class SampleNameProducer extends AbstractProducer<SampleNameExtractor> {
 
 		private String[] bamFiles;
 		private int index;
@@ -314,18 +314,6 @@ public class BamOps {
 			index++;
 			return ex;
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	/**

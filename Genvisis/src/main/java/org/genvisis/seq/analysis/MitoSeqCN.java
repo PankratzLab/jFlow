@@ -20,7 +20,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.BEDFileReader;
@@ -212,7 +212,7 @@ public class MitoSeqCN {
 		}
 	}
 
-	private static class MitoCNProducer implements Producer<MitoCNResult> {
+	private static class MitoCNProducer extends AbstractProducer<MitoCNResult> {
 		private String[] bams;
 		private String outDir;
 		private int index;
@@ -245,17 +245,6 @@ public class MitoSeqCN {
 
 			index++;
 			return new MitoCNWorker(currentBam, genomeBinsMinusBinsCaputure, outDir, mitoLength, xLength, yLength, chr, log);
-		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
 		}
 	}
 

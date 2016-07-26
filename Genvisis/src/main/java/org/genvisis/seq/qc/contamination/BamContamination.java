@@ -10,6 +10,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.WorkerTrain.Producer;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
@@ -29,7 +30,7 @@ public class BamContamination {
 	 * Producer that defaults to contamination detection
 	 *
 	 */
-	public static class BamContaminationProducer implements Producer<DynamicHistogram> {
+	public static class BamContaminationProducer extends AbstractProducer<DynamicHistogram> {
 		private Segment[] q;
 		private FilterNGS filterNGS;
 		private ReferenceGenome referenceGenome;
@@ -58,18 +59,6 @@ public class BamContamination {
 			bamPileWorker worker = new bamPileWorker(bamFiles[index], q, filterNGS, referenceGenome, 1, PILE_TYPE.CONTAMINATION, SAM_FILTER_TYPE.GENOTYPE, log);
 			index++;
 			return worker;
-		}
-
-		@Override
-		public void remove() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
 		}
 	}
 

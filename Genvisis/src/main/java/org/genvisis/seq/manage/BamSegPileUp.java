@@ -15,7 +15,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
@@ -149,7 +149,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
 		}
 	}
 
-	public static class PileupProducer implements Producer<BamPileResult> {
+	public static class PileupProducer extends AbstractProducer<BamPileResult> {
 		private int index;
 		private String[] bamFiles;
 		private String serDir;
@@ -186,12 +186,6 @@ public class BamSegPileUp implements Iterator<BamPile> {
 			// TODO Auto-generated method stub
 
 		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	@Override

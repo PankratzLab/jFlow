@@ -19,7 +19,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 public class MDL implements Iterator<MarkerData> {
 	private Project proj;
@@ -233,7 +233,7 @@ public class MDL implements Iterator<MarkerData> {
 	 * {@link WorkerTrain.Producer} implementation to serve up marker data
 	 *
 	 */
-	private static class BufferReader implements Producer<MarkerData> {
+	private static class BufferReader extends AbstractProducer<MarkerData> {
 		private byte[] parameterReadBuffer = new byte[TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN];
 		private RandomAccessFile file;
 		private byte nullStatus;
@@ -327,10 +327,6 @@ public class MDL implements Iterator<MarkerData> {
 			numLoaded = markerIndicesInProject.length;
 			return null;
 		};
-
-		@Override
-		public void remove() {
-		}
 
 		@Override
 		public void shutdown() {

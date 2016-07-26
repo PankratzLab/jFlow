@@ -17,7 +17,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.GeneData;
 import org.genvisis.filesys.GeneTrack;
 
@@ -98,7 +98,7 @@ public class Pathways implements Serializable {
 
 	}
 
-	private static class KeggPathwayProducer implements Producer<Pathway> {
+	private static class KeggPathwayProducer extends AbstractProducer<Pathway> {
 		private GeneTrack geneTrack;
 		private BufferedReader pathwayReader;
 		private Logger log;
@@ -138,12 +138,6 @@ public class Pathways implements Serializable {
 			}
 			// TODO Auto-generated method stub
 			return null;
-		}
-
-		@Override
-		public void remove() {
-			// TODO Auto-generated method stub
-
 		}
 
 		@Override

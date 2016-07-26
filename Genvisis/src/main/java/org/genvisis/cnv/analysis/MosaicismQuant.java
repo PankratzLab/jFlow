@@ -25,7 +25,7 @@ import org.genvisis.common.Sort;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.mining.Calcfc;
@@ -690,7 +690,7 @@ public class MosaicismQuant implements Calcfc {
 		}
 	}
 
-	public static class MosaicQuantProducer implements Producer<MosaicQuantResults[]> {
+	public static class MosaicQuantProducer extends AbstractProducer<MosaicQuantResults[]> {
 
 		private Project proj;
 		private String[] samples;
@@ -719,16 +719,6 @@ public class MosaicismQuant implements Calcfc {
 			index++;
 			return worker;
 		}
-
-		@Override
-		public void shutdown() {
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	public static class FullMosiacResults implements Serializable {

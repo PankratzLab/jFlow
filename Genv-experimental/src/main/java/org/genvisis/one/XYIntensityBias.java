@@ -9,7 +9,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.Array;
 import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 /**
  * @author lane0212 Taking a look at the intensity bias of X and Y probes
@@ -74,7 +74,7 @@ public class XYIntensityBias {
 		}
 	}
 
-	private static class XYProducer implements Producer<double[][]> {
+	private static class XYProducer extends AbstractProducer<double[][]> {
 		private Project proj;
 		private String[] samples;
 		private int index;
@@ -106,13 +106,6 @@ public class XYIntensityBias {
 			// TODO Auto-generated method stub
 			return callable;
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
 	}
 
 	private static double[][] compute(Project proj, String sample) {

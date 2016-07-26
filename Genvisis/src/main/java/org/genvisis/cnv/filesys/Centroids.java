@@ -14,7 +14,7 @@ import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.*;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.stats.Maths;
 
 /**
@@ -426,7 +426,7 @@ public class Centroids implements Serializable, TextExport {
 	 * Manages centroid application to each sample
 	 *
 	 */
-	private static class RecomputeProducer implements Producer<Hashtable<String, Float>> {
+	private static class RecomputeProducer extends AbstractProducer<Hashtable<String, Float>> {
 		private Project proj;
 		private String[] samples;
 		private Centroids centroids;
@@ -454,18 +454,6 @@ public class Centroids implements Serializable, TextExport {
 			index++;
 			return worker;
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-		
 	}
 	
 	

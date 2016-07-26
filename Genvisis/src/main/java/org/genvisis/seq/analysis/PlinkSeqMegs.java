@@ -11,7 +11,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.GeneTrack;
 import org.genvisis.seq.analysis.PlinkSeq.ANALYSIS_TYPES;
 import org.genvisis.seq.analysis.PlinkSeq.PlinkSeqProducer;
@@ -86,7 +86,7 @@ public class PlinkSeqMegs {
 		}
 	}
 
-	private static class ImportProducer implements Producer<PlinkSeqWorker[]> {
+	private static class ImportProducer extends AbstractProducer<PlinkSeqWorker[]> {
 		private String[] vcfs;
 		private String vpopFile;
 		private String resourceDirectory;
@@ -128,16 +128,6 @@ public class PlinkSeqMegs {
 			};
 			index++;
 			return callable;
-		}
-
-		@Override
-		public void remove() {
-
-		}
-
-		@Override
-		public void shutdown() {
-
 		}
 	}
 

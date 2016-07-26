@@ -29,7 +29,7 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
@@ -619,7 +619,7 @@ public class CNVCaller {
 	/**
 	 * @author lane0212 Useful when calling cnvs across many samples
 	 */
-	private static class CNVProducer implements Producer<CNVCallResult> {
+	private static class CNVProducer extends AbstractProducer<CNVCallResult> {
 		private Project proj;
 		private PennHmm pennHmm;
 		private GcModel gcModel;
@@ -693,16 +693,6 @@ public class CNVCaller {
 			};
 			index++;
 			return callable;
-		}
-
-		@Override
-		public void shutdown() {
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
 		}
 	}
 

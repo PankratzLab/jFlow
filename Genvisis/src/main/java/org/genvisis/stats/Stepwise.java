@@ -8,7 +8,7 @@ import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 public class Stepwise {
 	public static double ENTRY_PROB = 0.05;
@@ -235,7 +235,7 @@ public class Stepwise {
 			
 		}
 	}
-	private static class RegressionProducer implements Producer<RegressionModel>{
+	private static class RegressionProducer extends AbstractProducer<RegressionModel>{
 		private IntVector in ;
 		private IntVector out;
 		private boolean logistic;
@@ -271,17 +271,6 @@ public class Stepwise {
 			out.add(in.popLast());
 			index++;
 			return worker;
-		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
 		}
 	}
 	

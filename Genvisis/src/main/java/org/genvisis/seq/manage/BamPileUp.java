@@ -18,7 +18,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
@@ -229,7 +229,7 @@ public class BamPileUp implements Iterator<BamPile> {
 
 	}
 
-	private static class TmpBamPileProducer implements Producer<TmpBamPile> {
+	private static class TmpBamPileProducer extends AbstractProducer<TmpBamPile> {
 		private SAMRecord samRecord;
 		private Segment samRecordSegment;
 		private BamPile[] bamPiles;
@@ -258,19 +258,6 @@ public class BamPileUp implements Iterator<BamPile> {
 			index++;
 			return tmpBamPile;
 		}
-
-		@Override
-		public void remove() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
 	}
 
 	private static class TmpBamPile implements Callable<TmpBamPile> {

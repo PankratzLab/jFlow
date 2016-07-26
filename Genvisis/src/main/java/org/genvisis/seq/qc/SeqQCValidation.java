@@ -15,7 +15,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
@@ -73,7 +73,7 @@ public class SeqQCValidation {
 
 	}
 
-	private static class SeqQCValidationProducer implements Producer<SeqQCValidation> {
+	private static class SeqQCValidationProducer extends AbstractProducer<SeqQCValidation> {
 
 		private SeqQCValidation[] validations;
 		private int index;
@@ -100,18 +100,6 @@ public class SeqQCValidation {
 			SeqQCValidationWorker worker = new SeqQCValidationWorker(validations[index], numVariantsToTest, numInternalThreads);
 			index++;
 			return worker;
-		}
-
-		@Override
-		public void remove() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
 		}
 	}
 

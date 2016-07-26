@@ -21,7 +21,7 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.GeneTrack;
 import org.genvisis.filesys.LocusSet;
@@ -213,7 +213,7 @@ public class ExomeDepthRun {
 		}
 	}
 
-	private static class GenvisisSampleProducer implements Producer<ExomeSample> {
+	private static class GenvisisSampleProducer extends AbstractProducer<ExomeSample> {
 		private Project proj;
 		private String outputSampleRoot;
 		private ExomeDepthAnalysis[] eDepthAnalysis;
@@ -240,18 +240,6 @@ public class ExomeDepthRun {
 			index++;
 			return exomeSample;
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	// private Sample parseToSample(ExomeDepthAnalysis exomeDepthAnalysis, Logger log) {

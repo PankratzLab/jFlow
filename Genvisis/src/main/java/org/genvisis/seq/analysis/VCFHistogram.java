@@ -15,6 +15,7 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.WorkerTrain.Producer;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
@@ -352,7 +353,7 @@ public class VCFHistogram implements Serializable {
 
 	}
 
-	private static class HistProducer implements Producer<VCFHistogram> {
+	private static class HistProducer extends AbstractProducer<VCFHistogram> {
 		private HistInit[] histInits;
 		private String vcf, outputDir;
 		private String referenceGenomeFasta;
@@ -380,17 +381,6 @@ public class VCFHistogram implements Serializable {
 			index++;
 			return worker;
 		}
-
-		@Override
-		public void remove() {
-
-		}
-
-		@Override
-		public void shutdown() {
-
-		}
-
 	}
 
 	private static class HistWorker implements Callable<VCFHistogram> {

@@ -21,7 +21,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.stats.QuantileNormalization;
 import org.genvisis.stats.Histogram.DynamicHistogram;
 import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
@@ -206,7 +206,7 @@ public class QuantNormProject {
 		rScatters2.execute();
 	}
 
-	private static class QNormProducer implements Producer<Hashtable<String, Float>> {
+	private static class QNormProducer extends AbstractProducer<Hashtable<String, Float>> {
 		private Project projOriginal;
 		private Project projNorm;
 		private String[] samples;
@@ -239,13 +239,6 @@ public class QuantNormProject {
 			index++;
 			return callable;
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
 	}
 
 	private static Hashtable<String, Float> quantNormSample(Project projOriginal, Project projNorm, String sample) {

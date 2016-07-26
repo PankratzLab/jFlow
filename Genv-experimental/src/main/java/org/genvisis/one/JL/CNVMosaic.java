@@ -20,7 +20,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
@@ -289,7 +289,7 @@ public class CNVMosaic {
 		rs.execute();
 	}
 
-	private static class MosaicForceProducer implements Producer<MosaicRegion[]> {
+	private static class MosaicForceProducer extends AbstractProducer<MosaicRegion[]> {
 		private Project proj;
 		private Hashtable<String, LocusSet<CNVariant>> indSets;
 		private int index;
@@ -387,13 +387,6 @@ public class CNVMosaic {
 			index++;
 			return callable;
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
 	}
 
 	public static void main(String[] args) {

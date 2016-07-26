@@ -95,6 +95,25 @@ public class WorkerTrain<E> implements Iterator<E> {
 	}
 
 	/**
+	 * Abstract {@link WorkerTrain.Producer} class. Provides a no-op
+	 * {@link #shutdown()} and a {@link #remove()} that throws
+	 * {@link UnsupportedOperationException}.
+	 *
+	 * @param <E> - Generic type of the underlying {@link Callable}.
+	 */
+	public abstract static class AbstractProducer<E> implements Producer<E> {
+		@Override
+		public void shutdown() {
+			// No-op
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	/**
 	 *
 	 * @param <E>
 	 *            iterator returns a {@link Callable} of this type

@@ -20,7 +20,7 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 /**
  * @author lane0212
@@ -90,7 +90,7 @@ public class GoogleMash implements Serializable {
 		queries = tmp;
 	}
 
-	private static class QueryProducer implements Producer<GQuery> {
+	private static class QueryProducer extends AbstractProducer<GQuery> {
 		private GQuery[] queries;
 		private int index;
 
@@ -119,17 +119,6 @@ public class GoogleMash implements Serializable {
 			index++;
 			return worker;
 		}
-
-		@Override
-		public void remove() {
-
-		}
-
-		@Override
-		public void shutdown() {
-
-		}
-
 	}
 
 	public static void count(String baseFile, String queryFile, int numThreads, Logger log) {

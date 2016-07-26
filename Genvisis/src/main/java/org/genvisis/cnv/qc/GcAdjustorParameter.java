@@ -20,7 +20,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.stats.CrossValidation;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
@@ -277,7 +277,7 @@ public class GcAdjustorParameter implements Serializable {
 		}
 	}
 
-	private static class GcAdjustorProducer implements Producer<GcAdjustorParameter[][][]> {
+	private static class GcAdjustorProducer extends AbstractProducer<GcAdjustorParameter[][][]> {
 		private Project proj;
 		private String[] samples;
 		private GcModel gcmodel;
@@ -313,15 +313,6 @@ public class GcAdjustorParameter implements Serializable {
 			GcAdjustorWorker worker = new GcAdjustorWorker(proj, compute, builders, markerSet, samples[index], gcmodel, centroids, correction_METHODs, debugMode);
 			index++;
 			return worker;
-		}
-
-		@Override
-		public void shutdown() {
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
 		}
 	}
 

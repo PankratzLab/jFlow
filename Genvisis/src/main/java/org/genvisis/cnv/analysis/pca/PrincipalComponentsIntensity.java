@@ -19,7 +19,7 @@ import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.plots.ScatterPlot;
 import org.genvisis.common.Array;
 import org.genvisis.common.Logger;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.stats.CrossValidation;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
@@ -696,7 +696,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	 * 
 	 *
 	 */
-	public static class PcCorrectionProducer implements Producer<PrincipalComponentsIntensity> {
+	public static class PcCorrectionProducer extends AbstractProducer<PrincipalComponentsIntensity> {
 
 		private PrincipalComponentsResiduals pcResiduals;
 		private MDL mdl;
@@ -739,12 +739,6 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 
 			};
 			return compute;
-		}
-
-		@Override
-		public void remove() {
-			// TODO Auto-generated method stub
-
 		}
 
 		@Override

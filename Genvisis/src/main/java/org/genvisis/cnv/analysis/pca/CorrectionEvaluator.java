@@ -13,13 +13,13 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Array.BooleanClassifier;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.stats.Correlation;
 import org.genvisis.stats.CrossValidation;
 import org.genvisis.stats.ICC;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
-public class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
+public class CorrectionEvaluator extends AbstractProducer<EvaluationResult> implements Serializable {
 	/**
 	 * 
 	 */
@@ -99,17 +99,6 @@ public class CorrectionEvaluator implements Producer<EvaluationResult>, Serializ
 		EvaluationWorker worker = new EvaluationWorker(precomputeds == null ? iterator.next() : null, precomputeds == null ? null : precomputeds[index], extraIndeps, matchString, matchDouble, stratString, samplesToInclude, parser, lType, log);
 		index++;
 		return worker;
-	}
-
-	@Override
-	public void remove() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void shutdown() {
-		// TODO Auto-generated method stub
 	}
 
 	private static class EvaluationWorker implements Callable<EvaluationResult> {

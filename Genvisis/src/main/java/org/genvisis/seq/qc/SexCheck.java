@@ -20,7 +20,7 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 /**
  * Class to check determine the sex of an individual based on read counts from X and Y chromosomes.
@@ -71,7 +71,7 @@ public class SexCheck {
 	 * Dishes up callables of {@link SexCheckResults}
 	 *
 	 */
-	private static class SexCheckProducer implements Producer<SexCheckResults> {
+	private static class SexCheckProducer extends AbstractProducer<SexCheckResults> {
 		private String[] bamFiles;
 		private Logger log;
 		private int index;
@@ -94,18 +94,6 @@ public class SexCheck {
 			index++;
 			return sexCheckWorker;
 		}
-
-		@Override
-		public void shutdown() {
-
-		}
-
-		@Override
-		public void remove() {
-			// TODO Auto-generated method stub
-
-		}
-
 	}
 
 	/**

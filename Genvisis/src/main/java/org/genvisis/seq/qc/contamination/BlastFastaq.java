@@ -71,11 +71,4 @@ public class BlastFastaq extends BlastSeqProducer {
 		}
 		return new Blast.BlastWorker(blast, curEntries.toArray(new FastaEntry[curEntries.size()]), null);
 	}
-
-	@Override
-	public void remove() {
-		// TODO Auto-generated method stub
-
-	}
-
 }

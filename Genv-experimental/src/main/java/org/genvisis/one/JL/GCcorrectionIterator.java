@@ -24,7 +24,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.common.PSF.Ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.stats.Rscript;
 import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
 import org.genvisis.stats.Rscript.PLOT_DEVICE;
@@ -146,7 +146,7 @@ public class GCcorrectionIterator {
 
 	}
 
-	private static class IPloadProducer implements Producer<IterationParameters> {
+	private static class IPloadProducer extends AbstractProducer<IterationParameters> {
 		private ArrayList<IterationParameters> finals;
 		private Logger log;
 		private int index;
@@ -168,12 +168,6 @@ public class GCcorrectionIterator {
 			index++;
 			// TODO Auto-generated method stub
 			return lw;
-		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
 		}
 	}
 

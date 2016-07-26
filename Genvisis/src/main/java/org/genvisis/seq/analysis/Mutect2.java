@@ -18,7 +18,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.analysis.GATK.Mutect2Normal;
 import org.genvisis.seq.analysis.GATK.MutectTumorNormal;
@@ -34,7 +34,7 @@ import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
 /**
  * @author lane0212 For using the native Mutect in GATK 3.5+
  */
-public class Mutect2 implements Producer<MutectTumorNormal> {
+public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 
 	private GATK gatk;
 	private String[][] tumorNormalMatchedBams;
@@ -83,10 +83,6 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		String tumorSample = BamOps.getSampleName(tumorBam);
 		index++;
 		return new MutectTumorNormalWorker(gatk, normalBam, tumorBam, outputDir + normalSample + "_normal_" + tumorSample + "_tumor" + ".vcf.gz", pon, log);
-	}
-
-	@Override
-	public void shutdown() {
 	}
 
 	private static class MutectTumorNormalWorker implements Callable<MutectTumorNormal> {
@@ -166,7 +162,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		}
 	}
 
-	private static class NormalProducer implements Producer<Mutect2Normal> {
+	private static class NormalProducer extends AbstractProducer<Mutect2Normal> {
 		private GATK gatk;
 		private NormalSample[] normalSamples;
 		private Logger log;
@@ -193,15 +189,6 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 			Mutect2Worker worker = new Mutect2Worker(current, gatk, numSampleThreads, log);
 			index++;
 			return worker;
-		}
-
-		@Override
-		public void shutdown() {
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
 		}
 	}
 
@@ -627,11 +614,6 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 
 		}
 
-	}
-
-	@Override
-	public void remove() {
-		throw new UnsupportedOperationException();
 	}
 
 }

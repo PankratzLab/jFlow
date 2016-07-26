@@ -11,7 +11,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.hmm.PennHmm.ViterbiResult;
 import org.genvisis.cnv.var.MosaicRegion;
 import org.genvisis.common.Array;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
@@ -538,7 +538,7 @@ public class MosaicismDetect {
 		}
 	}
 
-	public static class MosaicProducer implements Producer<LocusSet<MosaicRegion>> {
+	public static class MosaicProducer extends AbstractProducer<LocusSet<MosaicRegion>> {
 		private Project proj;
 		private String[] samples;
 		private MosaicBuilder builder;
@@ -568,18 +568,6 @@ public class MosaicismDetect {
 			index++;
 			return worker;
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	private MosaicismDetect(MosaicBuilder builder, Project proj, String sample, MarkerSet markerSet, double[] bafs) {

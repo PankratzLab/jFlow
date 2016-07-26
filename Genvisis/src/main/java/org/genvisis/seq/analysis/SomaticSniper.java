@@ -22,7 +22,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.GenotypeOps;
 import org.genvisis.seq.manage.VCFOps;
@@ -71,7 +71,7 @@ public class SomaticSniper {
 
 	}
 
-	private static class TNProducer implements Producer<TNSample> {
+	private static class TNProducer extends AbstractProducer<TNSample> {
 		private TNSample[] tnSamples;
 		private int index;
 
@@ -93,18 +93,6 @@ public class SomaticSniper {
 
 			return current;
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	private static TNSample[] matchSamples(String[] bamFiles, String outputDir, VcfPopulation vpop, SomaticParams somaticParams, Logger log) {

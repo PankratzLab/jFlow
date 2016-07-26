@@ -16,7 +16,7 @@ import org.genvisis.cnv.var.IndiPheno;
 import org.genvisis.cnv.var.MosaicRegion;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.*;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
@@ -119,7 +119,7 @@ public class Mosaicism {
 		}
 	}
 	
-	private static class MosaicResultProducer implements Producer<String[]>{
+	private static class MosaicResultProducer extends AbstractProducer<String[]>{
 		private Project proj;
 		private String[] samples;
 		private boolean[]snpDropped;
@@ -162,13 +162,6 @@ public class Mosaicism {
 		public void shutdown() {
 			index = samples.length;
 		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-		
-		
 	}
 
 	private static String[] getMosaicResults(Project proj, String sample, boolean[] snpDropped, int[][] chrBoundaries, MarkerSet markerSet, int[][] indicesByChr) {

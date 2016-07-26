@@ -14,7 +14,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 
 /**
@@ -112,7 +112,7 @@ public class ChromosomalSV {
 
 	}
 
-	private static class ChrProducer implements Producer<ChrResult[][]> {
+	private static class ChrProducer extends AbstractProducer<ChrResult[][]> {
 		private Project proj;
 		private String[] samples;
 		private PreparedMarkerSet preparedMarkerSet;
@@ -137,18 +137,6 @@ public class ChromosomalSV {
 			index++;
 			return new ChrWorker(proj, samp, preparedMarkerSet);
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	private static class ChrWorker implements Callable<ChrResult[][]> {

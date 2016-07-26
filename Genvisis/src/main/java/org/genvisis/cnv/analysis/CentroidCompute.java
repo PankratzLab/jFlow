@@ -16,7 +16,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.stats.Maths;
 
 /**
@@ -743,7 +743,7 @@ public class CentroidCompute {
 		return computed;
 	}
 
-	private static class CentroidProducer implements Producer<CentroidCompute[]> {
+	private static class CentroidProducer extends AbstractProducer<CentroidCompute[]> {
 		private final Project proj;
 		private String[] markers;
 		private final CentroidBuilder[] builders;
@@ -803,10 +803,6 @@ public class CentroidCompute {
 			};
 			count++;
 			return compute;
-		}
-
-		@Override
-		public void remove() {
 		}
 	}
 

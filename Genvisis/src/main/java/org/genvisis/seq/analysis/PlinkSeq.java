@@ -12,7 +12,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.seq.analysis.PlinkSeqUtils.PseqPhenoTypes;
 import org.genvisis.seq.analysis.PlinkSeqUtils.PseqProject;
 import org.genvisis.seq.analysis.PlinkSeqUtils.PseqProject.PROPERTIES;
@@ -506,7 +506,7 @@ public class PlinkSeq implements Serializable {
 		plinkSeq.fullGamutAssoc(pseqProject, locGroups, null, -1, mac, outputRoot, numThreads);
 	}
 
-	public static class PlinkSeqProducer implements Producer<PlinkSeqWorker> {
+	public static class PlinkSeqProducer extends AbstractProducer<PlinkSeqWorker> {
 		private PlinkSeqWorker[] plinkSeqWorkers;
 		private int index;
 	//	private Logger log;
@@ -530,19 +530,6 @@ public class PlinkSeq implements Serializable {
 			index++;
 			return tmp;
 		}
-
-		@Override
-		public void remove() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
 	}
 
 	public static void main(String[] args) {

@@ -38,10 +38,9 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.common.PSF.Ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
-import org.genvisis.link.init.info;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
 import org.genvisis.seq.manage.BamOps.BamIndexStats;
 import org.genvisis.seq.manage.BamSegPileUp.BamPileResult;
@@ -147,7 +146,7 @@ public class BamImport {
 
 	}
 
-	private static class BamPileConverterProducer implements Producer<BamPileConversionResults> {
+	private static class BamPileConverterProducer extends AbstractProducer<BamPileConversionResults> {
 		private Project proj;
 		private BamPileResult[] pileResults;
 		private long fingerPrint;
@@ -174,17 +173,6 @@ public class BamImport {
 			index++;
 			return conv;
 		}
-
-		@Override
-		public void shutdown() {
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	private static class VariantSeg extends Segment {
@@ -550,7 +538,7 @@ public class BamImport {
 		return correctedProjects;
 	}
 
-	private static class RecompileProducer implements Producer<Hashtable<String, Float>> {
+	private static class RecompileProducer extends AbstractProducer<Hashtable<String, Float>> {
 		private Project proj;
 		private String[] samples;
 		private String newSampleDirectory;
@@ -580,18 +568,6 @@ public class BamImport {
 			index++;
 			return current;
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	private static class RecompileWorker implements Callable<Hashtable<String, Float>> {

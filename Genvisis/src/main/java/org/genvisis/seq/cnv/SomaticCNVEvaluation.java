@@ -20,7 +20,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.GeneData;
 import org.genvisis.filesys.GeneTrack;
@@ -167,7 +167,7 @@ public class SomaticCNVEvaluation {
 
 	}
 
-	private static class TNCNVProducer implements Producer<TNCNV> {
+	private static class TNCNVProducer extends AbstractProducer<TNCNV> {
 		private Project proj;
 
 		private Hashtable<String, LocusSet<CNVariant>> inds;
@@ -197,18 +197,6 @@ public class SomaticCNVEvaluation {
 			index++;
 			return current;
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	private static class SomaticEvaluation {

@@ -35,7 +35,7 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 /**
  * @author lane0212
@@ -1732,7 +1732,7 @@ public class SourceFileParser implements Runnable {
 		}
 	}
 
-	private static class LongFileFormatProducer implements Producer<LongFormatParseResult>{
+	private static class LongFileFormatProducer extends AbstractProducer<LongFormatParseResult>{
 		private Project proj;
 		private String[] files;
 		private String idHeader;
@@ -1776,17 +1776,6 @@ public class SourceFileParser implements Runnable {
 			fileIndex++;
 			return new LongFileFormatWorker(proj, file, idHeader, fixes, delimiter, markerNames, fingerprint, markerIndexMap, abLookup, renamedIDsHash, headers, log, fileIndex, files.length + 1);
 		}
-
-		@Override
-		public void shutdown() {
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	private static class LongFileFormatWorker implements Callable<LongFormatParseResult> {

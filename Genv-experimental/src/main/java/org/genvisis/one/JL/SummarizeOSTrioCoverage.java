@@ -18,7 +18,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import org.genvisis.stats.Rscript.RScatter;
@@ -124,7 +124,7 @@ public class SummarizeOSTrioCoverage {
 
 	}
 
-	private static class SumFamProducer implements Producer<FamSum> {
+	private static class SumFamProducer extends AbstractProducer<FamSum> {
 
 		private VcfPopulation vpop;
 		private Logger log;
@@ -154,13 +154,6 @@ public class SummarizeOSTrioCoverage {
 			FamSum famSum = new FamSum(outDir, log, map, fam, famInds);
 			return famSum;
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
 	}
 
 	private static class FamSum implements Callable<FamSum> {

@@ -41,7 +41,7 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.StrandOps;
 import org.genvisis.seq.manage.VCOps;
@@ -224,7 +224,7 @@ public class BetaOptimizer {
 
 	}
 
-	private static class BetaProducer implements Producer<BetaCorrelationResult[]> {
+	private static class BetaProducer extends AbstractProducer<BetaCorrelationResult[]> {
 		private byte[][] genotypes;
 		private ArrayList<MetaBeta> metaBetas;
 		private ExtProjectDataParser parser;
@@ -259,18 +259,6 @@ public class BetaOptimizer {
 			index++;
 			return worker;
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	private static void analyzeAll(Project proj, String pcFile, String samplesToBuildModels, MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outpuDir, String[] betas, double[] pvals, double markerCallRate, int maxPCs, int numthreads, String usedInPCFile, int pvalRefineCutoff, Logger log) {

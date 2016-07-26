@@ -13,7 +13,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.FamilyStructure;
 import org.genvisis.parse.GenParser;
 import org.genvisis.stats.Correlation;
@@ -581,7 +581,7 @@ public class Heritability {
 	
 	
 	
-	public static class HeritabilityProducer implements Producer<String> {
+	public static class HeritabilityProducer extends AbstractProducer<String> {
 
 		@Override
 		public boolean hasNext() {
@@ -594,19 +594,6 @@ public class Heritability {
 			// TODO Auto-generated method stub
 			return null;
 		}
-
-		@Override
-		public void remove() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
 	}
 	
 	/**

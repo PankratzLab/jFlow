@@ -24,7 +24,7 @@ import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.common.Array.BooleanClassifier;
 import org.genvisis.common.ArraySpecialList.ArrayStringList;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.stats.ICC;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
@@ -1215,7 +1215,7 @@ public class CorrectionIterator implements Serializable {
 
 	}
 
-	public static class IterSummaryProducer implements Producer<IterSummary> {
+	public static class IterSummaryProducer extends AbstractProducer<IterSummary> {
 		private Project proj;
 		private CorrectionIterator[] cIterators;
 		private String[][] plotTitlesForSummary;
@@ -1522,19 +1522,6 @@ public class CorrectionIterator implements Serializable {
 			index++;
 			return callable;
 		}
-
-		@Override
-		public void remove() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
 	}
 
 	public static void main(String[] args) {

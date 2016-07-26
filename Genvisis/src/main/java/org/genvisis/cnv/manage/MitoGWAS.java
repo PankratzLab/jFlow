@@ -26,7 +26,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Sort;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.gwas.PhenoPrep;
 import org.genvisis.gwas.Qc;
 import org.genvisis.seq.manage.VCFOps;
@@ -586,7 +586,7 @@ public class MitoGWAS {
 
 	}
 
-	private static class PlinkAssocProducer implements Producer<Boolean> {
+	private static class PlinkAssocProducer extends AbstractProducer<Boolean> {
 		private ArrayList<PlinkAssoc> assocs;
 		private int index;
 
@@ -607,15 +607,6 @@ public class MitoGWAS {
 			PlinkAssoc toReturn = assocs.get(index);
 			index++;
 			return toReturn;
-		}
-
-		@Override
-		public void shutdown() {
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
 		}
 	}
 

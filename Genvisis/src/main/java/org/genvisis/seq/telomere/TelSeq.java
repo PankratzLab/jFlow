@@ -11,8 +11,8 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.seq.analysis.MitoSeqCN;
 import org.genvisis.seq.manage.BEDFileReader;
@@ -81,7 +81,7 @@ public class TelSeq {
 		}
 	}
 
-	private static class TelSeqProducer implements Producer<TelSeqResult> {
+	private static class TelSeqProducer extends AbstractProducer<TelSeqResult> {
 		private String[] inputBams;
 		private ArrayList<String> additionalArgs;
 		private String outputDir;
@@ -110,17 +110,6 @@ public class TelSeq {
 			index++;
 			return worker;
 		}
-
-		@Override
-		public void shutdown() {
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	private static class Ran {

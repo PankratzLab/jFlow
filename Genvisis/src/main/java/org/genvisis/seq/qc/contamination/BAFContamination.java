@@ -17,7 +17,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.RegressionModel;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
@@ -190,7 +190,7 @@ public class BAFContamination {
 
 	}
 
-	private static class ContaminationProducer implements Producer<BAFContaminationResults> {
+	private static class ContaminationProducer extends AbstractProducer<BAFContaminationResults> {
 		private Project proj;
 		private double[] pfb, callRate;
 		private String[] samples;
@@ -215,17 +215,6 @@ public class BAFContamination {
 			BAFContaminationWorker worker = new BAFContaminationWorker(proj, samples[index], pfb, callRate);
 			index++;
 			return worker;
-		}
-
-		@Override
-		public void remove() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void shutdown() {
-
 		}
 	}
 

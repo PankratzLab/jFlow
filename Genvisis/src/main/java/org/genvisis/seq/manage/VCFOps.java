@@ -26,7 +26,7 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
@@ -1606,7 +1606,7 @@ public class VCFOps {
 		return chrSplitResults.toArray(new ChrSplitResults[chrSplitResults.size()]);
 	}
 
-	private static class VCFSplitProducer implements Producer<ChrSplitResults> {
+	private static class VCFSplitProducer extends AbstractProducer<ChrSplitResults> {
 		private String vcfFile;
 		private String[] toSplit;
 		private Logger log;
@@ -1645,17 +1645,6 @@ public class VCFOps {
 			index++;
 			return callable;
 		}
-
-		@Override
-		public void remove() {
-
-		}
-
-		@Override
-		public void shutdown() {
-
-		}
-
 	}
 
 	public static String[] getAllContigs(String vcfFile, Logger log) {

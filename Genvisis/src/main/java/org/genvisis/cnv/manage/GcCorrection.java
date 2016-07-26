@@ -23,7 +23,7 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
 import org.genvisis.stats.Rscript.PLOT_DEVICE;
 import org.genvisis.stats.Rscript.RScatter;
@@ -150,7 +150,7 @@ public class GcCorrection {
 		rScatters2.execute();
 	}
 
-	private static class GCProducer implements Producer<GcCorrectedSample> {
+	private static class GCProducer extends AbstractProducer<GcCorrectedSample> {
 		private Project projOriginal;
 		private Project projCorrected;
 		private GcModel gcmodel;
@@ -180,18 +180,6 @@ public class GcCorrection {
 			index++;
 			return worker;
 		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
 	}
 
 	private static class GcWorker implements Callable<GcCorrectedSample> {
