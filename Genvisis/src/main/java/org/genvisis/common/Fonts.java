@@ -10,20 +10,20 @@ import java.io.InputStream;
 public class Fonts {
     private Fonts() {}
     
-    public static final String SOURCE_CODE_PRO_BLACK_NAME = "lib/SourceCodePro/SourceCodePro-Black.ttf";
-    public static final String SOURCE_CODE_PRO_BLACK_ITALIC_NAME = "lib/SourceCodePro/SourceCodePro-BlackIt.ttf";
-    public static final String SOURCE_CODE_PRO_BOLD_NAME = "lib/SourceCodePro/SourceCodePro-Bold.ttf";
-    public static final String SOURCE_CODE_PRO_BOLD_ITALIC_NAME = "lib/SourceCodePro/SourceCodePro-BoldIt.ttf";
-    public static final String SOURCE_CODE_PRO_EXTRALIGHT_NAME = "lib/SourceCodePro/SourceCodePro-ExtraLight.ttf";
-    public static final String SOURCE_CODE_PRO_EXTRALIGHT_ITALIC_NAME = "lib/SourceCodePro/SourceCodePro-ExtraLightIt.ttf";
-    public static final String SOURCE_CODE_PRO_ITALIC_NAME = "lib/SourceCodePro/SourceCodePro-It.ttf";
-    public static final String SOURCE_CODE_PRO_LIGHT_NAME = "lib/SourceCodePro/SourceCodePro-Light.ttf";
-    public static final String SOURCE_CODE_PRO_LIGHT_ITALIC_NAME = "lib/SourceCodePro/SourceCodePro-LightIt.ttf";
-    public static final String SOURCE_CODE_PRO_MEDIUM_NAME = "lib/SourceCodePro/SourceCodePro-Medium.ttf";
-    public static final String SOURCE_CODE_PRO_MEDIUM_ITALIC_NAME = "lib/SourceCodePro/SourceCodePro-MediumIt.ttf";
-    public static final String SOURCE_CODE_PRO_REGULAR_NAME = "lib/SourceCodePro/SourceCodePro-Regular.ttf";
-    public static final String SOURCE_CODE_PRO_SEMIBOLD_NAME = "lib/SourceCodePro/SourceCodePro-Semibold.ttf";
-    public static final String SOURCE_CODE_PRO_SEMIBOLD_ITALIC_NAME = "lib/SourceCodePro/SourceCodePro-SemiboldIt.ttf";
+    public static final String SOURCE_CODE_PRO_BLACK_NAME = "SourceCodePro/SourceCodePro-Black.ttf";
+    public static final String SOURCE_CODE_PRO_BLACK_ITALIC_NAME = "SourceCodePro/SourceCodePro-BlackIt.ttf";
+    public static final String SOURCE_CODE_PRO_BOLD_NAME = "SourceCodePro/SourceCodePro-Bold.ttf";
+    public static final String SOURCE_CODE_PRO_BOLD_ITALIC_NAME = "SourceCodePro/SourceCodePro-BoldIt.ttf";
+    public static final String SOURCE_CODE_PRO_EXTRALIGHT_NAME = "SourceCodePro/SourceCodePro-ExtraLight.ttf";
+    public static final String SOURCE_CODE_PRO_EXTRALIGHT_ITALIC_NAME = "SourceCodePro/SourceCodePro-ExtraLightIt.ttf";
+    public static final String SOURCE_CODE_PRO_ITALIC_NAME = "SourceCodePro/SourceCodePro-It.ttf";
+    public static final String SOURCE_CODE_PRO_LIGHT_NAME = "SourceCodePro/SourceCodePro-Light.ttf";
+    public static final String SOURCE_CODE_PRO_LIGHT_ITALIC_NAME = "SourceCodePro/SourceCodePro-LightIt.ttf";
+    public static final String SOURCE_CODE_PRO_MEDIUM_NAME = "SourceCodePro/SourceCodePro-Medium.ttf";
+    public static final String SOURCE_CODE_PRO_MEDIUM_ITALIC_NAME = "SourceCodePro/SourceCodePro-MediumIt.ttf";
+    public static final String SOURCE_CODE_PRO_REGULAR_NAME = "SourceCodePro/SourceCodePro-Regular.ttf";
+    public static final String SOURCE_CODE_PRO_SEMIBOLD_NAME = "SourceCodePro/SourceCodePro-Semibold.ttf";
+    public static final String SOURCE_CODE_PRO_SEMIBOLD_ITALIC_NAME = "SourceCodePro/SourceCodePro-SemiboldIt.ttf";
     
     private static final Font getFont(String file) {
         try {
