@@ -2463,7 +2463,7 @@ public class Array {
 	public static <T> ArrayList<T[]> splitUpArray(T[] array, int nChunks, Logger log) {
 		int index = 0;
 		if (array.length < nChunks) {
-			log.reportError("Error - too many chunks (" + nChunks + ") for " + array.length + " things, setting to" + array.length);
+			log.reportError("Error - too many chunks (" + nChunks + ") for " + array.length + " things, setting to " + array.length);
 			nChunks = array.length;
 		}
 		if (nChunks <= 0) {
@@ -2497,7 +2497,7 @@ public class Array {
 	public static String[][] splitUpStringArray(String[] strings, int nChunks, Logger log) {
 		int index = 0;
 		if (strings.length < nChunks) {
-			log.reportError("Error - too many chunks (" + nChunks + ") for " + strings.length + " strings, setting to" + strings.length);
+			log.reportError("Error - too many chunks (" + nChunks + ") for " + strings.length + " strings, setting to " + strings.length);
 			nChunks = strings.length;
 		}
 		if (nChunks <= 0) {
