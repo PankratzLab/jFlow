@@ -32,6 +32,7 @@ import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
@@ -419,6 +420,14 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         return fcsControls.getAddedFiles();
     }
     
+    public String getCurrentFile() {
+        if (dataLoader == null) {
+            return null;
+        } else {
+            return dataLoader.getLoadedFile();
+        }
+    }
+    
     public double[] getAxisData(boolean wait, boolean xAxis) {
         double[] data;
         if (dataLoader == null) {
@@ -604,7 +613,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	    if (this.dataLoader != null && this.dataLoader.getLoadedFile().equals(newDataLoader.getLoadedFile())) return;
 	    resetForNewData(newDataLoader);
         this.parent.setTitle(TITLE_STR + "  --  " + newDataLoader.getLoadedFile());
-        System.out.println("Displaying plot...");
         updateGUI();
 	}
 
@@ -766,20 +774,27 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     }
     
     private void setupDataExport() {
+        if (getAddedFiles().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Error - no data files available to export!", "Error!", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (this.gating.getRootGates().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Error - no gating available to export!", "Error!", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         DataExportGUI degui = new DataExportGUI(this);
         degui.setModal(true);
         degui.setVisible(true);
-        // choose files
-        // choose gates
-        // choose counts or pcts
-        // choose output file
-//        String outputFile = "F:/Flow/exportTest.xln";
-//        ArrayList<Gate> gates = getAllGates();
-//        boolean counts = false;
-//        ArrayList<FCSDataLoader> fileData = new ArrayList<FCSDataLoader>();
-//        fileData.addAll(loadedData.values());
-//        
-//        doDataExport(outputFile, gates, counts, fileData.toArray(new FCSDataLoader[fileData.size()]));
+        degui.pack();
+        if (degui.wasCancelled()) return;
+        
+        ArrayList<String> files = degui.getSelectedFiles();
+        ArrayList<Gate> gates = degui.getSelectedGates();
+        boolean writeCounts = degui.getCountsExportSelected();
+        String output = degui.getOutputFile();
+        
+        doDataExport(output, gates, writeCounts, files);
     }
     
     private ArrayList<Gate> getAllGates() {
@@ -802,13 +817,30 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         return ret;
     }
     
-    private void doDataExport(String outputFile, ArrayList<Gate> gatesToExport, boolean exportCounts, FCSDataLoader... dataLoaders) {
+    private void doDataExport(String outputFile, ArrayList<Gate> gatesToExport, boolean exportCounts, ArrayList<String> files) {
         StringBuilder sb = new StringBuilder();
         
         for (Gate g : gatesToExport) {
             sb.append("\t").append(g.getFullNameAndGatingPath());
         }
-        for (FCSDataLoader dataLoader : dataLoaders) {
+        for (String file : files) {
+            FCSDataLoader dataLoader;
+            boolean wasLoaded = false;
+            if (loadedData.containsKey(file)) {
+                dataLoader = loadedData.get(file);
+                wasLoaded = true;
+            } else {
+                loadFile(file, false);
+                dataLoader = null;
+            }
+            while(dataLoader == null || dataLoader.getLoadState() != FCSDataLoader.LOAD_STATE.LOADED) {
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {}
+                if (dataLoader == null) {
+                    dataLoader = loadedData.get(file);
+                }
+            }
             sb.append("\n").append(ext.removeDirectoryInfo(dataLoader.getLoadedFile()));
             
             for (Gate g : gatesToExport) {
@@ -827,6 +859,9 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
                         sb.append("\t").append(ext.formDeci(100 * pct, 2));
                     }
                 }
+            }
+            if (!wasLoaded) {
+                unloadFile(file);
             }
         }
         
