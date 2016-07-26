@@ -46,7 +46,20 @@ public class GcAdjustorParameter implements Serializable {
 	private double lrrsdPost;
 	private GC_CORRECTION_METHOD correctionMethod;
 
-	public GcAdjustorParameter(String sample, double[] betas, double wfPrior, double wfPost, double gcwfPrior, double gcwfPost, double meanPrior, double meanPost, double lrrsdPrior, double lrrsdPost, GC_CORRECTION_METHOD correctionMethod) {
+	/**
+	 * @param sample
+	 * @param betas
+	 * @param wfPrior
+	 * @param wfPost
+	 * @param gcwfPrior
+	 * @param gcwfPost
+	 * @param meanPrior
+	 * @param meanPost
+	 * @param lrrsdPrior
+	 * @param lrrsdPost
+	 * @param correctionMethod
+	 */
+	public GcAdjustorParameter(String sample, double[] betas, double wfPrior, double wfPost, double gcwfPrior, double gcwfPost, double meanPrior, double meanPost, double lrrsdPrior, double lrrsdPost, GC_CORRECTION_METHOD correctionMethod,Logger log) {
 		super();
 		this.sample = sample;
 		this.betas = betas;
@@ -60,7 +73,10 @@ public class GcAdjustorParameter implements Serializable {
 		this.lrrsdPost = lrrsdPost;
 		this.correctionMethod = correctionMethod;
 		if (betas == null || betas.length != 2) {
-			throw new IllegalArgumentException("betas must be length 2");
+			this.betas = new double[] { 0, 0 };
+			log.reportTimeWarning(
+					"gc content betas were not able to be computed, sample " + sample + " will not be gc corrected.");
+			//			throw new IllegalArgumentException("betas must be length 2");
 		}
 	}
 
@@ -236,7 +252,10 @@ public class GcAdjustorParameter implements Serializable {
 					GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, builder, sample, null, markerSet, intensites, gcmodel, true, true, debugMode);
 					double[] meandSdPrior = getMeanSd(intensites, autosomalIndices);
 					double[] meandSdPost = getMeanSd(Array.toFloatArray(gcAdjustor.getCorrectedIntensities()), autosomalIndices);
-					GcAdjustorParameter gcAdjustorParameters = new GcAdjustorParameter(sample, gcAdjustor.getCrossValidation().getBetas(), gcAdjustor.getWfPrior(), gcAdjustor.getWfPost(), gcAdjustor.getGcwfPrior(), gcAdjustor.getGcwfPost(), meandSdPrior[0], meandSdPost[0], meandSdPrior[1], meandSdPost[1], correction_METHODs[i]);
+					GcAdjustorParameter gcAdjustorParameters = new GcAdjustorParameter(sample,
+							gcAdjustor.getCrossValidation().getBetas(), gcAdjustor.getWfPrior(), gcAdjustor.getWfPost(),
+							gcAdjustor.getGcwfPrior(), gcAdjustor.getGcwfPost(), meandSdPrior[0], meandSdPost[0],
+							meandSdPrior[1], meandSdPost[1], correction_METHODs[i], proj.getLog());
 					parameters.add(gcAdjustorParameters);
 				} else {
 					parameters.add(null);
