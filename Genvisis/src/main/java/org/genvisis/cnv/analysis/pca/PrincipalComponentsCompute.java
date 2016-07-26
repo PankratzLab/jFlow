@@ -229,9 +229,10 @@ public class PrincipalComponentsCompute {
 		if (numComponents > numSamples) {
 			int newNumComp = numSamples;
 			log.reportTimeWarning("cannot request more principal components (n=" + numComponents
-					+ ") than there are valid samples (n=" + numSamples + "), setting number of components to "
+					+ ") than there are valid samples (n=" + numSamples + "), try setting number of components to "
 					+ newNumComp);
-			numComponents = newNumComp;
+			throw new IllegalArgumentException("Too many principal components were requested");
+			
 
 		}
 
@@ -239,8 +240,9 @@ public class PrincipalComponentsCompute {
 			int newNumComp = markers.length;
 			log.reportTimeWarning(
 					" cannot request more principal components (n=" + numComponents + ") than there are markers (n="
-							+ markers.length + "), setting number of components to " + newNumComp);
-			numComponents = newNumComp;
+							+ markers.length + "), try setting number of components to " + newNumComp);
+			throw new IllegalArgumentException("Too many principal components were requested");
+
 		}
 
 		// deals with NaN on the fly

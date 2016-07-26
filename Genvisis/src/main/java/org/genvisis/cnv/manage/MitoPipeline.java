@@ -368,11 +368,13 @@ public class MitoPipeline {
 	public static void estimateMtDNACN(Project proj, int numThreads, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, double markerCallRateFilter, String betaOptFile, String pedFile, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean sampLrr, boolean imputeMeanForNaN, boolean gcCorrect, String refGenomeFasta, int bpGcModel, int regressionDistance, GENOME_BUILD build, double[] pvalOpt, String betaFile, boolean plot, Logger log) {
 		GcAdjustorParameters params = null;
 		String samps = proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES;
+
 		if (numComponents < 0) {
 			int filteredSampSize = Files.countLines(samps, 0);
-			int numCompsToUse = (int) 0.10 *filteredSampSize;
-			log.reportTimeInfo("Setting initial number of PCs computed to " + numCompsToUse
-					+ " (10% of filtered sample size (n="+filteredSampSize+") as reported in " + samps);
+			int numCompsToUse = (int) (0.10 * filteredSampSize);
+			log.reportTimeInfo("Setting initial number of PCs computed to "
+					+ numCompsToUse + " (10% of filtered sample size (n="
+					+ filteredSampSize + ") as reported in " + samps);
 			numComponents = numCompsToUse;
 
 		}
@@ -1011,6 +1013,7 @@ public class MitoPipeline {
 					proj.REFERENCE_GENOME_FASTA_FILENAME.setValue("Ignore");
 				}
 			}
+
 			result = catAndCaboodle(proj, numThreads, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, betaOptFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, recompSampleSpecific, doAbLookup, imputeMeanForNaN, gcCorrect, referenceGenomeFasta, bpGcModel, regressionDistance, build, pvalOpt, betaFile, plot);
 			attempts++;
 			if (result == 41 || result == 40) {
