@@ -524,6 +524,7 @@ public class FCSPlotControlPanel extends JPanel {
                 if (remove) {
                     filePanels.remove(ind);
                     addFilePanels();
+                    plot.saveProps();
                 }
             } else if (cmd.equals(DataControlPanel.ACTION_MOVE_UP)) {
                 if (ind == 0) return;

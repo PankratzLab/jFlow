@@ -104,46 +104,50 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     private static final String PROPKEY_GATEFILE = "GATE_FILE";
     private static final String PROPKEY_FCSFILES = "FCS_FILES";
     
-    
+    private static final Object PROPS_SYNC = new Object();
     protected void saveProps() {
-        try {
-            Properties props = new Properties();
-            if (this.gating != null) {
-                props.setProperty(PROPKEY_GATEFILE, this.gating.getFile() == null ? "" : this.gating.getFile());
+        synchronized(PROPS_SYNC) {
+            try {
+                Properties props = new Properties();
+                if (this.gating != null) {
+                    props.setProperty(PROPKEY_GATEFILE, this.gating.getFile() == null ? "" : this.gating.getFile());
+                }
+                ArrayList<String> files = fcsControls.getAddedFiles();
+                if (files.size() > 0) {
+                    props.setProperty(PROPKEY_FCSFILES, files.size() == 0 ? "" : Array.toStr(Array.toStringArray(files), ";"));
+                }
+                File f = new File(PROPERTIES_FILE);
+                OutputStream out = new FileOutputStream( f );
+                props.store(out, "");
+            } catch (Exception e ) {
+                e.printStackTrace();
             }
-            ArrayList<String> files = fcsControls.getAddedFiles();
-            if (files.size() > 0) {
-                props.setProperty(PROPKEY_FCSFILES, files.size() == 0 ? "" : Array.toStr(Array.toStringArray(files), ";"));
-            }
-            File f = new File(PROPERTIES_FILE);
-            OutputStream out = new FileOutputStream( f );
-            props.store(out, "");
-        } catch (Exception e ) {
-            e.printStackTrace();
         }
     }
     
     private void loadProps() {
-        Properties props = new Properties();
-        InputStream is = null;
-     
-        try {
-            File f = new File(PROPERTIES_FILE);
-            is = new FileInputStream(f);
-            props.load(is);
-            String gateFile = props.getProperty(PROPKEY_GATEFILE);
-            String fcsTemp = props.getProperty(PROPKEY_FCSFILES);
-            
-            if (gateFile != null && !"".equals(gateFile)) {
-                fcsControls.loadGatingFile(gateFile);
+        synchronized(PROPS_SYNC) {
+            Properties props = new Properties();
+            InputStream is = null;
+         
+            try {
+                File f = new File(PROPERTIES_FILE);
+                is = new FileInputStream(f);
+                props.load(is);
+                String gateFile = props.getProperty(PROPKEY_GATEFILE);
+                String fcsTemp = props.getProperty(PROPKEY_FCSFILES);
+                
+                if (gateFile != null && !"".equals(gateFile)) {
+                    fcsControls.loadGatingFile(gateFile);
+                }
+                if (fcsTemp != null && !"".equals(fcsTemp)) {
+                    String[] fcs = fcsTemp.split(";");
+                    fcsControls.addFCSFiles(fcs);
+                }
+                
             }
-            if (fcsTemp != null && !"".equals(fcsTemp)) {
-                String[] fcs = fcsTemp.split(";");
-                fcsControls.addFCSFiles(fcs);
-            }
-            
+            catch ( Exception e ) { is = null; }
         }
-        catch ( Exception e ) { is = null; }
     }
     
     private FCSPlot() {
@@ -797,25 +801,25 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         doDataExport(output, gates, writeCounts, files);
     }
     
-    private ArrayList<Gate> getAllGates() {
-        ArrayList<Gate> gateList = new ArrayList<Gate>();
-        if (this.gating != null) {
-            gateList.addAll(this.gating.getRootGates());
-            for (Gate g : this.gating.getRootGates()) {
-                gateList.addAll(getGates(g));
-            }
-        }
-        return gateList;
-    }
+//    private ArrayList<Gate> getAllGates() {
+//        ArrayList<Gate> gateList = new ArrayList<Gate>();
+//        if (this.gating != null) {
+//            gateList.addAll(this.gating.getRootGates());
+//            for (Gate g : this.gating.getRootGates()) {
+//                gateList.addAll(getGates(g));
+//            }
+//        }
+//        return gateList;
+//    }
     
-    private ArrayList<Gate> getGates(Gate g) {
-        ArrayList<Gate> ret = new ArrayList<Gate>();
-        ret.addAll(g.getChildGates());
-        for (Gate g1 : g.getChildGates()) {
-            ret.addAll(getGates(g1));
-        }
-        return ret;
-    }
+//    private ArrayList<Gate> getGates(Gate g) {
+//        ArrayList<Gate> ret = new ArrayList<Gate>();
+//        ret.addAll(g.getChildGates());
+//        for (Gate g1 : g.getChildGates()) {
+//            ret.addAll(getGates(g1));
+//        }
+//        return ret;
+//    }
     
     private void doDataExport(String outputFile, ArrayList<Gate> gatesToExport, boolean exportCounts, ArrayList<String> files) {
         StringBuilder sb = new StringBuilder();
