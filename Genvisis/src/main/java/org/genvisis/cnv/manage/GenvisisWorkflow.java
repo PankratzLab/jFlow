@@ -2,7 +2,11 @@ package org.genvisis.cnv.manage;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.analysis.AnalysisFormats;
@@ -95,7 +99,7 @@ public class GenvisisWorkflow {
     static final STEP S2I_PARSE_SAMPLES = new STEP("Parse Illumina Sample Files", 
                      "", 
                      new String[][]{{"[Create Marker Positions] step must be selected and valid.", "Parsed markerPositions file must already exist."}, {"Number of Threads to Use"}}, 
-                     new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.FILE}, {RequirementInputType.NUMBER}}) {
+                     new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.FILE}, {RequirementInputType.NUMBER}}, S1I_CREATE_MKR_POS) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -297,7 +301,7 @@ public class GenvisisWorkflow {
                                     {RequirementInputType.NONE}, 
                                     {RequirementInputType.BOOL, 
                                         RequirementInputType.FILE, 
-                                        RequirementInputType.FILE}}) {
+                                        RequirementInputType.FILE}}, S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -398,7 +402,7 @@ public class GenvisisWorkflow {
     static final STEP S4_TRANSPOSE_TO_MDF = new STEP("Transpose Data into Marker-Dominant Files", 
                         "", 
                         new String[][]{{"[Parse Sample Files] step must have been run already or must be selected and valid."}}, 
-                        new RequirementInputType[][]{{RequirementInputType.NONE}}) {
+                        new RequirementInputType[][]{{RequirementInputType.NONE}}, S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -515,7 +519,7 @@ public class GenvisisWorkflow {
                   {"[Parse Sample Files] step must have been run already or must be selected and valid."}, 
                   {"Number of threads to use."},
             }, 
-            new RequirementInputType[][]{{RequirementInputType.NONE}, {RequirementInputType.NUMBER}}) {
+            new RequirementInputType[][]{{RequirementInputType.NONE}, {RequirementInputType.NUMBER}}, S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -585,7 +589,8 @@ public class GenvisisWorkflow {
     						{"Number of threads to use."}},
             new RequirementInputType[][]{{RequirementInputType.NONE},
     									 {RequirementInputType.NONE, RequirementInputType.FILE},
-    									 {RequirementInputType.NUMBER}}
+    									 {RequirementInputType.NUMBER}},
+            S2I_PARSE_SAMPLES
             ) {
     
         @Override
@@ -654,7 +659,8 @@ public class GenvisisWorkflow {
                   new RequirementInputType[][]{{RequirementInputType.NONE}, 
                                                {RequirementInputType.NONE},
                                                {RequirementInputType.BOOL},
-                                               {RequirementInputType.BOOL, RequirementInputType.FILE, RequirementInputType.FILE}}) {
+                                               {RequirementInputType.BOOL, RequirementInputType.FILE, RequirementInputType.FILE}},
+                  S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES, S3_CREATE_SAMPLEDATA) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -730,7 +736,8 @@ public class GenvisisWorkflow {
     
     static final STEP S9_GENERATE_ABLOOKUP = new STEP("Generate AB Lookup File", "", 
             new String[][]{{"[Parse Sample Files] step must have been run already or must be selected and valid."}},
-            new RequirementInputType[][]{{RequirementInputType.NONE}}) {
+            new RequirementInputType[][]{{RequirementInputType.NONE}},
+            S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
     
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -790,7 +797,8 @@ public class GenvisisWorkflow {
                  new RequirementInputType[][]{
                                     {RequirementInputType.NONE}, 
                                     {RequirementInputType.FILE, RequirementInputType.BOOL}
-                                    }) {
+                                    },
+                 S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -884,7 +892,8 @@ public class GenvisisWorkflow {
     						  {"Skip ancestry checks", "File with FID/IID pairs of putative white samples", "PLINK root of HapMap founders"}},
                new RequirementInputType[][]{{RequirementInputType.NONE},
     							  			{RequirementInputType.BOOL},
-    							  			{RequirementInputType.BOOL, RequirementInputType.FILE, RequirementInputType.FILE}}) {
+    							  			{RequirementInputType.BOOL, RequirementInputType.FILE, RequirementInputType.FILE}},
+               S10_RUN_PLINK) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -1126,7 +1135,8 @@ public class GenvisisWorkflow {
                                                             {"Number of threads to use."}},
                                                      new RequirementInputType[][]{
                                                             {RequirementInputType.NONE}, 
-                                                            {RequirementInputType.NUMBER}}) {
+                                                            {RequirementInputType.NUMBER}},
+                                                     S2I_PARSE_SAMPLES) {
     
             @Override
             public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -1205,7 +1215,8 @@ public class GenvisisWorkflow {
     						   			 {RequirementInputType.NUMBER},
     						   			 {RequirementInputType.NUMBER},
     						   			 {RequirementInputType.NUMBER},
-    						   			 {RequirementInputType.BOOL}}) {
+    						   			 {RequirementInputType.BOOL}},
+            S3_CREATE_SAMPLEDATA, S6_SAMPLE_QC) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -1366,7 +1377,8 @@ public class GenvisisWorkflow {
                       {RequirementInputType.NUMBER},
                       {RequirementInputType.FILE},
                       {RequirementInputType.FILE},
-              }) {
+              },
+            S4_TRANSPOSE_TO_MDF) {
     
       @Override
       public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -1549,7 +1561,8 @@ public class GenvisisWorkflow {
             {"PFB (population BAF) output file must be specified."}},
             new RequirementInputType[][]{
                     {RequirementInputType.NONE, RequirementInputType.FILE},
-                    {RequirementInputType.FILE}}
+                    {RequirementInputType.FILE}},
+            S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES
             ) {
     
         @Override
@@ -1634,7 +1647,8 @@ public class GenvisisWorkflow {
                             new RequirementInputType[][]{
                                 {RequirementInputType.NONE,  RequirementInputType.FILE},
                                 {RequirementInputType.NUMBER}
-                            }) {
+                            },
+                            S5_COMPUTE_GCMODEL) {
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             int numThreads = proj.NUM_THREADS.getValue();
@@ -1724,7 +1738,8 @@ public class GenvisisWorkflow {
                                 {RequirementInputType.NONE, RequirementInputType.FILE},
                                 {RequirementInputType.NUMBER},
                                 {RequirementInputType.FILE},
-                            }) {
+                            },
+                            S5_COMPUTE_GCMODEL, S15_COMPUTE_PFB) {
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String hmm_P = proj.HMM_FILENAME.getValue();
@@ -1848,7 +1863,8 @@ public class GenvisisWorkflow {
                     {RequirementInputType.BOOL},
                     {RequirementInputType.FILE},
                     {RequirementInputType.NUMBER},
-                }) {
+                },
+                S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             // not needed for step
@@ -1973,6 +1989,7 @@ public class GenvisisWorkflow {
         public String[][] reqs;
         private boolean failed = false;
         protected ArrayList<String> failReasons = new ArrayList<String>();
+        private final Set<STEP> relatedSteps;
         public RequirementInputType[][] reqTypes;
         public boolean getFailed() { return failed; }
         protected void setFailed() { failed = true; }
@@ -2010,12 +2027,28 @@ public class GenvisisWorkflow {
         public abstract Object[] getRequirementDefaults(Project proj);
         public abstract String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables);
         
-        STEP(String name, String desc, String[][] requirements, RequirementInputType[][] reqTypes) {
+        STEP(String name, String desc, String[][] requirements, RequirementInputType[][] reqTypes, STEP... requiredSteps) {
             this.stepName = name;
             this.stepDesc = desc;
             this.reqs = requirements;
             this.reqTypes = reqTypes;
+            final Set<STEP> steps = new HashSet<STEP>();
+            steps.add(this);
+            for (final STEP s : requiredSteps) {
+            	steps.add(s);
+            	steps.addAll(s.getRelatedSteps());
+            }
+            relatedSteps = Collections.unmodifiableSet(steps);
         }
+
+		/**
+		 * @return A {@link Collection} of the complete network of {@link STEP}s
+		 *         related to this {@code STEP} - including this {@code STEP},
+		 *         direct and transitive dependencies.
+		 */
+		public Collection<STEP> getRelatedSteps() {
+			return relatedSteps;
+		}
 
         
     }
