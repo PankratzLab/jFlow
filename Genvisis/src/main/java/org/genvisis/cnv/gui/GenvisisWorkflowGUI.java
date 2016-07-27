@@ -661,14 +661,14 @@ public class GenvisisWorkflowGUI extends JDialog {
                 }
                 final Color greenDark = Color.GREEN.darker();
                 final Color dark = Color.GRAY;
+                HashMap<STEP, Boolean> selectedSteps = new HashMap<GenvisisWorkflow.STEP, Boolean>();
+                for (Entry<STEP, JCheckBox> entry : gui.checkBoxes.entrySet()) {
+                    selectedSteps.put(entry.getKey(), entry.getValue().isSelected());
+                }
                 int i = 0;
                 for (final STEP step : stepsToRefresh) {
                     if (step == null || gui.checkBoxes.get(step) == null || gui.varFields.get(step) == null) {
                         continue;
-                    }
-                    HashMap<STEP, Boolean> selectedSteps = new HashMap<GenvisisWorkflow.STEP, Boolean>();
-                    for (Entry<STEP, JCheckBox> entry : gui.checkBoxes.entrySet()) {
-                        selectedSteps.put(entry.getKey(), entry.getValue().isSelected());
                     }
                     HashMap<STEP, ArrayList<String>> variables = gui.getVariables();
                     final int update = ++i;
