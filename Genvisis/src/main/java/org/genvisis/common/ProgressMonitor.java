@@ -68,7 +68,11 @@ class Task {
 //    public boolean cancelRequested() { synchronized(CANCEL_LOCK) { return cancelRequested; }}
 
     protected void updateOnce() {
-        updateCount++;
+        update(1);
+    }
+    
+    protected void update(int numUpdates) {
+    	updateCount += numUpdates;
         if (updateCount > numExp) {
             numExp = updateCount;
         }
@@ -187,14 +191,18 @@ public class ProgressMonitor {
         }
     }
     
-    public synchronized void updateTask(String taskName) {
+    public void updateTask(String taskName) {
+        updateTask(taskName, 1);
+    }
+    
+    public synchronized void updateTask(String taskName, int numUpdates) {
         Task myTask = taskMap.get(taskName);
         if (myTask == null) {
             throw new IllegalArgumentException("No available task named [" + taskName + "]");
         }
         
         if (!myTask.getIndeterminate()) {
-            myTask.updateOnce();
+            myTask.update(numUpdates);
         } else {
             myTask.updateTime();
         }
