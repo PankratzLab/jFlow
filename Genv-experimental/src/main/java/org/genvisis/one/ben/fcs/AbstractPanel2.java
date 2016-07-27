@@ -22,7 +22,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -49,7 +48,6 @@ import org.genvisis.common.ext;
 import org.genvisis.mining.Distance;
 import org.genvisis.stats.Maths;
 
-import edu.stanford.facs.logicle.FastLogicle;
 import edu.stanford.facs.logicle.Logicle;
 
 public abstract class AbstractPanel2 extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
@@ -739,7 +737,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	            drawXAxis(g, plotMinMaxStep, fontMetrics);
 	        } 
 	        if (xAxisLabel != null) {
-	            drawXAxisAndLabel(g, fontMetrics);
+	            drawXAxisLineAndLabel(g, fontMetrics);
 	        }
 		
 	        if (DEBUGGING) {
@@ -1087,7 +1085,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	}
 
 
-	private void drawXAxisAndLabel(Graphics g, FontMetrics fontMetrics) {
+	private void drawXAxisLineAndLabel(Graphics g, FontMetrics fontMetrics) {
 		Grafik.drawThickLine(g, canvasSectionMinimumX-(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, canvasSectionMaximumX+(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
 		g.drawString(xAxisLabel, (getWidth()-axisYWidth)/2 - fontMetrics.stringWidth(xAxisLabel)/2 + 2*(axisYWidth/3), getHeight() - axisXHeight/3 + fontMetrics.getHeight()/2);
 	}
@@ -1268,11 +1266,13 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             str = "-10";
             int strWid = fontMetrics.stringWidth(str);
             if (plotXmin < 0) {
-                for (double exp = 1; (x = -1 * Math.pow(10, exp)) >= plotXmin; exp++) {
+                for (double exp = 0; (x = -1 * Math.pow(10, exp)) >= plotXmin; exp++) {
                     if (x <= plotXmax) {
-                        Grafik.drawThickLine(g, getXPixel(x), getHeight()-canvasSectionMaximumY, getXPixel(x), getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
-                        g.drawString(str, getXPixel(x) - strWid / 2, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt));
-                        g.drawString("" + ((int) exp), getXPixel(x) + (strWid / 2) + 1, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt + 5));
+                        if (exp > 0) {
+                            Grafik.drawThickLine(g, getXPixel(x), getHeight()-canvasSectionMaximumY, getXPixel(x), getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
+                            g.drawString(str, getXPixel(x) - strWid / 2, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt));
+                            g.drawString("" + ((int) exp), getXPixel(x) + (strWid / 2) + 1, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt + 5));
+                        }
                         for (double xPow = x; xPow > -1 * Math.pow(10, exp+1) && xPow >= plotXmin; xPow += x) {
                             Grafik.drawThickLine(g, getXPixel(xPow), getHeight()-canvasSectionMaximumY, getXPixel(xPow), getHeight()-(canvasSectionMaximumY-(TICK_LENGTH/3 *2)), TICK_THICKNESS, Color.BLACK);
                         }
@@ -1287,12 +1287,14 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             str = "10";
             strWid = fontMetrics.stringWidth(str);
             if (plotXmax > 0) {
-                for (double exp = 1; (x = Math.pow(10, exp)) <= plotXmax; exp++) {
+                for (double exp = 0; (x = Math.pow(10, exp)) <= plotXmax; exp++) {
                     int xPix = getXPixel(x);
                     if (x >= plotXmin) { 
-                        Grafik.drawThickLine(g, xPix, getHeight()-canvasSectionMaximumY, xPix, getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
-                        g.drawString(str, xPix - strWid / 2, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt));
-                        g.drawString("" + (int) exp, xPix + (strWid / 2) + 1, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt + 5));
+                        if (exp > 0) {
+                            Grafik.drawThickLine(g, xPix, getHeight()-canvasSectionMaximumY, xPix, getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
+                            g.drawString(str, xPix - strWid / 2, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt));
+                            g.drawString("" + (int) exp, xPix + (strWid / 2) + 1, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt + 5));
+                        }
                         for (double xPow = x; xPow < Math.pow(10, exp+1) && xPow <= plotXmax; xPow += x) {
                             Grafik.drawThickLine(g, getXPixel(xPow), getHeight()-canvasSectionMaximumY, getXPixel(xPow), getHeight()-(canvasSectionMaximumY-(TICK_LENGTH/3 *2)), TICK_THICKNESS, Color.BLACK);
                         }
@@ -2017,6 +2019,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	}
 	
 	protected int getXPixel(double x) {
+	    
 		if (getXAxis() == AXIS_SCALE.LIN) {
 			return getLinPixel(x, true);
 		} else if (getXAxis() == AXIS_SCALE.LOG){
@@ -2024,29 +2027,54 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		} else {
 		    Logicle l = getBiexScale(true);
 		    double bi = l.scale(x);
-		    int dis = (int) (canvasSectionMaximumX * bi) - TICK_LENGTH - AXIS_THICKNESS;
-		    return dis; // TODO
+//		    int dis = (int) (canvasSectionMaximumX * bi) - TICK_LENGTH - AXIS_THICKNESS;
+//		    int dis = (int) ((canvasSectionMaximumX - canvasSectionMinimumX) * bi);
+//		    int dis = (int)(bi * (double)(canvasSectionMaximumX-canvasSectionMinimumX))+canvasSectionMinimumX;
+		    int dis = getLinPixel(plotXmax * bi, true);
+		    
+//		    int xDispMax = getWidth() - WIDTH_BUFFER;
+//		    int xDispMin = axisYWidth;
+//		     
+//		    int dis = (int) (bi * (xDispMax - xDispMin) + xDispMin);
+		    
+		    return dis;
 		}
 	}
 	
+	protected double logPlotXMax, logPlotYMax;
 	protected Logicle biexScaleX = null;
 	protected Logicle biexScaleY = null;
 	private Logicle getBiexScale(boolean xAxis) {
 	    double W = 2; // linear decades
-	    double M = 5.5; // log decades (/total decades)
-	    double A = -1.35; // negative decades
+	    double A = -1; // negative decades
 	    if (xAxis) {
-    	    if (biexScaleX != null) return biexScaleX;
+	        if (biexScaleX != null && logPlotXMax == plotXmax) return biexScaleX;
+	        double dec = plotXmax;
+	        double decCnt = 0;
+	        while(dec > 1) {
+	            dec = dec / 10d;
+	            decCnt++;
+	        }
+	        decCnt += dec;
 //    	    Logicle fl = new FastLogicle(plotXmax, W, M, A, 1); // FastLogicle causes issues (possible that parameters are incorrectly set)
-            Logicle fl = new Logicle(plotXmax, W, M, A);
-    	    biexScaleX = fl;
-    	    return fl;
+    	    return biexScaleX = new Logicle(logPlotXMax = plotXmax, W, decCnt, A);
 	    } else {
-    	    if (biexScaleY != null) return biexScaleY;
+    	    if (biexScaleY != null && logPlotYMax == plotYmax) return biexScaleY;
+            double dec = plotYmax;
+            double decCnt = 0, negDec = 0;
+            while(dec > 1) {
+                dec = dec / 10d;
+                decCnt++;
+            }
+            if (plotYmin < 0) {
+                dec = -1 * plotYmin;
+                while (dec > 1) {
+                    dec = dec / 10d;
+                    negDec++;
+                }
+            }
 //            Logicle fl = new FastLogicle(plotYmax, W, M, A, 1);
-            Logicle fl = new Logicle(plotYmax, W, M, A);
-            biexScaleY = fl;
-            return fl;
+            return biexScaleY = new Logicle(logPlotYMax = plotYmax, W, decCnt, negDec);
 	    }
 	}
 	
