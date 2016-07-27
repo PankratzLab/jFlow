@@ -41,8 +41,8 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.event.CaretEvent;
-import javax.swing.event.CaretListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -531,12 +531,12 @@ public class GenvisisWorkflowGUI extends JDialog {
 //                                refreshLabels();
 //                            }
 //                        });
-                        textField.addCaretListener(new CaretListener() {
-                            @Override
-                            public void caretUpdate(CaretEvent e) {
+                        textField.getDocument().addDocumentListener(new TextChangedListener() {
+							@Override
+							public void changedUpdate(DocumentEvent e) {
                                 refreshLabels(GenvisisWorkflowGUI.this, step.getRelatedSteps());
-                            }
-                        });
+							}
+						});
                         textField.setText(step.getRequirementDefaults(proj)[reqIndex].toString());
                         reqIndex++;
                         reqInputFields.add(textField);
@@ -607,6 +607,23 @@ public class GenvisisWorkflowGUI extends JDialog {
     }
     
     
+    /**
+	 * Helper {@link DocumentListener} that redirects both
+	 * {@link #insertUpdate(DocumentEvent)} and
+	 * {@link #removeUpdate(DocumentEvent)} to
+	 * {@link #changedUpdate(DocumentEvent)}.
+	 */
+    public abstract static class TextChangedListener implements DocumentListener {
+		@Override
+		public void insertUpdate(DocumentEvent e) {
+			changedUpdate(e);
+		}
+
+		@Override
+		public void removeUpdate(DocumentEvent e) {
+			changedUpdate(e);
+		}
+    }
     /**
      * Helper {@link ActionListener} to refresh one or more UI steps.
      */
