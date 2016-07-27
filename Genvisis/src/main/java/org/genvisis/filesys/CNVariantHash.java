@@ -8,11 +8,13 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import javax.swing.JProgressBar;
+
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
-import org.genvisis.common.ProgressBarDialog;
+import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.SerializedFiles;
 
 public class CNVariantHash implements Serializable {
@@ -24,7 +26,7 @@ public class CNVariantHash implements Serializable {
     private String                                            filename;             // The file this hash came from
     private Hashtable<String, Hashtable<String, CNVariant[]>> hashes;
 
-    public CNVariantHash(String filename, int structureType, boolean jar) {
+    public CNVariantHash(String filename, int structureType, boolean jar, Logger log) {
         Hashtable<String, Hashtable<String, Vector<CNVariant>>> vHashes;
         Hashtable<String, Vector<CNVariant>> vHash;
         Vector<CNVariant> v;
@@ -35,14 +37,12 @@ public class CNVariantHash implements Serializable {
         // long time;
         BufferedReader reader;
         String[] line;
-        ProgressBarDialog prog = null;
+        ProgressMonitor progMonitor = new ProgressMonitor(new JProgressBar(), log);
         int count;
 
         setFilename(filename);
-
-        try {
-        	prog = new ProgressBarDialog("Converting CNVs", 0, Files.getSize(filename, jar), 800, 200, 0);
-        } catch (Exception e) {}
+        String taskName = "CNV_CONVERSION";
+        progMonitor.beginDeterminateTask(taskName, "Converting CNVs", Files.countLines(filename, 1), ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 
         // time = new Date().getTime();
         vHashes = new Hashtable<String, Hashtable<String, Vector<CNVariant>>>();
@@ -60,9 +60,7 @@ public class CNVariantHash implements Serializable {
             while (reader.ready()) {
                 temp = reader.readLine();
                 count += temp.length();
-                if (prog != null) {
-                	prog.setProgress(count);
-                }
+                progMonitor.updateTask(taskName);
                 cnv = new CNVariant(temp.trim().split("[\\s]+"));
                 trav = cnv.getFamilyID() + "\t" + cnv.getIndividualID();
                 if (structureType == CONSTRUCT_ALL) {
@@ -92,22 +90,16 @@ public class CNVariantHash implements Serializable {
             System.err.println("Error reading file \"" + filename + "\"");
             ioe.printStackTrace();
         }
-        if (prog != null){
-        	prog.close();
-        }
+        progMonitor.endTask(taskName);
 
         hashes = new Hashtable<String, Hashtable<String, CNVariant[]>>();
         // time = new Date().getTime();
 
         inds = HashVec.getKeys(vHashes);
-        prog = null;
-        try {
-			prog = new ProgressBarDialog("Serializing CNVs", 0, inds.length, 800, 200, 0);
-		} catch (Exception e) { }
+        taskName = "CNV_SERIALIZATION";
+        progMonitor.beginDeterminateTask(taskName, "Serializing CNVs", inds.length, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
         for (int i = 0; i < inds.length; i++) {
-        	if (prog != null) {
-        		prog.setProgress(i);
-        	}
+        	progMonitor.updateTask(taskName);
             vHash = vHashes.get(inds[i]);
             finalHash = new Hashtable<String, CNVariant[]>();
             chrs = HashVec.getKeys(vHash);
@@ -116,9 +108,7 @@ public class CNVariantHash implements Serializable {
             }
             hashes.put(inds[i], finalHash);
         }
-        if (prog != null) {
-        	prog.close();
-        }
+        progMonitor.endTask(taskName);
     }
 
     /**
@@ -170,7 +160,7 @@ public class CNVariantHash implements Serializable {
         	if (hashes == null) {
         		log.report("Detected that CNVariantHash needs to be updated from cnv.var.CNVariantHash to filesys.CNVariantHash; reparsing...");
         	}        		
-            hashes = new CNVariantHash(filename, structureType, jar);
+            hashes = new CNVariantHash(filename, structureType, jar, log);
             hashes.serialize(filename + suffix);
         }
 
@@ -248,7 +238,7 @@ public class CNVariantHash implements Serializable {
             System.exit(1);
         }
         try {
-            new CNVariantHash(filename, 1, false);
+            new CNVariantHash(filename, 1, false, new Logger());
         } catch (Exception e) {
             e.printStackTrace();
         }
