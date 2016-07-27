@@ -1,5 +1,7 @@
 /resources/
 /launch.properties
+/example/
+/projects/
 /Launch.bat
 /Launch.command
 /Launch.sh
