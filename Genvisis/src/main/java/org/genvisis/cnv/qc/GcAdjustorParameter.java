@@ -253,6 +253,7 @@ public class GcAdjustorParameter implements Serializable {
 							intensites, gcmodel, true, true, debugMode);
 					GcAdjustorParameter gcAdjustorParameters;
 					if (gcAdjustor.isFail()) {
+						proj.getLog().reportTimeWarning("Sample "+sample +" failed GC correction");
 						gcAdjustorParameters = new GcAdjustorParameter(sample, null, Double.NaN, Double.NaN, Double.NaN,
 								Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, correction_METHODs[i],
 								proj.getLog());

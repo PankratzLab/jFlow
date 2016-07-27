@@ -425,6 +425,7 @@ public class GcAdjustor {
 				proj.getLog().reportError("Error - could not find any autosomal markers to train the regression model");
 				proj.getLog().reportError("Regression distance =" + regressionDistance);
 				proj.getLog().reportError("Method =" + correctionMethod);
+				
 
 			} else {
 				this.regressionGcs = Array.toDoubleArray(tmpRegressGcs);
