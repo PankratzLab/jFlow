@@ -2391,7 +2391,19 @@ public class Array {
 	 * @return String of printed numbers
 	 */
 	public static String toStr(double[] array) {
-		return toStr(array, -1, -1, "\t");
+		return toStr(array, "\t");
+	}
+
+	/**
+	 * Prints an array of numbers with as many sigfigs as necessary, each
+	 * separated by a given delimiter
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @return String of printed numbers
+	 */
+	public static String toStr(double[] array, String delim) {
+	    return toStr(array, -1, -1, delim);
 	}
 
 	/**
