@@ -35,12 +35,14 @@ public class CNVariantHash implements Serializable {
         // long time;
         BufferedReader reader;
         String[] line;
-        ProgressBarDialog prog;
+        ProgressBarDialog prog = null;
         int count;
 
         setFilename(filename);
 
-        prog = new ProgressBarDialog("Converting CNVs", 0, Files.getSize(filename, jar), 800, 200, 0);
+        try {
+        	prog = new ProgressBarDialog("Converting CNVs", 0, Files.getSize(filename, jar), 800, 200, 0);
+        } catch (Exception e) {}
 
         // time = new Date().getTime();
         vHashes = new Hashtable<String, Hashtable<String, Vector<CNVariant>>>();
@@ -58,7 +60,9 @@ public class CNVariantHash implements Serializable {
             while (reader.ready()) {
                 temp = reader.readLine();
                 count += temp.length();
-                prog.setProgress(count);
+                if (prog != null) {
+                	prog.setProgress(count);
+                }
                 cnv = new CNVariant(temp.trim().split("[\\s]+"));
                 trav = cnv.getFamilyID() + "\t" + cnv.getIndividualID();
                 if (structureType == CONSTRUCT_ALL) {
@@ -88,15 +92,22 @@ public class CNVariantHash implements Serializable {
             System.err.println("Error reading file \"" + filename + "\"");
             ioe.printStackTrace();
         }
-        prog.close();
+        if (prog != null){
+        	prog.close();
+        }
 
         hashes = new Hashtable<String, Hashtable<String, CNVariant[]>>();
         // time = new Date().getTime();
 
         inds = HashVec.getKeys(vHashes);
-        prog = new ProgressBarDialog("Serializing CNVs", 0, inds.length, 800, 200, 0);
+        prog = null;
+        try {
+			prog = new ProgressBarDialog("Serializing CNVs", 0, inds.length, 800, 200, 0);
+		} catch (Exception e) { }
         for (int i = 0; i < inds.length; i++) {
-            prog.setProgress(i);
+        	if (prog != null) {
+        		prog.setProgress(i);
+        	}
             vHash = vHashes.get(inds[i]);
             finalHash = new Hashtable<String, CNVariant[]>();
             chrs = HashVec.getKeys(vHash);
@@ -105,7 +116,9 @@ public class CNVariantHash implements Serializable {
             }
             hashes.put(inds[i], finalHash);
         }
-        prog.close();
+        if (prog != null) {
+        	prog.close();
+        }
     }
 
     /**
