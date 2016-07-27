@@ -357,8 +357,31 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         }
     }
 
-    public void setXScale(AXIS_SCALE scale) { this.fcsPanel.setXAxis(scale); }
-    public void setYScale(AXIS_SCALE scale) { this.fcsPanel.setYAxis(scale); }
+    public void setXScale(AXIS_SCALE scale) { 
+        switch (scale) {
+            case LOG:
+            case LIN:
+                this.fcsPanel.setForcePlotXMin(-1);
+                break;
+            case BIEX:
+                this.fcsPanel.setForcePlotXMin(Float.NaN);
+                break;
+        }
+        this.fcsPanel.setXAxis(scale); 
+    }
+    
+    public void setYScale(AXIS_SCALE scale) {
+        switch (scale) {
+            case LOG:
+            case LIN:
+                this.fcsPanel.setForcePlotYMin(-1);
+                break;
+            case BIEX:
+                this.fcsPanel.setForcePlotYMin(Float.NaN);
+                break;
+        } 
+        this.fcsPanel.setYAxis(scale); 
+    }
 	
     public void setPlotType(PLOT_TYPE type) { 
         this.fcsPanel.chartType = type;
@@ -858,7 +881,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
                     } else {
                         boolean[] pG = g.getParentGating(dataLoader);
                         int p = pG == null ? dataLoader.getCount() : Array.booleanArraySum(pG);
-                        System.out.println(g.getName() + " -- " + c);
                         double pct = (double) c / (double) p;
                         sb.append("\t").append(ext.formDeci(100 * pct, 2));
                     }
