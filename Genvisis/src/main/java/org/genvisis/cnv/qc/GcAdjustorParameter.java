@@ -249,13 +249,23 @@ public class GcAdjustorParameter implements Serializable {
 			for (int i = 0; i < correction_METHODs.length; i++) {
 				if (computeMethods[i]) {
 					builder.correctionMethod(correction_METHODs[i]);
-					GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, builder, sample, null, markerSet, intensites, gcmodel, true, true, debugMode);
-					double[] meandSdPrior = getMeanSd(intensites, autosomalIndices);
-					double[] meandSdPost = getMeanSd(Array.toFloatArray(gcAdjustor.getCorrectedIntensities()), autosomalIndices);
-					GcAdjustorParameter gcAdjustorParameters = new GcAdjustorParameter(sample,
-							gcAdjustor.getCrossValidation().getBetas(), gcAdjustor.getWfPrior(), gcAdjustor.getWfPost(),
-							gcAdjustor.getGcwfPrior(), gcAdjustor.getGcwfPost(), meandSdPrior[0], meandSdPost[0],
-							meandSdPrior[1], meandSdPost[1], correction_METHODs[i], proj.getLog());
+					GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, builder, sample, null, markerSet,
+							intensites, gcmodel, true, true, debugMode);
+					GcAdjustorParameter gcAdjustorParameters;
+					if (gcAdjustor.isFail()) {
+						gcAdjustorParameters = new GcAdjustorParameter(sample, null, Double.NaN, Double.NaN, Double.NaN,
+								Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, correction_METHODs[i],
+								proj.getLog());
+					} else {
+						double[] meandSdPrior = getMeanSd(intensites, autosomalIndices);
+						double[] meandSdPost = getMeanSd(Array.toFloatArray(gcAdjustor.getCorrectedIntensities()),
+								autosomalIndices);
+						gcAdjustorParameters = new GcAdjustorParameter(sample,
+								gcAdjustor.getCrossValidation().getBetas(), gcAdjustor.getWfPrior(),
+								gcAdjustor.getWfPost(), gcAdjustor.getGcwfPrior(), gcAdjustor.getGcwfPost(),
+								meandSdPrior[0], meandSdPost[0], meandSdPrior[1], meandSdPost[1], correction_METHODs[i],
+								proj.getLog());
+					}
 					parameters.add(gcAdjustorParameters);
 				} else {
 					parameters.add(null);
