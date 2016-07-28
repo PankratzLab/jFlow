@@ -19,6 +19,7 @@
   <inceptionYear>2009</inceptionYear>
 
 	<properties>
+		<skipTests>true</skipTests>
 	</properties>
 
 	<dependencies>
