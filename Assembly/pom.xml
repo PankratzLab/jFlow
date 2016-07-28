@@ -13,6 +13,7 @@
 
 	<artifactId>Assembly</artifactId>
 	<version>v0.1.6</version>
+	<packaging>pom</packaging>
 
 	<description>Build the complete Genvisis executable jar, with dependencies.</description>
 
