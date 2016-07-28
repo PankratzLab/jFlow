@@ -530,10 +530,12 @@ public class FCSPlotControlPanel extends JPanel {
                 if (ind == 0) return;
                 Collections.swap(filePanels, ind, ind-1);
                 addFilePanels();
+                plot.saveProps();
             } else if (cmd.equals(DataControlPanel.ACTION_MOVE_DOWN)) {
                 if (ind == filePanels.size()-1) return;
                 Collections.swap(filePanels, ind, ind+1);
                 addFilePanels();
+                plot.saveProps();
             } else if (cmd.equals(DataControlPanel.ACTION_INFO)) {
                 // TODO build info GUI for files
             } else if (cmd.equals(DataControlPanel.ACTION_LOAD)) {

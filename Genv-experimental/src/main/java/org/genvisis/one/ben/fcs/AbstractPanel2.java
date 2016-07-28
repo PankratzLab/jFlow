@@ -1156,7 +1156,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             int lin = (int) Math.ceil(fl.W) + 1;
             int maxLin = (int) Math.pow(10, lin);
             
-            double min = Math.min(plotYmin, getYValueFromYPixel(canvasSectionMinimumY));
+            double min = Math.min(plotYmin, getYValueFromYPixel(canvasSectionMaximumY));
             int pixMax = canvasSectionMaximumY - axisXHeight + HEAD_BUFFER;
             
             for (int i = 0; i < lbls.length; i++) {
@@ -2190,7 +2190,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             return getLogValueFromPixel(mouseY, false);
         } else {
             Logicle l = getBiexScale(false);
-            double yVal = l.inverse(getLinValueFromPixel(canvasSectionMaximumY - mouseY, false) / plotYmax);
+            double yVal = l.inverse(getLinValueFromPixel(mouseY, false) / plotYmax);
             return yVal;
         }
     }
