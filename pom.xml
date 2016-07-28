@@ -498,36 +498,14 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>1.12</version>
 			</plugin>
 
 			<!-- Add Implementation-Build entry to JAR manifest. -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>buildnumber-maven-plugin</artifactId>
-			</plugin>
-
-			<!-- Enable 'graph:' goals. -->
-			<plugin>
-				<groupId>org.fusesource.mvnplugins</groupId>
-				<artifactId>maven-graph-plugin</artifactId>
-			</plugin>
-
-			<!-- Enable 'jfx:' goals. -->
-			<plugin>
-				<groupId>com.zenjava</groupId>
-				<artifactId>javafx-maven-plugin</artifactId>
-			</plugin>
-
-			<!-- Enable 'nar:' goals. -->
-			<plugin>
-				<groupId>com.github.maven-nar</groupId>
-				<artifactId>nar-maven-plugin</artifactId>
-			</plugin>
-
-			<!-- Enable 'scijava:' goals. -->
-			<plugin>
-				<groupId>org.scijava</groupId>
-				<artifactId>scijava-maven-plugin</artifactId>
+				<version>1.4</version>
 			</plugin>
 		</plugins>
 		<!--
