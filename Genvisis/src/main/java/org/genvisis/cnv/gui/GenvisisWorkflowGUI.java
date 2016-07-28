@@ -13,6 +13,7 @@ import java.awt.event.WindowFocusListener;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,8 +56,6 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
-
-import scala.actors.threadpool.Arrays;
 
 import javax.swing.JSeparator;
 
