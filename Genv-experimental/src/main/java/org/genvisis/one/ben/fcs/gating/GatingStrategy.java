@@ -45,7 +45,7 @@ public class GatingStrategy {
             gates.add(g);
         }
         gateMap.put(g.getID(), g);
-        allNames.add(g.getName());
+        allNames.add(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
     }
 
     @SuppressWarnings("unchecked")

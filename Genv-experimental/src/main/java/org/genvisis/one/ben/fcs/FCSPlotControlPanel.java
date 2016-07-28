@@ -573,7 +573,8 @@ public class FCSPlotControlPanel extends JPanel {
             JFileChooser jfc = new JFileChooser(prevGateDir);
             jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
             jfc.setMultiSelectionEnabled(false);
-            jfc.setFileFilter(new FileNameExtensionFilter("FlowJo Workspace or WorkspaceTemplate Files", "wsp", "wspt"));
+            jfc.addChoosableFileFilter(new FileNameExtensionFilter("Gating-ML File", "xml"));
+            jfc.addChoosableFileFilter(new FileNameExtensionFilter("FlowJo Workspace or WorkspaceTemplate File", "wsp", "wspt"));
             jfc.setDialogTitle("Select Gating File(s)");
             int resp = jfc.showOpenDialog(FCSPlotControlPanel.this);
             if (resp == JFileChooser.APPROVE_OPTION) {

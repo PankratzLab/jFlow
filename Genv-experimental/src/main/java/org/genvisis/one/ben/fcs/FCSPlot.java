@@ -824,26 +824,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         doDataExport(output, gates, writeCounts, files);
     }
     
-//    private ArrayList<Gate> getAllGates() {
-//        ArrayList<Gate> gateList = new ArrayList<Gate>();
-//        if (this.gating != null) {
-//            gateList.addAll(this.gating.getRootGates());
-//            for (Gate g : this.gating.getRootGates()) {
-//                gateList.addAll(getGates(g));
-//            }
-//        }
-//        return gateList;
-//    }
-    
-//    private ArrayList<Gate> getGates(Gate g) {
-//        ArrayList<Gate> ret = new ArrayList<Gate>();
-//        ret.addAll(g.getChildGates());
-//        for (Gate g1 : g.getChildGates()) {
-//            ret.addAll(getGates(g1));
-//        }
-//        return ret;
-//    }
-    
     private void doDataExport(String outputFile, ArrayList<Gate> gatesToExport, boolean exportCounts, ArrayList<String> files) {
         StringBuilder sb = new StringBuilder();
         

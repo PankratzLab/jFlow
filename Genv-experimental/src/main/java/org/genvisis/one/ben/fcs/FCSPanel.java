@@ -109,8 +109,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         POLY_TOOL;
     };
 	
-	private volatile GATING_TOOL currentTool = GATING_TOOL.POLY_TOOL;
-//	private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_TOOL;
+//	private volatile GATING_TOOL currentTool = GATING_TOOL.POLY_TOOL;
+	private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_TOOL;
 	
 
     public void setGatingTool(GATING_TOOL tool) {
@@ -367,7 +367,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             int sm1 = Array.booleanArraySum(g.getParentGating(fcp.dataLoader));
             float pctInt = 100 * ((float) sm / (float)sm1);
             String pct = ext.formDeci(pctInt, 2);
-            String lbl = g.getName() + "\n" + "(" + pct + "%)";
+            String lbl = (g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName()) + "\n" + "(" + pct + "%)";
             gates.add(gt);
             if (g instanceof RectangleGate) {
                 RectangleGate rg = (RectangleGate) g;

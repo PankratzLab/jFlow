@@ -17,28 +17,39 @@ import org.genvisis.one.ben.fcs.gating.Gate.RectangleGate;
 import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class GateFileReader {
+    
+    public static GatingStrategy readGateFile(String gateFile) throws ParserConfigurationException, SAXException, IOException {
+        return gateFile.toLowerCase().endsWith(".wsp") || gateFile.toLowerCase().endsWith(".wspt") ? readFlowJoGatingFile(gateFile) : readGatingMLFile(gateFile);
+    }
 
-    public static GatingStrategy readGateFile(String filename) throws ParserConfigurationException, SAXException, IOException {
+    public static GatingStrategy readFlowJoGatingFile(String filename) throws ParserConfigurationException, SAXException, IOException {
+        return readFile(filename, true);
+    }
+    
+    public static GatingStrategy readGatingMLFile(String filename) throws ParserConfigurationException, SAXException, IOException {
+        return readFile(filename, false);
+    }
+    
+    private static GatingStrategy readFile(String filename, boolean flowjo) throws ParserConfigurationException, SAXException, IOException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document doc = builder.parse(new File(filename));
         doc.getDocumentElement().normalize();
-        
-        // TODO read Population nodes instead (one gate per population, pop. defines name, gives count, etc
-        NodeList allPops = doc.getElementsByTagName("Population");
+        NodeList nodes = flowjo ? doc.getElementsByTagName("Population") : doc.getElementsByTagName("gating:Gating-ML");
         
         GatingStrategy gs = new GatingStrategy();
         gs.setFile(filename);
-        gs.gateMap = buildPopGraph(allPops);
+        gs.gateMap = flowjo ? buildPopGraph(nodes) : buildGateGraph(nodes);
         gs.gateRoots = connectGates(gs.gateMap);
         gs.paramGateMap = parameterizeGates(gs.gateMap);
         for (Gate g : gs.gateMap.values()) {
-            gs.allNames.add(g.getName());
+            gs.allNames.add(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
         }
         
         
@@ -58,6 +69,23 @@ public class GateFileReader {
             }
         }
         return paramGates;
+    }
+
+    private static HashMap<String, Gate> buildGateGraph(NodeList topGate) {
+        Element topLevel = (Element) topGate.item(0);
+        NodeList allGates = topLevel.getChildNodes();
+        HashMap<String, Gate> gateMap = new HashMap<String, Gate>();
+        for (int i = 0, count = allGates.getLength(); i < count; i++) {
+            Node gateNode = allGates.item(i);
+            if (!gateNode.getNodeName().startsWith("gating:")) continue;
+            NamedNodeMap attrs = gateNode.getAttributes();
+            String id = attrs.getNamedItem("gating:id").getNodeValue();
+            Node parentAttr = attrs.getNamedItem("gating:parent_id");
+            String parentID = parentAttr == null ? null : parentAttr.getNodeValue();
+            Gate newGate = buildGate(null, id, parentID, gateNode); 
+            gateMap.put(id, newGate);
+        }
+        return gateMap;
     }
     
     private static HashMap<String, Gate> buildPopGraph(NodeList allGates) {

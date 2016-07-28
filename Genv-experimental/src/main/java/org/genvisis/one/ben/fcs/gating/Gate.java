@@ -1,13 +1,13 @@
 package org.genvisis.one.ben.fcs.gating;
 
 import java.awt.Rectangle;
-import java.awt.geom.Area;
 import java.awt.geom.IllegalPathStateException;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Random;
 
 import org.apache.poi.sl.usermodel.Shape;
@@ -15,7 +15,6 @@ import org.genvisis.common.Array;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
 import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
-
 
 public abstract class Gate {
     
@@ -352,16 +351,17 @@ public abstract class Gate {
         
         if (!"".equals(getName())) {
             full.append(getName());
-            full.append(" (");
-            ArrayList<GateDimension> dims = getDimensions();
-            for (int i = 0; i < dims.size(); i++) {
-                full.append(dims.get(i).paramName);
-                if (i < dims.size() - 1) {
-                    full.append(" v ");
-                }
-            }
-            full.append(")");
         }
+        
+        full.append(" (");
+        ArrayList<GateDimension> dims = getDimensions();
+        for (int i = 0; i < dims.size(); i++) {
+            full.append(dims.get(i).paramName);
+            if (i < dims.size() - 1) {
+                full.append(" v ");
+            }
+        }
+        full.append(")");
         
         if (this.parentGate != null) {
             String p = this.parentGate.getFullNameAndGatingPath();
@@ -610,7 +610,45 @@ public abstract class Gate {
                 }
             }
             
-            Area a;
+            
+            double xSum = 0, ySum = 0;
+            for (Rectangle r : vertexRects) {
+                xSum += r.getCenterX();
+                ySum += r.getCenterY();
+            }
+            final double x = xSum / vertexRects.size();
+            final double y = ySum / vertexRects.size();
+            
+            // taken from: 
+            // https://stackoverflow.com/questions/6989100/sort-points-in-clockwise-order
+            Collections.sort(vertexRects, new Comparator<Rectangle>() {
+                @Override
+                public int compare(Rectangle o1, Rectangle o2) {
+                    if (o1.getCenterX() - x >= 0 && o2.getCenterX() - x < 0)
+                        return -1;
+                    if (o1.getCenterX() - x < 0 && o2.getCenterX() - x >= 0)
+                        return 1;
+                    if (o1.getCenterX() - x == 0 && o2.getCenterX() - x == 0) {
+                        if (o1.getCenterY() - y >= 0 || o2.getCenterY() - y >= 0)
+                            return o1.getCenterY() > o2.getCenterY() ? -1 : 1;
+                        return o2.getCenterY() > o1.getCenterY() ? -1 : 1;
+                    }
+
+                    // compute the cross product of vectors (center -> a) x (center -> b)
+                    double det = (o1.getCenterX() - x) * (o2.getCenterY() - y) - (o2.getCenterX() - x) * (o1.getCenterY() - y);
+                    if (det < 0)
+                        return -1;
+                    if (det > 0)
+                        return 1;
+
+                    // points a and b are on the same line from the center
+                    // check which point is closer to the center
+                    double d1 = (o1.getCenterX() - x) * (o1.getCenterX() - x) + (o1.getCenterY() - y) * (o1.getCenterY() - y);
+                    double d2 = (o2.getCenterX() - x) * (o2.getCenterX() - x) + (o2.getCenterY() - y) * (o2.getCenterY() - y);
+                    return d1 > d2 ? -1 : d1 < d2 ? 1 : 0;
+                }
+            });
+            
             Path2D path = new Path2D.Double();
             path.moveTo(vertexRects.get(0).getCenterX(), vertexRects.get(0).getCenterY());
             for (int i = 1; i < vertexRects.size(); i++) {
@@ -618,22 +656,6 @@ public abstract class Gate {
             }
             path.lineTo(vertexRects.get(0).getCenterX(), vertexRects.get(0).getCenterY());
             path.closePath();
-            a = new Area(path);
-            
-            int index = 1;
-            while (!a.isSingular()) {
-                Collections.swap(vertexRects, 0, index);
-                path = new Path2D.Double();
-                path.moveTo(vertexRects.get(0).getCenterX(), vertexRects.get(0).getCenterY());
-                for (int i = 1; i < vertexRects.size(); i++) {
-                    path.lineTo(vertexRects.get(i).getCenterX(), vertexRects.get(i).getCenterY());
-                }
-                path.lineTo(vertexRects.get(0).getCenterX(), vertexRects.get(0).getCenterY());
-                path.closePath();
-                a = new Area(path);
-                index = (index + 1) % vertexRects.size();
-            }
-            
             
             for (Rectangle rect : rects) {
                 if (vertexRects.contains(rect) || path.contains(rect) || (path.intersects(rect) && path.contains(rect.getCenterX(), rect.getCenterY()))) {

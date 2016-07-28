@@ -164,7 +164,7 @@ public class GateTreePanel extends JPanel {
     }
     
     private void addGatesToTree(DefaultMutableTreeNode root, Gate g) {
-        DefaultMutableTreeNode child = new DefaultMutableTreeNode(g.getName());
+        DefaultMutableTreeNode child = new DefaultMutableTreeNode(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
         gateMap.put(child, g);
         nodeMap.put(g, child);
         root.add(child);
@@ -287,7 +287,7 @@ public class GateTreePanel extends JPanel {
         frame.getContentPane().add(gtp);
         frame.setVisible(true);
         
-        GatingStrategy gs = GateFileReader.readGateFile("F:/Flow/PBMC A&C comparison HB ZF DHS 20-Mar-2016.wspt");
+        GatingStrategy gs = GateFileReader.readFlowJoGatingFile("F:/Flow/PBMC A&C comparison HB ZF DHS 20-Mar-2016.wspt");
         gtp.resetGating(gs);
         frame.repaint();
     }

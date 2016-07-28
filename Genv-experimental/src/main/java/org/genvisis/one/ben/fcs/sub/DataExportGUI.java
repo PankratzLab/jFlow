@@ -264,7 +264,7 @@ public class DataExportGUI extends JDialog {
     }
     
     private void addGatesToTree(DefaultMutableTreeNode root, Gate g) {
-        DefaultMutableTreeNode child = new DefaultMutableTreeNode(g.getName());
+        DefaultMutableTreeNode child = new DefaultMutableTreeNode(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
         gateMap.put(child, g);
         root.add(child);
         for (Gate childGate : g.getChildGates()) {
