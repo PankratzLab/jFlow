@@ -58,9 +58,21 @@ That's it! You can now develop Genvisis code.
 
 #### Building the Genvisis application
 
-To build the `Genvisis.jar`, run either the `pom-genvisis` project [as a Maven build](https://books.sonatype.com/m2eclipse-book/reference/running-sect-running-maven-builds.html), and select the **install** goal.
+Just like on the command line, to build the `genvisis.jar`, run the `pom-genvisis` project [as a Maven build](https://books.sonatype.com/m2eclipse-book/reference/running-sect-running-maven-builds.html), and select the **install** goal.
 
-All Maven output will print in the `Console` tab. When complete, your `Genvisis.jar` will be built in the `Assembly/target/` directory, per the standard directory layout.
+All Maven output will print in the `Console` tab. When complete, your `genvisis.jar` will be built in the `Assembly/target/` directory, per the standard directory layout.
+
+#### Error: Project configuration is not up-to-date with pom.xml
+
+Maven `pom.xml`s are translated to Eclipse projects via the M2Eclipse plugin. Unfortunately, by default it does not automatically update settings when the `pom.xml` changes, resulting in these annoying errors popping up from time to time.
+
+While it is safe to simply update your project (e.g. with the [Quick Fix](http://help.eclipse.org/neon/index.jsp?topic=%2Forg.eclipse.jdt.doc.user%2Fconcepts%2Fconcept-quickfix-assist.htm) feature), there is also an Eclipse preference to [automatically update](http://www.eclipse.org/m2e/documentation/release-notes-16.html#new-experimental-auto-45-update-configuration-feature) - which can save some time and confusion.
+
+#### Creating a run configuration
+
+For convenience, you can also [create a dedicated run configuration](https://www.genuitec.com/products/myeclipse/learning-center/maven/launch-maven4myeclipse-maven-run-setup-tutorial/#2_Creating_a_CustomMavenLaunch_Configuration) for the top-level `pom-genvisis` project.
+
+Creating a run configuration will allow you to select the Maven build from the [Run toolbar button](https://developers.google.com/eclipse/docs/running_and_debugging_2_0), and also allows customization of properties (in contrast to the global properties declared in your `settings.xml`).
 
 ## Automatic upload and copy
 
