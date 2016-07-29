@@ -56,7 +56,7 @@ public class DataExportGUI extends JDialog {
         super(SwingUtilities.getWindowAncestor(fcsPlot), "Select a set of files and gates to export", ModalityType.APPLICATION_MODAL);
         this.plot = fcsPlot;
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        setBounds(100, 100, 450, 300);
+        setBounds(100, 100, 650, 600);
         contentPane = new JPanel();
         contentPane.setBorder(null);
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -146,7 +146,7 @@ public class DataExportGUI extends JDialog {
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
         
-        lbl = new JLabel("(Hold Ctrl to select multiple gates)");
+        lbl = new JLabel("(Hold Ctrl to select multiple gates | Hold Shift to select a range of gates)");
         lbl.setFont(lblFont);
         pnl.add(lbl, "cell 0 0");
         pnl.add(tree, "cell 0 1, grow");

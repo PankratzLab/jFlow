@@ -105,11 +105,30 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     volatile boolean lackingData = true;
 	
     public static enum GATING_TOOL {
-        RectangleGating(),
-        PolygonGating();
+        
+        
+        RECT_GATE("Rectangle"),
+        POLY_GATE("Polygon");
+        
+        private String displayName;
+        private GATING_TOOL(String disp) {
+            this.displayName = disp;
+        }
+        public String getDisplayName() {
+            return displayName;
+        }
+        
+        static GATING_TOOL getGatingToolByDisplayName(String disp) {
+            for (GATING_TOOL g : values()) {
+                if (g.getDisplayName().equals(disp)) {
+                    return g;
+                }
+            }
+            return null;
+        }
     };
 	
-	private volatile GATING_TOOL currentTool = GATING_TOOL.RectangleGating;
+	private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_GATE;
 
     public void setGatingTool(GATING_TOOL tool) {
         tempPoly.clear();
@@ -633,7 +652,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                     draggingPolyInds.clear();
                 }
                 if (draggingVertexRects.isEmpty()) {
-                    if (currentTool == GATING_TOOL.RectangleGating) {
+                    if (currentTool == GATING_TOOL.RECT_GATE) {
                         highlightRectangle = null;
                         
                         if (Math.abs(mouseEndX - startX) > DEFAULT_NEARBY_DIST) {
@@ -669,7 +688,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 }
             }
             if (!didSelect && !didClear && !wasDrag) {
-                if (currentTool == GATING_TOOL.PolygonGating) {
+                if (currentTool == GATING_TOOL.POLY_GATE) {
                     double tempValX = getXValueFromXPixel(mouseEndX);
                     double tempValY = getYValueFromYPixel(mouseEndY);
                     if (!tempPoly.isEmpty()) {
@@ -930,16 +949,12 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     	        fcp.gateSelected(lowest, true);
     	    }
     	} else {
+            tempPoly.clear();
+            highlightPoly = null;
+            highlightRectangle = null;
+    	    
+    	    // TODO delete right-clicked gate even if not selected? Delete clicked gate and NOT selected gates?
     	    deleteSelectedGates();
-            // check mouse location vs all shapes
-            //     else if within shape, delete shape (and gate attached - CONFIRM DELETE)
-    	    
-//    	    if (currentTool == GATING_TOOL.RectangleGating) {
-//    	        rightMouseClickedRect(e);
-//    	    } else if (currentTool == GATING_TOOL.PolygonGating) {
-//    	        rightMouseClickedPoly(e);
-//    	    }
-    	    
     	}
     	paintAgain();
     }
@@ -956,7 +971,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         if (cnt == 0) {
             return;
         }
-        int opt = JOptionPane.showConfirmDialog(fcp, "Are you sure you wish to delete " + cnt + " gates and " + childCnt + " downstream gates?" , "Confirm Delete Gate?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        int opt = JOptionPane.showConfirmDialog(fcp, "Are you sure you wish to delete " + cnt + " gate(s)" + (childCnt > 0 ? " and " + childCnt + " downstream gate(s)?" : "?") , "Confirm Delete Gate?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (opt == JOptionPane.YES_OPTION) {
             for (Gate g : selectedGates) {
                 fcp.deleteGate(g);
@@ -964,13 +979,17 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             for (Gate g : mouseGates) {
                 fcp.deleteGate(g);
             }
-            selectedGates.clear();
-            mouseGates.clear();
-            setForceGatesChanged();
-            paintAgain();
+            clearGating();
         }
     }
     
+    public void clearGating() {
+        selectedGates.clear();
+        mouseGates.clear();
+        setForceGatesChanged();
+        paintAgain();
+    }
+
     int getCount(Gate g) {
         int cnt = g.getChildGates().size();
         for (Gate g2 : g.getChildGates()) {
@@ -994,7 +1013,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             
             if (draggingVertexRects.isEmpty() && draggingPolys.isEmpty()) {
                 if (selectedGates.isEmpty() && mouseGates.isEmpty()) {
-                    if (currentTool == GATING_TOOL.RectangleGating) {
+                    if (currentTool == GATING_TOOL.RECT_GATE) {
                         highlightRectangle = new GenericRectangle((float) getXValueFromXPixel(startX), 
                                                                     (float) getYValueFromYPixel(startY), 
                                                                     (float) getXValueFromXPixel(mouseEndX), 
@@ -1249,12 +1268,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     public void assignAxisLabels() {
         setXAxisLabel(fcp.getXDataName());
         setYAxisLabel(fcp.getYDataName());
-    }
-
-    public void clearGates() {
-        this.mouseGates.clear();
-        this.selectedGates.clear();
-        setForceGatesChanged();
     }
     
 }

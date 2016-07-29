@@ -83,8 +83,12 @@ public class FCSPlotControlPanel extends JPanel {
     private JAccordionPanel dataControlsPanel;
     private JAccordionPanel gateControlPanel;
     private JPanel panel_1;
+    private JLabel gateFileLabel;
+    private JLabel gateFileTitle;
+    private JSeparator gateFileSep;
 
     private JButton gateSelectBtn;
+    private JButton gateClearBtn;
     private JButton dirSelectBtn;
     private String prevGateDir;
     private String prevFCSDir;
@@ -292,7 +296,7 @@ public class FCSPlotControlPanel extends JPanel {
         gateControlPanel.topPanel.add(gCtrlLabel, "pad 0 10 0 0, cell 0 0, grow");
         
         JPanel gatePanel = gateControlPanel.contentPanel;
-        gatePanel.setLayout(new MigLayout("hidemode 3,ins 0", "[grow][]", "0px[]0px[]0px[grow]0px[]0px[]0px"));
+        gatePanel.setLayout(new MigLayout("hidemode 3,ins 0", "[grow][]0px[]", "0px[]0px[]0px[grow]0px[]0px[]0px"));
         
         JLabel dirLbl1 = new JLabel("Select Gating File:");
         dirLbl1.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -302,22 +306,47 @@ public class FCSPlotControlPanel extends JPanel {
         gateSelectBtn.addActionListener(gateSelectListener);
         gateSelectBtn.setMargin(new Insets(0, 2, 0, 2));
         gatePanel.add(gateSelectBtn, "cell 1 0");
+
+        gateClearBtn = new JButton("X");
+        gateClearBtn.addActionListener(gateClearListener);
+        gateClearBtn.setMargin(new Insets(0, 2, 0, 2));
+        gatePanel.add(gateClearBtn, "cell 2 0");
         
-        gatePanel.add(new JSeparator(SwingConstants.HORIZONTAL), "cell 0 1 2 1, growx");
+        panel = new JPanel(new MigLayout("hidemode 3", "[grow][]", ""));
+        gatePanel.add(panel, "cell 0 1, span 3, grow");
+        
+        panel.add(new JSeparator(SwingConstants.HORIZONTAL), "cell 0 0 2 1, growx");
+
+        gateFileTitle = new JLabel("Current Gate File:");
+        gateFileTitle.setFont(new Font("Arial", Font.BOLD, 9));
+        panel.add(gateFileTitle, "cell 0 1");
+        gateFileTitle.setVisible(false);
+        gateFileLabel = new JLabel();
+        gateFileLabel.setFont(new Font("Arial", Font.PLAIN, 9));
+        panel.add(gateFileLabel, "cell 0 2 2 1, grow");
+        gateFileLabel.setVisible(false);
+        
+        gateFileSep = new JSeparator(SwingConstants.HORIZONTAL); 
+        panel.add(gateFileSep, "cell 0 3 2 1, growx");
+        gateFileSep.setVisible(false);
         
         JLabel gateTypeLbl = new JLabel("Gate Tool:");
-        gatePanel.add(gateTypeLbl, "cell 0 2, span 2 1");
-        JComboBox<GATING_TOOL> gateTypeCmb = new JComboBox<FCSPanel.GATING_TOOL>(GATING_TOOL.values()); 
+        panel.add(gateTypeLbl, "cell 0 4, span 2 1");
+        String[] gateTypes = new String[GATING_TOOL.values().length];
+        for (int i = 0; i < GATING_TOOL.values().length; i++) {
+            gateTypes[i] = GATING_TOOL.values()[i].getDisplayName();
+        }
+        JComboBox<String> gateTypeCmb = new JComboBox<String>(gateTypes); 
         gateTypeCmb.addItemListener(new ItemListener() {
-            
             @Override
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
-                    plot.setGateTool((GATING_TOOL)e.getItem());
+                    String displayName = (String) e.getItem();
+                    plot.setGateTool(GATING_TOOL.getGatingToolByDisplayName(displayName));
                 }
             }
         });
-        gatePanel.add(gateTypeCmb, "cell 0 2, growx");
+        panel.add(gateTypeCmb, "cell 0 4, growx");
         
         
         dataControlsPanel = new JAccordionPanel();
@@ -615,9 +644,24 @@ public class FCSPlotControlPanel extends JPanel {
         }
     };
     
+    ActionListener gateClearListener = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            plot.clearGating();
+            gateFileLabel.setVisible(false);
+            gateFileTitle.setVisible(false);
+            gateFileSep.setVisible(false);
+            plot.updateGUI();
+        }
+    };
+    
     protected void loadGatingFile(String newFile) {
         prevGateDir = ext.parseDirectoryOfFile(newFile);
         plot.loadGatingFile(newFile);
+        gateFileLabel.setText("<html><p>" + newFile + "</p></html>");
+        gateFileLabel.setVisible(true);
+        gateFileTitle.setVisible(true);
+        gateFileSep.setVisible(true);
     }
     
     ActionListener dirSelectListener = new ActionListener() {

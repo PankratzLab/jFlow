@@ -621,13 +621,20 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	    return this.gating;
 	}
 	
+	public void clearGating() {
+	    this.gating = new GatingStrategy();
+	    this.parentGate = rootGate = new NullGate();
+	    this.gatingSelector.resetGating(gating, null);
+	    fcsPanel.clearGating();
+	}
+	
 	public void setGating(GatingStrategy gateStrat) {
 	    this.gating = gateStrat;
-	    this.gatingSelector.resetGating(gateStrat);
 	    this.parentGate = rootGate = new NullGate();
 	    for (Gate g : this.gating.getRootGates()) {
 	        this.parentGate.getChildGates().add(g);
 	    }
+	    this.gatingSelector.resetGating(gateStrat, null);
 	    updateGUI();
 	}
 	
@@ -786,7 +793,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
             this.gating.addRootGate(rg);
         }
         parentGate.addChildGate(rg);
-        this.gatingSelector.resetGating(this.gating);
+        this.gatingSelector.resetGating(this.gating, this.parentGate instanceof NullGate ? null : this.parentGate);
     }
 
     public boolean duplicateGateName(String name) {
@@ -806,11 +813,9 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
             // TODO set axis scales
         }
         if (reset) {
-            this.gatingSelector.resetGating(gating);
-            this.gatingSelector.selectGate(gate);
+            this.gatingSelector.resetGating(gating, gate);
         }
-        this.fcsPanel.clearGates();
-        updateGUI();
+        this.fcsPanel.clearGating();
     }
     
     private void setupDataExport() {
@@ -908,7 +913,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
             rootGate.getChildGates().remove(g);
         }
         gating.deleteGate(g);
-        this.gatingSelector.resetGating(this.gating);
+        this.gatingSelector.resetGating(this.gating, this.parentGate instanceof NullGate ? null : this.parentGate);
     }
     
     

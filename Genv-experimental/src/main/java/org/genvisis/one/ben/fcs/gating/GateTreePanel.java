@@ -139,7 +139,7 @@ public class GateTreePanel extends JPanel {
         }
     }
     
-    public void resetGating(GatingStrategy gating) {
+    public void resetGating(GatingStrategy gating, Gate selectedGate) {
         this.gating = gating;
         ArrayList<Gate> roots = gating.getRootGates();
         
@@ -148,9 +148,16 @@ public class GateTreePanel extends JPanel {
             addGatesToTree(rootNode, g);
         }
         
+        breadcrumbPanel.removeAll();
         DefaultTreeModel newModel = new DefaultTreeModel(rootNode); 
         tree.setModel(newModel);
         expandAllNodes();
+        
+        if (selectedGate != null) {
+            selectGate(selectedGate);
+        }
+        
+        repaint();
     }
     
     private void expandAllNodes() {
@@ -290,18 +297,5 @@ public class GateTreePanel extends JPanel {
     };
     private JScrollPane scrollPane_1;
     private JPopupMenu treePopup;
-    
-    public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
-        JFrame frame = new JFrame();
-        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        
-        GateTreePanel gtp = new GateTreePanel(null);
-        frame.getContentPane().add(gtp);
-        frame.setVisible(true);
-        
-        GatingStrategy gs = GateFileReader.readFlowJoGatingFile("F:/Flow/PBMC A&C comparison HB ZF DHS 20-Mar-2016.wspt");
-        gtp.resetGating(gs);
-        frame.repaint();
-    }
 
 }
