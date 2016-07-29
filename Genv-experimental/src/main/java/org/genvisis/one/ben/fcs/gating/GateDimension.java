@@ -22,7 +22,7 @@ public class GateDimension {
             this.max = Math.max(min, max);
         }
         
-        float min, max;
+        private float min, max;
 
         public float getMin() {
             return min;

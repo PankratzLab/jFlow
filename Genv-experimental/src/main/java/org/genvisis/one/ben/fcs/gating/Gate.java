@@ -279,7 +279,7 @@ public abstract class Gate {
         
     }
     
-    
+    protected String xmlTag;
     protected String popName;
     protected String id;
     protected String parentID;
@@ -394,6 +394,8 @@ public abstract class Gate {
     
     public abstract boolean[] gate(FCSDataLoader dataLoader);
     
+    public abstract String getXMLTag();
+
     public static class RectangleGate extends Gate {
         
         public RectangleGate(Gate parentGate) {
@@ -406,6 +408,11 @@ public abstract class Gate {
         
         public RectangleGate(Gate parentGate, String popName) {
             super(parentGate, popName);
+        }
+
+        @Override
+        public String getXMLTag() {
+            return "gating:RectangleGate";
         }
 
         public RectangleGateDimension getDimension(String param) {
@@ -442,7 +449,8 @@ public abstract class Gate {
                 }
                 double[] paramData = dataLoader.getData(rgd.paramName, true);
                 for (int i = 0; i < dataLoader.getCount(); i++) {
-                    paramIncludes[p][i] = rgd.min <= paramData[i] && rgd.max >= paramData[i]; 
+                    // inclusive min, exclusive max - see gating-ml spec
+                    paramIncludes[p][i] = rgd.getMin() <= paramData[i] && rgd.getMax() > paramData[i]; 
                 }
             }
             if (includes == null) {
@@ -486,6 +494,11 @@ public abstract class Gate {
             super(parentGate);
         }
         
+        @Override
+        public String getXMLTag() {
+            return "gating:PolygonGate";
+        }
+
         public boolean getMimicsFlowJo() {
             return mimicFlowJo;
         }
@@ -537,7 +550,6 @@ public abstract class Gate {
             for (int i = 1; i < verticesX.size(); ++i) {
                path.lineTo(verticesX.get(i), verticesY.get(i));
             }
-            path.lineTo(verticesX.get(0), verticesY.get(0));
             path.closePath();
             return path;
         }
@@ -654,7 +666,6 @@ public abstract class Gate {
             for (int i = 1; i < vertexRects.size(); i++) {
                 path.lineTo(vertexRects.get(i).getCenterX(), vertexRects.get(i).getCenterY());
             }
-            path.lineTo(vertexRects.get(0).getCenterX(), vertexRects.get(0).getCenterY());
             path.closePath();
             
             for (Rectangle rect : rects) {
@@ -709,6 +720,11 @@ public abstract class Gate {
 //        
 //        Shape myShape; 
         
+        @Override
+        public String getXMLTag() {
+            return "gating:EllipsoidGate";
+        }
+
         @Override
         public boolean[] gate(FCSDataLoader dataLoader) {
             throw new UnsupportedOperationException();
@@ -765,6 +781,10 @@ public abstract class Gate {
             super(null);
             throw new UnsupportedOperationException();
         }
+        @Override
+        public String getXMLTag() {
+            return "gating:RectangleGate"; // TODO stored as four RectangleGate tags
+        }
         // UNSUPPORTED
         @Override
         public boolean[] gate(FCSDataLoader dataLoader) {
@@ -781,6 +801,10 @@ public abstract class Gate {
         @Override
         public boolean[] gate(FCSDataLoader dataLoader) {
             throw new UnsupportedOperationException();
+        }
+        @Override
+        public String getXMLTag() {
+            return "gating:BooleanGate";
         }
     }
     

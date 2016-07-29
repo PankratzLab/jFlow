@@ -147,8 +147,8 @@ public class GateFileReader {
                 String max = ((Element) dimNode).getAttribute("gating:max");
 //                ((Element) dimNode).getAttribute("yRatio"); // TODO dunno what yRatio is used for yet
                 gd.paramName = param;
-                gd.min = "".equals(min) ? Float.NEGATIVE_INFINITY : Float.parseFloat(min);
-                gd.max = "".equals(max) ? Float.POSITIVE_INFINITY : Float.parseFloat(max);
+                gd.setMin("".equals(min) ? Float.NEGATIVE_INFINITY : Float.parseFloat(min));
+                gd.setMax("".equals(max) ? Float.POSITIVE_INFINITY : Float.parseFloat(max));
                 gate.dimensions.add(gd);
             }
         } else if ("EllipsoidGate".equals(gateType)) {

@@ -755,6 +755,11 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         public boolean[] gate(FCSDataLoader dataLoader) {
             return null;
         }
+        
+        @Override
+        public String getXMLTag() {
+            return null;
+        }
     }
     
     public Gate getParentGate() {
