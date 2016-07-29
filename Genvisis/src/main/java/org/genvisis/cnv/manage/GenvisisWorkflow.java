@@ -22,6 +22,7 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.ABLookup.ABSource;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.qc.GcAdjustor;
@@ -746,20 +747,11 @@ public class GenvisisWorkflow {
         
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            ABLookup abLookup;
-            String filename;
-            
-            filename = proj.PROJECT_DIRECTORY.getValue()+ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
-            if (!Files.exists(filename)) {
-                abLookup = new ABLookup();
-                abLookup.parseFromAnnotationVCF(proj);
-                abLookup.writeToFile(filename, proj.getLog());
-            }
-            if (Files.exists(filename)) {
-                ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false);
-                proj.AB_LOOKUP_FILENAME.setValue(ext.addToRoot(filename, "_filledIn"));
-                proj.saveProperties(new Project.Property[]{proj.AB_LOOKUP_FILENAME});
-                ABLookup.applyABLookupToFullSampleFiles(proj);
+            String filename = ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+            ABLookup.parseABLookup(proj, ABSource.VCF, filename);
+
+            if (ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false)) {
+                ABLookup.applyABLookupToFullSampleFiles(proj, filename);
             } else {
                 setFailed();
             }
@@ -786,9 +778,18 @@ public class GenvisisWorkflow {
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Generate ABLookup >> Not Implemented For Command Line Yet ##"; // TODO
+            String filename = ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+            String projFile = proj.getPropertyFilename();
+            String mapFile = proj.getLocationOfSNP_Map(true);
+
+            StringBuilder cmd = new StringBuilder();
+            cmd.append(Files.getRunString()).append(" org.genvisis.cnv.filesys.ABLookup out=").append(filename).append(" vcf=true proj=").append(projFile).append("\n");
+            cmd.append(Files.getRunString()).append(" org.genvisis.cnv.filesys.ABLookup incompleteAB=").append(filename).append(" mapFile=").append(mapFile).append(" proj=").append(projFile).append("\n");
+            cmd.append(Files.getRunString()).append(" org.genvisis.cnv.filesys.ABLookup -applyAB").append(" proj=").append(projFile);
+            return cmd.toString();
         }
     };
+
     static final STEP S10_RUN_PLINK = new STEP("Create PLINK Files", 
                  "", 
                  new String[][]{{"[Parse Sample Files] step must have been run already or must be selected and valid."}, 

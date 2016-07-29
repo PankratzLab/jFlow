@@ -34,6 +34,13 @@ public class ABLookup {
 	private String[] markerNames;
 	private char[][] lookup;
 	
+	/**
+	 * Enum defining potential {@link ABLookup} parse sources.
+	 */
+	public static enum ABSource {
+		GENCLUSTER, MANIFEST, VCF, ORIGEN;
+	}
+
 	public ABLookup() {
 		markerNames = new String[0];
 		lookup = new char[0][0];
@@ -373,6 +380,42 @@ public class ABLookup {
         }
 	}
 
+	/**
+	 * Static entry point for parsing {@link ABLookup}s from all sources.
+	 *
+	 * @param proj
+	 *            Base project for the {@link ABLookup}
+	 * @param parseSource
+	 *            Where to parse the {@link ABLookup}
+	 * @param outfile
+	 *            Where to write the parsed {@link ABLookup}
+	 * @param args
+	 *            Optional parameters if required by parse mechanism (e.g. a
+	 *            manifestFile for {@link #parseFromManifest(Project, String)}
+	 */
+	public static void parseABLookup(Project proj, ABSource parseSource, String outfile, Object... args) {
+		ABLookup abLookup = new ABLookup();
+	
+        if (!Files.exists(outfile)) {
+        	switch (parseSource) {
+        	case GENCLUSTER:
+        		abLookup.parseFromGenotypeClusterCenters(proj);
+        		break;
+        	case MANIFEST:
+        		abLookup.parseFromManifest(proj, (String)args[0]);
+        		break;
+        	case VCF:
+        		abLookup.parseFromAnnotationVCF(proj);
+        		break;
+        	case ORIGEN:
+        		abLookup.parseFromOriginalGenotypes(proj);
+        		break;
+        	}
+        }
+	
+		abLookup.writeToFile(proj.PROJECT_DIRECTORY.getValue()+outfile, proj.getLog());
+	}
+
 	public static Hashtable<String,char[]> generateABLookupHash(String filename, Logger log) {
 		BufferedReader reader;
 		String[] line;
@@ -468,21 +511,31 @@ public class ABLookup {
 	
 
 	public static void applyABLookupToFullSampleFiles(Project proj) {
+		applyABLookupToFullSampleFiles(proj, null);
+	}
+
+	public static void applyABLookupToFullSampleFiles(Project proj, String abLookupFilename) {
 		ABLookup abLookup;
         Sample fsamp;
         String[] samples;
         String genotype;
         byte[] forwardGenotypes, abGenotypes;
         Logger log;
-        
-        log = proj.getLog();
-//        if (!Files.exists(proj.getFilename(proj.AB_LOOKUP_FILENAME))) {
-//        	proj.getLog().reportError("Error - cannot applyABLookupToFullSampleFiles without the AB Lookup file ('"+proj.getFilename(proj.AB_LOOKUP_FILENAME)+"').");
-        if (!Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
-			proj.getLog().reportError("Error - cannot applyABLookupToFullSampleFiles without the AB Lookup file ('"+proj.AB_LOOKUP_FILENAME.getValue()+"').");
-			return;
+       	// Save the given filename if given
+        // Otherwise, use the stored value
+        if (abLookupFilename != null) {
+        	proj.AB_LOOKUP_FILENAME.setValue(abLookupFilename);
+        	proj.saveProperties(new Project.Property[]{proj.AB_LOOKUP_FILENAME}); 
         }
-		abLookup = new ABLookup(proj.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), false, false, proj.getLog());
+        else {
+        	if (!Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
+        		proj.getLog().reportError("Error - cannot applyABLookupToFullSampleFiles without the AB Lookup file ('"+proj.AB_LOOKUP_FILENAME.getValue()+"').");
+        		return;
+        	}
+        	abLookupFilename = proj.AB_LOOKUP_FILENAME.getValue();
+        }
+        log = proj.getLog();
+		abLookup = new ABLookup(proj.getMarkerNames(), abLookupFilename, false, false, proj.getLog());
         samples = proj.getSamples();
         for (int i=0; i<samples.length; i++) {
         	if (i % 100 == 0) {
@@ -513,8 +566,11 @@ public class ABLookup {
         	fsamp.saveToRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(false, true)+samples[i]+Sample.SAMPLE_FILE_EXTENSION);
         }
 	}
-	
-	public static void fillInMissingAlleles(Project proj, String incompleteABlookupFilename, String mapFile, boolean updatingPlinkFile) {
+
+	/**
+	 * @return {@code false} if an exception was caught, aborting execution. {@code true} otherwise.
+	 */
+	public static boolean fillInMissingAlleles(Project proj, String incompleteABlookupFilename, String mapFile, boolean updatingPlinkFile) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
@@ -533,12 +589,17 @@ public class ABLookup {
 		log = proj.getLog();
         if (!mapFile.toLowerCase().endsWith(".csv")) {
         	log.reportError("Error - expecting an Illumina style format, but this map file '"+mapFile+"' does not end in .csv; aborting...");
-        	return;
+        	return false;
         }
 
         if (!Files.exists(mapFile)) {
         	log.reportError("Error - could not find Illumina map file '"+mapFile+"'; aborting...");
-        	return;
+        	return false;
+        }
+
+        if (!Files.exists(incompleteABlookupFilename)) {
+        	log.reportError("Error - could not find incomplete ABLookup file '"+incompleteABlookupFilename+"'; aborting...");
+        	return false;
         }
         
         lookupHash = generateABLookupHashFromCSV(mapFile, proj.getLog());
@@ -627,14 +688,15 @@ public class ABLookup {
 			Files.writeList(markerNames, output);
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: file \"" + incompleteABlookupFilename + "\" not found in current directory");
-			return;
+			return false;
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + incompleteABlookupFilename + "\"");
-			return;
+			return false;
 		}
+        return true;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String... args) {
 		int numArgs = args.length;
 		Project proj;
 		String filename = null;
@@ -734,21 +796,13 @@ public class ABLookup {
 			} else if (applyAB) {
 				applyABLookupToFullSampleFiles(proj);
 			} else if (manifestFile != null) {
-				abLookup = new ABLookup();
-				abLookup.parseFromManifest(proj, manifestFile);
-				abLookup.writeToFile(proj.PROJECT_DIRECTORY.getValue()+outfile, proj.getLog());
+				parseABLookup(proj, ABSource.MANIFEST, outfile, manifestFile);
 			} else if (parseFromAnnotationVCF) {
-				abLookup = new ABLookup();
-				abLookup.parseFromAnnotationVCF(proj);
-				abLookup.writeToFile(proj.PROJECT_DIRECTORY.getValue()+outfile, proj.getLog());
+				parseABLookup(proj, ABSource.VCF, outfile);
 			} else if (parseFromOriginalGenotypes) {
-				abLookup = new ABLookup();
-				abLookup.parseFromOriginalGenotypes(proj);
-				abLookup.writeToFile(proj.PROJECT_DIRECTORY.getValue()+outfile, proj.getLog());
+				parseABLookup(proj, ABSource.ORIGEN, outfile);
 			} else if (parseFromGenotypeClusterCenters) {
-				abLookup = new ABLookup();
-				abLookup.parseFromGenotypeClusterCenters(proj);
-				abLookup.writeToFile(proj.PROJECT_DIRECTORY.getValue()+outfile, proj.getLog());
+				parseABLookup(proj, ABSource.GENCLUSTER, outfile);
 			} else {
 				System.err.println("No subroutine was selected");
 			}
