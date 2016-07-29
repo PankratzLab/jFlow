@@ -953,6 +953,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         for (Gate g : mouseGates) {
             childCnt += getCount(g);
         }
+        if (cnt == 0) {
+            return;
+        }
         int opt = JOptionPane.showConfirmDialog(fcp, "Are you sure you wish to delete " + cnt + " gates and " + childCnt + " downstream gates?" , "Confirm Delete Gate?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (opt == JOptionPane.YES_OPTION) {
             for (Gate g : selectedGates) {
