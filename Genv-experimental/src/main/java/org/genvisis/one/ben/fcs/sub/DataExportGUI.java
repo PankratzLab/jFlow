@@ -34,7 +34,6 @@ import net.miginfocom.swing.MigLayout;
 
 import org.genvisis.cnv.gui.JAccordionPanel;
 import org.genvisis.common.Files;
-import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.FCSPlot;
 import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.GatingStrategy;

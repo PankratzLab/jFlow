@@ -17,14 +17,10 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.genvisis.common.Logger;
-import org.genvisis.one.ben.fcs.gating.Gate.BooleanGate;
-import org.genvisis.one.ben.fcs.gating.Gate.EllipsoidGate;
 import org.genvisis.one.ben.fcs.gating.Gate.PolygonGate;
-import org.genvisis.one.ben.fcs.gating.Gate.RectangleGate;
 import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 public class GateFileWriter {
     

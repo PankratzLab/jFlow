@@ -1,8 +1,6 @@
 package org.genvisis.cnv.gui;
 
-import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
-import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 
 import net.miginfocom.swing.MigLayout;
@@ -42,7 +40,8 @@ public class JAccordionPanel extends JPanel {
         
         panel = new JPanel();
         topPanel.add(panel, "east");
-        panel.setLayout(new MigLayout("", "[]", "[]"));
+        panel.setBorder(null);
+        panel.setLayout(new MigLayout("ins 4", "[]", "[]"));
         
         expandoButton = new JButton(UP);
         panel.add(expandoButton, "cell 0 0");

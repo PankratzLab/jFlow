@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -22,6 +23,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JCheckBoxMenuItem;
@@ -35,6 +38,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -47,6 +51,7 @@ import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
 import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
+import org.genvisis.one.ben.fcs.FCSPanel.GATING_TOOL;
 import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.GateDimension;
 import org.genvisis.one.ben.fcs.gating.GateFileReader;
@@ -217,11 +222,32 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 
 	private void inputMapAndActionMap() {
 		InputMap inputMap = fcsPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-//		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), ALT_UP);
-//		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), ALT_DOWN);
-//		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), ALT_LEFT);
-//		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), ALT_RIGHT);
+		
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_MASK), "PLOT");
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_G, InputEvent.ALT_MASK), "GATE");
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.ALT_MASK), "DATA");
+		
 		ActionMap actionMap = fcsPanel.getActionMap();
+		
+		actionMap.put("PLOT", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                fcsControls.showPlotControls();
+            }
+        });
+		actionMap.put("GATE", new AbstractAction() {
+		    @Override
+		    public void actionPerformed(ActionEvent arg0) {
+		        fcsControls.showGateControls();
+		    }
+		});
+		actionMap.put("DATA", new AbstractAction() {
+		    @Override
+		    public void actionPerformed(ActionEvent arg0) {
+		        fcsControls.showDataControls();
+		    }
+		});
+		
 		fcsPanel.setActionMap(actionMap);
 	}
 
@@ -239,7 +265,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		menuItemOpen = new JMenuItem("Open File", KeyEvent.VK_O);
 		menuItemOpen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-//			    fcsControls.addFCSFiles(new String[]{file1, file2});
+			    fcsControls.dirSelectListener.actionPerformed(e);
 			}
 		});
 		menu.add(menuItemOpen);
@@ -284,13 +310,13 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         menu.setMnemonic(KeyEvent.VK_V);
 		menuBar.add(menu);
 		
-		menuItemTestRB = new JMenuItem("Test Rainbow Bead Files", KeyEvent.VK_R);
-		menuItemTestRB.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                runRainbowTest();
-            }
-        });
+//		menuItemTestRB = new JMenuItem("Test Rainbow Bead Files", KeyEvent.VK_R);
+//		menuItemTestRB.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                runRainbowTest();
+//            }
+//        });
 		
 //		menuItemShowControls = new JMenuItem("Show ControlPanel", KeyEvent.VK_C);
 //		menuItemShowControls.addActionListener(new ActionListener() {
@@ -305,13 +331,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		return menuBar;
 	}
 	
-	private void runRainbowTest() {
-	    RainbowTestGUI rtGui = new RainbowTestGUI();
-	    
-	    
-	    
-	}
-
     private Component getParentComponent() {
         Component c = FCSPlot.this.getParent();
         while (!(c instanceof JFrame)) {
@@ -609,7 +628,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	    for (Gate g : this.gating.getRootGates()) {
 	        this.parentGate.getChildGates().add(g);
 	    }
-	    // TODO repaint
+	    updateGUI();
 	}
 	
 	public ArrayList<Gate> getGatingForCurrentPlot() {
@@ -747,19 +766,11 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     }
 
     private static class NullGate extends Gate {
-        private NullGate() {
-            super(null);
-        }
-
+        private NullGate() { super(null); }
         @Override
-        public boolean[] gate(FCSDataLoader dataLoader) {
-            return null;
-        }
-        
+        public boolean[] gate(FCSDataLoader dataLoader) { return null; }
         @Override
-        public String getXMLTag() {
-            return null;
-        }
+        public String getXMLTag() { return null; }
     }
     
     public Gate getParentGate() {
@@ -776,9 +787,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         }
         parentGate.addChildGate(rg);
         this.gatingSelector.resetGating(this.gating);
-        
-        // TODO export/save gate data
-        // TODO addGate
     }
 
     public boolean duplicateGateName(String name) {
@@ -795,6 +803,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
             GateDimension gdY = gd.get(1);
             setXDataName(gdX.getParam());
             setYDataName(gdY.getParam());
+            // TODO set axis scales
         }
         if (reset) {
             this.gatingSelector.resetGating(gating);
@@ -802,7 +811,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         }
         this.fcsPanel.clearGates();
         updateGUI();
-        // TODO set axis scales, update and repaint
     }
     
     private void setupDataExport() {
@@ -887,6 +895,10 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
                 createGUI(true);
             }
         });
+    }
+
+    public void setGateTool(GATING_TOOL item) {
+        fcsPanel.setGatingTool(item);
     }
 
 }

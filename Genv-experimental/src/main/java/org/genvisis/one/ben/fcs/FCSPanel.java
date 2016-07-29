@@ -105,17 +105,18 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     volatile boolean lackingData = true;
 	
     public static enum GATING_TOOL {
-        RECT_TOOL,
-        POLY_TOOL;
+        RectangleGating(),
+        PolygonGating();
     };
 	
-//	private volatile GATING_TOOL currentTool = GATING_TOOL.POLY_TOOL;
-	private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_TOOL;
-	
+	private volatile GATING_TOOL currentTool = GATING_TOOL.RectangleGating;
 
     public void setGatingTool(GATING_TOOL tool) {
-        // TODO cancel drawing any gates
+        tempPoly.clear();
+        highlightPoly = null;
+        highlightRectangle = null;
         currentTool = tool;
+        paintAgain();
     }
 
     private boolean isHistogram() {
@@ -632,7 +633,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                     draggingPolyInds.clear();
                 }
                 if (draggingVertexRects.isEmpty()) {
-                    if (currentTool == GATING_TOOL.RECT_TOOL) {
+                    if (currentTool == GATING_TOOL.RectangleGating) {
                         highlightRectangle = null;
                         
                         if (Math.abs(mouseEndX - startX) > DEFAULT_NEARBY_DIST) {
@@ -668,7 +669,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 }
             }
             if (!didSelect && !didClear && !wasDrag) {
-                if (currentTool == GATING_TOOL.POLY_TOOL) {
+                if (currentTool == GATING_TOOL.PolygonGating) {
                     double tempValX = getXValueFromXPixel(mouseEndX);
                     double tempValY = getYValueFromYPixel(mouseEndY);
                     if (!tempPoly.isEmpty()) {
@@ -933,9 +934,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             // check mouse location vs all shapes
             //     else if within shape, delete shape (and gate attached - CONFIRM DELETE)
     	    
-    	    if (currentTool == GATING_TOOL.RECT_TOOL) {
+    	    if (currentTool == GATING_TOOL.RectangleGating) {
     	        rightMouseClickedRect(e);
-    	    } else if (currentTool == GATING_TOOL.POLY_TOOL) {
+    	    } else if (currentTool == GATING_TOOL.PolygonGating) {
     	        rightMouseClickedPoly(e);
     	    }
     	    
@@ -957,7 +958,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             
             if (draggingVertexRects.isEmpty() && draggingPolys.isEmpty()) {
                 if (selectedGates.isEmpty() && mouseGates.isEmpty()) {
-                    if (currentTool == GATING_TOOL.RECT_TOOL) {
+                    if (currentTool == GATING_TOOL.RectangleGating) {
                         highlightRectangle = new GenericRectangle((float) getXValueFromXPixel(startX), 
                                                                     (float) getYValueFromYPixel(startY), 
                                                                     (float) getXValueFromXPixel(mouseEndX), 

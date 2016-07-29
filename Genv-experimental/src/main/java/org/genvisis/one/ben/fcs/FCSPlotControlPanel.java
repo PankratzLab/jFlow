@@ -52,6 +52,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.AbstractPanel2.PLOT_TYPE;
+import org.genvisis.one.ben.fcs.FCSPanel.GATING_TOOL;
 
 public class FCSPlotControlPanel extends JPanel {
 
@@ -297,10 +298,27 @@ public class FCSPlotControlPanel extends JPanel {
         dirLbl1.setHorizontalAlignment(SwingConstants.RIGHT);
         gatePanel.add(dirLbl1, "cell 0 0, growx, alignx right");
         
-        gateSelectBtn = new JButton("+");
+        gateSelectBtn = new JButton(">>");
         gateSelectBtn.addActionListener(gateSelectListener);
         gateSelectBtn.setMargin(new Insets(0, 2, 0, 2));
         gatePanel.add(gateSelectBtn, "cell 1 0");
+        
+        gatePanel.add(new JSeparator(SwingConstants.HORIZONTAL), "cell 0 1 2 1, growx");
+        
+        JLabel gateTypeLbl = new JLabel("Gate Tool:");
+        gatePanel.add(gateTypeLbl, "cell 0 2, span 2 1");
+        JComboBox<GATING_TOOL> gateTypeCmb = new JComboBox<FCSPanel.GATING_TOOL>(GATING_TOOL.values()); 
+        gateTypeCmb.addItemListener(new ItemListener() {
+            
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    plot.setGateTool((GATING_TOOL)e.getItem());
+                }
+            }
+        });
+        gatePanel.add(gateTypeCmb, "cell 0 2, growx");
+        
         
         dataControlsPanel = new JAccordionPanel();
         panel_1.add(dataControlsPanel, "cell 0 2,grow");
@@ -321,7 +339,7 @@ public class FCSPlotControlPanel extends JPanel {
         
 //        fileDirField = new JTextField();
 //        dataPanel.add(fileDirField, "cell 0 1, growx, split 2");
-        dirSelectBtn = new JButton("+");
+        dirSelectBtn = new JButton(">>");
         dirSelectBtn.addActionListener(dirSelectListener);
         dirSelectBtn.setMargin(new Insets(0, 2, 0, 2));
         dataPanel.add(dirSelectBtn, "cell 1 0");
@@ -425,6 +443,19 @@ public class FCSPlotControlPanel extends JPanel {
             return false;
         }
     }
+    
+    public void showPlotControls() {
+        plotControlPanel.expand();
+    }
+    
+    public void showGateControls() {
+        gateControlPanel.expand();
+    }
+    
+    public void showDataControls() {
+        dataControlsPanel.expand();
+    }
+    
     
     ArrayList<DataControlPanel> filePanels = new ArrayList<DataControlPanel>();
     
@@ -575,7 +606,7 @@ public class FCSPlotControlPanel extends JPanel {
             jfc.setMultiSelectionEnabled(false);
             jfc.addChoosableFileFilter(new FileNameExtensionFilter("Gating-ML File", "xml"));
             jfc.addChoosableFileFilter(new FileNameExtensionFilter("FlowJo Workspace or WorkspaceTemplate File", "wsp", "wspt"));
-            jfc.setDialogTitle("Select Gating File(s)");
+            jfc.setDialogTitle("Select Gating File");
             int resp = jfc.showOpenDialog(FCSPlotControlPanel.this);
             if (resp == JFileChooser.APPROVE_OPTION) {
                 File newFile = jfc.getSelectedFile();
