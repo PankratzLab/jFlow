@@ -128,7 +128,7 @@ public class CmdLine {
 	 */
 	public static boolean runCommandWithFileChecks(String[] commandArray, String dir, String[] neccesaryInputFiles, String[] expectedOutputFiles, boolean verbose, boolean overWriteExistingOutput, boolean skipReporting, Logger log) {
 		boolean success = false;
-		if (expectedOutputFiles == null || !Files.exists(dir, expectedOutputFiles) || (Files.exists(dir, expectedOutputFiles) && overWriteExistingOutput)) {
+		if (expectedOutputFiles == null || !Files.exists(dir, expectedOutputFiles, true) || (Files.exists(dir, expectedOutputFiles) && overWriteExistingOutput)) {
 			if (neccesaryInputFiles == null || Files.exists(dir, neccesaryInputFiles)) {
 				if (verbose) {
 					log.report(ext.getTime() + " Info - running command " + Array.toStr(commandArray, " "));

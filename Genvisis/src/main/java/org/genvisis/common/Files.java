@@ -2180,11 +2180,15 @@ public class Files {
 	}
 
 	public static boolean exists(String dir, String[] filenames) {
+		return exists(dir, filenames, false);
+	}
+
+	public static boolean exists(String dir, String[] filenames, boolean treatEmptyAsMissing) {
 		boolean result;
 
 		result = true;
 		for (int i = 0; i < filenames.length; i++) {
-			if (! exists(dir + filenames[i], false)) {
+			if (!exists(dir + filenames[i], false, treatEmptyAsMissing)) {
 				result = false;
 				break;
 			}
@@ -2196,18 +2200,20 @@ public class Files {
 	public static boolean exists(String filename) {
 		return exists(filename, false);
 	}
-	
 	public static boolean exists(String filename, boolean jar) {
+		return exists(filename, jar, false);
+	}
+	public static boolean exists(String filename, boolean jar, boolean treatEmptyAsMissing) {
 	    if (filename == null) return false;
 		if (jar) {
 			try {
 				ClassLoader.getSystemResourceAsStream(filename).close();
-				return true;
+				return !treatEmptyAsMissing || getSize(filename, jar) != 0;
 			} catch (Exception e) {
 				return false;
 			}
 		} else {
-			return new File(filename).exists();
+			return new File(filename).exists() && (!treatEmptyAsMissing || getSize(filename, jar) != 0);
 		}
 	}
 	
