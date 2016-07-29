@@ -87,6 +87,7 @@ public class FCSPlotControlPanel extends JPanel {
     private JLabel gateFileTitle;
     private JSeparator gateFileSep;
 
+    private JButton btnSaveGating;
     private JButton gateSelectBtn;
     private JButton gateClearBtn;
     private JButton dirSelectBtn;
@@ -348,6 +349,10 @@ public class FCSPlotControlPanel extends JPanel {
         });
         panel.add(gateTypeCmb, "cell 0 4, growx");
         
+        btnSaveGating = new JButton("Save Gating");
+        btnSaveGating.addActionListener(gateSaveListener);
+        btnSaveGating.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(btnSaveGating, "cell 0 5, span 2, center");
         
         dataControlsPanel = new JAccordionPanel();
         panel_1.add(dataControlsPanel, "cell 0 2,grow");
@@ -624,6 +629,13 @@ public class FCSPlotControlPanel extends JPanel {
                 }
             }
             // apply action to file
+        }
+    };
+    
+    ActionListener gateSaveListener = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            plot.saveGating();
         }
     };
     

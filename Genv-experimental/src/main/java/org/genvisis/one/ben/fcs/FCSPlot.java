@@ -40,6 +40,8 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.genvisis.cnv.gui.GuiManager;
@@ -55,6 +57,7 @@ import org.genvisis.one.ben.fcs.FCSPanel.GATING_TOOL;
 import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.GateDimension;
 import org.genvisis.one.ben.fcs.gating.GateFileReader;
+import org.genvisis.one.ben.fcs.gating.GateFileWriter;
 import org.genvisis.one.ben.fcs.gating.GateTreePanel;
 import org.genvisis.one.ben.fcs.gating.GatingStrategy;
 import org.genvisis.one.ben.fcs.sub.DataExportGUI;
@@ -617,6 +620,28 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         }
 	}
 	
+	public void saveGating() {
+	    if (this.gating.getRootGates().size() == 0) {
+	        JOptionPane.showMessageDialog(this, "Error - no gates found!", "Error!", JOptionPane.ERROR_MESSAGE);
+	        return;
+	    }
+        JFileChooser jfc = new JFileChooser();
+        jfc.setFileFilter(new FileNameExtensionFilter("Gating-ML File", "xml"));
+        jfc.setMultiSelectionEnabled(false);
+        int code = jfc.showSaveDialog(this);
+        if (code == JFileChooser.APPROVE_OPTION) {
+            String outputFile = jfc.getSelectedFile().getAbsolutePath();
+            if (!outputFile.endsWith(".xml")) {
+                outputFile += ".xml";
+            }
+            if (Files.exists(outputFile)) {
+                JOptionPane.showMessageDialog(this, "Error - cannot overwrite existing file.", "Error!", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            GateFileWriter.writeGating(gating, outputFile, log);
+        }
+	}
+	
 	public GatingStrategy getGatingStrategy() {
 	    return this.gating;
 	}
@@ -893,15 +918,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         log.reportTime("Data written to file: " + outputFile);
     }
     
-    
-    public static void main(String[] args) {
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                createGUI(true);
-            }
-        });
-    }
-
     public void setGateTool(GATING_TOOL item) {
         fcsPanel.setGatingTool(item);
     }
@@ -914,6 +930,14 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         }
         gating.deleteGate(g);
         this.gatingSelector.resetGating(this.gating, this.parentGate instanceof NullGate ? null : this.parentGate);
+    }
+
+    public static void main(String[] args) {
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                createGUI(true);
+            }
+        });
     }
     
     
