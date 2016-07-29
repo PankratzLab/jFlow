@@ -930,20 +930,53 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     	        fcp.gateSelected(lowest, true);
     	    }
     	} else {
-    
+    	    deleteSelectedGates();
             // check mouse location vs all shapes
             //     else if within shape, delete shape (and gate attached - CONFIRM DELETE)
     	    
-    	    if (currentTool == GATING_TOOL.RectangleGating) {
-    	        rightMouseClickedRect(e);
-    	    } else if (currentTool == GATING_TOOL.PolygonGating) {
-    	        rightMouseClickedPoly(e);
-    	    }
+//    	    if (currentTool == GATING_TOOL.RectangleGating) {
+//    	        rightMouseClickedRect(e);
+//    	    } else if (currentTool == GATING_TOOL.PolygonGating) {
+//    	        rightMouseClickedPoly(e);
+//    	    }
     	    
     	}
     	paintAgain();
     }
 
+    public void deleteSelectedGates() {
+        int cnt = selectedGates.size() + mouseGates.size();
+        int childCnt = 0;
+        for (Gate g : selectedGates) {
+            childCnt += getCount(g);
+        }
+        for (Gate g : mouseGates) {
+            childCnt += getCount(g);
+        }
+        int opt = JOptionPane.showConfirmDialog(fcp, "Are you sure you wish to delete " + cnt + " gates and " + childCnt + " downstream gates?" , "Confirm Delete Gate?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (opt == JOptionPane.YES_OPTION) {
+            for (Gate g : selectedGates) {
+                fcp.deleteGate(g);
+            }
+            for (Gate g : mouseGates) {
+                fcp.deleteGate(g);
+            }
+            selectedGates.clear();
+            mouseGates.clear();
+            setForceGatesChanged();
+            paintAgain();
+        }
+    }
+    
+    int getCount(Gate g) {
+        int cnt = g.getChildGates().size();
+        for (Gate g2 : g.getChildGates()) {
+            cnt += getCount(g2);
+        }
+        return cnt;
+    }
+    
+    
     public void mouseDragged(MouseEvent e) {
         if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown() && !lackingData) {
             drag = true;

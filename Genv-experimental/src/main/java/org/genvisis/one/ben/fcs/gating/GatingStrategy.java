@@ -48,9 +48,28 @@ public class GatingStrategy {
         allNames.add(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
     }
 
-    @SuppressWarnings("unchecked")
     public ArrayList<Gate> getRootGates() {
-        return (ArrayList<Gate>) gateRoots.clone();
+        return gateRoots;
+    }
+    
+
+    public void deleteGate(Gate g) {
+        deleteGate(g, gateRoots);
+    }
+    
+    private boolean deleteGate(Gate g, ArrayList<Gate> gates) {
+        if (gates.contains(g)) {
+            gates.remove(g);
+            allNames.remove(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
+            gateMap.remove(g.getID());
+            // TODO remove from paramGateMap?
+            return true;
+        } else {
+            for (Gate g2 : gates) {
+                return deleteGate(g, g2.getChildGates());
+            }
+        }
+        return false;
     }
 
     public String getFile() {

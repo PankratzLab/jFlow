@@ -901,6 +901,17 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         fcsPanel.setGatingTool(item);
     }
 
+    public void deleteGate(Gate g) {
+        if (g.getParentGate() != null) {
+            g.getParentGate().getChildGates().remove(g);
+        } else {
+            rootGate.getChildGates().remove(g);
+        }
+        gating.deleteGate(g);
+        this.gatingSelector.resetGating(this.gating);
+    }
+    
+    
 }
 
 
