@@ -19,6 +19,10 @@ import org.genvisis.common.ext;
 
 public class MarkerBlastQC {
 	
+	private MarkerBlastQC() {
+		throw new IllegalAccessError("Utility Class");
+	}
+	
 	public static final double DEFAULT_CROSS_HYBE_THRESHOLD = 0.8;
 	
 	public static String defaultOneHitWondersFilename(String blastVCF) {
