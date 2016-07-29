@@ -757,9 +757,9 @@ public class GenvisisWorkflow {
             }
             if (Files.exists(filename)) {
                 ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false);
-                ABLookup.applyABLookupToFullSampleFiles(proj);
-                proj.AB_LOOKUP_FILENAME.setValue(filename);
+                proj.AB_LOOKUP_FILENAME.setValue(ext.addToRoot(filename, "_filledIn"));
                 proj.saveProperties(new Project.Property[]{proj.AB_LOOKUP_FILENAME});
+                ABLookup.applyABLookupToFullSampleFiles(proj);
             } else {
                 setFailed();
             }
