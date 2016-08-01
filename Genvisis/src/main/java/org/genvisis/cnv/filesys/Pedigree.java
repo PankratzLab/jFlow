@@ -310,10 +310,9 @@ public class Pedigree extends FamilyStructure {
 		return pedigreeFile;
 	}
     
-	public static void build(Project proj, String newPedFile, boolean overwrite) {
+	public static void build(Project proj, String newPedFile, String[] samples, boolean overwrite) {
 	    // FID IID FAID MOID SEX PHENO DNA MZTWINID
 	    PrintWriter writer;
-	    String[] samples;
 	    SampleData sd = null;
 	    String file; 
 	    Logger log;
@@ -337,7 +336,7 @@ public class Pedigree extends FamilyStructure {
 	        sexDict = new Hashtable<String, String>();
 	    }
 	    
-	    samples = proj.getSamples();
+		samples = samples == null ? proj.getSamples() : samples;
 	    if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue())) {
 	        sd = proj.getSampleData(0, false);
 	    }
@@ -396,7 +395,7 @@ public class Pedigree extends FamilyStructure {
         }
         try {
             proj = new Project(filename, false);
-            build(proj, out, overwrite);
+			build(proj, out, null, overwrite);
         } catch (Exception e) {
             e.printStackTrace();
         }

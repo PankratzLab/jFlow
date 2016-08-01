@@ -815,7 +815,7 @@ public class GenvisisWorkflow {
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             if (Boolean.valueOf(variables.get(this).get(1))) {
                 proj.getLog().report("Creating Pedigree File");
-                Pedigree.build(proj, null, false);
+				Pedigree.build(proj, null, null, false);
             }
             if (!Files.exists(proj.PEDIGREE_FILENAME.getValue())) {
                 setFailed();

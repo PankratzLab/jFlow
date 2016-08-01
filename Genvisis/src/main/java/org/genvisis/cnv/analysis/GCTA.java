@@ -1,8 +1,12 @@
 package org.genvisis.cnv.analysis;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
+import org.genvisis.cnv.filesys.Pedigree;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Logger;
@@ -16,15 +20,11 @@ import org.genvisis.common.WorkerHive;
  */
 public class GCTA {
 
-	
-	
-	
-	
-//	gcta64 --mgrm grm_chrs.txt --make-grm --out test
-	private static void mergeGRMs(ArrayList<GRM> grms,Logger log){
-		
+	// gcta64 --mgrm grm_chrs.txt --make-grm --out test
+	private static void mergeGRMs(ArrayList<GRM> grms, Logger log) {
+
 	}
-	
+
 	/**
 	 * @param plinkRoot
 	 *            e.g. test.bed, test.bim and test.fam.
@@ -74,7 +74,7 @@ public class GCTA {
 	// gcta64 --bfile test --chr 1 --maf 0.01 --make-grm --out test_chr1
 	// --thread-num 10
 	/**
-	 *Focusing on generating the grm for a single autosomal chromosome
+	 * Focusing on generating the grm for a single autosomal chromosome
 	 */
 	private static GRM runGCTA(String plinkRoot, String output, double maf, byte chr, int numthreads, Logger log) {
 
@@ -102,9 +102,16 @@ public class GCTA {
 		return new GRM(success, null);
 	}
 
+	private static void test(Project proj, String[] samples, String[] markers) {
+		String outDir = proj.PROJECT_DIRECTORY.getValue()+"gcta/";
+		new File(outDir).mkdirs();
+		String fakePed = outDir+"gctaPedigree.dat";
+		proj.PEDIGREE_FILENAME.setValue(fakePed);
+		Pedigree.build(proj, null, samples, false);
+
+	}
+
 }
-
-
 
 // private Project proj;
 // /**
