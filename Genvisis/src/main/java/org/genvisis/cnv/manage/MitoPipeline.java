@@ -388,7 +388,9 @@ public class MitoPipeline {
 					recomputeLRR_PCs = true;
 				}
 				sampsToUseRecompute = Array.booleanArray(proj.getSamples().length, false);
-				int[] indices = ext.indexFactors(HashVec.loadFileToStringArray(samps, false, new int[] { 0 }, false), proj.getSamples(), true, false);
+				int[] indices = ext.indexFactors(HashVec.loadFileToStringArray(samps,false,false,new int[]{0},false,true,"\t"), proj.getSamples(), true, false);  
+
+//				int[] indices = ext.indexFactors(HashVec.loadFileToStringArray(samps, false, new int[] { 0 }, false), proj.getSamples(), true, false);
 				for (int i = 0; i < indices.length; i++) {
 					sampsToUseRecompute[indices[i]] = true;
 				}
