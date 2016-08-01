@@ -47,7 +47,8 @@ public class BWA_Analysis {
 
 	private BWA bwa;
 	private boolean fail, verbose;
-	private int numWithinSampleThreads, numBetweenSampleThreads;
+	private int numWithinSampleThreads;
+	private int numBetweenSampleThreads;
 
 	private Logger log;
 
@@ -133,11 +134,11 @@ public class BWA_Analysis {
 		return bwa;
 	}
 
-	public int getnumWithinSampleThreads() {
+	public int getNumWithinSampleThreads() {
 		return numWithinSampleThreads;
 	}
 
-	public int getnumBetweenSampleThreads() {
+	public int getNumBetweenSampleThreads() {
 		return numBetweenSampleThreads;
 	}
 
