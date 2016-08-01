@@ -179,7 +179,7 @@ class EvaluationResult implements Serializable {
 		// System.out.println(ext.rootOf(crf, false)+"_summary.xln");
 		// System.exit(1);
 		generateHeritabilityDb(proj, evaluationResults, otherData, otherDataTitle, samplesToEvaluate, db, ped, crf, log);
-		Heritability.fromParameters(crf, log);
+		Heritability.fromParameters(crf, true, log);
 		EvalHeritabilityResult evalHeritabilityResult = new EvalHeritabilityResult(ped, db, crf);
 		return evalHeritabilityResult;
 	}
@@ -234,9 +234,12 @@ class EvaluationResult implements Serializable {
 			writer.println();
 
 			ArrayList<String> sampsNotSeen = new ArrayList<String>();
+			ArrayList<String> sampsHave = new ArrayList<String>();
+
 			for (int i = 0; i < samples.length; i++) {
 				if (samplesToEvaluate == null || samplesToEvaluate[i]) {
 					if (pedHash.containsKey(samples[i])) {
+						sampsHave.add(pedHash.get(samples[i]) + "\t" + samples[i]);
 						String[] fidIid = Array.subArray(pedHash.get(samples[i]).split("\t"), 0, 2);
 						writer.print(fidIid[1] + "\t" + fidIid[0]);
 						if (otherData == null) {
@@ -257,8 +260,12 @@ class EvaluationResult implements Serializable {
 			writer.close();
 			if (sampsNotSeen.size() > 0) {
 				String missing = ext.addToRoot(ped, ".missing");
-				log.reportTimeWarning(sampsNotSeen.size() + " samples were not found in the ped file , writing to " + missing);
+				String have = ext.addToRoot(ped, ".have");
+				log.reportTimeWarning(
+						sampsNotSeen.size() + " samples were not found in the ped file , writing to " + missing);
 				Files.writeList(sampsNotSeen.toArray(new String[sampsNotSeen.size()]), missing);
+				Files.writeList(sampsHave.toArray(new String[sampsHave.size()]), have);
+
 			}
 			Heritability.developCrf(ped, output, crf, ext.rootOf(output), titles, log);
 		} catch (Exception e) {

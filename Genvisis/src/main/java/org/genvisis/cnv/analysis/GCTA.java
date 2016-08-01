@@ -24,24 +24,22 @@ import org.genvisis.gwas.Qc;
  */
 public class GCTA {
 
-	
-	//TODO
+	// TODO
 	// gcta64 --mgrm grm_chrs.txt --make-grm --out test
 	private static void mergeGRMs(ArrayList<GRM> grms, String output, Logger log) {
-		
+
 	}
-	
-	//TODO
-	private static void generatePCACovars(){
-		
+
+	// TODO
+	private static void generatePCACovars() {
+
 	}
-	
-	
-	//TODO
-//	gcta64 --grm test --grm-cutoff 0.025 --make-grm --out test_rm025
-//
-	private static void removeCrypticRelated(){
-		
+
+	// TODO
+	// gcta64 --grm test --grm-cutoff 0.025 --make-grm --out test_rm025
+	//
+	private static void removeCrypticRelated() {
+
 	}
 
 	/**
@@ -132,6 +130,8 @@ public class GCTA {
 
 		String[] plinks = PSF.Plink.getPlinkBedBimFam(outDir + "gcta");
 		if (!Files.exists("", plinks)) {
+			System.out.println("SHOULD");
+			System.exit(1);
 			Pedigree.build(proj, null, samples, false);
 			PlinkData.saveGenvisisToPlinkBedSet(proj, "gcta/gcta", null, markerFile, -1, true);
 		}

@@ -168,7 +168,7 @@ public class Launch {
 			} else if (temp.equalsIgnoreCase("vcf")) {
 				Vcf.createFromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("heritability")) {
-				Heritability.fromParameters(filename, log);
+				Heritability.fromParameters(filename,false, log);
 			} else if (temp.equalsIgnoreCase("FilterDB")) {
 				FilterDB.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("filterCNVs")) {

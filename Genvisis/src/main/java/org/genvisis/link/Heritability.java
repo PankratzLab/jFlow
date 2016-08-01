@@ -257,7 +257,7 @@ public class Heritability {
 		Files.writeList(results, dir + "heritabilities.txt");
 	}
 
-	public static void fromParameters(String filename, Logger log) {
+	public static void fromParameters(String filename,boolean skipExtra, Logger log) {
 		PrintWriter writer, summary;
 		String[] line;
 		Hashtable<String,String> famIdHash;
@@ -416,125 +416,139 @@ public class Heritability {
 								log.reportError("There were "+numNotInPed+" sample(s) with valid and complete phenotype data that were not in the pedigree file");
 							}
 	    				}
-						
-	    				FamilyStructure ped = new FamilyStructure(pedigreeFile, false);
-	    				ArrayList<String[]> sibList = Pedigree.PedigreeUtils.loadSibs(ped, true, null, validIDs, true); // double actual due to bidirectionality
-	    				ArrayList<String[]> poPairs = Pedigree.PedigreeUtils.loadPOPairs(ped, true, null, validIDs, true);
-	    				ArrayList<int[]> trios = Pedigree.PedigreeUtils.loadCompleteTrios(ped, null, validIDs, true);
+						double sibICC = Double.NaN;
+						double poICC = Double.NaN;
+						double trioICC = Double.NaN;
+						double[] sibCorrel = Array.doubleArray(2, Double.NaN);
+						double[] poCorrel = Array.doubleArray(2, Double.NaN);
+						double[] trioCorrel = Array.doubleArray(2, Double.NaN);
+						int cntSib = 0;
+						int cntPO = 0;
+						int cntTrio = 0;
+						if (!skipExtra) {
+							FamilyStructure ped = new FamilyStructure(pedigreeFile, false);
+							ArrayList<String[]> sibList = Pedigree.PedigreeUtils.loadSibs(ped, true, null, validIDs,
+									true); // double actual due to
+											// bidirectionality
+							ArrayList<String[]> poPairs = Pedigree.PedigreeUtils.loadPOPairs(ped, true, null, validIDs,
+									true);
+							ArrayList<int[]> trios = Pedigree.PedigreeUtils.loadCompleteTrios(ped, null, validIDs,
+									true);
 
-						double[] resids = RegressionModel.processDeps(deps);
-						if (indeps.size() > 0) {
-							RegressionModel model = RegressionModel.determineAppropriate(resids, RegressionModel.processIndeps(indeps), false, true);
-							resids = model.getResiduals();
+							double[] resids = RegressionModel.processDeps(deps);
+							if (indeps.size() > 0) {
+								RegressionModel model = RegressionModel.determineAppropriate(resids,
+										RegressionModel.processIndeps(indeps), false, true);
+								resids = model.getResiduals();
+							}
+
+							
+							/* sibs : */ {
+								double[][] correlationData;
+								ArrayList<Double> sibICCData = new ArrayList<Double>();
+								ArrayList<String> sibICCResponseIDs = new ArrayList<String>();
+								ArrayList<Double> correl1 = new ArrayList<Double>();
+								ArrayList<Double> correl2 = new ArrayList<Double>();
+								HashSet<String> used = new HashSet<String>();
+								for (int k = 0; k < sibList.size(); k++) {
+									if (used.contains(sibList.get(k)[0] + "\t" + sibList.get(k)[1])
+											|| used.contains(sibList.get(k)[0] + "\t" + sibList.get(k)[1])) {
+										// already found
+										continue;
+									}
+									Integer resid1 = subIndexMap.get(sibList.get(k)[0]);
+									Integer resid2 = subIndexMap.get(sibList.get(k)[1]);
+									if (resid1 == null || resid2 == null) {
+										continue; // skip
+									}
+									cntSib++;
+									used.add(sibList.get(k)[0] + "\t" + sibList.get(k)[1]);
+									correl1.add(resids[resid1.intValue()]);
+									correl2.add(resids[resid2.intValue()]);
+									sibICCData.add(resids[resid1]);
+									sibICCData.add(resids[resid2]);
+									sibICCResponseIDs.add(sibList.get(k)[0] + "\t" + sibList.get(k)[1]);
+									sibICCResponseIDs.add(sibList.get(k)[0] + "\t" + sibList.get(k)[1]);
+								}
+								correlationData = new double[][] { Array.toDoubleArray(correl1),
+										Array.toDoubleArray(correl2) };
+								sibCorrel = Correlation.Pearson(correlationData);
+								ICC sibICCAnalysis = new ICC(Array.toDoubleArray(sibICCData),
+										Array.toStringArray(sibICCResponseIDs), null, null, true, log);
+								sibICCAnalysis.computeICC();
+								sibICC = sibICCAnalysis.getICC();
+							}
+							/* po : */ {
+								double[][] correlationData;
+								ArrayList<Double> poICCData = new ArrayList<Double>();
+								ArrayList<String> poICCResponseIDs = new ArrayList<String>();
+								ArrayList<Double> correl1 = new ArrayList<Double>();
+								ArrayList<Double> correl2 = new ArrayList<Double>();
+								for (int k = 0; k < poPairs.size(); k++) {
+									Integer resid1 = subIndexMap.get(poPairs.get(k)[0]);
+									Integer resid2 = subIndexMap.get(poPairs.get(k)[1]);
+									if (resid1 == null || resid2 == null) {
+										continue; // skip
+									}
+									cntPO++;
+									correl1.add(resids[resid1.intValue()]);
+									correl2.add(resids[resid2.intValue()]);
+									poICCData.add(resids[resid1.intValue()]);
+									poICCData.add(resids[resid2.intValue()]);
+									poICCResponseIDs.add(poPairs.get(k)[0] + "\t" + poPairs.get(k)[1]);
+									poICCResponseIDs.add(poPairs.get(k)[0] + "\t" + poPairs.get(k)[1]);
+								}
+								correlationData = new double[][] { Array.toDoubleArray(correl1),
+										Array.toDoubleArray(correl2) };
+								poCorrel = Correlation.Pearson(correlationData);
+								ICC poICCAnalysis = new ICC(Array.toDoubleArray(poICCData),
+										Array.toStringArray(poICCResponseIDs), null, null, true, log);
+								poICCAnalysis.computeICC();
+								poICC = poICCAnalysis.getICC();
+							}
+							/* trios : */ {
+								double[][] correlationData;
+								ArrayList<Double> trioICCData = new ArrayList<Double>();
+								ArrayList<String> trioICCResponseIDs = new ArrayList<String>();
+								ArrayList<Double> correl1 = new ArrayList<Double>();
+								ArrayList<Double> correl2 = new ArrayList<Double>();
+								for (int k = 0; k < trios.size(); k++) {
+									int iidInd = trios.get(k)[0];
+									int faInd = trios.get(k)[1];
+									int moInd = trios.get(k)[2];
+									String fidiid = famIdHash.get(ped.getIID(iidInd)) + "\t" + ped.getIID(iidInd);
+									String fidiid2 = famIdHash.get(ped.getIID(faInd)) + "\t" + ped.getIID(faInd);
+									String fidiid3 = famIdHash.get(ped.getIID(moInd)) + "\t" + ped.getIID(moInd);
+									Integer resid1 = subIndexMap.get(fidiid);
+									Integer resid2 = subIndexMap.get(fidiid2);
+									Integer resid3 = subIndexMap.get(fidiid3);
+									if (resid1 == null || resid2 == null || resid3 == null) {
+										continue; // skip
+									}
+									cntTrio++;
+									correl1.add(resids[resid1]);
+									double p1 = resids[resid2];
+									double p2 = resids[resid3];
+									correl2.add((p1 + p2) / 2);
+									trioICCData.add(resids[resid1]);
+									trioICCData.add((p1 + p2) / 2);
+									trioICCResponseIDs
+											.add(trios.get(k)[0] + "\t" + trios.get(k)[1] + "\t" + trios.get(k)[2]);
+									trioICCResponseIDs
+											.add(trios.get(k)[0] + "\t" + trios.get(k)[1] + "\t" + trios.get(k)[2]);
+								}
+								correlationData = new double[][] { Array.toDoubleArray(correl1),
+										Array.toDoubleArray(correl2) };
+								trioCorrel = Correlation.Pearson(correlationData);
+								ICC trioICCAnalysis = new ICC(Array.toDoubleArray(trioICCData),
+										Array.toStringArray(trioICCResponseIDs), null, null, true, log);
+								trioICCAnalysis.computeICC();
+								trioICC = trioICCAnalysis.getICC();
+							}
 						}
-	    				
-	    				
-	    				
-	    				double sibICC;
-	    				double poICC;
-	    				double trioICC;
-	    				double[] sibCorrel;
-	    				double[] poCorrel;
-	    				double[] trioCorrel;
-	    				int cntSib = 0;
-	    				int cntPO = 0;
-	    				int cntTrio = 0;
-	    				/*sibs : */{
-	    				    double[][] correlationData;
-	    				    ArrayList<Double> sibICCData = new ArrayList<Double>();
-	    				    ArrayList<String> sibICCResponseIDs = new ArrayList<String>();
-	    				    ArrayList<Double> correl1 = new ArrayList<Double>();
-	    				    ArrayList<Double> correl2 = new ArrayList<Double>();
-	    				    HashSet<String> used = new HashSet<String>();
-	    				    for (int k = 0; k < sibList.size(); k++) {
-	    				        if (used.contains(sibList.get(k)[0] + "\t" + sibList.get(k)[1]) || used.contains(sibList.get(k)[0] + "\t" + sibList.get(k)[1])) {
-	    				            // already found
-	    				            continue;
-	    				        }
-	    				        Integer resid1 = subIndexMap.get(sibList.get(k)[0]);
-	    				        Integer resid2 = subIndexMap.get(sibList.get(k)[1]);
-	    				        if (resid1 == null || resid2 == null) {
-	    				            continue; // skip
-	    				        }
-	    				        cntSib++;
-    				            used.add(sibList.get(k)[0] + "\t" + sibList.get(k)[1]);
-    				            correl1.add(resids[resid1.intValue()]);
-    				            correl2.add(resids[resid2.intValue()]);
-    				            sibICCData.add(resids[resid1]);
-    				            sibICCData.add(resids[resid2]);
-    				            sibICCResponseIDs.add(sibList.get(k)[0] + "\t" + sibList.get(k)[1]);
-    				            sibICCResponseIDs.add(sibList.get(k)[0] + "\t" + sibList.get(k)[1]);
-	    				    }
-	    				    correlationData = new double[][]{Array.toDoubleArray(correl1), Array.toDoubleArray(correl2)};
-                            sibCorrel = Correlation.Pearson(correlationData);
-                            ICC sibICCAnalysis = new ICC(Array.toDoubleArray(sibICCData), Array.toStringArray(sibICCResponseIDs), null, null, true, log);
-                            sibICCAnalysis.computeICC();
-                            sibICC = sibICCAnalysis.getICC();
-	    				}
-	    				/*po : */{
-	    				    double[][] correlationData;
-	    				    ArrayList<Double> poICCData = new ArrayList<Double>();
-	    				    ArrayList<String> poICCResponseIDs = new ArrayList<String>();
-                            ArrayList<Double> correl1 = new ArrayList<Double>();
-                            ArrayList<Double> correl2 = new ArrayList<Double>();
-	    				    for (int k = 0; k < poPairs.size(); k++) {
-                                Integer resid1 = subIndexMap.get(poPairs.get(k)[0]);
-                                Integer resid2 = subIndexMap.get(poPairs.get(k)[1]);
-                                if (resid1 == null || resid2 == null) {
-                                    continue; //skip
-                                }
-                                cntPO++;
-                                correl1.add(resids[resid1.intValue()]);
-                                correl2.add(resids[resid2.intValue()]);
-	    				        poICCData.add(resids[resid1.intValue()]);
-	    				        poICCData.add(resids[resid2.intValue()]);
-	    				        poICCResponseIDs.add(poPairs.get(k)[0] + "\t" + poPairs.get(k)[1]);
-	    				        poICCResponseIDs.add(poPairs.get(k)[0] + "\t" + poPairs.get(k)[1]);
-	    				    }
-                            correlationData = new double[][]{Array.toDoubleArray(correl1), Array.toDoubleArray(correl2)};
-	    				    poCorrel = Correlation.Pearson(correlationData);
-                            ICC poICCAnalysis = new ICC(Array.toDoubleArray(poICCData), Array.toStringArray(poICCResponseIDs), null, null, true, log);
-                            poICCAnalysis.computeICC();
-                            poICC = poICCAnalysis.getICC();
-	    				}
-	    				/*trios : */{
-                            double[][] correlationData;
-	    				    ArrayList<Double> trioICCData = new ArrayList<Double>();
-	    				    ArrayList<String> trioICCResponseIDs = new ArrayList<String>();
-                            ArrayList<Double> correl1 = new ArrayList<Double>();
-                            ArrayList<Double> correl2 = new ArrayList<Double>();
-                            for (int k = 0; k < trios.size(); k++) {
-                                int iidInd = trios.get(k)[0];
-                                int faInd = trios.get(k)[1];
-                                int moInd = trios.get(k)[2];
-                                String fidiid = famIdHash.get(ped.getIID(iidInd)) + "\t" + ped.getIID(iidInd);
-                                String fidiid2 = famIdHash.get(ped.getIID(faInd)) + "\t" + ped.getIID(faInd);
-                                String fidiid3 = famIdHash.get(ped.getIID(moInd)) + "\t" + ped.getIID(moInd);
-                                Integer resid1 = subIndexMap.get(fidiid);
-                                Integer resid2 = subIndexMap.get(fidiid2);
-                                Integer resid3 = subIndexMap.get(fidiid3);
-                                if (resid1 == null || resid2 == null || resid3 == null) {
-                                    continue; //skip
-                                }
-                                cntTrio++;
-                                correl1.add(resids[resid1]);
-                                double p1 = resids[resid2];
-                                double p2 = resids[resid3];
-                                correl2.add((p1 + p2) / 2);
-                                trioICCData.add(resids[resid1]);
-                                trioICCData.add((p1 + p2) / 2);
-                                trioICCResponseIDs.add(trios.get(k)[0] + "\t" + trios.get(k)[1] + "\t" + trios.get(k)[2]);
-                                trioICCResponseIDs.add(trios.get(k)[0] + "\t" + trios.get(k)[1] + "\t" + trios.get(k)[2]);
-                            }
-                            correlationData = new double[][]{Array.toDoubleArray(correl1), Array.toDoubleArray(correl2)};
-                            trioCorrel = Correlation.Pearson(correlationData);
-                            ICC trioICCAnalysis = new ICC(Array.toDoubleArray(trioICCData), Array.toStringArray(trioICCResponseIDs), null, null, true, log);
-                            trioICCAnalysis.computeICC();
-                            trioICC = trioICCAnalysis.getICC();
-	    				}
-	    				
 						log.report("Heritability for "+root);
 						log.report(line[1]+" ~ "+Array.toStr(Array.subArray(line, 2), " "));
+						
 						merlinEstimate = computeWithMerlin(dir+root, pedigreeFile, "pheno.dat", line.length > 2?"covars.dat":null, root, merlinExec, log);
          		        solarEstimate = computeWithSolar(dir+root, pedigreeFile, "pheno.dat", line.length > 2?"covars.dat":null, root, solarExec, log);
 						if (solarEstimate == null) {
@@ -706,7 +720,7 @@ public class Heritability {
 		try {
 			log = new Logger(logfile);
 			if (controlFile != null) {
-				fromParameters(controlFile, new Logger(ext.rootOf(controlFile, false)+".log"));
+				fromParameters(controlFile, false, new Logger(ext.rootOf(controlFile, false) + ".log"));
 			} else {
 				if (phenoDir != null) {
 					getHeritabilitiesOfAllPhenosInADir(phenoDir, pedfile, covars, log);
