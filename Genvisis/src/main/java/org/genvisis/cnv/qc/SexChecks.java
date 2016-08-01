@@ -546,9 +546,9 @@ public class SexChecks {
 	
 	public static int mapEstimatedSexToSex(String estCode) {
 	    String[] estCodes = EST_SEX_HEADER.split(";");
-	    for (int i = 0; i < estCodes.length; i++) {
+	    for (int i = 1; i < estCodes.length; i++) {
 	        if (estCodes[i].startsWith(estCode)) {
-	            return EST_SEX_MAPPING[i];
+	            return EST_SEX_MAPPING[i - 1];
 	        }
 	    }
 	    return 0;
@@ -818,6 +818,13 @@ public class SexChecks {
 		String filename = null;
 		boolean par = false;
 
+		boolean test = true;
+		if (test) {
+		    mapEstimatedSexToSex("CHEC");
+		    return;
+		}
+		
+		
 		String usage = "\\n"+
 		"qc.SexChecks requires 0-1 arguments\n"+
 		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
