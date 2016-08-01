@@ -48,6 +48,7 @@ public class DataControlPanel extends JPanel {
         btnDel.setBackground(Color.WHITE);
         btnDel.setFont(new Font("Tahoma", Font.BOLD, 11));
         btnDel.setMargin(btnIns);
+        btnDel.setToolTipText("Remove File");
         btnDel.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -61,6 +62,7 @@ public class DataControlPanel extends JPanel {
         btnMvUp.setBackground(Color.WHITE);
         btnMvUp.setFont(new Font("Tahoma", Font.BOLD, 11));
         btnMvUp.setMargin(btnIns);
+        btnMvUp.setToolTipText("Move Up");
         btnMvUp.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -74,6 +76,7 @@ public class DataControlPanel extends JPanel {
         btnMvDn.setBackground(Color.WHITE);
         btnMvDn.setFont(new Font("Tahoma", Font.BOLD, 11));
         btnMvDn.setMargin(btnIns);
+        btnMvDn.setToolTipText("Move Down");
         btnMvDn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -87,6 +90,7 @@ public class DataControlPanel extends JPanel {
         button.setBackground(Color.WHITE);
         button.setFont(new Font("Tahoma", Font.BOLD, 11));
         button.setMargin(btnIns);
+        button.setToolTipText("File Info");
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -100,6 +104,7 @@ public class DataControlPanel extends JPanel {
         btnLoad.setBackground(Color.WHITE);
         btnLoad.setFont(new Font("Tahoma", Font.BOLD, 11));
         btnLoad.setMargin(new Insets(0, 0, 0, 0));
+        btnLoad.setToolTipText("Preload/Unload File");
         btnLoad.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -113,6 +118,7 @@ public class DataControlPanel extends JPanel {
         btnUse.setBackground(Color.WHITE);
         btnUse.setFont(new Font("Tahoma", Font.BOLD, 11));
         btnUse.setMargin(new Insets(0, 0, 0, 0));
+        btnUse.setToolTipText("Display Data");
         btnUse.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

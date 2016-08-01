@@ -46,7 +46,7 @@ public class DataExportGUI extends JDialog {
     private GatingStrategy gating;
     private FCSPlot plot;
     private ArrayList<JCheckBox> boxes;
-    private volatile boolean cancelled = false;
+    private volatile boolean cancelled = true;
     private JTextField outputField;
     private JRadioButton btnCounts;
     private JRadioButton btnPcts;
@@ -207,6 +207,7 @@ public class DataExportGUI extends JDialog {
         btnExport.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                cancelled = false;
                 setVisible(false);
             }
         });
@@ -216,7 +217,6 @@ public class DataExportGUI extends JDialog {
         JButton btnCancel = new JButton("Cancel");
         btnCancel.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
-                cancelled = true;
                 setVisible(false);
                 dispose();
             }
@@ -248,7 +248,7 @@ public class DataExportGUI extends JDialog {
             addGatesToTree(rootNode, g);
         }
         
-        tree.setModel(new DefaultTreeModel(rootNode));        
+        tree.setModel(new DefaultTreeModel(rootNode, true));        
         expandAllNodes();
     }
     
@@ -263,7 +263,7 @@ public class DataExportGUI extends JDialog {
     }
     
     private void addGatesToTree(DefaultMutableTreeNode root, Gate g) {
-        DefaultMutableTreeNode child = new DefaultMutableTreeNode(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
+        DefaultMutableTreeNode child = new DefaultMutableTreeNode(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName(), true);
         gateMap.put(child, g);
         root.add(child);
         for (Gate childGate : g.getChildGates()) {

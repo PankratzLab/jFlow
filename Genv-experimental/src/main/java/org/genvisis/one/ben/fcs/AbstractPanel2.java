@@ -56,8 +56,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	public static final boolean DEBUGGING = false;
 
 	public static final int HEAD_BUFFER = 25;
-	public static final int HEIGHT_X_AXIS = 105;
-	public static final int WIDTH_Y_AXIS = 140;
+	public static final int HEIGHT_X_AXIS = 80;//105;
+	public static final int WIDTH_Y_AXIS = 120;//140;
 	public static final int WIDTH_BUFFER = 50;
 	public static final int AXIS_THICKNESS = 4;
 	public static final int TICK_THICKNESS = 2;
@@ -78,10 +78,19 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     public static final String Y_MAX = "yMax";
 	
 	public static enum PLOT_TYPE {
-	    DOT_PLOT,
-	    HEATMAP,
-        HISTOGRAM,
-        CONTOUR;
+	    DOT_PLOT("Dot Plot"),
+	    HEATMAP("HeatMap"),
+        HISTOGRAM("Histogram"),
+        CONTOUR("Contour Plot");
+	    
+        private PLOT_TYPE(String longName) {
+            this.longName = longName;
+        }
+        public String longName;
+        @Override
+        public String toString() {
+            return longName;
+        }
 	}
 	
     public static enum AXIS_SCALE {
@@ -1186,7 +1195,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
                         for (int e = 0; e < next; e++) {
                             for (double yPow = -Math.pow(10, e); yPow > -Math.pow(10, e+1) && yPow <= plotXmax; yPow -= Math.pow(10, e)) {
                                 if (getYPixel(yPow) <= pixMax && getYPixel(yPow) > canvasSectionMinimumY) {
-                                    Grafik.drawThickLine(g, canvasSectionMaximumX - TICK_LENGTH, getYPixel(yPow), canvasSectionMaximumX, getYPixel(yPow), TICK_THICKNESS, Color.BLACK);
+                                    Grafik.drawThickLine(g, canvasSectionMaximumX - (yPow == -Math.pow(10, e) ? TICK_LENGTH : (TICK_LENGTH/3 *2)), getYPixel(yPow), canvasSectionMaximumX, getYPixel(yPow), TICK_THICKNESS, Color.BLACK);
                                 }
                             }
                         }
@@ -2091,7 +2100,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	protected Logicle biexScaleY = null;
 	private Logicle getBiexScale(boolean xAxis) {
 	    double W = 2; // linear decades
-	    double A = -1; // negative decades
+	    double A = 0; // negative decades
 	    if (xAxis) {
 	        if (biexScaleX != null && logPlotXMax == plotXmax) return biexScaleX;
 	        double dec = plotXmax;

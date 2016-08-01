@@ -149,7 +149,7 @@ public class GateTreePanel extends JPanel {
         }
         
         breadcrumbPanel.removeAll();
-        DefaultTreeModel newModel = new DefaultTreeModel(rootNode); 
+        DefaultTreeModel newModel = new DefaultTreeModel(rootNode, true); 
         tree.setModel(newModel);
         expandAllNodes();
         
@@ -183,7 +183,7 @@ public class GateTreePanel extends JPanel {
             }
         }
         ident.append(")");
-        DefaultMutableTreeNode child = new DefaultMutableTreeNode(ident.toString());
+        DefaultMutableTreeNode child = new DefaultMutableTreeNode(ident.toString(), true);
         gateMap.put(child, g);
         nodeMap.put(g, child);
         root.add(child);

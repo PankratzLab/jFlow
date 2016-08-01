@@ -229,6 +229,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_MASK), "PLOT");
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_G, InputEvent.ALT_MASK), "GATE");
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.ALT_MASK), "DATA");
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK), "OPEN_FILE");
 		
 		ActionMap actionMap = fcsPanel.getActionMap();
 		
@@ -250,6 +251,13 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		        fcsControls.showDataControls();
 		    }
 		});
+		actionMap.put("OPEN_FILE", new AbstractAction() {
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+                fcsControls.dirSelectListener.actionPerformed(e);
+		    }
+		});
+		
 		
 		fcsPanel.setActionMap(actionMap);
 	}
@@ -309,9 +317,9 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		});
 		menu.add(menuItemExit);
 		
-		menu = new JMenu("View");
-        menu.setMnemonic(KeyEvent.VK_V);
-		menuBar.add(menu);
+//		menu = new JMenu("View");
+//        menu.setMnemonic(KeyEvent.VK_V);
+//		menuBar.add(menu);
 		
 //		menuItemTestRB = new JMenuItem("Test Rainbow Bead Files", KeyEvent.VK_R);
 //		menuItemTestRB.addActionListener(new ActionListener() {
@@ -690,7 +698,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	public void setData(FCSDataLoader newDataLoader) {
 	    if (this.dataLoader != null && this.dataLoader.getLoadedFile().equals(newDataLoader.getLoadedFile())) return;
 	    resetForNewData(newDataLoader);
-        this.parent.setTitle(TITLE_STR + "  --  " + newDataLoader.getLoadedFile());
+        this.parent.setTitle(ext.rootOf(newDataLoader.getLoadedFile()) + "  --  " + TITLE_STR);
         updateGUI();
 	}
 
