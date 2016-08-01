@@ -9,6 +9,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
+import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerHive;
@@ -102,13 +103,69 @@ public class GCTA {
 		return new GRM(success, null);
 	}
 
-	private static void test(Project proj, String[] samples, String[] markers) {
-		String outDir = proj.PROJECT_DIRECTORY.getValue()+"gcta/";
+	private static void run(Project proj, String sampFile, String markerFile) {
+		String[] samples = sampFile == null ? null
+				: HashVec.loadFileToStringArray(sampFile, false, false, new int[] { 0 }, false, true, "\t");
+
+		String outDir = proj.PROJECT_DIRECTORY.getValue() + "gcta/";
 		new File(outDir).mkdirs();
-		String fakePed = outDir+"gctaPedigree.dat";
+		String fakePed = outDir + "gctaPedigree.dat";
 		proj.PEDIGREE_FILENAME.setValue(fakePed);
 		Pedigree.build(proj, null, samples, false);
+		boolean create = PlinkData.saveGenvisisToPlinkBedSet(proj, "gcta/gcta", null, markerFile, -1, true);
 
+	}
+
+	public static void main(String[] args) {
+		int numArgs = args.length;
+		String filename = null;
+		String sampFile = null;
+		String markerFile = null;
+
+		String out = null;
+		boolean overwrite = false;
+		Project proj;
+
+		String usage = "\n" + "cnv.analysis.GCTA requires 1-3 arguments\n"
+				+ "   (1) project properties filename (i.e. proj="
+				+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+				+ "   (2) samples to use (i.e. samps= (defaults to all samples))\n"
+//				+ "   (3) markers to use (i.e. markers= (defaults to all markers))\n"
+
+				+ "";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("proj=")) {
+				filename = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("samps=")) {
+				sampFile = args[i].split("=")[1];
+				numArgs--;
+			} 
+//			else if (args[i].startsWith("markers=")) {
+//				sampFile = args[i].split("=")[1];
+//				numArgs--;
+//			} 
+			else if (args[i].startsWith("out=")) {
+				out = args[i].split("=")[1];
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		try {
+			proj = new Project(filename, false);
+			run(proj, sampFile, markerFile);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }
