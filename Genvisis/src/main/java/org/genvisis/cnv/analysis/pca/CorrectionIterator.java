@@ -172,10 +172,12 @@ public class CorrectionIterator implements Serializable {
 				valid = false;
 			} else {
 				log.reportTimeInfo("Loading model builders from " + samplesToBuildModels);
-				String[] sampsForMods = HashVec.loadFileToStringArray(samplesToBuildModels, false, new int[] { 0 }, true);
+				String[] sampsForMods = HashVec.loadFileToStringArray(samplesToBuildModels, false, false,
+						new int[] { 0 }, false, true, "\t");
 				log.reportTimeInfo("Loaded " + sampsForMods.length + " model builders from " + samplesToBuildModels);
 
-				int[] indices = ext.indexLargeFactors(sampsForMods, proj.getSamples(), true, proj.getLog(), true, false);
+				int[] indices = ext.indexLargeFactors(sampsForMods, proj.getSamples(), true, proj.getLog(), true,
+						false);
 				samplesForModels = Array.booleanArray(proj.getSamples().length, false);
 				for (int i = 0; i < indices.length; i++) {
 					samplesForModels[indices[i]] = true;

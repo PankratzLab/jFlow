@@ -9,10 +9,13 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerHive;
+import org.genvisis.common.ext;
+import org.genvisis.gwas.Qc;
 
 /**
  * Class for running GCTA (http://cnsgenomics.com/software/gcta/)
@@ -21,9 +24,24 @@ import org.genvisis.common.WorkerHive;
  */
 public class GCTA {
 
+	
+	//TODO
 	// gcta64 --mgrm grm_chrs.txt --make-grm --out test
-	private static void mergeGRMs(ArrayList<GRM> grms, Logger log) {
-
+	private static void mergeGRMs(ArrayList<GRM> grms, String output, Logger log) {
+		
+	}
+	
+	//TODO
+	private static void generatePCACovars(){
+		
+	}
+	
+	
+	//TODO
+//	gcta64 --grm test --grm-cutoff 0.025 --make-grm --out test_rm025
+//
+	private static void removeCrypticRelated(){
+		
 	}
 
 	/**
@@ -103,7 +121,7 @@ public class GCTA {
 		return new GRM(success, null);
 	}
 
-	private static void run(Project proj, String sampFile, String markerFile) {
+	private static void run(Project proj, String sampFile, String markerFile, int numthreads) {
 		String[] samples = sampFile == null ? null
 				: HashVec.loadFileToStringArray(sampFile, false, false, new int[] { 0 }, false, true, "\t");
 
@@ -111,8 +129,15 @@ public class GCTA {
 		new File(outDir).mkdirs();
 		String fakePed = outDir + "gctaPedigree.dat";
 		proj.PEDIGREE_FILENAME.setValue(fakePed);
-		Pedigree.build(proj, null, samples, false);
-		boolean create = PlinkData.saveGenvisisToPlinkBedSet(proj, "gcta/gcta", null, markerFile, -1, true);
+
+		String[] plinks = PSF.Plink.getPlinkBedBimFam(outDir + "gcta");
+		if (!Files.exists("", plinks)) {
+			Pedigree.build(proj, null, samples, false);
+			PlinkData.saveGenvisisToPlinkBedSet(proj, "gcta/gcta", null, markerFile, -1, true);
+		}
+		Qc.fullGamut(outDir, "gcta", false, proj.getLog());
+
+		splitRunGCTA("FILLIN", outDir + "gcta", 0.01, 1, numthreads, proj.getLog());
 
 	}
 
@@ -125,12 +150,16 @@ public class GCTA {
 		String out = null;
 		boolean overwrite = false;
 		Project proj;
+		int numthreads = 24;
 
 		String usage = "\n" + "cnv.analysis.GCTA requires 1-3 arguments\n"
 				+ "   (1) project properties filename (i.e. proj="
 				+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
 				+ "   (2) samples to use (i.e. samps= (defaults to all samples))\n"
-//				+ "   (3) markers to use (i.e. markers= (defaults to all markers))\n"
+				+ PSF.Ext.getNumThreadsCommand(3, numthreads) + "\n"
+
+				// + " (3) markers to use (i.e. markers= (defaults to all
+				// markers))\n"
 
 				+ "";
 
@@ -144,12 +173,10 @@ public class GCTA {
 			} else if (args[i].startsWith("samps=")) {
 				sampFile = args[i].split("=")[1];
 				numArgs--;
-			} 
-//			else if (args[i].startsWith("markers=")) {
-//				sampFile = args[i].split("=")[1];
-//				numArgs--;
-//			} 
-			else if (args[i].startsWith("out=")) {
+			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+				numthreads = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("out=")) {
 				out = args[i].split("=")[1];
 				numArgs--;
 			} else {
@@ -162,12 +189,11 @@ public class GCTA {
 		}
 		try {
 			proj = new Project(filename, false);
-			run(proj, sampFile, markerFile);
+			run(proj, sampFile, markerFile, numthreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
 }
 
 // private Project proj;
