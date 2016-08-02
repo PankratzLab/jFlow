@@ -79,7 +79,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	
 	public static enum PLOT_TYPE {
 	    DOT_PLOT("Dot Plot"),
-	    HEATMAP("HeatMap"),
+	    HEATMAP("Heatmap"),
         HISTOGRAM("Histogram"),
         CONTOUR("Contour Plot");
 	    
@@ -2099,7 +2099,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	protected Logicle biexScaleX = null;
 	protected Logicle biexScaleY = null;
 	private Logicle getBiexScale(boolean xAxis) {
-	    double W = 2; // linear decades
+	    double W = 2; // linear decades // W=1 is weird, W=3 -> "scale() didn't converge"
 	    double A = 0; // negative decades
 	    if (xAxis) {
 	        if (biexScaleX != null && logPlotXMax == plotXmax) return biexScaleX;
@@ -2109,8 +2109,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	            dec = dec / 10d;
 	            decCnt++;
 	        }
-	        decCnt += dec;
+//	        decCnt += dec;
 //    	    Logicle fl = new FastLogicle(plotXmax, W, M, A, 1); // FastLogicle causes issues (possible that parameters are incorrectly set)
+//	        System.out.println("BiEx: T{" + plotXmax + "}, W{" + W + "}, M{" + decCnt + "}, A{" + A + "}");
     	    return biexScaleX = new Logicle(logPlotXMax = plotXmax, W, decCnt, A);
 	    } else {
     	    if (biexScaleY != null && logPlotYMax == plotYmax) return biexScaleY;
@@ -2120,7 +2121,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
                 dec = dec / 10d;
                 decCnt++;
             }
-            decCnt += dec;
+//            decCnt += dec;
 //            Logicle fl = new FastLogicle(plotYmax, W, M, A, 1);
             return biexScaleY = new Logicle(logPlotYMax = plotYmax, W, decCnt, A);
 	    }

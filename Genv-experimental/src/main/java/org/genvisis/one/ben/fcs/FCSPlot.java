@@ -24,10 +24,8 @@ import java.util.HashSet;
 import java.util.Properties;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -40,7 +38,6 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -61,7 +58,6 @@ import org.genvisis.one.ben.fcs.gating.GateFileWriter;
 import org.genvisis.one.ben.fcs.gating.GateTreePanel;
 import org.genvisis.one.ben.fcs.gating.GatingStrategy;
 import org.genvisis.one.ben.fcs.sub.DataExportGUI;
-import org.genvisis.one.ben.fcs.sub.RainbowTestGUI;
 import org.xml.sax.SAXException;
 
 public class FCSPlot extends JPanel implements WindowListener, ActionListener, PropertyChangeListener { 
@@ -94,12 +90,12 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     private volatile String xDataName;
     private volatile String yDataName;
 
-    private volatile PLOT_TYPE plotType;
-
     private volatile boolean showSDY = true;
     private volatile boolean showSDX = true;
     private volatile boolean showMedianY = true;
     private volatile boolean showMedianX = true;
+    
+    private volatile boolean drawPolyGatesBinned = false;
 
     private JFrame parent;
 
@@ -265,9 +261,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	private JMenuBar menuBar() {
 		JMenuBar menuBar;
 		JMenu menu;
-		JMenuItem menuItemExit, menuItemOpen, menuItemShowControls, menuItemRemove, menuItemExport, menuItemRemoveAll, menuItemScreens, menuItemSave;
-		JMenuItem menuItemTestRB;
-		final JCheckBoxMenuItem /*menuItemExclude,*/ menuItemHist;
+		JMenuItem menuItemExit, menuItemOpen, menuItemExport, menuItemSave;
 		
 		menuBar = new JMenuBar();
 		menu = new JMenu("File");
@@ -351,9 +345,9 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     }
 	
 	public void actionPerformed(ActionEvent ae) {
-		String command;
-		
-		command = ae.getActionCommand();
+//		String command;
+//		
+//		command = ae.getActionCommand();
 //		if (command.equals(ADD_DATA_FILE)) {
 //			addFile();
 //		} else if (command.equals(CREATE_SCREENS)) {
@@ -369,7 +363,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     public AXIS_SCALE getXScale() { return fcsPanel.getXAxis(); }
     public AXIS_SCALE getYScale() { return fcsPanel.getYAxis(); }
     
-    public PLOT_TYPE getPlotType() { return plotType; }
+    public PLOT_TYPE getPlotType() { return fcsPanel.chartType; }
 
     public boolean showMedian(boolean yAxis) { return yAxis ? showMedianY : showMedianX; }
     public boolean showSD(boolean yAxis) { return yAxis ? showSDY : showSDX; }
@@ -380,7 +374,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
             this.fcsControls.setXData(xDataName);
         }
     }
-    public void setYDataName(String yDataName) { 
+    public void setYDataName(String yDataName) {
         this.yDataName = yDataName;
         if (!yDataName.equals(this.fcsControls.getSelectedY())) {
             this.fcsControls.setYData(yDataName);
@@ -444,7 +438,15 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         }
     }
     
-	public void updateGUI() {
+	public boolean drawPolysAsFlowJo() {
+        return drawPolyGatesBinned;
+    }
+
+	public void setDrawPolysAsFlowJo(boolean draw) {
+	    drawPolyGatesBinned = draw;
+	}
+
+    public void updateGUI() {
         fcsPanel.paintAgain();
 	}
 	
@@ -671,6 +673,12 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	    updateGUI();
 	}
 	
+	public void refreshGating() {
+        Gate sel = this.parentGate == null || this.parentGate instanceof NullGate ? null : this.parentGate;
+        this.gatingSelector.resetGating(gating, sel);
+        updateGUI();
+	}
+	
 	public ArrayList<Gate> getGatingForCurrentPlot() {
 	    ArrayList<Gate> gateList = new ArrayList<Gate>();
 	    if (this.parentGate != null) {
@@ -840,9 +848,13 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
             this.parentGate = gate;
             ArrayList<GateDimension> gd = gate.getDimensions();
             GateDimension gdX = gd.get(0);
-            GateDimension gdY = gd.get(1);
             setXDataName(gdX.getParam());
-            setYDataName(gdY.getParam());
+            if (gd.size() == 2) {
+                GateDimension gdY = gd.get(1);
+                setYDataName(gdY.getParam());
+            } else {
+                setPlotType(PLOT_TYPE.HISTOGRAM);
+            }
             // TODO set axis scales
         }
         if (reset) {
@@ -947,8 +959,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
             }
         });
     }
-    
-    
+
 }
 
 

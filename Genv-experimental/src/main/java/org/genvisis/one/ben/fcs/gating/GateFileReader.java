@@ -9,6 +9,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.gating.Gate.BooleanGate;
 import org.genvisis.one.ben.fcs.gating.Gate.EllipsoidGate;
 import org.genvisis.one.ben.fcs.gating.Gate.PolygonGate;
@@ -23,6 +24,10 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class GateFileReader {
+    
+    
+    // TODO remove all dependence on this variable, which may not be possibly due to info limitations in files
+    private static final AXIS_SCALE DEFAULT_SCALE = AXIS_SCALE.LIN; 
     
     public static GatingStrategy readGateFile(String gateFile) throws ParserConfigurationException, SAXException, IOException {
         return gateFile.toLowerCase().endsWith(".wsp") || gateFile.toLowerCase().endsWith(".wspt") ? readFlowJoGatingFile(gateFile) : readGatingMLFile(gateFile);
@@ -42,6 +47,10 @@ public class GateFileReader {
         Document doc = builder.parse(new File(filename));
         doc.getDocumentElement().normalize();
         NodeList nodes = flowjo ? doc.getElementsByTagName("Population") : doc.getElementsByTagName("gating:Gating-ML");
+        
+        // TODO load <Transforms> and subelements from FlowJo files
+        // TODO write transforms to gating-ml file
+        // TODO why aren't transforms exported to Gating-ML by FlowJo?
         
         GatingStrategy gs = new GatingStrategy();
         gs.setFile(filename);
@@ -142,7 +151,7 @@ public class GateFileReader {
             for (int i = 0; i < dimNodes.size(); i++) {
                 Node dimNode = dimNodes.get(i);
                 String param = ((Element) getFirstChild(dimNode, "data-type:fcs-dimension")).getAttribute("data-type:name");
-                RectangleGateDimension gd = new RectangleGateDimension((RectangleGate) gate, param);
+                RectangleGateDimension gd = new RectangleGateDimension((RectangleGate) gate, param, DEFAULT_SCALE);
                 String min = ((Element) dimNode).getAttribute("gating:min");
                 String max = ((Element) dimNode).getAttribute("gating:max");
 //                ((Element) dimNode).getAttribute("yRatio"); // TODO dunno what yRatio is used for yet
@@ -187,7 +196,7 @@ public class GateFileReader {
             for (int i = 0; i < dimNodes.size(); i++) {
                 Node dimNode = dimNodes.get(i);
                 String param = ((Element) getFirstChild(dimNode, "data-type:fcs-dimension")).getAttribute("data-type:name");
-                GateDimension gd = new GateDimension(gate, param);
+                GateDimension gd = new GateDimension(gate, param, DEFAULT_SCALE);
                 gd.paramName = param;
                 gate.dimensions.add(gd);
             }

@@ -1,23 +1,25 @@
 package org.genvisis.one.ben.fcs.gating;
 
+import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.gating.Gate.RectangleGate;
 
 public class GateDimension {
     String paramName;
     Gate owner;
+    AXIS_SCALE scale;
     
-    public GateDimension(Gate gate, String param) {
+    public GateDimension(Gate gate, String param, AXIS_SCALE scale) {
         this.paramName = param;
         this.owner = gate;
     }
     
     public static class RectangleGateDimension extends GateDimension {
-        public RectangleGateDimension(RectangleGate gate, String param) {
-            super(gate, param);
+        public RectangleGateDimension(RectangleGate gate, String param, AXIS_SCALE scale) {
+            super(gate, param, scale);
         }
         
-        public RectangleGateDimension(RectangleGate gate, String param, float min, float max) {
-            super(gate, param);
+        public RectangleGateDimension(RectangleGate gate, String param, AXIS_SCALE scale, float min, float max) {
+            super(gate, param, scale);
             this.min = Math.min(min, max);
             this.max = Math.max(min, max);
         }

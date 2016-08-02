@@ -142,7 +142,14 @@ public class FCSPlotControlPanel extends JPanel {
             @Override
             public void itemStateChanged(ItemEvent arg0) {
                 if (arg0.getStateChange() == ItemEvent.SELECTED) {
-                    plot.setYDataName(arg0.getItem().toString());
+                    if (FCSPlot.HISTOGRAM_COL.equals(arg0.getItem().toString())) {
+                        plot.setPlotType(PLOT_TYPE.HISTOGRAM);
+                    } else {
+                        if (plot.getPlotType() == PLOT_TYPE.HISTOGRAM) {
+                            plot.setPlotType(PLOT_TYPE.DOT_PLOT);
+                        }
+                        plot.setYDataName(arg0.getItem().toString());
+                    }
                     plot.updateGUI();
                 }
             }
@@ -357,10 +364,22 @@ public class FCSPlotControlPanel extends JPanel {
         });
         panel.add(gateTypeCmb, "cell 0 4, growx");
         
+        JCheckBox chkDrawPolysBinned = new JCheckBox("Bin Polygons (FlowJo)");
+        chkDrawPolysBinned.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent arg0) {
+                plot.setDrawPolysAsFlowJo(arg0.getStateChange() == ItemEvent.SELECTED);
+                // TODO display warning that existing gates won't be altered?
+                // TODO or rather, display confirm dialog asking if all gates should be changed?
+            }
+        });
+        chkDrawPolysBinned.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(chkDrawPolysBinned, "cell 0 5, grow");
+        
         btnSaveGating = new JButton("Save Gating");
         btnSaveGating.addActionListener(gateSaveListener);
         btnSaveGating.setHorizontalAlignment(SwingConstants.CENTER);
-        panel.add(btnSaveGating, "cell 0 5, span 2, center");
+        panel.add(btnSaveGating, "cell 0 6, span 2, center");
         
         dataControlsPanel = new JAccordionPanel();
         panel_1.add(dataControlsPanel, "cell 0 2,grow");
