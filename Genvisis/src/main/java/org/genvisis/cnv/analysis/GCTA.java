@@ -258,7 +258,7 @@ public class GCTA {
 			ExtProjectDataParser parser = builder.build(proj, mitoFile);
 			parser.determineIndicesFromTitles();
 			parser.loadData();
-			final String resultsDir = ext.parseDirectoryOfFile(mergedGRM) + ext.removeDirectoryInfo(mitoFile);
+			final String resultsDir = ext.parseDirectoryOfFile(mergedGRM) + ext.rootOf(mitoFile) + "/";
 			new File(resultsDir).mkdirs();
 			SampleData sampleData = proj.getSampleData(0, false);
 			String[] samples = proj.getSamples();
