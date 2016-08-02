@@ -26,8 +26,28 @@ public class GCTA {
 
 	// TODO
 	// gcta64 --mgrm grm_chrs.txt --make-grm --out test
-	private static void mergeGRMs(ArrayList<GRM> grms, String output, Logger log) {
+	private static boolean mergeGRMs(ArrayList<GRM> grms, String output, Logger log) {
+		ArrayList<String> chrGRMs = new ArrayList<String>();
+		for (GRM grm : grms) {
+			chrGRMs.add(grm.grmFile);
+		}
+		String chrListFile = output + "_chrsGRM.txt";
+		Files.writeArrayList(chrGRMs, chrListFile);
 
+		String[] inputs = Array.toStringArray(chrGRMs);
+
+		String[] outputs = new String[] { output };
+		ArrayList<String> command = new ArrayList<String>();
+		command.add("gcta64");
+		command.add("--mgrm");
+		command.add(chrListFile);
+		command.add("--make-grm");
+		command.add("--out");
+		command.add(output);
+		boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
+				true, false, log);
+		return success;
+		
 	}
 
 	// TODO
@@ -38,7 +58,7 @@ public class GCTA {
 	// TODO
 	// gcta64 --grm test --grm-cutoff 0.025 --make-grm --out test_rm025
 	//
-	private static void removeCrypticRelated() {
+	private static void removeCrypticRelated(String inputGrm, String outputGrm, double grmCutoff, Logger log) {
 
 	}
 
@@ -78,12 +98,12 @@ public class GCTA {
 
 	private static class GRM {
 		private boolean success;
-		private String[] output;
+		private String grmFile;
 
-		private GRM(boolean success, String[] output) {
+		private GRM(boolean success, String grmFile) {
 			super();
 			this.success = success;
-			this.output = output;
+			this.grmFile = grmFile;
 		}
 
 	}
@@ -124,20 +144,22 @@ public class GCTA {
 				: HashVec.loadFileToStringArray(sampFile, false, false, new int[] { 0 }, false, true, "\t");
 
 		String outDir = proj.PROJECT_DIRECTORY.getValue() + "gcta/";
+		String plinkRoot = outDir + "gcta";
 		new File(outDir).mkdirs();
 		String fakePed = outDir + "gctaPedigree.dat";
 		proj.PEDIGREE_FILENAME.setValue(fakePed);
 
-		String[] plinks = PSF.Plink.getPlinkBedBimFam(outDir + "gcta");
+		String[] plinks = PSF.Plink.getPlinkBedBimFam(plinkRoot);
 		if (!Files.exists("", plinks)) {
-			System.out.println("SHOULD");
-			System.exit(1);
+			String nonCNFile = outDir + "markersToQC.txt";
+			Files.writeList(proj.getNonCNMarkers(), nonCNFile);
 			Pedigree.build(proj, null, samples, false);
 			PlinkData.saveGenvisisToPlinkBedSet(proj, "gcta/gcta", null, markerFile, -1, true);
 		}
 		Qc.fullGamut(outDir, "gcta", false, proj.getLog());
 
-		splitRunGCTA("FILLIN", outDir + "gcta", 0.01, 1, numthreads, proj.getLog());
+		ArrayList<GRM> grms = splitRunGCTA(plinkRoot, plinkRoot, 0.01, 1, numthreads, proj.getLog());
+		mergeGRMs(grms, plinkRoot + "_merge", proj.getLog());
 
 	}
 
