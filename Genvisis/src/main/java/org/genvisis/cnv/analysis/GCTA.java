@@ -247,7 +247,8 @@ public class GCTA {
 		PRE_PROCESSED, MITO_FILE;
 	}
 
-	private static void processMitoFile(Project proj, String mitoFile, String mergedGRM, String covarFile, Logger log) {
+	private static ArrayList<VarianceResult> processMitoFile(final Project proj, String mitoFile,
+			final String mergedGRM, final String covarFile, int numThreads, Logger log) {
 		ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
 		builder.sampleBased(true);
 		builder.requireAll(true);
@@ -257,7 +258,7 @@ public class GCTA {
 			ExtProjectDataParser parser = builder.build(proj, mitoFile);
 			parser.determineIndicesFromTitles();
 			parser.loadData();
-			String resultsDir = ext.parseDirectoryOfFile(mergedGRM) + ext.removeDirectoryInfo(mitoFile);
+			final String resultsDir = ext.parseDirectoryOfFile(mergedGRM) + ext.removeDirectoryInfo(mitoFile);
 			new File(resultsDir).mkdirs();
 			SampleData sampleData = proj.getSampleData(0, false);
 			String[] samples = proj.getSamples();
@@ -265,22 +266,37 @@ public class GCTA {
 			for (int i = 0; i < samples.length; i++) {
 				fidIID.add(sampleData.lookup(samples[i])[1]);
 			}
+
+			WorkerHive<VarianceResult> hive = new WorkerHive<GCTA.VarianceResult>(numThreads, 10, proj.getLog());
 			for (int i = 0; i < parser.getNumericDataTitles().length; i++) {
-				String current = parser.getNumericDataTitles()[i];
+				final String current = parser.getNumericDataTitles()[i];
 				ArrayList<String> pheno = new ArrayList<String>();
 				double[] data = parser.getNumericDataForTitle(current);
 				for (int j = 0; j < data.length; j++) {
 					pheno.add(fidIID.get(j) + "\t" + data[j]);
 				}
-				String phenoFile = resultsDir + current + ".txt";
+				final String phenoFile = resultsDir + current + ".txt";
 				Files.writeArrayList(pheno, phenoFile);
+				hive.addCallable(new Callable<GCTA.VarianceResult>() {
+
+					@Override
+					public VarianceResult call() throws Exception {
+						// TODO Auto-generated method stub
+						return determineVarianceExplained(mergedGRM, resultsDir + current, phenoFile, covarFile, 1,
+								proj.getLog());
+					}
+				});
+
 			}
+			return hive.getResults();
+
 		} catch (FileNotFoundException nfe) {
 			log.reportException(nfe);
 		}
+		return null;
 	}
 
-	private static void run(Project proj, String sampFile, String phenoFile, PHENO_TYPE pType, int pcCovars,
+	private static void run(Project proj, String sampFile, String[] phenoFiles, PHENO_TYPE pType, int pcCovars,
 			int numthreads) {
 		String[] samples = sampFile == null ? null
 				: HashVec.loadFileToStringArray(sampFile, false, false, new int[] { 0 }, false, true, "\t");
@@ -319,7 +335,9 @@ public class GCTA {
 			}
 			switch (pType) {
 			case MITO_FILE:
-
+				for (int i = 0; i < phenoFiles.length; i++) {
+					processMitoFile(proj, phenoFiles[i], mergedGRM, covarFile, numthreads, proj.getLog());
+				}
 				break;
 			case PRE_PROCESSED:
 				// determineVarianceExplained(mergedGRM, mergedGRM, phenoFile,
@@ -338,7 +356,7 @@ public class GCTA {
 		int numArgs = args.length;
 		String filename = null;
 		String sampFile = null;
-		String phenoFile = null;
+		String[] phenoFiles = null;
 		String out = null;
 		Project proj;
 		int numthreads = 24;
@@ -349,7 +367,7 @@ public class GCTA {
 				+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
 				+ "   (2) samples to use (i.e. samps= (defaults to all samples))\n"
 				+ PSF.Ext.getNumThreadsCommand(3, numthreads) + "\n"
-				+ "   (4) phenotype file (i.e. pheno= (no default))\n"
+				+ "   (4) phenotype file(s) (i.e. pheno= (no default))\n"
 				+ "   (5) number of Principal components to compute for covariate use, set to -1 to skip (i.e. pcCovars="
 				+ pcCovars + " (default))\n" + "";
 
@@ -364,7 +382,7 @@ public class GCTA {
 				sampFile = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("pheno=")) {
-				phenoFile = args[i].split("=")[1];
+				phenoFiles = args[i].split("=")[1].split(",");
 				numArgs--;
 			} else if (args[i].startsWith("pcCovars=")) {
 				pcCovars = ext.parseIntArg(args[i]);
@@ -385,7 +403,7 @@ public class GCTA {
 		}
 		try {
 			proj = new Project(filename, false);
-			run(proj, sampFile, phenoFile, PHENO_TYPE.MITO_FILE, pcCovars, numthreads);
+			run(proj, sampFile, phenoFiles, PHENO_TYPE.MITO_FILE, pcCovars, numthreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
