@@ -1,12 +1,16 @@
 package org.genvisis.cnv.analysis;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.PlinkData;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
@@ -199,10 +203,22 @@ public class GCTA {
 		return new GRM(success, output);
 	}
 
+	private static class VarianceResult {
+		private String summaryFile;
+		private boolean success;
+
+		public VarianceResult(String summaryFile, boolean success) {
+			super();
+			this.summaryFile = summaryFile;
+			this.success = success;
+		}
+
+	}
+
 	// gcta64 --grm test --pheno test.phen --reml --qcovar test_10PCs.txt --out
 	// test --thread-num 10
-	private static void determineVarianceExplained(String inputGrm, String output, String phenoFile, String covarFile,
-			int numthreads, Logger log) {
+	private static VarianceResult determineVarianceExplained(String inputGrm, String output, String phenoFile,
+			String covarFile, int numthreads, Logger log) {
 		String[] inputs = new String[] { inputGrm + ".grm.bin", inputGrm + ".grm.N.bin", inputGrm + ".grm.id" };
 		String[] outputs = new String[] { "FDDD" };
 		ArrayList<String> command = new ArrayList<String>();
@@ -224,10 +240,44 @@ public class GCTA {
 		command.add(numthreads + "");
 		boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
 				false, false, log);
+		return new VarianceResult(null, success);
 	}
 
 	public enum PHENO_TYPE {
 		PRE_PROCESSED, MITO_FILE;
+	}
+
+	private static void processMitoFile(Project proj, String mitoFile, String mergedGRM, String covarFile, Logger log) {
+		ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
+		builder.sampleBased(true);
+		builder.requireAll(true);
+		builder.dataKeyColumnIndex(0);
+		builder.treatAllNumeric(true);
+		try {
+			ExtProjectDataParser parser = builder.build(proj, mitoFile);
+			parser.determineIndicesFromTitles();
+			parser.loadData();
+			String resultsDir = ext.parseDirectoryOfFile(mergedGRM) + ext.removeDirectoryInfo(mitoFile);
+			new File(resultsDir).mkdirs();
+			SampleData sampleData = proj.getSampleData(0, false);
+			String[] samples = proj.getSamples();
+			ArrayList<String> fidIID = new ArrayList<String>();
+			for (int i = 0; i < samples.length; i++) {
+				fidIID.add(sampleData.lookup(samples[i])[1]);
+			}
+			for (int i = 0; i < parser.getNumericDataTitles().length; i++) {
+				String current = parser.getNumericDataTitles()[i];
+				ArrayList<String> pheno = new ArrayList<String>();
+				double[] data = parser.getNumericDataForTitle(current);
+				for (int j = 0; j < data.length; j++) {
+					pheno.add(fidIID.get(j) + "\t" + data[j]);
+				}
+				String phenoFile = resultsDir + current + ".txt";
+				Files.writeArrayList(pheno, phenoFile);
+			}
+		} catch (FileNotFoundException nfe) {
+			log.reportException(nfe);
+		}
 	}
 
 	private static void run(Project proj, String sampFile, String phenoFile, PHENO_TYPE pType, int pcCovars,
