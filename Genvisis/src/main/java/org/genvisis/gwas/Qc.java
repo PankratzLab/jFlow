@@ -248,7 +248,7 @@ public class Qc {
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"ld_pruning/" + plink + ".prune.in")) {
 			log.report(ext.getTime() + "]\tRunning --indep-pairwise 50 5 0.3");
-			CmdLine.runDefaults("plink2 --noweb --bfile " + plink + " --indep-pairwise 50 5 0.3", dir+"ld_pruning/", log);
+			CmdLine.runDefaults("plink2 --noweb --bfile " + plink + " --indep-pairwise 50 5 0.3 --out " + plink, dir+"ld_pruning/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 
@@ -260,7 +260,7 @@ public class Qc {
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"genome/" + plink + ".genome")) {
 			log.report(ext.getTime() + "]\tRunning --genome"+(keepGenomeInfoForRelatedsOnly?" --min 0.1":""));
-			CmdLine.runDefaults("plink2 --noweb --bfile " + plink + " --genome"+(keepGenomeInfoForRelatedsOnly?" --min 0.1":""), dir+"genome/", log);
+			CmdLine.runDefaults("plink2 --noweb --bfile " + plink + " --genome"+(keepGenomeInfoForRelatedsOnly?" --min 0.1":"")+" --out " + plink, dir+"genome/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!keepGenomeInfoForRelatedsOnly && !Files.exists(dir + "genome/mds20.mds")) {
@@ -286,7 +286,7 @@ public class Qc {
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"ancestry/" + plink + ".bed")) {
 			log.report(ext.getTime() + "]\tRunning --extract " + plink + ".prune.in (again, this time to ancestry/)");
-			CmdLine.runDefaults("plink2 --bfile ../genome/" + plink + " --make-bed --noweb", dir+"ancestry/", log);
+			CmdLine.runDefaults("plink2 --bfile ../genome/" + plink + " --make-bed --noweb --out " + plink, dir+"ancestry/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		
