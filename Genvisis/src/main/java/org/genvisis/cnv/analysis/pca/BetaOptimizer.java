@@ -304,8 +304,10 @@ public class BetaOptimizer {
 					}
 
 					boolean[] samplesForModels = Array.booleanArray(proj.getSamples().length, false);
-					String[] pcSamps = HashVec.loadFileToStringArray(usedInPCFile, false, new int[] { 0 }, true);
-					int[] indicesPC = ext.indexLargeFactors(pcSamps, proj.getSamples(), true, proj.getLog(), true, false);
+					String[] pcSamps = HashVec.loadFileToStringArray(usedInPCFile, false, false, new int[] { 0 }, false,
+							true, "\t");
+					int[] indicesPC = ext.indexLargeFactors(pcSamps, proj.getSamples(), true, proj.getLog(), true,
+							false);
 					boolean[] sampsPCs = Array.booleanArray(proj.getSamples().length, false);
 
 					for (int i = 0; i < indicesPC.length; i++) {
