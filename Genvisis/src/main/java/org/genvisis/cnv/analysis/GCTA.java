@@ -22,21 +22,43 @@ import org.genvisis.gwas.Qc;
  * 
  *
  */
+
 public class GCTA {
 
-	// TODO
+	// Lil note about whether to remove related samples
+	/**
+	 * Can I use GCTA to estimate the variance explained by a subset of SNP in
+	 * family data? Yes, you can. GCTA does not assume that the individuals
+	 * should be unrelated. The reason for excluding close-relatives in Yang et
+	 * al. (Nat. Genet. 2010 and 2011) is because we do not want our estimates
+	 * to be confounded with some possible shared environment effects and the
+	 * effects of some possible causal variants that are not tagged by the SNPs
+	 * but captured by pedigree information. If you are interested in the
+	 * variance explained by a subset of SNPs in family data, you could fit the
+	 * genetic relationship matrix (GRM) estimated from these SNPs along with a
+	 * matrix of pedigree structure using the option --mgrm when running the
+	 * REML analysis (--reml). Alternatively, we could fit the GRM of the subset
+	 * of SNPs together with another GRM estimated from the SNPs in the rest of
+	 * the genome.
+	 *
+	 */
+
 	// gcta64 --mgrm grm_chrs.txt --make-grm --out test
-	private static boolean mergeGRMs(ArrayList<GRM> grms, String output, Logger log) {
+	private static boolean mergeGRMs(ArrayList<GRM> grms, String output, int numthreads, Logger log) {
 		ArrayList<String> chrGRMs = new ArrayList<String>();
 		for (GRM grm : grms) {
+			if (!grm.success) {
+				log.reportTimeError("GRM generation has failed (" + grm.grmFile + ")");
+				return false;
+			}
 			chrGRMs.add(grm.grmFile);
 		}
 		String chrListFile = output + "_chrsGRM.txt";
 		Files.writeArrayList(chrGRMs, chrListFile);
 
-		String[] inputs = Array.toStringArray(chrGRMs);
+		// String[] inputs = Array.toStringArray(chrGRMs);
 
-		String[] outputs = new String[] { output };
+		String[] outputs = new String[] { output + ".grm.N.bin", output + ".grm.id" };
 		ArrayList<String> command = new ArrayList<String>();
 		command.add("gcta64");
 		command.add("--mgrm");
@@ -44,22 +66,53 @@ public class GCTA {
 		command.add("--make-grm");
 		command.add("--out");
 		command.add(output);
-		boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
-				true, false, log);
+		command.add("--thread-num");
+		command.add(numthreads + "");
+		boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", null, outputs, true, false,
+				false, log);
 		return success;
-		
+
 	}
 
-	// TODO
-	private static void generatePCACovars() {
+	// gcta64 --grm test --keep test.indi.list --pca 20 --out test
+	private static boolean generatePCACovars(String inputGrm, String output, int numPCs, Logger log) {
+		String[] inputs = new String[] { inputGrm + ".grm.bin", inputGrm + ".grm.N.bin", inputGrm + ".grm.id" };
 
+		String[] outputs = new String[] { output };
+		ArrayList<String> command = new ArrayList<String>();
+		command.add("gcta64");
+		command.add("--grm");
+		command.add(inputGrm);
+
+		command.add("--pca");
+		command.add(numPCs + "");
+
+		command.add("--out");
+		command.add(output);
+		boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
+				false, false, log);
+		return success;
 	}
 
 	// TODO
 	// gcta64 --grm test --grm-cutoff 0.025 --make-grm --out test_rm025
 	//
-	private static void removeCrypticRelated(String inputGrm, String outputGrm, double grmCutoff, Logger log) {
+	private static boolean removeCrypticRelated(String inputGrm, String outputGrm, double grmCutoff, Logger log) {
+		String[] inputs = new String[] { inputGrm };
 
+		String[] outputs = new String[] { outputGrm };
+		ArrayList<String> command = new ArrayList<String>();
+		command.add("gcta64");
+		command.add("--grm");
+		command.add(inputGrm);
+		command.add("--grm-cutoff");
+		command.add(grmCutoff + "");
+		command.add("--make-grm");
+		command.add("--out");
+		command.add(outputGrm);
+		boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
+				false, false, log);
+		return success;
 	}
 
 	/**
@@ -133,13 +186,21 @@ public class GCTA {
 		command.add("--thread-num");
 		command.add(numthreads + "");
 		command.add("--make-grm");
-		boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, null, true, true,
-				false, log);
 
-		return new GRM(success, null);
+		String[] outputs = new String[] { output + ".grm.N.bin", output + ".grm.id" };
+		boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
+				false, false, log);
+
+		return new GRM(success, output);
 	}
 
-	private static void run(Project proj, String sampFile, String markerFile, int numthreads) {
+	private static class GRMRunner {
+		private String root;
+		private Logger log;
+
+	}
+
+	private static void run(Project proj, String sampFile, String phenoFile, int pcCovars, int numthreads) {
 		String[] samples = sampFile == null ? null
 				: HashVec.loadFileToStringArray(sampFile, false, false, new int[] { 0 }, false, true, "\t");
 
@@ -154,36 +215,42 @@ public class GCTA {
 			String nonCNFile = outDir + "markersToQC.txt";
 			Files.writeList(proj.getNonCNMarkers(), nonCNFile);
 			Pedigree.build(proj, null, samples, false);
-			PlinkData.saveGenvisisToPlinkBedSet(proj, "gcta/gcta", null, markerFile, -1, true);
+			PlinkData.saveGenvisisToPlinkBedSet(proj, "gcta/gcta", null, nonCNFile, -1, true);
 		}
 		Qc.fullGamut(outDir, "gcta", false, proj.getLog());
 
-		ArrayList<GRM> grms = splitRunGCTA(plinkRoot, plinkRoot, 0.01, 1, numthreads, proj.getLog());
-		mergeGRMs(grms, plinkRoot + "_merge", proj.getLog());
+		String plinkRootQC = outDir + "gcta_qc";
 
+		ArrayList<GRM> grms = splitRunGCTA(outDir + "quality_control/genome/gcta", plinkRootQC, 0.01, 1, numthreads,
+				proj.getLog());
+		String mergedGRM = plinkRootQC + "_merge";
+		boolean success = mergeGRMs(grms, mergedGRM, numthreads, proj.getLog());
+
+		if (success) {
+			if (pcCovars > 0) {
+				generatePCACovars(mergedGRM, mergedGRM, pcCovars, proj.getLog());
+			}
+		}
 	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = null;
 		String sampFile = null;
-		String markerFile = null;
-
+		String phenoFile = null;
 		String out = null;
-		boolean overwrite = false;
 		Project proj;
 		int numthreads = 24;
+		int pcCovars = 10;
 
 		String usage = "\n" + "cnv.analysis.GCTA requires 1-3 arguments\n"
 				+ "   (1) project properties filename (i.e. proj="
 				+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
 				+ "   (2) samples to use (i.e. samps= (defaults to all samples))\n"
 				+ PSF.Ext.getNumThreadsCommand(3, numthreads) + "\n"
-
-				// + " (3) markers to use (i.e. markers= (defaults to all
-				// markers))\n"
-
-				+ "";
+				+ "   (4) phenotype file (i.e. pheno= (no default))\n"
+				+ "   (5) number of Principal components to compute for covariate use, set to -1 to skip (i.e. pcCovars="
+				+ pcCovars + " (default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -194,6 +261,12 @@ public class GCTA {
 				numArgs--;
 			} else if (args[i].startsWith("samps=")) {
 				sampFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("pheno=")) {
+				phenoFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("pcCovars=")) {
+				pcCovars = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numthreads = ext.parseIntArg(args[i]);
@@ -211,46 +284,9 @@ public class GCTA {
 		}
 		try {
 			proj = new Project(filename, false);
-			run(proj, sampFile, markerFile, numthreads);
+			run(proj, sampFile, phenoFile, pcCovars, numthreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 }
-
-// private Project proj;
-// /**
-// * Samples to use, should already have been qc'ed
-// */
-// private String[] samples;
-// /**
-// * Markers to use, also should already have been qc'ed
-// */
-// private String[] markers;
-//
-
-// private String plinkRoot;
-//
-// /**
-// * Maf filter for any markers used
-// */
-// private double maf;
-// /**
-// * Even remotely related pairs of individuals (genetic similarity greater
-// * than 0.025, which represents fifth-degree relatives) are excluded so
-// that
-// * chance genetic similarity is used as a random effect in a linear mixed
-// * model.
-// */
-// private double crypticRelatedParam;
-// /**
-// * Full path to plink root (i.e /home/usr/data/plinkFileRoot
-// */
-//
-// /**
-// * Set to -1 to run all chrs
-// */
-// private byte chr;
-// private int numthreads;
-//
-// private String output;
