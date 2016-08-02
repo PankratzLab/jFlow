@@ -202,12 +202,12 @@ public class Qc {
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"marker_qc/gender.assoc")) {
 			log.report(ext.getTime() + "]\tRunning --assoc gender");
-			CmdLine.runDefaults("plink2 --bfile " + plink + " --geno 1 --mind 1 --pheno plink.fam --mpheno 3 --assoc --out gender --noweb", dir+"marker_qc/", log);
+			CmdLine.runDefaults("plink2 --bfile " + plink + " --geno 1 --mind 1 --pheno "+plink+".fam --mpheno 3 --assoc --out gender --noweb", dir+"marker_qc/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"marker_qc/gender.missing")) {
 			log.report(ext.getTime() + "]\tRunning --test-missing gender");
-			CmdLine.runDefaults("plink2 --bfile " + plink + " --geno 1 --mind 1 --pheno plink.fam --mpheno 3 --test-missing --out gender --noweb", dir+"marker_qc/", log);
+			CmdLine.runDefaults("plink2 --bfile " + plink + " --geno 1 --mind 1 --pheno "+plink+".fam --mpheno 3 --test-missing --out gender --noweb", dir+"marker_qc/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		
@@ -228,7 +228,10 @@ public class Qc {
 		new File(dir+"sample_qc/").mkdirs();
 		if (!Files.exists(dir+"sample_qc/" + plink + ".bed")) {
 			log.report(ext.getTime() + "]\tRunning --exclude miss_drops.dat");
-			CmdLine.runDefaults("plink2 --bfile ../marker_qc/" + plink + " --exclude ../marker_qc/miss_drops.dat --make-bed --noweb", dir+"sample_qc/", log);
+			CmdLine.runDefaults(
+					"plink2 --bfile ../marker_qc/" + plink
+							+ " --exclude ../marker_qc/miss_drops.dat --make-bed --noweb --out " + plink,
+					dir + "sample_qc/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"sample_qc/missing.imiss")) {
@@ -240,7 +243,7 @@ public class Qc {
 		new File(dir+"ld_pruning/").mkdirs();
 		if (!Files.exists(dir+"ld_pruning/" + plink + ".bed")) {
 			log.report(ext.getTime() + "]\tRunning --mind 0.05 (removes samples with callrate <95% for the markers that did pass QC)");
-			CmdLine.runDefaults("plink2 --bfile ../sample_qc/" + plink + " --mind 0.05 --make-bed --noweb", dir+"ld_pruning/", log);
+			CmdLine.runDefaults("plink2 --bfile ../sample_qc/" + plink + " --mind 0.05 --make-bed --noweb --out " + plink, dir+"ld_pruning/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"ld_pruning/" + plink + ".prune.in")) {
@@ -252,7 +255,7 @@ public class Qc {
 		new File(dir+"genome/").mkdirs();
 		if (!Files.exists(dir+"genome/" + plink + ".bed")) {
 			log.report(ext.getTime() + "]\tRunning --extract " + plink + ".prune.in");
-			CmdLine.runDefaults("plink2 --bfile ../ld_pruning/" + plink + " --extract ../ld_pruning/" + plink + ".prune.in --make-bed --noweb", dir+"genome/", log);
+			CmdLine.runDefaults("plink2 --bfile ../ld_pruning/" + plink + " --extract ../ld_pruning/" + plink + ".prune.in --make-bed --noweb --out " + plink, dir+"genome/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"genome/" + plink + ".genome")) {
