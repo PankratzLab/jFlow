@@ -75,10 +75,10 @@ public class GCTA {
 	}
 
 	// gcta64 --grm test --keep test.indi.list --pca 20 --out test
-	private static boolean generatePCACovars(String inputGrm, String output, int numPCs, Logger log) {
+	private static boolean generatePCACovars(String inputGrm, String output, int numPCs, int numthreads, Logger log) {
 		String[] inputs = new String[] { inputGrm + ".grm.bin", inputGrm + ".grm.N.bin", inputGrm + ".grm.id" };
 
-		String[] outputs = new String[] { output };
+		String[] outputs = new String[] { output + ".eigenval", output + ".eigenvec" };
 		ArrayList<String> command = new ArrayList<String>();
 		command.add("gcta64");
 		command.add("--grm");
@@ -89,31 +89,36 @@ public class GCTA {
 
 		command.add("--out");
 		command.add(output);
+		command.add("--thread-num");
+		command.add(numthreads + "");
 		boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
 				false, false, log);
 		return success;
 	}
 
-	// TODO
-	// gcta64 --grm test --grm-cutoff 0.025 --make-grm --out test_rm025
+	// // TODO
+	// // gcta64 --grm test --grm-cutoff 0.025 --make-grm --out test_rm025
+	// //
+	// private static boolean removeCrypticRelated(String inputGrm, String
+	// outputGrm, double grmCutoff, Logger log) {
+	// String[] inputs = new String[] { inputGrm };
 	//
-	private static boolean removeCrypticRelated(String inputGrm, String outputGrm, double grmCutoff, Logger log) {
-		String[] inputs = new String[] { inputGrm };
-
-		String[] outputs = new String[] { outputGrm };
-		ArrayList<String> command = new ArrayList<String>();
-		command.add("gcta64");
-		command.add("--grm");
-		command.add(inputGrm);
-		command.add("--grm-cutoff");
-		command.add(grmCutoff + "");
-		command.add("--make-grm");
-		command.add("--out");
-		command.add(outputGrm);
-		boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
-				false, false, log);
-		return success;
-	}
+	// String[] outputs = new String[] { outputGrm };
+	// ArrayList<String> command = new ArrayList<String>();
+	// command.add("gcta64");
+	// command.add("--grm");
+	// command.add(inputGrm);
+	// command.add("--grm-cutoff");
+	// command.add(grmCutoff + "");
+	// command.add("--make-grm");
+	// command.add("--out");
+	// command.add(outputGrm);
+	// boolean success =
+	// CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "",
+	// inputs, outputs, true,
+	// false, false, log);
+	// return success;
+	// }
 
 	/**
 	 * @param plinkRoot
@@ -194,13 +199,39 @@ public class GCTA {
 		return new GRM(success, output);
 	}
 
-	private static class GRMRunner {
-		private String root;
-		private Logger log;
+	// gcta64 --grm test --pheno test.phen --reml --qcovar test_10PCs.txt --out
+	// test --thread-num 10
+	private static void determineVarianceExplained(String inputGrm, String output, String phenoFile, String covarFile,
+			int numthreads, Logger log) {
+		String[] inputs = new String[] { inputGrm + ".grm.bin", inputGrm + ".grm.N.bin", inputGrm + ".grm.id" };
+		String[] outputs = new String[] { "FDDD" };
+		ArrayList<String> command = new ArrayList<String>();
+		command.add("gcta64");
+		command.add("--grm");
+		command.add(inputGrm);
 
+		command.add("--pheno");
+		command.add(phenoFile + "");
+
+		command.add("--reml");
+		if (covarFile != null) {
+			command.add("--qcovar");
+			command.add(covarFile);
+		}
+		command.add("--out");
+		command.add(output);
+		command.add("--thread-num");
+		command.add(numthreads + "");
+		boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
+				false, false, log);
 	}
 
-	private static void run(Project proj, String sampFile, String phenoFile, int pcCovars, int numthreads) {
+	public enum PHENO_TYPE {
+		PRE_PROCESSED, MITO_FILE;
+	}
+
+	private static void run(Project proj, String sampFile, String phenoFile, PHENO_TYPE pType, int pcCovars,
+			int numthreads) {
 		String[] samples = sampFile == null ? null
 				: HashVec.loadFileToStringArray(sampFile, false, false, new int[] { 0 }, false, true, "\t");
 
@@ -226,11 +257,31 @@ public class GCTA {
 		String mergedGRM = plinkRootQC + "_merge";
 		boolean success = mergeGRMs(grms, mergedGRM, numthreads, proj.getLog());
 
+		String covarFile = null;
 		if (success) {
 			if (pcCovars > 0) {
-				generatePCACovars(mergedGRM, mergedGRM, pcCovars, proj.getLog());
+				success = generatePCACovars(mergedGRM, mergedGRM, pcCovars, numthreads, proj.getLog());
+				if (success) {
+					covarFile = mergedGRM + ".eigenvec";
+				} else {
+					throw new IllegalStateException("Failed to generate grms");
+				}
 			}
+			switch (pType) {
+			case MITO_FILE:
+
+				break;
+			case PRE_PROCESSED:
+				// determineVarianceExplained(mergedGRM, mergedGRM, phenoFile,
+				// covarFile, numthreads, proj.getLog());
+			default:
+				throw new IllegalArgumentException(pType + " is not implemented yet");
+
+			}
+		} else {
+			throw new IllegalStateException("Failed to generate grms");
 		}
+
 	}
 
 	public static void main(String[] args) {
@@ -284,7 +335,7 @@ public class GCTA {
 		}
 		try {
 			proj = new Project(filename, false);
-			run(proj, sampFile, phenoFile, pcCovars, numthreads);
+			run(proj, sampFile, phenoFile, PHENO_TYPE.MITO_FILE, pcCovars, numthreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
