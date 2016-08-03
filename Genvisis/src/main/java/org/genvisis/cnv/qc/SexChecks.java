@@ -818,13 +818,6 @@ public class SexChecks {
 		String filename = null;
 		boolean par = false;
 
-		boolean test = true;
-		if (test) {
-		    mapEstimatedSexToSex("CHEC");
-		    return;
-		}
-		
-		
 		String usage = "\\n"+
 		"qc.SexChecks requires 0-1 arguments\n"+
 		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
