@@ -11,6 +11,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
@@ -20,6 +21,8 @@ import javax.swing.border.EmptyBorder;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.genvisis.one.ben.fcs.FCSPlot;
+import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.Gate.RectangleGate;
 import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 
@@ -36,6 +39,9 @@ import javax.swing.JFormattedTextField;
 
 public class RectangleGateEditor extends JDialog {
 
+    
+    private FCSPlot plot;
+    private Gate gate;
     private final JPanel contentPanel = new JPanel();
     private JFormattedTextField txtXMin;
     private JFormattedTextField txtYMin;
@@ -210,9 +216,12 @@ public class RectangleGateEditor extends JDialog {
                 JButton okButton = new JButton("OK");
                 okButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        if (valid()) {
+                        String msg = valid();
+                        if (msg == null) {
                             cancelled = false;
                             setVisible(false);
+                        } else {
+                            JOptionPane.showMessageDialog(RectangleGateEditor.this, msg, "Error!", JOptionPane.ERROR_MESSAGE);
                         }
                     }
                 });
@@ -234,7 +243,9 @@ public class RectangleGateEditor extends JDialog {
         }
     }
     
-    public void setGate(RectangleGate gate) {
+    public void setGate(FCSPlot plot, RectangleGate gate) {
+        this.plot = plot;
+        this.gate = gate;
         lblID.setText(gate.getID());
         txtName.setText(gate.getName());
         
@@ -283,9 +294,20 @@ public class RectangleGateEditor extends JDialog {
         
     }
     
-    private boolean valid() {
-        // TODO validate! - name cannot be empty, name cannot exist already, min < max
-        return false;
+    private String valid() {
+        if ("".equals(getName())) {
+            return "Name must not be blank.";
+        }
+        if (!gate.getName().equals(getName()) && plot.duplicateGateName(getName())) {
+            return "New name must be unique.";
+        }
+        if (Float.isFinite(getXMin()) && Float.isFinite(getXMax()) && getXMin() > getXMax()) {
+            return "X-min must be less than X-max.";
+        }
+        if (Float.isFinite(getYMin()) && Float.isFinite(getYMax()) && getYMin() > getYMax()) {
+            return "Y-min must be less than Y-max.";
+        }
+        return null;
     }
     
     public boolean isCancelled() {
