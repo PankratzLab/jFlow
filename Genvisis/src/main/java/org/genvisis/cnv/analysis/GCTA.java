@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
@@ -210,9 +211,9 @@ public class GCTA {
 		private boolean success;
 		private ArrayList<String> source;
 		private ArrayList<Double> variance;
-		ArrayList<Double> se;
+		private ArrayList<Double> se;
 
-		public VarianceResult(String summaryFile, boolean success, Logger log) {
+		private VarianceResult(String summaryFile, boolean success, Logger log) {
 			super();
 			this.summaryFile = summaryFile;
 			this.success = success;
@@ -297,10 +298,10 @@ public class GCTA {
 			String covarFile, int numthreads, Logger log) {
 		String[] inputs = new String[] { inputGrm + ".grm.bin", inputGrm + ".grm.N.bin", inputGrm + ".grm.id" };
 		String summaryFile = output + ".hsq";
-//		if (!Files.exists(summaryFile)) {
-//			System.out.println(summaryFile);
-//			System.exit(1);
-//		}
+		// if (!Files.exists(summaryFile)) {
+		// System.out.println(summaryFile);
+		// System.exit(1);
+		// }
 		String[] outputs = new String[] { summaryFile };
 		ArrayList<String> command = new ArrayList<String>();
 		command.add("gcta64");
@@ -349,7 +350,7 @@ public class GCTA {
 			}
 
 			WorkerHive<VarianceResult> hive = new WorkerHive<GCTA.VarianceResult>(numThreads, 10, proj.getLog());
-			for (int i = 0; i < parser.getNumericDataTitles().length; i++) {
+			for (int i = 0; i < Math.min(200, parser.getNumericDataTitles().length); i++) {
 				final String current = parser.getNumericDataTitles()[i];
 				ArrayList<String> pheno = new ArrayList<String>();
 				double[] data = parser.getNumericDataForTitle(current);
@@ -362,7 +363,6 @@ public class GCTA {
 
 					@Override
 					public VarianceResult call() throws Exception {
-						// TODO Auto-generated method stub
 						return determineVarianceExplained(mergedGRM, resultsDir + current, phenoFile, covarFile, 1,
 								proj.getLog());
 					}
@@ -417,10 +417,24 @@ public class GCTA {
 			}
 			switch (pType) {
 			case MITO_FILE:
+				String output = plinkRootQC + "_mitoResults.txt";
+				PrintWriter writer = Files.getAppropriateWriter(output);
+
 				for (int i = 0; i < phenoFiles.length; i++) {
 					ArrayList<VarianceResult> results = processMitoFile(proj, phenoFiles[i], mergedGRM, covarFile,
 							numthreads, proj.getLog());
+					if (i == 0) {
+						writer.println("PhenoFile\tresultFile\tPC\t"
+								+ Array.toStr(Array.toStringArray(results.get(0).source)));
+					}
+					for (VarianceResult varianceResult : results) {
+						writer.println(phenoFiles[i] + "\t" + varianceResult.summaryFile + "\t"
+								+ ext.removeDirectoryInfo(varianceResult.summaryFile).replaceAll("\\.hsq", "")
+										.replaceAll("PC", "")
+								+ "\t" + Array.toStr(Array.toDoubleArray(varianceResult.variance)));
+					}
 				}
+
 				break;
 			case PRE_PROCESSED:
 				// determineVarianceExplained(mergedGRM, mergedGRM, phenoFile,
@@ -440,7 +454,7 @@ public class GCTA {
 		String filename = null;
 		String sampFile = null;
 		String[] phenoFiles = null;
-		String out = null;
+		// String out = null;
 		Project proj;
 		int numthreads = 24;
 		int pcCovars = 10;
@@ -473,10 +487,12 @@ public class GCTA {
 			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numthreads = ext.parseIntArg(args[i]);
 				numArgs--;
-			} else if (args[i].startsWith("out=")) {
-				out = args[i].split("=")[1];
-				numArgs--;
-			} else {
+			}
+			// else if (args[i].startsWith("out=")) {
+			// out = args[i].split("=")[1];
+			// numArgs--;
+			// }
+			else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
 		}
