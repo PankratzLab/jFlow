@@ -39,6 +39,7 @@ import org.genvisis.one.ben.fcs.gating.Gate.PolygonGate;
 import org.genvisis.one.ben.fcs.gating.Gate.RectangleGate;
 import org.genvisis.one.ben.fcs.gating.GateDimension;
 import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
+import org.genvisis.one.ben.fcs.sub.PolygonGateEditor;
 import org.genvisis.one.ben.fcs.sub.RectangleGateEditor;
 
 public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMotionListener {
@@ -1060,9 +1061,21 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                                 setForceGatesChanged();
                                 fcp.refreshGating();
                             }
+                        } else if (g instanceof PolygonGate) {
+                            PolygonGateEditor pge = new PolygonGateEditor(fcp, (PolygonGate) g);
+                            pge.setModal(true);
+                            pge.setModalityType(ModalityType.APPLICATION_MODAL);
+                            pge.setVisible(true);
+                            
+                            if (!pge.isCancelled()) {
+                                g.setName(pge.getName());
+                                ((PolygonGate) g).setPath(pge.getNewPath());
+                                ((PolygonGate) g).setShouldMimicFlowJoGating(pge.getMimicFlowJo());
+                                setForceGatesChanged();
+                                fcp.refreshGating();
+                            }
                             
                         }
-                        // TODO editor for polys
                         break;
                 }
             }

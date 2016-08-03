@@ -57,9 +57,7 @@ public class RectangleGateEditor extends JDialog {
     private JLabel lblXAxis;
     
     private volatile boolean cancelled = true;
-//    private Format inputFormat = new ParseAllFormat(NumberFormat.getNumberInstance());
-    private Format inputFormat = NumberFormat.getNumberInstance();
-
+    private Format inputFormat = new ParseAllFormat(NumberFormat.getNumberInstance());
     
     /**
      * Launch the application.
