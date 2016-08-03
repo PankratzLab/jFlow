@@ -1,7 +1,9 @@
 package org.genvisis.cnv.analysis;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
@@ -206,11 +208,85 @@ public class GCTA {
 	private static class VarianceResult {
 		private String summaryFile;
 		private boolean success;
+		private ArrayList<String> source;
+		private ArrayList<Double> variance;
+		ArrayList<Double> se;
 
-		public VarianceResult(String summaryFile, boolean success) {
+		public VarianceResult(String summaryFile, boolean success, Logger log) {
 			super();
 			this.summaryFile = summaryFile;
 			this.success = success;
+			loadResults(log);
+		}
+
+		// Output file format
+		// test.hsq (rows are
+		// header line;
+		// name of genetic variance, estimate and standard error (SE);
+		// residual variance, estimate and SE;
+		// phenotypic variance, estimate and SE;
+		// ratio of genetic variance to phenotypic variance, estimate and SE;
+		// log-likelihood;
+		// sample size). If there are multiple GRMs included in the REML
+		// analysis, there will be multiple rows for the genetic variance (as
+		// well as their ratios to phenotypic variance) with the names of V(1),
+		// V(2), … .
+		// Source Variance SE
+		// V(1) 0.389350 0.161719
+		// V(e) 0.582633 0.160044
+		// Vp 0.971984 0.031341
+		// V(1)/Vp 0.400573 0.164937
+		// The estimate of variance explained on the observed scale is
+		// transformed to that on the underlying scale:
+		// (Proportion of cases in the sample = 0.5; User-specified disease
+		// prevalence = 0.1)
+		// V(1)/Vp_L 0.657621 0.189123
+		// logL -945.65
+		// logL0 -940.12
+		// LRT 11.06
+		// Pval 4.41e-4
+		// n 2000
+		//
+		// Source Variance SE
+		// V(G) 0.006697 0.000593
+		// V(e) 0.014934 0.000567
+		// Vp 0.021631 0.000291
+		// V(G)/Vp 0.309599 0.026340
+		// logL 16299.208
+		// logL0 16219.785
+		// LRT 158.847
+		// df 1
+		// Pval 0
+		// n 11443
+		private void loadResults(Logger log) {
+			if (success) {
+				try {
+					BufferedReader reader = Files.getAppropriateReader(summaryFile);
+					reader.readLine();
+					this.source = new ArrayList<String>();
+					this.variance = new ArrayList<Double>();
+					this.se = new ArrayList<Double>();
+
+					while (reader.ready()) {
+						String[] line = reader.readLine().trim().split("\t");
+						source.add(line[0]);
+						variance.add(Double.parseDouble(line[1]));
+						if (line.length > 2) {
+							se.add(Double.parseDouble(line[2]));
+						} else {
+							se.add(Double.NaN);
+						}
+					}
+					reader.close();
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
 		}
 
 	}
@@ -220,7 +296,12 @@ public class GCTA {
 	private static VarianceResult determineVarianceExplained(String inputGrm, String output, String phenoFile,
 			String covarFile, int numthreads, Logger log) {
 		String[] inputs = new String[] { inputGrm + ".grm.bin", inputGrm + ".grm.N.bin", inputGrm + ".grm.id" };
-		String[] outputs = new String[] { "FDDD" };
+		String summaryFile = output + ".hsq";
+//		if (!Files.exists(summaryFile)) {
+//			System.out.println(summaryFile);
+//			System.exit(1);
+//		}
+		String[] outputs = new String[] { summaryFile };
 		ArrayList<String> command = new ArrayList<String>();
 		command.add("gcta64");
 		command.add("--grm");
@@ -240,7 +321,7 @@ public class GCTA {
 		command.add(numthreads + "");
 		boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
 				false, false, log);
-		return new VarianceResult(null, success);
+		return new VarianceResult(summaryFile, success, log);
 	}
 
 	public enum PHENO_TYPE {
@@ -288,6 +369,7 @@ public class GCTA {
 				});
 
 			}
+			hive.execute(true);
 			return hive.getResults();
 
 		} catch (FileNotFoundException nfe) {
@@ -336,7 +418,8 @@ public class GCTA {
 			switch (pType) {
 			case MITO_FILE:
 				for (int i = 0; i < phenoFiles.length; i++) {
-					processMitoFile(proj, phenoFiles[i], mergedGRM, covarFile, numthreads, proj.getLog());
+					ArrayList<VarianceResult> results = processMitoFile(proj, phenoFiles[i], mergedGRM, covarFile,
+							numthreads, proj.getLog());
 				}
 				break;
 			case PRE_PROCESSED:
