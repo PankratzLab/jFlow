@@ -373,7 +373,7 @@ public class GCTA {
 		DNA_PHENO_FILE;
 	}
 
-	private static ArrayList<VarianceResult> processMitoFile(final Project proj, String mitoFile,
+	private static ArrayList<VarianceResult> processDNAPhenoFile(final Project proj, String mitoFile,
 			final String mergedGRM, final String covarFile, int numThreads, Logger log) {
 		ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
 		builder.sampleBased(true);
@@ -399,7 +399,7 @@ public class GCTA {
 				ArrayList<String> pheno = new ArrayList<String>();
 				double[] data = parser.getNumericDataForTitle(current);
 				for (int j = 0; j < data.length; j++) {
-					pheno.add(fidIID.get(j) + "\t" + data[j]);
+					pheno.add(fidIID.get(j) + "\t" + (Double.isFinite(data[j]) ? data[j] + "" : "NA"));
 				}
 				final String phenoFile = resultsDir + current + ".txt";
 				Files.writeArrayList(pheno, phenoFile);
@@ -518,7 +518,7 @@ public class GCTA {
 				PrintWriter writer = Files.getAppropriateWriter(output);
 
 				for (int i = 0; i < phenoFiles.length; i++) {
-					ArrayList<VarianceResult> results = processMitoFile(proj, phenoFiles[i], mergeRmGRM, covarFile,
+					ArrayList<VarianceResult> results = processDNAPhenoFile(proj, phenoFiles[i], mergeRmGRM, covarFile,
 							numthreads, proj.getLog());
 					if (i == 0) {
 						// note that index is a sneaky way to report which PC
