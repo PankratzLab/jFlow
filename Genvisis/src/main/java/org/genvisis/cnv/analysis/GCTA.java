@@ -224,7 +224,9 @@ public class GCTA {
 			command.add("--chr");
 			command.add(chr + "");
 		} else {
-			log.reportTimeWarning("GCTA running on full data set, consider breaking the analyis up by chromosome");
+			command.add("--autosome");
+			// log.reportTimeWarning("GCTA running on full data set, consider
+			// breaking the analyis up by chromosome");
 		}
 		command.add("--maf");
 		command.add(maf + "");
@@ -362,7 +364,13 @@ public class GCTA {
 	}
 
 	public enum PHENO_TYPE {
-		PRE_PROCESSED, MITO_FILE;
+		PRE_PROCESSED,
+		/**
+		 * 
+		 * Assumes a DNA column as first index, and all other columns of
+		 * phenotypes
+		 */
+		DNA_PHENO_FILE;
 	}
 
 	private static ArrayList<VarianceResult> processMitoFile(final Project proj, String mitoFile,
@@ -433,15 +441,64 @@ public class GCTA {
 			PlinkData.saveGenvisisToPlinkBedSet(proj, "gcta/gcta", null, nonCNFile, -1, true);
 		}
 
+		// , Not doing ld pruning...
+		// Of the 909,622 SNP probes, 874,517 (HPFS), 879,071 (NHS) and 841,820
+		// (ARIC) passed quality control analysis by the Broad Institute and the
+		// GENEVA Coordinating Center (excluding SNPs with missing call rate ≥
+		// 5% or plate association P < 1×10−10)9. We further excluded SNPs with
+		// missing rate ≥ 2%, > 1 discordance in the duplicated samples,
+		// Hardy-Weinberg equilibrium P < 1×10−3 or minor allele frequency <
+		// 0.01. A total of 687,398 (27,578), 665,163 (24,108) and 593,521
+		// (23,664) autosomal (X-chromosome) SNPs were retained for the HPFS,
+		// NHS and ARIC cohorts, respectively, 565,040 (21,858) of which were in
+		// common across the three cohorts.
+		//
+		// We included only one of each set of duplicated samples and one of
+		// each pair of samples which were identified as full siblings by an
+		// initial scan of relatedness in PLINK39. We investigated population
+		// structure by PCA of all the autosomal SNPs that passed QC, and
+		// included only samples of European ancestry (Supplementary Fig. 9). We
+		// excluded samples with gender misidentification by examining the mean
+		// of the intensities of SNP probes on the X and Y chromosomes. We also
+		// excluded samples with missing call rate ≥ 2% and samples on two
+		// plates which showed extremely high level of mean inbreeding
+		// coefficients. A total of 2,400 (HPFS), 3,265 (NHS) and 8,682 (ARIC)
+		// samples were retained for analysis respectively, with a combined set
+		// of 14,347 samples.
+		//
+		// Phenotypes
+		//
+		// Summary statistics of the phenotypes of height, weight, BMI, vWF and
+		// QTi are shown in Supplementary Table 13. There are three measures of
+		// weight and a single measure of height in both HPFS and NHS cohorts,
+		// four measures of weight and three measures of height in the ARIC
+		// cohort, and single measures of vWF and QTi in the ARIC cohort. For
+		// height, weight and BMI, we used the mean of repeated measures in all
+		// the analyses except for the analysis of the repeatability model. We
+		// adjusted the phenotypes (or the mean phenotype) for age and
+		// standardized it to a z-score in each gender group in each of the
+		// three cohorts separately.
+		//
+		// Statistical analysis
+		//
+		// We estimated the GRM of all individuals in the combined data from all
+		// the autosomal SNPs using the method we recently developed4,10, and
+		// excluded one of each pair of individuals with an estimated genetic
+		// relationship > 0.025.
 		Qc.fullGamut(outDir, "gcta", false, proj.getLog());
 
 		String plinkRootQC = outDir + "gcta_qc";
 
-		ArrayList<GRM> grms = splitRunGCTA(outDir + "quality_control/ld_pruning/gcta", plinkRootQC, 0.01, 1, numthreads,
-				proj.getLog());
+		// ArrayList<GRM> grms = splitRunGCTA(outDir +
+		// "quality_control/ld_pruning/gcta", plinkRootQC, 0.01, 1, numthreads,
+		// proj.getLog());
 		String mergedGRM = plinkRootQC + "_merge";
-		boolean success = mergeGRMs(grms, mergedGRM, numthreads, proj.getLog());
+		// boolean success = mergeGRMs(grms, mergedGRM, numthreads,
+		// proj.getLog());
 
+		GRM grm = runGCTA(outDir + "quality_control/ld_pruning/gcta", mergedGRM, 0.01, (byte) -1, numthreads,
+				proj.getLog());
+		boolean success = grm.success;
 		String covarFile = null;
 		if (success) {
 			String mergeRmGRM = mergedGRM + "_rm_" + grmCutoff;
@@ -456,15 +513,17 @@ public class GCTA {
 				}
 			}
 			switch (pType) {
-			case MITO_FILE:
-				String output = mergeRmGRM + "_mitoResults.txt";
+			case DNA_PHENO_FILE:
+				String output = mergeRmGRM + "_phenoResults.txt";
 				PrintWriter writer = Files.getAppropriateWriter(output);
 
 				for (int i = 0; i < phenoFiles.length; i++) {
 					ArrayList<VarianceResult> results = processMitoFile(proj, phenoFiles[i], mergeRmGRM, covarFile,
 							numthreads, proj.getLog());
 					if (i == 0) {
-						writer.println("PhenoFile\tresultFile\tPC\t"
+						// note that index is a sneaky way to report which PC
+						// was used.
+						writer.println("PhenoFile\tresultFile\tIndex\t"
 								+ Array.toStr(Array.toStringArray(results.get(0).source)));
 					}
 					for (VarianceResult varianceResult : results) {
@@ -507,7 +566,7 @@ public class GCTA {
 				+ PSF.Ext.getNumThreadsCommand(3, numthreads) + "\n"
 				+ "   (4) phenotype file(s) (i.e. pheno= (no default))\n"
 				+ "   (5) number of Principal components to compute for covariate use, set to -1 to skip (i.e. pcCovars="
-				+ pcCovars + " (default))\n" + "" + "   (6) grm relatedness cutoff (i.e. grmCutoff=" + grmCutoff
+				+ pcCovars + " (default))\n" + "   (6) grm relatedness cutoff (i.e. grmCutoff=" + grmCutoff
 				+ " (default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
@@ -547,7 +606,7 @@ public class GCTA {
 		}
 		try {
 			proj = new Project(filename, false);
-			run(proj, sampFile, phenoFiles, PHENO_TYPE.MITO_FILE, pcCovars, grmCutoff, numthreads);
+			run(proj, sampFile, phenoFiles, PHENO_TYPE.DNA_PHENO_FILE, pcCovars, grmCutoff, numthreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
