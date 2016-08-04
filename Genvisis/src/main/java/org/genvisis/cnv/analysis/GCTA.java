@@ -242,7 +242,7 @@ public class GCTA {
 		// (Proportion of cases in the sample = 0.5; User-specified disease
 		// prevalence = 0.1)
 		// V(1)/Vp_L 0.657621 0.189123
-		// logL -945.65
+		// logL -945.65	
 		// logL0 -940.12
 		// LRT 11.06
 		// Pval 4.41e-4
@@ -428,13 +428,13 @@ public class GCTA {
 								+ Array.toStr(Array.toStringArray(results.get(0).source)));
 					}
 					for (VarianceResult varianceResult : results) {
-						writer.println(phenoFiles[i] + "\t" + varianceResult.summaryFile + "\t"
+						writer.println(ext.removeDirectoryInfo(phenoFiles[i]) + "\t" + varianceResult.summaryFile + "\t"
 								+ ext.removeDirectoryInfo(varianceResult.summaryFile).replaceAll("\\.hsq", "")
 										.replaceAll("PC", "")
 								+ "\t" + Array.toStr(Array.toDoubleArray(varianceResult.variance)));
 					}
 				}
-
+				writer.close();
 				break;
 			case PRE_PROCESSED:
 				// determineVarianceExplained(mergedGRM, mergedGRM, phenoFile,
