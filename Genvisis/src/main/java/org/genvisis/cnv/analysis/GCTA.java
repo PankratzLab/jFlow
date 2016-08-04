@@ -50,6 +50,22 @@ public class GCTA {
 	 *
 	 */
 
+	// QC NOTES
+	// We chose the PLINK25 compact binary file format (∗.bed, ∗.bim, and ∗.fam)
+	// as the input data format for GCTA because of its popularity in the
+	// genetics community and its efficiency of data storage. For the imputed
+	// dosage data, we use the output files of the imputation program MACH32
+	// (∗.mldose.gz and ∗.mlinfo.gz) as the inputs for GCTA. For the convenience
+	// of analysis, we provide options to extract a subset of individuals and/or
+	// SNPs and to filter SNPs based on certain criteria, such as chromosome
+	// position, minor allele frequency (MAF), and imputation R2 (for the
+	// imputed data). However, we do not provide functions for a thorough
+	// quality control (QC) of the data, such as Hardy-Weinberg equilibrium test
+	// and missingness, because these functions have been well developed in many
+	// other genetic analysis packages, e.g., PLINK, GenABEL,33 and SNPTEST.34
+	// We assume that the data have been cleaned by a standard QC process before
+	// entering into GCTA.
+
 	// gcta64 --mgrm grm_chrs.txt --make-grm --out test
 	private static boolean mergeGRMs(ArrayList<GRM> grms, String output, int numthreads, Logger log) {
 		ArrayList<String> chrGRMs = new ArrayList<String>();
@@ -103,29 +119,48 @@ public class GCTA {
 		return success;
 	}
 
-	// // TODO
-	// // gcta64 --grm test --grm-cutoff 0.025 --make-grm --out test_rm025
-	// //
-	// private static boolean removeCrypticRelated(String inputGrm, String
-	// outputGrm, double grmCutoff, Logger log) {
-	// String[] inputs = new String[] { inputGrm };
+	// gcta64 --grm test --grm-cutoff 0.025 --make-grm --out test_rm025
 	//
-	// String[] outputs = new String[] { outputGrm };
-	// ArrayList<String> command = new ArrayList<String>();
-	// command.add("gcta64");
-	// command.add("--grm");
-	// command.add(inputGrm);
-	// command.add("--grm-cutoff");
-	// command.add(grmCutoff + "");
-	// command.add("--make-grm");
-	// command.add("--out");
-	// command.add(outputGrm);
-	// boolean success =
-	// CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "",
-	// inputs, outputs, true,
-	// false, false, log);
-	// return success;
-	// }
+
+	// We provide a function to iteratively exclude one individual of a pair
+	// whose relationship is greater than a specified cutoff value, e.g., 0.025,
+	// while retaining the maximum number of individuals in the data. For data
+	// collected from family or twin studies, we recommend that users estimate
+	// the genetic relationships with all of the autosomal SNPs and then use
+	// this option to exclude close relatives. The reason for exclusion is that
+	// the objective of the analysis is to estimate genetic variation captured
+	// by all the SNPs, just as GWAS does for single SNPs. Including close
+	// relatives, such as parent-offspring pairs and siblings, would result in
+	// the estimate of genetic variance being driven by the phenotypic
+	// correlations for these pairs (just as in pedigree analysis), and this
+	// estimate could be a biased estimate of total genetic variance, for
+	// example because of common environmental effects. Even if the estimate is
+	// not biased, its interpretation is different from the estimate from
+	// “unrelated” individuals: a pedigree-based estimator captures the
+	// contribution from all causal variants (across the entire allele frequency
+	// spectrum), whereas our method captures the contribution from causal
+	// variants that are in LD with the genotyped SNPs.
+
+	// Nother source
+
+	// https://espace.library.uq.edu.au/view/UQ:342517/UQ342517_OA.pdf
+	private static boolean removeCrypticRelated(String inputGrm, String outputGrm, double grmCutoff, Logger log) {
+		// String[] inputs = new String[] { inputGrm };
+
+		String[] outputs = new String[] { outputGrm + ".grm.N.bin", outputGrm + ".grm.id" };
+		ArrayList<String> command = new ArrayList<String>();
+		command.add("gcta64");
+		command.add("--grm");
+		command.add(inputGrm);
+		command.add("--grm-cutoff");
+		command.add(grmCutoff + "");
+		command.add("--make-grm");
+		command.add("--out");
+		command.add(outputGrm);
+		boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", null, outputs, true, false,
+				false, log);
+		return success;
+	}
 
 	/**
 	 * @param plinkRoot
@@ -242,7 +277,7 @@ public class GCTA {
 		// (Proportion of cases in the sample = 0.5; User-specified disease
 		// prevalence = 0.1)
 		// V(1)/Vp_L 0.657621 0.189123
-		// logL -945.65	
+		// logL -945.65
 		// logL0 -940.12
 		// LRT 11.06
 		// Pval 4.41e-4
@@ -292,6 +327,7 @@ public class GCTA {
 
 	}
 
+	// http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4295936/
 	// gcta64 --grm test --pheno test.phen --reml --qcovar test_10PCs.txt --out
 	// test --thread-num 10
 	private static VarianceResult determineVarianceExplained(String inputGrm, String output, String phenoFile,
@@ -350,7 +386,7 @@ public class GCTA {
 			}
 
 			WorkerHive<VarianceResult> hive = new WorkerHive<GCTA.VarianceResult>(numThreads, 10, proj.getLog());
-			for (int i = 0; i < Math.min(200, parser.getNumericDataTitles().length); i++) {
+			for (int i = 0; i < Math.min(125, parser.getNumericDataTitles().length); i++) {
 				final String current = parser.getNumericDataTitles()[i];
 				ArrayList<String> pheno = new ArrayList<String>();
 				double[] data = parser.getNumericDataForTitle(current);
@@ -379,7 +415,7 @@ public class GCTA {
 	}
 
 	private static void run(Project proj, String sampFile, String[] phenoFiles, PHENO_TYPE pType, int pcCovars,
-			int numthreads) {
+			double grmCutoff, int numthreads) {
 		String[] samples = sampFile == null ? null
 				: HashVec.loadFileToStringArray(sampFile, false, false, new int[] { 0 }, false, true, "\t");
 
@@ -396,32 +432,36 @@ public class GCTA {
 			Pedigree.build(proj, null, samples, false);
 			PlinkData.saveGenvisisToPlinkBedSet(proj, "gcta/gcta", null, nonCNFile, -1, true);
 		}
+
 		Qc.fullGamut(outDir, "gcta", false, proj.getLog());
 
 		String plinkRootQC = outDir + "gcta_qc";
 
-		ArrayList<GRM> grms = splitRunGCTA(outDir + "quality_control/genome/gcta", plinkRootQC, 0.01, 1, numthreads,
+		ArrayList<GRM> grms = splitRunGCTA(outDir + "quality_control/ld_pruning/gcta", plinkRootQC, 0.01, 1, numthreads,
 				proj.getLog());
 		String mergedGRM = plinkRootQC + "_merge";
 		boolean success = mergeGRMs(grms, mergedGRM, numthreads, proj.getLog());
 
 		String covarFile = null;
 		if (success) {
+			String mergeRmGRM = mergedGRM + "_rm_" + grmCutoff;
+			success = removeCrypticRelated(mergedGRM, mergeRmGRM, grmCutoff, proj.getLog());
+
 			if (pcCovars > 0) {
-				success = generatePCACovars(mergedGRM, mergedGRM, pcCovars, numthreads, proj.getLog());
+				success = generatePCACovars(mergeRmGRM, mergeRmGRM, pcCovars, numthreads, proj.getLog());
 				if (success) {
-					covarFile = mergedGRM + ".eigenvec";
+					covarFile = mergeRmGRM + ".eigenvec";
 				} else {
 					throw new IllegalStateException("Failed to generate grms");
 				}
 			}
 			switch (pType) {
 			case MITO_FILE:
-				String output = plinkRootQC + "_mitoResults.txt";
+				String output = mergeRmGRM + "_mitoResults.txt";
 				PrintWriter writer = Files.getAppropriateWriter(output);
 
 				for (int i = 0; i < phenoFiles.length; i++) {
-					ArrayList<VarianceResult> results = processMitoFile(proj, phenoFiles[i], mergedGRM, covarFile,
+					ArrayList<VarianceResult> results = processMitoFile(proj, phenoFiles[i], mergeRmGRM, covarFile,
 							numthreads, proj.getLog());
 					if (i == 0) {
 						writer.println("PhenoFile\tresultFile\tPC\t"
@@ -455,6 +495,7 @@ public class GCTA {
 		String sampFile = null;
 		String[] phenoFiles = null;
 		// String out = null;
+		double grmCutoff = 0.025;
 		Project proj;
 		int numthreads = 24;
 		int pcCovars = 10;
@@ -466,7 +507,8 @@ public class GCTA {
 				+ PSF.Ext.getNumThreadsCommand(3, numthreads) + "\n"
 				+ "   (4) phenotype file(s) (i.e. pheno= (no default))\n"
 				+ "   (5) number of Principal components to compute for covariate use, set to -1 to skip (i.e. pcCovars="
-				+ pcCovars + " (default))\n" + "";
+				+ pcCovars + " (default))\n" + "" + "   (6) grm relatedness cutoff (i.e. grmCutoff=" + grmCutoff
+				+ " (default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -483,6 +525,9 @@ public class GCTA {
 				numArgs--;
 			} else if (args[i].startsWith("pcCovars=")) {
 				pcCovars = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("grmCutoff=")) {
+				grmCutoff = ext.parseDoubleArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numthreads = ext.parseIntArg(args[i]);
@@ -502,7 +547,7 @@ public class GCTA {
 		}
 		try {
 			proj = new Project(filename, false);
-			run(proj, sampFile, phenoFiles, PHENO_TYPE.MITO_FILE, pcCovars, numthreads);
+			run(proj, sampFile, phenoFiles, PHENO_TYPE.MITO_FILE, pcCovars, grmCutoff, numthreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
