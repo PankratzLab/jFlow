@@ -2,6 +2,7 @@ package org.genvisis.common;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -15,11 +16,11 @@ import java.util.zip.GZIPOutputStream;
 
 public class SerializedFiles {
 
-	public static void writeSerial(Object o, String filename) {
-		writeSerial(o, filename, false);
+	public static boolean writeSerial(Object o, String filename) {
+		return writeSerial(o, filename, false);
 	}
 
-	public static void writeSerial(Object o, String filename, boolean gzip) {
+	public static boolean writeSerial(Object o, String filename, boolean gzip) {
 		ObjectOutputStream oos;
 	
 		try {
@@ -31,8 +32,10 @@ public class SerializedFiles {
 			oos.writeObject(o);
 			oos.flush();
 			oos.close();
+			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
+			return false;
 		}
 	}
 
@@ -124,34 +127,41 @@ public class SerializedFiles {
 			in = new BufferedInputStream(new FileInputStream(filename));
 		}
 		ois = new ObjectInputStream(in) {
-			@Override
-			protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
-				ObjectStreamClass resultClassDescriptor = null;
+			protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
 				try {
-					resultClassDescriptor = super.readClassDescriptor();
-					Class.forName(resultClassDescriptor.getName());
+					return super.resolveClass(desc);
 				} catch (ClassNotFoundException cnfe) {
-					String fileClassDesc = resultClassDescriptor.getName();
+
+					String name = desc.getName();
 					int startInsert = 0;
-					for (int i = 0; i < fileClassDesc.length(); i++) {
-						if (Character.isLowerCase(fileClassDesc.charAt(i))){
+					for (int i = 0; i < name.length(); i++) {
+						if (Character.isLowerCase(name.charAt(i))){
 							startInsert = i;
 							break;
 						}
 					}
-					String convertedClassDesc = fileClassDesc.substring(0, startInsert) + "org.genvisis." + fileClassDesc.substring(startInsert);
-					Class<?> convertedClass = Class.forName(convertedClassDesc);
-					log.reportTimeWarning("The Class (" + fileClassDesc +  ") for the Serialized Object " + filename + " cannot be resolved, attempting to use " + convertedClassDesc);
-					resultClassDescriptor = ObjectStreamClass.lookup(convertedClass);
+					String convertedClassDesc = name.substring(0, startInsert) + "org.genvisis." + name.substring(startInsert);
+					@SuppressWarnings("restriction")
+					Class<?> convertedClass = Class.forName(convertedClassDesc, false, sun.misc.VM.latestUserDefinedLoader());
+					log.reportTimeWarning("The Class (" + name +  ") for the Serialized Object " + filename + " cannot be resolved, attempting to use " + convertedClassDesc);
+					return convertedClass;
+
 				}
-				return resultClassDescriptor;
 			}
 		};
 		o = ois.readObject();
 		ois.close();
 		log.report("Succesfully deserialized " + filename + " to " + o.getClass().getName());
-		writeSerial(o, filename, gzipped);
-		log.report("Succesfully rewrote " + filename + " as a serialized " + o.getClass().getName());
+		String backupFile = ext.addToRoot(filename, "_TMP_BAK");
+		Files.copyFile(filename, backupFile);
+		if (writeSerial(o, filename, gzipped)) {
+			log.report("Succesfully rewrote " + filename + " as a serialized " + o.getClass().getName());
+		} else {
+			log.reportTimeError("Could not rewrite " + filename + " as a serialized " + o.getClass().getName());
+			if (Files.copyFile(backupFile, filename)) {
+				new File(backupFile).delete();
+			}
+		}
 		return o;
 	}
 }
