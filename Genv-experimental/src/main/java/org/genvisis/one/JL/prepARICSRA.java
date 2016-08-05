@@ -4,8 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 
 import org.genvisis.common.Files;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
 
 public class prepARICSRA {
 
@@ -39,7 +37,7 @@ public class prepARICSRA {
 
 		String sraRunTable = "/Volumes/Work/data/aric_sra/prep/SraRunTable.txt";
 
-		String usage = "\n" + "telomere.SRAUtils requires 0-1 arguments\n" + "   (1) SRA data table (i.e. sraRunTable="
+		String usage = "\n" + "this requires 0-1 arguments\n" + "   (1) SRA data table (i.e. sraRunTable="
 				+ sraRunTable + " (default))\n";
 
 		for (int i = 0; i < args.length; i++) {
