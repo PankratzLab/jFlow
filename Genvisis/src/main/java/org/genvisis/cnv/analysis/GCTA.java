@@ -66,36 +66,40 @@ public class GCTA {
 	// We assume that the data have been cleaned by a standard QC process before
 	// entering into GCTA.
 
-	// gcta64 --mgrm grm_chrs.txt --make-grm --out test
-	private static boolean mergeGRMs(ArrayList<GRM> grms, String output, int numthreads, Logger log) {
-		ArrayList<String> chrGRMs = new ArrayList<String>();
-		for (GRM grm : grms) {
-			if (!grm.success) {
-				log.reportTimeError("GRM generation has failed (" + grm.grmFile + ")");
-				return false;
-			}
-			chrGRMs.add(grm.grmFile);
-		}
-		String chrListFile = output + "_chrsGRM.txt";
-		Files.writeArrayList(chrGRMs, chrListFile);
-
-		// String[] inputs = Array.toStringArray(chrGRMs);
-
-		String[] outputs = new String[] { output + ".grm.N.bin", output + ".grm.id" };
-		ArrayList<String> command = new ArrayList<String>();
-		command.add("gcta64");
-		command.add("--mgrm");
-		command.add(chrListFile);
-		command.add("--make-grm");
-		command.add("--out");
-		command.add(output);
-		command.add("--thread-num");
-		command.add(numthreads + "");
-		boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", null, outputs, true, false,
-				false, log);
-		return success;
-
-	}
+	// // gcta64 --mgrm grm_chrs.txt --make-grm --out test
+	// private static boolean mergeGRMs(ArrayList<GRM> grms, String output, int
+	// numthreads, Logger log) {
+	// ArrayList<String> chrGRMs = new ArrayList<String>();
+	// for (GRM grm : grms) {
+	// if (!grm.success) {
+	// log.reportTimeError("GRM generation has failed (" + grm.grmFile + ")");
+	// return false;
+	// }
+	// chrGRMs.add(grm.grmFile);
+	// }
+	// String chrListFile = output + "_chrsGRM.txt";
+	// Files.writeArrayList(chrGRMs, chrListFile);
+	//
+	// // String[] inputs = Array.toStringArray(chrGRMs);
+	//
+	// String[] outputs = new String[] { output + ".grm.N.bin", output +
+	// ".grm.id" };
+	// ArrayList<String> command = new ArrayList<String>();
+	// command.add("gcta64");
+	// command.add("--mgrm");
+	// command.add(chrListFile);
+	// command.add("--make-grm");
+	// command.add("--out");
+	// command.add(output);
+	// command.add("--thread-num");
+	// command.add(numthreads + "");
+	// boolean success =
+	// CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", null,
+	// outputs, true, false,
+	// false, log);
+	// return success;
+	//
+	// }
 
 	// gcta64 --grm test --keep test.indi.list --pca 20 --out test
 	private static boolean generatePCACovars(String inputGrm, String output, int numPCs, int numthreads, Logger log) {
@@ -162,39 +166,41 @@ public class GCTA {
 		return success;
 	}
 
-	/**
-	 * @param plinkRoot
-	 *            e.g. test.bed, test.bim and test.fam.
-	 * @param output
-	 *            output root
-	 * @param maf
-	 *            minor allele freq threshold
-	 * @param numChrthreads
-	 *            number of threads to use within a chromosome
-	 * @param numBetweenThreads
-	 *            number of chromosomes to analyze at once
-	 * @param log
-	 */
-	private static ArrayList<GRM> splitRunGCTA(final String plinkRoot, String output, final double maf,
-			final int numChrthreads, int numBetweenThreads, final Logger log) {
-		WorkerHive<GRM> hive = new WorkerHive<GCTA.GRM>(numBetweenThreads, 10, log);
-
-		for (int i = 1; i < 23; i++) {
-			final String chrOut = output + "_chr" + i;
-			final byte chr = (byte) i;
-			hive.addCallable(new Callable<GCTA.GRM>() {
-
-				@Override
-				public GRM call() throws Exception {
-
-					return runGCTA(plinkRoot, chrOut, maf, chr, numChrthreads, log);
-				}
-			});
-		}
-		hive.execute(true);
-		ArrayList<GRM> results = hive.getResults();
-		return results;
-	}
+	// /**
+	// * @param plinkRoot
+	// * e.g. test.bed, test.bim and test.fam.
+	// * @param output
+	// * output root
+	// * @param maf
+	// * minor allele freq threshold
+	// * @param numChrthreads
+	// * number of threads to use within a chromosome
+	// * @param numBetweenThreads
+	// * number of chromosomes to analyze at once
+	// * @param log
+	// */
+	// private static ArrayList<GRM> splitRunGCTA(final String plinkRoot, String
+	// output, final double maf,
+	// final int numChrthreads, int numBetweenThreads, final Logger log) {
+	// WorkerHive<GRM> hive = new WorkerHive<GCTA.GRM>(numBetweenThreads, 10,
+	// log);
+	//
+	// for (int i = 1; i < 23; i++) {
+	// final String chrOut = output + "_chr" + i;
+	// final byte chr = (byte) i;
+	// hive.addCallable(new Callable<GCTA.GRM>() {
+	//
+	// @Override
+	// public GRM call() throws Exception {
+	//
+	// return runGCTA(plinkRoot, chrOut, maf, chr, numChrthreads, log);
+	// }
+	// });
+	// }
+	// hive.execute(true);
+	// ArrayList<GRM> results = hive.getResults();
+	// return results;
+	// }
 
 	private static class GRM {
 		private boolean success;
@@ -374,7 +380,7 @@ public class GCTA {
 	}
 
 	private static ArrayList<VarianceResult> processDNAPhenoFile(final Project proj, String mitoFile,
-			final String mergedGRM, final String covarFile, int numThreads, Logger log) {
+			final String mergedGRM, boolean invNormalize, final String covarFile, int numThreads, Logger log) {
 		ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
 		builder.sampleBased(true);
 		builder.requireAll(true);
@@ -398,6 +404,23 @@ public class GCTA {
 				final String current = parser.getNumericDataTitles()[i];
 				ArrayList<String> pheno = new ArrayList<String>();
 				double[] data = parser.getNumericDataForTitle(current);
+
+				// We adjusted the phenotypes (or the mean phenotype) for age
+				// and standardized it to a z-score in each gender group in each
+				// of the three cohorts separately.
+				// data = Array.inverseNormalize(data);
+
+				// data = Array.inverseNormalize(data);// I think it is
+				// important
+				// to standardize,
+				// since we are comparing
+				// the variance of the
+				// phenotype in relation to
+				// genotypes...and
+				// regressing out more
+				// intensity PCs appears to
+				// reduce magnitude of
+				// variance
 				for (int j = 0; j < data.length; j++) {
 					pheno.add(fidIID.get(j) + "\t" + (Double.isFinite(data[j]) ? data[j] + "" : "NA"));
 				}
@@ -422,11 +445,24 @@ public class GCTA {
 		return null;
 	}
 
+	/**
+	 * @param proj
+	 * @param sampFile,
+	 *            seems like it may be worth starting with stratified samples,
+	 *            as strange reletedness parameters are computed otherwise
+	 * @param phenoFiles
+	 * @param pType
+	 * @param pcCovars
+	 *            number of covariates to use when computing variance
+	 * @param grmCutoff
+	 *            relatedness cutoff
+	 * @param numthreads
+	 */
 	private static void run(Project proj, String sampFile, String[] phenoFiles, PHENO_TYPE pType, int pcCovars,
 			double grmCutoff, int numthreads) {
 		String[] samples = sampFile == null ? null
 				: HashVec.loadFileToStringArray(sampFile, false, false, new int[] { 0 }, false, true, "\t");
-
+		Logger log = proj.getLog();
 		String outDir = proj.PROJECT_DIRECTORY.getValue() + "gcta/";
 		String plinkRoot = outDir + "gcta";
 		new File(outDir).mkdirs();
@@ -486,26 +522,24 @@ public class GCTA {
 		// excluded one of each pair of individuals with an estimated genetic
 		// relationship > 0.025.
 		Qc.fullGamut(outDir, "gcta", false, proj.getLog());
-
-		String plinkRootQC = outDir + "gcta_qc";
+		String plinkInput = outDir + "quality_control/ld_pruning/gcta";
 
 		// ArrayList<GRM> grms = splitRunGCTA(outDir +
 		// "quality_control/ld_pruning/gcta", plinkRootQC, 0.01, 1, numthreads,
 		// proj.getLog());
-		String mergedGRM = plinkRootQC + "_merge";
+		String mergedGRM = outDir + "gcta_qc_merge";
 		// boolean success = mergeGRMs(grms, mergedGRM, numthreads,
 		// proj.getLog());
 
-		GRM grm = runGCTA(outDir + "quality_control/ld_pruning/gcta", mergedGRM, 0.01, (byte) -1, numthreads,
-				proj.getLog());
+		GRM grm = runGCTA(plinkInput, mergedGRM, 0.01, (byte) -1, numthreads, log);
 		boolean success = grm.success;
 		String covarFile = null;
 		if (success) {
 			String mergeRmGRM = mergedGRM + "_rm_" + grmCutoff;
-			success = removeCrypticRelated(mergedGRM, mergeRmGRM, grmCutoff, proj.getLog());
+			success = removeCrypticRelated(mergedGRM, mergeRmGRM, grmCutoff, log);
 
 			if (pcCovars > 0) {
-				success = generatePCACovars(mergeRmGRM, mergeRmGRM, pcCovars, numthreads, proj.getLog());
+				success = generatePCACovars(mergeRmGRM, mergeRmGRM, pcCovars, numthreads, log);
 				if (success) {
 					covarFile = mergeRmGRM + ".eigenvec";
 				} else {
@@ -518,8 +552,8 @@ public class GCTA {
 				PrintWriter writer = Files.getAppropriateWriter(output);
 
 				for (int i = 0; i < phenoFiles.length; i++) {
-					ArrayList<VarianceResult> results = processDNAPhenoFile(proj, phenoFiles[i], mergeRmGRM, covarFile,
-							numthreads, proj.getLog());
+					ArrayList<VarianceResult> results = processDNAPhenoFile(proj, phenoFiles[i], mergeRmGRM, true,
+							covarFile, numthreads, log);
 					if (i == 0) {
 						// note that index is a sneaky way to report which PC
 						// was used.
@@ -547,6 +581,13 @@ public class GCTA {
 		}
 
 	}
+
+	// Things to iter:
+
+	// Related removal (0.025) or not
+	// Stratified or not (w/b only)
+	// pc covariates or not
+	// normalize input or not
 
 	public static void main(String[] args) {
 		int numArgs = args.length;

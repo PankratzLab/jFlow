@@ -23,8 +23,10 @@ public class prepARICSRA {
 	}
 
 	private static void prep(String sraRunTable) {
+//		String[] extract = new String[]{}
 		try {
 			BufferedReader reader = Files.getAppropriateReader(sraRunTable);
+			
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
