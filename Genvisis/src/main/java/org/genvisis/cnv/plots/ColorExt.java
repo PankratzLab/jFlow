@@ -12,6 +12,7 @@ import java.util.Hashtable;
 import java.util.Random;
 import java.util.Set;
 
+import org.apache.commons.math3.distribution.NormalDistribution;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.Array;
@@ -20,6 +21,7 @@ import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
+
 
 public class ColorExt {
 	public static Color generateRandomColor(Color mix) {
@@ -52,6 +54,43 @@ public class ColorExt {
 			colors[i] = new Color(rgb[0], rgb[1], rgb[2]);
 		}
 		return colors;
+	}
+
+	/**
+	 * This method tries to assign a color scale to a set of data, using the
+	 * data's empirical cumulative distribution function (CDF) to bin the data
+	 * into discrete color bins. The goal with using the CDF was to try to allow
+	 * the color scale to highlight differences between the majority of data
+	 * points as opposed to simply scaling between the max and min values of the
+	 * data range. Maybe it accomplishes that goal, maybe it doesn't
+	 * 
+	 * @param numColors
+	 *            corresponds to the number of different colors that will be
+	 *            generated and assigned to the data
+	 * @param data
+	 *            the data to assign colors to
+	 * @return an array of {@link Color}, one for each data point.
+	 */
+	public static Color[] assignColorsForData(int numColors, double[] data) {
+		NormalDistribution nd = new NormalDistribution(Array.mean(data, true), Math.pow(Array.stdev(data, true), 2));
+		Color[] colorsAvailable = ColorExt.generatRGBScale(numColors);
+		Color[] colorsforData = new Color[data.length];
+		for (int i = 0; i < data.length; i++) {
+			colorsforData[i] = assignColor(data[i], nd, colorsAvailable);
+		}
+		return colorsforData;
+	}
+
+	/**
+	 * Based on a given {@link NormalDistribution}, assign a color to a given
+	 * data point, selecting from available colors
+	 */
+	private static Color assignColor(double data, NormalDistribution nd, Color[] colorsAvailable) {
+		int colorIndex = (int) Math.round(nd.cumulativeProbability(data) * colorsAvailable.length - 1);
+		colorIndex = Math.max(0, colorIndex);
+		colorIndex = Math.min(colorsAvailable.length, colorIndex);
+		Color assigned = colorsAvailable[colorIndex];
+		return assigned;
 	}
 
 	public static class ColorItem<E> implements Serializable {
@@ -106,19 +145,21 @@ public class ColorExt {
 		return cols;
 
 	}
-	
+
 	public static ColorManager<String> getColorManager(Project proj, String file) {
-		String ser =ext.rootOf(file,false)+".ser";
-		if(Files.exists(ser)){
+		String ser = ext.rootOf(file, false) + ".ser";
+		if (Files.exists(ser)) {
 			return ColorManager.loadStringSerial(ser, proj.getLog());
 		}
 		if (Files.exists(file)) {
 			String[] header = Files.getHeaderOfFile(file, proj.getLog());
-			int markerIndex = ext.indexFactors(new String[][] { Aliases.MARKER_NAMES }, header, true, true, false, proj.getLog(), false)[0];
+			int markerIndex = ext.indexFactors(new String[][] { Aliases.MARKER_NAMES }, header, true, true, false,
+					proj.getLog(), false)[0];
 			int classIndex = ext.indexOfStartsWith("CLASS=MARKER_COLOR", header, false);
 			if (markerIndex < 0 || classIndex < 0) {
 				if (markerIndex < 0) {
-					proj.getLog().reportTimeError("Could not find any of the the following in the header of " + file + "\n" + Array.toStr(Aliases.MARKER_NAMES, "\n"));
+					proj.getLog().reportTimeError("Could not find any of the the following in the header of " + file
+							+ "\n" + Array.toStr(Aliases.MARKER_NAMES, "\n"));
 				} else {
 					proj.getLog().reportTimeError("Could not find CLASS=MARKER_COLOR  in the header of " + file);
 
@@ -142,7 +183,8 @@ public class ColorExt {
 
 						String[] line = reader.readLine().trim().split("\t");
 						if (!indices.containsKey(line[markerIndex])) {
-							proj.getLog().reportTimeWarning("Did not detect marker " + line[markerIndex] + " in the project");
+							proj.getLog().reportTimeWarning(
+									"Did not detect marker " + line[markerIndex] + " in the project");
 						}
 						lookup.put(line[markerIndex], line[classIndex]);
 					}
@@ -179,8 +221,11 @@ public class ColorExt {
 		 */
 		private static final long serialVersionUID = 1L;
 		private HashSet<E> toUse;// color categories in play
-		private Hashtable<E, E> lookup;// items associated with category (marker->PoorQualityCategory)
-		private Hashtable<E, ColorItem<E>> manager; // categories associated with color item (PoorQualityCategory->blue)
+		private Hashtable<E, E> lookup;// items associated with category
+										// (marker->PoorQualityCategory)
+		private Hashtable<E, ColorItem<E>> manager; // categories associated
+													// with color item
+													// (PoorQualityCategory->blue)
 
 		public ColorManager(Hashtable<E, E> lookup, Hashtable<E, ColorItem<E>> manager) {
 			this.lookup = lookup;
