@@ -23,6 +23,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Numbers;
 import org.genvisis.common.Sort;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
@@ -279,7 +280,7 @@ public class MitoGWAS {
 
 				for (int j = 0; j < emp1s.length; j++) {
 					if (valid) {
-						valid = !Double.isInfinite(emp1s[j][i]) && markerSet.getChrs()[i] > 0;
+						valid = Numbers.isFinite(emp1s[j][i]) && markerSet.getChrs()[i] > 0;
 						if (!valid) {
 							numInvalid++;
 							valids[i] = false;

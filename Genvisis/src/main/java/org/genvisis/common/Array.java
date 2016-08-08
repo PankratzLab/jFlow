@@ -4190,7 +4190,7 @@ public class Array {
 
 		use = new boolean[array.length];
 		for (int i = 0; i < use.length; i++) {
-			use[i] = !Double.isInfinite(array[i]);
+			use[i] = Numbers.isFinite(array[i]);
 		}
 
 		return subArray(array, use);
@@ -4208,7 +4208,7 @@ public class Array {
 
 		use = new boolean[array.length];
 		for (int i = 0; i < use.length; i++) {
-			use[i] = !Float.isInfinite(array[i]);
+			use[i] = !!Numbers.isFinite(array[i]);
 		}
 
 		return subArray(array, use);

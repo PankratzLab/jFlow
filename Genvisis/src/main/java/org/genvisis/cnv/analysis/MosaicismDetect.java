@@ -11,6 +11,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.hmm.PennHmm.ViterbiResult;
 import org.genvisis.cnv.var.MosaicRegion;
 import org.genvisis.common.Array;
+import org.genvisis.common.Numbers;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
@@ -118,11 +119,11 @@ public class MosaicismDetect {
 						nearestN[i] = -1;
 					}
 				}
-				double test = Double.isInfinite(baf) ? 0 : (double) (baf);
+				double test = !Numbers.isFinite(baf) ? 0 : (double) (baf);
 				double tmp = (double) gd.distributions()[j].probability(test) * Math.sqrt(variances[j]);
 				if (tmp > p_density[i] && !Double.isNaN(p_density[i])) {
 					p_density[i] = tmp;
-					if (!Double.isInfinite(baf)) {
+					if (Numbers.isFinite(baf)) {
 						if (j == 0 || j == 2) {
 							nearestN[i] = baf < gd.distributions()[1].mean() ? Math.max(baf - gd.distributions()[j].mean(), 0) : gd.distributions()[j].mean() - baf;
 						} else {
@@ -153,7 +154,7 @@ public class MosaicismDetect {
 				double[] tD = Array.removeNaN(new double[] { p_densityMA[i], p_densityMAReverse[i] });
 				double d = tD.length > 0 ? Array.mean(tD) : Double.NaN;
 				p_densityScored.add(d);
-				if (!Double.isInfinite(d)) {
+				if (Numbers.isFinite(d)) {
 					if (d <= baseLine || force) {
 						states[i] = 0;
 						mosIndicesTmp.add(i);
@@ -269,13 +270,13 @@ public class MosaicismDetect {
 			double[] t_tsMeanVar = getMeanVar(autosomalBafs, r1, r2);
 			double[] t_sMeanVar = getMeanVar(autosomalBafs, r2, 1);
 			means[0] = zero_tsMeanVar[0];
-			variances[0] = !Double.isInfinite(zero_tsMeanVar[1]) && zero_tsMeanVar[1] > 0 ? zero_tsMeanVar[1] : 1;
+			variances[0] = Numbers.isFinite(zero_tsMeanVar[1]) && zero_tsMeanVar[1] > 0 ? zero_tsMeanVar[1] : 1;
 			means[1] = t_tsMeanVar[0];
-			variances[1] = !Double.isInfinite(t_tsMeanVar[1]) && t_tsMeanVar[1] > 0 ? t_tsMeanVar[1] : 1;
+			variances[1] = Numbers.isFinite(t_tsMeanVar[1]) && t_tsMeanVar[1] > 0 ? t_tsMeanVar[1] : 1;
 			means[2] = t_sMeanVar[0];
-			variances[2] = !Double.isInfinite(t_sMeanVar[1]) && t_sMeanVar[1] > 0 ? t_sMeanVar[1] : 1;
+			variances[2] = Numbers.isFinite(t_sMeanVar[1]) && t_sMeanVar[1] > 0 ? t_sMeanVar[1] : 1;
 
-			if (Double.isInfinite(zero_tsMeanVar[1] + t_tsMeanVar[1] + t_sMeanVar[1]) || zero_tsMeanVar[1] <= 0 || t_tsMeanVar[1] <= 0 || t_sMeanVar[1] <= 0) {
+			if (!Numbers.isFinite(zero_tsMeanVar[1] + t_tsMeanVar[1] + t_sMeanVar[1]) || zero_tsMeanVar[1] <= 0 || t_tsMeanVar[1] <= 0 || t_sMeanVar[1] <= 0) {
 				proj.getLog().reportTimeWarning("Sample " + sample + " had non-finite or 0 baf variance, setting to 1");
 			}
 		}

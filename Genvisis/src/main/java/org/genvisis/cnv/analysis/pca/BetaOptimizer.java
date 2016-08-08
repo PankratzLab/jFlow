@@ -35,6 +35,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Numbers;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
@@ -697,7 +698,7 @@ public class BetaOptimizer {
 						try {
 							double beta = Double.parseDouble(line[indices[3]]);
 							double p = Double.parseDouble(line[indices[4]]);
-							if (!Double.isInfinite(beta) && !Double.isInfinite(p) && p < minPval) {
+							if (Numbers.isFinite(beta) && Numbers.isFinite(p) && p < minPval) {
 								MarkerRsFormat current = markerRsFormats.get(index.get(rsId));
 								String[] betaAlleles = new String[] { line[indices[1]].toUpperCase(), line[indices[2]].toUpperCase() };
 								String[] markerAlleles = new String[] { current.getMarkerAlleles()[0], current.getMarkerAlleles()[1] };
@@ -724,7 +725,7 @@ public class BetaOptimizer {
 									}
 									added.add(current.getMarkerName());
 								}
-							} else if (Double.isInfinite(beta) || Double.isInfinite(p)) {
+							} else if (!Numbers.isFinite(beta) || !Numbers.isFinite(p)) {
 								log.reportTimeWarning("Invalid number on line " + Array.toStr(line));
 								log.reportTimeWarning(line[indices[3]] + "\t" + line[indices[4]]);
 							}

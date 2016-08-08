@@ -644,7 +644,7 @@ public class Mega_Analyses {
 		} else {
 			System.err.println("There were "+duplicates.size()+" duplicated factors");
 		}
-		if (!Double.isInfinite(mostExtremeTie)) {
+		if (Numbers.isFinite(mostExtremeTie)) {
 			System.err.println("The value of the most extreme tie was: "+mostExtremeTie);
 		}
 		System.out.println("Finished scanning in " + ext.getTimeElapsed(time));

@@ -9,6 +9,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Numbers;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.stats.Stats;
@@ -306,7 +307,7 @@ public class PennHmm {
 				p += (1 - uf) * pfb * pfb * pfb * pfb * opdfGaussianMinus.probability(o);
 			}
 		}
-		if (Double.isInfinite(p)) {
+		if (!Numbers.isFinite(p)) {
 			String error = "Non-finite p, " + p;
 			throw new IllegalStateException(error);
 

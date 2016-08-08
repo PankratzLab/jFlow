@@ -1693,7 +1693,7 @@ public class ext {
 	 *            counts will be added to this hash
 	 * @param toAddFrom
 	 *            hash to add counts from
-	 * @return NOTE: couldn't make this generic for {@link Number}. Go for it if it's easy
+	 * @return NOTE: couldn't make this generic for {@link Numbers}. Go for it if it's easy
 	 */
 	public static Hashtable<String, Integer> addHashCounts(Hashtable<String, Integer> toAddTo, Hashtable<String, Integer> toAddFrom) {
 		Set<String> keys = toAddFrom.keySet();

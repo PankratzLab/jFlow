@@ -1597,7 +1597,7 @@ package org.genvisis.cnv.hmm;
 //	public static int[] GetFiniteIndices(double[] scores) {
 //		ArrayList<Integer> indexList = new ArrayList<Integer>();
 //		for (int i = 0; i < scores.length; i++) {
-//			if (Double.isInfinite(scores[i]) || Double.isNaN(scores[i])) {
+//			if (!Numbers.isFinite(scores[i])) {
 //				continue;
 //			}
 //			indexList.add(i);
@@ -1884,7 +1884,7 @@ package org.genvisis.cnv.hmm;
 //	// }
 //	//
 //	// public static boolean R_finite(double x) {
-//	// return !(Double.isNaN(x) || Double.isInfinite(x));
+//	// return !(!Numbers.isFinite(x));
 //	// }
 //	//
 //	// public static double R_D_forceint(double x) {

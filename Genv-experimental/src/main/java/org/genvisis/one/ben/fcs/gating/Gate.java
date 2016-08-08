@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.Random;
 
 import org.genvisis.common.Array;
+import org.genvisis.common.Numbers;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
 import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
@@ -211,7 +212,7 @@ public abstract class Gate {
                 double[] paramData = dataLoader.getData(rgd.paramName, true);
                 for (int i = 0; i < dataLoader.getCount(); i++) {
                     // inclusive min, exclusive max - see gating-ml spec
-                    paramIncludes[p][i] = (Float.isInfinite(rgd.getMin()) || rgd.getMin() <= paramData[i]) && (Float.isInfinite(rgd.getMax()) || rgd.getMax() > paramData[i]); 
+                    paramIncludes[p][i] = (!Numbers.isFinite(rgd.getMin()) || rgd.getMin() <= paramData[i]) && (!Numbers.isFinite(rgd.getMax()) || rgd.getMax() > paramData[i]); 
                 }
             }
             if (includes == null) {

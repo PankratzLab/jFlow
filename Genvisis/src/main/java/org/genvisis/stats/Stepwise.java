@@ -6,6 +6,7 @@ import java.util.concurrent.Callable;
 
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Numbers;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
@@ -359,7 +360,7 @@ public class Stepwise {
 				model = new LeastSquares(Ys, travXs(N, Xs, ins));
 			}
 			model.setVarNames(travNames, maxNameSize);
-			Rsum += ext.formStr(i+1+"", 4)+"\t"+(Double.isInfinite(model.getOverall())?"    .":ext.formStr(ext.formDeci(model.getOverall(), 1, true), 7))+"\t  "+ext.formDeci(model.getOverallSig(), 3, true)+"\t  "+ext.formDeci(model.getRsquare(), 3, true)+line_ending;
+			Rsum += ext.formStr(i+1+"", 4)+"\t"+(!Numbers.isFinite(model.getOverall())?"    .":ext.formStr(ext.formDeci(model.getOverall(), 1, true), 7))+"\t  "+ext.formDeci(model.getOverallSig(), 3, true)+"\t  "+ext.formDeci(model.getRsquare(), 3, true)+line_ending;
 			ModelSum += "------ Model "+(i+1)+(i<10?" -":" ")+"---------------------------"+line_ending+model.modelSummary();
 		}
 

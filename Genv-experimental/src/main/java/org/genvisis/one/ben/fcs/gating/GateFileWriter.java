@@ -17,6 +17,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.genvisis.common.Logger;
+import org.genvisis.common.Numbers;
 import org.genvisis.one.ben.fcs.gating.Gate.PolygonGate;
 import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 import org.w3c.dom.Document;
@@ -91,10 +92,10 @@ public class GateFileWriter {
             
             if (gd instanceof RectangleGateDimension) {
                 RectangleGateDimension rgd = (RectangleGateDimension) gd;
-                if (!Float.isInfinite(rgd.getMax())) {
+                if (Numbers.isFinite(rgd.getMax())) {
                     dim1.setAttribute("gating:max", "" + Math.max(((RectangleGateDimension) gd).getMin(), ((RectangleGateDimension) gd).getMax()));
                 }
-                if (!Float.isInfinite(rgd.getMin())) {
+                if (Numbers.isFinite(rgd.getMin())) {
                     dim1.setAttribute("gating:min", "" + Math.min(((RectangleGateDimension) gd).getMin(), ((RectangleGateDimension) gd).getMax()));
                 }
             }

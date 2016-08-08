@@ -11,6 +11,7 @@ import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
+import org.genvisis.common.Numbers;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 public class VCFSamplePrep {
@@ -62,7 +63,7 @@ public class VCFSamplePrep {
 		double minNorm = Array.min(normDepth);
 		float[] scaleNorm = new float[d.length];
 		for (int i = 0; i < scaleNorm.length; i++) {
-			if (Float.isNaN((float) normDepth[i]) || Float.isInfinite((float) normDepth[i])) {
+			if (!Numbers.isFinite((float) normDepth[i])) {
 				System.out.println(normDepth[i]);
 				System.exit(1);
 			}

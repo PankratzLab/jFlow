@@ -16,6 +16,7 @@ import org.genvisis.common.AlleleFreq;
 import org.genvisis.common.Array;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Numbers;
 import org.genvisis.stats.Correlation;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
@@ -499,7 +500,7 @@ public class MarkerData implements Serializable {
 				} else {
 					error += Math.abs(compLRRs[count]-originalLRRs[count]);
 					count++;
-					if (Double.isNaN(error) || Double.isInfinite(error)) {
+					if (!Numbers.isFinite(error)) {
 						log.reportError("Started with index "+i+", compLRR of '"+compLRRs[count]+"', and oriLRR of '"+originalLRRs[count]+"'");
 						return new double[] {-999,-999};
 					}

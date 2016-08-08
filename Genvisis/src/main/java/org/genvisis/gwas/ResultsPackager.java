@@ -600,8 +600,8 @@ public class ResultsPackager {
 					beta = Double.NaN;
 					se = Double.NaN;
 				}
-				tmp += "\t" + (Double.isInfinite(beta) ? "." : beta);
-				tmp += "\t" + (Double.isInfinite(se) ? "." : se);
+				tmp += "\t" + (!Numbers.isFinite(beta) ? "." : beta);
+				tmp += "\t" + (!Numbers.isFinite(se) ? "." : se);
 			}
 			result = snpList.get(index) + tmp + "\t" + freq + "\t" + lineC[indicesC.get("lnR1")] + "\t" + lineC[indicesC.get("sd_lnR1")] + "\t" + lineC[indicesC.get("lnR2")] + "\t" + lineC[indicesC.get("sd_lnR2")] + "\t" + lineC[indicesC.get("lnS1")] + "\t" + lineC[indicesC.get("sd_lnS1")] + "\t" + lineC[indicesC.get("lnS2")] + "\t" + lineC[indicesC.get("sd_lnS2")] + "\t" + lineCM[indicesCM.get("lnR1")] + "\t" + lineCM[indicesCM.get("sd_lnR1")] + "\t" + lineCM[indicesCM.get("lnR2")] + "\t" + lineCM[indicesCM.get("sd_lnR2")] + "\t" + lineCM[indicesCM.get("lnS1")] + "\t" + lineCM[indicesCM.get("sd_lnS1")] + "\t" + lineCM[indicesCM.get("lnS2")] + "\t" + lineCM[indicesCM.get("sd_lnS2")] + "\t" + lineM[indicesM.get("lnR1")] + "\t" + lineM[indicesM.get("sd_lnR1")] + "\t" + lineM[indicesM.get("lnR2")] + "\t" + lineM[indicesM.get("sd_lnR2")] + "\t" + lineM[indicesM.get("lnS1")] + "\t" + lineM[indicesM.get("sd_lnS1")] + "\t" + lineM[indicesM.get("lnS2")] + "\t" + lineM[indicesM.get("sd_lnS2")];
 //			result = snpList.get(index) + "\t" + lineC[indicesC[1]];

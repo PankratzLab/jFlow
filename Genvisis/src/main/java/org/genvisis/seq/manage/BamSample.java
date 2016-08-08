@@ -7,6 +7,7 @@ import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.Array;
+import org.genvisis.common.Numbers;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 
@@ -185,7 +186,7 @@ public class BamSample {
 			for (int j = 0; j < chrIndices[i].length; j++) {
 				int index = chrIndices[i][j];
 
-				if ((Double.isNaN(scaleMAD[index]) || Double.isInfinite(scaleMAD[index]))) {// should only happen if the MAD is NaN
+				if (!Numbers.isFinite(scaleMAD[index])) {// should only happen if the MAD is NaN
 					if (!error) {
 						String warning = "Found invalid scale MAD depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[chrIndices[i][j]];
 						warning += "Setting all of chr" + i + " to 0";
