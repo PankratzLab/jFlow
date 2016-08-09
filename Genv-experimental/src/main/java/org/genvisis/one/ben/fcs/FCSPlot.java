@@ -95,6 +95,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     private volatile boolean showMedianY = true;
     private volatile boolean showMedianX = true;
     
+    private volatile boolean backgating = false;
     private volatile boolean drawPolyGatesBinned = false;
 
     private JFrame parent;
@@ -438,7 +439,17 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         }
     }
     
-	public boolean drawPolysAsFlowJo() {
+    public boolean isBackgating() {
+        return backgating;
+    }
+    
+    public void setBackgating(boolean back) {
+        this.backgating = back;
+        fcsPanel.setForceGatesChanged();
+        updateGUI();
+    }
+    
+	public boolean isDrawPolysAsFlowJo() {
         return drawPolyGatesBinned;
     }
 
@@ -487,13 +498,21 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         }
     }
     
+    public boolean[] getParentGating() {
+        boolean[] gating = null;
+        if (this.parentGate != null && !(this.parentGate instanceof NullGate)) {
+            gating = this.parentGate.gate(dataLoader);
+        }
+        return gating;
+    }
+    
     public double[] getAxisData(boolean wait, boolean xAxis) {
         double[] data;
         if (dataLoader == null) {
             data = null;
         } else {
             data = dataLoader.getData(xAxis ? getXDataName() : getYDataName(), wait);
-            if (this.parentGate != null && !(this.parentGate instanceof NullGate)) {
+            if (!backgating &&  this.parentGate != null && !(this.parentGate instanceof NullGate)) {
                 boolean[] gating = this.parentGate.gate(dataLoader);
                 data = Array.subArray(data, gating);
             }
@@ -676,6 +695,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	public void refreshGating() {
         Gate sel = this.parentGate == null || this.parentGate instanceof NullGate ? null : this.parentGate;
         this.gatingSelector.resetGating(gating, sel);
+        fcsPanel.setForceGatesChanged();
         updateGUI();
 	}
 	
@@ -754,7 +774,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	public int getDataCount() {
 	    int cnt = -1;
 	    if (dataLoader == null) return cnt;
-	    if (this.parentGate != null && !(this.parentGate instanceof NullGate)) {
+	    if (!backgating && this.parentGate != null && !(this.parentGate instanceof NullGate)) {
 	        cnt = Array.booleanArraySum(this.parentGate.gate(dataLoader));
 	    } else {
 	        cnt = dataLoader.getCount();

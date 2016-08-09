@@ -3,7 +3,6 @@ package org.genvisis.one.ben.fcs;
 import java.awt.Color;
 import java.awt.Dialog.ModalityType;
 import java.awt.MouseInfo;
-import java.awt.PointerInfo;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -18,16 +17,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JColorChooser;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
-import javax.swing.colorchooser.AbstractColorChooserPanel;
-import javax.swing.colorchooser.ColorSelectionModel;
-import javax.swing.colorchooser.DefaultColorSelectionModel;
-import javax.swing.event.ChangeListener;
 
+import org.genvisis.cnv.gui.ColorIcon;
 import org.genvisis.cnv.plots.GenericLine;
 import org.genvisis.cnv.plots.GenericPath;
 import org.genvisis.cnv.plots.GenericRectangle;
@@ -82,7 +78,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                                                     new Color(224, 255, 255),
 
     };
-    private static final byte POINT_SIZE = 3;
+    private static final byte POINT_SIZE = 1;
 
     protected FCSPlot fcp;
 
@@ -303,7 +299,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             int range = (int) Math.ceil(minMax[1]) - (int) Math.floor(minMax[0]) + 1;
 //             int step = (int) Math.ceil(range / (2 * Array.iqrExclusive(xData) / Math.pow(xData.length, 1/3))); // bin size too small with this formula
             int step = Math.max(2, (int) (range / (2 * Math.sqrt(xData.length))));
-            System.out.println("step: " + step);
             float[] histData = new float[range / step + 1];
             for (double x : xData) {
                 histData[(int) (x - minMax[0]) / step]++;
@@ -422,19 +417,25 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
     private void updateGateColor() {
         byte color = 0;
-        boolean[] parentGating = fcp.getParentGate() == null ? null : fcp.getParentGate().gate(fcp.dataLoader);
+        boolean[] parentGating = fcp.getParentGating();
 
         for (int i = 0, count = parentGating == null ? points.length : parentGating.length, index = 0; i < count; i++) {
             if (parentGating != null) {
-                if (!parentGating[i]) {
+                if (!parentGating[i] && !fcp.isBackgating()) {
                     continue;
                 }
             }
             color = (byte) 0;
-            for (int g = 0; g < gating.size(); g++) {
-                if (gating.get(g)[i]) {
-                    color = (byte) gates.get(g).getColorCode();
-                    break;
+            if (fcp.isBackgating()) {
+                if (parentGating[i]) {
+                    color = (byte) fcp.getParentGate().getColorCode();
+                }
+            } else {
+                for (int g = 0; g < gating.size(); g++) {
+                    if (gating.get(g)[i]) {
+                        color = (byte) gates.get(g).getColorCode();
+                        break;
+                    }
                 }
             }
             points[index++].setColor(color);
@@ -736,7 +737,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                                     pg.addDimension(new GateDimension(pg, xCol, fcp.getXScale()));
                                     pg.addDimension(new GateDimension(pg, yCol, fcp.getYScale()));
                                     pg.setPath(path);
-                                    pg.setShouldMimicFlowJoGating(fcp.drawPolysAsFlowJo());
+                                    pg.setShouldMimicFlowJoGating(fcp.isDrawPolysAsFlowJo());
                                     pg.setColor(3);
                                     setGateLevel(pg);
                                     fcp.addGate(pg);
@@ -1029,13 +1030,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                         }
                         if (newName != null) {
                             g.setName(newName);
-                            setForceGatesChanged();
                             fcp.refreshGating();
                         }
-                        break;
-                    case 'C':
-                        
-                        // TODO colorPicker
                         break;
                     case 'F':
                         ((PolygonGate)g).setShouldMimicFlowJoGating(((JCheckBoxMenuItem)e.getSource()).isSelected());
@@ -1059,7 +1055,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                                     yDim.setMin(rge.getYMin());
                                     yDim.setMax(rge.getYMax());
                                 }
-                                setForceGatesChanged();
                                 fcp.refreshGating();
                             }
                         } else if (g instanceof PolygonGate) {
@@ -1072,7 +1067,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                                 g.setName(pge.getName());
                                 ((PolygonGate) g).setPath(pge.getNewPath());
                                 ((PolygonGate) g).setShouldMimicFlowJoGating(pge.getMimicFlowJo());
-                                setForceGatesChanged();
                                 fcp.refreshGating();
                             }
                             
@@ -1092,9 +1086,21 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         rename.setActionCommand("R");
         menu.add(rename);
 
-        JMenuItem color = new JMenuItem("Set Color");
-        color.addActionListener(act);
-        color.setActionCommand("C");
+        JMenu color = new JMenu("Set Color");
+        for (int i = 3; i < colorScheme.length; i++) {
+            final int ind = i;
+            JMenuItem jmi = new JMenuItem(new ColorIcon(10, 10, colorScheme[i]));
+            jmi.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    g.setColor(ind);
+                    setForceGatesChanged();
+                    refreshNonBaseLayers();
+                }
+            });
+            color.add(jmi);
+        }
+        
         menu.add(color);
 
         if (g instanceof PolygonGate) {
@@ -1414,7 +1420,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
     boolean drag = false;
 
-    private void setForceGatesChanged() {
+    public void setForceGatesChanged() {
         this.forceGatesChanged = true;
     }
 

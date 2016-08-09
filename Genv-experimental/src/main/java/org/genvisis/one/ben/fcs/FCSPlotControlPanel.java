@@ -375,11 +375,21 @@ public class FCSPlotControlPanel extends JPanel {
         });
         chkDrawPolysBinned.setHorizontalAlignment(SwingConstants.CENTER);
         panel.add(chkDrawPolysBinned, "cell 0 5, grow");
+
+        JCheckBox chkBackgate = new JCheckBox("Backgate");
+        chkBackgate.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent arg0) {
+                plot.setBackgating(arg0.getStateChange() == ItemEvent.SELECTED);
+            }
+        });
+        chkBackgate.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(chkBackgate, "cell 0 6, grow");
         
         btnSaveGating = new JButton("Save Gating");
         btnSaveGating.addActionListener(gateSaveListener);
         btnSaveGating.setHorizontalAlignment(SwingConstants.CENTER);
-        panel.add(btnSaveGating, "cell 0 6, span 2, center");
+        panel.add(btnSaveGating, "cell 0 7, span 2, center");
         
         dataControlsPanel = new JAccordionPanel();
         panel_1.add(dataControlsPanel, "cell 0 2,grow");

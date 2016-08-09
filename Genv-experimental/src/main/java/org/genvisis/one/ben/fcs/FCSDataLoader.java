@@ -521,6 +521,7 @@ public class FCSDataLoader {
         
         return compensated;
     }
+    
 //    
 //    private static float[][] compensate(ArrayList<String> dataColNames, float[][] data, String[] spillColNames, DenseMatrix64F spillMatrix) {
 //        int[] spillLookup = new int[dataColNames.size()];
@@ -547,8 +548,6 @@ public class FCSDataLoader {
 //        
 //        return compensated;
 //    }
-//    
-//    
 
     public AXIS_SCALE getScaleForParam(String string) {
         int i = paramNamesInOrder.indexOf(string.startsWith(COMPENSATED_PREPEND) ? string.substring(COMP_LEN) : string);
