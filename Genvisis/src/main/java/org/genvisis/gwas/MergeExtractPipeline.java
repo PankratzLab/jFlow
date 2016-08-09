@@ -467,26 +467,34 @@ public class MergeExtractPipeline {
         String line, file;
         String[] temp;
         
-        if (null == data || "".equals(data) || !Files.exists(data)) {
+        if (null == data || "".equals(data)) {
             throw new IllegalArgumentException("Error - provided data file \"" + data + "\" doesn't exist.");
+        }
+        
+        file = Files.isRelativePath(data) ? (Files.exists(runDir + data) ? runDir + data : "./" + data) : data;
+        if (!Files.exists(file)) {
+            throw new IllegalArgumentException("Error - provided data file \"" + file + "\" doesn't exist.");
         }
         
         ArrayList<DataSource> sources = new ArrayList<MergeExtractPipeline.DataSource>();
         try {
-            file = Files.isRelativePath(data) ? (Files.exists(runDir + data) ? runDir + data : "./" + data) : data;
             reader = Files.getAppropriateReader(file);
             while ((line = reader.readLine()) != null) {
+                if ("".equals(line)) continue;
                 temp = line.split("\t");
                 if (temp.length == 4) {
                     log.report("Added data source: " + temp[1]);
                     sources.add(new DataSource(temp[0], null, temp[1], temp[2], temp[3]));
                 } else if (temp.length == 5) {
-                    String dir = temp[1];
                     String lbl = temp[0];
+                    String dir = temp[1];
                     String dataFileExt = temp[2];
                     String mapFileExt = temp[3];
                     String idFile = temp[4];
-                    String[] filesToAdd = (new File(dir)).list(getFilter(markerLocations, regions, dataFileExt, bpWindow, log));
+                    FilenameFilter ff = getFilter(markerLocations, regions, dataFileExt, bpWindow, log);
+                    // the program will die with only a "null" in the error log if the user does not have permissions to access dir
+                    String[] filesToAdd = (new File(dir)).list(ff);
+                    log.report("Found " + filesToAdd.length + " files to add");
                     for (String fileToAdd : filesToAdd) {
                         sources.add(new DataSource(lbl, dir, fileToAdd, fileToAdd.substring(0, fileToAdd.length() - dataFileExt.length()) + mapFileExt, idFile));
                         log.report("Added data source: " + fileToAdd);

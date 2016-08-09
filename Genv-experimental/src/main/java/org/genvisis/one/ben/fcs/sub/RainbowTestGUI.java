@@ -304,12 +304,16 @@ public class RainbowTestGUI extends JFrame {
                             Float value = (Float) val;
                             if (rdbtnMean.isSelected()) {
                                 if (paramMeans.containsKey(colNm)) {
-                                    if (value > (paramMeans.get(colNm) + paramSDs.get(colNm)) || value < (paramMeans.get(colNm) - paramSDs.get(colNm))) {
-                                        col = SD1_COLOR;
-                                    }  
-                                    if (value > (paramMeans.get(colNm) + 2*paramSDs.get(colNm)) || value < (paramMeans.get(colNm) - 2*paramSDs.get(colNm))) {
+                                    double mn = paramMeans.get(colNm);
+                                    if (value > (mn + .15 * mn) || value < (mn - .15 * mn)) {
                                         col = SD2_COLOR;
                                     }
+//                                    if (value > (paramMeans.get(colNm) + paramSDs.get(colNm)) || value < (paramMeans.get(colNm) - paramSDs.get(colNm))) {
+//                                        col = SD1_COLOR;
+//                                    }  
+//                                    if (value > (paramMeans.get(colNm) + 2*paramSDs.get(colNm)) || value < (paramMeans.get(colNm) - 2*paramSDs.get(colNm))) {
+//                                        col = SD2_COLOR;
+//                                    }
                                 }
                             } else if (rdbtnSd.isSelected()) {
                                 

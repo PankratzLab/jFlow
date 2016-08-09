@@ -237,21 +237,21 @@ public class Grafik {
 		double[] gates = {.25, .5, .75};
 		color = new int[] {0,0,0};
 		if (value < gates[0]) {
-			color[0] = 0;
-			color[1] = (int) (255 * value / 0.25);
-			color[2] = 255;
+		    color[0] = 0;
+		    color[1] = (int) (255 * value / gates[0]);
+		    color[2] = 255;
 		} else if (value < gates[1]) {
-			color[0] = 0;
-			color[1] = 255;
-			color[2] = (int) (255 - 255 * (value - gates[0]) / .25);
+		    color[0] = 0;
+		    color[1] = 255;
+		    color[2] = (int) (255 - 255 * (value - gates[0]) / gates[0]);
 		} else if (value < gates[2]) {
-			color[0] = (int) (255 * (value - gates[1] ) / .25);
-			color[1] = 255;
-			color[2] = 0;
+		    color[0] = (int) (255 * (value - gates[1] ) / gates[0]);
+		    color[1] = 255;
+		    color[2] = 0;
 		} else {
-			color[0] = 255;
-			color[1] = (int) (255 - 255 * (value - gates[2]) / .25);
-			color[2] = 0;
+		    color[0] = 255;
+		    color[1] = (int) (255 - 255 * (value - gates[2]) / gates[0]);
+		    color[2] = 0;
 		}
 		
 		return color;

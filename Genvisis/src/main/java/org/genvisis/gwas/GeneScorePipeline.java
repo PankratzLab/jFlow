@@ -36,7 +36,6 @@ public class GeneScorePipeline {
 	private static final String PLINK_FRQ_DIR = "D:/1000G/";
 	private static final String TAG = "##";
 	private static final String PLINK_FRQ_FILE_PATTERN = "chr" + TAG + "_eu_unrel.frq.xln";
-	private static final int ACCEPTABLE_SEPARATION = 0;
 	private static final String CROSS_FILTERED_DATAFILE = "bimData.xln";
 	private static final String DATA_SOURCE_FILENAME = "data.txt";
 	
@@ -1406,7 +1405,7 @@ public class GeneScorePipeline {
                 "\t\t\t>...\n" + 
 		        "\n" + 
 		        "\n" + 
-				"lab.MultiGeneScorePipeline requires 1+ arguments\n" + 
+				"gwas.GeneScorePipeline requires 1+ arguments\n" + 
 				"   (1) Pre-process data files (i.e. process=path/to/file1.xln,path/to/file2.xln (not the default)) \n" +
 				"  OR\n" + 
 				"   (1) Metastudy directory root, containing subdirectories for each study (i.e. broot=C:/ (not the default))\n" +
