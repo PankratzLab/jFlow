@@ -13,6 +13,7 @@ import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.var.MosaicRegion;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.*;
+import org.genvisis.common.ProgressMonitor.DISPLAY_MODE;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.stats.*;
@@ -31,7 +32,7 @@ public class SexChecks {
 	public static final String EST_SEX_HEADER = generateEstSexHeader();
 	
 	private static final int[] EST_SEX_MAPPING = {0, 1, 2, 1, 1, 1, 2, 2, 2, 2};
-	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note", "Check", "Excluded", "Median X R", "Median Y R", "R Ratio Y:X", "Number of X Heterozygote Calls", "Median X LRR", "Median Y LRR"};
+	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note", "Check", "Excluded", "Median X R", "Median Y R", "R Ratio Y:X", "% X Heterozygote Calls", "% X BAF 0.15-0.85", "Median X LRR", "Median Y LRR"};
 	public static final String[] KARYOTYPES = {"", "XY", "XX", "XXY", "XXY", "XXY", "XXX", "XXX", "X", "X"};
 	
 	private static final float XY_R_RATIO_MIN_SEED_MALE = 0.8f;
@@ -72,6 +73,7 @@ public class SexChecks {
 	private float[][] lrrsY;
 	
 	private byte[][] genotypesX;
+	private float[][] bafsX;
 	
 	private boolean[] seedMales;
 	private boolean[] seedFemales;
@@ -79,7 +81,11 @@ public class SexChecks {
 	private float[] lrrMedX;
 	private float[] lrrMedY;
 	
+	private float[] lrrMeanX;
+	private float[] lrrMeanY;
+	
 	private float[] pctXHets;
+	private float[] pctXBaf15_85;
 	
 	private int[] sexes;
 	private boolean[] uncertains;
@@ -123,8 +129,12 @@ public class SexChecks {
 		lrrMedX = calcMedianLRRs(lrrsX, Array.booleanArrayToIndices(xUseMarkers));
 		lrrMedY = calcMedianLRRs(lrrsY, Array.booleanArrayToIndices(yUseMarkers));
 		
+		lrrMeanX = calcMeanLRRs(lrrsX, Array.booleanArrayToIndices(xUseMarkers));
+		lrrMeanY = calcMeanLRRs(lrrsY, Array.booleanArrayToIndices(yUseMarkers));
+		
 		log.report("Calculating sample counts of heterozygote calls for identified X chromosome markers...");
 		pctXHets = calcPctHets(genotypesX, Array.booleanArrayToIndices(xUseMarkers));
+		pctXBaf15_85 = calcPctBaf15_85(bafsX, Array.booleanArrayToIndices(xUseMarkers));
 		
 		log.report("Estimating sex for each sample...");
 		estimateSexes();
@@ -184,6 +194,7 @@ public class SexChecks {
 		
 		lrrsX = new float[xMarkers.length][sampleNames.length];
 		genotypesX = new byte[xMarkers.length][sampleNames.length];
+		bafsX = new float[xMarkers.length][sampleNames.length];
 		rs = new float[sampleNames.length][xMarkers.length];
 		ClusterFilterCollection clusterFilters = proj.getClusterFilterCollection();
 		float gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
@@ -193,6 +204,7 @@ public class SexChecks {
 			float[] ys = markerData.getYs();
 			lrrsX[m] = markerData.getLRRs();
 			genotypesX[m] = markerData.getAbGenotypesAfterFilters(clusterFilters, markerData.getMarkerName(), gcThreshold, log);
+			bafsX[m] = markerData.getBAFs();
 			for (int s = 0; s < sampleNames.length; s++) {
 				rs[s][m] = Centroids.calcR(xs[s], ys[s]);
 			}
@@ -294,6 +306,31 @@ public class SexChecks {
 		return medianLRRs;
 	}
 	
+	private float[] calcMeanLRRs(float[][] lrrs, int[] useMarkers) {
+		float[][] lrrsBySample = new float[sampleNames.length][useMarkers.length];
+		for (int m = 0; m < useMarkers.length; m++) {
+			for (int s = 0; s < sampleNames.length; s++) {
+				lrrsBySample[s][m] = lrrs[useMarkers[m]][s];
+			}
+		}
+		
+		float[] meanLRRs = new float[sampleNames.length];
+		for (int i = 0; i < sampleNames.length; i++) {
+			float[] cleaned = Array.removeNonFinites(lrrsBySample[i]);
+			float[] sorted = cleaned.clone();
+			Arrays.sort(sorted);
+			meanLRRs[i] = Array.mean(cleaned);
+			if (i == 362) {
+				System.out.println(i);
+				meanLRRs[i] = Array.mean(cleaned);
+				float median = Array.median(cleaned);
+				System.out.println(i);
+			}
+		}
+		
+		return meanLRRs;
+	}
+	
 	private float[] calcPctHets(byte[][] genotypes, int[] useMarkers) {
 		int[] hetCounts = Array.intArray(sampleNames.length, 0);
 		int[] genotypeCounts = Array.intArray(sampleNames.length, 0);
@@ -315,6 +352,28 @@ public class SexChecks {
 		}
 		return pctHets;
 	}
+	
+	private float[] calcPctBaf15_85(float[][] bafs, int[] useMarkers) {
+		int[] baf15_85Counts = Array.intArray(sampleNames.length, 0);
+		int[] bafCounts = Array.intArray(sampleNames.length, 0);
+		for (int m = 0; m < useMarkers.length; m++) {
+			for (int s = 0; s < sampleNames.length; s++) {
+				bafCounts[s]++;
+				if (bafs[useMarkers[m]][s] > 0.15f && bafs[useMarkers[m]][s] < 0.85f) {
+					baf15_85Counts[s]++;
+				}
+			}
+		}
+		float[] pctBaf15_85 = new float[sampleNames.length];
+		for (int s = 0; s < sampleNames.length; s++) {
+			if (bafCounts[s] == 0) {
+				pctBaf15_85[s] = 0.0f;
+			} else {
+				pctBaf15_85[s] = (float) baf15_85Counts[s] / bafCounts[s];
+			}
+		}
+		return pctBaf15_85;
+	}
 
 	private void estimateSexes() {
 		float[] maleMedLRRsX = Array.subArray(lrrMedX, seedMales);
@@ -329,6 +388,11 @@ public class SexChecks {
 		float maleStdDevPctXHets = Array.stdev(Array.subArray(pctXHets, seedMales), true);
 		float femaleMeanPctXHets = Array.mean(Array.subArray(pctXHets, seedFemales), true);
 		float femaleStdDevPctXHets = Array.stdev(Array.subArray(pctXHets, seedFemales), true);
+		
+		float maleMeanPctXBaf15_85 = Array.mean(Array.subArray(pctXBaf15_85, seedMales), true);
+		float maleStdDevPctXBaf15_85 = Array.stdev(Array.subArray(pctXBaf15_85, seedMales), true);
+		float femaleMeanPctXBaf15_85 = Array.mean(Array.subArray(pctXBaf15_85, seedFemales), true);
+		float femaleStdDevPctXBaf15_85 = Array.stdev(Array.subArray(pctXBaf15_85, seedFemales), true);
 		
 		float[] maleMedLRRsY = Array.subArray(lrrMedY, seedMales);
 		float[] femaleMedLRRsY = Array.subArray(lrrMedY, seedFemales);
@@ -362,6 +426,10 @@ public class SexChecks {
 		log.report("Female SD Y LRR:      " + femaleStdDevY);
 		log.report("Female Y LRR Ceiling: " + femaleCeilingY);
 		
+		String taskName = "SexEstimation";
+		
+		proj.getProgressMonitor().beginDeterminateTask(taskName, "Estimating Sexes", sampleNames.length, DISPLAY_MODE.GUI_AND_CONSOLE);
+		
 		for (int i = 0; i < sampleNames.length; i++) {
 			if (qcPassedSamples[i]) {
 				boolean male = false;
@@ -390,8 +458,7 @@ public class SexChecks {
 						if (lrrMedX[i] < (maleMeanX + NUM_SD_FOR_MALE_X_FULL_ANEUPLOIDY * maleStdDevX)) {
 							uncertains[i] = true;
 							notes[i] += "Median X LRR (" + ext.formDeci(lrrMedX[i], 4)  + ") not elevated enough to call Klinefelter without X heterozygosity (" + ext.formPercent(pctXHets[i], 4) + "); ";
-						}
-						if (checkXMosaicism(i, mosaicismCheckUse)) {
+						} if (checkXMosaicism(i, mosaicismCheckUse)) {
 							sexes[i] = 5; // Mosaic Klinefelter
 						} else {
 							sexes[i] = 3; // Full Klinefelter
@@ -420,7 +487,7 @@ public class SexChecks {
 							sexes[i] = 7; // Mosaic Triple X
 						}
 					} else if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX) && checkXMosaicism(i, mosaicismCheckUse)) {
-						if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX) && pctXHets[i] < (femaleMeanPctXHets - NUM_SD_FOR_HET_OUTLIERS * femaleStdDevPctXHets)) {
+						if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX) && pctXBaf15_85[i] < (femaleMeanPctXBaf15_85 - NUM_SD_FOR_HET_OUTLIERS * femaleStdDevPctXBaf15_85)) {
 							sexes[i] = 8; // Full Turner
 						} else {
 							sexes[i] = 9; // Mosaic Turner
@@ -435,7 +502,9 @@ public class SexChecks {
 			} else {
 				sexes[i] = 0;
 			}
+			proj.getProgressMonitor().updateTask(taskName);
 		}
+		proj.getProgressMonitor().endTask(taskName);
 	}
 	
 	/*
@@ -518,13 +587,14 @@ public class SexChecks {
 					writer.print(sampleNames[i]+"\t"+famIndPair+"\t"+sampleData.getSexForIndividual(sampleNames[i]));
 				}
 				writer.println("\t" + sexes[i] + 
-							   "\t" + (notes[i].equals("") ? "." : notes[i]) +
+							   "\t" + ("".equals(notes[i]) ? "." : notes[i]) +
 							   "\t" + (uncertains[i] ? "1" : "0") + 
 							   "\t" + (qcPassedSamples[i] ? "0" : "1") + 
 							   "\t" + rMedX[i] + 
 							   "\t" + rMedY[i] + 
 							   "\t" + (rMedY[i] / rMedX[i]) + 
 							   "\t" + pctXHets[i] +
+							   "\t" + pctXBaf15_85[i] +
 							   "\t" + lrrMedX[i] + 
 							   "\t" + lrrMedY[i]);
 			}
