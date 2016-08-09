@@ -264,18 +264,18 @@ public class TelSeq {
 
 		if (optionalBed != null) {
 
-			String mitoDir = outDir + "mitoCN/";
-			new File(mitoDir).mkdirs();
-			String baseBed = mitoDir + "base_" + ext.rootOf(optionalBed) + ".bed";
-
-			BEDFileReader reader = new BEDFileReader(optionalBed, false);
-			LocusSet<BEDFeatureSeg> segs = reader.loadAll(log);
-			reader.close();
-			segs.writeSegmentRegions(baseBed, true, log);
-
-			String bamsToMito = mitoDir + "bams.txt";
-			Files.writeList(bams, bamsToMito);
-			MitoSeqCN.run(bamsToMito, mitoDir, baseBed, referenceGenomeFasta, chr, threads);
+//			String mitoDir = outDir + "mitoCN/";
+//			new File(mitoDir).mkdirs();
+//			String baseBed = mitoDir + "base_" + ext.rootOf(optionalBed) + ".bed";
+//
+//			BEDFileReader reader = new BEDFileReader(optionalBed, false);
+//			LocusSet<BEDFeatureSeg> segs = reader.loadAll(log);
+//			reader.close();
+//			segs.writeSegmentRegions(baseBed, true, log);
+//
+//			String bamsToMito = mitoDir + "bams.txt";
+//			Files.writeList(bams, bamsToMito);
+//			MitoSeqCN.run(bamsToMito, mitoDir, baseBed, referenceGenomeFasta, chr, threads);
 		}
 	}
 
