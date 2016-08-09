@@ -5,6 +5,7 @@ All notable changes to Genvisis will be documented in this file.
 
 ##[0.1.7]
 Genvisis is now a Maven project!
+
 Bug fixes with gc correcting of terrible samples 
 
 ##[0.1.6]
