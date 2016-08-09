@@ -34,17 +34,27 @@ import org.genvisis.seq.manage.BamOps.BamIndexStats;
  */
 public class MitoSeqCN {
 
+	/**
+	 * Used to determine mitochondrial sequences, and non-autosomal X and Ys,
+	 *
+	 */
 	public enum BUILD_PARAMS {
-		GRCh37, HG19;
+		GRCH37("MT", "X", "Y"), HG19("chrMT", "chrX", "chrY");
 
 		private String mitoContig;
 		private String xContig;
 		private String yContig;
 
+		private BUILD_PARAMS(String mitoContig, String xContig, String yContig) {
+			this.mitoContig = mitoContig;
+			this.xContig = xContig;
+			this.yContig = yContig;
+		}
+
 	}
 
 	public static void run(String fileOfBams, String outDir, String captureBed, String referenceGenomeFasta,
-			boolean chr, int numthreads) {
+			BUILD_PARAMS params, int numthreads) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "mtDNACN.log");
 		String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] { 0 }, true);
@@ -61,8 +71,8 @@ public class MitoSeqCN {
 		log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered()
 				+ " bp covered by reference bins int the anti-on-target regions");
 
-		if (!referenceGenome.hasContig("chrM") || !referenceGenome.hasContig("chrX")
-				|| !referenceGenome.hasContig("chrY")) {
+		if (!referenceGenome.hasContig(params.mitoContig) || !referenceGenome.hasContig(params.xContig)
+				|| !referenceGenome.hasContig(params.yContig)) {
 			throw new IllegalArgumentException(
 					"Required contig chrM,chrX,or chrY missing from " + referenceGenomeFasta);
 		} else {
@@ -70,7 +80,7 @@ public class MitoSeqCN {
 			log.reportTimeInfo("Mitochondrial genome length = " + mitoLength);
 
 			MitoCNProducer producer = new MitoCNProducer(bams, referenceGenome, genomeBinsMinusBinsCaputure, outDir,
-					chr, log);
+					params, log);
 			WorkerTrain<MitoCNResult> train = new WorkerTrain<MitoSeqCN.MitoCNResult>(producer, numthreads, numthreads,
 					log);
 			String output = outDir + ext.rootOf(fileOfBams) + "_mtDNACN.summary.txt";
@@ -154,11 +164,11 @@ public class MitoSeqCN {
 		private int xLength;
 		private int yLength;
 		private LocusSet<Segment> genomeBinsMinusBinsCaputure;
-		private boolean chr;
+		private BUILD_PARAMS params;
 		private Logger log;
 
 		public MitoCNWorker(String bam, LocusSet<Segment> genomeBinsMinusBinsCaputure, String outDir, int mitoLength,
-				int xLength, int yLength, boolean chr, Logger log) {
+				int xLength, int yLength, BUILD_PARAMS params, Logger log) {
 			super();
 			this.bam = bam;
 			this.genomeBinsMinusBinsCaputure = genomeBinsMinusBinsCaputure;
@@ -166,7 +176,7 @@ public class MitoSeqCN {
 			this.mitoLength = mitoLength;
 			this.xLength = xLength;
 			this.yLength = yLength;
-			this.chr = chr;
+			this.params = params;
 			this.log = log;
 
 		}
@@ -192,7 +202,8 @@ public class MitoSeqCN {
 					log.reportTimeInfo("Will search : " + segment.getUCSClocation());
 				}
 				QueryInterval[] queryInterestIntervals = BamOps.convertSegsToQI(
-						toSearch.toArray(new Segment[toSearch.size()]), reader.getFileHeader(), 0, true, chr, log);
+						toSearch.toArray(new Segment[toSearch.size()]), reader.getFileHeader(), 0, true,
+						params == BUILD_PARAMS.HG19, log);
 				SAMRecordIterator sIterator = reader.query(queryInterestIntervals, false);
 				int numMitoReads = 0;
 				int numXReads = 0;
@@ -253,11 +264,11 @@ public class MitoSeqCN {
 		private int xLength;
 		private int yLength;
 		private LocusSet<Segment> genomeBinsMinusBinsCaputure;
-		private boolean chr;
+		private BUILD_PARAMS params;
 		private Logger log;
 
 		public MitoCNProducer(String[] bams, ReferenceGenome referenceGenome,
-				LocusSet<Segment> genomeBinsMinusBinsCaputure, String outDir, boolean chr, Logger log) {
+				LocusSet<Segment> genomeBinsMinusBinsCaputure, String outDir, BUILD_PARAMS params, Logger log) {
 			super();
 			this.bams = bams;
 			this.outDir = outDir;
@@ -266,7 +277,7 @@ public class MitoSeqCN {
 			this.yLength = referenceGenome.getContigLength("chrY");
 			this.genomeBinsMinusBinsCaputure = genomeBinsMinusBinsCaputure;
 			this.index = 0;
-			this.chr = chr;
+			this.params = params;
 			this.log = log;
 		}
 
@@ -280,8 +291,8 @@ public class MitoSeqCN {
 			String currentBam = bams[index];
 
 			index++;
-			return new MitoCNWorker(currentBam, genomeBinsMinusBinsCaputure, outDir, mitoLength, xLength, yLength, chr,
-					log);
+			return new MitoCNWorker(currentBam, genomeBinsMinusBinsCaputure, outDir, mitoLength, xLength, yLength,
+					params, log);
 		}
 	}
 
@@ -330,7 +341,7 @@ public class MitoSeqCN {
 		}
 		try {
 
-			run(fileOfBams, outDir, captureBed, referenceGenome, true, numthreads);
+			run(fileOfBams, outDir, captureBed, referenceGenome, BUILD_PARAMS.HG19, numthreads);
 
 		} catch (Exception e) {
 			e.printStackTrace();
