@@ -656,7 +656,7 @@ public class GenvisisWorkflow {
                   new String[][]{{"[Parse Sample Files] step must have been run already or must be selected and valid."},
                                  {"[Create SampleData.txt File] step must have been run already or must be selected and valid."},
                                  {"Add Estimated Sex to Sample Data"},
-                                 {"Use R values to identify sex discriminating markers", "List of markers that do not cross hybridize", "BLAST annotation VCF to generate list of markers that do not cross hybridize from"}}, 
+                                 {"Use only X and Y chromosome R values to identify sex discriminating markers", "List of markers that do not cross hybridize", "BLAST annotation VCF to generate list of markers that do not cross hybridize from"}}, 
                   new RequirementInputType[][]{{RequirementInputType.NONE}, 
                                                {RequirementInputType.NONE},
                                                {RequirementInputType.BOOL},
