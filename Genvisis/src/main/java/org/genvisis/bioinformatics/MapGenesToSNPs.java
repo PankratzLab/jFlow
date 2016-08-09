@@ -30,7 +30,7 @@ public class MapGenesToSNPs {
 		if (paramV == null) {
 			return;
 		}
-		track = GeneTrack.load(Aliases.getPathToFileInReferenceDirectory(GeneSet.REFSEQ_TRACK, false, log), false);
+		track = GeneTrack.load(Aliases.getPathToFileInReferenceDirectory(GeneSet.REFSEQ_TRACK, true, log), false);
 
     	line = paramV.remove(0).trim().split("[\\s]+");
     	genesFile = line[0];
