@@ -89,8 +89,9 @@ public class ClipSwap {
         tdp.getPanel().setHistogram(histo);
         tdp.getPanel().createImage();
         tdp.getPanel().screenCapture(file);
-        tdp.windowClosing(null);
-        tdp = null;
+        tdp.setVisible(true);
+//        tdp.windowClosing(null);
+//        tdp = null;
 		
         // TODO set to histogram image location?  set to histogram image?
 		ext.setClipboard(histo.getSummary());
