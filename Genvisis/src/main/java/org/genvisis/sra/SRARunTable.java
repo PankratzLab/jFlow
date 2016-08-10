@@ -92,7 +92,6 @@ public class SRARunTable extends HashMap<String, SRASample> {
 	}
 
 	public static void main(String[] args) {
-		load("/Volumes/Work/data/aric_sra/prep/SraRunTable.txt", new Logger());
 	}
 
 }

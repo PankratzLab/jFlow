@@ -56,4 +56,10 @@ public class SRASample {
 		return aType;
 	}
 
+	@Override
+	public String toString() {
+		return "SRASample [runS=" + runS + ", submittedSampleID=" + submittedSampleID + ", aName=" + aName + ", aType="
+				+ aType + ", platform=" + platform + "]";
+	}
+
 }
