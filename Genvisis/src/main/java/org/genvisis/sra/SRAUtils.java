@@ -76,8 +76,8 @@ public class SRAUtils {
 		@Override
 		public SRAConversionResult call() throws Exception {
 			boolean valid = dumpSra(inputSra, outputBam, log);
-			String bamIndex = ext.rootOf(outputBam, false) + ".bai";
-			BAMIndexer.createIndex(BamOps.getDefaultReader(outputBam, ValidationStringency.STRICT), new File(bamIndex));
+			//Will index sometime...
+//			BAMIndexer.createIndex(BamOps.getDefaultReader(outputBam, ValidationStringency.STRICT), new File(bamIndex));
 			return new SRAConversionResult(outputBam, valid);
 		}
 
@@ -158,7 +158,7 @@ public class SRAUtils {
 		new File(bamDir).mkdirs();
 
 		SRABamProducer producer = new SRABamProducer(sraFiles, bamDir, log);
-		WorkerTrain<SRAConversionResult> train = new WorkerTrain<SRAUtils.SRAConversionResult>(producer, threads, 10,
+		WorkerTrain<SRAConversionResult> train = new WorkerTrain<SRAUtils.SRAConversionResult>(producer, threads, 100,
 				log);
 		ArrayList<SRAConversionResult> results = new ArrayList<SRAUtils.SRAConversionResult>();
 		while (train.hasNext()) {

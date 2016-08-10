@@ -230,7 +230,7 @@ public class MitoSeqCN {
 				while (sIterator.hasNext()) {
 					SAMRecord samRecord = sIterator.next();
 
-					if (!samRecord.getReadUnmappedFlag()) {
+					if (!samRecord.getReadUnmappedFlag() && !samRecord.getDuplicateReadFlag()) {
 						if (samRecord.getContig().equals(params.mitoContig)) {
 							sAMFileWriter.addAlignment(samRecord);
 							numMitoReads++;
