@@ -18,7 +18,8 @@ import org.genvisis.filesys.LocusSet;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
-import org.genvisis.seq.telomere.SRAUtils.SRAConversionResult;
+import org.genvisis.sra.SRAUtils;
+import org.genvisis.sra.SRAUtils.SRAConversionResult;
 
 /**
  * @author Kitty
