@@ -2,6 +2,7 @@ package org.genvisis.seq.telomere;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.genvisis.common.Array;
@@ -126,7 +127,13 @@ public class SRAUtils {
 
 	// sam-dump.2.6.3 SRR1737697 |samtools view -bS -
 
-	public static ArrayList<SRAConversionResult> run(String sraDir, String outDir, int threads) {
+	/**
+	 * @param sraDir your directory that S
+	 * @param outDir
+	 * @param threads
+	 * @return
+	 */
+	public static List<SRAConversionResult> run(String sraDir, String outDir, int threads) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "sraConv.log");
 		String[] sraFiles = Files.listFullPaths(sraDir, SRA_EXT, false);

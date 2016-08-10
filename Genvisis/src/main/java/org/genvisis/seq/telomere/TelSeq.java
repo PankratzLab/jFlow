@@ -2,6 +2,7 @@ package org.genvisis.seq.telomere;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.genvisis.common.Array;
@@ -14,13 +15,15 @@ import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.LocusSet;
-import org.genvisis.seq.analysis.MitoSeqCN;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
 import org.genvisis.seq.telomere.SRAUtils.SRAConversionResult;
 
-//http://goggable.areteh.co:3000/RotBlauer/IntallingTelSeq for telseq install instructions
+/**
+ * @author Kitty
+ * Class for assisting in generating telomere length estimates with TelSeq
+ */
 public class TelSeq {
 
 	private enum TYPE {
@@ -49,13 +52,13 @@ public class TelSeq {
 
 	private static class TelSeqWorker implements Callable<TelSeqResult> {
 		private String inputBam;
-		private ArrayList<String> additionalArgs;
+		private List<String> additionalArgs;
 		private String outputDir;
 		private TYPE type;
 
 		private Logger log;
 
-		public TelSeqWorker(String inputBam, ArrayList<String> additionalArgs, String outputDir, TYPE type, Logger log) {
+		public TelSeqWorker(String inputBam, List<String> additionalArgs, String outputDir, TYPE type, Logger log) {
 			super();
 			this.inputBam = inputBam;
 			this.additionalArgs = additionalArgs;
@@ -75,6 +78,7 @@ public class TelSeq {
 				sampleName = BamOps.getSampleName(inputBam);
 			} catch (Exception e) {
 				log.reportTimeError("Could not get sample name from " + inputBam);
+				log.reportException(e);
 			}
 
 			return new TelSeqResult(out, ran, sampleName, type, readSize);
@@ -83,13 +87,13 @@ public class TelSeq {
 
 	private static class TelSeqProducer extends AbstractProducer<TelSeqResult> {
 		private String[] inputBams;
-		private ArrayList<String> additionalArgs;
+		private List<String> additionalArgs;
 		private String outputDir;
 		private TYPE type;
 		private Logger log;
 		private int index;
 
-		public TelSeqProducer(String[] inputBams, ArrayList<String> additionalArgs, String outputDir, TYPE type, Logger log) {
+		public TelSeqProducer(String[] inputBams, List<String> additionalArgs, String outputDir, TYPE type, Logger log) {
 			super();
 			this.inputBams = inputBams;
 			this.additionalArgs = additionalArgs;
@@ -114,9 +118,9 @@ public class TelSeq {
 
 	private static class Ran {
 		private boolean valid;
-		private ArrayList<String> command;
+		private List<String> command;
 
-		public Ran(boolean valid, ArrayList<String> command) {
+		public Ran(boolean valid, List<String> command) {
 			super();
 			this.valid = valid;
 			this.command = command;
@@ -124,7 +128,7 @@ public class TelSeq {
 
 	}
 
-	private static Ran telSeqIt(String inputBam, String output, int readSize, ArrayList<String> additionalArgs, Logger log) {
+	private static Ran telSeqIt(String inputBam, String output, int readSize, List<String> additionalArgs, Logger log) {
 		String[] outputs = new String[] { output };
 		String[] input = new String[] { inputBam };
 		ArrayList<String> command = new ArrayList<String>();
@@ -132,7 +136,7 @@ public class TelSeq {
 		command.add("-o");
 		command.add(output);
 		command.add("-r");
-		command.add(readSize + "");
+		command.add(Integer.toString(readSize));
 
 		command.addAll(additionalArgs);
 
@@ -144,13 +148,17 @@ public class TelSeq {
 	}
 
 	/**
-	 * Likely tmp method for dumping SRA format first
+	 * @param sraDir 
+	 * @param outDir 
+	 * @param optionalBed 
+	 * @param referenceGenomeFasta 
+	 * @param threads 
 	 */
 	public static void runTelSeqSRA(String sraDir, String outDir, String optionalBed, String referenceGenomeFasta,
 			int threads) {
 		Logger log = new Logger(outDir + ".telseq.log");
 
-		ArrayList<SRAConversionResult> conv = SRAUtils.run(sraDir, outDir, threads);
+		List<SRAConversionResult> conv = SRAUtils.run(sraDir, outDir, threads);
 
 		ArrayList<String> bamst = new ArrayList<String>();
 		for (int i = 0; i < conv.size(); i++) {
