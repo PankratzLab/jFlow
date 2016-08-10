@@ -69,7 +69,7 @@ public class DosageData implements Serializable {
 	private char[][] alleles;
 	private byte[] chrs;
 	private int[] positions;
-	
+	private boolean empty = false;
 	
 	public void writeToPlinkBinary(String dir, String plinkRoot, Logger log) {
         PrintWriter writer;
@@ -267,8 +267,21 @@ public class DosageData implements Serializable {
 	    return 0;
 	}
 	
-	
 	public static DosageData combine(DosageData dd1, DosageData dd2, Logger log) {
+	    if (!dd1.isEmpty() && !dd2.isEmpty()) {
+	        // let through
+	    } else if (dd1.isEmpty() && !dd2.isEmpty()) {
+	        log.reportError("Warning - DosageData {1} provided to combine() was empty.");
+            return dd2;
+        } else if (!dd1.isEmpty() && dd2.isEmpty()) {
+            log.reportError("Warning - DosageData {2} provided to combine() was empty.");
+            return dd1;
+        } else if (dd1.isEmpty() && dd2.isEmpty()) {
+            log.reportError("Warning - both DosageData objects provided to combine() were empty.");
+            return dd1;
+        }
+	    
+	    
 	    byte missingChr = 0;
 	    int missingPos = 0;
 	    char[] missingAlleles = null;
@@ -586,9 +599,14 @@ public class DosageData implements Serializable {
 		    return;
 		}
 		markersToKeep = filterMarkers(markerNames, regions, markers, verbose, log);
-		log.report("Keeping " + Array.booleanArraySum(markersToKeep) + " markers out of " + markerNames.length);
-		
 		keepTotal = Array.booleanArraySum(markersToKeep);
+		
+		log.report("Keeping " + keepTotal + " markers out of " + markerNames.length);
+		
+		if (keepTotal == 0) {
+		    empty = true;
+		    return;
+		}
 		
 		ids = HashVec.loadFileToStringMatrix(idFile, false, new int[] {0,1}, false);
 		if (parameters[3] == 1) {
@@ -622,6 +640,10 @@ public class DosageData implements Serializable {
 			positions = new int[keepTotal];
 		}
 
+		if (keepTotal == 0) {
+		    return;
+		}
+		
 		invalids = new Hashtable<String, String>();
 		try {
 			reader = Files.getAppropriateReader(dosageFile);//new BufferedReader(new FileReader(dosageFile));
@@ -850,7 +872,11 @@ public class DosageData implements Serializable {
 	public float[][] getDosageValues() {
 		return dosageValues;
 	}
-
+	
+	public boolean isEmpty() {
+	    return empty;
+	}
+	
 	public void computeDosageValues(Logger log) {
 		if (genotypeProbabilities == null) {
 		    log.reportError("Error - cannot compute dosage values from genotype probabilities, if there are no genotype probabilities!");
