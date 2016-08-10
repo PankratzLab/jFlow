@@ -12,6 +12,11 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
+import org.genvisis.seq.manage.BamOps;
+
+import htsjdk.samtools.BAMIndexer;
+import htsjdk.samtools.ValidationStringency;
+
 import org.genvisis.common.ext;
 
 /**
@@ -71,6 +76,8 @@ public class SRAUtils {
 		@Override
 		public SRAConversionResult call() throws Exception {
 			boolean valid = dumpSra(inputSra, outputBam, log);
+			String bamIndex = ext.rootOf(outputBam, false) + ".bai";
+			BAMIndexer.createIndex(BamOps.getDefaultReader(outputBam, ValidationStringency.STRICT), new File(bamIndex));
 			return new SRAConversionResult(outputBam, valid);
 		}
 

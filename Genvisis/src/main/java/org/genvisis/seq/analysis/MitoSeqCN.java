@@ -53,6 +53,18 @@ public class MitoSeqCN {
 
 	}
 
+	/**
+	 * @param fileOfBams
+	 *            bam files to estimate mtDNA CN for
+	 * @param outDir
+	 *            output directory for results
+	 * @param captureBed
+	 *            defining targeted capture regions
+	 * @param referenceGenomeFasta
+	 *            reference genomve
+	 * @param params
+	 * @param numthreads
+	 */
 	public static void run(String fileOfBams, String outDir, String captureBed, String referenceGenomeFasta,
 			BUILD_PARAMS params, int numthreads) {
 		new File(outDir).mkdirs();
@@ -61,22 +73,28 @@ public class MitoSeqCN {
 		log.reportTimeInfo("Detected " + bams.length + " bam files");
 		ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
 		BedOps.verifyBedIndex(captureBed, log);
-		BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
-		LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000)
-				.removeThese(readerCapture.loadAll(log).getStrictSegmentSet(), 21000).autosomal(true, log);// essentially
-																											// remove
-																											// the
-																											// neighbor
-		readerCapture.close();
-		log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered()
-				+ " bp covered by reference bins int the anti-on-target regions");
+		LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).autosomal(true, log);
+		if (captureBed != null) {
+			BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
+
+			genomeBinsMinusBinsCaputure = genomeBinsMinusBinsCaputure
+					.removeThese(readerCapture.loadAll(log).getStrictSegmentSet(), 21000).autosomal(true, log);// essentially
+
+			// remove
+			// the
+			// neighbor
+			readerCapture.close();
+		} else {
+			log.reportTimeWarning("No capture targets defined, assuming this is WGS");
+		}
+		log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bin regions");
 
 		if (!referenceGenome.hasContig(params.mitoContig) || !referenceGenome.hasContig(params.xContig)
 				|| !referenceGenome.hasContig(params.yContig)) {
-			throw new IllegalArgumentException(
-					"Required contig chrM,chrX,or chrY missing from " + referenceGenomeFasta);
+			throw new IllegalArgumentException("Required contig for " + params + " is missing ( " + params.mitoContig
+					+ " ," + params.xContig + ", " + params.yContig + " from " + referenceGenomeFasta);
 		} else {
-			int mitoLength = referenceGenome.getContigLength("chrM");
+			int mitoLength = referenceGenome.getContigLength(params.mitoContig);
 			log.reportTimeInfo("Mitochondrial genome length = " + mitoLength);
 
 			MitoCNProducer producer = new MitoCNProducer(bams, referenceGenome, genomeBinsMinusBinsCaputure, outDir,
@@ -195,9 +213,9 @@ public class MitoSeqCN {
 						.makeSAMOrBAMWriter(reader.getFileHeader(), true, new File(outputMTBam));
 
 				ArrayList<Segment> toSearch = new ArrayList<Segment>();
-				toSearch.add(new Segment("chrMT", 0, mitoLength + 1));
-				toSearch.add(new Segment("chrX", 0, xLength + 1));
-				toSearch.add(new Segment("chrY", 0, yLength + 1));
+				toSearch.add(new Segment(params.mitoContig, 0, mitoLength + 1));
+				toSearch.add(new Segment(params.xContig, 0, xLength + 1));
+				toSearch.add(new Segment(params.yContig, 0, yLength + 1));
 				for (Segment segment : toSearch) {
 					log.reportTimeInfo("Will search : " + segment.getUCSClocation());
 				}
@@ -213,12 +231,12 @@ public class MitoSeqCN {
 					SAMRecord samRecord = sIterator.next();
 
 					if (!samRecord.getReadUnmappedFlag()) {
-						if (samRecord.getContig().equals("chrM")) {
+						if (samRecord.getContig().equals(params.mitoContig)) {
 							sAMFileWriter.addAlignment(samRecord);
 							numMitoReads++;
-						} else if (samRecord.getContig().equals("chrX")) {
+						} else if (samRecord.getContig().equals(params.xContig)) {
 							numXReads++;
-						} else if (samRecord.getContig().equals("chrY")) {
+						} else if (samRecord.getContig().equals(params.yContig)) {
 							numYReads++;
 						} else {
 							throw new IllegalArgumentException("Invalid contig " + samRecord.getContig());
@@ -229,7 +247,7 @@ public class MitoSeqCN {
 				sAMFileWriter.close();
 
 				QueryInterval[] offTargetIntervalse = BamOps.convertSegsToQI(genomeBinsMinusBinsCaputure.getLoci(),
-						reader.getFileHeader(), 0, true, true, log);
+						reader.getFileHeader(), 0, true, params == BUILD_PARAMS.HG19, log);
 				sIterator = reader.query(offTargetIntervalse, false);
 				while (sIterator.hasNext()) {
 					SAMRecord samRecord = sIterator.next();
@@ -245,7 +263,7 @@ public class MitoSeqCN {
 				}
 
 				BamIndexStats bamIndexStats = BamOps.getBamIndexStats(reader);
-
+				reader.close();
 				return new MitoCNResult(sample, numMitoReads, numXReads, numYReads, numOffTarget, mitoLength,
 						genomeBinsMinusBinsCaputure.getBpCovered(), bamIndexStats, outputMTBam);
 			} catch (Exception e) {
@@ -272,9 +290,9 @@ public class MitoSeqCN {
 			super();
 			this.bams = bams;
 			this.outDir = outDir;
-			this.mitoLength = referenceGenome.getContigLength("chrM");
-			this.xLength = referenceGenome.getContigLength("chrX");
-			this.yLength = referenceGenome.getContigLength("chrY");
+			this.mitoLength = referenceGenome.getContigLength(params.mitoContig);
+			this.xLength = referenceGenome.getContigLength(params.xContig);
+			this.yLength = referenceGenome.getContigLength(params.yContig);
 			this.genomeBinsMinusBinsCaputure = genomeBinsMinusBinsCaputure;
 			this.index = 0;
 			this.params = params;
