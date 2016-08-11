@@ -13,10 +13,6 @@ import org.genvisis.sra.SRASample;
 import org.genvisis.sra.SRAVariables.ASSEMBLY_NAME;
 import org.genvisis.sra.SRAVariables.PLATFORM;
 
-import htsjdk.samtools.SAMFileReader;
-import htsjdk.samtools.ValidationStringency;
-import net.sf.samtools.BAMIndexer;
-
 /**
  * 
  *
@@ -28,6 +24,12 @@ public class TestPipe {
 	}
 
 	public static void main(String[] args) {
+		
+		
+		
+		
+		
+		
 		SRARunTable sraRunTable = SRARunTable.load("/Volumes/Beta/data/aric_sra/prep/SraRunTable.txt", new Logger());
 		String outDir = "/Volumes/Beta/data/aric_sra/test/";
 		String refGenome = "/Volumes/Beta/ref/GRCh37_canon.fa";
@@ -47,7 +49,7 @@ public class TestPipe {
 			switch (current.getaType()) {
 			case WGS:
 				MitoSeqCN.run(bamList, outDir, null, refGenome, BUILD_PARAMS.GRCH37, 1);
-
+				
 				break;
 			case WXS:
 				break;

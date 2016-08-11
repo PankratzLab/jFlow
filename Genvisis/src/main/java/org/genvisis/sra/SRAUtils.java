@@ -10,12 +10,8 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
+import org.genvisis.common.WorkerHive;
 import org.genvisis.seq.manage.BamOps;
-
-import htsjdk.samtools.BAMIndexer;
-import htsjdk.samtools.ValidationStringency;
 
 import org.genvisis.common.ext;
 
@@ -113,39 +109,11 @@ public class SRAUtils {
 
 	}
 
-	private static class SRABamProducer extends AbstractProducer<SRAConversionResult> {
-		private String[] inputSras;
-		private String outDir;
-		private Logger log;
-		private int index;
-
-		public SRABamProducer(String[] inputSras, String outDir, Logger log) {
-			super();
-			this.inputSras = inputSras;
-			this.outDir = outDir;
-			this.log = log;
-			this.index = 0;
-		}
-
-		@Override
-		public boolean hasNext() {
-			return index < inputSras.length;
-		}
-
-		@Override
-		public Callable<SRAConversionResult> next() {
-			SRABamWorker worker = new SRABamWorker(inputSras[index], outDir + ext.rootOf(inputSras[index]) + ".bam",
-					log);
-			index++;
-			return worker;
-		}
-	}
-
 	// sam-dump.2.6.3 SRR1737697 |samtools view -bS -
 
 	/**
 	 * @param sraDir
-	 *            your directory that S
+	 *            your directory that contains .sra files
 	 * @param outDir
 	 * @param threads
 	 * @return
@@ -158,14 +126,13 @@ public class SRAUtils {
 		String bamDir = outDir + "bams/";
 		new File(bamDir).mkdirs();
 
-		SRABamProducer producer = new SRABamProducer(sraFiles, bamDir, log);
-		WorkerTrain<SRAConversionResult> train = new WorkerTrain<SRAUtils.SRAConversionResult>(producer, threads, 100,
-				log);
-		ArrayList<SRAConversionResult> results = new ArrayList<SRAUtils.SRAConversionResult>();
-		while (train.hasNext()) {
-			results.add(train.next());
+		WorkerHive<SRAConversionResult> hive = new WorkerHive<SRAUtils.SRAConversionResult>(threads, 10, log);
+		for (int i = 0; i < sraFiles.length; i++) {
+			hive.addCallable(new SRABamWorker(sraFiles[i], bamDir + ext.rootOf(sraFiles[i]) + ".bam", log));
 		}
-		return results;
+		hive.execute(true);
+
+		return hive.getResults();
 	}
 
 	public static void main(String[] args) {

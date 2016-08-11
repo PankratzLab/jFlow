@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Scanner;
+
+
 import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
@@ -56,7 +58,7 @@ public class Computel {
 	 */
 	private static String processConfig(String computelOperatingDir, String bowtieSamDir, String config, String r1,
 			String r2, int readLength) {
-		config = config.replaceAll("scripts.dir	./scripts", "scripts.dir	" + computelOperatingDir + "scripts");
+		config = config.replaceAll("scripts.dir	./scripts", "scripts.dir	" + computelOperatingDir + "src/scripts");
 		String btieBuild = bowtieSamDir + "bowtie2-2.1.0-linux/bowtie2-build";
 		Files.chmod(btieBuild);
 
@@ -78,10 +80,14 @@ public class Computel {
 		config = config.replaceAll("read.length	76", "read.length	" + readLength);
 
 		config = config.replaceAll("files.with.prefix	T", "files.with.prefix	F");
-		
-		config = config.replaceAll("fastq	examples/tel_reads.fq, examples/tel_reads1.fq, examples/tel_reads2.fq", "fastq	"+r1+","+r2);
+
+		config = config.replaceAll("fastq	examples/tel_reads.fq, examples/tel_reads1.fq, examples/tel_reads2.fq",
+				"fastq	" + r1 + "," + r2);
 
 		config = config.replaceAll("compute.base.cov	F", "compute.base.cov	T");
+
+		config = config.replaceAll("base.index.pathtoprefix	./examples/base.index/base_index",
+				"base.index.pathtoprefix	" + computelOperatingDir + "src/examples/base.index/base_index");
 
 		// compute.base.cov F
 		return config;
@@ -114,9 +120,9 @@ public class Computel {
 
 				String config = s.useDelimiter("\\Z").next();
 				s.close();
-				config = processConfig(finalOutDirectory + "src/", bowtieSamDir, config, r1, r2, readLength);
+				config = processConfig(finalOutDirectory, bowtieSamDir, config, r1, r2, readLength);
 				log.report(config);
-				Files.write(config, finalOutDirectory+"testConfig.txt");
+				Files.write(config, finalOutDirectory + "testConfig.txt");
 			}
 		} catch (FileNotFoundException e) {
 			log.reportException(e);
@@ -160,6 +166,24 @@ public class Computel {
 		String computelLocation = "/Users/Kitty/git/computel/";
 		String outDir = "/Volumes/Beta/data/aric_sra/test/computel/";
 		new File(outDir).mkdirs();
+
+		// Options options = CLI.defaultOptions();
+		// final String bam = "bam";
+		// CLI.addArg(options, bam, "bam file to analyze", targetBam);
+		//
+		// final String computel = "computel";
+		// CLI.addArg(options, computel, "full computel directory (as git clone
+		// ideally)", computelLocation);
+		//
+		// final String outdir = "out";
+		// CLI.addArg(options, outdir, "the output directory for results",
+		// outDir);
+		//
+		// Map<String, String> parsed = CLI.parseWithExit(Computel.class,
+		// options, args);
+		//
+		//
+
 		test(targetBam, computelLocation, outDir);
 	}
 
