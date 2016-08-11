@@ -11,8 +11,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Vector;
 
+import org.apache.commons.cli.Options;
+import org.genvisis.CLI;
 import org.genvisis.bioinformatics.Sequence;
 import org.genvisis.cnv.annotation.AnnotationParser;
 import org.genvisis.cnv.annotation.MarkerAnnotationLoader;
@@ -697,118 +700,55 @@ public class ABLookup {
 	}
 
 	public static void main(String... args) {
-		int numArgs = args.length;
 		Project proj;
-		String filename = null;
-		boolean parseFromOriginalGenotypes = false;
-		boolean parseFromGenotypeClusterCenters = false;
-		boolean parseFromAnnotationVCF = false;
-		String manifestFile = null;
 		String outfile = DEFAULT_AB_FILE;
-		ABLookup abLookup;
 		String mapFile = "SNP_Map.csv";
-		boolean applyAB = false;
-		String incompleteABlookupFilename = null;
-		boolean updatingPlinkFile = false;
+		String projFile = org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false);
+		String illumina = "infiniumomni2-5-8-v1-3-a1-manifest-file-csv.zip";
+		String abLookup = "possible_AB_lookup.dat";
+		final String PROJ = "proj";
+		final String OUT = "out";
+		final String CLUSTER = "parseFromGenotypeClusterCenters";
+		final String ORIGIN = "parseFromOriginalGenotypes";
+		final String VCF = "parseFromAnnotationVCF";
+		final String MANIFEST = "IlluminaManifestFile";
+		final String PARTAB = "incompleteAB";
+		final String MAP = "mapFile";
+		final String PLINK = "plinkFile";
+		final String APPLYAB = "applyAB";
 
-		String usage = "\n" +
-				"cnv.filesys.ABLookup requires 0-1 arguments\n" +
-				"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
-				"   (2) name of output file (i.e. out="+outfile+" (default))\n" + 
-				" AND\n" + 
-				"   (3) parse ABLookup from centroids (i.e. -parseFromGenotypeClusterCenters (not the default))\n" + 
-				"  OR\n" + 
-				"   (3) parse ABLookup from existing original genotypes (i.e. -parseFromOriginalGenotypes (not the default))\n" + 
-				"  OR\n" + 
-				"   (3) parse ABLookup from an Illumina Manifest file (i.e. IlluminaManifestFile=infiniumomni2-5-8-v1-3-a1-manifest-file-csv.zip (not the default))\n" + 
-				"  OR\n" + 
-				"   (3) parse ABLookup from a VCF annotation file in project properties (i.e. -parseFromAnnotationVCF (not the default))\n" + 
-				"  OR\n" + 
-				"   (3) fill in a partial existing ABLookup file using an Illumina SNP Table (i.e. incompleteAB=posssible_AB_lookup.dat (not the default))\n" + 
-				"   (4) the filename of the Illumina SNP Table (i.e. mapFile="+mapFile+" (default))\n" + 
-				"   (5) (optional) use a plink.bim file as input instead of an ABLookup file (i.e. plinkFile="+updatingPlinkFile+" (default))\n" + 
-				"  OR\n" + 
-				"   (3) apply the project's AB lookup to all Sample files in project (i.e. -applyAB (not the default))\n" + 
-				"";
+		Options options = CLI.defaultOptions();
+		CLI.addArg(options, PROJ, "project properties filename", projFile);
+		CLI.addArg(options, OUT, "parse ABLookup to this location", outfile);
+		CLI.addFlag(options, CLUSTER, "parse ABLookup from centroids");
+		CLI.addFlag(options, ORIGIN, "parse ABLookup from existing original genotypes");
+		CLI.addArg(options, MANIFEST, "parse ABLookup from Illumina manifest file", illumina);
+		CLI.addFlag(options, VCF, "parse ABLookup from VCF annotation file");
+		CLI.addArg(options, PARTAB, "fill in a partial existing ABLookup file using an Illumina SNP Table", abLookup);
+		CLI.addArg(options, MAP, "the filename of the Illumina SNP Tabl", mapFile);
+		CLI.addFlag(options, PLINK, "use a plink.bim file as input instead of an ABLookup file");
+		CLI.addFlag(options, APPLYAB, "apply the project's AB lookup to all Sample files in project");
 
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (args[i].startsWith("proj=")) {
-				filename = ext.parseStringArg(args[i], null);
-				numArgs--;
-			} else if (args[i].startsWith("out=")) {
-				outfile = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].equalsIgnoreCase("-parseFromOriginalGenotypes")) {
-				parseFromOriginalGenotypes = true;
-				numArgs--;
-			} else if (args[i].equalsIgnoreCase("-parseFromGenotypeClusterCenters")) {
-				parseFromGenotypeClusterCenters = true;
-				numArgs--;
-			} else if (args[i].toLowerCase().startsWith("illuminamanifestfile=")) {
-				manifestFile = ext.parseStringArg(args[i], null);
-				numArgs--;
-			} else if (args[i].toLowerCase().startsWith("vcf=")) {
-				parseFromAnnotationVCF = true;
-				numArgs--;
-			} else if (args[i].startsWith("incompleteAB=")) {
-				incompleteABlookupFilename = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("mapFile=")) {
-				mapFile = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("plinkFile=")) {
-				updatingPlinkFile = ext.parseBooleanArg(args[i]);
-				numArgs--;
-			} else if (args[i].equalsIgnoreCase("-applyAB")) {
-				applyAB = true;
-				numArgs--;
-			} else {
-				System.err.println("Error - invalid argument: " + args[i]);
-			}
-		}
-		if (numArgs != 0) {
-			System.err.println(usage);
+		CLI.addGroup(options, OUT, PARTAB, APPLYAB);
+
+		Map<String, String> parsed = CLI.parseWithExit(ABLookup.class, options, args);
+
+		proj = new Project(parsed.get(PROJ), false);
+		if (parsed.containsKey(PARTAB)) {
+			fillInMissingAlleles(proj, parsed.get(PARTAB), parsed.get(MAP), parsed.containsKey(PLINK));
+		} else if (parsed.containsKey(APPLYAB)) {
+			applyABLookupToFullSampleFiles(proj);
+		} else if (parsed.containsKey(MANIFEST)) {
+			parseABLookup(proj, ABSource.MANIFEST, parsed.get(OUT), parsed.get(MANIFEST));
+		} else if (parsed.containsKey(VCF)) {
+			parseABLookup(proj, ABSource.VCF, parsed.get(OUT));
+		} else if (parsed.containsKey(ORIGIN)) {
+			parseABLookup(proj, ABSource.ORIGEN, parsed.get(OUT));
+		} else if (parsed.containsKey(CLUSTER)) {
+			parseABLookup(proj, ABSource.GENCLUSTER, parsed.get(OUT));
+		} else {
+			System.err.println("No subroutine was selected");
 			System.exit(1);
-		}
-		
-//		filename = "/home/npankrat/projects/SDRG.properties";
-//		mapFile = "00src/HumanOmni2.5-8v1_C.csv";
-
-//		filename = "/home/npankrat/projects/GEDI_exomeRAF.properties";
-//		mapFile = "C:/GEDI_exomeRAF/HumanExome-12v1_A.csv";
-//		parseFromGenotypeClusterCenters = true;
-//		applyAB = true;
-
-//		filename = "/home/npankrat/projects/SingaporeReplication.properties";
-//		incompleteABlookupFilename = "D:/data/SingaporeReplication/fromclusters_posssible_AB_lookup.dat";
-//		mapFile = "D:/data/SingaporeReplication/SNP_Map.csv";
-		
-//		filename = "/home/npankrat/projects/WinterHillsCombo.properties";
-//		parseFromOriginalGenotypes = true;
-		
-		try {
-			proj = new Project(filename, false);
-			if (incompleteABlookupFilename != null) {
-				fillInMissingAlleles(proj, incompleteABlookupFilename, mapFile, updatingPlinkFile);
-			} else if (applyAB) {
-				applyABLookupToFullSampleFiles(proj);
-			} else if (manifestFile != null) {
-				parseABLookup(proj, ABSource.MANIFEST, outfile, manifestFile);
-			} else if (parseFromAnnotationVCF) {
-				parseABLookup(proj, ABSource.VCF, outfile);
-			} else if (parseFromOriginalGenotypes) {
-				parseABLookup(proj, ABSource.ORIGEN, outfile);
-			} else if (parseFromGenotypeClusterCenters) {
-				parseABLookup(proj, ABSource.GENCLUSTER, outfile);
-			} else {
-				System.err.println("No subroutine was selected");
-			}
-			
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 }
