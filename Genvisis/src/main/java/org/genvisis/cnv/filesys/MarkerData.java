@@ -154,7 +154,7 @@ public class MarkerData implements Serializable {
 		if (params.getSampleFingerprint() != fingerprint) {
 			throw new IllegalArgumentException("Mismatched sample fingerprints\tLoaded: " + params.getMarkerFingerprint() + " and should have seen " + fingerprint);
 		}
-		if (params.getGcAdjustorParameters().length != xs.length) {
+		if (params.getGcAdjustorParameters().length != getDataLength()) {
 			throw new IllegalArgumentException("Mismatched sample sizes");
 
 		}
@@ -208,6 +208,32 @@ public class MarkerData implements Serializable {
 	public long getFingerprint() {
 		return fingerprint;
 	}
+	
+    int getDataLength() {
+        int len = 0;
+        if (xRaws != null) {
+            len = xRaws.length;
+        } else if (yRaws != null) {
+            len = yRaws.length;
+        } else if (xs != null) {
+            len = xs.length;
+        } else if (ys != null) {
+            len = ys.length;
+        } else if (thetas != null) {
+            len = thetas.length;
+        } else if (rs != null) {
+            len = rs.length;
+        } else if (lrrs != null) {
+            len = lrrs.length;
+        } else if (bafs != null) {
+            len = bafs.length;
+        } else if (abGenotypes != null) {
+            len = abGenotypes.length;
+        } else if (forwardGenotypes != null) {
+            len = forwardGenotypes.length;
+        }
+        return len;
+    }
 
 	public float[] getGCs() {
 		return gcs;
@@ -230,7 +256,7 @@ public class MarkerData implements Serializable {
 	}
 
 	public float[] getThetas() {
-		if (thetas == null) {
+		if (thetas == null && xs != null && ys != null) {
 			thetas = new float[xs.length];
 			for (int i = 0; i<xs.length; i++) {
 				thetas[i] = Centroids.calcTheta(xs[i], ys[i]);
@@ -240,7 +266,7 @@ public class MarkerData implements Serializable {
 	}
 
 	public float[] getRs() {
-		if (rs == null) {
+		if (rs == null && xs != null && ys != null) {
 			rs = new float[xs.length];
 			for (int i = 0; i<xs.length; i++) {
 				rs[i] = Centroids.calcR(xs[i], ys[i]);
@@ -254,25 +280,29 @@ public class MarkerData implements Serializable {
 
 		thetas = getThetas();
 		rs = getRs();
-		
-		bafs = new float[xs.length];
-		lrrs = new float[xs.length];
-		for (int i = 0; i<xs.length; i++) {
-			bafs[i] = Centroids.calcBAF(thetas[i], centroids);
-			lrrs[i] = Centroids.calcLRR(thetas[i], rs[i], centroids);
-        }
+		if (thetas != null && rs != null) {
+    		bafs = new float[xs.length];
+    		lrrs = new float[xs.length];
+    		for (int i = 0; i<xs.length; i++) {
+    			bafs[i] = Centroids.calcBAF(thetas[i], centroids);
+    			lrrs[i] = Centroids.calcLRR(thetas[i], rs[i], centroids);
+            }
+		}
 	}
 
 	public float[][] recomputeClone(float[][] centroids) {
 
 		float[] thetas = getThetas();
 		float[] rs = getRs();
-
-		float[] bafsRecomp = new float[xs.length];
-		float[] lrrsRecomp = new float[xs.length];
-		for (int i = 0; i < xs.length; i++) {
-			bafsRecomp[i] = Centroids.calcBAF(thetas[i], centroids);
-			lrrsRecomp[i] = Centroids.calcLRR(thetas[i], rs[i], centroids);
+		float[] bafsRecomp = new float[0];
+		float[] lrrsRecomp = new float[0];
+		if (thetas != null && rs != null) {
+    		bafsRecomp = new float[xs.length];
+    		lrrsRecomp = new float[xs.length];
+    		for (int i = 0; i < xs.length; i++) {
+    			bafsRecomp[i] = Centroids.calcBAF(thetas[i], centroids);
+    			lrrsRecomp[i] = Centroids.calcLRR(thetas[i], rs[i], centroids);
+    		}
 		}
 		return new float[][] { bafsRecomp, lrrsRecomp };
 
@@ -516,8 +546,8 @@ public class MarkerData implements Serializable {
 		PrintWriter writer;
 		boolean hasExcludedIndividuals;
 		
-		if ((xs != null && samples != null && samples.length!=xs.length) || (lrrs != null && samples != null && samples.length!=lrrs.length)) {
-			log.reportError("Error - Number of samples (n="+samples.length+") does not match up with the number of LRRs/BAFs/etc (n="+lrrs.length+")");
+		if (samples != null && samples.length!=getDataLength()) {
+			log.reportError("Error - Number of samples (n="+samples.length+") does not match up with the number of LRRs/BAFs/etc (n="+getDataLength()+")");
 			return;
         }
 		
@@ -543,7 +573,7 @@ public class MarkerData implements Serializable {
 							+ (forwardGenotypes==null? "" : "\tForward_Genotypes")
 							+ (hasExcludedIndividuals? "\tExclude_Sample" : "")
 							);
-        	for (int i = 0; i<xs.length; i++) {
+        	for (int i = 0; i<getDataLength(); i++) {
         		writer.println(   (includeMarkerName? markerName + "\t" : "") 
         						+ (samples !=null? samples[i] : i) 
     	        				+ (gcs != null? "\t" + gcs[i] : "")

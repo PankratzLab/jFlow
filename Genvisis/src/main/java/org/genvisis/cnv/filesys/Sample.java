@@ -278,11 +278,21 @@ public class Sample implements Serializable {
 	public float[] getYs() {
 		return ys;
 	}
+	
+	int getDataLength() {
+	    int len = 0;
+	    for (float[] f : getAllData()) {
+	        if (f != null) {
+	            len = f.length;
+	        }
+	    }
+	    return len;
+	}
 
 	public float[] getThetas() {
-		if (thetas == null) {
-			thetas = new float[xs.length];
-			for (int i = 0; i<xs.length; i++) {
+		if (thetas == null && xs != null && ys != null) {
+			thetas = new float[getDataLength()];
+			for (int i = 0; i<thetas.length; i++) {
 				thetas[i] = Centroids.calcTheta(xs[i], ys[i]);
             }
 		}
@@ -290,9 +300,9 @@ public class Sample implements Serializable {
 	}
 
 	public float[] getRs() {
-		if (rs == null) {
-			rs = new float[xs.length];
-			for (int i = 0; i<xs.length; i++) {
+		if (rs == null && xs != null && ys != null) {
+			rs = new float[getDataLength()];
+			for (int i = 0; i<rs.length; i++) {
 				rs[i] = Centroids.calcR(xs[i], ys[i]);
             }
 		}
@@ -307,8 +317,11 @@ public class Sample implements Serializable {
 		float[] thetas, bafs;
 
 		thetas = getThetas();
-		bafs = new float[xs.length];
-		for (int i = 0; i<xs.length; i++) {
+		if (thetas == null) {
+		    return null; // TODO should return null or orig BAFs?  TODO log
+		}
+		bafs = new float[getDataLength()];
+		for (int i = 0; i<bafs.length; i++) {
 			if (centroids[i] == null) {
 				bafs[i] = 1.2f; 
 				continue;
@@ -328,6 +341,9 @@ public class Sample implements Serializable {
 
 		thetas = getThetas();
 		rs = getRs();
+		if (thetas == null || rs == null) {
+		    return null; // TODO should return null or orig LRRs? TODO log
+		}
 		lrrs = new float[xs.length];
 		for (int i = 0; i<xs.length; i++) {
 			if (centroids[i] == null) {
@@ -648,8 +664,8 @@ public class Sample implements Serializable {
 		boolean isOutlier;
 
 		fileTmp = new File(filename);
-		if (new File(ext.parseDirectoryOfFile(filename)).getFreeSpace() <= ((long)xs.length * Compression.BYTES_PER_SAMPLE_MARKER)) {
-			System.err.println("Not enough space (available: "+ext.prettyUpSize(new File(ext.parseDirectoryOfFile(filename)).getFreeSpace(), 1)+") for all the new data to be created (required: "+ext.prettyUpSize(((long)xs.length * Compression.BYTES_PER_SAMPLE_MARKER), 1)+").");
+		if (new File(ext.parseDirectoryOfFile(filename)).getFreeSpace() <= ((long)getDataLength() * Compression.BYTES_PER_SAMPLE_MARKER)) {
+			System.err.println("Not enough space (available: "+ext.prettyUpSize(new File(ext.parseDirectoryOfFile(filename)).getFreeSpace(), 1)+") for all the new data to be created (required: "+ext.prettyUpSize(((long)getDataLength() * Compression.BYTES_PER_SAMPLE_MARKER), 1)+").");
 			return;
 		}
 		if (fileTmp.exists()) {
@@ -657,17 +673,17 @@ public class Sample implements Serializable {
 		}
 
 		bytesPerSampleMarker = getNBytesPerSampleMarker();
-		bytesRemained = xs.length *  bytesPerSampleMarker;
+		bytesRemained = getDataLength() *  bytesPerSampleMarker;
 		long time = new Date().getTime();
 		outOfRangeValuesEachSample = new Hashtable<String, Float>();
 		try {
 			rafFile = new RandomAccessFile(filename, "rw");
 
-//			rafFile.writeInt(xs.length);
+//			rafFile.writeInt(getDataLength());
 //			rafFile.writeByte(nullStatus);
 //			rafFile.writeLong(fingerprint);
 			parameters = new byte[PARAMETER_SECTION_BYTES];
-			temp = Compression.intToBytes(xs.length);
+			temp = Compression.intToBytes(getDataLength());
 			for (int i=0; i<temp.length; i++) {
 				parameters[PARAMETER_SECTION_NUMMARKERS_LOCATION + i] = temp[i];
 			}
@@ -681,7 +697,7 @@ public class Sample implements Serializable {
 			rafFile.write(parameters);
 
 			writeBufferIndex = 0;
-			for (int j = 0; j<xs.length; j++) {
+			for (int j = 0; j<getDataLength(); j++) {
 				if (writeBufferIndex == 0) {
 					writeBuffer = new byte[ Math.min(Integer.MAX_VALUE, bytesRemained) ];
 				}

@@ -978,20 +978,20 @@ public class SourceFileParser implements Runnable {
 			log.report(ext.getTime() + "]\tSearching for data fields...");
 			// check immediately to make sure these fields are valid
 			indices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, false, false); // dataIndices 
-			if (indices[3] == -1 || indices[4] == -1) {
-				log.reportError("Error - at the very least the files need to contain "+Array.toStr(Sample.DATA_FIELDS[3], "/")+" and "+Array.toStr(Sample.DATA_FIELDS[4], "/"));
-				log.reportError("      - failed to see that in "+files[0]);
-				log.reportError(Array.toStr(line));
-				return 0;
-			}
+//			if (indices[3] == -1 || indices[4] == -1) {
+//				log.reportError("Error - at the very least the files need to contain "+Array.toStr(Sample.DATA_FIELDS[3], "/")+" and "+Array.toStr(Sample.DATA_FIELDS[4], "/"));
+//				log.reportError("      - failed to see that in "+files[0]);
+//				log.reportError(Array.toStr(line));
+//				return 0;
+//			}
 			
 			// TODO check different fields depending upon Affy/Illumina flag
 			log.report(ext.getTime() + "]\tSearching for other fields...");
 			indices = ext.indexFactors(Sample.GENOTYPE_FIELDS, line, false, true, false, false); // genotypeIndices
-			if (indices[0] == -1 || indices[1] == -1) {
-				log.reportError("Error - the files need to contain "+Array.toStr(Sample.GENOTYPE_FIELDS[0], "/")+" and "+Array.toStr(Sample.GENOTYPE_FIELDS[1], "/"));
-				return 0;
-			}
+//			if (indices[0] == -1 || indices[1] == -1) {
+//				log.reportError("Error - the files need to contain "+Array.toStr(Sample.GENOTYPE_FIELDS[0], "/")+" and "+Array.toStr(Sample.GENOTYPE_FIELDS[1], "/"));
+//				return 0;
+//			}
 			if (indices[2] == -1 || indices[3] == -1) {
 				abLookupRequired = true;
 			}
@@ -1906,14 +1906,14 @@ public class SourceFileParser implements Runnable {
 		    }
 		    if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		    
-		    if (headerData.colX == -1 || headerData.colY == -1) {
-		        log.reportError("Error - File format not consistent! At the very least the files need to contain "+Array.toStr(Sample.DATA_FIELDS[3], "/")+" and "+Array.toStr(Sample.DATA_FIELDS[4], "/"));
-				return result;
-		    }
-		    if (headerData.colGeno1 == -1 || headerData.colGeno2 == -1) {
-		        log.reportError("Error - File format not consistent! The files need to contain "+Array.toStr(Sample.GENOTYPE_FIELDS[0], "/")+" and "+Array.toStr(Sample.GENOTYPE_FIELDS[1], "/"));
-		        return result;
-		    }
+//		    if (headerData.colX == -1 || headerData.colY == -1) {
+//		        log.reportError("Error - File format not consistent! At the very least the files need to contain "+Array.toStr(Sample.DATA_FIELDS[3], "/")+" and "+Array.toStr(Sample.DATA_FIELDS[4], "/"));
+//				return result;
+//		    }
+//		    if (headerData.colGeno1 == -1 || headerData.colGeno2 == -1) {
+//		        log.reportError("Error - File format not consistent! The files need to contain "+Array.toStr(Sample.GENOTYPE_FIELDS[0], "/")+" and "+Array.toStr(Sample.GENOTYPE_FIELDS[1], "/"));
+//		        return result;
+//		    }
 		    if ((headerData.colGenoAB1 == -1 || headerData.colGenoAB2 == -1) && abLookup == null) {
 		        ignoreAB = true;
 		    } else {

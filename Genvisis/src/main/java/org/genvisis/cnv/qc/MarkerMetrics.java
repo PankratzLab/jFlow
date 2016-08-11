@@ -167,9 +167,9 @@ public class MarkerMetrics {
 				for (int j = 0; j < samples.length; j++) {
 					if (samplesToExclude==null || !samplesToExclude[j]) {
 						counts[abGenotypes[j] + 1] ++;
-						sumTheta[abGenotypes[j] + 1] += thetas[j];
-						sumR[abGenotypes[j] + 1] += rs[j];
-						if (Float.isNaN(thetas[j])) {
+						sumTheta[abGenotypes[j] + 1] += thetas == null ? 0 : thetas[j];
+						sumR[abGenotypes[j] + 1] += rs == null ? 0 : rs[j];
+						if (thetas != null && Float.isNaN(thetas[j])) {
 							numNaNs++;
 						}
 						if (lrrs != null) {
@@ -188,8 +188,8 @@ public class MarkerMetrics {
 				}
 				sdTheta = new double[counts.length];
 				for (int j = 0; j < samples.length; j++) {
-					if (samplesToExclude==null || !samplesToExclude[j]) {
-						temp = (thetas[j] - meanTheta[ abGenotypes[j] + 1 ]);
+					if (samplesToExclude==null || !samplesToExclude[j]) { 
+						temp = thetas == null ? 0 : (thetas[j] - meanTheta[ abGenotypes[j] + 1 ]);
 						sdTheta[ abGenotypes[j] + 1 ] +=  temp * temp;
 					}
 				}

@@ -51,7 +51,7 @@ public class Dump {
 		        		  + (gcs==null? "" : "\tGC_score")
 		        		  + (abGenotypes==null? "" : "\tAB_Genotypes")
 		        		  + (forwardGenotypes==null? "" : "\tForward_Genotypes"));
-			for (int i = 0; i<xs.length; i++) {
+			for (int i = 0; i<samp.getDataLength(); i++) {
 				writer.println( (xs==null? "" : xs[i])
 							  + (ys==null? "" : "\t" + ys[i])
 							  + (thetas==null? "" : "\t" + thetas[i])
