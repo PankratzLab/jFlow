@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Scanner;
-
 import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
@@ -56,7 +55,7 @@ public class Computel {
 	 *            Where the config will be setup relative to
 	 */
 	private static String processConfig(String computelOperatingDir, String bowtieSamDir, String config, String r1,
-			String r2) {
+			String r2, int readLength) {
 		config = config.replaceAll("scripts.dir	./scripts", "scripts.dir	" + computelOperatingDir + "scripts");
 		String btieBuild = bowtieSamDir + "bowtie2-2.1.0-linux/bowtie2-build";
 		Files.chmod(btieBuild);
@@ -71,9 +70,20 @@ public class Computel {
 		String samTools = bowtieSamDir + "samtools-0.1.19-linux/samtools";
 		Files.chmod(samTools);
 		config = config.replaceAll("samtools.path	./samtools-0.1.19-linux/samtools", "samtools.path	" + samTools);
-		config = config.replaceAll("picard.samtofastq.jar	./SamToFastq.jar",
-				"picard.samtofastq.jar	" + computelOperatingDir + "SamToFastq.jar");
 
+		String samToFastQ = computelOperatingDir + SAM_TO_FASTQ_LOC;
+		Files.chmod(samToFastQ);
+		config = config.replaceAll("picard.samtofastq.jar	./SamToFastq.jar", "picard.samtofastq.jar	" + samToFastQ);
+
+		config = config.replaceAll("read.length	76", "read.length	" + readLength);
+
+		config = config.replaceAll("files.with.prefix	T", "files.with.prefix	F");
+		
+		config = config.replaceAll("fastq	examples/tel_reads.fq, examples/tel_reads1.fq, examples/tel_reads2.fq", "fastq	"+r1+","+r2);
+
+		config = config.replaceAll("compute.base.cov	F", "compute.base.cov	T");
+
+		// compute.base.cov F
 		return config;
 	}
 
@@ -104,9 +114,9 @@ public class Computel {
 
 				String config = s.useDelimiter("\\Z").next();
 				s.close();
-				config = processConfig(finalOutDirectory + "src/", bowtieSamDir, config, r1, r2);
+				config = processConfig(finalOutDirectory + "src/", bowtieSamDir, config, r1, r2, readLength);
 				log.report(config);
-
+				Files.write(config, finalOutDirectory+"testConfig.txt");
 			}
 		} catch (FileNotFoundException e) {
 			log.reportException(e);
