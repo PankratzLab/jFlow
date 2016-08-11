@@ -1,23 +1,20 @@
 package org.genvisis.seq.telomere;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Zip;
 import org.genvisis.common.ext;
 import org.genvisis.seq.manage.BamOps;
 
@@ -54,18 +51,47 @@ public class Computel {
 				log);
 	}
 
+	/**
+	 * @param computelOperatingDir
+	 *            Where the config will be setup relative to
+	 */
+	private static String processConfig(String computelOperatingDir, String bowtieSamDir, String config, String r1,
+			String r2) {
+		config = config.replaceAll("scripts.dir	./scripts", "scripts.dir	" + computelOperatingDir + "scripts");
+		String btieBuild = bowtieSamDir + "bowtie2-2.1.0-linux/bowtie2-build";
+		Files.chmod(btieBuild);
+
+		config = config.replaceAll("bowtie.build.path	./bowtie2-2.1.0-linux/bowtie2-build",
+				"bowtie.build.path	" + btieBuild);
+		String btieAln = bowtieSamDir + "bowtie2-2.1.0-linux/bowtie2-align";
+		Files.chmod(btieAln);
+
+		config = config.replaceAll("bowtie.align.path	./bowtie2-2.1.0-linux/bowtie2-align",
+				"bowtie.align.path	" + btieAln);
+		String samTools = bowtieSamDir + "samtools-0.1.19-linux/samtools";
+		Files.chmod(samTools);
+		config = config.replaceAll("samtools.path	./samtools-0.1.19-linux/samtools", "samtools.path	" + samTools);
+		config = config.replaceAll("picard.samtofastq.jar	./SamToFastq.jar",
+				"picard.samtofastq.jar	" + computelOperatingDir + "SamToFastq.jar");
+
+		return config;
+	}
+
 	private static void runComputel(String inputBam, String outputDir, String computelDirectory, Logger log) {
 		String finalOutDirectory = outputDir + ext.rootOf(inputBam) + "/";
 		new File(finalOutDirectory).mkdirs();
 		try {
+			// if (!Files.exists(finalOutDirectory + "src"))
 			copyDirectory(new File(computelDirectory), new File(finalOutDirectory));
-
 		} catch (IOException e) {
 			log.reportException(e);
 		}
-
+		String bowtieSamDir = finalOutDirectory + "bowtie2_samtools_binaries_for_linux/";
+		if (!Files.exists(bowtieSamDir)) {
+			Zip.unzipFile(finalOutDirectory + "bowtie2_samtools_binaries_for_linux.zip", bowtieSamDir);
+		}
 		try {
-		
+
 			String r1 = finalOutDirectory + "src/examples/analysis_reads1.fq";
 			String r2 = finalOutDirectory + "src/examples/analysis_reads2.fq";
 			boolean converted = convertToFasta(inputBam, finalOutDirectory, r1, r2, log);
@@ -75,10 +101,10 @@ public class Computel {
 				System.out.println(readLength);
 
 				Scanner s = new Scanner(new File(finalOutDirectory + "src/examples/config_unix.txt"));
-				
+
 				String config = s.useDelimiter("\\Z").next();
 				s.close();
-				System.out.println(config);
+				config = processConfig(finalOutDirectory + "src/", bowtieSamDir, config, r1, r2);
 				log.report(config);
 
 			}
