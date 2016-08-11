@@ -88,7 +88,6 @@ public class MitoSeqCN {
 			log.reportTimeWarning("No capture targets defined, assuming this is WGS");
 		}
 		log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bin regions");
-
 		if (!referenceGenome.hasContig(params.mitoContig) || !referenceGenome.hasContig(params.xContig)
 				|| !referenceGenome.hasContig(params.yContig)) {
 			throw new IllegalArgumentException("Required contig for " + params + " is missing ( " + params.mitoContig
