@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.genvisis.common.Array;
@@ -65,8 +66,8 @@ public class MitoSeqCN {
 	 * @param params
 	 * @param numthreads
 	 */
-	public static void run(String fileOfBams, String outDir, String captureBed, String referenceGenomeFasta,
-			BUILD_PARAMS params, int numthreads) {
+	public static List<MitoCNResult> run(String fileOfBams, String outDir, String captureBed,
+			String referenceGenomeFasta, BUILD_PARAMS params, int numthreads) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "mtDNACN.log");
 		String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] { 0 }, true);
@@ -74,15 +75,11 @@ public class MitoSeqCN {
 		ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
 		BedOps.verifyBedIndex(captureBed, log);
 		LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).autosomal(true, log);
-		if (captureBed != null) {
+		if (captureBed != null) {// Should only be used for
 			BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
 
 			genomeBinsMinusBinsCaputure = genomeBinsMinusBinsCaputure
-					.removeThese(readerCapture.loadAll(log).getStrictSegmentSet(), 21000).autosomal(true, log);// essentially
-
-			// remove
-			// the
-			// neighbor
+					.removeThese(readerCapture.loadAll(log).getStrictSegmentSet(), 21000).autosomal(true, log);
 			readerCapture.close();
 		} else {
 			log.reportTimeWarning("No capture targets defined, assuming this is WGS");
@@ -96,11 +93,13 @@ public class MitoSeqCN {
 			int mitoLength = referenceGenome.getContigLength(params.mitoContig);
 			log.reportTimeInfo("Mitochondrial genome length = " + mitoLength);
 
+			String output = outDir + ext.rootOf(fileOfBams) + "_mtDNACN.summary.txt";
+
 			MitoCNProducer producer = new MitoCNProducer(bams, referenceGenome, genomeBinsMinusBinsCaputure, outDir,
 					params, log);
 			WorkerTrain<MitoCNResult> train = new WorkerTrain<MitoSeqCN.MitoCNResult>(producer, numthreads, numthreads,
 					log);
-			String output = outDir + ext.rootOf(fileOfBams) + "_mtDNACN.summary.txt";
+			ArrayList<MitoCNResult> results = new ArrayList<MitoSeqCN.MitoCNResult>();
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(output));
 				writer.println(Array.toStr(MitoCNResult.header));
@@ -109,6 +108,7 @@ public class MitoSeqCN {
 					if (result != null) {
 						log.reportTimeInfo(Array.toStr(result.getResult()));
 						writer.println(Array.toStr(result.getResult()));
+						results.add(result);
 					}
 
 				}
@@ -117,14 +117,19 @@ public class MitoSeqCN {
 				log.reportError("Error writing to " + output);
 				log.reportException(e);
 			}
+			return results;
 
 		}
 
 	}
 
-	private static class MitoCNResult {
+	/**
+	 * Stores mtDNA CN estimation results for NGS data
+	 *
+	 */
+	public static class MitoCNResult {
 		private static final String[] header = new String[] { "Sample", "NumMitoReads", "TotalAlignedReads", "XReads",
-				"YReads", "AutosomalOnTargetAlignedReads", "OffTargetReads", "MitoLen", "OffTLen" };
+				"YReads", "AutosomalOnTargetAlignedReads", "OffTargetReads", "MitoLen", "OffTLen", "MTBamFile" };
 		private String sample;
 		private int numMitoReads;
 		private int numXReads;
@@ -136,7 +141,7 @@ public class MitoSeqCN {
 		private BamIndexStats bamIndexStats;
 		private String outBam;
 
-		public MitoCNResult(String sample, int numMitoReads, int numXReads, int numYReads, int offTargetReads,
+		private MitoCNResult(String sample, int numMitoReads, int numXReads, int numYReads, int offTargetReads,
 				int mitoLen, long offTLen, BamIndexStats bamIndexStats, String outBam) {
 			super();
 			this.sample = sample;
@@ -159,14 +164,15 @@ public class MitoSeqCN {
 
 			ArrayList<String> result = new ArrayList<String>();
 			result.add(sample);
-			result.add(numMitoReads + "");
-			result.add(bamIndexStats.getAlignedRecordCount() + "");
-			result.add(numXReads + "");
-			result.add(numYReads + "");
-			result.add(autosomalOnTargetReads + "");
-			result.add(offTargetReads + "");
-			result.add(mitoLen + "");
-			result.add(offTLen + "");
+			result.add(Integer.toString(numMitoReads));
+			result.add(Integer.toString(bamIndexStats.getAlignedRecordCount()));
+			result.add(Integer.toString(numXReads));
+			result.add(Integer.toString(numYReads));
+			result.add(Integer.toString(autosomalOnTargetReads));
+			result.add(Integer.toString(offTargetReads));
+			result.add(Integer.toString(mitoLen));
+			result.add(Long.toString(offTLen));
+			result.add(outBam);
 
 			return Array.toStringArray(result);
 
@@ -184,7 +190,7 @@ public class MitoSeqCN {
 		private BUILD_PARAMS params;
 		private Logger log;
 
-		public MitoCNWorker(String bam, LocusSet<Segment> genomeBinsMinusBinsCaputure, String outDir, int mitoLength,
+		private MitoCNWorker(String bam, LocusSet<Segment> genomeBinsMinusBinsCaputure, String outDir, int mitoLength,
 				int xLength, int yLength, BUILD_PARAMS params, Logger log) {
 			super();
 			this.bam = bam;
@@ -254,8 +260,8 @@ public class MitoSeqCN {
 						numOffTarget++;
 
 						if (numOffTarget % 1000000 == 0) {
-							log.reportTimeInfo(
-									"Processing off target reads for sample " + sample + " , found " + numOffTarget);
+							log.reportTimeInfo("Processing off normalization-reads for sample " + sample + " , found "
+									+ numOffTarget);
 						}
 					}
 
@@ -284,7 +290,7 @@ public class MitoSeqCN {
 		private BUILD_PARAMS params;
 		private Logger log;
 
-		public MitoCNProducer(String[] bams, ReferenceGenome referenceGenome,
+		private MitoCNProducer(String[] bams, ReferenceGenome referenceGenome,
 				LocusSet<Segment> genomeBinsMinusBinsCaputure, String outDir, BUILD_PARAMS params, Logger log) {
 			super();
 			this.bams = bams;
