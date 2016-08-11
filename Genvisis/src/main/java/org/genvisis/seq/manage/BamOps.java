@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.Segment;
 
@@ -26,6 +28,7 @@ import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReader.Indexing;
 import htsjdk.samtools.SamReaderFactory;
+import htsjdk.samtools.SamReaderFactory.Option;
 import htsjdk.samtools.ValidationStringency;
 
 /**
@@ -37,6 +40,31 @@ public class BamOps {
 	public static final String BAI_EXT = ".bai";
 
 	/**
+	 * This method will check if an appropriate .bai index file exists for a
+	 * given .bam, and create it if not
+	 * 
+	 * @param bamFile
+	 *            bam file to verify
+	 * @param log
+	 * @return
+	 */
+	public static boolean verifyIndex(String bamFile, Logger log) {
+		ArrayList<Option> options = new ArrayList<SamReaderFactory.Option>();
+		options.add(Option.INCLUDE_SOURCE_IN_RECORDS);
+		String index = getAssociatedBamIndex(bamFile);
+		if (!Files.exists(index)) {
+			log.reportTimeInfo("Attempting to generate index " + index);
+			htsjdk.samtools.BAMIndexer.createIndex(
+					BamOps.getDefaultReader(bamFile, ValidationStringency.STRICT, options), new File(index));
+		}
+		return Files.exists(index);
+	}
+
+	private static String getAssociatedBamIndex(String bamFile) {
+		return ext.rootOf(bamFile, false) + BAI_EXT;
+	}
+
+	/**
 	 * @param bamOrSam
 	 *            .bam or .sam file
 	 * @param stringency
@@ -44,10 +72,26 @@ public class BamOps {
 	 * @return new reader
 	 */
 	public static SamReader getDefaultReader(String bamOrSam, ValidationStringency stringency) {
+
+		return getDefaultReader(bamOrSam, stringency, new ArrayList<SamReaderFactory.Option>());
+	}
+
+	/**
+	 * @param bamOrSam
+	 *            .bam or .sam file
+	 * @param stringency
+	 *            Stringency validation for the records
+	 * @param options
+	 *            {@link SamReaderFactory.Option} to apply to the reader
+	 * @return new reader
+	 */
+	public static SamReader getDefaultReader(String bamOrSam, ValidationStringency stringency, List<Option> options) {
 		SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();
 		samReaderFactory.validationStringency(stringency);
-		SamReader reader = samReaderFactory.open(new File(bamOrSam));
-		return reader;
+		for (Option option : options) {
+			samReaderFactory.enable(option);
+		}
+		return samReaderFactory.open(new File(bamOrSam));
 	}
 
 	/**
@@ -60,22 +104,25 @@ public class BamOps {
 	 * @param optimize
 	 *            perform an extra step to make a more efficient query
 	 * @param log
-	 * @return array of {@link QueryInterval} that can be queried by a bamfile reader
+	 * @return array of {@link QueryInterval} that can be queried by a bamfile
+	 *         reader
 	 */
-	public static QueryInterval[] convertSegsToQI(Segment[] segs, SAMFileHeader sFileHeader, int bpBuffer, boolean optimize, boolean chr, Logger log) {
+	public static QueryInterval[] convertSegsToQI(Segment[] segs, SAMFileHeader sFileHeader, int bpBuffer,
+			boolean optimize, boolean chr, Logger log) {
 		QueryInterval[] qIntervals = new QueryInterval[segs.length];
 		segs = Segment.sortSegments(segs);
 		for (int i = 0; i < qIntervals.length; i++) {
 			String sequenceName = Positions.getChromosomeUCSC(segs[i].getChr(), chr);
 			int referenceIndex = sFileHeader.getSequenceIndex(sequenceName);
 			if (referenceIndex < 0) {
-				referenceIndex = sFileHeader.getSequenceIndex(sequenceName +"T");// MT
+				referenceIndex = sFileHeader.getSequenceIndex(sequenceName + "T");// MT
 				if (referenceIndex < 0) {
 					log.reportError("Error - could not find " + sequenceName + " in the sequence dictionary, halting");
 					return null;
 				}
 			}
-			qIntervals[i] = new QueryInterval(referenceIndex, segs[i].getStart() - bpBuffer, segs[i].getStop() + bpBuffer);
+			qIntervals[i] = new QueryInterval(referenceIndex, segs[i].getStart() - bpBuffer,
+					segs[i].getStop() + bpBuffer);
 		}
 		if (optimize) {
 			qIntervals = QueryInterval.optimizeIntervals(qIntervals);
@@ -86,7 +133,9 @@ public class BamOps {
 	public static Segment[] converQItoSegs(QueryInterval[] qIntervals, SAMFileHeader sFileHeader, Logger log) {
 		Segment[] segs = new Segment[qIntervals.length];
 		for (int i = 0; i < segs.length; i++) {
-			segs[i] = new Segment(Positions.chromosomeNumber(sFileHeader.getSequence(qIntervals[i].referenceIndex).getSequenceName()), qIntervals[i].start, qIntervals[i].end);
+			segs[i] = new Segment(
+					Positions.chromosomeNumber(sFileHeader.getSequence(qIntervals[i].referenceIndex).getSequenceName()),
+					qIntervals[i].start, qIntervals[i].end);
 		}
 		return segs;
 	}
@@ -123,11 +172,13 @@ public class BamOps {
 			String[] id = samReadGroupRecord.getId().split("_");
 			String[] tmpCodes = id[id.length - 3].split("-");
 			if (tmpCodes.length != 2) {
-				throw new IllegalArgumentException("Could not parse barcodes for RG " + samReadGroupRecord + " in bam file " + bam);
+				throw new IllegalArgumentException(
+						"Could not parse barcodes for RG " + samReadGroupRecord + " in bam file " + bam);
 
 			} else {
 				for (int i = 0; i < tmpCodes.length; i++) {
-					if (tmpCodes[i].replaceAll("A", "").replaceAll("C", "").replaceAll("T", "").replaceAll("G", "").length() != 0) {
+					if (tmpCodes[i].replaceAll("A", "").replaceAll("C", "").replaceAll("T", "").replaceAll("G", "")
+							.length() != 0) {
 						throw new IllegalArgumentException("Invalid barcode " + tmpCodes[i]);
 					} else {
 						barcodesUnique.add(tmpCodes[i]);
@@ -139,7 +190,7 @@ public class BamOps {
 		barcodes.addAll(barcodesUnique);
 		return barcodes;
 	}
-	
+
 	public static String[] getSampleNames(String[] bamFiles) {
 		String[] sampleNames = new String[bamFiles.length];
 		for (int i = 0; i < sampleNames.length; i++) {
@@ -149,7 +200,8 @@ public class BamOps {
 	}
 
 	/**
-	 * @author lane0212 Stores some simple counts that can be quickly retrieved from the index file
+	 * @author lane0212 Stores some simple counts that can be quickly retrieved
+	 *         from the index file
 	 */
 	public static class BamIndexStats {
 		private int alignedRecordCount;
@@ -207,7 +259,8 @@ public class BamOps {
 		//
 		// AbstractBAMFileIndex index = (AbstractBAMFileIndex) bam.getIndex();
 		// // read through all the bins of every reference.
-		// BAMIndexMetaData[] result = new BAMIndexMetaData[nRefs == 0 ? 1 : nRefs];
+		// BAMIndexMetaData[] result = new BAMIndexMetaData[nRefs == 0 ? 1 :
+		// nRefs];
 		// for (int i = 0; i < nRefs; i++) {
 		// result[i] = index.getMetaData(i);
 		// }
@@ -228,7 +281,7 @@ public class BamOps {
 		SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
 		int readsize = 0;
 		SAMRecordIterator iterator = reader.iterator();
-		
+
 		int readsScanned = 0;
 		while (iterator.hasNext()) {
 			SAMRecord samRecord = iterator.next();
@@ -317,7 +370,9 @@ public class BamOps {
 	}
 
 	/**
-	 * Designed to take the sample names from {@link VCFOps#getSamplesInFile(htsjdk.variant.vcf.VCFFileReader)} and match to an array of bams
+	 * Designed to take the sample names from
+	 * {@link VCFOps#getSamplesInFile(htsjdk.variant.vcf.VCFFileReader)} and
+	 * match to an array of bams
 	 * 
 	 * @param samples
 	 *            samples to match
@@ -328,7 +383,8 @@ public class BamOps {
 	 * @param log
 	 * @return Hashtable of the sample -> bam file mapping
 	 */
-	public static Hashtable<String, String> matchToVcfSamplesToBamFiles(String[] samples, Set<String> variantSets, String[] bams, int numThreads, Logger log) {
+	public static Hashtable<String, String> matchToVcfSamplesToBamFiles(String[] samples, Set<String> variantSets,
+			String[] bams, int numThreads, Logger log) {
 		Hashtable<String, String> matched = new Hashtable<String, String>();
 		Hashtable<String, String> bamSamples = new Hashtable<String, String>();
 		SampleNameProducer producer = new SampleNameProducer(bams);
@@ -354,7 +410,8 @@ public class BamOps {
 				log.reportTimeWarning("Did not find matching bam file for " + samples[i]);
 			} else {
 				if (matched.contains(samples[i])) {
-					throw new IllegalArgumentException("Multiple bam files matched sample " + samples[i] + ", perhaps because of variant sets?");
+					throw new IllegalArgumentException(
+							"Multiple bam files matched sample " + samples[i] + ", perhaps because of variant sets?");
 				}
 				matched.put(samples[i], bamSamples.get(samples[i]));
 			}

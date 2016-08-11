@@ -76,8 +76,9 @@ public class SRAUtils {
 		@Override
 		public SRAConversionResult call() throws Exception {
 			boolean valid = dumpSra(inputSra, outputBam, log);
-			//Will index sometime...
-//			BAMIndexer.createIndex(BamOps.getDefaultReader(outputBam, ValidationStringency.STRICT), new File(bamIndex));
+			if (valid) {
+				valid = BamOps.verifyIndex(outputBam, log);
+			}
 			return new SRAConversionResult(outputBam, valid);
 		}
 
