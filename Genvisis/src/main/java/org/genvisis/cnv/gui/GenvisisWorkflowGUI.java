@@ -92,7 +92,7 @@ public class GenvisisWorkflowGUI extends JDialog {
      */
     public GenvisisWorkflowGUI(Project proj2, final Launch launch) {
         if (proj2 == null) {
-            this.proj = createNewProject();
+            this.proj = createNewProject(launch.getLaunchProperties().getListOfProjectNames());
         } else {
             this.proj = proj2;
         }
@@ -1027,8 +1027,8 @@ public class GenvisisWorkflowGUI extends JDialog {
         return returnVars;
     }
     
-    private Project createNewProject() {
-        ProjectCreationGUI createGUI = new ProjectCreationGUI();
+    private Project createNewProject(String[] existing) {
+        ProjectCreationGUI createGUI = new ProjectCreationGUI(existing);
         createGUI.setModal(true);
         createGUI.setVisible(true);
         

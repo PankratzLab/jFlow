@@ -49,6 +49,10 @@ import javax.swing.JProgressBar;
 public class ProjectCreationGUI extends JDialog {
 
     private static final long serialVersionUID = 1L;
+    
+    private static final String PROJECT_DIR_TOOLTIP = "<html>Directory in which to create, store, and manage all project files.</html>";
+    private static final String SOURCE_DIR_TOOLTIP = "<html>Directory of source (e.g. FinalReport.txt.gz) files; this can be different than the Project Directory.</html>";
+    private static final String SOURCE_EXT_TOOLTIP = "<html>Extension of source files (e.g. for \"FinalReport.txt.gz\", the extension would be \".txt.gz\".</html>";
     private static final String XY_TOOLTIP = "<html>Suggested values for X/Y correction:<br />Illumina: use the default of 1.<br />Affymetrix: use 100.<br />DBGAP: use 2000.</html>";
     private JPanel contentPane;
     private JTextField txtFldProjName;
@@ -127,28 +131,14 @@ public class ProjectCreationGUI extends JDialog {
     private JLabel lblSrcFileStatus;
     private JSpinner spinnerXY;
     private JProgressBar progressBar;
-
-    /**
-     * Launch the application.
-     */
-    public static void main(String[] args) {
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    ProjectCreationGUI frame = new ProjectCreationGUI();
-                    frame.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
+    private String[] existingNames;
 
     /**
      * Create the frame.
      */
-    public ProjectCreationGUI() {
+    public ProjectCreationGUI(String[] existingProjectNames) {
         setTitle("Genvisis: Create New Project");
+        this.existingNames = existingProjectNames;
         Project proj = new Project();
         
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -173,14 +163,16 @@ public class ProjectCreationGUI extends JDialog {
         txtFldProjName.setColumns(10);
         
         JLabel lblProjectDirectory = new JLabel("Project Directory:");
-        contentPane.add(lblProjectDirectory, "cell 0 4,alignx trailing");
+        contentPane.add(lblProjectDirectory, "cell 0 4,split 2, alignx right");
+        contentPane.add(Grafik.getToolTipIconLabel(PROJECT_DIR_TOOLTIP), "cell 0 4, alignx right");
         
         txtFldProjDir = new JTextField(proj.PROJECT_DIRECTORY.getDefaultValueString());
         contentPane.add(txtFldProjDir, "flowx,cell 2 4,growx");
         txtFldProjDir.setColumns(10);
         
         JLabel lblSourceFileDirectory = new JLabel("Source File Directory:");
-        contentPane.add(lblSourceFileDirectory, "cell 0 6,alignx trailing");
+        contentPane.add(lblSourceFileDirectory, "cell 0 6,split 2, alignx right");
+        contentPane.add(Grafik.getToolTipIconLabel(SOURCE_DIR_TOOLTIP), "cell 0 6, alignx right");
         
         CaretListener checkSource = new CaretListener() {
             @Override
@@ -195,7 +187,8 @@ public class ProjectCreationGUI extends JDialog {
         txtFldSrcDir.setColumns(10);
         
         JLabel lblSourceFileExtension = new JLabel("Source File Extension:");
-        contentPane.add(lblSourceFileExtension, "cell 0 7,alignx trailing");
+        contentPane.add(lblSourceFileExtension, "cell 0 7,split 2,alignx right");
+        contentPane.add(Grafik.getToolTipIconLabel(SOURCE_EXT_TOOLTIP), "cell 0 7, alignx right");
         
         txtFldSrcExt = new JTextField(proj.SOURCE_FILENAME_EXTENSION.getDefaultValueString());
         txtFldSrcExt.addCaretListener(checkSource);
@@ -337,7 +330,17 @@ public class ProjectCreationGUI extends JDialog {
             validTgtMkrs = true;
         } catch (IOException e) {}
         
-        boolean[] checks = {!name.equals("") && !name.equals((new Project()).PROJECT_NAME.getDefaultValueString()), 
+        boolean nameCheck = !name.equals("") && !name.equals((new Project()).PROJECT_NAME.getDefaultValueString());
+        if (nameCheck) {
+            for (String s : existingNames) {
+                if (s.equals(name)) {
+                    nameCheck = false;
+                    break;
+                }
+            }
+        }
+        
+        boolean[] checks = {nameCheck, 
                 validProjDir,
                 validSrcDir,
                 !srcExt.equals(""),
@@ -398,7 +401,7 @@ public class ProjectCreationGUI extends JDialog {
     private String getErrorFor(int index) {
         switch (index) {
             case 0: // Project Name
-                return "Project name must have a value, and must not be 'New Project'";
+                return "Project name must have a value, must not be 'New Project', and may not already exist";
             case 1: // Project dir
                 return "Project directory must be a valid directory path";
             case 2: // src dir

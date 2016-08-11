@@ -72,5 +72,14 @@ public class LaunchProperties extends Properties {
         	System.err.println("Failed to save \""+filename+"\"");
         }
 	}
+
+    public String[] getListOfProjectNames() {
+        String[] projects = Files.list(getDirectory(), ".properties", false);
+        String[] projectNames = new String[projects.length];
+        for (int i = 0; i<projectNames.length; i++) {
+            projectNames[i] = ext.rootOf(projects[i], true);
+        }
+        return projectNames;
+    }
 	
 }

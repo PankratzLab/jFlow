@@ -126,10 +126,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		String[] projectNames;
 		
 		projects = Files.list(launchProperties.getDirectory(), ".properties", false);
-		projectNames = new String[projects.length];
-		for (int i = 0; i<projectNames.length; i++) {
-			projectNames[i] = ext.rootOf(projects[i], true);
-        }
+		projectNames = launchProperties.getListOfProjectNames();
 		projectsBox.setModel(new DefaultComboBoxModel(projectNames));
 	}
 	
@@ -1043,5 +1040,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		sh += "	-cp \"$prefix\"/genvisis.jar cnv.Launch \"$@\"\n";
 		return sh;
 	}
+
+    public LaunchProperties getLaunchProperties() {
+        return launchProperties;
+    }
 	
 }

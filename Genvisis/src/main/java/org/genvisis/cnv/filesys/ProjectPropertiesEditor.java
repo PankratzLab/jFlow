@@ -84,12 +84,6 @@ public class ProjectPropertiesEditor extends JFrame {
             },
             {
                 "Import",
-                "SOURCE_DIRECTORY",
-                "SOURCE_FILENAME_EXTENSION",
-                "LONG_FORMAT",
-                "SOURCE_FILE_DELIMITER",
-                "ID_HEADER",
-                "PARSE_AT_AT_SYMBOL",
                 "MARKER_POSITION_FILENAME",
                 "SAMPLE_ALIAS",
                 "FID_ALIAS",
@@ -222,6 +216,12 @@ public class ProjectPropertiesEditor extends JFrame {
             "STRATIFICATION_RESULTS_FILENAMES"
     };
     String[] uneditableProperties = new String[] {
+            "SOURCE_DIRECTORY",
+            "SOURCE_FILENAME_EXTENSION",
+            "LONG_FORMAT",
+            "SOURCE_FILE_DELIMITER",
+            "ID_HEADER",
+            "PARSE_AT_AT_SYMBOL",
             "ARRAY_TYPE",
             "XY_SCALE_FACTOR"
     };
