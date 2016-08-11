@@ -10,7 +10,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-
 import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
@@ -32,6 +31,19 @@ public class Computel {
 
 	private Computel() {
 
+	}
+
+	private static boolean runComputel(String config, String computelCommandR, Logger log) {
+		String[] inputs = new String[] { config, computelCommandR };
+		String[] outputs = null;
+		// new String[] { r1, r2 };
+		ArrayList<String> command = new ArrayList<String>();
+		command.add("Rscript");
+		command.add(computelCommandR);
+		command.add(config);
+
+		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true, false, false,
+				log);
 	}
 
 	private static boolean convertToFasta(String inputBam, String computelLoc, String r1, String r2, Logger log) {
@@ -56,8 +68,8 @@ public class Computel {
 	 * @param computelOperatingDir
 	 *            Where the config will be setup relative to
 	 */
-	private static String processConfig(String computelOperatingDir, String bowtieSamDir, String config, String r1,
-			String r2, int readLength) {
+	private static String processConfig(String computelOperatingDir, String bowtieSamDir,
+			String config, String r1, String r2, int readLength) {
 		config = config.replaceAll("scripts.dir	./scripts", "scripts.dir	" + computelOperatingDir + "src/scripts");
 		String btieBuild = bowtieSamDir + "bowtie2-2.1.0-linux/bowtie2-build";
 		Files.chmod(btieBuild);
@@ -89,6 +101,7 @@ public class Computel {
 		config = config.replaceAll("base.index.pathtoprefix	./examples/base.index/base_index",
 				"base.index.pathtoprefix	" + computelOperatingDir + "src/examples/base.index/base_index");
 
+		config = config.replaceAll("output.dir	output", "output.dir	" + computelOperatingDir+"/results");
 		// compute.base.cov F
 		return config;
 	}
@@ -111,23 +124,30 @@ public class Computel {
 			String r1 = finalOutDirectory + "src/examples/analysis_reads1.fq";
 			String r2 = finalOutDirectory + "src/examples/analysis_reads2.fq";
 			boolean converted = convertToFasta(inputBam, finalOutDirectory, r1, r2, log);
-			System.out.println(converted);
 			if (converted) {
 				int readLength = BamOps.estimateReadSize(inputBam, 100000, log);
-				System.out.println(readLength);
 
-				Scanner s = new Scanner(new File(finalOutDirectory + "src/examples/config_unix.txt"));
-
-				String config = s.useDelimiter("\\Z").next();
-				s.close();
-				config = processConfig(finalOutDirectory, bowtieSamDir, config, r1, r2, readLength);
-				log.report(config);
-				Files.write(config, finalOutDirectory + "testConfig.txt");
+				String config = manageConfig(log, finalOutDirectory, bowtieSamDir, r1, r2, readLength);
+				String configFile = finalOutDirectory + "computelConfig.txt";
+				String computelCommand = finalOutDirectory + "src/scripts/computel.cmd.R";
+				Files.write(config, configFile);
+				runComputel(configFile, computelCommand, log);
 			}
 		} catch (FileNotFoundException e) {
 			log.reportException(e);
 		}
 
+	}
+
+	private static String manageConfig(Logger log, String finalOutDirectory, String bowtieSamDir, String r1, String r2,
+			int readLength) throws FileNotFoundException {
+		Scanner s = new Scanner(new File(finalOutDirectory + "src/examples/config_unix.txt"));
+
+		String config = s.useDelimiter("\\Z").next();
+		s.close();
+		config = processConfig(finalOutDirectory, bowtieSamDir, config, r1, r2, readLength);
+		log.report(config);
+		return config;
 	}
 
 	private static void copyDirectory(File sourceLocation, File targetLocation) throws IOException {
