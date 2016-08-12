@@ -59,7 +59,7 @@ public class ExomeDepth {
 		this.log = log;
 		this.sampleSpecificExclude = new Hashtable<String, HashSet<String>>();
 		this.globalExclude = new HashSet<String>();
-		this.allSampleNames = BamOps.getSampleNames(allReferenceBamFiles);
+		this.allSampleNames = BamOps.getSampleNames(allReferenceBamFiles, log);
 		this.fail = gatherBai();
 
 		this.analysisBamFiles = analysisBamFiles;

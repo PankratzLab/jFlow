@@ -27,6 +27,8 @@ import org.genvisis.seq.manage.BamOps;
  */
 public class Computel {
 
+	// TODO, remove on -targets for whole exome
+
 	private static final String SAM_TO_FASTQ_LOC = "SamToFastq.jar";
 
 	private Computel() {
@@ -68,8 +70,8 @@ public class Computel {
 	 * @param computelOperatingDir
 	 *            Where the config will be setup relative to
 	 */
-	private static String processConfig(String computelOperatingDir, String bowtieSamDir,
-			String config, String r1, String r2, int readLength) {
+	private static String processConfig(String computelOperatingDir, String bowtieSamDir, String config, String r1,
+			String r2, int readLength) {
 		config = config.replaceAll("scripts.dir	./scripts", "scripts.dir	" + computelOperatingDir + "src/scripts");
 		String btieBuild = bowtieSamDir + "bowtie2-2.1.0-linux/bowtie2-build";
 		Files.chmod(btieBuild);
@@ -101,7 +103,7 @@ public class Computel {
 		config = config.replaceAll("base.index.pathtoprefix	./examples/base.index/base_index",
 				"base.index.pathtoprefix	" + computelOperatingDir + "src/examples/base.index/base_index");
 
-		config = config.replaceAll("output.dir	output", "output.dir	" + computelOperatingDir+"/results");
+		config = config.replaceAll("output.dir	output", "output.dir	" + computelOperatingDir + "/results");
 		// compute.base.cov F
 		return config;
 	}

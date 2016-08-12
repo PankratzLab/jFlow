@@ -3,9 +3,11 @@ package org.genvisis.seq.manage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -38,6 +40,11 @@ import htsjdk.samtools.ValidationStringency;
 public class BamOps {
 	public static final String BAM_EXT = ".bam";
 	public static final String BAI_EXT = ".bai";
+	/**
+	 * Default number of reads to scan in order to estimate read length for a
+	 * sample
+	 */
+	private static final int NUM_READ_ESTIMATOR = 100000;
 
 	/**
 	 * This method will check if an appropriate .bai index file exists for a
@@ -103,6 +110,8 @@ public class BamOps {
 	 *            bp buffer to be added to the segments
 	 * @param optimize
 	 *            perform an extra step to make a more efficient query
+	 * @param chr
+	 *            When querying, add "chr" to the contig
 	 * @param log
 	 * @return array of {@link QueryInterval} that can be queried by a bamfile
 	 *         reader
@@ -140,19 +149,30 @@ public class BamOps {
 		return segs;
 	}
 
-	public static SAMFileHeader getHeader(String bamfile) {
+	/**
+	 * @param bamfile
+	 *            get the {@link SAMFileHeader} for this bam file
+	 * @param log
+	 * @return
+	 */
+	public static SAMFileHeader getHeader(String bamfile, Logger log) {
 		SamReader reader = getDefaultReader(bamfile, ValidationStringency.STRICT);
 		SAMFileHeader samFileHeader = reader.getFileHeader();
 		try {
 			reader.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.reportException(e);
 		}
 		return samFileHeader;
 
 	}
 
+	/**
+	 * @param bams
+	 *            get all bar codes from the bams in this array
+	 * @param log
+	 * @return
+	 */
 	public static String[] getAllBarCodes(String[] bams, Logger log) {
 		HashSet<String> unique = new HashSet<String>();
 		for (int i = 0; i < bams.length; i++) {
@@ -161,6 +181,12 @@ public class BamOps {
 		return unique.toArray(new String[unique.size()]);
 	}
 
+	/**
+	 * @param bam
+	 *            Get a bar code for this specific bam file
+	 * @param log
+	 * @return
+	 */
 	public static ArrayList<String> getBarcodesFor(String bam, Logger log) {
 		ArrayList<String> barcodes = new ArrayList<String>();
 		SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();
@@ -191,10 +217,15 @@ public class BamOps {
 		return barcodes;
 	}
 
-	public static String[] getSampleNames(String[] bamFiles) {
+	/**
+	 * @param bamFiles
+	 * @param log
+	 * @return sample names for all the bam files of interest
+	 */
+	public static String[] getSampleNames(String[] bamFiles, Logger log) {
 		String[] sampleNames = new String[bamFiles.length];
 		for (int i = 0; i < sampleNames.length; i++) {
-			sampleNames[i] = getSampleName(bamFiles[i]);
+			sampleNames[i] = getSampleName(bamFiles[i], log);
 		}
 		return sampleNames;
 	}
@@ -250,33 +281,27 @@ public class BamOps {
 		}
 		return result;
 
-		// bamIndex.g
-		//
-		// bamIndex.getMetaData(0).
-
-		// int nRefs = bamIndex.getNumberOfReferences();
-		//
-		//
-		// AbstractBAMFileIndex index = (AbstractBAMFileIndex) bam.getIndex();
-		// // read through all the bins of every reference.
-		// BAMIndexMetaData[] result = new BAMIndexMetaData[nRefs == 0 ? 1 :
-		// nRefs];
-		// for (int i = 0; i < nRefs; i++) {
-		// result[i] = index.getMetaData(i);
-		// }
-		//
-		// if (result[0] == null){
-		// result[0] = new BAMIndexMetaData();
-		// }
-		// final Long noCoordCount = index.getNoCoordinateCount();
-		// if (noCoordCount != null) // null in old index files without metadata
-		// result[0].setNoCoordinateRecordCount(noCoordCount);
-		//
-		// return result;
-		// }
-		//
 	}
 
+	/**
+	 * @param bamFile
+	 *            estimate the length of reads comprising this bam file
+	 * @param log
+	 * @return the estimated read size
+	 */
+	public static int estimateReadSize(String bamFile, Logger log) {
+		return estimateReadSize(bamFile, NUM_READ_ESTIMATOR, log);
+	}
+
+	/**
+	 * @param bamFile
+	 *            estimate the length of reads comprising this bam file
+	 * @param numReads
+	 *            the number of reads to compute the estimate from (reasonable
+	 *            performance with 100000)
+	 * @param log
+	 * @return the estimated read size
+	 */
 	public static int estimateReadSize(String bamFile, int numReads, Logger log) {
 		SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
 		int readsize = 0;
@@ -298,8 +323,8 @@ public class BamOps {
 		try {
 			reader.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.reportException(e);
+
 		}
 		if (readsScanned > 0) {
 			double avg = (double) readsize / readsScanned;
@@ -308,14 +333,25 @@ public class BamOps {
 		return -1;
 	}
 
+	@Deprecated
 	public static String getSampleName(String bamFile) {
+		return getSampleName(bamFile, new Logger());
+	}
+
+	/**
+	 * @param bamFile
+	 *            the bam file to extract sample name from
+	 * @param log
+	 *            your friendly logger
+	 * @return
+	 */
+	public static String getSampleName(String bamFile, Logger log) {
 		SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
 		String sample = reader.getFileHeader().getReadGroups().get(0).getSample();
 		try {
 			reader.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.reportException(e);
 		}
 		return sample;
 	}
@@ -380,13 +416,14 @@ public class BamOps {
 	 *            variant sets that may be appended to the vcf sample names
 	 * @param bams
 	 *            the bam files
+	 * @param numThreads
 	 * @param log
 	 * @return Hashtable of the sample -> bam file mapping
 	 */
-	public static Hashtable<String, String> matchToVcfSamplesToBamFiles(String[] samples, Set<String> variantSets,
+	public static Map<String, String> matchToVcfSamplesToBamFiles(String[] samples, Set<String> variantSets,
 			String[] bams, int numThreads, Logger log) {
-		Hashtable<String, String> matched = new Hashtable<String, String>();
-		Hashtable<String, String> bamSamples = new Hashtable<String, String>();
+		HashMap<String, String> matched = new HashMap<String, String>();
+		HashMap<String, String> bamSamples = new HashMap<String, String>();
 		SampleNameProducer producer = new SampleNameProducer(bams);
 		WorkerTrain<SampleNameExtractor> train = new WorkerTrain<SampleNameExtractor>(producer, numThreads, 10, log);
 
@@ -409,7 +446,7 @@ public class BamOps {
 			if (!bamSamples.containsKey(samples[i])) {
 				log.reportTimeWarning("Did not find matching bam file for " + samples[i]);
 			} else {
-				if (matched.contains(samples[i])) {
+				if (matched.containsKey(samples[i])) {
 					throw new IllegalArgumentException(
 							"Multiple bam files matched sample " + samples[i] + ", perhaps because of variant sets?");
 				}
