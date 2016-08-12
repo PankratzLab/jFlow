@@ -164,9 +164,8 @@ public class TelSeq {
 	 * @param captureBufferSize
 	 *            number of base pairs to buffer the caputure bed file
 	 */
-	public static void runTelSeq(String[] bams, String outDir, String captureBed, int threads, ASSAY_TYPE aType,
-			ASSEMBLY_NAME aName, int captureBufferSize) {
-		Logger log = new Logger(outDir + ".telseq.log");
+	public static String runTelSeq(String[] bams, String outDir, String captureBed, int threads, ASSAY_TYPE aType,
+			ASSEMBLY_NAME aName, int captureBufferSize, Logger log) {
 
 		String telseqDir = outDir + "telseq/";
 		new File(telseqDir).mkdirs();
@@ -220,6 +219,7 @@ public class TelSeq {
 			}
 		}
 		Files.writeArrayList(result, finalOut);
+		return finalOut;
 	}
 
 	private static void runType(int threads, Logger log, String[] bams, ArrayList<TelSeqResult> results,

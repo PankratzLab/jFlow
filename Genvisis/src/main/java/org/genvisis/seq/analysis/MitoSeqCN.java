@@ -50,11 +50,10 @@ public class MitoSeqCN {
 	 * @return the name of the output file
 	 */
 	public static String run(String fileOfBams, String outDir, String captureBed, String referenceGenomeFasta,
-			ASSEMBLY_NAME params, int numthreads) {
+			ASSEMBLY_NAME params, int numthreads, Logger log) {
 		new File(outDir).mkdirs();
 
 		String output = outDir + ext.rootOf(fileOfBams) + "_mtDNACN.summary.txt";
-		Logger log = new Logger(outDir + "mtDNACN.log");
 
 		if (!Files.exists(output)) {
 			String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] { 0 }, true);
@@ -349,8 +348,7 @@ public class MitoSeqCN {
 			System.err.println(usage);
 			System.exit(1);
 		}
-
-		run(fileOfBams, outDir, captureBed, referenceGenome, ASSEMBLY_NAME.HG19, numthreads);
+		run(fileOfBams, outDir, captureBed, referenceGenome, ASSEMBLY_NAME.HG19, numthreads, new Logger());
 
 	}
 }
