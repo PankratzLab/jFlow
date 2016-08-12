@@ -12,10 +12,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.genvisis.common.Array;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -65,62 +65,67 @@ public class MitoSeqCN {
 	 *            reference genomve
 	 * @param params
 	 * @param numthreads
+	 * @return the name of the output file
 	 */
-	public static List<MitoCNResult> run(String fileOfBams, String outDir, String captureBed,
-			String referenceGenomeFasta, BUILD_PARAMS params, int numthreads) {
+	public static String run(String fileOfBams, String outDir, String captureBed, String referenceGenomeFasta,
+			BUILD_PARAMS params, int numthreads) {
 		new File(outDir).mkdirs();
+
+		String output = outDir + ext.rootOf(fileOfBams) + "_mtDNACN.summary.txt";
 		Logger log = new Logger(outDir + "mtDNACN.log");
-		String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] { 0 }, true);
-		log.reportTimeInfo("Detected " + bams.length + " bam files");
-		ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
-		BedOps.verifyBedIndex(captureBed, log);
-		LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).autosomal(true, log);
-		if (captureBed != null) {// Should only be used for
-			BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
 
-			genomeBinsMinusBinsCaputure = genomeBinsMinusBinsCaputure
-					.removeThese(readerCapture.loadAll(log).getStrictSegmentSet(), 21000).autosomal(true, log);
-			readerCapture.close();
-		} else {
-			log.reportTimeWarning("No capture targets defined, assuming this is WGS");
-		}
-		log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bin regions");
-		if (!referenceGenome.hasContig(params.mitoContig) || !referenceGenome.hasContig(params.xContig)
-				|| !referenceGenome.hasContig(params.yContig)) {
-			throw new IllegalArgumentException("Required contig for " + params + " is missing ( " + params.mitoContig
-					+ " ," + params.xContig + ", " + params.yContig + " from " + referenceGenomeFasta);
-		} else {
-			int mitoLength = referenceGenome.getContigLength(params.mitoContig);
-			log.reportTimeInfo("Mitochondrial genome length = " + mitoLength);
+		if (!Files.exists(output)) {
+			String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] { 0 }, true);
+			log.reportTimeInfo("Detected " + bams.length + " bam files");
+			ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
+			BedOps.verifyBedIndex(captureBed, log);
+			LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).autosomal(true, log);
+			if (captureBed != null) {// Should only be used for
+				BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
 
-			String output = outDir + ext.rootOf(fileOfBams) + "_mtDNACN.summary.txt";
-
-			MitoCNProducer producer = new MitoCNProducer(bams, referenceGenome, genomeBinsMinusBinsCaputure, outDir,
-					params, log);
-			WorkerTrain<MitoCNResult> train = new WorkerTrain<MitoSeqCN.MitoCNResult>(producer, numthreads, numthreads,
-					log);
-			ArrayList<MitoCNResult> results = new ArrayList<MitoSeqCN.MitoCNResult>();
-			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(output));
-				writer.println(Array.toStr(MitoCNResult.header));
-				while (train.hasNext()) {
-					MitoCNResult result = train.next();
-					if (result != null) {
-						log.reportTimeInfo(Array.toStr(result.getResult()));
-						writer.println(Array.toStr(result.getResult()));
-						results.add(result);
-					}
-
-				}
-				writer.close();
-			} catch (Exception e) {
-				log.reportError("Error writing to " + output);
-				log.reportException(e);
+				genomeBinsMinusBinsCaputure = genomeBinsMinusBinsCaputure
+						.removeThese(readerCapture.loadAll(log).getStrictSegmentSet(), 21000).autosomal(true, log);
+				readerCapture.close();
+			} else {
+				log.reportTimeWarning("No capture targets defined, assuming this is WGS");
 			}
-			return results;
+			log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bin regions");
+			if (!referenceGenome.hasContig(params.mitoContig) || !referenceGenome.hasContig(params.xContig)
+					|| !referenceGenome.hasContig(params.yContig)) {
+				throw new IllegalArgumentException(
+						"Required contig for " + params + " is missing ( " + params.mitoContig + " ," + params.xContig
+								+ ", " + params.yContig + " from " + referenceGenomeFasta);
+			} else {
+				int mitoLength = referenceGenome.getContigLength(params.mitoContig);
+				log.reportTimeInfo("Mitochondrial genome length = " + mitoLength);
 
+				MitoCNProducer producer = new MitoCNProducer(bams, referenceGenome, genomeBinsMinusBinsCaputure, outDir,
+						params, log);
+				WorkerTrain<MitoCNResult> train = new WorkerTrain<MitoSeqCN.MitoCNResult>(producer, numthreads,
+						numthreads, log);
+				ArrayList<MitoCNResult> results = new ArrayList<MitoSeqCN.MitoCNResult>();
+				try {
+					PrintWriter writer = new PrintWriter(new FileWriter(output));
+					writer.println(Array.toStr(MitoCNResult.header));
+					while (train.hasNext()) {
+						MitoCNResult result = train.next();
+						if (result != null) {
+							log.reportTimeInfo(Array.toStr(result.getResult()));
+							writer.println(Array.toStr(result.getResult()));
+							results.add(result);
+						}
+
+					}
+					writer.close();
+				} catch (Exception e) {
+					log.reportError("Error writing to " + output);
+					log.reportException(e);
+				}
+			}
+		} else {
+			log.reportTimeWarning(output + " exists, skipping mtDNA CN estimation");
 		}
-
+		return output;
 	}
 
 	/**
@@ -208,7 +213,7 @@ public class MitoSeqCN {
 		public MitoCNResult call() throws Exception {
 
 			try {
-				String sample = BamOps.getSampleName(bam,log);
+				String sample = BamOps.getSampleName(bam, log);
 				log.reportTimeInfo("Processing sample " + sample);
 				String outputMTBam = outDir + ext.addToRoot(ext.removeDirectoryInfo(bam), ".chrM");
 
