@@ -8,8 +8,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Scanner;
 
+import org.apache.commons.cli.Options;
+import org.genvisis.CLI;
 import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
@@ -26,8 +29,6 @@ import org.genvisis.seq.manage.BamOps;
  * Computel is a little annoying to set up, so this will reflect that...
  */
 public class Computel {
-
-	// TODO, remove on -targets for whole exome
 
 	private static final String SAM_TO_FASTQ_LOC = "SamToFastq.jar";
 
@@ -111,6 +112,7 @@ public class Computel {
 	private static void runComputel(String inputBam, String outputDir, String computelDirectory, Logger log) {
 		String finalOutDirectory = outputDir + ext.rootOf(inputBam) + "/";
 		new File(finalOutDirectory).mkdirs();
+
 		try {
 			// if (!Files.exists(finalOutDirectory + "src"))
 			copyDirectory(new File(computelDirectory), new File(finalOutDirectory));
@@ -184,32 +186,22 @@ public class Computel {
 	}
 
 	public static void main(String[] args) {
-		String targetBam = "/Volumes/Beta/data/aric_sra/bams/SRR1654226.bam";
-		String computelLocation = "/Users/Kitty/git/computel/";
-		String outDir = "/Volumes/Beta/data/aric_sra/test/computel/";
-		new File(outDir).mkdirs();
+		String targetBam = "bam.bam";
+		String computelLocation = "computel/";
+		String outDir = "out/";
 
-		// Options options = CLI.defaultOptions();
-		// final String bam = "bam";
-		// CLI.addArg(options, bam, "bam file to analyze", targetBam);
-		//
-		// final String computel = "computel";
-		// CLI.addArg(options, computel, "full computel directory (as git clone
-		// ideally)", computelLocation);
-		//
-		// final String outdir = "out";
-		// CLI.addArg(options, outdir, "the output directory for results",
-		// outDir);
-		//
-		// Map<String, String> parsed = CLI.parseWithExit(Computel.class,
-		// options, args);
-		//
-		//
+		Options options = CLI.defaultOptions();
+		final String bam = "bam";
+		CLI.addArg(options, bam, "bam file to analyze", targetBam);
 
-		test(targetBam, computelLocation, outDir);
+		final String computel = "computel";
+		CLI.addArg(options, computel, "full computel directory (as git clone ideally)", computelLocation);
+
+		final String outdir = "out";
+		CLI.addArg(options, outdir, "the output directory for results", outDir);
+
+		Map<String, String> parsed = CLI.parseWithExit(Computel.class, options, args);
+
+		test(parsed.get(bam), parsed.get(computel), parsed.get(outdir));
 	}
-
-	// bedtools bamtofastq -i aln.qsort.bam \
-	// -fq aln.end1.fq \
-	// -fq2 aln.end2.fq
 }

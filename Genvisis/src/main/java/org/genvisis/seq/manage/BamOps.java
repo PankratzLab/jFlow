@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +23,8 @@ import htsjdk.samtools.BAMIndex;
 import htsjdk.samtools.BAMIndexMetaData;
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
@@ -39,6 +40,7 @@ import htsjdk.samtools.ValidationStringency;
  *
  */
 public class BamOps {
+
 	public static final String BAM_EXT = ".bam";
 	public static final String BAI_EXT = ".bai";
 	/**
@@ -46,6 +48,10 @@ public class BamOps {
 	 * sample
 	 */
 	private static final int NUM_READ_ESTIMATOR = 100000;
+
+	private BamOps() {
+
+	}
 
 	/**
 	 * This method will check if an appropriate .bai index file exists for a
@@ -84,9 +90,45 @@ public class BamOps {
 		return getDefaultReader(bamOrSam, stringency, new ArrayList<SamReaderFactory.Option>());
 	}
 
-	public static boolean subsetBamToBed(String bamFile, String outputBam, LocusSet<Segment> set, boolean include,
+	/**
+	 * @param bamFile
+	 *            the input bam file
+	 * @param outputBam
+	 *            the output bam file
+	 * @param set
+	 *            the {@link LocusSet} that will serve as an inclusion or
+	 *            exclusion filter
+	 * @param include
+	 *            if true, reads that overlap segments in the set will be
+	 *            included in the output. If false, reads that do not overlap
+	 *            the set will be included in the output
+	 * @param log
+	 * @return
+	 */
+	public static boolean subsetBam(String bamFile, String outputBam, LocusSet<Segment> set, boolean include,
 			Logger log) {
-		
+		SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
+		SAMFileWriter sAMFileWriter = new SAMFileWriterFactory().setCreateIndex(true)
+				.makeSAMOrBAMWriter(reader.getFileHeader(), true, new File(outputBam));
+
+		for (SAMRecord samRecord : reader) {
+			Segment seg = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
+			int[] indices = set.getOverlappingIndices(seg);
+			if ((indices == null || indices.length == 0) && !include) {
+				sAMFileWriter.addAlignment(samRecord);
+			} else if ((indices != null && indices.length > 0) && include) {
+				sAMFileWriter.addAlignment(samRecord);
+			} else {
+				throw new IllegalStateException("Misguided logic introduced");
+			}
+		}
+		try {
+			reader.close();
+			sAMFileWriter.close();
+		} catch (IOException e) {
+			log.reportException(e);
+			return false;
+		}
 		return true;
 	}
 

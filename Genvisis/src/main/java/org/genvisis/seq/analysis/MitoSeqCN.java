@@ -208,7 +208,7 @@ public class MitoSeqCN {
 		public MitoCNResult call() throws Exception {
 
 			try {
-				String sample = BamOps.getSampleName(bam);
+				String sample = BamOps.getSampleName(bam,log);
 				log.reportTimeInfo("Processing sample " + sample);
 				String outputMTBam = outDir + ext.addToRoot(ext.removeDirectoryInfo(bam), ".chrM");
 
