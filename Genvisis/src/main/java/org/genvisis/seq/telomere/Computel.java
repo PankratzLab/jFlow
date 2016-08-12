@@ -27,6 +27,9 @@ import org.genvisis.seq.manage.BamOps;
  *
  *
  * Computel is a little annoying to set up, so this will reflect that...
+ * 
+ * 
+ * NOTE: I had to re-build the samtools version to operate using MSI's libs for C
  */
 public class Computel {
 
@@ -104,7 +107,7 @@ public class Computel {
 		config = config.replaceAll("base.index.pathtoprefix	./examples/base.index/base_index",
 				"base.index.pathtoprefix	" + computelOperatingDir + "src/examples/base.index/base_index");
 
-		config = config.replaceAll("output.dir	output", "output.dir	" + computelOperatingDir + "/results");
+		config = config.replaceAll("output.dir	output", "output.dir	" + computelOperatingDir + "results");
 		// compute.base.cov F
 		return config;
 	}
