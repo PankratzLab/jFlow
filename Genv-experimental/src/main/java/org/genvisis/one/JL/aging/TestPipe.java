@@ -8,14 +8,13 @@ import org.genvisis.common.ext;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.SeqVariables.PLATFORM;
 import org.genvisis.seq.analysis.MitoSeqCN;
-import org.genvisis.seq.analysis.MitoSeqCN.BUILD_PARAMS;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.sra.SRARunTable;
 import org.genvisis.sra.SRASample;
 
 /**
  * 
- *
+ *Done
  */
 public class TestPipe {
 
@@ -48,7 +47,7 @@ public class TestPipe {
 		if (current.getaName() == ASSEMBLY_NAME.GRCH37 && current.getPlatform() == PLATFORM.ILLUMINA) {
 			switch (current.getaType()) {
 			case WGS:
-				MitoSeqCN.run(bamList, outDir, null, refGenome, BUILD_PARAMS.GRCH37, 1);
+//				MitoSeqCN.run(bamList, outDir, null, refGenome, BUILD_PARAMS.GRCH37, 1);
 				
 				break;
 			case WXS:
