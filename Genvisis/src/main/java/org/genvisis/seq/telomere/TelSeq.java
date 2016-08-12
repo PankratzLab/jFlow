@@ -10,7 +10,6 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
@@ -20,8 +19,6 @@ import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
-import org.genvisis.sra.SRAUtils;
-import org.genvisis.sra.SRAUtils.SRAConversionResult;
 
 /**
  * @author Kitty Class for assisting in generating telomere length estimates
@@ -76,13 +73,33 @@ public class TelSeq {
 			Ran ran = telSeqIt(inputBam, out, readSize, additionalArgs, log);
 			String sampleName = "NA";
 			try {
-				sampleName = BamOps.getSampleName(inputBam);
+				sampleName = BamOps.getSampleName(inputBam, log);
 			} catch (Exception e) {
 				log.reportTimeError("Could not get sample name from " + inputBam);
 				log.reportException(e);
 			}
 
 			return new TelSeqResult(out, ran, sampleName, type, readSize);
+		}
+
+		private static Ran telSeqIt(String inputBam, String output, int readSize, List<String> additionalArgs,
+				Logger log) {
+			String[] outputs = new String[] { output };
+			String[] input = new String[] { inputBam };
+			ArrayList<String> command = new ArrayList<String>();
+			command.add("telseq");
+			command.add("-o");
+			command.add(output);
+			command.add("-r");
+			command.add(Integer.toString(readSize));
+
+			command.addAll(additionalArgs);
+
+			command.add(inputBam);
+
+			boolean valid = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, true,
+					false, false, log);
+			return new Ran(valid, command);
 		}
 	}
 
@@ -116,6 +133,7 @@ public class TelSeq {
 			index++;
 			return worker;
 		}
+
 	}
 
 	private static class Ran {
@@ -130,44 +148,26 @@ public class TelSeq {
 
 	}
 
-	private static Ran telSeqIt(String inputBam, String output, int readSize, List<String> additionalArgs, Logger log) {
-		String[] outputs = new String[] { output };
-		String[] input = new String[] { inputBam };
-		ArrayList<String> command = new ArrayList<String>();
-		command.add("telseq");
-		command.add("-o");
-		command.add(output);
-		command.add("-r");
-		command.add(Integer.toString(readSize));
-
-		command.addAll(additionalArgs);
-
-		command.add(inputBam);
-
-		boolean valid = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, true, false,
-				false, log);
-		return new Ran(valid, command);
-	}
-
 	/**
 	 * @param bams
 	 *            bams to run
 	 * @param outDir
 	 *            where to put things
 	 * @param captureBed
-	 *            for WES
-	 * @param referenceGenomeFasta
-	 *            will likely be removed later
+	 *            for {@link ASSAY_TYPE#WXS}
 	 * @param threads
-	 * @param log
-	 * 
+	 *            number of threads
+	 * @param aType
+	 *            see {@link ASSAY_TYPE}
+	 * @param aName
+	 *            {@link ASSEMBLY_NAME}
+	 * @param captureBufferSize
+	 *            number of base pairs to buffer the caputure bed file
 	 */
-	public static void runTelSeq(String[] bams, String outDir, String captureBed, String referenceGenomeFasta,
-			int threads, ASSAY_TYPE aType, ASSEMBLY_NAME aName, int captureBufferSize, Logger log) {
-		if (log == null) {
-			log = new Logger(outDir + ".telseq.log");
+	public static void runTelSeq(String[] bams, String outDir, String captureBed, int threads, ASSAY_TYPE aType,
+			ASSEMBLY_NAME aName, int captureBufferSize) {
+		Logger log = new Logger(outDir + ".telseq.log");
 
-		}
 		String telseqDir = outDir + "telseq/";
 		new File(telseqDir).mkdirs();
 		log.reportTimeInfo("Assuming telseq is on system path");
@@ -220,26 +220,6 @@ public class TelSeq {
 			}
 		}
 		Files.writeArrayList(result, finalOut);
-
-		// can kill this later... going to do mtDNA CN
-
-		if (captureBed != null) {
-
-			// String mitoDir = outDir + "mitoCN/";
-			// new File(mitoDir).mkdirs();
-			// String baseBed = mitoDir + "base_" + ext.rootOf(optionalBed) +
-			// ".bed";
-			//
-			// BEDFileReader reader = new BEDFileReader(optionalBed, false);
-			// LocusSet<BEDFeatureSeg> segs = reader.loadAll(log);
-			// reader.close();
-			// segs.writeSegmentRegions(baseBed, true, log);
-			//
-			// String bamsToMito = mitoDir + "bams.txt";
-			// Files.writeList(bams, bamsToMito);
-			// MitoSeqCN.run(bamsToMito, mitoDir, baseBed, referenceGenomeFasta,
-			// chr, threads);
-		}
 	}
 
 	private static void runType(int threads, Logger log, String[] bams, ArrayList<TelSeqResult> results,
@@ -250,114 +230,4 @@ public class TelSeq {
 			results.add(train.next());
 		}
 	}
-
-	// public static void main(String[] args) {
-	// int numArgs = args.length;
-	// String sraDir = "/scratch.global/lanej/aric_raw/sra/";
-	// String outDir = "/scratch.global/lanej/aric_raw/";
-	// String captureBed =
-	// "/home/pankrat2/public/bin/ref/VCRome_2_1_hg19_capture_targets.bed";
-	// String refGenome = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
-	// String bamList = null;
-	// ASSAY_TYPE atType = ASSAY_TYPE.WGS;
-	// ASSEMBLY_NAME aName = ASSEMBLY_NAME.GRCH37;
-	// boolean chr = false;
-	// // String captureBed = null;
-	//
-	// int threads = 24;
-	//
-	// String usage = "\n" + "telomere.SRAUtils requires 0-1 arguments\n" + "
-	// (1) SRA directory (i.e. sraDir="
-	// + sraDir + " (default))\n" + " (2) out directory (i.e. outDir=" + outDir
-	// + " (default))\n"
-	// + " (3) capture bed (i.e. bed=" + outDir + " (default))\n" +
-	//
-	// PSF.Ext.getNumThreadsCommand(3, threads) + "";
-	//
-	// for (int i = 0; i < args.length; i++) {
-	// if (args[i].equals("-h") || args[i].equals("-help") ||
-	// args[i].equals("/h") || args[i].equals("/help")) {
-	// System.err.println(usage);
-	// System.exit(1);
-	// } else if (args[i].startsWith("sraDir")) {
-	// sraDir = args[i].split("=")[1];
-	// numArgs--;
-	// } else if (args[i].startsWith("bed=")) {
-	// captureBed = args[i].split("=")[1];
-	// numArgs--;
-	// } else if (args[i].startsWith("outDir=")) {
-	// outDir = args[i].split("=")[1];
-	// numArgs--;
-	// } else if (args[i].startsWith("bams=")) {
-	// bamList = args[i].split("=")[1];
-	// numArgs--;
-	// } else if (args[i].startsWith("-exome")) {
-	// atType = ASSAY_TYPE.WXS;
-	//
-	// numArgs--;
-	// } else if (args[i].startsWith("-chr")) {
-	// System.out.println("-chr doesn't work, ignoring");
-	// numArgs--;
-	// } else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
-	// threads = ext.parseIntArg(args[i]);
-	// numArgs--;
-	// } else {
-	// System.err.println("Error - invalid argument: " + args[i]);
-	// }
-	// }
-	// if (numArgs != 0) {
-	// System.err.println(usage);
-	// System.exit(1);
-	// }
-	// try {
-	// if (bamList != null) {
-	// runTelSeq(HashVec.loadFileToStringArray(bamList, false, new int[] { 0 },
-	// true), outDir, captureBed,
-	// refGenome, threads, atType, aName, null);
-	// } else {
-	// runTelSeqSRA(sraDir, outDir, captureBed, refGenome, threads);
-	// }
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// }
-	// }
-
-	// /**
-	// * @param sraDir
-	// * @param outDir
-	// * @param optionalBed
-	// * @param referenceGenomeFasta
-	// * @param threads
-	// */
-	// public static void runTelSeqSRA(String sraDir, String outDir, String
-	// optionalBed, String referenceGenomeFasta,
-	// int threads) {
-	// Logger log = new Logger(outDir + ".telseq.log");
-	//
-	// List<SRAConversionResult> conv = SRAUtils.run(sraDir, outDir, threads);
-	//
-	// ArrayList<String> bamst = new ArrayList<String>();
-	// for (int i = 0; i < conv.size(); i++) {
-	// if (conv.get(i).isValid() && new
-	// File(conv.get(i).getOutputBam()).getTotalSpace() > 0) {
-	// bamst.add(conv.get(i).getOutputBam());
-	//
-	// } else {
-	// log.reportTimeWarning(conv.get(i).getOutputBam() + " must have failed,
-	// skipping");
-	// }
-	// }
-	// log.reportTimeInfo("Found " + bamst.size() + " bams to analyze");
-	//
-	// runTelSeq(Array.toStringArray(bamst), outDir, optionalBed,
-	// referenceGenomeFasta, threads, ASSAY_TYPE.WGS, ASSEMBLY_NAME.GRCH37,
-	// log);
-	//
-	// // log.reportTimeError("John remember to add back in SRA");
-	// // String[] bams = Files.listFullPaths(outDir + "bams/", ".bam", false);
-	// // log.reportTimeInfo("Found " + bams.length + " bams");
-	// // runTelSeq(bams, outDir, optionalBed, referenceGenomeFasta, threads,
-	// // false, false, log);
-	//
-	// }
 }
