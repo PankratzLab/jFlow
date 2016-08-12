@@ -68,7 +68,7 @@ public class TelSeq {
 		@Override
 		public TelSeqResult call() throws Exception {
 			String out = outputDir + ext.rootOf(inputBam) + ".telseq";
-			int readSize = BamOps.estimateReadSize(inputBam, 20000, log);
+			int readSize = BamOps.estimateReadSize(inputBam, log);
 			log.reportTimeInfo("Estimated readsize for " + inputBam + " to be " + readSize);
 			Ran ran = telSeqIt(inputBam, out, readSize, additionalArgs, log);
 			String sampleName = "NA";
@@ -99,6 +99,8 @@ public class TelSeq {
 
 			boolean valid = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, true,
 					false, false, log);
+			System.out.println(System.getenv("PATH"));
+			System.exit(1);
 			return new Ran(valid, command);
 		}
 	}
@@ -167,16 +169,12 @@ public class TelSeq {
 	public static String runTelSeq(String[] bams, String outDir, String captureBed, int threads, ASSAY_TYPE aType,
 			ASSEMBLY_NAME aName, int captureBufferSize, Logger log) {
 
-		String telseqDir = outDir + "telseq/";
-		new File(telseqDir).mkdirs();
 		log.reportTimeInfo("Assuming telseq is on system path");
 		ArrayList<TelSeqResult> results = new ArrayList<TelSeq.TelSeqResult>();
 		ArrayList<String> argPopulator = new ArrayList<String>();
 		argPopulator.add("-m");// doesn't look like telseq handles RGs properly
-		String baseDir = telseqDir + "base/";
-		new File(baseDir).mkdirs();
 		if (aType == ASSAY_TYPE.WGS) {
-			runType(threads, log, bams, results, argPopulator, baseDir, TYPE.BASE);
+			runType(threads, log, bams, results, argPopulator, outDir, TYPE.BASE);
 		} else {
 			if (Files.exists(captureBed)) {
 				BEDFileReader reader = new BEDFileReader(captureBed, false);
@@ -184,7 +182,7 @@ public class TelSeq {
 				LocusSet<BEDFeatureSeg> segs = reader.loadAll(log);
 				reader.close();
 
-				String buffDir = telseqDir + "buff_" + captureBufferSize + "_" + ext.rootOf(captureBed) + "/";
+				String buffDir = outDir + "buff_" + captureBufferSize + "_" + ext.rootOf(captureBed) + "/";
 				new File(buffDir).mkdirs();
 				String buffBed = buffDir + "buff_" + captureBufferSize + "KB_" + ext.rootOf(captureBed) + ".bed";
 				log.reportTimeInfo("writing bed to " + buffBed);
@@ -204,7 +202,7 @@ public class TelSeq {
 
 		}
 		// summarize
-		String finalOut = telseqDir + "telseq.summary.txt";
+		String finalOut = outDir + "telseq.summary.txt";
 		String[] telHeader = Files.getHeaderOfFile(results.get(0).output, log);
 
 		ArrayList<String> result = new ArrayList<String>();

@@ -7,14 +7,14 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.SeqVariables.PLATFORM;
-import org.genvisis.seq.analysis.MitoSeqCN;
+import org.genvisis.seq.analysis.genage.Pipeline;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.sra.SRARunTable;
 import org.genvisis.sra.SRASample;
 
 /**
  * 
- *Done
+ * Done
  */
 public class TestPipe {
 
@@ -23,12 +23,7 @@ public class TestPipe {
 	}
 
 	public static void main(String[] args) {
-		
-		
-		
-		
-		
-		
+
 		SRARunTable sraRunTable = SRARunTable.load("/Volumes/Beta/data/aric_sra/prep/SraRunTable.txt", new Logger());
 		String outDir = "/Volumes/Beta/data/aric_sra/test/";
 		String refGenome = "/Volumes/Beta/ref/GRCh37_canon.fa";
@@ -45,16 +40,7 @@ public class TestPipe {
 		String bamList = outDir + sraSamp + ".bamList";
 		Files.write(targetBam, bamList);
 		if (current.getaName() == ASSEMBLY_NAME.GRCH37 && current.getPlatform() == PLATFORM.ILLUMINA) {
-			switch (current.getaType()) {
-			case WGS:
-//				MitoSeqCN.run(bamList, outDir, null, refGenome, BUILD_PARAMS.GRCH37, 1);
-				
-				break;
-			case WXS:
-				break;
-			default:
-				throw new IllegalArgumentException("Invalid Assay type for " + current.toString());
-			}
+			Pipeline.pipeline(targetBam, outDir, refGenome, null, current.getaType(), current.getaName(), 2, log);
 		} else {
 			log.reportTimeWarning("Skipping sample " + current.toString());
 		}

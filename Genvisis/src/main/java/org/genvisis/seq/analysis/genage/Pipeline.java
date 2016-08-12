@@ -20,14 +20,14 @@ import org.genvisis.seq.telomere.TelSeq;
  */
 public class Pipeline {
 
-	private Pipeline() {
-
-	}
-
 	private static final String MITO_DIR = "mtDNACN/";
 	private static final String COMPUTEL_DIR = "computel/";
 	private static final String TELSEQ_DIR = "telseq/";
 	private static final String GENVISIS_DIR = "genvisis/";
+
+	private Pipeline() {
+
+	}
 
 	private abstract static class PipelinePart implements Callable<PipelinePart> {
 		private List<String> output;
@@ -106,7 +106,7 @@ public class Pipeline {
 
 		@Override
 		public PipelinePart call() throws Exception {
-			String telSeqDir = rootOutDir + TELSEQ_DIR + ext.rootOf(bam);
+			String telSeqDir = rootOutDir + TELSEQ_DIR + ext.rootOf(bam)+"/";
 			new File(telSeqDir).mkdir();
 			String result = TelSeq.runTelSeq(new String[] { bam }, telSeqDir, captureBed, numthreads, aType, aName,
 					captureBufferSize, log);
@@ -141,7 +141,6 @@ public class Pipeline {
 		hive.execute(true);
 
 		return hive.getResults();
-
 	}
 
 }
