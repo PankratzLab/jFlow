@@ -17,6 +17,7 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
+import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 
 import htsjdk.samtools.BAMIndex;
@@ -81,6 +82,12 @@ public class BamOps {
 	public static SamReader getDefaultReader(String bamOrSam, ValidationStringency stringency) {
 
 		return getDefaultReader(bamOrSam, stringency, new ArrayList<SamReaderFactory.Option>());
+	}
+
+	public static boolean subsetBamToBed(String bamFile, String outputBam, LocusSet<Segment> set, boolean include,
+			Logger log) {
+		
+		return true;
 	}
 
 	/**

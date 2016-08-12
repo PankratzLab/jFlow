@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -63,7 +64,7 @@ public class Indelathon {
 		String[] samps = VCFOps.getSamplesInFile(vcf);
 		ArrayList<String> excelFiles = new ArrayList<String>();
 
-		Hashtable<String, String> matchedSamps = BamOps.matchToVcfSamplesToBamFiles(samps, variantSets, bams, numThreads, log);
+		Map<String, String> matchedSamps = BamOps.matchToVcfSamplesToBamFiles(samps, variantSets, bams, numThreads, log);
 		String outIndelVCF = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".indels.vcf.gz";
 		String outSegSer = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".indels.seg.ser";
 		Hashtable<String, ArrayList<Segment>> sampSegs = new Hashtable<String, ArrayList<Segment>>();
@@ -74,7 +75,7 @@ public class Indelathon {
 		sampSegs = (Hashtable<String, ArrayList<Segment>>) SerializedFiles.readSerial(outSegSer, false, log, false, true);
 		String indelBamDir = outDir + "indel_bams/";
 		String[] indelBams = extractIndelSegments(indelBamDir, matchedSamps, sampSegs, buffer, numThreads, log);
-		Hashtable<String, String> matchedIndelSamps = BamOps.matchToVcfSamplesToBamFiles(samps, variantSets, indelBams, numThreads, log);
+		Map<String, String> matchedIndelSamps = BamOps.matchToVcfSamplesToBamFiles(samps, variantSets, indelBams, numThreads, log);
 
 		// extracting soft clips
 		SoftClipResultProducer producer = new SoftClipResultProducer(samps, sampSegs, matchedSamps, indelBamDir, log);
@@ -411,13 +412,13 @@ public class Indelathon {
 
 	private static class SoftClipResultProducer extends AbstractProducer<SoftClipResult> {
 		private String[] samples;
-		private Hashtable<String, ArrayList<Segment>> sampSegs;
-		private Hashtable<String, String> matchedIndelSamps;
+		private Map<String, ArrayList<Segment>> sampSegs;
+		private Map<String, String> matchedIndelSamps;
 		private String outputDir;
 		private Logger log;
 		private int index;
 
-		public SoftClipResultProducer(String[] samples, Hashtable<String, ArrayList<Segment>> sampSegs, Hashtable<String, String> matchedSamps, String outputDir, Logger log) {
+		public SoftClipResultProducer(String[] samples, Map<String, ArrayList<Segment>> sampSegs, Map<String, String> matchedSamps, String outputDir, Logger log) {
 			super();
 			this.samples = samples;
 			this.sampSegs = sampSegs;
@@ -480,7 +481,7 @@ public class Indelathon {
 		SerializedFiles.writeSerial(sampSegs, outSegSer, true);
 	}
 
-	private static String[] extractIndelSegments(String indelBamDir, Hashtable<String, String> matchedSamps, Hashtable<String, ArrayList<Segment>> sampSegs, int buffer, int numThreads, Logger log) {
+	private static String[] extractIndelSegments(String indelBamDir, Map<String, String> matchedSamps, Map<String, ArrayList<Segment>> sampSegs, int buffer, int numThreads, Logger log) {
 		WorkerHive<BamExtractor> hive = new WorkerHive<BamExtractor>(numThreads, 10, log);
 		ArrayList<String> indelBams = new ArrayList<String>();
 		new File(indelBamDir).mkdirs();
