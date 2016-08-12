@@ -29,7 +29,11 @@ import org.genvisis.seq.manage.BamOps;
  * Computel is a little annoying to set up, so this will reflect that...
  * 
  * 
- * NOTE: I had to re-build the samtools version to operate using MSI's libs for C
+ * NOTE: I had to re-build the samtools version to operate using MSI's libs for
+ * C
+ * 
+ * Also, Currently looks like computel takes a perfectly nice ~10 gigabyte bam
+ * file and converts it into a massive 250GB monster
  */
 public class Computel {
 
@@ -41,7 +45,10 @@ public class Computel {
 
 	private static boolean runComputel(String config, String computelCommandR, Logger log) {
 		String[] inputs = new String[] { config, computelCommandR };
+		String execDir = ext.parseDirectoryOfFile(config);
+		// TODO, cleanup computels mess, and determine appropriate outputs
 		String[] outputs = null;
+		// String[] outputs = execDir + "";
 		// new String[] { r1, r2 };
 		ArrayList<String> command = new ArrayList<String>();
 		command.add("Rscript");
@@ -117,7 +124,6 @@ public class Computel {
 		new File(finalOutDirectory).mkdirs();
 
 		try {
-			// if (!Files.exists(finalOutDirectory + "src"))
 			copyDirectory(new File(computelDirectory), new File(finalOutDirectory));
 		} catch (IOException e) {
 			log.reportException(e);
