@@ -1,8 +1,8 @@
 package org.genvisis.sra;
 
-import org.genvisis.sra.SRAVariables.ASSAY_TYPE;
-import org.genvisis.sra.SRAVariables.ASSEMBLY_NAME;
-import org.genvisis.sra.SRAVariables.PLATFORM;
+import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
+import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
+import org.genvisis.seq.SeqVariables.PLATFORM;
 
 /**
  * Stores info about a sample from the SRA archive

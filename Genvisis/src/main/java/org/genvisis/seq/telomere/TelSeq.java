@@ -15,6 +15,8 @@ import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.LocusSet;
+import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
+import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
@@ -22,15 +24,13 @@ import org.genvisis.sra.SRAUtils;
 import org.genvisis.sra.SRAUtils.SRAConversionResult;
 
 /**
- * @author Kitty
- * Class for assisting in generating telomere length estimates with TelSeq
+ * @author Kitty Class for assisting in generating telomere length estimates
+ *         with TelSeq
  */
 public class TelSeq {
 
 	private enum TYPE {
-		BASE,
-		BED,
-		BUFFERED_BED;
+		BASE, BED, BUFFERED_BED;
 	}
 
 	private static class TelSeqResult {
@@ -94,7 +94,8 @@ public class TelSeq {
 		private Logger log;
 		private int index;
 
-		public TelSeqProducer(String[] inputBams, List<String> additionalArgs, String outputDir, TYPE type, Logger log) {
+		public TelSeqProducer(String[] inputBams, List<String> additionalArgs, String outputDir, TYPE type,
+				Logger log) {
 			super();
 			this.inputBams = inputBams;
 			this.additionalArgs = additionalArgs;
@@ -149,44 +150,11 @@ public class TelSeq {
 	}
 
 	/**
-	 * @param sraDir 
-	 * @param outDir 
-	 * @param optionalBed 
-	 * @param referenceGenomeFasta 
-	 * @param threads 
-	 */
-	public static void runTelSeqSRA(String sraDir, String outDir, String optionalBed, String referenceGenomeFasta,
-			int threads) {
-		Logger log = new Logger(outDir + ".telseq.log");
-
-		List<SRAConversionResult> conv = SRAUtils.run(sraDir, outDir, threads);
-
-		ArrayList<String> bamst = new ArrayList<String>();
-		for (int i = 0; i < conv.size(); i++) {
-			if (conv.get(i).isValid() && new File(conv.get(i).getOutputBam()).getTotalSpace() > 0) {
-				bamst.add(conv.get(i).getOutputBam());
-
-			} else {
-				log.reportTimeWarning(conv.get(i).getOutputBam() + " must have failed, skipping");
-			}
-		}
-		log.reportTimeInfo("Found " + bamst.size() + " bams to analyze");
-
-		runTelSeq(Array.toStringArray(bamst), outDir, optionalBed, referenceGenomeFasta, threads, false, false, log);
-
-		// log.reportTimeError("John remember to add back in SRA");
-//		String[] bams = Files.listFullPaths(outDir + "bams/", ".bam", false);
-//		log.reportTimeInfo("Found " + bams.length + " bams");
-//		runTelSeq(bams, outDir, optionalBed, referenceGenomeFasta, threads, false, false, log);
-
-	}
-
-	/**
 	 * @param bams
 	 *            bams to run
 	 * @param outDir
 	 *            where to put things
-	 * @param optionalBed
+	 * @param captureBed
 	 *            for WES
 	 * @param referenceGenomeFasta
 	 *            will likely be removed later
@@ -194,8 +162,8 @@ public class TelSeq {
 	 * @param log
 	 * 
 	 */
-	private static void runTelSeq(String[] bams, String outDir, String optionalBed, String referenceGenomeFasta,
-			int threads, boolean onlyExome, boolean chr, Logger log) {
+	public static void runTelSeq(String[] bams, String outDir, String captureBed, String referenceGenomeFasta,
+			int threads, ASSAY_TYPE aType, ASSEMBLY_NAME aName, int captureBufferSize, Logger log) {
 		if (log == null) {
 			log = new Logger(outDir + ".telseq.log");
 
@@ -208,50 +176,34 @@ public class TelSeq {
 		argPopulator.add("-m");// doesn't look like telseq handles RGs properly
 		String baseDir = telseqDir + "base/";
 		new File(baseDir).mkdirs();
-		// TODO, do either or with optional bed, currently testing
-		if (!onlyExome) {
+		if (aType == ASSAY_TYPE.WGS) {
 			runType(threads, log, bams, results, argPopulator, baseDir, TYPE.BASE);
-		}
-		if (optionalBed != null) {
-			if (Files.exists(optionalBed)) {
-				BEDFileReader reader = new BEDFileReader(optionalBed, false);
+		} else {
+			if (Files.exists(captureBed)) {
+				BEDFileReader reader = new BEDFileReader(captureBed, false);
 
 				LocusSet<BEDFeatureSeg> segs = reader.loadAll(log);
 				reader.close();
 
-				String dirBed = telseqDir + ext.rootOf(optionalBed) + "/";
-				String baseBed = dirBed + "base_" + ext.rootOf(optionalBed) + ".bed";
-				ArrayList<String> argPopulatorBed = new ArrayList<String>();
-				argPopulatorBed.addAll(argPopulator);
-				argPopulatorBed.add("-e");
-				argPopulatorBed.add(baseBed);
-				log.reportTimeInfo("writing bed to " + baseBed);
-				new File(dirBed).mkdirs();
+				String buffDir = telseqDir + "buff_" + captureBufferSize + "_" + ext.rootOf(captureBed) + "/";
+				new File(buffDir).mkdirs();
+				String buffBed = buffDir + "buff_" + captureBufferSize + "KB_" + ext.rootOf(captureBed) + ".bed";
+				log.reportTimeInfo("writing bed to " + buffBed);
+				segs.getBufferedSegmentSet(captureBufferSize).writeSegmentRegions(buffBed,
+						aName == ASSEMBLY_NAME.GRCH37, log);
 
-				segs.writeSegmentRegions(baseBed, !chr, log);
+				ArrayList<String> argPopulatorBuffBed = new ArrayList<String>();
+				argPopulatorBuffBed.addAll(argPopulator);
+				argPopulatorBuffBed.add("-e");
+				argPopulatorBuffBed.add(buffBed);
 
-				runType(threads, log, bams, results, argPopulatorBed, dirBed, TYPE.BED);
-				if (!onlyExome) {
-
-					String buffDir = telseqDir + "buff_20KB_" + ext.rootOf(optionalBed) + "/";
-					new File(buffDir).mkdirs();
-					String buffBed = buffDir + "buff_20KB_" + ext.rootOf(optionalBed) + ".bed";
-					log.reportTimeInfo("writing bed to " + buffBed);
-					segs.getBufferedSegmentSet(20000).writeSegmentRegions(buffBed, !chr, log);
-
-					ArrayList<String> argPopulatorBuffBed = new ArrayList<String>();
-					argPopulatorBuffBed.addAll(argPopulator);
-					argPopulatorBuffBed.add("-e");
-					argPopulatorBuffBed.add(buffBed);
-
-					runType(threads, log, bams, results, argPopulatorBuffBed, buffDir, TYPE.BUFFERED_BED);
-				}
+				runType(threads, log, bams, results, argPopulatorBuffBed, buffDir, TYPE.BUFFERED_BED);
 
 			} else {
-				log.reportFileNotFound(optionalBed);
+				log.reportFileNotFound(captureBed);
 			}
-		}
 
+		}
 		// summarize
 		String finalOut = telseqDir + "telseq.summary.txt";
 		String[] telHeader = Files.getHeaderOfFile(results.get(0).output, log);
@@ -262,8 +214,8 @@ public class TelSeq {
 			if (Files.exists(telSeqResult.output)) {
 				String[][] data = HashVec.loadFileToStringMatrix(telSeqResult.output, true, null, false);
 				for (int i = 0; i < data.length; i++) {
-					result.add(ext.rootOf(telSeqResult.output) + "\t" + Array.toStr(data[i]) + "\t"
-							+ telSeqResult.type + "\t" + telSeqResult.sample + "\t" + telSeqResult.readSizeUsed);
+					result.add(ext.rootOf(telSeqResult.output) + "\t" + Array.toStr(data[i]) + "\t" + telSeqResult.type
+							+ "\t" + telSeqResult.sample + "\t" + telSeqResult.readSizeUsed);
 				}
 			}
 		}
@@ -271,20 +223,22 @@ public class TelSeq {
 
 		// can kill this later... going to do mtDNA CN
 
-		if (optionalBed != null) {
+		if (captureBed != null) {
 
-//			String mitoDir = outDir + "mitoCN/";
-//			new File(mitoDir).mkdirs();
-//			String baseBed = mitoDir + "base_" + ext.rootOf(optionalBed) + ".bed";
-//
-//			BEDFileReader reader = new BEDFileReader(optionalBed, false);
-//			LocusSet<BEDFeatureSeg> segs = reader.loadAll(log);
-//			reader.close();
-//			segs.writeSegmentRegions(baseBed, true, log);
-//
-//			String bamsToMito = mitoDir + "bams.txt";
-//			Files.writeList(bams, bamsToMito);
-//			MitoSeqCN.run(bamsToMito, mitoDir, baseBed, referenceGenomeFasta, chr, threads);
+			// String mitoDir = outDir + "mitoCN/";
+			// new File(mitoDir).mkdirs();
+			// String baseBed = mitoDir + "base_" + ext.rootOf(optionalBed) +
+			// ".bed";
+			//
+			// BEDFileReader reader = new BEDFileReader(optionalBed, false);
+			// LocusSet<BEDFeatureSeg> segs = reader.loadAll(log);
+			// reader.close();
+			// segs.writeSegmentRegions(baseBed, true, log);
+			//
+			// String bamsToMito = mitoDir + "bams.txt";
+			// Files.writeList(bams, bamsToMito);
+			// MitoSeqCN.run(bamsToMito, mitoDir, baseBed, referenceGenomeFasta,
+			// chr, threads);
 		}
 	}
 
@@ -297,68 +251,113 @@ public class TelSeq {
 		}
 	}
 
-	public static void main(String[] args) {
-		int numArgs = args.length;
-		String sraDir = "/scratch.global/lanej/aric_raw/sra/";
-		String outDir = "/scratch.global/lanej/aric_raw/";
-		String captureBed = "/home/pankrat2/public/bin/ref/VCRome_2_1_hg19_capture_targets.bed";
-		String refGenome = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
-		String bamList = null;
-		boolean onlyExome = false;
-		boolean chr = false;
-		// String captureBed = null;
+	// public static void main(String[] args) {
+	// int numArgs = args.length;
+	// String sraDir = "/scratch.global/lanej/aric_raw/sra/";
+	// String outDir = "/scratch.global/lanej/aric_raw/";
+	// String captureBed =
+	// "/home/pankrat2/public/bin/ref/VCRome_2_1_hg19_capture_targets.bed";
+	// String refGenome = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
+	// String bamList = null;
+	// ASSAY_TYPE atType = ASSAY_TYPE.WGS;
+	// ASSEMBLY_NAME aName = ASSEMBLY_NAME.GRCH37;
+	// boolean chr = false;
+	// // String captureBed = null;
+	//
+	// int threads = 24;
+	//
+	// String usage = "\n" + "telomere.SRAUtils requires 0-1 arguments\n" + "
+	// (1) SRA directory (i.e. sraDir="
+	// + sraDir + " (default))\n" + " (2) out directory (i.e. outDir=" + outDir
+	// + " (default))\n"
+	// + " (3) capture bed (i.e. bed=" + outDir + " (default))\n" +
+	//
+	// PSF.Ext.getNumThreadsCommand(3, threads) + "";
+	//
+	// for (int i = 0; i < args.length; i++) {
+	// if (args[i].equals("-h") || args[i].equals("-help") ||
+	// args[i].equals("/h") || args[i].equals("/help")) {
+	// System.err.println(usage);
+	// System.exit(1);
+	// } else if (args[i].startsWith("sraDir")) {
+	// sraDir = args[i].split("=")[1];
+	// numArgs--;
+	// } else if (args[i].startsWith("bed=")) {
+	// captureBed = args[i].split("=")[1];
+	// numArgs--;
+	// } else if (args[i].startsWith("outDir=")) {
+	// outDir = args[i].split("=")[1];
+	// numArgs--;
+	// } else if (args[i].startsWith("bams=")) {
+	// bamList = args[i].split("=")[1];
+	// numArgs--;
+	// } else if (args[i].startsWith("-exome")) {
+	// atType = ASSAY_TYPE.WXS;
+	//
+	// numArgs--;
+	// } else if (args[i].startsWith("-chr")) {
+	// System.out.println("-chr doesn't work, ignoring");
+	// numArgs--;
+	// } else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+	// threads = ext.parseIntArg(args[i]);
+	// numArgs--;
+	// } else {
+	// System.err.println("Error - invalid argument: " + args[i]);
+	// }
+	// }
+	// if (numArgs != 0) {
+	// System.err.println(usage);
+	// System.exit(1);
+	// }
+	// try {
+	// if (bamList != null) {
+	// runTelSeq(HashVec.loadFileToStringArray(bamList, false, new int[] { 0 },
+	// true), outDir, captureBed,
+	// refGenome, threads, atType, aName, null);
+	// } else {
+	// runTelSeqSRA(sraDir, outDir, captureBed, refGenome, threads);
+	// }
+	// } catch (Exception e) {
+	// e.printStackTrace();
+	// }
+	// }
 
-		int threads = 24;
-
-		String usage = "\n" + "telomere.SRAUtils requires 0-1 arguments\n" + "   (1) SRA directory (i.e. sraDir="
-				+ sraDir + " (default))\n" + "   (2) out directory (i.e. outDir=" + outDir + " (default))\n"
-				+ "   (3) capture bed (i.e. bed=" + outDir + " (default))\n" +
-
-				PSF.Ext.getNumThreadsCommand(3, threads) + "";
-
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (args[i].startsWith("sraDir")) {
-				sraDir = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("bed=")) {
-				captureBed = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("outDir=")) {
-				outDir = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("bams=")) {
-				bamList = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("-exome")) {
-				onlyExome = true;
-				numArgs--;
-			} else if (args[i].startsWith("-chr")) {
-				// chr = true;
-				System.out.println("-chr doesn't work, ignoring");
-				numArgs--;
-			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
-				threads = ext.parseIntArg(args[i]);
-				numArgs--;
-			} else {
-				System.err.println("Error - invalid argument: " + args[i]);
-			}
-		}
-		if (numArgs != 0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-		try {
-			if (bamList != null) {
-				runTelSeq(HashVec.loadFileToStringArray(bamList, false, new int[] { 0 }, true), outDir, captureBed, refGenome, threads, onlyExome, chr, null);
-			} else {
-				runTelSeqSRA(sraDir, outDir, captureBed, refGenome, threads);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
+	// /**
+	// * @param sraDir
+	// * @param outDir
+	// * @param optionalBed
+	// * @param referenceGenomeFasta
+	// * @param threads
+	// */
+	// public static void runTelSeqSRA(String sraDir, String outDir, String
+	// optionalBed, String referenceGenomeFasta,
+	// int threads) {
+	// Logger log = new Logger(outDir + ".telseq.log");
+	//
+	// List<SRAConversionResult> conv = SRAUtils.run(sraDir, outDir, threads);
+	//
+	// ArrayList<String> bamst = new ArrayList<String>();
+	// for (int i = 0; i < conv.size(); i++) {
+	// if (conv.get(i).isValid() && new
+	// File(conv.get(i).getOutputBam()).getTotalSpace() > 0) {
+	// bamst.add(conv.get(i).getOutputBam());
+	//
+	// } else {
+	// log.reportTimeWarning(conv.get(i).getOutputBam() + " must have failed,
+	// skipping");
+	// }
+	// }
+	// log.reportTimeInfo("Found " + bamst.size() + " bams to analyze");
+	//
+	// runTelSeq(Array.toStringArray(bamst), outDir, optionalBed,
+	// referenceGenomeFasta, threads, ASSAY_TYPE.WGS, ASSEMBLY_NAME.GRCH37,
+	// log);
+	//
+	// // log.reportTimeError("John remember to add back in SRA");
+	// // String[] bams = Files.listFullPaths(outDir + "bams/", ".bam", false);
+	// // log.reportTimeInfo("Found " + bams.length + " bams");
+	// // runTelSeq(bams, outDir, optionalBed, referenceGenomeFasta, threads,
+	// // false, false, log);
+	//
+	// }
 }

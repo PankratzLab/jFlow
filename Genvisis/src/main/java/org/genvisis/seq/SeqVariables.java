@@ -1,12 +1,12 @@
-package org.genvisis.sra;
+package org.genvisis.seq;
 
 /**
- * Common variables from the SRA
+ * Common seq variables
  *
  */
-public class SRAVariables {
+public class SeqVariables {
 
-	private SRAVariables() {
+	private SeqVariables() {
 
 	}
 

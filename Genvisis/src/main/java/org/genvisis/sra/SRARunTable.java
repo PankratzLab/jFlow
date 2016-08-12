@@ -9,9 +9,9 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
-import org.genvisis.sra.SRAVariables.ASSAY_TYPE;
-import org.genvisis.sra.SRAVariables.ASSEMBLY_NAME;
-import org.genvisis.sra.SRAVariables.PLATFORM;
+import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
+import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
+import org.genvisis.seq.SeqVariables.PLATFORM;
 
 /**
  * Class for managing SRA runtables - which can be used to obtain extra

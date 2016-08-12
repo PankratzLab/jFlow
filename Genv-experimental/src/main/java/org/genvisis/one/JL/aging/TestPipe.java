@@ -5,13 +5,13 @@ import java.io.File;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
+import org.genvisis.seq.SeqVariables.PLATFORM;
 import org.genvisis.seq.analysis.MitoSeqCN;
 import org.genvisis.seq.analysis.MitoSeqCN.BUILD_PARAMS;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.sra.SRARunTable;
 import org.genvisis.sra.SRASample;
-import org.genvisis.sra.SRAVariables.ASSEMBLY_NAME;
-import org.genvisis.sra.SRAVariables.PLATFORM;
 
 /**
  * 
