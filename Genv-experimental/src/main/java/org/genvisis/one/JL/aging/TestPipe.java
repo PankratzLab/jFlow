@@ -42,7 +42,7 @@ public class TestPipe {
 		String bamList = outDir + sraSamp + ".bamList";
 		Files.write(targetBam, bamList);
 		if (current.getaName() == ASSEMBLY_NAME.GRCH37 && current.getPlatform() == PLATFORM.ILLUMINA) {
-			Pipeline.pipeline(targetBam, outDir, refGenome, captureBed, current.getaType(), current.getaName(), 1, log);
+//			Pipeline.pipeline(targetBam, outDir, refGenome, captureBed, current.getaType(), current.getaName(), 1, log);
 		} else {
 			log.reportTimeWarning("Skipping sample " + current.toString());
 		}
