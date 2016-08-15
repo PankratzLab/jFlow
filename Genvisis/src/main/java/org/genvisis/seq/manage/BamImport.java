@@ -49,9 +49,16 @@ import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 public class BamImport {
-	// public static final String OFF_TARGET_FLAG = "OFF_TARGET";
-	// public static final String VARIANT_SITE_FLAG = "VARIANT_SITE";
 
+
+	/**
+	 *Some enums that define NGS "marker" types
+	 *
+	 */
+	/**
+	 * @author Kitty
+	 *
+	 */
 	public enum NGS_MARKER_TYPE {
 		/**
 		 * Typically representing exons
@@ -76,6 +83,10 @@ public class BamImport {
 			return flag;
 		}
 
+		/**
+		 * @param markerName
+		 * @return the {@link NGS_MARKER_TYPE} this marker represents
+		 */
 		public static NGS_MARKER_TYPE getType(String markerName) {
 			NGS_MARKER_TYPE type = null;
 			for (int i = 0; i < NGS_MARKER_TYPE.values().length; i++) {
@@ -116,7 +127,7 @@ public class BamImport {
 
 		@Override
 		public BamPileConversionResults call() throws Exception {
-			String sampleFile = proj.SAMPLE_DIRECTORY.getValue() + BamOps.getSampleName(result.getBam()) + Sample.SAMPLE_FILE_EXTENSION;
+			String sampleFile = proj.SAMPLE_DIRECTORY.getValue() + BamOps.getSampleName(result.getBam(),log) + Sample.SAMPLE_FILE_EXTENSION;
 			if (!Files.exists(sampleFile)) {
 				BamSample bamSample = new BamSample(proj, result.getBam(), result.loadResults(log));
 				sample = bamSample.getSampleName();
@@ -124,10 +135,9 @@ public class BamImport {
 				outliers = bamSample.writeSample(fingerPrint);
 			} else {
 				log.reportFileExists(sampleFile);
-				sample = BamOps.getSampleName(result.getBam());
+				sample = BamOps.getSampleName(result.getBam(),log);
 				bamIndexStats = BamOps.getBamIndexStats(result.getBam());
 				outliers = null;
-				// outliers = Sample.loadOutOfRangeValuesFromRandomAccessFile(sampleFile);
 			}
 			return this;
 		}
@@ -257,9 +267,12 @@ public class BamImport {
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
 				proj.getLog().reportError("Error: file \"" + out + "\" not found in current directory");
+				proj.getLog().reportException(fnfe);
 				return null;
 			} catch (IOException ioe) {
 				proj.getLog().reportError("Error reading file \"" + out + "\"");
+				proj.getLog().reportException(ioe);
+
 				return null;
 			}
 			varLocusSet = new LocusSet<VariantSeg>(segs.toArray(new VariantSeg[segs.size()]), true, proj.getLog()) {
@@ -270,9 +283,6 @@ public class BamImport {
 				private static final long serialVersionUID = 1L;
 
 			};
-			// BEDFileReader readerVarBed = new BEDFileReader(out, false);
-			// varLocusSet = readerVarBed.loadAll(proj.getLog());
-			// readerVarBed.close();
 
 		}
 
