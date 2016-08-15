@@ -296,7 +296,7 @@ public class BamImport {
 			Logger log = proj.getLog();
 
 			String serDir = proj.PROJECT_DIRECTORY.getValue() + "tmpBamSer/";
-			String[] bamsToImport = null;
+			String[] bamsToImport;
 			if (Files.isDirectory(proj.SOURCE_DIRECTORY.getValue())) {
 				bamsToImport = Files.listFullPaths(proj.SOURCE_DIRECTORY.getValue(), proj.SOURCE_FILENAME_EXTENSION.getValue(), false);
 			} else {
@@ -313,7 +313,6 @@ public class BamImport {
 				if (!bLocusSet.hasNoOverlap()) {
 					ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), log);
 					log.memoryFree();
-					// TODO, skip centromeres, and adjust to WGS (which would be no off target, and only on-target
 					LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).removeThese(LocusSet.combine(bLocusSet, readerCapture.loadAll(log), true, log).mergeOverlapping(true), 4000);//
 					log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bins int the anti-on-target regions");
 					log.memoryFree();
@@ -333,7 +332,7 @@ public class BamImport {
 						throw new IllegalArgumentException("all import segments must be gte length 1");
 					}
 
-					FilterNGS filterNGS = new FilterNGS(20, 20, null);// TODO, args for mapQ/phred
+					FilterNGS filterNGS = new FilterNGS(20, 20, null);
 					PileupProducer pileProducer = new PileupProducer(bamsToImport, serDir, referenceGenome.getReferenceFasta(), filterNGS, analysisSet.getStrictSegments(), log);
 					WorkerTrain<BamPileResult> pileTrain = new WorkerTrain<BamPileResult>(pileProducer, numthreads, 2, log);
 					int index = 0;
@@ -427,10 +426,7 @@ public class BamImport {
 					generateGCModel(proj, analysisSet, referenceGenome, 200);
 					generateGCModel(proj, analysisSet, referenceGenome, 500000);
 					generateGCModel(proj, analysisSet, referenceGenome, 1000000);
-					//
-					// GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
-					// GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), gAdjustorBuilder, false, GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA, numthreads);
-				} else {
+								} else {
 					log.reportTimeError("The bed file " + binBed + " had overlapping segments, currently non -overlapping segments are required");
 				}
 			}
@@ -503,7 +499,7 @@ public class BamImport {
 			}
 			String markerfile = proj.PROJECT_DIRECTORY.getValue() + base + "autosomal_inputMarkers.txt";
 
-			String[] tmpList = null;
+			String[] tmpList;
 			if (type.getType() != null && type.getType() == NGS_MARKER_TYPE.OFF_TARGET) {
 				proj.getLog().reportTimeInfo("Detected " + offTargetsToUse.length + " off target regions to use for pca of");
 				tmpList = offTargetsToUse;
@@ -521,12 +517,11 @@ public class BamImport {
 
 			proj.INTENSITY_PC_MARKERS_FILENAME.setValue(markerfile);
 			MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, 20, base, false, true, 0, null, null, null, null, false, false, true, false, true, false, null, -1, -1, GENOME_BUILD.HG19, MitoPipeline.DEFAULT_PVAL_OPTS, null, false);
-			// PrincipalComponentsCrossTabs.crossTabulate(proj, proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, true);
 
-			String PCCorrected = ext.addToRoot(proj.getPropertyFilename(), "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base);
+			String pcCorrectedFile = ext.addToRoot(proj.getPropertyFilename(), "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base);
 			String newName = proj.PROJECT_NAME.getValue() + "_" + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base;
-			Files.copyFileUsingFileChannels(proj.getPropertyFilename(), PCCorrected, proj.getLog());
-			Project pcCorrected = new Project(PCCorrected, false);
+			Files.copyFileUsingFileChannels(proj.getPropertyFilename(), pcCorrectedFile, proj.getLog());
+			Project pcCorrected = new Project(pcCorrectedFile, false);
 			pcCorrected.PROJECT_DIRECTORY.setValue(proj.PROJECT_DIRECTORY.getValue() + newName + "/");
 			pcCorrected.PROJECT_NAME.setValue(newName);
 			proj.copyBasicFiles(pcCorrected, true);
@@ -537,7 +532,6 @@ public class BamImport {
 				proj.getLog().reportTimeInfo("PC correcting project using " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components ");
 
 				PennCNVPrep.exportSpecialPennCNV(proj, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", correctionPCs, null, numthreads, 1, false, LS_TYPE.REGULAR, -1, true);
-				// TODO, auto adjust batch size by memory
 				PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", correctionPCs, null, 1, 1, true, LS_TYPE.REGULAR, 2, true);
 			}
 			pcCorrected.saveProperties();
@@ -613,7 +607,8 @@ public class BamImport {
 			float[] gcs = sampleOriginal.getGCs();
 			float[] intensity = Array.floatArray(markerSet.getMarkerNames().length, Float.NaN);
 
-			float[] bafs = sampleOriginal.getBAFs();// preserve these;
+			
+			float[] bafs = sampleOriginal.getBAFs();// preserve the bafs
 			float[] lrrs = Array.floatArray(markerSet.getMarkerNames().length, Float.NaN);
 
 			String[] markerNames = markerSet.getMarkerNames();
@@ -819,7 +814,7 @@ public class BamImport {
 		String binBed = "binsToImport.bed";
 		String captureBed = "AgilentCaptureRegions.txt";
 		int numthreads = 24;
-		int captureBuffer = 400;
+		int captureBuffer = 4000;
 		String vcf = null;
 		int correctionPCs = 4;
 		// String referenceGenomeFasta = "hg19_canonical.fa";
@@ -878,187 +873,5 @@ public class BamImport {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	//
-	// private BamPileUp bamPileUp;
-	// private String vcf;
-	// private String bam;
-	// private FilterNGS readDepthFilter;
-	// private LocusSet<Segment> intervals;
-	// private ReferenceGenome referenceGenome;
-	// private Logger log;
-	//
-	// public BamImport(String vcf, String bam, FilterNGS readDepthFilter, LocusSet<Segment> intervals, ReferenceGenome referenceGenome, Logger log) {
-	// super();
-	// this.vcf = vcf;
-	// this.bam = bam;
-	// this.readDepthFilter = readDepthFilter;
-	// this.referenceGenome = referenceGenome;
-	// this.bamPileUp = new BamPileUp(bam, referenceGenome, 1, readDepthFilter, intervals.getLoci(), PILE_TYPE.REGULAR, SAM_FILTER_TYPE.COPY_NUMBER, true, log);
-	// this.intervals = new LocusSet<Segment>(BamOps.converQItoSegs(bamPileUp.getQueryIntervals(), BamOps.getHeader(bam), log), true, log) {
-	//
-	// /**
-	// *
-	// */
-	// private static final long serialVersionUID = 1L;
-	// };
-	//
-	// this.log = log;
-	// }
-	//
-	// public void importBam() {
-	// VCFFileReader reader = new VCFFileReader(vcf, true);
-	// String bamSample = BamOps.getSampleName(bam);
-	//
-	// if (ext.indexOfStr(bamSample, VCFOps.getSamplesInFile(reader)) < 0) {
-	// log.reportTimeError("Could not find sample " + bamSample + " in the vcf " + vcf);
-	// return;
-	// } else {
-	// log.reportTimeInfo("Detected sample " + bamSample + " in vcf " + vcf);
-	// }
-	// log.reportTimeWarning("Only un-ambigous and biallelic variants will be imported from " + vcf);
-	// FilterNGS.VariantContextFilter niceAllele = new FilterNGS.VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {}, new VARIANT_FILTER_BOOLEAN[] { VARIANT_FILTER_BOOLEAN.BIALLELIC_FILTER, VARIANT_FILTER_BOOLEAN.AMBIGUOUS_FILTER }, null, null, log);
-	// SampleNGS ngsSample = new SampleNGS(bamSample);
-	// TmpBin tmpBin = null;
-	// int scanIndex = -1;
-	// while (bamPileUp.hasNext()) {
-	// BamPile bamPile = bamPileUp.next();
-	// Segment curSeg = bamPile.getBin();
-	// int[] indices = intervals.getOverlappingIndices(curSeg);
-	// System.out.println("HDI\t" + curSeg.getUCSClocation() + "\t" + intervals.getLoci()[0].getUCSClocation());
-	// if (indices == null || indices.length == 0) {
-	// // log.reportTimeInfo("Un-matched segments");
-	// } else {
-	// if (indices.length > 1) {
-	// log.reportTimeInfo("Non-unique (overlapping) segments were supplied, halting");
-	// return;
-	// }
-	// Segment[] overlaps = Array.subArray(intervals.getLoci(), indices);
-	// if (tmpBin == null) {
-	// tmpBin = new TmpBin(overlaps[0]);
-	// }
-	// if (!tmpBin.getCurrentPile().equals(overlaps[0])) {
-	// ngsSample.addGeno(null, tmpBin.developFakeGenotype(), log);
-	// tmpBin = new TmpBin(overlaps[0]);
-	// CloseableIterator<VariantContext> reg = reader.query(Positions.getChromosomeUCSC(overlaps[0].getChr(), true), overlaps[0].getStart(), overlaps[0].getStop());
-	// while (reg.hasNext()) {
-	// VariantContext vc = reg.next();
-	// if (niceAllele.filter(vc).passed()) {
-	// ngsSample.addGeno(vc, VCOps.getGenotypeFor(vc, bamSample, VC_SUBSET_TYPE.SUBSET_STRICT), log);
-	// }
-	// }
-	// }
-	// tmpBin.setNumRef(tmpBin.getNumRef() + bamPile.getNumRef(log));
-	// tmpBin.setNumAlt(tmpBin.getNumAlt() + bamPile.getNumAlt(log));
-	// }
-	// }
-	// }
-	//
-	// // int index = 0;
-	// // boolean newIndex = true;
-	// // while (bamPileUp.hasNext() && index < intervals.getLoci().length) {
-	// // BamPile bamPile = bamPileUp.next();
-	// // Segment curSeg = bamPile.getBin();
-	// // Segment[] overlaps = intervals.getOverLappingLoci(curSeg);
-	// // if (newIndex) {
-	// // CloseableIterator<VariantContext> reg = reader.query(Positions.getChromosomeUCSC(intervals.getLoci()[index].getChr(), true), intervals.getLoci()[index].getStart(), intervals.getLoci()[index].getStop());
-	// // while (reg.hasNext()) {
-	// // VariantContext vc = reg.next();
-	// // if (niceAllele.filter(vc).passed()) {
-	// // ngsSample.addGeno(VCOps.getGenotypeFor(vc, bamSample, VC_SUBSET_TYPE.SUBSET_STRICT), log);
-	// // }
-	// // }
-	// // newIndex = false;
-	// // }
-	// // if (overlaps == null || overlaps.length == 0) {
-	// // if (curSeg.getChr() == intervals.getLoci()[index].getChr() && curSeg.getStop() < intervals.getLoci()[index].getStart()) {// before current index
-	// //
-	// // } else {
-	// // while (curSeg.getChr() == intervals.getLoci()[index].getChr() && curSeg.getStart() > intervals.getLoci()[index].getStop()) {
-	// // index++;
-	// // }
-	// // }
-	// // }
-	// //
-	// // }
-	// //
-	// //
-	// private static class TmpBin {
-	// private Segment currentPile;
-	// private int numRef;
-	// private int numAlt;
-	//
-	// public Segment getCurrentPile() {
-	// return currentPile;
-	// }
-	//
-	// public TmpBin(Segment currentPile) {
-	// super();
-	// this.currentPile = currentPile;
-	// this.numRef = 0;
-	// this.numAlt = 0;
-	// }
-	//
-	// public int getNumRef() {
-	// return numRef;
-	// }
-	//
-	// public void setNumRef(int numRef) {
-	// this.numRef = numRef;
-	// }
-	//
-	// public int getNumAlt() {
-	// return numAlt;
-	// }
-	//
-	// public void setNumAlt(int numAlt) {
-	// this.numAlt = numAlt;
-	// }
-	//
-	// public void setCurrentPile(Segment currentPile) {
-	// this.currentPile = currentPile;
-	// }
-	//
-	// public Genotype developFakeGenotype() {
-	// GenotypeBuilder builder = new GenotypeBuilder();
-	// builder.AD(new int[] { numRef, numAlt });
-	// builder.GQ(100);
-	// ArrayList<Allele> alleles = new ArrayList<Allele>();
-	// alleles.add(Allele.create("N", true));
-	// builder.alleles(alleles);
-	// return builder.make();
-	// }
-	//
-	// }
-	//
-	// public static void test() {
-	// String bam = "D:/data/Project_Tsai_Project_021/testPileUp/rrd_lane_CONTROL_4_CTCTCTAC-CTCTCTAT.merge.sorted.dedup.realigned.bam";
-	// String ref = "C:/bin/ref/hg19_canonical.fa";
-	// String segs = "C:/bin/Agilent/captureLibraries/SureSelectHumanAllExonV5UTRs/AgilentCaptureRegions_chr1.txt";
-	// String vcf = "D:/data/Project_Tsai_Spector_Joint/joint_genotypes_tsai_21_25_spector_mt.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.vcf.gz";
-	// Logger log = new Logger();
-	// Segment[] q = segs == null ? null : Segment.loadRegions(segs, 0, 1, 2, 0, true, true, true, 100);
-	// FilterNGS filterNGS = new FilterNGS(0, 0, new int[] { 0, 0 });
-	// ReferenceGenome referenceGenome = ref == null ? null : new ReferenceGenome(ref, log);
-	// LocusSet<Segment> locusSet = new LocusSet<Segment>(q, true, log) {
-	//
-	// /**
-	// *
-	// */
-	// private static final long serialVersionUID = 1L;
-	//
-	// };
-	// BamImport bamImport = new BamImport(vcf, bam, filterNGS, locusSet, referenceGenome, log);
-	// bamImport.importBam();
-	//
-	// }
-	//
-	// public static void main(String[] args) {
-	// String bam = "D:/data/Project_Tsai_Project_021/testPileUp/rrd_lane_CONTROL_4_CTCTCTAC-CTCTCTAT.merge.sorted.dedup.realigned.bam";
-	// String ref = "C:/bin/ref/hg19_canonical.fa";
-	// String segs = "C:/bin/Agilent/captureLibraries/SureSelectHumanAllExonV5UTRs/AgilentCaptureRegions_chr1.txt";
-	// String vcf = "D:/data/Project_Tsai_Spector_Joint/joint_genotypes_tsai_21_25_spector_mt.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.vcf.gz";
-	// test();
-	// }
+	}	
 }
