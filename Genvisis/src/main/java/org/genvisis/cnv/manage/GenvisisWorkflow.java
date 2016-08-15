@@ -1937,7 +1937,7 @@ public class GenvisisWorkflow {
 
             String projPropFile = proj.getPropertyFilename();
             StringBuilder cmd = new StringBuilder();
-            cmd.append("java -cp genvisis.jar cnv.manage.PRoCtOR")
+            cmd.append("java -cp genvisis.jar org.genvisis.cnv.manage.PRoCtOR")
                 .append(" proj=").append(projPropFile)
                 .append(" numComponents=").append(numComponents)
                 .append(" outputBase=").append(outputBase)
