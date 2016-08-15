@@ -603,10 +603,14 @@ public class PennCNVPrep {
 			Files.writeList(chunk.toArray(new String[chunk.size()]), thisDir + dir + batches[i][0] + ".txt");
 		}
 		StringBuilder cmd = new StringBuilder("module load java\n");
-		cmd.append("java -cp  ").append(classPath).append(" -Xmx").append(memoryInMB).append("M cnv.analysis.PennCNVPrep proj=").append(proj.getPropertyFilename()).append(" dir=").append(dir);
+		cmd.append("java").append(" -Xmx").append(memoryInMB).append("M -jar ").append(classPath)
+				.append(" cnv.analysis.PennCNVPrep proj=").append(proj.getPropertyFilename()).append(" dir=")
+				.append(dir);
 		Files.qsub("ShadowCNVPrepFormatExport", cmd.toString() + " -shadow sampleChunks=NeedToFillThisIn numThreads=1", new String[][] { { "" } }, memoryInMB, 3 * wallTimeInHours, 1);
 		Files.qsub("PennCNVPrepFormatExport", cmd.toString() + " -create", new String[][] { { "" } }, memoryInMB, 3 * wallTimeInHours, 1);
-		cmd.append(" numMarkerThreads=").append(numMarkerThreads).append(" numThreads=").append(" numComponents=").append(numComponents).append(" markers=").append(thisDir).append(dir).append("[%0].txt");
+		cmd.append(" numMarkerThreads=").append(numMarkerThreads).append(" numThreads=").append(numThreads)
+				.append(" numComponents=").append(numComponents).append(" markers=").append(thisDir).append(dir)
+				.append("[%0].txt");
 		cmd.append(" tmpDir=").append(thisDir);
 		Files.qsub("PennCNVPrepFormatTmpFiles", cmd.toString(), batches, memoryInMB, wallTimeInHours, numThreads * numMarkerThreads);
 		if (!Files.exists(proj.INTENSITY_PC_FILENAME.getValue())) {
