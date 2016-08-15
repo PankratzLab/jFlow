@@ -51,6 +51,7 @@ import org.genvisis.mining.Distance;
 import org.genvisis.stats.Maths;
 
 import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Ints;
 
 import edu.stanford.facs.logicle.Logicle;
 
@@ -150,6 +151,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	protected boolean displayGrid;
 	protected boolean displayTitle;
 	protected boolean xAxisWholeNumbers;
+	protected boolean yAxisWholeNumbers;
 	protected int missingWidth;
 	protected int nanWidth;
 	protected int axisFontSize = AXIS_FONT_SIZE;
@@ -416,6 +418,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	
 	public void setForceXAxisWholeNumbers(boolean whole) {
 	    this.xAxisWholeNumbers = whole;
+	}
+
+	public void setForceYAxisWholeNumbers(boolean whole) {
+	    this.yAxisWholeNumbers = whole;
 	}
 
 	public AXIS_SCALE getXAxis() {
@@ -730,9 +736,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			canvasSectionMinimumY = 0;
 			canvasSectionMaximumY = axisXHeight;//HEIGHT_X_AXIS;
 			plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawX, maximumObservedRawX, g, true);
-			if (plotMinMaxStep[1] > maximumObservedRawX) {
-			    plotMinMaxStep[1] = maximumObservedRawX;
-			}
 			if (xAxisWholeNumbers) {
 			    if (plotMinMaxStep[2] < 1) {
 			        plotMinMaxStep[2] = 1;
@@ -762,12 +765,17 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			canvasSectionMaximumX = axisYWidth;//WIDTH_Y_AXIS;
 			canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
 			canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
-			if (!makeSymmetric || plotMinMaxStep == null) {
-				plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
-	            if (plotMinMaxStep[1] > maximumObservedRawY) {
-	                plotMinMaxStep[1] = maximumObservedRawY;
-	            }
-			}
+			plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
+			if (yAxisWholeNumbers) {
+                if (plotMinMaxStep[2] < 1) {
+                    plotMinMaxStep[2] = 1;
+                } else {
+                    plotMinMaxStep[2] = Math.round(plotMinMaxStep[2]);
+                }
+                if (plotMinMaxStep[3] >= (minimumObservedRawX - plotMinMaxStep[2])) {
+                    plotMinMaxStep[3] = plotMinMaxStep[3] - plotMinMaxStep[2];
+                }
+            }
 			setPlotYMin((float) (Float.isNaN(forcePlotYmin) ? plotMinMaxStep[0] : forcePlotYmin));
 			setPlotYMax((float) (Float.isNaN(forcePlotYmax) ? plotMinMaxStep[1] : forcePlotYmax));
 	        if (displayYaxis && yAxisLabel != null) {
@@ -1534,7 +1542,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	            }
 	        }
 	    }
-	    int[] intent = Array.toIntArray(intense);
+	    int[] intent = Ints.toArray(intense);
 	    
 	    HashSet<Integer> quantSet = new HashSet<Integer>();
 	    for (int i = 0, count = (int) (1 / lvls[k]) - 1; i < count; i++) {
