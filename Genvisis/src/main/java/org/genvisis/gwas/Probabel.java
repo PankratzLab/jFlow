@@ -8,6 +8,8 @@ import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.parse.GenParser;
 import org.genvisis.stats.ProbDist;
 
+import com.google.common.primitives.Ints;
+
 public class Probabel {
 	public static final int PALOGIST = 0;
 	public static final int PALINEAR = 1;
@@ -243,9 +245,9 @@ public class Probabel {
                 }
             }
             writer.close();
-            System.out.println("Data for chromosomes "+ext.listRanges(var.toArray()));
+            System.out.println("Data for chromosomes "+ext.listRanges(Ints.toArray(var)));
             if (yok.size()>0) {
-            	System.out.println("Missing data for chromosomes "+ext.listRanges(yok.toArray()));
+            	System.out.println("Missing data for chromosomes "+ext.listRanges(Ints.toArray(yok)));
             }
         } catch (Exception e) {
 	        System.err.println("Error writing to "+ext.rootOf(pheno)+"_add.xln");

@@ -25,6 +25,9 @@ import org.genvisis.stats.RegressionModel;
 import org.genvisis.stats.Stepwise;
 import org.genvisis.stats.Ttest;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 public class comp {
 	public static String DEFAULT_TRAIT = "AOO";
 	public static String[][] DEFAULT_ID_NAMES = {{"UniqueID", "UID"}, {"FID", "FamID"}, {"IID", "IndID"}};
@@ -403,7 +406,7 @@ public class comp {
 								if (factor==0) {
 									writer.print((i==0?"N":"")+"\t"+trends[i].size());
 								} else {
-									writer.print((i==0?factorNames[indices[factor]]:"")+"\t"+Array.mean(trends[i].toArray()));
+									writer.print((i==0?factorNames[indices[factor]]:"")+"\t"+Array.mean(Doubles.toArray(trends[i])));
 								}
 							}
 							writer.println();
@@ -584,7 +587,7 @@ public class comp {
 									}
 								}
 							}
-							writer.println(factorNames[indices[factor]]+"\t"+ext.formDeci(Array.mean(dv1s.toArray()), sigfigs, true)+"\t"+counts[1]+"\t"+ext.formDeci(Array.mean(dv0s.toArray()), sigfigs, true)+"\t"+counts[0]+"\t"+ext.prettyP(new Ttest(dv1s.toArray(), dv0s.toArray()).getPvalue()));
+							writer.println(factorNames[indices[factor]]+"\t"+ext.formDeci(Array.mean(Doubles.toArray(dv1s)), sigfigs, true)+"\t"+counts[1]+"\t"+ext.formDeci(Array.mean(Doubles.toArray(dv0s)), sigfigs, true)+"\t"+counts[0]+"\t"+ext.prettyP(new Ttest(Doubles.toArray(dv1s), Doubles.toArray(dv0s)).getPvalue()));
 						}
 						writer.close();
 
@@ -612,11 +615,11 @@ public class comp {
 									idV.add(ids[i]);
 									dv1.add(data[i][factor]);
 									HashVec.addIfAbsent(data[i][factor]+"", vString);
-									dv2.add(depCount.indexOf(data[i][0]+""));
+									dv2.add((double)depCount.indexOf(data[i][0]+""));
 								}
 								counts[depCount.indexOf(data[i][0]+"")]++;
 							}
-							results = new PermuteOnePer(optionFlagged("oneperfamily")?Matrix.extractColumn(Matrix.toStringArrays(idV), 1):Array.stringArraySequence(idV.size(), "IND"), dv1.toArray(), dummyIntMatrix(dv2.toArray()), new String[][] { {factorNames[indices[0]]}, {factorNames[indices[factor]]}}).getResults()[0];
+							results = new PermuteOnePer(optionFlagged("oneperfamily")?Matrix.extractColumn(Matrix.toStringArrays(idV), 1):Array.stringArraySequence(idV.size(), "IND"), Doubles.toArray(dv1), dummyIntMatrix(Doubles.toArray(dv2)), new String[][] { {factorNames[indices[0]]}, {factorNames[indices[factor]]}}).getResults()[0];
 							for (int i = 0; i<k; i++) {
 								percentMe = vString.size()==2;
 								writer.print(
@@ -1080,7 +1083,7 @@ public class comp {
 		try {
 			writer = new PrintWriter(new FileWriter("chis.out"));
 			for (int i = 0; i<dv.size(); i++) {
-				writer.print("      \t"+(int)dv.elementAt(i)+"      ");
+				writer.print("      \t"+dv.elementAt(i).intValue()+"      ");
 			}
 			writer.println("      \tOverall significance");
 			for (int i = avgCounts.length-1; i>=0; i--) {
@@ -1112,7 +1115,7 @@ public class comp {
 			writer.println();
 			writer.println("Allele\tAffected\t% of Affecteds\tUnaffected\t% of Unaffecteds\tOR\tp-value");
 			for (int i = 0; i<dv.size(); i++) {
-				writer.print((int)dv.elementAt(i));
+				writer.print(dv.elementAt(i).intValue());
 				writer.print("\t"+ext.formDeci(avgCounts[1][i], 3, true)+"\t"+ext.formDeci(avgCounts[1][i]/subtotals[1]*100, 1, true));
 				writer.print("\t"+ext.formDeci(avgCounts[0][i], 3, true)+"\t"+ext.formDeci(avgCounts[0][i]/subtotals[0]*100, 1, true));
 				writer.print("\t"+ext.formDeci((avgCounts[1][i]/subtotals[1]*(1-avgCounts[0][i]/subtotals[0]))/(avgCounts[0][i]/subtotals[0]*(1-avgCounts[1][i]/subtotals[1])), 2, true));
@@ -1226,7 +1229,7 @@ public class comp {
 
 		try {
 			writer = new PrintWriter(new FileWriter(factorNames[indices[1]]+"_"+factorNames[indices[2]]+"_hwe.out"));
-			orderedAlleles = Sort.putInOrder(iv.toArray());
+			orderedAlleles = Sort.putInOrder(Ints.toArray(iv));
 			if (iv.size()==3) {
 				alleleLabels = new String[] {orderedAlleles[0]+"/"+orderedAlleles[0], orderedAlleles[0]+"/"+orderedAlleles[1], orderedAlleles[0]+"/"+orderedAlleles[2], orderedAlleles[1]+"/"+orderedAlleles[1], orderedAlleles[1]+"/"+orderedAlleles[2], orderedAlleles[2]+"/"+orderedAlleles[2]};
 			} else if (iv.size()<3) {
@@ -1310,7 +1313,7 @@ public class comp {
 			}
 		}
 
-		return dv.toArray();
+		return Doubles.toArray(dv);
 	}
 
 	public boolean containsStr(String target, String[] list) {

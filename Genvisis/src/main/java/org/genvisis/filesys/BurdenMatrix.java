@@ -7,6 +7,8 @@ import java.util.*;
 import org.genvisis.common.*;
 import org.genvisis.stats.*;
 
+import com.google.common.primitives.Ints;
+
 public class BurdenMatrix implements Serializable {
 	public static final long serialVersionUID = 1L;
 
@@ -239,7 +241,7 @@ public class BurdenMatrix implements Serializable {
 		
 		values = new double[geneNames.length][ids.length];
 		for (int geneIndex = 0; geneIndex < geneNames.length; geneIndex++) {
-			indices = geneMappingHash.get(geneNames[geneIndex]).toArray();
+			indices = Ints.toArray(geneMappingHash.get(geneNames[geneIndex]));
 			for (int idIndex = 0; idIndex < ids.length; idIndex++) {
 				for (int i = 0; i < indices.length; i++) {
 					trav = 0;

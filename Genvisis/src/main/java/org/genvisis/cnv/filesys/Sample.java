@@ -27,6 +27,8 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 
+import com.google.common.primitives.Doubles;
+
 public class Sample implements Serializable {
 	public static final long serialVersionUID = 1L;
 	public static final String[][] DATA_FIELDS = {{"GC Score", "GCscore", "confidence","Confidence"}, {"X Raw"}, {"Y Raw"}, {"X", "Xvalue", "Log Ratio", "intensity_1","Signal A"}, {"Y", "Yvalue", "Strength", "intensity_2","Signal B"}, {"Theta"}, {"R"}, {"B Allele Freq"}, {"Log R Ratio"}};
@@ -1323,10 +1325,10 @@ public class Sample implements Serializable {
 		DoubleVector dv = new DoubleVector();
 		for (int i=0; i<bafs.length; i++) {
 			if (bafs[i]>0.15 && bafs[i]<0.85) {
-				dv.add(bafs[i]);
+				dv.add((double)bafs[i]);
 			}
 		}
-		return Array.isBimodal(dv.toArray());
+		return Array.isBimodal(Doubles.toArray(dv));
 	}
 
 	public static void main(String[] args) {

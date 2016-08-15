@@ -7,6 +7,8 @@ import org.genvisis.common.*;
 import org.genvisis.stats.Correlation;
 import org.genvisis.stats.LeastSquares;
 
+import com.google.common.primitives.Doubles;
+
 public class ExploreLinearity {
 	private double[][][] correlations;
 
@@ -116,7 +118,7 @@ public class ExploreLinearity {
 			}
 			reader.close();
 
-			dataline = dv.toArray();
+			dataline = Doubles.toArray(dv);
 			data = new double[v.size()][];
 			for (int i = 0; i<v.size(); i++) {
 				data[i] = v.elementAt(i);

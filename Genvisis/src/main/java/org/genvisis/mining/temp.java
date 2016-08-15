@@ -4,6 +4,8 @@ import java.io.*;
 
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Doubles;
+
 public class temp {
 	public temp(String filename) throws IOException {
 		BufferedReader reader = null;
@@ -27,7 +29,7 @@ public class temp {
 			System.exit(2);
 		}
 
-		dist = dv.toArray();
+		dist = Doubles.toArray(dv);
 		for (int k = 0; k<Transformations.NUM_TRANSFORMATIONS; k++) {
 			System.err.println(Transformations.getLabel(k)+": "+ext.formDeci(Array.kurtosis(Transformations.transform(dist, k)), 4));
 		}
@@ -48,7 +50,7 @@ public class temp {
 			System.exit(2);
 		}
 
-		double[] arr1 = dv.toArray();
+		double[] arr1 = Doubles.toArray(dv);
 		double[] arr2 = Transformations.rankTransform(arr1);
 
 		for (int i = 0; i<arr1.length; i++) {

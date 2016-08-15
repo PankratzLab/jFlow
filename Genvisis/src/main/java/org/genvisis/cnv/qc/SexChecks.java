@@ -18,6 +18,8 @@ import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.stats.*;
 
+import com.google.common.primitives.Doubles;
+
 public class SexChecks {
 	public static final String[] ESTIMATED_SEXES = new String[] {"Unknown", 				// 0
 																 "Male", 					// 1
@@ -829,7 +831,7 @@ public class SexChecks {
 					for (int s = 0; s < samples.length; s++) {
 						if (ext.isValidDouble(lrrs[s]+"") && !samplesToExclude[s]) {
 							if (sexes[s] == 1 || sexes[s] == 2) {
-								values[sexes[s]-1].add(lrrs[s]);
+								values[sexes[s]-1].add((double)lrrs[s]);
 								genotypeCounts[sexes[s]-1][abGenotypes[s]+1]++;
 							}
 						}
@@ -837,12 +839,12 @@ public class SexChecks {
 	
 					line += markerName +"\t"+ markerData.getChr() +"\t"+ markerData.getPosition();
 					if (values[0].size() > 0) {
-						line += "\t"+Array.mean(values[0].toArray());
+						line += "\t"+Array.mean(Doubles.toArray(values[0]));
 					} else {
 						line += "\t.";
 					}
 					if (values[1].size() > 0) {
-						line += "\t"+Array.mean(values[1].toArray());
+						line += "\t"+Array.mean(Doubles.toArray(values[1]));
 					} else {
 						line += "\t.";
 					}

@@ -6,6 +6,8 @@ import java.util.*;
 import org.genvisis.common.*;
 import org.genvisis.stats.*;
 
+import com.google.common.primitives.Doubles;
+
 public class Allelotyping {
 	public static final String[] HEADER = {"Sample", "SNP", "Freq"};
 	public static final String SWAP_INFO = "alleles.xln";
@@ -99,8 +101,8 @@ public class Allelotyping {
 					countBelow = 0;
 					for (int k = 0; k<indKeys.length; k++) {
 						values = inds.get(indKeys[k]);
-						regionMeans.add(Array.mean(values.toArray()));
-						regionStdevs.add(Array.stdev(values.toArray()));
+						regionMeans.add(Array.mean(Doubles.toArray(values)));
+						regionStdevs.add(Array.stdev(Doubles.toArray(values)));
 						regionCounts.add(values.size());
 						log2ratios = new double[values.size()];
 						for (int l = 0; l<values.size(); l++) {
@@ -112,8 +114,8 @@ public class Allelotyping {
 						regionLog2ratios.add(Array.mean(log2ratios));
 						writer.println((j==0&&k==0?lookup.get(snpKeys[i])+"\t"+snpKeys[i]+"\t"+(swaps.get(snpKeys[i]).split("[\\s]+")[0].equals("yes")?swaps.get(snpKeys[i]).split("[\\s]+")[2]:swaps.get(snpKeys[i]).split("[\\s]+")[1]):"\t\t")+
 								"\t"+(k==0?regionKeys[j]:"")+"\t"+indKeys[k]+"\t"+values.size()+
-								"\t"+Array.mean(values.toArray())+"\t"+Array.stdev(values.toArray())+
-								"\t=NORMSDIST(-1*ABS("+Array.mean(values.toArray())+"-0.5)/"+Array.stdev(values.toArray())+")*2"+
+								"\t"+Array.mean(Doubles.toArray(values))+"\t"+Array.stdev(Doubles.toArray(values))+
+								"\t=NORMSDIST(-1*ABS("+Array.mean(Doubles.toArray(values))+"-0.5)/"+Array.stdev(Doubles.toArray(values))+")*2"+
 								"\t"+Array.mean(log2ratios)+
 								"\t"+Array.stdev(log2ratios)+
 								"\t=NORMSDIST(-1*ABS("+Array.mean(log2ratios)+")/"+Array.stdev(log2ratios)+")*2"+
@@ -128,8 +130,8 @@ public class Allelotyping {
 						
 						// writer.println(lookup.get(snpKeys[i])+"\t"+snpKeys[i]+"\t"+regionKeys[j]+"\t"+indKeys[k]+"\t"+values.size()+"\t"+ext.formDeci(Array.mean(values.toArray()), 3, true)+"\t"+ext.formDeci(Array.stdev(values.toArray()), 3, true));
 					}
-					mean = Array.mean(regionMeans.toArray());
-					stdev = Array.stdev(regionMeans.toArray());
+					mean = Array.mean(Doubles.toArray(regionMeans));
+					stdev = Array.stdev(Doubles.toArray(regionMeans));
 					z = Stats.ztest(mean, stdev, 0.5);
 					t = Stats.ttestOneSample(mean, stdev, regionMeans.size(), 0.5);
 					writer.println("\t\t\t\t\t\t\t\t\t\t\t\t\t"+mean+"\t"+stdev+"\t"+z+"\t"+ProbDist.NormDist(z)+"\t"+t+"\t\t"+ProbDist.TDist(t, indKeys.length-1)+"\tOne observation (mean) per sample");
@@ -138,8 +140,8 @@ public class Allelotyping {
 					}
 //					summary.print("\t"+ext.prettyP(ProbDist.TDist(t, indKeys.length-1)));
 
-					mean = Array.mean(regionLog2ratios.toArray());
-					stdev = Array.stdev(regionLog2ratios.toArray());
+					mean = Array.mean(Doubles.toArray(regionLog2ratios));
+					stdev = Array.stdev(Doubles.toArray(regionLog2ratios));
 //					ciLow = mean-1.96*stdev/Math.sqrt(regionLog2ratios.size()); // for z-test
 //					ciHigh = mean+1.96*stdev/Math.sqrt(regionLog2ratios.size());
 					t = ProbDist.TDistReverse(0.05, regionLog2ratios.size()-1);
@@ -153,8 +155,8 @@ public class Allelotyping {
 					summary.print("\t"+ext.formDeci(Math.pow(2, mean), 3, true)+" ("+ext.formDeci(Math.pow(2, ciLow), 3, true)+", "+ext.formDeci(Math.pow(2, ciHigh), 3, true)+")"+"\t"+ext.prettyP(ProbDist.TDist(t, indKeys.length-1)));
 					summary.print("\t"+countAbove+"\t"+countBelow);
 					
-					mean = Array.mean(regionMeans.toArray());
-					stdev = Array.stdev(allObs.toArray());
+					mean = Array.mean(Doubles.toArray(regionMeans));
+					stdev = Array.stdev(Doubles.toArray(allObs));
 					z = Stats.ztest(mean, stdev, 0.5);
 					t = Stats.ttestOneSample(mean, stdev, regionMeans.size(), 0.5);
 					writer.println("\t\t\t\t\t\t\t\t\t\t\t\t\t"+mean+"\t"+stdev+"\t"+z+"\t"+ProbDist.NormDist(z)+"\t"+t+"\t\t"+ProbDist.TDist(t, indKeys.length-1)+"\tAll observations");

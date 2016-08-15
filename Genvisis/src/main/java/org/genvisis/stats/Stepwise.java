@@ -9,6 +9,9 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Numbers;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
+
+import com.google.common.primitives.Ints;
+
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 public class Stepwise {
@@ -183,7 +186,7 @@ public class Stepwise {
 			} else {
 			
 				for (int i = 0; i < out.size(); i++) {
-					in.add(out.popFirst());
+					in.add(out.remove(0));
 					if (logistic) {
 						model = new LogisticRegression(Ys, travXs(N, Xs, in));
 					} else {
@@ -199,11 +202,11 @@ public class Stepwise {
 							bestModel = i;
 						}
 					}
-					out.add(in.popLast());
+					out.add(in.remove(in.size()-1));
 				}
 			}
 			if (lowestP < (bonferroniEntry ? ENTRY_PROB / M : ENTRY_PROB)) {
-				in.add(out.popAt(bestModel));
+				in.add(out.remove(bestModel));
 				System.out.println(ext.getTime() + "\t" + in.size() + " independant variables added to the model, lowest p-value = " + lowestP);
 				System.out.println(ext.getTime() + "\t" + in.size() + " independant variables added to the model, highest Rsquare = " + highestRsq);
 				if (bonferroniEntry) {
@@ -266,10 +269,10 @@ public class Stepwise {
 
 		@Override
 		public Callable<RegressionModel> next() {
-			in.add(out.popFirst());
+			in.add(out.remove(0));
 			Vector<double[]> currentXs = travXs(N, Xs, in);
 			RegressionWorker worker = new RegressionWorker(Ys, currentXs, logistic, svdRegressionSwitch);
-			out.add(in.popLast());
+			out.add(in.remove(in.size()-1));
 			index++;
 			return worker;
 		}
@@ -413,7 +416,7 @@ public class Stepwise {
 
 			double[] sigs = new double[out.size()];
 			double[] stats = new double[out.size()];
-			int[] orderOfOriginal = out.toArray();
+			int[] orderOfOriginal = Ints.toArray(out);
 
 			RegressionProducer producer = new RegressionProducer(in, out, logistic, Ys, Xs, N, svdRegressionSwitch);
 			WorkerTrain<RegressionModel> train = new WorkerTrain<RegressionModel>(producer, numThreads, 2, new Logger());

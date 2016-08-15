@@ -12,6 +12,9 @@ import org.genvisis.stats.Correlation;
 import org.genvisis.stats.ProbDist;
 import org.genvisis.stats.Rscript;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 public class SeqMeta {
 	public static final String[] ALGORITHMS = {
 		"singlesnpMeta", 
@@ -297,7 +300,7 @@ public class SeqMeta {
 								}
 							}
 							if (chrsToDo.size() != 0 && chrsToDo.size() != maxChr) {
-								log.reportError("Warning - for "+studies[j]+";"+races[k][0]+"/"+phenotypes[i][0]+", missing chr(s) "+ext.listWithCommas(Array.toStringArray(chrsToDo.toArray())));
+								log.reportError("Warning - for "+studies[j]+";"+races[k][0]+"/"+phenotypes[i][0]+", missing chr(s) "+ext.listWithCommas(Array.toStringArray(Ints.toArray(chrsToDo))));
 								log.reportError("        - if batch job was killed in the middle, suggest deleting the last attempted chromosome, in case it was incomplete");
 							}
 							
@@ -1051,7 +1054,7 @@ public class SeqMeta {
 		count = 0;
 		maxSamples = 0;
 		metrics = Array.stringArray(14, "");
-		dvs = DoubleVector.newDoubleVectors(6);
+		dvs = Vectors.initializedArray(DoubleVector.class, 6);
 		
 		try {
 			reader = new BufferedReader(new FileReader(outputFilename));
@@ -1113,17 +1116,17 @@ public class SeqMeta {
 				metrics[0] = maxSamples+"";
 				metrics[1] = count+"";
 				metrics[2] = dvs[0].size()+"";
-				metrics[3] = ext.formDeci(ProbDist.ChiDistReverse(Array.median(dvs[0].toArray()), 1)/ProbDist.ChiDistReverse(0.50, 1), 4);
-				metrics[4] = ext.formDeci(Array.median(dvs[1].toArray()), 6);
-				metrics[5] = ext.formDeci(Array.stdev(dvs[1].toArray()), 6);
+				metrics[3] = ext.formDeci(ProbDist.ChiDistReverse(Array.median(Doubles.toArray(dvs[0])), 1)/ProbDist.ChiDistReverse(0.50, 1), 4);
+				metrics[4] = ext.formDeci(Array.median(Doubles.toArray(dvs[1])), 6);
+				metrics[5] = ext.formDeci(Array.stdev(Doubles.toArray(dvs[1])), 6);
 				metrics[6] = dvs[2].size()+"";
-				metrics[7] = ext.formDeci(ProbDist.ChiDistReverse(Array.median(dvs[2].toArray()), 1)/ProbDist.ChiDistReverse(0.50, 1), 4);
-				metrics[8] = ext.formDeci(Array.median(dvs[3].toArray()), 6);
-				metrics[9] = ext.formDeci(Array.stdev(dvs[3].toArray()), 6);
+				metrics[7] = ext.formDeci(ProbDist.ChiDistReverse(Array.median(Doubles.toArray(dvs[2])), 1)/ProbDist.ChiDistReverse(0.50, 1), 4);
+				metrics[8] = ext.formDeci(Array.median(Doubles.toArray(dvs[3])), 6);
+				metrics[9] = ext.formDeci(Array.stdev(Doubles.toArray(dvs[3])), 6);
 				metrics[10] = dvs[4].size()+"";
-				metrics[11] = ext.formDeci(ProbDist.ChiDistReverse(Array.median(dvs[4].toArray()), 1)/ProbDist.ChiDistReverse(0.50, 1), 4);
-				metrics[12] = ext.formDeci(Array.median(dvs[5].toArray()), 6);
-				metrics[13] = ext.formDeci(Array.stdev(dvs[5].toArray()), 6);
+				metrics[11] = ext.formDeci(ProbDist.ChiDistReverse(Array.median(Doubles.toArray(dvs[4])), 1)/ProbDist.ChiDistReverse(0.50, 1), 4);
+				metrics[12] = ext.formDeci(Array.median(Doubles.toArray(dvs[5])), 6);
+				metrics[13] = ext.formDeci(Array.stdev(Doubles.toArray(dvs[5])), 6);
 			} else {
 				log.reportError("Error - unexpected header for file '"+outputFilename+"' : "+temp);
 				System.exit(1);
@@ -3190,7 +3193,7 @@ public class SeqMeta {
 					}
 				}
 				temp = trav;
-				pvals = dv.toArray();
+				pvals = Doubles.toArray(dv);
 				for (int i = 0; i < pvals.length; i++) {
 					if (pvals[i] > 10) {
 						temp += "\tNA";

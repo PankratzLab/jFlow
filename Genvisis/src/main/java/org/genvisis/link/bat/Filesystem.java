@@ -8,6 +8,8 @@ import org.genvisis.common.*;
 import org.genvisis.link.LinkageMap;
 import org.genvisis.link.Markers;
 
+import com.google.common.primitives.Doubles;
+
 public class Filesystem {
 	public static void create(int chr) throws IOException {
 		create(chr, true);
@@ -223,7 +225,7 @@ public class Filesystem {
 		}
 		error.close();
 
-		new LinkageMap(chr, Array.toStringArray(orderedMarkers), alleleFreqs, distMarkers.toArray(), false, false).createFile("map"+chrome+".dat");
+		new LinkageMap(chr, Array.toStringArray(orderedMarkers), alleleFreqs, Doubles.toArray(distMarkers), false, false).createFile("map"+chrome+".dat");
 
 		changes = new Hashtable<String,String>();
 
@@ -277,7 +279,8 @@ public class Filesystem {
 				missedOpportunities.add(source[keys[count]]+"");
 				missedCounts.add(1);
 			} else {
-				missedCounts.incrementAt(missedOpportunities.indexOf(source[keys[count]]+""));
+				int index = missedOpportunities.indexOf(source[keys[count]]+"");
+				missedCounts.set(index, missedCounts.get(index) + 1);
 			}
 			count++;
 		}
@@ -287,7 +290,8 @@ public class Filesystem {
 				missedOpportunities.add(source[keys[count]]+"");
 				missedCounts.add(1);
 			} else {
-				missedCounts.incrementAt(missedOpportunities.indexOf(source[keys[count]]+""));
+				int index = missedOpportunities.indexOf(source[keys[count]]+"");
+				missedCounts.set(index, missedCounts.get(index) + 1);
 			}
 			count--;
 		}

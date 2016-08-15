@@ -142,8 +142,9 @@ public class simulateNullDistribution {
 			numParticipants += v.size()/2;
 			for (int j = 0; j<v.size(); j++) {
 				allele = Integer.parseInt(v.elementAt(j));
-				if (alleles.contains(allele)) {
-					counts.addToElementAt(2.0/(double)v.size(), alleles.indexOf(allele));
+				int index = alleles.indexOf(allele);
+				if (index >= 0) {
+					counts.set(index, counts.get(index) + (2.0/v.size()));
 				} else {
 					alleles.add(allele);
 					counts.add(2.0/(double)v.size());

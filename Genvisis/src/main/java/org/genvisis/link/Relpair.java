@@ -5,6 +5,8 @@ import java.util.*;
 
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Bytes;
+
 public class Relpair {
 	public static final int MAX_NUM_DIGITS_IN_ALLELE = 2;
 
@@ -35,7 +37,7 @@ public class Relpair {
 				missing.add(chr);
 			}
 		}
-		chrs = found.toArray();
+		chrs = Bytes.toArray(found);
 		if (missing.size()>0) {
 			System.err.println("Warning - Files not found for chromosome"+(missing.size()>1?"s":"")+": "+Array.toStr(missing.toArray(), " "));
 		}

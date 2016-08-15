@@ -11,6 +11,8 @@ import org.genvisis.filesys.SerialStringArray;
 import org.genvisis.gwas.MetaAnalysis;
 import org.genvisis.stats.Histogram;
 
+import com.google.common.primitives.Doubles;
+
 public class ClipSwap {
 	public static final String CONTRACT_EXPAND_DELIM = "^";
 
@@ -141,7 +143,7 @@ public class ClipSwap {
 			System.out.println("There were " + countInvalids + " invalid doubles in the data");
 		}
 
-		array = dv.toArray();
+		array = Doubles.toArray(dv);
 		if (sigfigsExtrastep == null) {
 			histo = new Histogram(array);
 		} else {

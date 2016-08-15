@@ -4,6 +4,8 @@ import java.io.*;
 
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Doubles;
+
 public class BoxCox {
 	public static final int LOG_LIKELIHOOD = 1;
 	public static final int KURTOSIS = 2;
@@ -206,7 +208,7 @@ public class BoxCox {
 			System.exit(2);
 		}
 
-		data = dv.toArray();
+		data = Doubles.toArray(dv);
 		bc = new BoxCox(data, new Logger());
 		System.out.println("Maximizing Log-Likelihood...");
 		System.out.println("Optimal lambda: "+bc.getLambda_MaxLL());

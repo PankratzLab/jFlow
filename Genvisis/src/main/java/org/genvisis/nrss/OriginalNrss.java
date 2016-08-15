@@ -7,6 +7,9 @@ import java.util.*;
 import org.genvisis.bioinformatics.*;
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 public class OriginalNrss {
 	public static final double INDEX_THRESHOLD = 0.001;
 	public static final double INCLUSION_THRESHOLD = 0.01;
@@ -95,15 +98,15 @@ public class OriginalNrss {
 					}
 				} else {
 					markerNames = Array.toStringArray(markerVector);
-					positions = markerLocations.toArray();
-					pvals = pvalueVector.toArray();
-					indexSNPs = indexVector.toArray();
+					positions = Ints.toArray(markerLocations);
+					pvals = Doubles.toArray(pvalueVector);
+					indexSNPs = Ints.toArray(indexVector);
 					markerLocations.clear();
 					indexVector.clear();
 					markerVector.clear();
 					pvalueVector.clear();
 					if (varVector!=null) {
-						vars = varVector.toArray();
+						vars = Doubles.toArray(varVector);
 						varVector.clear();
 					}
 
@@ -261,7 +264,7 @@ public class OriginalNrss {
 			System.exit(2);
 		}
 
-		System.out.println("Stat is "+ext.formDeci(computeStatistic(Array.toStringArray(markerVector), pvalueVector.toArray(), hash, INCLUSION_THRESHOLD)[0], 2));
+		System.out.println("Stat is "+ext.formDeci(computeStatistic(Array.toStringArray(markerVector), Doubles.toArray(pvalueVector), hash, INCLUSION_THRESHOLD)[0], 2));
 	}
 
 	public static double[] computeStatistic(String[] markerNames, double[] pvalues, Hashtable<String,String> hash, double threshold) {
@@ -557,9 +560,9 @@ public class OriginalNrss {
 					}
 					reader.close();
 					markerNames = Array.toStringArray(markerVector);
-					positions = markerLocations.toArray();
-					pvals = pvalueVector.toArray();
-					indexSNPs = indexVector.toArray();
+					positions = Ints.toArray(markerLocations);
+					pvals = Doubles.toArray(pvalueVector);
+					indexSNPs = Ints.toArray(indexVector);
 					markerLocations = null;
 					indexVector = null;
 					markerVector = null;
@@ -684,7 +687,7 @@ public class OriginalNrss {
 					return filename.endsWith("parsed_cluster.xln");
 				}
 			});
-			dvs[i] = DoubleVector.newDoubleVectors(levelsDeep);
+			dvs[i] = Vectors.initializedArray(DoubleVector.class, levelsDeep);
 			for (int j = 0; j<files.length; j++) {
 				trav = new DoubleVector();
 				try {

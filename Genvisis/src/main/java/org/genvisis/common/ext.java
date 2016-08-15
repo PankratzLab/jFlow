@@ -5,6 +5,9 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.text.*;
 import java.util.*;
+
+import com.google.common.primitives.Ints;
+
 import java.awt.Toolkit;
 import java.awt.datatransfer.*;
 
@@ -218,7 +221,7 @@ public class ext {
 			}
 		}
 		
-		return indices.toArray();
+		return Ints.toArray(indices);
 	}
 
 	public static int[] indicesWithinString(String target, String str) {
@@ -237,7 +240,7 @@ public class ext {
 			}
 		}
 
-		return iv.toArray();
+		return Ints.toArray(iv);
 	}
 
 	public static int indexOfChar(char target, char[] array) {
@@ -860,7 +863,7 @@ public class ext {
 		boolean err = false;
 		int index, minIndex;
 
-		possibleIndices = IntVector.newIntVectors(targetsWithAlts.length);
+		possibleIndices = Vectors.initializedArray(IntVector.class, targetsWithAlts.length);
 		if (preferFirstInTargetsOverFirstInSuperset) {
 	 		for (int j = 0; j<targetsWithAlts.length; j++) {
 	 			minIndex = Integer.MAX_VALUE;

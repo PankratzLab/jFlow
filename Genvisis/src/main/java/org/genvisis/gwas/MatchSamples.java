@@ -9,6 +9,8 @@ import org.genvisis.mining.Transformations;
 import org.genvisis.stats.Correlation;
 import org.genvisis.stats.Ttest;
 
+import com.google.common.primitives.Doubles;
+
 public class MatchSamples {
 	public static String matchMaker(String dir, String anchorList, String barnacleList, String factorfile, String[] factorTargets, double[] factorLoadings, boolean normalizeFactors) {
 		BufferedReader reader;
@@ -438,7 +440,7 @@ public class MatchSamples {
 		}
 		anchors = Array.toStringArray(anchs);
 		barnacles = Array.toStringArray(barns);
-		totalDists = distV.toArray();
+		totalDists = Doubles.toArray(distV);
 		mdsDists = new double[anchors.length];
 
 		try {
@@ -547,7 +549,7 @@ public class MatchSamples {
 			sumAges[i] /= count;
 			sumGenders[i] /= count;
 		}
-		mdsDists = distV.toArray();
+		mdsDists = Doubles.toArray(distV);
 
 		results += "\n\nUsing just the "+count+" of "+anchors.length+" pairs that were < 3SD from the mean distance:\n\n";
 
@@ -613,7 +615,7 @@ public class MatchSamples {
 		}
 		anchors = Array.toStringArray(anchs);
 		barnacles = Array.toStringArray(barns);
-		totalDists = distV.toArray();
+		totalDists = Doubles.toArray(distV);
 
 		problem = false;
 		data = new double[anchors.length][factors.length][];
@@ -700,7 +702,7 @@ public class MatchSamples {
 					sums[i][j] /= (double)count;
 				}
 			}
-			dists = distV.toArray();
+			dists = Doubles.toArray(distV);
 
 			if (outliers == 0) {
 				results += "Using all "+count+" of "+anchors.length+" pairs:\n\n";

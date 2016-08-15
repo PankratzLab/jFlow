@@ -5,6 +5,8 @@ import java.util.*;
 
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Ints;
+
 public class Phenotype {
 	public static final String[] OTHER_FILES = {"map##.dat", "chr##.dat", "chr##.map", "chr##.freq", "run#.qsub", "chr#_vc.qsub"};
 	
@@ -76,7 +78,7 @@ public class Phenotype {
 		}
 		
 		if (skips.size() > 0) {
-			log.report("skipped chromosomes: "+ext.listRanges(skips.toArray()));
+			log.report("skipped chromosomes: "+ext.listRanges(Ints.toArray(skips)));
 		}
 		
 		

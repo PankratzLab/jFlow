@@ -6,6 +6,8 @@ import java.util.*;
 
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Ints;
+
 public class ParseMinPvalue {
 //	public static final String DEFAULT_DIR = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\merged\\results\\";
 	public static final String DEFAULT_DIR = "C:\\Documents and Settings\\npankrat\\My Documents\\ADNI\\results\\";
@@ -58,7 +60,7 @@ public class ParseMinPvalue {
 						iv.add(j);
 					}
 				}
-				indices = iv.toArray();
+				indices = Ints.toArray(iv);
 				while (reader.ready()) {
 					line = reader.readLine().split("[\\s]+");
 					if (USE_ASSOC) {

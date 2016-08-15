@@ -9,6 +9,8 @@ import org.genvisis.common.*;
 import org.genvisis.filesys.FamilyStructure;
 import org.genvisis.filesys.SnpMarkerSet;
 
+import com.google.common.primitives.Ints;
+
 public class Mach {
 //	public static final String EXECUTABLE = "mach1";
 	public static final String EXECUTABLE = "/share/apps/bin/mach1";
@@ -1535,11 +1537,11 @@ public class Mach {
 				step2Miss.add(i);
 			}
         }
-		System.out.println("Finished the following chromosomes for step1: "+ext.listRanges(step1Pres.toArray()));
-		System.out.println("Still missing: "+ext.listRanges(step1Miss.toArray()));
+		System.out.println("Finished the following chromosomes for step1: "+ext.listRanges(Ints.toArray(step1Pres)));
+		System.out.println("Still missing: "+ext.listRanges(Ints.toArray(step1Miss)));
 		System.out.println();
-		System.out.println("Finished the following chromosomes for step2: "+ext.listRanges(step2Pres.toArray()));
-		System.out.println("Still missing: "+ext.listRanges(step2Miss.toArray()));
+		System.out.println("Finished the following chromosomes for step2: "+ext.listRanges(Ints.toArray(step2Pres)));
+		System.out.println("Still missing: "+ext.listRanges(Ints.toArray(step2Miss)));
 		
 	}
 	

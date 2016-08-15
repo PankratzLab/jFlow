@@ -8,6 +8,9 @@ import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.gwas.*;
 import org.genvisis.parse.GenParser;
 
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Ints;
+
 public class Mega_Analyses {
 //	public static String DIR = "C:\\mega\\";
 	public static String DIR = "D:\\mega\\";
@@ -506,7 +509,7 @@ public class Mega_Analyses {
 		System.err.println("Loading reference map from: "+IMPUTATION_MAP);
 		refChrHash = new SnpMarkerSet(IMPUTATION_MAP, SnpMarkerSet.PLINK_MAP_FORMAT_WITHOUT_CM, false, log).getChrHash();
 		
-		order = Sort.orderTwoLayers(chrs.toArray(), positions.toArray(), log);
+		order = Sort.orderTwoLayers(Bytes.toArray(chrs), Ints.toArray(positions), log);
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false)+"_positions.xln"));
 			writer.println("MarkerName\tChr\tPosition\tAltLoc\trefChr\trefPos\trefAgree\tStudy/chr/pos");

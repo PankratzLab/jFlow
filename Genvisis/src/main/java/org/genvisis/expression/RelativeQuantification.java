@@ -5,6 +5,8 @@ import java.util.*;
 
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Doubles;
+
 public class RelativeQuantification {
 	public static final String[] HEADER = {"Plate", "Well ID", "Well", "Sample", "Detector", "Task", "Ct", "Ct Std Err", "Avg Ct", "Avg dCt", "dCt Std Err", "ddCt", "RQ", "RQ Min", "RQ Max", "Omit", "Filtered", "Threshold", "Auto Ct", "Baseline", "Start", "End"};
 
@@ -105,7 +107,7 @@ public class RelativeQuantification {
 						}
 					}
 				}
-				writer.println("\t"+Array.mean(sampleStderrs.toArray()));
+				writer.println("\t"+Array.mean(Doubles.toArray(sampleStderrs)));
 			}
 			writer.close();
 
@@ -134,7 +136,7 @@ public class RelativeQuantification {
 						}
 					}
 				}
-				writer.println("\t"+Array.mean(sampleStderrs.toArray()));
+				writer.println("\t"+Array.mean(Doubles.toArray(sampleStderrs)));
 			}
 			writer.close();
 

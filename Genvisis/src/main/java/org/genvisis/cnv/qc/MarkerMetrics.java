@@ -18,6 +18,8 @@ import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.RegressionModel;
 import org.genvisis.stats.Ttest;
 
+import com.google.common.primitives.Doubles;
+
 public class MarkerMetrics {
 	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_z", "LRR_SD", "LRR_num_NaNs", "MendelianErrors"};
 	public static final String[] LRR_VARIANCE_HEADER = {"MarkerName", "Chr", "Position", "SD_LRR", "MeanAbsLRR", "SD_BAF1585", "MeanAbsBAF1585"};
@@ -311,12 +313,12 @@ public class MarkerMetrics {
 				if (values[sexes[s]] == null) {
 					values[sexes[s]] = new DoubleVector();
 				}
-				values[sexes[s]].add(independantData[s]);
+				values[sexes[s]].add((double)independantData[s]);
 			}
 		}
 		if (values[1] != null && values[2] != null) {
-			double[] maleValues = values[1].toArray();
-			zscore = (Array.mean(maleValues) - Array.mean(values[2].toArray())) / Array.stdev(maleValues, false);
+			double[] maleValues = Doubles.toArray(values[1]);
+			zscore = (Array.mean(maleValues) - Array.mean(Doubles.toArray(values[2]))) / Array.stdev(maleValues, false);
 		}
 		return zscore;
 	}
@@ -474,9 +476,9 @@ public class MarkerMetrics {
 							values[1][abGenotypes[s]+1][sexes[s]] = new DoubleVector();
 							values[2][abGenotypes[s]+1][sexes[s]] = new DoubleVector();
 						}
-						values[0][abGenotypes[s]+1][sexes[s]].add(xs[s]);
-						values[1][abGenotypes[s]+1][sexes[s]].add(ys[s]);
-						values[2][abGenotypes[s]+1][sexes[s]].add(xs[s]+ys[s]);
+						values[0][abGenotypes[s]+1][sexes[s]].add((double)xs[s]);
+						values[1][abGenotypes[s]+1][sexes[s]].add((double)ys[s]);
+						values[2][abGenotypes[s]+1][sexes[s]].add((double)xs[s]+ys[s]);
 					}
 				}
 				
@@ -486,18 +488,18 @@ public class MarkerMetrics {
 				for (int k = 0; k < values.length; k++) {
 					for (int ab = 1; ab < values[k].length; ab++) {
 						if (values[k][ab][1] != null) {
-							maleValues = values[k][ab][1].toArray();
+							maleValues = Doubles.toArray(values[k][ab][1]);
 							counts[k][ab-1] += maleValues.length;
 //							log.report(markerName+"\t"+FullSample.AB_PAIRS[ab-1]+"/"+(k==0?"X":"Y")+"\t"+maleValues.length+" males\t"+Array.mean(maleValues));
 							
 							// use all the females with a missing genotype for comparison, if any females have this genotype, only use that group if they outnumber those with a missing genotype 
 							femaleValues = null;
 							if (values[k][ab][2] != null) {
-								femaleValues = values[k][ab][2].toArray();
+								femaleValues = Doubles.toArray(values[k][ab][2]);
 								counts[k][ab-1] += femaleValues.length;
 							}
 							if (values[k][0][2] != null && (femaleValues == null || values[k][0][2].size() > femaleValues.length)) {
-								femaleValues = values[k][0][2].toArray();
+								femaleValues = Doubles.toArray(values[k][0][2]);
 							}
 
 							if (femaleValues == null) {

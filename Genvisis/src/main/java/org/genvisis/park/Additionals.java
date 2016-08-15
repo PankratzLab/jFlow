@@ -256,7 +256,7 @@ public class Additionals {
 				trav = line[0]+"\t"+line[1];
 				affStat = affectionStatus.get(trav);
 				if (!processed.containsKey(trav)) {
-					counts = hash.containsKey(trav)?hash.get(trav):IntVector.newIntVectors(6);
+					counts = hash.containsKey(trav)?hash.get(trav):Vectors.initializedArray(IntVector.class, 6);
 					for (int i = 0; i<2; i++) {
 						parentalAffStat = affectionStatus.get(line[0]+"\t"+line[4+i]);
 						if (parentalAffStat!=null) {
@@ -266,7 +266,7 @@ public class Additionals {
 							if (parentalAffStat.equals("VPD")) {
 								counts[1].add(Integer.parseInt(line[4+i]));
 							}
-							rents = hash.containsKey(line[0]+"\t"+line[4+i])?hash.get(line[0]+"\t"+line[4+i]):IntVector.newIntVectors(6);
+							rents = hash.containsKey(line[0]+"\t"+line[4+i])?hash.get(line[0]+"\t"+line[4+i]):Vectors.initializedArray(IntVector.class, 6);
 
 							if (affStat!=null&&ext.indexOfStr(affStat, tools.AFFECTED)>=0) {
 								rents[4].add(Integer.parseInt(line[1]));
@@ -280,7 +280,7 @@ public class Additionals {
 
 					if (affStat!=null&&!line[4].equals("0")&&!line[5].equals("0")) {
 						sibsRents = line[0]+":"+line[4]+":"+line[5];
-						sibs = siblings.containsKey(sibsRents)?siblings.get(sibsRents):IntVector.newIntVectors(2);
+						sibs = siblings.containsKey(sibsRents)?siblings.get(sibsRents):Vectors.initializedArray(IntVector.class, 2);
 
 						if (ext.indexOfStr(affStat, tools.AFFECTED)>=0) {
 							sibs[0].add(Integer.parseInt(line[1]));

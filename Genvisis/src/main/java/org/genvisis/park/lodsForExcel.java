@@ -5,6 +5,8 @@ import java.util.*;
 
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Ints;
+
 public class lodsForExcel {
 	public static final String BLANK = "      ";
 
@@ -232,7 +234,7 @@ public class lodsForExcel {
 			if (iv.size()==0) {
 				new lodsForExcel(Array.toIntArray(Array.stringArraySequence(23, "")));
 			} else {
-				new lodsForExcel(iv.toArray());
+				new lodsForExcel(Ints.toArray(iv));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

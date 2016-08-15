@@ -11,6 +11,9 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.Segment;
 import org.genvisis.stats.*;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
+
 public class MeanLRR {
 	public static void createFilesFromFullSample(Project proj, String regionsFile) {
 		PrintWriter writer;
@@ -45,7 +48,7 @@ public class MeanLRR {
 		hash = proj.getFilteredHash();
 
 		regions = CNVariant.loadUCSCregions(proj.PROJECT_DIRECTORY.getValue()+regionsFile, false);
-		components = IntVector.newIntVectors(regions.length);		
+		components = Vectors.initializedArray(IntVector.class, regions.length);		
 		for (int i = 0; i<positions.length; i++) {
 			for (int j = 0; j<regions.length; j++) {
 				if (chrs[i] == regions[j].getChr() && positions[i] >= regions[j].getStart() && positions[i] <= regions[j].getStop()) {
@@ -57,7 +60,7 @@ public class MeanLRR {
 				}
             }
         }
-		indices = IntVector.toIntMatrix(components);
+		indices = Vectors.toMatrix(components);
 		numberOfMarkers = new int[regions.length];
 		for (int i = 0; i<regions.length; i++) {
 			numberOfMarkers[i] = indices[i].length;
@@ -248,7 +251,7 @@ public class MeanLRR {
 			for (int i = 0; i<regions.length; i++) {
 				writer.print(regions[i].getUCSClocation()+"\t"+numberOfMarkers[i]+"\t"+regions[i].getChr()+"\t"+regions[i].getStart()+"\t"+regions[i].getStop());
 				if (numberOfMarkers[i] > 0) {
-					model = RegressionModel.determineAppropriate(pheno, FloatVector.toDoubleArray(Matrix.extractColumn(data[i], 0)), false, false);
+					model = RegressionModel.determineAppropriate(pheno, Doubles.toArray(Floats.asList(Matrix.extractColumn(data[i], 0))), false, false);
 					if (model.analysisFailed()) {
 						writer.println("\t.\t.\t.\t.");
 					} else {

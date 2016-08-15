@@ -3,6 +3,8 @@ package org.genvisis.common;
 import java.io.*;
 import java.util.*;
 
+import com.google.common.primitives.Ints;
+
 public class FilterByLists {
 	public static void fromParameters(String controlFile, Logger log) {
         String[] line;
@@ -161,7 +163,7 @@ public class FilterByLists {
 				}
 				if (v.size() > 0) {
 					System.err.println("Warning - the following were found in the keeps list but not in the data file:");
-					order = Sort.quicksort(iv.toArray());
+					order = Sort.quicksort(Ints.toArray(iv));
 					for (int i = 0; i < v.size(); i++) {
 						System.err.println(v.elementAt(order[i]));
 					}
@@ -179,7 +181,7 @@ public class FilterByLists {
 				}
 				if (v.size() > 0) {
 					System.err.println("Warning - the following were found in the deletes list but not in the data file:");
-					order = Sort.quicksort(iv.toArray());
+					order = Sort.quicksort(Ints.toArray(iv));
 					for (int i = 0; i < v.size(); i++) {
 						System.err.println(v.elementAt(order[i]));
 					}

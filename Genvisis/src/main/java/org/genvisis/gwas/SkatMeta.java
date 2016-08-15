@@ -7,6 +7,8 @@ import org.genvisis.common.*;
 import org.genvisis.filesys.*;
 import org.genvisis.stats.Rscript;
 
+import com.google.common.primitives.Ints;
+
 public class SkatMeta {
 	public static final String[] ALGORITHMS = {
 		"singlesnpMeta", 
@@ -284,7 +286,7 @@ public class SkatMeta {
 								}
 							}
 							if (chrsToDo.size() != 0 && chrsToDo.size() != maxChr) {
-								log.reportError("Warning - for "+studies[j]+";"+races[k][0]+"/"+phenotypes[i][0]+", missing chr(s) "+ext.listWithCommas(Array.toStringArray(chrsToDo.toArray())));
+								log.reportError("Warning - for "+studies[j]+";"+races[k][0]+"/"+phenotypes[i][0]+", missing chr(s) "+ext.listWithCommas(Array.toStringArray(Ints.toArray(chrsToDo))));
 								log.reportError("        - if batch job was killed in the middle, suggest deleting the last attempted chromosome, in case it was incomplete");
 							}
 							

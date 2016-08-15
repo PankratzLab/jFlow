@@ -5,6 +5,8 @@ import java.util.*;
 
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Doubles;
+
 public class dbExport {
 	public static boolean INCLUDE_MISSING = false;
 
@@ -105,7 +107,7 @@ public class dbExport {
 		}
 		writer.close();
 
-		dist = dv.toArray();
+		dist = Doubles.toArray(dv);
 		writer = new PrintWriter(new FileWriter("punkd.txt")); // why is this
 		// more than in
 		// the file?????

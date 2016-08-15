@@ -6,6 +6,8 @@ import java.util.*;
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Doubles;
+
 public class Transformations {
 	private static final String[] LABELS = {"Identity", "Rank", "Log", "Inverse", "Square root", "Squared", "Cubed", "Box-Cox (maxLL)", "Box-Cox (minKurt)", "Normalized", "Standardized", "InverseNormalized", "NegativeLog10"};
 	public static final int IDENTITY = 0;
@@ -251,7 +253,7 @@ public class Transformations {
 				duds.add(i);
 			}
 		}
-		transformed = Array.toStringArray(transform(dv.toArray(), type, new Logger()));
+		transformed = Array.toStringArray(transform(Doubles.toArray(dv), type, new Logger()));
 		for (int i = 0; i < duds.size(); i++) {
 			Array.addStrToArray(".", transformed, duds.elementAt(i));
 		}

@@ -6,6 +6,8 @@ import java.util.*;
 import org.genvisis.common.*;
 import org.genvisis.link.LinkageMap;
 
+import com.google.common.primitives.Doubles;
+
 public class Hearing {
 	public static boolean AFFECTEDS_ONLY = true;
 	public static final String DBSNP_LOCAL = "local_6K_b129.bcp";
@@ -95,7 +97,7 @@ public class Hearing {
 				}
 				reader.close();
 
-				new LinkageMap(chr, Array.toStringArray(names), 2, positions.toArray(), false, true).createFile(dir+"map"+ext.chrome(chr)+".dat");
+				new LinkageMap(chr, Array.toStringArray(names), 2, Doubles.toArray(positions), false, true).createFile(dir+"map"+ext.chrome(chr)+".dat");
 			} catch (FileNotFoundException fnfe) {
 				System.err.println("Error: file \""+dir+source+"chr"+chr+"_SNP.noLD.ped"+"\" not found in current directory");
 				System.exit(1);

@@ -4,6 +4,8 @@ import java.io.*;
 
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Ints;
+
 public class Histogram implements Serializable {
 	/**
 	 * 
@@ -311,7 +313,7 @@ public class Histogram implements Serializable {
 			localMaxima.add(smoothed.length-1);
 		} 
 		
-		return localMaxima.toArray();
+		return Ints.toArray(localMaxima);
 	}
 	
 	public int getNumPeaks() {

@@ -6,6 +6,9 @@ import java.util.*;
 
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 public class NrsHap {
 	public static final double INDEX_THRESHOLD = 0.001;
 
@@ -78,9 +81,9 @@ public class NrsHap {
 					}
 				} else {
 					markerNames = Array.toStringArray(markerVector);
-					positions = markerLocations.toArray();
-					pvals = pvalueVector.toArray();
-					indexSNPs = indexVector.toArray();
+					positions = Ints.toArray(markerLocations);
+					pvals = Doubles.toArray(pvalueVector);
+					indexSNPs = Ints.toArray(indexVector);
 					markerLocations.clear();
 					indexVector.clear();
 					markerVector.clear();
@@ -204,7 +207,7 @@ public class NrsHap {
 			System.err.println("Error reading file \""+results+"\"");
 			System.exit(2);
 		}
-		System.out.println("Stat is "+ext.formDeci(computeStatistic(chr, Array.toStringArray(markerVector), pvalueVector.toArray(), INCLUSION_THRESHOLD), 2));
+		System.out.println("Stat is "+ext.formDeci(computeStatistic(chr, Array.toStringArray(markerVector), Doubles.toArray(pvalueVector), INCLUSION_THRESHOLD), 2));
 	}
 
 	public static double computeStatistic(String chr, String[] markerNames, double[] pvalues, double threshold) {
@@ -433,9 +436,9 @@ public class NrsHap {
 					}
 					reader.close();
 					markerNames = Array.toStringArray(markerVector);
-					positions = markerLocations.toArray();
-					pvals = pvalueVector.toArray();
-					indexSNPs = indexVector.toArray();
+					positions = Ints.toArray(markerLocations);
+					pvals = Doubles.toArray(pvalueVector);
+					indexSNPs = Ints.toArray(indexVector);
 					markerLocations.clear();
 					indexVector.clear();
 					markerVector.clear();
@@ -562,7 +565,7 @@ public class NrsHap {
 					return filename.endsWith("parsed_cluster.xln");
 				}
 			});
-			dvs[i] = DoubleVector.newDoubleVectors(levelsDeep);
+			dvs[i] = Vectors.initializedArray(DoubleVector.class, levelsDeep);
 			for (int j = 0; j<files.length; j++) {
 				trav = new DoubleVector();
 				try {

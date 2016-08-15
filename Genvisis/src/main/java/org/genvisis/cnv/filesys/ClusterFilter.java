@@ -6,6 +6,8 @@ import java.util.Vector;
 
 import org.genvisis.common.IntVector;
 
+import com.google.common.primitives.Ints;
+
 /**
  * This is a data structure to hold a single filter that can be used to screen the data points. 
  * @author npankrat and zxu
@@ -148,7 +150,7 @@ public class ClusterFilter implements Serializable {
 			genotypeCount = new int[] {0,0,0};
 			oldGenotype=-2;
 			for (int i=0; i<3; i++){
-				genotypeIndices = iv.toArray();
+				genotypeIndices = Ints.toArray(iv);
 				for (int j=0; j<genotypeIndices.length; j++) {
 					if (genotypes[genotypeIndices[j]]==i) {
 						genotypeCount[i]++;
@@ -179,7 +181,7 @@ public class ClusterFilter implements Serializable {
 				if (iv!=null) {
 					xSum = 0;
 					ySum = 0;
-					genotypeIndices = iv.toArray();
+					genotypeIndices = Ints.toArray(iv);
 					for (int j=0; j<iv.size(); j++) {
 						xSum = xSum + realX[genotypeIndices[j]];
 						ySum = ySum + realY[genotypeIndices[j]];

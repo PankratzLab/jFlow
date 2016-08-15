@@ -7,6 +7,8 @@ import org.genvisis.common.*;
 import org.genvisis.parse.GenParser;
 import org.genvisis.stats.LeastSquares;
 
+import com.google.common.primitives.Doubles;
+
 public class Slopes {
 
 	public static void parseSlopeBeforeAndAfterEvent(String dir, String filename) {
@@ -232,8 +234,8 @@ public class Slopes {
 	        	} else {
 	        		refDate = Double.POSITIVE_INFINITY;
 	        	}
-	        	values = DoubleVector.newDoubleVectors(3);
-	        	dates = DoubleVector.newDoubleVectors(3);
+	        	values = Vectors.initializedArray(DoubleVector.class, 3);
+	        	dates = Vectors.initializedArray(DoubleVector.class, 3);
 	        	dateCheck = new Hashtable<String,String>();
 	        	for (int j = 0; j<v.size(); j++) {
 		        	line = v.elementAt(j).split("[\\s]+");
@@ -265,11 +267,11 @@ public class Slopes {
 	        	writer.print(ids[i]);
 	        	for (int j = 0; j<(refFile == null?1:3); j++) {
 		        	if (values[j].size() >= 2) {
-		        		if (Array.variance(values[j].toArray()) == 0) {
+		        		if (Array.variance(Doubles.toArray(values[j])) == 0) {
 		        			System.err.println("Warning - no variation for '"+(j==0?"all":(j==1?"pre":"post"))+"' data for "+ids[i]+"; slope is zero");
 			        		writer.print("\t0");
 		        		} else {
-			        		linear = new LeastSquares(values[j].toArray(), dates[j].toArray());
+			        		linear = new LeastSquares(Doubles.toArray(values[j]), Doubles.toArray(dates[j]));
 			        		if (linear.analysisFailed()) {
 			        			System.err.println("Error - problem with '"+(j==0?"all":(j==1?"pre":"post"))+"' data for "+ids[i]);
 			        		}

@@ -8,6 +8,8 @@ import org.genvisis.filesys.*;
 import org.genvisis.mining.Transformations;
 import org.genvisis.stats.*;
 
+import com.google.common.primitives.Ints;
+
 public class CreateDatabaseFromPlink {
 	public static final String[] POSSIBLE_MODELS = {"ADD", "DOM", "REC"};
 	public static final int ADDITIVE_MODEL = 0;
@@ -426,7 +428,7 @@ public class CreateDatabaseFromPlink {
         
         if (monomorphs.size() > 0) {
         	log.report("There were "+monomorphs.size()+" monomorphic markers that will be filtered out");
-        	Files.writeList(Array.subArray(markerNames, monomorphs.toArray()), ext.parseDirectoryOfFile(filename)+"monomorphs.dat");
+        	Files.writeList(Array.subArray(markerNames, Ints.toArray(monomorphs)), ext.parseDirectoryOfFile(filename)+"monomorphs.dat");
     		temp = outfile+".bak";
     		new File(outfile).renameTo(new File(temp));
         	try {

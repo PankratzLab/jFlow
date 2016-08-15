@@ -7,6 +7,8 @@ import org.genvisis.common.Array;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.ext;
 
+import com.google.common.primitives.Doubles;
+
 public class Ttest {
 	private double meanDiff;
 	private double stdev;
@@ -82,7 +84,7 @@ public class Ttest {
 			}
 		}
 
-		return dv.toArray();
+		return Doubles.toArray(dv);
 	}
 
 	public Ttest(double x1Hat, double s1, int n1, double x2Hat, double s2, int n2) { // independent
@@ -268,7 +270,7 @@ public class Ttest {
 					}
 				}
 				line[0] = " ";
-				data[i] = dv.toArray();
+				data[i] = Doubles.toArray(dv);
 				dv.removeAllElements();
 				if (data[i].length==0) {
 					System.err.println("Error in input file; separate samples by a blank line.");

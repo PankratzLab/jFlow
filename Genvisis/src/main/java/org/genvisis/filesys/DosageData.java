@@ -13,6 +13,8 @@ import org.genvisis.common.*;
 import org.genvisis.gwas.*;
 import org.genvisis.stats.*;
 
+import com.google.common.primitives.Ints;
+
 public class DosageData implements Serializable {
 	public static final long serialVersionUID = 1L;
 	
@@ -1378,7 +1380,7 @@ public class DosageData implements Serializable {
 					}
 				}
 			}
-			ranges = ext.listRanges(cols.toArray());
+			ranges = ext.listRanges(Ints.toArray(cols));
 			System.out.println("Extracting columns: 1,"+ranges);
 			
 			dos = Files.isWindows();

@@ -13,6 +13,9 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariantHash;
 import org.genvisis.filesys.Segment;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 public class SampleData {
 	/**
      * A helper class to facilitate creating sample data from either .ped or Sample_Map.csv formats
@@ -299,19 +302,19 @@ public class SampleData {
 				for (int i = 0; i<filterIs.size(); i++) {
 					dv.add(Double.parseDouble(line[filterIs.elementAt(i)]));
 				}
-				indi.setFilters(dv.toArray());
+				indi.setFilters(Doubles.toArray(dv));
 
 				dv = new DoubleVector();
 				for (int i = 0; i<covarIs.size(); i++) {
 					dv.add(ext.isMissingValue(line[covarIs.elementAt(i)])?Double.NaN:Double.parseDouble(line[covarIs.elementAt(i)]));
 				}
-				indi.setCovars(dv.toArray());
+				indi.setCovars(Doubles.toArray(dv));
 
 				iv = new IntVector();
 				for (int i = 0; i<classIs.size(); i++) {
 					iv.add(ext.isMissingValue(line[classIs.elementAt(i)])||Integer.parseInt(line[classIs.elementAt(i)])<0?Integer.MIN_VALUE:Integer.parseInt(line[classIs.elementAt(i)]));
 				}
-				indi.setClasses(iv.toArray());
+				indi.setClasses(Ints.toArray(iv));
 				if (sexClassIndex != -1) {
 					sexCountHash.add(indi.getClasses()[sexClassIndex]+"");					
 				}

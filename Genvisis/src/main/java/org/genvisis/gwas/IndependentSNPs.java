@@ -17,6 +17,8 @@ import java.util.*;
 import org.genvisis.common.*;
 import org.genvisis.filesys.*;
 
+import com.google.common.primitives.Ints;
+
 public class IndependentSNPs {
 //	public static final float DEFAULT_PVAL_THRESHOLD = 5E-4;
 	public static final float DEFAULT_PVAL_THRESHOLD = 1;
@@ -217,7 +219,7 @@ public class IndependentSNPs {
 		missingIlluminaValues = new Vector<String>();
 		allMissingMarkers = new Hashtable<String,String>();
     	missingMarkers = new Vector<String>();
-    	chrIVs = IntVector.newIntVectors(27);
+    	chrIVs = Vectors.initializedArray(IntVector.class, 27);
         for (int j = 0; j<iv.size(); j++) {
 			score = getScore(superset[j], scores, merges, missingIlluminaValues, log);
 			passes = false;
@@ -272,7 +274,7 @@ public class IndependentSNPs {
             positions = Sort.putInOrder(positions, keys);
             pvals = Sort.putInOrder(pvals, keys);
 
-            beforeIndices = beforeIndicesVector.toArray();
+            beforeIndices = Ints.toArray(beforeIndicesVector);
             beforeIndex = 0;            
             chrLDdbs = LDdatabase.getChrLDdbs(lddbs, chr);
             while (pvals.length > 0 && Array.min(pvals) < 2) {

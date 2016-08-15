@@ -7,6 +7,8 @@ import java.util.*;
 import org.genvisis.common.*;
 import org.genvisis.filesys.*;
 
+import com.google.common.primitives.Ints;
+
 public class Beagle {
 	public static final double[] PI_HAT_THRESHOLDS = {0.3, 0.5};
 	public static final String[] SEGMENT_HEADER = {"FID1", "IID1", "FID2", "IID2", "PHE", "CHR", "BP1", "BP2", "SNP1", "SNP2", "NSNP", "KB"};
@@ -555,9 +557,9 @@ public class Beagle {
         	iv.add(Files.countLines("lists/"+rep+".list", 0));
         	rep++;
         }
-        n = Array.sum(iv.toArray());
+        n = Array.sum(Ints.toArray(iv));
         log.report("Detected "+iv.size()+" reps to parse for each chromosome");
-        missings = IntVector.newIntVectors(22);
+        missings = Vectors.initializedArray(IntVector.class, 22);
         markerNames = new String[22][];
         chrs = new byte[22][];
         positions = new int[22][];
@@ -586,11 +588,11 @@ public class Beagle {
             }
         }
         if (missingChrs.size() > 0) {
-        	log.reportError("Warning - missing data for the following chromosomes: "+ext.listRanges(missingChrs.toArray()));
+        	log.reportError("Warning - missing data for the following chromosomes: "+ext.listRanges(Ints.toArray(missingChrs)));
         }
         for (int i = 0; i<missings.length; i++) {
         	if (missings[i].size() > 0) {
-        		log.reportError("For chr"+(i+1)+", missing rep"+(missings[i].size()>1?"s":"")+": "+ext.listRanges(missings[i].toArray()));
+        		log.reportError("For chr"+(i+1)+", missing rep"+(missings[i].size()>1?"s":"")+": "+ext.listRanges(Ints.toArray(missings[i])));
         	}
         }
 

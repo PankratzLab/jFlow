@@ -8,6 +8,9 @@ import java.util.*;
 import org.genvisis.stats.Maths;
 import org.genvisis.stats.ProbDist;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 public class Array {
 
 	/**
@@ -1650,8 +1653,8 @@ public class Array {
 			}
 		}
 
-		stdevNegative = Array.stdev(negatives.toArray());
-		stdevPositive = Array.stdev(positives.toArray());
+		stdevNegative = Array.stdev(Doubles.toArray(positives));
+		stdevPositive = Array.stdev(Doubles.toArray(positives));
 		
 		newData = new double[array.length];
 		for (int i = 0; i<newData.length; i++) {
@@ -5009,7 +5012,7 @@ public class Array {
 			indicesOfMaxima.add(indexOfLocalMax);
 		}
 		
-		return indicesOfMaxima.toArray();
+		return Ints.toArray(indicesOfMaxima);
 	}
 	
 	public static boolean[] indicesToBooleanArray(int[] rowsToKeep, int sizeOfArray) {

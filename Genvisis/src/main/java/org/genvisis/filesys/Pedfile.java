@@ -6,6 +6,8 @@ import java.util.Hashtable;
 
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Ints;
+
 public class Pedfile {
 	public static final String[] MISSING_VALUES = {"0"};
 	
@@ -138,7 +140,7 @@ public class Pedfile {
         hash = HashVec.loadFileToHashString(phenotypeFile, new int[] {0,1}, new int[] {phenoCol}, false, "\t", false, false, false);
         
         time = new Date().getTime();
-        ivs = IntVector.newIntVectors(3);
+        ivs = Vectors.initializedArray(IntVector.class, 3);
         for (int chr = 1; chr<=23; chr++) {
         	try {
 //	            reader = new BufferedReader(new FileReader(Files.getBakFilename("re_chrom"+ext.chrome(chr)+".pre", ext.rootOf(phenotypeFile)+"-"+phenoCol, true)));
@@ -212,12 +214,12 @@ public class Pedfile {
         }
         System.out.println("Finished in "+ext.getTimeElapsed(time));
 
-        System.out.println("Successfully updated chromosomes: "+(ivs[0].size()==0?"none":ext.listRanges(ivs[0].toArray())));
+        System.out.println("Successfully updated chromosomes: "+(ivs[0].size()==0?"none":ext.listRanges(Ints.toArray(ivs[0]))));
         if (ivs[1].size()>0) {
-            System.out.println("Missing files for chromosomes: "+ext.listRanges(ivs[1].toArray()));
+            System.out.println("Missing files for chromosomes: "+ext.listRanges(Ints.toArray(ivs[1])));
         }
         if (ivs[2].size()>0) {
-            System.out.println("Error parsing files for chromosomes: "+ext.listRanges(ivs[2].toArray()));
+            System.out.println("Error parsing files for chromosomes: "+ext.listRanges(Ints.toArray(ivs[2])));
         }
 	}
 	

@@ -10,6 +10,8 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
+import com.google.common.primitives.Doubles;
+
 public class PermuteOnePer {
 	public static final int SIGFIGS = 2;
 	public static final int NUM_REPS = 1000;
@@ -384,7 +386,7 @@ public class PermuteOnePer {
 			sorted = hash.get(fams[i]);
 			matrix = new double[sorted[col].length][];
 			for (int j = 0; j<sorted[col].length; j++) {
-				matrix[j] = sorted[col][j].toArray();
+				matrix[j] = Doubles.toArray(sorted[col][j]);
 			}
 			newHash.put(fams[i], matrix);
 		}

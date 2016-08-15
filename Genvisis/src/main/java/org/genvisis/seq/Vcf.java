@@ -8,6 +8,8 @@ import java.util.*;
 import org.genvisis.common.*;
 import org.genvisis.filesys.*;
 
+import com.google.common.primitives.Ints;
+
 public class Vcf {
 	public static final String[] BITS_TO_KEEP = {"AC=", "AN=", "DB"};
 	private static void lookup(String variantList, String vcfFile, String outfile, String lookupReadyFile, Logger log) {
@@ -42,7 +44,7 @@ public class Vcf {
 		}
 
 		if (iv.size() > 0) {
-			log.report("Found existing hashed databases from "+vcfFile+" for the following chromomosomes: "+ext.listRanges(iv.toArray()));
+			log.report("Found existing hashed databases from "+vcfFile+" for the following chromomosomes: "+ext.listRanges(Ints.toArray(iv)));
 		} else {
 			log.report(ext.getTime()+"\tLoading data from : "+vcfFile);
 			hash = new Hashtable<String, String[]>();

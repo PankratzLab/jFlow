@@ -3,6 +3,8 @@ package org.genvisis.common;
 
 import java.util.*;
 
+import com.google.common.primitives.Ints;
+
 public class CountVector {
 	private Vector<String> v;
 	private IntVector iv;
@@ -32,7 +34,7 @@ public class CountVector {
 			v.add(str);
 			iv.add(1);
 		} else {
-			iv.incrementAt(index);
+			iv.set(index, iv.get(index)+1);
 		}
 		order = null;
 	}
@@ -53,9 +55,9 @@ public class CountVector {
 
 	public int[] getCounts() {
 		if (order == null) {
-			return iv.toArray();
+			return Ints.toArray(iv);
 		} else {
-			return iv.toArray(order);
+			return Vectors.orderedArray(iv, order);
 		}
 	}
 
@@ -85,7 +87,7 @@ public class CountVector {
 	}
 	
 	public void sort(boolean ascending) {
-		order = Sort.quicksort(iv.toArray(), ascending?Sort.ASCENDING:Sort.DESCENDING);
+		order = Sort.quicksort(Ints.toArray(iv), ascending?Sort.ASCENDING:Sort.DESCENDING);
 	}
 
 	public static CountVector[] initArray(int size) {

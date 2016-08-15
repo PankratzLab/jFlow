@@ -126,7 +126,7 @@ public class LDdatabase implements Serializable {
 		
         time = new Date().getTime();
         log.report("Sorting markers by chromosome");
-		ivs = IntVector.newIntVectors(NUM_CHROMOSOMES);
+		ivs = Vectors.initializedArray(IntVector.class, NUM_CHROMOSOMES);
 		missing = new Hashtable<String,Vector<String>>();
 		for (int i = 0; i<targets.length; i++) {
 			trav = chrHash.get(targets[i]);

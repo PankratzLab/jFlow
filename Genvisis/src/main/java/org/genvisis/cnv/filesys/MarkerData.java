@@ -20,6 +20,8 @@ import org.genvisis.common.Numbers;
 import org.genvisis.stats.Correlation;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
+import com.google.common.primitives.Doubles;
+
 public class MarkerData implements Serializable {
 	public static final long serialVersionUID = 1L;
 	public static final String MARKER_DATA_FILE_EXTENSION = ".mdRAF";
@@ -645,10 +647,10 @@ public class MarkerData implements Serializable {
 
 		for (int i=0; i<xs.length; i++) {
 			if (xs[i] < ab_bb_xMidpoint) {
-				x.add(xs[i]);
+				x.add((double)xs[i]);
 			}
 			if (ys[i] < aa_ab_yMidpoint) {
-				y.add(ys[i]);
+				y.add((double)ys[i]);
 			}
 		}
 
@@ -659,7 +661,7 @@ public class MarkerData implements Serializable {
 //		}
 //		System.out.print(x.size()+"\t"+y.size()+"\t");
 
-		return (x.size()>0?Array.getLocalModes(x.toArray(), proportionOfLastPeakRequiredForNewLocalMinima, proportionOfGlobalMaxRequiredForLocalMaxima).length:0) + (y.size()>0?Array.getLocalModes(y.toArray(), proportionOfLastPeakRequiredForNewLocalMinima, proportionOfGlobalMaxRequiredForLocalMaxima).length:0);
+		return (x.size()>0?Array.getLocalModes(Doubles.toArray(x), proportionOfLastPeakRequiredForNewLocalMinima, proportionOfGlobalMaxRequiredForLocalMaxima).length:0) + (y.size()>0?Array.getLocalModes(Doubles.toArray(y), proportionOfLastPeakRequiredForNewLocalMinima, proportionOfGlobalMaxRequiredForLocalMaxima).length:0);
 	}
 
 	public void setGC(float gc, int i) {

@@ -14,6 +14,8 @@ import java.util.zip.ZipOutputStream;
 import org.genvisis.filesys.*;
 import org.genvisis.parse.*;
 
+import com.google.common.primitives.Ints;
+
 //class DeleteLater implements Runnable {
 //	private String filename;
 //	private int timeToWait;
@@ -286,7 +288,7 @@ public class Files {
 		if (jobSizes == null) {
 			files = Array.toStringArray(jobNamesWithAbsolutePaths);
 		} else {
-			files = Sort.putInOrder(Array.toStringArray(jobNamesWithAbsolutePaths), Sort.quicksort(jobSizes.toArray(), Sort.DESCENDING));
+			files = Sort.putInOrder(Array.toStringArray(jobNamesWithAbsolutePaths), Sort.quicksort(Ints.toArray(jobSizes), Sort.DESCENDING));
 		}
 		count = 0;
 		v = new Vector<String>();
@@ -307,7 +309,7 @@ public class Files {
 		if (jobSizes == null) {
 			commands = Array.toStringArray(commandsWithAbsolutePaths);
 		} else {
-			commands = Sort.putInOrder(Array.toStringArray(commandsWithAbsolutePaths), Sort.quicksort(jobSizes.toArray(), Sort.DESCENDING));
+			commands = Sort.putInOrder(Array.toStringArray(commandsWithAbsolutePaths), Sort.quicksort(Ints.toArray(jobSizes), Sort.DESCENDING));
 		}
 		
 		Files.writeList(commands, batchRoot+".chain");

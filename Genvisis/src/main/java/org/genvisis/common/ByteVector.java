@@ -1,137 +1,31 @@
 package org.genvisis.common;
 
-import java.util.*;
+import java.util.Vector;
 
-public class ByteVector {
-	private Vector<String> v;
+import com.google.common.primitives.Bytes;
 
+public class ByteVector extends Vector<Byte> implements PrimitiveVector {
+
+	private static final long serialVersionUID = -7294186396263982757L;
+
+	/**
+	 * Create an empty vector
+	 */
 	public ByteVector() {
-		v = new Vector<String>();
+		super();
 	}
 
-	public ByteVector(byte initialSize) {
-		v = new Vector<String>(initialSize);
+	/**
+	 * Create an empty vector with the specified initial size.
+	 */
+	public ByteVector(int initialSize) {
+		this(new byte[initialSize]);
 	}
 
+	/**
+	 * Create a vector with the given initial values.
+	 */
 	public ByteVector(byte[] initialArray) {
-		v = new Vector<String>();
-		for (int i = 0; i<initialArray.length; i++) {
-			add(initialArray[i]);
-		}
+		super(Bytes.asList(initialArray));
 	}
-
-	public void add(byte value) {
-		add(value, false);
-	}
-
-	public int add(byte value, boolean inAlphabeticalOrder) {
-		if (inAlphabeticalOrder) {
-			for (int i = 0; i<=v.size(); i++) {
-				if (i==v.size()||Byte.parseByte(v.elementAt(i))>value) {
-					v.insertElementAt(value+"", i);
-					return i;
-				}
-			}
-		} else {
-			v.add(value+"");
-			return v.size()-1;
-		}
-
-		return -1;
-	}
-
-	public void addIfAbsent(byte value) {
-		if (!v.contains(value+"")) {
-			v.add(value+"");
-		}
-	}
-
-	public boolean contains(byte s) {
-		return v.contains(s+"");
-	}
-
-	public byte elementAt(int i) {
-		return Byte.parseByte(v.elementAt(i));
-	}
-
-	public int indexOf(byte elem) {
-		return v.indexOf(elem+"");
-	}
-
-	public int indexOf(byte elem, int index) {
-		return v.indexOf(elem+"", index);
-	}
-
-	public void insertElementAt(byte value, int at) {
-		v.insertElementAt(value+"", at);
-	}
-
-	public int lastIndexOf(byte elem) {
-		return v.lastIndexOf(elem+"");
-	}
-
-	public void clear() {
-		v.removeAllElements();
-	}
-
-	public void removeAllElements() {
-		v.removeAllElements();
-	}
-
-	public boolean removeElement(byte s) {
-		return v.removeElement(s+"");
-	}
-
-	public void removeElementAt(int i) {
-		v.removeElementAt(i);
-	}
-
-	public void setElementAt(byte value, int index) {
-		v.setElementAt(value+"", index);
-	}
-
-	public void incrementAt(int index) {
-		byte val = elementAt(index);
-		val++;
-		v.setElementAt(val+"", index);
-	}
-
-	public byte popFirst() {
-		byte i = Byte.parseByte(v.firstElement());
-		v.removeElementAt(0);
-		return i;
-	}
-
-	public byte popLast() {
-		byte i = Byte.parseByte(v.lastElement());
-		v.removeElementAt(v.size()-1);
-		return i;
-	}
-
-	public byte popAt(int at) {
-		byte i = Byte.parseByte(v.elementAt(at));
-		v.removeElementAt(at);
-		return i;
-	}
-
-	public int size() {
-		return v.size();
-	}
-
-	public ByteVector clone() {
-		ByteVector newIV = new ByteVector();
-		for (int i = 0; i<v.size(); i++) {
-			newIV.add(Byte.parseByte(v.elementAt(i)));
-		}
-		return newIV;
-	}
-
-	public byte[] toArray() {
-		byte[] array = new byte[v.size()];
-		for (int i = 0; i<v.size(); i++) {
-			array[i] = Byte.parseByte(v.elementAt(i));
-		}
-		return array;
-	}
-
 }

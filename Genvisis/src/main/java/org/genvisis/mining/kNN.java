@@ -6,6 +6,9 @@ import java.util.*;
 
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 public class kNN {
 	public static final int[] PARTITION_DEFAULTS = {60, 40, 0};
 	public static final boolean NORMALIZE_DEFAULT = true;
@@ -306,7 +309,7 @@ public class kNN {
 			}
 			reader.close();
 
-			targets = dependents.toArray();
+			targets = Doubles.toArray(dependents);
 
 			predictors = new double[count][];
 			for (int i = 0; i<count; i++) {
@@ -316,7 +319,7 @@ public class kNN {
 			if (manualPartition) {
 				partitions = new int[3][];
 				for (int i = 0; i<partitions.length; i++) {
-					partitions[i] = partitionIndices[i].toArray();
+					partitions[i] = Ints.toArray(partitionIndices[i]);
 				}
 			} else {
 				partitions = createPartitions(records.size());

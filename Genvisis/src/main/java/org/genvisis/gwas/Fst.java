@@ -312,7 +312,7 @@ public class Fst {
         keys = HashVec.getKeys(hash);
         
         count = 0;
-        fileContents = StringVector.newStringVectors(n);
+        fileContents = Vectors.initializedArray(StringVector.class, n);
         for (int i = 0; i<keys.length; i++) {
         	inds = Array.toStringArray(hash.get(keys[i]));
         	for (int j = 0; j<inds.length; j++) {
@@ -322,7 +322,8 @@ public class Fst {
         }
 
         for (int i = 0; i<fileContents.length; i++) {
-        	Files.writeList(fileContents[i].toArray(), ext.rootOf(filename, false)+"."+(i+1)+".dat");
+        	String[] s = new String[fileContents[i].size()];
+        	Files.writeList(fileContents[i].toArray(s), ext.rootOf(filename, false)+"."+(i+1)+".dat");
         }
 	}
 

@@ -10,6 +10,9 @@ import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.common.*;
 import org.genvisis.mining.Distance;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 public class ThetaOutliers {
 	public static final String[] QC_HEADS = {"LRR_mean", "LRR_median", "LRR_SD", "BAF_mean", "BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF"};
 	public static final String[] ERRORS = {"large SD for LRR", "drifting BAF values", "waviness factor values", "Small-sized CNV calls"};
@@ -130,9 +133,9 @@ public class ThetaOutliers {
 		for (int i=1; i<4; i++) {
 			if (rsByGenotype[i].size() >= 5) {
 				nonMissingGenotype.add((byte)i);
-				meanR[i] = Array.mean(rsByGenotype[i].toArray());
-				meanTheta[i] = Array.mean(thetasByGenotype[i].toArray());
-				sdTheta[i] = Array.stdev(thetasByGenotype[i].toArray());
+				meanR[i] = Array.mean(Doubles.toArray(rsByGenotype[i]));
+				meanTheta[i] = Array.mean(Doubles.toArray(thetasByGenotype[i]));
+				sdTheta[i] = Array.stdev(Doubles.toArray(thetasByGenotype[i]));
 //				if (markerData.getMarkerName().equals("rs2139063") || markerData.getMarkerName().equals("rs35687686")) {
 //					System.out.println(markerData.getMarkerName()+"\t"+meanR[i]);
 //				}
@@ -167,7 +170,7 @@ public class ThetaOutliers {
 //					System.out.println(rsByGenotype[0].elementAt(j)+","+thetasByGenotype[0].elementAt(j)+" where mean R is "+meanR[n]+" and theta is "+meanTheta[n]+" +/- "+sdTheta[n]+" (n="+rsByGenotype[n].size()+")");
 				}
 			}
-			return result.toArray();
+			return Ints.toArray(result);
 		} else {
 			return null;
 		}

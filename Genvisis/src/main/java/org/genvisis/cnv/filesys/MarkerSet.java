@@ -7,6 +7,8 @@ import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.common.*;
 import org.genvisis.filesys.Segment;
 
+import com.google.common.primitives.Ints;
+
 public class MarkerSet implements Serializable, TextExport {
 	public static final long serialVersionUID = 1L;
 	public static final char[] ALLELES = {'A', 'C', 'G', 'T', 'I', 'D'};
@@ -74,7 +76,7 @@ public class MarkerSet implements Serializable, TextExport {
 		done = false;
 		for (int i = 0; !done; i++) {
 			if (i==chrs.length || chrs[i] != chr) {
-				positionsByChr[chr] = iv.toArray();
+				positionsByChr[chr] = Ints.toArray(iv);
 				chr = i==chrs.length?0:chrs[i];
 				iv = new IntVector(20000);
 			}
@@ -101,7 +103,7 @@ public class MarkerSet implements Serializable, TextExport {
 		done = false;
 		for (int i = 0; !done; i++) {
 			if (i==chrs.length || chrs[i] != chr) {
-				indicesByChr[chr] = iv.toArray();
+				indicesByChr[chr] = Ints.toArray(iv);
 				chr = i==chrs.length?0:chrs[i];
 				iv = new IntVector(20000);
 			}
