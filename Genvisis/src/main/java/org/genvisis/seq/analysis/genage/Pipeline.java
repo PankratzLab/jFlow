@@ -68,9 +68,8 @@ public class Pipeline {
 			String bamList = mitoDir + "bam.list.txt";
 			new File(mitoDir).mkdirs();
 			Files.write(bamFile, bamList);
-			String result = MitoSeqCN.run(bamList, rootOutDir,
-					ngsSample.getaType() == ASSAY_TYPE.WGS ? null : captureBed, referenceGenomeFasta,
-					ngsSample.getaName(), numthreads, log);
+			String result = MitoSeqCN.run(bamList, mitoDir, ngsSample.getaType() == ASSAY_TYPE.WGS ? null : captureBed,
+					referenceGenomeFasta, ngsSample.getaName(), ngsSample.getaType(), numthreads, log);
 			ArrayList<String> output = new ArrayList<String>();
 			output.add(result);
 			setOutput(output);
@@ -122,7 +121,7 @@ public class Pipeline {
 		}
 
 		if (!Files.exists(referenceGenome)) {
-			throw new IllegalArgumentException("Reference Genome " + inputBam + " must exist");
+			throw new IllegalArgumentException("Reference Genome " + referenceGenome + " must exist");
 		} else {
 			log.reportTimeWarning("Assuming " + referenceGenome + " matches assembly type " + sample.getaName());
 		}

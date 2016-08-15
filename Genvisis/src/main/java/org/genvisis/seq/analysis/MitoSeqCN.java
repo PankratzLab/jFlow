@@ -24,6 +24,7 @@ import org.genvisis.common.ext;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
+import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.genvisis.seq.manage.BamOps;
@@ -50,7 +51,7 @@ public class MitoSeqCN {
 	 * @return the name of the output file
 	 */
 	public static String run(String fileOfBams, String outDir, String captureBed, String referenceGenomeFasta,
-			ASSEMBLY_NAME params, int numthreads, Logger log) {
+			ASSEMBLY_NAME params, ASSAY_TYPE aType, int numthreads, Logger log) {
 		new File(outDir).mkdirs();
 
 		String output = outDir + ext.rootOf(fileOfBams) + "_mtDNACN.summary.txt";
@@ -67,8 +68,14 @@ public class MitoSeqCN {
 				genomeBinsMinusBinsCaputure = genomeBinsMinusBinsCaputure
 						.removeThese(readerCapture.loadAll(log).getStrictSegmentSet(), 21000).autosomal(true, log);
 				readerCapture.close();
+				if (aType == ASSAY_TYPE.WGS) {
+					throw new IllegalArgumentException("Capture bed must not be provided for " + aType);
+				}
 			} else {
 				log.reportTimeWarning("No capture targets defined, assuming this is WGS");
+				if (aType == ASSAY_TYPE.WXS) {
+					throw new IllegalArgumentException("Capture bed must be provided for " + aType);
+				}
 			}
 			log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bin regions");
 			if (!referenceGenome.hasContig(params.getMitoContig()) || !referenceGenome.hasContig(params.getxContig())
@@ -348,7 +355,9 @@ public class MitoSeqCN {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		run(fileOfBams, outDir, captureBed, referenceGenome, ASSEMBLY_NAME.HG19, numthreads, new Logger());
+		// run(fileOfBams, outDir, captureBed, referenceGenome,
+		// ASSEMBLY_NAME.HG19, ASSAY_TYPE.WGS, numthreads,
+		// new Logger());
 
 	}
 }

@@ -99,8 +99,6 @@ public class TelSeq {
 
 			boolean valid = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, true,
 					false, false, log);
-			System.out.println(System.getenv("PATH"));
-			System.exit(1);
 			return new Ran(valid, command);
 		}
 	}
@@ -173,9 +171,10 @@ public class TelSeq {
 		ArrayList<TelSeqResult> results = new ArrayList<TelSeq.TelSeqResult>();
 		ArrayList<String> argPopulator = new ArrayList<String>();
 		argPopulator.add("-m");// doesn't look like telseq handles RGs properly
+		// TODO switch
 		if (aType == ASSAY_TYPE.WGS) {
 			runType(threads, log, bams, results, argPopulator, outDir, TYPE.BASE);
-		} else {
+		} else if (aType == ASSAY_TYPE.WXS) {
 			if (Files.exists(captureBed)) {
 				BEDFileReader reader = new BEDFileReader(captureBed, false);
 
