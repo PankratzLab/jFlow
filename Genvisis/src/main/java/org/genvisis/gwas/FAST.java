@@ -1003,10 +1003,12 @@ public class FAST {
                     
                     for (String snp : snpSet) {
                         BufferedReader reader = Files.getAppropriateReader(dataFilesPerSNP.get(snp));
-                        String line = reader.readLine();
+                        String line = "";
                         int lineCnt = dataLinePerSNP.get(snp).intValue();
-                        for (int i = 0; line != null && i < lineCnt; i++) {
-                            line = reader.readLine();
+                        for (int i = 0; i < lineCnt+1; i++) {
+                            String l = reader.readLine();
+                            if (l == null) break;
+                            line += l;
                         }
                         reader.close();
                         HashMap<String, String[]> snpDataMap = studyPopDataPerSNP.get(study + "\t" + pop);

@@ -1097,10 +1097,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         }
         
         ArrayList<String[]> genParserLines = genParserFiltersMap.get(filterKey);
-        if (genParserLines != null) {
-            for (String[] parser : genParserLines) {
-                genParseData = GenParser.parse(parser, genParseData, log); // TODO parser needs to return data for all columns[?????]
-            }
+        if (genParserLines == null) {
+        	return null;
+        }
+        for (String[] parser : genParserLines) {
+        	genParseData = GenParser.parse(parser, genParseData, log); // TODO parser needs to return data for all columns[?????]
         }
         String selX = dataHeaderX[selectedColumnX];
         String selY = dataHeaderY != null ? dataHeaderY[selectedColumnY] : null;

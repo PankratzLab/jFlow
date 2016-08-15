@@ -562,18 +562,18 @@ public abstract class RegressionModel {
 	public static boolean[] getRowsWithCompleteData(double[] deps, double[][] indeps, Logger log) {
 		boolean[] use;
 		
-		if (deps != null && indeps != null && deps.length != indeps.length) {
+		if (deps == null || indeps == null || deps.length != indeps.length) {
 			log.reportError("Error - cannot determine rows with compelte data since the deps length and the indeps length are not equal");
-			return null;
+			return new boolean[]{};
 		}
 		
 		use = Array.booleanArray(deps.length, true);
 		for (int i = 0; i < deps.length; i++) {
-			if (deps != null && (deps[i]+"").equals("NaN")) {
+			if (Double.isNaN(deps[i])) {
 				use[i] = false;
 			}
 			for (int j = 0; j < indeps[i].length; j++) {
-				if (indeps != null && (indeps[i][j]+"").equals("NaN")) {
+				if (Double.isNaN(indeps[i][j])) {
 					use[i] = false;
 				}
 			}
@@ -583,32 +583,6 @@ public abstract class RegressionModel {
 	}	
 
 	public static boolean[] getRowsWithCompleteData(String[] deps, String[][] indeps, Logger log) {
-		boolean[] use;
-		
-		if (deps != null && indeps != null && deps.length != indeps.length) {
-			log.reportError("Error - cannot determine rows with compelte data since the deps length and the indeps length are not equal");
-			return null;
-		}
-		
-		if (deps != null) {
-			use = Array.booleanArray(deps.length, true);
-		} else if (indeps != null) {
-			use = Array.booleanArray(indeps.length, true);
-		} else {
-			log.reportError("Error - cannot determine rows with complete data from two null arrays");
-			return null;
-		}
-		for (int i = 0; i < use.length; i++) {
-			if (deps != null && ext.isMissingValue(deps[i])) {
-				use[i] = false;
-			}
-			for (int j = 0; j < indeps[i].length; j++) {
-				if (indeps != null && ext.isMissingValue(indeps[i][j])) {
-					use[i] = false;
-				}
-			}
-		}
-		
-		return use;
+		return getRowsWithCompleteData(Array.toDoubleArray(deps, true), Array.toDoubleArrays(indeps, true), log);
 	}	
 }

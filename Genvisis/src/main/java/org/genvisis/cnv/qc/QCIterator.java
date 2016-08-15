@@ -528,7 +528,7 @@ public class QCIterator implements Runnable {
 			}
 
 			if (qcIts[i % processors].getTargetPercentages()[indIndex] != allPercents[i]) {
-				log.reportError("Error - recieved unmatched results while collecting results for " + qcIts[i % processors].getOptqcs()[indIndex] + "\t" + allPercents[i]);
+				log.reportError("Error - recieved unmatched results while collecting results for " + Array.toStr(qcIts[i % processors].getOptqcs()[indIndex], ",") + "\t" + allPercents[i]);
 				System.exit(1);
 			} else if (qcIts[i % processors].getTargetPercentages()[indIndex] == allPercents[i]) {
 				allOptQcs[i] = qcIts[i % processors].getOptqcs()[indIndex];

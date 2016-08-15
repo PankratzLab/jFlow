@@ -555,7 +555,7 @@ public class CompPlot extends JFrame {
             String shortName = ((JCheckBoxMenuItem)e.getSource()).getText();
 //            if (!loadingFile) {
                 String file = regionFileNameLoc.get(shortName);
-                if (file != null && file.equals(CompPlot.this.regionNavigator.getRegionFile())) {
+                if (file == null || file.equals(CompPlot.this.regionNavigator.getRegionFile())) {
                     return;
                 }
                 String tempFile = file.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + file : file;

@@ -215,7 +215,7 @@ public class comp {
 			M = indices.length-1;
 
 			if (optionFlagged("oneperfamily") && idIndices[1] == -1) {
-				System.err.println("Error - OnePerFamily option was enabled, but the default FamID name ('"+DEFAULT_ID_NAMES[1]+"') was not found in the database; disabling option");
+				System.err.println("Error - OnePerFamily option was enabled, but the default FamID name ('"+DEFAULT_ID_NAMES[1][1]+"') was not found in the database; disabling option");
 				flagOption("oneperfamily", false);
 			}
 
@@ -1025,7 +1025,7 @@ public class comp {
 			} else {
 				dataline = vDoubleArray.elementAt(members.indexOf(ids[i][2]));
 				if (data[i][0]!=dataline[0]||data[i][1]!=dataline[1]||data[i][2]!=dataline[2]) {
-					System.err.println("Error - "+ids[i][1]+"-"+ids[i][2]+" has been genotyped twice; first as "+dataline[1]+"/"+dataline[2]+" and second as "+data[1]+"/"+data[2]+"; ignoring second");
+					System.err.println("Error - "+ids[i][1]+"-"+ids[i][2]+" has been genotyped twice; first as "+dataline[1]+"/"+dataline[2]+" and second as "+data[i][1]+"/"+data[i][2]+"; ignoring second");
 				}
 			}
 		}
@@ -1133,6 +1133,7 @@ public class comp {
 		}
 	}
 
+	//FIXME repeated code between doChis and doHWE
 	public static void doHWE(String[][] ids, double[][] data, String[] factorNames, int[] indices, boolean audit) {
 		PrintWriter writer;
 		String[] fams;
@@ -1174,7 +1175,7 @@ public class comp {
 			} else {
 				dataline = genotypes.elementAt(members.indexOf(ids[i][2]));
 				if (data[i][0]!=dataline[0]||data[i][1]!=dataline[1]||data[i][2]!=dataline[2]) {
-					System.err.println("Error - "+ids[i][1]+"-"+ids[i][2]+" has been genotyped twice; first as "+dataline[1]+"/"+dataline[2]+" and second as "+data[1]+"/"+data[2]+"; ignoring second");
+					System.err.println("Error - "+ids[i][1]+"-"+ids[i][2]+" has been genotyped twice; first as "+dataline[1]+"/"+dataline[2]+" and second as "+data[i][1]+"/"+data[i][2]+"; ignoring second");
 				}
 			}
 		}

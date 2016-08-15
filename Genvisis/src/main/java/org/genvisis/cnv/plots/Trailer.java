@@ -190,7 +190,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                     && !REGION_LIST_PLACEHOLDER.equals(shortName)
                     && !REGION_LIST_USE_CNVS.equals(shortName)) {
                 String file = regionFileNameLoc.get(shortName);
-                if (file != null && file.equals(Trailer.this.regionFileName)) {
+                if (file == null || file.equals(Trailer.this.regionFileName)) {
                     return;
                 }
                 String tempFile = file.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + file : file;

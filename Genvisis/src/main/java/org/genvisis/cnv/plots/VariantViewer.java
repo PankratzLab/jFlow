@@ -336,7 +336,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                     && !REGION_LIST_NEW_FILE.equals(shortName) 
                     && !REGION_LIST_PLACEHOLDER.equals(shortName)) {
                 String file = regionFileNameLoc.get(shortName);
-                if (file != null && file.equals(VariantViewer.this.geneFileName)) {
+                if (file == null || file.equals(VariantViewer.this.geneFileName)) {
                     return;
                 }
                 String tempFile = (file.startsWith("./") && proj != null) ? proj.PROJECT_DIRECTORY.getValue() + file : file;

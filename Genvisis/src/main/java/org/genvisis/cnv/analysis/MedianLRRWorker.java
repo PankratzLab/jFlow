@@ -228,7 +228,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		MarkerRegion[] regions = new MarkerRegion[input.length];
 		if (input != null) {
 			for (int i = 0; i < input.length; i++) {
-				process((int) Math.round((float) (i + 1 / input.length)));
+				process(Math.round((i + 1f) / input.length));
 				if (input[i].split(MARKER_REGION_DELIMITER)[0].equals(MARKER_REGION_PREFIX)) {
 					String[] regionMarkers = input[i].split(MARKER_REGION_DELIMITER);
 					if (regionMarkers.length <= 1) {

@@ -127,7 +127,7 @@ public class ParseKcol implements Runnable {
 						return;
 					}
 					if (genotypeIndices[4] == -1 && (genotypeIndices[0] == -1 || genotypeIndices[1] == -1)) {
-						System.err.println("Error - File format not consistent! The files need to contain " + Array.toStr(GENOTYPE_FIELDS[0], "/") + " and " + Array.toStr(GENOTYPE_FIELDS[1], "/") + " or " + GENOTYPE_FIELDS[4] + " (for single token calls)");
+						System.err.println("Error - File format not consistent! The files need to contain " + Array.toStr(GENOTYPE_FIELDS[0], "/") + " and " + Array.toStr(GENOTYPE_FIELDS[1], "/") + " or " + Array.toStr(GENOTYPE_FIELDS[4], ",") + " (for single token calls)");
 						return;
 					}
 					if (genotypeIndices[5] == -1 && (genotypeIndices[2] == -1 || genotypeIndices[3] == -1) && abLookup == null) {
@@ -434,6 +434,7 @@ public class ParseKcol implements Runnable {
 		return dir + trav + Sample.SAMPLE_FILE_EXTENSION;
 	}
 
+	//FIXME unify createFiles, createFilesFromLongFormat, and run methods
 	@SuppressWarnings("unchecked")
 	public static void createFiles(Project proj, int numThreads) {
 		BufferedReader reader;
@@ -571,7 +572,7 @@ public class ParseKcol implements Runnable {
 			}
 			indices = ext.indexFactors(GENOTYPE_FIELDS, line, false, true, true, false); // genotypeIndices
 			if (indices[4] == -1 && (indices[0] == -1 || indices[1] == -1)) {
-				System.err.println("Error - the files need to contain " + Array.toStr(GENOTYPE_FIELDS[0], "/") + " and " + Array.toStr(GENOTYPE_FIELDS[1], "/") + " or " + GENOTYPE_FIELDS[4] + " (for single token calls)");
+				System.err.println("Error - the files need to contain " + Array.toStr(GENOTYPE_FIELDS[0], "/") + " and " + Array.toStr(GENOTYPE_FIELDS[1], "/") + " or " + Array.toStr(GENOTYPE_FIELDS[4], "/") + " (for single token calls)");
 				return;
 			}
 			if (indices[5] == -1 && (indices[2] == -1 || indices[3] == -1)) {
@@ -816,7 +817,7 @@ public class ParseKcol implements Runnable {
 						return;
 					}
 					if (genotypeIndices[4] == -1 && (genotypeIndices[0] == -1 || genotypeIndices[1] == -1)) {
-						System.err.println("Error - File format not consistent! The files need to contain " + Array.toStr(GENOTYPE_FIELDS[0], "/") + " and " + Array.toStr(GENOTYPE_FIELDS[1], "/") + " or " + GENOTYPE_FIELDS[4] + " (for single token calls)");
+						System.err.println("Error - File format not consistent! The files need to contain " + Array.toStr(GENOTYPE_FIELDS[0], "/") + " and " + Array.toStr(GENOTYPE_FIELDS[1], "/") + " or " + Array.toStr(GENOTYPE_FIELDS[4], ",") + " (for single token calls)");
 						return;
 					}
 					if (genotypeIndices[5] == -1 && (genotypeIndices[2] == -1 || genotypeIndices[3] == -1) && abLookup == null) {

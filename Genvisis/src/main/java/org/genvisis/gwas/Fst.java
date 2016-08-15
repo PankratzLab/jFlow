@@ -206,7 +206,7 @@ public class Fst {
 	        			line = parser.nextLine();
 	        			if (line != null) {
 		        			if (!line[0].equals(markerInfo[count][0])) {
-		        				System.err.println("Error - mismatched marker order for "+keys[i]+".hwe"+"; expecting "+markerInfo[count]+" from .bim file, found "+line[0]);
+		        				System.err.println("Error - mismatched marker order for "+keys[i]+".hwe"+"; expecting "+markerInfo[count][0]+" from .bim file, found "+line[0]);
 		        				return null;
 		        			} else if (line[1].equals(markerInfo[count][4]) && line[2].equals(markerInfo[count][3])) {
 		        				reverse = true;

@@ -77,7 +77,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	byte[] alleleCounts;
 	protected ScatterPlot sp;
 	protected String[] samples;
-	protected IntVector prox;
 	protected SampleData sampleData;
 	protected IntVector indicesOfNearbySamples;
 	private boolean updateQcPanel;		//A control variable. Do not update QcPanel when resizing, or etc.
