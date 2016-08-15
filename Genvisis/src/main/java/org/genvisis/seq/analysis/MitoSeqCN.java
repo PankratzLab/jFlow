@@ -246,8 +246,8 @@ public class MitoSeqCN {
 						numOffTarget++;
 
 						if (numOffTarget % 1000000 == 0) {
-							log.reportTimeInfo("Processing normalization-reads for sample " + sample + " , found "
-									+ numOffTarget);
+							log.reportTimeInfo(
+									"Processing normalization-reads for sample " + sample + " , found " + numOffTarget);
 						}
 					}
 
