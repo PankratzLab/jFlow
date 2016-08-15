@@ -260,10 +260,10 @@ public class DosageData implements Serializable {
 	        chr = Integer.parseInt(chrStr);
 	        return (byte) chr;
 	    } catch (NumberFormatException e) {
-	        if ("X".equals(chr)) { return 23; }
-	        if ("Y".equals(chr)) { return 24; }
-	        if ("XY".equals(chr)) { return 25; }
-	        if ("MT".equals(chr)) { return 26; }
+	        if ("X".equals(chrStr)) { return 23; }
+	        if ("Y".equals(chrStr)) { return 24; }
+	        if ("XY".equals(chrStr)) { return 25; }
+	        if ("MT".equals(chrStr)) { return 26; }
 	    }
 	    System.err.println("ERROR - unrecognized PLINK .bim chr: " + chrStr);
 	    return 0;

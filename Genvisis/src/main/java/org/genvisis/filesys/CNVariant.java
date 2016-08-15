@@ -522,7 +522,7 @@ public class CNVariant extends Segment {
 		for (int i = 0; i < list1.length; i++) {
 			for (int j = 0; j < list2.length; j++) {
 
-				if (list1[i].familyID.equals(list2[j].familyID) && list1[i].equals(list2[j].individualID) && list1[i].significantOverlap(list2[j], checkLarger)) {
+				if (list1[i].familyID.equals(list2[j].familyID) && list1[i].individualID.equals(list2[j].individualID) && list1[i].significantOverlap(list2[j], checkLarger)) {
 					matched1.add(list1[i]);
 					matched2.add(list2[j]);
 				}

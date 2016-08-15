@@ -298,7 +298,7 @@ public class VCFSimpleTally {
 				while (reader.ready()) {
 					String[] line = reader.readLine().trim().split("\t");
 					String gene = line[0];
-					if (anno.contains(gene)) {
+					if (anno.containsKey(gene.toUpperCase())) {
 						throw new IllegalAccessError("One entry per gene per file");
 
 					} else {

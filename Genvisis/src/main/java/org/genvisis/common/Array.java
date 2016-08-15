@@ -1468,53 +1468,6 @@ public class Array {
 	}
 
 	/**
-	 * Calculates the standard deviation of an array
-	 * 
-	 * @param array
-	 *            an array of numbers
-	 * @return standard deviation of the array
-	 */
-	public static float stdevBigDecimal(float[] array, boolean removeNaN) {
-		BigDecimal sum;
-		int count;
-		float avg;
-		boolean first;
-		
-		if (true) {
-			System.err.println("Error - the BigDecimal version of this method doesn't currently work");
-			System.exit(1);
-		}
-		
-		sum = BigDecimal.ZERO; // can't start with zero (see workaround below), or else BigDecimal won't add properly because it will assumes scale that the scale (i.e. number of decimal places) is zero
-		count = 0;
-		first = true;
-		for (int i = 1; i<array.length; i++) {
-			if (!Float.isNaN(array[i]) || !removeNaN) {
-				if (first) {
-					sum = BigDecimal.valueOf(array[i]);
-				} else {
-					sum.add(BigDecimal.valueOf(array[i]));
-				}
-				count++;
-			}
-		}
-		avg = sum.divide(BigDecimal.valueOf(count), 8, RoundingMode.HALF_UP).floatValue();
-
-		sum = BigDecimal.ZERO;
-		for (int i = 0; i<array.length; i++) {
-			if (!Float.isNaN(array[i])) {
-				if (first) {
-					sum = BigDecimal.valueOf(Math.pow(avg-array[i], 2));
-				} else {
-					sum.add(BigDecimal.valueOf(Math.pow(avg-array[i], 2)));
-				}				
-			}
-		}
-
-		return sum.divide(BigDecimal.valueOf(count-1), 8, RoundingMode.HALF_UP).floatValue();
-	}
-	
-	/**
 	 * Normalizes (calculates z-scores) for an array of numbers
 	 * 
 	 * @param array

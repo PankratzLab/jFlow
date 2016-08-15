@@ -106,9 +106,9 @@ public class MeAnd23 {
 			this.input = input;
 			this.name = ext.rootOf(input);
 			if(name.length()>=38){
-				name.replaceAll("genome_Patient__Full_", "");
-				name.replaceAll("genome_", "");
-				name.replaceAll("Full_", "");
+				name = name.replaceAll("genome_Patient__Full_", "");
+				name = name.replaceAll("genome_", "");
+				name = name.replaceAll("Full_", "");
 			}
 			this.log = log;
 			this.plinks = PSF.Plink.getPlinkBedBimFam(ext.rootOf(input, false));

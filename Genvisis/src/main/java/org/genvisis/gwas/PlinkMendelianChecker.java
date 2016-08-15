@@ -563,12 +563,10 @@ public class PlinkMendelianChecker {
                 double[] data = sampQC.getDataFor("LRR_SD");
                 Integer indexInt = qcIndexMap.get(ped.getiDNA(i));
                 Integer faIndex = null;
-                if (ped.getFaDNAIndex(i) == -1) {
-                    if (dnaLookup.get(ped.getFID(i) + "\t" + ped.getFA(i)) != null) {
-                        faIndex = qcIndexMap.get(dnaLookup.get(ped.getFID(i) + "\t" + ped.getFA(i)));
-                    }
+                if (ped.getFaDNAIndex(i) == -1 && dnaLookup.get(ped.getFID(i) + "\t" + ped.getFA(i)) != null) {
+                	faIndex = qcIndexMap.get(dnaLookup.get(ped.getFID(i) + "\t" + ped.getFA(i)));
                 } else {
-                    faIndex = qcIndexMap.get(ped.getFaDNAIndex(i));
+                    faIndex = qcIndexMap.get(Integer.toString(ped.getFaDNAIndex(i)));
                 }
                 Integer moIndex = null;
                 if (ped.getMoDNAIndex(i) == -1) {
@@ -576,7 +574,7 @@ public class PlinkMendelianChecker {
                         moIndex = qcIndexMap.get(dnaLookup.get(ped.getFID(i) + "\t" + ped.getMO(i)));
                     }
                 } else {
-                    moIndex = qcIndexMap.get(ped.getMoDNAIndex(i));
+                    moIndex = qcIndexMap.get(ped.getMO(i));
                 }
                 if (indexInt == null) {
                     sb.append(".").append("\t");

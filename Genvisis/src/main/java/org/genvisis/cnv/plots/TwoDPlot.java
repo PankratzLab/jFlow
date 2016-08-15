@@ -23,6 +23,8 @@ import org.genvisis.cnv.var.*;
 import org.genvisis.common.*;
 import org.genvisis.parse.GenParser;
 
+import com.google.common.base.Strings;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -1551,14 +1553,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			}
 		}
 		
-		if (!filesProperty.getValue().equals(selections)) {
-			if (!message.equals("")) {
-				if(!selections.equals(""))
+		if (!Array.toStr(filesProperty.getValue()).equals(selections)) {
+			if (!Strings.isNullOrEmpty(message)) {
+				if(!Strings.isNullOrEmpty(selections))
 					message = message.substring(0, message.length()-1)+", and new variables have been selected.";
 				else
 					message = message.substring(0, message.length()-1)+", and all variables have been unselected.";
 			} else {
-				if(!selections.equals(""))
+				if(!Strings.isNullOrEmpty(selections))
 					message = "New variables have been selected.";
 				else
 					message = "All variables have been unselected from 2D Plot.";

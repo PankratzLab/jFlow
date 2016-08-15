@@ -1013,7 +1013,7 @@ public class Project {
         props = new Vector<String>();
         changes = new Vector<String>();
         loaded = Array.toStringVector(propsToSave);
-        loaded.remove(PROJECT_PROPERTIES_FILENAME);
+        loaded.remove(PROJECT_PROPERTIES_FILENAME.getValue());
         try {
             reader = new BufferedReader(new FileReader(projectPropertiesFilename));
             trav = null;

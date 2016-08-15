@@ -557,7 +557,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	        if (multiChr) {
 	            HashMap<Integer, HashMap<String, GeneData>> chrMap = new HashMap<Integer, HashMap<String,GeneData>>();
 	            for (int g = 0; g < geneData[i].length; g++) {
-                    HashMap<String, GeneData> isoMap = chrMap.get(geneData[i][g].getChr());
+                    HashMap<String, GeneData> isoMap = chrMap.get((int)geneData[i][g].getChr());
                     if (isoMap == null) {
                         isoMap = new HashMap<String, GeneData>();
                         chrMap.put((int) geneData[i][g].getChr(), isoMap);

@@ -38,6 +38,8 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.SegmentLists;
 import org.genvisis.seq.Polymutt;
 
+import com.google.common.base.Strings;
+
 public class SuperNovo {
 	public static final String[] SAMPLE_SUFFIX = new String[] {"C", "D", "M"};
 	public static final char[] BASES = new char[] {'A', 'T', 'G', 'C'};
@@ -3794,7 +3796,7 @@ public class SuperNovo {
 			} else if ((fullPathBim != null || !fullPathBim.equals("")) && new File(fullPathBim).exists() && (chr==null || chr.equals("")) && (dirSam==null || dirSam.equals(""))) {
 				scanMultipleRegionsInSamFilesOfATrioForDenovoMutations(trioId, fullpathsToSamFilenamesOfTheTrio, fullPathRefFasta, fullPathBim, dirOutputsFromTheScanningOfSamFilesForDenovoMutations, fullPathReadCounts, regionLegnthATime, numThreads, log);
 
-			} else if ((dirSam != null && !dirSam.equals("")) && fullpathsToSamFilenamesOfTheTrio == null || fullpathsToSamFilenamesOfTheTrio.equals("")) {
+			} else if (!Strings.isNullOrEmpty(dirSam) && fullpathsToSamFilenamesOfTheTrio == null) {
 				generateScriptsAllTriosInADirectoryToScanSamFilesForDenovoMutation(dirSam, fullPathRefFasta, fullPathBim, dirOutputsFromTheScanningOfSamFilesForDenovoMutations, dirScript, fullPathTrioList, dirReadCounts, regionLegnthATime, numThreads, log);
 
 			} else {

@@ -340,7 +340,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	        posMap.put(i, new ArrayList<Integer>());
 	    }
 	    for (int i = 0; i < chrs.length; i++) {
-	        posMap.get(chrs[i]).add(positions[i]);
+	        posMap.get((int)chrs[i]).add(positions[i]);
 	    }
 	    
 	    posByChr = new int[27][0];
