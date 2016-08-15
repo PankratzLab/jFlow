@@ -12,6 +12,7 @@ import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
+import org.genvisis.seq.manage.BamOps;
 import org.genvisis.sra.SRARunTable;
 import org.genvisis.sra.SRASample;
 import org.genvisis.sra.SRAUtils;
@@ -68,6 +69,7 @@ public class SRAPipeline implements Callable<Boolean> {
 		String bamDir = rootOutDir + "bams/";
 		new File(bamDir).mkdirs();
 		String bam = bamDir + ext.rootOf(inputSRA) + ".bam";
+		// if(Files.exists(bam)&&Files.exists(BamOps.verifyIndex(bamFile, log)))
 		WorkerHive<SRAConversionResult> hive = new WorkerHive<SRAUtils.SRAConversionResult>(1, 10, log);
 		hive.addCallable(new SRABamWorker(inputSRA, bam, log));
 		hive.execute(true);

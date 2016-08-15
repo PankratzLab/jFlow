@@ -74,7 +74,11 @@ public class BamOps {
 		return Files.exists(index);
 	}
 
-	private static String getAssociatedBamIndex(String bamFile) {
+	/**
+	 * @param bamFile
+	 * @return the associated
+	 */
+	public static String getAssociatedBamIndex(String bamFile) {
 		return ext.rootOf(bamFile, false) + BAI_EXT;
 	}
 
