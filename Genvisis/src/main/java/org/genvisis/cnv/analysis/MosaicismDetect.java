@@ -19,6 +19,9 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.CNVariant.CNVBuilder;
 import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 import be.ac.ulg.montefiore.run.distributions.GaussianMixtureDistribution;
 
 /**
@@ -139,7 +142,7 @@ public class MosaicismDetect {
 			}
 
 		}
-		int[] evalIndices = Array.toIntArray(evalIndicestmp);
+		int[] evalIndices = Ints.toArray(evalIndicestmp);
 		segIndices = Array.subArray(segIndices, evalIndices);
 		if (segIndices.length > 0) {
 
@@ -167,14 +170,14 @@ public class MosaicismDetect {
 					throw new IllegalStateException("Currently NaNs should have been removed");
 				}
 			}
-			int[] mosIndices = Array.toIntArray(mosIndicesTmp);
+			int[] mosIndices = Ints.toArray(mosIndicesTmp);
 			int[] positions = Array.subArray(Array.subArray(markerSet.getPositions(), segIndices), mosIndices);
 			String[] names = Array.subArray(Array.subArray(markerSet.getMarkerNames(), segIndices), mosIndices);
 			double[] bafsSub = Array.subArray(Array.subArray(bafs, segIndices), mosIndices);
 			ViterbiResult vtr = new ViterbiResult(Array.subArray(states, mosIndices), null);
 			dud = vtr.analyzeStateSequence(proj, sample, sample, seg.getChr(), positions, names, 2, false, verbose);
 			MosaicRegion[] tmp = new MosaicRegion[dud.getLoci().length];
-			double[] finalPDensit = Array.toDoubleArray(p_densityScored);
+			double[] finalPDensit = Doubles.toArray(p_densityScored);
 			for (int i = 0; i < dud.getLoci().length; i++) {
 				CNVBuilder builder = new CNVBuilder(dud.getLoci()[i]);
 				int numFMarkers = dud.getLoci()[i].getNumMarkers();
@@ -246,7 +249,7 @@ public class MosaicismDetect {
 				notMasked.add(autosomalIndices[i]);
 			}
 		}
-		autosomalIndices = Array.toIntArray(notMasked);
+		autosomalIndices = Ints.toArray(notMasked);
 		return autosomalIndices;
 	}
 

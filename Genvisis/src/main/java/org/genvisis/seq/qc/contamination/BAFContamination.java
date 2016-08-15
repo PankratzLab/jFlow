@@ -20,6 +20,9 @@ import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.RegressionModel;
+
+import com.google.common.primitives.Doubles;
+
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 public class BAFContamination {
@@ -169,7 +172,7 @@ public class BAFContamination {
 					tmp.add(geno == 2 ? bafs[i] : 1 - bafs[i]);
 				}
 			}
-			double[] tmp2 = Array.toDoubleArray(tmp);
+			double[] tmp2 = Doubles.toArray(tmp);
 			double cv = Array.stdev(tmp2, true) / Array.mean(tmp2, true);
 			System.out.println(geno + "\t" + cv);
 

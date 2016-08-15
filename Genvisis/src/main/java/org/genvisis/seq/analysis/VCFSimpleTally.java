@@ -55,6 +55,9 @@ import org.genvisis.seq.qc.FilterNGS.VariantContextFilterPass;
 import org.genvisis.seq.qc.FilterNGS.VcFilterBoolean;
 import org.genvisis.seq.qc.FilterNGS.VcFilterDouble;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 /**
  *
  *
@@ -354,7 +357,7 @@ public class VCFSimpleTally {
 	}
 
 	private static double centroid(ArrayList<Integer> al) {
-		return Array.mean(Array.toIntArray(al));
+		return Array.mean(Ints.toArray(al));
 	}
 
 	// private static double distanceSED(double cent, ArrayList<Integer> al) {
@@ -476,7 +479,7 @@ public class VCFSimpleTally {
 					currentMemberDistance.add(member.get(j));
 				}
 
-				int[] sort = Sort.trickSort(Array.toDoubleArray(distances), Array.toStringArray(currentMemberDistance));// so that member is favored when there are ties
+				int[] sort = Sort.trickSort(Doubles.toArray(distances), Array.toStringArray(currentMemberDistance));// so that member is favored when there are ties
 				// for (int j = 0; j < sort.length; j++) {
 				// System.out.println(j + "\t" + currentMemberDistance.get(sort[j]) + "\t" + distances.get(sort[j])+"\t"+al.size());
 				// }

@@ -130,7 +130,6 @@ public class FocusedSample {
 			hive.execute(true);
 			FocusedSample[] focusedSamples = hive.getResults().toArray(new FocusedSample[hive.getResults().size()]);
 			writeOutliers(newFocus, focusedSamples);
-			Array.toByteArray(new ArrayList<Byte>());
 			return focused;
 		}
 		return focused;

@@ -13,6 +13,9 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.Array;
 import org.genvisis.common.Logger;
 
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Floats;
+
 public class SampleNGS {
 	private enum DATA_TYPE {
 		GENO, X, Y, GC;
@@ -137,7 +140,7 @@ public class SampleNGS {
 			float[] fakeBAFS = new float[gcs.size()];
 			Arrays.fill(fakeLRRs, -1);
 			Arrays.fill(fakeBAFS, 0);
-			Sample samp = new Sample(sampleName, fingerprint, Array.toFloatArray(gcs), Array.toFloatArray(xs), Array.toFloatArray(ys), fakeBAFS, fakeLRRs, Array.toByteArray(geno), Array.toByteArray(geno), false);
+			Sample samp = new Sample(sampleName, fingerprint, Floats.toArray(gcs), Floats.toArray(xs), Floats.toArray(ys), fakeBAFS, fakeLRRs, Bytes.toArray(geno), Bytes.toArray(geno), false);
 			samp.saveToRandomAccessFile(dir + sampleName + Sample.SAMPLE_FILE_EXTENSION, allOutliers, sampleName);
 		}
 		return allOutliers;

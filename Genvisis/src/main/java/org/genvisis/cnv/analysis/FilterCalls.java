@@ -19,6 +19,9 @@ import org.genvisis.common.*;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
 import org.genvisis.filesys.*;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
+
 public class FilterCalls {
 	public static final int DEFAULT_MIN_SIZE_KB = 0;
 	public static final int DEFAULT_MIN_NUM_SNPS = 1;
@@ -863,7 +866,7 @@ public class FilterCalls {
 				lrr.add(lrrs[m]);
 			}
 		}
-		double[] lrrsDubs = Array.toDoubleArray(Array.toFloatArray(lrr)); 
+		double[] lrrsDubs = Doubles.toArray(lrr); 
 		cnv.medianLRR = Array.median(lrrsDubs);
 		cnv.stdevLRR = Array.stdev(lrrsDubs);
 	}
@@ -885,7 +888,7 @@ public class FilterCalls {
 			}
 		}
 
-		double[] lrrsDubs = Array.toDoubleArray(Array.toFloatArray(lrr)); 
+		double[] lrrsDubs = Doubles.toArray(lrr); 
 		newCNV.medianLRR = Array.median(lrrsDubs);
 		newCNV.stdevLRR = Array.stdev(lrrsDubs);
 		

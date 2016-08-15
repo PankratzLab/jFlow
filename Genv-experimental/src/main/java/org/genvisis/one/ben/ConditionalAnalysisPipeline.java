@@ -28,6 +28,8 @@ import org.genvisis.gwas.FAST.DataDefinitions;
 import org.genvisis.one.ScriptExecutor;
 import org.genvisis.stats.LeastSquares;
 
+import com.google.common.primitives.Doubles;
+
 public class ConditionalAnalysisPipeline {
     
     static class Region {
@@ -303,14 +305,14 @@ public class ConditionalAnalysisPipeline {
                         
                         phenoDataList.add(Double.parseDouble(parts[phenoCol]));
                         
-                        indepDataLines.add(Array.toDoubleArray(lineData));
+                        indepDataLines.add(Doubles.toArray(lineData));
                         cnt++;
                     }
                     
                 }
                 reader.close();
 
-                phenoData = Array.toDoubleArray(phenoDataList); //Double.parseDouble(parts[phenoCol]);
+                phenoData = Doubles.toArray(phenoDataList); //Double.parseDouble(parts[phenoCol]);
                 double[][] indepData = indepDataLines.toArray(new double[0][]);
                 
                 String[] cols = colNames.toArray(new String[colNames.size()]);

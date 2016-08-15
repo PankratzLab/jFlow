@@ -37,6 +37,9 @@ import org.genvisis.filesys.CNVariant.CNVBuilder;
 import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 /**
  * @author lane0212
  *
@@ -77,7 +80,7 @@ public class CNVCaller {
 		this.analysisPfbs = pfb.getPfbs();
 		this.dataAdjustments = dataAdjustments;
 		this.copyNumberDef = copyNumberDef;
-		this.analysisProjectIndices = Array.intArray(markerSet.getMarkerNames().length);
+		this.analysisProjectIndices = Array.arrayOfIndices(markerSet.getMarkerNames().length);
 		this.analysisPositions = markerSet.getPositions();
 		this.debugMode = debugMode;
 		if (lrrs.length != bafs.length || markerSet.getMarkerNames().length != lrrs.length) {
@@ -205,7 +208,7 @@ public class CNVCaller {
 		int[][] snpDistsReverse = getSNPDist(proj, markerSet, true, finalAnalysisSet);
 
 		if (chrsToCall == null) {
-			chrsToCall = Array.intArray(snpDists.length);
+			chrsToCall = Array.arrayOfIndices(snpDists.length);
 		}
 		for (int i = 0; i < chrsToCall.length; i++) {
 			int curChr = chrsToCall[i];
@@ -213,7 +216,7 @@ public class CNVCaller {
 			String chr = Positions.getChromosomeUCSC(curChr, true);
 			// if (i == 16) {
 			if (snpDists[curChr].length > MIN_MARKERS_PER_CHROMOSOME && chrIndices.containsKey(chr)) {
-				int[] currentChrIndices = Array.toIntArray(chrIndices.get(chr));
+				int[] currentChrIndices = Ints.toArray(chrIndices.get(chr));
 				int[] currentChrPositions = Array.subArray(analysisPositions, currentChrIndices);
 				double[] currentChrLrr = Array.subArray(analysisLrrs, currentChrIndices);
 				double[] currentChrBaf = Array.subArray(analysisBafs, currentChrIndices);
@@ -458,7 +461,7 @@ public class CNVCaller {
 				}
 				projectIndex++;
 			}
-			tmp[i] = Array.toIntArray(updated);
+			tmp[i] = Ints.toArray(updated);
 		}
 		int[][] snpDists = new int[tmp.length][];
 		for (int i = 0; i < tmp.length; i++) {
@@ -504,7 +507,7 @@ public class CNVCaller {
 				bafsToMedian.add(bafs[i]);
 			}
 		}
-		double median = Array.median(Array.toDoubleArray(bafsToMedian));
+		double median = Array.median(Doubles.toArray(bafsToMedian));
 		double factor = median - 0.5;
 		if (debugMode) {
 			log.reportTimeInfo("Median adjusting baf measures by " + factor);

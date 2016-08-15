@@ -1040,7 +1040,7 @@ public class Sort {
 				if (verbose) {
 					log.report("Markers were already in order", true, true, 10);
 				}
-				return Array.intArray(second.length);
+				return Array.arrayOfIndices(second.length);
 			}
 
 			mapFirstToSecond = new Hashtable<String, Hashtable<String, String>>();

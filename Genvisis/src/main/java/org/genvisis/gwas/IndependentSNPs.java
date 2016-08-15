@@ -287,7 +287,7 @@ public class IndependentSNPs {
         			pvals[index] = 3;
             		beforeIndex++;
             	} else {
-            		index = Array.indexOfMin(pvals);
+            		index = Array.minIndex(pvals);
         			pval = pvals[index]; 
                 	score = getScore(subset[index], scores, merges, missingIlluminaValues, log);
                 	bestDiff = scoreDiffThreshold;

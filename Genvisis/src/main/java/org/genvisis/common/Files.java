@@ -1009,8 +1009,8 @@ public class Files {
 					used.put(line[lookup1], hash.remove(line[lookup1]));
 				} else if (keepRowsUniqueToFile1) {
 					point = Array.stringArray(indices2.length, ".");
-					if (Array.indexOfInt(indices2, lookup2)!=-1) {
-						point[Array.indexOfInt(indices2, lookup2)] = line[lookup1];
+					if (Ints.indexOf(indices2, lookup2)!=-1) {
+						point[Ints.indexOf(indices2, lookup2)] = line[lookup1];
 					}
 					writer.println(trav+"\t"+Array.toStr(point));
 				}
@@ -1026,8 +1026,8 @@ public class Files {
 			keys = HashVec.getKeys(hash);
 			for (int i = 0; i<keys.length; i++) {
 				line = Array.stringArray(indices1.length, ".");
-				if (Array.indexOfInt(indices1, lookup1)!=-1) {
-					line[Array.indexOfInt(indices1, lookup1)] = keys[i];
+				if (Ints.indexOf(indices1, lookup1)!=-1) {
+					line[Ints.indexOf(indices1, lookup1)] = keys[i];
 				}
 				writer.println(Array.toStr(line)+"\t"+Array.toStr(hash.get(keys[i])));
 			}
@@ -1157,8 +1157,8 @@ public class Files {
 			for (int i = 0; i<rsNums.length; i++) {
 				if (!used[i]) {
 					line = Array.stringArray(indices1.length, ".");
-					if (Array.indexOfInt(indices1, lookup1)!=-1) {
-						line[Array.indexOfInt(indices1, lookup1)] = "rs"+rsNums[i];
+					if (Ints.indexOf(indices1, lookup1)!=-1) {
+						line[Ints.indexOf(indices1, lookup1)] = "rs"+rsNums[i];
 					}
 					writer.println(Array.toStr(line)+"\t0");
 				}

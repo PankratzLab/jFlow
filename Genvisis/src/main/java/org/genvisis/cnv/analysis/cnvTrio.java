@@ -26,6 +26,9 @@ import org.genvisis.common.ext;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.Segment;
+
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Doubles;
 //TODO, split the centromeres or remove?
 /**
  * Class for filtering denovo calls in offspring by BEAST SCORE and LRR_SD, and a few other metrics Filtering at the default metrics here seems to work OK
@@ -577,9 +580,10 @@ public class cnvTrio extends CNVariant {
 				float[] faLrr = faSamp.getLRRs();
 				float[] moLrr = moSamp.getLRRs();
 
-				float iStDev = Array.stdev(Array.subArray(iLrr, 0, Array.indexOfByte(chrs, (byte) 23)), true);
-				float faStDev = Array.stdev(Array.subArray(faLrr, 0, Array.indexOfByte(chrs, (byte) 23)), true);
-				float moStDev = Array.stdev(Array.subArray(moLrr, 0, Array.indexOfByte(chrs, (byte) 23)), true);
+				final int end = Bytes.indexOf(chrs, (byte) 23);
+				float iStDev = Array.stdev(Array.subArray(iLrr, 0, end), true);
+				float faStDev = Array.stdev(Array.subArray(faLrr, 0, end), true);
+				float moStDev = Array.stdev(Array.subArray(moLrr, 0, end), true);
 
 				BeastScore iBeast = getBeast(iLrr, indicesByChr, targetIndices, log);
 				BeastScore faBeast = getBeast(faLrr, indicesByChr, targetIndices, log);
@@ -612,7 +616,7 @@ public class cnvTrio extends CNVariant {
 					}
 				}
 				if (tmp.size() > 0) {
-					median = (float) Array.median(Array.toDoubleArray(Array.toFloatArray(tmp)));
+					median = (float) Array.median(Doubles.toArray(tmp));
 				}
 			}
 			return median;
@@ -744,7 +748,7 @@ public class cnvTrio extends CNVariant {
 			}
 
 		}
-		double[] beastDiffsToSort = Array.toDoubleArray(tmpMinBestDiffs);
+		double[] beastDiffsToSort = Doubles.toArray(tmpMinBestDiffs);
 		cnvTrio[] filteredCNVTrios = tmpFilteredCnvTrios.toArray(new cnvTrio[tmpFilteredCnvTrios.size()]);
 		int[] sorted = org.genvisis.common.Sort.quicksort(beastDiffsToSort, 1);
 		try {

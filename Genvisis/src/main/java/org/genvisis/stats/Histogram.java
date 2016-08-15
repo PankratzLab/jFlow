@@ -1,6 +1,7 @@
 package org.genvisis.stats;
 
 import java.io.*;
+import java.util.Arrays;
 
 import org.genvisis.common.*;
 
@@ -155,7 +156,7 @@ public class Histogram implements Serializable {
 			System.out.println(trav[0]+","+trav[1]+"\t"+travStep);
 			diff = Math.abs(determineStep(trav[0], trav[1])-step);
 			if (diff < closestDiff) {
-				best = Array.clone(trav);
+				best = Arrays.copyOf(trav, trav.length);
 				closestDiff = diff;
 			} else if (diff > closestDiff) {
 				done = true;

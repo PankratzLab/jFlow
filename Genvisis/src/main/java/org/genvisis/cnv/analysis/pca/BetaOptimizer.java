@@ -58,6 +58,8 @@ import org.genvisis.stats.Rscript.Restrictions;
 import org.genvisis.stats.Rscript.SCATTER_TYPE;
 import org.genvisis.stats.Rscript.VertLine;
 
+import com.google.common.primitives.Doubles;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -192,11 +194,11 @@ public class BetaOptimizer {
 				}
 				if (tmpGeno.size() > 0) {
 					// whew, is this inefficient or what
-					double[] genos = Array.toDoubleArray(tmpGeno);
+					double[] genos = Doubles.toArray(tmpGeno);
 					int[] tmpInt = Array.toIntArray(genos);
 					double mafMark = AlleleFreq.calcMAF(Array.countIf(tmpInt, 0), Array.countIf(tmpInt, 1), Array.countIf(tmpInt, 2));
 					if (mafMark >= maf) {
-						RegressionModel model = (RegressionModel) new LeastSquares(Array.toDoubleArray(tmpData), genos);
+						RegressionModel model = (RegressionModel) new LeastSquares(Doubles.toArray(tmpData), genos);
 						if (!model.analysisFailed()) {
 							dataBetas.add(model.getBetas()[1]);
 							meta.add(metaBetas.get(i).getBeta());
@@ -207,8 +209,8 @@ public class BetaOptimizer {
 				}
 
 			}
-			double[] correlB = Array.toDoubleArray(dataBetas);
-			double[] correlM = Array.toDoubleArray(meta);
+			double[] correlB = Doubles.toArray(dataBetas);
+			double[] correlM = Doubles.toArray(meta);
 			double[] pearsonSigned = Array.doubleArray(2, Double.NaN);
 			double[] spearmanSigned = Array.doubleArray(2, Double.NaN);
 			double[] pearsonUnSigned = Array.doubleArray(2, Double.NaN);
@@ -301,7 +303,7 @@ public class BetaOptimizer {
 								tmpPvals.add(seed);
 							}
 						}
-						pvals = Array.toDoubleArray(tmpPvals);
+						pvals = Doubles.toArray(tmpPvals);
 					}
 
 					boolean[] samplesForModels = Array.booleanArray(proj.getSamples().length, false);

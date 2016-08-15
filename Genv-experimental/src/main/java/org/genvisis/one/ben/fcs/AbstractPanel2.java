@@ -48,6 +48,8 @@ import org.genvisis.common.ext;
 import org.genvisis.mining.Distance;
 import org.genvisis.stats.Maths;
 
+import com.google.common.primitives.Bytes;
+
 import edu.stanford.facs.logicle.Logicle;
 
 public abstract class AbstractPanel2 extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
@@ -810,7 +812,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 //                  System.err.println("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+") is outside of plot range.");
                 } else {
                     
-                    if (points[i].isHighlighted() || (base && (layersInBase == null || Array.indexOfByte(layersInBase, points[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, points[i].getLayer()) >= 0)) {
+                    if (points[i].isHighlighted() || (base && (layersInBase == null || Bytes.indexOf(layersInBase, points[i].getLayer()) >= 0)) || (!base && Bytes.indexOf(extraLayersVisible, points[i].getLayer()) >= 0)) {
                         if (points[i].getLayer() == 0) {
                             if (points[i].getType() != PlotPoint.NOT_A_NUMBER) {
                                 drawPoint(g, points[i]);
@@ -867,7 +869,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 		// Draw the lines
         for (int i = 0; lines!=null && i<lines.length && flow; i++) {
-            if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, lines[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, lines[i].getLayer()) >= 0)) {
+            if ((base && (layersInBase == null || Bytes.indexOf(layersInBase, lines[i].getLayer()) >= 0)) || (!base && Bytes.indexOf(extraLayersVisible, lines[i].getLayer()) >= 0)) {
                 double x1raw = lines[i].getStartX();
                 double y1raw = lines[i].getStartY();
                 double x2raw = lines[i].getStopX();
@@ -895,7 +897,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         }
 
 		for (int i = 0; rectangles!=null && i<rectangles.length && flow; i++) {
-			if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, rectangles[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, rectangles[i].getLayer()) >= 0)) {
+			if ((base && (layersInBase == null || Bytes.indexOf(layersInBase, rectangles[i].getLayer()) >= 0)) || (!base && Bytes.indexOf(extraLayersVisible, rectangles[i].getLayer()) >= 0)) {
 				xPixel = Math.min(getXPixel(rectangles[i].getStartXValue()), getXPixel(rectangles[i].getStopXValue()));
 				yPixel = Math.min(getYPixel(rectangles[i].getStartYValue()), getYPixel(rectangles[i].getStopYValue()));
 		    	widthPixel = Math.abs(getXPixel(rectangles[i].getStartXValue()) - getXPixel(rectangles[i].getStopXValue()));
@@ -953,7 +955,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         
 		for (int i = 0; polygons !=null && i < polygons.length && flow; i++) {
 		    Graphics2D g2d = (Graphics2D) g;
-		    if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, polygons[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, polygons[i].getLayer()) >= 0)) {
+		    if ((base && (layersInBase == null || Bytes.indexOf(layersInBase, polygons[i].getLayer()) >= 0)) || (!base && Bytes.indexOf(extraLayersVisible, polygons[i].getLayer()) >= 0)) {
 		        g.setColor(colorScheme[polygons[i].getColor()]);
 		        Path2D drawPoly = pt.transform(polygons[i].getPath());
 		        if (polygons[i].getFill()) {

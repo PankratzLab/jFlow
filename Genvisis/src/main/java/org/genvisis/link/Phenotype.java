@@ -23,7 +23,7 @@ public class Phenotype {
 		phenoNames = Files.getHeaderOfFile(dir+pheno, log);
 		ext.checkHeader(phenoNames, new String[] {"FID", "IID"}, new int[] {0,1}, false, log, false);
 		System.out.println("Loading "+pheno);
-		hash = HashVec.loadFileToHashString(dir+pheno, new int[] {0,1}, Array.subArray(Array.intArray(phenoNames.length), 2), pheno.endsWith(".csv"), "\t", true, false, false);
+		hash = HashVec.loadFileToHashString(dir+pheno, new int[] {0,1}, Array.subArray(Array.arrayOfIndices(phenoNames.length), 2), pheno.endsWith(".csv"), "\t", true, false, false);
 		phenoNames = Array.subArray(phenoNames, 2);
 		writers = new PrintWriter[phenoNames.length];
 		for (int i = 0; i < writers.length; i++) {

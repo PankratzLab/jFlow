@@ -21,6 +21,8 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 
+import com.google.common.primitives.Floats;
+
 public class Mosaicism {
 	public static final String[] HEADER = {"Sample", "Arm", "#CNVs", "Summed_Size", "%covered", "Custom_metric", "LRR_SD", "LRR_SD_flag", "Flagged_via_Mosaicism", "Mosaicism_level", "Mosaicism description"};
 	public static final double LOWER_BOUND = 0.15;
@@ -227,8 +229,8 @@ public class Mosaicism {
 
 					int bafSize = bafAl.size();
 					int lrrSize = lrrAl.size();
-					float[] bafTmp = Array.toFloatArray(bafAl);
-					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t" + ext.formDeci(Array.mean(Array.toFloatArray(lrrAl)), 5) + "\t" + bafAl.size() + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t" + ext.formDeci(Array.iqrExclusive(bafTmp), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5);
+					float[] bafTmp = Floats.toArray(bafAl);
+					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t" + ext.formDeci(Array.mean(Floats.toArray(lrrAl)), 5) + "\t" + bafAl.size() + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t" + ext.formDeci(Array.iqrExclusive(bafTmp), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5);
 					result += "\t" + mosaicMetrics.getForcedCallproportionArmMosaic();
 					result += "\t" + mosaicMetrics.getBpWeightedAverageArm();
 					result += "\t" + mosaicMetrics.getBpWeightedAverageCalled();

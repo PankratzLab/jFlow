@@ -49,6 +49,8 @@ import org.genvisis.one.ben.fcs.AbstractPanel2;
 import org.genvisis.one.ben.fcs.FCSPlot;
 import org.genvisis.one.ben.fcs.sub.OneDPanel.PLOT_TYPE;
 
+import com.google.common.primitives.Doubles;
+
 public class BoxPlot extends JFrame {
     
     private static final String TITLE_STR = "BoxPlot - Genvisis";
@@ -267,7 +269,7 @@ public class BoxPlot extends JFrame {
             bp.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 2);
             bp.setAxisYWidth(AbstractPanel2.WIDTH_Y_AXIS - AbstractPanel2.WIDTH_Y_AXIS / 3);
             bp.setInsideScrollpaneAndNoZoom();
-            bp.setData(lbl, Array.toStringArray(dataSources), Array.toDoubleArray(panelData));
+            bp.setData(lbl, Array.toStringArray(dataSources), Doubles.toArray(panelData));
             bp.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
             bp.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
             bp.setYAxisLabel(lbl.split("\\|")[1].trim());

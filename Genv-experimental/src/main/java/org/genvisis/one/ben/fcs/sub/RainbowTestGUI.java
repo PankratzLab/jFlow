@@ -73,6 +73,8 @@ import org.genvisis.one.ben.fcs.gating.GateFileReader;
 import org.genvisis.one.ben.fcs.gating.GatingStrategy;
 import org.xml.sax.SAXException;
 
+import com.google.common.primitives.Doubles;
+
 
 public class RainbowTestGUI extends JFrame {
 
@@ -906,7 +908,7 @@ public class RainbowTestGUI extends JFrame {
         for (int i = 1; i < colNames.length; i++) {
             String colNm = colNames[i];
             if (paramMeanLists.containsKey(colNm)) {
-                Double mn = Array.mean(Array.toDoubleArray(paramMeanLists.get(colNm)), true);
+                Double mn = Array.mean(Doubles.toArray(paramMeanLists.get(colNm)), true);
                 paramMeans.put(colNm, mn);
                 meanRow[i] = mn;
             }

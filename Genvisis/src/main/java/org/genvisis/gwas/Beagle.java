@@ -644,7 +644,7 @@ public class Beagle {
 		        		if (!markerNames[chr-1][i].equals(markerFreq[i][0])) {
 		        			System.err.println("Error - mismatch in freq file order");
 		        		}
-		        		actualAlleleCounts = Array.subArray(alleleCounts[i], 1, alleleCounts[i].length);
+		        		actualAlleleCounts = Arrays.copyOfRange(alleleCounts[i], 1, alleleCounts[i].length);
 		        		conAllele = ALLELES[ext.indexOfStr(Array.max(actualAlleleCounts)+"", Array.toStr(actualAlleleCounts).split("\t"))+1];
 		        		writer.print(markerNames[chr-1][i]+"\t"+chrs[chr-1][i]+"\t"+positions[chr-1][i]+"\t"+avgs[i][0]+"\t"+Array.toStr(alleleCounts[i])+"\t"+conAllele+"\t"+ext.formDeci((double)Array.max(actualAlleleCounts)/(double)Array.sum(actualAlleleCounts), 5));
 		        		if (conAllele.equals("0")) {
@@ -954,7 +954,7 @@ public class Beagle {
 							
 							for (int j = 0; j < 2; j++) {
 								data[0] = line[1-j];
-								HashVec.addToHashArrayVec(hash, line[j], Array.clone(data));
+								HashVec.addToHashArrayVec(hash, line[j], Arrays.copyOf(data, data.length));
 							}
 						}
 					}

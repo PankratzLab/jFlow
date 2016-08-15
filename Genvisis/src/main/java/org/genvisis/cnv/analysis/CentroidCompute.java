@@ -19,6 +19,8 @@ import org.genvisis.common.ext;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.stats.Maths;
 
+import com.google.common.primitives.Doubles;
+
 /**
  * A class for centroid related computations for a single {@link MarkerData}
  * <p>
@@ -343,7 +345,7 @@ public class CentroidCompute {
 				}
 			}
 
-			double[] xsFilt = Array.toDoubleArray(filteredXs);
+			double[] xsFilt = Doubles.toArray(filteredXs);
 			double[] xsFiltLog2 = Array.log2(xsFilt);
 
 			centerRs[0] = Double.NaN;
@@ -473,7 +475,7 @@ public class CentroidCompute {
 		}
 
 		public double[] getAt(int index) {
-			return Array.toDoubleArray(arraySpecialLists[index]);
+			return Doubles.toArray(arraySpecialLists[index]);
 		}
 
 		public double getMedianAt(int index) {

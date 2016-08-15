@@ -613,8 +613,8 @@ public class Centroids implements Serializable, TextExport {
         }
         sexData = HashVec.loadFileToHashVec(sampleDataFile, 0, new int[] { sexInd }, "\t", true, false);
         
-        inclSampMales = Array.clone(inclSampAll);
-        inclSampFemales = Array.clone(inclSampAll);
+        inclSampMales = Arrays.copyOf(inclSampAll, inclSampAll.length);
+        inclSampFemales = Arrays.copyOf(inclSampAll, inclSampAll.length);
         sampleSex = new int[inclSampAll.length];
         for (int i = 0; i < samples.length; i++) {
             int sex = sampleData.getSexForIndividual(samples[i]);

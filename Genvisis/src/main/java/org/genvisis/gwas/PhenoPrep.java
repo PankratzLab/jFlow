@@ -418,7 +418,7 @@ public class PhenoPrep {
 		double[][] indeps;
 		
 		deps = Matrix.extractColumn(database, 0);
-		indeps = Matrix.extractColumns(database, Array.subArray(Array.intArray(database[0].length), 1));
+		indeps = Matrix.extractColumns(database, Array.subArray(Array.arrayOfIndices(database[0].length), 1));
 		
 		reg = new LeastSquares(deps, indeps, null, false, true);
 		

@@ -71,6 +71,9 @@ import org.genvisis.one.ben.fcs.FCSPlot;
 import org.genvisis.one.ben.fcs.sub.MeanCtrlPanel.LabelPresenter;
 import org.genvisis.one.ben.fcs.sub.OneDPanel.PLOT_TYPE;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
+
 
 public class ControlsQCGUI extends JFrame {
 
@@ -594,7 +597,7 @@ public class ControlsQCGUI extends JFrame {
 
         meanPanel.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
         meanPanel.setYAxisLabel(col.split("\\|")[1].trim());
-        meanPanel.setData(col, new String[][]{baseLbls, compLbls.toArray(new String[compLbls.size()])}, new double[][]{yDataBase, Array.toDoubleArray(compDbls)});
+        meanPanel.setData(col, new String[][]{baseLbls, compLbls.toArray(new String[compLbls.size()])}, new double[][]{yDataBase, Doubles.toArray(compDbls)});
         meanPanel.paintAgain();
         meanFrame.setTitle("jFlow - Control QC - Overall Mean/SD - " + col);
         meanFrame.setVisible(true);
@@ -1095,7 +1098,7 @@ public class ControlsQCGUI extends JFrame {
         for (int i = 2; i < colNames.length; i++) {
             String colNm = paramNames[i-2];
             if (paramMeanLists.containsKey(colNm)) {
-                Float mn = Array.mean(Array.toFloatArray(paramMeanLists.get(colNm)), true);
+                Float mn = Array.mean(Floats.toArray(paramMeanLists.get(colNm)), true);
                 paramMeans.put(colNm, mn);
                 meanRow[i] = mn;
             }

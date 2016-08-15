@@ -11,6 +11,9 @@ import org.genvisis.common.Logger;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.Segment;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
+
 /**
  * Class to compute beast scores similar to the beast algorithm http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0086272. Values are always inverse normalized with 5df, and scaled by the empirically derived SCALE_FACTOR_MAD. NaN data is discouraged, but is ignored; Note: Since the input data is always inverse normalized, the MAD for a region (such as a cnv) is the median of the (absolute value) inverse normalized data across that region (scaled by the MAD of the superset i.e the chromosome) Note: one difference to the score scheme is that a min/max length parameter has not been added. i.e(length<=min -> score=0, length>=max -> height goes to min height. This may make long cnv calls have inflated scores.
  */
@@ -43,8 +46,8 @@ public class BeastScore {
 	public BeastScore(float[] inputData, int[][] indicesToChunk, int[][] indicesForScores, Logger log) {
 		super();
 		this.inputData = inputData;
-		this.indicesToChunk = indicesToChunk == null ? new int[][] { Array.intArray(inputData.length) } : indicesToChunk;
-		this.indicesForScores = indicesForScores == null ? new int[][] { Array.intArray(inputData.length) } : indicesForScores;
+		this.indicesToChunk = indicesToChunk == null ? new int[][] { Array.arrayOfIndices(inputData.length) } : indicesToChunk;
+		this.indicesForScores = indicesForScores == null ? new int[][] { Array.arrayOfIndices(inputData.length) } : indicesForScores;
 		this.beastHeights = new float[this.indicesForScores.length];
 		this.beastScores = new float[this.indicesForScores.length];
 		this.beastLengths = new int[this.indicesForScores.length];
@@ -151,7 +154,7 @@ public class BeastScore {
 						medianIndices.add(Math.abs(inverseTransformedData[index]));
 					}
 				}
-				indicesMADScaled[i] = (float) (Array.median(Array.toDoubleArray(Array.toFloatArray(medianIndices))) / scaleFactorMAD);
+				indicesMADScaled[i] = (float) (Array.median(Doubles.toArray(medianIndices)) / scaleFactorMAD);
 			}
 		}
 		return indicesMADScaled;
@@ -205,7 +208,7 @@ public class BeastScore {
 				}
 			}
 			if (medianHeightIndices.size() > 0) {
-				beastHeights[i] = (float) (Array.median(Array.toDoubleArray(Array.toFloatArray(medianHeightIndices))));
+				beastHeights[i] = (float) (Array.median(Doubles.toArray(medianHeightIndices)));
 			} else {
 				beastHeights[i] = Float.NaN;
 			}

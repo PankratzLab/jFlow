@@ -19,6 +19,8 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
+import com.google.common.primitives.Ints;
+
 public class Segment implements Serializable {
 	@Override
 	public int hashCode() {
@@ -558,7 +560,7 @@ public class Segment implements Serializable {
 					break;
 				}
 			}
-			return Array.toIntegerArray(overlaps);
+			return Ints.toArray(overlaps);
 		}
 	}
 	

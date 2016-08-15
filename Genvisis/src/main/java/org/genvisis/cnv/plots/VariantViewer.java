@@ -99,6 +99,8 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
 
+import com.google.common.primitives.Ints;
+
 public class VariantViewer extends JFrame implements ActionListener, MouseListener, MouseMotionListener, MouseWheelListener {
 	private static final String COLLAPSE_ISOFORMS_KEY = "Collapse Isoforms";
 
@@ -2708,7 +2710,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	    
         
         ArrayList<String> popColumnIds = new ArrayList<String>();
-        int[] cols = Array.toIntArray(classCols);
+        int[] cols = Ints.toArray(classCols);
         for (int o : cols) {
             String hdr = header[o];
             popColumnIds.add(hdr.substring("class=".length(), hdr.indexOf(";") == -1 ? hdr.length() : hdr.indexOf(";")));

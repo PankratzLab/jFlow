@@ -1071,7 +1071,7 @@ public class SeqMeta {
 				keeps[4] = false;
 			}
 
-			if (ext.checkHeader(Array.subArray(header, keeps), HEADER_TYPES[0], Array.intArray(HEADER_TYPES[0].length), false, log, false)) {
+			if (ext.checkHeader(Array.subArray(header, keeps), HEADER_TYPES[0], Array.arrayOfIndices(HEADER_TYPES[0].length), false, log, false)) {
 				pvalIndex = ext.indexOfStr("p", header, false, true);
 				mafIndex = ext.indexOfStr("maf", header, false, true);
 				ntotalIndex = ext.indexOfStr("ntotal", header, false, true);
@@ -1749,7 +1749,7 @@ public class SeqMeta {
 			keeps[4] = false;
 		}
 
-		if (!ext.checkHeader(Array.subArray(header, keeps), expected, Array.intArray(expected.length), false, log, false)) {
+		if (!ext.checkHeader(Array.subArray(header, keeps), expected, Array.arrayOfIndices(expected.length), false, log, false)) {
 			log.reportError("Error - unexpected header for file "+filename);
 			System.exit(1);
 		}
@@ -3034,7 +3034,7 @@ public class SeqMeta {
 				} else if (!temp.equals(delimiter)) {
 					log.reportError("Different delimiter found in "+filenames[i]+" when trying to create "+outputFilename);
 				}
-				if (!ext.checkHeader(header.split(delimiter, -1), HEADER_TYPES[0], Array.intArray(HEADER_TYPES[0].length), false, log, false)) {
+				if (!ext.checkHeader(header.split(delimiter, -1), HEADER_TYPES[0], Array.arrayOfIndices(HEADER_TYPES[0].length), false, log, false)) {
 					log.reportError("Error - unexpected header for file '"+outputFilename+"' : "+header);
 					readers[i].close();
 				}

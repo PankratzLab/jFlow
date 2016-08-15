@@ -29,6 +29,9 @@ import org.genvisis.stats.Correlation;
 import org.genvisis.stats.ICC;
 import org.genvisis.stats.IrrTable;
 import org.genvisis.stats.Quantiles;
+
+import com.google.common.primitives.Doubles;
+
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 public class PrincipalComponentsEval {
@@ -83,8 +86,8 @@ public class PrincipalComponentsEval {
 				residHave.add(Double.valueOf(data[j]));
 			}
 		}
-		double[] evals = Array.toDoubleArray(evalHave);
-		double[] resids = Array.toDoubleArray(residHave);
+		double[] evals = Doubles.toArray(evalHave);
+		double[] resids = Doubles.toArray(residHave);
 		double[] iccData = new double[evals.length * 2];
 		String[] ICCDef_METHODS = new String[evals.length * 2];
 		String[] ICCDef_MATCHED = new String[evals.length * 2];

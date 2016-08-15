@@ -8,6 +8,8 @@ import org.apache.commons.math3.stat.ranking.RankingAlgorithm;
 import org.apache.commons.math3.stat.ranking.TiesStrategy;
 import org.genvisis.common.Array;
 
+import com.google.common.primitives.Doubles;
+
 public class QuantileMathCommonsNormalization {
 	private static final RankingAlgorithm COV_RANKER_TIE = new NaturalRanking(NaNStrategy.FAILED, TiesStrategy.AVERAGE);
 
@@ -106,9 +108,9 @@ public class QuantileMathCommonsNormalization {
 			if (needsReplacement) {
 				double replacementValue;
 				if (useMedian) {
-					replacementValue = Array.median(Array.toDoubleArray(nonNAvalues));
+					replacementValue = Array.median(Doubles.toArray(nonNAvalues));
 				} else {
-					replacementValue = Array.mean(Array.toDoubleArray(nonNAvalues));
+					replacementValue = Array.mean(Doubles.toArray(nonNAvalues));
 
 				}
 

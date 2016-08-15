@@ -15,6 +15,8 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 
+import com.google.common.primitives.Ints;
+
 
 
 public class Ancestry {
@@ -215,7 +217,7 @@ public class Ancestry {
 				
 				
 			}
-			PCImputeRace pcir = new PCImputeRace(proj, fidiids, pc1, pc2, Array.toIntArray(europeans), Array.toIntArray(africans), Array.toIntArray(asians), proj.getLog());
+			PCImputeRace pcir = new PCImputeRace(proj, fidiids, pc1, pc2, Ints.toArray(europeans), Ints.toArray(africans), Ints.toArray(asians), proj.getLog());
 			pcir.correctPCsToRace(dir+RACE_IMPUTATIONAS_FILENAME);
 		}
 		

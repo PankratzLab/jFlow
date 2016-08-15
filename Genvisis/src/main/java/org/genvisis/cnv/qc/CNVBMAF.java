@@ -9,6 +9,8 @@ import org.genvisis.common.Array;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 
+import com.google.common.primitives.Doubles;
+
 /**
  * Class to compute a QC metric based on B-allele MINOR allele frequency (BMAF) "min(medianBAF, 1-medianBAF)
  *
@@ -92,16 +94,16 @@ public class CNVBMAF extends CNVBDeviation {
 	public void summarize(double genoHetPenalty, double bafHetPenalty, String summaryType, Logger log) {
 		super.summarize();
 		if (bmafNonHet.size() > 0) {
-			bmafMetric = Array.sum(Array.toDoubleArray(bmafNonHet));
+			bmafMetric = Array.sum(Doubles.toArray(bmafNonHet));
 			if (summaryType.equals(SUMMARY_BY_NUM_ALL_MARKERS)) {
 				bmafMetric /= bmafAll.size();
 			} else if (summaryType.equals(SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY)) {
 				bmafMetric /= bmafAll.size();
 				if (bmafHet.size() > 0) {
-					bmafMetric -= Array.mean(Array.toDoubleArray(bmafHet));
+					bmafMetric -= Array.mean(Doubles.toArray(bmafHet));
 				}
 			} else if (summaryType.equals(SUMMARY_BY_SUM_BMAF_ALL_MARKERS)) {
-				bmafMetric /= Array.sum(Array.toDoubleArray(bmafAll));
+				bmafMetric /= Array.sum(Doubles.toArray(bmafAll));
 			} else {
 				log.reportError("Error - internal error, invalid summary type");
 				bmafMetric = Double.NaN;

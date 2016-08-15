@@ -12,6 +12,8 @@ import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
+import com.google.common.primitives.Doubles;
+
 /**
  * Generates a matrix for comparing multiple columns of data,
  *
@@ -237,7 +239,7 @@ public class StatsCrossTabs {
 			log.reportTimeWarning(titles[1] + " had " + numNansC2 + " NaN value(s)");
 			log.reportTimeWarning("Retaining " + c1.size() + " matched values for correlations");
 		}
-		return new double[][] { Array.toDoubleArray(c1), Array.toDoubleArray(c2) };
+		return new double[][] { Doubles.toArray(c1), Doubles.toArray(c2) };
 	}
 
 	public static void test() {

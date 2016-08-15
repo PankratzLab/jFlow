@@ -402,7 +402,7 @@ public class BurdenMatrix implements Serializable {
 
 		traits = Files.getHeaderOfFile(phenoFile, Files.determineDelimiter(phenoFile, log), log);
 		names = Array.subArray(traits, 1);
-		hash = HashVec.loadFileToHashString(phenoFile, new int[] {0}, Array.subArray(Array.intArray(traits.length), 1, traits.length), phenoFile.endsWith(".csv"), "\t", true, false, false);
+		hash = HashVec.loadFileToHashString(phenoFile, new int[] {0}, Arrays.copyOfRange(Array.arrayOfIndices(traits.length), 1, traits.length), phenoFile.endsWith(".csv"), "\t", true, false, false);
 		traits = Array.subArray(traits, 1);
 		log.report("Missing phenotype is set to '"+phenoMissingValue+"'");
 

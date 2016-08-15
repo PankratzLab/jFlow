@@ -212,7 +212,7 @@ public class GenotypeMatrix implements Serializable {
 
 		traits = Files.getHeaderOfFile(phenoFile, Files.determineDelimiter(phenoFile, log), log);
 		names = Array.subArray(traits, 1);
-		hash = HashVec.loadFileToHashString(phenoFile, new int[] {0}, Array.subArray(Array.intArray(traits.length), 1, traits.length), phenoFile.endsWith(".csv"), "\t", true, false, false);
+		hash = HashVec.loadFileToHashString(phenoFile, new int[] {0}, Arrays.copyOfRange(Array.arrayOfIndices(traits.length), 1, traits.length), phenoFile.endsWith(".csv"), "\t", true, false, false);
 		traits = Array.subArray(traits, 1);
 		log.report("Missing phenotype is set to '"+phenoMissingValue+"'");
 
@@ -263,7 +263,8 @@ public class GenotypeMatrix implements Serializable {
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(phenoFile, false)+".results."+(logistic?"logistic":"linear")));
 			w2 = new PrintWriter(new FileWriter(ext.rootOf(phenoFile, false)+".se.metal"));
-			line = Array.clone(logistic?Plink.LOGISTIC_SE_HEADER:Plink.LINEAR_SE_HEADER);
+			String[] arr = logistic?Plink.LOGISTIC_SE_HEADER:Plink.LINEAR_SE_HEADER;
+			line = Arrays.copyOf(arr, arr.length);
 			line[1] = line[1]+"      ";
 			line[2] = line[1]+"      ";
 			writer.println(Array.toStr(line));

@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.genvisis.common.Array;
 import org.genvisis.common.Logger;
@@ -229,7 +230,7 @@ public class ReferenceGenome {
 		}
 		byte[] subTmp = null;
 		try {
-			subTmp = Array.subArray(currentSeq, start, stop);
+			subTmp = Arrays.copyOfRange(currentSeq, start, stop);
 		} catch (Exception e) {
 			log.reportTimeError("Could not extract bases:");
 			log.reportTimeError("Segment: " + segment.getUCSClocation());

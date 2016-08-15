@@ -17,6 +17,9 @@ import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 /**
  * Looking at large ( all or half) of chromosome structural variants
  *
@@ -52,7 +55,7 @@ public class ChromosomalSV {
 			allMedians[i] = Double.NaN;
 			if (summaryMedian.containsKey(i + "") && summaryMedian.get(i + "").size() > 2) {
 				ArrayList<Double> tmp = summaryMedian.get(i + "");
-				double[] d = Array.removeNaN(Array.toDoubleArray(tmp));
+				double[] d = Array.removeNaN(Doubles.toArray(tmp));
 				allMedians[i] = Array.median(d);
 			}
 		}
@@ -173,7 +176,7 @@ public class ChromosomalSV {
 					noOffTarget.add(indices[j]);
 				}
 			}
-			indices=Array.toIntArray(noOffTarget);
+			indices=Ints.toArray(noOffTarget);
 			ChrResult chrResultAll = getResult(lrrs, i, indices, TYPE.ALL);
 			results[i][0] = chrResultAll;
 			int[] bounds = boundaries[i];
@@ -187,8 +190,8 @@ public class ChromosomalSV {
 					right.add(indices[j]);
 				}
 			}
-			ChrResult chrResultLeft = getResult(lrrs, i, Array.toIntArray(left), TYPE.LEFT);
-			ChrResult chrResultRight = getResult(lrrs, i, Array.toIntArray(right), TYPE.RIGHT);
+			ChrResult chrResultLeft = getResult(lrrs, i, Ints.toArray(left), TYPE.LEFT);
+			ChrResult chrResultRight = getResult(lrrs, i, Ints.toArray(right), TYPE.RIGHT);
 			results[i][1] = chrResultLeft;
 			results[i][2] = chrResultRight;
 

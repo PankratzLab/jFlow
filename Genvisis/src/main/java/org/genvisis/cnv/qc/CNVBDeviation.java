@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import org.genvisis.common.Array;
 import org.genvisis.common.ext;
 
+import com.google.common.primitives.Doubles;
+
 /**
  * Class for computing the B-Deviation for markers in a cnv call, similar to http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2963811/pdf/1469.pdf <br>
  * Currently this is designed to compute markers on the fly...and does not maintain a copy of the input data <br>
@@ -80,11 +82,11 @@ public class CNVBDeviation {
 
 	public void summarize() {
 		if (bDeviationsAll.size() > 0) {
-			double[] bDeviationsDAll = Array.toDoubleArray(bDeviationsAll);
+			double[] bDeviationsDAll = Doubles.toArray(bDeviationsAll);
 			medianBDeviationAll = Array.median(bDeviationsDAll);
 		}
 		if (bDeviationsHet.size() > 0) {
-			double[] bDeviationsDHet = Array.toDoubleArray(bDeviationsHet);
+			double[] bDeviationsDHet = Doubles.toArray(bDeviationsHet);
 			medianBDeviationHet = Array.median(bDeviationsDHet);
 		}
 	}

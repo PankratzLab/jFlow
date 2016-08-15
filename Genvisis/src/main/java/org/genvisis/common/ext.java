@@ -1420,7 +1420,7 @@ public class ext {
 	            returnList.add(ent);
 	        }
 	    }
-	    return Array.toIntArray(returnList);
+	    return Ints.toArray(returnList);
 	}
 
 	public static byte parseByteArg(String arg) {

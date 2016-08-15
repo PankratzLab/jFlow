@@ -35,6 +35,8 @@ import org.genvisis.stats.Rscript.RScatter;
 import org.genvisis.stats.Rscript.RScatters;
 import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
+import com.google.common.primitives.Doubles;
+
 public class MarkerBlastIterator {
 
 	private static final String[] PLOT_FILE_HEADER = new String[] { "MarkerName", "PercentAppropriateMatch", "EvalAppropriateMatch", "AvgCrossHybPercentMatch", "AvgCrossHybEval", "AvgCrossHybLength", "NumCrossHyb" };
@@ -235,11 +237,11 @@ public class MarkerBlastIterator {
 				//numMarkers++;
 				int markerIndex = indices.get(summaries.get(k).getMarkerName());
 				if (summaries.get(k).isHasAppropriateMatch()) {
-					if (summaries.get(k).getCrossHybLength().size() == 0 || Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())) < oneHitWonderDef) {
+					if (summaries.get(k).getCrossHybLength().size() == 0 || Array.max(Doubles.toArray(summaries.get(k).getCrossHybLength())) < oneHitWonderDef) {
 						oneHitters.add(summaries.get(k).getMarkerName());
 					} else {
 						notOneHitters.add(summaries.get(k).getMarkerName() + "\t" + markerSet.getChrs()[markerIndex]);
-						notOneHittersMaxCrossHybe.add(Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())));
+						notOneHittersMaxCrossHybe.add(Array.max(Doubles.toArray(summaries.get(k).getCrossHybLength())));
 					}
 					if (parser.getNumericDataForTitle("MAF")[markerIndex] > mafFilter) {
 						if (summaries.get(k).getCrossHybLength().size() > 0) {
@@ -249,14 +251,14 @@ public class MarkerBlastIterator {
 									BLAST_METRICS metric = BLAST_METRICS.values()[m];
 									switch (metric) {
 									case CROSS_HYBE_EVAL:
-										dHistograms[m][l].addDataPair(Array.min(Array.toDoubleArray(summaries.get(k).getCrossHybEvalue())), parser.getNumericData()[l][markerIndex]);
+										dHistograms[m][l].addDataPair(Array.min(Doubles.toArray(summaries.get(k).getCrossHybEvalue())), parser.getNumericData()[l][markerIndex]);
 										break;
 									case CROSS_HYBE_LENGTH:
-										dHistograms[m][l].addDataPair(Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())), parser.getNumericData()[l][markerIndex]);
+										dHistograms[m][l].addDataPair(Array.max(Doubles.toArray(summaries.get(k).getCrossHybLength())), parser.getNumericData()[l][markerIndex]);
 
 										break;
 									case CROSS_HYBE_PERCENT_MATCH:
-										dHistograms[m][l].addDataPair((double) Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())) / proj.getArrayType().getProbeLength(), parser.getNumericData()[l][markerIndex]);
+										dHistograms[m][l].addDataPair((double) Array.max(Doubles.toArray(summaries.get(k).getCrossHybLength())) / proj.getArrayType().getProbeLength(), parser.getNumericData()[l][markerIndex]);
 										break;
 									case GC_CONTENT:
 										if (!Double.isNaN(summaries.get(k).getGcContent())) {
@@ -275,7 +277,7 @@ public class MarkerBlastIterator {
 				} else {
 					noAppropriateMatch.add(summaries.get(k).getMarkerName() + "\t" + markerSet.getChrs()[markerIndex]);
 					if (summaries.get(k).getCrossHybLength().size() > 0) {
-						noAppropriateMatchMaxCrossHybe.add(Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())));
+						noAppropriateMatchMaxCrossHybe.add(Array.max(Doubles.toArray(summaries.get(k).getCrossHybLength())));
 					} else {
 						noAppropriateMatchMaxCrossHybe.add((double) 0);
 					}
@@ -405,7 +407,7 @@ public class MarkerBlastIterator {
 	}
 
 	private static void dumpMiss(Logger log, int oneHitWonderDef, String output, ArrayList<String> notOneHitters, ArrayList<Double> notOneHittersMaxCrossHybe) {
-		int[] sorted = Sort.quicksort(Array.toDoubleArray(notOneHittersMaxCrossHybe));
+		int[] sorted = Sort.quicksort(Doubles.toArray(notOneHittersMaxCrossHybe));
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 			for (int j = 0; j < sorted.length; j++) {

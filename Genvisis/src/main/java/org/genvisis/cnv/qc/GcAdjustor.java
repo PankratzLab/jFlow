@@ -31,6 +31,10 @@ import org.genvisis.stats.CrossValidation;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 import org.genvisis.stats.Stats;
 
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 
@@ -352,13 +356,13 @@ public class GcAdjustor {
 									currentBin++;
 									if (chrs[indicesByChr[i][j]] == 11) {
 										if (tmpCurrentBinChr11.size() > numSnpMAD) {
-											tmpchr11qcIndices.add(Array.toIntegerArray(tmpCurrentBinChr11));
+											tmpchr11qcIndices.add(Ints.toArray(tmpCurrentBinChr11));
 										} else {
 											tmpchr11qcIndices.add(null);
 										}
 									}
 									if (tmpCurrentBin.size() > numSnpMAD) {// skip small sized bins
-										tmpQcIndices.add(Array.toIntegerArray(tmpCurrentBin));
+										tmpQcIndices.add(Ints.toArray(tmpCurrentBin));
 									} else {
 										tmpQcIndices.add(null);
 									}
@@ -407,9 +411,9 @@ public class GcAdjustor {
 
 				}
 				if (tmpCurrentBin.size() > numSnpMAD) {// add any leftovers
-					tmpQcIndices.add(Array.toIntegerArray(tmpCurrentBin));
+					tmpQcIndices.add(Ints.toArray(tmpCurrentBin));
 					if (chrs[indicesByChr[i][0]] == 11) {
-						tmpchr11qcIndices.add(Array.toIntegerArray(tmpCurrentBinChr11));
+						tmpchr11qcIndices.add(Ints.toArray(tmpCurrentBinChr11));
 					}
 				} else {
 					if (indicesByChr[i].length > 0 && chrs[indicesByChr[i][0]] == 11) {
@@ -428,11 +432,11 @@ public class GcAdjustor {
 				
 
 			} else {
-				this.regressionGcs = Array.toDoubleArray(tmpRegressGcs);
-				this.regressionIntensity = Array.toDoubleArray(tmpRegressIntensity);
-				this.fullGcs = Array.toDoubleArray(tmpFullGcs);
-				this.fullIntensity = Array.toDoubleArray(tmpFullIntensity);
-				this.correctedIndices = Array.toIntegerArray(tmpCorrectedIndices);
+				this.regressionGcs = Doubles.toArray(tmpRegressGcs);
+				this.regressionIntensity = Doubles.toArray(tmpRegressIntensity);
+				this.fullGcs = Doubles.toArray(tmpFullGcs);
+				this.fullIntensity = Doubles.toArray(tmpFullIntensity);
+				this.correctedIndices = Ints.toArray(tmpCorrectedIndices);
 				if (verbose) {
 					proj.getLog().report("Info - using " + regressionIntensity.length + " of " + markers.length + " markers for regression model");
 					proj.getLog().report("Info - " + fullIntensity.length + " of " + markers.length + " markers had a valid gc and a valid LRR for correction ");
@@ -489,7 +493,7 @@ public class GcAdjustor {
 			}
 		}
 
-		double wf = Array.mad(Array.toDoubleArray(medianIntensity));
+		double wf = Array.mad(Doubles.toArray(medianIntensity));
 		if (pennCNVGCBins != null) {// Used for PennCNV bins, if not supplied we use what we found above
 			if (pennCNVGCBins.length != DEFUALT_PENNCNV_CHR11_GC_BINS.length) {
 				log.reportError("Error - default PennCNV GC bins and current data do not match up, computing using full autosomal bins instead");
@@ -509,7 +513,7 @@ public class GcAdjustor {
 				log.report("Info - computing GCWF using " + medianGc.size() + " elements");
 			}
 		}
-		double cc = org.genvisis.stats.Correlation.Pearson(Array.toDoubleArray(medianIntensity), Array.toDoubleArray(medianGc))[0];
+		double cc = org.genvisis.stats.Correlation.Pearson(Doubles.toArray(medianIntensity), Doubles.toArray(medianGc))[0];
 		waves[0] = cc > 0 ? -1 * wf : wf;
 		waves[1] = waves[0] * Math.abs(cc);
 		return waves;
@@ -875,7 +879,7 @@ public class GcAdjustor {
 					return null;
 				} else {
 					log.report("Info - loaded " + markers.size() + " markers from gc model file " + fullPathToGcModel);
-					GcModel gcModel = new GcModel(Array.toStringArray(markers), Array.toByteArray(chrs), Array.toIntegerArray(positions), Array.toDoubleArray(gcs), index, log);
+					GcModel gcModel = new GcModel(Array.toStringArray(markers), Bytes.toArray(chrs), Ints.toArray(positions), Doubles.toArray(gcs), index, log);
 					gcModel.Serialize(fullPathToGcSer);
 					return gcModel;
 				}
@@ -920,11 +924,8 @@ public class GcAdjustor {
 	public static GcAdjustor getComputedAdjustor(Project proj, String sample, GcAdjustorParameter gcParameters, PreparedMarkerSet preparedMarkerSet, float[] markerIntensities, GcModel gcModel, GC_CORRECTION_METHOD correctionMethod, boolean computePrior, boolean computePost, boolean verbose) {
 		GCAdjustorBuilder builder = new GCAdjustorBuilder();
 		builder.correctionMethod(correctionMethod);
-		builder.verbose(verbose);
-		GcAdjustor gcAdjustor = builder.build(proj, preparedMarkerSet, gcModel, Array.toDoubleArray(markerIntensities));
-		gcAdjustor.correctIntensities(sample, gcParameters);
-		gcAdjustor.computeQCMetrics(computePrior, computePost);
-		return gcAdjustor;
+		return getComputedAdjustor(proj, builder, sample, gcParameters, preparedMarkerSet, markerIntensities, gcModel,
+				computePrior, computePost, verbose);
 	}
 
 	public static GcAdjustor getComputedAdjustor(Project proj, GCAdjustorBuilder builder, String sample, GcAdjustorParameter gcParameters, PreparedMarkerSet preparedMarkerSet, float[] markerIntensities, GcModel gcModel, boolean computePrior, boolean computePost, boolean verbose) {

@@ -15,6 +15,9 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Ints;
+
 public abstract class LocusSet<T extends Segment> implements Serializable {
 	/**
 	 * 
@@ -279,7 +282,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 					exacts.add(overlaps[i]);
 				}
 			}
-			return Array.toIntArray(exacts);
+			return Ints.toArray(exacts);
 		}
 	}
 
@@ -445,12 +448,12 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 			tracks.get(loci[i].getChr()).add(loci[i].getStart());
 			tracks.get(loci[i].getChr()).add(loci[i].getStop());
 		}
-		byte[] sortedChr = Array.toByteArray(uniqueChrs);
+		byte[] sortedChr = Bytes.toArray(uniqueChrs);
 		Arrays.sort(sortedChr);
 		int[][] startsStopsByChr = new int[27][0];
 
 		for (int i = 0; i < sortedChr.length; i++) {
-			int[] tmp = Array.toIntArray(tracks.get(sortedChr[i]));
+			int[] tmp = Ints.toArray(tracks.get(sortedChr[i]));
 			Arrays.sort(tmp);
 			startsStopsByChr[sortedChr[i]] = tmp;
 		}

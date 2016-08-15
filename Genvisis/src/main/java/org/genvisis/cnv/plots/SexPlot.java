@@ -15,6 +15,9 @@ import org.genvisis.cnv.gui.WrapLayout;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Booleans;
+import com.google.common.primitives.Bytes;
+
 public class SexPlot extends JFrame {
 	public static final long serialVersionUID = 1L;
 	
@@ -170,10 +173,10 @@ public class SexPlot extends JFrame {
 		new SexPlot(proj,
 					samples.toArray(new String[samples.size()]),
 					Matrix.toDoubleArrays(datapoints),
-					Array.toByteArray(sexes),
-					Array.toByteArray(estimatedSexes), 
-					Array.toBooleanArray(excluded),
-					Array.toBooleanArray(uncertains),
+					Bytes.toArray(sexes),
+					Bytes.toArray(estimatedSexes), 
+					Booleans.toArray(excluded),
+					Booleans.toArray(uncertains),
 					Array.toStringArray(notes));
 	}
 

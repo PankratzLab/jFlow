@@ -39,6 +39,8 @@ import org.genvisis.stats.StatsCrossTabs.STAT_TYPE;
 import org.genvisis.stats.StatsCrossTabs.StatsCrossTabRank;
 import org.genvisis.stats.StatsCrossTabs.VALUE_TYPE;
 
+import com.google.common.primitives.Ints;
+
 public class CorrectionIterator implements Serializable {
 	/**
 	 * 
@@ -473,7 +475,7 @@ public class CorrectionIterator implements Serializable {
 						use.add(i);
 					}
 				}
-				builder.numericDataTitles(Array.subArray(numericStratCats, Array.toIntArray(use)));
+				builder.numericDataTitles(Array.subArray(numericStratCats, Ints.toArray(use)));
 			}
 			BooleanClassifier[] classifiers = new BooleanClassifier[sampleDataStratCats.length];
 			ArrayList<RScatter> rScatters = new ArrayList<RScatter>();

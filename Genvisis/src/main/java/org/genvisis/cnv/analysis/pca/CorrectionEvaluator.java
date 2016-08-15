@@ -19,6 +19,8 @@ import org.genvisis.stats.CrossValidation;
 import org.genvisis.stats.ICC;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
+import com.google.common.primitives.Doubles;
+
 public class CorrectionEvaluator extends AbstractProducer<EvaluationResult> implements Serializable {
 	/**
 	 * 
@@ -231,8 +233,8 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult> impl
 				}
 			}
 
-			double[] internals = Array.toDoubleArray(tmpInternals);
-			double[] externals = Array.toDoubleArray(tmpExternals);
+			double[] internals = Doubles.toArray(tmpInternals);
+			double[] externals = Doubles.toArray(tmpExternals);
 			double[] internalNotNorm = internals;
 			double[] externalNotNorm = externals;
 

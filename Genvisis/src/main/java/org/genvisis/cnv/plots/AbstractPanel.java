@@ -43,6 +43,8 @@ import org.genvisis.common.ext;
 import org.genvisis.mining.Distance;
 import org.genvisis.stats.Maths;
 
+import com.google.common.primitives.Bytes;
+
 public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
 	public static final long serialVersionUID = 1L;
 
@@ -667,7 +669,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
         
 		// Draw the lines
         for (int i = 0; lines!=null && i<lines.length && flow; i++) {
-            if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, lines[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, lines[i].getLayer()) >= 0)) {
+            if ((base && (layersInBase == null || Bytes.indexOf(layersInBase, lines[i].getLayer()) >= 0)) || (!base && Bytes.indexOf(extraLayersVisible, lines[i].getLayer()) >= 0)) {
                 double x1raw = lines[i].getStartX();
                 double y1raw = lines[i].getStartY();
                 double x2raw = lines[i].getStopX();
@@ -690,7 +692,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 		// Draw the rectangles for clusterFilters
 		for (int i = 0; rectangles!=null && i<rectangles.length && flow; i++) {
-			if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, rectangles[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, rectangles[i].getLayer()) >= 0)) {
+			if ((base && (layersInBase == null || Bytes.indexOf(layersInBase, rectangles[i].getLayer()) >= 0)) || (!base && Bytes.indexOf(extraLayersVisible, rectangles[i].getLayer()) >= 0)) {
 				rectangleXPixel = Math.min(getXPixel(rectangles[i].getStartXValue()), getXPixel(rectangles[i].getStopXValue()));
 				rectangleYPixel = Math.min(getYPixel(rectangles[i].getStartYValue()), getYPixel(rectangles[i].getStopYValue()));
 		    	rectangleWidthPixel = Math.abs(getXPixel(rectangles[i].getStartXValue()) - getXPixel(rectangles[i].getStopXValue()));
@@ -780,7 +782,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //					System.err.println("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+") is outside of plot range.");
 				} else {
 					trav = points[i].getLayer()+"";
-					if (points[i].isHighlighted() || (base && (layersInBase == null || Array.indexOfByte(layersInBase, points[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, points[i].getLayer()) >= 0)) {
+					if (points[i].isHighlighted() || (base && (layersInBase == null || Bytes.indexOf(layersInBase, points[i].getLayer()) >= 0)) || (!base && Bytes.indexOf(extraLayersVisible, points[i].getLayer()) >= 0)) {
 						if (trav.equals("0")) {
 							if (points[i].getType()!=PlotPoint.NOT_A_NUMBER) {
 								drawPoint(g, points[i]);

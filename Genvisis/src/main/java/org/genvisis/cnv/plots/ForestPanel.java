@@ -16,6 +16,8 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Maths;
 
+import com.google.common.primitives.Bytes;
+
 /**
  * Forest Panel
  */
@@ -567,7 +569,7 @@ public class ForestPanel extends AbstractPanel {
 		
 		// Draw the lines
 		for (int i = 0; lines != null && i < lines.length && isFlow(); i++) {
-			if ((base && (getLayersInBase() == null || Array.indexOfByte(getLayersInBase(), lines[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(getExtraLayersVisible(), lines[i].getLayer()) >= 0)) {
+			if ((base && (getLayersInBase() == null || Bytes.indexOf(getLayersInBase(), lines[i].getLayer()) >= 0)) || (!base && Bytes.indexOf(getExtraLayersVisible(), lines[i].getLayer()) >= 0)) {
 				Grafik.drawThickLine(g, 
 										getXPixel(lines[i].getStartX()), 
 										getYPixel(lines[i].getStartY()), 
@@ -585,7 +587,7 @@ public class ForestPanel extends AbstractPanel {
 		// Draw the rectangles for clusterFilters
 		int actWidth, actHeight, wDiff, hDiff;
 		for (int i = 0; rectangles != null && i < rectangles.length && isFlow(); i++) {
-			if ((base && (getLayersInBase() == null || Array.indexOfByte(getLayersInBase(), rectangles[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(getExtraLayersVisible(), rectangles[i].getLayer()) >= 0)) {
+			if ((base && (getLayersInBase() == null || Bytes.indexOf(getLayersInBase(), rectangles[i].getLayer()) >= 0)) || (!base && Bytes.indexOf(getExtraLayersVisible(), rectangles[i].getLayer()) >= 0)) {
 				rectangleXPixel = Math.min(getXPixel(rectangles[i].getStartXValue()), getXPixel(rectangles[i].getStopXValue()));
 				rectangleYPixel = Math.min(getYPixel(rectangles[i].getStartYValue()), getYPixel(rectangles[i].getStopYValue()));
 				rectangleWidthPixel = Math.abs(getXPixel(rectangles[i].getStartXValue()) - getXPixel(rectangles[i].getStopXValue()));

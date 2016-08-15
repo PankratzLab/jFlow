@@ -879,7 +879,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		computelog.report("Computing mean Log R ratios for:");
 		// norm by genome
 		if (scope == 1) {
-			indices = new int[][] { Array.intArray(proj.getPartialSampleFromRandomAccessFile(samples[0]).getLRRs().length) };
+			indices = new int[][] { Array.arrayOfIndices(proj.getPartialSampleFromRandomAccessFile(samples[0]).getLRRs().length) };
 		} else {
 			// only normalize chrs with markers in regions
 			indices = markerSet.getIndicesByChr();

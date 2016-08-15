@@ -17,6 +17,8 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
+import com.google.common.primitives.Booleans;
+
 public class EmimPipeline {
     
 
@@ -65,7 +67,7 @@ public class EmimPipeline {
         }
         popFileObj.inclArr = new boolean[incls.length][pops.size()];
         for (int i = 0; i < incls.length; i++) {
-            popFileObj.inclArr[i] = Array.toBooleanArray(incls[i]);
+            popFileObj.inclArr[i] = Booleans.toArray(incls[i]);
         }
         
         hdrs = null;

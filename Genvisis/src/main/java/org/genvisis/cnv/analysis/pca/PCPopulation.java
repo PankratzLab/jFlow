@@ -17,6 +17,8 @@ import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
 
+import com.google.common.primitives.Doubles;
+
 /**
  * @author lane0212 Class to compute percent race with genotyping pcs, hijacking the {@link PrincipalComponentsResiduals} methods
  */
@@ -295,11 +297,11 @@ public class PCPopulation {
 		}
 
 		public double[] getDistances() {
-			return Array.toDoubleArray(distances);
+			return Doubles.toArray(distances);
 		}
 
 		public double[] getNormDistances() {
-			return Array.toDoubleArray(normDistances);
+			return Doubles.toArray(normDistances);
 		}
 
 		public String[] getPopulations() {

@@ -19,6 +19,8 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 
+import com.google.common.primitives.Doubles;
+
 
 public class LibraryNGS implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -164,7 +166,7 @@ public class LibraryNGS implements Serializable {
 				}
 			}
 			if (numBases > 0) {
-				medianCoverage = Array.median(Array.toDoubleArray(allCounts));
+				medianCoverage = Array.median(Doubles.toArray(allCounts));
 			}
 			return medianCoverage;
 		}

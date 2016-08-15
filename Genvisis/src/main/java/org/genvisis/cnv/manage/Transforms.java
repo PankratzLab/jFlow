@@ -21,7 +21,7 @@ public class Transforms {
 			}
 			indices = markerSet.getIndicesByChr();
 		} else {
-			indices = new int[][] {Array.intArray(input.length)};
+			indices = new int[][] {Array.arrayOfIndices(input.length)};
 		}
 		
 		return transform(input, transformation_type, indices, Array.booleanArray(indices.length, true));

@@ -15,6 +15,8 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
+import com.google.common.primitives.Ints;
+
 public class ConsolidateTaxons {
 	public static void consolidate(String rootDir) {
 		String[] dirs = Files.listDirectories(rootDir, false);
@@ -84,7 +86,7 @@ public class ConsolidateTaxons {
 							}
 						}
 					}
-					int[] allCounts =Array.toIntArray(counts);
+					int[] allCounts =Ints.toArray(counts);
 					if(Array.max(allCounts)>100){
 						writer.println(ataxa+"\t"+Array.toStr(allCounts));
 					}

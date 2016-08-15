@@ -19,6 +19,9 @@ import org.genvisis.common.Array;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
+
+import com.google.common.primitives.Ints;
+
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 public class MDL implements Iterator<MarkerData> {
@@ -72,7 +75,7 @@ public class MDL implements Iterator<MarkerData> {
 		if (decompTrain != null) {
 			decompTrain.shutdown();
 		}
-		this.producer = new BufferReader(proj, markerSet, match.getFileName(), Array.toIntegerArray(match.getFileIndices()), Array.toIntegerArray(match.getProjIndices()), debugMode);
+		this.producer = new BufferReader(proj, markerSet, match.getFileName(), Ints.toArray(match.getFileIndices()), Ints.toArray(match.getProjIndices()), debugMode);
 		try {
 			producer.init();
 		} catch (IllegalStateException e) {

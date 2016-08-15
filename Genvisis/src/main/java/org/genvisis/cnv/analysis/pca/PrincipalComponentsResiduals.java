@@ -40,6 +40,8 @@ import org.genvisis.stats.StatsCrossTabs.StatsCrossTabRank;
 import org.genvisis.stats.StatsCrossTabs.VALUE_TYPE;
 import org.genvisis.stats.Stepwise.StepWiseSummary;
 
+import com.google.common.primitives.Doubles;
+
 /**
  * <p>
  * Class to compute residuals wrt PCs and summarize median values, currently aimed at Mitochondrial copy number, but is extensible to other data
@@ -365,7 +367,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 				}
 			}
 			if (sampLRR.size() > 0) {
-				medians[i] = Array.median(Array.toDoubleArray(sampLRR));
+				medians[i] = Array.median(Doubles.toArray(sampLRR));
 			} else {
 				medians[i] = Double.NaN;
 			}

@@ -36,6 +36,8 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.PlainTextExport;
 import org.genvisis.link.LinkageMap;
 
+import com.google.common.primitives.Ints;
+
 public class SnpMarkerSet implements Serializable, PlainTextExport {
 	public static final long serialVersionUID = 1L;
 	public static final int NAMES_ONLY = 0;
@@ -343,7 +345,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	    
 	    posByChr = new int[27][0];
         for (int i = 0; i < 27; i++) {
-            posByChr[i] = Array.toIntArray(posMap.get(i));
+            posByChr[i] = Ints.toArray(posMap.get(i));
         }
 	    
 	    return posByChr;
@@ -1103,7 +1105,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		}
 		annotation = Unique.proc(arraysOfMarkerNames, false);
 		markerNames = Matrix.extractColumn(annotation, 0);
-		annotation = Array.toMatrix(Matrix.extractColumns(annotation, Array.subArray(Array.intArray(sets.length+2), 1), "\t"));
+		annotation = Array.toMatrix(Matrix.extractColumns(annotation, Array.subArray(Array.arrayOfIndices(sets.length+2), 1), "\t"));
 		
 		indices = HashVec.loadToHashIndices(markerNames, new Logger());
 		if (Array.booleanArraySum(hasPositions) > 0) {

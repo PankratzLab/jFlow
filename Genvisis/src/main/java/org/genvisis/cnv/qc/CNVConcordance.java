@@ -21,6 +21,8 @@ import org.genvisis.common.CNVFilter.CNVFilterPass;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariantHash;
 
+import com.google.common.primitives.Doubles;
+
 public class CNVConcordance {
 	private static final String[] REPORT = { "Total CNVs Compared", "Total Overlapping CNVs", "Total Significantly Overlapping CNVs", "Total Perfectly overlapping cnvs", "Average Individual Overlap", "Average Individual Significant Overlap", "Average Individual Perfect Overlap", "Average Individual Overlap Score", "Global Overlap", "Global Significant Overlap", "Global Perfect Overlap", "Average Global Overlap Score" };
 	// private static final int WARN_NUM_CNVs = 1000;
@@ -250,7 +252,7 @@ public class CNVConcordance {
 
 		public double getAvgOverlapScore() {
 			if (this.overlapScores.size() > 0) {
-				return Array.mean(Array.toDoubleArray(this.overlapScores));
+				return Array.mean(Doubles.toArray(this.overlapScores));
 			}
 			return 0.0D;
 		}
@@ -358,7 +360,7 @@ public class CNVConcordance {
 		}
 
 		private double getAvgGlobalOverlapScore() {
-			return Array.mean(Array.toDoubleArray(this.globalOverLapScores));
+			return Array.mean(Doubles.toArray(this.globalOverLapScores));
 		}
 
 		private double getGlobalPercentOverlap() {

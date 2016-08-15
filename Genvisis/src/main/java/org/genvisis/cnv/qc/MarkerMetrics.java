@@ -18,7 +18,9 @@ import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.RegressionModel;
 import org.genvisis.stats.Ttest;
 
+import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
 
 public class MarkerMetrics {
 	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_z", "LRR_SD", "LRR_num_NaNs", "MendelianErrors"};
@@ -71,7 +73,7 @@ public class MarkerMetrics {
 
 			hive.execute(true);
 			ArrayList<Boolean> complete = hive.getResults();
-			if (Array.booleanArraySum(Array.toBooleanArray(complete)) == complete.size()) {
+			if (Array.booleanArraySum(Booleans.toArray(complete)) == complete.size()) {
 				Files.cat(tmpQc, finalQcFile, new int[0], proj.getLog());
 				if (Files.exists(finalQcFile) && Files.countLines(finalQcFile, 1) == markerNames.length) {
 					for (int i = 0; i < tmpQc.length; i++) {
@@ -204,7 +206,7 @@ public class MarkerMetrics {
 				}
 				
 				if (lrrs != null && aLRR.size() > 0) {
-					lrrsd = Array.stdev(Array.toFloatArray(aLRR), true);
+					lrrsd = Array.stdev(Floats.toArray(aLRR), true);
 					lrrSexZ = getSexZscore(sexes, lrrs, samplesToExclude, log);
 				} else {
 					lrrsd = Float.NaN;
@@ -376,7 +378,7 @@ public class MarkerMetrics {
 				}
 				line += "\t"+Array.mean(lrrs);
 				
-				useBAFs = Array.clone(samplesToInclude);
+				useBAFs = Arrays.copyOf(samplesToInclude, samplesToInclude.length);
 				for (int j = 0; j < bafs.length; j++) {
 					if (bafs[j] < 0.15 || bafs[j] > 0.85) {
 						useBAFs[j] = false;

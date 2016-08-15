@@ -30,6 +30,8 @@ import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 
+import com.google.common.primitives.Ints;
+
 /**
  * Class to refine somatic cnv calls
  */
@@ -303,7 +305,7 @@ public class SomaticCNVEvaluation {
 						nonVariant.add(track.get(namesIn[j]));
 					}
 				}
-				cnvIndices[i] = Array.toIntArray(nonVariant);
+				cnvIndices[i] = Ints.toArray(nonVariant);
 			}
 
 			proj.getLog().reportTimeInfo("Computing scores for " + tumorSample);

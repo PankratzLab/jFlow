@@ -625,7 +625,7 @@ public class PlinkData {
 				proj.message("FYI, since target markers file '"+targetMarkers+"' was not found, all markers will be exported to PLINK");
 			}
 
-			indices = Array.intArray(markerNames.length);
+			indices = Array.arrayOfIndices(markerNames.length);
 		}
 		
 		proj.getProgressMonitor().updateTask(PROG_KEY);
@@ -2210,7 +2210,7 @@ public class PlinkData {
 	 * @return
 	 */
 	public static int[] parseSampleIndicesAll(String plinkFileRoot, Logger log) {
-		return Array.intArray(Files.countLines(plinkFileRoot+"fam", 0));
+		return Array.arrayOfIndices(Files.countLines(plinkFileRoot+"fam", 0));
 	}
 
 	/**

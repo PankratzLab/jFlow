@@ -24,6 +24,8 @@ import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Qc;
 
+import com.google.common.primitives.Doubles;
+
 /**
  * Class for running GCTA (http://cnsgenomics.com/software/gcta/)
  * 
@@ -564,7 +566,7 @@ public class GCTA {
 						writer.println(ext.removeDirectoryInfo(phenoFiles[i]) + "\t" + varianceResult.summaryFile + "\t"
 								+ ext.removeDirectoryInfo(varianceResult.summaryFile).replaceAll("\\.hsq", "")
 										.replaceAll("PC", "")
-								+ "\t" + Array.toStr(Array.toDoubleArray(varianceResult.variance)));
+								+ "\t" + Array.toStr(Doubles.toArray(varianceResult.variance)));
 					}
 				}
 				writer.close();

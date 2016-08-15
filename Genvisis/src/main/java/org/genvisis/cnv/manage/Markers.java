@@ -286,7 +286,7 @@ public class Markers {
 		
 		header = Files.getHeaderOfFile(lookupFile, "\t", new Logger());
 		System.out.println("Converting from columns "+header[1+setFrom*2+0]+"/"+header[1+setFrom*2+1]+" to columns "+header[1+setTo*2+0]+"/"+header[1+setTo*2+1]);
-		hash = HashVec.loadFileToHashString(lookupFile, 0, Array.intArray(header.length), "\t", true);
+		hash = HashVec.loadFileToHashString(lookupFile, 0, Array.arrayOfIndices(header.length), "\t", true);
 		
 		try {
 			reader = new BufferedReader(new FileReader(filename));

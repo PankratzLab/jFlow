@@ -5,6 +5,8 @@ import java.util.*;
 
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Chars;
+
 public class SequenceVariants {
 	public static final String[] ALLELE_SPECIFIC_FREQS = {"chr", "pos", "ref", "control_A_freq", "case_A_freq", "control_C_freq", "case_C_freq", "control_G_freq", "case_G_freq", "control_T_freq", "case_T_freq"};
 	public static final double MIN_FREQ = 0.01;
@@ -51,7 +53,7 @@ public class SequenceVariants {
 				freqs[1][3] = Double.parseDouble(line[9]); // control_T_freq
 				freqs[2][3] = Array.sum(freqs[0]);
 				
-				refIndex = Array.indexOfChar(Sequence.ALLELES, line[2].charAt(0));
+				refIndex = Chars.indexOf(Sequence.ALLELES, line[2].charAt(0));
 				order = Sort.quicksort(freqs[2]);
 				for (int i = 0; i < order.length; i++) {
 					if (order[i] != refIndex && (freqs[0][order[i]] > MIN_FREQ || freqs[1][order[i]] > MIN_FREQ)) {

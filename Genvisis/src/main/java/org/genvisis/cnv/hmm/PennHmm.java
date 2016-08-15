@@ -13,6 +13,9 @@ import org.genvisis.common.Numbers;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.stats.Stats;
+
+import com.google.common.primitives.Ints;
+
 import org.genvisis.filesys.CNVariant.CNVBuilder;
 
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
@@ -745,7 +748,7 @@ public class PennHmm {
 				hmmState++;// LOH stored as state 3
 			}
 
-			int[] indices = Array.toIntArray(indicestmp);
+			int[] indices = Ints.toArray(indicestmp);
 			if (indices.length != current.getNumMarkers()) {
 				String error = "BUG: could not reconstruct original markers, found " + indices.length + " and should have found " + current.getNumMarkers();
 				error += "Sample FID: " + current.getFamilyID() + " IID: " + current.getIndividualID();

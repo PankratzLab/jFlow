@@ -1146,7 +1146,7 @@ public class DosageData implements Serializable {
 		double[] betas, stderrs, pvals, stats;
 
 		traits = Files.getHeaderOfFile(phenoFile, "\t", log);
-		hash = HashVec.loadFileToHashString(phenoFile, new int[] {0,1}, Array.subArray(Array.intArray(traits.length), 2, traits.length), false, "\t", true, false, false);
+		hash = HashVec.loadFileToHashString(phenoFile, new int[] {0,1}, Arrays.copyOfRange(Array.arrayOfIndices(traits.length), 2, traits.length), false, "\t", true, false, false);
 		traits = Array.subArray(traits, 2);
 
 		markerNames = markerSet.getMarkerNames();
@@ -1197,7 +1197,8 @@ public class DosageData implements Serializable {
 //			w2 = new PrintWriter(new FileWriter(ext.rootOf(phenoFile, false)+(snpList==null?"":"_"+ext.rootOf(snpList, false))+".se.metal"));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(phenoFile, false)+".results."+(logistic?"logistic":"linear")));
 			w2 = new PrintWriter(new FileWriter(ext.rootOf(phenoFile, false)+".se.metal"));
-			line = Array.clone(logistic?Plink.LOGISTIC_SE_HEADER:Plink.LINEAR_SE_HEADER);
+			String[] arr = logistic?Plink.LOGISTIC_SE_HEADER:Plink.LINEAR_SE_HEADER;
+			line = Arrays.copyOf(arr, arr.length);
 			line[1] = line[1]+"      ";
 			line[2] = line[1]+"      ";
 			writer.println(Array.toStr(line));

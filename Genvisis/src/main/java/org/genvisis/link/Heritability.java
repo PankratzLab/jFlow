@@ -20,6 +20,8 @@ import org.genvisis.stats.Correlation;
 import org.genvisis.stats.ICC;
 import org.genvisis.stats.RegressionModel;
 
+import com.google.common.primitives.Doubles;
+
 public class Heritability {
 	public static final String DEFAULT_MERLIN_EXEC = "merlin";
 	public static final String DEFAULT_SOLAR_EXEC = "/home/pankrat2/public/bin/solarEclipse/solar";
@@ -45,7 +47,7 @@ public class Heritability {
 			if (!covarHeader[0].equals("FID") || !covarHeader[1].equals("IID")) {
 				System.err.println("Error - warning covariates file expected to start with FID and IID; may not merge properly without");
 			}
-			covarHash = HashVec.loadFileToHashString(dir+covars, new int[] {0,1}, Array.subArray(Array.intArray(covarHeader.length), 2), covars.endsWith(".csv"), "\t", true, false, false);
+			covarHash = HashVec.loadFileToHashString(dir+covars, new int[] {0,1}, Array.subArray(Array.arrayOfIndices(covarHeader.length), 2), covars.endsWith(".csv"), "\t", true, false, false);
 			covarHeader = Array.subArray(covarHeader, 2);
 		} else {
 			covarHash = new Hashtable<String, String>();
@@ -152,7 +154,7 @@ public class Heritability {
 		trait = Files.getHeaderOfFile(dir+pheno, log)[2];
 		if (covars != null) {
 			covarsHeader = Files.getHeaderOfFile(dir+covars, log);
-			line = Array.toStringArray(Array.intArray(covarsHeader.length));
+			line = Array.toStringArray(Array.arrayOfIndices(covarsHeader.length));
 			line = Array.removeFromArray(line, 0);
 			params[2] = dir+covars+" "+Array.toStr(line, " ");
 		} else {
@@ -353,7 +355,7 @@ public class Heritability {
 	    					return;
 	    				}
 	    				data = HashVec.loadFileToStringMatrix(dbFile, true, indices, dbDelimiter, false, 1000, false);
-	    				use = RegressionModel.getRowsWithCompleteData(null, Matrix.prune(data, null, Array.subArray(Array.intArray(line.length), 1), log), log);
+	    				use = RegressionModel.getRowsWithCompleteData(null, Matrix.prune(data, null, Array.subArray(Array.arrayOfIndices(line.length), 1), log), log);
 	    				
 	    				numNotInPed = 0;
 						counter = new CountHash();
@@ -470,10 +472,10 @@ public class Heritability {
 									sibICCResponseIDs.add(sibList.get(k)[0] + "\t" + sibList.get(k)[1]);
 									sibICCResponseIDs.add(sibList.get(k)[0] + "\t" + sibList.get(k)[1]);
 								}
-								correlationData = new double[][] { Array.toDoubleArray(correl1),
-										Array.toDoubleArray(correl2) };
+								correlationData = new double[][] { Doubles.toArray(correl1),
+										Doubles.toArray(correl2) };
 								sibCorrel = Correlation.Pearson(correlationData);
-								ICC sibICCAnalysis = new ICC(Array.toDoubleArray(sibICCData),
+								ICC sibICCAnalysis = new ICC(Doubles.toArray(sibICCData),
 										Array.toStringArray(sibICCResponseIDs), null, null, true, log);
 								sibICCAnalysis.computeICC();
 								sibICC = sibICCAnalysis.getICC();
@@ -498,10 +500,10 @@ public class Heritability {
 									poICCResponseIDs.add(poPairs.get(k)[0] + "\t" + poPairs.get(k)[1]);
 									poICCResponseIDs.add(poPairs.get(k)[0] + "\t" + poPairs.get(k)[1]);
 								}
-								correlationData = new double[][] { Array.toDoubleArray(correl1),
-										Array.toDoubleArray(correl2) };
+								correlationData = new double[][] { Doubles.toArray(correl1),
+										Doubles.toArray(correl2) };
 								poCorrel = Correlation.Pearson(correlationData);
-								ICC poICCAnalysis = new ICC(Array.toDoubleArray(poICCData),
+								ICC poICCAnalysis = new ICC(Doubles.toArray(poICCData),
 										Array.toStringArray(poICCResponseIDs), null, null, true, log);
 								poICCAnalysis.computeICC();
 								poICC = poICCAnalysis.getICC();
@@ -537,10 +539,10 @@ public class Heritability {
 									trioICCResponseIDs
 											.add(trios.get(k)[0] + "\t" + trios.get(k)[1] + "\t" + trios.get(k)[2]);
 								}
-								correlationData = new double[][] { Array.toDoubleArray(correl1),
-										Array.toDoubleArray(correl2) };
+								correlationData = new double[][] { Doubles.toArray(correl1),
+										Doubles.toArray(correl2) };
 								trioCorrel = Correlation.Pearson(correlationData);
-								ICC trioICCAnalysis = new ICC(Array.toDoubleArray(trioICCData),
+								ICC trioICCAnalysis = new ICC(Doubles.toArray(trioICCData),
 										Array.toStringArray(trioICCResponseIDs), null, null, true, log);
 								trioICCAnalysis.computeICC();
 								trioICC = trioICCAnalysis.getICC();

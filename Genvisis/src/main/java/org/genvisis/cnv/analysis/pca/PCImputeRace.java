@@ -15,6 +15,8 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Maths;
 
+import com.google.common.primitives.Ints;
+
 import java.util.Set;
 
 public class PCImputeRace {
@@ -482,9 +484,9 @@ public class PCImputeRace {
 					fidiids,
 					pc1,
 					pc2, 
-					Array.toIntArray(europeans), 
-					Array.toIntArray(africans),
-					Array.toIntArray(asians), 
+					Ints.toArray(europeans), 
+					Ints.toArray(africans),
+					Ints.toArray(asians), 
 					new Logger());
 			raceChecker.correctPCsToRace(ext.rootOf(inFile, false) + "_Corrected_PCS.mds");
 			

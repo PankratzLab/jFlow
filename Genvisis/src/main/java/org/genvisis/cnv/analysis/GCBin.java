@@ -1,6 +1,7 @@
 package org.genvisis.cnv.analysis;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.genvisis.cnv.filesys.Project;
@@ -71,7 +72,7 @@ public class GCBin extends Segment {
 				for (int j = 0; j < tmp.getLoci().length; j++) {
 					CNVariant gcv = tmp.getLoci()[j];
 					int[] startStop = indicesStates.get(j);
-					int[] stateIndices = Array.subArray(indices[i], startStop[0], startStop[1] + 1);
+					int[] stateIndices = Arrays.copyOfRange(indices[i], startStop[0], startStop[1] + 1);
 					double gc = Array.mean(Array.subArray(gcs, stateIndices), true);
 					allGc.add(new GCBin(gcv, gc, gcv.getNumMarkers(), gcv.getCN()));
 				}

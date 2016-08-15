@@ -101,6 +101,9 @@
 		<!-- XMLBeans -->
 		<xmlbeans.version>2.6.0</xmlbeans.version>
 
+		<!-- Guava -->
+		<guava.version>19.0</guava.version>
+
 		<!-- Commons-Compress -->
 		<commons-compress.version>1.10</commons-compress.version>
 
@@ -262,6 +265,12 @@
 				<groupId>org.apache.poi</groupId>
 				<artifactId>poi-ooxml-schemas</artifactId>
 				<version>${poi-ooxml-schemas.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava.version}</version>
 			</dependency>
 
 			<!-- Commons-compress -->

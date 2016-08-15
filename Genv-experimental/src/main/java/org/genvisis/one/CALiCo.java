@@ -740,7 +740,7 @@ public class CALiCo {
 //		determine which samples have complete data for pheotype AND all covariates
 		keysToRemove = new ArrayList<Integer>();
 		hashPheno = HashVec.loadFileToHashString(outputDir + root + "_pheno.dat", new int[] {0,1}, new int[] {2}, false, "\t", true, false, false);
-		hashCovariates = HashVec.loadFileToHashString(outputDir + root + "_covars.dat", new int[] {0,1}, Array.subArray(Array.intArray(args.length-6), 2), false, "\t", true, false, false);
+		hashCovariates = HashVec.loadFileToHashString(outputDir + root + "_covars.dat", new int[] {0,1}, Array.subArray(Array.arrayOfIndices(args.length-6), 2), false, "\t", true, false, false);
 		keys = HashVec.getKeys(hashPheno);
 		for (int i = 0; i < keys.length; i++) {
 			if (ext.isMissingValue(hashPheno.get(keys[i]))) {

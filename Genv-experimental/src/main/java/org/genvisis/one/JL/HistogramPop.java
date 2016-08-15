@@ -12,6 +12,8 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
+import com.google.common.primitives.Doubles;
+
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -84,7 +86,7 @@ public class HistogramPop extends Application {
 		}
 		double[][] dataParsed = new double[ds.size()][];
 		for (int i = 0; i < dataParsed.length; i++) {
-			dataParsed[i] = Array.toDoubleArray(ds.get(i));
+			dataParsed[i] = Doubles.toArray(ds.get(i));
 		}
 		return new ParseResult(Array.toStringArray(titles), dataParsed);
 	}

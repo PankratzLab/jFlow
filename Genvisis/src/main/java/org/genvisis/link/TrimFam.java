@@ -722,7 +722,7 @@ public class TrimFam {
 			try {
 				id = Integer.parseInt(line[1]);
 			} catch (NumberFormatException nfe) {
-				return Array.intArray(original.size());
+				return Array.arrayOfIndices(original.size());
 			}
 			if (id>maxID) {
 				maxID = id;

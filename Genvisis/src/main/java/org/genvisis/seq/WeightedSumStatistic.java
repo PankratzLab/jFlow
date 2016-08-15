@@ -41,7 +41,7 @@ public class WeightedSumStatistic {
 		markerCounts = pedfile.getMarkerCounts();
 		affectionStatus = pedfile.getFamilyStructure().getAffections();
 		controlFreqs = getControlFreqs();
-		subset = Array.intArray(markerNames.length);
+		subset = Array.arrayOfIndices(markerNames.length);
 		valid_subset = subset;
 		trait = Array.toDoubleArray(affectionStatus);
 		binary = true;

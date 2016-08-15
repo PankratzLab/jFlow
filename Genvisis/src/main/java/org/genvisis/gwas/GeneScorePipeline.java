@@ -26,6 +26,8 @@ import org.genvisis.gwas.MergeExtractPipeline.DataSource;
 import org.genvisis.stats.ProbDist;
 import org.genvisis.stats.RegressionModel;
 
+import com.google.common.primitives.Doubles;
+
 public class GeneScorePipeline {
 	
 	private static float DEFAULT_INDEX_THRESHOLD = (float)0.00000005;
@@ -1202,8 +1204,8 @@ public class GeneScorePipeline {
 							covars[k] = indepData.get(k);
 							baseCovars[k] = baselineIndeps.get(k);
 						}
-						RegressionModel baseModel = RegressionModel.determineAppropriate(Array.toDoubleArray(depData), baseCovars, false, true);
-						RegressionModel model = RegressionModel.determineAppropriate(Array.toDoubleArray(depData), covars, false, true);
+						RegressionModel baseModel = RegressionModel.determineAppropriate(Doubles.toArray(depData), baseCovars, false, true);
+						RegressionModel model = RegressionModel.determineAppropriate(Doubles.toArray(depData), covars, false, true);
 						
 						RegressionResult rr = new RegressionResult();
 						if (model.analysisFailed()) {

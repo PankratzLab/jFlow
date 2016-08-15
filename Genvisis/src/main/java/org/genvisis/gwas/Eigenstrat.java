@@ -119,7 +119,7 @@ public class Eigenstrat {
         
         System.out.print("Parsing weights...");
         numEigens = Files.getHeaderOfFile(sourceRoot+".weights.out", "[\\s]+", new Logger()).length - 3;
-        weightsHash = HashVec.loadFileToHashString(sourceRoot+".weights.out", 0, Array.subArray(Array.intArray(numEigens+3), 3, numEigens+3), "\t", false);
+        weightsHash = HashVec.loadFileToHashString(sourceRoot+".weights.out", 0, Arrays.copyOfRange(Array.arrayOfIndices(numEigens+3), 3, numEigens+3), "\t", false);
         System.out.println("found weights for "+weightsHash.size()+" markers");
 
         if (!new File(targetRoot+(eigenFormat?".bim":".map")).exists()) {

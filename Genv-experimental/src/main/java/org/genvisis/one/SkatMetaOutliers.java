@@ -121,7 +121,7 @@ public class SkatMetaOutliers {
 		String[] header = Files.getHeaderOfFile(phenoFilename, log);
 		// just pheno: new int[] {1}
 //		phenoTmp = Array.removeNaN(Matrix.toDoubleArrays(HashVec.loadFileToStringMatrix(phenoFilename, true, Array.subArray(Array.intArray(header.length), 1), false)));
-		phenoTmp = Matrix.toDoubleArrays(HashVec.loadFileToStringMatrix(phenoFilename, true, Array.subArray(Array.intArray(header.length), 1), false));
+		phenoTmp = Matrix.toDoubleArrays(HashVec.loadFileToStringMatrix(phenoFilename, true, Array.subArray(Array.arrayOfIndices(header.length), 1), false));
 		pheno = new double[phenoTmp.length];
 		for (int i = 0; i < pheno.length; i++) {
 			pheno[i] = phenoTmp[i][0];

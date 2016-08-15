@@ -33,6 +33,8 @@ import org.genvisis.stats.CrossValidation;
 import org.genvisis.stats.ICC;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
+import com.google.common.primitives.Doubles;
+
 public class IntensityCorrectionQC {
 	public static final String OUTPUT_EXT = ".icc";
 	public static final String[] MASK = { ".", "0", "e" };
@@ -425,7 +427,7 @@ public class IntensityCorrectionQC {
 		}
 
 		public double[] getAt(int index) {
-			return Array.toDoubleArray(this.arraySpecialLists[index]);
+			return Doubles.toArray(this.arraySpecialLists[index]);
 		}
 
 //		public double getMedianAt(int index) {

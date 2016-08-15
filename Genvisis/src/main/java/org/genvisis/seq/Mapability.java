@@ -17,7 +17,7 @@ public class Mapability {
 		double value, sum, mean, max;
 		
 		header = Files.getHeaderOfFile(filename, "\t", new Logger());
-		data = HashVec.loadFileToStringMatrix(filename, true, Array.intArray(header.length), false);
+		data = HashVec.loadFileToStringMatrix(filename, true, Array.arrayOfIndices(header.length), false);
 		indices = ext.indexFactors(REQS, header, false, true);
 	
 		max = -1;

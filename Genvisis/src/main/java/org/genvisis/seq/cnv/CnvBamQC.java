@@ -31,6 +31,8 @@ import org.genvisis.stats.Rscript.RScatter;
 import org.genvisis.stats.Rscript.RScatters;
 import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
+import com.google.common.primitives.Ints;
+
 /**
  * Currently geared toward providing qcMetrics for ExomeDepth Calls from raw bam data
  *
@@ -198,7 +200,7 @@ public class CnvBamQC {
 		double popAvgMapQ = 0;
 		double popAvgDepth = 0;
 
-		int[] matchedIndices = Array.toIntArray(callSplit.getMatched()[index]);
+		int[] matchedIndices = Ints.toArray(callSplit.getMatched()[index]);
 		for (int i = 0; i < matchedIndices.length; i++) {
 			for (int j = 0; j < bamPiles.length; j++) {
 				if (j == sampleIndex) {

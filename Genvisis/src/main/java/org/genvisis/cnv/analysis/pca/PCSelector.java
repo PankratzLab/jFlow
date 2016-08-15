@@ -22,6 +22,8 @@ import org.genvisis.stats.StatsCrossTabs.STAT_TYPE;
 import org.genvisis.stats.StatsCrossTabs.StatsCrossTabRank;
 import org.genvisis.stats.StatsCrossTabs.VALUE_TYPE;
 
+import com.google.common.primitives.Ints;
+
 /**
  * @author lane0212 <br>
  *         Try to find most significant PCs associated with our quality metrics from {@link LrrSd}
@@ -187,7 +189,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 				}
 			}
 
-			int[] finalSelection = Array.toIntArray(sigPCs);
+			int[] finalSelection = Ints.toArray(sigPCs);
 			proj.getLog().reportTimeInfo("Found " + sigPCs.size() + " pcs passing threshold of " + filterValue);
 
 			String dir = proj.PROJECT_DIRECTORY.getValue() + "PC_QC/";
@@ -206,7 +208,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 
 			RScatters rScatters = new RScatters(new RScatter[] { rScatterAll, rScatterSelect }, outputBoth + ".rscript", outputBoth + ".pdf", null, PLOT_DEVICE.PDF, proj.getLog());
 			rScatters.execute();
-			rankResult = new SelectionResult(Array.toIntArray(sigPCs), rScatterAll, rScatterSelect);
+			rankResult = new SelectionResult(Ints.toArray(sigPCs), rScatterAll, rScatterSelect);
 
 		}
 		return rankResult;

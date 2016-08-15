@@ -9,129 +9,119 @@ import org.genvisis.stats.Maths;
 import org.genvisis.stats.ProbDist;
 
 import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
 import com.google.common.primitives.Ints;
 
 public class Array {
+	private static final int MINI = -999;
+	private static final double MIND = Double.NaN;
+	private static final int MINF = -999;
+	private static final int MINB = Byte.MAX_VALUE;
+
+	private static boolean badLength(int length) {
+		if (length <= 0) {
+			new Logger().reportError("Empty arrays do not have defined min or max values");
+		}
+		return length == 0;
+	}
 
 	/**
 	 * Return the minimum in an array of integers
 	 * 
+	 * @see {@link Ints#min(int...)}
 	 * @param array
 	 *            array of integers
 	 * @return the minimum
 	 */
 	public static int min(int[] array) {
-		int min;
+		if (badLength(array.length)) {
+			return MINI;
+		}
 
-		if (array.length==0) {
-			System.err.println("Error - impossible to find the min of an empty array");
-			return -999;
-		}
-		min = array[0];
-		for (int i = 1; i<array.length; i++) {
-			min = Math.min(array[i], min);
-		}
-		return min;
+		return Ints.min(array);
 	}
 
 	/**
-	 * Return the minimum in an array of integers
+	 * Return the minimum in an array of doubles
 	 * 
+	 * @see {@link Doubles#min(double...)}
 	 * @param array
-	 *            array of integers
+	 *            array of doubles
 	 * @return the minimum
 	 */
 	public static double min(double[] array) {
-		double min;
-
-		if (array.length==0) {
-			System.err.println("Error - impossible to find the min of an empty array");
-			return Double.NaN;
+		if (badLength(array.length)) {
+			return MIND;
 		}
-		min = array[0];
-		for (int i = 1; i<array.length; i++) {
-			min = Math.min(array[i], min);
-		}
-		return min;
+		return Doubles.min(array);
 	}
 
 	/**
-	 * Return the minimum in an array of floats
+	 * Return the minimum, non-{@link Float#NaN} value.
 	 * 
+	 * @see {@link Floats#min(float...)}
 	 * @param array
 	 *            array of floats
 	 * @return the minimum
 	 */
 	public static float min(float[] array) {
-		float min;
-
-		if (array.length==0) {
-			System.err.println("Error - impossible to find the min of an empty array");
-			return -999;
+		if (badLength(array.length)) {
+			return MINF;
 		}
-		min = array[0];
-		for (int i = 1; i<array.length; i++) {
-			if (array[i]!=Float.NaN&&array[i]<min) {
-				min = array[i];
+		float min = Float.POSITIVE_INFINITY;
+		for (int i = 0; i<array.length; i++) {
+			if (Float.isNaN(array[i])) {
+				continue;
 			}
+			min = Math.min(min, array[i]);
 		}
 		return min;
 	}
 
 	/**
-	 * Return the minimum and maximum, respectively, in an array of floats
+	 * Return the minimum and maximum non-{@link Float#NaN} values,
+	 * respectively, in an array of floats
 	 * 
 	 * @param array
 	 *            array of floats
 	 * @return the minimum and maximum, in that order
 	 */
 	public static float[] minMax(float[] array) {
-	    float min;
-	    float max;
-	    
-	    if (array.length==0) {
-	        System.err.println("Error - impossible to find the min of an empty array");
-	        return new float[]{Float.NaN, Float.NaN};
+	    if (badLength(array.length)) {
+	        return new float[]{MINF, MINF};
 	    }
-	    min = max = array[0];
-	    for (int i = 1; i<array.length; i++) {
-	        if (!Float.isNaN(array[i])) {
-	            if (array[i] < min) {
-	                min = array[i];
-	            } 
-	            if (array[i] > max) {
-	                max = array[i];
-	            }
-	        }
+	    float min = Float.POSITIVE_INFINITY;
+	    float max = Float.NEGATIVE_INFINITY;
+	    for (int i = 0; i<array.length; i++) {
+	    	if (Float.isNaN(array[i])) {
+	    		continue;
+	    	}
+			min = Math.min(min, array[i]);
+			max = Math.max(max,  array[i]);
 	    }
 	    return new float[]{min, max};
 	}
 
 	/**
-	 * Return the minimum and maximum, respectively, in an array of doubles
+	 * Return the minimum and maximum non-{@link Double#NaN} values,
+	 * respectively, in an array of doubles
 	 * 
 	 * @param array
 	 *            array of doubles
 	 * @return the minimum and maximum, in that order
 	 */
 	public static double[] minMax(double[] array) {
-	    double min;
-	    double max;
-	    
-	    if (array.length==0) {
-	        System.err.println("Error - impossible to find the min of an empty array");
-	        return new double[]{Double.NaN, Double.NaN};
+	    if (badLength(array.length)) {
+	        return new double[]{MIND, MIND};
 	    }
-	    min = max = array[0];
-	    for (int i = 1; i<array.length; i++) {
-	        if (!Double.isNaN(array[i])) {
-	            if (array[i] < min) {
-	                min = array[i];
-	            } 
-	            if (array[i] > max) {
-	                max = array[i];
-	            }
-	        }
+	    double min = Double.POSITIVE_INFINITY;
+	    double max = Double.NEGATIVE_INFINITY;
+	    for (int i = 0; i<array.length; i++) {
+	    	if (Double.isNaN(array[i])) {
+	    		continue;
+	    	}
+			min = Math.min(min, array[i]);
+			max = Math.max(max,  array[i]);
 	    }
 	    return new double[]{min, max};
 	}
@@ -144,13 +134,10 @@ public class Array {
 	 * @return the minimum
 	 */
 	public static byte min(byte[] array) {
-		byte min;
-
-		if (array.length==0) {
-			System.err.println("Error - impossible to find the min of an empty array");
-			return Byte.MAX_VALUE;
+		if (badLength(array.length)) {
+			return MINB;
 		}
-		min = array[0];
+		byte min = Byte.MAX_VALUE;
 		for (int i = 1; i<array.length; i++) {
 			min = (byte) Math.min(array[i], min);
 		}
@@ -158,24 +145,23 @@ public class Array {
 	}
 
 	/**
-	 * Return the index of the minimum in an array of floats
+	 * Return the index of the minimum non-{@link Float#NaN} value in an array
+	 * of floats
 	 * 
 	 * @param array
 	 *            array of floats
-	 * @return the index of the minimum
+	 * @return the index of the minimum or -1 if an empty array is given
 	 */
-	public static int indexOfMin(float[] array) {
+	public static int minIndex(float[] array) {
 		float min;
-		int index;
+		int index = -1;
 
-		if (array.length==0) {
-			System.err.println("Error - impossible to find the min of an empty array");
-			return -999;
+		if (badLength(array.length)) {
+			return -1;
 		}
-		min = array[0];
-		index = 0;
-		for (int i = 1; i<array.length; i++) {
-			if (array[i]!=Float.NaN&&array[i]<min) {
+		min = Float.POSITIVE_INFINITY;
+		for (int i = 0; i<array.length; i++) {
+			if (!Float.isNaN(array[i]) && Float.compare(array[i], min) < 0) {
 				min = array[i];
 				index = i;
 			}
@@ -184,74 +170,14 @@ public class Array {
 	}
 
 	/**
-	 * Return the index of the minimum in an array of integers
+	 * Return the index of the minimum in an array of doubles
 	 * 
 	 * @param array
-	 *            array of integers
+	 *            array of doubles
 	 * @return the minimum
 	 */
 	public static int minIndex(double[] array) {
-		double min;
-		int index;
-
-		if (array.length==0) {
-			System.err.println("Error - impossible to find the min of an empty array");
-			return -1;
-		}
-		min = array[0];
-		index = 0;
-		for (int i = 1; i<array.length; i++) {
-			if (array[i]<min) {
-				min = array[i];
-				index = i;
-			}
-		}
-		return index;
-	}
-
-	/**
-	 * Return the maximum in an array of integers
-	 * 
-	 * @param array
-	 *            array of integers
-	 * @return the maximum
-	 */
-	public static int max(int[] array) {
-		int max;
-
-		if (array.length==0) {
-			System.err.println("Error - impossible to find the max of an empty array");
-			return -999;
-		}
-		max = array[0];
-		for (int i = 1; i<array.length; i++) {
-			max = Math.max(array[i], max);
-		}
-		return max;
-	}
-
-	/**
-	 * Return the maximum in an array of floats
-	 * 
-	 * @param array
-	 *            array of floats
-	 * @return the minimum
-	 */
-	public static float max(float[] array) {
-		float max;
-
-		if (array.length==0) {
-			System.err.println("Error - impossible to find the max of an empty array");
-			return -999;
-		}
-		max = array[0];
-		for (int i = 1; i<array.length; i++) {
-			if (array[i]!=Float.NaN&&array[i]>max) {
-				max = array[i];
-			}
-		}
-
-		return max;
+		return index(array, true);
 	}
 
 	/**
@@ -262,22 +188,59 @@ public class Array {
 	 * @return the minimum
 	 */
 	public static int maxIndex(double[] array) {
-		double max;
-		int index;
+		return index(array, false);
+	}
 
-		if (array.length==0) {
-			System.err.println("Error - impossible to find the min of an empty array");
+	private static int index(double[] array, boolean findMin) {
+		if (badLength(array.length)) {
 			return -1;
 		}
-		max = array[0];
-		index = 0;
-		for (int i = 1; i<array.length; i++) {
-			if (array[i]>max) {
-				max = array[i];
+		double v = Double.POSITIVE_INFINITY;
+		int index = -1;
+	
+		for (int i = 0; i<array.length; i++) {
+			if (Double.isNaN(array[i])) {
+				continue;
+			}
+			int c = Double.compare(array[i], v);
+			if (findMin ? c < 0 : c > 0) {
+				v = array[i];
 				index = i;
 			}
 		}
 		return index;
+	}
+
+	/**
+	 * Return the maximum in an array of integers
+	 * 
+	 * @see {@link Ints#max(int...)}
+	 * @param array
+	 *            array of integers
+	 * @return the maximum
+	 */
+	public static int max(int[] array) {
+		if (badLength(array.length)) {
+			return MINI;
+		}
+
+		return Ints.max(array);
+	}
+
+	/**
+	 * Return the maximum in an array of floats
+	 * 
+	 * @see {@link Floats#max(float...)}
+	 * @param array
+	 *            array of floats
+	 * @return the minimum
+	 */
+	public static float max(float[] array) {
+		if (badLength(array.length)) {
+			return MINF;
+		}
+
+		return Floats.max(array);
 	}
 
 	/**
@@ -288,17 +251,10 @@ public class Array {
 	 * @return the maximum
 	 */
 	public static double max(double[] array) {
-		double max;
-
-		if (array.length==0) {
-			System.err.println("Error - impossible to find the max of an empty array");
-			return Double.NaN;
+		if (badLength(array.length)) {
+			return MIND;
 		}
-		max = array[0];
-		for (int i = 1; i<array.length; i++) {
-			max = Math.max(array[i], max);
-		}
-		return max;
+		return Doubles.max(array);
 	}
 	
 	/**
@@ -309,17 +265,15 @@ public class Array {
 	 * @return the maximum
 	 */
 	public static byte max(byte[] array) {
-		byte max;
 
-		if (array.length==0) {
-			System.err.println("Error - impossible to find the max of an empty array");
-			return Byte.MAX_VALUE;
+		if (badLength(array.length)) {
+			return MINB;
 		}
-		max = array[0];
+		byte min = Byte.MAX_VALUE;
 		for (int i = 1; i<array.length; i++) {
-			max = (byte) Math.max(array[i], max);
+			min = (byte) Math.max(array[i], min);
 		}
-		return max;
+		return min;
 	}
 
 	/**
@@ -331,7 +285,7 @@ public class Array {
 	 * @return array of integers with values initialized to their respective
 	 *         indices
 	 */
-	public static int[] intArray(int size) {
+	public static int[] arrayOfIndices(int size) {
 		int[] arr = new int[size];
 		for (int i = 0; i<size; i++) {
 			arr[i] = i;
@@ -351,9 +305,7 @@ public class Array {
 	 */
 	public static int[] intArray(int size, int initValue) {
 		int[] arr = new int[size];
-		for (int i = 0; i<size; i++) {
-			arr[i] = initValue;
-		}
+		Arrays.fill(arr, initValue);
 		return arr;
 	}
 
@@ -367,9 +319,8 @@ public class Array {
 	 */
 	public static int[] intArrayStandarddSkips(int size) {
 		int[] arr = new int[size];
-		for (int i = 0; i<size; i++) {
-			arr[i] = i==0?0:1;
-		}
+		Arrays.fill(arr, 1);
+		arr[0] = 0;
 		return arr;
 	}
 
@@ -385,9 +336,7 @@ public class Array {
 	 */
 	public static long[] longArray(int size, long initValue) {
 		long[] arr = new long[size];
-		for (int i = 0; i<size; i++) {
-			arr[i] = initValue;
-		}
+		Arrays.fill(arr, initValue);
 		return arr;
 	}
 
@@ -420,11 +369,7 @@ public class Array {
 	public static int[] toIntArray(byte[] array) {
 		int[] arr = new int[array.length];
 		for (int i = 0; i < array.length; i++) {
-			try {
-				arr[i] = (array[i]);
-			} catch (NumberFormatException nfe) {
-				System.err.println("Error - failed to convert '" + array[i] + "' into an integer");
-			}
+			arr[i] = array[i];
 		}
 		return arr;
 	}
@@ -607,9 +552,7 @@ public class Array {
 	 */
 	public static double[] doubleArray(int size, double initValue) {
 		double[] arr = new double[size];
-		for (int i = 0; i<size; i++) {
-			arr[i] = initValue;
-		}
+		Arrays.fill(arr, initValue);
 		return arr;
 	}
 
@@ -625,9 +568,7 @@ public class Array {
 	 */
 	public static float[] floatArray(int size, float initValue) {
 		float[] arr = new float[size];
-		for (int i = 0; i<size; i++) {
-			arr[i] = initValue;
-		}
+		Arrays.fill(arr, initValue);
 		return arr;
 	}
 
@@ -643,12 +584,28 @@ public class Array {
 	 */
 	public static byte[] byteArray(int size, byte initValue) {
 		byte[] arr = new byte[size];
-		for (int i = 0; i<size; i++) {
-			arr[i] = initValue;
-		}
+		Arrays.fill(arr, initValue);
 		return arr;
 	}
 	
+	/**
+	 * Create a boolean array and make all states an initial value
+	 * 
+	 * @param int
+	 *            size of array
+	 * @return the boolean array
+	 */
+	public static boolean[] booleanArray(int size, boolean initValue) {
+		boolean[] array = new boolean[size];
+	
+		// Default value is false
+		if (initValue) {
+			Arrays.fill(array, true);
+		}
+	
+		return array;
+	}
+
 	public enum BYTE_DECODE_FORMAT{
 		/**
 		 * String will be converted to upper case
@@ -723,30 +680,11 @@ public class Array {
 	public static byte[] toByteArray(float[] array) {
 	    byte[] arr = new byte[array.length];
 	    for (int i = 0; i<array.length; i++) {
-	        try {
-	            arr[i] = (byte)array[i];
-	        } catch (NumberFormatException nfe) {
-	            System.err.println("Error - failed to convert '"+array[i]+"' into a byte");
-	        }
+	       arr[i] = (byte)array[i];
 	    }
 	    return arr;
 	}
 	
-	/**
-	 * Creates an array of byte and copies the contents of a vector of byte into it
-	 * 
-	 * @param v
-	 * @return an array of bytes copied from a vector of byte
-	 */
-	public static byte[] toByteArray(Vector<Byte> v) {
-		byte[] result = new byte[v.size()];
-		for (int i=0; i<v.size(); i++) {
-			result[i] = v.get(i);
-		}
-		return result;
-	}
-	
-
 	/**
 	 * Creates a String array of given size and initializes each element with
 	 * the given value
@@ -819,69 +757,63 @@ public class Array {
 	 * @return array of random indices for the given size
 	 */
 	public static int[] random(int size) {
-		int[] array = new int[size];
-		int index, num;
-
-		for(int i=0; i<size; i++) {
-			array[i] = i;
-		}
-		
-		for(int i=size-1; i>=0; i--) {
-			index = (int)(Math.random()*(i+1));
-			num = array[i];
-			array[i] = array[index];
-			array[index] = num;
-		}
-
-		return array;
+		return random(size, size, false);
 	}
 
 	/**
-	 * Creates an integer array of given size and initializes values by randomly
-	 * sampling zero to size with replacement
+	 * Creates an integer array of a set number of selections, and initializes
+	 * values by randomly sampling zero to size with replacement
 	 * 
 	 * @param size
-	 *            size of array
-	 * @return array of random indices for the given size
+	 *            range of random values
+	 * @param numSelections
+	 *            number of random values to select
+	 * @return array of the specified number of selections from a distribution
+	 *         of the given size
 	 */
 	public static int[] randomWithReplacement(int size, int numSelections) {
-		int[] array = new int[numSelections];
-
-		for(int i=0; i<numSelections; i++) {
-			array[i] = (int)(Math.random()*(size+1));
-		}
-
-		return array;
+		return random(size, numSelections, true);
 	}
 	
 	/**
-	 * Creates an integer array of given size and initializes values by randomly
-	 * sampling zero to size without replacement
+	 * Creates an integer array of a set number of selections, and initializes
+	 * values by randomly sampling zero to size without replacement
 	 * 
 	 * @param size
-	 *            size of array
-	 * @return array of random indices for the given size
+	 *            range of random values
+	 * @param numSelections
+	 *            number of random values to select
+	 * @return array of the specified number of selections from a distribution
+	 *         of the given size
 	 */
 	public static int[] random(int size, int numSelections) {
-		int[] array = new int[size];
-		int[] selections = new int[numSelections];
-		int index;
+		return random(size, numSelections, false);
+	}
 
-		for(int i=0; i<size; i++) {
-			array[i] = i;
-		}
+	/**
+	 * Helper method for generating random arrays of randomized integer indices.
+	 * Allows configuration of distribution range, number of draws, and whether
+	 * values can be repeated or not.
+	 */
+	private static int[] random(int distSize, int numSelections, boolean withReplacement) {
+		List<Integer> asList = Ints.asList(arrayOfIndices(distSize));
+		int[] selections = new int[numSelections];
+		Random r = new Random();
 		
-		for(int i=size-1; i>=0 && i>=size-numSelections; i--) {
-			index = (int)(Math.random()*(i+1));
-			selections[size-i-1] = array[index]; 
-			array[index] = array[i];
+		for (int i=0; i<numSelections; i++) {
+			int index = r.nextInt(asList.size()+1);
+			selections[i] = withReplacement ? asList.get(index) : asList.remove(index);
 		}
 
 		return selections;
+		
 	}
 
 	/**
 	 * Calculates the sum of an array
+	 * <p>
+	 * TODO replace with Streams in Java 8
+	 * </p>
 	 * 
 	 * @param array
 	 *            an array of numbers
@@ -901,11 +833,14 @@ public class Array {
 	}
 
 	/**
-	 * Calculates the sum of an array
+	 * Calculates the sum of all values in an array specified by the indices in
+	 * a second array
 	 * 
 	 * @param array
 	 *            an array of numbers
-	 * @return sum of the array
+	 * @param order
+	 *            an array of indices to sum
+	 * @return sum of the array at the given indices
 	 */
 	public static double sumInOrder(double[] array, int[] order) {
 		double sum = 0;
@@ -936,6 +871,9 @@ public class Array {
 
 	/**
 	 * Calculates the sum of an array
+	 * <p>
+	 * TODO replace with Streams in Java 8
+	 * </p>
 	 * 
 	 * @param array
 	 *            an array of numbers
@@ -953,6 +891,9 @@ public class Array {
 
 	/**
 	 * Calculates the sum of an array
+	 * <p>
+	 * TODO replace with Streams in Java 8
+	 * </p>
 	 * 
 	 * @param array
 	 *            an array of numbers
@@ -970,6 +911,9 @@ public class Array {
 
 	/**
 	 * Calculates the sum of an array
+	 * <p>
+	 * TODO replace with Streams in Java 8
+	 * </p>
 	 * 
 	 * @param array
 	 *            an array of integers
@@ -987,6 +931,9 @@ public class Array {
 
 	/**
 	 * Calculates the sum of an array
+	 * <p>
+	 * TODO replace with Streams in Java 8
+	 * </p>
 	 * 
 	 * @param array
 	 *            an array of integers
@@ -1004,6 +951,9 @@ public class Array {
 
 	/**
 	 * Calculates the sum of an array
+	 * <p>
+	 * TODO replace with Streams in Java 8
+	 * </p>
 	 * 
 	 * @param array
 	 *            an array of long
@@ -1059,11 +1009,9 @@ public class Array {
 		for (int i = 0; i < array.length; i++) {
 			if (!skipNaN || !Double.isNaN(array[i])) {
 				tmp.add(array[i]);
+				ma[i] = mean(Doubles.toArray(tmp), true);
 				if (tmp.size() >= n) {
-					ma[i] = mean(toDoubleArray(tmp), true);
 					tmp.remove(0);
-				} else {
-					ma[i] = mean(toDoubleArray(tmp), true);
 				}
 			} else {
 				ma[i] = Double.NaN;
@@ -1086,7 +1034,7 @@ public class Array {
 		for (int i = 0; i < array.length; i++) {
 			tmp.add(array[i]);
 			if (i >= n) {
-				ma[i] = (double) median(toDoubleArray(tmp));
+				ma[i] = (double) median(Doubles.toArray(tmp));
 				tmp.remove(0);
 			} else {
 				ma[i] = Double.NaN;
@@ -1263,30 +1211,6 @@ public class Array {
 	 */
 	public static Float mean(Float[] array) {
 	    return sum(array)/array.length;
-	}
-
-	/**
-	 * Recreates array with only the first n values
-	 * 
-	 * @param array
-	 *            an array of numbers
-	 * @param n
-	 *            the number of values to include
-	 * @return an array of the first n values of the original
-	 */
-	public static double[] firstN(double[] array, int n) {
-		double[] arr = new double[n];
-
-		if (array.length<n) {
-			System.err.println("Error - said to use the first "+n+" numbers, but the array is only size "+array.length);
-			System.exit(1);
-		}
-
-		for (int i = 0; i<n; i++) {
-			arr[i] = array[i];
-		}
-
-		return arr;
 	}
 
 	/**
@@ -2942,24 +2866,6 @@ public class Array {
 	}
 
 	/**
-	 * Create a boolean array and make all states TRUE
-	 * 
-	 * @param int
-	 *            size of array
-	 * @return the boolean array
-	 */
-	public static boolean[] booleanArray(int size, boolean initValue) {
-		boolean[] array = new boolean[size];
-
-		for (int i = 0; i<size; i++) {
-			array[i] = initValue;
-		}
-
-		return array;
-	}
-	
-	
-	/**
 	 * convert a string array into a boolean representation <br>
 	 * masks will all be set to false
 	 */
@@ -3064,66 +2970,6 @@ public class Array {
 	}
 
 	/**
-	 * Tries to finds the first instance of a given number within an array and
-	 * returns either the index or -1 if not found
-	 * 
-	 * @param array
-	 *            an array of int
-	 * @param target
-	 *            the number to find
-	 * @return the index or -1 if not found
-	 */
-	public static int indexOfInt(int[] array, int target) {
-		for (int i = 0; i<array.length; i++) {
-			if (array[i]==target) {
-				return i;
-			}
-		}
-
-		return -1;
-	}
-
-	/**
-	 * Tries to finds the first instance of a given character within an array and
-	 * returns either the index or -1 if not found
-	 * 
-	 * @param array
-	 *            an array of char
-	 * @param target
-	 *            the character to find
-	 * @return the index or -1 if not found
-	 */
-	public static int indexOfChar(char[] array, char target) {
-		for (int i = 0; i<array.length; i++) {
-			if (array[i]==target) {
-				return i;
-			}
-		}
-
-		return -1;
-	}
-
-	/**
-	 * Tries to finds the first instance of a given number within an array and
-	 * returns either the index or -1 if not found
-	 * 
-	 * @param array
-	 *            an array of bytes
-	 * @param target
-	 *            the number to find
-	 * @return the index or -1 if not found
-	 */
-	public static int indexOfByte(byte[] array, byte target) {
-		for (int i = 0; i<array.length; i++) {
-			if (array[i]==target) {
-				return i;
-			}
-		}
-
-		return -1;
-	}
-
-	/**
 	 * Tries to find the instance in a sorted array where all values up to, but not including, that index are less than a given maximum target
 	 * <p>
 	 * For example, calling {@link Array#indexOfLastMinByte} using (new byte[] {0,1,2,24,25}, 23), would return 3 (all values up to index 3 are less than 23);
@@ -3154,57 +3000,6 @@ public class Array {
 	}
 
 	/**
-	 * Creates a new array using only the indices between start and stop
-	 * 
-	 * @param array
-	 *            an array of doubles
-	 * @param start
-	 *            first index to use
-	 * @param stop
-	 *            last index to use
-	 * @return the subset of the original array
-	 */
-	public static int[] subArray(int[] array, int start, int stopBefore) {
-		int[] arr;
-
-		if (start<0||stopBefore>array.length||stopBefore<=start) {
-			System.err.println("Error - invalid start ("+start+") and stopBefore ("+stopBefore+") indicies for an array");
-		}
-		arr = new int[stopBefore-start];
-		for (int i = start; i<stopBefore; i++) {
-			arr[i-start] = array[i];
-		}
-
-		return arr;
-	}
-	
-
-	/**
-	 * Creates a new array using only the indices between start and stop
-	 * 
-	 * @param array
-	 *            an array of doubles
-	 * @param start
-	 *            first index to use
-	 * @param stop
-	 *            last index to use
-	 * @return the subset of the original array
-	 */
-	public static byte[] subArray(byte[] array, int start, int stopBefore) {
-		byte[] arr;
-
-		if (start < 0 || stopBefore > array.length || stopBefore <= start) {
-			System.err.println("Error - invalid start (" + start + ") and stopBefore (" + stopBefore + ") indicies for an array");
-		}
-		arr = new byte[stopBefore - start];
-		for (int i = start; i < stopBefore; i++) {
-			arr[i - start] = array[i];
-		}
-
-		return arr;
-	}
-
-	/**
 	 * Creates a new array using only the indices at and after start
 	 * 
 	 * @param array
@@ -3214,7 +3009,7 @@ public class Array {
 	 * @return the subset of the original array
 	 */
 	public static int[] subArray(int[] array, int start) {
-		return subArray(array, start, array.length);
+		return Arrays.copyOfRange(array, start, array.length);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -4268,7 +4063,7 @@ public class Array {
 				tmp.add(array[i]);
 			}
 		}
-		return Array.toDoubleArray(tmp);
+		return Doubles.toArray(tmp);
 	}
 
 	public static float[] getValuesBetween(float[] array, double min, double max, boolean gteLte) {
@@ -4278,7 +4073,7 @@ public class Array {
 				tmp.add(array[i]);
 			}
 		}
-		return Array.toFloatArray(tmp);
+		return Floats.toArray(tmp);
 	}
 
 	public static int[] getValuesBetween(int[] array, int min, int max, boolean gteLte) {
@@ -4288,7 +4083,7 @@ public class Array {
 				tmp.add(array[i]);
 			}
 		}
-		return Array.toIntArray(tmp);
+		return Ints.toArray(tmp);
 	}
 
 	/**
@@ -4734,96 +4529,6 @@ public class Array {
 		} else {
 			return newArray;
 		}
-	}	
-
-	/**
-	 * Clones an array of Strings
-	 * 
-	 * @param array
-	 *            the array of Strings to clone
-	 * @return cloned array of Strings
-	 */
-	public static String[] clone(String[] array) {
-		String[] newArray;
-
-		newArray = new String[array.length];
-		for (int i = 0; i < array.length; i++) {
-			newArray[i] = array[i];
-		}
-		
-		return newArray;
-	}	
-
-	/**
-	 * Clones an array of int
-	 * 
-	 * @param array
-	 *            the array of int to clone
-	 * @return cloned array of int
-	 */
-	public static int[] clone(int[] array) {
-		int[] newArray;
-
-		newArray = new int[array.length];
-		for (int i = 0; i < array.length; i++) {
-			newArray[i] = array[i];
-		}
-		
-		return newArray;
-	}	
-
-	/**
-	 * Clones an array of double
-	 * 
-	 * @param array
-	 *            the array of double to clone
-	 * @return cloned array of double
-	 */
-	public static double[] clone(double[] array) {
-		double[] newArray;
-
-		newArray = new double[array.length];
-		for (int i = 0; i < array.length; i++) {
-			newArray[i] = array[i];
-		}
-		
-		return newArray;
-	}	
-
-	/**
-	 * Clones an array of float
-	 * 
-	 * @param array
-	 *            the array of float to clone
-	 * @return cloned array of float
-	 */
-	public static float[] clone(float[] array) {
-		float[] newArray;
-
-		newArray = new float[array.length];
-		for (int i = 0; i < array.length; i++) {
-			newArray[i] = array[i];
-		}
-		
-		return newArray;
-	}	
-
-	/**
-	 * Clones an array of boolean
-	 * 
-	 * @param array
-	 *            the array of boolean to clone
-	 * @return cloned array of boolean
-	 */
-	public static boolean[] clone(boolean[] array) {
-		boolean[] newArray;
-
-		newArray = new boolean[array.length];
-		for (int i = 0; i < array.length; i++) {
-			newArray[i] = array[i];
-		}
-		
-		return newArray;
 	}	
 
 	/**
@@ -5279,104 +4984,6 @@ public class Array {
 
 	public static double lambda(double[] pvals) {
 		return ProbDist.ChiDistReverse(Array.median(pvals), 1)/ProbDist.ChiDistReverse(0.50, 1);
-	}
-	
-	/**
-	 * Creates an array of float and copies the contents of an ArrayList of float into it
-	 * 
-	 * @param al
-	 * @return an array of floats copied from a ArrayList of floats
-	 */
-	public static float[] toFloatArray(ArrayList<Float> al) {
-		float[] result = new float[al.size()];
-		for (int i = 0; i < al.size(); i++) {
-			result[i] = al.get(i);
-		}
-		return result;
-	}
-
-	/**
-	 * Creates an array of double and copies the contents of an ArrayList of double into it
-	 * 
-	 * @param al
-	 * @return an array of doubles copied from a ArrayList of doubles
-	 */
-	public static double[] toDoubleArray(ArrayList<Double> al) {
-		double[] result = new double[al.size()];
-		for (int i = 0; i < al.size(); i++) {
-			result[i] = al.get(i);
-		}
-		return result;
-	}
-	
-	/**
-	 * Creates an array of int and copies the contents of an ArrayList of int into it
-	 * 
-	 * @param al
-	 * @return an array of int copied from a ArrayList of int
-	 */
-	public static int[] toIntArray(ArrayList<Integer> al) {
-		int[] result = new int[al.size()];
-		for (int i = 0; i < al.size(); i++) {
-			result[i] = al.get(i);
-		}
-		return result;
-	}
-
-	/**
-	 * Creates an array of byte and copies the contents of an ArrayList of byte into it
-	 * 
-	 * @param al
-	 * @return an array of byte copied from a ArrayList of byte
-	 */
-	public static byte[] toByteArray(ArrayList<Byte> al) {
-		byte[] result = new byte[al.size()];
-		for (int i = 0; i < al.size(); i++) {
-			result[i] = al.get(i);
-		}
-		return result;
-	}
-	
-	/**
-	 * Creates an array of boolean and copies the contents of an ArrayList of Boolean into it
-	 * 
-	 * @param al
-	 * @return an array of boolean copied from an ArrayList of Boolean
-	 */
-	public static boolean[] toBooleanArray(ArrayList<Boolean> al) {
-		boolean[] result = new boolean[al.size()];
-		for (int i = 0; i < al.size(); i++) {
-			result[i] = al.get(i);
-		}
-		return result;
-	}
-	
-	/**
-	 * Creates an array of boolean and copies the contents of a Vector of Boolean into it
-	 * 
-	 * @param v
-	 * @return an array of boolean copied from a Vector of Boolean
-	 */
-	public static boolean[] toBooleanArray(Vector<Boolean> v) {
-		boolean[] result = new boolean[v.size()];
-		for (int i = 0; i < v.size(); i++) {
-			result[i] = v.get(i);
-		}
-		return result;
-	}
-
-	/**
-	 * Creates an array of Integer and copies the contents of an ArrayList of Integer into it
-	 * 
-	 * @param al
-	 * @return an array of Integer copied from a ArrayList of Integer
-	 */
-	public static int[] toIntegerArray(ArrayList<Integer> al) {
-		int[] result = new int[al.size()];
-		for (int i = 0; i < al.size(); i++) {
-			result[i] = al.get(i);
-		}
-		return result;
 	}
 	
 	/**

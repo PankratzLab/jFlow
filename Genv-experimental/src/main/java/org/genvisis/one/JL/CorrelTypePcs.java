@@ -20,6 +20,8 @@ import org.genvisis.stats.Rscript.RScatter;
 import org.genvisis.stats.Rscript.RScatters;
 import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
+import com.google.common.primitives.Ints;
+
 /**
  * Look at correlation of mito estimates from different pc files, relies on typed/*.gz files
  *
@@ -99,8 +101,8 @@ public class CorrelTypePcs {
 											}
 										}
 										// proj.getLog().reportTimeInfo(indicesToCorrel.size() + " valid estimates of " + data[0].length + " total for " + gzippers[gzipIndex]);
-										data[0] = Array.subArray(data[0], Array.toIntArray(indicesToCorrel));
-										data[1] = Array.subArray(data[1], Array.toIntArray(indicesToCorrel));
+										data[0] = Array.subArray(data[0], Ints.toArray(indicesToCorrel));
+										data[1] = Array.subArray(data[1], Ints.toArray(indicesToCorrel));
 
 										outData.add(Correlation.Spearman(data)[0] + "");
 										outData.add(Correlation.Pearson(data)[0] + "");
@@ -170,7 +172,7 @@ public class CorrelTypePcs {
 				ind.add(i);
 			}
 		}
-		return Array.subArray(header, Array.toIntArray(ind));
+		return Array.subArray(header, Ints.toArray(ind));
 
 	}
 

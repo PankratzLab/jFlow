@@ -429,7 +429,7 @@ public class Conditional {
 		annotationHeader = new String[0];
 		if (new File(annotationFile).exists()) {
 			annotationHeader = Files.getHeaderOfFile(annotationFile, "[\\s]+", log);
-			annotation = HashVec.loadFileToHashString(annotationFile, new int[] {0}, Array.subArray(Array.intArray(annotationHeader.length), 1), false, "\t", true, false, false);
+			annotation = HashVec.loadFileToHashString(annotationFile, new int[] {0}, Array.subArray(Array.arrayOfIndices(annotationHeader.length), 1), false, "\t", true, false, false);
 			annotationHeader = Array.subArray(annotationHeader, 1);
 		} else if (annotationFile != null) {
 			log.reportError("Error - annotation file '"+annotationFile+"' not found; no annotation will occur");
@@ -1163,7 +1163,7 @@ public class Conditional {
 			if (regionListFilename.equalsIgnoreCase("null")) {
 				markersAndChrs = new String[][] {{"Metal_SE"}};
 			} else {
-				markersAndChrs = HashVec.loadFileToStringMatrix(regionListFilename, false, Array.intArray(Files.getHeaderOfFile(regionListFilename, log).length), "\t", false, 100, false);
+				markersAndChrs = HashVec.loadFileToStringMatrix(regionListFilename, false, Array.arrayOfIndices(Files.getHeaderOfFile(regionListFilename, log).length), "\t", false, 100, false);
 			}
 			System.out.println("minNumValid="+minNumValids);
 

@@ -282,7 +282,7 @@ public class ContingencyTable {
 	}
 
 	public static double linearCorrelation(double[][] data) {
-		return linearCorrelation(data, Array.toDoubleArray(Array.intArray(data.length)), Array.toDoubleArray(Array.intArray(data[0].length)));
+		return linearCorrelation(data, Array.toDoubleArray(Array.arrayOfIndices(data.length)), Array.toDoubleArray(Array.arrayOfIndices(data[0].length)));
 	}
 
 	public static double linearCorrelation(double[][] data, double[] rowScores, double[] colScores) {
@@ -332,7 +332,7 @@ public class ContingencyTable {
 	}
 
 	public static double linearTrendStatistic(double[][] data) {
-		return linearTrendStatistic(data, Array.toDoubleArray(Array.intArray(data.length)), Array.toDoubleArray(Array.intArray(data[0].length)));
+		return linearTrendStatistic(data, Array.toDoubleArray(Array.arrayOfIndices(data.length)), Array.toDoubleArray(Array.arrayOfIndices(data[0].length)));
 	}
 
 	public static double linearTrendStatistic(double[][] data, double[] rowScores, double[] colScores) {

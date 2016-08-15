@@ -5,6 +5,8 @@ import java.io.*;
 import org.genvisis.bioinformatics.Sequence;
 import org.genvisis.common.*;
 
+import com.google.common.primitives.Chars;
+
 public class IndianDiabetes {
 	private static void parseGenotypes(String filename) {
 		BufferedReader reader;
@@ -37,7 +39,7 @@ public class IndianDiabetes {
 						log.reportError("Error - mishapen alleles for indiviudal "+line[0]+" marker "+markerNames[i]+": '"+line[i+3]+"'");
 					} else {
 						for (int j = 0; j < 2; j++) {
-							if (Array.indexOfChar(Sequence.ALLELES, line[i+3].charAt(j)) == -1) {
+							if (Chars.indexOf(Sequence.ALLELES, line[i+3].charAt(j)) == -1) {
 								log.reportError("Error - invalid allele for indiviudal "+line[0]+" marker "+markerNames[i]+": '"+line[i+3]+"'");
 							}
 							writer.print("\t"+line[i+3].charAt(j));

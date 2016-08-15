@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
@@ -61,7 +62,7 @@ public class Scratch {
 				for (int j = 0; j < tmp.getLoci().length; j++) {
 					CNVBuilder builder = new CNVBuilder(tmp.getLoci()[j]);
 					int[] startStop = indicesStates.get(j);
-					int[] stateIndices = Array.subArray(indices[i], startStop[0], startStop[1] + 1);
+					int[] stateIndices = Arrays.copyOfRange(indices[i], startStop[0], startStop[1] + 1);
 					double[] clean = Array.removeNaN(Array.subArray(gcs, stateIndices));
 					builder.score(Array.median(clean));
 					if (j % 2 == 0) {

@@ -39,6 +39,9 @@ import org.genvisis.stats.Rscript.RScatter;
 import org.genvisis.stats.Rscript.RScatters;
 import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 import be.ac.ulg.montefiore.run.distributions.GaussianMixtureDistribution;
 
 /**
@@ -238,7 +241,7 @@ public class MosaicismQuant implements Calcfc {
 			controlDataNames.add(proj.getSamples()[sorted[minIndex]]);
 		}
 
-		double[] distanceToSample = Array.InplaceAbs(Array.InplaceSub(Array.toDoubleArray(controlData), sampData));
+		double[] distanceToSample = Array.InplaceAbs(Array.InplaceSub(Doubles.toArray(controlData), sampData));
 		int[] minDists = Sort.quicksort(distanceToSample);
 
 		for (int i = 0; i < controls.length; i++) {
@@ -439,7 +442,7 @@ public class MosaicismQuant implements Calcfc {
 				}
 			}
 			if (!control) {
-				int[] projectIndices = Array.toIntArray(bafIndicesToUse);
+				int[] projectIndices = Ints.toArray(bafIndicesToUse);
 				double[] bafsSelection = Array.subArray(bafs, projectIndices);
 				return new BafSelection(bafsSelection, projectIndices);
 			} else {
@@ -449,7 +452,7 @@ public class MosaicismQuant implements Calcfc {
 					for (int i = 0; i < numControlForce; i++) {
 						bafIndicesToUseTmp.add(bafIndicesToUse.get(i));
 					}
-					int[] projectIndices = Array.toIntArray(bafIndicesToUseTmp);
+					int[] projectIndices = Ints.toArray(bafIndicesToUseTmp);
 					double[] bafsSelection = Array.subArray(bafs, projectIndices);
 					return new BafSelection(bafsSelection, projectIndices);
 				} else {
@@ -496,11 +499,11 @@ public class MosaicismQuant implements Calcfc {
 								Collections.shuffle(bafIndicesToUse);
 							}
 						}
-						int[] projectIndices = Array.toIntArray(bafIndicesToUseTmp);
+						int[] projectIndices = Ints.toArray(bafIndicesToUseTmp);
 						double[] bafsSelection = Array.subArray(bafs, projectIndices);
 						return new BafSelection(bafsSelection, projectIndices);
 					} else {
-						int[] projectIndices = Array.toIntArray(bafIndicesToUse);
+						int[] projectIndices = Ints.toArray(bafIndicesToUse);
 						double[] bafsSelection = Array.subArray(bafs, projectIndices);
 						return new BafSelection(bafsSelection, projectIndices);
 					}
