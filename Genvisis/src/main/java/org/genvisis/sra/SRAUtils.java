@@ -57,7 +57,11 @@ public class SRAUtils {
 
 	}
 
-	private static class SRABamWorker implements Callable<SRAConversionResult> {
+	/**
+	 * {@link Callable} managing the conversion of an SRA file to .bam
+	 *
+	 */
+	public static class SRABamWorker implements Callable<SRAConversionResult> {
 		private String inputSra;
 		private String outputBam;
 		private Logger log;
