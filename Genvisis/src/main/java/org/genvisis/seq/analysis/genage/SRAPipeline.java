@@ -69,13 +69,15 @@ public class SRAPipeline implements Callable<Boolean> {
 		String bamDir = rootOutDir + "bams/";
 		new File(bamDir).mkdirs();
 		String bam = bamDir + ext.rootOf(inputSRA) + ".bam";
-		// if(Files.exists(bam)&&Files.exists(BamOps.verifyIndex(bamFile, log)))
-		WorkerHive<SRAConversionResult> hive = new WorkerHive<SRAUtils.SRAConversionResult>(1, 10, log);
-		hive.addCallable(new SRABamWorker(inputSRA, bam, log));
-		hive.execute(true);
-
-		Pipeline.pipeline(bam, rootOutDir, referenceGenome, captureBed, sraSample, numThreads, log);
-
+		log.reportTimeWarning("John, remember you are in experimental mode...");
+		if (Files.exists(bam) && Files.exists(BamOps.getAssociatedBamIndex(bam))) {
+			WorkerHive<SRAConversionResult> hive = new WorkerHive<SRAUtils.SRAConversionResult>(1, 10, log);
+			hive.addCallable(new SRABamWorker(inputSRA, bam, log));
+			hive.execute(true);
+			Pipeline.pipeline(bam, rootOutDir, referenceGenome, captureBed, sraSample, numThreads, log);
+		} else {
+			log.reportTimeWarning("Skipping " + sraSample.toString());
+		}
 		return true;
 	}
 
@@ -102,29 +104,30 @@ public class SRAPipeline implements Callable<Boolean> {
 	}
 
 	public static void main(String[] args) {
-		String sraDirDefault = "sra/";
-		String outDir = "out/";
-		String sraRunTableDefault = "sraRuntable.txt";
-		String refGenomeFasta = "hg19.canonical.fa";
-		String captureBedFile = "VCRome_2_1_hg19_capture_targets.bed";
-
-		int numThreads = 24;
 
 		Options options = CLI.defaultOptions();
+
+		String sraDirDefault = "sra/";
 		final String SRA_DRI = "sraDir";
 		CLI.addArg(options, SRA_DRI, "directory with .sra files", sraDirDefault);
 
+		String outDir = "out/";
 		final String OUT_DIR = "outDir";
 		CLI.addArg(options, OUT_DIR, "the output directory for results", outDir);
 
+		String sraRunTableDefault = "sraRuntable.txt";
 		final String SRA_RUN_TABLE = "sraRunTable";
 		CLI.addArg(options, SRA_RUN_TABLE, "a sra run table providing sample information", sraRunTableDefault);
+
+		int numThreads = 24;
 		final String NUM_THREADS = "threads";
 		CLI.addArg(options, NUM_THREADS, "a sra run table providing sample information", Integer.toString(numThreads));
 
+		String refGenomeFasta = "hg19.canonical.fa";
 		final String REFERENC_GENOME = "ref";
 		CLI.addArg(options, REFERENC_GENOME, "appropriate reference genome file", refGenomeFasta);
 
+		String captureBedFile = "VCRome_2_1_hg19_capture_targets.bed";
 		final String CAPTURE_BED = "bed";
 		CLI.addArg(options, CAPTURE_BED, "bed file of targeted capture", captureBedFile);
 
