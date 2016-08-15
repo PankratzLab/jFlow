@@ -85,8 +85,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     private NullGate rootGate = new NullGate();
     private Gate parentGate = rootGate;
 
-//    volatile boolean isLoading = false;
-
     private volatile String xDataName;
     private volatile String yDataName;
 

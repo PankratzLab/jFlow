@@ -1,5 +1,6 @@
 package org.genvisis.cnv.plots;
 
+import java.awt.Color;
 import java.io.Serializable;
 
 public class PlotPoint implements Serializable {
@@ -20,6 +21,7 @@ public class PlotPoint implements Serializable {
 	private float rawX;
 	private float rawY;
 	private byte size;
+	private Color tempColor;
 	private byte color;
 	private byte layer;
 	private boolean highlight;
@@ -82,6 +84,10 @@ public class PlotPoint implements Serializable {
 	public byte getColor() {
 		return color;
 	}
+	
+	public Color getTempColor() {
+	    return tempColor;
+	}
 
 	public byte getLayer() {
 		return layer;
@@ -107,6 +113,10 @@ public class PlotPoint implements Serializable {
 		return visible;
 	}
 
+	public void setTempColor(Color tempColor2) {
+	    this.tempColor = tempColor2;
+	}
+	
     public void setColor(byte color2) {
         this.color = color2;
     }

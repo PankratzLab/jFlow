@@ -22,6 +22,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -802,9 +804,28 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         
         g.setClip(axisYWidth + AXIS_THICKNESS/2, HEAD_BUFFER, getWidth() - WIDTH_BUFFER - axisYWidth, getHeight() - HEAD_BUFFER - axisXHeight - AXIS_THICKNESS/2);
         
+//        if (chartType == PLOT_TYPE.HEATMAP) {
+//            drawHeatMap(g);
+//        } else if (chartType == PLOT_TYPE.CONTOUR) {
+//            drawContour(g);
+//        } else if (chartType == PLOT_TYPE.DOT_PLOT) {
+//        if (chartType == PLOT_TYPE.HEATMAP) {
+//            setHeatmapColors();
+//        }
+//        if (chartType == PLOT_TYPE.CONTOUR) {
+//            drawContour(g);
+//        } else if (chartType == PLOT_TYPE.DOT_PLOT || chartType == PLOT_TYPE.HEATMAP) {
+//        if (chartType == PLOT_TYPE.CONTOUR) {
+//            drawContour(g);
+//        }
+
+//        if (chartType == PLOT_TYPE.HEATMAP) {
+//            drawHeatMap(g);
+//        } else if (/*chartType == PLOT_TYPE.CONTOUR || */chartType == PLOT_TYPE.DOT_PLOT) {
         if (chartType == PLOT_TYPE.HEATMAP) {
             drawHeatMap(g);
-        } else if (chartType == PLOT_TYPE.DOT_PLOT) {
+        }
+        if (/*chartType == PLOT_TYPE.HEATMAP || */chartType == PLOT_TYPE.DOT_PLOT) {
             for (int i = 0; i<points.length && flow; i++) {
                 if (points[i] == null || points[i].getColor() == -1 || !points[i].isVisible()) {
                     
@@ -1490,31 +1511,125 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	public String getTitle() { return this.title; }
 	
 	public void refreshOtherComponents() {}
-
+	
+	double[] lvls = {.1, .05, .02};
+    int k = 0;
+	
+    // Doesn't really work... 
+	public void drawContour(Graphics g) {
+	    int nRows, nCols, radius, min, max, xPixel, yPixel;
+	    int[][] gridIntensities;
+	    double[][] data;
+	    
+	    nRows = getHeight();
+	    nCols = getWidth();
+        radius = 0;
+	    
+	    gridIntensities = getGridIntensityForHeatMapGrid(nRows, nCols, radius);
+	    ArrayList<Integer> intense = new ArrayList<Integer>();
+	    for (int i = 0; i < nCols; i++) {
+	        for (int j = 0; j < nRows; j++) {
+	            if (gridIntensities[i][j] > 0) {
+	                intense.add(gridIntensities[i][j]);
+	            }
+	        }
+	    }
+	    int[] intent = Array.toIntArray(intense);
+	    
+	    HashSet<Integer> quantSet = new HashSet<Integer>();
+	    for (int i = 0, count = (int) (1 / lvls[k]) - 1; i < count; i++) {
+	        quantSet.add((int) Array.quantWithExtremeForTie(intent, (i + 1) * lvls[k]));
+	    }
+	    ArrayList<Integer> quants = new ArrayList<Integer>(quantSet);
+	    Collections.sort(quants);
+//	    int[][] parulaColors = org.genvisis.one.ben.ParulaColorMap.getParulaMap(quants.size() + 1);
+//	    
+//	    pointLoop: for (PlotPoint point : points) {
+//            xPixel = getXPixel(point.getRawX()) - canvasSectionMinimumX;
+//            yPixel = getYPixel(point.getRawY()) + canvasSectionMinimumY;
+//            if (xPixel >= 0 && xPixel < nCols && yPixel >= 0 && yPixel < nRows) {
+//    	        int intensity = gridIntensities[xPixel][yPixel];
+//    	        if (intensity > 0) {
+//    	            for (int i = quants.size() - 1; i >= 0; i--) {
+//    	                if (intensity >= quants.get(i)) {
+//                            point.setTempColor(new Color(parulaColors[i][0], parulaColors[i][1], parulaColors[i][2]));
+//                            continue pointLoop;
+//    	                }
+//    	            }
+//    	        }
+//            }
+//            point.setTempColor(Color.BLACK);
+//	    }
+	    
+	    
+	}
+	
 	public void drawHeatMap(Graphics g) {
-		int nRows, nColumns;
+		int nRows, nColumns, radius;
+        int xPixel, yPixel;
 		int[][] gridIntensities;
 		int[][][] gridColors;
 		
-		int width = 1, height = 1, radius = 0;
+		radius = 0;
 		
 		nRows = getHeight();
 		nColumns = getWidth();
-		gridIntensities = getGridIntensityForHeatMapGrid(nRows, nColumns, width, height, radius);
+		gridIntensities = getGridIntensityForHeatMapGrid(nRows, nColumns, radius);
+		
+		// different version
+		
+//        ArrayList<Integer> intense = new ArrayList<Integer>();
+//        for (int i = 0; i < nColumns; i++) {
+//            for (int j = 0; j < nRows; j++) {
+//                if (gridIntensities[i][j] > 0) {
+//                    intense.add(gridIntensities[i][j]);
+//                }
+//            }
+//        }
+//        int[] intent = Array.toIntArray(intense);
+//        
+//        // capture upper levels:
+//        double[] qs = {.9, .93, .95, .96, .965, .97, .975, .9800, .9825, .9850, .9875, .9900, .9925, .9950, .9975};
+//        // uniqueness:
+//        HashSet<Integer> quantSet = new HashSet<Integer>();
+//        for (double q : qs) {
+//            quantSet.add((int) Array.quantExclusive(intent, q));
+//        }
+//        ArrayList<Integer> quants = new ArrayList<Integer>(quantSet);
+//        Collections.sort(quants);
+//		
+//		int[][] parCol = org.genvisis.one.ben.ParulaColorMap.getParulaMap(quants.size() + 2);
+//		
+//		pointLoop: for (PlotPoint point : points) {
+//            xPixel = getXPixel(point.getRawX()) - canvasSectionMinimumX;
+//            yPixel = getYPixel(point.getRawY()) + canvasSectionMinimumY;
+//            if (xPixel >= 0 && xPixel < nColumns && yPixel >= 0 && yPixel < nRows) {
+//                if (gridIntensities[xPixel][yPixel] != 0) {
+//                    for (int k = quants.size() - 1; k > 0; k--) {
+//                        if (gridIntensities[xPixel][yPixel] >= quants.get(k)) {
+//                            point.setTempColor(new Color(parCol[k + 1][0], parCol[k + 1][1], parCol[k + 1][2]));
+//                            continue pointLoop;
+//                        }
+//                    }
+//                    point.setTempColor(new Color(parCol[0][0], parCol[0][1], parCol[0][2]));
+//                }
+//                
+//            }
+//		}
+		
 		gridColors = getColorFromIntensityForHeatMapGrid(gridIntensities);
 		for (int i = 0; i < nColumns; i++) {
 			for (int j = 0; j < nRows; j++) {
 				if (gridIntensities[i][j] != 0) {
 					g.setColor(new Color(gridColors[i][j][0], gridColors[i][j][1], gridColors[i][j][2]));
 					g.drawRect(i + canvasSectionMinimumX, j - canvasSectionMinimumY, 1, 1);
-//					g.fillRect(i + canvasSectionMinimumX, j - canvasSectionMinimumY, 2, 2);
 				}
 			}
 		}
 	}
 
 
-	public int[][] getGridIntensityForHeatMapGrid(int nRows, int nColumns, int cellWidth, int cellHeight, int neighbor) {
+	public int[][] getGridIntensityForHeatMapGrid(int nRows, int nColumns, int neighbor) {
 		int xPixel, yPixel;
 		int[][] intensities;
 //		boolean zoomedIn;
@@ -1531,11 +1646,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 				for (int j = -neighbor; j <= neighbor; j++) {
 					for (int k = -neighbor; k <= neighbor; k++) {
 						if ((xPixel + j) >= 0 && (xPixel + j) < nColumns && (yPixel + k) >= 0 && (yPixel + k) < nRows) { //  && Distance.euclidean(new int[] {Math.abs(j), Math.abs(k)}, origin) < neighbor*(neighbor-1)
-//							if (zoomedIn) {
-								intensities[xPixel + j][yPixel + k]++;
-//							} else {
-//								intensities[xPixel + j][yPixel + k] += neighbor*neighbor;// - Distance.euclidean(new int[] {Math.abs(j), Math.abs(k)}, origin);
-//							}
+							intensities[xPixel + j][yPixel + k]++;
 						}
 					}
 				}
@@ -1547,26 +1658,41 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	public int[][][] getColorFromIntensityForHeatMapGrid(int[][] intensities) {
 		int[][][] color;
 		
-//		int max;
+//		int max, min;
 //		max = 0;
+//		min = Integer.MAX_VALUE;
 //		for (int i = 0; i < intensities.length; i++) {
 //			for (int j = 0; j < intensities[i].length; j++) {
 //				if (max < intensities[i][j]) {
 //					max = intensities[i][j];
 //				}
+//				if (intensities[i][j] > 0 && min > intensities[i][j]) {
+//				    min = intensities[i][j];
+//				}
 //			}
 //		}
+//		double mid = min + (2 * ((max - min) / 3));
+
+//		double logLow, logHigh, logStep;
 //		
+//		logLow = flog10(min);
+//		logHigh = flog10(max);
+//		logStep = (max - min) / (logHigh - logLow);
+		
+		
 		color = new int[intensities.length][intensities[0].length][3];
 		for (int i = 0; i < intensities.length; i++) {
 			for (int j = 0; j < intensities[i].length; j++) {
 				if (intensities[i][j] != 0) {
-//				    double val = ((double)intensities[i][j] / (double) max) * 1.4;
-//				    double val = 1 - Math.exp(-1 * intensities[i][j]);
-//				    double val = 1 - (1 / (Math.exp(intensities[i][j] / 100d) + 1));
-				    double val = 1 - (2 / (Math.exp(intensities[i][j] / 100d) + 1));
-//				    double val = 1 - (3 / (Math.exp(intensities[i][j] / 100d) + 1));
-				    val = Math.min(1, val);
+//				    double val = (intensities[i][j] - min) / (max - min); // not strong enough 
+//				    double val = (intensities[i][j] / logStep) / logHigh; // same as prev line
+//				    double val = ((double)intensities[i][j] / (double) max) * 1.4; // not strong enough
+				    double val = 1 - (2 / (Math.exp(intensities[i][j] / 100d) + 1)); // current best, a bit too strong
+//				    double val = 1 - (4 / (Math.exp(intensities[i][j] / 100d) + 2)); // current best, a bit too strong
+//				    double val = (flog10(intensities[i][j]) - logLow) * logStep / min;
+//				    double val = intensities[i][j] / max;
+				    
+				    val = Math.max(0, Math.min(1, val));
 					color[i][j] = Grafik.getHeatmapColor(val);
 				}
 			}
@@ -1892,6 +2018,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		if (size == 0) {
 			return;
 		}
+//		if (point.getTempColor() != null && point.getTempColor() == Color.BLACK) {
+//		    return;
+//		}
 
 		if (beEfficient) {
 		    int code = getEfficientPointCode(x, y, size, color);
@@ -1901,7 +2030,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 				pointsPlotted.add(code);
 			}
 		}
-		g.setColor(colorScheme[color]);
+//		g.setColor(colorScheme[color]);
+		g.setColor(point.getTempColor() == null ? colorScheme[color] : point.getTempColor());
 		
 		switch (point.getType()) {
 			case PlotPoint.FILLED_CIRCLE:
@@ -2058,10 +2188,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	}
 
 	private static final double LOG10SCALE = 1/Math.log(10);
-	// handy static methods
-	private static double log10(double val) { return Math.log(val) * LOG10SCALE; }
-	private static float flog10(double val) { return (float)log10(val); }
-
+	private static float flog10(double val) { return (float)(Math.log(val) * LOG10SCALE); }
 
 	private int getLogPixel(double val, boolean xAxis) {
 	    int screenMax, screenMin;
@@ -2114,7 +2241,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 //	        decCnt += dec;
 //    	    Logicle fl = new FastLogicle(plotXmax, W, M, A, 1); // FastLogicle causes issues (possible that parameters are incorrectly set)
 //	        System.out.println("BiEx: T{" + plotXmax + "}, W{" + W + "}, M{" + decCnt + "}, A{" + A + "}");
-    	    return biexScaleX = new Logicle(logPlotXMax = plotXmax, W, decCnt, A);
+    	    return biexScaleX = new Logicle(logPlotXMax = plotXmax, Math.min(W, decCnt / 2), decCnt, A);
 	    } else {
     	    if (biexScaleY != null && logPlotYMax == plotYmax) return biexScaleY;
             double dec = plotYmax;
@@ -2125,7 +2252,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             }
 //            decCnt += dec;
 //            Logicle fl = new FastLogicle(plotYmax, W, M, A, 1);
-            return biexScaleY = new Logicle(logPlotYMax = plotYmax, W, decCnt, A);
+            return biexScaleY = new Logicle(logPlotYMax = plotYmax, Math.min(W, decCnt / 2), decCnt, A);
 	    }
 	}
 	
