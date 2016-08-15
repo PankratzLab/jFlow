@@ -13,28 +13,21 @@ import org.genvisis.cnv.analysis.AnalysisFormats;
 import org.genvisis.cnv.analysis.Mosaicism;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
-import org.genvisis.cnv.analysis.pca.PrincipalComponentsApply;
-import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute;
-import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.ABLookup;
+import org.genvisis.cnv.filesys.ABLookup.ABSource;
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.filesys.ABLookup.ABSource;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.qc.GcAdjustor;
-import org.genvisis.cnv.qc.GcAdjustorParameter;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.qc.MarkerBlastQC;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
-import org.genvisis.cnv.qc.GcAdjustor.GCAdjustorBuilder;
-import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Aliases;
 import org.genvisis.common.Array;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
@@ -1522,7 +1515,8 @@ public class GenvisisWorkflow {
             
             String projPropFile = proj.getPropertyFilename();
             StringBuilder cmd = new StringBuilder();
-            cmd.append("java -cp genvisis.jar cnv.manage.MitoPipeline")
+            cmd.append(Files.getRunString())
+                .append(" org.genvisis.cnv.manage.MitoPipeline")
                 .append(" proj=").append(projPropFile)
                 .append(" mitochondrialMarkers=").append(medianMarkers)
                 .append(" numComponents=").append(numComponents)
@@ -1937,7 +1931,8 @@ public class GenvisisWorkflow {
 
             String projPropFile = proj.getPropertyFilename();
             StringBuilder cmd = new StringBuilder();
-            cmd.append("java -cp genvisis.jar org.genvisis.cnv.manage.PRoCtOR")
+            cmd.append(Files.getRunString())
+                .append(" org.genvisis.cnv.manage.PRoCtOR")
                 .append(" proj=").append(projPropFile)
                 .append(" numComponents=").append(numComponents)
                 .append(" outputBase=").append(outputBase)
