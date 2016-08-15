@@ -590,15 +590,22 @@ public class ABLookup {
 		int markerIndex, first, second;
 		
 		log = proj.getLog();
+		
+		if (mapFile == null) {
+		    log.reportError("Error - no Illumina map file provided to ABLookup; aborting...");
+		    return false;
+		}
+		
+		if (!Files.exists(mapFile)) {
+		    log.reportError("Error - could not find Illumina map file '"+mapFile+"'; aborting...");
+		    return false;
+		}
+		
         if (!mapFile.toLowerCase().endsWith(".csv")) {
         	log.reportError("Error - expecting an Illumina style format, but this map file '"+mapFile+"' does not end in .csv; aborting...");
         	return false;
         }
 
-        if (!Files.exists(mapFile)) {
-        	log.reportError("Error - could not find Illumina map file '"+mapFile+"'; aborting...");
-        	return false;
-        }
 
         if (!Files.exists(incompleteABlookupFilename)) {
         	log.reportError("Error - could not find incomplete ABLookup file '"+incompleteABlookupFilename+"'; aborting...");

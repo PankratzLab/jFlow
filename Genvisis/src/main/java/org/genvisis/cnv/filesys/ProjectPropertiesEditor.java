@@ -197,7 +197,8 @@ public class ProjectPropertiesEditor extends JFrame {
             {
                 "PC Intensity Correction",
                 "INTENSITY_PC_FILENAME",
-                "INTENSITY_PC_NUM_COMPONENTS"
+                "INTENSITY_PC_NUM_COMPONENTS",
+                "INTENSITY_PC_MARKERS_FILENAME"
             },
             {
                 "Optimization parameters",
