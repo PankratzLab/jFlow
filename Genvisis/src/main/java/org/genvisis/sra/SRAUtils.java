@@ -93,7 +93,7 @@ public class SRAUtils {
 			command.add("cd " + ext.parseDirectoryOfFile(inputSra) + "\n");
 			command.add(SAM_DUMP);
 			command.add("-u");// output un-mapped reads as well
-			command.add(ext.rootOf(inputSra, true));
+			command.add(ext.rootOf(inputSra, true).trim());
 			command.add("|");
 			command.add("samtools");
 			command.add("view");
