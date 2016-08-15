@@ -222,7 +222,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		uniqueValueCounts = new CountVector();
 		
 		if (tdp.isHistogram()) {
-			zoomable = false;
+			setZoomable(false, false);
 //			tdp.setPointSize((byte) 0);
 			points = new PlotPoint[0];//currentData.size()];
 			for (int i = 0; i < points.length; i++) {
@@ -231,7 +231,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			generateRectangles();
 			return;
 		} else {
-			zoomable = true;
+			setZoomable(true, true);
 //			tdp.setPointSize(tdp.getPointSize());
 			rectangles = new GenericRectangle[0];
             forcePlotXmax = Float.NaN;

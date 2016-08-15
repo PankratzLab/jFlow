@@ -379,12 +379,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void drawAll(Graphics g, boolean base) {
 		float minimumObservedRawX, maximumObservedRawX, minimumObservedRawY, maximumObservedRawY;
 		double[] plotMinMaxStep; // needs to be double, else x <= plotXmax can be inexact and leave off the last tick mark 
-		int sigFigs;
-		String str, pos;
+		String pos;
 		int xLook, yLook;
-		BufferedImage yLabel;
 		FontMetrics fontMetrics = null;
-		Graphics gfx;
 		Hashtable<String, Vector<PlotPoint>> layers;
 		Vector<PlotPoint> layer;
 		String trav;
@@ -578,9 +575,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			canvasSectionMinimumY = titleHeight;
 			canvasSectionMaximumY = axisXHeight;//HEIGHT_X_AXIS;
 			plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawX, maximumObservedRawX, g, true);
-			if (plotMinMaxStep[1] > maximumObservedRawX) {
-			    plotMinMaxStep[1] = maximumObservedRawX;
-			}
 			if (xAxisWholeNumbers) {
 			    if (plotMinMaxStep[2] < 1) {
 			        plotMinMaxStep[2] = 1;
@@ -601,12 +595,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			canvasSectionMaximumX = axisYWidth;//WIDTH_Y_AXIS;
 			canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
 			canvasSectionMaximumY = getHeight()-(HEAD_BUFFER + titleHeight);
-			if (!makeSymmetric || plotMinMaxStep == null) {
-				plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
-	            if (plotMinMaxStep[1] > maximumObservedRawY) {
-	                plotMinMaxStep[1] = maximumObservedRawY;
-	            }
-			}
+			plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
             if (yAxisWholeNumbers) {
                 if (plotMinMaxStep[2] < 1) {
                     plotMinMaxStep[2] = 1;
@@ -622,36 +611,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	        if (displayYaxis) {
 	            drawYAxis(g, plotMinMaxStep);
 	        }
-
-			/*
-			if (swapable) {
-				// these images are here to mask the flicker that occurs due to the slight delay in when the plot is painted and when the buttons are painted
-				BufferedImage img;
-				File file = new File("/workspace/Genvisis/images/flip_and_invert/flip_10p.jpg");
-				new javax.swing.JLabel();
-				try {
-					img = ImageIO.read(file);
-					g.drawImage(img, 70, getHeight()-75, null);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				file = new File("/workspace/Genvisis/images/flip_and_invert/right_10.gif");
-				try {
-					img = ImageIO.read(file);
-					g.drawImage(img, 70, getHeight()-35, null);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				file = new File("/workspace/Genvisis/images/flip_and_invert/up_10.gif");
-				try {
-					img = ImageIO.read(file);
-					g.drawImage(img, 55, getHeight()-75, null);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			*/
-
 
 			if (errorMessage != null) {
 				g.drawString(errorMessage, (getWidth()-axisYWidth/*WIDTH_Y_AXIS*/)/2-fontMetrics.stringWidth(errorMessage)/2+axisYWidth/*WIDTH_Y_AXIS*/, (getHeight()-HEAD_BUFFER-axisXHeight/*HEIGHT_X_AXIS*/)/2-20+HEAD_BUFFER);
@@ -1151,8 +1110,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		int curX, curY;
 		double distance = -1;
 		
-//		System.err.println("AbstractPanel mouseDragged has been called");
-
 		curX = e.getPoint().x;
 		curY = e.getPoint().y;
 //		if (invertX) {
@@ -1174,8 +1131,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			} else {
 				distance = Math.min(distance, 1-zoomSubsets[i][1]);
 			}
-
-			if ((zoomSubsets[i][0]<=0&&distance<0)||(zoomSubsets[i][1]>=1&&distance>0)) {
+			
+			
+			if ((zoomSubsets[i][0] <= 0 && distance < 0) || (zoomSubsets[i][1] >= 1 && distance > 0)) {
 
 			} else {
 //				if ((invertX && i == 0) || (invertY && i == 1)) {
@@ -1189,7 +1147,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				zoomSubsets[i][1] += distance;
 			}
 		}
-		
+		System.out.println();
 		if (inDrag) {
 			paintAgain();
 			startX = curX;
@@ -1199,9 +1157,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		if (zoomable) {
-			if (e.getWheelRotation()<0 && zoomSubsets[0][1]-zoomSubsets[0][0] < MINIMUM_ZOOM_PROPORTION_WINDOW) {
+			if (e.getWheelRotation() < 0 && zoomSubsets[0][1] - zoomSubsets[0][0] < MINIMUM_ZOOM_PROPORTION_WINDOW) {
 				return;
-			}			
+			}
 			zoomProportionally(e.getWheelRotation()>0, e.getPoint(), false);
 		}
 	}
