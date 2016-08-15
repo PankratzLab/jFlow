@@ -98,6 +98,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected boolean displayGrid;
 	protected boolean displayTitle;
 	protected boolean xAxisWholeNumbers;
+	protected boolean yAxisWholeNumbers;
 	protected int missingWidth;
 	protected int nanWidth;
 	protected int axisFontSize = AXIS_FONT_SIZE;
@@ -331,6 +332,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	
 	public void setForceXAxisWholeNumbers(boolean whole) {
 	    this.xAxisWholeNumbers = whole;
+	}
+
+	public void setForceYAxisWholeNumbers(boolean whole) {
+	    this.yAxisWholeNumbers = whole;
 	}
 
 	public abstract void generatePoints();
@@ -600,6 +605,16 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	                plotMinMaxStep[1] = maximumObservedRawY;
 	            }
 			}
+            if (yAxisWholeNumbers) {
+                if (plotMinMaxStep[2] < 1) {
+                    plotMinMaxStep[2] = 1;
+                } else {
+                    plotMinMaxStep[2] = Math.round(plotMinMaxStep[2]);
+                }
+                if (plotMinMaxStep[3] >= (minimumObservedRawX - plotMinMaxStep[2])) {
+                    plotMinMaxStep[3] = plotMinMaxStep[3] - plotMinMaxStep[2];
+                }
+            }
 			plotYmin = plotMinMaxStep[0];
 			plotYmax = plotMinMaxStep[1];
 	        if (displayYaxis) {

@@ -2561,6 +2561,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         histFrame.getPanel().overrideAxisLabels("Bins", "");
         histFrame.getPanel().setHistogramOverride(true);
         histFrame.getPanel().setForceXAxisWholeNumbers(true);
+        histFrame.getPanel().setForceYAxisWholeNumbers(true);
+        
         
         final double[] bins = new double[histogram.length];
         int min = 0;
