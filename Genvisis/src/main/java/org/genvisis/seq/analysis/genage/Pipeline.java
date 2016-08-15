@@ -129,7 +129,7 @@ public class Pipeline {
 			throw new IllegalArgumentException(captureBed + " must exist");
 		}
 
-		WorkerHive<PipelinePart> hive = new WorkerHive<Pipeline.PipelinePart>(numThreads, 10, log);
+		WorkerHive<PipelinePart> hive = new WorkerHive<Pipeline.PipelinePart>(1, 10, log);
 		// mtDNA CN
 		hive.addCallable(new MitoPipeResult(inputBam, rootOutDir, captureBed, referenceGenome, sample, 1, log));
 

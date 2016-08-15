@@ -96,7 +96,7 @@ public class SRAPipeline implements Callable<Boolean> {
 			SRASample sample = srRunTable.get(ext.rootOf(sraFiles[i]));
 
 			SRAPipeline pipeline = new SRAPipeline(sample, sraFiles[i], rootOutDir, referenceGenome, captureBed,
-					numThreads, log);
+					1, log);
 			hive.addCallable(pipeline);
 		}
 
