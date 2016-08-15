@@ -809,6 +809,7 @@ public class AnalysisFormats implements Runnable {
 		
 		if (inputs == null) {
 			System.err.println("Error - QuantiSNP inputs files have not yet been created");
+			return;
 		}
 
 		outputs = new File(proj.RESULTS_DIRECTORY.getValue(false, true)+"QuantiSNP/").list(new FilenameFilter() {

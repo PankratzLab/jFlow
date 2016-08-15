@@ -1605,7 +1605,7 @@ public class Mach {
 		"   -gethapmap (downloads data)\n"+
 		" OR\n"+
 		"   (1) create batch files for MACH phasing (i.e. -batches (not the default))\n"+
-		"   (2) nodes to use (i.e. nodesToUse=" + nodesToUse + " (default; qsubs only; full names, comma-delimited))\n" + 
+		"   (2) nodes to use (i.e. nodesToUse=" + Array.toStr(nodesToUse, ",") + " (default; qsubs only; full names, comma-delimited))\n" + 
 		" OR\n"+
 		"   chromosome to trim from source phase files (i.e. trim=1 (not the default))\n"+
 		" OR\n"+

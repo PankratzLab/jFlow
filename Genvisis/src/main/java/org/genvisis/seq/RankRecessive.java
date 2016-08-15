@@ -50,7 +50,8 @@ public class RankRecessive {
 					for (int j = 0; j < count; j++) {
 						line = variants.elementAt(j);
 						alleles = line[4].split("/");
-						if (!line[3].equals(alleles[0]) && !line[3].equals(alleles[0])) {
+						//FIXME document what is going on in this method and write the correct test for this statement
+						if (!line[3].equals(alleles[0])/* && !line[3].equals(alleles[0])*/) {
 							variants.add(line);
 						}
 					}

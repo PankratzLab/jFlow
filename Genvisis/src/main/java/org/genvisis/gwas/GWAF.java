@@ -459,7 +459,7 @@ public class GWAF {
 		"gwas.GWAF requires 0-1 arguments\n" + 
 		"   (1) name of file with phenotypes (i.e. phenoFile=" + phenoFile + " (default; currently needs to be comma-delimited))\n" + 
 		"   (2) name of phenotype to run (i.e. pheno=" + pheno + " (default))\n" + 
-		"   (3) name of covariates to include (i.e. covars=" + covars + " (default; null leads to none; comma-delimited))\n" + 
+		"   (3) name of covariates to include (i.e. covars=" + Array.toStr(covars, ",") + " (default; null leads to none; comma-delimited))\n" + 
 		"   (4) genetic model to use: lowercase a/d/r/g (i.e. model=" + model + " (default))\n" + 
 		"   (5) format of genotype filenames (i.e. genoPrimer=" + geneticDataTemplate + " (default; can be zipped))\n" + 
 		"   (6) number to start looking for file pattern (i.e. startAt=" + startAt + " (default))\n" +
@@ -467,7 +467,7 @@ public class GWAF {
 		"   (8) name of pedigree file (i.e. pedfile=" + pedfile + " (default))\n" + 
 		"   (9) template for output files (i.e. outfileTemplate=" + outfileTemplate + " (default))\n" +
 		"   (10) template for qsub files (i.e. qsubRoot=[trait]_file#.qsub (default))\n" +
-		"   (11) nodes to use (i.e. nodesToUse=" + nodesToUse + " (default; qsubs only; full names, comma-delimited))\n" + 
+		"   (11) nodes to use (i.e. nodesToUse=" + Array.toStr(nodesToUse) + " (default; qsubs only; full names, comma-delimited))\n" + 
 		"   (12) number of batches to create (i.e. numBatches=" + numBatches + " (default; anything less than 1 leads to qsubs being made))\n" +
 		"   (13) version of gwafToUse: 1 or 2 (i.e. gwafVersion=" + versionOfGWAF + " (default))\n" +
 		" OR\n" +

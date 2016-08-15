@@ -44,9 +44,9 @@ public class DemoPackage {
 		String demoPark = demoDirectory + org.genvisis.common.PSF.Java.GENVISIS;
 		String demoVis = demoDirectory + org.genvisis.common.PSF.Java.GENVISIS;
 		String runningJar = getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
-		if (runningJar.endsWith(org.genvisis.common.PSF.Java.GENVISIS) || runningJar.endsWith(org.genvisis.common.PSF.Java.GENVISIS)) {
-			String copyRunning = null;
-			String copyOther = null;
+		if (runningJar.endsWith(org.genvisis.common.PSF.Java.GENVISIS)) {
+			String copyRunning;
+			String copyOther;
 			if (runningJar.endsWith(org.genvisis.common.PSF.Java.GENVISIS)) {
 				copyRunning = demoPark;
 				copyOther = demoVis;

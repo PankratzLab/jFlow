@@ -131,9 +131,7 @@ public class PermuteNullDistribution {
 		writer = new PrintWriter(new FileWriter(filename+".out"));
 		writer.println("Replicate\tWald\tp-value");
 		for (int rep = -1; rep<numReps; rep++) {
-			if (rep%1==0) {
-				System.out.println("Rep: "+(rep+1));
-			}
+			System.out.println("Rep: "+(rep+1));
 			count = 0;
 			for (int i = 0; i<depMatrix.length; i++) {
 				randomFams = Array.random(depMatrix[i].length);

@@ -8,7 +8,7 @@ public class Menus {
 	public static JMenu createMenu(JMenuBar bar, String name, char mnemonic, MenuListener listener) {
 		JMenu menu = (JMenu)bar.add(new JMenu(name));
 
-		if (mnemonic!=-1) {
+		if (mnemonic!=(char)-1) {
 			menu.setMnemonic(mnemonic);
 		}
 		if (listener!=null) {

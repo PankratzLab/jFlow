@@ -653,6 +653,7 @@ public class MarkerBlast {
 			if (proj.getArrayType() != ARRAY.ILLUMINA) {
 				proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.ILLUMINA);
 				builder = null;
+				break;
 			}
 			builder.separator(",");
 			builder.dataKeyColumnName("Name");
@@ -668,7 +669,7 @@ public class MarkerBlast {
 				}
 
 			} else {
-				proj.getLog().reportTimeError("Header of " + strandReportFile + " did not contain " + Array.toStr(header));
+				proj.getLog().reportTimeError("Header of " + strandReportFile + " not found");
 				return null;
 			}
 			String[] dataTitles = new String[] { "AlleleA_ProbeSeq", "AlleleB_ProbeSeq", "SNP", "IlmnStrand", "SourceStrand", "SourceSeq", "IlmnID" };
@@ -687,6 +688,7 @@ public class MarkerBlast {
 			if (proj.getArrayType() != ARRAY.AFFY_GW6 && proj.getArrayType() != ARRAY.AFFY_GW6_CN) {
 				proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.AFFY_GW6 + " or " + ARRAY.AFFY_GW6_CN);
 				builder = null;
+				break;
 			}
 			builder.separator("\t");
 			builder.dataKeyColumnName("PROBESET_ID");

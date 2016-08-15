@@ -688,7 +688,7 @@ public class CushingCnvs {
 		String usage = "\n" + "one.JL.Mappability requires 0-1 arguments\n";
 		usage += "   (1) mappability file (i.e. mapFile=" + mappabilityFile + " (default))\n" + "";
 		usage += "   (2) cnv files (i.e. cnvs=" + Array.toStr(cnvFiles, ",") + " (default))\n" + "";
-		usage += "   (3) geneTrackFile  (i.e. genes=" + cnvFiles + " (default))\n" + "";
+		usage += "   (3) geneTrackFile  (i.e. genes=" + Array.toStr(cnvFiles, ",") + " (default))\n" + "";
 		usage += "   (4) call subsetBed  (i.e. callSubset=" + callSubsetBed + " (default))\n" + "";
 		usage += "   (5) comma-Delimited list of files to remove  (i.e. cnvFreqFiles=" + Array.toStr(cnvFreqFiles, ",") + " (default))\n" + "";
 		usage += "   (6) project file  (i.e. proj=" + null + " (default))\n" + "";

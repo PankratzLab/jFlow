@@ -2671,8 +2671,8 @@ public class SkatMeta2 {
 		allEthnics = Array.toStr(ethnics, "");
 		resultFileForNextCond = resultsDirFilenameTemplate.replaceAll("_" + FILENAME_CHROMOSOME_SEGMENT, "").replaceAll(FILENAME_ETHNIC_SEGMENT, allEthnics).replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP");
 		if (! new File(resultFileForNextCond).exists()) {
+			resultDirFilenameTemplateByChr = createSubDir(resultsDirFilenameTemplate, "/byChr");
 			if (genoDirAndNameTemplate.contains(FILENAME_CHROMOSOME_SEGMENT) || snpInfoDirAndNameTemplate.contains(FILENAME_CHROMOSOME_SEGMENT)) {
-				resultDirFilenameTemplateByChr = createSubDir(resultsDirFilenameTemplate, "/byChr");
 				areResultsByChrAvailable = areFilesAvailable(resultDirFilenameTemplateByChr.replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP"), chrs, ethnics, log);//TODO need all the analyses
 				chrsToRemove = new Vector<String>();
 				isAllRDataFilesForTheEthnicMissing = new boolean[ethnics.length];

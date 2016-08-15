@@ -221,10 +221,6 @@ public class GenParser {
 
 	    ArrayList<String> data;
 	    int readIndex;
-	    
-        public StringArrayListReader(Reader arg0) {
-            super(arg0);
-        }
         
         public StringArrayListReader(ArrayList<String> data) {
             super(null);

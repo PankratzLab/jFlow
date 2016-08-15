@@ -337,8 +337,8 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 				for (int j = 0; j < genoSampleClusters.length; j++) {
 					if (!forceThisCluster[j]) {// this cluster has two few inds, we won't use it for new genotypes
 						if (fullXPredicteds[j] != null && fullYPredicteds[j] != null && genoClusterCounts[j] > 1) {// must have predicteds, and at more than one individual
-							if (!Double.isNaN(fullXPredicteds[j][i]) && !Double.isNaN(fullXPredicteds[j][i])) {
-								if (residStandardDeviationFilter == 0 || (Math.abs(residY[j][i]) < residStandardDeviationFilter * residstdevY[j] && Math.abs(residX[j][i]) < residStandardDeviationFilter * residstdevX[j])) {
+							if (!Double.isNaN(fullXPredicteds[j][i]) && !Double.isNaN(fullYPredicteds[j][i])) {
+								if (Double.compare(residStandardDeviationFilter, 0) == 0 || (Math.abs(residY[j][i]) < residStandardDeviationFilter * residstdevY[j] && Math.abs(residX[j][i]) < residStandardDeviationFilter * residstdevX[j])) {
 									double tmpDist = cartDistance(Xs[i], Ys[i], fullXPredicteds[j][i], fullYPredicteds[j][i]);
 									if (tmpDist < minDist) {
 										minDist = tmpDist;

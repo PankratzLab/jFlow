@@ -3793,7 +3793,7 @@ public class SuperNovo {
 				log = new Logger(dirOutputsFromTheScanningOfSamFilesForDenovoMutations + "SuperNovo_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
 				scanARegionInSamFilesOfATrioForDeNovoMutations(fullpathsToSamFilenamesOfTheTrio, fullPathRefFasta, chr, begin, end, dirOutputsFromTheScanningOfSamFilesForDenovoMutations, fullPathReadCounts, log);
 
-			} else if ((fullPathBim != null || !fullPathBim.equals("")) && new File(fullPathBim).exists() && (chr==null || chr.equals("")) && (dirSam==null || dirSam.equals(""))) {
+			} else if (!Strings.isNullOrEmpty(fullPathBim) && new File(fullPathBim).exists() && Strings.isNullOrEmpty(chr) && Strings.isNullOrEmpty(dirSam)) {
 				scanMultipleRegionsInSamFilesOfATrioForDenovoMutations(trioId, fullpathsToSamFilenamesOfTheTrio, fullPathRefFasta, fullPathBim, dirOutputsFromTheScanningOfSamFilesForDenovoMutations, fullPathReadCounts, regionLegnthATime, numThreads, log);
 
 			} else if (!Strings.isNullOrEmpty(dirSam) && fullpathsToSamFilenamesOfTheTrio == null) {

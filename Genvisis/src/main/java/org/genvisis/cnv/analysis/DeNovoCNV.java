@@ -667,7 +667,7 @@ public class DeNovoCNV {
 		log.report(ext.getTime()+"\tgenerated De Novo CNV output for " + pennCnvResultDir + "*" + cnvFileExtensions);
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String... args) {
 		String projPropertyFileFullPath;
 		Project proj;
 		String gcBaseFileFullPath;

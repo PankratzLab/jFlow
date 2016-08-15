@@ -813,7 +813,7 @@ public class VCFOps {
 				}
 				break;
 			case ANCHOR_BARNACLE:
-				if (!superPop.containsKey(ANCHOR) || !superPop.containsKey(ANCHOR)) {
+				if (!superPop.containsKey(ANCHOR) || !superPop.containsKey(BARNACLE)) {
 					log.reportTimeError("Population type was set to " + type + ", but did not contain " + ANCHOR + " AND " + BARNACLE);
 					valid = false;
 				}

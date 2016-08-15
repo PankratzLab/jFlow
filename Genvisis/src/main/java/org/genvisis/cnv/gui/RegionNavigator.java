@@ -215,7 +215,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 					String line = null;
 					while ((line = reader.readLine()) != null) {
 					    line = line.trim();
-						if (line != "") {
+						if (!"".equals(line)) {
 							Region myRegion = new Region(line);
 							ArrayList<Region> list = regions.get(regionsList[i]);
 							if (list == null) {

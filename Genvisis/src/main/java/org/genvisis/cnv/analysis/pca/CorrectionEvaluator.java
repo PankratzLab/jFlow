@@ -185,9 +185,7 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult> impl
 					evaluationResult.getIccs().add(icc);
 					evaluationResult.getNumIndsIcc().add(Array.booleanArraySum(finalEval));
 					evaluationResult.getIccTitles().add(matchString[k] + "_" + stratTitles[j]);
-					if (Integer.parseInt(baseTitle) % 1 == 0) {
-						log.reportTimeInfo("ICC: " + matchString[k] + "_" + stratTitles[j] + " -> " + icc.getICC() + " NumComps = " + baseTitle);
-					}
+					log.reportTimeInfo("ICC: " + matchString[k] + "_" + stratTitles[j] + " -> " + icc.getICC() + " NumComps = " + Integer.parseInt(baseTitle));
 				}
 				for (int k = 0; k < matchDouble.length; k++) {
 				

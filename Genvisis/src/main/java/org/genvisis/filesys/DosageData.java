@@ -353,7 +353,7 @@ public class DosageData implements Serializable {
 	    char[][] alleleSrc = dd1.alleles == null ? dd1.markerSet.getAlleles() : dd1.alleles;
 	    int[] posSrc = dd1.positions == null ? dd1.markerSet.getPositions() : dd1.positions;
 	    int chrOffset = chrSrc == null ? dd1Mkrs.length : chrSrc.length;
-	    for (int i = 0; i < chrSrc.length; i++) {
+	    for (int i = 0; i < chrOffset; i++) {
 	        ddNew.chrs[i] = chrSrc == null ? missingChr : chrSrc[i];
 	        ddNew.alleles[i] = alleleSrc == null ? missingAlleles : alleleSrc[i];
 	        ddNew.positions[i] = posSrc == null ? missingPos : posSrc[i];

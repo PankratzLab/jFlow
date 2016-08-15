@@ -908,10 +908,10 @@ public class GenvisisWorkflow {
             boolean skipAncestry = Boolean.valueOf(variables.get(this).get(1));
             String putativeWhites = variables.get(this).get(2);
             String hapMapPlinkRoot = variables.get(this).get(3);
-            if (hapMapPlinkRoot.lastIndexOf(".") > 0) {
-            	String extension = hapMapPlinkRoot.substring(hapMapPlinkRoot.lastIndexOf("."));
-            	if (extension == ".bed" || extension == ".bim" || extension == ".fam") {
-            		hapMapPlinkRoot = hapMapPlinkRoot.substring(0, hapMapPlinkRoot.lastIndexOf("."));
+            if (hapMapPlinkRoot.lastIndexOf('.') > 0) {
+            	String extension = hapMapPlinkRoot.substring(hapMapPlinkRoot.lastIndexOf('.'));
+            	if (".bed".equals(extension) || ".bim".equals(extension) || ".fam".equals(extension)) {
+            		hapMapPlinkRoot = hapMapPlinkRoot.substring(0, hapMapPlinkRoot.lastIndexOf('.'));
             	}
             }
             Qc.fullGamut(dir, null, keepUnrelatedsOnly, proj.getLog());
@@ -976,9 +976,9 @@ public class GenvisisWorkflow {
             String putativeWhites = variables.get(this).get(2);
             String hapMapPlinkRoot = variables.get(this).get(3);
             if (hapMapPlinkRoot.lastIndexOf(".") > 0) {
-            	String extension = hapMapPlinkRoot.substring(hapMapPlinkRoot.lastIndexOf("."));
-            	if (extension == ".bed" || extension == ".bim" || extension == ".fam") {
-            		hapMapPlinkRoot = hapMapPlinkRoot.substring(0, hapMapPlinkRoot.lastIndexOf("."));
+            	String extension = hapMapPlinkRoot.substring(hapMapPlinkRoot.lastIndexOf('.'));
+            	if (".bed".equals(extension) || ".bim".equals(extension) || ".fam".equals(extension)) {
+            		hapMapPlinkRoot = hapMapPlinkRoot.substring(0, hapMapPlinkRoot.lastIndexOf('.'));
             	}
             }
             

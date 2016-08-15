@@ -260,7 +260,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			} else {
 				xAxisValue = Float.parseFloat(line[1]);
 				yAxisValue = Float.parseFloat(line[2]);
-				if (Float.isNaN(xAxisValue) || Float.isNaN(xAxisValue)) {
+				if (Float.isNaN(xAxisValue) || Float.isNaN(yAxisValue)) {
 					type = PlotPoint.NOT_A_NUMBER;
 					uniqueValueCounts.add("0");
 	//			} else if (alleleCounts[i]==-1) {

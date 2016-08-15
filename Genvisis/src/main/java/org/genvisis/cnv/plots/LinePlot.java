@@ -86,7 +86,6 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	Logger log;
 
 	public LinePlot() {
-		this(null);
 	}
 
 	public LinePlot(Project project) {

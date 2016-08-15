@@ -573,7 +573,7 @@ public class Cobyla
 						//TODO, custom genvisis code
 						if (x_bounds != null) {
 							for (int i = 1; i <= n; ++i) {
-								if (x_bounds[i] != null && x_bounds[i] != null) {
+								if (x_bounds[i] != null && sim[i] != null) {
 									double ub = x_bounds[i][1];
 									double lb = x_bounds[i][0];
 									double xi = sim[i][np];

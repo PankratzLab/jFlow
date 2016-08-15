@@ -46,12 +46,13 @@ public class checkSex {
 			while (st.hasMoreTokens()) {
 				first = st.nextToken();
 				second = st.nextToken();
-				if (!first.equals("0")||!first.equals("0")) {
-					if (first.equals(second)) {
-						ctSame++;
-					} else {
-						ctDiff++;
-					}
+				if ("0".equals(first) && "0".equals(second)) {
+					continue;
+				}
+				if (first.equals(second)) {
+					ctSame++;
+				} else {
+					ctDiff++;
 				}
 			}
 

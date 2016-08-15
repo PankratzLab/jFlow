@@ -572,8 +572,8 @@ public class GATK_LanePrep extends BWA_Analysis {
 		usage += "   (6) the full path to the picard directory containing .jar files (i.e. " + Picard.PICARD_LOCATION_COMMAND + picardLocation + " (default))\n" + "";
 		usage += "   (7) the full path to the GATK executable (i.e. " + GATK.GATK_LOCATION_COMMAND + gATKLocation + " (defualts to systems path))\n" + "";
 		usage += "   (7) the full path to the samtools directory containing .jar files (i.e. " + MergeBam.SAMTOOLS_COMMAND + samtoolsLocation + " (defualts to systems path))\n" + "";
-		usage += "   (8) the full path to reference indel files (comma delimited if multiple) (i.e. " + GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND + knownSitesIndelFile + " (default))\n" + "";
-		usage += "   (9) the full path to reference snp files (comma delimited if multiple) (i.e. " + GATK.KNOWN_SITES_SNP_LOCATION_COMMAND + knownSitesSnpFile + " (default))\n" + "";
+		usage += "   (8) the full path to reference indel files (comma delimited if multiple) (i.e. " + GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND + Array.toStr(knownSitesIndelFile, ",") + " (default))\n" + "";
+		usage += "   (9) the full path to reference snp files (comma delimited if multiple) (i.e. " + GATK.KNOWN_SITES_SNP_LOCATION_COMMAND + Array.toStr(knownSitesSnpFile, ",") + " (default))\n" + "";
 
 		usage += "   (10) run in quiet mode (i.e. " + QUIET_COMMAND + " (not tbe default))\n" + "";
 		usage += "   (11) number of threads per sample for bwa mem (i.e." + NUM_BETWEEN_THREADS_COMMAND + numBetweenSampleThreads + " (default))\n" + "";

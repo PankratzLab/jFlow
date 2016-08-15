@@ -601,7 +601,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //					TODO Genotyping
 //					new ScanForCnp(proj, "CNPScanResult.txt");
 			} else if (command.equals(DENOVO_CNV)) {
-				DeNovoCNV.main(null);
+				DeNovoCNV.main("");
 			} else if (command.equals(SCATTER)) {
 				ScatterPlot.createAndShowGUI(proj, null, null, false);
 			} else if (command.equals(QQ)) {

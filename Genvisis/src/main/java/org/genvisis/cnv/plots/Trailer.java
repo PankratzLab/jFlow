@@ -2883,9 +2883,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 			if (mosSet.getLoci().length != 1) {
 				proj.getLog().reportTimeError("Mosaic caller not in force call mode");
-				mosSet = null;
 			}
-			addCnvsToPheno(new CNVariant[] { mosSet.getLoci()[0] }, externalCNVs, INTERNAL_CNV_TYPES.CUSTOMF);
+			else {
+				addCnvsToPheno(new CNVariant[] { mosSet.getLoci()[0] }, externalCNVs, INTERNAL_CNV_TYPES.CUSTOMF);
+			}
 		}
 		sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
 		procCNVs(chr);

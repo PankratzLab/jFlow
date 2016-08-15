@@ -824,7 +824,7 @@ public class Metal {
 					}
 				}
 				indices = ext.indexFactors(new String[][] {Aliases.CHRS, Aliases.POSITIONS}, header, true, false, true, true, log, false);
-				if (indices[0] != -1 && indices[0] != -1) {
+				if (indices[0] != -1) {
 					try {
 						reader = Files.getAppropriateReader(inputFiles[i]);//new BufferedReader(new FileReader(inputFiles[i]));
 						String hdr = reader.readLine(); // header

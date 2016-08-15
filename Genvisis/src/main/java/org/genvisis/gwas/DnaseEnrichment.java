@@ -337,25 +337,25 @@ public class DnaseEnrichment {
 		if (new File(dir + REFERENCE_MAP_FILENAME).exists()) {
 			SnpMarkerSet markerSet = new SnpMarkerSet(plinkFile, false, new org.genvisis.common.Logger(null));
 			plinkFileContents = new PlinkFile(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet.getPositions());
-		} else {
-			LOGGER.warning("Error - could not find plink.bim; required to define segments" + " " + "and perform a crucial " + "datacheck");
-		}
 
-		ArrayList<Segment> plinkSegments = createSegmentsFromPlinkFile(plinkFileContents);
-		LOGGER.info("Starting to find DHS regions for bed files");
-		for (int i = 0; i < bedFileList.length; i++) {
-			LOGGER.info("Processing for DHS region: " + bedFileList[i]);
-			Segment[][] segs = getSegments(bedDir + bedFileList[i]);
+			ArrayList<Segment> plinkSegments = createSegmentsFromPlinkFile(plinkFileContents);
+			LOGGER.info("Starting to find DHS regions for bed files");
+			for (int i = 0; i < bedFileList.length; i++) {
+				LOGGER.info("Processing for DHS region: " + bedFileList[i]);
+				Segment[][] segs = getSegments(bedDir + bedFileList[i]);
 
-			HashSet<String> ldMarkerHashSet = new HashSet<String>();
+				HashSet<String> ldMarkerHashSet = new HashSet<String>();
 
-			for (int j = 0; j < plinkSegments.size(); j++) {
-				// if there is a overlap
-				if (Segment.binarySearchForOverlap(plinkSegments.get(j), segs[plinkSegments.get(j).getChr()]) != -1) {
-					ldMarkerHashSet.add(plinkFileContents.markerNames[j]);
+				for (int j = 0; j < plinkSegments.size(); j++) {
+					// if there is a overlap
+					if (Segment.binarySearchForOverlap(plinkSegments.get(j), segs[plinkSegments.get(j).getChr()]) != -1) {
+						ldMarkerHashSet.add(plinkFileContents.markerNames[j]);
+					}
 				}
+				dhsregionsHashSetList.add(ldMarkerHashSet);
 			}
-			dhsregionsHashSetList.add(ldMarkerHashSet);
+		} else {
+			LOGGER.warning("Error - could not find plink.bim; required to define segments and perform a crucial datacheck");
 		}
 		return dhsregionsHashSetList;
 	}

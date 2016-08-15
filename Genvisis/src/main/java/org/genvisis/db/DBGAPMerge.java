@@ -414,7 +414,7 @@ public class DBGAPMerge {
                         "To MERGE dbGap files:\n" + 
                         "   (1) Data Output Filename (i.e. out=" + out + " (default))\n" + 
                         "   (2) Map Output Filename (i.e. outMap=" + outMap + " (default))\n" + 
-                        "   (3) Input directory (or a comma-delimited list of directories) (i.e. dir=" + dir + " (default))\n" + 
+                        "   (3) Input directory (or a comma-delimited list of directories) (i.e. dir=" + Array.toStr(dir, "") + " (default))\n" + 
                         "   (4) OPTIONAL: Log file (i.e. log=" + logfile + " (default))\n" + 
                         "\n" + 
                         "";
