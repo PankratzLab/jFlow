@@ -164,7 +164,7 @@ public class PhenoPrep {
 		    while (Files.exists(file)) {
 		        file = dir + "histograms/" + ext.rootOf(outFile, false) + "_hist_" + cnt++ + ".png";
 		    }
-		    TwoDPlot tdp = TwoDPlot.createGUI(new Project(), false, false, null);
+		    TwoDPlot tdp = TwoDPlot.createGUI(new Project(), false, false);
 		    tdp.setHistogram(true);
 		    tdp.getPanel().overrideAxisLabels(ext.rootOf(outFile, true), "");
 		    tdp.getPanel().setHistogramOverride(true);

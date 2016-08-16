@@ -2530,7 +2530,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         
         
         if (histFrame == null) {
-            histFrame = TwoDPlot.createGUI(getProject(), false, false, null);
+            histFrame = TwoDPlot.createGUI(getProject(), false, false);
         }
 
         double filter = proj.BLAST_PROPORTION_MATCH_FILTER.getValue();

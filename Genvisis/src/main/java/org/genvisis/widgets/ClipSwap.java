@@ -84,7 +84,7 @@ public class ClipSwap {
         while (Files.exists(file)) {
             file = "./histograms/clipboard_histogram_" + cnt++ + ".png";
         }
-        TwoDPlot tdp = TwoDPlot.createGUI(new Project(), false, false, null);
+        TwoDPlot tdp = TwoDPlot.createGUI(new Project(), false, false);
         tdp.setHistogram(true);
         tdp.getPanel().overrideAxisLabels("Bins", "");
         tdp.getPanel().setHistogramOverride(true);

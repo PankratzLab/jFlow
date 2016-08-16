@@ -360,7 +360,6 @@ public class Project {
 	public    StringProperty                         PROJECT_NAME = new     StringProperty(this,                         "PROJECT_NAME", "Project Name", "New Project");
 	public    StringProperty            SOURCE_FILENAME_EXTENSION = new     StringProperty(this,            "SOURCE_FILENAME_EXTENSION", "", ".csv");
 	public    StringProperty                            ID_HEADER = new     StringProperty(this,                            "ID_HEADER", "", "Sample Name");
-	public    StringProperty                TWOD_LOADED_VARIABLES = new     StringProperty(this,                "TWOD_LOADED_VARIABLES", "", "");
 	public    StringProperty                            FID_ALIAS = new     StringProperty(this,                            "FID_ALIAS", "", "FID;F_ID;FamID;Fam_ID;Family;FamilyID;Family_ID");
 	public    StringProperty                            IID_ALIAS = new     StringProperty(this,                            "IID_ALIAS", "", "ID;IID;I_ID;IndID;Ind_ID");
 	public    StringProperty                         SAMPLE_ALIAS = new     StringProperty(this,                         "SAMPLE_ALIAS", "", "Sample;DNA;DNA#");
@@ -437,6 +436,7 @@ public class Project {
 	public StringListProperty            TARGET_MARKERS_FILENAMES = new StringListProperty(this,             "TARGET_MARKERS_FILENAMES", "", "targetMarkers.txt", true, false);
 	public StringListProperty           DISPLAY_MARKERS_FILENAMES = new StringListProperty(this,            "DISPLAY_MARKERS_FILENAMES", "", "data/test.txt", true, false);
 	public StringListProperty               TWOD_LOADED_FILENAMES = new StringListProperty(this,                "TWOD_LOADED_FILENAMES", "", "", true, false);
+    public StringListProperty               TWOD_LOADED_VARIABLES = new StringListProperty(this,                "TWOD_LOADED_VARIABLES", "", "", false, false);
 	public StringListProperty               FOREST_PLOT_FILENAMES = new StringListProperty(this,                "FOREST_PLOT_FILENAMES", "", "", true, false);
 	public StringListProperty       INDIVIDUAL_CNV_LIST_FILENAMES = new StringListProperty(this,        "INDIVIDUAL_CNV_LIST_FILENAMES", "", "data/list.txt", true, false);
 	public StringListProperty               REGION_LIST_FILENAMES = new StringListProperty(this,                "REGION_LIST_FILENAMES", "", "data/regions.txt", true, false);
