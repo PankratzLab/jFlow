@@ -202,9 +202,7 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult> impl
 					evaluationResult.getNumIndsCorrel().add(result.getInternalEstimate().length);
 					evaluationResult.getSpearmanCorrel().add(spearman);
 					evaluationResult.getCorrelTitles().add(matchDouble[k] + "_" + stratTitles[j]);
-					if (Integer.parseInt(baseTitle) % 1 == 0) {
-						log.reportTimeInfo("Spearman: " + matchDouble[k] + "_" + stratTitles[j] + " -> " + Array.toStr(spearman) + " NumComps = " + baseTitle);
-					}
+					log.reportTimeInfo("Spearman: " + matchDouble[k] + "_" + stratTitles[j] + " -> " + Array.toStr(spearman) + " NumComps = " + Integer.parseInt(baseTitle));
 				}
 			}
 		}

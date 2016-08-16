@@ -44,7 +44,7 @@ public class VTE_Analyses {
 					trav = new String[] {line[0], line[1], line[2]};
 					if (hash.containsKey(line[0])) {
 						ref = hash.get(line[0]);
-						if (!ref[2].equals("NA") && (!line[1].equals(ref[1]) || !line[1].equals(ref[1]))) {
+						if (!ref[2].equals("NA") && (!line[1].equals(ref[1]) || !line[2].equals(ref[2]))) {
 							log.reportError("Error - mismatched positions for marker '"+line[0]+"' (was "+ref[1]+":"+ref[2]+", now "+line[1]+":"+line[2]+")");
 						}
 					}

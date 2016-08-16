@@ -82,9 +82,9 @@ public class SkatMetaOutliers {
 		String usage = "\n" +
 				"gwas.PhenoPrep requires 0-1 arguments\n" +
 				"   (1) name of pheno file (i.e. pheno=" + phenoFilename + " (default))\n" + 
-				"   (2) list of processing to apply to phenotype (i.e. processing=" + processing + " (default))\n" + 
-				"   (3) list of transformation to apply to phenotype (i.e. transform=" + transform + " (default))\n" + 
-				"   (4) list of regression to apply to phenotype (i.e. regression=" + regression + " (default))\n" + 
+				"   (2) list of processing to apply to phenotype (i.e. processing=" + Array.toStr(processing, ",") + " (default))\n" + 
+				"   (3) list of transformation to apply to phenotype (i.e. transform=" + Array.toStr(transform, ",") + " (default))\n" + 
+				"   (4) list of regression to apply to phenotype (i.e. regression=" + Array.toStr(regression, ",") + " (default))\n" + 
 				"";
 
 		for (int i = 0; i < args.length; i++) {

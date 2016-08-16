@@ -34,7 +34,7 @@ public class AutoMito {
 			proj.getLog().reportTimeWarning("Maximum number of markers set to: " + maxNumMarkers);
 			proj.getLog().reportTimeWarning("Number of samples : " + proj.getSamples().length);
 			proj.getLog().reportTimeWarning(proj.getSamples().length + " X " + maxNumMarkers + " = " + arrayLength + " , which is greater than max java integer");
-			maxNumMarkers = Math.round(Integer.MAX_VALUE / proj.getSamples().length + 1);
+			maxNumMarkers = Math.round(Integer.MAX_VALUE / (proj.getSamples().length + 1f));
 			proj.getLog().reportTimeWarning("Updated max num markers to " + maxNumMarkers);
 		}
 

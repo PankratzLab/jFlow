@@ -213,10 +213,12 @@ public class SuperNovo {
 			e.printStackTrace();
 		}
 
+		//FIXME: was referencing result[8] which is guaranteed to be AIOOB
+		// presumably this step is totaling ATGC counts and counting them as alleles if the count exceeds the threshold?
 		for (int i = 0; i < 4; i++) {
-			result[7] += result[i];
+			result[6] += result[i];
 			if (result[i] > thresholdFor3Alleles) {
-				result[8] ++;
+				result[7] ++;
 			}
 		}
 

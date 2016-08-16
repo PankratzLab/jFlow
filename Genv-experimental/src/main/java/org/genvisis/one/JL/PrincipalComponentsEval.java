@@ -194,7 +194,7 @@ public class PrincipalComponentsEval {
 					}
 					for (int j = 0; j < markersToUse.length; j++) {
 						try {
-							curData[j] = tmpResults.get(j).get();
+							curData[j] = tmpResults.get(Integer.toString(j)).get();
 							for (int k = 0; k < proj.getSamples().length; k++) {
 								tmpData[k][j] = curData[j][k];
 							}

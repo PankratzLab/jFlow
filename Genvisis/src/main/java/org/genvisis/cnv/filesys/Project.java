@@ -1541,7 +1541,7 @@ public class Project {
 	    }
 	    public static SOURCE_FILE_DELIMITERS getDelimiter(String value) {
 	        for (SOURCE_FILE_DELIMITERS delim : SOURCE_FILE_DELIMITERS.values()) {
-	            if (delim.getDelimiter().equals(value) || delim.getDelimiter() == value || delim.alts.contains(value)) {
+	            if (delim.getDelimiter().equals(value) || delim.alts.contains(value)) {
 	                return delim;
 	            }
 	        }
