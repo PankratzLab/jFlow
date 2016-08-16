@@ -26,6 +26,9 @@ import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
  */
 public class TelSeq {
 
+	private static final String[] TELSEQ_REPORT = new String[] { "ReadGroup", "Library", "Sample", "Total", "Mapped",
+			"Duplicates", "LENGTH_ESTIMATE" };
+
 	private enum TYPE {
 		BASE, BED, BUFFERED_BED;
 	}
@@ -171,52 +174,70 @@ public class TelSeq {
 		ArrayList<TelSeqResult> results = new ArrayList<TelSeq.TelSeqResult>();
 		ArrayList<String> argPopulator = new ArrayList<String>();
 		argPopulator.add("-m");// doesn't look like telseq handles RGs properly
-		// TODO switch
-		if (aType == ASSAY_TYPE.WGS) {
+
+		switch (aType) {
+		case WGS:
 			runType(threads, log, bams, results, argPopulator, outDir, TYPE.BASE);
-		} else if (aType == ASSAY_TYPE.WXS) {
-			if (Files.exists(captureBed)) {
-				BEDFileReader reader = new BEDFileReader(captureBed, false);
-
-				LocusSet<BEDFeatureSeg> segs = reader.loadAll(log);
-				reader.close();
-
-				String buffDir = outDir + "buff_" + captureBufferSize + "_" + ext.rootOf(captureBed) + "/";
-				new File(buffDir).mkdirs();
-				String buffBed = buffDir + "buff_" + captureBufferSize + "KB_" + ext.rootOf(captureBed) + ".bed";
-				log.reportTimeInfo("writing bed to " + buffBed);
-				segs.getBufferedSegmentSet(captureBufferSize).writeSegmentRegions(buffBed,
-						aName == ASSEMBLY_NAME.GRCH37, log);
-
-				ArrayList<String> argPopulatorBuffBed = new ArrayList<String>();
-				argPopulatorBuffBed.addAll(argPopulator);
-				argPopulatorBuffBed.add("-e");
-				argPopulatorBuffBed.add(buffBed);
-
-				runType(threads, log, bams, results, argPopulatorBuffBed, buffDir, TYPE.BUFFERED_BED);
-
-			} else {
-				log.reportFileNotFound(captureBed);
-			}
+			break;
+		case WXS:
+			processWXS(bams, outDir, captureBed, threads, aName, captureBufferSize, log, results, argPopulator);
+			break;
+		default:
+			break;
 
 		}
+
 		// summarize
 		String finalOut = outDir + "telseq.summary.txt";
+
 		String[] telHeader = Files.getHeaderOfFile(results.get(0).output, log);
 
+		// Only interested in these columns currently, do not know what to do
+		// with TEL* and GC*
+		int[] indices = ext.indexFactors(TELSEQ_REPORT, telHeader, true, false);
+		if (Array.countIf(indices, -1) > 0) {
+			throw new IllegalStateException("Missing proper heading for " + results.get(0).output);
+		}
+
 		ArrayList<String> result = new ArrayList<String>();
-		result.add("BAM\t" + Array.toStr(telHeader) + "\tType\tSampleName\tReadSize");
+		result.add("BAM\t" + Array.toStr(TELSEQ_REPORT) + "\tType\tSampleName\tReadSize");
 		for (TelSeqResult telSeqResult : results) {
 			if (Files.exists(telSeqResult.output)) {
 				String[][] data = HashVec.loadFileToStringMatrix(telSeqResult.output, true, null, false);
 				for (int i = 0; i < data.length; i++) {
-					result.add(ext.rootOf(telSeqResult.output) + "\t" + Array.toStr(data[i]) + "\t" + telSeqResult.type
-							+ "\t" + telSeqResult.sample + "\t" + telSeqResult.readSizeUsed);
+					result.add(ext.rootOf(telSeqResult.output) + "\t" + Array.toStr(Array.subArray(data[i], indices))
+							+ "\t" + telSeqResult.type + "\t" + telSeqResult.sample + "\t" + telSeqResult.readSizeUsed);
 				}
 			}
 		}
 		Files.writeArrayList(result, finalOut);
 		return finalOut;
+	}
+
+	private static void processWXS(String[] bams, String outDir, String captureBed, int threads, ASSEMBLY_NAME aName,
+			int captureBufferSize, Logger log, ArrayList<TelSeqResult> results, ArrayList<String> argPopulator) {
+		if (Files.exists(captureBed)) {
+
+			BEDFileReader reader = new BEDFileReader(captureBed, false);
+
+			LocusSet<BEDFeatureSeg> segs = reader.loadAll(log);
+			reader.close();
+
+			String buffDir = outDir + "buff_" + captureBufferSize + "_" + ext.rootOf(captureBed) + "/";
+			new File(buffDir).mkdirs();
+			String buffBed = buffDir + "buff_" + captureBufferSize + "bp_" + ext.rootOf(captureBed) + ".bed";
+			log.reportTimeInfo("writing bed to " + buffBed);
+			segs.getBufferedSegmentSet(captureBufferSize).writeSegmentRegions(buffBed, aName == ASSEMBLY_NAME.GRCH37,
+					log);
+
+			ArrayList<String> argPopulatorBuffBed = new ArrayList<String>();
+			argPopulatorBuffBed.addAll(argPopulator);
+			argPopulatorBuffBed.add("-e");
+			argPopulatorBuffBed.add(buffBed);
+			runType(threads, log, bams, results, argPopulatorBuffBed, buffDir, TYPE.BUFFERED_BED);
+		} else {
+			log.reportFileNotFound(captureBed);
+		}
 	}
 
 	private static void runType(int threads, Logger log, String[] bams, ArrayList<TelSeqResult> results,
