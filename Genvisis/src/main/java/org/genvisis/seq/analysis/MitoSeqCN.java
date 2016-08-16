@@ -122,7 +122,7 @@ public class MitoSeqCN {
 	 */
 	public static class MitoCNResult {
 		private static final String[] header = new String[] { "Sample", "NumMitoReads", "TotalAlignedReads", "XReads",
-				"YReads", "AutosomalOnTargetAlignedReads", "OffTargetReads", "MitoLen", "OffTLen", "MTBamFile" };
+				"YReads", "AutosomalOnTargetAlignedReads", "OffTargetReads", "MitoLen", "OffTLen", "MTBamFile","MTBamFileTrim" };
 		private String sample;
 		private int numMitoReads;
 		private int numXReads;
@@ -166,7 +166,7 @@ public class MitoSeqCN {
 			result.add(Integer.toString(mitoLen));
 			result.add(Long.toString(offTLen));
 			result.add(outBam);
-
+			result.add(ext.rootOf(ext.rootOf(outBam)));
 			return Array.toStringArray(result);
 
 		}
