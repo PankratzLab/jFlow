@@ -1551,7 +1551,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
     		    }
 		    }
 		}
-		selections.replaceAll(proj.PROJECT_DIRECTORY.getValue(), "");
+		selections = selections.replaceAll(proj.PROJECT_DIRECTORY.getValue(), "");
 		
 		options = new String[] {"Yes", "No", "Cancel"};
 		message = "";

@@ -191,13 +191,7 @@ public class LinkageMap {
 	}
 
 	public double[] getDistances(boolean inMorgans) {
-		double[] properDistances = new double[positions.length];
-
-		for (int i = 0; i<distances.length; i++) {
-			properDistances[i] = inMorgans?(currentlyInMorgans?distances[i]:distances[i]/100):(inMorgans?distances[i]*100:distances[i]);
-		}
-
-		return properDistances;
+	  return getCumulative(distances, inMorgans);
 	}
 
 	public boolean isCurrentlyInMorgans() {
@@ -205,13 +199,21 @@ public class LinkageMap {
 	}
 
 	public double[] getCumulativePositions(boolean inMorgans) {
-		double[] cumulativePositions = new double[positions.length];
+	  return getCumulative(positions, inMorgans);
+	}
 
-		for (int i = 0; i<positions.length; i++) {
-			cumulativePositions[i] = inMorgans?(currentlyInMorgans?positions[i]:positions[i]/100):(inMorgans?positions[i]*100:positions[i]);
-		}
-
-		return cumulativePositions;
+	private double[] getCumulative(double[] base, boolean inMorgans) {
+	  double[] cumulative = new double[base.length];
+	  for (int i=0; i<cumulative.length; i++) {
+	    cumulative[i] = base[i];
+        if (inMorgans && !isCurrentlyInMorgans()) {
+          cumulative[i] /= 100;
+        }
+        else if (!inMorgans && isCurrentlyInMorgans()) {
+          cumulative[i] *= 100;
+        }
+	  }
+	  return cumulative;
 	}
 
 	public static double[] computeDistancesFromPositions(double[] positions) {

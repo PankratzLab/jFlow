@@ -74,7 +74,7 @@ public class CNVBMAF extends CNVBDeviation {
 				if (genotype == 1) {
 					countsHetGeno++;
 				}
-				if (genotype != 1 && isBafHet(baf)) {// TODO exclusive counts, or overlapping?
+				if (isBafHet(baf)) {// TODO exclusive counts, or overlapping?
 					countsHetBAF++;
 				}
 			}
