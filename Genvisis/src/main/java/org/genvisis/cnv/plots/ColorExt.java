@@ -196,12 +196,12 @@ public class ColorExt {
     if (Files.exists(file)) {
       String[] header = Files.getHeaderOfFile(file, proj.getLog());
       int markerIndex = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES}, header, true, true,
-          false, proj.getLog(), false)[0];
+                                         false, proj.getLog(), false)[0];
       int classIndex = ext.indexOfStartsWith("CLASS=MARKER_COLOR", header, false);
       if (markerIndex < 0 || classIndex < 0) {
         if (markerIndex < 0) {
           proj.getLog().reportTimeError("Could not find any of the the following in the header of "
-              + file + "\n" + Array.toStr(Aliases.MARKER_NAMES, "\n"));
+                                        + file + "\n" + Array.toStr(Aliases.MARKER_NAMES, "\n"));
         } else {
           proj.getLog()
               .reportTimeError("Could not find CLASS=MARKER_COLOR  in the header of " + file);
@@ -227,8 +227,8 @@ public class ColorExt {
 
             String[] line = reader.readLine().trim().split("\t");
             if (!indices.containsKey(line[markerIndex])) {
-              proj.getLog().reportTimeWarning(
-                  "Did not detect marker " + line[markerIndex] + " in the project");
+              proj.getLog().reportTimeWarning("Did not detect marker " + line[markerIndex]
+                                              + " in the project");
             }
             lookup.put(line[markerIndex], line[classIndex]);
           }

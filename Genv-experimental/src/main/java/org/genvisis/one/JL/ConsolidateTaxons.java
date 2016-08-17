@@ -27,8 +27,8 @@ public class ConsolidateTaxons {
     log.reportTimeInfo("NUMDIRS = " + dirs.length);
     for (String dir : dirs) {
       String[] contams = Files.listFullPaths(rootDir + dir + "/", "", false);
-      log.reportTimeInfo(
-          "Current directory " + rootDir + dir + " Number of files " + contams.length);
+      log.reportTimeInfo("Current directory " + rootDir + dir + " Number of files "
+                         + contams.length);
 
       for (String contam : contams) {
 

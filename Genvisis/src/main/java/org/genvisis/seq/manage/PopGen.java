@@ -29,7 +29,8 @@ public class PopGen {
   public static final String DEFAULT_FTP_EXT = ".genotypes.vcf.gz";
 
   public static void filterForPopGen(String directory, String outputVCF, String vcfSuffix,
-      Location location, final VCFOps.VcfPopulation hwePopTests, int numThreads, Logger log) {
+                                     Location location, final VCFOps.VcfPopulation hwePopTests,
+                                     int numThreads, Logger log) {
     String[] vcfs = null;
     switch (location) {
       case LOCAL:
@@ -42,19 +43,20 @@ public class PopGen {
         log.reportTimeError("Invalid file location " + location);
         break;
     }
-    VARIANT_FILTER_DOUBLE[] fullPopFilters = hwePopTests == null ? VARIANT_FILTER_DOUBLE.values()
-        : VARIANT_FILTER_DOUBLE
-            .getFiltersExcluding(new VARIANT_FILTER_DOUBLE[] {VARIANT_FILTER_DOUBLE.HWE});
+    VARIANT_FILTER_DOUBLE[] fullPopFilters =
+        hwePopTests == null ? VARIANT_FILTER_DOUBLE.values()
+                            : VARIANT_FILTER_DOUBLE.getFiltersExcluding(new VARIANT_FILTER_DOUBLE[] {VARIANT_FILTER_DOUBLE.HWE});
     final VariantContextFilter vcfFilter =
         new VariantContextFilter(fullPopFilters, VARIANT_FILTER_BOOLEAN.values(), null, null, log);
     final VariantContextFilter superPopFilter = new VariantContextFilter(
-        new VARIANT_FILTER_DOUBLE[] {VARIANT_FILTER_DOUBLE.HWE,
-            VARIANT_FILTER_DOUBLE.CALL_RATE_LOOSE},
-        new VARIANT_FILTER_BOOLEAN[] {}, null, null, log);
+                                                                         new VARIANT_FILTER_DOUBLE[] {VARIANT_FILTER_DOUBLE.HWE,
+                                                                                                      VARIANT_FILTER_DOUBLE.CALL_RATE_LOOSE},
+                                                                         new VARIANT_FILTER_BOOLEAN[] {},
+                                                                         null, null, log);
 
     VCFFileReader tmp = new VCFFileReader(new File(vcfs[0]), true);
     VariantContextWriter writer = VCFOps.initWriter(outputVCF, VCFOps.DEFUALT_WRITER_OPTIONS,
-        VCFOps.getSequenceDictionary(tmp));
+                                                    VCFOps.getSequenceDictionary(tmp));
     VCFOps.copyHeader(tmp, writer, VCFOps.BLANK_SAMPLE, HEADER_COPY_TYPE.FULL_COPY, log);
 
     tmp.close();
@@ -95,8 +97,8 @@ public class PopGen {
         if ((pass + fail) % 10000 == 0) {
           log.report("");
           log.reportTimeInfo(ext.getTimeElapsed(time) + " since last update");
-          log.reportTimeInfo(
-              "Currently reading file (" + (i + 1) + " of " + vcfs.length + ") : " + vcfs[i]);
+          log.reportTimeInfo("Currently reading file (" + (i + 1) + " of " + vcfs.length + ") : "
+                             + vcfs[i]);
           log.reportTimeInfo(pass + " variants passed");
           log.reportTimeInfo(fail + " variants failed");
           log.reportTimeInfo(hweSuperPopFail + " variants failed for super population HWE tests");
@@ -120,10 +122,10 @@ public class PopGen {
     int numThreads = 3;
     String usage = "\n" + "seq.manage.PopGen requires 0-1 arguments\n";
     usage += "   (1) input directory containing vcf files (i.e. inputDirectory=" + inputDirectory
-        + " (default))\n" + "";
+             + " (default))\n" + "";
     usage += "   (2) full path to an output file (i.e. output=" + output + " (default))\n" + "";
     usage += "   (3) full path to file defining population sub and super structure (i.e. vpopFile="
-        + populationFile + " (default))\n" + "";
+             + populationFile + " (default))\n" + "";
     usage += "   (4) the directory is a remote directory (i.e. -remote (default))\n" + "";
     usage += "   (5) extension of vcf files to use(i.e. ext=" + extension + " (default))\n" + "";
     usage += PSF.Ext.getNumThreadsCommand(6, numThreads);
@@ -171,7 +173,7 @@ public class PopGen {
   }
 
   public static void popGen(String inputDirectory, String output, String populationFile,
-      Location location, String extension, int numThreads, Logger log) {
+                            Location location, String extension, int numThreads, Logger log) {
     VcfPopulation vpop = VCFOps.VcfPopulation.load(populationFile, POPULATION_TYPE.ANY, log);
     if (vpop != null) {
       vpop.report();
@@ -179,9 +181,10 @@ public class PopGen {
     filterForPopGen(inputDirectory, output, extension, location, vpop, numThreads, log);
   }
 
-  private static VariantContextFilterPass testSuperPopulations(
-      final VCFOps.VcfPopulation hwePopTests, final VariantContextFilter hweFilter,
-      final VariantContext variantContext, Logger log) {
+  private static VariantContextFilterPass testSuperPopulations(final VCFOps.VcfPopulation hwePopTests,
+                                                               final VariantContextFilter hweFilter,
+                                                               final VariantContext variantContext,
+                                                               Logger log) {
     VariantContextFilterPass hweContextFilterPass = new VariantContextFilterPass(true, "Passed");
     if (hwePopTests != null) {
       for (String superPopulation : hwePopTests.getSuperPop().keySet()) {

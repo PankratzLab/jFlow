@@ -42,7 +42,7 @@ public class ExomeDepthRun {
     private final Logger log;
 
     public ExomeSample(Project proj, ExomeDepthAnalysis eDepthAnalysis, String outputSampleRoot,
-        Logger log) {
+                       Logger log) {
       super();
       this.proj = proj;
       this.eDepthAnalysis = eDepthAnalysis;
@@ -73,7 +73,7 @@ public class ExomeDepthRun {
         byte[] genos = Array.byteArray(ratioLrr.length, (byte) 1);
         float[] zeroArray = Array.floatArray(ratioLrr.length, 0);
         Sample samp = new Sample(sample, proj.getMarkerSet().getFingerprint(), zeroArray, zeroArray,
-            zeroArray, zeroArray, ratioLrr, genos, genos, false);
+                                 zeroArray, zeroArray, ratioLrr, genos, genos, false);
         samp.saveToRandomAccessFile(sampFile, outliers, sample);
       } else {
         outliers = Sample.loadOutOfRangeValuesFromRandomAccessFile(sampFile);
@@ -104,7 +104,7 @@ public class ExomeDepthRun {
     private int index;
 
     public GenvisisSampleProducer(Project proj, ExomeDepthAnalysis[] eDepthAnalysis,
-        String outputSampleRoot, Logger log) {
+                                  String outputSampleRoot, Logger log) {
       super();
       this.proj = proj;
       this.eDepthAnalysis = eDepthAnalysis;
@@ -159,7 +159,7 @@ public class ExomeDepthRun {
       }
 
       Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
-          proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+                           proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
     }
   }
 
@@ -177,13 +177,13 @@ public class ExomeDepthRun {
 
     String usage = "\n" + "seq.analysis.ExomeDepth requires 0-1 arguments\n";
     usage += "   (1) full path to a directory of or file of bams (i.e. bams=" + bams
-        + " (default))\n" + "";
+             + " (default))\n" + "";
     usage += PSF.Ext.getOutputDirCommand(2, outputDir);
     usage += "   (3) output root command (i.e. root=" + outputRoot + " (default))\n" + "";
     usage += PSF.Ext.getNumThreadsCommand(4, numthreads);
     usage +=
         "   (5) full path to a v population file, individuals with the same population will not be used as ref(i.e. vpop= (no default))\n"
-            + "";
+             + "";
     usage += "   (6) alternative R location (i.e. rDir= (no default))\n" + "";
     usage += "   (7) somatic mode (i.e. somaticMode=" + somaticMode + " (default))\n" + "";
 
@@ -249,26 +249,26 @@ public class ExomeDepthRun {
   // }
 
   public static void runExomeDepth(String bams, String vpopFile, String outputDir,
-      String outputRoot, String rLoc, boolean somaticMode, int numthreads, Logger log) {
+                                   String outputRoot, String rLoc, boolean somaticMode,
+                                   int numthreads, Logger log) {
     VcfPopulation vpop = null;
     String[] allReferenceBamFiles =
         Files.isDirectory(bams) ? Files.listFullPaths(bams, BamOps.BAM_EXT, false)
-            : HashVec.loadFileToStringArray(bams, false, new int[] {0}, true);
+                                : HashVec.loadFileToStringArray(bams, false, new int[] {0}, true);
     String outputResultsDir =
         (outputDir == null ? ext.parseDirectoryOfFile(bams) : outputDir) + "results/";
     new File(outputResultsDir).mkdirs();
     ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, allReferenceBamFiles,
-        outputResultsDir, outputRoot, rLoc, log);
+                                           outputResultsDir, outputRoot, rLoc, log);
     if (!Files.exists(exomeDepth.getCountFile())) {
-      log.reportTimeWarning(
-          "Did not find " + exomeDepth.getCountFile() + ", generating it now (takes a long time)");
+      log.reportTimeWarning("Did not find " + exomeDepth.getCountFile()
+                            + ", generating it now (takes a long time)");
       exomeDepth.generateCountFile();
     } else {
       log.reportTimeWarning("Using existing count file " + exomeDepth.getCountFile());
     }
     if (vpopFile == null) {
-      log.reportTimeWarning(
-          "A vpopulation file was not provided, sample specific and global exclusions will not be applied");
+      log.reportTimeWarning("A vpopulation file was not provided, sample specific and global exclusions will not be applied");
     } else {
       if (somaticMode) {
         vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.TUMOR_NORMAL, log);
@@ -284,7 +284,7 @@ public class ExomeDepthRun {
 
     log.reportTimeInfo("Generating project in " + outputResultsDir);
     String projectDir = (outputDir == null ? ext.parseDirectoryOfFile(bams) : outputDir)
-        + "project_" + outputRoot + "/";
+                        + "project_" + outputRoot + "/";
     new File(projectDir).mkdirs();
     String projectFile = projectDir + outputRoot + ".properties";
     Files.write("", projectFile);

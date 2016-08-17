@@ -19,8 +19,8 @@ public class LOAD_OnePerFamily {
     String phenotypeFile = "Phenotype.dat";
 
     String usage = "\n" + "one.LOAD_OnePerFamily requires 0-1 arguments\n"
-        + "   (1) pedigree file (i.e. ped=" + phenotypeFile + " (default))\n"
-        + "   (2) phenotype file (i.e. pheno=" + phenotypeFile + " (default))\n" + "";
+                   + "   (1) pedigree file (i.e. ped=" + phenotypeFile + " (default))\n"
+                   + "   (2) phenotype file (i.e. pheno=" + phenotypeFile + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -91,7 +91,8 @@ public class LOAD_OnePerFamily {
           }
         }
         writer.println(fam + "\t"
-            + (pick == -1 ? ".\t.\t." : v.elementAt(pick) + "\t" + minDxLevel + "\t" + minAOO));
+                       + (pick == -1 ? ".\t.\t."
+                                     : v.elementAt(pick) + "\t" + minDxLevel + "\t" + minAOO));
       }
       writer.close();
     } catch (Exception e) {

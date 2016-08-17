@@ -67,8 +67,7 @@ public class PrimerBuffer {
       } else {
         for (int i = 0; i < targets.length; i++) {
           if (!sequence[i].equals(BLANK) && !targets[i].equals(sequence[i])) {
-            throw new IllegalStateException(
-                "Mismatched target sequence extraction, verify correct reference");
+            throw new IllegalStateException("Mismatched target sequence extraction, verify correct reference");
 
           }
         }
@@ -83,7 +82,7 @@ public class PrimerBuffer {
       new String[] {"BUFFER_LOCATION", "BUFFER_SEQUENCE_TOTAL_LENGTH", "BUFFER_SEQUENCE"};
 
   private static void extractBuffer(String queryFile, String referenceGenomeFast, int bpBuffer,
-      Logger log) {
+                                    Logger log) {
     ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFast, log);
     String output = ext.addToRoot(queryFile, ".query");
     ArrayList<ReferenceAlleleQuery> rAlleleQueries = new ArrayList<ReferenceAlleleQuery>();
@@ -91,8 +90,8 @@ public class PrimerBuffer {
       BufferedReader reader = Files.getAppropriateReader(queryFile);
       int[] header = ext.indexFactors(reader.readLine().trim().split("\t"), HEADER, true, true);
       if (Array.countIf(header, -1) > 0) {
-        log.reportTimeError(
-            "Did not detect complete header " + Array.toStr(HEADER) + " in " + queryFile);
+        log.reportTimeError("Did not detect complete header " + Array.toStr(HEADER) + " in "
+                            + queryFile);
         return;
       }
       while (reader.ready()) {

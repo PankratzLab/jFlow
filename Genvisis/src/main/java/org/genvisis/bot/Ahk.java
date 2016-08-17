@@ -113,13 +113,13 @@ public class Ahk {
   }
 
   public static int[][] findAllMatricesFast(Robot bot, int[] matrix, Logger log) {
-    return findAllMatricesFast(
-        bot.createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize())), matrix,
-        log);
+    return findAllMatricesFast(bot.createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit()
+                                                                            .getScreenSize())),
+                               matrix, log);
   }
 
   public static int[] findMatrix(Robot bot, int ScanStartX, int ScanEndX, int ScanStartY,
-      int ScanEndY, int Dimension, String Matrix) {
+                                 int ScanEndY, int Dimension, String Matrix) {
     String[] Pix;
     int Length, count, MatchFound;
     int StartX, StartY, EndX, EndY;
@@ -342,13 +342,13 @@ public class Ahk {
   }
 
   public static void outline(Robot bot, int ScanStartX, int ScanEndX, int ScanStartY,
-      int ScanEndY) {
+                             int ScanEndY) {
     moveMouseSlowly(bot, ScanStartX, ScanStartY, 25);
     moveMouseSlowly(bot, ScanEndX, ScanEndY, 25);
   }
 
   public static int[] pixelSearch(Robot bot, int StartX, int StartY, int EndX, int EndY,
-      String pix) {
+                                  String pix) {
     // Logger log;
     //
     // log = new Logger("/home/npankrat/auto/search.log", true);

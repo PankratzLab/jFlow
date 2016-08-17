@@ -40,7 +40,7 @@ public class LiftOverProcessing {
     while ((line = reader.readLine()) != null) {
       temp = line.split("\t");
       results.put(temp[3],
-          new int[] {Integer.parseInt(temp[0].substring(3)), Integer.parseInt(temp[2])});
+                  new int[] {Integer.parseInt(temp[0].substring(3)), Integer.parseInt(temp[2])});
     }
     reader.close();
 
@@ -54,8 +54,9 @@ public class LiftOverProcessing {
     boolean deleteTemp = true;
 
     String usage = "\n" + "one.ben.LiftOverProcessing requires 1+ arguments\n"
-        + "   (1) PLINK directory and root (i.e. plink=" + filename + " (default))\n"
-        + "   (2) delete temporary files? (i.e. deleteTemp=" + deleteTemp + " (default))\n" + "";
+                   + "   (1) PLINK directory and root (i.e. plink=" + filename + " (default))\n"
+                   + "   (2) delete temporary files? (i.e. deleteTemp=" + deleteTemp
+                   + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -106,7 +107,7 @@ public class LiftOverProcessing {
   }
 
   protected static void prepPlinkFiles(String plinkDirAndRoot, int conversion,
-      boolean deleteTempFiles) {
+                                       boolean deleteTempFiles) {
     boolean writeTemp, writeDrops, writeNew;
     String cmd;
     HashMap<String, int[]> results;
@@ -117,9 +118,8 @@ public class LiftOverProcessing {
     }
 
     if (!PSF.Plink.allFilesExist(plinkDirAndRoot, FORCE_BINARY)) {
-      System.err.println(
-          "Error - unable to find all binary PLINK files (bed/bim/fam) in given directory with specified root: "
-              + plinkDirAndRoot);
+      System.err.println("Error - unable to find all binary PLINK files (bed/bim/fam) in given directory with specified root: "
+                         + plinkDirAndRoot);
       return;
     }
 
@@ -135,7 +135,7 @@ public class LiftOverProcessing {
     }
 
     cmd = EXEC_LOC + EXEC_NAME + " " + plinkDirAndRoot + TEMP_EXT + " " + DB_LOCS[conversion] + " "
-        + plinkDirAndRoot + RESULT_EXT + " " + plinkDirAndRoot + UNMAPPED_EXT;
+          + plinkDirAndRoot + RESULT_EXT + " " + plinkDirAndRoot + UNMAPPED_EXT;
     System.out.println("## Running liftOver...");
     CmdLine.runDefaults(cmd, "./");
 
@@ -144,8 +144,7 @@ public class LiftOverProcessing {
       return;
     }
     if (!Files.exists(plinkDirAndRoot + UNMAPPED_EXT)) {
-      System.err.println(
-          "WARNING - no unmapped result file found - either liftOver failed to run, or all markers were successfully mapped.");
+      System.err.println("WARNING - no unmapped result file found - either liftOver failed to run, or all markers were successfully mapped.");
     }
     if (deleteTempFiles) {
       (new File(plinkDirAndRoot + TEMP_EXT)).delete();
@@ -167,7 +166,7 @@ public class LiftOverProcessing {
 
     System.out.println("## Excluding unconverted markers...");
     cmd = "plink2 --bfile " + plinkDirAndRoot + " --exclude " + plinkDirAndRoot + DROPS_EXT
-        + " --make-bed --out " + plinkDirAndRoot + NEWFILES_APPEND;
+          + " --make-bed --out " + plinkDirAndRoot + NEWFILES_APPEND;
     CmdLine.runDefaults(cmd, "./");
     if (deleteTempFiles) {
       (new File(plinkDirAndRoot + DROPS_EXT)).delete();
@@ -189,12 +188,14 @@ public class LiftOverProcessing {
 
     System.out.println("## Moving new .bim file to a temp file...");
     (new File(PSF.Plink.getBIM(plinkDirAndRoot + NEWFILES_APPEND)))
-        .renameTo(new File(plinkDirAndRoot + NEWFILES_APPEND + TEMP_BIM));
+                                                                   .renameTo(new File(plinkDirAndRoot
+                                                                                      + NEWFILES_APPEND
+                                                                                      + TEMP_BIM));
 
     System.out.println("## Writing new .bim file...");
     try {
       writeNew = writeNew(plinkDirAndRoot + NEWFILES_APPEND + TEMP_BIM,
-          PSF.Plink.getBIM(plinkDirAndRoot + NEWFILES_APPEND), results);
+                          PSF.Plink.getBIM(plinkDirAndRoot + NEWFILES_APPEND), results);
     } catch (IOException e) {
       e.printStackTrace();
       writeNew = false;
@@ -209,8 +210,8 @@ public class LiftOverProcessing {
     System.out.println("liftOver processing complete!");
   }
 
-  private static boolean writeNew(String bimIn, String bimOut, HashMap<String, int[]> results)
-      throws IOException {
+  private static boolean writeNew(String bimIn, String bimOut,
+                                  HashMap<String, int[]> results) throws IOException {
     BufferedReader reader;
     PrintWriter writer, writerMissing;
     String line;
@@ -231,8 +232,8 @@ public class LiftOverProcessing {
         writer.println(line);
         continue;
       }
-      writer
-          .println(data[0] + "\t" + temp[1] + "\t0\t" + data[1] + "\t" + temp[4] + "\t" + temp[5]);
+      writer.println(data[0] + "\t" + temp[1] + "\t0\t" + data[1] + "\t" + temp[4] + "\t"
+                     + temp[5]);
     }
     writer.flush();
     writerMissing.flush();
@@ -255,8 +256,7 @@ public class LiftOverProcessing {
 
     tempFile = plinkDirAndRoot + TEMP_EXT;
     if (Files.exists(tempFile)) {
-      System.err.println(
-          "Error - temporary positions file already exists - did liftOver previously fail to complete?  Please remove and re-run.");
+      System.err.println("Error - temporary positions file already exists - did liftOver previously fail to complete?  Please remove and re-run.");
       return false;
     }
 
@@ -267,7 +267,7 @@ public class LiftOverProcessing {
     while ((line = reader.readLine()) != null) {
       temp = line.split("\t");
       writer.println("chr" + temp[0] + "\t" + (Integer.parseInt(temp[3]) - 1) + "\t" + temp[3]
-          + "\t" + temp[1]);
+                     + "\t" + temp[1]);
     }
     writer.flush();
     writer.close();

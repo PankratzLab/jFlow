@@ -2,17 +2,14 @@ package edu.stanford.facs.logicle;
 
 /**
  * Implements the Logicle data {@link Logicle#scale(double) scale} and its
- * {@link Logicle#inverse(double) inverse}. This is a reference implementation,
- * accurate to <code>double</code> precision. It is reasonably fast but not
- * suitable for real time applications. See
- * {@link edu.edu.stanford.facs.logicle.FastLogicle} for a fast lower precision
- * version.
+ * {@link Logicle#inverse(double) inverse}. This is a reference implementation, accurate to
+ * <code>double</code> precision. It is reasonably fast but not suitable for real time applications.
+ * See {@link edu.edu.stanford.facs.logicle.FastLogicle} for a fast lower precision version.
  * 
  * @author Wayne A. Moore
  * @version 1.0
  */
-public class Logicle
-{
+public class Logicle {
   /**
    * Number of decades in default scale
    */
@@ -41,22 +38,15 @@ public class Logicle
   protected final double[] taylor;
 
   /**
-   * Real constructor that does all the work. Called only from implementing
-   * classes.
+   * Real constructor that does all the work. Called only from implementing classes.
    * 
-   * @param T
-   *          maximum data value or "top of scale"
-   * @param W
-   *          number of decades to linearize
-   * @param M
-   *          number of decades that a pure log scale would cover
-   * @param A
-   *          additional number of negative decades to include on scale
-   * @param bins
-   *          number of bins in the lookup table
+   * @param T maximum data value or "top of scale"
+   * @param W number of decades to linearize
+   * @param M number of decades that a pure log scale would cover
+   * @param A additional number of negative decades to include on scale
+   * @param bins number of bins in the lookup table
    */
-  protected Logicle (double T, double W, double M, double A, int bins)
-  {
+  protected Logicle(double T, double W, double M, double A, int bins) {
     if (T <= 0)
       throw new LogicleParameterException("T is not positive");
     if (W < 0)
@@ -70,8 +60,7 @@ public class Logicle
 
     // if we're going to bin the data make sure that
     // zero is on a bin boundary by adjusting A
-    if (bins > 0)
-    {
+    if (bins > 0) {
       double zero = (W + A) / (M + A);
       zero = Math.rint(zero * bins) / bins;
       A = (M * zero - W) / (1 - zero);
@@ -105,8 +94,7 @@ public class Logicle
     double negCoef = -c / Math.exp(d * x1);
     // 16 is enough for full precision of typical scales
     taylor = new double[16];
-    for (int i = 0; i < taylor.length; ++i)
-    {
+    for (int i = 0; i < taylor.length; ++i) {
       posCoef *= b / (i + 1);
       negCoef *= -d / (i + 1);
       taylor[i] = posCoef + negCoef;
@@ -117,47 +105,33 @@ public class Logicle
   /**
    * Constructor taking all possible parameters
    * 
-   * @param T
-   *          the double maximum data value or "top of scale"
-   * @param W
-   *          the double number of decades to linearize
-   * @param M
-   *          the double number of decades that a pure log scale would cover
-   * @param A
-   *          the double additional number of negative decades to include on
-   *          scale
+   * @param T the double maximum data value or "top of scale"
+   * @param W the double number of decades to linearize
+   * @param M the double number of decades that a pure log scale would cover
+   * @param A the double additional number of negative decades to include on scale
    */
-  public Logicle (double T, double W, double M, double A)
-  {
+  public Logicle(double T, double W, double M, double A) {
     this(T, W, M, A, 0);
   }
 
   /**
    * Constructor with no additional negative decades
    * 
-   * @param T
-   *          the double maximum data value or "top of scale"
-   * @param W
-   *          the double number of decades to linearize
-   * @param M
-   *          the double number of decades that a pure log scale would cover
+   * @param T the double maximum data value or "top of scale"
+   * @param W the double number of decades to linearize
+   * @param M the double number of decades that a pure log scale would cover
    */
-  public Logicle (double T, double W, double M)
-  {
+  public Logicle(double T, double W, double M) {
     this(T, W, M, 0D);
   }
 
   /**
-   * Constructor with default number of decades and no additional negative
-   * decades
+   * Constructor with default number of decades and no additional negative decades
    * 
-   * @param T
-   *          the double maximum data value or "top of scale"
-   * @param W
-   *          the double number of decades to linearize
+   * @param T the double maximum data value or "top of scale"
+   * @param W the double number of decades to linearize
    */
-  public Logicle (double T, double W)
-  {
+  public Logicle(double T, double W) {
     this(T, W, DEFAULT_DECADES, 0D);
   }
 
@@ -168,8 +142,7 @@ public class Logicle
    * @param w
    * @return double root d
    */
-  protected static double solve (double b, double w)
-  {
+  protected static double solve(double b, double w) {
     // w == 0 means its really arcsinh
     if (w == 0)
       return b;
@@ -193,24 +166,20 @@ public class Logicle
     double f = 2 * Math.log(d) + w * d + f_b;
     double last_f = Double.NaN;
 
-    for (int i = 1; i < 20; ++i)
-    {
+    for (int i = 1; i < 20; ++i) {
       // compute the derivative
       double df = 2 / d + w;
 
       // if Newton's method would step outside the bracket
       // or if it isn't converging quickly enough
       if (((d - d_hi) * df - f) * ((d - d_lo) * df - f) >= 0
-        || Math.abs(1.9 * f) > Math.abs(last_delta * df))
-      {
+          || Math.abs(1.9 * f) > Math.abs(last_delta * df)) {
         // take a bisection step
         delta = (d_hi - d_lo) / 2;
         d = d_lo + delta;
         if (d == d_lo)
           return d; // nothing changed, we're done
-      }
-      else
-      {
+      } else {
         // otherwise take a Newton's method step
         delta = f / df;
         double t = d;
@@ -245,8 +214,7 @@ public class Logicle
    * @param scale
    * @return The slope of the biexponential at the scale point
    */
-  protected double slope (double scale)
-  {
+  protected double slope(double scale) {
     // reflect negative scale regions
     if (scale < x1)
       scale = 2 * x1 - scale;
@@ -261,8 +229,7 @@ public class Logicle
    * @param scale
    * @return value of the biexponential function
    */
-  protected double seriesBiexponential (double scale)
-  {
+  protected double seriesBiexponential(double scale) {
     // Taylor series is around x1
     double x = scale - x1;
     // note that taylor[1] should be identically zero according
@@ -279,8 +246,7 @@ public class Logicle
    * @param value a data value
    * @return the double Logicle scale value
    */
-  public double scale (double value)
-  {
+  public double scale(double value) {
     // handle true zero separately
     if (value == 0)
       return x1;
@@ -293,29 +259,28 @@ public class Logicle
     // initial guess at solution
     double x;
     if (value < f)
-      // use linear approximation in the quasi linear region
-      x = x1 + value / taylor[0];
+                  // use linear approximation in the quasi linear region
+                  x = x1 + value / taylor[0];
     else
-      // otherwise use ordinary logarithm
-      x = Math.log(value / a) / b;
+                  // otherwise use ordinary logarithm
+                  x = Math.log(value / a) / b;
 
     // try for double precision unless in extended range
     double tolerance = 3 * Math.ulp(1D);
     if (x > 1)
       tolerance = 3 * Math.ulp(x);
 
-    for (int i = 0; i < 10; ++i)
-    {
+    for (int i = 0; i < 10; ++i) {
       // compute the function and its first two derivatives
       double ae2bx = a * Math.exp(b * x);
       double ce2mdx = c / Math.exp(d * x);
       double y;
       if (x < xTaylor)
-        // near zero use the Taylor series
-        y = seriesBiexponential(x) - value;
+                      // near zero use the Taylor series
+                      y = seriesBiexponential(x) - value;
       else
-        // this formulation has better roundoff behavior
-        y = (ae2bx + f) - (ce2mdx + value);
+                      // this formulation has better roundoff behavior
+                      y = (ae2bx + f) - (ce2mdx + value);
       double abe2bx = b * ae2bx;
       double cde2mdx = d * ce2mdx;
       double dy = abe2bx + cde2mdx;
@@ -327,27 +292,24 @@ public class Logicle
 
       // if we've reached the desired precision we're done
       if (Math.abs(delta) < tolerance)
-        // handle negative arguments
-        if (negative)
-          return 2 * x1 - x;
-        else
-          return x;
+                                      // handle negative arguments
+                                      if (negative)
+                                      return 2 * x1 - x;
+                                      else
+                                      return x;
     }
 
     throw new IllegalStateException("scale() didn't converge");
   }
 
   /**
-   * Computes the data value corresponding to the given point of the Logicle
-   * scale. This is the inverse of the {@link Logicle#scale(double) scale}
-   * function.
+   * Computes the data value corresponding to the given point of the Logicle scale. This is the
+   * inverse of the {@link Logicle#scale(double) scale} function.
    * 
-   * @param scale
-   *          a double scale value
+   * @param scale a double scale value
    * @return the double data value
    */
-  public double inverse (double scale)
-  {
+  public double inverse(double scale) {
     // reflect negative scale regions
     boolean negative = scale < x1;
     if (negative)
@@ -356,11 +318,11 @@ public class Logicle
     // compute the biexponential
     double inverse;
     if (scale < xTaylor)
-      // near x1, i.e., data zero use the series expansion
-      inverse = seriesBiexponential(scale);
+                        // near x1, i.e., data zero use the series expansion
+                        inverse = seriesBiexponential(scale);
     else
-      // this formulation has better roundoff behavior
-      inverse = (a * Math.exp(b * scale) + f) - c / Math.exp(d * scale);
+                        // this formulation has better roundoff behavior
+                        inverse = (a * Math.exp(b * scale) + f) - c / Math.exp(d * scale);
 
     // handle scale for negative values
     if (negative)
@@ -370,65 +332,58 @@ public class Logicle
   }
 
   /**
-   * Computes the dynamic range of the Logicle scale. For the Logicle scales
-   * this is the ratio of the pixels per unit at the high end of the scale
-   * divided by the pixels per unit at zero.
+   * Computes the dynamic range of the Logicle scale. For the Logicle scales this is the ratio of
+   * the pixels per unit at the high end of the scale divided by the pixels per unit at zero.
    * 
    * @return the double dynamic range
    */
-  public double dynamicRange ()
-  {
+  public double dynamicRange() {
     return slope(1) / slope(x1);
   }
-  
-	/**
-	 * Choose a suitable set of data coordinates for a Logicle scale
-	 * 
-	 * @return a double array of data values
-	 */
-	public double[] axisLabels ()
-	{
-		// number of decades in the positive logarithmic region
-		double p = M - 2 * W;
-		// smallest power of 10 in the region
-		double log10x = Math.ceil(Math.log(T) / LN_10 - p);
-		// data value at that point
-		double x = Math.exp(LN_10 * log10x);
-		// number of positive labels
-		int np;
-		if (x > T)
-		{
-			x = T;
-			np = 1;
-		}
-		else
-			np = (int) (Math.floor(Math.log(T) / LN_10 - log10x)) + 1;
-		// bottom of scale
-		double B = this.inverse(0);
-		// number of negative labels
-		int nn;
-		if (x > -B)
-			nn = 0;
-		else if (x == T)
-			nn = 1;
-		else
-			nn = (int) Math.floor(Math.log(-B) / LN_10 - log10x) + 1;
 
-		// fill in the axis labels
-		double[] label = new double[nn + np + 1];
-		label[nn] = 0;
-		for (int i = 1; i <= nn; ++i)
-		{
-			label[nn - i] = -x;
-			label[nn + i] = x;
-			x *= 10;
-		}
-		for (int i = nn + 1; i <= np; ++i)
-		{
-			label[nn + i] = x;
-			x *= 10;
-		}
+  /**
+   * Choose a suitable set of data coordinates for a Logicle scale
+   * 
+   * @return a double array of data values
+   */
+  public double[] axisLabels() {
+    // number of decades in the positive logarithmic region
+    double p = M - 2 * W;
+    // smallest power of 10 in the region
+    double log10x = Math.ceil(Math.log(T) / LN_10 - p);
+    // data value at that point
+    double x = Math.exp(LN_10 * log10x);
+    // number of positive labels
+    int np;
+    if (x > T) {
+      x = T;
+      np = 1;
+    } else
+      np = (int) (Math.floor(Math.log(T) / LN_10 - log10x)) + 1;
+    // bottom of scale
+    double B = this.inverse(0);
+    // number of negative labels
+    int nn;
+    if (x > -B)
+      nn = 0;
+    else if (x == T)
+      nn = 1;
+    else
+      nn = (int) Math.floor(Math.log(-B) / LN_10 - log10x) + 1;
 
-		return label;
-	}
+    // fill in the axis labels
+    double[] label = new double[nn + np + 1];
+    label[nn] = 0;
+    for (int i = 1; i <= nn; ++i) {
+      label[nn - i] = -x;
+      label[nn + i] = x;
+      x *= 10;
+    }
+    for (int i = nn + 1; i <= np; ++i) {
+      label[nn + i] = x;
+      x *= 10;
+    }
+
+    return label;
+  }
 }

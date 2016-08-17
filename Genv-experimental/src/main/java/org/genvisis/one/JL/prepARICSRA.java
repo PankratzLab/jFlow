@@ -12,7 +12,7 @@ public class prepARICSRA {
     String sraRunTable = "/Volumes/Work/data/aric_sra/prep/SraRunTable.txt";
 
     String usage = "\n" + "this requires 0-1 arguments\n"
-        + "   (1) SRA data table (i.e. sraRunTable=" + sraRunTable + " (default))\n";
+                   + "   (1) SRA data table (i.e. sraRunTable=" + sraRunTable + " (default))\n";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

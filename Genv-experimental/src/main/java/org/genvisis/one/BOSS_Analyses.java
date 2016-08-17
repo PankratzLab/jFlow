@@ -36,8 +36,9 @@ public class BOSS_Analyses {
     new File(dir + "gwaf/").mkdirs();
     for (int chr = 1; chr <= 23; chr++) {
       CreateDatabaseFromPlink.toGWAF(dir + "split/chr" + chr + ".ped",
-          dir + "split/chr" + chr + ".map", dir + "split/chr" + chr + ".frq", null,
-          dir + "gwaf/chr" + chr + ".fhsR");
+                                     dir + "split/chr" + chr + ".map",
+                                     dir + "split/chr" + chr + ".frq", null,
+                                     dir + "gwaf/chr" + chr + ".fhsR");
     }
   }
 
@@ -55,12 +56,13 @@ public class BOSS_Analyses {
     isStandardize = false;
     isParse = true;
     isProcessMacs = false;
-    String usage = "\n" + "one.BOSS_Analyses requires 0-1 arguments\n"
-        + "   (1) directory (i.e. dir=" + dir + " (default))\n"
-        + "   (2) to parse result (i.e. parseresult=" + isParse + " (default))\n"
-        + "   (3) result directory (i.e. resultdir=" + resultDir + " (default))\n"
-        + "   (4) minor allele frequency file directory (i.e. mafdir=" + mafDir + " (default))\n"
-        + "   (5) gene list file full path (i.e. genelist=" + geneListFile + " (default))\n" + "";
+    String usage =
+        "\n" + "one.BOSS_Analyses requires 0-1 arguments\n" + "   (1) directory (i.e. dir=" + dir
+                   + " (default))\n" + "   (2) to parse result (i.e. parseresult=" + isParse
+                   + " (default))\n" + "   (3) result directory (i.e. resultdir=" + resultDir
+                   + " (default))\n" + "   (4) minor allele frequency file directory (i.e. mafdir="
+                   + mafDir + " (default))\n" + "   (5) gene list file full path (i.e. genelist="
+                   + geneListFile + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -90,7 +92,7 @@ public class BOSS_Analyses {
 
     if (createGwaf) {
       CreateDatabaseFromPlink.toGWAF(dir + "ICAM1/plink.ped", dir + "ICAM1/plink.map",
-          dir + "ICAM1/plink.frq", null, dir + "ICAM1/gwaf.fhsR");
+                                     dir + "ICAM1/plink.frq", null, dir + "ICAM1/gwaf.fhsR");
     } else if (isGenerate) {
       generate(dir);
     } else if (isStandardize) {
@@ -105,7 +107,7 @@ public class BOSS_Analyses {
   }
 
   public static void parseResults(String resultDir, String mafDir, String geneListFileFullPath,
-      Logger log) {
+                                  Logger log) {
     String[] filenames = null, array_of_hits, params;
     String root;
     Hits hits;
@@ -159,7 +161,7 @@ public class BOSS_Analyses {
       }
 
       Files.combine(array_of_hits, params, null, "MarkerName", ".", resultDir + "top_hits.xln", log,
-          true, true, false);
+                    true, true, false);
     }
   }
 
@@ -175,8 +177,10 @@ public class BOSS_Analyses {
       reader.readLine();
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
-        writer.println(line[1] + "\t" + (line[4].equalsIgnoreCase("NA") ? "."
-            : (int) (Double.parseDouble(line[4]) * Integer.parseInt(line[5]))));
+        writer.println(line[1] + "\t"
+                       + (line[4].equalsIgnoreCase("NA") ? "."
+                                                         : (int) (Double.parseDouble(line[4])
+                                                                  * Integer.parseInt(line[5]))));
       }
       reader.close();
       writer.close();
@@ -232,11 +236,11 @@ public class BOSS_Analyses {
           infoReader.close();
         } catch (FileNotFoundException fnfe) {
           System.err.println("Error: file \"" + dir + "leslie_lange.FHS.IBC.CEU.chr1.gen"
-              + "\" not found in current directory");
+                             + "\" not found in current directory");
           System.exit(1);
         } catch (IOException ioe) {
-          System.err
-              .println("Error reading file \"" + dir + "leslie_lange.FHS.IBC.CEU.chr1.gen" + "\"");
+          System.err.println("Error reading file \"" + dir + "leslie_lange.FHS.IBC.CEU.chr1.gen"
+                             + "\"");
           System.exit(2);
         }
       }

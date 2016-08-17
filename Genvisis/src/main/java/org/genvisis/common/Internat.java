@@ -22,8 +22,8 @@ import java.util.Vector;
 public class Internat {
 
   // public static void doSubmit(String url, Hashtable<String, String> data) throws Exception {
-  public static String[] doSubmit(String url, Map<String, String> data, int ms_timeout)
-      throws Exception {
+  public static String[] doSubmit(String url, Map<String, String> data,
+                                  int ms_timeout) throws Exception {
     HttpURLConnection conn;
     URL siteUrl;
     // String[] keys;

@@ -27,7 +27,7 @@ public class FocusedSample {
     private final boolean overwriteExisting;
 
     public WorkerSubset(String sample, Project original, Project newFocus, int[] focusedIndices,
-        long newFingerPrint, boolean overwriteExisting) {
+                        long newFingerPrint, boolean overwriteExisting) {
       super();
       this.sample = sample;
       this.original = original;
@@ -46,7 +46,7 @@ public class FocusedSample {
             newFocus.SAMPLE_DIRECTORY.getValue(true, true) + sample + Sample.SAMPLE_FILE_EXTENSION;
         focusedSample = new FocusedSample(focusedIndices, samp, newFingerPrint, overwriteExisting);
         focusedSample.saveToRandomAccessFile(newSampleFileName, samp.getSampleName(),
-            original.getLog());
+                                             original.getLog());
       } else {
         original.getLog().reportTimeError("Could not load sample " + sample);
       }
@@ -57,21 +57,18 @@ public class FocusedSample {
   }
 
   public static boolean focusAProject(Project original, Project newFocus, String[] markersToUse,
-      boolean[] samplesToUse, long newFingerPrint, int numThreads, boolean overwriteExisting,
-      Logger log) {
+                                      boolean[] samplesToUse, long newFingerPrint, int numThreads,
+                                      boolean overwriteExisting, Logger log) {
     boolean focused = true;
     if (original.PROJECT_DIRECTORY.getValue().equals(newFocus.PROJECT_DIRECTORY.getValue())) {
-      log.reportTimeError(
-          "The focused project must have a different project directory than the original, halting");
+      log.reportTimeError("The focused project must have a different project directory than the original, halting");
       focused = false;
     } else if (original.SAMPLE_DIRECTORY.getValue(false, true)
-        .equals(newFocus.SAMPLE_DIRECTORY.getValue(false, true))) {
-      log.reportTimeError(
-          "The focused project must have a different sample directory than the original, halting");
+                                        .equals(newFocus.SAMPLE_DIRECTORY.getValue(false, true))) {
+      log.reportTimeError("The focused project must have a different sample directory than the original, halting");
       focused = false;
     } else if (markersToUse == null || samplesToUse == null) {
-      log.reportTimeError(
-          "Please provide subsets... if you want they can be all markers or samples");
+      log.reportTimeError("Please provide subsets... if you want they can be all markers or samples");
       focused = false;
     } else {
       log.reportTimeInfo("Markers to export = " + markersToUse.length);
@@ -80,7 +77,7 @@ public class FocusedSample {
           ext.indexLargeFactors(markersToUse, original.getMarkerNames(), true, log, true, false);
       WorkerHive<FocusedSample> hive = new WorkerHive<FocusedSample>(numThreads, 10, log);
       WorkerSubset[] workerSubsets = getWorkers(original, newFocus, markerToUseIndices,
-          samplesToUse, newFingerPrint, overwriteExisting);
+                                                samplesToUse, newFingerPrint, overwriteExisting);
       hive.addCallables(workerSubsets);
       hive.setReportEvery(100);
       hive.execute(true);
@@ -93,13 +90,14 @@ public class FocusedSample {
   }
 
   private static WorkerSubset[] getWorkers(Project original, Project newFocus, int[] focusedIndices,
-      boolean[] samplesToUse, long newFingerPrint, boolean overwriteExisting) {
+                                           boolean[] samplesToUse, long newFingerPrint,
+                                           boolean overwriteExisting) {
     String[] samples = samplesToUse == null ? original.getSamples()
-        : Array.subArray(original.getSamples(), samplesToUse);
+                                            : Array.subArray(original.getSamples(), samplesToUse);
     WorkerSubset[] workerSubsets = new WorkerSubset[samples.length];
     for (int i = 0; i < samples.length; i++) {
       workerSubsets[i] = new WorkerSubset(samples[i], original, newFocus, focusedIndices,
-          newFingerPrint, overwriteExisting);
+                                          newFingerPrint, overwriteExisting);
     }
     return workerSubsets;
   }
@@ -116,7 +114,7 @@ public class FocusedSample {
     proj2.setProperty(proj.PROJECT_DIRECTORY, proj.PROJECT_DIRECTORY.getValue() + "subSample/");
     String[] markers = proj.getTargetMarkers();
     focusAProject(proj, proj2, markers, null, proj.getMarkerSet().getFingerprint(), 8, true,
-        proj.getLog());
+                  proj.getLog());
     proj2.getMarkerLookup();
   }
 
@@ -138,7 +136,7 @@ public class FocusedSample {
   private final Hashtable<String, Float> outliers;
 
   public FocusedSample(int[] focusedIndices, Sample sample, long newFingerPrint,
-      boolean overwriteExisting) {
+                       boolean overwriteExisting) {
     super();
     this.overwriteExisting = overwriteExisting;
     focusedSample = getFocusedSample(sample, focusedIndices, newFingerPrint);
@@ -147,10 +145,12 @@ public class FocusedSample {
   }
 
   private Sample getFocusedSample(Sample sample, int[] focusedIndices, long newFingerPrint) {
-    byte[] abGenotypes = sample.getAB_Genotypes() == null ? null
-        : Array.subArray(sample.getAB_Genotypes(), focusedIndices);
+    byte[] abGenotypes =
+        sample.getAB_Genotypes() == null ? null
+                                         : Array.subArray(sample.getAB_Genotypes(), focusedIndices);
     byte[] forwardGenotypes = sample.getForwardGenotypes() == null ? null
-        : Array.subArray(sample.getForwardGenotypes(), focusedIndices);
+                                                                   : Array.subArray(sample.getForwardGenotypes(),
+                                                                                    focusedIndices);
 
     float[] xs = sample.getXs() == null ? null : Array.subArray(sample.getXs(), focusedIndices);
     float[] ys = sample.getYs() == null ? null : Array.subArray(sample.getYs(), focusedIndices);
@@ -163,7 +163,7 @@ public class FocusedSample {
     float[] gcs = sample.getGCs() == null ? null : Array.subArray(sample.getGCs(), focusedIndices);
     boolean canXYBeNegative = sample.getCanXYBeNegative();
     Sample focusedSample = new Sample(sample.getSampleName(), newFingerPrint, gcs, xs, ys, bafs,
-        lrrs, forwardGenotypes, abGenotypes, canXYBeNegative);
+                                      lrrs, forwardGenotypes, abGenotypes, canXYBeNegative);
     return focusedSample;
   }
 

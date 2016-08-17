@@ -14,10 +14,11 @@ public class CrossValidation {
    * and validation data
    */
   public static CrossValidation crossValidate(double[] train_deps, double[][] train_indeps,
-      double[] validation_deps, double[][] validation_indeps, boolean verbose, LS_TYPE lType,
-      Logger log) {
+                                              double[] validation_deps,
+                                              double[][] validation_indeps, boolean verbose,
+                                              LS_TYPE lType, Logger log) {
     CrossValidation crossValidation = new CrossValidation(train_deps, train_indeps, validation_deps,
-        validation_indeps, verbose, lType, log);
+                                                          validation_indeps, verbose, lType, log);
     crossValidation.train();
     if (!crossValidation.analysisFailed) {
       crossValidation.computePredictedValues();
@@ -56,7 +57,7 @@ public class CrossValidation {
    * Similar to {@link CrossValidation#extractDeps()}, but for the independent data
    */
   private static double[][] extractIndeps(double[][] indeps, boolean[] fold, boolean train,
-      Logger log) {
+                                          Logger log) {
     int num = Array.booleanArraySum(fold);
     num = train ? num : fold.length - num;
     double[][] extract = new double[num][];
@@ -76,8 +77,7 @@ public class CrossValidation {
   private static boolean foldCheck(double[] deps, int kFolds, Logger log) {
     boolean pass = true;
     if (kFolds > deps.length) {
-      log.reportError(
-          "Error - cannot have number of folds greater than number of dependent variables");
+      log.reportError("Error - cannot have number of folds greater than number of dependent variables");
       pass = false;
     }
     if (kFolds < 2) {
@@ -177,7 +177,7 @@ public class CrossValidation {
    * If you only care about the average error
    */
   public static double kfoldAverageSSerr(double[] deps, double[][] indeps, int kFolds,
-      boolean verbose, LS_TYPE lType, Logger log) {
+                                         boolean verbose, LS_TYPE lType, Logger log) {
     CrossValidation[] crossValidations =
         kFoldCrossValidate(deps, indeps, kFolds, verbose, lType, log);
     return getEstimateError(crossValidations);
@@ -199,7 +199,7 @@ public class CrossValidation {
    * Note: this is an in-sample cross-validation, the training and test data is created on the fly
    */
   public static CrossValidation[] kFoldCrossValidate(double[] deps, double[][] indeps, int kFolds,
-      boolean verbose, LS_TYPE lType, Logger log) {
+                                                     boolean verbose, LS_TYPE lType, Logger log) {
     if (!foldCheck(deps, kFolds, log)) {
       return new CrossValidation[0];
     }
@@ -223,8 +223,10 @@ public class CrossValidation {
    * constant
    */
   public static CrossValidation[] kFoldCrossValidateOutSample(double[] deps, double[][] indeps,
-      double[] val_deps, double[][] val_indeps, int kFolds, boolean verbose, LS_TYPE lType,
-      Logger log) {
+                                                              double[] val_deps,
+                                                              double[][] val_indeps, int kFolds,
+                                                              boolean verbose, LS_TYPE lType,
+                                                              Logger log) {
     if (!foldCheck(deps, kFolds, log)) {
       return new CrossValidation[0];
     }
@@ -313,7 +315,7 @@ public class CrossValidation {
    *        however, the number of independent variables must be the same
    */
   public CrossValidation(double[] train_deps, double[][] train_indeps, double[] validation_deps,
-      double[][] validation_indeps, boolean verbose, LS_TYPE lType, Logger log) {
+                         double[][] validation_indeps, boolean verbose, LS_TYPE lType, Logger log) {
     super();
     this.train_deps = train_deps;
     this.train_indeps = train_indeps;
@@ -401,8 +403,8 @@ public class CrossValidation {
       }
       if (droppedNaN > 0 && verbose) {
         log.report("Warning - " + droppedNaN + " "
-            + (droppedNaN > 1 ? "individuals were" : "individual was")
-            + " not included in the residual sum of squares calculation due to missing independent or dependent variables");
+                   + (droppedNaN > 1 ? "individuals were" : "individual was")
+                   + " not included in the residual sum of squares calculation due to missing independent or dependent variables");
       }
     } else {
       log.reportError("Error - could not train data set, cannot compute residuals values");
@@ -532,13 +534,11 @@ public class CrossValidation {
     }
     if (!verifyEqualLength(val_indeps, numIndeps)) {
       verify = false;
-      log.reportError(
-          "Error - the number of independent variables to validate must be the same as the training set");
+      log.reportError("Error - the number of independent variables to validate must be the same as the training set");
     }
     if (train_deps.length < train_indeps[0].length + 1) {
       verify = false;
-      log.reportError(
-          "Error - must have more observations than individuals in the regression model");
+      log.reportError("Error - must have more observations than individuals in the regression model");
     }
     return verify;
   }

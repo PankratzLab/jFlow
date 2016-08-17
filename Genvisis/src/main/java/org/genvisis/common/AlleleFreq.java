@@ -20,7 +20,7 @@ public class AlleleFreq {
   public static double calcFrequency(double[] genotypes) {
     if (genotypes.length != 3) {
       System.err.println("Error - can't compute an allele frequency from " + genotypes.length
-          + " classes of genotypes");
+                         + " classes of genotypes");
     }
     return calcFrequency(genotypes[0], genotypes[1], genotypes[2]);
   }
@@ -151,10 +151,10 @@ public class AlleleFreq {
     }
     if (genotypes.length == 6) {
       return HWEsig(genotypes[0], genotypes[1], genotypes[2], genotypes[3], genotypes[4],
-          genotypes[5]);
+                    genotypes[5]);
     }
-    System.err.println(
-        "Error - can't compute Hardy Weinberg from " + genotypes.length + " classes of genotypes");
+    System.err.println("Error - can't compute Hardy Weinberg from " + genotypes.length
+                       + " classes of genotypes");
     return Double.NaN;
   }
 
@@ -163,8 +163,9 @@ public class AlleleFreq {
   }
 
   public static double HWEsig(int pp, int pq, int pr, int qq, int qr, int rr) {
-    return ProbDist.ChiDist(
-        HWE((double) pp, (double) pq, (double) pr, (double) qq, (double) qr, (double) rr), 1);
+    return ProbDist.ChiDist(HWE((double) pp, (double) pq, (double) pr, (double) qq, (double) qr,
+                                (double) rr),
+                            1);
   }
 
   public static double HWEsig(int[] genotypes) {

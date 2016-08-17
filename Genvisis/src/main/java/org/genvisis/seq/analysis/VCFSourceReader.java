@@ -29,7 +29,9 @@ public class VCFSourceReader extends VCFFileReader implements Closeable, Iterabl
   public VCFSourceReader(final String file, final boolean requireIndex) {
     super(null, requireIndex);
     reader = AbstractFeatureReader.getFeatureReader(file,
-        file.endsWith(".bcf") ? (FeatureCodec) new BCF2Codec() : new VCFCodec(), requireIndex);
+                                                    file.endsWith(".bcf") ? (FeatureCodec) new BCF2Codec()
+                                                                          : new VCFCodec(),
+                                                    requireIndex);
   }
 
   @Override
@@ -60,7 +62,7 @@ public class VCFSourceReader extends VCFFileReader implements Closeable, Iterabl
   /** Queries for records within the region specified. */
   @Override
   public CloseableIterator<VariantContext> query(final String chrom, final int start,
-      final int end) {
+                                                 final int end) {
     try {
       return reader.query(chrom, start, end);
     } catch (final IOException ioe) {

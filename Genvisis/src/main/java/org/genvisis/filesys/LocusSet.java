@@ -20,14 +20,14 @@ import com.google.common.primitives.Ints;
 
 public abstract class LocusSet<T extends Segment> implements Serializable {
   public enum TO_STRING_TYPE {
-    /**
-     * calls the {@link Segment#getUCSClocation()}, or any overide
-     */
-    UCSC,
-    /**
-     * calls the {@link Segment#toString()}, or any override
-     */
-    REGULAR;
+                              /**
+                               * calls the {@link Segment#getUCSClocation()}, or any overide
+                               */
+                              UCSC,
+                              /**
+                               * calls the {@link Segment#toString()}, or any override
+                               */
+                              REGULAR;
   }
 
   /**
@@ -37,7 +37,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 
   @SuppressWarnings("unchecked")
   public static <T extends Segment> LocusSet<T> combine(LocusSet<T> one, LocusSet<T> two,
-      boolean sort, Logger log) {
+                                                        boolean sort, Logger log) {
     T[] combinedLoci = Array.concatAll(one.getLoci(), two.getLoci());
     LocusSet<T> combined = new LocusSet<T>(combinedLoci, sort, log) {
 
@@ -51,10 +51,12 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
   }
 
   public static LocusSet<Segment> loadSegmentSetFromFile(String file, int chrCol, int startCol,
-      int stopCol, int skipNumLines, boolean inclusiveStart, boolean inclusiveStop, int bpBuffer,
-      Logger log) {
+                                                         int stopCol, int skipNumLines,
+                                                         boolean inclusiveStart,
+                                                         boolean inclusiveStop, int bpBuffer,
+                                                         Logger log) {
     Segment[] segs = Segment.loadRegions(file, chrCol, startCol, stopCol, skipNumLines,
-        inclusiveStart, inclusiveStop, bpBuffer);
+                                         inclusiveStart, inclusiveStop, bpBuffer);
     LocusSet<Segment> lSet = new LocusSet<Segment>(segs, true, log) {
 
       /**
@@ -221,8 +223,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 
   public int[] getOverlappingIndices(final Segment seg) {
     if (!sorted) {
-      log.reportTimeError(
-          "Internal error: must sort internal segment array prior to overlap search");
+      log.reportTimeError("Internal error: must sort internal segment array prior to overlap search");
       return null;
     } else {
       int[] indices = Segment.binarySearchForAllOverLappingIndices(seg, loci);
@@ -373,7 +374,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
    * 
    */
   public <E extends Segment> LocusSet<Segment> removeThese(final LocusSet<E> setToRemove,
-      int bpBuffer) {
+                                                           int bpBuffer) {
     ArrayList<Segment> newLoci = new ArrayList<Segment>();
     LocusSet<Segment> operateSet = setToRemove.getStrictSegmentSet();
     if (bpBuffer > 0) {
@@ -470,7 +471,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
       PrintWriter writer = new PrintWriter(new FileWriter(filename));
       for (T seg : loci) {
         writer.println(Positions.getChromosomeUCSC(seg.getChr(), !numericChrs) + "\t"
-            + seg.getStart() + "\t" + seg.getStop());
+                       + seg.getStart() + "\t" + seg.getStop());
       }
       writer.close();
     } catch (Exception e) {

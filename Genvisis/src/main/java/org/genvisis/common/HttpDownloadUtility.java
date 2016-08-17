@@ -39,8 +39,8 @@ public class HttpDownloadUtility {
    * @return response code from HttpURLConnection
    */
 
-  public static int downloadFile(String fileURL, String saveFile, boolean verbose, Logger log)
-      throws IOException {
+  public static int downloadFile(String fileURL, String saveFile, boolean verbose,
+                                 Logger log) throws IOException {
     URL url = new URL(fileURL);
     HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
     int responseCode = httpConn.getResponseCode();

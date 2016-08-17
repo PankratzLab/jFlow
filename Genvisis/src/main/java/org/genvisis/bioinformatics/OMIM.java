@@ -32,8 +32,8 @@ public class OMIM {
     private final String[] all;
 
     public OMIMGene(String[] all, String geneSymbol[], String cytogeneticLocation,
-        String geneStatus, String title, String mIMNumber, String method, String disorders,
-        String references, String diseaseEvidence) {
+                    String geneStatus, String title, String mIMNumber, String method,
+                    String disorders, String references, String diseaseEvidence) {
       super();
       this.all = all;
       geneSymbols = geneSymbol;
@@ -93,7 +93,7 @@ public class OMIM {
   private static final String OMIM_TEXT = "omim.txt.Z";
 
   private static Hashtable<String, ArrayList<OMIMGene>> loadGeneOmimMap(String filename,
-      Logger log) {
+                                                                        Logger log) {
     Hashtable<String, ArrayList<OMIMGene>> gHashtable =
         new Hashtable<String, ArrayList<OMIMGene>>();
     Hashtable<String, String> status = new Hashtable<String, String>();
@@ -101,7 +101,7 @@ public class OMIM {
     status.put("P", "based on evidence from one laboratory or one family");
     status.put("I", "inconsistent - results of different laboratories disagree");
     status.put("L",
-        "limbo - evidence not as strong as that provisional, but included for heuristic reasons");
+               "limbo - evidence not as strong as that provisional, but included for heuristic reasons");
 
     try {
       BufferedReader reader = Files.getAppropriateReader(filename);
@@ -118,8 +118,9 @@ public class OMIM {
           if (!gHashtable.containsKey(genes[i])) {
             gHashtable.put(genes[i], new ArrayList<OMIM.OMIMGene>());
           }
-          OMIMGene mGene = new OMIMGene(line, genes, tmp[4], tmp[6], tmp[7], tmp[8], tmp[9],
-              tmp[11], tmp[13], status.containsKey(tmp[6]) ? status.get(tmp[6]) : tmp[6]);
+          OMIMGene mGene =
+              new OMIMGene(line, genes, tmp[4], tmp[6], tmp[7], tmp[8], tmp[9], tmp[11], tmp[13],
+                           status.containsKey(tmp[6]) ? status.get(tmp[6]) : tmp[6]);
           gHashtable.get(genes[i]).add(mGene);
         }
       }
@@ -168,7 +169,7 @@ public class OMIM {
     } else {
       ArrayList<OMIMGene> blank = new ArrayList<OMIM.OMIMGene>();
       blank.add(new OMIMGene(new String[] {"NA"}, new String[] {"NA"}, "NA", "NA", "NA", "NA", "NA",
-          "NA", "NA", "NA"));
+                             "NA", "NA", "NA"));
       return blank;
     }
   }

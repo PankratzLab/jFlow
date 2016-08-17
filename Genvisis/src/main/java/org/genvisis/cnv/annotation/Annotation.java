@@ -37,7 +37,7 @@ public abstract class Annotation {
    * @param defaultValue
    */
   public Annotation(VCFHeaderLineType type, VCFHeaderLineCount count, int number, String name,
-      String description, String defaultValue) {
+                    String description, String defaultValue) {
     super();
     this.type = type;
     this.count = count;

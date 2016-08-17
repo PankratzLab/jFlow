@@ -43,15 +43,16 @@ public class HapMapParser {
   }
 
   public static void generateHaploviewBatch(String dir, String root, boolean preNotPed,
-      Logger log) {
+                                            Logger log) {
     PrintWriter writer;
 
     new SnpMarkerSet(dir + root + ".map", true, log).writeToFile(dir + root + ".info",
-        SnpMarkerSet.HAPLOVIEW_INFO_FORMAT, log);
+                                                                 SnpMarkerSet.HAPLOVIEW_INFO_FORMAT,
+                                                                 log);
     try {
       writer = new PrintWriter(new FileWriter((new File(dir).exists() ? dir : "") + root + ".bat"));
       writer.println("java -jar /home/npankrat/Haploview.jar -pedfile " + root + "."
-          + (preNotPed ? "pre" : "ped") + " -info " + root + ".info");
+                     + (preNotPed ? "pre" : "ped") + " -info " + root + ".info");
       writer.close();
     } catch (Exception e) {
       log.reportError("Error writing batch file");
@@ -77,13 +78,14 @@ public class HapMapParser {
     String fix = "";
 
     String usage = "\n" + "bioinformatics.HapMapParser requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=MAPT.tsv (not the default)\n"
-        + "   (2) famstruct (i.e. struct=" + famstruct + " (default)\n"
-        + "   (3) split bed by chromosome (i.e. bed=plink (not the default)\n"
-        + "   (4) split ped by chromosome (i.e. ped=plink (not the default)\n"
-        + "   (5) fix affection status in fam files (i.e. fix=plink (not the default)\n" + "  OR:\n"
-        + "   (1) generate Haploview batch file from PLINK files (i.e. map=plink.map (not the default)\n"
-        + "";
+                   + "   (1) filename (i.e. file=MAPT.tsv (not the default)\n"
+                   + "   (2) famstruct (i.e. struct=" + famstruct + " (default)\n"
+                   + "   (3) split bed by chromosome (i.e. bed=plink (not the default)\n"
+                   + "   (4) split ped by chromosome (i.e. ped=plink (not the default)\n"
+                   + "   (5) fix affection status in fam files (i.e. fix=plink (not the default)\n"
+                   + "  OR:\n"
+                   + "   (1) generate Haploview batch file from PLINK files (i.e. map=plink.map (not the default)\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -126,8 +128,8 @@ public class HapMapParser {
       }
       if (!map.equals("")) {
         generateHaploviewBatch("", ext.removeDirectoryInfo(map.substring(0, map.lastIndexOf("."))),
-            false, new Logger(
-                ext.rootOf(filename, false) + "_haploview_prep.log"));
+                               false,
+                               new Logger(ext.rootOf(filename, false) + "_haploview_prep.log"));
       } else if (!bed.equals("")) {
         splitBedByChromosome(bed);
       } else if (!ped.equals("")) {
@@ -135,8 +137,8 @@ public class HapMapParser {
       } else if (!fix.equals("")) {
         fixAffectionStatusInBed(fix);
       } else {
-        parse(dir, filename, famstruct, new Logger(
-            ext.rootOf(filename, false) + "_hapmap_parser.log"));
+        parse(dir, filename, famstruct,
+              new Logger(ext.rootOf(filename, false) + "_hapmap_parser.log"));
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -161,7 +163,7 @@ public class HapMapParser {
       reader = Files.getReader(filename, dir);
       temp = reader.readLine();
       indices = ext.indexFactors(TARGETS_WITH_ALTS, temp.trim().split("\\t", -1), false, false,
-          true, log, true);
+                                 true, log, true);
 
       writer = new PrintWriter(new FileWriter((new File(dir).exists() ? dir : "") + root + ".map"));
       trans = null;
@@ -227,8 +229,7 @@ public class HapMapParser {
         if (famstruct.contains("pedinfo2sample_")) {
           line = line[6].split(":");
           if (line.length != 6) {
-            log.reportError(
-                "Error - different format than expected for pedinfo2sample_***.txt file (do not alter from what's posted)");
+            log.reportError("Error - different format than expected for pedinfo2sample_***.txt file (do not alter from what's posted)");
             reader.close();
             writer.close();
             return;
@@ -242,7 +243,7 @@ public class HapMapParser {
         }
         if (index == -2) {
           log.reportError("Error - Could not find sample " + trav
-              + " from the pedigree file in the genotype file");
+                          + " from the pedigree file in the genotype file");
         }
         for (int i = 0; i < v.size(); i++) {
           line = hash.get(v.elementAt(i));
@@ -269,7 +270,7 @@ public class HapMapParser {
     for (int chr = 1; chr <= 23; chr++) {
       System.out.print(".");
       CmdLine.run("plink --noweb --bfile " + root + " --chr " + chr + " --make-bed --out " + root
-          + ".chr" + chr, "./");
+                  + ".chr" + chr, "./");
     }
     System.out.println();
   }
@@ -278,7 +279,7 @@ public class HapMapParser {
     for (int chr = 1; chr <= 23; chr++) {
       System.out.print(".");
       CmdLine.run("plink --noweb --file " + root + " --chr " + chr + " --recode --out " + root
-          + ".chr" + chr, "./");
+                  + ".chr" + chr, "./");
     }
     System.out.println();
   }

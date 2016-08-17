@@ -26,7 +26,7 @@ public class MarkerBlastQC {
   }
 
   public static void getOneHitWonders(Project proj, String blastVCF, String outFile,
-      double crossHybePercent, Logger log) {
+                                      double crossHybePercent, Logger log) {
     if (blastVCF == null) {
       blastVCF = proj.BLAST_ANNOTATION_FILENAME.getValue();
     }
@@ -35,11 +35,13 @@ public class MarkerBlastQC {
     }
     MarkerSet markerSet = proj.getMarkerSet();
     String[] markerNames = markerSet.getMarkerNames();
-    MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(proj, null,
-        proj.BLAST_ANNOTATION_FILENAME.getValue(), proj.getMarkerSet(), true);
+    MarkerAnnotationLoader markerAnnotationLoader =
+        new MarkerAnnotationLoader(proj, null, proj.BLAST_ANNOTATION_FILENAME.getValue(),
+                                   proj.getMarkerSet(), true);
     markerAnnotationLoader.setReportEvery(500000);
-    MarkerGCAnnotation[] gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, markerNames,
-        markerAnnotationLoader.getMarkerSet(), markerAnnotationLoader.getIndices());
+    MarkerGCAnnotation[] gcAnnotations =
+        MarkerGCAnnotation.initForMarkers(proj, markerNames, markerAnnotationLoader.getMarkerSet(),
+                                          markerAnnotationLoader.getIndices());
     MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(markerNames);
     ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
     parsers.add(gcAnnotations);
@@ -63,8 +65,8 @@ public class MarkerBlastQC {
         } else if (numHits == 2) {
           PROBE_TAG perfectTag = perfectMatches.get(0).getTag();
           if (perfectTag != PROBE_TAG.BOTH) {
-            for (BlastAnnotation annotation : current
-                .getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT, log)) {
+            for (BlastAnnotation annotation : current.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
+                                                                        log)) {
               if (annotation.getTag() != perfectTag
                   && annotation.getRefLoc().getSize() == proj.getArrayType().getProbeLength() - 1) {
                 // Second match is an on target read to the second probe, missing only the target
@@ -79,7 +81,7 @@ public class MarkerBlastQC {
     }
 
     log.reportTime(oneHitters.size() + " one hit wonder markers identified out of "
-        + markerNames.length + " total markers");
+                   + markerNames.length + " total markers");
     log.report("Writing results to " + outFile);
     Files.writeArrayList(oneHitters, outFile);
   }
@@ -92,9 +94,9 @@ public class MarkerBlastQC {
     String usage = "\n" + "cnv.qc.MarkerBlast requires 3 arguments\n";
     usage += "   (1) Project file name (i.e. proj=" + filename + " (default))\n" + "";
     usage += "   (2) Blast.vcf filename  (i.e. blastVCF=" + "./blast.vcf.gz "
-        + " (default based on project properties))\n" + "";
+             + " (default based on project properties))\n" + "";
     usage += "   (3) Cross hybridization threshold  (i.e. crossHybridizationThreshold="
-        + crossHybridizationThreshold + " (default))\n" + "";
+             + crossHybridizationThreshold + " (default))\n" + "";
 
 
     for (String arg : args) {
@@ -135,7 +137,7 @@ public class MarkerBlastQC {
         blastVCF = proj.BLAST_ANNOTATION_FILENAME.getValue();
       }
       getOneHitWonders(proj, blastVCF, defaultOneHitWondersFilename(blastVCF),
-          crossHybridizationThreshold, proj.getLog());
+                       crossHybridizationThreshold, proj.getLog());
     } catch (Exception e) {
       e.printStackTrace();
     }

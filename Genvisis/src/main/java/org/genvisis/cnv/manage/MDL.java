@@ -49,7 +49,8 @@ public class MDL implements Iterator<MarkerData> {
     private final MarkerSet markerSet;
 
     private BufferReader(Project proj, MarkerSet markerSet, String currentMarkFilename,
-        int[] markersIndicesInFile, int[] markerIndicesInProject, boolean debugMode) {
+                         int[] markersIndicesInFile, int[] markerIndicesInProject,
+                         boolean debugMode) {
       super();
       this.proj = proj;
       this.markerSet = markerSet;
@@ -81,7 +82,7 @@ public class MDL implements Iterator<MarkerData> {
       if (numSamplesObserved != proj.getSamples().length) {
         String error =
             "mismatched number of samples between sample list (n=" + proj.getSamples().length
-                + ") and file '" + currentMarkFilename + "' (n=" + numSamplesObserved + ")";
+                       + ") and file '" + currentMarkFilename + "' (n=" + numSamplesObserved + ")";
         proj.getLog().reportTimeError(error);
         throw new IllegalStateException(error);
       }
@@ -89,7 +90,7 @@ public class MDL implements Iterator<MarkerData> {
           Compression.bytesToLong(parameterReadBuffer, TransposeData.MARKERDATA_FINGERPRINT_START);
       if (fingerprint != sampleFingerprint) {
         String error = "mismatched sample fingerprints between sample list and file '"
-            + currentMarkFilename + "'";
+                       + currentMarkFilename + "'";
         proj.getLog().reportError(error);
         throw new IllegalStateException(error);
       }
@@ -103,11 +104,14 @@ public class MDL implements Iterator<MarkerData> {
       isGenotypeNull = Sample.isAbAndForwardGenotypeNull(nullStatus);
       isNegativeXYAllowed = Sample.isNegativeXOrYAllowed(nullStatus);
       if (new File(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser").exists()) {
-        outlierHash = (Hashtable<String, Float>) SerializedFiles
-            .readSerial(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
+        outlierHash = (Hashtable<String, Float>) SerializedFiles.readSerial(
+                                                                            proj.MARKER_DATA_DIRECTORY.getValue(false,
+                                                                                                                true)
+                                                                            + "outliers.ser");
         if (debugMode) {
-          proj.getLog().reportTimeInfo("Loading RAF: " + currentMarkFilename + " and outliers "
-              + proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
+          proj.getLog()
+              .reportTimeInfo("Loading RAF: " + currentMarkFilename + " and outliers "
+                              + proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
         }
       } else {
         outlierHash = new Hashtable<String, Float>();
@@ -118,15 +122,17 @@ public class MDL implements Iterator<MarkerData> {
     public Callable<MarkerData> next() {
       long seekLocation =
           (long) TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN + (long) numBytesMarkernamesSection
-              + markersIndicesInFile[numLoaded] * (long) numBytesPerMarker;
+                          + markersIndicesInFile[numLoaded] * (long) numBytesPerMarker;
       byte[] buffer = new byte[numBytesPerMarker];
       try {
         file.seek(seekLocation);
         file.read(buffer);
-        MDLWorker worker = new MDLWorker(buffer, bytesPerSampleMarker,
-            markerIndicesInProject[numLoaded], proj.getSamples(), names[numLoaded], chrs[numLoaded],
-            positions[numLoaded], isGcNull, isXNull, isYNull, isBafNull, isLrrNull, isGenotypeNull,
-            isNegativeXYAllowed, outlierHash, sampleFingerprint, debugMode);
+        MDLWorker worker =
+            new MDLWorker(buffer, bytesPerSampleMarker, markerIndicesInProject[numLoaded],
+                          proj.getSamples(), names[numLoaded], chrs[numLoaded],
+                          positions[numLoaded], isGcNull, isXNull, isYNull, isBafNull, isLrrNull,
+                          isGenotypeNull, isNegativeXYAllowed, outlierHash, sampleFingerprint,
+                          debugMode);
         numLoaded++;
         buffer = null;
         return worker;
@@ -212,10 +218,11 @@ public class MDL implements Iterator<MarkerData> {
     private final long fingerprint;
 
     private MDLWorker(byte[] buffer, byte bytesPerSampleMarker, int markersIndexInProject,
-        String[] allSampsInProj, String markerName, byte chr, int pos, boolean isGcNull,
-        boolean isXNull, boolean isYNull, boolean isBafNull, boolean isLrrNull,
-        boolean isGenotypeNull, boolean isNegativeXYAllowed,
-        Hashtable<String, Float> outOfRangeValues, long fingerprint, boolean debugMode) {
+                      String[] allSampsInProj, String markerName, byte chr, int pos,
+                      boolean isGcNull, boolean isXNull, boolean isYNull, boolean isBafNull,
+                      boolean isLrrNull, boolean isGenotypeNull, boolean isNegativeXYAllowed,
+                      Hashtable<String, Float> outOfRangeValues, long fingerprint,
+                      boolean debugMode) {
       super();
       this.buffer = buffer;
       this.bytesPerSampleMarker = bytesPerSampleMarker;
@@ -256,8 +263,8 @@ public class MDL implements Iterator<MarkerData> {
       if (!isGcNull) {
         gcs = new float[numSamplesProj];
         for (int j = 0; j < numSamplesProj; j++) {
-          gcs[j] = Compression
-              .gcBafDecompress(new byte[] {buffer[indexReadBuffer], buffer[indexReadBuffer + 1]});
+          gcs[j] = Compression.gcBafDecompress(new byte[] {buffer[indexReadBuffer],
+                                                           buffer[indexReadBuffer + 1]});
           indexReadBuffer += bytesPerSampleMarker;
         }
 
@@ -268,11 +275,11 @@ public class MDL implements Iterator<MarkerData> {
         xs = new float[numSamplesProj];
         for (int j = 0; j < numSamplesProj; j++) {
           if (isNegativeXYAllowed) {
-            xs[j] = Compression.xyDecompressAllowNegative(
-                new byte[] {buffer[indexReadBuffer], buffer[indexReadBuffer + 1]});
+            xs[j] = Compression.xyDecompressAllowNegative(new byte[] {buffer[indexReadBuffer],
+                                                                      buffer[indexReadBuffer + 1]});
           } else {
-            xs[j] = Compression.xyDecompressPositiveOnly(
-                new byte[] {buffer[indexReadBuffer], buffer[indexReadBuffer + 1]});
+            xs[j] = Compression.xyDecompressPositiveOnly(new byte[] {buffer[indexReadBuffer],
+                                                                     buffer[indexReadBuffer + 1]});
           }
           if (xs[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
             // xs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tx");
@@ -293,11 +300,11 @@ public class MDL implements Iterator<MarkerData> {
         ys = new float[numSamplesProj];
         for (int j = 0; j < numSamplesProj; j++) {
           if (isNegativeXYAllowed) {
-            ys[j] = Compression.xyDecompressAllowNegative(
-                new byte[] {buffer[indexReadBuffer], buffer[indexReadBuffer + 1]});
+            ys[j] = Compression.xyDecompressAllowNegative(new byte[] {buffer[indexReadBuffer],
+                                                                      buffer[indexReadBuffer + 1]});
           } else {
-            ys[j] = Compression.xyDecompressPositiveOnly(
-                new byte[] {buffer[indexReadBuffer], buffer[indexReadBuffer + 1]});
+            ys[j] = Compression.xyDecompressPositiveOnly(new byte[] {buffer[indexReadBuffer],
+                                                                     buffer[indexReadBuffer + 1]});
           }
           if (ys[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
             // ys[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\ty");
@@ -317,8 +324,8 @@ public class MDL implements Iterator<MarkerData> {
       if (!isBafNull) {
         bafs = new float[numSamplesProj];
         for (int j = 0; j < numSamplesProj; j++) {
-          bafs[j] = Compression
-              .gcBafDecompress(new byte[] {buffer[indexReadBuffer], buffer[indexReadBuffer + 1]});
+          bafs[j] = Compression.gcBafDecompress(new byte[] {buffer[indexReadBuffer],
+                                                            buffer[indexReadBuffer + 1]});
           indexReadBuffer += bytesPerSampleMarker;
         }
 
@@ -329,7 +336,8 @@ public class MDL implements Iterator<MarkerData> {
         lrrs = new float[numSamplesProj];
         for (int j = 0; j < numSamplesProj; j++) {
           lrrs[j] = Compression.lrrDecompress(new byte[] {buffer[indexReadBuffer],
-              buffer[indexReadBuffer + 1], buffer[indexReadBuffer + 2]});
+                                                          buffer[indexReadBuffer + 1],
+                                                          buffer[indexReadBuffer + 2]});
           if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT) {
             // lrrs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tlrr");
             String key = markersIndexInProject + "\t" + allSampsInProj[j] + "\tlrr";
@@ -357,7 +365,7 @@ public class MDL implements Iterator<MarkerData> {
         }
       }
       return new MarkerData(markerName, chr, pos, fingerprint, gcs, null, null, xs, ys, null, null,
-          bafs, lrrs, abGenotypes, forwardGenotypes);
+                            bafs, lrrs, abGenotypes, forwardGenotypes);
     }
   }
 
@@ -442,7 +450,7 @@ public class MDL implements Iterator<MarkerData> {
    * @param markerBuffer number of markers to hold in the queue for processing
    */
   public MDL(Project proj, MarkerSet markerSet, String[] markerNames, int numDecompressThreads,
-      int markerBuffer) {
+             int markerBuffer) {
     this.proj = proj;
     missing = new Hashtable<String, String>();
     this.markerNames = markerNames;
@@ -478,8 +486,9 @@ public class MDL implements Iterator<MarkerData> {
     if (decompTrain != null) {
       decompTrain.shutdown();
     }
-    producer = new BufferReader(proj, markerSet, match.getFileName(),
-        Ints.toArray(match.getFileIndices()), Ints.toArray(match.getProjIndices()), debugMode);
+    producer =
+        new BufferReader(proj, markerSet, match.getFileName(), Ints.toArray(match.getFileIndices()),
+                         Ints.toArray(match.getProjIndices()), debugMode);
     try {
       producer.init();
     } catch (IllegalStateException e) {
@@ -518,8 +527,10 @@ public class MDL implements Iterator<MarkerData> {
       }
     }
     if (missing.size() > 0) {
-      proj.getLog().reportTimeError("Could not find the following markers in the project"
-          + Array.toStr(missing.keySet().toArray(new String[missing.size()]), "\n"));
+      proj.getLog()
+          .reportTimeError("Could not find the following markers in the project"
+                           + Array.toStr(missing.keySet().toArray(new String[missing.size()]),
+                                         "\n"));
     }
     return files;
   }
@@ -555,8 +566,9 @@ public class MDL implements Iterator<MarkerData> {
         throw new IllegalStateException(error);
       }
     } catch (NullPointerException npe) {
-      proj.getLog().reportTimeError("Could not load " + markerNames[numLoaded - 1]
-          + ", this is usually caused by a corrupt or missing outlier file");
+      proj.getLog()
+          .reportTimeError("Could not load " + markerNames[numLoaded - 1]
+                           + ", this is usually caused by a corrupt or missing outlier file");
 
     }
     return markerData;

@@ -39,7 +39,7 @@ public class MarkerBlastAnnotation implements AnnotationParser {
   private boolean found;
 
   public MarkerBlastAnnotation(String markerName, BLAST_ANNOTATION_TYPES[] bTypes,
-      int initialCapacity) {
+                               int initialCapacity) {
     super();
     this.markerName = markerName;
     this.bTypes = bTypes;
@@ -111,9 +111,9 @@ public class MarkerBlastAnnotation implements AnnotationParser {
   public void parseAnnotation(VariantContext vc, Logger log) {
     for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {// each annotation type has a
                                                                       // separate key in the file
-      String info =
-          vc.getCommonInfo().getAttributeAsString(BLAST_ANNOTATION_TYPES.values()[i].toString(),
-              BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue());
+      String info = vc.getCommonInfo()
+                      .getAttributeAsString(BLAST_ANNOTATION_TYPES.values()[i].toString(),
+                                            BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue());
       if (!info.equals(BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue())) {
         List<String> groups =
             Arrays.asList(info.replaceAll("\\[", "").replaceAll("\\]", "").split("\\s*,\\s*"));
@@ -123,21 +123,23 @@ public class MarkerBlastAnnotation implements AnnotationParser {
           if (location != null) {
             Segment segment = new Segment((byte) location[0], location[1], location[2]);
             annotationLists[i].add(new BlastAnnotation(TextCigarCodec.decode(segCigarStrand[0]),
-                segment, Strand.toStrand(segCigarStrand[2]), PROBE_TAG.valueOf(segCigarStrand[3]),
-                Double.parseDouble(segCigarStrand[4])));
+                                                       segment, Strand.toStrand(segCigarStrand[2]),
+                                                       PROBE_TAG.valueOf(segCigarStrand[3]),
+                                                       Double.parseDouble(segCigarStrand[4])));
           }
         }
       }
     }
     blastAlignmentHistogram =
         new MarkerBlastHistogramAnnotation(MarkerBlastHistogramAnnotation.DEFAULT_NAME,
-            MarkerBlastHistogramAnnotation.DEFAULT_DESCRIPTION, null);
+                                           MarkerBlastHistogramAnnotation.DEFAULT_DESCRIPTION,
+                                           null);
     blastAlignmentHistogram.parseAnnotation(vc, log);
     markerSeqAnnotation = new MarkerSeqAnnotation();
     markerSeqAnnotation.parseAnnotation(vc, log);
     markerEvalueHistogramAnnotation =
         new MarkerEvalueHistogramAnnotation(MarkerEvalueHistogramAnnotation.DEFAULT_NAME,
-            MarkerEvalueHistogramAnnotation.DEFAULT_DESCRIPTION);
+                                            MarkerEvalueHistogramAnnotation.DEFAULT_DESCRIPTION);
     markerEvalueHistogramAnnotation.parseAnnotation(vc, log);
   }
 

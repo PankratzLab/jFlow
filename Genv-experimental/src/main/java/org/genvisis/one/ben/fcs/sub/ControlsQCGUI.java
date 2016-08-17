@@ -133,7 +133,7 @@ public class ControlsQCGUI extends JFrame {
     }
 
     public void fetchRecentData(ArrayList<String> params, String currCtrl, String currPanel,
-        int numOfMostRecentToAdd, Logger log) {
+                                int numOfMostRecentToAdd, Logger log) {
       HashMap<CtrlFileMetaData, DataFile> metaMap =
           new HashMap<ControlsQCGUI.CtrlFileMetaData, ControlsQCGUI.DataFile>();
       HashMap<CtrlFileMetaData, float[]> allData =
@@ -143,7 +143,8 @@ public class ControlsQCGUI extends JFrame {
         for (int i = 0; i < metaData.size(); i++) {
           if (allData.containsKey(metaData.get(i))) {
             log.reportError("Error - duplicate data entry found: " + metaData.toString()
-                + " in files: " + df.fileName + " || " + metaMap.get(metaData.get(i)).fileName);
+                            + " in files: " + df.fileName + " || "
+                            + metaMap.get(metaData.get(i)).fileName);
           }
           allData.put(metaData.get(i), df.getFileData(metaData.get(i).file));
           metaMap.put(metaData.get(i), df);
@@ -158,8 +159,10 @@ public class ControlsQCGUI extends JFrame {
       String prevSrc = null;
       ArrayList<String> sourceLine = null;
       ArrayList<float[]> dataLines = null;
-      for (int c = 0, count = (numOfMostRecentToAdd == 0 ? sorted.size()
-          : Math.min(sorted.size(), numOfMostRecentToAdd)); c < count; c++) {
+      for (int c = 0, count =
+          (numOfMostRecentToAdd == 0 ? sorted.size()
+                                     : Math.min(sorted.size(),
+                                                numOfMostRecentToAdd)); c < count; c++) {
         CtrlFileMetaData cfmd = sorted.get(c);
         String src = metaMap.get(cfmd).fileName;
         if (sourceLine == null) {
@@ -186,8 +189,8 @@ public class ControlsQCGUI extends JFrame {
         float[] fileData = allData.get(cfmd);
         float[] lineData = new float[params.size()];
         for (int i = 0; i < lineData.length; i++) {
-          int paramInd = dataParams
-              .indexOf(params.get(i).trim().toUpperCase().replaceAll("\\(%\\)", "").trim());
+          int paramInd = dataParams.indexOf(params.get(i).trim().toUpperCase()
+                                                  .replaceAll("\\(%\\)", "").trim());
           lineData[i] = paramInd == -1 ? Float.NaN : fileData[paramInd];
         }
         dataLines.add(lineData);
@@ -196,8 +199,8 @@ public class ControlsQCGUI extends JFrame {
         sourceLines.add(sourceLine.toArray(new String[sourceLine.size()]));
         sourceData.add(dataLines.toArray(new float[dataLines.size()][]));
       } else {
-        log.reportError(
-            "Error - no data found for CtrlGroup " + currCtrl + " and Panel " + currPanel);
+        log.reportError("Error - no data found for CtrlGroup " + currCtrl + " and Panel "
+                        + currPanel);
       }
 
       source = sourceLines.toArray(new String[sourceLines.size()][]);
@@ -251,11 +254,12 @@ public class ControlsQCGUI extends JFrame {
         cfmd.fileDateStr = pts[0];
         String[] dtPts = pts[0].split("-");
         try {
-          cfmd.fileDate = new GregorianCalendar(Integer.parseInt(dtPts[0]),
-              Integer.parseInt(dtPts[1]) - 1, Integer.parseInt(dtPts[2])).getTime();
+          cfmd.fileDate =
+              new GregorianCalendar(Integer.parseInt(dtPts[0]), Integer.parseInt(dtPts[1]) - 1,
+                                    Integer.parseInt(dtPts[2])).getTime();
         } catch (NumberFormatException e) {
           log.reportError("Error - filename " + filename
-              + " does not contain a date (YYYY-MM-DD format) as the first token!");
+                          + " does not contain a date (YYYY-MM-DD format) as the first token!");
           return null;
         }
       }
@@ -353,8 +357,10 @@ public class ControlsQCGUI extends JFrame {
         int rowInd = fileInd.get(df.internalFiles.get(f));
         float[] arr = new float[df.allParams.size()];
         for (int i = 0; i < df.allParams.size(); i++) {
-          arr[i] = "".equals(data[rowInd][i + 1]) ? Float.NaN
-              : Float.parseFloat(data[rowInd][i + 1].replace("%", "").trim());
+          arr[i] =
+              "".equals(data[rowInd][i + 1]) ? Float.NaN
+                                             : Float.parseFloat(data[rowInd][i + 1].replace("%", "")
+                                                                                   .trim());
         }
         df.fileData[f] = arr;
       }
@@ -429,7 +435,7 @@ public class ControlsQCGUI extends JFrame {
           for (int i = 0; i < incl.length; i++) {
             CtrlFileMetaData cfmd = internalMetaData.get(internalFiles.get(i));
             incl[i] = (ctrl == null || cfmd.isControlGroup(ctrl))
-                && (panel == null || cfmd.isPanel(panel));
+                      && (panel == null || cfmd.isPanel(panel));
 
           }
           retArr = Array.subArray(retArr, incl);
@@ -703,7 +709,7 @@ public class ControlsQCGUI extends JFrame {
         Color col = Color.WHITE;
         if (column > 0 && !statRows.contains(row)) {
           Object val = table.getModel().getValueAt(table.convertRowIndexToModel(row),
-              table.convertColumnIndexToModel(column));
+                                                   table.convertColumnIndexToModel(column));
           if (val != null) {
             if (val instanceof Float) {
               String colNm =
@@ -935,7 +941,7 @@ public class ControlsQCGUI extends JFrame {
       }
     });
     meanFrame.setBounds(FCSPlot.START_X, FCSPlot.START_Y, FCSPlot.START_WIDTH,
-        FCSPlot.START_HEIGHT);
+                        FCSPlot.START_HEIGHT);
 
     loadProps();
   }
@@ -1060,7 +1066,7 @@ public class ControlsQCGUI extends JFrame {
         for (String s : paramTrendsAbove1.keySet()) {
           String[] p = s.split("\\|")[0].trim().split("/");
           String warn = paramTrendsAbove1.get(s) + "-count trend in parameter " + p[p.length - 1]
-              + " greater than 1SD from the mean.";
+                        + " greater than 1SD from the mean.";
           warnings.add(warn);
           if (paramTrendsAbove1.get(s) == max) {
             maxWarn = warn;
@@ -1072,7 +1078,7 @@ public class ControlsQCGUI extends JFrame {
         for (String s : paramTrendsAbove2.keySet()) {
           String[] p = s.split("\\|")[0].trim().split("/");
           String warn = paramTrendsAbove2.get(s) + "-count trend in parameter " + p[p.length - 1]
-              + " greater than 2SD from the mean.";
+                        + " greater than 2SD from the mean.";
           warnings.add(warn);
           if (paramTrendsAbove2.get(s) == max) {
             maxWarn = warn;
@@ -1097,7 +1103,7 @@ public class ControlsQCGUI extends JFrame {
 
           if (cnt >= params.size() * PCT_OF_EVENTS_DEV_TREND) {
             warnings.add("Source " + srcs[i][s] + " has " + cnt
-                + " events greater than 1SD from parameter means.");
+                         + " events greater than 1SD from parameter means.");
           }
 
         }
@@ -1144,7 +1150,7 @@ public class ControlsQCGUI extends JFrame {
                 }
               });
               JOptionPane.showMessageDialog(ControlsQCGUI.this, scroll, "Trend Warnings",
-                  JOptionPane.WARNING_MESSAGE);
+                                            JOptionPane.WARNING_MESSAGE);
             }
           });
           btnMore.setText("All");
@@ -1482,7 +1488,7 @@ public class ControlsQCGUI extends JFrame {
     meanPanel.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
     meanPanel.setYAxisLabel(col.split("\\|")[1].trim());
     meanPanel.setData(col, new String[][] {baseLbls, compLbls.toArray(new String[compLbls.size()])},
-        new double[][] {yDataBase, Doubles.toArray(compDbls)});
+                      new double[][] {yDataBase, Doubles.toArray(compDbls)});
     meanPanel.paintAgain();
     meanFrame.setTitle("jFlow - Control QC - Overall Mean/SD - " + col);
     meanFrame.setVisible(true);

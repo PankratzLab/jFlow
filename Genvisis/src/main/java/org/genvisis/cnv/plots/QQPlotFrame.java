@@ -27,10 +27,10 @@ public class QQPlotFrame extends JFrame implements ActionListener {
    * @param log
    */
   public static void loadPvals(String[] filenames, String plotLabel, boolean displayQuantiles,
-      boolean displayStandardQQ, boolean displayRotatedQQ, double maxToPlot, boolean symmetric,
-      float maxValue, Logger log) {
+                               boolean displayStandardQQ, boolean displayRotatedQQ,
+                               double maxToPlot, boolean symmetric, float maxValue, Logger log) {
     QQPlot qqPlot = QQPlot.loadPvals(filenames, plotLabel, displayQuantiles, displayStandardQQ,
-        displayRotatedQQ, maxToPlot, symmetric, maxValue, log);
+                                     displayRotatedQQ, maxToPlot, symmetric, maxValue, log);
     if (qqPlot == null) {
       return;
     }
@@ -54,15 +54,15 @@ public class QQPlotFrame extends JFrame implements ActionListener {
     String outFile = null;
 
     String usage = "\n" + "plot.QQPlot requires 0-1 arguments\n"
-        + "   (1) name of files with p-values (i.e. files=" + Array.toStr(filenames, ";")
-        + " (default))\n"
-        + "   (2) -log10(p) at which to start truncating (i.e. maxToPlot=10 (default: -1))\n"
-        + "   (3) make symmetric (i.e. -symmetric (not the default))\n"
-        + "   (4) name of plot, for frame (i.e. plotLabel=" + plotLabel + " (default))\n"
-        + "   (5) maximum -log10 p-value to plot (i.e. maxValue=Infinity (default))\n"
-        + "   (6) (optional) log file (i.e. log=" + logfile + " (default))\n"
-        + "   (7) (optional) file to export image to instead of displaying (i.e. outFile=" + outFile
-        + " (default))\n" + "";
+                   + "   (1) name of files with p-values (i.e. files=" + Array.toStr(filenames, ";")
+                   + " (default))\n"
+                   + "   (2) -log10(p) at which to start truncating (i.e. maxToPlot=10 (default: -1))\n"
+                   + "   (3) make symmetric (i.e. -symmetric (not the default))\n"
+                   + "   (4) name of plot, for frame (i.e. plotLabel=" + plotLabel + " (default))\n"
+                   + "   (5) maximum -log10 p-value to plot (i.e. maxValue=Infinity (default))\n"
+                   + "   (6) (optional) log file (i.e. log=" + logfile + " (default))\n"
+                   + "   (7) (optional) file to export image to instead of displaying (i.e. outFile="
+                   + outFile + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -111,19 +111,20 @@ public class QQPlotFrame extends JFrame implements ActionListener {
       System.exit(1);
     }
 
-    System.out.println(
-        "Found " + filenames.length + " files to parse: \n" + Array.toStr(filenames, "\n"));
+    System.out.println("Found " + filenames.length + " files to parse: \n"
+                       + Array.toStr(filenames, "\n"));
 
     try {
       if (computePrefix != null) {
         QQPlot.computeCI(computeDir, computePrefix, max, new Logger(logfile));
       } else if (outFile != null) {
-        QQPlot qqPlot = QQPlot.loadPvals(filenames, plotLabel, displayQuantiles, displayStandardQQ,
-            displayRotatedQQ, maxToPlot, symmetric, maxValue, new Logger(logfile));
+        QQPlot qqPlot =
+            QQPlot.loadPvals(filenames, plotLabel, displayQuantiles, displayStandardQQ,
+                             displayRotatedQQ, maxToPlot, symmetric, maxValue, new Logger(logfile));
         qqPlot.screenCap(outFile);
       } else {
         loadPvals(filenames, plotLabel, displayQuantiles, displayStandardQQ, displayRotatedQQ,
-            maxToPlot, symmetric, maxValue, new Logger(logfile));
+                  maxToPlot, symmetric, maxValue, new Logger(logfile));
       }
     } catch (Exception e) {
       e.printStackTrace();

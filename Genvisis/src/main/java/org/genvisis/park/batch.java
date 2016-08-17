@@ -11,13 +11,12 @@ import org.genvisis.common.Files;
 
 public class batch {
   public static int[] maxes = {281, 253, 216, 202, 193, 180, 174, 153, 151, 168, 144, 164, 104, 127,
-      106, 115, 125, 126, 89, 95, 36, 47, 176};
+                               106, 115, 125, 126, 89, 95, 36, 47, 176};
 
   public static void main(String[] args) throws IOException {
     if (args.length == 0) {
       System.out.println("USAGE: java park.batch [case] [run] [bs]");
-      System.out
-          .println("(optional) to run the batch file add \"run\" to the end of the command line");
+      System.out.println("(optional) to run the batch file add \"run\" to the end of the command line");
       System.out.println("(optional) number of batch files (i.e. nb=3 to create 3 files)");
       System.out.println("(optional) trait to run (i.e. trait=AOO (default))");
       System.out.println("case  0 = create Filesystem");
@@ -29,10 +28,8 @@ public class batch {
       System.out.println("case  6 = create files and run Genehunter 2");
       System.out.println("case  7 = edit map files and run MLINK");
       System.out.println("case  8 = create files and run Allegro");
-      System.out
-          .println("case  9 = create files and run Autosomal Dominant model [w/ and w/o het]");
-      System.out
-          .println("case 10 = create files and run Autosomal Recessive model  [w/ and w/o het]");
+      System.out.println("case  9 = create files and run Autosomal Dominant model [w/ and w/o het]");
+      System.out.println("case 10 = create files and run Autosomal Recessive model  [w/ and w/o het]");
       System.out.println("case 11 = create loc files and run MAPMAKER/SIBS with aoo");
       System.out.println("case 13 = create files and run Solar with aoo");
       System.out.println("case 14 = run Solar with a different phenotype (file=pheno.dat)");
@@ -118,7 +115,9 @@ public class batch {
 
     for (int i = 0; i < numBatches; i++) {
       writers[i] = new PrintWriter(new FileWriter(i == 0 && numBatches == 1
-          ? (Files.isWindows() ? "batch.bat" : "batch") : "batch." + (i + 1)));
+                                                                            ? (Files.isWindows() ? "batch.bat"
+                                                                                                 : "batch")
+                                                                            : "batch." + (i + 1)));
       writers[i].println("#/bin/sh\n");
       if (new File(".").getAbsolutePath().contains("bc2/pankratz")) {
         writers[i].println("module load java\n");
@@ -161,17 +160,19 @@ public class batch {
           writer.println("java " + classpath + " park.bat.dat2loc map" + chrome + ".dat");
           if (i != 23) {
             writer.println("echo -e \"pairs\\n3\\nload map" + chrome + ".loc\\nprep re_chrom"
-                + chrome + ".pre\\nn\\nscan\\ninfo\\ninfo" + chrome + ".out\\ninfo" + chrome
-                + ".ps\\nestimate\\ny\\nchrom" + chrome + "-mls.out\\nchrom" + chrome
-                + "-share.ps\\nchrom" + chrome + "-mls.ps\\nestimate\\nn\\nchrom" + chrome
-                + "-Dv-mls.out\\nchrom" + chrome + "-Dv-share.ps\\nchrom" + chrome
-                + "-Dv-mls.ps\\nquit\\n\" | /software/bin/sibs > chrom" + chrome + ".log");
+                           + chrome + ".pre\\nn\\nscan\\ninfo\\ninfo" + chrome + ".out\\ninfo"
+                           + chrome + ".ps\\nestimate\\ny\\nchrom" + chrome + "-mls.out\\nchrom"
+                           + chrome + "-share.ps\\nchrom" + chrome
+                           + "-mls.ps\\nestimate\\nn\\nchrom" + chrome + "-Dv-mls.out\\nchrom"
+                           + chrome + "-Dv-share.ps\\nchrom" + chrome
+                           + "-Dv-mls.ps\\nquit\\n\" | /software/bin/sibs > chrom" + chrome
+                           + ".log");
           } else {
             writer.println("echo -e \"sex on\\npairs\\n3\\nload map" + chrome
-                + ".loc\\nprep re_chrom" + chrome + ".pre\\nn\\nscan\\ninfo\\ninfo" + chrome
-                + ".out\\ninfo" + chrome + ".ps\\nestimate\\nchrom" + chrome + "-mls.out\\nchrom"
-                + chrome + "-multi-mls.ps\\nchrom" + chrome
-                + "-mls.ps\\nquit\\n\" | /software/bin/sibs > chrom" + chrome + ".log");
+                           + ".loc\\nprep re_chrom" + chrome + ".pre\\nn\\nscan\\ninfo\\ninfo"
+                           + chrome + ".out\\ninfo" + chrome + ".ps\\nestimate\\nchrom" + chrome
+                           + "-mls.out\\nchrom" + chrome + "-multi-mls.ps\\nchrom" + chrome
+                           + "-mls.ps\\nquit\\n\" | /software/bin/sibs > chrom" + chrome + ".log");
           }
           writer.println();
           break;
@@ -179,14 +180,15 @@ public class batch {
           writer.println("java " + classpath + " park.bat.dat2loc map" + chrome + ".dat");
           if (i != 23) {
             writer.println("echo -e \"pairs\\n3\\nload map" + chrome + ".loc\\nprep re_chrom"
-                + chrome + ".pre\\nn\\nsingle point on\\nscan\\nestimate\\ny\\nchrom" + chrome
-                + "-2pt.out\\nestimate\\nn\\nchrom" + chrome
-                + "-Dv-2pt.out\\nquit\\n\" | /software/bin/sibs > chrom" + chrome + ".log");
+                           + chrome + ".pre\\nn\\nsingle point on\\nscan\\nestimate\\ny\\nchrom"
+                           + chrome + "-2pt.out\\nestimate\\nn\\nchrom" + chrome
+                           + "-Dv-2pt.out\\nquit\\n\" | /software/bin/sibs > chrom" + chrome
+                           + ".log");
           } else {
-            writer
-                .println("echo -e \"sex on\\npairs\\n3\\nload map" + chrome + ".loc\\nprep re_chrom"
-                    + chrome + ".pre\\nn\\nsingle point on\\nscan\\nestimate\\nchrom" + chrome
-                    + "-2pt.out\\nquit\\n\" | /software/bin/sibs > chrom" + chrome + ".log");
+            writer.println("echo -e \"sex on\\npairs\\n3\\nload map" + chrome
+                           + ".loc\\nprep re_chrom" + chrome
+                           + ".pre\\nn\\nsingle point on\\nscan\\nestimate\\nchrom" + chrome
+                           + "-2pt.out\\nquit\\n\" | /software/bin/sibs > chrom" + chrome + ".log");
           }
           writer.println();
           break;
@@ -204,16 +206,17 @@ public class batch {
           // writer.println("rm sex_linked");
           // }
           writer.println("/opt/local/software/aspex-2.3-solaris/sib_phase -v -f chrom" + chrome
-              + "k-mpt.param chrom" + chrome + ".pre > chrom" + chrome + "-K-mpt.out");
+                         + "k-mpt.param chrom" + chrome + ".pre > chrom" + chrome + "-K-mpt.out");
           writer.println("/opt/local/software/aspex-2.3-solaris/sib_phase -f chrom" + chrome
-              + "k-2pt.param chrom" + chrome + ".pre > chrom" + chrome + "-K-2pt.out");
+                         + "k-2pt.param chrom" + chrome + ".pre > chrom" + chrome + "-K-2pt.out");
           writer.println();
           break;
         case 6:
           writer.println("echo -e \"analysis npl\\npost on\\nload map" + chrome
-              + ".dat\\nscan re_chrom" + chrome + ".pre\\ntotal\\nchrom" + chrome
-              + "-npl.ps\\nchrom" + chrome + "-lod.ps\\nchrom" + chrome
-              + "-info.ps\\nquit\\n\" | /opt/local/software/gh2/gh.sol > chrom" + chrome + ".out");
+                         + ".dat\\nscan re_chrom" + chrome + ".pre\\ntotal\\nchrom" + chrome
+                         + "-npl.ps\\nchrom" + chrome + "-lod.ps\\nchrom" + chrome
+                         + "-info.ps\\nquit\\n\" | /opt/local/software/gh2/gh.sol > chrom" + chrome
+                         + ".out");
           writer.println();
           break;
         case 7:
@@ -247,17 +250,18 @@ public class batch {
           writer.println("java " + classpath + " park.bat.dat2loc map" + chrome + ".dat");
           if (i != 23) {
             writer.println("echo -e \"pairs\\n3\\nload map" + chrome + ".loc\\nprep re_chrom"
-                + chrome + ".pre\\ny\\npheno.sibs\\nscan\\np\\nml\\nchrom" + chrome
-                + "-ml.out\\nchrom" + chrome + "-ml.ps\\nhase\\nchrom" + chrome
-                + "-trad-he.out\\nchrom" + chrome + "-em-he.out\\nchrom" + chrome
-                + "-he.ps\\nquit\\n\" | /software/bin/sibs > chrom" + chrome + ".log");
+                           + chrome + ".pre\\ny\\npheno.sibs\\nscan\\np\\nml\\nchrom" + chrome
+                           + "-ml.out\\nchrom" + chrome + "-ml.ps\\nhase\\nchrom" + chrome
+                           + "-trad-he.out\\nchrom" + chrome + "-em-he.out\\nchrom" + chrome
+                           + "-he.ps\\nquit\\n\" | /software/bin/sibs > chrom" + chrome + ".log");
           } else {
             writer.println("echo -e \"sex on\\npairs\\n3\\nload map" + chrome
-                + ".loc\\nprep re_chrom" + chrome + ".pre\\ny\\npheno.sibs\\nscan\\np\\ninfo\\ninfo"
-                + chrome + ".out\\ninfo" + chrome + ".ps\\nml\\nchrom" + chrome + "-ml.out\\nchrom"
-                + chrome + "-ml.ps\\nhase\\nchrom" + chrome + "-trad-he.out\\nchrom" + chrome
-                + "-em-he.out\\nchrom" + chrome + "-he.ps\\nquit\\n\" | /software/bin/sibs > chrom"
-                + chrome + ".log");
+                           + ".loc\\nprep re_chrom" + chrome
+                           + ".pre\\ny\\npheno.sibs\\nscan\\np\\ninfo\\ninfo" + chrome
+                           + ".out\\ninfo" + chrome + ".ps\\nml\\nchrom" + chrome
+                           + "-ml.out\\nchrom" + chrome + "-ml.ps\\nhase\\nchrom" + chrome
+                           + "-trad-he.out\\nchrom" + chrome + "-em-he.out\\nchrom" + chrome
+                           + "-he.ps\\nquit\\n\" | /software/bin/sibs > chrom" + chrome + ".log");
           }
           writer.println();
           break;
@@ -266,8 +270,8 @@ public class batch {
         case 13:
           if (!chrome.equals("23")) {
             writer.println("mkdir chrom" + chrome);
-            writer.println(
-                "java " + classpath + " park.bat.createSolar chr=" + i + " trait=" + trait);
+            writer.println("java " + classpath + " park.bat.createSolar chr=" + i + " trait="
+                           + trait);
             // writer.println("java "+classpath+" park.zeroByInd
             // filter.pre "+i);
             writer.println("cp solar.fam chrom" + chrome);
@@ -277,11 +281,12 @@ public class batch {
             writer.println("cp " + filename + " chrom" + chrome);
             writer.println("cd chrom" + chrome);
             writer.println("echo -e \"load pedigree solar.fam\\nload freq solar.freqs." + i
-                + "\\nload marker solar.gtypes." + i
-                + "\\nibddir .\\nverbosity min\\nibd\\nload map solar.map." + i
-                + "\\nibddir .\\nmibddir .\\nmibd 0 " + maxes[i - 1] + " 1\\nmibddir .\\nautomodel "
-                + filename + " " + trait + "\\npolygenic -screen\\nmibddir .\\nchromosome " + i
-                + "\\ninterval 1\\nmultipoint -overwrite\\nquit\\n\" | solar > solar.log");
+                           + "\\nload marker solar.gtypes." + i
+                           + "\\nibddir .\\nverbosity min\\nibd\\nload map solar.map." + i
+                           + "\\nibddir .\\nmibddir .\\nmibd 0 " + maxes[i - 1]
+                           + " 1\\nmibddir .\\nautomodel " + filename + " " + trait
+                           + "\\npolygenic -screen\\nmibddir .\\nchromosome " + i
+                           + "\\ninterval 1\\nmultipoint -overwrite\\nquit\\n\" | solar > solar.log");
             writer.println("cd ..");
             writer.println();
           }
@@ -291,8 +296,8 @@ public class batch {
             writer.println("cp " + filename + " chrom" + chrome);
             writer.println("cd chrom" + chrome);
             writer.println("echo -e \"ibddir .\\nmibddir .\\nautomodel " + filename + " " + trait
-                + "\\npolygenic -screen\\nmibddir .\\nchromosome " + i
-                + "\\ninterval 1\\nmultipoint -overwrite\\nquit\\n\" | solar > solar.log");
+                           + "\\npolygenic -screen\\nmibddir .\\nchromosome " + i
+                           + "\\ninterval 1\\nmultipoint -overwrite\\nquit\\n\" | solar > solar.log");
             writer.println("cd ..");
             writer.println();
           }
@@ -301,28 +306,30 @@ public class batch {
           writer.println("java " + classpath + " park.bat.dat2loc map" + chrome + ".dat");
           if (i != 23) {
             writer.println("echo -e \"pairs\\n2\\nload map" + chrome + ".loc\\nprep re_chrom"
-                + chrome + ".pre\\nn\\nscan\\ninfo\\ninfo" + chrome + ".out\\ninfo" + chrome
-                + ".ps\\nestimate\\ny\\nchrom" + chrome + "-mls.out\\nchrom" + chrome
-                + "-share.ps\\nchrom" + chrome + "-mls.ps\\nestimate\\nn\\nchrom" + chrome
-                + "-Dv-mls.out\\nchrom" + chrome + "-Dv-share.ps\\nchrom" + chrome
-                + "-Dv-mls.ps\\nquit\\n\" | /software/bin/sibs > chrom" + chrome + ".log");
+                           + chrome + ".pre\\nn\\nscan\\ninfo\\ninfo" + chrome + ".out\\ninfo"
+                           + chrome + ".ps\\nestimate\\ny\\nchrom" + chrome + "-mls.out\\nchrom"
+                           + chrome + "-share.ps\\nchrom" + chrome
+                           + "-mls.ps\\nestimate\\nn\\nchrom" + chrome + "-Dv-mls.out\\nchrom"
+                           + chrome + "-Dv-share.ps\\nchrom" + chrome
+                           + "-Dv-mls.ps\\nquit\\n\" | /software/bin/sibs > chrom" + chrome
+                           + ".log");
           } else {
             writer.println("echo -e \"sex on\\npairs\\n3\\nload map" + chrome
-                + ".loc\\nprep re_chrom" + chrome + ".pre\\nn\\nscan\\ninfo\\ninfo" + chrome
-                + ".out\\ninfo" + chrome + ".ps\\nestimate\\nchrom" + chrome + "-mls.out\\nchrom"
-                + chrome + "-multi-mls.ps\\nchrom" + chrome
-                + "-mls.ps\\nquit\\n\" | /software/bin/sibs > chrom" + chrome + ".log");
+                           + ".loc\\nprep re_chrom" + chrome + ".pre\\nn\\nscan\\ninfo\\ninfo"
+                           + chrome + ".out\\ninfo" + chrome + ".ps\\nestimate\\nchrom" + chrome
+                           + "-mls.out\\nchrom" + chrome + "-multi-mls.ps\\nchrom" + chrome
+                           + "-mls.ps\\nquit\\n\" | /software/bin/sibs > chrom" + chrome + ".log");
           }
           writer.println();
           break;
         case 16:
           writer.println("java " + classpath + " park.bat.addPheno2gh " + i + " 8");
-          writer.println(
-              "echo -e \"load gh_map" + chrome + ".dat\\nincrement distance 1\\nscan gh_chrom"
-                  + chrome + ".pre\\nvariance\\nn\\nn\\nvc" + chrome + ".out\\ncorr" + chrome
-                  + ".out\\nn\\nml\\nml" + chrome + ".out\\nhase\\ntrad-he" + chrome
-                  + ".out\\nem-he" + chrome + ".out\\nnon\\nnp.out\\nno dom\\nml_ndv" + chrome
-                  + ".out\\nquit\\n\" | /home/npankrat/bin/gh2 > /dev/null");
+          writer.println("echo -e \"load gh_map" + chrome
+                         + ".dat\\nincrement distance 1\\nscan gh_chrom" + chrome
+                         + ".pre\\nvariance\\nn\\nn\\nvc" + chrome + ".out\\ncorr" + chrome
+                         + ".out\\nn\\nml\\nml" + chrome + ".out\\nhase\\ntrad-he" + chrome
+                         + ".out\\nem-he" + chrome + ".out\\nnon\\nnp.out\\nno dom\\nml_ndv"
+                         + chrome + ".out\\nquit\\n\" | /home/npankrat/bin/gh2 > /dev/null");
           // writer.println("echo -e \"load
           // gh_map"+chrome+".dat\\nincrement distance 1\\nscan
           // gh_chrom"+chrome+".pre\\nvariance\\ny\\nn\\nvc_y_n"+chrome+".out\\ncorr_y_n"+chrome+".out\\nn\\nvariance\\nn\\ny\\nvc_n_y"+chrome+".out\\ncorr_n_y"+chrome+".out\\nn\\nquit\\n\"
@@ -334,10 +341,12 @@ public class batch {
           writer.println("java " + classpath + " link.bat.createMerlin " + i);
           if (i != 23) {
             writer.println("merlin -d merlin_data." + chrome + " -p re_chrom" + chrome
-                + ".pre -m merlin_map." + chrome + " --npl --grid 1 > chrom" + chrome + ".out");
+                           + ".pre -m merlin_map." + chrome + " --npl --grid 1 > chrom" + chrome
+                           + ".out");
           } else {
             writer.println("minx -d merlin_data." + chrome + " -p re_chrom" + chrome
-                + ".pre -m merlin_map." + chrome + " --npl --grid 1 > chrom" + chrome + ".out");
+                           + ".pre -m merlin_map." + chrome + " --npl --grid 1 > chrom" + chrome
+                           + ".out");
           }
           writer.println();
           break;
@@ -351,8 +360,8 @@ public class batch {
           writer.println();
           break;
         case 19:
-          writer
-              .println("java " + classpath + " park.bat.osa file=trait.dat chr=" + i + " dv=true");
+          writer.println("java " + classpath + " park.bat.osa file=trait.dat chr=" + i
+                         + " dv=true");
           writer.println("cd chrom" + chrome);
           writer.println("sleep 5");
           writer.println("./batch");
@@ -367,7 +376,7 @@ public class batch {
           writer.println("cp re_chrom" + chrome + ".pre chrom" + chrome + "/");
           writer.println("cd chrom" + chrome);
           writer.println("echo -e \"map kos\\nload map" + chrome + ".dat\\nscan re_chrom" + chrome
-              + ".pre\\nquit\\n\" | /software/bin/ghp > /dev/null");
+                         + ".pre\\nquit\\n\" | /software/bin/ghp > /dev/null");
           writer.println("kaclod 200");
           writer.println("osa2.1 osa" + chrome + ".dat > osa" + chrome + ".log");
           writer.println("cd ..");

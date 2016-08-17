@@ -33,15 +33,16 @@ public class ForestPlot {
     boolean convertToLog = false;
 
     params = Files.parseControlFile(filename, "forest",
-        new String[] {"hits_parsed.xln",
-            "# optional file lists which SNPs to parse (default is all)", "targets=hits.txt",
-            "# optional file listing order of studies (default is the order they are in the data file) as well as an optional second tab delimited column with what to rename the study as",
-            "order=studies.txt",
-            "# if the study comes after the underscore (i.e. Beta_StudyA instead of StudyA_Beta) then use the following flag:",
-            "studyFirst=false",
-            "# if you want the betas to be plotted as odds ratios then use the following flag:",
-            "convertToLog=true"},
-        log);
+                                    new String[] {"hits_parsed.xln",
+                                                  "# optional file lists which SNPs to parse (default is all)",
+                                                  "targets=hits.txt",
+                                                  "# optional file listing order of studies (default is the order they are in the data file) as well as an optional second tab delimited column with what to rename the study as",
+                                                  "order=studies.txt",
+                                                  "# if the study comes after the underscore (i.e. Beta_StudyA instead of StudyA_Beta) then use the following flag:",
+                                                  "studyFirst=false",
+                                                  "# if you want the betas to be plotted as odds ratios then use the following flag:",
+                                                  "convertToLog=true"},
+                                    log);
     if (params != null) {
       datafile = params.elementAt(0).trim();
       for (int i = 1; i < params.size(); i++) {
@@ -60,12 +61,13 @@ public class ForestPlot {
       }
 
       generateForests(ext.parseDirectoryOfFile(filename), datafile, studyFirst, convertToLog,
-          markerListFile, studyListFile, log);
+                      markerListFile, studyListFile, log);
     }
   }
 
   public static void generateForests(String dir, String datafile, boolean studyFirst,
-      boolean convertToLog, String markerListFile, String studyListFile, Logger log) {
+                                     boolean convertToLog, String markerListFile,
+                                     String studyListFile, Logger log) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, data;
@@ -86,7 +88,7 @@ public class ForestPlot {
 
     if (studyListFile != null) {
       studies = HashVec.loadFileToStringMatrix(dir + studyListFile, false, new int[] {0, 1}, "\t",
-          false, 20, true);
+                                               false, 20, true);
     } else {
       studies = null;
     }
@@ -102,8 +104,8 @@ public class ForestPlot {
             markerIndex = i;
           } else {
             log.reportError("Warning - more than one column is labeled "
-                + Array.toStr(MARKER_ID_POSSIBILITIES, "/") + "; using the first ("
-                + header[markerIndex] + "), not '" + header[i] + "'");
+                            + Array.toStr(MARKER_ID_POSSIBILITIES, "/") + "; using the first ("
+                            + header[markerIndex] + "), not '" + header[i] + "'");
           }
         }
         if (header[i].contains("_")) {
@@ -137,23 +139,26 @@ public class ForestPlot {
         for (int j = 0; j < SUFFIXES.length; j++) {
           for (int k = 0; k < SUFFIXES[j].length; k++) {
             index = ext.indexOfStr(studyFirst ? studies[i][0] + "_" + SUFFIXES[j][k]
-                : SUFFIXES[j][k] + "_" + studies[i][0], header);
+                                              : SUFFIXES[j][k] + "_" + studies[i][0],
+                                   header);
             if (index != -1) {
               if (indices[i][j] == -1) {
-                indices[i][j] = ext.indexOfStr(studyFirst ? studies[i][0] + "_" + SUFFIXES[j][k]
-                    : SUFFIXES[j][k] + "_" + studies[i][0], header);
+                indices[i][j] = ext.indexOfStr(
+                                               studyFirst ? studies[i][0] + "_" + SUFFIXES[j][k]
+                                                          : SUFFIXES[j][k] + "_" + studies[i][0],
+                                               header);
               } else {
                 log.reportError("Warning - more than one column is labeled "
-                    + (studyFirst ? studies[i][0] + "_" + Array.toStr(SUFFIXES[j], "/")
-                        : Array.toStr(SUFFIXES[j], "/") + "_" + studies[i][0])
-                    + "; using the first (" + header[indices[i][j]] + ")");
+                                + (studyFirst ? studies[i][0] + "_" + Array.toStr(SUFFIXES[j], "/")
+                                              : Array.toStr(SUFFIXES[j], "/") + "_" + studies[i][0])
+                                + "; using the first (" + header[indices[i][j]] + ")");
               }
             }
           }
           if (indices[i][j] == -1) {
             log.reportError("Error - expecting, but did not find, a column header called "
-                + (studyFirst ? studies[i][0] + "_" + Array.toStr(SUFFIXES[j], "/")
-                    : Array.toStr(SUFFIXES[j], "/") + "_" + studies[i][0]));
+                            + (studyFirst ? studies[i][0] + "_" + Array.toStr(SUFFIXES[j], "/")
+                                          : Array.toStr(SUFFIXES[j], "/") + "_" + studies[i][0]));
             problem = true;
           }
         }
@@ -189,7 +194,8 @@ public class ForestPlot {
               data = Array.subArray(line, indices[i]);
               if (ext.indexOfStr(".", data) == -1) {
                 writer.println((studies[i].length == 1 || studies[i][1] == null ? studies[i][0]
-                    : studies[i][1]) + "\t" + line[markerIndex] + "\t" + Array.toStr(data));
+                                                                                : studies[i][1])
+                               + "\t" + line[markerIndex] + "\t" + Array.toStr(data));
               }
             }
             writer.close();
@@ -205,17 +211,16 @@ public class ForestPlot {
             writer.println("data.dir <- \"" + dir + "forests/\"");
             writer.println("### Input data");
             writer.println("input.data <- read.table(paste(data.dir, \""
-                + ext.replaceWithLinuxSafeCharacters(line[markerIndex], true)
-                + ".txt\", sep=\"\"), header=T)");
+                           + ext.replaceWithLinuxSafeCharacters(line[markerIndex], true)
+                           + ".txt\", sep=\"\"), header=T)");
             writer.println("## library");
             writer.println("library(rmeta)");
             writer.println("### forest plot");
-            writer.println(
-                "metaplot(input.data$Beta, input.data$SE, nn=(input.data$SE)^-2, input.data$Cohort,");
+            writer.println("metaplot(input.data$Beta, input.data$SE, nn=(input.data$SE)^-2, input.data$Cohort,");
             writer.println("logeffect=" + (convertToLog ? "T" : "F")
-                + ", boxsize=0.4,logticks=T, col=meta.colors(\"black\"),");
+                           + ", boxsize=0.4,logticks=T, col=meta.colors(\"black\"),");
             writer.println("xlab=\"" + line[markerIndex] + " " + (convertToLog ? "OR" : "beta")
-                + "\", ylab=\"Cohort\")");
+                           + "\", ylab=\"Cohort\")");
             writer.close();
           } catch (Exception e) {
             System.err.println("Error writing to " + filename);

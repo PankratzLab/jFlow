@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 
 public class Cyrillic {
   public static void format(String prefile, String mapfile, String outprefile, String outmapfile,
-      int chr) {
+                            int chr) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -110,10 +110,11 @@ public class Cyrillic {
     String prefile = "";
     String mapfile = "";
 
-    String usage = "\n" + "park.newClass requires 0-3 arguments\n" + "   (0) directory (i.e. dir="
-        + dir + " (default))\n" + "   (1) chromosome number (i.e. chr=" + chr + " (default))\n"
-        + "   (2) name of .pre file (i.e. pre=re_chromXX.pre (default))\n"
-        + "   (3) name of MAP file (i.e. map=mapXX.dat (default))\n" + "";
+    String usage =
+        "\n" + "park.newClass requires 0-3 arguments\n" + "   (0) directory (i.e. dir=" + dir
+                   + " (default))\n" + "   (1) chromosome number (i.e. chr=" + chr + " (default))\n"
+                   + "   (2) name of .pre file (i.e. pre=re_chromXX.pre (default))\n"
+                   + "   (3) name of MAP file (i.e. map=mapXX.dat (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

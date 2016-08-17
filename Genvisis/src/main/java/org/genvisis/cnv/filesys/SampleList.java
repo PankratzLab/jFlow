@@ -33,10 +33,11 @@ public class SampleList implements Serializable {
 
     if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true), false)) {
       files = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_FILE_EXTENSION,
-          false);
+                         false);
     } else {
       log.reportError("Error - failed to find the SAMPLE_DIRECTORY ("
-          + proj.SAMPLE_DIRECTORY.getValue(false, true) + "); no SampleList could be generated");
+                      + proj.SAMPLE_DIRECTORY.getValue(false, true)
+                      + "); no SampleList could be generated");
       return null;
     }
 
@@ -53,16 +54,16 @@ public class SampleList implements Serializable {
     if (samples.length > 0) {
       list.serialize(proj.SAMPLELIST_FILENAME.getValue(true, true));
     } else {
-      log.reportError(
-          "Error - there are no samples in the samples directory; parsing must have failed, so cannot create a SampleList");
+      log.reportError("Error - there are no samples in the samples directory; parsing must have failed, so cannot create a SampleList");
     }
     if (countAt > 0) {
       proj.getLog()
           .report("Note - " + countAt + " ("
-              + (Double.parseDouble(ext.prettyP((double) countAt / (double) samples.length)) * 100)
-              + "%) of your Sample IDs contain the @ symbol, which is often used when concatenating the sample's bar code. If you would like these to be stripped, then set "
-              + proj.PARSE_AT_AT_SYMBOL.getName()
-              + "=TRUE in the properties file, delete the samples/ directory and reparse the data");
+                  + (Double.parseDouble(ext.prettyP((double) countAt / (double) samples.length))
+                     * 100)
+                  + "%) of your Sample IDs contain the @ symbol, which is often used when concatenating the sample's bar code. If you would like these to be stripped, then set "
+                  + proj.PARSE_AT_AT_SYMBOL.getName()
+                  + "=TRUE in the properties file, delete the samples/ directory and reparse the data");
     }
 
     return list;
@@ -78,10 +79,10 @@ public class SampleList implements Serializable {
     boolean outliers = false;
 
     String usage = "\n" + "filesys.SampleList requires 1+ argument\n"
-        + "   (1) project properties filename (i.e. proj="
-        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-        + "   (2) (Optional) use -outliers argument to generate an 'outliers.ser' file (not the default)\n"
-        + "";
+                   + "   (1) project properties filename (i.e. proj="
+                   + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+                   + "   (2) (Optional) use -outliers argument to generate an 'outliers.ser' file (not the default)\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

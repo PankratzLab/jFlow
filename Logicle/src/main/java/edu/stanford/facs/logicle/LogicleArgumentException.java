@@ -9,21 +9,17 @@ package edu.stanford.facs.logicle;
  * @author Wayne A. Moore
  * @version 1.0
  */
-public class LogicleArgumentException
-  extends IllegalArgumentException
-{
+public class LogicleArgumentException extends IllegalArgumentException {
   /**
    * The serial version identifier
    */
   private static final long serialVersionUID = -6650230539452096072L;
 
-  public LogicleArgumentException (double value)
-  {
+  public LogicleArgumentException(double value) {
     super("Illegal argument to Logicle scale: " + Double.toString(value));
   }
 
-  public LogicleArgumentException (int index)
-  {
+  public LogicleArgumentException(int index) {
     super("Illegal argument to Logicle inverse: " + Integer.toString(index));
   }
 }

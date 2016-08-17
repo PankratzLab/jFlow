@@ -33,13 +33,20 @@ public class BoxCtrlPanel extends JPanel {
 
     @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
-        boolean expanded, boolean leaf, int row, boolean hasFocus) {
-      boolean enabled = actualData == null || tree.getPathForRow(row) == null ? true
-          : actualData.contains(Array.toStr(tree.getPathForRow(row).getPath(), "\t")); // <-- here
-                                                                                       // is your
-                                                                                       // logic for
-                                                                                       // enable/disable
-                                                                                       // cell
+                                                  boolean expanded, boolean leaf, int row,
+                                                  boolean hasFocus) {
+      boolean enabled = actualData == null
+                        || tree.getPathForRow(row) == null ? true
+                                                           : actualData.contains(Array.toStr(tree.getPathForRow(row)
+                                                                                                 .getPath(),
+                                                                                             "\t")); // <--
+                                                                                                     // here
+                                                                                                     // is
+                                                                                                     // your
+                                                                                                     // logic
+                                                                                                     // for
+                                                                                                     // enable/disable
+                                                                                                     // cell
 
       Component treeCellRendererComponent =
           super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
@@ -202,7 +209,8 @@ public class BoxCtrlPanel extends JPanel {
               foundValid =
                   actualData.contains(Array.toStr(tree.getPathForRow(newRow).getPath(), "\t"));
             } while (tree.getPathForRow(newRow).getPathCount() >= e.getNewLeadSelectionPath()
-                .getPathCount() || (!foundValid && newRow >= 0));
+                                                                   .getPathCount()
+                     || (!foundValid && newRow >= 0));
           } else if (oldRow > newRow) { // moving up
             boolean foundValid = false;
             do {

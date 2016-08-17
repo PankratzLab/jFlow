@@ -102,8 +102,8 @@ public class Logger implements Serializable {
   public long memoryTotal() {
     long memory;
 
-    report(
-        "Total heap size is: " + ext.prettyUpSize(memory = Runtime.getRuntime().totalMemory(), 1));
+    report("Total heap size is: "
+           + ext.prettyUpSize(memory = Runtime.getRuntime().totalMemory(), 1));
 
     return memory;
   }
@@ -111,8 +111,8 @@ public class Logger implements Serializable {
   public long memoryUsed() {
     long memory;
 
-    report("Used heap size is: " + ext.prettyUpSize(
-        memory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()), 1));
+    report("Used heap size is: " + ext.prettyUpSize(memory =
+        (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()), 1));
 
     return memory;
   }
@@ -166,7 +166,7 @@ public class Logger implements Serializable {
   }
 
   public void reportError(String err, boolean line, boolean reportToScreen,
-      int levelRequiredToReport) {
+                          int levelRequiredToReport) {
     PrintWriter writer;
 
     if (level >= levelRequiredToReport && reportToScreen) {

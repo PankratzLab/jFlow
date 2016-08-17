@@ -39,12 +39,12 @@ public class AutoMito {
     double lrrSDSamp = Double.NaN;
 
     String usage = "\n" + "one.JL.AutoMito requires 0-1 arguments\n"
-        + "   (1) an existing project filename (i.e. proj=" + filename + " (default))\n"
-        + "   (2) full path to mitochondrial markers (i.e. mitoMarks=" + mitoMarks + " (default))\n"
-        + "   (3) analysis name (i.e. name=" + name + " (default))\n"
-        + PSF.Ext.getNumThreadsCommand(4, numThreads)
-        + "   (5) maximum Number of markers(i.e. maxNumMarkers=" + maxNumMarkers + " (default))\n"
-        + "";
+                   + "   (1) an existing project filename (i.e. proj=" + filename + " (default))\n"
+                   + "   (2) full path to mitochondrial markers (i.e. mitoMarks=" + mitoMarks
+                   + " (default))\n" + "   (3) analysis name (i.e. name=" + name + " (default))\n"
+                   + PSF.Ext.getNumThreadsCommand(4, numThreads)
+                   + "   (5) maximum Number of markers(i.e. maxNumMarkers=" + maxNumMarkers
+                   + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -79,11 +79,11 @@ public class AutoMito {
         if (proj.getArrayType() == ARRAY.ILLUMINA) {
           lrrSDSamp = 0.30;
         } else if (proj.getArrayType() == ARRAY.AFFY_GW6
-            || proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
+                   || proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
           lrrSDSamp = 0.35;
         } else {
-          throw new IllegalArgumentException(
-              "did not expect to see array type " + proj.getArrayType() + " here");
+          throw new IllegalArgumentException("did not expect to see array type "
+                                             + proj.getArrayType() + " here");
         }
       }
       run(proj, name, mitoMarks, maxNumMarkers, callRateSamp, callRateMarker, hetExMarker,
@@ -94,14 +94,15 @@ public class AutoMito {
   }
 
   private static void run(Project proj, String name, String mitoMarks, int maxNumMarkers,
-      double callRateSamp, double callRateMarker, double hetExMarker, double sexZscore,
-      double lrrSDSamp, int numThreads) throws FileNotFoundException {
+                          double callRateSamp, double callRateMarker, double hetExMarker,
+                          double sexZscore, double lrrSDSamp,
+                          int numThreads) throws FileNotFoundException {
     long arrayLength = maxNumMarkers * proj.getSamples().length;
     if (arrayLength >= Integer.MAX_VALUE) {
       proj.getLog().reportTimeWarning("Maximum number of markers set to: " + maxNumMarkers);
       proj.getLog().reportTimeWarning("Number of samples : " + proj.getSamples().length);
       proj.getLog().reportTimeWarning(proj.getSamples().length + " X " + maxNumMarkers + " = "
-          + arrayLength + " , which is greater than max java integer");
+                                      + arrayLength + " , which is greater than max java integer");
       maxNumMarkers = Math.round(Integer.MAX_VALUE / (proj.getSamples().length + 1f));
       proj.getLog().reportTimeWarning("Updated max num markers to " + maxNumMarkers);
     }
@@ -121,7 +122,8 @@ public class AutoMito {
     String temporarySampleDataWithSex = qcDir + ext.addToRoot(temporarySampleData, ".withSex.txt");
 
     if (ext.indexOfStr(SexChecks.EST_SEX_HEADER,
-        Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(), proj.getLog())) < 0) {
+                       Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(),
+                                             proj.getLog())) < 0) {
       ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
       builder.sampleBased(true);
       builder.dataKeyColumnName("Sample");
@@ -129,7 +131,8 @@ public class AutoMito {
       builder.stringDataTitles(new String[] {SexChecks.EST_SEX_HEADER});
       builder.requireAll(true);
       System.out.println(ext.indexOfStr(SexChecks.EST_SEX_HEADER,
-          Files.getHeaderOfFile(proj.SEXCHECK_RESULTS_FILENAME.getValue(), proj.getLog())));
+                                        Files.getHeaderOfFile(proj.SEXCHECK_RESULTS_FILENAME.getValue(),
+                                                              proj.getLog())));
       ExtProjectDataParser parser = builder.build(proj, proj.SEXCHECK_RESULTS_FILENAME.getValue());
 
       String[][] matrix =

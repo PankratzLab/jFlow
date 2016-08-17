@@ -115,7 +115,7 @@ public class GinsburgDavid {
   // public static final double[] EXPLORE_HET = {0.00, 0.03};
 
   public static void addGenotypes(String dir, String genotypes, double maf,
-      String traitStrainPrefix, String bcStrainPrefix) {
+                                  String traitStrainPrefix, String bcStrainPrefix) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, inds = null;
@@ -131,8 +131,8 @@ public class GinsburgDavid {
       for (int i = 0; i < GENOTYPIC_HEADER.length; i++) {
         if (!line[i].toLowerCase().startsWith(GENOTYPIC_HEADER[i])) {
           logIt("Error - expecting the first three columns in the genotypes file to be "
-              + Array.toStr(GENOTYPIC_HEADER, " ") + " (found " + line[0] + " " + line[1] + " "
-              + line[2] + ")", true);
+                + Array.toStr(GENOTYPIC_HEADER, " ") + " (found " + line[0] + " " + line[1] + " "
+                + line[2] + ")", true);
           logIt("failed at " + ext.getTime(), true);
           System.exit(1);
         }
@@ -177,8 +177,8 @@ public class GinsburgDavid {
               } else if (temp.equals("BB")) {
                 genos[i][count] = 0;
               } else if (temp.equals("oo") || temp.equals("0") || temp.equals("")
-                  || temp.equals("--") || temp.equals("NoCall") || temp.equals("NoCAAll")
-                  || temp.equals("X") || temp.equals("-") || temp.equals("?")) {
+                         || temp.equals("--") || temp.equals("NoCall") || temp.equals("NoCAAll")
+                         || temp.equals("X") || temp.equals("-") || temp.equals("?")) {
                 genos[i][count] = -1;
               } else {
                 logIt("Error - unknown genotype: " + temp, true);
@@ -288,26 +288,24 @@ public class GinsburgDavid {
     // }
 
     if (!new File(exploreFile).exists()) {
-      logIt(
-          "Did not find a '" + exploreFile
-              + "' file; create this list of markers if you want to explore different models",
-          false);
+      logIt("Did not find a '" + exploreFile
+            + "' file; create this list of markers if you want to explore different models", false);
       return;
     }
 
     new File(dir + exploreDir).mkdirs();
     LinkageFormat.filterMarkers(dir + "mended_pedfile.pre", dir + exploreDir + root + ".pre",
-        dir + "map.dat", dir + exploreDir + root + ".dat", exploreFile, null);
+                                dir + "map.dat", dir + exploreDir + root + ".dat", exploreFile,
+                                null);
 
     dir = dir + exploreDir;
 
     map = new LinkageMap(dir + root + ".dat");
     markerNames = map.getMarkerNames();
 
-    logIt(
-        "Exploring " + markerNames.length + " marker" + (markerNames.length > 1 ? "s" : "")
-            + " using 2x" + EXPLORE_PEN.length + "x" + EXPLORE_HET.length + " models using Mendel",
-        false);
+    logIt("Exploring " + markerNames.length + " marker" + (markerNames.length > 1 ? "s" : "")
+          + " using 2x" + EXPLORE_PEN.length + "x" + EXPLORE_HET.length + " models using Mendel",
+          false);
     allResults = new String[2][EXPLORE_PEN.length][EXPLORE_HET.length][][];
 
     for (int model = 0; model < 2; model++) {
@@ -316,7 +314,8 @@ public class GinsburgDavid {
         for (int j = 0; j < EXPLORE_HET.length; j++) {
           allResults[model][i][j] =
               Mendel.runModel(dir, root + ".pre", root + ".dat", markerSet, DEFAULT_FREQ,
-                  EXPLORE_HET[j], model == 0 ? EXPLORE_PEN[i] : EXPLORE_HET[j], EXPLORE_PEN[i]);
+                              EXPLORE_HET[j], model == 0 ? EXPLORE_PEN[i] : EXPLORE_HET[j],
+                              EXPLORE_PEN[i]);
         }
       }
       System.out.println();
@@ -335,8 +334,8 @@ public class GinsburgDavid {
           for (int i = 0; i < EXPLORE_PEN.length; i++) {
             writer.print("PEN=" + EXPLORE_PEN[i]);
             for (int j = 0; j < EXPLORE_HET.length; j++) {
-              writer.print(
-                  "\t" + allResults[model][i][j][k][1] + "\t" + allResults[model][i][j][k][2]);
+              writer.print("\t" + allResults[model][i][j][k][1] + "\t"
+                           + allResults[model][i][j][k][2]);
             }
             writer.println();
           }
@@ -353,8 +352,7 @@ public class GinsburgDavid {
       writer = new PrintWriter(new FileWriter(dir + "bestModels.xln"));
       for (int model = 0; model < 2; model++) {
         writer.println((model == 0 ? "Dominant" : "Recessive") + " model");
-        writer.println(
-            "Marker\tChr\tPosition\t1st LOD\t1st model\t2nd LOD\t2nd model\t3rd LOD\t3rd model");
+        writer.println("Marker\tChr\tPosition\t1st LOD\t1st model\t2nd LOD\t2nd model\t3rd LOD\t3rd model");
         for (int k = 0; k < markerNames.length; k++) {
           array = new double[EXPLORE_PEN.length * EXPLORE_HET.length];
           for (int i = 0; i < EXPLORE_PEN.length; i++) {
@@ -368,8 +366,8 @@ public class GinsburgDavid {
           for (int i = 0; i < 3; i++) {
             indices = Matrix.indicesInMatrix(keys[i], EXPLORE_HET.length);
             writer.print("\t" + allResults[model][indices[0]][indices[1]][k][1] + "\tTheta="
-                + allResults[model][indices[0]][indices[1]][k][2] + ", PEN="
-                + EXPLORE_PEN[indices[0]] + ", HET=" + EXPLORE_HET[indices[1]]);
+                         + allResults[model][indices[0]][indices[1]][k][2] + ", PEN="
+                         + EXPLORE_PEN[indices[0]] + ", HET=" + EXPLORE_HET[indices[1]]);
           }
           writer.println();
         }
@@ -443,8 +441,8 @@ public class GinsburgDavid {
             } catch (Exception e) {
               if (report) {
                 logIt("\nError - '" + line[i]
-                    + "' could not be parsed into an integer (closest I got was '" + temp + "')",
-                    true);
+                      + "' could not be parsed into an integer (closest I got was '" + temp + "')",
+                      true);
               }
             }
           }
@@ -466,7 +464,7 @@ public class GinsburgDavid {
 
     if (dnaList.size() < 3) {
       logIt("Error - parsed less than three DNAs from the genotype file (n=" + dnaList.size() + ")",
-          true);
+            true);
       logIt("failed at " + ext.getTime(), true);
       System.exit(1);
     }
@@ -514,13 +512,13 @@ public class GinsburgDavid {
     // System.exit(1);
 
     String usage = "\\n" + "oneoff.GinsburgPedigree requires 0-3 arguments\n"
-        + "   (1) pedigree file (i.e. ped=" + pedigree + " (default))\n"
-        + "   (2) genotype file (i.e. geno=" + genotypes + " (default))\n"
-        + "   (3) minor allele frequency (i.e. maf=" + maf + " (default))\n"
-        + "   (4) (optional) list of models (i.e. models=" + models + ")\n" + "\n"
-        + " Note: you can pick one of the following steps to perform; otherwise the step to be performed at each iteration will be determined by which files are already present:\n"
-        + "   -makePedigree\n" + "   -trimPedigree\n" + "   -addGenotypes\n" + "   -mendErrors\n"
-        + "   -runMendel\n" + "";
+                   + "   (1) pedigree file (i.e. ped=" + pedigree + " (default))\n"
+                   + "   (2) genotype file (i.e. geno=" + genotypes + " (default))\n"
+                   + "   (3) minor allele frequency (i.e. maf=" + maf + " (default))\n"
+                   + "   (4) (optional) list of models (i.e. models=" + models + ")\n" + "\n"
+                   + " Note: you can pick one of the following steps to perform; otherwise the step to be performed at each iteration will be determined by which files are already present:\n"
+                   + "   -makePedigree\n" + "   -trimPedigree\n" + "   -addGenotypes\n"
+                   + "   -mendErrors\n" + "   -runMendel\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -566,7 +564,7 @@ public class GinsburgDavid {
     }
     try {
       dir = jar ? "./"
-          : (new File(DEFAULT_ROOT + DEFAULT_DIR).exists() ? DEFAULT_ROOT + DEFAULT_DIR : "");
+                : (new File(DEFAULT_ROOT + DEFAULT_DIR).exists() ? DEFAULT_ROOT + DEFAULT_DIR : "");
       if (option == 0) {
         makePedigree(dir, pedigree, genotypes);
       } else if (option == 1) {
@@ -581,7 +579,7 @@ public class GinsburgDavid {
         logIt("Started new run on " + ext.getDate() + " at " + ext.getTime(), false);
 
         logIt("Determination of how to proceed next is based on files present in "
-            + (dir.equals("") ? "current directory" : dir), false);
+              + (dir.equals("") ? "current directory" : dir), false);
         if (new File(dir + "untrimmed.pre").exists()) {
           logIt("Found untrimmed.pre, skipping makePedigree", false);
         } else {
@@ -671,7 +669,7 @@ public class GinsburgDavid {
     sStrain = dnaList.elementAt(0);
     bStrain = dnaList.elementAt(1);
     logIt("Assuming we're taking the F1s of a " + sStrain + " x " + bStrain
-        + " cross and backcrossing into " + bStrain, false);
+          + " cross and backcrossing into " + bStrain, false);
 
     try {
       reader = new BufferedReader(new FileReader(dir + pedigree));
@@ -682,11 +680,11 @@ public class GinsburgDavid {
         line = reader.readLine().trim().split("\t");
         if (lookup.containsKey(line[1])) {
           logIt("Error - You have more than two individuals with the same ID ('" + line[1] + "')",
-              true);
+                true);
         }
         if (line[6].contains(sStrain) && line[6].contains(bStrain)) {
           logIt("Error - '" + line[6] + "' contains identifiers for both strains ('" + sStrain
-              + "' and '" + bStrain + "')", true);
+                + "' and '" + bStrain + "')", true);
           logIt("failed at " + ext.getTime(), true);
           System.exit(1);
         } else if (line[6].contains(sStrain)) {
@@ -716,13 +714,13 @@ public class GinsburgDavid {
           }
           if (temp.startsWith(TRAIT_STRAIN_PREFIX)) {
             logIt("Error - '" + temp + "' (parsed from '" + line[6]
-                + "') uses the reserved susceptibility strain prefix", true);
+                  + "') uses the reserved susceptibility strain prefix", true);
             logIt("failed at " + ext.getTime(), true);
             System.exit(1);
           }
           if (temp.startsWith(BACKCROSS_STRAIN_PREFIX)) {
             logIt("Error - '" + temp + "' (parsed from '" + line[6]
-                + "') uses the reserved backcross strain prefix", true);
+                  + "') uses the reserved backcross strain prefix", true);
             logIt("failed at " + ext.getTime(), true);
             System.exit(1);
           }
@@ -730,10 +728,9 @@ public class GinsburgDavid {
           try {
             Integer.parseInt(temp);
           } catch (NumberFormatException nfe) {
-            logIt(
-                "Error - failed to parse strain from '" + temp + "' (for indiviudal " + line[1]
-                    + "); not either of the ancestral strains (" + sStrain + " or " + bStrain + ")",
-                true);
+            logIt("Error - failed to parse strain from '" + temp + "' (for indiviudal " + line[1]
+                  + "); not either of the ancestral strains (" + sStrain + " or " + bStrain + ")",
+                  true);
             logIt("failed at " + ext.getTime(), true);
             System.exit(1);
           }
@@ -743,9 +740,8 @@ public class GinsburgDavid {
       }
       reader.close();
       if (unparseable.length() > 0) {
-        logIt(
-            "Error - are any of the following either the susceptible strain or the backcross strain?",
-            true);
+        logIt("Error - are any of the following either the susceptible strain or the backcross strain?",
+              true);
         logIt(unparseable, true);
         logIt("failed at " + ext.getTime(), true);
         System.exit(1);
@@ -783,12 +779,14 @@ public class GinsburgDavid {
       while (reader.ready()) {
         line = reader.readLine().split("\t", -1);
         writer.println("1\t" + lookup.get(line[pedNum]) + "\t"
-            + (line[father].equals("") ? "0" : lookup.get(line[father].trim())) + "\t"
-            + (line[mother].equals("") ? "0" : lookup.get(line[mother].trim())) + "\t"
-            + (line[sex].equals("m") ? "1" : (line[sex].equals("f") ? "2" : "0")) + "\t"
-            + (lookup.get(line[pedNum]).startsWith(TRAIT_STRAIN_PREFIX)
-                || dnaList.contains(lookup.get(line[pedNum])) ? "2"
-                    : lookup.get(line[pedNum]).startsWith(TRAIT_STRAIN_PREFIX) ? "1" : "0"));
+                       + (line[father].equals("") ? "0" : lookup.get(line[father].trim())) + "\t"
+                       + (line[mother].equals("") ? "0" : lookup.get(line[mother].trim())) + "\t"
+                       + (line[sex].equals("m") ? "1" : (line[sex].equals("f") ? "2" : "0")) + "\t"
+                       + (lookup.get(line[pedNum]).startsWith(TRAIT_STRAIN_PREFIX)
+                          || dnaList.contains(lookup.get(line[pedNum])) ? "2"
+                                                                        : lookup.get(line[pedNum])
+                                                                                .startsWith(TRAIT_STRAIN_PREFIX) ? "1"
+                                                                                                                 : "0"));
       }
       reader.close();
       writer.close();
@@ -877,7 +875,7 @@ public class GinsburgDavid {
             line = reader.readLine().trim().split("[\\s]+");
             if (!line[1].endsWith(":") || !line[4].endsWith(":")) {
               logIt("Error - could not parse either father (" + line[1] + ") or mother (" + line[4]
-                  + ")", true);
+                    + ")", true);
 
             }
             father = line[1].substring(0, line[1].indexOf(":"));
@@ -911,8 +909,8 @@ public class GinsburgDavid {
         }
         if (!line[2].equals(markerMap.get(line[1]))) {
           logIt("Error - two markers (" + line[2] + " and " + markerMap.get(line[1])
-              + ") were mapped to the same locus (" + line[1]
-              + "); this really should be impossible", true);
+                + ") were mapped to the same locus (" + line[1]
+                + "); this really should be impossible", true);
         }
 
         if (!hash.containsKey(line[0] + ":" + line[3])) {
@@ -945,9 +943,8 @@ public class GinsburgDavid {
         for (int i = 1; i <= numLoci; i++) {
           line = reader.readLine().trim().split("[\\s]+");
           if (markerMap.containsKey(i + "") && !markerMap.get(i + "").equals(line[3])) {
-            logIt(
-                "Error - mismatched marker declarations - genotype files (pedfile.pre and map.dat) probably don't match up with the pedcheck output (errors.out)",
-                true);
+            logIt("Error - mismatched marker declarations - genotype files (pedfile.pre and map.dat) probably don't match up with the pedcheck output (errors.out)",
+                  true);
             logIt("failed at " + ext.getTime(), true);
             System.exit(1);
           }
@@ -992,13 +989,11 @@ public class GinsburgDavid {
     } catch (Exception e) {
       e.printStackTrace();
 
-      logIt(
-          "Got an error processing pedcheck results, probably wasn't run. Have the map and pre files been made?",
-          true);
+      logIt("Got an error processing pedcheck results, probably wasn't run. Have the map and pre files been made?",
+            true);
       logIt("If that's not it, try deleting the files \'pedcheck.err\' and \'temp\'", true);
-      logIt(
-          "If that's not it, make sure the first line of the .dat file is either blank or has more than one word.",
-          true);
+      logIt("If that's not it, make sure the first line of the .dat file is either blank or has more than one word.",
+            true);
 
       logIt("", true);
     }
@@ -1072,10 +1067,10 @@ public class GinsburgDavid {
 
     if (!new File(dir + filename).exists()) {
       logIt("Running Mendel using default models; expecting file '" + filename
-          + "' for custom models", false);
+            + "' for custom models", false);
       models =
           new double[][] {{DEFAULT_FREQ, DEFAULT_MODEL1[0], DEFAULT_MODEL1[1], DEFAULT_MODEL1[2]},
-              {DEFAULT_FREQ, DEFAULT_MODEL2[0], DEFAULT_MODEL2[1], DEFAULT_MODEL2[2]}};
+                          {DEFAULT_FREQ, DEFAULT_MODEL2[0], DEFAULT_MODEL2[1], DEFAULT_MODEL2[2]}};
     } else {
       logIt("Running Mendel using models listed in " + filename, false);
       models = LinkageMap.parseModels(dir + filename);
@@ -1098,7 +1093,7 @@ public class GinsburgDavid {
     for (int i = 0; i < models.length; i++) {
       logIt("Running model " + (i + 1), false);
       allResults[i] = Mendel.runModel(dir, "mended_pedfile.pre", "map.dat", markerSet, models[i][0],
-          models[i][1], models[i][2], models[i][3]);
+                                      models[i][1], models[i][2], models[i][3]);
     }
 
     try {
@@ -1106,7 +1101,7 @@ public class GinsburgDavid {
       writer.print("Marker\tChromosome\tPosition");
       for (double[] model : models) {
         writer.print("\tModel: dxFreq=" + model[0] + " penetrance=" + model[1] + "," + model[2]
-            + "," + model[3] + "\tMax Theta");
+                     + "," + model[3] + "\tMax Theta");
       }
       writer.println();
       writer.flush();
@@ -1152,7 +1147,7 @@ public class GinsburgDavid {
   }
 
   public static void trimPedigree(String dir, String genotypes, String traitStrainPrefix,
-      String bcStrainPrefix) {
+                                  String bcStrainPrefix) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -1172,7 +1167,8 @@ public class GinsburgDavid {
           dnaList.add(line[1]);
         }
         preData.add(temp + "\t"
-            + (dnaList.contains(line[1]) || line[1].startsWith(traitStrainPrefix) ? "1" : "0"));
+                    + (dnaList.contains(line[1]) || line[1].startsWith(traitStrainPrefix) ? "1"
+                                                                                          : "0"));
       }
       reader.close();
     } catch (FileNotFoundException fnfe) {
@@ -1189,7 +1185,7 @@ public class GinsburgDavid {
     // FOR TrimFam!");
     // TrimFam trimmer = new TrimFam(preData, dnaList, true, false);
     TrimFam trimmer = new TrimFam(preData, true, false, false, TrimFam.SCORE_99_NAMING_SCHEME, 0,
-        false, false, new Logger());
+                                  false, false, new Logger());
     v = trimmer.getExtendedFamilyInformation();
     dnaList.remove(1);
     dnaList.remove(0);
@@ -1198,7 +1194,7 @@ public class GinsburgDavid {
       for (int i = 0; i < v.size(); i++) {
         line = v.elementAt(i).split("[\\s]+");
         writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
-            + "\t" + (line[1].startsWith(bcStrainPrefix) ? "1" : "2"));
+                       + "\t" + (line[1].startsWith(bcStrainPrefix) ? "1" : "2"));
         dnaList.remove(line[1]);
       }
       writer.close();
@@ -1206,9 +1202,8 @@ public class GinsburgDavid {
     }
 
     if (dnaList.size() > 0) {
-      logIt(
-          "The following dnas were never used: " + Array.toStr(Array.toStringArray(dnaList), ", "),
-          true);
+      logIt("The following dnas were never used: "
+            + Array.toStr(Array.toStringArray(dnaList), ", "), true);
 
       try {
         writer = new PrintWriter(new FileWriter(dir + "DNAS NEVER USED!!!.txt"));
@@ -1251,7 +1246,8 @@ public class GinsburgDavid {
           hash.put(cagePrefix, "");
         }
         writer.println("1\t" + line[indices[0]] + "\t" + cagePrefix + "1\t" + cagePrefix + "2\t"
-            + ext.replaceAllWith(line[indices[2]], genderCodes) + "\t" + line[indices[3]]);
+                       + ext.replaceAllWith(line[indices[2]], genderCodes) + "\t"
+                       + line[indices[3]]);
       }
       reader.close();
       writer.close();
@@ -1264,7 +1260,7 @@ public class GinsburgDavid {
     }
 
     Files.copyFile(ext.parseDirectoryOfFile(phenoFile) + "trimmed.pre",
-        ext.parseDirectoryOfFile(phenoFile) + "untrimmed.pre");
+                   ext.parseDirectoryOfFile(phenoFile) + "untrimmed.pre");
 
   }
 }

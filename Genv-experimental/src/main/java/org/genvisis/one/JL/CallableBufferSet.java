@@ -45,7 +45,7 @@ public class CallableBufferSet<E, T> {
   private boolean full;
 
   public CallableBufferSet(int numThreads, int timeOutDay, CallableBuffer<E, T>[] buffers,
-      Logger log) {
+                           Logger log) {
     super();
     this.numThreads = numThreads;
     this.timeOutDay = timeOutDay;
@@ -67,8 +67,7 @@ public class CallableBufferSet<E, T> {
       }
     }
     if (!added && full) {
-      throw new IllegalStateException(
-          "All buffers were full, the isFull method must be checked after each addition, and then excecuted to clear");
+      throw new IllegalStateException("All buffers were full, the isFull method must be checked after each addition, and then excecuted to clear");
     }
   }
 

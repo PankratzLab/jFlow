@@ -81,7 +81,7 @@ public class testTableView extends Application {
   }
 
   private TableColumn<ObservableList<StringProperty>, String> createColumn(final int columnIndex,
-      String columnTitle) {
+                                                                           String columnTitle) {
     TableColumn<ObservableList<StringProperty>, String> column = new TableColumn<>();
     String title;
     if (columnTitle == null || columnTitle.trim().length() == 0) {
@@ -90,19 +90,17 @@ public class testTableView extends Application {
       title = columnTitle;
     }
     column.setText(title);
-    column.setCellValueFactory(
-        new Callback<TableColumn.CellDataFeatures<ObservableList<StringProperty>, String>, ObservableValue<String>>() {
-          @Override
-          public ObservableValue<String> call(
-              CellDataFeatures<ObservableList<StringProperty>, String> cellDataFeatures) {
-            ObservableList<StringProperty> values = cellDataFeatures.getValue();
-            if (columnIndex >= values.size()) {
-              return new SimpleStringProperty("");
-            } else {
-              return cellDataFeatures.getValue().get(columnIndex);
-            }
-          }
-        });
+    column.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<ObservableList<StringProperty>, String>, ObservableValue<String>>() {
+      @Override
+      public ObservableValue<String> call(CellDataFeatures<ObservableList<StringProperty>, String> cellDataFeatures) {
+        ObservableList<StringProperty> values = cellDataFeatures.getValue();
+        if (columnIndex >= values.size()) {
+          return new SimpleStringProperty("");
+        } else {
+          return cellDataFeatures.getValue().get(columnIndex);
+        }
+      }
+    });
     return column;
   }
 
@@ -112,7 +110,7 @@ public class testTableView extends Application {
   }
 
   private void populateTable(final TableView<ObservableList<StringProperty>> table,
-      final String urlSpec, final boolean hasHeader) throws Exception {
+                             final String urlSpec, final boolean hasHeader) throws Exception {
     table.getItems().clear();
     table.getColumns().clear();
     table.setPlaceholder(new Label("Loading..."));

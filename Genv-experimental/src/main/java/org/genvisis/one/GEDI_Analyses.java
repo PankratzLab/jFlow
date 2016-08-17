@@ -49,7 +49,7 @@ public class GEDI_Analyses {
     String filename = "GEDI_Analyses.dat";
 
     String usage = "\n" + "one.GEDI_Analyses requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -100,7 +100,7 @@ public class GEDI_Analyses {
             while (reader.ready()) {
               line = reader.readLine().trim().split(",");
               writer.println(line[indices[0]] + "\t" + i + "\t" + line[indices[1]] + "\t"
-                  + line[indices[2]] + "\t" + line[indices[3]]);
+                             + line[indices[2]] + "\t" + line[indices[3]]);
             }
             reader.close();
           } catch (FileNotFoundException fnfe) {

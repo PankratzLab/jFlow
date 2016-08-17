@@ -44,8 +44,9 @@ public class Markers {
       reader = Files.getAppropriateReader(snpTable);
       writer =
           new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue(false, false)));
-      indices = ext.indexFactors(SourceFileParser.SNP_TABLE_FIELDS,
-          reader.readLine().trim().split(delimiter), false, true, true, true);
+      indices =
+          ext.indexFactors(SourceFileParser.SNP_TABLE_FIELDS,
+                           reader.readLine().trim().split(delimiter), false, true, true, true);
       writer.println("Marker\tChr\tPosition");
       while (reader.ready()) {
         line = reader.readLine().trim().split(delimiter);
@@ -54,15 +55,15 @@ public class Markers {
       writer.close();
       reader.close();
     } catch (FileNotFoundException fnfe) {
-      proj.message(
-          "Error: file \"" + snpTable + "\" not found in " + proj.PROJECT_DIRECTORY.getValue());
+      proj.message("Error: file \"" + snpTable + "\" not found in "
+                   + proj.PROJECT_DIRECTORY.getValue());
       return;
     } catch (IOException ioe) {
       proj.message("Error reading file \"" + snpTable + "\"");
       return;
     }
     log.report("Finished parsing " + proj.MARKER_POSITION_FILENAME.getValue(false, false) + " in "
-        + ext.getTimeElapsed(time));
+               + ext.getTimeElapsed(time));
   }
 
   public static Hashtable<String, String> loadFileToHashString(String filename, Logger log) {
@@ -95,7 +96,7 @@ public class Markers {
         } else if (line.length < 3) {
           if (countBad < MAX_ERRORS_TO_REPORT) {
             log.report("Error - incomplete line at row " + count + " for marker \"" + line[0]
-                + "\"; line will not be added");
+                       + "\"; line will not be added");
           }
           numIncompleteLines++;
         } else {
@@ -112,22 +113,22 @@ public class Markers {
           } else if (chr.equals("")) {
             if (countBad < MAX_ERRORS_TO_REPORT) {
               log.reportError("Error - blank chr for marker '" + markerName + "' at line " + count
-                  + " of " + filename);
+                              + " of " + filename);
             }
             numBlankChrs++;
             countBad++;
           } else if (position.equals("")) {
             if (countBad < MAX_ERRORS_TO_REPORT) {
               log.reportError("Error - blank position for marker '" + markerName + "' at line "
-                  + count + " of " + filename);
+                              + count + " of " + filename);
             }
             numBlankPositions++;
             countBad++;
           } else {
             if (hash.containsKey(markerName)) {
               log.reportError("Error - marker '" + markerName
-                  + "' is already listed in the markerPositions file and is seen again at line "
-                  + count + " of " + filename);
+                              + "' is already listed in the markerPositions file and is seen again at line "
+                              + count + " of " + filename);
               numRepeatedNames++;
               countBad++;
             }
@@ -141,7 +142,7 @@ public class Markers {
             } catch (NumberFormatException nfe) {
               if (countBad < MAX_ERRORS_TO_REPORT) {
                 log.reportError("Error - invalid position (" + position + ") for marker '"
-                    + markerName + "' at line " + count + " of " + filename);
+                                + markerName + "' at line " + count + " of " + filename);
               }
               numInvalidPositions++;
               countBad++;
@@ -172,11 +173,11 @@ public class Markers {
 
     if (countBad > 0) {
       log.report("...with a total of " + ext.addCommas(countBad) + " problem"
-          + (countBad == 1 ? "" : "s"));
+                 + (countBad == 1 ? "" : "s"));
     }
     if (numIncompleteLines > 0) {
       log.report("...including " + ext.addCommas(numIncompleteLines) + " incomplete line"
-          + (numIncompleteLines == 1 ? "" : "s"));
+                 + (numIncompleteLines == 1 ? "" : "s"));
     }
     log.report("Number of final valid marker positions: " + ext.addCommas(hash.size()));
     if (numBlankNames > 0) {
@@ -214,14 +215,15 @@ public class Markers {
     int setTo = 2;
 
     String usage = "\n" + "cnv.manage.Markers requires 0-1 arguments\n"
-        + "   (1) project properties filename (i.e. proj="
-        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-        + "   (2) filename of SNP Table (i.e. snps=Table.csv (not the default))\n" + " OR:\n"
-        + "   (2) use allele lookup to convert a file form forward to TOP strand (i.e. convert=file.txt (not the default))\n"
-        + "   (3) column of A1 in file (i.e. col=" + alleleCol + " (default))\n"
-        + "   (4) allele set to lookup from (i.e. from=" + setFrom
-        + " (default; if 1+8 columns fo 4 pairs, then use indices 0-3))\n"
-        + "   (5) allele set to lookup to (i.e. to=" + setTo + " (default))\n" + "";
+                   + "   (1) project properties filename (i.e. proj="
+                   + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+                   + "   (2) filename of SNP Table (i.e. snps=Table.csv (not the default))\n"
+                   + " OR:\n"
+                   + "   (2) use allele lookup to convert a file form forward to TOP strand (i.e. convert=file.txt (not the default))\n"
+                   + "   (3) column of A1 in file (i.e. col=" + alleleCol + " (default))\n"
+                   + "   (4) allele set to lookup from (i.e. from=" + setFrom
+                   + " (default; if 1+8 columns fo 4 pairs, then use indices 0-3))\n"
+                   + "   (5) allele set to lookup to (i.e. to=" + setTo + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -256,7 +258,7 @@ public class Markers {
   }
 
   public static int[] orderMarkers(String[] markerNames, String markerDatabase, String output,
-      Logger log) {
+                                   Logger log) {
     Hashtable<String, String> snpPositions;
     byte[] chrs;
     int[] positions, keys;
@@ -301,19 +303,18 @@ public class Markers {
 
     if (posNotFoundInRpt > 0) {
       log.reportError("Error - There "
-          + (posNotFoundInRpt == 1 ? "was one" : "were " + posNotFoundInRpt)
-          + " markers found in the file of marker positions that were not listed in the FinalReport file.");
+                      + (posNotFoundInRpt == 1 ? "was one" : "were " + posNotFoundInRpt)
+                      + " markers found in the file of marker positions that were not listed in the FinalReport file.");
       Files.writeList(databaseMarkers.toArray(new String[] {}),
-          ext.parseDirectoryOfFile(markerDatabase) + "markersNotInSourceFile.txt");
+                      ext.parseDirectoryOfFile(markerDatabase) + "markersNotInSourceFile.txt");
     }
     if (rptNotFoundInPos > 0) {
       log.reportError("Error - There "
-          + (rptNotFoundInPos == 1 ? "was one" : "were " + rptNotFoundInPos)
-          + " markers found in the FinalReport file that were not listed in the file of marker positions; halting parse operation.");
-      log.reportError(
-          "\nThe best source of complete marker positions is the SNP manifest (e.g., SNP_Map.csv from Illumina's GenomeStudio that should be exported along with the FinalReport files)");
+                      + (rptNotFoundInPos == 1 ? "was one" : "were " + rptNotFoundInPos)
+                      + " markers found in the FinalReport file that were not listed in the file of marker positions; halting parse operation.");
+      log.reportError("\nThe best source of complete marker positions is the SNP manifest (e.g., SNP_Map.csv from Illumina's GenomeStudio that should be exported along with the FinalReport files)");
       Files.writeList(reportMarkers.toArray(new String[] {}),
-          ext.parseDirectoryOfFile(markerDatabase) + "markersNotInPositionsFile.txt");
+                      ext.parseDirectoryOfFile(markerDatabase) + "markersNotInPositionsFile.txt");
     }
     databaseMarkersRef = null;
     databaseMarkers = null;
@@ -339,11 +340,10 @@ public class Markers {
     }
     if (v.size() > 0) {
       log.reportError("Error - There " + (v.size() == 1 ? "was one" : "were " + v.size())
-          + " markers found in the FinalReport file that were not listed in the file of marker positions; halting parse operation.");
-      log.reportError(
-          "\nThe best source of complete marker positions is the SNP manifest (e.g., SNP_Map.csv from Illumina's GenomeStudio that should be exported along with the FinalReport files)");
+                      + " markers found in the FinalReport file that were not listed in the file of marker positions; halting parse operation.");
+      log.reportError("\nThe best source of complete marker positions is the SNP manifest (e.g., SNP_Map.csv from Illumina's GenomeStudio that should be exported along with the FinalReport files)");
       Files.writeList(Array.toStringArray(v),
-          ext.parseDirectoryOfFile(markerDatabase) + "markersNotInPositionsFile.txt");
+                      ext.parseDirectoryOfFile(markerDatabase) + "markersNotInPositionsFile.txt");
       // write markerPositionsNotInReport.txt
       return null;
     }
@@ -367,7 +367,7 @@ public class Markers {
   }
 
   public static void useAlleleLookup(String filename, int alleleCol, String lookupFile, int setFrom,
-      int setTo) {
+                                     int setTo) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -375,16 +375,17 @@ public class Markers {
     String[] header, alleles;
 
     header = Files.getHeaderOfFile(lookupFile, "\t", new Logger());
-    System.out.println(
-        "Converting from columns " + header[1 + setFrom * 2 + 0] + "/" + header[1 + setFrom * 2 + 1]
-            + " to columns " + header[1 + setTo * 2 + 0] + "/" + header[1 + setTo * 2 + 1]);
+    System.out.println("Converting from columns " + header[1 + setFrom * 2 + 0] + "/"
+                       + header[1 + setFrom * 2 + 1] + " to columns " + header[1 + setTo * 2 + 0]
+                       + "/" + header[1 + setTo * 2 + 1]);
     hash = HashVec.loadFileToHashString(lookupFile, 0, Array.arrayOfIndices(header.length), "\t",
-        true);
+                                        true);
 
     try {
       reader = new BufferedReader(new FileReader(filename));
       writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_"
-          + header[1 + setTo * 2 + 0] + "_" + header[1 + setTo * 2 + 1] + ".xln"));
+                                              + header[1 + setTo * 2 + 0] + "_"
+                                              + header[1 + setTo * 2 + 1] + ".xln"));
       line = reader.readLine().trim().split("[\\s]+");
       line = Array.insertStringAt(header[1 + setTo * 2 + 0], line, alleleCol + 2);
       line = Array.insertStringAt(header[1 + setTo * 2 + 1], line, alleleCol + 3);
@@ -398,13 +399,14 @@ public class Markers {
             line = Array.insertStringAt(alleles[setTo * 2 + 0], line, alleleCol + 2);
             line = Array.insertStringAt(alleles[setTo * 2 + 1], line, alleleCol + 3);
           } else if (line[alleleCol].equals(alleles[setFrom * 2 + 1])
-              && line[alleleCol + 1].equals(alleles[setFrom * 2 + 0])) {
+                     && line[alleleCol + 1].equals(alleles[setFrom * 2 + 0])) {
             line = Array.insertStringAt(alleles[setTo * 2 + 1], line, alleleCol + 2);
             line = Array.insertStringAt(alleles[setTo * 2 + 0], line, alleleCol + 3);
           } else {
             System.err.println("Error - snp '" + line[0] + "' has alleles " + line[alleleCol] + "/"
-                + line[alleleCol + 1] + " in the file and " + alleles[setFrom * 2 + 0] + "/"
-                + alleles[setFrom * 2 + 1] + " in allele lookup table");
+                               + line[alleleCol + 1] + " in the file and "
+                               + alleles[setFrom * 2 + 0] + "/" + alleles[setFrom * 2 + 1]
+                               + " in allele lookup table");
             line = Array.insertStringAt("XXXXX", line, alleleCol + 2);
             line = Array.insertStringAt("XXXXX", line, alleleCol + 3);
           }

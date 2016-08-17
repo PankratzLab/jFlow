@@ -4,7 +4,7 @@ import org.genvisis.common.Logger;
 
 public class Residuals {
   public static void createAndWinsorize(String filename, double sdThresholdForWinsorization,
-      Logger log) {
+                                        Logger log) {
 
   }
 
@@ -16,9 +16,9 @@ public class Residuals {
     double sdThresholdForWinsorization = -1;
 
     String usage = "\n" + "stats.Residuals requires 1-2 arguments\n"
-        + "   (1) filename of (i.e. file=pheno.csv (not the default))\n"
-        + "   (2) (optional) threshold for Winsorization in standard deviation units (i.e. sdThresh=4.0 (not the default))\n"
-        + "";
+                   + "   (1) filename of (i.e. file=pheno.csv (not the default))\n"
+                   + "   (2) (optional) threshold for Winsorization in standard deviation units (i.e. sdThresh=4.0 (not the default))\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

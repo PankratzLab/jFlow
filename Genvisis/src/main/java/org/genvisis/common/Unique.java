@@ -17,8 +17,10 @@ public class Unique {
     String[] delimiters;
     String out, outCounts;
 
-    params = Files.parseControlFile(filename, "unique", new String[] {"unique.out",
-        "uniqueCounts.out", "file1.txt", "file2.txt:3 TAB", "file3.txt:1 skip=9 ,"}, log);
+    params = Files.parseControlFile(filename, "unique",
+                                    new String[] {"unique.out", "uniqueCounts.out", "file1.txt",
+                                                  "file2.txt:3 TAB", "file3.txt:1 skip=9 ,"},
+                                    log);
     if (params != null) {
       out = params.remove(0);
       outCounts = params.remove(0);
@@ -71,12 +73,12 @@ public class Unique {
     Vector<String> filenames;
 
     String usage = "\n" + "park.findUnique requires 0-3 arguments\n"
-        + "   (1) filenames delimited by a space and including a :# suffix if the column index is not 0 (i.e. file1.txt:4 file2.txt file2.txt:1 (not the default)\n"
-        + "   (2) output filename for uniques (i.e. outUniques=unique.out (default for multiple files; default for single files is [filename]-unique.out)\n"
-        + "   (3) output filename for counts (i.e. outCounts=uniqueCounts.out (default for multiple files; default for single files is [filename]-uniqueCounts.out)\n"
-        + "\n"
-        + "   Unique is also available in the Launch.crf variety and includes options for comma/tab-delimited and skipping headers\n"
-        + "";
+                   + "   (1) filenames delimited by a space and including a :# suffix if the column index is not 0 (i.e. file1.txt:4 file2.txt file2.txt:1 (not the default)\n"
+                   + "   (2) output filename for uniques (i.e. outUniques=unique.out (default for multiple files; default for single files is [filename]-unique.out)\n"
+                   + "   (3) output filename for counts (i.e. outCounts=uniqueCounts.out (default for multiple files; default for single files is [filename]-uniqueCounts.out)\n"
+                   + "\n"
+                   + "   Unique is also available in the Launch.crf variety and includes options for comma/tab-delimited and skipping headers\n"
+                   + "";
 
     filenames = new Vector<String>();
     for (String arg : args) {
@@ -138,8 +140,8 @@ public class Unique {
       count++;
     } ;
 
-    System.out
-        .println("Found " + hash.size() + " unique records among " + count + " total records");
+    System.out.println("Found " + hash.size() + " unique records among " + count
+                       + " total records");
     stringBuilder = new StringBuilder();
     ls = System.getProperty("line.separator");
     stringBuilder.append(hash.keySet().size());
@@ -167,7 +169,7 @@ public class Unique {
   }
 
   public static void proc(String[] filenames, int[] skips, String[] delimiters, String uniquesFile,
-      String countsFile, boolean noInput) {
+                          String countsFile, boolean noInput) {
     BufferedReader reader;
     PrintWriter writer = null;
     Hashtable<String, String> hash = new Hashtable<String, String>();
@@ -217,8 +219,8 @@ public class Unique {
       count = 0;
 
       for (int i = 0; i < filenames.length; i++) {
-        System.out.println(
-            "Parsing column index " + cols[i] + " of " + ext.removeDirectoryInfo(filenames[i]));
+        System.out.println("Parsing column index " + cols[i] + " of "
+                           + ext.removeDirectoryInfo(filenames[i]));
 
         reader = new BufferedReader(new FileReader(filenames[i]));
         if (skips != null) {
@@ -230,8 +232,8 @@ public class Unique {
           temp = reader.readLine();
           if (count == 0
               && (double) (new File(filenames[i]).length()) / (double) temp.length() > 1000) {
-            hash = new Hashtable<String, String>(
-                (int) ((double) (new File(filenames[i]).length()) / (double) temp.length() * 1.2));
+            hash = new Hashtable<String, String>((int) ((double) (new File(filenames[i]).length())
+                                                        / (double) temp.length() * 1.2));
           }
           line = temp.trim().split(delimiters[i]);
 
@@ -258,8 +260,8 @@ public class Unique {
       if (uniquesFile != null) {
         writer.close();
       }
-      System.out
-          .println("Found " + hash.size() + " unique records among " + count + " total records");
+      System.out.println("Found " + hash.size() + " unique records among " + count
+                         + " total records");
     } catch (Exception e) {
       System.err.println("Error writing to \"" + uniquesFile + "\"");
       e.printStackTrace();
@@ -312,9 +314,9 @@ public class Unique {
     } ;
 
     if (verbose) {
-      System.out.println(
-          "Found " + hash.size() + " unique records among " + count + " total records found within "
-              + arrays.length + " array" + (arrays.length == 1 ? "" : "s"));
+      System.out.println("Found " + hash.size() + " unique records among " + count
+                         + " total records found within " + arrays.length + " array"
+                         + (arrays.length == 1 ? "" : "s"));
     }
 
     keys = HashVec.getKeys(hash, false, false);

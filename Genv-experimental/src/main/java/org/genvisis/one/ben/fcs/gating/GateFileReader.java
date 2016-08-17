@@ -38,8 +38,9 @@ public class GateFileReader {
       ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
       for (int i = 0; i < dimNodes.size(); i++) {
         Node dimNode = dimNodes.get(i);
-        String param = ((Element) getFirstChild(dimNode, "data-type:fcs-dimension"))
-            .getAttribute("data-type:name");
+        String param =
+            ((Element) getFirstChild(dimNode,
+                                     "data-type:fcs-dimension")).getAttribute("data-type:name");
         RectangleGateDimension gd =
             new RectangleGateDimension((RectangleGate) gate, param, DEFAULT_SCALE);
         String min = ((Element) dimNode).getAttribute("gating:min");
@@ -96,8 +97,9 @@ public class GateFileReader {
       ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
       for (int i = 0; i < dimNodes.size(); i++) {
         Node dimNode = dimNodes.get(i);
-        String param = ((Element) getFirstChild(dimNode, "data-type:fcs-dimension"))
-            .getAttribute("data-type:name");
+        String param =
+            ((Element) getFirstChild(dimNode,
+                                     "data-type:fcs-dimension")).getAttribute("data-type:name");
         GateDimension gd = new GateDimension(gate, param, DEFAULT_SCALE);
         gd.paramName = param;
         gate.dimensions.add(gd);
@@ -224,14 +226,15 @@ public class GateFileReader {
     return paramGates;
   }
 
-  private static GatingStrategy readFile(String filename, boolean flowjo)
-      throws ParserConfigurationException, SAXException, IOException {
+  private static GatingStrategy readFile(String filename,
+                                         boolean flowjo) throws ParserConfigurationException,
+                                                         SAXException, IOException {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = factory.newDocumentBuilder();
     Document doc = builder.parse(new File(filename));
     doc.getDocumentElement().normalize();
     NodeList nodes = flowjo ? doc.getElementsByTagName("Population")
-        : doc.getElementsByTagName("gating:Gating-ML");
+                            : doc.getElementsByTagName("gating:Gating-ML");
 
     // TODO load <Transforms> and subelements from FlowJo files
     // TODO write transforms to gating-ml file
@@ -250,19 +253,20 @@ public class GateFileReader {
     return gs;
   }
 
-  public static GatingStrategy readFlowJoGatingFile(String filename)
-      throws ParserConfigurationException, SAXException, IOException {
+  public static GatingStrategy readFlowJoGatingFile(String filename) throws ParserConfigurationException,
+                                                                     SAXException, IOException {
     return readFile(filename, true);
   }
 
-  public static GatingStrategy readGateFile(String gateFile)
-      throws ParserConfigurationException, SAXException, IOException {
-    return gateFile.toLowerCase().endsWith(".wsp") || gateFile.toLowerCase().endsWith(".wspt")
-        ? readFlowJoGatingFile(gateFile) : readGatingMLFile(gateFile);
+  public static GatingStrategy readGateFile(String gateFile) throws ParserConfigurationException,
+                                                             SAXException, IOException {
+    return gateFile.toLowerCase().endsWith(".wsp")
+           || gateFile.toLowerCase().endsWith(".wspt") ? readFlowJoGatingFile(gateFile)
+                                                       : readGatingMLFile(gateFile);
   }
 
-  public static GatingStrategy readGatingMLFile(String filename)
-      throws ParserConfigurationException, SAXException, IOException {
+  public static GatingStrategy readGatingMLFile(String filename) throws ParserConfigurationException,
+                                                                 SAXException, IOException {
     return readFile(filename, false);
   }
 

@@ -44,11 +44,11 @@ public class QuantiSNP {
   public static final int EM_ITERATIONS = 25;
   public static final String[] FIELDS =
       {"SNP Name", "Sample ID", "Sample Name", "GC Score", "Allele1 - Forward", "Allele2 - Forward",
-          "Allele1 - AB", "Allele2 - AB", "B Allele Freq", "Log R Ratio"};
+       "Allele1 - AB", "Allele2 - AB", "B Allele Freq", "Log R Ratio"};
   public static final String[] LOOKUP_HEADER = {"Sample_ID", "FID", "IID", "Gender"};
 
   public static void createBatch(String rootDirectory, String inputDirectory,
-      String outputDirectory, int numBatches) {
+                                 String outputDirectory, int numBatches) {
     Vector<String[]> v = new Vector<String[]>();
     Hashtable<String, String> genders;
     String[] inputs, outputs;
@@ -57,7 +57,7 @@ public class QuantiSNP {
     // genders = HashVec.loadFileToHashString(, "DNA", new String[] {"CLASS=Gender"}, "");
 
     genders = HashVec.loadFileToHashString(rootDirectory + LOOKUP_PLUS_GENDER_FILE, 0,
-        new int[] {3}, "\t", true);
+                                           new int[] {3}, "\t", true);
 
     inputs = new File(rootDirectory + inputDirectory).list(new FilenameFilter() {
       @Override
@@ -74,7 +74,7 @@ public class QuantiSNP {
     });
 
     System.out.println("Found " + inputs.length + " samples, as well as results for "
-        + outputs.length + " that have been done (not necessarily the same ones)");
+                       + outputs.length + " that have been done (not necessarily the same ones)");
 
     for (String input : inputs) {
       if (ext.indexOfStr(ext.rootOf(input) + "_output.out", outputs) == -1) {
@@ -94,11 +94,11 @@ public class QuantiSNP {
     }
 
     System.out.println("Made " + numBatches + " batch files that will take care of the " + v.size()
-        + " files yet to parse");
+                       + " files yet to parse");
 
     commands = "quantisnp.exe --config ../windows/config.dat --output " + OUTPUT_DIR
-        + "[%0].out --sampleid AA --gender [%1] --emiters " + EM_ITERATIONS
-        + " --Lsetting 2000000 --maxcopy 3 --printRS --doGCcorrect --printGenotypes --gcdir ../gc/b36/ --input-files ../source/[%0].qs 300\n\n";
+               + "[%0].out --sampleid AA --gender [%1] --emiters " + EM_ITERATIONS
+               + " --Lsetting 2000000 --maxcopy 3 --printRS --doGCcorrect --printGenotypes --gcdir ../gc/b36/ --input-files ../source/[%0].qs 300\n\n";
     Files.batchIt("batch", null, numBatches, commands, Matrix.toStringArrays(v));
     for (int i = 0; i < numBatches; i++) {
       try {
@@ -126,8 +126,7 @@ public class QuantiSNP {
       trav = LINUX_DIRECTORY;
     } else {
       trav = "";
-      System.err
-          .println("Error - could not resolve directory to parse (none of the following worked)");
+      System.err.println("Error - could not resolve directory to parse (none of the following worked)");
       System.err.println(WINDOWS_DIRECTORY);
       System.err.println(LINUX_DIRECTORY);
       System.exit(1);
@@ -185,8 +184,7 @@ public class QuantiSNP {
           } while (reader.ready() && !temp.contains("SNP Name") && !temp.contains("Sample ID"));
 
           if (!reader.ready()) {
-            System.err.println(
-                "Error - went through enitre file without finding a line containing both 'SNP Name' and 'Sample Name/Sample ID'");
+            System.err.println("Error - went through enitre file without finding a line containing both 'SNP Name' and 'Sample Name/Sample ID'");
             System.exit(1);
           }
           indices = ext.indexFactors(FIELDS, temp.trim().split(","), false, true);
@@ -195,30 +193,35 @@ public class QuantiSNP {
           while (reader.ready()) {
             line = reader.readLine().split(",");
             if (pdgwas) {
-              trav = line[indices[ext.indexOfStr("Sample Name", FIELDS)]].substring(0,
-                  line[indices[ext.indexOfStr("Sample Name", FIELDS)]].indexOf("@"));
+              trav =
+                  line[indices[ext.indexOfStr("Sample Name",
+                                              FIELDS)]].substring(0,
+                                                                  line[indices[ext.indexOfStr("Sample Name",
+                                                                                              FIELDS)]].indexOf("@"));
             } else {
               trav = line[indices[ext.indexOfStr("Sample ID", FIELDS)]];
             }
             if (count == 0) {
               id = trav;
               version = 0;
-              while (new File(CNV_DIRECTORY + id + (version == 0 ? "" : "." + version) + ".qs")
-                  .exists()) {
+              while (new File(CNV_DIRECTORY + id + (version == 0 ? "" : "." + version)
+                              + ".qs").exists()) {
                 version++;
               }
-              cnvWriter = new PrintWriter(
-                  new FileWriter(CNV_DIRECTORY + id + (version == 0 ? "" : "." + version) + ".qs"));
-              cnvWriter
-                  .println("Name\tChr\tPosition\t" + id + ".Log R Ratio\t" + id + ".B Allele Freq");
+              cnvWriter =
+                  new PrintWriter(new FileWriter(CNV_DIRECTORY + id
+                                                 + (version == 0 ? "" : "." + version) + ".qs"));
+              cnvWriter.println("Name\tChr\tPosition\t" + id + ".Log R Ratio\t" + id
+                                + ".B Allele Freq");
             } else if (!trav.equals(id)) {
-              System.err
-                  .println("Found " + trav + " -- expecting " + id + " in file " + file.getName());
+              System.err.println("Found " + trav + " -- expecting " + id + " in file "
+                                 + file.getName());
               System.exit(1);
             }
             if (!snpNames[count].equals(line[indices[ext.indexOfStr("SNP Name", FIELDS)]])) {
               System.err.println("Found " + line[indices[ext.indexOfStr("SNP Name", FIELDS)]]
-                  + " -- expecting " + snpNames[count] + " in file " + file.getName());
+                                 + " -- expecting " + snpNames[count] + " in file "
+                                 + file.getName());
               System.exit(1);
             }
 
@@ -236,8 +239,8 @@ public class QuantiSNP {
           reader.close();
           cnvWriter.close();
         } catch (FileNotFoundException fnfe) {
-          System.err
-              .println("Error: file \"" + file.getName() + "\" not found in current directory");
+          System.err.println("Error: file \"" + file.getName()
+                             + "\" not found in current directory");
           System.exit(1);
         } catch (IOException ioe) {
           System.err.println("Error reading file \"" + file.getName() + "\"");
@@ -269,13 +272,13 @@ public class QuantiSNP {
     double bayesCutoff = BAYES_FACTOR_CUTOFF;
 
     String usage = "\\n" + "park.cnv.QuantiSNP requires 0-1 arguments\n"
-        + "   (1) root directory of CNV files (i.e. root=" + root + " (default))\n"
-        + "   (2) -createFiles (not the default)\n"
-        + "   (3) number of batches to create (i.e. batches=" + numBatches + " (not the default))\n"
-        + "   (4) -parseResults (not the default)\n"
-        + "   (5) file with list of inidiuvdals to parse (i.e. include=keeps.txt (default is to include all with results))\n"
-        + "   (6) bayes factor threshold for inclusion (i.e. bf=" + bayesCutoff + " (default))\n"
-        + "   (7) -filter (not the default)\n" + "";
+                   + "   (1) root directory of CNV files (i.e. root=" + root + " (default))\n"
+                   + "   (2) -createFiles (not the default)\n"
+                   + "   (3) number of batches to create (i.e. batches=" + numBatches
+                   + " (not the default))\n" + "   (4) -parseResults (not the default)\n"
+                   + "   (5) file with list of inidiuvdals to parse (i.e. include=keeps.txt (default is to include all with results))\n"
+                   + "   (6) bayes factor threshold for inclusion (i.e. bf=" + bayesCutoff
+                   + " (default))\n" + "   (7) -filter (not the default)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -328,7 +331,7 @@ public class QuantiSNP {
   }
 
   public static void parseResults(String rootDirectory, String outputDirectory, String included,
-      double bayesCutoff) {
+                                  double bayesCutoff) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -347,7 +350,7 @@ public class QuantiSNP {
       reader.close();
     } catch (FileNotFoundException fnfe) {
       System.err.println("Error: file \"" + rootDirectory + LOOKUP_PLUS_GENDER_FILE
-          + "\" not found in current directory");
+                         + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + rootDirectory + LOOKUP_PLUS_GENDER_FILE + "\"");
@@ -368,14 +371,14 @@ public class QuantiSNP {
         inds[i] = outputs[i].substring(0, outputs[i].lastIndexOf("_"));
       }
     } else {
-      inds = Array.toStringArray(
-          HashVec.loadFileToVec(rootDirectory, false, new int[] {0, 1}, true, false));
-      System.out
-          .println("Using all indivduals listed in '" + included + "' (n=" + inds.length + ")");
+      inds = Array.toStringArray(HashVec.loadFileToVec(rootDirectory, false, new int[] {0, 1}, true,
+                                                       false));
+      System.out.println("Using all indivduals listed in '" + included + "' (n=" + inds.length
+                         + ")");
       for (String ind : inds) {
         if (ext.indexOfStr(ind + "_output.out", outputs) == -1) {
           System.err.println("Error - '" + ind
-              + "' was found in the list of indiviudals to parse, but no results were found for this sample");
+                             + "' was found in the list of indiviudals to parse, but no results were found for this sample");
         }
       }
     }
@@ -385,24 +388,25 @@ public class QuantiSNP {
       writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
       for (String ind : inds) {
         try {
-          reader = new BufferedReader(
-              new FileReader(rootDirectory + outputDirectory + ind + "_output.out"));
+          reader = new BufferedReader(new FileReader(rootDirectory + outputDirectory + ind
+                                                     + "_output.out"));
           reader.readLine();
           while (reader.ready()) {
             line = reader.readLine().trim().split("[\\s]+");
             if (line[9].equals("Inf") || Double.parseDouble(line[9]) > bayesCutoff) {
               writer.println(lookupDNAtoSubject.get(ind) + "\t" + line[1] + "\t" + line[2] + "\t"
-                  + line[3] + "\t" + line[8] + "\t" + (line[9].equals("Inf") ? "999" : line[9])
-                  + "\t" + line[7]);
+                             + line[3] + "\t" + line[8] + "\t"
+                             + (line[9].equals("Inf") ? "999" : line[9]) + "\t" + line[7]);
             }
           }
           reader.close();
         } catch (FileNotFoundException fnfe) {
           System.err.println("Error: file \"" + rootDirectory + outputDirectory + ind
-              + "_output.out" + "\" not found in directory... won't be in final plink.cnv file");
+                             + "_output.out"
+                             + "\" not found in directory... won't be in final plink.cnv file");
         } catch (IOException ioe) {
           System.err.println("Error reading file \"" + rootDirectory + outputDirectory + ind
-              + "_output.out" + "\"");
+                             + "_output.out" + "\"");
           System.exit(2);
         }
         // writer.println(inds[i]);

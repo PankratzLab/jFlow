@@ -54,7 +54,7 @@ public class McNemarsTest {
         trav = hash.get(pairings[i][j]);
         if (trav == null) {
           System.err.println("Error - UniqueID '" + pairings[i][j] + "' was not found in the file '"
-              + database + "'");
+                             + database + "'");
         } else {
           data[i][j] = trav.split("[\\s]+");
         }
@@ -62,8 +62,7 @@ public class McNemarsTest {
     }
     try {
       writer = new PrintWriter(new FileWriter(dir + ext.rootOf(pairs) + "_results.xln"));
-      writer.println(
-          "Variable\tn\ta\tb\tc\td\trisk\tchisq\tp-value\tchisq with continuity\tp-value with continuity\tsign-test\tproper_pvalue");
+      writer.println("Variable\tn\ta\tb\tc\td\trisk\tchisq\tp-value\tchisq with continuity\tp-value with continuity\tsign-test\tproper_pvalue");
       for (int i = 0; i < analysisVariables.length; i++) {
         System.err.println("Analyzing " + analysisVariables[i]);
         round = new int[pairings.length][2];
@@ -88,7 +87,7 @@ public class McNemarsTest {
         mt = new McNemarsTest(round);
         mt.setContinuity(false);
         writer.print(analysisVariables[i] + "\t" + count + "\t" + Array.toStr(mt.getABCD()) + "\t"
-            + mt.getDirectionOfRisk() + "\t" + mt.getChiSq() + "\t" + mt.getPvalue());
+                     + mt.getDirectionOfRisk() + "\t" + mt.getChiSq() + "\t" + mt.getPvalue());
         mt.setContinuity(true);
         writer.print("\t" + mt.getChiSq() + "\t" + mt.getPvalue());
         writer.print("\t" + mt.getPvalueFromBinomialDistribution());
@@ -137,8 +136,7 @@ public class McNemarsTest {
       } else if (element[0] == 0 && element[1] == 0) {
         d++;
       } else {
-        System.err.println(
-            "Error - invalid input for McNemar's test (); must be 0, 1, or missing (-1); use the Cochran test for more than two states (not yet implemented)");
+        System.err.println("Error - invalid input for McNemar's test (); must be 0, 1, or missing (-1); use the Cochran test for more than two states (not yet implemented)");
       }
     }
     if (count == matrix.length) {
@@ -157,8 +155,8 @@ public class McNemarsTest {
     }
     if (b + c < 20) {
       System.err.println("Error - Since b (" + b + ") + c (" + c + ") is less than 20"
-          + (variable == null ? "" : " for variable " + variable)
-          + ", a sign test should be used instead of McNemar's test (unfortunately not yet implemented)");
+                         + (variable == null ? "" : " for variable " + variable)
+                         + ", a sign test should be used instead of McNemar's test (unfortunately not yet implemented)");
     }
     return Math.pow((double) Math.abs(b - c) - (continuity ? 1 : 0), 2) / (b + c);
   }
@@ -181,7 +179,7 @@ public class McNemarsTest {
 
   public double getPvalue() {
     return (b + c < THRESHOLD ? getPvalueFromBinomialDistribution()
-        : getPvalueFromMcNemarTestNoMatterWhat());
+                              : getPvalueFromMcNemarTestNoMatterWhat());
   }
 
   public double getPvalueFromBinomialDistribution() {

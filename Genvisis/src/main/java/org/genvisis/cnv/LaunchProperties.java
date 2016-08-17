@@ -50,8 +50,7 @@ public class LaunchProperties extends Properties {
 
     dir = (String) get(PROJECTS_DIR);
     if (dir == null || !Files.exists(dir)) {
-      new Logger().reportTimeWarning(
-          "Did not detect directory with projects (or was missing property). Defaulting to projects/");
+      new Logger().reportTimeWarning("Did not detect directory with projects (or was missing property). Defaulting to projects/");
       // System.err.println("Error - '" + filename + "' did not contain a property called \"" +
       // PROJECTS_DIR + "\"");
       dir = "projects/";

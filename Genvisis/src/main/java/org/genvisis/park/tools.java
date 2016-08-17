@@ -21,9 +21,9 @@ public class tools {
   public static final String MASTER_PLATELIST_DIR =
       "C:\\Documents and Settings\\npankrat\\My Documents\\2_platelists\\";
   public static final String[] NINFO1_HEADER = {"FamNo", "IndNo", "AgeOfOnset", "IllnessStatusCode",
-      "DNA", "Sex", "IllnessCode", "RaceCode"};
+                                                "DNA", "Sex", "IllnessCode", "RaceCode"};
   public static final String[] NINFO2_HEADER = {"FamNo", "IndNo", "Sex", "Deceased", "FatherInd",
-      "MotherInd", "IllnessCode", "IllnessStatusCode"};
+                                                "MotherInd", "IllnessCode", "IllnessStatusCode"};
   public static final String[] PD_NAMES = {"PD", "PD+", "LB", "DLB"};
   public static final String[] PD_DX = {"CONF_PD", "VPD", "NVPD", "RPD"};
   public static final String[] AFFECTED = {"VPD", "NVPD", "RPD", "FRPT", "CONF", "POSS", "PROB"};
@@ -55,11 +55,11 @@ public class tools {
               trav = line[7];
             } else {
               System.err.println("Error - Unknown PD designation for individual " + line[0] + "-"
-                  + line[1] + ": '" + line[7] + "'");
+                                 + line[1] + ": '" + line[7] + "'");
               trav = "0";
             }
             prev = hash.containsKey(line[0] + "\t" + line[1]) ? hash.get(line[0] + "\t" + line[1])
-                : "0";
+                                                              : "0";
             if (prev.equals("VPD")) {
               trav = "VPD";
             } else if (prev.equals("NVPD")) {
@@ -88,7 +88,7 @@ public class tools {
    *         member of the sibship
    */
   public static String[][] getCombonentsOfTheMajorSibships(boolean onlyIncludeAffecteds,
-      boolean onlyCountVPD) {
+                                                           boolean onlyCountVPD) {
     BufferedReader reader;
     String[] line, fams, rents;
     String trav;
@@ -197,11 +197,11 @@ public class tools {
               trav = line[7];
             } else {
               System.err.println("Error - Unknown PD designation for individual " + line[0] + "-"
-                  + line[1] + ": '" + line[7] + "'");
+                                 + line[1] + ": '" + line[7] + "'");
               trav = "0";
             }
             prev = hash.containsKey(line[0] + "\t" + line[1]) ? hash.get(line[0] + "\t" + line[1])
-                : "0";
+                                                              : "0";
             if (prev.equals("CONF_PD")) {
               trav = "CONF_PD";
             } else if (prev.equals("VPD") && !trav.equals("CONF_PD")) {
@@ -258,8 +258,8 @@ public class tools {
 
     if (index == -1) {
       if (famIndId.startsWith("7")) {
-        System.err
-            .println("Error - couldn't split '" + famIndId + "' into a FamilyID and an IndID");
+        System.err.println("Error - couldn't split '" + famIndId
+                           + "' into a FamilyID and an IndID");
       }
       return new String[] {famIndId, famIndId};
     }
@@ -289,8 +289,8 @@ public class tools {
         } else if (line[2].equals("N") || line[2].equals("?")) {
           trav = "0";
         } else {
-          System.err.println(
-              "Error - unknown gender code for " + line[0] + "-" + line[1] + " (" + line[2] + ")");
+          System.err.println("Error - unknown gender code for " + line[0] + "-" + line[1] + " ("
+                             + line[2] + ")");
           trav = "0";
         }
         hash.put(line[0] + "\t" + line[1], trav);
@@ -331,10 +331,9 @@ public class tools {
       }
     } catch (Exception e) {
       System.err.println("Error - ninfo" + whichNinfo
-          + ".dat not found in the current, 00ninfos, or 00masters directories");
+                         + ".dat not found in the current, 00ninfos, or 00masters directories");
       if (whichNinfo == 3) {
-        System.err.println(
-            "        --> assuming there are no autopsies, MZ twins, half sibs or ID-DNA# mixups that need to be addressed");
+        System.err.println("        --> assuming there are no autopsies, MZ twins, half sibs or ID-DNA# mixups that need to be addressed");
       } else {
         System.err.println("Please rectify");
       }
@@ -356,8 +355,8 @@ public class tools {
     }
 
     if (famid.length() != 5 || indid.length() > 3) {
-      System.err.println(
-          "Warning - '" + famid + "' and '" + indid + "', wrong lengths for a PD identifier");
+      System.err.println("Warning - '" + famid + "' and '" + indid
+                         + "', wrong lengths for a PD identifier");
     }
     return famid + ext.formNum(Integer.parseInt(indid), 3);
   }
@@ -444,7 +443,7 @@ public class tools {
       dbFile = ALT_DIR + dbFile;
     } else {
       System.err.println("Error - could not find the database (" + DB_FILE
-          + ") in current directory or alternate:\n" + ALT_DIR);
+                         + ") in current directory or alternate:\n" + ALT_DIR);
       System.exit(2);
     }
 

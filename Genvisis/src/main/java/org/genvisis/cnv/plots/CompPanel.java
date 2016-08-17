@@ -29,7 +29,7 @@ import org.genvisis.filesys.CNVariant;
  *
  */
 public class CompPanel extends JPanel
-    implements MouseListener, MouseMotionListener, MouseWheelListener {
+                       implements MouseListener, MouseMotionListener, MouseWheelListener {
   public static final long serialVersionUID = 1L;
 
   CompPlot plot;
@@ -137,8 +137,9 @@ public class CompPanel extends JPanel
         ArrayList<CNVariant> currentCNVs = cnvRect.getCNVs();
         CNVariant cnv = cnvRect.getCNV();
         String toolTipText = "<html>IID: " + cnv.getIndividualID() + "<br/>FID: "
-            + cnv.getFamilyID() + "<br/>Length: " + cnv.getSize() + "<br/>Copies: " + cnv.getCN()
-            + "<br/>Probes: " + cnv.getNumMarkers() + "<br/>Score: " + cnv.getScore();
+                             + cnv.getFamilyID() + "<br/>Length: " + cnv.getSize() + "<br/>Copies: "
+                             + cnv.getCN() + "<br/>Probes: " + cnv.getNumMarkers() + "<br/>Score: "
+                             + cnv.getScore();
         // Add an indication of how many other CNVs are in this collapsed view
         if (currentCNVs.size() > 1) {
           toolTipText += "<br/>Plus " + (currentCNVs.size() - 1) + " others</html>";

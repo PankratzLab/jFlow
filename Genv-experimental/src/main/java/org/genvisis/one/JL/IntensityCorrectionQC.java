@@ -239,7 +239,7 @@ public class IntensityCorrectionQC {
     }
 
     public void addICCMarkerResults(int index,
-        IntensityCorrectionQC.ICCMarkerResults icMarkerResult) {
+                                    IntensityCorrectionQC.ICCMarkerResults icMarkerResult) {
       icMarkerResults[index] = icMarkerResult;
     }
 
@@ -295,9 +295,9 @@ public class IntensityCorrectionQC {
     private final Logger log;
 
     public WorkerResidual(double[] data, LS_TYPE lType,
-        PrincipalComponentsResiduals pcComponentsResiduals,
-        IntensityCorrectionQC.ClassDefinition[] classDefinitions, boolean[] modelDefMask, int pc,
-        Logger log) {
+                          PrincipalComponentsResiduals pcComponentsResiduals,
+                          IntensityCorrectionQC.ClassDefinition[] classDefinitions,
+                          boolean[] modelDefMask, int pc, Logger log) {
       this.data = data;
       this.lType = lType;
       this.pcComponentsResiduals = pcComponentsResiduals;
@@ -310,7 +310,7 @@ public class IntensityCorrectionQC {
     @Override
     public double[] call() {
       return IntensityCorrectionQC.computeAt(data, lType, pcComponentsResiduals, classDefinitions,
-          modelDefMask, pc, log);
+                                             modelDefMask, pc, log);
     }
   }
 
@@ -348,8 +348,9 @@ public class IntensityCorrectionQC {
   public static final int INCLUDED_IN_PC_INT = 1;
 
   public static double[] computeAt(double[] data, LS_TYPE lType,
-      PrincipalComponentsResiduals pcComponentsResiduals, ClassDefinition[] classDefinitions,
-      boolean[] modelDefMask, int pc, Logger log) {
+                                   PrincipalComponentsResiduals pcComponentsResiduals,
+                                   ClassDefinition[] classDefinitions, boolean[] modelDefMask,
+                                   int pc, Logger log) {
     double[] currentData = null;
     if (pc == 0) {
       currentData = data;
@@ -359,7 +360,7 @@ public class IntensityCorrectionQC {
       currentData = crossValidation.getResiduals();
       if (pc == 100) {
         Files.writeList(Array.toStringArray(currentData),
-            pcComponentsResiduals.getProj().PROJECT_DIRECTORY.getValue() + "DFSD.txt");
+                        pcComponentsResiduals.getProj().PROJECT_DIRECTORY.getValue() + "DFSD.txt");
         System.exit(1);
       }
     }
@@ -433,8 +434,8 @@ public class IntensityCorrectionQC {
           }
         }
       } else {
-        proj.getLog().reportError(
-            "Error - could not verify that class definitions and pcs were in the same order");
+        proj.getLog()
+            .reportError("Error - could not verify that class definitions and pcs were in the same order");
         return;
       }
     }
@@ -447,8 +448,8 @@ public class IntensityCorrectionQC {
         writer.println("NumMarkers\tPC\tAvgICC\tMedianICC\tStdevICC");
         for (int j = 0; j < pcsTested.length; j++) {
           writer.println(icClassResults[i].getSizeAt(j) + "\t" + pcsTested[j] + "\t"
-              + icClassResults[i].getAvgAt(j) + "\t" + icClassResults[i].getMedianAt(j) + "\t"
-              + icClassResults[i].getStdevAt(j));
+                         + icClassResults[i].getAvgAt(j) + "\t" + icClassResults[i].getMedianAt(j)
+                         + "\t" + icClassResults[i].getStdevAt(j));
         }
         writer.close();
       } catch (Exception e) {
@@ -491,7 +492,8 @@ public class IntensityCorrectionQC {
   }
 
   public static void ICCtheClasses(Project proj, double[] data, String output, String dir,
-      int startPC, int stopPC, int jumpPC, LS_TYPE lType, int numThreads) {
+                                   int startPC, int stopPC, int jumpPC, LS_TYPE lType,
+                                   int numThreads) {
     new File(dir).mkdirs();
     PrincipalComponentsResiduals pcComponentsResiduals = proj.loadPcResids();
     ClassDefinition[] classDefinitions = ClassDefinition.getClassDefinitionsFromSampleData(proj);
@@ -515,8 +517,10 @@ public class IntensityCorrectionQC {
     Hashtable<String, Future<double[]>> tmpResults = new Hashtable<String, Future<double[]>>();
     double[][] allResults = new double[numTests][];
     for (int i = startPC; i < stopPC; i += jumpPC) {
-      tmpResults.put(i + "", executor.submit(new WorkerResidual(data, lType, pcComponentsResiduals,
-          classDefinitions, modelDefMask, i, proj.getLog())));
+      tmpResults.put(i + "",
+                     executor.submit(new WorkerResidual(data, lType, pcComponentsResiduals,
+                                                        classDefinitions, modelDefMask, i,
+                                                        proj.getLog())));
     }
     index = 0;
     for (int i = startPC; i < stopPC; i += jumpPC) {
@@ -559,8 +563,8 @@ public class IntensityCorrectionQC {
   }
 
   public static void ICCtheClasses(Project proj, String[] markers, int numCorrectionThreads,
-      int numMarkerThreads, String output, String dir, int startPC, int stopPC, int jumpPC,
-      boolean mitoMode) {
+                                   int numMarkerThreads, String output, String dir, int startPC,
+                                   int stopPC, int jumpPC, boolean mitoMode) {
     new File(dir).mkdirs();
     PrincipalComponentsResiduals pcComponentsResiduals = proj.loadPcResids();
     ClassDefinition[] classDefinitions = ClassDefinition.getClassDefinitionsFromSampleData(proj);
@@ -584,8 +588,8 @@ public class IntensityCorrectionQC {
 
     ICCMarkerResultsBatch icMarkerResultsBatch = new ICCMarkerResultsBatch(markers.length);
     for (int i = 0; i < markers.length; i++) {
-      icMarkerResultsBatch.addICCMarkerResults(i,
-          new ICCMarkerResults(markers[i], allClasses, pcsTested));
+      icMarkerResultsBatch.addICCMarkerResults(i, new ICCMarkerResults(markers[i], allClasses,
+                                                                       pcsTested));
       MarkerData markerData = markerDataLoader.requestMarkerData(i);
       proj.getLog().report("Info - marker " + i + " of " + markers.length);
       float[] lrrs = markerData.getLRRs();
@@ -610,8 +614,9 @@ public class IntensityCorrectionQC {
         } else {
           PrincipalComponentsIntensity principalComponentsIntensity =
               new PrincipalComponentsIntensity(pcComponentsResiduals, markerData, true, sampleSex,
-                  tmpSampleFilter, 1.0D, 0.0D, null, true, LS_TYPE.REGULAR, 2, 5, 0.0D, 0.1D,
-                  numCorrectionThreads, false, null);
+                                               tmpSampleFilter, 1.0D, 0.0D, null, true,
+                                               LS_TYPE.REGULAR, 2, 5, 0.0D, 0.1D,
+                                               numCorrectionThreads, false, null);
           principalComponentsIntensity.correctXYAt(j);
           if (!principalComponentsIntensity.isFail()) {
             lrrICC = principalComponentsIntensity.getCorrectedIntensity("BAF_LRR", true)[1];
@@ -689,7 +694,7 @@ public class IntensityCorrectionQC {
       }
       reader.close();
       int[] indices = ext.indexLargeFactors(samples.toArray(new String[samples.size()]),
-          proj.getSamples(), true, log, true, true);
+                                            proj.getSamples(), true, log, true, true);
 
       reader = Files.getAppropriateReader(dataFile);
       reader.readLine();
@@ -766,7 +771,7 @@ public class IntensityCorrectionQC {
     // chrInd[3]), 300, proj.getLog());
 
     ICCtheClasses(proj, Array.subArray(proj.getMarkerNames(), chrInd[26]), 6, 1, "Mito", "mitos/",
-        0, 1500, 5, true);
+                  0, 1500, 5, true);
     dumpToText(proj, "mitos/");
     for (int i = 0; i < 25; i++) {
     }
@@ -774,10 +779,10 @@ public class IntensityCorrectionQC {
   }
 
   public static void test2(Project proj, String dataFile, LS_TYPE lType, int numThreads,
-      int jumpPC) {
+                           int jumpPC) {
     double[] data = loadDataFile(proj, dataFile, proj.getLog());
 
     ICCtheClasses(proj, data, "Mito", "mitos/", 0, proj.INTENSITY_PC_NUM_COMPONENTS.getValue(),
-        jumpPC, lType, numThreads);
+                  jumpPC, lType, numThreads);
   }
 }

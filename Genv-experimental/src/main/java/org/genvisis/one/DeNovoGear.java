@@ -16,8 +16,9 @@ import org.genvisis.common.ext;
 public class DeNovoGear {
 
   public static void generateScripts(String pedigreeFileFullPath, String bamFilesDir,
-      String bcfFilesDir, String denovogearResultDir, String scriptFileDir, String qsubLogsDir,
-      String bamFilePrefix, String bamFileSuffix, Logger log) {
+                                     String bcfFilesDir, String denovogearResultDir,
+                                     String scriptFileDir, String qsubLogsDir, String bamFilePrefix,
+                                     String bamFileSuffix, Logger log) {
     Scanner reader;
     PrintWriter writer;
     String[] line;
@@ -40,16 +41,16 @@ public class DeNovoGear {
       while (reader.hasNext()) {
         line = reader.nextLine().split("\t");
         if (!(new File(bamFilesDir + bamFilePrefix + line[1] + ".bam").exists()
-            || new File(bamFilesDir + bamFilePrefix + line[2] + ".bam").exists()
-            || new File(bamFilesDir + bamFilePrefix + line[3] + ".bam").exists())) {
+              || new File(bamFilesDir + bamFilePrefix + line[2] + ".bam").exists()
+              || new File(bamFilesDir + bamFilePrefix + line[3] + ".bam").exists())) {
           log.reportError("Not all bam files are found for the trio " + line[1] + "; " + line[2]
-              + "; " + line[3] + "\nSystem quit with error.");
+                          + "; " + line[3] + "\nSystem quit with error.");
           System.exit(1);
         } else if (!new File(denovogearResultDir + line[1] + ".txt").exists()) {
           writer = new PrintWriter(new FileOutputStream(bcfFilesDir + line[1] + ".ped"));
           if (bamFileSuffix != null) {
-            writer.println(
-                line[0] + "\t" + line[0] + "C\t" + line[0] + "D\t" + line[0] + "M\t-1\t-1");
+            writer.println(line[0] + "\t" + line[0] + "C\t" + line[0] + "D\t" + line[0]
+                           + "M\t-1\t-1");
           } else {
             writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t-1\t-1");
           }
@@ -61,13 +62,13 @@ public class DeNovoGear {
             // line[2] + ".bam " + bamFilesDir + bamFilePrefix + line[3] + ".bam > " + bcfFilesDir +
             // line[1] + ".bcf";
             command += "\nsamtools mpileup -gDf /home/spectorl/xuz2/hg19_canonical.fa "
-                + bamFilesDir + bamFilePrefix + line[1] + ".bam " + bamFilesDir + bamFilePrefix
-                + line[2] + ".bam " + bamFilesDir + bamFilePrefix + line[3] + ".bam > "
-                + bcfFilesDir + line[1] + ".bcf";
+                       + bamFilesDir + bamFilePrefix + line[1] + ".bam " + bamFilesDir
+                       + bamFilePrefix + line[2] + ".bam " + bamFilesDir + bamFilePrefix + line[3]
+                       + ".bam > " + bcfFilesDir + line[1] + ".bcf";
           }
           command += "\n~/bin/denovogear/build/src/denovogear dnm auto --ped " + bcfFilesDir
-              + line[1] + ".ped --bcf " + bcfFilesDir + line[1] + ".bcf > " + denovogearResultDir
-              + line[1] + ".txt";
+                     + line[1] + ".ped --bcf " + bcfFilesDir + line[1] + ".bcf > "
+                     + denovogearResultDir + line[1] + ".txt";
           Files.qsub(scriptFileDir + line[1] + ".qsub", command, 2000, 24, 1);
           qsubFilesVec.add(scriptFileDir + line[1] + ".qsub");
         }
@@ -99,7 +100,8 @@ public class DeNovoGear {
     // Files.qsubMultiple(jobNamesWithAbsolutePaths, null, scriptFileDir, "qsubmultiple_",
     // qsubFiles.length<16?qsubFiles.length:16, true, null, -1, 22000, 24);
     Files.qsubMultiple(qsubFilesVec, null, scriptFileDir, "qsubmultiple_",
-        qsubFilesVec.size() < 4 ? qsubFilesVec.size() : 4, true, null, -1, 22000, 24);
+                       qsubFilesVec.size() < 4 ? qsubFilesVec.size() : 4, true, null, -1, 22000,
+                       24);
   }
 
   public static void main(String[] args) {
@@ -125,23 +127,26 @@ public class DeNovoGear {
     bamFileSuffix = "_L00?";
 
     commands = new String[] {"ped=", "bamdir=", "bcfdir=", "out=", "scriptdir=", "qsublogsdir=",
-        "bamprefix=", "bamsuffiex="};
+                             "bamprefix=", "bamsuffiex="};
     // commandVariables = new String[] {pedigreeFileFullPath, bamFilesDir, bcfFilesDir,
     // denovogearResultDir};
-    String usage = "\n"
-        + "cnv.analysis.DeNovoCNV analysis normally contains the following steps, split into several rounds, within each of which all the steps will be finished by just calling the program once.\n"
-        + "   (1) full path of the pedigree file (i.e. " + commands[0] + pedigreeFileFullPath
-        + " (the default));\n" + "   (2) directory of the source data bam files (i.e. "
-        + commands[1] + bamFilesDir + " (the default));\n"
-        + "   (3) directory to place the interim data bcf files (i.e. " + commands[2] + bcfFilesDir
-        + " (the default));\n" + "   (4) directory to place the results of DeNovoGear (i.e. "
-        + commands[3] + denovogearResultDir + " (the default));\n"
-        + "   (5) directory to place the script files generated by this program (i.e. "
-        + commands[4] + scriptFileDir + " (the default));\n"
-        + "   (6) directory to place the log files for the scripts to run (i.e. " + commands[5]
-        + qsubLogsDir + " (the default));\n" + "   (7) prefix of bam files (i.e. " + commands[6]
-        + bamFilePrefix + " (the default));\n" + "   (8) suffix of bam files (i.e. " + commands[7]
-        + bamFileSuffix + " (the default));\n" + "";
+    String usage =
+        "\n" + "cnv.analysis.DeNovoCNV analysis normally contains the following steps, split into several rounds, within each of which all the steps will be finished by just calling the program once.\n"
+                   + "   (1) full path of the pedigree file (i.e. " + commands[0]
+                   + pedigreeFileFullPath + " (the default));\n"
+                   + "   (2) directory of the source data bam files (i.e. " + commands[1]
+                   + bamFilesDir + " (the default));\n"
+                   + "   (3) directory to place the interim data bcf files (i.e. " + commands[2]
+                   + bcfFilesDir + " (the default));\n"
+                   + "   (4) directory to place the results of DeNovoGear (i.e. " + commands[3]
+                   + denovogearResultDir + " (the default));\n"
+                   + "   (5) directory to place the script files generated by this program (i.e. "
+                   + commands[4] + scriptFileDir + " (the default));\n"
+                   + "   (6) directory to place the log files for the scripts to run (i.e. "
+                   + commands[5] + qsubLogsDir + " (the default));\n"
+                   + "   (7) prefix of bam files (i.e. " + commands[6] + bamFilePrefix
+                   + " (the default));\n" + "   (8) suffix of bam files (i.e. " + commands[7]
+                   + bamFileSuffix + " (the default));\n" + "";
 
     for (String arg : args) {
       if (arg.startsWith(commands[0])) {
@@ -168,15 +173,15 @@ public class DeNovoGear {
     }
 
     log = new Logger(ext.parseDirectoryOfFile(pedigreeFileFullPath) + "Genvisis_"
-        + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
+                     + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
     log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date())
-        + ": starting generating qsub files for DeNovoGear.java");
+               + ": starting generating qsub files for DeNovoGear.java");
 
     generateScripts(pedigreeFileFullPath, bamFilesDir, bcfFilesDir, denovogearResultDir,
-        scriptFileDir, qsubLogsDir, bamFilePrefix, bamFileSuffix, log);
+                    scriptFileDir, qsubLogsDir, bamFilePrefix, bamFileSuffix, log);
 
     log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date())
-        + ": completed generating qsub files for DeNovoGear.java.");
+               + ": completed generating qsub files for DeNovoGear.java.");
   }
 
 }

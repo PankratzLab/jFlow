@@ -32,7 +32,7 @@ public class PrincipalComponentsApply {
    */
   public static class MarkerLoadings {
     public static MarkerLoadings[] getLoadings(String markerLoadingFile, int numComponents,
-        Logger log) {
+                                               Logger log) {
       ArrayList<MarkerLoadings> ml = new ArrayList<MarkerLoadings>();
       try {
         BufferedReader reader = Files.getReader(markerLoadingFile, false, true, false);
@@ -40,15 +40,14 @@ public class PrincipalComponentsApply {
         int[] indices = ext.indexFactors(LOADING_FIRST, line, true, true);
         if (indices == null || indices[0] != 0) {
           log.reportError("Error - Marker Loading file  must have " + Array.toStr(LOADING_FIRST)
-              + " in the first column");
+                          + " in the first column");
           System.exit(1);
         }
         if ((line.length - 1) < numComponents) {
-          log.reportError(
-              "Error - Can only apply " + (line.length - 1) + " marker loadings (as provided in "
-                  + markerLoadingFile + ", not enough for " + numComponents + " components");
-          log.reportError(
-              "Please apply a smaller number of components, or provide a file with more loadings");
+          log.reportError("Error - Can only apply " + (line.length - 1)
+                          + " marker loadings (as provided in " + markerLoadingFile
+                          + ", not enough for " + numComponents + " components");
+          log.reportError("Please apply a smaller number of components, or provide a file with more loadings");
           System.exit(1);
         }
         while (reader.ready()) {
@@ -59,8 +58,8 @@ public class PrincipalComponentsApply {
             try {
               loadings[i - 1] = Double.parseDouble(line[i]);
             } catch (NumberFormatException nfe) {
-              log.reportError(
-                  "Error - could not parse marking loading value " + line[i] + " to a double");
+              log.reportError("Error - could not parse marking loading value " + line[i]
+                              + " to a double");
               System.exit(1);
             }
           }
@@ -128,8 +127,8 @@ public class PrincipalComponentsApply {
         String[] line = reader.readLine().trim().split("\t");
         int[] indices = ext.indexFactors(line, SINGULAR_HEADER, true, false);
         if (indices == null) {
-          log.reportError(
-              "Error - singular value file must have header " + Array.toStr(SINGULAR_HEADER));
+          log.reportError("Error - singular value file must have header "
+                          + Array.toStr(SINGULAR_HEADER));
           return;
         }
         while (reader.ready()) {
@@ -152,9 +151,8 @@ public class PrincipalComponentsApply {
       }
       if (numSingular != singularValues.length) {
         log.reportError("Error - not enough singular values were found in " + singularFile + " for "
-            + numComponents + " components");
-        log.reportError(
-            "Please select a smaller number of components, or provide a file with more singular values");
+                        + numComponents + " components");
+        log.reportError("Please select a smaller number of components, or provide a file with more singular values");
       }
     }
   }
@@ -202,8 +200,8 @@ public class PrincipalComponentsApply {
    * @param log
    */
   public PrincipalComponentsApply(Project proj, int numComponents, String singularFile,
-      String markerLoadingFile, boolean[] samplesToUse, boolean imputeMeanForNaN,
-      boolean recomputeLRR) {
+                                  String markerLoadingFile, boolean[] samplesToUse,
+                                  boolean imputeMeanForNaN, boolean recomputeLRR) {
     super();
     this.proj = proj;
     log = proj.getLog();
@@ -211,8 +209,9 @@ public class PrincipalComponentsApply {
         new SingularValues(proj.PROJECT_DIRECTORY.getValue() + singularFile, numComponents, log);
     this.numComponents = numComponents;
     this.samplesToUse = samplesToUse;
-    markerLoadings = MarkerLoadings
-        .getLoadings(proj.PROJECT_DIRECTORY.getValue() + markerLoadingFile, numComponents, log);
+    markerLoadings =
+        MarkerLoadings.getLoadings(proj.PROJECT_DIRECTORY.getValue() + markerLoadingFile,
+                                   numComponents, log);
     this.imputeMeanForNaN = imputeMeanForNaN;
     this.recomputeLRR = recomputeLRR;
     getMarkers();
@@ -224,14 +223,13 @@ public class PrincipalComponentsApply {
    */
   public void applyLoadings() {
     if (proj.getSampleList().getSamples().length != samplesToUse.length) {
-      log.reportError(
-          "Error - the boolean array of samples to use does not equal the length of the samples in the project, exiting");
+      log.reportError("Error - the boolean array of samples to use does not equal the length of the samples in the project, exiting");
       return;
     } else {
 
       if (params != null && recomputeLRR) {
-        proj.getLog().reportTimeError(
-            "recompute lrr was flagged AND gc correction parameters were passed to data load when applying PCs");
+        proj.getLog()
+            .reportTimeError("recompute lrr was flagged AND gc correction parameters were passed to data load when applying PCs");
         return;
       }
       if (params != null) {
@@ -253,8 +251,9 @@ public class PrincipalComponentsApply {
           float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
           float maxMemory = Runtime.getRuntime().maxMemory();
           log.report(ext.getTime() + "\tData loaded = "
-              + Math.round(((double) index / (double) markers.length * 100.0)) + "%\tFree memory: "
-              + Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
+                     + Math.round(((double) index / (double) markers.length * 100.0))
+                     + "%\tFree memory: "
+                     + Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
         }
         MarkerData markerData = mdl.next();
         float[] lrrs;
@@ -267,7 +266,8 @@ public class PrincipalComponentsApply {
         if (params != null) {
 
           lrrs = markerData.getGCCorrectedLRRBAF(params,
-              projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
+                                                 projectIndices.get(markerData.getMarkerName()),
+                                                 proj.getLog())[1];
         }
 
         if (!hasNAN(lrrs)) {
@@ -278,7 +278,7 @@ public class PrincipalComponentsApply {
           applyMarkerLoading(lrrs, index);
         } else {
           log.reportError("Warning - marker " + markers[index]
-              + " contained a NaN value in the extrapolated dataset, skipping it for extrapolation");
+                          + " contained a NaN value in the extrapolated dataset, skipping it for extrapolation");
         }
         index++;
         // markerDataLoader.releaseIndex(index);
@@ -371,12 +371,12 @@ public class PrincipalComponentsApply {
     if (Files.exists(output)) {
       if (warn) {
         proj.getLog().report(
-            "Detected that the following extrapolated principal component file already exists:\n"
-                + output + "\n");
+                             "Detected that the following extrapolated principal component file already exists:\n"
+                             + output + "\n");
         proj.getLog()
             .report("Skipping the principal component extrapolation and using this file instead");
-        proj.getLog().report(
-            "If this is incorrect (using a different number of components, new samples, etc...),  please remove or change the name of the file listed above.\n Alternatively, specify a new analysis name");
+        proj.getLog()
+            .report("If this is incorrect (using a different number of components, new samples, etc...),  please remove or change the name of the file listed above.\n Alternatively, specify a new analysis name");
       }
       exists = true;
     }
@@ -393,7 +393,7 @@ public class PrincipalComponentsApply {
     try {
       if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + output)) {
         Files.backup(output, proj.PROJECT_DIRECTORY.getValue(),
-            proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
+                     proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
       }
       PrintWriter writer =
           new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output));
@@ -417,8 +417,8 @@ public class PrincipalComponentsApply {
       }
       writer.close();
     } catch (FileNotFoundException fnfe) {
-      log.reportError(
-          "Error: file \"" + output + "\" could not be written to (it's probably open)");
+      log.reportError("Error: file \"" + output
+                      + "\" could not be written to (it's probably open)");
       log.reportException(fnfe);
       System.exit(1);
     } catch (IOException ioe) {

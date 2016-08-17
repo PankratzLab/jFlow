@@ -53,8 +53,8 @@ public class Merlin {
       }
     } else {
       commands = "echo \"Starting chr# at...\"\n" + "date\n" + "jcp link.Merlin chr=#\n"
-          + "merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --npl --tabulate --step 5 --markerNames --information --ibd --prefix merlin-chr##\n"
-          + "echo \"Finished chr# at...\"\n" + "date\n";
+                 + "merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --npl --tabulate --step 5 --markerNames --information --ibd --prefix merlin-chr##\n"
+                 + "echo \"Finished chr# at...\"\n" + "date\n";
       Files.batchIt("batch", 0, CHR_START, CHR_STOP, 4, commands);
     }
   }
@@ -66,26 +66,26 @@ public class Merlin {
     if (qsub != null) {
       if (blade) {
         commands = "cd " + qsub + "\n" + "java -cp /home/bc2/pankratz/"
-            + org.genvisis.common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"
-            + "merlin-regress -d chr##.dat -p re_chrom##.pre -m chr##.map --mean " + quant[0]
-            + " --var " + quant[1] + " --her " + quant[2]
-            + " --tabulate --step 5 --prefix regress-chr##";
+                   + org.genvisis.common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"
+                   + "merlin-regress -d chr##.dat -p re_chrom##.pre -m chr##.map --mean " + quant[0]
+                   + " --var " + quant[1] + " --her " + quant[2]
+                   + " --tabulate --step 5 --prefix regress-chr##";
         Files.qsub(qsub + "_regress", null, CHR_START, CHR_STOP, commands, 1, 48, null);
       } else {
         commands = "cd " + qsub + "\n" + Files.getRunString() + " link.Merlin chr=#\n"
-            + "/share/apps/bin/merlin-regress -d chr##.dat -p re_chrom##.pre -m chr##.map --mean "
-            + quant[0] + " --var " + quant[1] + " --her " + quant[2]
-            + " --tabulate --step 5 --prefix regress-chr##";
+                   + "/share/apps/bin/merlin-regress -d chr##.dat -p re_chrom##.pre -m chr##.map --mean "
+                   + quant[0] + " --var " + quant[1] + " --her " + quant[2]
+                   + " --tabulate --step 5 --prefix regress-chr##";
         Files.qsub(qsub + "_regress", CHR_START, CHR_STOP, commands);
       }
     } else {
       commands = "echo \"Starting chr# at...\"\n" + (win ? "date /t\ntime /t\n" : "date\n")
-          + "java -cp " + (win ? "C:" : "") + "/home/npankrat/"
-          + org.genvisis.common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"
-          + "merlin-regress -d chr##.dat -p re_chrom##.pre -m chr##.map --mean " + quant[0]
-          + " --var " + quant[1] + " --her " + quant[2]
-          + " --tabulate --step 5 --information --ibd --prefix regress-chr##\n"
-          + "echo \"Finished chr# at...\"\n" + (win ? "date /t\ntime /t\n" : "date\n");
+                 + "java -cp " + (win ? "C:" : "") + "/home/npankrat/"
+                 + org.genvisis.common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"
+                 + "merlin-regress -d chr##.dat -p re_chrom##.pre -m chr##.map --mean " + quant[0]
+                 + " --var " + quant[1] + " --her " + quant[2]
+                 + " --tabulate --step 5 --information --ibd --prefix regress-chr##\n"
+                 + "echo \"Finished chr# at...\"\n" + (win ? "date /t\ntime /t\n" : "date\n");
       Files.batchIt("regress", 0, CHR_START, CHR_STOP, 4, commands);
     }
   }
@@ -97,20 +97,20 @@ public class Merlin {
     if (qsub != null) {
       if (blade) {
         commands = "" + "cd " + qsub + "\n" + "java -cp /home/bc2/pankratz/"
-            + org.genvisis.common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"
-            + "merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --vc --tabulate --step 5 --markerNames --information --prefix vc-chr## > vc-chr##.log";
+                   + org.genvisis.common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"
+                   + "merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --vc --tabulate --step 5 --markerNames --information --prefix vc-chr## > vc-chr##.log";
         Files.qsub(qsub + "_vc", "java", CHR_START, CHR_STOP, commands, 1, 10, null);
       } else {
         commands = "" + "cd " + qsub + "\n" + Files.getRunString() + " link.Merlin chr=#\n"
-            + "/share/apps/bin/merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --vc --tabulate --step 5 --markerNames --information --prefix vc-chr## > vc-chr##.log";
+                   + "/share/apps/bin/merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --vc --tabulate --step 5 --markerNames --information --prefix vc-chr## > vc-chr##.log";
         Files.qsub(qsub + "_vc", CHR_START, CHR_STOP, commands);
       }
     } else {
       commands = "echo \"Starting chr# at...\"\n" + (win ? "date /t\ntime /t\n" : "date\n")
-          + "java -cp " + (win ? "C:" : "") + "/home/npankrat/"
-          + org.genvisis.common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"
-          + "merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --vc --tabulate --step 5 --markerNames --information --prefix vc-chr## > vc-chr##.log\n"
-          + "echo \"Finished chr# at...\"\n" + (win ? "date /t\ntime /t\n" : "date\n");
+                 + "java -cp " + (win ? "C:" : "") + "/home/npankrat/"
+                 + org.genvisis.common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"
+                 + "merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --vc --tabulate --step 5 --markerNames --information --prefix vc-chr## > vc-chr##.log\n"
+                 + "echo \"Finished chr# at...\"\n" + (win ? "date /t\ntime /t\n" : "date\n");
       Files.batchIt("vc", 0, 8, CHR_STOP, 5, commands);
     }
   }
@@ -138,7 +138,7 @@ public class Merlin {
       reader.close();
     } catch (FileNotFoundException fnfe) {
       System.err.println("Error: file \"" + "re_chrom" + ext.chrome(chr) + ".pre"
-          + "\" not found in current directory");
+                         + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + "re_chrom" + ext.chrome(chr) + ".pre" + "\"");
@@ -157,7 +157,7 @@ public class Merlin {
   }
 
   public static void createMerlinFiles(String dir, int chr, String root, int trait,
-      String[] covariateNames) {
+                                       String[] covariateNames) {
     PrintWriter writer;
     LinkageMap map;
     String[] markerNames;
@@ -258,18 +258,19 @@ public class Merlin {
     // quant = new double[] {0.016727564, 0.587978393, 0.4974};
 
     String usage = "\n" + "link.Merlin requires 0-1 arguments\n"
-        + "   (1) generate files for specific chromosome (i.e. chr=2 (not the default))\n"
-        + "   (2) binary trait (i.e. -binary)\n" + "   (3) quantitative trait (i.e. -quant)\n"
-        + "  OR\n" + "   (1) generate files for all chromsomes (i.e. -prep (not the default))\n"
-        + "  OR\n"
-        + "   (1) batch create and analyze a binary trait (i.e. -batch (not the default))\n"
-        + "  OR\n"
-        + "   (1) batch create and analyze a quantitative trait using vc (i.e. -vc (not the default))\n"
-        + "   (2) make .qsub files for this directory instead of batch files (i.e. qsub=dir (not the default; don't use slash))\n"
-        + "   (3) use blade header for qsub instead of alc (i.e. -blade (not the default))\n"
-        + "  OR\n"
-        + "   (1) batch create and analyze a quantitative trait using h-e (i.e. quant=mean,variance,heritability)\n"
-        + "";
+                   + "   (1) generate files for specific chromosome (i.e. chr=2 (not the default))\n"
+                   + "   (2) binary trait (i.e. -binary)\n"
+                   + "   (3) quantitative trait (i.e. -quant)\n" + "  OR\n"
+                   + "   (1) generate files for all chromsomes (i.e. -prep (not the default))\n"
+                   + "  OR\n"
+                   + "   (1) batch create and analyze a binary trait (i.e. -batch (not the default))\n"
+                   + "  OR\n"
+                   + "   (1) batch create and analyze a quantitative trait using vc (i.e. -vc (not the default))\n"
+                   + "   (2) make .qsub files for this directory instead of batch files (i.e. qsub=dir (not the default; don't use slash))\n"
+                   + "   (3) use blade header for qsub instead of alc (i.e. -blade (not the default))\n"
+                   + "  OR\n"
+                   + "   (1) batch create and analyze a quantitative trait using h-e (i.e. quant=mean,variance,heritability)\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

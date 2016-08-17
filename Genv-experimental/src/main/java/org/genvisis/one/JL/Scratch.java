@@ -15,10 +15,11 @@ public class Scratch {
   public static void main(String[] args) {
     String dir = "C:/data/ARIC/scratch/";
     Logger log = new Logger(dir + "log");
-    String[] pcMarks = HashVec.loadFileToStringArray(
-        dir + "autosomal_PC_markers.oneHitWonders_20.txt", false, new int[] {0}, false);
+    String[] pcMarks =
+        HashVec.loadFileToStringArray(dir + "autosomal_PC_markers.oneHitWonders_20.txt", false,
+                                      new int[] {0}, false);
     String[] mito = HashVec.loadFileToStringArray(dir + "gw6_MT_USE.oneHitWonders_20.txt", false,
-        new int[] {0}, false);
+                                                  new int[] {0}, false);
 
     String[] combo = Array.concatAll(pcMarks, mito);
     log.reportTimeInfo("PCMarks " + pcMarks.length);
@@ -36,11 +37,12 @@ public class Scratch {
     outMarks.add("SNP Name\tChr\tPosition");
     for (int pcmark : pcmarks) {
       outMarks.add(markerSet.getMarkerNames()[pcmark] + "\t" + markerSet.getChrs()[pcmark] + "\t"
-          + markerSet.getPositions()[pcmark]);
+                   + markerSet.getPositions()[pcmark]);
     }
     for (int i = 0; i < indices[26].length; i++) {
       outMarks.add(markerSet.getMarkerNames()[indices[26][i]] + "\t"
-          + markerSet.getChrs()[indices[26][i]] + "\t" + markerSet.getPositions()[indices[26][i]]);
+                   + markerSet.getChrs()[indices[26][i]] + "\t"
+                   + markerSet.getPositions()[indices[26][i]]);
     }
 
     String out = ext.addToRoot(pos, ".PC.mito.subset");

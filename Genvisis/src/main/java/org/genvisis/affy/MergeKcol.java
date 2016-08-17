@@ -17,7 +17,7 @@ public class MergeKcol implements Runnable {
   public static final String FILENAME_AS_ID_OPTION = "[FILENAME_ROOT]";
 
   public static void combineKcolFiles(int numThreads, String kColDir, String prefix,
-      String suffix) {
+                                      String suffix) {
     Vector<Vector<String>> fileCabinet;
     Thread[] threads;
     boolean complete;
@@ -40,8 +40,10 @@ public class MergeKcol implements Runnable {
     threads = new Thread[numThreads];
     for (int i = 0; i < numThreads; i++) {
       threads[i] = new Thread(new MergeKcol(
-          fileCabinet.elementAt(i).toArray(new String[fileCabinet.elementAt(i).size()]), timeBegan,
-          i, kColDir));
+                                            fileCabinet.elementAt(i)
+                                                       .toArray(new String[fileCabinet.elementAt(i)
+                                                                                      .size()]),
+                                            timeBegan, i, kColDir));
       threads[i].start();
       try {
         Thread.sleep(100L);
@@ -74,7 +76,8 @@ public class MergeKcol implements Runnable {
     String suffix = null;
     String prefix = "gw6_split";
     String usage = "\n" + "affy.MergeChprequires 0-1 arguments\n"
-        + "   (2) number of threads to use (i.e. threads=" + numThreads + " (default))\n";
+                   + "   (2) number of threads to use (i.e. threads=" + numThreads
+                   + " (default))\n";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -145,8 +148,8 @@ public class MergeKcol implements Runnable {
           // filter comments
           do {
             line = reader.readLine().trim().split(delimiter, -1);
-          } while (reader.ready()
-              && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1));
+          } while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false,
+                                                       false)[0] == -1));
           // if its the first directory, print the header
 
           if (i == 0) {
@@ -159,8 +162,8 @@ public class MergeKcol implements Runnable {
           }
           reader.close();
         } catch (FileNotFoundException fnfe) {
-          System.err
-              .println("Error: file \"" + files[j] + "\" not found in " + kColDir + dirList[i]);
+          System.err.println("Error: file \"" + files[j] + "\" not found in " + kColDir
+                             + dirList[i]);
           return;
         } catch (IOException ioe) {
           System.err.println("Error reading file \"" + kColDir + dirList[i] + files[j] + "\"");

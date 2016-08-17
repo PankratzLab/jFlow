@@ -147,7 +147,7 @@ public class VerifyBamID {
     }
 
     String[] command = new String[] {VerifyBamIDLocation, "--vcf", verfifyVCF, "--bam", bamFile,
-        "--out", output, "--verbose", "--ignoreRG", "--chip-none"};
+                                     "--out", output, "--verbose", "--ignoreRG", "--chip-none"};
     CmdLine.runCommandWithFileChecks(command, "", null, null, false, false, false, log);
   }
 }

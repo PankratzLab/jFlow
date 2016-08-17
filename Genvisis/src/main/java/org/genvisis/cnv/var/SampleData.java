@@ -74,7 +74,7 @@ public class SampleData {
     }
 
     public Individual(String dna, String fid, String iid, String fa, String mo, String sex,
-        String aff) {
+                      String aff) {
       this.fid = fid;
       this.iid = iid;
       this.fa = fa;
@@ -93,7 +93,7 @@ public class SampleData {
         return dna + "\t" + fid + "\t" + iid + "\t" + fa + "\t" + mo + "\t" + sex + "\t" + aff;
       } else {
         return dna + "\t" + fid + "\t" + iid + "\t" + fa + "\t" + mo + "\t" + sex + "\t" + aff
-            + "\t" + Array.toStr(sampleMapLine);
+               + "\t" + Array.toStr(sampleMapLine);
       }
     }
 
@@ -125,7 +125,7 @@ public class SampleData {
   public static final String[] EXCLUDE_ALIASES = {"Exclude"};
   public static final String[][][] KEYS_FOR_BASIC_CLASSES =
       {{{"0", "All"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}},
-          {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}};
+       {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}};
 
   // public static final String[][] LINKERS = {
   // //TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
@@ -138,9 +138,10 @@ public class SampleData {
   // {"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
   // {"Stop Position", "Stop", "End"} // secondary link to Trailer
   // };
-  public static final String[][] LINKERS = {Aliases.INDIVIDUAL_ID, Aliases.FAMILY_ID, Aliases.DNA,
-      Aliases.MARKER_NAMES, Aliases.REGION, Aliases.CHRS,
-      Array.combine(Aliases.POSITIONS, Aliases.POSITIONS_START), Aliases.POSITIONS_STOP};
+  public static final String[][] LINKERS =
+      {Aliases.INDIVIDUAL_ID, Aliases.FAMILY_ID, Aliases.DNA, Aliases.MARKER_NAMES, Aliases.REGION,
+       Aliases.CHRS, Array.combine(Aliases.POSITIONS, Aliases.POSITIONS_START),
+       Aliases.POSITIONS_STOP};
   // Hashtable<String, Integer> linkKeyIndex;
   // Hashtable<String, ArrayList<Integer>> colorKeyIndex;
   public static final int IID_INDEX_IN_LINKERS = 0;
@@ -166,7 +167,7 @@ public class SampleData {
     // fail if can't back up file
     if (!Files.copyFile(sampleDatafilename, bakFile) || !new File(bakFile).exists()) {
       log.reportError("Error - could not back up sample data file " + sampleDatafilename
-          + ", will not add data");
+                      + ", will not add data");
       return null;
     }
     log.report("Info - backed up sample data file (" + sampleDatafilename + ") to " + bakFile);
@@ -192,12 +193,12 @@ public class SampleData {
 
     if (Files.exists(sampleDatafilename)) {
       log.reportError("Error - Sample data file " + sampleDatafilename
-          + " already exists, will not create a new one");
+                      + " already exists, will not create a new one");
     } else {
       String[] samples = proj.getSamples();
       if (samples == null || samples.length < 1) {
         log.reportError("Error - Could not generate sample data file " + sampleDatafilename
-            + ", samples have not been parsed");
+                        + ", samples have not been parsed");
       } else {
         try {
           PrintWriter writer = new PrintWriter(new FileWriter(sampleDatafilename));
@@ -229,15 +230,15 @@ public class SampleData {
    *        data instead Note: if sample data already exists, we leave it alone
    * @throws Elision
    */
-  public static int createSampleData(String pedFile, String sampleMapCsv, Project proj)
-      throws Elision {
+  public static int createSampleData(String pedFile, String sampleMapCsv,
+                                     Project proj) throws Elision {
     String sampleDataFilename = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
     if ((sampleMapCsv == null || "".equals(sampleMapCsv) || !Files.exists(sampleMapCsv))
         && (pedFile == null || "".equals(pedFile) || !Files.exists(pedFile))
         && !Files.exists(sampleDataFilename)) {
       proj.getLog().report(
-          "Neither a sample manifest nor a sample map file was provided; generating sample data file at: "
-              + sampleDataFilename);
+                           "Neither a sample manifest nor a sample map file was provided; generating sample data file at: "
+                           + sampleDataFilename);
       createMinimalSampleData(proj);
       return 0;
     } else if (!Files.exists(sampleDataFilename)) {
@@ -250,7 +251,7 @@ public class SampleData {
       }
     } else {
       proj.getLog().report("Detected that a sampleData file already exists at " + sampleDataFilename
-          + ", skipping sampleData creation");
+                           + ", skipping sampleData creation");
       return -1;
     }
   }
@@ -262,7 +263,7 @@ public class SampleData {
 
     if (linkKeyIndices[0] == -1) {
       System.out.println("ID linker not automatically identified for file '" + filename
-          + "'; assuming the first column.");
+                         + "'; assuming the first column.");
       linkKeyIndices[0] = 0;
     }
     return linkKeyIndices;
@@ -282,15 +283,17 @@ public class SampleData {
       PrintWriter writer = new PrintWriter(new FileWriter(sampleDataFile));
       String[] classed = MitoPipeline.PED_INPUT;
       classed[5] = "Class=Sex";
-      writer.println(Array.toStr(classed) + (inds[0].getSampleMapHeader() == null ? ""
-          : "\t" + Array.toStr(inds[0].getSampleMapHeader())));
+      writer.println(Array.toStr(classed)
+                     + (inds[0].getSampleMapHeader() == null ? ""
+                                                             : "\t"
+                                                               + Array.toStr(inds[0].getSampleMapHeader())));
       for (Individual ind : inds) {
         writer.println(ind.getSampDataFormat());
       }
       writer.close();
     } catch (FileNotFoundException fnfe) {
-      log.reportError(
-          "Error: file \"" + sampleDataFile + "\" could not be written to (it's probably open)");
+      log.reportError("Error: file \"" + sampleDataFile
+                      + "\" could not be written to (it's probably open)");
       log.reportException(fnfe);
     } catch (IOException ioe) {
       log.reportError("Error reading file \"" + sampleDataFile + "\"");
@@ -299,17 +302,17 @@ public class SampleData {
   }
 
   private static void generateSampleDataMap(Project proj, String sampleMapCsv) throws Elision {
-    SampleData.generateSampleData(proj,
-        SampleData.loadSampleMapFile(proj.getSamples(), sampleMapCsv, proj.getLog()));
+    SampleData.generateSampleData(proj, SampleData.loadSampleMapFile(proj.getSamples(),
+                                                                     sampleMapCsv, proj.getLog()));
   }
 
   private static void generateSampleDataPed(Project proj, String pedFile) throws Elision {
-    SampleData.generateSampleData(proj,
-        SampleData.loadPedInputFile(proj.getSamples(), pedFile, proj.getLog()));
+    SampleData.generateSampleData(proj, SampleData.loadPedInputFile(proj.getSamples(), pedFile,
+                                                                    proj.getLog()));
   }
 
-  private static Individual[] loadPedInputFile(String[] samples, String pedFile, Logger log)
-      throws Elision {
+  private static Individual[] loadPedInputFile(String[] samples, String pedFile,
+                                               Logger log) throws Elision {
     String[] line;
     ArrayList<Individual> al = new ArrayList<Individual>();
 
@@ -337,19 +340,17 @@ public class SampleData {
       if (!allElementsMissing) {
         for (int indice : indices) {
           if (indice < 0) {
-            log.reportError(
-                "Error - Improper formatting of the pedigree file, cannot generate sampleData");
-            log.reportError(
-                "Warning - Parsing can proceed, but a sample data file is needed to generate principal components");
+            log.reportError("Error - Improper formatting of the pedigree file, cannot generate sampleData");
+            log.reportError("Warning - Parsing can proceed, but a sample data file is needed to generate principal components");
             throw new Elision("Improper File Format");
           }
         }
       } else {
-        log.report(
-            "No header elements found, assuming no header and standard pedigree.dat format...");
+        log.report("No header elements found, assuming no header and standard pedigree.dat format...");
         indices = new int[] {6, 0, 1, 2, 3, 4, 5};
-        indi = new Individual(line[indices[0]], line[indices[1]], line[indices[2]],
-            line[indices[3]], line[indices[4]], line[indices[5]], line[indices[6]]);
+        indi =
+            new Individual(line[indices[0]], line[indices[1]], line[indices[2]], line[indices[3]],
+                           line[indices[4]], line[indices[5]], line[indices[6]]);
         al.add(indi);
         if (!sampSet.remove(indi.iid)) {
           foundMissing.add(indi.iid);
@@ -358,8 +359,9 @@ public class SampleData {
       temp = null;
       while ((temp = reader.readLine()) != null) {
         line = temp.trim().split(delim);
-        indi = new Individual(line[indices[0]], line[indices[1]], line[indices[2]],
-            line[indices[3]], line[indices[4]], line[indices[5]], line[indices[6]]);
+        indi =
+            new Individual(line[indices[0]], line[indices[1]], line[indices[2]], line[indices[3]],
+                           line[indices[4]], line[indices[5]], line[indices[6]]);
         al.add(indi);
         if (!sampSet.remove(indi.iid)) {
           foundMissing.add(indi.iid);
@@ -375,25 +377,24 @@ public class SampleData {
     }
     if (foundMissing.size() > 0) {
       log.reportError("MAJOR ERROR - found " + foundMissing.size()
-          + " IIDs in Pedigree file that do not have data files.");
+                      + " IIDs in Pedigree file that do not have data files.");
       log.reportError("\tMissing IIDs: " + foundMissing.toString());
     }
     if (sampSet.size() > 0) {
       log.reportError("MAJOR ERROR - found " + sampSet.size()
-          + " IIDs with data files not listed in Pedigree file.");
+                      + " IIDs with data files not listed in Pedigree file.");
       log.reportError("\tMissing IIDs: " + sampSet.toString());
     }
     if (foundMissing.size() > 0 || sampSet.size() > 0) {
-      log.reportError(
-          "MAJOR ERROR - please fix your Pedigree file to represent all individuals with data files.");
+      log.reportError("MAJOR ERROR - please fix your Pedigree file to represent all individuals with data files.");
       throw new Elision("Missing Individuals Either in File or Data");
     }
 
     return al.toArray(new Individual[al.size()]);
   }
 
-  private static Individual[] loadSampleMapFile(String[] samples, String sampleMapCsv, Logger log)
-      throws Elision {
+  private static Individual[] loadSampleMapFile(String[] samples, String sampleMapCsv,
+                                                Logger log) throws Elision {
     String[] line;
     ArrayList<Individual> al = new ArrayList<Individual>();
     log.report("Using Sample Map file " + sampleMapCsv);
@@ -412,8 +413,8 @@ public class SampleData {
       int[] indices = ext.indexFactors(MitoPipeline.SAMPLEMAP_INPUT, line, true, false);
       if (indices[1] == -1 || indices[2] == -1) {
         log.reportError("Error - Columns \"" + MitoPipeline.SAMPLEMAP_INPUT[1] + "\" and \""
-            + MitoPipeline.SAMPLEMAP_INPUT[2] + "\" must be provided in .csv format "
-            + sampleMapCsv);
+                        + MitoPipeline.SAMPLEMAP_INPUT[2] + "\" must be provided in .csv format "
+                        + sampleMapCsv);
         throw new Elision("Improper File Format");
       }
       while (reader.ready()) {
@@ -434,17 +435,16 @@ public class SampleData {
     }
     if (foundMissing.size() > 0) {
       log.reportError("MAJOR ERROR - found " + foundMissing.size()
-          + " IIDs in Sample_Map file that do not have data files.");
+                      + " IIDs in Sample_Map file that do not have data files.");
       log.reportError("\tMissing IIDs: " + foundMissing.toString());
     }
     if (sampSet.size() > 0) {
       log.reportError("MAJOR ERROR - found " + sampSet.size()
-          + " IIDs with data files not listed in Sample_Map file.");
+                      + " IIDs with data files not listed in Sample_Map file.");
       log.reportError("\tMissing IIDs: " + sampSet.toString());
     }
     if (foundMissing.size() > 0 || sampSet.size() > 0) {
-      log.reportError(
-          "MAJOR ERROR - please fix your Sample_Map file to represent all individuals with data files.");
+      log.reportError("MAJOR ERROR - please fix your Sample_Map file to represent all individuals with data files.");
       throw new Elision("Missing Individuals Either in File or Data");
     }
 
@@ -458,13 +458,14 @@ public class SampleData {
     String samp = null;
 
     String usage = "\n" + "cnv.var.SampleData requires 1-3 arguments\n"
-        + "   (1) project properties filename (i.e. proj="
-        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" + " OR\n"
-        + "   (1) project properties filename (i.e. proj="
-        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-        + "   (2a) OPTIONAL: .ped file (i.e. ped=data.ped (not the default))\n" + "      OR\n"
-        + "   (2b) OPTIONAL: sampleMap.csv file (i.e. sampleMap=sampleMap.csv (not the default))\n"
-        + "\n" + "";
+                   + "   (1) project properties filename (i.e. proj="
+                   + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+                   + " OR\n" + "   (1) project properties filename (i.e. proj="
+                   + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+                   + "   (2a) OPTIONAL: .ped file (i.e. ped=data.ped (not the default))\n"
+                   + "      OR\n"
+                   + "   (2b) OPTIONAL: sampleMap.csv file (i.e. sampleMap=sampleMap.csv (not the default))\n"
+                   + "\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -489,7 +490,7 @@ public class SampleData {
     Project thisProject = new Project(filename, false);
 
     if (Files.exists(thisProject.SAMPLE_DATA_FILENAME.getValue(false, false),
-        thisProject.JAR_STATUS.getValue())) {
+                     thisProject.JAR_STATUS.getValue())) {
       thisProject.getSampleData(2, false);
     } else {
       try {
@@ -506,12 +507,13 @@ public class SampleData {
   private static void warnMissingFiles(final Project proj, final Vector<String> missingFiles) {
     final String message =
         "The following CNV " + (missingFiles.size() > 1 ? "files do not" : "file does not")
-            + " exist and therefore " + (missingFiles.size() > 1 ? "were" : "was")
-            + " not loaded:\n     " + Array.toStr(Array.toStringArray(missingFiles), "\n     ")
-            + "\n\nTo prevent this message in the future, either find "
-            + (missingFiles.size() > 1 ? "these files \n     or remove them"
-                : "this file \n     or remove it")
-            + " from CNV_FILENAMES under CNV Files in Project Properties";
+                           + " exist and therefore " + (missingFiles.size() > 1 ? "were" : "was")
+                           + " not loaded:\n     "
+                           + Array.toStr(Array.toStringArray(missingFiles), "\n     ")
+                           + "\n\nTo prevent this message in the future, either find "
+                           + (missingFiles.size() > 1 ? "these files \n     or remove them"
+                                                      : "this file \n     or remove it")
+                           + " from CNV_FILENAMES under CNV Files in Project Properties";
     if (GraphicsEnvironment.isHeadless()) {
       proj.getLog().reportTimeWarning(message);
     } else {
@@ -566,7 +568,7 @@ public class SampleData {
   private volatile boolean loadedCNVs = false;
 
   public SampleData(final Project proj, int numberOfBasicClassesToUse,
-      final String[] cnvFilenamesVar) {
+                    final String[] cnvFilenamesVar) {
     BufferedReader reader;
     String[] line, header;
     IntVector filterIs = new IntVector();
@@ -629,30 +631,25 @@ public class SampleData {
       famIndex = ext.indexOfStr("FID", header);
       indIndex = ext.indexOfStr("IID", header);
       if (dnaIndex == -1) {
-        log.reportError(
-            "Error - 'DNA' was not a header in the SampleData file; assuming lookup with first column");
+        log.reportError("Error - 'DNA' was not a header in the SampleData file; assuming lookup with first column");
         dnaIndex = 0;
         containsDNA = false;
       }
       if (cnvFilenames.length > 0 && famIndex == -1) {
-        log.reportError(
-            "Error - 'FID' was not a header in the SampleData file; lookup for cnv data may be inaccurate");
+        log.reportError("Error - 'FID' was not a header in the SampleData file; lookup for cnv data may be inaccurate");
         // cnvFilesnames = new String[0];
       }
       if (cnvFilenames.length > 0 && indIndex == -1) {
-        log.reportError(
-            "Error - 'IID' was not a header in the SampleData file; lookup for cnv data may be inaccurate");
+        log.reportError("Error - 'IID' was not a header in the SampleData file; lookup for cnv data may be inaccurate");
         // cnvFilesnames = new String[0];
       }
       if (famIndex == -1) {
-        log.reportError(
-            "Error - 'FID' was not a header in the SampleData file; assuming family ID is in the second column");
+        log.reportError("Error - 'FID' was not a header in the SampleData file; assuming family ID is in the second column");
         famIndex = 1;
         containsFID = false;
       }
       if (indIndex == -1) {
-        log.reportError(
-            "Error - 'IID' was not a header in the SampleData file; assuming individual ID is in the third column");
+        log.reportError("Error - 'IID' was not a header in the SampleData file; assuming individual ID is in the third column");
         indIndex = 2;
         containsIID = false;
       }
@@ -683,16 +680,17 @@ public class SampleData {
           classColorKeys[i][j - 1] = line[j].split("=");
           if (classColorKeys[i][j - 1].length != 2) {
             log.reportError("Error - invalid key for class '" + classes[i]
-                + "'; must use format #=Key (not '" + line[j] + "'), separated by semicolons");
+                            + "'; must use format #=Key (not '" + line[j]
+                            + "'), separated by semicolons");
             classColorKeys[i][j - 1] = new String[0];
           }
         }
       }
 
       sexClassIndex = ext.indexFactors(new String[][] {EUPHEMISMS}, classes, true, false, true,
-          log.getLevel() >= 1 ? true : false, log, false)[0];
+                                       log.getLevel() >= 1 ? true : false, log, false)[0];
       excludeClassIndex = ext.indexFactors(new String[][] {EXCLUDE_ALIASES}, classes, false, false,
-          true, log.getLevel() >= 1 ? true : false, log, false)[0];
+                                           true, log.getLevel() >= 1 ? true : false, log, false)[0];
       log.report("Class list: " + Array.toStr(classes), true, true, 1);
 
       sexCountHash = new CountVector();
@@ -716,15 +714,15 @@ public class SampleData {
         dv = new DoubleVector();
         for (int i = 0; i < covarIs.size(); i++) {
           dv.add(ext.isMissingValue(line[covarIs.elementAt(i)]) ? Double.NaN
-              : Double.parseDouble(line[covarIs.elementAt(i)]));
+                                                                : Double.parseDouble(line[covarIs.elementAt(i)]));
         }
         indi.setCovars(Doubles.toArray(dv));
 
         iv = new IntVector();
         for (int i = 0; i < classIs.size(); i++) {
           iv.add(ext.isMissingValue(line[classIs.elementAt(i)])
-              || Integer.parseInt(line[classIs.elementAt(i)]) < 0 ? Integer.MIN_VALUE
-                  : Integer.parseInt(line[classIs.elementAt(i)]));
+                 || Integer.parseInt(line[classIs.elementAt(i)]) < 0 ? Integer.MIN_VALUE
+                                                                     : Integer.parseInt(line[classIs.elementAt(i)]));
         }
         indi.setClasses(Ints.toArray(iv));
         if (sexClassIndex != -1) {
@@ -740,21 +738,20 @@ public class SampleData {
           sexValues = Array.toIntArray(sexCountHash.getValues());
           sexValues = Sort.putInOrder(sexValues, Sort.quicksort(sexValues, Sort.DESCENDING));
           if (Array.countIf(sexValues, 2) == 0) {
-            log.reportError(
-                "Warning - no females listed in SampleData file; make sure 1=male and 2=female in the coding");
+            log.reportError("Warning - no females listed in SampleData file; make sure 1=male and 2=female in the coding");
             // proj.message("descending "+ Array.toStr(sexValues, " ")+"\tError - warning no females
             // listed in SampleData file; make sure 1=male and 2=female in the coding");
           }
         } else {
           proj.message("Error - variable names '" + Array.toStr(EUPHEMISMS, "/")
-              + "' was not found in the SampleData file; make sure 1=male and 2=female in the coding");
+                       + "' was not found in the SampleData file; make sure 1=male and 2=female in the coding");
         }
       }
     } catch (FileNotFoundException fnfe) {
       // System.err.println("Error: file \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\" not
       // found in current directory");
       System.err.println("Error: file \"" + proj.SAMPLE_DATA_FILENAME.getValue()
-          + "\" not found in current directory");
+                         + "\" not found in current directory");
       // System.exit(1);
     } catch (IOException ioe) {
       // System.err.println("Error reading file
@@ -821,7 +818,7 @@ public class SampleData {
    * @return true if data was added successfully, false if not
    */
   public boolean addData(Hashtable<String, String> linkData, String linker, String[] columnHeaders,
-      String missingData, String linkDataDelimiter, Logger log) {
+                         String missingData, String linkDataDelimiter, Logger log) {
     boolean add = true;
     boolean writerWasOpened = false;
     BufferedReader reader;
@@ -836,7 +833,7 @@ public class SampleData {
     // fail if can't find linker
     if (linkerIndex == -1) {
       log.reportError("Error - could not find linker " + linker + " in sample data file "
-          + sampleDatafilename + ", will not add data");
+                      + sampleDatafilename + ", will not add data");
       add = false;
     } else {
       String bakFile = backupSampleData(proj, log);
@@ -851,9 +848,9 @@ public class SampleData {
           String[] tmpHeader = reader.readLine().trim().split("\t");
           // fail if header of original and backup do not match
           if (!Array.equals(tmpHeader, sampleDataHeader, true)) {
-            log.reportError(
-                "Error - backup sample data " + bakFile + " does not contain the same header as "
-                    + sampleDatafilename + ", will not add data");
+            log.reportError("Error - backup sample data " + bakFile
+                            + " does not contain the same header as " + sampleDatafilename
+                            + ", will not add data");
             add = false;
           } else {
             writerWasOpened = true;
@@ -880,11 +877,10 @@ public class SampleData {
                   } // fail if added data for a linker is the wrong length after delimiting
                   else {
                     log.reportError("Error - the number of entries in the column header "
-                        + Array.toStr(columnHeaders) + " (" + columnHeaders.length
-                        + ") does not equal the number of entries in the data " + Array.toStr(data)
-                        + " (" + data.length + ")");
-                    log.reportError(
-                        "Cancelling the addition and replacing sample data with backup");
+                                    + Array.toStr(columnHeaders) + " (" + columnHeaders.length
+                                    + ") does not equal the number of entries in the data "
+                                    + Array.toStr(data) + " (" + data.length + ")");
+                    log.reportError("Cancelling the addition and replacing sample data with backup");
                     add = false;
                   }
                 } else {
@@ -909,10 +905,10 @@ public class SampleData {
             }
 
             log.report("Info - added new data to sample data for " + numAdded
-                + (numAdded > 1 ? " samples " : " samples"));
+                       + (numAdded > 1 ? " samples " : " samples"));
             if (numMissing > 0) {
               log.report("Warning - " + numMissing + " " + (numMissing > 1 ? "samples" : "samples")
-                  + " had missing data ");
+                         + " had missing data ");
             }
           } else if (!add && writerWasOpened) {
             if (!Files.copyFile(bakFile, sampleDatafilename)) {
@@ -934,7 +930,7 @@ public class SampleData {
   }
 
   public void addToSampleData(Hashtable<String, String> colorKeyValue, String recentSelectionFile,
-      int selectedColorKey) {
+                              int selectedColorKey) {
     String sampleDatafilename;
     BufferedReader reader;
     BufferedWriter writer;
@@ -985,20 +981,20 @@ public class SampleData {
       // meaure and will be added as a COVAR in SampleData and not as a Class", "Warning",
       // JOptionPane.ERROR_MESSAGE);
       System.out.println("Variable '" + colorKeyHeader
-          + "' contains a quantitative measure and will be added as a COVAR in SampleData and not as a Class");
+                         + "' contains a quantitative measure and will be added as a COVAR in SampleData and not as a Class");
     } else if (negativeValues) {
       // JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains negative values
       // and will be added as a COVAR in SampleData and not as a Class", "Warning",
       // JOptionPane.ERROR_MESSAGE);
       System.out.println("Variable '" + colorKeyHeader
-          + "' contains negative values and will be added as a COVAR in SampleData and not as a Class");
+                         + "' contains negative values and will be added as a COVAR in SampleData and not as a Class");
       covar = true;
     } else if (largerThanByte) {
       // JOptionPane.showMessageDialog(null, "Variable '"+colorKeyHeader+"' contains values larger
       // than 128 and will be added as a COVAR in SampleData and not as a Class", "Warning",
       // JOptionPane.ERROR_MESSAGE);
       System.out.println("Variable '" + colorKeyHeader
-          + "' contains values larger than 128 and will be added as a COVAR in SampleData and not as a Class");
+                         + "' contains values larger than 128 and will be added as a COVAR in SampleData and not as a Class");
       covar = true;
     }
 
@@ -1073,7 +1069,7 @@ public class SampleData {
   }
 
   public byte determineCodeFromClass(int currentClass, byte alleleCount, IndiPheno indi, byte chr,
-      int position) {
+                                     int position) {
     int[] classes, indices;
     CNVariant[] segs;
     int index;
@@ -1153,7 +1149,7 @@ public class SampleData {
       indices[0] = 2;
       indices[1] = index - basicClasses.length - classes.length;
     } else if (index < basicClasses.length + classes.length + cnvClasses.length
-        + plinkClasses.length) {
+                       + plinkClasses.length) {
       indices[0] = 3;
       indices[1] = index - basicClasses.length - classes.length - cnvClasses.length;
     } else {
@@ -1417,8 +1413,7 @@ public class SampleData {
     indices = ext.indexFactors(LINKERS, headersArray, false, true, false, null, false);
 
     if (indices[0] == -1) {
-      System.err.println(
-          "ID linker not automatically identified for Sample Data. Assuming the first column.");
+      System.err.println("ID linker not automatically identified for Sample Data. Assuming the first column.");
       indices[0] = 0;
     }
     System.out.println("The header indices in Sample data are: " + Arrays.toString(headersArray));
@@ -1443,8 +1438,9 @@ public class SampleData {
     int[] sexes = new int[samples.length];
 
     if (sexClassIndex < 0) {
-      proj.getLog().reportTimeWarning("Variable names '" + Array.toStr(EUPHEMISMS, "/")
-          + "' were not found in the SampleData file; make sure 1=male and 2=female in the coding to retrive sample sex");
+      proj.getLog()
+          .reportTimeWarning("Variable names '" + Array.toStr(EUPHEMISMS, "/")
+                             + "' were not found in the SampleData file; make sure 1=male and 2=female in the coding to retrive sample sex");
     }
     for (int i = 0; i < samples.length; i++) {
       sexes[i] = getSexForIndividual(samples[i]);
@@ -1618,8 +1614,8 @@ public class SampleData {
       String sampleDataDelimiter = Files.determineDelimiter(sampleDatafilename, null);
 
       String bakFile = proj.archiveFile(sampleDatafilename); // create backup of sample data file
-      System.out.println(
-          "Deleting color key " + colorKey + " from sample data. Sample data backup: " + bakFile);
+      System.out.println("Deleting color key " + colorKey
+                         + " from sample data. Sample data backup: " + bakFile);
 
       // write the new sample data which does not have the removed color key column
 
@@ -1656,7 +1652,7 @@ public class SampleData {
    * @return true if data was replaced successfully, false if not
    */
   public boolean replaceData(Hashtable<String, String> linkData, String linker,
-      String[] columnHeaders, String linkDataDelimiter, Logger log) {
+                             String[] columnHeaders, String linkDataDelimiter, Logger log) {
     boolean replace = true;
     boolean writerWasOpened = false;
     BufferedReader reader;
@@ -1670,7 +1666,7 @@ public class SampleData {
     // fail if can't find linker
     if (linkerIndex == -1) {
       log.reportError("Error - could not find linker " + linker + " in sample data file "
-          + sampleDatafilename + ", will not replace data");
+                      + sampleDatafilename + ", will not replace data");
       replace = false;
     } else {
       String bakFile = backupSampleData(proj, log);
@@ -1686,9 +1682,9 @@ public class SampleData {
           String[] tmpHeader = reader.readLine().trim().split("\t");
           // fail if header of original and backup do not match
           if (!Array.equals(tmpHeader, sampleDataHeader, true)) {
-            log.reportError(
-                "Error - backup sample data " + bakFile + " does not contain the same header as "
-                    + sampleDatafilename + ", will not replace data");
+            log.reportError("Error - backup sample data " + bakFile
+                            + " does not contain the same header as " + sampleDatafilename
+                            + ", will not replace data");
             replace = false;
           } else {
             writerWasOpened = true;
@@ -1704,12 +1700,12 @@ public class SampleData {
                   sampleDataHeader[indices[index]] =
                       "x" + sampleDataHeader[indices[index]] + "_replaced_" + dateTime;
                   log.report("Warning - Additional instance of column \"" + columnHeaders[i]
-                      + "\" found, header changed to: " + sampleDataHeader[indices[index]]);
+                             + "\" found, header changed to: " + sampleDataHeader[indices[index]]);
                 }
               } else {
                 replace = false;
                 log.reportError("Error - column \"" + columnHeaders[i] + "\" does not exist in "
-                    + sampleDatafilename + ", will not replace data");
+                                + sampleDatafilename + ", will not replace data");
               }
             }
             if (replace) {
@@ -1719,11 +1715,10 @@ public class SampleData {
               while (reader.ready() && replace) {
                 line = reader.readLine().trim().split("\t");
                 if (!linkers.add(line[linkerIndex])) {
-                  log.reportError(
-                      "Error - Specified linker \"" + linker + "\" is not unique, the value \""
-                          + line[linkerIndex] + "\" appears more than once");
-                  log.reportError(
-                      "Cancelling the replacement and replacing sample data with backup");
+                  log.reportError("Error - Specified linker \"" + linker
+                                  + "\" is not unique, the value \"" + line[linkerIndex]
+                                  + "\" appears more than once");
+                  log.reportError("Cancelling the replacement and replacing sample data with backup");
                   replace = false;
                 } else if (linkData.containsKey(line[linkerIndex])) {
                   String[] data;
@@ -1736,11 +1731,10 @@ public class SampleData {
                   if (data.length != columnHeaders.length) {
                     // fail if replaced data for a linker is the wrong length after delimiting
                     log.reportError("Error - the number of entries in the column header "
-                        + Array.toStr(columnHeaders) + " (" + columnHeaders.length
-                        + ") does not equal the number of entries in the data " + Array.toStr(data)
-                        + " (" + data.length + ")");
-                    log.reportError(
-                        "Cancelling the replacement and replacing sample data with backup");
+                                    + Array.toStr(columnHeaders) + " (" + columnHeaders.length
+                                    + ") does not equal the number of entries in the data "
+                                    + Array.toStr(data) + " (" + data.length + ")");
+                    log.reportError("Cancelling the replacement and replacing sample data with backup");
                     replace = false;
                   } else {
                     for (int i = 0; i < data.length; i++) {
@@ -1755,8 +1749,9 @@ public class SampleData {
                   for (int i = 0; i < existingIndices.length; i++) {
                     existingVals[i] = line[existingIndices[i]];
                   }
-                  linkData.put(line[linkerIndex], Array.toStr(existingVals,
-                      linkDataDelimiter != null ? linkDataDelimiter : "\t"));
+                  linkData.put(line[linkerIndex],
+                               Array.toStr(existingVals,
+                                           linkDataDelimiter != null ? linkDataDelimiter : "\t"));
                   numUnchanged++;
                 }
               }
@@ -1766,10 +1761,10 @@ public class SampleData {
           reader.close();
           if (replace) {
             log.report("Info - replaced data in sample data for " + numReplaced
-                + (numReplaced > 1 ? " samples " : " samples"));
+                       + (numReplaced > 1 ? " samples " : " samples"));
             if (numUnchanged > 0) {
               log.report("Warning - " + numUnchanged + " "
-                  + (numUnchanged > 1 ? "samples" : "samples") + " were left unchanged ");
+                         + (numUnchanged > 1 ? "samples" : "samples") + " were left unchanged ");
             }
           } else if (!replace && writerWasOpened) {
             if (!Files.copyFile(bakFile, sampleDatafilename)) {

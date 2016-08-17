@@ -68,7 +68,7 @@ public class ClassFromVariables {
       if (!noset) {
         trans += "\n";
         trans += "\tpublic void set" + ext.capitalizeFirst(var[2]) + "(" + var[1] + " " + var[2]
-            + ") {\n";
+                 + ") {\n";
         trans += "\t\tthis." + var[2] + " = " + var[2] + ";\n";
         trans += "\t}\n";
       }

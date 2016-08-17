@@ -37,7 +37,7 @@ public class Mappability<SEGMENT extends Segment> {
     private final SEGMENT t;
 
     public MappabilityResult(BEDFileReader mapReader, BEDFileReader callSubsetReader, SEGMENT t,
-        Logger log) {
+                             Logger log) {
       super();
       this.t = t;
       this.log = log;
@@ -74,7 +74,7 @@ public class Mappability<SEGMENT extends Segment> {
         }
         if (mapScore < 0) {
           String error = "Could not convert " + bedFeature.getName()
-              + " to mappability score, negative mapScore";
+                         + " to mappability score, negative mapScore";
           log.reportTimeError(error);
           throw new IllegalArgumentException(error);
         }
@@ -132,7 +132,7 @@ public class Mappability<SEGMENT extends Segment> {
   }
 
   public static void computeCNVMappability(String mappabilityFile, String cnvFile,
-      String geneTrackFile, String callSubsetBed, Logger log) {
+                                           String geneTrackFile, String callSubsetBed, Logger log) {
     BedOps.verifyBedIndex(mappabilityFile, log);
     LocusSet<GeneData> gLocusSet = GeneTrack.load(geneTrackFile, false).convertToLocusSet(log);
     CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile, false);
@@ -155,8 +155,9 @@ public class Mappability<SEGMENT extends Segment> {
         new String[] {"GENE_NAME", "CNV_MAP_SCORE", "NUM_TOTAL_CNVS", "STRING_FACTOR_COUNT"};
     String out1 = outputRoot + ".txt";
     summarize1(log, gLocusSet, cnMappability, geneCounts, header1, out1);
-    RScatter rScatterBox = new RScatter(out1, out1 + ".rscript", ext.removeDirectoryInfo(out1),
-        out1 + ".jpeg", header1[1], new String[] {header1[2]}, SCATTER_TYPE.POINT, log);
+    RScatter rScatterBox =
+        new RScatter(out1, out1 + ".rscript", ext.removeDirectoryInfo(out1), out1 + ".jpeg",
+                     header1[1], new String[] {header1[2]}, SCATTER_TYPE.POINT, log);
     rScatterBox.setOverWriteExisting(true);
     rScatterBox.execute();
 
@@ -195,7 +196,7 @@ public class Mappability<SEGMENT extends Segment> {
         if (dynamicAveragingHistogramCNVCentered.getCounts()[i] > 0) {
           System.out.println(dynamicAveragingHistogramCNVCentered.getAverages()[i]);
           writer.println(dynamicAveragingHistogramCNVCentered.getBins()[i] + "\t"
-              + dynamicAveragingHistogramCNVCentered.getAverages()[i]);
+                         + dynamicAveragingHistogramCNVCentered.getAverages()[i]);
         }
       }
 
@@ -208,7 +209,7 @@ public class Mappability<SEGMENT extends Segment> {
 
     RScatter rScatterAverageCNVCENTER =
         new RScatter(out2, out2 + ".rscript", ext.removeDirectoryInfo(out2), out2 + ".jpeg",
-            header2[0], new String[] {header2[1]}, SCATTER_TYPE.POINT, log);
+                     header2[0], new String[] {header2[1]}, SCATTER_TYPE.POINT, log);
     rScatterAverageCNVCENTER.setxLabel("CNVS Per Gene");
     rScatterAverageCNVCENTER.setyLabel("Average CNV mapping score");
 
@@ -224,7 +225,7 @@ public class Mappability<SEGMENT extends Segment> {
       for (int i = 0; i < dynamicAveragingHistogramMapCentered.getAverages().length; i++) {
         if (dynamicAveragingHistogramMapCentered.getCounts()[i] > 0) {
           writer.println(dynamicAveragingHistogramMapCentered.getBins()[i] + "\t"
-              + dynamicAveragingHistogramMapCentered.getAverages()[i]);
+                         + dynamicAveragingHistogramMapCentered.getAverages()[i]);
         }
       }
 
@@ -236,7 +237,7 @@ public class Mappability<SEGMENT extends Segment> {
     }
     RScatter rScatterAverageSCORECENTER =
         new RScatter(out3, out3 + ".rscript", ext.removeDirectoryInfo(out3), out3 + ".jpeg",
-            header3[0], new String[] {header3[1]}, SCATTER_TYPE.POINT, log);
+                     header3[0], new String[] {header3[1]}, SCATTER_TYPE.POINT, log);
     rScatterAverageSCORECENTER.setxLabel("CNV mapping score");
     rScatterAverageSCORECENTER.setyLabel("Average CNVs Per gene");
 
@@ -253,16 +254,16 @@ public class Mappability<SEGMENT extends Segment> {
         MappabilityResult<CNVariant> cnMapp = cnMappability.getMappabilityResults().get(i);
         GeneData[] overlappingGenes = gLocusSet.getOverLappingLoci(cnMapp.getT());
         if (overlappingGenes == null) {
-          writer.println(
-              cnMapp.getT().toAnalysisString() + "\tNA" + "\t" + cnMapp.getAverageMapScore());
+          writer.println(cnMapp.getT().toAnalysisString() + "\tNA" + "\t"
+                         + cnMapp.getAverageMapScore());
         } else {
           String genes = overlappingGenes[0].getGeneName();
           for (int j = 1; j < overlappingGenes.length; j++) {
             genes += ";" + overlappingGenes[j].getGeneName();
 
           }
-          writer.println(
-              cnMapp.getT().toAnalysisString() + "\t" + genes + "\t" + cnMapp.getAverageMapScore());
+          writer.println(cnMapp.getT().toAnalysisString() + "\t" + genes + "\t"
+                         + cnMapp.getAverageMapScore());
         }
       }
       writer.close();
@@ -323,8 +324,9 @@ public class Mappability<SEGMENT extends Segment> {
   }
 
   private static void summarize1(Logger log, LocusSet<GeneData> gLocusSet,
-      Mappability<CNVariant> cnMappability, Hashtable<String, Integer> geneCounts, String[] header1,
-      String out1) {
+                                 Mappability<CNVariant> cnMappability,
+                                 Hashtable<String, Integer> geneCounts, String[] header1,
+                                 String out1) {
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(out1));
       writer.println(Array.toStr(header1));
@@ -333,16 +335,16 @@ public class Mappability<SEGMENT extends Segment> {
         MappabilityResult<CNVariant> cnMapp = cnMappability.getMappabilityResults().get(i);
         GeneData[] overlappingGenes = gLocusSet.getOverLappingLoci(cnMapp.getT());
         if (overlappingGenes == null) {
-          log.reportTimeError(
-              "Could not find overlapping gene for " + cnMapp.getT().toAnalysisString());
+          log.reportTimeError("Could not find overlapping gene for "
+                              + cnMapp.getT().toAnalysisString());
         } else {
           for (GeneData overlappingGene : overlappingGenes) {
             String curGene = overlappingGene.getGeneName();
             int counts = geneCounts.get(curGene);
 
             String stringCount = (counts < 10 ? "0" : "") + counts + "_CNVS";
-            writer.println(
-                curGene + "\t" + cnMapp.getAverageMapScore() + "\t" + counts + "\t" + stringCount);
+            writer.println(curGene + "\t" + cnMapp.getAverageMapScore() + "\t" + counts + "\t"
+                           + stringCount);
           }
         }
       }
@@ -370,7 +372,7 @@ public class Mappability<SEGMENT extends Segment> {
   private final Logger log;
 
   public Mappability(LocusSet<SEGMENT> set, String mappabilityFile, String callSubsetBed,
-      Logger log) {
+                     Logger log) {
     super();
     this.set = set;
     this.mappabilityFile = mappabilityFile;
@@ -388,8 +390,8 @@ public class Mappability<SEGMENT extends Segment> {
         if (i % 100 == 0) {
           log.reportTimeInfo(i + " of " + set.getLoci().length);
         }
-        mappabilityResults.add(
-            new MappabilityResult<SEGMENT>(mapReader, callSubsetReader, set.getLoci()[i], log));
+        mappabilityResults.add(new MappabilityResult<SEGMENT>(mapReader, callSubsetReader,
+                                                              set.getLoci()[i], log));
       }
       mapReader.close();
     }

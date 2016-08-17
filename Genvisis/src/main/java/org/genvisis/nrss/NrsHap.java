@@ -32,7 +32,7 @@ public class NrsHap {
 
   public static final String[][] MODELS =
       {{"0.001", "0.01", "150000"}, {"0.001", "0.01", "50000"}, {"0.001", "0.01", "25000"},
-          {"0.0001", "0.01", "250000"}, {"0.0001", "0.01", "150000"}, {"0.0001", "0.01", "25000"},};
+       {"0.0001", "0.01", "250000"}, {"0.0001", "0.01", "150000"}, {"0.0001", "0.01", "25000"},};
 
   // public static final String[][] MODELS = {{"0.01", "0.1", "150000"}};
 
@@ -40,12 +40,13 @@ public class NrsHap {
   public static final int EST_NUM_MARKERS_IN_LARGEST_CHR = 40000;
 
   public static double computeStatistic(String chr, String[] markerNames, double[] pvalues,
-      double threshold) {
+                                        double threshold) {
     return computeStatistic(chr, markerNames, pvalues, 0, pvalues.length - 1, threshold, "");
   }
 
   public static double computeStatistic(String chr, String[] markerNames, double[] pvalues,
-      int lowIndex, int highIndex, double threshold, String extraStuff) {
+                                        int lowIndex, int highIndex, double threshold,
+                                        String extraStuff) {
     int[] keys;
     double[] pval_window;
     Vector<String> snps = new Vector<String>();
@@ -64,7 +65,7 @@ public class NrsHap {
       }
     }
     String temp = "plink --bfile chr" + chr + extraStuff + " --hap-assoc --snps "
-        + Array.toStr(Array.toStringArray(snps), ",") + " --hap-window " + snps.size();
+                  + Array.toStr(Array.toStringArray(snps), ",") + " --hap-window " + snps.size();
     // System.out.println(temp);
     CmdLine.run(temp, ".");
 
@@ -72,7 +73,7 @@ public class NrsHap {
       reader = new BufferedReader(new FileReader("plink.assoc.hap"));
       if (!reader.readLine().trim().split("[\\s]+")[1].equals("HAPLOTYPE")) {
         System.err.println("Error - could not find the result of the haplotype test for "
-            + Array.toStr(Array.toStringArray(snps), ","));
+                           + Array.toStr(Array.toStringArray(snps), ","));
       }
       line = reader.readLine().trim().split("[\\s]+");
       reader.close();
@@ -128,8 +129,8 @@ public class NrsHap {
             dvs[i][k].add(trav.elementAt(keys[k]));
           }
         } catch (FileNotFoundException fnfe) {
-          System.err
-              .println("Error: file \"" + file.getName() + "\" not found in current directory");
+          System.err.println("Error: file \"" + file.getName()
+                             + "\" not found in current directory");
           System.exit(1);
         } catch (IOException ioe) {
           System.err.println("Error reading file \"" + file.getName() + "\"");
@@ -142,12 +143,12 @@ public class NrsHap {
       writer = new PrintWriter(new FileWriter("NRSS_distributions.xln"));
       for (int i = 0; i < dirs.length; i++) {
         writer.print((i == 0 ? "" : "\t") + dirs[i].getName()
-            + Array.toStr(Array.stringArray(levelsDeep), "\t"));
+                     + Array.toStr(Array.stringArray(levelsDeep), "\t"));
       }
       writer.println();
       for (int i = 0; i < dirs.length; i++) {
-        writer.print(
-            (i == 0 ? "" : "\t") + Array.toStr(Array.stringArraySequence(levelsDeep, ""), "\t"));
+        writer.print((i == 0 ? "" : "\t")
+                     + Array.toStr(Array.stringArraySequence(levelsDeep, ""), "\t"));
       }
       writer.println();
       writer.println(Array.toStr(Array.stringArray(dirs.length * levelsDeep, "0.5")));
@@ -156,8 +157,8 @@ public class NrsHap {
         for (int j = 0; j < levelsDeep; j++) {
           col = ext.getExcelColumn(i * levelsDeep + j);
           temp += (i == 0 && j == 0 ? "" : "\t") + "=COUNTIF(" + col + "5:" + col
-              + (Math.max(4 + dvs[i][j].size(), 5)) + ", \">\"&" + col + "3)/COUNT(" + col + "5:"
-              + col + (Math.max(4 + dvs[i][j].size(), 5)) + ")";
+                  + (Math.max(4 + dvs[i][j].size(), 5)) + ", \">\"&" + col + "3)/COUNT(" + col
+                  + "5:" + col + (Math.max(4 + dvs[i][j].size(), 5)) + ")";
         }
       }
 
@@ -196,13 +197,13 @@ public class NrsHap {
     // int col = 6;
 
     String usage = "\\n" + "park.gwa.NrsHap requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=" + filename + " (default))\n"
-        + "   (1) column of p-values (i.e. col=" + col + " (default))\n"
-        + "   (2) proc map for Haploview (i.e. procMap=4 for chromosome 4 (not the default))\n"
-        + "   (4) simulate null distribution (i.e. sim=100 to do 100 replicates (not the default))\n"
-        + "   (3) parse simulations (i.e. -parseSims (not the default))\n"
-        + "   (3) process simulation results (i.e. -procSims (not the default))\n"
-        + "   (3) form distributions (i.e. -formDist (not the default))\n" + "";
+                   + "   (1) filename (i.e. file=" + filename + " (default))\n"
+                   + "   (1) column of p-values (i.e. col=" + col + " (default))\n"
+                   + "   (2) proc map for Haploview (i.e. procMap=4 for chromosome 4 (not the default))\n"
+                   + "   (4) simulate null distribution (i.e. sim=100 to do 100 replicates (not the default))\n"
+                   + "   (3) parse simulations (i.e. -parseSims (not the default))\n"
+                   + "   (3) process simulation results (i.e. -procSims (not the default))\n"
+                   + "   (3) form distributions (i.e. -formDist (not the default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -272,7 +273,7 @@ public class NrsHap {
   }
 
   public static void parseSimulations(final String suffix, int p_column, int chr_column,
-      int pos_column, int markerName_column) {
+                                      int pos_column, int markerName_column) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -284,8 +285,8 @@ public class NrsHap {
         return filename.endsWith(suffix);
       }
     });
-    System.out.println(
-        ext.getTime() + "\tFound " + files.length + " files with suffix '" + suffix + "' to parse");
+    System.out.println(ext.getTime() + "\tFound " + files.length + " files with suffix '" + suffix
+                       + "' to parse");
 
     for (File file : files) {
       filename = file.getName();
@@ -297,7 +298,7 @@ public class NrsHap {
         while (reader.ready()) {
           line = reader.readLine().trim().split("[\\s]+");
           writer.println(line[markerName_column] + "\t" + line[chr_column] + "\t" + line[pos_column]
-              + "\t" + (line[p_column].equals("NA") ? "." : line[p_column]));
+                         + "\t" + (line[p_column].equals("NA") ? "." : line[p_column]));
         }
         reader.close();
         writer.close();
@@ -332,8 +333,7 @@ public class NrsHap {
     try {
       System.out.println(ext.getTime());
       writer = new PrintWriter(new FileWriter("nrsHap_results.xln"));
-      writer.println(
-          "Marker\tChr\tPostition\tNRS Statistic\tNumMarkers\tUCSC coordinates\tMin p-value");
+      writer.println("Marker\tChr\tPostition\tNRS Statistic\tNumMarkers\tUCSC coordinates\tMin p-value");
       reader = new BufferedReader(new FileReader(filename));
       reader.readLine();
       line = reader.readLine().trim().split("[\\s]+");
@@ -394,7 +394,7 @@ public class NrsHap {
             lowIndex++;
             highIndex = indexSNPs[i];
             while (highIndex < positions.length
-                && positions[highIndex] < positions[indexSNPs[i]] + WINDOW) {
+                   && positions[highIndex] < positions[indexSNPs[i]] + WINDOW) {
               if (pvals[highIndex] < minPvalue) {
                 minPvalue = pvals[highIndex];
               }
@@ -402,7 +402,7 @@ public class NrsHap {
             }
             highIndex--;
             stats[i] = computeStatistic(chr, markerNames, pvals, lowIndex, highIndex,
-                INCLUSION_THRESHOLD, "");
+                                        INCLUSION_THRESHOLD, "");
             markerCounts[i] = highIndex - lowIndex + 1;
             // System.out.println((i+1)+")
             // "+markerNames[indexSNPs[i]]+"\t"+positions[indexSNPs[i]]+"\t"+ext.formDeci(stats[i],
@@ -421,11 +421,11 @@ public class NrsHap {
                   maxStat = stats[maxSNP];
                 }
               }
-              writer.println(
-                  markerNames[indexSNPs[maxSNP]] + "\t" + chr + "\t" + positions[indexSNPs[maxSNP]]
-                      + "\t" + ext.formDeci(stats[maxSNP], 2) + "\t" + markerCounts[maxSNP]
-                      + "\tchr" + chr + ":" + (positions[indexSNPs[maxSNP]] - WINDOW) + "-"
-                      + (positions[indexSNPs[maxSNP]] + WINDOW) + "\t" + minPvalue);
+              writer.println(markerNames[indexSNPs[maxSNP]] + "\t" + chr + "\t"
+                             + positions[indexSNPs[maxSNP]] + "\t" + ext.formDeci(stats[maxSNP], 2)
+                             + "\t" + markerCounts[maxSNP] + "\tchr" + chr + ":"
+                             + (positions[indexSNPs[maxSNP]] - WINDOW) + "-"
+                             + (positions[indexSNPs[maxSNP]] + WINDOW) + "\t" + minPvalue);
               writer.flush();
               cluster.clear();
               cluster.add(i);
@@ -440,11 +440,11 @@ public class NrsHap {
                   maxStat = stats[maxSNP];
                 }
               }
-              writer.println(
-                  markerNames[indexSNPs[maxSNP]] + "\t" + chr + "\t" + positions[indexSNPs[maxSNP]]
-                      + "\t" + ext.formDeci(stats[maxSNP], 2) + "\t" + markerCounts[maxSNP]
-                      + "\tchr" + chr + ":" + (positions[indexSNPs[maxSNP]] - WINDOW) + "-"
-                      + (positions[indexSNPs[maxSNP]] + WINDOW) + "\t" + minPvalue);
+              writer.println(markerNames[indexSNPs[maxSNP]] + "\t" + chr + "\t"
+                             + positions[indexSNPs[maxSNP]] + "\t" + ext.formDeci(stats[maxSNP], 2)
+                             + "\t" + markerCounts[maxSNP] + "\tchr" + chr + ":"
+                             + (positions[indexSNPs[maxSNP]] - WINDOW) + "-"
+                             + (positions[indexSNPs[maxSNP]] + WINDOW) + "\t" + minPvalue);
               writer.flush();
             }
 
@@ -492,7 +492,7 @@ public class NrsHap {
           chr = line[1];
         } else if (!line[1].equals(chr)) {
           System.err.println("Error - different chromosomes present in file to be processed: " + chr
-              + " and " + line[1]);
+                             + " and " + line[1]);
         }
         pvalueVector.add(Double.parseDouble(line[p_column]));
       }
@@ -504,12 +504,15 @@ public class NrsHap {
       System.err.println("Error reading file \"" + results + "\"");
       System.exit(2);
     }
-    System.out.println("Stat is " + ext.formDeci(computeStatistic(chr,
-        Array.toStringArray(markerVector), Doubles.toArray(pvalueVector), INCLUSION_THRESHOLD), 2));
+    System.out.println("Stat is "
+                       + ext.formDeci(computeStatistic(chr, Array.toStringArray(markerVector),
+                                                       Doubles.toArray(pvalueVector),
+                                                       INCLUSION_THRESHOLD),
+                                      2));
   }
 
   public static void procSimulations(final String suffix, int p_column, int chr_column,
-      int pos_column, int markerName_column) {
+                                     int pos_column, int markerName_column) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -540,8 +543,8 @@ public class NrsHap {
         return filename.endsWith(suffix);
       }
     });
-    System.out
-        .println("Found " + files.length + " files with suffix '" + suffix + "' to compute from");
+    System.out.println("Found " + files.length + " files with suffix '" + suffix
+                       + "' to compute from");
 
     maxThreshold = 0;
     models = new String[MODELS.length];
@@ -550,7 +553,7 @@ public class NrsHap {
     windowSizes = new int[MODELS.length];
     for (int t = 0; t < MODELS.length; t++) {
       models[t] = "index" + MODELS[t][0] + "_incl" + MODELS[t][1] + "_"
-          + (Integer.parseInt(MODELS[t][2]) / 1000) + "kb/";
+                  + (Integer.parseInt(MODELS[t][2]) / 1000) + "kb/";
       new File(models[t]).mkdirs();
       indexThresholds[t] = Double.parseDouble(MODELS[t][0]);
       inclusionThresholds[t] = Double.parseDouble(MODELS[t][1]);
@@ -560,14 +563,14 @@ public class NrsHap {
       }
     }
     System.out.println("Found " + MODELS.length + " thresholds to consider (min index pvalue of "
-        + maxThreshold + ")");
+                       + maxThreshold + ")");
 
     // for (int chr_target = 1; chr_target <= 23; chr_target++) {
     for (int chr_target = 1; chr_target <= 22; chr_target++) {
       System.out.println(ext.getTime() + "\tParsing chromosome " + chr_target);
       if (!new File("chr" + chr_target + ".bed").exists()) {
-        CmdLine.run(
-            "plink --bfile plink --chr " + chr_target + " --make-bed --out chr" + chr_target, ".");
+        CmdLine.run("plink --bfile plink --chr " + chr_target + " --make-bed --out chr"
+                    + chr_target, ".");
       }
       for (File file : files) {
         filename = file.getName();
@@ -623,19 +626,19 @@ public class NrsHap {
               if (pvals[indexSNPs[i]] < indexThresholds[t]) {
                 lowIndex = indexSNPs[i];
                 while (lowIndex >= 0
-                    && positions[lowIndex] > positions[indexSNPs[i]] - windowSizes[t]) {
+                       && positions[lowIndex] > positions[indexSNPs[i]] - windowSizes[t]) {
                   lowIndex--;
                 }
                 lowIndex++;
                 highIndex = indexSNPs[i];
                 while (highIndex < positions.length
-                    && positions[highIndex] < positions[indexSNPs[i]] + windowSizes[t]) {
+                       && positions[highIndex] < positions[indexSNPs[i]] + windowSizes[t]) {
                   highIndex++;
                 }
                 highIndex--;
                 stats[i] = computeStatistic(chr_target + "", markerNames, pvals, lowIndex,
-                    highIndex, inclusionThresholds[t],
-                    " --pheno sim." + filename.split("\\.")[1] + ".dat");
+                                            highIndex, inclusionThresholds[t],
+                                            " --pheno sim." + filename.split("\\.")[1] + ".dat");
                 markerCounts[i] = highIndex - lowIndex + 1;
                 //
                 // System.out.println((i+1)+")
@@ -658,10 +661,11 @@ public class NrsHap {
                     }
                   }
                   writer.println(markerNames[indexSNPs[maxSNP]] + "\t" + chr_target + "\t"
-                      + positions[indexSNPs[maxSNP]] + "\t" + ext.formDeci(stats[maxSNP], 2) + "\t"
-                      + markerCounts[maxSNP] + "\tchr" + chr_target + ":"
-                      + (positions[indexSNPs[maxSNP]] - windowSizes[t]) + "-"
-                      + (positions[indexSNPs[maxSNP]] + windowSizes[t]));
+                                 + positions[indexSNPs[maxSNP]] + "\t"
+                                 + ext.formDeci(stats[maxSNP], 2) + "\t" + markerCounts[maxSNP]
+                                 + "\tchr" + chr_target + ":"
+                                 + (positions[indexSNPs[maxSNP]] - windowSizes[t]) + "-"
+                                 + (positions[indexSNPs[maxSNP]] + windowSizes[t]));
                   writer.flush();
                   cluster.clear();
                   cluster.add(i);
@@ -677,10 +681,11 @@ public class NrsHap {
                     }
                   }
                   writer.println(markerNames[indexSNPs[maxSNP]] + "\t" + chr_target + "\t"
-                      + positions[indexSNPs[maxSNP]] + "\t" + ext.formDeci(stats[maxSNP], 2) + "\t"
-                      + markerCounts[maxSNP] + "\tchr" + chr_target + ":"
-                      + (positions[indexSNPs[maxSNP]] - windowSizes[t]) + "-"
-                      + (positions[indexSNPs[maxSNP]] + windowSizes[t]));
+                                 + positions[indexSNPs[maxSNP]] + "\t"
+                                 + ext.formDeci(stats[maxSNP], 2) + "\t" + markerCounts[maxSNP]
+                                 + "\tchr" + chr_target + ":"
+                                 + (positions[indexSNPs[maxSNP]] - windowSizes[t]) + "-"
+                                 + (positions[indexSNPs[maxSNP]] + windowSizes[t]));
                   writer.flush();
                 }
 
@@ -769,7 +774,7 @@ public class NrsHap {
         // writer.println("plink --bfile pd_gwas --pheno
         // sim."+(i+1)+".dat --logistic --out sim."+(i+1)+".additive");
         writer.println("plink --bfile plink --pheno sim." + (i + 1) + ".dat --logistic --out sim."
-            + (i + 1) + ".additive");
+                       + (i + 1) + ".additive");
       }
       writer.close();
       Files.chmod("batchSims." + count);

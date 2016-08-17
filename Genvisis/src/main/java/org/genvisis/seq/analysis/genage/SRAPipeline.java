@@ -40,12 +40,12 @@ public class SRAPipeline implements Callable<Boolean> {
     String sraRunTableDefault = "sraRuntable.txt";
     final String SRA_RUN_TABLE = "sraRunTable";
     CLI.addArg(options, SRA_RUN_TABLE, "a sra run table providing sample information",
-        sraRunTableDefault);
+               sraRunTableDefault);
 
     int numThreads = 24;
     final String NUM_THREADS = "threads";
     CLI.addArg(options, NUM_THREADS, "a sra run table providing sample information",
-        Integer.toString(numThreads));
+               Integer.toString(numThreads));
 
     String refGenomeFasta = "hg19.canonical.fa";
     final String REFERENC_GENOME = "ref";
@@ -58,7 +58,7 @@ public class SRAPipeline implements Callable<Boolean> {
     Map<String, String> parsed = CLI.parseWithExit(SRAPipeline.class, options, args);
 
     runAll(parsed.get(SRA_DRI), parsed.get(SRA_RUN_TABLE), parsed.get(OUT_DIR),
-        parsed.get(REFERENC_GENOME), parsed.get(CAPTURE_BED), numThreads);
+           parsed.get(REFERENC_GENOME), parsed.get(CAPTURE_BED), numThreads);
 
   }
 
@@ -67,7 +67,7 @@ public class SRAPipeline implements Callable<Boolean> {
    * many pre-downloaded files
    */
   private static void runAll(String sraDir, String sraRunTableFile, String rootOutDir,
-      String referenceGenome, String captureBed, int numThreads) {
+                             String referenceGenome, String captureBed, int numThreads) {
     Logger log = new Logger();
     String[] sraFiles = Files.list(sraDir, ".sra", false);
     SRARunTable srRunTable = SRARunTable.load(sraRunTableFile, log);
@@ -106,7 +106,7 @@ public class SRAPipeline implements Callable<Boolean> {
    * @param log
    */
   public SRAPipeline(SRASample sraSample, String inputSRA, String rootOutDir,
-      String referenceGenome, String captureBed, int numThreads, Logger log) {
+                     String referenceGenome, String captureBed, int numThreads, Logger log) {
     super();
     this.sraSample = sraSample;
     this.inputSRA = inputSRA;

@@ -23,9 +23,9 @@ public class osa {
     boolean dv = true;
 
     String usage = "\n" + "park.bat.osa has 3 optional arguments:\n"
-        + "   (1) a trait file - 2 columns: FamID covar (default: file=" + filename + ")\n"
-        + "   (2) a chromosome number (default: chr=all)\n"
-        + "   (3) whether to use dominance variance (default: dv=true)\n" + "";
+                   + "   (1) a trait file - 2 columns: FamID covar (default: file=" + filename
+                   + ")\n" + "   (2) a chromosome number (default: chr=all)\n"
+                   + "   (3) whether to use dominance variance (default: dv=true)\n" + "";
 
     for (int i = 0; i < args.length; i++) {
       if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h")
@@ -47,7 +47,7 @@ public class osa {
           dv = false;
         } else {
           System.err.println("Error in syntax - '" + args[i].split("=")[1]
-              + "' is not a valid flag for dv (use true/false)");
+                             + "' is not a valid flag for dv (use true/false)");
         }
         numArgs--;
       }
@@ -108,8 +108,7 @@ public class osa {
       // IDs.add(key);
       // }
     } else {
-      System.err.println(
-          "Error: File must contain either 2 or 3 (if Individual ID is included) columns. No exceptions.");
+      System.err.println("Error: File must contain either 2 or 3 (if Individual ID is included) columns. No exceptions.");
       System.exit(1);
     }
     reader.close();
@@ -159,8 +158,8 @@ public class osa {
         }
         if (trav != prev && prev != -99999.777) {
           increment++;
-          writer = new PrintWriter(new FileWriter(
-              "chrom" + chrome + "/re_chrom" + chrome + "-a" + ext.formNum(increment, 4) + ".pre"));
+          writer = new PrintWriter(new FileWriter("chrom" + chrome + "/re_chrom" + chrome + "-a"
+                                                  + ext.formNum(increment, 4) + ".pre"));
           for (int j = 0; j < i; j++) {
             if (hash.containsKey(IDs.elementAt(keys[j]))) {
               writer.print(hash.get(IDs.elementAt(keys[j])));
@@ -190,8 +189,8 @@ public class osa {
         }
         if (trav != prev && prev != -99999.777) {
           increment++;
-          writer = new PrintWriter(new FileWriter(
-              "chrom" + chrome + "/re_chrom" + chrome + "-d" + ext.formNum(increment, 4) + ".pre"));
+          writer = new PrintWriter(new FileWriter("chrom" + chrome + "/re_chrom" + chrome + "-d"
+                                                  + ext.formNum(increment, 4) + ".pre"));
           for (int j = IDs.size() - 1; j > i; j--) {
             if (hash.containsKey(IDs.elementAt(keys[j]))) {
               writer.print(hash.get(IDs.elementAt(keys[j])));
@@ -213,17 +212,18 @@ public class osa {
       writer.println();
       writer.println("cp ../map" + chrome + ".dat .");
       writer.println("java -classpath /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS
-          + " park.bat.dat2loc map" + chrome + ".dat");
+                     + " park.bat.dat2loc map" + chrome + ".dat");
       for (int ascending = 0; ascending < 2; ascending++) {
         temp = ascending == 0 ? "a" : "d";
         for (int i = 1; i <= increment; i++) {
           writer.println("echo -e \"" + ((chromosome == 23) ? "sex on\\n" : "")
-              + "pairs\\n3\\nload map" + chrome + ".loc\\nprep re_chrom" + chrome + "-" + temp
-              + ext.formNum(i, 4) + ".pre\\nn\\nscan\\nestimate\\n"
-              + ((chromosome == 23) ? "" : (dv ? "n" : "y") + "\\n") + "chrom" + chrome + "-" + temp
-              + ext.formNum(i, 4) + ".out\\nchrom" + chrome + "-" + temp + ext.formNum(i, 4)
-              + "-share.ps\\nchrom" + chrome + "-" + temp + ext.formNum(i, 4)
-              + "-mls.ps\\nquit\\n\" | /software/bin/sibs > /dev/null");
+                         + "pairs\\n3\\nload map" + chrome + ".loc\\nprep re_chrom" + chrome + "-"
+                         + temp + ext.formNum(i, 4) + ".pre\\nn\\nscan\\nestimate\\n"
+                         + ((chromosome == 23) ? "" : (dv ? "n" : "y") + "\\n") + "chrom" + chrome
+                         + "-" + temp + ext.formNum(i, 4) + ".out\\nchrom" + chrome + "-" + temp
+                         + ext.formNum(i, 4) + "-share.ps\\nchrom" + chrome + "-" + temp
+                         + ext.formNum(i, 4)
+                         + "-mls.ps\\nquit\\n\" | /software/bin/sibs > /dev/null");
           writer.println();
         }
         writer.println("rm *.ps");

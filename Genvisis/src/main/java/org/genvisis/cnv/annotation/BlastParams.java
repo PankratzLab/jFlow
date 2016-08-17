@@ -16,7 +16,7 @@ public class BlastParams implements AnalysisParams {
   private static final String DATA_DELIMITER = ",";
   private static final String[] parseKeys =
       new String[] {"fileSeq=", "ref=", "maxAlignmentsReported=", "reportWordSize=",
-          "blastWordSize=", "evalueCutoff=", "date=", "markerFingerPrint=", "notes="};
+                    "blastWordSize=", "evalueCutoff=", "date=", "markerFingerPrint=", "notes="};
 
   private String fileSeq;
   private String fastaDb;
@@ -36,8 +36,8 @@ public class BlastParams implements AnalysisParams {
   }
 
   public BlastParams(String fileSeq, String fastaDb, int maxAlignmentsReported, int reportWordSize,
-      int blastWordSize, String dateStamp, double evalueCutoff, long markerFingerPrint,
-      String notes, Logger log) {
+                     int blastWordSize, String dateStamp, double evalueCutoff,
+                     long markerFingerPrint, String notes, Logger log) {
     super();
     this.fileSeq = fileSeq;
     this.fastaDb = fastaDb;

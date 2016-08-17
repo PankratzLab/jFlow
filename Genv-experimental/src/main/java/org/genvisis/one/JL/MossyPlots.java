@@ -41,8 +41,10 @@ public class MossyPlots {
 
 
   private static void plot(Project proj, String mosBaseFile) {
-    Set<String> tns = VcfPopulation.load(proj.PROJECT_DIRECTORY.getValue() + "TN.vpop",
-        POPULATION_TYPE.TUMOR_NORMAL, proj.getLog()).getTumorSamples();
+    Set<String> tns = VcfPopulation
+                                   .load(proj.PROJECT_DIRECTORY.getValue() + "TN.vpop",
+                                         POPULATION_TYPE.TUMOR_NORMAL, proj.getLog())
+                                   .getTumorSamples();
     String outDir = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(mosBaseFile) + "mosPlots/";
     new File(outDir).mkdirs();
     proj.getLog().reportTimeInfo(mosBaseFile);
@@ -71,11 +73,11 @@ public class MossyPlots {
       if (Double.parseDouble(mos[i][9]) >= 0) {
         String data =
             Array.toStr(mos[i]) + "\t" + (sampleData.individualShouldBeExcluded(mos[i][0]) ? 1 : 0)
-                + "\t" + (tns.contains(mos[i][0]) ? "TUMOR" : "GERMLINE") + "\t"
-                + mos[i][1].replaceAll("p", "").replaceAll("q", "");
+                      + "\t" + (tns.contains(mos[i][0]) ? "TUMOR" : "GERMLINE") + "\t"
+                      + mos[i][1].replaceAll("p", "").replaceAll("q", "");
         if (Double.parseDouble(mos[i][9]) >= .25) {
           geomTexts.add(new GeomText(Double.parseDouble(mos[i][3]), Double.parseDouble(mos[i][9]),
-              .25, mos[i][1], .1));
+                                     .25, mos[i][1], .1));
         }
         filtered.add(data);
       }
@@ -87,7 +89,8 @@ public class MossyPlots {
 
     RScatter rsScatterAll =
         new RScatter(mosFile, tNAll + ".rscript", ext.rootOf(tNAll), tNAll + ".jpeg", "mean LRR",
-            new String[] {"BpWeightedAverage"}, "TUMOR", SCATTER_TYPE.BASIC_POINT, proj.getLog());
+                     new String[] {"BpWeightedAverage"}, "TUMOR", SCATTER_TYPE.BASIC_POINT,
+                     proj.getLog());
     rsScatterAll.setOverWriteExisting(true);
     rsScatterAll.setyRange(new double[] {0, 1});
     rsScatterAll.setxRange(new double[] {-.5, .5});
@@ -104,14 +107,16 @@ public class MossyPlots {
 
     String tumorNormalNoExclude = outDir + "tumorNormal.plot";
 
-    RScatter rsScatterTN = new RScatter(mosFile, tumorNormalNoExclude + ".rscript",
-        ext.rootOf(tumorNormalNoExclude), tumorNormalNoExclude + ".jpeg", "mean LRR",
-        new String[] {"BpWeightedAverage"}, "TUMOR", SCATTER_TYPE.BASIC_POINT, proj.getLog());
+    RScatter rsScatterTN =
+        new RScatter(mosFile, tumorNormalNoExclude + ".rscript", ext.rootOf(tumorNormalNoExclude),
+                     tumorNormalNoExclude + ".jpeg", "mean LRR", new String[] {"BpWeightedAverage"},
+                     "TUMOR", SCATTER_TYPE.BASIC_POINT, proj.getLog());
     rsScatterTN.setOverWriteExisting(true);
     rsScatterTN.setyRange(new double[] {0, 1});
     rsScatterTN.setxRange(new double[] {-.5, .5});
-    Restrictions[] restrictionTN = new Restrictions[] {
-        new Restrictions(new String[] {"Exclude"}, new double[] {0}, new String[] {"=="}, null)};
+    Restrictions[] restrictionTN =
+        new Restrictions[] {new Restrictions(new String[] {"Exclude"}, new double[] {0},
+                                             new String[] {"=="}, null)};
     rsScatterTN.setRestrictions(restrictionTN);
     rsScatterTN.setxLabel("Average LRR of chromosomal arm");
     rsScatterTN.setyLabel("Mosaic Metric of chromosomal arm");
@@ -123,15 +128,18 @@ public class MossyPlots {
 
     String tumorNormalNoExcludeSamp = outDir + "tumorNormalSamp.plot";
 
-    RScatter rsScatterTNSamp = new RScatter(mosFile, tumorNormalNoExcludeSamp + ".rscript",
-        ext.rootOf(tumorNormalNoExcludeSamp), tumorNormalNoExcludeSamp + ".jpeg", "mean LRR",
-        new String[] {"BpWeightedAverage"}, "Sample", SCATTER_TYPE.BASIC_POINT, proj.getLog());
+    RScatter rsScatterTNSamp =
+        new RScatter(mosFile, tumorNormalNoExcludeSamp + ".rscript",
+                     ext.rootOf(tumorNormalNoExcludeSamp), tumorNormalNoExcludeSamp + ".jpeg",
+                     "mean LRR", new String[] {"BpWeightedAverage"}, "Sample",
+                     SCATTER_TYPE.BASIC_POINT, proj.getLog());
     rsScatterTNSamp.setOverWriteExisting(true);
 
     rsScatterTNSamp.setyRange(new double[] {0, 1});
     rsScatterTNSamp.setxRange(new double[] {-.5, .5});
-    Restrictions[] restrictionTNSamp = new Restrictions[] {
-        new Restrictions(new String[] {"Exclude"}, new double[] {0}, new String[] {"=="}, null)};
+    Restrictions[] restrictionTNSamp =
+        new Restrictions[] {new Restrictions(new String[] {"Exclude"}, new double[] {0},
+                                             new String[] {"=="}, null)};
     rsScatterTNSamp.setlPosition(LEGEND_POSITION.NONE);
     rsScatterTNSamp.setRestrictions(restrictionTNSamp);
     rsScatterTNSamp.setxLabel("Average LRR of chromosomal arm");
@@ -144,9 +152,11 @@ public class MossyPlots {
 
     String tumorNormalNoExcludeFocus = outDir + "tumorNormalFocus.plot";
     double filter = 0.10;
-    RScatter rsScatterTNFocus = new RScatter(mosFile, tumorNormalNoExcludeFocus + ".rscript",
-        ext.rootOf(tumorNormalNoExcludeFocus), tumorNormalNoExcludeFocus + ".jpeg", "mean LRR",
-        new String[] {"BpWeightedAverage"}, "TUMOR", SCATTER_TYPE.BASIC_POINT, proj.getLog());
+    RScatter rsScatterTNFocus =
+        new RScatter(mosFile, tumorNormalNoExcludeFocus + ".rscript",
+                     ext.rootOf(tumorNormalNoExcludeFocus), tumorNormalNoExcludeFocus + ".jpeg",
+                     "mean LRR", new String[] {"BpWeightedAverage"}, "TUMOR",
+                     SCATTER_TYPE.BASIC_POINT, proj.getLog());
     rsScatterTNFocus.setOverWriteExisting(true);
     rsScatterTNFocus.setyRange(new double[] {0, 1});
     rsScatterTNFocus.setxRange(new double[] {-.5, .5});
@@ -155,9 +165,10 @@ public class MossyPlots {
     // rsScatterTNFocus.setgTexts(geomTexts.toArray(new GeomText[geomTexts.size()]));
     // rsScatterTNFocus.setHorizontalLines(new HorizontalLine[] { horizontalLine });
     Restrictions mm = new Restrictions(new String[] {"BpWeightedAverage"}, new double[] {filter},
-        new String[] {">="}, null);
-    Restrictions[] restrictionTNFocus = new Restrictions[] {mm,
-        new Restrictions(new String[] {"Exclude"}, new double[] {0}, new String[] {"=="}, null)};
+                                       new String[] {">="}, null);
+    Restrictions[] restrictionTNFocus =
+        new Restrictions[] {mm, new Restrictions(new String[] {"Exclude"}, new double[] {0},
+                                                 new String[] {"=="}, null)};
     rsScatterTNFocus.setRestrictions(restrictionTNFocus);
     rsScatterTNFocus.setxLabel("Average LRR of chromosomal arm");
     rsScatterTNFocus.setyLabel("Mosaic Metric of chromosomal arm");
@@ -167,9 +178,11 @@ public class MossyPlots {
 
     String tumorNormalNoExcludeFocus2 = outDir + "tumorNormalFocus2.plot";
     double filter2 = 0.25;
-    RScatter rsScatterTNFocus2 = new RScatter(mosFile, tumorNormalNoExcludeFocus2 + ".rscript",
-        ext.rootOf(tumorNormalNoExcludeFocus2), tumorNormalNoExcludeFocus2 + ".jpeg", "mean LRR",
-        new String[] {"BpWeightedAverage"}, "Sample", SCATTER_TYPE.BASIC_POINT, proj.getLog());
+    RScatter rsScatterTNFocus2 =
+        new RScatter(mosFile, tumorNormalNoExcludeFocus2 + ".rscript",
+                     ext.rootOf(tumorNormalNoExcludeFocus2), tumorNormalNoExcludeFocus2 + ".jpeg",
+                     "mean LRR", new String[] {"BpWeightedAverage"}, "Sample",
+                     SCATTER_TYPE.BASIC_POINT, proj.getLog());
     rsScatterTNFocus2.setOverWriteExisting(true);
     rsScatterTNFocus2.setyRange(new double[] {0, 1});
     rsScatterTNFocus2.setxRange(new double[] {-.5, .5});
@@ -178,9 +191,10 @@ public class MossyPlots {
     // rsScatterTNFocus.setgTexts(geomTexts.toArray(new GeomText[geomTexts.size()]));
     // rsScatterTNFocus.setHorizontalLines(new HorizontalLine[] { horizontalLine });
     Restrictions mm2 = new Restrictions(new String[] {"BpWeightedAverage"}, new double[] {filter2},
-        new String[] {">="}, null);
-    Restrictions[] restrictionTNFocus2 = new Restrictions[] {mm2,
-        new Restrictions(new String[] {"Exclude"}, new double[] {0}, new String[] {"=="}, null)};
+                                        new String[] {">="}, null);
+    Restrictions[] restrictionTNFocus2 =
+        new Restrictions[] {mm2, new Restrictions(new String[] {"Exclude"}, new double[] {0},
+                                                  new String[] {"=="}, null)};
     rsScatterTNFocus2.setRestrictions(restrictionTNFocus2);
     rsScatterTNFocus2.setxLabel("Average LRR of chromosomal arm");
     rsScatterTNFocus2.setyLabel("Mosaic Metric of chromosomal arm");
@@ -190,11 +204,12 @@ public class MossyPlots {
 
     String tumorNormalNoExcludeCompallColors = outDir + "tumorNormalCompMethodallColors.plot";
 
-    RScatter rsScatterTNBandCompallColors = new RScatter(mosFile,
-        tumorNormalNoExcludeCompallColors + ".rscript",
-        ext.rootOf(tumorNormalNoExcludeCompallColors), tumorNormalNoExcludeCompallColors + ".jpeg",
-        "SD of BAF (0.15-0.85)", new String[] {"IQR of BAF (0.15-0.85)"}, "TUMOR",
-        SCATTER_TYPE.BASIC_POINT, proj.getLog());
+    RScatter rsScatterTNBandCompallColors =
+        new RScatter(mosFile, tumorNormalNoExcludeCompallColors + ".rscript",
+                     ext.rootOf(tumorNormalNoExcludeCompallColors),
+                     tumorNormalNoExcludeCompallColors + ".jpeg", "SD of BAF (0.15-0.85)",
+                     new String[] {"IQR of BAF (0.15-0.85)"}, "TUMOR", SCATTER_TYPE.BASIC_POINT,
+                     proj.getLog());
     rsScatterTNBandCompallColors.setOverWriteExisting(true);
     rsScatterTNBandCompallColors.setFactorColor(false);
     rsScatterTNBandCompallColors.setyRange(new double[] {0, .6});
@@ -213,17 +228,19 @@ public class MossyPlots {
 
     String tumorNormalNoExcludeCompnoEColors = outDir + "tumorNormalCompMethodnEColors.plot";
 
-    RScatter rsScatterTNBandCompallNEColors = new RScatter(mosFile,
-        tumorNormalNoExcludeCompnoEColors + ".rscript",
-        ext.rootOf(tumorNormalNoExcludeCompnoEColors), tumorNormalNoExcludeCompnoEColors + ".jpeg",
-        "SD of BAF (0.15-0.85)", new String[] {"IQR of BAF (0.15-0.85)"}, "TUMOR",
-        SCATTER_TYPE.BASIC_POINT, proj.getLog());
+    RScatter rsScatterTNBandCompallNEColors =
+        new RScatter(mosFile, tumorNormalNoExcludeCompnoEColors + ".rscript",
+                     ext.rootOf(tumorNormalNoExcludeCompnoEColors),
+                     tumorNormalNoExcludeCompnoEColors + ".jpeg", "SD of BAF (0.15-0.85)",
+                     new String[] {"IQR of BAF (0.15-0.85)"}, "TUMOR", SCATTER_TYPE.BASIC_POINT,
+                     proj.getLog());
     rsScatterTNBandCompallNEColors.setOverWriteExisting(true);
     rsScatterTNBandCompallNEColors.setFactorColor(false);
     rsScatterTNBandCompallNEColors.setyRange(new double[] {0, .6});
     rsScatterTNBandCompallNEColors.setxRange(new double[] {0, .3});
-    Restrictions[] restrictionTNCompallNEColors = new Restrictions[] {
-        new Restrictions(new String[] {"Exclude"}, new double[] {0}, new String[] {"=="}, null)};
+    Restrictions[] restrictionTNCompallNEColors =
+        new Restrictions[] {new Restrictions(new String[] {"Exclude"}, new double[] {0},
+                                             new String[] {"=="}, null)};
     rsScatterTNBandCompallNEColors.setRestrictions(restrictionTNCompallNEColors);
     // rsScatterTNBandComp.setlPosition(LEGEND_POSITION.NONE);
     rsScatterTNBandCompallNEColors.setxLabel("SD of BAF (0.15-0.85)");
@@ -239,15 +256,16 @@ public class MossyPlots {
 
     RScatter rsScatterTNBandCompall =
         new RScatter(mosFile, tumorNormalNoExcludeCompall + ".rscript",
-            ext.rootOf(tumorNormalNoExcludeCompall), tumorNormalNoExcludeCompall + ".jpeg",
-            "SD of BAF (0.15-0.85)", new String[] {"IQR of BAF (0.15-0.85)"}, "BpWeightedAverage",
-            SCATTER_TYPE.BASIC_POINT, proj.getLog());
+                     ext.rootOf(tumorNormalNoExcludeCompall), tumorNormalNoExcludeCompall + ".jpeg",
+                     "SD of BAF (0.15-0.85)", new String[] {"IQR of BAF (0.15-0.85)"},
+                     "BpWeightedAverage", SCATTER_TYPE.BASIC_POINT, proj.getLog());
     rsScatterTNBandCompall.setOverWriteExisting(true);
     rsScatterTNBandCompall.setFactorColor(false);
     rsScatterTNBandCompall.setyRange(new double[] {0, .6});
     rsScatterTNBandCompall.setxRange(new double[] {0, .3});
-    Restrictions[] restrictionTNCompall = new Restrictions[] {
-        new Restrictions(new String[] {"Exclude"}, new double[] {0}, new String[] {"=="}, null)};
+    Restrictions[] restrictionTNCompall =
+        new Restrictions[] {new Restrictions(new String[] {"Exclude"}, new double[] {0},
+                                             new String[] {"=="}, null)};
     rsScatterTNBandCompall.setRestrictions(restrictionTNCompall);
     // rsScatterTNBandComp.setlPosition(LEGEND_POSITION.NONE);
     rsScatterTNBandCompall.setxLabel("SD of BAF (0.15-0.85)");
@@ -262,15 +280,16 @@ public class MossyPlots {
 
     RScatter rsScatterTNBandCompone =
         new RScatter(mosFile, tumorNormalNoExcludeCompone + ".rscript",
-            ext.rootOf(tumorNormalNoExcludeCompone), tumorNormalNoExcludeCompone + ".jpeg",
-            "SD of BAF (0.15-0.85)", new String[] {"IQR of BAF (0.15-0.85)"}, "BpWeightedAverage",
-            SCATTER_TYPE.BASIC_POINT, proj.getLog());
+                     ext.rootOf(tumorNormalNoExcludeCompone), tumorNormalNoExcludeCompone + ".jpeg",
+                     "SD of BAF (0.15-0.85)", new String[] {"IQR of BAF (0.15-0.85)"},
+                     "BpWeightedAverage", SCATTER_TYPE.BASIC_POINT, proj.getLog());
     rsScatterTNBandCompone.setOverWriteExisting(true);
     rsScatterTNBandCompone.setFactorColor(false);
     rsScatterTNBandCompone.setyRange(new double[] {0, .6});
     rsScatterTNBandCompone.setxRange(new double[] {0, .3});
-    Restrictions[] restrictionTNCompone = new Restrictions[] {mm,
-        new Restrictions(new String[] {"Exclude"}, new double[] {0}, new String[] {"=="}, null)};
+    Restrictions[] restrictionTNCompone =
+        new Restrictions[] {mm, new Restrictions(new String[] {"Exclude"}, new double[] {0},
+                                                 new String[] {"=="}, null)};
     rsScatterTNBandCompone.setRestrictions(restrictionTNCompone);
     // rsScatterTNBandComp.setlPosition(LEGEND_POSITION.NONE);
     rsScatterTNBandCompone.setxLabel("SD of BAF (0.15-0.85)");
@@ -283,16 +302,18 @@ public class MossyPlots {
 
     String tumorNormalNoExcludeComp = outDir + "tumorNormalCompMethod.plot";
 
-    RScatter rsScatterTNBandComp = new RScatter(mosFile, tumorNormalNoExcludeComp + ".rscript",
-        ext.rootOf(tumorNormalNoExcludeComp), tumorNormalNoExcludeComp + ".jpeg",
-        "SD of BAF (0.15-0.85)", new String[] {"IQR of BAF (0.15-0.85)"}, "BpWeightedAverage",
-        SCATTER_TYPE.BASIC_POINT, proj.getLog());
+    RScatter rsScatterTNBandComp =
+        new RScatter(mosFile, tumorNormalNoExcludeComp + ".rscript",
+                     ext.rootOf(tumorNormalNoExcludeComp), tumorNormalNoExcludeComp + ".jpeg",
+                     "SD of BAF (0.15-0.85)", new String[] {"IQR of BAF (0.15-0.85)"},
+                     "BpWeightedAverage", SCATTER_TYPE.BASIC_POINT, proj.getLog());
     rsScatterTNBandComp.setOverWriteExisting(true);
     rsScatterTNBandComp.setFactorColor(false);
     rsScatterTNBandComp.setyRange(new double[] {0, .6});
     rsScatterTNBandComp.setxRange(new double[] {0, .3});
-    Restrictions[] restrictionTNComp = new Restrictions[] {mm2,
-        new Restrictions(new String[] {"Exclude"}, new double[] {0}, new String[] {"=="}, null)};
+    Restrictions[] restrictionTNComp =
+        new Restrictions[] {mm2, new Restrictions(new String[] {"Exclude"}, new double[] {0},
+                                                  new String[] {"=="}, null)};
     rsScatterTNBandComp.setRestrictions(restrictionTNComp);
     // rsScatterTNBandComp.setlPosition(LEGEND_POSITION.NONE);
     rsScatterTNBandComp.setxLabel("SD of BAF (0.15-0.85)");
@@ -304,24 +325,27 @@ public class MossyPlots {
     rscScatters.add(rsScatterTNBandComp);
 
     String tumorNormalNoExcludeFocus2arm = outDir + "tumorNormalFocus2arm.plot";
-    RScatter rsScatterTNFocus2arm = new RScatter(mosFile,
-        tumorNormalNoExcludeFocus2arm + ".rscript", ext.rootOf(tumorNormalNoExcludeFocus2arm),
-        tumorNormalNoExcludeFocus2arm + ".jpeg", "mean LRR", new String[] {"BpWeightedAverage"},
-        "Band", SCATTER_TYPE.BASIC_POINT, proj.getLog());
+    RScatter rsScatterTNFocus2arm =
+        new RScatter(mosFile, tumorNormalNoExcludeFocus2arm + ".rscript",
+                     ext.rootOf(tumorNormalNoExcludeFocus2arm),
+                     tumorNormalNoExcludeFocus2arm + ".jpeg", "mean LRR",
+                     new String[] {"BpWeightedAverage"}, "Band", SCATTER_TYPE.BASIC_POINT,
+                     proj.getLog());
     rsScatterTNFocus2arm.setOverWriteExisting(true);
     rsScatterTNFocus2arm.setyRange(new double[] {0, 1});
     rsScatterTNFocus2arm.setxRange(new double[] {-.5, .5});
-    rsScatterTNFocus2arm
-        .setTitle("Samples with Mosaic Metric >=" + filter2 + " (Colored by chromosomal Arm)");
+    rsScatterTNFocus2arm.setTitle("Samples with Mosaic Metric >=" + filter2
+                                  + " (Colored by chromosomal Arm)");
     rsScatterTNFocus2arm.setFontsize(14);
     rsScatterTNFocus2arm.setlPosition(LEGEND_POSITION.NONE);
 
     // rsScatterTNFocus.setgTexts(geomTexts.toArray(new GeomText[geomTexts.size()]));
     // rsScatterTNFocus.setHorizontalLines(new HorizontalLine[] { horizontalLine });
     Restrictions mm2arm = new Restrictions(new String[] {"BpWeightedAverage"},
-        new double[] {filter2}, new String[] {">="}, null);
-    Restrictions[] restrictionTNFocus2arm = new Restrictions[] {mm2arm,
-        new Restrictions(new String[] {"Exclude"}, new double[] {0}, new String[] {"=="}, null)};
+                                           new double[] {filter2}, new String[] {">="}, null);
+    Restrictions[] restrictionTNFocus2arm =
+        new Restrictions[] {mm2arm, new Restrictions(new String[] {"Exclude"}, new double[] {0},
+                                                     new String[] {"=="}, null)};
     rsScatterTNFocus2arm.setRestrictions(restrictionTNFocus2arm);
     rsScatterTNFocus2arm.setxLabel("Average LRR of chromosomal arm");
     rsScatterTNFocus2arm.setyLabel("Mosaic Metric of chromosomal arm");
@@ -330,23 +354,26 @@ public class MossyPlots {
     rscScatters.add(rsScatterTNFocus2arm);
 
     String tumorNormalNoExcludeFocus2chr = outDir + "tumorNormalFocus2chr.plot";
-    RScatter rsScatterTNFocus2chr = new RScatter(mosFile,
-        tumorNormalNoExcludeFocus2chr + ".rscript", ext.rootOf(tumorNormalNoExcludeFocus2chr),
-        tumorNormalNoExcludeFocus2chr + ".jpeg", "mean LRR", new String[] {"BpWeightedAverage"},
-        "Chr", SCATTER_TYPE.BASIC_POINT, proj.getLog());
+    RScatter rsScatterTNFocus2chr =
+        new RScatter(mosFile, tumorNormalNoExcludeFocus2chr + ".rscript",
+                     ext.rootOf(tumorNormalNoExcludeFocus2chr),
+                     tumorNormalNoExcludeFocus2chr + ".jpeg", "mean LRR",
+                     new String[] {"BpWeightedAverage"}, "Chr", SCATTER_TYPE.BASIC_POINT,
+                     proj.getLog());
     rsScatterTNFocus2chr.setOverWriteExisting(true);
     rsScatterTNFocus2chr.setyRange(new double[] {0, 1});
     rsScatterTNFocus2chr.setxRange(new double[] {-.5, .5});
-    rsScatterTNFocus2chr
-        .setTitle("Samples with Mosaic Metric >=" + filter2 + " (Colored by chromosome)");
+    rsScatterTNFocus2chr.setTitle("Samples with Mosaic Metric >=" + filter2
+                                  + " (Colored by chromosome)");
     rsScatterTNFocus2chr.setFontsize(14);
     // rsScatterTNFocus2chr.setlPosition(LEGEND_POSITION.NONE);
     // rsScatterTNFocus.setgTexts(geomTexts.toArray(new GeomText[geomTexts.size()]));
     // rsScatterTNFocus.setHorizontalLines(new HorizontalLine[] { horizontalLine });
     Restrictions mm2chr = new Restrictions(new String[] {"BpWeightedAverage"},
-        new double[] {filter2}, new String[] {">="}, null);
-    Restrictions[] restrictionTNFocus2chr = new Restrictions[] {mm2chr,
-        new Restrictions(new String[] {"Exclude"}, new double[] {0}, new String[] {"=="}, null)};
+                                           new double[] {filter2}, new String[] {">="}, null);
+    Restrictions[] restrictionTNFocus2chr =
+        new Restrictions[] {mm2chr, new Restrictions(new String[] {"Exclude"}, new double[] {0},
+                                                     new String[] {"=="}, null)};
     rsScatterTNFocus2chr.setRestrictions(restrictionTNFocus2chr);
     rsScatterTNFocus2chr.setxLabel("Average LRR of chromosomal arm");
     rsScatterTNFocus2chr.setyLabel("Mosaic Metric of chromosomal arm");
@@ -356,14 +383,17 @@ public class MossyPlots {
 
     String tumorNormalNoExcludeBand = outDir + "tumorNormalBand.plot";
 
-    RScatter rsScatterTNBand = new RScatter(mosFile, tumorNormalNoExcludeBand + ".rscript",
-        ext.rootOf(tumorNormalNoExcludeBand), tumorNormalNoExcludeBand + ".jpeg", "mean LRR",
-        new String[] {"BpWeightedAverage"}, "Band", SCATTER_TYPE.BASIC_POINT, proj.getLog());
+    RScatter rsScatterTNBand =
+        new RScatter(mosFile, tumorNormalNoExcludeBand + ".rscript",
+                     ext.rootOf(tumorNormalNoExcludeBand), tumorNormalNoExcludeBand + ".jpeg",
+                     "mean LRR", new String[] {"BpWeightedAverage"}, "Band",
+                     SCATTER_TYPE.BASIC_POINT, proj.getLog());
     rsScatterTNBand.setOverWriteExisting(true);
     rsScatterTNBand.setyRange(new double[] {0, 1});
     rsScatterTNBand.setxRange(new double[] {-.5, .5});
-    Restrictions[] restrictionTNBand = new Restrictions[] {
-        new Restrictions(new String[] {"Exclude"}, new double[] {0}, new String[] {"=="}, null)};
+    Restrictions[] restrictionTNBand =
+        new Restrictions[] {new Restrictions(new String[] {"Exclude"}, new double[] {0},
+                                             new String[] {"=="}, null)};
     rsScatterTNBand.setRestrictions(restrictionTNBand);
     rsScatterTNBand.setlPosition(LEGEND_POSITION.NONE);
     rsScatterTNBand.setxLabel("Average LRR of chromosomal arm");
@@ -379,7 +409,7 @@ public class MossyPlots {
 
     RScatters rScatters =
         new RScatters(rscScatters.toArray(new RScatter[rscScatters.size()]), finalRscript, finalout,
-            COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
+                      COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
     rScatters.execute();
   }
 

@@ -82,11 +82,12 @@ public class Eigenstrat {
         line = reader.readLine().trim().split("[\\s]+");
         if (!line[0].equals(ids[count][1])) {
           System.err.println("Error - mismatched indiviudals on line " + (count + 1) + " (found "
-              + line[0] + "; expecting " + ids[count][1] + "), can't interpolate Family IDs");
+                             + line[0] + "; expecting " + ids[count][1]
+                             + "), can't interpolate Family IDs");
           System.exit(1);
         }
-        writer.println(
-            ids[count][0] + "\t" + ids[count][1] + "\t" + Array.toStr(Array.subArray(line, 1)));
+        writer.println(ids[count][0] + "\t" + ids[count][1] + "\t"
+                       + Array.toStr(Array.subArray(line, 1)));
         count++;
       }
       writer.close();
@@ -180,18 +181,18 @@ public class Eigenstrat {
     boolean suppress = false;
 
     String usage = "\n" + "gwas.Eigenstrat requires 0-1 arguments\n"
-        + "   (1) root name of the source one per family plink files (i.e. source=" + sourceRoot
-        + " (default))\n"
-        + "   (2) root name of the target all indiviudals plink files (i.e. target=" + targetRoot
-        + " (default))\n"
-        + "   (3) create files for smartpca run (i.e. -create (not the default))\n"
-        + "   (4) calculate eigen values for target population (i.e. -parse (not the default))\n"
-        + "   (5) target files are actually eigensoft format, not plink (i.e. -eigenFormat (not the default))\n"
-        + "   (6) perform fancy weighting when parsing (i.e. fancy=" + fancy_weighting
-        + " (default))\n"
-        + "   (7) .evec file to convert to .mds (i.e. convert=plink.pca.evec (not the default))\n"
-        + "   (8) suppress warning/kill regarding marker order (i.e. -suppress (not the default))\n"
-        + "";
+                   + "   (1) root name of the source one per family plink files (i.e. source="
+                   + sourceRoot + " (default))\n"
+                   + "   (2) root name of the target all indiviudals plink files (i.e. target="
+                   + targetRoot + " (default))\n"
+                   + "   (3) create files for smartpca run (i.e. -create (not the default))\n"
+                   + "   (4) calculate eigen values for target population (i.e. -parse (not the default))\n"
+                   + "   (5) target files are actually eigensoft format, not plink (i.e. -eigenFormat (not the default))\n"
+                   + "   (6) perform fancy weighting when parsing (i.e. fancy=" + fancy_weighting
+                   + " (default))\n"
+                   + "   (7) .evec file to convert to .mds (i.e. convert=plink.pca.evec (not the default))\n"
+                   + "   (8) suppress warning/kill regarding marker order (i.e. -suppress (not the default))\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -248,7 +249,7 @@ public class Eigenstrat {
   }
 
   public static void parse(String sourceRoot, String targetRoot, boolean eigenFormat,
-      boolean fancy_weighting, boolean suppress) {
+                           boolean fancy_weighting, boolean suppress) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -271,8 +272,8 @@ public class Eigenstrat {
 
     if (!Files.exists(sourceRoot + ".frq")) {
       command = "plink --bfile " + sourceRoot + " --freq --out " + sourceRoot + " --noweb ";
-      System.out.println(
-          "Failed to find " + sourceRoot + ".frq; generating now using the following command...");
+      System.out.println("Failed to find " + sourceRoot
+                         + ".frq; generating now using the following command...");
       System.out.println(command);
       CmdLine.run(command, ext.parseDirectoryOfFile(sourceRoot));
     }
@@ -285,21 +286,24 @@ public class Eigenstrat {
     System.out.print("Parsing weights...");
     numEigens =
         Files.getHeaderOfFile(sourceRoot + ".weights.out", "[\\s]+", new Logger()).length - 3;
-    weightsHash = HashVec.loadFileToHashString(sourceRoot + ".weights.out", 0,
-        Arrays.copyOfRange(Array.arrayOfIndices(numEigens + 3), 3, numEigens + 3), "\t", false);
+    weightsHash =
+        HashVec.loadFileToHashString(sourceRoot + ".weights.out", 0,
+                                     Arrays.copyOfRange(Array.arrayOfIndices(numEigens + 3), 3,
+                                                        numEigens + 3),
+                                     "\t", false);
     System.out.println("found weights for " + weightsHash.size() + " markers");
 
     if (!new File(targetRoot + (eigenFormat ? ".bim" : ".map")).exists()) {
       System.err.println("Error - could not find a '" + targetRoot + (eigenFormat ? ".bim" : ".map")
-          + "' to pair up with '" + targetRoot + (eigenFormat ? ".eigenstratgeno" : ".ped")
-          + "'; problem if markers are in a different order (" + targetRoot
-          + ".snp does not necessarily reflect the actual order in " + targetRoot
-          + ".eigenstratgeno)");
+                         + "' to pair up with '" + targetRoot
+                         + (eigenFormat ? ".eigenstratgeno" : ".ped")
+                         + "'; problem if markers are in a different order (" + targetRoot
+                         + ".snp does not necessarily reflect the actual order in " + targetRoot
+                         + ".eigenstratgeno)");
       System.exit(1);
     }
-    markerNames =
-        new SnpMarkerSet(targetRoot + (eigenFormat ? ".bim" : ".map"), false, new Logger())
-            .getMarkerNames();
+    markerNames = new SnpMarkerSet(targetRoot + (eigenFormat ? ".bim" : ".map"), false,
+                                   new Logger()).getMarkerNames();
     weights = new double[markerNames.length][];
     alleles = new char[markerNames.length][2];
     mafs = new double[markerNames.length];
@@ -313,7 +317,7 @@ public class Eigenstrat {
         str = strandHash.get(markerNames[i]);
         if (str == null) {
           System.err.println("Error - '" + markerNames[i]
-              + "' has a weight but is not present in the source .snp file");
+                             + "' has a weight but is not present in the source .snp file");
           System.exit(1);
         }
         line = str.split("[\\s]+");
@@ -329,7 +333,7 @@ public class Eigenstrat {
               mafs[i] = 1 - mafs[i];
             } else {
               System.err.println("Error - different alleles for " + markerNames[i] + " in "
-                  + sourceRoot + ".weights.out and " + targetRoot + ".frq");
+                                 + sourceRoot + ".weights.out and " + targetRoot + ".frq");
             }
           }
           if (mafs[i] < 0.00001 || mafs[i] > 0.99999) {
@@ -347,7 +351,7 @@ public class Eigenstrat {
     }
     if (weightsHash.size() > 0) {
       System.err.println("Error - the following markers were missing from the target files (i.e. "
-          + targetRoot + (eigenFormat ? ".bim" : ".map") + "):");
+                         + targetRoot + (eigenFormat ? ".bim" : ".map") + "):");
       line = HashVec.getKeys(weightsHash);
       for (String element : line) {
         System.err.println("        " + element);
@@ -356,7 +360,8 @@ public class Eigenstrat {
     }
     if (count > 0) {
       System.err.println("FYI - there were " + count + " markers in the target map (" + targetRoot
-          + (eigenFormat ? ".bim" : ".map") + ") that were not included in the eigenstrat PCA");
+                         + (eigenFormat ? ".bim" : ".map")
+                         + ") that were not included in the eigenstrat PCA");
     }
 
     System.out.println("Computing eigenvalues...");
@@ -366,17 +371,18 @@ public class Eigenstrat {
       if (eigenFormat) {
         reader = new BufferedReader(new FileReader(targetRoot + ".eigenstratgeno"));
         if (new File(targetRoot + ".fam").exists()) {
-          System.out.println(
-              "There has been trouble in the past with the eigen .ind file not having both FID and IID; since "
-                  + targetRoot + ".fam"
-                  + " is present in the same directory, that will be used instead");
+          System.out.println("There has been trouble in the past with the eigen .ind file not having both FID and IID; since "
+                             + targetRoot + ".fam"
+                             + " is present in the same directory, that will be used instead");
           ids = HashVec.loadFileToVec(targetRoot + ".fam", false, new int[] {0, 1}, false, false);
-          if (!Array.equals(
-              Matrix.extractColumn(Array.splitStrings(Array.toStringArray(ids), true), 1),
-              HashVec.loadFileToStringArray(targetRoot + ".ind", false, new int[] {0}, false),
-              false)) {
+          if (!Array.equals(Matrix.extractColumn(Array.splitStrings(Array.toStringArray(ids), true),
+                                                 1),
+                            HashVec.loadFileToStringArray(targetRoot + ".ind", false, new int[] {0},
+                                                          false),
+                            false)) {
             System.err.println("But unfortunately, " + targetRoot + ".fam"
-                + " doesn't match up with " + targetRoot + ".ind; duplicating IID instead for now");
+                               + " doesn't match up with " + targetRoot
+                               + ".ind; duplicating IID instead for now");
             ids = HashVec.loadFileToVec(targetRoot + ".ind", false, new int[] {0, 0}, false, false);
           }
         }
@@ -426,8 +432,9 @@ public class Eigenstrat {
           scores = new double[numEigens];
           for (int i = 0; i < markerNames.length; i++) {
             alleleCount = computeAlleleCount(
-                new char[] {line[6 + i * 2 + 0].charAt(0), line[6 + i * 2 + 1].charAt(0)},
-                alleles[i]);
+                                             new char[] {line[6 + i * 2 + 0].charAt(0),
+                                                         line[6 + i * 2 + 1].charAt(0)},
+                                             alleles[i]);
             if (weights[i] == null) {
               // skip
             } else if (alleleCount == -9) {
@@ -448,8 +455,8 @@ public class Eigenstrat {
       }
 
     } catch (FileNotFoundException fnfe) {
-      System.err
-          .println("Error: file \"" + targetRoot + ".ped" + "\" not found in current directory");
+      System.err.println("Error: file \"" + targetRoot + ".ped"
+                         + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + targetRoot + ".ped" + "\"");
@@ -458,8 +465,8 @@ public class Eigenstrat {
 
     System.out.println("Writing raw scores to file...");
     try {
-      writer = new PrintWriter(
-          new FileWriter(targetRoot + (fancy_weighting ? "_fancy" : "") + "_eigens.xln"));
+      writer = new PrintWriter(new FileWriter(targetRoot + (fancy_weighting ? "_fancy" : "")
+                                              + "_eigens.xln"));
       writer.println("FID\tIID\t" + Array.toStr(Array.stringArraySequence(numEigens, "C")));
       for (int i = 0; i < ids.size(); i++) {
         writer.print(ids.elementAt(i));
@@ -483,15 +490,15 @@ public class Eigenstrat {
       stdevs[i] = Array.stdev(array);
     }
     try {
-      writer = new PrintWriter(new FileWriter(
-          targetRoot + (fancy_weighting ? "_fancy" : "") + "_postnormed_eigens.xln"));
+      writer = new PrintWriter(new FileWriter(targetRoot + (fancy_weighting ? "_fancy" : "")
+                                              + "_postnormed_eigens.xln"));
       writer.println("FID\tIID\t" + Array.toStr(Array.stringArraySequence(numEigens, "C")));
       sampleSizeCorrection = Math.sqrt(ids.size());
       for (int i = 0; i < ids.size(); i++) {
         writer.print(ids.elementAt(i));
         for (int j = 0; j < numEigens; j++) {
-          writer.print("\t" + ext.formDeci(
-              (scoreMatrix[i][j] - means[j]) / stdevs[j] / sampleSizeCorrection, 4, true));
+          writer.print("\t" + ext.formDeci((scoreMatrix[i][j] - means[j]) / stdevs[j]
+                                           / sampleSizeCorrection, 4, true));
         }
         writer.println();
       }

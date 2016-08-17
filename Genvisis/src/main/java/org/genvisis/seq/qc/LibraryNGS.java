@@ -31,7 +31,7 @@ public class LibraryNGS implements Serializable {
     public static BaitsLibrary loadBaitLibrary(String fullPathToBaitLibrary, Logger log) {
       if (SerializedFiles.serializedVersionExists(null, fullPathToBaitLibrary)) {
         log.report(ext.getTime() + " Info - loading baits library from "
-            + SerializedFiles.getSerializedFileName(null, fullPathToBaitLibrary));
+                   + SerializedFiles.getSerializedFileName(null, fullPathToBaitLibrary));
         return loadSerial(SerializedFiles.getSerializedFileName(null, fullPathToBaitLibrary));
       }
       log.report(ext.getTime() + " Info - loading baits library from " + fullPathToBaitLibrary);
@@ -44,8 +44,8 @@ public class LibraryNGS implements Serializable {
         int[] indices =
             ext.indexFactors(reader.readLine().trim().split("\t"), BAITS_HEADER, true, false);
         if (Array.countIf(indices, -1) > 0) {
-          log.reportError(
-              "Error - could not detect proper header in baits file " + fullPathToBaitLibrary);
+          log.reportError("Error - could not detect proper header in baits file "
+                          + fullPathToBaitLibrary);
           log.report("Header must be " + Array.toStr(BAITS_HEADER));
           reader.close();
           reader.close();
@@ -69,8 +69,8 @@ public class LibraryNGS implements Serializable {
         }
         reader.close();
       } catch (FileNotFoundException fnfe) {
-        log.reportError(
-            "Error: file \"" + fullPathToBaitLibrary + "\" not found in current directory");
+        log.reportError("Error: file \"" + fullPathToBaitLibrary
+                        + "\" not found in current directory");
       } catch (IOException ioe) {
         log.reportError("Error reading file \"" + fullPathToBaitLibrary + "\"");
       }
@@ -108,7 +108,7 @@ public class LibraryNGS implements Serializable {
     // private Logger log;
 
     public BaitsLibrary(String[] targetIDs, String[] probeIDs, Segment[] baits,
-        double[] gcContentOfBait, Logger log) {
+                        double[] gcContentOfBait, Logger log) {
       this.targetIDs = targetIDs;
       ProbeIDs = probeIDs;
       this.baits = baits;
@@ -165,8 +165,8 @@ public class LibraryNGS implements Serializable {
   public static class LibraryReadDepthResults implements Serializable {
     public static final String[] SummaryHeader =
         {"UCSC", "numBasePairsTargeted", "numBasePairsSequenced", "numGCSequenced", "numReads",
-            "averageCoverage", "averageGC", "averagePerBaseBias", "averagePhreadScore",
-            "averageMapQ", "averageInsertSize", "numBaitsPerTarget", "AverageBaitGC"};
+         "averageCoverage", "averageGC", "averagePerBaseBias", "averagePhreadScore", "averageMapQ",
+         "averageInsertSize", "numBaitsPerTarget", "AverageBaitGC"};
     public static final String[] ADD_HEADER =
         {"Percent_Covered_at_depth", "Percent_GC_at_depth", "num_GC_at_depth"};
     public static final String LIBRARY_READ_DEPTH_EXTENSION = ".libraryResults.ser";
@@ -188,7 +188,7 @@ public class LibraryNGS implements Serializable {
     private int totalBasePairsSequenced;
 
     public LibraryReadDepthResults(LibraryNGS.ReadDepth readDepth, Segment[] targetSegments,
-        FilterNGS filterNGS) {
+                                   FilterNGS filterNGS) {
       targetReadDepthResults = new LibraryNGS.TargetReadDepthResults[readDepth.getDepths().length];
       this.targetSegments = targetSegments;
       this.filterNGS = filterNGS;
@@ -197,9 +197,10 @@ public class LibraryNGS implements Serializable {
     }
 
     public LibraryReadDepthResults(LibraryNGS.TargetReadDepthResults[] targetReadDepthResults,
-        double[] totalPercentCoveredAtDepth, double[] totalPercentGCAtDepth,
-        Segment[] targetSegments, FilterNGS filterNGS, int totalBasePairsTargeted,
-        int totalBasePairsSequenced) {
+                                   double[] totalPercentCoveredAtDepth,
+                                   double[] totalPercentGCAtDepth, Segment[] targetSegments,
+                                   FilterNGS filterNGS, int totalBasePairsTargeted,
+                                   int totalBasePairsSequenced) {
       this.targetReadDepthResults = targetReadDepthResults;
       this.totalPercentCoveredAtDepth = totalPercentCoveredAtDepth;
       this.totalPercentGCAtDepth = totalPercentGCAtDepth;
@@ -274,7 +275,7 @@ public class LibraryNGS implements Serializable {
     }
 
     public void populateSummary(LibraryNGS libraryNGS, LibraryNGS.ReadDepth readDepth,
-        double normalizeFactor, FilterNGS filterNGS) {
+                                double normalizeFactor, FilterNGS filterNGS) {
       totalPercentCoveredAtDepth = new double[filterNGS.getReadDepthFilter().length];
       totalPercentGCAtDepth = new double[filterNGS.getReadDepthFilter().length];
       double avgCoverage = readDepth.getMedianCoverage();
@@ -283,24 +284,27 @@ public class LibraryNGS implements Serializable {
       for (int i = 0; i < readDepth.getDepths().length; i++) {
         totalBasePairsTargeted += readDepth.getDepths()[i].length;
         if ((libraryNGS.getBaitsPerTarget() != null) && (libraryNGS.getBaitGCContent() != null)) {
-          targetReadDepthResults[i] = new LibraryNGS.TargetReadDepthResults(
-              readDepth.getNumReads()[i], readDepth.getDepths()[i].length,
-              libraryNGS.getBaitsPerTarget()[i], libraryNGS.getBaitGCContent()[i], filterNGS);
+          targetReadDepthResults[i] =
+              new LibraryNGS.TargetReadDepthResults(readDepth.getNumReads()[i],
+                                                    readDepth.getDepths()[i].length,
+                                                    libraryNGS.getBaitsPerTarget()[i],
+                                                    libraryNGS.getBaitGCContent()[i], filterNGS);
         } else {
-          targetReadDepthResults[i] = new LibraryNGS.TargetReadDepthResults(
-              readDepth.getNumReads()[i], readDepth.getDepths()[i].length, 0, 0.0D, filterNGS);
+          targetReadDepthResults[i] =
+              new LibraryNGS.TargetReadDepthResults(readDepth.getNumReads()[i],
+                                                    readDepth.getDepths()[i].length, 0, 0.0D,
+                                                    filterNGS);
         }
         targetReadDepthResults[i].setNumSamples(1);
         targetReadDepthResults[i].setAverageCoverage(Array.mean(readDepth.getDepths()[i]));
         for (int j = 0; j < readDepth.getDepths()[i].length; j++) {
           targetReadDepthResults[i].parseCount(readDepth.getDepths()[i][j],
-              readDepth.getGCs()[i][j]);
+                                               readDepth.getGCs()[i][j]);
           totalBasePairsSequenced += readDepth.getDepths()[i][j];
         }
         if (targetReadDepthResults[i].getNumBPSequencedInTarget() > 0) {
-          targetReadDepthResults[i]
-              .setAverageGCContent(targetReadDepthResults[i].getNumGCSequencedInTarget()
-                  / targetReadDepthResults[i].getNumBPSequencedInTarget());
+          targetReadDepthResults[i].setAverageGCContent(targetReadDepthResults[i].getNumGCSequencedInTarget()
+                                                        / targetReadDepthResults[i].getNumBPSequencedInTarget());
         }
         targetReadDepthResults[i].computePerBaseBias(avgCoverage);
         targetReadDepthResults[i].setAvgPhreadScore(readDepth.getAvgPhreadAt(i));
@@ -352,8 +356,8 @@ public class LibraryNGS implements Serializable {
       }
 
       public boolean alligns(int alignmentRefStart, int alignmentRefStop) {
-        return new Segment(targetSegment.getChr(), alignmentRefStart, alignmentRefStop)
-            .overlaps(targetSegment);
+        return new Segment(targetSegment.getChr(), alignmentRefStart,
+                           alignmentRefStop).overlaps(targetSegment);
       }
 
       public int getSequenceStartArrayIndex() {
@@ -383,29 +387,29 @@ public class LibraryNGS implements Serializable {
             targetStopArrayIndex =
                 (alignmentRefStart - targetSegment.getStart() + alignmentBlock.getLength());
           } else if ((targetSegment.getStart() >= alignmentRefStart)
-              && (targetSegment.getStop() <= alignmentRefStop)) {
+                     && (targetSegment.getStop() <= alignmentRefStop)) {
             targetStartArrayIndex = 0;
             targetStopArrayIndex = targetSegment.getSize();
           } else if ((alignmentRefStart >= targetSegment.getStart())
-              && (alignmentRefStop >= targetSegment.getStop())) {
+                     && (alignmentRefStop >= targetSegment.getStop())) {
             targetStartArrayIndex = (alignmentRefStart - targetSegment.getStart());
             targetStopArrayIndex = targetSegment.getSize();
           } else if ((alignmentRefStart <= targetSegment.getStart())
-              && (alignmentRefStop <= targetSegment.getStop())) {
+                     && (alignmentRefStop <= targetSegment.getStop())) {
             targetStartArrayIndex = 0;
             targetStopArrayIndex =
                 (alignmentRefStart + alignmentBlock.getLength() - targetSegment.getStart());
           } else {
-            log.reportError(
-                "Internal Error - could not determine block alignments for " + alignmentRefStart
-                    + "\t" + alignmentRefStop + "\t" + targetSegment.getUCSClocation());
+            log.reportError("Internal Error - could not determine block alignments for "
+                            + alignmentRefStart + "\t" + alignmentRefStop + "\t"
+                            + targetSegment.getUCSClocation());
             targetStartArrayIndex = -1;
             targetStopArrayIndex = -1;
           }
           if ((targetStartArrayIndex < 0) || (targetStopArrayIndex < 0)) {
-            log.reportError(
-                "Internal Error - could not determine block alignments for " + alignmentRefStart
-                    + "\t" + alignmentRefStop + "\t" + targetSegment.getUCSClocation());
+            log.reportError("Internal Error - could not determine block alignments for "
+                            + alignmentRefStart + "\t" + alignmentRefStop + "\t"
+                            + targetSegment.getUCSClocation());
             targetStartArrayIndex = -1;
             targetStopArrayIndex = -1;
           }
@@ -450,7 +454,7 @@ public class LibraryNGS implements Serializable {
     }
 
     public void addCounts(int libraryIndex, Segment segment, SAMRecord samRecord,
-        FilterNGS filterNGS) {
+                          FilterNGS filterNGS) {
       List<AlignmentBlock> alList = samRecord.getAlignmentBlocks();
       double[] phreads = LibraryNGS.parseBytesToDouble(samRecord.getBaseQualities());
       String[] bases = LibraryNGS.parseToString(samRecord.getReadString());
@@ -467,8 +471,8 @@ public class LibraryNGS implements Serializable {
         blockParser.parseIndices();
         if (blockParser.getTargetStartArrayIndex() >= 0) {
           int seqIndex = blockParser.getSequenceStartArrayIndex();
-          for (int j = blockParser.getTargetStartArrayIndex(); j < blockParser
-              .getTargetStopArrayIndex(); j++) {
+          for (int j =
+              blockParser.getTargetStartArrayIndex(); j < blockParser.getTargetStopArrayIndex(); j++) {
             if ((filterNGS.getPhreadScoreFilter() == 0.0D)
                 || (phreads[seqIndex] >= filterNGS.getPhreadScoreFilter())) {
               depths[libraryIndex][j] += 1;
@@ -507,7 +511,8 @@ public class LibraryNGS implements Serializable {
     }
 
     public LibraryNGS.LibraryReadDepthResults getDepthResults(LibraryNGS libraryNGS,
-        FilterNGS filterNGS, double normalizeFactor) {
+                                                              FilterNGS filterNGS,
+                                                              double normalizeFactor) {
       LibraryNGS.LibraryReadDepthResults readDepthResults =
           new LibraryNGS.LibraryReadDepthResults(this, libraryNGS.getTargetSegments(), filterNGS);
       readDepthResults.populateSummary(libraryNGS, this, normalizeFactor, filterNGS);
@@ -581,12 +586,14 @@ public class LibraryNGS implements Serializable {
     private double averageInsertSize;
 
     public TargetReadDepthResults(FilterNGS filterNGS, int numBPSequencedInTarget,
-        int numBPInTarget, int numReadsSequenced, int numBaits, int numSamples,
-        int numGCSequencedInTarget, double baitGC, int[] numBPSequencedAtDepth,
-        int[] numGCSequencedAtDepth, double[] percentGCSequencedAtDepth, double[] percentAtDepth,
-        double[] percentGCAtDepth, double[] averagedNumGCAtDepth, double averageCoverage,
-        double averageGCContent, double averagePerBaseBias, double averagePhreadScore,
-        double averageMapQ, double averageInsertSize) {
+                                  int numBPInTarget, int numReadsSequenced, int numBaits,
+                                  int numSamples, int numGCSequencedInTarget, double baitGC,
+                                  int[] numBPSequencedAtDepth, int[] numGCSequencedAtDepth,
+                                  double[] percentGCSequencedAtDepth, double[] percentAtDepth,
+                                  double[] percentGCAtDepth, double[] averagedNumGCAtDepth,
+                                  double averageCoverage, double averageGCContent,
+                                  double averagePerBaseBias, double averagePhreadScore,
+                                  double averageMapQ, double averageInsertSize) {
       this.filterNGS = filterNGS;
       this.numBPSequencedInTarget = numBPSequencedInTarget;
       this.numBPInTarget = numBPInTarget;
@@ -610,7 +617,7 @@ public class LibraryNGS implements Serializable {
     }
 
     public TargetReadDepthResults(int numReadsSequenced, int numBPInTarget, int numBaits,
-        double baitGC, FilterNGS filterNGS) {
+                                  double baitGC, FilterNGS filterNGS) {
       this.filterNGS = filterNGS;
       numBPSequencedInTarget = 0;
       numGCSequencedInTarget = 0;
@@ -675,7 +682,7 @@ public class LibraryNGS implements Serializable {
       averageInsertSize = (numBPInTarget > 0 ? averageInsertSize / numSamples : 0.0D);
       if (Double.isNaN(averageGCContent)) {
         System.out.println(numBPInTarget + "\t" + averageGCContent + "\t" + numSamples + "\t"
-            + numBPSequencedInTarget);
+                           + numBPSequencedInTarget);
       }
       for (int i = 0; i < percentAtDepth.length; i++) {
         percentAtDepth[i] = (numBPInTarget > 0 ? numBPSequencedAtDepth[i] / divideDepthBy : 0.0D);
@@ -810,8 +817,9 @@ public class LibraryNGS implements Serializable {
     LibraryNGS libraryNGS = null;
     String serLibrary = ext.rootOf(libraryNGSFile, false) + ".ser";
     if (!Files.exists(serLibrary)) {
-      libraryNGS = new LibraryNGS(
-          Segment.loadRegions(libraryNGSFile, 0, 1, 2, skipNumLines, true, true, true, 0), log);
+      libraryNGS = new LibraryNGS(Segment.loadRegions(libraryNGSFile, 0, 1, 2, skipNumLines, true,
+                                                      true, true, 0),
+                                  log);
       libraryNGS.serialize(serLibrary);
     } else {
       libraryNGS = load(serLibrary, false);
@@ -840,7 +848,8 @@ public class LibraryNGS implements Serializable {
   }
 
   public static void summarizeLibraries(LibraryNGS originalLibraryNGS,
-      String[] libraryReadDepthResultFiles, String output, FilterNGS filterNGS, Logger log) {
+                                        String[] libraryReadDepthResultFiles, String output,
+                                        FilterNGS filterNGS, Logger log) {
     LibraryReadDepthResults summaryResults =
         new LibraryReadDepthResults(originalLibraryNGS.getTargetSegments(), filterNGS);
     summaryResults.setTotalPercentCoveredAtDepth(new double[filterNGS.getReadDepthFilter().length]);
@@ -850,15 +859,14 @@ public class LibraryNGS implements Serializable {
           LibraryReadDepthResults.load(libraryReadDepthResultFile, false);
       for (int j = 0; j < summaryResults.getTargetReadDepthResults().length; j++) {
         if (summaryResults.getTargetReadDepthResults()[j] == null) {
-          summaryResults.getTargetReadDepthResults()[j] = new TargetReadDepthResults(0,
-              curReadDepthResults.getTargetReadDepthResults()[j].getNumBPInTarget(),
-              originalLibraryNGS.getBaitsPerTarget()[j], originalLibraryNGS.getBaitGCContent()[j],
-              filterNGS);
-          summaryResults.getTargetReadDepthResults()[j]
-              .setNumSamples(libraryReadDepthResultFiles.length);
+          summaryResults.getTargetReadDepthResults()[j] =
+              new TargetReadDepthResults(0,
+                                         curReadDepthResults.getTargetReadDepthResults()[j].getNumBPInTarget(),
+                                         originalLibraryNGS.getBaitsPerTarget()[j],
+                                         originalLibraryNGS.getBaitGCContent()[j], filterNGS);
+          summaryResults.getTargetReadDepthResults()[j].setNumSamples(libraryReadDepthResultFiles.length);
         }
-        summaryResults.getTargetReadDepthResults()[j]
-            .addFromAnother(curReadDepthResults.getTargetReadDepthResults()[j]);
+        summaryResults.getTargetReadDepthResults()[j].addFromAnother(curReadDepthResults.getTargetReadDepthResults()[j]);
       }
     }
     summaryResults.summarizePercents(filterNGS);

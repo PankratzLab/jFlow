@@ -71,12 +71,11 @@ public class GelBands {
                   ladder[i] = Integer.parseInt(cell[0]);
                 } else if (ladder[i] != Integer.parseInt(cell[0])) {
                   System.err.println("Error - mismatched ladder sizes ('" + line[i * 2 + 1 + 0]
-                      + "' and '" + line[i * 2 + 1 + 1]
-                      + "'); expecting the same size with X and Y suffixes");
+                                     + "' and '" + line[i * 2 + 1 + 1]
+                                     + "'); expecting the same size with X and Y suffixes");
                 }
                 if (!cell[1].equals(SUFFIXES[j])) {
-                  System.err.println(
-                      "Error - mismatched ladder format; expecting the same size with X and Y suffixes");
+                  System.err.println("Error - mismatched ladder format; expecting the same size with X and Y suffixes");
                 }
               } catch (Exception e) {
                 System.err.println("Error parsing ladder size: " + Array.toStr(cell));
@@ -121,7 +120,7 @@ public class GelBands {
     }
 
     slopeAndIntercept = Maths.slopeAndIntercept(customLadderCoordinates[rung - 1], ladder[rung - 1],
-        customLadderCoordinates[rung], ladder[rung]);
+                                                customLadderCoordinates[rung], ladder[rung]);
 
     return (int) (slopeAndIntercept[0] * x + slopeAndIntercept[1]);
   }
@@ -153,8 +152,7 @@ public class GelBands {
       System.exit(1);
     }
     if (values.length != ladder.length * 2 + 1) {
-      System.err.println(
-          "Error - invalid number of ladder coordinates (need X and Y for each rung defined in the ladder header)");
+      System.err.println("Error - invalid number of ladder coordinates (need X and Y for each rung defined in the ladder header)");
       System.exit(1);
     }
 
@@ -165,7 +163,7 @@ public class GelBands {
           ladderCoordinates[i][j] = Integer.parseInt(values[1 + i * 2 + j]);
         } catch (Exception e) {
           System.err.println("Error parsing " + SUFFIXES[j] + " coordinate for " + ladder[i]
-              + " bp ladder rung : " + values[1 + i * 2 + j]);
+                             + " bp ladder rung : " + values[1 + i * 2 + j]);
           e.printStackTrace();
         }
       }
@@ -182,11 +180,10 @@ public class GelBands {
       if (alleles[i].equals(".")) {
         repeats[i] = ".";
       } else {
-        repeats[i] =
-            ext.formDeci(
-                (double) (Integer.parseInt(alleles[i])
-                    - (REFERENCE_FRAGMENT_SIZE - REFERENCE_REPEATS_SIZE)) / (double) SIZE_OF_UNIT,
-                2);
+        repeats[i] = ext.formDeci(
+                                  (double) (Integer.parseInt(alleles[i])
+                                            - (REFERENCE_FRAGMENT_SIZE - REFERENCE_REPEATS_SIZE))
+                                  / (double) SIZE_OF_UNIT, 2);
       }
     }
 
@@ -194,7 +191,7 @@ public class GelBands {
   }
 
   public static String[] translateIntoAlleles(int[] ladder, int[][][] ladderCoordinates,
-      String[] values) {
+                                              String[] values) {
     String[] alleles;
     int[] ys;
     int[] customLadderCoordinates;
@@ -205,7 +202,7 @@ public class GelBands {
     d = (values.length - 1.0) / 2.0;
     if (d - Math.floor(d) > 0.0001) {
       System.err.println("Error - odd number of coordinates after identifier '" + values[0]
-          + "'; translation requires pairs of coordinates");
+                         + "'; translation requires pairs of coordinates");
     }
 
     numPoints = (int) Math.floor(d);
@@ -224,15 +221,16 @@ public class GelBands {
         }
       } catch (Exception e) {
         System.err.println("Error parsing point " + (i + 1) + " for sample " + values[0] + ": "
-            + values[i * 2 + 1 + 0] + "," + values[i * 2 + 1 + 1]);
+                           + values[i * 2 + 1 + 0] + "," + values[i * 2 + 1 + 1]);
       }
     }
     meanX /= count;
 
     customLadderCoordinates = new int[ladder.length];
     for (int i = 0; i < ladder.length; i++) {
-      slopeAndIntercept = Maths.slopeAndIntercept(ladderCoordinates[0][i][0],
-          ladderCoordinates[0][i][1], ladderCoordinates[1][i][0], ladderCoordinates[1][i][1]);
+      slopeAndIntercept =
+          Maths.slopeAndIntercept(ladderCoordinates[0][i][0], ladderCoordinates[0][i][1],
+                                  ladderCoordinates[1][i][0], ladderCoordinates[1][i][1]);
       customLadderCoordinates[i] = (int) (slopeAndIntercept[0] * meanX + slopeAndIntercept[1]);
     }
 

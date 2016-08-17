@@ -49,29 +49,30 @@ public class procGenesByTissue {
 
   public static final String[] GENES_HEADER =
       {"GeneID", "reference_name", "reference_chr", "reference_start", "reference_stop",
-          "reference_sense", "reference_placed", "reference_imputed", "Celera_name", "Celera_chr",
-          "Celera_start", "Celera_stop", "Celera_sense", "Celera_placed", "Celera_imputed"};
+       "reference_sense", "reference_placed", "reference_imputed", "Celera_name", "Celera_chr",
+       "Celera_start", "Celera_stop", "Celera_sense", "Celera_placed", "Celera_imputed"};
 
   public static final String[] TISSUE_TERMS_CHOSEN = {"brain"};
 
-  public static final String[] TISSUE_TYPES = {"fetal brain", "whole brain", "temporal lobe",
-      "parietal lobe", "occipital lobe", "prefrontal cortex", "cingulate cortex", "cerebellum",
-      "cerebellum peduncles", "amygdala", "hypothalamus", "thalamus", "subthalamic nucleus",
-      "caudate nucleus", "globus pallidus", "olfactory bulb", "pons", "medulla oblongata",
-      "spinal cord", "ciliary ganglion", "trigeminal ganglion", "superior cervical ganglion",
-      "dorsal root ganglion", "thymus", "tonsil", "lymph node", "bone marrow",
-      "BM-CD71+ early erythroid", "BM-CD33+ myeloid", "BM-CD105+ endothelial", "BM-CD34+",
-      "whole blood", "PB-BDCA4+ dentritic cells", "PB-CD14+ monocytes", "PB-CD56+ NKCells",
-      "PB-CD4+ Tcells", "PB-CD8+ Tcells", "PB-CD19+ Bcells", "leukemia lymphoblastic(molt4)",
-      "721 B lymphoblasts", "lymphoma Burkitts Raji", "leukemia promyelocytic(hl60)",
-      "lymphoma Burkitts Daudi", "leukemia chronic myelogenous(k562)", "colorectal adenocarcinoma",
-      "appendix", "skin", "adipocyte", "fetal thyroid", "thyroid", "pituitary gland",
-      "adrenal gland", "adrenal cortex", "prostate", "salivary gland", "pancreas",
-      "pancreatic islets", "atrioventricular node", "heart", "cardiac myocytes", "skeletal muscle",
-      "tongue", "smooth muscle", "uterus", "uterus corpus", "trachea", "bronchial epithelial cells",
-      "fetal lung", "lung", "kidney", "fetal liver", "liver", "placenta", "testis",
-      "testis Leydig cell", "testis germ cell", "testis interstitial", "testis seminiferous tubule",
-      "ovary"};
+  public static final String[] TISSUE_TYPES =
+      {"fetal brain", "whole brain", "temporal lobe", "parietal lobe", "occipital lobe",
+       "prefrontal cortex", "cingulate cortex", "cerebellum", "cerebellum peduncles", "amygdala",
+       "hypothalamus", "thalamus", "subthalamic nucleus", "caudate nucleus", "globus pallidus",
+       "olfactory bulb", "pons", "medulla oblongata", "spinal cord", "ciliary ganglion",
+       "trigeminal ganglion", "superior cervical ganglion", "dorsal root ganglion", "thymus",
+       "tonsil", "lymph node", "bone marrow", "BM-CD71+ early erythroid", "BM-CD33+ myeloid",
+       "BM-CD105+ endothelial", "BM-CD34+", "whole blood", "PB-BDCA4+ dentritic cells",
+       "PB-CD14+ monocytes", "PB-CD56+ NKCells", "PB-CD4+ Tcells", "PB-CD8+ Tcells",
+       "PB-CD19+ Bcells", "leukemia lymphoblastic(molt4)", "721 B lymphoblasts",
+       "lymphoma Burkitts Raji", "leukemia promyelocytic(hl60)", "lymphoma Burkitts Daudi",
+       "leukemia chronic myelogenous(k562)", "colorectal adenocarcinoma", "appendix", "skin",
+       "adipocyte", "fetal thyroid", "thyroid", "pituitary gland", "adrenal gland",
+       "adrenal cortex", "prostate", "salivary gland", "pancreas", "pancreatic islets",
+       "atrioventricular node", "heart", "cardiac myocytes", "skeletal muscle", "tongue",
+       "smooth muscle", "uterus", "uterus corpus", "trachea", "bronchial epithelial cells",
+       "fetal lung", "lung", "kidney", "fetal liver", "liver", "placenta", "testis",
+       "testis Leydig cell", "testis germ cell", "testis interstitial",
+       "testis seminiferous tubule", "ovary"};
 
   // public static final String[] TISSUES_CHOSEN = {"whole brain", "prefrontal
   // cortex", "cingulate cortex", "cerebellum", "amygdala", "hypothalamus",
@@ -134,10 +135,11 @@ public class procGenesByTissue {
     String omimGeneID = "geneid_omim.dat";
 
     String usage = "\n" + "park.genesByTissue requires 0-4 arguments\n"
-        + "   (1) filename of genes file (i.e. genes=" + genes + " (default))\n"
-        + "   (2) filename of expression data (i.e. express=" + express + " (default))\n"
-        + "   (3) Tag_to_GeneID_table lookup file (i.e. tagGeneID=" + tagGeneID + " (default))\n"
-        + "   (4) Hs.data file (i.e. hsData=" + hs_data + " (default))\n" + "";
+                   + "   (1) filename of genes file (i.e. genes=" + genes + " (default))\n"
+                   + "   (2) filename of expression data (i.e. express=" + express + " (default))\n"
+                   + "   (3) Tag_to_GeneID_table lookup file (i.e. tagGeneID=" + tagGeneID
+                   + " (default))\n" + "   (4) Hs.data file (i.e. hsData=" + hs_data
+                   + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -175,7 +177,7 @@ public class procGenesByTissue {
   }
 
   public static void runProcGenesByTissue(String genes, String express, String tagGeneID,
-      String hs_data, String omimGeneID, String omimNames) {
+                                          String hs_data, String omimGeneID, String omimNames) {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line, header;
@@ -257,7 +259,7 @@ public class procGenesByTissue {
       ext.checkHeader(line = reader.readLine().split("[\\s]+"), GENES_HEADER, true);
       writer = new PrintWriter(new FileWriter("expression.xls"));
       writer.print(line[0] + DELIMITER + line[1] + DELIMITER + line[2] + DELIMITER + line[3]
-          + DELIMITER + line[4] + DELIMITER + "CytoBand" + DELIMITER + "Title");
+                   + DELIMITER + line[4] + DELIMITER + "CytoBand" + DELIMITER + "Title");
       for (String element : TISSUE_TERMS_CHOSEN) {
         writer.print(DELIMITER + element);
       }
@@ -275,17 +277,18 @@ public class procGenesByTissue {
             && (Integer.parseInt(line[3]) < Integer.parseInt(STOP)
                 || Integer.parseInt(line[4]) < Integer.parseInt(STOP))) {
           writer.print(line[0] + DELIMITER + line[1] + DELIMITER + line[2] + DELIMITER + line[3]
-              + DELIMITER + line[4]);
+                       + DELIMITER + line[4]);
           if (hash.containsKey(line[0])) {
             hsdp = hash.get(line[0]);
             writer.print(DELIMITER + hsdp.cytoband + DELIMITER + hsdp.title);
             for (String element : TISSUE_TERMS_CHOSEN) {
-              writer.print(
-                  DELIMITER + (ext.indexOfStr(element, hsdp.express, false, true) >= 0 ? 1 : 0));
+              writer.print(DELIMITER
+                           + (ext.indexOfStr(element, hsdp.express, false, true) >= 0 ? 1 : 0));
             }
           } else {
             writer.print(DELIMITER
-                + Array.toStr(Array.stringArray(2 + TISSUE_TERMS_CHOSEN.length, ".."), DELIMITER));
+                         + Array.toStr(Array.stringArray(2 + TISSUE_TERMS_CHOSEN.length, ".."),
+                                       DELIMITER));
           }
           count = 0;
           if (tagGeneIDLookup.containsKey(line[0])) {
@@ -295,8 +298,9 @@ public class procGenesByTissue {
               if (expressionData.containsKey(trav)) {
                 levels = expressionData.get(trav);
                 if (count > 0) {
-                  writer.print("\n" + Array
-                      .toStr(Array.stringArray(5 + 2 + TISSUE_TERMS_CHOSEN.length), DELIMITER));
+                  writer.print("\n"
+                               + Array.toStr(Array.stringArray(5 + 2 + TISSUE_TERMS_CHOSEN.length),
+                                             DELIMITER));
                 }
                 writer.print(DELIMITER + trav);
                 for (double level : levels) {
@@ -308,18 +312,18 @@ public class procGenesByTissue {
               }
             }
           } else {
-            writer.print(DELIMITER
-                + Array.toStr(Array.stringArray(TISSUES_CHOSEN.length + 1, "."), DELIMITER));
+            writer.print(DELIMITER + Array.toStr(Array.stringArray(TISSUES_CHOSEN.length + 1, "."),
+                                                 DELIMITER));
           }
           if (geneidOmimLookup.containsKey(line[0])) {
             v = geneidOmimLookup.get(line[0]);
             for (int i = 0; i < v.size(); i++) {
               if (omimNameLookup.containsKey(v.elementAt(i))) {
                 writer.print(DELIMITER + "=HYPERLINK(\"" + OMIMLINK + v.elementAt(i) + "\", \""
-                    + omimNameLookup.get(v.elementAt(i)) + "\")");
+                             + omimNameLookup.get(v.elementAt(i)) + "\")");
               } else {
                 writer.print(DELIMITER + "=HYPERLINK(\"" + OMIMLINK + v.elementAt(i) + "\", \""
-                    + v.elementAt(i) + "\")");
+                             + v.elementAt(i) + "\")");
               }
             }
           } else {

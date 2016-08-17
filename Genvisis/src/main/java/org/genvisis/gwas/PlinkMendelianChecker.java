@@ -177,7 +177,7 @@ public class PlinkMendelianChecker {
         reader = Files.getAppropriateReader(mendelFile);
         line = reader.readLine().trim();
         if (ext.checkHeader(line.split("[\\s]+"),
-            new String[] {"FID", "KID", "CHR", "SNP", "CODE", "ERROR"}, false)) {
+                            new String[] {"FID", "KID", "CHR", "SNP", "CODE", "ERROR"}, false)) {
           while ((line = reader.readLine()) != null) {
             line = line.trim();
             temp = line.split("[\\s]+");
@@ -211,8 +211,8 @@ public class PlinkMendelianChecker {
                 mkrs.add(temp[3]);
               }
             } catch (NumberFormatException e) {
-              System.err
-                  .println("Warning - Non-integer mendelian error code (" + temp[4] + ") ignored!");
+              System.err.println("Warning - Non-integer mendelian error code (" + temp[4]
+                                 + ") ignored!");
             }
 
           }
@@ -269,13 +269,15 @@ public class PlinkMendelianChecker {
     boolean genomeDNA = false;
 
     String usage = "\n" + "gwas.PlinkMendelianChecker requires 0-1 arguments\n"
-        + "   (1) Project properties filename (i.e. proj="
-        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" + "  OR \n"
-        + "   (1) File with pedigree data (i.e. pedigree=pedigree.dat (not the default))\n"
-        + "   (2) (optional) File with Mendelian Error data (i.e. mendel=markerQualityChecks.mendel (not the default))\n"
-        + "   (3) (optional) File with genomic cluster data (i.e. genome=plink.genome (not the default))\n"
-        + "   (4) (optional) If a genomeic cluster file is specified, specify if the id columns are FID/IID or DNA/DNA (i.e. genomeDNA=TRUE (not the default)) \n"
-        + "   (5) (optional) Directory of output (i.e. out=/path/to/dir/ (not the default))\n" + "";
+                   + "   (1) Project properties filename (i.e. proj="
+                   + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+                   + "  OR \n"
+                   + "   (1) File with pedigree data (i.e. pedigree=pedigree.dat (not the default))\n"
+                   + "   (2) (optional) File with Mendelian Error data (i.e. mendel=markerQualityChecks.mendel (not the default))\n"
+                   + "   (3) (optional) File with genomic cluster data (i.e. genome=plink.genome (not the default))\n"
+                   + "   (4) (optional) If a genomeic cluster file is specified, specify if the id columns are FID/IID or DNA/DNA (i.e. genomeDNA=TRUE (not the default)) \n"
+                   + "   (5) (optional) Directory of output (i.e. out=/path/to/dir/ (not the default))\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -337,7 +339,7 @@ public class PlinkMendelianChecker {
     this.project = project;
     pedFile = project.PEDIGREE_FILENAME.getValue(false, false);
     mendelFile = ext.rootOf(project.MARKER_METRICS_FILENAME.getValue(true, false), false)
-        + MarkerMetrics.DEFAULT_MENDEL_FILE_SUFFIX;
+                 + MarkerMetrics.DEFAULT_MENDEL_FILE_SUFFIX;
     genomeFile = project.GENOME_CLUSTER_FILENAME.getValue();
     genomeDNA = false;
     outDir = project.PROJECT_DIRECTORY.getValue(false, false);
@@ -345,7 +347,7 @@ public class PlinkMendelianChecker {
 
 
   public PlinkMendelianChecker(String pedFile, String mendelFile, String genomeFile,
-      boolean genomeDNA, String outDir) {
+                               boolean genomeDNA, String outDir) {
     project = null;
     this.pedFile = pedFile;
     this.mendelFile = mendelFile;
@@ -420,8 +422,10 @@ public class PlinkMendelianChecker {
       idLookup.put(ped.getDnas()[i], ped.getFID(i) + "\t" + ped.getIID(i));
       pedDNA.add(ped.getDnas()[i]);
       pedToFAMO.put(ped.getFID(i) + "\t" + ped.getIID(i),
-          new String[] {"0".equals(ped.getFA(i)) ? "." : ped.getFID(i) + "\t" + ped.getFA(i),
-              "0".equals(ped.getMO(i)) ? "." : ped.getFID(i) + "\t" + ped.getMO(i)});
+                    new String[] {"0".equals(ped.getFA(i)) ? "."
+                                                           : ped.getFID(i) + "\t" + ped.getFA(i),
+                                  "0".equals(ped.getMO(i)) ? "."
+                                                           : ped.getFID(i) + "\t" + ped.getMO(i)});
       if (!"0".equals(ped.getFA(i))) {
         ArrayList<String> children = childrenMap.get(ped.getFID(i) + "\t" + ped.getFA(i));
         if (children == null) {
@@ -525,13 +529,14 @@ public class PlinkMendelianChecker {
 
     StringBuilder sb;
     sb = new StringBuilder().append("FID").append("\t").append("IID").append("\t").append("FA_IID")
-        .append("\t").append("MO_IID").append("\t").append("SEX").append("\t").append("DNA")
-        .append("\t").append("FA_DNA").append("\t").append("MO_DNA").append("\t");
+                            .append("\t").append("MO_IID").append("\t").append("SEX").append("\t")
+                            .append("DNA").append("\t").append("FA_DNA").append("\t")
+                            .append("MO_DNA").append("\t");
     if (gl != null) {
       sb.append("IBD0_FATHER").append("\t").append("IBD1_FATHER").append("\t").append("IBD2_FATHER")
-          .append("\t").append("PIHAT_FATHER").append("\t").append("IBD0_MOTHER").append("\t")
-          .append("IBD1_MOTHER").append("\t").append("IBD2_MOTHER").append("\t")
-          .append("PIHAT_MOTHER").append("\t");
+        .append("\t").append("PIHAT_FATHER").append("\t").append("IBD0_MOTHER").append("\t")
+        .append("IBD1_MOTHER").append("\t").append("IBD2_MOTHER").append("\t")
+        .append("PIHAT_MOTHER").append("\t");
     }
     if (ml != null) {
       sb.append("MendelianErrorsFather").append("\t").append("MendelianErrorsMother").append("\t");
@@ -539,13 +544,13 @@ public class PlinkMendelianChecker {
 
     if (sampQC != null) {
       sb.append("LRR_SD_CHILD").append("\t").append("LRR_SD_FATHER").append("\t")
-          .append("LRR_SD_MOTHER").append("\t").append("CALLRATE_CHILD").append("\t")
-          .append("CALLRATE_FATHER").append("\t").append("CALLRATE_MOTHER").append("\t");
+        .append("LRR_SD_MOTHER").append("\t").append("CALLRATE_CHILD").append("\t")
+        .append("CALLRATE_FATHER").append("\t").append("CALLRATE_MOTHER").append("\t");
     }
 
     if (sampleData != null) {
       sb.append("EXCLUDE_CHILD").append("\t").append("EXCLUDE_FATHER").append("\t")
-          .append("EXCLUDE_MOTHER").append("\t");
+        .append("EXCLUDE_MOTHER").append("\t");
     }
 
     sb.append("COMPLETE_TRIO").append("\t");
@@ -564,8 +569,8 @@ public class PlinkMendelianChecker {
       // "0".equals(ped.getFA())) continue;
       sb = new StringBuilder();
       sb.append(ped.getFID(i)).append("\t").append(ped.getIID(i)).append("\t").append(ped.getFA(i))
-          .append("\t").append(ped.getMO(i)).append("\t").append(ped.getGender(i)).append("\t")
-          .append(ped.getiDNA(i)).append("\t");
+        .append("\t").append(ped.getMO(i)).append("\t").append(ped.getGender(i)).append("\t")
+        .append(ped.getiDNA(i)).append("\t");
 
       boolean missingChildDNA = ext.isMissingValue(ped.getiDNA(i));
       boolean missingFADNA = false;
@@ -615,11 +620,11 @@ public class PlinkMendelianChecker {
         if (genoLines == null || ".".equals(faDNA) || !genoLines.containsKey(key)) {
           missingCount++;
           sb.append(".").append("\t").append(".").append("\t").append(".").append("\t").append(".")
-              .append("\t");
+            .append("\t");
         } else {
           String[] tmpGL = genoLines.get(key).split("[\\s]+");
           sb.append(tmpGL[6]).append("\t").append(tmpGL[7]).append("\t").append(tmpGL[8])
-              .append("\t").append(tmpGL[9]).append("\t");
+            .append("\t").append(tmpGL[9]).append("\t");
         }
 
         genoLines = gl.pairData.get(ped.getFID(i) + "\t" + ped.getIID(i));
@@ -633,11 +638,11 @@ public class PlinkMendelianChecker {
         if (genoLines == null || ".".equals(moDNA) || !genoLines.containsKey(key)) {
           missingCount++;
           sb.append(".").append("\t").append(".").append("\t").append(".").append("\t").append(".")
-              .append("\t");
+            .append("\t");
         } else {
           String[] tmpGL = genoLines.get(key).split("[\\s]+");
           sb.append(tmpGL[6]).append("\t").append(tmpGL[7]).append("\t").append(tmpGL[8])
-              .append("\t").append(tmpGL[9]).append("\t");
+            .append("\t").append(tmpGL[9]).append("\t");
         }
       }
 
@@ -736,8 +741,8 @@ public class PlinkMendelianChecker {
         sb.append(ex1 ? "1" : "0").append("\t");
         if (ped.getFaDNAIndex(i) == -1 || samples == null) {
           if (dnaLookup.get(ped.getFID(i) + "\t" + ped.getFA(i)) != null) {
-            boolean ex = sampleData
-                .individualShouldBeExcluded(dnaLookup.get(ped.getFID(i) + "\t" + ped.getFA(i)));
+            boolean ex = sampleData.individualShouldBeExcluded(dnaLookup.get(ped.getFID(i) + "\t"
+                                                                             + ped.getFA(i)));
             if (ex) {
               excluded = true;
             }
@@ -754,8 +759,8 @@ public class PlinkMendelianChecker {
         }
         if (ped.getMoDNAIndex(i) == -1 || samples == null) {
           if (dnaLookup.get(ped.getFID(i) + "\t" + ped.getMO(i)) != null) {
-            boolean ex = sampleData
-                .individualShouldBeExcluded(dnaLookup.get(ped.getFID(i) + "\t" + ped.getMO(i)));
+            boolean ex = sampleData.individualShouldBeExcluded(dnaLookup.get(ped.getFID(i) + "\t"
+                                                                             + ped.getMO(i)));
             if (ex) {
               excluded = true;
             }
@@ -780,16 +785,17 @@ public class PlinkMendelianChecker {
     writer.flush();
     writer.close();
 
-    System.out.println(
-        ext.getTime() + "]\tMissing genome pair data for " + missingCount + " individuals");
+    System.out.println(ext.getTime() + "]\tMissing genome pair data for " + missingCount
+                       + " individuals");
 
     writeFamily(gl, pedToFAMO, childrenMap, dnaLookup, idLookup, outDir);
   }
 
 
   private void writeFamily(GenomeLoader gl, HashMap<String, String[]> pedToFAMO,
-      HashMap<String, ArrayList<String>> childrenMap, HashMap<String, String> dnaLookup,
-      HashMap<String, String> idLookup, String outDir2) {
+                           HashMap<String, ArrayList<String>> childrenMap,
+                           HashMap<String, String> dnaLookup, HashMap<String, String> idLookup,
+                           String outDir2) {
     PrintWriter writer;
     StringBuilder sb;
 
@@ -800,7 +806,7 @@ public class PlinkMendelianChecker {
     String header = "FID1\tIID1\tDNA1\tFID2\tIID2\tDNA2\tPUTATIVE_REL\t";
     if (gl != null) {
       header += "IBD0" + "\t" + "IBD1" + "\t" + "IBD2" + "\t" + "PIHAT" + "\t" + "DERIVED_REL"
-          + "\t" + "REL_MATCH" + "\t";
+                + "\t" + "REL_MATCH" + "\t";
     }
     writer.println(header);
 
@@ -855,7 +861,7 @@ public class PlinkMendelianChecker {
                 if (genoDataLine != null) {
                   String[] tmpGL = genoDataLine.split("[\\s]+");
                   sb.append(tmpGL[6]).append("\t").append(tmpGL[7]).append("\t").append(tmpGL[8])
-                      .append("\t").append(tmpGL[9]).append("\t");
+                    .append("\t").append(tmpGL[9]).append("\t");
                   String rel = deriveRelationship(tmpGL[6], tmpGL[7], tmpGL[8], tmpGL[9]);
                   sb.append(rel).append("\t");
                   if (!rel.equals("parent-offspring")) {
@@ -927,7 +933,7 @@ public class PlinkMendelianChecker {
                 if (genoDataLine != null) {
                   String[] tmpGL = genoDataLine.split("[\\s]+");
                   sb.append(tmpGL[6]).append("\t").append(tmpGL[7]).append("\t").append(tmpGL[8])
-                      .append("\t").append(tmpGL[9]).append("\t");
+                    .append("\t").append(tmpGL[9]).append("\t");
                   String rel = deriveRelationship(tmpGL[6], tmpGL[7], tmpGL[8], tmpGL[9]);
                   sb.append(rel).append("\t");
                   if ((expRel.equals("SIB") && rel.equals("sibling"))
@@ -985,7 +991,7 @@ public class PlinkMendelianChecker {
                 if (genoDataLine != null) {
                   String[] tmpGL = genoDataLine.split("[\\s]+");
                   sb.append(tmpGL[6]).append("\t").append(tmpGL[7]).append("\t").append(tmpGL[8])
-                      .append("\t").append(tmpGL[9]).append("\t");
+                    .append("\t").append(tmpGL[9]).append("\t");
                   String rel = deriveRelationship(tmpGL[6], tmpGL[7], tmpGL[8], tmpGL[9]);
                   sb.append(rel).append("\t");
                   if (rel.equals("first cousins,halfsibs")) {
@@ -1029,7 +1035,7 @@ public class PlinkMendelianChecker {
         }
         sb.append(".\t");
         sb.append("UN").append("\t").append(parts[6]).append("\t").append(parts[7]).append("\t")
-            .append(parts[8]).append("\t").append(parts[9]).append("\t");
+          .append(parts[8]).append("\t").append(parts[9]).append("\t");
         String rel = deriveRelationship(parts[6], parts[7], parts[8], parts[9]);
         sb.append(rel).append("\t");
         if (!rel.equals("UN")) {

@@ -26,7 +26,7 @@ public class GenotypeRefinement {
     String ped = null;
     String usage = "\n" + "seq.analysis.DeNovoMatic requires 0-1 arguments\n";
     usage += "   (1) full path to a reference genome (i.e. ref=" + referenceGenomeFasta
-        + " (default))\n" + "";
+             + " (default))\n" + "";
     usage += "   (2) output root directory (i.e. outputDir=" + outputDir + " (default))\n" + "";
     usage += "   (3) gatk directory (i.e. gatk=" + gatkLocation + " (default))\n" + "";
     usage += "   (4) input vcf (i.e. vcf= (no default))\n" + "";
@@ -66,8 +66,8 @@ public class GenotypeRefinement {
     }
     new File(outputDir).mkdirs();
     Logger log = new Logger(outputDir + "TN.log");
-    GATK gatk =
-        new GATK.Mutect(gatkLocation, referenceGenomeFasta, null, null, null, null, true, false, log);
+    GATK gatk = new GATK.Mutect(gatkLocation, referenceGenomeFasta, null, null, null, null, true,
+                                false, log);
     gatk.setSupportingSnps(supportingSnps);
     refineGenotypes(inputVcf, ped, outputDir, gatk);
   }

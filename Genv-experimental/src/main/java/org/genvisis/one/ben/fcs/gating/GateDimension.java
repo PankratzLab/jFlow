@@ -12,7 +12,7 @@ public class GateDimension {
     }
 
     public RectangleGateDimension(RectangleGate gate, String param, AXIS_SCALE scale, float min,
-        float max) {
+                                  float max) {
       super(gate, param, scale);
       this.min = Math.min(min, max);
       this.max = Math.max(min, max);

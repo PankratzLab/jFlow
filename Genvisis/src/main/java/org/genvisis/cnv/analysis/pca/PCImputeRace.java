@@ -25,14 +25,16 @@ public class PCImputeRace {
       {"FID", "IID", "PC1", "PC2", "%African", "%Asian", "%White"};
   public static final String[] IMPUTED_RACE_SAMPLE_DATA_HEADERS =
       new String[] {"Class=ImputedRace;1=White;2=African American;3=Hispanic;4=Asian", "% African",
-          "% Asian", "% European"};
+                    "% Asian", "% European"};
 
   private static int countFounders(String plinkroot, String keepFile) {
     int founders = 0;
-    Hashtable<String, String> plinkFam = HashVec.loadFileToHashString(plinkroot + ".fam",
-        new int[] {0, 1}, new int[] {2, 3}, false, "\t", false, false, false);
-    Set<String> keeps = keepFile == null ? plinkFam.keySet()
-        : HashVec.loadFileToHashSet(keepFile, new int[] {0, 1}, "\t", false);
+    Hashtable<String, String> plinkFam =
+        HashVec.loadFileToHashString(plinkroot + ".fam", new int[] {0, 1}, new int[] {2, 3}, false,
+                                     "\t", false, false, false);
+    Set<String> keeps =
+        keepFile == null ? plinkFam.keySet()
+                         : HashVec.loadFileToHashSet(keepFile, new int[] {0, 1}, "\t", false);
     for (Entry<String, String> famEntry : plinkFam.entrySet()) {
       if (famEntry.getValue().equals("0\t0") && keeps.contains(famEntry.getKey())) {
         founders++;
@@ -48,11 +50,11 @@ public class PCImputeRace {
 
     String overallFrqFile = ext.rootOf(resultFile, false) + "_all.frq";
     CmdLine.runDefaults("plink2 --noweb --bfile " + plinkroot + " --freq" + " --out "
-        + ext.rootOf(overallFrqFile, false), dir);
+                        + ext.rootOf(overallFrqFile, false), dir);
     String[] header = Files.getHeaderOfFile(overallFrqFile, log);
     int key = ext.indexOfStr("SNP", header);
     int[] targets = new int[] {ext.indexOfStr("A1", header), ext.indexOfStr("A2", header),
-        ext.indexOfStr("MAF", header)};
+                               ext.indexOfStr("MAF", header)};
     Hashtable<String, String> overallFreq =
         HashVec.loadFileToHashString(overallFrqFile, key, targets, "\t", true);
 
@@ -64,19 +66,19 @@ public class PCImputeRace {
       String raceListFile = raceListFiles[i];
       String raceFrqFile = ext.rootOf(raceListFile, false) + ".frq";
       CmdLine.runDefaults("plink2 --noweb --bfile " + plinkroot + " --keep " + raceListFile
-          + " --freq" + " --out " + ext.rootOf(raceFrqFile, false), dir);
+                          + " --freq" + " --out " + ext.rootOf(raceFrqFile, false), dir);
       header = Files.getHeaderOfFile(raceFrqFile, log);
       key = ext.indexOfStr("SNP", header);
       targets = new int[] {ext.indexOfStr("A1", header), ext.indexOfStr("A2", header),
-          ext.indexOfStr("MAF", header)};
+                           ext.indexOfStr("MAF", header)};
       raceFreqs[i] = HashVec.loadFileToHashString(raceFrqFile, key, targets, "\t", true);
     }
 
     PrintWriter writer = Files.getAppropriateWriter(outFile);
     writer.print("SNP\tA1\tA2\tOverall A1F (n=" + countFounders(dir + plinkroot, null) + ")");
     for (int i = 0; i < raceListFiles.length; i++) {
-      writer.print(
-          "\t" + RACES[i] + " A1F (n=" + countFounders(dir + plinkroot, raceListFiles[i]) + ")");
+      writer.print("\t" + RACES[i] + " A1F (n=" + countFounders(dir + plinkroot, raceListFiles[i])
+                   + ")");
     }
     writer.println();
 
@@ -111,14 +113,14 @@ public class PCImputeRace {
             } else if (A1.equals(raceA2) && A2.equals(raceA1)) {
               a1f = Double.toString(ext.roundToSignificantFigures(1.0 - raceMaf, 4));
             } else {
-              log.reportTimeError(
-                  "Alleles for SNP '" + marker + "' and " + raceListFiles[i] + " (" + raceA1 + ", "
-                      + raceA2 + ") do not match overall alleles (" + A1 + ", " + A2 + " )");
+              log.reportTimeError("Alleles for SNP '" + marker + "' and " + raceListFiles[i] + " ("
+                                  + raceA1 + ", " + raceA2 + ") do not match overall alleles (" + A1
+                                  + ", " + A2 + " )");
               a1f = ".";
             }
           } catch (NumberFormatException nfe) {
             log.reportTimeError("Invalid MAF (" + raceData[2] + ") for SNP '" + marker + "' and "
-                + raceListFiles[i]);
+                                + raceListFiles[i]);
             a1f = ".";
           }
         }
@@ -189,8 +191,9 @@ public class PCImputeRace {
         }
       }
 
-      PCImputeRace raceChecker = new PCImputeRace(proj, fidiids, pc1, pc2, Ints.toArray(europeans),
-          Ints.toArray(africans), Ints.toArray(asians), new Logger());
+      PCImputeRace raceChecker =
+          new PCImputeRace(proj, fidiids, pc1, pc2, Ints.toArray(europeans), Ints.toArray(africans),
+                           Ints.toArray(asians), new Logger());
       raceChecker.correctPCsToRace(ext.rootOf(inFile, false) + "_Corrected_PCS.mds");
 
     } catch (Exception e) {
@@ -233,7 +236,7 @@ public class PCImputeRace {
    * @param log
    */
   public PCImputeRace(Project proj, String[] fidiids, double[] pc1, double[] pc2,
-      int[] europeanSeeds, int[] africanSeeds, int[] asianSeeds, Logger log) {
+                      int[] europeanSeeds, int[] africanSeeds, int[] asianSeeds, Logger log) {
     super();
     this.proj = proj;
     this.fidiids = fidiids;
@@ -328,7 +331,7 @@ public class PCImputeRace {
           theta = 2.0 * Math.PI + theta;
         }
         polar[i][0] = ((theta - minAsianTheta) / (2.0 * Math.PI + maxAfricanTheta - minAsianTheta))
-            * (3.0 * Math.PI / 2.0) + (Math.PI / 2.0);
+                      * (3.0 * Math.PI / 2.0) + (Math.PI / 2.0);
       }
     }
 
@@ -402,8 +405,8 @@ public class PCImputeRace {
 
     Hashtable<String, String> dataToAdd = new Hashtable<String, String>();
     for (int i = 0; i < pc1.length; i++) {
-      dataToAdd.put(sampleData.lookup(fidiids[i])[0],
-          imputedRace[i] + "\t" + pctAfrican[i] + "\t" + pctAsian[i] + "\t" + pctEuropean[i]);
+      dataToAdd.put(sampleData.lookup(fidiids[i])[0], imputedRace[i] + "\t" + pctAfrican[i] + "\t"
+                                                      + pctAsian[i] + "\t" + pctEuropean[i]);
     }
 
 
@@ -419,7 +422,7 @@ public class PCImputeRace {
 
     for (int i = 0; i < pc1.length; i++) {
       writer.println(fidiids[i] + "\t" + pc1[i] + "\t" + pc2[i] + "\t" + pctAfrican[i] + "\t"
-          + pctAsian[i] + "\t" + pctEuropean[i]);
+                     + pctAsian[i] + "\t" + pctEuropean[i]);
       raceWriters[imputedRace[i] - 1].println(fidiids[i]);
     }
 
@@ -467,9 +470,9 @@ public class PCImputeRace {
         && Math.abs(asianMeanPC2) > Math.abs(europeanMeanPC2)) {
       // PC1 = African, PC2 = Asian
     } else if (Math.abs(asianMeanPC1) > Math.abs(africanMeanPC1)
-        && Math.abs(africanMeanPC2) > Math.abs(asianMeanPC2)
-        && Math.abs(asianMeanPC1) > Math.abs(europeanMeanPC1)
-        && Math.abs(africanMeanPC2) > Math.abs(europeanMeanPC2)) {
+               && Math.abs(africanMeanPC2) > Math.abs(asianMeanPC2)
+               && Math.abs(asianMeanPC1) > Math.abs(europeanMeanPC1)
+               && Math.abs(africanMeanPC2) > Math.abs(europeanMeanPC2)) {
       // PC1 = Asian, PC2 = African
       double[] temp;
 
@@ -491,8 +494,7 @@ public class PCImputeRace {
       asianMeanPC1 = asianMeanPC2;
       asianMeanPC2 = tempMean;
     } else {
-      log.reportError(
-          "PC1 and PC2 do not appear to predict African and Asian, race cannot be imputed");
+      log.reportError("PC1 and PC2 do not appear to predict African and Asian, race cannot be imputed");
       return false;
     }
 

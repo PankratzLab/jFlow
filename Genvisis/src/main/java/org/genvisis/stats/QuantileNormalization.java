@@ -70,9 +70,9 @@ public class QuantileNormalization {
     // }
     for (int i = 0; i < dataToNorm.length; i++) {
       log.reportTimeInfo("MEAN Original" + i + " : " + Array.mean(dataToNorm[i], true) + " -> "
-          + Array.mean(normData[i], true));
+                         + Array.mean(normData[i], true));
       log.reportTimeInfo("SD Original" + i + " : " + Array.stdev(dataToNorm[i], true) + " -> "
-          + Array.stdev(normData[i], true));
+                         + Array.stdev(normData[i], true));
 
     }
   }
@@ -111,7 +111,7 @@ public class QuantileNormalization {
         if (numNan != 0 && numNan != tmp.length) {
           String error =
               i + "\tAll indices must either have complete (non-NaN) data, or all NaN data "
-                  + numNan + " Nans out of " + tmp.length;
+                         + numNan + " Nans out of " + tmp.length;
           log.reportTimeError(error);
           throw new IllegalArgumentException(error);
         }

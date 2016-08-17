@@ -25,8 +25,8 @@ public class AffySNP6Tables {
 
       writer = new PrintWriter(new FileWriter(filename, append));
     } catch (FileNotFoundException fnfe) {
-      log.reportTimeError(
-          "Error: file \"" + filename + "\" could not be written to (it's probably open)");
+      log.reportTimeError("Error: file \"" + filename
+                          + "\" could not be written to (it's probably open)");
       System.exit(1);
     } catch (IOException ioe) {
       log.reportTimeError("Error reading file \"" + filename + "\"");
@@ -122,14 +122,14 @@ public class AffySNP6Tables {
       }
       if (merge && !comboMergeCreate) {
         MergeChp.combineChpFiles(affyResultsDir, numThreads, commonSubFolderPattern,
-            inputFileNameExt, output, new Logger());
+                                 inputFileNameExt, output, new Logger());
 
       }
       if (create && !comboMergeCreate) {
         SourceFileParser.createFiles(proj, numThreads);
       } else if (comboMergeCreate) {
         MergeChp.combineChpFiles(affyResultsDir, numThreads, commonSubFolderPattern,
-            inputFileNameExt, output, new Logger());
+                                 inputFileNameExt, output, new Logger());
         SourceFileParser.createFiles(proj, numThreads);
       }
 
@@ -158,7 +158,7 @@ public class AffySNP6Tables {
   }
 
   public AffySNP6Tables(String outputDirectory, String callFile, String confFile, String sigFile,
-      int maxWriters, Logger log) {
+                        int maxWriters, Logger log) {
     this.outputDirectory = outputDirectory;
     this.callFile = callFile;
     this.confFile = confFile;
@@ -178,7 +178,7 @@ public class AffySNP6Tables {
   }
 
   private String[] allignFiles(BufferedReader sigReader, String[] callLine, String[] confLine,
-      String delimiter) throws IOException {
+                               String delimiter) throws IOException {
     String[] sigALine;
 
     do {
@@ -195,7 +195,7 @@ public class AffySNP6Tables {
       do {
         line = reader.readLine().trim().split(delimiter, -1);
       } while (reader.ready()
-          && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1));
+               && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1));
       header = Array.toStr(line);
     } catch (IOException ioe) {
       log.reportTimeError("Error reading file \"" + tableName + "\"");
@@ -225,7 +225,7 @@ public class AffySNP6Tables {
   public void parseCNLine(String[] sigA) {
     for (int j = 1; j < sigA.length; j++) {
       indFiles[j - 1].append(sigA[0] + "\tNC\t0\t" + Double.toString(power2(sigA[j])) + "\t"
-          + Double.toString(power2(sigA[j])) + "\tNC\n");
+                             + Double.toString(power2(sigA[j])) + "\tNC\n");
     }
   }
 
@@ -281,7 +281,7 @@ public class AffySNP6Tables {
         sigReader.close();
       } else {
         log.reportTimeInfo("All files exist in " + outputDirectory
-            + ", skipping parsing. Please delete these files if you would like to re-parse");
+                           + ", skipping parsing. Please delete these files if you would like to re-parse");
 
       }
     } catch (FileNotFoundException fnfe) {
@@ -298,7 +298,7 @@ public class AffySNP6Tables {
   }
 
   private void parseLastBatch(String[] callLine, String[] confLine, String[] sigALine,
-      String[] sigBLine, int chunkCount, String[] header) {
+                              String[] sigBLine, int chunkCount, String[] header) {
     parseSNPLine(callLine, confLine, sigALine, sigBLine); // Last Line
     printIt(header, chunkCount);
   }
@@ -306,8 +306,9 @@ public class AffySNP6Tables {
   public void parseSNPLine(String[] calls, String[] confs, String[] sigA, String[] sigB) {
     for (int j = 1; j < calls.length; j++) {
       indFiles[j - 1].append(calls[0] + "\t" + parseCall(calls[j]) + "\t" + confs[j] + "\t"
-          + Double.toString(power2(sigA[j])) + "\t" + Double.toString(power2(sigB[j])) + "\t"
-          + parseCall(calls[j]) + "\n");
+                             + Double.toString(power2(sigA[j])) + "\t"
+                             + Double.toString(power2(sigB[j])) + "\t" + parseCall(calls[j])
+                             + "\n");
     }
   }
 
@@ -360,13 +361,11 @@ public class AffySNP6Tables {
                 }
               }
             } else if (!callLine[0].equals(confLine[0]) || !sigALine[0].equals(callLine[0] + "-A")
-                || !sigBLine[0].equals(callLine[0] + "-B")) {
-              log.reportTimeError(
-                  "Error: probeset identifier mismatch between calls/confidence/signal files ");
+                       || !sigBLine[0].equals(callLine[0] + "-B")) {
+              log.reportTimeError("Error: probeset identifier mismatch between calls/confidence/signal files ");
               System.exit(1);
             } else if (!sigReader.ready()) {
-              log.reportTimeError(
-                  "Error: probeset identifier discordance between calls/confidence/signal files");
+              log.reportTimeError("Error: probeset identifier discordance between calls/confidence/signal files");
               return;
             } else {
               log.reportTimeError("This Should Not Happen");
@@ -389,7 +388,7 @@ public class AffySNP6Tables {
           sigReader.close();
         } else {
           log.reportTimeInfo("All files exist in " + outputDirectory
-              + ", skipping parsing. Please delete these files if you would like to re-parse");
+                             + ", skipping parsing. Please delete these files if you would like to re-parse");
         }
       } else {
         log.reportTimeInfo("table headers do not match ");
@@ -421,13 +420,12 @@ public class AffySNP6Tables {
         new File(outputDirectory).mkdirs();
         append = false;
         writer = getWriter(outputDirectory + ext.rootOf(header[j]) + ".txt", append, log);
-        writer
-            .print("Probe Set ID\tCall Codes\tConfidence\tSignal A\tSignal B\tForced Call Codes\n");
+        writer.print("Probe Set ID\tCall Codes\tConfidence\tSignal A\tSignal B\tForced Call Codes\n");
         writer.print(indFiles[j - 1]);
         if (header.length < maxWriters) {
           if (writers == null) {
-            log.reportTimeInfo(
-                "Initializing static writers since number of samples is less than " + maxWriters);
+            log.reportTimeInfo("Initializing static writers since number of samples is less than "
+                               + maxWriters);
             writers = new PrintWriter[header.length - 1];
           }
           writers[j - 1] = writer;

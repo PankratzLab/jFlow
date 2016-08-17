@@ -61,8 +61,8 @@ public class GeneData extends Segment implements Serializable {
     } else if (line[3].equals("-")) {
       strand = MINUS_STRAND;
     } else {
-      System.err
-          .println("Error - unknown strand '" + line[3] + "' for accession '" + line[1] + "'");
+      System.err.println("Error - unknown strand '" + line[3] + "' for accession '" + line[1]
+                         + "'");
     }
 
     start = Integer.parseInt(line[4]);
@@ -72,19 +72,20 @@ public class GeneData extends Segment implements Serializable {
     stops = line[10].trim().split(",", -1);
     if (starts.length != stops.length || starts.length - 1 != Integer.parseInt(line[8])) {
       System.err.println("Error - file format error: different number of start (n=" + starts.length
-          + ") and stop (n=" + stops.length + ") exon boundaries for " + line[1] + "/" + line[12]);
+                         + ") and stop (n=" + stops.length + ") exon boundaries for " + line[1]
+                         + "/" + line[12]);
     } else {
       exonBoundaries = new int[starts.length - 1][2];
       for (int i = 0; i < starts.length - 1; i++) {
         if (starts[i].equals("")) {
-          System.err
-              .println("Error - missing start position for exon " + (i + 1) + " of " + line[1]);
+          System.err.println("Error - missing start position for exon " + (i + 1) + " of "
+                             + line[1]);
         } else {
           exonBoundaries[i][0] = Integer.parseInt(starts[i]);
         }
         if (stops[i].equals("")) {
-          System.err
-              .println("Error - missing stop position for exon " + (i + 1) + " of " + line[1]);
+          System.err.println("Error - missing stop position for exon " + (i + 1) + " of "
+                             + line[1]);
         } else {
           exonBoundaries[i][1] = Integer.parseInt(stops[i]);
         }
@@ -95,8 +96,8 @@ public class GeneData extends Segment implements Serializable {
   }
 
   public GeneData(String geneName, String[] ncbiAssessionNumbers, byte chr,
-      boolean positionFinalized, byte strand, int startTranscription, int stop,
-      int[][] exonBoundaries, byte multiLoc, boolean collapsedIsoformGene) {
+                  boolean positionFinalized, byte strand, int startTranscription, int stop,
+                  int[][] exonBoundaries, byte multiLoc, boolean collapsedIsoformGene) {
     this.geneName = geneName;
     this.ncbiAssessionNumbers = ncbiAssessionNumbers;
     this.chr = chr;

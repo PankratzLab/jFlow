@@ -158,8 +158,9 @@ public class PennHmm {
      * @return
      */
     public LocusSet<CNVariant> analyzeStateSequence(Project proj, String fid, String iid,
-        byte currentChr, int[] positions, String[] names, int normalState, boolean reverse,
-        boolean verbose) {
+                                                    byte currentChr, int[] positions,
+                                                    String[] names, int normalState,
+                                                    boolean reverse, boolean verbose) {
       CNVariant.CNVBuilder builder = new CNVBuilder();
       builder.familyID(fid);
       builder.individualID(iid);
@@ -258,7 +259,7 @@ public class PennHmm {
       }
       if (numNonNormalStates != numTotalMarkers) {
         String error = "BUG: detected " + numNonNormalStates
-            + " non-normal states, but collapsed to " + numTotalMarkers + " markers";
+                       + " non-normal states, but collapsed to " + numTotalMarkers + " markers";
         error += "\nSample: " + fid + "\t" + fid;
         proj.getLog().reportTimeError(error);
         for (int i = 0; i < tmp.size(); i++) {
@@ -269,8 +270,8 @@ public class PennHmm {
       } else if (verbose) {
         proj.getLog()
             .reportTimeInfo("Found " + cnvs.getLoci().length + " cnvs over " + numTotalMarkers
-                + " total markers covering " + cnvs.getBpCovered() + " bp on chromosome "
-                + currentChr);
+                            + " total markers covering " + cnvs.getBpCovered()
+                            + " bp on chromosome " + currentChr);
       }
       return cnvs;
     }
@@ -465,7 +466,7 @@ public class PennHmm {
     double p = 0;
     p = bStatus.getB_uf();
     p += (1 - bStatus.getB_uf())
-        * bStatus.getGaussians()[state].probability(new ObservationReal(o));
+         * bStatus.getGaussians()[state].probability(new ObservationReal(o));
 
     if (p == 0) {
       p = FLOAT_MINIMUM;
@@ -621,15 +622,16 @@ public class PennHmm {
         if (i != j) {
           if (i == 3) {
             tmpA[i][j] = pennHmm.getA()[i][j] * (1 - Math.exp(-dist / D / 1000))
-                / (1 - Math.exp(-5000 / D / 1000));
+                         / (1 - Math.exp(-5000 / D / 1000));
           } else {
             tmpA[i][j] =
                 pennHmm.getA()[i][j] * (1 - Math.exp(-dist / D)) / (1 - Math.exp(-5000 / D));
           }
           if (tmpA[i][j] > 1) {
-            pennHmm.getLog().reportTimeWarning(
-                "Off-diagonal cell A[%i][%i] (%f to %f by %i) in transition matrix is over boundary of 1 (HMM model is not optimized). Assign 0.999 as the value instead.\n"
-                    + i + "\t" + j + "\t" + pennHmm.getA()[i][j] + "\t" + tmpA[i][j] + "\t" + dist);
+            pennHmm.getLog()
+                   .reportTimeWarning("Off-diagonal cell A[%i][%i] (%f to %f by %i) in transition matrix is over boundary of 1 (HMM model is not optimized). Assign 0.999 as the value instead.\n"
+                                      + i + "\t" + j + "\t" + pennHmm.getA()[i][j] + "\t"
+                                      + tmpA[i][j] + "\t" + dist);
             tmpA[i][j] =
                 0.999; /* maximum possible off-diagonal value (since state3 frequency is 0.999) */
           }
@@ -649,7 +651,7 @@ public class PennHmm {
   }
 
   private static double getLocScore(PennHmm pennHmm, double[] o1, double[] o2, double[] pfb,
-      boolean[] copyNumberOnlyDef, int actualStateIndex) {
+                                    boolean[] copyNumberOnlyDef, int actualStateIndex) {
     int[] tests = new int[] {0, 1, 2, 4, 5};
     double confState = Double.NaN;
     double maxOther = -1 * Double.MAX_VALUE;
@@ -675,7 +677,7 @@ public class PennHmm {
   }
 
   private static double GetStateProb_CHMM(PennHmm pennHmm, double[] o1, double[] o2, double[] pfb,
-      boolean[] copyNumberOnlyDef, int state) {
+                                          boolean[] copyNumberOnlyDef, int state) {
     double logProb = 0;
     for (int i = 0; i < o1.length; i++) {
       if (copyNumberOnlyDef[i]) {
@@ -689,8 +691,8 @@ public class PennHmm {
     return logProb;
   }
 
-  private static BStatus loadBstatus(String bTag, BufferedReader reader, Logger log)
-      throws IOException {
+  private static BStatus loadBstatus(String bTag, BufferedReader reader,
+                                     Logger log) throws IOException {
     double[] bmean = loadTwoLineDoubleArray(bTag + "_mean:", reader, log);
 
     if (bmean != null) {
@@ -775,8 +777,8 @@ public class PennHmm {
     }
   }
 
-  private static double[] loadTwoLineDoubleArray(String tag, BufferedReader reader, Logger log)
-      throws IOException {
+  private static double[] loadTwoLineDoubleArray(String tag, BufferedReader reader,
+                                                 Logger log) throws IOException {
     String atag = reader.readLine();
     if (!atag.startsWith(tag)) {
       log.reportTimeError("cannot read " + tag + " annotation from HMM file");
@@ -789,8 +791,10 @@ public class PennHmm {
   }
 
   public static LocusSet<CNVariant> scoreCNVsSameChr(PennHmm pennHmm, LocusSet<CNVariant> cLocusSet,
-      int[] posChr, double[] lrrChr, double[] bafsChr, double[] pfbsChr,
-      boolean[] copyNumberOnlyDef, int[] q, int normalState, Logger log) {
+                                                     int[] posChr, double[] lrrChr,
+                                                     double[] bafsChr, double[] pfbsChr,
+                                                     boolean[] copyNumberOnlyDef, int[] q,
+                                                     int normalState, Logger log) {
     ArrayList<CNVariant> scored = new ArrayList<CNVariant>();
 
     for (int i = 0; i < cLocusSet.getLoci().length; i++) {
@@ -822,15 +826,15 @@ public class PennHmm {
       int[] indices = Ints.toArray(indicestmp);
       if (indices.length != current.getNumMarkers()) {
         String error = "BUG: could not reconstruct original markers, found " + indices.length
-            + " and should have found " + current.getNumMarkers();
+                       + " and should have found " + current.getNumMarkers();
         error += "Sample FID: " + current.getFamilyID() + " IID: " + current.getIndividualID();
         log.reportTimeError(error);
         throw new IllegalStateException(error);
       }
 
       double score = getLocScore(pennHmm, Array.subArray(lrrChr, indices),
-          Array.subArray(bafsChr, indices), Array.subArray(pfbsChr, indices),
-          Array.subArray(copyNumberOnlyDef, indices), hmmState);
+                                 Array.subArray(bafsChr, indices), Array.subArray(pfbsChr, indices),
+                                 Array.subArray(copyNumberOnlyDef, indices), hmmState);
       CNVBuilder builder = new CNVBuilder(current);
       builder.score(score);
       scored.add(builder.build());
@@ -848,7 +852,8 @@ public class PennHmm {
   }
 
   public static ViterbiResult ViterbiLogNP_CHMM(PennHmm pennHmm, double[] o1, double[] o2,
-      double[] pfb, int[] snpdist, boolean[] copyNumberOnlyDef) {
+                                                double[] pfb, int[] snpdist,
+                                                boolean[] copyNumberOnlyDef) {
     if (o1.length != o2.length || o1.length != pfb.length || o1.length != snpdist.length
         || o1.length != copyNumberOnlyDef.length) {
       String error = "BUG: mismatched array lengths";
@@ -936,7 +941,7 @@ public class PennHmm {
   private final Logger log;
 
   public PennHmm(int m, int n, double[] pi, double[][] a, BStatus b1, BStatus b2, BStatus b3,
-      Logger log) {
+                 Logger log) {
     super();
     M = m;
     N = n;

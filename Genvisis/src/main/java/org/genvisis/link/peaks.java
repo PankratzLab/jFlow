@@ -46,8 +46,7 @@ public class peaks {
       st.nextElement();
     }
     writer = new PrintWriter(new FileWriter(st.nextToken() + " " + st.nextToken() + " peaks.out"));
-    writer.println(
-        "chr\tMapmaker\tDv\t\tMerlin-sibs\tMerlin-ext\tAllegro\tDominant\tAD het\tRecessive\tAR het");
+    writer.println("chr\tMapmaker\tDv\t\tMerlin-sibs\tMerlin-ext\tAllegro\tDominant\tAD het\tRecessive\tAR het");
 
     for (int i = 1; i <= 23; i++) {
       try {

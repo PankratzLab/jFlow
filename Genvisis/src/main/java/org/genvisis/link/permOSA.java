@@ -21,16 +21,15 @@ public class permOSA {
 
   public static void main(String[] args) {
     if (args.length < 4 || args.length > 5) {
-      System.out.println(
-          "Expecting 4-5 arguments: filename, chromosome number, number of permutations, direction (a or d), and (optional) plug filename");
+      System.out.println("Expecting 4-5 arguments: filename, chromosome number, number of permutations, direction (a or d), and (optional) plug filename");
     } else {
       try {
         if (args.length == 4) {
           new permOSA(args[0], Integer.valueOf(args[1]).intValue(),
-              Integer.valueOf(args[2]).intValue(), args[3]);
+                      Integer.valueOf(args[2]).intValue(), args[3]);
         } else if (args.length == 5) {
           new permOSA(args[0], Integer.valueOf(args[1]).intValue(),
-              Integer.valueOf(args[2]).intValue(), args[3], args[4]);
+                      Integer.valueOf(args[2]).intValue(), args[3], args[4]);
 
         }
       } catch (Exception e) {
@@ -39,13 +38,13 @@ public class permOSA {
     }
   }
 
-  public permOSA(String filename, int chromosome, int numPerms, String direction)
-      throws IOException {
+  public permOSA(String filename, int chromosome, int numPerms,
+                 String direction) throws IOException {
     new permOSA(filename, chromosome, numPerms, direction, null);
   }
 
-  public permOSA(String filename, int chromosome, int numPerms, String direction, String plug)
-      throws IOException {
+  public permOSA(String filename, int chromosome, int numPerms, String direction,
+                 String plug) throws IOException {
     BufferedReader reader = null;
     PrintWriter writer = null;
     StringTokenizer st = null;
@@ -132,8 +131,9 @@ public class permOSA {
         }
         if (trav != prev && prev != -99999.777) {
           increment++;
-          writer = new PrintWriter(new FileWriter("chrom" + chrome + "/re_chrom" + chrome + "-"
-              + direction + ext.formNum(increment, 4) + ".pre"));
+          writer =
+              new PrintWriter(new FileWriter("chrom" + chrome + "/re_chrom" + chrome + "-"
+                                             + direction + ext.formNum(increment, 4) + ".pre"));
           for (int j = 0; j < i; j++) {
             if (hash.containsKey(IDs.elementAt(randomKeys[j]))) {
               writer.print(hash.get(IDs.elementAt(randomKeys[j])));
@@ -157,15 +157,16 @@ public class permOSA {
       writer.println("cd chrom" + chrome);
       writer.println("cp ../map" + chrome + ".dat .");
       writer.println("java -classpath /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS
-          + " park.bat.dat2loc map" + chrome + ".dat");
+                     + " park.bat.dat2loc map" + chrome + ".dat");
       for (int i = 1; i <= numOfIncrements; i++) {
-        writer
-            .println("echo -e \"" + ((chromosome == 23) ? "sex on\\n" : "") + "pairs\\n3\\nload map"
-                + chrome + ".loc\\nprep re_chrom" + chrome + "-" + direction + ext.formNum(i, 4)
-                + ".pre\\nn\\nscan\\nestimate\\n" + ((chromosome == 23) ? "" : "n\\n") + "chrom"
-                + chrome + "-" + direction + ext.formNum(i, 4) + ".out\\nchrom" + chrome + "-"
-                + direction + ext.formNum(i, 4) + "-share.ps\\nchrom" + chrome + "-" + direction
-                + ext.formNum(i, 4) + "-mls.ps\\nquit\\n\" | /software/bin/sibs > /dev/null");
+        writer.println("echo -e \"" + ((chromosome == 23) ? "sex on\\n" : "")
+                       + "pairs\\n3\\nload map" + chrome + ".loc\\nprep re_chrom" + chrome + "-"
+                       + direction + ext.formNum(i, 4) + ".pre\\nn\\nscan\\nestimate\\n"
+                       + ((chromosome == 23) ? "" : "n\\n") + "chrom" + chrome + "-" + direction
+                       + ext.formNum(i, 4) + ".out\\nchrom" + chrome + "-" + direction
+                       + ext.formNum(i, 4) + "-share.ps\\nchrom" + chrome + "-" + direction
+                       + ext.formNum(i, 4)
+                       + "-mls.ps\\nquit\\n\" | /software/bin/sibs > /dev/null");
         writer.println();
       }
       writer.println("rm *.ps");
@@ -192,8 +193,9 @@ public class permOSA {
       maxPos = -1;
       for (increment = 1; increment <= numOfIncrements; increment++) {
         try {
-          reader = new BufferedReader(new FileReader("done" + chrome + "/chrom" + chrome + "-"
-              + direction + ext.formNum(increment, 4) + ".out"));
+          reader =
+              new BufferedReader(new FileReader("done" + chrome + "/chrom" + chrome + "-"
+                                                + direction + ext.formNum(increment, 4) + ".out"));
           pos = 0;
 
           if (chromosome < 23) {

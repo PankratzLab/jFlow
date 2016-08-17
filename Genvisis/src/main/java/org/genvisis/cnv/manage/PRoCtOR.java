@@ -55,18 +55,19 @@ public class PRoCtOR {
     int numThreads = Runtime.getRuntime().availableProcessors();
 
     String usage = "\n" + "cnv.manage.PRoCtOR requires 0-1 arguments\n"
-        + "   (1) project properties filename (i.e. proj=" + filename + " (default))\n"
-        + "   (2) Number of principal components for correction (i.e. numComponents="
-        + numComponents + " (default))\n"
-        + "   (3) Output file full path and baseName for principal components correction files (i.e. outputBase="
-        + outputBase + " (default))\n"
-        + "   (4) Call-rate filter for determining high-quality markers (i.e. callrate=" + callrate
-        + " (default))\n"
-        + "   (5) Flag specifying whether or not to re-compute Log-R Ratio values (usually false if LRRs already exist) (i.e. recomputeLRR="
-        + recomputeLRR + " (default))\n" + "   (6) Total number of threads to use (i.e. numThreads="
-        + numThreads + " (default))\n"
-        + "   (7) OPTIONAL: temp directory for intermediate files (which tend to be very large) (i.e. tmp="
-        + tempDir + " (default))\n" + "";
+                   + "   (1) project properties filename (i.e. proj=" + filename + " (default))\n"
+                   + "   (2) Number of principal components for correction (i.e. numComponents="
+                   + numComponents + " (default))\n"
+                   + "   (3) Output file full path and baseName for principal components correction files (i.e. outputBase="
+                   + outputBase + " (default))\n"
+                   + "   (4) Call-rate filter for determining high-quality markers (i.e. callrate="
+                   + callrate + " (default))\n"
+                   + "   (5) Flag specifying whether or not to re-compute Log-R Ratio values (usually false if LRRs already exist) (i.e. recomputeLRR="
+                   + recomputeLRR + " (default))\n"
+                   + "   (6) Total number of threads to use (i.e. numThreads=" + numThreads
+                   + " (default))\n"
+                   + "   (7) OPTIONAL: temp directory for intermediate files (which tend to be very large) (i.e. tmp="
+                   + tempDir + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -110,7 +111,8 @@ public class PRoCtOR {
   }
 
   public static void shadow(Project proj, String tmpDir, String outputBase,
-      double markerCallRateFilter, boolean recomputeLRR_PCs, int numComponents, int totalThreads) {
+                            double markerCallRateFilter, boolean recomputeLRR_PCs,
+                            int numComponents, int totalThreads) {
     int numMarkerThreads = 2;
     int numThreads = (int) Math.ceil((double) totalThreads / (double) numMarkerThreads);
     boolean markerQC = true;
@@ -119,18 +121,19 @@ public class PRoCtOR {
     proj.getLog().report("Using " + sampleChunks + " sample chunks");
 
     int retCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC, markerCallRateFilter,
-        useFile, proj.getSampleList(), proj.getLog());
+                                  useFile, proj.getSampleList(), proj.getLog());
     if (retCode != 42) {
       // TODO error
       return;
     }
-    PrincipalComponentsApply pcApply = PCA.generateFullPCA(proj, numComponents, outputBase,
-        recomputeLRR_PCs, true, null, proj.getLog());
+    PrincipalComponentsApply pcApply =
+        PCA.generateFullPCA(proj, numComponents, outputBase, recomputeLRR_PCs, true, null,
+                            proj.getLog());
     pcApply.getExtrapolatedPCsFile();
     PennCNVPrep.prepExport(proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
-        numMarkerThreads, LS_TYPE.REGULAR, false);
+                           numMarkerThreads, LS_TYPE.REGULAR, false);
     PennCNVPrep.exportSpecialPennCNV(proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
-        numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false);
+                                     numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false);
   }
 
 }

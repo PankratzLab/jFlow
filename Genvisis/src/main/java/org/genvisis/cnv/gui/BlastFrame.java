@@ -87,7 +87,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     }
 
     public static ArrayList<BlastAnnotation> filterAnnotations(Project proj,
-        List<BlastAnnotation> annotations, int alignFilter) {
+                                                               List<BlastAnnotation> annotations,
+                                                               int alignFilter) {
       ArrayList<BlastAnnotation> filteredList = new ArrayList<BlastAnnotation>();
       for (BlastAnnotation annot : annotations) {
         if (countAlignment(annot) > alignFilter) {
@@ -405,11 +406,11 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
       switch (lbl.getAB()) {
         case A:
           ab = StrandOps.flipsIfNeeded(referenceAnnotation.getA().getBaseString(),
-              referenceAnnotation.getStrand(), false);
+                                       referenceAnnotation.getStrand(), false);
           break;
         case B:
           ab = StrandOps.flipsIfNeeded(referenceAnnotation.getB().getBaseString(),
-              referenceAnnotation.getStrand(), false);
+                                       referenceAnnotation.getStrand(), false);
           break;
         case BOTH:
           // ab = StrandOps.flipsIfNeeded(referenceAnnotation.getA().getBaseString(),
@@ -443,8 +444,9 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     probeDescLbl = new JLabel("<reference sequence:>");
     probeDescLbl.setFont(lblFont);
     hdrPanel.add(probeDescLbl, "cell 0 1");
-    strandLbl = new JLabel(
-        referenceAnnotation == null ? "" : CNVHelper.decode(referenceAnnotation.getStrand()));
+    strandLbl =
+        new JLabel(referenceAnnotation == null ? ""
+                                               : CNVHelper.decode(referenceAnnotation.getStrand()));
     strandLbl.setFont(lblFont);
     hdrPanel.add(strandLbl, "cell 1 0");
     probeLengthLbl = new JLabel(proj.ARRAY_TYPE.getValue().getProbeLength() + "");
@@ -455,11 +457,16 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     nextBaseLbl.setFont(lblFont);
     hdrPanel.add(nextBaseLbl, "alignx left, cell 4 0");
     String abLblStr = referenceAnnotation == null ? ""
-        : "(A) "
-            + StrandOps.flipsIfNeeded(referenceAnnotation.getA().getBaseString(),
-                referenceAnnotation.getStrand(), false)
-            + "- (B) " + StrandOps.flipsIfNeeded(referenceAnnotation.getB().getBaseString(),
-                referenceAnnotation.getStrand(), false);
+                                                  : "(A) "
+                                                    + StrandOps.flipsIfNeeded(referenceAnnotation.getA()
+                                                                                                 .getBaseString(),
+                                                                              referenceAnnotation.getStrand(),
+                                                                              false)
+                                                    + "- (B) "
+                                                    + StrandOps.flipsIfNeeded(referenceAnnotation.getB()
+                                                                                                 .getBaseString(),
+                                                                              referenceAnnotation.getStrand(),
+                                                                              false);
     abLbl = new JLabel(abLblStr);
     abLbl.setFont(lblFont);
     hdrPanel.add(abLbl, "alignx center, cell 5 0");
@@ -473,12 +480,12 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
   public void setAnnotations(MarkerBlastAnnotation blastResult, ReferenceGenome refGen) {
     referenceAnnotation = blastResult.getMarkerSeqAnnotation();
     if (blastResult.hasPerfectMatch(proj.getLog())) {
-      referenceAnnotation.setStrand(
-          blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH, proj.getLog()).get(0)
-              .getStrand());
-      referenceAnnotation.setSegment(
-          blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH, proj.getLog()).get(0)
-              .getRefLoc());
+      referenceAnnotation.setStrand(blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
+                                                                  proj.getLog())
+                                               .get(0).getStrand());
+      referenceAnnotation.setSegment(blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
+                                                                   proj.getLog())
+                                                .get(0).getRefLoc());
     }
     this.blastResult = blastResult;
     referenceGenome = refGen;
@@ -502,8 +509,9 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
   public void updateAnnotations(int alignFilter) {
     currentAlignFilter = alignFilter;
     annotations = BlastFrame.BlastUtils.filterAnnotations(proj,
-        blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog()),
-        alignFilter);
+                                                          blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS,
+                                                                                        proj.getLog()),
+                                                          alignFilter);
   }
 
   public void updateLabels() {
@@ -526,18 +534,19 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         if (res1 != 0) {
           return res1;
         }
-        res1 = (new Integer(arg0.fullSegment.getStart()))
-            .compareTo(new Integer(arg1.fullSegment.getStart()));
+        res1 =
+            (new Integer(arg0.fullSegment.getStart())).compareTo(new Integer(arg1.fullSegment.getStart()));
         if (res1 != 0) {
           return res1;
         }
-        res1 = (new Integer(arg0.fullSegment.getStop()))
-            .compareTo(new Integer(arg1.fullSegment.getStop()));
+        res1 =
+            (new Integer(arg0.fullSegment.getStop())).compareTo(new Integer(arg1.fullSegment.getStop()));
         return res1;
       }
     });
-    ArrayList<BlastAnnotation> onT = blastResult
-        .getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT, proj.getLog());
+    ArrayList<BlastAnnotation> onT =
+        blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
+                                      proj.getLog());
     probeLbl.setAnnotation(onT.size() > 0 ? onT.get(0) : null);
 
     SwingUtilities.invokeLater(new Runnable() {
@@ -553,8 +562,9 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         strandLbl.setText(CNVHelper.decode(referenceAnnotation.getStrand()));
         int len = proj.ARRAY_TYPE.getValue().getProbeLength();
         probeLengthLbl.setText(len + "");
-        ArrayList<BlastAnnotation> onT = blastResult
-            .getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT, proj.getLog());
+        ArrayList<BlastAnnotation> onT =
+            blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
+                                          proj.getLog());
         String lbl = "";
         // if (onT.size() > 0) {
         // if (onT.size() > 1) {
@@ -584,10 +594,12 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
           // if (hasMatch) {
           probeDescLbl.setText("<reference sequence:>");
           Segment seg = referenceAnnotation.getSeg();
-          int start = hasMatch ? seg.getStart()
-              : referenceAnnotation.goLeft() ? seg.getStart() - len : seg.getStart();
-          int stop = hasMatch ? seg.getStop()
-              : referenceAnnotation.goLeft() ? seg.getStart() : seg.getStart() + len;
+          int start =
+              hasMatch ? seg.getStart()
+                       : referenceAnnotation.goLeft() ? seg.getStart() - len : seg.getStart();
+          int stop =
+              hasMatch ? seg.getStop()
+                       : referenceAnnotation.goLeft() ? seg.getStart() : seg.getStart() + len;
           if (posStrand) {
             stop = stop + 1;
           } else {
@@ -620,9 +632,9 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
           // }
         }
         String a = StrandOps.flipsIfNeeded(referenceAnnotation.getA().getBaseString(),
-            referenceAnnotation.getStrand(), false);
+                                           referenceAnnotation.getStrand(), false);
         String b = StrandOps.flipsIfNeeded(referenceAnnotation.getB().getBaseString(),
-            referenceAnnotation.getStrand(), false);
+                                           referenceAnnotation.getStrand(), false);
         String abLblStr = "(A) " + a + " | (B) " + b;
         System.out.println(abLblStr);
         abLbl.setText(abLblStr);
