@@ -892,7 +892,6 @@ public class LinePlot extends JPanel
     for (int i = 0; i < treeFilenameLookup.size(); i++) {
       treeFileVariableNameLookup[i] = namesHash.get(treeFilenameLookup.elementAt(i));
       maxSelectable += treeFileVariableNameLookup[i].length;
-      tree.setMaxSelections(maxSelectable);
 
       if (tree == null) {
         namesOfBranches = new String[1];
@@ -917,6 +916,7 @@ public class LinePlot extends JPanel
               numericHash.get(treeFilenameLookup.elementAt(i)), null);
         }
       }
+      tree.setMaxSelections(maxSelectable);
     }
   }
 

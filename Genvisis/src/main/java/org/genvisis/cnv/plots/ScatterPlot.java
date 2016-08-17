@@ -1020,7 +1020,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
     maxWidth = 200;
     annotationCheckBoxes = new JCheckBox[annotationKeys.length];
-    for (int i = 0; annotationKeys != null && i < annotationKeys.length; i++) {
+    for (int i = 0; i < annotationKeys.length; i++) {
       annotationCheckBoxes[i] = new JCheckBox(annotationCollection
           .getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts, true));
       maxWidth = Math.max(annotationCheckBoxes[i].getPreferredSize().width, maxWidth);

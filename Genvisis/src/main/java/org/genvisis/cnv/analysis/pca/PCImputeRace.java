@@ -96,12 +96,12 @@ public class PCImputeRace {
       writer.print(marker + "\t" + A1 + "\t" + A2 + "\t" + overallMAF);
 
       for (int i = 0; i < raceFreqs.length; i++) {
-        String[] raceData = raceFreqs[i].get(marker).split("\t");
         String a1f;
         if (marker == null) {
           log.reportTimeError("SNP '" + marker + "' not found for " + raceListFiles[i]);
           a1f = ".";
         } else {
+          String[] raceData = raceFreqs[i].get(marker).split("\t");
           String raceA1 = raceData[0];
           String raceA2 = raceData[1];
           try {

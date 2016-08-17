@@ -623,7 +623,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
             referenceAnnotation.getStrand(), false);
         String b = StrandOps.flipsIfNeeded(referenceAnnotation.getB().getBaseString(),
             referenceAnnotation.getStrand(), false);
-        String abLblStr = referenceAnnotation == null ? "" : "(A) " + a + " | (B) " + b;
+        String abLblStr = "(A) " + a + " | (B) " + b;
         System.out.println(abLblStr);
         abLbl.setText(abLblStr);
         BlastFrame.this.validate();

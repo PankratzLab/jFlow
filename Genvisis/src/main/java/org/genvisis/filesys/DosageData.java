@@ -200,7 +200,7 @@ public class DosageData implements Serializable {
     posSrc = dd2.positions == null ? dd2.markerSet.getPositions() : dd2.positions;
     for (int i = 0; i < chrSrc.length; i++) {
       if (!duplicatedMarkerIndices.contains(i)) {
-        ddNew.chrs[chrOffset + i] = chrSrc == null ? missingChr : chrSrc[i];
+        ddNew.chrs[chrOffset + i] = chrSrc[i];
         ddNew.alleles[chrOffset + i] = alleleSrc == null ? missingAlleles : alleleSrc[i];
         ddNew.positions[chrOffset + i] = posSrc == null ? missingPos : posSrc[i];
       }
