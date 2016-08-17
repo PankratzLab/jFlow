@@ -18,11 +18,23 @@ import org.genvisis.seq.manage.BamOps;
  * @author lane0212 Converts .sra files to .bam format for future processing.
  */
 public class SRAUtils {
+
+
+  private SRAUtils() {
+
+  }
+
   /**
    * {@link Callable} managing the conversion of an SRA file to .bam
    *
    */
   public static class SRABamWorker implements Callable<SRAConversionResult> {
+
+    private final String inputSra;
+    private final String outputBam;
+
+    private final Logger log;
+
     /**
      * @param inputSra full path
      * @param outputBam full path
@@ -47,13 +59,11 @@ public class SRAUtils {
 
       String[] bat = CmdLine.prepareBatchForCommandLine(Array.toStringArray(command),
           outputBam + ".bat", true, log);
-      return CmdLine.runCommandWithFileChecks(bat, "", inputs, outputs, true, false, false, log);
+      return CmdLine.runCommandWithFileChecks(bat, "", inputs, outputs, true, false, false, false,
+          log);
     }
 
-    private final String inputSra;
-    private final String outputBam;
 
-    private final Logger log;
 
     public SRABamWorker(String inputSra, String outputBam, Logger log) {
       super();
@@ -163,14 +173,12 @@ public class SRAUtils {
     WorkerHive<SRAConversionResult> hive =
         new WorkerHive<SRAUtils.SRAConversionResult>(threads, 10, log);
     for (String sraFile : sraFiles) {
+      sraFile = sraFile.trim();
       hive.addCallable(new SRABamWorker(sraFile, bamDir + ext.rootOf(sraFile) + ".bam", log));
     }
     hive.execute(true);
-
     return hive.getResults();
   }
 
-  private SRAUtils() {
 
-  }
 }

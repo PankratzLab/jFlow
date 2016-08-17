@@ -151,6 +151,7 @@ public class CmdLine {
     return noError;
   }
 
+
   /**
    * @param commandArray the String array of commands with associated commands grouped at a given
    *        index (String[] commands = new
@@ -165,14 +166,43 @@ public class CmdLine {
    * @param skipReporting if set to true, the cmdline reporting will be sent to the log, otherwise
    *        it will be ignored. Nice to report when error checking, but there is a high probability
    *        of reduced performance and strange output if always used
+   * 
+   * @param log
+   * @return
+   */
+
+  public static boolean runCommandWithFileChecks(String[] commandArray, String dir,
+      String[] neccesaryInputFiles, String[] expectedOutputFiles, boolean verbose,
+      boolean overWriteExistingOutput, boolean skipReporting, Logger log) {
+    return runCommandWithFileChecks(commandArray, dir, neccesaryInputFiles, expectedOutputFiles,
+        verbose, overWriteExistingOutput, skipReporting, true, log);
+  }
+
+  /**
+   * @param commandArray the String array of commands with associated commands grouped at a given
+   *        index (String[] commands = new
+   *        String[]{"myFavoriteCommand","input=one.txt","output=2.txt"}
+   * @param dir directory to run the command in, and also directory to check for existing files
+   * @param neccesaryInputFiles will check these files for existence, will fail if they do not all
+   *        exist
+   * @param expectedOutputFiles will check these files for existence, will skip the command if all
+   *        exist and overWriteExistingOutput is not flagged
+   * @param verbose
+   * @param overWriteExistingOutput
+   * @param skipReporting if set to true, the cmdline reporting will be sent to the log, otherwise
+   *        it will be ignored. Nice to report when error checking, but there is a high probability
+   *        of reduced performance and strange output if always used
+   * @param treatEmptyAsMissing if true, 0 sized files will be set to missing. If 0 sized files are
+   *        used as placeholders, set to false
    * @param log
    * @return
    */
   public static boolean runCommandWithFileChecks(String[] commandArray, String dir,
       String[] neccesaryInputFiles, String[] expectedOutputFiles, boolean verbose,
-      boolean overWriteExistingOutput, boolean skipReporting, Logger log) {
+      boolean overWriteExistingOutput, boolean skipReporting, boolean treatEmptyAsMissing,
+      Logger log) {
     boolean success = false;
-    if (expectedOutputFiles == null || !Files.exists(dir, expectedOutputFiles, true)
+    if (expectedOutputFiles == null || !Files.exists(dir, expectedOutputFiles, treatEmptyAsMissing)
         || (Files.exists(dir, expectedOutputFiles) && overWriteExistingOutput)) {
       if (neccesaryInputFiles == null || Files.exists(dir, neccesaryInputFiles)) {
         if (verbose) {
