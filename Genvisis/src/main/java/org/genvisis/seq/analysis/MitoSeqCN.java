@@ -47,8 +47,8 @@ public class MitoSeqCN {
    * @return the name of the output file
    */
   public static String run(String fileOfBams, String outDir, String captureBed,
-      String referenceGenomeFasta, ASSEMBLY_NAME params, ASSAY_TYPE aType, int numthreads,
-      Logger log) {
+                           String referenceGenomeFasta, ASSEMBLY_NAME params, ASSAY_TYPE aType,
+                           int numthreads, Logger log) {
     new File(outDir).mkdirs();
 
     String output = outDir + ext.rootOf(fileOfBams) + "_mtDNACN.summary.txt";
@@ -64,8 +64,10 @@ public class MitoSeqCN {
         BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
 
         genomeBinsMinusBinsCaputure = genomeBinsMinusBinsCaputure
-            .removeThese(readerCapture.loadAll(log).getStrictSegmentSet(), 21000)
-            .autosomal(true, log);
+                                                                 .removeThese(readerCapture.loadAll(log)
+                                                                                           .getStrictSegmentSet(),
+                                                                              21000)
+                                                                 .autosomal(true, log);
         readerCapture.close();
         if (aType == ASSAY_TYPE.WGS) {
           throw new IllegalArgumentException("Capture bed must not be provided for " + aType);
@@ -76,20 +78,22 @@ public class MitoSeqCN {
           throw new IllegalArgumentException("Capture bed must be provided for " + aType);
         }
       }
-      log.reportTimeInfo(
-          genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bin regions");
+      log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered()
+                         + " bp covered by reference bin regions");
       if (!referenceGenome.hasContig(params.getMitoContig())
           || !referenceGenome.hasContig(params.getxContig())
           || !referenceGenome.hasContig(params.getyContig())) {
         throw new IllegalArgumentException("Required contig for " + params + " is missing ( "
-            + params.getMitoContig() + " ," + params.getxContig() + ", " + params.getyContig()
-            + " from " + referenceGenomeFasta);
+                                           + params.getMitoContig() + " ," + params.getxContig()
+                                           + ", " + params.getyContig() + " from "
+                                           + referenceGenomeFasta);
       } else {
         int mitoLength = referenceGenome.getContigLength(params.getMitoContig());
         log.reportTimeInfo("Mitochondrial genome length = " + mitoLength);
 
-        MitoCNProducer producer = new MitoCNProducer(bams, referenceGenome,
-            genomeBinsMinusBinsCaputure, outDir, params, log);
+        MitoCNProducer producer =
+            new MitoCNProducer(bams, referenceGenome, genomeBinsMinusBinsCaputure, outDir, params,
+                               log);
         WorkerTrain<MitoCNResult> train =
             new WorkerTrain<MitoSeqCN.MitoCNResult>(producer, numthreads, numthreads, log);
         ArrayList<MitoCNResult> results = new ArrayList<MitoSeqCN.MitoCNResult>();
@@ -122,9 +126,10 @@ public class MitoSeqCN {
    *
    */
   public static class MitoCNResult {
-    private static final String[] header = new String[] {"Sample", "NumMitoReads",
-        "TotalAlignedReads", "XReads", "YReads", "AutosomalOnTargetAlignedReads", "OffTargetReads",
-        "MitoLen", "OffTLen", "MTBamFile", "MTBamFileTrim"};
+    private static final String[] header =
+        new String[] {"Sample", "NumMitoReads", "TotalAlignedReads", "XReads", "YReads",
+                      "AutosomalOnTargetAlignedReads", "OffTargetReads", "MitoLen", "OffTLen",
+                      "MTBamFile", "MTBamFileTrim"};
     private final String sample;
     private final int numMitoReads;
     private final int numXReads;
@@ -137,7 +142,8 @@ public class MitoSeqCN {
     private final String outBam;
 
     private MitoCNResult(String sample, int numMitoReads, int numXReads, int numYReads,
-        int offTargetReads, int mitoLen, long offTLen, BamIndexStats bamIndexStats, String outBam) {
+                         int offTargetReads, int mitoLen, long offTLen, BamIndexStats bamIndexStats,
+                         String outBam) {
       super();
       this.sample = sample;
       this.numMitoReads = numMitoReads;
@@ -186,7 +192,8 @@ public class MitoSeqCN {
     private final Logger log;
 
     private MitoCNWorker(String bam, LocusSet<Segment> genomeBinsMinusBinsCaputure, String outDir,
-        int mitoLength, int xLength, int yLength, ASSEMBLY_NAME params, Logger log) {
+                         int mitoLength, int xLength, int yLength, ASSEMBLY_NAME params,
+                         Logger log) {
       super();
       this.bam = bam;
       this.genomeBinsMinusBinsCaputure = genomeBinsMinusBinsCaputure;
@@ -209,8 +216,10 @@ public class MitoSeqCN {
 
         SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT);
 
-        SAMFileWriter sAMFileWriter = new SAMFileWriterFactory().setCreateIndex(true)
-            .makeSAMOrBAMWriter(reader.getFileHeader(), true, new File(outputMTBam));
+        SAMFileWriter sAMFileWriter =
+            new SAMFileWriterFactory().setCreateIndex(true)
+                                      .makeSAMOrBAMWriter(reader.getFileHeader(), true,
+                                                          new File(outputMTBam));
 
         ArrayList<Segment> toSearch = new ArrayList<Segment>();
         toSearch.add(new Segment(params.getMitoContig(), 0, mitoLength + 1));
@@ -221,7 +230,8 @@ public class MitoSeqCN {
         }
         QueryInterval[] queryInterestIntervals =
             BamOps.convertSegsToQI(toSearch.toArray(new Segment[toSearch.size()]),
-                reader.getFileHeader(), 0, true, params == ASSEMBLY_NAME.HG19, log);
+                                   reader.getFileHeader(), 0, true, params == ASSEMBLY_NAME.HG19,
+                                   log);
         SAMRecordIterator sIterator = reader.query(queryInterestIntervals, false);
         int numMitoReads = 0;
         int numXReads = 0;
@@ -248,7 +258,7 @@ public class MitoSeqCN {
 
         QueryInterval[] offTargetIntervalse =
             BamOps.convertSegsToQI(genomeBinsMinusBinsCaputure.getLoci(), reader.getFileHeader(), 0,
-                true, params == ASSEMBLY_NAME.HG19, log);
+                                   true, params == ASSEMBLY_NAME.HG19, log);
         sIterator = reader.query(offTargetIntervalse, false);
         while (sIterator.hasNext()) {
           SAMRecord samRecord = sIterator.next();
@@ -257,7 +267,7 @@ public class MitoSeqCN {
 
             if (numOffTarget % 1000000 == 0) {
               log.reportTimeInfo("Processing normalization-reads for sample " + sample + " , found "
-                  + numOffTarget);
+                                 + numOffTarget);
             }
           }
 
@@ -266,7 +276,8 @@ public class MitoSeqCN {
         BamIndexStats bamIndexStats = BamOps.getBamIndexStats(reader);
         reader.close();
         return new MitoCNResult(sample, numMitoReads, numXReads, numYReads, numOffTarget,
-            mitoLength, genomeBinsMinusBinsCaputure.getBpCovered(), bamIndexStats, outputMTBam);
+                                mitoLength, genomeBinsMinusBinsCaputure.getBpCovered(),
+                                bamIndexStats, outputMTBam);
       } catch (Exception e) {
         log.reportTimeError("Could not process " + bam);
         log.reportException(e);
@@ -287,8 +298,8 @@ public class MitoSeqCN {
     private final Logger log;
 
     private MitoCNProducer(String[] bams, ReferenceGenome referenceGenome,
-        LocusSet<Segment> genomeBinsMinusBinsCaputure, String outDir, ASSEMBLY_NAME params,
-        Logger log) {
+                           LocusSet<Segment> genomeBinsMinusBinsCaputure, String outDir,
+                           ASSEMBLY_NAME params, Logger log) {
       super();
       this.bams = bams;
       this.outDir = outDir;
@@ -312,54 +323,55 @@ public class MitoSeqCN {
 
       index++;
       return new MitoCNWorker(currentBam, genomeBinsMinusBinsCaputure, outDir, mitoLength, xLength,
-          yLength, params, log);
+                              yLength, params, log);
     }
   }
 
   public static void main(String[] args) {
-		int numArgs = args.length;
-		String fileOfBams = "fileOfBams.txt";
-		String outDir = "mitoWES/";
-		int numthreads = 24;
-		String captureBed = "AgilentCaptureRegions.txt";
+    int numArgs = args.length;
+    String fileOfBams = "fileOfBams.txt";
+    String outDir = "mitoWES/";
+    int numthreads = 24;
+    String captureBed = "AgilentCaptureRegions.txt";
 
-		String usage = "\n" + "seq.analysis.mitoSeqCN requires 0-1 arguments\n" + "   (1) file of Bams (i.e. bams="
-				+ fileOfBams + " (default))\n" + "   (2) output directory (i.e. outDir=" + outDir + " (default))\n"
-				+ "   (3) number of threads (i.e. " + PSF.Ext.getNumThreadsCommand(3, numthreads) + "\n"
-				+ "   (4) reference genome (i.e. ref=" + outDir + " (default))\n"
-				+ "   (5)  capture Regions (i.e. captureBed=" + captureBed + " (default))\n" +
+    String usage = "\n" + "seq.analysis.mitoSeqCN requires 0-1 arguments\n"
+                   + "   (1) file of Bams (i.e. bams=" + fileOfBams + " (default))\n"
+                   + "   (2) output directory (i.e. outDir=" + outDir + " (default))\n"
+                   + "   (3) number of threads (i.e. " + PSF.Ext.getNumThreadsCommand(3, numthreads)
+                   + "\n" + "   (4) reference genome (i.e. ref=" + outDir + " (default))\n"
+                   + "   (5)  capture Regions (i.e. captureBed=" + captureBed + " (default))\n" +
 
-				"";
+                   "";
 
-		for (String arg : args) {
-			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (arg.startsWith("bams=")) {
-				fileOfBams = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("outDir=")) {
-				outDir = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
-				numthreads = ext.parseIntArg(arg);
-				numArgs--;
-			} else if (arg.startsWith("ref=")) {
-				numArgs--;
-			} else if (arg.startsWith("captureBed=")) {
-				captureBed = arg.split("=")[1];
-				numArgs--;
-			} else {
-				System.err.println("Error - invalid argument: " + arg);
-			}
-		}
-		if (numArgs != 0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-		// run(fileOfBams, outDir, captureBed, referenceGenome,
-		// ASSEMBLY_NAME.HG19, ASSAY_TYPE.WGS, numthreads,
-		// new Logger());
+    for (String arg : args) {
+      if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
+        System.err.println(usage);
+        System.exit(1);
+      } else if (arg.startsWith("bams=")) {
+        fileOfBams = arg.split("=")[1];
+        numArgs--;
+      } else if (arg.startsWith("outDir=")) {
+        outDir = arg.split("=")[1];
+        numArgs--;
+      } else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+        numthreads = ext.parseIntArg(arg);
+        numArgs--;
+      } else if (arg.startsWith("ref=")) {
+        numArgs--;
+      } else if (arg.startsWith("captureBed=")) {
+        captureBed = arg.split("=")[1];
+        numArgs--;
+      } else {
+        System.err.println("Error - invalid argument: " + arg);
+      }
+    }
+    if (numArgs != 0) {
+      System.err.println(usage);
+      System.exit(1);
+    }
+    // run(fileOfBams, outDir, captureBed, referenceGenome,
+    // ASSEMBLY_NAME.HG19, ASSAY_TYPE.WGS, numthreads,
+    // new Logger());
 
-	}
+  }
 }

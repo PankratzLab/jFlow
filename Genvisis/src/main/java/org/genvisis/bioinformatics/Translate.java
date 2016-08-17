@@ -17,21 +17,21 @@ public class Translate {
 
   public static final String[][] CODE =
       {{"TTT", "Phe", "F"}, {"TTC", "Phe", "F"}, {"TTA", "Leu", "L"}, {"TTG", "Leu", "L"},
-          {"CTT", "Leu", "L"}, {"CTC", "Leu", "L"}, {"CTA", "Leu", "L"}, {"CTG", "Leu", "L"},
-          {"ATT", "Ile", "I"}, {"ATC", "Ile", "I"}, {"ATA", "Ile", "I"}, {"ATG", "Met", "M"},
-          {"GTT", "Val", "V"}, {"GTC", "Val", "V"}, {"GTA", "Val", "V"}, {"GTG", "Val", "V"},
-          {"TCT", "Ser", "S"}, {"TCC", "Ser", "S"}, {"TCA", "Ser", "S"}, {"TCG", "Ser", "S"},
-          {"CCT", "Pro", "P"}, {"CCC", "Pro", "P"}, {"CCA", "Pro", "P"}, {"CCG", "Pro", "P"},
-          {"ACT", "Thr", "T"}, {"ACC", "Thr", "T"}, {"ACA", "Thr", "T"}, {"ACG", "Thr", "T"},
-          {"GCT", "Ala", "A"}, {"GCC", "Ala", "A"}, {"GCA", "Ala", "A"}, {"GCG", "Ala", "A"},
-          {"TAT", "Tyr", "Y"}, {"TAC", "Tyr", "Y"}, {"TAA", "STOP", "X"}, {"TAG", "STOP", "X"},
-          {"CAT", "His", "H"}, {"CAC", "His", "H"}, {"CAA", "Gln", "Q"}, {"CAG", "Gln", "Q"},
-          {"AAT", "Asn", "N"}, {"AAC", "Asn", "N"}, {"AAA", "Lys", "K"}, {"AAG", "Lys", "K"},
-          {"GAT", "Asp", "D"}, {"GAC", "Asp", "D"}, {"GAA", "Glu", "E"}, {"GAG", "Glu", "E"},
-          {"TGT", "Cys", "C"}, {"TGC", "Cys", "C"}, {"TGA", "STOP", "X"}, {"TGG", "Trp", "W"},
-          {"CGT", "Arg", "R"}, {"CGC", "Arg", "R"}, {"CGA", "Arg", "R"}, {"CGG", "Arg", "R"},
-          {"AGT", "Ser", "S"}, {"AGC", "Ser", "S"}, {"AGA", "Arg", "R"}, {"AGG", "Arg", "R"},
-          {"GGT", "Gly", "G"}, {"GGC", "Gly", "G"}, {"GGA", "Gly", "G"}, {"GGG", "Gly", "G"}};
+       {"CTT", "Leu", "L"}, {"CTC", "Leu", "L"}, {"CTA", "Leu", "L"}, {"CTG", "Leu", "L"},
+       {"ATT", "Ile", "I"}, {"ATC", "Ile", "I"}, {"ATA", "Ile", "I"}, {"ATG", "Met", "M"},
+       {"GTT", "Val", "V"}, {"GTC", "Val", "V"}, {"GTA", "Val", "V"}, {"GTG", "Val", "V"},
+       {"TCT", "Ser", "S"}, {"TCC", "Ser", "S"}, {"TCA", "Ser", "S"}, {"TCG", "Ser", "S"},
+       {"CCT", "Pro", "P"}, {"CCC", "Pro", "P"}, {"CCA", "Pro", "P"}, {"CCG", "Pro", "P"},
+       {"ACT", "Thr", "T"}, {"ACC", "Thr", "T"}, {"ACA", "Thr", "T"}, {"ACG", "Thr", "T"},
+       {"GCT", "Ala", "A"}, {"GCC", "Ala", "A"}, {"GCA", "Ala", "A"}, {"GCG", "Ala", "A"},
+       {"TAT", "Tyr", "Y"}, {"TAC", "Tyr", "Y"}, {"TAA", "STOP", "X"}, {"TAG", "STOP", "X"},
+       {"CAT", "His", "H"}, {"CAC", "His", "H"}, {"CAA", "Gln", "Q"}, {"CAG", "Gln", "Q"},
+       {"AAT", "Asn", "N"}, {"AAC", "Asn", "N"}, {"AAA", "Lys", "K"}, {"AAG", "Lys", "K"},
+       {"GAT", "Asp", "D"}, {"GAC", "Asp", "D"}, {"GAA", "Glu", "E"}, {"GAG", "Glu", "E"},
+       {"TGT", "Cys", "C"}, {"TGC", "Cys", "C"}, {"TGA", "STOP", "X"}, {"TGG", "Trp", "W"},
+       {"CGT", "Arg", "R"}, {"CGC", "Arg", "R"}, {"CGA", "Arg", "R"}, {"CGG", "Arg", "R"},
+       {"AGT", "Ser", "S"}, {"AGC", "Ser", "S"}, {"AGA", "Arg", "R"}, {"AGG", "Arg", "R"},
+       {"GGT", "Gly", "G"}, {"GGC", "Gly", "G"}, {"GGA", "Gly", "G"}, {"GGG", "Gly", "G"}};
 
 
   public static String[] findSearchTerm(String target, String str) {
@@ -80,7 +80,7 @@ public class Translate {
     translations = translateSequence(forwardSeq);
     for (int i = 0; i < translations.length; i++) {
       output += "Translation #" + (i + 1) + " (starting at " + translations[i].start + "):\n"
-          + translations[i].str + "\n\n";
+                + translations[i].str + "\n\n";
       if (translations[i].str.length() > longestTranslation.str.length()) {
         longestTranslation = translations[i];
       }
@@ -100,7 +100,7 @@ public class Translate {
     translations = translateSequence(reverseSeq);
     for (int i = 0; i < translations.length; i++) {
       output += "Translation #" + (i + 1) + " (starting at " + translations[i].start + "):\n"
-          + translations[i].str + "\n\n";
+                + translations[i].str + "\n\n";
       if (translations[i].str.length() > longestTranslation.str.length()) {
         longestTranslation = translations[i];
         reverse = true;
@@ -118,8 +118,9 @@ public class Translate {
     str = reverse ? reverseSeq : forwardSeq;
 
     for (int i = 0; i < longestTranslation.str.length(); i++) {
-      output += i * 3 + longestTranslation.start + "\t" + str.substring(
-          longestTranslation.start - 1 + i * 3, longestTranslation.start - 1 + i * 3 + 3);
+      output += i * 3 + longestTranslation.start + "\t"
+                + str.substring(longestTranslation.start - 1 + i * 3,
+                                longestTranslation.start - 1 + i * 3 + 3);
       output += "\t" + (i + 1) + "\t" + longestTranslation.str.charAt(i) + "\n";
     }
 
@@ -128,14 +129,15 @@ public class Translate {
 
   public static String procSequence(String str) {
     return ext.replaceAllWith(str,
-        new String[][] {{"0", ""}, {"1", ""}, {"2", ""}, {"3", ""}, {"4", ""}, {"5", ""}, {"6", ""},
-            {"7", ""}, {"8", ""}, {"9", ""}, {" ", ""}, {"\t", ""}, {"\n", ""}, {"\r", ""}})
-        .toLowerCase();
+                              new String[][] {{"0", ""}, {"1", ""}, {"2", ""}, {"3", ""}, {"4", ""},
+                                              {"5", ""}, {"6", ""}, {"7", ""}, {"8", ""}, {"9", ""},
+                                              {" ", ""}, {"\t", ""}, {"\n", ""}, {"\r", ""}})
+              .toLowerCase();
   }
 
   public static String reverseSequence(String str) {
     return ext.replaceAllWith(str, new String[][] {{"a", "1"}, {"c", "2"}, {"g", "3"}, {"t", "4"},
-        {"1", "t"}, {"2", "g"}, {"3", "c"}, {"4", "a"}});
+                                                   {"1", "t"}, {"2", "g"}, {"3", "c"}, {"4", "a"}});
   }
 
   public static Translation[] translateSequence(String str) {

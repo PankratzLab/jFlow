@@ -21,7 +21,8 @@ public class phenoStruct {
     boolean include_mutations = true;
 
     String usage = "\n" + "park.phenoStruct requires 0-1 arguments:\n"
-        + "   (1) include mutations? (i.e. muts=" + include_mutations + " (default))\n" + "";
+                   + "   (1) include mutations? (i.e. muts=" + include_mutations + " (default))\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -39,7 +40,7 @@ public class phenoStruct {
           numArgs--;
         } else {
           System.err.println("Error in syntax - '" + arg.split("=")[1]
-              + "' is not a valid flag for nomuts (use true/false)");
+                             + "' is not a valid flag for nomuts (use true/false)");
         }
       }
     }
@@ -48,8 +49,8 @@ public class phenoStruct {
       System.exit(1);
     }
     if (args.length == 0) {
-      System.err.println(
-          "Using defaults (mutations " + (include_mutations ? "included" : "excluded") + ")");
+      System.err.println("Using defaults (mutations "
+                         + (include_mutations ? "included" : "excluded") + ")");
     }
 
     try {
@@ -103,17 +104,16 @@ public class phenoStruct {
     }
     if (count > 23) {
       count = 0;
-      while (count <= 23
-          && !new File("/home/npankrat/park/00masters/chromosome" + (++count) + ".dat").exists()) {
+      while (count <= 23 && !new File("/home/npankrat/park/00masters/chromosome" + (++count)
+                                      + ".dat").exists()) {
         ;
       }
       if (count > 23) {
-        System.err.println(
-            "Could not find a chromosome#.dat file in this directory or /home/npankrat/park/00masters/");
+        System.err.println("Could not find a chromosome#.dat file in this directory or /home/npankrat/park/00masters/");
         System.err.println("Please rectify");
       } else {
-        genos = new BufferedReader(
-            new FileReader("/home/npankrat/park/00masters/chromosome" + count + ".dat"));
+        genos = new BufferedReader(new FileReader("/home/npankrat/park/00masters/chromosome" + count
+                                                  + ".dat"));
       }
     } else {
       genos = new BufferedReader(new FileReader("chromosome" + count + ".dat"));
@@ -195,9 +195,9 @@ public class phenoStruct {
           } else {
             if (temp.equals("CONF")) {
               System.err.println("Error - Diagnosis for " + id
-                  + " was CONF, but autopsy results were not found in ninfo3 file");
+                                 + " was CONF, but autopsy results were not found in ninfo3 file");
               System.err.println("        if came back VPD, add line to ninfo3 file saying 'CONF\t"
-                  + id + "\tVPD (DLB)' or as appropriate");
+                                 + id + "\tVPD (DLB)' or as appropriate");
               System.err.println("        because for now it's assumed to be NVPD");
             }
             diagnosis.put(id, temp);
@@ -214,11 +214,11 @@ public class phenoStruct {
             if (confirmedDx.containsKey(id)) {
               diagnosis.put(id, confirmedDx.get(id));
             } else {
-              System.err.println(
-                  "Warning - " + id + " has two different diagnoses (" + (diagnosis.get(id))
-                      + " and " + line[3] + ") and is not listed as an autopsy in ninfo3 file");
+              System.err.println("Warning - " + id + " has two different diagnoses ("
+                                 + (diagnosis.get(id)) + " and " + line[3]
+                                 + ") and is not listed as an autopsy in ninfo3 file");
               System.err.println("        - add line to ninfo3 file saying 'CONF\t" + id
-                  + "\tVPD (DLB)' or as appropriate");
+                                 + "\tVPD (DLB)' or as appropriate");
               System.exit(1);
             }
           }
@@ -229,8 +229,7 @@ public class phenoStruct {
         }
       }
     } catch (Exception e) {
-      System.err
-          .println("Error reading ninfo1 file. Check for missing data, and replace with periods.");
+      System.err.println("Error reading ninfo1 file. Check for missing data, and replace with periods.");
       e.printStackTrace();
     }
     info.close();
@@ -265,8 +264,8 @@ public class phenoStruct {
       if (!done) {
         if (!diagnosis.containsKey(trav + "\t" + id)) {
           System.err.println("Error - diagnosis wasn't present for individual " + trav + "\t" + id);
-          System.err
-              .println("      - could be that chromosome" + count + ".dat is empty or corrupt?");
+          System.err.println("      - could be that chromosome" + count
+                             + ".dat is empty or corrupt?");
           System.exit(21);
         }
         // if
@@ -314,8 +313,8 @@ public class phenoStruct {
           for (int allvpd = 0; allvpd <= 1; allvpd++) {
             vips = (allvpd == 0 ? VIPlists.get(prev) : VPDlists.get(prev));
             if (allvpd == 0 && vips.size() < 2) {
-              System.err.println(
-                  "Warning - dropping family " + prev + " because it is uninformative for linkage");
+              System.err.println("Warning - dropping family " + prev
+                                 + " because it is uninformative for linkage");
             }
             for (int i = 0; i < deleteThese.size(); i++) {
               if ((deleteThese.elementAt(i)).startsWith(prev)) {
@@ -341,7 +340,7 @@ public class phenoStruct {
 
             for (int extnuc = 0; extnuc <= 1; extnuc++) {
               v = (extnuc == 0 ? tf.getExtendedFamilyInformation()
-                  : tf.getNuclearFamilyInformation());
+                               : tf.getNuclearFamilyInformation());
 
               if (checkForParentOffspringSinglets(v, vips)) {
                 v.removeAllElements();
@@ -360,8 +359,8 @@ public class phenoStruct {
                     } else if (unaffected.contains(temp)) {
                       writer[2 * allvpd + extnuc].print("\t0");
                     } else {
-                      System.err.println(
-                          "Warning - Unknown phenotype for individual '" + id + "': " + temp);
+                      System.err.println("Warning - Unknown phenotype for individual '" + id + "': "
+                                         + temp);
                       writer[2 * allvpd + extnuc].print("\t0");
                     }
                     writer[2 * allvpd + extnuc].print("\t" + dna.get(id));
@@ -378,8 +377,8 @@ public class phenoStruct {
             }
             if (tf.hasUnused()) {
               if (unused == null) {
-                unused = new PrintWriter(
-                    new FileWriter("unused_individuals-" + (allvpd == 0 ? "111" : "100") + ".dat"));
+                unused = new PrintWriter(new FileWriter("unused_individuals-"
+                                                        + (allvpd == 0 ? "111" : "100") + ".dat"));
               }
               v = tf.getUnused();
               for (int i = 0; i < v.size(); i++) {
@@ -396,7 +395,7 @@ public class phenoStruct {
 
       id = trav + "\t" + line[1];
       temp = id + "\t" + line[4] + "\t" + line[5] + "\t"
-          + (line[2].equals("M") ? "1" : (line[2].equals("F") ? "2" : "0"));
+             + (line[2].equals("M") ? "1" : (line[2].equals("F") ? "2" : "0"));
       members.add(temp);
       if (halfsibs.contains(id)) {
         halfling.add(id);

@@ -19,33 +19,34 @@ import org.genvisis.one.ben.fcs.AbstractPanel2;
 
 public class OneDPanel extends AbstractPanel2 {
   public static enum PLOT_TYPE {
-    BOX_PLOT, DOT_LINE_PLOT,
+                                BOX_PLOT, DOT_LINE_PLOT,
   }
 
   public static final long serialVersionUID = 3L;
   public static final int LOOKUP_RESOLUTION = 20;
-  public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
-      new Color(201, 30, 10), // deep red
-      new Color(182, 182, 182), // light grey
-      new Color(94, 88, 214), // light purple
-      new Color(189, 243, 61), // light green
-      new Color(217, 109, 194), // pink
-      new Color(33, 87, 0), // dark green
-      new Color(23, 58, 172), // dark blue
-      new Color(140, 20, 180), // deep purple
-      new Color(220, 220, 220), // very light grey
-      new Color(0, 0, 128), // ALL KINDS OF BLUES
-      new Color(55, 129, 252), // light blue
-      new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
-      new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
-      new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
-      new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
-      new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
-      new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
-      new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
-      new Color(224, 255, 255),
+  public static final Color[] DEFAULT_COLORS =
+      {new Color(33, 31, 53), // dark dark
+       new Color(201, 30, 10), // deep red
+       new Color(182, 182, 182), // light grey
+       new Color(94, 88, 214), // light purple
+       new Color(189, 243, 61), // light green
+       new Color(217, 109, 194), // pink
+       new Color(33, 87, 0), // dark green
+       new Color(23, 58, 172), // dark blue
+       new Color(140, 20, 180), // deep purple
+       new Color(220, 220, 220), // very light grey
+       new Color(0, 0, 128), // ALL KINDS OF BLUES
+       new Color(55, 129, 252), // light blue
+       new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
+       new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
+       new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
+       new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
+       new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
+       new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
+       new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
+       new Color(224, 255, 255),
 
-  };
+      };
 
   private static final byte POINT_SIZE = 5;
 
@@ -94,7 +95,7 @@ public class OneDPanel extends AbstractPanel2 {
           min = Math.min(min, data[i][d]);
           max = Math.max(max, data[i][d]);
           lns.add(new GenericLine(xLow, (float) data[i][d], xHigh, (float) data[i][d], (byte) 4,
-              col, (byte) 0));
+                                  col, (byte) 0));
         }
       } else if (data[i].length > 2) {
         float xLow = 20 * i + 2;
@@ -122,16 +123,17 @@ public class OneDPanel extends AbstractPanel2 {
         lns.add(new GenericLine(xLow, (float) qr75, xHigh, (float) qr75, (byte) 2, col, (byte) 0));
         // small line at wiskLow
         lns.add(new GenericLine(xMed - (xMed - xLow) / 2, (float) wiskLow, xMed + (xMed - xLow) / 2,
-            (float) wiskLow, (byte) 2, col, (byte) 0));
+                                (float) wiskLow, (byte) 2, col, (byte) 0));
         // small line at wiskHigh
         lns.add(new GenericLine(xMed - (xMed - xLow) / 2, (float) wiskHigh,
-            xMed + (xMed - xLow) / 2, (float) wiskHigh, (byte) 2, col, (byte) 0));
+                                xMed + (xMed - xLow) / 2, (float) wiskHigh, (byte) 2, col,
+                                (byte) 0));
         // line from qr25 -> wiskLow
-        lns.add(
-            new GenericLine(xMed, (float) qr25, xMed, (float) wiskLow, (byte) 1, col, (byte) 0));
+        lns.add(new GenericLine(xMed, (float) qr25, xMed, (float) wiskLow, (byte) 1, col,
+                                (byte) 0));
         // line from qr75 -> wiskHigh
-        lns.add(
-            new GenericLine(xMed, (float) qr75, xMed, (float) wiskHigh, (byte) 1, col, (byte) 0));
+        lns.add(new GenericLine(xMed, (float) qr75, xMed, (float) wiskHigh, (byte) 1, col,
+                                (byte) 0));
         // two lines vert, from qr25 to qr75
         lns.add(new GenericLine(xLow, (float) qr25, xLow, (float) qr75, (byte) 1, col, (byte) 0));
         lns.add(new GenericLine(xHigh, (float) qr25, xHigh, (float) qr75, (byte) 1, col, (byte) 0));
@@ -139,7 +141,7 @@ public class OneDPanel extends AbstractPanel2 {
         for (int j = 0; j < data[i].length; j++) {
           if (data[i][j] < wiskLow || data[i][j] > wiskHigh) {
             pts.add(new PlotPoint(dataLabels[i][j], PlotPoint.FILLED_CIRCLE, xMed,
-                (float) data[i][j], POINT_SIZE, col, (byte) 0));
+                                  (float) data[i][j], POINT_SIZE, col, (byte) 0));
           }
         }
       }
@@ -190,7 +192,7 @@ public class OneDPanel extends AbstractPanel2 {
             new PlotPoint(dataLabels[d][i], type, xAxisValue, yAxisValue, size, color, (byte) 0);
         if (i < data[d].length - 1) {
           lineList.add(new GenericLine(xAxisValue, yAxisValue, (float) ind + 1,
-              (float) data[d][i + 1], (byte) 1, (byte) d, (byte) 0));
+                                       (float) data[d][i + 1], (byte) 1, (byte) d, (byte) 0));
         }
         ind++;
       }
@@ -200,14 +202,14 @@ public class OneDPanel extends AbstractPanel2 {
     float mean = (float) Array.mean(data[0]);
     float sd = (float) Array.stdev(data[0], true);
     lineList.add(new GenericLine(0, mean, numPoints + 1, mean, (byte) 1, (byte) 0, (byte) 99));
-    lineList.add(
-        new GenericLine(0, mean - sd, numPoints + 1, mean - sd, (byte) 1, (byte) 2, (byte) 99));
-    lineList.add(
-        new GenericLine(0, mean + sd, numPoints + 1, mean + sd, (byte) 1, (byte) 2, (byte) 99));
+    lineList.add(new GenericLine(0, mean - sd, numPoints + 1, mean - sd, (byte) 1, (byte) 2,
+                                 (byte) 99));
+    lineList.add(new GenericLine(0, mean + sd, numPoints + 1, mean + sd, (byte) 1, (byte) 2,
+                                 (byte) 99));
     lineList.add(new GenericLine(0, mean - 2 * sd, numPoints + 1, mean - 2 * sd, (byte) 1, (byte) 2,
-        (byte) 99));
+                                 (byte) 99));
     lineList.add(new GenericLine(0, mean + 2 * sd, numPoints + 1, mean + 2 * sd, (byte) 1, (byte) 2,
-        (byte) 99));
+                                 (byte) 99));
 
     lines = lineList.toArray(new GenericLine[lineList.size()]);
 

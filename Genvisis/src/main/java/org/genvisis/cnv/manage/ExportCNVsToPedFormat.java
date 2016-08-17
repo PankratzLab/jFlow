@@ -32,7 +32,7 @@ public class ExportCNVsToPedFormat {
   public static final String RFGLS_FORMAT = "RFGLS";
 
   private static void convertToRfglsFormat(String root, int fileNumber, String endOfLine,
-      Logger log) {
+                                           Logger log) {
     BufferedReader reader;
     PrintWriter writer, mapWriter;
     String[] line, ids;
@@ -50,8 +50,8 @@ public class ExportCNVsToPedFormat {
         for (int i = 1; i < ids.length; i++) {
           line = ids[i].split("-");
           if (line.length != 2) {
-            log.reportError(
-                "Error recreating pedfile since there are hyphens in the FID/IID: " + ids[i]);
+            log.reportError("Error recreating pedfile since there are hyphens in the FID/IID: "
+                            + ids[i]);
             reader.close();
             writer.close();
             return;
@@ -64,10 +64,12 @@ public class ExportCNVsToPedFormat {
         e.printStackTrace();
       }
 
-      writer = new PrintWriter(new FileWriter(
-          dir + "rfgls/" + ext.removeDirectoryInfo(root + "_byMarker_" + fileNumber)));
-      mapWriter = new PrintWriter(
-          new FileWriter(dir + "rfgls/" + ext.removeDirectoryInfo(root + "_map_" + fileNumber)));
+      writer = new PrintWriter(new FileWriter(dir + "rfgls/"
+                                              + ext.removeDirectoryInfo(root + "_byMarker_"
+                                                                        + fileNumber)));
+      mapWriter =
+          new PrintWriter(new FileWriter(dir + "rfgls/"
+                                         + ext.removeDirectoryInfo(root + "_map_" + fileNumber)));
 
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
@@ -84,14 +86,15 @@ public class ExportCNVsToPedFormat {
       time = new Date().getTime();
       log.report("Transposing " + ext.removeDirectoryInfo(root + "_byMarker_" + fileNumber));
       Files.transpose(dir + "rfgls/" + ext.removeDirectoryInfo(root + "_byMarker_" + fileNumber),
-          "\t", dir + "rfgls/" + ext.removeDirectoryInfo(root + "_bySample_" + fileNumber), "\t",
-          log);
+                      "\t",
+                      dir + "rfgls/" + ext.removeDirectoryInfo(root + "_bySample_" + fileNumber),
+                      "\t", log);
       log.report("\t...finished in " + ext.getTimeElapsed(time));
       new File(dir + "rfgls/" + ext.removeDirectoryInfo(root + "_byMarker_" + fileNumber)).delete();
 
     } catch (FileNotFoundException fnfe) {
-      log.reportError(
-          "Error: file \"" + root + "_" + fileNumber + "\" not found in current directory");
+      log.reportError("Error: file \"" + root + "_" + fileNumber
+                      + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       log.reportError("Error reading file \"" + root + "_" + fileNumber + "\"");
@@ -100,9 +103,10 @@ public class ExportCNVsToPedFormat {
   }
 
   public static void export(String cnvFilename, String pedFilename, String outputRoot,
-      String endOfLine, String fileFormat, boolean includeDele, boolean includeDupl,
-      boolean ordered, boolean collapsed, boolean homozygousOnly, boolean excludeMonomorphicLoci,
-      int markersPerFile, int windowInBasepairs, Logger log) {
+                            String endOfLine, String fileFormat, boolean includeDele,
+                            boolean includeDupl, boolean ordered, boolean collapsed,
+                            boolean homozygousOnly, boolean excludeMonomorphicLoci,
+                            int markersPerFile, int windowInBasepairs, Logger log) {
     PrintWriter writer;
     RandomAccessFile bedWriter = null;
     CNVariant[] cnvs;
@@ -146,20 +150,21 @@ public class ExportCNVsToPedFormat {
     time = new Date().getTime();
     mzTwins = new Hashtable<String, Vector<String>>();
     if (pedFilename != null) {
-      log.report(
-          "Loading Pedigree file, assuming standard pedigree.dat file format (FID, IID, FA, MO, SEX, PHENO, DNA)");
+      log.report("Loading Pedigree file, assuming standard pedigree.dat file format (FID, IID, FA, MO, SEX, PHENO, DNA)");
       try {
-        sampleListHashFromCnvOrPedData = HashVec.loadFileToHashString(pedFilename, new int[] {0, 1},
-            new int[] {-7}, pedFilename.endsWith(".csv"), "\t", false, false, false);
-        dnaHashFromCnvOrPedData = HashVec.loadFileToHashString(pedFilename, new int[] {6, 6},
-            new int[] {-7}, pedFilename.endsWith(".csv"), "\t", false, false, false);
+        sampleListHashFromCnvOrPedData =
+            HashVec.loadFileToHashString(pedFilename, new int[] {0, 1}, new int[] {-7},
+                                         pedFilename.endsWith(".csv"), "\t", false, false, false);
+        dnaHashFromCnvOrPedData =
+            HashVec.loadFileToHashString(pedFilename, new int[] {6, 6}, new int[] {-7},
+                                         pedFilename.endsWith(".csv"), "\t", false, false, false);
         dnaMapping = HashVec.loadFileToStringMatrix(pedFilename, true, new int[] {0, 1, 6},
-            "[\\s]+", false, 10000, false);
+                                                    "[\\s]+", false, 10000, false);
         HashSet<String> dnaSet = new HashSet<String>();
         for (String[] element : dnaMapping) {
           if (dnaSet.contains(element[2])) {
             HashVec.addToHashVec(mzTwins, element[2] + "\t" + element[2],
-                element[0] + "\t" + element[1], false);
+                                 element[0] + "\t" + element[1], false);
           }
           dnaSet.add(element[2]);
         }
@@ -171,8 +176,8 @@ public class ExportCNVsToPedFormat {
           if (dnaHashFromCnvOrPedData.containsKey(tempParts[0] + "\t" + tempParts[1])) {
             cnvIsDNAKeyed = true;
             break;
-          } else if (sampleListHashFromCnvOrPedData
-              .containsKey(tempParts[0] + "\t" + tempParts[1])) {
+          } else if (sampleListHashFromCnvOrPedData.containsKey(tempParts[0] + "\t"
+                                                                + tempParts[1])) {
             cnvIsDNAKeyed = false;
             break;
           }
@@ -192,7 +197,9 @@ public class ExportCNVsToPedFormat {
 
 
     cnVector = CNVariant.loadPlinkFile(cnvFilename,
-        cnvIsDNAKeyed ? dnaHashFromCnvOrPedData : sampleListHashFromCnvOrPedData, false, false);
+                                       cnvIsDNAKeyed ? dnaHashFromCnvOrPedData
+                                                     : sampleListHashFromCnvOrPedData,
+                                       false, false);
     if (mzTwins.size() > 0) {
       numBaseCNVs = cnVector.size();
       for (int i = 0; i < numBaseCNVs; i++) {
@@ -224,10 +231,10 @@ public class ExportCNVsToPedFormat {
       allChrPosHash.put(cnvs[i].getChr() + "\t" + cnvs[i].getStart(), "");
       allChrPosHash.put(cnvs[i].getChr() + "\t" + cnvs[i].getStop(), "");
       allChrPosHash.put(cnvs[i].getChr() + "\t" + (cnvs[i].getStop() + 1), "");
-      if (wasNull && !sampleListHashFromCnvOrPedData
-          .containsKey(cnvs[i].getFamilyID() + "\t" + cnvs[i].getIndividualID())) {
+      if (wasNull && !sampleListHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID() + "\t"
+                                                                 + cnvs[i].getIndividualID())) {
         sampleListHashFromCnvOrPedData.put(cnvs[i].getFamilyID() + "\t" + cnvs[i].getIndividualID(),
-            sampleListHashFromCnvOrPedData.size() + "");
+                                           sampleListHashFromCnvOrPedData.size() + "");
       }
     }
     allChrPosKeys = HashVec.getKeys(allChrPosHash);
@@ -236,7 +243,7 @@ public class ExportCNVsToPedFormat {
       line = allChrPosKeys[i].split("\t");
       allChrPosSegs[i] =
           new Segment(Byte.parseByte(line[0]), Integer.parseInt(line[1]) - windowInBasepairs,
-              Integer.parseInt(line[1]) + windowInBasepairs);
+                      Integer.parseInt(line[1]) + windowInBasepairs);
     }
     log.report("Generated hashtable of positions in " + ext.getTimeElapsed(time));
 
@@ -257,7 +264,7 @@ public class ExportCNVsToPedFormat {
         markersPerFile) {
       numMarkers = Math.min(markersPerFile, allChrPosSegs.length - startPosition);
       log.report("Calculating CN for positions " + (startPosition + 1) + " through "
-          + (startPosition + numMarkers));
+                 + (startPosition + numMarkers));
 
       currentChrPosSegs = new Segment[numMarkers];
       for (int i = 0; i < currentChrPosSegs.length; i++) {
@@ -268,32 +275,34 @@ public class ExportCNVsToPedFormat {
       previousCNs = Array.byteArray(sampleListHashFromCnvOrPedData.size(), Byte.MIN_VALUE);
 
       while (cnvs[cnvIndex].getChr() < currentChrPosSegs[0].getChr()
-          || (cnvs[cnvIndex].getChr() == currentChrPosSegs[0].getChr()
-              && cnvs[cnvIndex].getStop() < currentChrPosSegs[0].getStart())) {
+             || (cnvs[cnvIndex].getChr() == currentChrPosSegs[0].getChr()
+                 && cnvs[cnvIndex].getStop() < currentChrPosSegs[0].getStart())) {
         cnvIndex++;
       }
 
       done = false;
       for (int i = cnvIndex; !done && i < cnvs.length; i++) {
         // determine column from sample hash
-        currentSampleIndex = sampleListHashFromCnvOrPedData
-            .containsKey(cnvs[i].getFamilyID() + "\t" + cnvs[i].getIndividualID())
-                ? Integer.parseInt(sampleListHashFromCnvOrPedData
-                    .get(cnvs[i].getFamilyID() + "\t" + cnvs[i].getIndividualID()))
-                : dnaHashFromCnvOrPedData
-                    .containsKey(cnvs[i].getFamilyID() + "\t" + cnvs[i].getIndividualID())
-                        ? Integer.parseInt(dnaHashFromCnvOrPedData
-                            .get(cnvs[i].getFamilyID() + "\t" + cnvs[i].getIndividualID()))
-                        : -1;
-        if (cnvs[i].getChr() > currentChrPosSegs[currentChrPosSegs.length - 1].getChr() || (cnvs[i]
-            .getChr() == currentChrPosSegs[currentChrPosSegs.length - 1].getChr()
-            && cnvs[i].getStart() > currentChrPosSegs[currentChrPosSegs.length - 1].getStop())) {
+        currentSampleIndex =
+            sampleListHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID() + "\t"
+                                                       + cnvs[i].getIndividualID()) ? Integer.parseInt(sampleListHashFromCnvOrPedData.get(cnvs[i].getFamilyID()
+                                                                                                                                          + "\t"
+                                                                                                                                          + cnvs[i].getIndividualID()))
+                                                                                    : dnaHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID()
+                                                                                                                          + "\t"
+                                                                                                                          + cnvs[i].getIndividualID()) ? Integer.parseInt(dnaHashFromCnvOrPedData.get(cnvs[i].getFamilyID()
+                                                                                                                                                                                                      + "\t" + cnvs[i].getIndividualID()))
+                                                                                                                                                       : -1;
+        if (cnvs[i].getChr() > currentChrPosSegs[currentChrPosSegs.length - 1].getChr()
+            || (cnvs[i].getChr() == currentChrPosSegs[currentChrPosSegs.length - 1].getChr()
+                && cnvs[i].getStart() > currentChrPosSegs[currentChrPosSegs.length
+                                                          - 1].getStop())) {
           done = true;
         } else if (currentSampleIndex >= 0) {
           indexOfCurrentSeg =
               Math.max(Segment.binarySearchForStartPositions(cnvs[i], currentChrPosSegs), 0);
           while (indexOfCurrentSeg < currentChrPosSegs.length
-              && currentChrPosSegs[indexOfCurrentSeg].overlaps(cnvs[i])) {
+                 && currentChrPosSegs[indexOfCurrentSeg].overlaps(cnvs[i])) {
             currentCNs[indexOfCurrentSeg][currentSampleIndex] = (byte) (cnvs[i].getCN() - 2);
             indexOfCurrentSeg++;
           }
@@ -352,12 +361,12 @@ public class ExportCNVsToPedFormat {
                 if (fileFormat.equals(RFGLS_FORMAT)) {
                   convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
                 } else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)
-                    || fileFormat.equals(PLINK_BINARY_FORMAT)) {
+                           || fileFormat.equals(PLINK_BINARY_FORMAT)) {
                   writeFamOrPed(null, pedFilename, outputRoot, fileNumber, endOfLine,
-                      finalSampleList, log);
+                                finalSampleList, log);
                 } else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
                   writeFamOrPed(currentCNs, pedFilename, outputRoot, fileNumber, endOfLine,
-                      finalSampleList, log);
+                                finalSampleList, log);
                 }
                 fileNumber++;
               }
@@ -394,15 +403,15 @@ public class ExportCNVsToPedFormat {
             if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)
                 || fileFormat.equals(PLINK_TEXT_FORMAT)) {
               writer.print(currentChrPosSegs[i].getChr() + "\t" + currentChrPosSegs[i].getChr()
-                  + ":" + currentChrPosSegs[i].getStart() + "\t0\t"
-                  + currentChrPosSegs[i].getStart());
+                           + ":" + currentChrPosSegs[i].getStart() + "\t0\t"
+                           + currentChrPosSegs[i].getStart());
             } else if (fileFormat.equals(PLINK_BINARY_FORMAT)) {
               char[] genoCodes = getPlinkGeno(currentCNs[i]);
               String a1 = "" + genoCodes[0];
               String a2 = "" + genoCodes[1];
               writer.print(currentChrPosSegs[i].getChr() + "\t" + currentChrPosSegs[i].getChr()
-                  + ":" + currentChrPosSegs[i].getStart() + "\t0\t"
-                  + currentChrPosSegs[i].getStart() + "\t" + a1 + "\t" + a2);
+                           + ":" + currentChrPosSegs[i].getStart() + "\t0\t"
+                           + currentChrPosSegs[i].getStart() + "\t" + a1 + "\t" + a2);
             } else {
               writer.print(currentChrPosSegs[i].getChr() + ":" + currentChrPosSegs[i].getStart());
             }
@@ -416,7 +425,7 @@ public class ExportCNVsToPedFormat {
               for (int j = 0; j < finalSampleList.length; j++) {
                 if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
                   writer.print("\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0) + "\t"
-                      + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));
+                               + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));
                 } else {
                   writer.print("\t" + currentCNs[i][j]);
                 }
@@ -437,11 +446,11 @@ public class ExportCNVsToPedFormat {
         if (fileFormat.equals(RFGLS_FORMAT)) {
           convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
         } else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)
-            || fileFormat.equals(PLINK_BINARY_FORMAT)) {
+                   || fileFormat.equals(PLINK_BINARY_FORMAT)) {
           writeFamOrPed(null, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
         } else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
           writeFamOrPed(currentCNs, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList,
-              log);
+                        log);
         }
       }
       if (bedWriter != null) {
@@ -494,23 +503,28 @@ public class ExportCNVsToPedFormat {
     String fileFormat = MATRIX_FORMAT;
 
     String usage = "\n" + "cnv.analysis.CnvBySample requires the following arguments\n"
-        + "   (1) cnv filename (i.e. cnv=" + cnvFilename
-        + " (default - will open a File Chooser))\n" + "   (2) pedigree filename (i.e. ped="
-        + pedFilename + " (default))\n" + "   (3) output format (i.e. format=" + fileFormat
-        + " (default; options are " + MATRIX_FORMAT + ", " + PLINK_TRANSPOSED_TEXT_FORMAT + ", "
-        + PLINK_TEXT_FORMAT + ", " + PLINK_BINARY_FORMAT + ", and " + RFGLS_FORMAT + "))\n"
-        + "   (4) output filename (i.e. out=" + outputFilename + " (default))\n"
-        + "   (5) to include Deletion or not (i.e. del=" + includeDele + " (default))\n"
-        + "   (6) to include Duplication or not (i.e. dup=" + includeDupl + " (default))\n"
-        + "   (7) to use ordered value or not (i.e. ord=" + ordered + " (default))\n"
-        + "   (8) to use collapsed value or not (i.e. coll=" + collapsed + " (default))\n"
-        + "   (9) to only use homozygous variants (i.e. homozygousOnly=" + homozygous
-        + " (default))\n" + "   (10) exclude monomorphic loci (i.e. excludeMonomorphicLoci="
-        + excludeMonomorphicLoci + " (default))\n"
-        + "   (11) number of loci per file in the output file (i.e. lociPerFile=" + lociPerFile
-        + " (default))\n" + "   (12) width of the window (i.e. win=" + window + " (default))\n"
-        + "   (13) use linux line endings (i.e. -linux (not the default))\n"
-        + " Note: RFGLS format is sample dominant matrix w/ separate map and ped file\n" + "";
+                   + "   (1) cnv filename (i.e. cnv=" + cnvFilename
+                   + " (default - will open a File Chooser))\n"
+                   + "   (2) pedigree filename (i.e. ped=" + pedFilename + " (default))\n"
+                   + "   (3) output format (i.e. format=" + fileFormat + " (default; options are "
+                   + MATRIX_FORMAT + ", " + PLINK_TRANSPOSED_TEXT_FORMAT + ", " + PLINK_TEXT_FORMAT
+                   + ", " + PLINK_BINARY_FORMAT + ", and " + RFGLS_FORMAT + "))\n"
+                   + "   (4) output filename (i.e. out=" + outputFilename + " (default))\n"
+                   + "   (5) to include Deletion or not (i.e. del=" + includeDele + " (default))\n"
+                   + "   (6) to include Duplication or not (i.e. dup=" + includeDupl
+                   + " (default))\n" + "   (7) to use ordered value or not (i.e. ord=" + ordered
+                   + " (default))\n" + "   (8) to use collapsed value or not (i.e. coll="
+                   + collapsed + " (default))\n"
+                   + "   (9) to only use homozygous variants (i.e. homozygousOnly=" + homozygous
+                   + " (default))\n"
+                   + "   (10) exclude monomorphic loci (i.e. excludeMonomorphicLoci="
+                   + excludeMonomorphicLoci + " (default))\n"
+                   + "   (11) number of loci per file in the output file (i.e. lociPerFile="
+                   + lociPerFile + " (default))\n" + "   (12) width of the window (i.e. win="
+                   + window + " (default))\n"
+                   + "   (13) use linux line endings (i.e. -linux (not the default))\n"
+                   + " Note: RFGLS format is sample dominant matrix w/ separate map and ped file\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -565,10 +579,10 @@ public class ExportCNVsToPedFormat {
       System.exit(1);
     }
 
-    if (ordered && (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)
-        || fileFormat.equals(PLINK_BINARY_FORMAT) || fileFormat.equals(PLINK_TEXT_FORMAT))) {
-      System.err.println(
-          "Error - cannot output PLINK format files with ordered output.  Please specify a different output format, or set ordered to false with 'ord=false' argument.");
+    if (ordered
+        && (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)
+            || fileFormat.equals(PLINK_BINARY_FORMAT) || fileFormat.equals(PLINK_TEXT_FORMAT))) {
+      System.err.println("Error - cannot output PLINK format files with ordered output.  Please specify a different output format, or set ordered to false with 'ord=false' argument.");
       System.exit(1);
     }
 
@@ -612,12 +626,12 @@ public class ExportCNVsToPedFormat {
           output = input.getPath() + "cnvBySample.txt";
           // TODO this line should be further elaborated.
           export(input.toString(), null, output, endOfLine, fileFormat, true, true, true, false,
-              false, false, lociPerFile, window, new Logger());
+                 false, false, lociPerFile, window, new Logger());
         }
       } else {
         export(cnvFilename, pedFilename, outputFilename, endOfLine, fileFormat, includeDele,
-            includeDupl, ordered, collapsed, homozygous, excludeMonomorphicLoci, lociPerFile,
-            window, new Logger());
+               includeDupl, ordered, collapsed, homozygous, excludeMonomorphicLoci, lociPerFile,
+               window, new Logger());
         // cnvBySample("C:/projects/Geti/filtered.cnv", null, "C:/projects/Geti/cnvBySample.txt",
         // endOfLine, rfglsOutput, true, false, true, false, saveIntermediateFiles, markersPerFile);
       }
@@ -627,7 +641,7 @@ public class ExportCNVsToPedFormat {
   }
 
   private static void writeFamOrPed(byte[][] currentCNs, String pedFile, String outputRoot,
-      int fileNumber, String endOfLine, String[] idList, Logger log) {
+                                    int fileNumber, String endOfLine, String[] idList, Logger log) {
     PrintWriter writer, missingWriter = null;
     int missingCount;
     log.report("Writing " + (currentCNs == null ? ".fam" : ".ped") + " file...");
@@ -635,7 +649,7 @@ public class ExportCNVsToPedFormat {
 
     if (pedFile != null) {
       iidMap = HashVec.loadFileToHashVec(pedFile, new int[] {0, 1}, new int[] {2, 3, 4, 5}, "\t",
-          false, false);
+                                         false, false);
       dnaMap =
           HashVec.loadFileToHashVec(pedFile, 6, new int[] {0, 1, 2, 3, 4, 5}, "\t", false, false);
       missingWriter = Files.getAppropriateWriter(outputRoot + "_missing.iid");
@@ -645,8 +659,8 @@ public class ExportCNVsToPedFormat {
       dnaMap = new Hashtable<String, Vector<String>>();
     }
 
-    writer = Files.getAppropriateWriter(
-        outputRoot + "_" + fileNumber + (currentCNs == null ? ".fam" : ".ped"));
+    writer = Files.getAppropriateWriter(outputRoot + "_" + fileNumber
+                                        + (currentCNs == null ? ".fam" : ".ped"));
     missingCount = 0;
     for (int i = 0; i < idList.length; i++) {
       String[] fidiid = idList[i].split("\t");
@@ -674,11 +688,11 @@ public class ExportCNVsToPedFormat {
         missingCount++;
       } else {
         writer.print(fidiid[0] + "\t" + fidiid[1] + "\t" + faIID + "\t" + moIID + "\t" + sexCode
-            + "\t" + phenoCode);
+                     + "\t" + phenoCode);
         if (currentCNs != null) {
           for (int j = 0; j < idList.length; j++) {
             writer.print("\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0) + "\t"
-                + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));
+                         + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));
           }
         }
         writer.print(endOfLine);

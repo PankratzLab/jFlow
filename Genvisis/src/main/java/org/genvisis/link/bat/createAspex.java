@@ -52,13 +52,13 @@ public class createAspex {
       map = new BufferedReader(new FileReader("map" + chrome + ".dat"));
     } catch (Exception e) {
       try {
-        map = new BufferedReader(
-            new FileReader("/home/npankrat/park/00masters/map" + chrome + ".dat"));
+        map = new BufferedReader(new FileReader("/home/npankrat/park/00masters/map" + chrome
+                                                + ".dat"));
         System.err.println("Could not find map" + chrome + ".dat in the current directory");
         System.err.println("  using the one in /home/npankrat/park/00masters/");
       } catch (Exception e2) {
         System.err.println("Could not find map" + chrome
-            + ".dat in /home/npankrat/park/00masters/ or in the current directory");
+                           + ".dat in /home/npankrat/park/00masters/ or in the current directory");
         peachy = false;
       }
 
@@ -68,13 +68,13 @@ public class createAspex {
       genotype = new BufferedReader(new FileReader("mrkr" + chrome + ".dat"));
     } catch (Exception e) {
       try {
-        genotype = new BufferedReader(
-            new FileReader("/home/npankrat/park/00masters/mrkr" + chrome + ".dat"));
+        genotype = new BufferedReader(new FileReader("/home/npankrat/park/00masters/mrkr" + chrome
+                                                     + ".dat"));
         System.err.println("Could not find mrkr" + chrome + ".dat in the current directory");
         System.err.println("  using the one in /home/npankrat/park/00masters/");
       } catch (Exception e2) {
         System.err.println("Could not find mrkr" + chrome
-            + ".dat in /home/npankrat/park/00masters/ or in the current directory");
+                           + ".dat in /home/npankrat/park/00masters/ or in the current directory");
         peachy = false;
       }
 
@@ -187,7 +187,7 @@ public class createAspex {
       st = new StringTokenizer(struct.readLine());
       id = st.nextToken() + "\t" + st.nextToken();
       writer.print(id + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t" + st.nextToken() + "\t"
-          + st.nextToken());
+                   + st.nextToken());
       if (!st.nextToken().startsWith("N")) {
         while (!temp.startsWith(id)) {
           temp = genotype.readLine();

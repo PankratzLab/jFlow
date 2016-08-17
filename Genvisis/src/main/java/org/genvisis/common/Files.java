@@ -84,7 +84,7 @@ public class Files {
   }
 
   public static String backup(String filename, String sourceDir, String backupDir,
-      boolean deleteOriginal) {
+                              boolean deleteOriginal) {
     int index = filename.indexOf(".") > 0 ? filename.lastIndexOf(".") : filename.length();
     String root = filename.substring(0, index);
     String exten = filename.substring(index);
@@ -136,7 +136,7 @@ public class Files {
   }
 
   public static void batchIt(String root_batch_name, int sleep, int start, int stop, int numBatches,
-      String commands) {
+                             String commands) {
     PrintWriter[] writers = new PrintWriter[numBatches];
     PrintWriter writer;
     String batchName;
@@ -179,7 +179,7 @@ public class Files {
   }
 
   public static void batchIt(String root_batch_name, String init, int numBatches, String commands,
-      String[] iterations) {
+                             String[] iterations) {
     String[][] iters = new String[iterations.length][1];
 
     for (int i = 0; i < iters.length; i++) {
@@ -190,7 +190,7 @@ public class Files {
   }
 
   public static void batchIt(String root_batch_name, String init, int numBatches, String commands,
-      String[][] iterations) {
+                             String[][] iterations) {
     PrintWriter[] writers = new PrintWriter[numBatches];
     PrintWriter writer;
     String trav;
@@ -198,8 +198,9 @@ public class Files {
 
     try {
       for (int i = 0; i < numBatches; i++) {
-        writers[i] = new PrintWriter(new FileWriter(
-            i == 0 && numBatches == 1 ? root_batch_name : root_batch_name + "." + (i + 1)));
+        writers[i] = new PrintWriter(new FileWriter(i == 0 && numBatches == 1 ? root_batch_name
+                                                                              : root_batch_name
+                                                                                + "." + (i + 1)));
         if (init != null) {
           writers[i].println(init);
           writers[i].println();
@@ -224,7 +225,7 @@ public class Files {
       for (int i = 0; i < numBatches; i++) {
         writers[i].close();
         chmod(i == 0 && numBatches == 1 ? root_batch_name : root_batch_name + "." + (i + 1),
-            i == 0);
+              i == 0);
         if (numBatches > 1) {
           writer.println("nohup ./" + root_batch_name + "." + (i + 1) + " > " + (i + 1) + ".out &");
         }
@@ -242,7 +243,7 @@ public class Files {
   // can pass skips as an empty array (new int[0]) if the first file should pass a header but the
   // rest should be skipped
   public static void cat(String[] originalFiles, String finalFile, int[] skips, boolean addFilename,
-      Logger log) {
+                         Logger log) {
     BufferedReader reader;
     PrintWriter writer;
     String trav;
@@ -256,9 +257,8 @@ public class Files {
         skips = Array.addIntToArray(0, Array.intArray(originalFiles.length - 1, 1), 0);
       }
       if (skips.length != originalFiles.length) {
-        log.reportError(
-            "Error - mismatched length of arrays for the files and number of lines to skip for file "
-                + finalFile + "; aborting...");
+        log.reportError("Error - mismatched length of arrays for the files and number of lines to skip for file "
+                        + finalFile + "; aborting...");
         return;
       }
     }
@@ -292,8 +292,8 @@ public class Files {
           }
           reader.close();
         } catch (FileNotFoundException fnfe) {
-          log.reportError(
-              "Error: file \"" + originalFiles[i] + "\" not found in current directory");
+          log.reportError("Error: file \"" + originalFiles[i]
+                          + "\" not found in current directory");
         } catch (IOException ioe) {
           log.reportError("Error reading file \"" + originalFiles[i] + "\"");
         }
@@ -319,9 +319,9 @@ public class Files {
     // get all files in the directory, excluding the crf itself and its corresponding log
     files = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false, false);
     files = Array.addStrToArray("outfile.xln", files, 0);
-    files = Array.addStrToArray(
-        "# include add_filename_as_first_column after the output filename if you want it", files,
-        1);
+    files =
+        Array.addStrToArray("# include add_filename_as_first_column after the output filename if you want it",
+                            files, 1);
     for (int i = 3; i < files.length; i++) {
       files[i] += " skip=1";
     }
@@ -394,8 +394,8 @@ public class Files {
         return true;
       } catch (Exception e) {
         if (verbose) {
-          System.err.println(
-              "Warning - chmod failed; " + filename + " was not given execute permissions");
+          System.err.println("Warning - chmod failed; " + filename
+                             + " was not given execute permissions");
         }
         return false;
       }
@@ -432,25 +432,25 @@ public class Files {
   }
 
   public static void combine(String[] keys, String[] fileParameters, String unit,
-      String outputFilename, Logger log, boolean ignoreCase) {
+                             String outputFilename, Logger log, boolean ignoreCase) {
     combine(keys, fileParameters, new String[fileParameters.length][], unit, ".", outputFilename,
-        log, ignoreCase, true, false, null);
+            log, ignoreCase, true, false, null);
   }
 
   public static void combine(String[] keys, String[] fileParameters, String[][] headers,
-      String unit, String missingValue, String outputFilename, Logger log, boolean ignoreCase,
-      boolean finalHeader, boolean hideIndex) {
+                             String unit, String missingValue, String outputFilename, Logger log,
+                             boolean ignoreCase, boolean finalHeader, boolean hideIndex) {
     combine(keys, fileParameters, headers, unit, missingValue, outputFilename, log, ignoreCase,
-        finalHeader, hideIndex, null);
+            finalHeader, hideIndex, null);
   }
 
   /**
    * @param altHeaderMap Map containing keys as filename_headerInFile and values of header in output
    */
   public static void combine(String[] keys, String[] fileParameters, String[][] headers,
-      String unit, String missingValue, String outputFilename, Logger log, boolean ignoreCase,
-      boolean finalHeader, boolean hideIndex,
-      Hashtable<String, Hashtable<String, String>> altHeaderMap) {
+                             String unit, String missingValue, String outputFilename, Logger log,
+                             boolean ignoreCase, boolean finalHeader, boolean hideIndex,
+                             Hashtable<String, Hashtable<String, String>> altHeaderMap) {
     PrintWriter writer;
     String[] line, colNames;
     Hashtable<String, String> hash;
@@ -582,7 +582,7 @@ public class Files {
               writer.print((hideIndex && i == 0 ? "" : delimiter) + Array.toStr(tmp, delimiter));
             } else {
               writer.print((hideIndex && i == 0 ? "" : delimiter)
-                  + Array.toStr(data[i][keys.length], delimiter));
+                           + Array.toStr(data[i][keys.length], delimiter));
             }
           } catch (Exception e) {
             e.printStackTrace();
@@ -622,7 +622,8 @@ public class Files {
    * @throws Elision
    */
   public static String[][] combineInMemory(String[] keys, String[][] lookupSource,
-      String missingValue, boolean ignoreCase, boolean hideIndex, Logger log) throws Elision {
+                                           String missingValue, boolean ignoreCase,
+                                           boolean hideIndex, Logger log) throws Elision {
     Hashtable<String, Integer> hash;
     int numColsInKey, numColsInValues;
     String[][] data;
@@ -634,7 +635,7 @@ public class Files {
 
     if (numColsInKey > 1) {
       log.report("The keys contain tabs, so the lookup will be performed on the first "
-          + numColsInKey + " columns in the lookup source data");
+                 + numColsInKey + " columns in the lookup source data");
     }
 
     count = 0;
@@ -643,12 +644,13 @@ public class Files {
       if (lookupSource[i].length > 0) {
         if (lookupSource[i].length < numColsInKey + 1) {
           throw new Elision("The lookup values require at least " + (numColsInKey + 1)
-              + " columns (" + numColsInKey + " for the key and at least one value" + "), but row "
-              + (i + 1) + " has only " + lookupSource[i].length);
+                            + " columns (" + numColsInKey + " for the key and at least one value"
+                            + "), but row " + (i + 1) + " has only " + lookupSource[i].length);
         }
         if (lookupSource[i].length != numColsInValues) {
           throw new Elision("The first row of the lookup values had " + numColsInValues
-              + " columns while row " + (i + 1) + " has " + keys[i].split("\t", -1).length);
+                            + " columns while row " + (i + 1) + " has "
+                            + keys[i].split("\t", -1).length);
         }
 
         key = lookupSource[i][0];
@@ -662,7 +664,7 @@ public class Files {
         if (hash.containsKey(key)) {
           if (count < 5 && log.getLevel() > 8) {
             log.reportError("Warning duplicate key in lookup values ('" + key
-                + "'); only the first value will be used:");
+                            + "'); only the first value will be used:");
             log.reportError(Array.toStr(lookupSource[hash.get(key)]));
             log.reportError("...and not this one:");
             log.reportError(Array.toStr(lookupSource[i]));
@@ -689,8 +691,8 @@ public class Files {
         key = ignoreCase ? keys[i].toLowerCase() : keys[i];
         if (key.split("\t", -1).length != numColsInKey) {
           throw new Elision("The first row of the keys had " + numColsInKey + " column"
-              + (numColsInKey == 1 ? "" : "s") + " while row " + (i + 1) + " has "
-              + keys[i].split("\t", -1).length);
+                            + (numColsInKey == 1 ? "" : "s") + " while row " + (i + 1) + " has "
+                            + keys[i].split("\t", -1).length);
         }
 
         if (hash.containsKey(key)) {
@@ -710,7 +712,7 @@ public class Files {
 
     if (count > 0 && log.getLevel() > 8) {
       log.report("\nOf the " + data.length + " keys, " + count + " " + (count == 1 ? "was" : "were")
-          + " not found among the lookup values\n");
+                 + " not found among the lookup values\n");
 
       if (data.length == count) {
         log.report("The first few keys were: ");
@@ -734,8 +736,10 @@ public class Files {
   }
 
   public static void combineWithLessMemory(String[] keys, String[] fileParameters,
-      String[][] headers, String unit, String missingValue, String outputFilename, Logger log,
-      boolean ignoreCase, boolean finalHeader, boolean hideIndex, boolean keepIntermediateFiles) {
+                                           String[][] headers, String unit, String missingValue,
+                                           String outputFilename, Logger log, boolean ignoreCase,
+                                           boolean finalHeader, boolean hideIndex,
+                                           boolean keepIntermediateFiles) {
     BufferedReader[] readers;
     PrintWriter writer;
     String[] line, colNames;
@@ -848,7 +852,7 @@ public class Files {
         }
       } catch (OutOfMemoryError oome) {
         log.reportError("Uh oh! Ran out of memory parsing file '"
-            + fileParameters[i].trim().split("[\\s]+")[0] + "' at line:");
+                        + fileParameters[i].trim().split("[\\s]+")[0] + "' at line:");
         log.reportError(Array.toStr(line, "/"));
       } catch (Exception e) {
         log.reportException(e);
@@ -1018,8 +1022,10 @@ public class Files {
     boolean lower;
 
     lower = false;
-    params = parseControlFile(filename, false, "copy", new String[] {"sourceDirectory/",
-        "targetDirectory/ -toLowerCase", "file1.txt", "file2.txt"}, log);
+    params = parseControlFile(filename, false, "copy",
+                              new String[] {"sourceDirectory/", "targetDirectory/ -toLowerCase",
+                                            "file1.txt", "file2.txt"},
+                              log);
     if (params != null) {
       sourceDir = params[0][0];
       targetDir = params[1][0];
@@ -1033,7 +1039,8 @@ public class Files {
       new File(targetDir).mkdirs();
       for (int i = 2; i < params.length; i++) {
         Files.copyFile(new File(sourceDir + params[i][0]).toString(),
-            new File(targetDir + (lower ? params[i][0].toLowerCase() : params[i][0])).toString());
+                       new File(targetDir
+                                + (lower ? params[i][0].toLowerCase() : params[i][0])).toString());
       }
     }
   }
@@ -1149,12 +1156,12 @@ public class Files {
   }
 
   public static void execListAdd(Vector<String> execList, String commands, String[] iterations,
-      Logger log) {
+                                 Logger log) {
     execListAdd(execList, commands, Matrix.toMatrix(iterations), log);
   }
 
   public static void execListAdd(Vector<String> execList, String commands, String[][] iterations,
-      Logger log) {
+                                 Logger log) {
     String trav;
 
     if (iterations == null || iterations.length == 0) {
@@ -1173,8 +1180,7 @@ public class Files {
     }
 
     if (commands.split("\\n").length > 1) {
-      log.reportError(
-          "Addition to execList has multiple lines, not appropriate for a serial executor");
+      log.reportError("Addition to execList has multiple lines, not appropriate for a serial executor");
       return;
     }
 
@@ -1258,7 +1264,7 @@ public class Files {
   }
 
   public static void filterByKeys(String keysFile, String fileIn, String fileOut, int keyColumn,
-      boolean preserveKeyOrder) throws IOException {
+                                  boolean preserveKeyOrder) throws IOException {
     if (!Files.exists(keysFile)) {
       System.err.println("Error - key file " + keysFile + " doesn't exist!");
       return;
@@ -1337,7 +1343,7 @@ public class Files {
   }
 
   public static int findNextRepSafely(String[] patterns, int numDigits, int lastKnownRep,
-      int patienceInMilliseconds) {
+                                      int patienceInMilliseconds) {
     int trav, rand;
     boolean done;
     String[] files;
@@ -1366,8 +1372,8 @@ public class Files {
             if (files.length > 1) {
               rands = new int[files.length];
               for (int i = 0; i < rands.length; i++) {
-                rands[i] = Integer.parseInt(
-                    files[i].substring(files[i].indexOf(".") + 1, files[i].lastIndexOf(".")));
+                rands[i] = Integer.parseInt(files[i].substring(files[i].indexOf(".") + 1,
+                                                               files[i].lastIndexOf(".")));
               }
               rands = Sort.putInOrder(rands);
               if (rand != rands[0]) {
@@ -1395,7 +1401,7 @@ public class Files {
    * @return String first directory that exists, otherwise null
    */
   public static String firstDirectoryThatExists(String[] dirs, boolean verbose, boolean kill,
-      Logger log) {
+                                                Logger log) {
     for (int i = 0; i < dirs.length; i++) {
       dirs[i] = ext.verifyDirFormat(dirs[i]);
       if (new File(dirs[i]).exists()) {
@@ -1404,8 +1410,8 @@ public class Files {
     }
 
     if (verbose) {
-      log.reportError(
-          "Error - none of the following directories exists..." + (kill ? " terminating" : ""));
+      log.reportError("Error - none of the following directories exists..."
+                      + (kill ? " terminating" : ""));
       for (String dir : dirs) {
         log.reportError("   " + dir);
       }
@@ -1429,7 +1435,7 @@ public class Files {
    *         otherwise null
    */
   public static String firstPathToFileThatExists(String[] dirs, String filename, boolean verbose,
-      boolean kill, Logger log) {
+                                                 boolean kill, Logger log) {
     for (int i = 0; i < dirs.length; i++) {
       dirs[i] = ext.verifyDirFormat(dirs[i]);
       if (new File(dirs[i] + filename).exists()) {
@@ -1439,7 +1445,7 @@ public class Files {
 
     if (verbose) {
       log.reportError("Error - none of the following directories contains the file '" + filename
-          + "' " + (kill ? "... terminating" : ""));
+                      + "' " + (kill ? "... terminating" : ""));
       for (String dir : dirs) {
         log.reportError("   " + dir);
       }
@@ -1453,7 +1459,7 @@ public class Files {
 
   // consider using this function in db.comp (i.e. .ctl runs)
   public static String[][] generateDataset(String filename, String delimiter, String[] values,
-      String[] filters, Logger log) {
+                                           String[] filters, Logger log) {
     BufferedReader reader;
     String[] line, header, filterTargets, data;
     int[] valueIndices, filterIndices;
@@ -1508,7 +1514,7 @@ public class Files {
   }
 
   public static void generateTables(String outputFile, String[] files, String[] fileDescriptions,
-      String[][] parameters, Logger log) {
+                                    String[][] parameters, Logger log) {
     PrintWriter writer;
     String[] values;
     String[][] data;
@@ -1562,7 +1568,7 @@ public class Files {
           counts = new int[files.length];
           for (int j = 0; j < files.length; j++) {
             data = generateDataset(files[j], determineDelimiter(files[j], log), values,
-                Array.toStringArray(filters), log);
+                                   Array.toStringArray(filters), log);
             array = Array.toDoubleArray(Matrix.extractColumn(data, 0));
             means[j] = Array.mean(array);
             counts[j] = data.length;
@@ -1570,22 +1576,31 @@ public class Files {
               means[files.length] += means[j] * counts[j];
             }
             if (parameter[1].equals("mean")) {
-              writer
-                  .print("\t" + (counts[j] > 0
-                      ? (percent ? ext.formDeci(means[j] * 100, sf) + "%"
-                          : ext.formDeci(means[j], sf) + (stdev
-                              ? " (+/- " + ext.formDeci(Array.stdev(array), sf) + ")" : ""))
-                      : (blank ? "" : ".")));
+              writer.print("\t" + (counts[j] > 0
+                                                 ? (percent ? ext.formDeci(means[j] * 100, sf) + "%"
+                                                            : ext.formDeci(means[j],
+                                                                           sf)
+                                                              + (stdev ? " (+/- "
+                                                                         + ext.formDeci(Array.stdev(array),
+                                                                                        sf)
+                                                                         + ")"
+                                                                       : ""))
+                                                 : (blank ? "" : ".")));
             } else {
-              writer.print("\t"
-                  + (counts[j] > 0 ? ext.formDeci(Array.stdev(array), sf) : (blank ? "" : ".")));
+              writer.print("\t" + (counts[j] > 0 ? ext.formDeci(Array.stdev(array), sf)
+                                                 : (blank ? "" : ".")));
             }
           }
           if (parameter[1].equals("mean")) {
             writer.print("\t" + (Array.sum(counts) > 0
-                ? (percent ? ext.formDeci(means[files.length] / Array.sum(counts) * 100, sf) + "%"
-                    : ext.formDeci(means[files.length] / Array.sum(counts), sf))
-                : (blank ? "" : ".")));
+                                                       ? (percent ? ext.formDeci(means[files.length]
+                                                                                 / Array.sum(counts)
+                                                                                 * 100, sf)
+                                                                    + "%"
+                                                                  : ext.formDeci(means[files.length]
+                                                                                 / Array.sum(counts),
+                                                                                 sf))
+                                                       : (blank ? "" : ".")));
           } else {
             // TODO calculate the overall stdev of crossing files.
           }
@@ -1604,7 +1619,7 @@ public class Files {
           counts = new int[files.length];
           for (int j = 0; j < files.length; j++) {
             data = generateDataset(files[j], determineDelimiter(files[j], log), values,
-                Array.toStringArray(filters), log);
+                                   Array.toStringArray(filters), log);
             counts[j] = data.length;
             writer.print("\t" + (counts[j] == 0 ? (blank ? "" : "0") : counts[j]));
           }
@@ -1626,7 +1641,7 @@ public class Files {
           counts = new int[files.length];
           for (int j = 0; j < files.length; j++) {
             data = generateDataset(files[j], determineDelimiter(files[j], log), values,
-                Array.toStringArray(filters), log);
+                                   Array.toStringArray(filters), log);
             array = Array.toDoubleArray(Matrix.extractColumn(data, 0));
             counts[j] = data.length;
             if (counts[j] > 0) {
@@ -1636,7 +1651,8 @@ public class Files {
               writer.print("\t" + (counts[j] == 0 ? (blank ? "" : "0") : array[array.length - 1]));
             } else {
               writer.print("\t" + (counts[j] == 0 ? (blank ? "" : "0")
-                  : array[(int) (((double) percentile / 100) * array.length + .5)]));
+                                                  : array[(int) (((double) percentile / 100)
+                                                                 * array.length + .5)]));
             }
           }
         }
@@ -1650,8 +1666,7 @@ public class Files {
 
   }
 
-  public static InputStreamReader getAppropriateInputStreamReader(String filename)
-      throws FileNotFoundException {
+  public static InputStreamReader getAppropriateInputStreamReader(String filename) throws FileNotFoundException {
     InputStream is = null;
     InputStreamReader isReader = null;
 
@@ -1666,8 +1681,7 @@ public class Files {
     if (filename.endsWith(".gz")) {
       try {
         if (!Files.checkJVMUpToDateApprox()) {
-          System.err
-              .println("\nYOUR VERSION OF JAVA IS OUT OF DATE; reading gzipped files may fail.");
+          System.err.println("\nYOUR VERSION OF JAVA IS OUT OF DATE; reading gzipped files may fail.");
         }
       } catch (Exception e) {
       }
@@ -1730,8 +1744,8 @@ public class Files {
         writer = new PrintWriter(new FileWriter(filename));
       }
     } catch (FileNotFoundException fnfe) {
-      System.err
-          .println("Error: file \"" + filename + "\" could not be written to (it's probably open)");
+      System.err.println("Error: file \"" + filename
+                         + "\" could not be written to (it's probably open)");
       return null;
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + filename + "\"");
@@ -1807,7 +1821,7 @@ public class Files {
    * @return
    */
   public static String[] getFirstNLinesOfFile(String filename, int nLines, String[] patternsToSkip,
-      Logger log) {
+                                              Logger log) {
     BufferedReader reader;
     String[] lines;
     Vector<String> v;
@@ -1874,11 +1888,12 @@ public class Files {
    * @return
    */
   public static String[] getHeaderOfFile(String filename, String delimiter,
-      String[] patternsThatIfPresentAtTheStartOfTheLineWillSkipLine, Logger log) {
+                                         String[] patternsThatIfPresentAtTheStartOfTheLineWillSkipLine,
+                                         Logger log) {
     String[] lines;
 
     lines = getFirstNLinesOfFile(filename, 1, patternsThatIfPresentAtTheStartOfTheLineWillSkipLine,
-        log);
+                                 log);
     if (lines == null) {
       return null;
     }
@@ -1896,9 +1911,8 @@ public class Files {
 
   public static String getJarLocation() {
     try {
-      return new File(
-          Files.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath())
-              .getAbsolutePath();
+      return new File(Files.class.getProtectionDomain().getCodeSource().getLocation().toURI()
+                                 .getPath()).getAbsolutePath();
     } catch (URISyntaxException e) {
       return "~/" + org.genvisis.common.PSF.Java.GENVISIS;
     }
@@ -1912,7 +1926,7 @@ public class Files {
    * @return the first line containing the containing array, null if all are not found
    */
   public static String[] getLineContaining(String filename, String delimiter, String[] containing,
-      Logger log) {
+                                           Logger log) {
 
     try {
       BufferedReader reader = Files.getAppropriateReader(filename);
@@ -1927,7 +1941,7 @@ public class Files {
       }
       reader.close();
       log.reportTimeError("Could not find the header containing " + Array.toStr(containing)
-          + " in file " + filename);
+                          + " in file " + filename);
       return null;
     } catch (FileNotFoundException fnfe) {
       log.reportError("Error: file \"" + filename + "\" not found in current directory");
@@ -1979,17 +1993,16 @@ public class Files {
   }
 
   public static BufferedReader getReader(String filename, boolean jar, boolean verbose,
-      boolean kill) {
+                                         boolean kill) {
     return getReader(filename, jar, verbose, new Logger(), kill);
   }
 
   public static BufferedReader getReader(String filename, boolean jar, boolean verbose, Logger log,
-      boolean kill) {
+                                         boolean kill) {
     try {
       if (Files.exists(filename, jar)) {
         if (jar) {
-          return new BufferedReader(
-              new InputStreamReader(ClassLoader.getSystemResourceAsStream(filename)));
+          return new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream(filename)));
         } else {
           return getAppropriateReader(filename);
         }
@@ -2021,8 +2034,8 @@ public class Files {
    * @return a BufferedReader for this file
    * @throws FileNotFoundException if the file does not exist in any of the locations
    */
-  public static BufferedReader getReader(String filename, String alt_location)
-      throws FileNotFoundException {
+  public static BufferedReader getReader(String filename,
+                                         String alt_location) throws FileNotFoundException {
     return getReader(filename, new String[] {alt_location});
   }
 
@@ -2035,8 +2048,8 @@ public class Files {
    * @return a BufferedReader for this file
    * @throws FileNotFoundException if the file does not exist in any of the locations
    */
-  public static BufferedReader getReader(String filename, String[] alt_locations)
-      throws FileNotFoundException {
+  public static BufferedReader getReader(String filename,
+                                         String[] alt_locations) throws FileNotFoundException {
     BufferedReader reader;
 
     reader = null;
@@ -2046,7 +2059,7 @@ public class Files {
 
     if (reader == null) {
       throw new FileNotFoundException("Error: file \"" + filename
-          + "\" not found in current directory, or any of the alternate directories");
+                                      + "\" not found in current directory, or any of the alternate directories");
     }
 
     return reader;
@@ -2063,7 +2076,7 @@ public class Files {
   public static String getRunString(int memInMeg, boolean interpretAsGig) {
     int mem = memInMeg == -1 ? -1 : interpretAsGig ? memInMeg / 1024 : memInMeg;
     return "java " + (memInMeg == -1 ? "" : "-Xmx" + mem + (interpretAsGig ? "G" : "M")) + " -jar "
-        + getJarLocation();
+           + getJarLocation();
   }
 
   /**
@@ -2131,13 +2144,13 @@ public class Files {
    * @return true if all strings are present
    */
   public static boolean headerOfFileContainsAll(String filename, String[] toSearch, boolean verbose,
-      Logger log) {
+                                                Logger log) {
     String[] header = getHeaderOfFile(filename, log);
     boolean has = true;
     if (toSearch.length > header.length) {
       has = false;
     } else if (Array.countIf(ext.indexFactors(toSearch, header, true, log, verbose, false),
-        -1) > 0) {
+                             -1) > 0) {
       if (verbose) {
         log.reportTimeError("Searched header " + Array.toStr(header));
       }
@@ -2155,8 +2168,8 @@ public class Files {
     FileReader in2;
 
     if (!new File(file1).exists() || !new File(file2).exists()) {
-      System.err
-          .println("Error - Cannot find one or both of the files (" + file1 + " or " + file2 + ")");
+      System.err.println("Error - Cannot find one or both of the files (" + file1 + " or " + file2
+                         + ")");
       return false;
     }
 
@@ -2190,7 +2203,7 @@ public class Files {
   }
 
   public static boolean isFileReady(String filename, long timeOfFirstCheck,
-      long timeIntervalBetweenChecking) {
+                                    long timeIntervalBetweenChecking) {
     File file;
     long fileSize;
 
@@ -2231,7 +2244,7 @@ public class Files {
   }
 
   public static String[] list(String directory, final String prefix, final String suffix,
-      final boolean caseSensitive, boolean jar) {
+                              final boolean caseSensitive, boolean jar) {
     return list(directory, prefix, suffix, caseSensitive, jar, false);
   }
 
@@ -2239,7 +2252,7 @@ public class Files {
   // The only illegal character in all operating systems is the colon :
   // so this was chosen to signify NOT
   public static String[] list(String directory, final String prefix, final String suffix,
-      final boolean caseSensitive, boolean jar, final boolean fullPath) {
+                              final boolean caseSensitive, boolean jar, final boolean fullPath) {
     if (directory == null || directory.length() == 0) {
       directory = "./";
     }
@@ -2444,41 +2457,45 @@ public class Files {
     int keyIndex = -1;
 
     String usage = "\n" + "common.Files requires 0-1 arguments\n"
-        + "   (1) filename to convert to a .qsub (i.e. file=batchFile (not the default))\n"
-        + "   (2) make it multithreaded (i.e. -multiple (not the default))\n"
-        + "   (3) (optional) chr/rep to start with (use # or ## within file to designate where to use) (i.e. start="
-        + start + " (default))\n" + "   (4) (optional) chr/rep to end with (i.e. stop=" + stop
-        + " (default))\n" + "   (5) separate each line into a separate file (i.e. separate="
-        + separate + " (default))\n"
-        + "   (6) (optional) don't stop until plug is pulled, counting based on patterns (i.e. patterns=perm#.log;perm#.assoc;perm#.assoc.mperm (not the default))\n"
-        + "   (7) (optional) change to current working directory at the top of [each] script (i.e. -cwd (not the default))\n"
-        + "  OR\n" + "   (1) find next rep safely (i.e. -nextRep (not the default))\n"
-        + "   (2) (required) patterns to match when incrementing rep (i.e. patterns=perm#.log;perm#.assoc;perm#.assoc.mperm (not the default))\n"
-        + "   (3) passing the last known rep, speeds things up (i.e. lastRep=" + lastKnownRep
-        + " (default))\n"
-        + "   (4) time to wait in milliseconds, in order to ensure no ties (i.e. wait="
-        + patienceInMilliseconds + " (default))\n" + "  OR\n"
-        + "   (1) transpose file (i.e. transpose=file.txt (not the default))\n"
-        + "   (2) input file is comma-delimited (i.e. commaDelimitedIn=" + commaDelimitedIn
-        + " (default))\n"
-        + "   (3) name of output file (i.e. out=[input]-transposed.xln (default))\n"
-        + "   (3) output file is comma-delimited (i.e. commaDelimitedOut=" + commaDelimitedOut
-        + " (default))\n" + "  OR\n"
-        + "   (1) move files already successfully (i.e. currently hard coded (not the default))\n"
-        + "  OR\n"
-        + "   (1) list all files in directory and all its subdirectories (i.e. dir=./ (not the default))\n"
-        + "  OR\n" + "   (1) count the number of lines in the file (i.e. wc (not the default))\n"
-        + "   (2) filename to count (i.e. file=large_file.txt (not the default))\n" + "  OR\n"
-        + "   (1) Replace all instances of a set of Strings in a file (i.e. swap=replacements.txt (not the default))\n"
-        + "       [requires two tab delimited columns of what to search for (first col) and what to replace it with (second col)]\n"
-        + "   (2) name of input file (i.e. file=input.txt (not the default))\n"
-        + "   (3) name of output file (i.e. out=output.txt (not the default))\n" + "  OR\n"
-        + "   (1) filter a file by a set of keys (i.e. -filter (not the default))\n"
-        + "   (2) input data file (i.e. file=plink.tdt (not the default))\n"
-        + "   (3) key file (i.e. keys=gwasHits.txt (not the default))\n"
-        + "   (4) output file name (i.e. out=gwasHits.tdt (not the default))\n"
-        + "   (5) index of key column in data file (i.e. keyIndex=7 (not the default))\n"
-        + "   (6) order results by key order (i.e. ordered=TRUE (default))\n" + "";
+                   + "   (1) filename to convert to a .qsub (i.e. file=batchFile (not the default))\n"
+                   + "   (2) make it multithreaded (i.e. -multiple (not the default))\n"
+                   + "   (3) (optional) chr/rep to start with (use # or ## within file to designate where to use) (i.e. start="
+                   + start + " (default))\n" + "   (4) (optional) chr/rep to end with (i.e. stop="
+                   + stop + " (default))\n"
+                   + "   (5) separate each line into a separate file (i.e. separate=" + separate
+                   + " (default))\n"
+                   + "   (6) (optional) don't stop until plug is pulled, counting based on patterns (i.e. patterns=perm#.log;perm#.assoc;perm#.assoc.mperm (not the default))\n"
+                   + "   (7) (optional) change to current working directory at the top of [each] script (i.e. -cwd (not the default))\n"
+                   + "  OR\n" + "   (1) find next rep safely (i.e. -nextRep (not the default))\n"
+                   + "   (2) (required) patterns to match when incrementing rep (i.e. patterns=perm#.log;perm#.assoc;perm#.assoc.mperm (not the default))\n"
+                   + "   (3) passing the last known rep, speeds things up (i.e. lastRep="
+                   + lastKnownRep + " (default))\n"
+                   + "   (4) time to wait in milliseconds, in order to ensure no ties (i.e. wait="
+                   + patienceInMilliseconds + " (default))\n" + "  OR\n"
+                   + "   (1) transpose file (i.e. transpose=file.txt (not the default))\n"
+                   + "   (2) input file is comma-delimited (i.e. commaDelimitedIn="
+                   + commaDelimitedIn + " (default))\n"
+                   + "   (3) name of output file (i.e. out=[input]-transposed.xln (default))\n"
+                   + "   (3) output file is comma-delimited (i.e. commaDelimitedOut="
+                   + commaDelimitedOut + " (default))\n" + "  OR\n"
+                   + "   (1) move files already successfully (i.e. currently hard coded (not the default))\n"
+                   + "  OR\n"
+                   + "   (1) list all files in directory and all its subdirectories (i.e. dir=./ (not the default))\n"
+                   + "  OR\n"
+                   + "   (1) count the number of lines in the file (i.e. wc (not the default))\n"
+                   + "   (2) filename to count (i.e. file=large_file.txt (not the default))\n"
+                   + "  OR\n"
+                   + "   (1) Replace all instances of a set of Strings in a file (i.e. swap=replacements.txt (not the default))\n"
+                   + "       [requires two tab delimited columns of what to search for (first col) and what to replace it with (second col)]\n"
+                   + "   (2) name of input file (i.e. file=input.txt (not the default))\n"
+                   + "   (3) name of output file (i.e. out=output.txt (not the default))\n"
+                   + "  OR\n"
+                   + "   (1) filter a file by a set of keys (i.e. -filter (not the default))\n"
+                   + "   (2) input data file (i.e. file=plink.tdt (not the default))\n"
+                   + "   (3) key file (i.e. keys=gwasHits.txt (not the default))\n"
+                   + "   (4) output file name (i.e. out=gwasHits.tdt (not the default))\n"
+                   + "   (5) index of key column in data file (i.e. keyIndex=7 (not the default))\n"
+                   + "   (6) order results by key order (i.e. ordered=TRUE (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -2592,16 +2609,16 @@ public class Files {
         long time = new java.util.Date().getTime();
         log.report("Counted " + countLines(args[0], 0) + " lines in " + ext.getTimeElapsed(time));
       } else if (findNextRep && patterns != null) {
-        System.out
-            .println(findNextRepSafely(patterns, numDigits, lastKnownRep, patienceInMilliseconds));
+        System.out.println(findNextRepSafely(patterns, numDigits, lastKnownRep,
+                                             patienceInMilliseconds));
       } else if (transpose != null) {
         transpose(transpose, commaDelimitedIn ? "," : "[\\s]+", outfile,
-            commaDelimitedOut ? "," : "[\\s]+", log);
+                  commaDelimitedOut ? "," : "[\\s]+", log);
       } else if (replacements != null) {
         replaceAll(filename, outfile, replacements, log);
       } else if (filename != null) {
         makeQsub(new File(filename).getAbsolutePath(), multiple, start, stop, separate, patterns,
-            cwd);
+                 cwd);
       } else if (dir != null) {
         summarizeAllFilesInDirectory(dir);
       } else {
@@ -2613,7 +2630,8 @@ public class Files {
   }
 
   public static void makeQsub(String filename, boolean multiple, int start, int stop,
-      boolean separate, String[] patterns, boolean changeToCurrentWorkingDirectoryFirst) {
+                              boolean separate, String[] patterns,
+                              boolean changeToCurrentWorkingDirectoryFirst) {
     String[] lines, qsubs;
     Vector<String> v;
     int numThreads;
@@ -2624,16 +2642,18 @@ public class Files {
       System.out.println("Creating a ScriptExecutor");
       numThreads = Math.min(24, Files.countLines(filename, 0));
       qsub("scriptExecutorFor_" + ext.removeDirectoryInfo(filename),
-          "cd " + ext.parseDirectoryOfFile(filename) + "\n" + Files.getRunString()
-              + " one.ScriptExecutor file=" + ext.removeDirectoryInfo(filename) + " threads="
-              + numThreads,
-          63000, 12, numThreads);
+           "cd " + ext.parseDirectoryOfFile(filename) + "\n" + Files.getRunString()
+                                                                     + " one.ScriptExecutor file="
+                                                                     + ext.removeDirectoryInfo(filename)
+                                                                     + " threads=" + numThreads,
+           63000, 12, numThreads);
     } else if (separate) {
       v = new Vector<String>();
       for (int i = 0; i < lines.length; i++) {
-        qsubs = qsub("", ext.rootOf(filename) + (i + 1) + ".#", start, stop,
-            (changeToCurrentWorkingDirectoryFirst ? "cd " + ext.pwd() + "\n" : "") + lines[i],
-            patterns, 5000, 24, null);
+        qsubs =
+            qsub("", ext.rootOf(filename) + (i + 1) + ".#", start, stop,
+                 (changeToCurrentWorkingDirectoryFirst ? "cd " + ext.pwd() + "\n" : "") + lines[i],
+                 patterns, 5000, 24, null);
         v.add(qsubs[0]);
       }
       writeList(Array.toStringArray(v), "master." + ext.rootOf(filename));
@@ -2646,7 +2666,7 @@ public class Files {
         qsub(ext.rootOf(filename) + ".qsub", Array.toStr(lines, "\n"), 5000, 24, 1);
       } else {
         qsubs = qsub("", ext.rootOf(filename) + "#", start, stop, Array.toStr(lines, "\n"),
-            patterns, 5000, 24, null);
+                     patterns, 5000, 24, null);
         if (qsubs.length > 1) {
           writeList(qsubs, "master." + ext.rootOf(filename));
           Files.chmod("master." + ext.rootOf(filename));
@@ -2657,7 +2677,7 @@ public class Files {
   }
 
   public static void makeVLookupReadyFile(String in, String out, int[] keyIndices,
-      int[] valueIndices) {
+                                          int[] valueIndices) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -2690,8 +2710,8 @@ public class Files {
   }
 
   public static void merge(String file1, int lookup1, int[] indices1, boolean keepRowsUniqueToFile1,
-      String file2, int lookup2, int[] indices2, boolean keepRowsUniqueToFile2, String mergedFile)
-      throws Elision {
+                           String file2, int lookup2, int[] indices2, boolean keepRowsUniqueToFile2,
+                           String mergedFile) throws Elision {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line;
@@ -2769,8 +2789,8 @@ public class Files {
     boolean keepRowsUniqueToFile1, keepRowsUniqueToFile2;
 
     paramV = Files.parseControlFile(filename, "merge",
-        new String[] {"sourcefile.txt numFiles=6 sizeOfHeader=1 blockSize=1 root=list ext=.dat"},
-        log);
+                                    new String[] {"sourcefile.txt numFiles=6 sizeOfHeader=1 blockSize=1 root=list ext=.dat"},
+                                    log);
     if (paramV != null) {
       file1 = paramV.elementAt(0);
       lookup1 = Integer.parseInt(paramV.elementAt(1));
@@ -2784,7 +2804,7 @@ public class Files {
 
       try {
         Files.merge(file1, lookup1, indices1, keepRowsUniqueToFile1, file2, lookup2, indices2,
-            keepRowsUniqueToFile2, mergedFile);
+                    keepRowsUniqueToFile2, mergedFile);
       } catch (Elision e) {
         log.reportError("Error merging files '" + file1 + "' and '" + file2 + "'");
         log.reportException(e);
@@ -2796,8 +2816,9 @@ public class Files {
   }
 
   public static void mergeSNPLists(String file1, int lookup1, int[] indices1,
-      boolean keepRowsUniqueToFile1, String file2, int lookup2, boolean keepRowsUniqueToFile2,
-      String mergedFile) throws Elision {
+                                   boolean keepRowsUniqueToFile1, String file2, int lookup2,
+                                   boolean keepRowsUniqueToFile2,
+                                   String mergedFile) throws Elision {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line;
@@ -2825,8 +2846,8 @@ public class Files {
           try {
             rsNums[count] = Integer.parseInt(line[lookup2].substring(2));
           } catch (NumberFormatException nfe) {
-            System.err.println(
-                "Error - while it starts with rs, this is an invalid rs number: " + line[lookup2]);
+            System.err.println("Error - while it starts with rs, this is an invalid rs number: "
+                               + line[lookup2]);
           }
         } else {
           System.err.println("Error - invalid rs number: " + line[lookup2]);
@@ -2859,8 +2880,8 @@ public class Files {
           try {
             num = Integer.parseInt(line[lookup1].substring(2));
           } catch (NumberFormatException nfe) {
-            System.err.println(
-                "Error - while it starts with rs, this is an invalid rs number: " + line[lookup1]);
+            System.err.println("Error - while it starts with rs, this is an invalid rs number: "
+                               + line[lookup1]);
             num = -1;
           }
         } else {
@@ -2906,8 +2927,8 @@ public class Files {
     boolean keepRowsUniqueToFile1, keepRowsUniqueToFile2;
 
     paramV = Files.parseControlFile(filename, "merge",
-        new String[] {"sourcefile.txt numFiles=6 sizeOfHeader=1 blockSize=1 root=list ext=.dat"},
-        log);
+                                    new String[] {"sourcefile.txt numFiles=6 sizeOfHeader=1 blockSize=1 root=list ext=.dat"},
+                                    log);
     if (paramV != null) {
       file1 = paramV.elementAt(0);
       lookup1 = Integer.parseInt(paramV.elementAt(1));
@@ -2916,15 +2937,14 @@ public class Files {
       file2 = paramV.elementAt(4);
       lookup2 = Integer.parseInt(paramV.elementAt(5));
       if (!paramV.elementAt(6).equals(lookup2 + "")) {
-        log.reportError(
-            "FYI - ignoring other indices for file2; with mergeSNPs, only presence is kept");
+        log.reportError("FYI - ignoring other indices for file2; with mergeSNPs, only presence is kept");
       }
       keepRowsUniqueToFile2 = paramV.elementAt(7).trim().toLowerCase().equals("true");
       mergedFile = paramV.elementAt(8);
 
       try {
         Files.mergeSNPLists(file1, lookup1, indices1, keepRowsUniqueToFile1, file2, lookup2,
-            keepRowsUniqueToFile2, mergedFile);
+                            keepRowsUniqueToFile2, mergedFile);
       } catch (Elision e) {
         log.reportError("Error merging files '" + file1 + "' and '" + file2 + "'");
         log.reportException(e);
@@ -2964,7 +2984,7 @@ public class Files {
   }
 
   public static String[][] parseControlFile(String filename, boolean tab, String command,
-      String[] sampleCode, Logger log) {
+                                            String[] sampleCode, Logger log) {
     Vector<String> v;
 
     v = parseControlFile(filename, command, sampleCode, log);
@@ -2976,7 +2996,7 @@ public class Files {
   }
 
   public static Vector<String> parseControlFile(String filename, String command,
-      String[] sampleCode, Logger log) {
+                                                String[] sampleCode, Logger log) {
     BufferedReader reader;
     Vector<String> v;
     String[] line;
@@ -3034,7 +3054,7 @@ public class Files {
     URL url;
     if (!ftpdirAddress.startsWith("ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/")) {
       log.reportTimeWarning("Did not detect that " + ftpdirAddress
-          + " was an ftp address starting with ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/");
+                            + " was an ftp address starting with ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/");
       log.reportTimeWarning("\t this parsing method is therefore un-tested");
     }
     try {
@@ -3065,7 +3085,8 @@ public class Files {
    * Sort of like the linux paste function, files must be the same length, and in the same order
    */
   public static String[][] paste(String[] orginalFiles, String finalFile, int[] columns,
-      int keyColumn, String[] newColumnNameTags, String[] skipKeys, Logger log) {
+                                 int keyColumn, String[] newColumnNameTags, String[] skipKeys,
+                                 Logger log) {
     if (newColumnNameTags.length != orginalFiles.length) {
       log.reportTimeError("Name tags must be the same length as files");
       return null;
@@ -3151,12 +3172,12 @@ public class Files {
   }
 
   public static void qsub(String root, int start, int stop, String commands, int memRequiredInMb,
-      double walltimeRequestedInHours) {
+                          double walltimeRequestedInHours) {
     qsub("", root, start, stop, commands, memRequiredInMb, walltimeRequestedInHours, null);
   }
 
   public static void qsub(String filename, String command, int totalMemoryRequestedInMb,
-      double walltimeRequestedInHours, int numProcs) {
+                          double walltimeRequestedInHours, int numProcs) {
     PrintWriter writer;
     String[] lines;
 
@@ -3164,7 +3185,7 @@ public class Files {
     try {
       writer = new PrintWriter(new FileWriter(filename));
       writeQsubHeader(writer, filename, totalMemoryRequestedInMb, walltimeRequestedInHours,
-          numProcs, null);
+                      numProcs, null);
 
       for (String line : lines) {
         writer.println(line);
@@ -3178,11 +3199,11 @@ public class Files {
   }
 
   public static void qsub(String dir, String root, int start, int stop, String commands,
-      int memRequiredInMb, double walltimeRequestedInHours, String queue) {
+                          int memRequiredInMb, double walltimeRequestedInHours, String queue) {
     String[] lines;
 
     lines = qsub(dir, "chr#_" + root, start, stop, commands, null, memRequiredInMb,
-        walltimeRequestedInHours, null);
+                 walltimeRequestedInHours, null);
 
     if (lines.length > 1) {
       writeList(lines, dir + "master." + (root == null ? "qsub" : root));
@@ -3191,16 +3212,16 @@ public class Files {
   }
 
   public static String[] qsub(String dir, String filenameFormat, int start, int stop,
-      String commands, String[] patterns, int totalMemoryRequestedInMb,
-      double walltimeRequestedInHours, String nodeToUse) {
+                              String commands, String[] patterns, int totalMemoryRequestedInMb,
+                              double walltimeRequestedInHours, String nodeToUse) {
     return qsub(dir, filenameFormat, start, stop, commands, patterns, totalMemoryRequestedInMb,
-        walltimeRequestedInHours, nodeToUse, null);
+                walltimeRequestedInHours, nodeToUse, null);
   }
 
   @Deprecated
   public static String[] qsub(String dir, String filenameFormat, int start, int stop,
-      String commands, String[] patterns, int totalMemoryRequestedInMb,
-      double walltimeRequestedInHours, String nodeToUse, String queueName) {
+                              String commands, String[] patterns, int totalMemoryRequestedInMb,
+                              double walltimeRequestedInHours, String nodeToUse, String queueName) {
     PrintWriter writer;
     String filename;
     String[] lines;
@@ -3209,8 +3230,8 @@ public class Files {
     if (dir == null) {
       dir = "";
     } else if (!dir.equals("") && !new File(dir).exists()) {
-      System.err
-          .println("Error - directory '" + dir + "' does not exist, cannot create batches there");
+      System.err.println("Error - directory '" + dir
+                         + "' does not exist, cannot create batches there");
     }
 
     v = new Vector<String>();
@@ -3222,7 +3243,7 @@ public class Files {
       try {
         writer = new PrintWriter(new FileWriter(dir + filename));
         writeQsubHeader(writer, filename, totalMemoryRequestedInMb, walltimeRequestedInHours, 1,
-            nodeToUse);
+                        nodeToUse);
         if (patterns == null) {
           writer.println(ext.insertNumbers(commands, i));
         } else {
@@ -3232,8 +3253,9 @@ public class Files {
           writer.println("total_reps=0");
           writer.println("while [ -e \"plug\" ]; do ");
           writer.println("    rep=$(java -cp " + ROOT_DIRECTORY
-              + org.genvisis.common.PSF.Java.GENVISIS + " common.Files -nextRep patterns="
-              + Array.toStr(patterns, ",") + " lastRep=$rep wait=1000)");
+                         + org.genvisis.common.PSF.Java.GENVISIS
+                         + " common.Files -nextRep patterns=" + Array.toStr(patterns, ",")
+                         + " lastRep=$rep wait=1000)");
           writer.println("    echo \"Beginning replicate $rep\"");
           lines = commands.split("\n");
           for (String line : lines) {
@@ -3256,15 +3278,15 @@ public class Files {
   }
 
   public static void qsub(String root_batch_name, String dirToSwitchToBeforeRunning, int numBatches,
-      String commands, String[][] iterations, int totalMemoryRequestedInMb,
-      double walltimeRequestedInHours) {
+                          String commands, String[][] iterations, int totalMemoryRequestedInMb,
+                          double walltimeRequestedInHours) {
     qsub(root_batch_name, dirToSwitchToBeforeRunning, numBatches, commands, iterations,
-        totalMemoryRequestedInMb, walltimeRequestedInHours, null);
+         totalMemoryRequestedInMb, walltimeRequestedInHours, null);
   }
 
   public static void qsub(String root_batch_name, String dirToSwitchToBeforeRunning, int numBatches,
-      String commands, String[][] iterations, int totalMemoryRequestedInMb,
-      double walltimeRequestedInHours, String queueName) {
+                          String commands, String[][] iterations, int totalMemoryRequestedInMb,
+                          double walltimeRequestedInHours, String queueName) {
     PrintWriter[] writers;
     PrintWriter writer;
     String trav;
@@ -3286,29 +3308,30 @@ public class Files {
     writers = new PrintWriter[numBatches];
     try {
       if (numBatches > 1) {
-        writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(root_batch_name)
-            + "master." + ext.removeDirectoryInfo(root_batch_name)));
+        writer =
+            new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(root_batch_name) + "master."
+                                           + ext.removeDirectoryInfo(root_batch_name)));
         if (!dir.equals("./") && !dir.equals("")) {
           writer.println("cd " + dir);
         }
         for (int i = 0; i < numBatches; i++) {
           writers[i] = new PrintWriter(new FileWriter(root_batch_name + "_" + (i + 1) + ".qsub"));
           writeQsubHeader(writers[i], root_batch_name + "_" + (i + 1) + ".qsub",
-              totalMemoryRequestedInMb, walltimeRequestedInHours, 1, null);
+                          totalMemoryRequestedInMb, walltimeRequestedInHours, 1, null);
           if (dirToSwitchToBeforeRunning != null) {
             writers[i].println("cd " + dirToSwitchToBeforeRunning);
           }
           writer.println("qsub " + (queueName == null ? "" : "-q " + queueName + " ")
-              + ext.removeDirectoryInfo(root_batch_name) + "_" + (i + 1) + ".qsub");
+                         + ext.removeDirectoryInfo(root_batch_name) + "_" + (i + 1) + ".qsub");
         }
         writer.close();
         chmod(ext.parseDirectoryOfFile(root_batch_name) + "master."
-            + ext.removeDirectoryInfo(root_batch_name));
+              + ext.removeDirectoryInfo(root_batch_name));
       } else {
         // writer = null;
         writers[0] = new PrintWriter(new FileWriter(root_batch_name + ".qsub"));
         writeQsubHeader(writers[0], root_batch_name + ".qsub", totalMemoryRequestedInMb,
-            walltimeRequestedInHours, 1, null);
+                        walltimeRequestedInHours, 1, null);
       }
 
 
@@ -3326,7 +3349,7 @@ public class Files {
 
       for (int i = 0; i < numBatches; i++) {
         writers[i].println("echo \"end " + ext.removeDirectoryInfo(root_batch_name) + "_" + (i + 1)
-            + " at: \" `date`");
+                           + " at: \" `date`");
         writers[i].close();
         chmod(root_batch_name + "_" + (i + 1) + ".qsub");
       }
@@ -3350,14 +3373,15 @@ public class Files {
   }
 
   public static void qsub(String root, String commands, String[][] iterations,
-      int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs) {
+                          int totalMemoryRequestedInMb, double walltimeRequestedInHours,
+                          int numProcs) {
     qsub(root, commands, iterations, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs,
-        null);
+         null);
   }
 
   public static void qsub(String root, String commands, String[][] iterations,
-      int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs,
-      String queueName) {
+                          int totalMemoryRequestedInMb, double walltimeRequestedInHours,
+                          int numProcs, String queueName) {
     PrintWriter writer;
     String filename, trav;
 
@@ -3411,28 +3435,31 @@ public class Files {
 
 
   public static void qsubExecutor(String dirToSwitchToBeforeRunning,
-      Vector<String> commandsWithAbsolutePaths, IntVector jobSizes, String batchRoot, int numProcs,
-      int totalMemoryRequestedInMb, double walltimeRequestedInHours) {
+                                  Vector<String> commandsWithAbsolutePaths, IntVector jobSizes,
+                                  String batchRoot, int numProcs, int totalMemoryRequestedInMb,
+                                  double walltimeRequestedInHours) {
     String[] commands;
 
     if (jobSizes == null) {
       commands = Array.toStringArray(commandsWithAbsolutePaths);
     } else {
       commands = Sort.putInOrder(Array.toStringArray(commandsWithAbsolutePaths),
-          Sort.quicksort(Ints.toArray(jobSizes), Sort.DESCENDING));
+                                 Sort.quicksort(Ints.toArray(jobSizes), Sort.DESCENDING));
     }
 
     Files.writeList(commands, batchRoot + ".chain");
     Files.qsub(batchRoot + ".pbs",
-        "cd " + dirToSwitchToBeforeRunning + "\njava -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS
-            + " one.ScriptExecutor file=" + batchRoot + ".chain threads=" + numProcs,
-        totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs);
+               "cd " + dirToSwitchToBeforeRunning + "\njava -cp ~/"
+                                   + org.genvisis.common.PSF.Java.GENVISIS
+                                   + " one.ScriptExecutor file=" + batchRoot + ".chain threads="
+                                   + numProcs,
+               totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs);
   }
 
   // TODO get rid of memoryPerProcRequestedInMb at some point
   public static void qsubMultiple(String chunkFilename, String[] jobs, int numJobsToForce,
-      int memoryPerProcRequestedInMb, int totalMemoryRequestedInMb,
-      double walltimeRequestedInHours) {
+                                  int memoryPerProcRequestedInMb, int totalMemoryRequestedInMb,
+                                  double walltimeRequestedInHours) {
     PrintWriter writer;
     int numProcs;
 
@@ -3448,14 +3475,14 @@ public class Files {
         numProcs = jobs.length;
       } else if (numJobsToForce < jobs.length) {
         System.err.println("Error - cannot force fewer jobs than are provided (" + numJobsToForce
-            + "<" + jobs.length + ")");
+                           + "<" + jobs.length + ")");
         writer.close();
         return;
       } else {
         numProcs = numJobsToForce;
       }
       writeQsubHeader(writer, chunkFilename, totalMemoryRequestedInMb, walltimeRequestedInHours,
-          numProcs, null);
+                      numProcs, null);
 
 
       for (int j = 0; j < jobs.length; j++) {
@@ -3472,9 +3499,10 @@ public class Files {
   }
 
   public static void qsubMultiple(Vector<String> jobNamesWithAbsolutePaths, IntVector jobSizes,
-      String batchDir, String batchRoot, int maxJobsPerBatch, boolean forceMaxJobs,
-      String queueName, int memoryPerProcRequestedInMb, int totalMemoryRequestedInMb,
-      double walltimeRequestedInHours) {
+                                  String batchDir, String batchRoot, int maxJobsPerBatch,
+                                  boolean forceMaxJobs, String queueName,
+                                  int memoryPerProcRequestedInMb, int totalMemoryRequestedInMb,
+                                  double walltimeRequestedInHours) {
     String[] files;
     int count;
     Vector<String> v;
@@ -3483,7 +3511,7 @@ public class Files {
       files = Array.toStringArray(jobNamesWithAbsolutePaths);
     } else {
       files = Sort.putInOrder(Array.toStringArray(jobNamesWithAbsolutePaths),
-          Sort.quicksort(Ints.toArray(jobSizes), Sort.DESCENDING));
+                              Sort.quicksort(Ints.toArray(jobSizes), Sort.DESCENDING));
     }
     count = 0;
     v = new Vector<String>();
@@ -3491,18 +3519,18 @@ public class Files {
     v.add("cd " + batchDir);
     while (count * maxJobsPerBatch < files.length) {
       Files.qsubMultiple(batchDir + ext.removeDirectoryInfo(batchRoot) + "." + count,
-          Array.subArray(files, count * maxJobsPerBatch,
-              Math.min((count + 1) * maxJobsPerBatch, files.length)),
-          forceMaxJobs ? maxJobsPerBatch : -1, memoryPerProcRequestedInMb, totalMemoryRequestedInMb,
-          walltimeRequestedInHours);
+                         Array.subArray(files, count * maxJobsPerBatch,
+                                        Math.min((count + 1) * maxJobsPerBatch, files.length)),
+                         forceMaxJobs ? maxJobsPerBatch : -1, memoryPerProcRequestedInMb,
+                         totalMemoryRequestedInMb, walltimeRequestedInHours);
       v.add("qsub " + (queueName == null ? "" : "-q " + queueName + " ")
-          + ext.removeDirectoryInfo(batchRoot) + "." + count);
+            + ext.removeDirectoryInfo(batchRoot) + "." + count);
       count++;
     }
-    Files.writeList(Array.toStringArray(v),
-        ext.parseDirectoryOfFile(batchRoot) + "master." + ext.removeDirectoryInfo(batchRoot));
-    Files.chmod(
-        ext.parseDirectoryOfFile(batchRoot) + "master." + ext.removeDirectoryInfo(batchRoot));
+    Files.writeList(Array.toStringArray(v), ext.parseDirectoryOfFile(batchRoot) + "master."
+                                            + ext.removeDirectoryInfo(batchRoot));
+    Files.chmod(ext.parseDirectoryOfFile(batchRoot) + "master."
+                + ext.removeDirectoryInfo(batchRoot));
   }
 
   /**
@@ -3548,28 +3576,30 @@ public class Files {
 
     // get all files in the directory, excluding the crf itself and its corresponding log
     files = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false, false);
-    params = parseControlFile(filename, "rename",
-        Array.toStringArray(Matrix.transpose(new String[][] {files, files}), "\t"), log);
+    params =
+        parseControlFile(filename, "rename",
+                         Array.toStringArray(Matrix.transpose(new String[][] {files, files}), "\t"),
+                         log);
     if (params != null) {
       matchingFilenames = new String[params.size()][2];
       problem = false;
       for (int i = 0; i < matchingFilenames.length; i++) {
         line = params.elementAt(i).trim().split("\t", -1);
         if (line.length != 2) {
-          log.reportError(
-              "Error - skipping this line, invalid number of arguments (needs to be tab delimited): "
-                  + Array.toStr(line, "/"));
+          log.reportError("Error - skipping this line, invalid number of arguments (needs to be tab delimited): "
+                          + Array.toStr(line, "/"));
           problem = true;
         } else {
           matchingFilenames[i] = line;
           if (!Files.exists(line[0])) {
-            log.reportError(
-                "Error - file '" + line[0] + "' does not exist, cannot be renamed to " + line[1]);
+            log.reportError("Error - file '" + line[0] + "' does not exist, cannot be renamed to "
+                            + line[1]);
             problem = true;
           }
           if (Files.exists(line[1])) {
             log.reportError("Error - file '" + line[1]
-                + "' already exists, and will not be overwritten by the contents of " + line[0]);
+                            + "' already exists, and will not be overwritten by the contents of "
+                            + line[0]);
             problem = true;
           }
         }
@@ -3595,14 +3625,15 @@ public class Files {
 
     echo = extract = false;
     params = parseControlFile(filename, "subs",
-        new String[] {"# echo reports what it's going to change without actually doing it",
-            "echo=true",
-            "# Extract the largest file from each subdirectory and script the deletion of the subdirectory",
-            "extract=false",
-            "# Examples: two tabbed delimited columns represents a replacement, anything with a single column will just be deleted",
-            "studyname.\tStudyName.", ".GREEN.IDAT\t_Grn.idat", ".RED.IDAT\t_Red.idat",
-            "justDeleteThisPhrase", "replaceThis\twithThis"},
-        log);
+                              new String[] {"# echo reports what it's going to change without actually doing it",
+                                            "echo=true",
+                                            "# Extract the largest file from each subdirectory and script the deletion of the subdirectory",
+                                            "extract=false",
+                                            "# Examples: two tabbed delimited columns represents a replacement, anything with a single column will just be deleted",
+                                            "studyname.\tStudyName.", ".GREEN.IDAT\t_Grn.idat",
+                                            ".RED.IDAT\t_Red.idat", "justDeleteThisPhrase",
+                                            "replaceThis\twithThis"},
+                              log);
     if (params != null) {
       substitutions = new String[params.size()][];
       count = 0;
@@ -3653,8 +3684,7 @@ public class Files {
           }
 
           if (filesizes[order[0]] < summedSizes) {
-            System.out.println(
-                "  a dominant file could not be found; extraction skipped for this directory");
+            System.out.println("  a dominant file could not be found; extraction skipped for this directory");
           } else {
             for (int j = 0; j < Math.min(order.length, 1); j++) {
               if (echo) {
@@ -3688,8 +3718,9 @@ public class Files {
         indices = ext.indicesWithinString(".", newFilenames[i]);
         for (int j = 0; j < indices.length - 1; j++) {
           newFilenames[i] = newFilenames[i].substring(0, indices[j] + 1)
-              + newFilenames[i].substring(indices[j] + 1, indices[j] + 2).toUpperCase()
-              + newFilenames[i].substring(indices[j] + 2);
+                            + newFilenames[i].substring(indices[j] + 1, indices[j] + 2)
+                                             .toUpperCase()
+                            + newFilenames[i].substring(indices[j] + 2);
         }
         if (!filenames[i].equals(newFilenames[i])) {
           if (echo) {
@@ -3718,20 +3749,18 @@ public class Files {
           if (line.length == 1) {
             log.report("Will delete all instances of \"" + line[0] + "\"");
           } else if (line[1].indexOf(line[0]) != -1) {
-            log.reportError(
-                "Error - the replacement cannot be an extension of itself otherwise it will result in an infinite loop");
+            log.reportError("Error - the replacement cannot be an extension of itself otherwise it will result in an infinite loop");
             log.reportError("\"" + line + "\" to \"" + line[1] + "\"");
             problem = true;
           }
           if (line.length > 2) {
-            log.reportError(
-                "Warning - the following line has more than two TABs in it, only the first and second will be used");
+            log.reportError("Warning - the following line has more than two TABs in it, only the first and second will be used");
             log.reportError(temp);
           }
 
           if (!line[0].equals("")) {
-            list.add(
-                line.length > 1 ? new String[] {line[0], line[1]} : new String[] {line[0], ""});
+            list.add(line.length > 1 ? new String[] {line[0], line[1]}
+                                     : new String[] {line[0], ""});
           }
         }
       }
@@ -3750,7 +3779,7 @@ public class Files {
   }
 
   public static void replaceAll(String filename, String outfile, String[][] replacements,
-      Logger log) {
+                                Logger log) {
     BufferedReader reader;
     PrintWriter writer;
 
@@ -3776,10 +3805,10 @@ public class Files {
     Vector<String> params;
 
     params = Files.parseControlFile(filename, "replaceAll",
-        new String[] {"file=input.txt.gz", "out=outputFile.txt.gz",
-            "# the swap/replacement file is two tab delimited columns of what to search for (first col) and what to replace it with (second col)",
-            "swap=replacements.txt"},
-        log);
+                                    new String[] {"file=input.txt.gz", "out=outputFile.txt.gz",
+                                                  "# the swap/replacement file is two tab delimited columns of what to search for (first col) and what to replace it with (second col)",
+                                                  "swap=replacements.txt"},
+                                    log);
 
     if (params != null) {
       params.add("log=" + log.getFilename());
@@ -3788,7 +3817,8 @@ public class Files {
   }
 
   public static void splitFile(String filename, int numSplits, int numLinesCopiedToAll,
-      int blockSize, String rootForNewFiles, String extForNewFiles, boolean allowUnevenBlocks) {
+                               int blockSize, String rootForNewFiles, String extForNewFiles,
+                               boolean allowUnevenBlocks) {
     BufferedReader reader;
     PrintWriter writer;
     int count;
@@ -3810,8 +3840,8 @@ public class Files {
         if (writer != null) {
           writer.close();
         }
-        writer = new PrintWriter(
-            new FileWriter(rootForNewFiles + (count % numSplits + 1) + extForNewFiles, true));
+        writer = new PrintWriter(new FileWriter(rootForNewFiles + (count % numSplits + 1)
+                                                + extForNewFiles, true));
         if (new File(rootForNewFiles + (count % numSplits + 1) + extForNewFiles).length() == 0) {
           writer.print(header);
         }
@@ -3820,15 +3850,13 @@ public class Files {
             writer.println(reader.readLine());
           } else {
             if (!allowUnevenBlocks) {
-              System.out.println(
-                  "Error - invalid block size or trailing whitespace; last block size was only "
-                      + i);
+              System.out.println("Error - invalid block size or trailing whitespace; last block size was only "
+                                 + i);
               writer.close();
               try {
                 writer = new PrintWriter(new FileWriter(filename + "_BLOCK_ERROR.log"));
-                writer.println(
-                    "Error - invalid block size or trailing whitespace; last block size was only "
-                        + i);
+                writer.println("Error - invalid block size or trailing whitespace; last block size was only "
+                               + i);
                 writer.close();
               } catch (Exception e) {
                 System.err.println("Error writing to " + filename + ".log");
@@ -3882,15 +3910,15 @@ public class Files {
     }
 
     splitFile(filename, numSplits, numLinesCopiedToAll, blockSize, rootForNewFiles, extForNewFiles,
-        allowUnevenBlocks);
+              allowUnevenBlocks);
   }
 
   public static void splitFileFromParameters(String filename, Logger log) {
     String[][] params;
 
     params = parseControlFile(filename, false, "split",
-        new String[] {"sourcefile.txt numFiles=6 sizeOfHeader=1 blockSize=1 root=list ext=.dat"},
-        log);
+                              new String[] {"sourcefile.txt numFiles=6 sizeOfHeader=1 blockSize=1 root=list ext=.dat"},
+                              log);
     if (params != null) {
       splitFile(params[0]);
     }
@@ -3950,8 +3978,8 @@ public class Files {
       writer.println("Full filename\tdirectory\tfilename\troot\textension");
       for (String element : data) {
         writer.println(element + "\t" + ext.parseDirectoryOfFile(element) + "\t"
-            + ext.removeDirectoryInfo(element) + "\t" + ext.rootOf(element) + "\t"
-            + element.substring(element.lastIndexOf(".") + 1));
+                       + ext.removeDirectoryInfo(element) + "\t" + ext.rootOf(element) + "\t"
+                       + element.substring(element.lastIndexOf(".") + 1));
       }
       writer.close();
     } catch (Exception e) {
@@ -3986,7 +4014,7 @@ public class Files {
   }
 
   public static void transpose(String filein, String delimiterIn, String fileout,
-      String delimiterOut, Logger log) {
+                               String delimiterOut, Logger log) {
     BufferedReader reader;
     PrintWriter writer;
     String[][] matrix;
@@ -4004,9 +4032,8 @@ public class Files {
       matrix = new String[lineCount][];
       for (int i = 0; i < matrix.length; i++) {
         if (lineCount > 20 && i % (matrix.length / 20) == 0) {
-          log.report(
-              ext.getTime() + "\t" + Math.round(100 * (float) i / matrix.length) + "% loaded; ",
-              false, true);
+          log.report(ext.getTime() + "\t" + Math.round(100 * (float) i / matrix.length)
+                     + "% loaded; ", false, true);
           log.memoryPercentFree();
         }
         matrix[i] = reader.readLine().trim().split(delimiterIn);
@@ -4014,7 +4041,7 @@ public class Files {
           size = matrix[i].length;
         } else if (matrix[i].length != size) {
           log.reportError("Error transposing file: different number of columns (previously: " + size
-              + "; line " + (i + 1) + ": " + matrix[i].length + ")");
+                          + "; line " + (i + 1) + ": " + matrix[i].length + ")");
           log.reportError("   Make sure that the delimiter is set correctly");
         }
       }
@@ -4029,7 +4056,7 @@ public class Files {
       for (int j = 0; j < size; j++) {
         if (size > 20 && j % (size / 20) == 0) {
           log.report(ext.getTime() + "\t" + Math.round(100 * (float) j / size) + "% loaded; ",
-              false, true);
+                     false, true);
           log.memoryPercentFree();
         }
         for (int i = 0; i < matrix.length; i++) {
@@ -4078,9 +4105,9 @@ public class Files {
     int colCount, suggestedStep;
 
     paramV = Files.parseControlFile(filename, "transpose",
-        new String[] {"sourcefile.txt out=newfile.txt forceHuge=false forceStep=-1",
-            "# (step is only used for huge"},
-        log);
+                                    new String[] {"sourcefile.txt out=newfile.txt forceHuge=false forceStep=-1",
+                                                  "# (step is only used for huge"},
+                                    log);
     if (paramV != null) {
       line = paramV.remove(0).trim().split("[\\s]+");
 
@@ -4111,29 +4138,29 @@ public class Files {
         suggestedStep =
             (int) ((double) memoryAvailable / 40 / ((double) filesize / (double) colCount));
         log.report("( " + memoryAvailable + " / 40 ) / ( " + filesize + " / " + colCount + " ) = "
-            + suggestedStep);
+                   + suggestedStep);
         if (step == -1) {
           step = suggestedStep;
         }
 
         log.report("Using the huge transpose option with a step of " + step + " which will take "
-            + (int) (Math.ceil((double) colCount / (double) step)) + " cycles");
+                   + (int) (Math.ceil((double) colCount / (double) step)) + " cycles");
         transposeHuge(infile, Files.determineDelimiter(infile, log), outfile,
-            Files.suggestDelimiter(outfile, log), step, log);
+                      Files.suggestDelimiter(outfile, log), step, log);
       } else {
         transpose(infile, Files.determineDelimiter(infile, log), outfile,
-            Files.suggestDelimiter(outfile, log), log);
+                  Files.suggestDelimiter(outfile, log), log);
       }
     }
   }
 
   public static void transposeHuge(String filename, int step, Logger log) {
     transposeHuge(filename, Files.determineDelimiter(filename, log),
-        filename + "-transposeHuge.xln", "\t", step, log);
+                  filename + "-transposeHuge.xln", "\t", step, log);
   }
 
   public static void transposeHuge(String filename, String delimiterIn, String fileout,
-      String delimiterOut, int step, Logger log) {
+                                   String delimiterOut, int step, Logger log) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -4148,7 +4175,7 @@ public class Files {
       writer = new PrintWriter(new FileWriter(fileout));
       while (inc < size) {
         log.report(ext.getTime() + "\t" + Math.round(100 * (float) inc / size) + "% processed; ",
-            false, true);
+                   false, true);
         log.memoryPercentFree();
 
         reader = new BufferedReader(new FileReader(filename));
@@ -4158,7 +4185,7 @@ public class Files {
             size = line.length;
           } else if (line.length != size) {
             log.reportError("Error transposing file: different number of columns (previously: "
-                + size + "; line " + (i + 1) + ": " + line.length + ")");
+                            + size + "; line " + (i + 1) + ": " + line.length + ")");
             log.reportError("   Make sure that the delimiter is set correctly");
           }
           matrix[i] = Array.subArray(line, inc, inc + step > size ? size : inc + step);
@@ -4198,8 +4225,9 @@ public class Files {
       traverseTree(root, dir + dir2 + "/", allFiles, jar);
     }
 
-    HashVec.addAllInArrayToVector(
-        Array.addPrefixSuffixToArray(list(root + dir, null, jar), dir, null), allFiles);
+    HashVec.addAllInArrayToVector(Array.addPrefixSuffixToArray(list(root + dir, null, jar), dir,
+                                                               null),
+                                  allFiles);
   }
 
   public static void write(String str, String filename) {
@@ -4257,15 +4285,15 @@ public class Files {
   }
 
   private static void writeQsubHeader(PrintWriter writer, String filename,
-      int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs,
-      String nodeToUse) {
+                                      int totalMemoryRequestedInMb, double walltimeRequestedInHours,
+                                      int numProcs, String nodeToUse) {
     writeQsubHeader(writer, filename, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs,
-        nodeToUse, true);
+                    nodeToUse, true);
   }
 
   private static void writeQsubHeader(PrintWriter writer, String filename,
-      int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs, String nodeToUse,
-      boolean defualtMods) {
+                                      int totalMemoryRequestedInMb, double walltimeRequestedInHours,
+                                      int numProcs, String nodeToUse, boolean defualtMods) {
     Vector<String> params;
     int hours, minutes;
 

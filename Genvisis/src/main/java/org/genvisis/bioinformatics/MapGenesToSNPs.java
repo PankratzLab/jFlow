@@ -38,14 +38,16 @@ public class MapGenesToSNPs {
 
     buffer = -1;
 
-    paramV = Files.parseControlFile(filename, "genes", new String[] {
-        "candidates.txt header , 0 out=file.out", "plink.bim 1 0 3", "buffer=" + DEFAULT_BUFFER},
-        log);
+    paramV = Files.parseControlFile(filename, "genes",
+                                    new String[] {"candidates.txt header , 0 out=file.out",
+                                                  "plink.bim 1 0 3", "buffer=" + DEFAULT_BUFFER},
+                                    log);
     if (paramV == null) {
       return;
     }
-    track = GeneTrack
-        .load(Aliases.getPathToFileInReferenceDirectory(GeneSet.REFSEQ_TRACK, true, log), false);
+    track =
+        GeneTrack.load(Aliases.getPathToFileInReferenceDirectory(GeneSet.REFSEQ_TRACK, true, log),
+                       false);
 
     line = paramV.remove(0).trim().split("[\\s]+");
     genesFile = line[0];
@@ -77,9 +79,9 @@ public class MapGenesToSNPs {
     }
     log.report("Loading genes from '" + genesFile + "'");
     genes = HashVec.loadFileToStringArray(genesFile, false, ignoreFirstLine, new int[] {col}, true,
-        false, commaDelimited ? "," : "[\\s]+");
+                                          false, commaDelimited ? "," : "[\\s]+");
     locOverwrite = HashVec.loadFileToHashString(genesFile, new int[] {col}, new int[] {locCol},
-        false, "\t", false, false, true);
+                                                false, "\t", false, false, true);
 
     locs = new int[genes.length][];
     log.report("Found " + genes.length + " genes to interrogate");
@@ -145,6 +147,6 @@ public class MapGenesToSNPs {
     log.report("Found " + snps.size() + " SNPs in these genes");
 
     Files.combine(Array.toStringArray(snps), Array.toStringArray(paramV), "SNP", outputFilename,
-        log, true);
+                  log, true);
   }
 }

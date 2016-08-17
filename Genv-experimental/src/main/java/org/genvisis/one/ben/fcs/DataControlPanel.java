@@ -59,7 +59,7 @@ public class DataControlPanel extends JPanel {
       @Override
       public void actionPerformed(ActionEvent e) {
         ActionEvent newEv = new ActionEvent(DataControlPanel.this, 0,
-            DataControlPanel.this.file + "::" + ACTION_DELETE);
+                                            DataControlPanel.this.file + "::" + ACTION_DELETE);
         al.actionPerformed(newEv);
       }
     });
@@ -74,7 +74,7 @@ public class DataControlPanel extends JPanel {
       @Override
       public void actionPerformed(ActionEvent e) {
         ActionEvent newEv = new ActionEvent(DataControlPanel.this, 0,
-            DataControlPanel.this.file + "::" + ACTION_MOVE_UP);
+                                            DataControlPanel.this.file + "::" + ACTION_MOVE_UP);
         al.actionPerformed(newEv);
       }
     });
@@ -89,7 +89,7 @@ public class DataControlPanel extends JPanel {
       @Override
       public void actionPerformed(ActionEvent e) {
         ActionEvent newEv = new ActionEvent(DataControlPanel.this, 0,
-            DataControlPanel.this.file + "::" + ACTION_MOVE_DOWN);
+                                            DataControlPanel.this.file + "::" + ACTION_MOVE_DOWN);
         al.actionPerformed(newEv);
       }
     });
@@ -104,7 +104,7 @@ public class DataControlPanel extends JPanel {
       @Override
       public void actionPerformed(ActionEvent e) {
         ActionEvent newEv = new ActionEvent(DataControlPanel.this, 0,
-            DataControlPanel.this.file + "::" + ACTION_INFO);
+                                            DataControlPanel.this.file + "::" + ACTION_INFO);
         al.actionPerformed(newEv);
       }
     });
@@ -119,7 +119,7 @@ public class DataControlPanel extends JPanel {
       @Override
       public void actionPerformed(ActionEvent e) {
         ActionEvent newEv = new ActionEvent(DataControlPanel.this, 0,
-            DataControlPanel.this.file + "::" + ACTION_LOAD);
+                                            DataControlPanel.this.file + "::" + ACTION_LOAD);
         al.actionPerformed(newEv);
       }
     });
@@ -134,7 +134,7 @@ public class DataControlPanel extends JPanel {
       @Override
       public void actionPerformed(ActionEvent e) {
         ActionEvent newEv = new ActionEvent(DataControlPanel.this, 0,
-            DataControlPanel.this.file + "::" + ACTION_USE);
+                                            DataControlPanel.this.file + "::" + ACTION_USE);
         al.actionPerformed(newEv);
       }
     });
@@ -170,8 +170,8 @@ public class DataControlPanel extends JPanel {
     SwingUtilities.invokeLater(new Runnable() {
       @Override
       public void run() {
-        btnLoad.setIcon(
-            Grafik.getImageIcon(loaded ? "images/tick_sm.png" : "images/tick-empty_sm.png"));
+        btnLoad.setIcon(Grafik.getImageIcon(loaded ? "images/tick_sm.png"
+                                                   : "images/tick-empty_sm.png"));
         repaint();
       }
     });

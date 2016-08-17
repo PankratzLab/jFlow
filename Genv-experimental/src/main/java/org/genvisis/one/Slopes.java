@@ -25,7 +25,7 @@ import com.google.common.primitives.Doubles;
 public class Slopes {
 
   public static void checkIfBefore(String dir, String filename, int idIndex, String dateIndices,
-      String valueIndices, String refFile) {
+                                   String valueIndices, String refFile) {
     PrintWriter writer;
     String[] line;
     Hashtable<String, String> refs;
@@ -67,12 +67,14 @@ public class Slopes {
 
     ids = HashVec.getKeys(hash, true, true);
     try {
-      writer = new PrintWriter(new FileWriter(dir + trait + "_first"
-          + (refFile == null ? "" : "Before_" + ext.rootOf(refFile)) + ".xln"));
+      writer =
+          new PrintWriter(new FileWriter(dir + trait + "_first"
+                                         + (refFile == null ? "" : "Before_" + ext.rootOf(refFile))
+                                         + ".xln"));
       writer.println("id\t" + trait + "_ever\t" + trait + "_firstEver\t" + trait + "_before_"
-          + ext.rootOf(refFile) + "\t" + trait + "_firstBefore_" + ext.rootOf(refFile) + "\t"
-          + trait + "_after_" + ext.rootOf(refFile) + "\t" + trait + "_firstAfter_"
-          + ext.rootOf(refFile));
+                     + ext.rootOf(refFile) + "\t" + trait + "_firstBefore_" + ext.rootOf(refFile)
+                     + "\t" + trait + "_after_" + ext.rootOf(refFile) + "\t" + trait
+                     + "_firstAfter_" + ext.rootOf(refFile));
       for (String id : ids) {
         v = hash.get(id);
         if (refs.containsKey(id)) {
@@ -104,10 +106,11 @@ public class Slopes {
             }
           }
         }
-        writer.println(
-            id + "\t" + (firstEver == Double.POSITIVE_INFINITY ? "0\t." : "1\t" + firstEver) + "\t"
-                + (firstBefore == Double.POSITIVE_INFINITY ? "0\t." : "1\t" + firstBefore) + "\t"
-                + (firstAfter == Double.POSITIVE_INFINITY ? "0\t." : "1\t" + firstAfter));
+        writer.println(id + "\t"
+                       + (firstEver == Double.POSITIVE_INFINITY ? "0\t." : "1\t" + firstEver) + "\t"
+                       + (firstBefore == Double.POSITIVE_INFINITY ? "0\t." : "1\t" + firstBefore)
+                       + "\t"
+                       + (firstAfter == Double.POSITIVE_INFINITY ? "0\t." : "1\t" + firstAfter));
       }
       writer.close();
     } catch (FileNotFoundException fnfe) {
@@ -144,7 +147,7 @@ public class Slopes {
     // String filename = "FRS.dat";
     String filename = "RIG.dat";
     String usage = "\n" + "one.Slopes requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-        + filename + " (default))\n" + "";
+                   + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -191,11 +194,11 @@ public class Slopes {
     }
 
     return new GregorianCalendar(year, month, date).getTimeInMillis() / 1000 / 60 / 60 / 24 / 365.25
-        * 12;
+           * 12;
   }
 
   public static void parseListwise(String dir, String filename, int idIndex, String dateIndices,
-      String valueIndices, String refFile) {
+                                   String valueIndices, String refFile) {
     PrintWriter writer;
     String[] line;
     Hashtable<String, String> refs, dateCheck;
@@ -238,12 +241,15 @@ public class Slopes {
 
     ids = HashVec.getKeys(hash, true, true);
     try {
-      writer = new PrintWriter(new FileWriter(dir + trait + "_slopes"
-          + (refFile == null ? "" : "_after_" + ext.rootOf(refFile)) + ".xln"));
+      writer =
+          new PrintWriter(new FileWriter(dir + trait + "_slopes"
+                                         + (refFile == null ? "" : "_after_" + ext.rootOf(refFile))
+                                         + ".xln"));
       writer.println("id\t" + trait + "_slope\tN"
-          + (refFile == null ? ""
-              : "\t" + trait + "_slope_pre_" + ext.rootOf(refFile) + "\tN\t" + trait
-                  + "_slope_post_" + ext.rootOf(refFile) + "\tN"));
+                     + (refFile == null ? ""
+                                        : "\t" + trait + "_slope_pre_" + ext.rootOf(refFile)
+                                          + "\tN\t" + trait + "_slope_post_" + ext.rootOf(refFile)
+                                          + "\tN"));
       for (String id : ids) {
         v = hash.get(id);
         if (refs.containsKey(id)) {
@@ -264,7 +270,8 @@ public class Slopes {
               if (dateCheck.containsKey(date + "")) {
                 if (!dateCheck.get(date + "").equals(value + "")) {
                   System.err.println("Error - duplicate dates (" + line[0] + ") for " + id
-                      + " and yet different values: " + dateCheck.get(date + "") + " and " + value);
+                                     + " and yet different values: " + dateCheck.get(date + "")
+                                     + " and " + value);
                 }
               } else {
                 values[0].add(value);
@@ -286,15 +293,16 @@ public class Slopes {
         for (int j = 0; j < (refFile == null ? 1 : 3); j++) {
           if (values[j].size() >= 2) {
             if (Array.variance(Doubles.toArray(values[j])) == 0) {
-              System.err.println(
-                  "Warning - no variation for '" + (j == 0 ? "all" : (j == 1 ? "pre" : "post"))
-                      + "' data for " + id + "; slope is zero");
+              System.err.println("Warning - no variation for '"
+                                 + (j == 0 ? "all" : (j == 1 ? "pre" : "post")) + "' data for " + id
+                                 + "; slope is zero");
               writer.print("\t0");
             } else {
               linear = new LeastSquares(Doubles.toArray(values[j]), Doubles.toArray(dates[j]));
               if (linear.analysisFailed()) {
                 System.err.println("Error - problem with '"
-                    + (j == 0 ? "all" : (j == 1 ? "pre" : "post")) + "' data for " + id);
+                                   + (j == 0 ? "all" : (j == 1 ? "pre" : "post")) + "' data for "
+                                   + id);
               }
               writer.print("\t" + linear.getBetas()[1]);
             }
@@ -347,11 +355,11 @@ public class Slopes {
         for (int i = 0; i < timepoints; i++) {
           if (line[2 + i * 2 + 0].equals(".") && line[2 + i * 2 + 1].equals(".")) {
           } else if (line[2 + i * 2 + 0].equals(".")) {
-            System.err
-                .println("Error - missing value for time point #" + (i + 1) + " for " + line[0]);
+            System.err.println("Error - missing value for time point #" + (i + 1) + " for "
+                               + line[0]);
           } else if (line[2 + i * 2 + 1].equals(".")) {
-            System.err
-                .println("Error - missing date for time point #" + (i + 1) + " for " + line[0]);
+            System.err.println("Error - missing date for time point #" + (i + 1) + " for "
+                               + line[0]);
           } else {
             value = Double.parseDouble(line[2 + i * 2 + 0]);
             date = parseDate(line[2 + i * 2 + 1]);

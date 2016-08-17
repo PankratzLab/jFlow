@@ -23,7 +23,7 @@ import htsjdk.tribble.annotation.Strand;
 
 public class Blast {
   private enum BLAST_COMMANDS {
-    MAKE_DB("makeblastdb"), BLASTN("blastn");
+                               MAKE_DB("makeblastdb"), BLASTN("blastn");
     private String command;
 
     private BLAST_COMMANDS(String command) {
@@ -35,7 +35,7 @@ public class Blast {
     }
   }
   private enum BLAST_DB_TYPE {
-    NUCL("nucl");
+                              NUCL("nucl");
     private String type;
 
     private BLAST_DB_TYPE(String type) {
@@ -140,13 +140,13 @@ public class Blast {
 
     public String[] getResults() {
       return new String[] {queryID, subjectID, percentIdentity + "", alignmentLength + "",
-          mismatches + "", gapOpens + "", qstart + "", qstop + "", sstart + "", sstop + "",
-          evalue + "", bitScore + "", btop};
+                           mismatches + "", gapOpens + "", qstart + "", qstop + "", sstart + "",
+                           sstop + "", evalue + "", bitScore + "", btop};
     }
 
     public Segment getSegment() {
       return new Segment(Positions.chromosomeNumber(subjectID, false, new Logger()),
-          Math.min(sstart, sstop), Math.max(sstart, sstop));
+                         Math.min(sstart, sstop), Math.max(sstart, sstop));
 
     }
 
@@ -232,7 +232,7 @@ public class Blast {
             if (blastResults.getSubjectID().startsWith("chr")) {
               perfectMatchSegment =
                   new Segment(Positions.chromosomeNumber(blastResults.getSubjectID()),
-                      blastResults.getSstart(), blastResults.getSstop());
+                              blastResults.getSstart(), blastResults.getSstop());
             }
 
           } else {
@@ -370,7 +370,8 @@ public class Blast {
   public static final String[] DB_EXTs = new String[] {".nsq", ".nin", ".nhr"};
   public static final String[] BLAST_HEADER =
       new String[] {"query id", "subject id", "% identity", "alignment length", "mismatches",
-          "gap opens", "q. start", "q. end", "s. start", "s. end", "evalue", "bit score", "BTOP"};
+                    "gap opens", "q. start", "q. end", "s. start", "s. end", "evalue", "bit score",
+                    "BTOP"};
   private static final String DB = "-db";
   private static final String IN = "-in";
 
@@ -398,10 +399,10 @@ public class Blast {
       String[] dbCommand =
           new String[] {BLAST_COMMANDS.MAKE_DB.getCommand(), IN, fastaDb, DB_TYPE, type.getTYPE()};
       dbCreated = CmdLine.runCommandWithFileChecks(dbCommand, "", new String[] {fastaDb},
-          getDBFiles(fastaDb), true, false, false, log);
+                                                   getDBFiles(fastaDb), true, false, false, log);
     } else {
       log.reportTimeInfo("Using existing data base files : " + ext.rootOf(fastaDb) + " ("
-          + Array.toStr(DB_EXTs, ",") + ")");
+                         + Array.toStr(DB_EXTs, ",") + ")");
 
     }
     return dbCreated;
@@ -415,7 +416,7 @@ public class Blast {
     // Logger log;
 
     String usage = "\n" + "seq.analysis.Blast requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -449,8 +450,9 @@ public class Blast {
   public static void test() {
     String fastaDb = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
     Blast blast = new Blast(fastaDb, 60, 100, new Logger(), true, true);
-    FastaEntry fastaEntry = new FastaEntry("HDSIF",
-        "GAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTGTGTTAATTAATTAATGCTTGTAGGACATAATAATAACAATTGAAT");
+    FastaEntry fastaEntry =
+        new FastaEntry("HDSIF",
+                       "GAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTGTGTTAATTAATTAATGCTTGTAGGACATAATAATAACAATTGAAT");
     blast.blastSequence(new FastaEntry[] {fastaEntry}, null);
   }
 
@@ -465,13 +467,13 @@ public class Blast {
     }
     if (!CmdLine.run(BLAST_COMMANDS.BLASTN.getCommand(), "")) {
       log.reportTimeError("It is assumed that the program " + BLAST_COMMANDS.BLASTN.getCommand()
-          + " can be found on the system's path, please install before continuing");
+                          + " can be found on the system's path, please install before continuing");
       verified = false;
     }
     if (!Files.exists("", getDBFiles(fastaDb))
         && !CmdLine.run(BLAST_COMMANDS.MAKE_DB.getCommand(), "")) {
       log.reportTimeError("It is assumed that the program " + BLAST_COMMANDS.BLASTN.getCommand()
-          + " can be found on the system's path, or the following files are present...");
+                          + " can be found on the system's path, or the following files are present...");
       log.reportTimeError(Array.toStr(getDBFiles(fastaDb), "\n"));
       verified = false;
     }
@@ -493,7 +495,7 @@ public class Blast {
   private double evalue;
 
   public Blast(String fastaDb, int blastWordSize, int reportWordSize, Logger log,
-      boolean overwriteExisting, boolean verbose) {
+               boolean overwriteExisting, boolean verbose) {
     super();
 
     this.fastaDb = fastaDb;
@@ -515,10 +517,11 @@ public class Blast {
 
     if (!Files.isWindows()) {
       if (!fail) {
-        String[] command = new String[] {BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb, OUT_FMT,
-            DEFAULT_OUT_FMT + " std" + (taxonMode ? " staxids" : " btop"), WORD_SIZE,
-            blastWordSize + "", evalue != DEFAULT_EVALUE ? E : "",
-            evalue != DEFAULT_EVALUE ? evalue + "" : ""};
+        String[] command =
+            new String[] {BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb, OUT_FMT,
+                          DEFAULT_OUT_FMT + " std" + (taxonMode ? " staxids" : " btop"), WORD_SIZE,
+                          blastWordSize + "", evalue != DEFAULT_EVALUE ? E : "",
+                          evalue != DEFAULT_EVALUE ? evalue + "" : ""};
         FastaEntryInputStream fStream = new FastaEntryInputStream(fastaEntries, log);
         CmdLineProcess.Builder builder = new CmdLineProcess.Builder();
         builder.STIN(fStream);

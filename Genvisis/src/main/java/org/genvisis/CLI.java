@@ -47,7 +47,7 @@ public final class CLI {
    * {@link #addArg}, and add it to the given {@link Options}
    */
   private static void add(Options options, Builder builder, String longName, String desc,
-      boolean required, Class<?> type) {
+                          boolean required, Class<?> type) {
     if (longName != null) {
       builder = builder.longOpt(longName);
     }
@@ -99,7 +99,7 @@ public final class CLI {
    *        constructor, or {@code valueOf(String)} method). <i>Default: {@link String}</i>
    */
   public static void addArg(Options options, String name, String description, boolean required,
-      Class<?> type) {
+                            Class<?> type) {
     addArg(options, name, description, null, required, type);
   }
 
@@ -133,7 +133,7 @@ public final class CLI {
    *        set and no {@code argDefault} is provided. <i>Default: {@code false}</i>
    */
   public static void addArg(Options options, String name, String description, String argDefault,
-      boolean required) {
+                            boolean required) {
     addArg(options, name, description, argDefault, required, TYPE);
   }
 
@@ -155,7 +155,7 @@ public final class CLI {
    *        {@link PatternOptionBuilder#STRING_VALUE}</i>
    */
   public static void addArg(Options options, String name, String description, String argDefault,
-      boolean required, Class<?> type) {
+                            boolean required, Class<?> type) {
     String argVal = ARG_VALUE;
     boolean reallyRequired = required;
 
@@ -223,7 +223,7 @@ public final class CLI {
    *        <i>Default: {@code false}</i>
    */
   public static void addFlag(Options options, String name, String description, String longName,
-      boolean required) {
+                             boolean required) {
     Builder builder = Option.builder(name);
 
     add(options, builder, longName, description, required, null);
@@ -242,8 +242,7 @@ public final class CLI {
     g.setRequired(true);
 
     if (toGroup.length < 2) {
-      throw new IllegalArgumentException(
-          "Group creation failed. Can not create an options group with one option.");
+      throw new IllegalArgumentException("Group creation failed. Can not create an options group with one option.");
     }
 
     for (String opt : toGroup) {
@@ -295,7 +294,7 @@ public final class CLI {
    * @return A {@link Map} of {@link Option} names to parsed values.
    */
   public static Map<String, String> parse(Class<?> appClass, Options options, Logger log,
-      String... args) throws ParseException {
+                                          String... args) throws ParseException {
     return parse(appClass.getName(), options, log, args);
   }
 
@@ -308,8 +307,8 @@ public final class CLI {
    * @param args Provided command-line arguments to parse
    * @return A {@link Map} of {@link Option} names to parsed values.
    */
-  public static Map<String, String> parse(Class<?> appClass, Options options, String... args)
-      throws ParseException {
+  public static Map<String, String> parse(Class<?> appClass, Options options,
+                                          String... args) throws ParseException {
     return parse(appClass, options, new Logger(), args);
   }
 
@@ -326,7 +325,7 @@ public final class CLI {
    * @return A {@link Map} of {@link Option} names to parsed values.
    */
   public static Map<String, String> parse(String appName, Options options, Logger log,
-      String... args) throws ParseException {
+                                          String... args) throws ParseException {
     // Can't figure out how to configure CommandLineParser to allow arguments (but not flags) to
     // drop the "-"
     // character... so, manually prepend it here.
@@ -377,8 +376,8 @@ public final class CLI {
    * @param args Provided command-line arguments to parse
    * @return A {@link Map} of {@link Option} names to parsed values.
    */
-  public static Map<String, String> parse(String appName, Options options, String... args)
-      throws ParseException {
+  public static Map<String, String> parse(String appName, Options options,
+                                          String... args) throws ParseException {
     return parse(appName, options, new Logger(), args);
   }
 
@@ -397,7 +396,7 @@ public final class CLI {
    * @return A {@link Map} of {@link Option} names to parsed values.
    */
   public static Map<String, String> parseWithExit(Class<?> appClass, Options options, Logger log,
-      String... args) {
+                                                  String... args) {
     return parseWithExit(appClass.getName(), options, log, args);
   }
 
@@ -415,7 +414,7 @@ public final class CLI {
    * @return A {@link Map} of {@link Option} names to parsed values.
    */
   public static Map<String, String> parseWithExit(Class<?> appClass, Options options,
-      String... args) {
+                                                  String... args) {
     return parseWithExit(appClass, options, new Logger(), args);
   }
 
@@ -438,7 +437,7 @@ public final class CLI {
    * @return A {@link Map} of {@link Option} names to parsed values.
    */
   public static Map<String, String> parseWithExit(String appName, Options options, Logger log,
-      String... args) {
+                                                  String... args) {
     Map<String, String> parsed = null;
     try {
       parsed = parse(appName, options, log, args);
@@ -484,7 +483,7 @@ public final class CLI {
     String program = appName + " [-FLAG | ARG=value]...";
     PrintWriter pw = new PrintWriter(System.out);
     formatter.printHelp(pw, OUT_WIDTH, program, "", options, HelpFormatter.DEFAULT_LEFT_PAD,
-        HelpFormatter.DEFAULT_DESC_PAD, sb.toString());
+                        HelpFormatter.DEFAULT_DESC_PAD, sb.toString());
     pw.flush();
 
     String logfile = log.getFilename();
@@ -492,7 +491,7 @@ public final class CLI {
       try {
         pw = new PrintWriter(new FileWriter(logfile));
         formatter.printHelp(pw, OUT_WIDTH, program, "", options, HelpFormatter.DEFAULT_LEFT_PAD,
-            HelpFormatter.DEFAULT_DESC_PAD, sb.toString());
+                            HelpFormatter.DEFAULT_DESC_PAD, sb.toString());
         pw.flush();
         pw.close();
       } catch (IOException e) {
@@ -514,8 +513,8 @@ public final class CLI {
       } catch (ParseException e) {
         StringBuilder sb = new StringBuilder();
         sb.append("Argument \"").append(opt).append("\" with value \"")
-            .append(cl.getOptionValue(opt)).append("\" does not conform to required type: ")
-            .append(o.getType());
+          .append(cl.getOptionValue(opt)).append("\" does not conform to required type: ")
+          .append(o.getType());
         throw new ParseException(sb.toString());
       }
     }

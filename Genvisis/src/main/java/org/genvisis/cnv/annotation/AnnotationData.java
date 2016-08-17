@@ -20,7 +20,7 @@ public class AnnotationData extends Annotation implements AnnotationParser {
   private boolean found;
 
   public AnnotationData(VCFHeaderLineType type, VCFHeaderLineCount count, int number, String name,
-      String description, String data, String defaultValue) {
+                        String description, String data, String defaultValue) {
     super(type, count, number, name, description, defaultValue);
     this.data = data;
     found = false;
@@ -36,7 +36,7 @@ public class AnnotationData extends Annotation implements AnnotationParser {
 
   public List<String> getDataAsList() {
     return Arrays.asList(data.replaceAll("\\[", "").replaceAll("\\]", "")
-        .split("\\s*" + DEFUALT_DELIMITER + "\\s*"));
+                             .split("\\s*" + DEFUALT_DELIMITER + "\\s*"));
   }
 
   @Override

@@ -27,7 +27,7 @@ public class lab {
 
 
   public enum TEST {
-    TEST1, TEST2, TEST3;
+                    TEST1, TEST2, TEST3;
   }
 
   public static void breakCentromeric() throws IOException {
@@ -57,8 +57,8 @@ public class lab {
 
   }
 
-  private static void countCNVsForIndividuals(String indivFile, String cnvFile, String outFile)
-      throws IOException {
+  private static void countCNVsForIndividuals(String indivFile, String cnvFile,
+                                              String outFile) throws IOException {
     Hashtable<String, String> sampleKeyHash = new Hashtable<String, String>();
     BufferedReader reader = new BufferedReader(new FileReader(indivFile));
     String line = null;
@@ -86,7 +86,8 @@ public class lab {
 
 
   public static void filterCentromeric(String dir, String in, String out,
-      String markerSetFilenameToBreakUpCentromeres, int build, Logger log) {
+                                       String markerSetFilenameToBreakUpCentromeres, int build,
+                                       Logger log) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -94,8 +95,9 @@ public class lab {
     Segment[] centromereMidpoints;
     int[][] centromereBoundaries;
 
-    centromereBoundaries = Positions.determineCentromereBoundariesFromMarkerSet(
-        markerSetFilenameToBreakUpCentromeres, build, log);
+    centromereBoundaries =
+        Positions.determineCentromereBoundariesFromMarkerSet(markerSetFilenameToBreakUpCentromeres,
+                                                             build, log);
     centromereMidpoints = Positions.computeCentromereMidpoints(centromereBoundaries);
 
     try {
@@ -160,9 +162,9 @@ public class lab {
       // pipeline.addDataSource("/scratch.global/cole0482/merge/blacks/", "gwas.bed", "gwas.bim",
       // "gwas.fam");
       pipeline.addDataSource("exome", "/scratch.global/cole0482/merge/blacks/", "exome.bed",
-          "exome.bim", "exome.fam");
+                             "exome.bim", "exome.fam");
       pipeline.addDataSource("metab", "/scratch.global/cole0482/merge/blacks/", "metab.bed",
-          "metab.bim", "metab.fam");
+                             "metab.bim", "metab.fam");
       // add more;
       pipeline.run();
 
@@ -260,8 +262,8 @@ public class lab {
     if (numArgs == 0) {
       try {
         countCNVsForIndividuals("D:/data/ny_registry/new_york/stats/puv_ids.txt",
-            "D:/data/ny_registry/new_york/stats/recodedM.cnv",
-            "D:/data/ny_registry/new_york/stats/puv_cnvs.cnv");
+                                "D:/data/ny_registry/new_york/stats/recodedM.cnv",
+                                "D:/data/ny_registry/new_york/stats/puv_cnvs.cnv");
         // testClipboard();
         // BufferedReader reader = new BufferedReader(new
         // FileReader("D:/ForestPlot/Hb_SingleSNP.csv"));

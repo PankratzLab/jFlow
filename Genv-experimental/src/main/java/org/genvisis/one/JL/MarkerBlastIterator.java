@@ -40,8 +40,13 @@ import com.google.common.primitives.Doubles;
 public class MarkerBlastIterator {
 
   private enum BLAST_METRICS {
-    CROSS_HYBE_PERCENT_MATCH(0, 1, 2), CROSS_HYBE_EVAL(0, 1, 2), CROSS_HYBE_LENGTH(10, 50,
-        0), GC_CONTENT(0, 1, 2);
+                              CROSS_HYBE_PERCENT_MATCH(0, 1,
+                                                       2), CROSS_HYBE_EVAL(0, 1,
+                                                                           2), CROSS_HYBE_LENGTH(10,
+                                                                                                 50,
+                                                                                                 0), GC_CONTENT(0,
+                                                                                                                1,
+                                                                                                                2);
 
     private final double minVal;
     private double maxVal;
@@ -145,18 +150,21 @@ public class MarkerBlastIterator {
 
   private static final String[] PLOT_FILE_HEADER =
       new String[] {"MarkerName", "PercentAppropriateMatch", "EvalAppropriateMatch",
-          "AvgCrossHybPercentMatch", "AvgCrossHybEval", "AvgCrossHybLength", "NumCrossHyb"};
-  private static final String[] X_COLUMNS_PLOT = new String[] {"AvgCrossHybPercentMatch",
-      "AvgCrossHybEval", "AvgCrossHybLength", "NumCrossHyb"};
+                    "AvgCrossHybPercentMatch", "AvgCrossHybEval", "AvgCrossHybLength",
+                    "NumCrossHyb"};
+  private static final String[] X_COLUMNS_PLOT =
+      new String[] {"AvgCrossHybPercentMatch", "AvgCrossHybEval", "AvgCrossHybLength",
+                    "NumCrossHyb"};
 
   private static final int[][] QC_GROUPINGS =
       new int[][] {{1}, {2, 3, 4}, {5, 6}, {7, 8, 9}, {10, 11, 12}, {23}};
 
-  private static final String[] QC_TITLES = new String[] {"CallRate", "MeanClusterTheta",
-      "DiffTheta", "SDClusterTheta", "MeanClusterR", "LRR_SD"};
+  private static final String[] QC_TITLES =
+      new String[] {"CallRate", "MeanClusterTheta", "DiffTheta", "SDClusterTheta", "MeanClusterR",
+                    "LRR_SD"};
 
   public static void blastIter(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type,
-      int blastWordSize, int numThreads, boolean reportToTmp) {
+                               int blastWordSize, int numThreads, boolean reportToTmp) {
 
     // int[] blastWordSizes = new int[] { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
     // 24, 25 };
@@ -182,8 +190,9 @@ public class MarkerBlastIterator {
     int index = 0;
     for (int blastWordSize2 : blastWordSizes) {
       for (int reportWordSize : reportWordSizes) {
-        results[index] = MarkerBlast.blastEm(proj, fileSeq, type, blastWordSize2, reportWordSize,
-            Integer.MAX_VALUE, numThreads, reportToTmp, true, true);
+        results[index] =
+            MarkerBlast.blastEm(proj, fileSeq, type, blastWordSize2, reportWordSize,
+                                Integer.MAX_VALUE, numThreads, reportToTmp, true, true);
         index++;
       }
     }
@@ -220,8 +229,8 @@ public class MarkerBlastIterator {
               if (marker.endsWith("_A") || marker.endsWith("_B")) {
                 marker = marker.substring(0, marker.length() - 2);
               } else {
-                proj.getLog().reportTimeError(
-                    "Query id did not end with _A or _B which is required for an AFFY array");
+                proj.getLog()
+                    .reportTimeError("Query id did not end with _A or _B which is required for an AFFY array");
               }
 
             }
@@ -233,11 +242,12 @@ public class MarkerBlastIterator {
               summaryindex = summaries.size();
               trackResults.put(marker, summaryindex);
               int markerIndex = indices.get(marker);
-              Segment markerSeq = new Segment(chrs[markerIndex],
-                  pos[markerIndex] - proj.getArrayType().getProbeLength(),
-                  pos[markerIndex] + proj.getArrayType().getProbeLength());
-              summaries.add(
-                  new MarkerIterationSummary(marker, referenceGenome.getGCContentFor(markerSeq)));
+              Segment markerSeq =
+                  new Segment(chrs[markerIndex],
+                              pos[markerIndex] - proj.getArrayType().getProbeLength(),
+                              pos[markerIndex] + proj.getArrayType().getProbeLength());
+              summaries.add(new MarkerIterationSummary(marker,
+                                                       referenceGenome.getGCContentFor(markerSeq)));
             }
 
             Segment blastSeg = blastResults.getSegment();
@@ -246,7 +256,7 @@ public class MarkerBlastIterator {
                 new Segment(chrs[markerIndex], pos[markerIndex] - 1, pos[markerIndex] + 1);
             boolean straight = blastResults.getMismatches() == 0 && blastResults.getGapOpens() == 0;
             boolean match = blastResults.getPercentIdentity() == appropriateMatchPercent
-                && result.getSequenceSize() == blastResults.getAlignmentLength();
+                            && result.getSequenceSize() == blastResults.getAlignmentLength();
             if (match) {
               match = blastResults.getEvalue() < minExpect;
             }
@@ -254,17 +264,19 @@ public class MarkerBlastIterator {
               summaries.get(summaryindex).setHasAppropriateMatch(true);
               summaries.get(summaryindex).setEvalueAppropriateMatch(blastResults.getEvalue());
               summaries.get(summaryindex)
-                  .setPercentAppropriateMatch(blastResults.getPercentIdentity());
+                       .setPercentAppropriateMatch(blastResults.getPercentIdentity());
             } else if (straight && blastResults.getEvalue() < minExpect
-                && blastResults.getAlignmentLength() > minCrossHybLength
-                && !blastSeg.overlaps(markerSeg)) {// we do not want to count probe A/B if probe A
-                                                   // is perfect and probe B is not but is in the
-                                                   // right spot
+                       && blastResults.getAlignmentLength() > minCrossHybLength
+                       && !blastSeg.overlaps(markerSeg)) {// we do not want to count probe A/B if
+                                                          // probe A
+                                                          // is perfect and probe B is not but is in
+                                                          // the
+                                                          // right spot
               summaries.get(summaryindex).getCrossHybEvalue().add(blastResults.getEvalue());
               summaries.get(summaryindex).getCrossHybPercentMatch()
-                  .add(blastResults.getPercentIdentity());
+                       .add(blastResults.getPercentIdentity());
               summaries.get(summaryindex).getCrossHybLength()
-                  .add((double) blastResults.getAlignmentLength());
+                       .add((double) blastResults.getAlignmentLength());
             }
           }
         }
@@ -276,9 +288,9 @@ public class MarkerBlastIterator {
         PrintWriter writerALL = Files.getAppropriateWriter(plotFileALL);
 
         writerMatch.println(Array.toStr(PLOT_FILE_HEADER) + "\t"
-            + Array.toStr(Array.subArray(MarkerMetrics.FULL_QC_HEADER, 1)));
+                            + Array.toStr(Array.subArray(MarkerMetrics.FULL_QC_HEADER, 1)));
         writerALL.println(Array.toStr(PLOT_FILE_HEADER) + "\t"
-            + Array.toStr(Array.subArray(MarkerMetrics.FULL_QC_HEADER, 1)));
+                          + Array.toStr(Array.subArray(MarkerMetrics.FULL_QC_HEADER, 1)));
         ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
         builder.separator("\t");
         builder.sampleBased(false);
@@ -304,8 +316,8 @@ public class MarkerBlastIterator {
               double length = summaries.get(j).getCrossHybLength().get(k);
 
               writerALL.print(summaries.get(j).getMarkerName() + "\t" + percentMatch + "\t" + eval
-                  + "\t" + percentMatch + "\t" + eval + "\t" + length + "\t"
-                  + summaries.get(j).getCrossHybLength().size());
+                              + "\t" + percentMatch + "\t" + eval + "\t" + length + "\t"
+                              + summaries.get(j).getCrossHybLength().size());
 
               for (int j2 = 0; j2 < parser.getNumericData().length; j2++) {
                 writerALL.print("\t" + parser.getNumericData()[j2][markerIndex]);
@@ -339,8 +351,8 @@ public class MarkerBlastIterator {
 
         }
         log.reportTimeInfo("Found a total of " + numMarkers + " markers that were blasted and "
-            + numMatch + " matched the correct location at percent " + appropriateMatchPercent
-            + " and maf > " + mafFilter);
+                           + numMatch + " matched the correct location at percent "
+                           + appropriateMatchPercent + " and maf > " + mafFilter);
         writerMatch.close();
         ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
 
@@ -351,9 +363,10 @@ public class MarkerBlastIterator {
             rScatters.add(plot(proj, plotFileALL, element, QC_TITLES[j2], yColumns));
           }
         }
-        RScatters rScattersAll = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]),
-            plotFileMatch + ".rscript", plotFileMatch + ".pdf",
-            COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
+        RScatters rScattersAll =
+            new RScatters(rScatters.toArray(new RScatter[rScatters.size()]),
+                          plotFileMatch + ".rscript", plotFileMatch + ".pdf",
+                          COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
 
         rScattersAll.execute();
 
@@ -372,8 +385,8 @@ public class MarkerBlastIterator {
   }
 
   public static void blastIter(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type,
-      int blastWordSize, int numThreads, boolean reportToTmp, String[] otherMarkersToExtract)
-      throws FileNotFoundException {
+                               int blastWordSize, int numThreads, boolean reportToTmp,
+                               String[] otherMarkersToExtract) throws FileNotFoundException {
     Logger log = proj.getLog();
     final Hashtable<String, Integer> indices = proj.getMarkerIndices();
     final int[] blastWordSizes = new int[] {blastWordSize};
@@ -400,7 +413,7 @@ public class MarkerBlastIterator {
     for (int blastWordSize2 : blastWordSizes) {
       for (int reportWordSize : reportWordSizes) {
         results[index] = MarkerBlast.blastEm(proj, fileSeq, type, blastWordSize2, reportWordSize,
-            100, numThreads, reportToTmp, true, true);
+                                             100, numThreads, reportToTmp, true, true);
         index++;
       }
     }
@@ -420,7 +433,7 @@ public class MarkerBlastIterator {
           while (reader.ready()) {
             String[] line = reader.readLine().trim().split("\t");
             if ((line.length == Blast.BLAST_HEADER.length - 1
-                || line.length == Blast.BLAST_HEADER.length)
+                 || line.length == Blast.BLAST_HEADER.length)
                 && !line[0].startsWith(Blast.BLAST_HEADER[0])) {
               numEntries++;
               if (numEntries % 100000 == 0) {
@@ -435,8 +448,8 @@ public class MarkerBlastIterator {
                 if (marker.endsWith("_A") || marker.endsWith("_B")) {
                   marker = marker.substring(0, marker.length() - 2);
                 } else {
-                  proj.getLog().reportTimeError(
-                      "Query id did not end with _A or _B which is required for an AFFY array");
+                  proj.getLog()
+                      .reportTimeError("Query id did not end with _A or _B which is required for an AFFY array");
                 }
 
               }
@@ -450,8 +463,8 @@ public class MarkerBlastIterator {
                 int markerIndex = indices.get(marker);
                 Segment markerSeq =
                     new Segment(chrs[markerIndex], pos[markerIndex] - 50, pos[markerIndex] + 50);
-                summaries.add(
-                    new MarkerIterationSummary(marker, referenceGenome.getGCContentFor(markerSeq)));
+                summaries.add(new MarkerIterationSummary(marker,
+                                                         referenceGenome.getGCContentFor(markerSeq)));
               }
 
               Segment blastSeg = blastResults.getSegment();
@@ -463,7 +476,7 @@ public class MarkerBlastIterator {
                 boolean straight =
                     blastResults.getMismatches() == 0 && blastResults.getGapOpens() == 0;
                 boolean match = blastResults.getPercentIdentity() == appropriateMatchPercent
-                    && result.getSequenceSize() == blastResults.getAlignmentLength();
+                                && result.getSequenceSize() == blastResults.getAlignmentLength();
                 if (match) {
                   match = blastResults.getEvalue() < maxExpect;
                 }
@@ -471,46 +484,46 @@ public class MarkerBlastIterator {
                   summaries.get(summaryindex).setHasAppropriateMatch(true);
                   summaries.get(summaryindex).setEvalueAppropriateMatch(blastResults.getEvalue());
                   summaries.get(summaryindex)
-                      .setPercentAppropriateMatch(blastResults.getPercentIdentity());
+                           .setPercentAppropriateMatch(blastResults.getPercentIdentity());
                   // blastSeg.getChr()!=markerSeg.getChr()&&
                 } else if (straight && blastResults.getEvalue() < maxExpect
-                    && blastResults.getAlignmentLength() > minCrossHybLength
-                    && !blastSeg.overlaps(markerSeg.getBufferedSegment(crossHybBufferDistance))) {// we
-                                                                                                  // do
-                                                                                                  // not
-                                                                                                  // want
-                                                                                                  // to
-                                                                                                  // count
-                                                                                                  // probe
-                                                                                                  // A/B
-                                                                                                  // if
-                                                                                                  // probe
-                                                                                                  // A
-                                                                                                  // is
-                                                                                                  // perfect
-                                                                                                  // and
-                                                                                                  // probe
-                                                                                                  // B
-                                                                                                  // is
-                                                                                                  // not
-                                                                                                  // but
-                                                                                                  // is
-                                                                                                  // in
-                                                                                                  // the
-                                                                                                  // right
-                                                                                                  // spot
+                           && blastResults.getAlignmentLength() > minCrossHybLength
+                           && !blastSeg.overlaps(markerSeg.getBufferedSegment(crossHybBufferDistance))) {// we
+                                                                                                         // do
+                                                                                                         // not
+                                                                                                         // want
+                                                                                                         // to
+                                                                                                         // count
+                                                                                                         // probe
+                                                                                                         // A/B
+                                                                                                         // if
+                                                                                                         // probe
+                                                                                                         // A
+                                                                                                         // is
+                                                                                                         // perfect
+                                                                                                         // and
+                                                                                                         // probe
+                                                                                                         // B
+                                                                                                         // is
+                                                                                                         // not
+                                                                                                         // but
+                                                                                                         // is
+                                                                                                         // in
+                                                                                                         // the
+                                                                                                         // right
+                                                                                                         // spot
                   if (blastResults.getAlignmentLength() == proj.getArrayType().getProbeLength()) {
                     if (!markersOffTargetPerfectMatch.contains(marker)) {
-                      markersOffTargetPerfectMatch.add(
-                          marker + "\t" + markerSeg.getUCSClocation() + blastSeg.getUCSClocation());
+                      markersOffTargetPerfectMatch.add(marker + "\t" + markerSeg.getUCSClocation()
+                                                       + blastSeg.getUCSClocation());
                     }
                   }
 
                   summaries.get(summaryindex).getCrossHybEvalue().add(blastResults.getEvalue());
                   summaries.get(summaryindex).getCrossHybPercentMatch()
-                      .add(blastResults.getPercentIdentity());
+                           .add(blastResults.getPercentIdentity());
                   summaries.get(summaryindex).getCrossHybLength()
-                      .add((double) blastResults.getAlignmentLength());
+                           .add((double) blastResults.getAlignmentLength());
                 }
               }
             }
@@ -518,17 +531,16 @@ public class MarkerBlastIterator {
 
           reader.close();
         } catch (FileNotFoundException fnfe) {
-          log.reportError(
-              "Error: file \"" + result.getTmpFiles()[j] + "\" not found in current directory");
+          log.reportError("Error: file \"" + result.getTmpFiles()[j]
+                          + "\" not found in current directory");
         } catch (IOException ioe) {
           log.reportError("Error reading file \"" + result.getTmpFiles()[j] + "\"");
           return;
         }
 
       }
-      Files.writeList(
-          markersOffTargetPerfectMatch.toArray(new String[markersOffTargetPerfectMatch.size()]),
-          result.getOutput() + ".OFF_target_PM.TXT");
+      Files.writeList(markersOffTargetPerfectMatch.toArray(new String[markersOffTargetPerfectMatch.size()]),
+                      result.getOutput() + ".OFF_target_PM.TXT");
       ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
       builder.separator("\t");
       builder.sampleBased(false);
@@ -537,8 +549,8 @@ public class MarkerBlastIterator {
       ExtProjectDataParser parser = builder.build(proj, proj.MARKER_METRICS_FILENAME.getValue());
       parser.loadData();
 
-      DynamicAveragingHistogram[][] dHistograms = new DynamicAveragingHistogram[BLAST_METRICS
-          .values().length][parser.getNumericData().length];
+      DynamicAveragingHistogram[][] dHistograms =
+          new DynamicAveragingHistogram[BLAST_METRICS.values().length][parser.getNumericData().length];
       for (int k = 0; k < BLAST_METRICS.values().length; k++) {
         BLAST_METRICS metric = BLAST_METRICS.values()[k];
         switch (metric) {
@@ -558,7 +570,7 @@ public class MarkerBlastIterator {
         }
         for (int l = 0; l < parser.getNumericData().length; l++) {
           dHistograms[k][l] = new DynamicAveragingHistogram(metric.getMinVal(), metric.getMaxVal(),
-              metric.getSigFigs());
+                                                            metric.getSigFigs());
         }
 
       }
@@ -573,14 +585,15 @@ public class MarkerBlastIterator {
         // numMarkers++;
         int markerIndex = indices.get(summaries.get(k).getMarkerName());
         if (summaries.get(k).isHasAppropriateMatch()) {
-          if (summaries.get(k).getCrossHybLength().size() == 0 || Array
-              .max(Doubles.toArray(summaries.get(k).getCrossHybLength())) < oneHitWonderDef) {
+          if (summaries.get(k).getCrossHybLength().size() == 0
+              || Array.max(Doubles.toArray(summaries.get(k)
+                                                    .getCrossHybLength())) < oneHitWonderDef) {
             oneHitters.add(summaries.get(k).getMarkerName());
           } else {
-            notOneHitters
-                .add(summaries.get(k).getMarkerName() + "\t" + markerSet.getChrs()[markerIndex]);
-            notOneHittersMaxCrossHybe
-                .add(Array.max(Doubles.toArray(summaries.get(k).getCrossHybLength())));
+            notOneHitters.add(summaries.get(k).getMarkerName() + "\t"
+                              + markerSet.getChrs()[markerIndex]);
+            notOneHittersMaxCrossHybe.add(Array.max(Doubles.toArray(summaries.get(k)
+                                                                             .getCrossHybLength())));
           }
           if (parser.getNumericDataForTitle("MAF")[markerIndex] > mafFilter) {
             if (summaries.get(k).getCrossHybLength().size() > 0) {
@@ -590,26 +603,26 @@ public class MarkerBlastIterator {
                   BLAST_METRICS metric = BLAST_METRICS.values()[m];
                   switch (metric) {
                     case CROSS_HYBE_EVAL:
-                      dHistograms[m][l].addDataPair(
-                          Array.min(Doubles.toArray(summaries.get(k).getCrossHybEvalue())),
-                          parser.getNumericData()[l][markerIndex]);
+                      dHistograms[m][l].addDataPair(Array.min(Doubles.toArray(summaries.get(k)
+                                                                                       .getCrossHybEvalue())),
+                                                    parser.getNumericData()[l][markerIndex]);
                       break;
                     case CROSS_HYBE_LENGTH:
-                      dHistograms[m][l].addDataPair(
-                          Array.max(Doubles.toArray(summaries.get(k).getCrossHybLength())),
-                          parser.getNumericData()[l][markerIndex]);
+                      dHistograms[m][l].addDataPair(Array.max(Doubles.toArray(summaries.get(k)
+                                                                                       .getCrossHybLength())),
+                                                    parser.getNumericData()[l][markerIndex]);
 
                       break;
                     case CROSS_HYBE_PERCENT_MATCH:
-                      dHistograms[m][l].addDataPair(
-                          Array.max(Doubles.toArray(summaries.get(k).getCrossHybLength()))
-                              / proj.getArrayType().getProbeLength(),
-                          parser.getNumericData()[l][markerIndex]);
+                      dHistograms[m][l].addDataPair(Array.max(Doubles.toArray(summaries.get(k)
+                                                                                       .getCrossHybLength()))
+                                                    / proj.getArrayType().getProbeLength(),
+                                                    parser.getNumericData()[l][markerIndex]);
                       break;
                     case GC_CONTENT:
                       if (!Double.isNaN(summaries.get(k).getGcContent())) {
                         dHistograms[m][l].addDataPair(summaries.get(k).getGcContent(),
-                            parser.getNumericData()[l][markerIndex]);
+                                                      parser.getNumericData()[l][markerIndex]);
                       }
                       break;
                     default:
@@ -622,11 +635,11 @@ public class MarkerBlastIterator {
             }
           }
         } else {
-          noAppropriateMatch
-              .add(summaries.get(k).getMarkerName() + "\t" + markerSet.getChrs()[markerIndex]);
+          noAppropriateMatch.add(summaries.get(k).getMarkerName() + "\t"
+                                 + markerSet.getChrs()[markerIndex]);
           if (summaries.get(k).getCrossHybLength().size() > 0) {
-            noAppropriateMatchMaxCrossHybe
-                .add(Array.max(Doubles.toArray(summaries.get(k).getCrossHybLength())));
+            noAppropriateMatchMaxCrossHybe.add(Array.max(Doubles.toArray(summaries.get(k)
+                                                                                  .getCrossHybLength())));
           } else {
             noAppropriateMatchMaxCrossHybe.add((double) 0);
           }
@@ -640,18 +653,19 @@ public class MarkerBlastIterator {
 
       dumpMiss(log, oneHitWonderDef, notOneHittersOut, notOneHitters, notOneHittersMaxCrossHybe);
       dumpMiss(log, oneHitWonderDef, notAppropriateMatchOut, noAppropriateMatch,
-          noAppropriateMatchMaxCrossHybe);
+               noAppropriateMatchMaxCrossHybe);
 
       String oneHitWonders = ext.addToRoot(result.getOutput(), ".oneHitWonders_" + oneHitWonderDef);
       String oneHitTargets = ext.addToRoot(proj.TARGET_MARKERS_FILENAMES.getValue()[0],
-          ".oneHitWonders_" + oneHitWonderDef);
+                                           ".oneHitWonders_" + oneHitWonderDef);
       Files.writeArrayList(oneHitters, oneHitWonders);
       extractOneHitWondersFrom(proj.TARGET_MARKERS_FILENAMES.getValue()[0],
-          Array.toStringArray(oneHitters), oneHitTargets, log);
+                               Array.toStringArray(oneHitters), oneHitTargets, log);
       if (otherMarkersToExtract != null) {
         for (String element : otherMarkersToExtract) {
           extractOneHitWondersFrom(element, Array.toStringArray(oneHitters),
-              ext.addToRoot(element, ".oneHitWonders_" + oneHitWonderDef), log);
+                                   ext.addToRoot(element, ".oneHitWonders_" + oneHitWonderDef),
+                                   log);
         }
       }
       String[] allPlotFiles = new String[BLAST_METRICS.values().length];
@@ -699,9 +713,10 @@ public class MarkerBlastIterator {
               ys.add(titles[3 * QC_GROUPINGS[l][k] + 2]);
             }
             String[] yColumns = ys.toArray(new String[ys.size()]);
-            RScatter rScatterGroupAvg = new RScatter(allPlotFiles[j], groupPlot + ".rscript",
-                ext.removeDirectoryInfo(groupPlot), groupPlot + ".pdf", titles[0], yColumns,
-                SCATTER_TYPE.POINT, proj.getLog());
+            RScatter rScatterGroupAvg =
+                new RScatter(allPlotFiles[j], groupPlot + ".rscript",
+                             ext.removeDirectoryInfo(groupPlot), groupPlot + ".pdf", titles[0],
+                             yColumns, SCATTER_TYPE.POINT, proj.getLog());
             rScatterGroupAvg.setxLabel(BLAST_METRICS.values()[j].toString());
             rScatterGroupAvg.setyLabel(QC_TITLES[l]);
             rScatterGroupAvg.setOverWriteExisting(false);
@@ -717,9 +732,10 @@ public class MarkerBlastIterator {
               ys.add(titles[3 * QC_GROUPINGS[l][k] + 1]);
             }
             yColumns = ys.toArray(new String[ys.size()]);
-            RScatter rScatterGroupCounts = new RScatter(allPlotFiles[j], groupPlot + ".rscript",
-                ext.removeDirectoryInfo(groupPlot), groupPlot + ".pdf", titles[0], yColumns,
-                SCATTER_TYPE.POINT, proj.getLog());
+            RScatter rScatterGroupCounts =
+                new RScatter(allPlotFiles[j], groupPlot + ".rscript",
+                             ext.removeDirectoryInfo(groupPlot), groupPlot + ".pdf", titles[0],
+                             yColumns, SCATTER_TYPE.POINT, proj.getLog());
             rScatterGroupCounts.setxLabel(BLAST_METRICS.values()[j].toString());
             rScatterGroupCounts.setyMin(yMin);
             rScatterGroupCounts.setyLabel("COUNTS");
@@ -742,9 +758,10 @@ public class MarkerBlastIterator {
             // Thread.sleep(10000);
             // } catch (InterruptedException ie) {
             // }
-            RScatter rScatter = new RScatter(allPlotFiles[j], plotRoot + ".rscript",
-                ext.removeDirectoryInfo(plotRoot), plotRoot + ".pdf", xLabel, new String[] {yLabel},
-                SCATTER_TYPE.POINT, proj.getLog());
+            RScatter rScatter =
+                new RScatter(allPlotFiles[j], plotRoot + ".rscript",
+                             ext.removeDirectoryInfo(plotRoot), plotRoot + ".pdf", xLabel,
+                             new String[] {yLabel}, SCATTER_TYPE.POINT, proj.getLog());
             rScatter.setxLabel(BLAST_METRICS.values()[j].toString());
             rScatter.setyLabel(parser.getNumericDataTitles()[k]);
             rScatter.setTitle(titles[3 * k]);
@@ -753,9 +770,10 @@ public class MarkerBlastIterator {
             rScatters.add(rScatter);
 
           }
-          RScatters rScattersAll = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]),
-              allPlotFiles[j] + ".rscript", allPlotFiles[j] + ".pdf",
-              COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
+          RScatters rScattersAll =
+              new RScatters(rScatters.toArray(new RScatter[rScatters.size()]),
+                            allPlotFiles[j] + ".rscript", allPlotFiles[j] + ".pdf",
+                            COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
 
           rScattersAll.execute();
 
@@ -771,7 +789,8 @@ public class MarkerBlastIterator {
   }
 
   private static void dumpMiss(Logger log, int oneHitWonderDef, String output,
-      ArrayList<String> notOneHitters, ArrayList<Double> notOneHittersMaxCrossHybe) {
+                               ArrayList<String> notOneHitters,
+                               ArrayList<Double> notOneHittersMaxCrossHybe) {
     int[] sorted = Sort.quicksort(Doubles.toArray(notOneHittersMaxCrossHybe));
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(output));
@@ -786,7 +805,7 @@ public class MarkerBlastIterator {
   }
 
   private static void extractOneHitWondersFrom(String toExtractFile, String[] oneHitters,
-      String outputFile, Logger log) {
+                                               String outputFile, Logger log) {
     String[] toExtracts = HashVec.loadFileToStringArray(toExtractFile, false, new int[] {0}, false);
     int[] indices = ext.indexLargeFactors(toExtracts, oneHitters, true, log, false, false);
     try {
@@ -821,15 +840,15 @@ public class MarkerBlastIterator {
     String usage = "\n" + "cnv.qc.MarkerBlast requires 3 arguments\n";
     usage += "   (1) Project file name (i.e. proj=" + filename + " (default))\n" + "";
     usage += "   (2) full path to an Illumina manifest file  (i.e. fileSeq=" + fileSeq
-        + " (default))\n" + "";
+             + " (default))\n" + "";
     usage += "   (3) number of threads to use  (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + numThreads
-        + " (default))\n" + "";
+             + " (default))\n" + "";
     usage += "   (4) word size for initial match in blast db  (i.e. blastWordSize=" + blastWordSize
-        + " (default))\n" + "";
+             + " (default))\n" + "";
     usage += "   (5) number of base pairs with an exact match to report (i.e. reportWordSize="
-        + reportWordSize + " (default))\n" + "";
+             + reportWordSize + " (default))\n" + "";
     usage += "   (6) sequence file type  (i.e. seqType=" + fSequence_TYPE + " (default))\n"
-        + ", Options are:\n ";
+             + ", Options are:\n ";
     usage +=
         "   (7) list of marker filenames to subset to one-hit wonders (i.e. marks= (no default))\n";
 
@@ -853,8 +872,9 @@ public class MarkerBlastIterator {
         reportWordSize = ext.parseIntArg(arg);
         numArgs--;
       } else if (arg.startsWith("seqType=")) {
-        fSequence_TYPE = FILE_SEQUENCE_TYPE
-            .valueOf(ext.parseStringArg(arg, FILE_SEQUENCE_TYPE.MANIFEST_FILE.toString()));
+        fSequence_TYPE =
+            FILE_SEQUENCE_TYPE.valueOf(ext.parseStringArg(arg,
+                                                          FILE_SEQUENCE_TYPE.MANIFEST_FILE.toString()));
         numArgs--;
       } else if (arg.startsWith("marks=")) {
         otherMarkersToExtract = ext.parseStringArg(arg, "").split(",");
@@ -871,7 +891,7 @@ public class MarkerBlastIterator {
 
     try {
       blastIter(proj, fileSeq, fSequence_TYPE, blastWordSize, numThreads, true,
-          otherMarkersToExtract);
+                otherMarkersToExtract);
     } catch (FileNotFoundException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -880,10 +900,11 @@ public class MarkerBlastIterator {
   }
 
   private static RScatter plot(Project proj, String plotFile, String xColumn, String title,
-      String[] yColumns) {
+                               String[] yColumns) {
     String rootOut = ext.addToRoot(plotFile, xColumn + "_" + title);
-    RScatter rScatterMatch = new RScatter(plotFile, rootOut + ".rscript", ext.rootOf(rootOut),
-        rootOut + ".jpeg", xColumn, yColumns, SCATTER_TYPE.POINT, proj.getLog());
+    RScatter rScatterMatch =
+        new RScatter(plotFile, rootOut + ".rscript", ext.rootOf(rootOut), rootOut + ".jpeg",
+                     xColumn, yColumns, SCATTER_TYPE.POINT, proj.getLog());
     rScatterMatch.setTitle(ext.removeDirectoryInfo(plotFile) + "_" + xColumn);
     rScatterMatch.setxLabel(xColumn);
     rScatterMatch.setyLabel(title);

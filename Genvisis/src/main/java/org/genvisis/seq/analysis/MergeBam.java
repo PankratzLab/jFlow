@@ -123,7 +123,7 @@ public class MergeBam {
   private static final String SMALL_H = "-h";
 
   private static String getFullHeader(String samtoolsLocation, String inputBam, String outputHeader,
-      boolean full, Logger log) {
+                                      boolean full, Logger log) {
     String headerFile = ext.addToRoot(inputBam, ".header");
     String[] fullHeaderCommand =
         new String[] {samtoolsLocation, "view", H, inputBam, ">", headerFile};
@@ -183,7 +183,7 @@ public class MergeBam {
   }
 
   private String buildSedCommand(String[] baseIds, String newBaseID, String outputHeader,
-      String originalHeader, String regex) {
+                                 String originalHeader, String regex) {
     for (int i = 0; i < baseIds.length; i++) {
       if (i == 0) {
         regex = "SM:" + baseIds[i];
@@ -205,21 +205,21 @@ public class MergeBam {
   }
 
   public BamMerger mergeABam(String[] baseIds, String newBaseID, String[] inputBams,
-      String outputDir, String mergeStage, Logger altLog) {
+                             String outputDir, String mergeStage, Logger altLog) {
     altLog.report("trying to merge " + newBaseID + "\t" + Array.toStr(inputBams));
     BamMerger bamMerger = new BamMerger(newBaseID, outputDir, inputBams, altLog);
     bamMerger.parse(mergeStage);
     boolean progress = true;
     if (!fail && bamMerger.shouldMerge()) {
       progress = mergeSomeBams(baseIds, newBaseID, bamMerger.getInputBams(),
-          bamMerger.getOutputBam(), altLog);
+                               bamMerger.getOutputBam(), altLog);
     }
     bamMerger.setFail(!progress);
     return bamMerger;
   }
 
   public boolean mergeSomeBams(String[] baseIds, String newBaseID, String[] inputBams,
-      String outputBam, Logger altLog) {
+                               String outputBam, Logger altLog) {
     boolean progress = true;
     if (!fail) {
       if (inputBams.length >= 2) {
@@ -251,13 +251,14 @@ public class MergeBam {
           String regex = "";
           String sed = buildSedCommand(baseIds, newBaseID, outputHeader, originalHeader, regex);
           log.report(ext.getTime() + " Info - running command " + sed
-              + " to properly format header with new ID");
+                     + " to properly format header with new ID");
           String batFile = outputHeader + ".sed";
           Files.write(sed, batFile);
           Files.chmod(batFile);
           progress = CmdLine.runCommandWithFileChecks(new String[] {batFile}, "",
-              new String[] {originalHeader}, new String[] {outputHeader}, verbose, true, false,
-              altLog);
+                                                      new String[] {originalHeader},
+                                                      new String[] {outputHeader}, verbose, true,
+                                                      false, altLog);
         }
         if (progress) {
           tmpCommand.add(SMALL_H);
@@ -265,11 +266,12 @@ public class MergeBam {
           String[] command = tmpCommand.toArray(new String[tmpCommand.size()]);
           progress =
               CmdLine.runCommandWithFileChecks(command, "", inputBams, new String[] {outputBam},
-                  verbose, overwriteExisting, true, (altLog == null ? log : altLog));
+                                               verbose, overwriteExisting, true,
+                                               (altLog == null ? log : altLog));
         }
       } else {
         log.report(ext.getTime() + " Info - since there were less than two input bams, "
-            + Array.toStr(inputBams) + " will not be merged");
+                   + Array.toStr(inputBams) + " will not be merged");
         progress = true;
       }
     } else {
@@ -280,21 +282,22 @@ public class MergeBam {
   }
 
   public ReHeader reHejaderBamFilePriorToMerge(String bamFile, String oldSM, String newSM,
-      Logger log) {
+                                               Logger log) {
     ReHeader reHeader = new ReHeader(bamFile);
     reHeader.parse();
     boolean progress = true;
     String[] output = new String[] {reHeader.getReHeaderBam()};
     log.report(ext.getTime() + " Info - sample name " + oldSM + " will be replaced with " + newSM
-        + " in  the header of " + bamFile);
+               + " in  the header of " + bamFile);
     String sed = "sed \"s/SM:" + oldSM + "/SM:" + newSM + "/\"";
-    String[] command = new String[] {samtoolsLocation, VIEW, H, bamFile, "|", sed, "|",
-        samtoolsLocation, REHEADER, "-", bamFile, ">", reHeader.getReHeaderBam()};
+    String[] command =
+        new String[] {samtoolsLocation, VIEW, H, bamFile, "|", sed, "|", samtoolsLocation, REHEADER,
+                      "-", bamFile, ">", reHeader.getReHeaderBam()};
     String bat = ext.rootOf(bamFile, false) + ".rh.bat";
     Files.write(Array.toStr(command, " "), bat);
     Files.chmod(bat);
     progress = CmdLine.runCommandWithFileChecks(new String[] {bat}, "", new String[] {bamFile, bat},
-        output, verbose, overwriteExisting, false, log);
+                                                output, verbose, overwriteExisting, false, log);
     reHeader.setFail(!progress);
     return reHeader;
   }
@@ -323,8 +326,7 @@ public class MergeBam {
         samtoolsLocation = SAMTOOLS_LOCATION;
         return true;
       } else {
-        log.reportError(
-            "Error - a path to samtools was not supplied and bwa was not detected on the system's path");
+        log.reportError("Error - a path to samtools was not supplied and bwa was not detected on the system's path");
         return false;
       }
     }

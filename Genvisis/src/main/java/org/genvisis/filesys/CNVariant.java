@@ -143,14 +143,14 @@ public class CNVariant extends Segment {
   }
 
   public enum CONSENSUS_TYPE {
-    /**
-     * Check copy number state,
-     */
-    CN_AWARE,
-    /**
-     * Do not check copy number state
-     */
-    NOT_CN_AWARE;
+                              /**
+                               * Check copy number state,
+                               */
+                              CN_AWARE,
+                              /**
+                               * Do not check copy number state
+                               */
+                              NOT_CN_AWARE;
   }
 
   public static class MatchResults implements Serializable {
@@ -173,7 +173,8 @@ public class CNVariant extends Segment {
     private final HashSet<CNVariant> unmatched2;
 
     public MatchResults(String file1, String file2, HashSet<CNVariant> matched1,
-        HashSet<CNVariant> matched2, HashSet<CNVariant> unmatched1, HashSet<CNVariant> unmatched2) {
+                        HashSet<CNVariant> matched2, HashSet<CNVariant> unmatched1,
+                        HashSet<CNVariant> unmatched2) {
       super();
       this.file1 = file1;
       this.file2 = file2;
@@ -214,14 +215,14 @@ public class CNVariant extends Segment {
 
   }
   public enum OVERLAP_TYPE {
-    /**
-     * Must have significant overlap
-     */
-    OVERLAP_LOC_AND_INDIVIDUAL_SIGNIFICANTLY,
-    /**
-     * Any overlap
-     */
-    OVERLAP_LOC_AND_INDIVIDUAL;
+                            /**
+                             * Must have significant overlap
+                             */
+                            OVERLAP_LOC_AND_INDIVIDUAL_SIGNIFICANTLY,
+                            /**
+                             * Any overlap
+                             */
+                            OVERLAP_LOC_AND_INDIVIDUAL;
   }
 
   public static final long serialVersionUID = 1L;
@@ -229,7 +230,7 @@ public class CNVariant extends Segment {
       {"FID", "IID", "CHR", "BP1", "BP2", "TYPE", "SCORE", "SITES"};
 
   public static Hashtable<String, LocusSet<CNVariant>> breakIntoInds(LocusSet<CNVariant> set,
-      Logger log) {
+                                                                     Logger log) {
     Hashtable<String, ArrayList<CNVariant>> cnvSplits =
         new Hashtable<String, ArrayList<CNVariant>>();
     for (int i = 0; i < set.getLoci().length; i++) {
@@ -277,8 +278,8 @@ public class CNVariant extends Segment {
     consensus = sortCNVs(CNVariant.toCNVariantArray(v));
 
     try {
-      writer = new PrintWriter(
-          new FileWriter(ext.rootOf(file1) + "_" + ext.rootOf(file2) + "_consensus.cnv"));
+      writer = new PrintWriter(new FileWriter(ext.rootOf(file1) + "_" + ext.rootOf(file2)
+                                              + "_consensus.cnv"));
       for (CNVariant consensu : consensus) {
         writer.println(consensu.toPlinkFormat());
       }
@@ -341,8 +342,8 @@ public class CNVariant extends Segment {
 
 
     try {
-      writer = new PrintWriter(
-          new FileWriter(ext.rootOf(file1) + "_" + ext.rootOf(file2) + "_signif_consensus.cnv"));
+      writer = new PrintWriter(new FileWriter(ext.rootOf(file1) + "_" + ext.rootOf(file2)
+                                              + "_signif_consensus.cnv"));
       for (int i = 0; i < outputLines.size(); i++) {
         writer.println(outputLines.get(i));
       }
@@ -356,13 +357,13 @@ public class CNVariant extends Segment {
   }
 
   public static MatchResults findSignificantConsensus(String file1, String file2,
-      CONSENSUS_TYPE cType, OVERLAP_TYPE oType) {
+                                                      CONSENSUS_TYPE cType, OVERLAP_TYPE oType) {
     String output = ext.rootOf(file1) + "_" + ext.rootOf(file2) + "_signif_consensus.cnv";
     return findSignificantConsensus(file1, file2, output, cType, oType);
   }
 
   public static MatchResults findSignificantConsensus(String file1, String file2, String output,
-      CONSENSUS_TYPE cType, OVERLAP_TYPE oType) {
+                                                      CONSENSUS_TYPE cType, OVERLAP_TYPE oType) {
     PrintWriter writer;
     CNVariant[] list1, list2;
     HashSet<CNVariant> matched1 = new HashSet<CNVariant>();
@@ -480,12 +481,13 @@ public class CNVariant extends Segment {
   }
 
   public static CNVariant[] loadPlinkFile(String filename, boolean includeLOH, boolean jar) {
-    return CNVariant
-        .sortCNVs(CNVariant.toCNVariantArray(loadPlinkFile(filename, null, includeLOH, jar)));
+    return CNVariant.sortCNVs(CNVariant.toCNVariantArray(loadPlinkFile(filename, null, includeLOH,
+                                                                       jar)));
   }
 
   public static Vector<CNVariant> loadPlinkFile(String filename,
-      Hashtable<String, String> sampleHash, boolean includeLOH, boolean jar) {
+                                                Hashtable<String, String> sampleHash,
+                                                boolean includeLOH, boolean jar) {
     BufferedReader reader;
     Vector<CNVariant> v = null;
     String[] line;
@@ -531,9 +533,10 @@ public class CNVariant extends Segment {
     boolean signif = false;
 
     String usage = "\n" + "cnv.var.CNVariant requires 2+ arguments\n"
-        + "   (1) first CNV filename (i.e. file1=" + filename1 + " (not the default))\n"
-        + "   (2) second CNV filename (i.e. file2=" + filename2 + " (not the default))\n"
-        + "   (3) (Optional) restrict to significant overlap (i.e. -sig (not the default))\n" + "";
+                   + "   (1) first CNV filename (i.e. file1=" + filename1 + " (not the default))\n"
+                   + "   (2) second CNV filename (i.e. file2=" + filename2 + " (not the default))\n"
+                   + "   (3) (Optional) restrict to significant overlap (i.e. -sig (not the default))\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -559,7 +562,7 @@ public class CNVariant extends Segment {
     try {
       if (signif) {
         findSignificantConsensus(filename1, filename2, CONSENSUS_TYPE.NOT_CN_AWARE,
-            OVERLAP_TYPE.OVERLAP_LOC_AND_INDIVIDUAL_SIGNIFICANTLY);
+                                 OVERLAP_TYPE.OVERLAP_LOC_AND_INDIVIDUAL_SIGNIFICANTLY);
       } else {
         findConsensus(filename1, filename2);
       }
@@ -708,7 +711,7 @@ public class CNVariant extends Segment {
   }
 
   public CNVariant(String familyID, String individualID, byte chr, int start, int stop, int cn,
-      double score, int numMarkers, int source) {
+                   double score, int numMarkers, int source) {
     this.familyID = familyID;
     this.individualID = individualID;
     this.chr = chr;
@@ -785,7 +788,7 @@ public class CNVariant extends Segment {
 
   public boolean equalsIncludingIndividual(CNVariant cnv) {
     return cnv.familyID.equals(familyID) && cnv.individualID.equals(individualID) && cnv.chr == chr
-        && cnv.start == start && cnv.stop == stop && cnv.cn == cn;
+           && cnv.start == start && cnv.stop == stop && cnv.cn == cn;
   }
 
   public int getCN() {
@@ -798,7 +801,7 @@ public class CNVariant extends Segment {
 
   public String getFingerprint() {
     return familyID + "_" + individualID + "_" + chr + "_" + start + "_" + stop + "_" + cn + "_"
-        + numMarkers;
+           + numMarkers;
   }
 
   @Override
@@ -855,12 +858,13 @@ public class CNVariant extends Segment {
 
   public boolean overlapsLocAndIndividual(CNVariant cnv) {
     return familyID.equals(cnv.familyID) && individualID.equals(cnv.individualID)
-        && amountOfOverlapInBasepairs(cnv) > 0;
+           && amountOfOverlapInBasepairs(cnv) > 0;
   }
 
   public boolean overlapsLocAndIndividualSignificantly(CNVariant cnv) {
-    boolean overlapsLocAndIndividualSignificantly = familyID.equals(cnv.familyID)
-        && individualID.equals(cnv.individualID) && significantOverlap(cnv);
+    boolean overlapsLocAndIndividualSignificantly =
+        familyID.equals(cnv.familyID) && individualID.equals(cnv.individualID)
+                                                    && significantOverlap(cnv);
     return overlapsLocAndIndividualSignificantly;
   }
 
@@ -883,7 +887,7 @@ public class CNVariant extends Segment {
 
   public String toPlinkFormat() {
     return familyID + "\t" + individualID + "\t" + chr + "\t" + start + "\t" + stop + "\t" + cn
-        + "\t" + ext.formDeci(score, 5) + "\t" + numMarkers;
+           + "\t" + ext.formDeci(score, 5) + "\t" + numMarkers;
   }
 
   // Return the Individual ID when getting as a string

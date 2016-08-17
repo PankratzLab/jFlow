@@ -21,7 +21,7 @@ public class MarkerBlastHistogramAnnotation extends HistogramAnnotation {
   private List<String> blastAlignmentCounts;
 
   public MarkerBlastHistogramAnnotation(String name, String description,
-      DynamicHistogram dynamicHistogram) {
+                                        DynamicHistogram dynamicHistogram) {
     super(name, description, dynamicHistogram);
 
   }
@@ -37,7 +37,8 @@ public class MarkerBlastHistogramAnnotation extends HistogramAnnotation {
         if (blastAlignmentCounts.size() > proj.getArrayType().getProbeLength()) {
           proj.getLog()
               .reportTimeError("Aligment counts had more entries (" + blastAlignmentCounts.size()
-                  + " than the projects probe size (" + proj.getArrayType().getProbeLength() + ")");
+                               + " than the projects probe size ("
+                               + proj.getArrayType().getProbeLength() + ")");
         } else {
           int countIndex = counts.length - 1;
           for (int i = blastAlignmentCounts.size() - 1; i >= 0; i--) {

@@ -44,8 +44,8 @@ public class RosenElliot {
       str = str.substring(1);
     }
     if (str.length() != EXP_DNA_LEN) {
-      System.err
-          .println("Error - parsed DNA# '" + str + "' was not of expected length: " + EXP_DNA_LEN);
+      System.err.println("Error - parsed DNA# '" + str + "' was not of expected length: "
+                         + EXP_DNA_LEN);
     }
 
     return str;
@@ -64,8 +64,8 @@ public class RosenElliot {
       }
     }
     if (str.length() != EXP_DNA_LEN) {
-      System.err
-          .println("Error - parsed DNA# '" + str + "' was not of expected length: " + EXP_DNA_LEN);
+      System.err.println("Error - parsed DNA# '" + str + "' was not of expected length: "
+                         + EXP_DNA_LEN);
     }
 
     return str;
@@ -87,14 +87,12 @@ public class RosenElliot {
       writer = new PrintWriter(new FileWriter(dir + PED_DATA));
       writer.println("Animal\tSire\tDOB\tDOD\tDaysAtDeath\tDaysLivedSoFar\tAffection");
       if (!reader.readLine().contains("List")) {
-        System.err
-            .println("Error parsing pedigree file: expecting first line to contain the word List");
+        System.err.println("Error parsing pedigree file: expecting first line to contain the word List");
         System.exit(1);
       }
       line = reader.readLine().trim().split("[\\s]+");
       if (line.length != 1) {
-        System.err.println(
-            "Error parsing pedigree file: expecting 2nd line to have the latest date in it");
+        System.err.println("Error parsing pedigree file: expecting 2nd line to have the latest date in it");
         System.exit(1);
       }
       try {
@@ -123,13 +121,13 @@ public class RosenElliot {
               dna = cleanUpID(trav);
               if (dna.startsWith(TRAIT_STRAIN_PREFIX) || dna.startsWith(BC_STRAIN_PREFIX)) {
                 System.err.println("Error - sample '" + trav + "' has a dna '" + dna
-                    + "' that starts with a reserved prefix");
+                                   + "' that starts with a reserved prefix");
               }
               if (hash.containsKey(trav)) {
                 System.err.println("Error - two samples with the same ID ('" + trav + "')");
               } else if (hash.containsKey(dna)) {
-                System.err
-                    .println("Error - two samples with the same parsed DNA number ('" + dna + "')");
+                System.err.println("Error - two samples with the same parsed DNA number ('" + dna
+                                   + "')");
               }
               hash.put(trav, "");
               hash.put(dna, "");
@@ -168,8 +166,8 @@ public class RosenElliot {
             }
           }
           writer.println(trav + "\t" + sire + "\t" + dob + "\t" + dod + "\t"
-              + (daysAtDeath == -1 ? "." : daysAtDeath) + "\t"
-              + (daysLivedSoFar == -1 ? "." : daysLivedSoFar) + "\t" + aff);
+                         + (daysAtDeath == -1 ? "." : daysAtDeath) + "\t"
+                         + (daysLivedSoFar == -1 ? "." : daysLivedSoFar) + "\t" + aff);
           daysAtDeath = daysLivedSoFar = aff = -1;
         }
       }
@@ -208,14 +206,14 @@ public class RosenElliot {
     String traitfile = "trait.dat";
 
     String usage = "\\n" + "park.oneoff.RosenElliot requires 0-1 arguments\n"
-        + "   (1) pedigree data (i.e. ped=" + pedigreeData + " (default))\n"
-        + "   (2) genotypic data (i.e. geno=" + genotypicData + " (default))\n"
-        + "   (3) minor allele frequency (i.e. maf=" + maf + " (default))\n"
-        + "   (4) (optional) list of models (i.e. models=" + models + ")\n"
-        + "   (5) (optional) new trait file (i.e. trait=" + traitfile + ")\n" + "\n"
-        + " Note: you can pick one of the following steps to perform; otherwise the step to be performed at each iteration will be determined by which files are already present:\n"
-        + "   -parsePedigree\n" + "   -trimPedigree\n" + "   -addGenotypes\n" + "   -mendErrors\n"
-        + "   -runMendel\n" + "";
+                   + "   (1) pedigree data (i.e. ped=" + pedigreeData + " (default))\n"
+                   + "   (2) genotypic data (i.e. geno=" + genotypicData + " (default))\n"
+                   + "   (3) minor allele frequency (i.e. maf=" + maf + " (default))\n"
+                   + "   (4) (optional) list of models (i.e. models=" + models + ")\n"
+                   + "   (5) (optional) new trait file (i.e. trait=" + traitfile + ")\n" + "\n"
+                   + " Note: you can pick one of the following steps to perform; otherwise the step to be performed at each iteration will be determined by which files are already present:\n"
+                   + "   -parsePedigree\n" + "   -trimPedigree\n" + "   -addGenotypes\n"
+                   + "   -mendErrors\n" + "   -runMendel\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -272,7 +270,7 @@ public class RosenElliot {
         GinsburgDavid.runMendel(dir, models);
       } else if (option == -1) {
         System.out.println("Determination of how to proceed next is based on files present in "
-            + (dir.equals("") ? "current directory" : dir));
+                           + (dir.equals("") ? "current directory" : dir));
         if (!new File(dir + "pedData.xln").exists()) {
           System.out.println("Deciphering pedigree data...");
           decipherPedigree(dir, pedigreeData);
@@ -296,7 +294,7 @@ public class RosenElliot {
         if (!new File(dir + "pedfile.pre").exists()) {
           System.out.println("Adding Genotypes...");
           GinsburgDavid.addGenotypes(dir, GENOTYPES_FILE, maf, TRAIT_STRAIN_PREFIX,
-              BC_STRAIN_PREFIX);
+                                     BC_STRAIN_PREFIX);
           System.out.println();
         }
         if (!new File(dir + "errors.out").exists()) {
@@ -314,8 +312,8 @@ public class RosenElliot {
           System.out.println();
         }
         if (new File(dir + traitfile).exists()) {
-          System.out
-              .println("Updating affection status using the phenotype in '" + traitfile + "'");
+          System.out.println("Updating affection status using the phenotype in '" + traitfile
+                             + "'");
           updateTrait(dir, traitfile);
           System.out.println();
         }
@@ -324,9 +322,9 @@ public class RosenElliot {
           System.out.println();
         }
         if (!GinsburgDavid.finishedExploration(dir, GinsburgDavid.DEFAULT_EXPLORE_DIR,
-            GinsburgDavid.DEFAULT_EXPLORE_FILE)) {
+                                               GinsburgDavid.DEFAULT_EXPLORE_FILE)) {
           GinsburgDavid.exploreModels(dir, GinsburgDavid.DEFAULT_EXPLORE_DIR,
-              GinsburgDavid.DEFAULT_EXPLORE_FILE);
+                                      GinsburgDavid.DEFAULT_EXPLORE_FILE);
           System.out.println();
         } else {
           System.out.println("Looks like you're at the end of the line...");
@@ -350,7 +348,8 @@ public class RosenElliot {
     try {
       dnaList = GinsburgDavid.getDNAlist(dir, GENOTYPES_FILE, true);
       System.out.println("Assuming we're taking the F1s of a " + dnaList.elementAt(0) + " x "
-          + dnaList.elementAt(1) + " cross and backcrossing into " + dnaList.elementAt(1));
+                         + dnaList.elementAt(1) + " cross and backcrossing into "
+                         + dnaList.elementAt(1));
 
       reader = new BufferedReader(new FileReader(dir + PED_DATA));
       writer = new PrintWriter(new FileWriter(dir + "untrimmed.pre"));
@@ -365,7 +364,7 @@ public class RosenElliot {
         dna = cleanUpID(line[0]);
         if (line[1].equals("Inbred")) {
           writer.println("1\t" + dna + "\t" + TRAIT_STRAIN_PREFIX + "99\t" + BC_STRAIN_PREFIX
-              + "01\t1\t" + (dnaList.contains(dna) ? "2" : "0"));
+                         + "01\t1\t" + (dnaList.contains(dna) ? "2" : "0"));
         } else {
           sire = cleanUpID(line[1]);
           if (lookup.containsKey(sire)) {
@@ -375,7 +374,7 @@ public class RosenElliot {
             writer.println("1\t" + dam + "\t0\t0\t2\t1");
           }
           writer.println("1\t" + dna + "\t" + sire + "\t" + dam + "\t1\t"
-              + (dnaList.contains(dna) ? "2" : "0"));
+                         + (dnaList.contains(dna) ? "2" : "0"));
         }
       }
       reader.close();
@@ -405,13 +404,13 @@ public class RosenElliot {
       line = reader.readLine().trim().split("\\t");
       index = ext.indexOfStr(refGenotypes, line);
       if (index == -1) {
-        System.err.println(
-            "Error - the reference dna '" + refGenotypes + "' was not found in the header");
+        System.err.println("Error - the reference dna '" + refGenotypes
+                           + "' was not found in the header");
         System.exit(1);
       }
 
-      writer.print(
-          line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + TRAIT_STRAIN + "\t" + BC_STRAIN);
+      writer.print(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + TRAIT_STRAIN + "\t"
+                   + BC_STRAIN);
       for (int i = 3; i < line.length; i++) {
         if (i != index) {
           trav = cleanUpDNA(line[i]);
@@ -428,8 +427,9 @@ public class RosenElliot {
         line = reader.readLine().trim().split("[\\s]+");
         reversi = line[index].equals("AA");
 
-        writer.print(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + (reversi
-            ? line[index] + "\t" + flip(line[index]) : flip(line[index]) + "\t" + line[index]));
+        writer.print(line[0] + "\t" + line[1] + "\t" + line[2] + "\t"
+                     + (reversi ? line[index] + "\t" + flip(line[index])
+                                : flip(line[index]) + "\t" + line[index]));
         for (int i = 3; i < line.length; i++) {
           if (line[i].equals("H")) {
             line[i] = "AB";
@@ -469,7 +469,7 @@ public class RosenElliot {
         }
         if (!line[1].equals("2") && !line[1].equals("1") && !line[1].equals("0")) {
           System.err.println("Error - the value for '" + trav + "' ('" + line[1]
-              + "') is not valid; should be either 0, 1, or 2");
+                             + "') is not valid; should be either 0, 1, or 2");
         }
         hash.put(trav, line[1]);
       }

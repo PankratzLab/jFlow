@@ -85,7 +85,7 @@ public class ANNOVAR {
   private final Logger log;
 
   public ANNOVAR(String annovarLocation, boolean verbose, boolean overWriteExistingOutput,
-      Logger log) {
+                 Logger log) {
     super();
     this.annovarLocation = annovarLocation;
     this.verbose = verbose;
@@ -97,27 +97,29 @@ public class ANNOVAR {
   public AnnovarResults AnnovarAVCF(String inputVCF, String build, int numthreads, Logger log) {
     AnnovarResults annovarResults = new AnnovarResults(inputVCF, build);
     annovarResults.parse();
-    boolean progress = AnnovarAVCF(annovarResults.getInputVCF(), annovarResults.getOutput(),
-        annovarResults.getOutputVCF(), annovarResults.getBuild(), numthreads, log);
+    boolean progress =
+        AnnovarAVCF(annovarResults.getInputVCF(), annovarResults.getOutput(),
+                    annovarResults.getOutputVCF(), annovarResults.getBuild(), numthreads, log);
     annovarResults.setFail(!progress);
     if (!progress) {
-      log.reportTimeError(
-          "The annovar has failed :( \n This is most likely caused by not having the required database files. Please see \"http://www.openbioinformatics.org/annovar/annovar_startup.html\" for commands to download the necessary files");
+      log.reportTimeError("The annovar has failed :( \n This is most likely caused by not having the required database files. Please see \"http://www.openbioinformatics.org/annovar/annovar_startup.html\" for commands to download the necessary files");
     }
     return annovarResults;
   }
 
   private boolean AnnovarAVCF(String inputVCF, String outputBase, String outputVCF, String build,
-      int numthreads, Logger log) {
+                              int numthreads, Logger log) {
     boolean progress = !fail;
     if (progress) {
       // THREAD, numthreads + ""
-      String[] command = new String[] {PSF.Cmd.PERL, annovarLocation + TABLE_ANNOVAR, inputVCF,
-          annovarLocation + DEFUALT_ANNOVAR_DB, BUILD_VERSION, build, OUT, outputBase, REMOVE,
-          PROTOCOL, DEFAULT_PROTOCOLS, OPERATION, DEFAULT_OPERATIONS, NA_STRING, DEFAULT_NA_STRING,
-          VCF_INPUT};
+      String[] command =
+          new String[] {PSF.Cmd.PERL, annovarLocation + TABLE_ANNOVAR, inputVCF,
+                        annovarLocation + DEFUALT_ANNOVAR_DB, BUILD_VERSION, build, OUT, outputBase,
+                        REMOVE, PROTOCOL, DEFAULT_PROTOCOLS, OPERATION, DEFAULT_OPERATIONS,
+                        NA_STRING, DEFAULT_NA_STRING, VCF_INPUT};
       progress = CmdLine.runCommandWithFileChecks(command, "", new String[] {inputVCF},
-          new String[] {outputVCF}, verbose, overWriteExistingOutput, false, log);
+                                                  new String[] {outputVCF}, verbose,
+                                                  overWriteExistingOutput, false, log);
     }
     return progress;
   }

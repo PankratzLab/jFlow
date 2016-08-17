@@ -86,7 +86,7 @@ public class SourceFileHeaderGUI extends JDialog {
     JPanel panel = new JPanel();
     contentPane.add(panel, BorderLayout.CENTER);
     panel.setLayout(new MigLayout("", "[grow][][grow 200][grow]",
-        "[][][][][][][][][][][][][][][][][][][][][][grow]"));
+                                  "[][][][][][][][][][][][][][][][][][][][][][grow]"));
 
     JLabel lblRequired = new JLabel("Required:");
     Font fontHeaderLabels = new Font("Tahoma", Font.BOLD, 12);

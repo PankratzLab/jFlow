@@ -20,7 +20,7 @@ import org.genvisis.common.Matrix;
 import org.genvisis.mining.Distance;
 
 public class StratPanel extends AbstractPanel
-    implements MouseListener, MouseMotionListener, ComponentListener {
+                        implements MouseListener, MouseMotionListener, ComponentListener {
   public static final long serialVersionUID = 3L;
   public static final int HEAD_BUFFER = 25;
   // public static final int HEIGHT_X_AXIS = 55;
@@ -69,31 +69,32 @@ public class StratPanel extends AbstractPanel
   // new Color(126, 37, 131)}; // red purple
 
   public static final Color[] DEFAULT_COLORS = {Color.BLACK, new Color(201, 30, 10), // red
-      new Color(55, 129, 252), // light blue
-      new Color(140, 20, 180), // deep purple
-      new Color(33, 87, 0), // dark green
-      new Color(247, 150, 70), // orange
-      new Color(94, 88, 214), // light purple
-      new Color(217, 109, 194), // deep red/pink
-      new Color(189, 243, 61), // light green
-      new Color(230, 73, 39), // orange red
-      new Color(255, 241, 0), // yellow
-      new Color(0, 157, 126), // blue green
-      new Color(62, 46, 133), // blue purple
-      new Color(0, 0, 128), // blue
-      new Color(102, 51, 0), // brown
-      new Color(153, 102, 51), // light brown
+                                                new Color(55, 129, 252), // light blue
+                                                new Color(140, 20, 180), // deep purple
+                                                new Color(33, 87, 0), // dark green
+                                                new Color(247, 150, 70), // orange
+                                                new Color(94, 88, 214), // light purple
+                                                new Color(217, 109, 194), // deep red/pink
+                                                new Color(189, 243, 61), // light green
+                                                new Color(230, 73, 39), // orange red
+                                                new Color(255, 241, 0), // yellow
+                                                new Color(0, 157, 126), // blue green
+                                                new Color(62, 46, 133), // blue purple
+                                                new Color(0, 0, 128), // blue
+                                                new Color(102, 51, 0), // brown
+                                                new Color(153, 102, 51), // light brown
   };
 
-  public static final Color[] BLUES = {new Color(25, 25, 112), new Color(0, 0, 128),
-      new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
-      new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
-      new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
-      new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
-      new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
-      new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
-      new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
-      new Color(224, 255, 255), new Color(95, 158, 160)};
+  public static final Color[] BLUES =
+      {new Color(25, 25, 112), new Color(0, 0, 128), new Color(100, 149, 237),
+       new Color(72, 61, 139), new Color(106, 90, 205), new Color(123, 104, 238),
+       new Color(132, 112, 255), new Color(0, 0, 205), new Color(65, 105, 225),
+       new Color(0, 0, 255), new Color(30, 144, 255), new Color(0, 191, 255),
+       new Color(135, 206, 250), new Color(135, 206, 250), new Color(70, 130, 180),
+       new Color(176, 196, 222), new Color(173, 216, 230), new Color(176, 224, 230),
+       new Color(175, 238, 238), new Color(0, 206, 209), new Color(72, 209, 204),
+       new Color(64, 224, 208), new Color(0, 255, 255), new Color(224, 255, 255),
+       new Color(95, 158, 160)};
 
   public static void main(String[] args) {
     StratPlot.main(new String[] {"-notJar"});
@@ -142,12 +143,10 @@ public class StratPanel extends AbstractPanel
 
     currentPair = sp.getCurrentPair();
     if (names.length == 0) {
-      sp.setDescriptor(
-          "Error - no files with .mds extension were present in the project directory");
+      sp.setDescriptor("Error - no files with .mds extension were present in the project directory");
       displayXaxis = displayYaxis = false;
     } else if (currentPair[0][0] == -1 || currentPair[1][0] == -1) {
-      sp.setDescriptor(
-          "Double click on one of the files within the box on the left-hand side and select two of its components");
+      sp.setDescriptor("Double click on one of the files within the box on the left-hand side and select two of its components");
       if (currentPair[0][0] == -1) {
         displayXaxis = false;
       } else {
@@ -263,16 +262,18 @@ public class StratPanel extends AbstractPanel
           }
 
           points[i] = new PlotPoint(sampleList[i], PlotPoint.FILLED_CIRCLE,
-              data[currentPair[0][0]][currentPair[0][1]],
-              data[currentPair[1][0]][currentPair[1][1]], tagalong ? SIZE_TAGALONGS : SIZE,
-              colorCode, (byte) (colorCode > 0 ? 1 : 0));
+                                    data[currentPair[0][0]][currentPair[0][1]],
+                                    data[currentPair[1][0]][currentPair[1][1]],
+                                    tagalong ? SIZE_TAGALONGS : SIZE, colorCode,
+                                    (byte) (colorCode > 0 ? 1 : 0));
           classCounts.add(colorCode + "");
         }
       }
 
       if (countFails > 10) {
-        sp.getProject().getLog().reportError("There were a total of " + (countFails - 1)
-            + " sample ID pairs found in any of the files that were not found in SampleData");
+        sp.getProject().getLog()
+          .reportError("There were a total of " + (countFails - 1)
+                       + " sample ID pairs found in any of the files that were not found in SampleData");
       }
     }
     sp.updateColorKey(getClassCounts().convertToHash());
@@ -342,12 +343,12 @@ public class StratPanel extends AbstractPanel
         data = hash.get(sampleList[iv.elementAt(i)]);
 
         if (Distance.euclidean(new int[] {x, y},
-            new int[] {getXPixel(data[currentPair[0][0]][currentPair[0][1]]),
-                getYPixel(data[currentPair[1][0]][currentPair[1][1]])}) < HIGHLIGHT_DISTANCE) {
+                               new int[] {getXPixel(data[currentPair[0][0]][currentPair[0][1]]),
+                                          getYPixel(data[currentPair[1][0]][currentPair[1][1]])}) < HIGHLIGHT_DISTANCE) {
           g.setColor(Color.RED);
           prox.add(iv.elementAt(i));
           Grafik.drawCircle(g, getXPixel(data[currentPair[0][0]][currentPair[0][1]]),
-              getYPixel(data[currentPair[1][0]][currentPair[1][1]]), SIZE, true);
+                            getYPixel(data[currentPair[1][0]][currentPair[1][1]]), SIZE, true);
         }
       }
 

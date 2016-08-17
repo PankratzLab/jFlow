@@ -19,7 +19,8 @@ public class UCSCtrack {
   public static final String DEFAULT_SAMPLE_DEMOGRAPHIC_DIRECTORY = "data/";
   public static final String[][] NEEDS =
       new String[][] {{"CLASS=Original Phenotype", "CLASS=Final Phenotype", "CLASS=Phenotype",
-          "CLASS=Affection", "CLASS=Affected"}, {"COVAR=Age"}};
+                       "CLASS=Affection", "CLASS=Affected"},
+                      {"COVAR=Age"}};
 
   public static void main(String[] args) {
     int numArgs = args.length;
@@ -27,8 +28,8 @@ public class UCSCtrack {
     String outfile = null;
 
     String usage = "\\n" + "cnv.manage.UCSCtrack requires 0-1 arguments\n"
-        + "   (1) CNV filename to convert (i.e. file=" + filename + " (default))\n"
-        + "   (2) name of output file (i.e. out=[file].bed.gz (default))\n" + "";
+                   + "   (1) CNV filename to convert (i.e. file=" + filename + " (default))\n"
+                   + "   (2) name of output file (i.e. out=[file].bed.gz (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -72,14 +73,14 @@ public class UCSCtrack {
 
     hash = new Hashtable<String, String[]>();
     try {
-      reader = Files.getReader(SAMPLE_DEMOGRAPHICS, new String[] {"",
-          DEFAULT_SAMPLE_DEMOGRAPHIC_DIRECTORY, "../" + DEFAULT_SAMPLE_DEMOGRAPHIC_DIRECTORY});
+      reader = Files.getReader(SAMPLE_DEMOGRAPHICS,
+                               new String[] {"", DEFAULT_SAMPLE_DEMOGRAPHIC_DIRECTORY,
+                                             "../" + DEFAULT_SAMPLE_DEMOGRAPHIC_DIRECTORY});
       header = reader.readLine().trim().split("\t", -1);
       indices = ext.indexFactors(NEEDS, header, false, true, true, log, false);
       idIndex = ext.indexOfStr("IID", header);
       if (idIndex == -1) {
-        throw new IOException(
-            "Column header 'IID' is required in sample database file in order to lookup affection status");
+        throw new IOException("Column header 'IID' is required in sample database file in order to lookup affection status");
       }
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
@@ -98,21 +99,24 @@ public class UCSCtrack {
     try {
       reader = new BufferedReader(new FileReader(filename));
       if (!ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CNVariant.PLINK_CNV_HEADER,
-          false)) {
+                           false)) {
         reader.close();
         return;
       }
       track =
           Files.getAppropriateWriter(filename.substring(0, filename.lastIndexOf(".")) + ".bed.gz");
       track.println("track name=\"" + ext.rootOf(filename)
-          + "\" description=\"CNV data\" visibility=2 itemRgb=\"On\"");
+                    + "\" description=\"CNV data\" visibility=2 itemRgb=\"On\"");
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
         demo = hash.containsKey(line[1]) ? hash.get(line[1]) : Array.stringArray(NEEDS.length, ".");
         track.print("chr" + line[2] + "\t" + line[3] + "\t" + line[4] + "\t" + line[1]
-            + (demo[0].equals(".") || demo[1].equals(".") ? ""
-                : (Integer.parseInt(demo[0]) == 2 ? ";AOO=" + demo[1] : ";AAE=" + demo[1]))
-            + "\t50\t.\t0\t0\t");
+                    + (demo[0].equals(".")
+                       || demo[1].equals(".") ? ""
+                                              : (Integer.parseInt(demo[0]) == 2 ? ";AOO=" + demo[1]
+                                                                                : ";AAE="
+                                                                                  + demo[1]))
+                    + "\t50\t.\t0\t0\t");
         // track.print("chr"+line[2]+"\t"+line[3]+"\t"+line[4]+"\t"+line[1]+"\t50\t.\t0\t0\t");
         switch (demo[0].equals(".") ? 0 : Integer.parseInt(demo[0])) {
           // switch (2) {

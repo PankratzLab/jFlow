@@ -19,9 +19,10 @@ import org.genvisis.common.ext;
 import com.google.common.primitives.Doubles;
 
 public class RelativeQuantification {
-  public static final String[] HEADER = {"Plate", "Well ID", "Well", "Sample", "Detector", "Task",
-      "Ct", "Ct Std Err", "Avg Ct", "Avg dCt", "dCt Std Err", "ddCt", "RQ", "RQ Min", "RQ Max",
-      "Omit", "Filtered", "Threshold", "Auto Ct", "Baseline", "Start", "End"};
+  public static final String[] HEADER =
+      {"Plate", "Well ID", "Well", "Sample", "Detector", "Task", "Ct", "Ct Std Err", "Avg Ct",
+       "Avg dCt", "dCt Std Err", "ddCt", "RQ", "RQ Min", "RQ Max", "Omit", "Filtered", "Threshold",
+       "Auto Ct", "Baseline", "Start", "End"};
 
   public static void main(String[] args) {
     int numArgs = args.length;
@@ -31,7 +32,7 @@ public class RelativeQuantification {
     String filename = "RelativeQuantification.dat";
 
     String usage = "\\n" + "park.expression.RelativeQuantification requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -256,7 +257,7 @@ public class RelativeQuantification {
           } else {
             // AvgCt, CtStderr, RQ, RQ Min, RQ Max
             regions.put(region,
-                values = new String[] {line[8], line[7], line[12], line[13], line[14]});
+                        values = new String[] {line[8], line[7], line[12], line[13], line[14]});
           }
         }
         reader.close();
@@ -279,11 +280,12 @@ public class RelativeQuantification {
       for (String probeName2 : probeNames) {
         for (String regionName : regionNames) {
           writer.print("\t" + regionName + "_" + probeGeneLookup.get(probeName2) + "-" + probeName2
-              + "_AvgCt\t" + regionName + "_" + probeGeneLookup.get(probeName2) + "-" + probeName2
-              + "_CtStderr\t" + regionName + "_" + probeGeneLookup.get(probeName2) + "-"
-              + probeName2 + "_RQ\t" + regionName + "_" + probeGeneLookup.get(probeName2) + "-"
-              + probeName2 + "_RQ Min\t" + regionName + "_" + probeGeneLookup.get(probeName2) + "-"
-              + probeName2 + "_RQ Max");
+                       + "_AvgCt\t" + regionName + "_" + probeGeneLookup.get(probeName2) + "-"
+                       + probeName2 + "_CtStderr\t" + regionName + "_"
+                       + probeGeneLookup.get(probeName2) + "-" + probeName2 + "_RQ\t" + regionName
+                       + "_" + probeGeneLookup.get(probeName2) + "-" + probeName2 + "_RQ Min\t"
+                       + regionName + "_" + probeGeneLookup.get(probeName2) + "-" + probeName2
+                       + "_RQ Max");
         }
       }
       writer.println("\tMeanSampleStderr");
@@ -316,7 +318,7 @@ public class RelativeQuantification {
       for (String probeName2 : probeNames) {
         for (String regionName : regionNames) {
           writer.print("\t" + regionName + "_" + probeGeneLookup.get(probeName2) + "-" + probeName2
-              + "_RQ_log");
+                       + "_RQ_log");
         }
       }
       writer.println("\tMeanSampleStderr");
@@ -342,13 +344,13 @@ public class RelativeQuantification {
       writer.close();
 
       for (String probeName2 : probeNames) {
-        writer = new PrintWriter(
-            new FileWriter(dir + probeGeneLookup.get(probeName2) + "_" + probeName2 + ".xln"));
+        writer = new PrintWriter(new FileWriter(dir + probeGeneLookup.get(probeName2) + "_"
+                                                + probeName2 + ".xln"));
         writer.print("Sample");
         for (String regionName : regionNames) {
-          writer.print(
-              "\t" + regionName + "_" + "_AvgCt\t" + regionName + "_" + "_CtStderr\t" + regionName
-                  + "_" + "_RQ\t" + regionName + "_" + "_RQ Min\t" + regionName + "_" + "_RQ Max");
+          writer.print("\t" + regionName + "_" + "_AvgCt\t" + regionName + "_" + "_CtStderr\t"
+                       + regionName + "_" + "_RQ\t" + regionName + "_" + "_RQ Min\t" + regionName
+                       + "_" + "_RQ Max");
         }
         writer.println();
         for (String ind2 : inds) {

@@ -38,7 +38,7 @@ public class dat2loc {
         System.err.println("  using the one in /home/npankrat/park/00masters/");
       } catch (Exception e2) {
         System.err.println("Could not find " + filename
-            + " in /home/npankrat/park/00masters/ or in the current directory");
+                           + " in /home/npankrat/park/00masters/ or in the current directory");
         System.exit(1);
       }
 
@@ -48,8 +48,8 @@ public class dat2loc {
       writer =
           new PrintWriter(new FileWriter(filename.substring(0, filename.length() - 4) + ".loc"));
     } else if (filename.startsWith("nuke")) {
-      writer = new PrintWriter(
-          new FileWriter("map" + filename.substring(filename.length() - 2) + ".loc"));
+      writer = new PrintWriter(new FileWriter("map" + filename.substring(filename.length() - 2)
+                                              + ".loc"));
     } else {
       writer = new PrintWriter(new FileWriter(filename + ".loc"));
     }

@@ -27,7 +27,7 @@ import htsjdk.variant.vcf.VCFFileReader;
 public class TargetRegions<T extends Segment> {
   private static final String[] TO_REPORT =
       new String[] {"SNPEFF_GENE_NAME", "SNPEFF_EFFECT", "SNPEFF_IMPACT", "AAChange.refGene",
-          "SNPEFF_EXON_ID", "culprit", "snp138", "esp6500si_all", "g10002014oct_all"};
+                    "SNPEFF_EXON_ID", "culprit", "snp138", "esp6500si_all", "g10002014oct_all"};
 
   public static void main(String[] args) {
     int numArgs = args.length;
@@ -36,7 +36,7 @@ public class TargetRegions<T extends Segment> {
     // Logger log;
 
     String usage = "\n" + "seq.analysis.TargetRegions requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -105,7 +105,7 @@ public class TargetRegions<T extends Segment> {
   }
 
   public void summarizeRegions(String fullPathToOutput, String toMatchVCF,
-      String[] toMatchAnnotations) {
+                               String[] toMatchAnnotations) {
     VCFFileReader reader = new VCFFileReader(new File(vcfFile), true);
     T[] regions = targetRegions.getLoci();
 
@@ -134,7 +134,7 @@ public class TargetRegions<T extends Segment> {
       for (T region : regions) {
         CloseableIterator<VariantContext> cIterator =
             reader.query(Positions.getChromosomeUCSC(region.getChr(), true), region.getStart(),
-                region.getStop());
+                         region.getStop());
 
         while (cIterator.hasNext()) {
           VariantContext vc = cIterator.next();
@@ -147,24 +147,27 @@ public class TargetRegions<T extends Segment> {
 
           for (String element : subpop) {
             writer.print("\t" + VCOps.getAAC(vc, vpop.getSubPop().get(element)));
-            VariantContext vcAlt =
-                VCOps.getAltAlleleContext(VCOps.getSubset(vc, vpop.getSubPop().get(element)), null,
-                    null, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+            VariantContext vcAlt = VCOps.getAltAlleleContext(
+                                                             VCOps.getSubset(vc,
+                                                                             vpop.getSubPop()
+                                                                                 .get(element)),
+                                                             null, null,
+                                                             ALT_ALLELE_CONTEXT_TYPE.ALL, log);
             Set<String> tmpSamps = vcAlt.getSampleNames();
             writer.print("\t");
             int index = 0;
             for (String altSamp : tmpSamps) {
               VariantContext curContext =
                   VCOps.getSubset(vcAlt, altSamp, VC_SUBSET_TYPE.SUBSET_STRICT);
-              writer.print(
-                  (index > 0 ? "|" : "") + altSamp + ":GQ=" + curContext.getGenotype(0).getGQ()
-                      + ":AD=" + Array.toStr(curContext.getGenotype(0).getAD(), ","));
+              writer.print((index > 0 ? "|" : "") + altSamp + ":GQ="
+                           + curContext.getGenotype(0).getGQ() + ":AD="
+                           + Array.toStr(curContext.getGenotype(0).getAD(), ","));
               index++;
             }
             int numExcluded = 0;
             for (String altSamp : vcAlt.getSampleNames()) {
-              if (vpop.getPopulationForInd(altSamp, RETRIEVE_TYPE.SUPER)[0]
-                  .equals(VcfPopulation.EXCLUDE)) {
+              if (vpop.getPopulationForInd(altSamp,
+                                           RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.EXCLUDE)) {
                 numExcluded++;
               }
             }
@@ -178,15 +181,15 @@ public class TargetRegions<T extends Segment> {
                 writer.print("\tNA");
               }
             } else {
-              writer.print(
-                  "\t" + Array.toStr(VCOps.getAnnotationsFor(toMatchAnnotations, vcMatch, ".")));
+              writer.print("\t" + Array.toStr(VCOps.getAnnotationsFor(toMatchAnnotations, vcMatch,
+                                                                      ".")));
             }
           }
           for (String element : subpop) {
             writer.print("\t" + VCOps.getAvgGenotypeInfo(vc, vpop.getSubPop().get(element),
-                GENOTYPE_INFO.DP, log));
+                                                         GENOTYPE_INFO.DP, log));
             writer.print("\t" + VCOps.getAvgGenotypeInfo(vc, vpop.getSubPop().get(element),
-                GENOTYPE_INFO.GQ, log));
+                                                         GENOTYPE_INFO.GQ, log));
           }
 
           writer.println();

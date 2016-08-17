@@ -31,7 +31,7 @@ public class AffyProcess {
     private int index;
 
     public CombineProducer(Project proj, String[] chpFiles, String[] cn5chpFiles,
-        String[] combinedOutputFiles, String delimiter, Logger log) {
+                           String[] combinedOutputFiles, String delimiter, Logger log) {
       super();
       this.proj = proj;
       this.chpFiles = chpFiles;
@@ -68,15 +68,16 @@ public class AffyProcess {
     }
   }
 
-  private static final String[] AFFY_CHP_HEADER = new String[] {"Probe Set ID", "Call Codes",
-      "Forward Strand Base Calls", "Confidence", "Signal A", "Signal B"};
+  private static final String[] AFFY_CHP_HEADER =
+      new String[] {"Probe Set ID", "Call Codes", "Forward Strand Base Calls", "Confidence",
+                    "Signal A", "Signal B"};
 
   private static final String[] AFFY_CN_CHP_HEADER = new String[] {"ProbeSet", "Log2Ratio"};
   private static final String CN_C5_PATTERN = "CN5.CNCHP";
   private static final String[][] REPLACES = new String[][] {{"-v2", ""}, {".birdseed", ""}};
 
   private static boolean combineChp(final Project proj, final String chp, final String cnC5Chp,
-      final String output, final String delimiter, final Logger log) {
+                                    final String output, final String delimiter, final Logger log) {
     String[] headerChp = Files.getLineContaining(chp, delimiter, AFFY_CHP_HEADER, log);
     String[] headerCNChp = Files.getLineContaining(cnC5Chp, delimiter, AFFY_CN_CHP_HEADER, log);
     if (headerChp != null && headerCNChp != null) {
@@ -88,7 +89,7 @@ public class AffyProcess {
         do {
           line = reader.readLine().trim().split("\t", -1);
         } while (reader.ready() && ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line,
-            false, true, false, false)[0] == -1);
+                                                    false, true, false, false)[0] == -1);
 
         writer.println(Array.toStr(AFFY_CHP_HEADER));
         int[] indices = ext.indexFactors(AFFY_CHP_HEADER, line, true, false);
@@ -104,7 +105,7 @@ public class AffyProcess {
         do {
           line = reader.readLine().trim().split("\t", -1);
         } while (reader.ready() && ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line,
-            false, true, false, false)[0] == -1);
+                                                    false, true, false, false)[0] == -1);
 
         indices = ext.indexFactors(AFFY_CN_CHP_HEADER, line, true, false);
         int numCN = 0;
@@ -150,8 +151,8 @@ public class AffyProcess {
         }
         reader.close();
         writer.close();
-        log.reportTimeInfo(
-            "Combined " + numSnps + " SNP probesets and " + numCN + " CN probes to " + output);
+        log.reportTimeInfo("Combined " + numSnps + " SNP probesets and " + numCN + " CN probes to "
+                           + output);
       } catch (FileNotFoundException e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
@@ -172,7 +173,7 @@ public class AffyProcess {
     for (String file : files) {
       if (Files.getLineContaining(file, "\t", header, log) == null) {
         log.reportTimeError("Currently " + type + " files must have at least the following columns "
-            + Array.toStr(header));
+                            + Array.toStr(header));
         log.reportTimeError(file + " did not contain a line with  the required columns");
 
         return false;
@@ -236,18 +237,18 @@ public class AffyProcess {
       String[] allFiles = Files.list(dir, null, false);
 
       log.reportTimeInfo("Attempting to find matched " + CN_C5_PATTERN + " files for "
-          + chpFiles.length + " chp format files in " + dir);
+                         + chpFiles.length + " chp format files in " + dir);
       cn5chpFiles = new String[chpFiles.length];
       combinedOutputFiles = new String[chpFiles.length];
       boolean foundAll = true;
       for (int i = 0; i < chpFiles.length; i++) {
         if (chpFiles[i].contains(CN_C5_PATTERN)) {
           log.reportTimeWarning(chpFiles[i] + " had " + CN_C5_PATTERN
-              + " in the filename, this pattern is used to match chp files to CN5.CNCHP files and is likely an internal error ");
+                                + " in the filename, this pattern is used to match chp files to CN5.CNCHP files and is likely an internal error ");
         }
         if (Files.getLineContaining(chpFiles[i], "\t", AFFY_CHP_HEADER, log) == null) {
           log.reportTimeError("Currently chp files must have at least the following columns "
-              + Array.toStr(AFFY_CHP_HEADER));
+                              + Array.toStr(AFFY_CHP_HEADER));
           valid = false;
         } else {
           String toMatch = ext.replaceAllWith(ext.rootOf(chpFiles[i]), REPLACES);
@@ -264,8 +265,8 @@ public class AffyProcess {
           }
           if (match == null) {
             foundAll = false;
-            log.reportTimeError(
-                "Could not find matching " + CN_C5_PATTERN + " file for CHP file " + chpFiles[i]);
+            log.reportTimeError("Could not find matching " + CN_C5_PATTERN + " file for CHP file "
+                                + chpFiles[i]);
           } else {
             cn5chpFiles[i] = dir + match;
             combinedOutputFiles[i] = dir + toMatch + tmpExt;
@@ -278,7 +279,7 @@ public class AffyProcess {
         valid = verifyAffy(cn5chpFiles, CN_C5_PATTERN, AFFY_CN_CHP_HEADER, log);
         if (valid) {
           log.reportTimeInfo("Matched all " + chpFiles.length + " CHP files to corresponding "
-              + CN_C5_PATTERN + " files");
+                             + CN_C5_PATTERN + " files");
         }
       }
     }

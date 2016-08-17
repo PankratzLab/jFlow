@@ -22,7 +22,7 @@ public class SasOutput {
     String filename = "Gwar.dat";
 
     String usage = "\n" + "parse.SasOutput requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-        + filename + " (default))\n" + "";
+                   + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

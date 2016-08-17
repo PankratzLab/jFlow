@@ -58,11 +58,11 @@ public class BamExtractor {
           if (varSets != null) {
             for (String varSet : varSets) {
               dumper = dumper + curSample + varSet + "\t" + "./"
-                  + ext.removeDirectoryInfo(bamSampleMap.get(curSample) + "\n");
+                       + ext.removeDirectoryInfo(bamSampleMap.get(curSample) + "\n");
             }
           } else {
             dumper = dumper + curSample + "\t" + "./"
-                + ext.removeDirectoryInfo(bamSampleMap.get(curSample) + "\n");
+                     + ext.removeDirectoryInfo(bamSampleMap.get(curSample) + "\n");
           }
 
         } else {
@@ -100,13 +100,12 @@ public class BamExtractor {
       }
       samples = Array.unique(Array.toStringArray(tmpSamples));
       if (samples.length != bamFiles.length) {
-        log.reportTimeError(
-            "Detected more samples than bam files, currently this only supports single sample bam files");
+        log.reportTimeError("Detected more samples than bam files, currently this only supports single sample bam files");
         fail = true;
       }
       if (verbose) {
-        log.reportTimeInfo(
-            "Found " + samples.length + " samples in " + bamFiles.length + " .bam files");
+        log.reportTimeInfo("Found " + samples.length + " samples in " + bamFiles.length
+                           + " .bam files");
       }
     }
 
@@ -158,7 +157,7 @@ public class BamExtractor {
           }
           if (!hasOne) {
             log.reportTimeError("Could not find a matching bam file for sample " + samples[i]
-                + " in the following var sets" + Array.toStr(varset, ","));
+                                + " in the following var sets" + Array.toStr(varset, ","));
 
           }
           verified = hasOne;
@@ -172,7 +171,7 @@ public class BamExtractor {
     private final String outputBam;
 
     public WorkerExtractor(Segment[] segmentsToExtract, String bamFile, boolean verbose,
-        boolean overWriteExisting, int bpBuffer, String outputBam, Logger log) {
+                           boolean overWriteExisting, int bpBuffer, String outputBam, Logger log) {
       bamExtractor =
           new BamExtractor(segmentsToExtract, bamFile, bpBuffer, verbose, overWriteExisting, log);
       this.outputBam = outputBam;
@@ -187,25 +186,26 @@ public class BamExtractor {
   public static final String BP_BUFFER_COMMAND = "bpBuffer=";
 
   private static QueryInterval[] convertSegsToQI(Segment[] segs, SAMFileHeader sFileHeader,
-      int bpBuffer, Logger log) {
+                                                 int bpBuffer, Logger log) {
     QueryInterval[] qIntervals = new QueryInterval[segs.length];
     segs = Segment.sortSegments(segs);
     for (int i = 0; i < qIntervals.length; i++) {
       String sequenceName = Positions.getChromosomeUCSC(segs[i].getChr(), true);
       int referenceIndex = sFileHeader.getSequenceIndex(sequenceName);
       if (referenceIndex < 0) {
-        log.reportError(
-            "Error - could not find " + sequenceName + " in the sequence dictionary, halting");
+        log.reportError("Error - could not find " + sequenceName
+                        + " in the sequence dictionary, halting");
         return null;
       }
       qIntervals[i] = new QueryInterval(referenceIndex, segs[i].getStart() - bpBuffer,
-          segs[i].getStop() + bpBuffer);
+                                        segs[i].getStop() + bpBuffer);
     }
     return qIntervals;
   }
 
   public static void extractAll(BamSample bamSample, String outputDirectory, int bpBuffer,
-      boolean verbose, boolean overWriteExisting, int numThreads, Logger log) {
+                                boolean verbose, boolean overWriteExisting, int numThreads,
+                                Logger log) {
     WorkerHive<BamExtractor> hive = new WorkerHive<BamExtractor>(numThreads, 10, log);
 
     for (int i = 0; i < bamSample.getSamples().length; i++) {
@@ -214,7 +214,7 @@ public class BamExtractor {
         String outputBam = outputDirectory + ext.removeDirectoryInfo(curBam);
         outputBam = ext.addToRoot(outputBam, ".mini");
         hive.addCallable(new WorkerExtractor(bamSample.getSegmentsToExtract(), curBam, verbose,
-            overWriteExisting, bpBuffer, outputBam, log));
+                                             overWriteExisting, bpBuffer, outputBam, log));
       }
 
     }
@@ -265,7 +265,7 @@ public class BamExtractor {
   private final Logger log;
 
   public BamExtractor(Segment[] segmentsToExtract, String bamFile, int bpBuffer, boolean verbose,
-      boolean overWriteExisting, Logger log) {
+                      boolean overWriteExisting, Logger log) {
     this.segmentsToExtract = segmentsToExtract;
     this.bamFile = bamFile;
     this.bpBuffer = bpBuffer;
@@ -277,14 +277,14 @@ public class BamExtractor {
   }
 
   private void dumpIntervals(SamReader reader, SAMFileWriter sAMFileWriter, String rootFile,
-      QueryInterval[] qIntervals, Logger log) {
+                             QueryInterval[] qIntervals, Logger log) {
     SAMRecordIterator sIterator = reader.query(qIntervals, false);
     int count = 0;
     while (sIterator.hasNext()) {
       SAMRecord samRecord = sIterator.next();
       if ((count != 0) && (count % 10000 == 0)) {
         log.reportTimeInfo("Wrote " + count + " reads (currently on " + samRecord.getReferenceName()
-            + " for file " + rootFile);
+                           + " for file " + rootFile);
       }
       count++;
       sAMFileWriter.addAlignment(samRecord);
@@ -300,7 +300,7 @@ public class BamExtractor {
       reader.indexing();
       if (!reader.hasIndex()) {
         log.reportError("Error - the bam file " + bamFile
-            + " must have a \".bai\" index file associated with it, halting");
+                        + " must have a \".bai\" index file associated with it, halting");
       } else {
         SAMFileHeader samFileHeader = reader.getFileHeader();
         QueryInterval[] qIntervals =
@@ -309,17 +309,19 @@ public class BamExtractor {
         if (qIntervals != null) {
           if (verbose) {
             log.reportTimeInfo("Attempting to extract " + qIntervals.length
-                + " intervals with a bp buffer of " + bpBuffer);
+                               + " intervals with a bp buffer of " + bpBuffer);
             log.reportTimeInfo(bamFile + " " + ">" + " " + outputFile);
           }
           bed = getBedIntervals(qIntervals, samFileHeader);
-          SAMFileWriter sAMFileWriter = new SAMFileWriterFactory().setCreateIndex(true)
-              .makeSAMOrBAMWriter(reader.getFileHeader(), true, new File(outputFile));
+          SAMFileWriter sAMFileWriter =
+              new SAMFileWriterFactory().setCreateIndex(true)
+                                        .makeSAMOrBAMWriter(reader.getFileHeader(), true,
+                                                            new File(outputFile));
           dumpIntervals(reader, sAMFileWriter, ext.removeDirectoryInfo(outputFile), qIntervals,
-              log);
+                        log);
           sAMFileWriter.close();
           log.reportTimeInfo("Finished extracting" + qIntervals.length
-              + " intervals with a bp buffer of " + bpBuffer);
+                             + " intervals with a bp buffer of " + bpBuffer);
           log.reportTimeInfo(bamFile + " " + ">" + " " + outputFile);
           try {
             reader.close();

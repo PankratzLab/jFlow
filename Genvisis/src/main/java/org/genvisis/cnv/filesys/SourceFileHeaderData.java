@@ -41,18 +41,19 @@ public class SourceFileHeaderData implements Serializable {
 
   private static final String[] GENOTYPE_FIELDS_A1_FOR =
       {"Allele1 - Forward", "Allele1", "genotype1", "Allele1 - Top", "Forward Strand Base Calls",
-          "Forced Call", "Forced Call Codes"};
+       "Forced Call", "Forced Call Codes"};
   private static final String[] GENOTYPE_FIELDS_A2_FOR =
       {"Allele2 - Forward", "Allele B", "genotype2", "Allele2 - Top", "Forward Strand Base Calls",
-          "Forced Call", "Forced Call Codes"};
+       "Forced Call", "Forced Call Codes"};
   private static final String[] GENOTYPE_FIELDS_A1_AB = {"Allele1 - AB", "Call Codes", "Call"};
   private static final String[] GENOTYPE_FIELDS_A2_AB = {"Allele2 - AB", "Call Codes", "Call"};
-  private static final String[][] LOOKUP = {/* 0 */ SourceFileParser.SNP_HEADER_OPTIONS[0],
-      /* 1 */ SAMPLE_FIELD_ID, /* 2 */ DATA_FIELDS_GC, /* 3 */ DATA_FIELDS_XRAW,
-      /* 4 */ DATA_FIELDS_YRAW, /* 5 */ DATA_FIELDS_X, /* 6 */ DATA_FIELDS_Y,
-      /* 7 */ DATA_FIELDS_THETA, /* 8 */ DATA_FIELDS_R, /* 9 */ DATA_FIELDS_BAF,
-      /* 10 */ DATA_FIELDS_LRR, /* 11 */ GENOTYPE_FIELDS_A1_FOR, /* 12 */ GENOTYPE_FIELDS_A2_FOR,
-      /* 13 */ GENOTYPE_FIELDS_A1_AB, /* 14 */ GENOTYPE_FIELDS_A2_AB,};
+  private static final String[][] LOOKUP =
+      {/* 0 */ SourceFileParser.SNP_HEADER_OPTIONS[0], /* 1 */ SAMPLE_FIELD_ID,
+       /* 2 */ DATA_FIELDS_GC, /* 3 */ DATA_FIELDS_XRAW, /* 4 */ DATA_FIELDS_YRAW,
+       /* 5 */ DATA_FIELDS_X, /* 6 */ DATA_FIELDS_Y, /* 7 */ DATA_FIELDS_THETA,
+       /* 8 */ DATA_FIELDS_R, /* 9 */ DATA_FIELDS_BAF, /* 10 */ DATA_FIELDS_LRR,
+       /* 11 */ GENOTYPE_FIELDS_A1_FOR, /* 12 */ GENOTYPE_FIELDS_A2_FOR,
+       /* 13 */ GENOTYPE_FIELDS_A1_AB, /* 14 */ GENOTYPE_FIELDS_A2_AB,};
 
   public static String doFullValidation(HashMap<String, SourceFileHeaderData> headers, Logger log) {
     int cnt = headers.size();
@@ -82,7 +83,7 @@ public class SourceFileHeaderData implements Serializable {
         headerData.numFiles = cnt;
       } else if (headerData.numFiles != cnt) {
         return "Number of Files listed in Source File {" + entry.getKey()
-            + "} does not equal the number of headers needing validation.  Please check source directory and extension and try again.";
+               + "} does not equal the number of headers needing validation.  Please check source directory and extension and try again.";
       }
       ArrayList<String> files = numSnpsSet.get(headerData.numSnps);
       if (files == null) {
@@ -428,11 +429,11 @@ public class SourceFileHeaderData implements Serializable {
       if (errorFiles.size() > 0) {
         for (String file : errorFiles) {
           log.reportError("Error - data or column mismatch suspected in source file {" + file
-              + "}.  Please verify file integrity and try again.");
+                          + "}.  Please verify file integrity and try again.");
         }
       }
       return "Found " + numErrors + " data or column index mismatches among " + errorFiles.size()
-          + " files.  Please check log for more details";
+             + " files.  Please check log for more details";
     }
 
     return null;
@@ -445,8 +446,8 @@ public class SourceFileHeaderData implements Serializable {
     String log = null;
 
     String usage = "\n" + "cnv.filesys.FinalReportHeaderData requires 2 argument\n"
-        + "   (1) Directory of FinalReport files (i.e. dir=" + dir + " (default))\n"
-        + "   (2) Extension of FinalReport files (i.e. ext=" + ext + " (default))\n";
+                   + "   (1) Directory of FinalReport files (i.e. dir=" + dir + " (default))\n"
+                   + "   (2) Extension of FinalReport files (i.e. ext=" + ext + " (default))\n";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -476,8 +477,8 @@ public class SourceFileHeaderData implements Serializable {
     }
   }
 
-  private static void parseColumnsBestGuess(String[] parts, SourceFileHeaderData frhd)
-      throws Elision {
+  private static void parseColumnsBestGuess(String[] parts,
+                                            SourceFileHeaderData frhd) throws Elision {
     int[] indices = ext.indexFactors(LOOKUP, parts, false, true, false, false);
     if (indices[0] == -1) {
       throw new Elision("Error - missing SNP ID column");
@@ -501,8 +502,8 @@ public class SourceFileHeaderData implements Serializable {
     frhd.colGenoAB2 = indices[14];
   }
 
-  public static SourceFileHeaderData parseHeader(String file, Logger log)
-      throws Elision, IOException {
+  public static SourceFileHeaderData parseHeader(String file, Logger log) throws Elision,
+                                                                          IOException {
     BufferedReader reader = Files.getAppropriateReader(file);
     String line = null;
     int lineCnt = 0;
@@ -517,30 +518,31 @@ public class SourceFileHeaderData implements Serializable {
       }
       if ("[Data]".equals(line) || line.startsWith("rs") || line.toUpperCase().startsWith("SNP")
           || ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true,
-              false, false)[0] != -1) {
+                              false, false)[0] != -1) {
         break;
       }
       String[] parts = line.trim().split(",");
       processLine(parts, frhd);
       lineCnt++;
     }
-    if (!"[Data]".equals(line) && !(line.startsWith("rs") || line.toUpperCase().startsWith("SNP")
-        || ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true,
-            false, false)[0] != -1)) {
+    if (!"[Data]".equals(line)
+        && !(line.startsWith("rs") || line.toUpperCase().startsWith("SNP")
+             || ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false,
+                                 true, false, false)[0] != -1)) {
       log.reportError("Error - malformed or missing header.");
       throw new Elision(file);
     }
     if ("[Data]".equals(line)) {
       line = reader.readLine();
       delim = file.contains(".csv") ? "[\\s]*,[\\s]*"
-          : file.contains(".xln") ? "[\\s]*\t[\\s]*" : ext.determineDelimiter(line, true);
+                                    : file.contains(".xln") ? "[\\s]*\t[\\s]*"
+                                                            : ext.determineDelimiter(line, true);
       lineCnt++;
       if (!(line.startsWith("rs") || line.toUpperCase().startsWith("SNP")
-          || ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true,
-              false, false)[0] != -1)) {
-        log.reportError(
-            "Error - malformed or missing header.  Header must start with 'rs' or 'SNP' or contain one of the following: "
-                + Array.toStr(SourceFileParser.SNP_HEADER_OPTIONS[0]) + ".");
+            || ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true,
+                                false, false)[0] != -1)) {
+        log.reportError("Error - malformed or missing header.  Header must start with 'rs' or 'SNP' or contain one of the following: "
+                        + Array.toStr(SourceFileParser.SNP_HEADER_OPTIONS[0]) + ".");
         throw new Elision(file);
       }
     }
@@ -548,9 +550,10 @@ public class SourceFileHeaderData implements Serializable {
     reader = null; // release
     String columnHeaders = line;
     delim = file.contains(".csv") ? SOURCE_FILE_DELIMITERS.COMMA.getDelimiter()
-        : file.contains(".xln") ? SOURCE_FILE_DELIMITERS.TAB.getDelimiter()
-            : SOURCE_FILE_DELIMITERS.getDelimiter(ext.determineDelimiter(columnHeaders, true))
-                .getDelimiter();
+                                  : file.contains(".xln") ? SOURCE_FILE_DELIMITERS.TAB.getDelimiter()
+                                                          : SOURCE_FILE_DELIMITERS.getDelimiter(ext.determineDelimiter(columnHeaders,
+                                                                                                                       true))
+                                                                                  .getDelimiter();
     // if (",".equals(delim)) {
     // delim = "[\\s]*,[\\s]*";
     // }
@@ -618,9 +621,12 @@ public class SourceFileHeaderData implements Serializable {
   }
 
   public static HashMap<String, SourceFileHeaderData> validate(final String rawDir,
-      final String ext, boolean fullValidation, Logger log, JProgressBar progressBar) {
-    String dir = rawDir.endsWith("/") || rawDir.endsWith("\\") ? rawDir
-        : org.genvisis.common.ext.verifyDirFormat(rawDir);
+                                                               final String ext,
+                                                               boolean fullValidation, Logger log,
+                                                               JProgressBar progressBar) {
+    String dir = rawDir.endsWith("/")
+                 || rawDir.endsWith("\\") ? rawDir
+                                          : org.genvisis.common.ext.verifyDirFormat(rawDir);
     String[] possibleFiles = (new File(dir)).list(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {

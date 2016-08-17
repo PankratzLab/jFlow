@@ -19,7 +19,9 @@ public class PowerCalculator {
   public static final double RR_INCREMENT = 0.01;
 
   public static double getRelativeRiskAtEightyPercentPower(double prevalence, double maf,
-      int numCases, int numControls, double alpha, boolean unselected) throws Exception {
+                                                           int numCases, int numControls,
+                                                           double alpha,
+                                                           boolean unselected) throws Exception {
     boolean found;
     int index, prev;
     int[] array;
@@ -64,7 +66,8 @@ public class PowerCalculator {
   }
 
   public static int getSampleSize(double prevalence, double relativeRisk, double maf, int numCases,
-      int numControls, double alpha, boolean unselected, boolean dominance) {
+                                  int numControls, double alpha, boolean unselected,
+                                  boolean dominance) {
     String[] results, line, cells;
     double ccratio;
     String trav;
@@ -141,7 +144,7 @@ public class PowerCalculator {
     String filename = "PowerCalculator.dat";
 
     String usage = "\n" + "gwas.PowerCalculator requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -207,7 +210,8 @@ public class PowerCalculator {
   }
 
   public static void rangeOfMaf(double prevalence, double relativeRiskIncrement, int numCases,
-      int numControls, int numTests, boolean unselected) throws Exception {
+                                int numControls, int numTests,
+                                boolean unselected) throws Exception {
     double alpha, rr;
 
     alpha = 0.05 / numTests;
@@ -221,13 +225,13 @@ public class PowerCalculator {
       // System.out.println(MAFs[mafIndex]+"\t"+getSampleSize(prevalence, 1.6, MAFs[mafIndex],
       // numCases, numControls, alpha, false));
       rr = getRelativeRiskAtEightyPercentPower(prevalence, maf, numCases, numControls, alpha,
-          unselected);
+                                               unselected);
       System.out.println(maf + "\t" + (rr == -9 ? "failed" : ext.formDeci(rr, 2)));
     }
   }
 
-  public static void rangeOfRelativeRisk(double prevalence, int numTests, boolean unselected)
-      throws Exception {
+  public static void rangeOfRelativeRisk(double prevalence, int numTests,
+                                         boolean unselected) throws Exception {
     double alpha;
 
     alpha = 0.05 / numTests;
@@ -244,8 +248,8 @@ public class PowerCalculator {
     for (double maf : MAFs) {
       System.out.print(maf);
       for (double element : RELATIVE_RISKS) {
-        System.out
-            .print("\t" + getSampleSize(prevalence, element, maf, 1, 1, alpha, unselected, false));
+        System.out.print("\t"
+                         + getSampleSize(prevalence, element, maf, 1, 1, alpha, unselected, false));
       }
       System.out.println();
     }

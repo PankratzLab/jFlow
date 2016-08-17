@@ -25,7 +25,7 @@ public class DNAcopy {
   // Documents\\CNV\\Software\\DNAcopy\\";
   public static final String[] ROOT_DIRS =
       {"C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\dnacopy\\",
-          "/work/parkinsons/cnvs/dnacopy/", "/home/npankrat/penncnv/again/dnacopy/"};
+       "/work/parkinsons/cnvs/dnacopy/", "/home/npankrat/penncnv/again/dnacopy/"};
   // public static final String CNV_DIRECTORY = "../quantisnp/source/";
   public static final String CNV_DIRECTORY = "../cnvs/";
   public static final String DEFAULT_OUTPUT = "results/";
@@ -37,7 +37,7 @@ public class DNAcopy {
       {"ID", "chrom", "loc.start", "loc.end", "num.mark", "seg.mean"};
 
   public static void analyzeDistribution(String rootDirectory, String outputDirectory,
-      String included, double min, double max, int sigfigs) {
+                                         String included, double min, double max, int sigfigs) {
     BufferedReader reader;
     PrintWriter writer;
     String[] outputs, inds, line;
@@ -55,8 +55,8 @@ public class DNAcopy {
 
     if (included == null || !new File(included).exists()) {
       if (included != null) {
-        System.err
-            .println("Error - file '" + included + "' was not found in directory " + rootDirectory);
+        System.err.println("Error - file '" + included + "' was not found in directory "
+                           + rootDirectory);
       }
       System.out.println("Using all indivduals with result files (n=" + outputs.length + ")");
       inds = new String[outputs.length];
@@ -70,7 +70,7 @@ public class DNAcopy {
       for (String ind : inds) {
         if (ext.indexOfStr(ind + ".smooth", outputs) == -1) {
           System.err.println("Error - '" + ind
-              + "' was found in the list of indiviudals to parse, but no results were found for this sample");
+                             + "' was found in the list of indiviudals to parse, but no results were found for this sample");
         }
       }
       output = "Distribution_for_" + ext.rootOf(included) + "." + sigfigs + "sigfig" + ".xln";
@@ -82,8 +82,8 @@ public class DNAcopy {
     for (int i = 0; i < inds.length; i++) {
       System.out.println((i + 1) + " of " + inds.length + ": " + inds[i]);
       try {
-        reader = new BufferedReader(
-            new FileReader(rootDirectory + outputDirectory + inds[i] + ".smooth"));
+        reader = new BufferedReader(new FileReader(rootDirectory + outputDirectory + inds[i]
+                                                   + ".smooth"));
         reader.readLine();
         while (reader.ready()) {
           line = reader.readLine().trim().split("[\\s]+");
@@ -101,11 +101,11 @@ public class DNAcopy {
             if (!faulty) {
               if (d < min) {
                 System.err.println("Error - '" + d + "' exceeds minimum (" + min
-                    + "); continuing on to determine absolute maximum and minimum");
+                                   + "); continuing on to determine absolute maximum and minimum");
                 faulty = true;
               } else if (d > max) {
                 System.err.println("Error - '" + d + "' exceeds minimum (" + min
-                    + "); continuing on to determine absolute maximum and minimum");
+                                   + "); continuing on to determine absolute maximum and minimum");
                 faulty = true;
               } else {
                 counts[(int) (d * Math.pow(10, sigfigs) - min * Math.pow(10, sigfigs))]++;
@@ -116,11 +116,11 @@ public class DNAcopy {
         reader.close();
       } catch (FileNotFoundException fnfe) {
         System.err.println("Error: file \"" + rootDirectory + outputDirectory + inds[i] + ".smooth"
-            + "\" not found in current directory");
+                           + "\" not found in current directory");
         System.exit(1);
       } catch (IOException ioe) {
-        System.err.println(
-            "Error reading file \"" + rootDirectory + outputDirectory + inds[i] + ".smooth" + "\"");
+        System.err.println("Error reading file \"" + rootDirectory + outputDirectory + inds[i]
+                           + ".smooth" + "\"");
         System.exit(2);
       }
     }
@@ -128,7 +128,8 @@ public class DNAcopy {
       writer = new PrintWriter(new FileWriter(output));
       for (int i = 0; i < counts.length; i++) {
         writer.println(ext.formDeci(min + Math.pow(0.1, sigfigs) * i, sigfigs) + "\t"
-            + ext.formDeci(min + Math.pow(0.1, sigfigs) * (i + 1), sigfigs) + "\t" + counts[i]);
+                       + ext.formDeci(min + Math.pow(0.1, sigfigs) * (i + 1), sigfigs) + "\t"
+                       + counts[i]);
       }
       writer.close();
 
@@ -141,7 +142,7 @@ public class DNAcopy {
   }
 
   public static void createBatch(String inputDirectory, String batchDirectory,
-      String outputDirectory, int numBatches) {
+                                 String outputDirectory, int numBatches) {
     PrintWriter writer;
     Vector<String[]> v = new Vector<String[]>();
     String[] inputs, outputs;
@@ -166,7 +167,7 @@ public class DNAcopy {
     });
 
     System.out.println("Found " + inputs.length + " samples, as well as results for "
-        + outputs.length + " that have been done (not necessarily the same ones)");
+                       + outputs.length + " that have been done (not necessarily the same ones)");
 
     for (String input : inputs) {
       // trav = ext.rootOf(inputs[i]);
@@ -177,11 +178,11 @@ public class DNAcopy {
           writer.println("library(DNAcopy)");
           // writer.println("quant<-read.table(\""+inputDirectory+trav+".qs\",
           // header=TRUE, sep=\"\\t\")");
-          writer.println(
-              "quant<-read.table(\"" + inputDirectory + trav + "\", header=TRUE, sep=\"\\t\")");
+          writer.println("quant<-read.table(\"" + inputDirectory + trav
+                         + "\", header=TRUE, sep=\"\\t\")");
           writer.println("cna <- CNA(cbind(quant$" + rName(trav)
-              + ".Log.R.Ratio), quant$Chr, quant$Position, data.type = \"logratio\", sampleid = \""
-              + trav + "\")");
+                         + ".Log.R.Ratio), quant$Chr, quant$Position, data.type = \"logratio\", sampleid = \""
+                         + trav + "\")");
           writer.println("smoothed <- smooth.CNA(cna)");
           writer.println("write.table(smoothed, \"" + outputDirectory + trav + ".smooth\")");
           writer.println("segmented <- segment(smoothed, verbose = 1)");
@@ -199,7 +200,7 @@ public class DNAcopy {
     }
 
     System.out.println("Made " + numBatches + " batch files that will take care of the " + v.size()
-        + " files yet to analyze");
+                       + " files yet to analyze");
 
     commands = "R CMD BATCH " + batchDirectory + "[%0].batch\n";
     Files.batchIt("batch", null, numBatches, commands, Matrix.toStringArrays(v));
@@ -223,14 +224,14 @@ public class DNAcopy {
     double threshold = ABSOLUT_THRESHOLD;
 
     String usage = "\\n" + "park.cnv.QuantiSNP requires 0-1 arguments\n"
-        + "   (1) root directory of CNV files (i.e. root=" + root + " (default))\n"
-        + "   (2) -createFiles (not the default)\n"
-        + "   (3) number of batches to create (i.e. batches=" + numBatches + " (not the default))\n"
-        + "   (4) -parseResults (not the default)\n"
-        + "   (5) file with list of inidiuvdals to parse (i.e. include=keeps.txt (default is to include all with results))\n"
-        + "   (6) -dist (analyze the distribution of smoothed LRR values) (not the default)\n"
-        + "   (7) number of significant digits to histogram (i.e. sig=" + sigfigs + " (default))\n"
-        + "";
+                   + "   (1) root directory of CNV files (i.e. root=" + root + " (default))\n"
+                   + "   (2) -createFiles (not the default)\n"
+                   + "   (3) number of batches to create (i.e. batches=" + numBatches
+                   + " (not the default))\n" + "   (4) -parseResults (not the default)\n"
+                   + "   (5) file with list of inidiuvdals to parse (i.e. include=keeps.txt (default is to include all with results))\n"
+                   + "   (6) -dist (analyze the distribution of smoothed LRR values) (not the default)\n"
+                   + "   (7) number of significant digits to histogram (i.e. sig=" + sigfigs
+                   + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -286,7 +287,7 @@ public class DNAcopy {
   }
 
   public static void parseResults(String rootDirectory, String outputDirectory, String included,
-      double threshold) {
+                                  double threshold) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -307,7 +308,7 @@ public class DNAcopy {
       reader.close();
     } catch (FileNotFoundException fnfe) {
       System.err.println("Error: file \"" + rootDirectory + LOOKUP_PLUS_GENDER_FILE
-          + "\" not found in current directory");
+                         + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + rootDirectory + LOOKUP_PLUS_GENDER_FILE + "\"");
@@ -328,14 +329,14 @@ public class DNAcopy {
         inds[i] = ext.rootOf(outputs[i]);
       }
     } else {
-      inds = Array
-          .toStringArray(HashVec.loadFileToVec(rootDirectory + included, false, false, true, true));
-      System.out
-          .println("Using all indivduals listed in '" + included + "' (n=" + inds.length + ")");
+      inds = Array.toStringArray(HashVec.loadFileToVec(rootDirectory + included, false, false, true,
+                                                       true));
+      System.out.println("Using all indivduals listed in '" + included + "' (n=" + inds.length
+                         + ")");
       for (String ind : inds) {
         if (ext.indexOfStr(ind + ".segments", outputs) == -1) {
           System.err.println("Error - '" + ind
-              + "' was found in the list of indiviudals to parse, but no results were found for this sample");
+                             + "' was found in the list of indiviudals to parse, but no results were found for this sample");
         }
       }
     }
@@ -346,8 +347,8 @@ public class DNAcopy {
       counts = new int[inds.length][2];
       for (int i = 0; i < inds.length; i++) {
         try {
-          reader = new BufferedReader(
-              new FileReader(rootDirectory + outputDirectory + inds[i] + ".segments"));
+          reader = new BufferedReader(new FileReader(rootDirectory + outputDirectory + inds[i]
+                                                     + ".segments"));
           reader.readLine();
           reader.readLine();
           reader.readLine();
@@ -362,28 +363,30 @@ public class DNAcopy {
             counts[i][0]++;
             if (Math.abs(Double.parseDouble(line[6])) > threshold) {
               writer.println(lookupDNAtoSubject.get(inds[i]) + "\t"
-                  + Positions.chromosomeNumber(line[2]) + "\t" + line[3] + "\t" + line[4] + "\t"
-                  + (Double.parseDouble(line[6]) < 0 ? 1 : 3) + "\t" + line[6] + "\t0");
+                             + Positions.chromosomeNumber(line[2]) + "\t" + line[3] + "\t" + line[4]
+                             + "\t" + (Double.parseDouble(line[6]) < 0 ? 1 : 3) + "\t" + line[6]
+                             + "\t0");
               counts[i][1]++;
             }
           }
           reader.close();
         } catch (FileNotFoundException fnfe) {
           System.err.println("Error: file \"" + rootDirectory + outputDirectory + inds[i]
-              + ".segments" + "\" not found in directory... won't be in final plink.cnv file");
+                             + ".segments"
+                             + "\" not found in directory... won't be in final plink.cnv file");
         } catch (IOException ioe) {
           System.err.println("Error reading file \"" + rootDirectory + outputDirectory + inds[i]
-              + ".segments" + "\"");
+                             + ".segments" + "\"");
           System.exit(2);
         }
         // writer.println(inds[i]);
       }
       array = Matrix.extractColumn(counts, 0);
       System.out.println("Mean/Total number of CNVs per person is: " + Array.mean(array) + " / "
-          + Array.sum(array));
+                         + Array.sum(array));
       array = Matrix.extractColumn(counts, 1);
       System.out.println("Mean/Total number of CNVs per person exceeding the threshold is: "
-          + Array.mean(array) + " / " + Array.sum(array));
+                         + Array.mean(array) + " / " + Array.sum(array));
       writer.close();
     } catch (Exception e) {
       e.printStackTrace();

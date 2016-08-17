@@ -18,8 +18,8 @@ public class updateGenos {
     String filename = "genoUpdates.dat";
 
     String usage = "\n" + "park.updateGenos requires 1 argument:\n"
-        + "   (1) a file with three columns - FamID IndID marker_name old_genotype1 old_genotype2 new_genotype1 new_genotype2\n"
-        + "       (i.e. file=" + filename + " (default))\n" + "";
+                   + "   (1) a file with three columns - FamID IndID marker_name old_genotype1 old_genotype2 new_genotype1 new_genotype2\n"
+                   + "       (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -99,15 +99,13 @@ public class updateGenos {
         System.err.println("Error - incorrect number of clomuns in line " + count + ". Found:");
         System.err.println(temp);
         System.err.println("    Expecting:");
-        System.err.println(
-            "FamID IndID marker_name old_genotype1 old_genotype2 new_genotype1 new_genotype2");
+        System.err.println("FamID IndID marker_name old_genotype1 old_genotype2 new_genotype1 new_genotype2");
         System.exit(1);
       }
       if (!allMarkers.containsKey(line[2])) {
         System.err.println("Error - cannot find " + line[2]
-            + " in the marshfield database. Check spelling and/or the order of the file. Expecting:");
-        System.err.println(
-            "FamID IndID marker_name old_genotype1 old_genotype2 new_genotype1 new_genotype2");
+                           + " in the marshfield database. Check spelling and/or the order of the file. Expecting:");
+        System.err.println("FamID IndID marker_name old_genotype1 old_genotype2 new_genotype1 new_genotype2");
         System.exit(2);
       }
 
@@ -132,8 +130,8 @@ public class updateGenos {
         madeChange = false;
         bakFilename = Files.getBakFilename("chromosome" + chr + ".dat", super.getClass().getName());
         if (!new File("chromosome" + chr + ".dat").exists()) {
-          System.err.println(
-              "Error - could not find " + "chromosome" + chr + ".dat" + " in current directory");
+          System.err.println("Error - could not find " + "chromosome" + chr + ".dat"
+                             + " in current directory");
           System.exit(2);
         }
         new File("chromosome" + chr + ".dat").renameTo(new File(bakFilename));
@@ -158,38 +156,42 @@ public class updateGenos {
               alteration = (changes.elementAt(j)).split("[\\s]+");
               if (!markerNames.contains(alteration[0])) {
                 System.err.println("Error - marker " + alteration[0]
-                    + " was not found in chromosome" + chr + ".dat");
+                                   + " was not found in chromosome" + chr + ".dat");
                 System.err.println("        Skipping alteration");
               } else {
                 if (line[3 + markerNames.indexOf(alteration[0]) * 2].equals(alteration[1])
                     && line[3 + markerNames.indexOf(alteration[0]) * 2 + 1].equals(alteration[2])) {
                   System.out.println("Congrats you found the right genotype ("
-                      + line[3 + markerNames.indexOf(alteration[0]) * 2] + " & "
-                      + line[3 + markerNames.indexOf(alteration[0]) * 2 + 1] + ")");
+                                     + line[3 + markerNames.indexOf(alteration[0]) * 2] + " & "
+                                     + line[3 + markerNames.indexOf(alteration[0]) * 2 + 1] + ")");
                   line[3 + markerNames.indexOf(alteration[0]) * 2] = alteration[3];
                   line[3 + markerNames.indexOf(alteration[0]) * 2 + 1] = alteration[4];
                   madeChange = true;
                 } else if (line[3 + markerNames.indexOf(alteration[0]) * 2].equals(alteration[2])
-                    && line[3 + markerNames.indexOf(alteration[0]) * 2 + 1].equals(alteration[1])) {
+                           && line[3 + markerNames.indexOf(alteration[0]) * 2
+                                   + 1].equals(alteration[1])) {
                   System.out.println("Congrats you found the right genotype ("
-                      + line[3 + markerNames.indexOf(alteration[0]) * 2] + " & "
-                      + line[3 + markerNames.indexOf(alteration[0]) * 2 + 1]
-                      + ") (albeit reversed)");
+                                     + line[3 + markerNames.indexOf(alteration[0]) * 2] + " & "
+                                     + line[3 + markerNames.indexOf(alteration[0]) * 2 + 1]
+                                     + ") (albeit reversed)");
                   line[3 + markerNames.indexOf(alteration[0]) * 2] = alteration[3];
                   line[3 + markerNames.indexOf(alteration[0]) * 2 + 1] = alteration[4];
                   madeChange = true;
                 } else if (line[3 + markerNames.indexOf(alteration[0]) * 2].equals(alteration[3])
-                    && line[3 + markerNames.indexOf(alteration[0]) * 2 + 1].equals(alteration[4])) {
+                           && line[3 + markerNames.indexOf(alteration[0]) * 2
+                                   + 1].equals(alteration[4])) {
                   System.out.println("Genotype " + alteration[1] + "/" + alteration[2]
-                      + " has already been changed to " + alteration[3] + "/" + alteration[4]
-                      + " for " + line[1] + "-" + line[2] + " (" + alteration[0] + ")");
+                                     + " has already been changed to " + alteration[3] + "/"
+                                     + alteration[4] + " for " + line[1] + "-" + line[2] + " ("
+                                     + alteration[0] + ")");
                 } else {
                   System.err.println("Error - Wrong genotypes specified for " + line[1] + "-"
-                      + line[2] + " (" + alteration[0] + ")");
+                                     + line[2] + " (" + alteration[0] + ")");
                   System.err.println("        Supposed to change " + alteration[1] + "/"
-                      + alteration[2] + " to " + alteration[3] + "/" + alteration[4] + " but found "
-                      + line[3 + markerNames.indexOf(alteration[0]) * 2] + "/"
-                      + line[3 + markerNames.indexOf(alteration[0]) * 2 + 1]);
+                                     + alteration[2] + " to " + alteration[3] + "/" + alteration[4]
+                                     + " but found "
+                                     + line[3 + markerNames.indexOf(alteration[0]) * 2] + "/"
+                                     + line[3 + markerNames.indexOf(alteration[0]) * 2 + 1]);
                 }
               }
             }

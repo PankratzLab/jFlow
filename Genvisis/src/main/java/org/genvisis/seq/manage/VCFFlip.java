@@ -48,8 +48,9 @@ public class VCFFlip {
     VariantContextWriter writerError = builderError.build();
 
     VCFHeader vcfHeader = new VCFHeader(reader.getFileHeader());
-    VCFFormatHeaderLine vcfFormatHeaderLine = new VCFFormatHeaderLine("GT", 1,
-        VCFHeaderLineType.String, "Ref to alt flipped genotypes from " + inputVCF);
+    VCFFormatHeaderLine vcfFormatHeaderLine =
+        new VCFFormatHeaderLine("GT", 1, VCFHeaderLineType.String,
+                                "Ref to alt flipped genotypes from " + inputVCF);
     vcfHeader.addMetaDataLine(vcfFormatHeaderLine);
     writer.writeHeader(vcfHeader);
     writerError.writeHeader(vcfHeader);
@@ -156,7 +157,7 @@ public class VCFFlip {
           log.reportException(ile);
           skipped++;
           log.reportTimeError("Could not flip variant context " + vc.toStringWithoutGenotypes()
-              + ", reverting to original context...");
+                              + ", reverting to original context...");
           writerError.add(vc);
           // writer.add(vc);
         }
@@ -183,7 +184,7 @@ public class VCFFlip {
     Logger log;
 
     String usage = "\n" + "seq.manage.VCFFlip requires 0-1 arguments\n"
-        + "   (1) vcf file (i.e. vcf=" + vcf + " (default))\n" + "";
+                   + "   (1) vcf file (i.e. vcf=" + vcf + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

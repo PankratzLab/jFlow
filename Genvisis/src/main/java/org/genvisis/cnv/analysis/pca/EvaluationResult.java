@@ -51,15 +51,15 @@ class EvaluationResult implements Serializable {
   private static final long serialVersionUID = 1L;
 
   private static void generateHeritabilityDb(Project proj, EvaluationResult[] results,
-      double[] otherData, String otherDataTitle, boolean[] samplesToEvaluate, String output,
-      String ped, String crf, Logger log) {
-    log.reportTimeWarning(
-        "Assuming stored estimate results are in project order to create heritability db "
-            + output);
+                                             double[] otherData, String otherDataTitle,
+                                             boolean[] samplesToEvaluate, String output, String ped,
+                                             String crf, Logger log) {
+    log.reportTimeWarning("Assuming stored estimate results are in project order to create heritability db "
+                          + output);
     log.reportTimeWarning("Assuming ped file has DNA listed in the last column of  " + output);
     if (samplesToEvaluate != null) {
-      log.reportTimeInfo(
-          "Using " + Array.booleanArraySum(samplesToEvaluate) + " samples that are not excluded");
+      log.reportTimeInfo("Using " + Array.booleanArraySum(samplesToEvaluate)
+                         + " samples that are not excluded");
     }
     try {
       Hashtable<String, String> pedHash =
@@ -109,7 +109,7 @@ class EvaluationResult implements Serializable {
         String missing = ext.addToRoot(ped, ".missing");
         String have = ext.addToRoot(ped, ".have");
         log.reportTimeWarning(sampsNotSeen.size()
-            + " samples were not found in the ped file , writing to " + missing);
+                              + " samples were not found in the ped file , writing to " + missing);
         Files.writeList(sampsNotSeen.toArray(new String[sampsNotSeen.size()]), missing);
         Files.writeList(sampsHave.toArray(new String[sampsHave.size()]), have);
 
@@ -122,7 +122,9 @@ class EvaluationResult implements Serializable {
   }
 
   public static EvalHeritabilityResult prepareHeritability(Project proj, String ped,
-      boolean[] samplesToEvaluate, String serFile, double[] otherData, String otherDataTitle) {
+                                                           boolean[] samplesToEvaluate,
+                                                           String serFile, double[] otherData,
+                                                           String otherDataTitle) {
     Logger log = proj.getLog();
     EvaluationResult[] evaluationResults = readSerial(serFile, log);
     log.reportTimeInfo("Loaded " + evaluationResults.length + " evaluation results");
@@ -133,7 +135,7 @@ class EvaluationResult implements Serializable {
     // System.out.println(ext.rootOf(crf, false)+"_summary.xln");
     // System.exit(1);
     generateHeritabilityDb(proj, evaluationResults, otherData, otherDataTitle, samplesToEvaluate,
-        db, ped, crf, log);
+                           db, ped, crf, log);
     Heritability.fromParameters(crf, true, log);
     EvalHeritabilityResult evalHeritabilityResult = new EvalHeritabilityResult(ped, db, crf);
     return evalHeritabilityResult;

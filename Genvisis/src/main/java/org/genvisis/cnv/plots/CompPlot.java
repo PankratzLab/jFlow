@@ -134,8 +134,8 @@ public class CompPlot extends JFrame {
       ArrayList<String> files = getFilterFiles();
       if (files.size() != 1) {
         JOptionPane.showMessageDialog(null,
-            "One and only one file must be selected before a .BED File can be generated", "Error",
-            JOptionPane.ERROR_MESSAGE);
+                                      "One and only one file must be selected before a .BED File can be generated",
+                                      "Error", JOptionPane.ERROR_MESSAGE);
       } else {
         // Find the full path to the selected file
         String[] filePaths = proj.CNV_FILENAMES.getValue();
@@ -153,7 +153,9 @@ public class CompPlot extends JFrame {
         // Direct the user to the BED upload page at UCSC Genome Browser
         Desktop desktop = Desktop.getDesktop();
         String URL = Positions.getUCSCUploadLink(
-            Positions.parseUCSClocation(regionNavigator.getTextField().getText()), compressedFile);
+                                                 Positions.parseUCSClocation(regionNavigator.getTextField()
+                                                                                            .getText()),
+                                                 compressedFile);
 
         // UCSC uses chrX and chrY instead of 23 and 24
         URL = URL.replaceAll("chr23", "chrX");
@@ -177,8 +179,8 @@ public class CompPlot extends JFrame {
     @Override
     public void actionPerformed(ActionEvent arg0) {
       Desktop desktop = Desktop.getDesktop();
-      String URL = Positions
-          .getUCSClink(Positions.parseUCSClocation(regionNavigator.getTextField().getText()));
+      String URL = Positions.getUCSClink(Positions.parseUCSClocation(regionNavigator.getTextField()
+                                                                                    .getText()));
 
       // UCSC uses chrX and chrY instead of 23 and 24
       URL = URL.replaceAll("chr23", "chrX");
@@ -200,9 +202,10 @@ public class CompPlot extends JFrame {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      int opt = JOptionPane.showConfirmDialog(CompPlot.this, "Delete file from disk?",
-          "Delete region file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE,
-          null);
+      int opt =
+          JOptionPane.showConfirmDialog(CompPlot.this, "Delete file from disk?",
+                                        "Delete region file?", JOptionPane.YES_NO_CANCEL_OPTION,
+                                        JOptionPane.QUESTION_MESSAGE, null);
       switch (opt) {
         case JOptionPane.CANCEL_OPTION:
           return;
@@ -210,8 +213,9 @@ public class CompPlot extends JFrame {
           boolean deleted = (new File(e.getActionCommand())).delete();
           if (!deleted) {
             JOptionPane.showMessageDialog(CompPlot.this,
-                "Error - failed to delete file {" + e.getActionCommand() + "}",
-                "Delete File Failed...", JOptionPane.ERROR_MESSAGE);
+                                          "Error - failed to delete file {" + e.getActionCommand()
+                                                         + "}",
+                                          "Delete File Failed...", JOptionPane.ERROR_MESSAGE);
           }
           break;
         case JOptionPane.NO_OPTION:
@@ -327,10 +331,11 @@ public class CompPlot extends JFrame {
         if (currSet.size() > 0) {
           String message = currSet.size() + " files have been added.  ";
           int choice = JOptionPane.showOptionDialog(null,
-              message
-                  + " Would you like to keep this configuration for the next time CompPlot is loaded?",
-              "Preserve CompPlot workspace?", JOptionPane.YES_NO_CANCEL_OPTION,
-              JOptionPane.QUESTION_MESSAGE, null, null, null);
+                                                    message
+                                                          + " Would you like to keep this configuration for the next time CompPlot is loaded?",
+                                                    "Preserve CompPlot workspace?",
+                                                    JOptionPane.YES_NO_CANCEL_OPTION,
+                                                    JOptionPane.QUESTION_MESSAGE, null, null, null);
           if (choice == 0) {
             CompPlot.this.proj.saveProperties();
           }
@@ -363,9 +368,9 @@ public class CompPlot extends JFrame {
   }
 
   private String chooseNewFiles() {
-    JFileChooser jfc = new JFileChooser(
-        (proj != null /* || regionFileName == null */ ? proj.PROJECT_DIRECTORY.getValue()
-            : null /* ext.parseDirectoryOfFile(regionFileName) */));
+    JFileChooser jfc =
+        new JFileChooser((proj != null /* || regionFileName == null */ ? proj.PROJECT_DIRECTORY.getValue()
+                                       : null /* ext.parseDirectoryOfFile(regionFileName) */));
     jfc.setMultiSelectionEnabled(true);
     if (jfc.showOpenDialog(CompPlot.this) == JFileChooser.APPROVE_OPTION) {
       File[] files = jfc.getSelectedFiles();
@@ -394,7 +399,7 @@ public class CompPlot extends JFrame {
             addFileToList(kept.getAbsolutePath());
           } else {
             proj.getLog().reportError("Error - contents of file {" + kept.getAbsolutePath()
-                + "} are not valid UCSC regions");
+                                      + "} are not valid UCSC regions");
           }
         }
         return keptFiles[0].getAbsolutePath();
@@ -408,8 +413,8 @@ public class CompPlot extends JFrame {
         }
 
         if (!keep) {
-          StringBuilder msg = new StringBuilder("The following data file is already present:\n")
-              .append(file.getName());
+          StringBuilder msg =
+              new StringBuilder("The following data file is already present:\n").append(file.getName());
           JOptionPane.showMessageDialog(CompPlot.this, msg.toString());
         } else {
           if (verifyValidFile(file.getAbsolutePath())) {
@@ -417,7 +422,7 @@ public class CompPlot extends JFrame {
             return file.getAbsolutePath();
           } else {
             proj.getLog().reportError("Error - contents of file {" + file.getAbsolutePath()
-                + "} are not valid UCSC regions");
+                                      + "} are not valid UCSC regions");
             return null;
           }
         }
@@ -441,8 +446,9 @@ public class CompPlot extends JFrame {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        NewRegionListDialog newRgnList = new NewRegionListDialog(null,
-            proj == null ? null : proj.PROJECT_DIRECTORY.getValue(), false);
+        NewRegionListDialog newRgnList =
+            new NewRegionListDialog(null, proj == null ? null : proj.PROJECT_DIRECTORY.getValue(),
+                                    false);
         newRgnList.setModal(true);
         newRgnList.setVisible(true);
         if (newRgnList.getReturnCode() == JOptionPane.YES_OPTION) {
@@ -613,8 +619,8 @@ public class CompPlot extends JFrame {
       // track = GeneTrack.load(GeneSet.REFSEQ_TRACK, false);
     } else {
       JOptionPane.showMessageDialog(this,
-          "Gene track is not installed. Gene boundaries will not be displayed.", "FYI",
-          JOptionPane.INFORMATION_MESSAGE);
+                                    "Gene track is not installed. Gene boundaries will not be displayed.",
+                                    "FYI", JOptionPane.INFORMATION_MESSAGE);
       track = null;
     }
 
@@ -657,7 +663,7 @@ public class CompPlot extends JFrame {
   public void loadCNVs(int[] location) {
     // long startTime = Calendar.getInstance().getTimeInMillis();
     cnvRects = new CNVRectangles(hashes, allFiles, filterFiles, location, probes, minSize,
-        qualityScore, showExcludes ? allSamples : subSamples);
+                                 qualityScore, showExcludes ? allSamples : subSamples);
     cnvRects.setRectangleHeight(rectangleHeight);
     compPanel.setWindow(location[1], location[2]);
     cnvRects.setScalingFactor(compPanel.getScalingFactor());

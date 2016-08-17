@@ -58,7 +58,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
     private final String referenceGenomeFasta;
 
     public PileupProducer(String[] bamFiles, String serDir, String referenceGenomeFasta,
-        FilterNGS filterNGS, Segment[] pileSegs, Logger log) {
+                          FilterNGS filterNGS, Segment[] pileSegs, Logger log) {
       super();
       this.bamFiles = bamFiles;
       this.serDir = serDir;
@@ -97,7 +97,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
     private final String referenceGenomeFasta;
 
     public PileUpWorker(String bamFile, String serDir, String referenceGenomeFasta,
-        Segment[] pileSegs, FilterNGS filterNGS, Logger log) {
+                        Segment[] pileSegs, FilterNGS filterNGS, Logger log) {
       super();
       this.bamFile = bamFile;
       this.serDir = serDir;
@@ -141,7 +141,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
   private final ReferenceGenome referenceGenome;
 
   public BamSegPileUp(String bam, String referenceGenomeFasta, Segment[] intervals,
-      FilterNGS filterNGS, Logger log) {
+                      FilterNGS filterNGS, Logger log) {
     super();
     this.bam = bam;
     numReturned = 0;
@@ -171,8 +171,9 @@ public class BamSegPileUp implements Iterator<BamPile> {
     }
 
     Segment cs = currentPile.getBin();
-    CloseableIterator<SAMRecord> iterator = reader.queryOverlapping(
-        Positions.getChromosomeUCSC(cs.getChr(), true), cs.getStart(), cs.getStop());
+    CloseableIterator<SAMRecord> iterator =
+        reader.queryOverlapping(Positions.getChromosomeUCSC(cs.getChr(), true), cs.getStart(),
+                                cs.getStop());
     while (iterator.hasNext()) {
       SAMRecord samRecord = iterator.next();
       if (!filter.filterOut(samRecord)) {

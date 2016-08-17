@@ -63,20 +63,22 @@ public class BWA {
 
 
   public boolean bwaMEM(String fullPathToReferenceIndexedFasta, String fullPathToForwardReadFQ,
-      String fullPathToRevereseReadFQ, String fullPathToOutputFile, String readGroup,
-      int numThreads, Logger altLog) {
+                        String fullPathToRevereseReadFQ, String fullPathToOutputFile,
+                        String readGroup, int numThreads, Logger altLog) {
     String[] inputFiles = new String[] {fullPathToReferenceIndexedFasta, fullPathToForwardReadFQ,
-        fullPathToRevereseReadFQ};
+                                        fullPathToRevereseReadFQ};
     String[] outputFiles = new String[] {fullPathToOutputFile};
     String[] commandArray = new String[] {bwaLocation, BWA_MEM_COMMAND, "-M", "-R", readGroup,
-        (numThreads > 1 ? " -t " + numThreads + " " : " "), fullPathToReferenceIndexedFasta,
-        fullPathToForwardReadFQ, fullPathToRevereseReadFQ, " > ", fullPathToOutputFile};
+                                          (numThreads > 1 ? " -t " + numThreads + " " : " "),
+                                          fullPathToReferenceIndexedFasta, fullPathToForwardReadFQ,
+                                          fullPathToRevereseReadFQ, " > ", fullPathToOutputFile};
     if (!fail) {
       String command = fullPathToOutputFile + ".bat";
       Files.write(Array.toStr(commandArray, " "), command);
       Files.chmod(command);
       return CmdLine.runCommandWithFileChecks(new String[] {command}, "", inputFiles, outputFiles,
-          verbose, overwriteExisting, true, (altLog == null ? log : altLog));
+                                              verbose, overwriteExisting, true,
+                                              (altLog == null ? log : altLog));
     } else {
       return false;
     }
@@ -110,8 +112,7 @@ public class BWA {
         bwaLocation = BWA_COMMAND;
         return true;
       } else {
-        log.reportError(
-            "Error - a path to bwa was not supplied and bwa was not detected on the system's path");
+        log.reportError("Error - a path to bwa was not supplied and bwa was not detected on the system's path");
         return false;
       }
     }

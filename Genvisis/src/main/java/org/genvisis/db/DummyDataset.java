@@ -27,11 +27,13 @@ public class DummyDataset {
     int count;
     String[][] params;
 
-    params = Files.parseControlFile(filename, true, "dummy",
-        new String[] {"outputFile.xln", "header\tAffected\tAllele1\tAllele2", "30\t1\tE2\tE3",
-            "40\t0\tE2\tE3", "500\t1\tE3\tE3", "400\t0\tE3\tE3", "200\t1\tE3\tE4", "100\t0\tE3\tE4",
-            "10\t1\tE4\tE4", "2\t0\tE4\tE4"},
-        log);
+    params =
+        Files.parseControlFile(filename, true, "dummy",
+                               new String[] {"outputFile.xln", "header\tAffected\tAllele1\tAllele2",
+                                             "30\t1\tE2\tE3", "40\t0\tE2\tE3", "500\t1\tE3\tE3",
+                                             "400\t0\tE3\tE3", "200\t1\tE3\tE4", "100\t0\tE3\tE4",
+                                             "10\t1\tE4\tE4", "2\t0\tE4\tE4"},
+                               log);
     if (params != null) {
       outfile = params[0][0];
       header = null;
@@ -46,7 +48,7 @@ public class DummyDataset {
             countV.add(num);
           } catch (Exception e) {
             log.reportError("Error - '" + params[i][0]
-                + "' is an invalid integer; first column contains the number of time series is repreated");
+                            + "' is an invalid integer; first column contains the number of time series is repreated");
             return;
           }
           v.add(Array.subArray(params[i], 1));
@@ -70,7 +72,7 @@ public class DummyDataset {
         }
         writer.close();
         log.report("Final file contains " + count + " records"
-            + (header == null ? "" : "; plus a header"));
+                   + (header == null ? "" : "; plus a header"));
       } catch (Exception e) {
         System.err.println("Error writing to " + outfile);
         e.printStackTrace();
@@ -90,7 +92,7 @@ public class DummyDataset {
     String[][] params;
 
     params = Files.parseControlFile(filename, false, "counts",
-        new String[] {"input.txt out=outputFile.xln tab"}, log);
+                                    new String[] {"input.txt out=outputFile.xln tab"}, log);
     if (params != null) {
       infile = params[0][0];
       outfile = null;
@@ -112,7 +114,7 @@ public class DummyDataset {
         reader = new BufferedReader(new FileReader(infile));
         while (reader.ready()) {
           line = reader.readLine().trim()
-              .split(commaDelimited ? "," : (tabDelimited ? "\t" : "[\\s]+"));
+                       .split(commaDelimited ? "," : (tabDelimited ? "\t" : "[\\s]+"));
           if (hashes.containsKey(line[0])) {
             hash = hashes.get(line[0]);
           } else {

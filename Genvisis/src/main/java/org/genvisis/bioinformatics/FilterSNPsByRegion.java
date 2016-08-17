@@ -38,9 +38,10 @@ public class FilterSNPsByRegion {
     buffer = -1;
 
     paramV = Files.parseControlFile(filename, "filterSNPs",
-        new String[] {"regions.txt header 0 1 2 ucsc out=file.out regionNumber regionName=3",
-            "plink.bim 1 0 3", "additonalAnnotation 0 5 6", "buffer=" + DEFAULT_BUFFER},
-        log);
+                                    new String[] {"regions.txt header 0 1 2 ucsc out=file.out regionNumber regionName=3",
+                                                  "plink.bim 1 0 3", "additonalAnnotation 0 5 6",
+                                                  "buffer=" + DEFAULT_BUFFER},
+                                    log);
     if (paramV == null) {
       return;
     }
@@ -81,8 +82,7 @@ public class FilterSNPsByRegion {
       stopCol = 2;
     }
     if (!ucsc && startCol == -1) {
-      System.err.println(
-          "Warning - since only one column was specified, assuming you meant to include ucsc flag but didn't");
+      System.err.println("Warning - since only one column was specified, assuming you meant to include ucsc flag but didn't");
       ucsc = true;
     }
     log.report("Loading regions from '" + regionsFile + "'");
@@ -120,8 +120,8 @@ public class FilterSNPsByRegion {
 
     snps = new Vector<String>(1000);
     snpsWithRegionNumbers = new Vector<String>(1000);
-    snpsWithRegionNumbers
-        .add("MarkerName\tRegionNumber" + (regionNameIndex >= 0 ? "\tRegionName" : ""));
+    snpsWithRegionNumbers.add("MarkerName\tRegionNumber"
+                              + (regionNameIndex >= 0 ? "\tRegionName" : ""));
     try {
       reader = new BufferedReader(new FileReader(lookupFile));
       writer = new PrintWriter(new FileWriter(outputFilename));
@@ -129,12 +129,12 @@ public class FilterSNPsByRegion {
         line = reader.readLine().trim().split("[\\s]+");
         passes = false;
         mark = new Segment(Positions.chromosomeNumber(line[chrCol]), Integer.parseInt(line[posCol]),
-            Integer.parseInt(line[posCol]));
+                           Integer.parseInt(line[posCol]));
         for (int i = 0; i < regions.length && !passes; i++) {
           if (mark.overlaps(regions[i])) {
             passes = true;
             snpsWithRegionNumbers.add(line[snpCol] + "\t" + (i + 1)
-                + (regionNameIndex >= 0 ? "\t" + regionNames[i] : ""));
+                                      + (regionNameIndex >= 0 ? "\t" + regionNames[i] : ""));
           }
         }
         if (passes) {
@@ -157,10 +157,10 @@ public class FilterSNPsByRegion {
     if (regionNumber) {
       Files.writeList(Array.toStringArray(snpsWithRegionNumbers), "snp_region_matchup.dat");
       paramV.add("snp_region_matchup.dat 0 1=RegionNumber"
-          + (regionNameIndex >= 0 ? "\t2=RegionName" : ""));
+                 + (regionNameIndex >= 0 ? "\t2=RegionName" : ""));
     }
 
     Files.combine(Array.toStringArray(snps), Array.toStringArray(paramV), "MarkerName",
-        outputFilename, log, true);
+                  outputFilename, log, true);
   }
 }

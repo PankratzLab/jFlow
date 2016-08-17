@@ -72,7 +72,7 @@ public class LineChartSample extends Application {
       if (pvals[i] == 0.05) {
         if (types[i].contains("NATURAL")) {
           all[ext.indexOfStr(types[i], uniqTypes)].getData()
-              .add(new XYChart.Data(pcs[i], correl[i]));
+                                                  .add(new XYChart.Data(pcs[i], correl[i]));
         }
       }
     }
@@ -92,7 +92,7 @@ public class LineChartSample extends Application {
 
     try {
       ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null), "png",
-          new File("C:/data/misc/betaPlots/test.png"));
+                    new File("C:/data/misc/betaPlots/test.png"));
     } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();

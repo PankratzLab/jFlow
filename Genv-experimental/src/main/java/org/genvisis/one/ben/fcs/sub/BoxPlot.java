@@ -60,10 +60,12 @@ public class BoxPlot extends JFrame {
   private static final String PROP_FILE = "boxplot.properties";
   private static final String PROPKEY_DATAFILE = "DATA_FILE";
   private static final String PROPKEY_SELECTED = "SELECTED";
-  private static final String[] PROPKEY_HOTKEYS = {"HOTKEY_0", "HOTKEY_1", "HOTKEY_2", "HOTKEY_3",
-      "HOTKEY_4", "HOTKEY_5", "HOTKEY_6", "HOTKEY_7", "HOTKEY_8", "HOTKEY_9",};
-  private static final int[] KEYS = {KeyEvent.VK_0, KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3,
-      KeyEvent.VK_4, KeyEvent.VK_5, KeyEvent.VK_6, KeyEvent.VK_7, KeyEvent.VK_8, KeyEvent.VK_9,};
+  private static final String[] PROPKEY_HOTKEYS =
+      {"HOTKEY_0", "HOTKEY_1", "HOTKEY_2", "HOTKEY_3", "HOTKEY_4", "HOTKEY_5", "HOTKEY_6",
+       "HOTKEY_7", "HOTKEY_8", "HOTKEY_9",};
+  private static final int[] KEYS =
+      {KeyEvent.VK_0, KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3, KeyEvent.VK_4, KeyEvent.VK_5,
+       KeyEvent.VK_6, KeyEvent.VK_7, KeyEvent.VK_8, KeyEvent.VK_9,};
 
   public static void main(String[] args) {
     BoxPlot bp = new BoxPlot();
@@ -97,8 +99,9 @@ public class BoxPlot extends JFrame {
 
     scrollContent = new JPanel(new MigLayout("", "", ""));
     scrollContent.setBackground(Color.WHITE);
-    JScrollPane scrollPane = new JScrollPane(scrollContent,
-        JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    JScrollPane scrollPane =
+        new JScrollPane(scrollContent, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     scrollPane.getVerticalScrollBar().setUnitIncrement(14);
     scrollPane.getHorizontalScrollBar().setUnitIncrement(14);
 
@@ -317,7 +320,8 @@ public class BoxPlot extends JFrame {
       for (String element : PROPKEY_HOTKEYS) {
         ArrayList<String> hotKeyDef = hotkeyDefs.get(element);
         props.setProperty(element,
-            hotKeyDef == null ? "" : Array.toStr(Array.toStringArray(hotKeyDef), ";;"));
+                          hotKeyDef == null ? ""
+                                            : Array.toStr(Array.toStringArray(hotKeyDef), ";;"));
       }
       File f = new File(PROP_FILE);
       OutputStream out = new FileOutputStream(f);
@@ -364,7 +368,7 @@ public class BoxPlot extends JFrame {
       JLabel pnlLbl = new JLabel("<html><p>" + pts + "</p></html>");
       pnlLbl.setBackground(Color.WHITE);
       scrollContent.add(pnlLbl,
-          "cell " + (i % cols) + " " + (row + 1) + ", alignx center, aligny top");
+                        "cell " + (i % cols) + " " + (row + 1) + ", alignx center, aligny top");
     }
     revalidate();
     repaint();

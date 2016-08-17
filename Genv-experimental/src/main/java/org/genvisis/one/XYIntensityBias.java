@@ -77,7 +77,7 @@ public class XYIntensityBias {
     String filename = null;
 
     String usage = "\n" + "one.XYIntensityBias requires 0-1 arguments\n" + "   (1) proj (i.e. proj="
-        + filename + " (default))\n" + "";
+                   + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -118,8 +118,8 @@ public class XYIntensityBias {
       int index = 0;
       while (train.hasNext()) {
         double[][] vals = train.next();
-        writer.println(
-            proj.getSamples()[index] + "\t" + Array.toStr(vals[0]) + "\t" + Array.toStr(vals[1]));
+        writer.println(proj.getSamples()[index] + "\t" + Array.toStr(vals[0]) + "\t"
+                       + Array.toStr(vals[1]));
         index++;
         proj.getLog().reportTimeInfo(index + "");
       }

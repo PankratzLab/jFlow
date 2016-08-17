@@ -19,8 +19,9 @@ public class UpdateCRFdb {
 
   public static final String PLATE_LIST_DIR = tools.MASTER_PLATELIST_DIR;
 
-  public static final String[] TRAITS = {"Depressed", "MajorDepression", "MinorDepression",
-      "Depression", "AOO", "parkin", "AnyLRRK2", "GBA_carrier", "GBA_del"};
+  public static final String[] TRAITS =
+      {"Depressed", "MajorDepression", "MinorDepression", "Depression", "AOO", "parkin", "AnyLRRK2",
+       "GBA_carrier", "GBA_del"};
 
   public static void main(String[] args) throws IOException {
     int numArgs = args.length;
@@ -47,7 +48,7 @@ public class UpdateCRFdb {
   public static void update() throws IOException {
     System.out.println("Parsing ninfos...");
     ParseNinfos.parseNinfos(ParseNinfos.DEFAULT_DIR, "ninfo1.txt", "ninfo2.txt", "ninfo5.txt",
-        "ninfo6.txt");
+                            "ninfo6.txt");
     Files.backupAndMove("ninfo1.csv", tools.NINFO_DIR, CRF_DIR, BACKUP_DIR);
     Files.backupAndMove("ninfo2.csv", tools.NINFO_DIR, CRF_DIR, BACKUP_DIR);
     Files.backupAndMove("ninfo5.csv", tools.NINFO_DIR, CRF_DIR, BACKUP_DIR);
@@ -97,7 +98,7 @@ public class UpdateCRFdb {
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
         writer.println(Array.toStr(tools.getFamID(line[1]), ",") + ",1,"
-            + (line[6].equals("VPD") || line[6].equals("CONF_PD") ? "1" : "0"));
+                       + (line[6].equals("VPD") || line[6].equals("CONF_PD") ? "1" : "0"));
       }
       writer.close();
       reader.close();

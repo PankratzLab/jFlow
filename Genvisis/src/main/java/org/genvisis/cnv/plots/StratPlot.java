@@ -42,8 +42,9 @@ import org.genvisis.common.ext;
 public class StratPlot extends JFrame implements ActionListener, TreeSelectionListener {
   public static final long serialVersionUID = 1L;
   public static final String DEFAULT_FILENAME = "samplesCliskedInStratify.xln";
-  public static final String[] MOSAICISM_HEADER = {"Sample", "Band", "LRR N", "mean LRR", "BAF N",
-      "SD of BAF (0.15-0.85)", "IQR of BAF (0.15-0.85)", "%Homo"};
+  public static final String[] MOSAICISM_HEADER =
+      {"Sample", "Band", "LRR N", "mean LRR", "BAF N", "SD of BAF (0.15-0.85)",
+       "IQR of BAF (0.15-0.85)", "%Homo"};
   public static final Color BACKGROUND_COLOR = Color.WHITE;
   public static final String SWAP_AXES = "Swap Axes";
   public static final String INVERT_X = "Invert X axis";
@@ -75,8 +76,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
         reader = Files.getReader(stratFiles.elementAt(i), proj.JAR_STATUS.getValue(), true, false);
         line = reader.readLine().trim().split("[\\s]+");
         if (!line[0].equals("FID") || !line[1].equals("IID")) {
-          log.reportError(
-              "Error - different format than expected; first two columns should be FID and IID");
+          log.reportError("Error - different format than expected; first two columns should be FID and IID");
           throw new IOException();
         }
         sol = line[2].equals("SOL");
@@ -95,14 +95,15 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
           }
           data[i] = new float[n];
           for (int j = 0; j < n; j++) {
-            data[i][j] = line[(sol ? 3 : 2) + j].equals(".") ? Float.NaN
-                : Float.parseFloat(line[(sol ? 3 : 2) + j]);
+            data[i][j] =
+                line[(sol ? 3 : 2) + j].equals(".") ? Float.NaN
+                                                    : Float.parseFloat(line[(sol ? 3 : 2) + j]);
           }
         }
         reader.close();
       } catch (FileNotFoundException fnfe) {
-        log.reportError(
-            "Error: file \"" + stratFiles.elementAt(i) + "\" not found in current directory");
+        log.reportError("Error: file \"" + stratFiles.elementAt(i)
+                        + "\" not found in current directory");
         names[i] = new String[1];
       } catch (IOException ioe) {
         log.reportError("Error reading file \"" + stratFiles.elementAt(i) + "\"");
@@ -116,8 +117,8 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 
   public static void main(String[] args) {
     try {
-      loadStratificationResults(
-          new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true), false));
+      loadStratificationResults(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true),
+                                            false));
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -177,8 +178,8 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
     if (!sampleData.containsDNA()) {
       log.reportError("Without a DNA column in the SampleData file, ScatterPlot will not start");
       JOptionPane.showMessageDialog(null,
-          "Error - Without a DNA column in the SampleData file, ScatterPlot will not start",
-          "Error", JOptionPane.ERROR_MESSAGE);
+                                    "Error - Without a DNA column in the SampleData file, ScatterPlot will not start",
+                                    "Error", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -187,8 +188,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
       return;
     }
     if (sampleData.getNumActualClasses() == 0) {
-      log.reportError(
-          "Error - this isn't going to work; you don't have any classes defined in SampleData.txt");
+      log.reportError("Error - this isn't going to work; you don't have any classes defined in SampleData.txt");
       return;
     }
 
@@ -335,10 +335,10 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
     legendPanel.add(label);
     colorKeys = sampleData.getActualClassColorKey(currentVariable);
     for (String[] colorKey : colorKeys) {
-      block = new JLabel(
-          new ColorIcon(12, 12, StratPanel.DEFAULT_COLORS[Integer.parseInt(colorKey[0])]));
+      block = new JLabel(new ColorIcon(12, 12,
+                                       StratPanel.DEFAULT_COLORS[Integer.parseInt(colorKey[0])]));
       label = new JLabel(colorKey[1] + " (n="
-          + (hash.containsKey(colorKey[0]) ? hash.get(colorKey[0]) : "0") + ")");
+                         + (hash.containsKey(colorKey[0]) ? hash.get(colorKey[0]) : "0") + ")");
       hash.remove(colorKey[0]);
       label.setFont(new Font("Arial", 0, 14));
       legendPanel.add(block);
@@ -349,8 +349,8 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
       if (!keys[i].equals("-1")) {
         block =
             new JLabel(new ColorIcon(12, 12, StratPanel.DEFAULT_COLORS[Integer.parseInt(keys[i])]));
-        label = new JLabel(
-            (keys[i].equals("0") ? "missing" : keys[i]) + " (n=" + hash.get(keys[i]) + ")");
+        label = new JLabel((keys[i].equals("0") ? "missing" : keys[i]) + " (n=" + hash.get(keys[i])
+                           + ")");
         label.setFont(new Font("Arial", 0, 14));
         legendPanel.add(block);
         legendPanel.add(label);

@@ -81,17 +81,23 @@ public class ChromatinAccessibility {
           for (int j = 0; j < CLASSES.length; j++) {
             new File(file_dir + ext.rootOf(filename) + "/").mkdirs();
             if (i == files.length) {
-              writers[i][j][0] = new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename)
-                  + "/" + ext.addToRoot(filename, "_allMerged_" + CLASSES[j] + "_in")));
-              writers[i][j][1] = new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename)
-                  + "/" + ext.addToRoot(filename, "_allMerged_" + CLASSES[j] + "_out")));
+              writers[i][j][0] =
+                  new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename) + "/"
+                                                 + ext.addToRoot(filename, "_allMerged_"
+                                                                           + CLASSES[j] + "_in")));
+              writers[i][j][1] =
+                  new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename) + "/"
+                                                 + ext.addToRoot(filename, "_allMerged_"
+                                                                           + CLASSES[j] + "_out")));
             } else {
               writers[i][j][0] =
-                  new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename) + "/" + ext
-                      .addToRoot(filename, "_" + ext.rootOf(files[i]) + "_" + CLASSES[j] + "_in")));
-              writers[i][j][1] = new PrintWriter(
-                  new FileWriter(file_dir + ext.rootOf(filename) + "/" + ext.addToRoot(filename,
-                      "_" + ext.rootOf(files[i]) + "_" + CLASSES[j] + "_out")));
+                  new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename)
+                                                 + "/" + ext.addToRoot(filename,
+                                                                       "_" + ext.rootOf(files[i]) + "_" + CLASSES[j] + "_in")));
+              writers[i][j][1] =
+                  new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename)
+                                                 + "/" + ext.addToRoot(filename,
+                                                                       "_" + ext.rootOf(files[i]) + "_" + CLASSES[j] + "_out")));
             }
           }
         }
@@ -101,7 +107,7 @@ public class ChromatinAccessibility {
       try {
         reader = new BufferedReader(new FileReader(file_dir + filename));
         indices = ext.indexFactors(PVAL_HEADER, reader.readLine().trim().split("[\\s]+"), false,
-            false, true, true);
+                                   false, true, true);
         count = 0;
         while (reader.ready()) {
           count++;
@@ -113,7 +119,7 @@ public class ChromatinAccessibility {
           line = temp.trim().split("[\\s]+");
           chr = Positions.chromosomeNumber(line[indices[1]]);
           seg = new Segment(chr, Integer.parseInt(line[indices[2]]),
-              Integer.parseInt(line[indices[2]]));
+                            Integer.parseInt(line[indices[2]]));
           for (int i = 0; i < files.length + 1; i++) {
             for (int j = 0; j < CLASSES.length; j++) {
               if (i < files.length) {
@@ -165,50 +171,64 @@ public class ChromatinAccessibility {
           if (j < 2) {
             double[] pvals;
 
-            double numIn = Files.countLines(file_dir + ext.rootOf(filename) + "/"
-                + ext.addToRoot(filename,
-                    (i == files.length ? "_allMerged_" : "_" + ext.rootOf(files[i]) + "_")
-                        + CLASSES[j] + "_in"),
-                0);
+            double numIn =
+                Files.countLines(file_dir + ext.rootOf(filename) + "/"
+                                 + ext.addToRoot(filename,
+                                                 (i == files.length ? "_allMerged_"
+                                                                    : "_" + ext.rootOf(files[i])
+                                                                      + "_")
+                                                           + CLASSES[j] + "_in"),
+                                 0);
             // System.out.print("\t"+numIn);
-            double numOut = Files.countLines(file_dir + ext.rootOf(filename) + "/"
-                + ext.addToRoot(filename,
-                    (i == files.length ? "_allMerged_" : "_" + ext.rootOf(files[i]) + "_")
-                        + CLASSES[j] + "_out"),
-                0);
+            double numOut =
+                Files.countLines(file_dir + ext.rootOf(filename) + "/"
+                                 + ext.addToRoot(filename,
+                                                 (i == files.length ? "_allMerged_"
+                                                                    : "_" + ext.rootOf(files[i])
+                                                                      + "_")
+                                                           + CLASSES[j] + "_out"),
+                                 0);
             // System.out.print("\t"+numOut+"\t"+ext.formPercent(numIn/(numIn+numOut), 2));
             System.out.print("\t" + ext.formPercent(numIn / (numIn + numOut), 2));
 
-            pvals =
-                Array
-                    .toDoubleArray(HashVec.loadFileToStringArray(
-                        file_dir + ext.rootOf(filename) + "/"
-                            + ext.addToRoot(filename,
-                                (i == files.length ? "_allMerged_"
-                                    : "_" + ext.rootOf(files[i]) + "_") + CLASSES[j] + "_in"),
-                        false, new int[] {3}, false));
-            System.out.print(
-                "\t" + ext.formDeci(ProbDist.ChiDistReverse(Array.median(Array.removeNaN(pvals)), 1)
-                    / ProbDist.ChiDistReverse(0.50, 1), 4));
+            pvals = Array.toDoubleArray(HashVec.loadFileToStringArray(file_dir
+                                                                      + ext.rootOf(filename) + "/"
+                                                                      + ext.addToRoot(filename,
+                                                                                      (i == files.length ? "_allMerged_"
+                                                                                                         : "_"
+                                                                                                           + ext.rootOf(files[i])
+                                                                                                           + "_")
+                                                                                                + CLASSES[j]
+                                                                                                + "_in"),
+                                                                      false, new int[] {3}, false));
             System.out.print("\t" + ext.formDeci(
-                ProbDist.ChiDistReverse(Array.quantExclusive(Array.removeNaN(pvals), 0.10), 1)
-                    / ProbDist.ChiDistReverse(0.10, 1),
-                4));
-            pvals =
-                Array
-                    .toDoubleArray(HashVec.loadFileToStringArray(
-                        file_dir + ext.rootOf(filename) + "/"
-                            + ext.addToRoot(filename,
-                                (i == files.length ? "_allMerged_"
-                                    : "_" + ext.rootOf(files[i]) + "_") + CLASSES[j] + "_out"),
-                        false, new int[] {3}, false));
-            System.out.print(
-                "\t" + ext.formDeci(ProbDist.ChiDistReverse(Array.median(Array.removeNaN(pvals)), 1)
-                    / ProbDist.ChiDistReverse(0.50, 1), 4));
+                                                 ProbDist.ChiDistReverse(Array.median(Array.removeNaN(pvals)),
+                                                                         1)
+                                                 / ProbDist.ChiDistReverse(0.50, 1), 4));
             System.out.print("\t" + ext.formDeci(
-                ProbDist.ChiDistReverse(Array.quantExclusive(Array.removeNaN(pvals), 0.10), 1)
-                    / ProbDist.ChiDistReverse(0.10, 1),
-                4));
+                                                 ProbDist.ChiDistReverse(Array.quantExclusive(Array.removeNaN(pvals),
+                                                                                              0.10),
+                                                                         1)
+                                                 / ProbDist.ChiDistReverse(0.10, 1), 4));
+            pvals = Array.toDoubleArray(HashVec.loadFileToStringArray(file_dir
+                                                                      + ext.rootOf(filename) + "/"
+                                                                      + ext.addToRoot(filename,
+                                                                                      (i == files.length ? "_allMerged_"
+                                                                                                         : "_"
+                                                                                                           + ext.rootOf(files[i])
+                                                                                                           + "_")
+                                                                                                + CLASSES[j]
+                                                                                                + "_out"),
+                                                                      false, new int[] {3}, false));
+            System.out.print("\t" + ext.formDeci(
+                                                 ProbDist.ChiDistReverse(Array.median(Array.removeNaN(pvals)),
+                                                                         1)
+                                                 / ProbDist.ChiDistReverse(0.50, 1), 4));
+            System.out.print("\t" + ext.formDeci(
+                                                 ProbDist.ChiDistReverse(Array.quantExclusive(Array.removeNaN(pvals),
+                                                                                              0.10),
+                                                                         1)
+                                                 / ProbDist.ChiDistReverse(0.10, 1), 4));
           }
         }
         System.out.println();
@@ -232,8 +252,7 @@ public class ChromatinAccessibility {
     files = Files.list(dir, ".bed", false);
     segs = new Segment[files.length + 1][CLASSES.length][26][];
     try {
-      System.out.println(
-          "Tissue\tSerialized\ttimeToLoad\tClass\tProportion affected\tnumIn\tnumOut\tClass\tProportion affected\tnumIn\tnumOut");
+      System.out.println("Tissue\tSerialized\ttimeToLoad\tClass\tProportion affected\tnumIn\tnumOut\tClass\tProportion affected\tnumIn\tnumOut");
 
       for (int i = 0; i < files.length; i++) {
         System.out.print(ext.rootOf(files[i]));
@@ -264,18 +283,18 @@ public class ChromatinAccessibility {
               line = reader.readLine().trim().split("[\\s]+");
               chr = Positions.chromosomeNumber(line[0]);
               allSeg.elementAt(0).elementAt(chr)
-                  .add(new Segment(chr, Integer.parseInt(line[1]), Integer.parseInt(line[2])));
+                    .add(new Segment(chr, Integer.parseInt(line[1]), Integer.parseInt(line[2])));
               allSeg.elementAt(Integer.parseInt(line[20])).elementAt(chr)
-                  .add(new Segment(chr, Integer.parseInt(line[1]), Integer.parseInt(line[2])));
+                    .add(new Segment(chr, Integer.parseInt(line[1]), Integer.parseInt(line[2])));
               for (int j = 2; line[20].equals("1") && j < CLASSES.length; j++) {
                 allSeg.elementAt(j).elementAt(chr)
-                    .add(new Segment(chr, Integer.parseInt(line[1]), Integer.parseInt(line[2])));
+                      .add(new Segment(chr, Integer.parseInt(line[1]), Integer.parseInt(line[2])));
               }
             }
             reader.close();
           } catch (FileNotFoundException fnfe) {
-            System.err
-                .println("Error: file \"" + dir + files[i] + "\" not found in current directory");
+            System.err.println("Error: file \"" + dir + files[i]
+                               + "\" not found in current directory");
             System.exit(1);
           } catch (Exception ioe) {
             System.err.println("Error reading file \"" + dir + files[i] + "\"");
@@ -335,8 +354,8 @@ public class ChromatinAccessibility {
           segs[files.length][j][k] = Segment.sortSegments(Segment.toArray(vSeg));
         }
         System.out.println();
-        new SegmentLists(segs[files.length][j])
-            .serialize(dir + "allFilesMerged_" + CLASSES[j] + ".ser");
+        new SegmentLists(segs[files.length][j]).serialize(dir + "allFilesMerged_" + CLASSES[j]
+                                                          + ".ser");
       }
       // System.out.println("Merged all files serialized the summaries in " +
       // ext.getTimeElapsed(time));
@@ -360,9 +379,10 @@ public class ChromatinAccessibility {
     String levels = "1,2,3,4";
 
     String usage = "\n" + "gwas.ChromatinAccessibility requires 0-1 arguments\n"
-        + "   (1) directory with bed files (i.e. dir=" + bed_dir + " (default))\n"
-        + "   (2) levels to use (i.e. levels=" + levels + " (default))\n"
-        + "   (3) filename with chr/pos/pvals (i.e. file=" + levels + " (default))\n" + "";
+                   + "   (1) directory with bed files (i.e. dir=" + bed_dir + " (default))\n"
+                   + "   (2) levels to use (i.e. levels=" + levels + " (default))\n"
+                   + "   (3) filename with chr/pos/pvals (i.e. file=" + levels + " (default))\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

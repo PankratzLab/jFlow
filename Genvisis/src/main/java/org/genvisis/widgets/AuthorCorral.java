@@ -39,8 +39,8 @@ public class AuthorCorral {
         init.append(s.charAt(0));
       }
     } catch (Exception e) {
-      System.err.println(
-          "Error - problem getting initials from [" + first + "; " + midTemp + "; " + last + "]");
+      System.err.println("Error - problem getting initials from [" + first + "; " + midTemp + "; "
+                         + last + "]");
     }
     return init.toString().trim();
   }
@@ -56,12 +56,13 @@ public class AuthorCorral {
     boolean periodsAfterInitials = false;
 
     String usage = "\n" + "one.AuthorCorral requires 2+ arguments\n"
-        + "   (1) input filename (i.e. file=" + inFile + " (default))\n" + ""
-        + "   (2) output filename (i.e. out=" + outFile + " (default))\n" + ""
-        + "   (3) OPTIONAL output in RTF format (used for superscripts) (i.e. rtf=" + rtf
-        + " (default))\n" + "   (4) OPTIONAL include errors in output (i.e. err=" + err
-        + " (default))\n" + "   (5) OPTIONAL include periods after initials (i.e. periods="
-        + periodsAfterInitials + " (default))\n";
+                   + "   (1) input filename (i.e. file=" + inFile + " (default))\n" + ""
+                   + "   (2) output filename (i.e. out=" + outFile + " (default))\n" + ""
+                   + "   (3) OPTIONAL output in RTF format (used for superscripts) (i.e. rtf=" + rtf
+                   + " (default))\n" + "   (4) OPTIONAL include errors in output (i.e. err=" + err
+                   + " (default))\n"
+                   + "   (5) OPTIONAL include periods after initials (i.e. periods="
+                   + periodsAfterInitials + " (default))\n";
 
 
     for (String arg : args) {
@@ -108,8 +109,10 @@ public class AuthorCorral {
     sb.append("}");
     String ret = sb.toString();
     if (authStr) {
-      ret = sb.toString().replaceAll("#",
-          "}{\\\\rtlch\\\\fcs1 \\\\af0\\\\afs24 \\\\ltrch\\\\fcs0 \\\\f0\\\\fs24\\\\super\\\\insrsid6508612 \\\\hich\\\\af0\\\\dbch\\\\af31505\\\\loch\\\\f0 ");
+      ret =
+          sb.toString()
+            .replaceAll("#",
+                        "}{\\\\rtlch\\\\fcs1 \\\\af0\\\\afs24 \\\\ltrch\\\\fcs0 \\\\f0\\\\fs24\\\\super\\\\insrsid6508612 \\\\hich\\\\af0\\\\dbch\\\\af31505\\\\loch\\\\f0 ");
       ret = ret.replaceAll("_", "}{\\\\rtlch\\\\fcs1 \\\\af31507 \\\\ltrch\\\\fcs0 ");
     }
     return ret;
@@ -121,7 +124,7 @@ public class AuthorCorral {
    * column title
    */
   public static void run(String inFile, String outFile, boolean rtfOutput, boolean printErr,
-      boolean periodsAfterInitials) throws IOException {
+                         boolean periodsAfterInitials) throws IOException {
     BufferedReader inReader = Files.getReader(inFile, false, true, true);
     String[] header = inReader.readLine().split("\t");
 
@@ -165,14 +168,15 @@ public class AuthorCorral {
                 warn = true;
               }
               middleName = middleName.substring(0, i) + (periodsAfterInitials ? ". " : " ")
-                  + middleName.substring(i);
+                           + middleName.substring(i);
             }
             middleName += (periodsAfterInitials ? ". " : " ");
           }
           if (warn) {
             System.err.println("Warning the middle name for '" + line[0].trim() + " "
-                + line[1].trim() + " " + line[2].trim() + "' has been changed to '" + middleName
-                + "'; if this is incorrect, update or add an exclamation point (!) at the end of the middle name to copy it wholesale (without the exclamation point)");
+                               + line[1].trim() + " " + line[2].trim() + "' has been changed to '"
+                               + middleName
+                               + "'; if this is incorrect, update or add an exclamation point (!) at the end of the middle name to copy it wholesale (without the exclamation point)");
           }
         }
         String fullname = line[0].trim() + " " + middleName + line[2].trim();
@@ -182,7 +186,7 @@ public class AuthorCorral {
           ord = authorNamesOrder.size();
           authorNamesOrder.add(fullname);
           fullnameToParts.put(fullname,
-              new String[] {line[0].trim(), line[1].trim(), line[2].trim()});
+                              new String[] {line[0].trim(), line[1].trim(), line[2].trim()});
         }
 
         ArrayList<String[]> myDepts = namesToDepts.get(fullname);
@@ -218,8 +222,9 @@ public class AuthorCorral {
             errors.add(err);
           }
           myDepts.add(new String[] {ext.removeQuotes(line[3].trim()).trim(),
-              ext.removeQuotes(line[4].trim()).trim(), ext.removeQuotes(line[5].trim()).trim(),
-              ext.removeQuotes(line[6].trim()).trim()});
+                                    ext.removeQuotes(line[4].trim()).trim(),
+                                    ext.removeQuotes(line[5].trim()).trim(),
+                                    ext.removeQuotes(line[6].trim()).trim()});
         }
 
         boolean foundAtLeastOne = false;
@@ -234,7 +239,7 @@ public class AuthorCorral {
         }
         if (!foundAtLeastOne) {
           String err = "[contributions] is blank for <" + line[0].trim() + " " + line[1].trim()
-              + " " + line[2].trim() + ">";
+                       + " " + line[2].trim() + ">";
           System.err.println("Error - " + err);
           errors.add(err);
         }
@@ -249,8 +254,9 @@ public class AuthorCorral {
 
     for (int i = 0; i < authorNamesOrder.size(); i++) {
       ArrayList<String[]> myDepts = namesToDepts.get(authorNamesOrder.get(i));
-      if (myDepts.size() > 0 && !(myDepts.size() == 1 && myDepts.get(0)[0].equals("")
-          && myDepts.get(0)[1].equals("") && myDepts.get(0)[2].equals(""))) {
+      if (myDepts.size() > 0
+          && !(myDepts.size() == 1 && myDepts.get(0)[0].equals("") && myDepts.get(0)[1].equals("")
+               && myDepts.get(0)[2].equals(""))) {
         if (i == authorNamesOrder.size() - 1) {
           authorString.append("and ");
         }
@@ -304,13 +310,13 @@ public class AuthorCorral {
     if (rtfOutput) {
       outWriter.println("{\\rtf1 ");
     }
-    outWriter
-        .println(rtfOutput ? rtfFormatted(authorString.toString(), true) : authorString.toString());
+    outWriter.println(rtfOutput ? rtfFormatted(authorString.toString(), true)
+                                : authorString.toString());
     outWriter.println(rtfOutput ? PARAGRAH : "");
     outWriter.println(rtfOutput ? PARAGRAH : "");
     for (int i = 0; i < deptOrder.size(); i++) {
       outWriter.println(rtfOutput ? rtfFormatted((i + 1) + " " + deptOrder.get(i), false)
-          : (i + 1) + " " + deptOrder.get(i));
+                                  : (i + 1) + " " + deptOrder.get(i));
       if (rtfOutput) {
         outWriter.println(rtfOutput ? PARAGRAH : "");
       }
@@ -318,8 +324,8 @@ public class AuthorCorral {
     outWriter.println(rtfOutput ? PARAGRAH : "");
     outWriter.println(rtfOutput ? PARAGRAH : "");
 
-    outWriter
-        .println(rtfOutput ? rtfFormatted("Author Contributions", false) : "Author Contributions");
+    outWriter.println(rtfOutput ? rtfFormatted("Author Contributions", false)
+                                : "Author Contributions");
     outWriter.print(rtfOutput ? PARAGRAH : "");
     StringBuilder contribString = new StringBuilder();
     for (String contrib : contribOrder) {
@@ -338,10 +344,9 @@ public class AuthorCorral {
       }
       contribString.append(contrib).append(". ");
     }
-    contribString.append(
-        "All authors were given the opportunity to comment and provide revisions to the manuscript text.");
-    outWriter.println(
-        rtfOutput ? rtfFormatted(contribString.toString(), false) : contribString.toString());
+    contribString.append("All authors were given the opportunity to comment and provide revisions to the manuscript text.");
+    outWriter.println(rtfOutput ? rtfFormatted(contribString.toString(), false)
+                                : contribString.toString());
 
     outWriter.println(rtfOutput ? PARAGRAH : "");
     outWriter.println(rtfOutput ? PARAGRAH : "");
@@ -359,12 +364,13 @@ public class AuthorCorral {
         if (myDepts.get(j)[3].equals("")) {
           StringBuilder noEmailString = new StringBuilder();
           noEmailString.append(fullnameToParts.get(authorNamesOrder.get(i))[0]).append(" ")
-              .append(fullnameToParts.get(authorNamesOrder.get(i))[2]);
+                       .append(fullnameToParts.get(authorNamesOrder.get(i))[2]);
           noEmailSet.add(noEmailString.toString());
           continue;
         }
         String email = fullnameToParts.get(authorNamesOrder.get(i))[0] + " "
-            + fullnameToParts.get(authorNamesOrder.get(i))[2] + " <" + myDepts.get(j)[3] + ">";
+                       + fullnameToParts.get(authorNamesOrder.get(i))[2] + " <" + myDepts.get(j)[3]
+                       + ">";
         if (!emailSet.contains(email)) {
           if (outerCount > 0 || innerCount > 0) {
             emailString.append("; ");
@@ -380,12 +386,12 @@ public class AuthorCorral {
       } else {
         StringBuilder noEmailString = new StringBuilder();
         noEmailString.append(fullnameToParts.get(authorNamesOrder.get(i))[0]).append(" ")
-            .append(fullnameToParts.get(authorNamesOrder.get(i))[2]);
+                     .append(fullnameToParts.get(authorNamesOrder.get(i))[2]);
         noEmailSet.add(noEmailString.toString());
       }
     }
-    outWriter
-        .println(rtfOutput ? rtfFormatted(emailString.toString(), false) : emailString.toString());
+    outWriter.println(rtfOutput ? rtfFormatted(emailString.toString(), false)
+                                : emailString.toString());
     outWriter.println(rtfOutput ? PARAGRAH : "");
     outWriter.println(rtfOutput ? PARAGRAH : "");
 
@@ -400,15 +406,15 @@ public class AuthorCorral {
       noEmailString.append(name);
       cnt++;
     }
-    outWriter.println(
-        rtfOutput ? rtfFormatted(noEmailString.toString(), false) : noEmailString.toString());
+    outWriter.println(rtfOutput ? rtfFormatted(noEmailString.toString(), false)
+                                : noEmailString.toString());
 
     outWriter.println(rtfOutput ? PARAGRAH : "");
     outWriter.println(rtfOutput ? PARAGRAH : "");
 
     if (errors.size() > 0) {
-      outWriter.println(
-          rtfOutput ? rtfFormatted("Transcription Errors", false) : "Transcription Errors");
+      outWriter.println(rtfOutput ? rtfFormatted("Transcription Errors", false)
+                                  : "Transcription Errors");
       outWriter.print(rtfOutput ? PARAGRAH : "");
     }
     for (String error : errors) {

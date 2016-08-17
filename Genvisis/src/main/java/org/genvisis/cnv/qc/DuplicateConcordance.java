@@ -23,7 +23,7 @@ public class DuplicateConcordance {
    * @return
    */
   public static DuplicateConcordance calculateDuplicateConcordances(Project proj,
-      String[] targetMarkers) {
+                                                                    String[] targetMarkers) {
     Logger log = proj.getLog();
     ClusterFilterCollection clusterFilterCollection = proj.getClusterFilterCollection();
     String[] markerNames;
@@ -49,7 +49,7 @@ public class DuplicateConcordance {
     }
     if (!Files.exists(sampleData)) {
       log.reportTimeError("Project Sample Data file, " + sampleData
-          + " could not be found, cannot determine duplicates");
+                          + " could not be found, cannot determine duplicates");
       return null;
     }
     String[] sampleDataHeader = Files.getHeaderOfFile(sampleData, log);
@@ -59,12 +59,12 @@ public class DuplicateConcordance {
     for (int i = 0; i < sampleDataIndices.length; i++) {
       if (sampleDataIndices[i] == -1) {
         log.reportTimeError("Could not find " + sampleDataCols[i]
-            + " in Sample Data file, cannot determine duplicates");
+                            + " in Sample Data file, cannot determine duplicates");
         return null;
       }
     }
     String[][] sampleInfo = HashVec.loadFileToStringMatrix(sampleData, true, sampleDataIndices,
-        proj.JAR_STATUS.getValue());
+                                                           proj.JAR_STATUS.getValue());
     HashVec.loadFileToStringArray(sampleData, true, sampleDataIndices, false);
     HashMap<String, HashSet<String>> duplicateSets = new HashMap<String, HashSet<String>>();
     for (String[] sampleLine : sampleInfo) {
@@ -93,14 +93,14 @@ public class DuplicateConcordance {
           Sample sample1 = proj.getFullSampleFromRandomAccessFile(dna1);
           if (sample1 == null) {
             log.reportTimeError("Could not find data for Sample " + dna1
-                + ", will not be used to calculate concordance");
+                                + ", will not be used to calculate concordance");
             continue;
           }
           for (String dna2 : duplicateSet) {
             Sample sample2 = proj.getFullSampleFromRandomAccessFile(dna2);
             if (sample2 == null) {
               log.reportTimeError("Could not find data for Sample " + dna2
-                  + ", will not be used to calculate concordance");
+                                  + ", will not be used to calculate concordance");
               continue;
             }
             pairsChecked++;
@@ -110,9 +110,9 @@ public class DuplicateConcordance {
               s2Genotypes = sample2.getAB_Genotypes(markerIndices);
             } else {
               s1Genotypes = sample1.getAB_GenotypesAfterFilters(markerNames, markerIndices,
-                  clusterFilterCollection, 0.0f);
+                                                                clusterFilterCollection, 0.0f);
               s2Genotypes = sample2.getAB_GenotypesAfterFilters(markerNames, markerIndices,
-                  clusterFilterCollection, 0.0f);
+                                                                clusterFilterCollection, 0.0f);
             }
             for (int i = 0; i < s1Genotypes.length; i++) {
               if (s1Genotypes[i] != s2Genotypes[i]) {
@@ -128,13 +128,12 @@ public class DuplicateConcordance {
     }
 
     if (pairsChecked == 0) {
-      log.reportTimeError(
-          "No duplicates could be compared, duplicate concordance cannot be calculated");
+      log.reportTimeError("No duplicates could be compared, duplicate concordance cannot be calculated");
       return null;
     }
 
     return new DuplicateConcordance(discordantCalls, nonMissingDiscordantCalls, markerNames.length,
-        pairsChecked);
+                                    pairsChecked);
 
   }
 
@@ -145,11 +144,13 @@ public class DuplicateConcordance {
     String markerDrops = null;
 
     String usage = "\n" + "cnv.qc.DuplicateConcordance requires 1-2 arguments\n"
-        + "   (1) Project properties filename (i.e. proj="
-        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (not the default))\n"
-        + "AND\n" + "   (2) File of markers to use (i.e. markerKeeps=keeps.txt (not the default))\n"
-        + "OR\n"
-        + "   (2) File of markers to not use (i.e. markerDrops=drops.txt (not the default))\n" + "";
+                   + "   (1) Project properties filename (i.e. proj="
+                   + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)
+                   + " (not the default))\n" + "AND\n"
+                   + "   (2) File of markers to use (i.e. markerKeeps=keeps.txt (not the default))\n"
+                   + "OR\n"
+                   + "   (2) File of markers to not use (i.e. markerDrops=drops.txt (not the default))\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -225,7 +226,7 @@ public class DuplicateConcordance {
    * @param duplicatePairsChecked number of duplicate pairs checked
    */
   private DuplicateConcordance(int discordantCalls, int nonMissingDiscordantCalls,
-      int markersChecked, int duplicatePairsChecked) {
+                               int markersChecked, int duplicatePairsChecked) {
     super();
     int totalChecks = markersChecked * duplicatePairsChecked;
     projectConcordance = (double) (totalChecks - discordantCalls) / totalChecks;
@@ -236,9 +237,9 @@ public class DuplicateConcordance {
 
   public String getConcordanceString() {
     return "Duplicate Concordance was calculated to be " + projectConcordance
-        + " (including missing calls) and " + projectNonMissingConcordance
-        + " (excluding missing calls) using " + duplicatePairsChecked + " pairs of duplicates at "
-        + markersChecked + " markers.";
+           + " (including missing calls) and " + projectNonMissingConcordance
+           + " (excluding missing calls) using " + duplicatePairsChecked
+           + " pairs of duplicates at " + markersChecked + " markers.";
   }
 
   public int getDuplicatePairsChecked() {

@@ -82,9 +82,10 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
     final Logger log;
 
     String usage = "\n" + "cnv.plots.ForestPlot requires 1 arguments\n"
-        + "  (1) Name of the file with the list of markers (SeqMeta format), files, and comments, to display (i.e. markerList="
-        + markerList + " (default))\n" + "OR\n" + "  (1) project properties filename (i.e. proj="
-        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n";
+                   + "  (1) Name of the file with the list of markers (SeqMeta format), files, and comments, to display (i.e. markerList="
+                   + markerList + " (default))\n" + "OR\n"
+                   + "  (1) project properties filename (i.e. proj="
+                   + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -247,8 +248,9 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
   }
 
   private void chooseNewFiles() {
-    JFileChooser jfc = new JFileChooser((proj != null ? proj.PROJECT_DIRECTORY.getValue()
-        : ext.parseDirectoryOfFile(forestPlot.getMarkerFileName())));
+    JFileChooser jfc =
+        new JFileChooser((proj != null ? proj.PROJECT_DIRECTORY.getValue()
+                                       : ext.parseDirectoryOfFile(forestPlot.getMarkerFileName())));
     jfc.setMultiSelectionEnabled(true);
     if (jfc.showOpenDialog(ForestPlotFrame.this) == JFileChooser.APPROVE_OPTION) {
       File[] files = jfc.getSelectedFiles();
@@ -285,8 +287,8 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
         }
 
         if (!keep) {
-          StringBuilder msg = new StringBuilder("The following data file is already present:\n")
-              .append(file.getName());
+          StringBuilder msg =
+              new StringBuilder("The following data file is already present:\n").append(file.getName());
           JOptionPane.showMessageDialog(ForestPlotFrame.this, msg.toString());
         } else {
           addFileToList(file.getAbsolutePath());
@@ -319,7 +321,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
         try {
           int trav =
               Integer.valueOf(((JTextField) e.getSource()).getText().split("[\\s]+")[0]).intValue()
-                  - 1;
+                     - 1;
           if (trav >= 0 && trav < forestPlot.getDataIndices().size()) {
             forestPlot.setCurrentData(trav);
             updateForestPlot();
@@ -521,9 +523,9 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
       @Override
       public void actionPerformed(ActionEvent e) {
 
-        JFileChooser jfc = new JFileChooser(
-            new File(proj == null ? ext.parseDirectoryOfFile(forestPlot.getMarkerFileName())
-                : proj.PROJECT_DIRECTORY.getValue()));
+        JFileChooser jfc =
+            new JFileChooser(new File(proj == null ? ext.parseDirectoryOfFile(forestPlot.getMarkerFileName())
+                                                   : proj.PROJECT_DIRECTORY.getValue()));
         int returnVal = jfc.showOpenDialog(null);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -554,7 +556,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
       @Override
       public void actionPerformed(ActionEvent e) {
         if (!forestPlot.isLoadingFile() && (forestPlot.getMarkerFileName() != null
-            && !"".equals(forestPlot.getMarkerFileName()))) {
+                                            && !"".equals(forestPlot.getMarkerFileName()))) {
           ForestPlotFrame.this.screenCap();
         }
       }
@@ -565,7 +567,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
       @Override
       public void actionPerformed(ActionEvent e) {
         if (!forestPlot.isLoadingFile() && (forestPlot.getMarkerFileName() != null
-            && !"".equals(forestPlot.getMarkerFileName()))) {
+                                            && !"".equals(forestPlot.getMarkerFileName()))) {
           ForestPlotFrame.this.screenCapAll();
         }
       }
@@ -594,8 +596,8 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
     if (forestPlot.getDataIndices().size() == 0) {
       field.setText("0 of 0");
     } else {
-      field.setText(
-          (forestPlot.getCurrentDataIndex() + 1) + " of " + forestPlot.getDataIndices().size());
+      field.setText((forestPlot.getCurrentDataIndex() + 1) + " of "
+                    + forestPlot.getDataIndices().size());
     }
   }
 
@@ -728,7 +730,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
   private void screenCapAll() {
     int currentSelection = forestPlot.getCurrentDataIndex();
     forestPlot.screenCapAll(null, forestPlot.getForestPanel().oddsDisplay, true,
-        forestPlot.getForestPanel().getSize());
+                            forestPlot.getForestPanel().getSize());
     forestPlot.setCurrentData(currentSelection);
     updateForestPlot();
   }
@@ -831,10 +833,11 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 
     String message = newFiles.size() + " files have been added.  ";
     int choice = JOptionPane.showOptionDialog(null,
-        message
-            + " Would you like to keep this configuration for the next time Forest Plot is loaded?",
-        "Preserve Forest Plot workspace?", JOptionPane.YES_NO_CANCEL_OPTION,
-        JOptionPane.QUESTION_MESSAGE, null, null, null);
+                                              message
+                                                    + " Would you like to keep this configuration for the next time Forest Plot is loaded?",
+                                              "Preserve Forest Plot workspace?",
+                                              JOptionPane.YES_NO_CANCEL_OPTION,
+                                              JOptionPane.QUESTION_MESSAGE, null, null, null);
     if (choice == 0) {
       // proj.setProperty(Project.FOREST_PLOT_FILENAMES, newProp);
       // proj.setProperty(Project.FOREST_PLOT_FILENAMES, currFiles);

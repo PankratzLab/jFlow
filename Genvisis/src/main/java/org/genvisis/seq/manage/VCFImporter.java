@@ -71,7 +71,7 @@ public class VCFImporter {
     private final boolean createMarkerPositions;
 
     public VCFImporterWorker(Project proj, String vcf, Set<String> samples,
-        boolean createMarkerPositions) {
+                             boolean createMarkerPositions) {
       super();
       this.proj = proj;
       this.vcf = vcf;
@@ -82,7 +82,7 @@ public class VCFImporter {
     @Override
     public ConversionResults call() throws Exception {
       proj.getLog().reportTimeInfo("Exporting " + samples.size() + " samples on this round using "
-          + Thread.currentThread().getName());
+                                   + Thread.currentThread().getName());
       VCFImporter importer = new VCFImporter(new VCFFileReader(new File(vcf), true), proj.getLog());
       ConversionResults results = importer.importVCF(proj, samples, vcf, createMarkerPositions);
 
@@ -110,7 +110,7 @@ public class VCFImporter {
     usage += "   (1) full path to project file name (i.e. file=" + filename + " (default))\n" + "";
     usage += "   (2) full path to a vcf file (i.e. vcf=" + vcf + " (default))\n" + "";
     usage += "   (3) number of rounds to process the vcf file in  (i.e. numRounds=" + numRounds
-        + " (default))\n" + "";
+             + " (default))\n" + "";
     usage += PSF.Ext.getNumThreadsCommand(4, numThreads);
 
     for (String arg : args) {
@@ -149,7 +149,7 @@ public class VCFImporter {
   private static void processCentroids(Project proj, String vcf, int numThreads) {
     double qual = VARIANT_FILTER_DOUBLE.GQ.getDFilter() / 100;
     String cent = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(vcf) + "qual"
-        + ext.formDeci(qual, 2) + ".cent";
+                  + ext.formDeci(qual, 2) + ".cent";
     if (!Files.exists(cent)) {
       CentroidBuilder builder = new CentroidBuilder();
       builder.gcThreshold(qual);
@@ -170,7 +170,7 @@ public class VCFImporter {
     }
     if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
       Markers.orderMarkers(null, proj.MARKER_POSITION_FILENAME.getValue(),
-          proj.MARKERSET_FILENAME.getValue(), proj.getLog());
+                           proj.MARKERSET_FILENAME.getValue(), proj.getLog());
     }
     if (!Files.exists(proj.MARKERLOOKUP_FILENAME.getValue())) {
       TransposeData.transposeData(proj, 2000000000, false);
@@ -183,7 +183,7 @@ public class VCFImporter {
   }
 
   public static void test(Project proj, String vcf, String gc5Base, PREPPED_SAMPLE_TYPE type,
-      int numRounds, int numThreads) {
+                          int numRounds, int numThreads) {
     String[] samples = VCFOps.getSamplesInFile(new VCFFileReader(new File(vcf), true));
 
     ArrayList<String[]> sampleChunks = Array.splitUpArray(samples, numRounds, proj.getLog());
@@ -209,9 +209,9 @@ public class VCFImporter {
 
     if (proj.getSamples() != null && proj.getSamples().length != samples.length) {
       proj.getLog().reportTimeError("A different number of samples appear to be parsed in "
-          + proj.SAMPLE_DIRECTORY.getValue());
+                                    + proj.SAMPLE_DIRECTORY.getValue());
       proj.getLog().reportTimeError("Found " + samples.length + " samples in the vcf and "
-          + proj.getSamples().length + " samples were parsed");
+                                    + proj.getSamples().length + " samples were parsed");
       return;
     }
 
@@ -250,7 +250,7 @@ public class VCFImporter {
     new File(newProjectDir).mkdirs();
 
     GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(), false,
-        proj.getLog());
+                                                          proj.getLog());
 
     String newProjectFile = ext.addToRoot(proj.getPropertyFilename(), type + "");
     Files.copyFile(proj.getPropertyFilename(), newProjectFile);
@@ -263,7 +263,7 @@ public class VCFImporter {
     if (projNorm.getSamples() == null || projNorm.getSamples().length == 0) {
       VCFSamplePrepWorker vPrepWorker =
           new VCFSamplePrepWorker(proj, projNorm.SAMPLE_DIRECTORY.getValue(true, false),
-              PREPPED_SAMPLE_TYPE.NORMALIZED_GC_CORRECTED, gcModel);
+                                  PREPPED_SAMPLE_TYPE.NORMALIZED_GC_CORRECTED, gcModel);
       Hashtable<String, Float> allNewOutliers = new Hashtable<String, Float>();
       WorkerTrain<Hashtable<String, Float>> train =
           new WorkerTrain<Hashtable<String, Float>>(vPrepWorker, numThreads, 0, proj.getLog());
@@ -282,20 +282,20 @@ public class VCFImporter {
       train.shutdown();
       if (allNewOutliers.size() > 0) {
         SerializedFiles.writeSerial(allNewOutliers,
-            projNorm.SAMPLE_DIRECTORY.getValue() + "outliers.ser");
+                                    projNorm.SAMPLE_DIRECTORY.getValue() + "outliers.ser");
       }
       projNorm.getSamples();
     } else {
       projNorm.getLog()
-          .reportTimeInfo("Assuming that all samples have been gc-corrected, skipping");
+              .reportTimeInfo("Assuming that all samples have been gc-corrected, skipping");
     }
     Files.copyFile(proj.MARKER_POSITION_FILENAME.getValue(),
-        projNorm.MARKER_POSITION_FILENAME.getValue());
+                   projNorm.MARKER_POSITION_FILENAME.getValue());
 
     processExt(projNorm, gc5Base);
     projNorm.TARGET_MARKERS_FILENAMES.setValue(new String[] {ext.rootOf(vcf) + ".targetMarkers"});
     Files.writeList(projNorm.getAutosomalMarkers(),
-        projNorm.TARGET_MARKERS_FILENAMES.getValue()[0]);
+                    projNorm.TARGET_MARKERS_FILENAMES.getValue()[0]);
     processCentroids(projNorm, vcf, numThreads);
     projNorm.LRRSD_CUTOFF.setValue(2.2);
     projNorm.SAMPLE_CALLRATE_THRESHOLD.setValue(0.98);
@@ -306,19 +306,20 @@ public class VCFImporter {
     Files.writeList(Array.subArray(projNorm.getAutosomalMarkers(), 0, 100), pretendMedian);
     String useFile = projNorm.PROJECT_DIRECTORY.getValue() + "VCF_SAMPLES_TO_USE.txt";
     Files.writeList(Array.subArray(projNorm.getSamples(), projNorm.getSamplesToInclude(null, true)),
-        useFile);
+                    useFile);
     projNorm.getSamplesToInclude(null);
     MitoPipeline.catAndCaboodle(projNorm, numThreads, pretendMedian, 100,
-        projNorm.PROJECT_DIRECTORY.getValue() + "VCF_PCS", true, true, 0.98, useFile, null, null,
-        null, true, true, true, false, true, false, null, -1, -1, GENOME_BUILD.HG19,
-        MitoPipeline.DEFAULT_PVAL_OPTS, null, false);
+                                projNorm.PROJECT_DIRECTORY.getValue() + "VCF_PCS", true, true, 0.98,
+                                useFile, null, null, null, true, true, true, false, true, false,
+                                null, -1, -1, GENOME_BUILD.HG19, MitoPipeline.DEFAULT_PVAL_OPTS,
+                                null, false);
     SampleQC sampleQC = SampleQC.loadSampleQC(projNorm);
     sampleQC.addQCsToSampleData(5, true);
     sampleQC.addPCsToSampleData(5, 10, true);
   }
 
   public static void test2(Project proj, String vcf, int numRounds, int numThreads,
-      int numDecompressThreads) {
+                           int numDecompressThreads) {
     PREPPED_SAMPLE_TYPE[] types = PREPPED_SAMPLE_TYPE.values();
     for (PREPPED_SAMPLE_TYPE type : types) {
       // if(types[i] ==PREPPED_SAMPLE_TYPE.NORMALIZED)
@@ -333,7 +334,7 @@ public class VCFImporter {
   }
 
   public static void test2(Project proj, String vcf, int numRounds, int numThreads,
-      int numDecompressThreads, PREPPED_SAMPLE_TYPE type) {
+                           int numDecompressThreads, PREPPED_SAMPLE_TYPE type) {
     String newProjectDir = proj.PROJECT_DIRECTORY.getValue() + type + "/";
     new File(newProjectDir).mkdirs();
     String newProjectFile = ext.addToRoot(proj.getPropertyFilename(), type + "");
@@ -450,19 +451,19 @@ public class VCFImporter {
     }
     new File(ext.parseDirectoryOfFile(proj.MARKERSET_FILENAME.getValue())).mkdirs();
     Markers.orderMarkers(null, proj.MARKER_POSITION_FILENAME.getValue(),
-        proj.MARKERSET_FILENAME.getValue(), proj.getLog());
+                         proj.MARKERSET_FILENAME.getValue(), proj.getLog());
   }
 
   public ConversionResults importVCF(Project proj, Set<String> samples, final String vcfFile,
-      boolean createMarkerPositions) {
+                                     boolean createMarkerPositions) {
     HashSet<String> verifiedSamples = verifySamples(proj, vcfFile, samples);
     ArrayList<LocusID> markers = new ArrayList<VCOps.LocusID>(1000000);
-    log.reportTimeWarning(
-        "Only un-ambigous and biallelic variants will be exported...until we figure these out");
-    FilterNGS.VariantContextFilter niceAllele = new FilterNGS.VariantContextFilter(
-        new VARIANT_FILTER_DOUBLE[] {}, new VARIANT_FILTER_BOOLEAN[] {
-            VARIANT_FILTER_BOOLEAN.BIALLELIC_FILTER, VARIANT_FILTER_BOOLEAN.AMBIGUOUS_FILTER},
-        null, null, log);
+    log.reportTimeWarning("Only un-ambigous and biallelic variants will be exported...until we figure these out");
+    FilterNGS.VariantContextFilter niceAllele =
+        new FilterNGS.VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {},
+                                           new VARIANT_FILTER_BOOLEAN[] {VARIANT_FILTER_BOOLEAN.BIALLELIC_FILTER,
+                                                                         VARIANT_FILTER_BOOLEAN.AMBIGUOUS_FILTER},
+                                           null, null, log);
     SampleNGS[] vcSamples = SampleNGS.getSamples(verifiedSamples);
     int numSkipped = 0;
     int total = 0;
@@ -493,7 +494,7 @@ public class VCFImporter {
       vcSample.dump(proj, allOutliers, fingerprint, log);
     }
     log.reportTimeWarning(numSkipped + " non-biallelic or ambigous varaints of " + total
-        + " total variants were skipped");
+                          + " total variants were skipped");
     return new ConversionResults(allOutliers);
   }
 
@@ -522,15 +523,15 @@ public class VCFImporter {
       }
       if (samplesMissing.size() > 0) {
         try {
-          PrintWriter writer = new PrintWriter(
-              new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "missing_samples.txt"));
+          PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                              + "missing_samples.txt"));
           for (String missingSample : samplesMissing) {
             writer.print(missingSample);
           }
           writer.close();
         } catch (Exception e) {
-          log.reportError(
-              "Error writing to " + proj.PROJECT_DIRECTORY.getValue() + "missing_samples.txt");
+          log.reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue()
+                          + "missing_samples.txt");
           log.reportException(e);
         }
       }

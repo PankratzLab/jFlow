@@ -20,11 +20,12 @@ public class Recode implements Runnable {
     int stop = -1;
     int threads = 1;
 
-    String usage = "\n" + "link.recode requires 0-3 arguments\n"
-        + "   recode all chromosomes: recode\n"
-        + "   recode in specific directory: recode dir=check/\n"
-        + "   recode chromosome 6: recode 6\n" + "   recode chromosomes 1 through 5: recode 1 5\n"
-        + "   recode all using 4 threads: recode threads=4\n";
+    String usage =
+        "\n" + "link.recode requires 0-3 arguments\n" + "   recode all chromosomes: recode\n"
+                   + "   recode in specific directory: recode dir=check/\n"
+                   + "   recode chromosome 6: recode 6\n"
+                   + "   recode chromosomes 1 through 5: recode 1 5\n"
+                   + "   recode all using 4 threads: recode threads=4\n";
 
     for (String arg : args) {
       try {
@@ -38,7 +39,7 @@ public class Recode implements Runnable {
           threads = Integer.parseInt(arg.split("=")[1]);
           numArgs--;
         } else if (arg.substring(arg.lastIndexOf("\\") + 1).startsWith("chrom")
-            && arg.endsWith(".pre")) {
+                   && arg.endsWith(".pre")) {
           start = Integer.parseInt(arg.substring(arg.lastIndexOf("\\") + 1).substring(5, 7));
           numArgs--;
         } else if (start == -1) {
@@ -145,8 +146,8 @@ public class Recode implements Runnable {
       }
       reader.close();
     } catch (FileNotFoundException fnfe) {
-      System.err.println(
-          "Error: file \"" + dir + "chrom" + chrome + ".pre" + "\" not found in current directory");
+      System.err.println("Error: file \"" + dir + "chrom" + chrome + ".pre"
+                         + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + dir + "chrom" + chrome + ".pre" + "\"");
@@ -165,26 +166,28 @@ public class Recode implements Runnable {
           continue;
         }
         writer.print(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
-            + "\t" + line[5]);
+                     + "\t" + line[5]);
         for (int i = 0; i < numCovariates; i++) {
           writer.print("\t" + line[6 + i]);
         }
         for (int i = 0; i < markerNames.length; i++) {
           writer.print("\t"
-              + (1 + ext.indexOfStr(line[6 + numCovariates + i * 2 + 0], orderedAlleles[i])) + "\t"
-              + (1 + ext.indexOfStr(line[6 + numCovariates + i * 2 + 1], orderedAlleles[i])));
+                       + (1
+                          + ext.indexOfStr(line[6 + numCovariates + i * 2 + 0], orderedAlleles[i]))
+                       + "\t" + (1 + ext.indexOfStr(line[6 + numCovariates + i * 2 + 1],
+                                                    orderedAlleles[i])));
         }
         writer.println();
       }
       reader.close();
       writer.close();
     } catch (FileNotFoundException fnfe) {
-      System.err.println(
-          "Error: file \"" + dir + "chrom" + chrome + ".pre" + "\" not found in current directory");
+      System.err.println("Error: file \"" + dir + "chrom" + chrome + ".pre"
+                         + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading \"" + dir + "chrom" + chrome + ".pre" + "\" or writing \""
-          + "re_chrom" + chrome + ".pre" + "\"");
+                         + "re_chrom" + chrome + ".pre" + "\"");
       System.exit(2);
     }
   }

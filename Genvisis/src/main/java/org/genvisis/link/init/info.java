@@ -16,8 +16,7 @@ public class info {
   public static void main(String[] args) throws IOException {
     for (String arg : args) {
       if (arg.equals("-?") || arg.equals("-help") || arg.equals("-h")) {
-        System.out.println(
-            "Expecting 0-2 arguments (chromosome number to start [and stop], default all).");
+        System.out.println("Expecting 0-2 arguments (chromosome number to start [and stop], default all).");
         System.exit(1);
       }
     }
@@ -110,8 +109,8 @@ public class info {
               zeroGoodness.add("0");
               markerNames.add(st.nextToken());
             } else {
-              victor.setElementAt(
-                  (Double.valueOf(victor.elementAt(count)).doubleValue() + inf) + "", count);
+              victor.setElementAt((Double.valueOf(victor.elementAt(count)).doubleValue() + inf)
+                                  + "", count);
             }
             // if (inf < 0.001) {
             // zeroGoodness.insertElementAt((Integer.valueOf(zeroGoodness.elementAt(count)).intValue()+1)+"",
@@ -130,7 +129,7 @@ public class info {
             // count);
             // }
             victor.setElementAt((Double.valueOf(victor.elementAt(count)).doubleValue() + inf) + "",
-                0);
+                                0);
             first = false;
             prev = trav;
           }
@@ -141,14 +140,20 @@ public class info {
           // writer.println(positron.elementAt(i)+"\t"+ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue()/(numFams-Integer.valueOf(zeroGoodness.elementAt(count)).intValue()),
           // 5));
           writer.println(positron.elementAt(i) + "\t"
-              + ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue() / numFams, 5));
+                         + ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue() / numFams,
+                                        5));
           masterWriter.println(positron.elementAt(i) + "\t"
-              + ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue() / numFams, 5));
+                               + ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue()
+                                              / numFams, 5));
           if (!markerNames.elementAt(i).equals("-")) {
             markerWriter.println(markerNames.elementAt(i) + "\t"
-                + ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue() / numFams, 5));
-            masterMarkerWriter.println(markerNames.elementAt(i) + "\t"
-                + ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue() / numFams, 5));
+                                 + ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue()
+                                                / numFams, 5));
+            masterMarkerWriter.println(markerNames.elementAt(i) + "\t" + ext.formDeci(
+                                                                                      Double.valueOf(victor.elementAt(i))
+                                                                                            .doubleValue()
+                                                                                      / numFams,
+                                                                                      5));
           }
         }
 

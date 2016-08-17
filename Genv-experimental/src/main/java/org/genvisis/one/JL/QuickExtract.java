@@ -43,8 +43,7 @@ public class QuickExtract {
     VCFFileReader reader = new VCFFileReader(new File(vcf), true);
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(out));
-      writer.println(
-          "CHROM\tPOS\tREF\tALT\tNumAlt\tNumAltMinus3\t1000G\tSNPEFF_IMPACT\tSNPEFF_GENE_NAME");
+      writer.println("CHROM\tPOS\tREF\tALT\tNumAlt\tNumAltMinus3\t1000G\tSNPEFF_IMPACT\tSNPEFF_GENE_NAME");
       int num = 0;
       int found = 0;
       for (VariantContext vc : reader) {
@@ -61,11 +60,13 @@ public class QuickExtract {
           int numAlt = vc.getHetCount() + vc.getHomVarCount();
           int numAltMinux = vcSub.getHetCount() + vcSub.getHomVarCount();
           writer.println(vc.getContig() + "\t" + vc.getStart() + "\t"
-              + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString()
-              + "\t" + numAlt + "\t" + numAltMinux + "\t"
-              + Array.toStr(VCOps.getAnnotationsFor(
-                  new String[] {"g10002014oct_all", "SNPEFF_IMPACT", "SNPEFF_GENE_NAME"}, vc,
-                  ".")));
+                         + vc.getReference().getBaseString() + "\t"
+                         + vc.getAlternateAlleles().toString() + "\t" + numAlt + "\t" + numAltMinux
+                         + "\t"
+                         + Array.toStr(VCOps.getAnnotationsFor(new String[] {"g10002014oct_all",
+                                                                             "SNPEFF_IMPACT",
+                                                                             "SNPEFF_GENE_NAME"},
+                                                               vc, ".")));
           found++;
         }
       }

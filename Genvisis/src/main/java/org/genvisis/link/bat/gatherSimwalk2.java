@@ -15,10 +15,10 @@ public class gatherSimwalk2 {
     try {
       if (args.length == 1) {
         new gatherSimwalk2(Integer.valueOf(args[0]).intValue(),
-            Integer.valueOf(args[0]).intValue());
+                           Integer.valueOf(args[0]).intValue());
       } else if (args.length == 2) {
         new gatherSimwalk2(Integer.valueOf(args[0]).intValue(),
-            Integer.valueOf(args[1]).intValue());
+                           Integer.valueOf(args[1]).intValue());
       } else {
         System.out.println("Expecting 1-2 arguments: how many models, or a range of models");
       }
@@ -60,8 +60,8 @@ public class gatherSimwalk2 {
           max_lod = -999;
           // max_pos = -1;
           if (chromosome < 23) {
-            reader = new BufferedReader(
-                new FileReader("chr" + chromosome + "/Model" + i + "/SCORE-" + chrome + ".ALL"));
+            reader = new BufferedReader(new FileReader("chr" + chromosome + "/Model" + i + "/SCORE-"
+                                                       + chrome + ".ALL"));
             do {
               temp = reader.readLine();
             } while (!temp.startsWith("Marker"));
@@ -108,8 +108,8 @@ public class gatherSimwalk2 {
           }
           reader.close();
         } catch (Exception e) {
-          System.err
-              .println("Missed: chr" + chromosome + "/Model" + i + "/SCORE-" + chrome + ".ALL");
+          System.err.println("Missed: chr" + chromosome + "/Model" + i + "/SCORE-" + chrome
+                             + ".ALL");
         }
       }
       peaks.println();

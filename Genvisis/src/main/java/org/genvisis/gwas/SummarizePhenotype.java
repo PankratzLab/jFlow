@@ -24,23 +24,23 @@ public class SummarizePhenotype {
   public static final String[] ID_NAMES =
       {"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID", "Sample"};
   public static final String FILENAME_EXTIONSION_TO_OUTPUT_PHENOTYPE_DATA_WITH = ".xln";
-  public static final String[][] DEFAULT_PARAMS = {
-      {"Description", "statOperation", "columnLabel", "columnCriteria", "parameter"},
-      {"Trait - Minimum", "0 percentile", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
-      {"Trait - 1st Quartile", "25 percentile", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
-      {"Trait - Median", "50 percentile", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
-      {"Trait - Mean", "mean", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
-      {"Trait - 3rd Quartile", "75 percentile", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
-      {"Trait - maximum", "100 percentile", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
-      {"Trait- standard deviation", "stdev", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
-      {"N", "count", "Female", "Female=ValidDouble", "-blank", "-sf=0"},
-      {"N - Female", "count", "Female", "Female=1", "-blank", "-sf=0"},
-      {"Age - Mean", "mean", "Age", "Age=ValidDouble", "-blank", "-sf=2"},
-      {"Age - standard deviation", "stdev", "Age", "Age=ValidDouble", "-blank", "-sf=2",
-          "-stdev"},};
+  public static final String[][] DEFAULT_PARAMS =
+      {{"Description", "statOperation", "columnLabel", "columnCriteria", "parameter"},
+       {"Trait - Minimum", "0 percentile", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
+       {"Trait - 1st Quartile", "25 percentile", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
+       {"Trait - Median", "50 percentile", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
+       {"Trait - Mean", "mean", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
+       {"Trait - 3rd Quartile", "75 percentile", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
+       {"Trait - maximum", "100 percentile", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
+       {"Trait- standard deviation", "stdev", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
+       {"N", "count", "Female", "Female=ValidDouble", "-blank", "-sf=0"},
+       {"N - Female", "count", "Female", "Female=1", "-blank", "-sf=0"},
+       {"Age - Mean", "mean", "Age", "Age=ValidDouble", "-blank", "-sf=2"},
+       {"Age - standard deviation", "stdev", "Age", "Age=ValidDouble", "-blank", "-sf=2",
+        "-stdev"},};
 
   public static String[][] adjustParameters(String[][] parameters, String[] columnLabels,
-      Logger log) {
+                                            Logger log) {
     String[][] result;
     String[] line;
     int index;
@@ -57,10 +57,10 @@ public class SummarizePhenotype {
               index = ext.indexOfStr(line[0], columnLabels, false, false, log, true);
               if (index > -1) {
                 log.report("No exact match for parameter " + result[i][j]
-                    + " in column labels. Instead, used " + columnLabels[index]);
+                           + " in column labels. Instead, used " + columnLabels[index]);
               } else {
                 log.reportError("No exact match for parameter " + result[i][j]
-                    + " in the column labels. Program exit on error.");
+                                + " in the column labels. Program exit on error.");
                 System.exit(0);
               }
               result[i][j] = result[i][j].replaceAll(line[0], columnLabels[index]);
@@ -95,10 +95,10 @@ public class SummarizePhenotype {
     Vector<String> params;
 
     params = Files.parseControlFile(modelListFileName, "phenotype",
-        new String[] {"#modelName\tdataFile\tvariableList\tIdListFile",
-            "CARDIA_blacks_Fibrinogen_y5\tBlacks.csv\tCL6FIBR_ln ~ EX3_AGE + Female\tdemoBlacks_Fibrinogen_y5.txt",
-            "CARDIA_whites_F7_y5\tWhites.csv\tCLEFACT7 ~ EX3_AGE + Female\tdemoWhites_F7_y5.txt"},
-        log);
+                                    new String[] {"#modelName\tdataFile\tvariableList\tIdListFile",
+                                                  "CARDIA_blacks_Fibrinogen_y5\tBlacks.csv\tCL6FIBR_ln ~ EX3_AGE + Female\tdemoBlacks_Fibrinogen_y5.txt",
+                                                  "CARDIA_whites_F7_y5\tWhites.csv\tCLEFACT7 ~ EX3_AGE + Female\tdemoWhites_F7_y5.txt"},
+                                    log);
 
     if (params == null) {
       if (!Files.exists(PARAMETERS_FILE_NAME)) {
@@ -129,7 +129,7 @@ public class SummarizePhenotype {
         line = reader.readLine().split(delimiter);
         if (ext.indexOfStr(line[0].trim(), ID_NAMES, false, true, log, true) == -1) {
           log.reportError("Cannot identify the 1st column of the following file as an ID '"
-              + dataFileName + "'");
+                          + dataFileName + "'");
         }
         for (String element : line) {
         }
@@ -163,9 +163,9 @@ public class SummarizePhenotype {
     Logger log;
 
     String usage = "\n" + "gwas.SummarizePhenotype requires 0-1 arguments\n"
-        + "   (1) name of model list file (i.e. models=" + modelList + " (default))\n"
-        + "   (2) name of output file (i.e. out=" + outFile + " (default))\n"
-        + "   (3) name of log file (i.e. log=mylog.txt (not the default))\n" + "";
+                   + "   (1) name of model list file (i.e. models=" + modelList + " (default))\n"
+                   + "   (2) name of output file (i.e. out=" + outFile + " (default))\n"
+                   + "   (3) name of log file (i.e. log=mylog.txt (not the default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -236,9 +236,11 @@ public class SummarizePhenotype {
           } else {
             modelName = line[0].trim().toLowerCase();
             models.put(modelName,
-                new String[][] {splitAndTrim(line[1], PARAMETERS_FILE_DELIMITER_FOR_DATAFILES),
-                    splitAndTrim(line[2], PARAMETERS_FILE_DELIMITER_FOR_VARIABLES_IN_MODEL),
-                    new String[] {line[3].toLowerCase()}});
+                       new String[][] {splitAndTrim(line[1],
+                                                    PARAMETERS_FILE_DELIMITER_FOR_DATAFILES),
+                                       splitAndTrim(line[2],
+                                                    PARAMETERS_FILE_DELIMITER_FOR_VARIABLES_IN_MODEL),
+                                       new String[] {line[3].toLowerCase()}});
             modelList.add(modelName);
           }
         }
@@ -280,8 +282,8 @@ public class SummarizePhenotype {
               columnsToKeep[k] = index;
             }
           }
-          currentData.addAll(
-              selectColumnsAndRows(currentDataTmp, columnsToKeep, wkDir + idListFileName, log));
+          currentData.addAll(selectColumnsAndRows(currentDataTmp, columnsToKeep,
+                                                  wkDir + idListFileName, log));
         }
 
         line = new String[variablesInModel.length + 1];
@@ -290,11 +292,11 @@ public class SummarizePhenotype {
           line[j] = variablesInModel[j - 1];
         }
         exportData(wkDir + modelName + FILENAME_EXTIONSION_TO_OUTPUT_PHENOTYPE_DATA_WITH, line,
-            currentData);
+                   currentData);
         // result[i] = parseStatisticsFromParameters(currentData, variablesInModel, parameters,
         // log);
         result[i] = parseStatisticsFromParameters(currentData, line,
-            adjustParameters(parameters, line, log), log);
+                                                  adjustParameters(parameters, line, log), log);
       }
 
       writer = new PrintWriter(new FileWriter(wkDir + outFileName));
@@ -321,7 +323,8 @@ public class SummarizePhenotype {
   }
 
   public static String[] parseStatisticsFromParameters(Vector<String[]> modelData,
-      String[] columnLabels, String[][] parameters, Logger log) {
+                                                       String[] columnLabels, String[][] parameters,
+                                                       Logger log) {
     boolean isStdev, isBlank, isPercent, isToInclude;
     int sf, numParameters, columnIndex, theSize;
     Vector<Integer> filters;
@@ -358,7 +361,7 @@ public class SummarizePhenotype {
           line = parameters[i][j].split("=");
           if (line.length < 2 || line[1].equals("")) {
             log.reportError("Parameter contains invalid filter: " + parameters[i][j]
-                + ". Should include an '=' sign.");
+                            + ". Should include an '=' sign.");
             return null;
           }
           // if (line[0].equalsIgnoreCase("trait")) {
@@ -369,7 +372,7 @@ public class SummarizePhenotype {
             // columnIndex = ext.indexOfStr(line[0].trim(), columnLabels, false, false, log, true);
             // if (columnIndex == -1) {
             log.reportError("Cannot find ANY match for the column specified by the parameter ("
-                + parameters[i][j] + ") in the data. Ignored this parameter.");
+                            + parameters[i][j] + ") in the data. Ignored this parameter.");
             return null;
             // } else {
             // log.reportError("Cannot find EXACT match for the column specified by the parameter ("
@@ -382,7 +385,7 @@ public class SummarizePhenotype {
           if (!line[1].equalsIgnoreCase("validDouble") && !line[1].equalsIgnoreCase("validInteger")
               && !ext.isValidInteger(line[1]) && !ext.isValidDouble(line[1])) {
             log.reportError("Unrecognized parameter: " + parameters[i][j]
-                + ". Expecting 'variableName = validDouble' or 'variableName = validInteger'.");
+                            + ". Expecting 'variableName = validDouble' or 'variableName = validInteger'.");
           }
           filters.add(columnIndex);
           filterText.add(line[1].trim());
@@ -398,7 +401,7 @@ public class SummarizePhenotype {
         // true);
         // if (columnIndex == -1) {
         log.reportError("Cannot find ANY match for the column specified by the parameter ("
-            + parameters[i][2] + ") in the data. Ignored this parameter.");
+                        + parameters[i][2] + ") in the data. Ignored this parameter.");
         return null;
         // } else {
         // log.reportError("Cannot find EXACT match for the column specified by the parameter (" +
@@ -448,7 +451,8 @@ public class SummarizePhenotype {
   }
 
   public static String runDescriptiveStat(double[] data, String statOperation, boolean includeStdev,
-      boolean useBlankForNull, boolean showPercent, int sf, Logger log) {
+                                          boolean useBlankForNull, boolean showPercent, int sf,
+                                          Logger log) {
     double mean, stdev = Double.NaN;
     int percentile;
     String result;
@@ -458,18 +462,22 @@ public class SummarizePhenotype {
       if (includeStdev) {
         stdev = Array.stdev(data);
       }
-      result = (mean != 0 ? (showPercent ? ext.formDeci(mean * 100, sf) + "%"
-          : ext.formDeci(mean, sf))
-          + (includeStdev ? " ("
-              + (showPercent ? ext.formDeci(stdev * 100, sf) + "%" : ext.formDeci(stdev, sf)) + ")"
-              : "")
-          : (useBlankForNull ? "" : "."));
+      result = (mean != 0
+                          ? (showPercent ? ext.formDeci(mean * 100, sf) + "%"
+                                         : ext.formDeci(mean, sf))
+                            + (includeStdev ? " ("
+                                              + (showPercent ? ext.formDeci(stdev * 100, sf) + "%"
+                                                             : ext.formDeci(stdev, sf))
+                                              + ")"
+                                            : "")
+                          : (useBlankForNull ? "" : "."));
 
     } else if (statOperation.equalsIgnoreCase("stdev")) {
       stdev = Array.stdev(data);
       result = (!Double.isNaN(stdev))
-          ? (showPercent ? ext.formDeci(stdev * 100, sf) + "%" : ext.formDeci(stdev, sf))
-          : (useBlankForNull ? "" : ".");
+                                      ? (showPercent ? ext.formDeci(stdev * 100, sf) + "%"
+                                                     : ext.formDeci(stdev, sf))
+                                      : (useBlankForNull ? "" : ".");
 
     } else if (statOperation.equalsIgnoreCase("count")) {
       result = Array.sum(data) > 0 ? data.length + "" : (useBlankForNull ? "" : ".");
@@ -479,10 +487,13 @@ public class SummarizePhenotype {
       Arrays.sort(data);
       if (percentile == 100) {
         result = (data.length == 0 ? (useBlankForNull ? "" : "0")
-            : ext.formDeci(data[data.length - 1], sf));
+                                   : ext.formDeci(data[data.length - 1], sf));
       } else {
-        result = (data.length == 0 ? (useBlankForNull ? "" : "0")
-            : ext.formDeci(data[(int) (((double) percentile / 100) * data.length + .5)], sf));
+        result =
+            (data.length == 0 ? (useBlankForNull ? "" : "0")
+                              : ext.formDeci(data[(int) (((double) percentile / 100) * data.length
+                                                         + .5)],
+                                             sf));
       }
 
     } else {
@@ -494,7 +505,8 @@ public class SummarizePhenotype {
   }
 
   public static Vector<String[]> selectColumnsAndRows(Hashtable<String, String[]> traitDataTmp,
-      int[] columnsToKeep, String idListFileName, Logger log) {
+                                                      int[] columnsToKeep, String idListFileName,
+                                                      Logger log) {
     BufferedReader reader;
     Vector<String[]> currentData;
     String[] temp2, temp3;
@@ -706,6 +718,6 @@ public class SummarizePhenotype {
     parameters = adjustParameters(parameters, columnLabels, log);
 
     Files.generateTables(resultFileName, new String[] {phenoDataFileName},
-        new String[] {ext.rootOf(phenoDataFileName)}, parameters, log);
+                         new String[] {ext.rootOf(phenoDataFileName)}, parameters, log);
   }
 }

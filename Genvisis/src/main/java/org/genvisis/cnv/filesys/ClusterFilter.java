@@ -31,7 +31,7 @@ public class ClusterFilter implements Serializable {
   }
 
   public ClusterFilter(byte plotType, float rawXMin, float rawYMin, float rawXmax, float rawYmax,
-      byte newGenotype) {
+                       byte newGenotype) {
     this.plotType = plotType;
     this.rawXMin = rawXMin;
     this.rawYMin = rawYMin;
@@ -41,7 +41,7 @@ public class ClusterFilter implements Serializable {
   }
 
   public ClusterFilter(byte plotType, float rawXMin, float rawYMin, float rawXmax, float rawYmax,
-      MarkerData markerData) {
+                       MarkerData markerData) {
     this.plotType = plotType;
     this.rawXMin = rawXMin;
     this.rawYMin = rawYMin;
@@ -190,14 +190,15 @@ public class ClusterFilter implements Serializable {
           if (i != 3) {
             distancetemp =
                 (float) Math.sqrt(Math.pow(clusterCenters[i][0] - clusterCenters[3][0], 2)
-                    + Math.pow(clusterCenters[i][1] - clusterCenters[3][1], 2));
+                                  + Math.pow(clusterCenters[i][1] - clusterCenters[3][1], 2));
             if (distancetemp < distance) {
               distance = distancetemp;
               result = i;
             }
           }
-        } else if (i != 3 && genotypeCount[i] > 0 && genotypeCount[i] == Math.max(genotypeCount[0],
-            Math.max(genotypeCount[1], genotypeCount[2]))) {
+        } else if (i != 3 && genotypeCount[i] > 0
+                   && genotypeCount[i] == Math.max(genotypeCount[0],
+                                                   Math.max(genotypeCount[1], genotypeCount[2]))) {
           result = i;
           break;
         }
@@ -299,7 +300,8 @@ public class ClusterFilter implements Serializable {
     for (int i = 0; i < indexOfPointsOutsideTheCluster.size(); i++) {
       distancetemp =
           (float) Math.sqrt(Math.pow(realX[indexOfPointsOutsideTheCluster.elementAt(i)] - xSum, 2)
-              + Math.pow(realY[indexOfPointsOutsideTheCluster.elementAt(i)] - ySum, 2));
+                            + Math.pow(realY[indexOfPointsOutsideTheCluster.elementAt(i)] - ySum,
+                                       2));
       if (distancetemp < minDist && genotypes[indexOfPointsOutsideTheCluster.elementAt(i)] != -1) {
         minDist = distancetemp;
         indexOfNearbyPoint = indexOfPointsOutsideTheCluster.elementAt(i);

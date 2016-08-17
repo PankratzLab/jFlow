@@ -14,7 +14,7 @@ public class ExpectationMaximization {
    * Initializes the mixture model with points that are closet the given means.
    */
   public static UnivariateGaussianMixtureModel initialize(Point[] points, double[] means,
-      double[] sd) {
+                                                          double[] sd) {
     UnivariateGaussianMixtureModel mm = new UnivariateGaussianMixtureModel(means.length);
 
     for (int i = 0; i < means.length; i++) {
@@ -78,7 +78,7 @@ public class ExpectationMaximization {
    * @return learned mixture model
    */
   public static UnivariateGaussianMixtureModel run(Point[] points,
-      UnivariateGaussianMixtureModel m) {
+                                                   UnivariateGaussianMixtureModel m) {
     UnivariateGaussianMixtureModel mixtureModel = m.clone();
 
     // Variables
@@ -104,7 +104,8 @@ public class ExpectationMaximization {
         double sum = 0;
         for (k = 0; k < numComponents; k++) {
           double tmp = mixtureModel.weight[k]
-              * UnivariateGaussianMixtureModel.densityOfGaussian(points[n], mixtureModel.param[k]);
+                       * UnivariateGaussianMixtureModel.densityOfGaussian(points[n],
+                                                                          mixtureModel.param[k]);
           p[n][k] = tmp;
           sum += tmp;
         }
@@ -149,9 +150,9 @@ public class ExpectationMaximization {
       logLikelihoodNew = logLikelihood(points, mixtureModel);
 
       System.out.printf("Iteration %2d: LL = %12.6f\n", iterations, logLikelihoodNew);
-    } while (Math
-        .abs((logLikelihoodNew - logLikelihoodOld) / logLikelihoodOld) > logLikelihoodThreshold
-        && iterations < MAX_ITERATIONS);
+    } while (Math.abs((logLikelihoodNew - logLikelihoodOld)
+                      / logLikelihoodOld) > logLikelihoodThreshold
+             && iterations < MAX_ITERATIONS);
 
     return mixtureModel;
   }

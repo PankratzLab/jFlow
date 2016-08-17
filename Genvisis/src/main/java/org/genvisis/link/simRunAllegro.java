@@ -11,8 +11,8 @@ public class simRunAllegro {
     boolean allChrs = false;
 
     String usage = "\n" + "park.simRunAllegro requires 0-2 arguments\n"
-        + "   (1) number of replicates (i.e. reps=" + numReps + " (default)\n"
-        + "   (2) all chromosomes (i.e. '-all' (optional))\n" + "";
+                   + "   (1) number of replicates (i.e. reps=" + numReps + " (default)\n"
+                   + "   (2) all chromosomes (i.e. '-all' (optional))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -50,11 +50,11 @@ public class simRunAllegro {
         chrome = (chr < 10) ? "0" + chr : "" + chr;
         optfile = new PrintWriter(new FileWriter("temp-" + (all ? chrome + "-" : "") + i + ".opt"));
         optfile.println("% Read input in LINKAGE style format:\n" + "PREFILE linkage-"
-            + (all ? chrome + "-" : "") + i + ".pre\n" + "DATFILE "
-            + (all ? "map" + chrome + ".dat" : "linkage.dat") + "\n\n"
-            + "% Simulate stroke reconstruction pedigrees\n" + "MODEL mpt lin all equal output-"
-            + (all ? chrome + "-" : "") + i + ".prn trash\n\n" + "% Other options:\n" + "STEPS 10\n"
-            + "MAXMEMORY 100");
+                        + (all ? chrome + "-" : "") + i + ".pre\n" + "DATFILE "
+                        + (all ? "map" + chrome + ".dat" : "linkage.dat") + "\n\n"
+                        + "% Simulate stroke reconstruction pedigrees\n"
+                        + "MODEL mpt lin all equal output-" + (all ? chrome + "-" : "") + i
+                        + ".prn trash\n\n" + "% Other options:\n" + "STEPS 10\n" + "MAXMEMORY 100");
         optfile.close();
 
         writer.println("/software/bin/allegro temp-" + (all ? chrome + "-" : "") + i + ".opt");

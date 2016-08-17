@@ -198,7 +198,8 @@ public class Sort {
 
   public static final String RULES =
       "<0<1<2<3<4<5<6<7<8<9" + "<a,A<b,B<c,C<d,D<e,E<f,F<g,G<h,H<i,I<j,J"
-          + "<k,K<l,L<m,M<n,N<o,O<p,P<q,Q<r,R<s,S<t,T" + "<u,U<v,V<w,W<x,X<y,Y<z,Z";
+                                     + "<k,K<l,L<m,M<n,N<o,O<p,P<q,Q<r,R<s,S<t,T"
+                                     + "<u,U<v,V<w,W<x,X<y,Y<z,Z";
 
   /**
    * Class copied from Java 1.8
@@ -266,7 +267,7 @@ public class Sort {
    * @return array of sorted indices
    */
   public static int[] orderTwoLayers(byte[] first, int[] second, boolean verbose, boolean trickSort,
-      Logger log) {
+                                     Logger log) {
     if (trickSort) {
       return trickSortOrderTwoLayers(first, second, verbose, log);
     } else {
@@ -278,8 +279,7 @@ public class Sort {
       boolean inOrder;
 
       if (first.length != second.length) {
-        log.reportError(
-            "Error - Can't sort markers if the number of chromosome numbers and positions don't match up");
+        log.reportError("Error - Can't sort markers if the number of chromosome numbers and positions don't match up");
         System.exit(1);
       }
 
@@ -376,7 +376,7 @@ public class Sort {
    * @return array of sorted indices
    */
   public static int[] orderTwoLayers(int[] first, int firstDirection, String[] second,
-      int secondDirection) {
+                                     int secondDirection) {
     String[] primaryKeys, secondaryKeys;
     int count;
     int[] primaryValues, finalIndices, primaryIndices, secondaryIndices;
@@ -385,8 +385,7 @@ public class Sort {
     Hashtable<String, String> hash, finalKeyHash;
 
     if (first.length != second.length) {
-      System.err.println(
-          "Error - Can't sort markers if the number of chromosome numbers and positions don't match up");
+      System.err.println("Error - Can't sort markers if the number of chromosome numbers and positions don't match up");
       System.exit(1);
     }
 
@@ -435,7 +434,7 @@ public class Sort {
    */
   public static int[] orderTwoLayers(int[][] matrix, Logger log) {
     return orderTwoLayers(Array.toByteArray(Matrix.extractColumn(matrix, 0)),
-        Matrix.extractColumn(matrix, 1), log);
+                          Matrix.extractColumn(matrix, 1), log);
   }
 
   public static byte[] putInOrder(byte[] array, int[] order) {
@@ -1183,7 +1182,7 @@ public class Sort {
   }
 
   private static int[] trickSortOrderTwoLayers(byte[] first, int[] second, boolean verbose,
-      Logger log) {
+                                               Logger log) {
     BII[] biisSorted = trickSortTwoLayers(first, second, verbose, log);
     if (biisSorted.length > 0) {
       int[] order = new int[biisSorted.length];

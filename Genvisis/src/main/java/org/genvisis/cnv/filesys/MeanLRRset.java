@@ -20,7 +20,7 @@ public class MeanLRRset implements Serializable {
   private final String[] transformations;
 
   public MeanLRRset(long sampleFingerprint, Segment[] regions, int[] numberOfMarkers,
-      float[][][] data, String[] transformations) {
+                    float[][][] data, String[] transformations) {
     this.sampleFingerprint = sampleFingerprint;
     this.numberOfMarkers = numberOfMarkers;
     this.regions = regions;

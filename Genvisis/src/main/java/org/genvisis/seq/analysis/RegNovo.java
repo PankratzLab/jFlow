@@ -37,10 +37,11 @@ import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
 
 public class RegNovo {
-  private static final String[] HEADER = new String[] {"Sample", "ID", "REF", "ALT", "CHR", "Start",
-      "Stop", "PassesPop", "RefDepth", "AltDepth", "GQ", "Pop_AAC", "AllParents_AAC",
-      "AllOffspring_AAC", "P1RefDepth", "P1AltDepth", "P1GQ", "P1Filter", "P1_AAC", "P2RefDepth",
-      "P2AltDepth", "P2GQ", "P2Filter", "P2_AAC", "GATK_FILTER"};
+  private static final String[] HEADER =
+      new String[] {"Sample", "ID", "REF", "ALT", "CHR", "Start", "Stop", "PassesPop", "RefDepth",
+                    "AltDepth", "GQ", "Pop_AAC", "AllParents_AAC", "AllOffspring_AAC", "P1RefDepth",
+                    "P1AltDepth", "P1GQ", "P1Filter", "P1_AAC", "P2RefDepth", "P2AltDepth", "P2GQ",
+                    "P2Filter", "P2_AAC", "GATK_FILTER"};
   // private static final String[] TO_REPORT = new String[] { "SNPEFF_GENE_NAME", "SNPEFF_EFFECT",
   // "SNPEFF_IMPACT", "AAChange.refGene", "SNPEFF_EXON_ID", "esp6500si_all", "g10002014oct_all",
   // "culprit", "snp138" };
@@ -48,7 +49,7 @@ public class RegNovo {
   public static final String REG_NOVO = "REG_NOVO";
 
   public static void detectDenovo(String vcf, String vpopFile, String bams, double gqVal,
-      String excludeFile, Logger log) {
+                                  String excludeFile, Logger log) {
     VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.ANY, log);
     vpop.report();
     Hashtable<String, String> excludeHash = new Hashtable<String, String>();
@@ -58,8 +59,8 @@ public class RegNovo {
       String[] samps = VCFOps.getSamplesInFile(vcf);
       for (String samp : excludeHash.keySet()) {
         if (ext.indexOfStr(samp, samps) < 0) {
-          throw new IllegalArgumentException(
-              "Error - could not find sample " + samp + " in " + vcf);
+          throw new IllegalArgumentException("Error - could not find sample " + samp + " in "
+                                             + vcf);
         }
       }
     }
@@ -67,13 +68,13 @@ public class RegNovo {
     readDepths.setAltAlleleDepthFilter(new int[] {5});
     RegNovo regNovo =
         new RegNovo(vcf, bams, vpop, getQualityFilter(gqVal, log), getQualityFilter(gqVal, log),
-            readDepths, ext.parseDirectoryOfFile(vpopFile), excludeHash, log);
+                    readDepths, ext.parseDirectoryOfFile(vpopFile), excludeHash, log);
     // Segment[] segs = new Segment[] { new Segment("chr9:14079842-14400982"), new
     // Segment("chr17:7571520-7590968"), new Segment("chr8:119933796-119966383") };
     Segment[] segs = new Segment[] {new Segment("chr17:7571520-7590968")};
     regNovo.scanForDenovo();
     regNovo.scanAndReportSelection(segs, readDepths, getQualityFilter(gqVal, log),
-        "TP53_NFIB_TNFRSF11B");
+                                   "TP53_NFIB_TNFRSF11B");
 
     //
 
@@ -95,9 +96,10 @@ public class RegNovo {
   }
 
   private static String getSummary(VariantContextFilter variantContextFilter, VariantContext vc,
-      VariantContext vcSub, Segment vcSeg, VariantContext vcOff, VariantContext vcRents,
-      VariantContext vcExclude, VariantContext vcOffHQ_ALT, VariantContext vcRentsHQ_ALT,
-      String[] annos, Logger log) {
+                                   VariantContext vcSub, Segment vcSeg, VariantContext vcOff,
+                                   VariantContext vcRents, VariantContext vcExclude,
+                                   VariantContext vcOffHQ_ALT, VariantContext vcRentsHQ_ALT,
+                                   String[] annos, Logger log) {
     String out = "";
     out += vcSeg.getChr();
     out += "\t" + vcSeg.getStart();
@@ -121,8 +123,9 @@ public class RegNovo {
 
     out += "\t" + vc.getFilters().toString();
     out += "\t" + variantContextFilter.filter(vcSub).getTestPerformed();
-    out += "\t" + variantContextFilter
-        .filter(VCOps.getAltAlleleContext(vcSub, new FilterNGS(), log)).getTestPerformed();
+    out +=
+        "\t" + variantContextFilter.filter(VCOps.getAltAlleleContext(vcSub, new FilterNGS(), log))
+                                   .getTestPerformed();
     out += "\t" + Array.toStr(VCOps.getAnnotationsFor(annos, vcSub, "."));
     return out;
   }
@@ -143,7 +146,7 @@ public class RegNovo {
     usage += "   (1) full path to a vcf file (i.e. vcf=" + vcf + " (default))\n" + "";
     usage += "   (2) full path to a vpop file (i.e. vpop=" + vpopFile + " (default))\n" + "";
     usage += "   (3) full path to a directory or file of bams (i.e. bams=" + bams
-        + " (no default))\n" + "";
+             + " (no default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -178,7 +181,7 @@ public class RegNovo {
   }
 
   private static boolean rare(VariantContext vc, Set<String> controls, String[] annosToGet,
-      Logger log) {
+                              Logger log) {
     boolean rare = true;
     if (VCOps.getAAC(VCOps.getSubset(vc, controls), null) > 0) {
       rare = false;
@@ -221,8 +224,8 @@ public class RegNovo {
   private final Hashtable<String, String> excludeHash;
 
   public RegNovo(String vcf, String bams, VcfPopulation vpop, VariantContextFilter filterControl,
-      VariantContextFilter filterOffspring, FilterNGS readDepths, String outputDir,
-      Hashtable<String, String> excludeHash, Logger log) {
+                 VariantContextFilter filterOffspring, FilterNGS readDepths, String outputDir,
+                 Hashtable<String, String> excludeHash, Logger log) {
     super();
     this.vcf = vcf;
     this.vpop = vpop;
@@ -239,7 +242,7 @@ public class RegNovo {
   }
 
   public void scanAndReportSelection(Segment[] segs, FilterNGS filterNGS,
-      VariantContextFilter variantContextFilter, String root) {
+                                     VariantContextFilter variantContextFilter, String root) {
     String output = outputDir + root + ".extracted.txt";
     String outputVCF = outputDir + root + ".extracted.vcf";
     Set<String> offspring = vpop.getSuperPop().get(OFFSPRING);
@@ -280,7 +283,7 @@ public class RegNovo {
     for (Segment element : segsSorted) {
       CloseableIterator<VariantContext> iter =
           reader.query(Positions.getChromosomeUCSC(element.getChr(), true), element.getStart(),
-              element.getStop());
+                       element.getStop());
       while (iter.hasNext()) {
         VariantContext vc = iter.next();
         count++;
@@ -298,13 +301,15 @@ public class RegNovo {
                 VCOps.getSubset(vc, controls, VC_SUBSET_TYPE.SUBSET_STRICT, false);
             VariantContext vcExclude =
                 VCOps.getSubset(vc, exclude, VC_SUBSET_TYPE.SUBSET_STRICT, false);
-            VariantContext vcOffHQ_ALT = VCOps.getAltAlleleContext(vcOff, filterNGS,
-                variantContextFilter, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
-            VariantContext vcRentsHQ_ALT = VCOps.getAltAlleleContext(vcRents, filterNGS,
-                variantContextFilter, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+            VariantContext vcOffHQ_ALT =
+                VCOps.getAltAlleleContext(vcOff, filterNGS, variantContextFilter,
+                                          ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+            VariantContext vcRentsHQ_ALT =
+                VCOps.getAltAlleleContext(vcRents, filterNGS, variantContextFilter,
+                                          ALT_ALLELE_CONTEXT_TYPE.ALL, log);
 
             String out = getSummary(variantContextFilter, vc, vcSub, vcSeg, vcOff, vcRents,
-                vcExclude, vcOffHQ_ALT, vcRentsHQ_ALT, annos[0], log);
+                                    vcExclude, vcOffHQ_ALT, vcRentsHQ_ALT, annos[0], log);
             writerVC.add(vc);
             segsToReview.add(VCOps.getSegment(vcSub));
             writer.println(out + "\t" + vcSub.toStringWithoutGenotypes());
@@ -342,20 +347,23 @@ public class RegNovo {
                         VCOps.getSubset(vc, parentsHashSetCur, VC_SUBSET_TYPE.SUBSET_STRICT, false);
                     VariantContext vcExcludeCur =
                         VCOps.getSubset(vc, hashSetExcludeCur, VC_SUBSET_TYPE.SUBSET_STRICT, false);
-                    VariantContext vcOffHQ_ALTCur = VCOps.getAltAlleleContext(vcOffCur, filterNGS,
-                        variantContextFilter, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
-                    VariantContext vcRentsHQ_ALTCur = VCOps.getAltAlleleContext(vcRentsCur,
-                        filterNGS, variantContextFilter, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+                    VariantContext vcOffHQ_ALTCur =
+                        VCOps.getAltAlleleContext(vcOffCur, filterNGS, variantContextFilter,
+                                                  ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+                    VariantContext vcRentsHQ_ALTCur =
+                        VCOps.getAltAlleleContext(vcRentsCur, filterNGS, variantContextFilter,
+                                                  ALT_ALLELE_CONTEXT_TYPE.ALL, log);
                     // private static String getSummary(VariantContextFilter variantContextFilter,
                     // VariantContext vc, VariantContext vcSub, Segment vcSeg, VariantContext vcOff,
                     // VariantContext vcRents, VariantContext vcExclude, VariantContext vcOffHQ_ALT,
                     // VariantContext vcRentsHQ_ALT, Logger log) {
 
-                    String curOut = getSummary(variantContextFilter, vc, vcSubCur, vcSeg, vcOffCur,
-                        vcRentsCur, vcExcludeCur, vcOffHQ_ALTCur, vcRentsHQ_ALTCur, annos[0], log);
-                    writerFullFam
-                        .println(offHashSetCur.toString() + "\t" + parentsHashSetCur.toString()
-                            + "\t" + hashSetExcludeCur.toString() + "\t" + curOut);
+                    String curOut =
+                        getSummary(variantContextFilter, vc, vcSubCur, vcSeg, vcOffCur, vcRentsCur,
+                                   vcExcludeCur, vcOffHQ_ALTCur, vcRentsHQ_ALTCur, annos[0], log);
+                    writerFullFam.println(offHashSetCur.toString() + "\t"
+                                          + parentsHashSetCur.toString() + "\t"
+                                          + hashSetExcludeCur.toString() + "\t" + curOut);
 
                     VCOps.Transmission transmission =
                         new VCOps.Transmission(off, parents[0], parents[1]);
@@ -385,7 +393,8 @@ public class RegNovo {
         };
     set.writeRegions(segFile, TO_STRING_TYPE.REGULAR, false, log);
     VCFOps.extractSegments(outputVCF, segFile, 100, bams,
-        ext.parseDirectoryOfFile(vpop.getFileName()) + root + "_extracted/", true, true, 2, log);
+                           ext.parseDirectoryOfFile(vpop.getFileName()) + root + "_extracted/",
+                           true, true, 2, log);
   }
 
   public void scanForDenovo() {
@@ -397,8 +406,8 @@ public class RegNovo {
 
     if (!vpop.getSuperPop().containsKey(OFFSPRING)
         || !vpop.getSuperPop().containsKey(VcfPopulation.CONTROL)) {
-      log.reportTimeError(
-          vpop.getFileName() + " must contain both " + OFFSPRING + " and " + VcfPopulation.CONTROL);
+      log.reportTimeError(vpop.getFileName() + " must contain both " + OFFSPRING + " and "
+                          + VcfPopulation.CONTROL);
       return;
     }
     Set<String> offspring = vpop.getSuperPop().get(OFFSPRING);
@@ -422,8 +431,8 @@ public class RegNovo {
 
       PrintWriter summaryWriter = Files.getAppropriateWriter(outputSummary);
       summaryWriter.println(Array.toStr(HEADER) + "\t" + Array.toStr(annos[0])
-          + "\tOff_Exclude\tOFF_Exclude_Notes\tP1_EXCLUDE\tP1_EXCLUDE_Notes\tP2_EXCLUDE\tP2_EXCLUDE_Notes\t"
-          + REG_NOVO);
+                            + "\tOff_Exclude\tOFF_Exclude_Notes\tP1_EXCLUDE\tP1_EXCLUDE_Notes\tP2_EXCLUDE\tP2_EXCLUDE_Notes\t"
+                            + REG_NOVO);
       Hashtable<String, Integer> counts = new Hashtable<String, Integer>();
       ArrayList<Segment> segsToReview = new ArrayList<Segment>();
       for (VariantContext vc : reader) {
@@ -437,7 +446,8 @@ public class RegNovo {
             boolean regNovo = true;
             VariantContext vcOffAlt =
                 VCOps.getAltAlleleContext(VCOps.getSubset(vcAll, off, VC_SUBSET_TYPE.SUBSET_STRICT),
-                    readDepths, filterOffspring, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+                                          readDepths, filterOffspring, ALT_ALLELE_CONTEXT_TYPE.ALL,
+                                          log);
             if (vcOffAlt.getSampleNames().size() > 0) {
               String[] fam = vpop.getPopulationForInd(off, RETRIEVE_TYPE.SUB);
               for (String element : fam) {
@@ -488,7 +498,7 @@ public class RegNovo {
                       int[] alleleDepths = new int[2];
                       try {
                         alleleDepths = VCOps.getAppropriateAlleleDepths(vcFam, vcFam.getGenotype(0),
-                            true, log);
+                                                                        true, log);
                       } catch (Exception e) {
                         log.reportException(e);
                       }
@@ -496,7 +506,7 @@ public class RegNovo {
                       pString += "\t" + alleleDepths[1];
                       pString += "\t" + vcFam.getGenotypes().get(0).getGQ() + "";
                       pString += "\t" + filterControl.filter(vcFam).getTestPerformed() + "\t"
-                          + VCOps.getAAC(vcFam, null);
+                                 + VCOps.getAAC(vcFam, null);
                       if (regNovo) {
                         regNovo = filterControl.filter(vcFam).passed();
                       }
@@ -531,22 +541,35 @@ public class RegNovo {
                     segsToReview.add(VCOps.getSegment(vc));
 
                     String[] anno = VCOps.getAnnotationsFor(annos[0], vc, ".");
-                    int[] alleleDepths = VCOps.getAppropriateAlleleDepths(vcOffAlt,
-                        vcOffAlt.getGenotype(0), true, log);
+                    int[] alleleDepths =
+                        VCOps.getAppropriateAlleleDepths(vcOffAlt, vcOffAlt.getGenotype(0), true,
+                                                         log);
                     String sum = "\t" + alleleDepths[0];
                     sum += "\t" + alleleDepths[1];
                     sum += "\t" + vcOffAlt.getGenotypes().get(0).getGQ() + "";
                     sum += "\t" + VCOps.getAAC(VCOps.getAltAlleleContext(vcAll, readDepths,
-                        filterControl, ALT_ALLELE_CONTEXT_TYPE.ALL, log), all);
+                                                                         filterControl,
+                                                                         ALT_ALLELE_CONTEXT_TYPE.ALL,
+                                                                         log),
+                                               all);
                     sum += "\t" + VCOps.getAAC(VCOps.getAltAlleleContext(vcControls, readDepths,
-                        filterControl, ALT_ALLELE_CONTEXT_TYPE.ALL, log), null);
+                                                                         filterControl,
+                                                                         ALT_ALLELE_CONTEXT_TYPE.ALL,
+                                                                         log),
+                                               null);
                     sum += "\t" + VCOps.getAAC(VCOps.getAltAlleleContext(vcOffAlt, readDepths,
-                        filterControl, ALT_ALLELE_CONTEXT_TYPE.ALL, log), null);
+                                                                         filterControl,
+                                                                         ALT_ALLELE_CONTEXT_TYPE.ALL,
+                                                                         log),
+                                               null);
                     summaryWriter.println(off + "\t" + vcOffAlt.getID() + "\t"
-                        + vcOffAlt.getReference() + "\t" + vcOffAlt.getAlternateAlleles().toString()
-                        + "\t" + vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getEnd() + "\t"
-                        + passesAllControls + sum + pString + "\t" + vc.getFilters().toString()
-                        + "\t" + Array.toStr(anno) + "\t" + Array.toStr(excludes) + "\t" + regNovo);
+                                          + vcOffAlt.getReference() + "\t"
+                                          + vcOffAlt.getAlternateAlleles().toString() + "\t"
+                                          + vc.getContig() + "\t" + vc.getStart() + "\t"
+                                          + vc.getEnd() + "\t" + passesAllControls + sum + pString
+                                          + "\t" + vc.getFilters().toString() + "\t"
+                                          + Array.toStr(anno) + "\t" + Array.toStr(excludes) + "\t"
+                                          + regNovo);
                     summaryWriter.flush();
                     if (regNovo) {
                       writerReg.add(vc);
@@ -558,7 +581,7 @@ public class RegNovo {
           }
           if (total % 10000 == 0) {
             log.reportTimeInfo("Scanned " + total + " variants and detected" + denovo
-                + " denovos (regNovo=" + regNovoCount + ")");
+                               + " denovos (regNovo=" + regNovoCount + ")");
           }
         }
       }
@@ -566,10 +589,11 @@ public class RegNovo {
       writer.close();
       writerReg.close();
       summaryWriter.close();
-      LocusSet<Segment> set = new LocusSet<Segment>(
-          segsToReview.toArray(new Segment[segsToReview.size()]), false, log) {
-        private static final long serialVersionUID = 1L;
-      };
+      LocusSet<Segment> set =
+          new LocusSet<Segment>(segsToReview.toArray(new Segment[segsToReview.size()]), false,
+                                log) {
+            private static final long serialVersionUID = 1L;
+          };
       set.writeRegions(segSummary, TO_STRING_TYPE.REGULAR, false, log);
       String countSummary = ext.addToRoot(outputSummary, ".counts");
       PrintWriter writer2 = Files.getAppropriateWriter(countSummary);
@@ -585,7 +609,8 @@ public class RegNovo {
 
     if (bams != null) {
       VCFOps.extractSegments(outputVCF, segSummary, 100, bams,
-          ext.parseDirectoryOfFile(vpop.getFileName()) + "extractedDenovo/", true, true, 2, log);
+                             ext.parseDirectoryOfFile(vpop.getFileName()) + "extractedDenovo/",
+                             true, true, 2, log);
     }
   }
 }

@@ -26,7 +26,7 @@ public class BoxCox {
     String filename = "BoxCox.dat";
 
     String usage = "\n" + "park.BoxCox requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-        + filename + " (default)\n" + "";
+                   + filename + " (default)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -125,10 +125,9 @@ public class BoxCox {
     shift = 0;
     min = Array.min(data);
     if (min < 0) {
-      log.reportError(
-          "Warning - the original data was not suitable for transformation -- the minimum (" + min
-              + ") cannot be less than 1.0; therefore added " + (Math.abs(min) + 1)
-              + " to every element");
+      log.reportError("Warning - the original data was not suitable for transformation -- the minimum ("
+                      + min + ") cannot be less than 1.0; therefore added " + (Math.abs(min) + 1)
+                      + " to every element");
       shift = Math.abs(min) + 1;
       for (int i = 0; i < N; i++) {
         data[i] += shift;
@@ -161,7 +160,7 @@ public class BoxCox {
     switch (method) {
       case LOG_LIKELIHOOD:
         return -1 * (N - 1) / 2 * Math.log(Array.variance(transform(data, lambda)))
-            + (lambda - 1) * (N - 1) / N * sumLN;
+               + (lambda - 1) * (N - 1) / N * sumLN;
       case KURTOSIS:
         return Array.kurtosis(transform(data, lambda));
     }

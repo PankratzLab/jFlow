@@ -34,8 +34,9 @@ import org.genvisis.common.ext;
  * @author Peter Abeles , John Lane
  */
 public class PrincipalComponentsCompute {
-  public static final String[] OUTPUT_EXT = {".PCs.txt", ".PCs.MarkerReport.txt",
-      ".PCs.MarkerLoadings.txt", ".PCs.SingularValues.txt", ".Summary.txt"};
+  public static final String[] OUTPUT_EXT =
+      {".PCs.txt", ".PCs.MarkerReport.txt", ".PCs.MarkerLoadings.txt", ".PCs.SingularValues.txt",
+       ".Summary.txt"};
   public static final String PC_STRING = "PC";
   public static final String[] SAMPLE = {"sample", "FID", "IID"};
   public static final String MARKER = "markerName";
@@ -73,8 +74,9 @@ public class PrincipalComponentsCompute {
    * @return
    */
   public static double[][] getData(Project proj, String[] markers, boolean[] samplesToUse,
-      boolean printFullData, boolean imputeMeanForNaN, boolean dealWithNaN, boolean recomputeLRR,
-      String output, GcAdjustorParameters parameters) {
+                                   boolean printFullData, boolean imputeMeanForNaN,
+                                   boolean dealWithNaN, boolean recomputeLRR, String output,
+                                   GcAdjustorParameters parameters) {
     double[][] dataToUse = getAppropriateArray(markers.length, samplesToUse);
     MDL mdl = new MDL(proj, proj.getMarkerSet(), markers, 2, 1);
     // MarkerDataLoader markerDataLoader =
@@ -82,8 +84,8 @@ public class PrincipalComponentsCompute {
     boolean[] markerUsed = new boolean[markers.length];
     Logger log = proj.getLog();
     if (parameters != null && recomputeLRR) {
-      proj.getLog().reportTimeError(
-          "recompute lrr was flagged AND gc correction parameters were passed to data load");
+      proj.getLog()
+          .reportTimeError("recompute lrr was flagged AND gc correction parameters were passed to data load");
       return null;
     }
     if (parameters != null) {
@@ -103,8 +105,8 @@ public class PrincipalComponentsCompute {
         float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
         float maxMemory = Runtime.getRuntime().maxMemory();
         log.report(ext.getTime() + "\tData loaded = "
-            + Math.round(((double) i / (double) markers.length * 100.0)) + "%\tFree memory: "
-            + Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
+                   + Math.round(((double) i / (double) markers.length * 100.0)) + "%\tFree memory: "
+                   + Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
       }
       // MarkerData markerData = markerDataLoader.requestMarkerData(i);
       MarkerData markerData = mdl.next();
@@ -119,7 +121,8 @@ public class PrincipalComponentsCompute {
       }
       if (parameters != null) {
         data[0] = markerData.getGCCorrectedLRRBAF(parameters,
-            projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
+                                                  projectIndices.get(markerData.getMarkerName()),
+                                                  proj.getLog())[1];
       }
       // please hard code dealWithNaN as it determines whether later data checks must be done;
       if (dealWithNaN && hasNAN(data)) {
@@ -173,8 +176,9 @@ public class PrincipalComponentsCompute {
   private static String[] getMarkers(Project proj) {
     if (proj.INTENSITY_PC_MARKERS_FILENAME.getValue() == null
         || !Files.exists(proj.INTENSITY_PC_MARKERS_FILENAME.getValue())) {
-      proj.getLog().reportTimeError("Internal error " + proj.INTENSITY_PC_MARKERS_FILENAME.getName()
-          + " did not have a valid setting, please update in the properties file");
+      proj.getLog()
+          .reportTimeError("Internal error " + proj.INTENSITY_PC_MARKERS_FILENAME.getName()
+                           + " did not have a valid setting, please update in the properties file");
     }
     String[] markers = proj.getTargetMarkers(proj.INTENSITY_PC_MARKERS_FILENAME.getValue());
     return sortByProjectMarkers(proj, markers);
@@ -190,7 +194,7 @@ public class PrincipalComponentsCompute {
    * @return extracted components
    */
   public static double[][] getPCs(PrincipalComponentsCompute pcs, int numComponents,
-      boolean verbose, Logger log) {
+                                  boolean verbose, Logger log) {
     double[][] pcsBasis = new double[numComponents][];
     if (verbose) {
       log.report(ext.getTime() + " Extracting " + numComponents + " principle components");
@@ -216,7 +220,8 @@ public class PrincipalComponentsCompute {
    * @return
    */
   public static PrincipalComponentsCompute getPrincipalComponents(int numComponents, boolean center,
-      double[][] dataToUse, boolean verbose, Logger log) {
+                                                                  double[][] dataToUse,
+                                                                  boolean verbose, Logger log) {
     // count valid input (is not null )
     int initpc = getUseCount(dataToUse);
     PrincipalComponentsCompute pcs = new PrincipalComponentsCompute();
@@ -231,7 +236,7 @@ public class PrincipalComponentsCompute {
       }
       if (verbose) {
         log.report(ext.getTime() + " Using " + initpc + (initpc > 1 ? " inputs" : " input")
-            + " with valid (not NaN) data for SVD across " + numSamples + " samples");
+                   + " with valid (not NaN) data for SVD across " + numSamples + " samples");
       }
       // adding on a per marker basis
       for (double[] element : dataToUse) {
@@ -242,9 +247,8 @@ public class PrincipalComponentsCompute {
             log.reportError("Error - could not add all data for SVD");
             log.reportException(iae);
           } catch (ArrayIndexOutOfBoundsException aioe) {
-            log.reportError(
-                "Error - matrix for SVD ran out of space, the maximum number of markers can be "
-                    + Integer.MAX_VALUE / numSamples);
+            log.reportError("Error - matrix for SVD ran out of space, the maximum number of markers can be "
+                            + Integer.MAX_VALUE / numSamples);
             log.reportException(aioe);
           }
         }
@@ -255,10 +259,8 @@ public class PrincipalComponentsCompute {
       try {
         pcs.computeBasis(numComponents, center);
       } catch (IllegalArgumentException iae) {
-        log.reportError(
-            "Error - the number of components must be less than or equal to the number of markers used AND less than or equal to the number of samples used");
-        log.reportError(
-            "Error - Please select a smaller number of principal components to compute, or add more markers or samples");
+        log.reportError("Error - the number of components must be less than or equal to the number of markers used AND less than or equal to the number of samples used");
+        log.reportError("Error - Please select a smaller number of principal components to compute, or add more markers or samples");
         log.reportException(iae);
       }
     } else {
@@ -284,9 +286,16 @@ public class PrincipalComponentsCompute {
    * @return the PrincipalComponentsCompute object with PCs computed
    */
   public static PrincipalComponentsCompute getPrincipalComponents(Project proj,
-      boolean excludeSamples, int numComponents, boolean printFullData, boolean center,
-      boolean reportMarkerLoadings, boolean reportSingularValues, boolean imputeMeanForNaN,
-      boolean recomputeLRR, String useFile, String output, GcAdjustorParameters parameters) {
+                                                                  boolean excludeSamples,
+                                                                  int numComponents,
+                                                                  boolean printFullData,
+                                                                  boolean center,
+                                                                  boolean reportMarkerLoadings,
+                                                                  boolean reportSingularValues,
+                                                                  boolean imputeMeanForNaN,
+                                                                  boolean recomputeLRR,
+                                                                  String useFile, String output,
+                                                                  GcAdjustorParameters parameters) {
 
     Logger log = proj.getLog();
     PrincipalComponentsCompute pcs = populateWithExistingFiles(proj, output, log);
@@ -301,8 +310,8 @@ public class PrincipalComponentsCompute {
     if (numComponents > numSamples) {
       int newNumComp = numSamples;
       log.reportTimeWarning("cannot request more principal components (n=" + numComponents
-          + ") than there are valid samples (n=" + numSamples
-          + "), try setting number of components to " + newNumComp);
+                            + ") than there are valid samples (n=" + numSamples
+                            + "), try setting number of components to " + newNumComp);
       throw new IllegalArgumentException("Too many principal components were requested");
 
 
@@ -311,15 +320,15 @@ public class PrincipalComponentsCompute {
     if (numComponents > markers.length) {
       int newNumComp = markers.length;
       log.reportTimeWarning(" cannot request more principal components (n=" + numComponents
-          + ") than there are markers (n=" + markers.length
-          + "), try setting number of components to " + newNumComp);
+                            + ") than there are markers (n=" + markers.length
+                            + "), try setting number of components to " + newNumComp);
       throw new IllegalArgumentException("Too many principal components were requested");
 
     }
 
     // deals with NaN on the fly
     double[][] dataToUse = getData(proj, markers, samplesToUse, printFullData, imputeMeanForNaN,
-        true, recomputeLRR, output, parameters);
+                                   true, recomputeLRR, output, parameters);
     pcs = getPrincipalComponents(numComponents, center, dataToUse, true, log);
     double[][] pcsBasis = getPCs(pcs, numComponents, true, log);
     reportPCs(proj, pcs, numComponents, output, samplesToUse, pcsBasis);
@@ -340,8 +349,7 @@ public class PrincipalComponentsCompute {
     Logger log = proj.getLog();
 
     if (!proj.getSampleData(1, false).hasExcludedIndividuals() && excludeSamples) {
-      log.reportError(
-          "Error - cannot exclude individuals for PCA , no factor named 'Exclude/CLASS=Exclude' in Sample Data");
+      log.reportError("Error - cannot exclude individuals for PCA , no factor named 'Exclude/CLASS=Exclude' in Sample Data");
       return null;
     } else if (excludeSamples) {
       SampleData sampleData = proj.getSampleData(1, false);
@@ -374,7 +382,7 @@ public class PrincipalComponentsCompute {
     }
     if (!Files.exists(/* proj.PROJECT_DIRECTORY.getValue() + */useFile)) {
       proj.getLog().reportError("Error - could not find the file of samples to use "
-          + /* proj.PROJECT_DIRECTORY.getValue() + */useFile);
+                                + /* proj.PROJECT_DIRECTORY.getValue() + */useFile);
       return null;
     } else {
       return getSamplesFromFile(proj, /* proj.PROJECT_DIRECTORY.getValue() + */useFile);
@@ -412,11 +420,12 @@ public class PrincipalComponentsCompute {
     }
     if (used != samplesToUseFromFile.length) {
       log.reportError("Error - " + used + " " + (used > 1 ? "samples were " : "sample was ")
-          + " not found in the sample data file " + proj.getProperty(proj.SAMPLE_DATA_FILENAME));
+                      + " not found in the sample data file "
+                      + proj.getProperty(proj.SAMPLE_DATA_FILENAME));
       return null;
     }
     log.report(ext.getTime() + " Using the " + used + " samples in the project that passed QC "
-        + (useFile != null ? " and that were also in the useFile" : ""));
+               + (useFile != null ? " and that were also in the useFile" : ""));
 
     return samplesToUse;
   }
@@ -445,7 +454,7 @@ public class PrincipalComponentsCompute {
   }
 
   public static float[] imputeMeanForNaN(String markerName, float[] data, boolean[] samplesToUse,
-      Logger log) {
+                                         Logger log) {
     float sum = 0;
     int count = 0;
     float mean = 0;
@@ -465,7 +474,7 @@ public class PrincipalComponentsCompute {
       }
     } else {
       log.reportError("Error - could not impute mean values for marker " + markerName
-          + " (all values were NaN), skipping this marker...");
+                      + " (all values were NaN), skipping this marker...");
       data = null;
     }
     return data;
@@ -480,7 +489,7 @@ public class PrincipalComponentsCompute {
    * of components and identical samples
    */
   private static PrincipalComponentsCompute populateWithExistingFiles(Project proj, String output,
-      Logger log) {
+                                                                      Logger log) {
     PrincipalComponentsCompute pcs;
     String pcFile, singularValuesFile, markerLoadingFile;
     pcFile = ext.rootOf(output) + OUTPUT_EXT[0];
@@ -490,12 +499,11 @@ public class PrincipalComponentsCompute {
         && Files.exists(proj.PROJECT_DIRECTORY.getValue() + singularValuesFile)
         && Files.exists(proj.PROJECT_DIRECTORY.getValue() + markerLoadingFile)) {
       log.report("Detected that the following principal component files already exist:\n"
-          + proj.PROJECT_DIRECTORY.getValue() + pcFile + "\n" + proj.PROJECT_DIRECTORY.getValue()
-          + singularValuesFile + "\n" + proj.PROJECT_DIRECTORY.getValue() + markerLoadingFile
-          + "\n");
+                 + proj.PROJECT_DIRECTORY.getValue() + pcFile + "\n"
+                 + proj.PROJECT_DIRECTORY.getValue() + singularValuesFile + "\n"
+                 + proj.PROJECT_DIRECTORY.getValue() + markerLoadingFile + "\n");
       log.report("Skipping the principal component computation and using these files instead.");
-      log.report(
-          "If this is incorrect (using a different number of components, new samples, etc...),  please remove or change the name of the files listed above.\n Alternatively, specify a new analysis name");
+      log.report("If this is incorrect (using a different number of components, new samples, etc...),  please remove or change the name of the files listed above.\n Alternatively, specify a new analysis name");
       pcs = new PrincipalComponentsCompute();
       pcs.setPcFile(pcFile);
       pcs.setSingularValuesFile(singularValuesFile);
@@ -514,7 +522,8 @@ public class PrincipalComponentsCompute {
   }
 
   private static void printFullData(Project proj, PrintWriter writer, String[] markers,
-      boolean[] markerUsed, double[][] dataToUse, boolean[] samplesToUse) {
+                                    boolean[] markerUsed, double[][] dataToUse,
+                                    boolean[] samplesToUse) {
     String[] samples = proj.getSamples();
     writer.print(SAMPLE[0]);
     printSampleHeader(writer, samplesToUse, samples);
@@ -528,7 +537,7 @@ public class PrincipalComponentsCompute {
   }
 
   private static void printSampleHeader(PrintWriter writer, boolean[] samplesToUse,
-      String[] samples) {
+                                        String[] samples) {
     for (int i = 0; i < samples.length; i++) {
       if (samplesToUse[i]) {
         writer.print("\t" + samples[i]);
@@ -544,7 +553,8 @@ public class PrincipalComponentsCompute {
    * memory, we track the related file
    */
   private static void reportLoadings(Project proj, PrincipalComponentsCompute pcs,
-      double[][] dataToUse, double[][] pcsBasis, String[] markers, String output) {
+                                     double[][] dataToUse, double[][] pcsBasis, String[] markers,
+                                     String output) {
     Logger log = proj.getLog();
 
     output = ext.rootOf(output) + OUTPUT_EXT[2];
@@ -552,7 +562,7 @@ public class PrincipalComponentsCompute {
     try {
       if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + output)) {
         Files.backup(output, proj.PROJECT_DIRECTORY.getValue(),
-            proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
+                     proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
       }
       PrintWriter writer =
           new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output));
@@ -573,8 +583,8 @@ public class PrincipalComponentsCompute {
       }
       writer.close();
     } catch (FileNotFoundException fnfe) {
-      log.reportError(
-          "Error: file \"" + output + "\" could not be written to (it's probably open)");
+      log.reportError("Error: file \"" + output
+                      + "\" could not be written to (it's probably open)");
       log.reportException(fnfe);
       System.exit(1);
     } catch (IOException ioe) {
@@ -585,7 +595,8 @@ public class PrincipalComponentsCompute {
   }
 
   private static void reportMarkersUsed(Project proj, String[] markers, boolean[] markerUsed,
-      double[][] dataToUse, boolean printFullData, boolean[] samplesToUse, String output) {
+                                        double[][] dataToUse, boolean printFullData,
+                                        boolean[] samplesToUse, String output) {
     String markersUsedForPCA =
         proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(output) + OUTPUT_EXT[1];
     Logger log = proj.getLog();
@@ -593,7 +604,7 @@ public class PrincipalComponentsCompute {
     try {
       if (Files.exists(markersUsedForPCA)) {
         Files.backup(ext.rootOf(output) + OUTPUT_EXT[1], proj.PROJECT_DIRECTORY.getValue(),
-            proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
+                     proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
       }
       PrintWriter writer = new PrintWriter(new FileWriter(markersUsedForPCA));
       if (!printFullData) {
@@ -606,8 +617,8 @@ public class PrincipalComponentsCompute {
       }
       writer.close();
     } catch (FileNotFoundException fnfe) {
-      log.reportError(
-          "Error: file \"" + markersUsedForPCA + "\" could not be written to (it's probably open)");
+      log.reportError("Error: file \"" + markersUsedForPCA
+                      + "\" could not be written to (it's probably open)");
       log.reportException(fnfe);
       System.exit(1);
     } catch (IOException ioe) {
@@ -618,7 +629,8 @@ public class PrincipalComponentsCompute {
   }
 
   private static double[][] reportPCs(Project proj, PrincipalComponentsCompute pcs,
-      int numComponents, String output, boolean[] samplesToUse, double[][] pcsBasis) {
+                                      int numComponents, String output, boolean[] samplesToUse,
+                                      double[][] pcsBasis) {
     SampleData sampleData = proj.getSampleData(0, false);
     Logger log = proj.getLog();
 
@@ -627,11 +639,12 @@ public class PrincipalComponentsCompute {
     try {
       if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + output)) {
         Files.backup(output, proj.PROJECT_DIRECTORY.getValue(),
-            proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
+                     proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
       }
-      log.report(
-          ext.getTime() + " Free memory: " + Math.round(((double) Runtime.getRuntime().freeMemory()
-              / (double) Runtime.getRuntime().totalMemory() * 100.0)) + "%");
+      log.report(ext.getTime() + " Free memory: "
+                 + Math.round(((double) Runtime.getRuntime().freeMemory()
+                               / (double) Runtime.getRuntime().totalMemory() * 100.0))
+                 + "%");
       log.report(ext.getTime() + " Reporting top " + numComponents + " PCs");
       PrintWriter writer =
           new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output));
@@ -655,8 +668,8 @@ public class PrincipalComponentsCompute {
       }
       writer.close();
     } catch (FileNotFoundException fnfe) {
-      log.reportError(
-          "Error: file \"" + output + "\" could not be written to (it's probably open)");
+      log.reportError("Error: file \"" + output
+                      + "\" could not be written to (it's probably open)");
       log.reportException(fnfe);
       System.exit(1);
     } catch (IOException ioe) {
@@ -668,7 +681,7 @@ public class PrincipalComponentsCompute {
   }
 
   public static void reportSingularValues(Project proj, PrincipalComponentsCompute pcs,
-      String output) {
+                                          String output) {
     Logger log = proj.getLog();
 
     output = ext.rootOf(output) + OUTPUT_EXT[3];
@@ -676,7 +689,7 @@ public class PrincipalComponentsCompute {
     try {
       if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + output)) {
         Files.backup(output, proj.PROJECT_DIRECTORY.getValue(),
-            proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
+                     proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
       }
       PrintWriter writer =
           new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output));
@@ -687,8 +700,8 @@ public class PrincipalComponentsCompute {
       }
       writer.close();
     } catch (FileNotFoundException fnfe) {
-      log.reportError(
-          "Error: file \"" + output + "\" could not be written to (it's probably open)");
+      log.reportError("Error: file \"" + output
+                      + "\" could not be written to (it's probably open)");
       log.reportException(fnfe);
       System.exit(1);
     } catch (IOException ioe) {
@@ -778,14 +791,14 @@ public class PrincipalComponentsCompute {
   public void computeBasis(int numComponents, boolean center) {
     if (numComponents > A.getNumCols()) {
       throw new IllegalArgumentException("More components requested than the data's length. Have "
-          + A.getNumCols() + " available and " + numComponents + " were requested");
+                                         + A.getNumCols() + " available and " + numComponents
+                                         + " were requested");
     }
     if (sampleIndex != A.getNumRows()) {
       throw new IllegalArgumentException("Not all the data has been added");
     }
     if (numComponents > sampleIndex) {
-      throw new IllegalArgumentException(
-          "More data needed to compute the desired number of components");
+      throw new IllegalArgumentException("More data needed to compute the desired number of components");
     }
 
     this.numComponents = numComponents;

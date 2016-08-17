@@ -64,13 +64,13 @@ public class Emory {
           System.err.println("Error - mismatched number of columns for record '" + line[0] + "'");
         }
         writer.print(line[0] + "\t" + line[1] + "\t0\t0\t" + line[2] + "\t"
-            + (line[3].equals(".") ? "0" : (Integer.parseInt(line[3]) + 1)));
+                     + (line[3].equals(".") ? "0" : (Integer.parseInt(line[3]) + 1)));
         for (int i = 0; i < markerNames.length; i++) {
           if (line[4 + i].equals("")) {
             writer.print("\t0\t0");
           } else {
             writer.print("\t" + line[4 + i].charAt(0) + "\t"
-                + line[4 + i].charAt(line[4 + i].length() == 2 ? 1 : 0));
+                         + line[4 + i].charAt(line[4 + i].length() == 2 ? 1 : 0));
           }
         }
         writer.println();

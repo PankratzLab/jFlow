@@ -18,7 +18,7 @@ public class CurrentManifest {
 
   private static File getCurrentFile() {
     File file = new File(new CurrentManifest().getClass().getProtectionDomain().getCodeSource()
-        .getLocation().getFile());// get
+                                              .getLocation().getFile());// get
 
     if (!file.exists() || !file.getAbsolutePath().endsWith(".jar")) {
       file = new File("../" + PSF.Java.GENVISIS);
@@ -30,10 +30,10 @@ public class CurrentManifest {
     try {
       CurrentManifest manifest = CurrentManifest.loadGenvisisManifest();// until it always works
       return "Genvisis, " + manifest.getVersion().getVersion() + "\n" + manifest.getCopyright()
-          + "\n\n" + (new Date());
+             + "\n\n" + (new Date());
     } catch (Exception e) {
       return "Genvisis, v0.0.0\n(c)2009-2015 Nathan Pankratz, GNU General Public License, v2\n\n"
-          + (new Date());
+             + (new Date());
     }
   }
 

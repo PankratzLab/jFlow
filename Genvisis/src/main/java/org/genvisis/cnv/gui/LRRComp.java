@@ -99,8 +99,7 @@ public class LRRComp extends JFrame implements Runnable {
       homozygousCheckBox = new JCheckBox(REGION_TEXT_FIELD_LABELS[6]);
       homozygousCheckBox.setSelected(false);
       homozygousCheckBox.setVisible(true);
-      homozygousCheckBox.setToolTipText(
-          "Only Homozygous calls will be included in the median value computation (does not change other metrics)");
+      homozygousCheckBox.setToolTipText("Only Homozygous calls will be included in the median value computation (does not change other metrics)");
       homozygousCheckBox.addActionListener(actionListener);
 
       addLabel(REGION_TEXT_FIELD_LABELS[5]);
@@ -148,7 +147,7 @@ public class LRRComp extends JFrame implements Runnable {
 
           } catch (InterruptedException e) {
             JOptionPane.showMessageDialog(this,
-                "Thread was interupted when computing Median Log R Ratios");
+                                          "Thread was interupted when computing Median Log R Ratios");
             e.printStackTrace();
           } catch (ExecutionException e) {
             JOptionPane.showMessageDialog(this, "There was an error computing Median Log R Ratios");
@@ -226,16 +225,21 @@ public class LRRComp extends JFrame implements Runnable {
     }
 
     private void resetOutputBase() {
-      outputBase = outputBase.replaceFirst(
-          ext.replaceWithLinuxSafeCharacters(fileInputArea.getText() + "_", true), "");
+      outputBase =
+          outputBase.replaceFirst(ext.replaceWithLinuxSafeCharacters(fileInputArea.getText() + "_",
+                                                                     true),
+                                  "");
     }
 
     private void startJob() {
       String ObjButtons[] = {"OK", "Cancel"};
-      int promptResult = JOptionPane.showOptionDialog(this,
-          "Compute median using " + Transforms.TRANFORMATIONS[transformationType] + "?",
-          "Log R Ratio " + Transforms.TRANFORMATIONS[transformationType],
-          JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
+      int promptResult =
+          JOptionPane.showOptionDialog(this,
+                                       "Compute median using "
+                                             + Transforms.TRANFORMATIONS[transformationType] + "?",
+                                       "Log R Ratio " + Transforms.TRANFORMATIONS[transformationType],
+                                       JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+                                       null, ObjButtons, ObjButtons[1]);
       if (promptResult == 0) {
         add(progressBar);
         progressBar.setVisible(true);
@@ -243,10 +247,11 @@ public class LRRComp extends JFrame implements Runnable {
         computeComplete = 0;
         medianLRRWorker =
             new MedianLRRWorker(proj, regionTextField.getText().split("\n"), transformationType,
-                scope, outputBase, progressBar, correctionParams[1], correctionParams[2],
-                correctionParams[3], homozygousCheckBox.isSelected(), proj.getLog());// TODO
-                                                                                     // homozygous
-                                                                                     // box
+                                scope, outputBase, progressBar, correctionParams[1],
+                                correctionParams[2], correctionParams[3],
+                                homozygousCheckBox.isSelected(), proj.getLog());// TODO
+                                                                                // homozygous
+                                                                                // box
         medianLRRWorker.execute();
         revalidate();
       }
@@ -266,8 +271,9 @@ public class LRRComp extends JFrame implements Runnable {
         String ObjButtons[] = {"Overwrite", "Cancel"};
         int promptResult =
             JOptionPane.showOptionDialog(this, "The Files for Analysis " + outputBase + " Exist",
-                "Warning - Analysis Files Exist", JOptionPane.DEFAULT_OPTION,
-                JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
+                                         "Warning - Analysis Files Exist",
+                                         JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+                                         null, ObjButtons, ObjButtons[1]);
         if (promptResult == 0) {
           valid = true;
         } else {
@@ -293,14 +299,14 @@ public class LRRComp extends JFrame implements Runnable {
 
   public static final String[] REGION_TEXT_FIELD_LABELS =
       {"Input UCSC or probeset-based regions of Interest (one per Line):", "Progress...",
-          "Enter Analysis Name Here", "Transform by: ", "Select a Log R Ratio transformation: ",
-          "Select a correction method", "Select for homozygous markers only"};
+       "Enter Analysis Name Here", "Transform by: ", "Select a Log R Ratio transformation: ",
+       "Select a correction method", "Select for homozygous markers only"};
 
   public static final String[] CLASSES_TO_DUMP = {"IID"};
   public static final String[] BASIC_CORRECTION = {"None", "Recompute LRR"};
   public static final String[] BASIC_CORRECTION_TIPS =
       {"No Correction Procedure will be performed, select this option if you wish to transform the data",
-          "Recompute Log R Ratios"};
+       "Recompute Log R Ratios"};
   public static final String[] EXTRA_CORRECTION = {"Correct LRR", "Correct XY"};
   // once a job has been started, used to track completion
   private volatile int computeComplete = 42;
@@ -339,10 +345,12 @@ public class LRRComp extends JFrame implements Runnable {
       public void windowClosing(WindowEvent e) {
         String ObjButtons[] = {"Exit Anyway", "Cancel"};
         if (computeComplete != 42 && !medianLRRWorker.isDone()) {
-          int promptResult = JOptionPane.showOptionDialog(null,
-              "A Thread is computing Median Log R Ratios\nThread will continue if you exit",
-              "Warning - Running thread", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
-              null, ObjButtons, ObjButtons[1]);
+          int promptResult =
+              JOptionPane.showOptionDialog(null,
+                                           "A Thread is computing Median Log R Ratios\nThread will continue if you exit",
+                                           "Warning - Running thread", JOptionPane.DEFAULT_OPTION,
+                                           JOptionPane.WARNING_MESSAGE, null, ObjButtons,
+                                           ObjButtons[1]);
           System.out.println(promptResult);
           if (promptResult == 0) {
             dispose();
@@ -357,7 +365,7 @@ public class LRRComp extends JFrame implements Runnable {
     transformationPanel.setLayout(new BoxLayout(transformationPanel, BoxLayout.Y_AXIS));
     add(transformationPanel);
     this.setLocation(dim.width / 2 - this.getSize().width / 2,
-        dim.height / 2 - this.getSize().height / 2);
+                     dim.height / 2 - this.getSize().height / 2);
     setVisible(true);
   }
 
@@ -367,43 +375,45 @@ public class LRRComp extends JFrame implements Runnable {
       public void actionPerformed(ActionEvent actionEvent) {
 
         if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.TRANFORMATIONS, true, true,
-            proj.getLog(), false) >= 0) {
-          transformationType = ext.indexOfStr(actionEvent.getActionCommand(),
-              Transforms.TRANFORMATIONS, true, true, proj.getLog(), false);
+                           proj.getLog(), false) >= 0) {
+          transformationType =
+              ext.indexOfStr(actionEvent.getActionCommand(), Transforms.TRANFORMATIONS, true, true,
+                             proj.getLog(), false);
           outputBase = Transforms.TRANFORMATIONS[transformationType];
         } else if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true,
-            proj.getLog(), false) >= 0 && transformationType == 0) {
+                                  proj.getLog(), false) >= 0
+                   && transformationType == 0) {
           JOptionPane.showMessageDialog(null,
-              "Transform by Chromosome or Genome not valid for Raw Values");
+                                        "Transform by Chromosome or Genome not valid for Raw Values");
         } else if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true,
-            proj.getLog(), false) >= 0) {
+                                  proj.getLog(), false) >= 0) {
           scope = ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true,
-              proj.getLog(), false);
+                                 proj.getLog(), false);
           outputBase =
               Transforms.TRANFORMATIONS[transformationType] + "_" + Transforms.SCOPES[scope];
         } else if (ext.indexOfStr(actionEvent.getActionCommand(), BASIC_CORRECTION, true, true,
-            proj.getLog(), false) >= 0) {
+                                  proj.getLog(), false) >= 0) {
           int index = ext.indexOfStr(actionEvent.getActionCommand(), BASIC_CORRECTION, true, true,
-              proj.getLog(), false);
+                                     proj.getLog(), false);
           Arrays.fill(correctionParams, false);
           correctionParams[index] = true;
           outputBase = BASIC_CORRECTION[index];
 
         } else if (ext.indexOfStr(actionEvent.getActionCommand(), EXTRA_CORRECTION, true, true,
-            proj.getLog(), false) >= 0) {
+                                  proj.getLog(), false) >= 0) {
           int index = ext.indexOfStr(actionEvent.getActionCommand(), EXTRA_CORRECTION, true, true,
-              proj.getLog(), false);
+                                     proj.getLog(), false);
           Arrays.fill(correctionParams, false);
           correctionParams[(BASIC_CORRECTION.length + index)] = true;
           outputBase = EXTRA_CORRECTION[index];
         }
         if (transformationType != 0 && !correctionParams[0]) {
           JOptionPane.showMessageDialog(null,
-              "Intensity Correction is currently not valid for Transformed Values");
+                                        "Intensity Correction is currently not valid for Transformed Values");
         }
         if (transformationType != 0 && homozygousCheckBox.isSelected()) {
           JOptionPane.showMessageDialog(null,
-              "Selecting homozygous markers is currently not valid for Transformed Values");
+                                        "Selecting homozygous markers is currently not valid for Transformed Values");
           homozygousCheckBox.setSelected(false);
         }
       }

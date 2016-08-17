@@ -19,8 +19,9 @@ public class GenericMultiAnnotation implements AnnotationParser {
    */
   public static final String[] SNP_EFF_BASIC =
       new String[] {"SNPEFF_GENE_NAME", "SNPEFF_IMPACT", "SNPEFF_TRANSCRIPT_ID"};
-  public static final String[] FREQ_BASIC = new String[] {"popfreq_max_20150413",
-      "popfreq_all_20150413", "esp6500siv2_all", "esp6500siv2_aa", "esp6500siv2_ea"};
+  public static final String[] FREQ_BASIC =
+      new String[] {"popfreq_max_20150413", "popfreq_all_20150413", "esp6500siv2_all",
+                    "esp6500siv2_aa", "esp6500siv2_ea"};
 
   private final Hashtable<String, Integer> index;
   private final String[] locusNames;

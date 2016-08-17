@@ -32,10 +32,10 @@ import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 public class FCSDataLoader {
 
   public enum DATA_SET {
-    ALL, COMPENSATED, UNCOMPENSATED;
+                        ALL, COMPENSATED, UNCOMPENSATED;
   }
   public static enum LOAD_STATE {
-    LOADED, LOADING, PARTIALLY_LOADED, LOADING_REMAINDER, UNLOADED;
+                                 LOADED, LOADING, PARTIALLY_LOADED, LOADING_REMAINDER, UNLOADED;
   }
 
   private static final String COMPENSATED_PREPEND = "Comp-";
@@ -55,7 +55,7 @@ public class FCSDataLoader {
   // }
 
   private static double[][] compensateSmall(ArrayList<String> dataColNames, double[][] data,
-      String[] spillColNames, DenseMatrix64F spillMatrix) {
+                                            String[] spillColNames, DenseMatrix64F spillMatrix) {
     int[] spillLookup = new int[dataColNames.size()];
     for (int i = 0; i < spillLookup.length; i++) {
       spillLookup[i] = ext.indexOfStr(dataColNames.get(i), spillColNames);
@@ -141,9 +141,10 @@ public class FCSDataLoader {
       if (Thread.currentThread().isInterrupted()) {
         return;
       }
-      compensatedData = compensateSmall(paramNamesInOrder, allData,
-          compensatedNames.toArray(new String[compensatedNames.size()]),
-          getInvertedSpilloverMatrix(spillObj.getSpilloverCoefficients()));
+      compensatedData =
+          compensateSmall(paramNamesInOrder, allData,
+                          compensatedNames.toArray(new String[compensatedNames.size()]),
+                          getInvertedSpilloverMatrix(spillObj.getSpilloverCoefficients()));
       if (Thread.currentThread().isInterrupted()) {
         return;
       }
@@ -313,7 +314,7 @@ public class FCSDataLoader {
           return compensatedData[compensatedIndices.get(columnName.substring(COMP_LEN))];
         } else {
           return Matrix.extractColumn(compensatedData,
-              compensatedIndices.get(columnName.substring(COMP_LEN)));
+                                      compensatedIndices.get(columnName.substring(COMP_LEN)));
         }
       } else {
         if (currState != LOAD_STATE.UNLOADED && waitIfNecessary) {
@@ -324,7 +325,7 @@ public class FCSDataLoader {
             return compensatedData[compensatedIndices.get(columnName.substring(COMP_LEN))];
           } else {
             return Matrix.extractColumn(compensatedData,
-                compensatedIndices.get(columnName.substring(COMP_LEN)));
+                                        compensatedIndices.get(columnName.substring(COMP_LEN)));
           }
         } else {
           int len = eventCount == -1 ? 0 : eventCount;
@@ -387,8 +388,9 @@ public class FCSDataLoader {
   }
 
   public AXIS_SCALE getScaleForParam(String string) {
-    int i = paramNamesInOrder
-        .indexOf(string.startsWith(COMPENSATED_PREPEND) ? string.substring(COMP_LEN) : string);
+    int i =
+        paramNamesInOrder.indexOf(string.startsWith(COMPENSATED_PREPEND) ? string.substring(COMP_LEN)
+                                                                         : string);
     return i == -1 ? AXIS_SCALE.LIN : scales.get(i);
   }
 
@@ -443,7 +445,7 @@ public class FCSDataLoader {
     lastModified = keys.getLastModified();
     if (lastModified == null) {
       System.err.println("Warning - FCS file " + fcsFilename
-          + " does NOT contain a last modified date - using the last-modified system file date.");
+                         + " does NOT contain a last modified date - using the last-modified system file date.");
       lastModified = new Date(sysFile.lastModified());
     }
 
@@ -479,7 +481,7 @@ public class FCSDataLoader {
         scale = AXIS_SCALE.valueOf(keys.getKeyword(axisKeywork).getKeywordValue());
       } catch (Exception e) {
         System.err.println("Warning - no axis scale set for parameter " + paramNamesInOrder.get(i)
-            + "; assuming a linear scale.");
+                           + "; assuming a linear scale.");
       } ;
       scales.add(scale);
 
@@ -489,7 +491,7 @@ public class FCSDataLoader {
         rng = keys.getKeyword(rangeKeyword).getKeywordIntegerValue();
       } catch (Exception e) {
         System.err.println("Warning - no parameter range value for parameter "
-            + paramNamesInOrder.get(i) + "; assuming standard of 262144");
+                           + paramNamesInOrder.get(i) + "; assuming standard of 262144");
         rng = 262144;
       }
       ranges.add(rng);

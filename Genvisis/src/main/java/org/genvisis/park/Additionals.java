@@ -32,8 +32,7 @@ public class Additionals {
       while (reader.ready()) {
         line = reader.readLine().split("[\\s]+");
         if (line.length < 8) {
-          System.err.println(
-              "Error: make sure every entry has 8 columns (zero out founders' parents, '.' out missing values)");
+          System.err.println("Error: make sure every entry has 8 columns (zero out founders' parents, '.' out missing values)");
           System.exit(1);
         }
         id = line[0] + "\t" + line[1];
@@ -43,8 +42,7 @@ public class Additionals {
       }
       reader.close();
     } catch (Exception e) {
-      System.err
-          .println("Error reading ninfo1 file. Check for missing data, and replace with periods.");
+      System.err.println("Error reading ninfo1 file. Check for missing data, and replace with periods.");
     }
 
     try {
@@ -62,7 +60,7 @@ public class Additionals {
 
         if (!trav.equals(prev)) {
           writer.print(trav + "\t"
-              + (Integer.valueOf(fam).intValue() * 1000 + Integer.valueOf(id).intValue()));
+                       + (Integer.valueOf(fam).intValue() * 1000 + Integer.valueOf(id).intValue()));
           affy = false;
           if (hash.containsKey(fam + "\t" + line[4])) {
             writer.print("\t1");
@@ -88,8 +86,7 @@ public class Additionals {
       reader.close();
       writer.close();
     } catch (Exception e) {
-      System.err
-          .println("Error reading ninfo2 file. Check for missing data, and replace with periods.");
+      System.err.println("Error reading ninfo2 file. Check for missing data, and replace with periods.");
     }
 
     try {
@@ -117,8 +114,7 @@ public class Additionals {
       reader.close();
       writer.close();
     } catch (Exception e) {
-      System.err.println(
-          "Error reading ninfo1.csv (1 indiviual per line) file. Check for missing data, and replace with periods.");
+      System.err.println("Error reading ninfo1.csv (1 indiviual per line) file. Check for missing data, and replace with periods.");
     }
 
   }
@@ -142,7 +138,7 @@ public class Additionals {
       for (int i = 0; i < line.length; i++) {
         if (!line[i].equals(tools.NINFO1_HEADER[i])) {
           System.err.println("Error - header has been changed; expecting: " + tools.NINFO1_HEADER[i]
-              + ", got: " + line[i]);
+                             + ", got: " + line[i]);
           System.exit(1);
         }
       }
@@ -214,8 +210,7 @@ public class Additionals {
 
     try {
       writer = new PrintWriter(new FileWriter(tools.CRF_DIR + "anyExtras.xln"));
-      writer.println(
-          "FamID\ttotalAffs\thaveAffs\tVPDs\thaveUnaffs\tabsAffs\tdeadAffs\ttotalGenotyped\taffDads\taffMoms\tgetThese\tVPD_IDs");
+      writer.println("FamID\ttotalAffs\thaveAffs\tVPDs\thaveUnaffs\tabsAffs\tdeadAffs\ttotalGenotyped\taffDads\taffMoms\tgetThese\tVPD_IDs");
       for (int i = 0; i < fams.size(); i++) {
         fam = fams.elementAt(i);
         data = hash.get(fam);
@@ -241,13 +236,15 @@ public class Additionals {
         }
 
         writer.println(fam + "\t"
-            + (data.elementAt(0).size() + data.elementAt(2).size() + data.elementAt(3).size())
-            + "\t" + (data.elementAt(0).size()) + "\t" + (data.elementAt(6).size()) + "\t"
-            + (data.elementAt(1).size()) + "\t" + (data.elementAt(2).size()) + "\t"
-            + (data.elementAt(3).size()) + "\t"
-            + (data.elementAt(0).size() + data.elementAt(1).size()) + "\t" + (numDads) + "\t"
-            + (numMoms) + "\t" + (Array.toStr(Array.toStringArray(data.elementAt(2)), " ")) + "\t"
-            + (Array.toStr(Array.toStringArray(data.elementAt(6)), " ")));
+                       + (data.elementAt(0).size() + data.elementAt(2).size()
+                          + data.elementAt(3).size())
+                       + "\t" + (data.elementAt(0).size()) + "\t" + (data.elementAt(6).size())
+                       + "\t" + (data.elementAt(1).size()) + "\t" + (data.elementAt(2).size())
+                       + "\t" + (data.elementAt(3).size()) + "\t"
+                       + (data.elementAt(0).size() + data.elementAt(1).size()) + "\t" + (numDads)
+                       + "\t" + (numMoms) + "\t"
+                       + (Array.toStr(Array.toStringArray(data.elementAt(2)), " ")) + "\t"
+                       + (Array.toStr(Array.toStringArray(data.elementAt(6)), " ")));
 
       }
 
@@ -282,7 +279,7 @@ public class Additionals {
         affStat = affectionStatus.get(trav);
         if (!processed.containsKey(trav)) {
           counts = hash.containsKey(trav) ? hash.get(trav)
-              : Vectors.initializedArray(IntVector.class, 6);
+                                          : Vectors.initializedArray(IntVector.class, 6);
           for (int i = 0; i < 2; i++) {
             parentalAffStat = affectionStatus.get(line[0] + "\t" + line[4 + i]);
             if (parentalAffStat != null) {
@@ -293,8 +290,10 @@ public class Additionals {
                 counts[1].add(Integer.parseInt(line[4 + i]));
               }
               rents = hash.containsKey(line[0] + "\t" + line[4 + i])
-                  ? hash.get(line[0] + "\t" + line[4 + i])
-                  : Vectors.initializedArray(IntVector.class, 6);
+                                                                     ? hash.get(line[0] + "\t"
+                                                                                + line[4 + i])
+                                                                     : Vectors.initializedArray(IntVector.class,
+                                                                                                6);
 
               if (affStat != null && ext.indexOfStr(affStat, tools.AFFECTED) >= 0) {
                 rents[4].add(Integer.parseInt(line[1]));
@@ -309,7 +308,7 @@ public class Additionals {
           if (affStat != null && !line[4].equals("0") && !line[5].equals("0")) {
             sibsRents = line[0] + ":" + line[4] + ":" + line[5];
             sibs = siblings.containsKey(sibsRents) ? siblings.get(sibsRents)
-                : Vectors.initializedArray(IntVector.class, 2);
+                                                   : Vectors.initializedArray(IntVector.class, 2);
 
             if (ext.indexOfStr(affStat, tools.AFFECTED) >= 0) {
               sibs[0].add(Integer.parseInt(line[1]));
@@ -338,8 +337,7 @@ public class Additionals {
       reader = tools.getNinfoReader(1, true);
       writer = new PrintWriter(new FileWriter(tools.CRF_DIR + "countFirstDegreeRelatives.xln"));
       log = new PrintWriter(new FileWriter(tools.CRF_DIR + "countFirstDegreeRelatives.log"));
-      writer.println(
-          "FamID\tIndID\tUniqueID\tNumAddFirstDegreeAff\tNumAddFirstDegreeVPD\tNumParentAff\tNumParentVPD\tNumSiblingAff\tNumSiblingVPD\tNumChildAff\tNumChildVPD");
+      writer.println("FamID\tIndID\tUniqueID\tNumAddFirstDegreeAff\tNumAddFirstDegreeVPD\tNumParentAff\tNumParentVPD\tNumSiblingAff\tNumSiblingVPD\tNumChildAff\tNumChildVPD");
       reader.readLine();
       while (reader.ready()) {
         line = reader.readLine().split("[\\s]+");
@@ -347,10 +345,11 @@ public class Additionals {
         if (hash.containsKey(trav)) {
           counts = hash.get(trav);
           writer.println(line[0] + "\t" + line[1] + "\t" + tools.getUniqueID(line[0], line[1])
-              + "\t" + (counts[0].size() + counts[2].size() + counts[4].size()) + "\t"
-              + (counts[1].size() + counts[3].size() + counts[5].size()) + "\t" + counts[0].size()
-              + "\t" + counts[1].size() + "\t" + counts[2].size() + "\t" + counts[3].size() + "\t"
-              + counts[4].size() + "\t" + counts[5].size());
+                         + "\t" + (counts[0].size() + counts[2].size() + counts[4].size()) + "\t"
+                         + (counts[1].size() + counts[3].size() + counts[5].size()) + "\t"
+                         + counts[0].size() + "\t" + counts[1].size() + "\t" + counts[2].size()
+                         + "\t" + counts[3].size() + "\t" + counts[4].size() + "\t"
+                         + counts[5].size());
         } else {
           log.println("Error - Why is there no data on " + trav + "?");
 
@@ -370,7 +369,7 @@ public class Additionals {
     String filename = "Additionals.dat";
 
     String usage = "\n" + "park.Additionals requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

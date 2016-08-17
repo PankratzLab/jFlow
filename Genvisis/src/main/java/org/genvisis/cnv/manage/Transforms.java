@@ -10,21 +10,21 @@ public class Transforms {
   // public static final int[] TRANSFORMATION_TYPES = {Transformations.IDENTITY,
   // Transformations.QUANTILE, Transformations.INVERSE_NORMALIZE,
   // Transformations.INVERSE_TDIST_5DF};
-  public static final String[] TRANFORMATIONS = {"Raw Values", "Inverse normalized",
-      "Inverse T-distribution with 5 df", "BEAST vision", "5X multiply"};
+  public static final String[] TRANFORMATIONS =
+      {"Raw Values", "Inverse normalized", "Inverse T-distribution with 5 df", "BEAST vision",
+       "5X multiply"};
   public static final int[] TRANSFORMATION_TYPES =
       {Transformations.IDENTITY, Transformations.INVERSE_NORMALIZE,
-          Transformations.INVERSE_TDIST_5DF, Transformations.MAD_SCALED, Transformations.X5};
+       Transformations.INVERSE_TDIST_5DF, Transformations.MAD_SCALED, Transformations.X5};
   public static final String[] SCOPES = {"Chromosome", "Genome"};
 
   public static float[] transform(float[] input, int transformation_type,
-      boolean transformSeparatelyByChromosome, MarkerSet markerSet) {
+                                  boolean transformSeparatelyByChromosome, MarkerSet markerSet) {
     int[][] indices;
 
     if (transformSeparatelyByChromosome) {
       if (markerSet.getChrs().length != input.length) {
-        System.err.println(
-            "Error - cannot transform by chromosome; mismatched number of records between array and MarkerSet");
+        System.err.println("Error - cannot transform by chromosome; mismatched number of records between array and MarkerSet");
         return null;
       }
       indices = markerSet.getIndicesByChr();
@@ -36,7 +36,7 @@ public class Transforms {
   }
 
   public static float[] transform(float[] input, int transformation_type, int[][] indices,
-      boolean[] transform) {
+                                  boolean[] transform) {
     float[] output, trav;
     int count;
     // long time;
@@ -62,7 +62,7 @@ public class Transforms {
         }
 
         trav = Transformations.transform(Array.subArray(trav, 0, count),
-            TRANSFORMATION_TYPES[transformation_type]);
+                                         TRANSFORMATION_TYPES[transformation_type]);
 
         count = 0;
         for (int j = 0; j < indices[i].length; j++) {

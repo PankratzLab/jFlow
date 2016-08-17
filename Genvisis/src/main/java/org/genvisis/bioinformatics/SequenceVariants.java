@@ -20,7 +20,7 @@ import com.google.common.primitives.Chars;
 public class SequenceVariants {
   public static final String[] ALLELE_SPECIFIC_FREQS =
       {"chr", "pos", "ref", "control_A_freq", "case_A_freq", "control_C_freq", "case_C_freq",
-          "control_G_freq", "case_G_freq", "control_T_freq", "case_T_freq"};
+       "control_G_freq", "case_G_freq", "control_T_freq", "case_T_freq"};
   public static final double MIN_FREQ = 0.01;
   public static final double FREQ_BUFFER = 0.001;
 
@@ -29,7 +29,7 @@ public class SequenceVariants {
     String filename = "SequenceVariants.dat";
 
     String usage = "\n" + "bioinformatics.SequenceVariants requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -48,7 +48,7 @@ public class SequenceVariants {
     }
     try {
       parse("D:/Myron/Indian_Diabetes/SequencingPilot/alleleSpecificFrequencies.txt",
-          "D:/Myron/Indian_Diabetes/SequencingPilot/SeattleSeqAnnotation.txt", 0.13);
+            "D:/Myron/Indian_Diabetes/SequencingPilot/SeattleSeqAnnotation.txt", 0.13);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -67,9 +67,9 @@ public class SequenceVariants {
 
     if (annotationFile != null && Files.exists(annotationFile)) {
       hash = HashVec.loadFileToHashVec(annotationFile, new int[] {1, 2, 3, 4}, new int[] {8}, "\t",
-          true, true);
+                                       true, true);
       dbsnpHash = HashVec.loadFileToHashVec(annotationFile, new int[] {1, 2, 3, 4}, new int[] {0},
-          "\t", true, true);
+                                            "\t", true, true);
     } else {
       hash = new Hashtable<String, Vector<String>>();
       dbsnpHash = new Hashtable<String, Vector<String>>();
@@ -79,8 +79,7 @@ public class SequenceVariants {
       reader = new BufferedReader(new FileReader(filename));
       writer = new PrintWriter(new FileWriter(filename + "_parsed.xln"));
       writer2 = new PrintWriter(new FileWriter(filename + "_SeattleSeq.input"));
-      writer.println(
-          "Chr\tPosition\tRef\tAlt\tRefIsMostCommonAllele\tRefCasesFreq\tRefControlsFreq\tAltCasesFreq\tAltControlsFreq\tCallrateCases\tCallrateControls\tAdjCaseMAF\tAdjControlMAF\tOR\tEstFreq");
+      writer.println("Chr\tPosition\tRef\tAlt\tRefIsMostCommonAllele\tRefCasesFreq\tRefControlsFreq\tAltCasesFreq\tAltControlsFreq\tCallrateCases\tCallrateControls\tAdjCaseMAF\tAdjControlMAF\tOR\tEstFreq");
       ext.checkHeader(reader.readLine().trim().split("[\\s]+"), ALLELE_SPECIFIC_FREQS, true);
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
@@ -116,15 +115,17 @@ public class SequenceVariants {
             }
 
             trav = line[0].substring(3) + "\t" + line[1] + "\t" + line[2] + "\t"
-                + Sequence.ALLELES[element];
+                   + Sequence.ALLELES[element];
             writer.println(trav + "\t" + (order[0] == refIndex ? "1" : "0") + "\t" + refCaseFreq
-                + "\t" + refControlFreq + "\t" + altCaseFreq + "\t" + altControlFreq + "\t"
-                + (refCaseFreq + altCaseFreq) + "\t" + (refControlFreq + altControlFreq) + "\t"
-                + mafCase + "\t" + mafControl + "\t"
-                + ext.formDeci((mafCase + FREQ_BUFFER) / (mafControl + FREQ_BUFFER), 2) + "\t"
-                + ext.prettyP(mafCase * penetrance + mafControl * (1 - penetrance)) + "\t"
-                + (dbsnpHash.containsKey(trav) ? dbsnpHash.get(trav) : ".") + "\t"
-                + (hash.containsKey(trav) ? hash.get(trav) : "."));
+                           + "\t" + refControlFreq + "\t" + altCaseFreq + "\t" + altControlFreq
+                           + "\t" + (refCaseFreq + altCaseFreq) + "\t"
+                           + (refControlFreq + altControlFreq) + "\t" + mafCase + "\t" + mafControl
+                           + "\t"
+                           + ext.formDeci((mafCase + FREQ_BUFFER) / (mafControl + FREQ_BUFFER), 2)
+                           + "\t"
+                           + ext.prettyP(mafCase * penetrance + mafControl * (1 - penetrance))
+                           + "\t" + (dbsnpHash.containsKey(trav) ? dbsnpHash.get(trav) : ".") + "\t"
+                           + (hash.containsKey(trav) ? hash.get(trav) : "."));
 
             writer2.println(trav);
           }

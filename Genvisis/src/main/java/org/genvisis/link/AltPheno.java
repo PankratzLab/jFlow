@@ -32,11 +32,11 @@ public class AltPheno {
           new File(dir + "_" + trait + "/" + dirs[i]).mkdirs();
           for (String file : files) {
             Files.copyFile(dir + dirs[i] + "/" + trait + "/" + file,
-                dir + "_" + trait + "/" + dirs[i] + "/" + file);
+                           dir + "_" + trait + "/" + dirs[i] + "/" + file);
           }
         } else {
           System.err.println("Error - directory '" + dirs[i]
-              + "/' did not contain a subdirectory called '" + trait + "/'");
+                             + "/' did not contain a subdirectory called '" + trait + "/'");
         }
       }
     }
@@ -55,9 +55,9 @@ public class AltPheno {
     String condense = "PDish";
 
     String usage = "\n" + "link.AltPheno requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-        + filename + " (default))\n" + "   (2) directory (i.e. dir=" + dir + " (default))\n"
-        + "   (3) parse results (i.e. -parse (not the default))\n"
-        + "   (4) zip results (i.e. -zip (not the default))\n" + "";
+                   + filename + " (default))\n" + "   (2) directory (i.e. dir=" + dir
+                   + " (default))\n" + "   (3) parse results (i.e. -parse (not the default))\n"
+                   + "   (4) zip results (i.e. -zip (not the default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -120,7 +120,7 @@ public class AltPheno {
       line = reader.readLine().trim().split("[\\s]+");
       if (!line[0].equals("FID") || !line[1].equals("IID")) {
         System.err.println("Warning - assuming first two columns of " + filename
-            + " are FID and IID (found " + line[0] + " and " + line[1] + ")");
+                           + " are FID and IID (found " + line[0] + " and " + line[1] + ")");
       }
       phenoNames = new String[line.length - 2];
       for (int i = 0; i < phenoNames.length; i++) {
@@ -159,19 +159,20 @@ public class AltPheno {
     try {
       writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_summary.xln"));
       writer.println("FID\tPhenotype\tN affected\tAffecteds\t"
-          + Array.toStr(Array.stringArraySequence(23, "")));
+                     + Array.toStr(Array.stringArraySequence(23, "")));
       fams = HashVec.getKeys(hashes);
       for (String fam : fams) {
         writer.print(fam);
         for (String phenoName : phenoNames) {
           v = hashes.get(fam).get(phenoName);
           writer.print("\t" + phenoName + "\t" + v.size() + "\t"
-              + (fam.equals("allFams") ? "ALL" : Array.toStr(Array.toStringArray(v), ",")));
+                       + (fam.equals("allFams") ? "ALL"
+                                                : Array.toStr(Array.toStringArray(v), ",")));
           percentages = new String[23];
           for (int chr = 1; chr <= 23; chr++) {
             try {
               reader = new BufferedReader(new FileReader(dir + fam + "/" + phenoName + "/merlin-chr"
-                  + ext.chrome(chr) + "-nonparametric.tbl"));
+                                                         + ext.chrome(chr) + "-nonparametric.tbl"));
               ext.checkHeader(reader.readLine().trim().split("[\\s]+"), MERLIN_BINARY_HEADER, true);
               if (reader.ready()) {
                 reader.readLine();
@@ -193,16 +194,16 @@ public class AltPheno {
               reader.close();
             } catch (FileNotFoundException fnfe) {
               System.err.println("Error: file \"merlin-chr" + ext.chrome(chr)
-                  + "-nonparametric.tbl\" not found for " + fam + phenoName + "/");
+                                 + "-nonparametric.tbl\" not found for " + fam + phenoName + "/");
               writer.print("\t.");
             } catch (IOException ioe) {
               System.err.println("Error reading file \"merlin-chr" + ext.chrome(chr)
-                  + "-nonparametric.tbl\" not found for " + fam + phenoName + "/");
+                                 + "-nonparametric.tbl\" not found for " + fam + phenoName + "/");
               writer.print("\t???");
             } catch (NullPointerException npe) {
-              System.err
-                  .println("Error haven't finished writing file \"merlin-chr" + ext.chrome(chr)
-                      + "-nonparametric.tbl\" not found for " + fam + phenoName + "/");
+              System.err.println("Error haven't finished writing file \"merlin-chr"
+                                 + ext.chrome(chr) + "-nonparametric.tbl\" not found for " + fam
+                                 + phenoName + "/");
               writer.print("\t?!?");
             }
           }
@@ -236,7 +237,7 @@ public class AltPheno {
           v.add(ext.chrome(i));
         } else {
           System.err.println("Error - found re_chrom" + ext.chrome(i) + ".pre but not map"
-              + ext.chrome(i) + ".dat");
+                             + ext.chrome(i) + ".dat");
         }
       }
     }
@@ -248,7 +249,7 @@ public class AltPheno {
       line = reader.readLine().trim().split("[\\s]+");
       if (!line[0].equals("FID") || !line[1].equals("IID")) {
         System.err.println("Warning - assuming first two columns of " + filename
-            + " are FID and IID (found " + line[0] + " and " + line[1] + ")");
+                           + " are FID and IID (found " + line[0] + " and " + line[1] + ")");
       }
       phenoNames = new String[line.length - 2];
       for (int i = 0; i < phenoNames.length; i++) {
@@ -287,14 +288,14 @@ public class AltPheno {
             writers[j] =
                 new PrintWriter(new FileWriter(trav + phenoNames[j] + "/re_chrom" + chr2 + ".pre"));
             Files.copyFile(dir + "map" + chr2 + ".dat",
-                trav + phenoNames[j] + "/map" + chr2 + ".dat");
+                           trav + phenoNames[j] + "/map" + chr2 + ".dat");
           }
           while (reader.ready()) {
             line = reader.readLine().trim().split("[\\s]+");
             if (i == fams.length || line[0].equals(fams[i])) {
-              phenos = hash.get(line[0]).containsKey(line[1])
-                  ? hash.get(line[0]).get(line[1]).split("[\\s]+")
-                  : Array.stringArray(phenoNames.length, "0");
+              phenos = hash.get(line[0])
+                           .containsKey(line[1]) ? hash.get(line[0]).get(line[1]).split("[\\s]+")
+                                                 : Array.stringArray(phenoNames.length, "0");
               for (int j = 0; j < phenoNames.length; j++) {
                 line[5] = phenos[j].equals("1") ? "2" : "0";
                 writers[j].println(Array.toStr(line));
@@ -307,7 +308,7 @@ public class AltPheno {
           }
         } catch (FileNotFoundException fnfe) {
           System.err.println("Error: file \"" + dir + "re_chrom" + chr2 + ".pre"
-              + "\" not found in current directory");
+                             + "\" not found in current directory");
           System.exit(1);
         } catch (IOException ioe) {
           System.err.println("Error reading file \"" + dir + "re_chrom" + chr2 + ".pre" + "\"");
@@ -332,11 +333,11 @@ public class AltPheno {
         }
         for (String chr2 : chrs) {
           ext.writeToAll("java " + classpath + " link.Merlin chr=" + Integer.parseInt(chr2),
-              writers);
+                         writers);
           ext.writeToAll((chr2.equals("23") ? "minx" : "merlin") + " -d chr" + chr2
-              + ".dat -p re_chrom" + chr2 + ".pre -m chr" + chr2 + ".map -f chr" + chr2
-              + ".freq --npl --tabulate --step 5 --markerNames --information --prefix merlin-chr"
-              + chr2 + "", writers);
+                         + ".dat -p re_chrom" + chr2 + ".pre -m chr" + chr2 + ".map -f chr" + chr2
+                         + ".freq --npl --tabulate --step 5 --markerNames --information --prefix merlin-chr"
+                         + chr2 + "", writers);
         }
         ext.writeToAll("cd ..", writers);
         ext.writeToAll("cd ..", writers);
@@ -367,7 +368,7 @@ public class AltPheno {
       line = reader.readLine().trim().split("[\\s]+");
       if (!line[0].equals("FID") || !line[1].equals("IID")) {
         System.err.println("Warning - assuming first two columns of " + filename
-            + " are FID and IID (found " + line[0] + " and " + line[1] + ")");
+                           + " are FID and IID (found " + line[0] + " and " + line[1] + ")");
       }
       phenoNames = new String[line.length - 2];
       for (int i = 0; i < phenoNames.length; i++) {

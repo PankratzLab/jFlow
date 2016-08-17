@@ -64,7 +64,7 @@ public class Stepwise {
     private int index;
 
     public RegressionProducer(IntVector in, IntVector out, boolean logistic, Vector<String> ys,
-        Vector<double[]> xs, int n, int svdRegressionSwitch) {
+                              Vector<double[]> xs, int n, int svdRegressionSwitch) {
       super();
       this.in = in;
       this.out = out;
@@ -98,7 +98,7 @@ public class Stepwise {
     private final int svdRegressionSwitch;
 
     public RegressionWorker(Vector<String> ys, Vector<double[]> currentXs, boolean logistic,
-        int svdRegressionSwitch) {
+                            int svdRegressionSwitch) {
       super();
       this.currentXs = currentXs;
       Ys = ys;
@@ -153,9 +153,9 @@ public class Stepwise {
     boolean bonferroni = false;
 
     String usage = "\n" + "stats.stepwise requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-        + filename + " (default)\n"
-        + "   (2) Bonferroni threhsold for entry instead of nominal (i.e. bonferroni=" + bonferroni
-        + " (default)\n" + "";
+                   + filename + " (default)\n"
+                   + "   (2) Bonferroni threhsold for entry instead of nominal (i.e. bonferroni="
+                   + bonferroni + " (default)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -261,7 +261,7 @@ public class Stepwise {
   private RegressionModel finalModel;
 
   public Stepwise(double[] new_deps, double[][] new_indeps, int svdRegressionSwitch,
-      boolean bonferroniEntry, int numThreads) {
+                  boolean bonferroniEntry, int numThreads) {
     Xs = new Vector<double[]>();
     Ys = new Vector<String>();
 
@@ -323,7 +323,8 @@ public class Stepwise {
 
   public String getAccuracySummary() {
     return increments.size() == 0 ? "no variables in final model"
-        : (logistic ? ((LogisticRegression) finalModel).getAccuracySummary() : "");
+                                  : (logistic ? ((LogisticRegression) finalModel).getAccuracySummary()
+                                              : "");
   }
 
   public String getFinalNames() {
@@ -386,7 +387,7 @@ public class Stepwise {
     String Rsum =
         " Model\t" + (logistic ? " ChiSq" : "    F") + "\t   Sig\t R-square" + line_ending;
     String ModelSum = ext.formStr("Variable", maxNameSize, true)
-        + "\t   Beta\t StdErr\t      T\t    Sig" + line_ending;
+                      + "\t   Beta\t StdErr\t      T\t    Sig" + line_ending;
     IntVector ins;
     String[] travNames;
 
@@ -403,12 +404,14 @@ public class Stepwise {
       }
       model.setVarNames(travNames, maxNameSize);
       Rsum += ext.formStr(i + 1 + "", 4) + "\t"
-          + (!Numbers.isFinite(model.getOverall()) ? "    ."
-              : ext.formStr(ext.formDeci(model.getOverall(), 1, true), 7))
-          + "\t  " + ext.formDeci(model.getOverallSig(), 3, true) + "\t  "
-          + ext.formDeci(model.getRsquare(), 3, true) + line_ending;
+              + (!Numbers.isFinite(model.getOverall()) ? "    ."
+                                                       : ext.formStr(ext.formDeci(model.getOverall(),
+                                                                                  1, true),
+                                                                     7))
+              + "\t  " + ext.formDeci(model.getOverallSig(), 3, true) + "\t  "
+              + ext.formDeci(model.getRsquare(), 3, true) + line_ending;
       ModelSum += "------ Model " + (i + 1) + (i < 10 ? " -" : " ") + "---------------------------"
-          + line_ending + model.modelSummary();
+                  + line_ending + model.modelSummary();
     }
 
     return Rsum + line_ending + ModelSum;
@@ -432,7 +435,7 @@ public class Stepwise {
 
     if (Xs.size() != Ys.size()) {
       System.err.println("Error using Vectors for stepwise regression; " + Ys.size()
-          + " dependent elements and " + Xs.size() + " independent elements");
+                         + " dependent elements and " + Xs.size() + " independent elements");
       System.exit(11);
     }
 
@@ -518,9 +521,11 @@ public class Stepwise {
       if (lowestP < (bonferroniEntry ? ENTRY_PROB / M : ENTRY_PROB)) {
         in.add(out.remove(bestModel));
         System.out.println(ext.getTime() + "\t" + in.size()
-            + " independant variables added to the model, lowest p-value = " + lowestP);
+                           + " independant variables added to the model, lowest p-value = "
+                           + lowestP);
         System.out.println(ext.getTime() + "\t" + in.size()
-            + " independant variables added to the model, highest Rsquare = " + highestRsq);
+                           + " independant variables added to the model, highest Rsquare = "
+                           + highestRsq);
         if (bonferroniEntry) {
           System.out.println(ext.getTime() + "bonf=" + (ENTRY_PROB / M));
         }
@@ -555,7 +560,7 @@ public class Stepwise {
   public void setVarNames(String[] names) {
     if (names.length != M) {
       System.err.println("Error naming independent variables: " + M + " variables, and only "
-          + names.length + " names");
+                         + names.length + " names");
       return;
     }
     varNames = names;

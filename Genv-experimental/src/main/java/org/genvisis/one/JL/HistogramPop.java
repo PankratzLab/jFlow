@@ -95,8 +95,7 @@ public class HistogramPop extends Application {
       EmpiricalDistribution distribution = new EmpiricalDistribution(binCount);
       distribution.load(data[i]);
       int k = 0;
-      for (org.apache.commons.math3.stat.descriptive.SummaryStatistics stats : distribution
-          .getBinStats()) {
+      for (org.apache.commons.math3.stat.descriptive.SummaryStatistics stats : distribution.getBinStats()) {
         counts[k] = stats.getN();
         binMax[k] = stats.getMax();
         binMin[k] = stats.getMin();
@@ -134,10 +133,12 @@ public class HistogramPop extends Application {
       countsBin.setName(parseResult.titles[i]);
       for (int j = 0; j < histogram.binMax.length; j++) {
         if (Double.isFinite(histogram.binMin[j]) && Double.isFinite(histogram.binMax[j])) {
-          countsBin.getData().add(new XYChart.Data<Number, Number>(
-              Double.valueOf(twoDForm.format(histogram.binMin[j])), histogram.counts[j]));
-          countsBin.getData().add(new XYChart.Data<Number, Number>(
-              Double.valueOf(twoDForm.format(histogram.binMax[j])), histogram.counts[j]));
+          countsBin.getData()
+                   .add(new XYChart.Data<Number, Number>(Double.valueOf(twoDForm.format(histogram.binMin[j])),
+                                                         histogram.counts[j]));
+          countsBin.getData()
+                   .add(new XYChart.Data<Number, Number>(Double.valueOf(twoDForm.format(histogram.binMax[j])),
+                                                         histogram.counts[j]));
         }
       }
       if (replace && i < areaChart.getData().size()) {

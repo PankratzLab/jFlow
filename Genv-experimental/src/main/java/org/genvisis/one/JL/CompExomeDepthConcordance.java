@@ -20,7 +20,7 @@ import org.genvisis.stats.Rscript.SCATTER_TYPE;
 public class CompExomeDepthConcordance {
 
   public static void comp(String[] files, Hashtable<String, String> iidMatch, String mapFile,
-      String callSubset, String problematicRegionFIle) {
+                          String callSubset, String problematicRegionFIle) {
     ArrayList<LocusSet<CNVariant>> sets = new ArrayList<LocusSet<CNVariant>>();
     String resultDir = ext.parseDirectoryOfFile(files[0]) + "results/";
     new File(resultDir).mkdirs();
@@ -35,15 +35,16 @@ public class CompExomeDepthConcordance {
           inds.get(ind).addAll(indsForThisFile);
         }
       }
-      LocusSet<CNVariant> indSet = new LocusSet<CNVariant>(
-          indsForThisFile.toArray(new CNVariant[indsForThisFile.size()]), true, log) {
+      LocusSet<CNVariant> indSet =
+          new LocusSet<CNVariant>(indsForThisFile.toArray(new CNVariant[indsForThisFile.size()]),
+                                  true, log) {
 
-        /**
-         * 
-         */
-        private static final long serialVersionUID = 1L;
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
 
-      };
+          };
       log.reportTimeInfo(file + " had " + indsForThisFile.size() + " cnvs matching inds");
       sets.add(indSet);
     }
@@ -123,7 +124,8 @@ public class CompExomeDepthConcordance {
   }
 
   private static void dumpAndSummarize(LocusSet<CNVariant> out, String outFile,
-      String mappabilityFile, String callSubsetBed, String problematicRegionFIle, Logger log) {
+                                       String mappabilityFile, String callSubsetBed,
+                                       String problematicRegionFIle, Logger log) {
     Mappability<CNVariant> cnMappability =
         new Mappability<CNVariant>(out, mappabilityFile, callSubsetBed, log);
     cnMappability.computeMappability();
@@ -132,13 +134,13 @@ public class CompExomeDepthConcordance {
 
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(outFile));
-      writer
-          .println(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\tmappability\tInProblematicRegion");
+      writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER)
+                     + "\tmappability\tInProblematicRegion");
       for (int i = 0; i < out.getLoci().length; i++) {
         CNVariant tmp = out.getLoci()[i];
         writer.println(tmp.toPlinkFormat() + "\t"
-            + (cnMappability.getMappabilityResults().get(i).getAverageMapScore() * 100) + "\t"
-            + (pSet.getOverLappingLoci(tmp) != null));
+                       + (cnMappability.getMappabilityResults().get(i).getAverageMapScore() * 100)
+                       + "\t" + (pSet.getOverLappingLoci(tmp) != null));
       }
 
       writer.close();
@@ -147,8 +149,9 @@ public class CompExomeDepthConcordance {
       log.reportException(e);
     }
     String[] ys = new String[] {"SCORE", "SITES", "mappability"};
-    RScatter rsScatter = new RScatter(outFile, outFile + ".rscript",
-        ext.removeDirectoryInfo(outFile), outFile + ".jpg", "TYPE", ys, SCATTER_TYPE.BOX, log);
+    RScatter rsScatter =
+        new RScatter(outFile, outFile + ".rscript", ext.removeDirectoryInfo(outFile),
+                     outFile + ".jpg", "TYPE", ys, SCATTER_TYPE.BOX, log);
     rsScatter.setOverWriteExisting(true);
     rsScatter.execute();
   }
@@ -158,9 +161,9 @@ public class CompExomeDepthConcordance {
     String[] cnvFiles = Files.listFullPaths(dir, ".cnvs", false);
     Hashtable<String, String> iidMatch = new Hashtable<String, String>();
     iidMatch.put("D100\tD100",
-        "HapMap_Control_CAGAGAGG-CTCTCTAT\tHapMap_Control_CAGAGAGG-CTCTCTAT");
+                 "HapMap_Control_CAGAGAGG-CTCTCTAT\tHapMap_Control_CAGAGAGG-CTCTCTAT");
     iidMatch.put("HapMap_Control_CAGAGAGG-CTCTCTAT\tHapMap_Control_CAGAGAGG-CTCTCTAT",
-        "D100\tD100");
+                 "D100\tD100");
     String mapFile = "C:/bin/ref/mappability/hg19/wgEncodeCrgMapabilityAlign100mer.bedGraph";
     String callSubset = "C:/bin/ExomeDepth/exons.hg19.chr.bed";
     String problematicRegionFIle = dir + "problematicRegions.txt";

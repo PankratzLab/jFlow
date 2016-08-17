@@ -17,14 +17,14 @@ import org.genvisis.common.ext;
 public class Coverage {
   public static final String[] COVERAGE_HEADER =
       {"Chromosome", "Position", "Reference base", "Consensus base",
-          "Percent of reads on the forward strand", "Percent of reads on the reverse strand",
-          "Percent of 'A' nucleotides", "Count of 'A' nucleotides", "Percent of 'T' nucleotides",
-          "Count of 'T' nucleotides", "Percent of 'C' nucleotides", "Count of 'C' nucleotides",
-          "Percent of 'G' nucleotides", "Count of 'G' nucleotides",
-          "Percent of 'N' nucleotides (no calls)", "Count of 'N' nucleotides (no calls)",
-          "Count of matches to the reference", "Count of mismatches to the reference",
-          "Percentage of matches to the reference", "Consensus Quality", "SNP quality",
-          "Root mean square", "read depth", "read base string", "base quality string"};
+       "Percent of reads on the forward strand", "Percent of reads on the reverse strand",
+       "Percent of 'A' nucleotides", "Count of 'A' nucleotides", "Percent of 'T' nucleotides",
+       "Count of 'T' nucleotides", "Percent of 'C' nucleotides", "Count of 'C' nucleotides",
+       "Percent of 'G' nucleotides", "Count of 'G' nucleotides",
+       "Percent of 'N' nucleotides (no calls)", "Count of 'N' nucleotides (no calls)",
+       "Count of matches to the reference", "Count of mismatches to the reference",
+       "Percentage of matches to the reference", "Consensus Quality", "SNP quality",
+       "Root mean square", "read depth", "read base string", "base quality string"};
 
   public static void filter(String filesToFilter) {
     BufferedReader reader;
@@ -40,7 +40,7 @@ public class Coverage {
     varFile = line[1];
 
     hash = HashVec.loadFileToHashString(varFile, new int[] {0, 1}, null, false, "\t", false, false,
-        false);
+                                        false);
     try {
       reader = new BufferedReader(new FileReader(pileupFile));
       writer = new PrintWriter(new FileWriter(pileupFile + "_filtered.out"));
@@ -70,10 +70,10 @@ public class Coverage {
     String filter = "";
 
     String usage = "\n" + "seq.Coverage requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-        + filename + " (default))\n" + "   (2) directory of coverage files (i.e. cov=" + dir
-        + " (default))\n" + " OR\n"
-        + "   (1) files to filter (i.e. filter=fileToFilter.pileup,variants.txt (not the default))\n"
-        + "";
+                   + filename + " (default))\n" + "   (2) directory of coverage files (i.e. cov="
+                   + dir + " (default))\n" + " OR\n"
+                   + "   (1) files to filter (i.e. filter=fileToFilter.pileup,variants.txt (not the default))\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -117,7 +117,8 @@ public class Coverage {
 
     files = Files.list(dir, ".txt", false);
     ext.checkHeader(Files.getHeaderOfFile(filename, "\t", new Logger()),
-        new String[] {"Sample", "Chr", "Position"}, new int[] {0, 1, 2}, false, new Logger(), true);
+                    new String[] {"Sample", "Chr", "Position"}, new int[] {0, 1, 2}, false,
+                    new Logger(), true);
     variants = HashVec.loadFileToStringArray(filename, true, new int[] {0, 1, 2}, false);
 
     hashes = new Hashtable<String, Hashtable<String, String>>();
@@ -156,16 +157,16 @@ public class Coverage {
             while (reader.ready()) {
               line = reader.readLine().trim().split("[\\s]+");
               if (hash.containsKey(line[0] + "_" + line[1])) {
-                writer.println(
-                    inds[i] + "\t" + hash.get(line[0] + "_" + line[1]) + "\t" + Array.toStr(line));
+                writer.println(inds[i] + "\t" + hash.get(line[0] + "_" + line[1]) + "\t"
+                               + Array.toStr(line));
                 writer.flush();
                 hash.put(line[0] + "_" + line[1], "dup");
               }
             }
             reader.close();
           } catch (FileNotFoundException fnfe) {
-            System.err.println(
-                "Error: file \"" + dir + files[fileIndex] + "\" not found in current directory");
+            System.err.println("Error: file \"" + dir + files[fileIndex]
+                               + "\" not found in current directory");
             System.exit(1);
           } catch (IOException ioe) {
             System.err.println("Error reading file \"" + dir + files[fileIndex] + "\"");

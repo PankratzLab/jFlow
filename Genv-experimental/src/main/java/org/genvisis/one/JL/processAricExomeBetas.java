@@ -44,12 +44,13 @@ public class processAricExomeBetas {
     }
     MarkerSet markerSet = proj.getMarkerSet();
     abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true,
-        true, proj.getLog());
+                            true, proj.getLog());
     String mapSer = out + "rsIDMap.ser";
     if (!Files.exists(mapSer)) {
       BetaOptimizer.mapToRsIds(proj, abLookup,
-          GENOME_RESOURCE_TYPE.DB_SNP.getResource(GENOME_BUILD.HG19).getResource(proj.getLog()),
-          markerSet.getMarkerNames(), mapSer, proj.getLog());
+                               GENOME_RESOURCE_TYPE.DB_SNP.getResource(GENOME_BUILD.HG19)
+                                                          .getResource(proj.getLog()),
+                               markerSet.getMarkerNames(), mapSer, proj.getLog());
     }
     ArrayList<MarkerRsFormat> markerRsFormats = MarkerRsFormat.readSerial(mapSer, proj.getLog());
     ArrayList<String> rsOut = new ArrayList<String>();
@@ -57,8 +58,8 @@ public class processAricExomeBetas {
     for (int i = 0; i < markerRsFormats.size(); i++) {
       MarkerRsFormat m = markerRsFormats.get(i);
       rsOut.add(m.getMarkerName() + "\t" + m.getPosMarker() + "\t" + m.getRs() + "\t"
-          + Array.toStr(m.getDbSnpAlleles()) + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t"
-          + m.getConfig() + "\t" + m.getType());
+                + Array.toStr(m.getDbSnpAlleles()) + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t"
+                + m.getConfig() + "\t" + m.getType());
     }
     Files.writeArrayList(rsOut, out + "rsmatch.txt");
 
@@ -68,13 +69,11 @@ public class processAricExomeBetas {
     }
 
     ArrayList<String> betas = new ArrayList<String>();
-    betas.add(
-        "/home/pankrat2/shared/skatMeta/exome_chip_hematology/WBC_TOTAL/Whites/SingleSNP/Whites_WBC_TOTAL_SingleSNP.csv");
-    betas.add(
-        "/home/pankrat2/shared/skatMeta/exome_chip_hematology/WBC_TOTAL/Blacks/SingleSNP/Blacks_WBC_TOTAL_SingleSNP.csv");
+    betas.add("/home/pankrat2/shared/skatMeta/exome_chip_hematology/WBC_TOTAL/Whites/SingleSNP/Whites_WBC_TOTAL_SingleSNP.csv");
+    betas.add("/home/pankrat2/shared/skatMeta/exome_chip_hematology/WBC_TOTAL/Blacks/SingleSNP/Blacks_WBC_TOTAL_SingleSNP.csv");
 
     String[] others = Files.list("/home/pankrat2/shared/MitoPipeLineResources/betas/ExomeBetas/",
-        "", ".csv", true, false, true);
+                                 "", ".csv", true, false, true);
     for (String other : others) {
       betas.add(other);
     }
@@ -135,14 +134,16 @@ public class processAricExomeBetas {
             switch (config) {
               case STRAND_CONFIG_BOTH_NULL:
                 System.out.println(config + "\t" + line[markerIndex] + "\t" + effAllele + "\t"
-                    + Array.toStr(m.getDbSnpAlleles()) + "\t" + Array.toStr(m.getMarkerAlleles())
-                    + "\t" + m.getConfig() + "\t" + m.getRs());
+                                   + Array.toStr(m.getDbSnpAlleles()) + "\t"
+                                   + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t"
+                                   + m.getRs());
 
                 break;
               case STRAND_CONFIG_DIFFERENT_ALLELES:
                 System.out.println(config + "\t" + line[markerIndex] + "\t" + effAllele + "\t"
-                    + Array.toStr(m.getDbSnpAlleles()) + "\t" + Array.toStr(m.getMarkerAlleles())
-                    + "\t" + m.getConfig() + "\t" + m.getRs());
+                                   + Array.toStr(m.getDbSnpAlleles()) + "\t"
+                                   + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t"
+                                   + m.getRs());
 
                 break;
               case STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND:// opposit order of the effect allele
@@ -155,8 +156,9 @@ public class processAricExomeBetas {
                 break;
               case STRAND_CONFIG_SPECIAL_CASE:
                 System.out.println(config + "\t" + line[markerIndex] + "\t" + effAllele + "\t"
-                    + Array.toStr(m.getDbSnpAlleles()) + "\t" + Array.toStr(m.getMarkerAlleles())
-                    + "\t" + m.getConfig() + "\t" + m.getRs());
+                                   + Array.toStr(m.getDbSnpAlleles()) + "\t"
+                                   + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t"
+                                   + m.getRs());
 
                 break;
               case STRAND_CONFIG_UNKNOWN:
@@ -179,7 +181,7 @@ public class processAricExomeBetas {
             // betaVal + "\t" + line[pvalIndex] + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t" +
             // effAllele + "\t" + m.getConfig() + "\t" + line[betaIndex]);
             writerFinal.println(m.getRs() + "\t" + Array.toStr(effAllele.split("\t")) + "\t"
-                + line[betaIndex] + "\t" + line[pvalIndex]);
+                                + line[betaIndex] + "\t" + line[pvalIndex]);
 
           }
 

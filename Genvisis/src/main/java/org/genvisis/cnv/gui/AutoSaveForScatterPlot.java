@@ -17,8 +17,9 @@ public class AutoSaveForScatterPlot implements Runnable {
   private boolean isAnnotationsUpdated;
 
   public AutoSaveForScatterPlot(ClusterFilterCollection clusterFilterCollection,
-      String clusterFilterFilename, AnnotationCollection AnnotationCollection,
-      String annotationFilename, int periodInSeconds) {
+                                String clusterFilterFilename,
+                                AnnotationCollection AnnotationCollection,
+                                String annotationFilename, int periodInSeconds) {
     clusterFilters = clusterFilterCollection;
     this.clusterFilterFilename = clusterFilterFilename;
     annotations = AnnotationCollection;

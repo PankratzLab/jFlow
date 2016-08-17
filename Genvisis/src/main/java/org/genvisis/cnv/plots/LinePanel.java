@@ -29,26 +29,27 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
   public static final String X_AXIS_LABEL = "Threshold; -log10(p-value)";
   public static final String Y_AXIS_LABEL = "Fold enrichment";
   public static final int DEFAULT_COLORS_BLACK_INDEX = 0;
-  public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
-      new Color(23, 58, 172), // dark blue
-      new Color(201, 30, 10), // deep red
-      new Color(140, 20, 180), // deep purple
-      new Color(33, 87, 0), // dark green
-      new Color(55, 129, 252), // light blue
-      new Color(94, 88, 214), // light purple
-      new Color(189, 243, 61), // light green
-      new Color(217, 109, 194), // pink
-      new Color(0, 0, 128), // ALL KINDS OF BLUES
-      new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
-      new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
-      new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
-      new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
-      new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
-      new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
-      new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
-      new Color(224, 255, 255),
+  public static final Color[] DEFAULT_COLORS =
+      {new Color(33, 31, 53), // dark dark
+       new Color(23, 58, 172), // dark blue
+       new Color(201, 30, 10), // deep red
+       new Color(140, 20, 180), // deep purple
+       new Color(33, 87, 0), // dark green
+       new Color(55, 129, 252), // light blue
+       new Color(94, 88, 214), // light purple
+       new Color(189, 243, 61), // light green
+       new Color(217, 109, 194), // pink
+       new Color(0, 0, 128), // ALL KINDS OF BLUES
+       new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
+       new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
+       new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
+       new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
+       new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
+       new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
+       new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
+       new Color(224, 255, 255),
 
-  };
+      };
 
   protected LinePlot tdp;
   private boolean updateQcPanel;
@@ -98,14 +99,14 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
       markerLookup = new MarkerLookup(new Hashtable<String, String>());
     } else {
       if (Files.exists(proj.MARKERLOOKUP_FILENAME.getValue(false, false),
-          proj.JAR_STATUS.getValue())) {
+                       proj.JAR_STATUS.getValue())) {
         markerLookup = proj.getMarkerLookup();
         proj.getLog().report("Marker data is available for this project");
       } else {
         markerLookup = new MarkerLookup(new Hashtable<String, String>());
       }
       if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
-          proj.JAR_STATUS.getValue())) {
+                       proj.JAR_STATUS.getValue())) {
         sampleData = proj.getSampleData(1, false);
         proj.getLog().report("Sample lookup is available for this project");
       }
@@ -166,10 +167,10 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 
         if (swapAxes) {
           tempPoints[i] = new PlotPoint(line[0], type, yAxisValue, xAxisValue, (byte) 5,
-              Byte.parseByte(line[3]), (byte) 0);
+                                        Byte.parseByte(line[3]), (byte) 0);
         } else {
           tempPoints[i] = new PlotPoint(line[0], type, xAxisValue, yAxisValue, (byte) 5,
-              Byte.parseByte(line[3]), (byte) 0);
+                                        Byte.parseByte(line[3]), (byte) 0);
         }
 
         for (int j = 0; j < setOfKeys[i].length; j++) {
@@ -188,7 +189,7 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
       // Draw a line between all the points
       for (int i = 1; i < tempPoints.length; i++) {
         linesData.add(new GenericLine(tempPoints[i - 1], tempPoints[i], (byte) 3,
-            tempPoints[i].getColor(), (byte) 0, false));
+                                      tempPoints[i].getColor(), (byte) 0, false));
       }
 
       points = Array.concatAll(points, tempPoints);
@@ -423,8 +424,8 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
         // menu.add(new LaunchAction(linkKeyValues[prox.elementAt(i)][0] + "\t" +
         // points[prox.elementAt(i)].getRawX() + "\t" + points[prox.elementAt(i)].getRawY(), true));
         menu.add(new LaunchAction(points[prox.elementAt(i)].getId() + "\t"
-            + points[prox.elementAt(i)].getRawX() + "\t" + points[prox.elementAt(i)].getRawY(),
-            true));
+                                  + points[prox.elementAt(i)].getRawX() + "\t"
+                                  + points[prox.elementAt(i)].getRawY(), true));
 
         if (linkKeyIndicies[3] >= 0) {
           markerName = setOfKeys[prox.elementAt(i)][3];
@@ -434,24 +435,24 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
         }
 
         sample = null;
-        if (linkKeyIndicies[2] >= 0 && Files.exists(
-            proj.SAMPLE_DIRECTORY.getValue(false, false) + sample + Sample.SAMPLE_FILE_EXTENSION,
-            proj.JAR_STATUS.getValue())) {
+        if (linkKeyIndicies[2] >= 0
+            && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + sample
+                            + Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
           sample = setOfKeys[prox.elementAt(i)][2];
         }
         if (sample == null && sampleData != null) { // if Sample not already identified and if a
                                                     // sample lookup exists
           ids = null;
           if (linkKeyIndicies[1] >= 0) { // if FID present
-            ids = sampleData
-                .lookup(setOfKeys[prox.elementAt(i)][1] + "\t" + setOfKeys[prox.elementAt(i)][0]);
+            ids = sampleData.lookup(setOfKeys[prox.elementAt(i)][1] + "\t"
+                                    + setOfKeys[prox.elementAt(i)][0]);
           }
           if (ids == null) {
             ids = sampleData.lookup(setOfKeys[prox.elementAt(i)][0]);
           }
-          if (ids != null && Files.exists(
-              proj.SAMPLE_DIRECTORY.getValue(false, false) + ids[0] + Sample.SAMPLE_FILE_EXTENSION,
-              proj.JAR_STATUS.getValue())) {
+          if (ids != null
+              && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + ids[0]
+                              + Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
             sample = ids[0];
           }
         }
