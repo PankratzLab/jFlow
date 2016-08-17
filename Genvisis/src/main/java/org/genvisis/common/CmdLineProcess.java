@@ -8,366 +8,374 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 
 public class CmdLineProcess implements Iterator<String> {
-	public enum INPUT_TYPE {
-		/**
-		 * Standard in comes from a file
-		 */
-		FILE, /**
-		 * Standard in comes from a string
-		 */
-		STRING
-	}
+  /**
+   * Builder for the run, defaults are set below
+   *
+   */
+  public static class Builder {
+    private String dir = null;
+    private StandardInputProvider STIN = null;
+    private INPUT_Mode inputMode = INPUT_Mode.NO_STIN;
+    private OUTPUT_Mode outputMode = OUTPUT_Mode.NO_STOUT_CAPTURE;
+    private ERR_Mode errorMode = ERR_Mode.STERR_CAPTURE_BY_LOG;
+    private Logger log = new Logger();
+    private boolean verbose = false;
+    private int lineBufferSize = 10000;
 
-	public enum INPUT_Mode {
-		/**
-		 * Pass input to the command
-		 */
-		STIN, NO_STIN
-	}
+    public CmdLineProcess build(String[] commandArray) {
+      return new CmdLineProcess(this, commandArray);
+    }
 
-	public enum OUTPUT_Mode {
-		/**
-		 * The output is captured and returned line by line
-		 */
-		STOUT_CAPTURE_ITERATOR, /**
-		 * The output is not captured (inherited)
-		 */
-		NO_STOUT_CAPTURE
-	}
+    public Builder dir(String dir) {
+      this.dir = dir;
+      return this;
+    }
 
-	public enum ERR_Mode {
-		/**
-		 * Report errors to log
-		 */
-		STERR_CAPTURE_BY_LOG, NO_STERR_CAPTURE
-	}
+    public Builder errorMode(ERR_Mode errorMode) {
+      this.errorMode = errorMode;
+      return this;
+    }
 
-	private String[] commandArray;
-	private String dir;
-	private String iterOutputLine;
-	private StandardInputProvider STIN;
-	private PrintWriter stIn;
-	private BufferedReader stOut;
-	private BufferedReader stErr;
-	private INPUT_Mode inputMode;
-	private OUTPUT_Mode outputMode;
-	private ERR_Mode errorMode;
-	private int lineBufferSize;
-	private InputWriter inputWriter;
-	private Process proc;
-	private boolean verbose, fail;
-	private Logger log;
+    public Builder inputMode(INPUT_Mode inputMode) {
+      this.inputMode = inputMode;
+      return this;
+    }
 
-	public int getLineBufferSize() {
-		return lineBufferSize;
-	}
+    public Builder lineBufferSize(int lineBufferSize) {
+      this.lineBufferSize = lineBufferSize;
+      return this;
+    }
 
-	public InputWriter getInputWriter() {
-		return inputWriter;
-	}
+    public Builder log(Logger log) {
+      this.log = log;
+      return this;
+    }
 
-	/**
-	 * Sets up error streams,input streams, and output streams
-	 * 
-	 * @return process was initiated
-	 */
-	private boolean initProcess() {
-		boolean init = true;
-		if (verbose) {
-			log.reportTimeInfo("Attempting to run command " + Array.toStr(commandArray, " "));
-		}
-		ProcessBuilder probuilder = new ProcessBuilder(commandArray);
+    public Builder outputMode(OUTPUT_Mode outputMode) {
+      this.outputMode = outputMode;
+      return this;
+    }
 
-		if (dir != null && dir != "") {
-			probuilder.directory(new File(dir));
-		}
-		setupStandardError(probuilder);
+    public Builder STIN(StandardInputProvider STIN) {
+      this.STIN = STIN;
+      return this;
+    }
 
-		try {
-			this.proc = probuilder.start();
-			switch (inputMode) {
-			case NO_STIN:
-				break;
-			case STIN:
+    public Builder verbose(boolean verbose) {
+      this.verbose = verbose;
+      return this;
+    }
+  }
 
-				if (STIN != null) {
-					if (verbose) {
-						log.reportTimeInfo("Passing input paramaters to command:  " + Array.toStr(commandArray));
+  public enum ERR_Mode {
+    /**
+     * Report errors to log
+     */
+    STERR_CAPTURE_BY_LOG, NO_STERR_CAPTURE
+  }
 
-					}
-					stIn = new PrintWriter(proc.getOutputStream());
-					writeInput();
-					if (verbose) {
-						log.reportTimeInfo("Finished passing input paramaters to command:  " + Array.toStr(commandArray));
-					}
+  public enum INPUT_Mode {
+    /**
+     * Pass input to the command
+     */
+    STIN, NO_STIN
+  }
 
-				} else {
-					log.reportTimeError("A standard input source was not provided");
-				}
+  public enum INPUT_TYPE {
+    /**
+     * Standard in comes from a file
+     */
+    FILE,
+    /**
+     * Standard in comes from a string
+     */
+    STRING
+  }
 
-				break;
-			default:
-				break;
+  class InputWriter extends Thread {
 
-			}
+    public InputWriter() {}
 
-			if (outputMode == OUTPUT_Mode.STOUT_CAPTURE_ITERATOR) {
-				if (verbose) {
-					log.reportTimeInfo("Preparing standard out");
-				}
-				this.stOut = new BufferedReader(new InputStreamReader(proc.getInputStream(), "UTF-8"));
+    @Override
+    public void run() {
+      int added = 0;
 
-				if (verbose) {
-					log.reportTimeInfo("Finished preparing standard out");
-				}
-			}
-			if (errorMode == ERR_Mode.STERR_CAPTURE_BY_LOG) {
-				this.stErr = new BufferedReader(new InputStreamReader(proc.getErrorStream(), "UTF-8"));
-			}
+      while (STIN.hasNext()) {
+        String in = STIN.next();
+        stIn.println(in);
+        added++;
+        if (verbose && added % 10000 == 0) {
+          log.reportTimeInfo("Added " + added + " from STIN");
+        }
+        // if (added >= lineBufferSize) {
+        // try {
+        //
+        // } catch (InterruptedException e) {
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
+        // }
+        // added = 0;
+        // }
+        stIn.flush();
+      }
+      stIn.close();
+    }
+  }
+  public enum OUTPUT_Mode {
+    /**
+     * The output is captured and returned line by line
+     */
+    STOUT_CAPTURE_ITERATOR,
+    /**
+     * The output is not captured (inherited)
+     */
+    NO_STOUT_CAPTURE
+  }
+  /**
+   * Interface that can be passed to the command line to provide input
+   *
+   */
+  public static interface StandardInputProvider extends Iterator<String> {
 
-		} catch (IOException e) {
-			init = false;
-			log.reportTimeError("Could not initialize process " + Array.toStr(commandArray));
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return init;
-	}
+  }
 
-	private void writeInput() {
-		new InputWriter().start();
-	}
+  private final String[] commandArray;
+  private final String dir;
+  private String iterOutputLine;
+  private final StandardInputProvider STIN;
+  private PrintWriter stIn;
+  private BufferedReader stOut;
+  private BufferedReader stErr;
+  private final INPUT_Mode inputMode;
+  private final OUTPUT_Mode outputMode;
+  private final ERR_Mode errorMode;
+  private final int lineBufferSize;
+  private InputWriter inputWriter;
 
-	private void setupStandardError(ProcessBuilder probuilder) {
-		switch (errorMode) {
-		case NO_STERR_CAPTURE:
-			probuilder.redirectErrorStream(true);
-			break;
+  private Process proc;
 
-		case STERR_CAPTURE_BY_LOG:
-			break;
-		default:
-			log.reportTimeWarning("Invalid error capture mode, directing to standard output...");
-			probuilder.redirectErrorStream(true);
-			break;
-		}
-	}
+  private final boolean verbose, fail;
 
-	@Override
-	public boolean hasNext() {
-		boolean next = true;
-		flushErrorStream();
+  private final Logger log;
 
-		if (!fail && stOut != null) {
-			try {
-				iterOutputLine = stOut.readLine();
-				next = iterOutputLine != null;
-			} catch (IOException e2) {
-				next = false;
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
-		} else {
-			next = false;
-		}
+  private CmdLineProcess(Builder builder, String[] commandArray) {
+    this.commandArray = commandArray;
+    dir = builder.dir;
+    STIN = builder.STIN;
+    inputMode = builder.inputMode;
+    outputMode = builder.outputMode;
+    errorMode = builder.errorMode;
+    log = builder.log;
+    verbose = builder.verbose;
+    iterOutputLine = null;
+    lineBufferSize = builder.lineBufferSize;
+    fail = !initProcess();
+  }
 
-		return next;
-	}
+  private void flushErrorStream() {
 
-	@Override
-	public String next() {
-		if (!fail && stOut != null) {
-			return iterOutputLine;
+    if (stErr != null) {
+      String line;
+      try {
+        while (stErr.ready() && (line = stErr.readLine()) != null) {
+          switch (errorMode) {
+            case STERR_CAPTURE_BY_LOG:
+              if (line != null) {
+                // System.out.println(line);
+                log.reportTimeError(line);
+              }
+              break;
+            default:
+              break;
 
-		} else {
-			return null;
-		}
-	}
+          }
+        }
+      } catch (IOException e) {
+        log.reportTimeError(
+            "Could not read error stream for process " + Array.toStr(commandArray, " "));
+        e.printStackTrace();
+      }
+    }
+  }
 
-	@Override
-	public void remove() {
-		// TODO Auto-generated method stub
+  public InputWriter getInputWriter() {
+    return inputWriter;
+  }
 
-	}
+  public int getLineBufferSize() {
+    return lineBufferSize;
+  }
 
-	public boolean waitFor() {
-		boolean error = false;
-		try {
-			// System.err.println("flush Error");
+  private void handleOutputStream() {
+    switch (outputMode) {
+      case NO_STOUT_CAPTURE:
+        break;
+      case STOUT_CAPTURE_ITERATOR:
+        try {
+          if (proc.getInputStream() != null && proc.getInputStream().available() > 0) {
+            log.reportTimeError(
+                "The output mode was set to iterate, but there is still available bytes.");
+          }
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+        break;
+      default:
+        break;
 
-			flushErrorStream();
-			// System.err.println("flush Out");
+    }
+  }
 
-			handleOutputStream();
-			// System.err.println("finished Out");
+  @Override
+  public boolean hasNext() {
+    boolean next = true;
+    flushErrorStream();
 
-			proc.waitFor(); // wait for process to complete
-			// System.err.println("finished Wait");
+    if (!fail && stOut != null) {
+      try {
+        iterOutputLine = stOut.readLine();
+        next = iterOutputLine != null;
+      } catch (IOException e2) {
+        next = false;
+        // TODO Auto-generated catch block
+        e2.printStackTrace();
+      }
+    } else {
+      next = false;
+    }
 
-		} catch (InterruptedException e) {
-			log.reportException(e);
-			System.err.println(e); // "Can'tHappen"
-			error = true;
-		}
-		return error;
-	}
+    return next;
+  }
 
-	private void handleOutputStream() {
-		switch (outputMode) {
-		case NO_STOUT_CAPTURE:
-			break;
-		case STOUT_CAPTURE_ITERATOR:
-			try {
-				if (proc.getInputStream() != null && proc.getInputStream().available() > 0) {
-					log.reportTimeError("The output mode was set to iterate, but there is still available bytes.");
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			break;
-		default:
-			break;
+  /**
+   * Sets up error streams,input streams, and output streams
+   * 
+   * @return process was initiated
+   */
+  private boolean initProcess() {
+    boolean init = true;
+    if (verbose) {
+      log.reportTimeInfo("Attempting to run command " + Array.toStr(commandArray, " "));
+    }
+    ProcessBuilder probuilder = new ProcessBuilder(commandArray);
 
-		}
-	}
+    if (dir != null && dir != "") {
+      probuilder.directory(new File(dir));
+    }
+    setupStandardError(probuilder);
 
-	private void flushErrorStream() {
+    try {
+      proc = probuilder.start();
+      switch (inputMode) {
+        case NO_STIN:
+          break;
+        case STIN:
 
-		if (stErr != null) {
-			String line;
-			try {
-				while (stErr.ready() && (line = stErr.readLine()) != null)
-					switch (errorMode) {
-					case STERR_CAPTURE_BY_LOG:
-						if (line != null) {
-							// System.out.println(line);
-							log.reportTimeError(line);
-						}
-						break;
-					default:
-						break;
+          if (STIN != null) {
+            if (verbose) {
+              log.reportTimeInfo(
+                  "Passing input paramaters to command:  " + Array.toStr(commandArray));
 
-					}
-			} catch (IOException e) {
-				log.reportTimeError("Could not read error stream for process " + Array.toStr(commandArray, " "));
-				e.printStackTrace();
-			}
-		}
-	}
+            }
+            stIn = new PrintWriter(proc.getOutputStream());
+            writeInput();
+            if (verbose) {
+              log.reportTimeInfo(
+                  "Finished passing input paramaters to command:  " + Array.toStr(commandArray));
+            }
 
-	/**
-	 * Interface that can be passed to the command line to provide input
-	 *
-	 */
-	public static interface StandardInputProvider extends Iterator<String> {
+          } else {
+            log.reportTimeError("A standard input source was not provided");
+          }
 
-	}
+          break;
+        default:
+          break;
 
-	//
+      }
 
-	/**
-	 * Builder for the run, defaults are set below
-	 *
-	 */
-	public static class Builder {
-		private String dir = null;
-		private StandardInputProvider STIN = null;
-		private INPUT_Mode inputMode = INPUT_Mode.NO_STIN;
-		private OUTPUT_Mode outputMode = OUTPUT_Mode.NO_STOUT_CAPTURE;
-		private ERR_Mode errorMode = ERR_Mode.STERR_CAPTURE_BY_LOG;
-		private Logger log = new Logger();
-		private boolean verbose = false;
-		private int lineBufferSize = 10000;
+      if (outputMode == OUTPUT_Mode.STOUT_CAPTURE_ITERATOR) {
+        if (verbose) {
+          log.reportTimeInfo("Preparing standard out");
+        }
+        stOut = new BufferedReader(new InputStreamReader(proc.getInputStream(), "UTF-8"));
 
-		public Builder dir(String dir) {
-			this.dir = dir;
-			return this;
-		}
+        if (verbose) {
+          log.reportTimeInfo("Finished preparing standard out");
+        }
+      }
+      if (errorMode == ERR_Mode.STERR_CAPTURE_BY_LOG) {
+        stErr = new BufferedReader(new InputStreamReader(proc.getErrorStream(), "UTF-8"));
+      }
 
-		public Builder STIN(StandardInputProvider STIN) {
-			this.STIN = STIN;
-			return this;
-		}
+    } catch (IOException e) {
+      init = false;
+      log.reportTimeError("Could not initialize process " + Array.toStr(commandArray));
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return init;
+  }
 
-		public Builder inputMode(INPUT_Mode inputMode) {
-			this.inputMode = inputMode;
-			return this;
-		}
+  @Override
+  public String next() {
+    if (!fail && stOut != null) {
+      return iterOutputLine;
 
-		public Builder outputMode(OUTPUT_Mode outputMode) {
-			this.outputMode = outputMode;
-			return this;
-		}
+    } else {
+      return null;
+    }
+  }
 
-		public Builder errorMode(ERR_Mode errorMode) {
-			this.errorMode = errorMode;
-			return this;
-		}
+  @Override
+  public void remove() {
+    // TODO Auto-generated method stub
 
-		public Builder log(Logger log) {
-			this.log = log;
-			return this;
-		}
+  }
 
-		public Builder verbose(boolean verbose) {
-			this.verbose = verbose;
-			return this;
-		}
+  //
 
-		public Builder lineBufferSize(int lineBufferSize) {
-			this.lineBufferSize = lineBufferSize;
-			return this;
-		}
+  private void setupStandardError(ProcessBuilder probuilder) {
+    switch (errorMode) {
+      case NO_STERR_CAPTURE:
+        probuilder.redirectErrorStream(true);
+        break;
 
-		public CmdLineProcess build(String[] commandArray) {
-			return new CmdLineProcess(this, commandArray);
-		}
-	}
+      case STERR_CAPTURE_BY_LOG:
+        break;
+      default:
+        log.reportTimeWarning("Invalid error capture mode, directing to standard output...");
+        probuilder.redirectErrorStream(true);
+        break;
+    }
+  }
 
-	private CmdLineProcess(Builder builder, String[] commandArray) {
-		this.commandArray = commandArray;
-		this.dir = builder.dir;
-		this.STIN = builder.STIN;
-		this.inputMode = builder.inputMode;
-		this.outputMode = builder.outputMode;
-		this.errorMode = builder.errorMode;
-		this.log = builder.log;
-		this.verbose = builder.verbose;
-		this.iterOutputLine = null;
-		this.lineBufferSize = builder.lineBufferSize;
-		this.fail = !initProcess();
-	}
+  public boolean waitFor() {
+    boolean error = false;
+    try {
+      // System.err.println("flush Error");
 
-	class InputWriter extends Thread {
+      flushErrorStream();
+      // System.err.println("flush Out");
 
-		public InputWriter() {
-		}
+      handleOutputStream();
+      // System.err.println("finished Out");
 
-		public void run() {
-			int added = 0;
+      proc.waitFor(); // wait for process to complete
+      // System.err.println("finished Wait");
 
-			while (STIN.hasNext()) {
-				String in = STIN.next();
-				stIn.println(in);
-				added++;
-				if (verbose && added % 10000 == 0) {
-					log.reportTimeInfo("Added " + added + " from STIN");
-				}
-				// if (added >= lineBufferSize) {
-				// try {
-				//
-				// } catch (InterruptedException e) {
-				// // TODO Auto-generated catch block
-				// e.printStackTrace();
-				// }
-				// added = 0;
-				// }
-				 stIn.flush();
-			}
-			stIn.close();
-		}
-	}
+    } catch (InterruptedException e) {
+      log.reportException(e);
+      System.err.println(e); // "Can'tHappen"
+      error = true;
+    }
+    return error;
+  }
+
+  private void writeInput() {
+    new InputWriter().start();
+  }
 }
 
 // try {
@@ -510,7 +518,8 @@ public class CmdLineProcess implements Iterator<String> {
 // return line;
 // } catch (IOException e) {
 // fail = true;
-// log.reportTimeError("Could not read output stream for command " + Array.toStr(commandArray, " "));
+// log.reportTimeError("Could not read output stream for command " + Array.toStr(commandArray, "
+// "));
 // e.printStackTrace();
 // e.printStackTrace();
 // return null;

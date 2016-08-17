@@ -14,276 +14,286 @@ import htsjdk.samtools.CigarOperator;
 
 public class CigarOps {
 
-	/**
-	 * @param cigars
-	 * @return an array of {@link Cigar} ordered by their length matched to the reference
-	 */
-	public static int[] sortByRefMatchLength(Cigar[] cigars) {
-		int[] refLengthMatch = new int[cigars.length];
-		for (int i = 0; i < cigars.length; i++) {
-			int reftmp = getRefLength(cigars[i]);
-			refLengthMatch[i] = reftmp;
-		}
-		int[] order = Sort.quicksort(refLengthMatch, Sort.DESCENDING);
+  /**
+   * Break up the btop entry into Integer strings and String strings for later processing
+   * 
+   * @param btop
+   * @param log
+   * @return
+   */
+  private static String[] breakUpBtop(String btop, Logger log) {
+    ArrayList<String> btopBroken = new ArrayList<String>();
+    String currentInt = null;
+    String currentString = null;
+    for (int i = 0; i < btop.length(); i++) {
+      if (currentString != null && currentString.length() == 2) {
+        btopBroken.add(currentString);
+        currentString = null;
+      }
 
-		return order;
-	}
+      if (isInt(btop.charAt(i) + "")) {// integer representing reference match
+        if (currentString != null) {
+          if (currentString.length() != 2) {
+            String error = "Internal error, unaccounted for string breakup length";
+            log.reportTimeError(error);
+            throw new IllegalStateException(error);
+          }
+          btopBroken.add(currentString);
+          currentString = null;
+        }
+        if (currentInt == null) {
+          currentInt = "";
+        }
+        currentInt += btop.charAt(i);
+      }
 
-	public static int getRefLength(Cigar cigar) {
-		int reftmp = 0;
-		for (CigarElement cigarElement : cigar.getCigarElements()) {
-			if (cigarElement.getOperator() == CigarOperator.EQ) {
-				reftmp += cigarElement.getLength();
-			}
-		}
-		return reftmp;
-	}
+      else {
+        if (currentInt != null) {
+          btopBroken.add(currentInt);
+          currentInt = null;
+        }
+        if (currentString == null) {
+          currentString = "";
+        }
 
-	/**
-	 * @param cigars
-	 * @return String[] of the cigar representations
-	 */
-	public static String[] toStringArray(Cigar[] cigars) {
-		String[] cigarStrings = new String[cigars.length];
-		for (int i = 0; i < cigarStrings.length; i++) {
-			cigarStrings[i] = toString(cigars[i]);
-		}
-		return cigarStrings;
-	}
+        currentString += btop.charAt(i);
+      }
+    }
+    if (currentInt != null && currentString != null) {
+      String error = "Internal error, unaccounted for breakup";
+      log.reportTimeError(error);
+      throw new IllegalStateException(error);
+    }
+    if (currentInt != null) {
+      btopBroken.add(currentInt);
+    }
+    if (currentString != null) {
+      btopBroken.add(currentString);
+    }
+    return Array.toStringArray(btopBroken);
+  }
 
-	public static String toString(Cigar cigar) {
-		return cigar.toString();
-	}
+  /**
+   * @param blastResults must have the btop entry present or will fail
+   * @param initialSequencLength used to check the resulting length of the cigar string
+   * @param log
+   * @return the {@link Cigar } representation of the btop in {@link BlastResults}
+   */
+  public static Cigar convertBtopToCigar(BlastResults blastResults, int initialSequencLength,
+      Logger log) {
+    String btop = blastResults.getBtop();
+    ArrayList<CigarElement> cigarElements = new ArrayList<CigarElement>();
+    Cigar cigar = null;
 
-	public static Cigar getConstantCigar(int length, CigarOperator ci) {
-		ArrayList<CigarElement> cigarElements = new ArrayList<CigarElement>();
-		cigarElements.add(new CigarElement(length, ci));
+    if (btop == null) {
+      String error = "Blast results must contain a \"btop\" entry in order to use this function...";
+      log.reportTimeError(error);
+      throw new IllegalArgumentException(error);
+    } else if (btop.equals("NA")) {
+      cigarElements.add(new CigarElement(initialSequencLength, CigarOperator.X));
+      cigar = new Cigar(cigarElements);
+    } else {
+      if (isAllMatched(blastResults, initialSequencLength)) {// perfect alignment, completely equals
+                                                             // the reference...
+        cigarElements.add(new CigarElement(initialSequencLength, CigarOperator.EQ));
+        cigar = new Cigar(cigarElements);
+      } else if (isInt(btop)) {// partial alignment of all matching bps
+        int alignmentLength = Integer.parseInt(btop);
+        if (blastResults.getQstart() - 1 > 0) {//
+          cigarElements.add(new CigarElement(blastResults.getQstart() - 1, CigarOperator.X));
+        }
+        cigarElements.add(new CigarElement(alignmentLength, CigarOperator.EQ));
+        if (blastResults.getQstop() != initialSequencLength) {
+          cigarElements.add(
+              new CigarElement(initialSequencLength - blastResults.getQstop(), CigarOperator.X));
+        }
+        cigar = new Cigar(cigarElements);
+        if (cigar.getReadLength() != initialSequencLength) {
+          String error = "INT ONLY REP: Cigar length representation of " + cigar.getReadLength()
+              + " did not equal the query length of " + initialSequencLength;
+          error += "\n BLAST:  " + Array.toStr(blastResults.getResults());
+          error += "\n CIGAR:  " + cigar.toString();
+          log.reportTimeError(error);
+          throw new IllegalArgumentException(error);
+        }
+      } else {// has gaps and or mismatches
+        if (blastResults.getQstart() - 1 > 0) {//
+          cigarElements.add(new CigarElement(blastResults.getQstart() - 1, CigarOperator.X));
+        }
+        String[] btopBroken = breakUpBtop(btop, log);
+        for (String element : btopBroken) {
+          if (isInt(element)) {
+            cigarElements.add(new CigarElement(Integer.parseInt(element), CigarOperator.EQ));
+          } else {
+            if (element.length() == 2) {
 
-		return new Cigar(cigarElements);
-	}
+              if (element.startsWith("-")) {// query has deletion compared to ref
+                cigarElements.add(new CigarElement(1, CigarOperator.D));
+                // Insertion consumes read bases, subject = ref query= probe
 
-	/**
-	 * @param blastResults
-	 *            must have the btop entry present or will fail
-	 * @param initialSequencLength
-	 *            used to check the resulting length of the cigar string
-	 * @param log
-	 * @return the {@link Cigar } representation of the btop in {@link BlastResults}
-	 */
-	public static Cigar convertBtopToCigar(BlastResults blastResults, int initialSequencLength, Logger log) {
-		String btop = blastResults.getBtop();
-		ArrayList<CigarElement> cigarElements = new ArrayList<CigarElement>();
-		Cigar cigar = null;
+              } else if (element.endsWith("-")) {// query has insertion compared to ref
+                cigarElements.add(new CigarElement(1, CigarOperator.I));
+              } else {
+                cigarElements.add(new CigarElement(1, CigarOperator.X));
+              }
+            } else {
+              String error = "Non int btop strings were supposed to have length two..";
+              log.reportTimeError(error);
+              throw new IllegalArgumentException(error);
+            }
+          }
+        }
+        if (blastResults.getQstop() != initialSequencLength) {
+          cigarElements.add(
+              new CigarElement(initialSequencLength - blastResults.getQstop(), CigarOperator.X));
+        }
+        cigar = new Cigar(cigarElements);
+        if (cigar.getReadLength() != initialSequencLength) {
+          String error = "STRING INT REP: Cigar length representation of " + cigar.getReadLength()
+              + " did not equal the query length of " + initialSequencLength;
+          error += "\n BLAST:  " + Array.toStr(blastResults.getResults());
+          error += "\n CIGAR:  " + cigar.toString();
 
-		if (btop == null) {
-			String error = "Blast results must contain a \"btop\" entry in order to use this function...";
-			log.reportTimeError(error);
-			throw new IllegalArgumentException(error);
-		} else if (btop.equals("NA")) {
-			cigarElements.add(new CigarElement(initialSequencLength, CigarOperator.X));
-			cigar = new Cigar(cigarElements);
-		} else {
-			if (isAllMatched(blastResults, initialSequencLength)) {// perfect alignment, completely equals the reference...
-				cigarElements.add(new CigarElement(initialSequencLength, CigarOperator.EQ));
-				cigar = new Cigar(cigarElements);
-			} else if (isInt(btop)) {// partial alignment of all matching bps
-				int alignmentLength = Integer.parseInt(btop);
-				if (blastResults.getQstart() - 1 > 0) {//
-					cigarElements.add(new CigarElement(blastResults.getQstart() - 1, CigarOperator.X));
-				}
-				cigarElements.add(new CigarElement(alignmentLength, CigarOperator.EQ));
-				if (blastResults.getQstop() != initialSequencLength) {
-					cigarElements.add(new CigarElement(initialSequencLength - blastResults.getQstop(), CigarOperator.X));
-				}
-				cigar = new Cigar(cigarElements);
-				if (cigar.getReadLength() != initialSequencLength) {
-					String error = "INT ONLY REP: Cigar length representation of " + cigar.getReadLength() + " did not equal the query length of " + initialSequencLength;
-					error += "\n BLAST:  " + Array.toStr(blastResults.getResults());
-					error += "\n CIGAR:  " + cigar.toString();
-					log.reportTimeError(error);
-					throw new IllegalArgumentException(error);
-				}
-			} else {// has gaps and or mismatches
-				if (blastResults.getQstart() - 1 > 0) {//
-					cigarElements.add(new CigarElement(blastResults.getQstart() - 1, CigarOperator.X));
-				}
-				String[] btopBroken = breakUpBtop(btop, log);
-				for (int i = 0; i < btopBroken.length; i++) {
-					if (isInt(btopBroken[i])) {
-						cigarElements.add(new CigarElement(Integer.parseInt(btopBroken[i]), CigarOperator.EQ));
-					} else {
-						if (btopBroken[i].length() == 2) {
+          log.reportTimeError(error);
+          throw new IllegalArgumentException(error);
+        }
+      }
+    }
 
-							if (btopBroken[i].startsWith("-")) {// query has deletion compared to ref
-								cigarElements.add(new CigarElement(1, CigarOperator.D));
-								// Insertion consumes read bases, subject = ref query= probe
+    if (cigar != null && blastResults.getSstart() > blastResults.getSstop()) {
 
-							} else if (btopBroken[i].endsWith("-")) {// query has insertion compared to ref
-								cigarElements.add(new CigarElement(1, CigarOperator.I));
-							} else {
-								cigarElements.add(new CigarElement(1, CigarOperator.X));
-							}
-						} else {
-							String error = "Non int btop strings were supposed to have length two..";
-							log.reportTimeError(error);
-							throw new IllegalArgumentException(error);
-						}
-					}
-				}
-				if (blastResults.getQstop() != initialSequencLength) {
-					cigarElements.add(new CigarElement(initialSequencLength - blastResults.getQstop(), CigarOperator.X));
-				}
-				cigar = new Cigar(cigarElements);
-				if (cigar.getReadLength() != initialSequencLength) {
-					String error = "STRING INT REP: Cigar length representation of " + cigar.getReadLength() + " did not equal the query length of " + initialSequencLength;
-					error += "\n BLAST:  " + Array.toStr(blastResults.getResults());
-					error += "\n CIGAR:  " + cigar.toString();
+      // flip the strand of the cigar
+      List<CigarElement> cigarElementsStrandCurrent = cigar.getCigarElements();
+      ArrayList<CigarElement> cigarElementsStrandFlip = new ArrayList<CigarElement>();
+      for (int i = cigarElementsStrandCurrent.size() - 1; i >= 0; i--) {
+        cigarElementsStrandFlip.add(cigarElementsStrandCurrent.get(i));
+      }
+      // System.out.println(cigar.toString());
+      cigar = new Cigar(cigarElementsStrandFlip);
+      // System.out.println(cigar.toString());
+    }
 
-					log.reportTimeError(error);
-					throw new IllegalArgumentException(error);
-				}
-			}
-		}
+    int currentReadLength = cigar.getReadLength();
+    int currentRefLength = cigar.getPaddedReferenceLength();
+    // System.out.println(btop + "\t" + "HI1" + cigar);
 
-		if (cigar != null && blastResults.getSstart() > blastResults.getSstop()) {
+    Cigar original = cigar;
+    cigar = uniquify(cigar);
 
-			// flip the strand of the cigar
-			List<CigarElement> cigarElementsStrandCurrent = cigar.getCigarElements();
-			ArrayList<CigarElement> cigarElementsStrandFlip = new ArrayList<CigarElement>();
-			for (int i = cigarElementsStrandCurrent.size() - 1; i >= 0; i--) {
-				cigarElementsStrandFlip.add(cigarElementsStrandCurrent.get(i));
-			}
-			// System.out.println(cigar.toString());
-			cigar = new Cigar(cigarElementsStrandFlip);
-			// System.out.println(cigar.toString());
-		}
+    if (currentReadLength != cigar.getReadLength()
+        || cigar.getPaddedReferenceLength() != currentRefLength) {
+      String error =
+          "Could not properly uniqify " + original.toString() + ", came out as " + cigar.toString();
+      System.out.println(
+          currentReadLength + "\t" + cigar.getCigarElements().size() + "\t" + cigar.toString());
+      System.out.println(
+          currentReadLength + "\t" + cigar.getCigarElements().size() + "\t" + original.toString());
+      log.reportTimeError(error);
+      throw new IllegalStateException(error);
+    }
 
-		int currentReadLength = cigar.getReadLength();
-		int currentRefLength= cigar.getPaddedReferenceLength();
-		//System.out.println(btop + "\t" + "HI1" + cigar);
+    if (cigar != null && cigar.getReadLength() != initialSequencLength) {
+      String error = "Cigar length representation of " + cigar.getReadLength()
+          + " did not equal the query length of " + initialSequencLength;
+      log.reportTimeError(error);
+      throw new IllegalArgumentException(error);
+    }
 
-		Cigar original = cigar;
-		cigar = uniquify(cigar);
+    // log.reportTimeInfo("BTOP -> " + blastResults.getBtop());
+    // log.reportTimeInfo(" : CIGAR " + cigar.toString());
+    return cigar;
+  }
 
-		if (currentReadLength != cigar.getReadLength() || cigar.getPaddedReferenceLength() != currentRefLength) {
-			String error = "Could not properly uniqify " + original.toString() + ", came out as " + cigar.toString();
-			System.out.println(currentReadLength + "\t" + cigar.getCigarElements().size() + "\t" + cigar.toString());
-			System.out.println(currentReadLength + "\t" + cigar.getCigarElements().size() + "\t" + original.toString());
-			log.reportTimeError(error);
-			throw new IllegalStateException(error);
-		}
+  public static Cigar getConstantCigar(int length, CigarOperator ci) {
+    ArrayList<CigarElement> cigarElements = new ArrayList<CigarElement>();
+    cigarElements.add(new CigarElement(length, ci));
 
-		if (cigar != null && cigar.getReadLength() != initialSequencLength) {
-			String error = "Cigar length representation of " + cigar.getReadLength() + " did not equal the query length of " + initialSequencLength;
-			log.reportTimeError(error);
-			throw new IllegalArgumentException(error);
-		}
+    return new Cigar(cigarElements);
+  }
 
-		// log.reportTimeInfo("BTOP -> " + blastResults.getBtop());
-		// log.reportTimeInfo(" : CIGAR " + cigar.toString());
-		return cigar;
-	}
+  public static int getRefLength(Cigar cigar) {
+    int reftmp = 0;
+    for (CigarElement cigarElement : cigar.getCigarElements()) {
+      if (cigarElement.getOperator() == CigarOperator.EQ) {
+        reftmp += cigarElement.getLength();
+      }
+    }
+    return reftmp;
+  }
 
-	/**
-	 * @param cigar
-	 * @return a new cigar with any identical {@link CigarElement} in a row combined
-	 */
-	private static Cigar uniquify(Cigar cigar) {
-		ArrayList<CigarElement> unique = new ArrayList<CigarElement>();
-		if (cigar.getCigarElements().size() == 1) {
-			// System.out.println("HI2\t" + cigar);
-			return cigar;
-		} else {
-			// System.out.println("HI3\t" + cigar);
+  private static boolean isAllMatched(BlastResults blastResults, int initialSequencLength) {
+    return blastResults.getAlignmentLength() == initialSequencLength
+        && blastResults.getGapOpens() == 0 && blastResults.getMismatches() == 0;
+  }
 
-			int i = 1;
-			CigarElement tmp = cigar.getCigarElements().get(0);
-			while (i < cigar.getCigarElements().size()) {
-				CigarElement current = cigar.getCigarElements().get(i);
-				//System.out.println(current.getLength() + "\t" + current.getOperator());
-				i++;
-				if (tmp.getOperator() == current.getOperator()) {
-					tmp = new CigarElement(tmp.getLength() + current.getLength(), tmp.getOperator());
-				} else {
-					unique.add(tmp);
-					tmp = current;
-				}
-			}
-			unique.add(tmp);
-			return new Cigar(unique);
-		}
-	}
+  private static boolean isInt(String potentialInt) {
+    try {
+      Integer.parseInt(potentialInt);
+      return true;
+    } catch (NumberFormatException nfe) {
+      return false;
+    }
+  }
 
-	/**
-	 * Break up the btop entry into Integer strings and String strings for later processing
-	 * 
-	 * @param btop
-	 * @param log
-	 * @return
-	 */
-	private static String[] breakUpBtop(String btop, Logger log) {
-		ArrayList<String> btopBroken = new ArrayList<String>();
-		String currentInt = null;
-		String currentString = null;
-		for (int i = 0; i < btop.length(); i++) {
-			if (currentString != null && currentString.length() == 2) {
-				btopBroken.add(currentString);
-				currentString = null;
-			}
+  /**
+   * @param cigars
+   * @return an array of {@link Cigar} ordered by their length matched to the reference
+   */
+  public static int[] sortByRefMatchLength(Cigar[] cigars) {
+    int[] refLengthMatch = new int[cigars.length];
+    for (int i = 0; i < cigars.length; i++) {
+      int reftmp = getRefLength(cigars[i]);
+      refLengthMatch[i] = reftmp;
+    }
+    int[] order = Sort.quicksort(refLengthMatch, Sort.DESCENDING);
 
-			if (isInt(btop.charAt(i) + "")) {// integer representing reference match
-				if (currentString != null) {
-					if (currentString.length() != 2) {
-						String error = "Internal error, unaccounted for string breakup length";
-						log.reportTimeError(error);
-						throw new IllegalStateException(error);
-					}
-					btopBroken.add(currentString);
-					currentString = null;
-				}
-				if (currentInt == null) {
-					currentInt = "";
-				}
-				currentInt += btop.charAt(i);
-			}
+    return order;
+  }
 
-			else {
-				if (currentInt != null) {
-					btopBroken.add(currentInt);
-					currentInt = null;
-				}
-				if (currentString == null) {
-					currentString = "";
-				}
+  public static String toString(Cigar cigar) {
+    return cigar.toString();
+  }
 
-				currentString += btop.charAt(i);
-			}
-		}
-		if (currentInt != null && currentString != null) {
-			String error = "Internal error, unaccounted for breakup";
-			log.reportTimeError(error);
-			throw new IllegalStateException(error);
-		}
-		if (currentInt != null) {
-			btopBroken.add(currentInt);
-		}
-		if (currentString != null) {
-			btopBroken.add(currentString);
-		}
-		return Array.toStringArray(btopBroken);
-	}
+  /**
+   * @param cigars
+   * @return String[] of the cigar representations
+   */
+  public static String[] toStringArray(Cigar[] cigars) {
+    String[] cigarStrings = new String[cigars.length];
+    for (int i = 0; i < cigarStrings.length; i++) {
+      cigarStrings[i] = toString(cigars[i]);
+    }
+    return cigarStrings;
+  }
 
-	private static boolean isAllMatched(BlastResults blastResults, int initialSequencLength) {
-		return blastResults.getAlignmentLength() == initialSequencLength && blastResults.getGapOpens() == 0 && blastResults.getMismatches() == 0;
-	}
+  /**
+   * @param cigar
+   * @return a new cigar with any identical {@link CigarElement} in a row combined
+   */
+  private static Cigar uniquify(Cigar cigar) {
+    ArrayList<CigarElement> unique = new ArrayList<CigarElement>();
+    if (cigar.getCigarElements().size() == 1) {
+      // System.out.println("HI2\t" + cigar);
+      return cigar;
+    } else {
+      // System.out.println("HI3\t" + cigar);
 
-	private static boolean isInt(String potentialInt) {
-		try {
-			Integer.parseInt(potentialInt);
-			return true;
-		} catch (NumberFormatException nfe) {
-			return false;
-		}
-	}
+      int i = 1;
+      CigarElement tmp = cigar.getCigarElements().get(0);
+      while (i < cigar.getCigarElements().size()) {
+        CigarElement current = cigar.getCigarElements().get(i);
+        // System.out.println(current.getLength() + "\t" + current.getOperator());
+        i++;
+        if (tmp.getOperator() == current.getOperator()) {
+          tmp = new CigarElement(tmp.getLength() + current.getLength(), tmp.getOperator());
+        } else {
+          unique.add(tmp);
+          tmp = current;
+        }
+      }
+      unique.add(tmp);
+      return new Cigar(unique);
+    }
+  }
 
 }

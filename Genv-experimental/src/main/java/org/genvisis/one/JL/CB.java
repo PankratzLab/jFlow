@@ -5,32 +5,32 @@ import java.util.concurrent.Callable;
 
 
 public abstract class CB<E, T> implements Callable<T> {
-	private int bufferSize;
-	private ArrayList<E> buffer;
+  private final int bufferSize;
+  private final ArrayList<E> buffer;
 
-	public CB(int bufferSize) {
-		this.bufferSize = bufferSize;
-		this.buffer = new ArrayList<E>(bufferSize);
-	}
+  public CB(int bufferSize) {
+    this.bufferSize = bufferSize;
+    this.buffer = new ArrayList<E>(bufferSize);
+  }
 
-	public void addToBuffer(final E e) {
-		buffer.add(e);
-	}
+  public void addToBuffer(final E e) {
+    buffer.add(e);
+  }
 
-	public void clearBuffer() {
-		buffer.clear();
-	}
+  public void clearBuffer() {
+    buffer.clear();
+  }
 
-	public int getBufferSize() {
-		return bufferSize;
-	}
+  public ArrayList<E> getBuffer() {
+    return buffer;
+  }
 
-	public boolean isFull() {
-		return bufferSize == buffer.size();
-	}
+  public int getBufferSize() {
+    return bufferSize;
+  }
 
-	public ArrayList<E> getBuffer() {
-		return buffer;
-	}
+  public boolean isFull() {
+    return bufferSize == buffer.size();
+  }
 
 }

@@ -18,162 +18,163 @@ import org.genvisis.common.Logger;
  *
  */
 public class RAOWriter {
-	public static String RAO_EXT = ".rao";
-	public static String RAO_INDEX_EXT = ".idx";
-	private String fullPathToFile;
-	private long offset;
-	private RandomAccessProducer rProducer;
-	private RandomAccessFile file;
-	//private FileOutputStream fos;
-	private RAOIndex index;
-	private OutputStream os;
-	private Logger log;
+  public interface RandomAccessProducer extends Iterator<RAObject> {
 
-	/**
-	 * @param fullPathToFile
-	 *            where the {@link RAObject } objects will be stored, must end with {@link RAOWriter#RAO_EXT}
-	 * @param rProducer
-	 *            dishes up {@link RAObject } objects to be serialized, compressed, and written
-	 * @param log
-	 */
-	public RAOWriter(String fullPathToFile, RandomAccessProducer rProducer, Logger log) {
-		super();
-		this.fullPathToFile = fullPathToFile;
-		this.index = getIndex();
-		this.rProducer = rProducer;
-		this.log = log;
-		this.offset = 0;
-	}
+  }
+  /**
+   * Stores the write status from the {@link RAOWriter#writeToFile()} method
+   *
+   */
+  public static class WriteComplete {
+    private String dataFile;
+    private String indexFile;
+    private boolean written;
 
-	public RAOWriter(String fullPathToFile, Logger log) throws IOException {
-		this.fullPathToFile = fullPathToFile;
-		this.file = new RandomAccessFile(fullPathToFile, "rw");
-		this.os = new FileOutputStream(file.getFD());
-		// this.os = new GZIPOutputStream(fos);
-		this.index = getIndex();
-		this.log = log;
-		this.offset = 0;
-	}
+    public WriteComplete(String dataFile, String indexFile, boolean written) {
+      super();
+      this.dataFile = dataFile;
+      this.indexFile = indexFile;
+      this.written = written;
+    }
 
-	public void close() throws IOException {
-		os.close();
-		// fos.close();
-		file.close();
-		index.serialize();
-	}
+    public String getDataFile() {
+      return dataFile;
+    }
 
-	public void add(RAObject raObject) throws IOException {
-		offset += addObject(raObject);
-	}
+    public String getIndexFile() {
+      return indexFile;
+    }
 
-	private RAOIndex getIndex() {
-		String indexFile = fullPathToFile + RAO_INDEX_EXT;
-		return new RAOIndex(indexFile, new Hashtable<String, ArrayList<Long>>());
-	}
+    public boolean getWritten() {
+      return written;
+    }
 
-	public WriteComplete writeToFile() {
-		WriteComplete writeComplete = new WriteComplete(fullPathToFile, fullPathToFile + RAO_INDEX_EXT, false);
-		if (!fullPathToFile.endsWith(RAO_EXT)) {
-			String error = "Invalid file extension, " + fullPathToFile + " must end with " + RAO_EXT;
-			log.reportTimeError(error);
-		} else {
-			try {
-				RandomAccessFile file = new RandomAccessFile(fullPathToFile, "rw");
-				FileOutputStream fos = new FileOutputStream(file.getFD());
-				GZIPOutputStream gos = new GZIPOutputStream(fos);
-				index = writeToFile(gos, index);
-				index.serialize();
-				fos.close();
-				file.close();
-				writeComplete.setWritten(true);
-			} catch (FileNotFoundException e) {
-				log.reportFileNotFound(fullPathToFile);
-				log.reportException(e);
-				e.printStackTrace();
-			} catch (IOException e) {
-				log.reportException(e);
-				e.printStackTrace();
-			}
+    public void setDataFile(String dataFile) {
+      this.dataFile = dataFile;
+    }
 
-		}
-		return writeComplete;
-	}
+    public void setIndexFile(String indexFile) {
+      this.indexFile = indexFile;
+    }
 
-	private RAOIndex writeToFile(OutputStream fos, RAOIndex index) throws IOException {
-		while (rProducer.hasNext()) {
-			offset += addObject(rProducer.next());
-		}
-		return index;
-	}
+    public void setWritten(boolean written) {
+      this.written = written;
+    }
 
-	private long addObject(RAObject rObject) throws IOException {
-		String[] indexKeys = rObject.getIndexKeys();
-		for (int i = 0; i < indexKeys.length; i++) {
-			if (!index.getIndex().containsKey(indexKeys[i])) {
-				index.getIndex().put(indexKeys[i], new ArrayList<Long>());
-			}
-		}
-		ByteArrayOutputStream bos = RAOExt.convertAndCompress(rObject);
-		os.write(bos.toByteArray());
-		bos.close();
-		long size = (long) bos.size();
-		if (size > index.getMaxSize()) {
-			index.setMaxSize(index.getMaxSize() + size + 1);
-		}
-		if (offset % 10000 == 0) {
-			System.out.println(offset + "\t" + size + "\t" + bos.size());
-		}
+  }
 
-		for (int i = 0; i < indexKeys.length; i++) {
-			index.getIndex().get(indexKeys[i]).add(offset);
-		}
-		return size;
-	}
+  public static String RAO_EXT = ".rao";
+  public static String RAO_INDEX_EXT = ".idx";
+  private final String fullPathToFile;
+  private long offset;
+  private RandomAccessProducer rProducer;
+  private RandomAccessFile file;
+  // private FileOutputStream fos;
+  private RAOIndex index;
 
-	public interface RandomAccessProducer extends Iterator<RAObject> {
+  private OutputStream os;
 
-	}
+  private final Logger log;
 
-	/**
-	 * Stores the write status from the {@link RAOWriter#writeToFile()} method
-	 *
-	 */
-	public static class WriteComplete {
-		private String dataFile;
-		private String indexFile;
-		private boolean written;
+  public RAOWriter(String fullPathToFile, Logger log) throws IOException {
+    this.fullPathToFile = fullPathToFile;
+    file = new RandomAccessFile(fullPathToFile, "rw");
+    os = new FileOutputStream(file.getFD());
+    // this.os = new GZIPOutputStream(fos);
+    index = getIndex();
+    this.log = log;
+    offset = 0;
+  }
 
-		public WriteComplete(String dataFile, String indexFile, boolean written) {
-			super();
-			this.dataFile = dataFile;
-			this.indexFile = indexFile;
-			this.written = written;
-		}
+  /**
+   * @param fullPathToFile where the {@link RAObject } objects will be stored, must end with
+   *        {@link RAOWriter#RAO_EXT}
+   * @param rProducer dishes up {@link RAObject } objects to be serialized, compressed, and written
+   * @param log
+   */
+  public RAOWriter(String fullPathToFile, RandomAccessProducer rProducer, Logger log) {
+    super();
+    this.fullPathToFile = fullPathToFile;
+    index = getIndex();
+    this.rProducer = rProducer;
+    this.log = log;
+    offset = 0;
+  }
 
-		public String getDataFile() {
-			return dataFile;
-		}
+  public void add(RAObject raObject) throws IOException {
+    offset += addObject(raObject);
+  }
 
-		public void setDataFile(String dataFile) {
-			this.dataFile = dataFile;
-		}
+  private long addObject(RAObject rObject) throws IOException {
+    String[] indexKeys = rObject.getIndexKeys();
+    for (int i = 0; i < indexKeys.length; i++) {
+      if (!index.getIndex().containsKey(indexKeys[i])) {
+        index.getIndex().put(indexKeys[i], new ArrayList<Long>());
+      }
+    }
+    ByteArrayOutputStream bos = RAOExt.convertAndCompress(rObject);
+    os.write(bos.toByteArray());
+    bos.close();
+    long size = bos.size();
+    if (size > index.getMaxSize()) {
+      index.setMaxSize(index.getMaxSize() + size + 1);
+    }
+    if (offset % 10000 == 0) {
+      System.out.println(offset + "\t" + size + "\t" + bos.size());
+    }
 
-		public String getIndexFile() {
-			return indexFile;
-		}
+    for (String indexKey : indexKeys) {
+      index.getIndex().get(indexKey).add(offset);
+    }
+    return size;
+  }
 
-		public void setIndexFile(String indexFile) {
-			this.indexFile = indexFile;
-		}
+  public void close() throws IOException {
+    os.close();
+    // fos.close();
+    file.close();
+    index.serialize();
+  }
 
-		public boolean getWritten() {
-			return written;
-		}
+  private RAOIndex getIndex() {
+    String indexFile = fullPathToFile + RAO_INDEX_EXT;
+    return new RAOIndex(indexFile, new Hashtable<String, ArrayList<Long>>());
+  }
 
-		public void setWritten(boolean written) {
-			this.written = written;
-		}
+  public WriteComplete writeToFile() {
+    WriteComplete writeComplete =
+        new WriteComplete(fullPathToFile, fullPathToFile + RAO_INDEX_EXT, false);
+    if (!fullPathToFile.endsWith(RAO_EXT)) {
+      String error = "Invalid file extension, " + fullPathToFile + " must end with " + RAO_EXT;
+      log.reportTimeError(error);
+    } else {
+      try {
+        RandomAccessFile file = new RandomAccessFile(fullPathToFile, "rw");
+        FileOutputStream fos = new FileOutputStream(file.getFD());
+        GZIPOutputStream gos = new GZIPOutputStream(fos);
+        index = writeToFile(gos, index);
+        index.serialize();
+        fos.close();
+        file.close();
+        writeComplete.setWritten(true);
+      } catch (FileNotFoundException e) {
+        log.reportFileNotFound(fullPathToFile);
+        log.reportException(e);
+        e.printStackTrace();
+      } catch (IOException e) {
+        log.reportException(e);
+        e.printStackTrace();
+      }
 
-	}
+    }
+    return writeComplete;
+  }
+
+  private RAOIndex writeToFile(OutputStream fos, RAOIndex index) throws IOException {
+    while (rProducer.hasNext()) {
+      offset += addObject(rProducer.next());
+    }
+    return index;
+  }
 
 }

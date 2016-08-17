@@ -10,42 +10,43 @@ import java.io.Reader;
  */
 public class FileParser extends BufferedReader {
 
-	protected String separator;
-	protected Logger log;
+  public static class Builder<T extends Builder<T>> {
+    private Logger log = null;
+    private String separator = "\t";
 
-	public String[] readLineArray() throws IOException {
-		return readLine().trim().split(separator);
-	}
+    public FileParser build(Reader in) {
+      return new FileParser(this, in);
+    }
 
-	public static class Builder<T extends Builder<T>> {
-		private Logger log = null;
-		private String separator = "\t";
+    @SuppressWarnings("unchecked")
+    public T log(Logger log) {
+      this.log = log;
+      return (T) this;
+    }
 
-		@SuppressWarnings("unchecked")
-		public T log(Logger log) {
-			this.log = log;
-			return (T) this;
-		}
+    @SuppressWarnings("unchecked")
+    public T separator(String separator) {
+      this.separator = separator;
+      return (T) this;
+    }
+  }
 
-		@SuppressWarnings("unchecked")
-		public T separator(String separator) {
-			this.separator = separator;
-			return (T) this;
-		}
+  protected String separator;
 
-		public FileParser build(Reader in) {
-			return new FileParser(this, in);
-		}
-	}
+  protected Logger log;
 
-	protected FileParser(@SuppressWarnings("rawtypes") Builder builder, Reader in) {
-		super(in);
-		this.log = builder.log == null ? new Logger() : builder.log;
-		this.separator = builder.separator;
-	}
+  protected FileParser(@SuppressWarnings("rawtypes") Builder builder, Reader in) {
+    super(in);
+    log = builder.log == null ? new Logger() : builder.log;
+    separator = builder.separator;
+  }
 
-	public String getSeparator() {
-		return separator;
-	}
+  public String getSeparator() {
+    return separator;
+  }
+
+  public String[] readLineArray() throws IOException {
+    return readLine().trim().split(separator);
+  }
 
 }

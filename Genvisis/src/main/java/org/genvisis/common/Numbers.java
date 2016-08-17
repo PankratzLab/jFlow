@@ -6,15 +6,15 @@ package org.genvisis.common;
  */
 public final class Numbers {
 
-	private Numbers() {
-		// prevent instantiation of static utility class
-	}
+  public static boolean isFinite(Double d) {
+    return !d.isInfinite() && !d.isNaN();
+  }
 
-	public static boolean isFinite(Double d) {
-		return !d.isInfinite() && !d.isNaN();
-	}
+  public static boolean isFinite(Float f) {
+    return !f.isInfinite() && !f.isNaN();
+  }
 
-	public static boolean isFinite(Float f) {
-		return !f.isInfinite() && !f.isNaN();
-	}
+  private Numbers() {
+    // prevent instantiation of static utility class
+  }
 }

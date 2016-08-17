@@ -7,39 +7,41 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.filesys.GeneTrack;
 
 public class GenomeRegions implements Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private GeneTrack geneTrack;
-	private Pathways pathways;
-	private Logger log;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
-	public GenomeRegions(GeneTrack geneTrack, Pathways pathways, Logger log) {
-		super();
-		this.geneTrack = geneTrack;
-		this.pathways = pathways;
-		this.log = log;
-	}
+  public static GenomeRegions load(String filename) {
+    return (GenomeRegions) SerializedFiles.readSerial(filename, false, false);
+  }
 
-	public Logger getLog() {
-		return log;
-	}
+  private final GeneTrack geneTrack;
+  private final Pathways pathways;
 
-	public GeneTrack getGeneTrack() {
-		return geneTrack;
-	}
+  private final Logger log;
 
-	public Pathways getPathways() {
-		return pathways;
-	}
+  public GenomeRegions(GeneTrack geneTrack, Pathways pathways, Logger log) {
+    super();
+    this.geneTrack = geneTrack;
+    this.pathways = pathways;
+    this.log = log;
+  }
 
-	public void serialize(String filename) {
-		SerializedFiles.writeSerial(this, filename);
-	}
+  public GeneTrack getGeneTrack() {
+    return geneTrack;
+  }
 
-	public static GenomeRegions load(String filename) {
-		return (GenomeRegions) SerializedFiles.readSerial(filename, false, false);
-	}
+  public Logger getLog() {
+    return log;
+  }
+
+  public Pathways getPathways() {
+    return pathways;
+  }
+
+  public void serialize(String filename) {
+    SerializedFiles.writeSerial(this, filename);
+  }
 
 }

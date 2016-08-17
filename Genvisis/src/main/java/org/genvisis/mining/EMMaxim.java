@@ -1,5 +1,5 @@
 package org.genvisis.mining;
 
-public class EMMaxim  {
-	
+public class EMMaxim {
+
 }

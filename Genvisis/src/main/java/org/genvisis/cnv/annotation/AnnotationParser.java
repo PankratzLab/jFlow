@@ -11,26 +11,26 @@ import htsjdk.variant.variantcontext.VariantContext;
  */
 public interface AnnotationParser {
 
-	/**
-	 * So that promiscuous methods can parse from an {@link AnnotationQuery} and {@link VariantContext}
-	 * 
-	 */
-	public void parseAnnotation(VariantContext vc, Logger log);
+  /**
+   * @return whether the annotation was found or not
+   */
+  public boolean isFound();
 
-	/**
-	 * @param vc
-	 * @return true if to use this {@link VariantContext } for parsing
-	 */
-	public boolean shouldAnnotateWith(VariantContext vc, Logger log);
+  /**
+   * So that promiscuous methods can parse from an {@link AnnotationQuery} and
+   * {@link VariantContext}
+   * 
+   */
+  public void parseAnnotation(VariantContext vc, Logger log);
 
-	/**
-	 * @param found
-	 *            can be used to store whether this annotation was found in an annotation file
-	 */
-	public void setFound(boolean found);
+  /**
+   * @param found can be used to store whether this annotation was found in an annotation file
+   */
+  public void setFound(boolean found);
 
-	/**
-	 * @return whether the annotation was found or not
-	 */
-	public boolean isFound();
+  /**
+   * @param vc
+   * @return true if to use this {@link VariantContext } for parsing
+   */
+  public boolean shouldAnnotateWith(VariantContext vc, Logger log);
 }
