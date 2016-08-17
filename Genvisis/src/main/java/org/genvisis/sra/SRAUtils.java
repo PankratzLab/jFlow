@@ -58,9 +58,9 @@ public class SRAUtils {
       command.add(outputBam);
 
       String[] bat = CmdLine.prepareBatchForCommandLine(Array.toStringArray(command),
-                                                        outputBam + ".bat", true, log);
+          outputBam + ".bat", true, log);
       return CmdLine.runCommandWithFileChecks(bat, "", inputs, outputs, true, false, false, false,
-                                              log);
+          log);
     }
 
 
@@ -123,8 +123,8 @@ public class SRAUtils {
 
     String usage =
         "\n" + " SRAUtils requires 0-1 arguments\n" + "   (1) SRA directory (i.e. sraDir=" + sraDir
-                   + " (default))\n" + "   (2) out directory (i.e. outDir=" + outDir
-                   + " (default))\n" + PSF.Ext.getNumThreadsCommand(3, threads) + "";
+            + " (default))\n" + "   (2) out directory (i.e. outDir=" + outDir + " (default))\n"
+            + PSF.Ext.getNumThreadsCommand(3, threads) + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

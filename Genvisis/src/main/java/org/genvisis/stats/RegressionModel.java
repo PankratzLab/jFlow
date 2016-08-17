@@ -17,7 +17,7 @@ import org.genvisis.common.ext;
 
 public abstract class RegressionModel {
   public static RegressionModel determineAppropriate(double[] deps, double[] indeps,
-                                                     boolean bypassDataCheck, boolean verbose) {
+      boolean bypassDataCheck, boolean verbose) {
     double[][] newIndeps = new double[indeps.length][1];
 
     for (int i = 0; i < indeps.length; i++) {
@@ -28,7 +28,7 @@ public abstract class RegressionModel {
   }
 
   public static RegressionModel determineAppropriate(double[] deps, double[][] indeps,
-                                                     boolean bypassDataCheck, boolean verbose) {
+      boolean bypassDataCheck, boolean verbose) {
     Vector<String> depCount = new Vector<String>();
 
     for (int i = 0; i < deps.length && depCount.size() <= 2; i++) {
@@ -38,7 +38,7 @@ public abstract class RegressionModel {
     }
 
     return depCount.size() == 2 ? new LogisticRegression(deps, indeps, bypassDataCheck, verbose)
-                                : new LeastSquares(deps, indeps, bypassDataCheck, verbose);
+        : new LeastSquares(deps, indeps, bypassDataCheck, verbose);
   }
 
   public static String[] getIDsWithCompleteData(String filename, boolean alsoUseFamID, Logger log) {
@@ -62,8 +62,8 @@ public abstract class RegressionModel {
         line = reader.readLine().split(delimiter);
         if (line.length != numElements) {
           System.err.println("Error - mismatched number of elements for ID '" + line[0]
-                             + "' (expecting " + numElements + ", found " + line.length
-                             + "); check delimiter or for trailing whitespace");
+              + "' (expecting " + numElements + ", found " + line.length
+              + "); check delimiter or for trailing whitespace");
         }
         use = true;
         for (int i = 1; i < line.length; i++) {
@@ -91,7 +91,8 @@ public abstract class RegressionModel {
     boolean[] use;
 
     if (deps == null || indeps == null || deps.length != indeps.length) {
-      log.reportError("Error - cannot determine rows with compelte data since the deps length and the indeps length are not equal");
+      log.reportError(
+          "Error - cannot determine rows with compelte data since the deps length and the indeps length are not equal");
       return new boolean[] {};
     }
 
@@ -112,7 +113,7 @@ public abstract class RegressionModel {
 
   public static boolean[] getRowsWithCompleteData(String[] deps, String[][] indeps, Logger log) {
     return getRowsWithCompleteData(Array.toDoubleArray(deps, true),
-                                   Array.toDoubleArrays(indeps, true), log);
+        Array.toDoubleArrays(indeps, true), log);
   }
 
   public static boolean isBinaryTrait(String[] pheno, Logger log) {
@@ -138,14 +139,16 @@ public abstract class RegressionModel {
     }
 
     if (hash.size() == 3 && hash.containsKey("0")) {
-      log.report("Warning - phenotype would be binary, if it weren't for the zero values; not flagged for logistic");
+      log.report(
+          "Warning - phenotype would be binary, if it weren't for the zero values; not flagged for logistic");
     }
 
     if (hash.size() == 2) {
       keys = HashVec.getKeys(hash);
       diff = Double.parseDouble(keys[0]) - Double.parseDouble(keys[1]);
       if (Math.abs(diff) != 1) {
-        log.reportError("Error - only two values, but they are not consecutive integers; not flagged for logistic");
+        log.reportError(
+            "Error - only two values, but they are not consecutive integers; not flagged for logistic");
         return false;
       }
     }
@@ -265,12 +268,12 @@ public abstract class RegressionModel {
 
     if (verbose) {
       if (countNoDeps > 0) {
-        log.reportError(countNoDeps
-                        + " individuals were dropped because they lacked the dependent variable");
+        log.reportError(
+            countNoDeps + " individuals were dropped because they lacked the dependent variable");
       }
       if (countNoIndeps > 0) {
         log.reportError(countNoIndeps
-                        + " individuals were dropped because they lacked at least one independent variable");
+            + " individuals were dropped because they lacked at least one independent variable");
       }
     }
 
@@ -308,13 +311,15 @@ public abstract class RegressionModel {
     }
     if (logistic) {
       if (hash.size() > 2) {
-        log.reportError("Error in logistic regression - Dependent variables must be 2 and no more than 2 consecutive integers");
+        log.reportError(
+            "Error in logistic regression - Dependent variables must be 2 and no more than 2 consecutive integers");
         return false;
       }
       keys = HashVec.getKeys(hash);
       diff = Double.parseDouble(keys[0]) - Double.parseDouble(keys[1]);
       if (Math.abs(diff) != 1) {
-        log.reportError("Error in logistic regression - Dependent variables must be 2 and no more than 2 consecutive integers");
+        log.reportError(
+            "Error in logistic regression - Dependent variables must be 2 and no more than 2 consecutive integers");
         return false;
       }
 
@@ -338,7 +343,7 @@ public abstract class RegressionModel {
       if (hash.size() < 2) {
         if (verbose) {
           log.reportError("No variance in independent variable number " + (j + 1)
-                          + "; collapsing and ignoring");
+              + "; collapsing and ignoring");
         }
         oldIndeps = indeps.clone();
         indeps = new double[oldIndeps.length][oldIndeps[0].length - 1];
@@ -591,7 +596,7 @@ public abstract class RegressionModel {
   public void setVarNames(String[] names) {
     if (names.length != M) {
       System.err.println("Error naming independent variables: " + M + " variables, and "
-                         + names.length + " names");
+          + names.length + " names");
       return;
     }
     varNames = new String[M + 1];

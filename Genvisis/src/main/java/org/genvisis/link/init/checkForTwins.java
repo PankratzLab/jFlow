@@ -139,7 +139,7 @@ public class checkForTwins {
       st = new StringTokenizer(famSt.nextToken(), "#");
       st.nextToken();
       writer.println("\t" + st.nextToken() + "\t" + counts[0] + "\t" + counts[1] + "\t"
-                     + ((double) counts[0] / (double) counts[1]));
+          + ((double) counts[0] / (double) counts[1]));
     }
 
     writer.close();

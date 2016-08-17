@@ -102,7 +102,7 @@ public class PlinkSeqUtils {
         if (header != null) {
           int locusIndex = ext.indexOfStr(HEADER[0], header);
           return HashVec.loadFileToStringArray(resultsFile, true, new int[] {locusIndex},
-                                               true).length;
+              true).length;
         } else {
           return 0;
         }
@@ -225,8 +225,7 @@ public class PlinkSeqUtils {
                     }
                   }
                   locSummaries.get(locSummaries.size() - 1).addTest(curLoc, pos, nvar,
-                                                                    type.toString(), p, i, alias,
-                                                                    desc, type, log);
+                      type.toString(), p, i, alias, desc, type, log);
 
                 } catch (NumberFormatException nfe) {
                   log.reportTimeInfo("Invalid number on line " + Array.toStr(line));
@@ -269,7 +268,7 @@ public class PlinkSeqUtils {
     }
 
     public void addTest(String alocus, String apos, int aNVAR, String test, double P, double I,
-                        String aAlias, String desc, BURDEN_Tests type, Logger log) {
+        String aAlias, String desc, BURDEN_Tests type, Logger log) {
       if (!locus.equals(alocus) || !pos.equals(apos) || aNVAR != NVAR || !alias.equals(aAlias)) {
         log.reportTimeError("Mismatched tests being added...");
         log.reportTimeError(locus + "->" + alocus);
@@ -457,7 +456,8 @@ public class PlinkSeqUtils {
           if (line.startsWith("##")) {
             String[] phenoLine = line.split(",");
             if (phenoLine.length != 4) {
-              log.reportTimeError("Phenotype lines starting with ## must have 4 comma-delimited entries");
+              log.reportTimeError(
+                  "Phenotype lines starting with ## must have 4 comma-delimited entries");
               return null;
             } else {
               phenotypes.add(new PseqPhenoTypes(phenoLine, log));
@@ -489,7 +489,7 @@ public class PlinkSeqUtils {
     private final Logger log;
 
     public PseqPhenoTypes(String name, String type, String missingValue, String description,
-                          Logger log) {
+        Logger log) {
       super();
       this.name = name;
       this.type = type;
@@ -526,7 +526,7 @@ public class PlinkSeqUtils {
 
   public static class PseqProject extends Properties implements Serializable {
     public static enum PROPERTIES {
-                                   PROJN, OUTPUT, RESOURCES, METAMETA, VARDB, INDDB, LOCDB, REFDB, SEQDB, VCF
+      PROJN, OUTPUT, RESOURCES, METAMETA, VARDB, INDDB, LOCDB, REFDB, SEQDB, VCF
     }
 
     /**
@@ -541,7 +541,7 @@ public class PlinkSeqUtils {
     private final PseqPhenoTypes[] phenotypes;
 
     public PseqProject(String filename, String[] vcfs, String phenoFile, String resourceDirectory,
-                       Logger log) {
+        Logger log) {
       super();
       this.filename = filename;
       projectName = ext.rootOf(filename);
@@ -649,9 +649,9 @@ public class PlinkSeqUtils {
       writer.println("#CHR\tPOS1\tPOS2\tID");
       for (GeneData[] gData : gDatas) {
         for (int j = 0; j < gData.length; j++) {
-          writer.println(Positions.getChromosomeUCSC(gData[j].getChr(), true) + "\t"
-                         + gData[j].getStart() + "\t" + gData[j].getStop() + "\t"
-                         + gData[j].getGeneName() + GENVISIS_GENE);
+          writer.println(
+              Positions.getChromosomeUCSC(gData[j].getChr(), true) + "\t" + gData[j].getStart()
+                  + "\t" + gData[j].getStop() + "\t" + gData[j].getGeneName() + GENVISIS_GENE);
         }
       }
       // }

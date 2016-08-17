@@ -20,9 +20,9 @@ public class Dump {
       mkData = TransposeData.loadFromRAF(filename, indicesOfMarkersToDump);
       for (MarkerData element : mkData) {
         element.dump(null,
-                     ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump_"
-                           + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".xln",
-                     null, false, log);
+            ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump_"
+                + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".xln",
+            null, false, log);
       }
     } catch (Exception e) {
       log.reportError("Error dumping data from " + filename + " to a textfile");
@@ -39,11 +39,9 @@ public class Dump {
       byte[] chrs = set.getChrs();
       int[] positions = set.getPositions();
 
-      writer =
-          new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename) + ext.rootOf(filename)
-                                         + "_dump_" + "_" + set.getFingerprint()
-                                         + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()))
-                                         + ".xln"));
+      writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename)
+          + ext.rootOf(filename) + "_dump_" + "_" + set.getFingerprint()
+          + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".xln"));
       writer.println("MarkerName\tChr\tPosition");
       for (int i = 0; i < markerNames.length; i++) {
         writer.println(markerNames[i] + "\t" + chrs[i] + "\t" + positions[i]);
@@ -71,26 +69,20 @@ public class Dump {
       byte[] forwardGenotypes = samp.getForwardGenotypes();
       byte[] abGenotypes = samp.getAB_Genotypes();
 
-      writer =
-          new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename) + ext.rootOf(filename)
-                                         + "_dump_" + samp.getFingerprint() + ".xln"));
+      writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename)
+          + ext.rootOf(filename) + "_dump_" + samp.getFingerprint() + ".xln"));
       writer.println((xs == null ? "" : "X") + (ys == null ? "" : "\tY")
-                     + (thetas == null ? "" : "\tTheta") + (rs == null ? "" : "\tR")
-                     + (bafs == null ? "" : "\tBAF") + (lrrs == null ? "" : "\tLRR")
-                     + (gcs == null ? "" : "\tGC_score")
-                     + (abGenotypes == null ? "" : "\tAB_Genotypes")
-                     + (forwardGenotypes == null ? "" : "\tForward_Genotypes"));
+          + (thetas == null ? "" : "\tTheta") + (rs == null ? "" : "\tR")
+          + (bafs == null ? "" : "\tBAF") + (lrrs == null ? "" : "\tLRR")
+          + (gcs == null ? "" : "\tGC_score") + (abGenotypes == null ? "" : "\tAB_Genotypes")
+          + (forwardGenotypes == null ? "" : "\tForward_Genotypes"));
       for (int i = 0; i < samp.getDataLength(); i++) {
         writer.println((xs == null ? "" : xs[i]) + (ys == null ? "" : "\t" + ys[i])
-                       + (thetas == null ? "" : "\t" + thetas[i]) + (rs == null ? "" : "\t" + rs[i])
-                       + (bafs == null ? "" : "\t" + bafs[i]) + (lrrs == null ? "" : "\t" + lrrs[i])
-                       + (gcs == null ? "" : "\t" + gcs[i])
-                       + (abGenotypes == null ? ""
-                                              : "\t" + (abGenotypes[i] == -1 ? "--"
-                                                                             : Sample.AB_PAIRS[abGenotypes[i]]))
-                       + (forwardGenotypes == null ? ""
-                                                   : "\t"
-                                                     + Sample.ALLELE_PAIRS[forwardGenotypes[i]]));
+            + (thetas == null ? "" : "\t" + thetas[i]) + (rs == null ? "" : "\t" + rs[i])
+            + (bafs == null ? "" : "\t" + bafs[i]) + (lrrs == null ? "" : "\t" + lrrs[i])
+            + (gcs == null ? "" : "\t" + gcs[i]) + (abGenotypes == null ? ""
+                : "\t" + (abGenotypes[i] == -1 ? "--" : Sample.AB_PAIRS[abGenotypes[i]]))
+            + (forwardGenotypes == null ? "" : "\t" + Sample.ALLELE_PAIRS[forwardGenotypes[i]]));
       }
       writer.close();
     } catch (Exception e) {
@@ -112,7 +104,7 @@ public class Dump {
     String[] commandTemp;
 
     String usage = "\n" + "cnv.filesys.Dump requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -143,9 +135,8 @@ public class Dump {
       } else if (filename.endsWith(MarkerData.MARKER_DATA_FILE_EXTENSION)) {
         dumpMdRaf(filename, indicesOfMarkersToDump, new Logger());
       } else if (filename.endsWith("outliers.ser")) {
-        Sample.dumpOutOfRangeValues(filename, ext.parseDirectoryOfFile(filename)
-                                              + ext.rootOf(filename) + "_dump.xln",
-                                    false);
+        Sample.dumpOutOfRangeValues(filename,
+            ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump.xln", false);
       } else {
         System.err.println("Error - unrecongized file type: " + filename);
       }

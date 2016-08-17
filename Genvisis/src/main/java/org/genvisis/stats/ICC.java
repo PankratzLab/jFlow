@@ -142,8 +142,9 @@ public class ICC implements Serializable {
 
   public static void test() {
     try {
-      BufferedReader in =
-          new BufferedReader(new InputStreamReader(new URL("http://www.uvm.edu/~dhowell/StatPages/More_Stuff/icc/PartnerCorr.dat").openStream()));
+      BufferedReader in = new BufferedReader(new InputStreamReader(
+          new URL("http://www.uvm.edu/~dhowell/StatPages/More_Stuff/icc/PartnerCorr.dat")
+              .openStream()));
       int lines = 0;
       while (in.ready()) {
         lines++;
@@ -153,7 +154,9 @@ public class ICC implements Serializable {
       in.close();
       String[] response = new String[lines * 2];
       double[] data = new double[lines * 2];
-      in = new BufferedReader(new InputStreamReader(new URL("http://www.uvm.edu/~dhowell/StatPages/More_Stuff/icc/PartnerCorr.dat").openStream()));
+      in = new BufferedReader(new InputStreamReader(
+          new URL("http://www.uvm.edu/~dhowell/StatPages/More_Stuff/icc/PartnerCorr.dat")
+              .openStream()));
       int index = 0;
       int count = 1;
       while (in.ready()) {
@@ -249,7 +252,7 @@ public class ICC implements Serializable {
    *        Note : must call {@link ICC#computeICC()} to compute the ICC
    */
   public ICC(double[] initData, String[] response, String[] maskedResponses,
-             String[] onlyTheseResponses, boolean verbose, Logger log) {
+      String[] onlyTheseResponses, boolean verbose, Logger log) {
     super();
     parsedData = initData;
     this.log = log;
@@ -284,8 +287,8 @@ public class ICC implements Serializable {
       }
     }
     if (verbose) {
-      System.out.println("Between Rows\tSS: " + MSBetween + "\tMS: "
-                         + (MSBetween / (rowEffects.length - 1)));
+      System.out.println(
+          "Between Rows\tSS: " + MSBetween + "\tMS: " + (MSBetween / (rowEffects.length - 1)));
     }
     MSBetween /= (rowEffects.length - 1);
   }
@@ -298,8 +301,8 @@ public class ICC implements Serializable {
       }
     }
     if (verbose) {
-      System.out.println("Within Rows\tSS: " + MSWithin + "\tMS: "
-                         + (MSWithin / (rowEffects.length)));
+      System.out
+          .println("Within Rows\tSS: " + MSWithin + "\tMS: " + (MSWithin / (rowEffects.length)));
     }
     MSWithin /= (nTotal - rowEffects.length);
     // MSWithin /= rowEffects.length;
@@ -424,10 +427,10 @@ public class ICC implements Serializable {
         }
         rowEffects[i] = new ResponseEffect(currentLabel, tmpdata);
         if ((!rowEffects[i].isValid() || rowEffects[i].getN() < 2) && verbose) {
-          log.reportError("Error - data for class " + currentLabel + " containing "
-                          + rowEffects[i].getN() + " "
-                          + (rowEffects[i].getN() == 1 ? "data point is " : "data points are")
-                          + " not valid , will not include in the ICC");
+          log.reportError(
+              "Error - data for class " + currentLabel + " containing " + rowEffects[i].getN() + " "
+                  + (rowEffects[i].getN() == 1 ? "data point is " : "data points are")
+                  + " not valid , will not include in the ICC");
         } else {
           numValidClasses++;
         }

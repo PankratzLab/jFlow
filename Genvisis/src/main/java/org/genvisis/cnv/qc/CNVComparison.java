@@ -28,8 +28,8 @@ public class CNVComparison {
   // TODO undefined sampleQCFile, or missing QC info
 
   public CNVComparison(CNVariantQC[][] unfilteredcnvsQCs1, CNVariantQC[][] unfilteredcnvsQCs2,
-                       Hashtable<String, CNVSampleQC> cnvSampleQCHash,
-                       OptimizedQCThresholds qcThresholds, int filterType, Logger log) {
+      Hashtable<String, CNVSampleQC> cnvSampleQCHash, OptimizedQCThresholds qcThresholds,
+      int filterType, Logger log) {
     totalCallsAvailable = getCallsAvailable(unfilteredcnvsQCs1, unfilteredcnvsQCs2);
     this.cnvSampleQCHash = cnvSampleQCHash;
     this.qcThresholds = qcThresholds;
@@ -45,8 +45,8 @@ public class CNVComparison {
   }
 
   public CNVComparison(CNVariantQC[][] unfilteredcnvsQCs1,
-                       Hashtable<String, CNVSampleQC> cnvSampleQCHash,
-                       OptimizedQCThresholds qcThresholds, int filterType, Logger log) {
+      Hashtable<String, CNVSampleQC> cnvSampleQCHash, OptimizedQCThresholds qcThresholds,
+      int filterType, Logger log) {
     this.cnvSampleQCHash = cnvSampleQCHash;
     this.qcThresholds = qcThresholds;
     this.filterType = filterType;
@@ -85,7 +85,7 @@ public class CNVComparison {
   private void checkCompatability() {
     if (cnvSampleQCHash == null && (filterType == 1 || filterType == 2)) {
       log.reportError("Error - invaled filter Type with undefined sample QC file, need to use "
-                      + QC_PARAMETERs[0]);
+          + QC_PARAMETERs[0]);
       System.exit(1);
     }
   }
@@ -132,7 +132,7 @@ public class CNVComparison {
   // }
 
   private int[][] countMatches(CNVariantQC[] filteredcnvQCs1, CNVariantQC[] filteredcnvQCs2,
-                               int[][] counts) {
+      int[][] counts) {
     // CN states as defined here are ,0,1,2,3,4,5...where 2 is a total non-copy number aware count,
     // and 5 is for non matching (overlap,exact,sigoverlap)
     int match;
@@ -146,7 +146,7 @@ public class CNVComparison {
             element2.getCnVariant().setSource(99);
             CN = element2.getCnVariant().getCN();
           } else if (match < 2
-                     && element.getCnVariant().significantOverlap(element2.getCnVariant())) {
+              && element.getCnVariant().significantOverlap(element2.getCnVariant())) {
             match = 4;
             CN = element2.getCnVariant().getCN();
 
@@ -175,11 +175,11 @@ public class CNVComparison {
             match = 3;
             CN = element.getCnVariant().getCN();
           } else if (match < 2 && element.getCnVariant().getSource() != 99
-                     && element.getCnVariant().significantOverlap(element2.getCnVariant())) {
+              && element.getCnVariant().significantOverlap(element2.getCnVariant())) {
             match = 4;
             CN = element.getCnVariant().getCN();
           } else if (match < 2 && element.getCnVariant().getSource() != 99
-                     && element.getCnVariant().overlaps(element2.getCnVariant())) {
+              && element.getCnVariant().overlaps(element2.getCnVariant())) {
             match = 2;
             CN = element.getCnVariant().getCN();
           }
@@ -307,8 +307,8 @@ public class CNVComparison {
 
           }
         } else {
-          log.reportError("Error - invaled filter Type , need to use "
-                          + Array.toStr(QC_PARAMETERs));
+          log.reportError(
+              "Error - invaled filter Type , need to use " + Array.toStr(QC_PARAMETERs));
           System.exit(1);
         }
       }
@@ -331,7 +331,8 @@ public class CNVComparison {
         }
       }
     } else {
-      log.reportError("Error - unmatched number of individuals are being compared, this should not happen");
+      log.reportError(
+          "Error - unmatched number of individuals are being compared, this should not happen");
       System.exit(1);
     }
     return goodCallCN(counts);
@@ -388,8 +389,8 @@ public class CNVComparison {
     if (Double.isNaN(qcThresholds.getAlpha()) || Double.isNaN(qcThresholds.getBeastConfCutoff())) {
       return true;
     } else {
-      return score(numMarkers, qcThresholds.getAlpha(),
-                   height) >= qcThresholds.getBeastConfCutoff();
+      return score(numMarkers, qcThresholds.getAlpha(), height) >= qcThresholds
+          .getBeastConfCutoff();
     }
   }
 
@@ -411,7 +412,7 @@ public class CNVComparison {
 
   private boolean passesSampleQC(CNVariantQC unfilteredcnvQC, int numCNVs) {
     String lookup = unfilteredcnvQC.getCnVariant().getFamilyID() + "\t"
-                    + unfilteredcnvQC.getCnVariant().getIndividualID();
+        + unfilteredcnvQC.getCnVariant().getIndividualID();
     boolean passSampleQC = false;
     if (cnvSampleQCHash.containsKey(lookup)) {
       CNVSampleQC cnvSampleQC = cnvSampleQCHash.get(lookup);
@@ -421,8 +422,8 @@ public class CNVComparison {
 
       }
     } else {
-      log.reportError("Error - Sample QC was defined, but Sample QC was not available for "
-                      + lookup);
+      log.reportError(
+          "Error - Sample QC was defined, but Sample QC was not available for " + lookup);
       System.exit(1);
     }
     return passSampleQC;

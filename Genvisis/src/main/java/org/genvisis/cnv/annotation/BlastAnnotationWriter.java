@@ -47,15 +47,15 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
           new DynamicHistogram(minAlignmentLength, proj.getArrayType().getProbeLength(), 0);
       MarkerBlastHistogramAnnotation markerBlastHistogramAnnotation =
           new MarkerBlastHistogramAnnotation(MarkerBlastHistogramAnnotation.DEFAULT_NAME,
-                                             MarkerBlastHistogramAnnotation.DEFAULT_DESCRIPTION, histogram);
+              MarkerBlastHistogramAnnotation.DEFAULT_DESCRIPTION, histogram);
       MarkerEvalueHistogramAnnotation markerEvalueHistogramAnnotation =
           new MarkerEvalueHistogramAnnotation(MarkerEvalueHistogramAnnotation.DEFAULT_NAME,
-                                              MarkerEvalueHistogramAnnotation.DEFAULT_DESCRIPTION);
+              MarkerEvalueHistogramAnnotation.DEFAULT_DESCRIPTION);
 
       builder.annotations(Array.concatAll(BlastAnnotationTypes.getAnnotationDatas(),
-                                          new AnnotationData[] {markerBlastHistogramAnnotation},
-                                          new AnnotationData[] {markerEvalueHistogramAnnotation},
-                                          new AnnotationData[] {MarkerSeqAnnotation.getDefault()}));
+          new AnnotationData[] {markerBlastHistogramAnnotation},
+          new AnnotationData[] {markerEvalueHistogramAnnotation},
+          new AnnotationData[] {MarkerSeqAnnotation.getDefault()}));
       Segment markerSeg = new Segment(chrs[i], pos[i], pos[i]);
       anDatas[i] = builder.build(markerNames[i], markerSeg);
     }
@@ -63,18 +63,16 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
   }
 
   private static void summarize(Project proj, int maxAlignmentsReported, LocusAnnotation[] anDatas,
-                                MarkerBlastHistogramAnnotation[] mHistogramAnnotations,
-                                MarkerEvalueHistogramAnnotation[] mevHistogramAnnotations,
-                                MarkerFastaEntry[] markerFastaEntries,
-                                ArrayBlastAnnotationList[][] intLists) {
+      MarkerBlastHistogramAnnotation[] mHistogramAnnotations,
+      MarkerEvalueHistogramAnnotation[] mevHistogramAnnotations,
+      MarkerFastaEntry[] markerFastaEntries, ArrayBlastAnnotationList[][] intLists) {
     Hashtable<String, Integer> markerSeqIndices = new Hashtable<String, Integer>();
     if (markerFastaEntries != null) {
       for (int i = 0; i < markerFastaEntries.length; i++) {
         PROBE_TAG tag = PROBE_TAG.parseMarkerTag(markerFastaEntries[i].getName(), proj.getLog());
         if (tag != PROBE_TAG.B) {
-          String marker =
-              markerFastaEntries[i].getName().substring(0, markerFastaEntries[i].getName().length()
-                                                           - tag.getTag().length());
+          String marker = markerFastaEntries[i].getName().substring(0,
+              markerFastaEntries[i].getName().length() - tag.getTag().length());
           markerSeqIndices.put(marker, i);
         }
       }
@@ -99,10 +97,12 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
             toReport[k] = tmp[order[k]];
           }
 
-          anDatas[i].getAnnotations()[j].setData(Array.toStr(BlastAnnotation.toAnnotationString(toReport),
-                                                             BLAST_ANNOTATION_TYPES.values()[j].getSep()));
+          anDatas[i].getAnnotations()[j]
+              .setData(Array.toStr(BlastAnnotation.toAnnotationString(toReport),
+                  BLAST_ANNOTATION_TYPES.values()[j].getSep()));
         } else {
-          anDatas[i].getAnnotations()[j].setData(BLAST_ANNOTATION_TYPES.values()[j].getDefaultValue());
+          anDatas[i].getAnnotations()[j]
+              .setData(BLAST_ANNOTATION_TYPES.values()[j].getDefaultValue());
         }
       }
       if (mHistogramAnnotations[i] != null) {
@@ -119,9 +119,8 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
         MarkerFastaEntry mfe = markerFastaEntries[seqIndex];
         MarkerSeqAnnotation markerSeqAnnotation = new MarkerSeqAnnotation();
         markerSeqAnnotation.setDesignData(mfe.getSequence(), mfe.getSeqB(),
-                                          mfe.getInterrogationPosition(), mfe.getStrand(),
-                                          mfe.getTopBotProbe(), mfe.getTopBotRef(), mfe.getA(),
-                                          mfe.getB());
+            mfe.getInterrogationPosition(), mfe.getStrand(), mfe.getTopBotProbe(),
+            mfe.getTopBotRef(), mfe.getA(), mfe.getB());
         anDatas[i].addAnnotation(markerSeqAnnotation);
         anDatas[i].setRef(mfe.getRef());
         anDatas[i].setAlts(mfe.getAlts());
@@ -134,10 +133,8 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
    *         passed to another {@link AnnotationFileWriter} instead of writing here
    */
   private static LocusAnnotation[] summarizeResultFile(Project proj, String[] blastResultFile,
-                                                       MarkerFastaEntry[] markerFastaEntries,
-                                                       int minAlignmentLength, int maxGaps,
-                                                       int maxMismatches,
-                                                       int maxAlignmentsReported) {
+      MarkerFastaEntry[] markerFastaEntries, int minAlignmentLength, int maxGaps, int maxMismatches,
+      int maxAlignmentsReported) {
     int seqLength = proj.getArrayType().getProbeLength();
     LocusAnnotation[] anDatas = initializeSummaries(proj, minAlignmentLength);
     MarkerBlastHistogramAnnotation[] mHistogramAnnotations =
@@ -162,7 +159,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
         while (reader.ready()) {
           String[] line = reader.readLine().trim().split("\t");
           if ((line.length == Blast.BLAST_HEADER.length - 1
-               || line.length == Blast.BLAST_HEADER.length)
+              || line.length == Blast.BLAST_HEADER.length)
               && !line[0].startsWith(Blast.BLAST_HEADER[0])) {
             numEntries++;
             if (numEntries % 1000000 == 0) {
@@ -186,10 +183,8 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
                   marker = marker.substring(0, marker.length() - tag.getTag().length());
 
                 } else {
-                  proj.getLog()
-                      .reportTimeError("Query id did not end with " + PROBE_TAG.A.getTag() + "or "
-                                       + PROBE_TAG.B.getTag()
-                                       + " which is required for an AFFY array");
+                  proj.getLog().reportTimeError("Query id did not end with " + PROBE_TAG.A.getTag()
+                      + "or " + PROBE_TAG.B.getTag() + " which is required for an AFFY array");
                 }
               } else if (proj.getArrayType() == ARRAY.ILLUMINA) {
                 try {
@@ -197,9 +192,8 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
                   marker = marker.substring(0, marker.length() - tag.getTag().length());
 
                 } catch (IllegalArgumentException ile) {
-                  proj.getLog()
-                      .reportTimeError("Query id (" + marker
-                                       + ") did not end one of the following which is required for an ILLUMINA array");
+                  proj.getLog().reportTimeError("Query id (" + marker
+                      + ") did not end one of the following which is required for an ILLUMINA array");
                   for (int i = 0; i < PROBE_TAG.values().length; i++) {
                     proj.getLog().report(PROBE_TAG.values()[i].getTag());
                   }
@@ -210,31 +204,27 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
               Segment markerSeg = anDatas[markerIndex].getSeg().getBufferedSegment(1);
               if (mHistogramAnnotations[markerIndex] == null) {
-                DynamicHistogram histogram =
-                    new DynamicHistogram(minAlignmentLength, proj.getArrayType().getProbeLength(),
-                                         0);
+                DynamicHistogram histogram = new DynamicHistogram(minAlignmentLength,
+                    proj.getArrayType().getProbeLength(), 0);
                 mHistogramAnnotations[markerIndex] =
                     new MarkerBlastHistogramAnnotation(MarkerBlastHistogramAnnotation.DEFAULT_NAME,
-                                                       MarkerBlastHistogramAnnotation.DEFAULT_DESCRIPTION,
-                                                       histogram);
+                        MarkerBlastHistogramAnnotation.DEFAULT_DESCRIPTION, histogram);
               }
               if (mevHistogramAnnotations[markerIndex] == null) {
-                mevHistogramAnnotations[markerIndex] =
-                    new MarkerEvalueHistogramAnnotation(MarkerEvalueHistogramAnnotation.DEFAULT_NAME,
-                                                        MarkerEvalueHistogramAnnotation.DEFAULT_DESCRIPTION);
+                mevHistogramAnnotations[markerIndex] = new MarkerEvalueHistogramAnnotation(
+                    MarkerEvalueHistogramAnnotation.DEFAULT_NAME,
+                    MarkerEvalueHistogramAnnotation.DEFAULT_DESCRIPTION);
               }
               mevHistogramAnnotations[markerIndex].addExactHistogram(blastResults.getEvalue());
               mHistogramAnnotations[markerIndex].getDynamicHistogram()
-                                                .addDataPointToHistogram(blastResults.getAlignmentLength());
+                  .addDataPointToHistogram(blastResults.getAlignmentLength());
               for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
                 if (BlastAnnotationTypes.shouldBeAnnotatedAs(proj, blastResults,
-                                                             BLAST_ANNOTATION_TYPES.values()[i],
-                                                             markerSeg, proj.getLog())) {
-                  BlastAnnotation blastAnnotation =
-                      new BlastAnnotation(CigarOps.convertBtopToCigar(blastResults, seqLength,
-                                                                      proj.getLog()),
-                                          blastResults.getSegment(), blastResults.determineStrand(),
-                                          tag, blastResults.getEvalue());
+                    BLAST_ANNOTATION_TYPES.values()[i], markerSeg, proj.getLog())) {
+                  BlastAnnotation blastAnnotation = new BlastAnnotation(
+                      CigarOps.convertBtopToCigar(blastResults, seqLength, proj.getLog()),
+                      blastResults.getSegment(), blastResults.determineStrand(), tag,
+                      blastResults.getEvalue());
                   if (intLists[markerIndex][i].size() >= maxAlignmentsReported) {// we now start
                                                                                  // bounding by
                                                                                  // e-value
@@ -269,7 +259,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
       }
     }
     summarize(proj, maxAlignmentsReported, anDatas, mHistogramAnnotations, mevHistogramAnnotations,
-              markerFastaEntries, intLists);
+        markerFastaEntries, intLists);
     return anDatas;
   }
 
@@ -285,14 +275,14 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
   private final int maxAlignmentsReported;
 
   public BlastAnnotationWriter(Project proj, AnalysisParams[] analysisParams, String outputFile,
-                               String[] blastResultFiles, int minAlignmentLength, int maxGaps,
-                               int maxMismatches, int maxAlignmentsReported) {
+      String[] blastResultFiles, int minAlignmentLength, int maxGaps, int maxMismatches,
+      int maxAlignmentsReported) {
     super(proj, analysisParams,
-          Array.concatAll(BlastAnnotationTypes.getBaseAnnotations(),
-                          new Annotation[] {MarkerBlastHistogramAnnotation.getDefaultBlastAnnotation()},
-                          new Annotation[] {MarkerSeqAnnotation.getDefault()},
-                          new Annotation[] {MarkerEvalueHistogramAnnotation.getDefaultBlastAnnotation()}),
-          outputFile, false);
+        Array.concatAll(BlastAnnotationTypes.getBaseAnnotations(),
+            new Annotation[] {MarkerBlastHistogramAnnotation.getDefaultBlastAnnotation()},
+            new Annotation[] {MarkerSeqAnnotation.getDefault()},
+            new Annotation[] {MarkerEvalueHistogramAnnotation.getDefaultBlastAnnotation()}),
+        outputFile, false);
     this.proj = proj;
     this.blastResultFiles = blastResultFiles;
     this.minAlignmentLength = minAlignmentLength;
@@ -309,9 +299,8 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
     proj.getLog().reportTimeInfo(" Free memory " + proj.getLog().memoryPercentFree());
     proj.getLog()
         .reportTimeInfo("Max number of alignments reported set to " + maxAlignmentsReported);
-    LocusAnnotation[] annotations =
-        summarizeResultFile(proj, blastResultFiles, markerFastaEntries, minAlignmentLength, maxGaps,
-                            maxMismatches, maxAlignmentsReported);
+    LocusAnnotation[] annotations = summarizeResultFile(proj, blastResultFiles, markerFastaEntries,
+        minAlignmentLength, maxGaps, maxMismatches, maxAlignmentsReported);
     for (int i = 0; i < annotations.length; i++) {
       if ((i + 1) % 100000 == 0) {
         proj.getLog().reportTimeInfo("Written " + i + " markers ");

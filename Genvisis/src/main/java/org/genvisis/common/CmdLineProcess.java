@@ -68,28 +68,28 @@ public class CmdLineProcess implements Iterator<String> {
   }
 
   public enum ERR_Mode {
-                        /**
-                         * Report errors to log
-                         */
-                        STERR_CAPTURE_BY_LOG, NO_STERR_CAPTURE
+    /**
+     * Report errors to log
+     */
+    STERR_CAPTURE_BY_LOG, NO_STERR_CAPTURE
   }
 
   public enum INPUT_Mode {
-                          /**
-                           * Pass input to the command
-                           */
-                          STIN, NO_STIN
+    /**
+     * Pass input to the command
+     */
+    STIN, NO_STIN
   }
 
   public enum INPUT_TYPE {
-                          /**
-                           * Standard in comes from a file
-                           */
-                          FILE,
-                          /**
-                           * Standard in comes from a string
-                           */
-                          STRING
+    /**
+     * Standard in comes from a file
+     */
+    FILE,
+    /**
+     * Standard in comes from a string
+     */
+    STRING
   }
 
   class InputWriter extends Thread {
@@ -122,14 +122,14 @@ public class CmdLineProcess implements Iterator<String> {
     }
   }
   public enum OUTPUT_Mode {
-                           /**
-                            * The output is captured and returned line by line
-                            */
-                           STOUT_CAPTURE_ITERATOR,
-                           /**
-                            * The output is not captured (inherited)
-                            */
-                           NO_STOUT_CAPTURE
+    /**
+     * The output is captured and returned line by line
+     */
+    STOUT_CAPTURE_ITERATOR,
+    /**
+     * The output is not captured (inherited)
+     */
+    NO_STOUT_CAPTURE
   }
   /**
    * Interface that can be passed to the command line to provide input
@@ -191,8 +191,8 @@ public class CmdLineProcess implements Iterator<String> {
           }
         }
       } catch (IOException e) {
-        log.reportTimeError("Could not read error stream for process "
-                            + Array.toStr(commandArray, " "));
+        log.reportTimeError(
+            "Could not read error stream for process " + Array.toStr(commandArray, " "));
         e.printStackTrace();
       }
     }
@@ -213,7 +213,8 @@ public class CmdLineProcess implements Iterator<String> {
       case STOUT_CAPTURE_ITERATOR:
         try {
           if (proc.getInputStream() != null && proc.getInputStream().available() > 0) {
-            log.reportTimeError("The output mode was set to iterate, but there is still available bytes.");
+            log.reportTimeError(
+                "The output mode was set to iterate, but there is still available bytes.");
           }
         } catch (IOException e) {
           // TODO Auto-generated catch block
@@ -273,15 +274,15 @@ public class CmdLineProcess implements Iterator<String> {
 
           if (STIN != null) {
             if (verbose) {
-              log.reportTimeInfo("Passing input paramaters to command:  "
-                                 + Array.toStr(commandArray));
+              log.reportTimeInfo(
+                  "Passing input paramaters to command:  " + Array.toStr(commandArray));
 
             }
             stIn = new PrintWriter(proc.getOutputStream());
             writeInput();
             if (verbose) {
-              log.reportTimeInfo("Finished passing input paramaters to command:  "
-                                 + Array.toStr(commandArray));
+              log.reportTimeInfo(
+                  "Finished passing input paramaters to command:  " + Array.toStr(commandArray));
             }
 
           } else {

@@ -21,7 +21,7 @@ public class GeneRegion {
     String filename = "GeneRegion.dat";
 
     String usage = "\n" + "parse.GeneRegion requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -111,8 +111,8 @@ public class GeneRegion {
         genes = cv.getValues();
         counts = cv.getCounts();
         writer2.println((i == 0 ? "NA" : i) + "\t" + boundaries[i][0] + "\t" + boundaries[i][1]
-                        + "\t" + boundaries[i][2] + "\t" + cv.getSize() + "\t"
-                        + (i == 0 ? "too many to list" : Array.toStr(genes)));
+            + "\t" + boundaries[i][2] + "\t" + cv.getSize() + "\t"
+            + (i == 0 ? "too many to list" : Array.toStr(genes)));
         for (int j = 0; j < genes.length; j++) {
           writer.println(i + "\t" + genes[j] + "\t" + (j == 0 ? counts[j] - 1 : counts[j]));
         }

@@ -17,9 +17,8 @@ public class gist {
 
   public static double[][][] GIST_MATRIX =
       {{{1.00, 1.00, 1.00}, {1.00, 0.50, 0.25}, {0.50, 0.50, 0.50}},
-       {{1.00, 0.50, 0.75}, {1.00, 0.00, 0.50},
-        {0.50, 0.00, 0.25}},
-       {{0.50, 0.50, 0.50}, {0.50, 0.00, 0.25}, {0.00, 0.00, 0.00}}};
+          {{1.00, 0.50, 0.75}, {1.00, 0.00, 0.50}, {0.50, 0.00, 0.25}},
+          {{0.50, 0.50, 0.50}, {0.50, 0.00, 0.25}, {0.00, 0.00, 0.00}}};
 
   public static void main(String[] args) throws IOException {
     String mutation = "BRI3.dat", target = "2";
@@ -27,10 +26,10 @@ public class gist {
     int chr = 2, pos = 233;
 
     String usage = "\n" + "park.gist requires 3 arguments:\n"
-                   + "   (1) a chromosome#.dat-like file with genotypes of the putative mutation (i.e. mut="
-                   + mutation + " (default))\n" + "   (2) chromosome number (i.e. chr=" + chr
-                   + " (default))\n" + "   (3) position of SNP (i.e. pos=" + pos + " (default))\n"
-                   + "   (4) target allele (i.e. allele=" + target + " (default))\n" + "";
+        + "   (1) a chromosome#.dat-like file with genotypes of the putative mutation (i.e. mut="
+        + mutation + " (default))\n" + "   (2) chromosome number (i.e. chr=" + chr + " (default))\n"
+        + "   (3) position of SNP (i.e. pos=" + pos + " (default))\n"
+        + "   (4) target allele (i.e. allele=" + target + " (default))\n" + "";
     int numArgs = args.length;
 
     for (String arg : args) {
@@ -55,8 +54,8 @@ public class gist {
       System.err.println(usage);
       System.exit(1);
     }
-    System.out.println("Using counts of " + mutation + " on the estimates at " + pos
-                       + " of chromosome " + chr);
+    System.out.println(
+        "Using counts of " + mutation + " on the estimates at " + pos + " of chromosome " + chr);
     try {
       new gist(mutation, chr, pos, target);
     } catch (Exception e) {
@@ -88,8 +87,8 @@ public class gist {
     reader.close();
 
     if (!new File("chromf" + chrome + ".lin.out").exists()) {
-      System.err.println("Error - could not find " + "chromf" + chrome + ".lin.out"
-                         + " in current directory");
+      System.err.println(
+          "Error - could not find " + "chromf" + chrome + ".lin.out" + " in current directory");
       System.exit(2);
     }
     reader = new BufferedReader(new FileReader("chromf" + chrome + ".lin.out"));
@@ -103,8 +102,8 @@ public class gist {
     reader.close();
 
     if (!new File("re_chrom" + chrome + ".pre").exists()) {
-      System.err.println("Error - could not find " + "re_chrom" + chrome + ".pre"
-                         + " in current directory");
+      System.err.println(
+          "Error - could not find " + "re_chrom" + chrome + ".pre" + " in current directory");
       System.exit(2);
     }
     reader = new BufferedReader(new FileReader("re_chrom" + chrome + ".pre"));
@@ -128,19 +127,19 @@ public class gist {
         if (prev != "") {
           if (founders.size() != 2) {
             System.err.println("Error - there should only be sibpairs in file " + "re_chrom"
-                               + chrome + ".pre" + "; problem encountered with family " + prev);
+                + chrome + ".pre" + "; problem encountered with family " + prev);
             System.exit(3);
           }
           if (n < 2) {
-            System.err.println("Family " + prev
-                               + " thrown out for lack of enough informative individuals");
+            System.err.println(
+                "Family " + prev + " thrown out for lack of enough informative individuals");
             System.err.println(n + "\t" + c1 + "\t" + c2 + "\t" + c3);
           } else {
             if (!npls.containsKey(prev)) {
               System.err.println("How come there's no NPL score for family " + prev + "?");
             } else {
               writer.println(ext.formDeci(c1 / n, 3) + " " + ext.formDeci(c2 / n, 3) + " "
-                             + ext.formDeci(c3 / n / 2, 3) + " " + npls.get(prev));
+                  + ext.formDeci(c3 / n / 2, 3) + " " + npls.get(prev));
             }
           }
         }

@@ -217,7 +217,7 @@ public class Ttest {
 
   public Ttest(double[] data1, double[] data2) {
     this(Array.mean(data1), Array.stdev(data1), data1.length, Array.mean(data2), Array.stdev(data2),
-         data2.length);
+        data2.length);
 
     Ftest = LevenesTest(new double[][] {data1, data2});
     Fprob = ProbDist.FDist(Ftest, 1, df);
@@ -266,7 +266,7 @@ public class Ttest {
 
   public Ttest(int[] groupings, double[] values) {
     this(splitOut(groupings, values, Array.min(groupings)),
-         splitOut(groupings, values, Array.min(groupings) + 1));
+        splitOut(groupings, values, Array.min(groupings) + 1));
   }
 
   public double getDiff() {
@@ -286,20 +286,19 @@ public class Ttest {
 
     if (testType == 1) {
       str += "Difference in means: " + ext.formDeci(meanDiff, 2, true) + "\n"
-             + (testType < 3 ? "Standard Deviation: " + ext.formDeci(stdev, 2, true) + "\n" : "")
-             + "t: " + ext.formDeci(t[0], 2, true) + "\n" + "df: " + df + "\n"
-             + "one-tailed test: p=" + ext.formDeci(p[0] / 2, 4) + " ("
-             + ext.formDeci(meanDiff - ci05[0], 2) + " OR " + ext.formDeci(meanDiff + ci05[0], 2)
-             + ")" + "\n" + "two-tailed test: p=" + ext.formDeci(p[0], 4) + " ("
-             + ext.formDeci(meanDiff - ci025[0], 2) + ", " + ext.formDeci(meanDiff + ci025[0], 2)
-             + ")" + "\n";
+          + (testType < 3 ? "Standard Deviation: " + ext.formDeci(stdev, 2, true) + "\n" : "")
+          + "t: " + ext.formDeci(t[0], 2, true) + "\n" + "df: " + df + "\n" + "one-tailed test: p="
+          + ext.formDeci(p[0] / 2, 4) + " (" + ext.formDeci(meanDiff - ci05[0], 2) + " OR "
+          + ext.formDeci(meanDiff + ci05[0], 2) + ")" + "\n" + "two-tailed test: p="
+          + ext.formDeci(p[0], 4) + " (" + ext.formDeci(meanDiff - ci025[0], 2) + ", "
+          + ext.formDeci(meanDiff + ci025[0], 2) + ")" + "\n";
     } else {
       str += "Difference in means: " + ext.formDeci(meanDiff, 2, true) + "\n"
-             + "Variances\tT\tDF\t\tp-value\n" + "Equal\t" + ext.formDeci(t[0], 3, true) + "\t" + df
-             + "\t\t" + ext.formDeci(p[0], 3) + "\n" + "Unqual\t" + ext.formDeci(t[1], 3, true)
-             + "\t" + ext.formDeci(v, 3, true) + "\t" + ext.formDeci(p[1], 3) + "\n" + "\n"
-             + "For H0: Variances are equal. " + ext.formDeci(Ftest, 3, true) + ", p="
-             + ext.formDeci(Fprob, 3, true);
+          + "Variances\tT\tDF\t\tp-value\n" + "Equal\t" + ext.formDeci(t[0], 3, true) + "\t" + df
+          + "\t\t" + ext.formDeci(p[0], 3) + "\n" + "Unqual\t" + ext.formDeci(t[1], 3, true) + "\t"
+          + ext.formDeci(v, 3, true) + "\t" + ext.formDeci(p[1], 3) + "\n" + "\n"
+          + "For H0: Variances are equal. " + ext.formDeci(Ftest, 3, true) + ", p="
+          + ext.formDeci(Fprob, 3, true);
     }
 
     return str;

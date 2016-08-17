@@ -8,7 +8,7 @@ public class Permute {
     String pheno = "pheno.dat";
 
     String usage = "\n" + "gwas.Permute requires 0-1 arguments\n" + "   (1) filename (i.e. pheno="
-                   + pheno + " (default))\n" + "";
+        + pheno + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

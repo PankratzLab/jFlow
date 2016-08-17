@@ -35,11 +35,9 @@ public class FileAndOutputSelectorGUI extends JDialog {
   private static final long serialVersionUID = 1L;
 
   public static String[] showFileAndOutputSelector(Frame parent, String inputSuggestion, int inMode,
-                                                   String[] inAllowedExts, String outputSuggestion,
-                                                   int outMode) {
-    FileAndOutputSelectorGUI faosgui =
-        new FileAndOutputSelectorGUI(parent, inputSuggestion, inMode, inAllowedExts,
-                                     outputSuggestion, outMode);
+      String[] inAllowedExts, String outputSuggestion, int outMode) {
+    FileAndOutputSelectorGUI faosgui = new FileAndOutputSelectorGUI(parent, inputSuggestion, inMode,
+        inAllowedExts, outputSuggestion, outMode);
     faosgui.setVisible(true);
     int opt = faosgui.option;
     String[] retVals = null;
@@ -56,12 +54,10 @@ public class FileAndOutputSelectorGUI extends JDialog {
   }
 
   public static String[] showFileAndOutputSelector(Frame parent, String[] inputSuggestions,
-                                                   int inMode, String[] inAllowedExts,
-                                                   String outputSuggestion, int outMode,
-                                                   boolean showAsCombo) {
-    FileAndOutputSelectorGUI faosgui =
-        new FileAndOutputSelectorGUI(parent, inputSuggestions, inMode, inAllowedExts,
-                                     outputSuggestion, outMode, showAsCombo);
+      int inMode, String[] inAllowedExts, String outputSuggestion, int outMode,
+      boolean showAsCombo) {
+    FileAndOutputSelectorGUI faosgui = new FileAndOutputSelectorGUI(parent, inputSuggestions,
+        inMode, inAllowedExts, outputSuggestion, outMode, showAsCombo);
     faosgui.setVisible(true);
     int opt = faosgui.option;
     String[] retVals = null;
@@ -96,8 +92,8 @@ public class FileAndOutputSelectorGUI extends JDialog {
    * 
    */
   private FileAndOutputSelectorGUI(final Frame parent, final String inputSuggestion,
-                                   final int inMode, final String[] inAllowedExts,
-                                   final String outputSuggestion, final int outMode) {
+      final int inMode, final String[] inAllowedExts, final String outputSuggestion,
+      final int outMode) {
     super(parent, true);
     setTitle("Select Input and Output Files");
     setBounds(100, 100, 460, 192);
@@ -207,9 +203,8 @@ public class FileAndOutputSelectorGUI extends JDialog {
    * 
    */
   private FileAndOutputSelectorGUI(final Frame parent, final String[] inputSuggestions,
-                                   final int inMode, final String[] inAllowedExts,
-                                   final String outputSuggestion, final int outMode,
-                                   boolean inSuggAsCombo) {
+      final int inMode, final String[] inAllowedExts, final String outputSuggestion,
+      final int outMode, boolean inSuggAsCombo) {
     super(parent, true);
     setTitle("Select Input and Output Files");
     setBounds(100, 100, 460, 192);

@@ -13,7 +13,7 @@ public class plotBetaOpt {
         "C:/data/misc/betaPlots/Whites_WBC_TOTAL_SingleSNPmatched.final_beta_summary.txt";
 
     String usage = "\n" + "one.JL.plotBetaOpt requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

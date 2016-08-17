@@ -25,10 +25,9 @@ import org.genvisis.filesys.Segment;
  *
  */
 public class CytoCompare {
-  private static final String[] OUTPUT_HEADER =
-      {"REGION", "UCSC_LINK", "ISCN", "INTERPRETATION", "GENE(s)", "AVERAGE_LOG_RATIO",
-       "NUMBER_OF_PROBES", "CNP_OVERLAP", "REPORTED_OVERLAP", "UNREPORTED_OVERLAP",
-       "NUM_UNREPORTED", "BEAST_SCORE"};
+  private static final String[] OUTPUT_HEADER = {"REGION", "UCSC_LINK", "ISCN", "INTERPRETATION",
+      "GENE(s)", "AVERAGE_LOG_RATIO", "NUMBER_OF_PROBES", "CNP_OVERLAP", "REPORTED_OVERLAP",
+      "UNREPORTED_OVERLAP", "NUM_UNREPORTED", "BEAST_SCORE"};
   private static final String[] TRACK_HEADERS = {"track name="};
   private static final String[] CHR = {"chr"};
   private static final int[] INDICES_TO_LOAD = {0, 1, 2};
@@ -48,19 +47,22 @@ public class CytoCompare {
    * @return null if failed or don't want to do it, else the beast scores
    */
   private static BeastScore[] beast(Project proj, CNVariant[][] cNVariantInds, boolean computeBeast,
-                                    Logger log) {
+      Logger log) {
     BeastScore[] beastScores = null;
     if (computeBeast) {
       if (proj == null) {
-        log.reportError("Warning - a valid project file is required to compute beast scores, skipping beast scores :(");
+        log.reportError(
+            "Warning - a valid project file is required to compute beast scores, skipping beast scores :(");
         // } else if (!Files.exists(proj.getFilename(proj.MARKERLOOKUP_FILENAME))) {
       } else if (!Files.exists(proj.MARKERLOOKUP_FILENAME.getValue())) {
-        log.reportError("Warning - a marker lookup file is needed to compute beast scores, skipping beast scores :(");
+        log.reportError(
+            "Warning - a marker lookup file is needed to compute beast scores, skipping beast scores :(");
       } else if (!Files.exists(proj.SAMPLE_DATA_FILENAME.getValue())) {
-        log.reportError("Warning - a sample data file is needed to lookup samples by FID/IID, skipping beast scores :(");
+        log.reportError(
+            "Warning - a sample data file is needed to lookup samples by FID/IID, skipping beast scores :(");
       } else {
         log.report(ext.getTime() + " Info - computing beast scores for " + cNVariantInds.length
-                   + " individuals");
+            + " individuals");
         beastScores = BeastScore.beastInds(proj, cNVariantInds);
       }
     }
@@ -82,9 +84,8 @@ public class CytoCompare {
    * compute the beast score.
    */
   public static String[] compare(Project proj, CytoCNVariant[] cytoCNVariants, Segment[] cnpSegs,
-                                 Segment[] reportSegs, Segment[] unReportSegs,
-                                 double scoreThreshold, String outputDir, boolean computeBeast,
-                                 Logger log) {
+      Segment[] reportSegs, Segment[] unReportSegs, double scoreThreshold, String outputDir,
+      boolean computeBeast, Logger log) {
     CytoCNVariant[][] cytoCNVariantInds = CytoCNVariant.toIndividuals(cytoCNVariants, log);
     String[] outputs = new String[cytoCNVariantInds.length];
     BeastScore[] beastScores = beast(proj, cytoCNVariantInds, computeBeast, log);
@@ -101,7 +102,7 @@ public class CytoCompare {
 
         for (int j = 0; j < cytoCNVariantInds[i].length; j++) {
           if (ind.equals(cytoCNVariantInds[i][j].getFamilyID() + "_"
-                         + cytoCNVariantInds[i][j].getIndividualID())) {
+              + cytoCNVariantInds[i][j].getIndividualID())) {
 
             String report = cytoCNVariantInds[i][j].getMyReport();
             report +=
@@ -119,7 +120,8 @@ public class CytoCompare {
 
             writer.println(report);
           } else {
-            log.reportError("Error - the array of cyto aberrations contained mismatched IDs, this should not happen");
+            log.reportError(
+                "Error - the array of cyto aberrations contained mismatched IDs, this should not happen");
           }
         }
         writer.close();
@@ -144,21 +146,19 @@ public class CytoCompare {
    *         cytoCNVariantFiles
    */
   public static String[][] compare(Project proj, String dir, String[] cytoCNVariantFiles,
-                                   String cnpFile, String reportedOverlapFile,
-                                   String unreportedOverlapFile, double scoreThreshold,
-                                   String outputDir, boolean computeBeast, Logger log) {
+      String cnpFile, String reportedOverlapFile, String unreportedOverlapFile,
+      double scoreThreshold, String outputDir, boolean computeBeast, Logger log) {
     return compare(proj, toFullPaths(dir, cytoCNVariantFiles), loadsegs(cnpFile, log),
-                   loadsegs(reportedOverlapFile, log), loadsegs(unreportedOverlapFile, log),
-                   scoreThreshold, outputDir, computeBeast, log);
+        loadsegs(reportedOverlapFile, log), loadsegs(unreportedOverlapFile, log), scoreThreshold,
+        outputDir, computeBeast, log);
   }
 
   /**
    * Same as above, but full paths, and files loaded as segments
    */
   public static String[][] compare(Project proj, String[] cytoCNVariantFiles, Segment[] cnpSegs,
-                                   Segment[] reportSegs, Segment[] unReportSegs,
-                                   double scoreThreshold, String outputDir, boolean computeBeast,
-                                   Logger log) {
+      Segment[] reportSegs, Segment[] unReportSegs, double scoreThreshold, String outputDir,
+      boolean computeBeast, Logger log) {
     String[][] alloutputs = new String[cytoCNVariantFiles.length][];
     for (int i = 0; i < cytoCNVariantFiles.length; i++) {
       if (!Files.exists(cytoCNVariantFiles[i])) {
@@ -167,7 +167,7 @@ public class CytoCompare {
       } else {
         CytoCNVariant[] cytoCNVariant = CytoCNVariant.loadCytoCNVariant(cytoCNVariantFiles[i], log);
         alloutputs[i] = compare(proj, cytoCNVariant, cnpSegs, reportSegs, unReportSegs,
-                                scoreThreshold, outputDir, computeBeast, log);
+            scoreThreshold, outputDir, computeBeast, log);
       }
     }
     return alloutputs;
@@ -177,12 +177,11 @@ public class CytoCompare {
    * Same as above, but full paths
    */
   public static String[][] compare(Project proj, String[] cytoCNVariantFiles, String cnpFile,
-                                   String reportedOverlapFile, String unreportedOverlapFile,
-                                   double scoreThreshold, String outputDir, boolean computeBeast,
-                                   Logger log) {
+      String reportedOverlapFile, String unreportedOverlapFile, double scoreThreshold,
+      String outputDir, boolean computeBeast, Logger log) {
     return compare(proj, cytoCNVariantFiles, loadsegs(cnpFile, log),
-                   loadsegs(reportedOverlapFile, log), loadsegs(unreportedOverlapFile, log),
-                   scoreThreshold, outputDir, computeBeast, log);
+        loadsegs(reportedOverlapFile, log), loadsegs(unreportedOverlapFile, log), scoreThreshold,
+        outputDir, computeBeast, log);
   }
 
   /**
@@ -194,8 +193,7 @@ public class CytoCompare {
    * @return
    */
   private static Segment.SegmentCompare compareIndsToTarget(CytoCNVariant cytoCNVariantIndsSegment,
-                                                            Segment[] compareSegs,
-                                                            double scoreThreshold, Logger log) {
+      Segment[] compareSegs, double scoreThreshold, Logger log) {
     Segment.SegmentCompare cytoAgilentCompare =
         cytoCNVariantIndsSegment.new SegmentCompare(compareSegs, scoreThreshold, log);
     cytoAgilentCompare.compare();
@@ -213,19 +211,16 @@ public class CytoCompare {
    * @return
    */
   private static String getOverLapSummary(CytoCNVariant cytoCNVariantIndsSegment, Segment[] segs,
-                                          double scoreThreshold, boolean reportNumOverlapThreshold,
-                                          Logger log) {
+      double scoreThreshold, boolean reportNumOverlapThreshold, Logger log) {
     String summary = "";
     Segment.SegmentCompare segmentCompare;
     if (segs != null) {
       segmentCompare = compareIndsToTarget(cytoCNVariantIndsSegment, segs, scoreThreshold, log);
-      summary = SPLITS[0] + segmentCompare.getMaximumOverlapScore()
-                + (reportNumOverlapThreshold ? SPLITS[0]
-                                               + segmentCompare.getNumOverlapingPastThreshold()
-                                             : "");
+      summary = SPLITS[0] + segmentCompare.getMaximumOverlapScore() + (reportNumOverlapThreshold
+          ? SPLITS[0] + segmentCompare.getNumOverlapingPastThreshold() : "");
     } else {
       summary = SPLITS[0] + ext.MISSING_VALUES[2]
-                + (reportNumOverlapThreshold ? SPLITS[0] + ext.MISSING_VALUES[2] : "");
+          + (reportNumOverlapThreshold ? SPLITS[0] + ext.MISSING_VALUES[2] : "");
     }
     return summary;
   }
@@ -238,8 +233,8 @@ public class CytoCompare {
   private static Segment[] loadCytoSegments(String filename, Logger log) {
     ArrayList<Segment> segs = new ArrayList<Segment>();
     if (!Files.exists(filename)) {
-      log.reportError("Error - could not load file " + filename
-                      + " it does not exist at the current path");
+      log.reportError(
+          "Error - could not load file " + filename + " it does not exist at the current path");
     } else {
       boolean skipFirstLine = true;
       String[] header = Files.getHeaderOfFile(filename, log);
@@ -275,7 +270,7 @@ public class CytoCompare {
       }
     }
     log.report(ext.getTime() + " Info - found " + segs.size()
-               + (segs.size() > 1 ? " segments " : " segment ") + "in " + filename);
+        + (segs.size() > 1 ? " segments " : " segment ") + "in " + filename);
     return segs.toArray(new Segment[segs.size()]);
   }
 
@@ -315,23 +310,23 @@ public class CytoCompare {
     String usage = "\n" + "jlDev.ParseAgilent requires 0-7 arguments\n";
     usage += "   (1) cyto call file (i.e. filename=" + cytoCNVariantFile + " (default))\n";
     usage += "   (2) a file of CNP locations to compute overlap (i.e. cnpFile=" + cnpFile
-             + " (default))\n";
+        + " (default))\n";
     usage += "   (3) a file of reported aberrations to compute overlap (i.e. reportedOverlapFile="
-             + reportedOverlapFile + " (default))\n";
+        + reportedOverlapFile + " (default))\n";
     usage +=
         "   (4) a file of un-reported aberrations to compute overlap (i.e. unreportedOverlapFile="
-             + unreportedOverlapFile + " (default))\n";
+            + unreportedOverlapFile + " (default))\n";
     usage += "   (5) the threshold to start counting aberration overlap (i.e. scoreThreshold="
-             + scoreThreshold + " (default))\n";
+        + scoreThreshold + " (default))\n";
     usage +=
         "   (6) the output directory, output will be named according to the sample names in the cyto call file (i.e. outputDir="
-             + outputDir + " (default))\n";
+            + outputDir + " (default))\n";
     usage += "   OPTIONAL: ";
     usage +=
         "   (8) compute beast scores (a valid sample data file must exist, samples must be parsed, and a project file must be provided) in addition to comparing segments (i.e.-beast (not the default))\n";
     usage +=
         "   (7) filename of the project (Only neccesary if computing Beast Scores (i.e. filename="
-             + filename + " (no default))\n";
+            + filename + " (no default))\n";
     usage += "   (8) name of the log file (i.e. logFile=" + logFile + " (default))\n";
     usage += "   (9) directory where cyto call file is located (i.e. dir=" + dir + " (default))\n";
 
@@ -384,7 +379,7 @@ public class CytoCompare {
     }
     Logger log = new Logger(logFile);
     compare(proj, dir, new String[] {cytoCNVariantFile}, cnpFile, reportedOverlapFile,
-            unreportedOverlapFile, scoreThreshold, outputDir, computeBeast, log);
+        unreportedOverlapFile, scoreThreshold, outputDir, computeBeast, log);
   }
 
   /**

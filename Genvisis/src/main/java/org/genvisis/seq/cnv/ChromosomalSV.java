@@ -100,7 +100,7 @@ public class ChromosomalSV {
   }
 
   enum TYPE {
-             LEFT, RIGHT, ALL;
+    LEFT, RIGHT, ALL;
   }
 
   private static ChrResult getResult(double[] lrrs, int i, int[] indices, TYPE type) {
@@ -126,7 +126,7 @@ public class ChromosomalSV {
     int numthreads = 7;
 
     String usage = "\n" + "seq.cnv.ChromosomalSV requires 0-1 arguments\n"
-                   + "   (1) proj (i.e. proj=" + filename + " (default))\n" + "";
+        + "   (1) proj (i.e. proj=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -196,8 +196,8 @@ public class ChromosomalSV {
           for (int j2 = 0; j2 < allResults[i][j].length; j2++) {
             double median = allResults[i][j][j2].getMedian();
             if (!Double.isNaN(median)) {
-              writer.println(samples[i] + "\t" + j + "\t" + median + "\t"
-                             + allResults[i][j][j2].getType());
+              writer.println(
+                  samples[i] + "\t" + j + "\t" + median + "\t" + allResults[i][j][j2].getType());
             }
           }
         }
@@ -210,13 +210,11 @@ public class ChromosomalSV {
   }
 
   private static ChrResult[][] tallyChrs(Project proj, String sample,
-                                         PreparedMarkerSet preparedMarkerSet) {
+      PreparedMarkerSet preparedMarkerSet) {
     Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
     int[] pos = preparedMarkerSet.getPositions();
-    int[][] boundaries =
-        Positions.determineCentromereBoundariesFromMarkerSet(preparedMarkerSet.getChrs(),
-                                                             preparedMarkerSet.getPositions(), 37,
-                                                             proj.getLog());
+    int[][] boundaries = Positions.determineCentromereBoundariesFromMarkerSet(
+        preparedMarkerSet.getChrs(), preparedMarkerSet.getPositions(), 37, proj.getLog());
     double[] lrrs = Array.toDoubleArray(samp.getLRRs());
     ChrResult[][] results = new ChrResult[preparedMarkerSet.getIndicesByChr().length][3];
     String[] markerNames = preparedMarkerSet.getMarkerNames();

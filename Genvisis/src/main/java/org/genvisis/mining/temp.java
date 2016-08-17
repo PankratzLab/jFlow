@@ -19,7 +19,7 @@ public class temp {
     String filename = "temp.dat";
 
     String usage = "\n" + "park.temp requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-                   + filename + " (default)\n" + "";
+        + filename + " (default)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -66,7 +66,7 @@ public class temp {
     dist = Doubles.toArray(dv);
     for (int k = 0; k < Transformations.NUM_TRANSFORMATIONS; k++) {
       System.err.println(Transformations.getLabel(k) + ": "
-                         + ext.formDeci(Array.kurtosis(Transformations.transform(dist, k)), 4));
+          + ext.formDeci(Array.kurtosis(Transformations.transform(dist, k)), 4));
     }
 
     System.exit(1);

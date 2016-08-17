@@ -14,7 +14,7 @@ public abstract class BlastSeqProducer extends AbstractProducer<BlastResultsSumm
   protected int numSeqsPerThread;
 
   public BlastSeqProducer(String fastaDb, int blastWordSize, int reportWordSize,
-                          int numSeqsPerThread, Logger log) {
+      int numSeqsPerThread, Logger log) {
     super();
     this.numSeqsPerThread = numSeqsPerThread;
     blast = new Blast(fastaDb, blastWordSize, reportWordSize, log, true, false);

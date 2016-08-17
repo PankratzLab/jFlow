@@ -46,11 +46,11 @@ public class GateFileWriter {
         RectangleGateDimension rgd = (RectangleGateDimension) gd;
         if (Numbers.isFinite(rgd.getMax())) {
           dim1.setAttribute("gating:max", "" + Math.max(((RectangleGateDimension) gd).getMin(),
-                                                        ((RectangleGateDimension) gd).getMax()));
+              ((RectangleGateDimension) gd).getMax()));
         }
         if (Numbers.isFinite(rgd.getMin())) {
           dim1.setAttribute("gating:min", "" + Math.min(((RectangleGateDimension) gd).getMin(),
-                                                        ((RectangleGateDimension) gd).getMax()));
+              ((RectangleGateDimension) gd).getMax()));
         }
       }
 
@@ -116,11 +116,11 @@ public class GateFileWriter {
       rootEle.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
       rootEle.setAttribute("xmlns:gating", "http://www.isac-net.org/std/Gating-ML/v2.0/gating");
       rootEle.setAttribute("xmlns:transforms",
-                           "http://www.isac-net.org/std/Gating-ML/v2.0/transformations");
+          "http://www.isac-net.org/std/Gating-ML/v2.0/transformations");
       rootEle.setAttribute("xmlns:data-type",
-                           "http://www.isac-net.org/std/Gating-ML/v2.0/datatypes");
+          "http://www.isac-net.org/std/Gating-ML/v2.0/datatypes");
       rootEle.setAttribute("xsi:schemaLocation",
-                           "http://www.isac-net.org/std/Gating-ML/v2.0/gating http://www.isac-net.org/std/Gating-ML/v2.0/gating/Gating-ML.v2.0.xsd http://www.isac-net.org/std/Gating-ML/v2.0/transformations http://www.isac-net.org/std/Gating-ML/v2.0/gating/Transformations.v2.0.xsd http://www.isac-net.org/std/Gating-ML/v2.0/datatypes http://www.isac-net.org/std/Gating-ML/v2.0/gating/DataTypes.v2.0.xsd ");
+          "http://www.isac-net.org/std/Gating-ML/v2.0/gating http://www.isac-net.org/std/Gating-ML/v2.0/gating/Gating-ML.v2.0.xsd http://www.isac-net.org/std/Gating-ML/v2.0/transformations http://www.isac-net.org/std/Gating-ML/v2.0/gating/Transformations.v2.0.xsd http://www.isac-net.org/std/Gating-ML/v2.0/datatypes http://www.isac-net.org/std/Gating-ML/v2.0/gating/DataTypes.v2.0.xsd ");
 
       ArrayList<Gate> rootGates = gating.getRootGates();
       for (Gate g : rootGates) {

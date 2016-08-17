@@ -86,7 +86,7 @@ public class procGenePositions {
     // ftp://ftp.ncbi.nih.gov/genomes/MapView/Homo_sapiens/sequence/BUILD.37.3/initial_release/
 
     String usage = "\n" + "park.procGenePositions requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -195,9 +195,10 @@ public class procGenePositions {
               gps = GenePosition.newArray(SOURCES.length);
               gps[j] = (GenePosition) trav[j].clone();
               gps[j].name = gps[j].name + "_asPlacedBy_"
-                            + ext.replaceWithLinuxSafeCharacters(SOURCES[j], true);
-              hash.put(geneID2 + "_asPlacedBy_"
-                       + ext.replaceWithLinuxSafeCharacters(SOURCES[j], true), gps);
+                  + ext.replaceWithLinuxSafeCharacters(SOURCES[j], true);
+              hash.put(
+                  geneID2 + "_asPlacedBy_" + ext.replaceWithLinuxSafeCharacters(SOURCES[j], true),
+                  gps);
             }
           }
           hash.remove(geneID2);
@@ -276,9 +277,7 @@ public class procGenePositions {
               temp = data[i][j].chr;
             }
             poslarlar[j][i] = Double.parseDouble(temp + "."
-                                                 + ext.formNum(data[i][j].start.equals(".") ? "0"
-                                                                                            : data[i][j].start,
-                                                               maxDigits));
+                + ext.formNum(data[i][j].start.equals(".") ? "0" : data[i][j].start, maxDigits));
           } catch (Exception e) {
             poslarlar[j][i] = -1;
           }
@@ -309,20 +308,20 @@ public class procGenePositions {
                 data[i][j].placed = false;
                 data[i][j].imputed = true;
               } else if (j != k && data[i][j].chr.equals(".") && !data[i][k].chr.equals(".")
-                         && !data[i][k].originally_unplaced) {
+                  && !data[i][k].originally_unplaced) {
                 low = high = ext.indexOfInt(i, orderler[k]);
                 do {
                   low--;
                 } while (low >= 0 && data[orderler[k][low]][k].chr.equals(data[i][k].chr)
-                         && data[orderler[k][low]][j].chr.equals("."));
+                    && data[orderler[k][low]][j].chr.equals("."));
                 if (low < 0 || !data[orderler[k][low]][k].chr.equals(data[i][k].chr)) {
                   low = -1;
                 }
                 do {
                   high++;
                 } while (high < geneIDs.length
-                         && data[orderler[k][high]][k].chr.equals(data[i][k].chr)
-                         && data[orderler[k][high]][j].chr.equals("."));
+                    && data[orderler[k][high]][k].chr.equals(data[i][k].chr)
+                    && data[orderler[k][high]][j].chr.equals("."));
                 if (high == geneIDs.length
                     || !data[orderler[k][high]][k].chr.equals(data[i][k].chr)) {
                   high = -1;
@@ -330,26 +329,23 @@ public class procGenePositions {
                 if (low != -1 || high != -1) {
                   data[i][j].name = data[i][k].name;
                   data[i][j].chr = data[i][k].chr;
-                  if ((low != -1 && high == -1)
-                      || (low != -1 && high != -1
-                          && poslarlar[k][i]
-                             - poslarlar[k][orderler[k][low]] < poslarlar[k][orderler[k][high]]
-                                                                - poslarlar[k][i])) {
+                  if ((low != -1 && high == -1) || (low != -1 && high != -1
+                      && poslarlar[k][i]
+                          - poslarlar[k][orderler[k][low]] < poslarlar[k][orderler[k][high]]
+                              - poslarlar[k][i])) {
                     data[i][j].start = (Integer.parseInt(data[orderler[k][low]][k].start)
-                                        + Integer.parseInt(data[i][k].start)
-                                        - Integer.parseInt(data[orderler[k][low]][k].start))
-                                       + "";
+                        + Integer.parseInt(data[i][k].start)
+                        - Integer.parseInt(data[orderler[k][low]][k].start)) + "";
                     data[i][j].stop =
                         (Integer.parseInt(data[i][j].start) + Integer.parseInt(data[i][k].stop)
-                         - Integer.parseInt(data[i][k].start)) + "";
+                            - Integer.parseInt(data[i][k].start)) + "";
                   } else {
                     data[i][j].start = (Integer.parseInt(data[orderler[k][high]][k].start)
-                                        + Integer.parseInt(data[i][k].start)
-                                        - Integer.parseInt(data[orderler[k][high]][k].start))
-                                       + "";
+                        + Integer.parseInt(data[i][k].start)
+                        - Integer.parseInt(data[orderler[k][high]][k].start)) + "";
                     data[i][j].stop =
                         (Integer.parseInt(data[i][j].start) + Integer.parseInt(data[i][k].stop)
-                         - Integer.parseInt(data[i][k].start)) + "";
+                            - Integer.parseInt(data[i][k].start)) + "";
                   }
                   data[i][j].sense = data[i][k].sense;
                   data[i][j].placed = false;
@@ -380,10 +376,8 @@ public class procGenePositions {
           } else {
             temp = data[i][DOMINANT].chr;
           }
-          poslar[i] = Double.parseDouble(temp + "."
-                                         + ext.formNum(data[i][DOMINANT].start.equals(".") ? "0"
-                                                                                           : data[i][DOMINANT].start,
-                                                       maxDigits));
+          poslar[i] = Double.parseDouble(temp + "." + ext.formNum(
+              data[i][DOMINANT].start.equals(".") ? "0" : data[i][DOMINANT].start, maxDigits));
         } catch (Exception e) {
           poslar[i] = -1;
         }
@@ -398,22 +392,22 @@ public class procGenePositions {
         for (int i = 0; i < SOURCES.length; i++) {
           if (IMPORTANT[i]) {
             writer.print("\t" + SOURCES[i] + "_name\t" + SOURCES[i] + "_chr\t" + SOURCES[i]
-                         + "_start\t" + SOURCES[i] + "_stop\t" + SOURCES[i] + "_sense\t"
-                         + SOURCES[i] + "_placed\t" + SOURCES[i] + "_imputed");
+                + "_start\t" + SOURCES[i] + "_stop\t" + SOURCES[i] + "_sense\t" + SOURCES[i]
+                + "_placed\t" + SOURCES[i] + "_imputed");
           }
         }
         writer.println();
         for (int i = 0; i < geneIDs.length; i++) {
-          writer.print(geneIDs[order[i]].indexOf("_asPlacedBy_") > 0 ? geneIDs[order[i]].substring(0,
-                                                                                                   geneIDs[order[i]].indexOf("_asPlacedBy_"))
-                                                                     : geneIDs[order[i]]);
+          writer.print(geneIDs[order[i]].indexOf("_asPlacedBy_") > 0
+              ? geneIDs[order[i]].substring(0, geneIDs[order[i]].indexOf("_asPlacedBy_"))
+              : geneIDs[order[i]]);
           for (int j = 0; j < SOURCES.length; j++) {
             if (IMPORTANT[j]) {
               writer.print("\t" + data[order[i]][j].name + "\t"
-                           + (data[order[i]][j].chr.equals(".") ? "Un" : data[order[i]][j].chr)
-                           + "\t" + data[order[i]][j].start + "\t" + data[order[i]][j].stop + "\t"
-                           + data[order[i]][j].sense + "\t" + data[order[i]][j].placed + "\t"
-                           + data[order[i]][j].imputed);
+                  + (data[order[i]][j].chr.equals(".") ? "Un" : data[order[i]][j].chr) + "\t"
+                  + data[order[i]][j].start + "\t" + data[order[i]][j].stop + "\t"
+                  + data[order[i]][j].sense + "\t" + data[order[i]][j].placed + "\t"
+                  + data[order[i]][j].imputed);
             }
           }
           writer.println();
@@ -421,8 +415,8 @@ public class procGenePositions {
 
         writer.close();
       } catch (FileNotFoundException fnfe) {
-        System.err.println("Error: file \"" + dir + "genes.xls"
-                           + "\" is still in use or otherwise unavailable");
+        System.err.println(
+            "Error: file \"" + dir + "genes.xls" + "\" is still in use or otherwise unavailable");
         System.exit(1);
       } catch (IOException ioe) {
         System.err.println("Error writing to \"" + dir + "genes.xls" + "\"");

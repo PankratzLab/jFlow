@@ -21,8 +21,8 @@ public class CARDIAResultsProcessor {
     String dirP = "";
 
     String usage = "\n" + "one.ben.CARDIAResultsProcessor requires 0-1 arguments\n"
-                   + "   (1) regression results directory (i.e. dirR=" + dirR + " (default))\n"
-                   + "   (2) SNP positions directory (i.e. dirP=" + dirP + " (default))\n" + "";
+        + "   (1) regression results directory (i.e. dirR=" + dirR + " (default))\n"
+        + "   (2) SNP positions directory (i.e. dirP=" + dirP + " (default))\n" + "";
 
 
     for (String arg : args) {
@@ -76,10 +76,10 @@ public class CARDIAResultsProcessor {
 
           StringBuilder sb = new StringBuilder();
           sb.append(partsP[0]).append(",").append(partsP[1]).append(",").append(partsP[2])
-            .append(",").append(partsR[7]).append(",").append(partsR[1]).append(",")
-            .append(partsR[2]).append(",").append(partsR[4]).append(",").append(partsR[6])
-            .append(",").append(partsR[9]).append(",").append(partsR[10]).append(",")
-            .append(partsR[11]);
+              .append(",").append(partsR[7]).append(",").append(partsR[1]).append(",")
+              .append(partsR[2]).append(",").append(partsR[4]).append(",").append(partsR[6])
+              .append(",").append(partsR[9]).append(",").append(partsR[10]).append(",")
+              .append(partsR[11]);
 
           writer.println(sb.toString());
 

@@ -30,11 +30,11 @@ public class OutlierHashtable implements Serializable {
   public void add(int markerIndexInProj, int sampleIndexInProj, byte dataItem, float value) {
     if (outlierHashtableSmall == null) {
       outlierHashtableBig.put((long) (markerIndexInProj * MAX_NUM_OF_SAMPLES_BIG_HASH
-                                      + sampleIndexInProj * 10 + dataItem),
-                              value);
+          + sampleIndexInProj * 10 + dataItem), value);
     } else {
-      outlierHashtableSmall.put(markerIndexInProj * MAX_NUM_OF_SAMPLES_SMALL_HASH
-                                + sampleIndexInProj * 10 + dataItem, value);
+      outlierHashtableSmall.put(
+          markerIndexInProj * MAX_NUM_OF_SAMPLES_SMALL_HASH + sampleIndexInProj * 10 + dataItem,
+          value);
     }
   }
 
@@ -49,10 +49,10 @@ public class OutlierHashtable implements Serializable {
   public float getValue(int markerIndexInProj, int sampleIndexInProj, byte dataItem) {
     if (outlierHashtableSmall == null) {
       return outlierHashtableBig.get((long) markerIndexInProj * MAX_NUM_OF_SAMPLES_BIG_HASH
-                                     + sampleIndexInProj * 10 + dataItem);
+          + sampleIndexInProj * 10 + dataItem);
     } else {
-      return outlierHashtableSmall.get(markerIndexInProj * MAX_NUM_OF_SAMPLES_SMALL_HASH
-                                       + sampleIndexInProj * 10 + dataItem);
+      return outlierHashtableSmall.get(
+          markerIndexInProj * MAX_NUM_OF_SAMPLES_SMALL_HASH + sampleIndexInProj * 10 + dataItem);
     }
   }
 

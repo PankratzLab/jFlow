@@ -26,7 +26,7 @@ public class ReferenceGenomeTest {
     // other testing
     String[] test = referenceGenome.getSequenceFor(new Segment((byte) 26, 1, 50));
     String[] bah = Files.getFirstNLinesOfFile(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), 2,
-                                              proj.getLog());
+        proj.getLog());
     System.out.println(Array.toStr(test));
     System.out.println(Array.toStr(bah));
 
@@ -39,11 +39,10 @@ public class ReferenceGenomeTest {
 
     for (int i = 1; i < 23; i++) {
       tseg.add(new Segment((byte) i,
-                           referenceGenome.getIndexedFastaSequenceFile().getSequenceDictionary()
-                                          .getSequence(i).getSequenceLength()
-                                     - 10000,
-                           referenceGenome.getIndexedFastaSequenceFile().getSequenceDictionary()
-                                          .getSequence(i).getSequenceLength() - 9800));
+          referenceGenome.getIndexedFastaSequenceFile().getSequenceDictionary().getSequence(i)
+              .getSequenceLength() - 10000,
+          referenceGenome.getIndexedFastaSequenceFile().getSequenceDictionary().getSequence(i)
+              .getSequenceLength() - 9800));
     }
 
     int off = tseg.size();
@@ -75,7 +74,7 @@ public class ReferenceGenomeTest {
     MarkerSet markerSet = proj.getMarkerSet();
     for (int i = 0; i < markerSegs.length; i++) {
       markerSegs[i] = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i] - 50,
-                                  markerSet.getPositions()[i] + 50);
+          markerSet.getPositions()[i] + 50);
     }
     proj.getLog().reportTimeInfo("Going for every marker in the project n=" + markerSegs.length);
     time = System.currentTimeMillis();
@@ -99,7 +98,7 @@ public class ReferenceGenomeTest {
     MarkerSet markerSet = proj.getMarkerSet();
     for (int i = 0; i < markerSegs.length; i++) {
       markerSegs[i] = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i] - 50,
-                                  markerSet.getPositions()[i] + 50);
+          markerSet.getPositions()[i] + 50);
     }
     proj.getLog().reportTimeInfo("Going for every marker in the project n=" + markerSegs.length);
     long time = System.currentTimeMillis();

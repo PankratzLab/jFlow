@@ -23,10 +23,10 @@ public class VTE_Analyses {
 
   public static final String[][] STUDIES =
       {{"ARIC", "ARIC_autosomes_table_withUpdatedChr2.xln", "\t"},
-       {"CHS", "GH-VTE-results.csv", ","}, {"GH", "GH-VTE-results.csv", ","},
-       {"RS1", "RS1VTE_CHARGE.chargefmt.RS.txt", "[\\s]+"},
-       {"RS2", "RS2VTE_CHARGE.chargefmt.RS.txt", "[\\s]+"},
-       {"WGHS", "WGHS_incident_VTE_oct_20_2009.txt", "[\\s]+"},};
+          {"CHS", "GH-VTE-results.csv", ","}, {"GH", "GH-VTE-results.csv", ","},
+          {"RS1", "RS1VTE_CHARGE.chargefmt.RS.txt", "[\\s]+"},
+          {"RS2", "RS2VTE_CHARGE.chargefmt.RS.txt", "[\\s]+"},
+          {"WGHS", "WGHS_incident_VTE_oct_20_2009.txt", "[\\s]+"},};
 
   public static void generateSuperMap() {
     BufferedReader reader;
@@ -41,7 +41,7 @@ public class VTE_Analyses {
       line = Files.getHeaderOfFile(DIR + element[1], element[2], log);
       // System.out.println(STUDIES[i][0]+"\t"+Array.toStr(line));
       ext.checkHeader(line, new String[] {"SNPID", "chr", "position"}, new int[] {0, 1, 2}, true,
-                      log, true);
+          log, true);
     }
     for (String[] element : STUDIES) {
       System.out.println(element[0]);
@@ -55,7 +55,7 @@ public class VTE_Analyses {
             ref = hash.get(line[0]);
             if (!ref[2].equals("NA") && (!line[1].equals(ref[1]) || !line[2].equals(ref[2]))) {
               log.reportError("Error - mismatched positions for marker '" + line[0] + "' (was "
-                              + ref[1] + ":" + ref[2] + ", now " + line[1] + ":" + line[2] + ")");
+                  + ref[1] + ":" + ref[2] + ", now " + line[1] + ":" + line[2] + ")");
             }
           }
 
@@ -63,8 +63,8 @@ public class VTE_Analyses {
         }
         reader.close();
       } catch (FileNotFoundException fnfe) {
-        System.err.println("Error: file \"" + DIR + element[1]
-                           + "\" not found in current directory");
+        System.err
+            .println("Error: file \"" + DIR + element[1] + "\" not found in current directory");
         System.exit(1);
       } catch (IOException ioe) {
         System.err.println("Error reading file \"" + DIR + element[1] + "\"");

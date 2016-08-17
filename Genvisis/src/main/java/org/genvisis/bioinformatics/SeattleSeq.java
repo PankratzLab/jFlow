@@ -22,31 +22,30 @@ public class SeattleSeq {
       {{"Chr"}, {"MapInfo", "Position"}, {"MarkerName", "SNP"}, {"RefStrand"}};
   public static final String[][] RELEVANTS =
       {{"chromosome"}, {"position"}, {"sampleAlleles"}, {"accession"}, {"functionGVS"},
-       {"aminoAcids"}, {"geneList"}, {"inDBSNPOrNot"}, {"rsID"}, {"microRNAs"}};
+          {"aminoAcids"}, {"geneList"}, {"inDBSNPOrNot"}, {"rsID"}, {"microRNAs"}};
   // "# inDBSNPOrNot", "", "position", "referenceBase", "sampleGenotype", "sampleAlleles",
   // "allelesDBSNP", "accession", "functionGVS", "functionDBSNP", "rsID", "aminoAcids",
   // "proteinPosition", "cDNAPosition", "polyPhen", "granthamScore", "scorePhastCons",
   // "consScoreGERP", "chimpAllele", "CNV", "geneList", "AfricanHapMapFreq", "EuropeanHapMapFreq",
   // "AsianHapMapFreq", "hasGenotypes", "dbSNPValidation", "repeatMasker", "tandemRepeat",
   // "clinicalAssociation", "distanceToSplice", "microRNAs", "proteinSequence"
-  public static final String[] ORDER =
-      {"frameshift-near-splice", "frameshift", "stop-gained-near-splice", "stop-gained",
-       "stop-lost-near-splice", "stop-lost", "nonsense", "missense-near-splice", "missense",
-       "coding-near-splice", "coding", "splice-donor", "splice-5", "splice-acceptor", "splice-3",
-       "synonymous-near-splice", "intron-near-splice", "coding-unknown-near-splice", "synonymous",
-       "coding-synonymous", "coding-unknown", "coding-notMod3", "non-coding-exon-near-splice",
-       "non-coding-exon", "5-prime-UTR", "utr-5", "3-prime-UTR", "utr-3", "intron", "upstream-gene",
-       "near-gene-5", "downstream-gene", "near-gene-3", "intergenic"};
+  public static final String[] ORDER = {"frameshift-near-splice", "frameshift",
+      "stop-gained-near-splice", "stop-gained", "stop-lost-near-splice", "stop-lost", "nonsense",
+      "missense-near-splice", "missense", "coding-near-splice", "coding", "splice-donor",
+      "splice-5", "splice-acceptor", "splice-3", "synonymous-near-splice", "intron-near-splice",
+      "coding-unknown-near-splice", "synonymous", "coding-synonymous", "coding-unknown",
+      "coding-notMod3", "non-coding-exon-near-splice", "non-coding-exon", "5-prime-UTR", "utr-5",
+      "3-prime-UTR", "utr-3", "intron", "upstream-gene", "near-gene-5", "downstream-gene",
+      "near-gene-3", "intergenic"};
   // public static final String[] BAD = {"missense", "stop-gained", "stop-lost",
   // "missense-near-splice", "splice-donor", "splice-acceptor"};
   public static final String[] BAD =
       {"frameshift-near-splice", "frameshift", "stop-gained-near-splice", "stop-gained",
-       "stop-lost-near-splice", "stop-lost", "nonsense", "missense-near-splice", "missense",
-       "coding", "splice-donor", "splice-5", "splice-acceptor", "splice-3"};
-  public static final String[] NEUTRAL =
-      {"intron-near-splice", "5-prime-UTR", "downstream-gene", "upstream-gene", "synonymous",
-       "coding-synonymous", "intergenic", "non-coding-exon", "3-prime-UTR", "intron",
-       "coding-notMod3"};
+          "stop-lost-near-splice", "stop-lost", "nonsense", "missense-near-splice", "missense",
+          "coding", "splice-donor", "splice-5", "splice-acceptor", "splice-3"};
+  public static final String[] NEUTRAL = {"intron-near-splice", "5-prime-UTR", "downstream-gene",
+      "upstream-gene", "synonymous", "coding-synonymous", "intergenic", "non-coding-exon",
+      "3-prime-UTR", "intron", "coding-notMod3"};
 
   public static char[] determineAlleles(String str) {
     String[] line;
@@ -91,11 +90,12 @@ public class SeattleSeq {
     } else {
       files = Files.list(directory, "SeattleSeqAnnotation", ".txt.gz", false, false);
       log.report(ext.getTime() + "\tFound " + files.length
-                 + " file(s) with a .SeattleSeq extension to include");
+          + " file(s) with a .SeattleSeq extension to include");
       for (int f = 0; f < files.length; f++) {
         time = new Date().getTime();
-        log.report("Processing SeattleSeq file " + (f + 1) + " of " + files.length + "\t"
-                   + files[f], false, true);
+        log.report(
+            "Processing SeattleSeq file " + (f + 1) + " of " + files.length + "\t" + files[f],
+            false, true);
         try {
           reader = Files.getAppropriateReader(directory + files[f]);
 
@@ -173,12 +173,12 @@ public class SeattleSeq {
 
           }
 
-          log.report(" ...skipped " + linesSkipped + " line(s); finished in "
-                     + ext.getTimeElapsed(time));
+          log.report(
+              " ...skipped " + linesSkipped + " line(s); finished in " + ext.getTimeElapsed(time));
           reader.close();
         } catch (FileNotFoundException fnfe) {
-          System.err.println("Error: file \"" + directory + files[f]
-                             + "\" not found in current directory");
+          System.err.println(
+              "Error: file \"" + directory + files[f] + "\" not found in current directory");
           System.exit(1);
         } catch (IOException ioe) {
           System.err.println("Error reading file \"" + directory + files[f] + "\"");
@@ -195,7 +195,7 @@ public class SeattleSeq {
   }
 
   public static Hashtable<String, String[]> loadAllBadAnnotationInDir(String directory,
-                                                                      Logger log) {
+      Logger log) {
     BufferedReader reader;
     String[] files, line;
     Hashtable<String, String[]> hash;
@@ -223,9 +223,8 @@ public class SeattleSeq {
                 if (ext.indexOfStr(line[8], BAD) >= 0) {
                   function = line[8];
                   if (!line[11].equals("none")) {
-                    function +=
-                        " " + ext.replaceAllWith(line[11], ",",
-                                                 line[12].substring(0, line[12].indexOf("/")));
+                    function += " " + ext.replaceAllWith(line[11], ",",
+                        line[12].substring(0, line[12].indexOf("/")));
                   }
                   function += "\t" + line[0];
                   hash.put(markerName, new String[] {function});
@@ -239,8 +238,8 @@ public class SeattleSeq {
           }
           reader.close();
         } catch (FileNotFoundException fnfe) {
-          System.err.println("Error: file \"" + directory + file
-                             + "\" not found in current directory");
+          System.err
+              .println("Error: file \"" + directory + file + "\" not found in current directory");
           System.exit(1);
         } catch (IOException ioe) {
           System.err.println("Error reading file \"" + directory + file + "\"");
@@ -269,13 +268,13 @@ public class SeattleSeq {
     // System.exit(1);
 
     String usage = "\n" + "bioinformatics.SeattleSeq requires 0-1 arguments\n"
-                   + "   (1) filename of SeattleSeq annotation (i.e. file=" + filename
-                   + " (default))\n" + "   (2) filename of allele frequency data (i.e. freqFile="
-                   + freqFilename + " (default))\n" + " OR:\n"
-                   + "   (1) name of file to prep for input to SeattleSeq (i.e. prep=filename.txt (not the default))\n"
-                   + " OR:\n"
-                   + "   (1) name of allele freq file to process (i.e. prepFreq=freqInfo.out (not the default))\n"
-                   + "";
+        + "   (1) filename of SeattleSeq annotation (i.e. file=" + filename + " (default))\n"
+        + "   (2) filename of allele frequency data (i.e. freqFile=" + freqFilename
+        + " (default))\n" + " OR:\n"
+        + "   (1) name of file to prep for input to SeattleSeq (i.e. prep=filename.txt (not the default))\n"
+        + " OR:\n"
+        + "   (1) name of allele freq file to process (i.e. prepFreq=freqInfo.out (not the default))\n"
+        + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -386,8 +385,8 @@ public class SeattleSeq {
             alleles[i] = 'A';
           }
         }
-        writer.println(line[indices[0]] + "\t" + line[indices[1]] + "\t0\t" + alleles[0] + "\t"
-                       + alleles[1]);
+        writer.println(
+            line[indices[0]] + "\t" + line[indices[1]] + "\t0\t" + alleles[0] + "\t" + alleles[1]);
       }
       writer.close();
       reader.close();
@@ -421,13 +420,13 @@ public class SeattleSeq {
     int linesSkipped;
 
     hashFreq = HashVec.loadFileToHashString(freqFilename, new int[] {0}, new int[] {3}, false, "",
-                                            true, false, false);
+        true, false, false);
 
     try {
       reader = Files.getAppropriateReader(filename);
       writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_summary.out"));
-      writer.println(Array.toStr(Matrix.extractColumn(RELEVANTS, 0))
-                     + "\tAlleleFrequency\tMAF<1%\tMAF<5%");
+      writer.println(
+          Array.toStr(Matrix.extractColumn(RELEVANTS, 0)) + "\tAlleleFrequency\tMAF<1%\tMAF<5%");
       log = new Logger(ext.rootOf(filename, false) + ".log");
       temp = reader.readLine().trim();
       // if (temp.startsWith("#"));
@@ -479,10 +478,10 @@ public class SeattleSeq {
               writer.print((i == 0 ? "" : "\t") + trav[indices[i]]);
             }
             if (hashFreq.containsKey(trav[indices[0]].toLowerCase() + "^" + trav[indices[1]])) {
-              freq = Double.parseDouble(hashFreq.get(trav[indices[0]].toLowerCase() + "^"
-                                                     + trav[indices[1]]));
-              writer.print("\t" + freq + "\t" + (freq < 0.01 ? 1 : 0) + "\t"
-                           + (freq < 0.05 ? 1 : 0));
+              freq = Double.parseDouble(
+                  hashFreq.get(trav[indices[0]].toLowerCase() + "^" + trav[indices[1]]));
+              writer
+                  .print("\t" + freq + "\t" + (freq < 0.01 ? 1 : 0) + "\t" + (freq < 0.05 ? 1 : 0));
             } else {
               writer.print("\t.\t.\t.");
             }

@@ -32,7 +32,7 @@ public class BlastFastaq extends BlastSeqProducer {
    * @param log
    */
   public BlastFastaq(String fastaqFile, int numToTest, String fastaDb, int blastWordSize,
-                     int reportWordSize, int numSeqsPerThread, Logger log) {
+      int reportWordSize, int numSeqsPerThread, Logger log) {
     super(fastaDb, blastWordSize, reportWordSize, numSeqsPerThread, log);
     numTested = 0;
     this.numToTest = numToTest;
@@ -66,7 +66,7 @@ public class BlastFastaq extends BlastSeqProducer {
       numAdded++;
     }
     return new Blast.BlastWorker(blast, curEntries.toArray(new FastaEntry[curEntries.size()]),
-                                 null);
+        null);
   }
 
   @Override

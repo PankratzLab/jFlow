@@ -19,7 +19,7 @@ public class bashPG {
     b.add("grep drw");
     System.out.println(Array.toStr(Array.toStringArray(b)));
     CmdLine.runCommandWithFileChecks(Array.toStringArray(b), "", null, null, false, true, false,
-                                     new Logger());
+        new Logger());
 
   }
 

@@ -137,10 +137,10 @@ public class SNPEFF {
   }
 
   public static void testCounts(String snpEffLocation, String inputDirectory, String build,
-                                String match, String bedFile, int numThreads, Logger log) {
+      String match, String bedFile, int numThreads, Logger log) {
     SNPEFF snpeff = new SNPEFF(snpEffLocation, true, true, log);
     snpeff.runSnpEffCountOnBamDirectory(inputDirectory, inputDirectory + "SnpEff.counts", build,
-                                        match, bedFile, numThreads);
+        match, bedFile, numThreads);
   }
 
   private String snpEffLocation;
@@ -150,7 +150,7 @@ public class SNPEFF {
   private final Logger log;
 
   public SNPEFF(String snpEffLocation, boolean verbose, boolean overWriteExistingOutput,
-                Logger log) {
+      Logger log) {
     super();
 
     this.snpEffLocation = snpEffLocation;
@@ -180,20 +180,19 @@ public class SNPEFF {
     boolean progress = true;
     String[] inputFiles = new String[] {snpEffResult.getInputVCF()};
     String[] outputFiles = new String[] {snpEffResult.getOutputSnpEffVCF()};
-    String[] command =
-        new String[] {JAVA, JAR, snpEffLocation + SNP_EFF, V, O, GATK, build,
-                      snpEffResult.getInputVCF(), CARROT, snpEffResult.getOutputSnpEffVCF()};
+    String[] command = new String[] {JAVA, JAR, snpEffLocation + SNP_EFF, V, O, GATK, build,
+        snpEffResult.getInputVCF(), CARROT, snpEffResult.getOutputSnpEffVCF()};
     String batFile = ext.addToRoot(snpEffResult.getInputVCF(), ".bat");
     Files.write(Array.toStr(command, " "), batFile);
     Files.chmod(batFile);
     progress = CmdLine.runCommandWithFileChecks(new String[] {batFile}, "", inputFiles, outputFiles,
-                                                verbose, overWriteExistingOutput, false, log);
+        verbose, overWriteExistingOutput, false, log);
     return progress;
 
   }
 
   public boolean runSnpEFFCount(String[] inputBams, String output, String build, String bedFile,
-                                int numThreads) {
+      int numThreads) {
     boolean progress = true;
     String[] command = new String[] {JAVA, JAR, snpEffLocation + SNP_EFF, COUNT};
     String[] inputs = inputBams;
@@ -210,21 +209,20 @@ public class SNPEFF {
     String batFile = ext.addToRoot(output, ".bat");
     Files.write(Array.toStr(command, " "), batFile);
     Files.chmod(batFile);
-    progress =
-        CmdLine.runCommandWithFileChecks(new String[] {batFile}, "", inputs, new String[] {output},
-                                         verbose, overWriteExistingOutput, false, log);
+    progress = CmdLine.runCommandWithFileChecks(new String[] {batFile}, "", inputs,
+        new String[] {output}, verbose, overWriteExistingOutput, false, log);
     return progress;
   }
 
   public boolean runSnpEffCountOnBamDirectory(String inputDirectory, String output, String build,
-                                              String match, String bedFile, int numThreads) {
+      String match, String bedFile, int numThreads) {
     String[] inputBams =
         Files.toFullPaths(Files.list(inputDirectory, match, false), inputDirectory);
     if (inputBams != null && inputBams.length > 0) {
       return runSnpEFFCount(inputBams, output, build, bedFile, numThreads);
     } else {
-      log.reportError("Error - no files ending with " + match + " were found in dirctory "
-                      + inputDirectory);
+      log.reportError(
+          "Error - no files ending with " + match + " were found in dirctory " + inputDirectory);
       return false;
     }
   }

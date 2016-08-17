@@ -24,7 +24,7 @@ public class extractMarkers {
     String filename = "extractThese.txt";
 
     String usage = "\n" + "park.extractMarkers requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -103,8 +103,8 @@ public class extractMarkers {
       indices = ext.indexFactors(markersPicked, markerNames, false, false);
 
       if (Array.min(indices) < 0) {
-        System.err.println("Error - the following markers were not found in " + "map" + chrome
-                           + ".dat");
+        System.err
+            .println("Error - the following markers were not found in " + "map" + chrome + ".dat");
         for (int j = 0; j < indices.length; j++) {
           if (indices[j] < 0) {
             System.err.print(markersPicked[j] + " ");
@@ -119,8 +119,8 @@ public class extractMarkers {
         writer = new PrintWriter(new FileWriter(dir + "map" + chrome + ".dat"));
 
         temp = reader.readLine().trim();
-        writer.println((markersPicked.length + 1)
-                       + temp.substring(temp.split("[\\s]+")[0].length()));
+        writer
+            .println((markersPicked.length + 1) + temp.substring(temp.split("[\\s]+")[0].length()));
         writer.println(reader.readLine());
         reader.readLine();
         writer.println(Array.toStr(Array.stringArraySequence(markersPicked.length + 1, ""), " "));
@@ -159,14 +159,14 @@ public class extractMarkers {
           }
         }
         writer.println("  " + line[line.length - 3] + " " + line[line.length - 2] + " "
-                       + line[line.length - 1]);
+            + line[line.length - 1]);
         writer.println(reader.readLine());
 
         reader.close();
         writer.close();
       } catch (FileNotFoundException fnfe) {
-        System.err.println("Error: file \"" + "map" + chrome + ".dat"
-                           + "\" not found in current directory");
+        System.err.println(
+            "Error: file \"" + "map" + chrome + ".dat" + "\" not found in current directory");
         System.exit(1);
       } catch (IOException ioe) {
         System.err.println("Error reading file \"" + "map" + chrome + ".dat" + "\"");
@@ -180,7 +180,7 @@ public class extractMarkers {
         while (reader.ready()) {
           line = reader.readLine().split("[\\s]+");
           writer.print(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
-                       + "\t" + line[5]);
+              + "\t" + line[5]);
           for (int j = 0; j < markerNames.length; j++) {
             if (ext.indexOfInt(j, indices) != -1) {
               writer.print("\t" + line[6 + 2 * j + 0] + "\t" + line[6 + 2 * j + 1]);
@@ -199,15 +199,15 @@ public class extractMarkers {
         writer = new PrintWriter(new FileWriter(dir + "heterozygosity" + chrome + ".xls"));
         for (int j = 0; j < indices.length; j++) {
           writer.println(markerNames[indices[j]] + "\t"
-                         + ext.formDeci(AlleleFreq.computeHeterozygosity(genotypeCounts[j]), 3));
+              + ext.formDeci(AlleleFreq.computeHeterozygosity(genotypeCounts[j]), 3));
           if (Math.abs(AlleleFreq.computeHeterozygosity(genotypeCounts[j])) < 0.00001) {
             System.out.println(markerNames[indices[j]] + " is uninformative");
           }
         }
         writer.close();
       } catch (FileNotFoundException fnfe) {
-        System.err.println("Error: file \"" + "re_chrom" + chrome + ".pre"
-                           + "\" not found in current directory");
+        System.err.println(
+            "Error: file \"" + "re_chrom" + chrome + ".pre" + "\" not found in current directory");
         System.exit(1);
       } catch (IOException ioe) {
         System.err.println("Error reading file \"" + "re_chrom" + chrome + ".pre" + "\"");
@@ -217,10 +217,10 @@ public class extractMarkers {
         System.exit(2);
       }
       Cyrillic.format(dir + "re_chrom" + chrome + ".pre", dir + "map" + chrome + ".dat",
-                      dir + "cyrill" + chrome + ".pre", dir + "cyrill" + chrome + ".dat",
-                      Integer.parseInt(chr));
+          dir + "cyrill" + chrome + ".pre", dir + "cyrill" + chrome + ".dat",
+          Integer.parseInt(chr));
     }
-    System.out.println("Files with the extracted markers were successfully created in '" + dir
-                       + "'");
+    System.out
+        .println("Files with the extracted markers were successfully created in '" + dir + "'");
   }
 }

@@ -77,7 +77,7 @@ public class FCSPlotControlPanel extends JPanel {
     @Override
     public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
       return ((orientation == SwingConstants.VERTICAL) ? visibleRect.height : visibleRect.width)
-             - 10;
+          - 10;
     }
 
     @Override
@@ -166,9 +166,8 @@ public class FCSPlotControlPanel extends JPanel {
         boolean remove = true;
         if (plot.isFileLoaded(dcp.file)) {
           int opt = JOptionPane.showConfirmDialog(plot,
-                                                  "This will unload file data from memory - are you sure you wish to continue?",
-                                                  "Unload Data?", JOptionPane.YES_NO_OPTION,
-                                                  JOptionPane.WARNING_MESSAGE);
+              "This will unload file data from memory - are you sure you wish to continue?",
+              "Unload Data?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
           if (opt == JOptionPane.YES_OPTION) {
             plot.unloadFile(dcp.file);
           } else {
@@ -201,9 +200,8 @@ public class FCSPlotControlPanel extends JPanel {
         // warning if not enough memory
         if (plot.isFileLoaded(dcp.file)) {
           int opt = JOptionPane.showConfirmDialog(plot,
-                                                  "This will unload file data from memory - are you sure you wish to continue?",
-                                                  "Unload Data?", JOptionPane.YES_NO_OPTION,
-                                                  JOptionPane.WARNING_MESSAGE);
+              "This will unload file data from memory - are you sure you wish to continue?",
+              "Unload Data?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
           if (opt == JOptionPane.YES_OPTION) {
             plot.unloadFile(dcp.file);
             dcp.setLoaded(false);
@@ -216,9 +214,8 @@ public class FCSPlotControlPanel extends JPanel {
         boolean disp = true;
         if (!plot.isFileLoaded(dcp.file)) {
           int opt = JOptionPane.showConfirmDialog(plot,
-                                                  "Data file not loaded - would you like to load this data?",
-                                                  "Confirm Load", JOptionPane.YES_NO_OPTION,
-                                                  JOptionPane.INFORMATION_MESSAGE);
+              "Data file not loaded - would you like to load this data?", "Confirm Load",
+              JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
           if (opt == JOptionPane.NO_OPTION) {
             disp = false;
           }
@@ -246,8 +243,8 @@ public class FCSPlotControlPanel extends JPanel {
       jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
       jfc.setMultiSelectionEnabled(false);
       jfc.addChoosableFileFilter(new FileNameExtensionFilter("Gating-ML File", "xml"));
-      jfc.addChoosableFileFilter(new FileNameExtensionFilter("FlowJo Workspace or WorkspaceTemplate File",
-                                                             "wsp", "wspt"));
+      jfc.addChoosableFileFilter(
+          new FileNameExtensionFilter("FlowJo Workspace or WorkspaceTemplate File", "wsp", "wspt"));
       jfc.setDialogTitle("Select Gating File");
       int resp = jfc.showOpenDialog(FCSPlotControlPanel.this);
       if (resp == JFileChooser.APPROVE_OPTION) {
@@ -541,8 +538,8 @@ public class FCSPlotControlPanel extends JPanel {
     gateControlPanel.topPanel.add(mnemLabel, "cell 1 0, alignx right");
 
     JPanel gatePanel = gateControlPanel.contentPanel;
-    gatePanel.setLayout(new MigLayout("hidemode 3,ins 0", "[grow][]0px[]",
-                                      "0px[]0px[]0px[grow]0px[]0px[]0px"));
+    gatePanel.setLayout(
+        new MigLayout("hidemode 3,ins 0", "[grow][]0px[]", "0px[]0px[]0px[grow]0px[]0px[]0px"));
 
     JLabel dirLbl1 = new JLabel("Select Gating File:");
     dirLbl1.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -634,8 +631,8 @@ public class FCSPlotControlPanel extends JPanel {
     dataControlsPanel.topPanel.add(mnemLabel, "cell 1 0, alignx right");
 
     JPanel dataPanel = dataControlsPanel.contentPanel;
-    dataPanel.setLayout(new MigLayout("hidemode 3,ins 0", "[grow][]",
-                                      "0px[]0px[]0px[grow]0px[]0px[]0px"));
+    dataPanel.setLayout(
+        new MigLayout("hidemode 3,ins 0", "[grow][]", "0px[]0px[]0px[grow]0px[]0px[]0px"));
 
     JLabel dirLbl = new JLabel("Add File(s):");
     dirLbl.setHorizontalAlignment(SwingConstants.RIGHT);

@@ -102,8 +102,8 @@ public class GEO_expression {
             }
             reader.close();
           } catch (FileNotFoundException fnfe) {
-            System.err.println("Error: file \"" + dir + content
-                               + "\" not found in current directory");
+            System.err
+                .println("Error: file \"" + dir + content + "\" not found in current directory");
             System.exit(1);
           } catch (IOException ioe) {
             System.err.println("Error reading file \"" + dir + content + "\"");
@@ -132,7 +132,7 @@ public class GEO_expression {
 
 
     String usage = "\n" + "parse.GEO_expression requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -159,7 +159,7 @@ public class GEO_expression {
         regress(ext.rootOf(filename, false) + "_transcripts.xln");
       } else {
         System.out.println("Error - file '" + ext.rootOf(filename, false) + "_transcripts.xln"
-                           + "' not found; nothing to parse");
+            + "' not found; nothing to parse");
       }
       average(ext.rootOf(filename, false) + "_transcripts_residuals.xln");
     } catch (Exception e) {
@@ -181,7 +181,8 @@ public class GEO_expression {
     try {
       names = HashVec.loadFileToStringArray(filename, false, new int[] {1}, false);
     } catch (ArrayIndexOutOfBoundsException aioobe) {
-      System.out.println("No gene names in column 2 of the file (useful for generating easy to understand PLINK pheno files); copying transcript information...");
+      System.out.println(
+          "No gene names in column 2 of the file (useful for generating easy to understand PLINK pheno files); copying transcript information...");
       names = targets;
     }
 
@@ -224,8 +225,8 @@ public class GEO_expression {
                 count++;
               }
             }
-            System.out.println("Successfully identified " + count + " of " + (data.length - 1)
-                               + " transcripts");
+            System.out.println(
+                "Successfully identified " + count + " of " + (data.length - 1) + " transcripts");
           }
           reader.close();
         } catch (FileNotFoundException fnfe) {

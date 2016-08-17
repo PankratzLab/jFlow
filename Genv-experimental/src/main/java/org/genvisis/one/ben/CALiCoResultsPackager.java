@@ -124,25 +124,25 @@ public class CALiCoResultsPackager {
   };
 
   static final int[] FREQ_INDICES = {0, // CHR
-                                     1, // SNP
-                                     2, // A1
-                                     3, // A2
-                                     4, // MAF
-                                     5, // NCHROBS
+      1, // SNP
+      2, // A1
+      3, // A2
+      4, // MAF
+      5, // NCHROBS
   };
 
   static final int[] ASSOC_INDICES = {0, // CHR
-                                      1, // SNP
-                                      2, // BP
-                                      3, // A1
-                                      4, // TEST
-                                      5, // NMISS
-                                      6, // BETA
-                                      7, // SE
-                                      8, // L95
-                                      9, // U95
-                                      10, // STAT
-                                      11 // P
+      1, // SNP
+      2, // BP
+      3, // A1
+      4, // TEST
+      5, // NMISS
+      6, // BETA
+      7, // SE
+      8, // L95
+      9, // U95
+      10, // STAT
+      11 // P
   };
 
   static String runDir = "F:/GlucInul/conditional_round/round2/";
@@ -152,14 +152,13 @@ public class CALiCoResultsPackager {
   static String plinkFileRoot = "F:/GlucInul/plink";
 
   static String[] hdr1 = {"SNP.original", "rsID", "CHR.build36", "CHR.build37", "bp.build36",
-                          "bp.build37", "analysis.locus", "analysis.race"};
+      "bp.build37", "analysis.locus", "analysis.race"};
 
   static String[] hdr2 = {"snp.coded", "snp.noncoded", "snp.BETA", "snp.SE", "snp.STAT", "snp.P",
-                          "snp.L95", "snp.U95", "snp.NMISS", "snp.CAF", "snp.CAC",};
+      "snp.L95", "snp.U95", "snp.NMISS", "snp.CAF", "snp.CAC",};
 
-  static String[] hdrInd =
-      {"index#.BETA", "index#.SE", "index#.STAT", "index#.P", "index#.L95", "index#.U95",
-       "index#.NMISS", "index#.CAF", "index#.CAC", "index#.coded", "index#.noncoded"};
+  static String[] hdrInd = {"index#.BETA", "index#.SE", "index#.STAT", "index#.P", "index#.L95",
+      "index#.U95", "index#.NMISS", "index#.CAF", "index#.CAC", "index#.coded", "index#.noncoded"};
 
   private static String[] getFileNames(ModelSNP model) {
     String assoc = runDir + scratchDir + model.modelName + ".assoc.linear";
@@ -186,7 +185,7 @@ public class CALiCoResultsPackager {
   }
 
   private static String getStringForSNP(ModelSNP model, String snp, String delim,
-                                        PrintWriter logWriter) {
+      PrintWriter logWriter) {
     String assocLine = model.addLines.get(snp);
     String[] lineParts = assocLine.split("[\\s]+");
     // String chr = lineParts[ASSOC_INDICES[0]];
@@ -212,7 +211,7 @@ public class CALiCoResultsPackager {
     String a2final = (a1assoc.equals(a1) ? a2 : a1);
     if (!a1assoc.equals(a1)) {
       logWriter.println("Error - Mismatched Alleles! SNP: [" + snp + "] ::>> A1_a: [" + a1assoc
-                        + "] <-> A1/A2: [" + a1 + "/" + a2 + "]");
+          + "] <-> A1/A2: [" + a1 + "/" + a2 + "]");
     }
 
     int nmiss = -1;
@@ -236,9 +235,9 @@ public class CALiCoResultsPackager {
     }
 
     sb.append(a1final).append(delim).append(a2final).append(delim).append(beta).append(delim)
-      .append(se).append(delim).append(stat).append(delim).append(p).append(delim).append(l95)
-      .append(delim).append(u95).append(delim).append(nStr).append(delim).append(mafStr)
-      .append(delim).append(mac).append(delim);
+        .append(se).append(delim).append(stat).append(delim).append(p).append(delim).append(l95)
+        .append(delim).append(u95).append(delim).append(nStr).append(delim).append(mafStr)
+        .append(delim).append(mac).append(delim);
 
     for (String rsID : model.rsIDs) {
 
@@ -283,13 +282,13 @@ public class CALiCoResultsPackager {
       a2final = (a1assoc.equals(a1) ? a2 : a1);
       if (!a1assoc.equals(a1)) {
         logWriter.println("Error - Mismatched Alleles! INDEXSNP: [" + rsID + "] ::>> A1_a: ["
-                          + a1assoc + "] <-> A1/A2: [" + a1 + "/" + a2 + "]");
+            + a1assoc + "] <-> A1/A2: [" + a1 + "/" + a2 + "]");
       }
 
       sb.append(beta).append(delim).append(se).append(delim).append(stat).append(delim).append(p)
-        .append(delim).append(l95).append(delim).append(u95).append(delim).append(nStr)
-        .append(delim).append(mafStr).append(delim).append(mac).append(delim).append(a1final)
-        .append(delim).append(a2final).append(delim);
+          .append(delim).append(l95).append(delim).append(u95).append(delim).append(nStr)
+          .append(delim).append(mafStr).append(delim).append(mac).append(delim).append(a1final)
+          .append(delim).append(a2final).append(delim);
     }
 
 
@@ -359,9 +358,9 @@ public class CALiCoResultsPackager {
       ModelSNP m = new ModelSNP();
       m.modelSNP = keyLine[1];
       m.modelName = keyLine[0].substring(0, keyLine[0].indexOf(".")) + "_"
-                    + ext.replaceWithLinuxSafeCharacters(keyLine[1], false);
+          + ext.replaceWithLinuxSafeCharacters(keyLine[1], false);
       String file = runDir + resultsDir + m.modelName + "/"
-                    + m.modelName.substring(0, m.modelName.indexOf("_")) + "_pheno.dat";
+          + m.modelName.substring(0, m.modelName.indexOf("_")) + "_pheno.dat";
       m.n = Files.countLines(file, 1);
 
       String[] dataLine = md.dataMap.get(m.modelSNP);
@@ -436,13 +435,13 @@ public class CALiCoResultsPackager {
       while (reader.ready()) {
         line = reader.readLine().trim().split("\\s+");
         hash.put(line[1],
-                 ":\t" + count + "\t" + line[0] + "\t" + line[3] + "\t" + line[4] + "\t" + line[5]);
+            ":\t" + count + "\t" + line[0] + "\t" + line[3] + "\t" + line[4] + "\t" + line[5]);
         count++;
       }
       reader.close();
     } catch (FileNotFoundException fnfe) {
-      System.err.println("Error: file \"" + plinkFileRoot + ".bim"
-                         + "\" not found in current directory");
+      System.err
+          .println("Error: file \"" + plinkFileRoot + ".bim" + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + plinkFileRoot + ".bim" + "\"");
@@ -453,19 +452,19 @@ public class CALiCoResultsPackager {
   }
 
   public static String[] writeLinesForModel(ModelSNP model, Hashtable<String, String> markerHash,
-                                            PrintWriter logWriter) {
+      PrintWriter logWriter) {
     ArrayList<String> outputLines = new ArrayList<String>();
     String delim = "\t";
     for (String snp : model.keyList) {
       String[] snpBIMData = markerHash.get(snp).split("[\\s]+");
       StringBuilder sb = new StringBuilder();
       sb.append(snp).append(delim).append(delim).append(snpBIMData[2]).append(delim)// CHR.build36
-        .append(delim)// CHR.build37
-        .append(snpBIMData[1]).append(delim)// bp.build36
-        .append(delim)// bp.build37
-        .append(model.locus).append(delim)// analysis.locus
-        .append("AA").append(delim)// analysis.race
-        .append(getStringForSNP(model, snp, delim, logWriter));
+          .append(delim)// CHR.build37
+          .append(snpBIMData[1]).append(delim)// bp.build36
+          .append(delim)// bp.build37
+          .append(model.locus).append(delim)// analysis.locus
+          .append("AA").append(delim)// analysis.race
+          .append(getStringForSNP(model, snp, delim, logWriter));
       outputLines.add(sb.toString());
     }
     return outputLines.toArray(new String[outputLines.size()]);

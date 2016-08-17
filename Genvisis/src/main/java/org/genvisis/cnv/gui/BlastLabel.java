@@ -27,9 +27,8 @@ import htsjdk.tribble.annotation.Strand;
 public class BlastLabel extends JLabel {
 
   private static final long serialVersionUID = 1L;
-  private static final Font BASE_FONT =
-      (Fonts.SOURCE_CODE_PRO_REGULAR == null ? Font.decode(Font.MONOSPACED)
-                                             : Fonts.SOURCE_CODE_PRO_REGULAR);
+  private static final Font BASE_FONT = (Fonts.SOURCE_CODE_PRO_REGULAR == null
+      ? Font.decode(Font.MONOSPACED) : Fonts.SOURCE_CODE_PRO_REGULAR);
 
   public static Font LBL_FONT = BASE_FONT.deriveFont(15f);
 
@@ -71,7 +70,7 @@ public class BlastLabel extends JLabel {
   private final int alignmentCount;
 
   public BlastLabel(Project proj, MarkerSeqAnnotation ref, BlastAnnotation annot,
-                    ReferenceGenome refGen) {
+      ReferenceGenome refGen) {
     super();
     myAnnotation = annot;
     positiveStrand = annot.getStrand() == Strand.POSITIVE;
@@ -136,10 +135,8 @@ public class BlastLabel extends JLabel {
     int charInd = 0;
     int mySpacesCnt = 0;
     int addedSpaces = 0;
-    for (int i =
-        reverseSequence ? seqParts.size() - 1 : 0; reverseSequence ? i >= 0
-                                                                   : i < seqParts.size(); i +=
-                                                                       reverseSequence ? -1 : 1) {
+    for (int i = reverseSequence ? seqParts.size() - 1 : 0; reverseSequence ? i >= 0
+        : i < seqParts.size(); i += reverseSequence ? -1 : 1) {
       CigarSeq cs = seqParts.get(i);
       boolean diff = cs.elem.getOperator() != CigarOperator.EQ;
       boolean read = cs.elem.getOperator().consumesReadBases();
@@ -165,9 +162,8 @@ public class BlastLabel extends JLabel {
       } else {
         boolean strike = diff && read && !ref;
         int tempX = baseX;
-        for (int c = reverseSequence ? cs.elemSeq.length() - 1
-                                     : 0; reverseSequence ? c >= 0 : c < cs.elemSeq.length(); c +=
-                                         reverseSequence ? -1 : 1) {
+        for (int c = reverseSequence ? cs.elemSeq.length() - 1 : 0; reverseSequence ? c >= 0
+            : c < cs.elemSeq.length(); c += reverseSequence ? -1 : 1) {
           // if (expanded) {
           // if (mySpaces.contains(charInd - addedSpaces)) {
           // mySpacesCnt++;
@@ -299,8 +295,7 @@ public class BlastLabel extends JLabel {
         index = stop;
       } else {
         seqParts.add(new CigarSeq(ciggie,
-                                  Array.toStr(Array.stringArray(ciggie.getLength(), "."), ""),
-                                  index));
+            Array.toStr(Array.stringArray(ciggie.getLength(), "."), ""), index));
       }
       strandInd += ciggie.getLength();
     }
@@ -316,9 +311,9 @@ class CigarSeq {
 
   public CigarSeq(CigarElement elem, String seq, int index) {
     if (elem.getLength() != seq.length()) {
-      throw new RuntimeException("ERROR - Sequence {" + seq
-                                 + "} does not match the length of the given CigarElement {"
-                                 + elem.getLength() + elem.getOperator() + "}");
+      throw new RuntimeException(
+          "ERROR - Sequence {" + seq + "} does not match the length of the given CigarElement {"
+              + elem.getLength() + elem.getOperator() + "}");
     }
     this.elem = elem;
     elemSeq = seq;

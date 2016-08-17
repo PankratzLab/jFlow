@@ -59,7 +59,7 @@ public class Compression {
     } else {
       // NOTE: type cast not necessary for int
       return (0xff & data[startPos]) << 24 | (0xff & data[startPos + 1]) << 16
-             | (0xff & data[startPos + 2]) << 8 | (0xff & data[startPos + 3]);
+          | (0xff & data[startPos + 2]) << 8 | (0xff & data[startPos + 3]);
     }
   }
 
@@ -101,7 +101,7 @@ public class Compression {
       // );
 
       return ((long) (bytesToInt(data, startPos)) << 32)
-             + (bytesToInt(data, startPos + 4) & 0xFFFFFFFFL);
+          + (bytesToInt(data, startPos + 4) & 0xFFFFFFFFL);
     }
   }
 
@@ -115,8 +115,8 @@ public class Compression {
     return obj;
   }
 
-  public static Object bytesToObj(byte[] bytes, int startLocation,
-                                  int length) throws IOException, ClassNotFoundException {
+  public static Object bytesToObj(byte[] bytes, int startLocation, int length)
+      throws IOException, ClassNotFoundException {
     Object obj;
     ByteArrayInputStream byteArrayInStream = new ByteArrayInputStream(bytes, startLocation, length);
     ObjectInputStream objInStream = new ObjectInputStream(byteArrayInStream);
@@ -162,7 +162,7 @@ public class Compression {
       return REDUCED_PRECISION_GCBAF_NAN_BYTES;
     } else if (gcOrBaf > 1.000 || gcOrBaf < 0) {
       throw new Elision("The value of GC or BAF (" + gcOrBaf
-                        + ") should be in the range of 0.0000 through 1.0000.");
+          + ") should be in the range of 0.0000 through 1.0000.");
     } else {
       short data;
       // Note: Currently, the conversion from float to int is through the operation of *10000. Need
@@ -187,7 +187,7 @@ public class Compression {
       array[startPosition + 1] = REDUCED_PRECISION_GCBAF_NAN_BYTES[1];
     } else if (gcOrBaf > 1.000 || gcOrBaf < 0) {
       throw new Elision("The value of GC or BAF (" + gcOrBaf
-                        + ") should be in the range of 0.0000 through 1.0000.");
+          + ") should be in the range of 0.0000 through 1.0000.");
     } else {
       short data;
       // Note: Currently, the conversion from float to int is through the operation of *10000. Need
@@ -208,7 +208,7 @@ public class Compression {
     if (data == null || data.length != 2) {
       return Float.NaN;
     } else if (data[0] == REDUCED_PRECISION_GCBAF_NAN_BYTES[0]
-               && data[1] == REDUCED_PRECISION_GCBAF_NAN_BYTES[1]) {
+        && data[1] == REDUCED_PRECISION_GCBAF_NAN_BYTES[1]) {
       return Float.NaN;
     } else {
       // Note: Currently, the conversion from float to int is through the operation of /10000. Need
@@ -231,7 +231,7 @@ public class Compression {
       return (byte) (((forwardGenotype << 3) & 0xf8) | (abGenotype & 0x03));
     } else {
       return (byte) (((forwardGenotype << 3) & 0xf8) | ((abGenotype & 0x80) >> 5)
-                     | ((~abGenotype + 1) & 0x03));
+          | ((~abGenotype + 1) & 0x03));
     }
   }
 
@@ -246,13 +246,13 @@ public class Compression {
    * @throws Elision
    */
   public static void genotypeCompress(byte abGenotype, byte forwardGenotype, byte[] array,
-                                      int startPosition) {
+      int startPosition) {
     // array[startPosition] = (byte) ((byte)((forwardGenotype << 3) & 0xfc) | (abGenotype & 0x03));
     if (abGenotype >= 0) {
       array[startPosition] = (byte) (((forwardGenotype << 3) & 0xf8) | (abGenotype & 0x03));
     } else {
       array[startPosition] = (byte) (((forwardGenotype << 3) & 0xf8) | ((abGenotype & 0x80) >> 5)
-                                     | ((~abGenotype + 1) & 0x03));
+          | ((~abGenotype + 1) & 0x03));
     }
   }
 
@@ -278,14 +278,13 @@ public class Compression {
 
   public static byte[] intToBytes(int data) {
     return new byte[] {(byte) ((data >> 24) & 0xff), (byte) ((data >> 16) & 0xff),
-                       (byte) ((data >> 8) & 0xff), (byte) (data & 0xff)};
+        (byte) ((data >> 8) & 0xff), (byte) (data & 0xff)};
   }
 
   public static byte[] longToBytes(long v) {
     return new byte[] {(byte) ((v >>> 56) & 0xFF), (byte) ((v >>> 48) & 0xFF),
-                       (byte) ((v >>> 40) & 0xFF), (byte) ((v >>> 32) & 0xFF),
-                       (byte) ((v >>> 24) & 0xFF), (byte) ((v >>> 16) & 0xFF),
-                       (byte) ((v >>> 8) & 0xFF), (byte) ((v >>> 0) & 0xFF)};
+        (byte) ((v >>> 40) & 0xFF), (byte) ((v >>> 32) & 0xFF), (byte) ((v >>> 24) & 0xFF),
+        (byte) ((v >>> 16) & 0xFF), (byte) ((v >>> 8) & 0xFF), (byte) ((v >>> 0) & 0xFF)};
   }
 
   /**
@@ -301,8 +300,8 @@ public class Compression {
       return REDUCED_PRECISION_LRR_NAN_BYTES;
     } else if (lrr < (float) -13.1071 || lrr > (float) 13.1071) {
       // return REDUCED_PRECISION_LRR_OUT_OF_RANGE_BYTES;
-      throw new Elision("The value of LRR (" + lrr
-                        + ") is out of the range of -13.1072 through 13.1069.");
+      throw new Elision(
+          "The value of LRR (" + lrr + ") is out of the range of -13.1072 through 13.1069.");
     } else {
       // Note: Currently, the conversion from float to int is through the operation of *10000. Need
       // to change it to bit conversion to pursue higher accuracy.
@@ -310,7 +309,7 @@ public class Compression {
       // return new byte[] {(byte)((data >> 24 & 0x80) | ((data >> 16) & 0x7f)), (byte)((data >> 8)
       // & 0xff), (byte)(data & 0xff)};
       return new byte[] {(byte) ((data >> 30 & 0x02) | ((data >> 16) & 0x1)),
-                         (byte) ((data >> 8) & 0xff), (byte) (data & 0xff)};
+          (byte) ((data >> 8) & 0xff), (byte) (data & 0xff)};
     }
   }
 
@@ -331,35 +330,35 @@ public class Compression {
       array[startPosition + 2] = REDUCED_PRECISION_LRR_NAN_BYTES[2];
       return 0;
     } else if (lrr < (float) -13.1071 || lrr > (float) 13.1071
-               || ((Math.abs(lrr) - 13.1071f) < 0.0001f && (Math.abs(lrr) - 13.1071f) > -0.0001f)) {// (Math.abs(lrr)
-                                                                                                    // -
-                                                                                                    // 13.1071f)
-                                                                                                    // <
-                                                                                                    // 0.0001f
-                                                                                                    // &&
-                                                                                                    // (Math.abs(lrr)
-                                                                                                    // -
-                                                                                                    // 13.1071f)
-                                                                                                    // >
-                                                                                                    // -0.0001f)
-                                                                                                    // added
-                                                                                                    // in
-                                                                                                    // case
-                                                                                                    // you
-                                                                                                    // are
-                                                                                                    // lucky
-                                                                                                    // and
-                                                                                                    // have
-                                                                                                    // an
-                                                                                                    // lrr=-13.10708
-                                                                                                    // and
-                                                                                                    // it
-                                                                                                    // gets
-                                                                                                    // rounded
-                                                                                                    // to
-                                                                                                    // -13.1071
-                                                                                                    // on
-                                                                                                    // compression
+        || ((Math.abs(lrr) - 13.1071f) < 0.0001f && (Math.abs(lrr) - 13.1071f) > -0.0001f)) {// (Math.abs(lrr)
+                                                                                             // -
+                                                                                             // 13.1071f)
+                                                                                             // <
+                                                                                             // 0.0001f
+                                                                                             // &&
+                                                                                             // (Math.abs(lrr)
+                                                                                             // -
+                                                                                             // 13.1071f)
+                                                                                             // >
+                                                                                             // -0.0001f)
+                                                                                             // added
+                                                                                             // in
+                                                                                             // case
+                                                                                             // you
+                                                                                             // are
+                                                                                             // lucky
+                                                                                             // and
+                                                                                             // have
+                                                                                             // an
+                                                                                             // lrr=-13.10708
+                                                                                             // and
+                                                                                             // it
+                                                                                             // gets
+                                                                                             // rounded
+                                                                                             // to
+                                                                                             // -13.1071
+                                                                                             // on
+                                                                                             // compression
       array[startPosition] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[0];
       array[startPosition + 1] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[1];
       array[startPosition + 2] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[2];
@@ -388,19 +387,19 @@ public class Compression {
     if (data == null || data.length != 3) {
       return Float.NaN;
     } else if (data[0] == REDUCED_PRECISION_LRR_NAN_BYTES[0]
-               && data[1] == REDUCED_PRECISION_LRR_NAN_BYTES[1]
-               && data[2] == REDUCED_PRECISION_LRR_NAN_BYTES[2]) {
+        && data[1] == REDUCED_PRECISION_LRR_NAN_BYTES[1]
+        && data[2] == REDUCED_PRECISION_LRR_NAN_BYTES[2]) {
       return Float.NaN;
     } else if (data[0] == REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[0]
-               && data[1] == REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[1]
-               && data[2] == REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[2]) {
+        && data[1] == REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[1]
+        && data[2] == REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[2]) {
       return REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT;
     } else if (data[0] < 2) {
       return (0x0001ffff & (((0x1 & data[0]) << 16) | ((0xff & data[1]) << 8) | (0xff & data[2])))
-             / (float) 10000;
+          / (float) 10000;
     } else {
       return ((0xfffe0000) | ((0x1 & data[0]) << 16) | ((0xff & data[1]) << 8) | (0xff & data[2]))
-             / (float) 10000;
+          / (float) 10000;
     }
   }
 
@@ -417,28 +416,25 @@ public class Compression {
 
   public static void showBits(byte a) {
     System.out.println(((a & 0x80) >> 7) + "" + ((a & 0x40) >> 6) + "" + ((a & 0x20) >> 5) + ""
-                       + ((a & 0x10) >> 4) + "" + ((a & 0x08) >> 3) + " " + ((a & 0x04) >> 2) + ""
-                       + ((a & 0x02) >> 1) + "" + ((a & 0x01)));
+        + ((a & 0x10) >> 4) + "" + ((a & 0x08) >> 3) + " " + ((a & 0x04) >> 2) + ""
+        + ((a & 0x02) >> 1) + "" + ((a & 0x01)));
   }
 
   public static void showBits(int a) {
     // System.out.println(Integer.toBinaryString(a));
     System.out.println(((a & 0x80000000) >> 31) + " " + ((a & 0x40000000) >> 30) + ""
-                       + ((a & 0x20000000) >> 29) + "" + ((a & 0x10000000) >> 28) + ""
-                       + ((a & 0x08000000) >> 27) + "" + ((a & 0x04000000) >> 26) + ""
-                       + ((a & 0x02000000) >> 25) + "" + ((a & 0x01000000) >> 24) + ""
-                       + ((a & 0x00800000) >> 23) + " " + ((a & 0x00400000) >> 22) + ""
-                       + ((a & 0x00200000) >> 21) + "" + ((a & 0x00100000) >> 20) + ""
-                       + ((a & 0x00080000) >> 19) + "" + ((a & 0x00040000) >> 18) + ""
-                       + ((a & 0x00020000) >> 17) + "" + ((a & 0x00010000) >> 16) + ""
-                       + ((a & 0x00008000) >> 15) + "" + ((a & 0x00004000) >> 14) + ""
-                       + ((a & 0x00002000) >> 13) + "" + ((a & 0x00001000) >> 12) + ""
-                       + ((a & 0x00000800) >> 11) + "" + ((a & 0x00000400) >> 10) + ""
-                       + ((a & 0x00000200) >> 9) + "" + ((a & 0x00000100) >> 8) + ""
-                       + ((a & 0x00000080) >> 7) + "" + ((a & 0x00000040) >> 6) + ""
-                       + ((a & 0x00000020) >> 5) + "" + ((a & 0x00000010) >> 4) + ""
-                       + ((a & 0x00000008) >> 3) + "" + ((a & 0x00000004) >> 2) + ""
-                       + ((a & 0x00000002) >> 1) + "" + ((a & 0x00000001)));
+        + ((a & 0x20000000) >> 29) + "" + ((a & 0x10000000) >> 28) + "" + ((a & 0x08000000) >> 27)
+        + "" + ((a & 0x04000000) >> 26) + "" + ((a & 0x02000000) >> 25) + ""
+        + ((a & 0x01000000) >> 24) + "" + ((a & 0x00800000) >> 23) + " " + ((a & 0x00400000) >> 22)
+        + "" + ((a & 0x00200000) >> 21) + "" + ((a & 0x00100000) >> 20) + ""
+        + ((a & 0x00080000) >> 19) + "" + ((a & 0x00040000) >> 18) + "" + ((a & 0x00020000) >> 17)
+        + "" + ((a & 0x00010000) >> 16) + "" + ((a & 0x00008000) >> 15) + ""
+        + ((a & 0x00004000) >> 14) + "" + ((a & 0x00002000) >> 13) + "" + ((a & 0x00001000) >> 12)
+        + "" + ((a & 0x00000800) >> 11) + "" + ((a & 0x00000400) >> 10) + ""
+        + ((a & 0x00000200) >> 9) + "" + ((a & 0x00000100) >> 8) + "" + ((a & 0x00000080) >> 7) + ""
+        + ((a & 0x00000040) >> 6) + "" + ((a & 0x00000020) >> 5) + "" + ((a & 0x00000010) >> 4) + ""
+        + ((a & 0x00000008) >> 3) + "" + ((a & 0x00000004) >> 2) + "" + ((a & 0x00000002) >> 1) + ""
+        + ((a & 0x00000001)));
   }
 
   /**
@@ -453,9 +449,9 @@ public class Compression {
     if (Float.isNaN(xyValue)) {
       return REDUCED_PRECISION_XY_NAN_BYTES;
     } else if (xyValue < REDUCED_PRECISION_XY_RANGE_POSITIVE_ONLY[0]
-               || xyValue > REDUCED_PRECISION_XY_RANGE_POSITIVE_ONLY[1]) {
+        || xyValue > REDUCED_PRECISION_XY_RANGE_POSITIVE_ONLY[1]) {
       throw new Elision("The value of X or Y (" + xyValue
-                        + ") is out of the specified range of [0, 32.767] for compression.");
+          + ") is out of the specified range of [0, 32.767] for compression.");
       // return REDUCED_PRECISION_XY_OUT_OF_RANGE_BYTES;
     } else {
       // Note: Currently, the conversion from float to int is through the operation of *1000. Need
@@ -473,7 +469,7 @@ public class Compression {
       array[startPosition + 1] = REDUCED_PRECISION_XY_NAN_BYTES[1];
       return true;
     } else if (xyValue < REDUCED_PRECISION_XY_RANGE_ALLOW_NEGATIVE[0]
-               || xyValue > REDUCED_PRECISION_XY_RANGE_ALLOW_NEGATIVE[1]) {
+        || xyValue > REDUCED_PRECISION_XY_RANGE_ALLOW_NEGATIVE[1]) {
       array[startPosition] = REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[0];
       array[startPosition + 1] = REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[1];
       return false;
@@ -511,7 +507,7 @@ public class Compression {
       array[startPosition + 1] = REDUCED_PRECISION_XY_NAN_BYTES[1];
       return true;
     } else if (xyValue < REDUCED_PRECISION_XY_RANGE_POSITIVE_ONLY[0]
-               || xyValue > REDUCED_PRECISION_XY_RANGE_POSITIVE_ONLY[1]) {
+        || xyValue > REDUCED_PRECISION_XY_RANGE_POSITIVE_ONLY[1]) {
       array[startPosition] = REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[0];
       array[startPosition + 1] = REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[1];
       return false;
@@ -531,10 +527,10 @@ public class Compression {
     if (data == null || data.length != 2) {
       return Float.NaN;
     } else if (data[0] == REDUCED_PRECISION_XY_NAN_BYTES[0]
-               && data[1] == REDUCED_PRECISION_XY_NAN_BYTES[1]) {
+        && data[1] == REDUCED_PRECISION_XY_NAN_BYTES[1]) {
       return Float.NaN;
     } else if (data[0] == REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[0]
-               && data[1] == REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[1]) {
+        && data[1] == REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[1]) {
       return REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT;
     } else {
       // Note: Currently, the conversion from float to int is through the operation of /1000. Need
@@ -559,16 +555,16 @@ public class Compression {
     if (data == null || data.length != 2) {
       return Float.NaN;
     } else if (data[0] == REDUCED_PRECISION_XY_NAN_BYTES[0]
-               && data[1] == REDUCED_PRECISION_XY_NAN_BYTES[1]) {
+        && data[1] == REDUCED_PRECISION_XY_NAN_BYTES[1]) {
       return Float.NaN;
     } else if (data[0] == REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[0]
-               && data[1] == REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[1]) {
+        && data[1] == REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES[1]) {
       return REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT;
     } else {
       // Note: Currently, the conversion from float to int is through the operation of /1000. Need
       // to change it to bit conversion to pursue higher accuracy.
       return (((byte) 0 << 16 & 0xff0000) | (data[0] << 8 & 0xff00) | (0xff & data[1]))
-             / (float) 1000;
+          / (float) 1000;
     }
   }
 }

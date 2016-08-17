@@ -53,8 +53,8 @@ public class diff {
         }
         order = Sort.quicksort(prints);
         if (fingerprint == prints[order[0]]) {
-          runDiff(filename, HashVec.loadFileToStringArray(prints[order[1]] + ".difftemp", false,
-                                                          null, false)[0]);
+          runDiff(filename,
+              HashVec.loadFileToStringArray(prints[order[1]] + ".difftemp", false, null, false)[0]);
           deleteAll();
           return;
         } else {
@@ -70,7 +70,8 @@ public class diff {
           System.err.println("diff requires 2 files... still waiting for another file to open...");
         }
         if (i == 14) {
-          System.err.println("Error - second file never opened, highlight 2 (ctrl+left click) and try again");
+          System.err.println(
+              "Error - second file never opened, highlight 2 (ctrl+left click) and try again");
         }
       }
     }
@@ -91,8 +92,8 @@ public class diff {
     String file2 = "file2.txt";
 
     String usage = "\n" + "consol.diff compares 2 files and reports back where they are different\n"
-                   + "     requires 2 arguments, the 2 filenames (defaults: '" + file1 + "' and '"
-                   + file2 + "')\n" + "";
+        + "     requires 2 arguments, the 2 filenames (defaults: '" + file1 + "' and '" + file2
+        + "')\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -176,9 +177,8 @@ public class diff {
                   writer.println(count2 + " >>ins>> " + buffer2.elementAt(i));
                   if (offsets[0] == 1) {
                     writer.println("  Swapped '"
-                                   + buffer1.elementAt(i).substring(offsets[1], offsets[2])
-                                   + "' for '"
-                                   + buffer2.elementAt(i).substring(offsets[1], offsets[3]) + "'");
+                        + buffer1.elementAt(i).substring(offsets[1], offsets[2]) + "' for '"
+                        + buffer2.elementAt(i).substring(offsets[1], offsets[3]) + "'");
                   }
                 }
 
@@ -238,20 +238,19 @@ public class diff {
   public static int[] whatsTheDiff(String str1, String str2) {
     int offs[];
     for (offs = new int[4]; offs[1] < str1.length() && offs[1] < str2.length()
-                            && str1.charAt(offs[1]) == str2.charAt(offs[1]); offs[1]++) {
+        && str1.charAt(offs[1]) == str2.charAt(offs[1]); offs[1]++) {
       ;
     }
     offs[2] = str1.length();
-    for (offs[3] =
-        str2.length(); offs[2] > offs[1] && offs[3] > offs[1]
-                       && str1.charAt(offs[2] - 1) == str2.charAt(offs[3] - 1); offs[3]--) {
+    for (offs[3] = str2.length(); offs[2] > offs[1] && offs[3] > offs[1]
+        && str1.charAt(offs[2] - 1) == str2.charAt(offs[3] - 1); offs[3]--) {
       offs[2]--;
     }
 
     if (offs[2] == offs[1] && offs[3] == offs[1]) {
       offs[0] = 2;
     } else if ((double) (offs[2] - offs[1]) / (double) str1.length() < 0.5D
-               && (double) (offs[3] - offs[1]) / (double) str2.length() < 0.5D) {
+        && (double) (offs[3] - offs[1]) / (double) str2.length() < 0.5D) {
       offs[0] = 1;
     } else {
       offs[0] = 0;

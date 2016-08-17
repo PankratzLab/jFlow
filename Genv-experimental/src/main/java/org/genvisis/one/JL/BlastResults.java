@@ -39,8 +39,8 @@ public class BlastResults {
         int numOff = blastResults[index].getNumOffTarget(proj.getLog());
         int numOnNonPerf = blastResults[index].getNumOnTargetNonPerfect(proj.getLog());
         int numTotal = Array.sum(blastResults[index].getAlignmentHistogram(proj));
-        writer.println(vc.getID() + "\t" + pm + "\t" + numOnNonPerf + "\t" + numOff + "\t"
-                       + numTotal);
+        writer.println(
+            vc.getID() + "\t" + pm + "\t" + numOnNonPerf + "\t" + numOff + "\t" + numTotal);
         index++;
       }
       reader.close();

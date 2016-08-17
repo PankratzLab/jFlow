@@ -40,19 +40,17 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
      * @param log
      */
     public AnnotationQuery(String annotationFile, Segment[] segs, boolean requireIndex,
-                           Logger log) {
+        Logger log) {
       super();
       vcfFileReader = new VCFFileReader(new File(annotationFile), requireIndex);
       vcfHeader = vcfFileReader.getFileHeader();
       currentIndex = 0;
       queryIntervals = segs == null ? null : VCFOps.convertSegsToQI(segs, vcfHeader, 0, true, log);
-      currentIterator =
-          queryIntervals == null ? vcfFileReader.iterator()
-                                 : vcfFileReader.query(vcfHeader.getSequenceDictionary()
-                                                                .getSequence(queryIntervals[currentIndex].referenceIndex)
-                                                                .getSequenceName(),
-                                                       queryIntervals[currentIndex].start,
-                                                       queryIntervals[currentIndex].end);
+      currentIterator = queryIntervals == null ? vcfFileReader.iterator()
+          : vcfFileReader.query(
+              vcfHeader.getSequenceDictionary()
+                  .getSequence(queryIntervals[currentIndex].referenceIndex).getSequenceName(),
+              queryIntervals[currentIndex].start, queryIntervals[currentIndex].end);
     }
 
     @Override
@@ -68,11 +66,9 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
             break;
           }
           currentIterator = vcfFileReader.query(
-                                                vcfHeader.getSequenceDictionary()
-                                                         .getSequence(queryIntervals[currentIndex].referenceIndex)
-                                                         .getSequenceName(),
-                                                queryIntervals[currentIndex].start,
-                                                queryIntervals[currentIndex].end);
+              vcfHeader.getSequenceDictionary()
+                  .getSequence(queryIntervals[currentIndex].referenceIndex).getSequenceName(),
+              queryIntervals[currentIndex].start, queryIntervals[currentIndex].end);
         }
         hasNext = currentIterator.hasNext();
       }
@@ -94,16 +90,15 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
     }
   }
   public enum QUERY_ORDER {
-                           /**
-                            * It is assumed that the {@link AnnotationParser} will be found exactly
-                            * once and in order of the file
-                            */
-                           ONE_PER_IN_ORDER,
-                           /**
-                            * No assumptions are made for order or whether the
-                            * {@link AnnotationParser} will be found
-                            */
-                           NO_ORDER;
+    /**
+     * It is assumed that the {@link AnnotationParser} will be found exactly once and in order of
+     * the file
+     */
+    ONE_PER_IN_ORDER,
+    /**
+     * No assumptions are made for order or whether the {@link AnnotationParser} will be found
+     */
+    NO_ORDER;
   }
 
   private final boolean indexRequired;
@@ -120,7 +115,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
    * @param indexRequired this should always be true, but may be optional at a later time
    */
   public AnnotationFileLoader(Project proj, AnalysisParams[] params, Annotation[] annotations,
-                              String annotationFilename, boolean indexRequired) {
+      String annotationFilename, boolean indexRequired) {
     super(proj, annotationFilename);
     setAnnotations(annotations);
     setParams(params);
@@ -183,7 +178,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
    * @param parsersQueries checks and annotates these queries
    */
   public void query(Segment[] segs, List<AnnotationParser[]> parsersQueries,
-                    QUERY_ORDER queryType) {
+      QUERY_ORDER queryType) {
     int[][] search = getSearchSpace(parsersQueries, queryType);
 
     AnnotationQuery annotationQuery = getAnnotationQuery(segs);
@@ -215,7 +210,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
           case ONE_PER_IN_ORDER:
             if (!parsers[index - 1].shouldAnnotateWith(vc, proj.getLog())) {
               String error = "Query type was set to " + queryType + " but the annotation at index "
-                             + (index - 1) + " did not match";
+                  + (index - 1) + " did not match";
               proj.getLog().reportTimeError(error);
               throw new IllegalStateException(error);
             } else {
@@ -273,7 +268,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
           for (int i = 0; i < annotations.length; i++) {
             if (!vcfHeader.hasInfoLine(annotations[i].getName())) {
               proj.getLog().reportTimeError("Could not find annotation " + annotations[i].getName()
-                                            + " in " + annotationFilename);
+                  + " in " + annotationFilename);
               hasAllAnno = false;
             }
           }
@@ -315,7 +310,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
         }
         if (!allFound) {
           String error = "Did not find all queries for type " + queryType
-                         + " , missing annotations or internal bug";
+              + " , missing annotations or internal bug";
           proj.getLog().reportTimeError(error);
           throw new IllegalStateException(error);
         }

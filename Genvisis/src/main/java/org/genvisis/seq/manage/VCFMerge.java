@@ -54,14 +54,14 @@ public class VCFMerge {
     }
     try {
       merge(vcfs, mergeOut, gatk, referenceGenomeFasta, numthreads,
-            new Logger(vcfs == null ? null : ext.addToRoot(vcfs[0], "mergeLog.log")));
+          new Logger(vcfs == null ? null : ext.addToRoot(vcfs[0], "mergeLog.log")));
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
   public static void merge(String[] vcfs, String mergeOut, String gatkLoc,
-                           String referenceGenomeFasta, int numthreads, Logger log) {
+      String referenceGenomeFasta, int numthreads, Logger log) {
     GATK gatk = new GATK(gatkLoc, referenceGenomeFasta, true, false, log);
     System.out.println("HID1");
 
@@ -82,8 +82,8 @@ public class VCFMerge {
                 log.reportTimeInfo("Merged " + Array.toStr(vcfs, "\n") + " to " + mergeOut);
                 VCFOps.extractSamps(mergeOut, log);
               } else {
-                log.reportTimeError("Could not merge " + Array.toStr(vcfs, "\n") + " to "
-                                    + mergeOut);
+                log.reportTimeError(
+                    "Could not merge " + Array.toStr(vcfs, "\n") + " to " + mergeOut);
               }
             } else {
               log.reportTimeError("Could not verify all index files ");

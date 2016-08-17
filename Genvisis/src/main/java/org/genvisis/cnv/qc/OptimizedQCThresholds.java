@@ -11,13 +11,12 @@ import org.genvisis.common.ext;
 
 // class to store optimized thresholds
 public class OptimizedQCThresholds {
-  public static final String[] QC_Thresholds =
-      {"ALPHA", "BEAST_CONF", "SAMPLE_LRR_SD", "CNV_NUM_MARKERS", "BAF_QC", "TWOPQ", "PERCENT_HET",
-       "GCWF", "NUM_SAMPLE_CNVS", "CNV_LRR_SD", "SAMPLE_CALL_RATE", "PENN_CONF", "BAF_DRIFT",
-       "SIZE_IN_KB", "PROBE_DENSITY_IN_KB"};
+  public static final String[] QC_Thresholds = {"ALPHA", "BEAST_CONF", "SAMPLE_LRR_SD",
+      "CNV_NUM_MARKERS", "BAF_QC", "TWOPQ", "PERCENT_HET", "GCWF", "NUM_SAMPLE_CNVS", "CNV_LRR_SD",
+      "SAMPLE_CALL_RATE", "PENN_CONF", "BAF_DRIFT", "SIZE_IN_KB", "PROBE_DENSITY_IN_KB"};
   public static final String[] OPT_QC_HEADS =
       {"targetConcordance", "actualConcordance", Array.toStr(QC_Thresholds), "goodCalls",
-       "callsPassingFilter", "totalCalls", "pairsOfDuplicates", "CN"};
+          "callsPassingFilter", "totalCalls", "pairsOfDuplicates", "CN"};
 
   public static OptimizedQCThresholds[] getNewOptqcs(double targetConcordance, int number) {
     OptimizedQCThresholds[] optqcs = new OptimizedQCThresholds[number];
@@ -28,7 +27,7 @@ public class OptimizedQCThresholds {
   }
 
   public static OptimizedQCThresholds loadThresholdsFromTxt(String QCThresholdFileName,
-                                                            Logger log) {
+      Logger log) {
     OptimizedQCThresholds thresholds = null;
     BufferedReader reader;
     String[] line, header;
@@ -45,7 +44,8 @@ public class OptimizedQCThresholds {
         }
       }
       if (Array.min(indices) == -1) {
-        log.reportError("Error - Need a column header ending with the following suffixes; missing at least one");
+        log.reportError(
+            "Error - Need a column header ending with the following suffixes; missing at least one");
         log.reportError("        " + Array.toStr(QC_Thresholds, "  "));
         System.exit(1);
       }
@@ -67,7 +67,7 @@ public class OptimizedQCThresholds {
   private static OptimizedQCThresholds parseLine(String[] line, int[] indices, Logger log) {
     for (int i = 0; i < indices.length; i++) {
       if (line[indices[i]].equals("NA") && (QC_Thresholds[i].equals(QC_Thresholds[3])
-                                            || QC_Thresholds[i].equals(QC_Thresholds[8]))) {
+          || QC_Thresholds[i].equals(QC_Thresholds[8]))) {
         log.reportError("Warning - not filtering with " + QC_Thresholds[i]);
         line[indices[i]] = "-1";
       } else if (line[indices[i]].equals("NA")) {
@@ -108,10 +108,9 @@ public class OptimizedQCThresholds {
   private double kbDensity;
 
   public OptimizedQCThresholds(double alpha, double beastConfCutoff, double lrrCutoff,
-                               int numMarkers, double BAFQCcutoff, double twopqCutoff,
-                               double hetCutoff, double GCWF, int numSampleCNVs, double cnvLRRSTDev,
-                               double sampleCallRate, double pennConf, double bafDrift,
-                               double kbSize, double kbDensity) {
+      int numMarkers, double BAFQCcutoff, double twopqCutoff, double hetCutoff, double GCWF,
+      int numSampleCNVs, double cnvLRRSTDev, double sampleCallRate, double pennConf,
+      double bafDrift, double kbSize, double kbDensity) {
     this.alpha = alpha;
     this.beastConfCutoff = beastConfCutoff;
     this.lrrCutoff = lrrCutoff;
@@ -147,8 +146,8 @@ public class OptimizedQCThresholds {
   }
 
   public OptimizedQCThresholds(OptimizedQCThresholds comparedQCs, double targetConcordance,
-                               double actualConcordance, int callsPassingFilter, int goodCalls,
-                               int totalCalls, int pairsOfDuplicates, int CN) {
+      double actualConcordance, int callsPassingFilter, int goodCalls, int totalCalls,
+      int pairsOfDuplicates, int CN) {
     this.targetConcordance = targetConcordance;
     this.actualConcordance = actualConcordance;
     this.callsPassingFilter = callsPassingFilter;
@@ -239,16 +238,16 @@ public class OptimizedQCThresholds {
   public String getDisplayString() {
     if (callsPassingFilter > 0) {
       return targetConcordance + "\t" + actualConcordance + "\t" + alpha + "\t" + beastConfCutoff
-             + "\t" + lrrCutoff + "\t" + numMarkers + "\t" + BAFQCcutoff + "\t" + twopqCutoff + "\t"
-             + hetCutoff + "\t" + GCWF + "\t" + numSampleCNVs + "\t" + cnvLRRSTDev + "\t"
-             + sampleCallRate + "\t" + pennConf + "\t" + bafDrift + "\t" + kbSize + "\t" + kbDensity
-             + "\t" + goodCalls + "\t" + callsPassingFilter + "\t" + totalCalls + "\t"
-             + pairsOfDuplicates + "\t" + CN;
+          + "\t" + lrrCutoff + "\t" + numMarkers + "\t" + BAFQCcutoff + "\t" + twopqCutoff + "\t"
+          + hetCutoff + "\t" + GCWF + "\t" + numSampleCNVs + "\t" + cnvLRRSTDev + "\t"
+          + sampleCallRate + "\t" + pennConf + "\t" + bafDrift + "\t" + kbSize + "\t" + kbDensity
+          + "\t" + goodCalls + "\t" + callsPassingFilter + "\t" + totalCalls + "\t"
+          + pairsOfDuplicates + "\t" + CN;
     } else if (CN == 5) {
       return "";
     } else {
       return "No parameters achieved target concordance of " + targetConcordance
-             + " for copy number " + CN;
+          + " for copy number " + CN;
     }
   }
 

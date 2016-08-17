@@ -14,9 +14,9 @@ public class UnivariateGaussianMixtureModel {
    *         \frac{(x-\mu)^2}{ 2 \sigma^2} \right) \f$
    */
   public static double densityOfGaussian(Point x, PVector param) {
-    return Math.exp(-(x.value - param.array[0]) * (x.value - param.array[0])
-                    / (2.0d * param.array[1]))
-           / (Math.sqrt(2.0d * Math.PI * param.array[1]));
+    return Math
+        .exp(-(x.value - param.array[0]) * (x.value - param.array[0]) / (2.0d * param.array[1]))
+        / (Math.sqrt(2.0d * Math.PI * param.array[1]));
   }
 
   /**

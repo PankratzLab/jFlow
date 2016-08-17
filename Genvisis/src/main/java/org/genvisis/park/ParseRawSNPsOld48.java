@@ -23,7 +23,7 @@ public class ParseRawSNPsOld48 {
     String filename = "nextRound.dat";
 
     String usage = "\n" + "park.parseRawSNPs requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -64,7 +64,8 @@ public class ParseRawSNPsOld48 {
           header = line;
           if (header[0].indexOf("SNPlex") == -1 || header[1].indexOf("DNA") == -1
               || header[2].indexOf("Family") == -1) {
-            System.err.println("Warning - first three headers are different than last time; might want to reconfigure");
+            System.err.println(
+                "Warning - first three headers are different than last time; might want to reconfigure");
           }
           for (int i = 0; i < header.length; i++) {
             if (header[i].toLowerCase().indexOf("failed") >= 0) {
@@ -121,7 +122,8 @@ public class ParseRawSNPsOld48 {
     }
 
     if ((count = endpoint - startpoint) % 2 == 1) {
-      System.err.println("Warning - expecting even number of columns between FamID and #FailedSNPs");
+      System.err
+          .println("Warning - expecting even number of columns between FamID and #FailedSNPs");
       System.exit(1);
     }
     snps = new SNP[count /= 2];
@@ -131,8 +133,8 @@ public class ParseRawSNPsOld48 {
       if (hash.containsKey(snps[i].getName())) {
         snpPositions[i] = Integer.parseInt(hash.get(snps[i].getName()));
       } else {
-        System.err.println("Error - marker '" + snps[i].getName() + "' was not listed in "
-                           + SNP_POSITIONS);
+        System.err.println(
+            "Error - marker '" + snps[i].getName() + "' was not listed in " + SNP_POSITIONS);
         System.exit(1);
       }
     }
@@ -220,7 +222,7 @@ class SNP {
       return counts[1] > counts[2] ? "1" : "2";
     } else {
       System.err.println("Error - allele '" + allele + "' is neither " + values[1] + " nor "
-                         + values[2] + " for marker " + name);
+          + values[2] + " for marker " + name);
       return "0";
     }
   }
@@ -237,14 +239,11 @@ class SNP {
     major = counts[1] < counts[2] ? 2 : 1;
 
     return name + "\t" + values[minor] + "\t"
-           + ext.formDeci(ext.divide(counts[minor], counts[minor] + counts[major]), 4, true) + "\t"
-           + values[major] + "\t"
-           + ext.formDeci(ext.divide(counts[major], counts[minor] + counts[major]), 4, true) + "\t"
-           + "Failed\t" + counts[0] + "\t" + ext.formDeci(
-                                                          ext.divide(counts[0],
-                                                                     counts[0] + counts[1]
-                                                                                + counts[2]),
-                                                          4, true);
+        + ext.formDeci(ext.divide(counts[minor], counts[minor] + counts[major]), 4, true) + "\t"
+        + values[major] + "\t"
+        + ext.formDeci(ext.divide(counts[major], counts[minor] + counts[major]), 4, true) + "\t"
+        + "Failed\t" + counts[0] + "\t"
+        + ext.formDeci(ext.divide(counts[0], counts[0] + counts[1] + counts[2]), 4, true);
   }
 
   public void update(String allele1, String allele2) {

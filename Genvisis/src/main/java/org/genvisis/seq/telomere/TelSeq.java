@@ -41,7 +41,7 @@ public class TelSeq {
     private int index;
 
     public TelSeqProducer(String[] inputBams, List<String> additionalArgs, String outputDir,
-                          TYPE type, Logger log) {
+        TYPE type, Logger log) {
       super();
       this.inputBams = inputBams;
       this.additionalArgs = additionalArgs;
@@ -84,7 +84,7 @@ public class TelSeq {
 
   private static class TelSeqWorker implements Callable<TelSeqResult> {
     private static Ran telSeqIt(String inputBam, String output, int readSize,
-                                List<String> additionalArgs, Logger log) {
+        List<String> additionalArgs, Logger log) {
       String[] outputs = new String[] {output};
       String[] input = new String[] {inputBam};
       ArrayList<String> command = new ArrayList<String>();
@@ -99,7 +99,7 @@ public class TelSeq {
       command.add(inputBam);
 
       boolean valid = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input,
-                                                       outputs, true, false, false, log);
+          outputs, true, false, false, log);
       return new Ran(valid, command);
     }
 
@@ -112,7 +112,7 @@ public class TelSeq {
     private final Logger log;
 
     public TelSeqWorker(String inputBam, List<String> additionalArgs, String outputDir, TYPE type,
-                        Logger log) {
+        Logger log) {
       super();
       this.inputBam = inputBam;
       this.additionalArgs = additionalArgs;
@@ -140,16 +140,15 @@ public class TelSeq {
   }
 
   private enum TYPE {
-                     BASE, BED, BUFFERED_BED;
+    BASE, BED, BUFFERED_BED;
   }
 
-  private static final String[] TELSEQ_REPORT =
-      new String[] {"ReadGroup", "Library", "Sample", "Total", "Mapped", "Duplicates",
-                    "LENGTH_ESTIMATE"};
+  private static final String[] TELSEQ_REPORT = new String[] {"ReadGroup", "Library", "Sample",
+      "Total", "Mapped", "Duplicates", "LENGTH_ESTIMATE"};
 
   private static void processWXS(String[] bams, String outDir, String captureBed, int threads,
-                                 ASSEMBLY_NAME aName, int captureBufferSize, Logger log,
-                                 ArrayList<TelSeqResult> results, ArrayList<String> argPopulator) {
+      ASSEMBLY_NAME aName, int captureBufferSize, Logger log, ArrayList<TelSeqResult> results,
+      ArrayList<String> argPopulator) {
     if (Files.exists(captureBed)) {
 
       BEDFileReader reader = new BEDFileReader(captureBed, false);
@@ -162,8 +161,8 @@ public class TelSeq {
       String buffBed =
           buffDir + "buff_" + captureBufferSize + "bp_" + ext.rootOf(captureBed) + ".bed";
       log.reportTimeInfo("writing bed to " + buffBed);
-      segs.getBufferedSegmentSet(captureBufferSize)
-          .writeSegmentRegions(buffBed, aName == ASSEMBLY_NAME.GRCH37, log);
+      segs.getBufferedSegmentSet(captureBufferSize).writeSegmentRegions(buffBed,
+          aName == ASSEMBLY_NAME.GRCH37, log);
 
       ArrayList<String> argPopulatorBuffBed = new ArrayList<String>();
       argPopulatorBuffBed.addAll(argPopulator);
@@ -185,8 +184,7 @@ public class TelSeq {
    * @param captureBufferSize number of base pairs to buffer the caputure bed file
    */
   public static String runTelSeq(String[] bams, String outDir, String captureBed, int threads,
-                                 ASSAY_TYPE aType, ASSEMBLY_NAME aName, int captureBufferSize,
-                                 Logger log) {
+      ASSAY_TYPE aType, ASSEMBLY_NAME aName, int captureBufferSize, Logger log) {
 
     log.reportTimeInfo("Assuming telseq is on system path");
     ArrayList<TelSeqResult> results = new ArrayList<TelSeq.TelSeqResult>();
@@ -199,7 +197,7 @@ public class TelSeq {
         break;
       case WXS:
         processWXS(bams, outDir, captureBed, threads, aName, captureBufferSize, log, results,
-                   argPopulator);
+            argPopulator);
         break;
       default:
         break;
@@ -225,8 +223,8 @@ public class TelSeq {
         String[][] data = HashVec.loadFileToStringMatrix(telSeqResult.output, true, null, false);
         for (String[] element : data) {
           result.add(ext.rootOf(telSeqResult.output) + "\t"
-                     + Array.toStr(Array.subArray(element, indices)) + "\t" + telSeqResult.type
-                     + "\t" + telSeqResult.sample + "\t" + telSeqResult.readSizeUsed);
+              + Array.toStr(Array.subArray(element, indices)) + "\t" + telSeqResult.type + "\t"
+              + telSeqResult.sample + "\t" + telSeqResult.readSizeUsed);
         }
       }
     }
@@ -235,8 +233,7 @@ public class TelSeq {
   }
 
   private static void runType(int threads, Logger log, String[] bams,
-                              ArrayList<TelSeqResult> results, ArrayList<String> argPopulator,
-                              String baseDir, TYPE type) {
+      ArrayList<TelSeqResult> results, ArrayList<String> argPopulator, String baseDir, TYPE type) {
     TelSeqProducer producer = new TelSeqProducer(bams, argPopulator, baseDir, type, log);
     WorkerTrain<TelSeqResult> train =
         new WorkerTrain<TelSeq.TelSeqResult>(producer, threads, 100, log);

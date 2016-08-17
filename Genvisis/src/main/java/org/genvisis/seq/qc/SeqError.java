@@ -31,14 +31,14 @@ import htsjdk.variant.vcf.VCFHeader;
  */
 public class SeqError {
   public enum DUPLICATE_COMP_TYPE {
-                                   /**
-                                    * Variant must past the sample filter for both
-                                    */
-                                   ALL_PASS,
-                                   /**
-                                    * Variant must past the sample filter for one
-                                    */
-                                   ONE_PASS,
+    /**
+     * Variant must past the sample filter for both
+     */
+    ALL_PASS,
+    /**
+     * Variant must past the sample filter for one
+     */
+    ONE_PASS,
     /**
      * // * // * Variant must past the sample filter on the average of the two //
      */
@@ -73,8 +73,7 @@ public class SeqError {
     private final Logger log;
 
     public DuplicateETwo(Set<String> dups, DUPLICATE_COMP_TYPE type, MODE mode,
-                         VariantContextFilter vContextFilterSample, FilterNGS filterNGS,
-                         Logger log) {
+        VariantContextFilter vContextFilterSample, FilterNGS filterNGS, Logger log) {
       super();
       this.dups = dups;
       this.type = type;
@@ -98,32 +97,26 @@ public class SeqError {
         switch (type) {
           case ALL_PASS:
             vcFilteredAlts = VCOps.getAltAlleleContext(vcSub, filterNGS, vContextFilterSample,
-                                                       ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);
+                ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);
             tally = vcFilteredAlts.getSampleNames().size() == vcAlts.getSampleNames().size();// all
                                                                                              // dup
                                                                                              // variants
                                                                                              // pass
             if (tally) {
               tally = vContextFilterSample == null ? true
-                                                   : VCOps.getIndividualPassingContext(vcSub,
-                                                                                       vContextFilterSample,
-                                                                                       log)
-                                                          .getSampleNames().size() == dups.size();// all
-                                                                                                  // dups
-                                                                                                  // pass
+                  : VCOps.getIndividualPassingContext(vcSub, vContextFilterSample, log)
+                      .getSampleNames().size() == dups.size();// all dups pass
 
             }
             break;
           case ONE_PASS:
             vcFilteredAlts = VCOps.getAltAlleleContext(vcSub, filterNGS, vContextFilterSample,
-                                                       ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);
+                ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);
             tally = vcFilteredAlts.getSampleNames().size() > 0;// one of the dup variants pass
             if (tally) {
               tally = vContextFilterSample == null ? true
-                                                   : VCOps.getIndividualPassingContext(vcSub,
-                                                                                       vContextFilterSample,
-                                                                                       log)
-                                                          .getSampleNames().size() > 0;
+                  : VCOps.getIndividualPassingContext(vcSub, vContextFilterSample, log)
+                      .getSampleNames().size() > 0;
             }
             break;
           default:
@@ -222,7 +215,7 @@ public class SeqError {
     private int index;
 
     private DuplicateProducer(final VariantContext vc, final DuplicateETwo[] dETwos,
-                              final ReferenceGenome referenceGenome) {
+        final ReferenceGenome referenceGenome) {
       super();
       this.vc = vc;
       this.dETwos = dETwos;
@@ -248,7 +241,7 @@ public class SeqError {
     private final ReferenceGenome referenceGenome;
 
     private DuplicateWorker(VariantContext vc, DuplicateETwo deTwo,
-                            ReferenceGenome referenceGenome) {
+        ReferenceGenome referenceGenome) {
       super();
       this.vc = vc;
       this.deTwo = deTwo;
@@ -263,24 +256,22 @@ public class SeqError {
   }
 
   public enum MODE {
-                    /**
-                     * Will only compute concordance if both samples are called and pass according
-                     * to {@link DUPLICATE_COMP_TYPE}
-                     */
-                    BOTH_MUST_BE_CALLED,
-                    /**
-                    * 
-                    */
-                    ONE_MUST_BE_CALLED;
+    /**
+     * Will only compute concordance if both samples are called and pass according to
+     * {@link DUPLICATE_COMP_TYPE}
+     */
+    BOTH_MUST_BE_CALLED,
+    /**
+    * 
+    */
+    ONE_MUST_BE_CALLED;
   }
 
-  public static final String[] OUTPUT_HEADER =
-      new String[] {"Samp1", "Samp2", "total", "missing", "matched", "proportionMissing",
-                    "proportionAgree", "averageGC"};
+  public static final String[] OUTPUT_HEADER = new String[] {"Samp1", "Samp2", "total", "missing",
+      "matched", "proportionMissing", "proportionAgree", "averageGC"};
 
   public static DuplicateETwo[] getDups(String[] allSamps, DUPLICATE_COMP_TYPE type, MODE mode,
-                                        VariantContextFilter vContextFilterSample,
-                                        FilterNGS filterNGS, Logger log) {
+      VariantContextFilter vContextFilterSample, FilterNGS filterNGS, Logger log) {
     DuplicateETwo[] dETwos = new DuplicateETwo[(allSamps.length * (allSamps.length - 1)) / 2];
     int index = 0;
     for (int i = 0; i < allSamps.length; i++) {
@@ -321,7 +312,7 @@ public class SeqError {
    *        threads can be increased
    */
   public void populateError(VariantContextFilter setFilter, ReferenceGenome referenceGenome,
-                            int numVariantsToTest, int numthreads) {
+      int numVariantsToTest, int numthreads) {
 
     VCFFileReader reader = new VCFFileReader(new File(vcfFile), true);
     VCFHeader header = reader.getFileHeader();
@@ -338,12 +329,12 @@ public class SeqError {
       numTotal++;
       if (numTotal % 10000 == 0) {
         log.reportTimeInfo(numTotal + " variants processed...with " + numSetPass
-                           + " passing the set filter " + ext.getTimeElapsed(time));
+            + " passing the set filter " + ext.getTimeElapsed(time));
         time = System.currentTimeMillis();
       }
       if (numVariantsToTest >= 0 && numSetPass == numVariantsToTest) {
         log.reportTimeInfo(numTotal + " variants processed...," + numVariantsToTest
-                           + " variants to test reached " + ext.getTimeElapsed(time));
+            + " variants to test reached " + ext.getTimeElapsed(time));
         reader.close();
         train.shutdown();
         return;

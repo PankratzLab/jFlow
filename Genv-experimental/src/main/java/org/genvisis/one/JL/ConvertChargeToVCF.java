@@ -33,9 +33,8 @@ import htsjdk.variant.vcf.VCFInfoHeaderLine;
 
 public class ConvertChargeToVCF {
 
-  private static final String[] CHARGE_HEADER =
-      {"SNP", "REF", "ALT", "SKATgene", "func_region", "MAF_whites", "n_whites", "MAF_blacks",
-       "n_blacks"};
+  private static final String[] CHARGE_HEADER = {"SNP", "REF", "ALT", "SKATgene", "func_region",
+      "MAF_whites", "n_whites", "MAF_blacks", "n_blacks"};
 
   public static void convert(String fullPathToFile) {
     processChargeMafFile(fullPathToFile, new Logger());
@@ -50,7 +49,7 @@ public class ConvertChargeToVCF {
     // String logfile = null;
 
     String usage = "\n" + "jlDev.ConvertChargeToVCF requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -76,16 +75,15 @@ public class ConvertChargeToVCF {
 
   public static void processChargeMafFile(String fullPathToFile, Logger log) {
     if (!Files.headerOfFileContainsAll(fullPathToFile, CHARGE_HEADER, log)) {
-      log.reportTimeError("This is designed for a specific file format with header "
-                          + Array.toStr(CHARGE_HEADER));
+      log.reportTimeError(
+          "This is designed for a specific file format with header " + Array.toStr(CHARGE_HEADER));
     } else {
       VCFHeader vcfHeader = new VCFHeader();
 
       for (int i = 0; i < CHARGE_HEADER.length; i++) {
-        VCFInfoHeaderLine vHeaderLine =
-            new VCFInfoHeaderLine(CHARGE_HEADER[i], 1,
-                                  i <= 4 ? VCFHeaderLineType.String : VCFHeaderLineType.Float,
-                                  CHARGE_HEADER[i] + " from Charge");
+        VCFInfoHeaderLine vHeaderLine = new VCFInfoHeaderLine(CHARGE_HEADER[i], 1,
+            i <= 4 ? VCFHeaderLineType.String : VCFHeaderLineType.Float,
+            CHARGE_HEADER[i] + " from Charge");
         vcfHeader.addMetaDataLine(vHeaderLine);
       }
 
@@ -103,7 +101,7 @@ public class ConvertChargeToVCF {
       writer.writeHeader(vcfHeader);
       try {
         int[] indices = ext.indexFactors(CHARGE_HEADER, Files.getHeaderOfFile(fullPathToFile, log),
-                                         true, false);
+            true, false);
         BufferedReader reader = Files.getAppropriateReader(fullPathToFile);
         reader.readLine();
         int count = 0;
@@ -136,8 +134,7 @@ public class ConvertChargeToVCF {
             // vBuilder.filter("PASS");
             for (int i = 0; i < CHARGE_HEADER.length; i++) {
               vBuilder.attribute(CHARGE_HEADER[i],
-                                 i <= 4 ? line[indices[i]]
-                                        : Float.parseFloat(line[indices[i]]) + "");
+                  i <= 4 ? line[indices[i]] : Float.parseFloat(line[indices[i]]) + "");
             }
             VariantContext vc = vBuilder.make();
             segs.add(VCOps.getSegment(vc));
@@ -190,7 +187,7 @@ public class ConvertChargeToVCF {
       writer.close();
       if (countSkipped > 0) {
         log.reportTimeWarning("Skipped " + countSkipped
-                              + " variants due to ambigous alt alleles, or to lack of ref/alt alleles");
+            + " variants due to ambigous alt alleles, or to lack of ref/alt alleles");
       }
 
       try {

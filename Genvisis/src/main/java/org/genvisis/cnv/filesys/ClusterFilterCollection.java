@@ -50,8 +50,8 @@ public class ClusterFilterCollection implements Serializable, TextExport {
       e.printStackTrace();
     }
 
-    System.out.println("There were a total of " + count + " clusterFilters across " + trav.getSize()
-                       + " markers");
+    System.out.println(
+        "There were a total of " + count + " clusterFilters across " + trav.getSize() + " markers");
   }
 
   public static void dump(String filename) {
@@ -75,18 +75,13 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 
   public static String getClusterFilterFilenameSelection(Project proj) {
     String result;
-    result =
-        (String) JOptionPane.showInputDialog(null, "Please select a cluster filter file:",
-                                             "Apply Cluster Filters", JOptionPane.QUESTION_MESSAGE,
-                                             null,
-                                             Array.addStrToArray("(--Do not apply any cluster filter--)",
-                                                                 Files.list(proj.DATA_DIRECTORY.getValue(false,
-                                                                                                         true),
-                                                                            null,
-                                                                            ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)),
-                                                                            false,
-                                                                            proj.JAR_STATUS.getValue())),
-                                             proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME));
+    result = (String) JOptionPane.showInputDialog(null, "Please select a cluster filter file:",
+        "Apply Cluster Filters", JOptionPane.QUESTION_MESSAGE, null,
+        Array.addStrToArray("(--Do not apply any cluster filter--)",
+            Files.list(proj.DATA_DIRECTORY.getValue(false, true), null,
+                ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)),
+                false, proj.JAR_STATUS.getValue())),
+        proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME));
     if (result == null) {
       result = "cancel";
     } else if (result.equals("(--Do not apply any cluster filter--)")) {
@@ -97,13 +92,10 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 
   public static String getGenotypeLookupTableSelection(Project proj) {
     String result;
-    result =
-        (String) JOptionPane.showInputDialog(null, "Please select a AB genotype lookup table:",
-                                             "Select AB Genotype Lookup Table",
-                                             JOptionPane.QUESTION_MESSAGE, null,
-                                             new String[] {"Lookup Table 1", "Lookup Table 2",
-                                                           "Lookup Table 3"},
-                                             proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME));
+    result = (String) JOptionPane.showInputDialog(null, "Please select a AB genotype lookup table:",
+        "Select AB Genotype Lookup Table", JOptionPane.QUESTION_MESSAGE, null,
+        new String[] {"Lookup Table 1", "Lookup Table 2", "Lookup Table 3"},
+        proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME));
     return result;
   }
 
@@ -122,17 +114,15 @@ public class ClusterFilterCollection implements Serializable, TextExport {
     boolean recodeOld = false;
 
     String usage = "\n" + "cnv.filesys.ClusterFilterCollection requires 0-1 arguments\n"
-                   + "   (1) names of clusterFilter files to merge (i.e. files=file1.ser,file2.ser,file3.ser (not the default))\n"
-                   + "   (2) output filename (i.e. out=" + out + " (default))\n" + " OR:\n"
-                   + "   (1) describe clusterFilter file (i.e. -describe (not the default))\n"
-                   + "   (2) name of clusterFilter file to describe (i.e. file=" + filename
-                   + " (default))\n" + " OR:\n"
-                   + "   (1) export clusterFilter file (i.e. -export (not the default))\n"
-                   + "   (2) name of clusterFilter file to import (i.e. file=" + filename
-                   + " (default))\n" + " OR:\n"
-                   + "   (1) import text file into a clusterFilter collection (i.e. -import (not the default; and still needs to be implemented))\n"
-                   + "   (2) name of text file to import (i.e. file=" + filename + " (default))\n"
-                   + "";
+        + "   (1) names of clusterFilter files to merge (i.e. files=file1.ser,file2.ser,file3.ser (not the default))\n"
+        + "   (2) output filename (i.e. out=" + out + " (default))\n" + " OR:\n"
+        + "   (1) describe clusterFilter file (i.e. -describe (not the default))\n"
+        + "   (2) name of clusterFilter file to describe (i.e. file=" + filename + " (default))\n"
+        + " OR:\n" + "   (1) export clusterFilter file (i.e. -export (not the default))\n"
+        + "   (2) name of clusterFilter file to import (i.e. file=" + filename + " (default))\n"
+        + " OR:\n"
+        + "   (1) import text file into a clusterFilter collection (i.e. -import (not the default; and still needs to be implemented))\n"
+        + "   (2) name of text file to import (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -271,7 +261,8 @@ public class ClusterFilterCollection implements Serializable, TextExport {
         hash.remove(markerName);
       }
     } else {
-      System.err.println("Error deleting the cluster filter: either no cluster filter associate with this marker name, or the index for the cluster filter to be deleted does not exist.");
+      System.err.println(
+          "Error deleting the cluster filter: either no cluster filter associate with this marker name, or the index for the cluster filter to be deleted does not exist.");
     }
   }
 
@@ -284,15 +275,16 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 
     try {
       writer = new PrintWriter(new FileWriter(outputFile));
-      writer.println("MarkerIndex\tMarkerName\tFilterIndex\tPlotType\tGenotype\tminX\tminY\tmaxX\tmaxY");
+      writer.println(
+          "MarkerIndex\tMarkerName\tFilterIndex\tPlotType\tGenotype\tminX\tminY\tmaxX\tmaxY");
       markerNames = getMarkerNames();
       for (int i = 0; i < markerNames.length; i++) {
         list = getClusterFilters(markerNames[i]);
         for (int j = 0; j < list.size(); j++) {
           filter = list.get(j);
           writer.println(i + "\t" + markerNames[i] + "\t" + j + "\t" + filter.getPlotType() + "\t"
-                         + filter.getCluterGenotype() + "\t" + filter.getXMin() + "\t"
-                         + filter.getYMin() + "\t" + filter.getXMax() + "\t" + filter.getYMax());
+              + filter.getCluterGenotype() + "\t" + filter.getXMin() + "\t" + filter.getYMin()
+              + "\t" + filter.getXMax() + "\t" + filter.getYMax());
         }
       }
       writer.close();
@@ -378,8 +370,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
   }
 
   public GenericRectangle[] getRectangles(String markerName, byte plotType, byte thickness,
-                                          boolean fill, boolean roundedCorners, byte color,
-                                          byte layer) {
+      boolean fill, boolean roundedCorners, byte color, byte layer) {
     ArrayList<ClusterFilter> clusterFilters;
     GenericRectangle[] result = new GenericRectangle[getSize(markerName)];
     // ArrayList<GenericRectangle> rectangles = new ArrayList<GenericRectangle>();
@@ -387,15 +378,14 @@ public class ClusterFilterCollection implements Serializable, TextExport {
     clusterFilters = hash.get(markerName);
     for (int i = 0; clusterFilters != null && i < clusterFilters.size(); i++) {
       if (clusterFilters.get(i).getPlotType() == plotType) {
-        result[i] =
-            new GenericRectangle(clusterFilters.get(i).getXMin(), clusterFilters.get(i).getYMin(),
-                                 clusterFilters.get(i).getXMax(), clusterFilters.get(i).getYMax(),
-                                 thickness, fill, roundedCorners, color, layer, true);
+        result[i] = new GenericRectangle(clusterFilters.get(i).getXMin(),
+            clusterFilters.get(i).getYMin(), clusterFilters.get(i).getXMax(),
+            clusterFilters.get(i).getYMax(), thickness, fill, roundedCorners, color, layer, true);
       } else {
         result[i] =
             new GenericRectangle(clusterFilters.get(i).getXMin(), clusterFilters.get(i).getYMin(),
-                                 clusterFilters.get(i).getXMax(), clusterFilters.get(i).getYMax(),
-                                 thickness, fill, roundedCorners, color, (byte) -1, true);
+                clusterFilters.get(i).getXMax(), clusterFilters.get(i).getYMax(), thickness, fill,
+                roundedCorners, color, (byte) -1, true);
       }
     }
     return result;

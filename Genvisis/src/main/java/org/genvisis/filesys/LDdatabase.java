@@ -57,9 +57,7 @@ public class LDdatabase implements Serializable {
   public static final String[] FREQ_HEADER = {"CHR", "SNP", "A1", "A2", "MAF", "NCHROBS"};
   public static final String MASTER_HAPMAP_ROOT =
       ext.rootOf(Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS,
-                                                 "HapMap/CEU_founders/CEU_founders" + ".bim", true,
-                                                 false, new Logger()),
-                 false);
+          "HapMap/CEU_founders/CEU_founders" + ".bim", true, false, new Logger()), false);
   public static final String HAPLOVIEW_LOC = "/home/npankrat/Haploview.jar";
   public static final String LDDB_ROOT = "lddb";
   public static final String LDDB_TARGETS = "targets";
@@ -87,7 +85,7 @@ public class LDdatabase implements Serializable {
   }
 
   public static float multiCheck(LongLDdb[] chrLDdbs, String marker1, String marker2, int compType,
-                                 Logger log) {
+      Logger log) {
     float[] r2s;
     float r2;
 
@@ -130,7 +128,7 @@ public class LDdatabase implements Serializable {
   }
 
   public static String multiHashCheck(Hashtable<String, Hashtable<String, String>> chrHashes,
-                                      String markerName, int reportType, Logger log) {
+      String markerName, int reportType, Logger log) {
     String[] poslar;
     String pos;
 
@@ -163,7 +161,7 @@ public class LDdatabase implements Serializable {
           } else if (!poslar[i].equals(pos)) {
             if (reportType == REPORT_VERBOSE) {
               log.reportError("Error - inconsistent position for marker " + markerName + ": " + pos
-                              + " and " + poslar[i]);
+                  + " and " + poslar[i]);
             }
             return REPORT_INCONSISTENT;
           }
@@ -316,7 +314,7 @@ public class LDdatabase implements Serializable {
     if (missing.containsKey("0") && missing.get("0").size() > 0) {
       v = missing.get("0");
       log.reportError("Warning - the following " + v.size() + " marker" + (v.size() > 1 ? "s" : "")
-                      + " were not found in the " + root + " dataset:");
+          + " were not found in the " + root + " dataset:");
       for (int i = 0; i < v.size(); i++) {
         log.reportError(v.elementAt(i));
       }
@@ -354,8 +352,8 @@ public class LDdatabase implements Serializable {
                 if (writer == null) {
                   writer = new PrintWriter(new FileWriter(dir + "pairs.xln"));
                 }
-                writer.println(subset[i] + "\t" + subset[j] + "\t"
-                               + Math.abs(positions[i] - positions[j]));
+                writer.println(
+                    subset[i] + "\t" + subset[j] + "\t" + Math.abs(positions[i] - positions[j]));
               }
             }
           }
@@ -375,12 +373,13 @@ public class LDdatabase implements Serializable {
           Files.writeList(Array.toStringArray(v), dir + LDDB_TARGETS + "_snplist.txt");
           if (!new File(root + ".chr" + chr + ".bed").exists()) {
             CmdLine.run("plink --bfile " + root + " --chr " + chr + " --noweb --make-bed --out "
-                        + root + ".chr" + chr, "./");
+                + root + ".chr" + chr, "./");
           }
           CmdLine.run("plink --bfile " + root + ".chr" + chr + " --noweb --extract " + dir
-                      + LDDB_TARGETS + "_snplist.txt --recode --out " + dir + LDDB_TARGETS, "./");
-          CmdLine.run("plink --file " + dir + LDDB_TARGETS + " --noweb --freq --out " + dir
-                      + "freqCheck", "./");
+              + LDDB_TARGETS + "_snplist.txt --recode --out " + dir + LDDB_TARGETS, "./");
+          CmdLine.run(
+              "plink --file " + dir + LDDB_TARGETS + " --noweb --freq --out " + dir + "freqCheck",
+              "./");
           try {
             reader = new BufferedReader(new FileReader(dir + "freqCheck.frq"));
             ext.checkHeader(reader.readLine().trim().split("[\\s]+"), FREQ_HEADER, true);
@@ -394,26 +393,25 @@ public class LDdatabase implements Serializable {
             chrLDdb.addMonomorphs(monomorphs);
             reader.close();
           } catch (FileNotFoundException fnfe) {
-            log.reportError("Error: file \"" + dir + "freqCheck.frq"
-                            + "\" not found in current directory");
+            log.reportError(
+                "Error: file \"" + dir + "freqCheck.frq" + "\" not found in current directory");
             System.exit(1);
           } catch (IOException ioe) {
             log.reportError("Error reading file \"" + dir + "freqCheck.frq" + "\"");
             System.exit(2);
           }
           new SnpMarkerSet(dir + LDDB_TARGETS + ".map").writeToFile(dir + LDDB_TARGETS + ".info",
-                                                                    SnpMarkerSet.HAPLOVIEW_INFO_FORMAT,
-                                                                    log);
+              SnpMarkerSet.HAPLOVIEW_INFO_FORMAT, log);
           log.report("  ...done");
           log.report("Computing LD for chr" + chr + "...", false, true);
           if (new File(HAPLOVIEW_LOC).exists()) {
             CmdLine.run("java -jar " + HAPLOVIEW_LOC + " -nogui -pedfile " + dir + LDDB_TARGETS
-                        + ".ped -info " + dir + LDDB_TARGETS + ".info -dprime -chromosome "
-                        + Positions.chromosomeNumberInverse(chr)
-                        + " -maxDistance 500 -hwcutoff 0 -minGeno 0 -missingCutoff 1", "./");
+                + ".ped -info " + dir + LDDB_TARGETS + ".info -dprime -chromosome "
+                + Positions.chromosomeNumberInverse(chr)
+                + " -maxDistance 500 -hwcutoff 0 -minGeno 0 -missingCutoff 1", "./");
           } else {
             log.reportError("\n\nError - could not find haploview JAR file at: " + HAPLOVIEW_LOC
-                            + "\nAborting...");
+                + "\nAborting...");
             System.exit(1);
           }
 
@@ -427,7 +425,7 @@ public class LDdatabase implements Serializable {
             reader.close();
           } catch (FileNotFoundException fnfe) {
             log.reportError("Error: file \"" + dir + LDDB_TARGETS + ".ped.LD"
-                            + "\" not found in current directory");
+                + "\" not found in current directory");
             System.exit(1);
           } catch (IOException ioe) {
             log.reportError("Error reading file \"" + dir + LDDB_TARGETS + ".ped.LD" + "\"");

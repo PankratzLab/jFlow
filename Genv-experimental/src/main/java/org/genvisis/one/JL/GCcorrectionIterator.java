@@ -86,7 +86,7 @@ public class GCcorrectionIterator {
     private GcAdjustorParameters cents;
 
     private IterationParameters(int bpModel, int regressDistance, int numSnpMad,
-                                String[] serFiles) {
+        String[] serFiles) {
       super();
       this.bpModel = bpModel;
       this.regressDistance = regressDistance;
@@ -132,7 +132,7 @@ public class GCcorrectionIterator {
   private static final String CENT_TAG = "_CENT";
 
   private static void batch(Project proj, String outputRootDir, int[] bpModels,
-                            int[] regressDistance, int[] snpMAD, int numThreads) {
+      int[] regressDistance, int[] snpMAD, int numThreads) {
     String batchRoot = proj.PROJECT_DIRECTORY.getValue() + outputRootDir;
     ArrayList<String> pbs = new ArrayList<String>();
     for (int bpModel : bpModels) {
@@ -144,7 +144,7 @@ public class GCcorrectionIterator {
       command.add("numthreads=" + numThreads);
       command.add("bpGcModel=" + bpModel);
       Files.qsub(currentSub, Array.toStr(Array.toStringArray(command), " "), 55000, 48.00,
-                 numThreads);
+          numThreads);
     }
     String batchMaster = batchRoot + "master.pbs";
     try {
@@ -161,13 +161,13 @@ public class GCcorrectionIterator {
   }
 
   private static void format(String base, Hashtable<String, String[]> plotCombos) {
-    plotCombos.put(base + "_PRIOR", new String[] {base + "_POST", base + "_PRIOR" + CENT_TAG,
-                                                  base + "_POST" + CENT_TAG});
+    plotCombos.put(base + "_PRIOR",
+        new String[] {base + "_POST", base + "_PRIOR" + CENT_TAG, base + "_POST" + CENT_TAG});
 
   }
 
   private static IterationParameters[] getParameters(String[][][] generated, int bpModel,
-                                                     ArrayList<GCAdjustorBuilder> builders) {
+      ArrayList<GCAdjustorBuilder> builders) {
     IterationParameters[] params = new IterationParameters[builders.size()];
     for (int i = 0; i < generated.length; i++) {
       ArrayList<String> sers = new ArrayList<String>();
@@ -176,24 +176,23 @@ public class GCcorrectionIterator {
           sers.add(generated[i][j][j2]);
         }
       }
-      params[i] =
-          new IterationParameters(bpModel, builders.get(i).getRegressionDistance(),
-                                  builders.get(i).getNumSnpMAD(), Array.toStringArray(sers));
+      params[i] = new IterationParameters(bpModel, builders.get(i).getRegressionDistance(),
+          builders.get(i).getNumSnpMAD(), Array.toStringArray(sers));
 
     }
     return params;
   }
 
   private static void iterate(Project proj, String outputRootDir, int[] bpModels,
-                              int[] regressDistance, int[] snpMAD, int numThreads) {
+      int[] regressDistance, int[] snpMAD, int numThreads) {
     new File(proj.PROJECT_DIRECTORY.getValue() + outputRootDir).mkdirs();
     String freshCents = proj.PROJECT_DIRECTORY.getValue() + outputRootDir + "freshCents.cent";
 
     proj.getLog().reportTimeInfo("total iterations currently at (2X) "
-                                 + (bpModels.length * regressDistance.length * snpMAD.length));
+        + (bpModels.length * regressDistance.length * snpMAD.length));
     if (!Files.exists(freshCents)) {
       CentroidCompute.computeAndDumpCentroids(proj, freshCents, new CentroidBuilder(), numThreads,
-                                              2);
+          2);
     }
     ArrayList<IterationParameters> finals = new ArrayList<IterationParameters>();
     GCAdjustorBuilder builder = new GCAdjustorBuilder();
@@ -207,7 +206,7 @@ public class GCcorrectionIterator {
         GcModel gcModel = null;
         if (bpModel < 0) {
           gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(), true,
-                                                        proj.getLog());
+              proj.getLog());
           gcModel.Serialize(model);
         }
         // if (Files.exists(model)) {
@@ -225,7 +224,7 @@ public class GCcorrectionIterator {
         for (int element : regressDistance) {
           for (int element2 : snpMAD) {
             String root = outputRootDir + "gcmodel_bp_" + bpModel + "_regress_" + element
-                          + "_snpMad_" + element2;
+                + "_snpMad_" + element2;
             outs.add(root);
             builder.regressionDistance(element);
             builder.numSnpMAD(element2);
@@ -234,16 +233,13 @@ public class GCcorrectionIterator {
           }
         }
         proj.getLog().reportTimeInfo("Beginnning iteration group for gc model " + bpModel + " ("
-                                     + builders.size() + " iterations");
+            + builders.size() + " iterations");
         String[][][] generated = null;
 
-        generated =
-            GcAdjustorParameter.generateAdjustmentParameters(proj,
-                                                             builders.toArray(new GCAdjustorBuilder[builders.size()]),
-                                                             new String[] {freshCents},
-                                                             new GC_CORRECTION_METHOD[] {GC_CORRECTION_METHOD.GENVISIS_GC},
-                                                             gcModel, Array.toStringArray(outs),
-                                                             numThreads, true);
+        generated = GcAdjustorParameter.generateAdjustmentParameters(proj,
+            builders.toArray(new GCAdjustorBuilder[builders.size()]), new String[] {freshCents},
+            new GC_CORRECTION_METHOD[] {GC_CORRECTION_METHOD.GENVISIS_GC}, gcModel,
+            Array.toStringArray(outs), numThreads, true);
         proj.getLog().reportTimeInfo("Adding gc Content");
         gcModel.getGCsFor(proj.getMarkerNames());
         // for (int j = 0; j < generated.length; j++) {
@@ -278,26 +274,26 @@ public class GCcorrectionIterator {
     int numThreads = 24;
     String filename = null;
     int[] bpModels = new int[] {-1, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000,
-                                100000, 250000, 500000, 1000000};
+        100000, 250000, 500000, 1000000};
 
     System.out.println("JOHN add 1000000 and remove final.gz");
     bpModels = new int[] {-1, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000,
-                          250000, 500000};
+        250000, 500000};
     int[] regressDistance = new int[] {1000000, 10, 100, 1000, 2000, 4000, 8000, 10000, 20000,
-                                       40000, 80000, 100000, 500000};// eq 13
+        40000, 80000, 100000, 500000};// eq 13
     int[] snpMAD = new int[] {0, 1, 2, 5, 10, 15};
     boolean batch = false;
     String usage = "\n" + "one.JL.GCcorrectionIterator requires 0-1 arguments\n";
     usage += "   (1) project filename (i.e. proj= (no default))\n" + "";
     usage += "   (2) root directory under project directory (i.e. root=" + rootDir + " (default))\n"
-             + "";
+        + "";
     usage += "   (3) gcModel bp, comma delimited (i.e. bpGcModel="
-             + Array.toStr(Array.toStringArray(bpModels), ",") + " (default))\n" + "";
+        + Array.toStr(Array.toStringArray(bpModels), ",") + " (default))\n" + "";
     usage += "   (4) batch by gc model (i.e -batch, not the default)\n" + "";
     usage += "   (5) regressDistance, comma delimited (i.e. regress="
-             + Array.toStr(Array.toStringArray(regressDistance), ",") + " (default))\n" + "";
+        + Array.toStr(Array.toStringArray(regressDistance), ",") + " (default))\n" + "";
     usage += "   (6) snpMAD, comma delimited (i.e. mad="
-             + Array.toStr(Array.toStringArray(snpMAD), ",") + " (default))\n" + "";
+        + Array.toStr(Array.toStringArray(snpMAD), ",") + " (default))\n" + "";
 
     usage += Ext.getNumThreadsCommand(5, numThreads);
     for (String arg : args) {
@@ -348,12 +344,11 @@ public class GCcorrectionIterator {
   }
 
   private static void summarizeSampleQC(Project proj, String outputGZ, int numthreads,
-                                        ArrayList<IterationParameters> finals) throws IllegalStateException {
+      ArrayList<IterationParameters> finals) throws IllegalStateException {
     String[] commonHeader = new String[] {"SampleName", "gcmodel_bp", "regress_bp", "snpMAD"};
 
-    String[] specificHeader =
-        new String[] {"BETA_0", "BETA_1", "WF_PRIOR", "WF_POST", "GCWF_PRIOR", "GCWF_POST",
-                      "LRR_MEAN_PRIOR", "LRR_MEAN_POST", "LRR_SD_PRIOR", "LRR_SD_POST"};
+    String[] specificHeader = new String[] {"BETA_0", "BETA_1", "WF_PRIOR", "WF_POST", "GCWF_PRIOR",
+        "GCWF_POST", "LRR_MEAN_PRIOR", "LRR_MEAN_POST", "LRR_SD_PRIOR", "LRR_SD_POST"};
     Hashtable<String, String[]> plotCombos = new Hashtable<String, String[]>();
     format("WF", plotCombos);
     format("GCWF", plotCombos);
@@ -362,13 +357,13 @@ public class GCcorrectionIterator {
     IPloadProducer ipp = new IPloadProducer(finals, proj.getLog());
     WorkerTrain<IterationParameters> train =
         new WorkerTrain<GCcorrectionIterator.IterationParameters>(ipp, numthreads, 2,
-                                                                  proj.getLog());
+            proj.getLog());
     if (!Files.exists(outputGZ)) {
       String[] withoutCent = Array.tagOn(specificHeader, null, "");
       String[] withCent = Array.tagOn(specificHeader, null, CENT_TAG);
       PrintWriter writer = Files.getAppropriateWriter(outputGZ);
       writer.println(Array.toStr(commonHeader) + "\t" + Array.toStr(withoutCent) + "\t"
-                     + Array.toStr(withCent));
+          + Array.toStr(withCent));
       int index = 0;
       while (train.hasNext()) {
         IterationParameters cur = train.next();
@@ -391,8 +386,7 @@ public class GCcorrectionIterator {
               throw new IllegalStateException("MisMatched sample order");
             } else {
               writer.println(noC.getSample() + "\t" + Array.toStr(cur.getParams()) + "\t"
-                             + Array.toStr(noC.getQCString()) + "\t"
-                             + Array.toStr(c.getQCString()));
+                  + Array.toStr(noC.getQCString()) + "\t" + Array.toStr(c.getQCString()));
             }
           }
         }
@@ -492,19 +486,16 @@ public class GCcorrectionIterator {
       // allLooks.add(rScattervsCentBP);
 
       String rootVsCentDensity = ext.rootOf(outputGZ, false) + base + ".vs_CentDensity";
-      RScatter rScattervsCentDensity =
-          new RScatter(outputGZ, rootVsCentDensity + ".rscript",
-                       ext.removeDirectoryInfo(rootVsCentDensity), rootVsCentDensity + ".pdf",
-                       "gcmodel_bp", new String[] {"regress_bp"}, plotCombos.get(base)[2],
-                       SCATTER_TYPE.POINT, proj.getLog());
+      RScatter rScattervsCentDensity = new RScatter(outputGZ, rootVsCentDensity + ".rscript",
+          ext.removeDirectoryInfo(rootVsCentDensity), rootVsCentDensity + ".pdf", "gcmodel_bp",
+          new String[] {"regress_bp"}, plotCombos.get(base)[2], SCATTER_TYPE.POINT, proj.getLog());
       rScattervsCentDensity.setFontsize(3);
       rScattervsCentDensity.setxLabel("regress_bp");
       rScattervsCentDensity.setyLabel(plotCombos.get(base)[2]);
       rScattervsCentDensity.setTitle("re-computed LRR Only");
-      rScattervsCentDensity.setRestrictions(new Rscript.Restrictions[] {new Rscript.Restrictions(new String[] {"snpMAD"},
-                                                                                                 new double[] {0},
-                                                                                                 new String[] {"=="},
-                                                                                                 null)});
+      rScattervsCentDensity.setRestrictions(
+          new Rscript.Restrictions[] {new Rscript.Restrictions(new String[] {"snpMAD"},
+              new double[] {0}, new String[] {"=="}, null)});
       rScattervsCentDensity.setScaleDensity(true);
 
       allLooks.add(rScattervsCentDensity);
@@ -512,10 +503,9 @@ public class GCcorrectionIterator {
     }
 
     String finalSummaryRoot = ext.rootOf(outputGZ, false) + "finalSummary";
-    RScatters rscScatters =
-        new RScatters(allLooks.toArray(new RScatter[allLooks.size()]),
-                      finalSummaryRoot + ".rscript", finalSummaryRoot + ".pdf",
-                      COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
+    RScatters rscScatters = new RScatters(allLooks.toArray(new RScatter[allLooks.size()]),
+        finalSummaryRoot + ".rscript", finalSummaryRoot + ".pdf",
+        COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
     rscScatters.execute();
 
   }

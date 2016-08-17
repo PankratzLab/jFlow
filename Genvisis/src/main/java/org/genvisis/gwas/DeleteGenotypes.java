@@ -40,7 +40,8 @@ public class DeleteGenotypes {
       dir = LINUX_DIRECTORY;
     } else {
       dir = "";
-      System.err.println("Error - could not resolve directory to parse (none of the following worked)");
+      System.err
+          .println("Error - could not resolve directory to parse (none of the following worked)");
       System.err.println(WINDOWS_DIRECTORY);
       System.err.println(LINUX_DIRECTORY);
       System.exit(1);
@@ -87,8 +88,8 @@ public class DeleteGenotypes {
           }
           reader.close();
         } catch (FileNotFoundException fnfe) {
-          System.err.println("Error: file \"" + file.getName()
-                             + "\" not found in current directory");
+          System.err
+              .println("Error: file \"" + file.getName() + "\" not found in current directory");
           System.exit(1);
         } catch (IOException ioe) {
           System.err.println("Error reading file \"" + file.getName() + "\"");
@@ -149,7 +150,8 @@ public class DeleteGenotypes {
       dir = LINUX_DIRECTORY;
     } else {
       dir = "";
-      System.err.println("Error - could not resolve directory to parse (none of the following worked)");
+      System.err
+          .println("Error - could not resolve directory to parse (none of the following worked)");
       System.err.println(WINDOWS_DIRECTORY);
       System.err.println(LINUX_DIRECTORY);
       System.exit(1);
@@ -170,21 +172,21 @@ public class DeleteGenotypes {
         sources = lookup.get(marks[i]);
         if (sources == null) {
           System.err.println("Error - Could not find '" + marks[i]
-                             + "' in the lookup file. Either this is not a valid local_id or the lookup table is outdated (delete and I'll create a new one) or the directory I'm pointed too ('"
-                             + dir + "') is not the one you wanted.");
+              + "' in the lookup file. Either this is not a valid local_id or the lookup table is outdated (delete and I'll create a new one) or the directory I'm pointed too ('"
+              + dir + "') is not the one you wanted.");
           System.exit(1);
         }
         for (int j = 0; j < sources.size(); j++) {
           markers = (Hashtable<String, String>) hash.get(marks[i]).clone();
           if (!new File(dir + sources.elementAt(j)).exists()) {
             System.err.println("Error - Could not find file '" + dir + sources.elementAt(j)
-                               + "'. Either this lookup table is outdated (delete and I'll create a new one) or the directory I'm pointed too ('"
-                               + dir + "') is not the one you wanted.");
+                + "'. Either this lookup table is outdated (delete and I'll create a new one) or the directory I'm pointed too ('"
+                + dir + "') is not the one you wanted.");
             System.exit(1);
           }
           try {
-            reader = new BufferedReader(new FileReader(Files.backup(sources.elementAt(j), dir,
-                                                                    dir + BACKUP_DIRECTORY)));
+            reader = new BufferedReader(
+                new FileReader(Files.backup(sources.elementAt(j), dir, dir + BACKUP_DIRECTORY)));
             writer = new PrintWriter(new FileWriter(dir + sources.elementAt(j)));
             for (int k = 0; k < 11; k++) {
               writer.println(reader.readLine());
@@ -196,9 +198,10 @@ public class DeleteGenotypes {
               if (count == 0) {
                 id = trav;
                 if (!marks[i].startsWith(id)) {
-                  System.err.println("Error - incorrect match up. Is the lookup table incorrect? Opened '"
-                                     + dir + sources.elementAt(j) + "' and found '" + id
-                                     + "' instead of '" + marks[i] + "'");
+                  System.err
+                      .println("Error - incorrect match up. Is the lookup table incorrect? Opened '"
+                          + dir + sources.elementAt(j) + "' and found '" + id + "' instead of '"
+                          + marks[i] + "'");
                   System.exit(1);
                 }
               }
@@ -233,9 +236,9 @@ public class DeleteGenotypes {
     int lookup = 0;
 
     String usage = "\\n" + "park.gwa.DeleteGenotypes requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default))\n"
-                   + "   (2) --createLookupWithoutSerialNumbers (not the default)\n"
-                   + "   (3) --createLookupWithSerialNumbers (not the default)\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default))\n"
+        + "   (2) --createLookupWithoutSerialNumbers (not the default)\n"
+        + "   (3) --createLookupWithSerialNumbers (not the default)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -19,7 +19,7 @@ public class prioritize {
     String variables = "FamID:^G2019S;>OtherLRRK2;^parkin;^VPD";
 
     String usage = "\n" + "park.prioritize requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-                   + filename + " (default)\n" + "";
+        + filename + " (default)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -61,13 +61,14 @@ public class prioritize {
         if (lookup.equals("")) {
           lookup = (variables.split("\\|")[db]).split(":")[0];
         } else if (!lookup.equals((variables.split("\\|")[db]).split(":")[0])) {
-          System.err.println("Error - lookup values need to be the same in all files and databases");
+          System.err
+              .println("Error - lookup values need to be the same in all files and databases");
           System.exit(1);
         }
         lookupIndices[db] = ext.indexOfStr(lookup, line);
         if (lookupIndices[db] == -1) {
           System.err.println("Error - lookup variable '" + lookup + "' was not found in database '"
-                             + DBs[db] + "'");
+              + DBs[db] + "'");
           System.exit(1);
         }
         l2 = (variables.split("\\|")[db]).split(":")[1].split(";");
@@ -78,8 +79,7 @@ public class prioritize {
           variableIndices[db][i] = ext.indexOfStr(l2[i].substring(1), line);
           if (variableIndices[db][i] == -1) {
             System.err.println("Error - variable '" + l2[i].substring(1)
-                               + "' was not found in database '" + DBs[db]
-                               + "' (do you need an operator)");
+                + "' was not found in database '" + DBs[db] + "' (do you need an operator)");
             System.exit(1);
           }
         }
@@ -155,7 +155,7 @@ public class prioritize {
       lookupIndices[DBs.length] = ext.indexOfStr(lookup, line);
       if (lookupIndices[DBs.length] == -1) {
         System.err.println("Error - lookup value for the databases ('" + lookup
-                           + "') does not match a column in the file " + filename);
+            + "') does not match a column in the file " + filename);
         System.exit(1);
       }
       writer.print(Array.toStr(line));
@@ -177,8 +177,7 @@ public class prioritize {
         for (int i = 0; i < DBs.length; i++) {
           for (int j = 0; j < variableIndices[i].length; j++) {
             writer.print("\t" + (data == null ? "XXX"
-                                              : (data[i][j].equals("-1")
-                                                 || data[i][j].equals("") ? "." : data[i][j])));
+                : (data[i][j].equals("-1") || data[i][j].equals("") ? "." : data[i][j])));
           }
         }
         writer.println();

@@ -30,7 +30,7 @@ public class SegmentLists implements Serializable, PlainTextExport {
    * @return a {@link SegmentList} of {@link Segment} sorted by arranged by chr
    */
   public static SegmentLists parseSegmentList(String filename, int chrCol, int startCol,
-                                              int stopCol, boolean ignoreFirstLine) {
+      int stopCol, boolean ignoreFirstLine) {
     Hashtable<String, Vector<Segment>> hash = new Hashtable<String, Vector<Segment>>();
     Vector<Segment> vSegs;
     Segment[][] lists;

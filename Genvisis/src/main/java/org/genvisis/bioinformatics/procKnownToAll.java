@@ -13,16 +13,15 @@ import org.genvisis.common.Array;
 import org.genvisis.common.HashVec;
 
 public class procKnownToAll {
-  public static final String[] DEFAULT_FILES =
-      {"knownToGNfAtlas2.prn", "knownToGnf1h.prn", "knownToU133.prn", "knownToU133Plus2.prn",
-       "knownToU95.prn"};
+  public static final String[] DEFAULT_FILES = {"knownToGNfAtlas2.prn", "knownToGnf1h.prn",
+      "knownToU133.prn", "knownToU133Plus2.prn", "knownToU95.prn"};
 
   public static void main(String[] args) throws IOException {
     int numArgs = args.length;
     Vector<String> v = null;
 
     String usage = "\n" + "park.procKnownToAll requires 0+ arguments\n" + "   filenames (i.e. "
-                   + Array.toStr(DEFAULT_FILES, " ") + " (default))\n" + "";
+        + Array.toStr(DEFAULT_FILES, " ") + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -25,27 +25,26 @@ import org.genvisis.stats.Histogram;
 public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
   public static final long serialVersionUID = 3L;
   public static final int LOOKUP_RESOLUTION = 20;
-  public static final Color[] DEFAULT_COLORS =
-      {new Color(33, 31, 53), // dark dark
-       new Color(201, 30, 10), // deep red
-       new Color(94, 88, 214), // light purple
-       new Color(189, 243, 61), // light green
-       new Color(217, 109, 194), // pink
-       new Color(33, 87, 0), // dark green
-       new Color(23, 58, 172), // dark blue
-       new Color(140, 20, 180), // deep purple
-       new Color(0, 0, 128), // ALL KINDS OF BLUES
-       new Color(55, 129, 252), // light blue
-       new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
-       new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
-       new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
-       new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
-       new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
-       new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
-       new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
-       new Color(224, 255, 255),
+  public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
+      new Color(201, 30, 10), // deep red
+      new Color(94, 88, 214), // light purple
+      new Color(189, 243, 61), // light green
+      new Color(217, 109, 194), // pink
+      new Color(33, 87, 0), // dark green
+      new Color(23, 58, 172), // dark blue
+      new Color(140, 20, 180), // deep purple
+      new Color(0, 0, 128), // ALL KINDS OF BLUES
+      new Color(55, 129, 252), // light blue
+      new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
+      new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
+      new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
+      new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
+      new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
+      new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
+      new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
+      new Color(224, 255, 255),
 
-      };
+  };
   private static final double DEFAULT_HALF_BIN_SIZE = 0.001;
 
 
@@ -98,14 +97,14 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
       markerLookup = new MarkerLookup(new Hashtable<String, String>());
     } else {
       if (Files.exists(proj.MARKERLOOKUP_FILENAME.getValue(false, false),
-                       proj.JAR_STATUS.getValue())) {
+          proj.JAR_STATUS.getValue())) {
         markerLookup = proj.getMarkerLookup();
         proj.getLog().report("Marker data is available for this project");
       } else {
         markerLookup = new MarkerLookup(new Hashtable<String, String>());
       }
       if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
-                       proj.JAR_STATUS.getValue())) {
+          proj.JAR_STATUS.getValue())) {
         sampleData = proj.getSampleData(1, false);
         proj.getLog().report("Sample lookup is available for this project");
       }
@@ -145,10 +144,9 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
       // tdp.setPointSize((byte) 0);
       points = new PlotPoint[0];// currentData.size()];
       for (int i = 0; i < points.length; i++) {
-        points[i] =
-            new PlotPoint("" + Float.parseFloat(currentData.get(i)[1]), PlotPoint.FILLED_SQUARE,
-                          Float.parseFloat(currentData.get(i)[1]),
-                          Float.parseFloat(currentData.get(i)[2]), (byte) 0, (byte) 0, (byte) 0);
+        points[i] = new PlotPoint("" + Float.parseFloat(currentData.get(i)[1]),
+            PlotPoint.FILLED_SQUARE, Float.parseFloat(currentData.get(i)[1]),
+            Float.parseFloat(currentData.get(i)[2]), (byte) 0, (byte) 0, (byte) 0);
       }
       generateRectangles();
       return;
@@ -195,10 +193,10 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
       }
       if (swapAxes) {
         points[i] = new PlotPoint(line[0], type, yAxisValue, xAxisValue, (byte) 5,
-                                  Byte.parseByte(line[3]), (byte) 0);
+            Byte.parseByte(line[3]), (byte) 0);
       } else {
         points[i] = new PlotPoint(line[0], type, xAxisValue, yAxisValue, (byte) 5,
-                                  Byte.parseByte(line[3]), (byte) 0);
+            Byte.parseByte(line[3]), (byte) 0);
       }
 
       for (int j = 0; j < linkerData[i].length; j++) {
@@ -229,9 +227,8 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 
       double[] dataArray = new double[currentData.size()];
       for (int i = 0; i < dataArray.length; i++) {
-        dataArray[i] =
-            ext.isMissingValue(currentData.get(i)[1]) ? Double.NaN
-                                                      : Double.parseDouble(currentData.get(i)[1]);
+        dataArray[i] = ext.isMissingValue(currentData.get(i)[1]) ? Double.NaN
+            : Double.parseDouble(currentData.get(i)[1]);
       }
       hist = new org.genvisis.stats.Histogram(dataArray);
       setHistogram(hist);
@@ -244,9 +241,8 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
     double minDiff = hist.determineStep();
     int sig = hist.getSigfigs();
 
-    float binHalf =
-        (float) (hist.getBins().length > 1 ? ext.roundToSignificantFigures(minDiff / 2.0, sig + 1)
-                                           : DEFAULT_HALF_BIN_SIZE);
+    float binHalf = (float) (hist.getBins().length > 1
+        ? ext.roundToSignificantFigures(minDiff / 2.0, sig + 1) : DEFAULT_HALF_BIN_SIZE);
 
     forcePlotXmax = (float) (max + minDiff);
     forcePlotXmin = (float) (min - minDiff);
@@ -257,29 +253,25 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
       float startX, startY, stopX, stopY;
       if (swapAxes) {
         startX = 0f;
-        startY =
-            sig > 0 ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i] - binHalf),
-                                                            sig)
-                    : (float) (hist.getBins()[i] - binHalf);
+        startY = sig > 0
+            ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i] - binHalf), sig)
+            : (float) (hist.getBins()[i] - binHalf);
         stopX = hist.getCounts()[i];
-        stopY =
-            sig > 0 ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i] + binHalf),
-                                                            sig)
-                    : (float) (hist.getBins()[i] + binHalf);
+        stopY = sig > 0
+            ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i] + binHalf), sig)
+            : (float) (hist.getBins()[i] + binHalf);
       } else {
-        startX =
-            sig > 0 ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i] - binHalf),
-                                                            sig)
-                    : (float) (hist.getBins()[i] - binHalf);
+        startX = sig > 0
+            ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i] - binHalf), sig)
+            : (float) (hist.getBins()[i] - binHalf);
         startY = 0f;
-        stopX =
-            sig > 0 ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i] + binHalf),
-                                                            sig)
-                    : (float) (hist.getBins()[i] + binHalf);
+        stopX = sig > 0
+            ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i] + binHalf), sig)
+            : (float) (hist.getBins()[i] + binHalf);
         stopY = hist.getCounts()[i];
       }
       rectangles[i] = new GenericRectangle(startX, startY, stopX, stopY, (byte) 5, true, false,
-                                           (byte) 0, (byte) 2, (byte) 0, false);
+          (byte) 0, (byte) 2, (byte) 0, false);
 
       // for (int j = 0; j < linkerData[i].length; j ++) {
       // linkerData[i][j] = line[j + index];
@@ -674,9 +666,9 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 
         sample = null;
         // TODO this check will ALWAYS fail!
-        if (linkKeyIndicies[TwoDPlot.DNA_INDEX_IN_LINKERS] >= 0
-            && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + sample
-                            + Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
+        if (linkKeyIndicies[TwoDPlot.DNA_INDEX_IN_LINKERS] >= 0 && Files.exists(
+            proj.SAMPLE_DIRECTORY.getValue(false, false) + sample + Sample.SAMPLE_FILE_EXTENSION,
+            proj.JAR_STATUS.getValue())) {
           sample = linkerDataElem[TwoDPlot.DNA_INDEX_IN_LINKERS];
         }
         if (sample == null && sampleData != null) { // if Sample not already identified and if a
@@ -684,14 +676,14 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
           ids = null;
           if (linkKeyIndicies[TwoDPlot.FID_INDEX_IN_LINKERS] >= 0) { // if FID present
             ids = sampleData.lookup(linkerDataElem[TwoDPlot.FID_INDEX_IN_LINKERS] + "\t"
-                                    + linkerDataElem[TwoDPlot.IID_INDEX_IN_LINKERS]);
+                + linkerDataElem[TwoDPlot.IID_INDEX_IN_LINKERS]);
           }
           if (ids == null) {
             ids = sampleData.lookup(linkerDataElem[TwoDPlot.IID_INDEX_IN_LINKERS]);
           }
-          if (ids != null
-              && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + ids[0]
-                              + Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
+          if (ids != null && Files.exists(
+              proj.SAMPLE_DIRECTORY.getValue(false, false) + ids[0] + Sample.SAMPLE_FILE_EXTENSION,
+              proj.JAR_STATUS.getValue())) {
             sample = ids[0];
           }
         }
@@ -747,18 +739,16 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
         if (sampleData != null && ids != null) {
           sampColor =
               colorScheme[sampleData.determineCodeFromClass(tdp.colorKeyPanel.getCurrentClass(),
-                                                            (byte) 0,
-                                                            sampleData.getIndiFromSampleHash(ids[0]),
-                                                            (byte) 0, 0)];
+                  (byte) 0, sampleData.getIndiFromSampleHash(ids[0]), (byte) 0, 0)];
         }
         if (sample != null) {
           if (region != null) {
             if (region2 != null && !region.equals(region2)) {
               menu.add(new LaunchAction(proj, sample, new String[] {region, region2},
-                                        sampColor == null ? Color.GRAY : sampColor));
+                  sampColor == null ? Color.GRAY : sampColor));
             } else {
               menu.add(new LaunchAction(proj, sample, region,
-                                        sampColor == null ? Color.GRAY : sampColor));
+                  sampColor == null ? Color.GRAY : sampColor));
             }
           } else {
             menu.add(new LaunchAction(proj, sample, Trailer.DEFAULT_LOCATION, sampColor));

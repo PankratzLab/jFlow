@@ -14,7 +14,8 @@ import org.genvisis.common.Files;
 public class solarZeroByInd {
   public static void main(String[] args) throws IOException {
     if (args.length < 1 || args.length > 2) {
-      System.err.println("Error: requires 1-2 arguments - individuals to keep (like a .pre file) and a chromosome [optional]");
+      System.err.println(
+          "Error: requires 1-2 arguments - individuals to keep (like a .pre file) and a chromosome [optional]");
     } else {
       try {
         if (args.length == 1) {
@@ -22,7 +23,7 @@ public class solarZeroByInd {
         }
         if (args.length == 2) {
           new solarZeroByInd(args[0], Integer.valueOf(args[1]).intValue(),
-                             Integer.valueOf(args[1]).intValue());
+              Integer.valueOf(args[1]).intValue());
         }
       } catch (Exception e) {
         e.printStackTrace();

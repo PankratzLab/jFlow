@@ -34,7 +34,8 @@ public class Mega2 {
         reader.readLine();
         reader.readLine();
         if (!reader.readLine().contains("#")) {
-          System.err.println("Error - Line 4 (underlying disease allele) must by named (i.e. \"# TRAIT\") or else Mega2 will fail");
+          System.err.println(
+              "Error - Line 4 (underlying disease allele) must by named (i.e. \"# TRAIT\") or else Mega2 will fail");
 
         }
         for (int i = 0; i < (chr == 23 ? 4 : 3); i++) {
@@ -63,8 +64,8 @@ public class Mega2 {
         Files.copyFile("re_chrom" + chrome + ".pre", "pedin." + chrome);
         Files.copyFile("map" + chrome + ".dat", "datain." + chrome);
       } catch (FileNotFoundException fnfe) {
-        System.err.println("Error: file \"" + "map" + chrome + ".dat"
-                           + "\" not found in current directory");
+        System.err.println(
+            "Error: file \"" + "map" + chrome + ".dat" + "\" not found in current directory");
         System.exit(1);
       } catch (IOException ioe) {
         System.err.println("Error reading file \"" + "map" + chrome + ".dat" + "\"");
@@ -79,9 +80,9 @@ public class Mega2 {
     int stop = 7;
 
     String usage = "\\n" + "park.Mega2 requires 0-1 arguments\n"
-                   + "   (1) start chromosome (i.e. start=" + start + " (default))\n"
-                   + "   (2) stop chromosome (i.e. stop=" + stop + " (default))\n" + " OR\n"
-                   + "   (1) chromsome # to do (i.e. chr=" + start + " (default))\n" + "";
+        + "   (1) start chromosome (i.e. start=" + start + " (default))\n"
+        + "   (2) stop chromosome (i.e. stop=" + stop + " (default))\n" + " OR\n"
+        + "   (1) chromsome # to do (i.e. chr=" + start + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

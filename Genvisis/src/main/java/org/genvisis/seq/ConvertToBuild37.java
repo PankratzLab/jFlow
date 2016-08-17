@@ -68,7 +68,8 @@ public class ConvertToBuild37 {
         SerialHash.createSerializedStringHash(dir + HASH_MAP_FILE, hash);
         System.out.println("Successfully processed liftOver.bed");
       } else {
-        System.out.println("Mismatched list-conversion lengths, assuming there are new errors that need to be parsed; parsing now...");
+        System.out.println(
+            "Mismatched list-conversion lengths, assuming there are new errors that need to be parsed; parsing now...");
       }
     }
 
@@ -114,31 +115,30 @@ public class ConvertToBuild37 {
       }
       order = Sort.orderTwoLayers(chrs, positions, new Logger());
       locs = Sort.putInOrder(locs, order);
-      if (new File(dir + "liftOver.in").exists()
-          && Array.equals(locs, HashVec.loadFileToStringArray(dir + "liftOver.in", false,
-                                                              new int[] {0}, false),
-                          false)) {
-        System.err.println("Error - getting the same list of positions to convert and it's not the same number as is in liftOver.bed");
+      if (new File(dir + "liftOver.in").exists() && Array.equals(locs,
+          HashVec.loadFileToStringArray(dir + "liftOver.in", false, new int[] {0}, false), false)) {
+        System.err.println(
+            "Error - getting the same list of positions to convert and it's not the same number as is in liftOver.bed");
       } else {
         Files.writeList(locs, dir + "liftOver.in");
         System.out.println("Found " + locs.length + " new positions that have yet to be parsed:\n"
-                           + "     1) upload file 'liftOver.in' to liftOver on UCSC\n"
-                           + "     2) copy any .err files to the current directory\n"
-                           + "     3) copy the bed file to the current directory and rename to liftOver.bed"
-                           + "     4) re-run once more (you'll still get this message if there were new errors being filtered out, simply re-run");
+            + "     1) upload file 'liftOver.in' to liftOver on UCSC\n"
+            + "     2) copy any .err files to the current directory\n"
+            + "     3) copy the bed file to the current directory and rename to liftOver.bed"
+            + "     4) re-run once more (you'll still get this message if there were new errors being filtered out, simply re-run");
       }
       return;
     }
 
-    System.out.println("Found no new positions that have yet to be parsed; generating new files for SeattleSeq");
+    System.out.println(
+        "Found no new positions that have yet to be parsed; generating new files for SeattleSeq");
     count = 0;
     new File(dir + "inputs/").mkdirs();
     for (String file : files) {
       try {
         reader = new BufferedReader(new FileReader(dir + file));
-        writer = new PrintWriter(new FileWriter(dir + "inputs/"
-                                                + file.substring(0, file.lastIndexOf("_"))
-                                                + "_input.txt"));
+        writer = new PrintWriter(new FileWriter(
+            dir + "inputs/" + file.substring(0, file.lastIndexOf("_")) + "_input.txt"));
         while (reader.ready()) {
           temp = reader.readLine();
           line = temp.trim().split("[\\s]+");
@@ -154,8 +154,8 @@ public class ConvertToBuild37 {
               if (pos.length < 3) {
                 System.err.println("Error - invalid positions: " + Array.toStr(pos));
               }
-              writer.println("chr" + pos[0] + "\t" + pos[1] + "\t" + pos[2] + "\t" + line[3] + "\t"
-                             + line[4]);
+              writer.println(
+                  "chr" + pos[0] + "\t" + pos[1] + "\t" + pos[2] + "\t" + line[3] + "\t" + line[4]);
             }
           }
         }
@@ -181,7 +181,7 @@ public class ConvertToBuild37 {
     String suffix = ".txt";
 
     String usage = "\n" + "seq.ConvertToBuild37 requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + dir + " (default))\n" + "";
+        + "   (1) filename (i.e. file=" + dir + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

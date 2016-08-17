@@ -21,7 +21,7 @@ import org.genvisis.common.ext;
 
 public class Solar {
   public static int[] MAX_CM = {285, 275, 231, 212, 212, 198, 191, 172, 167, 175, 164, 167, 124,
-                                124, 127, 133, 139, 122, 103, 103, 63, 70, 176};
+      124, 127, 133, 139, 122, 103, 103, 63, 70, 176};
 
   public static void cleanPhenotypeFile(String filename) {
     BufferedReader reader;
@@ -101,7 +101,7 @@ public class Solar {
     for (int i = 1; i < numMarkers; i++) {
       total += Double.valueOf(st.nextToken()).doubleValue();
       writer.println(ext.formStr(markerV.elementAt(i), 9, true) + " "
-                     + ext.formStr(ext.formDeci(total, 2, true), 6));
+          + ext.formStr(ext.formDeci(total, 2, true), 6));
     }
     reader.close();
     writer.close();
@@ -121,8 +121,8 @@ public class Solar {
       indID = st.nextToken();
       writer.print(famID + ",");
       writer.print(indID);
-      famtastic.println(famID + "," + indID + "," + st.nextToken() + "," + st.nextToken() + ","
-                        + st.nextToken());
+      famtastic.println(
+          famID + "," + indID + "," + st.nextToken() + "," + st.nextToken() + "," + st.nextToken());
       st.nextToken();
       do {
         writer.print("," + st.nextToken() + "/" + st.nextToken());
@@ -135,7 +135,7 @@ public class Solar {
 
     // hash = tools.pullTraitFromDB(trait);
     hash = HashVec.loadFileToHashString(trait, new int[] {0, 1}, new int[] {2}, trait.endsWith(","),
-                                        null, false, false, false);
+        null, false, false, false);
 
     reader = new BufferedReader(new FileReader("re_chrom" + ext.chrome(chr) + ".pre"));
     writer = new PrintWriter(new FileWriter("solar.ptypes"));
@@ -162,8 +162,8 @@ public class Solar {
     // System.exit(1);
 
     String usage = "\n" + "link.Solar requires 1-2 arguments\n"
-                   + "   (1) chromosome number (i.e. chr=2)\n" + "   (2) trait (i.e. trait=" + trait
-                   + " (default)\n" + "   (3) batch (i.e. batch=" + batch + " (default)\n" + "";
+        + "   (1) chromosome number (i.e. chr=2)\n" + "   (2) trait (i.e. trait=" + trait
+        + " (default)\n" + "   (3) batch (i.e. batch=" + batch + " (default)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -226,11 +226,11 @@ public class Solar {
 
     commands = "" + "mkdir chrom[%1]\n" +
     // "java "+classpath+" park.bat.createSolar chr=# trait="+trait+"\n"+
-               "cp solar.fam chrom[%1]\n" + "mv solar.map.[%0] chrom[%1]\n"
-               + "mv solar.freqs.[%0] chrom[%1]\n" + "mv solar.gtypes.[%0] chrom[%1]\n" + "cp "
-               + filename + " chrom[%1]\n" + "cd chrom[%1]\n"
-               + "echo -e \"load pedigree solar.fam\\nload freq solar.freqs.[%0]\\nload marker solar.gtypes.[%0]\\nibddir .\\nverbosity min\\nibd\\nload map solar.map.[%0]\\nibddir .\\nmibddir .\\nmibd 0 [%2] 1\\nmibddir .\\nautomodel solar.ptypes trait\\npolygenic -screen\\nmibddir .\\nchromosome [%0]\\ninterval 1\\nmultipoint -overwrite\\nquit\\n\" | /share/apps/bin/solar > solar.log\n"
-               + "cd ..\n" + "";
+        "cp solar.fam chrom[%1]\n" + "mv solar.map.[%0] chrom[%1]\n"
+        + "mv solar.freqs.[%0] chrom[%1]\n" + "mv solar.gtypes.[%0] chrom[%1]\n" + "cp " + filename
+        + " chrom[%1]\n" + "cd chrom[%1]\n"
+        + "echo -e \"load pedigree solar.fam\\nload freq solar.freqs.[%0]\\nload marker solar.gtypes.[%0]\\nibddir .\\nverbosity min\\nibd\\nload map solar.map.[%0]\\nibddir .\\nmibddir .\\nmibd 0 [%2] 1\\nmibddir .\\nautomodel solar.ptypes trait\\npolygenic -screen\\nmibddir .\\nchromosome [%0]\\ninterval 1\\nmultipoint -overwrite\\nquit\\n\" | /share/apps/bin/solar > solar.log\n"
+        + "cd ..\n" + "";
 
     iterations = new String[22][];
     for (int chr = 1; chr <= 22; chr++) {

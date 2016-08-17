@@ -147,9 +147,8 @@ public class CTable {
           output = output + "<tr><td align=\"center\">" + rowLabels[i][1] + "</td>";
         } else {
           output = output + "<td align=\"center\">" + contingencyTable[i][j]
-                   + (showRowProportions ? " (" + ext.formDeci(rowProportions[i][j], 3, true) + ")"
-                                         : "")
-                   + "</td>";
+              + (showRowProportions ? " (" + ext.formDeci(rowProportions[i][j], 3, true) + ")" : "")
+              + "</td>";
         }
       }
       output = output + "</tr>";
@@ -168,7 +167,7 @@ public class CTable {
   }
 
   public void setCustomLabelsAndOrder(String[][] customRowLabelsAndOrder,
-                                      String[][] customColumnLabelsAndOrder) {
+      String[][] customColumnLabelsAndOrder) {
     if (customRowLabelsAndOrder != null) {
       rowLabels = customRowLabelsAndOrder;
     }

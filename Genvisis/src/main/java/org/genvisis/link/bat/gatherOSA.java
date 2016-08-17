@@ -43,8 +43,8 @@ public class gatherOSA {
     done = false;
     while (!done) {
       try {
-        reader = new BufferedReader(new FileReader("chrom" + chrome + "/chrom" + chrome + "-a"
-                                                   + ext.formNum(increment, 4) + ".out"));
+        reader = new BufferedReader(new FileReader(
+            "chrom" + chrome + "/chrom" + chrome + "-a" + ext.formNum(increment, 4) + ".out"));
 
         if (chromosome < 23) {
           writer.print(increment);
@@ -96,8 +96,8 @@ public class gatherOSA {
     done = false;
     while (!done) {
       try {
-        reader = new BufferedReader(new FileReader("chrom" + chrome + "/chrom" + chrome + "-d"
-                                                   + ext.formNum(increment, 4) + ".out"));
+        reader = new BufferedReader(new FileReader(
+            "chrom" + chrome + "/chrom" + chrome + "-d" + ext.formNum(increment, 4) + ".out"));
 
         if (chromosome < 23) {
           writer.print(increment);

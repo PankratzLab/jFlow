@@ -26,13 +26,12 @@ public class GeneDensityInRegion {
     int sum;
     int[][] exonBoundaries;
 
-    geneSet = GeneSet.load(Aliases.getPathToFileInReferenceDirectory(GeneSet.REFSEQ_DB, true,
-                                                                     new Logger()),
-                           false);
+    geneSet = GeneSet.load(
+        Aliases.getPathToFileInReferenceDirectory(GeneSet.REFSEQ_DB, true, new Logger()), false);
     genes = geneSet.getSet();
     loc = Positions.parseUCSClocation(region);
     regionAsGene = new GeneData("", new String[0], (byte) loc[0], true, (byte) 0, loc[1], loc[2],
-                                new int[][] {}, (byte) 0, false);
+        new int[][] {}, (byte) 0, false);
     inRegion = new Vector<GeneData>();
     for (GeneData gene : genes) {
       if (gene.overlaps(regionAsGene)) {
@@ -45,8 +44,8 @@ public class GeneDensityInRegion {
       writer.println("Gene\tAssession #'s\tChr\tStart\tStop\tNumExons");
       for (GeneData gene : genes) {
         writer.println(gene.getGeneName() + "\t" + Array.toStr(gene.getNcbiAssessionNumbers(), "|")
-                       + "\t" + gene.getChr() + "\t" + gene.getStart() + "\t" + gene.getStop()
-                       + "\t" + gene.getExonBoundaries().length);
+            + "\t" + gene.getChr() + "\t" + gene.getStart() + "\t" + gene.getStop() + "\t"
+            + gene.getExonBoundaries().length);
       }
       writer.close();
     } catch (Exception e) {
@@ -69,7 +68,7 @@ public class GeneDensityInRegion {
         sum += segments.elementAt(i).getSize();
       }
       writer.println("Genes span: " + ext.prettyUpDistance(sum, 1) + " ("
-                     + (int) ((double) sum / (double) regionAsGene.getSize() * 100) + "%)");
+          + (int) ((double) sum / (double) regionAsGene.getSize() * 100) + "%)");
 
       segments = new Vector<Segment>();
       for (GeneData gene : genes) {
@@ -81,8 +80,8 @@ public class GeneDensityInRegion {
         sum += segments.elementAt(i).getSize();
       }
       writer.println("Including " + ext.prettyUpDistance(window, 0)
-                     + " up- and down-stream, the genes span: " + ext.prettyUpDistance(sum, 1)
-                     + " (" + (int) ((double) sum / (double) regionAsGene.getSize() * 100) + "%)");
+          + " up- and down-stream, the genes span: " + ext.prettyUpDistance(sum, 1) + " ("
+          + (int) ((double) sum / (double) regionAsGene.getSize() * 100) + "%)");
 
       segments = new Vector<Segment>();
       for (GeneData gene : genes) {
@@ -98,7 +97,7 @@ public class GeneDensityInRegion {
       }
       writer.println("Number of exons: " + segments.size());
       writer.println("Exons span: " + ext.prettyUpDistance(sum, 1) + " ("
-                     + (int) ((double) sum / (double) regionAsGene.getSize() * 100) + "%)");
+          + (int) ((double) sum / (double) regionAsGene.getSize() * 100) + "%)");
 
       for (GeneData gene : genes) {
         segments.add(new Segment(gene.getStart() - window, gene.getStart()));
@@ -110,9 +109,9 @@ public class GeneDensityInRegion {
         sum += segments.elementAt(i).getSize();
       }
       writer.println("Including " + ext.prettyUpDistance(window, 0)
-                     + " both 5' and 3', the total non-overlapping distance is: "
-                     + ext.prettyUpDistance(sum, 1) + " ("
-                     + (int) ((double) sum / (double) regionAsGene.getSize() * 100) + "%)");
+          + " both 5' and 3', the total non-overlapping distance is: "
+          + ext.prettyUpDistance(sum, 1) + " ("
+          + (int) ((double) sum / (double) regionAsGene.getSize() * 100) + "%)");
 
 
       writer.close();
@@ -132,8 +131,8 @@ public class GeneDensityInRegion {
     int window = 2000;
 
     String usage = "\n" + "bioinformatics.GeneDensityInRegion requires 0-1 arguments\n"
-                   + "   (1) region (i.e. region=" + region + " (default))\n"
-                   + "   (2) window in bases (i.e. win=" + window + " (default))\n" + "";
+        + "   (1) region (i.e. region=" + region + " (default))\n"
+        + "   (2) window in bases (i.e. win=" + window + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

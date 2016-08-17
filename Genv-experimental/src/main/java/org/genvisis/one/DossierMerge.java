@@ -30,7 +30,7 @@ public class DossierMerge {
 
     pmids =
         HashVec.loadFileToStringArray(dir + "personal bibliography with DOI from Endnote.utf8.txt",
-                                      false, false, new int[] {0, 1}, false, false, "\t");
+            false, false, new int[] {0, 1}, false, false, "\t");
 
     String filename = "citations" + ext.getTimestampForFilename() + ".dat";
     try {
@@ -42,7 +42,7 @@ public class DossierMerge {
         doi = line[1].equals("") ? null : line[1];
 
         System.out.println((i + 1) + " of " + pmids.length + "\tQuerying PubMed for PMID:" + pmid
-                           + "  doi:" + doi);
+            + "  doi:" + doi);
         try {
           Thread.sleep(1000);
         } catch (InterruptedException ie) {
@@ -55,7 +55,7 @@ public class DossierMerge {
         authors = new ArrayList<String>();
         try {
           for (int j = 0; (doi == null || title == null || authors.size() == 0)
-                          && j < results.length; j++) {
+              && j < results.length; j++) {
             if (doi == null && results[j].contains("doi: ")) {
               doi = results[j].substring(results[j].indexOf("doi: ") + 5);
               doi = doi.split("[\\s]+")[0];
@@ -74,7 +74,8 @@ public class DossierMerge {
               title = results[j].substring(results[j].indexOf("<title>") + 7);
               index = title.indexOf(".  - PubMed - NCBI");
               if (index == -1) {
-                System.out.println("Error - PubMed format appears to have changed, no longer getting title between <title> and '.  - PubMed - NCBI'");
+                System.out.println(
+                    "Error - PubMed format appears to have changed, no longer getting title between <title> and '.  - PubMed - NCBI'");
               } else {
                 title = title.substring(0, index);
               }
@@ -101,16 +102,16 @@ public class DossierMerge {
 
         if (doi == null) {
           System.out.println((i + 1) + " of " + pmids.length + "\tGetting Scopus result for " + pmid
-                             + " using PMID");
+              + " using PMID");
           results =
               Internat.getPage("http://api.elsevier.com/content/search/index:SCOPUS?query=PMID("
-                               + pmid + ")&apiKey=c7af0f4beab764ecf68568961c2a21ea");
+                  + pmid + ")&apiKey=c7af0f4beab764ecf68568961c2a21ea");
         } else {
           System.out.println((i + 1) + " of " + pmids.length + "\tGetting Scopus result for " + pmid
-                             + " using doi: " + doi);
+              + " using doi: " + doi);
           results =
               Internat.getPage("http://api.elsevier.com/content/search/index:SCOPUS?query=DOI("
-                               + doi + ")&apiKey=c7af0f4beab764ecf68568961c2a21ea");
+                  + doi + ")&apiKey=c7af0f4beab764ecf68568961c2a21ea");
         }
         // Files.writeList(results, dir+"scopus.out");
         //
@@ -142,24 +143,23 @@ public class DossierMerge {
         if (doi != null && !doi.equals("ults")) {
           // if you get black listed by Google, then just reverse the commenting of these two lines
           if (banned) {
-            results =
-                new String[] {"https://scholar.google.com/scholar?q=http%3A%2F%2Fdx.doi.org%2F"
-                              + doi};
+            results = new String[] {
+                "https://scholar.google.com/scholar?q=http%3A%2F%2Fdx.doi.org%2F" + doi};
           } else {
-            results =
-                Internat.getMash("https://scholar.google.com/scholar?q=http%3A%2F%2Fdx.doi.org%2F"
-                                 + doi, new Logger());
+            results = Internat.getMash(
+                "https://scholar.google.com/scholar?q=http%3A%2F%2Fdx.doi.org%2F" + doi,
+                new Logger());
           }
         } else {
           if (banned) {
             results = new String[] {"https://scholar.google.com/scholar?q=\""
-                                    + ext.replaceAllWith(title, " ", "+") + "\""};
+                + ext.replaceAllWith(title, " ", "+") + "\""};
           } else {
             System.out.println("Getting Google Scholar result for " + pmid
-                               + " at https://scholar.google.com/scholar?q=\""
-                               + ext.replaceAllWith(title, " ", "+") + "\"");
+                + " at https://scholar.google.com/scholar?q=\""
+                + ext.replaceAllWith(title, " ", "+") + "\"");
             results = Internat.getMash("https://scholar.google.com/scholar?q=\""
-                                       + ext.replaceAllWith(title, " ", "+") + "\"", new Logger());
+                + ext.replaceAllWith(title, " ", "+") + "\"", new Logger());
           }
         }
 
@@ -174,8 +174,9 @@ public class DossierMerge {
             indices = ext.indicesWithinString(">", numGS_results);
             numGS_results = numGS_results.substring(indices[indices.length - 1] + 1);
           } catch (Exception e) {
-            System.err.println("Error - failed to find the number of Google Scholar results from the query for "
-                               + pmid);
+            System.err.println(
+                "Error - failed to find the number of Google Scholar results from the query for "
+                    + pmid);
             e.printStackTrace();
           }
 
@@ -185,8 +186,9 @@ public class DossierMerge {
             googleScholarCitationCount =
                 googleScholarCitationCount.substring(0, googleScholarCitationCount.indexOf("</a>"));
           } catch (Exception e) {
-            System.err.println("Error - failed to find the number of Google Scholar results from the query for "
-                               + pmids[i]);
+            System.err.println(
+                "Error - failed to find the number of Google Scholar results from the query for "
+                    + pmids[i]);
             e.printStackTrace();
           }
         }
@@ -202,8 +204,8 @@ public class DossierMerge {
 
         // googleScholarCitationCount = numGS_results = "1";
         writer.println(pmid + "\t" + scopusCitationCount + "\t" + googleScholarCitationCount + "\t"
-                       + (numGS_results.equals("1") ? "TRUE" : "FALSE (" + numGS_results + ")")
-                       + "\t" + doi + "\t" + title);
+            + (numGS_results.equals("1") ? "TRUE" : "FALSE (" + numGS_results + ")") + "\t" + doi
+            + "\t" + title);
         writer.flush();
       }
       writer.close();
@@ -222,9 +224,8 @@ public class DossierMerge {
     boolean banned = true;
 
     String usage = "\n" + "one.AuthorCorral requires 2+ arguments\n"
-                   + "   (1) working directory (i.e. dir=" + dir + " (default))\n" + ""
-                   + "   (2) output in RTF format (used for superscripts) (i.e. rtf=" + rtf
-                   + " (default))\n";
+        + "   (1) working directory (i.e. dir=" + dir + " (default))\n" + ""
+        + "   (2) output in RTF format (used for superscripts) (i.e. rtf=" + rtf + " (default))\n";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -270,30 +271,27 @@ public class DossierMerge {
     int count;
 
     writer = new RealTextFormatWriter(dir + "formattedDossier" + (rtfOutput ? ".rtf" : ".out"),
-                                      rtfOutput);
+        rtfOutput);
     log = new Logger(dir + "formattedDossier.log");
 
     // citationHash = HashVec.loadFileToHashString(dir+"pubmed_result.utf8.csv", new int[] {9}, new
     // int[] {2, 0, 3}, true, "\t", true, false, false);
     citationHash =
         HashVec.loadFileToHashString(dir + "personal bibliography with DOI from Endnote.utf8.txt",
-                                     new int[] {0}, new int[] {2, 3, 4}, false, "\t", true, false,
-                                     false);
-    abbreviationsHash =
-        HashVec.loadFileToHashString(dir + "Abbreviations.txt", new int[] {0}, new int[] {1}, false,
-                                     null, false, false, false);
+            new int[] {0}, new int[] {2, 3, 4}, false, "\t", true, false, false);
+    abbreviationsHash = HashVec.loadFileToHashString(dir + "Abbreviations.txt", new int[] {0},
+        new int[] {1}, false, null, false, false, false);
 
     impactHash = HashVec.loadFileToHashString(dir + "impactFactors.dat", new int[] {0},
-                                              new int[] {2, 1}, false, " in ", false, false, false);
-    timesCitedHash =
-        HashVec.loadFileToHashString(dir + "citations.dat", new int[] {0}, new int[] {1, 2}, false,
-                                     "\t", false, false, false);
+        new int[] {2, 1}, false, " in ", false, false, false);
+    timesCitedHash = HashVec.loadFileToHashString(dir + "citations.dat", new int[] {0},
+        new int[] {1, 2}, false, "\t", false, false, false);
     rolesHash = HashVec.loadFileToHashString(dir + "roles.dat", new int[] {0}, new int[] {1}, false,
-                                             null, false, false, false);
+        null, false, false, false);
 
 
-    authorsToBoldHash = HashVec.loadToHashSet(HashVec.loadFileToStringArray(dir + "wordsToBold.dat",
-                                                                            false, null, false));
+    authorsToBoldHash = HashVec
+        .loadToHashSet(HashVec.loadFileToStringArray(dir + "wordsToBold.dat", false, null, false));
     jointFirstAuthorsHash = HashVec.loadFileToHashSet(dir + "jointFirstAuthors.dat", false);
 
     new File(dir + "journalsInDatabase.xln").delete();
@@ -329,18 +327,18 @@ public class DossierMerge {
 
         if (bits[2].contains(" doi:")) {
           bits[2] = bits[2].substring(0, bits[2].indexOf(" doi:"))
-                    + (bits[2].contains("[Epub ahead of print]") ? " [Epub ahead of print]" : "");
+              + (bits[2].contains("[Epub ahead of print]") ? " [Epub ahead of print]" : "");
         }
 
         journal = bits[2].substring(0, bits[2].indexOf("."));
         if (abbreviationsHash.containsKey(journal)) {
           ext.appendToFile(journal + "\t" + abbreviationsHash.get(journal),
-                           dir + "journalsInDatabase.xln");
+              dir + "journalsInDatabase.xln");
           journal = abbreviationsHash.get(journal);
         } else if (!abbreviationsHash.contains(journal)) {
           ext.appendToFile(journal + "\t.", dir + "journalsInDaabase.xln");
           log.reportError("Error journal '" + journal
-                          + "' was not found as an abbreviation or as a full journal name");
+              + "' was not found as an abbreviation or as a full journal name");
         }
         bits[2] = "<u>" + journal + "</>" + bits[2].substring(bits[2].indexOf("."));
 
@@ -351,18 +349,18 @@ public class DossierMerge {
         }
 
         if (impactFactor != null) {
-          writer.println((rtfOutput ? "\\bullet \\tab " : "\t") + "Journal Impact Factor: "
-                         + impactFactor);
+          writer.println(
+              (rtfOutput ? "\\bullet \\tab " : "\t") + "Journal Impact Factor: " + impactFactor);
         } else {
-          writer.println((rtfOutput ? "\\bullet \\tab " : "\t")
-                         + "Journal Impact Factor: Not available");
+          writer.println(
+              (rtfOutput ? "\\bullet \\tab " : "\t") + "Journal Impact Factor: Not available");
           log.reportError("Error - no impact factor available for " + pmid + " (" + citation + ")");
         }
 
         if (timesCited != null) {
           line = timesCited.split("[\\s]+");
           writer.println((rtfOutput ? "\\bullet \\tab " : "\t") + "Times Cited: " + line[0]
-                         + " (Scopus) / " + line[1] + " (Google Scholar)");
+              + " (Scopus) / " + line[1] + " (Google Scholar)");
         } else {
           writer.println((rtfOutput ? "\\bullet \\tab " : "\t") + "Times Cited: Not available");
           log.reportError("Error - no times cited available for " + pmid + " (" + citation + ")");

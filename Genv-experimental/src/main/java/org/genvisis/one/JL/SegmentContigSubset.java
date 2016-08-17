@@ -21,7 +21,7 @@ public class SegmentContigSubset {
     String usage = "\n" + "one.JL.SegmentSubSet requires 0-1 arguments\n";
     usage += "   (1) a file of segments to subset (i.e. segs=" + segFile + " (default))\n" + "";
     usage += "   (2) a comma delimited list of contigs (i.e. contigs=" + Array.toStr(contigs, ",")
-             + " (default))\n" + "";
+        + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -43,8 +43,9 @@ public class Filter {
           for (int j = 0; j < recodeElements.length; j++) {
             recodeIndex = recodeElements[j].indexOf("->");
             if (recodeIndex == -1) {
-              throw new Elision("Recode needs to be split up by a \"->\"  as in NA->0 (currently listed as "
-                                + recodeElements[j] + ")");
+              throw new Elision(
+                  "Recode needs to be split up by a \"->\"  as in NA->0 (currently listed as "
+                      + recodeElements[j] + ")");
             }
             recodes[i][j][0] = recodeElements[j].substring(0, recodeIndex);
             recodes[i][j][1] = recodeElements[j].substring(recodeIndex + 2);
@@ -61,20 +62,20 @@ public class Filter {
         }
         if (operator == -1) {
           throw new Elision("Element '" + elements[i] + "' does not contain a valid operator ( "
-                            + ext.listWithCommas(OPERATORS, true) + " )");
+              + ext.listWithCommas(OPERATORS, true) + " )");
         }
 
         variableNames[i] = elements[i].substring(0, elements[i].indexOf(OPERATORS[operator]));
         operators[i] = OPERATORS[operator];
-        thresholds[i] = elements[i].substring(elements[i].indexOf(OPERATORS[operator])
-                                              + OPERATORS[operator].length());
+        thresholds[i] = elements[i]
+            .substring(elements[i].indexOf(OPERATORS[operator]) + OPERATORS[operator].length());
         try {
           dThresholds[i] = Double.parseDouble(thresholds[i]);
         } catch (NumberFormatException nfe) {
           if (ext.indexOfStr(operators[i], OPERATORS) < 4) {
-            throw new Elision("Threshold " + thresholds[i]
-                              + " is not a valid number and cannot be used with " + operators[i]
-                              + " as listed in " + filter);
+            throw new Elision(
+                "Threshold " + thresholds[i] + " is not a valid number and cannot be used with "
+                    + operators[i] + " as listed in " + filter);
           }
           dThresholds[i] = Double.MAX_VALUE;
         }
@@ -103,9 +104,8 @@ public class Filter {
 
     str = "";
     for (int i = 0; i < variableNames.length; i++) {
-      str += (i == 0 ? "" : " ")
-             + (line[variableIndices[i]].length() > 5 ? line[variableIndices[i]].substring(0, 5)
-                                                      : line[variableIndices[i]]);
+      str += (i == 0 ? "" : " ") + (line[variableIndices[i]].length() > 5
+          ? line[variableIndices[i]].substring(0, 5) : line[variableIndices[i]]);
     }
 
     return str;
@@ -116,9 +116,8 @@ public class Filter {
 
     str = "";
     for (int i = 0; i < variableNames.length; i++) {
-      str += (i == 0 ? "" : ", ")
-             + (line[variableIndices[i]].length() > 5 ? line[variableIndices[i]].substring(0, 5)
-                                                      : line[variableIndices[i]]);
+      str += (i == 0 ? "" : ", ") + (line[variableIndices[i]].length() > 5
+          ? line[variableIndices[i]].substring(0, 5) : line[variableIndices[i]]);
     }
 
     if (line != null) {
@@ -145,7 +144,8 @@ public class Filter {
             meetsAllCriteria = false;
           }
         } else {
-          log.reportError("This error should not be able to be reached if caught in the constructor");
+          log.reportError(
+              "This error should not be able to be reached if caught in the constructor");
         }
       } else {
         value = Double.MAX_VALUE;
@@ -156,8 +156,8 @@ public class Filter {
         }
         if (ext.isMissingValue(line[variableIndices[i]]) && value == Double.MAX_VALUE) {
           log.reportError("Error - a missing value (" + line[variableIndices[i]] + ") in column "
-                          + (variableIndices[i] + 1)
-                          + " was not properly recoded; could cause a filter to malfunction");
+              + (variableIndices[i] + 1)
+              + " was not properly recoded; could cause a filter to malfunction");
           return false;
         }
 
@@ -196,7 +196,8 @@ public class Filter {
             meetsAllCriteria = false;
           }
         } else {
-          log.reportError("This error should not be able to be reached if caught in the constructor");
+          log.reportError(
+              "This error should not be able to be reached if caught in the constructor");
         }
       }
     }

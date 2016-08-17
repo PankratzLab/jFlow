@@ -17,7 +17,7 @@ public class Bootstrap {
     String filename = "Survival_Rep1-ALL_VPD.500K_summary.out";
 
     String usage = "\n" + "park.Bootstrap requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-                   + filename + " (default)\n" + "";
+        + filename + " (default)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -60,7 +60,8 @@ public class Bootstrap {
         column = Integer.parseInt(line[0]);
         reps = Integer.parseInt(line[1]);
       } catch (Exception e) {
-        System.err.println("Error - first line of file must contain exactly two integers: column to bootstrap and number of replicates");
+        System.err.println(
+            "Error - first line of file must contain exactly two integers: column to bootstrap and number of replicates");
         System.exit(1);
       }
       while (reader.ready()) {
@@ -82,14 +83,14 @@ public class Bootstrap {
       }
       mean = Array.mean(array);
       System.out.println("mean: " + mean + " (chi-square, 1 df p-value: "
-                         + ext.formDeci(ProbDist.ChiDist(mean, 1), 4, true) + ")");
+          + ext.formDeci(ProbDist.ChiDist(mean, 1), 4, true) + ")");
       bs = Array.bootstrap(array, reps, true);
       System.out.println("bootstrapped mean (95% CI):\t" + ext.formDeci(bs[0], 4, true) + " ("
-                         + ext.formDeci(bs[1], 4, true) + "," + ext.formDeci(bs[2], 4, true) + ")");
+          + ext.formDeci(bs[1], 4, true) + "," + ext.formDeci(bs[2], 4, true) + ")");
       System.out.println("corresponding chi-square, 1 df p-values:\t"
-                         + ext.formDeci(ProbDist.ChiDist(bs[0], 1), 4, true) + " ("
-                         + ext.formDeci(ProbDist.ChiDist(bs[1], 1), 4, true) + ","
-                         + ext.formDeci(ProbDist.ChiDist(bs[2], 1), 4, true) + ")");
+          + ext.formDeci(ProbDist.ChiDist(bs[0], 1), 4, true) + " ("
+          + ext.formDeci(ProbDist.ChiDist(bs[1], 1), 4, true) + ","
+          + ext.formDeci(ProbDist.ChiDist(bs[2], 1), 4, true) + ")");
       reader.close();
 
       writer = new PrintWriter(new FileWriter(filename + "-bootsrapped.out"));
@@ -98,11 +99,11 @@ public class Bootstrap {
       writer.println();
       writer.println("mean: " + Array.mean(array));
       writer.println("bootstrapped mean (95% CI):\t" + ext.formDeci(bs[0], 4, true) + " ("
-                     + ext.formDeci(bs[1], 4, true) + "," + ext.formDeci(bs[2], 4, true) + ")");
+          + ext.formDeci(bs[1], 4, true) + "," + ext.formDeci(bs[2], 4, true) + ")");
       writer.println("corresponding chi-square, 1 df p-values:\t"
-                     + ext.formDeci(ProbDist.ChiDist(bs[0], 1), 4, true) + " ("
-                     + ext.formDeci(ProbDist.ChiDist(bs[1], 1), 4, true) + ","
-                     + ext.formDeci(ProbDist.ChiDist(bs[2], 1), 4, true) + ")");
+          + ext.formDeci(ProbDist.ChiDist(bs[0], 1), 4, true) + " ("
+          + ext.formDeci(ProbDist.ChiDist(bs[1], 1), 4, true) + ","
+          + ext.formDeci(ProbDist.ChiDist(bs[2], 1), 4, true) + ")");
       writer.close();
     } catch (FileNotFoundException fnfe) {
       System.err.println("Error: file \"" + filename + "\" not found in current directory");

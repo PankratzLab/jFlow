@@ -27,10 +27,10 @@ public class DumpSAS {
   public static final String DEFAULT_SAS_EXECUTABLE = "sas";
   public static final String[] CONTENTS_HEADER =
       {"LIBNAME", "MEMNAME", "MEMLABEL", "TYPEMEM", "NAME", "TYPE", "LENGTH", "VARNUM", "LABEL",
-       "FORMAT", "FORMATL", "FORMATD", "INFORMAT", "INFORML", "INFORMD", "JUST", "NPOS", "NOBS",
-       "ENGINE", "CRDATE", "MODATE", "DELOBS", "IDXUSAGE", "MEMTYPE", "IDXCOUNT", "PROTECT",
-       "FLAGS", "COMPRESS", "REUSE", "SORTED", "SORTEDBY", "CHARSET", "COLLATE", "NODUPKEY",
-       "NODUPREC", "ENCRYPT", "POINTOBS", "GENMAX", "GENNUM", "GENNEXT"};
+          "FORMAT", "FORMATL", "FORMATD", "INFORMAT", "INFORML", "INFORMD", "JUST", "NPOS", "NOBS",
+          "ENGINE", "CRDATE", "MODATE", "DELOBS", "IDXUSAGE", "MEMTYPE", "IDXCOUNT", "PROTECT",
+          "FLAGS", "COMPRESS", "REUSE", "SORTED", "SORTEDBY", "CHARSET", "COLLATE", "NODUPKEY",
+          "NODUPREC", "ENCRYPT", "POINTOBS", "GENMAX", "GENNUM", "GENNEXT"};
   public static final String[] ALL_CONTENTS_HEADER =
       {"MEMNAME", "NAME", "LABEL", "TYPE", "LENGTH", "VARNUM"};
 
@@ -56,11 +56,11 @@ public class DumpSAS {
           reader.close();
         } catch (FileNotFoundException fnfe) {
           System.err.println("Error: file \"" + dir + element[1] + "all_contents.xln"
-                             + "\" not found in current directory");
+              + "\" not found in current directory");
           System.exit(1);
         } catch (IOException ioe) {
-          System.err.println("Error reading file \"" + dir + element[1] + "all_contents.xln"
-                             + "\"");
+          System.err
+              .println("Error reading file \"" + dir + element[1] + "all_contents.xln" + "\"");
           System.exit(2);
         }
       }
@@ -96,7 +96,7 @@ public class DumpSAS {
           new File(file).renameTo(new File(file.toLowerCase()));
         }
         writer.println("DATA " + ext.rootOf(file) + "; SET a." + ext.rootOf(file)
-                       + (password != null ? " (pw=\"" + password + "\")" : "") + "; RUN;");
+            + (password != null ? " (pw=\"" + password + "\")" : "") + "; RUN;");
 
         writer.println("PROC EXPORT DATA=" + ext.rootOf(file));
         writer.println("OUTFILE=\"" + ext.rootOf(file) + ".xln\"");
@@ -150,11 +150,10 @@ public class DumpSAS {
     String password = null;
 
     String usage = "\n" + "db.DumpSAS requires 0-1 arguments\n"
-                   + "   (1) directory containing .sas7bdat files to dump (i.e. dir=" + dir
-                   + " (default))\n" + "   (2) path to SAS executable (i.e. executable="
-                   + sasExecutable + " (default))\n"
-                   + "   (3) (optional) password, if one is required for datasets (i.e. password=whatever (not the default))\n"
-                   + "";
+        + "   (1) directory containing .sas7bdat files to dump (i.e. dir=" + dir + " (default))\n"
+        + "   (2) path to SAS executable (i.e. executable=" + sasExecutable + " (default))\n"
+        + "   (3) (optional) password, if one is required for datasets (i.e. password=whatever (not the default))\n"
+        + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -218,12 +217,13 @@ public class DumpSAS {
     String rootDir, idName;
 
     params = Files.parseControlFile(filename, "sas",
-                                    new String[] {"ID CARDIA_ID otherPossibleNamesForTheSameID ids=id_superset.dat crf=parse.crf out=output.xln rootDir=N:/cardia/phenotypes/",
-                                                  "#SUBDIRECTORY (blank tab if all in root directory)\tFILENAME\tVARIABLE\tVARIABLE DESCRIPTION(optional)\tForce_which_ID_to_use(optional)",
-                                                  "Y15\tF1F05\tF05CTB1B\t10ML LAVENDER TB, 2ML PLASMA-ISOPROS\tCARDIA_ID",
-                                                  "Y15\tF1ISOP\tFLFISOP\tISOPROSTANE PG/ML",
-                                                  "Y20_CORE\tG3F05\tG05YTB1A\tRED STRIPE LABEL, 10ML LAVENDER TB, 1.6ML PLASMA-ISOPROSTANE"},
-                                    log);
+        new String[] {
+            "ID CARDIA_ID otherPossibleNamesForTheSameID ids=id_superset.dat crf=parse.crf out=output.xln rootDir=N:/cardia/phenotypes/",
+            "#SUBDIRECTORY (blank tab if all in root directory)\tFILENAME\tVARIABLE\tVARIABLE DESCRIPTION(optional)\tForce_which_ID_to_use(optional)",
+            "Y15\tF1F05\tF05CTB1B\t10ML LAVENDER TB, 2ML PLASMA-ISOPROS\tCARDIA_ID",
+            "Y15\tF1ISOP\tFLFISOP\tISOPROSTANE PG/ML",
+            "Y20_CORE\tG3F05\tG05YTB1A\tRED STRIPE LABEL, 10ML LAVENDER TB, 1.6ML PLASMA-ISOPROSTANE"},
+        log);
     if (params != null) {
       line = params.remove(0).trim().split("[\\s]+");
       crffile = ext.rootOf(filename) + "_parse.crf";
@@ -255,8 +255,8 @@ public class DumpSAS {
         }
         line[0] = ext.verifyDirFormat(line[0]);
         if (!new File(rootDir + line[0]).exists() || !new File(rootDir + line[0]).isDirectory()) {
-          log.reportError("Error - could not find subdirectory '" + line[0] + "' within '" + rootDir
-                          + "'");
+          log.reportError(
+              "Error - could not find subdirectory '" + line[0] + "' within '" + rootDir + "'");
           error = true;
         }
         file = line[0] + line[1] + ".xln";
@@ -264,7 +264,7 @@ public class DumpSAS {
           file = line[0] + "dump/" + line[1] + ".xln";
           if (!new File(rootDir + file).exists()) {
             log.reportError("Error - could not find file '" + line[1] + ".xln" + "' in '" + rootDir
-                            + line[0] + "' or '" + rootDir + line[0] + "dump/'");
+                + line[0] + "' or '" + rootDir + line[0] + "dump/'");
             error = true;
           }
         }
@@ -287,14 +287,14 @@ public class DumpSAS {
             idName = forcedIDs.get(file);
             writer.print(" '" + idName + "'");
             if (idName.equals("")) {
-              log.reportError("Error - ID was set to an empty TAB, there must be an extra or a trailing tab for file '"
-                              + file + "'");
+              log.reportError(
+                  "Error - ID was set to an empty TAB, there must be an extra or a trailing tab for file '"
+                      + file + "'");
               error = true;
             } else if (ext.indexOfStr(idName, header) == -1) {
               log.reportError("\nError - Since there were more than 4 columns for file '" + file
-                              + "', the algorithm assumes that you are specifying a specific ID to use (in this case '"
-                              + idName
-                              + "'). However, there was no such column header in the file.");
+                  + "', the algorithm assumes that you are specifying a specific ID to use (in this case '"
+                  + idName + "'). However, there was no such column header in the file.");
               error = true;
             }
             indices = ext.indexFactors(Array.toStringArray(ids), header, false, log, false, false);
@@ -306,12 +306,11 @@ public class DumpSAS {
                 writer.print(" '" + ids.elementAt(j) + "'");
                 if (foundAnID) {
                   log.reportError("More than one \"valid\" ID available for file '" + file
-                                  + "'; the first will be used and the remainder flagged to be reported");
+                      + "'; the first will be used and the remainder flagged to be reported");
                 } else {
                   foundAnID = true;
                   keys = Array.toStringArray(HashVec.loadFileToVec(rootDir + file, true,
-                                                                   new int[] {indices[j]}, false,
-                                                                   false, false, "\t"));
+                      new int[] {indices[j]}, false, false, false, "\t"));
                   for (String key : keys) {
                     masterIDs.put(key, "");
                   }
@@ -319,8 +318,8 @@ public class DumpSAS {
               }
             }
             if (!foundAnID) {
-              log.reportError("Error - could not find a valid ID to match on within '" + file
-                              + "'");
+              log.reportError(
+                  "Error - could not find a valid ID to match on within '" + file + "'");
               error = true;
             }
           }
@@ -330,11 +329,9 @@ public class DumpSAS {
           keys = HashVec.getKeys(hash);
           indices = Sort.putInOrder(ext.indexFactors(keys, header, false, false));
           for (int indice : indices) {
-            writer.print(" '" + header[indice] + "'=" + header[indice]
-                         + (hash.get(header[indice]).equals("") ? ""
-                                                                : "_"
-                                                                  + ext.replaceAllWith(hash.get(header[indice]),
-                                                                                       " ", "_")));
+            writer.print(
+                " '" + header[indice] + "'=" + header[indice] + (hash.get(header[indice]).equals("")
+                    ? "" : "_" + ext.replaceAllWith(hash.get(header[indice]), " ", "_")));
           }
           writer.println();
         }
@@ -342,7 +339,7 @@ public class DumpSAS {
         Files.writeList(HashVec.getKeys(masterIDs, true, false), idfile);
         if (error) {
           log.reportError("\nFailed to generate all bits of " + crffile
-                          + "; the hits algorithm was not attempted");
+              + "; the hits algorithm was not attempted");
           return;
         }
         LookupTable.fromParameters(crffile, new Logger(ext.rootOf(crffile) + ".log"));
@@ -378,9 +375,9 @@ public class DumpSAS {
           hash = new Hashtable<String, String>();
           while (reader.ready()) {
             line = ext.removeQuotesFromExcelToken(reader.readLine(), new String[][] {{"\t", ""}})
-                      .split("\t", -1);
+                .split("\t", -1);
             hash.put(line[7], line[1] + "\t" + line[4] + "\t" + line[8] + "\t" + line[5] + "\t"
-                              + line[6] + "\t" + line[7]);
+                + line[6] + "\t" + line[7]);
           }
           reader.close();
           for (int j = 1; j <= hash.size(); j++) {
@@ -421,7 +418,7 @@ public class DumpSAS {
     log = new Logger(dir + ext.rootOf(filename) + ".log");
     hash = HashVec.loadFileToHashVec(dir + filename, 0, new int[] {1}, "\t", false, false);
     descriptions = HashVec.loadFileToHashString(dir + filename, new int[] {0, 1}, new int[] {2},
-                                                false, "\t", false, false, false);
+        false, "\t", false, false, false);
     dbs = HashVec.getKeys(hash);
     cells = new Hashtable<String, int[]>();
     validBlackFemales = new Hashtable<String, String>();
@@ -450,16 +447,16 @@ public class DumpSAS {
           try {
             reader = new BufferedReader(new FileReader(dir + db.toLowerCase() + ".xln"));
             if (Files.exists(dir + db.substring(0, db.indexOf("_")) + "_Whites" + ".fam", false)) {
-              typedWhites =
-                  HashVec.loadFileToHashString(dir + db.substring(0, db.indexOf("_")) + "_Whites"
-                                               + ".fam", 1, new int[] {4}, "\t", false);
+              typedWhites = HashVec.loadFileToHashString(
+                  dir + db.substring(0, db.indexOf("_")) + "_Whites" + ".fam", 1, new int[] {4},
+                  "\t", false);
             } else {
               typedWhites = new Hashtable<String, String>();
             }
             if (Files.exists(dir + db.substring(0, db.indexOf("_")) + "_Blacks" + ".fam", false)) {
-              typedBlacks =
-                  HashVec.loadFileToHashString(dir + db.substring(0, db.indexOf("_")) + "_Blacks"
-                                               + ".fam", 1, new int[] {4}, "\t", false);
+              typedBlacks = HashVec.loadFileToHashString(
+                  dir + db.substring(0, db.indexOf("_")) + "_Blacks" + ".fam", 1, new int[] {4},
+                  "\t", false);
             } else {
               typedBlacks = new Hashtable<String, String>();
             }
@@ -478,8 +475,8 @@ public class DumpSAS {
                     } else if (typedWhites.get(line[0]).equals("1")) {
                       validWhiteMales.put(line[0], "");
                     } else {
-                      System.err.println(line[0] + "\t" + typedWhites.get(line[0]) + "\t" + db
-                                         + "\twhite");
+                      System.err.println(
+                          line[0] + "\t" + typedWhites.get(line[0]) + "\t" + db + "\twhite");
                       ch.add(typedWhites.get(line[0]) + "\t" + db + "\twhite");
                     }
                   }
@@ -490,8 +487,8 @@ public class DumpSAS {
                     } else if (typedBlacks.get(line[0]).equals("1")) {
                       validBlackMales.put(line[0], "");
                     } else {
-                      System.err.println(line[0] + "\t" + typedBlacks.get(line[0]) + "\t" + db
-                                         + "\tblack");
+                      System.err.println(
+                          line[0] + "\t" + typedBlacks.get(line[0]) + "\t" + db + "\tblack");
                       ch.add(typedWhites.get(line[0]) + "\t" + db + "\tblack");
                     }
                   }
@@ -516,14 +513,14 @@ public class DumpSAS {
 
             for (int j = 1; j < indices.length; j++) {
               cellCounts = new int[] {counts[0][0], counts[0][1], counts[0][2], counts[j][0],
-                                      counts[j][1], counts[j][2]};
+                  counts[j][1], counts[j][2]};
               cells.put(db + "\t" + v.elementAt(j), cellCounts);
             }
 
             reader.close();
           } catch (FileNotFoundException fnfe) {
-            System.err.println("Error: file \"" + dir + db + ".xln"
-                               + "\" not found in current directory");
+            System.err.println(
+                "Error: file \"" + dir + db + ".xln" + "\" not found in current directory");
             System.exit(1);
           } catch (IOException ioe) {
             System.err.println("Error reading file \"" + dir + db + ".xln" + "\"");
@@ -556,9 +553,9 @@ public class DumpSAS {
     try {
       writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename) + "_tables.xln"));
       tableOrder = HashVec.loadFileToHashVec(dir + tableFormat, new int[] {0}, new int[] {1, 2},
-                                             "\t", false, false);
+          "\t", false, false);
       descriptions = HashVec.loadFileToHashString(dir + tableFormat, new int[] {1, 2},
-                                                  new int[] {3}, false, "\t", false, false, false);
+          new int[] {3}, false, "\t", false, false, false);
       keys = HashVec.getKeys(tableOrder);
       for (String key : keys) {
         v = tableOrder.get(key);

@@ -72,16 +72,15 @@ public class VariantFilterSample {
     }
   }
   public enum FILTER_METHOD {
-                             /**
-                              * Samples that do not pass the filters will be removed from the final
-                              * {@link VariantContext}
-                              */
-                             REMOVE_FROM_CONTEXT,
-                             /**
-                              * Samples that do not pass the filters will be set to missing in the
-                              * final {@link VariantContext}
-                              */
-                             SET_TO_MISSING;
+    /**
+     * Samples that do not pass the filters will be removed from the final {@link VariantContext}
+     */
+    REMOVE_FROM_CONTEXT,
+    /**
+     * Samples that do not pass the filters will be set to missing in the final
+     * {@link VariantContext}
+     */
+    SET_TO_MISSING;
   }
   public static class VariantFilterSamplePass {
     private VariantContext passingContext;
@@ -193,14 +192,14 @@ public class VariantFilterSample {
         }
       }
       if (samplesTested != vc.getSampleNames().size()) {
-        throw new IllegalStateException("Not all samples passed through the filters, internal error ,tested "
-                                        + samplesTested + " and should have tested "
-                                        + vc.getSampleNames().size());
+        throw new IllegalStateException(
+            "Not all samples passed through the filters, internal error ,tested " + samplesTested
+                + " and should have tested " + vc.getSampleNames().size());
       }
       switch (method) {
         case REMOVE_FROM_CONTEXT:// keep passing only
-          vcPass.setPassingContext(VCOps.getSubset(vc, passingSamples, VC_SUBSET_TYPE.SUBSET_STRICT,
-                                                   false));
+          vcPass.setPassingContext(
+              VCOps.getSubset(vc, passingSamples, VC_SUBSET_TYPE.SUBSET_STRICT, false));
           break;
         case SET_TO_MISSING:// set non passing to missing
           vcPass.setPassingContext(VCOps.setTheseSamplesToMissing(vc, samplesToSetMissing));
@@ -212,8 +211,8 @@ public class VariantFilterSample {
     } else {
       switch (method) {
         case REMOVE_FROM_CONTEXT:// remove all
-          vcPass.setPassingContext(VCOps.getSubset(vc, new HashSet<String>(),
-                                                   VC_SUBSET_TYPE.SUBSET_STRICT, false));
+          vcPass.setPassingContext(
+              VCOps.getSubset(vc, new HashSet<String>(), VC_SUBSET_TYPE.SUBSET_STRICT, false));
           break;
         case SET_TO_MISSING:// set all to missing
           samplesToSetMissing.addAll(samples);

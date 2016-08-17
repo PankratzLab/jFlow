@@ -38,7 +38,7 @@ public class ProblemGenes {
     String usage = "\n" + "one.JL.ProblemGenes requires 0-1 arguments\n";
     usage += "   (1) project filename (i.e. proj=" + filename + " (default))\n" + "";
     usage += "   (2) gene patters to remove, comma delimited (i.e. remove="
-             + Array.toStr(startWithPatters, ",") + " (default))\n" + "";
+        + Array.toStr(startWithPatters, ",") + " (default))\n" + "";
     usage +=
         "   (3) gene patters to remove, comma delimited (i.e. out=" + output + " (default))\n" + "";
 

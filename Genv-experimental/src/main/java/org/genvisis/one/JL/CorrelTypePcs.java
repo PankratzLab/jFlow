@@ -46,11 +46,15 @@ public class CorrelTypePcs {
 
     ArrayList<String> pcFilesAll = new ArrayList<String>();
     Project proj = new Project("/home/pankrat2/lanej/projects/aric_exome.properties", false);
-    pcFilesAll.add("/home/pankrat2/shared/aric_exome_chip/aric_exomeALL_1000PCs_OHW_40_ws15_recomp_gc_corrected.PCs.extrapolated.txt");
-    pcFilesAll.add("/home/pankrat2/shared/aric_exome_chip/gc_corrected/aric_exomeALL_1000PCs_OHW_40_ws15_gc_corrected.PCs.extrapolated.txt");
+    pcFilesAll.add(
+        "/home/pankrat2/shared/aric_exome_chip/aric_exomeALL_1000PCs_OHW_40_ws15_recomp_gc_corrected.PCs.extrapolated.txt");
+    pcFilesAll.add(
+        "/home/pankrat2/shared/aric_exome_chip/gc_corrected/aric_exomeALL_1000PCs_OHW_40_ws15_gc_corrected.PCs.extrapolated.txt");
     ArrayList<String> pcFilesW = new ArrayList<String>();
-    pcFilesW.add("/home/pankrat2/shared/aric_exome_chip/aric_exomeW_1000PCs_OHW_40_ws15_recomp_gc_corrected.PCs.extrapolated.txt");
-    pcFilesW.add("/home/pankrat2/shared/aric_exome_chip/gc_corrected/aric_exomeW_1000PCs_OHW_40_ws15_gc_corrected.PCs.extrapolated.txt");
+    pcFilesW.add(
+        "/home/pankrat2/shared/aric_exome_chip/aric_exomeW_1000PCs_OHW_40_ws15_recomp_gc_corrected.PCs.extrapolated.txt");
+    pcFilesW.add(
+        "/home/pankrat2/shared/aric_exome_chip/gc_corrected/aric_exomeW_1000PCs_OHW_40_ws15_gc_corrected.PCs.extrapolated.txt");
 
     try {
       run(proj, Array.toStringArray(pcFilesAll));
@@ -66,7 +70,7 @@ public class CorrelTypePcs {
   private static void run(Project proj, String[] fullPathPcFile) throws FileNotFoundException {
     Logger log = new Logger();
     String outDir = proj.PROJECT_DIRECTORY.getValue() + "comparePCMethods/"
-                    + ext.rootOf(fullPathPcFile[0]) + "/";
+        + ext.rootOf(fullPathPcFile[0]) + "/";
     new File(outDir).mkdirs();
     if (fullPathPcFile.length != 2) {
       proj.getLog().reportTimeError("Must be two pc files only");
@@ -119,18 +123,19 @@ public class CorrelTypePcs {
                 parserComp.determineIndicesFromTitles();
                 parserComp.loadData();
                 int min = Math.min(parser.getNumericDataTitles().length,
-                                   parserComp.getNumericDataTitles().length);
+                    parserComp.getNumericDataTitles().length);
                 for (int pcIndex = 0; pcIndex < min; pcIndex++) {
                   ArrayList<String> outData = new ArrayList<String>();
                   outData.add(fullPathPcFile[pcFile1Index]);
                   outData.add(fullPathPcFile[pcFile2Index]);
                   outData.add(ext.rootOf(gzipper));
                   outData.add("TRUE");
-                  if (parser.getNumericDataTitles()[pcIndex].equals(parserComp.getNumericDataTitles()[pcIndex])) {
+                  if (parser.getNumericDataTitles()[pcIndex]
+                      .equals(parserComp.getNumericDataTitles()[pcIndex])) {
                     outData.add(parser.getNumericDataTitles()[pcIndex].replaceAll("PC", ""));
                     String pc = parser.getNumericDataTitles()[pcIndex];
                     double[][] data = new double[][] {parser.getNumericDataForTitle(pc),
-                                                      parserComp.getNumericDataForTitle(pc)};
+                        parserComp.getNumericDataForTitle(pc)};
                     ArrayList<Integer> indicesToCorrel = new ArrayList<Integer>();
                     for (int i = 0; i < data[0].length; i++) {
                       if (!Double.isNaN(data[0][i]) && !Double.isNaN(data[1][i])) {
@@ -166,9 +171,9 @@ public class CorrelTypePcs {
     String tmp1 = out + "_basic";
     RScatter rsScatter =
         new RScatter(out, tmp1 + ".rscript", ext.removeDirectoryInfo(tmp1), tmp1 + ".jpeg", "PC",
-                     new String[] {"SPEARCorrelation"}, "METHOD_FILE", SCATTER_TYPE.POINT, log);
+            new String[] {"SPEARCorrelation"}, "METHOD_FILE", SCATTER_TYPE.POINT, log);
     rsScatter.setTitle(ext.removeDirectoryInfo(fullPathPcFile[0]) + " vs "
-                       + ext.removeDirectoryInfo(fullPathPcFile[1]));
+        + ext.removeDirectoryInfo(fullPathPcFile[1]));
     rsScatter.setOverWriteExisting(true);
     rsScatter.setxLabel("PC");
     rsScatter.setyLabel("SPEARMAN r");
@@ -178,9 +183,9 @@ public class CorrelTypePcs {
     String tmp2 = out + "_basicPear";
     RScatter rsScatterP =
         new RScatter(out, tmp2 + ".rscript", ext.removeDirectoryInfo(tmp2), tmp2 + ".jpeg", "PC",
-                     new String[] {"PEARCorrelation"}, "METHOD_FILE", SCATTER_TYPE.POINT, log);
+            new String[] {"PEARCorrelation"}, "METHOD_FILE", SCATTER_TYPE.POINT, log);
     rsScatterP.setTitle(ext.removeDirectoryInfo(fullPathPcFile[0]) + " vs "
-                        + ext.removeDirectoryInfo(fullPathPcFile[1]));
+        + ext.removeDirectoryInfo(fullPathPcFile[1]));
     rsScatterP.setOverWriteExisting(true);
     rsScatterP.setxLabel("PC");
     rsScatterP.setyLabel("PEARSON r");
@@ -189,7 +194,7 @@ public class CorrelTypePcs {
 
     RScatters rsScatters =
         new RScatters(rsList.toArray(new RScatter[rsList.size()]), out + ".rscript", out + ".pdf",
-                      COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
+            COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
     rsScatters.execute();
     // new RScatter(out, out+".rscript", ext.removeDirectoryInfo(out), out+".jpeg", "PC", new
     // String, sType, log)

@@ -30,22 +30,22 @@ public class SomSnipLOH {
 
       PrintWriter writer = new PrintWriter(new FileWriter(out));
       writer.println("CHROM\tPOS\tID\tREF\tALT\tFILTER\tSAMPLE\t" + Array.toStr(geneAnno[1]) + "\t"
-                     + Array.toStr(varAnno[1]));
+          + Array.toStr(varAnno[1]));
       writer.println("CHROM\tPOS\tID\tREF\tALT\tFILTER\tSAMPLE\t" + Array.toStr(geneAnno[0]) + "\t"
-                     + Array.toStr(varAnno[0]));
+          + Array.toStr(varAnno[0]));
 
       VCFFileReader reader = new VCFFileReader(new File(vcf), true);
       for (VariantContext vc : reader) {
         String base = vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t"
-                      + vc.getReference().getBaseString() + "\t"
-                      + vc.getAlternateAlleles().toString() + "\t" + vc.getFilters().toString();
+            + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t"
+            + vc.getFilters().toString();
         String[] vcAnnot = VCOps.getAnnotationsFor(varAnno[0], vc, ".");
 
         for (Genotype g : vc.getGenotypes()) {
           if (!g.isNoCall() && !g.isHomRef()) {
             writer.println(base + "\t" + g.getSampleName() + "\t"
-                           + Array.toStr(GenotypeOps.getGenoAnnotationsFor(geneAnno[0], g, "."))
-                           + "\t" + Array.toStr(vcAnnot));
+                + Array.toStr(GenotypeOps.getGenoAnnotationsFor(geneAnno[0], g, ".")) + "\t"
+                + Array.toStr(vcAnnot));
           }
         }
       }

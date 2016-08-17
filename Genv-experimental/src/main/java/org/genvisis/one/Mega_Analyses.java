@@ -39,39 +39,37 @@ public class Mega_Analyses {
 
   public static final String IMPUTATION_MAP = "/home/npankrat/NCBI/1000G/EUR.map";
 
-  public static final String[][] STUDIES =
-      {
-       // abbrev, original filename, total sample size, lambda, lambda1000, coreStudy/needed for
-       // conditionals
-       {"Ashkenazi", "AJ_PD_autosome_impute.txt", "446", "1.006", "1.028", "0", "1.028047962"},
-       {"CHS", "CHS.PD.1000G.autosomes.11082011.txt", "3271", "1.009", "1.043", "0", "1.043478325"},
-       {"deCODE", "DeCodeResults.LessDirty", "5520", "1.061", "1.057", "0", "1.05670092"},
-       // {"deCODE", "deCODE_results.txt", "5520", "1.061", "1.057", "0"},
-       // {"deCODE", "deCODE_results_wPositions.txt", "5520", "1.061", "1.057", "0", "1.05670092"},
-       {"Dutch", "IPDGC.DutchResults.10312011.txt", "2763", "1.061", "1.056", "1", "1.056101112"},
-       {"FHS", "FHS.PD.association.result.20111105.txt", "3949", "0.995", "0.958", "0",
-        "0.957690495"},
-       {"France", "PD_FR_RESULTS_MEGA_META.txt", "2969", "1.025", "1.032", "0", "0.88909397"},
-       {"Germany", "IPDGC.GermanResults.10312011.txt", "1604", "1.025", "1.032", "1",
-        "1.032081078"},
-       {"HIHG", "hihg_hg19_autosomes.txt", "1193", "0.998", "0.997", "1", "0.996642331"},
-       {"NGRC", "ngrc_hg19_autosomes.txt", "3938", "1.013", "1.007", "1", "1.006602624"},
-       {"NIA", "IPDGC.NiaResults.10312011.txt", "2833", "1.035", "1.028", "1", "1.027906585"},
-       {"PGPD", "progeni_genepd_hg19_autosomes.txt", "1680", "1.009", "1.011", "1", "1.010716473"},
-       {"RSI", "pd05112011.RSI.dat", "5755", "0.984", "0.944", "0", "0.9437792"},
-       // {"UK", "IPDGC.UKResults.txt", "6905", "1.034", "1.013", "1"},
-       {"UK", "IPDGC.UKResults_duplicatesCollapsed.txt", "6905", "1.034", "1.013", "1",
-        "1.013239905"},
-       // {"23andMe", "23andMe.PD_meta.autosomal.20111026.txt", "66164", "1.212", "1.027", "1"},
-       {"23andMe_v2", "23andMe.PD_meta.autosomal.v2.20120531.txt", "32760", "1.092", "1.016", "1",
-        "1.015665477"},
-       {"23andMe_v3", "23andMe.PD_meta.autosomal.v3.20120531.txt", "33404", "1.044", "1.026", "1",
-        "1.026080290"}, // true
+  public static final String[][] STUDIES = {
+      // abbrev, original filename, total sample size, lambda, lambda1000, coreStudy/needed for
+      // conditionals
+      {"Ashkenazi", "AJ_PD_autosome_impute.txt", "446", "1.006", "1.028", "0", "1.028047962"},
+      {"CHS", "CHS.PD.1000G.autosomes.11082011.txt", "3271", "1.009", "1.043", "0", "1.043478325"},
+      {"deCODE", "DeCodeResults.LessDirty", "5520", "1.061", "1.057", "0", "1.05670092"},
+      // {"deCODE", "deCODE_results.txt", "5520", "1.061", "1.057", "0"},
+      // {"deCODE", "deCODE_results_wPositions.txt", "5520", "1.061", "1.057", "0", "1.05670092"},
+      {"Dutch", "IPDGC.DutchResults.10312011.txt", "2763", "1.061", "1.056", "1", "1.056101112"},
+      {"FHS", "FHS.PD.association.result.20111105.txt", "3949", "0.995", "0.958", "0",
+          "0.957690495"},
+      {"France", "PD_FR_RESULTS_MEGA_META.txt", "2969", "1.025", "1.032", "0", "0.88909397"},
+      {"Germany", "IPDGC.GermanResults.10312011.txt", "1604", "1.025", "1.032", "1", "1.032081078"},
+      {"HIHG", "hihg_hg19_autosomes.txt", "1193", "0.998", "0.997", "1", "0.996642331"},
+      {"NGRC", "ngrc_hg19_autosomes.txt", "3938", "1.013", "1.007", "1", "1.006602624"},
+      {"NIA", "IPDGC.NiaResults.10312011.txt", "2833", "1.035", "1.028", "1", "1.027906585"},
+      {"PGPD", "progeni_genepd_hg19_autosomes.txt", "1680", "1.009", "1.011", "1", "1.010716473"},
+      {"RSI", "pd05112011.RSI.dat", "5755", "0.984", "0.944", "0", "0.9437792"},
+      // {"UK", "IPDGC.UKResults.txt", "6905", "1.034", "1.013", "1"},
+      {"UK", "IPDGC.UKResults_duplicatesCollapsed.txt", "6905", "1.034", "1.013", "1",
+          "1.013239905"},
+      // {"23andMe", "23andMe.PD_meta.autosomal.20111026.txt", "66164", "1.212", "1.027", "1"},
+      {"23andMe_v2", "23andMe.PD_meta.autosomal.v2.20120531.txt", "32760", "1.092", "1.016", "1",
+          "1.015665477"},
+      {"23andMe_v3", "23andMe.PD_meta.autosomal.v3.20120531.txt", "33404", "1.044", "1.026", "1",
+          "1.026080290"}, // true
       // {"23andMe_v3", "23andMe.PD_meta.autosomal.v3.20120531.txt", "33404", "1.044", "1.026", "1",
       // "1.025506832"}, // mike's first typo
       // {"23andMe_v3", "23andMe.PD_meta.autosomal.v3.20120531.txt", "33404", "1.044", "1.026", "1",
       // "1.027393174"}, // mike's second typo
-      };
+  };
 
   // public static final String[][] STUDIES = {
   // {"UK", "IPDGC.UKResults.txt", "6905", "0.987", "1"},
@@ -88,14 +86,10 @@ public class Mega_Analyses {
     // hash1 = HashVec.loadFileToHashString(DIR+"files/_deCODE_results.txt", new int[] {0}, new
     // int[] {9, 10}, false, "\t", true, false, false);
     hash1 = HashVec.loadFileToHashString(DIR + "deCODE_results.txt", new int[] {0},
-                                         new int[] {9, 10, 8}, false, "\t", true, false, false);
+        new int[] {9, 10, 8}, false, "\t", true, false, false);
     System.out.println("Loading DeCodeResults.LessDirty");
     hash2 = HashVec.loadFileToHashString(DIR + "00src/DeCodeResults.LessDirty", new int[] {0},
-                                         new int[] {5, 6, 4}, false, "\t", true, false, false); // 7,
-                                                                                                // 8
-                                                                                                // two
-                                                                                                // different
-                                                                                                // p-values
+        new int[] {5, 6, 4}, false, "\t", true, false, false); // 7, 8 two different p-values
 
     System.out.println("Comparing");
     missingFrom2 = new Vector<String>();
@@ -120,7 +114,7 @@ public class Mega_Analyses {
         if (hash2.containsKey(key)) {
           trav2 = hash2.remove(key);
           if (!trav1.substring(0, trav1.lastIndexOf("\t"))
-                    .equals(trav2.substring(0, trav2.lastIndexOf("\t")))) {
+              .equals(trav2.substring(0, trav2.lastIndexOf("\t")))) {
             writer.println(key + "\t" + trav1 + "\t" + trav2);
           }
         } else {
@@ -163,7 +157,8 @@ public class Mega_Analyses {
 
     try {
       writer = new PrintWriter(new FileWriter(dir.substring(0, dir.length() - 1) + ".txt"));
-      writer.println("MarkerName\tLocational_ID\tChr\tPosition\tEffect_allele\tReference_allele\tEAF\tGenotyped_or_imputed\tInformation\tBETA\tSE\tP\tNCASES\tNCONTROLS");
+      writer.println(
+          "MarkerName\tLocational_ID\tChr\tPosition\tEffect_allele\tReference_allele\tEAF\tGenotyped_or_imputed\tInformation\tBETA\tSE\tP\tNCASES\tNCONTROLS");
       for (int chr = 1; chr <= 22; chr++) {
         hash = new Hashtable<String, String>();
         for (int i = 0; i < 2; i++) {
@@ -191,7 +186,8 @@ public class Mega_Analyses {
                     e.printStackTrace();
                   }
                 } else if (hash.containsKey(line[1])) {
-                  if ((Double.parseDouble(scrub(hash.get(line[1])))) > Double.parseDouble(scrub(line[4]))) {
+                  if ((Double.parseDouble(scrub(hash.get(line[1])))) > Double
+                      .parseDouble(scrub(line[4]))) {
                     hash.put(line[1], "first");
                   } else {
                     hash.put(line[1], "second");
@@ -313,20 +309,19 @@ public class Mega_Analyses {
         // "!'Chr'<23"}, log);
         // }
         // ideal, final, no chr<23
-        GenParser.parse(new String[] {DIR + "files/" + element[1],
-                                      "out=" + DIR + "filtered/" + element[1], ".-000=>.000",
-                                      "'MarkerName'=MarkerName", "'Effect_allele'=Allele1",
-                                      "'Reference_allele'=Allele2", "'BETA'=Effect", "'SE'=StdErr",
-                                      "'P'=Pval", "!'Information'>=0.30", "!'SE'!NA", "!'SE'!.",
-                                      "!'SE'!0", "!'BETA'>=-5", "!'BETA'<=5", "!'EAF'>=0.001",
-                                      "!'EAF'<=0.999", "'EAF'=MAF", "'Information'=Rsq"},
-                        log);
+        GenParser.parse(
+            new String[] {DIR + "files/" + element[1], "out=" + DIR + "filtered/" + element[1],
+                ".-000=>.000", "'MarkerName'=MarkerName", "'Effect_allele'=Allele1",
+                "'Reference_allele'=Allele2", "'BETA'=Effect", "'SE'=StdErr", "'P'=Pval",
+                "!'Information'>=0.30", "!'SE'!NA", "!'SE'!.", "!'SE'!0", "!'BETA'>=-5",
+                "!'BETA'<=5", "!'EAF'>=0.001", "!'EAF'<=0.999", "'EAF'=MAF", "'Information'=Rsq"},
+            log);
         // pval only GenParser.parse(new String[] {DIR+"files/"+STUDIES[i][1],
         // "out="+DIR+"filtered/"+STUDIES[i][1], ".-000=>.000", "0=MarkerName", "11="+STUDIES[i][0],
         // "!8>0.30", "!10!NA", "!10!.", "!10!0", "!6>-5", "!6<5", "!4!NA"}, log);
         writer.println("PROCESS " + element[1]);
         log.report(element[0] + "\t" + Files.countLines(DIR + "filtered/" + element[1], 1) + "\t"
-                   + element[1]);
+            + element[1]);
       }
       writer.println("");
       writer.println("");
@@ -343,11 +338,10 @@ public class Mega_Analyses {
       allFiles[i] = DIR + "filtered/" + STUDIES[i][1];
     }
     Unique.proc(allFiles, Array.intArray(STUDIES.length, 1), null, DIR + "filtered/allSNPs.txt",
-                DIR + "filtered/allSNPcounts.txt", true);
+        DIR + "filtered/allSNPcounts.txt", true);
 
     GenParser.parse(new String[] {DIR + "filtered/allSNPcounts.txt", "skip=2", "1", "!2>=3",
-                                  "out=" + DIR + "filtered/SNPs_in3orMoreStudies.txt"},
-                    log);
+        "out=" + DIR + "filtered/SNPs_in3orMoreStudies.txt"}, log);
     // GenParser.parse(new String[] {DIR+"filtered/allSNPcounts.txt", "skip=2", "1", "!2>=5",
     // "out="+DIR+"filtered/SNPs_in3orMoreStudies.txt"}, log);
 
@@ -378,11 +372,11 @@ public class Mega_Analyses {
       new File(DIR + "filtered/").mkdirs();
       for (String[] element : STUDIES) {
         FilterByLists.process(DIR + "filtered/" + element[1], new int[] {0},
-                              DIR + "filtered/" + subDir + element[1], threeOrMoreAndRef, null,
-                              true, false, false, false, log);
+            DIR + "filtered/" + subDir + element[1], threeOrMoreAndRef, null, true, false, false,
+            false, log);
         writer.println("PROCESS " + element[1]);
         log.report(element[0] + "\t" + Files.countLines(DIR + "filtered/" + subDir + element[1], 1)
-                   + "\t" + element[1]);
+            + "\t" + element[1]);
         Zip.gzip(DIR + "filtered/" + subDir + element[1]);
       }
       writer.println("");
@@ -407,13 +401,11 @@ public class Mega_Analyses {
     // DIR+"filtered/"+subDir+"metasoft.input", log);
     log.report(ext.getTime() + "\tCounting number with three or more");
     Unique.proc(allFiles, Array.intArray(STUDIES.length, 1), null,
-                DIR + "filtered/" + subDir + "checkSNPs.txt",
-                DIR + "filtered/" + subDir + "checkSNPcounts.txt", true);
+        DIR + "filtered/" + subDir + "checkSNPs.txt",
+        DIR + "filtered/" + subDir + "checkSNPcounts.txt", true);
 
     GenParser.parse(new String[] {DIR + "filtered/" + subDir + "checkSNPcounts.txt", "skip=2", "1",
-                                  "!2>=3",
-                                  "out=" + DIR + "filtered/" + subDir + "doubleCheckedCounts.txt"},
-                    log);
+        "!2>=3", "out=" + DIR + "filtered/" + subDir + "doubleCheckedCounts.txt"}, log);
 
 
     Vector<String> v;
@@ -424,8 +416,8 @@ public class Mega_Analyses {
       }
     }
     Unique.proc(Array.toStringArray(v), Array.intArray(v.size(), 1), null,
-                DIR + "filtered/" + subDir + "coreStudySNPs.txt",
-                DIR + "filtered/" + subDir + "coreStudyCounts.txt", true);
+        DIR + "filtered/" + subDir + "coreStudySNPs.txt",
+        DIR + "filtered/" + subDir + "coreStudyCounts.txt", true);
   }
 
   public static void findDuplicateMarkers() {
@@ -471,8 +463,8 @@ public class Mega_Analyses {
     }
     //
     Unique.proc(allFiles, Array.intArray(STUDIES.length, 1), null,
-                DIR + "duplicatedMarkers/allDuplicatedSNPs.txt",
-                DIR + "duplicatedMarkers/allDuplicatedSNPcounts.txt", true);
+        DIR + "duplicatedMarkers/allDuplicatedSNPs.txt",
+        DIR + "duplicatedMarkers/allDuplicatedSNPcounts.txt", true);
     // Unique.proc(allFilteredFiles, Array.intArray(STUDIES.length, 1), null,
     // DIR+"duplicatedMarkers/filtered/allDuplicatedSNPs.txt",
     // DIR+"duplicatedMarkers/filtered/allDuplicatedSNPcounts.txt", true);
@@ -493,12 +485,12 @@ public class Mega_Analyses {
     String[] line;
     for (String[] element : STUDIES) {
       try {
-        reader = new BufferedReader(new FileReader(DIR + "duplicatedMarkers/" + element[0]
-                                                   + "_duplicatedPositions.txt"));
+        reader = new BufferedReader(
+            new FileReader(DIR + "duplicatedMarkers/" + element[0] + "_duplicatedPositions.txt"));
         System.err.println("Parsing duplicates in " + element[0]);
         ext.checkHeader(reader.readLine().trim().split("[\\s]+"),
-                        new String[] {"MarkerName", "Chr", "Position", "Genotyped_or_imputed"},
-                        new int[] {0, 2, 3, 7}, false, log, false);
+            new String[] {"MarkerName", "Chr", "Position", "Genotyped_or_imputed"},
+            new int[] {0, 2, 3, 7}, false, log, false);
         while (reader.ready()) {
           line = reader.readLine().trim().split("[\\s]+");
           if (hash.containsKey(line[0])) {
@@ -508,11 +500,11 @@ public class Mega_Analyses {
         reader.close();
       } catch (FileNotFoundException fnfe) {
         System.err.println("Error: file \"" + DIR + "duplicatedMarkers/" + element[0]
-                           + "_duplicatedPositions.txt" + "\" not found in current directory");
+            + "_duplicatedPositions.txt" + "\" not found in current directory");
         System.exit(1);
       } catch (IOException ioe) {
         System.err.println("Error reading file \"" + DIR + "duplicatedMarkers/" + element[0]
-                           + "_duplicatedPositions.txt" + "\"");
+            + "_duplicatedPositions.txt" + "\"");
         System.exit(2);
       }
     }
@@ -548,8 +540,9 @@ public class Mega_Analyses {
     }
 
     System.err.println("Loading reference map from: " + IMPUTATION_MAP);
-    refChrHash = new SnpMarkerSet(IMPUTATION_MAP, SnpMarkerSet.PLINK_MAP_FORMAT_WITHOUT_CM, false,
-                                  log).getChrHash();
+    refChrHash =
+        new SnpMarkerSet(IMPUTATION_MAP, SnpMarkerSet.PLINK_MAP_FORMAT_WITHOUT_CM, false, log)
+            .getChrHash();
 
     order = Sort.orderTwoLayers(Bytes.toArray(chrs), Ints.toArray(positions), log);
     try {
@@ -557,17 +550,22 @@ public class Mega_Analyses {
       writer.println("MarkerName\tChr\tPosition\tAltLoc\trefChr\trefPos\trefAgree\tStudy/chr/pos");
       for (int element : order) {
         v = hash.get(keys.elementAt(element));
-        writer.println(keys.elementAt(element) + "\t" + chrs.elementAt(element) + "\t"
-                       + positions.elementAt(element) + "\t" + (element < initSize ? 0 : 1)
-                       + "\t" + (refChrHash.containsKey(keys.elementAt(element))
-                                                                                 ? refChrHash.get(keys.elementAt(element))
-                                                                                   + "\t"
-                                                                                   + (refChrHash.get(keys.elementAt(element))
-                                                                                                .split("[\\s]+")[1].equals(positions.elementAt(element)
-                                                                                                                           + "") ? "1"
-                                                                                                                                 : "0")
-                                                                                 : ".\t.\t0")
-                       + "\t" + Array.toStr(Array.toStringArray(v)));
+        writer
+            .println(
+                keys.elementAt(element) + "\t" + chrs.elementAt(element) + "\t"
+                    + positions
+                        .elementAt(
+                            element)
+                    + "\t"
+                    + (element < initSize ? 0
+                        : 1)
+                    + "\t"
+                    + (refChrHash.containsKey(keys.elementAt(element))
+                        ? refChrHash.get(keys.elementAt(element)) + "\t"
+                            + (refChrHash.get(keys.elementAt(element)).split("[\\s]+")[1]
+                                .equals(positions.elementAt(element) + "") ? "1" : "0")
+                        : ".\t.\t0")
+                    + "\t" + Array.toStr(Array.toStringArray(v)));
       }
       writer.close();
     } catch (Exception e) {
@@ -594,17 +592,18 @@ public class Mega_Analyses {
       try {
         log.report(STUDIES[i][0], false, true);
         FilterByLists.process(DIR + "files/" + STUDIES[i][1], new int[] {0},
-                              DIR + "non1000G_markers/" + STUDIES[i][0] + "_extras.txt", null,
-                              in1000G, true, false, false, false, log);
-        log.report("\t"
-                   + Files.countLines(DIR + "non1000G_markers/" + STUDIES[i][0] + "_extras.txt", 1),
-                   false, true);
+            DIR + "non1000G_markers/" + STUDIES[i][0] + "_extras.txt", null, in1000G, true, false,
+            false, false, log);
+        log.report(
+            "\t" + Files.countLines(DIR + "non1000G_markers/" + STUDIES[i][0] + "_extras.txt", 1),
+            false, true);
         FilterByLists.process(DIR + "filtered/" + STUDIES[i][1], new int[] {0},
-                              DIR + "non1000G_markers/filtered/" + STUDIES[i][0] + "_extras.txt",
-                              null, in1000G, true, false, false, false, log);
-        log.report("\t" + Files.countLines(DIR + "non1000G_markers/filtered/" + STUDIES[i][0]
-                                           + "_extras.txt", 1),
-                   true, true);
+            DIR + "non1000G_markers/filtered/" + STUDIES[i][0] + "_extras.txt", null, in1000G, true,
+            false, false, false, log);
+        log.report(
+            "\t" + Files
+                .countLines(DIR + "non1000G_markers/filtered/" + STUDIES[i][0] + "_extras.txt", 1),
+            true, true);
         allFiles[i] = DIR + "non1000G_markers/" + STUDIES[i][0] + "_extras.txt";
         allFilteredFiles[i] = DIR + "non1000G_markers/filtered/" + STUDIES[i][0] + "_extras.txt";
       } catch (Exception e) {
@@ -614,19 +613,15 @@ public class Mega_Analyses {
     }
 
     Unique.proc(allFiles, Array.intArray(STUDIES.length, 1), null,
-                DIR + "non1000G_markers/extraSNPs.txt", DIR + "non1000G_markers/extraSNPcounts.txt",
-                true);
+        DIR + "non1000G_markers/extraSNPs.txt", DIR + "non1000G_markers/extraSNPcounts.txt", true);
     Unique.proc(allFilteredFiles, Array.intArray(STUDIES.length, 1), null,
-                DIR + "non1000G_markers/filtered/extraSNPs.txt",
-                DIR + "non1000G_markers/filtered/extraSNPcounts.txt", true);
+        DIR + "non1000G_markers/filtered/extraSNPs.txt",
+        DIR + "non1000G_markers/filtered/extraSNPcounts.txt", true);
 
     GenParser.parse(new String[] {DIR + "non1000G_markers/extraSNPcounts.txt", "skip=2", "1",
-                                  "!2>=3", "out=" + DIR + "non1000G_markers/relevantSNP.txt"},
-                    log);
+        "!2>=3", "out=" + DIR + "non1000G_markers/relevantSNP.txt"}, log);
     GenParser.parse(new String[] {DIR + "non1000G_markers/filtered/extraSNPcounts.txt", "skip=2",
-                                  "1", "!2>=3",
-                                  "out=" + DIR + "non1000G_markers/filtered/relevantSNP.txt"},
-                    log);
+        "1", "!2>=3", "out=" + DIR + "non1000G_markers/filtered/relevantSNP.txt"}, log);
 
   }
 
@@ -637,7 +632,7 @@ public class Mega_Analyses {
     new File(DIR + "kept/").mkdirs();
     for (String[] element : STUDIES) {
       FilterByLists.process(DIR + "files/" + element[1], DIR + "duplicatedMarkers.txt", null,
-                            new int[] {0}, DIR + "kept/" + element[1], true, false, false, log);
+          new int[] {0}, DIR + "kept/" + element[1], true, false, false, log);
     }
   }
 
@@ -690,8 +685,8 @@ public class Mega_Analyses {
     Hashtable<String, String> threeOrMore =
         HashVec.loadFileToHashString("SNPs_in3orMoreStudies.txt", false);
     FilterByLists.process(DIR + "filtered/OnlyThoseInRef/MetasoftResults.txt", new int[] {0},
-                          DIR + "filtered/OnlyThoseInRef/MetasoftResults_Final.out", threeOrMore,
-                          null, true, false, false, false, new Logger());
+        DIR + "filtered/OnlyThoseInRef/MetasoftResults_Final.out", threeOrMore, null, true, false,
+        false, false, new Logger());
     System.exit(1);
 
     String subDir = "OnlyThoseInRef/";
@@ -703,8 +698,8 @@ public class Mega_Analyses {
       }
     }
     Unique.proc(Array.toStringArray(v), Array.intArray(v.size(), 1), null,
-                DIR + "filtered/" + subDir + "coreStudySNPs.txt",
-                DIR + "filtered/" + subDir + "coreStudyCounts.txt", true);
+        DIR + "filtered/" + subDir + "coreStudySNPs.txt",
+        DIR + "filtered/" + subDir + "coreStudyCounts.txt", true);
     System.exit(1);
 
     String[] metasoftParams;
@@ -725,24 +720,22 @@ public class Mega_Analyses {
       line = HashVec.loadFileToStringArray(subset, true, new int[] {0}, false);
     } else {
       line = HashVec.getKeys(HashVec.loadFileToHashSet(DIR + "filtered/allSNPs.txt", false), false,
-                             false);
+          false);
     }
 
     for (int i = 0; i < metasoftParams.length; i++) {
       metasoftParams[i] =
           DIR + "filtered/" + subDir + STUDIES[i][1] + " 'MarkerName' 'Allele1' 'Allele2' 'Effect'="
-                          + STUDIES[i][1] + "_Beta;NA 'StdErr'=" + STUDIES[i][1] + "_SE;NA fail";
+              + STUDIES[i][1] + "_Beta;NA 'StdErr'=" + STUDIES[i][1] + "_SE;NA fail";
       lambdas[i] = Math.sqrt(Double.parseDouble(STUDIES[i][6]));
       // System.out.print("\t"+STUDIES[i][0]+"_Beta\t"+STUDIES[i][0]+"_SE");
     }
     Metasoft.generateRawFile(line, metasoftParams,
-                             DIR + "filtered/" + subDir + "metasoftFirstK.raw", new Logger());
+        DIR + "filtered/" + subDir + "metasoftFirstK.raw", new Logger());
     Metasoft.processRawToInputFile(DIR + "filtered/" + subDir + "metasoftFirstK.raw",
-                                   DIR + "filtered/" + subDir + "metasoftFirstK_flipped.raw",
-                                   new Logger());
+        DIR + "filtered/" + subDir + "metasoftFirstK_flipped.raw", new Logger());
     Metasoft.applyLambdas(DIR + "filtered/" + subDir + "metasoftFirstK_flipped.raw",
-                          DIR + "filtered/" + subDir + "metasoftFirstK_wGC.input", lambdas,
-                          new Logger());
+        DIR + "filtered/" + subDir + "metasoftFirstK_wGC.input", lambdas, new Logger());
     System.exit(1);
 
 
@@ -775,11 +768,12 @@ public class Mega_Analyses {
     try {
       writer = new PrintWriter(new FileWriter(filename));
       writer.println("lookup");
-      writer.println("allAutosomalVariants.txt out=alleleFreqInput.xln lessMemoryButSlower keepIntermediateFiles");
+      writer.println(
+          "allAutosomalVariants.txt out=alleleFreqInput.xln lessMemoryButSlower keepIntermediateFiles");
       for (String[] element : STUDIES) {
         writer.println("files/" + element[1] + " 0 4=" + element[0] + "_A1 5=" + element[0]
-                       + "_A2 6=" + element[0] + "_freq $#" + element[2] + "=" + element[0]
-                       + "_N 8=" + element[0] + "_Rsq");
+            + "_A2 6=" + element[0] + "_freq $#" + element[2] + "=" + element[0] + "_N 8="
+            + element[0] + "_Rsq");
       }
       writer.close();
     } catch (Exception e) {
@@ -831,19 +825,18 @@ public class Mega_Analyses {
     for (String[] element : STUDIES) {
       header = Files.getHeaderOfFile(DIR + "filtered/" + element[1], log);
       indices = ext.indexFactors(new String[][] {{"MarkerName"}, {"Information", "Rsq"}}, header,
-                                 false, true, true, true);
+          false, true, true, true);
       // purifyDuplicateMarkers(DIR+"filtered/"+STUDIES[i][1], indices[0], indices[1], false, log);
       // log.report("Parsing "+STUDIES[i][0]+" using "+header[indices[0]]+" and
       // "+header[indices[1]]);
       // purifyDuplicateMarkers(DIR+"files/"+STUDIES[i][1], indices[0], indices[1], false, log);
       purifyDuplicateMarkers(DIR + "filtered/OnlyThoseInRef/" + element[1], indices[0], indices[1],
-                             false, log);
+          false, log);
     }
   }
 
   private static void purifyDuplicateMarkers(String filename, int indexOfDuplicatedFactor,
-                                             int indexOfFilter, boolean minimizeInsteadofMaximize,
-                                             Logger log) {
+      int indexOfFilter, boolean minimizeInsteadofMaximize, Logger log) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -861,7 +854,7 @@ public class Mega_Analyses {
       reader = new BufferedReader(new FileReader(filename));
       line = reader.readLine().trim().split("[\\s]+");
       log.report("Filtering " + filename + " using '" + line[indexOfDuplicatedFactor] + "' and '"
-                 + line[indexOfFilter] + "'");
+          + line[indexOfFilter] + "'");
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
         if (!hash.containsKey(line[indexOfDuplicatedFactor])) {
@@ -869,18 +862,18 @@ public class Mega_Analyses {
         } else {
           if (line[indexOfFilter].equals(hash.get(line[indexOfDuplicatedFactor]))) {
             System.err.println(line[indexOfDuplicatedFactor] + "\t" + line[indexOfFilter]
-                               + "\tduplicates with identical filter factor");
+                + "\tduplicates with identical filter factor");
             if ((minimizeInsteadofMaximize
-                 && Double.parseDouble(line[indexOfFilter]) < mostExtremeTie)
+                && Double.parseDouble(line[indexOfFilter]) < mostExtremeTie)
                 || (!minimizeInsteadofMaximize
                     && Double.parseDouble(line[indexOfFilter]) > mostExtremeTie)) {
               mostExtremeTie = Double.parseDouble(line[indexOfFilter]);
             }
           }
-          if ((minimizeInsteadofMaximize
-               && Double.parseDouble(line[indexOfFilter]) < Double.parseDouble(hash.get(line[indexOfDuplicatedFactor])))
-              || (!minimizeInsteadofMaximize
-                  && Double.parseDouble(line[indexOfFilter]) > Double.parseDouble(hash.get(line[indexOfDuplicatedFactor])))) {
+          if ((minimizeInsteadofMaximize && Double.parseDouble(line[indexOfFilter]) < Double
+              .parseDouble(hash.get(line[indexOfDuplicatedFactor])))
+              || (!minimizeInsteadofMaximize && Double.parseDouble(line[indexOfFilter]) > Double
+                  .parseDouble(hash.get(line[indexOfDuplicatedFactor])))) {
             hash.put(line[indexOfDuplicatedFactor], line[indexOfFilter]);
             duplicates.put(line[indexOfDuplicatedFactor], line[indexOfFilter]);
           } else {
@@ -912,8 +905,8 @@ public class Mega_Analyses {
       try {
         reader = new BufferedReader(new FileReader(filename));
         new File(ext.parseDirectoryOfFile(filename) + "purified/").mkdir();
-        writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename) + "purified/"
-                                                + ext.removeDirectoryInfo(filename)));
+        writer = new PrintWriter(new FileWriter(
+            ext.parseDirectoryOfFile(filename) + "purified/" + ext.removeDirectoryInfo(filename)));
         writer.println(reader.readLine());
         while (reader.ready()) {
           temp = reader.readLine();
@@ -931,7 +924,7 @@ public class Mega_Analyses {
         reader.close();
       } catch (Exception e) {
         System.err.println("Error writing to " + ext.parseDirectoryOfFile(filename) + "purified/"
-                           + ext.rootOf(filename, true));
+            + ext.rootOf(filename, true));
         e.printStackTrace();
       }
       System.out.println("Start to finish took " + ext.getTimeElapsed(time));
@@ -948,7 +941,7 @@ public class Mega_Analyses {
 
   public static String translateDeCode(String[] line) {
     return line[1] + "\t.\t.\t.\t" + line[2].charAt(0) + "\t" + line[2].charAt(2) + "\t" + line[3]
-           + "\t.\t" + line[4] + "\t" + line[5] + "\t" + line[7] + "\t" + line[9] + "\t" + line[12]
-           + "\t" + line[13];
+        + "\t.\t" + line[4] + "\t" + line[5] + "\t" + line[7] + "\t" + line[9] + "\t" + line[12]
+        + "\t" + line[13];
   }
 }

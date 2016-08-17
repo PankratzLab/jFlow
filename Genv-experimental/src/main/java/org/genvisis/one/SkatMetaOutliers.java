@@ -92,13 +92,13 @@ public class SkatMetaOutliers {
     log = new Logger();
 
     String usage = "\n" + "gwas.PhenoPrep requires 0-1 arguments\n"
-                   + "   (1) name of pheno file (i.e. pheno=" + phenoFilename + " (default))\n"
-                   + "   (2) list of processing to apply to phenotype (i.e. processing="
-                   + Array.toStr(processing, ",") + " (default))\n"
-                   + "   (3) list of transformation to apply to phenotype (i.e. transform="
-                   + Array.toStr(transform, ",") + " (default))\n"
-                   + "   (4) list of regression to apply to phenotype (i.e. regression="
-                   + Array.toStr(regression, ",") + " (default))\n" + "";
+        + "   (1) name of pheno file (i.e. pheno=" + phenoFilename + " (default))\n"
+        + "   (2) list of processing to apply to phenotype (i.e. processing="
+        + Array.toStr(processing, ",") + " (default))\n"
+        + "   (3) list of transformation to apply to phenotype (i.e. transform="
+        + Array.toStr(transform, ",") + " (default))\n"
+        + "   (4) list of regression to apply to phenotype (i.e. regression="
+        + Array.toStr(regression, ",") + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -138,15 +138,13 @@ public class SkatMetaOutliers {
     // Array.removeNaN(Matrix.toDoubleArrays(HashVec.loadFileToStringMatrix(phenoFilename, true,
     // Array.subArray(Array.intArray(header.length), 1), false)));
     phenoTmp = Matrix.toDoubleArrays(HashVec.loadFileToStringMatrix(phenoFilename, true,
-                                                                    Array.subArray(Array.arrayOfIndices(header.length),
-                                                                                   1),
-                                                                    false));
+        Array.subArray(Array.arrayOfIndices(header.length), 1), false));
     pheno = new double[phenoTmp.length];
     for (int i = 0; i < pheno.length; i++) {
       pheno[i] = phenoTmp[i][0];
     }
     log.report("lambda: " + calculateLambda(dir, ".csv", log) + "\tskewness: "
-               + Array.skewness(pheno) + "\tkurtosis: " + Array.kurtosis(pheno));
+        + Array.skewness(pheno) + "\tkurtosis: " + Array.kurtosis(pheno));
 
     // for (int i = 0; i < processing.length; i ++) {
     // for (int j = 0; j < transform.length; j++) {

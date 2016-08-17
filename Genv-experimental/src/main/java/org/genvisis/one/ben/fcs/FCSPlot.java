@@ -61,7 +61,7 @@ import org.genvisis.one.ben.fcs.sub.DataExportGUI;
 import org.xml.sax.SAXException;
 
 public class FCSPlot extends JPanel
-                     implements WindowListener, ActionListener, PropertyChangeListener {
+    implements WindowListener, ActionListener, PropertyChangeListener {
 
   private static class NullGate extends Gate {
     private NullGate() {
@@ -281,7 +281,7 @@ public class FCSPlot extends JPanel
   }
 
   private void doDataExport(String outputFile, ArrayList<Gate> gatesToExport, boolean exportCounts,
-                            ArrayList<String> files) {
+      ArrayList<String> files) {
     StringBuilder sb = new StringBuilder();
 
     for (Gate g : gatesToExport) {
@@ -789,7 +789,7 @@ public class FCSPlot extends JPanel
         @Override
         public void run() {
           while (newDataLoader.getLoadState() == LOAD_STATE.UNLOADED
-                 || newDataLoader.getLoadState() == LOAD_STATE.LOADING) {
+              || newDataLoader.getLoadState() == LOAD_STATE.LOADING) {
             Thread.yield();
           }
           final ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
@@ -827,7 +827,7 @@ public class FCSPlot extends JPanel
   public void saveGating() {
     if (gating.getRootGates().size() == 0) {
       JOptionPane.showMessageDialog(this, "Error - no gates found!", "Error!",
-                                    JOptionPane.ERROR_MESSAGE);
+          JOptionPane.ERROR_MESSAGE);
       return;
     }
     JFileChooser jfc = new JFileChooser();
@@ -841,7 +841,7 @@ public class FCSPlot extends JPanel
       }
       if (Files.exists(outputFile)) {
         JOptionPane.showMessageDialog(this, "Error - cannot overwrite existing file.", "Error!",
-                                      JOptionPane.ERROR_MESSAGE);
+            JOptionPane.ERROR_MESSAGE);
         return;
       }
       GateFileWriter.writeGating(gating, outputFile, log);
@@ -858,7 +858,7 @@ public class FCSPlot extends JPanel
         ArrayList<String> files = fcsControls.getAddedFiles();
         if (files.size() > 0) {
           props.setProperty(PROPKEY_FCSFILES,
-                            files.size() == 0 ? "" : Array.toStr(Array.toStringArray(files), ";"));
+              files.size() == 0 ? "" : Array.toStr(Array.toStringArray(files), ";"));
         }
         File f = new File(PROPERTIES_FILE);
         OutputStream out = new FileOutputStream(f);
@@ -942,12 +942,12 @@ public class FCSPlot extends JPanel
   private void setupDataExport() {
     if (getAddedFiles().isEmpty()) {
       JOptionPane.showMessageDialog(this, "Error - no data files available to export!", "Error!",
-                                    JOptionPane.ERROR_MESSAGE);
+          JOptionPane.ERROR_MESSAGE);
       return;
     }
     if (gating.getRootGates().isEmpty()) {
       JOptionPane.showMessageDialog(this, "Error - no gating available to export!", "Error!",
-                                    JOptionPane.ERROR_MESSAGE);
+          JOptionPane.ERROR_MESSAGE);
       return;
     }
 

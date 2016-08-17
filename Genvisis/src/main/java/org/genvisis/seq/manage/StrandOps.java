@@ -13,7 +13,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 public class StrandOps {
 
   public enum CONFIG {
-                      STRAND_CONFIG_SAME_ORDER_SAME_STRAND, STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND, STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND, STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND, STRAND_CONFIG_DIFFERENT_ALLELES, STRAND_CONFIG_BOTH_NULL, STRAND_CONFIG_SPECIAL_CASE, STRAND_CONFIG_AMBIGOUS, STRAND_CONFIG_UNKNOWN;
+    STRAND_CONFIG_SAME_ORDER_SAME_STRAND, STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND, STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND, STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND, STRAND_CONFIG_DIFFERENT_ALLELES, STRAND_CONFIG_BOTH_NULL, STRAND_CONFIG_SPECIAL_CASE, STRAND_CONFIG_AMBIGOUS, STRAND_CONFIG_UNKNOWN;
   }
 
   public static final String[] VALID_ALLELES = {"A", "C", "G", "T", "I", "D"};
@@ -63,14 +63,14 @@ public class StrandOps {
         if (alleles[0].equals(referenceAlleles[0]) && alleles[1].equals(referenceAlleles[1])) {
           return CONFIG.STRAND_CONFIG_SAME_ORDER_SAME_STRAND;
         } else if (alleles[0].equals(referenceAlleles[1])
-                   && alleles[1].equals(referenceAlleles[0])) {
+            && alleles[1].equals(referenceAlleles[0])) {
           return CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
         } else {
           flipped = new String[] {Sequence.flip(alleles[0]), Sequence.flip(alleles[1])};
           if (flipped[0].equals(referenceAlleles[0]) && flipped[1].equals(referenceAlleles[1])) {
             return CONFIG.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND;
           } else if (flipped[0].equals(referenceAlleles[1])
-                     && flipped[1].equals(referenceAlleles[0])) {
+              && flipped[1].equals(referenceAlleles[0])) {
             return CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
           } else {
             return CONFIG.STRAND_CONFIG_DIFFERENT_ALLELES;
@@ -91,16 +91,16 @@ public class StrandOps {
         if (referenceAlleles[0] == null) {
           referenceAlleles[0] = alleles[index];
           return index == 0 ? CONFIG.STRAND_CONFIG_SAME_ORDER_SAME_STRAND
-                            : CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
+              : CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
         } else if (referenceAlleles[1] == null) {
           if (alleles[index].equals(referenceAlleles[0])) {
             return index == 0 ? CONFIG.STRAND_CONFIG_SAME_ORDER_SAME_STRAND
-                              : CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
+                : CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
           } else {
             flipped = new String[] {Sequence.flip(alleles[index])};
             if (flipped[0].equals(referenceAlleles[0])) {
               return index == 0 ? CONFIG.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND
-                                : CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
+                  : CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
             } else {
               return CONFIG.STRAND_CONFIG_DIFFERENT_ALLELES;
             }
@@ -108,18 +108,18 @@ public class StrandOps {
         } else {
           if (alleles[index].equals(referenceAlleles[0])) {
             return index == 0 ? CONFIG.STRAND_CONFIG_SAME_ORDER_SAME_STRAND
-                              : CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
+                : CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
           } else if (alleles[index].equals(referenceAlleles[1])) {
             return index == 1 ? CONFIG.STRAND_CONFIG_SAME_ORDER_SAME_STRAND
-                              : CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
+                : CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
           } else {
             flipped = new String[] {Sequence.flip(alleles[index])};
             if (flipped[0].equals(referenceAlleles[0])) {
               return index == 0 ? CONFIG.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND
-                                : CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
+                  : CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
             } else if (flipped[0].equals(referenceAlleles[1])) {
               return index == 1 ? CONFIG.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND
-                                : CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
+                  : CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
             } else {
               return CONFIG.STRAND_CONFIG_DIFFERENT_ALLELES;
             }
@@ -168,7 +168,7 @@ public class StrandOps {
   }
 
   public static String flipsIfNeeded(String b, Strand strand, boolean ignoreInvalidAlleles,
-                                     boolean reverse) {
+      boolean reverse) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < b.length(); i++) {
       sb.append(flipIfNeeded(b.charAt(i) + "", strand, ignoreInvalidAlleles));

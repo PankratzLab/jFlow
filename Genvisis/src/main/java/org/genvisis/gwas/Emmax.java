@@ -26,10 +26,9 @@ public class Emmax {
       new String[] {"emmax-kin -v -h -d 10", "emmax-kin -v -h -s -d 10"};
 
   public static void generateScripts(String commandFullPath, String kinshipGenoDirAndNameRoot,
-                                     String analysisGenoDirAndNameRoot, String phenoCovDir,
-                                     String phenoNameExtOrFullPath, String covNameExtOrFullPath,
-                                     String outDir, String batchDir, int qsubMemInMBs,
-                                     double qsubWalltimeInHours, Logger log) {
+      String analysisGenoDirAndNameRoot, String phenoCovDir, String phenoNameExtOrFullPath,
+      String covNameExtOrFullPath, String outDir, String batchDir, int qsubMemInMBs,
+      double qsubWalltimeInHours, Logger log) {
     String[] phenoFiles = null;
     String[] covFiles = null;
     String phenoLabel;
@@ -58,7 +57,7 @@ public class Emmax {
     covFiles = new String[phenoFiles.length];
     for (int i = 0; i < covFiles.length; i++) {
       covFiles[i] = phenoFiles[i].substring(0, phenoFiles[i].lastIndexOf(phenoNameExtOrFullPath))
-                    + covNameExtOrFullPath;
+          + covNameExtOrFullPath;
       if (!new File(phenoCovDir + covFiles[i]).exists()) {
         covFiles[i] = null;
       }
@@ -67,30 +66,27 @@ public class Emmax {
     scripts = new Vector<String>();
     for (int l = 0; l < phenoFiles.length; l++) {
       log.report("Prepping scripts for " + phenoFiles[l] + " and "
-                 + (covFiles[l] == null || Files.exists(phenoCovDir + covFiles[l]) ? "zero"
-                                                                                   : (Files.getHeaderOfFile(phenoCovDir
-                                                                                                            + covFiles[l],
-                                                                                                            log).length
-                                                                                      - 2))
-                 + " covariates");
+          + (covFiles[l] == null || Files.exists(phenoCovDir + covFiles[l]) ? "zero"
+              : (Files.getHeaderOfFile(phenoCovDir + covFiles[l], log).length - 2))
+          + " covariates");
       for (int i = 0; i < KINSHIP_LABELS.length; i++) {
         phenoLabel = phenoFiles[l].substring(0, phenoFiles[l].lastIndexOf(phenoNameExtOrFullPath))
-                     + "_" + ext.rootOf(kinshipGenoDirAndNameRoot) + "_"
-                     + ext.rootOf(analysisGenoDirAndNameRoot) + "_" + KINSHIP_LABELS[i];
+            + "_" + ext.rootOf(kinshipGenoDirAndNameRoot) + "_"
+            + ext.rootOf(analysisGenoDirAndNameRoot) + "_" + KINSHIP_LABELS[i];
         new File(phenoCovDir + phenoLabel).mkdirs();
         scripts.add("cd " + phenoCovDir + phenoLabel + "/\n" + "plink --bfile "
-                    + kinshipGenoDirAndNameRoot + " --keep ../" + phenoFiles[l]
-                    + " --transpose --recode12 --output-missing-genotype 0 --out forKinship --noweb\n"
-                    + "plink --bfile " + analysisGenoDirAndNameRoot + " --keep ../" + phenoFiles[l]
-                    + " --freq --out mafCheck --noweb\n"
-                    + "awk '$5*$6>5 {print $2}' mafCheck.frq > polymorphicSNPs.txt\n"
-                    + "plink --bfile " + analysisGenoDirAndNameRoot + " --keep ../" + phenoFiles[l]
-                    + " --extract polymorphicSNPs.txt --transpose --recode12 --output-missing-genotype 0 --out forAnalysis --noweb\n"
-                    + ext.parseDirectoryOfFile(commandFullPath) + KINSHIP_PARAMETERS[i]
-                    + " forKinship\n" + commandFullPath + " -t forAnalysis" + " -k forKinship"
-                    + KINSHIP_EXTENSIONS[i] + " -p " + phenoCovDir + phenoFiles[l]
-                    + (covFiles[l] == null ? "" : " -c " + phenoCovDir + covFiles[l]) + " -o "
-                    + outDir + phenoLabel);
+            + kinshipGenoDirAndNameRoot + " --keep ../" + phenoFiles[l]
+            + " --transpose --recode12 --output-missing-genotype 0 --out forKinship --noweb\n"
+            + "plink --bfile " + analysisGenoDirAndNameRoot + " --keep ../" + phenoFiles[l]
+            + " --freq --out mafCheck --noweb\n"
+            + "awk '$5*$6>5 {print $2}' mafCheck.frq > polymorphicSNPs.txt\n" + "plink --bfile "
+            + analysisGenoDirAndNameRoot + " --keep ../" + phenoFiles[l]
+            + " --extract polymorphicSNPs.txt --transpose --recode12 --output-missing-genotype 0 --out forAnalysis --noweb\n"
+            + ext.parseDirectoryOfFile(commandFullPath) + KINSHIP_PARAMETERS[i] + " forKinship\n"
+            + commandFullPath + " -t forAnalysis" + " -k forKinship" + KINSHIP_EXTENSIONS[i]
+            + " -p " + phenoCovDir + phenoFiles[l]
+            + (covFiles[l] == null ? "" : " -c " + phenoCovDir + covFiles[l]) + " -o " + outDir
+            + phenoLabel);
       }
     }
 
@@ -100,11 +96,11 @@ public class Emmax {
     }
     // TODO consolidate with new method
     Files.qsub(batchDir + "runEmmax", batchDir, -1, "[%0]",
-               Matrix.toMatrix(Array.toStringArray(scripts)), qsubMemInMBs, qsubWalltimeInHours);
+        Matrix.toMatrix(Array.toStringArray(scripts)), qsubMemInMBs, qsubWalltimeInHours);
     // System.out.println("scripts.size(): " + scripts.size() + "\nbatchDir: " + batchDir);
     Files.qsubMultiple(batchDir + "chunkSB_emmax",
-                       Array.stringArraySequence(scripts.size(), batchDir + "runEmmax_", ".qsub"),
-                       16, -1, qsubMemInMBs, qsubWalltimeInHours);
+        Array.stringArraySequence(scripts.size(), batchDir + "runEmmax_", ".qsub"), 16, -1,
+        qsubMemInMBs, qsubWalltimeInHours);
   }
 
   public static void main(String[] args) {
@@ -150,28 +146,25 @@ public class Emmax {
     psig = 0.000001;
 
     String usage = "\n" + "gwas.Emmax requires 6 - 8 arguments\n"
-                   + "   (1) full path of the command (i.e. command=" + commandFullPath
-                   + " (default))\n"
-                   + "   (2) directory of the pheno and covariate files (i.e. phenodir="
-                   + phenoAndCovDir + " (default))\n"
-                   + "   (3) name extension of the pheno files, or full path of a specific pheno file (i.e. phenoext="
-                   + phenoNameExtOrFullPath + " (default))\n"
-                   + "   (4) name extension of the covariate files, or full path of a specific covariate file (i.e. covext="
-                   + covNameExtOrFullPath + " (default))\n"
-                   + "   (5) directory and root of the genotype files for kinship (i.e. kinshipGenoDir="
-                   + kinshipGenoDirAndNameRoot + " (default))\n"
-                   + "   (6) directory and root of the genotype files for analysis (i.e. analysisGenoDir="
-                   + analysisGenoDirAndNameRoot + " (default))\n"
-                   + "   (7) directory of output files (i.e. outdir=" + outDir + " (default))\n"
-                   + "   (8) directory of batch files (i.e. batchdir=" + batchDir + " (default))\n"
-                   + "   (9) (optional) qsub memory size (i.e. qsubmem=" + qsubMemInMBs
-                   + " (default; in megabytes))\n"
-                   + "   (10) (optional) qsub walltime (i.e. qsubwalltime=" + qsubWalltimeInHours
-                   + " (default; in hours))\n" + "Or\n"
-                   + "   (1) to parse results (i.e. parseresult=" + isParseResults + " (default))\n"
-                   + "   (2) directory of the results to parse (i.e. outdir=" + outDir
-                   + " (default))\n" + "   (3) threshold for significant p-value (i.e. psig=" + psig
-                   + " (default))\n" + "";
+        + "   (1) full path of the command (i.e. command=" + commandFullPath + " (default))\n"
+        + "   (2) directory of the pheno and covariate files (i.e. phenodir=" + phenoAndCovDir
+        + " (default))\n"
+        + "   (3) name extension of the pheno files, or full path of a specific pheno file (i.e. phenoext="
+        + phenoNameExtOrFullPath + " (default))\n"
+        + "   (4) name extension of the covariate files, or full path of a specific covariate file (i.e. covext="
+        + covNameExtOrFullPath + " (default))\n"
+        + "   (5) directory and root of the genotype files for kinship (i.e. kinshipGenoDir="
+        + kinshipGenoDirAndNameRoot + " (default))\n"
+        + "   (6) directory and root of the genotype files for analysis (i.e. analysisGenoDir="
+        + analysisGenoDirAndNameRoot + " (default))\n"
+        + "   (7) directory of output files (i.e. outdir=" + outDir + " (default))\n"
+        + "   (8) directory of batch files (i.e. batchdir=" + batchDir + " (default))\n"
+        + "   (9) (optional) qsub memory size (i.e. qsubmem=" + qsubMemInMBs
+        + " (default; in megabytes))\n" + "   (10) (optional) qsub walltime (i.e. qsubwalltime="
+        + qsubWalltimeInHours + " (default; in hours))\n" + "Or\n"
+        + "   (1) to parse results (i.e. parseresult=" + isParseResults + " (default))\n"
+        + "   (2) directory of the results to parse (i.e. outdir=" + outDir + " (default))\n"
+        + "   (3) threshold for significant p-value (i.e. psig=" + psig + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -231,12 +224,12 @@ public class Emmax {
           isSucceeded = false;
         } else {
           log = new Logger(outDir + "Emmax_"
-                           + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
+              + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
           isExisted = true;
         }
       } else {
         log = new Logger(outDir + "Emmax_"
-                         + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
+            + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
       }
 
       if (isParseResults) {
@@ -244,21 +237,18 @@ public class Emmax {
       } else {
         batchDir = ext.verifyDirFormat(batchDir);
         log.report("Genvisis (R) 2014. \nEmmax analysis "
-                   + (new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new Date()))
-                   + "\n-Kinship genotype files directory and name root: "
-                   + kinshipGenoDirAndNameRoot
-                   + "\n-Analysis genotype files directory and name root: "
-                   + analysisGenoDirAndNameRoot
-                   // + "\n-Geno file name extension or full path: " + genoNameExtOrFullPath
-                   + "\n-Pheno and covariate files directory: " + phenoAndCovDir
-                   + "\n-Pheno file name extension or full path: " + phenoNameExtOrFullPath
-                   + "\n-Covariate file name extension or full path: " + covNameExtOrFullPath
-                   + "\n-Output files directory: " + outDir + "\n-Batch files directory: "
-                   + batchDir);
+            + (new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new Date()))
+            + "\n-Kinship genotype files directory and name root: " + kinshipGenoDirAndNameRoot
+            + "\n-Analysis genotype files directory and name root: " + analysisGenoDirAndNameRoot
+            // + "\n-Geno file name extension or full path: " + genoNameExtOrFullPath
+            + "\n-Pheno and covariate files directory: " + phenoAndCovDir
+            + "\n-Pheno file name extension or full path: " + phenoNameExtOrFullPath
+            + "\n-Covariate file name extension or full path: " + covNameExtOrFullPath
+            + "\n-Output files directory: " + outDir + "\n-Batch files directory: " + batchDir);
 
         if (isExisted) {
           log.reportError("Warning --- Directory " + outDir
-                          + " already exists. Existing files might be reused or overwritten.");
+              + " already exists. Existing files might be reused or overwritten.");
         } else if (!isSucceeded) {
           log.reportError("Warning --- Cannot create the directory " + outDir);
         } else {
@@ -269,8 +259,8 @@ public class Emmax {
         // genoNameExtOrFullPath, phenoAndCovDir, phenoNameExtOrFullPath, covNameExtOrFullPath,
         // outDir, batchDir, log);
         generateScripts(commandFullPath, kinshipGenoDirAndNameRoot, analysisGenoDirAndNameRoot,
-                        phenoAndCovDir, phenoNameExtOrFullPath, covNameExtOrFullPath, outDir,
-                        batchDir, qsubMemInMBs, qsubWalltimeInHours, log);
+            phenoAndCovDir, phenoNameExtOrFullPath, covNameExtOrFullPath, outDir, batchDir,
+            qsubMemInMBs, qsubWalltimeInHours, log);
         log.report("\nEmmax scripts are finished.");
       }
     } catch (Exception e) {
@@ -309,7 +299,7 @@ public class Emmax {
           found = true;
           index = fileName.indexOf("_" + KINSHIP_LABELS[j]);
           label = fileName.substring(0, index)
-                  + fileName.substring(index + KINSHIP_LABELS[j].length() + 1);
+              + fileName.substring(index + KINSHIP_LABELS[j].length() + 1);
           if (!modelList.containsKey(label)) {
             fileNameRootsTemp = new String[KINSHIP_LABELS.length];
             fileNameRootsTemp[j] = fileName;
@@ -376,7 +366,7 @@ public class Emmax {
                 pvals[j] = pVals.elementAt(j);
               }
               lambda[i] = ProbDist.ChiDistReverse(Array.median(pvals), 1)
-                          / ProbDist.ChiDistReverse(0.50, 1);
+                  / ProbDist.ChiDistReverse(0.50, 1);
             }
           }
         }

@@ -40,9 +40,8 @@ public class SummarizeOSTrioCoverage {
     private final double[] totalAvgCoverage;
 
     public FamCoverageResults(String covFile, String fam, String off, String mo, String fa,
-                              int numTotalRegions, int[] numCoveredAtOff, int[] numCoveredAtMo,
-                              int[] numCoveredAtFa, int[] numCoveredAtIntersect,
-                              int[] coverageTargets, double[] totalAvgCoverage) {
+        int numTotalRegions, int[] numCoveredAtOff, int[] numCoveredAtMo, int[] numCoveredAtFa,
+        int[] numCoveredAtIntersect, int[] coverageTargets, double[] totalAvgCoverage) {
       super();
       this.fam = fam;
       this.off = off;
@@ -98,8 +97,8 @@ public class SummarizeOSTrioCoverage {
         h.add((numTotalRegions == 0 ? 0 : (double) numCoveredAtOff[i] / numTotalRegions) + "");
         h.add((numTotalRegions == 0 ? 0 : (double) numCoveredAtMo[i] / numTotalRegions) + "");
         h.add((numTotalRegions == 0 ? 0 : (double) numCoveredAtFa[i] / numTotalRegions) + "");
-        h.add((numTotalRegions == 0 ? 0 : (double) numCoveredAtIntersect[i] / numTotalRegions)
-              + "");
+        h.add(
+            (numTotalRegions == 0 ? 0 : (double) numCoveredAtIntersect[i] / numTotalRegions) + "");
       }
       return Array.toStringArray(h);
     }
@@ -119,7 +118,7 @@ public class SummarizeOSTrioCoverage {
     private FamCoverageResults famCoverageResults;
 
     public FamSum(String outDir, Logger log, Hashtable<String, String> map, String fam,
-                  Set<String> famInds) {
+        Set<String> famInds) {
       super();
       this.outDir = outDir;
       this.log = log;
@@ -158,7 +157,7 @@ public class SummarizeOSTrioCoverage {
     private final String outDir;
 
     public SumFamProducer(VcfPopulation vpop, String outDir, Logger log,
-                          Hashtable<String, String> map) {
+        Hashtable<String, String> map) {
       super();
       this.vpop = vpop;
       this.log = log;
@@ -199,8 +198,7 @@ public class SummarizeOSTrioCoverage {
   }
 
   private static FamCoverageResults sumFam(String outDir, Logger log, Hashtable<String, String> map,
-                                           String fam,
-                                           Set<String> famInds) throws IllegalStateException {
+      String fam, Set<String> famInds) throws IllegalStateException {
     String off = null;
     String offFile = null;
     String mo = null;
@@ -260,7 +258,7 @@ public class SummarizeOSTrioCoverage {
       int col = ext.indexOfStr(avgC, Files.getHeaderOfFile(offFile, log));
       if (!Files.exists(coverageTrio)) {
         Files.paste(new String[] {offFile, moFile, faFile}, coverageTrio, new int[] {0, col}, 0,
-                    tags, null, log);
+            tags, null, log);
       }
 
       try {
@@ -313,14 +311,13 @@ public class SummarizeOSTrioCoverage {
 
     }
     return new FamCoverageResults(coverageTrio, fam, off, mo, fa, numTotalRegions, numCoveredAtOff,
-                                  numCoveredAtMo, numCoveredAtFa, numCoveredAtIntersect,
-                                  coverageTargets, avgCoverage);
+        numCoveredAtMo, numCoveredAtFa, numCoveredAtIntersect, coverageTargets, avgCoverage);
 
   }
 
   // /home/spectorl/lanej0/OS_seq/bamQC
   public static void summarize(String vpopFile, String indir, String outDir, int numThreads,
-                               Logger log) throws IllegalStateException {
+      Logger log) throws IllegalStateException {
     VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.ANY, log);
     vpop.report();
     String[] files = Files.listFullPaths(indir, ".sorted.dedup.realigned.recal.txt", false);
@@ -392,18 +389,15 @@ public class SummarizeOSTrioCoverage {
     String outAINMIN = outputFinal + ".avgCIMin.jpeg";
     RScatter rscatterAvgINMIN =
         new RScatter(outputFinal, scripAINMIN, plotAInMIN, outAINMIN, "MIN_AVG_COVERAGE",
-                     new String[] {"INTERSECT_ProportionCoveredAt5X",
-                                   "INTERSECT_ProportionCoveredAt10X",
-                                   "INTERSECT_ProportionCoveredAt20X",
-                                   "INTERSECT_ProportionCoveredAt30X",
-                                   "INTERSECT_ProportionCoveredAt40X"},
-                     null, SCATTER_TYPE.POINT, log);
+            new String[] {"INTERSECT_ProportionCoveredAt5X", "INTERSECT_ProportionCoveredAt10X",
+                "INTERSECT_ProportionCoveredAt20X", "INTERSECT_ProportionCoveredAt30X",
+                "INTERSECT_ProportionCoveredAt40X"},
+            null, SCATTER_TYPE.POINT, log);
     rscatterAvgINMIN.setrSafeAltYColumnNames(new String[] {"5X Coverage", "10X Coverage",
-                                                           "20X Coverage", "30X Coverage",
-                                                           "40X Coverage"});
+        "20X Coverage", "30X Coverage", "40X Coverage"});
     rscatterAvgINMIN.setOverWriteExisting(true);
-    rscatterAvgINMIN.setxLabel("Minimum average coverage of trio (n="
-                               + Files.countLines(outputFinal, 1) + ")");
+    rscatterAvgINMIN
+        .setxLabel("Minimum average coverage of trio (n=" + Files.countLines(outputFinal, 1) + ")");
     rscatterAvgINMIN.setyLabel("Proportion of targets covered in all members of trio");
     rscatterAvgINMIN.setyRange(new double[] {0, 1});
     rscatterAvgINMIN.setxRange(new double[] {15, 55});
@@ -416,18 +410,15 @@ public class SummarizeOSTrioCoverage {
     String outAINBOX = outputFinal + ".avgCIMinbox.jpeg";
     RScatter rscatterAvgBOX =
         new RScatter(outputFinal, scripBOX, plotABOX, outAINBOX, "MIN_AVG_COVERAGE",
-                     new String[] {"INTERSECT_ProportionCoveredAt5X",
-                                   "INTERSECT_ProportionCoveredAt10X",
-                                   "INTERSECT_ProportionCoveredAt20X",
-                                   "INTERSECT_ProportionCoveredAt30X",
-                                   "INTERSECT_ProportionCoveredAt40X"},
-                     null, SCATTER_TYPE.BOX_NO_MELT, log);
+            new String[] {"INTERSECT_ProportionCoveredAt5X", "INTERSECT_ProportionCoveredAt10X",
+                "INTERSECT_ProportionCoveredAt20X", "INTERSECT_ProportionCoveredAt30X",
+                "INTERSECT_ProportionCoveredAt40X"},
+            null, SCATTER_TYPE.BOX_NO_MELT, log);
     rscatterAvgBOX.setrSafeAltYColumnNames(new String[] {"5X Coverage", "10X Coverage",
-                                                         "20X Coverage", "30X Coverage",
-                                                         "40X Coverage"});
+        "20X Coverage", "30X Coverage", "40X Coverage"});
     rscatterAvgBOX.setOverWriteExisting(true);
-    rscatterAvgBOX.setxLabel("Minimum average coverage of trio (n="
-                             + Files.countLines(outputFinal, 1) + ")");
+    rscatterAvgBOX
+        .setxLabel("Minimum average coverage of trio (n=" + Files.countLines(outputFinal, 1) + ")");
     rscatterAvgBOX.setyLabel("Proportion of targets covered in all members of trio");
     rscatterAvgBOX.setyRange(new double[] {0, 1});
     rscatterAvgBOX.setFontsize(10);

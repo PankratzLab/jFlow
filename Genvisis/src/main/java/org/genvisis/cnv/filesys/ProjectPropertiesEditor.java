@@ -209,8 +209,7 @@ public class ProjectPropertiesEditor extends JFrame {
 
     @Override
     public Component getTableCellEditorComponent(final JTable table, final Object value,
-                                                 boolean isSelected, final int row,
-                                                 final int column) {
+        boolean isSelected, final int row, final int column) {
       this.table = table;
       StringBuilder labelText = new StringBuilder();
       ActionListener listener = null;
@@ -499,7 +498,7 @@ public class ProjectPropertiesEditor extends JFrame {
     // Prepares the spinner component and returns it.
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
-                                                 int row, int column) {
+        int row, int column) {
       this.table = table;
       if (!valueSet) {
         spinner.setValue(value);
@@ -543,49 +542,45 @@ public class ProjectPropertiesEditor extends JFrame {
     }
   }
 
-  public static final String[][] ALL_PROPERTY_SETS =
-      new String[][] {{"Project Name and Locations", "PROJECT_NAME", "PROJECT_DIRECTORY",
-                       "DATA_DIRECTORY", "SAMPLE_DATA_FILENAME", "SAMPLE_DIRECTORY",
-                       "MARKER_DATA_DIRECTORY", "RESULTS_DIRECTORY", "DEMO_DIRECTORY",
-                       "BACKUP_DIRECTORY", "ARRAY_TYPE", "XY_SCALE_FACTOR"},
-                      {"Import", "SOURCE_DIRECTORY", "SOURCE_FILENAME_EXTENSION", "LONG_FORMAT",
-                       "SOURCE_FILE_DELIMITER", "ID_HEADER", "PARSE_AT_AT_SYMBOL",
-                       "MARKER_POSITION_FILENAME", "SAMPLE_ALIAS", "FID_ALIAS", "IID_ALIAS"},
-                      {"Global", "NUM_THREADS", "LOG_LEVEL", "CUSTOM_COLOR_SCHEME_FILENAME",
-                       "CLUSTER_FILTER_COLLECTION_FILENAME", "ANNOTATION_FILENAME",
-                       "AB_LOOKUP_FILENAME", "GENETRACK_FILENAME", "GC_MODEL_FILENAME",
-                       "GC_CORRECTION_PARAMETERS_FILENAMES", "REFERENCE_GENOME_FASTA_FILENAME"},
-                      {"Centroids", "SEX_CENTROIDS_MALE_FILENAME", "SEX_CENTROIDS_FEMALE_FILENAME",
-                       "ORIGINAL_CENTROIDS_FILENAME", "GENOTYPE_CENTROIDS_FILENAME",
-                       "CHIMERA_CENTROIDS_FILENAME", "CUSTOM_CENTROIDS_FILENAME"},
-                      {"DataExport", "PEDIGREE_FILENAME", "FILTERED_MARKERS_FILENAME",
-                       "SAMPLE_SUBSET_FILENAME", "TARGET_MARKERS_FILENAMES", "GC_THRESHOLD",},
-                      {"MosaicPlot", "MOSAIC_RESULTS_FILENAME", "MOSAIC_COLOR_CODES_FILENAME",},
-                      {"Data Cleaning", "SAMPLE_QC_FILENAME", "SEXCHECK_RESULTS_FILENAME",
-                       "LRRSD_CUTOFF", "SAMPLE_CALLRATE_THRESHOLD", "MARKER_METRICS_FILENAME",
-                       "MARKER_EXCLUSION_CRITERIA_FILENAME", "MARKER_REVIEW_CRITERIA_FILENAME",
-                       "MARKER_COMBINED_CRITERIA_FILENAME", "GENOME_CLUSTER_FILENAME"},
-                      {"CNV Files", "CNV_FILENAMES", "HMM_FILENAME", "CUSTOM_PFB_FILENAME",},
-                      {"CompPlot", "REGION_LIST_FILENAMES"},
-                      {"Trailer", "INDIVIDUAL_CNV_LIST_FILENAMES",
-                       "WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER"},
-                      {"ScatterPlot", "DISPLAY_MARKERS_FILENAMES", "SHIFT_SEX_CHR_COLORS_YESNO",
-                       "BLAST_ANNOTATION_FILENAME", "BLAST_PROPORTION_MATCH_FILTER",},
-                      {"TwoDPlot", "TWOD_LOADED_FILENAMES", "TWOD_LOADED_VARIABLES"},
-                      {"ForestPlot", "FOREST_PLOT_FILENAMES"},
-                      {"QQ-plot", "QQ_FILENAMES", "DISPLAY_QUANTILES", "DISPLAY_STANDARD_QQ",
-                       "DISPLAY_ROTATED_QQ", "QQ_MAX_NEG_LOG10_PVALUE"},
-                      {"PennCNV", "PENNCNV_EXECUTABLE_DIRECTORY", "PENNCNV_DATA_DIRECTORY",
-                       "PENNCNV_RESULTS_DIRECTORY", "PENNCNV_GZIP_YESNO",},
-                      {"CytoSpecific", "UNREPORTED_CNP_FILENAME", "COMMON_CNP_FILENAME",
-                       "REPORTED_CNP_FILENAME"},
-                      {"PC Intensity Correction", "INTENSITY_PC_FILENAME",
-                       "INTENSITY_PC_NUM_COMPONENTS", "INTENSITY_PC_MARKERS_FILENAME"},
-                      {"Optimization parameters", "MAX_MEMORY_USED_TO_LOAD_MARKER_DATA",
-                       "MAX_MARKERS_LOADED_PER_CYCLE"},
-                      {"Plink Directory/Filename Roots (edit to remove extension)",
-                       "PLINK_DIR_FILEROOTS"},
-                      {"COLORS", "MARKER_COLOR_KEY_FILENAMES"}};
+  public static final String[][] ALL_PROPERTY_SETS = new String[][] {
+      {"Project Name and Locations", "PROJECT_NAME", "PROJECT_DIRECTORY", "DATA_DIRECTORY",
+          "SAMPLE_DATA_FILENAME", "SAMPLE_DIRECTORY", "MARKER_DATA_DIRECTORY", "RESULTS_DIRECTORY",
+          "DEMO_DIRECTORY", "BACKUP_DIRECTORY", "ARRAY_TYPE", "XY_SCALE_FACTOR"},
+      {"Import", "SOURCE_DIRECTORY", "SOURCE_FILENAME_EXTENSION", "LONG_FORMAT",
+          "SOURCE_FILE_DELIMITER", "ID_HEADER", "PARSE_AT_AT_SYMBOL", "MARKER_POSITION_FILENAME",
+          "SAMPLE_ALIAS", "FID_ALIAS", "IID_ALIAS"},
+      {"Global", "NUM_THREADS", "LOG_LEVEL", "CUSTOM_COLOR_SCHEME_FILENAME",
+          "CLUSTER_FILTER_COLLECTION_FILENAME", "ANNOTATION_FILENAME", "AB_LOOKUP_FILENAME",
+          "GENETRACK_FILENAME", "GC_MODEL_FILENAME", "GC_CORRECTION_PARAMETERS_FILENAMES",
+          "REFERENCE_GENOME_FASTA_FILENAME"},
+      {"Centroids", "SEX_CENTROIDS_MALE_FILENAME", "SEX_CENTROIDS_FEMALE_FILENAME",
+          "ORIGINAL_CENTROIDS_FILENAME", "GENOTYPE_CENTROIDS_FILENAME",
+          "CHIMERA_CENTROIDS_FILENAME", "CUSTOM_CENTROIDS_FILENAME"},
+      {"DataExport", "PEDIGREE_FILENAME", "FILTERED_MARKERS_FILENAME", "SAMPLE_SUBSET_FILENAME",
+          "TARGET_MARKERS_FILENAMES", "GC_THRESHOLD",},
+      {"MosaicPlot", "MOSAIC_RESULTS_FILENAME", "MOSAIC_COLOR_CODES_FILENAME",},
+      {"Data Cleaning", "SAMPLE_QC_FILENAME", "SEXCHECK_RESULTS_FILENAME", "LRRSD_CUTOFF",
+          "SAMPLE_CALLRATE_THRESHOLD", "MARKER_METRICS_FILENAME",
+          "MARKER_EXCLUSION_CRITERIA_FILENAME", "MARKER_REVIEW_CRITERIA_FILENAME",
+          "MARKER_COMBINED_CRITERIA_FILENAME", "GENOME_CLUSTER_FILENAME"},
+      {"CNV Files", "CNV_FILENAMES", "HMM_FILENAME", "CUSTOM_PFB_FILENAME",},
+      {"CompPlot", "REGION_LIST_FILENAMES"},
+      {"Trailer", "INDIVIDUAL_CNV_LIST_FILENAMES", "WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER"},
+      {"ScatterPlot", "DISPLAY_MARKERS_FILENAMES", "SHIFT_SEX_CHR_COLORS_YESNO",
+          "BLAST_ANNOTATION_FILENAME", "BLAST_PROPORTION_MATCH_FILTER",},
+      {"TwoDPlot", "TWOD_LOADED_FILENAMES", "TWOD_LOADED_VARIABLES"},
+      {"ForestPlot", "FOREST_PLOT_FILENAMES"},
+      {"QQ-plot", "QQ_FILENAMES", "DISPLAY_QUANTILES", "DISPLAY_STANDARD_QQ", "DISPLAY_ROTATED_QQ",
+          "QQ_MAX_NEG_LOG10_PVALUE"},
+      {"PennCNV", "PENNCNV_EXECUTABLE_DIRECTORY", "PENNCNV_DATA_DIRECTORY",
+          "PENNCNV_RESULTS_DIRECTORY", "PENNCNV_GZIP_YESNO",},
+      {"CytoSpecific", "UNREPORTED_CNP_FILENAME", "COMMON_CNP_FILENAME", "REPORTED_CNP_FILENAME"},
+      {"PC Intensity Correction", "INTENSITY_PC_FILENAME", "INTENSITY_PC_NUM_COMPONENTS",
+          "INTENSITY_PC_MARKERS_FILENAME"},
+      {"Optimization parameters", "MAX_MEMORY_USED_TO_LOAD_MARKER_DATA",
+          "MAX_MARKERS_LOADED_PER_CYCLE"},
+      {"Plink Directory/Filename Roots (edit to remove extension)", "PLINK_DIR_FILEROOTS"},
+      {"COLORS", "MARKER_COLOR_KEY_FILENAMES"}};
 
   private static final long serialVersionUID = 1L;
 
@@ -609,12 +604,11 @@ public class ProjectPropertiesEditor extends JFrame {
 
   String[] hiddenProperties =
       new String[] {"PROJECT_PROPERTIES_FILENAME", "MARKERSET_FILENAME", "MARKERLOOKUP_FILENAME",
-                    "SAMPLELIST_FILENAME", "JAR_STATUS", "STRATIFICATION_RESULTS_FILENAMES"};
+          "SAMPLELIST_FILENAME", "JAR_STATUS", "STRATIFICATION_RESULTS_FILENAMES"};
 
-  String[] uneditableProperties =
-      new String[] {"SOURCE_DIRECTORY", "SOURCE_FILENAME_EXTENSION", "LONG_FORMAT",
-                    "SOURCE_FILE_DELIMITER", "ID_HEADER", "PARSE_AT_AT_SYMBOL", "ARRAY_TYPE",
-                    "XY_SCALE_FACTOR"};
+  String[] uneditableProperties = new String[] {"SOURCE_DIRECTORY", "SOURCE_FILENAME_EXTENSION",
+      "LONG_FORMAT", "SOURCE_FILE_DELIMITER", "ID_HEADER", "PARSE_AT_AT_SYMBOL", "ARRAY_TYPE",
+      "XY_SCALE_FACTOR"};
 
   private JPanel contentPane;
 
@@ -639,7 +633,7 @@ public class ProjectPropertiesEditor extends JFrame {
                 for (File f : files) {
                   if (!hasAllPLINKFiles(f)) {
                     proj.message("Error - couldn't find all files {.bim/.fam/.bed} for PLINK root ["
-                                 + ext.rootOf(f.getPath(), true) + "]");
+                        + ext.rootOf(f.getPath(), true) + "]");
                     return false;
                   }
                 }
@@ -676,9 +670,8 @@ public class ProjectPropertiesEditor extends JFrame {
             @Override
             Object processNewValue(Object newValue, Object oldValue) {
               if (newValue instanceof File[]) {
-                if (((File[]) newValue).length == 0
-                    || (((File[]) newValue).length == 1
-                        && ((File[]) newValue)[0].getPath().equals(""))) {
+                if (((File[]) newValue).length == 0 || (((File[]) newValue).length == 1
+                    && ((File[]) newValue)[0].getPath().equals(""))) {
                   return newValue;
                 }
                 File[] newFiles = new File[((File[]) newValue).length];
@@ -718,8 +711,8 @@ public class ProjectPropertiesEditor extends JFrame {
       public void actionPerformed(ActionEvent e) {
         proj.getLog().report("Launching notepad...");
         try {
-          /* Process p = */Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""
-                                                     + proj.getPropertyFilename() + "\"");
+          /* Process p = */Runtime.getRuntime()
+              .exec("C:\\Windows\\System32\\Notepad.exe \"" + proj.getPropertyFilename() + "\"");
           ProjectPropertiesEditor.this.setVisible(false);
           // TODO update properties in Project and Configurator - they may have changed
         } catch (IOException ioe) {
@@ -837,7 +830,7 @@ public class ProjectPropertiesEditor extends JFrame {
 
       @Override
       public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
-                                                   int row, int column) {
+          int row, int column) {
         String[] val = (String[]) value;
         String valueString = Array.toStr(val, ";");
         return super.getTableCellEditorComponent(table, valueString, isSelected, row, column);
@@ -849,8 +842,7 @@ public class ProjectPropertiesEditor extends JFrame {
 
       @Override
       public Component getTableCellRendererComponent(final JTable table, Object value,
-                                                     boolean isSelected, boolean hasFocus,
-                                                     final int row, final int column) {
+          boolean isSelected, boolean hasFocus, final int row, final int column) {
         String projDir = proj.getProperty(proj.PROJECT_DIRECTORY);
         String tempKey = (String) table.getValueAt(row, 0);
         Component returnComp;
@@ -858,8 +850,8 @@ public class ProjectPropertiesEditor extends JFrame {
           returnComp =
               super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
           ((JComponent) returnComp).setToolTipText(null);
-          ((JComponent) returnComp).setFont(((JComponent) returnComp).getFont()
-                                                                     .deriveFont(Font.BOLD, 14f));
+          ((JComponent) returnComp)
+              .setFont(((JComponent) returnComp).getFont().deriveFont(Font.BOLD, 14f));
           return returnComp;
         }
         String desc = proj.getProperty(tempKey).getDescription();
@@ -973,7 +965,7 @@ public class ProjectPropertiesEditor extends JFrame {
             returnComp = fileRenderer;
           } else {
             returnComp = super.getTableCellRendererComponent(table, sb.toString(), isSelected,
-                                                             hasFocus, row, column);
+                hasFocus, row, column);
           }
         } else if (value instanceof Number) {
           String propKey = (String) table.getModel().getValueAt(row, 0);
@@ -989,13 +981,12 @@ public class ProjectPropertiesEditor extends JFrame {
         } else {
           if (column == 0) {
             returnComp = super.getTableCellRendererComponent(table, "            " + value,
-                                                             isSelected, hasFocus, row, column);
-            ((JComponent) returnComp).setFont(((JComponent) returnComp).getFont().deriveFont(
-                                                                                             Font.PLAIN,
-                                                                                             12f));
+                isSelected, hasFocus, row, column);
+            ((JComponent) returnComp)
+                .setFont(((JComponent) returnComp).getFont().deriveFont(Font.PLAIN, 12f));
           } else {
             returnComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus,
-                                                             row, column);
+                row, column);
           }
         }
         if (!"".equals(desc)) {
@@ -1127,7 +1118,7 @@ public class ProjectPropertiesEditor extends JFrame {
           @Override
           public boolean isCellEditable(int row, int column) {
             return column != 0 && !labelRows.contains(row) && super.isCellEditable(row, column)
-                   && !disabledKeys.contains(getValueAt(row, 0));
+                && !disabledKeys.contains(getValueAt(row, 0));
           }
 
         };
@@ -1240,13 +1231,13 @@ public class ProjectPropertiesEditor extends JFrame {
     HashMap<String, String> changes = extract();
     if (changes.size() > 0) {
       if (promptChanges) {
-        StringBuilder message =
-            new StringBuilder("The following properties have been changed.  Would you like to save your changes?");
+        StringBuilder message = new StringBuilder(
+            "The following properties have been changed.  Would you like to save your changes?");
         int cnt = 0;
         for (String key : changes.keySet()) {
           if (cnt == 10) {
             message.append("\n... and ").append(changes.size() - cnt)
-                   .append(" additional changes...");
+                .append(" additional changes...");
             break;
           }
           message.append("\n").append(key);
@@ -1254,8 +1245,7 @@ public class ProjectPropertiesEditor extends JFrame {
         }
         String title = "Save changes?";
         int opt = JOptionPane.showConfirmDialog(ProjectPropertiesEditor.this, message, title,
-                                                JOptionPane.YES_NO_CANCEL_OPTION,
-                                                JOptionPane.QUESTION_MESSAGE);
+            JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (opt == JOptionPane.CLOSED_OPTION || opt == JOptionPane.CANCEL_OPTION) {
           return;
         } else if (opt == JOptionPane.YES_OPTION) {
@@ -1271,8 +1261,8 @@ public class ProjectPropertiesEditor extends JFrame {
 
   private HashMap<String, String> extract() {
     table.editingStopped(new ChangeEvent(table));
-    String projectsDir =
-        new LaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE).getProperty(LaunchProperties.PROJECTS_DIR);
+    String projectsDir = new LaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE)
+        .getProperty(LaunchProperties.PROJECTS_DIR);
     String currProjDir = proj.getProperty(proj.PROJECT_DIRECTORY);
     int rowCount = table.getRowCount();
 
@@ -1291,16 +1281,14 @@ public class ProjectPropertiesEditor extends JFrame {
         if (set.length > 0) {
           value = set[0].getPath();
           if (!set[0].exists()) {
-            value =
-                ((StringListProperty) proj.getProperty(key)).isDir ? ext.verifyDirFormat(value)
-                                                                   : ext.replaceAllWith(value, "\\",
-                                                                                        "/");
+            value = ((StringListProperty) proj.getProperty(key)).isDir ? ext.verifyDirFormat(value)
+                : ext.replaceAllWith(value, "\\", "/");
           } else {
             value = set[0].isDirectory() ? ext.verifyDirFormat(value)
-                                         : ext.replaceAllWith(value, "\\", "/");
+                : ext.replaceAllWith(value, "\\", "/");
           }
           value = set[0].isDirectory() ? ext.verifyDirFormat(value)
-                                       : ext.replaceAllWith(value, "\\", "/");
+              : ext.replaceAllWith(value, "\\", "/");
           if (value.startsWith(projectsDir)) {
             value = value.substring(projectsDir.length());
           } else if (value.startsWith(currProjDir)) {
@@ -1309,13 +1297,11 @@ public class ProjectPropertiesEditor extends JFrame {
           for (int k = 1; k < set.length; k++) {
             String fNm = set[k].getPath();
             if (!set[k].exists()) {
-              fNm =
-                  ((StringListProperty) proj.getProperty(key)).isDir ? ext.verifyDirFormat(fNm)
-                                                                     : ext.replaceAllWith(fNm, "\\",
-                                                                                          "/");
+              fNm = ((StringListProperty) proj.getProperty(key)).isDir ? ext.verifyDirFormat(fNm)
+                  : ext.replaceAllWith(fNm, "\\", "/");
             } else {
               fNm = set[k].isDirectory() ? ext.verifyDirFormat(fNm)
-                                         : ext.replaceAllWith(fNm, "\\", "/");
+                  : ext.replaceAllWith(fNm, "\\", "/");
             }
             if (fNm.startsWith(projectsDir)) {
               fNm = fNm.substring(projectsDir.length());
@@ -1329,9 +1315,8 @@ public class ProjectPropertiesEditor extends JFrame {
         File set = (File) rawValue;
         value = set.getPath();
         if (!set.exists()) {
-          value =
-              ((FileProperty) proj.getProperty(key)).isDir ? ext.verifyDirFormat(value)
-                                                           : ext.replaceAllWith(value, "\\", "/");
+          value = ((FileProperty) proj.getProperty(key)).isDir ? ext.verifyDirFormat(value)
+              : ext.replaceAllWith(value, "\\", "/");
         } else {
           value =
               set.isDirectory() ? ext.verifyDirFormat(value) : ext.replaceAllWith(value, "\\", "/");

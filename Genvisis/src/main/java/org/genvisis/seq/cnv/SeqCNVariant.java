@@ -11,7 +11,7 @@ public class SeqCNVariant extends CNVariant {
   private CNVExtraInfo[] cExtraInfos;
 
   public SeqCNVariant(String familyID, String individualID, byte chr, int start, int stop, int cn,
-                      double score, int numMarkers, int source, CNVExtraInfo[] cExtraInfos) {
+      double score, int numMarkers, int source, CNVExtraInfo[] cExtraInfos) {
     super(familyID, individualID, chr, start, stop, cn, score, numMarkers, source);
     this.cExtraInfos = cExtraInfos;
   }

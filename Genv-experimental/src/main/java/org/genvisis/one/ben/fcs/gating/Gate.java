@@ -167,7 +167,7 @@ public abstract class Gate {
       boolean[] includes =
           parentGate == null ? new boolean[dataLoader.getCount()] : parentGate.gate(dataLoader);
       parentGating = parentGate == null ? Array.booleanArray(dataLoader.getCount(), true)
-                                        : Arrays.copyOf(includes, includes.length);
+          : Arrays.copyOf(includes, includes.length);
       if (myPath == null) {
         myPath = constructPath();
       }
@@ -229,7 +229,7 @@ public abstract class Gate {
       for (int i = 0; i < gateResolution; i++) {
         for (int j = 0; j < gateResolution; j++) {
           rects.add(new Rectangle(i * binStep + binStep / 2, j * binStep + binStep / 2, binStep,
-                                  binStep));
+              binStep));
         }
       }
       for (Rectangle r : rects) {
@@ -272,7 +272,7 @@ public abstract class Gate {
 
           // compute the cross product of vectors (center -> a) x (center -> b)
           double det = (o1.getCenterX() - x) * (o2.getCenterY() - y)
-                       - (o2.getCenterX() - x) * (o1.getCenterY() - y);
+              - (o2.getCenterX() - x) * (o1.getCenterY() - y);
           if (det < 0) {
             return -1;
           }
@@ -283,9 +283,9 @@ public abstract class Gate {
           // points a and b are on the same line from the center
           // check which point is closer to the center
           double d1 = (o1.getCenterX() - x) * (o1.getCenterX() - x)
-                      + (o1.getCenterY() - y) * (o1.getCenterY() - y);
+              + (o1.getCenterY() - y) * (o1.getCenterY() - y);
           double d2 = (o2.getCenterX() - x) * (o2.getCenterX() - x)
-                      + (o2.getCenterY() - y) * (o2.getCenterY() - y);
+              + (o2.getCenterY() - y) * (o2.getCenterY() - y);
           return d1 > d2 ? -1 : d1 < d2 ? 1 : 0;
         }
       });
@@ -403,7 +403,7 @@ public abstract class Gate {
       boolean[] includes =
           parentGate == null ? new boolean[dataLoader.getCount()] : parentGate.gate(dataLoader);
       parentGating = parentGate == null ? Array.booleanArray(dataLoader.getCount(), true)
-                                        : Arrays.copyOf(includes, includes.length);
+          : Arrays.copyOf(includes, includes.length);
       boolean[][] paramIncludes = new boolean[dimensions.size()][dataLoader.getCount()];
       for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
         RectangleGateDimension rgd = (RectangleGateDimension) dimensions.get(p);
@@ -414,7 +414,7 @@ public abstract class Gate {
         for (int i = 0; i < dataLoader.getCount(); i++) {
           // inclusive min, exclusive max - see gating-ml spec
           paramIncludes[p][i] = (!Numbers.isFinite(rgd.getMin()) || rgd.getMin() <= paramData[i])
-                                && (!Numbers.isFinite(rgd.getMax()) || rgd.getMax() > paramData[i]);
+              && (!Numbers.isFinite(rgd.getMax()) || rgd.getMax() > paramData[i]);
         }
       }
       if (includes == null) {

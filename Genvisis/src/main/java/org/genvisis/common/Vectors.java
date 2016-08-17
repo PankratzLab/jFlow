@@ -16,7 +16,7 @@ public final class Vectors {
     if (v.size() != order.length) {
       Logger log = new Logger();
       log.reportError("Error - order array does not have the same number of elements ("
-                      + order.length + ") as the target (" + v.size() + ")");
+          + order.length + ") as the target (" + v.size() + ")");
       return false;
     }
     return true;

@@ -19,23 +19,21 @@ import org.genvisis.filesys.CNVariant;
  *         http://dgv.tcag.ca/dgv/app/downloads?ref=GRCh37/hg19
  */
 public class DGV_CNV {
-  private static final String[] HEADER_DGV =
-      new String[] {"variantaccession", "chr", "start", "end", "varianttype", "variantsubtype",
-                    "reference", "pubmedid", "method", "platform", "mergedvariants",
-                    "supportingvariants", "mergedorsample", "frequency", "samplesize",
-                    "observedgains", "observedlosses", "cohortdescription", "genes", "samples"};
-  private static final String[] COPY_NUMBER_VARIATION_MAP =
-      new String[] {"chr", "start", "end", "state", "id", "type", "num_variants", "num_samples",
-                    "num_samples_multicounted", "num_studies", "variants", "samples", "studies",
-                    "African", "Asian", "European", "Mexican", "Middle_East", "Native_American",
-                    "Oceania", "South_American"};
+  private static final String[] HEADER_DGV = new String[] {"variantaccession", "chr", "start",
+      "end", "varianttype", "variantsubtype", "reference", "pubmedid", "method", "platform",
+      "mergedvariants", "supportingvariants", "mergedorsample", "frequency", "samplesize",
+      "observedgains", "observedlosses", "cohortdescription", "genes", "samples"};
+  private static final String[] COPY_NUMBER_VARIATION_MAP = new String[] {"chr", "start", "end",
+      "state", "id", "type", "num_variants", "num_samples", "num_samples_multicounted",
+      "num_studies", "variants", "samples", "studies", "African", "Asian", "European", "Mexican",
+      "Middle_East", "Native_American", "Oceania", "South_American"};
 
   public static void main(String[] args) {
     int numArgs = args.length;
     String dir = "C:/bin/ref/1000GCNV/";
 
     String usage = "\n" + "one.JL.DGV_CNV requires 0-1 arguments\n" + "   (1) directory (i.e. dir="
-                   + dir + " (default))\n" + "";
+        + dir + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -99,7 +97,7 @@ public class DGV_CNV {
             ext.indexFactors(HEADER_DGV, Files.getHeaderOfFile(element, log), true, false);
         if (Array.countIf(indices, -1) > 0) {
           indices = ext.indexFactors(COPY_NUMBER_VARIATION_MAP, Files.getHeaderOfFile(element, log),
-                                     true, false);
+              true, false);
           dgv = false;
         }
         int lineNum = 0;
@@ -132,7 +130,7 @@ public class DGV_CNV {
                 break;
               } else {
                 CNVariant tmp = new CNVariant(samples[j], samples[j], (byte) chr, start, stop,
-                                              cn[0], 99, -1, 99);
+                    cn[0], 99, -1, 99);
                 writer.println(tmp.toPlinkFormat());
               }
 
@@ -165,13 +163,13 @@ public class DGV_CNV {
                   System.out.println(Array.toStr(line));
                   System.out.println(lineNum + "\t" + line.length + "\t" + element);
                   log.reportTimeError("Del: " + numDel + " and Dup: " + numDup
-                                      + " does not add up to " + samples.length);
+                      + " does not add up to " + samples.length);
                   System.exit(1);
                 } else {
                   int sampIndex = 0;
                   for (int j = 0; j < numDup; j++) {
                     CNVariant tmp = new CNVariant(samples[sampIndex], samples[sampIndex],
-                                                  (byte) chr, start, stop, 3, 99, -1, 99);
+                        (byte) chr, start, stop, 3, 99, -1, 99);
                     writer.println(tmp.toPlinkFormat());
                     sampIndex++;
                     if (sampIndex >= samples.length) {
@@ -183,7 +181,7 @@ public class DGV_CNV {
                   }
                   for (int j = 0; j < numDel; j++) {
                     CNVariant tmp = new CNVariant(samples[sampIndex], samples[sampIndex],
-                                                  (byte) chr, start, stop, 1, 99, -1, 99);
+                        (byte) chr, start, stop, 1, 99, -1, 99);
                     writer.println(tmp.toPlinkFormat());
                     sampIndex++;
                     if (sampIndex >= samples.length) {

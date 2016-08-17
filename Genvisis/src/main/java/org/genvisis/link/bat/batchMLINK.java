@@ -11,7 +11,8 @@ import java.util.Vector;
 public class batchMLINK {
   public static void main(String[] args) throws IOException {
     if (args.length != 1) {
-      System.out.println("Expecting 1 argument: name of file containing dx models (Example: 0.00001 0.03 0.80 0.80)");
+      System.out.println(
+          "Expecting 1 argument: name of file containing dx models (Example: 0.00001 0.03 0.80 0.80)");
     } else {
       try {
         new batchMLINK(args[0]);
@@ -88,8 +89,8 @@ public class batchMLINK {
         writer.println("cd chr" + i);
         writer.println("cp chrom" + chrome + ".ped pedin.dat");
         writer.println("cp map" + chrome + ".dat datain.dat");
-        writer.println("jcp makeMap4MLINK " + handle[0] + " " + handle[1] + " " + handle[2] + " "
-                       + handle[3]);
+        writer.println(
+            "jcp makeMap4MLINK " + handle[0] + " " + handle[1] + " " + handle[2] + " " + handle[3]);
         writer.println("./pedin > /dev/null");
         writer.println("cp stream.out stream" + (j + 5) + ".out");
         writer.println("cd ..");

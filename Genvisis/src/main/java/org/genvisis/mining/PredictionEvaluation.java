@@ -39,8 +39,8 @@ public class PredictionEvaluation {
       case RMSE:
         return RMSE(targets, predicteds);
       default:
-        System.err.println("Error - '" + method
-                           + "' does not map to an implemented method; using RMSE");
+        System.err
+            .println("Error - '" + method + "' does not map to an implemented method; using RMSE");
         return RMSE(targets, predicteds);
     }
   }
@@ -48,7 +48,7 @@ public class PredictionEvaluation {
   public static void checkTargetsAndPredicteds(double[] targets, double[] predicteds) {
     if (targets.length != predicteds.length) {
       System.err.println("Error - targets array and predicteds array were of unequal lengths ("
-                         + targets.length + " and " + predicteds.length + ", respectively)");
+          + targets.length + " and " + predicteds.length + ", respectively)");
       System.exit(1);
     }
     if (targets.length == 0) {

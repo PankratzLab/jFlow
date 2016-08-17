@@ -23,7 +23,7 @@ public class Markers {
   }
 
   public static int[] order(String[] markers, String databaseFile,
-                            boolean shouldBeOnSameChromosome) {
+      boolean shouldBeOnSameChromosome) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -67,25 +67,26 @@ public class Markers {
         writer = new PrintWriter(new FileWriter("markerMap.dat"));
         for (int i = 0; i < keys.length; i++) {
           if (distances[keys[i]] == -1) {
-            System.err.println("Error - marker '" + markers[i]
-                               + "' could not be found in the database");
+            System.err
+                .println("Error - marker '" + markers[i] + "' could not be found in the database");
           }
           if (chrs[keys[i]] != chr) {
             System.err.println("Error - all markers were not on the same chromosome ('"
-                               + markers[keys[i]] + "' for instance)");
+                + markers[keys[i]] + "' for instance)");
           }
           if (i > 0) {
             diff = distances[keys[i]] - distances[keys[i - 1]];
             writer.print(myFormatter.format(diff) + " ");
             output += "\n     " + myFormatter.format(diff) + "\n" + markers[keys[i]] + "    "
-                      + distances[keys[i]];
+                + distances[keys[i]];
           }
         }
         writer.println();
         writer.println(output);
         writer.close();
       } else {
-        System.err.println("Sorry, ordering markers on different chromosomes has not been implemented yet. Have at it!");
+        System.err.println(
+            "Sorry, ordering markers on different chromosomes has not been implemented yet. Have at it!");
       }
     } catch (Exception e) {
       System.err.println("Error writing markerMap.dat");

@@ -22,7 +22,7 @@ public class FamilyHistory {
     String dbfile = DEFAULT_DB_FILE;
 
     String usage = "\n" + "db.FamilyHistory requires 0-1 arguments\n" + "   (1) trait (i.e. trait="
-                   + trait + " (default)\n" + "";
+        + trait + " (default)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -110,9 +110,11 @@ public class FamilyHistory {
       reader = new BufferedReader(new FileReader(CRF_DIR + db_file));
       writer = new PrintWriter(new FileWriter(CRF_DIR + trait + "_sibHistory.csv"));
       if (quant) {
-        writer.println("FamID,IndID,AvgRelative,MaxRelative,AvgFirstDegree,MaxFirstDegree,AvgWithinSibship,NumberOfSiblingsWithNonMissingData");
+        writer.println(
+            "FamID,IndID,AvgRelative,MaxRelative,AvgFirstDegree,MaxFirstDegree,AvgWithinSibship,NumberOfSiblingsWithNonMissingData");
       } else {
-        writer.println("FamID,IndID,NumRelativesWithHistory,NumFirstDegreesWithHistory,FamHist,FirstDegreeHist");
+        writer.println(
+            "FamID,IndID,NumRelativesWithHistory,NumFirstDegreesWithHistory,FamHist,FirstDegreeHist");
       }
       index =
           ext.indexFactors(new String[] {trait}, reader.readLine().split("\t", -1), true, true)[0];
@@ -134,16 +136,15 @@ public class FamilyHistory {
                 counts[0]++;
                 avg_max[0] += Double.parseDouble(data[1]);
                 avg_max[1] = Double.parseDouble(data[1]) > avg_max[1] ? Double.parseDouble(data[1])
-                                                                      : avg_max[1];
+                    : avg_max[1];
                 // first degree relatives calculations
                 if ((data[2].equals(trav[2]) && data[3].equals(trav[3])) || data[0].equals(trav[2])
                     || data[0].equals(trav[3]) || data[2].equals(trav[0])
                     || data[3].equals(trav[0])) {
                   counts[1]++;
                   avg_max[2] += Double.parseDouble(data[1]);
-                  avg_max[3] =
-                      Double.parseDouble(data[1]) > avg_max[3] ? Double.parseDouble(data[1])
-                                                               : avg_max[3];
+                  avg_max[3] = Double.parseDouble(data[1]) > avg_max[3]
+                      ? Double.parseDouble(data[1]) : avg_max[3];
                 }
               } else if (data[1].equals("1")) {
                 counts[0]++;
@@ -170,14 +171,12 @@ public class FamilyHistory {
         }
         if (quant) {
           writer.println(line[1] + "," + line[2] + ","
-                         + (counts[0] > 0 ? (avg_max[0] / counts[0]) + "," + avg_max[1] : ".,.")
-                         + ","
-                         + (counts[1] > 0 ? (avg_max[2] / counts[1]) + "," + avg_max[3] : ".,.")
-                         + "," + (counts[2] > 0 ? (avg_max[4] / counts[2]) : ".") + ","
-                         + counts[2]);
+              + (counts[0] > 0 ? (avg_max[0] / counts[0]) + "," + avg_max[1] : ".,.") + ","
+              + (counts[1] > 0 ? (avg_max[2] / counts[1]) + "," + avg_max[3] : ".,.") + ","
+              + (counts[2] > 0 ? (avg_max[4] / counts[2]) : ".") + "," + counts[2]);
         } else {
           writer.println(line[1] + "," + line[2] + "," + counts[0] + "," + counts[1] + ","
-                         + (counts[0] > 0 ? 1 : 0) + "," + (counts[1] > 0 ? 1 : 0));
+              + (counts[0] > 0 ? 1 : 0) + "," + (counts[1] > 0 ? 1 : 0));
         }
       }
       reader.close();

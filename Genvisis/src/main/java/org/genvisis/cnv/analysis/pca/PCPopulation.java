@@ -41,15 +41,14 @@ public class PCPopulation {
     }
 
     public void computeDistance(Population testPop, int clusterComponents,
-                                PrincipalComponentsResiduals pResiduals, Logger log) {
+        PrincipalComponentsResiduals pResiduals, Logger log) {
       if (!testPop.isTest()) {
         throw new IllegalStateException("This method must be called on the test case");
       } else {
         Set<String> testSamples = testPop.getSamples();
         distances = new ArrayList<TestSampleDistance>(testSamples.size());
-        double[][] trimmedPcs =
-            PrincipalComponentsResiduals.trimPcBasis(clusterComponents, pResiduals.getPcBasis(),
-                                                     log);
+        double[][] trimmedPcs = PrincipalComponentsResiduals.trimPcBasis(clusterComponents,
+            pResiduals.getPcBasis(), log);
         for (String testSamp : testSamples) {
           int index = pResiduals.getSamplesInPc().get(testSamp);
           double distTmp = 0;
@@ -63,14 +62,13 @@ public class PCPopulation {
     }
 
     public void determineClusters(int clusterComponents, PrincipalComponentsResiduals pResiduals,
-                                  Logger log) {
+        Logger log) {
       if (isTest) {
         throw new IllegalStateException("This method cannot be called on the test case");
       } else {
         clusterCenters = new double[clusterComponents];
-        double[][] trimmedPcs =
-            PrincipalComponentsResiduals.trimPcBasis(clusterComponents, pResiduals.getPcBasis(),
-                                                     log);
+        double[][] trimmedPcs = PrincipalComponentsResiduals.trimPcBasis(clusterComponents,
+            pResiduals.getPcBasis(), log);
         for (int i = 0; i < clusterCenters.length; i++) {
           clusterCenters[i] = Array.median(Array.subArray(trimmedPcs[i], pcMatchedMask));
           log.reportTimeInfo(name + " Cluster " + i + " : " + clusterCenters[i]);
@@ -124,9 +122,8 @@ public class PCPopulation {
       } else {
         double tmpDist = 0;
         for (int i = 0; i < population.getClusterCenters().length; i++) {
-          tmpDist +=
-              Math.pow(population.getClusterCenters()[i] - otherPopulation.getClusterCenters()[i],
-                       2);
+          tmpDist += Math
+              .pow(population.getClusterCenters()[i] - otherPopulation.getClusterCenters()[i], 2);
         }
         tmpDist = Math.sqrt(tmpDist);
         otherDistances.add(tmpDist);
@@ -354,7 +351,7 @@ public class PCPopulation {
   }
 
   private static Population[] getPopulations(PrincipalComponentsResiduals pResiduals,
-                                             VcfPopulation vpop) {
+      VcfPopulation vpop) {
     ArrayList<Population> pops = new ArrayList<Population>(vpop.getSuperPop().size());
     if (vpop.valid()) {
       Hashtable<String, Integer> sampPCs = pResiduals.getSamplesInPc();
@@ -370,7 +367,7 @@ public class PCPopulation {
         }
         if (Array.booleanArraySum(curMask) > 0) {
           pops.add(new Population(sPop, curMask, vpopPCs,
-                                  sPop.equals(VcfPopulation.DETERMINE_ANCESTRY)));
+              sPop.equals(VcfPopulation.DETERMINE_ANCESTRY)));
         } else {
           vpop.getLog().reportTimeWarning("Skipping population " + sPop + ", no PCs were found");
         }
@@ -426,13 +423,10 @@ public class PCPopulation {
   }
 
   public static void test(Project proj, String genoPCfile, int numComponents) {
-    PrincipalComponentsResiduals pResiduals =
-        new PrincipalComponentsResiduals(genoPCfile,
-                                         Files.getHeaderOfFile(genoPCfile, proj.getLog()).length
-                                                     - 2,
-                                         proj.getLog());
+    PrincipalComponentsResiduals pResiduals = new PrincipalComponentsResiduals(genoPCfile,
+        Files.getHeaderOfFile(genoPCfile, proj.getLog()).length - 2, proj.getLog());
     VcfPopulation vpop = VcfPopulation.load(proj.SAMPLE_DATA_FILENAME.getValue(),
-                                            POPULATION_TYPE.PC_ANCESTRY, proj.getLog());
+        POPULATION_TYPE.PC_ANCESTRY, proj.getLog());
     vpop.report();
     if (vpop.valid()) {
       proj.getLog()
@@ -440,8 +434,8 @@ public class PCPopulation {
       if (numComponents < (vpop.getSuperPop().size() - 2)) {
         proj.getLog()
             .reportTimeWarning("Usually " + (vpop.getSuperPop().size() - 2)
-                               + " populations should be clustered across at least "
-                               + (vpop.getSuperPop().size() - 3) + " principal components");
+                + " populations should be clustered across at least "
+                + (vpop.getSuperPop().size() - 3) + " principal components");
       }
       PCPopulation pcPopulation = new PCPopulation(proj, pResiduals, vpop, numComponents, true);
       TestSampleDistances[] testSampleDistances = pcPopulation.computeDistance();
@@ -449,12 +443,12 @@ public class PCPopulation {
       try {
         PrintWriter writer = new PrintWriter(new FileWriter(output));
         writer.println("DNA\tSTUDY\t" + Array.toStr(testSampleDistances[0].getPopulations()) + "\t"
-                       + Array.toStr(testSampleDistances[0].getPopulations()));
+            + Array.toStr(testSampleDistances[0].getPopulations()));
         for (TestSampleDistances testSampleDistance : testSampleDistances) {
           String sample = testSampleDistance.getSample();
           writer.println(sample + "\t" + vpop.getPopulationForInd(sample, RETRIEVE_TYPE.SUB)[0]
-                         + "\t" + Array.toStr(testSampleDistance.getDistances()) + "\t"
-                         + Array.toStr(testSampleDistance.getNormDistances()));
+              + "\t" + Array.toStr(testSampleDistance.getDistances()) + "\t"
+              + Array.toStr(testSampleDistance.getNormDistances()));
         }
         writer.close();
       } catch (Exception e) {
@@ -483,7 +477,7 @@ public class PCPopulation {
   private final Logger log;
 
   public PCPopulation(Project proj, PrincipalComponentsResiduals pResiduals, VcfPopulation vpop,
-                      int clusterComponents, boolean verbose) {
+      int clusterComponents, boolean verbose) {
     super();
     this.proj = proj;
     this.pResiduals = pResiduals;
@@ -510,7 +504,7 @@ public class PCPopulation {
                 dists.put(testSampleDistance.getSample(), new TestSampleDistances(sample));
               }
               dists.get(sample).add(sample, testSampleDistance.getDistance(),
-                                    populations[j].getName());
+                  populations[j].getName());
             }
           }
         }

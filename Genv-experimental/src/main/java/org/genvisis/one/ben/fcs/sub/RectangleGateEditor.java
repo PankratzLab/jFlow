@@ -170,8 +170,8 @@ public class RectangleGateEditor extends JDialog {
     getContentPane().setLayout(new BorderLayout());
     contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     getContentPane().add(contentPanel, BorderLayout.CENTER);
-    contentPanel.setLayout(new MigLayout("", "[][grow][grow][grow][]",
-                                         "[][][][][][][][][][][][][][]"));
+    contentPanel
+        .setLayout(new MigLayout("", "[][grow][grow][grow][]", "[][][][][][][][][][][][][][]"));
     {
       JLabel lbl = new JLabel("ID:");
       contentPanel.add(lbl, "flowx,cell 1 0 3 1,alignx center");
@@ -313,7 +313,7 @@ public class RectangleGateEditor extends JDialog {
               setVisible(false);
             } else {
               JOptionPane.showMessageDialog(RectangleGateEditor.this, msg, "Error!",
-                                            JOptionPane.ERROR_MESSAGE);
+                  JOptionPane.ERROR_MESSAGE);
             }
           }
         });
@@ -343,22 +343,22 @@ public class RectangleGateEditor extends JDialog {
 
   public float getXMax() {
     return chkXMaxUnbnd.isSelected() ? Float.POSITIVE_INFINITY
-                                     : Float.parseFloat(txtXMax.getText());
+        : Float.parseFloat(txtXMax.getText());
   }
 
   public float getXMin() {
     return chkXMinUnbnd.isSelected() ? Float.NEGATIVE_INFINITY
-                                     : Float.parseFloat(txtXMin.getText());
+        : Float.parseFloat(txtXMin.getText());
   }
 
   public float getYMax() {
     return chkYMaxUnbnd.isSelected() ? Float.POSITIVE_INFINITY
-                                     : Float.parseFloat(txtYMax.getText());
+        : Float.parseFloat(txtYMax.getText());
   }
 
   public float getYMin() {
     return chkYMinUnbnd.isSelected() ? Float.NEGATIVE_INFINITY
-                                     : Float.parseFloat(txtYMin.getText());
+        : Float.parseFloat(txtYMin.getText());
   }
 
   public boolean isCancelled() {

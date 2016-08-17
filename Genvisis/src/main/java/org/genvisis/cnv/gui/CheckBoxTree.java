@@ -73,7 +73,7 @@ class CheckBoxCellEditor extends AbstractCellEditor implements TreeCellEditor {
 
   @Override
   public Component getTreeCellEditorComponent(JTree tree, Object value, boolean selected,
-                                              boolean expanded, boolean leaf, int row) {
+      boolean expanded, boolean leaf, int row) {
     Component editor =
         renderer.getTreeCellRendererComponent(tree, value, true, expanded, leaf, row, true);
 
@@ -134,8 +134,7 @@ class CheckBoxNodeRenderer implements TreeCellRenderer {
 
   @Override
   public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected,
-                                                boolean expanded, boolean leaf, int row,
-                                                boolean hasFocus) {
+      boolean expanded, boolean leaf, int row, boolean hasFocus) {
     if (leaf) {
       // String stringValue = tree.convertValueToText(value, selected, expanded, leaf, row, false);
 
@@ -166,7 +165,7 @@ class CheckBoxNodeRenderer implements TreeCellRenderer {
       return new JCheckBox("messed", true);
     } else {
       return branchRenderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row,
-                                                         hasFocus);
+          hasFocus);
     }
   }
 }
@@ -190,7 +189,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
   }
 
   public static Branch createTreeStructure(String[] namesOfBranches, String[] branchHandles,
-                                           String[][] namesOfNodes, boolean[] active) {
+      String[][] namesOfNodes, boolean[] active) {
     if (namesOfBranches == null || namesOfBranches.length == 0) {
       return null;
     }
@@ -263,7 +262,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
   private boolean dynamic;
 
   public CheckBoxTree(String[] namesOfBranches, String[] branchHandles, String[][] namesOfNodes,
-                      boolean[] active, int maxSelectable) {
+      boolean[] active, int maxSelectable) {
     super(createTreeStructure(namesOfBranches, branchHandles, namesOfNodes, active));
 
     selections = new JCheckBox[maxSelectable];
@@ -297,7 +296,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
    *        mouseListener
    */
   public void addNode(String nameOfBranch, String branchHandle, String[] namesOfNodes,
-                      boolean[] active, MouseListener mouseListener) {
+      boolean[] active, MouseListener mouseListener) {
     TreeModel model;
     Font font;
     Boolean booleanValue;
@@ -343,7 +342,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
     // Object ob = new Branch(nameOfBranch, boxes);
     ((DefaultMutableTreeNode) root).setAllowsChildren(true);
     DynamicUtilTreeNode.createChildren((DefaultMutableTreeNode) root,
-                                       new Branch[] {new Branch(nameOfBranch, boxes)});
+        new Branch[] {new Branch(nameOfBranch, boxes)});
 
     dynamic = true;
     ((DefaultTreeModel) model).reload();
@@ -367,8 +366,8 @@ public class CheckBoxTree extends JTree implements ItemListener {
                                          // selected then
           // deselect first
           thisCheckBox.setSelected(false);
-          itemStateChanged(new ItemEvent(thisCheckBox, ItemEvent.ITEM_LAST, thisCheckBox,
-                                         ItemEvent.DESELECTED));
+          itemStateChanged(
+              new ItemEvent(thisCheckBox, ItemEvent.ITEM_LAST, thisCheckBox, ItemEvent.DESELECTED));
         }
         thisCheckBox.setSelected(true); // then select the checkbox again
       } else if (action == ItemEvent.DESELECTED) {
@@ -702,8 +701,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
     }
 
     fireValueChanged(new TreeSelectionEvent(this, getPathForRow(0),
-                                            itemEvent.getStateChange() == ItemEvent.SELECTED,
-                                            getPathForRow(0), getPathForRow(0)));
+        itemEvent.getStateChange() == ItemEvent.SELECTED, getPathForRow(0), getPathForRow(0)));
   }
 
   /**

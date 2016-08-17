@@ -31,11 +31,10 @@ public class Collapsed {
 
   public static final String RULES =
       "<0<1<2<3<4<5<6<7<8<9" + "<a,A<b,B<c,C<d,D<e,E<f,F<g,G<h,H<i,I<j,J"
-                                     + "<k,K<l,L<m,M<n,N<o,O<p,P<q,Q<r,R<s,S<t,T"
-                                     + "<u,U<v,V<w,W<x,X<y,Y<z,Z";
+          + "<k,K<l,L<m,M<n,N<o,O<p,P<q,Q<r,R<s,S<t,T" + "<u,U<v,V<w,W<x,X<y,Y<z,Z";
 
   public static void addToHashVec(Hashtable<String, Vector<String>> hash, String key, String value,
-                                  boolean onlyifabsent) {
+      boolean onlyifabsent) {
     Vector<String> v;
 
     if (hash.containsKey(key)) {
@@ -130,12 +129,12 @@ public class Collapsed {
   }
 
   public static int[] indexFactors(String[] subset, String[] superset, boolean casesensitive,
-                                   boolean kill) {
+      boolean kill) {
     return indexFactors(subset, superset, casesensitive, new Logger(), kill);
   }
 
   public static int[] indexFactors(String[] subset, String[] superset, boolean casesensitive,
-                                   Logger log, boolean kill) {
+      Logger log, boolean kill) {
     int[] indices = new int[subset.length];
     boolean err = false;
 
@@ -143,7 +142,7 @@ public class Collapsed {
       indices[i] = -1;
       for (int j = 0; j < superset.length; j++) {
         if (casesensitive ? subset[i].equals(superset[j])
-                          : subset[i].equalsIgnoreCase(superset[j])) {
+            : subset[i].equalsIgnoreCase(superset[j])) {
           if (indices[i] == -1) {
             indices[i] = j;
           } else {
@@ -170,17 +169,17 @@ public class Collapsed {
   }
 
   public static int indexOfStr(String target, String[] array, boolean caseSensitive,
-                               boolean exactMatch) {
+      boolean exactMatch) {
     for (int i = 0; i < array.length; i++) {
       if (exactMatch) {
         if (caseSensitive ? array[i].equals(target)
-                          : array[i].toLowerCase().equals(target.toLowerCase())) {
+            : array[i].toLowerCase().equals(target.toLowerCase())) {
           return i;
         }
       } else {
         if (caseSensitive ? array[i].contains(target) || target.contains(array[i])
-                          : array[i].toLowerCase().contains(target.toLowerCase())
-                            || target.toLowerCase().contains(array[i].toLowerCase())) {
+            : array[i].toLowerCase().contains(target.toLowerCase())
+                || target.toLowerCase().contains(array[i].toLowerCase())) {
           return i;
         }
       }
@@ -243,27 +242,19 @@ public class Collapsed {
   }
 
   public static Hashtable<String, String> loadFileToHashString(String filename, int keyIndex,
-                                                               int[] valueIndices,
-                                                               String delimiterWithinHash,
-                                                               boolean ignoreFirstLine) {
+      int[] valueIndices, String delimiterWithinHash, boolean ignoreFirstLine) {
     return loadFileToHashString(filename, keyIndex, valueIndices, delimiterWithinHash,
-                                ignoreFirstLine, false);
+        ignoreFirstLine, false);
   }
 
   public static Hashtable<String, String> loadFileToHashString(String filename, int keyIndex,
-                                                               int[] valueIndices,
-                                                               String delimiterWithinHash,
-                                                               boolean ignoreFirstLine,
-                                                               boolean jar) {
+      int[] valueIndices, String delimiterWithinHash, boolean ignoreFirstLine, boolean jar) {
     return loadFileToHashString(filename, new int[] {keyIndex}, valueIndices, delimiterWithinHash,
-                                ignoreFirstLine, jar);
+        ignoreFirstLine, jar);
   }
 
   public static Hashtable<String, String> loadFileToHashString(String filename, int[] keyIndices,
-                                                               int[] valueIndices,
-                                                               String delimiterWithinHash,
-                                                               boolean ignoreFirstLine,
-                                                               boolean jar) {
+      int[] valueIndices, String delimiterWithinHash, boolean ignoreFirstLine, boolean jar) {
     BufferedReader reader = null;
     String[] line;
     Hashtable<String, String> hash = new Hashtable<String, String>();

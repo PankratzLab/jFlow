@@ -74,7 +74,8 @@ public class DescribeFams {
     try {
       writer = new PrintWriter(new FileWriter(tools.CRF_DIR + "FamilyStats.xln"));
       fams = HashVec.getKeys(famInds);
-      writer.println("FamID\t# Affected\t# Unaffected\tVPD\tNVPD\tRPD\tNOEV\tNRPD\tSizeOfLargestSibship\tSizeOfLargestVPDSibship\tDominantTransmission\tSFH");
+      writer.println(
+          "FamID\t# Affected\t# Unaffected\tVPD\tNVPD\tRPD\tNOEV\tNRPD\tSizeOfLargestSibship\tSizeOfLargestVPDSibship\tDominantTransmission\tSFH");
       for (String fam : fams) {
         vpd = nvpd = rpd = noev = nrpd = 0;
         v = famInds.get(fam);
@@ -103,28 +104,23 @@ public class DescribeFams {
         sibIndex = ext.indexOfStr(fam, sibships);
         vpdSibIndex = ext.indexOfStr(fam, vpdSibships);
         // dominantTransmission = sfh = false;
-        dominantTransmission =
-            (majorSibships[sibIndex].length > 1
-             && (tools.isAffected(dxs.get(fam + "\t" + majorSibships[sibIndex][1])).equals("1")
-                 || tools.isAffected(dxs.get(fam + "\t" + majorSibships[sibIndex][2])).equals("1"))
-             || majorVPDsibships[sibIndex].length > 1
-                && (tools.isAffected(dxs.get(fam + "\t" + majorVPDsibships[sibIndex][1]))
-                         .equals("1")
-                    || tools.isAffected(dxs.get(fam + "\t" + majorVPDsibships[sibIndex][2]))
-                            .equals("1")));
+        dominantTransmission = (majorSibships[sibIndex].length > 1
+            && (tools.isAffected(dxs.get(fam + "\t" + majorSibships[sibIndex][1])).equals("1")
+                || tools.isAffected(dxs.get(fam + "\t" + majorSibships[sibIndex][2])).equals("1"))
+            || majorVPDsibships[sibIndex].length > 1 && (tools
+                .isAffected(dxs.get(fam + "\t" + majorVPDsibships[sibIndex][1])).equals("1")
+                || tools.isAffected(dxs.get(fam + "\t" + majorVPDsibships[sibIndex][2]))
+                    .equals("1")));
         sfh = majorVPDsibships[sibIndex].length - 3 >= 2
-              && (dominantTransmission || vpd + nvpd + rpd >= 4);
+            && (dominantTransmission || vpd + nvpd + rpd >= 4);
 
         if (vpd + nvpd + noev > 0) {
           writer.println(fam + "\t" + (vpd + nvpd + rpd) + "\t" + (noev + nvpd) + "\t" + vpd + "\t"
-                         + nvpd + "\t" + rpd + "\t" + noev + "\t" + nrpd + "\t"
-                         + (majorSibships[sibIndex].length > 1 ? majorSibships[sibIndex].length - 3
-                                                               : 0)
-                         + "\t"
-                         + (majorVPDsibships[vpdSibIndex].length > 1 ? majorVPDsibships[vpdSibIndex].length
-                                                                       - 3
-                                                                     : 0)
-                         + "\t" + (dominantTransmission ? 1 : 0) + "\t" + (sfh ? 1 : 0));
+              + nvpd + "\t" + rpd + "\t" + noev + "\t" + nrpd + "\t"
+              + (majorSibships[sibIndex].length > 1 ? majorSibships[sibIndex].length - 3 : 0)
+              + "\t" + (majorVPDsibships[vpdSibIndex].length > 1
+                  ? majorVPDsibships[vpdSibIndex].length - 3 : 0)
+              + "\t" + (dominantTransmission ? 1 : 0) + "\t" + (sfh ? 1 : 0));
         }
       }
       writer.close();
@@ -147,7 +143,8 @@ public class DescribeFams {
 
     try {
       writer = new PrintWriter(new FileWriter(tools.CRF_DIR + "GenderBalance.csv"));
-      writer.println("Family,AffectedFather,AffectedMother,ParentalScore,VPDmales,VPDfemales,VPDscore,VPDweightedScore,AffectedMales,AffectedFemales,AffectedScore,AffectedWeightedScore");
+      writer.println(
+          "Family,AffectedFather,AffectedMother,ParentalScore,VPDmales,VPDfemales,VPDscore,VPDweightedScore,AffectedMales,AffectedFemales,AffectedScore,AffectedWeightedScore");
       for (String[] majorSibship : majorSibships) {
         if (majorSibship.length > 1) {
           counts = new int[2][3];
@@ -159,16 +156,16 @@ public class DescribeFams {
             gender = Integer.parseInt(genderLookup.get(majorSibship[0] + "\t" + majorSibship[j]));
 
             if (tools.isVPD(affectionStatus.get(majorSibship[0] + "\t" + majorSibship[j]))
-                     .equals("1")) {
+                .equals("1")) {
               counts[0][gender]++;
             }
             if (tools.isAffected(affectionStatus, majorSibship[0] + "\t" + majorSibship[j])) {
               counts[1][gender]++;
             }
           }
-          writer.println(majorSibship[0] + "," + affFather + "," + affMother + ","
-                         + (affFather - affMother) + "," + parseScores(counts[0]) + ","
-                         + parseScores(counts[1]));
+          writer.println(
+              majorSibship[0] + "," + affFather + "," + affMother + "," + (affFather - affMother)
+                  + "," + parseScores(counts[0]) + "," + parseScores(counts[1]));
         }
       }
       writer.close();
@@ -184,8 +181,8 @@ public class DescribeFams {
 
     String usage =
         "\n" + "park.DescribeFams requires 0-1 arguments\n" + "   (1) describe fams (default)\n"
-                   + "   (2) describe gender balances in major sibships (i.e. -genderBalance (not the default))\n"
-                   + "";
+            + "   (2) describe gender balances in major sibships (i.e. -genderBalance (not the default))\n"
+            + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -212,14 +209,8 @@ public class DescribeFams {
   }
 
   public static String parseScores(int[] counts) {
-    return counts[1] + "," + counts[2]
-           + "," + (counts[1] - counts[2]) + "," + ext.formDeci(counts[1] + counts[2] > 0
-                                                                                          ? ((double) counts[1]
-                                                                                             / (double) (counts[1]
-                                                                                                         + counts[2])
-                                                                                             * 2
-                                                                                             - 1)
-                                                                                          : 0,
-                                                                3);
+    return counts[1] + "," + counts[2] + "," + (counts[1] - counts[2]) + ","
+        + ext.formDeci(counts[1] + counts[2] > 0
+            ? ((double) counts[1] / (double) (counts[1] + counts[2]) * 2 - 1) : 0, 3);
   }
 }

@@ -14,7 +14,7 @@ import org.genvisis.common.ext;
 
 public class CNVSampleQC {
   public static final String[] QC_HEADS = {"LRR_mean", "LRR_median", "LRR_SD", "BAF_mean",
-                                           "BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF"};
+      "BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF"};
   public static final String[] ID_HEADS = {"Sample", "FID", "IID"};
 
   public static CNVSampleQC[] getCNVSampleQCFromFile(Project proj, String QCFile) {
@@ -28,11 +28,13 @@ public class CNVSampleQC {
       do {
         line = reader.readLine().trim().split("\t", -1);
       } while (reader.ready() && (ext.indexFactors(QC_HEADS, line, false, true)[0] == -1)
-               && (ext.indexFactors(ID_HEADS, line, false, true)[0] == -1));
+          && (ext.indexFactors(ID_HEADS, line, false, true)[0] == -1));
       if (!reader.ready()) {
-        log.reportError("Error - reached the end of the file without finding a line with the following tokens: "
-                        + Array.toStr(QC_HEADS));
-        log.reportError("      - perhaps the delimiter is set incorrectly? Determing most stable delimiter...");
+        log.reportError(
+            "Error - reached the end of the file without finding a line with the following tokens: "
+                + Array.toStr(QC_HEADS));
+        log.reportError(
+            "      - perhaps the delimiter is set incorrectly? Determing most stable delimiter...");
         reader.close();
       }
       int[] QCIndices = ext.indexFactors(QC_HEADS, line, false, true);
@@ -40,21 +42,17 @@ public class CNVSampleQC {
       while (reader.ready()) {
         line = reader.readLine().split("\t");
         cnvSampleQCs.add(new CNVSampleQC(line[IDIndices[0]], line[IDIndices[1]], line[IDIndices[2]],
-                                         Double.parseDouble(line[QCIndices[0]]),
-                                         Double.parseDouble(line[QCIndices[1]]),
-                                         Double.parseDouble(line[QCIndices[2]]),
-                                         Double.parseDouble(line[QCIndices[3]]),
-                                         Double.parseDouble(line[QCIndices[4]]),
-                                         Double.parseDouble(line[QCIndices[5]]),
-                                         Double.parseDouble(line[QCIndices[6]]),
-                                         Double.parseDouble(line[QCIndices[7]]),
-                                         Double.parseDouble(line[QCIndices[8]])));
+            Double.parseDouble(line[QCIndices[0]]), Double.parseDouble(line[QCIndices[1]]),
+            Double.parseDouble(line[QCIndices[2]]), Double.parseDouble(line[QCIndices[3]]),
+            Double.parseDouble(line[QCIndices[4]]), Double.parseDouble(line[QCIndices[5]]),
+            Double.parseDouble(line[QCIndices[6]]), Double.parseDouble(line[QCIndices[7]]),
+            Double.parseDouble(line[QCIndices[8]])));
       }
 
 
     } catch (FileNotFoundException fnfe) {
       log.reportError("Error: file \"" + proj.PROJECT_DIRECTORY.getValue() + QCFile
-                      + "\" not found in current directory");
+          + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       log.reportError("Error reading file \"" + proj.PROJECT_DIRECTORY.getValue() + QCFile + "\"");
@@ -102,8 +100,8 @@ public class CNVSampleQC {
   private final double GCWF;
 
   public CNVSampleQC(String sample, String fID, String iID, double lrrMean, double lrrMedian,
-                     double lrrSDev, double bafMean, double bafMedian, double bafSD,
-                     double bafDrift, double wF, double gCWF) {
+      double lrrSDev, double bafMean, double bafMedian, double bafSD, double bafDrift, double wF,
+      double gCWF) {
     super();
     this.sample = sample;
     FID = fID;
@@ -137,8 +135,8 @@ public class CNVSampleQC {
 
   public String getDisplayString() {
     return sample + "\t" + FID + "\t" + IID + "\t" + lrrMean + "\t" + lrrMedian + "\t" + lrrSDev
-           + "\t" + bafMean + "\t" + bafMedian + "\t" + bafSD + "\t" + bafDrift + "\t" + WF + "\t"
-           + GCWF;
+        + "\t" + bafMean + "\t" + bafMedian + "\t" + bafSD + "\t" + bafDrift + "\t" + WF + "\t"
+        + GCWF;
   }
 
   public String getFID() {

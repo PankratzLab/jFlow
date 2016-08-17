@@ -28,26 +28,22 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
   public static final String PRINCIPAL_CROSSTABS_MI = "Generate PC crosstabs";
 
   public static void crossTabulate(Project proj, int numPCs, String alternateDataFile,
-                                   boolean verbose) {
+      boolean verbose) {
     PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
     numPCs = numPCs > 0 ? numPCs : pcResiduals.getNumComponents();
     PrincipalComponentsCrossTabs pcCorrelation =
         new PrincipalComponentsCrossTabs(pcResiduals, numPCs, verbose);
-    pcCorrelation.developCrossTabs(alternateDataFile == null ? null
-                                                             : proj.PROJECT_DIRECTORY.getValue()
-                                                               + alternateDataFile);
+    pcCorrelation.developCrossTabs(
+        alternateDataFile == null ? null : proj.PROJECT_DIRECTORY.getValue() + alternateDataFile);
     pcCorrelation.dumpTables();
 
   }
 
   private static StatsCrossTabs getCorrelationTable(PrincipalComponentsCrossTabs pCorrelation,
-                                                    int numPcs, SampleQC sampleQC,
-                                                    StatsCrossTabs.STAT_TYPE cType,
-                                                    double[][] additionalData,
-                                                    String[] additionalDataTitles,
-                                                    boolean verbose) {
+      int numPcs, SampleQC sampleQC, StatsCrossTabs.STAT_TYPE cType, double[][] additionalData,
+      String[] additionalDataTitles, boolean verbose) {
     int numCorrels = sampleQC.getQctitles().length + numPcs
-                     + (additionalData == null ? 0 : additionalData.length);
+        + (additionalData == null ? 0 : additionalData.length);
     double[][] data = new double[numCorrels][];
     String[] titles = new String[numCorrels];
     int dataIndex = 0;
@@ -64,7 +60,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
     if (additionalData != null) {
       if (additionalDataTitles == null || additionalDataTitles.length != additionalData.length) {
         pCorrelation.getProj().getLog()
-                    .reportTimeError("Additional data must have identical lengths");
+            .reportTimeError("Additional data must have identical lengths");
         return null;
       } else {
         for (int i = 0; i < additionalData.length; i++) {
@@ -75,7 +71,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
       }
     }
     StatsCrossTabs statsCrossTabs = new StatsCrossTabs(data, null, null, titles, cType, verbose,
-                                                       pCorrelation.getProj().getLog());
+        pCorrelation.getProj().getLog());
     statsCrossTabs.computeTable();
     return statsCrossTabs;
   }
@@ -85,10 +81,9 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
     String sampleQCFile = proj.SAMPLE_QC_FILENAME.getValue(false, false);
     if (!Files.exists(sampleQCFile)) {
       JOptionPane.showMessageDialog(parentComponent,
-                                    "Failed to detect " + proj.SAMPLE_QC_FILENAME + " "
-                                                     + sampleQCFile
-                                                     + "'; this is the designated sample QC file in the project properties file",
-                                    "Error", JOptionPane.ERROR_MESSAGE);
+          "Failed to detect " + proj.SAMPLE_QC_FILENAME + " " + sampleQCFile
+              + "'; this is the designated sample QC file in the project properties file",
+          "Error", JOptionPane.ERROR_MESSAGE);
       return;
     }
     if (Files.exists(pcFile)) {
@@ -97,25 +92,20 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
       // with " + ext.removeDirectoryInfo(sampleQCFile) + " over " +
       // proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS) + " component(s)?", "Crosstabs",
       // JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
-      int promptResult =
-          JOptionPane.showOptionDialog(parentComponent,
-                                       "Generate cross tabs plots with "
-                                                        + ext.removeDirectoryInfo(sampleQCFile)
-                                                        + "  over "
-                                                        + proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
-                                                        + " component(s)?",
-                                       "Crosstabs", JOptionPane.DEFAULT_OPTION,
-                                       JOptionPane.WARNING_MESSAGE, null, ObjButtons,
-                                       ObjButtons[1]);
+      int promptResult = JOptionPane.showOptionDialog(parentComponent,
+          "Generate cross tabs plots with " + ext.removeDirectoryInfo(sampleQCFile) + "  over "
+              + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " component(s)?",
+          "Crosstabs", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons,
+          ObjButtons[1]);
       if (promptResult == 0) {
         // crossTabulate(proj, proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS), null, false);
         crossTabulate(proj, proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, false);
       }
     } else {
       JOptionPane.showMessageDialog(parentComponent,
-                                    "Failed to detect " + proj.INTENSITY_PC_FILENAME + " " + pcFile
-                                                     + " ; this is the designated intensity pc filename in the project properties file",
-                                    "Error", JOptionPane.ERROR_MESSAGE);
+          "Failed to detect " + proj.INTENSITY_PC_FILENAME + " " + pcFile
+              + " ; this is the designated intensity pc filename in the project properties file",
+          "Error", JOptionPane.ERROR_MESSAGE);
     }
   }
 
@@ -128,10 +118,10 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
     String usage = "\n" + "cnv.analysis.pca.PrincipalComponentsCrossTabs requires 0-1 arguments\n";
     usage += "   (1) filename (i.e. proj=" + filename + " (no default))\n" + "";
     usage += "   (2) number of principal components to cross tabulate (i.e. numPCs=" + numPCs
-             + " (defaults to all PCs in the file))\n" + "";
+        + " (defaults to all PCs in the file))\n" + "";
     usage +=
         "   (3) an optional data file to add, must have a column with \"DNA\" and numeric data in all other columns.  (i.e. alternateDataFile="
-             + alternateDataFile + " (no default))\n" + "";
+            + alternateDataFile + " (no default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -171,7 +161,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
   private final boolean verbose;
 
   public PrincipalComponentsCrossTabs(PrincipalComponentsResiduals pResiduals, int numPCs,
-                                      boolean verbose) {
+      boolean verbose) {
     super(pResiduals);
     sampleQC = SampleQC.loadSampleQC(getProj());
     this.numPCs = numPCs;
@@ -188,7 +178,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
     }
     log.reportTimeInfo("Developing cross tabs...");
     sTabs = getCorrelationTable(this, numPCs, sampleQC, STAT_TYPE.PEARSON_CORREL, additionalData,
-                                additionalDataTitles, verbose);
+        additionalDataTitles, verbose);
     log.reportTimeInfo("Finished developing cross tabs...");
 
   }

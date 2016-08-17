@@ -71,7 +71,7 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
    * Create the frame.
    */
   public NewRegionListDialog(String[] sampleNames, final String dir, boolean allowMissing,
-                             String missingValue) {
+      String missingValue) {
     this.allowMissing = allowMissing;
     this.missingValue =
         allowMissing && missingValue == null ? DEFAULT_MISSING_UCSC_LOCATION : missingValue;
@@ -90,9 +90,9 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
     textArea = new JTextArea();
     scrollPane.setViewportView(textArea);
 
-    String label =
-        sampleNames == null ? "UCSC regions (one per line, with optional tab-separated comments): "
-                            : "Sample IDs with (optional) UCSC regions and comments (tab-separated, one set per line): ";
+    String label = sampleNames == null
+        ? "UCSC regions (one per line, with optional tab-separated comments): "
+        : "Sample IDs with (optional) UCSC regions and comments (tab-separated, one set per line): ";
     JLabel lblMarkerNamesone = new JLabel(label);
     contentPane.add(lblMarkerNamesone, "cell 0 0,growx,aligny top");
 
@@ -187,15 +187,13 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
     }
     if (invalidPositions.size() > 0) {
       String[] options = {"Ignore and Continue", "Return"};
-      StringBuilder msg =
-          new StringBuilder("Warning - ").append(invalidPositions.size())
-                                         .append(" regions are not valid UCSC regions:");
+      StringBuilder msg = new StringBuilder("Warning - ").append(invalidPositions.size())
+          .append(" regions are not valid UCSC regions:");
       for (String inv : invalidPositions) {
         msg.append("\n").append(inv);
       }
       int opt = JOptionPane.showOptionDialog(this, msg.toString(), "Warning - invalid regions!",
-                                             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-                                             null, options, options[1]);
+          JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
       if (opt != 0) {
         return false;
       }
@@ -203,13 +201,12 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
     if (invalidIDs.size() > 0) {
       String[] options = {"Ignore and Continue", "Return"};
       StringBuilder msg = new StringBuilder("Warning - ").append(invalidIDs.size())
-                                                         .append(" sample IDs are not valid:");
+          .append(" sample IDs are not valid:");
       for (String inv : invalidIDs) {
         msg.append("\n").append(inv);
       }
       int opt = JOptionPane.showOptionDialog(this, msg.toString(), "Warning - invalid sample IDs!",
-                                             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-                                             null, options, options[1]);
+          JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
       if (opt != 0) {
         return false;
       }
@@ -229,11 +226,11 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
     }
     if (!reachable) {
       JOptionPane.showMessageDialog(null, "Error - file name [" + filepath + "] is invalid.",
-                                    "Error", JOptionPane.ERROR_MESSAGE);
+          "Error", JOptionPane.ERROR_MESSAGE);
       return false;
     } else if (Files.exists(filepath)) {
       JOptionPane.showMessageDialog(null, "Error - file [" + filepath + "] already exists.",
-                                    "Error", JOptionPane.ERROR_MESSAGE);
+          "Error", JOptionPane.ERROR_MESSAGE);
       return false;
     }
 

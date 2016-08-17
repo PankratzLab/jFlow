@@ -11,7 +11,8 @@ import java.util.Vector;
 public class batchSimwalk2 {
   public static void main(String[] args) throws IOException {
     if (args.length != 1) {
-      System.out.println("Expecting 1 argument: name of file containing dx models (Example: 0.00001 0.03 0.80 0.80)");
+      System.out.println(
+          "Expecting 1 argument: name of file containing dx models (Example: 0.00001 0.03 0.80 0.80)");
     } else {
       try {
         new batchSimwalk2(args[0]);
@@ -91,14 +92,14 @@ public class batchSimwalk2 {
         writer.println("cp map" + chrome + ".dat Model" + (j + 1) + "/datain.dat");
         writer.println("cp map." + chrome + " Model" + (j + 1) + "/");
         writer.println("cd Model" + (j + 1));
-        writer.println("jcp makeMap4MLINK " + handle[0] + " " + handle[1] + " " + handle[2] + " "
-                       + handle[3]); // deprecated
+        writer.println(
+            "jcp makeMap4MLINK " + handle[0] + " " + handle[1] + " " + handle[2] + " " + handle[3]); // deprecated
         writer.println("mv datain.dat datain." + chrome);
         writer.println("dos2unix map." + chrome + " map." + chrome);
         writer.println("dos2unix pedin." + chrome + " pedin." + chrome);
         writer.println("dos2unix datain." + chrome + " datain." + chrome);
-        writer.println("echo -e \"1\\n" + i
-                       + "\\n0\\n1\\n2\\n1\\n0\\n\" | mega2 > batchSimwalk2.log");
+        writer.println(
+            "echo -e \"1\\n" + i + "\\n0\\n1\\n2\\n1\\n0\\n\" | mega2 > batchSimwalk2.log");
         writer.println("./loc." + chrome + ".sh");
         writer.println("cd ../..");
         writer.println();

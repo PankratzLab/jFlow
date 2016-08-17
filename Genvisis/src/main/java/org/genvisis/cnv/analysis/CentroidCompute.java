@@ -95,7 +95,8 @@ public class CentroidCompute {
      * @param clusterFilterCollection
      * @return
      */
-    public CentroidBuilder clusterFilterCollection(ClusterFilterCollection clusterFilterCollection) {
+    public CentroidBuilder clusterFilterCollection(
+        ClusterFilterCollection clusterFilterCollection) {
       this.clusterFilterCollection = clusterFilterCollection;
       return this;
     }
@@ -162,7 +163,7 @@ public class CentroidCompute {
     private int count;
 
     public CentroidProducer(Project proj, String[] markers, CentroidBuilder[] builders,
-                            int numDecompressThreads) {
+        int numDecompressThreads) {
       super();
       this.proj = proj;
       this.markers = markers;
@@ -196,7 +197,7 @@ public class CentroidCompute {
             if ((array == ARRAY.ILLUMINA || array == ARRAY.NGS)
                 && array.isCNOnly(markerData.getMarkerName())) {
               setFakeAB(markerData, centroidCompute, centroidCompute.getClusterFilterCollection(),
-                        0, proj.getLog());
+                  0, proj.getLog());
             } else if (array.isCNOnly(markerData.getMarkerName())) {
               if (array != ARRAY.AFFY_GW6_CN && array != ARRAY.AFFY_GW6) {
                 proj.getLog()
@@ -223,8 +224,7 @@ public class CentroidCompute {
   }
 
   private static float[][] assignForMissingnessThreshold(float[][] centroid, double[] meanThetas,
-                                                         double[] meanRs, int[] counts,
-                                                         double missingnessThreshold) {
+      double[] meanRs, int[] counts, double missingnessThreshold) {
     if (counts[1] >= counts[0] * missingnessThreshold) {
       for (int k = 0; k < 3; k++) {
         centroid[k] = new float[] {(float) meanThetas[0], (float) meanRs[0]};
@@ -234,7 +234,7 @@ public class CentroidCompute {
   }
 
   private static float[][] assignRegularCentroid(double[] meanThetas, double[] meanRs, int[] counts,
-                                                 double missingnessThreshold) {
+      double missingnessThreshold) {
     float[][] centroid = new float[3][2];
     for (int k = 0; k < 3; k++) {
       centroid[k] = new float[] {(float) meanThetas[k + 2], (float) meanRs[k + 2]};
@@ -246,8 +246,7 @@ public class CentroidCompute {
    * A data check for genotype based clustering
    */
   private static boolean checkGenoClusterMarkerData(float[] thetas, float[] rs, float[] confs,
-                                                    byte[] genotypes, double gcThreshold,
-                                                    Logger log) {
+      byte[] genotypes, double gcThreshold, Logger log) {
     boolean failed = false;
     if (thetas == null) {
       log.reportError("Error - no theta values found, cannot compute genotype centers");
@@ -258,8 +257,9 @@ public class CentroidCompute {
       failed = true;
     }
     if (confs == null && gcThreshold > 0) {
-      log.reportError("Error - no confidence values found and a confidence threshold was specified greater than 0 ("
-                      + gcThreshold + ") cannot compute genotype centers");
+      log.reportError(
+          "Error - no confidence values found and a confidence threshold was specified greater than 0 ("
+              + gcThreshold + ") cannot compute genotype centers");
       failed = true;
     }
     if (genotypes == null) {
@@ -272,17 +272,14 @@ public class CentroidCompute {
   public static Centroids computeAndDumpCentroids(Project proj) {
     CentroidBuilder builder = new CentroidBuilder();
     return CentroidCompute.computeAndDumpCentroids(proj,
-                                                   proj.CUSTOM_CENTROIDS_FILENAME.getValue(true,
-                                                                                           false),
-                                                   builder, proj.NUM_THREADS.getValue(), 1);
+        proj.CUSTOM_CENTROIDS_FILENAME.getValue(true, false), builder, proj.NUM_THREADS.getValue(),
+        1);
   }
 
   public static Centroids computeAndDumpCentroids(Project proj, String fullpathToCentFile,
-                                                  CentroidBuilder builder, int numCentThreads,
-                                                  int numDecompressThreads) {
+      CentroidBuilder builder, int numCentThreads, int numDecompressThreads) {
     return computeAndDumpCentroids(proj, new String[] {fullpathToCentFile},
-                                   new CentroidBuilder[] {builder}, numCentThreads,
-                                   numDecompressThreads)[0];
+        new CentroidBuilder[] {builder}, numCentThreads, numDecompressThreads)[0];
   }
 
   /**
@@ -293,8 +290,7 @@ public class CentroidCompute {
    * @param numDecompressThreads number of threads for decompressing marker data
    */
   public static Centroids[] computeAndDumpCentroids(Project proj, String[] fullpathToCentFiles,
-                                                    CentroidBuilder[] builders, int numCentThreads,
-                                                    int numDecompressThreads) {
+      CentroidBuilder[] builders, int numCentThreads, int numDecompressThreads) {
     if (builders.length != fullpathToCentFiles.length) {
       throw new IllegalArgumentException("Each centroid builder must have a file name associated");
     }
@@ -357,12 +353,10 @@ public class CentroidCompute {
    * 
    */
   public static void setFakeAB(MarkerData markerData, CentroidCompute centroid,
-                               ClusterFilterCollection clusterFilterCollection, float gcThreshold,
-                               Logger log) {
+      ClusterFilterCollection clusterFilterCollection, float gcThreshold, Logger log) {
     byte[] fakeAB = new byte[centroid.getClustGenotypes().length];
-    byte[] clustAB =
-        markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(),
-                                              gcThreshold, log);
+    byte[] clustAB = markerData.getAbGenotypesAfterFilters(clusterFilterCollection,
+        markerData.getMarkerName(), gcThreshold, log);
     int[] counts = new int[4];
     for (int i = 0; i < clustAB.length; i++) {
       counts[clustAB[i] + 1]++;
@@ -409,7 +403,7 @@ public class CentroidCompute {
       if (markerData.getChr() < 23 && cor < mincor) {
         // mincor = markerData.compareLRRs(cent.getCentroid())[0];
         min += markers[i] + "\t" + markerData.getChr() + "\t" + markerData.getPosition() + "\t"
-               + cor + "\n";
+            + cor + "\n";
       }
       if (i % 1000 == 0) {
         log.report((i + 1) + "/" + markers.length);
@@ -437,8 +431,8 @@ public class CentroidCompute {
     while (train.hasNext()) {
       CentroidCompute[] centroidCompute = train.next();
       if (!centroidCompute[0].getMarkerData().getMarkerName().equals(markers[index])) {
-        proj.getLog().reportError(centroidCompute[0].getMarkerData().getMarkerName() + "\t"
-                                  + markers[index]);
+        proj.getLog().reportError(
+            centroidCompute[0].getMarkerData().getMarkerName() + "\t" + markers[index]);
       }
       index++;
     }
@@ -448,7 +442,7 @@ public class CentroidCompute {
 
   private static boolean useMarker(float theta, float r, float conf, double confThreshold) {
     return !Float.isNaN(theta) && !Float.isNaN(r) && !Float.isNaN(conf)
-           && (confThreshold == 0 || conf > confThreshold);
+        && (confThreshold == 0 || conf > confThreshold);
   }
 
   /**
@@ -497,8 +491,8 @@ public class CentroidCompute {
 
   private CentroidCompute(CentroidBuilder builder, MarkerData markerData, Logger log) {
     this(markerData, builder.sampleSex, builder.samplesToUse, builder.intensityOnly,
-         builder.missingnessThreshold, builder.gcThreshold, builder.clusterFilterCollection,
-         builder.medianCenter, log);
+        builder.missingnessThreshold, builder.gcThreshold, builder.clusterFilterCollection,
+        builder.medianCenter, log);
   }
 
   /**
@@ -519,9 +513,8 @@ public class CentroidCompute {
    */
 
   public CentroidCompute(MarkerData markerData, int[] sampleSex, boolean[] samplesToUse,
-                         boolean intensityOnly, double missingnessThreshold, double confThreshold,
-                         ClusterFilterCollection clusterFilterCollection, boolean medianCenter,
-                         Logger log) {
+      boolean intensityOnly, double missingnessThreshold, double confThreshold,
+      ClusterFilterCollection clusterFilterCollection, boolean medianCenter, Logger log) {
     super();
     failed = false;
     hasCentroid = false;
@@ -570,7 +563,7 @@ public class CentroidCompute {
       // Estimating the AB cluster if needed and possible (from the AA/BB cluster)
       if (counts[2] > 0 && counts[4] > 0) {
         centroid[1] = new float[] {(float) ((centerThetas[2] + centerThetas[4]) / 2),
-                                   getAltRs(centerRs, counts, 2, 4)};
+            getAltRs(centerRs, counts, 2, 4)};
       } else if (counts[2] > 0 || counts[4] > 0) {
         centroid[1] = new float[] {(float) (0.5), getAltRs(centerRs, counts, 2, 4)};// default to
                                                                                     // middle, and
@@ -590,9 +583,7 @@ public class CentroidCompute {
       }
     }
     centroid = assignForMissingnessThreshold(centroid, centerThetas, centerRs, counts,
-                                             missingnessThreshold);// if missingnessThreshold is
-                                                                   // exceeded, we set a modified
-                                                                   // centroid
+        missingnessThreshold);// if missingnessThreshold is exceeded, we set a modified centroid
   }
 
   private void assignIntensityCentroid() {
@@ -608,7 +599,7 @@ public class CentroidCompute {
   private boolean checkCanCompute() {
     if (!hasCentroid || centroid == null) {
       log.reportError("Error - do not hava a centroid for " + markerData.getMarkerName()
-                      + ", cannot compute LRR/BAF");
+          + ", cannot compute LRR/BAF");
       return false;
     } else {
       return true;
@@ -630,11 +621,13 @@ public class CentroidCompute {
       log.reportError("Error - mismatched number of samples to use for data's length");
     }
     if (sampleSex != null && sexSpecific && chr == 23 && Array.countIf(sampleSex, 2) == 0) {
-      log.reportError("Error - sample sex was defined, but no females were found; cannot properly cluster chr X ");
+      log.reportError(
+          "Error - sample sex was defined, but no females were found; cannot properly cluster chr X ");
       sampleSex = null;
     }
     if (sampleSex != null && sexSpecific && chr == 24 && Array.countIf(sampleSex, 1) == 0) {
-      log.reportError("Error - sample sex was defined, but no males were found; cannot properly cluster chr Y");
+      log.reportError(
+          "Error - sample sex was defined, but no males were found; cannot properly cluster chr Y");
       sampleSex = null;
     }
   }
@@ -856,8 +849,7 @@ public class CentroidCompute {
       return markerData.getAbGenotypes();
     } else {
       return markerData.getAbGenotypesAfterFilters(clusterFilterCollection,
-                                                   markerData.getMarkerName(), (float) gcThreshold,
-                                                   log);
+          markerData.getMarkerName(), (float) gcThreshold, log);
     }
   }
 

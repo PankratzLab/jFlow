@@ -44,7 +44,7 @@ public class MarkerSeqAnnotation extends AnnotationData {
 
   public MarkerSeqAnnotation() {
     super(VCFHeaderLineType.String, null, 1, DEFAULT_NAME, DESCRIPTION, DEFUALT_VALUE,
-          DEFUALT_VALUE);
+        DEFUALT_VALUE);
   }
 
   public Allele getA() {
@@ -163,7 +163,7 @@ public class MarkerSeqAnnotation extends AnnotationData {
   }
 
   public void setDesignData(String seqA, String segB, int interrogationPosition, Strand strand,
-                            TOP_BOT topBotProbe, TOP_BOT topBotRef, Allele A, Allele B) {
+      TOP_BOT topBotProbe, TOP_BOT topBotRef, Allele A, Allele B) {
     this.seqA = seqA;
     seqB = segB;
     this.interrogationPosition = interrogationPosition;
@@ -174,9 +174,9 @@ public class MarkerSeqAnnotation extends AnnotationData {
     this.B = B;
     // this.seg=seg; populate on load only
     setData(seqA + DEFUALT_DELIMITER + segB + DEFUALT_DELIMITER + interrogationPosition
-            + DEFUALT_DELIMITER + CNVHelper.decode(strand) + DEFUALT_DELIMITER + topBotProbe
-            + DEFUALT_DELIMITER + topBotRef + DEFUALT_DELIMITER + A.getDisplayString()
-            + DEFUALT_DELIMITER + B.getDisplayString());
+        + DEFUALT_DELIMITER + CNVHelper.decode(strand) + DEFUALT_DELIMITER + topBotProbe
+        + DEFUALT_DELIMITER + topBotRef + DEFUALT_DELIMITER + A.getDisplayString()
+        + DEFUALT_DELIMITER + B.getDisplayString());
   }
 
   public void setSegment(Segment seg1) {

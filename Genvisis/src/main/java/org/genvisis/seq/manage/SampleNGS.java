@@ -17,7 +17,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 
 public class SampleNGS {
   private enum DATA_TYPE {
-                          GENO, X, Y, GC;
+    GENO, X, Y, GC;
   }
 
   public static SampleNGS[] getSamples(HashSet<String> samples) {
@@ -129,7 +129,7 @@ public class SampleNGS {
   }
 
   public Hashtable<String, Float> dump(Project proj, Hashtable<String, Float> allOutliers,
-                                       long fingerprint, Logger log) {
+      long fingerprint, Logger log) {
     if (!verify(proj)) {
       log.reportTimeError("Could not verify that all data has been added for sample " + sampleName);
     } else {
@@ -140,10 +140,9 @@ public class SampleNGS {
       Arrays.fill(fakeLRRs, -1);
       Arrays.fill(fakeBAFS, 0);
       Sample samp = new Sample(sampleName, fingerprint, Floats.toArray(gcs), Floats.toArray(xs),
-                               Floats.toArray(ys), fakeBAFS, fakeLRRs, Bytes.toArray(geno),
-                               Bytes.toArray(geno), false);
+          Floats.toArray(ys), fakeBAFS, fakeLRRs, Bytes.toArray(geno), Bytes.toArray(geno), false);
       samp.saveToRandomAccessFile(dir + sampleName + Sample.SAMPLE_FILE_EXTENSION, allOutliers,
-                                  sampleName);
+          sampleName);
     }
     return allOutliers;
   }

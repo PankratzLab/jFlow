@@ -18,8 +18,7 @@ import org.genvisis.common.ext;
 public class CALiCo_SOL {
 
   public static void generateQsubMultiple(Vector<String> jobNamesWithAbsolutePaths, String batchDir,
-                                          String modelName, int qsubMemInMBs,
-                                          double qsubWalltimeInHours, Logger log) {
+      String modelName, int qsubMemInMBs, double qsubWalltimeInHours, Logger log) {
     IntVector jobSizes;
     Vector<String> GenoFileNames;
     Vector<Integer> fileSizes;
@@ -54,18 +53,16 @@ public class CALiCo_SOL {
     }
 
     Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
-                       batchDir + "chunk_" + modelName, 8, true, null, -1, qsubMemInMBs,
-                       qsubWalltimeInHours);
+        batchDir + "chunk_" + modelName, 8, true, null, -1, qsubMemInMBs, qsubWalltimeInHours);
     Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
-                       batchDir + "chunkSB256_" + modelName, 16, true, "sb256", -1, qsubMemInMBs,
-                       qsubWalltimeInHours);
+        batchDir + "chunkSB256_" + modelName, 16, true, "sb256", -1, qsubMemInMBs,
+        qsubWalltimeInHours);
     Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
-                       batchDir + "chunkSB_" + modelName, 16, true, "sb", -1, qsubMemInMBs,
-                       qsubWalltimeInHours);
+        batchDir + "chunkSB_" + modelName, 16, true, "sb", -1, qsubMemInMBs, qsubWalltimeInHours);
   }
 
   public static void generateQsubs(String commands, String root, String[][] iterations,
-                                   Logger log) {
+      Logger log) {
     Files.qsub(root, commands, iterations);
   }
 
@@ -80,11 +77,9 @@ public class CALiCo_SOL {
   // }
 
   public static Vector<String> generateScripts(String commandFullPath, String[] methods,
-                                               String phenoDir, String phenoNameExtOrFullPath,
-                                               String genoDir, String genoNameExtOrFullPath,
-                                               String probMatrixDir,
-                                               String probMatrixNameExtOrFullPath, String outDir,
-                                               String batchDir, Logger log) {
+      String phenoDir, String phenoNameExtOrFullPath, String genoDir, String genoNameExtOrFullPath,
+      String probMatrixDir, String probMatrixNameExtOrFullPath, String outDir, String batchDir,
+      Logger log) {
     PrintWriter writer;
     File[] genoFiles = null;
     File[] phenoFiles = null;
@@ -121,13 +116,12 @@ public class CALiCo_SOL {
         for (String method : methods) {
           for (int l = 0; l < probMatrixFiles.length; l++) {
             resultFullPath = outDir + "Pheno_" + phenoLabels[i] + "_Geno_" + genoLabels[j]
-                             + "_Method_" + method + "_PMatrix_" + probMatrixLabels[l];
+                + "_Method_" + method + "_PMatrix_" + probMatrixLabels[l];
             script.add(commandFullPath + " --METHOD " + method + " --PHENO "
-                       + phenoFiles[i].getAbsolutePath() + " --GENO "
-                       + genoFiles[j].getAbsolutePath() + " --PROBMATRIX "
-                       + probMatrixFiles[l].getAbsolutePath() + " --OUT " + resultFullPath
-                       + ".out --LOG " + resultFullPath
-                       + ".log --CAF 0.01 --TRIM 0.02 --TRIM2 0.0004");
+                + phenoFiles[i].getAbsolutePath() + " --GENO " + genoFiles[j].getAbsolutePath()
+                + " --PROBMATRIX " + probMatrixFiles[l].getAbsolutePath() + " --OUT "
+                + resultFullPath + ".out --LOG " + resultFullPath
+                + ".log --CAF 0.01 --TRIM 0.02 --TRIM2 0.0004");
           }
         }
       }
@@ -186,8 +180,7 @@ public class CALiCo_SOL {
           len = Math.min(probMatrixLabels[i].length(), probMatrixLabels[j].length());
           for (int k = 0; k < len; k++) {
             if (!(probMatrixLabels[i].substring(k, k + strLength)
-                                     .equals(probMatrixLabels[j].substring(k, k + strLength)))
-                && k < start) {
+                .equals(probMatrixLabels[j].substring(k, k + strLength))) && k < start) {
               start = k;
               break;
             }
@@ -203,9 +196,8 @@ public class CALiCo_SOL {
       startMax++;
 
       for (int i = 0; i < probMatrixLabels.length; i++) {
-        probMatrixLabels[i] =
-            probMatrixLabels[i].substring(startMin,
-                                          Math.min(startMax, probMatrixLabels[i].length()));
+        probMatrixLabels[i] = probMatrixLabels[i].substring(startMin,
+            Math.min(startMax, probMatrixLabels[i].length()));
       }
     }
 
@@ -280,8 +272,7 @@ public class CALiCo_SOL {
    * @throws Elision
    */
   public static File[] getListOfFilesInADirectory(String directory,
-                                                  final String filenameOrNameExtToList,
-                                                  Logger log) throws Elision {
+      final String filenameOrNameExtToList, Logger log) throws Elision {
     File[] phenoFiles = null;
 
     if (log == null) {
@@ -353,28 +344,24 @@ public class CALiCo_SOL {
     qsubWalltimeInHours = 24;
 
     String usage = "\n" + "one.CALiCo_SOL requires 10 - 12 arguments\n"
-                   + "   (1) full path of the command (i.e. command=" + commandFullPath
-                   + " (not default))\n" + "   (2) methods of analysis (i.e. methods=" + methods[0]
-                   + ";" + methods[1]
-                   + " (add additional ones separated by ',' or ';' with no space) (default))\n"
-                   + "   (3) directory of the pheno files (i.e. phenodir=" + phenoDir
-                   + " (not default))\n"
-                   + "   (4) name extension of the pheno files, or full path of a specific pheno file (i.e. phenoext="
-                   + phenoNameExtOrFullPath + " (not default))\n"
-                   + "   (5) directory of the pheno files (i.e. genodir=" + genoDir
-                   + " (not default))\n"
-                   + "   (6) name extension of the pheno files, or full path of a specific geno file (i.e. genoext="
-                   + genoNameExtOrFullPath + " (not default))\n"
-                   + "   (7) directory of the probability matrix files (i.e. probmaxtrixdir="
-                   + probMatrixDir + " (not default))\n"
-                   + "   (8) name extension of the probability matrix files, or full path of a specific probability matrix file (i.e. probmatrixext="
-                   + probMatrixNameExtOrFullPath + " (not default))\n"
-                   + "   (9) directory of output files (i.e. outdir=" + outDir + " (not default))\n"
-                   + "   (10) directory of batch files (i.e. batchdir=" + batchDir
-                   + " (not default))\n" + "   (11) (optional) qsub memory size (i.e. qsubmem="
-                   + qsubMemInMBs + " (default; in megabytes))\n"
-                   + "   (12) (optional) qsub walltime (i.e. qsubwalltime=" + qsubWalltimeInHours
-                   + " (default; in hours))\n" + "";
+        + "   (1) full path of the command (i.e. command=" + commandFullPath + " (not default))\n"
+        + "   (2) methods of analysis (i.e. methods=" + methods[0] + ";" + methods[1]
+        + " (add additional ones separated by ',' or ';' with no space) (default))\n"
+        + "   (3) directory of the pheno files (i.e. phenodir=" + phenoDir + " (not default))\n"
+        + "   (4) name extension of the pheno files, or full path of a specific pheno file (i.e. phenoext="
+        + phenoNameExtOrFullPath + " (not default))\n"
+        + "   (5) directory of the pheno files (i.e. genodir=" + genoDir + " (not default))\n"
+        + "   (6) name extension of the pheno files, or full path of a specific geno file (i.e. genoext="
+        + genoNameExtOrFullPath + " (not default))\n"
+        + "   (7) directory of the probability matrix files (i.e. probmaxtrixdir=" + probMatrixDir
+        + " (not default))\n"
+        + "   (8) name extension of the probability matrix files, or full path of a specific probability matrix file (i.e. probmatrixext="
+        + probMatrixNameExtOrFullPath + " (not default))\n"
+        + "   (9) directory of output files (i.e. outdir=" + outDir + " (not default))\n"
+        + "   (10) directory of batch files (i.e. batchdir=" + batchDir + " (not default))\n"
+        + "   (11) (optional) qsub memory size (i.e. qsubmem=" + qsubMemInMBs
+        + " (default; in megabytes))\n" + "   (12) (optional) qsub walltime (i.e. qsubwalltime="
+        + qsubWalltimeInHours + " (default; in hours))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -434,40 +421,37 @@ public class CALiCo_SOL {
           isSucceeded = false;
         } else {
           log = new Logger(outDir + "Genvisis_CALiCo_SOL_"
-                           + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
+              + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
           isExisted = true;
         }
       } else {
         log = new Logger(outDir + "Genvisis_CALiCo_SOL_"
-                         + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
+            + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
       }
 
       log.report("Genvisis (R) 2014. \nCALiCo_SOL analysis "
-                 + (new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new Date()))
-                 + "\n-Pheno files directory: " + phenoDir
-                 + "\n-Pheno file name extension or full path: " + phenoNameExtOrFullPath
-                 + "\n-Geno files directory: " + genoDir
-                 + "\n-Geno file name extension or full path: " + genoNameExtOrFullPath
-                 + "\n-Probability matrix files directory: " + probMatrixDir
-                 + "\n-Probabliity matrix file name extension or full path: "
-                 + probMatrixNameExtOrFullPath + "\n-Output files directory: " + outDir
-                 + "\n-Batch files directory: " + batchDir);
+          + (new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new Date()))
+          + "\n-Pheno files directory: " + phenoDir + "\n-Pheno file name extension or full path: "
+          + phenoNameExtOrFullPath + "\n-Geno files directory: " + genoDir
+          + "\n-Geno file name extension or full path: " + genoNameExtOrFullPath
+          + "\n-Probability matrix files directory: " + probMatrixDir
+          + "\n-Probabliity matrix file name extension or full path: " + probMatrixNameExtOrFullPath
+          + "\n-Output files directory: " + outDir + "\n-Batch files directory: " + batchDir);
 
       if (isExisted) {
         log.reportError("Warning --- Directory " + outDir
-                        + " already exists. Existing files might be reused or overwritten.");
+            + " already exists. Existing files might be reused or overwritten.");
       } else if (!isSucceeded) {
         log.reportError("Warning --- Cannot create the directory " + outDir);
       } else {
         log.report("Creating result directory " + outDir);
       }
 
-      jobNamesWithAbsolutePaths =
-          generateScripts(commandFullPath, methods, phenoDir, phenoNameExtOrFullPath, genoDir,
-                          genoNameExtOrFullPath, probMatrixDir, probMatrixNameExtOrFullPath, outDir,
-                          batchDir, log);
+      jobNamesWithAbsolutePaths = generateScripts(commandFullPath, methods, phenoDir,
+          phenoNameExtOrFullPath, genoDir, genoNameExtOrFullPath, probMatrixDir,
+          probMatrixNameExtOrFullPath, outDir, batchDir, log);
       generateQsubMultiple(jobNamesWithAbsolutePaths, batchDir, "CALiCo_SOL_ver6", qsubMemInMBs,
-                           qsubWalltimeInHours, log);
+          qsubWalltimeInHours, log);
       log.report("\nCalico_SOL analysis is finished.");
 
     } catch (Exception e) {

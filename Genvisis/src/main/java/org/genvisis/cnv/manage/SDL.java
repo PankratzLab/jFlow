@@ -14,14 +14,14 @@ import org.genvisis.common.WorkerTrain.AbstractProducer;
  */
 public class SDL implements Iterator<Sample> {
   public enum LOAD_TYPE {
-                         /**
-                          * Loads everything
-                          */
-                         FULL_SAMPLE,
-                         /**
-                          * Load genos and gc only
-                          */
-                         PARTIAL_GENO_ONLY;
+    /**
+     * Loads everything
+     */
+    FULL_SAMPLE,
+    /**
+     * Load genos and gc only
+     */
+    PARTIAL_GENO_ONLY;
   }
   private static class SDLProducer extends AbstractProducer<Sample> {
     private final Project proj;
@@ -69,7 +69,7 @@ public class SDL implements Iterator<Sample> {
             return proj.getFullSampleFromRandomAccessFile(sample);
           case PARTIAL_GENO_ONLY:
             return proj.getPartialSampleFromRandomAccessFile(sample, true, false, false, false,
-                                                             true);
+                true);
           default:
             throw new IllegalArgumentException("Invalid load type " + lType);
         }

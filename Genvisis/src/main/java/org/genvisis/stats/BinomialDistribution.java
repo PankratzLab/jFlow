@@ -13,7 +13,7 @@ public class BinomialDistribution {
   public static final int CI_LOGLIKELIHOOD = 2;
 
   public static double[] confidenceInterval(int observed, int n, double alpha, int sigfigs,
-                                            int type) {
+      int type) {
     double pi, piHat, z, se;
     double low, high, convergence_limit, step, value, bestVal, target;
     int bestPos;
@@ -36,8 +36,8 @@ public class BinomialDistribution {
           target = z * z;
           break;
         default:
-          System.err.println("Error - Unknown confidence interval type (" + type
-                             + "); using score test");
+          System.err
+              .println("Error - Unknown confidence interval type (" + type + "); using score test");
           type = CI_SCORE_TEST;
           target = z;
           break;
@@ -66,10 +66,8 @@ public class BinomialDistribution {
                 value = scoreTest(observed, n, pi);
                 break;
             }
-            if (Math.abs(value - (i == 0 || type != CI_SCORE_TEST ? 1 : -1)
-                                 * target) < Math.abs(bestVal
-                                                      - (i == 0 || type != CI_SCORE_TEST ? 1 : -1)
-                                                        * target)) {
+            if (Math.abs(value - (i == 0 || type != CI_SCORE_TEST ? 1 : -1) * target) < Math
+                .abs(bestVal - (i == 0 || type != CI_SCORE_TEST ? 1 : -1) * target)) {
               bestPos = j;
               bestVal = value;
             }
@@ -113,50 +111,52 @@ public class BinomialDistribution {
     piHat = (double) obs / (double) n;
 
     System.out.println("The mean is " + mean(n, piHat) + " and the standard deviation is "
-                       + ext.formDeci(stdev(n, piHat), 3));
+        + ext.formDeci(stdev(n, piHat), 3));
     System.out.println("The probability of " + obs + " out of " + n + " trials, given piHat = "
-                       + ext.formDeci(piHat, 5) + " is: "
-                       + ext.formDeci(probability(obs, n, piHat), DEFAULT_SIGFIGS));
+        + ext.formDeci(piHat, 5) + " is: "
+        + ext.formDeci(probability(obs, n, piHat), DEFAULT_SIGFIGS));
     System.out.println();
     System.out.println("With n = " + n + " and pi0 = " + pi0 + " the standard error would be "
-                       + ext.formDeci(stderr(pi0, n), 4));
+        + ext.formDeci(stderr(pi0, n), 4));
     System.out.println("With " + obs + " observed, the score test would yield a z of "
-                       + ext.formDeci(scoreTest(obs, n, pi0), DEFAULT_SIGFIGS));
+        + ext.formDeci(scoreTest(obs, n, pi0), DEFAULT_SIGFIGS));
     System.out.println("This yields a two-sided p-value of "
-                       + ext.prettyP(ProbDist.NormDist(scoreTest(obs, n, pi0))));
+        + ext.prettyP(ProbDist.NormDist(scoreTest(obs, n, pi0))));
     ci = confidenceInterval(obs, n, CI_SCORE_TEST);
     System.out.println("The confidence interval using the duality of the score test is (" + ci[0]
-                       + ", " + ci[1] + ")");
+        + ", " + ci[1] + ")");
     System.out.println();
     System.out.println("The Wald test would yield a chi-square of " + waldTest(obs, n, pi0));
     System.out.println("This yields a two-sided p-value of "
-                       + ext.prettyP(ProbDist.ChiDist(waldTest(obs, n, pi0), 1)));
+        + ext.prettyP(ProbDist.ChiDist(waldTest(obs, n, pi0), 1)));
     ci = confidenceInterval(obs, n, CI_SYMMETRIC);
-    System.out.println("The symmetric confidence interval (i.e. Wald test) is (" + ci[0] + ", "
-                       + ci[1] + ")");
+    System.out.println(
+        "The symmetric confidence interval (i.e. Wald test) is (" + ci[0] + ", " + ci[1] + ")");
     System.out.println();
     if (Double.isNaN(loglikelihoodTest(obs, n, pi0))) {
       System.err.println();
-      System.err.println("Error - the counts involved are too large to calculate exact probabilities/log-likelihoof ratios");
-      System.err.println("        on the upsaide, the Score/Wald tests should be sufficiently accurate");
+      System.err.println(
+          "Error - the counts involved are too large to calculate exact probabilities/log-likelihoof ratios");
+      System.err
+          .println("        on the upsaide, the Score/Wald tests should be sufficiently accurate");
     } else {
       System.out.println("The log-likelihood test would yield a chi-square of "
-                         + ext.formDeci(loglikelihoodTest(obs, n, pi0), DEFAULT_SIGFIGS));
+          + ext.formDeci(loglikelihoodTest(obs, n, pi0), DEFAULT_SIGFIGS));
       System.out.println("This yields a two-sided p-value of "
-                         + ext.prettyP(ProbDist.ChiDist(loglikelihoodTest(obs, n, pi0), 1)));
+          + ext.prettyP(ProbDist.ChiDist(loglikelihoodTest(obs, n, pi0), 1)));
       ci = confidenceInterval(obs, n, CI_LOGLIKELIHOOD);
       System.out.println("The confidence interval using the duality of the loglikelihood test is ("
-                         + ci[0] + ", " + ci[1] + ")");
+          + ci[0] + ", " + ci[1] + ")");
       System.out.println();
       System.out.println("Exact probability LTE " + obs + " equals "
-                         + ext.formDeci(probabilityLTE(obs, n, pi0), 5));
+          + ext.formDeci(probabilityLTE(obs, n, pi0), 5));
       System.out.println("Exact probability GTE " + obs + " equals "
-                         + ext.formDeci(probabilityGTE(obs, n, pi0), 5));
+          + ext.formDeci(probabilityGTE(obs, n, pi0), 5));
       System.out.println();
       System.out.println("Mid probability LTE " + obs + " equals "
-                         + ext.formDeci(midProbabilityLTE(obs, n, pi0), 5));
+          + ext.formDeci(midProbabilityLTE(obs, n, pi0), 5));
       System.out.println("Mid probability GTE " + obs + " equals "
-                         + ext.formDeci(midProbabilityGTE(obs, n, pi0), 5));
+          + ext.formDeci(midProbabilityGTE(obs, n, pi0), 5));
       System.out.println();
     }
     // System.out.println("y\tP(y)\tp-value\tmid p-value");

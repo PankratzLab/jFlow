@@ -14,7 +14,7 @@ public class MosaicRegion extends CNVariant implements Serializable {
   private static final long serialVersionUID = 1L;
   public static final String[] ADD_HEADER =
       new String[] {"bpWeightedScore", "nearestStatScore", "pdfScore", "delta", "f", "customF",
-                    "numFMarkers", "numCustomFMarkers", "beastScore", "beastHeight", "beastLength"};
+          "numFMarkers", "numCustomFMarkers", "beastScore", "beastHeight", "beastLength"};
   private final double nearestStateScore;
   private final double bpWeightedScore;
   private final double pdfScore;
@@ -28,7 +28,7 @@ public class MosaicRegion extends CNVariant implements Serializable {
   private double beastScore;
 
   public MosaicRegion(CNVariant cnv, double bpWeightedScore, double nearestStateScore,
-                      double pdfScore, double delta, double f, double customF) {
+      double pdfScore, double delta, double f, double customF) {
     super(cnv);
     this.bpWeightedScore = bpWeightedScore;
     this.nearestStateScore = nearestStateScore;

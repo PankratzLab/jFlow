@@ -26,10 +26,9 @@ public class BatchEffects {
     String pedfile = "pedfile.txt";
     String dnas = "dnas.txt";
 
-    String usage =
-        "\\n" + "park.gwa.BatchEffects requires 0-1 arguments\n" + "   (1) pedigree file (i.e. ped="
-                   + pedfile + " (default))\n" + "   (2) list of DNAs and their batch (i.e. dnas="
-                   + dnas + " (default))\n" + "";
+    String usage = "\\n" + "park.gwa.BatchEffects requires 0-1 arguments\n"
+        + "   (1) pedigree file (i.e. ped=" + pedfile + " (default))\n"
+        + "   (2) list of DNAs and their batch (i.e. dnas=" + dnas + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -69,8 +68,8 @@ public class BatchEffects {
       bins = Array.subArray(line, 2);
       reader.close();
     } catch (FileNotFoundException fnfe) {
-      System.err.println("Error: file \"" + "batchListing.txt"
-                         + "\" not found in current directory");
+      System.err
+          .println("Error: file \"" + "batchListing.txt" + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + "batchListing.txt" + "\"");
@@ -201,7 +200,7 @@ public class BatchEffects {
         // 0 --geno 1 --mind 1 --out missing."+i);
 
         writer.println("plink --bfile pd_gwas --keep noWGAs.txt --pheno batchListing.txt --mpheno "
-                       + i + " --assoc --out assoc." + i);
+            + i + " --assoc --out assoc." + i);
         // writer.println("plink --bfile pd_gwas --keep noWGAs.txt
         // --pheno batchListing.txt --mpheno "+i+" --test-missing --maf
         // 0 --geno 1 --mind 1 --out missing."+i);

@@ -15,7 +15,8 @@ public class Correlation {
     int count;
 
     if (data.length != 2) {
-      System.err.println("Error - PearsonCorrelation requires a 2xN table to calculate a coefficient");
+      System.err
+          .println("Error - PearsonCorrelation requires a 2xN table to calculate a coefficient");
     } else if (data[0].length != data[1].length) {
       System.err.println("Error - PearsonCorrelation requires the 2 arrays to have equal N");
     } else {
@@ -36,6 +37,6 @@ public class Correlation {
 
   public static double[] Spearman(double[][] data) {
     return Pearson(new double[][] {Transformations.rankTransform(data[0]),
-                                   Transformations.rankTransform(data[1])});
+        Transformations.rankTransform(data[1])});
   }
 }

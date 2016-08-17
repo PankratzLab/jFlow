@@ -74,7 +74,7 @@ public class ExploreLinearity {
     String filename = "Boston.xls";
 
     String usage = "\n" + "park.ExploreLinearity requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -126,9 +126,8 @@ public class ExploreLinearity {
       for (int i = 0; i < M; i++) {
         for (int j = 0; j < Transformations.NUM_TRANSFORMATIONS; j++) {
           correlations[i][j][k] = Correlation.Pearson(transDeps[k], transIndeps[i][j])[0];
-          R_squares[i][j][k] =
-              new LeastSquares(transDeps[k],
-                               LeastSquares.Transpose(new double[][] {transIndeps[i][j]})).getRsquare();
+          R_squares[i][j][k] = new LeastSquares(transDeps[k],
+              LeastSquares.Transpose(new double[][] {transIndeps[i][j]})).getRsquare();
         }
       }
     }
@@ -142,11 +141,11 @@ public class ExploreLinearity {
       writer = new PrintWriter(new FileWriter(filename));
       for (int i = 0; i < correlations.length; i++) {
         writer.println((depLabel == null ? "Dep" : depLabel) + " versus "
-                       + (indepLabels == null ? "Indep " + (i + 1) : indepLabels[i]));
+            + (indepLabels == null ? "Indep " + (i + 1) : indepLabels[i]));
         writer.println();
         if (preferredDepTrans == -1) {
           writer.println(Transformations.getLabel(-1) + "\tTransformation of "
-                         + (depLabel == null ? "Dep" : depLabel));
+              + (depLabel == null ? "Dep" : depLabel));
           writer.print(Transformations.getLabel(-1));
           for (int j = 0; j < Transformations.NUM_TRANSFORMATIONS; j++) {
             writer.print(ext.formStr("     " + (j + 1), 8, true));
@@ -154,17 +153,15 @@ public class ExploreLinearity {
           writer.println();
         }
         for (int j = 0; j < Transformations.NUM_TRANSFORMATIONS; j++) {
-          writer.print((preferredDepTrans == -1 ? (j + 1) + " " : "")
-                       + Transformations.getLabel(j));
+          writer
+              .print((preferredDepTrans == -1 ? (j + 1) + " " : "") + Transformations.getLabel(j));
           for (int k =
-              (preferredDepTrans == -1 ? 0
-                                       : preferredDepTrans); k < (preferredDepTrans == -1 ? Transformations.NUM_TRANSFORMATIONS
-                                                                                          : preferredDepTrans
-                                                                                            + 1); k++) {
-            writer.print(ext.formStr(measure == 1 ? (correlations[i][j][k] < 0 ? "" : " ")
-                                                    + ext.formDeci(correlations[i][j][k], 3, true)
-                                                  : ext.formDeci(R_squares[i][j][k], 3, true),
-                                     8, true));
+              (preferredDepTrans == -1 ? 0 : preferredDepTrans); k < (preferredDepTrans == -1
+                  ? Transformations.NUM_TRANSFORMATIONS : preferredDepTrans + 1); k++) {
+            writer.print(ext.formStr(measure == 1
+                ? (correlations[i][j][k] < 0 ? "" : " ")
+                    + ext.formDeci(correlations[i][j][k], 3, true)
+                : ext.formDeci(R_squares[i][j][k], 3, true), 8, true));
           }
           writer.println();
         }

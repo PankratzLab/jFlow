@@ -50,7 +50,7 @@ public class PlinkExtractorFromVCF {
       }
       if (results[i] == null) {
         System.err.println("Error - unable to find 1000G data file for chromosome " + chrs[i]
-                           + ".  Please ensure that data files names include \".chr#.\".");
+            + ".  Please ensure that data files names include \".chr#.\".");
       }
     }
 
@@ -94,10 +94,9 @@ public class PlinkExtractorFromVCF {
     String idsFile = null;
 
     String usage = "\n" + "gwas.PlinkExtractorFromVCF requires 0-1 arguments\n"
-                   + "   (1) Directory of 1000G VCF files (i.e. dir=" + dir + " (default))\n"
-                   + "   (2) UCSC regions filename (i.e. regions=" + rgnFile + " (default))\n"
-                   + "   (3) (Optional) IDs list filename (i.e. ids=" + idsFile + " (default))\n"
-                   + "" + "";
+        + "   (1) Directory of 1000G VCF files (i.e. dir=" + dir + " (default))\n"
+        + "   (2) UCSC regions filename (i.e. regions=" + rgnFile + " (default))\n"
+        + "   (3) (Optional) IDs list filename (i.e. ids=" + idsFile + " (default))\n" + "" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -149,9 +148,8 @@ public class PlinkExtractorFromVCF {
       }
       plinkRoot = "plink" + ucsc[i][0] + ucsc[i][1] + ucsc[i][2];
       sb = new StringBuilder("plink2 --noweb").append(" --vcf ").append(dir).append(dataFiles[i])
-                                              .append(" --chr ").append(ucsc[i][0])
-                                              .append(" --from-bp ").append(ucsc[i][1])
-                                              .append(" --to-bp ").append(ucsc[i][2]);
+          .append(" --chr ").append(ucsc[i][0]).append(" --from-bp ").append(ucsc[i][1])
+          .append(" --to-bp ").append(ucsc[i][2]);
       if (ids != null) {
         sb.append(" --keep ").append(ids);
       }
@@ -164,7 +162,7 @@ public class PlinkExtractorFromVCF {
     Files.writeArrayList(roots, current + "temp/mergeList.txt");
 
     String plinkMerge = "plink2 --noweb --bfile " + current + mergeRoot + " --merge-list " + current
-                        + "temp/mergeList.txt --make-bed --out " + current + "merged";
+        + "temp/mergeList.txt --make-bed --out " + current + "merged";
     commands.add("");
     commands.add(plinkMerge);
     commands.add("");

@@ -51,7 +51,7 @@ public class IrrTable {
     Project proj = new Project(null, false);
     SampleQC sampleQC = SampleQC.loadSampleQC(proj);
     Quantiles[] quantiles = Quantiles.qetQuantilesFor(100, sampleQC.getQcMatrix(),
-                                                      sampleQC.getQctitles(), proj.getLog());
+        sampleQC.getQctitles(), proj.getLog());
     IrrTable rIrrTable = new IrrTable(2, proj.getSamples().length, true, proj.getLog());
     rIrrTable.addRatings(0, quantiles[1].getQuantileMembershipAsRoundedInt());
     rIrrTable.addRatings(1, quantiles[1].getQuantileMembershipAsRoundedInt());
@@ -100,8 +100,8 @@ public class IrrTable {
   private boolean addRating(int judge, int judgedRating, int subject) {
     boolean added = true;
     if (rated.containsKey(getJudgeSubjectKey(judge, subject))) {
-      log.reportTimeError(JUDGE + " " + judge + " has already rated " + SUBJECT + " " + subject
-                          + ", skipping");
+      log.reportTimeError(
+          JUDGE + " " + judge + " has already rated " + SUBJECT + " " + subject + ", skipping");
       added = false;
     } else {
       rated.put(getJudgeSubjectKey(judge, subject), getJudgeSubjectKey(judge, subject));
@@ -127,8 +127,7 @@ public class IrrTable {
     boolean added = true;
     if (judgedRatings.length != ratings[judge].length) {
       log.reportTimeError("Mismatched array size for judge " + judge + ", trying to add "
-                          + judgedRatings.length + " judgments and should have "
-                          + ratings[judge].length);
+          + judgedRatings.length + " judgments and should have " + ratings[judge].length);
       added = false;
     } else {
       for (int i = 0; i < judgedRatings.length; i++) {
@@ -140,8 +139,9 @@ public class IrrTable {
 
   public double getCohensKappa() {
     if (ratings.length > 2) {
-      log.reportTimeWarning("Generally cohen's kappa is only used on two raters, currently computing with "
-                            + ratings.length + " raters ");
+      log.reportTimeWarning(
+          "Generally cohen's kappa is only used on two raters, currently computing with "
+              + ratings.length + " raters ");
     }
     double chance = Array.sum(byChance);
     // System.out.println("CHANCE"+chance);
@@ -199,7 +199,7 @@ public class IrrTable {
   public boolean parseAgreement() {
     agreementIndex = initIndices(uniqRatings);
     log.reportTimeInfo("Finding agreement among " + ratings.length + " judges over "
-                       + uniqRatings.size() + " categories ");
+        + uniqRatings.size() + " categories ");
     boolean parsed = true;
     judgedAgreementsBySample = new int[ratings[0].length];
     judgedAgreementsByCategory = new int[uniqRatings.size()];
@@ -207,7 +207,7 @@ public class IrrTable {
 
     if (totalRated != shouldHave) {
       log.reportTimeError("Found " + totalRated + " total ratings and was expecting " + shouldHave
-                          + " total ratings");
+          + " total ratings");
       parsed = false;
     } else {
       for (int i = 0; i < ratings[0].length; i++) {// for each sample
@@ -230,7 +230,7 @@ public class IrrTable {
       }
     }
     log.reportTimeInfo(ratings.length + " judges agreed on " + Array.sum(judgedAgreementsBySample)
-                       + " of " + judgedAgreementsBySample.length + " subjects");
+        + " of " + judgedAgreementsBySample.length + " subjects");
     if (parsed) {
       parsed = parseByChance();
     }
@@ -258,8 +258,8 @@ public class IrrTable {
           chance *= (double) judgeTotals[j].get(uniqs[i]) / numSubjects;
         } else {
           if (verbose) {
-            log.reportTimeWarning("judge " + j + " did not make any judgments for category "
-                                  + uniqs[i]);
+            log.reportTimeWarning(
+                "judge " + j + " did not make any judgments for category " + uniqs[i]);
           }
           chance = 0;
         }

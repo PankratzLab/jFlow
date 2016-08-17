@@ -20,7 +20,7 @@ public class AIMsPicker {
     Logger log;
 
     String usage = "\n" + "one.AIMsPicker requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-                   + filename + " (default))\n" + "";
+        + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -70,9 +70,9 @@ public class AIMsPicker {
     try {
       reader = new BufferedReader(new FileReader(filename));
       line = reader.readLine().trim().split("[\\s]+");
-      ext.checkHeader(line, new String[] {"Cluster", "Variant", "region", "gene", "pval", "Chr",
-                                          "Position", "Score"},
-                      true);
+      ext.checkHeader(line,
+          new String[] {"Cluster", "Variant", "region", "gene", "pval", "Chr", "Position", "Score"},
+          true);
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
         if (!allInfo.containsKey(line[1]) && Double.parseDouble(line[7]) > minScore) {
@@ -131,7 +131,7 @@ public class AIMsPicker {
           chr = Byte.parseByte(line[5]);
           position = Integer.parseInt(line[6]);
           picks[i] = line[1] + "\t" + chr + "\t" + position + "\t" + line[7] + "\t" + line[0] + "\t"
-                     + (pick + 1) + " of " + cluster.size();
+              + (pick + 1) + " of " + cluster.size();
           chrs[i] = chr;
           positions[i] = position;
           count++;

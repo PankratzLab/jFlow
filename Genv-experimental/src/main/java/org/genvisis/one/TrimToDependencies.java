@@ -100,8 +100,8 @@ public class TrimToDependencies implements Serializable {
             line = temp.trim().split("[\\s]+");
             reader.reset();
             trav = name + "."
-                   + line[Math.max(ext.indexOfStr("class", line), ext.indexOfStr("interface", line))
-                          + 1];
+                + line[Math.max(ext.indexOfStr("class", line), ext.indexOfStr("interface", line))
+                    + 1];
             if (allClasses.containsKey(trav)) {
               clas = allClasses.get(trav);
             } else {
@@ -115,18 +115,14 @@ public class TrimToDependencies implements Serializable {
             }
             innerClasses.add(clas);
           } else if ((line[0].equals("public") || line[0].equals("private")
-                      || line[0].equals("protected"))
-                     && getRidOfAnythingInQuotes(temp).contains("(")
-                     && !getRidOfAnythingInQuotes(temp).contains("=")) {
+              || line[0].equals("protected")) && getRidOfAnythingInQuotes(temp).contains("(")
+              && !getRidOfAnythingInQuotes(temp).contains("=")) {
             reader.reset();
-            line = flipGenPars(ext.replaceAllWith(temp.substring(0, temp.indexOf("(")),
-                                                  new String[][] {{" static ", ""},
-                                                                  {"abstract ",
-                                                                   ""},
-                                                                  {"final ", ""}, {"public ", ""},
-                                                                  {"private ", ""},
-                                                                  {"protected ",
-                                                                   ""}})).trim().split("[\\s]+");
+            line =
+                flipGenPars(ext.replaceAllWith(temp.substring(0, temp.indexOf("(")),
+                    new String[][] {{" static ", ""}, {"abstract ", ""}, {"final ", ""},
+                        {"public ", ""}, {"private ", ""}, {"protected ", ""}})).trim()
+                            .split("[\\s]+");
             if (line.length > 2) {
               log.reportError("Error - thought I was parsing a method here:");
               log.reportError(temp);
@@ -164,7 +160,7 @@ public class TrimToDependencies implements Serializable {
             numBrackets = updateBracketCount(numBrackets, temp);
           } else if (temp.trim().equals("")) {
           } else if (temp.trim().equals("@Override")
-                     || temp.trim().startsWith("@SuppressWarnings")) {
+              || temp.trim().startsWith("@SuppressWarnings")) {
             currentComment += temp + "\r\n";
           } else {
             reader.reset();
@@ -172,16 +168,13 @@ public class TrimToDependencies implements Serializable {
             line = temp.trim().split("[\\s]+");
             if (!line[0].equals("public") && !line[0].equals("private")
                 && !line[0].equals("protected")) {
-              log.reportError("Error - assuming the following is an unsafe variable declaration; shame on you!");
+              log.reportError(
+                  "Error - assuming the following is an unsafe variable declaration; shame on you!");
               log.reportError(temp);
               System.exit(1);
             }
-            line = ext
-                      .replaceAllWith(temp,
-                                      new String[][] {{" static ", " "}, {"final ", ""},
-                                                      {"public ", ""}, {"private ", ""},
-                                                      {"protected ", ""}})
-                      .trim().split("[\\s]+");
+            line = ext.replaceAllWith(temp, new String[][] {{" static ", " "}, {"final ", ""},
+                {"public ", ""}, {"private ", ""}, {"protected ", ""}}).trim().split("[\\s]+");
             if (line.length < 2) {
               log.reportError("Error - assumed the following was a variable, but I guess not:");
               log.reportError(temp);
@@ -210,7 +203,7 @@ public class TrimToDependencies implements Serializable {
       }
       if (numBrackets != 0) {
         log.reportError("Error - must be some double brackets totalling " + numBrackets
-                        + " at the end of class '" + name + "'");
+            + " at the end of class '" + name + "'");
       }
     }
 
@@ -247,7 +240,7 @@ public class TrimToDependencies implements Serializable {
 
       packageName = null;
       name = ext.replaceAllWith(filename.substring(0, filename.indexOf(".java")),
-                                new String[][] {{"/", "."}, {"\\", "."}});
+          new String[][] {{"/", "."}, {"\\", "."}});
       required = false;
 
       done = false;
@@ -272,8 +265,8 @@ public class TrimToDependencies implements Serializable {
             line = temp.trim().split("[\\s]+");
             reader.reset();
             trav = (packageName == null ? "" : packageName + ".")
-                   + line[Math.max(ext.indexOfStr("class", line), ext.indexOfStr("interface", line))
-                          + 1];
+                + line[Math.max(ext.indexOfStr("class", line), ext.indexOfStr("interface", line))
+                    + 1];
             if (allClasses.containsKey(trav)) {
               clas = allClasses.get(trav);
             } else {
@@ -423,7 +416,7 @@ public class TrimToDependencies implements Serializable {
           line = flipGenPars(temp.trim()).split(",");
           for (String element : line) {
             sub = ext.replaceAllWith(element, new String[][] {{" static ", " "}, {"final ", ""}})
-                     .trim().split("[\\s]+");
+                .trim().split("[\\s]+");
             if (sub.length != 2) {
               log.reportError("Error - in argument: " + element);
             }
@@ -468,7 +461,7 @@ public class TrimToDependencies implements Serializable {
       }
       if (numBrackets != 0) {
         log.reportError("Error - must be some double brackets totalling " + numBrackets
-                        + " at the end of class '" + name + "'");
+            + " at the end of class '" + name + "'");
       }
     }
 
@@ -629,7 +622,8 @@ public class TrimToDependencies implements Serializable {
     try {
       if (new File("master.deps.ser").exists()
           && ext.getTimeSince(new File("master.deps.ser").lastModified(), 'D') < 7) {
-        System.err.println("Warning - loading source code from memory. Delete/rename file 'master.deps.ser' if you want to recreate from scratch.");
+        System.err.println(
+            "Warning - loading source code from memory. Delete/rename file 'master.deps.ser' if you want to recreate from scratch.");
         trimmer = load("master.deps.ser");
       } else {
         trimmer = new TrimToDependencies(source_dir, target_dir);
@@ -643,7 +637,7 @@ public class TrimToDependencies implements Serializable {
 
   public static int netParenthesesCount(String str) {
     return ext.indicesWithinString("(", getRidOfAnythingInQuotes(str)).length
-           - ext.indicesWithinString(")", getRidOfAnythingInQuotes(str)).length;
+        - ext.indicesWithinString(")", getRidOfAnythingInQuotes(str)).length;
   }
 
   public static String removeAnyTrailingComment(String str) {
@@ -660,7 +654,7 @@ public class TrimToDependencies implements Serializable {
     }
 
     return start + ext.indicesWithinString("{", getRidOfAnythingInQuotes(str)).length
-           - ext.indicesWithinString("}", getRidOfAnythingInQuotes(str)).length;
+        - ext.indicesWithinString("}", getRidOfAnythingInQuotes(str)).length;
   }
 
   private final String[] filenames;
@@ -701,8 +695,8 @@ public class TrimToDependencies implements Serializable {
 
       for (int i = 0; i < coreClasses.length; i++) {
         if (!allClasses.containsKey(coreClasses[i])) {
-          System.err.println("Error - '" + coreClasses[i]
-                             + "' is not present in this massive archive");
+          System.err
+              .println("Error - '" + coreClasses[i] + "' is not present in this massive archive");
           System.exit(1);
         }
         clas = allClasses.get(coreClasses[i]);
@@ -715,20 +709,19 @@ public class TrimToDependencies implements Serializable {
     } else {
       if (new File(freshJarFile).exists()) {
         System.err.println("The file '" + freshJarFile
-                           + ".dependencies' has not yet been created; creating a batch file to process '"
-                           + freshJarFile + "' called " + freshJarFile
-                           + ".genDeps.bat in the directory: "
-                           + ext.parseDirectoryOfFile(freshJarFile));
+            + ".dependencies' has not yet been created; creating a batch file to process '"
+            + freshJarFile + "' called " + freshJarFile + ".genDeps.bat in the directory: "
+            + ext.parseDirectoryOfFile(freshJarFile));
         if (ext.getTimeSince(new File(freshJarFile).lastModified(), 'H') < 3) {
           System.err.println("Warning - file '" + freshJarFile
-                             + "' is more than 3 hours old. Make sure it matches the source code exactly!");
+              + "' is more than 3 hours old. Make sure it matches the source code exactly!");
         }
         Files.write("DependencyExtractor.bat " + freshJarFile + " -xml -maximize 1> " + freshJarFile
-                    + ".dependencies", freshJarFile + ".genDeps.bat");
+            + ".dependencies", freshJarFile + ".genDeps.bat");
       } else {
-        System.err.println("The file '" + freshJarFile
-                           + ".dependencies' has not yet been created, and the file '"
-                           + freshJarFile + "' could not be found in order to create it.");
+        System.err.println(
+            "The file '" + freshJarFile + ".dependencies' has not yet been created, and the file '"
+                + freshJarFile + "' could not be found in order to create it.");
       }
 
     }

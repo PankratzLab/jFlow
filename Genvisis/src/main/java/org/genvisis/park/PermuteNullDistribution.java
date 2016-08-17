@@ -27,7 +27,7 @@ public class PermuteNullDistribution {
   // public static final int NUM_BOOT_REPS = 10;
 
   public static void batchAll(String filename, int numFiles, int numReps, int perFamReps,
-                              int bootReps) {
+      int bootReps) {
     BufferedReader reader;
     PrintWriter[] writers;
     String[] line;
@@ -42,14 +42,13 @@ public class PermuteNullDistribution {
         writers[i] = new PrintWriter(new FileWriter("batch." + (i + 1)));
         writers[i].println("mkdir " + (i + 1));
         for (int j = 0; j < line.length - 2; j++) {
-          writers[i].println("cp " + line[2 + ((j + i * increment) % (line.length - 2))] + ".dat "
-                             + (i + 1));
+          writers[i].println(
+              "cp " + line[2 + ((j + i * increment) % (line.length - 2))] + ".dat " + (i + 1));
           writers[i].println("cd " + (i + 1));
           writers[i].println("java -classpath /home/npankrat/"
-                             + org.genvisis.common.PSF.Java.GENVISIS
-                             + " park.PermuteNullDistribution file="
-                             + line[2 + ((j + i * increment) % (line.length - 2))] + ".dat reps="
-                             + numReps + " perFamReps=" + perFamReps + " bootReps=" + bootReps);
+              + org.genvisis.common.PSF.Java.GENVISIS + " park.PermuteNullDistribution file="
+              + line[2 + ((j + i * increment) % (line.length - 2))] + ".dat reps=" + numReps
+              + " perFamReps=" + perFamReps + " bootReps=" + bootReps);
           writers[i].println("cd ..");
         }
         writers[i].close();
@@ -94,8 +93,8 @@ public class PermuteNullDistribution {
 
       writer = Files.getWriter(filename + "-permutedSummary.out");
       grand = Files.getWriter(filename + "_p-values.out");
-      writer.println("Trait\t"
-                     + Array.toStr(Array.stringArraySequence(numFiles, "Rep "), "\t\t\t"));
+      writer
+          .println("Trait\t" + Array.toStr(Array.stringArraySequence(numFiles, "Rep "), "\t\t\t"));
       for (String trait : traits) {
         writer.print(trait);
         grandCountAbove = grandCount = 0;
@@ -119,10 +118,10 @@ public class PermuteNullDistribution {
             }
             reader.close();
             writer.print("\t" + countAbove + "\t" + count + "\t"
-                         + (count == 0 ? "." : ext.prettyP((double) countAbove / (double) count)));
+                + (count == 0 ? "." : ext.prettyP((double) countAbove / (double) count)));
           } catch (FileNotFoundException fnfe) {
             System.err.println("File \"" + (j + 1) + "/" + trait + ".dat.out"
-                               + "\" not found in current directory");
+                + "\" not found in current directory");
             writer.print("\t.\t.\t.");
           } catch (IOException ioe) {
             System.err.println("Error reading file \"" + (j + 1) + "/" + trait + ".dat.out" + "\"");
@@ -131,10 +130,8 @@ public class PermuteNullDistribution {
         }
         writer.println();
 
-        grand.println(trait + "\t" + grandCountAbove + "\t" + grandCount + "\t"
-                      + (grandCount == 0 ? "."
-                                         : ext.prettyP((double) grandCountAbove
-                                                       / (double) grandCount)));
+        grand.println(trait + "\t" + grandCountAbove + "\t" + grandCount + "\t" + (grandCount == 0
+            ? "." : ext.prettyP((double) grandCountAbove / (double) grandCount)));
       }
       writer.close();
       grand.close();
@@ -165,17 +162,15 @@ public class PermuteNullDistribution {
     int bootReps = NUM_BOOT_REPS;
 
     String usage = "\n" + "park.permuteQuantNull requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default)\n"
-                   + "   (2) num replicates to create null distribution (i.e. reps=" + numReps
-                   + " (default)\n"
-                   + "   (3) num replicates for oneperfamily calculations (i.e. perFamReps="
-                   + oneperReps + " (default)\n"
-                   + "   (4) num replicates to bootstrap (i.e. bootReps=" + bootReps
-                   + " (default)\n"
-                   + "   (5) batch separately N times (as opposed to treat as covariates) (batch>0  i.e. batch="
-                   + batch + " (default)\n"
-                   + "   (6) gather batched results (requires filename for reference i.e. gather="
-                   + gather + " (default)\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default)\n"
+        + "   (2) num replicates to create null distribution (i.e. reps=" + numReps + " (default)\n"
+        + "   (3) num replicates for oneperfamily calculations (i.e. perFamReps=" + oneperReps
+        + " (default)\n" + "   (4) num replicates to bootstrap (i.e. bootReps=" + bootReps
+        + " (default)\n"
+        + "   (5) batch separately N times (as opposed to treat as covariates) (batch>0  i.e. batch="
+        + batch + " (default)\n"
+        + "   (6) gather batched results (requires filename for reference i.e. gather=" + gather
+        + " (default)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -219,7 +214,7 @@ public class PermuteNullDistribution {
   }
 
   public static void permuteNullDistribution(String filename, int numReps, int perFamReps,
-                                             int bootReps) throws IOException {
+      int bootReps) throws IOException {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line;
@@ -248,8 +243,8 @@ public class PermuteNullDistribution {
       line = reader.readLine().split("\t");
       numCols = line.length;
       if (!line[0].equals("FamID")) {
-        System.err.println("FYI, assuming the first column is FamID (the header reads '" + line[0]
-                           + "')");
+        System.err.println(
+            "FYI, assuming the first column is FamID (the header reads '" + line[0] + "')");
       }
       while (reader.ready()) {
         temp = reader.readLine();
@@ -289,7 +284,7 @@ public class PermuteNullDistribution {
     }
 
     sizes = Array.toStr(Sort.putInOrder(Array.toIntArray(HashVec.getKeys(countHash))), "\t")
-                 .split("[\\s]+");
+        .split("[\\s]+");
     depMatrix = new double[sizes.length][][];
     indepMatrix = new double[sizes.length][][][];
     pheno = new Vector<String>();
@@ -298,7 +293,7 @@ public class PermuteNullDistribution {
       fams = Array.toStringArray(countHash.get(sizes[i]));
       if (fams.length < 5) {
         System.err.println("Warning - There are only " + fams.length
-                           + " families with a family size of " + sizes[i] + ".");
+            + " families with a family size of " + sizes[i] + ".");
       }
       depMatrix[i] = new double[fams.length][];
       indepMatrix[i] = new double[fams.length][][];
@@ -317,8 +312,8 @@ public class PermuteNullDistribution {
             }
             count++;
           } catch (NumberFormatException nfe) {
-            System.err.println("Error - could not parse one of the following numbers:\n"
-                               + Array.toStr(line));
+            System.err.println(
+                "Error - could not parse one of the following numbers:\n" + Array.toStr(line));
           }
         }
       }
@@ -358,9 +353,9 @@ public class PermuteNullDistribution {
         }
       }
       model = logistic ? new LogisticRegression(deps, indeps, false, false)
-                       : new LeastSquares(deps, indeps, false, false);
+          : new LeastSquares(deps, indeps, false, false);
       model.onePerFamily(famIDs, perFamReps * (rep == -1 ? 10 : 1),
-                         bootReps * (rep == -1 ? 100 : 1));
+          bootReps * (rep == -1 ? 100 : 1));
       stats = model.getStats();
       for (int i = 1; i < stats.length; i++) {
         writer.print((i == 1 ? "" : "\t") + stats[i]);

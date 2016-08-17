@@ -155,15 +155,13 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
     }
     if (invalid.size() > 0) {
       String[] options = {"Ignore and Continue", "Return"};
-      StringBuilder msg =
-          new StringBuilder("Warning - ").append(invalid.size())
-                                         .append(" markers are not present in the current marker set:");
+      StringBuilder msg = new StringBuilder("Warning - ").append(invalid.size())
+          .append(" markers are not present in the current marker set:");
       for (String inv : invalid) {
         msg.append("\n").append(inv);
       }
       int opt = JOptionPane.showOptionDialog(this, msg.toString(), "Warning - invalid markers!",
-                                             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-                                             null, options, options[1]);
+          JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
       if (opt != 0) {
         return false;
       }
@@ -181,11 +179,11 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
     }
     if (!reachable) {
       JOptionPane.showMessageDialog(null, "Error - file name [" + filepath + "] is invalid.",
-                                    "Error", JOptionPane.ERROR_MESSAGE);
+          "Error", JOptionPane.ERROR_MESSAGE);
       return false;
     } else if (Files.exists(dir + filepath)) {
       JOptionPane.showMessageDialog(null, "Error - file [" + filepath + "] already exists.",
-                                    "Error", JOptionPane.ERROR_MESSAGE);
+          "Error", JOptionPane.ERROR_MESSAGE);
       return false;
     }
 

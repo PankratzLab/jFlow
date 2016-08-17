@@ -59,7 +59,7 @@ public class DataExportGUI extends JDialog {
 
   public DataExportGUI(FCSPlot fcsPlot) {
     super(SwingUtilities.getWindowAncestor(fcsPlot), "Select a set of files and gates to export",
-          ModalityType.APPLICATION_MODAL);
+        ModalityType.APPLICATION_MODAL);
     plot = fcsPlot;
     setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
     setBounds(100, 100, 650, 600);
@@ -233,10 +233,8 @@ public class DataExportGUI extends JDialog {
   }
 
   private void addGatesToTree(DefaultMutableTreeNode root, Gate g) {
-    DefaultMutableTreeNode child =
-        new DefaultMutableTreeNode(g.getName() == null || "".equals(g.getName()) ? g.getID()
-                                                                                 : g.getName(),
-                                   true);
+    DefaultMutableTreeNode child = new DefaultMutableTreeNode(
+        g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName(), true);
     gateMap.put(child, g);
     root.add(child);
     for (Gate childGate : g.getChildGates()) {

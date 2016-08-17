@@ -81,9 +81,8 @@ public class GateTreePanel extends JPanel {
       for (int i = 0; i < path.length; i++) {
         DefaultMutableTreeNode obj = (DefaultMutableTreeNode) path[i];
         String nm = (String) obj.getUserObject();
-        String chNm =
-            (String) (i == path.length
-                           - 1 ? "" : ((DefaultMutableTreeNode) path[i + 1]).getUserObject());
+        String chNm = (String) (i == path.length - 1 ? ""
+            : ((DefaultMutableTreeNode) path[i + 1]).getUserObject());
         final JLabel lbl = new JLabel(nm);
         lbl.setBorder(breadcrumbBorder);
         lbl.setFont(breadcrumbFont);
@@ -123,7 +122,7 @@ public class GateTreePanel extends JPanel {
     public void mouseClicked(MouseEvent e) {
       super.mouseClicked(e);
       ((JComponent) e.getSource()).getComponentPopupMenu().show(((JComponent) e.getSource()),
-                                                                e.getX(), e.getY());
+          e.getX(), e.getY());
     }
 
     @Override
@@ -248,7 +247,7 @@ public class GateTreePanel extends JPanel {
   }
 
   private JLabel getBreadcrumbLabel(String txt, String me,
-                                    final ArrayList<DefaultMutableTreeNode> sibs, JLabel prevLbl) {
+      final ArrayList<DefaultMutableTreeNode> sibs, JLabel prevLbl) {
     final JLabel lbl = new JLabel(txt);
     lbl.setBorder(breadcrumbBorder);
     lbl.setFont(breadcrumbFont);
@@ -268,7 +267,8 @@ public class GateTreePanel extends JPanel {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-          tree.setSelectionPath(new TreePath(((DefaultTreeModel) tree.getModel()).getPathToRoot(sibs.get(ind))));
+          tree.setSelectionPath(
+              new TreePath(((DefaultTreeModel) tree.getModel()).getPathToRoot(sibs.get(ind))));
         }
       };
       JMenuItem jmi = new JMenuItem(act);

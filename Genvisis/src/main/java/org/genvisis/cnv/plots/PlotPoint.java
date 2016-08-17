@@ -45,7 +45,7 @@ public class PlotPoint implements Serializable {
   }
 
   public PlotPoint(String id, byte type, float rawX, float rawY, byte size, byte color,
-                   byte layer) {
+      byte layer) {
     this.id = id;
     this.type = type;
     this.rawX = rawX;

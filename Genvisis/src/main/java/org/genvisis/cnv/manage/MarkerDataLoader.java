@@ -61,11 +61,8 @@ public class MarkerDataLoader implements Runnable {
   }
 
   public static byte[][] loadFromMarkerDataRafWithoutDecompress(String markerDataRafFileName,
-                                                                int[] indicesOfMarkersInTheFileToLoad,
-                                                                int indexOfFirstSampleToLoad,
-                                                                int numOfSamplesToLoad,
-                                                                long fingerprintShouldBe,
-                                                                Logger log) {
+      int[] indicesOfMarkersInTheFileToLoad, int indexOfFirstSampleToLoad, int numOfSamplesToLoad,
+      long fingerprintShouldBe, Logger log) {
     byte[][] result = null;
     RandomAccessFile file;
     int numBytesPerMarker;
@@ -90,11 +87,11 @@ public class MarkerDataLoader implements Runnable {
           Compression.bytesToLong(parameterReadBuffer, TransposeData.MARKERDATA_FINGERPRINT_START);
       if (fingerprintActual != fingerprintShouldBe) {
         log.reportError("Error - mismatched sample fingerprints between sample list and file '"
-                        + markerDataRafFileName + "'");
+            + markerDataRafFileName + "'");
         System.exit(1);
       }
-      numBytesPerSampleMarker =
-          Sample.getNBytesPerSampleMarker(parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START]);
+      numBytesPerSampleMarker = Sample
+          .getNBytesPerSampleMarker(parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START]);
       numBytesPerMarker = numBytesPerSampleMarker * numSamplesProj;
       if (numOfSamplesToLoad <= 0 || numOfSamplesToLoad > numSamplesProj) {
         numOfSamplesToLoad = numSamplesProj;
@@ -104,12 +101,12 @@ public class MarkerDataLoader implements Runnable {
       if (indicesOfMarkersInTheFileToLoad != null) {
         Arrays.sort(indicesOfMarkersInTheFileToLoad);
         result = new byte[indicesOfMarkersInTheFileToLoad.length][numBytesPerSampleMarker
-                                                                  * numOfSamplesToLoad];
+            * numOfSamplesToLoad];
         for (int i = 0; i < indicesOfMarkersInTheFileToLoad.length; i++) {
           seekLocation = (long) TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN
-                         + (long) numBytesMarkernamesSection
-                         + indicesOfMarkersInTheFileToLoad[i] * (long) numBytesPerMarker
-                         + (long) indexOfFirstSampleToLoad * numBytesPerSampleMarker;
+              + (long) numBytesMarkernamesSection
+              + indicesOfMarkersInTheFileToLoad[i] * (long) numBytesPerMarker
+              + (long) indexOfFirstSampleToLoad * numBytesPerSampleMarker;
           file.seek(seekLocation);
           file.read(result[i]);
         }
@@ -117,8 +114,8 @@ public class MarkerDataLoader implements Runnable {
         result = new byte[numMarkersCurrentFile][numBytesPerSampleMarker * numOfSamplesToLoad];
         for (int i = 0; i < numMarkersCurrentFile; i++) {
           seekLocation = (long) TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN
-                         + (long) numBytesMarkernamesSection + i * (long) numBytesPerMarker
-                         + (long) indexOfFirstSampleToLoad * numBytesPerSampleMarker;
+              + (long) numBytesMarkernamesSection + i * (long) numBytesPerMarker
+              + (long) indexOfFirstSampleToLoad * numBytesPerSampleMarker;
           file.seek(seekLocation);
           file.read(result[i]);
         }
@@ -145,12 +142,10 @@ public class MarkerDataLoader implements Runnable {
    * @return
    */
   public static MarkerData[] loadFromRAF(String[] allMarkersInProj, byte[] allChrsInProj,
-                                         int[] allPosInProj, String[] allSampsInProj,
-                                         String currentMarkFilename, int[] markersIndicesInProj,
-                                         int[] markersIndicesInFile, boolean loadGC, boolean loadXY,
-                                         boolean loadBAF, boolean loadLRR, boolean loadAbGenotype,
-                                         long sampleFingerprint,
-                                         Hashtable<String, Float> outOfRangeValues, Logger log) {
+      int[] allPosInProj, String[] allSampsInProj, String currentMarkFilename,
+      int[] markersIndicesInProj, int[] markersIndicesInFile, boolean loadGC, boolean loadXY,
+      boolean loadBAF, boolean loadLRR, boolean loadAbGenotype, long sampleFingerprint,
+      Hashtable<String, Float> outOfRangeValues, Logger log) {
     MarkerData[] result;
     RandomAccessFile file;
     int numBytesPerMarker;
@@ -195,16 +190,16 @@ public class MarkerDataLoader implements Runnable {
       numSamplesObserved =
           Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKERDATA_NUMSAMPLES_START);
       if (numSamplesObserved != numSamplesProj) {
-        log.reportError("Error - mismatched number of samples between sample list (n="
-                        + numSamplesProj + ") and file '" + currentMarkFilename + "' (n="
-                        + numSamplesObserved + ")");
+        log.reportError(
+            "Error - mismatched number of samples between sample list (n=" + numSamplesProj
+                + ") and file '" + currentMarkFilename + "' (n=" + numSamplesObserved + ")");
         System.exit(1);
       }
       fingerprint =
           Compression.bytesToLong(parameterReadBuffer, TransposeData.MARKERDATA_FINGERPRINT_START);
       if (fingerprint != sampleFingerprint) {
         log.reportError("Error - mismatched sample fingerprints between sample list and file '"
-                        + currentMarkFilename + "'");
+            + currentMarkFilename + "'");
         System.exit(1);
       }
 
@@ -214,7 +209,7 @@ public class MarkerDataLoader implements Runnable {
       for (int i = 0; i < markersIndicesInFile.length; i++) {
         seekLocation =
             (long) TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN + (long) numBytesMarkernamesSection
-                       + markersIndicesInFile[i] * (long) numBytesPerMarker;
+                + markersIndicesInFile[i] * (long) numBytesPerMarker;
         file.seek(seekLocation);
         file.read(readBuffer[i]);
       }
@@ -246,8 +241,8 @@ public class MarkerDataLoader implements Runnable {
         if (loadGC) {
           gcs = new float[numSamplesProj];
           for (int j = 0; j < numSamplesProj; j++) {
-            gcs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[i][indexReadBuffer],
-                                                             readBuffer[i][indexReadBuffer + 1]});
+            gcs[j] = Compression.gcBafDecompress(
+                new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
             indexReadBuffer += bytesPerSampleMarker;
           }
         }
@@ -259,15 +254,11 @@ public class MarkerDataLoader implements Runnable {
           xs = new float[numSamplesProj];
           for (int j = 0; j < numSamplesProj; j++) {
             if (isNegativeXYAllowed) {
-              xs[j] =
-                  Compression.xyDecompressAllowNegative(new byte[] {readBuffer[i][indexReadBuffer],
-                                                                    readBuffer[i][indexReadBuffer
-                                                                                  + 1]});
+              xs[j] = Compression.xyDecompressAllowNegative(
+                  new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
             } else {
-              xs[j] =
-                  Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[i][indexReadBuffer],
-                                                                   readBuffer[i][indexReadBuffer
-                                                                                 + 1]});
+              xs[j] = Compression.xyDecompressPositiveOnly(
+                  new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
             }
             if (xs[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
               // xs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tx");
@@ -277,16 +268,15 @@ public class MarkerDataLoader implements Runnable {
                 // System.out.println(outOfRangeValues.keySet());
                 if (allSampsInProj == null || allMarkersInProj == null
                     || markersIndicesInProj == null) {
-                  log.reportError("Error - value for X is an outlier for the marker that is at index "
-                                  + i
-                                  + " in the targetMarkers (if subset) or in all markers (if all), for the sample with the index of "
-                                  + j
-                                  + "; however, the original value is not present in the outlier hash.  Check if outliers.ser exists and re-run.");
+                  log.reportError(
+                      "Error - value for X is an outlier for the marker that is at index " + i
+                          + " in the targetMarkers (if subset) or in all markers (if all), for the sample with the index of "
+                          + j
+                          + "; however, the original value is not present in the outlier hash.  Check if outliers.ser exists and re-run.");
                 } else {
                   log.reportError("Error - value for X is an outlier [Marker: "
-                                  + allMarkersInProj[markersIndicesInProj[i]] + ", Sample: "
-                                  + allSampsInProj[j]
-                                  + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
+                      + allMarkersInProj[markersIndicesInProj[i]] + ", Sample: " + allSampsInProj[j]
+                      + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
                 }
                 return null; // TODO better return value than null?
               }
@@ -303,15 +293,11 @@ public class MarkerDataLoader implements Runnable {
           ys = new float[numSamplesProj];
           for (int j = 0; j < numSamplesProj; j++) {
             if (isNegativeXYAllowed) {
-              ys[j] =
-                  Compression.xyDecompressAllowNegative(new byte[] {readBuffer[i][indexReadBuffer],
-                                                                    readBuffer[i][indexReadBuffer
-                                                                                  + 1]});
+              ys[j] = Compression.xyDecompressAllowNegative(
+                  new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
             } else {
-              ys[j] =
-                  Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[i][indexReadBuffer],
-                                                                   readBuffer[i][indexReadBuffer
-                                                                                 + 1]});
+              ys[j] = Compression.xyDecompressPositiveOnly(
+                  new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
             }
             if (ys[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
               // ys[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\ty");
@@ -320,16 +306,15 @@ public class MarkerDataLoader implements Runnable {
               if (f == null) {
                 if (allSampsInProj == null || allMarkersInProj == null
                     || markersIndicesInProj == null) {
-                  log.reportError("Error - value for Y is an outlier for the marker that is at index "
-                                  + i
-                                  + " in the targetMarkers (if subset) or in all markers (if all), for the sample with the index of "
-                                  + j
-                                  + "; however, the original value is not present in the outlier hash.  Check if outliers.ser exists and re-run.");
+                  log.reportError(
+                      "Error - value for Y is an outlier for the marker that is at index " + i
+                          + " in the targetMarkers (if subset) or in all markers (if all), for the sample with the index of "
+                          + j
+                          + "; however, the original value is not present in the outlier hash.  Check if outliers.ser exists and re-run.");
                 } else {
                   log.reportError("Error - value for Y is an outlier [Marker: "
-                                  + allMarkersInProj[markersIndicesInProj[i]] + ", Sample: "
-                                  + allSampsInProj[j]
-                                  + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
+                      + allMarkersInProj[markersIndicesInProj[i]] + ", Sample: " + allSampsInProj[j]
+                      + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
                 }
                 return null; // TODO better return value than null?
               }
@@ -346,8 +331,8 @@ public class MarkerDataLoader implements Runnable {
         if (loadBAF) {
           bafs = new float[numSamplesProj];
           for (int j = 0; j < numSamplesProj; j++) {
-            bafs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[i][indexReadBuffer],
-                                                              readBuffer[i][indexReadBuffer + 1]});
+            bafs[j] = Compression.gcBafDecompress(
+                new byte[] {readBuffer[i][indexReadBuffer], readBuffer[i][indexReadBuffer + 1]});
             indexReadBuffer += bytesPerSampleMarker;
           }
         }
@@ -359,25 +344,23 @@ public class MarkerDataLoader implements Runnable {
           lrrs = new float[numSamplesProj];
           for (int j = 0; j < numSamplesProj; j++) {
             lrrs[j] = Compression.lrrDecompress(new byte[] {readBuffer[i][indexReadBuffer],
-                                                            readBuffer[i][indexReadBuffer + 1],
-                                                            readBuffer[i][indexReadBuffer + 2]});
+                readBuffer[i][indexReadBuffer + 1], readBuffer[i][indexReadBuffer + 2]});
             if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT) {
               // lrrs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tlrr");
-              Float f = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j]
-                                             + "\tlrr");
+              Float f = outOfRangeValues
+                  .get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\tlrr");
               if (f == null) {
                 if (allSampsInProj == null || allMarkersInProj == null
                     || markersIndicesInProj == null) {
-                  log.reportError("Error - value for LRR is an outlier for the marker that is at index "
-                                  + i
-                                  + " in the targetMarkers (if subset) or in all markers (if all), for the sample with the index of "
-                                  + j
-                                  + "; however, the original value is not present in the outlier hash.  Check if outliers.ser exists and re-run.");
+                  log.reportError(
+                      "Error - value for LRR is an outlier for the marker that is at index " + i
+                          + " in the targetMarkers (if subset) or in all markers (if all), for the sample with the index of "
+                          + j
+                          + "; however, the original value is not present in the outlier hash.  Check if outliers.ser exists and re-run.");
                 } else {
                   log.reportError("Error - value for LRR is an outlier [Marker: "
-                                  + allMarkersInProj[markersIndicesInProj[i]] + ", Sample: "
-                                  + allSampsInProj[j]
-                                  + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
+                      + allMarkersInProj[markersIndicesInProj[i]] + ", Sample: " + allSampsInProj[j]
+                      + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
                 }
                 return null; // TODO better return value than null?
               }
@@ -399,29 +382,26 @@ public class MarkerDataLoader implements Runnable {
           indexReadBuffer += bytesPerSampleMarker;
         }
       }
-      result[i] =
-          new MarkerData(allMarkersInProj == null ? null
-                                                  : allMarkersInProj[markersIndicesInProj[i]],
-                         allChrsInProj == null ? (byte) -1 : allChrsInProj[markersIndicesInProj[i]],
-                         allPosInProj == null ? -1 : allPosInProj[markersIndicesInProj[i]],
-                         fingerprint, gcs, null, null, xs, ys, null, null, bafs, lrrs, abGenotypes,
-                         forwardGenotypes);
+      result[i] = new MarkerData(
+          allMarkersInProj == null ? null : allMarkersInProj[markersIndicesInProj[i]],
+          allChrsInProj == null ? (byte) -1 : allChrsInProj[markersIndicesInProj[i]],
+          allPosInProj == null ? -1 : allPosInProj[markersIndicesInProj[i]], fingerprint, gcs, null,
+          null, xs, ys, null, null, bafs, lrrs, abGenotypes, forwardGenotypes);
     }
     return result;
   }
 
   public static MarkerData[] loadFromRAF(String[] allMarkersInProj, byte[] allChrsProj,
-                                         int[] allPositionsInProj, String[] allSampsInProj,
-                                         String currentMarkFilename, int[] markerIndicesInProj,
-                                         int[] markerIndcesInFile, long sampleFingerprint,
-                                         Hashtable<String, Float> outOfRangeValues, Logger log) {
+      int[] allPositionsInProj, String[] allSampsInProj, String currentMarkFilename,
+      int[] markerIndicesInProj, int[] markerIndcesInFile, long sampleFingerprint,
+      Hashtable<String, Float> outOfRangeValues, Logger log) {
     return loadFromRAF(allMarkersInProj, allChrsProj, allPositionsInProj, allSampsInProj,
-                       currentMarkFilename, markerIndicesInProj, markerIndcesInFile, true, true,
-                       true, true, true, sampleFingerprint, outOfRangeValues, log);
+        currentMarkFilename, markerIndicesInProj, markerIndcesInFile, true, true, true, true, true,
+        sampleFingerprint, outOfRangeValues, log);
   }
 
   public static MarkerDataLoader loadMarkerDataFromListInSameThread(Project proj,
-                                                                    String[] markerList) {
+      String[] markerList) {
     MarkerDataLoader markerDataLoader;
     int amountToLoadAtOnceInMB;
 
@@ -435,7 +415,7 @@ public class MarkerDataLoader implements Runnable {
   }
 
   public static MarkerDataLoader loadMarkerDataFromListInSeparateThread(Project proj,
-                                                                        String[] markerList) {
+      String[] markerList) {
     MarkerDataLoader markerDataLoader;
     Thread thread2;
     int amountToLoadAtOnceInMB;
@@ -458,9 +438,8 @@ public class MarkerDataLoader implements Runnable {
   @SuppressWarnings("unchecked")
   public static Hashtable<String, Float> loadOutliers(Project proj) {
     if (new File(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser").exists()) {
-      return (Hashtable<String, Float>) SerializedFiles.readSerial(proj.MARKER_DATA_DIRECTORY.getValue(false,
-                                                                                                       true)
-                                                                   + "outliers.ser");
+      return (Hashtable<String, Float>) SerializedFiles
+          .readSerial(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
     } else {
       return new Hashtable<String, Float>();
     }
@@ -570,9 +549,9 @@ public class MarkerDataLoader implements Runnable {
     if (amountToLoadAtOnceInMB <= 0) {
       amountToLoadAtOnceInMB =
           (int) ((double) Runtime.getRuntime().maxMemory() / 1024 / 1024 * 0.80);
-      log.report("80% of max memory available ("
-                 + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1)
-                 + ") will be used by MarkerDataLoader: ");
+      log.report(
+          "80% of max memory available (" + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1)
+              + ") will be used by MarkerDataLoader: ");
     }
     readAheadLimit = -1;
 
@@ -595,15 +574,15 @@ public class MarkerDataLoader implements Runnable {
         // }
 
         if (readAheadLimit == -1) {
-          readAheadLimit = (int) Math.floor((double) amountToLoadAtOnceInMB * 1024 * 1024
-                                            / determineNBytesPerMarker(proj.MARKER_DATA_DIRECTORY.getValue(false,
-                                                                                                           true)
-                                                                       + line[0], log));
+          readAheadLimit = (int) Math
+              .floor((double) amountToLoadAtOnceInMB * 1024 * 1024 / determineNBytesPerMarker(
+                  proj.MARKER_DATA_DIRECTORY.getValue(false, true) + line[0], log));
           if (readAheadLimit > markerNames.length) {
-            log.report("Read ahead limit was computed to be greater than the number of markers; all markers will be loaded into memory at once");
+            log.report(
+                "Read ahead limit was computed to be greater than the number of markers; all markers will be loaded into memory at once");
           } else {
             log.report("Read ahead limit was computed to be " + ext.addCommas(readAheadLimit)
-                       + " markers at a time");
+                + " markers at a time");
           }
         }
       } else {
@@ -612,7 +591,7 @@ public class MarkerDataLoader implements Runnable {
     }
     if (missingMarkers.size() > 0) {
       proj.message("Error - the following markers were not found in the MarkerSet: "
-                   + Array.toStr(Array.toStringArray(missingMarkers), " "));
+          + Array.toStr(Array.toStringArray(missingMarkers), " "));
     }
     currentIndexBeingLoaded = 0;
     currentDirection = +1;
@@ -625,7 +604,8 @@ public class MarkerDataLoader implements Runnable {
 
   public MarkerData getMarkerData(int markerIndex) {
     if (!initiated) {
-      log.reportError("Error - cannot getMarkerData before the loader has been launched. Check to see if the MarkerDataLoader constructor was used instead of one of the loadMarkerDataFromListIn* methods.");
+      log.reportError(
+          "Error - cannot getMarkerData before the loader has been launched. Check to see if the MarkerDataLoader constructor was used instead of one of the loadMarkerDataFromListIn* methods.");
       return null;
     }
     if (loaded[markerIndex]) {
@@ -684,8 +664,8 @@ public class MarkerDataLoader implements Runnable {
     log.report("Final wait times for markerDataLoader:");
     log.report("All markers:\t" + markerNames.length);
     for (int i = 0; i < values.length; i++) {
-      log.report(ext.formDeci(Double.parseDouble(values[i]) / 4.0, 2, true) + " seconds:\t"
-                 + counts[i]);
+      log.report(
+          ext.formDeci(Double.parseDouble(values[i]) / 4.0, 2, true) + " seconds:\t" + counts[i]);
     }
   }
 
@@ -703,7 +683,8 @@ public class MarkerDataLoader implements Runnable {
     int count;
 
     if (!initiated) {
-      log.reportError("Error - cannot requestMarkerData before the loader has been launched. Check to see if the MarkerDataLoader constructor was used instead of one of the loadMarkerDataFromListIn* methods.");
+      log.reportError(
+          "Error - cannot requestMarkerData before the loader has been launched. Check to see if the MarkerDataLoader constructor was used instead of one of the loadMarkerDataFromListIn* methods.");
       return null;
     }
 
@@ -718,7 +699,7 @@ public class MarkerDataLoader implements Runnable {
       if (count > 8 && count % 8 == 0) {
         if (!waitTimesSeen.contains(count)) {
           log.reportError("Have been waiting on markerDataLoader to load "
-                          + markerNames[markerIndex] + " for " + (count / 4) + " seconds");
+              + markerNames[markerIndex] + " for " + (count / 4) + " seconds");
           waitTimesSeen.add(count);
         }
       }
@@ -767,10 +748,8 @@ public class MarkerDataLoader implements Runnable {
     allPosInProj = markerSet.getPositions();
     allSampsInProj = proj.getSamples();
     if (new File(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser").exists()) {
-      outlierHash = (Hashtable<String, Float>) SerializedFiles.readSerial(
-                                                                          proj.MARKER_DATA_DIRECTORY.getValue(false,
-                                                                                                              true)
-                                                                          + "outliers.ser");
+      outlierHash = (Hashtable<String, Float>) SerializedFiles
+          .readSerial(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
     } else {
       outlierHash = new Hashtable<String, Float>();
     }
@@ -789,10 +768,10 @@ public class MarkerDataLoader implements Runnable {
       }
       filename = markerLookup.get(markerNames[currentIndexBeingLoaded]).split("\t")[0];
       if (!Files.exists(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + filename,
-                        proj.JAR_STATUS.getValue())) {
-        proj.message("Error - could not load data from '"
-                     + proj.MARKER_DATA_DIRECTORY.getValue(false, true) + filename
-                     + "'; because the file could not be found");
+          proj.JAR_STATUS.getValue())) {
+        proj.message(
+            "Error - could not load data from '" + proj.MARKER_DATA_DIRECTORY.getValue(false, true)
+                + filename + "'; because the file could not be found");
         return;
       }
 
@@ -803,8 +782,8 @@ public class MarkerDataLoader implements Runnable {
         v.addElement(allRemaining.remove(0));
       }
       log.report("Loaded up " + v.size() + " from MarkerData file:" + filename + "; "
-                 + allRemaining.size() + " remaining for that file; " + ext.getTimeElapsed(subtime),
-                 true, true, 8);
+          + allRemaining.size() + " remaining for that file; " + ext.getTimeElapsed(subtime), true,
+          true, 8);
       subtime = new Date().getTime();
       if (allRemaining.size() == 0) {
         filenames.remove(filename);
@@ -823,7 +802,7 @@ public class MarkerDataLoader implements Runnable {
         markerIndicesInSelection[j] = ext.indicesOfStr(line[0], markerNames, true, true);
         if (markerIndicesInSelection[j].length > 1) {
           log.report("FYI, marker " + line[0] + " was requested "
-                     + markerIndicesInSelection[j].length + " times");
+              + markerIndicesInSelection[j].length + " times");
         }
         // if (plinkFormat) {
         // plinkMarkerAlleles[j] = new String[] {line[2], line[3]};
@@ -839,9 +818,8 @@ public class MarkerDataLoader implements Runnable {
       // markerIndicesInProj, markerIndicesInFile, sampleFingerprint, plinkSampleIndices);
       // } else {
       collection = loadFromRAF(allMarkersInProj, allChrsInProj, allPosInProj, allSampsInProj,
-                               proj.MARKER_DATA_DIRECTORY.getValue(false, true) + filename,
-                               markerIndicesInProj, markerIndicesInFile, sampleFingerprint,
-                               outlierHash, log);
+          proj.MARKER_DATA_DIRECTORY.getValue(false, true) + filename, markerIndicesInProj,
+          markerIndicesInFile, sampleFingerprint, outlierHash, log);
       // }
 
       for (int k = 0; k < markerIndicesInProj.length && !killed; k++) {
@@ -851,9 +829,10 @@ public class MarkerDataLoader implements Runnable {
           count++;
           numberCurrentlyLoaded++;
           if (markerData[markerIndicesInSelection[k][i]].getFingerprint() != fingerprint) {
-            log.reportError("Error - mismatched fingerprint after MarkerLookup. Actual in MarkerData: "
-                            + markerData[markerIndicesInSelection[k][i]].getFingerprint()
-                            + ", while expecting: " + fingerprint);
+            log.reportError(
+                "Error - mismatched fingerprint after MarkerLookup. Actual in MarkerData: "
+                    + markerData[markerIndicesInSelection[k][i]].getFingerprint()
+                    + ", while expecting: " + fingerprint);
           }
         }
       }
@@ -864,8 +843,8 @@ public class MarkerDataLoader implements Runnable {
         } catch (InterruptedException ie) {
         }
         log.report("Currently loading index " + currentIndexBeingLoaded
-                   + " but readAheadLimit has been reached (" + numberCurrentlyLoaded + " over "
-                   + readAheadLimit + "); so waiting");
+            + " but readAheadLimit has been reached (" + numberCurrentlyLoaded + " over "
+            + readAheadLimit + "); so waiting");
       }
       if (killed) {
         filenames = new Hashtable<String, String>();
@@ -881,7 +860,7 @@ public class MarkerDataLoader implements Runnable {
       killComplete = true;
     } else {
       log.report("Independent thread has finished loading " + count + " markers to MarkerData[] in "
-                 + ext.getTimeElapsed(time));
+          + ext.getTimeElapsed(time));
     }
 
   }

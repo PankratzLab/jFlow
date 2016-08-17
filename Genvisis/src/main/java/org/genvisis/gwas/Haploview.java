@@ -17,12 +17,11 @@ public class Haploview {
     int column = 2;
 
     String usage = "\n" + "gwas.Haploview requires 0-1 arguments\n"
-                   + "   (1) name of file contianing pairwise LD information (i.e. file=" + filename
-                   + " (default))\n"
-                   + "   (2) name of file contianing the order to be presented (i.e. order=" + order
-                   + " (default))\n"
-                   + "   (3) column number containing the data to be presented (i.e. col=" + column
-                   + " (default))\n" + "";
+        + "   (1) name of file contianing pairwise LD information (i.e. file=" + filename
+        + " (default))\n" + "   (2) name of file contianing the order to be presented (i.e. order="
+        + order + " (default))\n"
+        + "   (3) column number containing the data to be presented (i.e. col=" + column
+        + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -65,11 +64,9 @@ public class Haploview {
 
     markerNames = HashVec.loadFileToStringArray(order, false, new int[] {0}, false);
     hash = HashVec.loadFileToHashString(filename, new int[] {0, 1}, new int[] {column}, false, "\t",
-                                        true, false, false);
-    HashVec.mergeHash2IntoHash1(hash,
-                                HashVec.loadFileToHashString(filename, new int[] {1, 0},
-                                                             new int[] {column}, false, "\t", true,
-                                                             false, false));
+        true, false, false);
+    HashVec.mergeHash2IntoHash1(hash, HashVec.loadFileToHashString(filename, new int[] {1, 0},
+        new int[] {column}, false, "\t", true, false, false));
 
     try {
       writer =
@@ -91,8 +88,8 @@ public class Haploview {
       }
       writer.close();
     } catch (Exception e) {
-      System.err.println("Error writing to " + ext.rootOf(order, false) + "_LD_col" + column
-                         + ".xln");
+      System.err
+          .println("Error writing to " + ext.rootOf(order, false) + "_LD_col" + column + ".xln");
       e.printStackTrace();
     }
   }

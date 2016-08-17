@@ -31,7 +31,7 @@ public class simMakeAllegro {
     } else {
       try {
         new simMakeAllegro(Double.valueOf(args[0]).doubleValue(),
-                           Integer.valueOf(args[1]).intValue());
+            Integer.valueOf(args[1]).intValue());
         // stdin.readLine();
       } catch (Exception e) {
         e.printStackTrace();
@@ -54,16 +54,16 @@ public class simMakeAllegro {
       file = FILES[i];
       optfile = new PrintWriter(new FileWriter(file + ".opt"));
       optfile.println("% Read input in LINKAGE style format:\n" + "PREFILE " + file + ".pre\n"
-                      + "DATFILE linkage.dat\n\n" + "% Simulate stroke reconstruction pedigrees\n"
-                      + "SIMULATE dloc:32.0 npre:" + NUM_REPS + " rep:" + FAMREPS[i]
-                      + " err:0.00 yield:1.0 het:" + ext.formDeci(het, 2, true) + "\n\n" // change
-                                                                                         // from
-                                                                                         // 8 to
-                      // 32 for denser map
-                      // wtf? 32 is
-                      // disease allele
-                      // position
-                      + "% Other options:\n" + "MAXMEMORY 100");
+          + "DATFILE linkage.dat\n\n" + "% Simulate stroke reconstruction pedigrees\n"
+          + "SIMULATE dloc:32.0 npre:" + NUM_REPS + " rep:" + FAMREPS[i]
+          + " err:0.00 yield:1.0 het:" + ext.formDeci(het, 2, true) + "\n\n" // change
+                                                                             // from
+                                                                             // 8 to
+          // 32 for denser map
+          // wtf? 32 is
+          // disease allele
+          // position
+          + "% Other options:\n" + "MAXMEMORY 100");
       optfile.close();
 
       Process process = null;

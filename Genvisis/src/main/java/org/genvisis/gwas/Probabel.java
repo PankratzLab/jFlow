@@ -36,10 +36,10 @@ public class Probabel {
       {"/home/npankrat/bin/palogist", "/home/npankrat/bin/palinear", "/home/npankrat/bin/pacoxph"};
   public static final String[] LOGIST_OUTPUT_HEADER =
       {"name", "A1", "A2", "Freq1", "MAF", "Quality", "Rsq", "n", "Mean_predictor_allele", "chrom",
-       "beta_SNP_add", "sebeta_SNP_add", "chi2_SNP"};
+          "beta_SNP_add", "sebeta_SNP_add", "chi2_SNP"};
 
   public static void appendPValsToResults(final String dir1, final String filePattern,
-                                          final boolean suffixTruePrefixFalse) {
+      final boolean suffixTruePrefixFalse) {
     String dir = ext.verifyDirFormat(dir1);
     String[] resultFiles = new File(dir).list(new FilenameFilter() {
       @Override
@@ -65,14 +65,10 @@ public class Probabel {
 
           String[] parts = line.trim().split("[\\s]+");
           writer.println(Array.toStr(parts) + "\t"
-                         + (parts[9].equals("nan") ? "nan"
-                                                   : ProbDist.NormDist(Double.parseDouble(parts[9])
-                                                                       / Double.parseDouble(parts[10])))
-                         + "\t"
-                         + (parts[11].equals("nan")
-                            || parts[11].equals("-inf") ? "nan"
-                                                        : ProbDist.ChiDist(Double.parseDouble(parts[11]),
-                                                                           1)));
+              + (parts[9].equals("nan") ? "nan"
+                  : ProbDist.NormDist(Double.parseDouble(parts[9]) / Double.parseDouble(parts[10])))
+              + "\t" + (parts[11].equals("nan") || parts[11].equals("-inf") ? "nan"
+                  : ProbDist.ChiDist(Double.parseDouble(parts[11]), 1)));
 
         }
         writer.flush();
@@ -112,14 +108,14 @@ public class Probabel {
    * @param overwrite
    */
   public static void chunkFiles(String dosageFileDir, String infoFileDir, String chunkDir,
-                                boolean overwrite) {
+      boolean overwrite) {
     String[] roots = getFileRoots(dosageFileDir, infoFileDir);
     splitInfoFiles(infoFileDir, chunkDir, roots, overwrite);
     splitDoseFiles(dosageFileDir, chunkDir, roots, overwrite);
   }
 
   public static void compareClasses(String pheno, String optionalLookupFile, String classFile,
-                                    String compClasses) {
+      String compClasses) {
     String affectedClass, unaffectedClass;
     Hashtable<String, String> hash;
     BufferedReader reader;
@@ -160,8 +156,8 @@ public class Probabel {
 
     try {
       reader = new BufferedReader(new FileReader(pheno));
-      writer = new PrintWriter(new FileWriter(ext.rootOf(pheno, false) + "_" + affectedClass
-                                              + "_vs_" + unaffectedClass + ".dat"));
+      writer = new PrintWriter(new FileWriter(
+          ext.rootOf(pheno, false) + "_" + affectedClass + "_vs_" + unaffectedClass + ".dat"));
       line = reader.readLine().trim().split("[\\s]+");
       writer.println(line[0] + "\t" + line[1]);
       count = 0;
@@ -182,9 +178,9 @@ public class Probabel {
           }
         } else {
           if (!line[0].equals(lookup[count].split("[\\s]+")[1])) {
-            System.err.println("Error - lookup does not match phenotype file (at line "
-                               + (count + 1) + " found " + line[0] + ", expecting '"
-                               + lookup[count].split("[\\s]+")[1] + "')");
+            System.err.println(
+                "Error - lookup does not match phenotype file (at line " + (count + 1) + " found "
+                    + line[0] + ", expecting '" + lookup[count].split("[\\s]+")[1] + "')");
             System.exit(1);
           }
           if (hash.containsKey(lookup[count])) {
@@ -197,7 +193,7 @@ public class Probabel {
             }
           } else {
             System.err.println("Error - no class information for indiviudal " + lookup[count]
-                               + " in the lookup file");
+                + " in the lookup file");
             line[1] = "NA";
           }
         }
@@ -231,21 +227,19 @@ public class Probabel {
     commands += "cp " + pheno + " chr[%0]\n";
     commands += "cd chr[%0]\n";
     commands += EXECS[type] + " -p " + pheno
-                + " -d MACH_step2_chr[%0].mldose -i MACH_step2_chr[%0].mlinfo -c [%0] -o "
-                + ext.rootOf(pheno) + "_chr[%0]\n";
+        + " -d MACH_step2_chr[%0].mldose -i MACH_step2_chr[%0].mlinfo -c [%0] -o "
+        + ext.rootOf(pheno) + "_chr[%0]\n";
     // commands += Files.getRunString() + " gwas.Probabel parse=[%0] pheno="+pheno+"\n";
     commands += "cd ..\n\n";
     Files.batchIt("prob", "", numBatches, commands, parameters);
   }
 
   public static void createQsubFilesForBlade(String filename) {
-    String[][] parameters =
-        new String[][] {{"1", "7", "4"}, {"2", "7", "4"}, {"3", "7", "4"}, {"4", "7", "4"},
-                        {"5", "7", "4"}, {"6", "7", "4"}, {"7", "6", "4"}, {"8", "6", "4"},
-                        {"9", "6", "1"}, {"10", "6", "1"}, {"11", "6", "1"}, {"12", "5", "1"},
-                        {"13", "4", "1"}, {"14", "4", "1"}, {"15", "4", "1"}, {"16", "4", "1"},
-                        {"17", "4", "1"}, {"18", "4", "1"}, {"19", "4", "1"}, {"20", "4", "1"},
-                        {"21", "2", "1"}, {"22", "2", "1"}};
+    String[][] parameters = new String[][] {{"1", "7", "4"}, {"2", "7", "4"}, {"3", "7", "4"},
+        {"4", "7", "4"}, {"5", "7", "4"}, {"6", "7", "4"}, {"7", "6", "4"}, {"8", "6", "4"},
+        {"9", "6", "1"}, {"10", "6", "1"}, {"11", "6", "1"}, {"12", "5", "1"}, {"13", "4", "1"},
+        {"14", "4", "1"}, {"15", "4", "1"}, {"16", "4", "1"}, {"17", "4", "1"}, {"18", "4", "1"},
+        {"19", "4", "1"}, {"20", "4", "1"}, {"21", "2", "1"}, {"22", "2", "1"}};
     String commands = "";
 
     commands += "#!/bin/bash -l\n";
@@ -255,7 +249,7 @@ public class Probabel {
     commands += "echo \"start at: \" `date`\n";
     commands += "cd /scratch2/pankratz\n";
     commands += "pacoxph -p " + filename
-                + " -d chr[%0].aric.f3.mldose -i chr[%0].aric.f3.mlinfo -c [%0] -o chr[%0].out\n";
+        + " -d chr[%0].aric.f3.mldose -i chr[%0].aric.f3.mlinfo -c [%0] -o chr[%0].out\n";
     commands += "echo \"end at: \" `date`\n";
     Files.batchIt("chr", "", 22, commands, parameters);
 
@@ -278,24 +272,23 @@ public class Probabel {
     node = 0;
     antinode = 6;
     v = new Vector<String>();
-    System.out.println("Limit: " + ext.addCommas((long) (maxGb * Math.pow(2, 30)) / 1000000)
-                       + " megabytes");
+    System.out.println(
+        "Limit: " + ext.addCommas((long) (maxGb * Math.pow(2, 30)) / 1000000) + " megabytes");
     for (int chr = 1; chr <= 22; chr++) {
-      size = new File("chr" + chr + "/" + (minimac ? "chr" + chr + ".dose"
-                                                   : "MACH_step2_chr" + chr + ".mldose")).length();
-      System.out.println("chr" + chr + "/"
-                         + (minimac ? "chr" + chr + ".dose" : "MACH_step2_chr" + chr + ".mldose")
-                         + ": " + ext.addCommas(size) + " bytes");
+      size = new File("chr" + chr + "/"
+          + (minimac ? "chr" + chr + ".dose" : "MACH_step2_chr" + chr + ".mldose")).length();
+      System.out.println(
+          "chr" + chr + "/" + (minimac ? "chr" + chr + ".dose" : "MACH_step2_chr" + chr + ".mldose")
+              + ": " + ext.addCommas(size) + " bytes");
       if (size > maxGb * Math.pow(2, 30)) {
         numSplits = (int) Math.ceil(size / (maxGb * Math.pow(2, 30)));
         System.out.println("Splitting chr" + chr + " into " + numSplits + " pieces");
         if (minimac) {
           markerNames = new SnpMarkerSet("chr" + chr + "/chr" + chr + ".info",
-                                         SnpMarkerSet.MINIMAC_INFO_FORMAT, false,
-                                         new Logger()).getMarkerNames();
+              SnpMarkerSet.MINIMAC_INFO_FORMAT, false, new Logger()).getMarkerNames();
         } else {
           markerNames = new SnpMarkerSet("chr" + chr + "/MACH_step2_chr" + chr + ".mlinfo", false,
-                                         new Logger()).getMarkerNames();
+              new Logger()).getMarkerNames();
         }
         increment = (int) Math.ceil((double) markerNames.length / (double) numSplits);
         for (int i = 0; i < numSplits; i++) {
@@ -306,28 +299,28 @@ public class Probabel {
               || new File("quan" + (i + 1) + ".pinfo").length() == 0) {
             if (chr > 5) {
               commands += "sed -n '" + (i * increment + 1) + ","
-                          + (i == numSplits - 1 ? markerNames.length + 1 : (i + 1) * increment)
-                          + " p' < " + Minimac.REF_SNPS_ROOT + " > quan" + (i + 1) + ".txt\n";
+                  + (i == numSplits - 1 ? markerNames.length + 1 : (i + 1) * increment) + " p' < "
+                  + Minimac.REF_SNPS_ROOT + " > quan" + (i + 1) + ".txt\n";
             }
             // if you get lots of errors about non-existent markers at this stage, check to make
             // sure the right reference panel is hard coded
             if (chr > 5) {
               commands += Files.getRunString()
-                          + " filesys.DosageData dosageFile=chr#.dose idFile=plink.fam mapFile=chr#.minfo out=chr#_quan"
-                          + (i + 1) + ".dose extract=quan" + (i + 1) + ".txt -awk\n";
+                  + " filesys.DosageData dosageFile=chr#.dose idFile=plink.fam mapFile=chr#.minfo out=chr#_quan"
+                  + (i + 1) + ".dose extract=quan" + (i + 1) + ".txt -awk\n";
             }
             // commands += "awk '{print $1\"\\t\"$2\"\\t\"$3\"\\t\"$4\"\\t\"$5\"\\t\"$6\"\\t\"$7}'
             // chr#_quan"+(i+1)+".minfo > chr#_quan"+(i+1)+".pinfo\n";
             commands += Files.getRunString() + " filesys.SnpMarkerSet file=chr#.minfo extract=quan"
-                        + (i + 1) + ".txt out=chr#_quan" + (i + 1) + ".pinfo\n";
+                + (i + 1) + ".txt out=chr#_quan" + (i + 1) + ".pinfo\n";
           }
           commands += "/home/npankrat/bin/palogist -p ../" + pheno + " -d chr#_quan" + (i + 1)
-                      + ".dose -i chr#_quan" + (i + 1) + ".pinfo -c 1 -o " + ext.rootOf(pheno)
-                      + "_chr#_quan" + (i + 1) + "\n";
+              + ".dose -i chr#_quan" + (i + 1) + ".pinfo -c 1 -o " + ext.rootOf(pheno)
+              + "_chr#_quan" + (i + 1) + "\n";
           commands += "cd ..\n";
 
           v.add(Files.qsub("", "q" + (i + 1) + "_chr#_" + ext.rootOf(pheno), chr, chr, commands,
-                           null, 10000, 12, "compute-0-" + node + ".local")[0]);
+              null, 10000, 12, "compute-0-" + node + ".local")[0]);
           // node++;
           if (node > 4) {
             node = 0;
@@ -340,12 +333,12 @@ public class Probabel {
               "awk '{print $1\"\\t\"$2\"\\t\"$3\"\\t\"$4\"\\t\"$5\"\\t\"$6\"\\t\"$7}' chr#.info > chr#.pinfo\n";
         }
         commands += EXECS[type] + " -p ../" + pheno + " -d "
-                    + (minimac ? "chr#.dose" : "MACH_step2_chr#.mldose") + " -i "
-                    + (minimac ? "chr#.pinfo" : "MACH_step2_chr#.mlinfo") + " -c # -o "
-                    + ext.rootOf(pheno) + "_chr#\n";
+            + (minimac ? "chr#.dose" : "MACH_step2_chr#.mldose") + " -i "
+            + (minimac ? "chr#.pinfo" : "MACH_step2_chr#.mlinfo") + " -c # -o " + ext.rootOf(pheno)
+            + "_chr#\n";
         commands += "cd ..\n";
         v.add(Files.qsub("", "chr#_" + ext.rootOf(pheno), chr, chr, commands, null, 10000, 12,
-                         "compute-0-" + antinode + ".local")[0]);
+            "compute-0-" + antinode + ".local")[0]);
         antinode++;
         if (antinode > 12) {
           antinode = 6;
@@ -371,40 +364,36 @@ public class Probabel {
     for (String studie : studies) {
       for (int j = 0; j < classes.length; j++) {
         stratifyByClass(dir + studie + "/" + studie + "_Aff_final.dat", dir + studie + "/list.txt",
-                        dir + "EuropeanClasses.txt", classes[j]);
+            dir + "EuropeanClasses.txt", classes[j]);
         for (String dataset : datasets) {
           CmdLine.run(EXECS[0] + " -p " + studie + "_Aff_final_" + classes[j] + ".dat" + " -d "
-                      + dataset + ".mldose -i " + dataset + ".mlinfo -c 1 -o " + studie
-                      + "_Aff_final_" + classes[j] + "_" + dataset + "\n", dir + studie);
-          line = new String[] {dir + studie + "/" + studie + "_Aff_final_" + classes[j] + "_"
-                               + dataset + "_add.out.txt",
-                               "out=" + dir + studie + "/" + dataset + "_" + classes[j] + ".metal",
-                               "!6>0.30", "!10>-5", "!10<5", "!11!nan", "!11!0", "0", "1", "2",
-                               "10", "11"};
+              + dataset + ".mldose -i " + dataset + ".mlinfo -c 1 -o " + studie + "_Aff_final_"
+              + classes[j] + "_" + dataset + "\n", dir + studie);
+          line = new String[] {
+              dir + studie + "/" + studie + "_Aff_final_" + classes[j] + "_" + dataset
+                  + "_add.out.txt",
+              "out=" + dir + studie + "/" + dataset + "_" + classes[j] + ".metal", "!6>0.30",
+              "!10>-5", "!10<5", "!11!nan", "!11!0", "0", "1", "2", "10", "11"};
           GenParser.parse(line,
-                          new Logger(dir + studie + "/" + dataset + "_" + classes[j] + ".log"));
+              new Logger(dir + studie + "/" + dataset + "_" + classes[j] + ".log"));
         }
 
         if (j < classes.length - 1) {
           compareClasses(dir + studie + "/" + studie + "_Aff_final.dat", dir + studie + "/list.txt",
-                         dir + "EuropeanClasses.txt",
-                         classes[j] + "|" + classes[classes.length - 1]);
+              dir + "EuropeanClasses.txt", classes[j] + "|" + classes[classes.length - 1]);
           for (String dataset : datasets) {
             CmdLine.run(EXECS[0] + " -p " + studie + "_Aff_final_" + classes[j] + "_vs_"
-                        + classes[classes.length - 1] + ".dat" + " -d " + dataset + ".mldose -i "
-                        + dataset + ".mlinfo -c 1 -o " + studie + "_Aff_final_" + classes[j]
-                        + "_vs_" + classes[classes.length - 1] + "_" + dataset + "\n",
-                        dir + studie);
-            line =
-                new String[] {dir + studie + "/" + studie + "_Aff_final_" + classes[j] + "_vs_"
-                              + classes[classes.length - 1] + "_" + dataset
-                              + "_add.out.txt",
-                              "out=" + dir + studie + "/" + dataset + "_" + classes[j] + "_vs_"
-                                                + classes[classes.length - 1] + ".metal",
-                              "!6>0.30", "!10>-5", "!10<5", "!11!nan", "!11!0", "0", "1", "2", "10",
-                              "11"};
+                + classes[classes.length - 1] + ".dat" + " -d " + dataset + ".mldose -i " + dataset
+                + ".mlinfo -c 1 -o " + studie + "_Aff_final_" + classes[j] + "_vs_"
+                + classes[classes.length - 1] + "_" + dataset + "\n", dir + studie);
+            line = new String[] {
+                dir + studie + "/" + studie + "_Aff_final_" + classes[j] + "_vs_"
+                    + classes[classes.length - 1] + "_" + dataset + "_add.out.txt",
+                "out=" + dir + studie + "/" + dataset + "_" + classes[j] + "_vs_"
+                    + classes[classes.length - 1] + ".metal",
+                "!6>0.30", "!10>-5", "!10<5", "!11!nan", "!11!0", "0", "1", "2", "10", "11"};
             GenParser.parse(line, new Logger(dir + studie + "/" + dataset + "_" + classes[j]
-                                             + "_vs_" + classes[classes.length - 1] + ".log"));
+                + "_vs_" + classes[classes.length - 1] + ".log"));
           }
         }
       }
@@ -420,8 +409,8 @@ public class Probabel {
           try {
             writer = new PrintWriter(new FileWriter(dir + trav + ".script"));
             writer.println("MARKER name" + "\n" + "ALLELE A1 A2" + "\n" + "EFFECT beta_SNP_add"
-                           + "\n" + "STDERR sebeta_SNP_add" + "\n" + "SCHEME STDERR" + "\n"
-                           + "GENOMICCONTROL ON" + "\n");
+                + "\n" + "STDERR sebeta_SNP_add" + "\n" + "SCHEME STDERR" + "\n"
+                + "GENOMICCONTROL ON" + "\n");
             for (String studie : studies) {
               writer.println("PROCESS " + studie + "/" + trav + ".metal");
             }
@@ -440,13 +429,11 @@ public class Probabel {
 
         for (int j = 0; j < classes.length - 1; j++) {
           writer.println(dataset + "_" + classes[j] + "_vs_" + classes[classes.length - 1]
-                         + "1.tbl 0 5=" + classes[j] + "_vs_" + classes[classes.length - 1]
-                         + "_pval");
+              + "1.tbl 0 5=" + classes[j] + "_vs_" + classes[classes.length - 1] + "_pval");
         }
         for (int j = 0; j < classes.length - 1; j++) {
           writer.println(dataset + "_" + classes[j] + "_vs_" + classes[classes.length - 1]
-                         + "1.tbl 0 3=" + classes[j] + "_vs_" + classes[classes.length - 1]
-                         + "_beta");
+              + "1.tbl 0 3=" + classes[j] + "_vs_" + classes[classes.length - 1] + "_beta");
         }
         for (String classe : classes) {
           writer.println(dataset + "_" + classe + "1.tbl 0 3=" + classe + "_beta");
@@ -466,8 +453,8 @@ public class Probabel {
   private static String[] getFileRoots(String sourceDir) {
     File dir = new File(sourceDir);
     if (!dir.exists()) {
-      System.err.println(ext.getTime() + "Error - source directory {" + sourceDir
-                         + "} doesn't exist");
+      System.err
+          .println(ext.getTime() + "Error - source directory {" + sourceDir + "} doesn't exist");
       return null;
     }
 
@@ -476,7 +463,7 @@ public class Probabel {
       public boolean accept(File dir, String name) {
         String root = ext.rootOf(name, true);
         return (new File(dir + root + ".dose")).exists()
-               && (new File(dir + root + ".info")).exists();
+            && (new File(dir + root + ".info")).exists();
       }
     });
     HashSet<String> fileRoots = new HashSet<String>();
@@ -491,13 +478,13 @@ public class Probabel {
     File infoDir = new File(sourceInfoDir);
 
     if (!doseDir.exists()) {
-      System.err.println(ext.getTime() + "Error - dosage source directory {" + sourceDoseDir
-                         + "} doesn't exist");
+      System.err.println(
+          ext.getTime() + "Error - dosage source directory {" + sourceDoseDir + "} doesn't exist");
       return null;
     }
     if (!infoDir.exists()) {
-      System.err.println(ext.getTime() + "Error - info source directory {" + sourceDoseDir
-                         + "} doesn't exist");
+      System.err.println(
+          ext.getTime() + "Error - info source directory {" + sourceDoseDir + "} doesn't exist");
       return null;
     }
 
@@ -541,26 +528,26 @@ public class Probabel {
     int max = 12;
 
     String usage = "\n" + "gwas.Probabel requires 0-1 arguments\n"
-                   + "  Analysis types include: 0=logistic, 1=linear, 2=coxproportionalhazards, 3=autodetermine between 0 and 1\n"
-                   + "   (1) phenotype filename (i.e. pheno=" + pheno + " (default))\n"
-                   + "   (2) use minimac naming scheme (i.e. -minimac (not the default))\n"
-                   + "   (3) batch for blade (i.e. -blade (not the default))\n"
-                   + "   (4) batch local qsub (i.e. -qsub (not the default))\n"
-                   + "   (5) analysis type (i.e. type=" + type + " (default))\n"
-                   + "   (6) number of batches (i.e. batches=8 (not the default))\n"
-                   + "   (7) max number of Gb of dosage file before split (i.e. max=" + max
-                   + " (default))\n" + "   (8) parse p-values (i.e. -parse (not the default))\n"
-                   + "  OR\n" + "   (1) class file with which to compare or stratify (i.e. class="
-                   + classFile + " (not the default))\n"
-                   + "   (2) stratify sample by class (i.e. strat=Ashk (not the default))\n"
-                   + "   (3) compare based on classes (i.e. comp=Ashk|British (not the default))\n"
-                   + "   (4) (optional) lookup file in same order as phenotype file with FID and IID incase IIDs are not unique (i.e. lookup="
-                   + lookupFile + " (default))\n" + "  OR\n"
-                   + "   (1) append p-values to result files (i.e. -process (not the default))\n"
-                   + "   (2) Result file directory (i.e. pheno= )\n"
-                   + "   (3) Result file pattern to match, either a prefix or a suffix (i.e. lookup= )\n"
-                   + "   (4) If the file pattern is a prefix (defaults to suffix) (i.e. -prefix (not the default))\n"
-                   + "";
+        + "  Analysis types include: 0=logistic, 1=linear, 2=coxproportionalhazards, 3=autodetermine between 0 and 1\n"
+        + "   (1) phenotype filename (i.e. pheno=" + pheno + " (default))\n"
+        + "   (2) use minimac naming scheme (i.e. -minimac (not the default))\n"
+        + "   (3) batch for blade (i.e. -blade (not the default))\n"
+        + "   (4) batch local qsub (i.e. -qsub (not the default))\n"
+        + "   (5) analysis type (i.e. type=" + type + " (default))\n"
+        + "   (6) number of batches (i.e. batches=8 (not the default))\n"
+        + "   (7) max number of Gb of dosage file before split (i.e. max=" + max + " (default))\n"
+        + "   (8) parse p-values (i.e. -parse (not the default))\n" + "  OR\n"
+        + "   (1) class file with which to compare or stratify (i.e. class=" + classFile
+        + " (not the default))\n"
+        + "   (2) stratify sample by class (i.e. strat=Ashk (not the default))\n"
+        + "   (3) compare based on classes (i.e. comp=Ashk|British (not the default))\n"
+        + "   (4) (optional) lookup file in same order as phenotype file with FID and IID incase IIDs are not unique (i.e. lookup="
+        + lookupFile + " (default))\n" + "  OR\n"
+        + "   (1) append p-values to result files (i.e. -process (not the default))\n"
+        + "   (2) Result file directory (i.e. pheno= )\n"
+        + "   (3) Result file pattern to match, either a prefix or a suffix (i.e. lookup= )\n"
+        + "   (4) If the file pattern is a prefix (defaults to suffix) (i.e. -prefix (not the default))\n"
+        + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -658,8 +645,8 @@ public class Probabel {
       yok = new Vector<String>();
       for (int chr = 1; chr <= 23; chr++) {
         try {
-          reader = new BufferedReader(new FileReader("chr" + chr + "/" + ext.rootOf(pheno) + "_chr"
-                                                     + chr + "_add.out.txt"));
+          reader = new BufferedReader(new FileReader(
+              "chr" + chr + "/" + ext.rootOf(pheno) + "_chr" + chr + "_add.out.txt"));
           line = reader.readLine().trim().split("[\\s]+");
           if (var.size() == 0) {
             writer.println(Array.toStr(line) + "\tZscore_pval\tchi2_pval");
@@ -667,13 +654,11 @@ public class Probabel {
           while (reader.ready()) {
             line = reader.readLine().trim().split("[\\s]+");
             writer.println(Array.toStr(line) + "\t"
-                           + (line[10].equals("nan") ? "nan"
-                                                     : ProbDist.NormDist(Double.parseDouble(line[10])
-                                                                         / Double.parseDouble(line[11])))
-                           + "\t"
-                           + (line[12].equals("nan") ? "nan"
-                                                     : ProbDist.ChiDist(Double.parseDouble(line[12]),
-                                                                        1)));
+                + (line[10].equals("nan") ? "nan"
+                    : ProbDist
+                        .NormDist(Double.parseDouble(line[10]) / Double.parseDouble(line[11])))
+                + "\t" + (line[12].equals("nan") ? "nan"
+                    : ProbDist.ChiDist(Double.parseDouble(line[12]), 1)));
           }
           reader.close();
           var.add(chr + "");
@@ -681,14 +666,14 @@ public class Probabel {
           yok.add(chr + "");
         } catch (IOException ioe) {
           System.err.println("Error reading file \"" + "chr" + chr + "/" + ext.rootOf(pheno)
-                             + "_chr" + chr + "_add.out.txt" + "\"");
+              + "_chr" + chr + "_add.out.txt" + "\"");
         }
       }
       writer.close();
       System.out.println("Data for chromosomes " + ext.listWithCommas(Array.toStringArray(var)));
       if (yok.size() > 0) {
-        System.out.println("Missing data for chromosomes "
-                           + ext.listWithCommas(Array.toStringArray(yok)));
+        System.out.println(
+            "Missing data for chromosomes " + ext.listWithCommas(Array.toStringArray(yok)));
       }
     } catch (Exception e) {
       System.err.println("Error writing to " + ext.rootOf(pheno) + "_add.xln");
@@ -714,19 +699,19 @@ public class Probabel {
         if (minimac) {
           if (new File("chr" + chr + "/" + "chr" + chr + ".info").exists()) {
             markerNames = HashVec.loadFileToStringArray("chr" + chr + "/" + "chr" + chr + ".info",
-                                                        true, new int[] {0}, false);
+                true, new int[] {0}, false);
           } else {
             System.err.println("Warning - failed to find chr" + chr + "/" + "chr" + chr
-                               + ".info to check for completeness");
+                + ".info to check for completeness");
             markerNames = null;
           }
         } else {
           if (new File("chr" + chr + "/" + "MACH_step2_chr" + chr + ".mlinfo").exists()) {
-            markerNames = HashVec.loadFileToStringArray("chr" + chr + "/" + "MACH_step2_chr" + chr
-                                                        + ".mlinfo", true, new int[] {0}, false);
+            markerNames = HashVec.loadFileToStringArray(
+                "chr" + chr + "/" + "MACH_step2_chr" + chr + ".mlinfo", true, new int[] {0}, false);
           } else {
             System.err.println("Warning - failed to find chr" + chr + "/" + "MACH_step2_chr" + chr
-                               + ".mlinfo to check for completeness");
+                + ".mlinfo to check for completeness");
             markerNames = null;
           }
         }
@@ -739,7 +724,7 @@ public class Probabel {
           } else {
             quan = 1;
             filename = "chr" + chr + "/" + ext.rootOf(pheno) + "_chr" + chr + "_quan" + quan
-                       + "_add.out.txt";
+                + "_add.out.txt";
             if (Files.exists(filename, false)) {
               reader = new BufferedReader(new FileReader(filename));
             } else {
@@ -755,15 +740,13 @@ public class Probabel {
           while (reader.ready()) {
             line = reader.readLine().trim().split("[\\s]+");
             if (markerNames != null && count >= markerNames.length) {
-              System.err.println("Error - There are more markers in '" + filename
-                                 + "' than there are in "
-                                 + (minimac ? "chr" + chr + ".info"
-                                            : "MACH_step2_chr" + chr + ".mlinfo"));
+              System.err
+                  .println("Error - There are more markers in '" + filename + "' than there are in "
+                      + (minimac ? "chr" + chr + ".info" : "MACH_step2_chr" + chr + ".mlinfo"));
             } else if (markerNames != null && !line[0].equals(markerNames[count])) {
               if (countErr < 10) {
                 System.err.println("Error - expecting marker '" + markerNames[count] + "' at line "
-                                   + (count + 1) + " of " + filename + " but found '" + line[0]
-                                   + "' instead");
+                    + (count + 1) + " of " + filename + " but found '" + line[0] + "' instead");
               } else if (countErr == 10) {
                 System.err.println("Error - etc...");
               }
@@ -773,27 +756,24 @@ public class Probabel {
             // writer.println(Array.toStr(line)+"\t"+(line[10].equals("nan")?"nan":ProbDist.NormDist(Double.parseDouble(line[10])/Double.parseDouble(line[11])))+"\t"+(line[12].equals("nan")||line[12].equals("-inf")?"nan":ProbDist.ChiDist(Double.parseDouble(line[12]),
             // 1)));
             writer.println(Array.toStr(line) + "\t"
-                           + (line[10].equals("nan") ? "nan"
-                                                     : ProbDist.NormDist(Double.parseDouble(line[10])
-                                                                         / Double.parseDouble(line[11])))
-                           + "\t"
-                           + (line[12].equals("nan")
-                              || line[12].equals("-inf") ? "nan"
-                                                         : ProbDist.ChiDist(Double.parseDouble(line[12]),
-                                                                            1)));
+                + (line[10].equals("nan") ? "nan"
+                    : ProbDist
+                        .NormDist(Double.parseDouble(line[10]) / Double.parseDouble(line[11])))
+                + "\t" + (line[12].equals("nan") || line[12].equals("-inf") ? "nan"
+                    : ProbDist.ChiDist(Double.parseDouble(line[12]), 1)));
             count++;
             if (!reader.ready() && count < markerNames.length && quan > 0) {
               quan++;
               filename = "chr" + chr + "/" + ext.rootOf(pheno) + "_chr" + chr + "_quan" + quan
-                         + "_add.out.txt";
+                  + "_add.out.txt";
               if (Files.exists(filename, false)) {
                 reader = new BufferedReader(new FileReader(filename));
                 reader.readLine();
                 System.out.print("Parsing '" + filename + "'");
               } else {
-                System.err.println("Error - found results for earlier quantiles but could not find chr"
-                                   + chr + "/" + ext.rootOf(pheno) + "_chr" + chr + "_quan" + quan
-                                   + "_add.out.txt");
+                System.err.println(
+                    "Error - found results for earlier quantiles but could not find chr" + chr + "/"
+                        + ext.rootOf(pheno) + "_chr" + chr + "_quan" + quan + "_add.out.txt");
               }
             }
           }
@@ -820,7 +800,7 @@ public class Probabel {
   }
 
   private static void splitDoseFiles(String fileDir, String outDir, String[] fileRoots,
-                                     boolean overwrite) {
+      boolean overwrite) {
     for (String fileRoot : fileRoots) {
       System.out.println(ext.getTime() + "]\tChunking .dose file " + fileRoot);
       try {
@@ -835,8 +815,8 @@ public class Probabel {
             for (int i = 0; i < chunks; i++) {
               String file = outDir + fileRoot + "_" + (i * 500000) + ".dose";
               if (overwrite || !Files.exists(file)) {
-                dosageWriters.add(Files.getAppropriateWriter(outDir + fileRoot + "_" + (i * 500000)
-                                                             + ".dose"));
+                dosageWriters.add(
+                    Files.getAppropriateWriter(outDir + fileRoot + "_" + (i * 500000) + ".dose"));
               } else {
                 System.out.println(ext.getTime() + "]\tSkipping file " + file);
                 dosageWriters.add(null);
@@ -875,7 +855,7 @@ public class Probabel {
   }
 
   private static void splitInfoFiles(String dir, String outDir, String[] fileRoots,
-                                     boolean overwrite) {
+      boolean overwrite) {
     for (String fileRoot : fileRoots) {
       System.out.println(ext.getTime() + "]\tProcessing .info file {" + fileRoot + "}");
       int lines = Files.countLines(dir + fileRoot + ".info", 1);
@@ -907,7 +887,7 @@ public class Probabel {
   }
 
   public static void stratifyByClass(String pheno, String optionalLookupFile, String classFile,
-                                     String selectedClass) {
+      String selectedClass) {
     Hashtable<String, String> hash;
     BufferedReader reader;
     PrintWriter writer;
@@ -960,9 +940,9 @@ public class Probabel {
           }
         } else {
           if (!line[0].equals(lookup[count].split("[\\s]+")[1])) {
-            System.err.println("Error - lookup does not match phenotype file (at line "
-                               + (count + 1) + " found " + line[0] + ", expecting '"
-                               + lookup[count].split("[\\s]+")[1] + "')");
+            System.err.println(
+                "Error - lookup does not match phenotype file (at line " + (count + 1) + " found "
+                    + line[0] + ", expecting '" + lookup[count].split("[\\s]+")[1] + "')");
             System.exit(1);
           }
           if (hash.containsKey(lookup[count])) {
@@ -971,7 +951,7 @@ public class Probabel {
             }
           } else {
             System.err.println("Error - no class information for indiviudal " + lookup[count]
-                               + " in the lookup file");
+                + " in the lookup file");
             line[1] = "NA";
           }
         }

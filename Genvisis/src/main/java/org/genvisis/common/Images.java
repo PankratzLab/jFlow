@@ -22,8 +22,8 @@ public class Images {
     boolean innerBorder = true;
 
     String usage = "\n" + "common.Images requires 3+ arguments\n" + "   (1) directory (i.e. dir="
-                   + dir + " (default))\n" + "   (2) filename (i.e. file=" + file + " (default))\n"
-                   + "   (3) output filename (i.e. out=" + out + " (default))\n" + "";
+        + dir + " (default))\n" + "   (2) filename (i.e. file=" + file + " (default))\n"
+        + "   (3) output filename (i.e. out=" + out + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -56,8 +56,7 @@ public class Images {
   }
 
   public static void stitchImages(String dir, String listFile, String outFile, Color bgColor,
-                                  boolean drawInnerBorder,
-                                  boolean drawOuterBorder/* , boolean pack */) {
+      boolean drawInnerBorder, boolean drawOuterBorder/* , boolean pack */) {
     System.out.print("Loading input file...");
     String[] imageFiles =
         HashVec.loadFileToStringArray(dir + listFile, false, new int[] {0}, false);
@@ -94,7 +93,7 @@ public class Images {
     int bufferRows = (arrSzRows + 1) * BUFFER_SZ;
 
     finalImage = new BufferedImage((maxWid * arrSzCols) + bufferCols,
-                                   (maxHgt * arrSzRows) + bufferRows, BufferedImage.TYPE_INT_ARGB);
+        (maxHgt * arrSzRows) + bufferRows, BufferedImage.TYPE_INT_ARGB);
     if (bgColor != null) {
       finalImage.createGraphics().setColor(bgColor);
       finalImage.createGraphics().fillRect(0, 0, finalImage.getWidth(), finalImage.getHeight());

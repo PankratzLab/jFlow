@@ -16,7 +16,7 @@ public class Nonparametric {
     Logger log;
 
     String usage = "\n" + "stats.Nonparametric requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -38,15 +38,12 @@ public class Nonparametric {
     }
     try {
       log = new Logger(logfile);
-      System.out.println(runWilcoxonRankSumTest(Array.toDoubleArray(HashVec.loadFileToStringArray("file1.txt",
-                                                                                                  false,
-                                                                                                  new int[] {0},
-                                                                                                  false)),
-                                                Array.toDoubleArray(HashVec.loadFileToStringArray("file2.txt",
-                                                                                                  false,
-                                                                                                  new int[] {0},
-                                                                                                  false)),
-                                                log));
+      System.out.println(runWilcoxonRankSumTest(
+          Array.toDoubleArray(
+              HashVec.loadFileToStringArray("file1.txt", false, new int[] {0}, false)),
+          Array.toDoubleArray(
+              HashVec.loadFileToStringArray("file2.txt", false, new int[] {0}, false)),
+          log));
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -153,7 +150,7 @@ public class Nonparametric {
 
   public static double runWilcoxonRankSumTest(int[] groupings, double[] values, Logger log) {
     return runWilcoxonRankSumTest(Ttest.splitOut(groupings, values, Array.min(groupings)),
-                                  Ttest.splitOut(groupings, values, Array.min(groupings) + 1), log);
+        Ttest.splitOut(groupings, values, Array.min(groupings) + 1), log);
   }
 
   // nonparametric form of the Paired T-Test, does not assume the traits are normally distributed

@@ -33,8 +33,10 @@ public class sortFamInd {
     }
 
     if (numArgs > 1) {
-      System.out.println("Expecting 0-2 arguments: 1) filename (default: all 23 chromosome#.dat files).");
-      System.out.println("                         2) skip=0 (number of lines to skip at beginning of file (default: 2)");
+      System.out
+          .println("Expecting 0-2 arguments: 1) filename (default: all 23 chromosome#.dat files).");
+      System.out.println(
+          "                         2) skip=0 (number of lines to skip at beginning of file (default: 2)");
     } else {
       try {
         if (numArgs == 1) {

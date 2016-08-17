@@ -111,11 +111,10 @@ public class FilterVariantLists {
     String positions = ">200000000";
     boolean indelsOnly = true;
 
-    String usage =
-        "\n" + "seq.FilterVariantLists requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-                   + dir + " (default))\n" + "   (2) chrs (i.e. chrs=" + chrs + " (default))\n"
-                   + "   (3) positions (i.e. positions=" + positions + " (default))\n"
-                   + "   (4) keep indels only (i.e. --indeplsOnly (not the default))\n" + "";
+    String usage = "\n" + "seq.FilterVariantLists requires 0-1 arguments\n"
+        + "   (1) filename (i.e. file=" + dir + " (default))\n" + "   (2) chrs (i.e. chrs=" + chrs
+        + " (default))\n" + "   (3) positions (i.e. positions=" + positions + " (default))\n"
+        + "   (4) keep indels only (i.e. --indeplsOnly (not the default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -20,7 +20,7 @@ public class Zcall {
   public static final String[] AB_GENOTYPES = {"NC", "AA", "AB", "BB"};
 
   public static void createZcallInputFile(Project proj, boolean[] samplesToInclude,
-                                          String markersToInclude) {
+      String markersToInclude) {
     PrintWriter writer;
     String[] samples;
     float[] xs, ys;
@@ -57,8 +57,8 @@ public class Zcall {
     gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
 
     try {
-      writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-                                              + "GenomeStudioData.txt"));
+      writer = new PrintWriter(
+          new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "GenomeStudioData.txt"));
       writer.print(Array.toStr(BASIC_HEADER));
       for (int i = 0; i < samples.length; i++) {
         if (samplesToInclude[i]) {
@@ -86,7 +86,7 @@ public class Zcall {
         xs = markerData.getXs();
         ys = markerData.getYs();
         abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName,
-                                                            gcThreshold, log);
+            gcThreshold, log);
 
         writer.print(markerName + "\t" + markerData.getChr() + "\t" + markerData.getPosition());
 
@@ -102,14 +102,14 @@ public class Zcall {
       writer.close();
       log.report("Finished analyzing " + markerNames.length + " in " + ext.getTimeElapsed(time));
     } catch (Exception e) {
-      log.reportError("Error writing marker metrics to "
-                      + proj.MARKER_METRICS_FILENAME.getValue(false, false));
+      log.reportError(
+          "Error writing marker metrics to " + proj.MARKER_METRICS_FILENAME.getValue(false, false));
       log.reportException(e);
     }
   }
 
   public static void createZcallInputFile(Project proj, String filenameOfSamplesToInclude,
-                                          String markersToInclude) {
+      String markersToInclude) {
     HashSet<String> hash;
 
     boolean[] samplesToInclude;
@@ -136,12 +136,12 @@ public class Zcall {
     String markersSubset = null;
 
     String usage = "\n" + "cnv.analysis.Zcall requires 0-1 arguments\n"
-                   + "   (1) project properties filename (i.e. proj="
-                   + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-                   + "   (2) filename of subset of markers to include / otherwise all markers (i.e. markers="
-                   + markersSubset + " (default))\n"
-                   + "   (3) filename of subset of samples to include / otherwise all samples (i.e. samples="
-                   + samples + " (default))\n" + "";
+        + "   (1) project properties filename (i.e. proj="
+        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+        + "   (2) filename of subset of markers to include / otherwise all markers (i.e. markers="
+        + markersSubset + " (default))\n"
+        + "   (3) filename of subset of samples to include / otherwise all samples (i.e. samples="
+        + samples + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

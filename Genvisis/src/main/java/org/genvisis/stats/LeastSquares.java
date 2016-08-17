@@ -95,21 +95,20 @@ public class LeastSquares extends RegressionModel {
     }
   }
   public enum LS_TYPE {
-                       /**
-                        * The good ole regression that has been well tested
-                        */
-                       REGULAR,
-                       /**
-                        * Uses singular value decomposition to get the lin reg. <br>
-                        * Basically only faster than {@link LS_TYPE#REGULAR} due to QR decomposition
-                        * in EJML <br>
-                        * Extra baggage from full SVD though
-                        */
-                       SVD,
-                       /**
-                        * math.commons Implementation
-                        */
-                       QR_DECOMP;
+    /**
+     * The good ole regression that has been well tested
+     */
+    REGULAR,
+    /**
+     * Uses singular value decomposition to get the lin reg. <br>
+     * Basically only faster than {@link LS_TYPE#REGULAR} due to QR decomposition in EJML <br>
+     * Extra baggage from full SVD though
+     */
+    SVD,
+    /**
+     * math.commons Implementation
+     */
+    QR_DECOMP;
   }
 
   public static final double DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 10e-105;
@@ -145,38 +144,37 @@ public class LeastSquares extends RegressionModel {
   }
 
   public LeastSquares(double[] new_deps, double[][] new_indeps, boolean bypassDataCheck,
-                      boolean verbose) {
+      boolean verbose) {
     this(new LeastSquaresBuilder().deps(new_deps).indeps(new_indeps)
-                                  .bypassDataCheck(bypassDataCheck).verbose(verbose));
+        .bypassDataCheck(bypassDataCheck).verbose(verbose));
 
     // this(new_deps, new_indeps, null, bypassDataCheck, verbose);
   }
 
   public LeastSquares(double[] new_deps, double[][] new_indeps, boolean bypassDataCheck,
-                      boolean verbose, LS_TYPE lType) {
+      boolean verbose, LS_TYPE lType) {
     this(new LeastSquaresBuilder().deps(new_deps).indeps(new_indeps)
-                                  .bypassDataCheck(bypassDataCheck).verbose(verbose).lType(lType));
+        .bypassDataCheck(bypassDataCheck).verbose(verbose).lType(lType));
     // this(new_deps, new_indeps, null, bypassDataCheck, verbose, lType);
   }
 
   public LeastSquares(double[] new_deps, double[][] new_indeps, String[] indepVariableNames,
-                      boolean bypassDataCheck, boolean verbose) {
+      boolean bypassDataCheck, boolean verbose) {
     this(new LeastSquaresBuilder().deps(new_deps).indeps(new_indeps)
-                                  .indepVariableNames(indepVariableNames)
-                                  .bypassDataCheck(bypassDataCheck).verbose(verbose));
+        .indepVariableNames(indepVariableNames).bypassDataCheck(bypassDataCheck).verbose(verbose));
     // this(new_deps, new_indeps, null, bypassDataCheck, verbose, LS_TYPE.REGULAR);
   }
 
   public LeastSquares(double[] new_deps, double[][] new_indeps, String[] indepVariableNames,
-                      boolean bypassDataCheck, boolean verbose, LS_TYPE lType) {
+      boolean bypassDataCheck, boolean verbose, LS_TYPE lType) {
     this(new LeastSquaresBuilder().deps(new_deps).indeps(new_indeps)
-                                  .indepVariableNames(indepVariableNames)
-                                  .bypassDataCheck(bypassDataCheck).verbose(verbose).lType(lType));
+        .indepVariableNames(indepVariableNames).bypassDataCheck(bypassDataCheck).verbose(verbose)
+        .lType(lType));
   }
 
   public LeastSquares(int[] iDeps, int[][] iIndeps) {
     this(new LeastSquaresBuilder().deps(Array.toDoubleArray(iDeps))
-                                  .indeps(Matrix.toDoubleArrays(iIndeps)));
+        .indeps(Matrix.toDoubleArrays(iIndeps)));
   }
 
   private LeastSquares(LeastSquaresBuilder builder) {
@@ -191,7 +189,7 @@ public class LeastSquares extends RegressionModel {
 
     if (deps.length != indeps.length) {
       System.err.println("Error - mismatched number of records: " + deps.length
-                         + " dependent elements and " + indeps.length + " independent elements");
+          + " dependent elements and " + indeps.length + " independent elements");
       fail();
       return;
     }
@@ -245,13 +243,13 @@ public class LeastSquares extends RegressionModel {
 
   @SuppressWarnings({"rawtypes"})
   public LeastSquares(Vector<String> vDeps, Vector vIndeps, boolean bypassDataCheck,
-                      boolean verbose) {
+      boolean verbose) {
     this(processDeps(vDeps), processIndeps(vIndeps), bypassDataCheck, verbose);
   }
 
   @SuppressWarnings({"rawtypes"})
   public LeastSquares(Vector<String> vDeps, Vector vIndeps, boolean bypassDataCheck,
-                      boolean verbose, LS_TYPE lType) {
+      boolean verbose, LS_TYPE lType) {
     this(processDeps(vDeps), processIndeps(vIndeps), bypassDataCheck, verbose, lType);
   }
 
@@ -299,7 +297,8 @@ public class LeastSquares extends RegressionModel {
     N = deps.length;
     if (N == 0) {
       if (verbose) {
-        System.err.println("Error - cannot perform a least squares regression with zero indivudals!!");
+        System.err
+            .println("Error - cannot perform a least squares regression with zero indivudals!!");
       }
       fail();
       return;
@@ -393,8 +392,8 @@ public class LeastSquares extends RegressionModel {
         // System.out.println(stats[i] + "\t" + (N - M - 1) + "\t" + sigs[i] + "\t" + ();
         if (sigs[i] < 0) {
           if (sigs[i] < -1E-10) {
-            System.out.println("Negative p-value: " + stats[i] + "\t" + (N - M - 1) + "\t"
-                               + sigs[i]);
+            System.out
+                .println("Negative p-value: " + stats[i] + "\t" + (N - M - 1) + "\t" + sigs[i]);
           }
           sigs[i] = 0;
         }
@@ -543,8 +542,7 @@ public class LeastSquares extends RegressionModel {
       str += "" + eol;
     } else {
       str += "n=" + N + " Fstat = " + ext.formDeci(overall, 3) + ", Sig. "
-             + ext.formDeci(overallSig, 3, true) + " and R2= " + ext.formDeci(Rsquare, 4) + ""
-             + eol;
+          + ext.formDeci(overallSig, 3, true) + " and R2= " + ext.formDeci(Rsquare, 4) + "" + eol;
       str += "" + eol;
     }
     str += "Coefficients:" + eol;
@@ -594,14 +592,13 @@ public class LeastSquares extends RegressionModel {
     eol = Files.isWindows() ? "\r\n" : "\n";
     for (int i = 0; i < betas.length; i++) {
       str += ext.formStr(varNames[i], maxNameSize, true) + "\t"
-             + ext.formStr(ext.formDeci(betas[i], sigfigs, true), 7) + "\t"
-             + ext.formStr(ext.formDeci(SEofBs[i], sigfigs, true), 7) + "\t"
-             + ext.formStr((stats[i] > 100 ? ext.formSciNot(stats[i], 1, true)
-                                           : ext.formDeci(stats[i], sigfigs, true)),
-                           7)
-             + "\t" + ext.formStr(ext.formDeci(sigs[i], sigfigs, true), 7) + "\t"
-             + ext.prettyP(sigs[i]) + "\t=TDIST(" + Math.abs(stats[i]) + ","
-             + ((onePer ? Array.unique(famIDs).length : N) - 2) + ",2)" + eol;
+          + ext.formStr(ext.formDeci(betas[i], sigfigs, true), 7) + "\t"
+          + ext.formStr(ext.formDeci(SEofBs[i], sigfigs, true), 7) + "\t"
+          + ext.formStr((stats[i] > 100 ? ext.formSciNot(stats[i], 1, true)
+              : ext.formDeci(stats[i], sigfigs, true)), 7)
+          + "\t" + ext.formStr(ext.formDeci(sigs[i], sigfigs, true), 7) + "\t"
+          + ext.prettyP(sigs[i]) + "\t=TDIST(" + Math.abs(stats[i]) + ","
+          + ((onePer ? Array.unique(famIDs).length : N) - 2) + ",2)" + eol;
     }
 
     return str;

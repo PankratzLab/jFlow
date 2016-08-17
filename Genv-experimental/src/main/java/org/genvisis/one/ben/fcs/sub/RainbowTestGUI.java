@@ -208,7 +208,7 @@ public class RainbowTestGUI extends JFrame {
     };
     meanCtrlPanel.setChangeListener(prevLst);
     meanFrame.setBounds(FCSPlot.START_X, FCSPlot.START_Y, FCSPlot.START_WIDTH,
-                        FCSPlot.START_HEIGHT);
+        FCSPlot.START_HEIGHT);
     // meanPanel.setPlotType(OneDPanel.PLOT_TYPE.BOX_PLOT);
     meanPanel.setPlotType(OneDPanel.PLOT_TYPE.DOT_LINE_PLOT);
     meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 5);
@@ -248,8 +248,8 @@ public class RainbowTestGUI extends JFrame {
     contentPane = new JPanel();
     contentPane.setBorder(null);
     setContentPane(contentPane);
-    contentPane.setLayout(new MigLayout("ins 7 7 3 7,hidemode 3", "[][grow][]",
-                                        "[][][][grow][][]"));
+    contentPane
+        .setLayout(new MigLayout("ins 7 7 3 7,hidemode 3", "[][grow][]", "[][][][grow][][]"));
 
     JLabel lblFileDir = new JLabel("<html><u>B</u>aseline FCS Dir:</html>");
     contentPane.add(lblFileDir, "cell 0 0,alignx trailing");
@@ -396,7 +396,7 @@ public class RainbowTestGUI extends JFrame {
         Color col = Color.WHITE;
         if (column > 0 && !statRows.contains(row)) {
           Object val = table.getModel().getValueAt(table.convertRowIndexToModel(row),
-                                                   table.convertColumnIndexToModel(column));
+              table.convertColumnIndexToModel(column));
           if (val != null) {
             if (val instanceof Float) {
               String colNm =
@@ -755,8 +755,7 @@ public class RainbowTestGUI extends JFrame {
           if (gateStrat != null && rdbtnGated.isSelected()) {
             ArrayList<Gate> gates = gateStrat.getGatesForParamOnly(paramNames[i]);
             System.out.println("Applying " + gates.size()
-                               + " gates (not including parent-gates) to parameter "
-                               + paramNames[i]);
+                + " gates (not including parent-gates) to parameter " + paramNames[i]);
             for (Gate g : gates) {
               if (gating == null) {
                 gating = g.gate(loader);
@@ -908,7 +907,7 @@ public class RainbowTestGUI extends JFrame {
       }
       all15TrendsForParam.add(any15);
       trendMap.put(param,
-                   new ArrayList[] {all1TrendsForParam, all2TrendsForParam, all15TrendsForParam});
+          new ArrayList[] {all1TrendsForParam, all2TrendsForParam, all15TrendsForParam});
     }
 
     ArrayList<String> trendWarnings = new ArrayList<String>();
@@ -922,7 +921,7 @@ public class RainbowTestGUI extends JFrame {
           }
           String[] p = entry.getKey().split("\\|")[0].trim().split("/");
           String warn = trend.size() + "-count trend in parameter " + p[p.length - 1]
-                        + " greater than 1SD from the mean.";
+              + " greater than 1SD from the mean.";
           trendWarnings.add(warn);
         }
         for (ArrayList<String> trend : entry.getValue()[1]) {
@@ -931,7 +930,7 @@ public class RainbowTestGUI extends JFrame {
           }
           String[] p = entry.getKey().split("\\|")[0].trim().split("/");
           String warn = trend.size() + "-count trend in parameter " + p[p.length - 1]
-                        + " greater than 2SD from the mean.";
+              + " greater than 2SD from the mean.";
           trendWarnings.add(warn);
         }
         for (ArrayList<String> trend : entry.getValue()[2]) {
@@ -941,7 +940,7 @@ public class RainbowTestGUI extends JFrame {
           String[] p = entry.getKey().split("\\|")[0].trim().split("/");
           for (String s : trend) {
             String warn = "Source " + s + " has a deviant (>15% of mean) value for parameter "
-                          + p[p.length - 1];
+                + p[p.length - 1];
             trendWarnings.add(warn);
           }
         }
@@ -989,7 +988,7 @@ public class RainbowTestGUI extends JFrame {
             }
           });
           JOptionPane.showMessageDialog(RainbowTestGUI.this, scroll, "Trend Warnings",
-                                        JOptionPane.WARNING_MESSAGE);
+              JOptionPane.WARNING_MESSAGE);
         }
       });
       btnWarning.setIcon(UIManager.getIcon("OptionPane.warningIcon"));
@@ -1014,8 +1013,8 @@ public class RainbowTestGUI extends JFrame {
       }
 
       if (cnt >= params.length * PCT_OF_EVENTS_DEV_TREND) {
-        warnings.add("Source " + f + " has " + cnt
-                     + " events greater than 1SD from parameter means.");
+        warnings
+            .add("Source " + f + " has " + cnt + " events greater than 1SD from parameter means.");
       }
 
     }
@@ -1503,7 +1502,7 @@ public class RainbowTestGUI extends JFrame {
     meanCtrlPanel.setColumns(cols, ind - 1);
 
     meanPanel.setData(col, new String[][] {baseLbls, compLbls},
-                      new double[][] {yDataBase, yDataComp});
+        new double[][] {yDataBase, yDataComp});
     meanPanel.setYAxisLabel("Mean - " + col);
     meanPanel.paintAgain();
     meanFrame.setTitle("Genvisis - FCS Overall Mean/SD - " + col);

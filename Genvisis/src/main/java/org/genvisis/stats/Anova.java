@@ -13,7 +13,8 @@ public class Anova {
   public static void main(String[] args) throws IOException {
     Anova a = null;
     if (args.length != 1) {
-      System.out.println("Expecting 1 argument: filename with 2 columns - dependent variable independent variable.");
+      System.out.println(
+          "Expecting 1 argument: filename with 2 columns - dependent variable independent variable.");
     }
     try {
       a = new Anova(args[0]);
@@ -241,20 +242,20 @@ public class Anova {
       list += "SSb = " + ext.formDeci(SSb, 2, true) + "\n";
       list += "SSw = " + ext.formDeci(SSw, 2, true) + "\n";
       list += "f = " + ext.formDeci(Fstat, 5, true) + " with " + dfN + " df in numerator, " + dfD
-              + " df in denominator\n";
+          + " df in denominator\n";
       list += "p-value = " + ProbDist.FDist(Fstat, dfN, dfD) + "\n";
       list += "The LSD minimum mean difference for alpha = 0.05 is " + ext.formDeci(LSD05, 5, true)
-              + "\n";
+          + "\n";
       list += "The LSD minimum mean difference for alpha = 0.01 is " + ext.formDeci(LSD01, 5, true)
-              + "\n";
+          + "\n";
       list += "The HSD minimum mean difference for alpha = 0.05 is " + ext.formDeci(HSD05, 5, true)
-              + "\n";
+          + "\n";
       for (int i = 0; i < data.length; i++) {
         for (int j = i + 1; j < data.length; j++) {
           list += "Mean diff b/w " + groupNames.elementAt(i) + " & " + groupNames.elementAt(j)
-                  + " = " + ext.formDeci(groupMeans[i] - groupMeans[j], 2, true)
-                  + ((Math.abs(groupMeans[i] - groupMeans[j]) > LSD05) ? "*" : "")
-                  + ((Math.abs(groupMeans[i] - groupMeans[j]) > LSD01) ? "*" : "") + "\n";
+              + " = " + ext.formDeci(groupMeans[i] - groupMeans[j], 2, true)
+              + ((Math.abs(groupMeans[i] - groupMeans[j]) > LSD05) ? "*" : "")
+              + ((Math.abs(groupMeans[i] - groupMeans[j]) > LSD01) ? "*" : "") + "\n";
         }
       }
 
