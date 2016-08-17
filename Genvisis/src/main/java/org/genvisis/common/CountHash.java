@@ -112,7 +112,7 @@ public class CountHash {
       hash.remove(value);
     } else if (reportIfAbsent) {
       System.err.println("Error - '" + value
-          + "' was not seen in this instance of CountHash and therefore could not be removed");
+                         + "' was not seen in this instance of CountHash and therefore could not be removed");
     }
   }
 

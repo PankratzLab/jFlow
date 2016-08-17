@@ -28,7 +28,8 @@ public class AnnotationCollection implements Serializable, TextExport {
   private static final long serialVersionUID = 1L;
 
   public static void appendFromLists(String filename,
-      AnnotationCollection currentAnnotationCollection, String[] markerNamesProj, Logger log) {
+                                     AnnotationCollection currentAnnotationCollection,
+                                     String[] markerNamesProj, Logger log) {
     BufferedReader reader;
     String[] line;
     char key;
@@ -40,7 +41,7 @@ public class AnnotationCollection implements Serializable, TextExport {
     keys = currentAnnotationCollection.getKeys();
     for (char key2 : keys) {
       annotationKeys.put(currentAnnotationCollection.getDescriptionForComment(key2, false, false),
-          key2);
+                         key2);
     }
     try {
       reader = new BufferedReader(new FileReader(filename));
@@ -57,8 +58,8 @@ public class AnnotationCollection implements Serializable, TextExport {
         }
         if (markerNamesProj != null && !found) {
           log.reportError("Skipped importing annotations for marker " + line[0]
-              + ", which is found in the annotation file " + filename
-              + ", but not in the marker name list of the project.");
+                          + ", which is found in the annotation file " + filename
+                          + ", but not in the marker name list of the project.");
         } else {
           for (int i = 1; i < line.length; i++) {
             if (annotationKeys.containsKey(line[i])) {
@@ -67,13 +68,13 @@ public class AnnotationCollection implements Serializable, TextExport {
               key = assignKey(line[i], currentAnnotationCollection);
               if (key == 0) {
                 if (log == null) {
-                  System.out.println(
-                      "cannot automatically assign a shortcut to the annotation key '" + line[i]
-                          + "'. Skipped importing this annotation for marker " + line[0] + ".");
+                  System.out.println("cannot automatically assign a shortcut to the annotation key '"
+                                     + line[i] + "'. Skipped importing this annotation for marker "
+                                     + line[0] + ".");
                 } else {
-                  log.reportError(
-                      "cannot automatically assign a shortcut to the annotation key '" + line[i]
-                          + "'. Skipped importing this annotation for marker " + line[0] + ".");
+                  log.reportError("cannot automatically assign a shortcut to the annotation key '"
+                                  + line[i] + "'. Skipped importing this annotation for marker "
+                                  + line[0] + ".");
                 }
               } else {
                 annotationKeys.put(line[i], key);
@@ -139,15 +140,16 @@ public class AnnotationCollection implements Serializable, TextExport {
     String recoverDir = null;
 
     String usage = "\n" + "cnv.filesys.AnnotationCollection requires 0-1 arguments\n"
-        + "   (1) project properties filename (i.e. proj="
-        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" + "  AND\n"
-        + "   (2) list annotations (i.e. exportList=" + exportList + " (default))\n" + "  OR\n"
-        + "   (2) rename annotations (i.e. importList=importNewList.txt (not the default))\n"
-        + "  OR\n"
-        + "   (2) dump lists for the project's AnnotationCollection (i.e. -dump (not the default))\n"
-        + "  OR\n"
-        + "   (1) recover temp annotations from a directory (i.e. recover=C:/data/recover/ (not the default))\n"
-        + "";
+                   + "   (1) project properties filename (i.e. proj="
+                   + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+                   + "  AND\n" + "   (2) list annotations (i.e. exportList=" + exportList
+                   + " (default))\n" + "  OR\n"
+                   + "   (2) rename annotations (i.e. importList=importNewList.txt (not the default))\n"
+                   + "  OR\n"
+                   + "   (2) dump lists for the project's AnnotationCollection (i.e. -dump (not the default))\n"
+                   + "  OR\n"
+                   + "   (1) recover temp annotations from a directory (i.e. recover=C:/data/recover/ (not the default))\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -272,12 +274,12 @@ public class AnnotationCollection implements Serializable, TextExport {
 
     keysAnnotations = HashVec.getKeys(annotationMarkerLists);
     for (String keysAnnotation : keysAnnotations) {
-      Files
-          .writeList(Array.toStringArray(annotationMarkerLists.get(keysAnnotation)),
-              outputDir + "annotation_" + keysAnnotation + "_"
-                  + ext.replaceWithLinuxSafeCharacters(
-                      getDescriptionForComment(keysAnnotation.charAt(0), false, false), true)
-                  + ".xln");
+      Files.writeList(Array.toStringArray(annotationMarkerLists.get(keysAnnotation)),
+                      outputDir + "annotation_" + keysAnnotation + "_" + ext.replaceWithLinuxSafeCharacters(getDescriptionForComment(keysAnnotation.charAt(0),
+                                                                                                                                     false,
+                                                                                                                                     false),
+                                                                                                            true)
+                                                                                      + ".xln");
     }
 
     list = new String[markerAnnotations.size()];
@@ -325,8 +327,13 @@ public class AnnotationCollection implements Serializable, TextExport {
 
 
   public String getDescriptionForComment(char c, boolean includeShortcuts, boolean includeNumbers) {
-    return (includeShortcuts ? "'" + c + "' " : "") + commentsHash.get(c)
-        + (includeNumbers ? " (n=" + annotationMarkerLists.get(c + "").size() + ")" : "");
+    return (includeShortcuts ? "'" + c + "' " : "") + commentsHash.get(c) + (includeNumbers
+                                                                                            ? " (n="
+                                                                                              + annotationMarkerLists.get(c
+                                                                                                                          + "")
+                                                                                                                     .size()
+                                                                                              + ")"
+                                                                                            : "");
   }
 
 
@@ -376,14 +383,15 @@ public class AnnotationCollection implements Serializable, TextExport {
 
     keys = getKeys();
     newMappings = HashVec.loadFileToStringMatrix(importList, false, new int[] {0, 1},
-        Files.determineDelimiter(importList, log), false, keys.length, false);
+                                                 Files.determineDelimiter(importList, log), false,
+                                                 keys.length, false);
 
     for (String[] newMapping : newMappings) {
       if (commentsHash.containsKey(newMapping[0].charAt(0))) {
         renameAnnotation(newMapping[0].charAt(0), newMapping[1]);
       } else {
         log.reportError("Warning - could not find an annotation using the shortcut character '"
-            + newMapping[0] + "'; ignoring");
+                        + newMapping[0] + "'; ignoring");
       }
     }
     log.report("Finished importing annotation list from " + importList);
@@ -406,13 +414,15 @@ public class AnnotationCollection implements Serializable, TextExport {
     Vector<String> markers;
 
     response = JOptionPane.showConfirmDialog(null,
-        "This will remove the annotation '" + commentsHash.get(c) + "' from all markers (n="
-            + annotationMarkerLists.get(c + "").size() + ") from the annotation database",
-        "Warning", JOptionPane.ERROR_MESSAGE);
+                                             "This will remove the annotation '"
+                                                   + commentsHash.get(c) + "' from all markers (n="
+                                                   + annotationMarkerLists.get(c + "").size()
+                                                   + ") from the annotation database",
+                                             "Warning", JOptionPane.ERROR_MESSAGE);
     if (response == 0) {
       serialize(proj.BACKUP_DIRECTORY.getValue(true, true) + "annotationsBeforeRemoving_"
-          + ext.replaceWithLinuxSafeCharacters(commentsHash.get(c), true) + ".ser."
-          + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
+                + ext.replaceWithLinuxSafeCharacters(commentsHash.get(c), true) + ".ser."
+                + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
       commentsHash.remove(c);
       markers = annotationMarkerLists.get(c + "");
       for (int i = 0; markers != null && i < markers.size(); i++) {
@@ -432,15 +442,15 @@ public class AnnotationCollection implements Serializable, TextExport {
         markerAnnotations.get(markerName).remove(c + "");
         annotationMarkerLists.get(c + "").remove(markerName);
       } else {
-        System.err.println(
-            "Error - cannot remove " + c + " from " + markerName + " if it's not already checked");
+        System.err.println("Error - cannot remove " + c + " from " + markerName
+                           + " if it's not already checked");
       }
       if (markerAnnotations.get(markerName).size() == 0) {
         markerAnnotations.remove(markerName);
       }
     } else {
       System.err.println("Error - cannot remove " + c + " from " + markerName
-          + " if the marker does not have any annotation");
+                         + " if the marker does not have any annotation");
     }
   }
 

@@ -25,52 +25,52 @@ import htsjdk.variant.variantcontext.VariantContextUtils;
 
 public class FilterNGS implements Serializable {
   public enum FILTER_GENERATION_TYPE {
-    /**
-     * Generate filter for HQ denovos
-     */
-    HQ_DNM,
-    /**
-     * Generate filter for extraHQ denovos
-     */
-    EHQ_DNM,
-    /**
-     * Generate tumor normal filter
-     */
-    TN;
+                                      /**
+                                       * Generate filter for HQ denovos
+                                       */
+                                      HQ_DNM,
+                                      /**
+                                       * Generate filter for extraHQ denovos
+                                       */
+                                      EHQ_DNM,
+                                      /**
+                                       * Generate tumor normal filter
+                                       */
+                                      TN;
   }
   public enum FILTER_TYPE {
-    /**
-     * Will always pass filter
-     */
-    NO_FILTER,
-    /**
-     * Check if greater than
-     */
-    GT_FILTER,
-    /**
-     * Check if less than
-     */
-    LT_FILTER,
-    /**
-     * Check if greater than or equal to
-     */
-    GTE_FILTER,
-    /**
-     * Check if less than or equal to
-     */
-    LTE_FILTER,
-    /**
-     * Check if equal to
-     */
-    ET_FILTER,
-    /**
-     * Check if true
-     */
-    TRUE_BOOL,
-    /**
-     * Check if false
-     */
-    FALSE_BOOL,
+                           /**
+                            * Will always pass filter
+                            */
+                           NO_FILTER,
+                           /**
+                            * Check if greater than
+                            */
+                           GT_FILTER,
+                           /**
+                            * Check if less than
+                            */
+                           LT_FILTER,
+                           /**
+                            * Check if greater than or equal to
+                            */
+                           GTE_FILTER,
+                           /**
+                            * Check if less than or equal to
+                            */
+                           LTE_FILTER,
+                           /**
+                            * Check if equal to
+                            */
+                           ET_FILTER,
+                           /**
+                            * Check if true
+                            */
+                           TRUE_BOOL,
+                           /**
+                            * Check if false
+                            */
+                           FALSE_BOOL,
 
     ;
   }
@@ -143,7 +143,7 @@ public class FilterNGS implements Serializable {
 
   }
   public enum SAM_FILTER_TYPE {
-    GENOTYPE, COPY_NUMBER;
+                               GENOTYPE, COPY_NUMBER;
   }
   public abstract class SamRecordExtFilter implements SamRecordFilter {
     protected double doubleFilter;
@@ -154,35 +154,38 @@ public class FilterNGS implements Serializable {
     }
   }
   public enum VARIANT_FILTER_BOOLEAN {
-    /**
-     * will pass if the variant is biallelic
-     */
-    BIALLELIC_FILTER(FILTER_TYPE.TRUE_BOOL),
-    /**
-     * Will pass if the variant is un-ambiguous
-     */
-    AMBIGUOUS_FILTER(FILTER_TYPE.FALSE_BOOL),
-    /**
-     * Is true when the variant has not been filtered out previously
-     */
-    FAILURE_FILTER(FILTER_TYPE.TRUE_BOOL),
-    /**
-     * Is true when the jexl formatted expression is evaluated
-     */
-    JEXL(FILTER_TYPE.TRUE_BOOL),
-    /**
-     * When a genotype has a custom annotation denoting a mutect failure
-     */
-    MUTECT_FAIL_FILTER(FILTER_TYPE.TRUE_BOOL),
+                                      /**
+                                       * will pass if the variant is biallelic
+                                       */
+                                      BIALLELIC_FILTER(FILTER_TYPE.TRUE_BOOL),
+                                      /**
+                                       * Will pass if the variant is un-ambiguous
+                                       */
+                                      AMBIGUOUS_FILTER(FILTER_TYPE.FALSE_BOOL),
+                                      /**
+                                       * Is true when the variant has not been filtered out
+                                       * previously
+                                       */
+                                      FAILURE_FILTER(FILTER_TYPE.TRUE_BOOL),
+                                      /**
+                                       * Is true when the jexl formatted expression is evaluated
+                                       */
+                                      JEXL(FILTER_TYPE.TRUE_BOOL),
+                                      /**
+                                       * When a genotype has a custom annotation denoting a mutect
+                                       * failure
+                                       */
+                                      MUTECT_FAIL_FILTER(FILTER_TYPE.TRUE_BOOL),
 
-    /**
-     * Relies on custom annotation, for high quality DNMs
-     */
-    DENOVO_HQ_FILTER(FILTER_TYPE.TRUE_BOOL),
-    /**
-     * Relies on custom annotation, for extra high quality DNMs...whatever that means
-     */
-    DENOVO_EHQ_FILTER(FILTER_TYPE.TRUE_BOOL);
+                                      /**
+                                       * Relies on custom annotation, for high quality DNMs
+                                       */
+                                      DENOVO_HQ_FILTER(FILTER_TYPE.TRUE_BOOL),
+                                      /**
+                                       * Relies on custom annotation, for extra high quality
+                                       * DNMs...whatever that means
+                                       */
+                                      DENOVO_EHQ_FILTER(FILTER_TYPE.TRUE_BOOL);
     ;
 
     private FILTER_TYPE type;
@@ -203,98 +206,102 @@ public class FilterNGS implements Serializable {
 
   public enum VARIANT_FILTER_DOUBLE {
 
-    MAC(2.0, FILTER_TYPE.GTE_FILTER),
+                                     MAC(2.0, FILTER_TYPE.GTE_FILTER),
 
-    /**
-     * Average GQ across a variant
-     */
-    GQ_STRICT(90, FILTER_TYPE.GTE_FILTER),
-    /**
-     * Average GQ across a variant
-     */
-    GQ(50, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * Average GQ across a variant
+                                      */
+                                     GQ_STRICT(90, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * Average GQ across a variant
+                                      */
+                                     GQ(50, FILTER_TYPE.GTE_FILTER),
 
-    /**
-     * Average Depth across a variant
-     */
-    DP(10, FILTER_TYPE.GTE_FILTER),
-    /**
-     * Use for minor allele frequency filtering, maf must be greater
-     */
-    MAF(0.05, FILTER_TYPE.GTE_FILTER),
-    /**
-     * Hardy wienberg filtering
-     */
-    HWE(0.0001, FILTER_TYPE.GTE_FILTER),
-    /**
-     * Call rate Filtering
-     */
-    CALL_RATE(0.95, FILTER_TYPE.GTE_FILTER),
-    /**
-     * Call rate Filtering
-     */
-    CALL_RATE_LOOSE(0.90, FILTER_TYPE.GTE_FILTER),
-    /**
-     * Used for strict filtering on VQSLOD score of variant
-     */
-    VQSLOD_STRICT(3.0, FILTER_TYPE.GTE_FILTER),
-    /**
-     * Used for loose filtering on VQSLOD score of variant
-     */
-    VQSLOD_LOOSE(1.0, FILTER_TYPE.GTE_FILTER),
-    /**
-     * Used for filtering by the lower bound for average allelic ratio across alternate calls
-     */
-    HET_ALLELE_RATIO_LOW(.25, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * Average Depth across a variant
+                                      */
+                                     DP(10, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * Use for minor allele frequency filtering, maf must be
+                                      * greater
+                                      */
+                                     MAF(0.05, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * Hardy wienberg filtering
+                                      */
+                                     HWE(0.0001, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * Call rate Filtering
+                                      */
+                                     CALL_RATE(0.95, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * Call rate Filtering
+                                      */
+                                     CALL_RATE_LOOSE(0.90, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * Used for strict filtering on VQSLOD score of variant
+                                      */
+                                     VQSLOD_STRICT(3.0, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * Used for loose filtering on VQSLOD score of variant
+                                      */
+                                     VQSLOD_LOOSE(1.0, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * Used for filtering by the lower bound for average allelic
+                                      * ratio across alternate calls
+                                      */
+                                     HET_ALLELE_RATIO_LOW(.25, FILTER_TYPE.GTE_FILTER),
 
-    /**
-     * Used for filtering by the lower bound for average allelic ratio across alternate calls
-     */
-    HET_ALLELE_RATIO_HIGH(.75, FILTER_TYPE.LTE_FILTER),
+                                     /**
+                                      * Used for filtering by the lower bound for average allelic
+                                      * ratio across alternate calls
+                                      */
+                                     HET_ALLELE_RATIO_HIGH(.75, FILTER_TYPE.LTE_FILTER),
 
-    /**
-     * Filters by the alternate allele depth
-     */
-    ALT_ALLELE_DEPTH(5, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * Filters by the alternate allele depth
+                                      */
+                                     ALT_ALLELE_DEPTH(5, FILTER_TYPE.GTE_FILTER),
 
-    /**
-     * Specific filters for tumor normal comparisons
-     */
-    /**
-     * Total depth for the tumor
-     */
-    AD_TUMOR(10, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * Specific filters for tumor normal comparisons
+                                      */
+                                     /**
+                                      * Total depth for the tumor
+                                      */
+                                     AD_TUMOR(10, FILTER_TYPE.GTE_FILTER),
 
-    /**
-     * Total depth for the normal
-     */
-    AD_NORMAL(10, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * Total depth for the normal
+                                      */
+                                     AD_NORMAL(10, FILTER_TYPE.GTE_FILTER),
 
-    /**
-     * Alt allele depth for tumor
-     */
-    ALT_AD_TUMOR(4, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * Alt allele depth for tumor
+                                      */
+                                     ALT_AD_TUMOR(4, FILTER_TYPE.GTE_FILTER),
 
-    /**
-     * Alt allele depth for normal
-     */
-    ALT_AD_NORMAL(0, FILTER_TYPE.LTE_FILTER),
+                                     /**
+                                      * Alt allele depth for normal
+                                      */
+                                     ALT_AD_NORMAL(0, FILTER_TYPE.LTE_FILTER),
 
-    /**
-     * Allelic fraction for the tumor
-     */
-    AF_TUMOR(0.2, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * Allelic fraction for the tumor
+                                      */
+                                     AF_TUMOR(0.2, FILTER_TYPE.GTE_FILTER),
 
-    /**
-     * https://www.broadinstitute.org/cancer/cga/mutect for description of why 6.3 and 2.3
-     * 
-     */
-    /**
-     * Set so errors are half the somatic mutation rate
-     */
-    TLOD(6.3, FILTER_TYPE.GTE_FILTER),
+                                     /**
+                                      * https://www.broadinstitute.org/cancer/cga/mutect for
+                                      * description of why 6.3 and 2.3
+                                      * 
+                                      */
+                                     /**
+                                      * Set so errors are half the somatic mutation rate
+                                      */
+                                     TLOD(6.3, FILTER_TYPE.GTE_FILTER),
 
-    NLOD(2.3, FILTER_TYPE.GTE_FILTER)
+                                     NLOD(2.3, FILTER_TYPE.GTE_FILTER)
 
     ;
 
@@ -349,11 +356,11 @@ public class FilterNGS implements Serializable {
     public static class VariantContextFilterBuilder {
       private VcFilterDouble[] vDoubles = new VcFilterDouble[] {};
       private VcFilterBoolean[] vBooleans = new VcFilterBoolean[] {};
-      private VcFilterJEXL vFilterJEXL = new FilterNGS().getJEXLFilter(VARIANT_FILTER_BOOLEAN.JEXL,
-          new String[] {}, new String[] {}, new Logger());
+      private VcFilterJEXL vFilterJEXL =
+          new FilterNGS().getJEXLFilter(VARIANT_FILTER_BOOLEAN.JEXL, new String[] {},
+                                        new String[] {}, new Logger());
 
-      public VariantContextFilterBuilder altAlleleDepthRatioFilter(
-          double[] altAlleleDepthRatioFilter) {
+      public VariantContextFilterBuilder altAlleleDepthRatioFilter(double[] altAlleleDepthRatioFilter) {
         return this;
       }
 
@@ -398,13 +405,13 @@ public class FilterNGS implements Serializable {
     private final Logger log;
 
     public VariantContextFilter(VARIANT_FILTER_DOUBLE[] dFilters, VARIANT_FILTER_BOOLEAN[] bFilters,
-        String[] jexlNames, String[] jexlExpression, Logger log) {
+                                String[] jexlNames, String[] jexlExpression, Logger log) {
       this.log = log;
       vDoubles = new FilterNGS().getDoubleFilters(dFilters, log);
       vBooleans = new FilterNGS().getBooleanFilters(bFilters, log);
       if (jexlExpression != null) {
         vFilterJEXL = new FilterNGS().getJEXLFilter(VARIANT_FILTER_BOOLEAN.JEXL, jexlNames,
-            jexlExpression, log);
+                                                    jexlExpression, log);
       } else {
         vFilterJEXL = null;
       }
@@ -581,7 +588,7 @@ public class FilterNGS implements Serializable {
       double value = getValue(vc);
       // " Value :" + value + (vc.getSampleNames().size() == 1 ? vc.getGenotype(0).toString() : ""
       String testPerformed = "Type: " + dfilter + " Directon: " + type + " Threshold: "
-          + filterThreshold + " Value :" + value;
+                             + filterThreshold + " Value :" + value;
       boolean passes = false;
       switch (type) {
         case ET_FILTER:
@@ -667,7 +674,7 @@ public class FilterNGS implements Serializable {
     // private List<VariantContextUtils.JexlVCMatchExp> jExps;
 
     public VcFilterJEXL(VARIANT_FILTER_BOOLEAN bfilter, String[] names, String[] expressions,
-        Logger log) {
+                        Logger log) {
       super(bfilter);
       this.names = names;
       this.expressions = expressions;
@@ -728,7 +735,7 @@ public class FilterNGS implements Serializable {
    * @return
    */
   public static VariantContextFilter generateFilter(FILTER_GENERATION_TYPE type, double maf,
-      boolean failure, Logger log) {
+                                                    boolean failure, Logger log) {
     switch (type) {
       case EHQ_DNM:
         return getDNFFilter(VARIANT_FILTER_BOOLEAN.DENOVO_EHQ_FILTER, maf, failure, log);
@@ -765,7 +772,7 @@ public class FilterNGS implements Serializable {
   // }
 
   private static VariantContextFilter getDNFFilter(VARIANT_FILTER_BOOLEAN dnm, double maf,
-      boolean failure, Logger log) {
+                                                   boolean failure, Logger log) {
     VariantContextFilterBuilder buildertmp = new VariantContextFilterBuilder();
     buildertmp.vBooleans(new VARIANT_FILTER_BOOLEAN[] {dnm}, log);
     VariantContextFilter tmp = buildertmp.build(log);
@@ -779,7 +786,7 @@ public class FilterNGS implements Serializable {
   public static String getPopFreqFilterString(double maf) {
     String freq =
         ESP_FILTER + maf + ")" + AND + G10002014_FILTER + maf + ")" + AND + G10002015_FILTER + maf
-            + ")" + AND + ESPV2_FILTER + maf + ")" + AND + POPFREQ_MAXFILTER + maf + ")";
+                  + ")" + AND + ESPV2_FILTER + maf + ")" + AND + POPFREQ_MAXFILTER + maf + ")";
     return freq;
   }
 
@@ -797,7 +804,7 @@ public class FilterNGS implements Serializable {
    * @return
    */
   private static VariantContextFilter getTumorNormalFilter(double maf, boolean failure,
-      Logger log) {
+                                                           Logger log) {
 
     VARIANT_FILTER_DOUBLE dpMut = VARIANT_FILTER_DOUBLE.AD_TUMOR;
     dpMut.setDFilter(10);
@@ -834,14 +841,15 @@ public class FilterNGS implements Serializable {
     }
 
     VariantContextFilter vContextFilter = new VariantContextFilter(qualFilts,
-        failure ? new VARIANT_FILTER_BOOLEAN[] {fail} : new VARIANT_FILTER_BOOLEAN[] {}, jexl, jexp,
-        log);
+                                                                   failure ? new VARIANT_FILTER_BOOLEAN[] {fail}
+                                                                           : new VARIANT_FILTER_BOOLEAN[] {},
+                                                                   jexl, jexp, log);
     return vContextFilter;
 
   }
 
   public static AggregateFilter initializeFilters(FilterNGS filterNGS, SAM_FILTER_TYPE filterType,
-      Logger log) {
+                                                  Logger log) {
     if (filterNGS == null) {
       filterNGS = new FilterNGS();
     }
@@ -894,8 +902,7 @@ public class FilterNGS implements Serializable {
       @Override
       public Double getValue(VariantContext vc) {
         if (vc.getSampleNames().size() > 1) {
-          throw new IllegalArgumentException(
-              "Alt allele depth filter can only be applied on single sample variant contexts");
+          throw new IllegalArgumentException("Alt allele depth filter can only be applied on single sample variant contexts");
         } else {
           double apad = 0;
           try {
@@ -966,7 +973,7 @@ public class FilterNGS implements Serializable {
   }
 
   private VcFilterDouble getAvgALT_AD_NORMALFilter(VARIANT_FILTER_DOUBLE dfilter,
-      final Logger log) {
+                                                   final Logger log) {
     return new VcFilterDouble(dfilter) {
       /**
        * 
@@ -1112,7 +1119,7 @@ public class FilterNGS implements Serializable {
   }
 
   private VcFilterBoolean getDNMFilter(VARIANT_FILTER_BOOLEAN bfilter,
-      final GENOTYPE_FLAG_INFO info, final Logger log) {
+                                       final GENOTYPE_FLAG_INFO info, final Logger log) {
     return new VcFilterBoolean(bfilter) {
       /**
        * 
@@ -1122,8 +1129,7 @@ public class FilterNGS implements Serializable {
       @Override
       public Boolean getValue(VariantContext vc) {
         if (vc.getGenotypes().size() != 1) {
-          throw new IllegalArgumentException(
-              "Mutect failure checks can only be used on a single genotype VariantContex");
+          throw new IllegalArgumentException("Mutect failure checks can only be used on a single genotype VariantContex");
         }
         return VCOps.getFlagEqualsInfo(vc, null, info, "true", log);
       }
@@ -1236,8 +1242,7 @@ public class FilterNGS implements Serializable {
       @Override
       public Double getValue(VariantContext vc) {
         if (vc.getSampleNames().size() > 1) {
-          throw new IllegalArgumentException(
-              "Alt allele depth filter can only be applied on single sample variant contexts");
+          throw new IllegalArgumentException("Alt allele depth filter can only be applied on single sample variant contexts");
         } else if (vc.getGenotype(0).isHet()) {
           int[] AD = VCOps.getAppropriateAlleleDepths(vc, vc.getGenotype(0), false, new Logger());
           if (AD[0] == 0) {
@@ -1259,8 +1264,8 @@ public class FilterNGS implements Serializable {
             case NO_FILTER:
               return 1.0;
             default:
-              throw new IllegalArgumentException(
-                  "Invalid Type filter " + getDfilter().getType() + " for double filter");
+              throw new IllegalArgumentException("Invalid Type filter " + getDfilter().getType()
+                                                 + " for double filter");
 
           }
         }
@@ -1300,7 +1305,7 @@ public class FilterNGS implements Serializable {
   }
 
   private VcFilterJEXL getJEXLFilter(VARIANT_FILTER_BOOLEAN bfilter, String[] names,
-      String[] expressions, Logger log) {
+                                     String[] expressions, Logger log) {
     return new VcFilterJEXL(bfilter, names, expressions, log);
   }
 
@@ -1348,8 +1353,7 @@ public class FilterNGS implements Serializable {
       @Override
       public Boolean getValue(VariantContext vc) {
         if (vc.getGenotypes().size() != 1) {
-          throw new IllegalArgumentException(
-              "Mutect failure checks can only be used on a single genotype VariantContex");
+          throw new IllegalArgumentException("Mutect failure checks can only be used on a single genotype VariantContex");
         }
         Genotype g = vc.getGenotype(0);
         boolean pass = true;

@@ -81,7 +81,7 @@ public class CytoCNVariant extends CNVariant {
     }
     if (sampleIndex != sampleIndices.length) {
       log.reportError("Error - did not find the necessary column headers \""
-          + Array.toStr(CYTO_SAMPLE_HEADER) + "\" for all samples");
+                      + Array.toStr(CYTO_SAMPLE_HEADER) + "\" for all samples");
     }
     return sampleIndices;
   }
@@ -142,11 +142,11 @@ public class CytoCNVariant extends CNVariant {
       do {
         line = reader.readLine().trim().split(SPLITS[0], -1);
         count++;
-      } while (reader.ready()
-          && (ext.indexFactors(CYTO_ABERATION_HEADER, line, false, true, false, false)[0] == -1));
+      } while (reader.ready() && (ext.indexFactors(CYTO_ABERATION_HEADER, line, false, true, false,
+                                                   false)[0] == -1));
       if (!reader.ready()) {
-        log.reportError(
-            "Error - did not find the neccesary column headers in file " + cytoCNVariantFile);
+        log.reportError("Error - did not find the neccesary column headers in file "
+                        + cytoCNVariantFile);
         return sampleNames;
       }
       reader.close();
@@ -208,11 +208,11 @@ public class CytoCNVariant extends CNVariant {
       do {
         line = reader.readLine().trim().split(SPLITS[0], -1);
         count++;
-      } while (reader.ready()
-          && (ext.indexFactors(CYTO_ABERATION_HEADER, line, false, true, false, false)[0] == -1));
+      } while (reader.ready() && (ext.indexFactors(CYTO_ABERATION_HEADER, line, false, true, false,
+                                                   false)[0] == -1));
       if (!reader.ready()) {
-        log.reportError(
-            "Error - did not find the neccesary column headers in file " + cytoCNVariantFile);
+        log.reportError("Error - did not find the neccesary column headers in file "
+                        + cytoCNVariantFile);
         return null;
       }
       header = line;
@@ -232,10 +232,10 @@ public class CytoCNVariant extends CNVariant {
 
       if (indicesSamples.length == sampleNames.length) {
         log.report(ext.getTime() + " Info - found the following samples to parse: "
-            + Array.toStr(sampleNames) + " in file " + cytoCNVariantFile);
+                   + Array.toStr(sampleNames) + " in file " + cytoCNVariantFile);
       } else {
         log.reportError("Error - data columns were found for " + indicesSamples.length
-            + "samples, but only " + Array.toStr(sampleNames) + " names were found");
+                        + "samples, but only " + Array.toStr(sampleNames) + " names were found");
         return null;
       }
       // skip the already parsed data header
@@ -250,8 +250,8 @@ public class CytoCNVariant extends CNVariant {
       // finalize any remaining CytoCNVariants in tmps and add to cytoCNVariant
       finalAction(cytoCNVariant, tmps);
       log.report(ext.getTime() + " Info - found a total of " + cytoCNVariant.size()
-          + " consolidated aberrations across " + sampleNames.length + " samples in file "
-          + cytoCNVariantFile);
+                 + " consolidated aberrations across " + sampleNames.length + " samples in file "
+                 + cytoCNVariantFile);
 
     } catch (FileNotFoundException e) {
       log.reportError("Error - could not find file " + cytoCNVariantFile);
@@ -312,8 +312,8 @@ public class CytoCNVariant extends CNVariant {
    * @param log
    */
   private static void parseInputLine(String[] sampleNames, String[] line, int[] indicesCommon,
-      int[][] indicesSamples, CytoCNVariant[] tmps, ArrayList<CytoCNVariant> cytoCNVariant,
-      Logger log) {
+                                     int[][] indicesSamples, CytoCNVariant[] tmps,
+                                     ArrayList<CytoCNVariant> cytoCNVariant, Logger log) {
 
     try {
       // parse the common info for all samples on this line
@@ -333,8 +333,8 @@ public class CytoCNVariant extends CNVariant {
         // make sure there is not both a deletion and amplification for a particular sample
         if (ext.indexOfStr(sampAmp, NOTHINGS, true, true) == -1
             && ext.indexOfStr(sampDel, NOTHINGS, true, true) == -1) {
-          log.reportError(
-              "Error - found an amplification and a deletion on line " + Array.toStr(line));
+          log.reportError("Error - found an amplification and a deletion on line "
+                          + Array.toStr(line));
           return;
         }
         if (ext.indexOfStr(sampAmp, NOTHINGS, true, true) == -1) {
@@ -352,19 +352,21 @@ public class CytoCNVariant extends CNVariant {
                                                                      // update it
               if (!tmps[i].update(cytoBand, chr, stop, probe, gene, logRatio, log)) {
                 log.reportError("Error - could not update the variant for sample " + sampleNames[i]
-                    + " on line " + Array.toStr(line));
+                                + " on line " + Array.toStr(line));
               }
             } else {// else we finalize the previous and create a new one
               tmps[i].finalizeVariant();
               cytoCNVariant.add(tmps[i]);
               tmps[i] = new CytoCNVariant("" + (i + 1),
-                  ext.replaceWithLinuxSafeCharacters(sampleNames[i], true), chr, start, stop, CN,
-                  DEFAULT_SCORE, 1, 0, cytoBand, logRatio, probe, gene);
+                                          ext.replaceWithLinuxSafeCharacters(sampleNames[i], true),
+                                          chr, start, stop, CN, DEFAULT_SCORE, 1, 0, cytoBand,
+                                          logRatio, probe, gene);
             }
           } else {// else we create a new one
             tmps[i] = new CytoCNVariant("" + (i + 1),
-                ext.replaceWithLinuxSafeCharacters(sampleNames[i], true), chr, start, stop, CN,
-                DEFAULT_SCORE, 1, 0, cytoBand, logRatio, probe, gene);
+                                        ext.replaceWithLinuxSafeCharacters(sampleNames[i], true),
+                                        chr, start, stop, CN, DEFAULT_SCORE, 1, 0, cytoBand,
+                                        logRatio, probe, gene);
           }
         } else if (tmps[i] != null) {// else we check if there was one on the previous line and
                                      // finalize it
@@ -375,7 +377,7 @@ public class CytoCNVariant extends CNVariant {
       }
     } catch (NumberFormatException nfe) {
       log.reportError("Error - found an invalid number on that could not be parsed on line "
-          + Array.toStr(line));
+                      + Array.toStr(line));
       return;
     }
   }
@@ -435,7 +437,7 @@ public class CytoCNVariant extends CNVariant {
    * 
    */
   public static String[] writeIndCNVariantFiles(CytoCNVariant[][] cytoCNVariantInds, String dir,
-      Logger log) {
+                                                Logger log) {
     String[] outputs = new String[cytoCNVariantInds.length];
     for (int i = 0; i < cytoCNVariantInds.length; i++) {
       if (cytoCNVariantInds[i] != null && cytoCNVariantInds[i].length > 0) {
@@ -488,8 +490,8 @@ public class CytoCNVariant extends CNVariant {
    * with multiple samples per line, call finalize to erase the ArrayLists and convert to Array[]
    */
   public CytoCNVariant(String familyID, String individualID, byte chr, int start, int stop, int cn,
-      double score, int numMarkers, int source, String cytoBand, double avgLogratio,
-      String firstProbe, String firstGene) {
+                       double score, int numMarkers, int source, String cytoBand,
+                       double avgLogratio, String firstProbe, String firstGene) {
     super(familyID, individualID, chr, start, stop, cn, score, numMarkers, source);
     this.cytoBand = cytoBand;
     probeNamestmp = new ArrayList<String>();
@@ -504,8 +506,8 @@ public class CytoCNVariant extends CNVariant {
    * Constructor when all the pieces are known
    */
   public CytoCNVariant(String familyID, String individualID, byte chr, int start, int stop, int cn,
-      double score, int numMarkers, int source, String cytoBand, String[] probeNames,
-      String[] genes, double avgLogratio) {
+                       double score, int numMarkers, int source, String cytoBand,
+                       String[] probeNames, String[] genes, double avgLogratio) {
     super(familyID, individualID, chr, start, stop, cn, score, numMarkers, source);
     this.cytoBand = cytoBand;
     this.probeNames = probeNames;
@@ -543,7 +545,7 @@ public class CytoCNVariant extends CNVariant {
    */
   private void formatCytoBand() {
     cytoBand = Positions.getChromosomeUCSC(chr, false)
-        + Array.toStr(cytoBandtmp.toArray(new String[cytoBandtmp.size()]), "");
+               + Array.toStr(cytoBandtmp.toArray(new String[cytoBandtmp.size()]), "");
   }
 
   public double getAvgLogRatio() {
@@ -571,7 +573,8 @@ public class CytoCNVariant extends CNVariant {
       interp += INTERPS[1];
     } else {
       System.err.println("Error - invalid copy number " + getCN()
-          + " for CytoCNVariants, copy number must be " + Array.toStr(CN_NUMBER, ", or"));
+                         + " for CytoCNVariants, copy number must be "
+                         + Array.toStr(CN_NUMBER, ", or"));
       return "";
     }
     interp += getCytoBand() + " (" + ext.prettyUpDistance(getSize(), 1) + ")";
@@ -588,7 +591,7 @@ public class CytoCNVariant extends CNVariant {
   public String getISCN() {
     String ISCN = "";
     ISCN += getCytoBand() + "(" + ext.addCommas(getStart()) + "-" + ext.addCommas(getStop()) + ")x"
-        + getCN();
+            + getCN();
     return ISCN;
   }
 
@@ -597,8 +600,8 @@ public class CytoCNVariant extends CNVariant {
    */
   public String getMyReport() {
     return getUCSClocation() + "\t" + getUCSCLink("hg18") + "\t" + getISCN() + "\t"
-        + getInterpretation() + "\t" + getStringGenes() + "\t" + getAvgLogRatio() + "\t"
-        + getNumMarkers();
+           + getInterpretation() + "\t" + getStringGenes() + "\t" + getAvgLogRatio() + "\t"
+           + getNumMarkers();
   }
 
   /**
@@ -625,7 +628,7 @@ public class CytoCNVariant extends CNVariant {
    * A method that will update a CytoCNVariants as we scan through a file
    */
   public boolean update(String newCytoBand, byte newChr, int newstop, String newProbeName,
-      String newGene, double newAvgLogratio, Logger log) {
+                        String newGene, double newAvgLogratio, Logger log) {
     boolean updated = true;
     if (probeNamestmp == null) {
       log.reportError("Error - this method can only be used with the temporary constructor");
@@ -641,18 +644,15 @@ public class CytoCNVariant extends CNVariant {
       updated = false;
     }
     if (newstop <= stop) {
-      log.reportError(
-          "Error - the current stop being added is less than the previous stop position, this should not happen");
+      log.reportError("Error - the current stop being added is less than the previous stop position, this should not happen");
       updated = false;
     }
     if (newstop <= start) {
-      log.reportError(
-          "Error - the current stop being added is less than the start position, this should not happen");
+      log.reportError("Error - the current stop being added is less than the start position, this should not happen");
       updated = false;
     }
     if (!isSame(newAvgLogratio)) {
-      log.reportError(
-          "Error - the current logRatio does not equal the previous, this should not happen");
+      log.reportError("Error - the current logRatio does not equal the previous, this should not happen");
       updated = false;
     }
     if (updated) {

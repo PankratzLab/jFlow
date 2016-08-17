@@ -37,8 +37,8 @@ public class SurvivalGraph {
         temp = reader.readLine();
         line = temp.split("\t");
         if (line.length != 3) {
-          System.err
-              .println("Error - line does not have exactly 3 tab-delimited columns:\n" + temp);
+          System.err.println("Error - line does not have exactly 3 tab-delimited columns:\n"
+                             + temp);
         }
         if (!line[0].equals(".") && !line[1].equals(".") && !line[2].equals(".")) {
           if (hash.containsKey(line[0])) {
@@ -109,7 +109,7 @@ public class SurvivalGraph {
     String filename = "GBA_survivial_Graph.dat";
 
     String usage = "\n" + "assoc.SurvivalGraph requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
+                   + "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

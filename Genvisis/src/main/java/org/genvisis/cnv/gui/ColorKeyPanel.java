@@ -31,24 +31,25 @@ public class ColorKeyPanel extends JPanel {
    * 
    */
   private static final long serialVersionUID = 1L;
-  public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
-      new Color(23, 58, 172), // dark blue
-      new Color(201, 30, 10), // deep red
-      new Color(140, 20, 180), // deep purple
-      new Color(33, 87, 0), // dark green
-      new Color(55, 129, 252), // light blue
-      new Color(94, 88, 214), // light purple
-      new Color(189, 243, 61), // light green
-      new Color(217, 109, 194), // pink
-      new Color(0, 0, 128), // ALL KINDS OF BLUES
-      new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
-      new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
-      new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
-      new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
-      new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
-      new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
-      new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
-      new Color(224, 255, 255)};
+  public static final Color[] DEFAULT_COLORS =
+      {new Color(33, 31, 53), // dark dark
+       new Color(23, 58, 172), // dark blue
+       new Color(201, 30, 10), // deep red
+       new Color(140, 20, 180), // deep purple
+       new Color(33, 87, 0), // dark green
+       new Color(55, 129, 252), // light blue
+       new Color(94, 88, 214), // light purple
+       new Color(189, 243, 61), // light green
+       new Color(217, 109, 194), // pink
+       new Color(0, 0, 128), // ALL KINDS OF BLUES
+       new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
+       new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
+       new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
+       new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
+       new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
+       new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
+       new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
+       new Color(224, 255, 255)};
 
   private static final Color BACKGROUND_COLOR = Color.WHITE;
 
@@ -92,12 +93,12 @@ public class ColorKeyPanel extends JPanel {
   }
 
   public ColorKeyPanel(SampleData newSampleData, AbstractPanel newSisterPanel,
-      Color[] newColorScheme) {
+                       Color[] newColorScheme) {
     this(newSampleData, newSisterPanel, newColorScheme, null, 0);
   }
 
   public ColorKeyPanel(SampleData newSampleData, AbstractPanel newSisterPanel,
-      Color[] newColorScheme, ItemListener listener, int clazz) {
+                       Color[] newColorScheme, ItemListener listener, int clazz) {
     sampleData = newSampleData;
     setSisterPanel(newSisterPanel);
     colorScheme = newColorScheme;
@@ -219,14 +220,16 @@ public class ColorKeyPanel extends JPanel {
       colorKeys = sampleData.getActualClassColorKey(currentClass - numBasicClasses);
     } else if (currentClass < numBasicClasses + numRegularClasses + numCNVClasses) {
       colorKeys = new String[][] {{"0", "Not in a CNV"}, {"1", "Homozygous deletion"},
-          {"2", "Heterozygous deletion"}, {"4", "Duplication"}, {"5", "Triplication"},};
+                                  {"2", "Heterozygous deletion"}, {"4", "Duplication"},
+                                  {"5", "Triplication"},};
     } else if (currentClass < numBasicClasses + numRegularClasses + numCNVClasses
-        + numPLINKClasses) {
+                              + numPLINKClasses) {
       // colorKeys = new String[][] {{"-1", "Missing"}, {"0", "AA"}, {"1", "AB"}, {"2", "BB"}};
       colorKeys = new String[][] {{"0", "Missing"}, {"1", "AA"}, {"2", "AB"}, {"3", "BB"}};
     } else {
       colorKeys = new String[][] {{"0", "Not in a CNV"}, {"1", "Homozygous deletion"},
-          {"2", "Heterozygous deletion"}, {"4", "Duplication"}, {"5", "Triplication"},};
+                                  {"2", "Heterozygous deletion"}, {"4", "Duplication"},
+                                  {"5", "Triplication"},};
     }
     for (String disabled : disabledClassValues.keySet()) {// so that labels are added even if the
                                                           // class value was not seen
@@ -239,8 +242,10 @@ public class ColorKeyPanel extends JPanel {
       block = new JLabel(new ColorIcon(12, 12, colorScheme[Integer.parseInt(colorKey[0])]));
       block.setName(currentClass + "\t" + colorKey[0]);
       block.addMouseListener(mouseListenerForColorKey);
-      label = new JLabel(colorKey[1] + " (n=" + (currentClassUniqueValues.containsKey(colorKey[0])
-          ? currentClassUniqueValues.get(colorKey[0]) : "0") + ")");
+      label = new JLabel(colorKey[1] + " (n="
+                         + (currentClassUniqueValues.containsKey(colorKey[0]) ? currentClassUniqueValues.get(colorKey[0])
+                                                                              : "0")
+                         + ")");
       label.setToolTipText("Remove " + colorKey[1] + " from the display by selecting here");
       label.setName(currentClass + "\t" + colorKey[0]);
       label.addMouseListener(mouseListenerForColorKey);
@@ -258,12 +263,12 @@ public class ColorKeyPanel extends JPanel {
 
     for (int i = 0; i < keys.length; i++) {
       if (!keys[i].equals("-1")) {
-        block = new JLabel(new ColorIcon(12, 12,
-            colorScheme[Math.min(Integer.parseInt(keys[i]), colorScheme.length - 1)]));
+        block = new JLabel(new ColorIcon(12, 12, colorScheme[Math.min(Integer.parseInt(keys[i]),
+                                                                      colorScheme.length - 1)]));
         block.setName(currentClass + "\t" + keys[i]);
         block.addMouseListener(mouseListenerForColorKey);
         label = new JLabel((keys[i].equals("0") ? "missing" : keys[i]) + " (n="
-            + currentClassUniqueValues.get(keys[i]) + ")");
+                           + currentClassUniqueValues.get(keys[i]) + ")");
         label.setName(currentClass + "\t" + keys[i]);
         label.setFont(new Font("Arial", 0, 14));
         label.addMouseListener(mouseListenerForColorKey);

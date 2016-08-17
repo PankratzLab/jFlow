@@ -13,10 +13,10 @@ public class Resources {
 
   public enum ARRAY_RESOURCE_TYPE {
 
-    /**
-     * Affy Bundle
-     */
-    AFFY_SNP6_MARKER_POSITIONS("AffySnp6/", "_markerPositions.txt", DEFAULT_URL, true), AFFY_SNP6_HMM("AffySnp6/", "affygw6.hmm", DEFAULT_URL, false), AFFY_SNP6_ABLOOKUP("AffySnp6/", "AB_lookup.dat", DEFAULT_URL, false);
+                                   /**
+                                    * Affy Bundle
+                                    */
+                                   AFFY_SNP6_MARKER_POSITIONS("AffySnp6/", "_markerPositions.txt", DEFAULT_URL, true), AFFY_SNP6_HMM("AffySnp6/", "affygw6.hmm", DEFAULT_URL, false), AFFY_SNP6_ABLOOKUP("AffySnp6/", "AB_lookup.dat", DEFAULT_URL, false);
 
     /**
      * Illumina Bundle TODO
@@ -34,7 +34,7 @@ public class Resources {
      * @param url
      */
     private ARRAY_RESOURCE_TYPE(String namePrefix, String nameSuffix, String url,
-        boolean genomeBuildSpecific) {
+                                boolean genomeBuildSpecific) {
       this.namePrefix = namePrefix;
       this.nameSuffix = nameSuffix;
       this.url = url;
@@ -49,13 +49,13 @@ public class Resources {
   }
   public enum BIN_RESOURCE_TYPE {
 
-    SHAPEIT("shapeit/bin/shapeit",
-        "https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz",
-        false, "shapeit/shapeit.tar.gz"),
+                                 SHAPEIT("shapeit/bin/shapeit",
+                                         "https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz",
+                                         false, "shapeit/shapeit.tar.gz"),
 
-    MINIMAC3("Minimac3/bin/Minimac3-omp",
-        DEFAULT_URL + BIN_SUB_DIR + "Minimac3/Minimac3.v1.0.14.tar.gz", false, "Minimac3.tar.gz",
-        "Minimac3/");
+                                 MINIMAC3("Minimac3/bin/Minimac3-omp",
+                                          DEFAULT_URL + BIN_SUB_DIR + "Minimac3/Minimac3.v1.0.14.tar.gz",
+                                          false, "Minimac3.tar.gz", "Minimac3/");
 
     private final String localSubPath;
     private final String url;
@@ -70,7 +70,7 @@ public class Resources {
     }
 
     private BIN_RESOURCE_TYPE(String localSubPath, String url, boolean windows,
-        String tarGzSubPath) {
+                              String tarGzSubPath) {
       this(localSubPath, url, windows, tarGzSubPath, null);
     }
 
@@ -82,7 +82,7 @@ public class Resources {
      * @param makeSubDir if resource needs to be built, directory to call make from after extracting
      */
     private BIN_RESOURCE_TYPE(String localSubPath, String url, boolean windows, String tarGzSubPath,
-        String makeSubDir) {
+                              String makeSubDir) {
       this.localSubPath = localSubPath;
       this.url = url;
       this.windows = windows;
@@ -148,7 +148,7 @@ public class Resources {
 
   public enum GENOME_BUILD {
 
-    HG19("hg19", 37), HG18("hg18", 36);
+                            HG19("hg19", 37), HG18("hg18", 36);
 
     private final String build;
     private final int buildInt;
@@ -168,8 +168,10 @@ public class Resources {
 
   }
   public enum GENOME_CHROMOSOME_RESOURCE_TYPE {
-    GENETIC_MAP("genetic_map_", ".txt.gz", DEFAULT_URL), G1K_PHASE3v5_REF_PANEL(
-        "1000genomes_ref_panel_Phase3v5_", ".m3vcf.gz", DEFAULT_URL);
+                                               GENETIC_MAP("genetic_map_", ".txt.gz",
+                                                           DEFAULT_URL), G1K_PHASE3v5_REF_PANEL("1000genomes_ref_panel_Phase3v5_",
+                                                                                                ".m3vcf.gz",
+                                                                                                DEFAULT_URL);
 
     private final String namePrefix;
     private final String nameSuffix;
@@ -188,16 +190,16 @@ public class Resources {
 
     public Resource getResource(GENOME_BUILD build, String chr) {
       String resourceSubPath = GENOME_RESOURCE_TYPE.getGenomeBuildSubDir(build) + CHR_SUB_DIR
-          + namePrefix + build.getBuild() + "_" + "chr" + chr + nameSuffix;
+                               + namePrefix + build.getBuild() + "_" + "chr" + chr + nameSuffix;
       return new Resource(getLocalDirBase(), resourceSubPath, url) {};
     }
 
   }
   public enum GENOME_RESOURCE_TYPE {
-    /**
-     * A gc5base file, for constructing gc-models
-     */
-    GC5_BASE("", "_gc5Base.txt", DEFAULT_URL), DB_SNP("", "_dbSnp147.vcf.gz", DEFAULT_URL),;
+                                    /**
+                                     * A gc5base file, for constructing gc-models
+                                     */
+                                    GC5_BASE("", "_gc5Base.txt", DEFAULT_URL), DB_SNP("", "_dbSnp147.vcf.gz", DEFAULT_URL),;
 
     protected static String getGenomeBuildSubDir(GENOME_BUILD build) {
       return GENOME_SUB_DIR + build.getBuild() + "/";
@@ -232,10 +234,10 @@ public class Resources {
   }
 
   public enum MITO_RESOURCE_TYPE {
-    /**
-     * A gc5base file, for constructing gc-models
-     */
-    WHITE_WBC_BETA("", "Whites_WBC_TOTAL_SingleSNPmatched.final.beta", DEFAULT_URL), BLACK_WBC_BETA("", "WBC_TOTAL_SingleSNPmatched.final.beta", DEFAULT_URL), ALL_WBC_BETA("", "Blacks_WBC_TOTAL_SingleSNPmatched.final.beta", DEFAULT_URL);
+                                  /**
+                                   * A gc5base file, for constructing gc-models
+                                   */
+                                  WHITE_WBC_BETA("", "Whites_WBC_TOTAL_SingleSNPmatched.final.beta", DEFAULT_URL), BLACK_WBC_BETA("", "WBC_TOTAL_SingleSNPmatched.final.beta", DEFAULT_URL), ALL_WBC_BETA("", "Blacks_WBC_TOTAL_SingleSNPmatched.final.beta", DEFAULT_URL);
 
     private final String namePrefix;
     private final String nameSuffix;
@@ -300,7 +302,7 @@ public class Resources {
           return true;
         } catch (IOException e) {
           log.reportTimeError("Could not retrieve resource from " + downloadPath + " and save it to"
-              + fullLocalPath);
+                              + fullLocalPath);
           e.printStackTrace();
         }
       } else {
@@ -322,7 +324,7 @@ public class Resources {
         return fullLocalPath;
       }
       log.report("Resource is not available at " + fullLocalPath
-          + ", will attempt to download from " + fullUrl);
+                 + ", will attempt to download from " + fullUrl);
       if (downloadResource(log)) {
         if (isLocallyAvailable()) {
           return fullLocalPath;
@@ -347,9 +349,9 @@ public class Resources {
     public boolean validateWithHint(Logger log) {
       boolean available = isLocallyAvailable() || isRemotelyAvailable(log);
       if (!available) {
-        log.reportTimeError(
-            "Could not find local file " + fullLocalPath + " and could not download it from "
-                + fullUrl + " please manually download and save to " + fullLocalPath);
+        log.reportTimeError("Could not find local file " + fullLocalPath
+                            + " and could not download it from " + fullUrl
+                            + " please manually download and save to " + fullLocalPath);
 
       }
 

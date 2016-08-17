@@ -76,7 +76,7 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
   }
 
   public static void pileVCF(String vcfFile, String referenceGenomeFile, String regionsFile,
-      String outputDirectory) {
+                             String outputDirectory) {
     if (outputDirectory == null) {
       outputDirectory = ext.parseDirectoryOfFile(vcfFile);
     }
@@ -136,7 +136,7 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
   private final Logger log;
 
   public VCFPile(String vcfFile, ReferenceGenome referenceGenome, String[] samplesTopile,
-      LocusSet<T> toPile, Logger log) {
+                 LocusSet<T> toPile, Logger log) {
     super();
     this.vcfFile = vcfFile;
     this.samplesTopile = samplesTopile;

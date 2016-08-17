@@ -196,15 +196,17 @@ class CNVPanel extends JPanel implements ActionListener {
         // More than 4 seems to run out of heap space
         if (checkList.getSelected().size() > 4) {
           String[] options = {"Yes", "No"};
-          int answer = JOptionPane.showOptionDialog(null,
-              "Warning - this will launch " + checkList.getSelected().size()
-                  + " instances of Trailer\nProceed?",
-              "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options,
-              options[1]);
+          int answer =
+              JOptionPane.showOptionDialog(null,
+                                           "Warning - this will launch "
+                                                 + checkList.getSelected().size()
+                                                 + " instances of Trailer\nProceed?",
+                                           "Warning", JOptionPane.YES_NO_OPTION,
+                                           JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
           if (answer == JOptionPane.YES_OPTION) {
             for (CNVariant cnv : checkList.getSelected()) {
               String markerPosition = "chr" + location[0] + ":" + (cnv.getStart() - window) + "-"
-                  + (cnv.getStop() + window);
+                                      + (cnv.getStop() + window);
 
               // Strip p or q from the end
               if (markerPosition.endsWith("p") || markerPosition.endsWith("q")) {
@@ -214,7 +216,7 @@ class CNVPanel extends JPanel implements ActionListener {
               String trailerID = cnv.getFamilyID() + "\t" + cnv.getIndividualID();
 
               new Trailer(proj, sampleData.lookup(trailerID)[0], proj.CNV_FILENAMES.getValue(),
-                  markerPosition);
+                          markerPosition);
             }
           }
         } else if (checkList.getSelected().size() == 0) {
@@ -222,7 +224,7 @@ class CNVPanel extends JPanel implements ActionListener {
         } else {
           for (CNVariant cnv : checkList.getSelected()) {
             String markerPosition = "chr" + location[0] + ":" + (cnv.getStart() - window) + "-"
-                + (cnv.getStop() + window);
+                                    + (cnv.getStop() + window);
             // Strip p or q from the end
             if (markerPosition.endsWith("p") || markerPosition.endsWith("q")) {
               markerPosition = markerPosition.substring(0, markerPosition.length() - 1);
@@ -231,12 +233,12 @@ class CNVPanel extends JPanel implements ActionListener {
             String trailerID = cnv.getFamilyID() + "\t" + cnv.getIndividualID();
 
             new Trailer(proj, sampleData.lookup(trailerID)[0], proj.CNV_FILENAMES.getValue(),
-                markerPosition);
+                        markerPosition);
           }
         }
       } else {
         String markerPosition = "chr" + location[0] + ":" + (selectedCNV.getStart() - window) + "-"
-            + (selectedCNV.getStop() + window);
+                                + (selectedCNV.getStop() + window);
 
         // Strip p or q from the end
         if (markerPosition.endsWith("p") || markerPosition.endsWith("q")) {
@@ -248,8 +250,8 @@ class CNVPanel extends JPanel implements ActionListener {
         String[] ids = sampleData.lookup(trailerID);
         if (ids == null) {
           proj.message("Error - could not find a lookup for individual " + selectedCNV.getFamilyID()
-              + "-" + selectedCNV.getIndividualID()
-              + " in the SampleData file; cannot launch Trailer without knowing which DNA sample to open");
+                       + "-" + selectedCNV.getIndividualID()
+                       + " in the SampleData file; cannot launch Trailer without knowing which DNA sample to open");
         } else {
           String id = ids[0];
           String[] fns = proj.CNV_FILENAMES.getValue();

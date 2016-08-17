@@ -40,9 +40,9 @@ public class Alleles {
       }
     }
 
-    System.err.println(
-        "Error - Allele 1 (" + a1 + ") does not match with either of the alleles provided ("
-            + bothAllelesAndFreqForFirst[0] + "/" + bothAllelesAndFreqForFirst[1] + ")");
+    System.err.println("Error - Allele 1 (" + a1
+                       + ") does not match with either of the alleles provided ("
+                       + bothAllelesAndFreqForFirst[0] + "/" + bothAllelesAndFreqForFirst[1] + ")");
 
     return null;
   }
@@ -56,9 +56,9 @@ public class Alleles {
       return new char[] {a1, bothAlleles[0]};
     }
 
-    System.err.println(
-        "Error - Allele 1 (" + a1 + ") does not match with either of the alleles provided ("
-            + bothAlleles[0] + "/" + bothAlleles[1] + ")");
+    System.err.println("Error - Allele 1 (" + a1
+                       + ") does not match with either of the alleles provided (" + bothAlleles[0]
+                       + "/" + bothAlleles[1] + ")");
 
     return null;
   }

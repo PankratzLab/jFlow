@@ -35,7 +35,7 @@ public class SomaticSniper {
     private final boolean overwriteExisting;
 
     public SomaticParams(String somaticSnipeLoc, String refGenome, String outputDir,
-        boolean overwriteExisting) {
+                         boolean overwriteExisting) {
       super();
       this.somaticSnipeLoc = somaticSnipeLoc;
       this.refGenome = refGenome;
@@ -121,7 +121,7 @@ public class SomaticSniper {
     private final Logger log;
 
     public TNSample(String normalBam, String normalSample, String tumorBam, String tumorSample,
-        SomaticParams somaticParams, Logger log) {
+                    SomaticParams somaticParams, Logger log) {
       super();
       this.normalBam = normalBam;
       this.normalSample = normalSample;
@@ -139,19 +139,22 @@ public class SomaticSniper {
     @Override
     public TNSample call() throws Exception {
       String[] inputs = new String[] {somaticParams.getRefGenome(), somaticParams.getSnipe(),
-          tumorBam, normalBam};
+                                      tumorBam, normalBam};
       String[] outputs = new String[] {output};
       String[] command = somaticParams.generateCommand(normalBam, tumorBam, output);
 
-      boolean progress = CmdLine.runCommandWithFileChecks(command, "", inputs, outputs, true,
-          somaticParams.isOverwriteExisting(), false, log);
+      boolean progress =
+          CmdLine.runCommandWithFileChecks(command, "", inputs, outputs, true,
+                                           somaticParams.isOverwriteExisting(), false, log);
 
       if (progress) {
 
         progress = runSamToolsIndel();
         if (!Files.exists(outputGz)) {
           VCFTumorNormalOps.renameTumorNormalVCF(output, tumorSample, normalSample, outputGz,
-              VCFOps.getAppropriateRoot(outputGz, false) + ".filtered.vcf.gz", log);
+                                                 VCFOps.getAppropriateRoot(outputGz, false)
+                                                                                              + ".filtered.vcf.gz",
+                                                 log);
         }
 
       }
@@ -186,8 +189,9 @@ public class SomaticSniper {
       commandCall.add(tumorBam);
       commandCall.add(indelPile);
 
-      boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(commandCall), "",
-          inputs, output, true, somaticParams.isOverwriteExisting(), false, log);
+      boolean progress =
+          CmdLine.runCommandWithFileChecks(Array.toStringArray(commandCall), "", inputs, output,
+                                           true, somaticParams.isOverwriteExisting(), false, log);
       if (progress) {
         ArrayList<String> commandFilt = new ArrayList<String>();
         commandFilt.add("perl");
@@ -197,9 +201,11 @@ public class SomaticSniper {
         commandFilt.add(">");
         commandFilt.add(indelPileFilt);
         String[] runBat = CmdLine.prepareBatchForCommandLine(Array.toStringArray(commandFilt),
-            indelPileFilt + ".sh", true, log);
-        progress = CmdLine.runCommandWithFileChecks(runBat, "", new String[] {indelPile},
-            new String[] {indelPileFilt}, true, somaticParams.isOverwriteExisting(), false, log);
+                                                             indelPileFilt + ".sh", true, log);
+        progress =
+            CmdLine.runCommandWithFileChecks(runBat, "", new String[] {indelPile},
+                                             new String[] {indelPileFilt}, true,
+                                             somaticParams.isOverwriteExisting(), false, log);
       }
       return progress;
 
@@ -228,7 +234,7 @@ public class SomaticSniper {
   }
 
   private static TNSample[] matchSamples(String[] bamFiles, String outputDir, VcfPopulation vpop,
-      SomaticParams somaticParams, Logger log) {
+                                         SomaticParams somaticParams, Logger log) {
     Hashtable<String, String> all = new Hashtable<String, String>();
     for (String bamFile : bamFiles) {
       all.put(BamOps.getSampleName(bamFile), bamFile);
@@ -242,8 +248,8 @@ public class SomaticSniper {
       for (String samp : samps) {
         if (vpop.getPopulationForInd(samp, RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.TUMOR)) {
           tumor = samp;
-        } else if (vpop.getPopulationForInd(samp, RETRIEVE_TYPE.SUPER)[0]
-            .equals(VcfPopulation.NORMAL)) {
+        } else if (vpop.getPopulationForInd(samp,
+                                            RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.NORMAL)) {
           normal = samp;
         } else {
           throw new IllegalArgumentException("Unknown types");
@@ -251,8 +257,8 @@ public class SomaticSniper {
       }
 
       if (!all.containsKey(tumor) || !all.containsKey(normal)) {
-        throw new IllegalArgumentException(
-            "Could not find bam file for Tumor " + tumor + " or for Normal " + normal);
+        throw new IllegalArgumentException("Could not find bam file for Tumor " + tumor
+                                           + " or for Normal " + normal);
       } else {
         TNSample tSample =
             new TNSample(all.get(normal), normal, all.get(tumor), tumor, somaticParams, log);
@@ -264,7 +270,7 @@ public class SomaticSniper {
     }
     if (analysisBams.size() < bamFiles.length) {
       Files.writeList(Array.toStringArray(analysisBams),
-          outputDir + ext.rootOf(vpop.getFileName() + ".analysis.bams.txt"));
+                      outputDir + ext.rootOf(vpop.getFileName() + ".analysis.bams.txt"));
     }
 
     log.reportTimeInfo("Matched " + tnSamples.size() + " tumor normals with bams ");
@@ -272,7 +278,7 @@ public class SomaticSniper {
   }
 
   private static void run(GATK gatk, SomaticParams params, String bams, String vcfPop,
-      int numThreads, Logger log) {
+                          int numThreads, Logger log) {
     VcfPopulation vpop = VcfPopulation.load(vcfPop, POPULATION_TYPE.TUMOR_NORMAL, log);
     String[] bamFiles = null;
     if (Files.isDirectory(bams)) {

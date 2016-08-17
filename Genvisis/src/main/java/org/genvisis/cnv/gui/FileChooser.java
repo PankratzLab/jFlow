@@ -33,7 +33,7 @@ public class FileChooser extends JFileChooser {
    * @param log
    */
   public FileChooser(Component parent, String startDir, boolean multipleSelect,
-      boolean directoryChooser, String title, Logger log) {
+                     boolean directoryChooser, String title, Logger log) {
     super();
     selected = false;
     setMultiSelectionEnabled(multipleSelect);

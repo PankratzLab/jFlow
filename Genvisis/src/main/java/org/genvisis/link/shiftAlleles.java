@@ -20,11 +20,11 @@ public class shiftAlleles {
     String plateList = "plateList.dat";
 
     String usage = "\n" + "park.shiftAlleles requires 2 arguments:\n"
-        + "   (1) list of markers, plates affected, and the key to the new alleles (i.e. key="
-        + keyfile + " (default))\n"
-        + "       start the old alleles with the marker name and the new alleles with the plates affected"
-        + "   (2) list of individuals and their plates (i.e. pl=" + plateList + " (default))\n"
-        + "";
+                   + "   (1) list of markers, plates affected, and the key to the new alleles (i.e. key="
+                   + keyfile + " (default))\n"
+                   + "       start the old alleles with the marker name and the new alleles with the plates affected"
+                   + "   (2) list of individuals and their plates (i.e. pl=" + plateList
+                   + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -43,7 +43,8 @@ public class shiftAlleles {
       System.exit(1);
     }
     System.out.println("Using " + keyfile
-        + " to recode appropriate chromosomeX.dat files using plateList file " + plateList);
+                       + " to recode appropriate chromosomeX.dat files using plateList file "
+                       + plateList);
     try {
       new shiftAlleles(keyfile, plateList);
     } catch (Exception e) {
@@ -72,8 +73,7 @@ public class shiftAlleles {
     while (reader.ready()) {
       line = reader.readLine().split("[\\s]+");
       if (line.length < 3 && !line[0].equals("")) {
-        System.err
-            .println("Error - file with plate listing requires three columns (FamID IndID plate)");
+        System.err.println("Error - file with plate listing requires three columns (FamID IndID plate)");
         System.err.println("      - could not process line beginning with '" + line[0] + "'");
         System.exit(1);
       }
@@ -126,10 +126,8 @@ public class shiftAlleles {
     reader.close();
     if (numMarkers % 2 != 0) {
       System.err.println("Error - Odd number of lines in " + keyfile);
-      System.err.println(
-          "      - shiftAlleles requires 2 lines for each marker, the old and new alleles");
-      System.err.println(
-          "      - start the old alleles with the marker name and the new alleles with the plates affected");
+      System.err.println("      - shiftAlleles requires 2 lines for each marker, the old and new alleles");
+      System.err.println("      - start the old alleles with the marker name and the new alleles with the plates affected");
     }
     numMarkers /= 2;
 
@@ -161,13 +159,13 @@ public class shiftAlleles {
       }
       if (!markers.containsKey(markerName)) {
         System.err.println("Error - '" + markerName + "' (number " + (i + 1)
-            + " in the keyfile) is not listed as a marker in the Marshfield database");
+                           + " in the keyfile) is not listed as a marker in the Marshfield database");
         System.exit(4);
       }
       chr = Integer.valueOf(markers.get(markerName)).intValue();
       if (!new File("chromosome" + chr + ".dat").exists()) {
-        System.err.println(
-            "Error - could not find " + "chromosome" + chr + ".dat" + " in current directory");
+        System.err.println("Error - could not find " + "chromosome" + chr + ".dat"
+                           + " in current directory");
         System.err.println("      - necessary to shift alleles for marker " + markerName);
         System.exit(5);
       }
@@ -182,19 +180,20 @@ public class shiftAlleles {
       }
       if (!plateNames.contains(plateAffected)) {
         System.err.println("Error - '" + plateAffected
-            + "' (from one of the second lines in the key file) was not the name of a plate seen in file "
-            + plateList);
+                           + "' (from one of the second lines in the key file) was not the name of a plate seen in file "
+                           + plateList);
         System.exit(7);
       }
       shift(markerName, chr, oldAlleles, newAlleles,
-          plates.elementAt(plateNames.indexOf(plateAffected)));
+            plates.elementAt(plateNames.indexOf(plateAffected)));
 
     }
     reader.close();
   }
 
   public void shift(String markerName, int chr, Vector<String> oldAlleles,
-      Vector<String> newAlleles, Hashtable<String, String> impacted) throws IOException {
+                    Vector<String> newAlleles,
+                    Hashtable<String, String> impacted) throws IOException {
     BufferedReader reader = null;
     PrintWriter writer;
     String[] line;
@@ -216,8 +215,8 @@ public class shiftAlleles {
       }
     }
     if (index == -1) {
-      System.err
-          .println("Error - could not find '" + markerName + "' in " + "chromosome" + chr + ".dat");
+      System.err.println("Error - could not find '" + markerName + "' in " + "chromosome" + chr
+                         + ".dat");
       System.err.println("        skipping marker and continuing with file");
       reader.close();
       writer.close();
@@ -232,7 +231,7 @@ public class shiftAlleles {
       if (line.length != 3 + 2 * numMarkers) {
         System.err.println("Error - invalid number of columns for " + line[0] + "-" + line[1]);
         System.err.println("        expecting 3 + 2*numMarkers (" + (3 + 2 * numMarkers)
-            + " columns) and found " + line.length);
+                           + " columns) and found " + line.length);
         System.exit(3);
       }
       for (int i = 0; i < 3; i++) {
@@ -243,7 +242,7 @@ public class shiftAlleles {
           for (int j = 0; j < 2; j++) {
             if (oldAlleles.indexOf(line[3 + i * 2 + j]) == -1) {
               System.err.println("Error - Allele " + line[3 + i * 2 + j]
-                  + " was not found in the key for marker " + markerName);
+                                 + " was not found in the key for marker " + markerName);
               System.err.println("      - and therefore was not shifted");
               writer.print("\t" + line[3 + i * 2 + j]);
             } else {

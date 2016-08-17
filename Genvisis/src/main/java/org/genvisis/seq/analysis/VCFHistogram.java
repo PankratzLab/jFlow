@@ -47,10 +47,11 @@ import htsjdk.variant.vcf.VCFFileReader;
 public class VCFHistogram implements Serializable {
 
   public enum HIST_WALKER {
-    /**
-     * Two histograms for each metric, one for CASE only, and one for Case with Control
-     */
-    CASE_V_CONTROL_PRESENT;
+                           /**
+                            * Two histograms for each metric, one for CASE only, and one for Case
+                            * with Control
+                            */
+                           CASE_V_CONTROL_PRESENT;
 
   }
   private static class HistInit {
@@ -93,7 +94,7 @@ public class VCFHistogram implements Serializable {
     private int index = 0;
 
     public HistProducer(HistInit[] histInits, String vcf, String outputDir, String outputRoot,
-        String referenceGenomeFasta, Logger log) {
+                        String referenceGenomeFasta, Logger log) {
       super();
       this.histInits = histInits;
       this.vcf = vcf;
@@ -127,7 +128,7 @@ public class VCFHistogram implements Serializable {
     private final Logger log;
 
     public HistWorker(HistInit histInits, String vcf, String referenceGenomeFasta, String outputDir,
-        String outputRoot, Logger log) {
+                      String outputRoot, Logger log) {
       super();
       this.histInits = histInits;
       this.vcf = vcf;
@@ -140,7 +141,7 @@ public class VCFHistogram implements Serializable {
     @Override
     public VCFHistogram call() throws Exception {
       return createHistogram(vcf, histInits.getVpop(), outputDir, outputRoot, referenceGenomeFasta,
-          histInits.getMaf(), histInits.getVaSample(), log);
+                             histInits.getMaf(), histInits.getVaSample(), log);
     }
   }
 
@@ -152,8 +153,9 @@ public class VCFHistogram implements Serializable {
       new String[] {"Avg_GQ", "Avg_DP", "GC_100bp", "GC_1000bp"};
 
   private static VCFHistogram createHistogram(String vcf, String vpop, String outputDir,
-      String outputRoot, String referenceGenomeFasta, double maf, VariantFilterSample vaSample,
-      Logger log) {
+                                              String outputRoot, String referenceGenomeFasta,
+                                              double maf, VariantFilterSample vaSample,
+                                              Logger log) {
 
     outputDir = outputDir == null ? ext.parseDirectoryOfFile(vpop) : outputDir;
     outputRoot += ".MAF_" + ext.formDeci(maf, 2);
@@ -176,7 +178,8 @@ public class VCFHistogram implements Serializable {
   }
 
   public static void createHistograms(String vcf, String vpop, String outputDir, String outputRoot,
-      String referenceGenomeFasta, double[] mafs, int numthreads, Logger log) {
+                                      String referenceGenomeFasta, double[] mafs, int numthreads,
+                                      Logger log) {
     VcfPopulation vcfPopulation = VcfPopulation.load(vpop, POPULATION_TYPE.ANY, log);
     new File(outputDir).mkdirs();
     String[] allIters = divideToNewCaseControlStatus(vcfPopulation, outputDir, log);
@@ -185,8 +188,9 @@ public class VCFHistogram implements Serializable {
         new VariantFilterSample[] {new AricWesFilter(log).getARICVariantContextFilters(), null};
     HistInit[] histInits = new HistInit[mafs.length * allIters.length * vfSamples.length];
     log.reportTimeInfo(histInits.length + " total comparisions");
-    String[] roots = new String[] {
-        new AricWesFilter(log).getARICVariantContextFilters().getFilterName(), "NO_FILTER"};
+    String[] roots =
+        new String[] {new AricWesFilter(log).getARICVariantContextFilters().getFilterName(),
+                      "NO_FILTER"};
     int index = 0;
     for (double maf : mafs) {
       for (String allIter : allIters) {
@@ -224,7 +228,7 @@ public class VCFHistogram implements Serializable {
   }
 
   private static String[] divideToNewCaseControlStatus(VcfPopulation vcfPopulation, String dir,
-      Logger log) {
+                                                       Logger log) {
     ArrayList<String> newVpops = new ArrayList<String>();
     for (String superPop : vcfPopulation.getSuperPop().keySet()) {
       for (String superPopComp : vcfPopulation.getSuperPop().keySet()) {
@@ -322,7 +326,7 @@ public class VCFHistogram implements Serializable {
     try {
       log = new Logger(logfile);
       createHistograms(vcf, vpop, outputDir, outputRoot, referenceGenomeFasta, mafs, numthreads,
-          log);
+                       log);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -384,9 +388,9 @@ public class VCFHistogram implements Serializable {
 
       String[] aTmpTitles = tmpTitles.toArray(new String[tmpTitles.size()]);
       DynamicHistogram.dumpToSameFile(tmpHists.toArray(new DynamicHistogram[tmpHists.size()]),
-          aTmpTitles, output, true, log);
+                                      aTmpTitles, output, true, log);
       RScatter rScatter = new RScatter(output, output + ".rscript", ext.rootOf(output),
-          output + ".pdf", "Bin", aTmpTitles, SCATTER_TYPE.POINT, log);
+                                       output + ".pdf", "Bin", aTmpTitles, SCATTER_TYPE.POINT, log);
       rScatter.setOverWriteExisting(true);
       rScatter.setyLabel("Proportion");
       rScatter.setxLabel(METRICS_TRACKED[i]);
@@ -407,9 +411,10 @@ public class VCFHistogram implements Serializable {
       rScatter.execute();
       rScatters.add(rScatter);
     }
-    RScatters rScattersAll = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]),
-        dir + root + "full.rscript", dir + root + "full.pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1,
-        PLOT_DEVICE.PDF, log);
+    RScatters rScattersAll =
+        new RScatters(rScatters.toArray(new RScatter[rScatters.size()]),
+                      dir + root + "full.rscript", dir + root + "full.pdf",
+                      COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
     rScattersAll.execute();
     return rScattersAll;
   }
@@ -442,7 +447,7 @@ public class VCFHistogram implements Serializable {
   }
 
   public void populateHists(ReferenceGenome referenceGenome, double maf,
-      VariantFilterSample vaSample) {
+                            VariantFilterSample vaSample) {
     VCFFileReader reader = new VCFFileReader(new File(vcfFile), false);
     Set<String> cases = vpop.getSubPop().get(VcfPopulation.CASE);
     Set<String> controls = vpop.getSubPop().get(VcfPopulation.CONTROL);
@@ -453,7 +458,7 @@ public class VCFHistogram implements Serializable {
       count++;
       if (count % 50000 == 0) {
         log.reportTimeInfo("Scanned " + count + " variants " + caseUniqueCount
-            + " were unique to cases " + caseControlShared + " were shared");
+                           + " were unique to cases " + caseControlShared + " were shared");
         // reader.close();
         // return;
       }

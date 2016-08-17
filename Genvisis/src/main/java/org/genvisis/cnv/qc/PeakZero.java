@@ -41,20 +41,20 @@ public class PeakZero {
     samples = proj.getSamples();
     if (!phenoOfSamplesToInclude.equals("")) {
       hash = HashVec.loadFileToHashString(proj.SAMPLE_DATA_FILENAME.getValue(false, true), "DNA",
-          new String[] {phenoOfSamplesToInclude}, "");
+                                          new String[] {phenoOfSamplesToInclude}, "");
       use = new boolean[samples.length];
       for (int i = 0; i < samples.length; i++) {
         trav = hash.get(samples[i]);
         if (trav == null) {
-          System.err.println(
-              "Error - '" + samples[i] + "' was not found in a column with the header 'DNA'");
+          System.err.println("Error - '" + samples[i]
+                             + "' was not found in a column with the header 'DNA'");
           use[i] = false;
         } else {
           use[i] = !(trav.equals(".") || trav.equals("NA"));
         }
       }
       System.out.println("Distributions will be created from " + Array.booleanArraySum(use) + " of "
-          + samples.length + " possible samples");
+                         + samples.length + " possible samples");
     } else {
       use = Array.booleanArray(samples.length, true);
       System.out.println("Distributions will be created using all " + samples.length + " samples");
@@ -65,8 +65,8 @@ public class PeakZero {
 
     try {
       new File(proj.RESULTS_DIRECTORY.getValue(false, true)).mkdirs();
-      writer = new PrintWriter(
-          new FileWriter(proj.RESULTS_DIRECTORY.getValue(false, true) + PEAK_ZERO_FILE));
+      writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(false, true)
+                                              + PEAK_ZERO_FILE));
       writer.println("Marker\tPeakOffset\t#LRR_Maxima\t#BAF_Maxima\t#X_Maxima\t#Y_Maxima\tDropped");
 
       lrrArray = new float[count];
@@ -103,16 +103,16 @@ public class PeakZero {
         yHist = new Histogram(bafArray, 0, 5, 1);
 
         if (DUMP_THESE != null && ext.indexOfStr(markerData.getMarkerName(), DUMP_THESE) >= 0) {
-          lrrHist.dump(
-              proj.PROJECT_DIRECTORY.getValue() + markerData.getMarkerName() + "_lrr_hist.xln");
-          bafHist.dump(
-              proj.PROJECT_DIRECTORY.getValue() + markerData.getMarkerName() + "_baf_hist.xln");
+          lrrHist.dump(proj.PROJECT_DIRECTORY.getValue() + markerData.getMarkerName()
+                       + "_lrr_hist.xln");
+          bafHist.dump(proj.PROJECT_DIRECTORY.getValue() + markerData.getMarkerName()
+                       + "_baf_hist.xln");
         }
 
         writer.println(markerData.getMarkerName() + "\t" + lrrHist.getMaxBin() + "\t"
-            + lrrHist.getLocalMaxima().length + "\t" + bafHist.getLocalMaxima().length + "\t"
-            + xHist.getLocalMaxima().length + "\t" + yHist.getLocalMaxima().length + "\t"
-            + (drops.containsKey(markerData.getMarkerName()) ? 1 : 0));
+                       + lrrHist.getLocalMaxima().length + "\t" + bafHist.getLocalMaxima().length
+                       + "\t" + xHist.getLocalMaxima().length + "\t" + yHist.getLocalMaxima().length
+                       + "\t" + (drops.containsKey(markerData.getMarkerName()) ? 1 : 0));
         writer.flush();
         markerDataLoader.releaseIndex(i);
       }
@@ -121,8 +121,8 @@ public class PeakZero {
 
       writer.close();
     } catch (Exception e) {
-      System.err.println(
-          "Error writing to " + proj.RESULTS_DIRECTORY.getValue(false, true) + PEAK_ZERO_FILE);
+      System.err.println("Error writing to " + proj.RESULTS_DIRECTORY.getValue(false, true)
+                         + PEAK_ZERO_FILE);
       e.printStackTrace();
     }
   }
@@ -133,9 +133,9 @@ public class PeakZero {
     boolean check = true;
 
     String usage = "\\n" + "cnv.qc.PeakZero requires 0-1 arguments\n"
-        + "   (1) project properties filename (i.e. proj="
-        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-        + "   (2) check distributions (i.e. -check (not the default))\n" + "";
+                   + "   (1) project properties filename (i.e. proj="
+                   + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+                   + "   (2) check distributions (i.e. -check (not the default))\n" + "";
 
 
     for (String arg : args) {

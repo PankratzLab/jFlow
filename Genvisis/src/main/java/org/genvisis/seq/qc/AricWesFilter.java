@@ -37,7 +37,8 @@ public class AricWesFilter {
     hwe.setDFilter(0.000005);
 
     builder.vCFiltWholeVariant(new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {callrate, hwe},
-        new VARIANT_FILTER_BOOLEAN[] {biallelic}, null, null, log));
+                                                        new VARIANT_FILTER_BOOLEAN[] {biallelic},
+                                                        null, null, log));
 
     // alt call filters....
     // low variant read count (<3),
@@ -50,9 +51,10 @@ public class AricWesFilter {
     VARIANT_FILTER_DOUBLE altRatHigh = VARIANT_FILTER_DOUBLE.HET_ALLELE_RATIO_HIGH;
     altRatHigh.setDFilter(.75);
 
-    builder.vCFiltAltGeno(
-        new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {altDP, altRatLow, altRatHigh},
-            new VARIANT_FILTER_BOOLEAN[] {}, null, null, log));
+    builder.vCFiltAltGeno(new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {altDP, altRatLow,
+                                                                                altRatHigh},
+                                                   new VARIANT_FILTER_BOOLEAN[] {}, null, null,
+                                                   log));
 
     // hom ref filters....
 
@@ -65,7 +67,8 @@ public class AricWesFilter {
     gq.setDFilter(95);
 
     builder.vCFiltAllGeno(new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {gq, totalDepth},
-        new VARIANT_FILTER_BOOLEAN[] {}, null, null, log));
+                                                   new VARIANT_FILTER_BOOLEAN[] {}, null, null,
+                                                   log));
 
     // indel filter
     // the same for indels except a total coverage less than 30-fold was used.
@@ -73,7 +76,7 @@ public class AricWesFilter {
     totalDepth.setDFilter(30);
 
     builder.vCFiltIndel(new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {indelDepth},
-        new VARIANT_FILTER_BOOLEAN[] {}, null, null, log));
+                                                 new VARIANT_FILTER_BOOLEAN[] {}, null, null, log));
 
     return builder.build(ARIC_FILTER_NAME, log);
   }

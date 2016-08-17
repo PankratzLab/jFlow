@@ -22,7 +22,7 @@ public class procUnigene {
     String filename = "C:\\Download\\Hs.data";
 
     String usage = "\n" + "park.procUnigene requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -87,7 +87,8 @@ public class procUnigene {
         if (temp.indexOf("ACC=NM_") > 0) {
           temp =
               temp.indexOf(";") > 0 ? temp.substring(temp.indexOf("ACC=NM_") + 4, temp.indexOf(";"))
-                  : temp.substring(temp.indexOf("ACC=NM_") + 4).split("[\\s]+")[0];
+                                    : temp.substring(temp.indexOf("ACC=NM_") + 4)
+                                          .split("[\\s]+")[0];
           if (data[0].equals(".")) {
             data[0] = temp;
           } else {
@@ -103,7 +104,7 @@ public class procUnigene {
       keys = Sort.quicksort(Array.toStringArray(v));
       for (int i = 0; i < v.size(); i++) {
         writer.println(v.elementAt(keys[i]) + "\t" + iv.elementAt(keys[i]) + "\t"
-            + ((double) iv.elementAt(keys[i]) / (double) count));
+                       + ((double) iv.elementAt(keys[i]) / (double) count));
       }
       writer.println();
       writer.println("Total\t" + count);

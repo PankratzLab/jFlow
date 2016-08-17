@@ -21,7 +21,8 @@ public class BaselineUnclusteredMarkers implements Serializable {
     boolean success = true;
     String taskName = "createBaselineUnclusteredMarkersFileFromSamples_sampleCalls";
     proj.getProgressMonitor().beginDeterminateTask(taskName, "Summing marker calls for each sample",
-        proj.getSamples().length, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+                                                   proj.getSamples().length,
+                                                   ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
     int[] autosomalMarkerIndices = proj.getAutosomalMarkerIndices();
     int[] autosomalMarkerCalls = new int[autosomalMarkerIndices.length];
     for (String sampleID : proj.getSamples()) {
@@ -41,8 +42,8 @@ public class BaselineUnclusteredMarkers implements Serializable {
           }
         }
       } else {
-        proj.getLog().reportTimeError(
-            "Could not generate Baseline Unclustered Markers File, no genotypes for samples");
+        proj.getLog()
+            .reportTimeError("Could not generate Baseline Unclustered Markers File, no genotypes for samples");
         success = false;
         break;
       }
@@ -52,7 +53,8 @@ public class BaselineUnclusteredMarkers implements Serializable {
       String[] autosomalMarkers = proj.getAutosomalMarkers();
       taskName = "createBaselineUnclusteredMarkersFileFromSamples_callrates";
       proj.getProgressMonitor().beginDeterminateTask(taskName, "Checking marker callrates",
-          autosomalMarkers.length, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+                                                     autosomalMarkers.length,
+                                                     ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
       BaselineUnclusteredMarkers bum = new BaselineUnclusteredMarkers();
       for (int i = 0; i < autosomalMarkers.length; i++) {
         proj.getProgressMonitor().updateTask(taskName);
@@ -69,13 +71,12 @@ public class BaselineUnclusteredMarkers implements Serializable {
 
   private static String getBaselineUnclusteredMarkersFile(Project proj) {
     return proj.DATA_DIRECTORY.getValue() + BASELINE_UNCLUSTERED_MARKERS_FILENAME
-        + Files.SERIALIZED_FILE_EXTENSION;
+           + Files.SERIALIZED_FILE_EXTENSION;
   }
 
   public static BaselineUnclusteredMarkers getProjBaselineUnclusteredMarkers(Project proj) {
     if (baselineUnclusteredMarkersFileExists(proj)) {
-      return (BaselineUnclusteredMarkers) SerializedFiles
-          .readSerial(getBaselineUnclusteredMarkersFile(proj));
+      return (BaselineUnclusteredMarkers) SerializedFiles.readSerial(getBaselineUnclusteredMarkersFile(proj));
     }
     return null;
   }

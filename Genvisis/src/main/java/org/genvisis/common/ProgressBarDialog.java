@@ -23,7 +23,7 @@ public class ProgressBarDialog extends JDialog {
   }
 
   public ProgressBarDialog(String frameText, int min, int max, int width, int height,
-      int timeDelay) {
+                           int timeDelay) {
     super((JFrame) null, frameText);
 
     this.timeDelay = timeDelay;
@@ -56,8 +56,8 @@ public class ProgressBarDialog extends JDialog {
       public void run() {
         if (System.currentTimeMillis() - timeStarted > timeDelay) {
           pb.setValue(value);
-          pb.setString(
-              (int) ((double) value / (double) (pb.getMaximum() - pb.getMinimum()) * 100) + "%");
+          pb.setString((int) ((double) value / (double) (pb.getMaximum() - pb.getMinimum()) * 100)
+                       + "%");
         }
 
       }

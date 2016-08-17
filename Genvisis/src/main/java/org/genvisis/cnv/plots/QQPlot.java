@@ -23,37 +23,38 @@ import org.genvisis.filesys.SerialFloatArray;
 public class QQPlot {
   public static final long serialVersionUID = 1L;
 
-  public static final String[] DEFAULT_FILES = {
-      // "C:\\Documents and Settings\\npankrat\\My Documents\\Downloads\\allelic.txt"
-      // "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\dominant.txt"
-      "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\no_covariates.txt,0",
-      // "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\4PCs.txt",
-      "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\E2_E4.txt,0",
+  public static final String[] DEFAULT_FILES =
+      {
+       // "C:\\Documents and Settings\\npankrat\\My Documents\\Downloads\\allelic.txt"
+       // "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\dominant.txt"
+       "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\no_covariates.txt,0",
+       // "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\4PCs.txt",
+       "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\E2_E4.txt,0",
       // "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\4PCs_E2_E4.txt",
       // "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\E4_binary.txt"
-  };
+      };
 
   public static final boolean JAR = false;
   public static final Color[] COLOR_SCHEME =
       new Color[] {Color.BLACK, Color.GRAY, new Color(33, 31, 53), // dark dark
-          new Color(23, 58, 172), // dark blue
-          new Color(201, 30, 10), // deep red
-          new Color(140, 20, 180), // deep purple
-          new Color(33, 87, 0), // dark green
-          new Color(55, 129, 252), // light blue
-          new Color(94, 88, 214), // light purple
-          new Color(189, 243, 61), // light green
-          new Color(217, 109, 194), // pink
-          new Color(0, 0, 128), // ALL KINDS OF BLUES
-          new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
-          new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
-          new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
-          new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
-          new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
-          new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
-          new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
-          new Color(224, 255, 255), new Color(255, 192, 0), // yellowy orange
-          new Color(227, 108, 9), // halloween orange
+                   new Color(23, 58, 172), // dark blue
+                   new Color(201, 30, 10), // deep red
+                   new Color(140, 20, 180), // deep purple
+                   new Color(33, 87, 0), // dark green
+                   new Color(55, 129, 252), // light blue
+                   new Color(94, 88, 214), // light purple
+                   new Color(189, 243, 61), // light green
+                   new Color(217, 109, 194), // pink
+                   new Color(0, 0, 128), // ALL KINDS OF BLUES
+                   new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
+                   new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
+                   new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
+                   new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
+                   new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
+                   new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
+                   new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
+                   new Color(224, 255, 255), new Color(255, 192, 0), // yellowy orange
+                   new Color(227, 108, 9), // halloween orange
       };
 
   public static void computeCI(String dir, String prefix, int max, Logger log) {
@@ -120,8 +121,8 @@ public class QQPlot {
    * @param log
    */
   public static QQPlot loadPvals(String[] filenames, String plotLabel, boolean displayQuantiles,
-      boolean displayStandardQQ, boolean displayRotatedQQ, double maxToPlot, boolean symmetric,
-      float maxValue, Logger log) {
+                                 boolean displayStandardQQ, boolean displayRotatedQQ,
+                                 double maxToPlot, boolean symmetric, float maxValue, Logger log) {
     BufferedReader reader;
     String[] labels;
     double[][] pvals;
@@ -135,9 +136,8 @@ public class QQPlot {
     int invalids;
 
     if (filenames == null || filenames.length == 0) {
-      reportQQError(
-          "There are no files selected for viewing in QQ plot; please add the names of the files you want to view after QQ_FILENAMES= in the project's .properties file (also be sure to uncomment the property by removing the hash symbol (\"#\"))",
-          log);
+      reportQQError("There are no files selected for viewing in QQ plot; please add the names of the files you want to view after QQ_FILENAMES= in the project's .properties file (also be sure to uncomment the property by removing the hash symbol (\"#\"))",
+                    log);
       return null;
     }
 
@@ -192,10 +192,9 @@ public class QQPlot {
         try {
           if (!ext.isMissingValue(trav)) {
             if (Double.parseDouble(trav) <= 0) {
-              reportQQError(
-                  "Error - one of the p-values in file " + filenames[i] + " is near zero (" + trav
-                      + ") for line:\n" + ext.replaceAllWith(temp, delimiter, "  "),
-                  log);
+              reportQQError("Error - one of the p-values in file " + filenames[i]
+                            + " is near zero (" + trav + ") for line:\n"
+                            + ext.replaceAllWith(temp, delimiter, "  "), log);
               invalids++;
             }
             header = false;
@@ -217,10 +216,9 @@ public class QQPlot {
             try {
               if (Double.parseDouble(trav) <= 0) {
                 if (invalids < 3) {
-                  reportQQError(
-                      "Error - one of the p-values in file " + filenames[i] + " is near zero ("
-                          + trav + ") for line:\n" + ext.replaceAllWith(temp, delimiter, "  "),
-                      log);
+                  reportQQError("Error - one of the p-values in file " + filenames[i]
+                                + " is near zero (" + trav + ") for line:\n"
+                                + ext.replaceAllWith(temp, delimiter, "  "), log);
                 }
                 invalids++;
               } else {
@@ -228,10 +226,9 @@ public class QQPlot {
               }
             } catch (NumberFormatException nfe) {
               if (invalids < 3) {
-                reportQQError(
-                    "Error - one of the p-values in file " + filenames[i] + " is not a number ("
-                        + trav + ") for line:\n" + ext.replaceAllWith(temp, delimiter, "  "),
-                    log);
+                reportQQError("Error - one of the p-values in file " + filenames[i]
+                              + " is not a number (" + trav + ") for line:\n"
+                              + ext.replaceAllWith(temp, delimiter, "  "), log);
               }
               invalids++;
             }
@@ -240,7 +237,8 @@ public class QQPlot {
         reader.close();
         if (invalids > 2) {
           reportQQError("There were " + invalids
-              + " total markers that had an invalid p-value for file " + filenames[i], log);
+                        + " total markers that had an invalid p-value for file " + filenames[i],
+                        log);
         }
 
         reader = Files.getReader(filenames[i], JAR, true, true);
@@ -271,7 +269,7 @@ public class QQPlot {
         reader.close();
         if (count != pvals[i].length) {
           reportQQError("Error - mismatched number of values: " + count + " of " + pvals[i].length
-              + " were valid", log);
+                        + " were valid", log);
           return null;
         }
 
@@ -329,7 +327,7 @@ public class QQPlot {
    * @param log
    */
   public QQPlot(String[] labels, double[][] pvals, boolean log10, boolean rotated,
-      boolean symmetric, float maxValue, Logger log) {
+                boolean symmetric, float maxValue, Logger log) {
     this.log = log;
     log.report("Loading data for " + ext.listWithCommas(labels));
 

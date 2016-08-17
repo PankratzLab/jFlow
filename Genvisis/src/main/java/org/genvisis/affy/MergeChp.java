@@ -19,7 +19,8 @@ public class MergeChp implements Runnable {
   public static final String FILENAME_AS_ID_OPTION = "[FILENAME_ROOT]";
 
   public static void combineChpFiles(String affyResultsDir, int numThreads,
-      String commonSubFolderPattern, String commonFilename, String output, Logger log) {
+                                     String commonSubFolderPattern, String commonFilename,
+                                     String output, Logger log) {
     Vector<Vector<String>> fileCabinet;
     Thread[] threads;
     boolean complete;
@@ -47,9 +48,11 @@ public class MergeChp implements Runnable {
     System.out.println("beginning to merge " + files.length + " files");
     threads = new Thread[numThreads];
     for (int i = 0; i < numThreads; i++) {
-      threads[i] = new Thread(new MergeChp(affyResultsDir,
-          fileCabinet.elementAt(i).toArray(new String[fileCabinet.elementAt(i).size()]), timeBegan,
-          i, commonSubFolder, output, log));
+      threads[i] =
+          new Thread(new MergeChp(affyResultsDir,
+                                  fileCabinet.elementAt(i)
+                                             .toArray(new String[fileCabinet.elementAt(i).size()]),
+                                  timeBegan, i, commonSubFolder, output, log));
       threads[i].start();
       try {
         Thread.sleep(100L);
@@ -84,9 +87,9 @@ public class MergeChp implements Runnable {
     String commonFilename = ".txt";
     String affyResultsDir = "";
     String usage = "\n" + "affy.MergeChp requires 0-1 arguments\n"
-        + "   (1) Affy results directory (i.e. affyResultsDir= (default))\n"
-        + "   (2) number of threads to use (i.e. threads=" + numThreads + " (default))"
-        + "   (3) output directory (i.e. output=" + output + " (default))" + "\n";
+                   + "   (1) Affy results directory (i.e. affyResultsDir= (default))\n"
+                   + "   (2) number of threads to use (i.e. threads=" + numThreads + " (default))"
+                   + "   (3) output directory (i.e. output=" + output + " (default))" + "\n";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -110,7 +113,7 @@ public class MergeChp implements Runnable {
 
     try {
       combineChpFiles(affyResultsDir, numThreads, commonSubFolderPattern, commonFilename, output,
-          new Logger());
+                      new Logger());
     }
 
     catch (Exception e) {
@@ -134,7 +137,7 @@ public class MergeChp implements Runnable {
   }
 
   public MergeChp(String affyResultsDir, String[] files, long timeBegan, int threadId,
-      String commonSubFolderPattern, String output, Logger log) {
+                  String commonSubFolderPattern, String output, Logger log) {
     this.affyResultsDir = affyResultsDir;
     this.files = files;
     this.log = log;
@@ -174,14 +177,14 @@ public class MergeChp implements Runnable {
 
         for (int i = 0; i < dirList.length; i++) {
           try {
-            reader = Files.getAppropriateReader(
-                affyResultsDir + dirList[i] + commonSubFolder + "/" + files[j]);
+            reader = Files.getAppropriateReader(affyResultsDir + dirList[i] + commonSubFolder + "/"
+                                                + files[j]);
             // filter comments
             do {
               line = reader.readLine().trim().split(delimiter, -1);
 
             } while (reader.ready() && (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line,
-                false, true, false, false)[0] == -1));
+                                                         false, true, false, false)[0] == -1));
             // if its the first directory, print the header
 
             if (i == 0) {
@@ -196,12 +199,12 @@ public class MergeChp implements Runnable {
             reader.close();
 
           } catch (FileNotFoundException fnfe) {
-            log.reportTimeError(
-                "Error: file \"" + files[j] + "\" not found in " + affyResultsDir + dirList[i]);
+            log.reportTimeError("Error: file \"" + files[j] + "\" not found in " + affyResultsDir
+                                + dirList[i]);
             return;
           } catch (IOException ioe) {
-            log.reportTimeError(
-                "Error reading file \"" + affyResultsDir + dirList[i] + files[j] + "\"");
+            log.reportTimeError("Error reading file \"" + affyResultsDir + dirList[i] + files[j]
+                                + "\"");
             return;
           }
         }

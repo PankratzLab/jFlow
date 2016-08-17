@@ -17,8 +17,8 @@ public class jlin {
     String mapfile = "map.info";
 
     String usage = "\n" + "park.jlin requires 2 arguments:\n" + "   (1) a pre file (i.e. file="
-        + filename + " (default))\n" + "   (2) a Haploview-style map file (i.e. map=" + mapfile
-        + " (default))\n" + "";
+                   + filename + " (default))\n" + "   (2) a Haploview-style map file (i.e. map="
+                   + mapfile + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -71,8 +71,7 @@ public class jlin {
       line = reader.readLine().split("[\\s]+");
       data = new int[line.length - 6];
       if (data.length % 2 != 0) {
-        System.err.println(
-            "Error - Expecting 6 columns (including affection status) followed by an even number of alleles");
+        System.err.println("Error - Expecting 6 columns (including affection status) followed by an even number of alleles");
         System.exit(4);
       }
       score = 0;

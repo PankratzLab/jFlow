@@ -20,8 +20,9 @@ public class alleleDistribution {
     boolean sum = true;
 
     String usage = "\n" + "park.alleleDistribution requires 1-2 arguments:\n"
-        + "   (1) a list of DNAs and their plates (2 cols)\n" + "       (i.e. file=" + filename
-        + " (default))\n" + "   (2) calculate total (i.e. sum=true (default))\n" + "";
+                   + "   (1) a list of DNAs and their plates (2 cols)\n" + "       (i.e. file="
+                   + filename + " (default))\n"
+                   + "   (2) calculate total (i.e. sum=true (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -116,8 +117,8 @@ public class alleleDistribution {
       try {
         reader = new BufferedReader(new FileReader("map" + chrome + ".dat"));
       } catch (FileNotFoundException fnfe) {
-        System.err
-            .println("Error - Cannot find " + "map" + chrome + ".dat" + " in current directory");
+        System.err.println("Error - Cannot find " + "map" + chrome + ".dat"
+                           + " in current directory");
         System.exit(1);
       }
       line = reader.readLine().split("[\\s]+");
@@ -157,8 +158,8 @@ public class alleleDistribution {
       reader.close();
 
       if (!new File("re_chrom" + chrome + ".pre").exists()) {
-        System.err.println(
-            "Error - could not find " + "re_chrom" + chrome + ".pre" + " in current directory");
+        System.err.println("Error - could not find " + "re_chrom" + chrome + ".pre"
+                           + " in current directory");
         System.exit(2);
       }
       reader = new BufferedReader(new FileReader("re_chrom" + chrome + ".pre"));
@@ -166,8 +167,8 @@ public class alleleDistribution {
         line = reader.readLine().split("[\\s]+");
         plate = species.indexOf(hash.get(line[0] + "\t" + line[1])) + 1;
         if (plate == 0 && Integer.valueOf(line[1]).intValue() < 100) {
-          System.err
-              .println("Error - don't know which plate " + line[0] + "\t" + line[1] + " is on");
+          System.err.println("Error - don't know which plate " + line[0] + "\t" + line[1]
+                             + " is on");
         }
         for (int j = 0; j < numMarkers; j++) {
           try {
@@ -179,11 +180,11 @@ public class alleleDistribution {
             }
           } catch (Exception e) {
             System.err.println("Error - marker allele outside expected range for marker " + (j + 1)
-                + " of individual " + line[0] + "-" + line[1]);
-            System.err
-                .println("        alleles " + (Integer.valueOf(line[j * 2 + 6]).intValue() + 1)
-                    + "/" + (Integer.valueOf(line[j * 2 + 6 + 1]).intValue() + 1)
-                    + " outside maximum of " + counts[j].length);
+                               + " of individual " + line[0] + "-" + line[1]);
+            System.err.println("        alleles "
+                               + (Integer.valueOf(line[j * 2 + 6]).intValue() + 1) + "/"
+                               + (Integer.valueOf(line[j * 2 + 6 + 1]).intValue() + 1)
+                               + " outside maximum of " + counts[j].length);
             System.exit(4);
           }
         }
@@ -199,7 +200,7 @@ public class alleleDistribution {
         for (int k = 1; k < names[j].length; k++) {
           writer.print("\t" + names[j][k]);
           if (k != 1 && Integer.valueOf(names[j][k]).intValue()
-              - Integer.valueOf(names[j][k - 1]).intValue() == 1) {
+                        - Integer.valueOf(names[j][k - 1]).intValue() == 1) {
             numIncr++;
           }
           for (int l = 0; l < species.size() + 1; l++) {
@@ -275,12 +276,12 @@ public class alleleDistribution {
 
         keys = Sort.quicksort(diffs);
         suggest.print(names[j][0] + "\t" + ext.formDeci(score / (names[j].length - 1), 2) + "\t"
-            + (names[j].length - 1) + "\t" + numIncr + "\t"
-            + ext.formDeci(diffs[keys[diffs.length - 1]], 3));
+                      + (names[j].length - 1) + "\t" + numIncr + "\t"
+                      + ext.formDeci(diffs[keys[diffs.length - 1]], 3));
         keys = Sort.quicksort(maxis);
         suggest.println("\t" + ext.formDeci(maxis[keys[maxis.length - 1]], 3) + "\t"
-            + ext.formDeci(maxis[keys[maxis.length - 2]], 3) + "\t"
-            + ext.formDeci(maxis[keys[maxis.length - 3]], 3));
+                        + ext.formDeci(maxis[keys[maxis.length - 2]], 3) + "\t"
+                        + ext.formDeci(maxis[keys[maxis.length - 3]], 3));
         writer.println();
       }
       writer.close();

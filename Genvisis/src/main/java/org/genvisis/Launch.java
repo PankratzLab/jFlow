@@ -52,40 +52,40 @@ import org.genvisis.seq.manage.VCFOps;
 public class Launch {
   public static final String[] LAUNCH_TYPES =
       {"lookup - using a list of keys, pull data from multiple files",
-          "dummy - create a dummy dataset with N instances of each pattern", "counts", "miss",
-          "indep", "genes",
-          "filterSNPs - filters SNP positions based on a set of regions with start and end positions",
-          "filterByLists - filter unique IDs via a keeps file and a removes file",
-          "plink - convert a PLINK text data set (plink.ped/plink.map) into a tab-delimited spreadsheet",
-          "simpleM - generate a simpleM script to estimate the number of effective tests", "score",
-          "parse - use GenParser to edit a text file", "ucsc", "split",
-          "cat - concatenate the specified files", "rename - rename the specified files",
-          "subs - substitute patterns in filenames", "db", "merge", "mergeSNPs",
-          "trimFam - use the TrimFam algorithm to reduce the complexity of a set of pedigrees down to critical individuals and those needed to connect them",
-          "freq - computes weighted allele frequency",
-          "uniform - creates a hits control file where each file listed has the same column names, only with a different prefix",
-          "metal - perform a meta-analysis using METAL", "transform", "forest", "unique", "dir",
-          "copy", "meta", "gwaf",
-          "sas - merge results from a series of dumped sas.xln files in different folders",
-          "results - merge map and frequency information into a final results file",
-          "vcf - lookup chr pos ref alt and return allele counts and frequencies",
-          "FilterDB - filter based on column names, thresholds and error messages",
-          "filterCNVs - calls FilterCalls to apply size/score/span limits",
-          "MeanLRR - compute mean LRRs for specific regions, then analyze or export to a text file",
-          "gwas.Qc - runs full QC protocol using PLINK", "descriptive - summarize a phenotype file",
-          "phenoPrep - transform trait, reorder ids, and deal with outliers",
-          "bestTransformation - determine transformations that improve normality (i.e., minimizes skewness and kurtosis)",
-          "peakat - takes the first or last N lines of a file, or counts the lines",
-          "grep - filters a file line by line depending on the presence/absence of inclusion/exclusion criteria",
-          CNVTrioFilter.COMMAND_CNV_TRIO_CRF + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION,
-          VCF.VCF_INIT, VCF.VCF_COMMAND, CNVFilter.COMMAND_CNV_FILTER_CRF,
-          CNVFilter.COMMAND_CNV_FILTER_DESCRIPTION, CNVConcordance.COMMAND_CNV_CONCORDANCE,
-          CNVConcordance.COMMAND_CNV_CONCORDANCE_DESCRIPTION, VCFOps.COMMAND_VCF_OPS_EXTRACT,
-          VCFOps.COMMAND_VCF_EXTRACT_DESCRIPTION,
-          "replaceAll - replace Strings in a file using a list of replacements",
-          "snps - takes a list of marker names (rs IDs) and adds chr/pos info, and possibly additional information depending on options specified",
-          "search - takes a merged dbGap data set and searches for specific keywords",
-          "dbgap - takes the output of \"search\" and extracts data from merged dbGap data",};
+       "dummy - create a dummy dataset with N instances of each pattern", "counts", "miss", "indep",
+       "genes",
+       "filterSNPs - filters SNP positions based on a set of regions with start and end positions",
+       "filterByLists - filter unique IDs via a keeps file and a removes file",
+       "plink - convert a PLINK text data set (plink.ped/plink.map) into a tab-delimited spreadsheet",
+       "simpleM - generate a simpleM script to estimate the number of effective tests", "score",
+       "parse - use GenParser to edit a text file", "ucsc", "split",
+       "cat - concatenate the specified files", "rename - rename the specified files",
+       "subs - substitute patterns in filenames", "db", "merge", "mergeSNPs",
+       "trimFam - use the TrimFam algorithm to reduce the complexity of a set of pedigrees down to critical individuals and those needed to connect them",
+       "freq - computes weighted allele frequency",
+       "uniform - creates a hits control file where each file listed has the same column names, only with a different prefix",
+       "metal - perform a meta-analysis using METAL", "transform", "forest", "unique", "dir",
+       "copy", "meta", "gwaf",
+       "sas - merge results from a series of dumped sas.xln files in different folders",
+       "results - merge map and frequency information into a final results file",
+       "vcf - lookup chr pos ref alt and return allele counts and frequencies",
+       "FilterDB - filter based on column names, thresholds and error messages",
+       "filterCNVs - calls FilterCalls to apply size/score/span limits",
+       "MeanLRR - compute mean LRRs for specific regions, then analyze or export to a text file",
+       "gwas.Qc - runs full QC protocol using PLINK", "descriptive - summarize a phenotype file",
+       "phenoPrep - transform trait, reorder ids, and deal with outliers",
+       "bestTransformation - determine transformations that improve normality (i.e., minimizes skewness and kurtosis)",
+       "peakat - takes the first or last N lines of a file, or counts the lines",
+       "grep - filters a file line by line depending on the presence/absence of inclusion/exclusion criteria",
+       CNVTrioFilter.COMMAND_CNV_TRIO_CRF + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION,
+       VCF.VCF_INIT, VCF.VCF_COMMAND, CNVFilter.COMMAND_CNV_FILTER_CRF,
+       CNVFilter.COMMAND_CNV_FILTER_DESCRIPTION, CNVConcordance.COMMAND_CNV_CONCORDANCE,
+       CNVConcordance.COMMAND_CNV_CONCORDANCE_DESCRIPTION, VCFOps.COMMAND_VCF_OPS_EXTRACT,
+       VCFOps.COMMAND_VCF_EXTRACT_DESCRIPTION,
+       "replaceAll - replace Strings in a file using a list of replacements",
+       "snps - takes a list of marker names (rs IDs) and adds chr/pos info, and possibly additional information depending on options specified",
+       "search - takes a merged dbGap data set and searches for specific keywords",
+       "dbgap - takes the output of \"search\" and extracts data from merged dbGap data",};
 
   public static void main(String[] args) throws IOException {
     int numArgs = args.length;
@@ -93,11 +93,11 @@ public class Launch {
     boolean suppress = false;
     boolean create = false;
 
-    String usage =
-        "\n" + "park.crfDB requires 0-1 arguments\n" + "   (1) filename (i.e. " + filename
-            + " (default)\n" + "   (2) suppress Windows stdin (i.e. -suppress (not the default)\n"
-            + "   (3) create a blank file before running if it does not exist (i.e. -create (not the default)\n"
-            + "";
+    String usage = "\n" + "park.crfDB requires 0-1 arguments\n" + "   (1) filename (i.e. "
+                   + filename + " (default)\n"
+                   + "   (2) suppress Windows stdin (i.e. -suppress (not the default)\n"
+                   + "   (3) create a blank file before running if it does not exist (i.e. -create (not the default)\n"
+                   + "";
 
     for (int i = 0; i < args.length; i++) {
       if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h")
@@ -129,7 +129,7 @@ public class Launch {
         new File(filename).createNewFile();
       } else {
         System.err.println("Error - file '" + filename
-            + "' does not exist; add -create to the commandline to autogenerate");
+                           + "' does not exist; add -create to the commandline to autogenerate");
         ext.waitForResponse();
         return;
       }

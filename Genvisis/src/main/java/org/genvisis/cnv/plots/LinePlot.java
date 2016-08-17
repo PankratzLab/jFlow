@@ -57,7 +57,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
 public class LinePlot extends JPanel
-    implements WindowListener, ActionListener, TreeSelectionListener {
+                      implements WindowListener, ActionListener, TreeSelectionListener {
   public static final long serialVersionUID = 1L;
   public static final byte DEFAULT_SIZE = 8;
 
@@ -78,12 +78,12 @@ public class LinePlot extends JPanel
       {ADD_DATA_FILE, REMOVE_DATA_FILE, SET_AS_COLORKEY, SET_AS_LINKKEY};
   public static final String[][] LINKERS =
       {{"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID", "Sample"},
-          {"Family ID", "FamID", "FID"}, {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"},
-          {"MarkerName", "Marker", "SNP", "Variant", "VariantName"}, // will link to Scatter Plot
-          {"Region", "UCSC", "Band", "Arm"}, // will link to Trailer
-          {"Chromosome", "Chr"}, // secondary link to Trailer
-          {"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
-          {"Stop Position", "Stop", "End"} // secondary link to Trailer
+       {"Family ID", "FamID", "FID"}, {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"},
+       {"MarkerName", "Marker", "SNP", "Variant", "VariantName"}, // will link to Scatter Plot
+       {"Region", "UCSC", "Band", "Arm"}, // will link to Trailer
+       {"Chromosome", "Chr"}, // secondary link to Trailer
+       {"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
+       {"Stop Position", "Stop", "End"} // secondary link to Trailer
       };
 
   /**
@@ -118,8 +118,8 @@ public class LinePlot extends JPanel
     SwingUtilities.invokeLater(new Runnable() {
       @Override
       public void run() {
-        createAndShowGUI(
-            new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true), false));
+        createAndShowGUI(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true),
+                                     false));
       }
     });
 
@@ -258,7 +258,7 @@ public class LinePlot extends JPanel
 
     setVisible(true);
     readColorKeyFile(proj.PROJECT_DIRECTORY.getValue() + File.separator + LINE_PLOT_DIR_NAME
-        + File.separator + LINE_PLOT_COLOR_FILENAME);
+                     + File.separator + LINE_PLOT_COLOR_FILENAME);
     updateColorKey();
   }
 
@@ -275,9 +275,9 @@ public class LinePlot extends JPanel
       int fileOpenActionSelected = fileChooser.showOpenDialog(null);
       if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
         for (int i = 0; tree != null
-            && i < tree.getModel().getChildCount(tree.getModel().getRoot()); i++) {
+                        && i < tree.getModel().getChildCount(tree.getModel().getRoot()); i++) {
           if (ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/")
-              .equals(tree.getModel().getChild(tree.getModel().getRoot(), i).toString())) {
+                 .equals(tree.getModel().getChild(tree.getModel().getRoot(), i).toString())) {
             found = true;
             break;
           }
@@ -514,14 +514,14 @@ public class LinePlot extends JPanel
             if (yHash.containsKey(key)) {
               colorCode = getColorFromFilename(recordName);
               v.add(new String[] {xHash.get(key)[0], xHash.get(key)[0], yHash.get(key),
-                  colorCode + "", xHash.get(key)[0]});
+                                  colorCode + "", xHash.get(key)[0]});
             }
           }
         } else {
           for (String key : keys) {
             if (yHash.containsKey(key)) {
               v.add(new String[] {xHash.get(key)[0], xHash.get(key)[0], yHash.get(key),
-                  "all other keys", xHash.get(key)[0]});
+                                  "all other keys", xHash.get(key)[0]});
             }
           }
         }
@@ -539,7 +539,7 @@ public class LinePlot extends JPanel
         result[i] = "";
       } else {
         result[i] = ext.removeDirectoryInfo(selectionValues[i][0]) + " _ "
-            + namesHash.get(selectionValues[i][0])[Integer.parseInt(selectionValues[i][1])];
+                    + namesHash.get(selectionValues[i][0])[Integer.parseInt(selectionValues[i][1])];
       }
     }
     return result;
@@ -603,7 +603,7 @@ public class LinePlot extends JPanel
 
       if (linkKeyIndices[0] == -1) {
         log.report("ID linker not automatically identified for file '" + filename
-            + "'; assuming the first column.");
+                   + "'; assuming the first column.");
         linkKeyIndices[0] = 0;
       }
 
@@ -626,12 +626,12 @@ public class LinePlot extends JPanel
         }
         if (line.length != header.length) {
           JOptionPane.showMessageDialog(null,
-              "File '" + filename
-                  + "' does not have a uniform number of columns and was not properly loaded",
-              "Error", JOptionPane.ERROR_MESSAGE);
+                                        "File '" + filename
+                                              + "' does not have a uniform number of columns and was not properly loaded",
+                                        "Error", JOptionPane.ERROR_MESSAGE);
           log.report("Error - mismatched number of columns (n=" + line.length
-              + " versus the header, which had " + header.length + ") at line " + count
-              + " of file " + filename);
+                     + " versus the header, which had " + header.length + ") at line " + count
+                     + " of file " + filename);
           reader.close();
           return;
         }
@@ -803,7 +803,8 @@ public class LinePlot extends JPanel
               if (groupToColorLabelHash.containsKey(classValue)) {
                 JLabel thisColorLabel[] = groupToColorLabelHash.get(classValue);
                 thisColorLabel[0] = new JLabel(new ColorIcon(12, 12,
-                    LinePanel.DEFAULT_COLORS[LinePanel.DEFAULT_COLORS.length - 1]));
+                                                             LinePanel.DEFAULT_COLORS[LinePanel.DEFAULT_COLORS.length
+                                                                                      - 1]));
                 generateColorKeyPanel();
               }
               performGroupCheckboxAction(classValue, ItemEvent.DESELECTED);
@@ -818,8 +819,9 @@ public class LinePlot extends JPanel
               // set this group color block in ColorKeyPanel to black
               if (groupToColorLabelHash.containsKey(classValue)) {
                 JLabel thisColorLabel[] = groupToColorLabelHash.get(classValue);
-                thisColorLabel[0] = new JLabel(new ColorIcon(12, 12,
-                    LinePanel.DEFAULT_COLORS[LinePanel.DEFAULT_COLORS_BLACK_INDEX]));
+                thisColorLabel[0] =
+                    new JLabel(new ColorIcon(12, 12,
+                                             LinePanel.DEFAULT_COLORS[LinePanel.DEFAULT_COLORS_BLACK_INDEX]));
                 generateColorKeyPanel();
               }
               performGroupCheckboxAction(classValue, ItemEvent.SELECTED);
@@ -829,8 +831,9 @@ public class LinePlot extends JPanel
             // set the color block to this group's color in the ColorKeyPanel
             if (groupToColorLabelHash.containsKey(classValue)) {
               JLabel thisColorLabel[] = groupToColorLabelHash.get(classValue);
-              thisColorLabel[0] = new JLabel(new ColorIcon(12, 12,
-                  LinePanel.DEFAULT_COLORS[groupToColorHash.get(classValue)]));
+              thisColorLabel[0] =
+                  new JLabel(new ColorIcon(12, 12,
+                                           LinePanel.DEFAULT_COLORS[groupToColorHash.get(classValue)]));
               generateColorKeyPanel();
             }
             performGroupCheckboxAction(classValue, ItemEvent.SELECTED);
@@ -901,19 +904,19 @@ public class LinePlot extends JPanel
         branchHandles[0] = treeFilenameLookup.elementAt(i);
         namesOfNodes[0] = treeFileVariableNameLookup[i];
         tree = new CheckBoxTree(namesOfBranches, branchHandles, namesOfNodes,
-            numericHash.get(treeFilenameLookup.elementAt(0)), 2);
+                                numericHash.get(treeFilenameLookup.elementAt(0)), 2);
       } else {
         boolean found = false;
         for (int j = 0; j < tree.getModel().getChildCount(tree.getModel().getRoot()); j++) {
           if (tree.getModel().getChild(tree.getModel().getRoot(), j).toString()
-              .equals(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)))) {
+                  .equals(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)))) {
             found = true;
           }
         }
         if (!found) {
           tree.addNode(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)),
-              treeFilenameLookup.elementAt(i), treeFileVariableNameLookup[i],
-              numericHash.get(treeFilenameLookup.elementAt(i)), null);
+                       treeFilenameLookup.elementAt(i), treeFileVariableNameLookup[i],
+                       numericHash.get(treeFilenameLookup.elementAt(i)), null);
         }
       }
       tree.setMaxSelections(maxSelectable);

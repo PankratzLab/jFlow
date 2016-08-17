@@ -36,8 +36,8 @@ public class MarkerData implements Serializable {
   public static MarkerData[] loadMarkerData(Project proj, String[] markers) {
     if (markers.length > 500) {
       proj.getLog().reportTimeWarning(
-          "This method is generally used for loading a small subset of markers in the same thread, currently loading "
-              + markers.length + " markers");
+                                      "This method is generally used for loading a small subset of markers in the same thread, currently loading "
+                                      + markers.length + " markers");
     }
     MarkerData[] markerDatas = new MarkerData[markers.length];
     MarkerDataLoader markerDataLoader =
@@ -67,8 +67,9 @@ public class MarkerData implements Serializable {
   private final byte[] forwardGenotypes;
 
   public MarkerData(String markerName, byte chr, int position, long fingerprint, float[] gcs,
-      float[] xRaws, float[] yRaws, float[] xs, float[] ys, float[] thetas, float[] rs,
-      float[] bafs, float[] lrrs, byte[] abGenotypes, byte[] forwardGenotypes) {
+                    float[] xRaws, float[] yRaws, float[] xs, float[] ys, float[] thetas,
+                    float[] rs, float[] bafs, float[] lrrs, byte[] abGenotypes,
+                    byte[] forwardGenotypes) {
     this.markerName = markerName;
     this.chr = chr;
     this.position = position;
@@ -99,16 +100,16 @@ public class MarkerData implements Serializable {
       if (!Float.isNaN(lrrs[i])) {
         originalLRRs[count] = lrrs[i];
         compLRRs[count] = Centroids.calcLRR(Centroids.calcTheta(xs[i], ys[i]),
-            Centroids.calcR(xs[i], ys[i]), centroids);
+                                            Centroids.calcR(xs[i], ys[i]), centroids);
         if (Double.isNaN(compLRRs[count])) {
           log.reportError("Error - compLRR is invalid (" + compLRRs[count]
-              + ") where oriLRR is not (" + lrrs[count] + ")");
+                          + ") where oriLRR is not (" + lrrs[count] + ")");
         } else {
           error += Math.abs(compLRRs[count] - originalLRRs[count]);
           count++;
           if (!Numbers.isFinite(error)) {
             log.reportError("Started with index " + i + ", compLRR of '" + compLRRs[count]
-                + "', and oriLRR of '" + originalLRRs[count] + "'");
+                            + "', and oriLRR of '" + originalLRRs[count] + "'");
             return new double[] {-999, -999};
           }
         }
@@ -117,7 +118,8 @@ public class MarkerData implements Serializable {
 
     // System.out.println("error="+error+" count="+count);
     return new double[] {Correlation.Pearson(Array.subArray(originalLRRs, 0, count),
-        Array.subArray(compLRRs, 0, count))[0], error / count};
+                                             Array.subArray(compLRRs, 0, count))[0],
+                         error / count};
   }
 
   public int detectCNP() {
@@ -127,7 +129,7 @@ public class MarkerData implements Serializable {
 
 
   public int detectCNP(double proportionOfLastPeakRequiredForNewLocalMinima,
-      double proportionOfGlobalMaxRequiredForLocalMaxima) {
+                       double proportionOfGlobalMaxRequiredForLocalMaxima) {
     float[][] clusterCenters;
     DoubleVector x = new DoubleVector();
     DoubleVector y = new DoubleVector();
@@ -189,24 +191,25 @@ public class MarkerData implements Serializable {
     // }
     // System.out.print(x.size()+"\t"+y.size()+"\t");
 
-    return (x.size() > 0
-        ? Array.getLocalModes(Doubles.toArray(x), proportionOfLastPeakRequiredForNewLocalMinima,
-            proportionOfGlobalMaxRequiredForLocalMaxima).length
-        : 0)
-        + (y.size() > 0
-            ? Array.getLocalModes(Doubles.toArray(y), proportionOfLastPeakRequiredForNewLocalMinima,
-                proportionOfGlobalMaxRequiredForLocalMaxima).length
-            : 0);
+    return (x.size() > 0 ? Array.getLocalModes(Doubles.toArray(x),
+                                               proportionOfLastPeakRequiredForNewLocalMinima,
+                                               proportionOfGlobalMaxRequiredForLocalMaxima).length
+                         : 0)
+           + (y.size() > 0 ? Array.getLocalModes(Doubles.toArray(y),
+                                                 proportionOfLastPeakRequiredForNewLocalMinima,
+                                                 proportionOfGlobalMaxRequiredForLocalMaxima).length
+                           : 0);
   }
 
   public void dump(SampleData sampleData, String filename, String[] samples,
-      boolean includeMarkerName, Logger log) {
+                   boolean includeMarkerName, Logger log) {
     PrintWriter writer;
     boolean hasExcludedIndividuals;
 
     if (samples != null && samples.length != getDataLength()) {
       log.reportError("Error - Number of samples (n=" + samples.length
-          + ") does not match up with the number of LRRs/BAFs/etc (n=" + getDataLength() + ")");
+                      + ") does not match up with the number of LRRs/BAFs/etc (n=" + getDataLength()
+                      + ")");
       return;
     }
 
@@ -217,26 +220,30 @@ public class MarkerData implements Serializable {
 
     try {
       writer = new PrintWriter(new FileWriter(filename));
-      writer.println(
-          (includeMarkerName ? "Marker\t" : "") + (samples == null ? "SampleIndex" : "SampleId")
-              + (gcs == null ? "" : "\tGC") + (xRaws == null ? "" : "\tRaw X")
-              + (yRaws == null ? "" : "\tRaw Y") + (xs == null ? "" : "\tX")
-              + (ys == null ? "" : "\tY") + (thetas == null ? "" : "\tTheta")
-              + (rs == null ? "" : "\tR") + (lrrs == null ? "" : "\tLRR")
-              + (bafs == null ? "" : "\tBAF") + (abGenotypes == null ? "" : "\tAB_Genotypes")
-              + (forwardGenotypes == null ? "" : "\tForward_Genotypes")
-              + (hasExcludedIndividuals ? "\tExclude_Sample" : ""));
+      writer.println((includeMarkerName ? "Marker\t" : "")
+                     + (samples == null ? "SampleIndex" : "SampleId") + (gcs == null ? "" : "\tGC")
+                     + (xRaws == null ? "" : "\tRaw X") + (yRaws == null ? "" : "\tRaw Y")
+                     + (xs == null ? "" : "\tX") + (ys == null ? "" : "\tY")
+                     + (thetas == null ? "" : "\tTheta") + (rs == null ? "" : "\tR")
+                     + (lrrs == null ? "" : "\tLRR") + (bafs == null ? "" : "\tBAF")
+                     + (abGenotypes == null ? "" : "\tAB_Genotypes")
+                     + (forwardGenotypes == null ? "" : "\tForward_Genotypes")
+                     + (hasExcludedIndividuals ? "\tExclude_Sample" : ""));
       for (int i = 0; i < getDataLength(); i++) {
         writer.println((includeMarkerName ? markerName + "\t" : "")
-            + (samples != null ? samples[i] : i) + (gcs != null ? "\t" + gcs[i] : "")
-            + (xRaws != null ? "\t" + xRaws[i] : "") + (yRaws != null ? "\t" + yRaws[i] : "")
-            + (xs != null ? "\t" + xs[i] : "") + (ys != null ? "\t" + ys[i] : "")
-            + (thetas != null ? "\t" + thetas[i] : "") + (rs != null ? "\t" + rs[i] : "")
-            + (lrrs != null ? "\t" + lrrs[i] : "") + (bafs != null ? "\t" + bafs[i] : "")
-            + (abGenotypes != null ? "\t" + abGenotypes[i] : "")
-            + (forwardGenotypes != null ? "\t" + Sample.ALLELE_PAIRS[forwardGenotypes[i]] : "")
-            + (hasExcludedIndividuals
-                ? "\t" + (sampleData.individualShouldBeExcluded(samples[i]) ? 1 : 0) : ""));
+                       + (samples != null ? samples[i] : i) + (gcs != null ? "\t" + gcs[i] : "")
+                       + (xRaws != null ? "\t" + xRaws[i] : "")
+                       + (yRaws != null ? "\t" + yRaws[i] : "") + (xs != null ? "\t" + xs[i] : "")
+                       + (ys != null ? "\t" + ys[i] : "") + (thetas != null ? "\t" + thetas[i] : "")
+                       + (rs != null ? "\t" + rs[i] : "") + (lrrs != null ? "\t" + lrrs[i] : "")
+                       + (bafs != null ? "\t" + bafs[i] : "")
+                       + (abGenotypes != null ? "\t" + abGenotypes[i] : "")
+                       + (forwardGenotypes != null ? "\t" + Sample.ALLELE_PAIRS[forwardGenotypes[i]]
+                                                   : "")
+                       + (hasExcludedIndividuals ? "\t"
+                                                   + (sampleData.individualShouldBeExcluded(samples[i]) ? 1
+                                                                                                        : 0)
+                                                 : ""));
       }
       writer.close();
     } catch (Exception e) {
@@ -283,7 +290,7 @@ public class MarkerData implements Serializable {
   }
 
   public byte[] getAbGenotypesAfterFilters(ClusterFilterCollection clusterFilterCollection,
-      String markerName, float gcThreshold, Logger log) {
+                                           String markerName, float gcThreshold, Logger log) {
     byte[] result, original;
     float[] realX;
     float[] realY;
@@ -304,7 +311,7 @@ public class MarkerData implements Serializable {
     result = new byte[original.length];
     if (gcThreshold > 1 || gcThreshold < 0) {
       log.reportError("Error - Invalid GC threshold: " + gcThreshold
-          + ", expecting a decimal number between 0 and 1. Use 0 to include everything.");
+                      + ", expecting a decimal number between 0 and 1. Use 0 to include everything.");
       return null;
     } else if (gcThreshold == 0 || gcs == null) {
       for (int i = 0; i < original.length; i++) {
@@ -367,7 +374,7 @@ public class MarkerData implements Serializable {
       } catch (Exception e) {
         if (realX == null || realY == null) {
           log.reportError("Error - values for marker '" + markerName
-              + "' were null; now returning null, which will probably create a new null pointer exception ");
+                          + "' were null; now returning null, which will probably create a new null pointer exception ");
         }
         log.reportException(e);
         return null;
@@ -381,23 +388,25 @@ public class MarkerData implements Serializable {
    * methods are improved
    */
   public byte[] getAlternateGenotypes(int[] sampleSex, boolean[] samplesToUse,
-      double missingnessThreshold, double confThreshold,
-      ClusterFilterCollection clusterFilterCollection, boolean medianCenter,
-      PrincipalComponentsResiduals pcResids, int numComponents, int correctionType, int nStage,
-      double residStandardDeviationFilter, double correctionRatio, boolean correctLRR,
-      int numThreads, Logger log) {
+                                      double missingnessThreshold, double confThreshold,
+                                      ClusterFilterCollection clusterFilterCollection,
+                                      boolean medianCenter, PrincipalComponentsResiduals pcResids,
+                                      int numComponents, int correctionType, int nStage,
+                                      double residStandardDeviationFilter, double correctionRatio,
+                                      boolean correctLRR, int numThreads, Logger log) {
     if (pcResids == null || numComponents == 0) {
       if (pcResids == null && numComponents > 0) {
-        log.report(
-            "Info - an intensity PCA file was not found as specified by INTENSITY_PC_FILENAME property");
+        log.report("Info - an intensity PCA file was not found as specified by INTENSITY_PC_FILENAME property");
       }
       return abGenotypes;
     } else {
       PrincipalComponentsIntensity pcIntensity =
           new PrincipalComponentsIntensity(pcResids, this, true, sampleSex, samplesToUse,
-              missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter,
-              (numComponents > 130 ? LS_TYPE.SVD : LS_TYPE.REGULAR), correctionType, nStage,
-              residStandardDeviationFilter, correctionRatio, numThreads, false, null);
+                                           missingnessThreshold, confThreshold,
+                                           clusterFilterCollection, medianCenter,
+                                           (numComponents > 130 ? LS_TYPE.SVD : LS_TYPE.REGULAR),
+                                           correctionType, nStage, residStandardDeviationFilter,
+                                           correctionRatio, numThreads, false, null);
       pcIntensity.correctXYAt(numComponents);
       return pcIntensity.getCentroidCompute().getClustGenotypes();
     }
@@ -411,10 +420,11 @@ public class MarkerData implements Serializable {
    * See {@link CentroidCompute#Centroid} for further usage
    */
   public CentroidCompute getCentroid(int[] sampleSex, boolean[] samplesToUse, boolean intensityOnly,
-      double missingnessThreshold, double confThreshold,
-      ClusterFilterCollection clusterFilterCollection, boolean medianCenter, Logger log) {
+                                     double missingnessThreshold, double confThreshold,
+                                     ClusterFilterCollection clusterFilterCollection,
+                                     boolean medianCenter, Logger log) {
     return new CentroidCompute(this, sampleSex, samplesToUse, intensityOnly, missingnessThreshold,
-        confThreshold, clusterFilterCollection, medianCenter, log);
+                               confThreshold, clusterFilterCollection, medianCenter, log);
   }
 
   public byte getChr() {
@@ -426,21 +436,22 @@ public class MarkerData implements Serializable {
    * methods are improved
    */
   public float[][] getCorrectedIntesity(int[] sampleSex, boolean[] samplesToUse,
-      double missingnessThreshold, double confThreshold,
-      ClusterFilterCollection clusterFilterCollection, boolean medianCenter,
-      PrincipalComponentsResiduals pcResids, int numComponents, int correctionType, int nStage,
-      double residStandardDeviationFilter, double correctionRatio, String typeToReturn,
-      int numThreads, Logger log) {
+                                        double missingnessThreshold, double confThreshold,
+                                        ClusterFilterCollection clusterFilterCollection,
+                                        boolean medianCenter, PrincipalComponentsResiduals pcResids,
+                                        int numComponents, int correctionType, int nStage,
+                                        double residStandardDeviationFilter, double correctionRatio,
+                                        String typeToReturn, int numThreads, Logger log) {
     if (pcResids == null || numComponents == 0) {
       if (pcResids == null && numComponents > 0) {
-        log.report(
-            "Info - an intensity PCA file was not found as specified by INTENSITY_PC_FILENAME property");
+        log.report("Info - an intensity PCA file was not found as specified by INTENSITY_PC_FILENAME property");
       }
       if (typeToReturn.equals(PrincipalComponentsIntensity.BAF_LRR_RETURN)) {
         // TODO, currently getRecomputedLRR_BAF may differ from PrincipalComponentsIntensity due to
         // the intensity only flag...at false
         return getRecomputedLRR_BAF(sampleSex, samplesToUse, false, missingnessThreshold,
-            confThreshold, clusterFilterCollection, medianCenter, false, log);
+                                    confThreshold, clusterFilterCollection, medianCenter, false,
+                                    log);
       }
       if (typeToReturn.equals(PrincipalComponentsIntensity.XY_RETURN)) {
         return new float[][] {xs, ys};
@@ -453,11 +464,14 @@ public class MarkerData implements Serializable {
       }
     } else {
       numThreads = Math.min(numThreads, 6);// currently can only utilize 6
-      PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcResids, this,
-          true, sampleSex, pcResids.getProj().getSamplesToInclude(null, false),
-          missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter,
-          (numComponents > 130 ? LS_TYPE.SVD : LS_TYPE.REGULAR), correctionType, nStage,
-          residStandardDeviationFilter, correctionRatio, numThreads, false, null);
+      PrincipalComponentsIntensity pcIntensity =
+          new PrincipalComponentsIntensity(pcResids, this, true, sampleSex,
+                                           pcResids.getProj().getSamplesToInclude(null, false),
+                                           missingnessThreshold, confThreshold,
+                                           clusterFilterCollection, medianCenter,
+                                           (numComponents > 130 ? LS_TYPE.SVD : LS_TYPE.REGULAR),
+                                           correctionType, nStage, residStandardDeviationFilter,
+                                           correctionRatio, numThreads, false, null);
       pcIntensity.correctXYAt(numComponents);
       // This will display the genotypes after correction in scatter plot for testing, note that you
       // will lose the original
@@ -494,24 +508,27 @@ public class MarkerData implements Serializable {
 
   public float[][] getDatapoints(int type) {
     return getDatapoints(type, null, null, false, 1, 0, null, true, null, 0, 0, 0, 0, 1, false,
-        new Logger());
+                         new Logger());
   }
 
   public float[][] getDatapoints(int type, int[] sampleSex, boolean[] samplesToUse,
-      boolean intensityOnly, double missingnessThreshold, double confThreshold,
-      ClusterFilterCollection clusterFilterCollection, boolean medianCenter,
-      PrincipalComponentsResiduals pcResids, int numComponents, int nstage,
-      double residStandardDeviationFilter, double correctionRatio, int numThreads,
-      boolean correctedData, Logger log) {
+                                 boolean intensityOnly, double missingnessThreshold,
+                                 double confThreshold,
+                                 ClusterFilterCollection clusterFilterCollection,
+                                 boolean medianCenter, PrincipalComponentsResiduals pcResids,
+                                 int numComponents, int nstage, double residStandardDeviationFilter,
+                                 double correctionRatio, int numThreads, boolean correctedData,
+                                 Logger log) {
     switch (type) {
       // case 0:
       // return new float[][] { xRaws, yRaws };
       case 0:
         if (correctedData) {
           return getCorrectedIntesity(sampleSex, samplesToUse, missingnessThreshold, confThreshold,
-              clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage,
-              residStandardDeviationFilter, correctionRatio, PrincipalComponentsIntensity.XY_RETURN,
-              numThreads, log);
+                                      clusterFilterCollection, medianCenter, pcResids,
+                                      numComponents, 2, nstage, residStandardDeviationFilter,
+                                      correctionRatio, PrincipalComponentsIntensity.XY_RETURN,
+                                      numThreads, log);
         } else {
           return new float[][] {xs, ys};
         }
@@ -519,18 +536,20 @@ public class MarkerData implements Serializable {
         // return new float[][] {thetas, rs};
         if (correctedData) {
           return getCorrectedIntesity(sampleSex, samplesToUse, missingnessThreshold, confThreshold,
-              clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage,
-              residStandardDeviationFilter, correctionRatio,
-              PrincipalComponentsIntensity.THETA_R_RETURN, numThreads, log);
+                                      clusterFilterCollection, medianCenter, pcResids,
+                                      numComponents, 2, nstage, residStandardDeviationFilter,
+                                      correctionRatio, PrincipalComponentsIntensity.THETA_R_RETURN,
+                                      numThreads, log);
         } else {
           return new float[][] {getThetas(), getRs()};
         }
       case 2:
         if (correctedData) {
           return getCorrectedIntesity(sampleSex, samplesToUse, missingnessThreshold, confThreshold,
-              clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage,
-              residStandardDeviationFilter, correctionRatio,
-              PrincipalComponentsIntensity.BAF_LRR_RETURN, numThreads, log);
+                                      clusterFilterCollection, medianCenter, pcResids,
+                                      numComponents, 2, nstage, residStandardDeviationFilter,
+                                      correctionRatio, PrincipalComponentsIntensity.BAF_LRR_RETURN,
+                                      numThreads, log);
         } else {
           return new float[][] {bafs, lrrs};
         }
@@ -574,7 +593,8 @@ public class MarkerData implements Serializable {
   // samplesToBeUsed, sex, and clusterFilters can be null
   // however if sex is null then chrX frequencies will be slightly inaccurate
   public double getFrequencyOfB(boolean[] samplesToBeUsed, String[] sex,
-      ClusterFilterCollection clusterFilterCollection, float gcThreshold, Logger log) {
+                                ClusterFilterCollection clusterFilterCollection, float gcThreshold,
+                                Logger log) {
     int[] alleleCounts = new int[2];
     byte[] genoytpes;
 
@@ -619,8 +639,8 @@ public class MarkerData implements Serializable {
       return (double) alleleCounts[1] / (double) (alleleCounts[0] + alleleCounts[1]);
 
     } else {
-      return AlleleFreq.calcFrequency(
-          getGenotypeCounts(samplesToBeUsed, sex, clusterFilterCollection, gcThreshold, log));
+      return AlleleFreq.calcFrequency(getGenotypeCounts(samplesToBeUsed, sex,
+                                                        clusterFilterCollection, gcThreshold, log));
     }
   }
 
@@ -631,10 +651,11 @@ public class MarkerData implements Serializable {
    * @return
    */
   public float[][] getGCCorrectedLRRBAF(GcAdjustorParameters params, int markerIndexInProject,
-      Logger log) {
+                                        Logger log) {
     if (params.getSampleFingerprint() != fingerprint) {
       throw new IllegalArgumentException("Mismatched sample fingerprints\tLoaded: "
-          + params.getMarkerFingerprint() + " and should have seen " + fingerprint);
+                                         + params.getMarkerFingerprint() + " and should have seen "
+                                         + fingerprint);
     }
     if (params.getGcAdjustorParameters().length != getDataLength()) {
       throw new IllegalArgumentException("Mismatched sample sizes");
@@ -645,11 +666,14 @@ public class MarkerData implements Serializable {
     } else {
       float[][] recompBAFLRR =
           params.getCentroids() == null ? new float[][] {bafs.clone(), lrrs.clone()}
-              : recomputeClone(params.getCentroids().getCentroids()[markerIndexInProject]);
+                                        : recomputeClone(params.getCentroids()
+                                                               .getCentroids()[markerIndexInProject]);
 
       for (int i = 0; i < recompBAFLRR[0].length; i++) {
-        recompBAFLRR[1][i] = (float) params.getGcAdjustorParameters()[i]
-            .adjust(GC_CORRECTION_METHOD.GENVISIS_GC, recompBAFLRR[1][i], params.getGcContent()[i]);
+        recompBAFLRR[1][i] =
+            (float) params.getGcAdjustorParameters()[i].adjust(GC_CORRECTION_METHOD.GENVISIS_GC,
+                                                               recompBAFLRR[1][i],
+                                                               params.getGcContent()[i]);
         if (Float.isNaN(recompBAFLRR[1][i])) {
           recompBAFLRR[1][i] = lrrs[i];
         }
@@ -666,7 +690,8 @@ public class MarkerData implements Serializable {
   // however if sex is null then chrX genotype counts will be inaccurate and show deviation from
   // Hardy-Weinberg equilibrium
   public int[] getGenotypeCounts(boolean[] samplesToBeUsed, String[] sex,
-      ClusterFilterCollection clusterFilterCollection, float gcThreshold, Logger log) {
+                                 ClusterFilterCollection clusterFilterCollection, float gcThreshold,
+                                 Logger log) {
     int[] genotypeCounts = new int[3];
     String sexSpecific;
     byte[] genoytpes;
@@ -761,7 +786,7 @@ public class MarkerData implements Serializable {
   // samplesToBeUsed, sex, and clusterFilters can be null
   // however if sex is null then chrX frequencies will be slightly inaccurate
   public double getMAF(boolean[] samplesToBeUsed, String[] sex,
-      ClusterFilterCollection clusterFilters, float gcThreshold, Logger log) {
+                       ClusterFilterCollection clusterFilters, float gcThreshold, Logger log) {
     double freqB;
 
     freqB = getFrequencyOfB(samplesToBeUsed, sex, clusterFilters, gcThreshold, log);
@@ -788,17 +813,18 @@ public class MarkerData implements Serializable {
    * @return float[][] organized as float[0] = new BAFs, float[1]= new LRRs
    */
   public float[][] getRecomputedLRR_BAF(int[] sampleSex, boolean[] samplesToUse,
-      boolean intensityOnly, double missingnessThreshold, double confThreshold,
-      ClusterFilterCollection clusterFilterCollection, boolean medianCenter, boolean LRRonly,
-      Logger log) {
+                                        boolean intensityOnly, double missingnessThreshold,
+                                        double confThreshold,
+                                        ClusterFilterCollection clusterFilterCollection,
+                                        boolean medianCenter, boolean LRRonly, Logger log) {
     CentroidCompute cent = getCentroid(sampleSex, samplesToUse, intensityOnly, missingnessThreshold,
-        confThreshold, clusterFilterCollection, medianCenter, log);
+                                       confThreshold, clusterFilterCollection, medianCenter, log);
     cent.computeCentroid();
     if (cent.failed()) {
       return new float[][] {bafs, lrrs};
     } else {
       return new float[][] {(LRRonly ? new float[0] : cent.getRecomputedBAF()),
-          cent.getRecomputedLRR()};
+                            cent.getRecomputedLRR()};
     }
   }
 

@@ -97,7 +97,7 @@ public class ReferenceGenome {
         currentStop = Math.min(length, currentStop);
         if (seg.getSize() != bpBinSize) {
           log.reportTimeWarning("bin " + seg.getUCSClocation() + " size (" + seg.getSize()
-              + ") does not equal the bin size of " + bpBinSize);
+                                + ") does not equal the bin size of " + bpBinSize);
         }
         bins.add(seg);
         binsAdded++;
@@ -107,16 +107,16 @@ public class ReferenceGenome {
         bins.add(seg);
         if (seg.getSize() != bpBinSize) {
           log.reportTimeWarning("bin " + seg.getUCSClocation() + " size (" + seg.getSize()
-              + ") does not equal the bin size of " + bpBinSize);
+                                + ") does not equal the bin size of " + bpBinSize);
         }
       } else {
         String error = "BUG: End of bin for " + samSequenceRecord.getSequenceName()
-            + " did not end at " + length;
+                       + " did not end at " + length;
         log.reportTimeError(error);
         throw new IllegalStateException(error);
       }
       log.reportTimeInfo(samSequenceRecord.getSequenceName() + " -> " + length + "bp; "
-          + (binsAdded + 1) + " " + bpBinSize + "bp bins");
+                         + (binsAdded + 1) + " " + bpBinSize + "bp bins");
     }
 
     LocusSet<Segment> binsToReturn =
@@ -139,7 +139,7 @@ public class ReferenceGenome {
   public int getContigLength(String contig) {
     if (hasContig(contig)) {
       return indexedFastaSequenceFile.getSequenceDictionary().getSequence(contig)
-          .getSequenceLength();
+                                     .getSequenceLength();
     } else {
       return -1;
     }
@@ -198,7 +198,7 @@ public class ReferenceGenome {
     if (hasContig(requestedContig)) {
 
       int seqLength = indexedFastaSequenceFile.getSequenceDictionary().getSequence(requestedContig)
-          .getSequenceLength();
+                                              .getSequenceLength();
       int start = segment.getStart() - defaultBuffer;
       if (start < 0) {
         start = 0;
@@ -215,7 +215,7 @@ public class ReferenceGenome {
           log.reportTimeInfo("Converting reference sequence to String for " + requestedContig);
 
           inMemoryContig = Array.decodeByteArray(referenceSequence.getBases(),
-              BYTE_DECODE_FORMAT.UPPER_CASE, log);
+                                                 BYTE_DECODE_FORMAT.UPPER_CASE, log);
           log.reportTimeInfo("reference sequence in memory for " + requestedContig);
 
         } else {
@@ -223,16 +223,16 @@ public class ReferenceGenome {
         }
         try {
           requestedSeq = Array.subArray(inMemoryContig, Math.max(0, start - 1),
-              Math.min(inMemoryContig.length - 1, stop));
+                                        Math.min(inMemoryContig.length - 1, stop));
         } catch (Exception e) {
           log.reportTimeError("Invalid query " + segment.getUCSClocation() + "; buffer "
-              + defaultBuffer + "; current contig " + referenceSequence.getName());
+                              + defaultBuffer + "; current contig " + referenceSequence.getName());
         }
       } else {
         ReferenceSequence subReferenceSequence =
             indexedFastaSequenceFile.getSubsequenceAt(requestedContig, start, stop);
         requestedSeq = Array.decodeByteArray(subReferenceSequence.getBases(),
-            BYTE_DECODE_FORMAT.UPPER_CASE, log);
+                                             BYTE_DECODE_FORMAT.UPPER_CASE, log);
       }
       return requestedSeq;
 
@@ -259,14 +259,14 @@ public class ReferenceGenome {
     int stop = segment.getStop() + defaultBuffer;
     if (start < 0) {
       log.reportTimeWarning("Buffer of " + defaultBuffer
-          + " adjusts base pair extraction to index less than 0, adjusting start to index 0 (bp 1)");
+                            + " adjusts base pair extraction to index less than 0, adjusting start to index 0 (bp 1)");
       start = 0;
     }
     if (stop >= currentSeq.length) {
       stop = currentSeq.length - 1;
       log.reportTimeWarning("Buffer of " + defaultBuffer
-          + " ,adjusts base pair extraction to index greater than sequence length,  adjusting stop to index "
-          + (currentSeq.length - 1));
+                            + " ,adjusts base pair extraction to index greater than sequence length,  adjusting stop to index "
+                            + (currentSeq.length - 1));
     }
     byte[] subTmp = null;
     try {
@@ -312,8 +312,8 @@ public class ReferenceGenome {
     String[][] seqs = new String[segs.length][];
     for (int i = 0; i < seqs.length; i++) {
       if (reportEvery > 0 && i % reportEvery == 0) {
-        log.reportTimeInfo(
-            (i + 1) + " segments queried of " + segs.length + " total from " + referenceFasta);
+        log.reportTimeInfo((i + 1) + " segments queried of " + segs.length + " total from "
+                           + referenceFasta);
         log.memoryFree();
         log.memoryTotal();
       }

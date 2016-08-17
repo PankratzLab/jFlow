@@ -29,9 +29,9 @@ public class SNPlist {
     String pedigree = "secondPedigree.dat";
 
     String usage = "\n" + "parse.SNPlist requires 0-1 arguments\n" + "   (1) dir (i.e. dir=" + dir
-        + " (default))\n" + "   (2) SNPs filename (i.e. snps=" + snps + " (default))\n"
-        + "   (2) pedigree (with DNA in column 7) filename (i.e. ped=" + pedigree + " (default))\n"
-        + "";
+                   + " (default))\n" + "   (2) SNPs filename (i.e. snps=" + snps + " (default))\n"
+                   + "   (2) pedigree (with DNA in column 7) filename (i.e. ped=" + pedigree
+                   + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -111,7 +111,7 @@ public class SNPlist {
         writer.print(famStruct.getIndividualHeader(i, false));
         if (hash == null) {
           System.err.println("Error - '" + inds[i]
-              + "' was listed in the pedigree as a dna, but was not found among the list of genotypes");
+                             + "' was listed in the pedigree as a dna, but was not found among the list of genotypes");
           for (String markerName : markerNames) {
             writer.print("\t0\t0");
           }
@@ -134,12 +134,13 @@ public class SNPlist {
         writer.println();
       }
       System.out.println("There were " + (missingInds > 0 ? missingInds : "no") + " indiviudal"
-          + (missingInds == 1 ? "" : "s")
-          + " in the pedigree file that were completely missing data");
+                         + (missingInds == 1 ? "" : "s")
+                         + " in the pedigree file that were completely missing data");
       System.out.println("There were " + (missingInds > 0 ? "an additional " : "")
-          + (iv.size() > 0 ? iv.size() : "no") + " indiviudal" + (iv.size() == 1 ? "" : "s")
-          + " with DNA missing " + (missingGenotypes > 0 ? "a total of " + missingGenotypes : "any")
-          + " genotypes");
+                         + (iv.size() > 0 ? iv.size() : "no") + " indiviudal"
+                         + (iv.size() == 1 ? "" : "s") + " with DNA missing "
+                         + (missingGenotypes > 0 ? "a total of " + missingGenotypes : "any")
+                         + " genotypes");
       writer.close();
     } catch (Exception e) {
       System.err.println("Error writing to " + dir + ext.rootOf(filename) + ".ped");

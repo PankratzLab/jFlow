@@ -17,7 +17,7 @@ public class Quantiles {
   public static double NAN_MEMBERSHIP = 0d;// set to 0 since this can't be a quantile, I think
 
   private static double[] determineQuantileMembership(double[] data, double[] quantiles,
-      double[] qs, Logger log) {
+                                                      double[] qs, Logger log) {
     double[] quantileMembership = new double[data.length];
     int keysData[] = Sort.quicksort(data);
     int keysQuant[] = Sort.quicksort(quantiles);
@@ -50,7 +50,7 @@ public class Quantiles {
   }
 
   public static void developQuantiles(String fileName, int[] toQuantileColumns, int numQ,
-      Logger log) {
+                                      Logger log) {
 
     String[][] toQ = HashVec.loadFileToStringMatrix(fileName, false, null, false);// sample,data
     double[][] qData = new double[toQuantileColumns.length][toQ.length];
@@ -122,7 +122,7 @@ public class Quantiles {
 
     developQuantiles(filename, new int[] {1, 2}, 10, new Logger());
     String usage = "\n" + "stats.Quantiles requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-        + filename + " (default))\n" + "";
+                   + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -149,10 +149,10 @@ public class Quantiles {
   }
 
   public static Quantiles[] qetQuantilesFor(int numQ, double[][] variableDominantMatrix,
-      String[] variableTitles, Logger log) {
+                                            String[] variableTitles, Logger log) {
     if (variableTitles != null && variableTitles.length != variableDominantMatrix.length) {
       log.reportTimeError("titles must be the same length as the data matrix, titles="
-          + variableTitles.length + " vs " + variableDominantMatrix.length);
+                          + variableTitles.length + " vs " + variableDominantMatrix.length);
       return null;
     }
 
@@ -166,7 +166,7 @@ public class Quantiles {
   }
 
   public static Quantiles[] qetQuantilesFor(int[] numQs, double[] variableDominant,
-      String variableTitle, Logger log) {
+                                            String variableTitle, Logger log) {
     Quantiles[] quantiles = new Quantiles[numQs.length];
     for (int i = 0; i < numQs.length; i++) {
       quantiles[i] = new Quantiles(variableDominant, numQs[i], log);
@@ -231,8 +231,10 @@ public class Quantiles {
   }
 
   public int[] getQuantileMembershipAsRoundedInt() {
-    int mult = quantiles.length <= 10 ? 10
-        : quantiles.length <= 100 ? 100 : quantiles.length <= 1000 ? 1000 : 10000;
+    int mult =
+        quantiles.length <= 10 ? 10
+                               : quantiles.length <= 100 ? 100
+                                                         : quantiles.length <= 1000 ? 1000 : 10000;
     return roundInt(quantileMembership, mult, log);
   }
 

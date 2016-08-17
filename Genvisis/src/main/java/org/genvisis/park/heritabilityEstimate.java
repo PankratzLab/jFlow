@@ -21,7 +21,7 @@ public class heritabilityEstimate {
   public static final String DEFAULT_ROOT = "solar";
 
   public static void estimate(String database, String trait, String[] covariates, boolean extended,
-      boolean affonly, String root, boolean run) throws IOException {
+                              boolean affonly, String root, boolean run) throws IOException {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line, phenoNames = null, data;
@@ -72,8 +72,11 @@ public class heritabilityEstimate {
       trav = line[0] + "\t" + line[1];
       if (!trav.equals(prev)) {
         members.add(new String[] {line[0], line[1], (line[4].equals(".") ? "0" : line[4]),
-            (line[5].equals(".") ? "0" : line[5]), (line[2].toUpperCase().equals("M") ? "1"
-                : line[2].toUpperCase().equals("F") ? "2" : "0")});
+                                  (line[5].equals(".") ? "0" : line[5]),
+                                  (line[2].toUpperCase().equals("M") ? "1"
+                                                                     : line[2].toUpperCase()
+                                                                              .equals("F") ? "2"
+                                                                                           : "0")});
       }
       prev = trav;
     }
@@ -101,7 +104,7 @@ public class heritabilityEstimate {
     for (int i = 0; i < members.size(); i++) {
       line = members.elementAt(i);
       data = hash.containsKey(line[0] + "\t" + line[1]) ? hash.get(line[0] + "\t" + line[1])
-          : Array.stringArray(indices.length);
+                                                        : Array.stringArray(indices.length);
       for (int j = 0; j < data.length; j++) {
         if (data[j].equals(".")) {
           data[j] = "";
@@ -120,7 +123,7 @@ public class heritabilityEstimate {
     for (int i = 0; i < members.size(); i++) {
       line = members.elementAt(i);
       data = hash.containsKey(line[0] + "\t" + line[1]) ? hash.get(line[0] + "\t" + line[1])
-          : Array.stringArray(indices.length);
+                                                        : Array.stringArray(indices.length);
       for (int j = 0; j < data.length; j++) {
         if (data[j].equals(".")) {
           data[j] = "";
@@ -132,7 +135,8 @@ public class heritabilityEstimate {
 
     writer = new PrintWriter(new FileWriter(root + "/batch"));
     writer.println("echo -e \"load ped " + root + ".fam\\nautomodel " + root
-        + ".ptypes Depression\\npolygenic -screen\\nquit\\n\" | solar > " + root + ".log");
+                   + ".ptypes Depression\\npolygenic -screen\\nquit\\n\" | solar > " + root
+                   + ".log");
     writer.close();
     if (!Files.isWindows()) {
       try {
@@ -161,15 +165,15 @@ public class heritabilityEstimate {
     boolean affonly = true;
 
     String usage = "\n" + "park.heritabilityEstimate requires 0-5 arguments\n"
-        + "   (1) database filename (i.e. db=" + database + " (default)\n"
-        + "   (2) trait name (i.e. trait=" + trait + " (default)\n"
-        + "   (3) names of covariates separated by a semicoln (i.e. covars=" + trait
-        + " (default)\n" + "   (4) use extended family members (i.e. extended=" + extended
-        + " (default)\n" + "   (5) affecteds only (i.e. affonly=" + affonly + " (default)\n"
-        + "   (6) root of output filenames (i.e. root=" + root + " (default)\n"
-        + "   (7) run solar if path exists (i.e. run (default)\n" + " OR\n"
-        + "   (1) batch file with the options listed above (i.e. batch=" + batch
-        + " (default, if it exists)\n" + "";
+                   + "   (1) database filename (i.e. db=" + database + " (default)\n"
+                   + "   (2) trait name (i.e. trait=" + trait + " (default)\n"
+                   + "   (3) names of covariates separated by a semicoln (i.e. covars=" + trait
+                   + " (default)\n" + "   (4) use extended family members (i.e. extended="
+                   + extended + " (default)\n" + "   (5) affecteds only (i.e. affonly=" + affonly
+                   + " (default)\n" + "   (6) root of output filenames (i.e. root=" + root
+                   + " (default)\n" + "   (7) run solar if path exists (i.e. run (default)\n"
+                   + " OR\n" + "   (1) batch file with the options listed above (i.e. batch="
+                   + batch + " (default, if it exists)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -245,8 +249,8 @@ public class heritabilityEstimate {
           main(Array.addStrToArray("batch=", line));
           writer.println("cd " + trav);
           writer.println("./batch > batch.log");
-          writer.println(
-              "cp " + trait + "/polygenic.out ../" + trav + "_" + trait + "_polygenic.out");
+          writer.println("cp " + trait + "/polygenic.out ../" + trav + "_" + trait
+                         + "_polygenic.out");
           writer.println("cd ..");
         }
       }

@@ -78,10 +78,10 @@ public class BAFContamination {
       Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
       ClusterFilterCollection clusterFilterCollection = new ClusterFilterCollection();
       byte[] genos = samp.getAB_GenotypesAfterFilters(proj.getMarkerNames(),
-          clusterFilterCollection, (float) 0.20);
+                                                      clusterFilterCollection, (float) 0.20);
       BAFContamination bafContamination =
           new BAFContamination(proj, Array.toDoubleArray(samp.getBAFs()), genos, pfbs, callRate,
-              MIN_MAF, MIN_CALL_RATE, true, proj.getLog());
+                               MIN_MAF, MIN_CALL_RATE, true, proj.getLog());
       BAFContaminationResults results = bafContamination.getContamination();
       return results;
     }
@@ -168,7 +168,7 @@ public class BAFContamination {
   }
 
   private static ExtProjectDataParser getParser(Project proj, String file, String dataKeyColumnName,
-      String[] numericColumns) throws FileNotFoundException {
+                                                String[] numericColumns) throws FileNotFoundException {
     ExtProjectDataParser.ProjectDataParserBuilder builder =
         new ExtProjectDataParser.ProjectDataParserBuilder();
     builder.sampleBased(false);
@@ -183,7 +183,7 @@ public class BAFContamination {
   }
 
   private static boolean[] getPFBsToUse(double[] maf, double[] callRate, byte[] sampGenotypes,
-      double minFreq, double minCallRate, int sexStart) {
+                                        double minFreq, double minCallRate, int sexStart) {
     boolean[] use = new boolean[maf.length];
     for (int i = 0; i < use.length; i++) {
       if (maf[i] >= minFreq && (sampGenotypes[i] == 0 || sampGenotypes[i] == 2) && i < sexStart
@@ -218,8 +218,8 @@ public class BAFContamination {
       PennCNV.populationBAF(proj);
     }
     if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
-      proj.getLog().reportTimeInfo(
-          "Creating " + proj.SAMPLE_QC_FILENAME.getValue() + " for contamination detection");
+      proj.getLog().reportTimeInfo("Creating " + proj.SAMPLE_QC_FILENAME.getValue()
+                                   + " for contamination detection");
       LrrSd.init(proj, null, null, numThreads);
     }
 
@@ -232,7 +232,8 @@ public class BAFContamination {
     // {
 
     SampleQC sampleQC = SampleQC.loadSampleQC(proj, LrrSd.SAMPLE_COLUMN,
-        new String[] {"LRR_SD", "BAF1585_SD", "AB_callrate",}, true, true, null);
+                                              new String[] {"LRR_SD", "BAF1585_SD", "AB_callrate",},
+                                              true, true, null);
 
     try {
       ExtProjectDataParser parserPfb = getParser(proj, pfb, "Name", new String[] {"PFB"});
@@ -251,7 +252,7 @@ public class BAFContamination {
           new ContaminationProducer(proj, pfbs, callRates, proj.getSamples());
       WorkerTrain<BAFContaminationResults> train =
           new WorkerTrain<BAFContamination.BAFContaminationResults>(producer, numThreads, 1,
-              proj.getLog());
+                                                                    proj.getLog());
 
       try {
         PrintWriter writer = new PrintWriter(new FileWriter(output));
@@ -261,12 +262,12 @@ public class BAFContamination {
           BAFContaminationResults results = train.next();
           // System.out.println(results.getBetas().length);
           String result = testSamps[index] + "\t" + sampleQC.getDataFor("LRR_SD")[index] + "\t"
-              + sampleQC.getDataFor("BAF1585_SD")[index] + "\t"
-              + sampleQC.getDataFor("AB_callrate")[index];
+                          + sampleQC.getDataFor("BAF1585_SD")[index] + "\t"
+                          + sampleQC.getDataFor("AB_callrate")[index];
           result += "\t" + results.getsAlleleDeviation().getAA_stdev() + "\t"
-              + results.getsAlleleDeviation().getBB_stdev();
+                    + results.getsAlleleDeviation().getBB_stdev();
           result += "\t" + sampleQC.getDataFor("AB_callrate")[index] + "\t"
-              + Array.toStr(results.getBetas());
+                    + Array.toStr(results.getBetas());
           writer.println(result);
           index++;
           writer.flush();
@@ -307,8 +308,8 @@ public class BAFContamination {
   private final Logger log;
 
   public BAFContamination(Project proj, final double[] sampBAF, final byte[] sampGenotypes,
-      final double[] maf, final double[] callRate, double minFreq, double minCallRate,
-      boolean verbose, Logger log) {
+                          final double[] maf, final double[] callRate, double minFreq,
+                          double minCallRate, boolean verbose, Logger log) {
     super();
     this.proj = proj;
     this.sampBAF = sampBAF;
@@ -333,8 +334,8 @@ public class BAFContamination {
     double[][] indeps = new double[Array.booleanArraySum(use)][2];
 
     log.reportTimeInfo("Found " + Array.booleanArraySum(use)
-        + " homozygous autosomal markers passing freq threashold of " + minFreq + " and callrate "
-        + minCallRate);
+                       + " homozygous autosomal markers passing freq threashold of " + minFreq
+                       + " and callrate " + minCallRate);
     int index = 0;
     for (int i = 0; i < indeps.length; i++) {
       if (use[i]) {
@@ -350,11 +351,11 @@ public class BAFContamination {
     }
 
     RegressionModel model = new LeastSquares(Array.subArray(sampBAF, use), indeps, null, false,
-        verbose, LS_TYPE.REGULAR);
+                                             verbose, LS_TYPE.REGULAR);
     BAFContaminationResults results =
         new BAFContaminationResults(model.getOverallSig(), model.getRsquare(), model.getBetas());
     results.setsAlleleDeviation(new StandardAlleleDeviation(Array.subArray(sampGenotypes, use),
-        Array.subArray(sampBAF, use)));
+                                                            Array.subArray(sampBAF, use)));
     // System.out.println(Array.toStr(results.getBetas()));
     return results;
   }

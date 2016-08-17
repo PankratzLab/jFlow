@@ -15,7 +15,7 @@ import org.genvisis.common.ProgressMonitor.DISPLAY_MODE;
 public class ProgressMonitor {
 
   public static enum DISPLAY_MODE {
-    GUI_AND_CONSOLE, GUI_ONLY, CONSOLE_ONY;
+                                   GUI_AND_CONSOLE, GUI_ONLY, CONSOLE_ONY;
   }
 
   public static final int DEFAULT_TIMEOUT_MINS = 10;
@@ -57,10 +57,11 @@ public class ProgressMonitor {
           if (elapsed > task.getTimeout() && !task.alreadyWarned()) {
             task.warned();
             String msg = "Alert! A long-running task has failed to progress in the past "
-                + task.getTimeout() + " minutes.";
+                         + task.getTimeout() + " minutes.";
             String[] opts = new String[] {"Continue", "Exit Genvisis"};
             int opt = JOptionPane.showOptionDialog(internalProgBar, msg, "Warning - stalled task!",
-                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, opts, 0);
+                                                   JOptionPane.YES_NO_OPTION,
+                                                   JOptionPane.WARNING_MESSAGE, null, opts, 0);
             if (opt == 0 || opt == JOptionPane.CLOSED_OPTION) {
               continue;
             } else {
@@ -93,7 +94,7 @@ public class ProgressMonitor {
    *        calculate percentage complete)
    */
   public synchronized void beginDeterminateTask(String taskName, String label,
-      int expectedUpdateCount, DISPLAY_MODE mode) {
+                                                int expectedUpdateCount, DISPLAY_MODE mode) {
     beginTask(taskName, label, false, expectedUpdateCount, DEFAULT_TIMEOUT_MINS, mode);
   }
 
@@ -104,7 +105,7 @@ public class ProgressMonitor {
    * @param label Initial display label for task (can be changed later)
    */
   public synchronized void beginIndeterminateTask(String taskName, String label,
-      DISPLAY_MODE mode) {
+                                                  DISPLAY_MODE mode) {
     beginTask(taskName, label, true, 0, DEFAULT_TIMEOUT_MINS, mode);
   }
 
@@ -119,12 +120,12 @@ public class ProgressMonitor {
    * @param timeout Time (in minutes) before a notice is displayed to the user
    */
   private synchronized void beginTask(String taskName, String label, boolean indeterminate,
-      int expectedUpdateCount, int timeout, DISPLAY_MODE mode) {
+                                      int expectedUpdateCount, int timeout, DISPLAY_MODE mode) {
     if (taskMap.containsKey(taskName)) {
       // likely programmer error, or trying to run a task twice at the same time
       // TODO, sometimes causes conflict with opening multiple ScatterPlots at the same time...
-      throw new IllegalArgumentException(
-          "Error - task with key [" + taskName + "] already exists!");
+      throw new IllegalArgumentException("Error - task with key [" + taskName
+                                         + "] already exists!");
     }
 
     Task newTask = new Task(taskName);
@@ -202,7 +203,7 @@ public class ProgressMonitor {
     }
 
     String msg = ext.getTime() + "]\tTask '" + myTask.getName() + "' with status '"
-        + myTask.getLabel() + "' is complete";
+                 + myTask.getLabel() + "' is complete";
     if (internalLogger != null) {
       internalLogger.report(msg);
     } else {
@@ -227,7 +228,7 @@ public class ProgressMonitor {
   private synchronized void updateDisplay(final Task task) {
     taskUpdateStack.push(task.getName());
     if (internalProgBar != null && (task.getDisplayMode() == DISPLAY_MODE.GUI_AND_CONSOLE
-        || task.getDisplayMode() == DISPLAY_MODE.GUI_ONLY)) {
+                                    || task.getDisplayMode() == DISPLAY_MODE.GUI_ONLY)) {
       SwingUtilities.invokeLater(new Runnable() {
         @Override
         public void run() {
@@ -260,7 +261,7 @@ public class ProgressMonitor {
         int elapsed = (int) elapsedLong;
         if (elapsed > INDET_ELAPSED_LOG_SECONDS) {
           String msg = ext.getTime() + "]\tTask '" + task.getName() + "' with status '"
-              + task.getLabel() + "' has been updated";
+                       + task.getLabel() + "' has been updated";
           if (internalLogger != null) {
             internalLogger.report(msg);
           } else {
@@ -277,7 +278,7 @@ public class ProgressMonitor {
           double rawPct = 100d * (task.getUpdateCount()) / (task.getExpectedUpdateCount());
           String pct = (task.getIndeterminate() ? "" : " (" + ext.formDeci(rawPct, 2) + "%)");
           String msg = ext.getTime() + "]\tTask '" + task.getName() + "' with status '"
-              + task.getLabel() + "' is " + pct + " complete";
+                       + task.getLabel() + "' is " + pct + " complete";
           if (task.getExpectedUpdateCount() > 100 && task.getUpdateCount() > 0) {
             if (internalLogger != null) {
               internalLogger.report(msg);

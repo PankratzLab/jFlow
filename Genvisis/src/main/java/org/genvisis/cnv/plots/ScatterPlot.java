@@ -161,7 +161,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   private static final String BLAST_DETAILS_COMMAND = "BLAST Details";
 
   public static void createAndShowGUI(final Project proj, final String[] markerList,
-      final String[] commentList, final boolean exitOnClose) {
+                                      final String[] commentList, final boolean exitOnClose) {
     new Thread(new Runnable() {
       @Override
       public void run() {
@@ -187,9 +187,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     javax.swing.SwingUtilities.invokeLater(new Runnable() {
       @Override
       public void run() {
-        createAndShowGUI(
-            new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true), false), null,
-            null, true);
+        createAndShowGUI(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true),
+                                     false),
+                         null, null, true);
       }
     });
   }
@@ -314,7 +314,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
             scatterPanels[selectedPanelIndex].paintAgain();
             scatterOverview.repaint();
             int plinkIndex = i - sampleData.getNumActualClasses() - sampleData.getNumCNVClasses()
-                - sampleData.getBasicClasses().length;
+                             - sampleData.getBasicClasses().length;
             if (plinkIndex >= 0) {
               loadPlink(plinkIndex);
             }
@@ -329,12 +329,12 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   private volatile boolean swapping = false;
 
   public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList,
-      boolean exitOnClose) {
+                     boolean exitOnClose) {
     super("Genvisis - ScatterPlot - " + project.PROJECT_NAME.getValue());
 
     String PROG_KEY = "SCATTERPLOT";
     project.getProgressMonitor().beginDeterminateTask(PROG_KEY, "Displaying ScatterPlot...", 10,
-        ProgressMonitor.DISPLAY_MODE.GUI_ONLY);
+                                                      ProgressMonitor.DISPLAY_MODE.GUI_ONLY);
 
     JPanel scatterPlotPanel = new JPanel();
 
@@ -358,11 +358,11 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     markerIndexHistory = Array.intArray(NUM_MARKERS_TO_SAVE_IN_HISTORY, -1);
 
     if (!Files.exists(proj.MARKER_DATA_DIRECTORY.getValue(false, true),
-        proj.JAR_STATUS.getValue())) {
+                      proj.JAR_STATUS.getValue())) {
       JOptionPane.showMessageDialog(null,
-          "Directory " + proj.getProperty(proj.MARKER_DATA_DIRECTORY)
-              + " does not exist; the raw data needs to be parsed and transposed before it can be visualized",
-          "Error", JOptionPane.ERROR_MESSAGE);
+                                    "Directory " + proj.getProperty(proj.MARKER_DATA_DIRECTORY)
+                                          + " does not exist; the raw data needs to be parsed and transposed before it can be visualized",
+                                    "Error", JOptionPane.ERROR_MESSAGE);
       fail = true;
       proj.getProgressMonitor().endTask(PROG_KEY);
       return;
@@ -371,11 +371,13 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     proj.getProgressMonitor().updateTask(PROG_KEY);
 
     if (Files.list(proj.MARKER_DATA_DIRECTORY.getValue(false, true), "marker",
-        MarkerData.MARKER_DATA_FILE_EXTENSION, false, proj.JAR_STATUS.getValue()).length == 0) {
+                   MarkerData.MARKER_DATA_FILE_EXTENSION, false,
+                   proj.JAR_STATUS.getValue()).length == 0) {
       JOptionPane.showMessageDialog(null,
-          "There is no data in directory " + proj.getProperty(proj.MARKER_DATA_DIRECTORY)
-              + "; the raw data needs to be parsed and transposed before it can be visualized",
-          "Error", JOptionPane.ERROR_MESSAGE);
+                                    "There is no data in directory "
+                                          + proj.getProperty(proj.MARKER_DATA_DIRECTORY)
+                                          + "; the raw data needs to be parsed and transposed before it can be visualized",
+                                    "Error", JOptionPane.ERROR_MESSAGE);
       fail = true;
       proj.getProgressMonitor().endTask(PROG_KEY);
       return;
@@ -404,7 +406,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     if (fail) {
       proj.getLog().reportError("Without a SampleData file, ScatterPlot will not start");
       JOptionPane.showMessageDialog(null, "Without a SampleData file, ScatterPlot will not start",
-          "Error", JOptionPane.ERROR_MESSAGE);
+                                    "Error", JOptionPane.ERROR_MESSAGE);
       proj.getProgressMonitor().endTask(PROG_KEY);
       return;
     }
@@ -416,7 +418,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       hasAnnotationFile = true;
       blastParams = new BlastParams(log);
       annotationLoader = new MarkerAnnotationLoader(proj, new AnalysisParams[] {blastParams},
-          annoFile, proj.getMarkerSet(), true);
+                                                    annoFile, proj.getMarkerSet(), true);
     }
     String fastaFile = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
     if (Files.exists(fastaFile)) {
@@ -440,14 +442,15 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
           return;
         } else {
           JOptionPane.showMessageDialog(null,
-              "Generated a temporary display file at '" + filename + "'", "Created marker list",
-              JOptionPane.INFORMATION_MESSAGE);
+                                        "Generated a temporary display file at '" + filename + "'",
+                                        "Created marker list", JOptionPane.INFORMATION_MESSAGE);
         }
       }
       if (masterMarkerList.length == 0) {
         JOptionPane.showMessageDialog(null,
-            "Error - file '" + filename + "' was devoid of any valid markers", "Error",
-            JOptionPane.ERROR_MESSAGE);
+                                      "Error - file '" + filename
+                                            + "' was devoid of any valid markers",
+                                      "Error", JOptionPane.ERROR_MESSAGE);
         fail = true;
         proj.getProgressMonitor().endTask(PROG_KEY);
         return;
@@ -520,7 +523,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     }
 
     colorKeyPanel = new ColorKeyPanel(sampleData, scatterPanels[0], scatterPanels[0].colorScheme,
-        classListener, 2);
+                                      classListener, 2);
 
     // scatterOverview.setDoubleBuffered(true);
     viewPanel = new JPanel(new BorderLayout());
@@ -625,8 +628,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
         }
         // scatPanel.setRectangles();
         setCurrentClusterFilter((byte) Math.min(currentClusterFilter + 1,
-            (clusterFilterCollection.getSize(getMarkerName()) == 0 ? 0
-                : (clusterFilterCollection.getSize(getMarkerName()) - 1))));
+                                                (clusterFilterCollection.getSize(getMarkerName()) == 0 ? 0
+                                                                                                       : (clusterFilterCollection.getSize(getMarkerName())
+                                                                                                          - 1))));
         // scatPanel.rectangles[currentClusterFilter].setColor((byte)0);
         // clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+"
         // of "+clusterFilterCollection.getSize(getMarkerName()));
@@ -645,7 +649,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
         // scatPanel.clearRectangles(currentClusterFilter);
         clusterFilterCollection.deleteClusterFilter(getMarkerName(), currentClusterFilter);
         setCurrentClusterFilter((byte) Math.min(currentClusterFilter,
-            clusterFilterCollection.getSize(getMarkerName()) - 1));
+                                                clusterFilterCollection.getSize(getMarkerName())
+                                                                      - 1));
         // startAutoSave();
         setClusterFilterUpdated(true);
         // clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName())==0?0:(currentClusterFilter+1))+"
@@ -765,14 +770,16 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     // false));
     for (ScatterPanel scatterPanel : scatterPanels) {
       scatterPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-          .put(KeyStroke.getKeyStroke((c + "").toUpperCase().charAt(0), 0), "annotation\t" + c);
+                  .put(KeyStroke.getKeyStroke((c + "").toUpperCase().charAt(0), 0),
+                       "annotation\t" + c);
       scatterPanel.getActionMap().put("annotation\t" + c, new AnnotationAction(this, c, true));
 
-      scatterPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-          KeyStroke.getKeyStroke((c + "").toUpperCase().charAt(0), InputEvent.SHIFT_MASK),
-          "annotation\tShift_" + c);
+      scatterPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                  .put(KeyStroke.getKeyStroke((c + "").toUpperCase().charAt(0),
+                                              InputEvent.SHIFT_MASK),
+                       "annotation\tShift_" + c);
       scatterPanel.getActionMap().put("annotation\tShift_" + c,
-          new AnnotationAction(this, c, false));
+                                      new AnnotationAction(this, c, false));
     }
   }
 
@@ -844,9 +851,10 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       radioButtonGroup.add(filterRadioButtons[i]);
       annotationPanelLowerPart.add(filterRadioButtons[i]);
       annotationPanelLowerPartLayout.putConstraint(SpringLayout.WEST, filterRadioButtons[i], 5,
-          SpringLayout.WEST, annotationPanelLowerPart);
+                                                   SpringLayout.WEST, annotationPanelLowerPart);
       annotationPanelLowerPartLayout.putConstraint(SpringLayout.NORTH, filterRadioButtons[i],
-          currentHorizontalPos, SpringLayout.NORTH, annotationPanelLowerPart);
+                                                   currentHorizontalPos, SpringLayout.NORTH,
+                                                   annotationPanelLowerPart);
       // horizontalPos += (horizontalMargin + fileterRadioButtons[i].getSize().height);
       currentHorizontalPos += (horizontalMargin + componentHeight);
     }
@@ -865,9 +873,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
         annotationIndex = -1;
         for (int i = 0; i < annotationKeys.length; i++) {
-          if (annotationCollection
-              .getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts, true)
-              .equals(annotation)) {
+          if (annotationCollection.getDescriptionForComment(annotationKeys[i],
+                                                            showAnnotationShortcuts, true)
+                                  .equals(annotation)) {
             annotationIndex = i;
             break;
           }
@@ -896,15 +904,14 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
               annotation = annotation.substring("Display all markers annotated with ".length());
               for (int i = 0; i < annotationKeys.length; i++) {
                 if (annotationCollection.getDescriptionForComment(annotationKeys[i], false, false)
-                    .equals(annotation)) {
+                                        .equals(annotation)) {
                   annotationIndex = i;
                   break;
                 }
               }
 
-              changeToNewMarkerList(
-                  annotationCollection.getMarkerLists(annotationKeys[annotationIndex]),
-                  markerIndex);
+              changeToNewMarkerList(annotationCollection.getMarkerLists(annotationKeys[annotationIndex]),
+                                    markerIndex);
             }
 
             @Override
@@ -927,46 +934,46 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
             }
           });
 
-          menu.add(
-              new AbstractAction((indexOfAnnotationUsedAsMarkerList == -1 ? "Limit" : "Unlimit")
-                  + " Current List to Those with Annotation " + annotation) {
-                private static final long serialVersionUID = 1L;
+          menu.add(new AbstractAction((indexOfAnnotationUsedAsMarkerList == -1 ? "Limit"
+                                                                               : "Unlimit")
+                                      + " Current List to Those with Annotation " + annotation) {
+            private static final long serialVersionUID = 1L;
 
-                @Override
-                public void actionPerformed(ActionEvent e3) {
-                  String annotation;
-                  int annotationIndex;
+            @Override
+            public void actionPerformed(ActionEvent e3) {
+              String annotation;
+              int annotationIndex;
 
-                  annotationIndex = -1;
-                  annotation = e3.getActionCommand();
-                  annotation = annotation
-                      .substring(((indexOfAnnotationUsedAsMarkerList == -1 ? "Limit" : "Unlimit")
-                          + " Current List to Those with Annotation ").length());
-                  for (int i = 0; i < annotationKeys.length; i++) {
-                    if (annotationCollection
-                        .getDescriptionForComment(annotationKeys[i], false, false).toLowerCase()
-                        .equals(annotation)) {
-                      annotationIndex = i;
-                      break;
-                    }
-                  }
-
-                  if (indexOfAnnotationUsedAsMarkerList == -1) {
-                    for (int i = 0; i < annotationIndex; i++) {
-                      annotationCheckBoxes[i].setEnabled(false);
-                    }
-                    for (int i = annotationIndex + 1; i < annotationCheckBoxes.length; i++) {
-                      annotationCheckBoxes[i].setEnabled(false);
-                    }
-                    indexOfAnnotationUsedAsMarkerList = annotationIndex;
-                  } else if (indexOfAnnotationUsedAsMarkerList == annotationIndex) {
-                    for (JCheckBox annotationCheckBoxe : annotationCheckBoxes) {
-                      annotationCheckBoxe.setEnabled(true);
-                    }
-                    indexOfAnnotationUsedAsMarkerList = -1;
-                  }
+              annotationIndex = -1;
+              annotation = e3.getActionCommand();
+              annotation =
+                  annotation.substring(((indexOfAnnotationUsedAsMarkerList == -1 ? "Limit"
+                                                                                 : "Unlimit")
+                                        + " Current List to Those with Annotation ").length());
+              for (int i = 0; i < annotationKeys.length; i++) {
+                if (annotationCollection.getDescriptionForComment(annotationKeys[i], false, false)
+                                        .toLowerCase().equals(annotation)) {
+                  annotationIndex = i;
+                  break;
                 }
-              });
+              }
+
+              if (indexOfAnnotationUsedAsMarkerList == -1) {
+                for (int i = 0; i < annotationIndex; i++) {
+                  annotationCheckBoxes[i].setEnabled(false);
+                }
+                for (int i = annotationIndex + 1; i < annotationCheckBoxes.length; i++) {
+                  annotationCheckBoxes[i].setEnabled(false);
+                }
+                indexOfAnnotationUsedAsMarkerList = annotationIndex;
+              } else if (indexOfAnnotationUsedAsMarkerList == annotationIndex) {
+                for (JCheckBox annotationCheckBoxe : annotationCheckBoxes) {
+                  annotationCheckBoxe.setEnabled(true);
+                }
+                indexOfAnnotationUsedAsMarkerList = -1;
+              }
+            }
+          });
 
           menu.show(source, e.getX(), e.getY());
         }
@@ -1021,8 +1028,10 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     maxWidth = 200;
     annotationCheckBoxes = new JCheckBox[annotationKeys.length];
     for (int i = 0; i < annotationKeys.length; i++) {
-      annotationCheckBoxes[i] = new JCheckBox(annotationCollection
-          .getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts, true));
+      annotationCheckBoxes[i] =
+          new JCheckBox(annotationCollection.getDescriptionForComment(annotationKeys[i],
+                                                                      showAnnotationShortcuts,
+                                                                      true));
       maxWidth = Math.max(annotationCheckBoxes[i].getPreferredSize().width, maxWidth);
       annotationCheckBoxes[i].setBackground(Color.WHITE);
       if (annotationCollection.markerHasAnnotation(markerList[markerIndex], annotationKeys[i])) {
@@ -1044,7 +1053,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
               annotationCollection.removeAnnotationForMarker(markerList[markerIndex], currentKey);
             }
             checkBox.setText(annotationCollection.getDescriptionForComment(currentKey,
-                showAnnotationShortcuts, true));
+                                                                           showAnnotationShortcuts,
+                                                                           true));
             updateAnnotationPanelFilterRadioButtons();
             // isAnnotationUpdated = true;
             setAnnotationUpdated(true);
@@ -1055,9 +1065,10 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
       annotationPanelLowerPart.add(annotationCheckBoxes[i]);
       annotationPanelLowerPartLayout.putConstraint(SpringLayout.WEST, annotationCheckBoxes[i], 5,
-          SpringLayout.WEST, annotationPanelLowerPart);
+                                                   SpringLayout.WEST, annotationPanelLowerPart);
       annotationPanelLowerPartLayout.putConstraint(SpringLayout.NORTH, annotationCheckBoxes[i],
-          currentHorizontalPos, SpringLayout.NORTH, annotationPanelLowerPart);
+                                                   currentHorizontalPos, SpringLayout.NORTH,
+                                                   annotationPanelLowerPart);
       // horizontalPos += (horizontalMargin + annotationCheckBoxes[i].getSize().height);
       currentHorizontalPos += (horizontalMargin + componentHeight);
       removeButton = new JButton(Grafik.getImageIcon("images/delete2sm.png"));
@@ -1071,8 +1082,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
           int index;
 
           commandText = e.getActionCommand();
-          index = Integer
-              .parseInt(commandText.substring("removeButton".length(), commandText.length()));
+          index = Integer.parseInt(commandText.substring("removeButton".length(),
+                                                         commandText.length()));
           annotationCollection.removeAnnotation(proj, annotationKeys[index]);
           removeAnnotationFromMaps(annotationKeys[index]);
           annotationKeys = annotationCollection.getKeys();
@@ -1083,9 +1094,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       });
       annotationPanelLowerPart.add(removeButton);
       annotationPanelLowerPartLayout.putConstraint(SpringLayout.WEST, removeButton, 5,
-          SpringLayout.EAST, annotationCheckBoxes[i]);
+                                                   SpringLayout.EAST, annotationCheckBoxes[i]);
       annotationPanelLowerPartLayout.putConstraint(SpringLayout.NORTH, removeButton, 7,
-          SpringLayout.NORTH, annotationCheckBoxes[i]);
+                                                   SpringLayout.NORTH, annotationCheckBoxes[i]);
     }
 
     addAnnotationField = new JTextField(DEFAULT_MESSAGE);
@@ -1127,7 +1138,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
         c = AnnotationCollection.assignKey(str, annotationCollection);
         if (c == 0) {
           log.report("Failed to add the new annotation key '" + str
-              + "', because cannot automatically assign a shortcut for it.");
+                     + "', because cannot automatically assign a shortcut for it.");
         } else {
           if (annotationCollection == null) {
             annotationCollection = new AnnotationCollection();
@@ -1145,9 +1156,10 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
     annotationPanelLowerPart.add(addAnnotationField);
     annotationPanelLowerPartLayout.putConstraint(SpringLayout.WEST, addAnnotationField, 5,
-        SpringLayout.WEST, annotationPanelLowerPart);
+                                                 SpringLayout.WEST, annotationPanelLowerPart);
     annotationPanelLowerPartLayout.putConstraint(SpringLayout.NORTH, addAnnotationField,
-        currentHorizontalPos + 3, SpringLayout.NORTH, annotationPanelLowerPart);
+                                                 currentHorizontalPos + 3, SpringLayout.NORTH,
+                                                 annotationPanelLowerPart);
     // horizontalPos += (horizontalMargin + addAnnotationField.getSize().height);
     // horizontalPos += (horizontalMargin + componentHeight);
 
@@ -1157,7 +1169,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     // Spring.constant(250, 250, 250));
     // annotationPanel.setPreferredSize(new Dimension(200, 500));
     annotationPanelLowerPart.setPreferredSize(new Dimension(maxWidth + 42,
-        ((annotationKeys == null ? 0 : annotationKeys.length) + 4) * 22));
+                                                            ((annotationKeys == null ? 0
+                                                                                     : annotationKeys.length)
+                                                             + 4) * 22));
 
     // annotationPanelLowerPart.invalidate();
     annotationPanel.validate();
@@ -1236,15 +1250,18 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
             if (isAnnotationUpdated) {
               options = new String[] {"Yes/Overwrite", "No"};
               choice = JOptionPane.showOptionDialog(null,
-                  "New Annotations have been generated. Do you want to save them before importing new annotations?",
-                  "Save new annotations?", JOptionPane.YES_NO_CANCEL_OPTION,
-                  JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+                                                    "New Annotations have been generated. Do you want to save them before importing new annotations?",
+                                                    "Save new annotations?",
+                                                    JOptionPane.YES_NO_CANCEL_OPTION,
+                                                    JOptionPane.QUESTION_MESSAGE, null, options,
+                                                    options[0]);
               if (choice == 0) {
                 // filenameBak = proj.getFilename(proj.getProjectDir(), false, false) +
                 // "annotations_bak_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()))
                 // + ".ser";
                 filenameBak = proj.PROJECT_DIRECTORY.getValue(false, false) + "annotations_bak_"
-                    + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".ser";
+                              + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()))
+                              + ".ser";
                 log.report("Writing annotations to " + filenameBak);
                 annotationCollection.serialize(filenameBak);
               }
@@ -1255,7 +1272,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
               startAutoSaveToTempFile();
             } else {
               AnnotationCollection.appendFromLists(filename, annotationCollection,
-                  proj.getMarkerNames(), null);
+                                                   proj.getMarkerNames(), null);
             }
             setAnnotationUpdated(true);
             annotationKeys = annotationCollection.getKeys();
@@ -1398,7 +1415,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
         try {
           int trav =
               Integer.valueOf(((JTextField) fe.getSource()).getText().split("[\\s]+")[0]).intValue()
-                  - 1;
+                     - 1;
           if (trav >= 0 && trav < clusterFilterCollection.getSize(getMarkerName())) {
             // currentClusterFilter = (byte) trav;
             setCurrentClusterFilter((byte) trav);
@@ -1459,7 +1476,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
           }
         }
         if ((clusterFilterCollection.getGenotype(getMarkerName(),
-            currentClusterFilter) != newGenotypeSelected)) {
+                                                 currentClusterFilter) != newGenotypeSelected)) {
           updateCurrentClusterFilterGenotype(newGenotypeSelected, false);
         }
       }
@@ -1576,9 +1593,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
     JPanel sliderPanel = new JPanel();
     sliderPanel.setLayout(new GridLayout(0, 1));
-    sliderPanel.setBorder(
-        BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
-            "Data Controls", TitledBorder.LEADING, TitledBorder.TOP));
+    sliderPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
+                                                           "Data Controls", TitledBorder.LEADING,
+                                                           TitledBorder.TOP));
     sliderPanel.setBackground(BACKGROUND_COLOR);
     // sliderPanel.add(createSepPanel("Data Controls"));
     sliderPanel.add(sizeSliderPanel());// , gbc);
@@ -1694,9 +1711,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     // controlPanel.add(boxPanel);
     JPanel boxPanel = new JPanel();
     boxPanel.setLayout(new BoxLayout(boxPanel, BoxLayout.Y_AXIS));
-    boxPanel.setBorder(
-        BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
-            "View Controls", TitledBorder.LEADING, TitledBorder.TOP));
+    boxPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
+                                                        "View Controls", TitledBorder.LEADING,
+                                                        TitledBorder.TOP));
     boxPanel.setBackground(BACKGROUND_COLOR);
     boxPanel.add(symmetryBox);// , gbc);
     boxPanel.add(correctionBox);// , gbc);
@@ -1920,7 +1937,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       public void actionPerformed(ActionEvent e) {
         String toDelete = e.getActionCommand();
         int opt = JOptionPane.showConfirmDialog(ScatterPlot.this, "Delete file on disk?",
-            "Delete Marker List File?", JOptionPane.YES_NO_CANCEL_OPTION);
+                                                "Delete Marker List File?",
+                                                JOptionPane.YES_NO_CANCEL_OPTION);
         boolean deleteFile = false;
         if (opt == JOptionPane.YES_OPTION) {
           deleteFile = true;
@@ -2050,9 +2068,10 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   }
 
   public void displayClusterFilterIndex() {
-    clusterFilterNavigation.setText(
-        (clusterFilterCollection.getSize(getMarkerName()) == 0 ? 0 : (currentClusterFilter + 1))
-            + " of " + clusterFilterCollection.getSize(getMarkerName()));
+    clusterFilterNavigation.setText((clusterFilterCollection.getSize(getMarkerName()) == 0 ? 0
+                                                                                           : (currentClusterFilter
+                                                                                              + 1))
+                                    + " of " + clusterFilterCollection.getSize(getMarkerName()));
   }
 
   public void displayIndex(JTextField field) {
@@ -2103,8 +2122,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
             if (scatterPanels[newIndex].uniqueValueCounts != null) {
               int cls = classes[newIndex];
               colorKeyPanel.setCurrentClass(classes[newIndex]);
-              colorKeyPanel
-                  .updateColorKey(scatterPanels[newIndex].uniqueValueCounts.convertToHash());
+              colorKeyPanel.updateColorKey(scatterPanels[newIndex].uniqueValueCounts.convertToHash());
               colorKeyPanel.updateColorVariablePanel(classListener);
               classes[newIndex] = cls;
               colorKeyPanel.setCurrentClass(classes[newIndex]);
@@ -2135,14 +2153,14 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     for (int i = 0; i < scatterPanels.length; i++) {
       do {
         filename = markerList[markerIndex] + "_" + ScatterPlot.TYPES[plot_types[i]][0] + "-"
-            + ScatterPlot.TYPES[plot_types[i]][1] + "_" + (count == 1 ? "" : "v" + count);
+                   + ScatterPlot.TYPES[plot_types[i]][1] + "_" + (count == 1 ? "" : "v" + count);
         filename = ext.replaceWithLinuxSafeCharacters(filename, true);
         count++;
       } while (new File(proj.PROJECT_DIRECTORY.getValue() + filename + ".png").exists());
-      scatterPanels[i]
-          .screenCapture(proj.PROJECT_DIRECTORY.getValue() + filename + "_panel" + i + ".png");
+      scatterPanels[i].screenCapture(proj.PROJECT_DIRECTORY.getValue() + filename + "_panel" + i
+                                     + ".png");
       log.report(ext.getTime() + "]\tWrote screen capture to [" + proj.PROJECT_DIRECTORY.getValue()
-          + filename + "_panel" + i + ".png]");
+                 + filename + "_panel" + i + ".png]");
     }
   }
 
@@ -2185,7 +2203,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     blastPanel.setLayout(new MigLayout("hidemode 0", "[][grow]", ""));
     blastPanel.setBackground(BACKGROUND_COLOR);
     blastTabbedPanel.addTab("BLAST Metrics", null, blastPanel,
-        "Basic Local Alignment Search Tool Metrics");
+                            "Basic Local Alignment Search Tool Metrics");
     eastPanel.add(blastTabbedPanel, "cell 0 2, grow");
 
     JTabbedPane cfTabbedPanel = new JTabbedPane();
@@ -2283,8 +2301,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     label.setFont(new Font("Arial", 0, 20));
     gcAdjustorPanel.add(label, gbc);
     label = new JLabel("GC Adjustment (LRR/BAF only) :");
-    label.setToolTipText(
-        "These adjustments will be applied to LRR values (and BAFs if new centroids were stored");
+    label.setToolTipText("These adjustments will be applied to LRR values (and BAFs if new centroids were stored");
     label.setFont(new Font("Arial", 0, 20));
     label.setHorizontalAlignment(JLabel.CENTER);
     gcAdjustorPanel.add(label, gbc);
@@ -2296,8 +2313,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       gcAdjustorBoxes[i].setFont(new Font("Arial", 0, 14));
       gcAdjustorBoxes[i].setSelected(displaygcAdjustor[i]);
       gcAdjustorBoxes[i].addItemListener(centListener);
-      gcAdjustorBoxes[i]
-          .setBorder(BorderFactory.createLineBorder(ScatterPanel.DEFAULT_COLORS[5 + i], 5));
+      gcAdjustorBoxes[i].setBorder(BorderFactory.createLineBorder(ScatterPanel.DEFAULT_COLORS[5
+                                                                                              + i],
+                                                                  5));
       gcAdjustorBoxes[i].setBorderPainted(true);
       gcAdjustorBoxes[i].setBackground(BACKGROUND_COLOR);
       gcAdjustorPanel.add(gcAdjustorBoxes[i], gbc);
@@ -2350,7 +2368,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   }
 
   private int getAvailableMarker(boolean forwardOrBackward, boolean firstOrLastInThatDirection,
-      boolean allMarkersOrOnlyThoseAnnotatedOrUnannotated, boolean annotatedOrUnannotated) {
+                                 boolean allMarkersOrOnlyThoseAnnotatedOrUnannotated,
+                                 boolean annotatedOrUnannotated) {
     int result;
     int begin;
     int end;
@@ -2381,13 +2400,14 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     }
     for (int i = begin; i != end; i = i + step) {
       if (indexOfAnnotationUsedAsMarkerList < 0) {
-        if (allMarkersOrOnlyThoseAnnotatedOrUnannotated || !(annotatedOrUnannotated
-            ^ annotationCollection.markerHasAnyAnnotation(markerList[i]))) {
+        if (allMarkersOrOnlyThoseAnnotatedOrUnannotated
+            || !(annotatedOrUnannotated
+                 ^ annotationCollection.markerHasAnyAnnotation(markerList[i]))) {
           result = i;
           break;
         }
       } else if (annotationCollection.markerHasAnnotation(markerList[i],
-          annotationKeys[indexOfAnnotationUsedAsMarkerList])) {
+                                                          annotationKeys[indexOfAnnotationUsedAsMarkerList])) {
         result = i;
         break;
       }
@@ -2438,7 +2458,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       }
       if (count > 8 && count % 8 == 0) {
         log.reportError("Error - ScatterPlot has been waiting on markerDataLoader to load "
-            + markerList[markerIndex] + " for " + (count / 4) + " secounds");
+                        + markerList[markerIndex] + " for " + (count / 4) + " secounds");
       }
     }
 
@@ -2639,7 +2659,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
   public byte getPlinkGenotypeForIndi(String sampleID, int currentClass) {
     int plinkIndex = currentClass - sampleData.getBasicClasses().length
-        - sampleData.getNumActualClasses() - sampleData.getNumCNVClasses();
+                     - sampleData.getNumActualClasses() - sampleData.getNumCNVClasses();
     String plinkRoot = proj.PLINK_DIR_FILEROOTS.getValue()[plinkIndex];
     String[] lookup = sampleData.lookup(sampleID);
     String fidiid = lookup[1];
@@ -2884,8 +2904,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       log.report(">", false, true);
       if (trav.getFingerprint() != set.getFingerprint()) {
         log.reportError("Error - Centroids file '" + proj.DATA_DIRECTORY.getValue(false, true)
-            + file
-            + "' does not match up with the fingerprint of the current marker set and therefore will not load; if you don't want to see this error message again, then remove the .cent extension from this file.");
+                        + file
+                        + "' does not match up with the fingerprint of the current marker set and therefore will not load; if you don't want to see this error message again, then remove the .cent extension from this file.");
       } else {
         travCents = trav.getCentroids();
         targetCents = new float[markerList.length][][];
@@ -2909,7 +2929,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     String[] otherClusterFilterFiles;
     int choice;
     String[] options = new String[] {"Yes, load and delete old file", "No, just delete old file",
-        "Cancel and close ScatterPlot"};
+                                     "Cancel and close ScatterPlot"};
     String clusterFilterFilename;
 
     // clusterFilterFilename = proj.getFilename(proj.CLUSTER_FILTER_COLLECTION_FILENAME);
@@ -2917,17 +2937,20 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     otherClusterFilterFiles =
         Files.list(proj.DATA_DIRECTORY.getValue(false, true), ".tempClusterFilters.ser", jar);
     if (otherClusterFilterFiles.length > 0) {
-      choice = JOptionPane.showOptionDialog(null,
-          "Error - either multiple instances of ScatterPlot are running or ScatterPlot failed to close properly\n"
-              + "last time. The ability to generate new ClusterFilters will be disabled until this file has been\n"
-              + "removed. Do you want to load the contents of the temporary file into memory before it is deleted?",
-          "Error", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options,
-          options[0]);
+      choice =
+          JOptionPane.showOptionDialog(null,
+                                       "Error - either multiple instances of ScatterPlot are running or ScatterPlot failed to close properly\n"
+                                             + "last time. The ability to generate new ClusterFilters will be disabled until this file has been\n"
+                                             + "removed. Do you want to load the contents of the temporary file into memory before it is deleted?",
+                                       "Error", JOptionPane.YES_NO_CANCEL_OPTION,
+                                       JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
       if (choice == 0) {
         // load the last one in otherClusterFilerFiles[]
         clusterFilterCollection =
             ClusterFilterCollection.load(proj.DATA_DIRECTORY.getValue(false, true)
-                + otherClusterFilterFiles[otherClusterFilterFiles.length - 1], jar);
+                                         + otherClusterFilterFiles[otherClusterFilterFiles.length
+                                                                   - 1],
+                                         jar);
         for (String otherClusterFilterFile : otherClusterFilterFiles) {
           (new File(proj.DATA_DIRECTORY.getValue(false, true) + otherClusterFilterFile)).delete();
         }
@@ -2965,8 +2988,10 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     // String plinkDirFileRoot = proj.DATA_DIRECTORY.getValue() + proj.PLINK_FILEROOT.getValue();
     // plinkGenotypes = (new PlinkMarkerLoader()).run(plinkDirFileRoot, markerList);
     for (String fileRoot : plinkMarkerLoaders.keySet()) {
-      plinkMarkerLoaders.put(fileRoot, PlinkMarkerLoader.loadPlinkDataFromListInSeparateThread(proj,
-          fileRoot, markerList, sampleFIDIIDs));
+      plinkMarkerLoaders.put(fileRoot,
+                             PlinkMarkerLoader.loadPlinkDataFromListInSeparateThread(proj, fileRoot,
+                                                                                     markerList,
+                                                                                     sampleFIDIIDs));
     }
 
     markerIndex = newMarkerIndex;
@@ -2982,8 +3007,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       loadMarkerListFromFile(file);
       if (masterMarkerList.length == 0) {
         JOptionPane.showMessageDialog(null,
-            "Error - file '" + file + "' was devoid of any valid markers", "Error",
-            JOptionPane.ERROR_MESSAGE);
+                                      "Error - file '" + file + "' was devoid of any valid markers",
+                                      "Error", JOptionPane.ERROR_MESSAGE);
         fail = true;
         return;
       }
@@ -2991,7 +3016,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
         masterCommentList = Array.stringArray(masterMarkerList.length, "");
       }
       proj.getProgressMonitor().beginDeterminateTask("SCATTERPLOT",
-          "Loading ScatterPlot Marker List...", 10, ProgressMonitor.DISPLAY_MODE.GUI_ONLY);
+                                                     "Loading ScatterPlot Marker List...", 10,
+                                                     ProgressMonitor.DISPLAY_MODE.GUI_ONLY);
       resetAfterLoad();
       proj.getProgressMonitor().endTask("SCATTERPLOT");
       ScatterPlot.this.setJMenuBar(ScatterPlot.this.createJMenuBar());
@@ -3015,9 +3041,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
         reader = Files.getReader(filename, jar, true, false);
         if (reader == null) {
           JOptionPane.showMessageDialog(null,
-              "Failed to load '" + filename
-                  + "'; this is the designated filename in the project properties file. You will need to create a list of the markers that you want to review and place them in this file.",
-              "Error", JOptionPane.ERROR_MESSAGE);
+                                        "Failed to load '" + filename
+                                              + "'; this is the designated filename in the project properties file. You will need to create a list of the markers that you want to review and place them in this file.",
+                                        "Error", JOptionPane.ERROR_MESSAGE);
           return;
         }
         while (reader.ready()) {
@@ -3037,7 +3063,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
         }
       } catch (FileNotFoundException fnfe) {
         JOptionPane.showMessageDialog(null, "Error - could not find \"" + filename + "\"", "Error",
-            JOptionPane.ERROR_MESSAGE);
+                                      JOptionPane.ERROR_MESSAGE);
         // handle error by closing window
       } catch (Exception e) {
         log.reportError("Error reading file \"" + filename + "\"");
@@ -3066,11 +3092,12 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       // Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false,
       // false, null);
       pcResids = new PrincipalComponentsResiduals(proj, ext.removeDirectoryInfo(pcFile), null,
-          proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS), false, 0, false, false, null);
+                                                  proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS),
+                                                  false, 0, false, false, null);
       setNumComponents(Math.min(numComponents, pcResids.getTotalNumComponents()));
     } else {
       proj.getLog().report("Info - did not find " + proj.PROJECT_DIRECTORY.getValue()
-          + ext.removeDirectoryInfo(pcFile));
+                           + ext.removeDirectoryInfo(pcFile));
       pcResids = null;
     }
     return pcResids;
@@ -3081,8 +3108,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     if (plinkMarkerLoaders.containsKey(plinkFileRoot)) {
       return;
     } else {
-      PlinkMarkerLoader pml = PlinkMarkerLoader.loadPlinkDataFromListInSeparateThread(proj,
-          plinkFileRoot, markerList, sampleFIDIIDs);
+      PlinkMarkerLoader pml =
+          PlinkMarkerLoader.loadPlinkDataFromListInSeparateThread(proj, plinkFileRoot, markerList,
+                                                                  sampleFIDIIDs);
       plinkMarkerLoaders.put(plinkFileRoot, pml);
     }
   }
@@ -3136,7 +3164,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
         try {
           int trav =
               Integer.valueOf(((JTextField) e.getSource()).getText().split("[\\s]+")[0]).intValue()
-                  - 1;
+                     - 1;
           if (trav >= 0 && trav < markerList.length) {
             markerIndex = trav;
           }
@@ -3233,9 +3261,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
   private JPanel plotTypePanel() {
     JPanel plotTypePanel = new JPanel();
-    plotTypePanel.setBorder(
-        BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
-            "Plot Type", TitledBorder.LEADING, TitledBorder.TOP));
+    plotTypePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
+                                                             "Plot Type", TitledBorder.LEADING,
+                                                             TitledBorder.TOP));
 
     plotTypePanel.setLayout(new BoxLayout(plotTypePanel, BoxLayout.Y_AXIS));
     // plotTypePanel.setLayout(new GridLayout(3, 1));
@@ -3250,7 +3278,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
           for (int i = 0; i < ScatterPlot.TYPES.length; i++) {
             if (jrb.getText().equals(ScatterPlot.TYPES[i][0] + "/" + ScatterPlot.TYPES[i][1])
                 || jrb.getText().equals("<html>" + ScatterPlot.TYPES[i][0] + "/<br />"
-                    + ScatterPlot.TYPES[i][1] + "</html>")) {
+                                        + ScatterPlot.TYPES[i][1] + "</html>")) {
               plot_types[selectedPanelIndex] = i;
               // seletedScatterPanel.setPointsGeneratable(true);
               // seletedScatterPanel.setQcPanelUpdatable(true);
@@ -3328,7 +3356,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     // seletedScatterPanel.getActionMap().remove("annotation\t"+c);
     for (ScatterPanel scatterPanel : scatterPanels) {
       scatterPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-          .remove(KeyStroke.getKeyStroke((c + "").toUpperCase().charAt(0), 0));
+                  .remove(KeyStroke.getKeyStroke((c + "").toUpperCase().charAt(0), 0));
       scatterPanel.getActionMap().remove("annotation\t" + c);
     }
   }
@@ -3364,8 +3392,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     autoSave = null;
     fail = !loadClusterFilterFiles();
     if (fail) {
-      proj.getLog().reportError(
-          "Chose to ignore prompt for autosaved cluster filters; ScatterPlot will not start");
+      proj.getLog()
+          .reportError("Chose to ignore prompt for autosaved cluster filters; ScatterPlot will not start");
       return;
     }
 
@@ -3374,7 +3402,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     if (hasAnnotationFile) {
       try {
         gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, masterMarkerList,
-            annotationLoader.getMarkerSet(), annotationLoader.getIndices());
+                                                          annotationLoader.getMarkerSet(),
+                                                          annotationLoader.getIndices());
         blastResults = MarkerBlastAnnotation.initForMarkers(masterMarkerList);
         ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
         parsers.add(blastResults);
@@ -3443,8 +3472,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
         message =
             "New cluster filters have been created. Would you like to append them to the permanent file?";
       }
-      choice = JOptionPane.showOptionDialog(null, message, title, JOptionPane.YES_NO_CANCEL_OPTION,
-          JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+      choice =
+          JOptionPane.showOptionDialog(null, message, title, JOptionPane.YES_NO_CANCEL_OPTION,
+                                       JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
       if (choice == 0) {
         clusterFilterCollection.serialize(clusterFilterFilename);
         proj.archiveFile(clusterFilterFilename);
@@ -3463,10 +3493,11 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     annotationFilename = proj.ANNOTATION_FILENAME.getValue(false, false);
     Files.exists(annotationFilename, jar);
     if (isAnnotationUpdated) {
-      choice = JOptionPane.showOptionDialog(null,
-          "New Annotations have been generated. Would you like to append them to the permanent annotations file?",
-          "Update annotations?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE,
-          null, options, options[0]);
+      choice =
+          JOptionPane.showOptionDialog(null,
+                                       "New Annotations have been generated. Would you like to append them to the permanent annotations file?",
+                                       "Update annotations?", JOptionPane.YES_NO_CANCEL_OPTION,
+                                       JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
       if (choice == 0) {
         annotationCollection.serialize(annotationFilename);
         proj.archiveFile(annotationFilename);
@@ -3502,8 +3533,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     // if (currentClusterFilter >= 0) {
     // log.report("Before: image=="+(scatPanel.image==null?"null":"BImg")+"\t");
     if (clusterFilterCollection.getSize(getMarkerName()) > 0) {
-      newGenotype.setSelectedIndex(
-          clusterFilterCollection.getGenotype(markerList[markerIndex], currentClusterFilter) + 1);
+      newGenotype.setSelectedIndex(clusterFilterCollection.getGenotype(markerList[markerIndex],
+                                                                       currentClusterFilter)
+                                   + 1);
       // if (seletedScatterPanel.getRectangles()!=null) {
       // seletedScatterPanel.generateRectangles();
       // seletedScatterPanel.rectangles[currentClusterFilter].setColor((byte)0);
@@ -3658,17 +3690,20 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
   public void startAutoSaveToTempFile() {
     if (autoSave == null) {
-      autoSave = new AutoSaveForScatterPlot(clusterFilterCollection,
-          proj.DATA_DIRECTORY.getValue(false, true) + sessionID + ".tempClusterFilters.ser",
-          annotationCollection,
-          proj.DATA_DIRECTORY.getValue(false, true) + sessionID + ".tempAnnotation.ser", 30);
+      autoSave =
+          new AutoSaveForScatterPlot(clusterFilterCollection,
+                                     proj.DATA_DIRECTORY.getValue(false, true) + sessionID
+                                                              + ".tempClusterFilters.ser",
+                                     annotationCollection, proj.DATA_DIRECTORY.getValue(false, true)
+                                                           + sessionID + ".tempAnnotation.ser",
+                                     30);
       new Thread(autoSave).start();
     } else if (clusterFilterCollection != null && autoSave.isClusterFilterNull()) {
-      autoSave.addToAutoSave(clusterFilterCollection,
-          proj.DATA_DIRECTORY.getValue(false, true) + sessionID + ".tempClusterFilters.ser");
+      autoSave.addToAutoSave(clusterFilterCollection, proj.DATA_DIRECTORY.getValue(false, true)
+                                                      + sessionID + ".tempClusterFilters.ser");
     } else if (annotationCollection != null && autoSave.isAnnotationNull()) {
-      autoSave.addToAutoSave(annotationCollection,
-          proj.DATA_DIRECTORY.getValue(false, true) + sessionID + ".tempAnnotation.ser");
+      autoSave.addToAutoSave(annotationCollection, proj.DATA_DIRECTORY.getValue(false, true)
+                                                   + sessionID + ".tempAnnotation.ser");
     }
     autoSave.saveNow();
   }
@@ -3705,8 +3740,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   public void updateAnnotationPanelAnnotationCheckBoxes() {
     isInitilizing = true;
     for (int i = 0; i < annotationCheckBoxes.length; i++) {
-      annotationCheckBoxes[i].setText(annotationCollection
-          .getDescriptionForComment(annotationKeys[i], showAnnotationShortcuts, true));
+      annotationCheckBoxes[i].setText(annotationCollection.getDescriptionForComment(annotationKeys[i],
+                                                                                    showAnnotationShortcuts,
+                                                                                    true));
       if (annotationCollection.markerHasAnnotation(markerList[markerIndex], annotationKeys[i])) {
         annotationCheckBoxes[i].setSelected(true);
       } else {
@@ -3727,8 +3763,11 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     }
 
     for (int i = 0; i < filterRadioButtons.length; i++) {
-      filterRadioButtons[i].setText(RADIOBUTTON_TEXTS[i] + " (n=" + (i == 0 ? markerList.length
-          : (i == 1 ? numAnnotated : (markerList.length - numAnnotated))) + ")");
+      filterRadioButtons[i].setText(RADIOBUTTON_TEXTS[i] + " (n="
+                                    + (i == 0 ? markerList.length
+                                              : (i == 1 ? numAnnotated
+                                                        : (markerList.length - numAnnotated)))
+                                    + ")");
     }
   }
 
@@ -3782,8 +3821,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     }
 
     double ratio = blastFrame == null ? filter
-        : ((double) blastFrame.currentAlignFilter)
-            / ((double) proj.ARRAY_TYPE.getValue().getProbeLength());
+                                      : ((double) blastFrame.currentAlignFilter)
+                                        / ((double) proj.ARRAY_TYPE.getValue().getProbeLength());
     // int offTLbls = BlastFrame.BlastUtils.filterAnnotations(proj,
     // blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log),
     // alignFilter).size();
@@ -3856,9 +3895,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   }
 
   public void updateCurrentClusterFilterGenotype(byte newGenotypeSelected,
-      boolean updateGenotypeComboBox) {
+                                                 boolean updateGenotypeComboBox) {
     clusterFilterCollection.updateGenotype(getMarkerName(), currentClusterFilter,
-        newGenotypeSelected);
+                                           newGenotypeSelected);
     setClusterFilterUpdated(true);
     // seletedScatterPanel.setPointsGeneratable(true);
     // seletedScatterPanel.setQcPanelUpdatable(true);
@@ -3949,17 +3988,24 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
     if (showingAll) {
       for (int i = 0; i < indivPanels.length; i++) {
-        String plotTitle = ScatterPlot.TYPES[plot_types[i]][0] + "/"
-            + ScatterPlot.TYPES[plot_types[i]][1] + " - " + sampleData.getClassName(classes[i]);
+        String plotTitle =
+            ScatterPlot.TYPES[plot_types[i]][0] + "/" + ScatterPlot.TYPES[plot_types[i]][1] + " - "
+                           + sampleData.getClassName(classes[i]);
         if (i == selectedPanelIndex) {
           TitledBorder tb = BorderFactory.createTitledBorder(
-              BorderFactory.createEtchedBorder(EtchedBorder.LOWERED, Color.RED, Color.GRAY),
-              plotTitle, TitledBorder.LEADING, TitledBorder.TOP);
+                                                             BorderFactory.createEtchedBorder(EtchedBorder.LOWERED,
+                                                                                              Color.RED,
+                                                                                              Color.GRAY),
+                                                             plotTitle, TitledBorder.LEADING,
+                                                             TitledBorder.TOP);
           indivPanels[i].setBorder(tb);
         } else {
-          TitledBorder tb = BorderFactory.createTitledBorder(BorderFactory
-              .createEtchedBorder(EtchedBorder.LOWERED, Color.GRAY.brighter(), Color.GRAY),
-              plotTitle, TitledBorder.LEADING, TitledBorder.TOP);
+          TitledBorder tb = BorderFactory.createTitledBorder(
+                                                             BorderFactory.createEtchedBorder(EtchedBorder.LOWERED,
+                                                                                              Color.GRAY.brighter(),
+                                                                                              Color.GRAY),
+                                                             plotTitle, TitledBorder.LEADING,
+                                                             TitledBorder.TOP);
           indivPanels[i].setBorder(tb);
         }
       }
@@ -3996,7 +4042,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   }
 
   public void updateQcPanel(byte chr, int[] genotype, String[] sex, String[] otherClass,
-      int index) {
+                            int index) {
     // if (qc_prevGeno == null ||
     // qc_prevSex == null ||
     // qc_prevOthCls == null) {
@@ -4088,10 +4134,10 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     callrate = (double) numCalledGenotypes / (double) numIncludedSamples * 100.0;
     if (alleleCounts[0] > alleleCounts[2]) {
       minorAlleleFrequency = (double) (alleleCounts[1] + alleleCounts[2])
-          / (alleleCounts[0] + 2 * alleleCounts[1] + alleleCounts[2]);
+                             / (alleleCounts[0] + 2 * alleleCounts[1] + alleleCounts[2]);
     } else {
       minorAlleleFrequency = (double) (alleleCounts[0] + alleleCounts[1])
-          / (alleleCounts[0] + 2 * alleleCounts[1] + alleleCounts[2]);
+                             / (alleleCounts[0] + 2 * alleleCounts[1] + alleleCounts[2]);
     }
 
     qcPanel.removeAll();
@@ -4129,9 +4175,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
     classCount = new CTable(called, sex);// This is the problem.
     classCount.setCustomNullValues(Array.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
-    classCount.setCustomLabelsAndOrder(
-        new String[][] {{"-1", "Genotype missing"}, {"1", "Genotype NOT missing"}},
-        sampleData.getActualClassColorKey(0));
+    classCount.setCustomLabelsAndOrder(new String[][] {{"-1", "Genotype missing"},
+                                                       {"1", "Genotype NOT missing"}},
+                                       sampleData.getActualClassColorKey(0));
 
     // classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype
     // NOT missing"}}, Matrix.addRow(sampleData.getActualClassColorKey(0), new String[] {null,
@@ -4142,18 +4188,19 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     qcPanelLabel.setFont(new Font("Arial", 0, 14));
     qcPanel.add(qcPanelLabel, "cell 0 4");
     qcPanelLabel = new JLabel(
-        ext.prettyP(ProbDist
-            .ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1)),
-        JLabel.LEFT);
+                              ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(),
+                                                                                      false),
+                                                           1)),
+                              JLabel.LEFT);
     qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
     qcPanelLabel.setFont(new Font("Arial", 0, 14));
     qcPanel.add(qcPanelLabel, "cell 1 4");
 
     classCount = new CTable(CTable.extrapolateCounts(sex, genotype));
     classCount.setCustomNullValues(Array.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
-    classCount.setCustomLabelsAndOrder(
-        Matrix.addRow(sampleData.getActualClassColorKey(0), new String[] {null, "missing"}),
-        new String[][] {{"A", "Allele A"}, {"B", "Allele B"}});
+    classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(0),
+                                                     new String[] {null, "missing"}),
+                                       new String[][] {{"A", "Allele A"}, {"B", "Allele B"}});
 
     // classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(0), new
     // String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"},
@@ -4163,9 +4210,10 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     qcPanelLabel.setFont(new Font("Arial", 0, 14));
     qcPanel.add(qcPanelLabel, "cell 0 5");
     qcPanelLabel = new JLabel(
-        ext.prettyP(ProbDist
-            .ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1)),
-        JLabel.LEFT);
+                              ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(),
+                                                                                      false),
+                                                           1)),
+                              JLabel.LEFT);
     qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
     qcPanelLabel.setFont(new Font("Arial", 0, 14));
     qcPanel.add(qcPanelLabel, "cell 1 5");
@@ -4175,13 +4223,15 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     if (currentClass > SampleData.BASIC_CLASSES.length
         && currentClass < sampleData.getBasicClasses().length + sampleData.getNumActualClasses()) {
       classCount = new CTable(called, otherClass);// This is the problem.
-      classCount.setCustomLabelsAndOrder(
-          new String[][] {{"-1", "Genotype missing"}, {"1", "Genotype NOT missing"}},
-          sampleData.getActualClassColorKey(currentClass - SampleData.BASIC_CLASSES.length));
+      classCount.setCustomLabelsAndOrder(new String[][] {{"-1", "Genotype missing"},
+                                                         {"1", "Genotype NOT missing"}},
+                                         sampleData.getActualClassColorKey(currentClass
+                                                                           - SampleData.BASIC_CLASSES.length));
       qcPanelLabel =
           new JLabel("Callrate by " + sampleData.getClassName(currentClass) + ": ", JLabel.LEFT);
-      classCount.setCustomNullValues(
-          Array.addStrToArray("-1", Array.addStrToArray("0", CTable.DEFAULT_NULL_VALUES)));
+      classCount.setCustomNullValues(Array.addStrToArray("-1",
+                                                         Array.addStrToArray("0",
+                                                                             CTable.DEFAULT_NULL_VALUES)));
       // classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"},
       // {"1","Genotype NOT missing"}},
       // Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length),
@@ -4202,11 +4252,13 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       // qcPanelLabel.setFont(new Font("Arial", 0, 14));
       // qcPanel.add(qcPanelLabel);
       qcPanelLabel = new JLabel(
-          ext.prettyP(ProbDist
-              .ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1)),
-          JLabel.LEFT);
-      classCount.setCustomNullValues(
-          Array.addStrToArray("-1", Array.addStrToArray("0", CTable.DEFAULT_NULL_VALUES)));
+                                ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(),
+                                                                                        false),
+                                                             1)),
+                                JLabel.LEFT);
+      classCount.setCustomNullValues(Array.addStrToArray("-1",
+                                                         Array.addStrToArray("0",
+                                                                             CTable.DEFAULT_NULL_VALUES)));
       // classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"},
       // {"1","Genotype NOT missing"}},
       // Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length),
@@ -4216,16 +4268,16 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       qcPanel.add(qcPanelLabel, "cell 1 6");
 
       classCount = new CTable(CTable.extrapolateCounts(otherClass, genotype));
-      classCount.setCustomLabelsAndOrder(
-          Matrix.addRow(
-              sampleData.getActualClassColorKey(currentClass - SampleData.BASIC_CLASSES.length),
-              new String[] {null, "missing"}),
-          new String[][] {{"A", "Allele A"}, {"B", "Allele B"}});
+      classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass
+                                                                                         - SampleData.BASIC_CLASSES.length),
+                                                       new String[] {null, "missing"}),
+                                         new String[][] {{"A", "Allele A"}, {"B", "Allele B"}});
       // classCount.replaceIdWithLabel(SampleData.KEYS_FOR_BASIC_CLASSES[1],sampleData.getActualClassColorKey(0));
       qcPanelLabel =
           new JLabel("Allele Freq by " + sampleData.getClassName(currentClass) + ": ", JLabel.LEFT);
-      classCount.setCustomNullValues(
-          Array.addStrToArray("-1", Array.addStrToArray("0", CTable.DEFAULT_NULL_VALUES)));
+      classCount.setCustomNullValues(Array.addStrToArray("-1",
+                                                         Array.addStrToArray("0",
+                                                                             CTable.DEFAULT_NULL_VALUES)));
       // classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length),
       // new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
       qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
@@ -4242,11 +4294,13 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       // qcPanelLabel.setFont(new Font("Arial", 0, 14));
       // qcPanel.add(qcPanelLabel);
       qcPanelLabel = new JLabel(
-          ext.prettyP(ProbDist
-              .ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(), false), 1)),
-          JLabel.LEFT);
-      classCount.setCustomNullValues(
-          Array.addStrToArray("-1", Array.addStrToArray("0", CTable.DEFAULT_NULL_VALUES)));
+                                ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(),
+                                                                                        false),
+                                                             1)),
+                                JLabel.LEFT);
+      classCount.setCustomNullValues(Array.addStrToArray("-1",
+                                                         Array.addStrToArray("0",
+                                                                             CTable.DEFAULT_NULL_VALUES)));
       // classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length),
       // new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
       qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
@@ -4303,7 +4357,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     // check blast marker filter change
     if (blastFrame != null) {
       double ratio = ((double) blastFrame.currentAlignFilter)
-          / ((double) proj.ARRAY_TYPE.getValue().getProbeLength());
+                     / ((double) proj.ARRAY_TYPE.getValue().getProbeLength());
       if (ratio != proj.BLAST_PROPORTION_MATCH_FILTER.getValue().doubleValue()) {
         proj.BLAST_PROPORTION_MATCH_FILTER.setValue(ratio);
         proj.saveProperties(new Project.Property[] {proj.BLAST_PROPORTION_MATCH_FILTER});

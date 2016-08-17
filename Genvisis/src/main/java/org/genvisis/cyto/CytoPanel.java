@@ -56,7 +56,7 @@ public class CytoPanel extends JPanel implements ActionListener {
      */
 
     public FileBox(JFrame jframe, String startDir, String file, String titleSelect,
-        String titleRemove, String workBenchIndex, String sampleName) {
+                   String titleRemove, String workBenchIndex, String sampleName) {
       this.startDir = startDir;
       this.file = file;
       jFileNameTextField = new JTextField();
@@ -83,16 +83,18 @@ public class CytoPanel extends JPanel implements ActionListener {
       JComponent source = (JComponent) e.getSource();
       if (source.equals(selectButton)) {
         FileChooser fileChooser = new FileChooser(this, proj.PROJECT_DIRECTORY.getValue(), false,
-            false, SELECT_TITLE, log);
+                                                  false, SELECT_TITLE, log);
         if (fileChooser.getFiles() != null && fileChooser.getFiles().length > 0) {
           jFileNameTextField.setText(fileChooser.getFiles()[0]);
         }
       } else if (source.equals(removeButton)) {
         int response = 1;
         String[] overwriteOptions = new String[] {"Remove", "Cancel"};
-        response = JOptionPane.showOptionDialog(null,
-            "Remove " + jFileNameTextField.getText() + "?", "Cancel", JOptionPane.DEFAULT_OPTION,
-            JOptionPane.QUESTION_MESSAGE, null, overwriteOptions, overwriteOptions[1]);
+        response =
+            JOptionPane.showOptionDialog(null, "Remove " + jFileNameTextField.getText() + "?",
+                                         "Cancel", JOptionPane.DEFAULT_OPTION,
+                                         JOptionPane.QUESTION_MESSAGE, null, overwriteOptions,
+                                         overwriteOptions[1]);
         if (response == 0) {
           setVisible(false);
           used = false;
@@ -275,9 +277,9 @@ public class CytoPanel extends JPanel implements ActionListener {
       if (message) {
         String[] options = new String[] {"OK"};
         String dialoge = "There seems to be no files to parse for type\"" + category
-            + "\", skipping this step\n";
+                         + "\", skipping this step\n";
         JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
-            JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+                                     JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
       }
       return false;
     }
@@ -296,18 +298,18 @@ public class CytoPanel extends JPanel implements ActionListener {
         id = sampleData.lookup(fileBoxe.getFID() + "\t" + fileBoxe.getIID());
         log.report("Previous Individual: " + id[0] + "\t" + id[1]);
         issues.add("   DNA:  " + fileBoxe.getDNA() + "\t   FID:  " + fileBoxe.getFID()
-            + "\t  IID:  " + fileBoxe.getIID());
+                   + "\t  IID:  " + fileBoxe.getIID());
         fileBoxe.setAddToSampleData(false);
       } catch (NullPointerException npe) {
         log.report("New Individual: " + fileBoxe.getDNA() + "\t" + fileBoxe.getFID() + "\t"
-            + fileBoxe.getIID());
+                   + fileBoxe.getIID());
       }
     }
     proj.resetSampleData();
     // return verifySampleDataIssues(issues.toArray(new String[issues.size()]),
     // proj.getFilename(proj.SAMPLE_DATA_FILENAME));
     return verifySampleDataIssues(issues.toArray(new String[issues.size()]),
-        proj.SAMPLE_DATA_FILENAME.getValue());
+                                  proj.SAMPLE_DATA_FILENAME.getValue());
   }
 
   /**
@@ -323,7 +325,8 @@ public class CytoPanel extends JPanel implements ActionListener {
           writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
           for (Segment seg : segs) {
             writer.println(new CNVariant(ext.rootOf(output), seg.getUCSClocation(), seg.getChr(),
-                seg.getStart(), seg.getStop(), 2, 10f, 10, 0).toPlinkFormat());
+                                         seg.getStart(), seg.getStop(), 2, 10f, 10,
+                                         0).toPlinkFormat());
           }
           writer.close();
           converted = true;
@@ -348,17 +351,24 @@ public class CytoPanel extends JPanel implements ActionListener {
     // convertCNPfiles(proj, proj.getFilename(proj.UNREPORTED_CNP_FILENAME), cnvdir +
     // ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.getFilename(proj.UNREPORTED_CNP_FILENAME)),
     // true) + CytoCNVariant.CNV_EXT, log);
-    convertCNPfiles(proj, proj.COMMON_CNP_FILENAME.getValue(), cnvdir
-        + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.COMMON_CNP_FILENAME.getValue()), true)
-        + CytoCNVariant.CNV_EXT, log);
-    convertCNPfiles(proj, proj.REPORTED_CNP_FILENAME.getValue(),
-        cnvdir + ext.replaceWithLinuxSafeCharacters(
-            ext.rootOf(proj.REPORTED_CNP_FILENAME.getValue()), true) + CytoCNVariant.CNV_EXT,
-        log);
-    convertCNPfiles(proj, proj.UNREPORTED_CNP_FILENAME.getValue(),
-        cnvdir + ext.replaceWithLinuxSafeCharacters(
-            ext.rootOf(proj.UNREPORTED_CNP_FILENAME.getValue()), true) + CytoCNVariant.CNV_EXT,
-        log);
+    convertCNPfiles(proj,
+                    proj.COMMON_CNP_FILENAME.getValue(), cnvdir
+                                                         + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.COMMON_CNP_FILENAME.getValue()),
+                                                                                              true)
+                                                         + CytoCNVariant.CNV_EXT,
+                    log);
+    convertCNPfiles(proj,
+                    proj.REPORTED_CNP_FILENAME.getValue(), cnvdir
+                                                           + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.REPORTED_CNP_FILENAME.getValue()),
+                                                                                                true)
+                                                           + CytoCNVariant.CNV_EXT,
+                    log);
+    convertCNPfiles(proj,
+                    proj.UNREPORTED_CNP_FILENAME.getValue(), cnvdir
+                                                             + ext.replaceWithLinuxSafeCharacters(ext.rootOf(proj.UNREPORTED_CNP_FILENAME.getValue()),
+                                                                                                  true)
+                                                             + CytoCNVariant.CNV_EXT,
+                    log);
   }
 
   /**
@@ -472,13 +482,14 @@ public class CytoPanel extends JPanel implements ActionListener {
       String[] options = new String[] {"Continue", "Cancel"};
       String dialoge =
           "Warning - the following samples were already present in the sample data file \""
-              + sampleDataFile + "\".\n";
+                       + sampleDataFile + "\".\n";
       dialoge +=
           "If you are re-parsing the same samples, select \"Continue\", otherwise please ensure that samples have unique names\n";
       dialoge += "Please note that a FID/IID combination must be unique\n";
       dialoge += Array.toStr(issues, "\n");
-      int response = JOptionPane.showOptionDialog(null, dialoge, "Error",
-          JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+      int response =
+          JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
+                                       JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
       if (response != 0) {
         keepGoing = false;
       }
@@ -499,7 +510,7 @@ public class CytoPanel extends JPanel implements ActionListener {
       String dialoge =
           "Error: could not find column " + type + " in sample data file " + sampleDataFile;
       JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
-          JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+                                   JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
       keepGoing = false;
     }
     return keepGoing;
@@ -510,8 +521,8 @@ public class CytoPanel extends JPanel implements ActionListener {
     PrintWriter writer = Files.getAppropriateWriter(sampleDataFile);
     writer.println(Array.toStr(SAMP_DATA_TO_ADD));
     for (FileBox fileBoxe : fileBoxes) {
-      writer
-          .println(fileBoxe.getDNA() + "\t" + fileBoxe.getFID() + "\t" + fileBoxe.getIID() + "\t0");
+      writer.println(fileBoxe.getDNA() + "\t" + fileBoxe.getFID() + "\t" + fileBoxe.getIID()
+                     + "\t0");
     }
     writer.close();
     keepGoing = true;
@@ -540,9 +551,9 @@ public class CytoPanel extends JPanel implements ActionListener {
   public CytoPanel(Project proj, CytoGUI cytoGUI, String startDir, Logger log) {
     this.proj = proj;
     this.startDir = startDir;
-    this.log = (log == null
-        ? new Logger(proj.PROJECT_DIRECTORY.getValue() + ext.getTimestampForFilename() + PANEL_LOG)
-        : log);
+    this.log = (log == null ? new Logger(proj.PROJECT_DIRECTORY.getValue()
+                                         + ext.getTimestampForFilename() + PANEL_LOG)
+                            : log);
     this.cytoGUI = cytoGUI;
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     initLabels();
@@ -609,7 +620,7 @@ public class CytoPanel extends JPanel implements ActionListener {
     if (importFiles != null && importFiles.length > 0) {
       for (String importFile : importFiles) {
         String file = proj.SOURCE_DIRECTORY.getValue(false, true) + ext.rootOf(importFile, true)
-            + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION);
+                      + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION);
         if (Files.exists(file)) {
           alreadyParsed.add(file);
         }
@@ -617,18 +628,23 @@ public class CytoPanel extends JPanel implements ActionListener {
     }
     if (alreadyParsed.size() > 0) {
       String[] overwriteOptions = new String[] {"Overwrite All", "Cancel parser"};
-      String samples = alreadyParsed.size() + " "
-          + (alreadyParsed.size() > 1 ? " of the selected samples " : " the selected sample");
-      int response = JOptionPane.showOptionDialog(null,
-          "These data (at least  " + samples
-              + ") have already been parsed to the project source directory "
-              + proj.SOURCE_DIRECTORY.getValue(false, true) + ".\n"
-              + "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted, or if there are non-unique filenames.\n"
-              + "Select \"" + overwriteOptions[0] + "\" earlier files to overwrite the " + samples
-              + " already processed.\n" + "Otherwise, cancel and manually remove the files.\n"
-              + "What would you like to do?",
-          "Samples already exist", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-          overwriteOptions, overwriteOptions[1]);
+      String samples =
+          alreadyParsed.size() + " " + (alreadyParsed.size() > 1 ? " of the selected samples "
+                                                                 : " the selected sample");
+      int response =
+          JOptionPane.showOptionDialog(null,
+                                       "These data (at least  " + samples
+                                             + ") have already been parsed to the project source directory "
+                                             + proj.SOURCE_DIRECTORY.getValue(false, true) + ".\n"
+                                             + "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted, or if there are non-unique filenames.\n"
+                                             + "Select \"" + overwriteOptions[0]
+                                             + "\" earlier files to overwrite the " + samples
+                                             + " already processed.\n"
+                                             + "Otherwise, cancel and manually remove the files.\n"
+                                             + "What would you like to do?",
+                                       "Samples already exist", JOptionPane.DEFAULT_OPTION,
+                                       JOptionPane.QUESTION_MESSAGE, null, overwriteOptions,
+                                       overwriteOptions[1]);
 
       switch (response) {
         case 0:
@@ -656,7 +672,7 @@ public class CytoPanel extends JPanel implements ActionListener {
       String dialoge =
           "Warning - processing files in the background, please wait until completion\n";
       JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
-          JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+                                   JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
       return false;
     }
     return true;
@@ -670,14 +686,16 @@ public class CytoPanel extends JPanel implements ActionListener {
   public void checkTooMany(String[] files, int tooMany, String type) {
     if (files.length > tooMany) {
       String[] options = new String[] {"OK", "See all files found"};
-      String dialoge = "Warning - detected " + files.length + " files of type " + type + ", only "
-          + tooMany + " will be displayed. Please make sure that the number detected is correct.";
-      int response = JOptionPane.showOptionDialog(null, dialoge, "Warning",
-          JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+      String dialoge =
+          "Warning - detected " + files.length + " files of type " + type + ", only " + tooMany
+                       + " will be displayed. Please make sure that the number detected is correct.";
+      int response =
+          JOptionPane.showOptionDialog(null, dialoge, "Warning", JOptionPane.DEFAULT_OPTION,
+                                       JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
       if (response == 1) {
         JOptionPane.showOptionDialog(null, Array.toStr(files, "\n"), "Warning",
-            JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-            new String[] {options[0]}, options[0]);
+                                     JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+                                     new String[] {options[0]}, options[0]);
       }
     }
   }
@@ -782,8 +800,9 @@ public class CytoPanel extends JPanel implements ActionListener {
       // String dialoge = "Could not find the Common CNP file " +
       // proj.getFilename(proj.COMMON_CNP_FILENAME);
       String dialoge = "Could not find the Common CNP file " + proj.COMMON_CNP_FILENAME.getValue();
-      response = JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
-          JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+      response =
+          JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
+                                       JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
     }
     // if (parseResponse(response) && !Files.exists(proj.getFilename(proj.REPORTED_CNP_FILENAME))) {
     // String dialoge = "Could not find the Reported CNP file " +
@@ -791,8 +810,9 @@ public class CytoPanel extends JPanel implements ActionListener {
     if (parseResponse(response) && !Files.exists(proj.REPORTED_CNP_FILENAME.getValue())) {
       String dialoge =
           "Could not find the Reported CNP file " + proj.REPORTED_CNP_FILENAME.getValue();
-      response = JOptionPane.showOptionDialog(this, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
-          JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+      response =
+          JOptionPane.showOptionDialog(this, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
+                                       JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
     }
     // if (parseResponse(response) && !Files.exists(proj.getFilename(proj.COMMON_CNP_FILENAME))) {
     // String dialoge = "Could not find the Un - Reported CNP file " +
@@ -800,8 +820,9 @@ public class CytoPanel extends JPanel implements ActionListener {
     if (parseResponse(response) && !Files.exists(proj.COMMON_CNP_FILENAME.getValue())) {
       String dialoge =
           "Could not find the  Un - Reported CNP file " + proj.UNREPORTED_CNP_FILENAME.getValue();
-      response = JOptionPane.showOptionDialog(this, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
-          JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+      response =
+          JOptionPane.showOptionDialog(this, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
+                                       JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
     }
     return parseResponse(response);
   }
@@ -816,12 +837,12 @@ public class CytoPanel extends JPanel implements ActionListener {
   private void multiMatch(String sampleExt, String workbenchFile) {
     String[] options = new String[] {"OK"};
     String dialoge = "Error: multiple files ended with the extension " + parseToMatch(sampleExt)
-        + SAMPLES_EXT + " corresponding to sample found in " + workbenchFile + " \n";
+                     + SAMPLES_EXT + " corresponding to sample found in " + workbenchFile + " \n";
     dialoge += "Please make sure there is only one file ending with " + parseToMatch(sampleExt)
-        + SAMPLES_EXT;
+               + SAMPLES_EXT;
 
     JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
-        JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+                                 JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
   }
 
   /**
@@ -830,9 +851,10 @@ public class CytoPanel extends JPanel implements ActionListener {
   private boolean NoMatchfor(String sampleExt, String workbenchFile) {
     String[] options = new String[] {"Cancel", "OK"};
     String dialoge = "Warning: Could not find a file ending with extension " + sampleExt
-        + SAMPLES_EXT + " corresponding to sample found in " + workbenchFile + " \n";
-    int response = JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
-        JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+                     + SAMPLES_EXT + " corresponding to sample found in " + workbenchFile + " \n";
+    int response =
+        JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
+                                     JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
     return (response == 0 ? false : true);
   }
 
@@ -842,8 +864,8 @@ public class CytoPanel extends JPanel implements ActionListener {
    */
   private void parseAndImport() {
     if (checkFiles(importFiles, SAMPLES, true)) {
-      Files.write("",
-          proj.SAMPLE_DIRECTORY.getValue(true, true) + SourceFileParser.OVERWRITE_OPTION_FILE);
+      Files.write("", proj.SAMPLE_DIRECTORY.getValue(true, true)
+                      + SourceFileParser.OVERWRITE_OPTION_FILE);
       SourceFileParser.deleteAllFilesInSampleDirectory(proj);
       SourceFileParser.deleteAllFilesInMarkerDataDirectory(proj);
 
@@ -854,8 +876,8 @@ public class CytoPanel extends JPanel implements ActionListener {
       deleteSampleList();
       TransposeData.transposeData(proj, 2000000000, false);
 
-      new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + SourceFileParser.OVERWRITE_OPTION_FILE)
-          .delete();
+      new File(proj.SAMPLE_DIRECTORY.getValue(true, true)
+               + SourceFileParser.OVERWRITE_OPTION_FILE).delete();
     }
   }
 
@@ -881,18 +903,20 @@ public class CytoPanel extends JPanel implements ActionListener {
         // startDir, true, new Logger(startDir + ext.getTimestampForFilename() + "_" +
         // CytoCompare.DEFAULT_LOG));
         CytoCompare.compare(proj, workBenchFiles, proj.COMMON_CNP_FILENAME.getValue(),
-            proj.REPORTED_CNP_FILENAME.getValue(), proj.UNREPORTED_CNP_FILENAME.getValue(),
-            CytoCompare.DEFAULT_SCORE_THRESHOLD, startDir, true,
-            new Logger(startDir + ext.getTimestampForFilename() + "_" + CytoCompare.DEFAULT_LOG));
+                            proj.REPORTED_CNP_FILENAME.getValue(),
+                            proj.UNREPORTED_CNP_FILENAME.getValue(),
+                            CytoCompare.DEFAULT_SCORE_THRESHOLD, startDir, true,
+                            new Logger(startDir + ext.getTimestampForFilename() + "_"
+                                       + CytoCompare.DEFAULT_LOG));
       }
     } catch (Exception exc) {
       JOptionPane.showMessageDialog(this,
-          "An error occured while parsing the following "
-              + (workBenchFiles.length == 1 ? " file: " : " files: ")
-              + Array.toStr(workBenchFiles, "\n"));
+                                    "An error occured while parsing the following "
+                                          + (workBenchFiles.length == 1 ? " file: " : " files: ")
+                                          + Array.toStr(workBenchFiles, "\n"));
       log.reportError("An error occured while parsing the following "
-          + (workBenchFiles.length == 1 ? " file: " : " files: ")
-          + Array.toStr(workBenchFiles, "\n"));
+                      + (workBenchFiles.length == 1 ? " file: " : " files: ")
+                      + Array.toStr(workBenchFiles, "\n"));
       log.reportException(exc);
     }
   }
@@ -904,7 +928,7 @@ public class CytoPanel extends JPanel implements ActionListener {
     String[] options = new String[] {"OK"};
     String dialoge = "Parsing complete\n";
     JOptionPane.showOptionDialog(null, dialoge, "Done...", JOptionPane.DEFAULT_OPTION,
-        JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+                                 JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
   }
 
@@ -957,10 +981,10 @@ public class CytoPanel extends JPanel implements ActionListener {
       log.report("" + i);
       if (i < workBenchFiles.length) {
         benchfileBoxes[i] = new FileBox(cytoGUI, startDir, workBenchFiles[i],
-            SELECT_NEW + WORKBENCH, REMOVE, "-1", null);
+                                        SELECT_NEW + WORKBENCH, REMOVE, "-1", null);
       } else {
         benchfileBoxes[i] = new FileBox(cytoGUI, NO_FILE_SELECTED, null, SELECT_NEW + WORKBENCH,
-            REMOVE, "-1", null);
+                                        REMOVE, "-1", null);
       }
       if (i < DEFAULT_MAX_NUM_WORKBENCH) {
         benchfileBoxes[i].setVisible(true);
@@ -974,7 +998,7 @@ public class CytoPanel extends JPanel implements ActionListener {
     for (int i = 0; i < sampfileBoxes.length; i++) {
       if (i < importFiles.length) {
         sampfileBoxes[i] = new FileBox(cytoGUI, startDir, importFiles[i], SELECT_NEW + SAMPLES,
-            REMOVE, sampleIndices[i], sampleNames[i]);
+                                       REMOVE, sampleIndices[i], sampleNames[i]);
       } else {
         sampfileBoxes[i] =
             new FileBox(cytoGUI, NO_FILE_SELECTED, null, SELECT_NEW + SAMPLES, REMOVE, "-1", null);
@@ -1019,7 +1043,7 @@ public class CytoPanel extends JPanel implements ActionListener {
     }
     for (String workBenchFile : workBenchFiles) {
       CytoCNVariant.writeIndCNVariantFiles(CytoCNVariant.directToInds(workBenchFile, log), dir,
-          log);
+                                           log);
     }
     String[] cnvsToCat = Files.toFullPaths(Files.list(dir, CytoCNVariant.CNV_EXT, false), dir);
     cnvsToCat = filterCNP(proj, cnvsToCat);

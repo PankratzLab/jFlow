@@ -28,7 +28,7 @@ public class QuoteMe {
         out += matrix ? "{" : "";
         for (int j = 0; j < subline.length; j++) {
           out += (j == 0 ? "" : ", " + (NEWLINE ? "\n" : "")) + "\""
-              + ext.replaceQuotesWithSlashQuotes(subline[j]) + "\"";
+                 + ext.replaceQuotesWithSlashQuotes(subline[j]) + "\"";
         }
         out += matrix ? "},\n" : "";
       }

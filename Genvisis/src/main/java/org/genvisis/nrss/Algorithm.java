@@ -68,7 +68,8 @@ public class Algorithm {
   }
 
   public static double[] computeStatistic(String[] markerNames, double[] pvalues, int lowIndex,
-      int highIndex, LongLDdb chrLDdb, double threshold, double[] vars) {
+                                          int highIndex, LongLDdb chrLDdb, double threshold,
+                                          double[] vars) {
     double[] stats = new double[5];
     int[] keys;
     double maxR2, r2;
@@ -99,7 +100,7 @@ public class Algorithm {
             // if (!allMissingMarkers.containsKey(subset[index]) ||
             // !allMissingMarkers.containsKey(subset[index+k*offset])) {
             System.err.println("Error - missing LD info for " + markerNames[lowIndex + keys[i]]
-                + "/" + markerNames[lowIndex + keys[j]] + " pair");
+                               + "/" + markerNames[lowIndex + keys[j]] + " pair");
             // }
           } else if (r2 > maxR2) {
             maxR2 = r2;
@@ -131,7 +132,7 @@ public class Algorithm {
   }
 
   public static double[] computeStatistic(String[] markerNames, double[] pvalues, LongLDdb chrLDdb,
-      double threshold) {
+                                          double threshold) {
     return computeStatistic(markerNames, pvalues, 0, pvalues.length - 1, chrLDdb, threshold, null);
   }
 
@@ -178,8 +179,8 @@ public class Algorithm {
             dvs[i][k].add(trav.elementAt(keys[k]));
           }
         } catch (FileNotFoundException fnfe) {
-          System.err
-              .println("Error: file \"" + file.getName() + "\" not found in current directory");
+          System.err.println("Error: file \"" + file.getName()
+                             + "\" not found in current directory");
           System.exit(1);
         } catch (IOException ioe) {
           System.err.println("Error reading file \"" + file.getName() + "\"");
@@ -192,12 +193,12 @@ public class Algorithm {
       writer = new PrintWriter(new FileWriter("NRSS_distributions.xln"));
       for (int i = 0; i < dirs.length; i++) {
         writer.print((i == 0 ? "" : "\t") + dirs[i].getName()
-            + Array.toStr(Array.stringArray(levelsDeep), "\t"));
+                     + Array.toStr(Array.stringArray(levelsDeep), "\t"));
       }
       writer.println();
       for (int i = 0; i < dirs.length; i++) {
-        writer.print(
-            (i == 0 ? "" : "\t") + Array.toStr(Array.stringArraySequence(levelsDeep, ""), "\t"));
+        writer.print((i == 0 ? "" : "\t")
+                     + Array.toStr(Array.stringArraySequence(levelsDeep, ""), "\t"));
       }
       writer.println();
       writer.println(Array.toStr(Array.stringArray(dirs.length * levelsDeep, "0.5")));
@@ -206,8 +207,8 @@ public class Algorithm {
         for (int j = 0; j < levelsDeep; j++) {
           col = ext.getExcelColumn(i * levelsDeep + j);
           temp += (i == 0 && j == 0 ? "" : "\t") + "=COUNTIF(" + col + "5:" + col
-              + (Math.max(4 + dvs[i][j].size(), 5)) + ", \">\"&" + col + "3)/COUNT(" + col + "5:"
-              + col + (Math.max(4 + dvs[i][j].size(), 5)) + ")";
+                  + (Math.max(4 + dvs[i][j].size(), 5)) + ", \">\"&" + col + "3)/COUNT(" + col
+                  + "5:" + col + (Math.max(4 + dvs[i][j].size(), 5)) + ")";
         }
       }
 
@@ -307,18 +308,20 @@ public class Algorithm {
 
 
     String usage = "\\n" + "park.gwa.Nrss requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-        + filename + " (default))\n" + "   (1) column of p-values (i.e. col=" + col
-        + " (default))\n" + "   (1) column of variate (i.e. var=" + var + " (default))\n"
-        + "   (2) proc map for Haploview (i.e. procMap=4 for chromosome 4 (not the default))\n"
-        + "   (3) batch haploview LD computation, using N files (i.e. batch=N (not the default))\n"
-        + "   (4) simulate null distribution (i.e. sim=100 to do 100 replicates (not the default))\n"
-        + "   (5) the genome build to determine genes (i.e. build=" + genomeBuild + " (default))\n"
-        + "   (3) parse simulations (i.e. -parseSims (not the default))\n"
-        + "   (3) process simulation results (i.e. -procSims (not the default))\n"
-        + "   (3) form distributions (i.e. -formDist (not the default))\n"
-        + "   (3) root of PLINK file to test for LD (i.e. ldRoot=" + ldRoot + " (default))\n"
-        + "   (3) prep file for input (sort markers and remove unknown positions (i.e. -prep (not the default))\n"
-        + "";
+                   + filename + " (default))\n" + "   (1) column of p-values (i.e. col=" + col
+                   + " (default))\n" + "   (1) column of variate (i.e. var=" + var + " (default))\n"
+                   + "   (2) proc map for Haploview (i.e. procMap=4 for chromosome 4 (not the default))\n"
+                   + "   (3) batch haploview LD computation, using N files (i.e. batch=N (not the default))\n"
+                   + "   (4) simulate null distribution (i.e. sim=100 to do 100 replicates (not the default))\n"
+                   + "   (5) the genome build to determine genes (i.e. build=" + genomeBuild
+                   + " (default))\n"
+                   + "   (3) parse simulations (i.e. -parseSims (not the default))\n"
+                   + "   (3) process simulation results (i.e. -procSims (not the default))\n"
+                   + "   (3) form distributions (i.e. -formDist (not the default))\n"
+                   + "   (3) root of PLINK file to test for LD (i.e. ldRoot=" + ldRoot
+                   + " (default))\n"
+                   + "   (3) prep file for input (sort markers and remove unknown positions (i.e. -prep (not the default))\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -417,7 +420,7 @@ public class Algorithm {
   }
 
   public static void parseSimulations(final String suffix, int p_column, int chr_column,
-      int pos_column, int markerName_column) {
+                                      int pos_column, int markerName_column) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -429,8 +432,8 @@ public class Algorithm {
         return filename.endsWith(suffix);
       }
     });
-    System.out.println(
-        ext.getTime() + "\tFound " + files.length + " files with suffix '" + suffix + "' to parse");
+    System.out.println(ext.getTime() + "\tFound " + files.length + " files with suffix '" + suffix
+                       + "' to parse");
 
     for (File file : files) {
       filename = file.getName();
@@ -442,7 +445,7 @@ public class Algorithm {
         while (reader.ready()) {
           line = reader.readLine().trim().split("[\\s]+");
           writer.println(line[markerName_column] + "\t" + line[chr_column] + "\t" + line[pos_column]
-              + "\t" + (line[p_column].equals("NA") ? "." : line[p_column]));
+                         + "\t" + (line[p_column].equals("NA") ? "." : line[p_column]));
         }
         reader.close();
         writer.close();
@@ -462,12 +465,12 @@ public class Algorithm {
 
     System.out.println("Loading marker set...");
     markerSet = new SnpMarkerSet(filename, SnpMarkerSet.GENERIC_FORMAT_ANNOTATED_IGNORE_FIRST_LINE,
-        true, log);
+                                 true, log);
     System.out.println("Sorting markers...");
     markerSet.sortMarkers();
     System.out.println("Writing sorted list...");
     markerSet.writeToFile(ext.rootOf(filename, false) + "_sorted.xln",
-        SnpMarkerSet.GENERIC_FORMAT_ANNOTATED, log);
+                          SnpMarkerSet.GENERIC_FORMAT_ANNOTATED, log);
 
     System.out.println("Writing filtered list...");
     try {
@@ -484,17 +487,17 @@ public class Algorithm {
       writer.close();
     } catch (FileNotFoundException fnfe) {
       System.err.println("Error: file \"" + ext.rootOf(filename, false) + "_sorted.xln"
-          + "\" not found in current directory");
+                         + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
-      System.err
-          .println("Error reading file \"" + ext.rootOf(filename, false) + "_sorted.xln" + "\"");
+      System.err.println("Error reading file \"" + ext.rootOf(filename, false) + "_sorted.xln"
+                         + "\"");
       System.exit(2);
     }
   }
 
   public static void procFile(String dir, String filename, int p_column, int variate_column,
-      String ldRoot, int window, String outfile, int genomeBuild) {
+                              String ldRoot, int window, String outfile, int genomeBuild) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -532,7 +535,7 @@ public class Algorithm {
       reader = new BufferedReader(new FileReader(dir + filename));
       line = reader.readLine().trim().split("[\\s]+");
       ext.checkHeader(line, new String[] {"Chr", "Position"}, new int[] {1, 2}, false, new Logger(),
-          true);
+                      true);
       line = reader.readLine().trim().split("[\\s]+");
       chr = "";
       count = 0;
@@ -594,11 +597,12 @@ public class Algorithm {
           }
 
           lddb.updateWithTheseMarkers(Array.toStringArray(inclusionVector),
-              ext.replaceDirectoryCharsWithUnderscore(dir + filename, 2) + "." + chr);
+                                      ext.replaceDirectoryCharsWithUnderscore(dir + filename, 2)
+                                                                            + "." + chr);
           inclusionVector.clear();
           if (countMissing > 0) {
             System.err.println("Error - number of markers on chr" + chr
-                + " added to not present file: " + countMissing);
+                               + " added to not present file: " + countMissing);
             countMissing = 0;
           }
 
@@ -626,7 +630,7 @@ public class Algorithm {
             lowIndex++;
             highIndex = indexSNPs[i];
             while (highIndex < positions.length
-                && positions[highIndex] < positions[indexSNPs[i]] + window) {
+                   && positions[highIndex] < positions[indexSNPs[i]] + window) {
               if (pvals[highIndex] < minPvalue) {
                 minPvalue = pvals[highIndex];
               }
@@ -634,7 +638,8 @@ public class Algorithm {
             }
             highIndex--;
             stats[i] = computeStatistic(markerNames, pvals, lowIndex, highIndex,
-                lddb.getLongChrLDdb(Positions.chromosomeNumber(chr)), INCLUSION_THRESHOLD, vars);
+                                        lddb.getLongChrLDdb(Positions.chromosomeNumber(chr)),
+                                        INCLUSION_THRESHOLD, vars);
             markerCounts[i] = highIndex - lowIndex + 1;
             // System.out.println((i+1)+")
             // "+markerNames[indexSNPs[i]]+"\t"+positions[indexSNPs[i]]+"\t"+ext.formDeci(stats[i],
@@ -654,14 +659,15 @@ public class Algorithm {
                 }
               }
               v.add(markerNames[indexSNPs[maxSNP]] + "\t" + chr + "\t"
-                  + positions[indexSNPs[maxSNP]] + "\t" + ext.formDeci(stats[maxSNP][0], 2) + "\t"
-                  + markerCounts[maxSNP] + "\t"
-                  + ext.formDeci(stats[maxSNP][0] * Math.sqrt(markerCounts[maxSNP]), 2) + "\tchr"
-                  + chr + ":" + (positions[indexSNPs[maxSNP]] - window) + "-"
-                  + (positions[indexSNPs[maxSNP]] + window) + "\t" + minPvalue
-                  + (variate_column == -1 ? ""
-                      : "\t"
-                          + Array.toStr(Array.subArray(stats[maxSNP], 1, stats[maxSNP].length))));
+                    + positions[indexSNPs[maxSNP]] + "\t" + ext.formDeci(stats[maxSNP][0], 2) + "\t"
+                    + markerCounts[maxSNP] + "\t"
+                    + ext.formDeci(stats[maxSNP][0] * Math.sqrt(markerCounts[maxSNP]), 2) + "\tchr"
+                    + chr + ":" + (positions[indexSNPs[maxSNP]] - window) + "-"
+                    + (positions[indexSNPs[maxSNP]] + window) + "\t" + minPvalue
+                    + (variate_column == -1 ? ""
+                                            : "\t"
+                                              + Array.toStr(Array.subArray(stats[maxSNP], 1,
+                                                                           stats[maxSNP].length))));
               cluster.clear();
               cluster.add(i);
             }
@@ -676,14 +682,15 @@ public class Algorithm {
                 }
               }
               v.add(markerNames[indexSNPs[maxSNP]] + "\t" + chr + "\t"
-                  + positions[indexSNPs[maxSNP]] + "\t" + ext.formDeci(stats[maxSNP][0], 2) + "\t"
-                  + markerCounts[maxSNP] + "\t"
-                  + ext.formDeci(stats[maxSNP][0] * Math.sqrt(markerCounts[maxSNP]), 2) + "\tchr"
-                  + chr + ":" + (positions[indexSNPs[maxSNP]] - window) + "-"
-                  + (positions[indexSNPs[maxSNP]] + window) + "\t" + minPvalue
-                  + (variate_column == -1 ? ""
-                      : "\t"
-                          + Array.toStr(Array.subArray(stats[maxSNP], 1, stats[maxSNP].length))));
+                    + positions[indexSNPs[maxSNP]] + "\t" + ext.formDeci(stats[maxSNP][0], 2) + "\t"
+                    + markerCounts[maxSNP] + "\t"
+                    + ext.formDeci(stats[maxSNP][0] * Math.sqrt(markerCounts[maxSNP]), 2) + "\tchr"
+                    + chr + ":" + (positions[indexSNPs[maxSNP]] - window) + "-"
+                    + (positions[indexSNPs[maxSNP]] + window) + "\t" + minPvalue
+                    + (variate_column == -1 ? ""
+                                            : "\t"
+                                              + Array.toStr(Array.subArray(stats[maxSNP], 1,
+                                                                           stats[maxSNP].length))));
             }
           }
 
@@ -709,13 +716,12 @@ public class Algorithm {
       genes = MapSNPsAndGenes.mapSNPsToGenesLoosely(markerPositions, 0, genomeBuild, new Logger());
 
       writer = new PrintWriter(new FileWriter(dir + outfile));
-      writer.println(
-          "Marker\tChr\tPostition\tGenes(s)\tWeightedStatistic\tNumMarkers\tUnweightedStatistic\tUCSC coordinates\tMin p-value"
-              + (variate_column == -1 ? "" : "\tvars"));
+      writer.println("Marker\tChr\tPostition\tGenes(s)\tWeightedStatistic\tNumMarkers\tUnweightedStatistic\tUCSC coordinates\tMin p-value"
+                     + (variate_column == -1 ? "" : "\tvars"));
       for (int i = 0; i < v.size(); i++) {
         line = v.elementAt(i).trim().split("[\\s]+");
         writer.println(Array.toStr(Array.subArray(line, 0, 3)) + "\t" + genes[i] + "\t"
-            + Array.toStr(Array.subArray(line, 3)));
+                       + Array.toStr(Array.subArray(line, 3)));
       }
       writer.close();
       System.out.println(ext.getTime());
@@ -730,7 +736,7 @@ public class Algorithm {
     countMissing = Files.countLines(dir + "NOT_PRESENT_IN_LD_SOURCE.txt", 0);
     if (countMissing > 0) {
       System.out.println("\nFYI - there were " + countMissing
-          + " marker(s) exclused from inclusion in NRS scores due to lack of LD information in source files");
+                         + " marker(s) exclused from inclusion in NRS scores due to lack of LD information in source files");
     }
   }
 
@@ -783,12 +789,15 @@ public class Algorithm {
       System.exit(2);
     }
 
-    System.out.println("Stat is " + ext.formDeci(computeStatistic(Array.toStringArray(markerVector),
-        Doubles.toArray(pvalueVector), chrLDdb, INCLUSION_THRESHOLD)[0], 2));
+    System.out.println("Stat is " + ext.formDeci(
+                                                 computeStatistic(Array.toStringArray(markerVector),
+                                                                  Doubles.toArray(pvalueVector),
+                                                                  chrLDdb, INCLUSION_THRESHOLD)[0],
+                                                 2));
   }
 
   public static void procSimulations(final String suffix, int p_column, int chr_column,
-      int pos_column, int markerName_column, String ldRoot) {
+                                     int pos_column, int markerName_column, String ldRoot) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -821,8 +830,8 @@ public class Algorithm {
         return filename.endsWith(suffix);
       }
     });
-    System.out
-        .println("Found " + files.length + " files with suffix '" + suffix + "' to compute from");
+    System.out.println("Found " + files.length + " files with suffix '" + suffix
+                       + "' to compute from");
 
     maxThreshold = 0;
     models = new String[MODELS.length];
@@ -831,7 +840,7 @@ public class Algorithm {
     windowSizes = new int[MODELS.length];
     for (int t = 0; t < MODELS.length; t++) {
       models[t] = "index" + MODELS[t][0] + "_incl" + MODELS[t][1] + "_"
-          + (Integer.parseInt(MODELS[t][2]) / 1000) + "kb/";
+                  + (Integer.parseInt(MODELS[t][2]) / 1000) + "kb/";
       new File(models[t]).mkdirs();
       indexThresholds[t] = Double.parseDouble(MODELS[t][0]);
       inclusionThresholds[t] = Double.parseDouble(MODELS[t][1]);
@@ -841,7 +850,7 @@ public class Algorithm {
       }
     }
     System.out.println("Found " + MODELS.length + " thresholds to consider (min index pvalue of "
-        + maxThreshold + ")");
+                       + maxThreshold + ")");
 
     lddb = new LDdatabase(ldRoot, LDdatabase.TYPE_LONG, new Logger());
 
@@ -892,8 +901,7 @@ public class Algorithm {
           for (int t = 0; t < MODELS.length; t++) {
             writer = new PrintWriter(new FileWriter(models[t] + outfile, chr_target > 1));
             if (chr_target == 1) {
-              writer.println(
-                  "Marker\tChr\tPostition\tWeightedStatistic\tNumMarkers\tUnweightedStatistic\tUCSC coordinates");
+              writer.println("Marker\tChr\tPostition\tWeightedStatistic\tNumMarkers\tUnweightedStatistic\tUCSC coordinates");
             }
 
             stats = new double[indexSNPs.length];
@@ -911,18 +919,19 @@ public class Algorithm {
               if (pvals[indexSNPs[i]] < indexThresholds[t]) {
                 lowIndex = indexSNPs[i];
                 while (lowIndex >= 0
-                    && positions[lowIndex] > positions[indexSNPs[i]] - windowSizes[t]) {
+                       && positions[lowIndex] > positions[indexSNPs[i]] - windowSizes[t]) {
                   lowIndex--;
                 }
                 lowIndex++;
                 highIndex = indexSNPs[i];
                 while (highIndex < positions.length
-                    && positions[highIndex] < positions[indexSNPs[i]] + windowSizes[t]) {
+                       && positions[highIndex] < positions[indexSNPs[i]] + windowSizes[t]) {
                   highIndex++;
                 }
                 highIndex--;
                 stats[i] = computeStatistic(markerNames, pvals, lowIndex, highIndex,
-                    lddb.getLongChrLDdb(chr_target), inclusionThresholds[t], null)[0];
+                                            lddb.getLongChrLDdb(chr_target), inclusionThresholds[t],
+                                            null)[0];
                 markerCounts[i] = highIndex - lowIndex + 1;
                 //
                 // System.out.println((i+1)+")
@@ -945,11 +954,13 @@ public class Algorithm {
                     }
                   }
                   writer.println(markerNames[indexSNPs[maxSNP]] + "\t" + chr_target + "\t"
-                      + positions[indexSNPs[maxSNP]] + "\t" + ext.formDeci(stats[maxSNP], 2) + "\t"
-                      + markerCounts[maxSNP] + "\t"
-                      + ext.formDeci(stats[maxSNP] * Math.sqrt(markerCounts[maxSNP]), 2) + "\tchr"
-                      + chr_target + ":" + (positions[indexSNPs[maxSNP]] - windowSizes[t]) + "-"
-                      + (positions[indexSNPs[maxSNP]] + windowSizes[t]));
+                                 + positions[indexSNPs[maxSNP]] + "\t"
+                                 + ext.formDeci(stats[maxSNP], 2) + "\t" + markerCounts[maxSNP]
+                                 + "\t"
+                                 + ext.formDeci(stats[maxSNP] * Math.sqrt(markerCounts[maxSNP]), 2)
+                                 + "\tchr" + chr_target + ":"
+                                 + (positions[indexSNPs[maxSNP]] - windowSizes[t]) + "-"
+                                 + (positions[indexSNPs[maxSNP]] + windowSizes[t]));
                   cluster.clear();
                   cluster.add(i);
                 }
@@ -964,11 +975,13 @@ public class Algorithm {
                     }
                   }
                   writer.println(markerNames[indexSNPs[maxSNP]] + "\t" + chr_target + "\t"
-                      + positions[indexSNPs[maxSNP]] + "\t" + ext.formDeci(stats[maxSNP], 2) + "\t"
-                      + markerCounts[maxSNP] + "\t"
-                      + ext.formDeci(stats[maxSNP] * Math.sqrt(markerCounts[maxSNP]), 2) + "\tchr"
-                      + chr_target + ":" + (positions[indexSNPs[maxSNP]] - windowSizes[t]) + "-"
-                      + (positions[indexSNPs[maxSNP]] + windowSizes[t]));
+                                 + positions[indexSNPs[maxSNP]] + "\t"
+                                 + ext.formDeci(stats[maxSNP], 2) + "\t" + markerCounts[maxSNP]
+                                 + "\t"
+                                 + ext.formDeci(stats[maxSNP] * Math.sqrt(markerCounts[maxSNP]), 2)
+                                 + "\tchr" + chr_target + ":"
+                                 + (positions[indexSNPs[maxSNP]] - windowSizes[t]) + "-"
+                                 + (positions[indexSNPs[maxSNP]] + windowSizes[t]));
                 }
 
               }
@@ -1056,7 +1069,7 @@ public class Algorithm {
         // writer.println("plink --bfile pd_gwas --pheno
         // sim."+(i+1)+".dat --logistic --out sim."+(i+1)+".additive");
         writer.println("plink --bfile plink --pheno sim." + (i + 1) + ".dat --logistic --out sim."
-            + (i + 1) + ".additive");
+                       + (i + 1) + ".additive");
       }
       writer.close();
       Files.chmod("batchSims." + count);

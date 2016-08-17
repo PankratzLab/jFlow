@@ -10,7 +10,7 @@ import java.util.Hashtable;
 
 public class ParsePrimers {
   private static void forIlluminaInfiniumDesignScores(String dir, String variants, String sequence,
-      String output) {
+                                                      String output) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, seqs;
@@ -37,8 +37,7 @@ public class ParsePrimers {
     try {
       reader = new BufferedReader(new FileReader(dir + variants));
       writer = new PrintWriter(new FileWriter(dir + variants + "_IlluminaDesign.csv"));
-      writer.println(
-          "Locus_Name,Target_Type,Sequence,Chromosome,Coordinate,Genome_Build_Version,Source,Source_Version,Sequence_Orientation,Plus_Minus,Force_Infinium_I");
+      writer.println("Locus_Name,Target_Type,Sequence,Chromosome,Coordinate,Genome_Build_Version,Source,Source_Version,Sequence_Orientation,Plus_Minus,Force_Infinium_I");
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
         if (!line[0].startsWith("chr")) {
@@ -57,17 +56,16 @@ public class ParsePrimers {
         if (hash.containsKey(trav)) {
           seqs = hash.get(trav).split("\t", -1);
           if (!seqs[0].equals(line[2])) {
-            System.err
-                .println("Error - mismatched reference alleles between input and seq for position "
-                    + trav + " (file=" + line[2] + ", seq=" + seqs[0] + ")");
+            System.err.println("Error - mismatched reference alleles between input and seq for position "
+                               + trav + " (file=" + line[2] + ", seq=" + seqs[0] + ")");
           }
           writer.print(seqs[1] + "[" + line[3] + "/" + line[2] + "]" + seqs[2]);
         } else {
-          System.err
-              .println("Error - did not find sequence for variant: " + line[0] + ":" + line[1]);
+          System.err.println("Error - did not find sequence for variant: " + line[0] + ":"
+                             + line[1]);
         }
-        writer.println(
-            "," + line[0].substring(3) + "," + line[1] + ",37,resequencing,0,Forward,Plus,FALSE");
+        writer.println("," + line[0].substring(3) + "," + line[1]
+                       + ",37,resequencing,0,Forward,Plus,FALSE");
 
       }
       reader.close();
@@ -91,10 +89,10 @@ public class ParsePrimers {
     String output = "primers.csv";
 
     String usage = "\n" + "bioinformatics.ParsePrimers requires 0-1 arguments\n"
-        + "   (0) working directory (i.e. dir=" + dir + " (default))\n"
-        + "   (1) variants list filename (i.e. var=" + variants + " (default))\n"
-        + "   (2) flanking sequence file (i.e. seq=" + sequence + " (default))\n"
-        + "   (3) filename of output (i.e. out=" + output + " (default))\n" + "";
+                   + "   (0) working directory (i.e. dir=" + dir + " (default))\n"
+                   + "   (1) variants list filename (i.e. var=" + variants + " (default))\n"
+                   + "   (2) flanking sequence file (i.e. seq=" + sequence + " (default))\n"
+                   + "   (3) filename of output (i.e. out=" + output + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

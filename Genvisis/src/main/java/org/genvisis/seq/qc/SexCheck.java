@@ -150,7 +150,7 @@ public class SexCheck {
   }
 
   private static SexCheckResults getCountsForSexChr(QueryInterval[] qInterval, SamReader reader,
-      String bamFile, String sample, Logger log) {
+                                                    String bamFile, String sample, Logger log) {
     SAMRecordIterator sIterator = reader.query(qInterval, false);
     int numXReads = 0;
     int numYReads = 0;
@@ -173,13 +173,13 @@ public class SexCheck {
       }
       if (totalReads % 1000000 == 0) {
         log.reportTimeInfo("Sample: " + sample + " Read " + totalReads + " from chrs " + X + " and "
-            + Y + ", " + goodReads + " passed standard filter, " + numXReads + " chr " + X + ", "
-            + numYReads + " chr " + Y);
+                           + Y + ", " + goodReads + " passed standard filter, " + numXReads
+                           + " chr " + X + ", " + numYReads + " chr " + Y);
       }
     }
     log.reportTimeInfo("Sample: " + sample + " Finished with " + totalReads + " from chrs " + X
-        + " and " + Y + ", " + goodReads + " passed standard filter, " + numXReads + " chr " + X
-        + ", " + numYReads + " chr " + Y);
+                       + " and " + Y + ", " + goodReads + " passed standard filter, " + numXReads
+                       + " chr " + X + ", " + numYReads + " chr " + Y);
 
     return new SexCheckResults(numXReads, numYReads, bamFile, sample);
   }
@@ -191,7 +191,7 @@ public class SexCheck {
     SexCheckResults sexCheckResults = new SexCheckResults(0, 0, bamFile, bamFile);
     if (!reader.hasIndex()) {
       log.reportError("Error - the bam file " + bamFile
-          + " must have a \".bai\" index file associated with it, halting");
+                      + " must have a \".bai\" index file associated with it, halting");
       try {
         reader.close();
       } catch (IOException e) {
@@ -314,8 +314,8 @@ public class SexCheck {
       while (train.hasNext()) {
         SexCheckResults sexCheckResults = train.next();
         writer.println(sexCheckResults.getSample() + "\t" + sexCheckResults.getBamFile() + "\t"
-            + sexCheckResults.getNumXReads() + "\t" + sexCheckResults.getNumYReads() + "\t"
-            + sexCheckResults.getPropX() + "\t" + sexCheckResults.getPropY());
+                       + sexCheckResults.getNumXReads() + "\t" + sexCheckResults.getNumYReads()
+                       + "\t" + sexCheckResults.getPropX() + "\t" + sexCheckResults.getPropY());
         writer.flush();
       }
 

@@ -50,7 +50,7 @@ public class HashVec {
   }
 
   public static void addToHashArrayVec(Hashtable<String, Vector<String[]>> hash, String key,
-      String[] array) {
+                                       String[] array) {
     Vector<String[]> v;
 
     if (hash.containsKey(key)) {
@@ -63,7 +63,7 @@ public class HashVec {
   }
 
   public static void addToHashHash(Hashtable<String, Hashtable<String, Object>> hash1, String key1,
-      String key2, Object value) {
+                                   String key2, Object value) {
     Hashtable<String, Object> hash2;
 
     if (hash1.containsKey(key1)) {
@@ -75,7 +75,7 @@ public class HashVec {
   }
 
   public static void addToHashHash(Hashtable<String, Hashtable<String, String>> hash1, String key1,
-      String key2, String value) {
+                                   String key2, String value) {
     Hashtable<String, String> hash2;
 
     if (hash1.containsKey(key1)) {
@@ -87,7 +87,8 @@ public class HashVec {
   }
 
   public static void addToHashHashVec(Hashtable<String, Hashtable<String, Vector<String>>> hash1,
-      String key1, String key2, String value, boolean onlyifabsent) {
+                                      String key1, String key2, String value,
+                                      boolean onlyifabsent) {
     Hashtable<String, Vector<String>> hash2;
     Vector<String> v;
 
@@ -129,7 +130,7 @@ public class HashVec {
 
 
   public static void addToHashIfAbsent(Hashtable<String, String> hash, String[] keys,
-      String[] values) {
+                                       String[] values) {
     for (int i = 0; i < keys.length; i++) {
       if (!hash.containsKey(keys[i])) {
         hash.put(keys[i], values == null ? "" : values[i]);
@@ -138,7 +139,7 @@ public class HashVec {
   }
 
   public static void addToHashVec(Hashtable<String, Vector<String>> hash, String key, String value,
-      boolean onlyifabsent) {
+                                  boolean onlyifabsent) {
     Vector<String> v;
 
     if (hash.containsKey(key)) {
@@ -257,7 +258,10 @@ public class HashVec {
   }
 
   public static Hashtable<String, Hashtable<String, String>> loadFileToHashHash(String filename,
-      int key1Index, int key2Index, int targetIndex, boolean ignoreFirstLine) {
+                                                                                int key1Index,
+                                                                                int key2Index,
+                                                                                int targetIndex,
+                                                                                boolean ignoreFirstLine) {
     BufferedReader reader = null;
     String[] line;
     Hashtable<String, Hashtable<String, String>> hashes =
@@ -290,9 +294,13 @@ public class HashVec {
     return hashes;
   }
 
-  public static Hashtable<String, Hashtable<String, Vector<String>>> loadFileToHashHashVec(
-      String filename, int key1Index, int key2Index, int[] targetIndices, String delimiter,
-      boolean ignoreFirstLine, boolean onlyifabsent) {
+  public static Hashtable<String, Hashtable<String, Vector<String>>> loadFileToHashHashVec(String filename,
+                                                                                           int key1Index,
+                                                                                           int key2Index,
+                                                                                           int[] targetIndices,
+                                                                                           String delimiter,
+                                                                                           boolean ignoreFirstLine,
+                                                                                           boolean onlyifabsent) {
     BufferedReader reader = null;
     String[] line;
     Hashtable<String, Hashtable<String, Vector<String>>> hashes =
@@ -334,31 +342,41 @@ public class HashVec {
   }
 
   public static HashSet<String> loadFileToHashSet(String filename, int[] keyIndices,
-      String delimiterWithinHash, boolean ignoreFirstLine) {
+                                                  String delimiterWithinHash,
+                                                  boolean ignoreFirstLine) {
     return convertHashNullToHashSet(loadFileToHashString(filename, keyIndices, null, false,
-        delimiterWithinHash, ignoreFirstLine, false, false));
+                                                         delimiterWithinHash, ignoreFirstLine,
+                                                         false, false));
   }
 
   public static Hashtable<String, String> loadFileToHashString(String filename,
-      boolean ignoreFirstLine) {
+                                                               boolean ignoreFirstLine) {
     return loadFileToHashString(filename, 0, new int[] {1}, null, ignoreFirstLine);
   }
 
   public static Hashtable<String, String> loadFileToHashString(String filename, int keyIndex,
-      int[] valueIndices, String delimiterWithinHash, boolean ignoreFirstLine) {
+                                                               int[] valueIndices,
+                                                               String delimiterWithinHash,
+                                                               boolean ignoreFirstLine) {
     return loadFileToHashString(filename, keyIndex, valueIndices, delimiterWithinHash,
-        ignoreFirstLine, false);
+                                ignoreFirstLine, false);
   }
 
   public static Hashtable<String, String> loadFileToHashString(String filename, int keyIndex,
-      int[] valueIndices, String delimiterWithinHash, boolean ignoreFirstLine, boolean jar) {
+                                                               int[] valueIndices,
+                                                               String delimiterWithinHash,
+                                                               boolean ignoreFirstLine,
+                                                               boolean jar) {
     return loadFileToHashString(filename, new int[] {keyIndex}, valueIndices, false,
-        delimiterWithinHash, ignoreFirstLine, jar, false);
+                                delimiterWithinHash, ignoreFirstLine, jar, false);
   }
 
   public static Hashtable<String, String> loadFileToHashString(String filename, int[] keyIndices,
-      int[] valueIndices, boolean commaDelimitedFile, String delimiterWithinHash,
-      boolean ignoreFirstLine, boolean jar, boolean allowMissingData) {
+                                                               int[] valueIndices,
+                                                               boolean commaDelimitedFile,
+                                                               String delimiterWithinHash,
+                                                               boolean ignoreFirstLine, boolean jar,
+                                                               boolean allowMissingData) {
     BufferedReader reader = null;
     String[] line;
     Hashtable<String, String> hash = new Hashtable<String, String>();
@@ -397,7 +415,7 @@ public class HashVec {
             temp += ((i == 0) ? "" : delimiterWithinHash) + ".";
           } else {
             System.err.println("Error - not enough columns for key '" + key + "' in file '"
-                + filename + "'; and allowMissingData was not flagged");
+                               + filename + "'; and allowMissingData was not flagged");
           }
         }
         hash.put(key, temp);
@@ -413,7 +431,8 @@ public class HashVec {
   }
 
   public static Hashtable<String, String> loadFileToHashString(String filename, String keyHeader,
-      String[] valueHeaders, String delimiterWithinHash) {
+                                                               String[] valueHeaders,
+                                                               String delimiterWithinHash) {
     BufferedReader reader = null;
     String[] line;
     int keyIndex;
@@ -443,14 +462,20 @@ public class HashVec {
   }
 
   public static Hashtable<String, Vector<String>> loadFileToHashVec(String filename, int keyIndex,
-      int[] valueIndices, String delimiter, boolean ignoreFirstLine, boolean onlyIfAbsent) {
+                                                                    int[] valueIndices,
+                                                                    String delimiter,
+                                                                    boolean ignoreFirstLine,
+                                                                    boolean onlyIfAbsent) {
     return loadFileToHashVec(filename, new int[] {keyIndex}, valueIndices, delimiter,
-        ignoreFirstLine, onlyIfAbsent);
+                             ignoreFirstLine, onlyIfAbsent);
   }
 
   public static Hashtable<String, Vector<String>> loadFileToHashVec(String filename,
-      int[] keyIndices, int[] valueIndices, String delimiter, boolean ignoreFirstLine,
-      boolean onlyIfAbsent) {
+                                                                    int[] keyIndices,
+                                                                    int[] valueIndices,
+                                                                    String delimiter,
+                                                                    boolean ignoreFirstLine,
+                                                                    boolean onlyIfAbsent) {
     BufferedReader reader = null;
     String[] line;
     Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
@@ -491,33 +516,37 @@ public class HashVec {
   }
 
   public static String[] loadFileToStringArray(String filename, boolean jar,
-      boolean ignoreFirstLine, int[] cols, boolean onlyIfAbsent) {
+                                               boolean ignoreFirstLine, int[] cols,
+                                               boolean onlyIfAbsent) {
     Vector<String> v = loadFileToVec(filename, ignoreFirstLine, cols, onlyIfAbsent, jar);
     return v == null ? null : Array.toStringArray(v);
   }
 
   public static String[] loadFileToStringArray(String filename, boolean jar,
-      boolean ignoreFirstLine, int[] cols, boolean trimFirst, boolean onlyIfAbsent,
-      String delimiter) {
+                                               boolean ignoreFirstLine, int[] cols,
+                                               boolean trimFirst, boolean onlyIfAbsent,
+                                               String delimiter) {
     Vector<String> v =
         loadFileToVec(filename, ignoreFirstLine, cols, trimFirst, onlyIfAbsent, jar, delimiter);
     return v == null ? null : Array.toStringArray(v);
   }
 
   public static String[] loadFileToStringArray(String filename, boolean ignoreFirstLine, int[] cols,
-      boolean onlyIfAbsent) {
+                                               boolean onlyIfAbsent) {
     Vector<String> v = loadFileToVec(filename, ignoreFirstLine, cols, onlyIfAbsent, false);
     return v == null ? null : Array.toStringArray(v);
   }
 
   public static String[][] loadFileToStringMatrix(String filename, boolean ignoreFirstLine,
-      int[] cols, boolean jar) {
+                                                  int[] cols, boolean jar) {
     return loadFileToStringMatrix(filename, ignoreFirstLine, cols,
-        Files.determineDelimiter(filename, new Logger()), jar, 1000, false);
+                                  Files.determineDelimiter(filename, new Logger()), jar, 1000,
+                                  false);
   }
 
   public static String[][] loadFileToStringMatrix(String filename, boolean ignoreFirstLine,
-      int[] cols, String delimiter, boolean jar, int initialCapacity, boolean allowMissingData) {
+                                                  int[] cols, String delimiter, boolean jar,
+                                                  int initialCapacity, boolean allowMissingData) {
     BufferedReader reader = null;
     Vector<String[]> v = new Vector<String[]>(initialCapacity);
     String temp;
@@ -562,25 +591,27 @@ public class HashVec {
   }
 
   public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine,
-      boolean onlyFirstColumn, boolean onlyIfAbsent) {
+                                             boolean onlyFirstColumn, boolean onlyIfAbsent) {
     return loadFileToVec(filename, ignoreFirstLine, onlyFirstColumn ? new int[] {0} : null,
-        onlyIfAbsent, false);
+                         onlyIfAbsent, false);
   }
 
   public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine,
-      boolean onlyFirstColumn, boolean onlyIfAbsent, boolean jar) {
+                                             boolean onlyFirstColumn, boolean onlyIfAbsent,
+                                             boolean jar) {
     return loadFileToVec(filename, ignoreFirstLine, onlyFirstColumn ? new int[] {0} : null,
-        onlyIfAbsent, jar);
+                         onlyIfAbsent, jar);
   }
 
   public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine, int[] cols,
-      boolean onlyIfAbsent, boolean jar) {
+                                             boolean onlyIfAbsent, boolean jar) {
     return loadFileToVec(filename, ignoreFirstLine, cols, true, onlyIfAbsent, jar,
-        Files.determineDelimiter(filename, new Logger()));
+                         Files.determineDelimiter(filename, new Logger()));
   }
 
   public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine, int[] cols,
-      boolean trimFirst, boolean onlyIfAbsent, boolean jar, String delimiter) {
+                                             boolean trimFirst, boolean onlyIfAbsent, boolean jar,
+                                             String delimiter) {
     BufferedReader reader = null;
     Vector<String> v = new Vector<String>();
     HashSet<String> onlyIfAbsentHash = new HashSet<String>();
@@ -613,7 +644,7 @@ public class HashVec {
           for (int i = 0; i < cols.length; i++) {
             if (line.length <= cols[i]) {
               System.err.println("Error - not enough columns at line " + count + " of file "
-                  + filename + ": " + Array.toStr(line));
+                                 + filename + ": " + Array.toStr(line));
             }
             trav += (i == 0 ? "" : "\t") + line[cols[i]];
           }
@@ -664,7 +695,7 @@ public class HashVec {
   }
 
   public static void mergeHash2IntoHash1(Hashtable<String, String> hash1,
-      Hashtable<String, String> hash2) {
+                                         Hashtable<String, String> hash2) {
     String[] keys;
 
     keys = getKeys(hash2, true, false);

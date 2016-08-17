@@ -58,9 +58,9 @@ public class sepByFam {
       } else {
         if (!allFour(args)) {
           System.err.println("Error: Not chromf" + chrome + ".lin.out, chromf" + chrome
-              + ".D.out or chromf" + chrome + ".R.out could be found for questioning.");
-          System.err.println(
-              "       Furthermore, could not find them in their respective struct/directories either.");
+                             + ".D.out or chromf" + chrome
+                             + ".R.out could be found for questioning.");
+          System.err.println("       Furthermore, could not find them in their respective struct/directories either.");
         }
         System.exit(0);
       }

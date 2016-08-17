@@ -10,8 +10,7 @@ import java.util.GregorianCalendar;
 public class osaHauser {
   public static void main(String[] args) {
     if (args.length < 1 || args.length > 2) {
-      System.out.println(
-          "Expecting 1-2 arguments: filename and chromosome number [optional, default=all]");
+      System.out.println("Expecting 1-2 arguments: filename and chromosome number [optional, default=all]");
       System.out.println("Note: file must contain only 2 columns - Family ID and covariate");
     } else {
       try {
@@ -19,7 +18,7 @@ public class osaHauser {
           new osaHauser(args[0], 1, 23);
         } else {
           new osaHauser(args[0], Integer.valueOf(args[1]).intValue(),
-              Integer.valueOf(args[1]).intValue());
+                        Integer.valueOf(args[1]).intValue());
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -28,7 +27,7 @@ public class osaHauser {
   }
 
   public int[] maxes = {281, 253, 216, 202, 193, 180, 174, 153, 151, 168, 144, 164, 104, 127, 106,
-      115, 125, 126, 89, 95, 36, 47, 176};
+                        115, 125, 126, 89, 95, 36, 47, 176};
 
   public osaHauser(String filename, int start, int stop) throws IOException {
     PrintWriter writer = null;
@@ -42,15 +41,15 @@ public class osaHauser {
 
       writer = new PrintWriter(new FileWriter("chrom" + chrome + "/seeds"));
       writer.println((int) (Math.random() * 10000) + "\t" + (int) (Math.random() * 10000) + "\t"
-          + (int) (Math.random() * 10000));
+                     + (int) (Math.random() * 10000));
       writer.close();
 
       Calendar calendar = new GregorianCalendar();
       writer = new PrintWriter(new FileWriter("chrom" + chrome + "/summary"));
       writer.println((new File(".")).getAbsolutePath());
       writer.println(calendar.get(Calendar.MONTH) + "/" + calendar.get(Calendar.DAY_OF_MONTH) + "/"
-          + calendar.get(Calendar.YEAR) + " at " + calendar.get(Calendar.HOUR_OF_DAY) + ":"
-          + calendar.get(Calendar.MINUTE));
+                     + calendar.get(Calendar.YEAR) + " at " + calendar.get(Calendar.HOUR_OF_DAY)
+                     + ":" + calendar.get(Calendar.MINUTE));
       writer.println("npankrat");
       writer.println("morton");
       writer.println(chromosome + "   " + filename);

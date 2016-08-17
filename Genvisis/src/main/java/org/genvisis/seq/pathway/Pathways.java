@@ -112,12 +112,13 @@ public class Pathways implements Serializable {
   private static final String PATH = "path";
 
   private static Hashtable<String, ArrayList<String>> getNCBILookupForPathway(String pathway,
-      Logger log) {
+                                                                              Logger log) {
     ArrayList<String> keggGenes = new ArrayList<String>();
 
     try {
-      BufferedReader in = new BufferedReader(new InputStreamReader(
-          new URL(KEGG_HUMAN_PATHWAY_GENE_LINK + "/" + pathway).openStream()));
+      BufferedReader in =
+          new BufferedReader(new InputStreamReader(new URL(KEGG_HUMAN_PATHWAY_GENE_LINK + "/"
+                                                           + pathway).openStream()));
       try {
         Thread.sleep(100);
       } catch (InterruptedException ie) {
@@ -143,8 +144,9 @@ public class Pathways implements Serializable {
 
     }
 
-    ArrayList<String[]> splits = Array.splitUpArray(keggGenes.toArray(new String[keggGenes.size()]),
-        Math.round((float) keggGenes.size() / 50) + 1, log);
+    ArrayList<String[]> splits =
+        Array.splitUpArray(keggGenes.toArray(new String[keggGenes.size()]),
+                           Math.round((float) keggGenes.size() / 50) + 1, log);
     for (int i = 0; i < splits.size(); i++) {
 
       String q = Array.toStr(splits.get(i), "+");
@@ -219,8 +221,8 @@ public class Pathways implements Serializable {
       }
     }
     if (pathGenes.size() != lookup.size()) {
-      log.reportTimeWarning(
-          "Could not match all entries for pathway " + path + " , setting incomplete flag");
+      log.reportTimeWarning("Could not match all entries for pathway " + path
+                            + " , setting incomplete flag");
       // return new Pathway(path + ":Invalid", new GeneData[] {}, false, log);
     }
     // else {
@@ -232,7 +234,7 @@ public class Pathways implements Serializable {
       }
     }
     return new Pathway(pathName, genes.toArray(new GeneData[genes.size()]), true,
-        pathGenes.size() == lookup.size(), log);
+                       pathGenes.size() == lookup.size(), log);
   }
 
   public static void test() {

@@ -37,7 +37,7 @@ public class CNValidate implements Runnable {
   }
 
   private static CNVariantQC[][] collectAllValidations(int processors, CNValidate[] cnvals,
-      String[] inds, Logger log) {
+                                                       String[] inds, Logger log) {
     CNVariantQC[][] cnVariantQCs = new CNVariantQC[inds.length][];
     int indIndex = 0;
     int counter = 0;
@@ -48,18 +48,21 @@ public class CNValidate implements Runnable {
         counter = 1;
       }
       if (cnvals[i % processors].getInds()[indIndex].equals(inds[i])) {
-        if (cnvals[i % processors].getIndcnVariantQCs()[indIndex].length == cnvals[i % processors]
-            .getAllIndcnVariantQCs().get(inds[i]).length) {
+        if (cnvals[i
+                   % processors].getIndcnVariantQCs()[indIndex].length == cnvals[i
+                                                                                 % processors].getAllIndcnVariantQCs()
+                                                                                              .get(inds[i]).length) {
           cnVariantQCs[i] = cnvals[i % processors].getIndcnVariantQCs()[indIndex];
         } else {
           log.reportError("Error - recieved unmatched cnv numbers while collecting results for  "
-              + inds[i] + ": " + cnvals[i % processors].getIndcnVariantQCs()[indIndex].length
-              + " and " + cnvals[i % processors].getAllIndcnVariantQCs().get(inds[i]).length);
+                          + inds[i] + ": "
+                          + cnvals[i % processors].getIndcnVariantQCs()[indIndex].length + " and "
+                          + cnvals[i % processors].getAllIndcnVariantQCs().get(inds[i]).length);
           System.exit(1);
         }
       } else {
         log.reportError("Error - recieved unmatched ids while collecting results for "
-            + cnvals[i % processors].getInds()[indIndex] + "\t" + inds[i]);
+                        + cnvals[i % processors].getInds()[indIndex] + "\t" + inds[i]);
         System.exit(1);
       }
     }
@@ -67,7 +70,9 @@ public class CNValidate implements Runnable {
   }
 
   public static CNVariantQC[][] computeMultiThreadedValidations(Project proj, String[] inds,
-      Hashtable<String, CNVariantQC[]> allIndcnVariantQCs, MarkerSet markerSet, int processors) {
+                                                                Hashtable<String, CNVariantQC[]> allIndcnVariantQCs,
+                                                                MarkerSet markerSet,
+                                                                int processors) {
     if (processors == 0) {
       processors = Runtime.getRuntime().availableProcessors();
     }
@@ -80,7 +85,7 @@ public class CNValidate implements Runnable {
   }
 
   private static CNVariantQC[] computeValidations(Sample samp, MarkerSet markerSet,
-      CNVariantQC[] cnVariantQCs, Logger log) {
+                                                  CNVariantQC[] cnVariantQCs, Logger log) {
     int[][] indices = markerSet.getIndicesByChr();
     float[] LRRsInvTransformedByChr = Transforms.transform(samp.getLRRs(), 2, true, markerSet);
     double[] chrLRRMediansMADScaled =
@@ -88,13 +93,14 @@ public class CNValidate implements Runnable {
     double[] LRRsInvTransformedByChrMADScaled =
         scaleMAD(indices, LRRsInvTransformedByChr, chrLRRMediansMADScaled);
     return evaluateCNVariantQCs(samp, markerSet, cnVariantQCs, LRRsInvTransformedByChrMADScaled,
-        indices, log);
+                                indices, log);
   }
 
   // the main event
   private static CNVariantQC[] evaluateCNVariantQCs(Sample samp, MarkerSet markerSet,
-      CNVariantQC[] cnVariantQCs, double[] LRRsInvTransformedByChrMADScaled, int[][] indices,
-      Logger log) {
+                                                    CNVariantQC[] cnVariantQCs,
+                                                    double[] LRRsInvTransformedByChrMADScaled,
+                                                    int[][] indices, Logger log) {
     String[] markerNames = markerSet.getMarkerNames();
     float[] bafs = samp.getBAFs();
     byte[] abGenotypes = samp.getAB_Genotypes();
@@ -110,8 +116,8 @@ public class CNValidate implements Runnable {
         if (markerNames[markerindex].equals(markerList[k])) {
           if (Double.isNaN(LRRsInvTransformedByChrMADScaled[markerindex])) {
             log.reportError("Error - the cnv " + cnVariantQC.getCnVariant().toPlinkFormat()
-                + " contained a NaN LRR value at marker " + markerList[k]
-                + " the height will be set to zero. QC metrics may be inaccurate");
+                            + " contained a NaN LRR value at marker " + markerList[k]
+                            + " the height will be set to zero. QC metrics may be inaccurate");
             variantLRRs[k] = 0;
           } else {
             variantLRRs[k] = LRRsInvTransformedByChrMADScaled[markerindex];
@@ -120,7 +126,7 @@ public class CNValidate implements Runnable {
           }
         } else {
           log.reportError("Error - Received unmatched indices for marker " + markerList[k]
-              + ", got " + markerNames[markerindex] + "this should not happen");
+                          + ", got " + markerNames[markerindex] + "this should not happen");
           System.exit(1);
         }
       }
@@ -134,7 +140,8 @@ public class CNValidate implements Runnable {
         cnVariantQC.setSourceFile(samp.getSampleName());
       } else {
         log.reportError("Error - there were less markers contained in the cnv region "
-            + cnVariantQC.getCnVariant().toPlinkFormat() + "  than markers in the position file ");
+                        + cnVariantQC.getCnVariant().toPlinkFormat()
+                        + "  than markers in the position file ");
         System.exit(1);
       }
     }
@@ -169,7 +176,8 @@ public class CNValidate implements Runnable {
   }
 
   private static double[] getChrLRRMediansMADScaled(int[][] indices,
-      float[] LRRsInvTransformedByChr, double SCALE_FACTOR_MAD, Logger log) {
+                                                    float[] LRRsInvTransformedByChr,
+                                                    double SCALE_FACTOR_MAD, Logger log) {
     double[] chrLRRMediansMADScaled = new double[indices.length];
     for (int i = 0; i < indices.length; i++) {
       if (indices[i].length > 0) {
@@ -202,13 +210,15 @@ public class CNValidate implements Runnable {
   }
 
   private static CNValidate[] processValidations(Project proj, int processors, Thread[] threads,
-      Vector<Vector<String>> cabinet, Hashtable<String, CNVariantQC[]> allIndcnVariantQCs,
-      MarkerSet markerSet) {
+                                                 Vector<Vector<String>> cabinet,
+                                                 Hashtable<String, CNVariantQC[]> allIndcnVariantQCs,
+                                                 MarkerSet markerSet) {
     CNValidate[] cnvals = new CNValidate[processors];
     for (int i = 0; i < processors; i++) {
-      cnvals[i] = new CNValidate(proj,
-          cabinet.elementAt(i).toArray(new String[cabinet.elementAt(i).size()]), allIndcnVariantQCs,
-          markerSet);
+      cnvals[i] =
+          new CNValidate(proj,
+                         cabinet.elementAt(i).toArray(new String[cabinet.elementAt(i).size()]),
+                         allIndcnVariantQCs, markerSet);
       threads[i] = new Thread(cnvals[i]);
       threads[i].start();
     }
@@ -227,7 +237,7 @@ public class CNValidate implements Runnable {
           return array[keys[(int) index - 1]];
         } else {
           return q * array[keys[(int) Math.floor(index) - 1]]
-              + (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
+                 + (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
         }
       }
     } catch (Exception e) {
@@ -237,7 +247,7 @@ public class CNValidate implements Runnable {
   }
 
   private static double[] scaleMAD(int[][] indices, float[] LRRsInvTransformedByChr,
-      double[] chrLRRMediansMADScaled) {
+                                   double[] chrLRRMediansMADScaled) {
     double[] LRRsInvTransformedByChrMADScaled = new double[LRRsInvTransformedByChr.length];
     for (int i = 0; i < indices.length; i++) {
       if (indices[i].length > 0) {
@@ -265,7 +275,7 @@ public class CNValidate implements Runnable {
   private final Logger log;
 
   public CNValidate(Project proj, String[] inds,
-      Hashtable<String, CNVariantQC[]> allIndcnVariantQCs, MarkerSet markerSet) {
+                    Hashtable<String, CNVariantQC[]> allIndcnVariantQCs, MarkerSet markerSet) {
     this.proj = proj;
     this.inds = inds;
     this.allIndcnVariantQCs = allIndcnVariantQCs;
@@ -294,7 +304,7 @@ public class CNValidate implements Runnable {
       log.report(ext.getTime() + "\t" + (i + 1) + " of " + inds.length);
       CNVariantQC[] cnVariantQCs = allIndcnVariantQCs.get(inds[i]);
       String[] ids = sampleData.lookup(cnVariantQCs[0].getCnVariant().getFamilyID() + "\t"
-          + cnVariantQCs[0].getCnVariant().getIndividualID());
+                                       + cnVariantQCs[0].getCnVariant().getIndividualID());
       if (ids != null) {
         Sample samp = proj.getFullSampleFromRandomAccessFile(ids[0]);
         if (samp != null) {
@@ -303,11 +313,11 @@ public class CNValidate implements Runnable {
             log.reportError("Error - sample and marker fingerprints do not match");
             System.exit(1);
           } else {
-            log.report(
-                ext.getTime() + " Computing validations for sample..." + samp.getSampleName());
+            log.report(ext.getTime() + " Computing validations for sample..."
+                       + samp.getSampleName());
             indcnVariantQCs[i] = computeValidations(samp, markerSet, cnVariantQCs, log);
             log.report(ext.getTime() + " Finshed computing validations for sample..."
-                + samp.getSampleName());
+                       + samp.getSampleName());
           }
         }
       } else {

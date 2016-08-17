@@ -21,8 +21,8 @@ public class addMarkers {
     // String filename = "chr5fine.dat";
 
     String usage = "\n" + "park.addMarker requires 1 argument:\n"
-        + "   (1) a chromosom-like file - DNA FAMID INDID genotypes...\n" + "       (i.e. file="
-        + filename + " (default))\n" + "";
+                   + "   (1) a chromosom-like file - DNA FAMID INDID genotypes...\n"
+                   + "       (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -49,7 +49,7 @@ public class addMarkers {
   }
 
   public addMarkers(Hashtable<String, String> markers, String newMarker,
-      Hashtable<String, String> hash) throws IOException {
+                    Hashtable<String, String> hash) throws IOException {
     BufferedReader reader = null;
     PrintWriter writer;
     double trav, prev, mark;
@@ -60,8 +60,8 @@ public class addMarkers {
     int chr;
 
     if (!markers.containsKey(newMarker.toUpperCase())) {
-      System.err.println(
-          "Error - " + newMarker.toUpperCase() + " was not found in the Marshfield database");
+      System.err.println("Error - " + newMarker.toUpperCase()
+                         + " was not found in the Marshfield database");
       System.err.println("      - make sure you have your placeholder line holding its place");
       System.exit(3);
     }
@@ -72,8 +72,8 @@ public class addMarkers {
     if (new File("chromosome" + chr + ".dat").exists()) {
       new File("chromosome" + chr + ".dat").renameTo(new File(bakFilename));
     } else {
-      System.err.println(
-          "Error - " + "chromosome" + chr + ".dat" + " was not found in current directory");
+      System.err.println("Error - " + "chromosome" + chr + ".dat"
+                         + " was not found in current directory");
       System.exit(5);
     }
 
@@ -90,7 +90,7 @@ public class addMarkers {
         data = (markers.get(line[i].toUpperCase())).split("[\\s]+");
         if (Integer.valueOf(data[0]).intValue() != chr) {
           System.err.println("Error - Marker " + line[i] + " in chromosome" + chr
-              + ".dat is not on chromosome " + chr);
+                             + ".dat is not on chromosome " + chr);
           quitProperly(reader, writer, bakFilename, "chromosome" + chr + ".dat");
           System.exit(2);
         }
@@ -121,10 +121,9 @@ public class addMarkers {
             data = (hash.get(line[0])).split("[\\s]+");
             if (!(line[1] + "\t" + line[2]).equals(data[0] + "\t" + data[1])) {
               System.err.println("Error - DNA mismatch with regards to " + line[0] + " (" + line[1]
-                  + "\t" + line[2] + " in chromosome" + chr + ".dat and " + data[0] + "\t" + data[1]
-                  + " in file with new marker(s)");
-              System.err.println(
-                  "      - but letting it slide... THIS time, matching up using DNA numbers");
+                                 + "\t" + line[2] + " in chromosome" + chr + ".dat and " + data[0]
+                                 + "\t" + data[1] + " in file with new marker(s)");
+              System.err.println("      - but letting it slide... THIS time, matching up using DNA numbers");
               // quitProperly(reader, writer, bakFilename,
               // "chromosome"+chr+".dat");
               // System.exit(4);
@@ -133,7 +132,7 @@ public class addMarkers {
           } else {
             if ((markers.get("currentMarker")).equals("0")) {
               System.err.println("Warning - " + line[1] + "\t" + line[2]
-                  + " does not have data for the new marker.");
+                                 + " does not have data for the new marker.");
             }
             writer.print("\t0\t0");
           }
@@ -205,7 +204,7 @@ public class addMarkers {
       while (reader.ready()) {
         line = reader.readLine().split("[\\s]+");
         hash.put(line[0],
-            line[1] + "\t" + line[2] + "\t" + line[i * 2 + 3] + "\t" + line[i * 2 + 4]);
+                 line[1] + "\t" + line[2] + "\t" + line[i * 2 + 3] + "\t" + line[i * 2 + 4]);
       }
       reader.close();
 
@@ -215,7 +214,7 @@ public class addMarkers {
   }
 
   public void quitProperly(BufferedReader reader, PrintWriter writer, String bakFilename,
-      String filename) throws IOException {
+                           String filename) throws IOException {
     reader.close();
     writer.close();
     new File(filename).delete();

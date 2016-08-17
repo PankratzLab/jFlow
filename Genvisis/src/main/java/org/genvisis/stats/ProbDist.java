@@ -9,7 +9,7 @@ public class ProbDist {
     if (x > 1000 | n > 1000) { // bitwise OR - prevent short-circuiting and can be faster
       double q =
           NormDist((Math.pow(x / n, 1.0 / 3.0) + 2.0 / (9.0 * n) - 1) / Math.sqrt(2.0 / (9.0 * n)))
-              / 2.0;
+                 / 2.0;
       if (x > n) {
         return q;
       } else {
@@ -68,7 +68,7 @@ public class ProbDist {
       return 1 - a;
     }
     double c = 4 * StatCom(sth * sth, df2 + 1, df1 + df2 - 4, df2 - 2) * sth * Math.pow(cth, df2)
-        / Math.PI;
+               / Math.PI;
     if (df2 == 1) {
       return 1 - a + c / 2;
     }

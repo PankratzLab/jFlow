@@ -48,30 +48,32 @@ public class expressionToGenes {
       {"NM_ID", "ID", "GENE ", "TITLE", "GENE_ID", "CHROMOSOME", "CYTOBAND", "EXPRESS"};
   public static final String[] GENES_HEADER =
       {"Name", "reference_GeneID", "reference_chr", "reference_start", "reference_stop",
-          "reference_sense", "reference_placed", "reference_imputed", "Celera_GeneID", "Celera_chr",
-          "Celera_start", "Celera_stop", "Celera_sense", "Celera_placed", "Celera_imputed"};
+       "reference_sense", "reference_placed", "reference_imputed", "Celera_GeneID", "Celera_chr",
+       "Celera_start", "Celera_stop", "Celera_sense", "Celera_placed", "Celera_imputed"};
   public static final String[] TISSUE_TERMS_CHOSEN = {"brain"};
-  public static final String[] TISSUE_TYPES = {"fetal brain", "whole brain", "temporal lobe",
-      "parietal lobe", "occipital lobe", "prefrontal cortex", "cingulate cortex", "cerebellum",
-      "cerebellum peduncles", "amygdala", "hypothalamus", "thalamus", "subthalamic nucleus",
-      "caudate nucleus", "globus pallidus", "olfactory bulb", "pons", "medulla oblongata",
-      "spinal cord", "ciliary ganglion", "trigeminal ganglion", "superior cervical ganglion",
-      "dorsal root ganglion", "thymus", "tonsil", "lymph node", "bone marrow",
-      "BM-CD71+ early erythroid", "BM-CD33+ myeloid", "BM-CD105+ endothelial", "BM-CD34+",
-      "whole blood", "PB-BDCA4+ dentritic cells", "PB-CD14+ monocytes", "PB-CD56+ NKCells",
-      "PB-CD4+ Tcells", "PB-CD8+ Tcells", "PB-CD19+ Bcells", "leukemia lymphoblastic(molt4)",
-      "721 B lymphoblasts", "lymphoma Burkitts Raji", "leukemia promyelocytic(hl60)",
-      "lymphoma Burkitts Daudi", "leukemia chronic myelogenous(k562)", "colorectal adenocarcinoma",
-      "appendix", "skin", "adipocyte", "fetal thyroid", "thyroid", "pituitary gland",
-      "adrenal gland", "adrenal cortex", "prostate", "salivary gland", "pancreas",
-      "pancreatic islets", "atrioventricular node", "heart", "cardiac myocytes", "skeletal muscle",
-      "tongue", "smooth muscle", "uterus", "uterus corpus", "trachea", "bronchial epithelial cells",
-      "fetal lung", "lung", "kidney", "fetal liver", "liver", "placenta", "testis",
-      "testis Leydig cell", "testis germ cell", "testis interstitial", "testis seminiferous tubule",
-      "ovary"};
-  public static final String[] TISSUES_CHOSEN = {"whole brain", "prefrontal cortex",
-      "cingulate cortex", "cerebellum", "amygdala", "hypothalamus", "thalamus",
-      "subthalamic nucleus", "caudate nucleus", "globus pallidus", "olfactory bulb"};
+  public static final String[] TISSUE_TYPES =
+      {"fetal brain", "whole brain", "temporal lobe", "parietal lobe", "occipital lobe",
+       "prefrontal cortex", "cingulate cortex", "cerebellum", "cerebellum peduncles", "amygdala",
+       "hypothalamus", "thalamus", "subthalamic nucleus", "caudate nucleus", "globus pallidus",
+       "olfactory bulb", "pons", "medulla oblongata", "spinal cord", "ciliary ganglion",
+       "trigeminal ganglion", "superior cervical ganglion", "dorsal root ganglion", "thymus",
+       "tonsil", "lymph node", "bone marrow", "BM-CD71+ early erythroid", "BM-CD33+ myeloid",
+       "BM-CD105+ endothelial", "BM-CD34+", "whole blood", "PB-BDCA4+ dentritic cells",
+       "PB-CD14+ monocytes", "PB-CD56+ NKCells", "PB-CD4+ Tcells", "PB-CD8+ Tcells",
+       "PB-CD19+ Bcells", "leukemia lymphoblastic(molt4)", "721 B lymphoblasts",
+       "lymphoma Burkitts Raji", "leukemia promyelocytic(hl60)", "lymphoma Burkitts Daudi",
+       "leukemia chronic myelogenous(k562)", "colorectal adenocarcinoma", "appendix", "skin",
+       "adipocyte", "fetal thyroid", "thyroid", "pituitary gland", "adrenal gland",
+       "adrenal cortex", "prostate", "salivary gland", "pancreas", "pancreatic islets",
+       "atrioventricular node", "heart", "cardiac myocytes", "skeletal muscle", "tongue",
+       "smooth muscle", "uterus", "uterus corpus", "trachea", "bronchial epithelial cells",
+       "fetal lung", "lung", "kidney", "fetal liver", "liver", "placenta", "testis",
+       "testis Leydig cell", "testis germ cell", "testis interstitial",
+       "testis seminiferous tubule", "ovary"};
+  public static final String[] TISSUES_CHOSEN =
+      {"whole brain", "prefrontal cortex", "cingulate cortex", "cerebellum", "amygdala",
+       "hypothalamus", "thalamus", "subthalamic nucleus", "caudate nucleus", "globus pallidus",
+       "olfactory bulb"};
 
   public static final String DELIMITER = "\t";
 
@@ -85,13 +87,14 @@ public class expressionToGenes {
     String hs_data = "Hs.data.xls";
 
     String usage = "\n" + "park.genesByTissue requires 0-5 arguments\n"
-        + "   (1) filename of genes file (i.e. genes=" + genes + " (default))\n"
-        + "   (2) filename of expression data (i.e. express=" + express + " (default))\n" +
-        // " (3) tissue_types lookup file (i.e. tissueTypes="+tag_prop+"
-        // (default))\n"+
-        "   (4) tag_prop lookup file (i.e. tagProp=" + tag_prop + " (default))\n"
-        + "   (5) prop_ref lookup file (i.e. propRef=" + prop_ref + " (default))\n"
-        + "   (6) Hs.data file (i.e. hsData=" + hs_data + " (default))\n" + "";
+                   + "   (1) filename of genes file (i.e. genes=" + genes + " (default))\n"
+                   + "   (2) filename of expression data (i.e. express=" + express + " (default))\n"
+                   +
+                   // " (3) tissue_types lookup file (i.e. tissueTypes="+tag_prop+"
+                   // (default))\n"+
+                   "   (4) tag_prop lookup file (i.e. tagProp=" + tag_prop + " (default))\n"
+                   + "   (5) prop_ref lookup file (i.e. propRef=" + prop_ref + " (default))\n"
+                   + "   (6) Hs.data file (i.e. hsData=" + hs_data + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -129,7 +132,7 @@ public class expressionToGenes {
   }
 
   public static void runExpressionToGenes(String genes, String express, String tag_prop,
-      String prop_ref, String hs_data) {
+                                          String prop_ref, String hs_data) {
     BufferedReader reader = null;
     PrintWriter writer = null;
     PrintWriter geneids = null;
@@ -243,7 +246,7 @@ public class expressionToGenes {
           for (int i = 0; i < nms.size(); i++) {
             hsdp = hsData.get(nms.elementAt(i));
             writer.print("\t" + nms.elementAt(i) + "\t" + hsdp.title + "\t" + hsdp.chromosome + "\t"
-                + hsdp.geneID);
+                         + hsdp.geneID);
             if (geneData.containsKey(hsdp.geneID)) {
               writer.println("\t" + geneData.get(hsdp.geneID));
               // geneids.println(trav+"\t"+hsdp.geneID);
@@ -254,7 +257,7 @@ public class expressionToGenes {
           for (int i = 0; i < nms.size(); i++) {
             hsdp = hsData.get(nms.elementAt(i));
             writer.print("\t" + nms.elementAt(i) + "\t" + hsdp.title + "\t" + hsdp.chromosome + "\t"
-                + hsdp.geneID);
+                         + hsdp.geneID);
             if (geneData.containsKey(hsdp.geneID)) {
               writer.println("\t" + geneData.get(hsdp.geneID));
               geneids.println(trav + "\t" + hsdp.geneID);

@@ -99,9 +99,9 @@ public class Indelathon {
 
     private String getSummary() {
       return strandClipBarCode + "\t" + barcode + "\t"
-          + (barCodeCigar == null ? "NA" : barCodeCigar.toString()) + "\t" + minEvalBarcode + "\t"
-          + strandClipAdapter + "\t" + adapterHit + "\t"
-          + (adapterCigar == null ? "NA" : adapterCigar.toString()) + "\t" + minEvaladapter;
+             + (barCodeCigar == null ? "NA" : barCodeCigar.toString()) + "\t" + minEvalBarcode
+             + "\t" + strandClipAdapter + "\t" + adapterHit + "\t"
+             + (adapterCigar == null ? "NA" : adapterCigar.toString()) + "\t" + minEvaladapter;
     }
 
     public void setAdapterCigar(Cigar adapterCigar) {
@@ -155,7 +155,7 @@ public class Indelathon {
     private final Logger log;
 
     public SoftClipResult(ArrayList<Segment> toQuery, String vcfSample, String bamFile,
-        String outputDir, Logger log) {
+                          String outputDir, Logger log) {
       super();
       locs = new LocusSet<Segment>(toQuery.toArray(new Segment[toQuery.size()]), true, log) {
 
@@ -166,12 +166,15 @@ public class Indelathon {
       };
       this.vcfSample = vcfSample;
       this.bamFile = bamFile;
-      scAllCountSerFile = bamFile == null ? null
-          : outputDir + ext.rootOf(bamFile, true) + ".softclippedAllCounts.ser";
-      scSegCountSerFile = bamFile == null ? null
-          : outputDir + ext.rootOf(bamFile, true) + ".softclippedSegCounts.ser";
-      segScsSerFile = bamFile == null ? null
-          : outputDir + ext.rootOf(bamFile, true) + ".softclippedSegmentCounts.ser";
+      scAllCountSerFile =
+          bamFile == null ? null
+                          : outputDir + ext.rootOf(bamFile, true) + ".softclippedAllCounts.ser";
+      scSegCountSerFile =
+          bamFile == null ? null
+                          : outputDir + ext.rootOf(bamFile, true) + ".softclippedSegCounts.ser";
+      segScsSerFile =
+          bamFile == null ? null
+                          : outputDir + ext.rootOf(bamFile, true) + ".softclippedSegmentCounts.ser";
       this.log = log;
     }
 
@@ -193,9 +196,9 @@ public class Indelathon {
             num++;
             if (num % 100000 == 0) {
               log.reportTimeInfo("Scanned " + num + " reads, currently on "
-                  + SamRecordOps.getDisplayLoc(samRecord) + "from " + bamFile);
-              log.reportTimeInfo(
-                  "Found " + scAllCounts.keySet().size() + " unique soft clipped reads");
+                                 + SamRecordOps.getDisplayLoc(samRecord) + "from " + bamFile);
+              log.reportTimeInfo("Found " + scAllCounts.keySet().size()
+                                 + " unique soft clipped reads");
             }
             if (!samRecord.getReadUnmappedFlag() && !samRecord.getDuplicateReadFlag()) {
               SoftClipped[] softs = SamRecordOps.getSoftClippedBases(samRecord, log);
@@ -230,10 +233,12 @@ public class Indelathon {
         }
 
         // }
-        scAllCounts = (Hashtable<String, Integer>) SerializedFiles.readSerial(scAllCountSerFile,
-            false, log, false, true);
-        segScs = (Hashtable<String, ArrayList<String>>) SerializedFiles.readSerial(segScsSerFile,
-            false, log, false, true);
+        scAllCounts =
+            (Hashtable<String, Integer>) SerializedFiles.readSerial(scAllCountSerFile, false, log,
+                                                                    false, true);
+        segScs =
+            (Hashtable<String, ArrayList<String>>) SerializedFiles.readSerial(segScsSerFile, false,
+                                                                              log, false, true);
 
       } else {
         log.reportTimeWarning("Skipping sample " + vcfSample + " could not determine bam file");
@@ -264,7 +269,7 @@ public class Indelathon {
     private int index;
 
     public SoftClipResultProducer(String[] samples, Map<String, ArrayList<Segment>> sampSegs,
-        Map<String, String> matchedSamps, String outputDir, Logger log) {
+                                  Map<String, String> matchedSamps, String outputDir, Logger log) {
       super();
       this.samples = samples;
       this.sampSegs = sampSegs;
@@ -295,7 +300,8 @@ public class Indelathon {
   }
 
   private static String[] extractIndelSegments(String indelBamDir, Map<String, String> matchedSamps,
-      Map<String, ArrayList<Segment>> sampSegs, int buffer, int numThreads, Logger log) {
+                                               Map<String, ArrayList<Segment>> sampSegs, int buffer,
+                                               int numThreads, Logger log) {
     WorkerHive<BamExtractor> hive = new WorkerHive<BamExtractor>(numThreads, 10, log);
     ArrayList<String> indelBams = new ArrayList<String>();
     new File(indelBamDir).mkdirs();
@@ -307,7 +313,7 @@ public class Indelathon {
         segmentsToExtract = sampSegs.get(samp).toArray(new Segment[sampSegs.get(samp).size()]);
       }
       WorkerExtractor extractor = new WorkerExtractor(segmentsToExtract, matchedSamps.get(samp),
-          false, false, buffer, outbam, log);
+                                                      false, false, buffer, outbam, log);
       hive.addCallable(extractor);
     }
     hive.execute(true);
@@ -315,7 +321,8 @@ public class Indelathon {
   }
 
   private static void extractIndelVariants(String vcf, Logger log, String outIndelVCF,
-      String outSegSer, Hashtable<String, ArrayList<Segment>> sampSegs) {
+                                           String outSegSer,
+                                           Hashtable<String, ArrayList<Segment>> sampSegs) {
     VCFFileReader reader = new VCFFileReader(new File(vcf), true);
     VariantContextWriter writer =
         VCFOps.initWriterWithHeader(reader, outIndelVCF, VCFOps.DEFUALT_WRITER_OPTIONS, log);
@@ -360,17 +367,19 @@ public class Indelathon {
     int minSC = 0;
     int minSCCount = 5;
 
-    String usage = "\n" + "seq.analysis.Indelathon requires 0-1 arguments\n"
-        + "   (1) filename (i.e. vcf=" + vcf + " (default))\n" + "   (2) outDir (i.e. out=" + outDir
-        + " (default))\n" + "   (3) bams (i.e. bams=" + bams + " (default))\n"
-        + "   (4) comma delimited variant sets (i.e. sets= (default))\n"
-        + "   (5) min length for soft clipped sequences  (i.e. minSC=" + minSC + " (default))\n"
-        + "   (5) min number of occurances for soft clipped sequences per sample (i.e. minSCCount="
-        + minSCCount + " (default))\n" +
+    String usage =
+        "\n" + "seq.analysis.Indelathon requires 0-1 arguments\n" + "   (1) filename (i.e. vcf="
+                   + vcf + " (default))\n" + "   (2) outDir (i.e. out=" + outDir + " (default))\n"
+                   + "   (3) bams (i.e. bams=" + bams + " (default))\n"
+                   + "   (4) comma delimited variant sets (i.e. sets= (default))\n"
+                   + "   (5) min length for soft clipped sequences  (i.e. minSC=" + minSC
+                   + " (default))\n"
+                   + "   (5) min number of occurances for soft clipped sequences per sample (i.e. minSCCount="
+                   + minSCCount + " (default))\n" +
 
-        PSF.Ext.getNumThreadsCommand(4, numThreads) +
+                   PSF.Ext.getNumThreadsCommand(4, numThreads) +
 
-        "";
+                   "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -417,7 +426,7 @@ public class Indelathon {
   }
 
   private static Hashtable<String, HitSummary> summarizeBlasts(String[] blastFiles,
-      Set<String> softClip, Logger log) {
+                                                               Set<String> softClip, Logger log) {
     Hashtable<String, HitSummary> hits = new Hashtable<String, HitSummary>();
 
     for (String blastFile : blastFiles) {
@@ -427,8 +436,9 @@ public class Indelathon {
         while (reader.ready()) {
           BlastResults result = new BlastResults(reader.readLine().trim().split("\t"), log);
           String clip = result.getQueryID().split("_")[0];
-          String strandClip = result.isStrandFlipped()
-              ? StrandOps.flipsIfNeeded(clip, Strand.NEGATIVE, true, true) : clip;
+          String strandClip =
+              result.isStrandFlipped() ? StrandOps.flipsIfNeeded(clip, Strand.NEGATIVE, true, true)
+                                       : clip;
           Cigar cigar = CigarOps.convertBtopToCigar(result, clip.length(), log);
           boolean barcode = result.getSubjectID().split("_")[1].equals(Adapter.BARCODE);
 
@@ -480,7 +490,8 @@ public class Indelathon {
 
   @SuppressWarnings("unchecked")
   private static void summarizeSoftClippings(String vcf, String bamFilesFile, String outDir,
-      Set<String> variantSets, int buffer, int minSCLenth, int minSCCount, int numThreads) {
+                                             Set<String> variantSets, int buffer, int minSCLenth,
+                                             int minSCCount, int numThreads) {
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "indel.log");
     String[] bams = HashVec.loadFileToStringArray(bamFilesFile, false, new int[] {0}, true);
@@ -497,7 +508,7 @@ public class Indelathon {
       extractIndelVariants(vcf, log, outIndelVCF, outSegSer, sampSegs);
     }
     sampSegs = (Hashtable<String, ArrayList<Segment>>) SerializedFiles.readSerial(outSegSer, false,
-        log, false, true);
+                                                                                  log, false, true);
     String indelBamDir = outDir + "indel_bams/";
     String[] indelBams =
         extractIndelSegments(indelBamDir, matchedSamps, sampSegs, buffer, numThreads, log);
@@ -519,7 +530,7 @@ public class Indelathon {
     for (String bam : bams) {
       ArrayList<String> bc = BamOps.getBarcodesFor(bam, log);
       bcPrint += "\n" + BamOps.getSampleName(bam) + "\t" + bam + "\t"
-          + Array.toStr(bc.toArray(new String[bc.size()]));
+                 + Array.toStr(bc.toArray(new String[bc.size()]));
     }
     Files.write(bcPrint, outBarCode);
     String out = outDir + "countit.txt";
@@ -535,8 +546,9 @@ public class Indelathon {
       }
     }
     String blastDir = outDir + "blast/";
-    String[] blasts = Adapter.blast(minSCLenth, adapters,
-        allClips.toArray(new String[allClips.size()]), blastDir, "softClip", numThreads, log);
+    String[] blasts =
+        Adapter.blast(minSCLenth, adapters, allClips.toArray(new String[allClips.size()]), blastDir,
+                      "softClip", numThreads, log);
     Hashtable<String, HitSummary> hits = summarizeBlasts(blasts, allClips, log);
     try {
 
@@ -553,8 +565,8 @@ public class Indelathon {
         if (hits.containsKey(clip)) {
           hitSummary = hits.get(clip);
         }
-        writer.print(
-            clip + "\t" + (hitSummary == null ? HitSummary.getBlank() : hitSummary.getSummary()));
+        writer.print(clip + "\t"
+                     + (hitSummary == null ? HitSummary.getBlank() : hitSummary.getSummary()));
         for (SoftClipResult result : results) {
           if (result.getBamFile() != null) {
             if (result.getScAllCounts().containsKey(clip)) {

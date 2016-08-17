@@ -63,7 +63,8 @@ public class haplorParser {
     String filename = "trythis.ped.out";
 
     String usage = "\n" + "park.haplorParser requires 1 arguments:\n"
-        + "   (1) the name of the file to parse (i.e. file=" + filename + " (default))\n" + "";
+                   + "   (1) the name of the file to parse (i.e. file=" + filename + " (default))\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -176,7 +177,7 @@ public class haplorParser {
         if (!done) {
           trav = comparisons.elementAt(Integer.valueOf(line[1 + offset]).intValue() - 1);
           temp = compHaps.elementAt(Integer.valueOf(line[2 + offset]).intValue() - 1) + "\t"
-              + compHaps.elementAt(Integer.valueOf(line[3 + offset]).intValue() - 1);
+                 + compHaps.elementAt(Integer.valueOf(line[3 + offset]).intValue() - 1);
           post = Double.valueOf(line[4 + offset]).doubleValue();
         }
         if (trav.equals(prev)) {
@@ -235,8 +236,8 @@ public class haplorParser {
       }
     } while (reader.ready() && line.length > 1);
     System.out.println();
-    System.out.println(
-        "Warning - " + missingdata.size() + " individuals were excluded due to missing data");
+    System.out.println("Warning - " + missingdata.size()
+                       + " individuals were excluded due to missing data");
 
     System.out.println("Determining haplotypes for " + fams.size() + " families");
 
@@ -276,7 +277,7 @@ public class haplorParser {
       line = reader.readLine().split("[\\s]+");
       if (!fams.elementAt(i).equals(line[3])) {
         System.err.println("Error - failed family line up. Expecting " + fams.elementAt(i)
-            + " found " + line[3] + ".");
+                           + " found " + line[3] + ".");
       }
       hFam = new HapFam(line[3]);
       // hash.put(line[3], hFam);
@@ -307,7 +308,7 @@ public class haplorParser {
             hInd = hFam.members.get(indIDs[k]);
             if (hInd.posts.containsKey(trav)) {
               hInd.posts.put(trav,
-                  (Double.valueOf(hInd.posts.get(trav)).doubleValue() + post) + "");
+                             (Double.valueOf(hInd.posts.get(trav)).doubleValue() + post) + "");
             } else {
               hInd.posts.put(trav, post + "");
             }
@@ -351,14 +352,15 @@ public class haplorParser {
             // true)+"\t"+hInd.maxHap+"\t"+ext.formDeci(hInd.maxPost,
             // 3, true));
             writer.print(hFam.id + "\t" + hInd.id + "\t"
-                + translateHap(line[typed.indexOf(j)], haplotypes) + "\t"
-                + ext.formDeci(hFam.maxPost, 3, true) + "\t" + translateHap(hInd.maxHap, haplotypes)
-                + "\t" + ext.formDeci(hInd.maxPost, 3, true));
+                         + translateHap(line[typed.indexOf(j)], haplotypes) + "\t"
+                         + ext.formDeci(hFam.maxPost, 3, true) + "\t"
+                         + translateHap(hInd.maxHap, haplotypes) + "\t"
+                         + ext.formDeci(hInd.maxPost, 3, true));
             temp =
                 (Integer.valueOf(hFam.id).intValue() * 1000 + Integer.valueOf(hInd.id).intValue())
-                    + "";
-            writer.println(
-                compare ? (hash.containsKey(temp) ? "\t" + hash.get(temp) : "\t.\t.\t.") : "");
+                   + "";
+            writer.println(compare ? (hash.containsKey(temp) ? "\t" + hash.get(temp) : "\t.\t.\t.")
+                                   : "");
           }
           for (int k = 0; k < TARGET_HAPLOTYPES.length; k++) {
             writers[k].print(hFam.id + ext.formNum(hInd.id, 3) + "\t" + hFam.id + "\t" + hInd.id);
@@ -367,7 +369,7 @@ public class haplorParser {
             } else {
               marks = translateHap(line[typed.indexOf(j)], haplotypes).split("[\\s]+");
               writers[k].println("\t" + compHap(marks[0], TARGET_HAPLOTYPES[k]) + "\t"
-                  + compHap(marks[1], TARGET_HAPLOTYPES[k]));
+                                 + compHap(marks[1], TARGET_HAPLOTYPES[k]));
             }
           }
 

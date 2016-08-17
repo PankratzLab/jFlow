@@ -16,7 +16,7 @@ import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 public class VCFSamplePrep {
   public enum PREPPED_SAMPLE_TYPE {
-    NORMALIZED_GC_CORRECTED, NORMALIZED;
+                                   NORMALIZED_GC_CORRECTED, NORMALIZED;
   }
   public static class VCFSamplePrepWorker extends AbstractProducer<Hashtable<String, Float>> {
     private final Project proj;
@@ -27,7 +27,7 @@ public class VCFSamplePrep {
     private final GcModel gcModel;
 
     public VCFSamplePrepWorker(Project proj, String sampleDir, PREPPED_SAMPLE_TYPE type,
-        GcModel gcModel) {
+                               GcModel gcModel) {
       super();
       this.proj = proj;
       this.sampleDir = sampleDir;
@@ -52,14 +52,14 @@ public class VCFSamplePrep {
           VCFSamplePrep prep =
               new VCFSamplePrep(proj, proj.getFullSampleFromRandomAccessFile(sample), gcModel);
           Sample prepped = prep.getPreppedSample(type);
-          prepped.saveToRandomAccessFile(
-              sampleDir + prepped.getSampleName() + Sample.SAMPLE_FILE_EXTENSION, outliers,
-              prepped.getSampleName());
+          prepped.saveToRandomAccessFile(sampleDir + prepped.getSampleName()
+                                         + Sample.SAMPLE_FILE_EXTENSION, outliers,
+                                         prepped.getSampleName());
           byte[] genos = prepped.getAB_Genotypes();
           for (byte geno : genos) {
             if (geno == 3) {
-              System.out
-                  .println("genotype 3 in sample after normalizing " + prepped.getSampleName());
+              System.out.println("genotype 3 in sample after normalizing "
+                                 + prepped.getSampleName());
               System.exit(1);
             }
           }
@@ -120,7 +120,7 @@ public class VCFSamplePrep {
     this.gcModel = gcModel;
     if (gcModel == null && Files.exists(proj.GC_MODEL_FILENAME.getValue())) {
       this.gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(), false,
-          proj.getLog());
+                                                         proj.getLog());
     }
   }
 
@@ -133,13 +133,12 @@ public class VCFSamplePrep {
       case NORMALIZED_GC_CORRECTED:
         if (gcModel != null) {
           normDepth =
-              GcAdjustor
-                  .getComputedAdjustor(proj, null, Array.toFloatArray(normDepth), gcModel,
-                      GC_CORRECTION_METHOD.GENVISIS_GC, true, true, false)
-                  .getCorrectedIntensities();
+              GcAdjustor.getComputedAdjustor(proj, null, Array.toFloatArray(normDepth), gcModel,
+                                             GC_CORRECTION_METHOD.GENVISIS_GC, true, true, false)
+                        .getCorrectedIntensities();
         } else {
-          proj.getLog().reportTimeError(
-              "Projects gcmodel file must be valid for this method, skipping gc correction");
+          proj.getLog()
+              .reportTimeError("Projects gcmodel file must be valid for this method, skipping gc correction");
 
         }
         break;
@@ -153,7 +152,7 @@ public class VCFSamplePrep {
     Arrays.fill(fake, 0);
     Sample preppedSamp =
         new Sample(samp.getSampleName(), samp.getFingerprint(), samp.getGCs(), xs, ys, fake, fake,
-            samp.getForwardGenotypes(), samp.getAB_Genotypes(), samp.getCanXYBeNegative());
+                   samp.getForwardGenotypes(), samp.getAB_Genotypes(), samp.getCanXYBeNegative());
     return preppedSamp;
   }
 }

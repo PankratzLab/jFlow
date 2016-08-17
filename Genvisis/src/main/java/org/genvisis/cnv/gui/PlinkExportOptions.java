@@ -87,8 +87,8 @@ public class PlinkExportOptions extends JDialog {
           close(false);
         } else {
           JOptionPane.showMessageDialog(PlinkExportOptions.this,
-              "Error - Pedigree file doesn't exist.", "Missing Pedigree File",
-              JOptionPane.ERROR_MESSAGE, null);
+                                        "Error - Pedigree file doesn't exist.",
+                                        "Missing Pedigree File", JOptionPane.ERROR_MESSAGE, null);
         }
       } else if (arg0.getActionCommand().equals("ped")) {
         selectFile(textFieldPedigreeFile);
@@ -326,18 +326,18 @@ public class PlinkExportOptions extends JDialog {
       contentPanel.add(rdbtnBinary, "cell 0 10 2 1");
     }
     {
-      tooltipPedigree = Grafik.getToolTipIconLabel(
-          "<html><p width=\"380\">The pedigree file has the standard 6 columns (Family ID, Individual ID, Father's ID, Mother's ID, Sex, Affection/Phenotype) as well as a 7th column with the DNA/Sample ID from the raw data to match it up to. There is no header row. See manual for more detail.</p></html>");
+      tooltipPedigree =
+          Grafik.getToolTipIconLabel("<html><p width=\"380\">The pedigree file has the standard 6 columns (Family ID, Individual ID, Father's ID, Mother's ID, Sex, Affection/Phenotype) as well as a 7th column with the DNA/Sample ID from the raw data to match it up to. There is no header row. See manual for more detail.</p></html>");
       contentPanel.add(tooltipPedigree, "cell 0 0");
     }
     {
-      tooltipTgtMkrs = Grafik.getToolTipIconLabel(
-          "<html><p width=\"380\">The target marker file is optional and has one marker name per row. If there are any additional columns, then they are ignored. See manual for more detail.</p></html>");
+      tooltipTgtMkrs =
+          Grafik.getToolTipIconLabel("<html><p width=\"380\">The target marker file is optional and has one marker name per row. If there are any additional columns, then they are ignored. See manual for more detail.</p></html>");
       contentPanel.add(tooltipTgtMkrs, "cell 0 2");
     }
     {
-      tooltipClusterFilters = Grafik.getToolTipIconLabel(
-          "<html><p width=\"380\">The list of cluster filter files is generated from any file ending with \"*clusterFilters.ser\" in the project's data/ directory. The clusters can be manually added from within the ScatterPlot module. See manual for more detail.</p></html>");
+      tooltipClusterFilters =
+          Grafik.getToolTipIconLabel("<html><p width=\"380\">The list of cluster filter files is generated from any file ending with \"*clusterFilters.ser\" in the project's data/ directory. The clusters can be manually added from within the ScatterPlot module. See manual for more detail.</p></html>");
       contentPanel.add(tooltipClusterFilters, "cell 0 4");
     }
     {
@@ -349,13 +349,13 @@ public class PlinkExportOptions extends JDialog {
       contentPanel.add(tooltipExportType, "cell 0 6");
     }
     {
-      tooltipExportType = Grafik.getToolTipIconLabel(
-          "<html><p width=\"380\">PLINK format can either be compressed in a binary format or in full text. See the PLINK website for more detail.</p></html>");
+      tooltipExportType =
+          Grafik.getToolTipIconLabel("<html><p width=\"380\">PLINK format can either be compressed in a binary format or in full text. See the PLINK website for more detail.</p></html>");
       contentPanel.add(tooltipExportType, "cell 0 9");
     }
     {
-      tooltipFileroot = Grafik.getToolTipIconLabel(
-          "<html><p width=\"380\">The root of the filenames to be generated. If these already exist, you must click the checkbox to overwrite them.</p></html>");
+      tooltipFileroot =
+          Grafik.getToolTipIconLabel("<html><p width=\"380\">The root of the filenames to be generated. If these already exist, you must click the checkbox to overwrite them.</p></html>");
       contentPanel.add(tooltipFileroot, "cell 0 11");
     }
     {
@@ -398,8 +398,8 @@ public class PlinkExportOptions extends JDialog {
   }
 
   public String getABFilename() {
-    return chckbxGenerateAbLookup.isEnabled() && chckbxGenerateAbLookup.isSelected() ? null
-        : textFieldABLookup.getText().trim();
+    return chckbxGenerateAbLookup.isEnabled()
+           && chckbxGenerateAbLookup.isSelected() ? null : textFieldABLookup.getText().trim();
   }
 
   public boolean getCancelled() {
@@ -416,14 +416,14 @@ public class PlinkExportOptions extends JDialog {
 
   private String[] getClusterFiltersOptions() {
     return Array.addStrToArray(NO_CLUSTER_FILTERS,
-        Files.list(proj.DATA_DIRECTORY.getValue(false, true), null,
-            ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)),
-            false, proj.JAR_STATUS.getValue()));
+                               Files.list(proj.DATA_DIRECTORY.getValue(false, true), null,
+                                          ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)),
+                                          false, proj.JAR_STATUS.getValue()));
   }
 
   public String[] getFileExtensions() {
     return rdbtnBinary.isSelected() ? new String[] {".bim", ".bed", ".fam"}
-        : new String[] {".map", ".ped"};
+                                    : new String[] {".map", ".ped"};
   }
 
   /**

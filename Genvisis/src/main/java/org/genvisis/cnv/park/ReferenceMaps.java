@@ -48,13 +48,13 @@ public class ReferenceMaps {
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
         hash.put(line[0], count + "\t" + line[1] + ":" + ext.replaceAllWith(line[4], "\"", "") + "-"
-            + ext.replaceAllWith(line[5], "\"", ""));
+                          + ext.replaceAllWith(line[5], "\"", ""));
         count++;
       }
       reader.close();
     } catch (FileNotFoundException fnfe) {
-      System.err.println(
-          "Error: file \"" + MCCAROLL_DIR + MCCAROLL_MAP + "\" not found in current directory");
+      System.err.println("Error: file \"" + MCCAROLL_DIR + MCCAROLL_MAP
+                         + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + MCCAROLL_DIR + MCCAROLL_MAP + "\"");
@@ -66,8 +66,8 @@ public class ReferenceMaps {
     for (int i = 0; i < MCCAROLL_POPULATIONS.length; i++) {
       inds = new Hashtable<String, String>();
       try {
-        reader = new BufferedReader(
-            new FileReader(MCCAROLL_DIR + "pedinfo2sample_" + MCCAROLL_POPULATIONS[i] + ".txt"));
+        reader = new BufferedReader(new FileReader(MCCAROLL_DIR + "pedinfo2sample_"
+                                                   + MCCAROLL_POPULATIONS[i] + ".txt"));
         while (reader.ready()) {
           line = reader.readLine().split("\t", -1);
           if (line[2].equals("0") && line[3].equals("0")) {
@@ -77,17 +77,18 @@ public class ReferenceMaps {
         reader.close();
       } catch (FileNotFoundException fnfe) {
         System.err.println("Error: file \"" + MCCAROLL_DIR + "pedinfo2sample_"
-            + MCCAROLL_POPULATIONS[i] + ".txt" + "\" not found in current directory");
+                           + MCCAROLL_POPULATIONS[i] + ".txt"
+                           + "\" not found in current directory");
         System.exit(1);
       } catch (IOException ioe) {
         System.err.println("Error reading file \"" + MCCAROLL_DIR + "pedinfo2sample_"
-            + MCCAROLL_POPULATIONS[i] + ".txt" + "\"");
+                           + MCCAROLL_POPULATIONS[i] + ".txt" + "\"");
         System.exit(2);
       }
 
       try {
-        reader = new BufferedReader(
-            new FileReader(MCCAROLL_DIR + "ng.238-S3_" + MCCAROLL_POPULATIONS[i] + ".txt"));
+        reader = new BufferedReader(new FileReader(MCCAROLL_DIR + "ng.238-S3_"
+                                                   + MCCAROLL_POPULATIONS[i] + ".txt"));
         line = reader.readLine().split("[\\s]+");
         if (!line[0].equals("CNP_id")) {
           System.err.println("Error - not the header I was expecting");
@@ -110,11 +111,11 @@ public class ReferenceMaps {
         reader.close();
       } catch (FileNotFoundException fnfe) {
         System.err.println("Error: file \"" + MCCAROLL_DIR + "ng.238-S3_" + MCCAROLL_POPULATIONS[i]
-            + ".txt" + "\" not found in current directory");
+                           + ".txt" + "\" not found in current directory");
         System.exit(1);
       } catch (IOException ioe) {
         System.err.println("Error reading file \"" + MCCAROLL_DIR + "ng.238-S3_"
-            + MCCAROLL_POPULATIONS[i] + ".txt" + "\"");
+                           + MCCAROLL_POPULATIONS[i] + ".txt" + "\"");
         System.exit(2);
       }
 
@@ -175,7 +176,7 @@ public class ReferenceMaps {
         "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\McCaroll map\\all_CNPs.txt";
 
     String usage = "\n" + "cnv.ReferenceMaps requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

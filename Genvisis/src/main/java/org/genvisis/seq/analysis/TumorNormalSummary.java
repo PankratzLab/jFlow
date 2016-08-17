@@ -34,8 +34,9 @@ public class TumorNormalSummary {
 
   private static final String[] BASE_OUT =
       new String[] {"CHROM", "POS", "ID", "REF", "FULL_ALT", "ALT", "HIGH||MODERATE||LOW",
-          "TN_PAIR", "NORMAL_SAMPLE", "TUMOR_SAMPLE", "NORMAL_GENOTYPE", "TUMOR_GENOTYPE",
-          "NORMAL_GQ", "TUMOR_GQ", "NORMAL_HAS_ALT", "TUMOR_HAS_ALT", "MIN_GQ", "TN_MATCH"};
+                    "TN_PAIR", "NORMAL_SAMPLE", "TUMOR_SAMPLE", "NORMAL_GENOTYPE", "TUMOR_GENOTYPE",
+                    "NORMAL_GQ", "TUMOR_GQ", "NORMAL_HAS_ALT", "TUMOR_HAS_ALT", "MIN_GQ",
+                    "TN_MATCH"};
 
   public static void main(String[] args) {
     String vcf =
@@ -45,7 +46,7 @@ public class TumorNormalSummary {
 
     Logger log = new Logger(outputDir + "TN.log");
     Segment[] segs = new Segment[] {new Segment("chr15:50714579-50795277"),
-        new Segment("chr8:143543377-143628368")};
+                                    new Segment("chr8:143543377-143628368")};
     String[] names = new String[] {"USP8", "BAI1"};
     int buffer = 300;
     for (int i = 0; i < names.length; i++) {
@@ -54,7 +55,7 @@ public class TumorNormalSummary {
   }
 
   private static void run(String vcf, String vpopFile, String outputDir, Segment seg, String name,
-      int buffer, Logger log) {
+                          int buffer, Logger log) {
     VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.TUMOR_NORMAL, log);
     Set<String> all = new HashSet<String>();
     all.addAll(vpop.getSuperPop().get(VcfPopulation.TUMOR));
@@ -66,12 +67,12 @@ public class TumorNormalSummary {
     String outSummary = outRoot + ".summary.txt";
     VCFFileReader reader = new VCFFileReader(new File(vcf), true);
     VariantContextWriter writer = VCFOps.initWriter(outVCF, VCFOps.DEFUALT_WRITER_OPTIONS,
-        reader.getFileHeader().getSequenceDictionary());
+                                                    reader.getFileHeader().getSequenceDictionary());
     VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
     Segment segBuffer = seg.getBufferedSegment(buffer);
     CloseableIterator<VariantContext> iter =
         reader.query(Positions.getChromosomeUCSC(segBuffer.getChr(), true), segBuffer.getStart(),
-            segBuffer.getStop());
+                     segBuffer.getStop());
     try {
       PrintWriter writerSummary = new PrintWriter(new FileWriter(outSummary));
       String[][] annos = VCFOps.getAnnotationKeys(vcf, log);
@@ -90,11 +91,11 @@ public class TumorNormalSummary {
               String tumor = null;
               String normal = null;
               for (String samp : samps) {
-                if (vpop.getPopulationForInd(samp, RETRIEVE_TYPE.SUPER)[0]
-                    .equals(VcfPopulation.TUMOR)) {
+                if (vpop.getPopulationForInd(samp,
+                                             RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.TUMOR)) {
                   tumor = samp;
-                } else if (vpop.getPopulationForInd(samp, RETRIEVE_TYPE.SUPER)[0]
-                    .equals(VcfPopulation.NORMAL)) {
+                } else if (vpop.getPopulationForInd(samp,
+                                                    RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.NORMAL)) {
                   normal = samp;
                 } else {
                   writerSummary.close();
@@ -114,8 +115,8 @@ public class TumorNormalSummary {
               builder.append("\t" + vcFull.getAlternateAlleles());
               builder.append("\t" + vc.getAlternateAlleles());
               String impact = VCOps.getSNP_EFFImpact(vc);
-              builder.append("\t"
-                  + (impact.equals("HIGH") || impact.equals("MODERATE") || impact.equals("LOW")));
+              builder.append("\t" + (impact.equals("HIGH") || impact.equals("MODERATE")
+                                     || impact.equals("LOW")));
               builder.append("\t" + tnPair);
               builder.append("\t" + normal);
               builder.append("\t" + tumor);

@@ -18,8 +18,7 @@ public class mendErrors {
   public static void main(String[] args) throws IOException {
     for (String arg : args) {
       if (arg.equals("-?") || arg.equals("-help") || arg.equals("-h")) {
-        System.out.println(
-            "Expecting 0-2 arguments (chromosome number to start [and stop], default all).");
+        System.out.println("Expecting 0-2 arguments (chromosome number to start [and stop], default all).");
         System.exit(1);
       }
     }
@@ -60,10 +59,9 @@ public class mendErrors {
 
         if ((new File("marker.database")).exists()) {
           if (!new File("log.prn").exists()) {
-            System.err.println(
-                "Error - marker.database was in the directory, so I assume we're in a Windows environment and can't run pedcheck.");
+            System.err.println("Error - marker.database was in the directory, so I assume we're in a Windows environment and can't run pedcheck.");
             System.err.println("        But could not find " + "log.prn"
-                + " in current directory, which is what is usually used instead.");
+                               + " in current directory, which is what is usually used instead.");
             System.exit(2);
           }
           reader = new BufferedReader(new FileReader("log.prn"));
@@ -77,7 +75,7 @@ public class mendErrors {
           // "+((chromosome == 23)?" -n names -x":"-d
           // map"+chrome+".dat ")+" -4");
           process = runtime.exec("pedcheck " + ((chromosome == 23) ? " -x" : "") + " -p chrom"
-              + chrome + ".pre -d map" + chrome + ".dat " + " -4");
+                                 + chrome + ".pre -d map" + chrome + ".dat " + " -4");
 
           reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         }
@@ -146,8 +144,7 @@ public class mendErrors {
                 done = true;
                 break; // then quit
               }
-              System.err
-                  .println("Error: something failed, but didn't want to unfail for some reason.");
+              System.err.println("Error: something failed, but didn't want to unfail for some reason.");
             }
 
             boolean chosenOne = false;
@@ -171,7 +168,7 @@ public class mendErrors {
                 }
                 temp = reader.readLine();
               } while (!temp.startsWith(" Person") && !temp.equals("")
-                  && !temp.startsWith(" ##### Pedigree"));
+                       && !temp.startsWith(" ##### Pedigree"));
 
               if (chosenOne && !found) {
                 System.out.print(".");
@@ -310,15 +307,12 @@ public class mendErrors {
       } catch (Exception e) {
         System.err.println();
         if (chromosome == 23) {
-          System.err.println(
-              "Got an error, probably need to check for males heterozygous for an X-linked marker.");
+          System.err.println("Got an error, probably need to check for males heterozygous for an X-linked marker.");
         } else {
           System.err.println("Got an error running chromosome " + chromosome
-              + ", probably couldn't run pedcheck. Have the map and pre files been made?");
-          System.err
-              .println("If that's not it, try deleting the files \'pedcheck.err\' and \'temp\'");
-          System.err.println(
-              "If that's not it, make sure the first line of the .dat file is either blank or has more than one word.");
+                             + ", probably couldn't run pedcheck. Have the map and pre files been made?");
+          System.err.println("If that's not it, try deleting the files \'pedcheck.err\' and \'temp\'");
+          System.err.println("If that's not it, make sure the first line of the .dat file is either blank or has more than one word.");
         }
         System.err.println();
       }

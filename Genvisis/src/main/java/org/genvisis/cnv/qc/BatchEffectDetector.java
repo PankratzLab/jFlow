@@ -23,8 +23,8 @@ import org.genvisis.common.ext;
  */
 public class BatchEffectDetector {
 
-  private static String[] determineMarkers(Project proj, String outDir, int numMarks, int threads)
-      throws FileNotFoundException {
+  private static String[] determineMarkers(Project proj, String outDir, int numMarks,
+                                           int threads) throws FileNotFoundException {
     if (numMarks < 0) {
       return proj.getAutosomalMarkers();
     } else {
@@ -71,8 +71,8 @@ public class BatchEffectDetector {
     }
   }
 
-  private static void run(Project proj, String outDir, int numMarks, int threads)
-      throws FileNotFoundException {
+  private static void run(Project proj, String outDir, int numMarks,
+                          int threads) throws FileNotFoundException {
     outDir = proj.PROJECT_DIRECTORY.getValue() + outDir;
     new File(outDir).mkdirs();
 
@@ -81,59 +81,59 @@ public class BatchEffectDetector {
   }
 
   public static void main(String[] args) {
-		int numArgs = args.length;
-		String filename = null;
-		int numthreads = 6;
-		String outDir = "BatchEffects/";
-		String batchFile = "batches.txt";
-		int numSDMarkers = 5000;
-		String usage = "\n" +
-				"cnv.qc.BatchEffectDetector requires 0-1 arguments\n" +
-				"   (1) project (i.e. proj=" + filename + " (default))\n" +
-				"   (2) output directory relative to project (i.e. outDir=" + outDir + " (default))\n" +
+    int numArgs = args.length;
+    String filename = null;
+    int numthreads = 6;
+    String outDir = "BatchEffects/";
+    String batchFile = "batches.txt";
+    int numSDMarkers = 5000;
+    String usage = "\n" + "cnv.qc.BatchEffectDetector requires 0-1 arguments\n"
+                   + "   (1) project (i.e. proj=" + filename + " (default))\n"
+                   + "   (2) output directory relative to project (i.e. outDir=" + outDir
+                   + " (default))\n" +
 
-				"   (3) batch definition file (i.e. outDir=" + batchFile + " (default))\n" +
+                   "   (3) batch definition file (i.e. outDir=" + batchFile + " (default))\n" +
 
-				"   (4) num markers (SD ranked) (i.e. numSDMarkers=" + numSDMarkers + " (default))\n" +
-				PSF.Ext.getNumThreadsCommand(5, numthreads) +
+                   "   (4) num markers (SD ranked) (i.e. numSDMarkers=" + numSDMarkers
+                   + " (default))\n" + PSF.Ext.getNumThreadsCommand(5, numthreads) +
 
-				"";
+                   "";
 
-		for (String arg : args) {
-			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (arg.startsWith("proj=")) {
-				filename = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("outDir=")) {
-				outDir = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("batchFile=")) {
-				batchFile = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("numSDMarkers=")) {
-				numSDMarkers = ext.parseIntArg(arg);
-				numArgs--;
-			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
-				numthreads = ext.parseIntArg(arg);
-				numArgs--;
-			} else if (arg.startsWith("log=")) {
-				numArgs--;
-			} else {
-				System.err.println("Error - invalid argument: " + arg);
-			}
-		}
-		if (numArgs != 0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-		try {
-			Project proj = new Project(filename, false);
-			run(proj, outDir, numSDMarkers, numthreads);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    for (String arg : args) {
+      if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
+        System.err.println(usage);
+        System.exit(1);
+      } else if (arg.startsWith("proj=")) {
+        filename = arg.split("=")[1];
+        numArgs--;
+      } else if (arg.startsWith("outDir=")) {
+        outDir = arg.split("=")[1];
+        numArgs--;
+      } else if (arg.startsWith("batchFile=")) {
+        batchFile = arg.split("=")[1];
+        numArgs--;
+      } else if (arg.startsWith("numSDMarkers=")) {
+        numSDMarkers = ext.parseIntArg(arg);
+        numArgs--;
+      } else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+        numthreads = ext.parseIntArg(arg);
+        numArgs--;
+      } else if (arg.startsWith("log=")) {
+        numArgs--;
+      } else {
+        System.err.println("Error - invalid argument: " + arg);
+      }
+    }
+    if (numArgs != 0) {
+      System.err.println(usage);
+      System.exit(1);
+    }
+    try {
+      Project proj = new Project(filename, false);
+      run(proj, outDir, numSDMarkers, numthreads);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
 }

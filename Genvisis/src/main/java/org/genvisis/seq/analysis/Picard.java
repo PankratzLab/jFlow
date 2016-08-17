@@ -93,9 +93,10 @@ public class Picard {
 
   }
   public static class PicardMetricsParser {
-    public static final String[] PICARD_METRICS = {"LIBRARY", "UNPAIRED_READS_EXAMINED",
-        "READ_PAIRS_EXAMINED", "UNMAPPED_READS", "UNPAIRED_READ_DUPLICATES", "READ_PAIR_DUPLICATES",
-        "READ_PAIR_OPTICAL_DUPLICATES", "PERCENT_DUPLICATION", "ESTIMATED_LIBRARY_SIZE"};
+    public static final String[] PICARD_METRICS =
+        {"LIBRARY", "UNPAIRED_READS_EXAMINED", "READ_PAIRS_EXAMINED", "UNMAPPED_READS",
+         "UNPAIRED_READ_DUPLICATES", "READ_PAIR_DUPLICATES", "READ_PAIR_OPTICAL_DUPLICATES",
+         "PERCENT_DUPLICATION", "ESTIMATED_LIBRARY_SIZE"};
 
     private static double[] getMetricsFromFile(String picardMetricsFile, Logger log) {
       double[] curMetrics = new double[PICARD_METRICS.length];
@@ -106,10 +107,10 @@ public class Picard {
         do {
           line = reader.readLine().trim().split("[\\s]+");
         } while (reader.ready() && (ext.indexFactors(new String[][] {PICARD_METRICS}, line, false,
-            true, false, false)[0] == -1));
+                                                     true, false, false)[0] == -1));
         if (!reader.ready()) {
           log.reportError("Error - could not find neccesary header " + Array.toStr(PICARD_METRICS)
-              + " in file " + picardMetricsFile);
+                          + " in file " + picardMetricsFile);
         } else {
           int[] indices = ext.indexFactors(line, PICARD_METRICS, true, false);
           line = reader.readLine().trim().split("[\\s]+");
@@ -118,7 +119,7 @@ public class Picard {
               curMetrics[i] = Double.parseDouble(line[indices[i]]);
             } catch (NumberFormatException numberFormatException) {
               log.reportError("Error - invalid number on line " + Array.toStr(line) + " in file "
-                  + picardMetricsFile);
+                              + picardMetricsFile);
             }
           }
         }
@@ -159,8 +160,8 @@ public class Picard {
         PrintWriter writer = new PrintWriter(new FileWriter(outputSummaryFile));
         writer.println("SAMPLE\t" + Array.toStr(PICARD_METRICS));
         for (int i = 0; i < consolidatedMetrics.length; i++) {
-          writer.println(
-              ext.rootOf(picardMetricsFiles[i]) + "\t" + Array.toStr(consolidatedMetrics[i]));
+          writer.println(ext.rootOf(picardMetricsFiles[i]) + "\t"
+                         + Array.toStr(consolidatedMetrics[i]));
         }
         writer.close();
       } catch (Exception e) {
@@ -198,7 +199,7 @@ public class Picard {
   private static String getTMPdirectory(String inputFile, String expectedOutput) {
 
     return TMP_DIR + ext.parseDirectoryOfFile(expectedOutput) + ext.rootOf(inputFile)
-        + "picard_tmp/";
+           + "picard_tmp/";
   }
 
   private static boolean verifyPicardLocationg(String picardLocation) {
@@ -214,7 +215,7 @@ public class Picard {
   private final Logger log;
 
   public Picard(String picardLocation, String javaLocation, boolean overwriteExisting,
-      boolean verbose, Logger log) {
+                boolean verbose, Logger log) {
     super();
     this.picardLocation = picardLocation;
     this.javaLocation = (javaLocation == null ? DEFAULT_JAVA : javaLocation);
@@ -230,37 +231,43 @@ public class Picard {
 
   public boolean indexBAM(String inputFile, String expectedOutput, Logger altLog) {
     String[] command = new String[] {javaLocation, JAR, picardLocation + BUILD_BAM_INDEX,
-        INPUT + inputFile, getTMPdirectory(inputFile, expectedOutput)};
+                                     INPUT + inputFile, getTMPdirectory(inputFile, expectedOutput)};
     return CmdLine.runCommandWithFileChecks(command, "", new String[] {inputFile},
-        new String[] {expectedOutput}, verbose, overwriteExisting, true,
-        (altLog == null ? log : altLog));
+                                            new String[] {expectedOutput}, verbose,
+                                            overwriteExisting, true,
+                                            (altLog == null ? log : altLog));
   }
 
   public boolean markDuplicates(String inputFile, String outputFile, String metricsFile,
-      double memoryRatio, Logger altLog) {
-    String[] command = new String[] {javaLocation, JAR, picardLocation + MARK_DUPLICATES_JAR,
-        INPUT + inputFile, OUTPUT + outputFile, METRICS_FILE + metricsFile,
-        getTMPdirectory(inputFile, inputFile), SORTING_COLLECTION_SIZE_RATIO + memoryRatio};
+                                double memoryRatio, Logger altLog) {
+    String[] command =
+        new String[] {javaLocation, JAR, picardLocation + MARK_DUPLICATES_JAR, INPUT + inputFile,
+                      OUTPUT + outputFile, METRICS_FILE + metricsFile,
+                      getTMPdirectory(inputFile, inputFile),
+                      SORTING_COLLECTION_SIZE_RATIO + memoryRatio};
     return CmdLine.runCommandWithFileChecks(command, "", new String[] {inputFile},
-        new String[] {outputFile, metricsFile}, verbose, overwriteExisting, true,
-        (altLog == null ? log : altLog));
+                                            new String[] {outputFile, metricsFile}, verbose,
+                                            overwriteExisting, true,
+                                            (altLog == null ? log : altLog));
   }
 
   public Picard_Analysis picardASam(String baseId, String fullPathToSamFile, double memoryRatio,
-      Logger altLog) {
+                                    Logger altLog) {
     boolean progress = false;
     Picard_Analysis picard_Analysis =
         new Picard_Analysis(baseId, fullPathToSamFile, (altLog == null ? log : altLog));
     picard_Analysis.parseInput();
     progress = sortSam(picard_Analysis.getFullPathToSamFile(),
-        picard_Analysis.getFullPathToSortedBamFile(), picard_Analysis.getLog());
+                       picard_Analysis.getFullPathToSortedBamFile(), picard_Analysis.getLog());
     if (progress) {
       progress = markDuplicates(picard_Analysis.getFullPathToSortedBamFile(),
-          picard_Analysis.getFullPathToSortedDeDuppedBamFile(),
-          picard_Analysis.getFullPathToMetricsTxt(), memoryRatio, picard_Analysis.getLog());
+                                picard_Analysis.getFullPathToSortedDeDuppedBamFile(),
+                                picard_Analysis.getFullPathToMetricsTxt(), memoryRatio,
+                                picard_Analysis.getLog());
       if (progress) {
         progress = indexBAM(picard_Analysis.getFullPathToSortedDeDuppedBamFile(),
-            picard_Analysis.getFullPathToSortedDeDuppedBamFileIndex(), picard_Analysis.getLog());
+                            picard_Analysis.getFullPathToSortedDeDuppedBamFileIndex(),
+                            picard_Analysis.getLog());
         if (progress) {
           picard_Analysis.setAllThere(progress);
         }
@@ -271,12 +278,13 @@ public class Picard {
   }
 
   public boolean sortSam(String inputFile, String outputFile, Logger altLog) {
-    String[] command = new String[] {javaLocation, JAR, picardLocation + SORT_SAM_JAR,
-        INPUT + inputFile, OUTPUT + outputFile, SORT_ORDER + DEFAULT_SORT_ORDER,
-        getTMPdirectory(inputFile, outputFile)};
+    String[] command =
+        new String[] {javaLocation, JAR, picardLocation + SORT_SAM_JAR, INPUT + inputFile,
+                      OUTPUT + outputFile, SORT_ORDER + DEFAULT_SORT_ORDER,
+                      getTMPdirectory(inputFile, outputFile)};
     return CmdLine.runCommandWithFileChecks(command, "", new String[] {inputFile},
-        new String[] {outputFile}, verbose, overwriteExisting, true,
-        (altLog == null ? log : altLog));
+                                            new String[] {outputFile}, verbose, overwriteExisting,
+                                            true, (altLog == null ? log : altLog));
   }
 
 }

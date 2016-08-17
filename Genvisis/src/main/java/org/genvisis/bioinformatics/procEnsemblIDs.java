@@ -22,9 +22,9 @@ public class procEnsemblIDs {
     String geneIDs = DEFAULT_GENES;
 
     String usage = "\n" + "park.procEnsemblIDs requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=" + filename + " (default))\n"
-        + "   (2) filename with geneID/geneName in first two columns (i.e. genes=" + geneIDs
-        + " (default))\n" + "";
+                   + "   (1) filename (i.e. file=" + filename + " (default))\n"
+                   + "   (2) filename with geneID/geneName in first two columns (i.e. genes="
+                   + geneIDs + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -88,16 +88,16 @@ public class procEnsemblIDs {
             } else {
               if (genes.containsKey(line[1])) {
                 writer.println(line[1] + "\t" + line[0] + "\t" + hash.get(line[1]) + "\t"
-                    + genes.get(line[1]) + "\t" + genes.get(line[1]));
+                               + genes.get(line[1]) + "\t" + genes.get(line[1]));
                 hash.put(line[1], genes.get(line[1]));
               } else {
                 if (Integer.parseInt(line[0]) < Integer.parseInt(hash.get(line[1]))) {
                   writer.println(line[1] + "\t" + line[0] + "\t" + hash.get(line[1]) + "\t" + "#N/A"
-                      + "\t" + line[0]);
+                                 + "\t" + line[0]);
                   hash.put(line[1], line[0]);
                 } else {
                   writer.println(line[1] + "\t" + line[0] + "\t" + hash.get(line[1]) + "\t" + "#N/A"
-                      + "\t" + hash.get(line[1]));
+                                 + "\t" + hash.get(line[1]));
                 }
               }
               c2++;

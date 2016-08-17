@@ -23,7 +23,7 @@ import com.google.common.primitives.Doubles;
 public class Transformations {
   private static final String[] LABELS =
       {"Identity", "Rank", "Log", "Inverse", "Square root", "Squared", "Cubed", "Box-Cox (maxLL)",
-          "Box-Cox (minKurt)", "Normalized", "Standardized", "InverseNormalized", "NegativeLog10"};
+       "Box-Cox (minKurt)", "Normalized", "Standardized", "InverseNormalized", "NegativeLog10"};
   public static final int IDENTITY = 0;
   public static final int RANK = 1;
   public static final int LOG_NATURAL = 2;
@@ -65,7 +65,7 @@ public class Transformations {
       types += " " + i + "=" + LABELS[i];
     }
     defaults = new String[] {"file=input.txt", "out=output.txt", "ignoreFirstLine=false", "col=0",
-        "comma=false", "replace=false", "type=11", "#possible types:" + types};
+                             "comma=false", "replace=false", "type=11", "#possible types:" + types};
     for (int i = 0; i < LABELS.length; i++) {
       Array.addStrToArray("# " + i + "=" + LABELS[i], defaults);
     }
@@ -122,14 +122,15 @@ public class Transformations {
     String logfile = null;
 
     String usage = "\n" + "mining.Transformations requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "   (2) outfile (i.e. out="
-        + filename + "." + LABELS[type] + " (default))\n"
-        + "   (3) ignore first [header] line (i.e. ignoreFirstLine=" + ignoreFirstLine
-        + " (default))\n" + "   (4) column to be transformed (i.e. col=" + col + " (default))\n"
-        + "   (5) comma delimited (i.e. comma=" + commaDelimited + " (default))\n"
-        + "   (6) replace previous variables (i.e. replace=" + replace + " (default))\n"
-        + "   (7) type of transformation (see below for options) (i.e. type=" + type
-        + " (default))\n" + "";
+                   + "   (1) filename (i.e. file=" + filename + " (default))\n"
+                   + "   (2) outfile (i.e. out=" + filename + "." + LABELS[type] + " (default))\n"
+                   + "   (3) ignore first [header] line (i.e. ignoreFirstLine=" + ignoreFirstLine
+                   + " (default))\n" + "   (4) column to be transformed (i.e. col=" + col
+                   + " (default))\n" + "   (5) comma delimited (i.e. comma=" + commaDelimited
+                   + " (default))\n" + "   (6) replace previous variables (i.e. replace=" + replace
+                   + " (default))\n"
+                   + "   (7) type of transformation (see below for options) (i.e. type=" + type
+                   + " (default))\n" + "";
     for (int i = 0; i < LABELS.length; i++) {
       usage += "       " + i + "=" + LABELS[i];
     }
@@ -182,7 +183,7 @@ public class Transformations {
         outfile = filename + "." + LABELS[type];
       }
       transformFile(filename, outfile, ignoreFirstLine, col, commaDelimited, replace, type,
-          new Logger(logfile));
+                    new Logger(logfile));
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -227,7 +228,7 @@ public class Transformations {
     while (count < array.length) {
       plus = 0;
       while (count + plus + 1 < array.length
-          && array[order[count]] == array[order[count + plus + 1]]) {
+             && array[order[count]] == array[order[count + plus + 1]]) {
         plus++;
       }
       for (int i = 0; i < plus + 1; i++) {
@@ -316,16 +317,15 @@ public class Transformations {
         return new BoxCox(array, log).getTransform_MinKurt();
       case MAD_SCALED:
         BeastScore beastScore = new BeastScore(Array.toFloatArray(array), null, null, log);
-        return Array.toDoubleArray(
-            beastScore.getinverseTransformedDataScaleMAD(BeastScore.SCALE_FACTOR_MAD));
+        return Array.toDoubleArray(beastScore.getinverseTransformedDataScaleMAD(BeastScore.SCALE_FACTOR_MAD));
       case X3:
         return Array.multiply(array, 3);
       case X5:
         return Array.multiply(array, 5);
 
       default:
-        log.reportError(
-            "Error - '" + type + "' does not map to an implemented method; using NORMALIZE");
+        log.reportError("Error - '" + type
+                        + "' does not map to an implemented method; using NORMALIZE");
         return Array.normalize(array);
     }
   }
@@ -352,7 +352,8 @@ public class Transformations {
   }
 
   public static void transformFile(String filename, String outfile, boolean ignoreFirstLine,
-      int column, boolean commaDelimited, boolean replace, int type, Logger log) {
+                                   int column, boolean commaDelimited, boolean replace, int type,
+                                   Logger log) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, transformed;
@@ -361,7 +362,7 @@ public class Transformations {
     int count;
 
     line = HashVec.loadFileToStringArray(filename, false, ignoreFirstLine, new int[] {column}, true,
-        false, commaDelimited ? "," : "[\\s]+");
+                                         false, commaDelimited ? "," : "[\\s]+");
     dv = new DoubleVector();
     duds = new IntVector();
     for (int i = 0; i < line.length; i++) {
@@ -383,7 +384,7 @@ public class Transformations {
         line = reader.readLine().trim().split(commaDelimited ? "," : "[\\s]+");
         if (!replace) {
           line = Array.insertStringAt(line[column] + "_" + Transformations.LABELS[type], line,
-              column + 1);
+                                      column + 1);
         }
         writer.println(Array.toStr(line, commaDelimited ? "," : "\t"));
       }

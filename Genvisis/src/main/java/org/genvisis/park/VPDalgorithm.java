@@ -61,30 +61,31 @@ public class VPDalgorithm {
   // public static final String BIRTH_DATES_FILE = tools.CRF_DIR+"ninfo1_BirthDates.csv";
   public static final String[] CRF_A_HEADER =
       {"SITE_NO", "FAM_NO", "INFO_DT", "SUBJ_NO", "NDOB", "QA", "QB", "Q1", "Q2A", "Q2B", "Q3",
-          "Q4", "Q5", "Q6", "Q7", "Q8", "Q9", "Q10", "Q11|1|3", "Q12", "Q13", "Q14", "Q15", "Q16",
-          "Q17", "Q18", "Q19", "Q40", "Q41_TXT", "STAFF_NO", "ERROR_FLAG", "EXCEPT_FLAG", "DE_DT"};
-  public static final String[] CRF_B_HEADER = {"SITE_NO", "FAM_NO", "INFO_DT", "SUBJ_NO", "NDOB",
-      "Q1|0|4", "Q2|0|4", "Q3|0|4", "Q4|0|4", "Q5|0|4", "Q6|0|4", "Q7|0|4", "Q8|0|4", "Q9|0|4",
-      "Q10|0|4", "Q11|0|4", "Q12|0|4", "Q13|0|4", "STAFF1", "Q14|0|4", "Q15|0|4", "Q16A|0|4",
-      "Q16B|0|4", "Q16C|0|4", "Q16D|0|4", "Q16E|0|4", "Q17A|0|4", "Q17B|0|4", "Q18A|0|4",
-      "Q18B|0|4", "Q18C|0|4", "Q18D|0|4", "Q18E|0|4", "Q19A|0|4", "Q19B|0|4", "Q20A|0|4",
-      "Q20B|0|4", "Q21A|0|4", "Q21B|0|4", "Q22A|0|4", "Q22B|0|4", "Q23|0|4", "Q24|0|4", "Q25|0|4",
-      "Q26|0|4", "Q27|0|4", "STAFF2", "Q28|0|100", "Q29|0|100", "Q30|0|5", "Q31", "Q31_TXT",
-      "STAFF3", "ERROR_FLAG", "EXCEPT_FLAG", "DE_DT"};
-  public static final String[] CRF_F_HEADER = {"SITE_NO", "FAM_NO", "INFO_DT", "SUBJ_NO", "NDOB",
-      "Q1", "Q2|1|2", "Q3|1|7", "Q3_TXT", "Q4|0|1", "Q5|0|1", "Q6|0|1", "Q7|0|1", "Q8|0|1",
-      "Q9|0|1", "Q10|0|1", "Q11|0|1", "Q12|0|1", "Q13|0|1", "Q14|0|1", "Q15|0|1", "Q16|0|1",
-      "Q17|0|1", "Q18|0|1", "Q19|0|1", "Q20|0|1", "Q21|0|1", "Q22|0|1", "Q23|0|1", "Q24|0|1",
-      "Q25|0|1", "Q26|0|1", "Q27|0|1", "Q28|1|4", "Q29|1|4", "Q30|0|42", "Q30_R37T", "Q30_R41T",
-      "Q31", "Q31_TXT", "STAFF_NO", "FIELD__", "SITE_PAYMENT", "EXCEPT_PAY", "PAY_COMMENT",
-      "ERROR_FLAG", "EXCEPT_FLAG", "DE_DT"};
+       "Q4", "Q5", "Q6", "Q7", "Q8", "Q9", "Q10", "Q11|1|3", "Q12", "Q13", "Q14", "Q15", "Q16",
+       "Q17", "Q18", "Q19", "Q40", "Q41_TXT", "STAFF_NO", "ERROR_FLAG", "EXCEPT_FLAG", "DE_DT"};
+  public static final String[] CRF_B_HEADER =
+      {"SITE_NO", "FAM_NO", "INFO_DT", "SUBJ_NO", "NDOB", "Q1|0|4", "Q2|0|4", "Q3|0|4", "Q4|0|4",
+       "Q5|0|4", "Q6|0|4", "Q7|0|4", "Q8|0|4", "Q9|0|4", "Q10|0|4", "Q11|0|4", "Q12|0|4", "Q13|0|4",
+       "STAFF1", "Q14|0|4", "Q15|0|4", "Q16A|0|4", "Q16B|0|4", "Q16C|0|4", "Q16D|0|4", "Q16E|0|4",
+       "Q17A|0|4", "Q17B|0|4", "Q18A|0|4", "Q18B|0|4", "Q18C|0|4", "Q18D|0|4", "Q18E|0|4",
+       "Q19A|0|4", "Q19B|0|4", "Q20A|0|4", "Q20B|0|4", "Q21A|0|4", "Q21B|0|4", "Q22A|0|4",
+       "Q22B|0|4", "Q23|0|4", "Q24|0|4", "Q25|0|4", "Q26|0|4", "Q27|0|4", "STAFF2", "Q28|0|100",
+       "Q29|0|100", "Q30|0|5", "Q31", "Q31_TXT", "STAFF3", "ERROR_FLAG", "EXCEPT_FLAG", "DE_DT"};
+  public static final String[] CRF_F_HEADER =
+      {"SITE_NO", "FAM_NO", "INFO_DT", "SUBJ_NO", "NDOB", "Q1", "Q2|1|2", "Q3|1|7", "Q3_TXT",
+       "Q4|0|1", "Q5|0|1", "Q6|0|1", "Q7|0|1", "Q8|0|1", "Q9|0|1", "Q10|0|1", "Q11|0|1", "Q12|0|1",
+       "Q13|0|1", "Q14|0|1", "Q15|0|1", "Q16|0|1", "Q17|0|1", "Q18|0|1", "Q19|0|1", "Q20|0|1",
+       "Q21|0|1", "Q22|0|1", "Q23|0|1", "Q24|0|1", "Q25|0|1", "Q26|0|1", "Q27|0|1", "Q28|1|4",
+       "Q29|1|4", "Q30|0|42", "Q30_R37T", "Q30_R41T", "Q31", "Q31_TXT", "STAFF_NO", "FIELD__",
+       "SITE_PAYMENT", "EXCEPT_PAY", "PAY_COMMENT", "ERROR_FLAG", "EXCEPT_FLAG", "DE_DT"};
   public static final String[] BIRTH_DATES_HEADER = {"FamID", "IndID", "DOB"};
   public static final String[] EXCLUSION_CRITERIA =
       {"UnexplainedMotor", "Strokes", "Encephalitis", "OculogyricCrisis", "Alzheimers",
-          "SensoryDeficits_Apraxia", "PDfromDopaDrugs", "Remission", "UnilateralFor3PlusYears",
-          "SupranuclearGaze", "CerebellarSigns", "Hypotension", "NoResponseLDopa", "LesionOnMRI"};
-  public static final String[] SUPPORTING_CRITERIA = {"PersistentAsymmetry", "ProgressiveDisorder",
-      "levodopaChorea", "levodopa5PlusYears", "Course10+"};
+       "SensoryDeficits_Apraxia", "PDfromDopaDrugs", "Remission", "UnilateralFor3PlusYears",
+       "SupranuclearGaze", "CerebellarSigns", "Hypotension", "NoResponseLDopa", "LesionOnMRI"};
+  public static final String[] SUPPORTING_CRITERIA =
+      {"PersistentAsymmetry", "ProgressiveDisorder", "levodopaChorea", "levodopa5PlusYears",
+       "Course10+"};
 
   public static void implementAlgorithm() {
     BufferedReader reader;
@@ -349,17 +350,17 @@ public class VPDalgorithm {
 
     try {
       reader = tools.getNinfoReader(CARES_NOT_PROGENI ? 5 : 1);
-      writer = new PrintWriter(new FileWriter(
-          tools.CRF_DIR + (CARES_NOT_PROGENI ? "CARES_" : "PROGENI_") + "verifiedData.xln"));
-      writer.println(
-          "UniqueID\tFamID\tIndID\tDx\tVPD\tCONF_PD\tAffected\tOnset_GT20\tBradykinesia\tBrady_B\tBrady_F\tRestT_B\tRestT_F\tActionT_B\tRigidity_B\tRigidity_F\tProbability_GTE50\tAtLeast1\tAtLeast2\tHasNoExclusionCriteria\tVerified\tNum VPD criteria\tInclusion\tSupporting\tReason NVPD\tUKBBC\tNum UKBBC criteria\tUKBBC Inclusion\tUKBBC Supporting\tReason not UKBBC");
+      writer =
+          new PrintWriter(new FileWriter(tools.CRF_DIR + (CARES_NOT_PROGENI ? "CARES_" : "PROGENI_")
+                                         + "verifiedData.xln"));
+      writer.println("UniqueID\tFamID\tIndID\tDx\tVPD\tCONF_PD\tAffected\tOnset_GT20\tBradykinesia\tBrady_B\tBrady_F\tRestT_B\tRestT_F\tActionT_B\tRigidity_B\tRigidity_F\tProbability_GTE50\tAtLeast1\tAtLeast2\tHasNoExclusionCriteria\tVerified\tNum VPD criteria\tInclusion\tSupporting\tReason NVPD\tUKBBC\tNum UKBBC criteria\tUKBBC Inclusion\tUKBBC Supporting\tReason not UKBBC");
       reader.readLine();
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
         trav = line[0] + ext.formNum(Integer.parseInt(line[1]), 3);
-        writer.print(
-            trav + "\t" + line[0] + "\t" + line[1] + "\t" + line[3] + "\t" + tools.isVPD(line[3])
-                + "\t" + tools.isConfPD(line[3]) + "\t" + tools.isAffected(line[3]));
+        writer.print(trav + "\t" + line[0] + "\t" + line[1] + "\t" + line[3] + "\t"
+                     + tools.isVPD(line[3]) + "\t" + tools.isConfPD(line[3]) + "\t"
+                     + tools.isAffected(line[3]));
         if (hash.containsKey(trav)) {
           info = hash.get(trav);
           if (info.restTremor > 0) {
@@ -376,10 +377,10 @@ public class VPDalgorithm {
             info.supporting.add("Rigidity");
             info.brainBank_inclusion.add("Rigidity");
           }
-          writer
-              .print("\t" + info.onset_GT20 + "\t" + info.bradykinesia + "\t" + info.brady_B + "\t"
-                  + info.brady_F + "\t" + info.restT_B + "\t" + info.restT_F + "\t" + info.actionT_B
-                  + "\t" + info.rigid_B + "\t" + info.rigid_F + "\t" + info.prob_GTE50);
+          writer.print("\t" + info.onset_GT20 + "\t" + info.bradykinesia + "\t" + info.brady_B
+                       + "\t" + info.brady_F + "\t" + info.restT_B + "\t" + info.restT_F + "\t"
+                       + info.actionT_B + "\t" + info.rigid_B + "\t" + info.rigid_F + "\t"
+                       + info.prob_GTE50);
           // writer.print("\t"+(info.atLeast1>=1?"1":(info.atLeast1missing
           // == 4?".":"0")));
           if (info.atLeast1 >= 1) {
@@ -401,8 +402,10 @@ public class VPDalgorithm {
           // writer.print("\t"+(info.exclusion.size()>0?"0":(info.exclusionMissing
           // == EXCLUSION_CRITERIA.length?".":"1")));
           // writer.print("\t"+(info.exclusion.size()>0?"0":"1"));
-          writer.print("\t" + (info.exclusion.size() > 0 ? "0"
-              : (info.exclusionMissing == EXCLUSION_CRITERIA.length ? "0" : "1")));
+          writer.print("\t"
+                       + (info.exclusion.size() > 0 ? "0"
+                                                    : (info.exclusionMissing == EXCLUSION_CRITERIA.length ? "0"
+                                                                                                          : "1")));
           // writer.print("\t"+(info.onset_GT20.equals("1")&&info.bradykinesia.equals("1")&&info.prob_GTE50.equals("1")&&info.atLeast1>=1&&info.atLeast2>=2&&!((double)info.exclusionMissing
           // ==
           // EXCLUSION_CRITERIA.length)&&info.exclusion.size()==0?"1":"0"));
@@ -439,35 +442,41 @@ public class VPDalgorithm {
           // writer.print("\t"+(info.onset_GT20.equals("1")&&info.bradykinesia.equals("1")&&info.prob_GTE50.equals("1")&&info.atLeast1>=1&&info.atLeast2>=2&&info.exclusion.size()==0?"1":"0"));
           writer.print("\t" + (countToVPD == 6 ? "1" : "0") + "\t" + countToVPD);
           writer.print("\t" + (info.inclusion.size() == 0 ? "."
-              : ext.listWithCommas(Array.toStringArray(info.inclusion), true)));
+                                                          : ext.listWithCommas(Array.toStringArray(info.inclusion),
+                                                                               true)));
           writer.print("\t" + (info.supporting.size() == 0 ? "."
-              : ext.listWithCommas(Array.toStringArray(info.supporting), true)));
+                                                           : ext.listWithCommas(Array.toStringArray(info.supporting),
+                                                                                true)));
           missing = info.atLeast1missing + info.atLeast2missing + info.exclusionMissing
-              + info.restTremorMissing + info.rigidityMissing;
+                    + info.restTremorMissing + info.rigidityMissing;
           temp =
-              (missing > 20
-                  ? "Missing all data"
-                      + (info.exclusion.size() + info.reasoning.size() > 0 ? "; also " : "")
-                  : (missing > 10
-                      ? "Missing quite a bit of data"
-                          + (info.exclusion.size() + info.reasoning.size() > 0 ? "; also " : "")
-                      : ""))
-                  + (info.exclusion.size() > 0 ? "Exclusion criteria: "
-                      + ext.listWithCommas(Array.toStringArray(info.exclusion), true)
-                      + (info.reasoning.size() > 0 ? "; also " : "") : "")
-                  + ext.listWithCommas(Array.toStringArray(info.reasoning), true);
+              (missing > 20 ? "Missing all data"
+                              + (info.exclusion.size() + info.reasoning.size() > 0 ? "; also " : "")
+                            : (missing > 10 ? "Missing quite a bit of data"
+                                              + (info.exclusion.size() + info.reasoning.size() > 0
+                                                                                                   ? "; also "
+                                                                                                   : "")
+                                            : ""))
+                 + (info.exclusion.size() > 0 ? "Exclusion criteria: "
+                                                + ext.listWithCommas(Array.toStringArray(info.exclusion),
+                                                                     true)
+                                                + (info.reasoning.size() > 0 ? "; also " : "")
+                                              : "")
+                 + ext.listWithCommas(Array.toStringArray(info.reasoning), true);
           writer.print("\t" + (temp.equals("") ? "." : temp));
 
           writer.print("\t" + (countToUKBBC == 4 ? "1" : "0") + "\t" + countToUKBBC);
           writer.print("\t" + (info.brainBank_inclusion.size() == 0 ? "."
-              : ext.listWithCommas(Array.toStringArray(info.brainBank_inclusion), true)));
+                                                                    : ext.listWithCommas(Array.toStringArray(info.brainBank_inclusion),
+                                                                                         true)));
           writer.print("\t" + (info.brainBank_supporting.size() == 0 ? "."
-              : ext.listWithCommas(Array.toStringArray(info.brainBank_supporting), true)));
+                                                                     : ext.listWithCommas(Array.toStringArray(info.brainBank_supporting),
+                                                                                          true)));
           writer.println("\t" + (info.brainBank_exclusion.size() == 0 ? "."
-              : ext.listWithCommas(Array.toStringArray(info.brainBank_exclusion), true)));
+                                                                      : ext.listWithCommas(Array.toStringArray(info.brainBank_exclusion),
+                                                                                           true)));
         } else {
-          writer.println(
-              ".\t.\t.\t.\t.\t.\t.\t.\t\t.\t0\t0\t0\t0\t0\t0\t.\t.\tNo CRFs\t0\t0\t.\t.\tNo CRFs");
+          writer.println(".\t.\t.\t.\t.\t.\t.\t.\t\t.\t0\t0\t0\t0\t0\t0\t.\t.\tNo CRFs\t0\t0\t.\t.\tNo CRFs");
         }
       }
       reader.close();
@@ -510,7 +519,7 @@ public class VPDalgorithm {
     String filename = "VPDalgorithm.dat";
 
     String usage = "\\n" + "park.VPDalgorithm requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

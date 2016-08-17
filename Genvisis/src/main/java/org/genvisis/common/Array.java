@@ -38,18 +38,18 @@ public class Array {
 
   }
   public enum BYTE_DECODE_FORMAT {
-    /**
-     * String will be converted to upper case
-     */
-    UPPER_CASE,
-    /**
-     * String will be converted to lower case
-     */
-    LOWER_CASE,
-    /**
-     * String will be left as is
-     */
-    AS_IS
+                                  /**
+                                   * String will be converted to upper case
+                                   */
+                                  UPPER_CASE,
+                                  /**
+                                   * String will be converted to lower case
+                                   */
+                                  LOWER_CASE,
+                                  /**
+                                   * String will be left as is
+                                   */
+                                  AS_IS
   }
 
   private static final int MINI = -999;
@@ -193,12 +193,13 @@ public class Array {
   }
 
   public static <T extends Comparable<T>> int binarySearch(ArrayList<T[]> list, T[] value,
-      int keyIndex, boolean exact) {
+                                                           int keyIndex, boolean exact) {
     return binarySearch(list, value, keyIndex, 0, list.size() - 1, exact);
   }
 
   public static <T extends Comparable<T>> int binarySearch(ArrayList<T[]> list, T[] value,
-      int keyIndex, int low, int high, boolean exact) {
+                                                           int keyIndex, int low, int high,
+                                                           boolean exact) {
     int mid;
 
     while (low <= high) {
@@ -586,7 +587,7 @@ public class Array {
    * @return
    */
   public static String[] decodeByteArray(byte[] b, String charsetName, BYTE_DECODE_FORMAT format,
-      Logger log) {
+                                         Logger log) {
     String[] s = new String[b.length];
     for (int i = 0; i < s.length; i++) {
       if ((i + 1) % 2000000 == 0) {
@@ -596,7 +597,7 @@ public class Array {
         s[i] = new String(new byte[] {b[i]}, charsetName).toUpperCase();
       } catch (UnsupportedEncodingException e) {
         log.reportTimeError("Could not convert reference byte " + b[i]
-            + " to string with charsetName" + charsetName);
+                            + " to string with charsetName" + charsetName);
         e.printStackTrace();
       }
     }
@@ -623,9 +624,8 @@ public class Array {
     } else if (allow21 && array.length == 2 && Array.min(array) == 1 && Array.max(array) == 2) {
       return 0;
     } else if (array.length == 2) {
-      System.err.println(
-          "Error - flag was set to prevent binary trait from being anything other than 0/1 ("
-              + array[0] + "/" + array[1] + " is not valid)");
+      System.err.println("Error - flag was set to prevent binary trait from being anything other than 0/1 ("
+                         + array[0] + "/" + array[1] + " is not valid)");
       return -1;
     } else if (array.length > 2) {
       return 1;
@@ -680,8 +680,12 @@ public class Array {
    *         neither
    */
   public static int determineType(String filename, int col, String[] exclusions, boolean allow21) {
-    return determineType(allow21, Array.toDoubleArray(Array.removeFromArray(
-        HashVec.loadFileToStringArray(filename, true, new int[] {col}, true), exclusions)));
+    return determineType(allow21,
+                         Array.toDoubleArray(Array.removeFromArray(HashVec.loadFileToStringArray(filename,
+                                                                                                 true,
+                                                                                                 new int[] {col},
+                                                                                                 true),
+                                                                   exclusions)));
   }
 
   /**
@@ -894,8 +898,8 @@ public class Array {
   }
 
   public static int[] getIndicesOfLocalMaxima(double[] array,
-      double proportionOfLastPeakRequiredForNewLocalMinima,
-      double proportionOfGlobalMaxRequiredForLocalMaxima) {
+                                              double proportionOfLastPeakRequiredForNewLocalMinima,
+                                              double proportionOfGlobalMaxRequiredForLocalMaxima) {
     double globalMax, localMax, localMin;
     int indexOfLocalMax;
     IntVector indicesOfMaxima;
@@ -940,16 +944,17 @@ public class Array {
   }
 
   public static double[] getLocalModes(double[] array,
-      double proportionOfLastPeakRequiredForNewLocalMinima,
-      double proportionOfGlobalMaxRequiredForLocalMaxima) {
+                                       double proportionOfLastPeakRequiredForNewLocalMinima,
+                                       double proportionOfGlobalMaxRequiredForLocalMaxima) {
     return getLocalModes(array, proportionOfLastPeakRequiredForNewLocalMinima,
-        proportionOfGlobalMaxRequiredForLocalMaxima, (max(array) - min(array)) / 40, true);
+                         proportionOfGlobalMaxRequiredForLocalMaxima,
+                         (max(array) - min(array)) / 40, true);
   }
 
   public static double[] getLocalModes(double[] array,
-      double proportionOfLastPeakRequiredForNewLocalMinima,
-      double proportionOfGlobalMaxRequiredForLocalMaxima, double binSize,
-      boolean sensitiveToSmallNumbers) {
+                                       double proportionOfLastPeakRequiredForNewLocalMinima,
+                                       double proportionOfGlobalMaxRequiredForLocalMaxima,
+                                       double binSize, boolean sensitiveToSmallNumbers) {
     int numBins;
     int[] freqBinCounts;
     double[] freqBinCountsSmooth;
@@ -978,15 +983,18 @@ public class Array {
     if (sensitiveToSmallNumbers) {
       proportionOfGlobalMaxRequiredForLocalMaxima =
           Math.max(proportionOfGlobalMaxRequiredForLocalMaxima,
-              Math.min(0.50, proportionOfGlobalMaxRequiredForLocalMaxima
-                  * proportionOfGlobalMaxRequiredForLocalMaxima * 300 / array.length));
+                   Math.min(0.50,
+                            proportionOfGlobalMaxRequiredForLocalMaxima
+                                  * proportionOfGlobalMaxRequiredForLocalMaxima * 300
+                                  / array.length));
       if (array.length < 50) {
         // System.out.println(array.length+"\t"+proportionOfGlobalMaxRequiredForLocalMaxima);
       }
     }
 
-    indicesOfLocalMaxima = getIndicesOfLocalMaxima(freqBinCountsSmooth,
-        proportionOfLastPeakRequiredForNewLocalMinima, proportionOfGlobalMaxRequiredForLocalMaxima);
+    indicesOfLocalMaxima =
+        getIndicesOfLocalMaxima(freqBinCountsSmooth, proportionOfLastPeakRequiredForNewLocalMinima,
+                                proportionOfGlobalMaxRequiredForLocalMaxima);
     modes = new double[indicesOfLocalMaxima.length];
     for (int i = 0; i < modes.length; i++) {
       modes[i] = minValue + indicesOfLocalMaxima[i] * binSize + binSize / 2;
@@ -1273,15 +1281,15 @@ public class Array {
     int[] keys = Sort.quicksort(array);
 
     if (array.length < 2) {
-      System.err.println(
-          "Error - can't calculate an IQR for an array with " + array.length + " datapoint(s)");
+      System.err.println("Error - can't calculate an IQR for an array with " + array.length
+                         + " datapoint(s)");
       return -1;
     }
 
     double iqr = 0;
     try {
       iqr = array[keys[(int) Math.floor(array.length * 0.75)]]
-          - array[keys[(int) Math.floor(array.length * 0.25)]];
+            - array[keys[(int) Math.floor(array.length * 0.25)]];
     } catch (Exception e) {
       System.err.println("Error calculating IQR");
       e.printStackTrace();
@@ -1300,13 +1308,13 @@ public class Array {
     float iqr = 0;
 
     if (array.length < 2) {
-      System.err.println(
-          "Error - can't calculate an IQR for an array with " + array.length + " datapoint(s)");
+      System.err.println("Error - can't calculate an IQR for an array with " + array.length
+                         + " datapoint(s)");
       return -1;
     }
     try {
       iqr = array[keys[(int) Math.floor(array.length * 0.75)]]
-          - array[keys[(int) Math.floor(array.length * 0.25)]];
+            - array[keys[(int) Math.floor(array.length * 0.25)]];
     } catch (Exception e) {
       System.err.println("Error calculating IQR");
       e.printStackTrace();
@@ -1364,7 +1372,7 @@ public class Array {
       if (freqBinCountsSmooth[i] > maxFreq) {
         maxFreq = freqBinCountsSmooth[i];
       } else if (freqBinCountsSmooth[i] < (maxFreq * percentDropInPeak)
-          && freqBinCountsSmooth[i] < localMinFreq) {
+                 && freqBinCountsSmooth[i] < localMinFreq) {
         localMinFreq = freqBinCountsSmooth[i];
       } else if (freqBinCountsSmooth[i] >= (maxFreq * percentDropInPeak)) {
         return true;
@@ -1378,10 +1386,11 @@ public class Array {
   }
 
   public static boolean isMultimodal(double[] array,
-      double proportionOfLastPeakRequiredForNewLocalMinima,
-      double proportionOfGlobalMaxRequiredForLocalMaxima, double binSize) {
+                                     double proportionOfLastPeakRequiredForNewLocalMinima,
+                                     double proportionOfGlobalMaxRequiredForLocalMaxima,
+                                     double binSize) {
     return getLocalModes(array, proportionOfLastPeakRequiredForNewLocalMinima,
-        proportionOfGlobalMaxRequiredForLocalMaxima, binSize, true).length > 1;
+                         proportionOfGlobalMaxRequiredForLocalMaxima, binSize, true).length > 1;
   }
 
   /**
@@ -1409,7 +1418,7 @@ public class Array {
     }
 
     kurt = n * (n + 1) / ((n - 1) * (n - 2) * (n - 3)) * m4s
-        - 3 * Math.pow(n - 1, 2) / ((n - 2) * (n - 3));
+           - 3 * Math.pow(n - 1, 2) / ((n - 2) * (n - 3));
 
     return kurt;
   }
@@ -1706,7 +1715,7 @@ public class Array {
    * @return mean of the array
    */
   public static double meanIf(double[] array, double[] filter, double filterValue,
-      boolean ignoreNaN) {
+                              boolean ignoreNaN) {
     double sum;
     int count;
 
@@ -2166,7 +2175,7 @@ public class Array {
           return array[keys[(int) index - 1]];
         } else {
           return q * array[keys[(int) Math.floor(index) - 1]]
-              + (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
+                 + (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
         }
       }
     } catch (Exception e) {
@@ -2200,7 +2209,7 @@ public class Array {
           return array[keys[(int) index - 1]];
         } else {
           return q * array[keys[(int) Math.floor(index) - 1]]
-              + (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
+                 + (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
         }
       }
     } catch (Exception e) {
@@ -2234,7 +2243,7 @@ public class Array {
           return array[keys[(int) index - 1]];
         } else {
           return q * array[keys[(int) Math.floor(index) - 1]]
-              + (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
+                 + (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
         }
       }
     } catch (Exception e) {
@@ -2285,7 +2294,7 @@ public class Array {
             quantiles[i] = array[keys[(int) index - 1]];
           } else {
             quantiles[i] = (float) (qs[i] * array[keys[(int) Math.floor(index) - 1]]
-                + (1 - qs[i]) * array[keys[(int) Math.ceil(index) - 1]]);
+                                    + (1 - qs[i]) * array[keys[(int) Math.ceil(index) - 1]]);
           }
         }
       } catch (Exception e) {
@@ -2319,7 +2328,7 @@ public class Array {
             quantiles[i] = array[keys[(int) index - 1]];
           } else {
             quantiles[i] = qs[i] * array[keys[(int) Math.floor(index) - 1]]
-                + (1 - qs[i]) * array[keys[(int) Math.ceil(index) - 1]];
+                           + (1 - qs[i]) * array[keys[(int) Math.ceil(index) - 1]];
           }
         }
       } catch (Exception e) {
@@ -2846,12 +2855,12 @@ public class Array {
     int index = 0;
     if (array.length < nChunks) {
       log.reportError("Error - too many chunks (" + nChunks + ") for " + array.length
-          + " things, setting to " + array.length);
+                      + " things, setting to " + array.length);
       nChunks = array.length;
     }
     if (nChunks <= 0) {
       log.reportError("Error - not enough chunks (" + nChunks + ") for " + array.length
-          + " things, setting to 1");
+                      + " things, setting to 1");
       nChunks = 1;
     }
     int[] chunks = Array.splitUpDistributeRemainder(array.length, nChunks, log);
@@ -2893,8 +2902,8 @@ public class Array {
       splits[numSplits - 1] = remainder;
     }
     if (Array.sum(splits) != total) {
-      log.reportError(
-          "Internal Error - could not properly split up " + total + " into " + numSplits);
+      log.reportError("Internal Error - could not properly split up " + total + " into "
+                      + numSplits);
       splits = null;
     }
     return splits;
@@ -2912,12 +2921,12 @@ public class Array {
     int index = 0;
     if (strings.length < nChunks) {
       log.reportError("Error - too many chunks (" + nChunks + ") for " + strings.length
-          + " strings, setting to " + strings.length);
+                      + " strings, setting to " + strings.length);
       nChunks = strings.length;
     }
     if (nChunks <= 0) {
       log.reportError("Error - not enough chunks (" + nChunks + ") for " + strings.length
-          + " strings, setting to 1");
+                      + " strings, setting to 1");
       nChunks = 1;
     }
     int[] chunks = Array.splitUpDistributeRemainder(strings.length, nChunks, log);
@@ -3167,7 +3176,7 @@ public class Array {
     boolean[] arr;
     if (start < 0 || stopBefore > array.length || stopBefore <= start) {
       System.err.println("Error - invalid start (" + start + ") and stopBefore (" + stopBefore
-          + ") indicies for an array");
+                         + ") indicies for an array");
     }
     arr = new boolean[stopBefore - start];
     for (int i = start; i < stopBefore; i++) {
@@ -3209,7 +3218,7 @@ public class Array {
 
     if (array.length != use.length) {
       System.err.println("Error - mismatched array lengths for the aray (n=" + array.length
-          + ") and the boolean subset (n=" + use.length + ")");
+                         + ") and the boolean subset (n=" + use.length + ")");
       return null;
     }
 
@@ -3243,7 +3252,7 @@ public class Array {
       }
     } catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
       System.err.println("Error - out of bounds index (" + currentIndex + ") for subsetting (n="
-          + array.length + ")");
+                         + array.length + ")");
       return null;
     }
     return subarray;
@@ -3262,7 +3271,7 @@ public class Array {
 
     if (array.length != use.length) {
       System.err.println("Error - mismatched array lengths for the aray (n=" + array.length
-          + ") and the boolean subset (n=" + use.length + ")");
+                         + ") and the boolean subset (n=" + use.length + ")");
       return null;
     }
 
@@ -3303,7 +3312,7 @@ public class Array {
 
     if (start < 0 || stopBefore > array.length || stopBefore <= start) {
       System.err.println("Error - invalid start (" + start + ") and stopBefore (" + stopBefore
-          + ") indicies for an array");
+                         + ") indicies for an array");
     }
     arr = new double[stopBefore - start];
     for (int i = start; i < stopBefore; i++) {
@@ -3346,7 +3355,7 @@ public class Array {
 
     if (array.length != use.length) {
       System.err.println("Error - mismatched array lengths for the aray (n=" + array.length
-          + ") and the boolean subset (n=" + use.length + ")");
+                         + ") and the boolean subset (n=" + use.length + ")");
       return null;
     }
 
@@ -3375,7 +3384,7 @@ public class Array {
 
     if (start < 0 || stopBefore > array.length || stopBefore <= start) {
       System.err.println("Error - invalid start (" + start + ") and stopBefore (" + stopBefore
-          + ") indicies for an array");
+                         + ") indicies for an array");
     }
     arr = new double[stopBefore - start][];
     for (int i = start; i < stopBefore; i++) {
@@ -3398,7 +3407,7 @@ public class Array {
 
     if (array.length != use.length) {
       System.err.println("Error - mismatched array lengths for the aray (n=" + array.length
-          + ") and the boolean subset (n=" + use.length + ")");
+                         + ") and the boolean subset (n=" + use.length + ")");
       return null;
     }
 
@@ -3427,7 +3436,7 @@ public class Array {
 
     if (start < 0 || stopBefore > array.length || stopBefore <= start) {
       System.err.println("Error - invalid start (" + start + ") and stopBefore (" + stopBefore
-          + ") indicies for an array");
+                         + ") indicies for an array");
     }
     arr = new float[stopBefore - start];
     for (int i = start; i < stopBefore; i++) {
@@ -3455,7 +3464,7 @@ public class Array {
       }
     } catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
       System.err.println("Error - out of bounds index (" + currentIndex + ") for subsetting (n="
-          + array.length + ")");
+                         + array.length + ")");
       return null;
     }
     return subarray;
@@ -3474,7 +3483,7 @@ public class Array {
 
     if (array.length != use.length) {
       System.err.println("Error - mismatched array lengths for the aray (n=" + array.length
-          + ") and the boolean subset (n=" + use.length + ")");
+                         + ") and the boolean subset (n=" + use.length + ")");
       return null;
     }
 
@@ -3519,7 +3528,7 @@ public class Array {
       }
     } catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
       System.err.println("Error - out of bounds index (" + currentIndex + ") for subsetting (n="
-          + array.length + ")");
+                         + array.length + ")");
       return null;
     }
     return subarray;
@@ -3538,7 +3547,7 @@ public class Array {
 
     if (array.length != use.length) {
       System.err.println("Error - mismatched array lengths for the aray (n=" + array.length
-          + ") and the boolean subset (n=" + use.length + ")");
+                         + ") and the boolean subset (n=" + use.length + ")");
       return null;
     }
 
@@ -3578,7 +3587,7 @@ public class Array {
 
     if (start < 0 || stopBefore > array.length || stopBefore < start) {
       System.err.println("Error - invalid start (" + start + ") and stopBefore (" + stopBefore
-          + ") indicies for an array of size " + array.length);
+                         + ") indicies for an array of size " + array.length);
     }
     arr = new String[stopBefore - start];
     for (int i = start; i < stopBefore; i++) {
@@ -3635,7 +3644,7 @@ public class Array {
 
     if (array.length != use.length) {
       System.err.println("Error - mismatched array lengths for the aray (n=" + array.length
-          + ") and the boolean subset (n=" + use.length + ")");
+                         + ") and the boolean subset (n=" + use.length + ")");
       return null;
     }
 
@@ -3665,7 +3674,7 @@ public class Array {
       }
     } catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
       System.err.println("Error - out of bounds index (" + currentIndex + ") for subsetting (n="
-          + array.length + ")");
+                         + array.length + ")");
       return null;
     }
     return subarray;
@@ -3902,8 +3911,8 @@ public class Array {
     newArray = new char[array.length];
     for (int i = 0; i < newArray.length; i++) {
       if (array[i].length() != 1) {
-        System.err.println(
-            "Error - cannot convert string to char since it is longer than 1 byte: " + array[i]);
+        System.err.println("Error - cannot convert string to char since it is longer than 1 byte: "
+                           + array[i]);
       }
       newArray[i] = array[i].charAt(0);
     }
@@ -4196,8 +4205,9 @@ public class Array {
     String str = "";
 
     for (int i = 0; i < array.length; i++) {
-      str += (i == 0 ? "" : delimiter) + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
-          : ext.formDeci(array[i], minSigFigs, maxSigFigs));
+      str += (i == 0 ? "" : delimiter)
+             + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
+                                 : ext.formDeci(array[i], minSigFigs, maxSigFigs));
     }
 
     return str;
@@ -4236,8 +4246,9 @@ public class Array {
     String str = "";
 
     for (int i = 0; i < array.length; i++) {
-      str += (i == 0 ? "" : delimiter) + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
-          : ext.formDeci(array[i], minSigFigs, maxSigFigs));
+      str += (i == 0 ? "" : delimiter)
+             + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
+                                 : ext.formDeci(array[i], minSigFigs, maxSigFigs));
     }
 
     return str;
@@ -4288,7 +4299,7 @@ public class Array {
    * @return String of printed objects
    */
   public static String toStr(Object[] array, boolean[] display, String delimiter,
-      String nullValue) {
+                             String nullValue) {
     String str = "";
     int count;
     boolean commaDelimited;
@@ -4338,7 +4349,7 @@ public class Array {
    * @return String of printed objects
    */
   public static String toStr(String[] array, boolean[] display, String delimiter,
-      String nullValue) {
+                             String nullValue) {
     String str = "";
     int count;
     boolean commaDelimited;
@@ -4556,7 +4567,7 @@ public class Array {
     array = new String[v.size()];
     if (order.length != array.length) {
       System.err.println("Error - order does not have the same number of elements (n="
-          + order.length + ") as the Vector (n=" + array.length + ")");
+                         + order.length + ") as the Vector (n=" + array.length + ")");
       return null;
     }
     for (int i = 0; i < array.length; i++) {

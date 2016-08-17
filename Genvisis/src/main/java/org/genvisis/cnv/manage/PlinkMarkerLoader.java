@@ -24,7 +24,9 @@ import org.genvisis.common.ext;
 public class PlinkMarkerLoader implements Runnable {
 
   public static PlinkMarkerLoader loadPlinkDataFromListInSeparateThread(Project proj,
-      String plinkDirFileRoot, String[] markerList, String[] sampleIDList) {
+                                                                        String plinkDirFileRoot,
+                                                                        String[] markerList,
+                                                                        String[] sampleIDList) {
     PlinkMarkerLoader plinkMarkerLoader;
     Thread thread;
     // int amountToLoadAtOnceInMB;
@@ -102,7 +104,7 @@ public class PlinkMarkerLoader implements Runnable {
   Thread thread;
 
   public PlinkMarkerLoader(Project proj, String plinkFileRoot, String[] markers,
-      String[] sampleIDsOrder) {
+                           String[] sampleIDsOrder) {
     fileRoot = plinkFileRoot;
     markerList = markers;
     log = proj == null ? new Logger() : proj.getLog();
@@ -245,8 +247,10 @@ public class PlinkMarkerLoader implements Runnable {
       reader.close();
 
       for (int i = 0; i < markerList.length; i++) {
-        markerPositions[i] = markerIndicesLookupTemp.get(markerList[i]) == null ? -1
-            : markerIndicesLookupTemp.get(markerList[i]).intValue();
+        markerPositions[i] =
+            markerIndicesLookupTemp.get(markerList[i]) == null ? -1
+                                                               : markerIndicesLookupTemp.get(markerList[i])
+                                                                                        .intValue();
         markerIndicesLookup.put(markerList[i], i);
 
       }
@@ -311,8 +315,12 @@ public class PlinkMarkerLoader implements Runnable {
             byte[] genotypes = PlinkData.decodeBedByte(bedByte);
 
             for (int g = 0; g < genotypes.length; g++) {
-              int idInd = idIndicesLookup.get(famIDList[bitInd * 4 + g]) == null ? -1
-                  : idIndicesLookup.get(famIDList[bitInd * 4 + g]);
+              int idInd =
+                  idIndicesLookup.get(famIDList[bitInd * 4
+                                                + g]) == null ? -1
+                                                              : idIndicesLookup.get(famIDList[bitInd
+                                                                                              * 4
+                                                                                              + g]);
               if (idInd == -1 || idInd > sampGeno.length) {
                 continue;
               }
@@ -364,7 +372,7 @@ public class PlinkMarkerLoader implements Runnable {
       killComplete = true;
     } else {
       log.report("Independent thread has finished loading " + cnt + " markers in "
-          + ext.getTimeElapsed(time));
+                 + ext.getTimeElapsed(time));
     }
 
   }

@@ -22,7 +22,7 @@ public class peakAt {
   public static final int DEFAULT_NUM_LINES = 1000;
 
   public static void actualPeak(String filename, String outputFilename, int numLines, boolean tail,
-      boolean counting, boolean columnsNotLines) throws Elision {
+                                boolean counting, boolean columnsNotLines) throws Elision {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line;
@@ -32,9 +32,11 @@ public class peakAt {
     InputStreamReader isReader;
 
     try {
-      writer = Files
-          .getAppropriateWriter(ext.parseDirectoryOfFile(filename) + (outputFilename.endsWith(".gz")
-              ? outputFilename.substring(0, outputFilename.length() - 3) : outputFilename));
+      writer = Files.getAppropriateWriter(ext.parseDirectoryOfFile(filename)
+                                          + (outputFilename.endsWith(".gz") ? outputFilename.substring(0,
+                                                                                                       outputFilename.length()
+                                                                                                          - 3)
+                                                                            : outputFilename));
       if (counting) {
         System.out.println("Counting the number of rows.");
         time = new Date().getTime();
@@ -101,10 +103,13 @@ public class peakAt {
     boolean counting = false;
     boolean columnsNotLines = false;
 
-    params = Files.parseControlFile(filename, "peakat",
-        new String[] {"input=" + inputFilename, "output=" + outputFilename, "numLines=" + numLines,
-            "tailNotHead=" + tail, "countLines=" + counting, "columnsNotLines=" + columnsNotLines},
-        log);
+    params =
+        Files.parseControlFile(filename, "peakat",
+                               new String[] {"input=" + inputFilename, "output=" + outputFilename,
+                                             "numLines=" + numLines, "tailNotHead=" + tail,
+                                             "countLines=" + counting,
+                                             "columnsNotLines=" + columnsNotLines},
+                               log);
 
     if (params != null) {
       for (int i = 0; i < params.size(); i++) {
@@ -133,7 +138,7 @@ public class peakAt {
     String filename = "peakAt.dat";
 
     String usage = "\n" + "widgets.peakAt requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-        + filename + " (default))\n" + "";
+                   + filename + " (default))\n" + "";
 
     try {
       for (String arg : args) {
@@ -193,7 +198,7 @@ public class peakAt {
 
     outputFilename =
         "PeakAt_" + (tail ? "last" : "first") + numLines + (columnsNotLines ? "column" : "line")
-            + (numLines == 1 ? "" : "s") + "_" + ext.removeDirectoryInfo(temp);
+                     + (numLines == 1 ? "" : "s") + "_" + ext.removeDirectoryInfo(temp);
 
     actualPeak(filename, outputFilename, numLines, tail, counting, columnsNotLines);
   }

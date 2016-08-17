@@ -52,7 +52,7 @@ public class temp {
     for (String file : files) {
       try {
         System.out.println(ext.getDate(new Date(new File(dir + file).lastModified()), " ") + "\t"
-            + ext.getTime(new File(dir + file).lastModified()) + "\t" + file);
+                           + ext.getTime(new File(dir + file).lastModified()) + "\t" + file);
       } catch (Exception e) {
         System.err.println("Error - with '" + file + "'");
         e.printStackTrace();
@@ -65,7 +65,7 @@ public class temp {
     String filename = "source.txt";
 
     parseAnnotationFile("D:/LITE/CHARGE-S/freeze5/combined_snplist.snp.var.annotation.gz",
-        "D:/LITE/CHARGE-S/freeze5/all_exonics.dat");
+                        "D:/LITE/CHARGE-S/freeze5/all_exonics.dat");
 
     System.exit(1);
 
@@ -79,7 +79,7 @@ public class temp {
 
 
     String usage = "\n" + ".temp requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-        + filename + " (default))\n" + "";
+                   + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -153,18 +153,18 @@ public class temp {
 
     dir = "D:/data/GEDI/";
     samples = HashVec.loadFileToStringArray(dir + "samplesThatArePartOfTrios.txt", false,
-        new int[] {0}, false);
+                                            new int[] {0}, false);
 
     new File(dir + "penn_data/trios/").mkdirs();
     for (String sample : samples) {
-      new File(dir + "penn_data/" + sample + ".gz")
-          .renameTo(new File(dir + "penn_data/trios/" + sample + ".gz"));
+      new File(dir + "penn_data/" + sample + ".gz").renameTo(new File(dir + "penn_data/trios/"
+                                                                      + sample + ".gz"));
     }
 
     String[] list, commands;
 
     list = HashVec.loadFileToStringArray("C:/GEDI_exome/00src/SentrixBarcode_list.txt", false,
-        new int[] {0}, false);
+                                         new int[] {0}, false);
     commands = new String[list.length];
     for (int i = 0; i < commands.length; i++) {
       commands[i] = "move " + list[i] + ".zip batch1";
@@ -206,8 +206,10 @@ public class temp {
         } else if (temp.indexOf(".mp4'>") > 0) {
           temp = temp.substring(0, temp.indexOf(".mp4'>") + 4);
           temp = temp.substring(temp.lastIndexOf("href='") + 6);
-          writer.println(ext.link(root, temp) + "\t" + ext.replaceWithLinuxSafeCharacters(
-              annotation + " " + ext.removeDirectoryInfo(temp), false));
+          writer.println(ext.link(root, temp) + "\t"
+                         + ext.replaceWithLinuxSafeCharacters(annotation + " "
+                                                              + ext.removeDirectoryInfo(temp),
+                                                              false));
         }
 
       }
@@ -298,7 +300,7 @@ public class temp {
     header = temp.trim().split("[\\s]+");
 
     args = new String[] {filename, "out=pheno1.dat", "'ID'=FID", "'ID'=IID", "'" + header[1] + "'",
-        "tab", "replace=."};
+                         "tab", "replace=."};
     GenParser.parse(args, log);
 
 

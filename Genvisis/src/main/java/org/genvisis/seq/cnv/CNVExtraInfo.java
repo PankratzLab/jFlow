@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public abstract class CNVExtraInfo implements Serializable {
   public enum EXTRA_INFO_TYPE {
-    EXOME_DEPTH;
+                               EXOME_DEPTH;
   }
 
   private static final long serialVersionUID = 1L;

@@ -19,8 +19,9 @@ public class SNPEffAnnotation {
 
   private static final String[][] FACTORS =
       new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS};
-  private static final String[][] FACTORS_5 = new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS,
-      Aliases.POSITIONS, Aliases.ALLELES[0], Aliases.ALLELES[1]};
+  private static final String[][] FACTORS_5 =
+      new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS, Aliases.ALLELES[0],
+                      Aliases.ALLELES[1]};
   private static final int DEFAULT_BUILD = 37;
   private static final String DEFAULT_BUILD_STR = "hg19";
 
@@ -39,9 +40,9 @@ public class SNPEffAnnotation {
     String logFile = null;
 
     String usage = "\\n" + "bioinformatics.SNPEffAnnotation requires 1-3 arguments\n"
-        + "   (1) name of file containing 1 (rsIDs), 3 (rsIDs, pos, chr), or 5 (rsIDs, pos, chr, ref, alt) data columns (i.e. file="
-        + filename + " (default))\n" + "   (2) SNPEFF config file (i.e. config=" + config
-        + " (default))\n" + "   (3) log file (i.e. log=null (default))\n" + "";
+                   + "   (1) name of file containing 1 (rsIDs), 3 (rsIDs, pos, chr), or 5 (rsIDs, pos, chr, ref, alt) data columns (i.e. file="
+                   + filename + " (default))\n" + "   (2) SNPEFF config file (i.e. config=" + config
+                   + " (default))\n" + "   (3) log file (i.e. log=null (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -64,7 +65,7 @@ public class SNPEffAnnotation {
     }
     try {
       SNPEffAnnotation.pipeline(filename, config,
-          logFile == null ? new Logger() : new Logger(logFile));
+                                logFile == null ? new Logger() : new Logger(logFile));
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -96,10 +97,11 @@ public class SNPEffAnnotation {
       // ParseSNPlocations.parseSNPlocations(snpListFile, vcfFile, unmappedVCF, mergedVCF, log,
       // monitor);
       ParseSNPlocations.lowMemParse(file, MapSNPsAndGenes.getSNPDB(DEFAULT_BUILD, log),
-          MapSNPsAndGenes.getMergeDB(log), true, log); // TODO using hash parse, not VCF
+                                    MapSNPsAndGenes.getMergeDB(log), true, log); // TODO using hash
+                                                                                 // parse, not VCF
       fileToUse = ext.rootOf(file, false) + "_positions.xln";
       indicesToUse = ext.indexFactors(FACTORS, Files.getHeaderOfFile(fileToUse, log), false, true,
-          true, false);
+                                      true, false);
     }
     String newFile = ext.rootOf(file, false) + "_snpEffLookup.txt";
     int cnt = 0;
@@ -108,8 +110,8 @@ public class SNPEffAnnotation {
     }
     int[] colsToLoad =
         indicesToUse.length == 3 ? new int[] {indicesToUse[1], indicesToUse[2], indicesToUse[0]}
-            : new int[] {indicesToUse[1], indicesToUse[2], indicesToUse[0], indicesToUse[3],
-                indicesToUse[4]};
+                                 : new int[] {indicesToUse[1], indicesToUse[2], indicesToUse[0],
+                                              indicesToUse[3], indicesToUse[4]};
     String[] rschrpos = HashVec.loadFileToStringArray(fileToUse, false, true, colsToLoad, false);
     Files.writeList(rschrpos, newFile);
     return newFile;
@@ -135,8 +137,7 @@ public class SNPEffAnnotation {
       // snps, chr, and pos
       int[] factors = ext.indexFactors(FACTORS, firstLine, false, true, true, false);
       if (Array.countIf(factors, -1) > 0) {
-        log.reportError(
-            "Error - files containing three columns of data must contain RS ID's, Chromosomes, and Positions.");
+        log.reportError("Error - files containing three columns of data must contain RS ID's, Chromosomes, and Positions.");
         return null;
       }
       if (factors[0] == 2 && factors[1] == 0 && factors[2] == 1) {
@@ -148,8 +149,7 @@ public class SNPEffAnnotation {
       // snps, chr, and pos
       int[] factors = ext.indexFactors(FACTORS_5, firstLine, false, true, true, false);
       if (Array.countIf(factors, -1) > 0) {
-        log.reportError(
-            "Error - files containing five or more columns of data must contain RS ID's, Chromosomes, Positions, and Ref and Alt alleles.");
+        log.reportError("Error - files containing five or more columns of data must contain RS ID's, Chromosomes, Positions, and Ref and Alt alleles.");
         return null;
       }
       if (factors[0] == 2 && factors[1] == 0 && factors[2] == 1) {
@@ -159,7 +159,7 @@ public class SNPEffAnnotation {
       }
     } else {
       log.reportError("Error - file {" + infile
-          + "} must have 1 (rsID), 3 (rsID, chr, pos), or 5+ (rsID, chr, pos, ref, alt) columns.");
+                      + "} must have 1 (rsID), 3 (rsID, chr, pos), or 5+ (rsID, chr, pos, ref, alt) columns.");
       return null;
     }
   }

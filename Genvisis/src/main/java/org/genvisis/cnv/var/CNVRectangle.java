@@ -25,11 +25,11 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
 
   public CNVRectangle(CNVariant variant, int offset) {
     this((variant.getStart() - offset), (variant.getStop() - offset), (byte) 2, true, true,
-        (byte) 2, (byte) 1);
+         (byte) 2, (byte) 1);
   }
 
   public CNVRectangle(float startX, float stopX, byte thickness, boolean fill,
-      boolean roundedCorners, byte color, byte layer) {
+                      boolean roundedCorners, byte color, byte layer) {
     // Y coord doesn't matter, that'll get set based on context
     super(startX, 0, stopX, 0, thickness, fill, roundedCorners, color, layer, false);
     quantity = 1;

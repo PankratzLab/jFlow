@@ -2,7 +2,7 @@ package org.genvisis.cnv.plots;
 
 public class GenericRectangle {
   public static GenericRectangle[] addToArray(GenericRectangle rectangle,
-      GenericRectangle[] array) {
+                                              GenericRectangle[] array) {
     GenericRectangle[] newArray;
 
     newArray = new GenericRectangle[array.length + 1];
@@ -29,14 +29,15 @@ public class GenericRectangle {
   private boolean editable;
 
   public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness,
-      boolean fill, boolean roundedCorners, byte color, byte layer, boolean editable) {
+                          boolean fill, boolean roundedCorners, byte color, byte layer,
+                          boolean editable) {
     this(null, startX, startY, stopX, stopY, thickness, fill, roundedCorners, color, layer,
-        editable);
+         editable);
   }
 
   public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness,
-      boolean fill, boolean roundedCorners, byte color, byte fillColor, byte layer,
-      boolean editable) {
+                          boolean fill, boolean roundedCorners, byte color, byte fillColor,
+                          byte layer, boolean editable) {
     startXValue = startX;
     startYValue = startY;
     stopXValue = stopX;
@@ -54,8 +55,8 @@ public class GenericRectangle {
   }
 
   public GenericRectangle(String lbl, float startX, float startY, float stopX, float stopY,
-      byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer,
-      boolean editable) {
+                          byte thickness, boolean fill, boolean roundedCorners, byte color,
+                          byte layer, boolean editable) {
     label = lbl;
     startXValue = startX;
     startYValue = startY;
@@ -99,20 +100,16 @@ public class GenericRectangle {
     if (roundedCorners != other.roundedCorners) {
       return false;
     }
-    if (java.lang.Float.floatToIntBits(startXValue) != java.lang.Float
-        .floatToIntBits(other.startXValue)) {
+    if (java.lang.Float.floatToIntBits(startXValue) != java.lang.Float.floatToIntBits(other.startXValue)) {
       return false;
     }
-    if (java.lang.Float.floatToIntBits(startYValue) != java.lang.Float
-        .floatToIntBits(other.startYValue)) {
+    if (java.lang.Float.floatToIntBits(startYValue) != java.lang.Float.floatToIntBits(other.startYValue)) {
       return false;
     }
-    if (java.lang.Float.floatToIntBits(stopXValue) != java.lang.Float
-        .floatToIntBits(other.stopXValue)) {
+    if (java.lang.Float.floatToIntBits(stopXValue) != java.lang.Float.floatToIntBits(other.stopXValue)) {
       return false;
     }
-    if (java.lang.Float.floatToIntBits(stopYValue) != java.lang.Float
-        .floatToIntBits(other.stopYValue)) {
+    if (java.lang.Float.floatToIntBits(stopYValue) != java.lang.Float.floatToIntBits(other.stopYValue)) {
       return false;
     }
     if (thickness != other.thickness) {

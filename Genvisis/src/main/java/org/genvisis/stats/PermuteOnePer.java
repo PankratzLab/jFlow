@@ -50,8 +50,7 @@ public class PermuteOnePer {
         varNames[1][i] = line[2 + i];
       }
       if (!line[0].equals("FamID")) {
-        System.err.println(
-            "Warning - the first column was not called 'FamID'; still assuming that this column contains the grouping variable and that the second contains the trait to be permuted");
+        System.err.println("Warning - the first column was not called 'FamID'; still assuming that this column contains the grouping variable and that the second contains the trait to be permuted");
       }
       while (reader.ready()) {
         temp = reader.readLine();
@@ -59,8 +58,8 @@ public class PermuteOnePer {
         if (line[0].equals(".")) {
           System.err.println("Warning - " + "FamID" + " is missing for an individual");
         } else if (line[1].equals(".")) {
-          System.err.println(
-              "Warning - " + varNames[0][0] + " is missing for an individual in " + line[0]);
+          System.err.println("Warning - " + varNames[0][0] + " is missing for an individual in "
+                             + line[0]);
         } else {
           v.add(temp);
         }
@@ -125,9 +124,9 @@ public class PermuteOnePer {
     // String filename = "PD_GTE90.dat";
 
     String usage = "\n" + "park.onePerTTest requires 0-1 arguments\n"
-        + "   (1) filename (i.e. file=" + filename + " (default)\n"
-        + "       the file should be tab delimited and should contain 3+ columns (the grouping variable (FamID), the trait to be permuted, and one or more secondary groups (i.e. something like carrier status)\n"
-        + "";
+                   + "   (1) filename (i.e. file=" + filename + " (default)\n"
+                   + "       the file should be tab delimited and should contain 3+ columns (the grouping variable (FamID), the trait to be permuted, and one or more secondary groups (i.e. something like carrier status)\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -263,8 +262,9 @@ public class PermuteOnePer {
   private boolean binary;
 
   public PermuteOnePer(String[] famIDs, double[] trait, int[][] variables) {
-    this(famIDs, trait, variables, new String[][] {new String[] {"Trait"},
-        Array.stringArraySequence(variables.length, "Var ")});
+    this(famIDs, trait, variables,
+         new String[][] {new String[] {"Trait"},
+                         Array.stringArraySequence(variables.length, "Var ")});
   }
 
   public PermuteOnePer(String[] famIDs, double[] trait, int[][] variables, String[][] varNames) {
@@ -297,7 +297,8 @@ public class PermuteOnePer {
       } else {
         if (v.size() > UPPER_LIMIT) {
           throw new RuntimeException("Kind of hard to interpret more than " + UPPER_LIMIT
-              + " levels, don't you think? (for '" + variableNames[1][i] + "')");
+                                     + " levels, don't you think? (for '" + variableNames[1][i]
+                                     + "')");
         }
         order = Array.toIntArray(Array.toStringArray(v));
         keys = Sort.quicksort(order);
@@ -305,17 +306,17 @@ public class PermuteOnePer {
         offsets[i] = order[keys[0]];
 
         if (counts[i] > UPPER_LIMIT) {
-          throw new RuntimeException(
-              "The spread for '" + variableNames[1][i] + "' is a bit large, don't you think ("
-                  + offsets[i] + "-" + (offsets[i] + counts[i] - 1) + ")?");
+          throw new RuntimeException("The spread for '" + variableNames[1][i]
+                                     + "' is a bit large, don't you think (" + offsets[i] + "-"
+                                     + (offsets[i] + counts[i] - 1) + ")?");
         }
       }
     }
 
     for (int i = 0; i < famIDs.length; i++) {
       if (variableNames[1].length != variables[i].length) {
-        throw new RuntimeException(
-            "Error - mismatched number of columns for row starting '" + famIDs[i] + "'");
+        throw new RuntimeException("Error - mismatched number of columns for row starting '"
+                                   + famIDs[i] + "'");
       }
       for (int trt = 0; trt < numTraits; trt++) {
         if (variables[i][trt] != Integer.MIN_VALUE) {
@@ -362,7 +363,7 @@ public class PermuteOnePer {
         nQdata[trt][2] = aggregateCounts[trt][0];
       } else if (counts[trt] == 2) {
         tt = new Ttest(means[trt][1], stdevs[trt][1], aggregateCounts[trt][1], means[trt][0],
-            stdevs[trt][0], aggregateCounts[trt][0]);
+                       stdevs[trt][0], aggregateCounts[trt][0]);
         stats[trt] = tt.getT();
         pVals[trt] = tt.getPvalue();
         nQdata[trt][0] = tt.getStdev();
@@ -376,7 +377,7 @@ public class PermuteOnePer {
   }
 
   public Hashtable<String, double[][]> convertHashtable(Hashtable<String, DoubleVector[][]> hash,
-      int col) {
+                                                        int col) {
     Hashtable<String, double[][]> newHash = new Hashtable<String, double[][]>();
     String[] fams = HashVec.getKeys(hash);
     DoubleVector[][] sorted;
@@ -466,12 +467,12 @@ public class PermuteOnePer {
       str += variableNames[1][trt];
       for (int i = 0; i < means[trt].length; i++) {
         str += "\t" + ext.formDeci(means[trt][i], SIGFIGS, true) + " +- "
-            + ext.formDeci(stdevs[trt][i], SIGFIGS, true) + " ("
-            + ext.formDeci(aggregateCounts[trt][i], 3, true) + ")";
+               + ext.formDeci(stdevs[trt][i], SIGFIGS, true) + " ("
+               + ext.formDeci(aggregateCounts[trt][i], 3, true) + ")";
       }
       str += "\t"
-          + (counts[trt] == 2 ? ext.formDeci(means[trt][1] - means[trt][0], SIGFIGS, true) : "")
-          + "\t" + ext.prettyP(pVals[trt]) + "\n";
+             + (counts[trt] == 2 ? ext.formDeci(means[trt][1] - means[trt][0], SIGFIGS, true) : "")
+             + "\t" + ext.prettyP(pVals[trt]) + "\n";
       str += "\n";
     }
 

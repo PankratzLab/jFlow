@@ -64,7 +64,7 @@ public class GeneQC {
   }
 
   public static void test(String bamQCFile, String geneTrackFile, String utr5p, String utr3p,
-      Logger log) {
+                          Logger log) {
     LocusSet<Segment> utr5pSegs =
         LocusSet.loadSegmentSetFromFile(utr5p, 0, 1, 2, 0, true, true, 0, log);
     log.reportTimeInfo("Loaded " + utr5pSegs.getLoci().length + " 5' UTRs");
@@ -72,15 +72,16 @@ public class GeneQC {
     LocusSet<Segment> utr3pSegs =
         LocusSet.loadSegmentSetFromFile(utr3p, 0, 1, 2, 0, true, true, 0, log);
     log.reportTimeInfo("Loaded " + utr3pSegs.getLoci().length + " 3' UTRs");
-    LocusSet<Segment> utrs = new LocusSet<Segment>(
-        Array.concatAll(utr5pSegs.getLoci(), utr3pSegs.getLoci()), true, log) {
+    LocusSet<Segment> utrs =
+        new LocusSet<Segment>(Array.concatAll(utr5pSegs.getLoci(), utr3pSegs.getLoci()), true,
+                              log) {
 
-      /**
-       * 
-       */
-      private static final long serialVersionUID = 1L;
+          /**
+           * 
+           */
+          private static final long serialVersionUID = 1L;
 
-    };
+        };
     ArrayList<GeneData> genes = new ArrayList<GeneData>();
 
     GeneTrack geneTrack = GeneTrack.load(geneTrackFile, false);
@@ -221,7 +222,7 @@ public class GeneQC {
       for (int j = 0; j < genes.getLoci()[i].getExonBoundaries().length; j++) {
         Segment exon =
             new Segment(genes.getLoci()[i].getChr(), genes.getLoci()[i].getExonBoundaries()[j][0],
-                genes.getLoci()[i].getExonBoundaries()[j][1]);
+                        genes.getLoci()[i].getExonBoundaries()[j][1]);
         // totalMrna += exon.getSize();
         // mrnaNoUtrs += exon.getSize();
         Segment[] utrsOlap = utrs.getOverLappingLoci(exon);
@@ -241,14 +242,15 @@ public class GeneQC {
 
   public void qcByGene() {
     String output = bamQCFile + ".quickSummary";
-    String[] targets = new String[] {"GENE", "NumOtherGenes", "NumExons", "averageCoverage",
-        "averageGC", "numBaitsPerTarget", "MRNA_Overlap", "NonUTRMrnaOverlap"};
+    String[] targets =
+        new String[] {"GENE", "NumOtherGenes", "NumExons", "averageCoverage", "averageGC",
+                      "numBaitsPerTarget", "MRNA_Overlap", "NonUTRMrnaOverlap"};
 
     try {
       BufferedReader reader = Files.getAppropriateReader(bamQCFile);
       PrintWriter writer = new PrintWriter(new FileWriter(output));
       writer.println("GENE\tNumExons\tNumOtherGenes\tMRNA_Overlap\tNonUTRMrnaOverlap\t"
-          + Array.toStr(Files.getHeaderOfFile(bamQCFile, log)));
+                     + Array.toStr(Files.getHeaderOfFile(bamQCFile, log)));
 
       reader.readLine();
       while (reader.ready()) {
@@ -264,8 +266,8 @@ public class GeneQC {
             int mrnaNonUtr = 0;
             for (int j = 0; j < genes.getLoci()[gIndice].getExonBoundaries().length; j++) {
               Segment curExon = new Segment(genes.getLoci()[gIndice].getChr(),
-                  genes.getLoci()[gIndice].getExonBoundaries()[j][0],
-                  genes.getLoci()[gIndice].getExonBoundaries()[j][1]);
+                                            genes.getLoci()[gIndice].getExonBoundaries()[j][0],
+                                            genes.getLoci()[gIndice].getExonBoundaries()[j][1]);
               if (seqSeg.overlaps(curExon)) {
                 mrna += seqSeg.getIntersection(curExon, log).getSize();
                 mrnaNonUtr += seqSeg.getIntersection(curExon, log).getSize();
@@ -281,7 +283,7 @@ public class GeneQC {
             }
             if (mrna > 0) {
               writer.println(gene + "\t" + numExons + "\t" + numOtherGenes + "\t" + mrna + "\t"
-                  + Math.max(0, mrnaNonUtr) + "\t" + Array.toStr(line));
+                             + Math.max(0, mrnaNonUtr) + "\t" + Array.toStr(line));
             }
           }
         }
@@ -299,8 +301,11 @@ public class GeneQC {
       return;
     }
 
-    String[][] toSumm = HashVec.loadFileToStringMatrix(output, true,
-        ext.indexFactors(targets, Files.getHeaderOfFile(output, log), true, true), false);
+    String[][] toSumm =
+        HashVec.loadFileToStringMatrix(output, true,
+                                       ext.indexFactors(targets, Files.getHeaderOfFile(output, log),
+                                                        true, true),
+                                       false);
     ArrayList<Integer> numMrnaTotal = new ArrayList<Integer>();
     ArrayList<Integer> numMrnaNonUTR = new ArrayList<Integer>();
     Hashtable<String, Integer> index = new Hashtable<String, Integer>();
