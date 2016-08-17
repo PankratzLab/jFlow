@@ -4,8 +4,10 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -16,33 +18,20 @@ import org.genvisis.common.ext;
 import org.genvisis.stats.Maths;
 
 public class GenParser {
-  class StringArrayListReader extends BufferedReader {
+   private static class StringListReader extends BufferedReader {
 
-    ArrayList<String> data;
-    int readIndex;
-
-    public StringArrayListReader(ArrayList<String> data) {
-      super(null);
-      this.data = data;
-      readIndex = 0;
+    public StringListReader(List<String> data) {
+      super(new StringReader(makeString(data)));
     }
 
-    @Override
-    public void close() throws IOException {
-      data = null;
-      System.gc();
+    private static String makeString(List<String> data) {
+      StringBuilder sb = new StringBuilder();
+      for (String s : data) {
+        sb.append(s);
+        sb.append(System.lineSeparator());
+      }
+      return sb.toString();
     }
-
-    @Override
-    public String readLine() throws IOException {
-      return data.get(readIndex++);
-    }
-
-    @Override
-    public boolean ready() throws IOException {
-      return readIndex != data.size();
-    }
-
   }
 
   public static final int ADD = 0;
@@ -60,7 +49,7 @@ public class GenParser {
     }
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     String usage =
         "\n" + "parse.GenParser requires 2+ arguments and will take the form of something like:\n"
             + "    data.csv , out=parsed_data.xln !1=2 !11!NA !10>-5 !10<5 0 1 2 10 11\n" + "\n"
@@ -423,7 +412,7 @@ public class GenParser {
     maxCol = -9;
     try {
       reader =
-          data == null ? Files.getAppropriateReader(filename) : new StringArrayListReader(data);
+          data == null ? Files.getAppropriateReader(filename) : new StringListReader(data);
       if (skip == -2) {
         if (commaDelimited) {
           originalColumnNames = ext.splitCommasIntelligently(
