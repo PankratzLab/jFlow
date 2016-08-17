@@ -18,13 +18,13 @@ import org.genvisis.common.ext;
 
 public class LinkageFormat {
   public static String STRUCT_EXAMPLE = "" + "70001	101	0	0	1	0	NoDNAprsnt	.	.\n"
-                                        + "70001	102	0	0	2	0	NoDNAprsnt	.	.\n"
-                                        + "70001	1	101	102	1	2	1999PD0004	55	WHTE\n"
-                                        + "70001	11	101	102	1	2	1999PD0005	59	WHTE"
-                                        + "70002	101	0	0	1	0	NoDNAprsnt	.	."
-                                        + "70002	102	0	0	2	0	NoDNAprsnt	.	."
-                                        + "70002	1	101	102	1	2	1999PD0014	75	WHTE"
-                                        + "70002	13	101	102	1	2	1999PD0015	60	WHTE";
+      + "70001	102	0	0	2	0	NoDNAprsnt	.	.\n"
+      + "70001	1	101	102	1	2	1999PD0004	55	WHTE\n"
+      + "70001	11	101	102	1	2	1999PD0005	59	WHTE"
+      + "70002	101	0	0	1	0	NoDNAprsnt	.	."
+      + "70002	102	0	0	2	0	NoDNAprsnt	.	."
+      + "70002	1	101	102	1	2	1999PD0014	75	WHTE"
+      + "70002	13	101	102	1	2	1999PD0015	60	WHTE";
 
   public static void create(int chr, boolean makePheno) throws IOException {
     String chrome = ext.chrome(chr);
@@ -39,11 +39,10 @@ public class LinkageFormat {
       create("mrkr" + chrome + ".dat", "chrom" + chrome + ".pre", makePheno);
     } else if (new File("/home/npankrat/park/00masters/mrkr" + chrome + ".dat").exists()) {
       create("/home/npankrat/park/00masters/mrkr" + chrome + ".dat", "chrom" + chrome + ".pre",
-             makePheno);
+          makePheno);
     } else {
       System.err.println("Could not open the genotype file for chromosome " + chr + ": mrkr"
-                         + chrome + ".dat\n"
-                         + "in present directory or /home/npankrat/park/00masters/");
+          + chrome + ".dat\n" + "in present directory or /home/npankrat/park/00masters/");
     }
   }
 
@@ -89,8 +88,7 @@ public class LinkageFormat {
         if (data == null) {
           if (!line[6].equals("NoDNAprsnt") && !line[6].equals("0")) {
             System.err.println("Error - expecting genotypes for " + line[0] + "\t" + line[1]
-                               + " (i.e. contains DNA# '" + line[6]
-                               + "'), but was not found in genotype file");
+                + " (i.e. contains DNA# '" + line[6] + "'), but was not found in genotype file");
             System.exit(6);
           }
           data = hash.get("blank");
@@ -130,7 +128,8 @@ public class LinkageFormat {
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
         if (line.length != keeps.length * 2 + 6) {
-          System.err.println("I do not think you are keeping the markers you think you are keeping...");
+          System.err
+              .println("I do not think you are keeping the markers you think you are keeping...");
           System.exit(1);
         }
         writer.print(Array.toStr(Array.subArray(line, 0, 6)));
@@ -153,22 +152,16 @@ public class LinkageFormat {
   }
 
   public static int filterMarkers(String pedin, String pedout, String mapin, String mapout,
-                                  String markersToKeepFile, String markersToDropFile) {
+      String markersToKeepFile, String markersToDropFile) {
     return filterMarkers(pedin, pedout, mapin, mapout,
-                         markersToKeepFile == null ? null
-                                                   : HashVec.loadFileToStringArray(markersToKeepFile,
-                                                                                   false,
-                                                                                   new int[] {0},
-                                                                                   true),
-                         markersToDropFile == null ? null
-                                                   : HashVec.loadFileToStringArray(markersToDropFile,
-                                                                                   false,
-                                                                                   new int[] {0},
-                                                                                   true));
+        markersToKeepFile == null ? null
+            : HashVec.loadFileToStringArray(markersToKeepFile, false, new int[] {0}, true),
+        markersToDropFile == null ? null
+            : HashVec.loadFileToStringArray(markersToDropFile, false, new int[] {0}, true));
   }
 
   public static int filterMarkers(String pedin, String pedout, String mapin, String mapout,
-                                  String[] markersToKeep, String[] markersToDrop) {
+      String[] markersToKeep, String[] markersToDrop) {
     boolean[] keeps;
     int numDropped;
 
@@ -177,7 +170,8 @@ public class LinkageFormat {
 
     if ((markersToKeep == null || markersToKeep.length == 0)
         && (markersToDrop == null || markersToDrop.length == 0)) {
-      System.err.println("Error - nothing to filter if both the keeps list and the drops list are null or empty");
+      System.err.println(
+          "Error - nothing to filter if both the keeps list and the drops list are null or empty");
       return -1;
     }
 
@@ -188,14 +182,14 @@ public class LinkageFormat {
       if (markersToKeep != null && ext.indexOfStr(markerNames[i], markersToKeep) >= 0
           && markersToDrop != null && ext.indexOfStr(markerNames[i], markersToDrop) >= 0) {
         System.err.println("Error - marker '" + markerNames[i]
-                           + "' is listed in the keeps list and the drops list");
+            + "' is listed in the keeps list and the drops list");
       } else if (markersToKeep == null) {
         keeps[i] = ext.indexOfStr(markerNames[i], markersToDrop) == -1;
       } else if (markersToDrop == null) {
         keeps[i] = ext.indexOfStr(markerNames[i], markersToKeep) >= 0;
       } else {
         keeps[i] = ext.indexOfStr(markerNames[i], markersToDrop) == -1
-                   && ext.indexOfStr(markerNames[i], markersToKeep) >= 0;
+            && ext.indexOfStr(markerNames[i], markersToKeep) >= 0;
       }
     }
 
@@ -229,8 +223,7 @@ public class LinkageFormat {
       if (new File("map" + ext.chrome(chr) + ".dat").exists()) {
         numDropped =
             filterMarkers(prefix + ext.chrome(chr) + ".pre", prefix + ext.chrome(chr) + ".pre",
-                          "map" + ext.chrome(chr) + ".dat", "map" + ext.chrome(chr) + ".dat", null,
-                          dropFile);
+                "map" + ext.chrome(chr) + ".dat", "map" + ext.chrome(chr) + ".dat", null, dropFile);
         if (numDropped > 0) {
           for (int i = 0; i < numDropped; i++) {
             counts[0].add(chr + "");
@@ -245,11 +238,8 @@ public class LinkageFormat {
 
     for (int i = 0; i < counts.length; i++) {
       System.out.println("Chromosomes " + (i == 0 ? "altered" : (i == 1 ? "unaltered" : "missing"))
-                         + ": "
-                         + (counts[i].getSize() == 0 ? "none"
-                                                     : Array.toStr(i == 0 ? counts[i].list()
-                                                                          : counts[i].getValues(),
-                                                                   ", ")));
+          + ": " + (counts[i].getSize() == 0 ? "none"
+              : Array.toStr(i == 0 ? counts[i].list() : counts[i].getValues(), ", ")));
     }
   }
 
@@ -257,22 +247,21 @@ public class LinkageFormat {
     int numArgs = args.length;
     int chr = -1;
     String filename = "mrkr02.dat";
-    String fileout =
-        (filename.lastIndexOf(".") != -1 ? filename.substring(0, filename.lastIndexOf(".")) + ".pre"
-                                         : filename + ".pre");
+    String fileout = (filename.lastIndexOf(".") != -1
+        ? filename.substring(0, filename.lastIndexOf(".")) + ".pre" : filename + ".pre");
     boolean pheno = false;
     // String drops = "drops.dat";
     String drops = "";
     String prefix = "re_chrom";
 
     String usage = "\n" + "link.LinkageFormat requires 0-2 arguments\n"
-                   + "   (1) chromosome number (i.e. chr=2 (no default))\n"
-                   + "   (2) add '-pheno' if you want to create \"pheno.sibs\" (not done by default)\n"
-                   + "   (3) file with list of markers you want to drop (i.e. drop=drops.dat (no default))\n"
-                   + "alternative [default] usage:\n"
-                   + "   (1) take from file other than a mrkr##.dat file (i.e. file=" + filename
-                   + " (default))\n" + "   (2) specify the name of the .pre file (i.e. out="
-                   + fileout + " (default))\n" + "";
+        + "   (1) chromosome number (i.e. chr=2 (no default))\n"
+        + "   (2) add '-pheno' if you want to create \"pheno.sibs\" (not done by default)\n"
+        + "   (3) file with list of markers you want to drop (i.e. drop=drops.dat (no default))\n"
+        + "alternative [default] usage:\n"
+        + "   (1) take from file other than a mrkr##.dat file (i.e. file=" + filename
+        + " (default))\n" + "   (2) specify the name of the .pre file (i.e. out=" + fileout
+        + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

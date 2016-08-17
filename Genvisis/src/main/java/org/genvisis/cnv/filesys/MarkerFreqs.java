@@ -22,7 +22,7 @@ public class MarkerFreqs implements Serializable {
   public static final String[] MARKER_FREQ_FIELDS = {"Name", "MAF"};
 
   public static void convertMarkerFreqsFromTxt(Project proj, String Freqfilename,
-                                               String outputFileNameSer) {
+      String outputFileNameSer) {
     BufferedReader reader;
     String[] line, header;
     Hashtable<String, String> hash;
@@ -52,7 +52,8 @@ public class MarkerFreqs implements Serializable {
         }
       }
       if (Array.min(indices) == -1) {
-        log.reportError("Error - Need a column header ending with the following suffixes; missing at least one");
+        log.reportError(
+            "Error - Need a column header ending with the following suffixes; missing at least one");
         log.reportError("        " + Array.toStr(MARKER_FREQ_FIELDS, "  "));
         System.exit(1);
       }
@@ -67,26 +68,26 @@ public class MarkerFreqs implements Serializable {
         mafs[index] = Double.parseDouble(line[1]);
       }
       if (numMafs != markerNames.length) {
-        log.reportError("Error - " + (markerNames.length - numMafs)
-                        + "markers were not found in MarkerSet");
+        log.reportError(
+            "Error - " + (markerNames.length - numMafs) + "markers were not found in MarkerSet");
         System.exit(1);
       }
 
       reader.close();
     } catch (FileNotFoundException fnfe) {
-      log.reportError("Error: file \"" + Freqfilename + "\" not found in "
-                      + proj.PROJECT_DIRECTORY.getValue());
+      log.reportError(
+          "Error: file \"" + Freqfilename + "\" not found in " + proj.PROJECT_DIRECTORY.getValue());
       System.exit(1);
     } catch (IOException ioe) {
       log.reportError("Error reading file \"" + Freqfilename + "\"");
       System.exit(2);
     }
-    new MarkerFreqs(mafs, markerSet.getFingerprint()).serialize(proj.PROJECT_DIRECTORY.getValue()
-                                                                + outputFileNameSer);
+    new MarkerFreqs(mafs, markerSet.getFingerprint())
+        .serialize(proj.PROJECT_DIRECTORY.getValue() + outputFileNameSer);
   }
 
   private static void dump(String exportFilename, double[] mafs, String[] markerNames,
-                           long fingerprint, Logger log) {
+      long fingerprint, Logger log) {
     PrintWriter writer;
     try {
       writer = new PrintWriter(new FileWriter(exportFilename));
@@ -113,17 +114,19 @@ public class MarkerFreqs implements Serializable {
 
     log = proj.getLog();
     if (markerNames.length != mafs.length) {
-      log.reportError("Error - mismatched number of markers in the project's marker set and the imported AlleleFrequency file ("
-                      + mafFilename + "); aborting");
+      log.reportError(
+          "Error - mismatched number of markers in the project's marker set and the imported AlleleFrequency file ("
+              + mafFilename + "); aborting");
       System.exit(1);
     }
     if (markerSet.getFingerprint() != markerMAF.getFingerprint()) {
-      log.reportError("Error - mismatched marker fingerprints in the project's marker set and the imported AlleleFrequency file ("
-                      + mafFilename + "); aborting");
+      log.reportError(
+          "Error - mismatched marker fingerprints in the project's marker set and the imported AlleleFrequency file ("
+              + mafFilename + "); aborting");
       System.exit(1);
     } else {
       dump(proj.PROJECT_DIRECTORY.getValue() + exportFilename, mafs, markerNames,
-           markerSet.getFingerprint(), log);
+          markerSet.getFingerprint(), log);
     }
   }
 

@@ -25,11 +25,11 @@ public class CytoAgilentParse {
   public static final String[] SYSTEMATIC_NAME = {"SystematicName"};
   public static final String[] MARKER_POSITION_HEADER = {"Marker", "Chr", "Position"};
   public static final String[] DATA_TO_GRAB = {"ProbeName", "gProcessedSignal", "rProcessedSignal",
-                                               "LogRatio", "gMedianSignal", "rMedianSignal"};
+      "LogRatio", "gMedianSignal", "rMedianSignal"};
   public static final String[] CONVERT_TO =
       {"SNP Name", Sample.DATA_FIELDS[7][0], Sample.DATA_FIELDS[8][0], Sample.DATA_FIELDS[3][0],
-       Sample.DATA_FIELDS[4][0], Sample.GENOTYPE_FIELDS[0][0], Sample.GENOTYPE_FIELDS[1][0],
-       Sample.GENOTYPE_FIELDS[2][0], Sample.GENOTYPE_FIELDS[3][0]};
+          Sample.DATA_FIELDS[4][0], Sample.GENOTYPE_FIELDS[0][0], Sample.GENOTYPE_FIELDS[1][0],
+          Sample.GENOTYPE_FIELDS[2][0], Sample.GENOTYPE_FIELDS[3][0]};
 
   private static final String[] SPLITS = {"\t"};
   private static final String CHR = "chr";
@@ -70,9 +70,9 @@ public class CytoAgilentParse {
   public static void generateMarkerPositions(String input, String output, Logger log) {
     log.report(ext.getTime() + " Info - generating a marker position file from " + input);
     log.report(ext.getTime()
-               + " Info - positions will be parsed from UCSC locations only, using only the start position of the probe");
+        + " Info - positions will be parsed from UCSC locations only, using only the start position of the probe");
     log.report(ext.getTime()
-               + " Info - probes without a valid UCSC location will be set to chr=0, position=0");
+        + " Info - probes without a valid UCSC location will be set to chr=0, position=0");
 
     try {
       BufferedReader reader = Files.getAppropriateReader(input);
@@ -88,7 +88,7 @@ public class CytoAgilentParse {
 
       if (!reader.ready()) {
         log.reportError("Error - could not neccesary columns with headers "
-                        + Array.toStr(SYSTEMATIC_NAME) + " and " + DATA_TO_GRAB[0]);
+            + Array.toStr(SYSTEMATIC_NAME) + " and " + DATA_TO_GRAB[0]);
         return;
       }
       PrintWriter writer = Files.getAppropriateWriter(output);
@@ -133,7 +133,7 @@ public class CytoAgilentParse {
 
   private static float getBAF(String gMedianSignal, String rMedianSignal, String logRRatio) {
     return getBAF(Float.parseFloat(gMedianSignal), Float.parseFloat(rMedianSignal),
-                  Float.parseFloat(logRRatio));
+        Float.parseFloat(logRRatio));
   }
 
   /**
@@ -194,10 +194,11 @@ public class CytoAgilentParse {
    */
   public static String[] parseCytoToGenvisis(Project proj, Logger log) {
     String[] files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true),
-                                proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+        proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
     if (files.length < 1) {
-      log.reportError("Error - did not find any files to parse, please make sure the filename extension is set in the project properties file "
-                      + proj.getPropertyFilename());
+      log.reportError(
+          "Error - did not find any files to parse, please make sure the filename extension is set in the project properties file "
+              + proj.getPropertyFilename());
       return new String[0];
     } else {
       for (int i = 0; i < files.length; i++) {
@@ -219,7 +220,7 @@ public class CytoAgilentParse {
    * @return
    */
   public static boolean parseCytoToGenvisis(Project proj, String fileToParse, String output,
-                                            float scale, Logger log) {
+      float scale, Logger log) {
     boolean valid = true;
     try {
       BufferedReader reader = Files.getAppropriateReader(fileToParse);
@@ -235,13 +236,13 @@ public class CytoAgilentParse {
       for (int i = 0; i < indices.length; i++) {
         if (indices[i] == -1) {
           log.reportError("Error - could not find neccesary column " + DATA_TO_GRAB[i] + " in file "
-                          + fileToParse);
+              + fileToParse);
           valid = false;
         }
       }
       if (!reader.ready()) {
-        log.reportError("Error - could not neccesary columns with headers "
-                        + Array.toStr(DATA_TO_GRAB));
+        log.reportError(
+            "Error - could not neccesary columns with headers " + Array.toStr(DATA_TO_GRAB));
         valid = false;
 
       } else if (valid) {
@@ -302,17 +303,17 @@ public class CytoAgilentParse {
         // !Files.exists(proj.getFilename(proj.MARKER_POSITION_FILENAME, null, false, false))) ||
         // !createdMarkerPostions) {
         if ((!Files.exists(proj.MARKERSET_FILENAME.getValue(false, false))
-             && !Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false)))
+            && !Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false)))
             || !createdMarkerPostions) {
           // generateMarkerPositions(filesToParse[i],
           // proj.getFilename(proj.MARKER_POSITION_FILENAME), log);
           generateMarkerPositions(filesToParse[i],
-                                  proj.MARKER_POSITION_FILENAME.getValue(true, false), log);
+              proj.MARKER_POSITION_FILENAME.getValue(true, false), log);
           createdMarkerPostions = true;
         }
       } else {
         log.report("Error - could not parse file " + filesToParse[i]
-                   + ", if this is not an actual sample file, then this is not actually an error and will simply be skipped");
+            + ", if this is not an actual sample file, then this is not actually an error and will simply be skipped");
       }
       // } else {
       // log.report("Warning - skipping parsing of " + filesToParse[i] + ", the output file " +

@@ -21,21 +21,21 @@ public class SerialHash implements Serializable {
   }
 
   public static void createSerializedStringArrayHash(String filename,
-                                                     Hashtable<String, String[]> stringArrayHash) {
+      Hashtable<String, String[]> stringArrayHash) {
     SerialHash sHash = new SerialHash();
     sHash.setStringArrayHash(stringArrayHash);
     sHash.serialize(filename);
   }
 
   public static void createSerializedStringHash(String filename,
-                                                Hashtable<String, String> stringHash) {
+      Hashtable<String, String> stringHash) {
     SerialHash sHash = new SerialHash();
     sHash.setStringHash(stringHash);
     sHash.serialize(filename);
   }
 
   public static void createSerializedStringIntArrayHash(String filename,
-                                                        Hashtable<String, int[]> stringIntArrayHash) {
+      Hashtable<String, int[]> stringIntArrayHash) {
     SerialHash sHash = new SerialHash();
     sHash.setStringIntArrayHash(stringIntArrayHash);
     sHash.serialize(filename);

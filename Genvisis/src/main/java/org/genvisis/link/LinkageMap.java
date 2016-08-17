@@ -69,13 +69,13 @@ public class LinkageMap {
     String filename = "map02.dat";
     boolean writeDist = false;
 
-    String usage = "\n" + "link.LinkageMap requires 2-5 arguments:\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default))\n"
-                   + "   (2) disease allele frequency (a.k.a. q) (i.e. dx=" + dx + " (default))\n"
-                   + "   (3) penetrance of qq (i.e. qq=" + qq + " (default))\n"
-                   + "   (4) penetrance of pq (i.e. pq=" + pq + " (default))\n"
-                   + "   (5) penetrance of pp (i.e. pp=" + pp + " (default))\n" + " OR\n"
-                   + "   (2) write distances (i.e. -dist (not the default))\n" + "";
+    String usage =
+        "\n" + "link.LinkageMap requires 2-5 arguments:\n" + "   (1) filename (i.e. file="
+            + filename + " (default))\n" + "   (2) disease allele frequency (a.k.a. q) (i.e. dx="
+            + dx + " (default))\n" + "   (3) penetrance of qq (i.e. qq=" + qq + " (default))\n"
+            + "   (4) penetrance of pq (i.e. pq=" + pq + " (default))\n"
+            + "   (5) penetrance of pp (i.e. pp=" + pp + " (default))\n" + " OR\n"
+            + "   (2) write distances (i.e. -dist (not the default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -147,8 +147,8 @@ public class LinkageMap {
       }
     }
     System.out.println("There are " + totalMarkers + " markers at an average distance of "
-                       + ext.formDeci(sumDist / (totalMarkers - iv.size()), 2)
-                       + (currentlyInMorgans ? "cM" : "Morgans"));
+        + ext.formDeci(sumDist / (totalMarkers - iv.size()), 2)
+        + (currentlyInMorgans ? "cM" : "Morgans"));
   }
 
   public static double[][] parseModels(String filename) {
@@ -172,7 +172,7 @@ public class LinkageMap {
   }
 
   public static void updateMaps(String dir, String db, int markerIndex, int chrIndex,
-                                int locIndex) {
+      int locIndex) {
     LinkageMap map;
     IntVector iv = new IntVector();
 
@@ -187,7 +187,7 @@ public class LinkageMap {
 
     if (iv.size() > 0) {
       System.err.println("Skipped the following chromosomes as they could not be found: "
-                         + Array.toStr(iv.toArray()));
+          + Array.toStr(iv.toArray()));
 
     }
   }
@@ -215,7 +215,7 @@ public class LinkageMap {
   }
 
   public LinkageMap(int chr, String[] markerNames, double[][] alleleFreqs, double[] location_data,
-                    boolean currentlyInMorgans, boolean positionsInsteadOfDistances) {
+      boolean currentlyInMorgans, boolean positionsInsteadOfDistances) {
     this.chr = chr;
     this.markerNames = markerNames;
     addInfo = new String[markerNames.length];
@@ -239,14 +239,14 @@ public class LinkageMap {
 
     if (markerNames.length != positions.length) {
       System.err.println("Error - " + markerNames.length + " marker names and " + positions.length
-                         + " distance measures");
+          + " distance measures");
     }
   }
 
   public LinkageMap(int chr, String[] markerNames, int numDefaultAlleles, double[] location_data,
-                    boolean currentlyInMorgans, boolean positionsInsteadOfDistances) {
+      boolean currentlyInMorgans, boolean positionsInsteadOfDistances) {
     this(chr, markerNames, createDummyAlleleFreqs(markerNames.length, numDefaultAlleles),
-         location_data, currentlyInMorgans, positionsInsteadOfDistances);
+        location_data, currentlyInMorgans, positionsInsteadOfDistances);
   }
 
   public LinkageMap(String filename) {
@@ -312,8 +312,8 @@ public class LinkageMap {
         line = trav.trim().split("[\\s]+");
         if (line.length < 4) {
           if (!noNamesFlag) {
-            System.err.println("Warning - no marker names for at least a subset of the markers in "
-                               + filename);
+            System.err.println(
+                "Warning - no marker names for at least a subset of the markers in " + filename);
             noNamesFlag = true;
           }
           markerNames[i] = "Marker" + (i + 1);
@@ -329,23 +329,21 @@ public class LinkageMap {
           } else {
             if (line.length < expNumAllele) {
               System.err.println("Error - the number of allele frequencies provided for "
-                                 + markerNames[i] + " (n=" + alleleFreqs.length
-                                 + ") does not match up with the declared number (" + expNumAllele
-                                 + ")");
+                  + markerNames[i] + " (n=" + alleleFreqs.length
+                  + ") does not match up with the declared number (" + expNumAllele + ")");
               problem = true;
             } else if (line[Integer.parseInt(line[1])].startsWith("<")) {
               alleleFreqs[i] = Array.toDoubleArray(Array.subArray(line, 0, expNumAllele));
             } else {
               System.err.println("Error - the number of allele frequencies for " + markerNames[i]
-                                 + " (n=" + alleleFreqs.length
-                                 + ") does not match up with the declared number ("
-                                 + Integer.parseInt(line[1]) + ")");
+                  + " (n=" + alleleFreqs.length + ") does not match up with the declared number ("
+                  + Integer.parseInt(line[1]) + ")");
               problem = true;
             }
           }
         } catch (NumberFormatException e) {
           System.err.println("Error - failed to parse the allele frequencies for " + markerNames[i]
-                             + " (" + Array.toStr(line) + ")");
+              + " (" + Array.toStr(line) + ")");
           problem = true;
         }
       }
@@ -375,7 +373,7 @@ public class LinkageMap {
   }
 
   public void alterPenetrance(String fileout, double disease, double pp, double pq, double qq,
-                              boolean suppressCheck) {
+      boolean suppressCheck) {
     if (disease < 0.50 && qq < pp && !suppressCheck) {
       System.err.println("Error - you appear to have your penetrance function backward");
       System.exit(1);
@@ -400,7 +398,7 @@ public class LinkageMap {
       System.err.println("Error - unexpected filename extension: " + filename);
     }
     createFile(filename.substring(0, filename.length() - 4) + ".D"
-               + filename.substring(filename.length() - 4));
+        + filename.substring(filename.length() - 4));
   }
 
   public void createFile() {
@@ -417,12 +415,12 @@ public class LinkageMap {
     try {
       writer = new PrintWriter(new FileWriter(filename));
       writer.println((markerNames.length + 1) + " 0 " + (chr == 23 ? 1 : 0)
-                     + " 5  << NO. OF LOCI, RISK LOCUS, SEXLINKED (IF 1) PROGRAM");
+          + " 5  << NO. OF LOCI, RISK LOCUS, SEXLINKED (IF 1) PROGRAM");
       writer.println("0 0.0 0.0 0  << MUT LOCUS, MUT RATE, HAPLOTYPE FREQUENCIES (IF 1)");
       writer.println(Array.toStr(Array.stringArraySequence(markerNames.length + 1, ""), " "));
       writer.println("1  2  << AFFECTATION, NO. OF ALLELES");
       writer.println(ext.formDeci(1 - dxAlleleFreq, 2, 5) + " " + ext.formDeci(dxAlleleFreq, 2, 5)
-                     + " << GENE FREQUENCIES");
+          + " << GENE FREQUENCIES");
       writer.println(penetranceFunctions.length + "  << NO. OF LIABILITY CLASSES");
       for (double[] penetranceFunction : penetranceFunctions) {
         writer.println(Array.toStr(penetranceFunction, 2, 5, " "));
@@ -430,7 +428,7 @@ public class LinkageMap {
 
       for (int i = 0; i < markerNames.length; i++) {
         writer.println("3 " + alleleFreqs[i].length + "  # " + markerNames[i]
-                       + (addInfo[i] == null ? "" : addInfo[i]));
+            + (addInfo[i] == null ? "" : addInfo[i]));
         writer.println(Array.toStr(alleleFreqs[i], 6, 6, " "));
       }
 
@@ -441,12 +439,10 @@ public class LinkageMap {
       // System.out.println("Writing in
       // "+(writeInMorgans?"":"centi")+"Morgans");
       for (int i = 0; i < markerNames.length - 1; i++) {
-        writer.print(" "
-                     + ext.formDeci(writeInMorgans ? (currentlyInMorgans ? distances[i + 1]
-                                                                         : distances[i + 1] / 100)
-                                                   : (currentlyInMorgans ? distances[i + 1] * 100
-                                                                         : distances[i + 1]),
-                                    8, false));
+        writer.print(" " + ext.formDeci(
+            writeInMorgans ? (currentlyInMorgans ? distances[i + 1] : distances[i + 1] / 100)
+                : (currentlyInMorgans ? distances[i + 1] * 100 : distances[i + 1]),
+            8, false));
       }
       writer.println("  << RECOMB VALUES");
       writer.println("1 0.1 0.45  << REC VARIED, INCREMENT, FINISHING VALUE");
@@ -485,15 +481,14 @@ public class LinkageMap {
         if (hash == null) {
           positions = new String[] {chr + "", (i + 1) + ""};
         } else if (!hash.containsKey(markerNames[i])) {
-          System.err.println("Error - marker '" + markerNames[i] + "' not found in database: "
-                             + SNP_DB);
+          System.err
+              .println("Error - marker '" + markerNames[i] + "' not found in database: " + SNP_DB);
           positions = new String[] {"-1", "-1"};
         } else {
           positions = hash.get(markerNames[i]).split("[\\s]+");
           if (Integer.parseInt(positions[0]) != chr) {
             System.err.println("Error - " + SNP_DB + " places " + markerNames[i]
-                               + " on a different chromosome (" + positions[0] + " instead of "
-                               + chr + ")");
+                + " on a different chromosome (" + positions[0] + " instead of " + chr + ")");
           }
         }
         writer.println(positions[0] + "\t" + markerNames[i] + "\t0\t" + positions[1]);
@@ -515,7 +510,7 @@ public class LinkageMap {
       System.err.println("Error - unexpected filename extension: " + filename);
     }
     createFile(filename.substring(0, filename.length() - 4) + ".R"
-               + filename.substring(filename.length() - 4));
+        + filename.substring(filename.length() - 4));
   }
 
   public void filter(boolean[] keeps) {
@@ -631,14 +626,15 @@ public class LinkageMap {
 
   public void updateFile() {
     if (filename == null) {
-      System.err.println("Error - can't update map file; no filename was stored; try createFile() for standard filename");
+      System.err.println(
+          "Error - can't update map file; no filename was stored; try createFile() for standard filename");
       System.exit(1);
     }
     createFile(filename, currentlyInMorgans);
   }
 
   public void updatePositions(String markerPositionDatabase, int markerIndex, int chrIndex,
-                              int locIndex) {
+      int locIndex) {
     BufferedReader reader;
     String[] line;
     String trav;
@@ -657,9 +653,9 @@ public class LinkageMap {
         line = reader.readLine().trim().split("[\\s]+");
         if (hash.containsKey(line[markerIndex])) {
           if (Integer.parseInt(line[chrIndex]) != chr) {
-            System.err.println("Error - " + markerPositionDatabase + " says that "
-                               + line[markerIndex] + " is on " + Integer.parseInt(line[chrIndex])
-                               + " and not " + chr);
+            System.err
+                .println("Error - " + markerPositionDatabase + " says that " + line[markerIndex]
+                    + " is on " + Integer.parseInt(line[chrIndex]) + " and not " + chr);
           } else {
             hash.put(line[markerIndex], line[locIndex]);
           }
@@ -668,8 +664,8 @@ public class LinkageMap {
       }
       reader.close();
     } catch (FileNotFoundException fnfe) {
-      System.err.println("Error: file \"" + markerPositionDatabase
-                         + "\" not found in current directory");
+      System.err
+          .println("Error: file \"" + markerPositionDatabase + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + markerPositionDatabase + "\"");
@@ -680,15 +676,15 @@ public class LinkageMap {
     for (int i = 0; i < markerNames.length; i++) {
       trav = hash.get(markerNames[i]);
       if (trav.equals("")) {
-        System.err.println("Error - marker " + markerNames[i] + " was not found in "
-                           + markerPositionDatabase);
+        System.err.println(
+            "Error - marker " + markerNames[i] + " was not found in " + markerPositionDatabase);
         problem = true;
       } else {
         newPositions[i] = Double.parseDouble(trav);
         if (i > 0 && newPositions[i] <= newPositions[i - 1]) {
           if (newPositions[i] - newPositions[i - 1] > MIN_DIST_STEP * 10) {
             System.err.println("Error - make sure that " + markerNames[i - 1] + " and "
-                               + markerNames[i] + " have not flipped order");
+                + markerNames[i] + " have not flipped order");
           }
           newPositions[i] = newPositions[i - 1] + MIN_DIST_STEP;
         }

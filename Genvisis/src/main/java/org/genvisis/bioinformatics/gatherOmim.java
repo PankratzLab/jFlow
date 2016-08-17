@@ -18,7 +18,7 @@ public class gatherOmim {
     String filename = "gatherOmim.dat";
 
     String usage = "\n" + "park.gatherOmim requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-                   + filename + " (default))\n" + "";
+        + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -53,17 +53,19 @@ public class gatherOmim {
       writer = new PrintWriter(new FileWriter("omim_names.out"));
       errors = new PrintWriter(new FileWriter("omim_errors.out"));
       for (String id : ids) {
-        Internat.downloadFile("http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=OMIM&dopt=Detailed&tmpl=dispomimTemplate&list_uids="
-                              + id, "omim.dat", true);
+        Internat.downloadFile(
+            "http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=OMIM&dopt=Detailed&tmpl=dispomimTemplate&list_uids="
+                + id,
+            "omim.dat", true);
         try {
           reader = new BufferedReader(new FileReader("omim.dat"));
           count = 0;
           while (reader.ready()) {
             temp = reader.readLine();
             if (temp.indexOf("<tr><td align=\"left\" colspan=\"2\" ") >= 0) {
-              writer.println(id + "\t"
-                             + temp.substring(temp.indexOf("<b>") + 3, temp.indexOf("</b>"))
-                             + (count > 0 ? "\t*******" : ""));
+              writer
+                  .println(id + "\t" + temp.substring(temp.indexOf("<b>") + 3, temp.indexOf("</b>"))
+                      + (count > 0 ? "\t*******" : ""));
               writer.flush();
               count++;
             }

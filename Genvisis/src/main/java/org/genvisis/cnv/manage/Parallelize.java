@@ -22,10 +22,10 @@ public class Parallelize implements Runnable {
     boolean tabulate = true;
 
     String usage = "\n" + "filesys.ParseIllumina requires 0-1 arguments\n"
-                   + "   (1) project properties filename (i.e. proj="
-                   + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-                   + "   (2) number of threads to use (i.e. threads=" + numThreads + " (default))\n"
-                   + "   (3) which algorithm to run (i.e. type=" + type + " (default))\n" + "";
+        + "   (1) project properties filename (i.e. proj="
+        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+        + "   (2) number of threads to use (i.e. threads=" + numThreads + " (default))\n"
+        + "   (3) which algorithm to run (i.e. type=" + type + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -52,7 +52,7 @@ public class Parallelize implements Runnable {
     if (!proj.SOURCE_DIRECTORY.getValue(false, true).equals("")
         && !new File(proj.SOURCE_DIRECTORY.getValue(false, true)).exists()) {
       System.err.println("Error - the project source location is invalid: "
-                         + proj.SOURCE_DIRECTORY.getValue(false, true));
+          + proj.SOURCE_DIRECTORY.getValue(false, true));
       return;
     }
 
@@ -111,8 +111,8 @@ public class Parallelize implements Runnable {
         counts = new int[markerNames.length];
         for (int i = 0; i < files.length; i++) {
           System.out.println((i + 1) + " of " + files.length);
-          diffs = (float[]) SerializedFiles.readSerial(proj.PROJECT_DIRECTORY.getValue() + "comps/"
-                                                       + files[i]);
+          diffs = (float[]) SerializedFiles
+              .readSerial(proj.PROJECT_DIRECTORY.getValue() + "comps/" + files[i]);
           for (int j = 0; j < markerNames.length; j++) {
             if (!Float.isNaN(diffs[j])) {
               totalRaw[j] += diffs[j];
@@ -123,12 +123,12 @@ public class Parallelize implements Runnable {
         }
 
         try {
-          writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-                                                  + "LRR_diff_list.xln"));
+          writer = new PrintWriter(
+              new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "LRR_diff_list.xln"));
           writer.println("SNP\tAvg diff\tAvg abs(diff)\tcount");
           for (int i = 0; i < markerNames.length; i++) {
             writer.println(markerNames[i] + "\t" + (totalRaw[i] / counts[i]) + "\t"
-                           + (totalAbs[i] / counts[i]) + "\t" + counts[i]);
+                + (totalAbs[i] / counts[i]) + "\t" + counts[i]);
           }
           writer.close();
         } catch (Exception e) {

@@ -95,7 +95,7 @@ public class BamPile extends Segment implements Serializable {
   }
 
   public void addRecord(SAMRecord samRecord, String[] refMatchedSegment, double phredFilter,
-                        Logger log) {
+      Logger log) {
     Segment samRecordSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
     String[] ref = refMatchedSegment;
     Segment toPile = bin.getIntersection(samRecordSegment, log);
@@ -210,7 +210,7 @@ public class BamPile extends Segment implements Serializable {
     }
     if (Array.booleanArraySum(referenceMask) != 4) {
       log.reportTimeError("Invalid number of alternate allele possibilities, found "
-                          + Array.booleanArraySum(referenceMask) + " with ref allele" + refAllele);
+          + Array.booleanArraySum(referenceMask) + " with ref allele" + refAllele);
 
     }
     return Array.subArray(counts, referenceMask);

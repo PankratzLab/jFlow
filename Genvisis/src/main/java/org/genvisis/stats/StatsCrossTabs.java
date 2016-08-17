@@ -20,18 +20,18 @@ import com.google.common.primitives.Doubles;
  */
 public class StatsCrossTabs {
   public static enum STAT_TYPE {
-                                /**
-                                 * stat = r, pvalue = p
-                                 */
-                                SPEARMAN_CORREL,
-                                /**
-                                 * stat = r, pvalue = p
-                                 */
-                                PEARSON_CORREL,
-                                /**
-                                 * stat = R2, pvalue = p
-                                 */
-                                LIN_REGRESSION
+    /**
+     * stat = r, pvalue = p
+     */
+    SPEARMAN_CORREL,
+    /**
+     * stat = r, pvalue = p
+     */
+    PEARSON_CORREL,
+    /**
+     * stat = R2, pvalue = p
+     */
+    LIN_REGRESSION
 
   }
 
@@ -57,7 +57,7 @@ public class StatsCrossTabs {
      * @param titlesRanked the data that was ranked
      */
     public StatsCrossTabRank(String rankedTo, int[] order, double[] sigs, double[] stats,
-                             String[] titlesRanked) {
+        String[] titlesRanked) {
       super();
       this.rankedTo = rankedTo;
       this.order = order;
@@ -72,7 +72,7 @@ public class StatsCrossTabs {
         writer.println(Array.toStr(HEADER));
         for (int i = 0; i < order.length; i++) {
           writer.println(titlesRanked[ranked ? order[i] : i] + "\t" + (i + 1) + "\t"
-                         + stats[ranked ? order[i] : i] + "\t" + sigs[ranked ? order[i] : i]);
+              + stats[ranked ? order[i] : i] + "\t" + sigs[ranked ? order[i] : i]);
         }
         writer.close();
       } catch (Exception e) {
@@ -100,11 +100,11 @@ public class StatsCrossTabs {
   }
 
   public static enum VALUE_TYPE {
-                                 STAT, PVALUE
+    STAT, PVALUE
   }
 
   private static double[][] cleanNaNs(double[][] dataToClean, String[] titles, boolean verbose,
-                                      Logger log) {
+      Logger log) {
     int numNansC1 = 0;
     int numNansC2 = 0;
 
@@ -135,7 +135,7 @@ public class StatsCrossTabs {
   }
 
   private static void dump(String fullPathToFile, String[] dataTitles, double[][] dataTable,
-                           STAT_TYPE cType, VALUE_TYPE vType, Logger log) {
+      STAT_TYPE cType, VALUE_TYPE vType, Logger log) {
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(fullPathToFile));
       writer.println(cType + "_" + vType + "\t" + Array.toStr(dataTitles));
@@ -155,10 +155,9 @@ public class StatsCrossTabs {
 
   public static void test() {
     StatsCrossTabs cTable = new StatsCrossTabs(
-                                               new double[][] {{1, 2, 3, 4}, {1, 2, 3, 4},
-                                                               {1, 6, 3, 5}, {1, 6, 3, Double.NaN}},
-                                               null, null, new String[] {"1", "2", "3", "hasNaN"},
-                                               STAT_TYPE.SPEARMAN_CORREL, true, new Logger());
+        new double[][] {{1, 2, 3, 4}, {1, 2, 3, 4}, {1, 6, 3, 5}, {1, 6, 3, Double.NaN}}, null,
+        null, new String[] {"1", "2", "3", "hasNaN"}, STAT_TYPE.SPEARMAN_CORREL, true,
+        new Logger());
     cTable.computeTable();
     cTable.dumpTables("D:/data/singapore_PCs/Manhattan/test.correl");
   }
@@ -186,7 +185,7 @@ public class StatsCrossTabs {
    * @param log
    */
   public StatsCrossTabs(double[][] data, double[][] indeps, boolean[] dataToTest,
-                        String[] dataTitles, STAT_TYPE sType, boolean verbose, Logger log) {
+      String[] dataTitles, STAT_TYPE sType, boolean verbose, Logger log) {
     super();
     this.verbose = verbose;
     this.data = data;
@@ -214,9 +213,8 @@ public class StatsCrossTabs {
             double sig = Double.NaN;
 
             if (all || !complete.containsKey(j)) {
-              double[][] dataToCorrel =
-                  cleanNaNs(new double[][] {data[i], data[j]},
-                            new String[] {dataTitles[i], dataTitles[j]}, verbose, log);
+              double[][] dataToCorrel = cleanNaNs(new double[][] {data[i], data[j]},
+                  new String[] {dataTitles[i], dataTitles[j]}, verbose, log);
               double[] result;
               switch (sType) {
                 case PEARSON_CORREL:
@@ -266,9 +264,9 @@ public class StatsCrossTabs {
 
   public void dumpTables(String fullPathToOutputBase) {
     dump(ext.addToRoot(fullPathToOutputBase, "." + sType + "_" + VALUE_TYPE.STAT), dataTitles,
-         statisticTable, sType, VALUE_TYPE.STAT, log);
+        statisticTable, sType, VALUE_TYPE.STAT, log);
     dump(ext.addToRoot(fullPathToOutputBase, "." + sType + "_" + VALUE_TYPE.PVALUE), dataTitles,
-         sigTable, sType, VALUE_TYPE.PVALUE, log);
+        sigTable, sType, VALUE_TYPE.PVALUE, log);
 
   }
 
@@ -327,8 +325,8 @@ public class StatsCrossTabs {
     if (sType == STAT_TYPE.LIN_REGRESSION && indeps == null) {
       log.reportTimeWarning("Independent predictors were not provided for stat type " + sType);
     } else if (sType != STAT_TYPE.LIN_REGRESSION && indeps != null) {
-      log.reportTimeWarning("Independent predictors were provided for stat type " + sType
-                            + " and will be skipped");
+      log.reportTimeWarning(
+          "Independent predictors were provided for stat type " + sType + " and will be skipped");
       System.out.println("AHH john????");
       System.exit(1);
 

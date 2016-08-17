@@ -16,7 +16,7 @@ public class Sci2TenBase {
     String filename = "makeMePretty.txt";
 
     String usage = "\n" + "park.Sci2TenBase requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

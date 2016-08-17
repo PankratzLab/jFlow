@@ -18,7 +18,7 @@ import org.genvisis.stats.Rscript;
 public class SkatMetaPrimary {
 
   public static void additionalModels(String cohort, String phenosCommaDelimited, String snpInfo,
-                                      int qsubMem, double qsubWalltime) {
+      int qsubMem, double qsubWalltime) {
     String[] phenos;
     Vector<String> v;
 
@@ -41,7 +41,7 @@ public class SkatMetaPrimary {
   }
 
   public static void batch(String cohort, String genos, String phenoFilename, String snpInfo,
-                           int qsubMem, double qsubWalltime) {
+      int qsubMem, double qsubWalltime) {
     String phenoDir;
     String phenoRoot;
     String resultDir;
@@ -100,52 +100,43 @@ public class SkatMetaPrimary {
           foundGenos = true;
           foundSnpInfo = true;
           rCode = "library(\"skatMeta\")\n" + "setwd(\"" + resultDir + "\")\n" + "\n"
-                  + (currentSnpInfo.toLowerCase()
-                                   .endsWith(".rdata") ? "obj_name <- load(\"" + currentSnpInfo
-                                                         + "\")\n" + "SNPInfo <- get(obj_name)\n"
-                                                         + "rm(list=obj_name)\n" + "rm(obj_name)\n"
-                                                       : "SNPInfo <- read.csv(\"" + currentSnpInfo
-                                                         + "\", header=T, as.is=T)\n")
-                  + "\n"
+              + (currentSnpInfo.toLowerCase().endsWith(".rdata")
+                  ? "obj_name <- load(\"" + currentSnpInfo + "\")\n" + "SNPInfo <- get(obj_name)\n"
+                      + "rm(list=obj_name)\n" + "rm(obj_name)\n"
+                  : "SNPInfo <- read.csv(\"" + currentSnpInfo + "\", header=T, as.is=T)\n")
+              + "\n"
 
-                  + (genos.toLowerCase().endsWith(".rdata")
-                                                            ? "genoName <- load(\"" + currentGeno
-                                                              + "\")\n" + "Z <- get(genoName)\n"
-                                                              + "names <- colnames(Z)\n"
-                                                              + "for (i in 1:ncol(Z)) {\n"
-                                                              + "    names[i] <- paste(\"chr\", names[i], sep=\"\")\n"
-                                                              + "}\n"
-                                                            : "Z <- t(read.csv(\"" + currentGeno
-                                                              + "\", header=T, as.is=T, row.names=1))\n"
-                                                              + "names <- colnames(Z)\n"
-                                                              + "for (i in 1:ncol(Z)) {\n"
-                                                              + "    tmp <- names[i]\n"
-                                                              + "    if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
-                                                              + "        names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n"
-                                                              + "    }\n" + "}\n")
-                  + "colnames(Z) <- names\n" + "\n" + "pheno <- read.csv(\"" + phenoFilename
-                  + "\", header=T, as.is=T, row.names=1)\n" + "xphen <- na.omit(pheno)\n"
-                  + "merged <- merge(xphen, Z, by=\"row.names\")\n"
-                  + "mPheno <- merged[,1:ncol(pheno)+1]\n" + "names <- colnames(pheno)\n"
-                  + "if (length(names)>1) {\n" + "    formu <- paste(names[1], \"~\", names[2])\n"
-                  + "    for (i in 3:length(names)) {\n"
-                  + "        formu <- paste(formu, \"+\", names[i])\n" + "    }\n" + "} else {\n"
-                  + "    len <- length(mPheno)\n" + "    mPheno <- c(mPheno, rep(1, len))\n"
-                  + "    dim(mPheno) <- c(len, 2)\n" + "    mPheno <- as.data.frame(mPheno)\n"
-                  + "    colnames(mPheno) <- c(names[1], \"dummy\")\n"
-                  + "    formu <- paste(names[1], \"~ 1\")\n" + "}\n" + "\n"
-                  + "offset <- 1+ncol(pheno)\n" + "mGeno <- merged[,1:ncol(Z)+offset]\n" + "\n"
-                  + cohort + "_chr" + i
-                  + " <- skatCohort(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)\n"
-                  // + "results <- singlesnpMeta(" + cohort + "_chr" + i + ", SNPInfo=SNPInfo,
-                  // snpNames
-                  // = \"Name\", cohortBetas = TRUE)\n"
-                  + "results <- burdenMeta(" + cohort + "_chr" + i
-                  + ", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), SNPInfo=subset(SNPInfo, sc_nonsynSplice==TRUE), snpNames=\"SNP\", wts = 1)\n"
-                  + "write.table(results, \"" + cohort + "_chr" + i
-                  + "_beforeSave_results.csv\", sep=\",\", row.names = F)\n" + "save(" + cohort
-                  + "_chr" + i + ", file=\"" + cohort + "_chr" + i
-                  + ".RData\", compress=\"bzip2\")";
+              + (genos.toLowerCase().endsWith(".rdata")
+                  ? "genoName <- load(\"" + currentGeno + "\")\n" + "Z <- get(genoName)\n"
+                      + "names <- colnames(Z)\n" + "for (i in 1:ncol(Z)) {\n"
+                      + "    names[i] <- paste(\"chr\", names[i], sep=\"\")\n" + "}\n"
+                  : "Z <- t(read.csv(\"" + currentGeno + "\", header=T, as.is=T, row.names=1))\n"
+                      + "names <- colnames(Z)\n" + "for (i in 1:ncol(Z)) {\n"
+                      + "    tmp <- names[i]\n"
+                      + "    if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
+                      + "        names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n" + "    }\n"
+                      + "}\n")
+              + "colnames(Z) <- names\n" + "\n" + "pheno <- read.csv(\"" + phenoFilename
+              + "\", header=T, as.is=T, row.names=1)\n" + "xphen <- na.omit(pheno)\n"
+              + "merged <- merge(xphen, Z, by=\"row.names\")\n"
+              + "mPheno <- merged[,1:ncol(pheno)+1]\n" + "names <- colnames(pheno)\n"
+              + "if (length(names)>1) {\n" + "    formu <- paste(names[1], \"~\", names[2])\n"
+              + "    for (i in 3:length(names)) {\n"
+              + "        formu <- paste(formu, \"+\", names[i])\n" + "    }\n" + "} else {\n"
+              + "    len <- length(mPheno)\n" + "    mPheno <- c(mPheno, rep(1, len))\n"
+              + "    dim(mPheno) <- c(len, 2)\n" + "    mPheno <- as.data.frame(mPheno)\n"
+              + "    colnames(mPheno) <- c(names[1], \"dummy\")\n"
+              + "    formu <- paste(names[1], \"~ 1\")\n" + "}\n" + "\n"
+              + "offset <- 1+ncol(pheno)\n" + "mGeno <- merged[,1:ncol(Z)+offset]\n" + "\n" + cohort
+              + "_chr" + i
+              + " <- skatCohort(Z=mGeno, formula(formu), SNPInfo=SNPInfo, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)\n"
+              // + "results <- singlesnpMeta(" + cohort + "_chr" + i + ", SNPInfo=SNPInfo, snpNames
+              // = \"Name\", cohortBetas = TRUE)\n"
+              + "results <- burdenMeta(" + cohort + "_chr" + i
+              + ", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), SNPInfo=subset(SNPInfo, sc_nonsynSplice==TRUE), snpNames=\"SNP\", wts = 1)\n"
+              + "write.table(results, \"" + cohort + "_chr" + i
+              + "_beforeSave_results.csv\", sep=\",\", row.names = F)\n" + "save(" + cohort + "_chr"
+              + i + ", file=\"" + cohort + "_chr" + i + ".RData\", compress=\"bzip2\")";
 
 
           // consolidate won't run if it's not added
@@ -181,10 +172,10 @@ public class SkatMetaPrimary {
         commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save [%0]";
         // Files.qsub("checkObject", dir, -1, commands, iterations, qsubMem, qsubWalltime);
         Files.qsub(batchDir + "run_" + cohort, batchDir, -1, commands, iterations, qsubMem,
-                   qsubWalltime);
+            qsubWalltime);
         if (iterations.length == 0) {
-          new File(batchDir + "master.run_" + cohort).renameTo(new File(batchDir + "master.run_"
-                                                                        + cohort + ".bak"));
+          new File(batchDir + "master.run_" + cohort)
+              .renameTo(new File(batchDir + "master.run_" + cohort + ".bak"));
         }
       }
 
@@ -198,7 +189,7 @@ public class SkatMetaPrimary {
           }
         }
         Files.qsub(batchDir + "finishUpOnSB_" + cohort, commands, 60000,
-                   (int) Math.ceil(iterations.length / 2.0), 16);
+            (int) Math.ceil(iterations.length / 2.0), 16);
       } else {
         new File(batchDir + "finishUpOnSB_" + cohort).delete();
       }
@@ -214,7 +205,7 @@ public class SkatMetaPrimary {
         consolidate += (i == 0 ? "" : ", ") + ext.rootOf(iterations[i][0]);
         jobNamesWithAbsolutePaths.add(batchDir + "run_" + cohort + "_" + (i + 1) + ".qsub");
         jobSizes.add(Integer.MAX_VALUE
-                     - (int) new File(ext.replaceAllWith(genos, "#", (i + 1) + "")).length());
+            - (int) new File(ext.replaceAllWith(genos, "#", (i + 1) + "")).length());
       }
       consolidate += ")";
       v.add(consolidate);
@@ -222,16 +213,15 @@ public class SkatMetaPrimary {
       v.add("save(" + cohort + ", file=\"" + cohort + ".RData\", compress=\"bzip2\")");
       Files.writeList(Array.toStringArray(v), batchDir + "mergeRdataFiles.R");
       commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save " + batchDir
-                 + "mergeRdataFiles.R";
+          + "mergeRdataFiles.R";
       Files.qsub(batchDir + "run_mergeRdataFiles_" + cohort, commands, qsubMem * 4, qsubWalltime,
-                 1);
+          1);
       Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
-                         batchDir + "chunk_" + cohort, 8, true, null, -1, qsubMem, qsubWalltime);
+          batchDir + "chunk_" + cohort, 8, true, null, -1, qsubMem, qsubWalltime);
       Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
-                         batchDir + "chunkSB256_" + cohort, 16, true, "sb256", -1, qsubMem,
-                         qsubWalltime);
+          batchDir + "chunkSB256_" + cohort, 16, true, "sb256", -1, qsubMem, qsubWalltime);
       Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
-                         batchDir + "chunkSB_" + cohort, 16, true, "sb", -1, qsubMem, qsubWalltime);
+          batchDir + "chunkSB_" + cohort, 16, true, "sb", -1, qsubMem, qsubWalltime);
 
     } catch (IOException e) {
       e.printStackTrace();
@@ -239,7 +229,7 @@ public class SkatMetaPrimary {
   }
 
   private static void batchAdditionals(String phenoDirectory, String cohort, String snpInfo,
-                                       int qsubMem, double qsubWalltime) {
+      int qsubMem, double qsubWalltime) {
     String phenoDir;
     // String phenoRoot;
     String resultDir;
@@ -284,45 +274,43 @@ public class SkatMetaPrimary {
           // foundGenos = true;
           // foundSnpInfo = true;
           rCode = "library(\"skatMeta\")\n" + "setwd(\"" + resultDir + "\")\n" + "\n"
-                  + (currentSnpInfo.toLowerCase()
-                                   .endsWith(".rdata") ? "obj_name <- load(\"" + currentSnpInfo
-                                                         + "\")\n" + "SNPInfo <- get(obj_name)\n"
-                                                         + "rm(list=obj_name)\n" + "rm(obj_name)\n"
-                                                       : "SNPInfo <- read.csv(\"" + currentSnpInfo
-                                                         + "\", header=T, as.is=T)\n")
-                  + "\n"
+              + (currentSnpInfo.toLowerCase().endsWith(".rdata")
+                  ? "obj_name <- load(\"" + currentSnpInfo + "\")\n" + "SNPInfo <- get(obj_name)\n"
+                      + "rm(list=obj_name)\n" + "rm(obj_name)\n"
+                  : "SNPInfo <- read.csv(\"" + currentSnpInfo + "\", header=T, as.is=T)\n")
+              + "\n"
 
-                  + "cohortName <- load(\"" + resultDir + cohort + "_chr" + i + ".RData" + "\")\n"
-                  + "cohort <- get(cohortName)\n"
+              + "cohortName <- load(\"" + resultDir + cohort + "_chr" + i + ".RData" + "\")\n"
+              + "cohort <- get(cohortName)\n"
 
-                  // + "results <- singlesnpMeta(cohort, SNPInfo=SNPInfo, snpNames = \"Name\",
-                  // cohortBetas = TRUE)\n"
-                  // + "write.table(results, \"" + cohort + "_chr" + i + "_SingleSnp_results.csv\",
-                  // sep=\",\", row.names = F)\n"
-                  // + "results <- burdenMeta(" + cohort + "_chr" + i + ", aggregateBy=\"SKATgene\",
-                  // mafRange = c(0,0.05), SNPInfo=subset(SNPInfo, sc_nonsynSplice==TRUE),
-                  // snpNames=\"SNP\", wts = 1)\n"
-                  // + "write.table(results, \"" + cohort + "_chr" + i + "burden_results.csv\",
-                  // sep=\",\", row.names = F)\n"
-                  // + "results <- singlesnpMeta(cohort, SNPInfo=SNPInfo, snpNames = \"Name\",
-                  // cohortBetas = TRUE)\n"
-                  // + "write.table(results, \"" + cohort + "_chr" + i + "_SingleSnp_results.csv\",
-                  // sep=\",\", row.names = F)\n"
+              // + "results <- singlesnpMeta(cohort, SNPInfo=SNPInfo, snpNames = \"Name\",
+              // cohortBetas = TRUE)\n"
+              // + "write.table(results, \"" + cohort + "_chr" + i + "_SingleSnp_results.csv\",
+              // sep=\",\", row.names = F)\n"
+              // + "results <- burdenMeta(" + cohort + "_chr" + i + ", aggregateBy=\"SKATgene\",
+              // mafRange = c(0,0.05), SNPInfo=subset(SNPInfo, sc_nonsynSplice==TRUE),
+              // snpNames=\"SNP\", wts = 1)\n"
+              // + "write.table(results, \"" + cohort + "_chr" + i + "burden_results.csv\",
+              // sep=\",\", row.names = F)\n"
+              // + "results <- singlesnpMeta(cohort, SNPInfo=SNPInfo, snpNames = \"Name\",
+              // cohortBetas = TRUE)\n"
+              // + "write.table(results, \"" + cohort + "_chr" + i + "_SingleSnp_results.csv\",
+              // sep=\",\", row.names = F)\n"
 
-                  + "results <- singlesnpMeta(cohort, SNPInfo=SNPInfo_ExomeChipV5, snpNames = \"Name\", aggregateBy=\"SKATgene\", cohortBetas = TRUE)\n"
-                  + "write.table( results, \"SingleSNP_chr\"+(i)+\".csv\", sep=\",\", row.names = F)\n"
+              + "results <- singlesnpMeta(cohort, SNPInfo=SNPInfo_ExomeChipV5, snpNames = \"Name\", aggregateBy=\"SKATgene\", cohortBetas = TRUE)\n"
+              + "write.table( results, \"SingleSNP_chr\"+(i)+\".csv\", sep=\",\", row.names = F)\n"
 
-                  + "results <- burdenMeta(cohort, SNPInfo=subset(SNPInfo_ExomeChipV5, sc_nonsynSplice==TRUE), snpNames = \"Name\", aggregateBy=\"SKATgene\", mafRange = c(0,0.01), wts = 1)\n"
-                  + "write.table( results, \"T1Count_chr\"+(i)+\".csv\", sep=\",\", row.names = F)\n"
+              + "results <- burdenMeta(cohort, SNPInfo=subset(SNPInfo_ExomeChipV5, sc_nonsynSplice==TRUE), snpNames = \"Name\", aggregateBy=\"SKATgene\", mafRange = c(0,0.01), wts = 1)\n"
+              + "write.table( results, \"T1Count_chr\"+(i)+\".csv\", sep=\",\", row.names = F)\n"
 
-                  + "results <- burdenMeta(cohort, SNPInfo=subset(SNPInfo_ExomeChipV5, sc_nonsynSplice==TRUE), snpNames = \"Name\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1)\n"
-                  + "write.table( results, \"T5Count_chr\"+(i)+\".csv\", sep=\",\", row.names = F)\n"
+              + "results <- burdenMeta(cohort, SNPInfo=subset(SNPInfo_ExomeChipV5, sc_nonsynSplice==TRUE), snpNames = \"Name\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1)\n"
+              + "write.table( results, \"T5Count_chr\"+(i)+\".csv\", sep=\",\", row.names = F)\n"
 
-                  + "results <- skatMeta(cohort, SNPInfo=subset(SNPInfo_ExomeChipV5, sc_nonsynSplice==TRUE), snpNames = \"Name\", aggregateBy=\"SKATgene\", mafRange = c(0,0.01), wts = 1)\n"
-                  + "write.table( results, \"SKAT_T1_chr\"+(i)+\".csv\", sep=\",\", row.names = F)\n"
+              + "results <- skatMeta(cohort, SNPInfo=subset(SNPInfo_ExomeChipV5, sc_nonsynSplice==TRUE), snpNames = \"Name\", aggregateBy=\"SKATgene\", mafRange = c(0,0.01), wts = 1)\n"
+              + "write.table( results, \"SKAT_T1_chr\"+(i)+\".csv\", sep=\",\", row.names = F)\n"
 
-                  + "results <- skatMeta(cohort, SNPInfo=subset(SNPInfo_ExomeChipV5, sc_nonsynSplice==TRUE), snpNames = \"Name\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1)\n"
-                  + "write.table( results, \"SKAT_T5_chr\"+(i)+\".csv\", sep=\",\", row.names = F)\n"
+              + "results <- skatMeta(cohort, SNPInfo=subset(SNPInfo_ExomeChipV5, sc_nonsynSplice==TRUE), snpNames = \"Name\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1)\n"
+              + "write.table( results, \"SKAT_T5_chr\"+(i)+\".csv\", sep=\",\", row.names = F)\n"
 
 
           ;
@@ -346,11 +334,10 @@ public class SkatMetaPrimary {
       } else {
         commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save [%0]";
         Files.qsub(batchDir + "run_additionals", batchDir, -1, commands, iterations, qsubMem,
-                   qsubWalltime);
+            qsubWalltime);
         if (iterations.length == 0) {
-          new File(batchDir
-                   + "master.run_additionals").renameTo(new File(batchDir
-                                                                 + "master.run_additionals.bak"));
+          new File(batchDir + "master.run_additionals")
+              .renameTo(new File(batchDir + "master.run_additionals.bak"));
         }
       }
 
@@ -382,8 +369,7 @@ public class SkatMetaPrimary {
   }
 
   public static void batchMany(String cohort, String genos, String phenosCommaDelimited,
-                               String racesCommaDelimited, String snpInfo, int qsubMem,
-                               double qsubWalltime) {
+      String racesCommaDelimited, String snpInfo, int qsubMem, double qsubWalltime) {
     String[] phenos, races;
     Vector<String> v;
 
@@ -395,8 +381,8 @@ public class SkatMetaPrimary {
       for (String race : races) {
         try {
           batch(cohort + "_" + race + "_" + pheno, ext.replaceAllWith(genos, "[%race]", race),
-                ext.pwd() + cohort + "_" + race + "_" + pheno + ".csv", snpInfo, qsubMem,
-                qsubWalltime);
+              ext.pwd() + cohort + "_" + race + "_" + pheno + ".csv", snpInfo, qsubMem,
+              qsubWalltime);
         } catch (Exception e) {
           System.err.println("Error - failed to script up " + pheno + "/" + race);
         }
@@ -425,7 +411,7 @@ public class SkatMetaPrimary {
     for (String pheno : phenos) {
       for (String race : races) {
         if (Files.exists(cohort + "_" + race + "_" + pheno + "/batchFiles/finishUpOnSB_" + cohort
-                         + "_" + race + "_" + pheno)) {
+            + "_" + race + "_" + pheno)) {
           v.add("cd " + cohort + "_" + race + "_" + pheno + "/batchFiles/");
           v.add("qsub -q sb finishUpOnSB_" + cohort + "_" + race + "_" + pheno);
           v.add("cd ../../");
@@ -454,8 +440,8 @@ public class SkatMetaPrimary {
       for (String race : races) {
         v.add("cd " + cohort + "_" + race + "_" + pheno + "/results/");
         v.add("tar -zcvf ../../" + cohort + "_" + race + "_" + pheno + "_"
-              + ext.getDate(new Date(), "") + ".tar.gz " + cohort + "_" + race + "_" + pheno
-              + "*.RData");
+            + ext.getDate(new Date(), "") + ".tar.gz " + cohort + "_" + race + "_" + pheno
+            + "*.RData");
         v.add("cd ../../");
         v.add("");
       }
@@ -484,21 +470,20 @@ public class SkatMetaPrimary {
     qsubWalltime = 2;
 
     String usage = "\n" + "gwas.SkatMetaPrimary requires 4 arguments\n"
-                   + "   (1) cohort name (i.e. cohort=" + cohort + " (not the default))\n"
-                   + "   (2) genotype file name (i.e. geno=" + genos + " (not the default))\n"
-                   + "   (3) phenotype file name (i.e. pheno=" + pheno + " (not the default))\n"
-                   + "   (4) snpInfo file name (i.e. snpInfo=" + snpInfo + " (not the default))\n"
-                   + "   (5) qsub memory in megabytes (i.e. qsubmem=" + qsubMem + " (default))\n"
-                   + "   (6) qsub walltime in hours (i.e. qsubwalltime=" + qsubWalltime
-                   + " (default))\n"
-                   + "   (7) (optional) phenotypes to run (i.e. phenos=CRP,ICAM1,TNFA (not the default))\n"
-                   + "   (8) (optional) races to run (i.e. races=" + races + " (default))\n"
-                   + " ( the final optional parameters require a fixed phenotype format of [cohort name]_[race]_[phenotype]_.csv )\n"
-                   + " ( as well as a genotype file with the format of regular_filename_[%race]_chr#.csv )\n"
-                   + "   (9) (optional) run additional models for Rdata files (i.e. -additionals  (not the default))\n"
-                   + " OR\n"
-                   + "   (9) (optional) rename Rdata files with this insert (i.e. rename=42PCs (not the default))\n"
-                   + "";
+        + "   (1) cohort name (i.e. cohort=" + cohort + " (not the default))\n"
+        + "   (2) genotype file name (i.e. geno=" + genos + " (not the default))\n"
+        + "   (3) phenotype file name (i.e. pheno=" + pheno + " (not the default))\n"
+        + "   (4) snpInfo file name (i.e. snpInfo=" + snpInfo + " (not the default))\n"
+        + "   (5) qsub memory in megabytes (i.e. qsubmem=" + qsubMem + " (default))\n"
+        + "   (6) qsub walltime in hours (i.e. qsubwalltime=" + qsubWalltime + " (default))\n"
+        + "   (7) (optional) phenotypes to run (i.e. phenos=CRP,ICAM1,TNFA (not the default))\n"
+        + "   (8) (optional) races to run (i.e. races=" + races + " (default))\n"
+        + " ( the final optional parameters require a fixed phenotype format of [cohort name]_[race]_[phenotype]_.csv )\n"
+        + " ( as well as a genotype file with the format of regular_filename_[%race]_chr#.csv )\n"
+        + "   (9) (optional) run additional models for Rdata files (i.e. -additionals  (not the default))\n"
+        + " OR\n"
+        + "   (9) (optional) rename Rdata files with this insert (i.e. rename=42PCs (not the default))\n"
+        + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -543,7 +528,7 @@ public class SkatMetaPrimary {
   }
 
   public static void renameMany(String cohort, String phenosCommaDelimited,
-                                String racesCommaDelimited, String insert) {
+      String racesCommaDelimited, String insert) {
     String[] phenos, races;
 
     phenos = phenosCommaDelimited.split(",");
@@ -551,10 +536,8 @@ public class SkatMetaPrimary {
 
     for (String pheno : phenos) {
       for (String race : races) {
-        new File(cohort + "_" + race + "_"
-                 + pheno + ".RData")
-                                    .renameTo(new File(cohort + insert + "_" + race + "_" + pheno
-                                                       + ".RData"));
+        new File(cohort + "_" + race + "_" + pheno + ".RData")
+            .renameTo(new File(cohort + insert + "_" + race + "_" + pheno + ".RData"));
       }
     }
   }

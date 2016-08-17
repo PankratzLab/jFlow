@@ -34,7 +34,7 @@ public class SampleQC {
   private static double EXCLUDE_LRR_SD_THRESHOLD = 0.5;
 
   private static void appendToSampleData(Project proj, Hashtable<String, String> hashtable,
-                                         String[] header, int numQ, boolean justQuantiles) {
+      String[] header, int numQ, boolean justQuantiles) {
     SampleData sampledata = proj.getSampleData(0, false);
     proj.getLog()
         .reportTimeInfo("Adding " + header.length + " columns to sample data based on sample QC");
@@ -42,7 +42,7 @@ public class SampleQC {
   }
 
   private static String[] developMetricsHeader(Quantiles[] quantiles, String[] titles, int numQ,
-                                               boolean justQuantiles) {
+      boolean justQuantiles) {
     String[] qcHeader = new String[justQuantiles ? quantiles.length : quantiles.length * 2];
     int curIndex = 0;
     for (int i = 0; i < quantiles.length; i++) {
@@ -57,7 +57,7 @@ public class SampleQC {
   }
 
   private static String developMetricsLine(int sampleIndex, Quantiles[] quantiles,
-                                           double[][] variableDomMatrix, boolean justQuantiles) {
+      double[][] variableDomMatrix, boolean justQuantiles) {
     String line = "";
     for (int i = 0; i < quantiles.length; i++) {
       line += (i == 0 ? "" : "\t");
@@ -74,8 +74,8 @@ public class SampleQC {
    */
   private static String getClassForQuantile(Quantiles quantiles, String qcTitle, int numQ) {
     String thisClass = "CLASS=QUANTILE_" + numQ + "_" + qcTitle;
-    int[] uniqLabels =
-        Array.toIntArray(Array.unique(Array.toStringArray(quantiles.getQuantileMembershipAsRoundedInt())));
+    int[] uniqLabels = Array.toIntArray(
+        Array.unique(Array.toStringArray(quantiles.getQuantileMembershipAsRoundedInt())));
     double[] uniqQs =
         Array.toDoubleArray(Array.unique(Array.toStringArray(quantiles.getQuantileMembership())));
     int[] orderLabels = Sort.quicksort(uniqLabels);
@@ -91,9 +91,9 @@ public class SampleQC {
   }
 
   public static SampleQC loadSampleQC(Project proj, boolean generate, boolean gcCorrectedLrrSd,
-                                      String duplicatesSetFile) {
+      String duplicatesSetFile) {
     return loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS, generate,
-                        gcCorrectedLrrSd, duplicatesSetFile);
+        gcCorrectedLrrSd, duplicatesSetFile);
   }
 
   /**
@@ -106,8 +106,8 @@ public class SampleQC {
    * @return
    */
   public static SampleQC loadSampleQC(Project proj, String sampleColumnName,
-                                      String[] qcTitlesToLoad, boolean generateSampleQC,
-                                      boolean gcCorrectedLrrSd, String duplicatesSetFile) {
+      String[] qcTitlesToLoad, boolean generateSampleQC, boolean gcCorrectedLrrSd,
+      String duplicatesSetFile) {
     // String lrrSdToLoad = proj.getFilename(proj.SAMPLE_QC_FILENAME);
     String lrrSdToLoad = proj.SAMPLE_QC_FILENAME.getValue();
     SampleQC sampleQC = null;
@@ -131,12 +131,12 @@ public class SampleQC {
         if (Array.countIf(indicesToLoad, -1) > 0 || sampleColumn < 0) {
           proj.getLog()
               .reportTimeError("Could not find all desired columns in qc file " + lrrSdToLoad);
-          proj.getLog().reportTimeError("Consider re-creating " + lrrSdToLoad
-                                        + " if sample qc has been updated");
+          proj.getLog().reportTimeError(
+              "Consider re-creating " + lrrSdToLoad + " if sample qc has been updated");
 
         } else if (!verifyAllProjectSamples(proj, lrrSdToLoad, sampleColumn)) {
-          proj.getLog().reportTimeError("Could not find all of the projects samples in qc file "
-                                        + lrrSdToLoad);
+          proj.getLog().reportTimeError(
+              "Could not find all of the projects samples in qc file " + lrrSdToLoad);
         } else {
           sampleQC = new SampleQC(proj, qcTitlesToLoad, gcCorrectedLrrSd);
 
@@ -149,10 +149,8 @@ public class SampleQC {
                 try {
                   data = Double.parseDouble(line[indicesToLoad[i]]);
                 } catch (NumberFormatException e) {
-                  proj.getLog()
-                      .reportTimeWarning("line " + Array.toStr(line)
-                                         + " contained an invalid number for qc column "
-                                         + qcTitlesToLoad[i]);
+                  proj.getLog().reportTimeWarning("line " + Array.toStr(line)
+                      + " contained an invalid number for qc column " + qcTitlesToLoad[i]);
                 }
                 sampleQC.addToMatrix(sample, i, data);
               }
@@ -211,19 +209,19 @@ public class SampleQC {
     usage += "   (1) filename (i.e. proj=" + filename + " (default))\n" + "";
     usage +=
         "   (2) number of quantiles to divide the sample QC metrics into (5 = quintiles, 100 = percentiles) (i.e. numQ="
-             + numQ + " (default))\n" + "";
+            + numQ + " (default))\n" + "";
     usage += "   (3) add only class (quantiled) qc data to sample data  (i.e. justQuantiles="
-             + justQuantiles + " (default))\n" + "";
+        + justQuantiles + " (default))\n" + "";
     usage +=
         "   (4) if a pc file is available, add this many pcs to the sample data file , must be set to >=1 to be added  (i.e. numPCs="
-             + numPCs + " (default,no addition))\n" + "";
+            + numPCs + " (default,no addition))\n" + "";
     usage += "   (5) use GC corrected LRR SD for filtering (i.e. gcCorrectedLrrSd="
-             + gcCorrectedLrrSd + " (default))\n" + "";
+        + gcCorrectedLrrSd + " (default))\n" + "";
     usage +=
         "   (6) duplicates set file with 3 columns (FID IID DuplicateID) to ID duplicates, also adds use columns  (i.e. duplicatesSetFile=\\quality_control\\genome\\plink.genome_duplicatesSet.dat (not the default))\n"
-             + "";
+            + "";
     usage += "   (7) replace fid and iid with pedigree values (i.e. correctFidIids="
-             + correctFidIids + " (default))\n" + "";
+        + correctFidIids + " (default))\n" + "";
 
     usage +=
         "   NOTE: the projects sample qc file must be present, for the qc metrics to be added to sample data";
@@ -264,15 +262,15 @@ public class SampleQC {
     try {
       Project proj = new Project(filename, false);
       parseAndAddToSampleData(proj, numQ, numPCs, justQuantiles, gcCorrectedLrrSd,
-                              duplicatesSetFile, correctFidIids);
+          duplicatesSetFile, correctFidIids);
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
   public static void parseAndAddToSampleData(Project proj, int numQ, int numPCs,
-                                             boolean justQuantiles, boolean gcCorrectedLrrSd,
-                                             String duplicatesSetFile, boolean correctFidIids) {
+      boolean justQuantiles, boolean gcCorrectedLrrSd, String duplicatesSetFile,
+      boolean correctFidIids) {
     // TODO Make gcCorrectedLrrSd functional, put FID/IID in appropriate columns (2&3?)
     SampleQC sampleQC = loadSampleQC(proj, false, gcCorrectedLrrSd, duplicatesSetFile);
     sampleQC.addQCsToSampleData(numQ, numPCs, justQuantiles);
@@ -285,7 +283,7 @@ public class SampleQC {
   }
 
   private static boolean verifyAllProjectSamples(Project proj, String lrrSdToLoad,
-                                                 int sampleColumn) {
+      int sampleColumn) {
     String[] projSamples = proj.getSamples();
     String[] fileSamples =
         HashVec.loadFileToStringArray(lrrSdToLoad, false, new int[] {sampleColumn}, false);
@@ -351,10 +349,8 @@ public class SampleQC {
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
         if (line.length != 3) {
-          proj.getLog()
-              .reportTimeError("file \"" + duplicatesSetFile
-                               + "\" contains at least one line that is not 3 columns: "
-                               + Array.toStr(line));
+          proj.getLog().reportTimeError("file \"" + duplicatesSetFile
+              + "\" contains at least one line that is not 3 columns: " + Array.toStr(line));
           return;
         }
         String fidiid = line[0] + "\t" + line[1];
@@ -370,8 +366,8 @@ public class SampleQC {
           }
           dupeSet.add(index);
         } catch (NullPointerException npe) {
-          proj.getLog().reportTimeError("FID/IID pair (" + fidiid
-                                        + ") in duplicates missing from project samples");
+          proj.getLog().reportTimeError(
+              "FID/IID pair (" + fidiid + ") in duplicates missing from project samples");
         }
       }
       checkDuplicates = true;
@@ -406,7 +402,7 @@ public class SampleQC {
       if (callrate && lrr_sd && qcMatrix[callrateIndex][i] < CONTAM_CALLRATE_THRESHOLD
           && qcMatrix[lrr_sdIndex][i] < CONTAM_LRR_SD_THRESHOLD) {
         if (addToExcludes(i, "Possible Contamination (LRR_SD < " + CONTAM_LRR_SD_THRESHOLD
-                             + ", CALLRATE < " + CONTAM_CALLRATE_THRESHOLD + ")")) {
+            + ", CALLRATE < " + CONTAM_CALLRATE_THRESHOLD + ")")) {
           numExcluded++;
         }
       }
@@ -469,8 +465,8 @@ public class SampleQC {
           mzTwinIds[sampleIndex] = mzTwinId;
         }
       } catch (NullPointerException npe) {
-        proj.getLog().reportTimeError("Sample " + ped.getiDNA(i)
-                                      + " exists in Pedigree but not in Project samples");
+        proj.getLog().reportTimeError(
+            "Sample " + ped.getiDNA(i) + " exists in Pedigree but not in Project samples");
       }
     }
     return true;
@@ -530,7 +526,7 @@ public class SampleQC {
     }
 
     proj.getLog().reportTime("Calculated use_cnvs column, dropping " + numLowIntensity
-                             + " low quality intensity samples");
+        + " low quality intensity samples");
   }
 
   public boolean correctFidIidCols() {
@@ -601,7 +597,7 @@ public class SampleQC {
       header.add("mzTwinID");
     }
     return Array.combine(header.toArray(new String[] {}),
-                         developMetricsHeader(quantiles, qctitles, numQ, justQuantiles));
+        developMetricsHeader(quantiles, qctitles, numQ, justQuantiles));
   }
 
   private int getCallrateIndex() {
@@ -621,7 +617,7 @@ public class SampleQC {
 
   private int getLrr_sdIndex() {
     return gcCorrectedLrrSd ? ext.indexOfStr("LRR_SD_Post_Correction", getQctitles())
-                            : ext.indexOfStr("LRR_SD", getQctitles());
+        : ext.indexOfStr("LRR_SD", getQctitles());
   }
 
   public double[][] getQcMatrix() {
@@ -643,8 +639,8 @@ public class SampleQC {
     int lrr_sdIndex = getLrr_sdIndex();
 
     if (callrateIndex == -1 && lrr_sdIndex == -1) {
-      proj.getLog()
-          .reportTimeWarning("No callrates or LRR SDs found, duplicates will not be preferentially selected");
+      proj.getLog().reportTimeWarning(
+          "No callrates or LRR SDs found, duplicates will not be preferentially selected");
     }
 
     for (HashSet<Integer> dupeSet : duplicateSets.values()) {
@@ -659,12 +655,12 @@ public class SampleQC {
           if (!mzTwinIds[compIndex].equals(".")) {
             // Always keep MZ Twins
             if (removeFromUses(index, "Duplicate of sample marked as MZ Twin")) {
-              proj.getLog().reportTimeWarning("Sample " + samples[index]
-                                              + " is duplicate of MZ Twin and was dropped");
+              proj.getLog().reportTimeWarning(
+                  "Sample " + samples[index] + " is duplicate of MZ Twin and was dropped");
             }
           } else if (callrateIndex != -1 && !Double.isNaN(qcMatrix[callrateIndex][index])
-                     && !Double.isNaN(qcMatrix[callrateIndex][compIndex])
-                     && qcMatrix[callrateIndex][index] != qcMatrix[callrateIndex][compIndex]) {
+              && !Double.isNaN(qcMatrix[callrateIndex][compIndex])
+              && qcMatrix[callrateIndex][index] != qcMatrix[callrateIndex][compIndex]) {
             // Otherwise, if samples have non-equal callrates, keep higher callrate
             if (qcMatrix[callrateIndex][index] < qcMatrix[callrateIndex][compIndex]) {
               removeFromUses(index, "Low callrate Duplicate");
@@ -672,8 +668,8 @@ public class SampleQC {
               removeFromUses(compIndex, "Low callrate Duplicate");
             }
           } else if (lrr_sdIndex != -1 && !Double.isNaN(qcMatrix[lrr_sdIndex][index])
-                     && !Double.isNaN(qcMatrix[lrr_sdIndex][compIndex])
-                     && qcMatrix[lrr_sdIndex][index] != qcMatrix[lrr_sdIndex][compIndex]) {
+              && !Double.isNaN(qcMatrix[lrr_sdIndex][compIndex])
+              && qcMatrix[lrr_sdIndex][index] != qcMatrix[lrr_sdIndex][compIndex]) {
             // Otherwise, if samples have non-equal LRR_SDs, keep lower LRR_SD
             if (qcMatrix[lrr_sdIndex][index] > qcMatrix[lrr_sdIndex][compIndex]) {
               removeFromUses(index, "High LRR_SD Duplicate");
@@ -713,8 +709,8 @@ public class SampleQC {
     qcsAdded = qctitles.length * samples.length;
 
     if (gcCorrectedLrrSd && getLrr_sdIndex() == -1) {
-      proj.getLog()
-          .reportTimeError("GC corrected LRR SD is missing, run again without selecting GC corrected LRR SD or after regenerating Sample QC file with GC correction");
+      proj.getLog().reportTimeError(
+          "GC corrected LRR SD is missing, run again without selecting GC corrected LRR SD or after regenerating Sample QC file with GC correction");
       return -1;
     }
 

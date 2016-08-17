@@ -262,7 +262,7 @@ public class ForestPlot {
       float beta = ext.isValidDouble(betaVal) ? Float.parseFloat(betaVal) : 0.0f;
       float stderr = ext.isValidDouble(seVal) ? Float.parseFloat(seVal) : 0.0f;
       studies.add(new StudyData(ext.replaceAllWith(studyName, REPLACEMENTS_FOOLISHLY_HARD_CODED),
-                                beta, stderr, 0, PlotPoint.FILLED_CIRCLE));
+          beta, stderr, 0, PlotPoint.FILLED_CIRCLE));
     }
     return studies;
   }
@@ -411,9 +411,8 @@ public class ForestPlot {
 
       BufferedReader dataReader;
       dataReader = Files.getReader(fileMap.getKey(), false, // not a jar file
-                                   true, // verbose mode on
-                                   log, false // don't kill the whole process, esp. if we're running
-                                              // a GUI
+          true, // verbose mode on
+          log, false // don't kill the whole process, esp. if we're running a GUI
       );
       if (dataReader == null) {
         continue;
@@ -433,7 +432,7 @@ public class ForestPlot {
           hdr = header.trim().split(delimiter);
         }
         int idIndex = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES}, hdr, false, true,
-                                       false, false)[0];
+            false, false)[0];
 
         for (ForestInput inputData : fileMap.getValue()) {
           if (Thread.interrupted()) {
@@ -452,9 +451,8 @@ public class ForestPlot {
         }
         while (dataReader.ready() && !Thread.interrupted()) {
           String readLine = dataReader.readLine();
-          String readData[] =
-              delimiter.equals(",") ? ext.splitCommasIntelligently(readLine, true, log)
-                                    : readLine.split(delimiter);
+          String readData[] = delimiter.equals(",")
+              ? ext.splitCommasIntelligently(readLine, true, log) : readLine.split(delimiter);
           String markerName = readData[idIndex];
           for (ForestInput inputData : fileMap.getValue()) {
             if (Thread.interrupted()) {
@@ -477,7 +475,7 @@ public class ForestPlot {
 
       if (!atleastOneStudy) {
         log.reportError("Not able to find data for file '" + fileMap.getKey()
-                        + "'. Please make sure the given markers are correct and included in data file.");
+            + "'. Please make sure the given markers are correct and included in data file.");
       }
 
 
@@ -486,12 +484,11 @@ public class ForestPlot {
 
   }
 
-  private void mapMarkersToCol(ForestInput data, String hdr) throws RuntimeException,
-                                                             InterruptedException {
+  private void mapMarkersToCol(ForestInput data, String hdr)
+      throws RuntimeException, InterruptedException {
     String delim = data.file.toLowerCase().endsWith(".csv") ? ",!" : ext.determineDelimiter(hdr);
-    String[] dataFileHeaders =
-        delim.startsWith(",") ? ext.splitCommasIntelligently(hdr, delim.endsWith("!"), log)
-                              : hdr.trim().split(delim);
+    String[] dataFileHeaders = delim.startsWith(",")
+        ? ext.splitCommasIntelligently(hdr, delim.endsWith("!"), log) : hdr.trim().split(delim);
     for (int i = 0; i < dataFileHeaders.length; i++) {
       for (int j = 0; j < BETA_META_HEADERS.length; j++) {
         if (dataFileHeaders[i].toLowerCase().equals(BETA_META_HEADERS[j])) {
@@ -508,14 +505,15 @@ public class ForestPlot {
             data.addStudy(dataFileHeaders[i].split("\\.")[1], i);
           }
         } else {
-          throw new RuntimeException("Malformed data file: SE is not present after Beta for: "
-                                     + dataFileHeaders[i]);
+          throw new RuntimeException(
+              "Malformed data file: SE is not present after Beta for: " + dataFileHeaders[i]);
         }
       }
     }
     if (data.metaIndicies == null) {
-      log.reportError("Error - no overall beta/se pairing or effect/stderr pairing was found in file "
-                      + data.file);
+      log.reportError(
+          "Error - no overall beta/se pairing or effect/stderr pairing was found in file "
+              + data.file);
     }
     dataFileHeaders = null;
   }
@@ -543,7 +541,7 @@ public class ForestPlot {
               }
             }
             markerNames.add(new ForestInput(line[0], line.length > 3 ? line[3] : line[0], file,
-                                            line.length > 2 ? line[2] : ""));
+                line.length > 2 ? line[2] : ""));
           } else if (line.length == 1) {
             markerNames.add(new ForestInput(line[0], line[0], "", ""));
           }
@@ -558,7 +556,7 @@ public class ForestPlot {
     }
 
     return markerReader == null || Thread.interrupted() ? new LinkedHashSet<ForestInput>()
-                                                        : markerNames;
+        : markerNames;
   }
 
   protected void reloadData() throws InterruptedException {
@@ -590,7 +588,7 @@ public class ForestPlot {
     String marker, filename, dataFile;
     int count = 1;
     String root = (proj == null ? ext.parseDirectoryOfFile(getMarkerFileName())
-                                : proj.PROJECT_DIRECTORY.getValue());
+        : proj.PROJECT_DIRECTORY.getValue());
     root = ext.verifyDirFormat(root);
     if (subdir != null && !subdir.equals("")) {
       root += subdir;
@@ -642,7 +640,7 @@ public class ForestPlot {
     getCurrentMetaStudy().setSort(isSortedDisplay(), getSortOrder());
     if (getCurrentMetaStudy() == null) {
       String msg = "Error - could not set index to " + index
-                   + " since the data did not load properly; check to see if any results files are missing";
+          + " since the data did not load properly; check to see if any results files are missing";
       if (log != null) {
         log.reportError(msg);
       } else {
@@ -775,7 +773,7 @@ class MetaStudy {
 
   public float[] getMetaConf(boolean odds) {
     return odds ? new float[] {(float) Math.exp(metaConf[0]), (float) Math.exp(metaConf[1])}
-                : metaConf;
+        : metaConf;
   }
 
   public float getMetaStderr(boolean odds) {
@@ -843,9 +841,8 @@ class MetaStudy {
   }
 
   public ArrayList<StudyData> getStudies() {
-    return shouldSort ? (sortOrder == null || sortOrder.isEmpty() ? getSorted()
-                                                                  : getSorted(sortOrder))
-                      : studies;
+    return shouldSort
+        ? (sortOrder == null || sortOrder.isEmpty() ? getSorted() : getSorted(sortOrder)) : studies;
   }
 
   public void setSort(boolean sortedDisplay, ArrayList<String> sortOrder) {
@@ -901,7 +898,7 @@ class StudyData {
 
   public float[] getConfInterval(boolean odds) {
     return odds ? new float[] {(float) Math.exp(confInterval[0]), (float) Math.exp(confInterval[1])}
-                : confInterval;
+        : confInterval;
   }
 
   public String getDisplayLabel() {

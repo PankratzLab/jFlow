@@ -79,10 +79,10 @@ class CNVregion {
   @Override
   public String toString() {
     return sample + "\t" + famID + "\t" + indID + "\t" + chr + "\t" + start + "\t" + stop + "\t"
-           + type + "\t" + countMarkers + "\t"
-           + ext.formDeci((double) countHet / (double) countCalled, 3) + "\t"
-           + ext.formDeci((double) baf15 / (double) countValidBAF, 3) + "\t"
-           + ext.formDeci((double) baf25 / (double) countValidBAF, 3); // countHet+"\t"+countCalled+"\t"+
+        + type + "\t" + countMarkers + "\t"
+        + ext.formDeci((double) countHet / (double) countCalled, 3) + "\t"
+        + ext.formDeci((double) baf15 / (double) countValidBAF, 3) + "\t"
+        + ext.formDeci((double) baf25 / (double) countValidBAF, 3); // countHet+"\t"+countCalled+"\t"+
   }
 }
 
@@ -150,8 +150,8 @@ public class CountHets {
 
     try {
       writer = new PrintWriter(new FileWriter(dir + filename + "_hetCounts.xln"));
-      writer.println(Array.toStr(EXPECTED_HEADER)
-                     + "\t#Markers\t%CalledHet\t%0.15<BAF,0.85\t%0.25<BAF,0.75");
+      writer.println(
+          Array.toStr(EXPECTED_HEADER) + "\t#Markers\t%CalledHet\t%0.15<BAF,0.85\t%0.25<BAF,0.75");
       for (int i = 0; i < hashKeys.size(); i++) {
         v = hash.get(hashKeys.elementAt(i));
         try {
@@ -161,7 +161,7 @@ public class CountHets {
           for (int j = 0; j < CNV_SUFFIXES.length; j++) {
             if (!line[j].endsWith(CNV_SUFFIXES[j])) {
               System.err.println("Error - expecting column " + (j + 1) + " to end in "
-                                 + CNV_SUFFIXES[j] + " (found " + line[j] + ")");
+                  + CNV_SUFFIXES[j] + " (found " + line[j] + ")");
               problem = true;
             }
           }
@@ -177,7 +177,7 @@ public class CountHets {
           reader.close();
         } catch (FileNotFoundException fnfe) {
           System.err.println("Error: file \"" + cnvDirectory + hashKeys.elementAt(i)
-                             + "\" not found in current directory");
+              + "\" not found in current directory");
           System.exit(1);
         } catch (IOException ioe) {
           System.err.println("Error reading file \"" + cnvDirectory + hashKeys.elementAt(i) + "\"");
@@ -203,8 +203,8 @@ public class CountHets {
     String filename = "chr14.cnv";
 
     String usage = "\\n" + "park.cnv.CountHets requires 0-1 arguments\n"
-                   + "   (1) directory (i.e. dir=" + dir + " (default; use dir=./ for pwd))\n"
-                   + "   (2) filename (i.e. file=" + filename + " (default))\n" + "";
+        + "   (1) directory (i.e. dir=" + dir + " (default; use dir=./ for pwd))\n"
+        + "   (2) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

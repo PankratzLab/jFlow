@@ -26,9 +26,8 @@ public class CheckForLD {
   public static final String DBSNP_LOCAL = "6K_b129.bcp";
   public static final String[] LD_HEADER =
       {"L1", "L2", "D'", "LOD", "r^2", "CIlow", "CIhi", "Dist", "T-int"};
-  public static final String[] CHECK_HEADER =
-      {"#", "Name", "Position", "ObsHET", "PredHET", "HWpval", "%Geno", "FamTrio", "MendErr", "MAF",
-       "Alleles", "Rating"};
+  public static final String[] CHECK_HEADER = {"#", "Name", "Position", "ObsHET", "PredHET",
+      "HWpval", "%Geno", "FamTrio", "MendErr", "MAF", "Alleles", "Rating"};
   public static final double DEFAULT_MAX_DPRIME = 0.7;
   public static final double DEFAULT_R2 = 0.3;
 
@@ -39,7 +38,7 @@ public class CheckForLD {
       writer = new PrintWriter(new FileWriter(root + checkDir + prefix + "_haplo.bat"));
       for (int chr = 1; chr <= 22; chr++) {
         writer.println("java -jar Haploview.jar -nogui -pedfile " + prefix + ext.chrome(chr)
-                       + ".pre -info " + prefix + ext.chrome(chr) + ".info -check -dprime");
+            + ".pre -info " + prefix + ext.chrome(chr) + ".info -check -dprime");
       }
       writer.close();
 
@@ -62,8 +61,8 @@ public class CheckForLD {
 
     new File(root + checkDir).mkdirs();
     for (int i = start; i <= stop; i++) {
-      markersByChrome.put(i + "", data =
-          new LinkageMap(root + "map" + ext.chrome(i) + ".dat").getMarkerNames());
+      markersByChrome.put(i + "",
+          data = new LinkageMap(root + "map" + ext.chrome(i) + ".dat").getMarkerNames());
       for (String element : data) {
         markerPositions.put(element, "-1");
       }
@@ -99,11 +98,11 @@ public class CheckForLD {
           line = markerPositions.get(element).split("[\\s]+");
           if (line[0].equals("-1")) {
             log.reportError("Error - '" + element + "' is supposed to be on chromosome " + i
-                            + ", but was not found in the dbSNP database");
+                + ", but was not found in the dbSNP database");
             writer.println(element + "\t0");
           } else if (!line[0].equals(i + "")) {
             log.reportError("Error - '" + element + "' was supposed to be on chromosome " + i
-                            + ", but the dbSNP database places it on chr " + line[0]);
+                + ", but the dbSNP database places it on chr " + line[0]);
             writer.println(element + "\t0");
           } else {
             writer.println(element + "\t" + line[1]);
@@ -119,12 +118,12 @@ public class CheckForLD {
       // LDdatabase.MASTER_HAPMAP_ROOT used to be hard coded as
       // /home/npankrat/NCBI/HapMap/hapmap-ceu-chr"+i
       CmdLine.run("plink --bfile " + LDdatabase.MASTER_HAPMAP_ROOT + " --extract hapmap" + chrome
-                  + ".info --missing-phenotype 0 --recode --out hapmap" + chrome, root + checkDir);
+          + ".info --missing-phenotype 0 --recode --out hapmap" + chrome, root + checkDir);
       HapMapParser.plinkMapToHaploviewInfo(root + checkDir + "hapmap" + chrome + ".map",
-                                           root + checkDir + "hapmap" + chrome + ".info", log);
+          root + checkDir + "hapmap" + chrome + ".info", log);
       new File(root + checkDir + "hapmap" + chrome + ".pre").delete();
-      new File(root + checkDir + "hapmap" + chrome
-               + ".ped").renameTo(new File(root + checkDir + "hapmap" + chrome + ".pre"));
+      new File(root + checkDir + "hapmap" + chrome + ".ped")
+          .renameTo(new File(root + checkDir + "hapmap" + chrome + ".pre"));
       new File(root + checkDir + "hapmap" + chrome + ".map").delete();
       new File(root + checkDir + "hapmap" + chrome + ".log").delete();
       new File(root + checkDir + ".pversion").delete();
@@ -168,7 +167,7 @@ public class CheckForLD {
         writer.close();
       } catch (FileNotFoundException fnfe) {
         log.reportError("Error: file \"" + dir + "re_chrom" + ext.chrome(i) + ".pre"
-                        + "\" not found in current directory");
+            + "\" not found in current directory");
         return;
       } catch (IOException ioe) {
         log.reportError("Error reading file \"" + dir + "re_chrom" + ext.chrome(i) + ".pre" + "\"");
@@ -177,8 +176,8 @@ public class CheckForLD {
     }
 
     for (int i = start; i <= stop; i++) {
-      markersByChrome.put(i + "", data =
-          new LinkageMap(dir + "map" + ext.chrome(i) + ".dat").getMarkerNames());
+      markersByChrome.put(i + "",
+          data = new LinkageMap(dir + "map" + ext.chrome(i) + ".dat").getMarkerNames());
       for (String element : data) {
         markerPositions.put(element, "-1");
       }
@@ -214,11 +213,11 @@ public class CheckForLD {
           line = markerPositions.get(element).split("[\\s]+");
           if (line[0].equals("-1")) {
             log.reportError("Error - '" + element + "' is supposed to be on chromosome " + i
-                            + ", but was not found in the dbSNP database");
+                + ", but was not found in the dbSNP database");
             writer.println(element + "\t0");
           } else if (!line[0].equals(i + "")) {
             log.reportError("Error - '" + element + "' was supposed to be on chromosome " + i
-                            + ", but the dbSNP database places it on chr " + line[0]);
+                + ", but the dbSNP database places it on chr " + line[0]);
             writer.println(element + "\t0");
           } else {
             writer.println(element + "\t" + line[1]);
@@ -252,7 +251,7 @@ public class CheckForLD {
     Logger log;
 
     String usage = "\\n" + "link.CheckForLD requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -268,15 +267,15 @@ public class CheckForLD {
       System.exit(1);
     }
     if (!new File(dir).exists()) {
-      System.err.println("Error - using current directory instead of missing directory (" + dir
-                         + ")");
+      System.err
+          .println("Error - using current directory instead of missing directory (" + dir + ")");
       dir = "";
     }
     try {
       log = new Logger();
 
       parseLocalDBSNP(DBSNP_SOURCE, HashVec.loadFileToHashString(dir + "hisplusours.txt", false),
-                      dir + DBSNP_LOCAL, log);
+          dir + DBSNP_LOCAL, log);
       System.exit(1);
 
       if (createLD) {
@@ -300,7 +299,7 @@ public class CheckForLD {
   }
 
   public static void parseLD(String root, String checkDir, String prefix, String hapmapDir,
-                             String hapmapPrefix, double maxDprime, double maxr2, Logger log) {
+      String hapmapPrefix, double maxDprime, double maxr2, Logger log) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, subline;
@@ -309,7 +308,8 @@ public class CheckForLD {
 
     try {
       writer = new PrintWriter(new FileWriter(root + checkDir + prefix + "_summary.xln"));
-      writer.println("SNP\tChr\tPosition\tMAF\tObsHET\tPredHET\tHWpval\tMax LD marker\tD'\tr2\tHapMap MAF\tHapMap HW\tHapMap Max LD marker\tHapMap D'\tHapMap r2");
+      writer.println(
+          "SNP\tChr\tPosition\tMAF\tObsHET\tPredHET\tHWpval\tMax LD marker\tD'\tr2\tHapMap MAF\tHapMap HW\tHapMap Max LD marker\tHapMap D'\tHapMap r2");
 
       for (int chr = 1; chr <= 22; chr++) {
         maxObsLD = parseMaxLD(root + checkDir + prefix + ext.chrome(chr) + ".pre.LD", log);
@@ -317,8 +317,8 @@ public class CheckForLD {
             parseMaxLD(root + hapmapDir + hapmapPrefix + ext.chrome(chr) + ".pre.LD", log);
         hapCheck = new Hashtable<String, String>();
         try {
-          reader = new BufferedReader(new FileReader(root + hapmapDir + hapmapPrefix
-                                                     + ext.chrome(chr) + ".pre.CHECK"));
+          reader = new BufferedReader(
+              new FileReader(root + hapmapDir + hapmapPrefix + ext.chrome(chr) + ".pre.CHECK"));
           ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CHECK_HEADER, true);
           while (reader.ready()) {
             line = reader.readLine().trim().split("[\\s]+");
@@ -327,28 +327,26 @@ public class CheckForLD {
           reader.close();
         } catch (FileNotFoundException fnfe) {
           log.reportError("Error: file \"" + root + hapmapDir + hapmapPrefix + ext.chrome(chr)
-                          + ".pre.CHECK" + "\" not found in current directory");
+              + ".pre.CHECK" + "\" not found in current directory");
           writer.close();
           return;
         } catch (IOException ioe) {
           log.reportError("Error reading file \"" + root + hapmapDir + hapmapPrefix
-                          + ext.chrome(chr) + ".pre.CHECK" + "\"");
+              + ext.chrome(chr) + ".pre.CHECK" + "\"");
           writer.close();
           return;
         }
         try {
-          reader = new BufferedReader(new FileReader(root + checkDir + prefix + ext.chrome(chr)
-                                                     + ".pre.CHECK"));
+          reader = new BufferedReader(
+              new FileReader(root + checkDir + prefix + ext.chrome(chr) + ".pre.CHECK"));
           ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CHECK_HEADER, true);
           while (reader.ready()) {
             line = reader.readLine().trim().split("[\\s]+");
             writer.println(line[1] + "\t" + chr + "\t" + line[2] + "\t" + line[9] + "\t" + line[3]
-                           + "\t" + line[4] + "\t" + line[5] + "\t"
-                           + (maxObsLD.containsKey(line[1]) ? maxObsLD.get(line[1]) : ".\t.\t.")
-                           + "\t" + (hapCheck.containsKey(line[1]) ? hapCheck.get(line[1]) : ".\t.")
-                           + "\t" + (maxHapmapLD.containsKey(line[1]) ? maxHapmapLD.get(line[1])
-                                                                      : ".\t.\t.")
-                           + "\t");
+                + "\t" + line[4] + "\t" + line[5] + "\t"
+                + (maxObsLD.containsKey(line[1]) ? maxObsLD.get(line[1]) : ".\t.\t.") + "\t"
+                + (hapCheck.containsKey(line[1]) ? hapCheck.get(line[1]) : ".\t.") + "\t"
+                + (maxHapmapLD.containsKey(line[1]) ? maxHapmapLD.get(line[1]) : ".\t.\t.") + "\t");
             if (maxObsLD.containsKey(line[1])) {
               subline = maxObsLD.get(line[1]).split("[\\s]+");
               if (Double.parseDouble(subline[1]) >= maxDprime
@@ -360,12 +358,12 @@ public class CheckForLD {
           reader.close();
         } catch (FileNotFoundException fnfe) {
           log.reportError("Error: file \"" + root + checkDir + prefix + ext.chrome(chr)
-                          + ".pre.CHECK" + "\" not found in current directory");
+              + ".pre.CHECK" + "\" not found in current directory");
           writer.close();
           return;
         } catch (IOException ioe) {
           log.reportError("Error reading file \"" + root + checkDir + prefix + ext.chrome(chr)
-                          + ".pre.CHECK" + "\"");
+              + ".pre.CHECK" + "\"");
           writer.close();
           return;
         }
@@ -390,7 +388,7 @@ public class CheckForLD {
   }
 
   public static void parseLocalDBSNP(String source, Hashtable<String, String> markerPositions,
-                                     String fileout, Logger log) {
+      String fileout, Logger log) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -405,8 +403,8 @@ public class CheckForLD {
         line = reader.readLine().trim().split("[\\s]+");
         if (markerPositions.containsKey("rs" + line[0])) {
           try {
-            writer.println("rs" + line[0] + "\t" + line[1] + "\t"
-                           + (Integer.parseInt(line[2]) + 1));
+            writer
+                .println("rs" + line[0] + "\t" + line[1] + "\t" + (Integer.parseInt(line[2]) + 1));
           } catch (Exception e) {
             // log.reportError(Array.toStr(line));
             // log.reportException(e);
@@ -436,9 +434,8 @@ public class CheckForLD {
       ext.checkHeader(reader.readLine().trim().split("[\\s]+"), LD_HEADER, true);
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
-        if (!hash.containsKey(line[0])
-            || Double.parseDouble(line[4]) > Double.parseDouble(hash.get(line[0])
-                                                                    .split("[\\s]+")[2])) {
+        if (!hash.containsKey(line[0]) || Double.parseDouble(line[4]) > Double
+            .parseDouble(hash.get(line[0]).split("[\\s]+")[2])) {
           hash.put(line[0], line[1] + "\t" + line[2] + "\t" + line[4]);
         }
       }

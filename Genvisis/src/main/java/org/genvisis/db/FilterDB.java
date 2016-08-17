@@ -19,7 +19,7 @@ import org.genvisis.common.ext;
 
 public class FilterDB {
   public static void filter(String dbFilename, String filtersFilename, String outputFile,
-                            Logger log) {
+      Logger log) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -40,7 +40,8 @@ public class FilterDB {
         if (!line[0].startsWith("#") && !line[0].startsWith("//")) {
           if (line.length != 2) {
             log.reportError("Malformed filter: " + Array.toStr(line, " "));
-            log.reportError("     must have two values separated by a tab, where the first token is the filter and the second is the label to be used to describe it");
+            log.reportError(
+                "     must have two values separated by a tab, where the first token is the filter and the second is the label to be used to describe it");
             reader.close();
             return;
           } else {
@@ -110,7 +111,7 @@ public class FilterDB {
       return;
     }
     log.report("Program finished in " + (new Date().getTime() - time) / 1000
-               + " sec. Marker filter results are now available at " + outputFile);
+        + " sec. Marker filter results are now available at " + outputFile);
   }
 
   public static void fromParameters(String filename, Logger log) {
@@ -119,12 +120,11 @@ public class FilterDB {
     String temp;
 
     params = Files.parseControlFile(filename, "FilterDB",
-                                    new String[] {"db=database.txt", "filters=filters.txt",
-                                                  "out=output.txt",
-                                                  "# the filters file will have two columns: allFilters  errorMessage. For example:",
-                                                  "# CallRate>=0.95&CallRate<=0.99	Call freq 0.95 - 0.99",
-                                                  "# pct_AA=1&CallRate<1	AA freq = 1 & call rate < 1",},
-                                    log);
+        new String[] {"db=database.txt", "filters=filters.txt", "out=output.txt",
+            "# the filters file will have two columns: allFilters  errorMessage. For example:",
+            "# CallRate>=0.95&CallRate<=0.99	Call freq 0.95 - 0.99",
+            "# pct_AA=1&CallRate<1	AA freq = 1 & call rate < 1",},
+        log);
 
     if (params != null) {
       dbFilename = null;
@@ -169,12 +169,11 @@ public class FilterDB {
     String outputFilename = null;
     String logFilename = null;
 
-    String usage =
-        "\n" + "db.FilterDB requires 0-1 arguments\n" + "   (1) database filename (i.e. db="
-                   + dbFilename + " (default))\n" + "   (2) filters filename (i.e. filters="
-                   + dbFilename + " (default))\n" + "   (3) (optional) output filename (i.e. out="
-                   + logFilename + " (default))\n" + "   (4) (optional) log filename (i.e. log="
-                   + logFilename + " (default))\n" + "";
+    String usage = "\n" + "db.FilterDB requires 0-1 arguments\n"
+        + "   (1) database filename (i.e. db=" + dbFilename + " (default))\n"
+        + "   (2) filters filename (i.e. filters=" + dbFilename + " (default))\n"
+        + "   (3) (optional) output filename (i.e. out=" + logFilename + " (default))\n"
+        + "   (4) (optional) log filename (i.e. log=" + logFilename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

@@ -127,11 +127,11 @@ public class GeneScorePipeline {
         log.reportError("Error - no data sources loaded from file: " + dataSource);
       } else {
         DosageData d0 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile,
-                                       dataSources.get(0).mapFile, null, hitMkrs, false, log);
+            dataSources.get(0).mapFile, null, hitMkrs, false, log);
         if (dataSources.size() > 1) {
           for (int i = 1; i < dataSources.size(); i++) {
             DosageData d1 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile,
-                                           dataSources.get(i).mapFile, null, hitMkrs, false, log);
+                dataSources.get(i).mapFile, null, hitMkrs, false, log);
             d0 = DosageData.combine(d0, d1, log);
           }
         }
@@ -243,13 +243,10 @@ public class GeneScorePipeline {
 
       for (String nonRSMkr : nonRS) {
         int pos = markerMap.get(nonRSMkr)[1];
-        String mkrNm =
-            pos > 0 && pos < posRS.length && null != posRS[pos] && !"".equals(posRS[pos])
-                                                                                          ? posRS[pos]
-                                                                                          : "";
+        String mkrNm = pos > 0 && pos < posRS.length && null != posRS[pos] && !"".equals(posRS[pos])
+            ? posRS[pos] : "";
         plinkFreqs.put(nonRSMkr,
-                       "".equals(mkrNm) ? 0.0
-                                        : Double.valueOf(rsToFullData.get(mkrNm).split("\t")[1]));
+            "".equals(mkrNm) ? 0.0 : Double.valueOf(rsToFullData.get(mkrNm).split("\t")[1]));
       }
 
       // Hashtable<String, Vector<String>> plinkData = HashVec.loadFileToHashVec(currFile, 1, new
@@ -332,40 +329,40 @@ public class GeneScorePipeline {
 
     String usage =
         "\n" + "GeneScorePipeline is a convention-driven submodule.  It relies on a standard folder structure and file naming scheme:\n"
-                   + "\tThe directory and file structure must conform to the following:\n"
-                   + "\t\t>Root Directory ['broot' argument]\n" + "\t\t\t>SNP Effect files:\n"
-                   + "\t\t\t\t-Effect files must end with '.meta'.\n"
-                   + "\t\t\t\t-Effect files may be hand-constructed, or may be generated with the 'preprocess' command from a .xln file\n"
-                   + "\t\t\t\t-Effect files contain, at minimum, SNP, Freq, P-value, and Beta/Effect, and, if created with the preprocessor, will include any additional information present in the .xln file\n"
-                   + "\t\t\t\t-HitWindows analysis will be run on SNP Effect files, with results being used in regression analysis; the\n"
-                   + "\t\t\t\tadditional arguments to GeneScorePipeline affect only the HitWindows processing.\n"
-                   + "\t\t\t>Data Source Directory 1\n"
-                   + "\t\t\t\t>data.txt file [defines location of data, which may be in an arbitrary location in the filesystem]\n"
-                   + "\t\t\t\t\tExample:\n"
-                   + "\t\t\t\t\tdataLabel1\tfullPathDataFile1\tFullPathMapFile1\tFullPathIdFile1\n"
-                   + "\t\t\t\t\tdataLabel2\tfullPathDataFile2\tFullPathMapFile2\tFullPathIdFile2\n"
-                   + "\t\t\t\t\tdataLabel3\tdir1\tdataFileExt1\tmapFileExt1\tidFile3\n"
-                   + "\t\t\t\t\tdataLabel4\tdir2\tdataFileExt2\tmapFileExt2\tidFile4\n"
-                   + "\t\t\t\t>PhenoData1.pheno file [Any '.pheno' files will be included as covariate data in the regression analysis]\n"
-                   + "\t\t\t\t\t[Note: if data is in PLINK format and contains valid affected status information, an AFFECTED.PHENO file will be created]\n"
-                   +
+            + "\tThe directory and file structure must conform to the following:\n"
+            + "\t\t>Root Directory ['broot' argument]\n" + "\t\t\t>SNP Effect files:\n"
+            + "\t\t\t\t-Effect files must end with '.meta'.\n"
+            + "\t\t\t\t-Effect files may be hand-constructed, or may be generated with the 'preprocess' command from a .xln file\n"
+            + "\t\t\t\t-Effect files contain, at minimum, SNP, Freq, P-value, and Beta/Effect, and, if created with the preprocessor, will include any additional information present in the .xln file\n"
+            + "\t\t\t\t-HitWindows analysis will be run on SNP Effect files, with results being used in regression analysis; the\n"
+            + "\t\t\t\tadditional arguments to GeneScorePipeline affect only the HitWindows processing.\n"
+            + "\t\t\t>Data Source Directory 1\n"
+            + "\t\t\t\t>data.txt file [defines location of data, which may be in an arbitrary location in the filesystem]\n"
+            + "\t\t\t\t\tExample:\n"
+            + "\t\t\t\t\tdataLabel1\tfullPathDataFile1\tFullPathMapFile1\tFullPathIdFile1\n"
+            + "\t\t\t\t\tdataLabel2\tfullPathDataFile2\tFullPathMapFile2\tFullPathIdFile2\n"
+            + "\t\t\t\t\tdataLabel3\tdir1\tdataFileExt1\tmapFileExt1\tidFile3\n"
+            + "\t\t\t\t\tdataLabel4\tdir2\tdataFileExt2\tmapFileExt2\tidFile4\n"
+            + "\t\t\t\t>PhenoData1.pheno file [Any '.pheno' files will be included as covariate data in the regression analysis]\n"
+            + "\t\t\t\t\t[Note: if data is in PLINK format and contains valid affected status information, an AFFECTED.PHENO file will be created]\n"
+            +
 
-                   "\t\t\t\t>Pheno2.pheno file\n" + "\t\t\t>Data Source Directory 2\n"
-                   + "\t\t\t\t>data.txt file\n" + "\t\t\t\t>Pheno3.pheno file\n" + "\t\t\t>...\n"
-                   + "\n" + "\n" + "gwas.GeneScorePipeline requires 1+ arguments\n"
-                   + "   (1) Pre-process data files (i.e. process=path/to/file1.xln,path/to/file2.xln (not the default)) \n"
-                   + "  OR\n"
-                   + "   (1) Metastudy directory root, containing subdirectories for each study (i.e. broot=C:/ (not the default))\n"
-                   + "       OPTIONAL:\n"
-                   + "   (2) p-value threshold (or comma-delimited list) for index SNPs (i.e. indexThresh="
-                   + DEFAULT_INDEX_THRESHOLD + " (default))\n"
-                   + "   (3) minimum num bp per side of window (or comma delimited list) (i.e. minWinSize="
-                   + DEFAULT_WINDOW_MIN_SIZE_PER_SIDE + " (default))\n"
-                   + "   (4) p-value threshold to extend the window (or comma delimited list) (i.e. winThresh="
-                   + DEFAULT_WINDOW_EXTENSION_THRESHOLD + " (default))\n" +
-                   // " (8) Number of threads to use for computation (i.e. threads=" + threads + "
-                   // (default))\n" +
-                   "";
+            "\t\t\t\t>Pheno2.pheno file\n" + "\t\t\t>Data Source Directory 2\n"
+            + "\t\t\t\t>data.txt file\n" + "\t\t\t\t>Pheno3.pheno file\n" + "\t\t\t>...\n" + "\n"
+            + "\n" + "gwas.GeneScorePipeline requires 1+ arguments\n"
+            + "   (1) Pre-process data files (i.e. process=path/to/file1.xln,path/to/file2.xln (not the default)) \n"
+            + "  OR\n"
+            + "   (1) Metastudy directory root, containing subdirectories for each study (i.e. broot=C:/ (not the default))\n"
+            + "       OPTIONAL:\n"
+            + "   (2) p-value threshold (or comma-delimited list) for index SNPs (i.e. indexThresh="
+            + DEFAULT_INDEX_THRESHOLD + " (default))\n"
+            + "   (3) minimum num bp per side of window (or comma delimited list) (i.e. minWinSize="
+            + DEFAULT_WINDOW_MIN_SIZE_PER_SIDE + " (default))\n"
+            + "   (4) p-value threshold to extend the window (or comma delimited list) (i.e. winThresh="
+            + DEFAULT_WINDOW_EXTENSION_THRESHOLD + " (default))\n" +
+            // " (8) Number of threads to use for computation (i.e. threads=" + threads + "
+            // (default))\n" +
+            "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -478,7 +475,7 @@ public class GeneScorePipeline {
     HashMap<String, Double> freqs;
 
     factors = new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS,
-                              Aliases.PVALUES, Aliases.ALLELE_FREQS, Aliases.EFFECTS};
+        Aliases.PVALUES, Aliases.ALLELE_FREQS, Aliases.EFFECTS};
     for (String filename : files) {
       try {
         reader = Files.getAppropriateReader(filename);
@@ -495,12 +492,12 @@ public class GeneScorePipeline {
         if (indices[4] == -1) {
           // NO BETAS! COMPLETE FAIL
           errorMsg = errorMsg.equals("") ? "ERROR - no Beta/Effect column found"
-                                         : errorMsg + "; no Beta/Effect column found";
+              : errorMsg + "; no Beta/Effect column found";
         }
         if (indices[3] == -1) {
           // NO PVALUES! COMPLETE FAIL
           errorMsg = errorMsg.equals("") ? "ERROR - no P-Value column found"
-                                         : errorMsg + "; no P-Value column found";
+              : errorMsg + "; no P-Value column found";
         }
         if (errorMsg.equals("")) {
           if (indices[1] == -1 || indices[2] == -1) {
@@ -510,20 +507,15 @@ public class GeneScorePipeline {
                                                                                                     // String[fileData.size()]);
             Files.writeList(snps, ext.rootOf(filename, false) + ".snps");
             MapSNPsAndGenes.procSNPsToGenes(ext.parseDirectoryOfFile(filename),
-                                            ext.rootOf(filename, true) + ".snps",
-                                            MapSNPsAndGenes.DEFAULT_WIGGLE_ROOM, (byte) 37, log,
-                                            true, false, false, null, null, null, false); // TODO
-                                                                                          // should
-                                                                                          // run
-                                                                                          // SnpEff
-                                                                                          // too?
-            data =
-                Array.toStringArray(HashVec.loadFileToVec(ext.rootOf(filename, false)
-                                                          + "_positions.xln", true, false, false));
+                ext.rootOf(filename, true) + ".snps", MapSNPsAndGenes.DEFAULT_WIGGLE_ROOM,
+                (byte) 37, log, true, false, false, null, null, null, false); // TODO should run
+                                                                              // SnpEff too?
+            data = Array.toStringArray(HashVec
+                .loadFileToVec(ext.rootOf(filename, false) + "_positions.xln", true, false, false));
             for (String element : data) {
               line = element.trim().split("[\\s]+");
-              markerMap.put(line[0], new int[] {Positions.chromosomeNumber(line[1]),
-                                                Integer.parseInt(line[2])});
+              markerMap.put(line[0],
+                  new int[] {Positions.chromosomeNumber(line[1]), Integer.parseInt(line[2])});
             }
           } else {
             // fileData = HashVec.loadFileToHashVec(filename, indices[0], new int[]{indices[1],
@@ -538,15 +530,12 @@ public class GeneScorePipeline {
           if (indices[4] == -1) {
             // no frequencies
             if (markerMap.isEmpty()) {
-              fileData =
-                  HashVec.loadFileToHashVec(filename, indices[0],
-                                            new int[] {indices[1], indices[2]}, "\t", true, false);
+              fileData = HashVec.loadFileToHashVec(filename, indices[0],
+                  new int[] {indices[1], indices[2]}, "\t", true, false);
               for (String key : fileData.keySet()) {
                 markerMap.put(key,
-                              new int[] {Positions.chromosomeNumber(fileData.get(key).get(0)
-                                                                            .split("\t")[0]),
-                                         new BigDecimal(fileData.get(key).get(0)
-                                                                .split("\t")[1]).intValueExact()});
+                    new int[] {Positions.chromosomeNumber(fileData.get(key).get(0).split("\t")[0]),
+                        new BigDecimal(fileData.get(key).get(0).split("\t")[1]).intValueExact()});
               }
               fileData = null;
             }
@@ -576,14 +565,13 @@ public class GeneScorePipeline {
             String chr = indices[1] == -1 ? "" + markerMap.get(snp)[0] : line[indices[1]];
             String pos = indices[2] == -1 ? "" + markerMap.get(snp)[1] : line[indices[2]];
             String pval = line[indices[3]];
-            String freq = indices[4] == -1
-                                           ? "" + (freqs == null || freqs.isEmpty()
-                                                   || freqs.get(snp) == null ? 0.0 : freqs.get(snp))
-                                           : line[indices[4]];
+            String freq =
+                indices[4] == -1 ? "" + (freqs == null || freqs.isEmpty() || freqs.get(snp) == null
+                    ? 0.0 : freqs.get(snp)) : line[indices[4]];
             String beta = line[indices[5]];
             StringBuilder writeLineSB = new StringBuilder();
             writeLineSB.append(snp).append("\t").append(chr).append("\t").append(pos).append("\t")
-                       .append(freq).append("\t").append(pval).append("\t").append(beta);
+                .append(freq).append("\t").append(pval).append("\t").append(beta);
             for (int i = 0; i < line.length; i++) {
               if (i != indices[0] && i != indices[1] && i != indices[2] && i != indices[3]
                   && i != indices[4] && i != indices[5]) {
@@ -657,10 +645,8 @@ public class GeneScorePipeline {
   private final Logger log;
 
   public GeneScorePipeline(String metaDir,
-                           /*
-                            * int numThreads, boolean plink, boolean regression, boolean histogram,
-                            */ float[] indexThresholds, int[] windowMins,
-                           float[] windowExtThresholds, Logger log) {
+      /* int numThreads, boolean plink, boolean regression, boolean histogram, */ float[] indexThresholds,
+      int[] windowMins, float[] windowExtThresholds, Logger log) {
     this.log = log;
     this.metaDir = metaDir;
     // this.numThreads = numThreads;
@@ -740,9 +726,8 @@ public class GeneScorePipeline {
           while ((temp = reader.readLine()) != null) {
             String[] line = temp.split("[\\s]+");
             String affLine = line[0] + "\t" + line[1] + "\t"
-                             + (ext.isMissingValue(line[5]) ? "."
-                                                            : -1 * (Integer.parseInt(line[5]) - 2))
-                             + "\t" + line[4];
+                + (ext.isMissingValue(line[5]) ? "." : -1 * (Integer.parseInt(line[5]) - 2)) + "\t"
+                + line[4];
             if (!ext.isMissingValue(line[5])) {
               if (ext.isValidDouble(line[5]) && Double.parseDouble(line[5]) != 0.0) {
                 fam.add(affLine);
@@ -754,7 +739,7 @@ public class GeneScorePipeline {
           String[] unique = Array.unique(pheno.toArray(new String[] {}));
           if (unique.length == 1) {
             log.report("Error - no variance in pheno data from .fam file for study '"
-                       + study.studyName + "'");
+                + study.studyName + "'");
             continue;
           }
         }
@@ -795,18 +780,19 @@ public class GeneScorePipeline {
   private void crossFilterMarkerData(Study study) throws IOException {
     for (String dFile : dataFiles) {
       String dataFile = ext.rootOf(dFile, false);
-      for (java.util.Map.Entry<String, Constraint> constraintEntry : analysisConstraints.entrySet()) {
+      for (java.util.Map.Entry<String, Constraint> constraintEntry : analysisConstraints
+          .entrySet()) {
         String crossFilterFile = study.studyDir + dataFile + "\\" + constraintEntry.getKey() + "\\"
-                                 + CROSS_FILTERED_DATAFILE;
+            + CROSS_FILTERED_DATAFILE;
         if ((new File(crossFilterFile).exists())) {
           log.report(ext.getTime() + "]\tCross-filtered data file already exists! [ --> '"
-                     + crossFilterFile + "']");
-          study.hitSnpCounts.get(constraintEntry.getKey())
-                            .put(dataFile, Files.countLines(crossFilterFile, 1));
+              + crossFilterFile + "']");
+          study.hitSnpCounts.get(constraintEntry.getKey()).put(dataFile,
+              Files.countLines(crossFilterFile, 1));
           continue;
         }
         log.report(ext.getTime() + "]\tCross-filtering data and .BIM files [ --> '"
-                   + crossFilterFile + "']");
+            + crossFilterFile + "']");
         BufferedReader dataReader;
         PrintWriter dataWriter;
         HashMap<String, int[]> mkrsBim;
@@ -831,8 +817,8 @@ public class GeneScorePipeline {
           }
         }
 
-        log.report(ext.getTime() + "]\tFound " + cntAmbig
-                   + " ambiguous markers (will be excluded)");
+        log.report(
+            ext.getTime() + "]\tFound " + cntAmbig + " ambiguous markers (will be excluded)");
         dataReader = Files.getAppropriateReader(metaDir + dFile);
         dataWriter = new PrintWriter(crossFilterFile);
 
@@ -848,14 +834,12 @@ public class GeneScorePipeline {
           }
         }
         String line;
-        dataWriter.println("MarkerName\tChr\tPosition\t"
-                           + Array.toStr(Array.subArray(dataHdrs, 1))); // Allele1\tAllele2\tFreq.Allele1.HapMapCEU\tb\tSE\tp\tN
+        dataWriter
+            .println("MarkerName\tChr\tPosition\t" + Array.toStr(Array.subArray(dataHdrs, 1))); // Allele1\tAllele2\tFreq.Allele1.HapMapCEU\tb\tSE\tp\tN
         while ((line = dataReader.readLine()) != null) {
           String[] parts = line.split("[\\s]+");
-          if (mkrsBim.containsKey(parts[0])
-              && (ind == -1
-                  || (ext.isValidDouble(parts[ind])
-                      && Double.parseDouble(parts[ind]) < constraintEntry.getValue().indexThreshold))) {
+          if (mkrsBim.containsKey(parts[0]) && (ind == -1 || (ext.isValidDouble(parts[ind])
+              && Double.parseDouble(parts[ind]) < constraintEntry.getValue().indexThreshold))) {
             int[] chrPosBim = mkrsBim.get(parts[0]);
             dataWriter.print(parts[0]);
             dataWriter.print("\t");
@@ -926,7 +910,7 @@ public class GeneScorePipeline {
     // (Beta^2 * 2 * MAF (1-MAF))
     for (java.util.Map.Entry<String, double[]> entry : markerMap.entrySet()) {
       double score = 2 * (entry.getValue()[0] * entry.getValue()[0]) * entry.getValue()[1]
-                     * (1 - entry.getValue()[1]);
+          * (1 - entry.getValue()[1]);
       sum += score;
     }
     return sum;
@@ -1027,7 +1011,7 @@ public class GeneScorePipeline {
     for (java.util.Map.Entry<String, HashMap<String, Integer>> entry : dataCounts.entrySet()) {
       for (java.util.Map.Entry<String, Integer> subEntry : entry.getValue().entrySet()) {
         output.append(entry.getKey()).append("\t").append(subEntry.getKey()).append("\t")
-              .append(subEntry.getValue()).append("\n");
+            .append(subEntry.getValue()).append("\n");
       }
     }
     Files.write(output.toString(), countsFile);
@@ -1099,7 +1083,7 @@ public class GeneScorePipeline {
         }
         if (study.dataSource == null) {
           log.reportError("Error - data source file {" + DATA_SOURCE_FILENAME
-                          + "} missing for study " + study.studyName);
+              + "} missing for study " + study.studyName);
         }
         studies.add(study);
       } else if (f.getAbsolutePath().endsWith(".meta")) {
@@ -1131,16 +1115,14 @@ public class GeneScorePipeline {
         String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
         if ((new File(hitsFile)).exists()) {
           log.report(ext.getTime() + "]\tHit window analysis file already exists! [ --> '"
-                     + hitsFile + "']");
+              + hitsFile + "']");
           study.hitWindowCnts.get(filePrefix.getKey()).put(dataFile, Files.countLines(hitsFile, 1));
           continue;
         }
         log.report(ext.getTime() + "]\tRunning hit window analysis [ --> '" + hitsFile + "']");
-        String[][] results =
-            HitWindows.determine(crossFilterFile, filePrefix.getValue().indexThreshold,
-                                 filePrefix.getValue().windowMinSizePerSide,
-                                 filePrefix.getValue().windowExtensionThreshold,
-                                 DEFAULT_ADDL_ANNOT_VAR_NAMES, log);
+        String[][] results = HitWindows.determine(crossFilterFile,
+            filePrefix.getValue().indexThreshold, filePrefix.getValue().windowMinSizePerSide,
+            filePrefix.getValue().windowExtensionThreshold, DEFAULT_ADDL_ANNOT_VAR_NAMES, log);
         if (results == null) {
           log.reportError("Error - HitWindows result from " + crossFilterFile + " was null");
         } else {
@@ -1154,7 +1136,7 @@ public class GeneScorePipeline {
 
   private void runMetaHitWindowsAndLoadData() {
     String[][] factors = new String[][] {Aliases.MARKER_NAMES, Aliases.EFFECTS,
-                                         Aliases.ALLELE_FREQS, Aliases.PVALUES};
+        Aliases.ALLELE_FREQS, Aliases.PVALUES};
 
     for (String dFile : dataFiles) {
       String dataFile = ext.rootOf(dFile, false);
@@ -1201,10 +1183,11 @@ public class GeneScorePipeline {
                   continue;
                 }
                 dataMarkers.put(mkr,
-                                new double[] {indices[1] == -1 ? Double.NaN
-                                                               : Double.parseDouble(line.split("[\\s]+")[indices[1]]),
-                                              Double.parseDouble(line.split("[\\s]+")[indices[2]]),
-                                              Double.parseDouble(line.split("[\\s]+")[indices[3]])});
+                    new double[] {
+                        indices[1] == -1 ? Double.NaN
+                            : Double.parseDouble(line.split("[\\s]+")[indices[1]]),
+                        Double.parseDouble(line.split("[\\s]+")[indices[2]]),
+                        Double.parseDouble(line.split("[\\s]+")[indices[3]])});
               }
             }
             reader.close();
@@ -1328,9 +1311,8 @@ public class GeneScorePipeline {
               covars[k] = indepData.get(k);
               baseCovars[k] = baselineIndeps.get(k);
             }
-            RegressionModel baseModel =
-                RegressionModel.determineAppropriate(Doubles.toArray(depData), baseCovars, false,
-                                                     true);
+            RegressionModel baseModel = RegressionModel
+                .determineAppropriate(Doubles.toArray(depData), baseCovars, false, true);
             RegressionModel model =
                 RegressionModel.determineAppropriate(Doubles.toArray(depData), covars, false, true);
 
@@ -1414,13 +1396,13 @@ public class GeneScorePipeline {
       for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
         File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
         if (!prefDir.exists()) {
-          log.report(ext.getTime() + "]\tError - no subfolder for '" + filePrefix.getKey()
-                     + "' analysis");
+          log.report(
+              ext.getTime() + "]\tError - no subfolder for '" + filePrefix.getKey() + "' analysis");
           continue;
         }
         if ((new File(prefDir + "\\" + SCORE_FILE)).exists()) {
           log.report(ext.getTime() + "]\tPlink analysis results file already exists! [ --> '"
-                     + prefDir + "\\" + SCORE_FILE + "']");
+              + prefDir + "\\" + SCORE_FILE + "']");
           continue;
         }
 
@@ -1488,7 +1470,7 @@ public class GeneScorePipeline {
             }
           }
           scoreWriter.println(ids[i][0] + "\t" + ids[i][1] + "\t" + markers.length + "\t"
-                              + (2 * cnt) + "\t" + cnt2 + "\t" + ext.formDeci(scoreSum, 3));
+              + (2 * cnt) + "\t" + cnt2 + "\t" + ext.formDeci(scoreSum, 3));
         }
 
         scoreWriter.flush();
@@ -1503,8 +1485,7 @@ public class GeneScorePipeline {
         for (float w : windowExtensionThresholds) {
           StringBuilder prefixSB = new StringBuilder();
           prefixSB.append(ext.formSciNot(i, 4, false)).append("_")
-                  .append(ext.formSciNot(m, 4, false)).append("_")
-                  .append(ext.formSciNot(w, 4, false));
+              .append(ext.formSciNot(m, 4, false)).append("_").append(ext.formSciNot(w, 4, false));
           analysisConstraints.put(prefixSB.toString(), new Constraint(i, m, w));
         }
       }
@@ -1555,43 +1536,31 @@ public class GeneScorePipeline {
               study.regressions.get(filePrefix.getKey()).get(dataFile);
 
           String resultPrefix = study.studyName + "\t" + dataFile + "\t"
-                                + ext.formSciNot(filePrefix.getValue().indexThreshold, 5, false)
-                                + "\t";
+              + ext.formSciNot(filePrefix.getValue().indexThreshold, 5, false) + "\t";
 
           String middle =
               (new StringBuilder()).append(dataCounts.get(dFile).get(filePrefix.getKey()))
-                                   .append("\t")
-                                   .append(study.hitSnpCounts.get(filePrefix.getKey())
-                                                             .get(dataFile))
-                                   .append("\t")
-                                   .append(study.hitWindowCnts.get(filePrefix.getKey())
-                                                              .get(dataFile))
-                                   .append("\t")
-                                   .append(study.scores.get(filePrefix.getKey()).get(dataFile)[0])
-                                   .append("\t")
-                                   .append(study.scores.get(filePrefix.getKey()).get(dataFile)[1])
-                                   .append("\t").toString();
+                  .append("\t").append(study.hitSnpCounts.get(filePrefix.getKey()).get(dataFile))
+                  .append("\t").append(study.hitWindowCnts.get(filePrefix.getKey()).get(dataFile))
+                  .append("\t").append(study.scores.get(filePrefix.getKey()).get(dataFile)[0])
+                  .append("\t").append(study.scores.get(filePrefix.getKey()).get(dataFile)[1])
+                  .append("\t").toString();
           if (study.phenoFiles.isEmpty()) {
             RegressionResult rr = new RegressionResult();
             rr.dummy();
 
-            String pvalExcl =
-                rr.num == 0 ? "."
-                            : (rr.logistic ? "=NORMSDIST(" + Math.sqrt(rr.stats) + ")"
-                                           : "=TDIST(" + Math.abs(rr.stats) + "," + rr.num + ",2)");
+            String pvalExcl = rr.num == 0 ? "."
+                : (rr.logistic ? "=NORMSDIST(" + Math.sqrt(rr.stats) + ")"
+                    : "=TDIST(" + Math.abs(rr.stats) + "," + rr.num + ",2)");
 
-            StringBuilder sb =
-                new StringBuilder(resultPrefix).append("--").append("\t").append(rr.baseRSq)
-                                               .append("\t").append(rr.rsq).append("\t")
-                                               .append((Double.isNaN(rr.rsq) ? Double.NaN
-                                                                             : (Double.isNaN(rr.baseRSq) ? rr.rsq
-                                                                                                         : (new BigDecimal(rr.rsq
-                                                                                                                           + "")).subtract(new BigDecimal(rr.baseRSq
-                                                                                                                                                          + "")))))
-                                               .append("\t").append(rr.pval).append("\t")
-                                               .append(rr.beta).append("\t").append(rr.se)
-                                               .append("\t").append(rr.num).append("\t")
-                                               .append(middle).append(pvalExcl);
+            StringBuilder sb = new StringBuilder(resultPrefix).append("--").append("\t")
+                .append(rr.baseRSq).append("\t").append(rr.rsq).append("\t")
+                .append((Double.isNaN(rr.rsq) ? Double.NaN
+                    : (Double.isNaN(rr.baseRSq) ? rr.rsq
+                        : (new BigDecimal(rr.rsq + "")).subtract(new BigDecimal(rr.baseRSq + "")))))
+                .append("\t").append(rr.pval).append("\t").append(rr.beta).append("\t")
+                .append(rr.se).append("\t").append(rr.num).append("\t").append(middle)
+                .append(pvalExcl);
 
             writer.println(sb.toString());
           } else {
@@ -1602,24 +1571,17 @@ public class GeneScorePipeline {
                 rr = new RegressionResult();
                 rr.dummy();
               }
-              String pvalExcl =
-                  rr.num == 0 ? "."
-                              : (rr.logistic ? "=NORMSDIST(" + Math.sqrt(rr.stats) + ")"
-                                             : "=TDIST(" + Math.abs(rr.stats) + "," + rr.num
-                                               + ",2)");
+              String pvalExcl = rr.num == 0 ? "."
+                  : (rr.logistic ? "=NORMSDIST(" + Math.sqrt(rr.stats) + ")"
+                      : "=TDIST(" + Math.abs(rr.stats) + "," + rr.num + ",2)");
 
-              StringBuilder sb =
-                  new StringBuilder(resultPrefix).append(pheno).append("\t").append(rr.baseRSq)
-                                                 .append("\t").append(rr.rsq).append("\t")
-                                                 .append((Double.isNaN(rr.rsq) ? Double.NaN
-                                                                               : (Double.isNaN(rr.baseRSq) ? rr.rsq
-                                                                                                           : (new BigDecimal(rr.rsq
-                                                                                                                             + "")).subtract(new BigDecimal(rr.baseRSq
-                                                                                                                                                            + "")))))
-                                                 .append("\t").append(rr.pval).append("\t")
-                                                 .append(rr.beta).append("\t").append(rr.se)
-                                                 .append("\t").append(rr.num).append("\t")
-                                                 .append(middle).append("\t").append(pvalExcl);
+              StringBuilder sb = new StringBuilder(resultPrefix).append(pheno).append("\t")
+                  .append(rr.baseRSq).append("\t").append(rr.rsq).append("\t")
+                  .append((Double.isNaN(rr.rsq) ? Double.NaN : (Double.isNaN(rr.baseRSq) ? rr.rsq
+                      : (new BigDecimal(rr.rsq + "")).subtract(new BigDecimal(rr.baseRSq + "")))))
+                  .append("\t").append(rr.pval).append("\t").append(rr.beta).append("\t")
+                  .append(rr.se).append("\t").append(rr.num).append("\t").append(middle)
+                  .append("\t").append(pvalExcl);
 
               writer.println(sb.toString());
             }

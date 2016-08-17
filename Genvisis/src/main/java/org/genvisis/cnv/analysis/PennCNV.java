@@ -34,15 +34,14 @@ import org.genvisis.filesys.CNVariant;
 
 public class PennCNV {
   public static final String[] QC_HEADS = {"LRR_mean", "LRR_median", "LRR_SD", "BAF_mean",
-                                           "BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF"};
-  public static final String[] ERRORS =
-      {"large SD for LRR", "drifting BAF values", "waviness factor values", "Small-sized CNV calls",
-       "NoCall rate"};
+      "BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF"};
+  public static final String[] ERRORS = {"large SD for LRR", "drifting BAF values",
+      "waviness factor values", "Small-sized CNV calls", "NoCall rate"};
   public static final String QC_SUMMARY_FILE = "Sample_QC.xln";
 
   public static void batch(Project proj, int numChunks, Vector<String> execList, String pfbFile,
-                           String gcmodelFile, String hmmFile, String scriptSubDir,
-                           String dataSubDir, String resultsSubDir) {
+      String gcmodelFile, String hmmFile, String scriptSubDir, String dataSubDir,
+      String resultsSubDir) {
     String commands;
     PrintWriter writer;
     String[] files;
@@ -59,10 +58,12 @@ public class PennCNV {
 
     String penncnvExecutable = execDir + "detect_cnv.pl";
     if (!Files.exists(penncnvExecutable)) {
-      log.reportError("WARNING - couldn't find PennCNV executable 'detect_cnv.pl' in given directory: "
-                      + execDir);
+      log.reportError(
+          "WARNING - couldn't find PennCNV executable 'detect_cnv.pl' in given directory: "
+              + execDir);
       if (Files.programExists("detect_cnv.pl")) {
-        log.report("PennCNV executable 'detect_cnv.pl' found on the PATH; please check the PENNCNV_EXECUTABLE_DIRECTORY project property.");
+        log.report(
+            "PennCNV executable 'detect_cnv.pl' found on the PATH; please check the PENNCNV_EXECUTABLE_DIRECTORY project property.");
       }
     }
 
@@ -126,40 +127,36 @@ public class PennCNV {
     }
 
     commands = execDir + "detect_cnv.pl -test -conf -hmm "
-               + (hmmFile == null ? execDir + "lib/hhall.hmm" : hmmFile) + " -pfb "
-               + (pfbFile == null ? execDir + "lib/hhall.hg18.pfb" : pfbFile) + " -gcmodel "
-               + (gcmodelFile == null ? execDir + "lib/hhall.hg18.gcmodel" : gcmodelFile)
-               + " -list " + resultsDir + "list[%0].txt -log " + resultsDir + "[%0].log -out "
-               + resultsDir + "[%0].rawcnv > " + resultsDir + "[%0].out";
+        + (hmmFile == null ? execDir + "lib/hhall.hmm" : hmmFile) + " -pfb "
+        + (pfbFile == null ? execDir + "lib/hhall.hg18.pfb" : pfbFile) + " -gcmodel "
+        + (gcmodelFile == null ? execDir + "lib/hhall.hg18.gcmodel" : gcmodelFile) + " -list "
+        + resultsDir + "list[%0].txt -log " + resultsDir + "[%0].log -out " + resultsDir
+        + "[%0].rawcnv > " + resultsDir + "[%0].out";
 
     new File(pennDir + scriptSubDir).mkdirs();
 
     if (execList == null) {
       Files.qsub(pennDir + scriptSubDir + "runPenn", dataDir, numChunks, commands,
-                 Matrix.toMatrix(Array.stringArraySequence(numChunks, "")), 2200, 16);
+          Matrix.toMatrix(Array.stringArraySequence(numChunks, "")), 2200, 16);
     } else {
       Files.execListAdd(execList, commands, Array.stringArraySequence(numChunks, ""), log);
     }
 
-    Files.writeList(new String[] {"cd " + projDir,
-                                  "cat " + resultsDir + "*.log > " + resultsDir + "penncnv.rawlog",
-                                  "cat " + resultsDir + "*.rawcnv > " + resultsDir + "penncnv.rawcnv",
-                                  "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="
-                                                                                                       + proj.getPropertyFilename()
-                                                                                                       + " rawlog="
-                                                                                                       + resultsDir
-                                                                                                       + "penncnv.rawlog",
-                                  "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename()
-                                                                                                                           + " rawcnv="
-                                                                                                                           + resultsDir
-                                                                                                                           + "penncnv.rawcnv",},
-                    pennDir + scriptSubDir + "assemblePenncnv");
+    Files.writeList(
+        new String[] {"cd " + projDir,
+            "cat " + resultsDir + "*.log > " + resultsDir + "penncnv.rawlog",
+            "cat " + resultsDir + "*.rawcnv > " + resultsDir + "penncnv.rawcnv",
+            "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="
+                + proj.getPropertyFilename() + " rawlog=" + resultsDir + "penncnv.rawlog",
+            "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="
+                + proj.getPropertyFilename() + " rawcnv=" + resultsDir + "penncnv.rawcnv",},
+        pennDir + scriptSubDir + "assemblePenncnv");
     Files.chmod(pennDir + scriptSubDir + "assemblePenncnv");
   }
 
   public static void batchX(Project proj, int numChunks, Vector<String> execList, String pfbFile,
-                            String gcmodelFile, String hmmFile, String scriptSubDir,
-                            String dataSubDir, String resultsSubDir) {
+      String gcmodelFile, String hmmFile, String scriptSubDir, String dataSubDir,
+      String resultsSubDir) {
     String commands;
     PrintWriter writer;
     String[] files;
@@ -177,16 +174,17 @@ public class PennCNV {
     // if (!Files.exists(proj.getFilename("SAMPLE_DATA_FILENAME", false, false),
     // proj.getJarStatus())) {
     if (!Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
-                      proj.JAR_STATUS.getValue())) {
+        proj.JAR_STATUS.getValue())) {
       log.reportError("Error - sample data file " + proj.getProperty("SAMPLE_DATA_FILENAME")
-                      + " does not exist;");
+          + " does not exist;");
       return;
     }
 
     SampleData sampleData = proj.getSampleData(2, false);
 
     if (sampleData.failedToLoad()) {
-      log.reportError("Error - without a sample data file, PennCNV will fail to analyze sex chromosomes");
+      log.reportError(
+          "Error - without a sample data file, PennCNV will fail to analyze sex chromosomes");
       return;
     }
 
@@ -262,39 +260,34 @@ public class PennCNV {
     }
 
     commands = execDir + "detect_cnv.pl -test -conf -hmm "
-               + (hmmFile == null ? execDir + "lib/hhall.hmm" : hmmFile) + " -pfb "
-               + (pfbFile == null ? execDir + "lib/hhall.hg18.pfb" : pfbFile) + " -gcmodel "
-               + (gcmodelFile == null ? execDir + "lib/hhall.hg18.gcmodel" : gcmodelFile)
-               + " -chrx -sexfile " + dataDir + "sex_file.txt -list " + resultsDir
-               + "list[%0].txt -log " + resultsDir + "[%0].log -out " + resultsDir
-               + "[%0].rawcnv > " + resultsDir + "[%0].out";
+        + (hmmFile == null ? execDir + "lib/hhall.hmm" : hmmFile) + " -pfb "
+        + (pfbFile == null ? execDir + "lib/hhall.hg18.pfb" : pfbFile) + " -gcmodel "
+        + (gcmodelFile == null ? execDir + "lib/hhall.hg18.gcmodel" : gcmodelFile)
+        + " -chrx -sexfile " + dataDir + "sex_file.txt -list " + resultsDir + "list[%0].txt -log "
+        + resultsDir + "[%0].log -out " + resultsDir + "[%0].rawcnv > " + resultsDir + "[%0].out";
 
     new File(pennDir + scriptSubDir).mkdirs();
 
     if (execList == null) {
       Files.qsub(pennDir + scriptSubDir + "runPennX", dataDir, numChunks, commands,
-                 Matrix.toMatrix(Array.stringArraySequence(numChunks, "")), 2200, 16);
+          Matrix.toMatrix(Array.stringArraySequence(numChunks, "")), 2200, 16);
     } else {
       Files.execListAdd(execList, commands, Array.stringArraySequence(numChunks, ""), log);
     }
-    Files.writeList(new String[] {"cd " + projDir,
-                                  "cat " + resultsDir + "*.log > " + resultsDir
-                                                   + "penncnvX.rawlog",
-                                  "cat " + resultsDir + "*.rawcnv > " + resultsDir + "penncnvX.rawcnv",
-                                  // don't parse warnings; the parseWarnings method isn't written to
-                                  // parse X-chromosome
-                                  // warnings
-                                  "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="
-                                                                                                        + proj.getPropertyFilename()
-                                                                                                        + " rawcnv="
-                                                                                                        + resultsDir
-                                                                                                        + "penncnvX.rawcnv",},
-                    pennDir + scriptSubDir + "assemblePenncnv");
+    Files.writeList(
+        new String[] {"cd " + projDir,
+            "cat " + resultsDir + "*.log > " + resultsDir + "penncnvX.rawlog",
+            "cat " + resultsDir + "*.rawcnv > " + resultsDir + "penncnvX.rawcnv",
+            // don't parse warnings; the parseWarnings method isn't written to parse X-chromosome
+            // warnings
+            "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="
+                + proj.getPropertyFilename() + " rawcnv=" + resultsDir + "penncnvX.rawcnv",},
+        pennDir + scriptSubDir + "assemblePenncnv");
     Files.chmod(pennDir + scriptSubDir + "assemblePenncnv");
   }
 
   public static void combineResults(Project proj, String[] cnvFiles, String outputFile,
-                                    boolean recode) {
+      boolean recode) {
     BufferedReader reader;
     PrintWriter writer;
     Logger log = proj.getLog();
@@ -390,10 +383,9 @@ public class PennCNV {
   }
 
   public static void doBatch(Project proj, boolean auto, boolean chrx, boolean sexCent,
-                             boolean transformData, int numChunks, boolean separateQsubFiles,
-                             String pfbFile, String gcmodelFile, String hmmFile,
-                             boolean submitImmed, boolean createCombined, boolean useExcludes,
-                             int threadCount) {
+      boolean transformData, int numChunks, boolean separateQsubFiles, String pfbFile,
+      String gcmodelFile, String hmmFile, boolean submitImmed, boolean createCombined,
+      boolean useExcludes, int threadCount) {
     boolean problem = false;
     Vector<String> execList;
 
@@ -422,7 +414,7 @@ public class PennCNV {
       if (auto) {
         proj.getLog().report("Transforming data for autosomal CNV analysis");
         AnalysisFormats.penncnv(proj, samples, null, null,
-                                Runtime.getRuntime().availableProcessors());
+            Runtime.getRuntime().availableProcessors());
       }
       if (chrx) {
         MarkerSet ms = proj.getMarkerSet();
@@ -439,7 +431,7 @@ public class PennCNV {
             }
           }
           AnalysisFormats.penncnv(proj, samples, xMarkers, "chrX/",
-                                  Runtime.getRuntime().availableProcessors());
+              Runtime.getRuntime().availableProcessors());
         }
       }
     }
@@ -450,7 +442,7 @@ public class PennCNV {
     if (chrx) {
       proj.getLog().report("Creating batch scripts for chromosomal CNV analysis");
       batchX(proj, numChunks, execList, pfbFile, gcmodelFile, hmmFile, "penn_scripts/chrX/",
-             "chrX/", "chrX/");
+          "chrX/", "chrX/");
     }
     if ((auto && chrx) || (auto && createCombined) || (chrx && createCombined)) {
       // write combine script
@@ -458,12 +450,12 @@ public class PennCNV {
       String outdir = resultsDir + "penn_scripts/";
       new File(outdir).mkdirs();
       String outfile = "combineAutoXCNVs";
-      Files.writeList(new String[] {"cd " + resultsDir,
-                                    "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS
-                                                        + " cnv.analysis.PennCNV proj="
-                                                        + proj.getPropertyFilename()
-                                                        + " combine=penncnv.cnv,chrX/penncnvX.cnv output=combinedAX.cnv",},
-                      outdir + outfile);
+      Files.writeList(
+          new String[] {"cd " + resultsDir,
+              "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="
+                  + proj.getPropertyFilename()
+                  + " combine=penncnv.cnv,chrX/penncnvX.cnv output=combinedAX.cnv",},
+          outdir + outfile);
       Files.chmod(outdir + outfile);
     }
     if (sexCent) {
@@ -477,35 +469,41 @@ public class PennCNV {
       proj.getLog().report("Creating batch scripts for 'faked' chromosomal CNV analysis");
       String scriptDir = "penn_scripts/sexSpecific/";
       batch(proj, numChunks, execList, files[0], files[2], hmmFile, scriptDir + "male/",
-            "sexSpecific/male/", "sexSpecific/male/");
+          "sexSpecific/male/", "sexSpecific/male/");
       batch(proj, numChunks, execList, files[1], files[2], hmmFile, scriptDir + "female/",
-            "sexSpecific/female/", "sexSpecific/female/");
+          "sexSpecific/female/", "sexSpecific/female/");
       // write combine script
       String resultsDir = proj.PENNCNV_RESULTS_DIRECTORY.getValue(false, true);
       String outdir = resultsDir + "penn_scripts/";
       String outfile = "combineMFCNVs";
-      Files.writeList(new String[] {"cd " + resultsDir,
-                                    "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS
-                                                        + " cnv.analysis.PennCNV proj="
-                                                        + proj.getPropertyFilename()
-                                                        + " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
-                                    "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename()
-                                                                                                                                                + " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
-                                    "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv -recode",},
-                      outdir + outfile);
+      Files.writeList(
+          new String[] {"cd " + resultsDir,
+              "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="
+                  + proj.getPropertyFilename()
+                  + " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
+              "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="
+                  + proj.getPropertyFilename()
+                  + " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
+              "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="
+                  + proj.getPropertyFilename()
+                  + " combine=sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv -recode",},
+          outdir + outfile);
       Files.chmod(outdir + outfile);
 
       if (auto) {
         outfile = "combineAMFCNVs";
-        Files.writeList(new String[] {"cd " + resultsDir,
-                                      "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS
-                                                          + " cnv.analysis.PennCNV proj="
-                                                          + proj.getPropertyFilename()
-                                                          + " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
-                                      "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename()
-                                                                                                                                                  + " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
-                                      "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=penncnv.cnv,sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv",},
-                        outdir + outfile);
+        Files.writeList(
+            new String[] {"cd " + resultsDir,
+                "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS
+                    + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename()
+                    + " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
+                "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS
+                    + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename()
+                    + " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
+                "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS
+                    + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename()
+                    + " combine=penncnv.cnv,sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv",},
+            outdir + outfile);
         Files.chmod(outdir + outfile);
       }
 
@@ -513,22 +511,24 @@ public class PennCNV {
 
     if (execList != null) {
       Files.qsubExecutor(proj.PROJECT_DIRECTORY.getValue(), execList, null,
-                         proj.PENNCNV_RESULTS_DIRECTORY.getValue() + "runAllPenncnv", 24, 5000, 8);
+          proj.PENNCNV_RESULTS_DIRECTORY.getValue() + "runAllPenncnv", 24, 5000, 8);
       proj.getLog().report(
-                           "All PennCNV files and scripts have been prepped. The next thing would be to qsub "
-                           + proj.PENNCNV_RESULTS_DIRECTORY.getValue() + "runAllPenncnv.pbs");
+          "All PennCNV files and scripts have been prepped. The next thing would be to qsub "
+              + proj.PENNCNV_RESULTS_DIRECTORY.getValue() + "runAllPenncnv.pbs");
     }
     String dir = proj.PENNCNV_RESULTS_DIRECTORY.getValue();
     dir += "penn_scripts/";
-    Files.writeList(new String[] {dir + "assemblePenncnv", dir + "chrX/assemblePenncnv",
-                                  dir + "sexSpecific/female/assemblePenncnv",
-                                  dir + "sexSpecific/male/assemblePenncnv", dir + "combineAMFCNVs"},
-                    dir + "parseAllPenncnv");
+    Files
+        .writeList(
+            new String[] {dir + "assemblePenncnv", dir + "chrX/assemblePenncnv",
+                dir + "sexSpecific/female/assemblePenncnv",
+                dir + "sexSpecific/male/assemblePenncnv", dir + "combineAMFCNVs"},
+            dir + "parseAllPenncnv");
     Files.chmod(dir + "parseAllPenncnv");
   }
 
   private static String filterGCModel(Project proj, String gcModelFile, String newGCFile,
-                                      String[] chrs) {
+      String[] chrs) {
     // TODO combine method with filterPFB - literally the same except different names/extensions
     BufferedReader reader = null;
     PrintWriter writer = null;
@@ -662,7 +662,7 @@ public class PennCNV {
    * 
    */
   public static void gcModel(Project proj, String inputGcBaseFullPath, String outputGcModelFullPath,
-                             int numwindow) {
+      int numwindow) {
     MarkerSet markerSet;
     String[] markerNames;
     byte[] chrs;
@@ -722,14 +722,15 @@ public class PennCNV {
           if (curchr == prechr) {
             if (curstart < prestart) {
               log.reportError("Error in gcFile: a record in chr" + curchr + " has position "
-                              + curstart + ", less then the previous position $prestart");
+                  + curstart + ", less then the previous position $prestart");
               reader.close();
               return;
             }
           } else if (seen_chr.containsKey(curchr)) {
-            log.reportError("Error in gcFile: rows of the same chromosome must be adjacent. But now chr"
-                            + curchr + " occur multiple times in non-continuous segment of the "
-                            + inputGcBaseFullPath + ": at " + curchr + ":" + curstart);
+            log.reportError(
+                "Error in gcFile: rows of the same chromosome must be adjacent. But now chr"
+                    + curchr + " occur multiple times in non-continuous segment of the "
+                    + inputGcBaseFullPath + ": at " + curchr + ":" + curstart);
             reader.close();
             return;
           } else {
@@ -746,7 +747,7 @@ public class PennCNV {
 
           if (!(curchr == prechr && skip)) {
             while (chr_index < chrs.length && chrs[chr_index] == curchr
-                   && positions[chr_index] < Math.max(curstart - numwindow * 5120, 0)) {
+                && positions[chr_index] < Math.max(curstart - numwindow * 5120, 0)) {
               chr_index++;
             }
             if (chr_index >= chrs.length) {
@@ -756,7 +757,7 @@ public class PennCNV {
               skip = true;
             } else {
               for (int i = chr_index; i < snp_count.length && chrs[i] == curchr
-                                      && positions[i] <= (curend + numwindow * 5120); i++) {
+                  && positions[i] <= (curend + numwindow * 5120); i++) {
                 snp_count[i] += curcount;
                 snp_sum[i] += cursum;
               }
@@ -785,16 +786,11 @@ public class PennCNV {
       writer.println("Name\tChr\tPosition\tGC");
       for (int i = 0; i < markerNames.length; i++) {
         // writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]+"\t"+(snp_count[i]==0?(snp_sum[i]==0?0:"err"):(snp_sum[i]/snp_count[i])));
-        writer.println(markerNames[i] + "\t"
-                       + (chrs[i] < 23 ? chrs[i]
-                                       : (chrs[i] == 23 ? "X"
-                                                        : (chrs[i] == 24 ? "Y"
-                                                                         : (chrs[i] == 25 ? "XY"
-                                                                                          : (chrs[i] == 26 ? "M"
-                                                                                                           : "Un")))))
-                       + "\t" + positions[i] + "\t"
-                       + (snp_count[i] == 0 ? (snp_sum[i] == 0 ? 0 : "err")
-                                            : (snp_sum[i] / snp_count[i])));
+        writer.println(markerNames[i] + "\t" + (chrs[i] < 23 ? chrs[i]
+            : (chrs[i] == 23 ? "X"
+                : (chrs[i] == 24 ? "Y" : (chrs[i] == 25 ? "XY" : (chrs[i] == 26 ? "M" : "Un")))))
+            + "\t" + positions[i] + "\t"
+            + (snp_count[i] == 0 ? (snp_sum[i] == 0 ? 0 : "err") : (snp_sum[i] / snp_count[i])));
       }
       writer.close();
       log.report("Generated population GC Model " + outputGcModelFullPath);
@@ -847,34 +843,32 @@ public class PennCNV {
     int numThreads = 1;
 
     String usage = "\n" + "cnv.park.PennCNV requires 0-1 arguments\n"
-                   + "   (0) project properties filename (i.e. proj="
-                   + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-                   + " AND\n" + "   (1) number of chunks to split everything in to (i.e. chunks="
-                   + numChunks + " (default))\n"
-                   + "   (2) generate seperate qsub files instead of a single executor chain (i.e. -sepqsub (not the default))\n"
-                   + "   (3) generate PennCNV scripts to analyze autosomes (i.e. auto=TRUE (default))\n"
-                   + "   (4) generate PennCNV scripts to analyze X Chromosome (i.e. chrx=TRUE (default))\n"
-                   + "   (5) recompute centroids of chr23-26 (X, Y, XY, MT) and recode as chr1-4 in subdirectory (i.e. sexSpecificCentroids=TRUE (default))\n"
-                   + "   (6) transform sample data into PennCNV data files (i.e. data=TRUE (default))\n"
-                   + "   (7) number of threads to use (i.e. threads=" + numThreads + " (default))\n"
-                   + "   (8) (optional) use custom pfb file (i.e. pfb=custom.pfb (not the default))\n"
-                   + "   (9) (optional) use custom gcmodel file (i.e. gcmodel=custom.gcmodel (not the default))\n"
-                   + "   (10) (optional) use an array specific hmm file (i.e. hmm= (no default))\n"
-                   +
+        + "   (0) project properties filename (i.e. proj="
+        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" + " AND\n"
+        + "   (1) number of chunks to split everything in to (i.e. chunks=" + numChunks
+        + " (default))\n"
+        + "   (2) generate seperate qsub files instead of a single executor chain (i.e. -sepqsub (not the default))\n"
+        + "   (3) generate PennCNV scripts to analyze autosomes (i.e. auto=TRUE (default))\n"
+        + "   (4) generate PennCNV scripts to analyze X Chromosome (i.e. chrx=TRUE (default))\n"
+        + "   (5) recompute centroids of chr23-26 (X, Y, XY, MT) and recode as chr1-4 in subdirectory (i.e. sexSpecificCentroids=TRUE (default))\n"
+        + "   (6) transform sample data into PennCNV data files (i.e. data=TRUE (default))\n"
+        + "   (7) number of threads to use (i.e. threads=" + numThreads + " (default))\n"
+        + "   (8) (optional) use custom pfb file (i.e. pfb=custom.pfb (not the default))\n"
+        + "   (9) (optional) use custom gcmodel file (i.e. gcmodel=custom.gcmodel (not the default))\n"
+        + "   (10) (optional) use an array specific hmm file (i.e. hmm= (no default))\n" +
 
-                   " OR\n"
-                   + "   (1) compute file containing project based b allele frequencies for file using parameters in properties file (i.e. -pfb (not the default))\n"
-                   + " OR\n"
-                   + "   (1) compute a custom gcmodel file for the markers in this project using this file (i.e. gc5base=gc5base.txt (not the default))\n"
-                   + " OR\n"
-                   + "   (1) parse warnings from log file (i.e. rawlog=final.log (not the default))\n"
-                   + " OR\n"
-                   + "   (1) raw cnvs to parse (i.e. rawcnv=final.rawcnv (not the default))\n"
-                   + "   (2) (optional) parse only de novo variants (i.e. -denovoOnly (not the default))\n"
-                   + " OR\n"
-                   + "   (1) a comma-separated list of .cnv files to combine together (i.e. combine=/full/path/to/cnv1.cnv,relative/path/to/cnv2.cnv (not the default))\n"
-                   + "   (2) full path of the desired output file (i.e. output=/path/to/output/file.cnv (not the default))\n"
-                   + "";
+        " OR\n"
+        + "   (1) compute file containing project based b allele frequencies for file using parameters in properties file (i.e. -pfb (not the default))\n"
+        + " OR\n"
+        + "   (1) compute a custom gcmodel file for the markers in this project using this file (i.e. gc5base=gc5base.txt (not the default))\n"
+        + " OR\n"
+        + "   (1) parse warnings from log file (i.e. rawlog=final.log (not the default))\n"
+        + " OR\n" + "   (1) raw cnvs to parse (i.e. rawcnv=final.rawcnv (not the default))\n"
+        + "   (2) (optional) parse only de novo variants (i.e. -denovoOnly (not the default))\n"
+        + " OR\n"
+        + "   (1) a comma-separated list of .cnv files to combine together (i.e. combine=/full/path/to/cnv1.cnv,relative/path/to/cnv2.cnv (not the default))\n"
+        + "   (2) full path of the desired output file (i.e. output=/path/to/output/file.cnv (not the default))\n"
+        + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -983,7 +977,7 @@ public class PennCNV {
       }
       if (numChunks > 0) {
         doBatch(proj, auto, chrx, sexCent, transformData, numChunks, separateQsubs, pfbFile,
-                gcmodelFile, hmmFile, separateQsubs ? submit : false, recode, excludes, numThreads);
+            gcmodelFile, hmmFile, separateQsubs ? submit : false, recode, excludes, numThreads);
       }
       if (rawlog != null) {
         parseWarnings(proj, rawlog);
@@ -1061,7 +1055,7 @@ public class PennCNV {
               // log.reportError("Error - '"+trav+"' was not found in
               // "+proj.getFilename(proj.SAMPLE_DATA_FILENAME));
               log.reportError("Error - '" + trav + "' was not found in "
-                              + proj.SAMPLE_DATA_FILENAME.getValue());
+                  + proj.SAMPLE_DATA_FILENAME.getValue());
               hash.put(trav, "");
             }
             famIndPair = trav + "\t" + trav;
@@ -1083,10 +1077,10 @@ public class PennCNV {
             score = ext.formDeci(Double.parseDouble(line[7].substring(5)), 4, true);
           }
           if (!denovoOnly || ext.indexFactors(new String[][] {{"statepath=33"}}, line, false, false,
-                                              false, false)[0] > 0) {
+              false, false)[0] > 0) {
             writer.println(famIndPair + "\t" + position[0] + "\t" + position[1] + "\t" + position[2]
-                           + "\t" + line[3].substring(line[3].indexOf("=") + 1) + "\t" + score
-                           + "\t" + line[1].substring(7));
+                + "\t" + line[3].substring(line[3].indexOf("=") + 1) + "\t" + score + "\t"
+                + line[1].substring(7));
           }
         }
       }
@@ -1111,8 +1105,8 @@ public class PennCNV {
       }
       writer.close();
     } catch (FileNotFoundException fnfe) {
-      log.reportError("Error: file \"" + ext.rootOf(filename, false)
-                      + ".cnv\" not found in current directory");
+      log.reportError(
+          "Error: file \"" + ext.rootOf(filename, false) + ".cnv\" not found in current directory");
       return;
     } catch (IOException ioe) {
       log.reportError("Error reading file \"" + ext.rootOf(filename, false) + "\"");
@@ -1209,7 +1203,7 @@ public class PennCNV {
         ids = sampleData.lookup(sampleID);
         writer.print(sampleID + "\t" + (ids == null ? "NotInSampleData\t" + sampleID : ids[1]));
         writer.print("\t" + (data[1].equals("1") || data[2].equals("1")
-                             || Double.parseDouble(data[6]) > lrrSD_cutoff ? "0" : "1"));
+            || Double.parseDouble(data[6]) > lrrSD_cutoff ? "0" : "1"));
         writer.println("\t" + Array.toStr(data));
       }
       writer.close();
@@ -1309,14 +1303,10 @@ public class PennCNV {
       writer.println("Name\tChr\tPosition\tPFB");
       for (int i = 0; i < markerNames.length; i++) {
         // writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]+"\t"+bafAverage[i]);
-        writer.println(markerNames[i] + "\t"
-                       + (chrs[i] < 23 ? chrs[i]
-                                       : (chrs[i] == 23 ? "X"
-                                                        : (chrs[i] == 24 ? "Y"
-                                                                         : (chrs[i] == 25 ? "XY"
-                                                                                          : (chrs[i] == 26 ? "M"
-                                                                                                           : "Un")))))
-                       + "\t" + positions[i] + "\t" + bafAverage[i]);
+        writer.println(markerNames[i] + "\t" + (chrs[i] < 23 ? chrs[i]
+            : (chrs[i] == 23 ? "X"
+                : (chrs[i] == 24 ? "Y" : (chrs[i] == 25 ? "XY" : (chrs[i] == 26 ? "M" : "Un")))))
+            + "\t" + positions[i] + "\t" + bafAverage[i]);
       }
       writer.close();
       log.report("Population BAF file is now ready at: " + output);
@@ -1343,15 +1333,16 @@ public class PennCNV {
     if (trav.startsWith("gunzip -c") && trav.endsWith(".gz")) {
       trav = trav.substring(9, trav.length() - 3).trim();
     } else {
-      log.reportError("Error - not currently set up to handle the following construction into a sample_ID: "
-                      + trav);
+      log.reportError(
+          "Error - not currently set up to handle the following construction into a sample_ID: "
+              + trav);
     }
 
     return str.substring(0, start) + trav + str.substring(stop + 1);
   }
 
   private static String writeSexFile(Project proj, SampleData sampleData, String resultsDir,
-                                     Logger log) {
+      Logger log) {
     String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
     String[] header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
     int sexInd = -1;

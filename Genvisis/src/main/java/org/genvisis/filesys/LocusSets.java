@@ -8,7 +8,7 @@ import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
 public class LocusSets<T extends Segment> {
 
   public enum UTILITY_TYPE {
-                            UNIONIZE;
+    UNIONIZE;
   }
 
   public static void main(String[] args) {
@@ -21,7 +21,7 @@ public class LocusSets<T extends Segment> {
     String usage = "\n" + "cnv.var.LocusSets requires 0-1 arguments\n";
     usage +=
         "   (1) comma delimited list of filenames with chr\tstart\tstop (i.e. files= (no default))\n"
-             + "";
+            + "";
     usage += "   (2) output file (i.e. out= ( no default))\n" + "";
 
     usage += "   (3) utility type (i.e. utility=" + uType + " (default))\n" + "";
@@ -82,7 +82,7 @@ public class LocusSets<T extends Segment> {
       long curCov = sets.get(i).getBpCovered();
       double corPerecent = (double) unionSize / curCov;
       log.reportTimeInfo("Regions in " + files[i] + " had " + curCov + " bp covered and "
-                         + corPerecent + " percent was in the union");
+          + corPerecent + " percent was in the union");
     }
     union.writeRegions(output, TO_STRING_TYPE.REGULAR, false, log);
 

@@ -34,7 +34,7 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
     private boolean found;
 
     public MarkerBlastResult(String markerName, BLAST_ANNOTATION_TYPES[] bTypes,
-                             int initialCapacity) {
+        int initialCapacity) {
       super();
       this.markerName = markerName;
       this.bTypes = bTypes;
@@ -91,19 +91,17 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
       for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {// each annotation type has
                                                                         // a separate key in the
                                                                         // file
-        String info = vc.getCommonInfo()
-                        .getAttributeAsString(BLAST_ANNOTATION_TYPES.values()[i].toString(),
-                                              BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue());
+        String info =
+            vc.getCommonInfo().getAttributeAsString(BLAST_ANNOTATION_TYPES.values()[i].toString(),
+                BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue());
         if (!info.equals(BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue())) {
           List<String> groups =
               Arrays.asList(info.replaceAll("\\[", "").replaceAll("\\]", "").split("\\s*,\\s*"));
           for (String group : groups) {
             String[] segCigarStrand = group.split("/");
             annotationLists[i].add(new BlastAnnotation(TextCigarCodec.decode(segCigarStrand[0]),
-                                                       new Segment(segCigarStrand[1]),
-                                                       Strand.valueOf(segCigarStrand[2]),
-                                                       PROBE_TAG.valueOf(segCigarStrand[3]),
-                                                       Double.parseDouble(segCigarStrand[4])));
+                new Segment(segCigarStrand[1]), Strand.valueOf(segCigarStrand[2]),
+                PROBE_TAG.valueOf(segCigarStrand[3]), Double.parseDouble(segCigarStrand[4])));
           }
         }
       }
@@ -164,7 +162,7 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
    * @return
    */
   public MarkerBlastResult[] loadBlastAnnotationsFor(String[] markers,
-                                                     AnnotationParser[]... otherQueries) {
+      AnnotationParser[]... otherQueries) {
 
     if (Array.unique(markers).length != markers.length) {
       String error = "Internal error, markers for blast annotation retrieval must be unique";
@@ -208,7 +206,7 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
     }
     if (Array.booleanArraySum(found) != markers.length) {
       String error = markers.length + " markers were expected to be loaded, but only "
-                     + Array.booleanArraySum(found) + " markers were found";
+          + Array.booleanArraySum(found) + " markers were found";
       for (int i = 0; i < found.length; i++) {
         if (!found[i]) {
           error += "\nMissing " + markers[i];

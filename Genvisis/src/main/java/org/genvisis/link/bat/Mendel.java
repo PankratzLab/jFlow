@@ -106,9 +106,9 @@ public class Mendel {
 
     String usage =
         "\\n" + "park.Mendel requires 0-1 arguments\n" + "   (1) pedigree file (i.e. ped=" + pedfile
-                   + " (default))\n" + "   (2) map file (i.e. map=" + mapfile + " (default))\n"
-                   + "   (3) all markers are on the X chromosome (i.e. xLinked=" + xLinked
-                   + " (default))\n" + "  OR\n" + "   (1) chromosome number (i.e. chr=1)\n" + "";
+            + " (default))\n" + "   (2) map file (i.e. map=" + mapfile + " (default))\n"
+            + "   (3) all markers are on the X chromosome (i.e. xLinked=" + xLinked
+            + " (default))\n" + "  OR\n" + "   (1) chromosome number (i.e. chr=1)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -162,7 +162,8 @@ public class Mendel {
       while (!done) {
         temp = reader.readLine();
         if (temp == null) {
-          System.err.println("Error: no results found in mendel.sum; check doublecheck.out to make sure there aren't more errors");
+          System.err.println(
+              "Error: no results found in mendel.sum; check doublecheck.out to make sure there aren't more errors");
           System.exit(1);
         }
         if (temp.trim().split("[\\s]+").length > 1) {
@@ -198,8 +199,7 @@ public class Mendel {
   }
 
   public static String[][] runModel(String dir, String pedfile, String mapfile,
-                                    SnpMarkerSet markerSet, double disease, double pp, double pq,
-                                    double qq) {
+      SnpMarkerSet markerSet, double disease, double pp, double pq, double qq) {
     LinkageMap map;
     int chr;
     String[][] results, allResults;
@@ -219,7 +219,7 @@ public class Mendel {
         trav = chrHash.get(markerName);
         if (trav == null) {
           System.err.println("Error - marker '" + markerName
-                             + "' was not present in the SnpMarkerSet, assuming it is autosomal");
+              + "' was not present in the SnpMarkerSet, assuming it is autosomal");
           autosomalMarkers.add(markerName);
         } else {
           chr = Integer.parseInt(trav.split("[\\s]+")[0]);
@@ -229,7 +229,7 @@ public class Mendel {
             xLinkedMarkers.add(markerName);
           } else {
             System.err.println("Error - the chromosome listed for '" + markerName + "' (" + chr
-                               + ") is invalid, marker will not be analyzed");
+                + ") is invalid, marker will not be analyzed");
           }
         }
       }
@@ -245,8 +245,7 @@ public class Mendel {
       map = new LinkageMap(dir + mapfile);
       map.alterPenetrance(dir + "autosomal.dat", disease, pp, pq, qq, false);
       LinkageFormat.filterMarkers(dir + pedfile, dir + "autosomal.pre", dir + "autosomal.dat",
-                                  dir + "autosomal.dat", Array.toStringArray(autosomalMarkers),
-                                  null);
+          dir + "autosomal.dat", Array.toStringArray(autosomalMarkers), null);
       Mendel.createFiles(dir, "autosomal.pre", "autosomal.dat", false);
       CmdLine.run("mendel", dir);
       results = Mendel.parseMaxLods(dir + "mendel.sum");
@@ -260,7 +259,7 @@ public class Mendel {
       map.setChr(23);
       map.alterPenetrance(dir + "map23.dat", disease, pp, pq, qq, false);
       LinkageFormat.filterMarkers(dir + pedfile, dir + "chr23.pre", dir + "map23.dat",
-                                  dir + "map23.dat", Array.toStringArray(xLinkedMarkers), null);
+          dir + "map23.dat", Array.toStringArray(xLinkedMarkers), null);
       Mendel.createFiles(dir, "chr23.pre", "map23.dat", true);
       CmdLine.run("mendel", dir);
       results = Mendel.parseMaxLods(dir + "mendel.sum");

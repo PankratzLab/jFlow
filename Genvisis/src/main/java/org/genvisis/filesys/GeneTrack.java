@@ -189,7 +189,7 @@ public class GeneTrack implements Serializable {
     GeneData[][] returnData = new GeneData[geneNames.length][];
     for (int g = 0; g < geneNames.length; g++) {
       returnData[g] = data.get(geneNames[g].toLowerCase())
-                          .toArray(new GeneData[data.get(geneNames[g].toLowerCase()).size()]);
+          .toArray(new GeneData[data.get(geneNames[g].toLowerCase()).size()]);
     }
     return returnData;
   }

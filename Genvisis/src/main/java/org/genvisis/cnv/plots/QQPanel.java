@@ -39,7 +39,7 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
   private volatile int trackedH = -1;
 
   public QQPanel(String[] labels, double[][] pvals, boolean log10, boolean rotated, float maxValue,
-                 Color[] colorScheme, Logger log) {
+      Color[] colorScheme, Logger log) {
     super();
 
     this.pvals = pvals;
@@ -55,7 +55,7 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
       descriptions[i] =
           "lambda = " + ext.formDeci(Array.lambda(pvals[i]), 4) + " (" + labels[i] + ")";
       log.report(Array.toStr(ext.replaceAllWith(labels[i], "'", "").split("[\\s]+")) + "\t"
-                 + ext.formDeci(Array.lambda(pvals[i]), 4));
+          + ext.formDeci(Array.lambda(pvals[i]), 4));
     }
 
     createLookup(false);
@@ -169,27 +169,21 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
 
       for (int j = 0; j < pvals[i].length; j++) {
         if (rotated) {
-          points[count] =
-              new PlotPoint(keys[j] + "", PlotPoint.FILLED_CIRCLE,
-                            (float) (-1 * Math.log10(((double) keys[j] + 1) / pvals[i].length)),
-                            Math.min(maxValue,
-                                     (float) (-1
-                                              * Math.log10(pvals[i][j])) - (float) (-1 * Math.log10(
-                                                                                                    ((double) keys[j]
-                                                                                                     + 1)
-                                                                                                    / pvals[i].length))),
-                            (byte) 6, (byte) (pvals.length == 1 ? 0 : i + 2), (byte) 0);
+          points[count] = new PlotPoint(keys[j] + "", PlotPoint.FILLED_CIRCLE,
+              (float) (-1 * Math.log10(((double) keys[j] + 1) / pvals[i].length)),
+              Math.min(maxValue,
+                  (float) (-1 * Math.log10(pvals[i][j]))
+                      - (float) (-1 * Math.log10(((double) keys[j] + 1) / pvals[i].length))),
+              (byte) 6, (byte) (pvals.length == 1 ? 0 : i + 2), (byte) 0);
         } else if (log10) {
-          points[count] =
-              new PlotPoint(keys[j] + "", PlotPoint.FILLED_CIRCLE,
-                            (float) (-1 * Math.log10(((double) keys[j] + 1) / pvals[i].length)),
-                            Math.min(maxValue, (float) (-1 * Math.log10(pvals[i][j]))), (byte) 6,
-                            (byte) (pvals.length == 1 ? 0 : i + 2), (byte) 0);
+          points[count] = new PlotPoint(keys[j] + "", PlotPoint.FILLED_CIRCLE,
+              (float) (-1 * Math.log10(((double) keys[j] + 1) / pvals[i].length)),
+              Math.min(maxValue, (float) (-1 * Math.log10(pvals[i][j]))), (byte) 6,
+              (byte) (pvals.length == 1 ? 0 : i + 2), (byte) 0);
         } else {
-          points[count] =
-              new PlotPoint(keys[j] + "", PlotPoint.FILLED_CIRCLE,
-                            (float) (((double) keys[j] + 1) / pvals[i].length), (float) pvals[i][j],
-                            (byte) 6, (byte) (pvals.length == 1 ? 0 : i + 2), (byte) 0);
+          points[count] = new PlotPoint(keys[j] + "", PlotPoint.FILLED_CIRCLE,
+              (float) (((double) keys[j] + 1) / pvals[i].length), (float) pvals[i][j], (byte) 6,
+              (byte) (pvals.length == 1 ? 0 : i + 2), (byte) 0);
         }
         count++;
       }

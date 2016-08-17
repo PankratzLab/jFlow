@@ -135,7 +135,7 @@ public class GoogleMash implements Serializable {
     }
   }
   public enum QUERY_TYPE {
-                          GOOGLE_SCHOLAR(DEFAULT_GOOGLE_SCHOLAR), GOOGLE_REGULAR(DEFAULT_GOOGLE);
+    GOOGLE_SCHOLAR(DEFAULT_GOOGLE_SCHOLAR), GOOGLE_REGULAR(DEFAULT_GOOGLE);
 
     private String address;
 
@@ -252,9 +252,9 @@ public class GoogleMash implements Serializable {
 
     String usage = "\n" + "bioinformatics.textMine.GoogleMash requires 0-1 arguments\n";
     usage += "   (1) full path to base query file, like a file of genes (i.e. baseFile=" + baseFile
-             + " (default))\n" + "";
+        + " (default))\n" + "";
     usage += "   (2) full path to query extras file, like a file of phenotypes  (i.e. queryFile="
-             + queryFile + " (default))\n" + "";
+        + queryFile + " (default))\n" + "";
     usage += PSF.Ext.getNumThreadsCommand(3, numThreads);
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

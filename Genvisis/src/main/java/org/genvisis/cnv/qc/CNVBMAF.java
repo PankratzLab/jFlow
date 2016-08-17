@@ -50,7 +50,7 @@ public class CNVBMAF extends CNVBDeviation {
     }
 
     public void summarize(double genoHetPenalty, double bafHetPenalty, String summaryType,
-                          Logger log) {
+        Logger log) {
       for (CNVBMAF cnvbmaf : cnvbmafs) {
         cnvbmaf.summarize(genoHetPenalty, bafHetPenalty, summaryType, log);
       }
@@ -81,7 +81,7 @@ public class CNVBMAF extends CNVBDeviation {
   public static final String SUMMARY_BY_SUM_BMAF_ALL_MARKERS = "SUMMARY_BY_BMAF_ALL_MARKERS";
 
   private static CNVBMAF[] initPopulation(int numSamples, String[] intensityOnlyFlags,
-                                          double gcThreshold) {
+      double gcThreshold) {
     CNVBMAF[] cnvbmafs = new CNVBMAF[numSamples];
     for (int i = 0; i < cnvbmafs.length; i++) {
       cnvbmafs[i] = new CNVBMAF(intensityOnlyFlags, gcThreshold);
@@ -104,18 +104,17 @@ public class CNVBMAF extends CNVBDeviation {
     String[] markers = HashVec.loadFileToStringArray(display, false, new int[] {0}, true);
     MarkerDataLoader markerDataLoader =
         MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
-    PoplulationBAFs poplulationBDeviation =
-        new PoplulationBAFs(proj.getSamples().length, DEFAULT_INTENSITY_ONLY_FLAGS,
-                            DEFAULT_GC_THRESHOLD);
+    PoplulationBAFs poplulationBDeviation = new PoplulationBAFs(proj.getSamples().length,
+        DEFAULT_INTENSITY_ONLY_FLAGS, DEFAULT_GC_THRESHOLD);
     for (int i = 0; i < markers.length; i++) {
       MarkerData markerData = markerDataLoader.requestMarkerData(i);
       poplulationBDeviation.add(markers[i], markerData.getAbGenotypes(), markerData.getBAFs(),
-                                markerData.getGCs());
+          markerData.getGCs());
       markerDataLoader.releaseIndex(i);
 
     }
     poplulationBDeviation.summarize(DEFUALT_GENO_HET_PENALTY, DEFUALT_BAF_HET_PENALTY,
-                                    SUMMARY_BY_NUM_ALL_MARKERS, new Logger());
+        SUMMARY_BY_NUM_ALL_MARKERS, new Logger());
   }
 
   private final ArrayList<Double> bmafAll;// keeping as ArrayList for now in case we want to use
@@ -185,7 +184,7 @@ public class CNVBMAF extends CNVBDeviation {
    * @param log
    */
   public void summarize(double genoHetPenalty, double bafHetPenalty, String summaryType,
-                        Logger log) {
+      Logger log) {
     super.summarize();
     if (bmafNonHet.size() > 0) {
       bmafMetric = Array.sum(Doubles.toArray(bmafNonHet));

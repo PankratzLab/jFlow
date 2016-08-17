@@ -25,7 +25,8 @@ public class SystemLinkage {
       } catch (NumberFormatException nfe) {
       }
       if (chr < 1 || chr > 23) {
-        System.err.println("Error - There should only be 1 or 2 digits between chromosome and .dat, and it should be between 1 and 23");
+        System.err.println(
+            "Error - There should only be 1 or 2 digits between chromosome and .dat, and it should be between 1 and 23");
       } else if (!new File("marker.database").exists()) {
         System.err.println("Error - could not find " + "marker.database" + " in current directory");
         System.err.println("        this is required to put markers in order for the map file");
@@ -44,8 +45,8 @@ public class SystemLinkage {
       }
     } else {
       System.err.println("Error - this only works on a chromosomeX.dat file");
-      System.err.println("      - you have '" + filename + "' with a length of "
-                         + filename.length());
+      System.err
+          .println("      - you have '" + filename + "' with a length of " + filename.length());
     }
 
     ext.waitForResponse();

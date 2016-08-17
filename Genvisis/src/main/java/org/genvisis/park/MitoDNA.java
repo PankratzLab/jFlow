@@ -25,9 +25,9 @@ public class MitoDNA {
 
   public static final String[] ANALYSIS_VARS =
       {"IJK", "JTUK", "JTIWX", "mito1719_dom", "mito4580_dom", "mito7028_dom", "mito8251_dom",
-       "mito9055_dom", "mito10398_dom", "mito10400_dom", "mito12308_dom", "mito13368_dom",
-       "mito13708_dom", "mito16391_dom", "H", "I", "J", "K", "M", "T", "U", "V", "W", "X", "Other",
-       "I_v_H", "J_v_H", "K_v_H", "M_v_H", "T_v_H", "U_v_H", "V_v_H", "W_v_H", "X_v_H"};
+          "mito9055_dom", "mito10398_dom", "mito10400_dom", "mito12308_dom", "mito13368_dom",
+          "mito13708_dom", "mito16391_dom", "H", "I", "J", "K", "M", "T", "U", "V", "W", "X",
+          "Other", "I_v_H", "J_v_H", "K_v_H", "M_v_H", "T_v_H", "U_v_H", "V_v_H", "W_v_H", "X_v_H"};
 
   public static void hapit(String dir, String referenceHaps, String snps) {
     BufferedReader reader;
@@ -63,8 +63,8 @@ public class MitoDNA {
       }
       reader.close();
     } catch (FileNotFoundException fnfe) {
-      System.err.println("Error: file \"" + dir + referenceHaps
-                         + "\" not found in current directory");
+      System.err
+          .println("Error: file \"" + dir + referenceHaps + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + dir + referenceHaps + "\"");
@@ -72,8 +72,8 @@ public class MitoDNA {
     }
 
     refs = Matrix.toStringArrays(v);
-    System.out.println("Found " + refs.length + " reference haplotypes using " + refSNPs.length
-                       + " SNPs each");
+    System.out.println(
+        "Found " + refs.length + " reference haplotypes using " + refSNPs.length + " SNPs each");
 
     try {
       reader = new BufferedReader(new FileReader(dir + snps));
@@ -87,8 +87,8 @@ public class MitoDNA {
             if (indices[j] == -1) {
               indices[j] = i;
             } else {
-              System.err.println("Error - more than one column contains '" + refSNPs[j]
-                                 + "'; please advise");
+              System.err.println(
+                  "Error - more than one column contains '" + refSNPs[j] + "'; please advise");
               prob = true;
             }
           }
@@ -119,8 +119,8 @@ public class MitoDNA {
           if (!trav.equals(".") && !trav.equals("1")) {
             if (trav.length() != 2) {
               writer.println("! INVALID GENOTYPE (" + trav + ")\t" + missing + "\t"
-                             + (missing > 0 ? 1 : 0) + genos + "\t"
-                             + Array.toStr(Array.stringArray(refs.length * 2, ".")) + "\t" + temp);
+                  + (missing > 0 ? 1 : 0) + genos + "\t"
+                  + Array.toStr(Array.stringArray(refs.length * 2, ".")) + "\t" + temp);
               prob = true;
               genos += "\t?";
             } else if (trav.charAt(0) != trav.charAt(1)) {
@@ -139,8 +139,8 @@ public class MitoDNA {
         if (!prob) {
           if (count > 0) {
             writer.println("! " + count + " HET" + (count > 1 ? "S" : "") + "\t" + missing + "\t"
-                           + (missing > 0 ? 1 : 0) + genos + "\t"
-                           + Array.toStr(Array.stringArray(refs.length * 2, ".")) + "\t" + temp);
+                + (missing > 0 ? 1 : 0) + genos + "\t"
+                + Array.toStr(Array.stringArray(refs.length * 2, ".")) + "\t" + temp);
           } else {
             poss = Array.booleanArray(refs.length, true);
             for (int i = 0; i < refSNPs.length; i++) {
@@ -155,8 +155,8 @@ public class MitoDNA {
             count = Array.booleanArraySum(poss);
             if (count == 0) {
               writer.println("Other\t" + missing + "\t" + (missing > 0 ? 1 : 0) + genos + "\t"
-                             + Array.toStr(Array.stringArray(refs.length, "0")) + "\t"
-                             + Array.toStr(Array.stringArray(refs.length, ".")) + "\t" + temp);
+                  + Array.toStr(Array.stringArray(refs.length, "0")) + "\t"
+                  + Array.toStr(Array.stringArray(refs.length, ".")) + "\t" + temp);
             } else {
               trav = "";
               for (int i = 0; i < poss.length; i++) {
@@ -165,9 +165,9 @@ public class MitoDNA {
                 }
               }
               trans = count == 1 ? Array.booleanArrayToStringArray(poss)
-                                 : Array.stringArray(refs.length, ".");
+                  : Array.stringArray(refs.length, ".");
               writer.print((count > 1 ? count + " " : "") + trav + "\t" + missing + "\t"
-                           + (missing > 0 ? 1 : 0) + genos + "\t" + Array.toStr(trans));
+                  + (missing > 0 ? 1 : 0) + genos + "\t" + Array.toStr(trans));
               for (int i = 0; i < poss.length; i++) {
                 if (trans[i].equals("0") && !poss[0]) {
                   trans[i] = ".";
@@ -199,11 +199,11 @@ public class MitoDNA {
     boolean testit = true;
 
     String usage = "\\n" + "park.MitoDNA requires 0-1 arguments\n" + "   (1) directory (i.e. dir="
-                   + dir + " (default))\n" + "   (2) reference haplotypes (i.e. refs=" + refs
-                   + " (default))\n" + "   (3) SNP database (i.e. dir=" + snps + " (default))\n"
-                   + "   (4) create haplotype database (i.e. -hapit (not the default))\n"
-                   + "   (5) file with pairs of UniqueIDs (i.e. pairs=" + pairs + " (default))\n"
-                   + "   (6) test haplotype database (i.e. -testit (not the default))\n" + "";
+        + dir + " (default))\n" + "   (2) reference haplotypes (i.e. refs=" + refs + " (default))\n"
+        + "   (3) SNP database (i.e. dir=" + snps + " (default))\n"
+        + "   (4) create haplotype database (i.e. -hapit (not the default))\n"
+        + "   (5) file with pairs of UniqueIDs (i.e. pairs=" + pairs + " (default))\n"
+        + "   (6) test haplotype database (i.e. -testit (not the default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

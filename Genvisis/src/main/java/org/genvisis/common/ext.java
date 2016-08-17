@@ -30,9 +30,8 @@ import java.util.Vector;
 import com.google.common.primitives.Ints;
 
 public class ext {
-  public static final String[][] VALID_CHARS =
-      {{" ", "_"}, {"?", "_"}, {"'", "_"}, {"/", "_"}, {"\\", "_"}, {"<", "_"}, {">", "_"},
-       {"|", "_"}, {":", "_"}, {"*", "_"}, {"\"", "_"}};
+  public static final String[][] VALID_CHARS = {{" ", "_"}, {"?", "_"}, {"'", "_"}, {"/", "_"},
+      {"\\", "_"}, {"<", "_"}, {">", "_"}, {"|", "_"}, {":", "_"}, {"*", "_"}, {"\"", "_"}};
   public static final String[][] TO_BE_EXTRA_SAFE_CHARS = {{"(", "_"}, {")", "_"}, {"&", "_"}};
   public static final String[] MISSING_VALUES = {"", ".", "NA", "NaN", "x", "#N/A", "--", "-"};
   public static final String[][] META_REPLACEMENTS =
@@ -67,7 +66,7 @@ public class ext {
    * @return NOTE: couldn't make this generic for {@link Numbers}. Go for it if it's easy
    */
   public static Hashtable<String, Integer> addHashCounts(Hashtable<String, Integer> toAddTo,
-                                                         Hashtable<String, Integer> toAddFrom) {
+      Hashtable<String, Integer> toAddFrom) {
     Set<String> keys = toAddFrom.keySet();
     for (String key : keys) {
       if (!toAddTo.containsKey(key)) {
@@ -83,7 +82,7 @@ public class ext {
 
   public static String addToRoot(String filename, String addition) {
     return ext.rootOf(filename, false) + addition
-           + (filename.lastIndexOf(".") > 0 ? filename.substring(filename.lastIndexOf(".")) : "");
+        + (filename.lastIndexOf(".") > 0 ? filename.substring(filename.lastIndexOf(".")) : "");
   }
 
   public static void appendToFile(String text, String filename) {
@@ -117,7 +116,7 @@ public class ext {
 
     for (String element : arr) {
       sb.append(Character.toUpperCase(element.charAt(0))).append(element.substring(1).toLowerCase())
-        .append(" ");
+          .append(" ");
     }
     return sb.toString().trim();
   }
@@ -127,12 +126,12 @@ public class ext {
   }
 
   public static boolean checkHeader(String[] observed, String[] expected, boolean caseSensitive,
-                                    boolean kill) {
+      boolean kill) {
     return checkHeader(observed, expected, caseSensitive, new Logger(), kill);
   }
 
   public static boolean checkHeader(String[] observed, String[] expected, boolean caseSensitive,
-                                    Logger log, boolean kill) {
+      Logger log, boolean kill) {
     boolean kosher = true;
 
 
@@ -146,7 +145,7 @@ public class ext {
 
     if (observed.length != expected.length) {
       log.reportError("Error - file has an unexpected header; expecting " + expected.length
-                      + " columns, found " + observed.length);
+          + " columns, found " + observed.length);
       log.reportError("Expected: " + Array.toStr(expected));
       log.reportError("Observed: " + Array.toStr(observed));
       kosher = false;
@@ -158,8 +157,8 @@ public class ext {
         0; i < (observed.length < expected.length ? observed.length : expected.length); i++) {
       if (!observed[i].equalsIgnoreCase(expected[i])
           || (caseSensitive && !observed[i].equals(expected[i]))) {
-        log.reportError("Error - Expecting " + expected[i] + " in column " + (i + 1) + "; got "
-                        + observed[i]);
+        log.reportError(
+            "Error - Expecting " + expected[i] + " in column " + (i + 1) + "; got " + observed[i]);
         kosher = false;
       }
     }
@@ -171,7 +170,7 @@ public class ext {
   }
 
   public static boolean checkHeader(String[] observed, String[] expected, int[] indicesToCheck,
-                                    boolean caseSensitive, Logger log, boolean kill) {
+      boolean caseSensitive, Logger log, boolean kill) {
     String[] subArray;
 
     if (indicesToCheck == null) {
@@ -242,7 +241,7 @@ public class ext {
     if (str.contains("\t")) {
       return "\t";
     } else if (countInstancesOf(str, ",") > countInstancesOf(str, " ")
-               || (spaceAsLastResort && countInstancesOf(str, ",") > 0)) {
+        || (spaceAsLastResort && countInstancesOf(str, ",") > 0)) {
       return ",";
     } else {
       return "[\\s]+";
@@ -273,7 +272,7 @@ public class ext {
       int nw = i - 1;
       for (int j = 1; j <= b.length(); j++) {
         int cj = Math.min(1 + Math.min(costs[j], costs[j - 1]),
-                          a.charAt(i - 1) == b.charAt(j - 1) ? nw : nw + 1);
+            a.charAt(i - 1) == b.charAt(j - 1) ? nw : nw + 1);
         nw = costs[j];
         costs[j] = cj;
       }
@@ -506,7 +505,7 @@ public class ext {
     GregorianCalendar gc = new GregorianCalendar();
     gc.setTime(date);
     return gc.get(Calendar.YEAR) + delimiter + chrome((gc.get(Calendar.MONTH) + 1)) + delimiter
-           + chrome(gc.get(Calendar.DAY_OF_MONTH));
+        + chrome(gc.get(Calendar.DAY_OF_MONTH));
   }
 
   public static String getDate(String delimiter) {
@@ -577,7 +576,7 @@ public class ext {
     tokens.add(hist);
 
     return new String[][] {Array.toStringArray(operatorsPresent),
-                           Array.toStringArray(operatorIndices), Array.toStringArray(tokens)};
+        Array.toStringArray(operatorIndices), Array.toStringArray(tokens)};
   }
 
   public static String getTime() {
@@ -588,8 +587,8 @@ public class ext {
     GregorianCalendar gc = new GregorianCalendar();
     gc.setTime(new Date(time));
     return formNum(gc.get(Calendar.HOUR) == 0 ? 12 : gc.get(Calendar.HOUR), 2) + ":"
-           + formNum(gc.get(Calendar.MINUTE), 2) + ":" + formNum(gc.get(Calendar.SECOND), 2)
-           + (gc.get(Calendar.AM_PM) == 0 ? "AM" : "PM");
+        + formNum(gc.get(Calendar.MINUTE), 2) + ":" + formNum(gc.get(Calendar.SECOND), 2)
+        + (gc.get(Calendar.AM_PM) == 0 ? "AM" : "PM");
   }
 
   public static String getTimeElapsed(long startTime) {
@@ -654,7 +653,7 @@ public class ext {
     }
 
     System.err.println("Error - '" + returnType
-                       + "' is an invalid return type: only S(econds), M(inutes), and H(ours) are allowed");
+        + "' is an invalid return type: only S(econds), M(inutes), and H(ours) are allowed");
 
     return -1;
   }
@@ -714,12 +713,12 @@ public class ext {
   // }
 
   public static int[] indexFactors(String[] subset, String[] superset, boolean casesensitive,
-                                   boolean kill) {
+      boolean kill) {
     return indexFactors(subset, superset, casesensitive, new Logger(), true, kill);
   }
 
   public static int[] indexFactors(String[] subset, String[] superset, boolean casesensitive,
-                                   Logger log, boolean verbose, boolean kill) {
+      Logger log, boolean verbose, boolean kill) {
     int[] indices = new int[subset.length];
     boolean err = false;
 
@@ -727,7 +726,7 @@ public class ext {
       indices[i] = -1;
       for (int j = 0; j < superset.length; j++) {
         if (casesensitive ? subset[i].equals(superset[j])
-                          : subset[i].equalsIgnoreCase(superset[j])) {
+            : subset[i].equalsIgnoreCase(superset[j])) {
           if (indices[i] == -1) {
             indices[i] = j;
           } else {
@@ -774,16 +773,14 @@ public class ext {
   // }
   //
   public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
-                                   boolean caseSensitive, boolean exactMatch, boolean verbose,
-                                   boolean kill) {
+      boolean caseSensitive, boolean exactMatch, boolean verbose, boolean kill) {
     return indexFactors(targetsWithAlts, superset, caseSensitive, exactMatch, verbose, new Logger(),
-                        kill);
+        kill);
   }
 
   public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
-                                   boolean preferFirstInTargetsOverFirstInSuperset,
-                                   boolean caseSensitive, boolean exactMatch, boolean verbose,
-                                   Logger log, boolean kill) {
+      boolean preferFirstInTargetsOverFirstInSuperset, boolean caseSensitive, boolean exactMatch,
+      boolean verbose, Logger log, boolean kill) {
     int[] finalIndices;
     IntVector[] possibleIndices;
     boolean err = false;
@@ -821,7 +818,7 @@ public class ext {
         if (verbose) {
           if (log != null) {
             log.reportError((kill ? "Error" : "Warning") + " - no factor named '"
-                            + Array.toStr(targetsWithAlts[i], "/") + "'");
+                + Array.toStr(targetsWithAlts[i], "/") + "'");
           }
         }
         finalIndices[i] = -1;
@@ -832,11 +829,10 @@ public class ext {
           if (verbose) {
             if (log != null) {
               log.reportError("Warning - multiple factors matched; using "
-                              + superset[possibleIndices[i].elementAt(0)] + " and not ", false,
-                              true);
+                  + superset[possibleIndices[i].elementAt(0)] + " and not ", false, true);
               for (int j = 1; j < possibleIndices[i].size(); j++) {
                 log.reportError((j == 1 ? "" : " or ") + superset[possibleIndices[i].elementAt(j)],
-                                false, true);
+                    false, true);
               }
               log.reportError("", true, true);
             }
@@ -851,10 +847,9 @@ public class ext {
   }
 
   public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
-                                   boolean caseSensitive, boolean exactMatch, boolean verbose,
-                                   Logger log, boolean kill) {
+      boolean caseSensitive, boolean exactMatch, boolean verbose, Logger log, boolean kill) {
     return indexFactors(targetsWithAlts, superset, false, caseSensitive, exactMatch, verbose, log,
-                        kill);
+        kill);
   }
 
   /**
@@ -873,7 +868,7 @@ public class ext {
    * 
    */
   public static int[] indexLargeFactors(String[] subset, String[] superset, boolean casesensitive,
-                                        Logger log, boolean verbose, boolean kill) {
+      Logger log, boolean verbose, boolean kill) {
     Hashtable<String, Integer> track = new Hashtable<String, Integer>();
     int[] indices = new int[subset.length];
     Arrays.fill(indices, -1);
@@ -909,13 +904,12 @@ public class ext {
 
 
   public static Map<String, Integer> indexMap(String[] subset, String[] superset,
-                                              boolean casesensitive, boolean kill) {
+      boolean casesensitive, boolean kill) {
     return indexMap(subset, superset, casesensitive, new Logger(), true, kill);
   }
 
   public static Map<String, Integer> indexMap(String[] subset, String[] superset,
-                                              boolean casesensitive, Logger log, boolean verbose,
-                                              boolean kill) {
+      boolean casesensitive, Logger log, boolean verbose, boolean kill) {
     Map<String, Integer> indices = new HashMap<String, Integer>(subset.length);
 
     if (!casesensitive) {
@@ -1035,12 +1029,12 @@ public class ext {
   }
 
   public static int indexOfStr(String target, String[] array, boolean caseSensitive,
-                               boolean exactMatch) {
+      boolean exactMatch) {
     return indexOfStr(target, array, caseSensitive, exactMatch, new Logger(), false);
   }
 
   public static int indexOfStr(String target, String[] array, boolean caseSensitive,
-                               boolean exactMatch, Logger log, boolean verbose) {
+      boolean exactMatch, Logger log, boolean verbose) {
     int[] indices;
 
     indices = indicesOfStr(target, array, caseSensitive, exactMatch);
@@ -1070,7 +1064,7 @@ public class ext {
   public static int indexOfStr(String target, String[][] array, boolean caseSensitive) {
     for (int i = 0; i < array.length; i++) {
       if (caseSensitive ? array[i][0].equals(target)
-                        : array[i][0].toLowerCase().equals(target.toLowerCase())) {
+          : array[i][0].toLowerCase().equals(target.toLowerCase())) {
         return i;
       }
     }
@@ -1078,20 +1072,20 @@ public class ext {
   }
 
   public static int[] indicesOfStr(String target, String[] array, boolean caseSensitive,
-                                   boolean exactMatch) {
+      boolean exactMatch) {
     IntVector indices;
 
     indices = new IntVector();
     for (int i = 0; i < array.length; i++) {
       if (exactMatch) {
         if (caseSensitive ? array[i].equals(target)
-                          : array[i].toLowerCase().equals(target.toLowerCase())) {
+            : array[i].toLowerCase().equals(target.toLowerCase())) {
           indices.add(i);
         }
       } else {
         if (caseSensitive ? array[i].contains(target) || target.contains(array[i])
-                          : array[i].toLowerCase().contains(target.toLowerCase())
-                            || target.toLowerCase().contains(array[i].toLowerCase())) {
+            : array[i].toLowerCase().contains(target.toLowerCase())
+                || target.toLowerCase().contains(array[i].toLowerCase())) {
           indices.add(i);
         }
       }
@@ -1142,12 +1136,12 @@ public class ext {
 
   public static boolean isValidByte(String str) {
     return isValidInteger(str) && Integer.parseInt(str) >= Byte.MIN_VALUE
-           && Integer.parseInt(str) <= Byte.MAX_VALUE;
+        && Integer.parseInt(str) <= Byte.MAX_VALUE;
   }
 
   public static boolean isValidChromosome(String str) {
     return ext.indexOfStr(str, Positions.CHR_CODES) != -1
-           || (isValidInteger(str) && Integer.parseInt(str) >= 1 && Integer.parseInt(str) <= 26);
+        || (isValidInteger(str) && Integer.parseInt(str) >= 1 && Integer.parseInt(str) <= 26);
   }
 
   public static boolean isValidDouble(String str) {
@@ -1239,7 +1233,7 @@ public class ext {
     String[] data = {"kitten", "sitting", "saturday", "sunday", "rosettacode", "raisethysword"};
     for (int i = 0; i < data.length; i += 2) {
       System.out.println("distance(" + data[i] + ", " + data[i + 1] + ") = "
-                         + distanceLevenshtein(data[i], data[i + 1]));
+          + distanceLevenshtein(data[i], data[i + 1]));
     }
     System.exit(1);
   }
@@ -1255,7 +1249,7 @@ public class ext {
       return false;
     } else {
       log.reportError("Error - invalid " + arg.split("=")[0] + "= argument (expecting true/false): "
-                      + arg.split("=")[1].trim());
+          + arg.split("=")[1].trim());
       System.exit(1);
       return false;
     }
@@ -1265,8 +1259,8 @@ public class ext {
     try {
       return Byte.parseByte(arg.split("=")[1].trim());
     } catch (NumberFormatException nfe) {
-      System.err.println("Error - invalid " + arg.split("=")[0] + "= argument: "
-                         + arg.split("=")[1]);
+      System.err
+          .println("Error - invalid " + arg.split("=")[0] + "= argument: " + arg.split("=")[1]);
       System.exit(1);
       return Byte.MIN_VALUE;
     }
@@ -1281,7 +1275,7 @@ public class ext {
     }
 
     return new GregorianCalendar(Integer.parseInt(line[2]), Integer.parseInt(line[0]) - 1,
-                                 Integer.parseInt(line[1])).getTime();
+        Integer.parseInt(line[1])).getTime();
   }
 
   public static String parseDirectoryOfFile(String filename) {
@@ -1309,8 +1303,8 @@ public class ext {
     try {
       return Double.parseDouble(arg.split("=")[1].trim());
     } catch (NumberFormatException nfe) {
-      System.err.println("Error - invalid " + arg.split("=")[0] + "= argument: "
-                         + arg.split("=")[1]);
+      System.err
+          .println("Error - invalid " + arg.split("=")[0] + "= argument: " + arg.split("=")[1]);
       System.exit(1);
       return Double.NaN;
     }
@@ -1320,8 +1314,8 @@ public class ext {
     try {
       return Float.parseFloat(arg.split("=")[1].trim());
     } catch (NumberFormatException nfe) {
-      System.err.println("Error - invalid " + arg.split("=")[0] + "= argument: "
-                         + arg.split("=")[1]);
+      System.err
+          .println("Error - invalid " + arg.split("=")[0] + "= argument: " + arg.split("=")[1]);
       System.exit(1);
       return Float.NaN;
     }
@@ -1331,8 +1325,8 @@ public class ext {
     try {
       return Integer.parseInt(arg.split("=")[1].trim());
     } catch (NumberFormatException nfe) {
-      System.err.println("Error - invalid " + arg.split("=")[0] + "= argument: "
-                         + arg.split("=")[1].trim());
+      System.err.println(
+          "Error - invalid " + arg.split("=")[0] + "= argument: " + arg.split("=")[1].trim());
       System.exit(1);
       return Integer.MIN_VALUE;
     }
@@ -1396,7 +1390,7 @@ public class ext {
   }
 
   public static String prettyP(double d, int sigfigs, int sigfigWhenConverting,
-                               int sigfigWhenConverted, boolean useE) {
+      int sigfigWhenConverted, boolean useE) {
     return prettyP(d + "", sigfigs, sigfigWhenConverting, sigfigWhenConverted, useE);
   }
 
@@ -1419,7 +1413,7 @@ public class ext {
    * @return the pretty version of the number
    */
   public static String prettyP(String nummer, int sigfigs, int sigfigBeforeConverting,
-                               int sigfigWhenConverted, boolean useE) {
+      int sigfigWhenConverted, boolean useE) {
     String str = "";
     double d = -999;
     int power;
@@ -1554,8 +1548,8 @@ public class ext {
       stop = str.substring(start + 1).indexOf("\"") + start + 1;
       try {
         str = str.substring(0, start)
-              + replaceAllWith(str.substring(start + 1, stop), theReplacements)
-              + str.substring(stop + 1);
+            + replaceAllWith(str.substring(start + 1, stop), theReplacements)
+            + str.substring(stop + 1);
       } catch (Exception e) {
         System.err.println("Error - failed to parse: '" + ori + "'");
         e.printStackTrace();
@@ -1576,7 +1570,7 @@ public class ext {
         done = true;
       } else {
         str = str.substring(0, str.indexOf(from)) + to
-              + str.substring(str.indexOf(from) + from.length());
+            + str.substring(str.indexOf(from) + from.length());
       }
     }
     return str;
@@ -1603,7 +1597,7 @@ public class ext {
       } else {
         try {
           str = str.substring(0, str.indexOf(from)) + to
-                + str.substring(str.indexOf(from) + from.length());
+              + str.substring(str.indexOf(from) + from.length());
         } catch (Exception e) {
           System.err.println("Error with " + from + " to " + to + ": " + original);
           e.printStackTrace();
@@ -1688,10 +1682,10 @@ public class ext {
     // ;
 
     return "Used: " + ext.prettyUpSize(muHeap.getUsed(), 1) + "\tInit: "
-           + ext.prettyUpSize(muHeap.getInit(), 1) + "\tCommit: "
-           + ext.prettyUpSize(muHeap.getCommitted(), 1) + "\tMax: "
-           + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + "\tFree: "
-           + ext.prettyUpSize(Runtime.getRuntime().freeMemory(), 1);
+        + ext.prettyUpSize(muHeap.getInit(), 1) + "\tCommit: "
+        + ext.prettyUpSize(muHeap.getCommitted(), 1) + "\tMax: "
+        + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + "\tFree: "
+        + ext.prettyUpSize(Runtime.getRuntime().freeMemory(), 1);
   }
 
   public static String right(String str, int numChar) {
@@ -1747,7 +1741,7 @@ public class ext {
   }
 
   public static String[] splitCommasIntelligently(String str, boolean removeAndSimplifyQuotes,
-                                                  Logger log) {
+      Logger log) {
     int numCommas;
     int startIndex;
     Vector<String> v;
@@ -1760,7 +1754,7 @@ public class ext {
       if (str.charAt(i) == ',') {
         if (numCommas % 2 == 0) {
           v.add(removeAndSimplifyQuotes ? removeAndSimplifyQuotes(str.substring(startIndex, i), log)
-                                        : str.substring(startIndex, i));
+              : str.substring(startIndex, i));
           // System.out.println(v.elementAt(v.size()-1));
           startIndex = i + 1;
           if (insideQuotes && str.charAt(i - 1) != '\"') {
@@ -1778,7 +1772,7 @@ public class ext {
       }
     }
     v.add(removeAndSimplifyQuotes ? removeAndSimplifyQuotes(str.substring(startIndex), log)
-                                  : str.substring(startIndex));
+        : str.substring(startIndex));
 
     return Array.toStringArray(v);
   }

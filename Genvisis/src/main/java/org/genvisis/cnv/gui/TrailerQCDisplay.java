@@ -125,8 +125,7 @@ public class TrailerQCDisplay extends JDialog {
   }
 
   public void setData(String sample, int chr, int start, int stop, String[] genNoGc,
-                      String[] chromNoGc, String[] regNoGC, String[] genGc, String[] chromGc,
-                      String[] regGC) {
+      String[] chromNoGc, String[] regNoGC, String[] genGc, String[] chromGc, String[] regGC) {
     lblSampleID.setText(sample);
     String chrLbl = CHROM_LBL.replace("#", "" + chr);
     String regLbl = REGION_LBL.replace("#", "" + chr + ":" + start + "-" + stop);

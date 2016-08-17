@@ -34,17 +34,17 @@ public class Grafik {
   }
 
   public static void drawThickLine(Graphics g, int x1, int y1, int x2, int y2, int thickness,
-                                   Color c) {
+      Color c) {
     drawThickLine(g, x1, y1, x2, y2, thickness, c, 0);
   }
 
   public static void drawThickLine(Graphics g, int x1, int y1, int x2, int y2, int thickness,
-                                   Color c, int direction) {
+      Color c, int direction) {
     drawThickLine(g, x1, y1, x2, y2, thickness, c, direction, true);
   }
 
   public static void drawThickLine(Graphics g, int x1, int y1, int x2, int y2, int thickness,
-                                   Color c, int direction, boolean scaleThickness) {
+      Color c, int direction, boolean scaleThickness) {
     int dX = x2 - x1;
     int dY = y2 - y1;
     g.setColor(c);
@@ -100,7 +100,7 @@ public class Grafik {
       double yD = (len) * Math.cos(radT45);
 
       drawThickLine(g, xH, yH, (int) (direction == 1 ? xH + xD : xH - xD), (int) (yH + yD), 2, c, 0,
-                    scaleThickness);
+          scaleThickness);
 
 
       xH = x1 + (dX / 3);
@@ -114,7 +114,7 @@ public class Grafik {
       yD = (len) * Math.cos(radT45);
 
       drawThickLine(g, xH, yH, (int) (direction == 1 ? xH + xD : xH - xD), (int) (yH + yD), 2, c, 0,
-                    scaleThickness);
+          scaleThickness);
 
       xH = x1 + 2 * (dX / 3);
       yH = y1 + 2 * (dY / 3);
@@ -127,7 +127,7 @@ public class Grafik {
       yD = (len) * Math.cos(radT45);
 
       drawThickLine(g, xH, yH, (int) (direction == 1 ? xH + xD : xH - xD), (int) (yH + yD), 2, c, 0,
-                    scaleThickness);
+          scaleThickness);
 
 
 
@@ -137,12 +137,12 @@ public class Grafik {
 
   public static void drawTriangle(Graphics g, int x, int y, int size, boolean filled) {
     g.drawPolygon(new int[] {x - size / 2, x, x + size / 2},
-                  new int[] {y + size / 2, y - size / 2, y + size / 2}, 3);
+        new int[] {y + size / 2, y - size / 2, y + size / 2}, 3);
 
     if (filled) {
       for (int i = 0; i < size; i++) {
         g.drawPolygon(new int[] {x - (size / 2 - i), x, x + (size / 2 - i)},
-                      new int[] {y + (size / 2), y - size / 2, y + (size / 2)}, 3);
+            new int[] {y + (size / 2), y - size / 2, y + (size / 2)}, 3);
       }
 
     }
@@ -242,7 +242,7 @@ public class Grafik {
     FontMetrics boxFontMetrics = checkbox.getFontMetrics(checkbox.getFont());
     Icon boxIcon = UIManager.getIcon("CheckBox.icon");
     BufferedImage boxImage = new BufferedImage(boxIcon.getIconWidth(), boxIcon.getIconHeight(),
-                                               BufferedImage.TYPE_INT_ARGB);
+        BufferedImage.TYPE_INT_ARGB);
     Graphics graphics = boxImage.createGraphics();
     try {
       boxIcon.paintIcon(checkbox, graphics, 0, 0);
@@ -250,16 +250,14 @@ public class Grafik {
       graphics.dispose();
     }
     ImageIcon newBoxImage = new ImageIcon(boxImage);
-    Image finalBoxImage =
-        newBoxImage.getImage().getScaledInstance(boxFontMetrics.getHeight(),
-                                                 boxFontMetrics.getHeight(), Image.SCALE_SMOOTH);
+    Image finalBoxImage = newBoxImage.getImage().getScaledInstance(boxFontMetrics.getHeight(),
+        boxFontMetrics.getHeight(), Image.SCALE_SMOOTH);
     checkbox.setIcon(new ImageIcon(finalBoxImage));
 
     checkbox.setSelected(true);
     Icon checkedBoxIcon = UIManager.getIcon("CheckBox.icon");
-    BufferedImage checkedBoxImage =
-        new BufferedImage(checkedBoxIcon.getIconWidth(), checkedBoxIcon.getIconHeight(),
-                          BufferedImage.TYPE_INT_ARGB);
+    BufferedImage checkedBoxImage = new BufferedImage(checkedBoxIcon.getIconWidth(),
+        checkedBoxIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
     Graphics checkedGraphics = checkedBoxImage.createGraphics();
     try {
       checkedBoxIcon.paintIcon(checkbox, checkedGraphics, 0, 0);
@@ -267,10 +265,8 @@ public class Grafik {
       checkedGraphics.dispose();
     }
     ImageIcon newCheckedBoxImage = new ImageIcon(checkedBoxImage);
-    Image finalCheckedBoxImage =
-        newCheckedBoxImage.getImage().getScaledInstance(boxFontMetrics.getHeight(),
-                                                        boxFontMetrics.getHeight(),
-                                                        Image.SCALE_SMOOTH);
+    Image finalCheckedBoxImage = newCheckedBoxImage.getImage().getScaledInstance(
+        boxFontMetrics.getHeight(), boxFontMetrics.getHeight(), Image.SCALE_SMOOTH);
     checkbox.setSelectedIcon(new ImageIcon(finalCheckedBoxImage));
     checkbox.setSelected(false);
     checkbox.setSelected(previousState);

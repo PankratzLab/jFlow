@@ -53,16 +53,16 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 
   private final Color[] mosaicColorScheme = {Color.BLACK, Color.GRAY, new Color(55, 129, 252), // dark/light
                                                                                                // blue
-                                             new Color(140, 20, 180), // deep purple
-                                             new Color(0, 100, 0), // green
-                                             new Color(200, 30, 10), // red
-                                             new Color(100, 50, 0), // brown
-                                             new Color(255, 100, 0), // orange
-                                             new Color(217, 109, 194), // pink
-                                             new Color(94, 88, 214), // light purple
-                                             new Color(189, 243, 61), // neon green
-                                             new Color(33, 31, 53), // nearly black
-                                             new Color(255, 255, 255), // white
+      new Color(140, 20, 180), // deep purple
+      new Color(0, 100, 0), // green
+      new Color(200, 30, 10), // red
+      new Color(100, 50, 0), // brown
+      new Color(255, 100, 0), // orange
+      new Color(217, 109, 194), // pink
+      new Color(94, 88, 214), // light purple
+      new Color(189, 243, 61), // neon green
+      new Color(33, 31, 53), // nearly black
+      new Color(255, 255, 255), // white
   };
   private Project proj;
   private String[][] samples;
@@ -117,8 +117,8 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
     }
     if (invalidBytes.size() > 0) {
       proj.message("Invalid color codes for MosaicPlot in " + mosaicColorFile
-                   + " (must be an integer < 128):\n"
-                   + Array.toStr(HashVec.getKeys(invalidBytes, false, false), "\n\t"));
+          + " (must be an integer < 128):\n"
+          + Array.toStr(HashVec.getKeys(invalidBytes, false, false), "\n\t"));
     }
 
 
@@ -192,18 +192,11 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
         // color = colorScheme[Integer.parseInt(colorHash.get(samples[i][0]+"\t"+samples[i][1]))];
         color = colorHash.get(samples[i][0] + "\t" + samples[i][1]);
       } else {
-        color =
-            (byte) (ext.indexOfStr(samples[i][0] + Sample.SAMPLE_FILE_EXTENSION, files) >= 0 ? 0
-                                                                                             : 1); // What
-                                                                                                   // is
-                                                                                                   // the
-                                                                                                   // color
-                                                                                                   // code
-                                                                                                   // for
-                                                                                                   // Color.GRAY
+        color = (byte) (ext.indexOfStr(samples[i][0] + Sample.SAMPLE_FILE_EXTENSION, files) >= 0 ? 0
+            : 1); // What is the color code for Color.GRAY
       }
       points[i] = new PlotPoint("", (byte) 1, (float) data[i][0], (float) data[i][1], (byte) SIZE,
-                                color, (byte) 0);
+          color, (byte) 0);
     }
     setSwapable(false);
 
@@ -226,16 +219,13 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
       menu = new JPopupMenu();
       for (int i = 0; i < prox.size(); i++) {
         menu.add(new LaunchAction(proj, samples[prox.elementAt(i)][0],
-                                  samples[prox.elementAt(i)][1],
-                                  colorHash.containsKey(samples[prox.elementAt(i)][0] + "\t"
-                                                        + samples[prox.elementAt(i)][1]) ? colorScheme[colorHash.get(samples[prox.elementAt(i)][0]
-                                                                                                                     + "\t"
-                                                                                                                     + samples[prox.elementAt(i)][1])]
-                                                                                         : colorScheme[Files.exists(proj.SAMPLE_DIRECTORY.getValue(false,
-                                                                                                                                                   true)
-                                                                                                                    + samples[i][0]
-                                                                                                                    + Sample.SAMPLE_FILE_EXTENSION) ? 0
-                                                                                                                                                    : 1]));
+            samples[prox.elementAt(i)][1],
+            colorHash
+                .containsKey(samples[prox.elementAt(i)][0] + "\t" + samples[prox.elementAt(i)][1])
+                    ? colorScheme[colorHash
+                        .get(samples[prox.elementAt(i)][0] + "\t" + samples[prox.elementAt(i)][1])]
+                    : colorScheme[Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true)
+                        + samples[i][0] + Sample.SAMPLE_FILE_EXTENSION) ? 0 : 1]));
       }
       menu.show(this, event.getX(), event.getY());
     }
@@ -271,20 +261,18 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
       prox = new IntVector();
       g.setColor(Color.RED);
       for (int i = 0; iv != null && i < iv.size(); i++) {
-        if (Distance.euclidean(new int[] {x, y},
-                               new int[] {getXPixel(data[iv.elementAt(i)][0]),
-                                          getYPixel(data[iv.elementAt(i)][1])}) < HIGHLIGHT_DISTANCE) {
+        if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(data[iv.elementAt(i)][0]),
+            getYPixel(data[iv.elementAt(i)][1])}) < HIGHLIGHT_DISTANCE) {
           g.setColor(Color.RED);
           if (sampleData.individualShouldBeExcluded(samples[iv.elementAt(i)][0])) {
             if (hideExcluded) {
               continue;
             }
             g.fillOval(getXPixel(data[iv.elementAt(i)][0]) - SIZE_FAILED / 2,
-                       getYPixel(data[iv.elementAt(i)][1]) - SIZE_FAILED / 2, SIZE_FAILED,
-                       SIZE_FAILED);
+                getYPixel(data[iv.elementAt(i)][1]) - SIZE_FAILED / 2, SIZE_FAILED, SIZE_FAILED);
           } else {
             g.fillOval(getXPixel(data[iv.elementAt(i)][0]) - SIZE / 2,
-                       getYPixel(data[iv.elementAt(i)][1]) - SIZE / 2, SIZE, SIZE);
+                getYPixel(data[iv.elementAt(i)][1]) - SIZE / 2, SIZE, SIZE);
           }
           prox.add(iv.elementAt(i));
         }
@@ -300,11 +288,10 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
                 continue;
               }
               g.fillOval(getXPixel(data[iv.elementAt(j)][0]) - SIZE_FAILED / 2,
-                         getYPixel(data[iv.elementAt(j)][1]) - SIZE_FAILED / 2, SIZE_FAILED,
-                         SIZE_FAILED);
+                  getYPixel(data[iv.elementAt(j)][1]) - SIZE_FAILED / 2, SIZE_FAILED, SIZE_FAILED);
             } else {
               g.fillOval(getXPixel(data[iv.elementAt(j)][0]) - SIZE / 2,
-                         getYPixel(data[iv.elementAt(j)][1]) - SIZE / 2, SIZE, SIZE);
+                  getYPixel(data[iv.elementAt(j)][1]) - SIZE / 2, SIZE, SIZE);
             }
           }
         }

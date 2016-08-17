@@ -43,7 +43,8 @@ public class CNVariantHash implements Serializable {
     }
     if (!parse || hashes == null) {
       if (hashes == null) {
-        log.report("Detected that CNVariantHash needs to be updated from cnv.var.CNVariantHash to filesys.CNVariantHash; reparsing...");
+        log.report(
+            "Detected that CNVariantHash needs to be updated from cnv.var.CNVariantHash to filesys.CNVariantHash; reparsing...");
       }
       hashes = new CNVariantHash(filename, structureType, jar, log);
       hashes.serialize(filename + suffix);
@@ -60,7 +61,7 @@ public class CNVariantHash implements Serializable {
         "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\data\\penncnv_1SNP.cnv";
 
     String usage = "\n" + "cnv.var.CNVariantHash requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -101,7 +102,7 @@ public class CNVariantHash implements Serializable {
     setFilename(filename);
     String taskName = "CNV_CONVERSION";
     progMonitor.beginDeterminateTask(taskName, "Converting CNVs", Files.countLines(filename, 1),
-                                     ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+        ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 
     // time = new Date().getTime();
     vHashes = new Hashtable<String, Hashtable<String, Vector<CNVariant>>>();
@@ -156,7 +157,7 @@ public class CNVariantHash implements Serializable {
     inds = HashVec.getKeys(vHashes);
     taskName = "CNV_SERIALIZATION";
     progMonitor.beginDeterminateTask(taskName, "Serializing CNVs", inds.length,
-                                     ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+        ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
     for (String ind : inds) {
       progMonitor.updateTask(taskName);
       vHash = vHashes.get(ind);
@@ -182,7 +183,7 @@ public class CNVariantHash implements Serializable {
    * @return Sorted array of CNVs in the region
    */
   public CNVariant[] getAllInRegion(byte chr, int start, int stop, int minProbes, int minSizeKb,
-                                    int minQualityScore) {
+      int minQualityScore) {
     Vector<CNVariant> inRegion = new Vector<CNVariant>();
 
     Enumeration<String> e = hashes.keys();

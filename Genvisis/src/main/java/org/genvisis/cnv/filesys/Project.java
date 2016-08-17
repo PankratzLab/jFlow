@@ -55,23 +55,23 @@ public class Project {
    */
   public enum ARRAY {
 
-                     /**
-                      * Your friendly Illumina arrays
-                      */
-                     ILLUMINA(new String[] {"cnvi"}, 50/* , 650000 */),
-                     /**
-                      * Supports CHP format
-                      */
-                     AFFY_GW6(new String[] {"CN_"}, 25/* , 650000 */),
-                     /**
-                      * Supports CHP and CNCHP formated input
-                      */
-                     AFFY_GW6_CN(new String[] {"CN_"}, 25/* , 909622 */),
+    /**
+     * Your friendly Illumina arrays
+     */
+    ILLUMINA(new String[] {"cnvi"}, 50/* , 650000 */),
+    /**
+     * Supports CHP format
+     */
+    AFFY_GW6(new String[] {"CN_"}, 25/* , 650000 */),
+    /**
+     * Supports CHP and CNCHP formated input
+     */
+    AFFY_GW6_CN(new String[] {"CN_"}, 25/* , 909622 */),
 
-                     /**
-                      * For bamFiles
-                      */
-                     NGS(new String[] {"*"}, 100/* , 0 */),
+    /**
+     * For bamFiles
+     */
+    NGS(new String[] {"*"}, 100/* , 0 */),
 
     // DBGAP(new String[] {}, 0, 909622)
     ;
@@ -145,11 +145,11 @@ public class Project {
     double max;
 
     public DoubleProperty(Project proj, String name, String desc, double min, double max,
-                          double defValue) {
+        double defValue) {
       super(proj, name, desc, defValue);
       if (min > max || defValue < min || defValue > max || (max == min && defValue != max)) {
         throw new RuntimeException("Cannot initialize DoubleProperty['" + name + "'] with: min="
-                                   + min + ", max=" + max + ", and default value=" + defValue);
+            + min + ", max=" + max + ", and default value=" + defValue);
       }
       this.min = min;
       this.max = max;
@@ -173,7 +173,7 @@ public class Project {
     public void setValue(Double value) {
       if (value < min || value > max) {
         throw new RuntimeException("Error - values for property " + getName() + " must be within "
-                                   + min + "-" + max + "; " + value + " is not valid");
+            + min + "-" + max + "; " + value + " is not valid");
       }
       super.setValue(value);
     }
@@ -184,14 +184,14 @@ public class Project {
     int defaultIndex;
 
     public EnumProperty(Project proj, String name, String description, int defaultIndex,
-                        Class<T> opts) {
+        Class<T> opts) {
       super(proj, name, description, opts.getEnumConstants()[defaultIndex]);
       this.enumValues = opts.getEnumConstants();
       this.defaultIndex = defaultIndex;
     }
 
     public EnumProperty(Project proj, String name, String description, T defaultOpt,
-                        Class<T> opts) {
+        Class<T> opts) {
       super(proj, name, description, defaultOpt);
       this.enumValues = opts.getEnumConstants();
       for (int i = 0; i < enumValues.length; i++) {
@@ -217,11 +217,9 @@ public class Project {
 
     public FileProperty(Project proj, String name, String desc, String defVal, boolean dirOnly) {
       super(proj, name, desc,
-            dirOnly ? ext.verifyDirFormat(defVal)
-                    : ext.replaceAllWith(defVal, "\\", "/")/*
-                                                            * == null || "".equals(defVal) ? null :
-                                                            * new File(defVal)
-                                                            */);
+          dirOnly ? ext.verifyDirFormat(defVal)
+              : ext.replaceAllWith(defVal, "\\",
+                  "/")/* == null || "".equals(defVal) ? null : new File(defVal) */);
       isDir = dirOnly;
     }
 
@@ -246,16 +244,14 @@ public class Project {
           && valu.indexOf(":") == -1) {
         if (isDir) {
           if (getName().equals("PROJECT_DIRECTORY")) { // happens with example.properties
-            tempValue =
-                LaunchProperties.directoryOfLaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE)
-                        + valu;
+            tempValue = LaunchProperties
+                .directoryOfLaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE) + valu;
           } else {
             tempValue = getProject().PROJECT_DIRECTORY.getValue() + valu;
           }
         } else {
           tempValue = getProject().PROJECT_DIRECTORY.getValue()
-                      + (subdir == null ? "" : getProject().getProperty(subdir).getValueString())
-                      + valu;
+              + (subdir == null ? "" : getProject().getProperty(subdir).getValueString()) + valu;
         }
       }
       if (!Files.exists(tempValue, getProject().JAR_STATUS.getValue())) {
@@ -270,11 +266,11 @@ public class Project {
             getProject().getLog().reportError("Error - directory '" + valu + "' does not exist");
           } else {
             if (!Files.exists(ext.parseDirectoryOfFile(tempValue),
-                              getProject().JAR_STATUS.getValue())) {
+                getProject().JAR_STATUS.getValue())) {
               getProject().getLog()
-                          .reportError("Error - the directory ('" + ext.parseDirectoryOfFile(valu)
-                                       + "') of the file you're trying to access/create ('"
-                                       + ext.removeDirectoryInfo(valu) + "') does not exist");
+                  .reportError("Error - the directory ('" + ext.parseDirectoryOfFile(valu)
+                      + "') of the file you're trying to access/create ('"
+                      + ext.removeDirectoryInfo(valu) + "') does not exist");
             } else {
               getProject().getLog().reportError("Error - file '" + valu + "' does not exist");
             }
@@ -299,7 +295,7 @@ public class Project {
       super(proj, name, desc, defValue);
       if (min > max || defValue < min || defValue > max || (max == min && defValue != max)) {
         throw new RuntimeException("Cannot initialize IntegerProperty with: min=" + min + ", max="
-                                   + max + ", and default value=" + defValue);
+            + max + ", and default value=" + defValue);
       }
       this.min = min;
       this.max = max;
@@ -315,7 +311,7 @@ public class Project {
     public void setValue(Integer value) {
       if (value < min || value > max) {
         throw new RuntimeException("Error - values for property " + getName() + " must be within "
-                                   + min + "-" + max + "; " + value + " is not valid");
+            + min + "-" + max + "; " + value + " is not valid");
       }
       super.setValue(value);
     }
@@ -377,8 +373,7 @@ public class Project {
   }
 
   public enum SOURCE_FILE_DELIMITERS {
-                                      COMMA("[\\s]*,[\\s]*", ","), TAB("[ ]*\t[ ]*",
-                                                                       "\t"), SPACE("[\\s]+", " ");
+    COMMA("[\\s]*,[\\s]*", ","), TAB("[ ]*\t[ ]*", "\t"), SPACE("[\\s]+", " ");
 
     public static SOURCE_FILE_DELIMITERS getDelimiter(String value) {
       for (SOURCE_FILE_DELIMITERS delim : SOURCE_FILE_DELIMITERS.values()) {
@@ -410,14 +405,14 @@ public class Project {
     boolean isDir = false;
 
     public StringListProperty(Project proj, String name, String desc, String defVal, boolean file,
-                              boolean dir) {
+        boolean dir) {
       super(proj, name, desc, defVal.equals("") ? new String[0] : defVal.split(delim));
       isFile = file;
       isDir = dir;
     }
 
     public StringListProperty(Project proj, String name, String desc, String[] defVal, boolean file,
-                              boolean dir) {
+        boolean dir) {
       super(proj, name, desc, defVal);
       isFile = file;
       isDir = dir;
@@ -526,7 +521,7 @@ public class Project {
    * @return whether the file was copied
    */
   private static boolean copyToNewProject(Project projOriginal, Project projectToCopyTo,
-                                          String fileProperty, boolean overwrite) {
+      String fileProperty, boolean overwrite) {
     String fileOriginal = (String) projOriginal.getProperty(fileProperty).getValue();
     String fileToCopyTo = (String) projectToCopyTo.getProperty(fileProperty).getValue();
 
@@ -546,10 +541,9 @@ public class Project {
     HashMap<String, String> kvPairs = new HashMap<String, String>();
 
     String usage = "\n" + "cnv.filesys.Project requires 2+ arguments\n"
-                   + "   (1) project properties filename (i.e. proj="
-                   + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-                   + "   (2+) key-value pairs for properties (i.e. NUM_THREADS=6 (not the default))\n"
-                   + "";
+        + "   (1) project properties filename (i.e. proj="
+        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+        + "   (2+) key-value pairs for properties (i.e. NUM_THREADS=6 (not the default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -577,8 +571,8 @@ public class Project {
       try {
         proj.setProperty(kv.getKey(), kv.getValue());
       } catch (Throwable e) {
-        System.err.println("Error - malformed key-value property: {" + kv.getKey() + "="
-                           + kv.getValue() + "}");
+        System.err.println(
+            "Error - malformed key-value property: {" + kv.getKey() + "=" + kv.getValue() + "}");
       }
     }
     proj.saveProperties();
@@ -596,7 +590,7 @@ public class Project {
     String newProjectFile =
         ext.addToRoot(projOriginal.PROJECT_PROPERTIES_FILENAME.getValue(), "." + tag);
     Files.copyFileUsingFileChannels(projOriginal.PROJECT_PROPERTIES_FILENAME.getValue(),
-                                    newProjectFile, projOriginal.getLog());
+        newProjectFile, projOriginal.getLog());
     Project projCorrected = new Project(newProjectFile, false);
     String newDir = projOriginal.PROJECT_DIRECTORY.getValue() + tag + "/";
     projOriginal.getLog().reportTimeInfo("Preparing project " + newProjectFile + " in " + newDir);
@@ -613,7 +607,7 @@ public class Project {
     updateProperty(proj.MARKERLOOKUP_FILENAME, ".bml", "marker lookup");
     updateProperty(proj.MARKERSET_FILENAME, ".bim", "marker set");
     proj.saveProperties(new Property[] {proj.SAMPLELIST_FILENAME, proj.MARKERLOOKUP_FILENAME,
-                                        proj.MARKERSET_FILENAME});
+        proj.MARKERSET_FILENAME});
   }
 
   private static void updateProperty(FileProperty prop, String prevExt, String fileDescriptor) {
@@ -626,13 +620,11 @@ public class Project {
         if (!file.endsWith(prevExt)) {
           // unlikely, but error
           warning = "Warning - found " + fileDescriptor
-                    + " file, but with an unexpected extension.  Renaming to .ser from \"" + file
-                    + "\".";
+              + " file, but with an unexpected extension.  Renaming to .ser from \"" + file + "\".";
         }
         if (Files.exists(newFile) && (new File(newFile)).length() > 0) {
           warning = "Warning - found .ser version of " + fileDescriptor
-                    + " file; altering property value to point to .ser file at \"" + newFile
-                    + "\".";
+              + " file; altering property value to point to .ser file at \"" + newFile + "\".";
         } else {
           (new File(newFile)).delete();
           (new File(file)).renameTo(new File(newFile));
@@ -750,27 +742,22 @@ public class Project {
       new FileProperty(this, "MOSAIC_COLOR_CODES_FILENAME", "", "data/mosaic_colors.txt", false);
   public FileProperty MOSAIC_RESULTS_FILENAME =
       new FileProperty(this, "MOSAIC_RESULTS_FILENAME", "", "results/Mosaicism.xln", false);
-  public FileProperty CLUSTER_FILTER_COLLECTION_FILENAME =
-      new FileProperty(this, "CLUSTER_FILTER_COLLECTION_FILENAME", "", "data/clusterFilters.ser",
-                       false);
+  public FileProperty CLUSTER_FILTER_COLLECTION_FILENAME = new FileProperty(this,
+      "CLUSTER_FILTER_COLLECTION_FILENAME", "", "data/clusterFilters.ser", false);
   public FileProperty SEXCHECK_RESULTS_FILENAME =
       new FileProperty(this, "SEXCHECK_RESULTS_FILENAME", "", "results/sexCheck.xln", false);
   public FileProperty GENETRACK_FILENAME =
       new FileProperty(this, "GENETRACK_FILENAME", "", "RefSeq.gtrack", false);
   public FileProperty AB_LOOKUP_FILENAME =
       new FileProperty(this, "AB_LOOKUP_FILENAME", "", "AB_lookup.dat", false);
-  public FileProperty MARKER_METRICS_FILENAME =
-      new FileProperty(this, "MARKER_METRICS_FILENAME", "", "results/markerQualityChecks.xln",
-                       false);
-  public FileProperty MARKER_REVIEW_CRITERIA_FILENAME =
-      new FileProperty(this, "MARKER_REVIEW_CRITERIA_FILENAME", "", "results/review.criteria",
-                       false);
-  public FileProperty MARKER_EXCLUSION_CRITERIA_FILENAME =
-      new FileProperty(this, "MARKER_EXCLUSION_CRITERIA_FILENAME", "", "results/exclusion.criteria",
-                       false);
-  public FileProperty MARKER_COMBINED_CRITERIA_FILENAME =
-      new FileProperty(this, "MARKER_COMBINED_CRITERIA_FILENAME", "", "results/combined.criteria",
-                       false);
+  public FileProperty MARKER_METRICS_FILENAME = new FileProperty(this, "MARKER_METRICS_FILENAME",
+      "", "results/markerQualityChecks.xln", false);
+  public FileProperty MARKER_REVIEW_CRITERIA_FILENAME = new FileProperty(this,
+      "MARKER_REVIEW_CRITERIA_FILENAME", "", "results/review.criteria", false);
+  public FileProperty MARKER_EXCLUSION_CRITERIA_FILENAME = new FileProperty(this,
+      "MARKER_EXCLUSION_CRITERIA_FILENAME", "", "results/exclusion.criteria", false);
+  public FileProperty MARKER_COMBINED_CRITERIA_FILENAME = new FileProperty(this,
+      "MARKER_COMBINED_CRITERIA_FILENAME", "", "results/combined.criteria", false);
   public FileProperty ANNOTATION_FILENAME =
       new FileProperty(this, "ANNOTATION_FILENAME", "", "data/annotationCollection.ser", false);
   public FileProperty BLAST_ANNOTATION_FILENAME =
@@ -781,15 +768,12 @@ public class Project {
       new FileProperty(this, "GC_MODEL_FILENAME", "", "data/custom.gcmodel", false);
   public FileProperty COMMON_CNP_FILENAME =
       new FileProperty(this, "COMMON_CNP_FILENAME", "", "data/HG19 CNV edit for AGW.txt", false);
-  public FileProperty REPORTED_CNP_FILENAME =
-      new FileProperty(this, "REPORTED_CNP_FILENAME", "", "data/HG19 Reported 2012.05.22.txt",
-                       false);
-  public FileProperty UNREPORTED_CNP_FILENAME =
-      new FileProperty(this, "UNREPORTED_CNP_FILENAME", "", "data/HG19 Unreported 2012.05.22-2.txt",
-                       false);
-  public FileProperty INTENSITY_PC_FILENAME =
-      new FileProperty(this, "INTENSITY_PC_FILENAME", "", "PCA_GENVISIS.PCs.extrapolated.txt",
-                       false);
+  public FileProperty REPORTED_CNP_FILENAME = new FileProperty(this, "REPORTED_CNP_FILENAME", "",
+      "data/HG19 Reported 2012.05.22.txt", false);
+  public FileProperty UNREPORTED_CNP_FILENAME = new FileProperty(this, "UNREPORTED_CNP_FILENAME",
+      "", "data/HG19 Unreported 2012.05.22-2.txt", false);
+  public FileProperty INTENSITY_PC_FILENAME = new FileProperty(this, "INTENSITY_PC_FILENAME", "",
+      "PCA_GENVISIS.PCs.extrapolated.txt", false);
   public FileProperty SAMPLE_QC_FILENAME =
       new FileProperty(this, "SAMPLE_QC_FILENAME", "", "lrr_sd.xln", false);
   public FileProperty SEX_CENTROIDS_MALE_FILENAME =
@@ -804,14 +788,12 @@ public class Project {
       new FileProperty(this, "CUSTOM_PFB_FILENAME", "", "data/custom.pfb", false);
   public FileProperty HMM_FILENAME =
       new FileProperty(this, "HMM_FILENAME", "", "data/hhall.hmm", false);
-  public FileProperty INTENSITY_PC_MARKERS_FILENAME =
-      new FileProperty(this, "INTENSITY_PC_MARKERS_FILENAME", "", "GENVISIS.PCs.markers.txt",
-                       false);
+  public FileProperty INTENSITY_PC_MARKERS_FILENAME = new FileProperty(this,
+      "INTENSITY_PC_MARKERS_FILENAME", "", "GENVISIS.PCs.markers.txt", false);
   public StringListProperty GENE_LIST_FILENAMES =
       new StringListProperty(this, "GENE_LIST_FILENAMES", "", "data/genes.txt", true, false);
-  public StringListProperty TARGET_MARKERS_FILENAMES =
-      new StringListProperty(this, "TARGET_MARKERS_FILENAMES", "", "targetMarkers.txt", true,
-                             false);
+  public StringListProperty TARGET_MARKERS_FILENAMES = new StringListProperty(this,
+      "TARGET_MARKERS_FILENAMES", "", "targetMarkers.txt", true, false);
   public StringListProperty DISPLAY_MARKERS_FILENAMES =
       new StringListProperty(this, "DISPLAY_MARKERS_FILENAMES", "", "data/test.txt", true, false);
   public StringListProperty TWOD_LOADED_FILENAMES =
@@ -820,9 +802,8 @@ public class Project {
       new StringListProperty(this, "TWOD_LOADED_VARIABLES", "", "", false, false);
   public StringListProperty FOREST_PLOT_FILENAMES =
       new StringListProperty(this, "FOREST_PLOT_FILENAMES", "", "", true, false);
-  public StringListProperty INDIVIDUAL_CNV_LIST_FILENAMES =
-      new StringListProperty(this, "INDIVIDUAL_CNV_LIST_FILENAMES", "", "data/list.txt", true,
-                             false);
+  public StringListProperty INDIVIDUAL_CNV_LIST_FILENAMES = new StringListProperty(this,
+      "INDIVIDUAL_CNV_LIST_FILENAMES", "", "data/list.txt", true, false);
   public StringListProperty REGION_LIST_FILENAMES =
       new StringListProperty(this, "REGION_LIST_FILENAMES", "", "data/regions.txt", true, false);
   public StringListProperty CNV_FILENAMES =
@@ -841,15 +822,13 @@ public class Project {
 
   public EnumProperty<SOURCE_FILE_DELIMITERS> SOURCE_FILE_DELIMITER =
       new EnumProperty<SOURCE_FILE_DELIMITERS>(this, "SOURCE_FILE_DELIMITER", "", 0,
-                                               SOURCE_FILE_DELIMITERS.class);
+          SOURCE_FILE_DELIMITERS.class);
   public EnumProperty<ARRAY> ARRAY_TYPE =
       new EnumProperty<ARRAY>(this, "ARRAY_TYPE", "", 0, ARRAY.class);
-  public EnumProperty<GENOME_BUILD> GENOME_BUILD_VERSION =
-      new EnumProperty<GENOME_BUILD>(this, "GENOME_BUILD_VERSION",
-                                     "The build version of the genome, options are "
-                                                                   + Arrays.asList(GENOME_BUILD.values())
-                                                                           .toString(),
-                                     0, GENOME_BUILD.class);
+  public EnumProperty<GENOME_BUILD> GENOME_BUILD_VERSION = new EnumProperty<GENOME_BUILD>(this,
+      "GENOME_BUILD_VERSION", "The build version of the genome, options are "
+          + Arrays.asList(GENOME_BUILD.values()).toString(),
+      0, GENOME_BUILD.class);
   private String projectPropertiesFilename;
   private SampleList sampleList;
   private SampleData sampleData;
@@ -923,9 +902,8 @@ public class Project {
     if (Files.exists(SAMPLE_DIRECTORY.getValue())
         && (new File(SAMPLE_DIRECTORY.getValue()).list().length > 0)) {
       // skip source file headers, sample files already parsed
-    } else if (createHeaders
-               && Files.list(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(),
-                             false).length > 0) {
+    } else if (createHeaders && Files.list(SOURCE_DIRECTORY.getValue(),
+        SOURCE_FILENAME_EXTENSION.getValue(), false).length > 0) {
       HashMap<String, SourceFileHeaderData> headers = readHeadersFile(false);
       setSourceFileHeaders(headers);
     }
@@ -936,10 +914,12 @@ public class Project {
 
     try {
       if (!Files.checkJVMUpToDateApprox()) {
-        log.reportError("\nYOUR VERSION OF JAVA IS OUT OF DATE; update if you get a NoSuchMethodError");
+        log.reportError(
+            "\nYOUR VERSION OF JAVA IS OUT OF DATE; update if you get a NoSuchMethodError");
       }
     } catch (Exception e) {
-      log.reportError("\nCould not parse Java version and check for possible compatibility issues\n");
+      log.reportError(
+          "\nCould not parse Java version and check for possible compatibility issues\n");
     }
 
     log.report("\nCurrent project: " + getProperty(PROJECT_NAME) + "\n");
@@ -953,7 +933,7 @@ public class Project {
     String backup;
 
     backup = BACKUP_DIRECTORY.getValue(true, true) + ext.removeDirectoryInfo(filename) + "."
-             + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
+        + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()));
     new File(filename).renameTo(new File(backup));
 
     if (Files.exists(backup)) {
@@ -1062,8 +1042,9 @@ public class Project {
     if (Files.exists(filename)) {
       return ClusterFilterCollection.load(filename, JAR_STATUS.getValue());
     } else {
-      log.reportError("Warning - could not find cluster filter file, assuming no markers have been reclustered ("
-                      + filename + ")");
+      log.reportError(
+          "Warning - could not find cluster filter file, assuming no markers have been reclustered ("
+              + filename + ")");
       return null;
     }
   }
@@ -1083,19 +1064,20 @@ public class Project {
       return new Hashtable<String, String>();
     } else if (Files.exists(FILTERED_MARKERS_FILENAME.getValue(), JAR_STATUS.getValue())) {
       return HashVec.loadFileToHashString(FILTERED_MARKERS_FILENAME.getValue(), 0, new int[] {0},
-                                          "", false, JAR_STATUS.getValue());
+          "", false, JAR_STATUS.getValue());
     } else {
-      System.err.println("Error - '" + FILTERED_MARKERS_FILENAME.getValue(false, false)
-                         + "' not found");
+      System.err
+          .println("Error - '" + FILTERED_MARKERS_FILENAME.getValue(false, false) + "' not found");
       return new Hashtable<String, String>();
     }
   }
 
   public Sample getFullSampleFromRandomAccessFile(String sample) {
     if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_FILE_EXTENSION,
-                     JAR_STATUS.getValue())) {
-      return Sample.loadFromRandomAccessFile(SAMPLE_DIRECTORY.getValue(false, true) + sample
-                                             + Sample.SAMPLE_FILE_EXTENSION, JAR_STATUS.getValue());
+        JAR_STATUS.getValue())) {
+      return Sample.loadFromRandomAccessFile(
+          SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_FILE_EXTENSION,
+          JAR_STATUS.getValue());
     } else {
       return null;
     }
@@ -1103,9 +1085,9 @@ public class Project {
 
   public Sample getFullSampleFromSerialized(String sample) {
     if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + ".fsamp",
-                     JAR_STATUS.getValue())) {
+        JAR_STATUS.getValue())) {
       return Sample.loadFromSerialized(SAMPLE_DIRECTORY.getValue(false, true) + sample + ".fsamp",
-                                       JAR_STATUS.getValue());
+          JAR_STATUS.getValue());
     } else {
       return null;
     }
@@ -1122,7 +1104,7 @@ public class Project {
     String geneTrackFilename = GENETRACK_FILENAME.getValue(false, false);
     if (geneTrackFilename == null || !Files.exists(geneTrackFilename)) {
       geneTrackFilename = Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS,
-                                                          GeneSet.REFSEQ_TRACK, true, false, log);
+          GeneSet.REFSEQ_TRACK, true, false, log);
       if (geneTrackFilename == null || !Files.exists(geneTrackFilename)) {
         geneTrackFilename = null;
       }
@@ -1160,7 +1142,7 @@ public class Project {
       } else {
         if (verbose) {
           log.reportError("Failed; could not find \"" + snpMap + "\" or \"" + snpMapGz + "\" in "
-                          + projDir + " or in " + srcDir);
+              + projDir + " or in " + srcDir);
         }
         return null;
       }
@@ -1229,22 +1211,22 @@ public class Project {
 
   public Sample getPartialSampleFromRandomAccessFile(String sample) {
     if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_FILE_EXTENSION,
-                     JAR_STATUS.getValue())) {
-      return Sample.loadFromRandomAccessFile(SAMPLE_DIRECTORY.getValue(false, true) + sample
-                                             + Sample.SAMPLE_FILE_EXTENSION, false, false, true,
-                                             true, false, JAR_STATUS.getValue());
+        JAR_STATUS.getValue())) {
+      return Sample.loadFromRandomAccessFile(
+          SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_FILE_EXTENSION, false,
+          false, true, true, false, JAR_STATUS.getValue());
     } else {
       return null;
     }
   }
 
   public Sample getPartialSampleFromRandomAccessFile(String sample, boolean gc, boolean xy,
-                                                     boolean baf, boolean lrr, boolean geno) {
+      boolean baf, boolean lrr, boolean geno) {
     if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_FILE_EXTENSION,
-                     JAR_STATUS.getValue())) {
-      return Sample.loadFromRandomAccessFile(SAMPLE_DIRECTORY.getValue(false, true) + sample
-                                             + Sample.SAMPLE_FILE_EXTENSION, gc, xy, baf, lrr, geno,
-                                             JAR_STATUS.getValue());
+        JAR_STATUS.getValue())) {
+      return Sample.loadFromRandomAccessFile(
+          SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_FILE_EXTENSION, gc, xy,
+          baf, lrr, geno, JAR_STATUS.getValue());
     } else {
       return null;
     }
@@ -1352,7 +1334,7 @@ public class Project {
     }
 
     log.report("Number of samples excluded is " + counter + " (out of " + samplesToExclude.length
-               + " total samples)");
+        + " total samples)");
 
     return samplesToExclude;
   }
@@ -1455,7 +1437,7 @@ public class Project {
    * @param verbose report number to be included
    */
   public boolean[] getSamplesToInclude(String fileWithListOfSamplesToUse, boolean overlapExclude,
-                                       boolean verbose) {
+      boolean verbose) {
     boolean[] samplesToInclude;
     String[] samples;
     SampleData sampleData;
@@ -1487,7 +1469,7 @@ public class Project {
 
     if (verbose) {
       log.report("Number of samples to be included is " + counter + " (out of "
-                 + samplesToInclude.length + " total samples)");
+          + samplesToInclude.length + " total samples)");
     }
 
     return samplesToInclude;
@@ -1495,7 +1477,7 @@ public class Project {
 
   public HashMap<String, SourceFileHeaderData> getSourceFileHeaders(boolean readIfNull) {
     return sourceFileHeaders == null ? readIfNull ? readHeadersFile(true) : null
-                                     : sourceFileHeaders;
+        : sourceFileHeaders;
   }
 
   public Vector<String> getStratResults() {
@@ -1535,7 +1517,7 @@ public class Project {
     } else {
       if (!targetMarkers.equals("")) {
         log.report("FYI, since target markers file '" + targetMarkers
-                   + "' was not found, all markers will be exported/analyzed");
+            + "' was not found, all markers will be exported/analyzed");
       }
       targets = getMarkerNames();
     }
@@ -1555,9 +1537,8 @@ public class Project {
     Hashtable<String, Float> outliers = new Hashtable<String, Float>();
     String[] samples = getSamples();
     for (String sample : samples) {
-      Hashtable<String, Float> sOutliers =
-          Sample.loadOutOfRangeValuesFromRandomAccessFile(SAMPLE_DIRECTORY.getValue() + sample
-                                                          + Sample.SAMPLE_FILE_EXTENSION);
+      Hashtable<String, Float> sOutliers = Sample.loadOutOfRangeValuesFromRandomAccessFile(
+          SAMPLE_DIRECTORY.getValue() + sample + Sample.SAMPLE_FILE_EXTENSION);
       if (sOutliers != null && sOutliers.size() > 0) {
         outliers.putAll(sOutliers);
       }
@@ -1579,12 +1560,10 @@ public class Project {
       // Integer.parseInt(getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false,
       // null);
       pcResids = new PrincipalComponentsResiduals(this, pcFile, null,
-                                                  INTENSITY_PC_NUM_COMPONENTS.getValue(), false, 0,
-                                                  false, false, null);
+          INTENSITY_PC_NUM_COMPONENTS.getValue(), false, 0, false, false, null);
     } else {
       getLog().reportError("Warning - did not find Intensity PC File " + pcFile + " as defined by "
-                           + INTENSITY_PC_FILENAME.getName() + "="
-                           + INTENSITY_PC_FILENAME.getValue());
+          + INTENSITY_PC_FILENAME.getName() + "=" + INTENSITY_PC_FILENAME.getValue());
       pcResids = null;
     }
     return pcResids;
@@ -1690,22 +1669,20 @@ public class Project {
     if (Files.exists(file)) {
       HashMap<String, SourceFileHeaderData> headers =
           (HashMap<String, SourceFileHeaderData>) SerializedFiles.readSerial(file,
-                                                                             JAR_STATUS.getValue()
-                                                                                       .booleanValue(),
-                                                                             getLog(), false);
+              JAR_STATUS.getValue().booleanValue(), getLog(), false);
       if (headers != null) {
         return headers;
       } else {
         // error reading headers; let's delete
         getLog().reportError(ext.getTime()
-                             + "]\tError reading source file header metadata.  Deleting file and reparsing.");
+            + "]\tError reading source file header metadata.  Deleting file and reparsing.");
         getLog().reportError(ext.getTime()
-                             + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into "
-                             + Sample.SAMPLE_FILE_EXTENSION + " files.");
-        getLog().reportError(ext.getTime()
-                             + "]\tA quick check (which may be incorrect) suggest this "
-                             + (reasonableCheckForParsedSource() ? "IS LIKELY NOT " : "IS LIKELY")
-                             + " to be an issue.");
+            + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into "
+            + Sample.SAMPLE_FILE_EXTENSION + " files.");
+        getLog()
+            .reportError(ext.getTime() + "]\tA quick check (which may be incorrect) suggest this "
+                + (reasonableCheckForParsedSource() ? "IS LIKELY NOT " : "IS LIKELY")
+                + " to be an issue.");
         (new File(file)).delete();
       }
     }
@@ -1716,8 +1693,7 @@ public class Project {
           try {
             log.report("Parsing source file headers in background thread.");
             setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(),
-                                                               SOURCE_FILENAME_EXTENSION.getValue(),
-                                                               true, log, null));
+                SOURCE_FILENAME_EXTENSION.getValue(), true, log, null));
             log.report("Source file header parsing complete.");
           } catch (Exception e) {
             log.reportException(e);
@@ -1729,8 +1705,7 @@ public class Project {
       try {
         log.report("Parsing source file headers in active thread.");
         setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(),
-                                                           SOURCE_FILENAME_EXTENSION.getValue(),
-                                                           true, log, null));
+            SOURCE_FILENAME_EXTENSION.getValue(), true, log, null));
         log.report("Source file header parsing complete.");
         return getSourceFileHeaders(false);
       } catch (Exception e) {
@@ -1744,8 +1719,8 @@ public class Project {
     String sampleDirectory = SAMPLE_DIRECTORY.getValue(false, false);
     // TODO strict check for #files == #samples?
     return Files.exists(sampleDirectory)
-           && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION, false).length > 0
-           && getSampleList() != null && getSampleList().getSamples().length > 0;
+        && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION, false).length > 0
+        && getSampleList() != null && getSampleList().getSamples().length > 0;
   }
 
   public void resetSampleData() {
@@ -1800,8 +1775,8 @@ public class Project {
             loaded.remove(key);
             if (!valueString.equals(trav.trim().substring(index + 1))) {
               changes.add(key + "=" + valueString);
-              log.report("Was '" + trav.trim().substring(index + 1) + "' now '" + valueString
-                         + "'");
+              log.report(
+                  "Was '" + trav.trim().substring(index + 1) + "' now '" + valueString + "'");
             }
           } else {
             props.add(trav);
@@ -1810,8 +1785,8 @@ public class Project {
       }
       reader.close();
     } catch (FileNotFoundException fnfe) {
-      log.reportError("Error: file \"" + projectPropertiesFilename
-                      + "\" not found in current directory");
+      log.reportError(
+          "Error: file \"" + projectPropertiesFilename + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       log.reportError("Error reading file \"" + projectPropertiesFilename + "\"");
@@ -1839,22 +1814,22 @@ public class Project {
           props.add(key + "=" + valueString);
           changes.add(key + "=" + valueString);
           log.report("Default for Project property " + key + " was '" + defaultValueString
-                     + "' and is now '" + valueString + "'");
+              + "' and is now '" + valueString + "'");
         }
       }
     }
 
     if (changes.size() > 0) {
       log.report("Changes were made to the following propert" + (changes.size() == 1 ? "y" : "ies")
-                 + " in " + projectPropertiesFilename + ":");
+          + " in " + projectPropertiesFilename + ":");
       for (int i = 0; i < changes.size(); i++) {
         log.report("        " + changes.elementAt(i));
       }
 
       Files.backup(ext.removeDirectoryInfo(projectPropertiesFilename),
-                   ext.parseDirectoryOfFile(projectPropertiesFilename),
-                   ext.parseDirectoryOfFile(projectPropertiesFilename) + "backup/",
-                   outfile.equals(projectPropertiesFilename));
+          ext.parseDirectoryOfFile(projectPropertiesFilename),
+          ext.parseDirectoryOfFile(projectPropertiesFilename) + "backup/",
+          outfile.equals(projectPropertiesFilename));
       Files.writeList(Array.toStringArray(props), outfile);
     }
 
@@ -1908,14 +1883,15 @@ public class Project {
           }
         } else {
           log.reportError("Error - invalid property in " + projectPropertiesFilename + ": " + trav);
-          log.reportError("        there is no equals sign, and comments need to be preceeded by a #");
+          log.reportError(
+              "        there is no equals sign, and comments need to be preceeded by a #");
           log.reportError("        creating a new file with this line commented out");
         }
       }
       reader.close();
     } catch (FileNotFoundException fnfe) {
-      System.err.println("Error: file \"" + projectPropertiesFilename
-                         + "\" not found in current directory");
+      System.err.println(
+          "Error: file \"" + projectPropertiesFilename + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + projectPropertiesFilename + "\"");
@@ -1924,8 +1900,7 @@ public class Project {
 
     if (unknowns.size() > 0) {
       log.reportError("Error - check spelling for the following unexpected propert"
-                      + (unknowns.size() == 1 ? "y" : "ies") + " in " + projectPropertiesFilename
-                      + ":");
+          + (unknowns.size() == 1 ? "y" : "ies") + " in " + projectPropertiesFilename + ":");
       changed = true;
     }
     for (int i = 0; i < unknowns.size(); i++) {
@@ -1938,14 +1913,14 @@ public class Project {
       corrections.add("# A few more parameters that were not originally defined:");
       for (int i = 0; i < preknowns.size(); i++) {
         corrections.add("#" + preknowns.elementAt(i) + "="
-                        + getProperty(preknowns.elementAt(i)).getDefaultValueString());
+            + getProperty(preknowns.elementAt(i)).getDefaultValueString());
       }
     }
 
     if (changed) {
       Files.backup(ext.removeDirectoryInfo(projectPropertiesFilename),
-                   ext.parseDirectoryOfFile(projectPropertiesFilename),
-                   ext.parseDirectoryOfFile(projectPropertiesFilename) + "backup/", true);
+          ext.parseDirectoryOfFile(projectPropertiesFilename),
+          ext.parseDirectoryOfFile(projectPropertiesFilename) + "backup/", true);
       Files.writeList(Array.toStringArray(corrections), projectPropertiesFilename);
     }
   }

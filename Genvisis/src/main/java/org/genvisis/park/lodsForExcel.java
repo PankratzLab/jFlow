@@ -31,34 +31,32 @@ public class lodsForExcel {
 
   public static final String BLANK = "      ";
 
-  public static final String[][] DATA_POINTS =
-      {{"Mapmaker", "Mapmaker	no Dv	Dv"}, {"Dv"}, {"Aspex"}, {"Aspex 2pt"},
-       {"Merlin-siblings", "Merlin-sibpairs"}, {"Merlin-extended", "Merlin-extended"},
-       {"Genehunter", "Allegro	linear"}, {"Dominant", "autosomal dominant"},
-       {"Dom Het", "autosomal dominant het"}, {"Recessive", "autosomal recessive"},
-       {"Rec Het", "autosomal recessive het"}};
+  public static final String[][] DATA_POINTS = {{"Mapmaker", "Mapmaker	no Dv	Dv"}, {"Dv"},
+      {"Aspex"}, {"Aspex 2pt"}, {"Merlin-siblings", "Merlin-sibpairs"},
+      {"Merlin-extended", "Merlin-extended"}, {"Genehunter", "Allegro	linear"},
+      {"Dominant", "autosomal dominant"}, {"Dom Het", "autosomal dominant het"},
+      {"Recessive", "autosomal recessive"}, {"Rec Het", "autosomal recessive het"}};
 
-  public static final String[][] CHR_OFFSETS =
-      {{"D1S468", "4.2"}, {"D2S319", "7.6"}, {"D3S1297", "8.3"}, {"D4S412", "4.7"},
-       {"D5S1981", "1.7"}, {"D6S1574", "9.2"}, {"D7S531", "5.3"}, {"D8S264", "0.7"},
-       {"D9S288", "9.8"}, {"D10S249", "2.1"}, {"D11S4046", "2.8"}, {"D12S352", "0.0"},
-       {"D13S175", "6.0"}, {"D14S261", "6.5"}, {"D15S128", "6.1"}, {"D16S423", "10.4"},
-       {"D17S849", "0.6"}, {"D18S59", "0.0"}, {"D19S209", "11.0"}, {"D20S117", "2.8"},
-       {"D21S1256", "9.7"}, {"D22S420", "4.1"}, {"DXS1060", "15.1"}, {"rs884080", "0.0"},
-       {"rs381726", "1.9"}, {"rs1516337", "1.0"}, {"rs963598", "1.4"}, {"rs413666", "0.7"},
-       {"rs719065", "0.0"}, {"rs1881114", "3.5"}, {"rs13429", "0.0"}, {"rs1532309", "0.0"},
-       {"rs1476130", "1.2"}, {"rs741737", "0.0"}, {"rs476646", "0.0"}, {"rs1838114", "0.0"},
-       {"rs1972373", "0.6"}, {"rs1562203", "0.0"}, {"rs8466", "1.1"}, {"rs1609550", "0.1"},
-       {"rs948263", "0.0"}, {"rs1020382", "0.0"}, {"rs371791", "0.5"}, {"rs990141", "6.0"},
-       {"rs7288876", "0.0"}, {"rs749706", "11.7"}};
+  public static final String[][] CHR_OFFSETS = {{"D1S468", "4.2"}, {"D2S319", "7.6"},
+      {"D3S1297", "8.3"}, {"D4S412", "4.7"}, {"D5S1981", "1.7"}, {"D6S1574", "9.2"},
+      {"D7S531", "5.3"}, {"D8S264", "0.7"}, {"D9S288", "9.8"}, {"D10S249", "2.1"},
+      {"D11S4046", "2.8"}, {"D12S352", "0.0"}, {"D13S175", "6.0"}, {"D14S261", "6.5"},
+      {"D15S128", "6.1"}, {"D16S423", "10.4"}, {"D17S849", "0.6"}, {"D18S59", "0.0"},
+      {"D19S209", "11.0"}, {"D20S117", "2.8"}, {"D21S1256", "9.7"}, {"D22S420", "4.1"},
+      {"DXS1060", "15.1"}, {"rs884080", "0.0"}, {"rs381726", "1.9"}, {"rs1516337", "1.0"},
+      {"rs963598", "1.4"}, {"rs413666", "0.7"}, {"rs719065", "0.0"}, {"rs1881114", "3.5"},
+      {"rs13429", "0.0"}, {"rs1532309", "0.0"}, {"rs1476130", "1.2"}, {"rs741737", "0.0"},
+      {"rs476646", "0.0"}, {"rs1838114", "0.0"}, {"rs1972373", "0.6"}, {"rs1562203", "0.0"},
+      {"rs8466", "1.1"}, {"rs1609550", "0.1"}, {"rs948263", "0.0"}, {"rs1020382", "0.0"},
+      {"rs371791", "0.5"}, {"rs990141", "6.0"}, {"rs7288876", "0.0"}, {"rs749706", "11.7"}};
 
   public static void main(String[] args) {
     int numArgs = args.length;
     IntVector iv = new IntVector();
 
     String usage = "\n" + "park.lodsForExcel requires 0+ arguments:\n"
-                   + "   numbers of chromosomes to parse (i.e. 1 2 6 13 23 (nothing indicates the autosomes+23 (default)))\n"
-                   + "";
+        + "   numbers of chromosomes to parse (i.e. 1 2 6 13 23 (nothing indicates the autosomes+23 (default)))\n"
+        + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -154,8 +152,8 @@ public class lodsForExcel {
       reader.close();
 
       poslar = HashVec.getKeys(hash, true, true);
-      for (int j =
-          Integer.parseInt(poslar[0]); j <= Integer.parseInt(poslar[poslar.length - 1]); j++) {
+      for (int j = Integer.parseInt(poslar[0]); j <= Integer
+          .parseInt(poslar[poslar.length - 1]); j++) {
         if (!hash.containsKey(j + "")) {
           hash.put(j + "", new eStruct());
         }
@@ -207,7 +205,7 @@ public class lodsForExcel {
               num++;
               handle = hash.get((count + num) + "");
             } while (count + num <= Integer.parseInt(poslar[poslar.length - 1])
-                     && handle.values[meth] == -999);
+                && handle.values[meth] == -999);
             if (count + num > Integer.parseInt(poslar[poslar.length - 1])) {
               count = Integer.parseInt(poslar[poslar.length - 1]);
             } else {
@@ -243,8 +241,8 @@ public class lodsForExcel {
           }
         }
 
-        for (int j =
-            Integer.parseInt(poslar[0]); j <= Integer.parseInt(poslar[poslar.length - 1]); j++) {
+        for (int j = Integer.parseInt(poslar[0]); j <= Integer
+            .parseInt(poslar[poslar.length - 1]); j++) {
           handle = hash.get(j + "");
           writer.print(handle.markerName + "\t" + j + "\t" + (off == -1 ? "" : off + j));
           for (int meth = 0; meth < DATA_POINTS.length; meth++) {
@@ -268,7 +266,7 @@ public class lodsForExcel {
     all.close();
     if (mapFailure.size() > 0) {
       System.err.println("Map information was not available for the following chromosomes: "
-                         + Array.toStr(Array.toStringArray(mapFailure), " "));
+          + Array.toStr(Array.toStringArray(mapFailure), " "));
     }
   }
 }

@@ -9,7 +9,7 @@ public class AbstractLine {
   private final byte color;
 
   public AbstractLine(float startX, float startY, float stopX, float stopY, byte thickness,
-                      byte color) {
+      byte color) {
     this.startX = startX;
     this.startY = startY;
     this.stopX = stopX;

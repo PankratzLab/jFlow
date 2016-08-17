@@ -50,8 +50,7 @@ public class Cobyla {
 
 
   private static CobylaExitStatus cobylb(Calcfc calcfc, int n, int m, int mpp, double[] x,
-                                         double[][] x_bounds, double rhobeg, double rhoend,
-                                         int iprint, int maxfun) {
+      double[][] x_bounds, double rhobeg, double rhoend, int iprint, int maxfun) {
     // N.B. Arguments CON, SIM, SIMI, DATMAT, A, VSIG, VETA, SIGBAR, DX, W & IACT
     // have been removed.
 
@@ -254,7 +253,7 @@ public class Cobyla {
             for (int i = 1; i <= n; ++i) {
               for (int j = 1; j <= n; ++j) {
                 temp = DOT_PRODUCT(PART(ROW(simi, i), 1, n), PART(COL(sim, j), 1, n))
-                       - (i == j ? 1.0 : 0.0);
+                    - (i == j ? 1.0 : 0.0);
                 error = Math.max(error, Math.abs(temp));
               }
             }
@@ -613,12 +612,14 @@ public class Cobyla {
         break;
       case MaxIterationsReached:
         if (iprint >= 1) {
-          System.out.format("%nReturn from subroutine COBYLA because the MAXFUN limit has been reached.%n");
+          System.out.format(
+              "%nReturn from subroutine COBYLA because the MAXFUN limit has been reached.%n");
         }
         break;
       case DivergingRoundingErrors:
         if (iprint >= 1) {
-          System.out.format("%nReturn from subroutine COBYLA because rounding errors are becoming damaging.%n");
+          System.out.format(
+              "%nReturn from subroutine COBYLA because rounding errors are becoming damaging.%n");
         }
         break;
     }
@@ -672,7 +673,7 @@ public class Cobyla {
    * @return Exit status of the COBYLA2 optimization.
    */
   public static CobylaExitStatus FindMinimum(final Calcfc calcfc, int n, int m, double[] x,
-                                             double rhobeg, double rhoend, int iprint, int maxfun) {
+      double rhobeg, double rhoend, int iprint, int maxfun) {
     return FindMinimum(calcfc, n, m, x, null, rhobeg, rhoend, iprint, maxfun);
   }
 
@@ -681,8 +682,7 @@ public class Cobyla {
    *        OF MAGNITUDE
    */
   public static CobylaExitStatus FindMinimum(final Calcfc calcfc, int n, int m, double[] x,
-                                             double[][] x_bounds, double rhobeg, double rhoend,
-                                             int iprint, int maxfun) {
+      double[][] x_bounds, double rhobeg, double rhoend, int iprint, int maxfun) {
     // This subroutine minimizes an objective function F(X) subject to M
     // inequality constraints on X, where X is a vector of variables that has
     // N components. The algorithm employs linear approximations to the
@@ -739,7 +739,7 @@ public class Cobyla {
     if (x_bounds != null) {
       if (x_bounds.length != x.length) {
         String error = "If explicit x bounds are set, each x must have bounds, have "
-                       + x_bounds.length + " bounds and should have " + x.length;
+            + x_bounds.length + " bounds and should have " + x.length;
         throw new IllegalArgumentException(error);
       }
       for (double[] x_bound : x_bounds) {

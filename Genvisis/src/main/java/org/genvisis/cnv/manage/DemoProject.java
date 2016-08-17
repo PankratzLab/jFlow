@@ -13,7 +13,7 @@ import org.genvisis.common.ext;
 
 public class DemoProject extends Project {
   public static enum DEMO_TYPE {
-                                MARKER_FOCUS, SAMPLE_FOCUS
+    MARKER_FOCUS, SAMPLE_FOCUS
   }
 
   private static void copyGeneTrack(Project original, Project demo) {
@@ -21,9 +21,9 @@ public class DemoProject extends Project {
     if (geneTrack != null && Files.exists(geneTrack)) {
       demo.setProperty(demo.GENETRACK_FILENAME, ext.removeDirectoryInfo(geneTrack));
       original.getLog()
-              .reportTimeInfo("Detected " + geneTrack + ", copying to "
-                              + demo.GENETRACK_FILENAME.getValue(false, false)
-                              + "\n\t (this takes a while due to byte by byte copying)");
+          .reportTimeInfo("Detected " + geneTrack + ", copying to "
+              + demo.GENETRACK_FILENAME.getValue(false, false)
+              + "\n\t (this takes a while due to byte by byte copying)");
       if (!Files.exists(demo.GENETRACK_FILENAME.getValue(false, false))) {
         Files.copyFileExactlyByteByByte(geneTrack, demo.GENETRACK_FILENAME.getValue(false, false));
       }
@@ -71,11 +71,11 @@ public class DemoProject extends Project {
     } else {
       if (dType == DEMO_TYPE.MARKER_FOCUS) {
         proj.getLog().reportTimeWarning("A marker subset file was not provided and " + markersFile
-                                        + " did not exist, exporting all markers");
+            + " did not exist, exporting all markers");
       } else {
         proj.getLog().reportTimeInfo(
-                                     "A marker subset file was not provided, exporting all markers for demotype "
-                                     + DEMO_TYPE.SAMPLE_FOCUS);
+            "A marker subset file was not provided, exporting all markers for demotype "
+                + DEMO_TYPE.SAMPLE_FOCUS);
 
       }
     }
@@ -93,13 +93,12 @@ public class DemoProject extends Project {
       samplesToUse = getParserFor(proj, sampleSubsetFile, true).getDataPresent();
     } else {
       if (dType == DEMO_TYPE.SAMPLE_FOCUS) {
-        proj.getLog()
-            .reportTimeWarning("A sample subset file was not provided and " + sampleSubsetFile
-                               + " did not exist, exporting all samples");
+        proj.getLog().reportTimeWarning("A sample subset file was not provided and "
+            + sampleSubsetFile + " did not exist, exporting all samples");
       } else {
         proj.getLog().reportTimeInfo(
-                                     "A sample subset file was not provided, exporting all samples for demotype "
-                                     + DEMO_TYPE.MARKER_FOCUS);
+            "A sample subset file was not provided, exporting all samples for demotype "
+                + DEMO_TYPE.MARKER_FOCUS);
       }
     }
     return samplesToUse;
@@ -112,7 +111,7 @@ public class DemoProject extends Project {
   public static void test() {
     Project proj = new Project(null, false);
     DemoProject demoProject = new DemoProject(proj, proj.PROJECT_DIRECTORY.getValue() + "Demo/",
-                                              true, DEMO_TYPE.MARKER_FOCUS);
+        true, DEMO_TYPE.MARKER_FOCUS);
     String[] adfa = null;
     demoProject.createProjectDemo(adfa, null, 8);
   }
@@ -131,7 +130,7 @@ public class DemoProject extends Project {
   private final DEMO_TYPE dType;
 
   public DemoProject(Project proj, String demoDirectory, boolean overwriteExisting,
-                     DEMO_TYPE dType) {
+      DEMO_TYPE dType) {
     super();
     this.proj = proj;// (Project) proj.clone();
     this.demoDirectory = demoDirectory;
@@ -188,53 +187,53 @@ public class DemoProject extends Project {
     if (!fail) {
       System.out.println(proj.MARKERSET_FILENAME.getValue());
       return createProjectDemo(loadMarkers(proj, markersFile, dType),
-                               loadSamples(proj, samplesFile, dType), numThreads);
+          loadSamples(proj, samplesFile, dType), numThreads);
     } else {
       return false;
     }
   }
 
   public boolean createProjectDemo(String[] markersToExport, boolean[] samplesToUse,
-                                   int numThreads) {
+      int numThreads) {
 
     boolean created = true;
     if (!fail) {
       if (markersToExport == null) {
         markersToExport = proj.getMarkerNames();
         proj.getLog().reportTimeWarning("Since the markers to export were not provided, all "
-                                        + markersToExport.length + " markers will be exported");
+            + markersToExport.length + " markers will be exported");
       }
       if (samplesToUse == null) {
         samplesToUse = new boolean[proj.getSamples().length];
         Arrays.fill(samplesToUse, true);
         proj.getLog().reportTimeWarning("Since the samples to export were not provided, all "
-                                        + samplesToUse.length + " samples will be exported");
+            + samplesToUse.length + " samples will be exported");
       }
       if (samplesToUse.length != proj.getSamples().length) {
         proj.getLog().reportTimeError("The array length provided does (" + samplesToUse.length
-                                      + ") does not contain boolean values for all samples");
+            + ") does not contain boolean values for all samples");
         created = false;
         return created;
       } else {
         // Markers.orderMarkers(markersToExport, getFilename(proj.MARKER_POSITION_FILENAME),
         // getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
         Markers.orderMarkers(markersToExport, proj.MARKER_POSITION_FILENAME.getValue(),
-                             MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+            MARKERSET_FILENAME.getValue(true, true), proj.getLog());
         long fingerPrint = getMarkerSet().getFingerprint();
         proj.getLog().reportTimeInfo("Attempting to subset the samples...");
         new File(SAMPLELIST_FILENAME.getValue(false, false)).delete();
         created = FocusedSample.focusAProject(proj, this, markersToExport, samplesToUse,
-                                              fingerPrint, numThreads, overwriteExisting, getLog());
+            fingerPrint, numThreads, overwriteExisting, getLog());
         if (created) {
           if (dType == DEMO_TYPE.MARKER_FOCUS) {
-            proj.getLog()
-                .reportTimeInfo("Finished subsetting the samples...Attempting to transpose the data");
+            proj.getLog().reportTimeInfo(
+                "Finished subsetting the samples...Attempting to transpose the data");
             TransposeData.transposeData(this, 2000000000, false);
             // Files.writeList(markersToExport, getFilename(proj.DISPLAY_MARKERS_FILENAME));
             Files.writeList(markersToExport, DISPLAY_MARKERS_FILENAMES.getValue()[0]);
           }
           SampleList.generateSampleList(this)
-                    .writeToTextFile(PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt");
+              .writeToTextFile(PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt");
           getSamples();
         } else {
           proj.getLog().reportTimeError("Could not create focused samples, halting...");
@@ -275,7 +274,7 @@ public class DemoProject extends Project {
       copyFileIfExists(proj.ANNOTATION_FILENAME, ANNOTATION_FILENAME);
       copyFileIfExists(proj.BLAST_ANNOTATION_FILENAME, BLAST_ANNOTATION_FILENAME);
       Files.copyFile(proj.BLAST_ANNOTATION_FILENAME.getValue() + ".tbi",
-                     BLAST_ANNOTATION_FILENAME.getValue() + ".tbi");
+          BLAST_ANNOTATION_FILENAME.getValue() + ".tbi");
       // copyFileIfExists(proj.MARKER_POSITION_FILENAME.getName());
       // copyFileIfExists(proj.SAMPLE_DATA_FILENAME.getName());
       // copyFileIfExists(proj.SAMPLE_QC_FILENAME.getName());
@@ -298,8 +297,8 @@ public class DemoProject extends Project {
       copyGeneTrack(proj, this);
 
     } else {
-      proj.getLog().reportTimeError(demoProjectDirectory
-                                    + " exists and the overwrite option was not flagged, halting");
+      proj.getLog().reportTimeError(
+          demoProjectDirectory + " exists and the overwrite option was not flagged, halting");
       fail = true;
     }
   }

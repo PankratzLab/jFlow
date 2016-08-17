@@ -41,8 +41,8 @@ public class CNVRectangles {
   }
 
   public CNVRectangles(ArrayList<CNVariantHash> hashes, ArrayList<String> allFiles,
-                       ArrayList<String> filterFiles, int[] location, int probes, int minSize,
-                       int qualityScore, String[] samplesToUse) {
+      ArrayList<String> filterFiles, int[] location, int probes, int minSize, int qualityScore,
+      String[] samplesToUse) {
     // Set the color scheme
     colorScheme = CompPlot.colorScheme;
     // Read the data from the CNV files
@@ -65,7 +65,7 @@ public class CNVRectangles {
       // Any CNVs where CNVariant.getCN() != 2 will be a different shade of that color
       File file = new File(hash.getFilename());
       CNVariant[] cnvs = hash.getAllInRegion((byte) location[0], location[1], location[2], probes,
-                                             minSize, qualityScore);
+          minSize, qualityScore);
       ArrayList<CNVariant> cnvList = new ArrayList<CNVariant>(Arrays.asList(cnvs));
 
       fileMap.put(file.getName(), cnvList);
@@ -120,7 +120,7 @@ public class CNVRectangles {
      */
     for (CNVRectangle cnvRect : cnvRectangles) {
       String key = cnvRect.getFilename() + ":" + (int) cnvRect.getStartXValue() + "-"
-                   + (int) cnvRect.getStopXValue();
+          + (int) cnvRect.getStopXValue();
       if (cnvMap.containsKey(key)) {
         cnvMap.get(key).addCNV(cnvRect.getCNV());
       } else {
@@ -134,8 +134,8 @@ public class CNVRectangles {
     int i = 0;
     for (String key : cnvMap.keySet()) {
       CNVRectangle cnvRect = cnvMap.get(key);
-      int width = Math.round(((int) cnvRect.getStopXValue() - (int) cnvRect.getStartXValue())
-                             * scalingFactor);
+      int width = Math
+          .round(((int) cnvRect.getStopXValue() - (int) cnvRect.getStartXValue()) * scalingFactor);
       if (width < 1) {
         // Don't let them get smaller than 1 pixel wide
         width = 1;
@@ -188,8 +188,8 @@ public class CNVRectangles {
     for (String key : cnvMap.keySet()) {
       ArrayList<CNVRectangle> cnvRects = cnvMap.get(key);
       for (CNVRectangle cnvRect : cnvRects) {
-        int width = Math.round(((int) cnvRect.getStopXValue() - (int) cnvRect.getStartXValue())
-                               * scalingFactor);
+        int width = Math.round(
+            ((int) cnvRect.getStopXValue() - (int) cnvRect.getStartXValue()) * scalingFactor);
         if (width < 1) {
           // Don't let them get smaller than 1 pixel wide
           width = 1;
@@ -357,8 +357,8 @@ public class CNVRectangles {
         // Set the Y coordinate
         int x = Math.round((int) cnvRect.getStartXValue() * scalingFactor);
         int y = (i * rectangleHeight) + i;
-        int width = Math.round(((int) cnvRect.getStopXValue() - (int) cnvRect.getStartXValue())
-                               * scalingFactor);
+        int width = Math.round(
+            ((int) cnvRect.getStopXValue() - (int) cnvRect.getStartXValue()) * scalingFactor);
         if (width < 1) {
           // Don't let them get smaller than 1 pixel wide
           width = 1;
@@ -381,8 +381,8 @@ public class CNVRectangles {
           } else {
             x = Math.round((int) cnvRect.getStartXValue() * scalingFactor);
             y = (i * rectangleHeight) + i;
-            width = Math.round(((int) cnvRect.getStopXValue() - (int) cnvRect.getStartXValue())
-                               * scalingFactor);
+            width = Math.round(
+                ((int) cnvRect.getStopXValue() - (int) cnvRect.getStartXValue()) * scalingFactor);
             if (width < 1) {
               // Don't let them get smaller than 1 pixel wide
               width = 1;

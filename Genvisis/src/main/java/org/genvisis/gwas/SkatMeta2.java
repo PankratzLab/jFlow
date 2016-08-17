@@ -95,18 +95,15 @@ public class SkatMeta2 {
    * @return
    */
   public static boolean[] areFilesAvailable(String filesDirAndNameTemplate, String chr,
-                                            String[] ethnics, Logger log) {
+      String[] ethnics, Logger log) {
     boolean[] result;
     String file;
 
     result = new boolean[ethnics.length];
     if (chr == null) {
       file = filesDirAndNameTemplate.replaceAll("_" + FILENAME_CHROMOSOME_SEGMENT, "")
-                                    .replaceAll(FILENAME_CHROMOSOME_SEGMENT, ""); // TODO: need to
-                                                                                  // provide
-                                                                                  // filename
-                                                                                  // segement
-                                                                                  // separator
+          .replaceAll(FILENAME_CHROMOSOME_SEGMENT, ""); // TODO: need to provide filename segement
+                                                        // separator
     } else {
       file = filesDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT, "chr" + chr);
     }
@@ -132,7 +129,7 @@ public class SkatMeta2 {
    * @return
    */
   public static boolean[][] areFilesAvailable(String resultsDir, String[] chrs, String[] ethnics,
-                                              Logger log) {
+      Logger log) {
     boolean[][] result;
     result = new boolean[chrs.length][];
 
@@ -155,7 +152,7 @@ public class SkatMeta2 {
    * @return
    */
   public static boolean[][][] areFilesAvailable(String resultsDir, String[] phenos, String[] chrs,
-                                                String[] ethnics, Logger log) {
+      String[] ethnics, Logger log) {
     boolean[][][] result;
     result = new boolean[phenos.length][][];
 
@@ -247,20 +244,12 @@ public class SkatMeta2 {
     return result;
   }
 
-  public static void conditionalAnalysisWholeProcessMultiplePhenos(String previousResultFileDirFilenameTemplate,
-                                                                   String condFileDirFilenameTemplate,
-                                                                   String phenoDirFilenameTemplate,
-                                                                   String genoDirFileameTemplate,
-                                                                   String snpInfoDirFilenameTemplate,
-                                                                   String[] phenos,
-                                                                   String[] ethnics,
-                                                                   String rScriptDir,
-                                                                   String resultSummariesDir,
-                                                                   String rcommand,
-                                                                   double pThresholdLower,
-                                                                   double pThresholdHigher,
-                                                                   int regionSearchDistance,
-                                                                   Logger log) {
+  public static void conditionalAnalysisWholeProcessMultiplePhenos(
+      String previousResultFileDirFilenameTemplate, String condFileDirFilenameTemplate,
+      String phenoDirFilenameTemplate, String genoDirFileameTemplate,
+      String snpInfoDirFilenameTemplate, String[] phenos, String[] ethnics, String rScriptDir,
+      String resultSummariesDir, String rcommand, double pThresholdLower, double pThresholdHigher,
+      int regionSearchDistance, Logger log) {
     int currentCondition, startCondition = 1;
     String condFileDirAndNameTemplateAfterPhenoFilled, resultFile, resultsDir, condFile;
     String[] fromPreConditionResults;
@@ -268,8 +257,8 @@ public class SkatMeta2 {
 
     if (!previousResultFileDirFilenameTemplate.contains(FILENAME_CONDITION_SEGMENT)) {
       log.reportError("Error - result file name template does not contain a condition segment: "
-                      + previousResultFileDirFilenameTemplate
-                      + "\nNote: even the existing file(s) do not have condition segment, please still specify the segment in the file name template for next rounds' files.");
+          + previousResultFileDirFilenameTemplate
+          + "\nNote: even the existing file(s) do not have condition segment, please still specify the segment in the file name template for next rounds' files.");
       return;
     }
     Array.toStr(ethnics, "");
@@ -284,58 +273,59 @@ public class SkatMeta2 {
 
       resultFile = resultsDir.replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP");
       resultFile = resultFile.replaceAll("_" + FILENAME_CONDITION_SEGMENT, "")
-                             .replaceAll("_" + FILENAME_CHROMOSOME_SEGMENT, ""); // TODO
+          .replaceAll("_" + FILENAME_CHROMOSOME_SEGMENT, ""); // TODO
       if (condFileDirFilenameTemplate.contains(FILENAME_ETHNIC_SEGMENT)) {
         for (String ethnic : ethnics) { // TODO
           resultFile = resultFile.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnic);
           condFile = condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_ETHNIC_SEGMENT,
-                                                                           ethnic);
+              ethnic);
           if (!new File(condFile.replaceAll(FILENAME_CONDITION_SEGMENT, "cond1")).exists()) {
             condFile = condFile.replaceAll(FILENAME_CONDITION_SEGMENT, "cond1");
-            fromPreConditionResults =
-                getFirstCondition(resultFile, new String[] {"SingleSNP", "Chr", "Position"},
-                                  new String[] {"SKATgene", "ARIC_Whites_p_SingleSNP",
-                                                "ARIC_Blacks_p_SingleSNP"},
-                                  new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.0000001"},
-                                  new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.00001",
-                                                "(ARIC_Whites_maf_SingleSNP || ARIC_Blacks_maf_SingleSNP) > 0"},
-                                  regionSearchDistance, log);
+            fromPreConditionResults = getFirstCondition(resultFile,
+                new String[] {"SingleSNP", "Chr", "Position"},
+                new String[] {"SKATgene", "ARIC_Whites_p_SingleSNP", "ARIC_Blacks_p_SingleSNP"},
+                new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.0000001"},
+                new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.00001",
+                    "(ARIC_Whites_maf_SingleSNP || ARIC_Blacks_maf_SingleSNP) > 0"},
+                regionSearchDistance, log);
             if (fromPreConditionResults != null) {
               Files.writeList(fromPreConditionResults, condFile);
               isInitialConditionReady = true;
-              log.report("No existing initial condition found. Has developed new initial condition from:\n  "
-                         + resultFile);
+              log.report(
+                  "No existing initial condition found. Has developed new initial condition from:\n  "
+                      + resultFile);
             }
           } else {
-            log.report("Found existing initial condition and will skip developing new initial condition:\n  "
-                       + condFile.replaceAll(FILENAME_CONDITION_SEGMENT, "cond1"));
+            log.report(
+                "Found existing initial condition and will skip developing new initial condition:\n  "
+                    + condFile.replaceAll(FILENAME_CONDITION_SEGMENT, "cond1"));
             isInitialConditionReady = true;
           }
         }
       } else {
         resultFile = resultFile.replaceAll("_" + FILENAME_ETHNIC_SEGMENT, "");
-        if (!new File(condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT,
-                                                                            "cond1")).exists()) {
-          fromPreConditionResults =
-              getFirstCondition(resultFile, new String[] {"SingleSNP", "Chr", "Position"},
-                                new String[] {"SKATgene", "ARIC_Whites_p_SingleSNP",
-                                              "ARIC_Blacks_p_SingleSNP"},
-                                new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.0000001"},
-                                new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.00001",
-                                              "(ARIC_Whites_maf_SingleSNP || ARIC_Blacks_maf_SingleSNP) > 0"},
-                                regionSearchDistance, log);
+        if (!new File(condFileDirAndNameTemplateAfterPhenoFilled
+            .replaceAll(FILENAME_CONDITION_SEGMENT, "cond1")).exists()) {
+          fromPreConditionResults = getFirstCondition(resultFile,
+              new String[] {"SingleSNP", "Chr", "Position"},
+              new String[] {"SKATgene", "ARIC_Whites_p_SingleSNP", "ARIC_Blacks_p_SingleSNP"},
+              new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.0000001"},
+              new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.00001",
+                  "(ARIC_Whites_maf_SingleSNP || ARIC_Blacks_maf_SingleSNP) > 0"},
+              regionSearchDistance, log);
           if (fromPreConditionResults != null) {
-            Files.writeList(fromPreConditionResults,
-                            condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT,
-                                                                                  "cond1"));
+            Files.writeList(fromPreConditionResults, condFileDirAndNameTemplateAfterPhenoFilled
+                .replaceAll(FILENAME_CONDITION_SEGMENT, "cond1"));
             isInitialConditionReady = true;
-            log.report("No existing initial condition found. Has developed new initial condition from:\n  "
-                       + resultFile);
+            log.report(
+                "No existing initial condition found. Has developed new initial condition from:\n  "
+                    + resultFile);
           }
         } else {
-          log.report("Found existing initial condition and will skip developing new initial condition:\n  "
-                     + condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT,
-                                                                             "cond1"));
+          log.report(
+              "Found existing initial condition and will skip developing new initial condition:\n  "
+                  + condFileDirAndNameTemplateAfterPhenoFilled
+                      .replaceAll(FILENAME_CONDITION_SEGMENT, "cond1"));
           isInitialConditionReady = true;
         }
       }
@@ -345,72 +335,56 @@ public class SkatMeta2 {
 
         if (condFileDirFilenameTemplate.contains(FILENAME_ETHNIC_SEGMENT)) {
           for (String ethnic : ethnics) {
-            condFileDirAndNameTemplateAfterPhenoFilled =
-                condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_ETHNIC_SEGMENT,
-                                                                      ethnic);
+            condFileDirAndNameTemplateAfterPhenoFilled = condFileDirAndNameTemplateAfterPhenoFilled
+                .replaceAll(FILENAME_ETHNIC_SEGMENT, ethnic);
             currentCondition = startCondition;
-            while (runConditionalAnalysisWholeProcessOfOnePheno(condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT,
-                                                                                                                      "cond" + currentCondition + ""),
-                                                                phenoDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT,
-                                                                                                    pheno),
-                                                                genoDirFileameTemplate,
-                                                                snpInfoDirFilenameTemplate,
-                                                                new String[] {ethnic}, rScriptDir,
-                                                                resultsDir.replaceAll(FILENAME_CONDITION_SEGMENT,
-                                                                                      "cond" + currentCondition),
-                                                                rcommand, pThresholdHigher,
-                                                                condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT,
-                                                                                                                      "cond" + (currentCondition
-                                                                                                                                + 1)),
-                                                                log)) {
+            while (runConditionalAnalysisWholeProcessOfOnePheno(
+                condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT,
+                    "cond" + currentCondition + ""),
+                phenoDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, pheno),
+                genoDirFileameTemplate, snpInfoDirFilenameTemplate, new String[] {ethnic},
+                rScriptDir,
+                resultsDir.replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + currentCondition),
+                rcommand, pThresholdHigher, condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(
+                    FILENAME_CONDITION_SEGMENT, "cond" + (currentCondition + 1)),
+                log)) {
               log.report("Finished condition " + currentCondition);
               currentCondition++;
             }
           }
         } else {
           currentCondition = startCondition;
-          while (runConditionalAnalysisWholeProcessOfOnePheno(condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT,
-                                                                                                                    "cond" + currentCondition + ""),
-                                                              phenoDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT,
-                                                                                                  pheno),
-                                                              genoDirFileameTemplate,
-                                                              snpInfoDirFilenameTemplate, ethnics,
-                                                              rScriptDir,
-                                                              resultsDir.replaceAll(FILENAME_CONDITION_SEGMENT,
-                                                                                    "cond" + currentCondition),
-                                                              rcommand, pThresholdHigher,
-                                                              condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT,
-                                                                                                                    "cond" + (currentCondition
-                                                                                                                              + 1)),
-                                                              log)) {
+          while (runConditionalAnalysisWholeProcessOfOnePheno(
+              condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT,
+                  "cond" + currentCondition + ""),
+              phenoDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, pheno),
+              genoDirFileameTemplate, snpInfoDirFilenameTemplate, ethnics, rScriptDir,
+              resultsDir.replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + currentCondition),
+              rcommand, pThresholdHigher, condFileDirAndNameTemplateAfterPhenoFilled
+                  .replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + (currentCondition + 1)),
+              log)) {
             log.report("Finished condition " + currentCondition);
             currentCondition++;
           }
         }
       } else {
         log.reportError("Error - No input is available to initialize conditional alaysis for pheno "
-                        + pheno + ". Need either one of the following files:\n  "
-                        + resultFile.replaceAll("_" + FILENAME_ETHNIC_SEGMENT, "") + "\n  "
-                        + condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT,
-                                                                                "cond1"));
+            + pheno + ". Need either one of the following files:\n  "
+            + resultFile.replaceAll("_" + FILENAME_ETHNIC_SEGMENT, "") + "\n  "
+            + condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT,
+                "cond1"));
       }
     }
 
     summary(previousResultFileDirFilenameTemplate, pThresholdHigher, phenos, ethnics,
-            snpInfoDirFilenameTemplate, condFileDirFilenameTemplate, resultSummariesDir, log);
+        snpInfoDirFilenameTemplate, condFileDirFilenameTemplate, resultSummariesDir, log);
   }
 
   public static boolean conditionalAnalysisWholeProcessOfOnePheno_20150109(String condFileFullPath,
-                                                                           String phenoDirAndNameTemplate,
-                                                                           String genoDirAndNameTemplate,
-                                                                           String snpInfoDirAndNameTemplate,
-                                                                           String[] ethnics,
-                                                                           String rScriptDir,
-                                                                           String resultsDirFilenameTemplate,
-                                                                           String rcommand,
-                                                                           double pThreshold,
-                                                                           String nextCondFileFullPath,
-                                                                           Logger log) {
+      String phenoDirAndNameTemplate, String genoDirAndNameTemplate,
+      String snpInfoDirAndNameTemplate, String[] ethnics, String rScriptDir,
+      String resultsDirFilenameTemplate, String rcommand, double pThreshold,
+      String nextCondFileFullPath, Logger log) {
     Hashtable<String, String[]> previousCondition;
     Hashtable<Integer, Vector<String>> regionToGenes, regionToSnps;
     Hashtable<Integer, String> significantSnpOfEachRegion;
@@ -455,7 +429,7 @@ public class SkatMeta2 {
           byChrResultDirFilenameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT, "chr" + chr);
       resultDirFileNameByChrWithEthicAndAnalysis =
           resultDirFilenameByChr.replaceAll(FILENAME_ETHNIC_SEGMENT, allEthnics)
-                                .replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP");
+              .replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP");
       if (!new File(resultDirFileNameByChrWithEthicAndAnalysis).exists()) {
         rScriptFullPath = rScriptDir + ext.rootOf(condFileFullPath) + "_chr" + chr + ".R";
         b[0] = ext.indexOfStr(chr, SPECIAL_CHROMOSOMES[0]);
@@ -464,9 +438,8 @@ public class SkatMeta2 {
           snpInfoFullPath =
               snpInfoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT, "chr" + chr);
           if (!new File(snpInfoFullPath).exists()) {
-            snpInfoFullPath =
-                snpInfoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
-                                                     "chr" + SPECIAL_CHROMOSOMES[1][b[0]]);
+            snpInfoFullPath = snpInfoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
+                "chr" + SPECIAL_CHROMOSOMES[1][b[0]]);
             if (!new File(snpInfoFullPath).exists()) {
               isFileAvailable = false;
               chrsWithoutFiles.add(chr);
@@ -477,7 +450,7 @@ public class SkatMeta2 {
               genoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT, "chr" + chr);
           if (!new File(genoFullPath).exists()) {
             genoFullPath = genoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
-                                                             "chr" + SPECIAL_CHROMOSOMES[1][b[0]]);
+                "chr" + SPECIAL_CHROMOSOMES[1][b[0]]);
             if (!new File(genoFullPath).exists()) {
               isFileAvailable = false;
               chrsWithoutFiles.add(chr);
@@ -488,9 +461,8 @@ public class SkatMeta2 {
           snpInfoFullPath =
               snpInfoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT, "chr" + chr);
           if (!new File(snpInfoFullPath).exists()) {
-            snpInfoFullPath =
-                snpInfoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
-                                                     "chr" + SPECIAL_CHROMOSOMES[0][b[1]]);
+            snpInfoFullPath = snpInfoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
+                "chr" + SPECIAL_CHROMOSOMES[0][b[1]]);
             if (!new File(snpInfoFullPath).exists()) {
               isFileAvailable = false;
               chrsWithoutFiles.add(chr);
@@ -501,7 +473,7 @@ public class SkatMeta2 {
               genoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT, "chr" + chr);
           if (!new File(genoFullPath).exists()) {
             genoFullPath = genoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
-                                                             "chr" + SPECIAL_CHROMOSOMES[0][b[1]]);
+                "chr" + SPECIAL_CHROMOSOMES[0][b[1]]);
             if (!new File(genoFullPath).exists()) {
               isFileAvailable = false;
               chrsWithoutFiles.add(chr);
@@ -517,32 +489,28 @@ public class SkatMeta2 {
 
         if (isFileAvailable) {
           Files.write(getRScriptForConditionalAnalysis(condFileFullPath, snpInfoFullPath,
-                                                       phenoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
-                                                                                          "chr" + chr),
-                                                       genoFullPath, ethnics,
-                                                       resultDirFilenameByChr, log),
-                      rScriptFullPath);
+              phenoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT, "chr" + chr),
+              genoFullPath, ethnics, resultDirFilenameByChr, log), rScriptFullPath);
           CmdLine.run(rcommand + " " + rScriptFullPath, rScriptDir);
         }
       }
 
       if (new File(resultDirFileNameByChrWithEthicAndAnalysis).exists()) {
-        significantSnpOfEachRegion.putAll(getSignificantSnpOfEachRegion(resultDirFilenameByChr.replaceAll(FILENAME_ETHNIC_SEGMENT,
-                                                                                                          allEthnics)
-                                                                                              .replaceAll(FILENAME_ANALYSIS_SEGMENT,
-                                                                                                          "SingleSNP"),
-                                                                        regionToGenes, pThreshold,
-                                                                        log));
+        significantSnpOfEachRegion
+            .putAll(
+                getSignificantSnpOfEachRegion(
+                    resultDirFilenameByChr.replaceAll(FILENAME_ETHNIC_SEGMENT, allEthnics)
+                        .replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP"),
+                    regionToGenes, pThreshold, log));
       } else if (isFileAvailable) {
         log.reportError("Error - Potential R failure. The following R output is not found:\n"
-                        + resultDirFileNameByChrWithEthicAndAnalysis);
+            + resultDirFileNameByChrWithEthicAndAnalysis);
       }
     }
 
     if (significantSnpOfEachRegion.size() > 0) {
       Files.writeList(getNextCondition(significantSnpOfEachRegion, previousCondition, regionToGenes,
-                                       regionToSnps, log),
-                      nextCondFileFullPath);
+          regionToSnps, log), nextCondFileFullPath);
       result = true;
     } else {
       result = false;
@@ -569,11 +537,9 @@ public class SkatMeta2 {
     }
 
     mergeSkatMetaResultFiles(byChrResultDirFilenameTemplate,
-                             Array.addStrToArray(allEthnics, ethnics), chrList,
-                             new String[] {"SingleSNP", "T5Count", "T5"},
-                             resultsDirFilenameTemplate.replaceAll("_"
-                                                                   + FILENAME_CHROMOSOME_SEGMENT, ""),
-                             log);
+        Array.addStrToArray(allEthnics, ethnics), chrList,
+        new String[] {"SingleSNP", "T5Count", "T5"},
+        resultsDirFilenameTemplate.replaceAll("_" + FILENAME_CHROMOSOME_SEGMENT, ""), log);
 
     return result;
   }
@@ -599,12 +565,9 @@ public class SkatMeta2 {
   }
 
   public static void generateSkatMetaRScript(String phenoDirAndNameTemplate,
-                                             String genoDirAndNameTemplate,
-                                             String condFileDirAndNameTemplate,
-                                             String snpInfoDirAndNameTemplate, String[] phenos,
-                                             String[] ethnics, String startCondition,
-                                             String rScriptDir, String resultsDir,
-                                             String rcommand) {
+      String genoDirAndNameTemplate, String condFileDirAndNameTemplate,
+      String snpInfoDirAndNameTemplate, String[] phenos, String[] ethnics, String startCondition,
+      String rScriptDir, String resultsDir, String rcommand) {
     String condFile, phenoFile, genoFile, snpInfoFile = null, outputFile, rScript;
     Hashtable<String, String[]> qsubIterations;
     // String[][] qsubIterationsMatrix;
@@ -618,9 +581,8 @@ public class SkatMeta2 {
       rScript = "";
       for (int j = 0; j < ethnics.length; j++) {
         condFile = condFile.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[j]);
-        chrs =
-            loadFile(condFile, null, new String[] {"CHR"}, null, null, null).keySet()
-                                                                            .toArray(new String[0]);
+        chrs = loadFile(condFile, null, new String[] {"CHR"}, null, null, null).keySet()
+            .toArray(new String[0]);
         if (chrs != null && chrs.length > 0) {
           qsubIterations.put(pheno + "\t" + ethnics[j] + "\t" + startCondition, chrs);
           tmp = new String[chrs.length];
@@ -632,17 +594,17 @@ public class SkatMeta2 {
             phenoFile = phenoDirAndNameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, pheno);
             phenoFile = phenoFile.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[j]);
             outputFile = resultsDir + "ARIC_" + pheno + "_" + ethnics[j] + "_cond" + startCondition
-                         + "_chr" + chrs[k] + "_prepCondScores_seqMeta.RData";
+                + "_chr" + chrs[k] + "_prepCondScores_seqMeta.RData";
             tmp[k] = outputFile;
             // tmp[k] = rScriptDir + phenos[i] + "_" + ethnics[j] + "_cond" + startCondition +
             // "_cohort_chr" + chrs[?] + ".R";
             // Files.write(getRScriptForCohort(snpInfoFile, genoFile, phenoFile, condFile,
             // outputFile), tmp[l]);
             rScript += (getRScriptForCohort(snpInfoFile, genoFile, phenoFile, condFile, outputFile)
-                        + "\n");
+                + "\n");
           }
           tmp2[j][0] = resultsDir + pheno + "_" + ethnics[j] + "_cond" + startCondition
-                       + "_cohort_merged.RData";
+              + "_cohort_merged.RData";
           // Files.write(getRScriptForMergingChromosomes(tmp, tmp2[k][0]), resultsDir + phenos[i] +
           // "_" + ethnics[k] + "_cond" + startCondition + "_cohort_merge.R");
           rScript += (getRScriptForMergingChromosomes(tmp, tmp2[j][0]) + "\n");
@@ -652,21 +614,19 @@ public class SkatMeta2 {
       // condFileDirAndNameTemplate, rScriptDir + phenos[i] + "_cond" + startCondition + "_", null),
       // rScriptDir + phenos[i] + "_cond" + startCondition + "_meta.R");
       rScript += (getRScriptForMetaAnalysis(snpInfoFile, ethnics, tmp2, condFile,
-                                            resultsDir + pheno + "_cond" + startCondition, null));
+          resultsDir + pheno + "_cond" + startCondition, null));
       Files.write(rScript, rScriptDir + pheno + "_cond" + startCondition + "_all.R");
       Files.qsub(rScriptDir + "[%0]_cond[%1]_all",
-                 rcommand + " " + rScriptDir + "[%0]_cond[%1]_all.R",
-                 new String[][] {{pheno, startCondition}}, -1, 6, -1);
-      new File(rScriptDir + "master.qsub").renameTo(new File(rScriptDir + pheno + "_cond"
-                                                             + startCondition + "_all.sh"));
+          rcommand + " " + rScriptDir + "[%0]_cond[%1]_all.R",
+          new String[][] {{pheno, startCondition}}, -1, 6, -1);
+      new File(rScriptDir + "master.qsub")
+          .renameTo(new File(rScriptDir + pheno + "_cond" + startCondition + "_all.sh"));
     }
   }
 
   public static void generateSkatMetaRScriptConditional(String sourceRDataFilesDir,
-                                                        String snpInfoFile,
-                                                        String condFileDirFilenameTemplate,
-                                                        String rScriptDir, String resultsDir,
-                                                        String rCommandLine) {
+      String snpInfoFile, String condFileDirFilenameTemplate, String rScriptDir, String resultsDir,
+      String rCommandLine) {
     PrintWriter writer;
     String[] temp1;
     String[] phenoCondStratum;
@@ -681,14 +641,13 @@ public class SkatMeta2 {
         phenoCondStratum[i] = temp1[temp1.length - 3 + i];
       }
 
-      condFile =
-          condFileDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, phenoCondStratum[0])
-                                     .replaceAll(FILENAME_CONDITION_SEGMENT, phenoCondStratum[1]);
+      condFile = condFileDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, phenoCondStratum[0])
+          .replaceAll(FILENAME_CONDITION_SEGMENT, phenoCondStratum[1]);
 
       root = Array.toStr(phenoCondStratum, "_");
       writer = new PrintWriter(new FileOutputStream(rScriptDir + root + ".R"));
       writer.println(getRScriptForConditional(sourceRDataFilesDir, snpInfoFile, condFile,
-                                              rScriptDir, resultsDir));
+          rScriptDir, resultsDir));
       writer.close();
 
       writer = new PrintWriter(new FileOutputStream(rScriptDir + "runAll.bat", true));
@@ -707,9 +666,8 @@ public class SkatMeta2 {
   }
 
   public static void generateSkatMetaRScriptsForSubFolders(String sourceRDataFilesDir,
-                                                           String snpInfoFile, String condFileDir,
-                                                           String rScriptDir, String resultsDir,
-                                                           String rCommandLine) {
+      String snpInfoFile, String condFileDir, String rScriptDir, String resultsDir,
+      String rCommandLine) {
     String[] folders;
 
     if (!Files.exists(rScriptDir)) {
@@ -722,32 +680,32 @@ public class SkatMeta2 {
     }
     if (folders == null || folders.length < 1) {
       generateSkatMetaRScriptConditional(sourceRDataFilesDir, snpInfoFile, condFileDir, rScriptDir,
-                                         resultsDir, rCommandLine);
+          resultsDir, rCommandLine);
     } else {
       for (String folder : folders) {
         generateSkatMetaRScriptsForSubFolders(sourceRDataFilesDir + folder + "/", snpInfoFile,
-                                              condFileDir, rScriptDir, resultsDir, rCommandLine);
+            condFileDir, rScriptDir, resultsDir, rCommandLine);
       }
     }
   }
 
   public static void getAllRoundsConditions(String fullpathToPreviousRoundResult,
-                                            String fullpathToPreviousRoundCondition,
-                                            String fullpathToOutputNextRoundCondition,
-                                            double pThreshold, Logger log) {
+      String fullpathToPreviousRoundCondition, String fullpathToOutputNextRoundCondition,
+      double pThreshold, Logger log) {
     int a = 1;
 
-    while (getNextRoundCondition("D:/Inflammation/outputs/ARIC_AAEA_LpPLA2_activity_prepCondScores_seqMeta_cond"
-                                 + a + "_SingleSNP.csv",
-                                 "D:/Inflammation/tests/activity_cond" + a + ".txt",
-                                 "D:/Inflammation/tests/activity_cond" + (a + 1) + ".txt",
-                                 pThreshold, log)) {
+    while (getNextRoundCondition(
+        "D:/Inflammation/outputs/ARIC_AAEA_LpPLA2_activity_prepCondScores_seqMeta_cond" + a
+            + "_SingleSNP.csv",
+        "D:/Inflammation/tests/activity_cond" + a + ".txt",
+        "D:/Inflammation/tests/activity_cond" + (a + 1) + ".txt", pThreshold, log)) {
       a++;
     }
   }
 
-  public static String[] getAnalysesList(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvaluesSummary,
-                                         String pheno, Logger log) {
+  public static String[] getAnalysesList(
+      Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvaluesSummary,
+      String pheno, Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> conditionGroup;
     Hashtable<String, Hashtable<String, Hashtable<String, String>>> ethnicGroup;
     Hashtable<String, Hashtable<String, String>> analysesGroup;
@@ -774,8 +732,9 @@ public class SkatMeta2 {
     return analysesListSorted;
   }
 
-  public static String[] getConditionList(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvaluesSummary,
-                                          String pheno, Logger log) {
+  public static String[] getConditionList(
+      Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvaluesSummary,
+      String pheno, Logger log) {
     String[] conditionList = null;
 
     if (genePvaluesSummary != null && genePvaluesSummary.size() > 0) {
@@ -786,25 +745,25 @@ public class SkatMeta2 {
     return conditionList;
   }
 
-  public static Hashtable<String, Hashtable<Integer, Vector<String>>> getConditionsGeneRegions(String conditionFileDirNameTemplate,
-                                                                                               String[] phenos,
-                                                                                               Logger log) {
+  public static Hashtable<String, Hashtable<Integer, Vector<String>>> getConditionsGeneRegions(
+      String conditionFileDirNameTemplate, String[] phenos, Logger log) {
     Hashtable<String, Hashtable<Integer, Vector<String>>> result;
     String condFile;
 
     result = new Hashtable<String, Hashtable<Integer, Vector<String>>>();
     for (String pheno : phenos) {
       condFile = conditionFileDirNameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, pheno)
-                                             .replaceAll(FILENAME_CONDITION_SEGMENT, "cond1");
-      result.put(pheno, (Hashtable<Integer, Vector<String>>) organizeConditionsIntoRegions(condFile,
-                                                                                           log)[1]);
+          .replaceAll(FILENAME_CONDITION_SEGMENT, "cond1");
+      result.put(pheno,
+          (Hashtable<Integer, Vector<String>>) organizeConditionsIntoRegions(condFile, log)[1]);
     }
 
     return result;
   }
 
-  public static String[] getEthnicList(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroups,
-                                       Logger log) {
+  public static String[] getEthnicList(
+      Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroups,
+      Logger log) {
     Vector<String> result;
     Hashtable<String, Hashtable<String, Hashtable<String, String>>> conditionGroup;
     Hashtable<String, Hashtable<String, String>> ethnicGroup;
@@ -874,8 +833,9 @@ public class SkatMeta2 {
    * summaryDir + "summary_" + pheno + "_snpPvalues.xln", log); } } }
    */
 
-  public static String[] getEthnicsList(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvalueSummary,
-                                        String pheno, Logger log) {
+  public static String[] getEthnicsList(
+      Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvalueSummary,
+      String pheno, Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> conditionGroup;
     Hashtable<String, Hashtable<String, Hashtable<String, String>>> ethnicGroup;
     HashSet<String> ethnicList;
@@ -898,8 +858,9 @@ public class SkatMeta2 {
     return a;
   }
 
-  public static String[] getEthnicsList(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll,
-                                        Logger log) {
+  public static String[] getEthnicsList(
+      Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll,
+      Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, String[]>>> ethnicGroup;
     HashSet<String> ethnicList;
     String[] ethnicListSorted = null;
@@ -921,13 +882,13 @@ public class SkatMeta2 {
   }
 
   public static String getFileNameRootFromTemplate(String resultDirFilenameTemplateByChr,
-                                                   String chr, String ethnic, Logger log) {
+      String chr, String ethnic, Logger log) {
     String resultFile;
     int a;
 
     resultFile = resultDirFilenameTemplateByChr.replaceAll(FILENAME_CHROMOSOME_SEGMENT, "chr" + chr)
-                                               .replaceAll(FILENAME_ETHNIC_SEGMENT, ethnic)
-                                               .replaceAll("_" + FILENAME_ANALYSIS_SEGMENT, "");
+        .replaceAll(FILENAME_ETHNIC_SEGMENT, ethnic)
+        .replaceAll("_" + FILENAME_ANALYSIS_SEGMENT, "");
     a = resultFile.lastIndexOf(".");
     if (a >= 0 && !resultFile.endsWith("/")) {
       resultFile = resultFile.substring(0, a);
@@ -937,7 +898,7 @@ public class SkatMeta2 {
   }
 
   public static String[] getFileNames(String chr, String snpInfoDirAndNameTemplate,
-                                      String genoDirAndNameTemplate, Logger log) {
+      String genoDirAndNameTemplate, Logger log) {
     String snpInfoFullPath, genoFullPath;
     int[] indices;
 
@@ -953,9 +914,8 @@ public class SkatMeta2 {
       snpInfoFullPath =
           snpInfoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT, "chr" + chr);
       if (!new File(snpInfoFullPath).exists()) {
-        snpInfoFullPath =
-            snpInfoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
-                                                 "chr" + SPECIAL_CHROMOSOMES[1][indices[0]]);
+        snpInfoFullPath = snpInfoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
+            "chr" + SPECIAL_CHROMOSOMES[1][indices[0]]);
         if (!new File(snpInfoFullPath).exists()) {
           snpInfoFullPath = null;
           log.reportError("Error - cannot find SNP info file for chr " + chr);
@@ -963,9 +923,8 @@ public class SkatMeta2 {
       }
       genoFullPath = genoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT, "chr" + chr);
       if (!new File(genoFullPath).exists()) {
-        genoFullPath =
-            genoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
-                                              "chr" + SPECIAL_CHROMOSOMES[1][indices[0]]);
+        genoFullPath = genoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
+            "chr" + SPECIAL_CHROMOSOMES[1][indices[0]]);
         if (!new File(genoFullPath).exists()) {
           genoFullPath = null;
           log.reportError("Error - cannot find geno file for chr " + chr);
@@ -975,9 +934,8 @@ public class SkatMeta2 {
       snpInfoFullPath =
           snpInfoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT, "chr" + chr);
       if (!new File(snpInfoFullPath).exists()) {
-        snpInfoFullPath =
-            snpInfoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
-                                                 "chr" + SPECIAL_CHROMOSOMES[0][indices[1]]);
+        snpInfoFullPath = snpInfoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
+            "chr" + SPECIAL_CHROMOSOMES[0][indices[1]]);
         if (!new File(snpInfoFullPath).exists()) {
           snpInfoFullPath = null;
           log.reportError("Error - cannot find SNP info file for chr " + chr);
@@ -985,9 +943,8 @@ public class SkatMeta2 {
       }
       genoFullPath = genoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT, "chr" + chr);
       if (!new File(genoFullPath).exists()) {
-        genoFullPath =
-            genoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
-                                              "chr" + SPECIAL_CHROMOSOMES[0][indices[1]]);
+        genoFullPath = genoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
+            "chr" + SPECIAL_CHROMOSOMES[0][indices[1]]);
         if (!new File(genoFullPath).exists()) {
           genoFullPath = null;
           log.reportError("Error - cannot find geno file for chr " + chr);
@@ -1014,11 +971,9 @@ public class SkatMeta2 {
    * @return
    */
   public static String[] getFirstCondition(String resultFullPath,
-                                           String[] namesOfColumnsOfSnpChrPos,
-                                           String[] namesOfColumnsOfGeneAndPvalues,
-                                           String[] criteriaForPValTigherThreshold,
-                                           String[] criteriaForPValLooserThreshold,
-                                           int regionSearchDistance, Logger log) {
+      String[] namesOfColumnsOfSnpChrPos, String[] namesOfColumnsOfGeneAndPvalues,
+      String[] criteriaForPValTigherThreshold, String[] criteriaForPValLooserThreshold,
+      int regionSearchDistance, Logger log) {
     Hashtable<String, String[]> snpsFromResultFile;
     Hashtable<Integer, String> regionToSnpWithMinP, regionToChr;
     Hashtable<Integer, Vector<String>> regionToGenes;
@@ -1049,9 +1004,8 @@ public class SkatMeta2 {
     regionToBoundaries = new Hashtable<Integer, int[]>();
     regionToMinP = new Hashtable<Integer, Double>();
     regionToChr = new Hashtable<Integer, String>();
-    snpsFromResultFile =
-        loadFile(resultFullPath, null, namesOfColumnsOfSnpChrPos, namesOfColumnsOfGeneAndPvalues,
-                 criteriaForPValLooserThreshold, log);
+    snpsFromResultFile = loadFile(resultFullPath, null, namesOfColumnsOfSnpChrPos,
+        namesOfColumnsOfGeneAndPvalues, criteriaForPValLooserThreshold, log);
 
     tmp2 = parseCriteria(namesOfColumnsOfGeneAndPvalues, criteriaForPValTigherThreshold, log);
     criteriaColumnIndices = (int[][]) tmp2[0];
@@ -1141,7 +1095,7 @@ public class SkatMeta2 {
       line = snpsFromResultFile.get(snpChrPos);
       // if (Double.parseDouble(line[3]) > pThresholdTighter) {
       if (!screenWithCriteria(line, criteriaColumnIndices, criteriaOperators, criteriaValues,
-                              log)) {
+          log)) {
         snpChrPosition = snpChrPos.split("\t");
         // chr = snpChrPosition[1];
         position = Integer.parseInt(snpChrPosition[2]);
@@ -1234,8 +1188,9 @@ public class SkatMeta2 {
     }
   }
 
-  public static String[] getGeneList(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvaluesSummary,
-                                     String pheno, Logger log) {
+  public static String[] getGeneList(
+      Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvaluesSummary,
+      String pheno, Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> conditionGroup;
     Hashtable<String, Hashtable<String, Hashtable<String, String>>> ethnicGroup;
     Hashtable<String, Hashtable<String, String>> analysesGroup;
@@ -1272,21 +1227,21 @@ public class SkatMeta2 {
   }
 
   public static int[] getIndicesOfPhenoConditionEthnicAnalysis(String fileDirAndNameTemplate,
-                                                               String delimiter) {
+      String delimiter) {
     int[] indices;
     String[] line, fileNameSegments;
 
     fileNameSegments = new String[] {FILENAME_PHENO_SEGMENT, FILENAME_CONDITION_SEGMENT,
-                                     FILENAME_ETHNIC_SEGMENT, FILENAME_ANALYSIS_SEGMENT};
+        FILENAME_ETHNIC_SEGMENT, FILENAME_ANALYSIS_SEGMENT};
     line = ext.rootOf(fileDirAndNameTemplate).replaceAll("_" + FILENAME_CHROMOSOME_SEGMENT, "")
-              .split(delimiter);
+        .split(delimiter);
     indices = ext.indexFactors(fileNameSegments, line, true, false);
 
     return indices;
   }
 
   public static int getKeyOfValue(Hashtable<Integer, Vector<String>> hash, String value,
-                                  Logger log) {
+      Logger log) {
     int keyFound;
     Vector<String> vector;
 
@@ -1302,8 +1257,9 @@ public class SkatMeta2 {
     return keyFound;
   }
 
-  public static String[] getListOfGeneSnps(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll,
-                                           Logger log) {
+  public static String[] getListOfGeneSnps(
+      Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll,
+      Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, String[]>>> snpResultsCurrentCondition;
     Hashtable<String, Hashtable<String, String[]>> snpResultsCurrentEthnic;
     Hashtable<String, String[]> snpResultsCurrentAnalysis;
@@ -1333,9 +1289,9 @@ public class SkatMeta2 {
     return result;
   }
 
-  public static String[] getListOfGeneSnps(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll,
-                                           String snpInfoDirNameTemplate,
-                                           String condFileDirNameTemplate, Logger log) {
+  public static String[] getListOfGeneSnps(
+      Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll,
+      String snpInfoDirNameTemplate, String condFileDirNameTemplate, Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, String[]>>> snpResultsCurrentCondition;
     Hashtable<String, Hashtable<String, String[]>> snpResultsCurrentEthnic;
     Hashtable<String, String[]> snpResultsCurrentAnalysis;
@@ -1365,7 +1321,7 @@ public class SkatMeta2 {
               for (String element : snpList) {
                 snpGeneChrPos = element + "\t" + chrPositions.get(element.split("\t")[0]);
                 snpResultsCurrentAnalysis.put(snpGeneChrPos,
-                                              snpResultsCurrentAnalysis.get(element));
+                    snpResultsCurrentAnalysis.get(element));
                 snpResultsCurrentAnalysis.remove(element);
                 if (!geneSnpList.contains(snpGeneChrPos)) {
                   geneSnpList.add(snpGeneChrPos);
@@ -1383,10 +1339,9 @@ public class SkatMeta2 {
   }
 
   public static String[] getNextCondition(Hashtable<Integer, String> significantSnpOfEachRegion,
-                                          Hashtable<String, String[]> previousCondition,
-                                          Hashtable<Integer, Vector<String>> regionToGenes,
-                                          Hashtable<Integer, Vector<String>> regionToSnps,
-                                          Logger log) {
+      Hashtable<String, String[]> previousCondition,
+      Hashtable<Integer, Vector<String>> regionToGenes,
+      Hashtable<Integer, Vector<String>> regionToSnps, Logger log) {
     Vector<String> geneList = null, snpList = null, output;
     String tmp, chr;
     int regionId;
@@ -1449,10 +1404,9 @@ public class SkatMeta2 {
   // This is a fully functioning version of the method with the same name. Works when all
   // chromsomes' results are combined into one single result file.
   public static String[] getNextCondition(String fullpathToPreviousRoundResult,
-                                          Hashtable<String, String[]> previousCondition,
-                                          Hashtable<Integer, Vector<String>> regionToGenes,
-                                          Hashtable<Integer, Vector<String>> regionToSnps,
-                                          double pThreshold, Logger log) {
+      Hashtable<String, String[]> previousCondition,
+      Hashtable<Integer, Vector<String>> regionToGenes,
+      Hashtable<Integer, Vector<String>> regionToSnps, double pThreshold, Logger log) {
     Hashtable<String, String[]> previousRoundResult;
     Vector<String> geneList = null, snpList = null, output;
     Hashtable<Integer, Double> significantSnpOfEachRegion_p;
@@ -1467,9 +1421,8 @@ public class SkatMeta2 {
       log = new Logger();
     }
 
-    previousRoundResult =
-        loadFile(fullpathToPreviousRoundResult, null, new String[] {"gene", "Name"},
-                 new String[] {"p"}, new String[] {"p<=" + pThreshold}, log);
+    previousRoundResult = loadFile(fullpathToPreviousRoundResult, null,
+        new String[] {"gene", "Name"}, new String[] {"p"}, new String[] {"p<=" + pThreshold}, log);
     if (previousRoundResult.size() > 0) {
       significantSnpOfEachRegion_p = new Hashtable<Integer, Double>();
       significantSnpOfEachRegion_snp = new Hashtable<Integer, String>();
@@ -1478,14 +1431,14 @@ public class SkatMeta2 {
         regionId = getKeyOfValue(regionToGenes, line[0], log);
         if (regionId == -1) {
           log.reportError("Error - the Snp (" + line[0] + ", " + line[1]
-                          + ") from the following file cannot match the regions in the condition\n"
-                          + fullpathToPreviousRoundResult);
+              + ") from the following file cannot match the regions in the condition\n"
+              + fullpathToPreviousRoundResult);
           System.exit(0);
         }
-        if (!significantSnpOfEachRegion_p.containsKey(regionId)
-            || significantSnpOfEachRegion_p.get(regionId) > Double.parseDouble(previousRoundResult.get(geneSnp)[0])) {
+        if (!significantSnpOfEachRegion_p.containsKey(regionId) || significantSnpOfEachRegion_p
+            .get(regionId) > Double.parseDouble(previousRoundResult.get(geneSnp)[0])) {
           significantSnpOfEachRegion_p.put(regionId,
-                                           Double.parseDouble(previousRoundResult.get(geneSnp)[0]));
+              Double.parseDouble(previousRoundResult.get(geneSnp)[0]));
           significantSnpOfEachRegion_snp.put(regionId, line[1]);
         }
       }
@@ -1527,16 +1480,16 @@ public class SkatMeta2 {
 
       return output.toArray(new String[0]);
     } else {
-      log.report("No marker is found with significan p-value, so no new condition file is generated after "
-                 + previousCondition);
+      log.report(
+          "No marker is found with significan p-value, so no new condition file is generated after "
+              + previousCondition);
       return null;
     }
   }
 
   public static boolean getNextRoundCondition(String fullpathToPreviousRoundResult,
-                                              String fullpathToPreviousRoundCondition,
-                                              String fullpathToOutputNextRoundCondition,
-                                              double pThreshold, Logger log) {
+      String fullpathToPreviousRoundCondition, String fullpathToOutputNextRoundCondition,
+      double pThreshold, Logger log) {
     Hashtable<String, String[]> previousCondition;
     Hashtable<Integer, Vector<String>> regionToGenes, regionToSnps;
     Object[] test;
@@ -1551,7 +1504,7 @@ public class SkatMeta2 {
     regionToSnps = (Hashtable<Integer, Vector<String>>) test[2];
 
     newCondition = getNextCondition(fullpathToPreviousRoundResult, previousCondition, regionToGenes,
-                                    regionToSnps, pThreshold, log);
+        regionToSnps, pThreshold, log);
     if (newCondition == null) {
       return false;
     } else {
@@ -1560,8 +1513,9 @@ public class SkatMeta2 {
     }
   }
 
-  public static String[] getPhenoList(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvaluesSummary,
-                                      Logger log) {
+  public static String[] getPhenoList(
+      Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvaluesSummary,
+      Logger log) {
     String[] result;
 
     result = genePvaluesSummary.keySet().toArray(new String[0]);
@@ -1571,70 +1525,65 @@ public class SkatMeta2 {
   }
 
   public static String getRScriptForCohort(String snpInfoFile, String genoFile, String phenoFile,
-                                           String condFile, String resultFileName) {
+      String condFile, String resultFileName) {
     return ("library(seqMeta)\nlibrary(\"methods\")\n" + "\ntmp <- load(\"" + snpInfoFile
-            + "\")\nSNPInfo <- get(tmp)\nrm(list=tmp)\nrm(tmp)\n"
-            + (genoFile.endsWith(".RData") ? "\ntmp <- load(\"" + genoFile
-                                             + "\")\nZ <- get(tmp)\nrm(list=tmp)\nrm(tmp)\n"
-                                           : "\nZ <- t(read.csv(\"" + genoFile
-                                             + "\", header=T, as.is=T, row.names=1));\n")
-            + "names <- colnames(Z);\n" + "for (i in 1:ncol(Z)) {\n" + "	tmp <- names[i];\n"
-            + "	if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
-            + "		names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n" + "	}\n" + "}\n"
-            + "colnames(Z) <- names;\n" + "\npheno <- na.omit(read.csv(\"" + phenoFile
-            + "\", header=T, as.is=T, row.names=1));\n"
-            + "pheno_Z_merged <- merge(pheno, Z, by=\"row.names\")\n"
-            + "mPheno <- pheno_Z_merged[, (1 : ncol(pheno)) + 1]\n" + "names <- colnames(pheno)\n"
-            + "if (length(names)>1) {\n" + "	formu <- paste(names[1], \"~\", names[2])\n"
-            + "	for (i in 3:length(names)) {\n" + "		formu <- paste(formu, \"+\", names[i])\n"
-            + "	}\n" + "} else {\n" + "	len <- length(mPheno)\n"
-            + "	mPheno <- c(mPheno, rep(1, len))\n" + "	dim(mPheno) <- c(len, 2)\n"
-            + "	mPheno <- as.data.frame(mPheno)\n"
-            + "	colnames(mPheno) <- c(names[1], \"dummy\")\n"
-            + "	formu <- paste(names[1], \"~ 1\")\n" + "}\n"
-            + "\nmGeno <- pheno_Z_merged[,(1 : ncol(Z)) + (1 + ncol(pheno))]\n"
-            + "\ncond <- read.table(\"" + condFile + "\", header=TRUE)\n"
-            // + "genes <- SNPInfo$SKATgene %in% cond$SKATgene\n"
-            + "result <- prepCondScores(Z=mGeno, formula(formu), SNPInfo=SNPInfo, adjustments=cond, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)\n"
-            + "save(result, file=\"" + resultFileName + "\", compress=\"bzip2\");\n");
+        + "\")\nSNPInfo <- get(tmp)\nrm(list=tmp)\nrm(tmp)\n"
+        + (genoFile.endsWith(".RData")
+            ? "\ntmp <- load(\"" + genoFile + "\")\nZ <- get(tmp)\nrm(list=tmp)\nrm(tmp)\n"
+            : "\nZ <- t(read.csv(\"" + genoFile + "\", header=T, as.is=T, row.names=1));\n")
+        + "names <- colnames(Z);\n" + "for (i in 1:ncol(Z)) {\n" + "	tmp <- names[i];\n"
+        + "	if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
+        + "		names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n" + "	}\n" + "}\n"
+        + "colnames(Z) <- names;\n" + "\npheno <- na.omit(read.csv(\"" + phenoFile
+        + "\", header=T, as.is=T, row.names=1));\n"
+        + "pheno_Z_merged <- merge(pheno, Z, by=\"row.names\")\n"
+        + "mPheno <- pheno_Z_merged[, (1 : ncol(pheno)) + 1]\n" + "names <- colnames(pheno)\n"
+        + "if (length(names)>1) {\n" + "	formu <- paste(names[1], \"~\", names[2])\n"
+        + "	for (i in 3:length(names)) {\n" + "		formu <- paste(formu, \"+\", names[i])\n"
+        + "	}\n" + "} else {\n" + "	len <- length(mPheno)\n"
+        + "	mPheno <- c(mPheno, rep(1, len))\n" + "	dim(mPheno) <- c(len, 2)\n"
+        + "	mPheno <- as.data.frame(mPheno)\n" + "	colnames(mPheno) <- c(names[1], \"dummy\")\n"
+        + "	formu <- paste(names[1], \"~ 1\")\n" + "}\n"
+        + "\nmGeno <- pheno_Z_merged[,(1 : ncol(Z)) + (1 + ncol(pheno))]\n"
+        + "\ncond <- read.table(\"" + condFile + "\", header=TRUE)\n"
+        // + "genes <- SNPInfo$SKATgene %in% cond$SKATgene\n"
+        + "result <- prepCondScores(Z=mGeno, formula(formu), SNPInfo=SNPInfo, adjustments=cond, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)\n"
+        + "save(result, file=\"" + resultFileName + "\", compress=\"bzip2\");\n");
   }
 
   public static String getRScriptForCohort1(String snpInfoFile, String genoFile, String phenoFile,
-                                            String condFile, String resultFileName) {
+      String condFile, String resultFileName) {
     String resultId;
     resultId = ext.rootOf(resultFileName);
 
     return ("library(seqMeta)\nlibrary(\"methods\")\n" + "\ntmp <- load(\"" + snpInfoFile
-            + "\")\nSNPInfo <- get(tmp)\nrm(list=tmp)\nrm(tmp)\n"
-            + (genoFile.endsWith(".RData") ? "\ntmp <- load(\"" + genoFile
-                                             + "\")\nZ <- get(tmp)\nrm(list=tmp)\nrm(tmp)\n"
-                                           : "\nZ <- t(read.csv(\"" + genoFile
-                                             + "\", header=T, as.is=T, row.names=1));\n")
-            + "names <- colnames(Z);\n" + "for (i in 1:ncol(Z)) {\n" + "	tmp <- names[i];\n"
-            + "	if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
-            + "		names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n" + "	}\n" + "}\n"
-            + "colnames(Z) <- names;\n" + "\npheno <- na.omit(read.csv(\"" + phenoFile
-            + "\", header=T, as.is=T, row.names=1));\n"
-            + "pheno_Z_merged <- merge(pheno, Z, by=\"row.names\")\n"
-            + "mPheno <- pheno_Z_merged[, (1 : ncol(pheno)) + 1]\n" + "names <- colnames(pheno)\n"
-            + "if (length(names)>1) {\n" + "	formu <- paste(names[1], \"~\", names[2])\n"
-            + "	for (i in 3:length(names)) {\n" + "		formu <- paste(formu, \"+\", names[i])\n"
-            + "	}\n" + "} else {\n" + "	len <- length(mPheno)\n"
-            + "	mPheno <- c(mPheno, rep(1, len))\n" + "	dim(mPheno) <- c(len, 2)\n"
-            + "	mPheno <- as.data.frame(mPheno)\n"
-            + "	colnames(mPheno) <- c(names[1], \"dummy\")\n"
-            + "	formu <- paste(names[1], \"~ 1\")\n" + "}\n"
-            + "\nmGeno <- pheno_Z_merged[,(1 : ncol(Z)) + (1 + ncol(pheno))]\n"
-            + "\ncond <- read.table(\"" + condFile + "\", header=TRUE)\n"
-            // + "genes <- SNPInfo$SKATgene %in% cond$SKATgene\n"
-            + resultId
-            + " <- prepCondScores(Z=mGeno, formula(formu), SNPInfo=SNPInfo, adjustments=cond, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)\n"
-            + "save(" + resultId + ", file=\"" + resultFileName + "\", compress=\"bzip2\");\n");
+        + "\")\nSNPInfo <- get(tmp)\nrm(list=tmp)\nrm(tmp)\n"
+        + (genoFile.endsWith(".RData")
+            ? "\ntmp <- load(\"" + genoFile + "\")\nZ <- get(tmp)\nrm(list=tmp)\nrm(tmp)\n"
+            : "\nZ <- t(read.csv(\"" + genoFile + "\", header=T, as.is=T, row.names=1));\n")
+        + "names <- colnames(Z);\n" + "for (i in 1:ncol(Z)) {\n" + "	tmp <- names[i];\n"
+        + "	if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
+        + "		names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n" + "	}\n" + "}\n"
+        + "colnames(Z) <- names;\n" + "\npheno <- na.omit(read.csv(\"" + phenoFile
+        + "\", header=T, as.is=T, row.names=1));\n"
+        + "pheno_Z_merged <- merge(pheno, Z, by=\"row.names\")\n"
+        + "mPheno <- pheno_Z_merged[, (1 : ncol(pheno)) + 1]\n" + "names <- colnames(pheno)\n"
+        + "if (length(names)>1) {\n" + "	formu <- paste(names[1], \"~\", names[2])\n"
+        + "	for (i in 3:length(names)) {\n" + "		formu <- paste(formu, \"+\", names[i])\n"
+        + "	}\n" + "} else {\n" + "	len <- length(mPheno)\n"
+        + "	mPheno <- c(mPheno, rep(1, len))\n" + "	dim(mPheno) <- c(len, 2)\n"
+        + "	mPheno <- as.data.frame(mPheno)\n" + "	colnames(mPheno) <- c(names[1], \"dummy\")\n"
+        + "	formu <- paste(names[1], \"~ 1\")\n" + "}\n"
+        + "\nmGeno <- pheno_Z_merged[,(1 : ncol(Z)) + (1 + ncol(pheno))]\n"
+        + "\ncond <- read.table(\"" + condFile + "\", header=TRUE)\n"
+        // + "genes <- SNPInfo$SKATgene %in% cond$SKATgene\n"
+        + resultId
+        + " <- prepCondScores(Z=mGeno, formula(formu), SNPInfo=SNPInfo, adjustments=cond, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)\n"
+        + "save(" + resultId + ", file=\"" + resultFileName + "\", compress=\"bzip2\");\n");
   }
 
   public static String getRScriptForConditional(String sourceRDataFilesDir, String snpInfoFile,
-                                                String condFileDir, String rScriptDir,
-                                                String resultsDir) {
+      String condFileDir, String rScriptDir, String resultsDir) {
     String[] files;
     String rscript;
     String line;
@@ -1654,13 +1603,13 @@ public class SkatMeta2 {
 
     files = Files.list(sourceRDataFilesDir, ".RData", false);
     rscript = ("library(seqMeta)\n" + "library(\"methods\")\n" + "temp <- load(\"" + snpInfoFile
-               + "\")\n" + "SNPInfo <- get(temp)\n" + "rm(list=temp)\n" + "rm(temp)\n"
-               // + "names(SNPInfo) <- c(\"Name\", names(SNPInfo)[2:length(SNPInfo)])\n"
-               + "\nsetwd(\"" + sourceRDataFilesDir + "\")\n");
+        + "\")\n" + "SNPInfo <- get(temp)\n" + "rm(list=temp)\n" + "rm(temp)\n"
+        // + "names(SNPInfo) <- c(\"Name\", names(SNPInfo)[2:length(SNPInfo)])\n"
+        + "\nsetwd(\"" + sourceRDataFilesDir + "\")\n");
     line = new String();
     for (int i = 0; i < files.length; i++) {
       rscript += ("temp <- load(\"" + files[i] + "\")\n" + "Cohort" + i + " <- get(temp)\n"
-                  + "rm(list=temp)\n" + "rm(temp)\n");
+          + "rm(list=temp)\n" + "rm(temp)\n");
       line += "Cohort" + i + ", ";
     }
 
@@ -1682,31 +1631,25 @@ public class SkatMeta2 {
         break;
       }
     }
-    rscript +=
-        ("\ntemp <- read.table(\"" + condFileDir + condFile + "\", header=TRUE)\n"
-         + "genes <- SNPInfo$SKATgene %in% temp$SKATgene\n" + "results <- singlesnpMeta(" + line
-         + "SNPInfo=SNPInfo[genes,], snpNames = \"SNP\", aggregateBy=\"SKATgene\", studyBetas = TRUE)\n"
-         + "write.table(results, \"" + resultsDir + phenoAndCondition
-         + "_SingleSNP.csv\", sep=\",\", row.names = F)\n\n" + "results <- burdenMeta(" + line
-         + "SNPInfo=subset(SNPInfo[genes,], sc_functional==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1)\n"
-         + "write.table(results, \"" + resultsDir + phenoAndCondition
-         + "_T5Count.csv\", sep=\",\", row.names = F)\n\n" + "results <- skatMeta(" + line
-         + "SNPInfo=subset(SNPInfo[genes,], sc_functional==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = function(maf) { dbeta(maf, 1, 25)*(maf <= 0.05)})\n"
-         + "write.table( results, \"" + resultsDir + phenoAndCondition
-         + "_SKAT_T5.csv\", sep=\",\", row.names = F)\n");
+    rscript += ("\ntemp <- read.table(\"" + condFileDir + condFile + "\", header=TRUE)\n"
+        + "genes <- SNPInfo$SKATgene %in% temp$SKATgene\n" + "results <- singlesnpMeta(" + line
+        + "SNPInfo=SNPInfo[genes,], snpNames = \"SNP\", aggregateBy=\"SKATgene\", studyBetas = TRUE)\n"
+        + "write.table(results, \"" + resultsDir + phenoAndCondition
+        + "_SingleSNP.csv\", sep=\",\", row.names = F)\n\n" + "results <- burdenMeta(" + line
+        + "SNPInfo=subset(SNPInfo[genes,], sc_functional==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1)\n"
+        + "write.table(results, \"" + resultsDir + phenoAndCondition
+        + "_T5Count.csv\", sep=\",\", row.names = F)\n\n" + "results <- skatMeta(" + line
+        + "SNPInfo=subset(SNPInfo[genes,], sc_functional==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = function(maf) { dbeta(maf, 1, 25)*(maf <= 0.05)})\n"
+        + "write.table( results, \"" + resultsDir + phenoAndCondition
+        + "_SKAT_T5.csv\", sep=\",\", row.names = F)\n");
     return rscript;
   }
 
   public static String getRScriptForConditionalAnalysis(String condFileDirAndNameTemplate,
-                                                        int currentCondition,
-                                                        String phenoDirAndNameTemplate,
-                                                        String genoDirAndNameTemplate,
-                                                        String snpInfoDirAndNameTemplate,
-                                                        String pheno, String[] ethnics,
-                                                        String rScriptDir, String resultsDir,
-                                                        String rcommand,
-                                                        String fullpathToOutputNextRoundCondition,
-                                                        double pThreshold, Logger log) {
+      int currentCondition, String phenoDirAndNameTemplate, String genoDirAndNameTemplate,
+      String snpInfoDirAndNameTemplate, String pheno, String[] ethnics, String rScriptDir,
+      String resultsDir, String rcommand, String fullpathToOutputNextRoundCondition,
+      double pThreshold, Logger log) {
     String condFile, phenoFile, genoFile, snpInfoFile = null, outputFile, rScript;
     String[] chrs, tmp;
     String[][] tmp2;
@@ -1715,9 +1658,8 @@ public class SkatMeta2 {
     rScript = "";
     for (int j = 0; j < ethnics.length; j++) {
       condFile = condFileDirAndNameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[j]);
-      chrs =
-          loadFile(condFile, null, new String[] {"CHR"}, null, null, null).keySet()
-                                                                          .toArray(new String[0]);
+      chrs = loadFile(condFile, null, new String[] {"CHR"}, null, null, null).keySet()
+          .toArray(new String[0]);
       if (chrs != null && chrs.length > 0) {
         tmp = new String[chrs.length];
         for (int k = 0; k < chrs.length; k++) {
@@ -1727,7 +1669,7 @@ public class SkatMeta2 {
           // phenoFile = phenoDirAndNameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, pheno);
           phenoFile = phenoDirAndNameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[j]);
           outputFile = resultsDir + "ARIC_" + pheno + "_" + ethnics[j] + "_cond" + currentCondition
-                       + "_chr" + chrs[k] + "_prepCondScores_seqMeta.RData";
+              + "_chr" + chrs[k] + "_prepCondScores_seqMeta.RData";
           tmp[k] = outputFile;
           // tmp[k] = rScriptDir + phenos[i] + "_" + ethnics[j] + "_cond" + startCondition +
           // "_cohort_chr" + chrs[?] + ".R";
@@ -1737,7 +1679,7 @@ public class SkatMeta2 {
               (getRScriptForCohort(snpInfoFile, genoFile, phenoFile, condFile, outputFile) + "\n");
         }
         tmp2[j][0] = resultsDir + pheno + "_" + ethnics[j] + "_cond" + currentCondition
-                     + "_cohort_merged.RData";
+            + "_cohort_merged.RData";
         // Files.write(getRScriptForMergingChromosomes(tmp, tmp2[k][0]), resultsDir + phenos[i] +
         // "_" + ethnics[k] + "_cond" + startCondition + "_cohort_merge.R");
         rScript += (getRScriptForMergingChromosomes(tmp, tmp2[j][0]) + "\n");
@@ -1747,95 +1689,84 @@ public class SkatMeta2 {
     // rScriptDir + phenos[i] + "_cond" + startCondition + "_", null), rScriptDir + phenos[i] +
     // "_cond" + startCondition + "_meta.R");
     rScript += (getRScriptForMetaAnalysis(snpInfoFile, ethnics, tmp2, condFileDirAndNameTemplate,
-                                          resultsDir + pheno + "_cond" + currentCondition, null));
+        resultsDir + pheno + "_cond" + currentCondition, null));
     Files.write(rScript, rScriptDir + pheno + "_cond" + currentCondition + "_all.R");
     Files.qsub(rScriptDir + "[%0]_cond[%1]_all",
-               rcommand + " " + rScriptDir + "[%0]_cond[%1]_all.R",
-               new String[][] {{pheno, currentCondition + ""}}, -1, 6, -1);
-    new File(rScriptDir + "master.qsub").renameTo(new File(rScriptDir + pheno + "_cond"
-                                                           + currentCondition + "_all.sh"));
+        rcommand + " " + rScriptDir + "[%0]_cond[%1]_all.R",
+        new String[][] {{pheno, currentCondition + ""}}, -1, 6, -1);
+    new File(rScriptDir + "master.qsub")
+        .renameTo(new File(rScriptDir + pheno + "_cond" + currentCondition + "_all.sh"));
 
     return rScript;
   }
 
   public static String getRScriptForConditionalAnalysis(String condFileFullPath,
-                                                        String snpInfoOfTheChromosome,
-                                                        String phenoFullPath, String genoFullPath,
-                                                        String[] ethnics,
-                                                        String outputDirAndRootTemplate,
-                                                        Logger log) {
+      String snpInfoOfTheChromosome, String phenoFullPath, String genoFullPath, String[] ethnics,
+      String outputDirAndRootTemplate, Logger log) {
     String phenoFile, genoFile, outputFile, rScript, tmp1, tmp2, tmp3;
 
     tmp2 = "";
     tmp3 = "";
     rScript = "library(seqMeta);\nlibrary(\"methods\");\n\ntmp <- load(\"" + snpInfoOfTheChromosome
-              + "\");\nSNPInfo <- get(tmp);\nrm(list=tmp);\nrm(tmp)";
+        + "\");\nSNPInfo <- get(tmp);\nrm(list=tmp);\nrm(tmp)";
     for (String ethnic : ethnics) {
       phenoFile = phenoFullPath.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnic);
       genoFile = genoFullPath.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnic);
       outputFile = outputDirAndRootTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnic);
       tmp1 = ext.rootOf(outputFile).replaceAll("_" + FILENAME_ANALYSIS_SEGMENT, "");
       rScript += (genoFile.endsWith(".RData")
-                                              ? "\n\ntmp <- load(\"" + genoFile
-                                                + "\")\nZ <- get(tmp)\nrm(list=tmp)\nrm(tmp)\n"
-                                              : "\n\nZ <- t(read.csv(\"" + genoFile
-                                                + "\", header=T, as.is=T, row.names=1));\n")
-                 + "names <- colnames(Z);\n" + "for (i in 1:ncol(Z)) {\n" + "	tmp <- names[i];\n"
-                 + "	if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
-                 + "		names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n" + "	}\n" + "}\n"
-                 + "colnames(Z) <- names;\n" + "\npheno <- na.omit(read.csv(\"" + phenoFile
-                 + "\", header=T, as.is=T, row.names=1));\n"
-                 + "pheno_Z_merged <- merge(pheno, Z, by=\"row.names\")\n"
-                 + "mPheno <- pheno_Z_merged[, (1 : ncol(pheno)) + 1]\n"
-                 + "names <- colnames(pheno)\n" + "if (length(names)>1) {\n"
-                 + "	formu <- paste(names[1], \"~\", names[2])\n"
-                 + "	for (i in 3:length(names)) {\n"
-                 + "		formu <- paste(formu, \"+\", names[i])\n" + "	}\n" + "} else {\n"
-                 + "	len <- length(mPheno)\n" + "	mPheno <- c(mPheno, rep(1, len))\n"
-                 + "	dim(mPheno) <- c(len, 2)\n" + "	mPheno <- as.data.frame(mPheno)\n"
-                 + "	colnames(mPheno) <- c(names[1], \"dummy\")\n"
-                 + "	formu <- paste(names[1], \"~ 1\")\n" + "}\n"
-                 + "\nmGeno <- pheno_Z_merged[,(1 : ncol(Z)) + (1 + ncol(pheno))]"
-                 // TODO cond for a specific region or chr
-                 + "\n\ncond <- read.table(\""
-                 + condFileFullPath.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnic) + "\", header=TRUE)"
-                 + "\n\n" + tmp1
-                 + " <- prepCondScores(Z=mGeno, formula(formu), SNPInfo=SNPInfo, adjustments=cond, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)"
-                 + "\nsave(" + tmp1 + ", file=\""
-                 + outputFile.replaceAll(FILENAME_ANALYSIS_SEGMENT, "prepCondScores_seqMeta")
-                 + ".RData\", compress=\"bzip2\");\n"
-                 + "\ngenes <- SNPInfo$SKATgene %in% cond$SKATgene" + "\n\nresult <- singlesnpMeta("
-                 + tmp1
-                 + ", SNPInfo=SNPInfo[genes,], snpNames = \"SNP\", aggregateBy=\"SKATgene\", studyBetas = TRUE);"
-                 + "\nwrite.table(result, \""
-                 + outputFile.replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP")
-                 + "\", sep=\",\", row.names = F);" + "\nresult <- burdenMeta(" + tmp1
-                 + ", SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1);"
-                 + "\nwrite.table(result, \""
-                 + outputFile.replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5Count")
-                 + "\", sep=\",\", row.names = F);" + "\nresult <- skatMeta(" + tmp1
-                 + ", SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = function(maf) { dbeta(maf, 1, 25)*(maf <= 0.05)});"
-                 + "\nwrite.table(result, \""
-                 + outputFile.replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5")
-                 + "\", sep=\",\", row.names = F);";
+          ? "\n\ntmp <- load(\"" + genoFile + "\")\nZ <- get(tmp)\nrm(list=tmp)\nrm(tmp)\n"
+          : "\n\nZ <- t(read.csv(\"" + genoFile + "\", header=T, as.is=T, row.names=1));\n")
+          + "names <- colnames(Z);\n" + "for (i in 1:ncol(Z)) {\n" + "	tmp <- names[i];\n"
+          + "	if (\"_\" == substr(tmp, start=nchar(tmp)-1, stop=nchar(tmp)-1)) {\n"
+          + "		names[i] = substr(tmp, start=1, stop=nchar(tmp)-2);\n" + "	}\n" + "}\n"
+          + "colnames(Z) <- names;\n" + "\npheno <- na.omit(read.csv(\"" + phenoFile
+          + "\", header=T, as.is=T, row.names=1));\n"
+          + "pheno_Z_merged <- merge(pheno, Z, by=\"row.names\")\n"
+          + "mPheno <- pheno_Z_merged[, (1 : ncol(pheno)) + 1]\n" + "names <- colnames(pheno)\n"
+          + "if (length(names)>1) {\n" + "	formu <- paste(names[1], \"~\", names[2])\n"
+          + "	for (i in 3:length(names)) {\n" + "		formu <- paste(formu, \"+\", names[i])\n"
+          + "	}\n" + "} else {\n" + "	len <- length(mPheno)\n"
+          + "	mPheno <- c(mPheno, rep(1, len))\n" + "	dim(mPheno) <- c(len, 2)\n"
+          + "	mPheno <- as.data.frame(mPheno)\n"
+          + "	colnames(mPheno) <- c(names[1], \"dummy\")\n"
+          + "	formu <- paste(names[1], \"~ 1\")\n" + "}\n"
+          + "\nmGeno <- pheno_Z_merged[,(1 : ncol(Z)) + (1 + ncol(pheno))]"
+          // TODO cond for a specific region or chr
+          + "\n\ncond <- read.table(\""
+          + condFileFullPath.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnic) + "\", header=TRUE)"
+          + "\n\n" + tmp1
+          + " <- prepCondScores(Z=mGeno, formula(formu), SNPInfo=SNPInfo, adjustments=cond, snpNames=\"SNP\", aggregateBy=\"SKATgene\", data=mPheno)"
+          + "\nsave(" + tmp1 + ", file=\""
+          + outputFile.replaceAll(FILENAME_ANALYSIS_SEGMENT, "prepCondScores_seqMeta")
+          + ".RData\", compress=\"bzip2\");\n" + "\ngenes <- SNPInfo$SKATgene %in% cond$SKATgene"
+          + "\n\nresult <- singlesnpMeta(" + tmp1
+          + ", SNPInfo=SNPInfo[genes,], snpNames = \"SNP\", aggregateBy=\"SKATgene\", studyBetas = TRUE);"
+          + "\nwrite.table(result, \""
+          + outputFile.replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP")
+          + "\", sep=\",\", row.names = F);" + "\nresult <- burdenMeta(" + tmp1
+          + ", SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1);"
+          + "\nwrite.table(result, \"" + outputFile.replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5Count")
+          + "\", sep=\",\", row.names = F);" + "\nresult <- skatMeta(" + tmp1
+          + ", SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = function(maf) { dbeta(maf, 1, 25)*(maf <= 0.05)});"
+          + "\nwrite.table(result, \"" + outputFile.replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5")
+          + "\", sep=\",\", row.names = F);";
       tmp2 += (tmp1 + ", ");
       tmp3 += ethnic;
     }
     outputFile = outputDirAndRootTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, tmp3);
     if (!condFileFullPath.contains(FILENAME_ETHNIC_SEGMENT)) {
-      rScript +=
-          ("\n\nresult <- singlesnpMeta(" + tmp2
-           + "SNPInfo=SNPInfo[genes,], snpNames = \"SNP\", aggregateBy=\"SKATgene\", studyBetas = TRUE);"
-           + "\nwrite.table(result, \""
-           + outputFile.replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP")
-           + "\", sep=\",\", row.names = F);" + "\nresult <- burdenMeta(" + tmp2
-           + "SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1);"
-           + "\nwrite.table(result, \""
-           + outputFile.replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5Count")
-           + "\", sep=\",\", row.names = F);" + "\nresult <- skatMeta(" + tmp2
-           + "SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = function(maf) { dbeta(maf, 1, 25)*(maf <= 0.05)});"
-           + "\nwrite.table(result, \"" + outputFile.replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5")
-           + "\", sep=\",\", row.names = F);");
+      rScript += ("\n\nresult <- singlesnpMeta(" + tmp2
+          + "SNPInfo=SNPInfo[genes,], snpNames = \"SNP\", aggregateBy=\"SKATgene\", studyBetas = TRUE);"
+          + "\nwrite.table(result, \""
+          + outputFile.replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP")
+          + "\", sep=\",\", row.names = F);" + "\nresult <- burdenMeta(" + tmp2
+          + "SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1);"
+          + "\nwrite.table(result, \"" + outputFile.replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5Count")
+          + "\", sep=\",\", row.names = F);" + "\nresult <- skatMeta(" + tmp2
+          + "SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = function(maf) { dbeta(maf, 1, 25)*(maf <= 0.05)});"
+          + "\nwrite.table(result, \"" + outputFile.replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5")
+          + "\", sep=\",\", row.names = F);");
     }
 
     // Files.write(getRScriptForMetaAnalysis(snpInfoFile, ethnics, tmp2, condFileDirAndNameTemplate,
@@ -1860,16 +1791,15 @@ public class SkatMeta2 {
       rScript += ("tmp" + i + (i == (filenames.length - 1) ? "" : ","));
     }
     rScript += (");\n" + "class(combined) <- \"seqMeta\"\n" + "save(combined, file=\""
-                + outputFileName + "\", compress=\"bzip2\");");
+        + outputFileName + "\", compress=\"bzip2\");");
 
     return rScript;
   }
 
 
   public static String getRScriptForMetaAnalysis(String snpInfoFile, String[] ethnics,
-                                                 String[][] cohortResultFilesnames,
-                                                 String conditionFile, String outputDirAndRoot,
-                                                 Logger log) {
+      String[][] cohortResultFilesnames, String conditionFile, String outputDirAndRoot,
+      Logger log) {
     String rScript;
     String[] allDataByEthnic;
     String allEthnics, allData;
@@ -1879,40 +1809,39 @@ public class SkatMeta2 {
     }
     if (ethnics.length != cohortResultFilesnames.length) {
       log.reportError("Error - array 'ethnics' size (" + ethnics.length
-                      + ") is different from array 'filenames' size ("
-                      + cohortResultFilesnames.length + ")");
+          + ") is different from array 'filenames' size (" + cohortResultFilesnames.length + ")");
       System.exit(0);
     }
 
     allDataByEthnic = new String[ethnics.length];
     rScript = "library(seqMeta)\nlibrary(\"methods\")\n\ntmp <- load(\"" + snpInfoFile
-              + "\")\nSNPInfo <- get(tmp)\nrm(list=tmp)\nrm(tmp)\n\n";
+        + "\")\nSNPInfo <- get(tmp)\nrm(list=tmp)\nrm(tmp)\n\n";
     for (int i = 0; i < cohortResultFilesnames.length; i++) {
       allDataByEthnic[i] = "";
       for (int j = 0; j < cohortResultFilesnames[i].length; j++) {
         if (cohortResultFilesnames[i][j] != null) {
           allDataByEthnic[i] += (ethnics[i] + j + ",");
           rScript += "tmp <- load(\"" + cohortResultFilesnames[i][j] + "\");\n" + ethnics[i] + j
-                     + " <- get(tmp);\nrm(list=tmp);\nrm(tmp);\n\n";
+              + " <- get(tmp);\nrm(list=tmp);\nrm(tmp);\n\n";
         }
       }
     }
     rScript += "temp <- read.table(\"" + conditionFile
-               + "\", header=TRUE);\ngenes <- SNPInfo$gene %in% temp$SKATgene;\n\n";
+        + "\", header=TRUE);\ngenes <- SNPInfo$gene %in% temp$SKATgene;\n\n";
 
     for (int i = 0; i < ethnics.length; i++) {
       rScript += ("result <- singlesnpMeta(" + allDataByEthnic[i]
-                  + " SNPInfo=SNPInfo[genes,], snpNames = \"SNP\", aggregateBy=\"SKATgene\", studyBetas = TRUE);\n"
-                  + "write.table(result, \"" + outputDirAndRoot + ethnics[i]
-                  + "_SingleSNP.csv\", sep=\",\", row.names = F);\n" + "result <- burdenMeta("
-                  + allDataByEthnic[i]
-                  + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1);\n"
-                  + "write.table(result, \"" + outputDirAndRoot + ethnics[i]
-                  + "_T5Count.csv\", sep=\",\", row.names = F);\n" + "result <- skatMeta("
-                  + allDataByEthnic[i]
-                  + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = function(maf) { dbeta(maf, 1, 25)*(maf <= 0.05)});\n"
-                  + "write.table(result, \"" + outputDirAndRoot + ethnics[i]
-                  + "_T5.csv\", sep=\",\", row.names = F);\n\n");
+          + " SNPInfo=SNPInfo[genes,], snpNames = \"SNP\", aggregateBy=\"SKATgene\", studyBetas = TRUE);\n"
+          + "write.table(result, \"" + outputDirAndRoot + ethnics[i]
+          + "_SingleSNP.csv\", sep=\",\", row.names = F);\n" + "result <- burdenMeta("
+          + allDataByEthnic[i]
+          + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1);\n"
+          + "write.table(result, \"" + outputDirAndRoot + ethnics[i]
+          + "_T5Count.csv\", sep=\",\", row.names = F);\n" + "result <- skatMeta("
+          + allDataByEthnic[i]
+          + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = function(maf) { dbeta(maf, 1, 25)*(maf <= 0.05)});\n"
+          + "write.table(result, \"" + outputDirAndRoot + ethnics[i]
+          + "_T5.csv\", sep=\",\", row.names = F);\n\n");
     }
 
     allEthnics = "";
@@ -1921,25 +1850,23 @@ public class SkatMeta2 {
       allData += allDataByEthnic[i];
       allEthnics += ethnics[i];
     }
-    rScript +=
-        ("result <- singlesnpMeta(" + allData
-         + " SNPInfo=SNPInfo[genes,], snpNames = \"SNP\", aggregateBy=\"SKATgene\", studyBetas = TRUE);\n"
-         + "write.table(result, \"" + outputDirAndRoot + allEthnics
-         + "_SingleSNP.csv\", sep=\",\", row.names = F);\n" + "result <- burdenMeta(" + allData
-         + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1);\n"
-         + "write.table(result, \"" + outputDirAndRoot + allEthnics
-         + "_T5Count.csv\", sep=\",\", row.names = F);\n" + "result <- skatMeta(" + allData
-         + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = function(maf) { dbeta(maf, 1, 25)*(maf <= 0.05)});\n"
-         + "write.table(result, \"" + outputDirAndRoot + allEthnics
-         + "_T5.csv\", sep=\",\", row.names = F);\n");
+    rScript += ("result <- singlesnpMeta(" + allData
+        + " SNPInfo=SNPInfo[genes,], snpNames = \"SNP\", aggregateBy=\"SKATgene\", studyBetas = TRUE);\n"
+        + "write.table(result, \"" + outputDirAndRoot + allEthnics
+        + "_SingleSNP.csv\", sep=\",\", row.names = F);\n" + "result <- burdenMeta(" + allData
+        + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1);\n"
+        + "write.table(result, \"" + outputDirAndRoot + allEthnics
+        + "_T5Count.csv\", sep=\",\", row.names = F);\n" + "result <- skatMeta(" + allData
+        + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = function(maf) { dbeta(maf, 1, 25)*(maf <= 0.05)});\n"
+        + "write.table(result, \"" + outputDirAndRoot + allEthnics
+        + "_T5.csv\", sep=\",\", row.names = F);\n");
 
     return rScript;
   }
 
   public static String getRScriptForMetaAnalysis1(String snpInfoFile, String[] ethnics,
-                                                  String[][] cohortResultFilesnames,
-                                                  String conditionFile,
-                                                  String outputDirFilenameTemplate, Logger log) {
+      String[][] cohortResultFilesnames, String conditionFile, String outputDirFilenameTemplate,
+      Logger log) {
     String rScript;
     String[] allDataByEthnic;
     String allEthnics, allData;
@@ -1949,46 +1876,45 @@ public class SkatMeta2 {
     }
     if (ethnics.length != cohortResultFilesnames.length) {
       log.reportError("Error - array 'ethnics' size (" + ethnics.length
-                      + ") is different from array 'filenames' size ("
-                      + cohortResultFilesnames.length + ")");
+          + ") is different from array 'filenames' size (" + cohortResultFilesnames.length + ")");
       System.exit(0);
     }
 
     allDataByEthnic = new String[ethnics.length];
     rScript = "library(seqMeta)\nlibrary(\"methods\")\n\ntmp <- load(\"" + snpInfoFile
-              + "\")\nSNPInfo <- get(tmp)\nrm(list=tmp)\nrm(tmp)\n\n";
+        + "\")\nSNPInfo <- get(tmp)\nrm(list=tmp)\nrm(tmp)\n\n";
     for (int i = 0; i < cohortResultFilesnames.length; i++) {
       allDataByEthnic[i] = "";
       for (int j = 0; j < cohortResultFilesnames[i].length; j++) {
         if (cohortResultFilesnames[i][j] != null) {
           allDataByEthnic[i] += (ethnics[i] + j + ",");
           rScript += "tmp <- load(\"" + cohortResultFilesnames[i][j] + "\");\n" + ethnics[i] + j
-                     + " <- get(tmp);\nrm(list=tmp);\nrm(tmp);\n\n";
+              + " <- get(tmp);\nrm(list=tmp);\nrm(tmp);\n\n";
         }
       }
     }
     rScript += "cond <- read.table(\"" + conditionFile
-               + "\", header=TRUE);\ngenes <- SNPInfo$SKATgene %in% cond$SKATgene;\n\n";
+        + "\", header=TRUE);\ngenes <- SNPInfo$SKATgene %in% cond$SKATgene;\n\n";
 
     for (int i = 0; i < ethnics.length; i++) {
       if (!allDataByEthnic[i].equals("")) {
         rScript +=
             ("result <- singlesnpMeta(" + allDataByEthnic[i]
-             + " SNPInfo=SNPInfo[genes,], snpNames = \"SNP\", aggregateBy=\"SKATgene\", studyBetas = TRUE);\n"
-             + "write.table(result, \""
-             + outputDirFilenameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[i])
-                                        .replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP")
-             + "\", sep=\",\", row.names = F);\n" + "result <- burdenMeta(" + allDataByEthnic[i]
-             + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1);\n"
-             + "write.table(result, \""
-             + outputDirFilenameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[i])
-                                        .replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5Count")
-             + "\", sep=\",\", row.names = F);\n" + "result <- skatMeta(" + allDataByEthnic[i]
-             + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = function(maf) { dbeta(maf, 1, 25)*(maf <= 0.05)});\n"
-             + "write.table(result, \""
-             + outputDirFilenameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[i])
-                                        .replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5")
-             + "\", sep=\",\", row.names = F);\n\n");
+                + " SNPInfo=SNPInfo[genes,], snpNames = \"SNP\", aggregateBy=\"SKATgene\", studyBetas = TRUE);\n"
+                + "write.table(result, \""
+                + outputDirFilenameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[i])
+                    .replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP")
+                + "\", sep=\",\", row.names = F);\n" + "result <- burdenMeta(" + allDataByEthnic[i]
+                + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1);\n"
+                + "write.table(result, \""
+                + outputDirFilenameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[i])
+                    .replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5Count")
+                + "\", sep=\",\", row.names = F);\n" + "result <- skatMeta(" + allDataByEthnic[i]
+                + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = function(maf) { dbeta(maf, 1, 25)*(maf <= 0.05)});\n"
+                + "write.table(result, \""
+                + outputDirFilenameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[i])
+                    .replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5")
+                + "\", sep=\",\", row.names = F);\n\n");
       }
     }
 
@@ -1999,29 +1925,28 @@ public class SkatMeta2 {
       allEthnics += ethnics[i];
     }
     rScript += ("result <- singlesnpMeta(" + allData
-                + " SNPInfo=SNPInfo[genes,], snpNames = \"SNP\", aggregateBy=\"SKATgene\", studyBetas = TRUE);\n"
-                + "write.table(result, \""
-                + outputDirFilenameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, allEthnics)
-                                           .replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP")
-                + "\", sep=\",\", row.names = F);\n" + "result <- burdenMeta(" + allData
-                + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1);\n"
-                + "write.table(result, \""
-                + outputDirFilenameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, allEthnics)
-                                           .replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5Count")
-                + "\", sep=\",\", row.names = F);\n" + "result <- skatMeta(" + allData
-                + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = function(maf) { dbeta(maf, 1, 25)*(maf <= 0.05)});\n"
-                + "write.table(result, \""
-                + outputDirFilenameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, allEthnics)
-                                           .replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5")
-                + "\", sep=\",\", row.names = F);\n");
+        + " SNPInfo=SNPInfo[genes,], snpNames = \"SNP\", aggregateBy=\"SKATgene\", studyBetas = TRUE);\n"
+        + "write.table(result, \""
+        + outputDirFilenameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, allEthnics)
+            .replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP")
+        + "\", sep=\",\", row.names = F);\n" + "result <- burdenMeta(" + allData
+        + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = 1);\n"
+        + "write.table(result, \""
+        + outputDirFilenameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, allEthnics)
+            .replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5Count")
+        + "\", sep=\",\", row.names = F);\n" + "result <- skatMeta(" + allData
+        + " SNPInfo=subset(SNPInfo[genes,], sc_nonsynSplice==TRUE), snpNames = \"SNP\", aggregateBy=\"SKATgene\", mafRange = c(0,0.05), wts = function(maf) { dbeta(maf, 1, 25)*(maf <= 0.05)});\n"
+        + "write.table(result, \""
+        + outputDirFilenameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, allEthnics)
+            .replaceAll(FILENAME_ANALYSIS_SEGMENT, "T5")
+        + "\", sep=\",\", row.names = F);\n");
 
     return rScript;
   }
 
-  public static Hashtable<Integer, String> getSignificantSnpOfEachRegion(String fullpathToPreviousRoundResult,
-                                                                         Hashtable<Integer, Vector<String>> regionToGenes,
-                                                                         double pThreshold,
-                                                                         Logger log) {
+  public static Hashtable<Integer, String> getSignificantSnpOfEachRegion(
+      String fullpathToPreviousRoundResult, Hashtable<Integer, Vector<String>> regionToGenes,
+      double pThreshold, Logger log) {
     Hashtable<String, String[]> previousRoundResult;
     Hashtable<Integer, Double> significantSnpOfEachRegion_p;
     Hashtable<Integer, String> significantSnpOfEachRegion_snp;
@@ -2032,9 +1957,8 @@ public class SkatMeta2 {
     }
 
     significantSnpOfEachRegion_snp = new Hashtable<Integer, String>();
-    previousRoundResult =
-        loadFile(fullpathToPreviousRoundResult, null, new String[] {"gene", "Name"},
-                 new String[] {"p"}, new String[] {"p<=" + pThreshold}, log);
+    previousRoundResult = loadFile(fullpathToPreviousRoundResult, null,
+        new String[] {"gene", "Name"}, new String[] {"p"}, new String[] {"p<=" + pThreshold}, log);
     if (previousRoundResult.size() > 0) {
       significantSnpOfEachRegion_p = new Hashtable<Integer, Double>();
       for (String geneSnp : previousRoundResult.keySet()) {
@@ -2042,14 +1966,14 @@ public class SkatMeta2 {
         regionId = getKeyOfValue(regionToGenes, line[0], log);
         if (regionId == -1) {
           log.reportError("Error - the Snp (" + line[0] + ", " + line[1]
-                          + ") from the following file cannot match the regions in the condition\n"
-                          + fullpathToPreviousRoundResult);
+              + ") from the following file cannot match the regions in the condition\n"
+              + fullpathToPreviousRoundResult);
           System.exit(0);
         }
-        if (!significantSnpOfEachRegion_p.containsKey(regionId)
-            || significantSnpOfEachRegion_p.get(regionId) > Double.parseDouble(previousRoundResult.get(geneSnp)[0])) {
+        if (!significantSnpOfEachRegion_p.containsKey(regionId) || significantSnpOfEachRegion_p
+            .get(regionId) > Double.parseDouble(previousRoundResult.get(geneSnp)[0])) {
           significantSnpOfEachRegion_p.put(regionId,
-                                           Double.parseDouble(previousRoundResult.get(geneSnp)[0]));
+              Double.parseDouble(previousRoundResult.get(geneSnp)[0]));
           significantSnpOfEachRegion_snp.put(regionId, line[1]);
         }
       }
@@ -2058,11 +1982,9 @@ public class SkatMeta2 {
     return significantSnpOfEachRegion_snp;
   }
 
-  public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> groupFileNames(String fileDirNameTemplate,
-                                                                                                                  String[] phenos,
-                                                                                                                  String[] ethnics,
-                                                                                                                  String[] analyses,
-                                                                                                                  Logger log) {
+  public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> groupFileNames(
+      String fileDirNameTemplate, String[] phenos, String[] ethnics, String[] analyses,
+      Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroup =
         null;
     Hashtable<String, Hashtable<String, Hashtable<String, String>>> conditionGroup;
@@ -2120,9 +2042,10 @@ public class SkatMeta2 {
               }
 
               if (analysesGroup.containsKey(analysis)) {
-                log.reportError("Error - when summaring results, the following two files' names get duplidated pheno, condition number, ethinc, and analysis type:\n  "
-                                + filename3 + "\n  " + analysesGroup.get(analysis)
-                                + "\n.System halted due to error.");
+                log.reportError(
+                    "Error - when summaring results, the following two files' names get duplidated pheno, condition number, ethinc, and analysis type:\n  "
+                        + filename3 + "\n  " + analysesGroup.get(analysis)
+                        + "\n.System halted due to error.");
                 System.exit(1);
               } else {
                 analysesGroup.put(analysis, filename3.substring(filename3.lastIndexOf("/")));
@@ -2141,15 +2064,14 @@ public class SkatMeta2 {
 
     if (!errorMessage.equals("")) {
       log.report("Warning - when summerizing results, the following file(s) are not found:"
-                 + errorMessage);
+          + errorMessage);
     }
 
     return phenoGroup;
   }
 
-  public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> groupFileNames(String[] filenames,
-                                                                                                                  int[] columnIndeciesOfPhenoConditionEthnicAnalysis,
-                                                                                                                  Logger log) {
+  public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> groupFileNames(
+      String[] filenames, int[] columnIndeciesOfPhenoConditionEthnicAnalysis, Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroup =
         null;
     Hashtable<String, Hashtable<String, Hashtable<String, String>>> conditionGroup;
@@ -2172,25 +2094,27 @@ public class SkatMeta2 {
         } else {
           conditionGroup = new Hashtable<String, Hashtable<String, Hashtable<String, String>>>();
           phenoGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[0]],
-                         conditionGroup);
+              conditionGroup);
         }
 
-        if (conditionGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]])) {
+        if (conditionGroup
+            .containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]])) {
           ethnicGroup =
               conditionGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]]);
         } else {
           ethnicGroup = new Hashtable<String, Hashtable<String, String>>();
           conditionGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]],
-                             ethnicGroup);
+              ethnicGroup);
         }
 
-        if (ethnicGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]])) {
+        if (ethnicGroup
+            .containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]])) {
           analysesGroup =
               ethnicGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]]);
         } else {
           analysesGroup = new Hashtable<String, String>();
           ethnicGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]],
-                          analysesGroup);
+              analysesGroup);
         }
 
         // if (filenameRoot.length > 4) {
@@ -2198,14 +2122,15 @@ public class SkatMeta2 {
         // filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]] + "_" + filenameRoot[4];
         // }
 
-        if (analysesGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]])) {
+        if (analysesGroup
+            .containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]])) {
           log.reportError("Error - " + filename + " get duplicated with "
-                          + analysesGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]])
-                          + ". \nSystem halted.");
+              + analysesGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]])
+              + ". \nSystem halted.");
           System.exit(0);
         } else {
           analysesGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]],
-                            filename);
+              filename);
         }
       }
     }
@@ -2213,10 +2138,9 @@ public class SkatMeta2 {
     return phenoGroup;
   }
 
-  public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> groupFileNames(String[] filenames,
-                                                                                                                  int[] columnIndeciesOfPhenoConditionEthnicAnalysis,
-                                                                                                                  String[] phenos,
-                                                                                                                  Logger log) {
+  public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> groupFileNames(
+      String[] filenames, int[] columnIndeciesOfPhenoConditionEthnicAnalysis, String[] phenos,
+      Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroup =
         null;
     Hashtable<String, Hashtable<String, Hashtable<String, String>>> conditionGroup;
@@ -2253,9 +2177,9 @@ public class SkatMeta2 {
           }
         }
         if (index < 0) {
-          log.reportError("Error - the following file name does not contain any pheno from the list: "
-                          + Array.toStr(phenos) + "\n" + filename
-                          + "\nSystem halted due to error.");
+          log.reportError(
+              "Error - the following file name does not contain any pheno from the list: "
+                  + Array.toStr(phenos) + "\n" + filename + "\nSystem halted due to error.");
           System.exit(0);
         }
 
@@ -2267,32 +2191,35 @@ public class SkatMeta2 {
           phenoGroup.put(phenos[index], conditionGroup);
         }
 
-        if (conditionGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]])) {
+        if (conditionGroup
+            .containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]])) {
           ethnicGroup =
               conditionGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]]);
         } else {
           ethnicGroup = new Hashtable<String, Hashtable<String, String>>();
           conditionGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]],
-                             ethnicGroup);
+              ethnicGroup);
         }
 
-        if (ethnicGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]])) {
+        if (ethnicGroup
+            .containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]])) {
           analysesGroup =
               ethnicGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]]);
         } else {
           analysesGroup = new Hashtable<String, String>();
           ethnicGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]],
-                          analysesGroup);
+              analysesGroup);
         }
 
-        if (analysesGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]])) {
+        if (analysesGroup
+            .containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]])) {
           log.reportError("Error - " + filename + " get duplicated with "
-                          + analysesGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]])
-                          + ". \nSystem halted.");
+              + analysesGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]])
+              + ". \nSystem halted.");
           System.exit(0);
         } else {
           analysesGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[3]],
-                            filename);
+              filename);
         }
       }
     }
@@ -2317,11 +2244,10 @@ public class SkatMeta2 {
   }
 
   public static Hashtable<String, String[]> loadFile(String filefullpath,
-                                                     Hashtable<String, String[]> snpList,
-                                                     String[] namesOfColumnsToBeIncludedInTheKeyOfTheOutputHash,
-                                                     String[] namesOfColumnsToBeIncludedInTheValueOfTheOutputHash,
-                                                     String[] criteria, boolean isToSkipBlankRows,
-                                                     Logger log) {
+      Hashtable<String, String[]> snpList,
+      String[] namesOfColumnsToBeIncludedInTheKeyOfTheOutputHash,
+      String[] namesOfColumnsToBeIncludedInTheValueOfTheOutputHash, String[] criteria,
+      boolean isToSkipBlankRows, Logger log) {
     boolean isToInclude;
     int[] indicesKey, indicesOther = null;
     String key, delimiter, header;
@@ -2345,7 +2271,7 @@ public class SkatMeta2 {
           ext.indexFactors(namesOfColumnsToBeIncludedInTheKeyOfTheOutputHash, line, false, true);
       if (namesOfColumnsToBeIncludedInTheValueOfTheOutputHash != null) {
         indicesOther = ext.indexFactors(namesOfColumnsToBeIncludedInTheValueOfTheOutputHash, line,
-                                        false, false);
+            false, false);
       }
       if (criteria != null) {
         tmp2 = parseCriteria(line, criteria, log);
@@ -2360,7 +2286,7 @@ public class SkatMeta2 {
         if (line.length >= 1) {
           if (criteria != null) {
             isToInclude = screenWithCriteria(line, criteriaColumnIndices, criteriaOperators,
-                                             criteriaValues, log);
+                criteriaValues, log);
           } else {
             isToInclude = true;
           }
@@ -2396,7 +2322,7 @@ public class SkatMeta2 {
           }
         } else if (!isToSkipBlankRows) {
           log.reportError("Warning - a blank line found in the following file, and is skipped:\n  "
-                          + filefullpath);
+              + filefullpath);
         }
       }
       reader.close();
@@ -2423,12 +2349,11 @@ public class SkatMeta2 {
    * @return
    */
   public static Hashtable<String, String[]> loadFile(String filefullpath,
-                                                     Hashtable<String, String[]> snpList,
-                                                     String[] namesOfColumnsToBeIncludedInTheKeyOfTheOutputHash,
-                                                     String[] namesOfColumnsToBeIncludedInTheValueOfTheOutputHash,
-                                                     String[] criteria, Logger log) {
+      Hashtable<String, String[]> snpList,
+      String[] namesOfColumnsToBeIncludedInTheKeyOfTheOutputHash,
+      String[] namesOfColumnsToBeIncludedInTheValueOfTheOutputHash, String[] criteria, Logger log) {
     return loadFile(filefullpath, snpList, namesOfColumnsToBeIncludedInTheKeyOfTheOutputHash,
-                    namesOfColumnsToBeIncludedInTheValueOfTheOutputHash, criteria, false, log);
+        namesOfColumnsToBeIncludedInTheValueOfTheOutputHash, criteria, false, log);
   }
 
   public static Vector<String> loadFile(String filefullpath, int numHeaderLinesToSkip) {
@@ -2455,16 +2380,13 @@ public class SkatMeta2 {
   }
 
   public static Hashtable<String, String[]> loadFile1(String filefullpath,
-                                                      Hashtable<String, String[]> snpList,
-                                                      String[] columnsAsTheKey,
-                                                      String[] otherColumnsNeeded,
-                                                      String[] criteriaColumns, String[] criteria) {
+      Hashtable<String, String[]> snpList, String[] columnsAsTheKey, String[] otherColumnsNeeded,
+      String[] criteriaColumns, String[] criteria) {
     return null;
   }
 
   public static String[] lookupChrPosFromSnpInfoFiles(String snpInfoDirFilenameTemplate,
-                                                      String[] snps, String[] chromosomes,
-                                                      Logger log) {
+      String[] snps, String[] chromosomes, Logger log) {
     String[] result;
     BufferedReader reader;
     String delimiter, snpInfoFile, tmp;
@@ -2496,15 +2418,14 @@ public class SkatMeta2 {
     }
 
     if (snpInfoDirFilenameTemplate != null && (snpInfoDirFilenameTemplate.endsWith(".csv")
-                                               || snpInfoDirFilenameTemplate.endsWith(".xln")
-                                               || snpInfoDirFilenameTemplate.endsWith(".csv.gz")
-                                               || snpInfoDirFilenameTemplate.endsWith(".xln.gz"))) {
+        || snpInfoDirFilenameTemplate.endsWith(".xln")
+        || snpInfoDirFilenameTemplate.endsWith(".csv.gz")
+        || snpInfoDirFilenameTemplate.endsWith(".xln.gz"))) {
       if (chromosomes == null) {
         if (snpInfoDirFilenameTemplate != null
             && snpInfoDirFilenameTemplate.contains(FILENAME_CHROMOSOME_SEGMENT)) {
-          chromosomes =
-              new String[] {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13",
-                            "14", "15", "16", "17", "18", "19", "20", "21", "22", "X", "Y", "MT"};
+          chromosomes = new String[] {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
+              "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X", "Y", "MT"};
         } else {
           chromosomes = new String[] {"Null"};
         }
@@ -2538,7 +2459,7 @@ public class SkatMeta2 {
       }
     } else {
       log.report("Warning - Snp Info File is not available for the summarize result process: "
-                 + snpInfoDirFilenameTemplate);
+          + snpInfoDirFilenameTemplate);
     }
 
     if (notYetFound.size() > 0) {
@@ -2551,8 +2472,7 @@ public class SkatMeta2 {
         tmp += "\n...";
       }
       log.report("Warning - chromosomes and locations of " + notYetFound.size()
-                 + " SNPs are not found in the SNP Info files and chromosome range sepecified: "
-                 + tmp);
+          + " SNPs are not found in the SNP Info files and chromosome range sepecified: " + tmp);
     }
 
     if (notYetFound.size() == snps.length) {
@@ -2661,10 +2581,8 @@ public class SkatMeta2 {
    * + fullpathToOutputNextRoundCondition); return false; } }
    */
 
-  public static Hashtable<String, String> lookupChrPosInHashFormatFromSnpInfoFiles(String snpInfoDirFilenameTemplate,
-                                                                                   String[] snps,
-                                                                                   String[] chromosomes,
-                                                                                   Logger log) {
+  public static Hashtable<String, String> lookupChrPosInHashFormatFromSnpInfoFiles(
+      String snpInfoDirFilenameTemplate, String[] snps, String[] chromosomes, Logger log) {
     String[] chrPos;
     Hashtable<String, String> result;
 
@@ -2722,7 +2640,7 @@ public class SkatMeta2 {
     //// "/home/pankrat2/shared/skatMeta/snpInfos/snpInfoMinSubSet_CHARGES_ESP_RS_092413_chr" +
     //// FILENAME_CHROMOSOME_SEGMENT + ".RData";
     snpInfoDirFilenameTemplate = "/home/pankrat2/shared/skatMeta/freeze4/snpInfos/snpInfo_chr"
-                                 + FILENAME_CHROMOSOME_SEGMENT + ".RData";
+        + FILENAME_CHROMOSOME_SEGMENT + ".RData";
     // genoFile =
     // "/home/pankrat2/shared/skatMeta/aric_primary_analyses/exome_chip/genotypes_EA/EA_ARIC_noJHS_chr"
     // + chr + "t.csv";
@@ -2731,19 +2649,17 @@ public class SkatMeta2 {
     // + subpheno + ".csv";
     genoDirFilenameTemplate =
         "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/freeze4_genotypes/"
-                              + FILENAME_ETHNIC_SEGMENT + "_all/" + FILENAME_ETHNIC_SEGMENT
-                              + "_ARIC_ExFrz41_all_" + FILENAME_CHROMOSOME_SEGMENT + ".RData";
+            + FILENAME_ETHNIC_SEGMENT + "_all/" + FILENAME_ETHNIC_SEGMENT + "_ARIC_ExFrz41_all_"
+            + FILENAME_CHROMOSOME_SEGMENT + ".RData";
     phenoDirFilenameTemplate =
         "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/results_hemostasis/ARIC_"
-                               + FILENAME_ETHNIC_SEGMENT + "_" + FILENAME_PHENO_SEGMENT
-                               + "_ABO.csv";
+            + FILENAME_ETHNIC_SEGMENT + "_" + FILENAME_PHENO_SEGMENT + "_ABO.csv";
     // phenoDirFilenameTemplate =
     // "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/results_hemostasis/ARIC_" +
     // FILENAME_ETHNIC_SEGMENT + "_" + FILENAME_PHENO_SEGMENT + ".csv";
     condFileDirFilenameTemplate =
         "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/conditional/conditions/"
-                                  + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT
-                                  + ".txt";
+            + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";
     // condFileDirFilenameTemplate = "D:/charges_conditional_new/conditions/" +
     // FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";
 
@@ -2802,19 +2718,18 @@ public class SkatMeta2 {
     snpInfoDirFilenameTemplate = "F:/freeze4/freeze4.altered.all.RData";
     // snpInfoDirFilenameTemplate = "F:/freeze4/conditional/npReplicate/snpInfos/snpInfo_chr" +
     // FILENAME_CHROMOSOME_SEGMENT + ".RData";
-    condFileDirFilenameTemplate =
-        "F:/freeze4/conditional/npReplicate/conditions_orig/" + FILENAME_PHENO_SEGMENT + "_"
-                                  + FILENAME_CONDITION_SEGMENT + ".txt";
+    condFileDirFilenameTemplate = "F:/freeze4/conditional/npReplicate/conditions_orig/"
+        + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";
     genoDirFilenameTemplate = "F:/freeze4/conditional/freeze4_genotypes/" + FILENAME_ETHNIC_SEGMENT
-                              + "_all/" + FILENAME_ETHNIC_SEGMENT + "_ARIC_ExFrz41_all_"
-                              + FILENAME_CHROMOSOME_SEGMENT + ".RData";
+        + "_all/" + FILENAME_ETHNIC_SEGMENT + "_ARIC_ExFrz41_all_" + FILENAME_CHROMOSOME_SEGMENT
+        + ".RData";
     phenoDirFilenameTemplate = "F:/freeze4/conditional/phenos/ARIC_" + FILENAME_ETHNIC_SEGMENT + "_"
-                               + FILENAME_PHENO_SEGMENT + ".csv";
+        + FILENAME_PHENO_SEGMENT + ".csv";
 
     rScriptDir = "F:/freeze4/conditional/npReplicate/scripts_run/";
     condResultsDir = "F:/freeze4/conditional/npReplicate/results/" + FILENAME_PHENO_SEGMENT + "_"
-                     + FILENAME_CONDITION_SEGMENT + "_" + FILENAME_ETHNIC_SEGMENT + "_"
-                     + FILENAME_ANALYSIS_SEGMENT + ".csv";
+        + FILENAME_CONDITION_SEGMENT + "_" + FILENAME_ETHNIC_SEGMENT + "_"
+        + FILENAME_ANALYSIS_SEGMENT + ".csv";
     rCommandLine = "\"C:/Program Files/R/R-3.1.1/bin/x64/Rscript.exe\"";
     summaryDir = "F:/freeze4/conditional/npReplicate/summaries/";
 
@@ -2822,7 +2737,7 @@ public class SkatMeta2 {
     snpInfoDirFilenameTemplate =
         "F:/freeze4/cohort/snpInfos/snpInfo_chr" + FILENAME_CHROMOSOME_SEGMENT + ".RData";
     condFileDirFilenameTemplate = "F:/freeze4/cohort/conditions/" + FILENAME_PHENO_SEGMENT + "_"
-                                  + FILENAME_CONDITION_SEGMENT + ".txt";
+        + FILENAME_CONDITION_SEGMENT + ".txt";
     rScriptDir = "F:/freeze4/cohort/r_scripts/";
 
     condResultsDir = "F:/freeze4/cohort/results/";
@@ -2831,10 +2746,10 @@ public class SkatMeta2 {
     originalResultsDir = "F:/freeze4/conditional/npReplicate/originalResults/";
     summaryDir = "F:/freeze4/cohort/summaries/";
     fullPathToSnpInfo = "F:/freeze4/conditional/npReplicate/snpInfos/snpInfo_chr"
-                        + FILENAME_CHROMOSOME_SEGMENT + ".RData";
+        + FILENAME_CHROMOSOME_SEGMENT + ".RData";
 
     commands = new String[] {"", "rdatadir=", "snpinfofile=", "conditionfile=", "resultdir=",
-                             "scriptdir=", "", "", ""};
+        "scriptdir=", "", "", ""};
     commandRscript = "-rscript2";
     commandRscriptSubDir = "-rscriptsubdir";
     commandQcScript = "-qcscript";
@@ -2851,83 +2766,76 @@ public class SkatMeta2 {
 
     String usage =
         "\nTo generate Skat Meta R scripts for all the .RData files in a single directory:"
-                   + "\n   (1) command for generating R scripts (i.e. " + commands[0]
-                   + " (default))" + "\n   (2) directory of the .RData files (i.e. " + commands[1]
-                   + cohortRDataFilesDir + " (default))"
-                   + "\n   (3) full path of the SNPInfo file (i.e. " + commands[2]
-                   + snpInfoDirFilenameTemplate + " (default))"
-                   + "\n   (4) directory of the condition files (i.e. " + commands[3]
-                   + condFileDirFilenameTemplate + " (default))"
-                   + "\n   (5) directory of results the condition files (i.e. " + commands[4]
-                   + condResultsDir + " (default))"
-                   + "\n   (6) directory to output the R scripts (i.e. " + commands[5] + rScriptDir
-                   + " (default))" + "\n"
-                   + "\nTo generate Skat Meta R scripts for all the .RData files in a single directory and all its subdirectories:"
-                   + "\n   (1) command for generating R scripts for a directory and all its subdirectories (i.e. "
-                   + commands[6] + " (default))" + "\n   (2) directory of the .RData files (i.e. "
-                   + commands[1] + cohortRDataFilesDir + " (default))"
-                   + "\n   (3) full path of the SNPInfo file (i.e. " + commands[2]
-                   + snpInfoDirFilenameTemplate + " (default))"
-                   + "\n   (4) directory of the condition files (i.e. " + commands[3]
-                   + condFileDirFilenameTemplate + " (default))"
-                   + "\n   (5) directory of results the condition files (i.e. " + commands[4]
-                   + condResultsDir + " (default))"
-                   + "\n   (6) directory to output the R scripts (i.e. " + commands[5] + rScriptDir
-                   + " (default))" + "\n"
-                   + "\nTo generate QC R scripts for all the .RData files in a single directory:"
-                   + "\n   (1) command for generating R scripts for a directory and all its subdirectories (i.e. "
-                   + commands[7] + " (default))" + "\n   (2) directory of the .RData files (i.e. "
-                   + commands[1] + cohortRDataFilesDir + " (default))" + "\n"
-                   + "\nTo summarize Skat Meta results:"
-                   + "\n   (1) command for summarizing Skat Meta results (i.e. " + commands[8]
-                   + " (default))" + "\n   (2) directory of Skat Meta results (i.e. " + commands[4]
-                   + condResultsDir + " (default))"
-                   + "\n   (3) directory of original meta-analysis results (i.e. originalResultsDir="
-                   + originalResultsDir + " (default))"
-                   + "\n   (4) directory to output summary (i.e. " + commandSummaryDir + summaryDir
-                   + " (default))" + "\n"
-                   + "\nTo run conditional analysis from results of pre-conditional analysis:"
-                   + "\n   (1) command for conditional analysis (i.e. " + commandConditional
-                   + " (default))"
-                   + "\n   (2) template of dir and file name of the results of pre-conditional analyses, which the 1st condition is going to based on (i.e. "
-                   + commands[4] + condResultsDir + " (default))" + "\n   (3) phenos (i.e. "
-                   + commandPhenos + phenos + " (default))"
-                   + "\n   (4) template of pheno files' dir and name (i.e. "
-                   + commandPhenoDirFilenameTemplate + phenoDirFilenameTemplate + " (default))"
-                   + "\n   (5) template of geno files' dir and name (i.e. "
-                   + commandGenoDirFilenameTemplate + genoDirFilenameTemplate + " (default))"
-                   + "\n   (6) template of SNPInfo files' dir and name (i.e. " + commands[2]
-                   + snpInfoDirFilenameTemplate + " (default))" + "\n   (7) races (i.e. "
-                   + commandRaces + races + " (default))"
-                   + "\n   (8) folder to output the R scripts (i.e. " + commands[5] + rScriptDir
-                   + " (default))" + "\n   (9) template of folder and name of  (i.e. " + commands[3]
-                   + condFileDirFilenameTemplate + " (default))"
-                   + "\n   (10) folder to output summaries of Skat Meta results (i.e. "
-                   + commandSummaryDir + summaryDir + " (default))"
-                   + "\n   (11) command to launch R (i.e. " + commandRCommand + rCommandLine
-                   + " (default))" + "\n   (12) p-value threshold for next conditions (i.e. "
-                   + commandPThreshold + pThreshold + " (default))" + "\n"
-                   + "\nTo run conditional analysis with existing 1st condition:"
-                   + "\n   (1) command for conditional analysis (i.e. " + commandConditional
-                   + " (default))"
-                   + "\n   (2) template of condition files' directory and name (i.e. " + commands[3]
-                   + condFileDirFilenameTemplate + " (default))" + "\n   (3) phenos (i.e. "
-                   + commandPhenos + phenos + " (default))"
-                   + "\n   (4) template of pheno files' dir and name (i.e. "
-                   + commandPhenoDirFilenameTemplate + phenoDirFilenameTemplate + " (default))"
-                   + "\n   (5) template of geno files' dir and name (i.e. "
-                   + commandGenoDirFilenameTemplate + genoDirFilenameTemplate + " (default))"
-                   + "\n   (6) template of SNPInfo files' dir and name (i.e. " + commands[2]
-                   + snpInfoDirFilenameTemplate + " (default))" + "\n   (7) races (i.e. "
-                   + commandRaces + races + " (default))"
-                   + "\n   (8) folder to output the R scripts (i.e. " + commands[5] + rScriptDir
-                   + " (default))" + "\n   (9) folder to output Skat Meta results (i.e. "
-                   + commands[4] + condResultsDir + " (default))"
-                   + "\n   (10) folder to output summaries of Skat Meta results (i.e. "
-                   + commandSummaryDir + summaryDir + " (default))"
-                   + "\n   (11) command to launch R (i.e. " + commandRCommand + rCommandLine
-                   + " (default))" + "\n   (12) p-value threshold for next conditions (i.e. "
-                   + commandPThreshold + pThreshold + " (default))" + "";
+            + "\n   (1) command for generating R scripts (i.e. " + commands[0] + " (default))"
+            + "\n   (2) directory of the .RData files (i.e. " + commands[1] + cohortRDataFilesDir
+            + " (default))" + "\n   (3) full path of the SNPInfo file (i.e. " + commands[2]
+            + snpInfoDirFilenameTemplate + " (default))"
+            + "\n   (4) directory of the condition files (i.e. " + commands[3]
+            + condFileDirFilenameTemplate + " (default))"
+            + "\n   (5) directory of results the condition files (i.e. " + commands[4]
+            + condResultsDir + " (default))" + "\n   (6) directory to output the R scripts (i.e. "
+            + commands[5] + rScriptDir + " (default))" + "\n"
+            + "\nTo generate Skat Meta R scripts for all the .RData files in a single directory and all its subdirectories:"
+            + "\n   (1) command for generating R scripts for a directory and all its subdirectories (i.e. "
+            + commands[6] + " (default))" + "\n   (2) directory of the .RData files (i.e. "
+            + commands[1] + cohortRDataFilesDir + " (default))"
+            + "\n   (3) full path of the SNPInfo file (i.e. " + commands[2]
+            + snpInfoDirFilenameTemplate + " (default))"
+            + "\n   (4) directory of the condition files (i.e. " + commands[3]
+            + condFileDirFilenameTemplate + " (default))"
+            + "\n   (5) directory of results the condition files (i.e. " + commands[4]
+            + condResultsDir + " (default))" + "\n   (6) directory to output the R scripts (i.e. "
+            + commands[5] + rScriptDir + " (default))" + "\n"
+            + "\nTo generate QC R scripts for all the .RData files in a single directory:"
+            + "\n   (1) command for generating R scripts for a directory and all its subdirectories (i.e. "
+            + commands[7] + " (default))" + "\n   (2) directory of the .RData files (i.e. "
+            + commands[1] + cohortRDataFilesDir + " (default))" + "\n"
+            + "\nTo summarize Skat Meta results:"
+            + "\n   (1) command for summarizing Skat Meta results (i.e. " + commands[8]
+            + " (default))" + "\n   (2) directory of Skat Meta results (i.e. " + commands[4]
+            + condResultsDir + " (default))"
+            + "\n   (3) directory of original meta-analysis results (i.e. originalResultsDir="
+            + originalResultsDir + " (default))" + "\n   (4) directory to output summary (i.e. "
+            + commandSummaryDir + summaryDir + " (default))" + "\n"
+            + "\nTo run conditional analysis from results of pre-conditional analysis:"
+            + "\n   (1) command for conditional analysis (i.e. " + commandConditional
+            + " (default))"
+            + "\n   (2) template of dir and file name of the results of pre-conditional analyses, which the 1st condition is going to based on (i.e. "
+            + commands[4] + condResultsDir + " (default))" + "\n   (3) phenos (i.e. "
+            + commandPhenos + phenos + " (default))"
+            + "\n   (4) template of pheno files' dir and name (i.e. "
+            + commandPhenoDirFilenameTemplate + phenoDirFilenameTemplate + " (default))"
+            + "\n   (5) template of geno files' dir and name (i.e. "
+            + commandGenoDirFilenameTemplate + genoDirFilenameTemplate + " (default))"
+            + "\n   (6) template of SNPInfo files' dir and name (i.e. " + commands[2]
+            + snpInfoDirFilenameTemplate + " (default))" + "\n   (7) races (i.e. " + commandRaces
+            + races + " (default))" + "\n   (8) folder to output the R scripts (i.e. " + commands[5]
+            + rScriptDir + " (default))" + "\n   (9) template of folder and name of  (i.e. "
+            + commands[3] + condFileDirFilenameTemplate + " (default))"
+            + "\n   (10) folder to output summaries of Skat Meta results (i.e. " + commandSummaryDir
+            + summaryDir + " (default))" + "\n   (11) command to launch R (i.e. " + commandRCommand
+            + rCommandLine + " (default))"
+            + "\n   (12) p-value threshold for next conditions (i.e. " + commandPThreshold
+            + pThreshold + " (default))" + "\n"
+            + "\nTo run conditional analysis with existing 1st condition:"
+            + "\n   (1) command for conditional analysis (i.e. " + commandConditional
+            + " (default))" + "\n   (2) template of condition files' directory and name (i.e. "
+            + commands[3] + condFileDirFilenameTemplate + " (default))" + "\n   (3) phenos (i.e. "
+            + commandPhenos + phenos + " (default))"
+            + "\n   (4) template of pheno files' dir and name (i.e. "
+            + commandPhenoDirFilenameTemplate + phenoDirFilenameTemplate + " (default))"
+            + "\n   (5) template of geno files' dir and name (i.e. "
+            + commandGenoDirFilenameTemplate + genoDirFilenameTemplate + " (default))"
+            + "\n   (6) template of SNPInfo files' dir and name (i.e. " + commands[2]
+            + snpInfoDirFilenameTemplate + " (default))" + "\n   (7) races (i.e. " + commandRaces
+            + races + " (default))" + "\n   (8) folder to output the R scripts (i.e. " + commands[5]
+            + rScriptDir + " (default))" + "\n   (9) folder to output Skat Meta results (i.e. "
+            + commands[4] + condResultsDir + " (default))"
+            + "\n   (10) folder to output summaries of Skat Meta results (i.e. " + commandSummaryDir
+            + summaryDir + " (default))" + "\n   (11) command to launch R (i.e. " + commandRCommand
+            + rCommandLine + " (default))"
+            + "\n   (12) p-value threshold for next conditions (i.e. " + commandPThreshold
+            + pThreshold + " (default))" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -3009,29 +2917,27 @@ public class SkatMeta2 {
       // "F8_ABO", "VWF_ABO", "Fibrinogen"}, new String[] {"AA", "EA"}, new String[] {"1"},
       // rScriptDir, resultsDir, rCommandLine);
       generateSkatMetaRScript(phenoDirFilenameTemplate, genoDirFilenameTemplate,
-                              condFileDirFilenameTemplate, snpInfoDirFilenameTemplate,
-                              phenos.split(","), races.split(","), startConditionIdNumber,
-                              rScriptDir, condResultsDir, rCommandLine);
+          condFileDirFilenameTemplate, snpInfoDirFilenameTemplate, phenos.split(","),
+          races.split(","), startConditionIdNumber, rScriptDir, condResultsDir, rCommandLine);
       // generateSkatMetaRScriptConditional(cohortRDataFilesDir, snpInfoFile, condFileDir,
       // rScriptDir, resultsDir);
     } else if (isRScriptsSubFolders) {
       log = new Logger();
       generateSkatMetaRScriptsForSubFolders(cohortRDataFilesDir, snpInfoDirFilenameTemplate,
-                                            condFileDirFilenameTemplate, rScriptDir, condResultsDir,
-                                            rCommandLine);
+          condFileDirFilenameTemplate, rScriptDir, condResultsDir, rCommandLine);
     } else if (isQcScript) {
       log = new Logger();
       qcScript(cohortRDataFilesDir);
     } else if (isSummary) {
       log = new Logger(condResultsDir + "SuperNovo_"
-                       + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
+          + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
       summary(condResultsDir, columnIndeciesOfPhenoConditionEthnicAnalysis, pThreshold, null,
-              fullPathToSnpInfo, null, summaryDir, log);
+          fullPathToSnpInfo, null, summaryDir, log);
     } else if (summarize) {
       log = new Logger(summaryDir + "Summarize_"
-                       + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
+          + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
       summaryTable(phenos.split(","), races.split(","), condResultsDir, originalResultsDir,
-                   summaryDir, snpInfoDirFilenameTemplate, log);
+          summaryDir, snpInfoDirFilenameTemplate, log);
     } else if (isConditional) {
       log = new Logger();
       // conditionalAnalysisWholeProcess(fullpathToPreviousRoundResult,
@@ -3044,25 +2950,22 @@ public class SkatMeta2 {
       // phenos.split(","), races.split(","), Integer.parseInt(startConditionIdNumber), rScriptDir,
       // resultsDir, summaryDir, rCommandLine, pThreshold, log);
       conditionalAnalysisWholeProcessMultiplePhenos(condResultsDir, condFileDirFilenameTemplate,
-                                                    phenoDirFilenameTemplate,
-                                                    genoDirFilenameTemplate,
-                                                    snpInfoDirFilenameTemplate, phenos.split(","),
-                                                    races.split(","), rScriptDir, summaryDir,
-                                                    rCommandLine, pThreshold, pThresholdHigher,
-                                                    regionSearchDistance, log);
+          phenoDirFilenameTemplate, genoDirFilenameTemplate, snpInfoDirFilenameTemplate,
+          phenos.split(","), races.split(","), rScriptDir, summaryDir, rCommandLine, pThreshold,
+          pThresholdHigher, regionSearchDistance, log);
     } else {
       log = new Logger();
       log.reportError("No command executed, due to none of the following is specified: "
-                      + commandRscript + ", " + commandRscriptSubDir + ", " + commandQcScript + ", "
-                      + commandSummary + ", or " + commandConditional + ".\n" + usage);
+          + commandRscript + ", " + commandRscriptSubDir + ", " + commandQcScript + ", "
+          + commandSummary + ", or " + commandConditional + ".\n" + usage);
     }
 
     log.report("Program completed.");
   }
 
   public static void mergeSkatMetaResultFiles(String byChrResultsDirFilenameTemplate,
-                                              String[] ethnics, String[] chrList, String[] analyses,
-                                              String mergedDirFilenameTemplate, Logger log) {
+      String[] ethnics, String[] chrList, String[] analyses, String mergedDirFilenameTemplate,
+      Logger log) {
     Vector<String> list;
     String inFilename, inFilenameAfterEthnic, inFilenameAfterEthnicAnalysis, outFilename1,
         outFilename2;
@@ -3085,8 +2988,9 @@ public class SkatMeta2 {
             // TODO This check might be duplicated with the parent code. Could add boolean[][]
             // areFilesAvailable as an input, so as to avoid reporting two warning for the same
             // error.
-            log.reportError("Note - when merging SkatMeta result files of different chromosomes, the following file is not found and will be ignored:\n  "
-                            + inFilename);
+            log.reportError(
+                "Note - when merging SkatMeta result files of different chromosomes, the following file is not found and will be ignored:\n  "
+                    + inFilename);
           } else {
             list.addAll(loadFile(inFilename, (toIncludeHeaderLine ? 0 : 1)));
             toIncludeHeaderLine = false;
@@ -3099,8 +3003,8 @@ public class SkatMeta2 {
     }
   }
 
-  public static Object[] organizeConditionsIntoRegions(String input_fullpathToPreviousRoundCondition,
-                                                       Logger log) {
+  public static Object[] organizeConditionsIntoRegions(
+      String input_fullpathToPreviousRoundCondition, Logger log) {
     Vector<String> geneList = null, snpList = null, uniqueGenes = null, uniqueSnps = null;
     Hashtable<Integer, Vector<String>> regionToGenes, regionToSnps;
     Hashtable<Integer, String> regionToChr;
@@ -3114,9 +3018,8 @@ public class SkatMeta2 {
       log = new Logger();
     }
 
-    condition =
-        loadFile(input_fullpathToPreviousRoundCondition, null, new String[] {"SKATgene", "Name"},
-                 new String[] {"Chr"/* , "Pos1", "Pos2" */}, null, null);
+    condition = loadFile(input_fullpathToPreviousRoundCondition, null,
+        new String[] {"SKATgene", "Name"}, new String[] {"Chr"/* , "Pos1", "Pos2" */}, null, null);
     uniqueGenes = new Vector<String>();
     uniqueSnps = new Vector<String>();
     for (String geneSnp : condition.keySet()) {
@@ -3148,8 +3051,8 @@ public class SkatMeta2 {
             geneList = regionToGenes.get(regionId);
             if (!regionToChr.get(regionId).equalsIgnoreCase(chr)) {
               log.reportError("Condition file error: the same region that includes (" + gene + " "
-                              + snp + ") appears in two different chromosomes: " + chr + " and "
-                              + regionToChr.get(regionId) + ".");
+                  + snp + ") appears in two different chromosomes: " + chr + " and "
+                  + regionToChr.get(regionId) + ".");
               System.exit(1);
             }
           } else {
@@ -3175,8 +3078,8 @@ public class SkatMeta2 {
     return new Object[] {condition, regionToGenes, regionToSnps, regionToChr, chrList};
   }
 
-  public static Hashtable[] organizeConditionsIntoRegions_20150109(String input_fullpathToPreviousRoundCondition,
-                                                                   Logger log) {
+  public static Hashtable[] organizeConditionsIntoRegions_20150109(
+      String input_fullpathToPreviousRoundCondition, Logger log) {
     Vector<String> geneList = null, snpList = null, uniqueGenes = null, uniqueSnps = null;
     Hashtable<Integer, Vector<String>> regionToGenes, regionToSnps;
     Hashtable<Integer, String> regionToChr;
@@ -3191,7 +3094,7 @@ public class SkatMeta2 {
     }
 
     condition = loadFile(input_fullpathToPreviousRoundCondition, null,
-                         new String[] {"SKATgene", "SNP"}, new String[] {"Chr"}, null, null);
+        new String[] {"SKATgene", "SNP"}, new String[] {"Chr"}, null, null);
     uniqueGenes = new Vector<String>();
     uniqueSnps = new Vector<String>();
     for (String geneSnp : condition.keySet()) {
@@ -3223,8 +3126,8 @@ public class SkatMeta2 {
             geneList = regionToGenes.get(regionId);
             if (!regionToChr.get(regionId).equalsIgnoreCase(chr)) {
               log.reportError("Condition file error: the same region that includes (" + gene + " "
-                              + snp + ") appears in two different chromosomes: " + chr + " and "
-                              + regionToChr.get(regionId) + ".");
+                  + snp + ") appears in two different chromosomes: " + chr + " and "
+                  + regionToChr.get(regionId) + ".");
               System.exit(1);
             }
           } else {
@@ -3250,8 +3153,8 @@ public class SkatMeta2 {
     return new Hashtable[] {condition, regionToGenes, regionToSnps, regionToChr, chrList};
   }
 
-  public static Hashtable[] organizeConditionsIntoSegments(String input_fullpathToPreviousRoundCondition,
-                                                           Logger log) {
+  public static Hashtable[] organizeConditionsIntoSegments(
+      String input_fullpathToPreviousRoundCondition, Logger log) {
     Vector<String> geneList = null;
     Hashtable<String, Vector<String>> snpToGene;// , regionToSnp;
     Hashtable<String, String[]> condition;
@@ -3262,7 +3165,7 @@ public class SkatMeta2 {
     }
 
     condition = loadFile(input_fullpathToPreviousRoundCondition, null,
-                         new String[] {"SNP", "SKATgene"}, new String[] {"Chr"}, null, null);
+        new String[] {"SNP", "SKATgene"}, new String[] {"Chr"}, null, null);
     snpToGene = new Hashtable<String, Vector<String>>();
     for (String geneSnp : condition.keySet()) {
       line = geneSnp.split("\t");
@@ -3323,23 +3226,18 @@ public class SkatMeta2 {
 
       if (criteriaOperators[i] == null || criteriaOperators[i].equals("")) {
         log.reportError("Error - operator specified in the criteria (" + criteria[i]
-                        + ") is not recognized by the current version of software, and is ignored.");
+            + ") is not recognized by the current version of software, and is ignored.");
       }
     }
 
     return new Object[] {criteriaColumnIndices, criteriaOperators, criteriaValues};
   }
 
-  public static Hashtable<String, Double> printSnpResults(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll,
-                                                          String[] conditionList,
-                                                          String[] ethnicList,
-                                                          String[] analysesList,
-                                                          String[] geneSnpList,
-                                                          String[] columnNamesOfTheData,
-                                                          String[] columnNamesOfTheDataForUnconditional,
-                                                          String[] columnNamesToOutput,
-                                                          Double threshold,
-                                                          String fullPathOutFilename, Logger log) {
+  public static Hashtable<String, Double> printSnpResults(
+      Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll,
+      String[] conditionList, String[] ethnicList, String[] analysesList, String[] geneSnpList,
+      String[] columnNamesOfTheData, String[] columnNamesOfTheDataForUnconditional,
+      String[] columnNamesToOutput, Double threshold, String fullPathOutFilename, Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, String[]>>> snpResultsCurrentCondition;
     Hashtable<String, Hashtable<String, String[]>> snpResultsCurrentEthnic;
     Hashtable<String, String[]> snpResultsEachFile;
@@ -3442,8 +3340,8 @@ public class SkatMeta2 {
               }
             }
           }
-          writer.println(geneSnp + "\t" + (minPvalue == Double.MAX_VALUE ? "NA" : minPvalue)
-                         + line);
+          writer
+              .println(geneSnp + "\t" + (minPvalue == Double.MAX_VALUE ? "NA" : minPvalue) + line);
           if (minPvalue < threshold) {
             snpsWithSignificantPval.put(geneSnp, minPvalue);
           }
@@ -3458,10 +3356,10 @@ public class SkatMeta2 {
     return snpsWithSignificantPval;
   }
 
-  public static void printSummarizedGenePvalues(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvaluesSummary,
-                                                String[] phenos, String[] ethnics,
-                                                String[] analyses, String fullPathOutFilename,
-                                                Logger log) {
+  public static void printSummarizedGenePvalues(
+      Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvaluesSummary,
+      String[] phenos, String[] ethnics, String[] analyses, String fullPathOutFilename,
+      Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> conditionGroup;
     Hashtable<String, Hashtable<String, Hashtable<String, String>>> ethnicGroup;
     Hashtable<String, Hashtable<String, String>> analysesGroup;
@@ -3507,10 +3405,8 @@ public class SkatMeta2 {
                     analysesGroup = ethnicGroup.get(ethnic);
                     for (String analysis : analyses) {
                       geneGroup = analysesGroup.get(analysis);
-                      line +=
-                          ("\t"
-                           + (geneGroup != null && geneGroup.containsKey(gene) ? geneGroup.get(gene)
-                                                                               : ""));
+                      line += ("\t" + (geneGroup != null && geneGroup.containsKey(gene)
+                          ? geneGroup.get(gene) : ""));
                     }
                   } else {
                     for (String analyse : analyses) {
@@ -3533,11 +3429,11 @@ public class SkatMeta2 {
     }
   }
 
-  public static void printSummarizedSnpResults(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll,
-                                               Hashtable<String, Double> snpsWithSignificantPval,
-                                               String[] conditionList, String[] ethnicList,
-                                               String[] analysesList, String[] columnNamesOfTheData,
-                                               String fullPathOutFilename, Logger log) {
+  public static void printSummarizedSnpResults(
+      Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll,
+      Hashtable<String, Double> snpsWithSignificantPval, String[] conditionList,
+      String[] ethnicList, String[] analysesList, String[] columnNamesOfTheData,
+      String fullPathOutFilename, Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, String[]>>> snpResultsCurrentCondition;
     Hashtable<String, Hashtable<String, String[]>> snpResultsCurrentEthnic;
     Hashtable<String, String[]> snpResultsEachFile;
@@ -3624,10 +3520,10 @@ public class SkatMeta2 {
           // get(temp)\nrm(list=temp)\nrm(temp)\nif(length(ls(tmp))>7) result <- c(result, c(file,
           // length(ls(tmp))))\n");
           writer.println("file <- \"" + file
-                         + "\"\ntemp <- load(file)\ntmp <- get(temp)\nrm(list=temp)\nrm(temp)\nresult <- c(result, c(file, length(ls(tmp))))\n");
+              + "\"\ntemp <- load(file)\ntmp <- get(temp)\nrm(list=temp)\nrm(temp)\nresult <- c(result, c(file, length(ls(tmp))))\n");
         }
         writer.println("result <- matrix(result, ncol=2, byrow = TRUE)\nwrite.table(result, \""
-                       + sourceRDataFilesDir + "qc.csv\", sep=\",\")");
+            + sourceRDataFilesDir + "qc.csv\", sep=\",\")");
         writer.close();
       } catch (FileNotFoundException e) {
         e.printStackTrace();
@@ -3636,7 +3532,7 @@ public class SkatMeta2 {
   }
 
   public static String[] removeElementsFromAarray(Vector<String> elementsOfTheArrayToBeRemoved,
-                                                  String[] array) {
+      String[] array) {
     String[] tmp;
     boolean found;
     int a;
@@ -3662,16 +3558,10 @@ public class SkatMeta2 {
   }
 
   public static boolean runConditionalAnalysisWholeProcessOfOnePheno(String condFileFullPath,
-                                                                     String phenoDirAndNameTemplate,
-                                                                     String genoDirAndNameTemplate,
-                                                                     String snpInfoDirAndNameTemplate,
-                                                                     String[] ethnics,
-                                                                     String rScriptDir,
-                                                                     String resultsDirFilenameTemplate,
-                                                                     String rcommand,
-                                                                     double pThreshold,
-                                                                     String nextCondFileFullPath,
-                                                                     Logger log) {
+      String phenoDirAndNameTemplate, String genoDirAndNameTemplate,
+      String snpInfoDirAndNameTemplate, String[] ethnics, String rScriptDir,
+      String resultsDirFilenameTemplate, String rcommand, double pThreshold,
+      String nextCondFileFullPath, Logger log) {
     Hashtable<String, String[]> previousCondition;
     Hashtable<Integer, Vector<String>> regionToGenes, regionToSnps;
     Hashtable<Integer, String> significantSnpOfEachRegion;
@@ -3702,17 +3592,15 @@ public class SkatMeta2 {
     allEthnics = Array.toStr(ethnics, "");
     resultFileForNextCond =
         resultsDirFilenameTemplate.replaceAll("_" + FILENAME_CHROMOSOME_SEGMENT, "")
-                                  .replaceAll(FILENAME_ETHNIC_SEGMENT, allEthnics)
-                                  .replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP");
+            .replaceAll(FILENAME_ETHNIC_SEGMENT, allEthnics)
+            .replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP");
     if (!new File(resultFileForNextCond).exists()) {
       resultDirFilenameTemplateByChr = createSubDir(resultsDirFilenameTemplate, "/byChr");
       if (genoDirAndNameTemplate.contains(FILENAME_CHROMOSOME_SEGMENT)
           || snpInfoDirAndNameTemplate.contains(FILENAME_CHROMOSOME_SEGMENT)) {
         areResultsByChrAvailable = areFilesAvailable(
-                                                     resultDirFilenameTemplateByChr.replaceAll(FILENAME_ANALYSIS_SEGMENT,
-                                                                                               "SingleSNP"),
-                                                     chrs, ethnics, log);// TODO need all the
-                                                                         // analyses
+            resultDirFilenameTemplateByChr.replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP"), chrs,
+            ethnics, log);// TODO need all the analyses
         chrsToRemove = new Vector<String>();
         isAllRDataFilesForTheEthnicMissing = new boolean[ethnics.length];
         Arrays.fill(isAllRDataFilesForTheEthnicMissing, true);
@@ -3722,33 +3610,28 @@ public class SkatMeta2 {
           for (int j = 0; j < ethnics.length; j++) {
             if (!areResultsByChrAvailable[i][j]) {
               filenames = getFileNames(chrs[i], snpInfoDirAndNameTemplate,
-                                       genoDirAndNameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT,
-                                                                         ethnics[j]),
-                                       log);
+                  genoDirAndNameTemplate.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[j]), log);
               snpInfoFile = filenames[0];
               genoFile = filenames[1];
               if (snpInfoFile == null || genoFile == null) {
                 chrsToRemove.add(chrs[i]);
               } else {
-                resultFiles[j][0] =
-                    getFileNameRootFromTemplate(resultDirFilenameTemplateByChr, chrs[i], ethnics[j],
-                                                log)
-                                    + ".RData";
+                resultFiles[j][0] = getFileNameRootFromTemplate(resultDirFilenameTemplateByChr,
+                    chrs[i], ethnics[j], log) + ".RData";
                 if (!new File(resultFiles[j][0]).exists()) {
                   rScriptFile = rScriptDir + ext.rootOf(resultFiles[j][0]) + ".R";
                   Files.write(getRScriptForCohort1(snpInfoFile, genoFile,
-                                                   phenoDirAndNameTemplate.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
-                                                                                      "chr" + chrs[i])
-                                                                          .replaceAll(FILENAME_ETHNIC_SEGMENT,
-                                                                                      ethnics[j]),
-                                                   condFileFullPath, resultFiles[j][0]),
-                              rScriptFile);
+                      phenoDirAndNameTemplate
+                          .replaceAll(FILENAME_CHROMOSOME_SEGMENT, "chr" + chrs[i])
+                          .replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[j]),
+                      condFileFullPath, resultFiles[j][0]), rScriptFile);
                   CmdLine.run(rcommand + " " + rScriptFile, rScriptDir);
 
                   if (!new File(resultFiles[j][0]).exists()) {
-                    log.report("Warning - Potential failure of R. The following R output is not found and will be ignored:\n  "
-                               + resultFiles[j][0]
-                               + "\nCheck the following R script for detail:\n  " + rScriptFile);
+                    log.report(
+                        "Warning - Potential failure of R. The following R output is not found and will be ignored:\n  "
+                            + resultFiles[j][0] + "\nCheck the following R script for detail:\n  "
+                            + rScriptFile);
                     resultFiles[j][0] = null;
                   } else {
                     isAllRDataFilesForTheChromosomeMissing = false;
@@ -3765,15 +3648,13 @@ public class SkatMeta2 {
           if (!isAllRDataFilesForTheChromosomeMissing) {
             rScriptFile =
                 rScriptDir + ext.rootOf(getFileNameRootFromTemplate(resultDirFilenameTemplateByChr,
-                                                                    chrs[i], allEthnics + "_meta",
-                                                                    log))
-                          + ".R";
-            Files.write(getRScriptForMetaAnalysis1(snpInfoFile, ethnics, resultFiles,
-                                                   condFileFullPath,
-                                                   resultDirFilenameTemplateByChr.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
-                                                                                             "chr" + chrs[i]),
-                                                   log),
-                        rScriptFile);
+                    chrs[i], allEthnics + "_meta", log)) + ".R";
+            Files.write(
+                getRScriptForMetaAnalysis1(snpInfoFile, ethnics, resultFiles,
+                    condFileFullPath, resultDirFilenameTemplateByChr
+                        .replaceAll(FILENAME_CHROMOSOME_SEGMENT, "chr" + chrs[i]),
+                    log),
+                rScriptFile);
             CmdLine.run(rcommand + " " + rScriptFile, rScriptDir);
           } else {
             chrsToRemove.add(chrs[i]);
@@ -3790,13 +3671,9 @@ public class SkatMeta2 {
 
         if (chrsToRemove.size() != chrs.length) {
           mergeSkatMetaResultFiles(resultDirFilenameTemplateByChr,
-                                   Array.addStrToArray(allEthnics,
-                                                       removeElementsFromAarray(ethnicsToRemove,
-                                                                                ethnics)),
-                                   chrs, new String[] {"SingleSNP", "T5Count", "T5"},
-                                   resultsDirFilenameTemplate.replaceAll("_"
-                                                                         + FILENAME_CHROMOSOME_SEGMENT, ""),
-                                   log);
+              Array.addStrToArray(allEthnics, removeElementsFromAarray(ethnicsToRemove, ethnics)),
+              chrs, new String[] {"SingleSNP", "T5Count", "T5"},
+              resultsDirFilenameTemplate.replaceAll("_" + FILENAME_CHROMOSOME_SEGMENT, ""), log);
         }
       } else {
         // TODO
@@ -3806,24 +3683,23 @@ public class SkatMeta2 {
         // genoFullPath, ethnics, resultDirFilenameByChr, log), rScriptFullPath);
         CmdLine.run(rcommand + " " + rScriptFile, rScriptDir);
         for (int i = 0; i < ethnics.length; i++) {
-          if (!new File(resultDirFilenameTemplateByChr.replaceAll("_" + FILENAME_CHROMOSOME_SEGMENT,
-                                                                  "")
-                                                      .replaceAll(FILENAME_ETHNIC_SEGMENT,
-                                                                  ethnics[i])).exists()) {
+          if (!new File(
+              resultDirFilenameTemplateByChr.replaceAll("_" + FILENAME_CHROMOSOME_SEGMENT, "")
+                  .replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[i])).exists()) {
             // exclude chr from chrList; ignore ethnic from merged results
-            log.report("Warning - Potential failure of R. The following R output is not found and will be ignored:\n  "
-                       + resultDirFilenameTemplateByChr.replaceAll("_"
-                                                                   + FILENAME_CHROMOSOME_SEGMENT,
-                                                                   "")
-                                                       .replaceAll(FILENAME_ETHNIC_SEGMENT,
-                                                                   ethnics[i]));
+            log.report(
+                "Warning - Potential failure of R. The following R output is not found and will be ignored:\n  "
+                    + resultDirFilenameTemplateByChr
+                        .replaceAll("_" + FILENAME_CHROMOSOME_SEGMENT, "")
+                        .replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[i]));
           }
         }
       }
 
     } else {
-      log.report("Note - Will skip R step and use the following existing result file to develop the next round condition:\n  "
-                 + resultFileForNextCond);
+      log.report(
+          "Note - Will skip R step and use the following existing result file to develop the next round condition:\n  "
+              + resultFileForNextCond);
     }
 
     if (new File(resultFileForNextCond).exists()) {
@@ -3831,13 +3707,13 @@ public class SkatMeta2 {
           getSignificantSnpOfEachRegion(resultFileForNextCond, regionToGenes, pThreshold, log);
       if (significantSnpOfEachRegion.size() > 0) {
         Files.writeList(getNextCondition(significantSnpOfEachRegion, previousCondition,
-                                         regionToGenes, regionToSnps, log),
-                        nextCondFileFullPath);
+            regionToGenes, regionToSnps, log), nextCondFileFullPath);
         result = true;
       }
     } else {
-      log.reportError("Warning - Potential failure of the merging of R outputs of different chromosomes. The following file is not found and will be ignored:\n  "
-                      + resultFileForNextCond);
+      log.reportError(
+          "Warning - Potential failure of the merging of R outputs of different chromosomes. The following file is not found and will be ignored:\n  "
+              + resultFileForNextCond);
     }
 
     return result;
@@ -3859,8 +3735,7 @@ public class SkatMeta2 {
    * @return
    */
   public static boolean screenWithCriteria(String[] strToBeScreened, int[][] criteriaColumnIndices,
-                                           String[] criteriaOperators, String[] criteriaValues,
-                                           Logger log) {
+      String[] criteriaOperators, String[] criteriaValues, Logger log) {
     boolean isMatchCriteria, isMatchCurrentCriterion;
     double value, criteriaValue;
 
@@ -3887,11 +3762,13 @@ public class SkatMeta2 {
             }
           } catch (NumberFormatException error) {
             if (criteriaOperators[i].equalsIgnoreCase("==")
-                && strToBeScreened[criteriaColumnIndices[i][j]].equalsIgnoreCase(criteriaValues[i])) {
+                && strToBeScreened[criteriaColumnIndices[i][j]]
+                    .equalsIgnoreCase(criteriaValues[i])) {
               isMatchCurrentCriterion = true;
               break;
             } else if (criteriaOperators[i].equalsIgnoreCase("!=")
-                       && !strToBeScreened[criteriaColumnIndices[i][j]].equalsIgnoreCase(criteriaValues[i])) {
+                && !strToBeScreened[criteriaColumnIndices[i][j]]
+                    .equalsIgnoreCase(criteriaValues[i])) {
               isMatchCurrentCriterion = true;
               break;
             }
@@ -3908,11 +3785,10 @@ public class SkatMeta2 {
     return isMatchCriteria;
   }
 
-  public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> summarizeGenePvalues(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroups,
-                                                                                                                                           String[] analysesTypesToSelect,
-                                                                                                                                           String resultsDir,
-                                                                                                                                           Hashtable<String, Hashtable<Integer, Vector<String>>> phenoToRegionToGenes,
-                                                                                                                                           Logger log) {
+  public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> summarizeGenePvalues(
+      Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroups,
+      String[] analysesTypesToSelect, String resultsDir,
+      Hashtable<String, Hashtable<Integer, Vector<String>>> phenoToRegionToGenes, Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, String>>> conditionGroup;
     Hashtable<String, Hashtable<String, String>> ethnicGroup;
     Hashtable<String, String> analysesGroup;
@@ -3979,8 +3855,7 @@ public class SkatMeta2 {
                   // analysesGroup.get(analysis)));
                   reader = Files.getAppropriateReader(resultsDir + analysesGroup.get(analysis));
                   indices = ext.indexFactors(GENE_RESULT_COLUMNS,
-                                             reader.readLine().replaceAll("\"", "").split(","),
-                                             false, false);
+                      reader.readLine().replaceAll("\"", "").split(","), false, false);
                   isError = false;
                   for (int i = 0; i < indices.length; i++) {
                     if (indices[i] < 0) {
@@ -3991,17 +3866,14 @@ public class SkatMeta2 {
                   }
                   if (isError) {
                     log.reportError("Error - Cannot find the column name '"
-                                    + GENE_RESULT_COLUMNS[tmp] + "' in the following file:\n"
-                                    + resultsDir + analysesGroup.get(analysis));
+                        + GENE_RESULT_COLUMNS[tmp] + "' in the following file:\n" + resultsDir
+                        + analysesGroup.get(analysis));
                   } else {
                     while (reader.ready()) {
                       line = reader.readLine().replaceAll("\"", "").split(",");
                       summaryGeneGroup.put((regionToGenes == null ? ""
-                                                                  : (getKeyOfValue(regionToGenes,
-                                                                                   line[indices[0]],
-                                                                                   log)
-                                                                     + "\t"))
-                                           + line[indices[0]], line[indices[1]]);
+                          : (getKeyOfValue(regionToGenes, line[indices[0]], log) + "\t"))
+                          + line[indices[0]], line[indices[1]]);
                     }
                   }
                   reader.close();
@@ -4020,10 +3892,9 @@ public class SkatMeta2 {
     return summary;
   }
 
-  public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> summarizeGenePvalues_20150109(Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroups,
-                                                                                                                                                    String[] analysesTypesToSelect,
-                                                                                                                                                    String resultsDir,
-                                                                                                                                                    Logger log) {
+  public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> summarizeGenePvalues_20150109(
+      Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroups,
+      String[] analysesTypesToSelect, String resultsDir, Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, String>>> conditionGroup;
     Hashtable<String, Hashtable<String, String>> ethnicGroup;
     Hashtable<String, String> analysesGroup;
@@ -4088,8 +3959,7 @@ public class SkatMeta2 {
                   // analysesGroup.get(analysis)));
                   reader = Files.getAppropriateReader(resultsDir + analysesGroup.get(analysis));
                   indices = ext.indexFactors(GENE_RESULT_COLUMNS,
-                                             reader.readLine().replaceAll("\"", "").split(","),
-                                             false, false);
+                      reader.readLine().replaceAll("\"", "").split(","), false, false);
                   isError = false;
                   for (int i = 0; i < indices.length; i++) {
                     if (indices[i] < 0) {
@@ -4100,8 +3970,8 @@ public class SkatMeta2 {
                   }
                   if (isError) {
                     log.reportError("Error - Cannot find the column name '"
-                                    + GENE_RESULT_COLUMNS[tmp] + "' in the following file:\n"
-                                    + resultsDir + analysesGroup.get(analysis));
+                        + GENE_RESULT_COLUMNS[tmp] + "' in the following file:\n" + resultsDir
+                        + analysesGroup.get(analysis));
                   } else {
                     while (reader.ready()) {
                       line = reader.readLine().replaceAll("\"", "").split(",");
@@ -4124,14 +3994,11 @@ public class SkatMeta2 {
     return summary;
   }
 
-  public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> summarizeSnpPvalues(Hashtable<String, Hashtable<String, Hashtable<String, String>>> conditionGroups,
-                                                                                                                         Hashtable<String, String[]> snpInfo,
-                                                                                                                         String dir,
-                                                                                                                         String[] analysesNeeded,
-                                                                                                                         String[] columnsAsTheKey,
-                                                                                                                         String[] otherColumnsNeeded,
-                                                                                                                         String[] otherColumnsNeededForUnconditional,
-                                                                                                                         Logger log) {
+  public static Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> summarizeSnpPvalues(
+      Hashtable<String, Hashtable<String, Hashtable<String, String>>> conditionGroups,
+      Hashtable<String, String[]> snpInfo, String dir, String[] analysesNeeded,
+      String[] columnsAsTheKey, String[] otherColumnsNeeded,
+      String[] otherColumnsNeededForUnconditional, Logger log) {
     Hashtable<String, Hashtable<String, String>> ethnicGroup;
     Hashtable<String, String> analysesGroup;
     Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>> snpResultsAll =
@@ -4164,13 +4031,12 @@ public class SkatMeta2 {
           }
           for (String analysis : analysesNeeded) { // analysesGroup.keySet()
             if (condition.equals("cond1")) {
-              snpResultsEachFile =
-                  loadFile(dir + analysesGroup.get(analysis), snpInfo, columnsAsTheKey,
-                           otherColumnsNeededForUnconditional, null, null);
+              snpResultsEachFile = loadFile(dir + analysesGroup.get(analysis), snpInfo,
+                  columnsAsTheKey, otherColumnsNeededForUnconditional, null, null);
               snpResultsEthnicGroup.put(analysis + "_totals", snpResultsEachFile);
             }
             snpResultsEachFile = loadFile(dir + analysesGroup.get(analysis), snpInfo,
-                                          columnsAsTheKey, otherColumnsNeeded, null, null);
+                columnsAsTheKey, otherColumnsNeeded, null, null);
             snpResultsEthnicGroup.put(analysis, snpResultsEachFile);
             // for (String geneSnp : snpResultsEachFile.keySet()) {
             // if(! geneSnpList.contains(geneSnp)) {
@@ -4188,8 +4054,8 @@ public class SkatMeta2 {
   // TODO need to input condition list, but different pheno have different number of conditions and
   // thus making the code complex.
   public static void summary(String resultsDirFilenameTemplate, double pThreshold, String[] phenos,
-                             String[] ethnics, String snpInfoDirNameTemplate,
-                             String conditionFileDirNameTemplate, String summaryDir, Logger log) {
+      String[] ethnics, String snpInfoDirNameTemplate, String conditionFileDirNameTemplate,
+      String summaryDir, Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroups;
     Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvalSummary;
     String[] phenoList, analysesList, columnsAsTheKey, otherColumnsNeeded,
@@ -4220,7 +4086,7 @@ public class SkatMeta2 {
     // columnIndeciesOfPhenoConditionEthnicAnalysis, phenos, log);
 
     phenoGroups = groupFileNames(resultsDirFilenameTemplate, phenos, ethnics1,
-                                 new String[] {"T5Count", "T5", "SingleSNP"}, log);
+        new String[] {"T5Count", "T5", "SingleSNP"}, log);
 
     // if (ethnics == null || ethnics.length < 1) {
     // ethnics = getEthnicList(phenoGroups, log);
@@ -4237,9 +4103,7 @@ public class SkatMeta2 {
       // getListsOfPhenosConditionsEthnicsAnalysesGenes(genePvalSummary, phenoList,
       // conditionListAllPhenos, ethnicList, analysesList, geneListAllPhenos, log);
       printSummarizedGenePvalues(genePvalSummary, phenoList, ethnics1, analysesList,
-                                 summaryDir + "summary_" + Array.toStr(phenoList, "_")
-                                                                                     + "_genePvalues.xln",
-                                 log);
+          summaryDir + "summary_" + Array.toStr(phenoList, "_") + "_genePvalues.xln", log);
 
       analysesList = new String[] {"SingleSNP"};
       columnsAsTheKey = new String[] {"Name", "gene"}; // TODO "Chr", "Position"
@@ -4247,27 +4111,24 @@ public class SkatMeta2 {
       otherColumnsNeededFromUnconditional = new String[] {"ntotal", "nmiss", "maf"};
       for (String pheno : phenoList) {
         snpResultsAll = summarizeSnpPvalues(phenoGroups.get(pheno), null, resultDir, analysesList,
-                                            columnsAsTheKey, otherColumnsNeeded,
-                                            otherColumnsNeededFromUnconditional, log);
+            columnsAsTheKey, otherColumnsNeeded, otherColumnsNeededFromUnconditional, log);
         // geneSnpList = getListOfGeneSnps(snpResultsAll, snpInfoDirNameTemplate,
         // condFileDirNameTemplate, log);
         geneSnpList = getListOfGeneSnps(snpResultsAll, snpInfoDirNameTemplate, null, log);
         snpsWithSignificantPval =
             printSnpResults(snpResultsAll, getConditionList(genePvalSummary, pheno, log), ethnics1,
-                            analysesList, geneSnpList, otherColumnsNeeded,
-                            otherColumnsNeededFromUnconditional, new String[] {"p"}, pThreshold,
-                            summaryDir + "summary_" + pheno + "_snps.xln", log);
+                analysesList, geneSnpList, otherColumnsNeeded, otherColumnsNeededFromUnconditional,
+                new String[] {"p"}, pThreshold, summaryDir + "summary_" + pheno + "_snps.xln", log);
         printSummarizedSnpResults(snpResultsAll, snpsWithSignificantPval,
-                                  getConditionList(genePvalSummary, pheno, log), ethnics1,
-                                  analysesList, otherColumnsNeeded,
-                                  summaryDir + "summary_" + pheno + "_snpPvalues.xln", log);
+            getConditionList(genePvalSummary, pheno, log), ethnics1, analysesList,
+            otherColumnsNeeded, summaryDir + "summary_" + pheno + "_snpPvalues.xln", log);
       }
     }
   }
 
   public static void summary(String resultsDir, int[] columnIndeciesOfPhenoConditionEthnicAnalysis,
-                             double pThreshold, String[] ethnics, String snpInfoDirNameTemplate,
-                             String condFileDirNameTemplate, String summaryDir, Logger log) {
+      double pThreshold, String[] ethnics, String snpInfoDirNameTemplate,
+      String condFileDirNameTemplate, String summaryDir, Logger log) {
     Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>> phenoGroups;
     Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>> genePvalSummary;
     String[] phenoList, analysesList, columnsAsTheKey, otherColumnsNeeded,
@@ -4280,7 +4141,7 @@ public class SkatMeta2 {
     }
 
     phenoGroups = groupFileNames(Files.list(resultsDir, null, ".csv", false, false),
-                                 columnIndeciesOfPhenoConditionEthnicAnalysis, log);
+        columnIndeciesOfPhenoConditionEthnicAnalysis, log);
     if (ethnics == null || ethnics.length < 1) {
       ethnics = getEthnicList(phenoGroups, log);
     }
@@ -4292,9 +4153,7 @@ public class SkatMeta2 {
       // getListsOfPhenosConditionsEthnicsAnalysesGenes(genePvalSummary, phenoList,
       // conditionListAllPhenos, ethnicList, analysesList, geneListAllPhenos, log);
       printSummarizedGenePvalues(genePvalSummary, phenoList, ethnics, analysesList,
-                                 summaryDir + "summary_" + Array.toStr(phenoList, "_")
-                                                                                    + "_genePvalues.xln",
-                                 log);
+          summaryDir + "summary_" + Array.toStr(phenoList, "_") + "_genePvalues.xln", log);
 
       analysesList = new String[] {"SingleSNP"};
       columnsAsTheKey = new String[] {"Name", "gene"}; // TODO "Chr", "Position"
@@ -4302,26 +4161,22 @@ public class SkatMeta2 {
       otherColumnsNeededFromUnconditional = new String[] {"ntotal", "nmiss", "maf"};
       for (String pheno : phenoList) {
         snpResultsAll = summarizeSnpPvalues(phenoGroups.get(pheno), null, resultsDir, analysesList,
-                                            columnsAsTheKey, otherColumnsNeeded,
-                                            otherColumnsNeededFromUnconditional, log);
+            columnsAsTheKey, otherColumnsNeeded, otherColumnsNeededFromUnconditional, log);
         geneSnpList =
             getListOfGeneSnps(snpResultsAll, snpInfoDirNameTemplate, condFileDirNameTemplate, log);
         snpsWithSignificantPval =
             printSnpResults(snpResultsAll, getConditionList(genePvalSummary, pheno, log), ethnics,
-                            analysesList, geneSnpList, otherColumnsNeeded,
-                            otherColumnsNeededFromUnconditional, new String[] {"p"}, pThreshold,
-                            summaryDir + "summary_" + pheno + "_snps.xln", log);
+                analysesList, geneSnpList, otherColumnsNeeded, otherColumnsNeededFromUnconditional,
+                new String[] {"p"}, pThreshold, summaryDir + "summary_" + pheno + "_snps.xln", log);
         printSummarizedSnpResults(snpResultsAll, snpsWithSignificantPval,
-                                  getConditionList(genePvalSummary, pheno, log), ethnics,
-                                  analysesList, otherColumnsNeeded,
-                                  summaryDir + "summary_" + pheno + "_snpPvalues.xln", log);
+            getConditionList(genePvalSummary, pheno, log), ethnics, analysesList,
+            otherColumnsNeeded, summaryDir + "summary_" + pheno + "_snpPvalues.xln", log);
       }
     }
   }
 
   public static void summaryTable(String[] phenos, String[] races, String condResultsDir,
-                                  String originalResultsDir, String summaryDir, String snpInfoFile,
-                                  Logger log) {
+      String originalResultsDir, String summaryDir, String snpInfoFile, Logger log) {
     PrintWriter writer;
     int numConds;
     String minPstatement;
@@ -4333,15 +4188,15 @@ public class SkatMeta2 {
 
     for (String pheno : phenos) {
       numConds = 1;
-      while (Files.exists(condResultsDir + pheno + "_cond" + numConds + "_" + races[0]
-                          + "_SingleSNP.csv")) {
+      while (Files.exists(
+          condResultsDir + pheno + "_cond" + numConds + "_" + races[0] + "_SingleSNP.csv")) {
         numConds++;
       }
       numConds -= 1;
 
       if (numConds == 0) {
         log.reportError("Error - zero conditions detected for " + pheno + "/" + races[0] + "_in "
-                        + condResultsDir);
+            + condResultsDir);
         continue;
       }
 
@@ -4356,31 +4211,30 @@ public class SkatMeta2 {
       try {
         writer = new PrintWriter(new FileOutputStream(summaryDir + "parse" + pheno + ".crf"));
         writer.println("lookup");
-        writer.println(condResultsDir + pheno + "_cond1_" + races[0]
-                       + "_SingleSNP.csv 1 header out=" + summaryDir + pheno
-                       + "_conditionalResults.xln head=MarkerName");
+        writer
+            .println(condResultsDir + pheno + "_cond1_" + races[0] + "_SingleSNP.csv 1 header out="
+                + summaryDir + pheno + "_conditionalResults.xln head=MarkerName");
 
         if (Files.exists(ext.rootOf(snpInfoFile, false) + ".csv")) {
           writer.println(ext.rootOf(snpInfoFile, false)
-                         + ".csv 'SNP' 'SKATgene'=Gene 'func_region'=Function $@" + minPstatement);
+              + ".csv 'SNP' 'SKATgene'=Gene 'func_region'=Function $@" + minPstatement);
         } else {
           log.report("Warning - could not find text dump of snpInfo file at '"
-                     + ext.rootOf(snpInfoFile, false) + ".csv" + "'");
+              + ext.rootOf(snpInfoFile, false) + ".csv" + "'");
         }
 
         for (int k = 1; k < races.length; k++) {
           writer.println(originalResultsDir + pheno + "_" + races[k]
-                         + "_SingleSNP.csv 'Name' 'maf'=" + races[k] + "_maf");
+              + "_SingleSNP.csv 'Name' 'maf'=" + races[k] + "_maf");
         }
 
         for (String race : races) {
           writer.println(originalResultsDir + pheno + "_" + race
-                         + "_SingleSNP.csv 'Name' 'beta'=beta_uncond_" + race + " 'p'=p_uncond_"
-                         + race);
+              + "_SingleSNP.csv 'Name' 'beta'=beta_uncond_" + race + " 'p'=p_uncond_" + race);
           for (int cond = 1; cond <= numConds; cond++) {
             writer.println(condResultsDir + pheno + "_cond" + cond + "_" + race
-                           + "_SingleSNP.csv 'Name' 'beta'=beta_cond" + cond + "_" + race
-                           + " 'p'=p_cond" + cond + "_" + race);
+                + "_SingleSNP.csv 'Name' 'beta'=beta_cond" + cond + "_" + race + " 'p'=p_cond"
+                + cond + "_" + race);
           }
         }
         writer.close();

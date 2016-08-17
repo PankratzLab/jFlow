@@ -45,14 +45,14 @@ public class CNVTrioFilter extends CNVFilter {
 
   private static boolean checkTripleMax(double d1, double d2, double d3, double maxThreshold) {
     return checkMaxThreshold(d1, maxThreshold) && checkMaxThreshold(d2, maxThreshold)
-           && checkMaxThreshold(d3, maxThreshold);
+        && checkMaxThreshold(d3, maxThreshold);
 
   }
 
   public static void fromParametersTrio(String filename, Logger log) {
     Vector<String> params;
     params = Files.parseControlFile(filename, CNVTrioFilter.COMMAND_CNV_TRIO_CRF, getParserParams(),
-                                    log);
+        log);
     if (params != null) {
       main(Array.toStringArray(params));
     }
@@ -81,7 +81,7 @@ public class CNVTrioFilter extends CNVFilter {
   }
 
   public static CNVTrioFilter setupCNVTrioFilterFromArgs(Project proj, String[] args,
-                                                         boolean defaults, Logger log) {
+      boolean defaults, Logger log) {
     CNVTrioFilter filter = new CNVTrioFilter(log);
     ProjectCNVFiltering.setupCNVFilterFromArgs(proj, args, filter, defaults, log);
     if (defaults) {
@@ -119,15 +119,14 @@ public class CNVTrioFilter extends CNVFilter {
   private int numCalls;
 
   public CNVTrioFilter(double maxBeastHeightParents, double minBeastHeightDifference,
-                       double maxTrioLrrSD, double maxTrio1585SD, int numCalls, int minNumMarkers,
-                       int maxNumMarkers, int minSize, int maxSize, double minScore,
-                       double maxScore, Segment[] problemRegions, Segment[] centromereMidpoints,
-                       Segment[] commonReference, int[][] centromereBoundaries,
-                       boolean breakupCentromeres, boolean commonIn, HashSet<String> indHash,
-                       int build, int CN, Logger log) {
+      double maxTrioLrrSD, double maxTrio1585SD, int numCalls, int minNumMarkers, int maxNumMarkers,
+      int minSize, int maxSize, double minScore, double maxScore, Segment[] problemRegions,
+      Segment[] centromereMidpoints, Segment[] commonReference, int[][] centromereBoundaries,
+      boolean breakupCentromeres, boolean commonIn, HashSet<String> indHash, int build, int CN,
+      Logger log) {
     super(minNumMarkers, maxNumMarkers, minSize, maxSize, minScore, maxScore, problemRegions,
-          centromereMidpoints, commonReference, centromereBoundaries, breakupCentromeres, commonIn,
-          indHash, build, CN, log);
+        centromereMidpoints, commonReference, centromereBoundaries, breakupCentromeres, commonIn,
+        indHash, build, CN, log);
     this.maxBeastHeightParents = maxBeastHeightParents;
     this.minBeastHeightDifference = minBeastHeightDifference;
     this.maxTrioLrrSD = maxTrioLrrSD;
@@ -138,7 +137,7 @@ public class CNVTrioFilter extends CNVFilter {
   }
 
   public CNVTrioFilter(double maxBeastHeightParents, double minBeastHeightDifference,
-                       double maxTrioLrrSD, double maxTrio1585SD, int numCalls, Logger log) {
+      double maxTrioLrrSD, double maxTrio1585SD, int numCalls, Logger log) {
     super(log);
     this.maxBeastHeightParents = maxBeastHeightParents;
     this.minBeastHeightDifference = minBeastHeightDifference;
@@ -166,13 +165,13 @@ public class CNVTrioFilter extends CNVFilter {
         filterPass.setFailed("mother's beast height > " + maxBeastHeightParents, ";");
       }
       if (!checkTripleMax(CNVTrio.getILRR_SD(), CNVTrio.getFALRR_SD(), CNVTrio.getMOLRR_SD(),
-                          maxTrioLrrSD)) {
+          maxTrioLrrSD)) {
         // filterPass.prepFail();
         // filterPass.addReasonFailing("trio had LRR SD > " + maxTrioLrrSD, ";");
         filterPass.setFailed("trio had LRR SD > " + maxTrioLrrSD, ";");
       }
       if (!checkTripleMax(CNVTrio.getIBAF1585_SD(), CNVTrio.getFABAF1585_SD(),
-                          CNVTrio.getMOBAF1585_SD(), maxTrio1585SD)) {
+          CNVTrio.getMOBAF1585_SD(), maxTrio1585SD)) {
         // filterPass.prepFail();
         // filterPass.addReasonFailing("trio had BAF 15/85 SD > " + maxTrio1585SD, ";");
         filterPass.setFailed("trio had BAF 15/85 SD > " + maxTrio1585SD, ";");
@@ -182,7 +181,7 @@ public class CNVTrioFilter extends CNVFilter {
         // filterPass.addReasonFailing("minimum beast height (" +
         // CNVTrio.getMinBeastHeightDifference() + ") <" + minBeastHeightDifference, ";");
         filterPass.setFailed("minimum beast height (" + CNVTrio.getMinBeastHeightDifference()
-                             + ") <" + minBeastHeightDifference, ";");
+            + ") <" + minBeastHeightDifference, ";");
       }
       if (CNVTrio.getNumCalls() > numCalls) {
         // filterPass.prepFail();
@@ -214,7 +213,7 @@ public class CNVTrioFilter extends CNVFilter {
   }
 
   public void setAllTrioFilters(double maxBeastHeightParents, double minBeastHeightDifference,
-                                double maxTrioLrrSD, double maxTrio1585SD, int numCalls) {
+      double maxTrioLrrSD, double maxTrio1585SD, int numCalls) {
     this.maxBeastHeightParents = maxBeastHeightParents;
     this.minBeastHeightDifference = minBeastHeightDifference;
     this.maxTrioLrrSD = maxTrioLrrSD;
@@ -244,7 +243,7 @@ public class CNVTrioFilter extends CNVFilter {
 
   public void setTrioDefualts() {
     setAllTrioFilters(DEFAULT_MAX_BEAST_HEIGHT_PARENTS, DEFAULT_MIN_BEAST_HEIGHT_DIFFERENCE,
-                      DEFAULT_MAX_TRIO_LRR_SD, DEFAULT_MAX_TRIO_1585_SD, DEFAULT_MAX_NUM_CALLS);
+        DEFAULT_MAX_TRIO_LRR_SD, DEFAULT_MAX_TRIO_1585_SD, DEFAULT_MAX_NUM_CALLS);
   }
 
 }

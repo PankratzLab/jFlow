@@ -45,33 +45,31 @@ public class ARIC {
     }
     proj.getLog().reportTimeInfo("excluded " + numExcluded);
 
-    LocusSet<CNVariant> caseSet =
-        new LocusSet<CNVariant>(caseCNVs.toArray(new CNVariant[caseCNVs.size()]), true,
-                                proj.getLog()) {
+    LocusSet<CNVariant> caseSet = new LocusSet<CNVariant>(
+        caseCNVs.toArray(new CNVariant[caseCNVs.size()]), true, proj.getLog()) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1L;
 
-        };
+    };
     caseSet.writeRegions(cases, TO_STRING_TYPE.REGULAR, true, proj.getLog());
-    LocusSet<CNVariant> controlSet =
-        new LocusSet<CNVariant>(controlCNVs.toArray(new CNVariant[controlCNVs.size()]), true,
-                                proj.getLog()) {
+    LocusSet<CNVariant> controlSet = new LocusSet<CNVariant>(
+        controlCNVs.toArray(new CNVariant[controlCNVs.size()]), true, proj.getLog()) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1L;
 
-        };
+    };
     controlSet.writeRegions(controls, TO_STRING_TYPE.REGULAR, true, proj.getLog());
 
     cnvsSet.getStrictSegmentSet().writeRegions(cnvs + "regions.txt", TO_STRING_TYPE.REGULAR, false,
-                                               proj.getLog());
+        proj.getLog());
     CushingCnvs.filter(proj, mapFile, cases, new String[] {controls}, geneTrackFile,
-                       cnvs + "regions.txt", proj.getLog());
+        cnvs + "regions.txt", proj.getLog());
 
   }
 

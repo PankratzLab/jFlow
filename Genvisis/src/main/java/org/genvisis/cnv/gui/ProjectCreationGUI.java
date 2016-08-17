@@ -150,7 +150,7 @@ public class ProjectCreationGUI extends JDialog {
     contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
     setContentPane(contentPane);
     contentPane.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow][grow]",
-                                        "[grow][][grow][][][grow][][][][][grow][][][][grow][]"));
+        "[grow][][grow][][][grow][][][][][grow][][][][grow][]"));
 
     JLabel lblGenvisisProjectCreation = new JLabel("Genvisis Project Creation");
     lblGenvisisProjectCreation.setFont(new Font("Arial", Font.BOLD, 16));
@@ -216,7 +216,7 @@ public class ProjectCreationGUI extends JDialog {
 
     spinnerXY = new JSpinner();
     spinnerXY.setModel(new SpinnerNumberModel(proj.XY_SCALE_FACTOR.getDefaultValue().doubleValue(),
-                                              0.001, 10000000000d, 1.0));
+        0.001, 10000000000d, 1.0));
     contentPane.add(spinnerXY, "cell 2 11,growx");
 
     // JLabel lblLogrRatioStddev = new JLabel("Log-R Ratio Std.Dev. Cut-off Threshold:");
@@ -261,15 +261,15 @@ public class ProjectCreationGUI extends JDialog {
     panel.setLayout(new MigLayout("", "[grow][]", "[]"));
 
     JButton btnCreate = new JButton("Create [Skip Validation]");
-    btnCreate.setToolTipText("<html>Create new project, skipping source file validation.<br />  ONLY select if all source files are guaranteed <br />to be correct, valid, and uniform in structure.</html>");
+    btnCreate.setToolTipText(
+        "<html>Create new project, skipping source file validation.<br />  ONLY select if all source files are guaranteed <br />to be correct, valid, and uniform in structure.</html>");
     btnCreate.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         if (checkValues()) {
-          int resp =
-              JOptionPane.showConfirmDialog(ProjectCreationGUI.this,
-                                            "<html>Do you confirm that all source files are valid, correct, and uniform in structure? <br />[If not, or if unsure, select 'Validate and Create' to check for uniformity and validity]</html>",
-                                            "Confirm File Validity", JOptionPane.YES_NO_OPTION);
+          int resp = JOptionPane.showConfirmDialog(ProjectCreationGUI.this,
+              "<html>Do you confirm that all source files are valid, correct, and uniform in structure? <br />[If not, or if unsure, select 'Validate and Create' to check for uniformity and validity]</html>",
+              "Confirm File Validity", JOptionPane.YES_NO_OPTION);
           if (resp == JOptionPane.YES_OPTION) {
             if (createProject(false)) {
               doClose(false);
@@ -357,8 +357,8 @@ public class ProjectCreationGUI extends JDialog {
     }
 
     boolean[] checks = {nameCheck, validProjDir, validSrcDir, !srcExt.equals(""),
-                        // !idHdr.equals("") ,
-                        validTgtMkrs};// Files.exists(tgtMkrs)};
+        // !idHdr.equals("") ,
+        validTgtMkrs};// Files.exists(tgtMkrs)};
 
     if (Array.booleanArraySum(checks) < checks.length) {
       StringBuilder errorMsg = new StringBuilder();
@@ -385,9 +385,8 @@ public class ProjectCreationGUI extends JDialog {
     double xy = ((Double) spinnerXY.getValue()).doubleValue();
     String tgtMkrs = txtFldTgtMkrs.getText().trim();
 
-    HashMap<String, SourceFileHeaderData> headers =
-        SourceFileHeaderData.validate(srcDir, srcExt, actuallyValidate,
-                                      new org.genvisis.common.Logger(), progressBar);
+    HashMap<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(srcDir, srcExt,
+        actuallyValidate, new org.genvisis.common.Logger(), progressBar);
     if (headers == null) {
       // errors found in headers - check output and retry?
       return false;
@@ -446,9 +445,9 @@ public class ProjectCreationGUI extends JDialog {
         dummy.getLog().report("\n" + ext.getTime() + " Created directory " + projDir);
       } else {
         dummy.getLog().reportError("Error - failed to create  " + projDir
-                                   + ", please manually create it unless it already exists");
+            + ", please manually create it unless it already exists");
         dummy.message("Error - failed to create  " + projDir
-                      + ", please manually create it unless it already exists");
+            + ", please manually create it unless it already exists");
         return false;
       }
     }
@@ -472,8 +471,8 @@ public class ProjectCreationGUI extends JDialog {
     // if (abLookup != null && Files.exists(projectDirectory + abLookup)) {
     // proj.setProperty(proj.AB_LOOKUP_FILENAME, ext.removeDirectoryInfo(abLookup));
     // }
-    actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND ? SourceFileParser.FILENAME_AS_ID_OPTION
-                                                                              : cols[sampCol]);
+    actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND
+        ? SourceFileParser.FILENAME_AS_ID_OPTION : cols[sampCol]);
     actualProj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(sourceDelim));
     actualProj.saveProperties();
     actualProj.setSourceFileHeaders(headers);

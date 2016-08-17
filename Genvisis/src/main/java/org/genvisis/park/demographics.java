@@ -41,7 +41,7 @@ public class demographics {
     String filename = "struct.dat";
 
     String usage = "\n" + "park.demographics requires 0-1 arguments\n"
-                   + "   (1) a struct file (default: file=" + filename + ")\n" + "";
+        + "   (1) a struct file (default: file=" + filename + ")\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -110,7 +110,8 @@ public class demographics {
       temp = reader.readLine();
       line = temp.split("[\\s]+");
       if (line.length < 8) {
-        System.err.println("Error - requires at least 8 columns for every row: FamID IndID Father Mother Gender Affection DNA(not_used) AgeOfOnset");
+        System.err.println(
+            "Error - requires at least 8 columns for every row: FamID IndID Father Mother Gender Affection DNA(not_used) AgeOfOnset");
         System.err.println("  got - " + temp);
       }
       if (hash.containsKey(line[0])) {
@@ -128,8 +129,9 @@ public class demographics {
           aoos.add(line[7]);
         } catch (NumberFormatException nfe) {
           System.err.println("Error - Could not parse age of onset for " + line[0] + "-" + line[1]
-                             + ": " + line[7]);
-          System.err.println("        Looking for a number or a missing value character of '.' or '-99'");
+              + ": " + line[7]);
+          System.err
+              .println("        Looking for a number or a missing value character of '.' or '-99'");
           System.exit(3);
         }
       }
@@ -173,7 +175,8 @@ public class demographics {
         }
       }
       if (max >= 20 || count >= 20) {
-        System.err.println("Error - wasn't expecting a family with more than 20 affected, recompile with a higher limit");
+        System.err.println(
+            "Error - wasn't expecting a family with more than 20 affected, recompile with a higher limit");
       }
 
       if (total > 1) {
@@ -215,32 +218,31 @@ public class demographics {
     } else {
       writer.println("Age of onset information estimated from " + aoos.size() + " individuals:");
       writer.println(ext.formDeci(meanAOO, 1, true) + " \u00B1 " + ext.formDeci(stdev, 1, true)
-                     + " (" + aoos.elementAt(keys[0]) + "-"
-                     + aoos.elementAt(keys[keys.length > 1 ? keys.length - 1 : 0]) + ")");
+          + " (" + aoos.elementAt(keys[0]) + "-"
+          + aoos.elementAt(keys[keys.length > 1 ? keys.length - 1 : 0]) + ")");
     }
 
     total = bb_bs_ss[0] + bb_bs_ss[1] + bb_bs_ss[2];
 
     writer.println();
-    writer.println(males + " males (" + ext.formDeci((double) males / (males + females), 2, true)
-                   + ")");
-    writer.println(females + " females ("
-                   + ext.formDeci((double) females / (males + females), 2, true) + ")");
+    writer.println(
+        males + " males (" + ext.formDeci((double) males / (males + females), 2, true) + ")");
+    writer.println(
+        females + " females (" + ext.formDeci((double) females / (males + females), 2, true) + ")");
     writer.println();
     writer.println(bb_bs_ss[0] + " brother-brother pairs ("
-                   + ext.formDeci((double) bb_bs_ss[0] / (double) total, 2, true) + ")");
+        + ext.formDeci((double) bb_bs_ss[0] / (double) total, 2, true) + ")");
     writer.println(bb_bs_ss[1] + " brother-sister pairs ("
-                   + ext.formDeci((double) bb_bs_ss[1] / (double) total, 2, true) + ")");
+        + ext.formDeci((double) bb_bs_ss[1] / (double) total, 2, true) + ")");
     writer.println(bb_bs_ss[2] + " sister-sister pairs ("
-                   + ext.formDeci((double) bb_bs_ss[2] / (double) total, 2, true) + ")");
+        + ext.formDeci((double) bb_bs_ss[2] / (double) total, 2, true) + ")");
     writer.println(total + " total pairs");
 
     writer.println();
     for (int i = 0; i < 20; i++) {
       if (affPairs[i] > 0) {
         writer.println("families with "
-                       + (i == 1 ? " singlets/halfsibs = " : i + " affected sibpairs = ")
-                       + affPairs[i]);
+            + (i == 1 ? " singlets/halfsibs = " : i + " affected sibpairs = ") + affPairs[i]);
         if (i != 2) {
           writer.println(listFamsPairs[i]);
         }

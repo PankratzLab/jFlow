@@ -67,7 +67,7 @@ public class GenCNV implements Runnable {
     private final double pvalCutoff;
 
     public Analysis(String directory, String[] files, Significance[] significance, Pheno[] phenos,
-                    Burden[] burdens, double excludeFreqBelow, double pvalCutoff) {
+        Burden[] burdens, double excludeFreqBelow, double pvalCutoff) {
       this.directory = directory;
       this.files = files;
       this.significance = significance;
@@ -159,7 +159,7 @@ public class GenCNV implements Runnable {
 
     public String getFullAnalysis() {
       return "BURDEN_" + analysisModel + "\t" + analysisType + "\t" + pheno + "\t" + "NA" + "\t"
-             + burdenPvalue;
+          + burdenPvalue;
     }
 
     public int getLociTested() {
@@ -262,7 +262,8 @@ public class GenCNV implements Runnable {
       for (int i = 0; i < finalIDs.length; i++) {
         if (tracker.containsKey(finalIDs[i])) {
           error = true;
-          System.err.println("Error - duplicate ids were provided in the phenotype file being prepared");
+          System.err
+              .println("Error - duplicate ids were provided in the phenotype file being prepared");
           System.exit(1);
         } else {
           // only retreive one phenotype;
@@ -357,15 +358,15 @@ public class GenCNV implements Runnable {
 
     public String getFullAnalysis() {
       return analysisModel + "\t" + analysisType + "\t" + phenoType + "\t" + getLambda() + "\t"
-             + minPvalue + "\t" + minPvalLocus + "\t" + numPassingThreshold + "\t" + numTests + "/"
-             + numTotal;
+          + minPvalue + "\t" + minPvalLocus + "\t" + numPassingThreshold + "\t" + numTests + "/"
+          + numTotal;
     }
 
     public double getLambda() {
       // ProbDist.ChiDistReverse(Array.median(toDoubleArray(lociTestedPvalue)),
       // 1)/ProbDist.ChiDistReverse(0.50, 1);
       return ProbDist.ChiDistReverse(Array.median(toDoubleArray(lociTestedPvalue)), 1)
-             / ProbDist.ChiDistReverse(0.50, 1);
+          / ProbDist.ChiDistReverse(0.50, 1);
     }
 
     public String[] getLociByPvalue(double pvalCutoff) {
@@ -448,15 +449,13 @@ public class GenCNV implements Runnable {
       {"ANY_CNV_COLLAPSED", "ANY_CNV_ORDERED_NOT_COLLAPSED", "HOMOZYGOUS_DELETIONS_ONLY"};
   public static final String[] ANALYSIS_TYPES = {"POSITION", "WINDOW"};
   private static final int[] DEFAULT_WINDOWS = {0, 200000};
-  public static final String[] ANALYSIS_SUMMARY_HEADER =
-      {"MODEL", "TYPE", "PhenoType", "lambda", "MinPvalue", "MinPvalueLocus",
-       "NumPassing pval cutoff", "lociTested/lociTotal"};
+  public static final String[] ANALYSIS_SUMMARY_HEADER = {"MODEL", "TYPE", "PhenoType", "lambda",
+      "MinPvalue", "MinPvalueLocus", "NumPassing pval cutoff", "lociTested/lociTotal"};
 
   public static final String[] ANALYSIS_LOCI_HEADER =
       {"MODEL", "TYPE", "PhenoType", "lambda", "loci", "pvalue"};
-  public static final boolean[][] ANALYSIS_MODEL_PARAMS =
-      {{true, true, false, true, false}, {true, true, true, true, false},
-       {true, false, false, false, true}};
+  public static final boolean[][] ANALYSIS_MODEL_PARAMS = {{true, true, false, true, false},
+      {true, true, true, true, false}, {true, false, false, false, true}};
   public static final String[] GPHENO_HEADERS = {"FID", "IID"};
 
   public static final String[] GPED_HEADERS = {"markerName"};
@@ -471,13 +470,12 @@ public class GenCNV implements Runnable {
   private static final String ID_DELIMITER = "-";
 
   public static void analyzeALL(String dir, String gPhenoFile, int numThreads,
-                                double excludeFreqBelow, double pvalCutoff, String outputSerial,
-                                Logger log) {
+      double excludeFreqBelow, double pvalCutoff, String outputSerial, Logger log) {
     Thread[] threads = new Thread[numThreads];
     Pheno[] phenos = loadGPHENO(dir + gPhenoFile, log);
     ArrayList<Analysis> analyses = new ArrayList<Analysis>();
     log.report(ext.getTime() + " Info - positions with frequency less than " + excludeFreqBelow
-               + " will be removed");
+        + " will be removed");
     log.report(ext.getTime() + " Info - p-value cutoff set to " + pvalCutoff);
     for (int i = 0; i < ANALYSIS_MODELS.length; i++) {
       for (int j = 0; j < ANALYSIS_TYPES.length; j++) {
@@ -490,10 +488,10 @@ public class GenCNV implements Runnable {
           significance[k] =
               new Significance(ANALYSIS_MODELS[i], ANALYSIS_TYPES[j], phenos[k].getPhenoName());
           burdens[k] = new Burden(ANALYSIS_MODELS[i], ANALYSIS_TYPES[j], phenos[k].getPhenoName(),
-                                  phenos[k].getArrayInds().length);
+              phenos[k].getArrayInds().length);
         }
         analyses.add(new Analysis(resultDir, files, significance, phenos, burdens, excludeFreqBelow,
-                                  pvalCutoff));
+            pvalCutoff));
       }
     }
     ArrayList<ArrayList<Analysis>> cabinet = getcabinet(analyses, numThreads);
@@ -503,7 +501,8 @@ public class GenCNV implements Runnable {
 
   private static void assignBurdens(double[] genos, Burden burden, Logger log) {
     if (genos.length != burden.getCounts().length) {
-      log.reportError("Error - the number of genotypes do not match the number of individuals in the burden test");
+      log.reportError(
+          "Error - the number of genotypes do not match the number of individuals in the burden test");
       System.exit(1);
     } else {
       burden.addTest();
@@ -521,7 +520,8 @@ public class GenCNV implements Runnable {
     if (header[0].equals(GPHENO_HEADERS[0]) && header[1].equals(GPHENO_HEADERS[1])) {
       head = true;
     } else {
-      log.reportError("Error - Need a column header ending with the following suffixes; missing at least one");
+      log.reportError(
+          "Error - Need a column header ending with the following suffixes; missing at least one");
       log.reportError("        " + Array.toStr(GPHENO_HEADERS, "  "));
       System.exit(1);
     }
@@ -577,9 +577,8 @@ public class GenCNV implements Runnable {
     Pheno[] phenos = analysis.getPhenos();
     for (int i = 0; i < phenos.length; i++) {
       if (hasVariance(phenos[i])) {
-        RegressionModel model =
-            new LeastSquares(phenos[i].getArrayPheno(),
-                             Array.toDoubleArray(analysis.getBurdens()[i].getCounts()));
+        RegressionModel model = new LeastSquares(phenos[i].getArrayPheno(),
+            Array.toDoubleArray(analysis.getBurdens()[i].getCounts()));
         if (!model.analysisFailed()) {
           analysis.getBurdens()[i].setBurdenPvalue(model.getOverallSig());
         }
@@ -600,7 +599,7 @@ public class GenCNV implements Runnable {
   }
 
   public static void dumpResults(String dir, String outputSerial, String outputSummary,
-                                 double pvalThreshold, double lambdaThreshold, Logger log) {
+      double pvalThreshold, double lambdaThreshold, Logger log) {
     AllSigs allSigs = AllSigs.load(dir + outputSerial, false);
     Significance[] significances = allSigs.getSigs();
     Burden[] burdens = allSigs.getBurdens();
@@ -616,7 +615,7 @@ public class GenCNV implements Runnable {
           String[] results = significance.getLociByPvalue(pvalThreshold);
           for (String result : results) {
             writer.println(significance.getAnalysisModel() + "\t" + significance.getAnalysisType()
-                           + "\t" + significance.getPhenoType() + "\t" + lambda + "\t" + result);
+                + "\t" + significance.getPhenoType() + "\t" + lambda + "\t" + result);
           }
         }
       }
@@ -637,7 +636,7 @@ public class GenCNV implements Runnable {
   }
 
   private static ArrayList<ArrayList<Analysis>> getcabinet(ArrayList<Analysis> analyses,
-                                                           int numThreads) {
+      int numThreads) {
     ArrayList<ArrayList<Analysis>> cabinet = new ArrayList<ArrayList<Analysis>>();
     for (int i = 0; i < numThreads; i++) {
       cabinet.add(new ArrayList<Analysis>());
@@ -670,7 +669,8 @@ public class GenCNV implements Runnable {
       }
       headers = reader.readLine().trim().split("\t");
       if (!headers[0].equals(GPED_HEADERS[0])) {
-        log.reportError("Error - Need a column header ending with the following suffixes; missing at least one");
+        log.reportError(
+            "Error - Need a column header ending with the following suffixes; missing at least one");
         log.reportError("        " + Array.toStr(GPED_HEADERS, "  "));
         System.exit(1);
       }
@@ -860,7 +860,7 @@ public class GenCNV implements Runnable {
   // TODO will make this more modular, but now just setting a specific analysis Type;
   // basically run the prep with each phenotype and print to one file;
   public static String prepPhenos(String dir, String gPhenoFIle, String idFile, String[] covars,
-                                  Logger log) {
+      Logger log) {
     String newGPhenoFile = ext.rootOf(gPhenoFIle) + ".gprep";
     log.report(dir + gPhenoFIle);
     Pheno[] phenos = loadGPHENO(dir + gPhenoFIle, log);
@@ -873,25 +873,25 @@ public class GenCNV implements Runnable {
       if (hashcovars.containsKey(phenos[i].getPhenoName()) || !hasVariance(phenos[i])) {
         if (!hasVariance(phenos[i])) {
           log.report("Warning - no variance detected in phenotype " + phenos[i].getPhenoName()
-                     + ", removing from analysis");
+              + ", removing from analysis");
         }
         continue;
       } else {
         PhenoPrep prep = new PhenoPrep(dir + gPhenoFIle, idFile == null ? null : dir + idFile,
-                                       GPHENO_HEADERS[0], phenos[i].getPhenoName(), covars, log);
+            GPHENO_HEADERS[0], phenos[i].getPhenoName(), covars, log);
         prep.computeResiduals();
         prep.inverseNormalize();
-        prepResults.add(new PrepResults(phenos[i].getPhenoName(), prep.getFinalIDs(),
-                                        prep.getDatabase()));
+        prepResults
+            .add(new PrepResults(phenos[i].getPhenoName(), prep.getFinalIDs(), prep.getDatabase()));
       }
     }
     printNewGPheno(dir, newGPhenoFile, prepResults.toArray(new PrepResults[prepResults.size()]),
-                   uniqInds, log);
+        uniqInds, log);
     return newGPhenoFile;
   }
 
   private static void printNewGPheno(String dir, String newGPhenoFile, PrepResults[] prepResults,
-                                     String[] uniqInds, Logger log) {
+      String[] uniqInds, Logger log) {
     String output = dir + newGPhenoFile;
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(output));
@@ -918,28 +918,26 @@ public class GenCNV implements Runnable {
       e.printStackTrace();
     }
     log.report(ext.getTime() + " Finished prepping " + prepResults.length + " phenotypes for "
-               + uniqInds.length + " individuals");
+        + uniqInds.length + " individuals");
 
   }
 
   public static void runALL(String dir, String cnvFilename, String pedFilename,
-                            int numMarkersPerFile, Logger log) {
+      int numMarkersPerFile, Logger log) {
     for (int i = 0; i < ANALYSIS_MODELS.length; i++) {
       for (int j = 0; j < ANALYSIS_TYPES.length; j++) {
         String prefix = getFileBase(i, j);
         String outputRoot = getOutputDir(dir, i, j) + "/" + prefix;
         ExportCNVsToPedFormat.export(dir + cnvFilename, dir + pedFilename, outputRoot, "\n",
-                                     ExportCNVsToPedFormat.MATRIX_FORMAT,
-                                     ANALYSIS_MODEL_PARAMS[i][0], ANALYSIS_MODEL_PARAMS[i][1],
-                                     ANALYSIS_MODEL_PARAMS[i][2], ANALYSIS_MODEL_PARAMS[i][3],
-                                     ANALYSIS_MODEL_PARAMS[i][4], true, numMarkersPerFile,
-                                     DEFAULT_WINDOWS[j], log);
+            ExportCNVsToPedFormat.MATRIX_FORMAT, ANALYSIS_MODEL_PARAMS[i][0],
+            ANALYSIS_MODEL_PARAMS[i][1], ANALYSIS_MODEL_PARAMS[i][2], ANALYSIS_MODEL_PARAMS[i][3],
+            ANALYSIS_MODEL_PARAMS[i][4], true, numMarkersPerFile, DEFAULT_WINDOWS[j], log);
       }
     }
   }
 
   private static void runAnalysis(Analysis analysis, GpedCNVGenos gpedCNVGenos, Logger log,
-                                  String file) {
+      String file) {
     String[] headers = gpedCNVGenos.getHeaders();
     Pheno[] phenos = analysis.getPhenos();
     String[][] gpedGenos = gpedCNVGenos.getGpedCNVGenos();
@@ -973,15 +971,15 @@ public class GenCNV implements Runnable {
               }
             } else {
               log.reportError("Analysis failed for locus " + gpedGenos[k][0] + " , "
-                              + analysis.getSignificance()[0].getAnalysisModel() + "\t"
-                              + analysis.getSignificance()[0].getAnalysisType());
+                  + analysis.getSignificance()[0].getAnalysisModel() + "\t"
+                  + analysis.getSignificance()[0].getAnalysisType());
               log.reportError("Failed analysis for data in file" + file + ", position " + k
-                              + ", phenotype " + phenos[i].getPhenoName());
+                  + ", phenotype " + phenos[i].getPhenoName());
             }
           }
         }
         log.report(ext.getTime() + " Info - tested " + count + " individuals in file " + file
-                   + " with phenotype " + phenos[i].getPhenoName());
+            + " with phenotype " + phenos[i].getPhenoName());
       } else {
         log.report("NO variance in " + phenos[i].getPhenoName());
       }
@@ -990,7 +988,7 @@ public class GenCNV implements Runnable {
   }
 
   private static GenCNV[] runAnalysis(ArrayList<ArrayList<Analysis>> cabinet, int numThreads,
-                                      Thread[] threads, Logger log) {
+      Thread[] threads, Logger log) {
     GenCNV[] genCNVs = new GenCNV[numThreads];
     for (int i = 0; i < numThreads; i++) {
       genCNVs[i] = new GenCNV(cabinet.get(i).toArray(new Analysis[cabinet.get(i).size()]), i);
@@ -1002,7 +1000,7 @@ public class GenCNV implements Runnable {
   }
 
   private static void summarizeAll(GenCNV[] genCNVs, String dir, String gPhenoFile,
-                                   String outputSerial, Logger log) {
+      String outputSerial, Logger log) {
     log.report(Array.toStr(ANALYSIS_SUMMARY_HEADER));
     ArrayList<Significance> allSigs = new ArrayList<Significance>();
     ArrayList<Burden> allburdens = new ArrayList<Burden>();
@@ -1029,7 +1027,7 @@ public class GenCNV implements Runnable {
       Files.backup(outputSerial, dir, dir + DEFAULT_BACKUP);
     }
     new AllSigs(allSigs.toArray(new Significance[allSigs.size()]),
-                allburdens.toArray(new Burden[allburdens.size()])).serialize(output);
+        allburdens.toArray(new Burden[allburdens.size()])).serialize(output);
   }
 
   private static double[] toDoubleArray(ArrayList<Double> al) {
@@ -1079,11 +1077,11 @@ public class GenCNV implements Runnable {
       String[] analysisFiles = analyses[i].getFiles();
       for (int k = 0; k < analysisFiles.length; k++) {
         log.report(ext.getTime() + " Thread " + threadID + ": analysis " + i + "/" + analyses.length
-                   + ": file " + k + "/" + analysisFiles.length);
+            + ": file " + k + "/" + analysisFiles.length);
         String file = directory + analysisFiles[k];
         GpedCNVGenos gpedCNVGenos = getGpedCNVGenos(file, log);
         log.report("Info - Found " + gpedCNVGenos.getGpedCNVGenos().length
-                   + " CNV genotypes in file " + file + " using thread " + threadID);
+            + " CNV genotypes in file " + file + " using thread " + threadID);
         runAnalysis(analyses[i], gpedCNVGenos, log, file);
       }
       computeBurden(analyses[i]);

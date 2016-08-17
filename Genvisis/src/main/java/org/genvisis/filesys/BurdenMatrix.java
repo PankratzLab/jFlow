@@ -27,13 +27,12 @@ import com.google.common.primitives.Ints;
 public class BurdenMatrix implements Serializable {
   public static final long serialVersionUID = 1L;
 
-  public static final String[] ALL_KNOWN_ANNOTATIONS =
-      {"ncRNA", "stoploss_SNV", "synonymous_SNV", "intronic", "UTR3", "upstream",
-       "nonsynonymous_SNV", "splicing", "stopgain_SNV", "intergenic", "stoploss_SNV", "downstream",
-       "stopgain_SNV", "synonymous_SNV", "unknown", "nonsynonymous_SNV", "UTR5", "exonic_splicing"};
-  public static final String[] DEFAULT_ANNOTATIONS_TO_INCLUDE =
-      {"TRUE", "1", "stopgain_SNV", "stoploss_SNV", "nonsynonymous_SNV", "splicing",
-       "exonic_splicing"};
+  public static final String[] ALL_KNOWN_ANNOTATIONS = {"ncRNA", "stoploss_SNV", "synonymous_SNV",
+      "intronic", "UTR3", "upstream", "nonsynonymous_SNV", "splicing", "stopgain_SNV", "intergenic",
+      "stoploss_SNV", "downstream", "stopgain_SNV", "synonymous_SNV", "unknown",
+      "nonsynonymous_SNV", "UTR5", "exonic_splicing"};
+  public static final String[] DEFAULT_ANNOTATIONS_TO_INCLUDE = {"TRUE", "1", "stopgain_SNV",
+      "stoploss_SNV", "nonsynonymous_SNV", "splicing", "exonic_splicing"};
   public static final String[] ANNOTATION_DELIMITERS = {"/"};
 
   public static BurdenMatrix load(String filename, boolean jar) {
@@ -60,7 +59,7 @@ public class BurdenMatrix implements Serializable {
     String variantWeightsFile = null;
 
     String usage = "\n" + "filesys.GenotypeMatrix requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + genoFile + " (default))\n" + "";
+        + "   (1) filename (i.e. file=" + genoFile + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -136,13 +135,12 @@ public class BurdenMatrix implements Serializable {
         System.out.println("Generating: " + genoFile + ".T5_burden");
         if (imputeUsingDataFreqFromTheseIDsNotAnnotationFreq != null) {
           System.out.println("Missing values will be replaced with the mean value across the "
-                             + imputeUsingDataFreqFromTheseIDsNotAnnotationFreq.length
-                             + " samples with complete phenotypic data");
+              + imputeUsingDataFreqFromTheseIDsNotAnnotationFreq.length
+              + " samples with complete phenotypic data");
         }
         burden = new BurdenMatrix(gens, mafThreshold, annotationsToInclude, allKnownAnnotations,
-                                  additiveVariants, mafThresholdToStartImputing,
-                                  imputeUsingDataFreqFromTheseIDsNotAnnotationFreq,
-                                  variantWeightsFile, log);
+            additiveVariants, mafThresholdToStartImputing,
+            imputeUsingDataFreqFromTheseIDsNotAnnotationFreq, variantWeightsFile, log);
         burden.writeToFile(genoFile + ".T5_burden.csv", phenoFile, genoFile + ".T5_info.csv", log);
         burden.serialize(genoFile + ".T5_burden.ser");
       }
@@ -152,28 +150,28 @@ public class BurdenMatrix implements Serializable {
       // true, log);
 
       phenoFile = dir + "lnFibrinogen.csv";
-      burden.analyze(phenoFile, "NA", null,
-                     ext.parseDirectoryOfFile(phenoFile) + "ARIC." + ext.rootOf(phenoFile)
-                                            + ".T5.EA." + ext.getDate(new Date(), "") + ".csv",
-                     true, log);
+      burden.analyze(
+          phenoFile, "NA", null, ext.parseDirectoryOfFile(phenoFile) + "ARIC."
+              + ext.rootOf(phenoFile) + ".T5.EA." + ext.getDate(new Date(), "") + ".csv",
+          true, log);
 
       phenoFile = dir + "FVII.csv";
-      burden.analyze(phenoFile, "NA", null,
-                     ext.parseDirectoryOfFile(phenoFile) + "ARIC." + ext.rootOf(phenoFile)
-                                            + ".T5.EA." + ext.getDate(new Date(), "") + ".csv",
-                     true, log);
+      burden.analyze(
+          phenoFile, "NA", null, ext.parseDirectoryOfFile(phenoFile) + "ARIC."
+              + ext.rootOf(phenoFile) + ".T5.EA." + ext.getDate(new Date(), "") + ".csv",
+          true, log);
 
       phenoFile = dir + "FVIII.csv";
-      burden.analyze(phenoFile, "NA", null,
-                     ext.parseDirectoryOfFile(phenoFile) + "ARIC." + ext.rootOf(phenoFile)
-                                            + ".T5.EA." + ext.getDate(new Date(), "") + ".csv",
-                     true, log);
+      burden.analyze(
+          phenoFile, "NA", null, ext.parseDirectoryOfFile(phenoFile) + "ARIC."
+              + ext.rootOf(phenoFile) + ".T5.EA." + ext.getDate(new Date(), "") + ".csv",
+          true, log);
 
       phenoFile = dir + "vWF.csv";
-      burden.analyze(phenoFile, "NA", null,
-                     ext.parseDirectoryOfFile(phenoFile) + "ARIC." + ext.rootOf(phenoFile)
-                                            + ".T5.EA." + ext.getDate(new Date(), "") + ".csv",
-                     true, log);
+      burden.analyze(
+          phenoFile, "NA", null, ext.parseDirectoryOfFile(phenoFile) + "ARIC."
+              + ext.rootOf(phenoFile) + ".T5.EA." + ext.getDate(new Date(), "") + ".csv",
+          true, log);
 
 
       variantWeightsFile = dir + "MadsenBrowningWeights.dat";
@@ -185,15 +183,14 @@ public class BurdenMatrix implements Serializable {
         System.out.println("Generating: " + genoFile + ".MadBr_burden");
         if (imputeUsingDataFreqFromTheseIDsNotAnnotationFreq != null) {
           System.out.println("Missing values will be replaced with the mean value across the "
-                             + imputeUsingDataFreqFromTheseIDsNotAnnotationFreq.length
-                             + " samples with complete phenotypic data");
+              + imputeUsingDataFreqFromTheseIDsNotAnnotationFreq.length
+              + " samples with complete phenotypic data");
         }
         burden = new BurdenMatrix(gens, mafThreshold, annotationsToInclude, allKnownAnnotations,
-                                  additiveVariants, mafThresholdToStartImputing,
-                                  imputeUsingDataFreqFromTheseIDsNotAnnotationFreq,
-                                  variantWeightsFile, log);
+            additiveVariants, mafThresholdToStartImputing,
+            imputeUsingDataFreqFromTheseIDsNotAnnotationFreq, variantWeightsFile, log);
         burden.writeToFile(genoFile + ".MadBr_burden.csv", phenoFile, genoFile + ".MadBr_info.csv",
-                           log);
+            log);
         burden.serialize(genoFile + ".MadBr_burden.ser");
       }
       // gens.writeToPlinkFiles(ext.rootOf(genoFile, false));
@@ -202,28 +199,28 @@ public class BurdenMatrix implements Serializable {
       // true, log);
 
       phenoFile = dir + "lnFibrinogen.csv";
-      burden.analyze(phenoFile, "NA", null,
-                     ext.parseDirectoryOfFile(phenoFile) + "ARIC." + ext.rootOf(phenoFile)
-                                            + ".T5MB.EA." + ext.getDate(new Date(), "") + ".csv",
-                     true, log);
+      burden.analyze(
+          phenoFile, "NA", null, ext.parseDirectoryOfFile(phenoFile) + "ARIC."
+              + ext.rootOf(phenoFile) + ".T5MB.EA." + ext.getDate(new Date(), "") + ".csv",
+          true, log);
 
       phenoFile = dir + "FVII.csv";
-      burden.analyze(phenoFile, "NA", null,
-                     ext.parseDirectoryOfFile(phenoFile) + "ARIC." + ext.rootOf(phenoFile)
-                                            + ".T5MB.EA." + ext.getDate(new Date(), "") + ".csv",
-                     true, log);
+      burden.analyze(
+          phenoFile, "NA", null, ext.parseDirectoryOfFile(phenoFile) + "ARIC."
+              + ext.rootOf(phenoFile) + ".T5MB.EA." + ext.getDate(new Date(), "") + ".csv",
+          true, log);
 
       phenoFile = dir + "FVIII.csv";
-      burden.analyze(phenoFile, "NA", null,
-                     ext.parseDirectoryOfFile(phenoFile) + "ARIC." + ext.rootOf(phenoFile)
-                                            + ".T5MB.EA." + ext.getDate(new Date(), "") + ".csv",
-                     true, log);
+      burden.analyze(
+          phenoFile, "NA", null, ext.parseDirectoryOfFile(phenoFile) + "ARIC."
+              + ext.rootOf(phenoFile) + ".T5MB.EA." + ext.getDate(new Date(), "") + ".csv",
+          true, log);
 
       phenoFile = dir + "vWF.csv";
-      burden.analyze(phenoFile, "NA", null,
-                     ext.parseDirectoryOfFile(phenoFile) + "ARIC." + ext.rootOf(phenoFile)
-                                            + ".T5MB.EA." + ext.getDate(new Date(), "") + ".csv",
-                     true, log);
+      burden.analyze(
+          phenoFile, "NA", null, ext.parseDirectoryOfFile(phenoFile) + "ARIC."
+              + ext.rootOf(phenoFile) + ".T5MB.EA." + ext.getDate(new Date(), "") + ".csv",
+          true, log);
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -243,10 +240,9 @@ public class BurdenMatrix implements Serializable {
   private double[] observedFreqs;
 
   public BurdenMatrix(GenotypeMatrix gens, double mafThreshold, String[] annotationsToInclude,
-                      String[] allKnownAnnotations, boolean additiveVariants,
-                      double mafThresholdToStartImputing,
-                      String[] imputeUsingDataFreqFromTheseIDsNotAnnotationFreq,
-                      String variantWeightsFile, Logger log) {
+      String[] allKnownAnnotations, boolean additiveVariants, double mafThresholdToStartImputing,
+      String[] imputeUsingDataFreqFromTheseIDsNotAnnotationFreq, String variantWeightsFile,
+      Logger log) {
     String[] line;
     String[] markerNames;
     byte[][] counts;
@@ -288,7 +284,7 @@ public class BurdenMatrix implements Serializable {
         } catch (Exception e) {
           if (i > 0) {
             log.reportError("Error - '" + importedWeights[i][1]
-                            + "' is an invalid weight for marker " + importedWeights[i][0]);
+                + "' is an invalid weight for marker " + importedWeights[i][0]);
           }
         }
       }
@@ -310,16 +306,19 @@ public class BurdenMatrix implements Serializable {
     functionAnnotation = -1;
     // checks to see if we have enough annotation to build the specified model
     if (annotation == null || annotation[0].length == 0) {
-      log.reportError("Error - no annotation available, need at least gene/group name to determine membership");
+      log.reportError(
+          "Error - no annotation available, need at least gene/group name to determine membership");
       return;
     } else if (mafThreshold < 0 && annotationsToInclude == null) {
       log.report("No annotation beyond gene/group name will be included in the burden scores");
     } else if (annotation[0].length >= 3) {
-      log.report("Making the assumption that the order of the annotation is gene/group name, then MAF, then functional annotation");
+      log.report(
+          "Making the assumption that the order of the annotation is gene/group name, then MAF, then functional annotation");
       mafAnnotation = 1;
       functionAnnotation = 2;
       if (annotation[0].length > 3) {
-        log.reportError("Warning - found more annotation than is required; assuming everything else is coming after the three expected columns; if this is not correct, there could be problems");
+        log.reportError(
+            "Warning - found more annotation than is required; assuming everything else is coming after the three expected columns; if this is not correct, there could be problems");
       }
     } else if (annotation[0].length == 2) {
       log.report("Found only one bit of annotation besides gene/group name");
@@ -352,8 +351,7 @@ public class BurdenMatrix implements Serializable {
       if (mafAnnotation >= 0) {
         if (ext.containsAny(annotation[i][mafAnnotation], ANNOTATION_DELIMITERS)) {
           log.reportError("Error - don't kow what to do with multiple allele frequencies ('"
-                          + annotation[i][mafAnnotation] + "' for marker " + markerNames[i]
-                          + "); aborting");
+              + annotation[i][mafAnnotation] + "' for marker " + markerNames[i] + "); aborting");
           return;
         }
         try {
@@ -364,7 +362,7 @@ public class BurdenMatrix implements Serializable {
           }
         } catch (NumberFormatException nfe) {
           log.reportError("Error - invalid minor allele frequency '" + annotation[i][mafAnnotation]
-                          + "' for marker " + markerNames[i] + "; aborting");
+              + "' for marker " + markerNames[i] + "; aborting");
           return;
         }
         // less than threshold (e.g., maf<0.05), not less than or equal to threshold
@@ -421,8 +419,8 @@ public class BurdenMatrix implements Serializable {
 
     geneNames = HashVec.getKeys(geneMappingHash, true, false);
     System.out.println("Included " + included + " variant to gene mappings in " + geneNames.length
-                       + " genes (" + markerNames.length + " markers attempted; " + failedForMAF
-                       + " failed for maf; " + failedForFunction + " failed for function)");
+        + " genes (" + markerNames.length + " markers attempted; " + failedForMAF
+        + " failed for maf; " + failedForFunction + " failed for function)");
     chrs = markerSet.getChrs();
     positions = markerSet.getPositions();
     numberOfVariants = new int[geneNames.length];
@@ -441,9 +439,8 @@ public class BurdenMatrix implements Serializable {
           chr = chrs[index];
         } else if (chr != chrs[index] && !geneNames[i].equals("NA")) {
           log.reportError("Error - variant " + markerNames[index]
-                          + " is on a different chromosome (chr" + chrs[index]
-                          + ") than previous variants in gene " + geneNames[i] + " (chr" + chr
-                          + ")");
+              + " is on a different chromosome (chr" + chrs[index]
+              + ") than previous variants in gene " + geneNames[i] + " (chr" + chr + ")");
         }
         if (position < start) {
           start = position;
@@ -524,7 +521,7 @@ public class BurdenMatrix implements Serializable {
   }
 
   public void analyze(String phenoFile, String phenoMissingValue, String geneListSubset,
-                      String outputFile, boolean verbose, Logger log) {
+      String outputFile, boolean verbose, Logger log) {
     PrintWriter writer;
     String[] line;
     Hashtable<String, String> hash;
@@ -545,9 +542,8 @@ public class BurdenMatrix implements Serializable {
     traits = Files.getHeaderOfFile(phenoFile, Files.determineDelimiter(phenoFile, log), log);
     names = Array.subArray(traits, 1);
     hash = HashVec.loadFileToHashString(phenoFile, new int[] {0},
-                                        Arrays.copyOfRange(Array.arrayOfIndices(traits.length), 1,
-                                                           traits.length),
-                                        phenoFile.endsWith(".csv"), "\t", true, false, false);
+        Arrays.copyOfRange(Array.arrayOfIndices(traits.length), 1, traits.length),
+        phenoFile.endsWith(".csv"), "\t", true, false, false);
     traits = Array.subArray(traits, 1);
     log.report("Missing phenotype is set to '" + phenoMissingValue + "'");
 
@@ -600,15 +596,16 @@ public class BurdenMatrix implements Serializable {
       }
     }
     logistic = RegressionModel.isBinaryTrait(Array.toStr(deps).split("[\\s]+"), log);
-    log.report("Running a " + (logistic ? "logistic" : "linear") + " model for trait '" + traits[0]
-               + "'", true, verbose);
+    log.report(
+        "Running a " + (logistic ? "logistic" : "linear") + " model for trait '" + traits[0] + "'",
+        true, verbose);
     try {
       writer = new PrintWriter(new FileWriter(outputFile));
       delimiter = outputFile.endsWith(".csv") ? "," : "\t";
       writer.println("gene" + delimiter + "region" + delimiter + "chr" + delimiter + "start"
-                     + delimiter + "stop" + delimiter + "NSNPS" + delimiter + "NALLELES" + delimiter
-                     + "SUMOFSCORES" + delimiter + "N" + delimiter + "mean" + delimiter + "var"
-                     + delimiter + "beta" + delimiter + "se" + delimiter + "pval"); // \tNALLELES
+          + delimiter + "stop" + delimiter + "NSNPS" + delimiter + "NALLELES" + delimiter
+          + "SUMOFSCORES" + delimiter + "N" + delimiter + "mean" + delimiter + "var" + delimiter
+          + "beta" + delimiter + "se" + delimiter + "pval"); // \tNALLELES
       for (int i = 0; i < geneNames.length; i++) {
         if (analyze[i]) {
           countSamplesUsed = 0;
@@ -620,7 +617,7 @@ public class BurdenMatrix implements Serializable {
           }
           names[0] = "gene";
           model = logistic ? new LogisticRegression(deps, indeps, names, false, false)
-                           : new LeastSquares(deps, indeps, names, false, false);
+              : new LeastSquares(deps, indeps, names, false, false);
           betas = model.getBetas();
           stderrs = model.getSEofBs();
           pvals = model.getSigs();
@@ -630,9 +627,9 @@ public class BurdenMatrix implements Serializable {
           namesUsed = model.getVarNames();
           if (model.getFinalDependentVariables().length != countSamplesUsed) {
             log.reportError("Mismatched number of missing values for gene/region '" + geneNames[i]
-                            + "' (" + model.getFinalDependentVariables().length + ", expected "
-                            + countSamplesUsed + "); might want to check missing value codes: "
-                            + model.getFinalIndependentVariables()[2][0]);
+                + "' (" + model.getFinalDependentVariables().length + ", expected "
+                + countSamplesUsed + "); might want to check missing value codes: "
+                + model.getFinalIndependentVariables()[2][0]);
           }
           indexOfBeta = ext.indexOfStr("gene", namesUsed);
           if (indexOfBeta == -1) {
@@ -644,20 +641,20 @@ public class BurdenMatrix implements Serializable {
               System.out.println("'" + geneNames[i] + "'\t" + i + "\t" + analyze[i]);
             }
             writer.print(geneNames[i] + delimiter + "chr" + startAndStopPositions[i][0] + ":"
-                         + startAndStopPositions[i][1] + "_" + startAndStopPositions[i][2]
-                         + delimiter + startAndStopPositions[i][0] + delimiter
-                         + startAndStopPositions[i][1] + delimiter + startAndStopPositions[i][2]);
+                + startAndStopPositions[i][1] + "_" + startAndStopPositions[i][2] + delimiter
+                + startAndStopPositions[i][0] + delimiter + startAndStopPositions[i][1] + delimiter
+                + startAndStopPositions[i][2]);
             snpCounts = Matrix.extractColumn(indeps, 0);
             // System.out.println(snpCounts.length);
             // writer.println(delimiter+numberOfVariants[i]+delimiter+Array.sum(snpCounts)+delimiter+countSamplesUsed+delimiter+Array.mean(snpCounts)+delimiter+Array.variance(snpCounts)+delimiter+ext.formDeci(betas[indexOfBeta],
             // sigfig, true)+delimiter+ext.formDeci(stderrs[indexOfBeta], sigfig,
             // true)+delimiter+ext.prettyP(pvals[indexOfBeta], sigfig, 4, 3, true));
             writer.println(delimiter + numberOfVariants[i] + delimiter
-                           + Array.sum(Array.subArray(numberOfAlleles[i], use)) + delimiter
-                           + Array.sum(snpCounts) + delimiter + countSamplesUsed + delimiter
-                           + Array.mean(snpCounts) + delimiter + Array.variance(snpCounts)
-                           + delimiter + betas[indexOfBeta] + delimiter + stderrs[indexOfBeta]
-                           + delimiter + pvals[indexOfBeta]); // delimiter+Array.sum(snpCounts)+
+                + Array.sum(Array.subArray(numberOfAlleles[i], use)) + delimiter
+                + Array.sum(snpCounts) + delimiter + countSamplesUsed + delimiter
+                + Array.mean(snpCounts) + delimiter + Array.variance(snpCounts) + delimiter
+                + betas[indexOfBeta] + delimiter + stderrs[indexOfBeta] + delimiter
+                + pvals[indexOfBeta]); // delimiter+Array.sum(snpCounts)+
           }
           writer.flush();
 
@@ -687,7 +684,7 @@ public class BurdenMatrix implements Serializable {
   }
 
   public void writeToFile(String newMatrixFile, String phenotypeFileToMergeWith, String newMapFile,
-                          Logger log) {
+      Logger log) {
     PrintWriter writer;
     int count;
     String head, delimiter;
@@ -699,13 +696,14 @@ public class BurdenMatrix implements Serializable {
       head = Files.getFirstNLinesOfFile(phenotypeFileToMergeWith, 1, log)[0];
       delimiter = ext.determineDelimiter(head);
       if (ext.indexOfStr(head.split(delimiter)[0], ext.COMMON_IDS, false, true) == -1) {
-        System.err.println("Warning - did not recognize the header; need an id in the first column; looking for complete data after that for inclusion");
+        System.err.println(
+            "Warning - did not recognize the header; need an id in the first column; looking for complete data after that for inclusion");
         System.err.println("Found :  " + head);
       }
 
       hash = new Hashtable<String, String>();
       data = HashVec.loadFileToStringMatrix(phenotypeFileToMergeWith, false, null, delimiter, false,
-                                            1000, false);
+          1000, false);
       for (String[] element : data) {
         isValid = true;
         for (int j = 1; j < element.length; j++) {

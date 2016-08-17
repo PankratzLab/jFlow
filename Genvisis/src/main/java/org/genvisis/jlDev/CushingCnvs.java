@@ -123,7 +123,7 @@ public class CushingCnvs {
     private final double conf;
 
     public PlinkWorker(Project proj, String cnvFile1, String cnvFile2, double controlFreqFilter,
-                       double conf) {
+        double conf) {
       super();
       this.proj = proj;
       this.cnvFile1 = cnvFile1;
@@ -240,8 +240,7 @@ public class CushingCnvs {
   // }
 
   public static void filter(Project proj, String mappabilityFile, String cnvFile,
-                            final String[] cnvRemoveFilesstart, String geneTrackFile,
-                            String callSubsetBed, Logger log) {
+      final String[] cnvRemoveFilesstart, String geneTrackFile, String callSubsetBed, Logger log) {
     BedOps.verifyBedIndex(mappabilityFile, log);
     // LocusSet<GeneData> gLocusSet = GeneTrack.load(geneTrackFile, false).convertToLocusSet(log);
     LocusSet<CNVariant> cLocusSet = CNVariant.loadLocSet(cnvFile, log);
@@ -301,7 +300,7 @@ public class CushingCnvs {
 
       int numInds = CNVariant.getUniqueInds(cLocusRemoveSet, log).size();
       log.reportTimeInfo("Loaded " + cLocusRemoveSet.getLoci().length + "  cnvs from "
-                         + cnvRemoveFiles[i] + " with " + numInds + " total samples");
+          + cnvRemoveFiles[i] + " with " + numInds + " total samples");
 
       for (int j = 0; j < cLocusSet.getLoci().length; j++) {
         summaryCNVs[j].getTotalNumInds()[i] = numInds;
@@ -327,9 +326,8 @@ public class CushingCnvs {
           }
           SegmentCompare segmentCompareAll = currentCNV.new SegmentCompare(overlaps, 0, log);
           segmentCompareAll.compare();
-          SegmentCompare segmentCompareSig =
-              currentCNV.new SegmentCompare(sigOlaps.toArray(new CNVariant[sigOlaps.size()]), 0,
-                                            log);
+          SegmentCompare segmentCompareSig = currentCNV.new SegmentCompare(
+              sigOlaps.toArray(new CNVariant[sigOlaps.size()]), 0, log);
           segmentCompareSig.compare();
 
           summaryCNVs[j].getAverageOverlapScore()[i] = segmentCompareAll.getAvgOverlapScore();
@@ -347,9 +345,8 @@ public class CushingCnvs {
     String output = ext.rootOf(cnvFile, false) + ".qc.summary.txt";
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(output));
-      writer.print("UCSC_LOC\tUCSC_LINK\t"
-                   + Array.toStr(Array.concatAll(CNVariant.PLINK_CNV_HEADER,
-                                                 summaryCNVs[0].getHeader(), BASE_HEADER)));
+      writer.print("UCSC_LOC\tUCSC_LINK\t" + Array.toStr(
+          Array.concatAll(CNVariant.PLINK_CNV_HEADER, summaryCNVs[0].getHeader(), BASE_HEADER)));
       for (int j = 0; j < plinkResults.size(); j++) {
         writer.print("\t" + Array.toStr(plinkResults.get(j).getLoci()[0].getPlinkHeader()));
       }
@@ -357,22 +354,19 @@ public class CushingCnvs {
       for (int i = 0; i < summaryCNVs.length; i++) {
         CNVariant currentCNV = cLocusSet.getLoci()[i];
         writer.print(currentCNV.getUCSClocation() + "\t" + currentCNV.getUCSCLink("hg19") + "\t"
-                     + currentCNV.toPlinkFormat());
+            + currentCNV.toPlinkFormat());
         writer.print("\t" + Array.toStr(summaryCNVs[i].getData()));
         writer.print("\t" + cnMappability.getMappabilityResults().get(i).getAverageMapScore() + "\t"
-                     + Array.toStr(cnMappability.getMappabilityResults().get(i).getSubsetNames(),
-                                   "/"));
+            + Array.toStr(cnMappability.getMappabilityResults().get(i).getSubsetNames(), "/"));
         for (int j = 0; j < plinkResults.size(); j++) {
           PlinkEmpSeg[] overLaps = plinkResults.get(j).getOverLappingLoci(currentCNV);
           if (overLaps == null || overLaps.length == 0 || overLaps.length < 2) {// need to find both
                                                                                 // start and stop
                                                                                 // positions
-            writer.print("\t" + Array.toStr(Array.doubleArray(
-                                                              plinkResults.get(j).getLoci()[0]
-                                                                                              .getData().length,
-                                                              Double.NaN)));
-            log.reportTimeError("Could not find overlapping plink results for "
-                                + currentCNV.toPlinkFormat());
+            writer.print("\t" + Array.toStr(
+                Array.doubleArray(plinkResults.get(j).getLoci()[0].getData().length, Double.NaN)));
+            log.reportTimeError(
+                "Could not find overlapping plink results for " + currentCNV.toPlinkFormat());
           } else {
             // int minEmp1Index = -1;
             int minEmp2Index = -1;
@@ -405,8 +399,8 @@ public class CushingCnvs {
             if (exactMatchStart && exactMatchStop) {
               writer.print("\t" + Array.toStr(overLaps[minEmp2Index].getData()));
             } else {
-              writer.print("\t" + Array.toStr(Array.doubleArray(overLaps[0].getData().length,
-                                                                Double.NaN)));
+              writer.print(
+                  "\t" + Array.toStr(Array.doubleArray(overLaps[0].getData().length, Double.NaN)));
 
             }
           }
@@ -462,8 +456,8 @@ public class CushingCnvs {
           dynamicAveragingHistogramCNVCentered.addDataPair(count, mapScore);
           writer.println(count + "\t" + cnMapp.getAverageMapScore());
           if ((gene.startsWith("ZNF")
-               || (gene.startsWith("OR") && !gene.startsWith("ORM") && !gene.startsWith("ORC"))
-               || gene.startsWith("MUC"))
+              || (gene.startsWith("OR") && !gene.startsWith("ORM") && !gene.startsWith("ORC"))
+              || gene.startsWith("MUC"))
               && !problemsAdded.containsKey(gene + "_" + count + "_" + mapScore)) {
             GeomText geomText = new GeomText(count, mapScore, 0, "*", 5);
             problemsAdded.put(gene + "_" + count + "_" + mapScore, "DFDSF");
@@ -489,9 +483,8 @@ public class CushingCnvs {
     }
 
     RScatter rscatterNoGeom = new RScatter(outputRawPlot, outputRawPlot + ".no_geom.rscript",
-                                           ext.removeDirectoryInfo(outputRawPlot) + ".no_geom",
-                                           outputRawPlot + ".no_geom" + ".jpeg", rawCounts[0],
-                                           new String[] {rawCounts[1]}, SCATTER_TYPE.POINT, log);
+        ext.removeDirectoryInfo(outputRawPlot) + ".no_geom", outputRawPlot + ".no_geom" + ".jpeg",
+        rawCounts[0], new String[] {rawCounts[1]}, SCATTER_TYPE.POINT, log);
     rscatterNoGeom.setxLabel("CNVS Per Gene");
     rscatterNoGeom.setyRange(new double[] {0, 1});
     rscatterNoGeom.setxRange(new double[] {0, 150});
@@ -500,10 +493,9 @@ public class CushingCnvs {
     rscatterNoGeom.setOverWriteExisting(true);
     rscatterNoGeom.execute();
 
-    RScatter rscatter =
-        new RScatter(outputRawPlot, outputRawPlot + ".rscript",
-                     ext.removeDirectoryInfo(outputRawPlot), outputRawPlot + ".jpeg", rawCounts[0],
-                     new String[] {rawCounts[1]}, SCATTER_TYPE.POINT, log);
+    RScatter rscatter = new RScatter(outputRawPlot, outputRawPlot + ".rscript",
+        ext.removeDirectoryInfo(outputRawPlot), outputRawPlot + ".jpeg", rawCounts[0],
+        new String[] {rawCounts[1]}, SCATTER_TYPE.POINT, log);
     rscatter.setxLabel("CNVS Per Gene");
     rscatter.setyRange(new double[] {0, 1});
     rscatter.setxRange(new double[] {0, 150});
@@ -518,9 +510,8 @@ public class CushingCnvs {
     dynamicAveragingHistogramCNVCentered.average();
     dynamicAveragingHistogramCNVCentered.dump(hist, dump, true);
 
-    RScatter rscatterHist =
-        new RScatter(hist, hist + ".rscript", ext.removeDirectoryInfo(hist), hist + ".jpeg",
-                     dump[0], new String[] {dump[2]}, SCATTER_TYPE.POINT, log);
+    RScatter rscatterHist = new RScatter(hist, hist + ".rscript", ext.removeDirectoryInfo(hist),
+        hist + ".jpeg", dump[0], new String[] {dump[2]}, SCATTER_TYPE.POINT, log);
     rscatterHist.setxLabel("CNVS Per Gene");
     rscatterHist.setyRange(new double[] {0, 1});
     rscatterHist.setxRange(new double[] {0, 150});
@@ -532,8 +523,7 @@ public class CushingCnvs {
 
     RScatter rscatterHistNoGeom =
         new RScatter(hist, hist + ".no_geom.rscript", ext.removeDirectoryInfo(hist) + ".no_geom",
-                     hist + ".no_geom" + ".jpeg", dump[0], new String[] {dump[2]},
-                     SCATTER_TYPE.POINT, log);
+            hist + ".no_geom" + ".jpeg", dump[0], new String[] {dump[2]}, SCATTER_TYPE.POINT, log);
     rscatterHistNoGeom.setxLabel("CNVS Per Gene");
     rscatterHistNoGeom.setyRange(new double[] {0, 1});
     rscatterHistNoGeom.setxRange(new double[] {0, 150});
@@ -544,8 +534,7 @@ public class CushingCnvs {
 
     RScatter rscatterHistNumper =
         new RScatter(hist, hist + ".numPer.rscript", ext.removeDirectoryInfo(hist) + ".numPer",
-                     hist + ".numPer" + ".jpeg", dump[0], new String[] {dump[1]},
-                     SCATTER_TYPE.POINT, log);
+            hist + ".numPer" + ".jpeg", dump[0], new String[] {dump[1]}, SCATTER_TYPE.POINT, log);
     rscatterHistNumper.setxLabel("CNVS Per Gene");
     rscatterHistNumper.setyRange(new double[] {0, 1});
     rscatterHistNumper.setxRange(new double[] {0, 150});
@@ -556,8 +545,7 @@ public class CushingCnvs {
   }
 
   public static void filter(Project proj, String mappabilityFile, String[] cnvFiles,
-                            String[] cnvRemoveFiles, String geneTrackFile, String callSubsetBed,
-                            Logger log) {
+      String[] cnvRemoveFiles, String geneTrackFile, String callSubsetBed, Logger log) {
     for (String cnvFile : cnvFiles) {
       filter(proj, mappabilityFile, cnvFile, cnvRemoveFiles, geneTrackFile, callSubsetBed, log);
     }
@@ -565,7 +553,7 @@ public class CushingCnvs {
   }
 
   public static LocusSet<PlinkEmpSeg> generatePed(Project proj, String cnvFile1, String cnvFile2,
-                                                  double controlFreqFilter, double conf) {
+      double controlFreqFilter, double conf) {
     Logger log = new Logger(ext.parseDirectoryOfFile(cnvFile1) + "generatePed.log");
     LocusSet<CNVariant> cnSet1 = CNVariant.loadLocSet(cnvFile1, log);
     LocusSet<CNVariant> cnSet2 = CNVariant.loadLocSet(cnvFile2, log);
@@ -574,7 +562,7 @@ public class CushingCnvs {
     String dir = ext.parseDirectoryOfFile(cnvFile1) + "plink/";
     new File(dir).mkdirs();
     String outCNVRoot = dir + ext.rootOf(cnvFile1) + "_" + ext.rootOf(cnvFile2) + "maxControlFreq"
-                        + controlFreqFilter + "_conf" + conf;
+        + controlFreqFilter + "_conf" + conf;
     String outped = outCNVRoot + ".fam";
     String outCNV = outCNVRoot + ".cnv";
     String outFilt = outCNVRoot + ".freqFilteredCnvs";
@@ -589,7 +577,7 @@ public class CushingCnvs {
     // CNVFilter cnvFilter = new CNVFilter(proj.getLog());
     LocusSet<CNVariant> setToRemove = null;
     setToRemove = ProjectCNVFiltering.filterCNVFile(proj, cnSet2.getLoci(), outFilt, null, false,
-                                                    true, freqFilter, false, true);
+        true, freqFilter, false, true);
     setToRemove.writeRegions(outFilt, TO_STRING_TYPE.REGULAR, true, proj.getLog());
 
     if (!Files.exists(outFilt)) {
@@ -618,9 +606,8 @@ public class CushingCnvs {
       }
       writer.close();
       log.reportTimeInfo("Removed " + caseRemoved + " cnvs of " + cnSet1.getLoci().length
-                         + " from cases and " + controlRemoved + " cnvs of "
-                         + cnSet2.getLoci().length + " from controls for freq " + controlFreqFilter
-                         + " and conf " + conf);
+          + " from cases and " + controlRemoved + " cnvs of " + cnSet2.getLoci().length
+          + " from controls for freq " + controlFreqFilter + " and conf " + conf);
     } catch (Exception e) {
       log.reportError("Error writing to " + outCNV);
       log.reportException(e);
@@ -647,8 +634,8 @@ public class CushingCnvs {
       for (String controlInd : fidIid2) {
         String controlDNA = sampleData.lookup(controlInd)[0];
         if (!sampleData.individualShouldBeExcluded(controlDNA)) {
-          writer.println(controlInd + "\t0\t0\t" + sampleData.getSexForIndividual(controlDNA)
-                         + "\t1");
+          writer.println(
+              controlInd + "\t0\t0\t" + sampleData.getSexForIndividual(controlDNA) + "\t1");
         }
       }
 
@@ -676,7 +663,7 @@ public class CushingCnvs {
 
 
       CmdLine.runCommandWithFileChecks(Array.toStringArray(commandArray), dir, null, null, true,
-                                       true, false, log);
+          true, false, log);
 
       commandArray = new ArrayList<String>();
       commandArray.add(PLINK);
@@ -691,7 +678,7 @@ public class CushingCnvs {
 
 
       CmdLine.runCommandWithFileChecks(Array.toStringArray(commandArray), dir, null, null, true,
-                                       true, true, log);
+          true, true, log);
 
       //
       // commandArray = new ArrayList<String>();
@@ -735,7 +722,7 @@ public class CushingCnvs {
         "   (3) geneTrackFile  (i.e. genes=" + Array.toStr(cnvFiles, ",") + " (default))\n" + "";
     usage += "   (4) call subsetBed  (i.e. callSubset=" + callSubsetBed + " (default))\n" + "";
     usage += "   (5) comma-Delimited list of files to remove  (i.e. cnvFreqFiles="
-             + Array.toStr(cnvFreqFiles, ",") + " (default))\n" + "";
+        + Array.toStr(cnvFreqFiles, ",") + " (default))\n" + "";
     usage += "   (6) project file  (i.e. proj=" + null + " (default))\n" + "";
 
     for (String arg : args) {

@@ -14,7 +14,7 @@ import htsjdk.variant.vcf.VCFFormatHeaderLine;
 public class GenotypeOps {
 
   public static String[] getGenoAnnotationsFor(String[] annosToGet, Genotype g,
-                                               String defaultValue) {
+      String defaultValue) {
     String[] annos = new String[annosToGet.length];
     for (int i = 0; i < annos.length; i++) {
       String tmp = defaultValue;

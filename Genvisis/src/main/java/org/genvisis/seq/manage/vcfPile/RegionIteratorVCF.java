@@ -58,9 +58,8 @@ public class RegionIteratorVCF<T extends Segment> implements Iterator<VariantCon
   public VariantContext[] next() {
     T region = set.getLoci()[setIndex];
     setIndex++;
-    CloseableIterator<VariantContext> rIter =
-        reader.query(Positions.getChromosomeUCSC(region.getChr(), true), region.getStart(),
-                     region.getStop());
+    CloseableIterator<VariantContext> rIter = reader.query(
+        Positions.getChromosomeUCSC(region.getChr(), true), region.getStart(), region.getStop());
     ArrayList<VariantContext> tmp = new ArrayList<VariantContext>();
     while (rIter.hasNext()) {
       VariantContext vc = rIter.next();// apparently an approximate query

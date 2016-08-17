@@ -62,8 +62,8 @@ public class ConvertToMDRformat {
       reader.close();
       writer.close();
     } catch (FileNotFoundException fnfe) {
-      System.err.println("Error: file \"" + dir + prefix + ".ped"
-                         + "\" not found in current directory");
+      System.err
+          .println("Error: file \"" + dir + prefix + ".ped" + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + dir + prefix + ".ped" + "\"");
@@ -78,7 +78,7 @@ public class ConvertToMDRformat {
     String prefix = DEFAULT_FILES;
 
     String usage = "\\n" + "park.gwa.ConvertToMDRformat requires 0-1 arguments\n"
-                   + "   (1) prefix of ped/map files (i.e. prefix=" + prefix + " (default))\n" + "";
+        + "   (1) prefix of ped/map files (i.e. prefix=" + prefix + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

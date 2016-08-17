@@ -11,14 +11,14 @@ public class SeqVariables {
    *
    */
   public enum ASSAY_TYPE {
-                          /**
-                           * Whole exome sequencing
-                           */
-                          WXS,
-                          /**
-                           * Whole genome sequencing
-                           */
-                          WGS
+    /**
+     * Whole exome sequencing
+     */
+    WXS,
+    /**
+     * Whole genome sequencing
+     */
+    WGS
   }
 
   /**
@@ -31,10 +31,8 @@ public class SeqVariables {
    */
   public enum ASSEMBLY_NAME {
 
-                             GRCH37("MT", "X", "Y"), NCBI36("NA", "NA",
-                                                            "NA"), HG19("chrMT", "chrX",
-                                                                        "chrY"), OTHER("NA", "NA",
-                                                                                       "NA");
+    GRCH37("MT", "X", "Y"), NCBI36("NA", "NA", "NA"), HG19("chrMT", "chrX", "chrY"), OTHER("NA",
+        "NA", "NA");
 
     private String mitoContig;
     private String xContig;
@@ -74,7 +72,7 @@ public class SeqVariables {
    *
    */
   public enum PLATFORM {
-                        ILLUMINA, ABI_SOLID
+    ILLUMINA, ABI_SOLID
   }
 
   private SeqVariables() {

@@ -265,7 +265,7 @@ public class FishersExact {
                           for (int b5 = 0; b5 <= c[1] - b1 - b2 - b3 - b4; b5++) {
                             work[4][1] = b5;
                             work[5][1] = c[1] - work[0][1] - work[1][1] - work[2][1] - work[3][1]
-                                         - work[4][1];
+                                - work[4][1];
 
                             work[0][2] = r[0] - work[0][0] - work[0][1];
                             work[1][2] = r[1] - work[1][0] - work[1][1];
@@ -311,13 +311,12 @@ public class FishersExact {
 
   public static void main(String[] args) {
     int[][] matrix;
-    double[] probs =
-        {
-         // 1.7685658194048082E-7,
-         // 1.2346368281696975E-4,
-         // 0.06782864732521461,
-         0.005591506952405223, 0.027958060654154904, 0.0019136629015811507, 0.008846883022512499,
-         0.009796226182780747, 0.007435141888923397, 0.9887934356789729, 0.9887934356789694,};
+    double[] probs = {
+        // 1.7685658194048082E-7,
+        // 1.2346368281696975E-4,
+        // 0.06782864732521461,
+        0.005591506952405223, 0.027958060654154904, 0.0019136629015811507, 0.008846883022512499,
+        0.009796226182780747, 0.007435141888923397, 0.9887934356789729, 0.9887934356789694,};
     int[][][] tests = {{{3, 85}, {0, 183}}
         // {{0,1,14}, {3,4,38}, {0,1,33}, {0,1,47}, {3,1,18}},
         // {{10,15,236}, {2,45,362}, {13,37,485}, {2,56,459}, {7,133,1076}},
@@ -365,17 +364,16 @@ public class FishersExact {
       }
       d = calc(matrix, 0, true);
       System.out.print("\tExact: " + d + "\t"
-                       + (Math.abs(d - probs[i]) < 0.000000000000001 ? "checks out" : "FAILED!!!"));
+          + (Math.abs(d - probs[i]) < 0.000000000000001 ? "checks out" : "FAILED!!!"));
       System.out.print(" in " + ext.getTimeElapsed(time));
       System.out.println();
-      System.out.println("Chi Sq: "
-                         + ProbDist.ChiDist(ContingencyTable.ChiSquare(matrix, false),
-                                            (matrix.length - 1) * (matrix[0].length - 1)));
+      System.out.println("Chi Sq: " + ProbDist.ChiDist(ContingencyTable.ChiSquare(matrix, false),
+          (matrix.length - 1) * (matrix[0].length - 1)));
     }
   }
 
   public static double workUp(int[][] work, double[] facts, double num, double pex,
-                              double[] lookup) {
+      double[] lookup) {
     double denom, temp;
 
     for (int i = 0; i < work.length; i++) {

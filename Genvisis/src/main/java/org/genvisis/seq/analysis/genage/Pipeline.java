@@ -30,8 +30,7 @@ public class Pipeline {
     private final Logger log;
 
     private MitoPipeResult(String bamFile, String rootOutDir, String captureBed,
-                           String referenceGenomeFasta, NGSSample ngsSample, int numthreads,
-                           Logger log) {
+        String referenceGenomeFasta, NGSSample ngsSample, int numthreads, Logger log) {
       super();
       this.bamFile = bamFile;
       this.rootOutDir = rootOutDir;
@@ -49,9 +48,8 @@ public class Pipeline {
       new File(mitoDir).mkdirs();
       Files.write(bamFile, bamList);
       String result = MitoSeqCN.run(bamList, mitoDir,
-                                    ngsSample.getaType() == ASSAY_TYPE.WGS ? null : captureBed,
-                                    referenceGenomeFasta, ngsSample.getaName(),
-                                    ngsSample.getaType(), numthreads, log);
+          ngsSample.getaType() == ASSAY_TYPE.WGS ? null : captureBed, referenceGenomeFasta,
+          ngsSample.getaName(), ngsSample.getaType(), numthreads, log);
       ArrayList<String> output = new ArrayList<String>();
       output.add(result);
       setOutput(output);
@@ -76,7 +74,7 @@ public class Pipeline {
     private final Logger log;
 
     private TelSeqResult(String bam, String rootOutDir, String captureBed, NGSSample ngsSample,
-                         int numthreads, int captureBufferSize, Logger log) {
+        int numthreads, int captureBufferSize, Logger log) {
       super();
       this.bam = bam;
       this.rootOutDir = rootOutDir;
@@ -91,9 +89,8 @@ public class Pipeline {
     public PipelinePart call() throws Exception {
       String telSeqDir = rootOutDir + TELSEQ_DIR + ext.rootOf(bam) + "/";
       new File(telSeqDir).mkdir();
-      String result =
-          TelSeq.runTelSeq(new String[] {bam}, telSeqDir, captureBed, numthreads,
-                           ngsSample.getaType(), ngsSample.getaName(), captureBufferSize, log);
+      String result = TelSeq.runTelSeq(new String[] {bam}, telSeqDir, captureBed, numthreads,
+          ngsSample.getaType(), ngsSample.getaName(), captureBufferSize, log);
       ArrayList<String> output = new ArrayList<String>();
       output.add(result);
       setOutput(output);
@@ -107,8 +104,7 @@ public class Pipeline {
   private static final String TELSEQ_DIR = "telseq/";
 
   public static List<PipelinePart> pipeline(String inputBam, String rootOutDir,
-                                            String referenceGenome, String captureBed,
-                                            NGSSample sample, int numThreads, Logger log) {
+      String referenceGenome, String captureBed, NGSSample sample, int numThreads, Logger log) {
     if (!Files.exists(inputBam)) {
       throw new IllegalArgumentException("Bam file " + inputBam + " must exist");
     }
@@ -116,8 +112,8 @@ public class Pipeline {
     if (!Files.exists(referenceGenome)) {
       throw new IllegalArgumentException("Reference Genome " + referenceGenome + " must exist");
     } else {
-      log.reportTimeWarning("Assuming " + referenceGenome + " matches assembly type "
-                            + sample.getaName());
+      log.reportTimeWarning(
+          "Assuming " + referenceGenome + " matches assembly type " + sample.getaName());
     }
     if (sample.getaType() == ASSAY_TYPE.WXS && (!Files.exists(captureBed))) {
       throw new IllegalArgumentException(captureBed + " must exist");
@@ -125,8 +121,8 @@ public class Pipeline {
 
     WorkerHive<PipelinePart> hive = new WorkerHive<Pipeline.PipelinePart>(1, 10, log);
     // mtDNA CN
-    hive.addCallable(new MitoPipeResult(inputBam, rootOutDir, captureBed, referenceGenome, sample,
-                                        1, log));
+    hive.addCallable(
+        new MitoPipeResult(inputBam, rootOutDir, captureBed, referenceGenome, sample, 1, log));
 
     hive.addCallable(new TelSeqResult(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
     hive.execute(true);

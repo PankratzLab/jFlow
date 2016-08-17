@@ -103,8 +103,8 @@ public class ParseSNPlocations {
               try {
                 positions[count] = Integer.parseInt(line[2]);
               } catch (NumberFormatException nfe) {
-                System.err.println("Error - parsing line #" + (count + 1) + ": "
-                                   + Array.toStr(line));
+                System.err
+                    .println("Error - parsing line #" + (count + 1) + ": " + Array.toStr(line));
               }
             } else {
               positions[count] = MULTIPLE_POSITIONS;
@@ -127,7 +127,7 @@ public class ParseSNPlocations {
       reader.close();
       if (countPARys > 0) {
         System.err.println("Warning - there were " + countPARys
-                           + " instances where the chromosome was listed as PAR and the position was nothing but 'y'");
+            + " instances where the chromosome was listed as PAR and the position was nothing but 'y'");
       }
       // already in order, d'uh!
       // System.out.println("Sorting...");
@@ -187,7 +187,7 @@ public class ParseSNPlocations {
   }
 
   public static void hashParse(String snpListFile, String db, String mergeDB,
-                               boolean useExistingPositions, Logger log) {
+      boolean useExistingPositions, Logger log) {
     // boolean reminderToCode = true;
     // TODO Auto-generated catch block
     BufferedReader reader;
@@ -261,7 +261,7 @@ public class ParseSNPlocations {
                 }
                 if (line[0].equals("rs" + trav)) {
                   log.reportError("\n\n****ERROR**** failed to find " + line[0]
-                                  + " in any NCBI database ****ERROR****\n\n");
+                      + " in any NCBI database ****ERROR****\n\n");
                 } else if (trav != null) {
                   log.reportError("FYI - " + line[0] + " has merged with rs" + trav);
                   index = Array.binarySearch(dbRSnumbers, trav.intValue(), true);
@@ -284,7 +284,7 @@ public class ParseSNPlocations {
                 position = -1;
               } else if (dbPositions[index] == ParseSNPlocations.MULTIPLE_POSITIONS) {
                 log.reportError("Warning - marker " + line[0]
-                                + " likely has multiple positions on chromosome " + dbChrs[index]);
+                    + " likely has multiple positions on chromosome " + dbChrs[index]);
                 chr = dbChrs[index];
                 position = -1;
               } else {
@@ -313,7 +313,7 @@ public class ParseSNPlocations {
   }
 
   public static void lowMemParse(String snpListFile, String db, String mergeDB,
-                                 boolean useExistingPositions, Logger log) {
+      boolean useExistingPositions, Logger log) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -354,7 +354,8 @@ public class ParseSNPlocations {
         } else {
           if (dbMarkerSet == null) {
             log.report("Loading database...");
-            log.report("(if file is not found and it's searching for the wrong file, then force a recompile of MapSNPsAndGenes so that it gets the new constant from ParseSNPlocations)");
+            log.report(
+                "(if file is not found and it's searching for the wrong file, then force a recompile of MapSNPsAndGenes so that it gets the new constant from ParseSNPlocations)");
 
             dbMarkerSet = SnpMarkerSet.load(db, false, log);
             dbRSnumbers = dbMarkerSet.getRSnumbers();
@@ -394,14 +395,14 @@ public class ParseSNPlocations {
                 }
                 if (rs.equals("rs" + trav)) {
                   log.reportError("\n\n****ERROR**** failed to find " + rs
-                                  + " in any NCBI database ****ERROR****\n\n");
+                      + " in any NCBI database ****ERROR****\n\n");
                 } else if (trav != null) {
                   log.reportError("FYI - " + rs + " has merged with rs" + trav);
                   index = Array.binarySearch(dbRSnumbers, trav.intValue(), true);
 
                   if (index == -1) {
                     log.reportError("Error - could not find rs" + trav + " in " + db
-                                    + "; must have been added after this db was released");
+                        + "; must have been added after this db was released");
                     chr = (byte) 0;
                     position = 0;
                   } else {
@@ -425,7 +426,7 @@ public class ParseSNPlocations {
                 position = -1;
               } else if (dbPositions[index] == ParseSNPlocations.MULTIPLE_POSITIONS) {
                 log.reportError("Warning - marker " + rs
-                                + " likely has multiple positions on chromosome " + dbChrs[index]);
+                    + " likely has multiple positions on chromosome " + dbChrs[index]);
                 chr = dbChrs[index];
                 position = -1;
               } else {
@@ -440,8 +441,8 @@ public class ParseSNPlocations {
             int posTemp = -2;
             if (pts.length >= 2) {
               try {
-                pts[0] = ext.replaceAllWith(pts[0], new String[][] {{"X", "23"}, {"Y", "24"},
-                                                                    {"XY", "25"}, {"M", "26"}});
+                pts[0] = ext.replaceAllWith(pts[0],
+                    new String[][] {{"X", "23"}, {"Y", "24"}, {"XY", "25"}, {"M", "26"}});
                 chrTemp = Integer.parseInt(pts[0].startsWith("chr") ? pts[0].substring(3) : pts[0]);
               } catch (NumberFormatException e) {
               }
@@ -451,15 +452,17 @@ public class ParseSNPlocations {
               }
             }
             if (chrTemp == -2 || posTemp == -2) {
-              log.reportError("Error - can't look up a SNP without an rs number or chromosome/position name ("
-                              + line[0] + ")");
+              log.reportError(
+                  "Error - can't look up a SNP without an rs number or chromosome/position name ("
+                      + line[0] + ")");
               writer.println(line[0] + "\t0\t0");
             } else {
               writer.println(line[0] + "\t" + chrTemp + "\t" + posTemp);
             }
           } else {
-            log.reportError("Error - can't look up a SNP without an rs number or chromosome/position name ("
-                            + line[0] + ")");
+            log.reportError(
+                "Error - can't look up a SNP without an rs number or chromosome/position name ("
+                    + line[0] + ")");
             writer.println(line[0] + "\t0\t0");
           }
         }
@@ -507,14 +510,12 @@ public class ParseSNPlocations {
     boolean plinkFormat = false;
 
     String usage = "\n" + "bioinformatics.ParseSNPlocations requires 0-1 arguments\n"
-                   + "   (1) file from which to create snp db (i.e. source="
-                   + DEFAULT_B37_SOURCE_FILENAME + " (not the default))\n" + "  OR:\n"
-                   + "   (1) file from which to create merge db (i.e. source="
-                   + DEFAULT_MERGE_SOURCE_FILENAME + " (not the default))\n" + "  OR:\n"
-                   + "   (1) snpDB (i.e. db=" + db + " (default))\n"
-                   + "   (2) merge DB (i.e. merge=" + merge + " (default))\n"
-                   + "   (3) dir (i.e. dir=" + dir + " (default))\n" + "   (4) filename (i.e. file="
-                   + filename + " (default))\n" + "";
+        + "   (1) file from which to create snp db (i.e. source=" + DEFAULT_B37_SOURCE_FILENAME
+        + " (not the default))\n" + "  OR:\n"
+        + "   (1) file from which to create merge db (i.e. source=" + DEFAULT_MERGE_SOURCE_FILENAME
+        + " (not the default))\n" + "  OR:\n" + "   (1) snpDB (i.e. db=" + db + " (default))\n"
+        + "   (2) merge DB (i.e. merge=" + merge + " (default))\n" + "   (3) dir (i.e. dir=" + dir
+        + " (default))\n" + "   (4) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -556,17 +557,15 @@ public class ParseSNPlocations {
         if (vcf != null) {
           long t = System.currentTimeMillis();
           parseSNPlocations(dir + filename, vcf, unmappedvcf, mergedvcf, log,
-                            new ProgressMonitor(null, log));
+              new ProgressMonitor(null, log));
           System.out.println("Took " + ext.getTimeElapsed(t));
         } else {
           long t = System.currentTimeMillis();
-          SnpMarkerSet map =
-              new SnpMarkerSet(dir + filename, plinkFormat ? SnpMarkerSet.PLINK_MAP_FORMAT
-                                                           : SnpMarkerSet.NAMES_ONLY,
-                               true, log);
+          SnpMarkerSet map = new SnpMarkerSet(dir + filename,
+              plinkFormat ? SnpMarkerSet.PLINK_MAP_FORMAT : SnpMarkerSet.NAMES_ONLY, true, log);
           map.parseSNPlocations(db, merge, log);
           map.writeToFile(dir + ext.rootOf(filename) + "_newPositions.out",
-                          SnpMarkerSet.GENERIC_FORMAT, log);
+              SnpMarkerSet.GENERIC_FORMAT, log);
           System.out.println("Took " + ext.getTimeElapsed(t));
         }
 
@@ -577,7 +576,7 @@ public class ParseSNPlocations {
   }
 
   public static void parseSNPlocations(String snpListFile, String vcfFile, String unmappedVCF,
-                                       String mergedVCF, Logger log, ProgressMonitor monitor) {
+      String mergedVCF, Logger log, ProgressMonitor monitor) {
     BufferedReader reader;
     PrintWriter writer;
 
@@ -592,7 +591,7 @@ public class ParseSNPlocations {
     int lineCnt = Files.countLines(snpListFile, 0);
     if (monitor != null) {
       monitor.beginDeterminateTask(PROG_KEY, "Processing " + lineCnt + " SNPs", lineCnt,
-                                   ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+          ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
     } else {
       System.out.println("Processing " + lineCnt + " SNPs");
     }
@@ -615,10 +614,9 @@ public class ParseSNPlocations {
         index++;
         if (!parts[0].startsWith("rs")) {
           writer.println(parts[0] + "\t" + (parts.length > 1 ? parts[1] : ".") + "\t"
-                         + (parts.length > 2 ? parts[2] : ".") + "\t"
-                         + (parts.length > 3 ? parts[3] : ".") + "\t"
-                         + (parts.length > 4 ? parts[4] : ".") + "\t" + "." + "\t" + "." + "\t"
-                         + "." + "\t" + ".");
+              + (parts.length > 2 ? parts[2] : ".") + "\t" + (parts.length > 3 ? parts[3] : ".")
+              + "\t" + (parts.length > 4 ? parts[4] : ".") + "\t" + "." + "\t" + "." + "\t" + "."
+              + "\t" + ".");
           nonRS.add(parts[0]);
           indexMap.put(parts[0], index);
           // parse chr:pos:alleles markers later
@@ -712,13 +710,13 @@ public class ParseSNPlocations {
             String[] pts = attr.split(":");
             StringBuilder newLine = new StringBuilder();
             newLine.append(rs).append("\t").append(parts.length > 1 ? parts[1] : pts[0])
-                   .append("\t").append(parts.length > 2 ? parts[2] : pts[1]).append("\t");
+                .append("\t").append(parts.length > 2 ? parts[2] : pts[1]).append("\t");
             String ref = markerVC.getReference().toString();
             if (ref.endsWith("*")) {
               ref = ref.substring(0, ref.length() - 1);
             }
             newLine.append(ref).append("\t").append(markerVC.getAltAlleleWithHighestAlleleCount())
-                   .append("\t");
+                .append("\t");
             boolean found = false;
             for (String funcKey : TAG_SET) {
               if (markerVC.getAttributes().keySet().contains(funcKey)) {
@@ -769,10 +767,9 @@ public class ParseSNPlocations {
             writer.println(newLine.toString());
           } else {
             writer.println(rs + "\t" + (parts.length > 1 ? parts[1] : ".") + "\t"
-                           + (parts.length > 2 ? parts[2] : ".") + "\t"
-                           + (parts.length > 3 ? parts[3] : ".") + "\t"
-                           + (parts.length > 4 ? parts[4] : ".") + "\t" + "." + "\t" + "." + "\t"
-                           + "." + "\t" + ".");
+                + (parts.length > 2 ? parts[2] : ".") + "\t" + (parts.length > 3 ? parts[3] : ".")
+                + "\t" + (parts.length > 4 ? parts[4] : ".") + "\t" + "." + "\t" + "." + "\t" + "."
+                + "\t" + ".");
             rsNotFound.add(rs);
             indexMap.put(rs, index);
           }
@@ -811,7 +808,7 @@ public class ParseSNPlocations {
 
 
   public static int[][] parseSNPLocations(String snpListFile, String vcfFile, String unmappedVCF,
-                                          String mergedVCF, Logger log, ProgressMonitor monitor) {
+      String mergedVCF, Logger log, ProgressMonitor monitor) {
     BufferedReader reader;
 
     ArrayList<int[]> resultList = new ArrayList<int[]>();
@@ -827,7 +824,7 @@ public class ParseSNPlocations {
     int lineCnt = Files.countLines(snpListFile, 0);
     if (monitor != null) {
       monitor.beginDeterminateTask(PROG_KEY, "Processing " + lineCnt + " SNPs", lineCnt,
-                                   ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+          ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
     } else {
       System.out.println("Processing " + lineCnt + " SNPs");
     }
@@ -847,7 +844,7 @@ public class ParseSNPlocations {
         index++;
         if (!parts[0].startsWith("rs")) {
           resultList.add(new int[] {Integer.parseInt(parts.length > 1 ? parts[1] : "-1"),
-                                    Integer.parseInt(parts.length > 2 ? parts[2] : "-1")});
+              Integer.parseInt(parts.length > 2 ? parts[2] : "-1")});
           nonRS.add(parts[0]);
           indexMap.put(parts[0], index);
           // parse chr:pos:alleles markers later
@@ -940,10 +937,10 @@ public class ParseSNPlocations {
             String attr = (String) markerVC.getAttribute("CHRPOS");
             String[] pts = attr.split(":");
             resultList.add(new int[] {Integer.parseInt(parts.length > 1 ? parts[1] : pts[0]),
-                                      Integer.parseInt(parts.length > 2 ? parts[2] : pts[1])});
+                Integer.parseInt(parts.length > 2 ? parts[2] : pts[1])});
           } else {
             resultList.add(new int[] {Integer.parseInt(parts.length > 1 ? parts[1] : "-1"),
-                                      Integer.parseInt(parts.length > 2 ? parts[2] : "-1")});
+                Integer.parseInt(parts.length > 2 ? parts[2] : "-1")});
             rsNotFound.add(rs);
             indexMap.put(rs, index);
           }

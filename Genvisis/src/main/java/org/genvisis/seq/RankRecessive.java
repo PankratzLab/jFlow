@@ -28,11 +28,11 @@ public class RankRecessive {
     double mafFloor = 0.01;
 
     String usage = "\n" + "seq.RankRecessive requires 1-3 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (required; not the default))\n"
-                   + "   (2) MAF for any position with a missing value (i.e. mafForMissingValues="
-                   + mafForMissingValues + " (default))\n"
-                   + "   (3) minimum MAF, all values below this will be set to this value (i.e. mafFloor="
-                   + mafFloor + " (default))\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (required; not the default))\n"
+        + "   (2) MAF for any position with a missing value (i.e. mafForMissingValues="
+        + mafForMissingValues + " (default))\n"
+        + "   (3) minimum MAF, all values below this will be set to this value (i.e. mafFloor="
+        + mafFloor + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -86,10 +86,8 @@ public class RankRecessive {
       indices = ext.indexFactors(REQS, header, false, true);
       while (reader.ready()) {
         line = reader.readLine().trim().split("\\t", -1);
-        HashVec.addToHashArrayVec(hash, line[1],
-                                  new String[] {line[indices[0]], line[indices[4]],
-                                                line[indices[5]], line[indices[2]],
-                                                line[indices[3]]});
+        HashVec.addToHashArrayVec(hash, line[1], new String[] {line[indices[0]], line[indices[4]],
+            line[indices[5]], line[indices[2]], line[indices[3]]});
       }
       reader.close();
     } catch (FileNotFoundException fnfe) {
@@ -103,7 +101,8 @@ public class RankRecessive {
     try {
       writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_ranked.xln"));
       genes = HashVec.getKeys(hash);
-      writer.println("Gene\tProduct\tPosition1\trs1\tVariant1\tRef1\tMAF1\tPosition2\trs2\tVariant2\tRef2\tMAF2\tNumberOfOtherAllelesInGene");
+      writer.println(
+          "Gene\tProduct\tPosition1\trs1\tVariant1\tRef1\tMAF1\tPosition2\trs2\tVariant2\tRef2\tMAF2\tNumberOfOtherAllelesInGene");
       for (String gene : genes) {
         variants = hash.get(gene);
         count = variants.size();
@@ -127,7 +126,7 @@ public class RankRecessive {
                 mafs[j] = Double.parseDouble(line[2]);
               } catch (NumberFormatException nfe) {
                 System.err.println("Error parsing MAF ('" + line[2] + "') for " + line[0]
-                                   + " in gene " + gene + "; setting to missing value");
+                    + " in gene " + gene + "; setting to missing value");
                 mafs[j] = mafForMissingValues;
               }
               if (mafs[j] < mafFloor) {
@@ -140,7 +139,7 @@ public class RankRecessive {
           for (int j = 0; j < 2; j++) {
             line = variants.elementAt(order[j]);
             writer.print("\t" + line[0] + "\t" + line[1] + "\t" + line[3] + "\t"
-                         + line[4].substring(line[4].indexOf("/") + 1) + "\t" + line[2]);
+                + line[4].substring(line[4].indexOf("/") + 1) + "\t" + line[2]);
           }
           writer.println("\t" + (variants.size() == 2 ? "." : (variants.size() - 2)));
         }

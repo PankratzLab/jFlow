@@ -62,13 +62,13 @@ public class meld {
         line2 = readers[1].readLine().split("[\t]+");
         if (line1.length != line2.length) {
           if (line1.length > line2.length) {
-            System.err.println("Error - 1/chromosome" + chr + ".dat has "
-                               + (line1.length - line2.length)
-                               + " more columns (markers?) than 2/chromosome" + chr + ".dat");
+            System.err
+                .println("Error - 1/chromosome" + chr + ".dat has " + (line1.length - line2.length)
+                    + " more columns (markers?) than 2/chromosome" + chr + ".dat");
           } else {
-            System.err.println("Error - 2/chromosome" + chr + ".dat has "
-                               + (line2.length - line1.length)
-                               + " more columns (markers?) than 1/chromosome" + chr + ".dat");
+            System.err
+                .println("Error - 2/chromosome" + chr + ".dat has " + (line2.length - line1.length)
+                    + " more columns (markers?) than 1/chromosome" + chr + ".dat");
           }
           System.exit(1);
         }
@@ -162,7 +162,7 @@ public class meld {
               totalOffCount += offCount;
             }
             temp = (int) (100 * (double) maxOffCount / totalOffCount) + "% shifted "
-                   + (maxOff > 0 ? "+" + maxOff : "" + maxOff);
+                + (maxOff > 0 ? "+" + maxOff : "" + maxOff);
           }
           mismatchedMarkers.println(markerNames[j + 3] + "\t" + store[j] + "\t" + temp);
         }
@@ -180,13 +180,13 @@ public class meld {
 
     for (int element : key) {
       if (differs.containsKey(individuals.elementAt(element))) {
-        mismatchGenotypes.println(individuals.elementAt(element) + "\t"
-                                  + differs.get(individuals.elementAt(element)));
+        mismatchGenotypes.println(
+            individuals.elementAt(element) + "\t" + differs.get(individuals.elementAt(element)));
       }
     }
 
     System.err.println("Overall error rate was " + diffs + "/" + (sames + diffs) + " ("
-                       + ((double) diffs / (double) (sames + diffs) * 100) + "%)");
+        + ((double) diffs / (double) (sames + diffs) * 100) + "%)");
 
     mismatchedMarkers.close();
     mismatchGenotypes.close();

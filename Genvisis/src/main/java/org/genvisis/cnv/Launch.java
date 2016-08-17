@@ -120,10 +120,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
        */
       if (command.equals(MAP_FILES)) {
         org.genvisis.cnv.manage.SourceFileParser.mapFilenamesToSamples(proj,
-                                                                       "filenamesMappedToSamples.txt");
+            "filenamesMappedToSamples.txt");
       } else if (command.equals(GENERATE_MARKER_POSITIONS)) {
         org.genvisis.cnv.manage.Markers.generateMarkerPositions(proj,
-                                                                proj.getLocationOfSNP_Map(true));
+            proj.getLocationOfSNP_Map(true));
       } else if (command.equals(PARSE_FILES_CSV)) {
         org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, proj.NUM_THREADS.getValue());
       } else if (command.equals(CHECK_SEX)) {
@@ -133,7 +133,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         if (!Files.exists(nonCrossHybridizingMarkersFile)) {
           if (Files.exists(blastAnnotationFile)) {
             MarkerBlastQC.getOneHitWonders(proj, blastAnnotationFile,
-                                           nonCrossHybridizingMarkersFile, 0.8, proj.getLog());
+                nonCrossHybridizingMarkersFile, 0.8, proj.getLog());
           } else {
             nonCrossHybridizingMarkersFile = null;
           }
@@ -180,7 +180,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
             ABLookup abLookup;
             String filename;
             filename = proj.PROJECT_DIRECTORY.getValue()
-                       + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+                + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
             if (!Files.exists(filename)) {
               abLookup = new ABLookup();
               abLookup.parseFromOriginalGenotypes(proj);
@@ -205,17 +205,17 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         boolean success = false;
         if (peo.exportAsBinary()) {
           success = PlinkData.saveGenvisisToPlinkBedSet(proj, plinkFileroot, clusterFiltersFilename,
-                                                        targetMarkersFilename, -1, true);
+              targetMarkersFilename, -1, true);
         } else {
           success = PlinkData.saveGenvisisToPlinkPedSet(proj, plinkFileroot, clusterFiltersFilename,
-                                                        targetMarkersFilename);
+              targetMarkersFilename);
         }
         if (success) {
           log.report("Success!");
         }
       } else if (command.equals(GENERATE_PENNCNV_FILES)) {
         org.genvisis.cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(),
-                                                          null, null, proj.NUM_THREADS.getValue());
+            null, null, proj.NUM_THREADS.getValue());
       } else if (command.equals(PARSE_RAW_PENNCNV_RESULTS)) {
         // TODO make dialog to ask for filenames with a JCheckBox for denovo parsing
         org.genvisis.cnv.analysis.PennCNV.parseWarnings(proj, "penncnv.log");
@@ -246,10 +246,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         // proj.getProperty(proj.DISPLAY_ROTATED_QQ), -1, false,
         // proj.QQ_MAX_NEG_LOG10_PVALUE.getValue(), proj.getLog());
         QQPlotFrame.loadPvals(proj.QQ_FILENAMES.getValue(), "Q-Q Plot",
-                              proj.getProperty(proj.DISPLAY_QUANTILES),
-                              proj.getProperty(proj.DISPLAY_STANDARD_QQ),
-                              proj.getProperty(proj.DISPLAY_ROTATED_QQ), -1, false,
-                              proj.QQ_MAX_NEG_LOG10_PVALUE.getValue(), proj.getLog());
+            proj.getProperty(proj.DISPLAY_QUANTILES), proj.getProperty(proj.DISPLAY_STANDARD_QQ),
+            proj.getProperty(proj.DISPLAY_ROTATED_QQ), -1, false,
+            proj.QQ_MAX_NEG_LOG10_PVALUE.getValue(), proj.getLog());
       } else if (command.equals(STRAT)) {
         StratPlot.loadStratificationResults(proj);
       } else if (command.equals(MOSAICISM)) {
@@ -299,10 +298,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         });
       } else if (command.equals(EXPORT_CNVS)) {
 
-        String[] inOut =
-            FileAndOutputSelectorGUI.showFileAndOutputSelector(Launch.this, null,
-                                                               JFileChooser.FILES_ONLY, null, null,
-                                                               JFileChooser.FILES_ONLY);
+        String[] inOut = FileAndOutputSelectorGUI.showFileAndOutputSelector(Launch.this, null,
+            JFileChooser.FILES_ONLY, null, null, JFileChooser.FILES_ONLY);
         if (inOut == null) {
           return;
         }
@@ -322,8 +319,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         int window = 0;
 
         ExportCNVsToPedFormat.export(cnvFilename, pedFilename, outputRoot, endOfLine, fileFormat,
-                                     includeDele, includeDupl, ordered, collapsed, homozygous,
-                                     excludeMonomorphicLoci, lociPerFile, window, proj.getLog());
+            includeDele, includeDupl, ordered, collapsed, homozygous, excludeMonomorphicLoci,
+            lociPerFile, window, proj.getLog());
 
       } else if (command.equals(CYTO_WORKBENCH)) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -343,24 +340,23 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         Mosaicism.findOutliers(proj);
 
         PlinkData.saveGenvisisToPlinkPedSet(proj, "gwas", null,
-                                            proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
+            proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
         CmdLine.run("plink --file gwas --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue());
         new File(proj.PROJECT_DIRECTORY.getValue() + "genome/").mkdirs();
         CmdLine.run("plink --bfile ../plink --freq", proj.PROJECT_DIRECTORY.getValue() + "genome/");
         CmdLine.run("plink --bfile ../plink --missing",
-                    proj.PROJECT_DIRECTORY.getValue() + "genome/");
+            proj.PROJECT_DIRECTORY.getValue() + "genome/");
 
 
       } else if (command.equals(GCMODEL)) {
-        org.genvisis.cnv.analysis.PennCNV.gcModel(proj,
-                                                  Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS,
-                                                                                  "gc5Base.txt",
-                                                                                  true, false, log),
-                                                  proj.PROJECT_DIRECTORY.getValue() + "data/custom.gcModel",
-                                                  100);
+        org.genvisis.cnv.analysis.PennCNV
+            .gcModel(
+                proj, Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS, "gc5Base.txt",
+                    true, false, log),
+                proj.PROJECT_DIRECTORY.getValue() + "data/custom.gcModel", 100);
       } else if (command.equals(MARKER_METRICS)) {
         org.genvisis.cnv.qc.MarkerMetrics.fullQC(proj, proj.getSamplesToExclude(), null, true,
-                                                 proj.NUM_THREADS.getValue());
+            proj.NUM_THREADS.getValue());
       } else if (command.equals(FILTER_MARKER_METRICS)) {
         org.genvisis.cnv.qc.MarkerMetrics.filterMetrics(proj);
       } else if (command.equals(TALLY_MARKER_ANNOTATIONS)) {
@@ -478,20 +474,20 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 
   public static final String TEST = "Test new program";
-  public static String[][] MENUS =
-      {{"File", NEW_PROJECT, IMPORT_PROJECT, "Select Project", EDIT, "Preferences",
-        CHECK_FOR_UPDATES, EXIT},
-       {"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // ,
-                                                                                                  // MITOPIPELINE
-       {"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS,
-        TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
-       {"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP,
-        FOREST_PLOT},
-       {"Tools", GENERATE_ABLOOKUP, EXPORT_TO_PLINK, GENERATE_PENNCNV_FILES,
-        PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV,
-        EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS, GENERATE_DEMO_PACKAGE,
-        ADD_QC_TO_SAMPLE_DATA, TEST},
-       {"Help", "Contents", "Search", "About"}};
+  public static String[][] MENUS = {
+      {"File", NEW_PROJECT, IMPORT_PROJECT, "Select Project", EDIT, "Preferences",
+          CHECK_FOR_UPDATES, EXIT},
+      {"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // ,
+                                                                                                 // MITOPIPELINE
+      {"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS,
+          TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
+      {"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP,
+          FOREST_PLOT},
+      {"Tools", GENERATE_ABLOOKUP, EXPORT_TO_PLINK, GENERATE_PENNCNV_FILES,
+          PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV,
+          EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS, GENERATE_DEMO_PACKAGE,
+          ADD_QC_TO_SAMPLE_DATA, TEST},
+      {"Help", "Contents", "Search", "About"}};
 
   private static void createAndShowGUI() {
     String launchPropertiesFile;
@@ -568,7 +564,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     });
 
     // TODO only instantiate when used
-    frame.setIndexOfCurrentProject(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
+    frame.setIndexOfCurrentProject(
+        frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
     if (frame.projects.length > 0) {
       frame.loadProject();
     }
@@ -591,22 +588,23 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
       filename = launchProperties.getProperty(LaunchProperties.DEBUG_PROJECT_FILENAME);
       if (dir == null || filename == null) {
         if (verbose) {
-          System.err.println("Warning - you are trying to access the default debug project properties file, but there is no '"
-                             + LaunchProperties.DEBUG_PROJECT_FILENAME + "=' property listed in '"
-                             + LaunchProperties.DEFAULT_PROPERTIES_FILE
-                             + "'. The default filename is being set to \"default.properties\" in the current directory. However, if that does not exist either, then the program will likely end in an error.");
+          System.err.println(
+              "Warning - you are trying to access the default debug project properties file, but there is no '"
+                  + LaunchProperties.DEBUG_PROJECT_FILENAME + "=' property listed in '"
+                  + LaunchProperties.DEFAULT_PROPERTIES_FILE
+                  + "'. The default filename is being set to \"default.properties\" in the current directory. However, if that does not exist either, then the program will likely end in an error.");
         }
         dir = "./";
         filename = "default.properties";
       } else if (!Files.exists(dir) || !Files.exists(dir + filename)) {
         if (verbose) {
-          System.err.println("Error - default debug project properties file does not exist: " + dir
-                             + filename);
+          System.err.println(
+              "Error - default debug project properties file does not exist: " + dir + filename);
         }
       } else {
         if (verbose) {
           System.out.println("The default debug project properties file is currently set to '" + dir
-                             + filename + "'");
+              + filename + "'");
         }
       }
     } else {
@@ -646,7 +644,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
   }
 
   public static void initLaunchProperties(String launchPropertiesFile, boolean force,
-                                          boolean relativePath) {
+      boolean relativePath) {
     String path = LaunchProperties.directoryOfLaunchProperties(launchPropertiesFile);
     String pathToSet;
     if (relativePath) {
@@ -661,12 +659,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
       new File(path + "projects/").mkdirs();
       new File(path + "example/").mkdirs();
       Files.writeList(new String[] {"LAST_PROJECT_OPENED=example.properties",
-                                    "PROJECTS_DIR=" + pathToSet + "projects/"},
-                      launchPropertiesFile);
+          "PROJECTS_DIR=" + pathToSet + "projects/"}, launchPropertiesFile);
       if (!new File(path + "projects/example.properties").exists()) {
         Files.writeList(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/",
-                                      "SOURCE_DIRECTORY=sourceFiles/"},
-                        path + "projects/example.properties");
+            "SOURCE_DIRECTORY=sourceFiles/"}, path + "projects/example.properties");
       }
     }
     String bat = path + "Launch.bat";
@@ -741,7 +737,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
       // });
     } catch (InternalError e) {
       if (e.getMessage().contains("X11")) {
-        System.err.println("Error occurred with X11 forwarding - please install an X11 forwarding server (we recommend Xming - http://sourceforge.net/projects/xming/) or check your X11 forwarding configuration");
+        System.err.println(
+            "Error occurred with X11 forwarding - please install an X11 forwarding server (we recommend Xming - http://sourceforge.net/projects/xming/) or check your X11 forwarding configuration");
       }
     }
   }
@@ -810,7 +807,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
       loadProject();
     } else if (timestampOfPropertiesFile < new File(proj.getPropertyFilename()).lastModified()) {
       log.report("Detected a change in the project properties file; reloading from '"
-                 + proj.getPropertyFilename() + "'");
+          + proj.getPropertyFilename() + "'");
       proj = null;
       loadProject();
     } else {
@@ -818,8 +815,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     }
 
     if (proj != null
-        && timestampOfSampleDataFile < new File(proj.SAMPLE_DATA_FILENAME.getValue(false,
-                                                                                   false)).lastModified()) {
+        && timestampOfSampleDataFile < new File(proj.SAMPLE_DATA_FILENAME.getValue(false, false))
+            .lastModified()) {
       log.report("Detected a change in the sampleData file; reloading sample data");
       proj.resetSampleData();
     }
@@ -993,7 +990,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
       log.report("\nCurrent project: " + ext.rootOf(projects[indexOfCurrentProj]) + "\n");
 
       launchProperties.setProperty(LaunchProperties.LAST_PROJECT_OPENED,
-                                   projects[projectsBox.getSelectedIndex()]);
+          projects[projectsBox.getSelectedIndex()]);
       launchProperties.save();
     }
   }
@@ -1005,10 +1002,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     timestampOfSampleDataFile = new Date().getTime();
     if (!Files.exists(proj.PROJECT_DIRECTORY.getValue(), proj.JAR_STATUS.getValue())) {
       JOptionPane.showMessageDialog(null,
-                                    "Error - the directory ('" + proj.PROJECT_DIRECTORY.getValue()
-                                          + "') for project '" + proj.PROJECT_NAME.getValue()
-                                          + "' did not exist; creating now. If this was in error, please edit the property file.",
-                                    "Error", JOptionPane.ERROR_MESSAGE);
+          "Error - the directory ('" + proj.PROJECT_DIRECTORY.getValue() + "') for project '"
+              + proj.PROJECT_NAME.getValue()
+              + "' did not exist; creating now. If this was in error, please edit the property file.",
+          "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     log = proj.getLog();
@@ -1054,11 +1051,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     String[] commands = null;
 
     icons = new String[] {"images/save1.png", "images/edit1.png", "images/refresh.gif",
-                          "images/gen_pipe_1.png", "images/scatterPlot2.png",
-                          "images/trailerPlot2.png", "images/qqplot.gif", "images/recluster1.png",
-                          "images/twoDPlot1.jpg", "images/forestPlot1.png"};
+        "images/gen_pipe_1.png", "images/scatterPlot2.png", "images/trailerPlot2.png",
+        "images/qqplot.gif", "images/recluster1.png", "images/twoDPlot1.jpg",
+        "images/forestPlot1.png"};
     commands = new String[] {"", EDIT, REFRESH, PIPELINE, SCATTER, TRAILER, QQ, LINE_PLOT, TWOD,
-                             FOREST_PLOT};
+        FOREST_PLOT};
 
 
     iconBar = new JPanel();
@@ -1132,7 +1129,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         } else if (MENUS[i][j].equals(PRINCIPAL_COMPONENTS)) {
           String[] pcSubMenuOptions =
               new String[] {PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI,
-                            PrincipalComponentsCrossTabs.PRINCIPAL_CROSSTABS_MI};
+                  PrincipalComponentsCrossTabs.PRINCIPAL_CROSSTABS_MI};
           JMenu pcSubMenu = new JMenu(MENUS[i][j]);
           for (String pcSubMenuOption : pcSubMenuOptions) {
             JMenuItem pcSubItem = new JMenuItem(pcSubMenuOption);

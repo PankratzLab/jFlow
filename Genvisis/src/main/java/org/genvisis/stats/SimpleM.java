@@ -75,14 +75,14 @@ public class SimpleM {
   }
 
   public enum MODE {
-                    /**
-                     * We divide the data into blocks and process each block separately
-                     */
-                    BLOCK_MODE,
-                    /**
-                     * All data is processed at once
-                     */
-                    SINGLE_FRAME_MODE;
+    /**
+     * We divide the data into blocks and process each block separately
+     */
+    BLOCK_MODE,
+    /**
+     * All data is processed at once
+     */
+    SINGLE_FRAME_MODE;
   }
 
   private static int BLOCK_SIZE_FROM_PAPER = 133;
@@ -90,28 +90,24 @@ public class SimpleM {
   private static double PCA_CUT_OFF_FROM_PAPER = 0.995;
 
   private static PrincipalComponentsCompute computePcs(double[][] data, String[] dataTitles,
-                                                       boolean preCorrelated, boolean verbose,
-                                                       Logger log) {
+      boolean preCorrelated, boolean verbose, Logger log) {
     PrincipalComponentsCompute principalComponentsCompute = null;
     if (!preCorrelated) {
       StatsCrossTabs statsCrossTabs =
           new StatsCrossTabs(data, null, null, dataTitles, STAT_TYPE.PEARSON_CORREL, verbose, log);
       statsCrossTabs.computeTable(true);
-      principalComponentsCompute =
-          PrincipalComponentsCompute.getPrincipalComponents(data.length - 1, false,
-                                                            statsCrossTabs.getStatisticTable(),
-                                                            verbose, log);
+      principalComponentsCompute = PrincipalComponentsCompute.getPrincipalComponents(
+          data.length - 1, false, statsCrossTabs.getStatisticTable(), verbose, log);
     } else {
-      principalComponentsCompute =
-          PrincipalComponentsCompute.getPrincipalComponents(data.length - 1, false, data, verbose,
-                                                            log);
+      principalComponentsCompute = PrincipalComponentsCompute
+          .getPrincipalComponents(data.length - 1, false, data, verbose, log);
 
     }
     return principalComponentsCompute;
   }
 
   private static int getMeff(PrincipalComponentsCompute principalComponentsCompute,
-                             double pcaCutoff) {
+      double pcaCutoff) {
     int m = 0;
     double[] singularValues = principalComponentsCompute.getSingularValues();
     double cut = pcaCutoff * Array.sum(singularValues);
@@ -177,8 +173,8 @@ public class SimpleM {
     if (valid) {
       int m = 0;
 
-      log.reportTimeInfo("Determining effective M using mode " + mode + " and pca cutoff of "
-                         + pcaCutoff);
+      log.reportTimeInfo(
+          "Determining effective M using mode " + mode + " and pca cutoff of " + pcaCutoff);
       if (precorrelated) {
         log.reportTimeInfo("Treating data as a pre-correlated matrix");
       }
@@ -198,7 +194,7 @@ public class SimpleM {
           break;
       }
       log.reportTimeInfo("Finished determining effective M using mode " + mode
-                         + " and pca cutoff of " + pcaCutoff);
+          + " and pca cutoff of " + pcaCutoff);
       log.reportTimeInfo("Total variables = " + dataM.length + " , Inferred effective M = " + m);
       return m;
     } else {

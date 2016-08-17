@@ -26,7 +26,7 @@ public class FamilyStructure {
 
   public static boolean likelyPedHeader(String[] line) {
     return Array.countIf(ext.indexFactors(TYPICAL_HEADERS, line, false, true, false, false),
-                         -1) < 3;
+        -1) < 3;
   }
 
   public ArrayList<String[]> cached_poPairsIDs = null;
@@ -79,9 +79,9 @@ public class FamilyStructure {
     for (int i = 0; i < count; i++) {
       ids[i] = new String[] {fids[i], iids[i], fas[i], mos[i]};
       genders[i] = ext.isMissingValue(pedCols[4][i]) ? FamilyStructure.MISSING_VALUE_BYTE
-                                                     : Byte.parseByte(pedCols[4][i]);
+          : Byte.parseByte(pedCols[4][i]);
       affections[i] = ext.isMissingValue(pedCols[5][i]) ? FamilyStructure.MISSING_VALUE_BYTE
-                                                        : Byte.parseByte(pedCols[5][i]);
+          : Byte.parseByte(pedCols[5][i]);
 
       if (pedCols.length > 7) {
         mzTwinIds[i] = ext.isMissingValue(pedCols[7][i]) ? null : pedCols[7][i];
@@ -98,7 +98,7 @@ public class FamilyStructure {
   }
 
   public FamilyStructure(String[][] ids, byte[] genders, byte[] affections, String[] dnas,
-                         String[] mzTwinIds, Logger log) {
+      String[] mzTwinIds, Logger log) {
     this.ids = ids;
     this.genders = genders;
     this.affections = affections;
@@ -172,12 +172,12 @@ public class FamilyStructure {
 
   public int getIndexOfFaInIDs(int indivIndex) {
     return MISSING_ID_STR.equals(fas[indivIndex]) ? -1
-                                                  : getIndIndex(fids[indivIndex], fas[indivIndex]);
+        : getIndIndex(fids[indivIndex], fas[indivIndex]);
   }
 
   public int getIndexOfMoInIDs(int indivIndex) {
     return MISSING_ID_STR.equals(mos[indivIndex]) ? -1
-                                                  : getIndIndex(fids[indivIndex], mos[indivIndex]);
+        : getIndIndex(fids[indivIndex], mos[indivIndex]);
   }
 
   public int getIndIndex(String fid, String iid) {
@@ -187,7 +187,7 @@ public class FamilyStructure {
 
   public String getIndividualHeader(int index, boolean displayDNA) {
     return Array.toStr(ids[index]) + "\t" + genders[index] + "\t" + affections[index]
-           + (displayDNA && dnas != null ? "\t" + dnas[index] : "");
+        + (displayDNA && dnas != null ? "\t" + dnas[index] : "");
   }
 
   public String getMO(int index) {

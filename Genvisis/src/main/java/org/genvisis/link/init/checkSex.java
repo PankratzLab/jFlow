@@ -74,11 +74,11 @@ public class checkSex {
       }
 
       writer.println(id + "\t" + hash.get(id) + "\t" + dna + "\t" + ctSame + "\t" + ctDiff + "\t"
-                     + ((ctDiff > 3) ? "female" : "male"));
+          + ((ctDiff > 3) ? "female" : "male"));
       if (ctDiff + ctSame > 3 && ((ctDiff > 3 && !(hash.get(id)).equals("F"))
-                                  || (ctDiff <= 3 && (hash.get(id)).equals("F")))) {
+          || (ctDiff <= 3 && (hash.get(id)).equals("F")))) {
         System.err.println("Check: " + id + "\t" + hash.get(id) + "\t" + dna + "\t" + ctSame + "\t"
-                           + ctDiff + "\t" + ((ctDiff > 3) ? "female" : "male"));
+            + ctDiff + "\t" + ((ctDiff > 3) ? "female" : "male"));
       }
     }
     reader.close();

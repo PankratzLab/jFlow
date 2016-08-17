@@ -163,7 +163,7 @@ public class MosaicismDetect {
     private int index;
 
     public MosaicProducer(Project proj, MosaicBuilder builder, String[] samples,
-                          MarkerSet markerSet, LocusSet<Segment> segs) {
+        MarkerSet markerSet, LocusSet<Segment> segs) {
       super();
       this.proj = proj;
       this.samples = samples;
@@ -197,7 +197,7 @@ public class MosaicismDetect {
     private final int[][] indicesByChr;
 
     public MosaicWorker(Project proj, MosaicBuilder builder, LocusSet<Segment> segs,
-                        MarkerSet markerSet, String sample) {
+        MarkerSet markerSet, String sample) {
       super();
       this.proj = proj;
       this.builder = builder;
@@ -220,21 +220,19 @@ public class MosaicismDetect {
         LocusSet<MosaicRegion> tmp = md.callMosaic(segs.getLoci()[i], false);
         tmp.addAll(all);
       }
-      LocusSet<MosaicRegion> allCalls =
-          new LocusSet<MosaicRegion>(all.toArray(new MosaicRegion[all.size()]), true,
-                                     proj.getLog()) {
+      LocusSet<MosaicRegion> allCalls = new LocusSet<MosaicRegion>(
+          all.toArray(new MosaicRegion[all.size()]), true, proj.getLog()) {
 
-            /**
-             * 
-             */
-            private static final long serialVersionUID = 1L;
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 1L;
 
-          };
+      };
       // System.out.println(allCalls);
       BeastScore beastScore =
           BeastScore.beastInd(proj, null, Array.toFloatArray(lrrs), allCalls.getLoci(),
-                              md.getMarkerSet().getChrs(), md.getMarkerSet().getPositions(),
-                              md.getIndicesByChr());
+              md.getMarkerSet().getChrs(), md.getMarkerSet().getPositions(), md.getIndicesByChr());
       // beastScore.computeBeastScores();
       for (int i = 0; i < allCalls.getLoci().length; i++) {
         allCalls.getLoci()[i].setBeastScore(beastScore.getBeastScores()[i]);
@@ -286,10 +284,9 @@ public class MosaicismDetect {
       for (int j = 0; j < te.length; j++) {
         if (te[j].length > 0 && j < 23) {
           proj.getLog().reportTimeInfo("Calling chr " + j + " for sample " + i);
-          LocusSet<MosaicRegion> hi =
-              md.callMosaic(new Segment((byte) j, 0,
-                                        markerSet.getPositions()[te[j][te[j].length - 1]] + 10),
-                            false);
+          LocusSet<MosaicRegion> hi = md.callMosaic(
+              new Segment((byte) j, 0, markerSet.getPositions()[te[j][te[j].length - 1]] + 10),
+              false);
           for (int k = 0; k < hi.getLoci().length; k++) {
             System.out.println(hi.getLoci()[k].toPlinkFormat());
           }
@@ -317,7 +314,7 @@ public class MosaicismDetect {
         };
 
     mos.writeRegions(proj.PROJECT_DIRECTORY.getValue() + "TestMosaic/mos.cnvs",
-                     TO_STRING_TYPE.REGULAR, true, proj.getLog());
+        TO_STRING_TYPE.REGULAR, true, proj.getLog());
     // proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + "TestMosaic/mos.cnvs");
 
     proj.saveProperties();
@@ -350,7 +347,7 @@ public class MosaicismDetect {
   private final boolean[] use;
 
   private MosaicismDetect(MosaicBuilder builder, Project proj, String sample, MarkerSet markerSet,
-                          double[] bafs) {
+      double[] bafs) {
     this.proj = proj;
     this.sample = sample;
     this.markerSet = markerSet;
@@ -367,10 +364,12 @@ public class MosaicismDetect {
     use = builder.use;
     // this.minPercentStates = builder.minPercentStates;
     if (bafs.length != markerSet.getMarkerNames().length) {
-      throw new IllegalArgumentException("Internal error, bafs must be present for entire array, fill with NaN if neccesary");
+      throw new IllegalArgumentException(
+          "Internal error, bafs must be present for entire array, fill with NaN if neccesary");
     }
     if (use != null && use.length != markerSet.getMarkerNames().length) {
-      throw new IllegalArgumentException("Internal error, use definition must be present for entire array if not null, fill with NaN if neccesary");
+      throw new IllegalArgumentException(
+          "Internal error, use definition must be present for entire array if not null, fill with NaN if neccesary");
     }
     prep();
   }
@@ -432,13 +431,12 @@ public class MosaicismDetect {
           p_density[i] = tmp;
           if (Numbers.isFinite(baf)) {
             if (j == 0 || j == 2) {
-              nearestN[i] =
-                  baf < gd.distributions()[1].mean() ? Math.max(baf - gd.distributions()[j].mean(),
-                                                                0)
-                                                     : gd.distributions()[j].mean() - baf;
+              nearestN[i] = baf < gd.distributions()[1].mean()
+                  ? Math.max(baf - gd.distributions()[j].mean(), 0)
+                  : gd.distributions()[j].mean() - baf;
             } else {
               nearestN[i] = baf < gd.distributions()[1].mean() ? gd.distributions()[1].mean() - baf
-                                                               : baf - gd.distributions()[1].mean();
+                  : baf - gd.distributions()[1].mean();
             }
           } else {
             nearestN[i] = -1;
@@ -487,14 +485,14 @@ public class MosaicismDetect {
       double[] bafsSub = Array.subArray(Array.subArray(bafs, segIndices), mosIndices);
       ViterbiResult vtr = new ViterbiResult(Array.subArray(states, mosIndices), null);
       dud = vtr.analyzeStateSequence(proj, sample, sample, seg.getChr(), positions, names, 2, false,
-                                     verbose);
+          verbose);
       MosaicRegion[] tmp = new MosaicRegion[dud.getLoci().length];
       double[] finalPDensit = Doubles.toArray(p_densityScored);
       for (int i = 0; i < dud.getLoci().length; i++) {
         CNVBuilder builder = new CNVBuilder(dud.getLoci()[i]);
         int numFMarkers = dud.getLoci()[i].getNumMarkers();
-        builder.numMarkers(markerSet.getIndicesOfMarkersIn(dud.getLoci()[i], indicesByChr,
-                                                           proj.getLog()).length);
+        builder.numMarkers(
+            markerSet.getIndicesOfMarkersIn(dud.getLoci()[i], indicesByChr, proj.getLog()).length);
         if (force) {
           builder.chr(seg.getChr());
           builder.start(seg.getStart());
@@ -504,10 +502,9 @@ public class MosaicismDetect {
         int[] scoreStopStart = vtr.getIndexStateChange().get(i);
         double[] scored = Array.subArray(finalPDensit, scoreStopStart[0], scoreStopStart[1] + 1);
         double pdfScore = baseLine - Array.mean(scored);// TODO,
-        double delta =
-            Array.median(Array.removeNaN(Array.distFrom(Array.subArray(bafsSub, scoreStopStart[0],
-                                                                       scoreStopStart[1] + 1),
-                                                        gd.distributions()[1].mean())));
+        double delta = Array.median(Array.removeNaN(
+            Array.distFrom(Array.subArray(bafsSub, scoreStopStart[0], scoreStopStart[1] + 1),
+                gd.distributions()[1].mean())));
         double factor = dud.getLoci()[i].getSize(); // factor = factor * (double)
                                                     // dud.getLoci()[i].getNumMarkers() /
                                                     // states.length;
@@ -516,7 +513,7 @@ public class MosaicismDetect {
         double nearestStateScore =
             Array.mean(Array.subArray(nearestN, scoreStopStart[0], scoreStopStart[1] + 1));
         tmp[i] = new MosaicRegion(builder.build(), Math.log10(Math.pow(factor, 2)),
-                                  nearestStateScore, pdfScore, delta, Double.NaN, customF);
+            nearestStateScore, pdfScore, delta, Double.NaN, customF);
         tmp[i].setNumFMarkers(numFMarkers);
       }
 
@@ -532,9 +529,9 @@ public class MosaicismDetect {
 
     } else if (force) {// no markers met criteria, set a blank
       CNVariant blank = new CNVariant(sample, sample, seg.getChr(), seg.getStart(), seg.getStop(),
-                                      2, Double.NaN, 0, 99);
+          2, Double.NaN, 0, 99);
       MosaicRegion blankMr = new MosaicRegion(blank, Double.NaN, Double.NaN, Double.NaN, Double.NaN,
-                                              Double.NaN, Double.NaN);
+          Double.NaN, Double.NaN);
       mSet = new LocusSet<MosaicRegion>(new MosaicRegion[] {blankMr}, true, proj.getLog()) {
 
         /**
@@ -577,14 +574,14 @@ public class MosaicismDetect {
       for (int j = 0; j < gd.distributions().length; j++) {
         baseLine +=
             gd.distributions()[j].probability(means[j] + nullSigma * Math.sqrt(variances[j]))
-                    * Math.sqrt(variances[j]);
+                * Math.sqrt(variances[j]);
       }
     }
     reportDynRange();
   }
 
   private GaussianMixtureDistribution prepareGaussMixture(double[] autosomalBafs, double r1,
-                                                          double r2) {
+      double r2) {
     if (means == null) {
 
       means = new double[3];
@@ -603,8 +600,8 @@ public class MosaicismDetect {
 
       if (!Numbers.isFinite(zero_tsMeanVar[1] + t_tsMeanVar[1] + t_sMeanVar[1])
           || zero_tsMeanVar[1] <= 0 || t_tsMeanVar[1] <= 0 || t_sMeanVar[1] <= 0) {
-        proj.getLog().reportTimeWarning("Sample " + sample
-                                        + " had non-finite or 0 baf variance, setting to 1");
+        proj.getLog().reportTimeWarning(
+            "Sample " + sample + " had non-finite or 0 baf variance, setting to 1");
       }
     }
 
@@ -629,14 +626,14 @@ public class MosaicismDetect {
   private void reportDynRange() {
     if (verbose) {
       double minDelta = Math.sqrt(gd.distributions()[1].variance());
-      proj.getLog().reportTimeInfo("Min proportion Disomy detection ~="
-                                   + MosaicismQuant.getDisomyF(minDelta));
+      proj.getLog().reportTimeInfo(
+          "Min proportion Disomy detection ~=" + MosaicismQuant.getDisomyF(minDelta));
       double maxDelta = .5 - nullSigma * Math.sqrt(gd.distributions()[2].variance());// B allele
                                                                                      // generally
                                                                                      // greater
                                                                                      // variance
-      proj.getLog().reportTimeInfo("Max proportion Disomy detection ~="
-                                   + MosaicismQuant.getDisomyF(maxDelta));
+      proj.getLog().reportTimeInfo(
+          "Max proportion Disomy detection ~=" + MosaicismQuant.getDisomyF(maxDelta));
       proj.getLog().reportTimeInfo("Null conf ~=" + baseLine);
 
     }

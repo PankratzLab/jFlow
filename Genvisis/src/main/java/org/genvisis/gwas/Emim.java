@@ -18,8 +18,7 @@ import org.genvisis.common.ext;
 public class Emim {
 
   public enum EMIM_MODEL {
-                          GENOTYPIC("Genotypic", 2), DOMINANT("Dominant", 1), ADDITIVE("Additive",
-                                                                                       1);
+    GENOTYPIC("Genotypic", 2), DOMINANT("Dominant", 1), ADDITIVE("Additive", 1);
 
     public static Set<EMIM_MODEL> valueSet() {
       HashSet<EMIM_MODEL> models = new HashSet<EMIM_MODEL>();
@@ -49,7 +48,14 @@ public class Emim {
   }
 
   private enum EMIM_PARAM {
-                           ESTIMATE_R1("   << estimate R1 (0=no, 1=yes)"), ESTIMATE_R2("   << estimate R2 (0=no, 1=yes)"), R2_EQUALS_R1("   << R2=R1 (0=no, 1=yes)"), R2_EQUALS_R1_SQUARED("   << R2=R1squared\t(0=no, 1=yes)"), ESTIMATE_S1("   << estimate S1 (0=no, 1=yes)"), ESTIMATE_S2("   << estimate S2 (0=no, 1=yes)"), S2_EQUALS_S1("   << S2=S1 (0=no, 1=yes)"), S2_EQUALS_S1_SQUARED("   << S2=S1squared\t(0=no, 1=yes)");
+    ESTIMATE_R1("   << estimate R1 (0=no, 1=yes)"), ESTIMATE_R2(
+        "   << estimate R2 (0=no, 1=yes)"), R2_EQUALS_R1(
+            "   << R2=R1 (0=no, 1=yes)"), R2_EQUALS_R1_SQUARED(
+                "   << R2=R1squared\t(0=no, 1=yes)"), ESTIMATE_S1(
+                    "   << estimate S1 (0=no, 1=yes)"), ESTIMATE_S2(
+                        "   << estimate S2 (0=no, 1=yes)"), S2_EQUALS_S1(
+                            "   << S2=S1 (0=no, 1=yes)"), S2_EQUALS_S1_SQUARED(
+                                "   << S2=S1squared\t(0=no, 1=yes)");
 
     private final String lineSuffix;
 
@@ -59,12 +65,12 @@ public class Emim {
 
     String[] getReplacement(boolean setTo) {
       return setTo ? new String[] {"0" + lineSuffix, "1" + lineSuffix}
-                   : new String[] {"1" + lineSuffix, "0" + lineSuffix};
+          : new String[] {"1" + lineSuffix, "0" + lineSuffix};
     }
   }
 
   private static void generateEmimParams(String filenameOriginal, HashSet<EMIM_PARAM> setParams,
-                                         Logger log) {
+      Logger log) {
     String[][] replacements = new String[EMIM_PARAM.values().length][];
     for (int i = 0; i < EMIM_PARAM.values().length; i++) {
       EMIM_PARAM param = EMIM_PARAM.values()[i];
@@ -74,8 +80,8 @@ public class Emim {
     replaceLines(filenameOriginal, "emimparams.dat", replacements, log);
   }
 
-  private static void listSexMarkers(String bimFile, String sexFile) throws NumberFormatException,
-                                                                     IOException {
+  private static void listSexMarkers(String bimFile, String sexFile)
+      throws NumberFormatException, IOException {
     PrintWriter writer;
     BufferedReader reader;
     String line;
@@ -111,24 +117,22 @@ public class Emim {
     String resultPrefix = null;
 
     String usage = "\n" + "gwas.Emim requires 0-1 arguments\n"
-                   + "   (1) run type (either C, CM, or M) (i.e. run=" + runType + " (default))\n"
-                   + "   (2) model (" + Array.toStr(EMIM_MODEL.values(), ",") + ") (i.e. model="
-                   + model.toString() + " (default))\n" + "  OR\n"
-                   + "   (1) generate script that runs the full process (i.e. script=plinkPrefix (not the default))\n"
-                   + "   (2) p-value threshold to filter on (piped to parse method) (i.e. pThreshold="
-                   + pValueThreshold + " (default))\n"
-                   + "   (3) (optional) a file of markers to exclude - the default will generate a file of sex markers, as Emim won't parse these. (i.e. exclude=drops.dat (not the default))\n"
-                   + "   (4) (optional) a file of tab-delimited FID/IID pairs to keep (i.e. keep=completeTrios.dat (not the default))\n"
-                   + "  OR\n" + "   (1) directory to parse (i.e. parse=./ (not the default))\n"
-                   + "   (2) file prefix for results (i.e. resultPrefix=" + resultPrefix
-                   + " (default))\n" + "   (3) p-value threshold to filter on (i.e. pThreshold="
-                   + pValueThreshold + " (default))\n" + "   (4) model "
-                   + Arrays.toString(EMIM_MODEL.values()) + " (i.e. model=" + model.toString()
-                   + " (default))\n"
-                   + "   (5) (optional) plink.hwe file to merge with results (i.e. hwe=" + hweFile
-                   + " (default))\n"
-                   + "   (6) (optional) plink.frq file to merge with results (i.e. frq=" + frqFile
-                   + " (default))\n" + "";
+        + "   (1) run type (either C, CM, or M) (i.e. run=" + runType + " (default))\n"
+        + "   (2) model (" + Array.toStr(EMIM_MODEL.values(), ",") + ") (i.e. model="
+        + model.toString() + " (default))\n" + "  OR\n"
+        + "   (1) generate script that runs the full process (i.e. script=plinkPrefix (not the default))\n"
+        + "   (2) p-value threshold to filter on (piped to parse method) (i.e. pThreshold="
+        + pValueThreshold + " (default))\n"
+        + "   (3) (optional) a file of markers to exclude - the default will generate a file of sex markers, as Emim won't parse these. (i.e. exclude=drops.dat (not the default))\n"
+        + "   (4) (optional) a file of tab-delimited FID/IID pairs to keep (i.e. keep=completeTrios.dat (not the default))\n"
+        + "  OR\n" + "   (1) directory to parse (i.e. parse=./ (not the default))\n"
+        + "   (2) file prefix for results (i.e. resultPrefix=" + resultPrefix + " (default))\n"
+        + "   (3) p-value threshold to filter on (i.e. pThreshold=" + pValueThreshold
+        + " (default))\n" + "   (4) model " + Arrays.toString(EMIM_MODEL.values()) + " (i.e. model="
+        + model.toString() + " (default))\n"
+        + "   (5) (optional) plink.hwe file to merge with results (i.e. hwe=" + hweFile
+        + " (default))\n" + "   (6) (optional) plink.frq file to merge with results (i.e. frq="
+        + frqFile + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -197,7 +201,7 @@ public class Emim {
   }
 
   public static void parse(String dir, String resultPrefix, String hweFile, String frqFile,
-                           double pValueThreshold, EMIM_MODEL model) {
+      double pValueThreshold, EMIM_MODEL model) {
     String resultsFileChild, resultsFileChildMom, resultsFileMom, resultsFileTdt, mapFile,
         mendelErrorFile, outfile;
 
@@ -208,15 +212,15 @@ public class Emim {
     mapFile = dir + "emimPrep.bim";
     mendelErrorFile = dir + "plink.lmendel";
     outfile = dir + (resultPrefix == null ? "" : resultPrefix + "_") + "results_pVals_"
-              + model.toString() + ".xln";
+        + model.toString() + ".xln";
 
     ResultsPackager.parseEmimFormat(resultsFileChild, resultsFileMom, resultsFileChildMom,
-                                    resultsFileTdt, mapFile, mendelErrorFile, hweFile, frqFile,
-                                    pValueThreshold, outfile, new Logger("EMIMparser.log"));
+        resultsFileTdt, mapFile, mendelErrorFile, hweFile, frqFile, pValueThreshold, outfile,
+        new Logger("EMIMparser.log"));
   }
 
   public static void replaceLines(String filenameOriginal, String filenameWithReplacements,
-                                  String[][] relacements, Logger log) {
+      String[][] relacements, Logger log) {
     BufferedReader reader;
     PrintWriter writer;
 
@@ -238,9 +242,9 @@ public class Emim {
   }
 
   public static boolean scriptAll(String plinkPrefix, String excludeFile, String keepFile,
-                                  double pThreshold) {
+      double pThreshold) {
     return scriptAllInDir("./", plinkPrefix, plinkPrefix, excludeFile, keepFile, pThreshold,
-                          EMIM_MODEL.valueSet(), null, new Logger());
+        EMIM_MODEL.valueSet(), null, new Logger());
     // String commands;
     // String currDir;
     //
@@ -290,9 +294,8 @@ public class Emim {
   }
 
   protected static boolean scriptAllInDir(String runDir, String plinkDirAndRoot,
-                                          String relativePlinkRoot, String excludeFile,
-                                          String keepFile, double pThreshold,
-                                          Set<EMIM_MODEL> models, String resultPrefix, Logger log) {
+      String relativePlinkRoot, String excludeFile, String keepFile, double pThreshold,
+      Set<EMIM_MODEL> models, String resultPrefix, Logger log) {
     String commands;
     String currDir = ext.verifyDirFormat(runDir);
     boolean forceRun = false, forceParse = false;
@@ -327,16 +330,16 @@ public class Emim {
       forceRun = true;
       forceParse = true;
       commands += "plink2 --noweb --bfile " + relativePlinkRoot
-                  + (excludeFile != null ? " --exclude " + excludeFile : "")
-                  + (keepFile != null ? " --keep " + keepFile : "") + " --make-bed --out emimPrep\n"
-                  + "mv emimPrep.log plink_prep.log\n" + "\n";
+          + (excludeFile != null ? " --exclude " + excludeFile : "")
+          + (keepFile != null ? " --keep " + keepFile : "") + " --make-bed --out emimPrep\n"
+          + "mv emimPrep.log plink_prep.log\n" + "\n";
     }
 
     if (!forceRun && Files.exists(currDir + "plink_mendel.log")
         && Files.exists(currDir + "plink.mendel") && Files.exists(currDir + "plink.lmendel")
         && Files.exists(currDir + "plink.fmendel") && Files.exists(currDir + "plink.imendel")) {
-      log.report(currDir
-                 + "plink.*mendel files already exist, skipping mendelian error calculation");
+      log.report(
+          currDir + "plink.*mendel files already exist, skipping mendelian error calculation");
     } else {
       forceParse = true;
       commands +=
@@ -349,13 +352,13 @@ public class Emim {
     } else {
       forceParse = true;
       commands += "plink2 --noweb --bfile emimPrep --tdt --ci 0.95\n"
-                  + "mv plink.log plink_tdt.log\n" + "\n";
+          + "mv plink.log plink_tdt.log\n" + "\n";
     }
 
     if (!forceRun && Files.exists(currDir + "plink_hwe.log")
         && Files.exists(currDir + "plink.hwe")) {
-      log.report(currDir
-                 + "plink.hwe already exists, skipping Hardy-Weinberg Equilibrium calculation");
+      log.report(
+          currDir + "plink.hwe already exists, skipping Hardy-Weinberg Equilibrium calculation");
     } else {
       forceParse = true;
       commands +=
@@ -390,41 +393,40 @@ public class Emim {
 
     for (EMIM_MODEL model : models) {
       boolean skipModel = !forceRun
-                          && Files.exists(currDir + (resultPrefix == null ? "" : resultPrefix + "_")
-                                          + "results_pVals_" + model.toString() + ".xln")
-                          && Files.exists(currDir + "emimsummary_C_" + model.toString() + ".out")
-                          && Files.exists(currDir + "emimparams_C_" + model.toString() + ".dat")
-                          && Files.exists(currDir + "emimsummary_CM_" + model.toString() + ".out")
-                          && Files.exists(currDir + "emimparams_CM_" + model.toString() + ".dat")
-                          && Files.exists(currDir + "emimsummary_M_" + model.toString() + ".out")
-                          && Files.exists(currDir + "emimparams_M_" + model.toString() + ".dat");
+          && Files.exists(currDir + (resultPrefix == null ? "" : resultPrefix + "_")
+              + "results_pVals_" + model.toString() + ".xln")
+          && Files.exists(currDir + "emimsummary_C_" + model.toString() + ".out")
+          && Files.exists(currDir + "emimparams_C_" + model.toString() + ".dat")
+          && Files.exists(currDir + "emimsummary_CM_" + model.toString() + ".out")
+          && Files.exists(currDir + "emimparams_CM_" + model.toString() + ".dat")
+          && Files.exists(currDir + "emimsummary_M_" + model.toString() + ".out")
+          && Files.exists(currDir + "emimparams_M_" + model.toString() + ".dat");
       if (skipModel) {
         log.report("Results already exist in " + currDir + " for " + model.toString()
-                   + " model, skipping " + model.toString() + " EMIM");
+            + " model, skipping " + model.toString() + " EMIM");
       } else {
         commands += "\n" + Files.getRunString() + " gwas.Emim run=C model=" + model.toString()
-                    + "\n" + "emim\n" + "mv emimsummary.out emimsummary_C_" + model.toString()
-                    + ".out\n" + "rm emimresults.out\n" + "cp emimparams.dat emimparams_C_"
-                    + model.toString() + ".dat\n" + "\n" + Files.getRunString()
-                    + " gwas.Emim run=CM model=" + model.toString() + "\n" + "emim\n"
-                    + "mv emimsummary.out emimsummary_CM_" + model.toString() + ".out\n"
-                    + "rm emimresults.out\n" + "cp emimparams.dat emimparams_CM_" + model.toString()
-                    + ".dat\n" + "\n" + Files.getRunString() + " gwas.Emim run=M model="
-                    + model.toString() + "\n" + "emim\n" + "mv emimsummary.out emimsummary_M_"
-                    + model.toString() + ".out\n" + "rm emimresults.out\n"
-                    + "cp emimparams.dat emimparams_M_" + model.toString() + ".dat\n" + "\n";
+            + "\n" + "emim\n" + "mv emimsummary.out emimsummary_C_" + model.toString() + ".out\n"
+            + "rm emimresults.out\n" + "cp emimparams.dat emimparams_C_" + model.toString()
+            + ".dat\n" + "\n" + Files.getRunString() + " gwas.Emim run=CM model=" + model.toString()
+            + "\n" + "emim\n" + "mv emimsummary.out emimsummary_CM_" + model.toString() + ".out\n"
+            + "rm emimresults.out\n" + "cp emimparams.dat emimparams_CM_" + model.toString()
+            + ".dat\n" + "\n" + Files.getRunString() + " gwas.Emim run=M model=" + model.toString()
+            + "\n" + "emim\n" + "mv emimsummary.out emimsummary_M_" + model.toString() + ".out\n"
+            + "rm emimresults.out\n" + "cp emimparams.dat emimparams_M_" + model.toString()
+            + ".dat\n" + "\n";
       }
 
       if (!skipModel || forceParse) {
         commands += Files.getRunString() + " gwas.Emim parse=./" + " hwe=plink.hwe"
-                    + " frq=plink.frq" + " pThreshold=" + pThreshold + " model=" + model.toString()
-                    + (resultPrefix == null ? "" : " resultPrefix=" + resultPrefix) + "\n\n";
+            + " frq=plink.frq" + " pThreshold=" + pThreshold + " model=" + model.toString()
+            + (resultPrefix == null ? "" : " resultPrefix=" + resultPrefix) + "\n\n";
       }
     }
 
     if (commands.equals("")) {
       log.report("Warning - No commands were generated for " + currDir
-                 + ", remove directory to re-run EMIM Pipeline from scratch");
+          + ", remove directory to re-run EMIM Pipeline from scratch");
       return false;
     }
     commands = "cd " + currDir + "\n" + commands;
@@ -439,7 +441,8 @@ public class Emim {
     Logger log;
 
     if (!Files.exists("emimparams.dat")) {
-      System.err.println("Error - emimparams.dat is not in the current directory; aborting rewrite");
+      System.err
+          .println("Error - emimparams.dat is not in the current directory; aborting rewrite");
       return;
     }
 
@@ -508,8 +511,8 @@ public class Emim {
 
     generateEmimParams(filenameOriginal, setParams, log);
 
-    System.out.println("emimparams.dat set to " + model.toString() + " model of " + runType
-                       + " effect");
+    System.out
+        .println("emimparams.dat set to " + model.toString() + " model of " + runType + " effect");
 
   }
 }

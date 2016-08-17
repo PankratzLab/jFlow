@@ -42,7 +42,7 @@ public class TypedFileParser extends FileParser {
     private final int numInvalidNumerics;
 
     public TypedFileLine(double[][] numericData, String[][] stringData, boolean validLine,
-                         int numInvalidNumerics) {
+        int numInvalidNumerics) {
       super();
       this.numericData = numericData;
       this.stringData = stringData;

@@ -151,9 +151,8 @@ public class SVDRegression {
   public void svdRegression() {
     numComponents = indepsT.length;// number of independent variables, plus the constant = full rank
     betas = new double[numComponents];
-    principalComponentsCompute =
-        PrincipalComponentsCompute.getPrincipalComponents(numComponents, false, indepsT, verbose,
-                                                          log);
+    principalComponentsCompute = PrincipalComponentsCompute.getPrincipalComponents(numComponents,
+        false, indepsT, verbose, log);
     extractU();
     extractW();
     computeV();

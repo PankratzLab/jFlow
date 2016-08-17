@@ -14,7 +14,7 @@ public class Pathway extends LocusSet<GeneData> {
   private final boolean complete;
 
   public Pathway(GeneData[] loci, boolean sort, Logger log, String pathwayName,
-                 Set<String> geneNames, boolean complete) {
+      Set<String> geneNames, boolean complete) {
     super(loci, sort, log);
     this.pathwayName = pathwayName;
     this.geneNames = geneNames;

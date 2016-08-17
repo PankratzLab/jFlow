@@ -23,7 +23,7 @@ public class SimpleTallyGene {
     private final double maf;
 
     public Params(String vcf, Segment seg, String name, String vpopFile, String omimDir,
-                  VariantContextFilter filter, double maf) {
+        VariantContextFilter filter, double maf) {
       super();
       this.vcf = vcf;
       this.seg = seg;
@@ -45,15 +45,14 @@ public class SimpleTallyGene {
       String segFile = dir + name + ".segs";
       Files.write(seg.getChr() + "\t" + seg.getStart() + "\t" + seg.getStop(), segFile);
       String subVcf = VCFOps.extractSegments(vcf, segFile, 100, null,
-                                             ext.rootOf(vpopFile, false) + "_extractedVcfs/", false,
-                                             true, true, false, null, 1, log);
+          ext.rootOf(vpopFile, false) + "_extractedVcfs/", false, true, true, false, null, 1, log);
       Files.copyFile(vpopFile, newVpop);
       if (Files.exists(ext.rootOf(vpopFile, false) + ".lowerQualitySamples.txt")) {
         Files.copyFile(ext.rootOf(vpopFile, false) + ".lowerQualitySamples.txt",
-                       dir + ext.rootOf(vpopFile, true) + ".lowerQualitySamples.txt");
+            dir + ext.rootOf(vpopFile, true) + ".lowerQualitySamples.txt");
       }
       VCFSimpleTally.test(subVcf, new String[] {newVpop}, omimDir, null, null, maf, true, true,
-                          filter);
+          filter);
       return this;
     }
 
@@ -96,8 +95,8 @@ public class SimpleTallyGene {
     for (int i = 0; i < names.length; i++) {
       // hive.addCallable(new Params(vcfGermline, segs[i], names[i], vpopFileGermlineOsteo, omimDir,
       // null));
-      hive.addCallable(new Params(vcfGermline, segs[i], names[i], vpopFileGermlineCushing, omimDir,
-                                  null, maf));
+      hive.addCallable(
+          new Params(vcfGermline, segs[i], names[i], vpopFileGermlineCushing, omimDir, null, maf));
       // hive.addCallable(new Params(vcfGermline, segs[i], names[i], vpopFileGermlineEPP, omimDir,
       // null));
       // hive.addCallable(new Params(vcfTumor, segs[i], names[i], vpopFileTumor, omimDir,

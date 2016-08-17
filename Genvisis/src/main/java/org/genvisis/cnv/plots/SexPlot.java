@@ -39,7 +39,7 @@ public class SexPlot extends JFrame {
 
   private static final String[] SEX_CHECKS_REQUIREMENTS =
       {"Sample", "Sex", SexChecks.EST_SEX_HEADER, "Check", "Median X LRR", "Median Y LRR",
-       "Excluded", "Check", "Note"};
+          "Excluded", "Check", "Note"};
 
   public static void loadSexCheckResults(Project proj) {
     Vector<String> samples = new Vector<String>();
@@ -51,14 +51,14 @@ public class SexPlot extends JFrame {
     Vector<String> notes = new Vector<String>();
     try {
       BufferedReader reader = Files.getReader(proj.SEXCHECK_RESULTS_FILENAME.getValue(),
-                                              proj.JAR_STATUS.getValue(), true, false);
+          proj.JAR_STATUS.getValue(), true, false);
       if (reader == null) {
         return;
       }
       String[] line = reader.readLine().trim().split("\t");
       if (!ext.checkHeader(line, SexChecks.SEX_HEADER, false, proj.getLog(), false)) {
         proj.message("The header in file '" + proj.SEXCHECK_RESULTS_FILENAME.getValue()
-                     + "' is not as expected and may cause problems; see log for more detail");
+            + "' is not as expected and may cause problems; see log for more detail");
       }
       int[] indices = ext.indexFactors(SEX_CHECKS_REQUIREMENTS, line, false, false);
       for (int index : indices) {
@@ -71,11 +71,11 @@ public class SexPlot extends JFrame {
         line = reader.readLine().trim().split("\t", -1);
         if (ext.isMissingValue(line[indices[4]]) || ext.isMissingValue(line[indices[5]])) {
           System.err.println("Error - sample '" + line[indices[0]]
-                             + "' does not have a valid medianLRR for X or Y");
+              + "' does not have a valid medianLRR for X or Y");
         } else {
           samples.add(line[indices[0]]);
           datapoints.add(new double[] {Double.parseDouble(line[indices[4]]),
-                                       Double.parseDouble(line[indices[5]])});
+              Double.parseDouble(line[indices[5]])});
           sexes.add(Byte.parseByte(line[indices[1]]));
           estimatedSexes.add(Byte.parseByte(line[indices[2]]));
           excluded.add(line[indices[6]].equals("1"));
@@ -86,18 +86,17 @@ public class SexPlot extends JFrame {
       reader.close();
     } catch (FileNotFoundException fnfe) {
       System.err.println("Error: file \"" + proj.SEXCHECK_RESULTS_FILENAME.getValue()
-                         + "\" not found in current directory");
+          + "\" not found in current directory");
       return;
     } catch (IOException ioe) {
-      System.err.println("Error reading file \"" + proj.SEXCHECK_RESULTS_FILENAME.getValue()
-                         + "\"");
+      System.err
+          .println("Error reading file \"" + proj.SEXCHECK_RESULTS_FILENAME.getValue() + "\"");
       return;
     }
 
     new SexPlot(proj, samples.toArray(new String[samples.size()]),
-                Matrix.toDoubleArrays(datapoints), Bytes.toArray(sexes),
-                Bytes.toArray(estimatedSexes), Booleans.toArray(excluded),
-                Booleans.toArray(uncertains), Array.toStringArray(notes));
+        Matrix.toDoubleArrays(datapoints), Bytes.toArray(sexes), Bytes.toArray(estimatedSexes),
+        Booleans.toArray(excluded), Booleans.toArray(uncertains), Array.toStringArray(notes));
   }
 
   public static void main(String[] args) {
@@ -105,9 +104,8 @@ public class SexPlot extends JFrame {
     String filename = null;
 
     String usage = "\n" + "cnv.plot.SexPlot requires 0-1 arguments\n"
-                   + "   (1) project properties filename (i.e. proj="
-                   + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-                   + "";
+        + "   (1) project properties filename (i.e. proj="
+        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -133,7 +131,7 @@ public class SexPlot extends JFrame {
   SexPanel sexPanel;
 
   public SexPlot(Project proj, String[] samples, double[][] data, byte[] sexes,
-                 byte[] estimatedSexes, boolean[] excluded, boolean[] uncertains, String[] notes) {
+      byte[] estimatedSexes, boolean[] excluded, boolean[] uncertains, String[] notes) {
     super("Genvisis - Sex Plot - " + proj.PROJECT_NAME.getValue());
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 

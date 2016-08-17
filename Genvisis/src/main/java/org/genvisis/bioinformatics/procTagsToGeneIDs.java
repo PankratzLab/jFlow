@@ -82,7 +82,7 @@ public class procTagsToGeneIDs {
               v = aliases.get(line[1]);
               if (v.size() > 1) {
                 writer.println(line[0] + "\t" + FILES_WITH_GENE[i] + "\t"
-                               + Array.toStr(Array.toStringArray(v)));
+                    + Array.toStr(Array.toStringArray(v)));
               } else {
                 HashVec.addToHashHash(hash, line[0], FILES_WITH_GENE[i], v.elementAt(0));
               }
@@ -94,8 +94,8 @@ public class procTagsToGeneIDs {
         reader.close();
         writer.close();
       } catch (FileNotFoundException fnfe) {
-        System.err.println("Error: file \"" + FILES_WITH_GENE[i]
-                           + "\" not found in current directory");
+        System.err
+            .println("Error: file \"" + FILES_WITH_GENE[i] + "\" not found in current directory");
         System.exit(1);
       } catch (IOException ioe) {
         System.err.println("Error reading file \"" + FILES_WITH_GENE[i] + "\"");
@@ -117,8 +117,8 @@ public class procTagsToGeneIDs {
         }
         reader.close();
       } catch (FileNotFoundException fnfe) {
-        System.err.println("Error: file \"" + FILES_WITH_GENE_ID[i]
-                           + "\" not found in current directory");
+        System.err.println(
+            "Error: file \"" + FILES_WITH_GENE_ID[i] + "\" not found in current directory");
         System.exit(1);
       } catch (IOException ioe) {
         System.err.println("Error reading file \"" + FILES_WITH_GENE_ID[i] + "\"");

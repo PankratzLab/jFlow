@@ -39,16 +39,15 @@ public class temp {
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
         writer.print(Array.toStr(line) + "\t"
-                     + Stats.FishersExact(Double.parseDouble(line[0]), Double.parseDouble(line[1]),
-                                          Double.parseDouble(line[2]), Double.parseDouble(line[3]),
-                                          true));
-        writer.println("\t" + ProbDist.ChiDist(ContingencyTable.ChiSquare(
-                                                                          new double[][] {{Double.parseDouble(line[0]),
-                                                                                           Double.parseDouble(line[1])},
-                                                                                          {Double.parseDouble(line[2]),
-                                                                                           Double.parseDouble(line[3])}},
-                                                                          true, true),
-                                               1));
+            + Stats.FishersExact(Double.parseDouble(line[0]), Double.parseDouble(line[1]),
+                Double.parseDouble(line[2]), Double.parseDouble(line[3]), true));
+        writer
+            .println(
+                "\t" + ProbDist
+                    .ChiDist(ContingencyTable.ChiSquare(
+                        new double[][] {{Double.parseDouble(line[0]), Double.parseDouble(line[1])},
+                            {Double.parseDouble(line[2]), Double.parseDouble(line[3])}},
+                        true, true), 1));
       }
       writer.close();
       reader.close();
@@ -75,7 +74,7 @@ public class temp {
     String[] peeps =
         HashVec.loadFileToStringArray(dir + "peeps.txt", false, false, new int[] {0, 1}, true);
     String[] cnvs = HashVec.loadFileToStringArray(dir + "parkin_introns.cnv", false, false,
-                                                  new int[] {2, 3, 4, 5, 6, 7}, true);
+        new int[] {2, 3, 4, 5, 6, 7}, true);
 
     try {
       writer = new PrintWriter(new FileWriter(dir + "real_introns.cnv"));

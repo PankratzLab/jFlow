@@ -41,7 +41,7 @@ public class ComparePlinkResults {
   public static final String[] INDIV_HEADER = {"FID", "IID", "PHE", "NSEG", "KB", "KBAVG"};
   public static final String[] SUMMARY_MPERM_HEADER = {"CHR", "SNP", "EMP1"};
   public static final String[] TESTS = {"Total number of CNVs", "Proportion with at least 1 CNV",
-                                        "Summed length of CNVs", "Average length of CNVs"};
+      "Summed length of CNVs", "Average length of CNVs"};
   public static final String[] TEST_SUFFIX = {" CNVs", "%", " kb", " kb"};
 
   public static final String[] MPERM_REQUIRED = {"SNP", "EMP2"};
@@ -84,7 +84,7 @@ public class ComparePlinkResults {
           reader = new BufferedReader(new FileReader(file));
           System.out.println(file.getName());
           indices = ext.indexFactors(MPERM_REQUIRED, reader.readLine().trim().split("[\\s]+"),
-                                     false, true);
+              false, true);
           begin = end = "";
           while (reader.ready()) {
             line = reader.readLine().trim().split("[\\s]+");
@@ -95,8 +95,8 @@ public class ComparePlinkResults {
               end = line[indices[0]];
             } else if (!begin.equals("")) {
               hits.add(new int[] {Integer.parseInt(begin.substring(1, begin.indexOf("-"))),
-                                  Integer.parseInt(begin.substring(begin.indexOf("-") + 1)),
-                                  Integer.parseInt(end.substring(end.indexOf("-") + 1))});
+                  Integer.parseInt(begin.substring(begin.indexOf("-") + 1)),
+                  Integer.parseInt(end.substring(end.indexOf("-") + 1))});
               begin = end = "";
             }
           }
@@ -120,7 +120,7 @@ public class ComparePlinkResults {
         for (int l = 0; l < composite.size(); l++) {
           region = composite.elementAt(l);
           if (chr == region[0] && (isBetween(start, region[1] - BLUR, region[2] + BLUR)
-                                   || isBetween(stop, region[1] - BLUR, region[2] + BLUR))) {
+              || isBetween(stop, region[1] - BLUR, region[2] + BLUR))) {
             region[1] = Math.min(start, region[1]);
             region[2] = Math.max(stop, region[2]);
             hits.elementAt(keys[j])[0] = -1;
@@ -136,7 +136,7 @@ public class ComparePlinkResults {
         try {
           reader = new BufferedReader(new FileReader(files[j]));
           indices = ext.indexFactors(MPERM_REQUIRED, reader.readLine().trim().split("[\\s]+"),
-                                     false, true);
+              false, true);
           begin = end = "";
           while (reader.ready()) {
             line = reader.readLine().trim().split("[\\s]+");
@@ -162,8 +162,8 @@ public class ComparePlinkResults {
       }
 
       try {
-        writer = new PrintWriter(new FileWriter(rootDirectory + dir.substring(0, dir.length() - 1)
-                                                + "_comparison.xln"));
+        writer = new PrintWriter(
+            new FileWriter(rootDirectory + dir.substring(0, dir.length() - 1) + "_comparison.xln"));
         writer.print("Chromosome\tStart\tStop\tUCSClink");
         for (File file : files) {
           writer.print("\t" + ext.rootOf(file.getName()));
@@ -171,7 +171,7 @@ public class ComparePlinkResults {
         writer.println();
         for (int j = 0; j < composite.size(); j++) {
           writer.print(Array.toStr(composite.elementAt(j)) + "\t=HYPERLINK(\""
-                       + Positions.getUCSClink(composite.elementAt(j)) + "\", \"link\")");
+              + Positions.getUCSClink(composite.elementAt(j)) + "\", \"link\")");
           for (int k = 0; k < files.length; k++) {
             writer.print("\t" + ext.prettyP(minPs[j][k], 2, 5, 1, false));
           }
@@ -212,8 +212,8 @@ public class ComparePlinkResults {
           }
           reader.close();
         } catch (FileNotFoundException fnfe) {
-          System.err.println("Error: file \"" + files[i].getName()
-                             + "\" not found in current directory");
+          System.err
+              .println("Error: file \"" + files[i].getName() + "\" not found in current directory");
           System.exit(1);
         } catch (IOException ioe) {
           System.err.println("Error reading file \"" + files[i].getName() + "\"");
@@ -237,10 +237,7 @@ public class ComparePlinkResults {
         }
       }
       writer = new PrintWriter(new FileWriter(rootDirectory
-                                              + globalDirectory.substring(0,
-                                                                          globalDirectory.length()
-                                                                             - 1)
-                                              + "_comparison.xln"));
+          + globalDirectory.substring(0, globalDirectory.length() - 1) + "_comparison.xln"));
       writer.print("Test\t");
       for (File file : files) {
         writer.print("\t" + ext.rootRootOf(ext.rootOf(file.getName(), true)));
@@ -257,8 +254,8 @@ public class ComparePlinkResults {
         for (int cc = 1; cc >= 0; cc--) {
           writer.print(cc == 1 ? TESTS[test] + "\tcases" : "\tcontrols");
           for (int i = 0; i < files.length; i++) {
-            writer.print("\t" + ext.formDeci(sums[i][cc][test + 1] / sums[i][cc][0], 2)
-                         + TEST_SUFFIX[test]);
+            writer.print(
+                "\t" + ext.formDeci(sums[i][cc][test + 1] / sums[i][cc][0], 2) + TEST_SUFFIX[test]);
           }
           writer.println();
         }
@@ -310,24 +307,21 @@ public class ComparePlinkResults {
       }
 
       list = HashVec.getKeys(hash);
-      writer =
-          new PrintWriter(new FileWriter(rootDirectory
-                                         + callDirectory.substring(0, callDirectory.length() - 1)
-                                         + "_comparison.xln"));
+      writer = new PrintWriter(new FileWriter(rootDirectory
+          + callDirectory.substring(0, callDirectory.length() - 1) + "_comparison.xln"));
       writer.print("CNV");
       for (File file : files) {
         writer.print("\t" + ext.rootOf(file.getName(), true));
       }
       writer.println();
       for (String element : list) {
-        writer.println(element + "\t"
-                       + Array.toStr(Array.booleanArrayToStringArray(hash.get(element))));
+        writer.println(
+            element + "\t" + Array.toStr(Array.booleanArrayToStringArray(hash.get(element))));
       }
       writer.close();
     } catch (Exception e) {
       System.err.println("Error writing to " + rootDirectory
-                         + callDirectory.substring(0, callDirectory.length() - 1)
-                         + "_comparison.xln");
+          + callDirectory.substring(0, callDirectory.length() - 1) + "_comparison.xln");
       e.printStackTrace();
     }
 
@@ -346,7 +340,7 @@ public class ComparePlinkResults {
     String global = DEFAULT_GLOBAL_DIR;
 
     String usage = "\\n" + "park.cnv.ComparePlinkResults requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

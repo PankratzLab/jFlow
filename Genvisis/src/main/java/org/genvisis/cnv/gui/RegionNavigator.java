@@ -96,7 +96,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 
       // Pass along the property change
       firePropertyChange("location", regions.get(currentFile).get(lastRegionIndex),
-                         new Region(newLocation));
+          new Region(newLocation));
       // }
     }
   }
@@ -217,7 +217,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 
     // Pass along the property change
     firePropertyChange("location", null/* regions.get(currentFile).get(lastRegionIndex) */,
-                       regions.get(currentFile).get(regionIndex));
+        regions.get(currentFile).get(regionIndex));
 
     // Set the tooltip text on the buttons to match the region label if any
     firstButton.setToolTipText(regions.get(currentFile).get(0).getLabel());
@@ -229,11 +229,11 @@ public class RegionNavigator extends JPanel implements ActionListener {
     if (index < (regions.get(currentFile).size() - 1)) {
       rightButton.setToolTipText(regions.get(currentFile).get(regionIndex + 1).getLabel());
     } else {
-      rightButton.setToolTipText(regions.get(currentFile).get(regions.get(currentFile).size() - 1)
-                                        .getLabel());
+      rightButton.setToolTipText(
+          regions.get(currentFile).get(regions.get(currentFile).size() - 1).getLabel());
     }
-    lastButton.setToolTipText(regions.get(currentFile).get(regions.get(currentFile).size() - 1)
-                                     .getLabel());
+    lastButton.setToolTipText(
+        regions.get(currentFile).get(regions.get(currentFile).size() - 1).getLabel());
   }
 
   public void setRegionFile(String file) {

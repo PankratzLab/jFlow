@@ -47,7 +47,7 @@ public class MergeDatasets {
           || !new File(dir + subdirs[i] + commonPlinkRoot + ".bim").exists()
           || !new File(dir + subdirs[i] + commonPlinkRoot + ".fam").exists()) {
         System.err.println("Error - '" + subdirs[i] + "' does not contain a full set of "
-                           + commonPlinkRoot + ".bed/bim/fam files");
+            + commonPlinkRoot + ".bed/bim/fam files");
         return;
       }
       System.out.println(subdirs[i] + " checks out...");
@@ -58,7 +58,7 @@ public class MergeDatasets {
           new PrintWriter(new FileWriter(dir + "batchMerge" + (Files.isWindows() ? ".bat" : "")));
       for (String subdir : subdirs) {
         writer.println("java -cp /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS
-                       + " filesys.SnpMarkerSet file=" + subdir + commonPlinkRoot + ".bim");
+            + " filesys.SnpMarkerSet file=" + subdir + commonPlinkRoot + ".bim");
       }
       writer.println();
       if (Files.isWindows()) {
@@ -79,28 +79,28 @@ public class MergeDatasets {
     }
 
     try {
-      writer = new PrintWriter(new FileWriter(dir + "batchMerge.unambiguous"
-                                              + (Files.isWindows() ? ".bat" : "")));
+      writer = new PrintWriter(
+          new FileWriter(dir + "batchMerge.unambiguous" + (Files.isWindows() ? ".bat" : "")));
 
-      writer.println("plink --bfile " + subdirs[0] + "plink --extract " + subdirs[0]
-                     + commonPlinkRoot + ".bim_unambiguous.txt --make-bed --out " + subdirs[0]
-                     + "unambiguous");
+      writer
+          .println("plink --bfile " + subdirs[0] + "plink --extract " + subdirs[0] + commonPlinkRoot
+              + ".bim_unambiguous.txt --make-bed --out " + subdirs[0] + "unambiguous");
       writer.println();
       trav = subdirs[0] + "unambiguous";
       for (int i = 1; i < subdirs.length; i++) {
         next = "merged_1-" + (i + 1);
 
         writer.println("plink --bfile " + subdirs[i] + commonPlinkRoot + " --extract " + subdirs[i]
-                       + commonPlinkRoot + ".bim_unambiguous.txt --make-bed --out " + subdirs[i]
-                       + "unambiguous");
-        writer.println("plink --bfile " + trav + " --bmerge " + subdirs[i] + "unambiguous.bed "
-                       + subdirs[i] + "unambiguous.bim " + subdirs[i]
-                       + "unambiguous.fam --make-bed --out " + next);
+            + commonPlinkRoot + ".bim_unambiguous.txt --make-bed --out " + subdirs[i]
+            + "unambiguous");
+        writer.println(
+            "plink --bfile " + trav + " --bmerge " + subdirs[i] + "unambiguous.bed " + subdirs[i]
+                + "unambiguous.bim " + subdirs[i] + "unambiguous.fam --make-bed --out " + next);
         writer.println("plink --bfile " + subdirs[i] + "unambiguous --flip " + next
-                       + ".missnp --make-bed --out " + subdirs[i] + "unambiguousFlipped");
+            + ".missnp --make-bed --out " + subdirs[i] + "unambiguousFlipped");
         writer.println("plink --bfile " + trav + " --bmerge " + subdirs[i]
-                       + "unambiguousFlipped.bed " + subdirs[i] + "unambiguousFlipped.bim "
-                       + subdirs[i] + "unambiguousFlipped.fam --make-bed --out " + next);
+            + "unambiguousFlipped.bed " + subdirs[i] + "unambiguousFlipped.bim " + subdirs[i]
+            + "unambiguousFlipped.fam --make-bed --out " + next);
         writer.println();
 
         trav = next;
@@ -125,28 +125,27 @@ public class MergeDatasets {
     }
 
     try {
-      writer = new PrintWriter(new FileWriter(dir + "batchMerge.ambiguous"
-                                              + (Files.isWindows() ? ".bat" : "")));
+      writer = new PrintWriter(
+          new FileWriter(dir + "batchMerge.ambiguous" + (Files.isWindows() ? ".bat" : "")));
 
       writer.println("plink --bfile " + subdirs[0] + commonPlinkRoot + " --exclude " + subdirs[0]
-                     + commonPlinkRoot + ".bim_unambiguous.txt --make-bed --out " + subdirs[0]
-                     + "ambiguous");
+          + commonPlinkRoot + ".bim_unambiguous.txt --make-bed --out " + subdirs[0] + "ambiguous");
       writer.println();
       trav = subdirs[0] + "ambiguous";
       for (int i = 1; i < subdirs.length; i++) {
         next = "mergedAmbiguous_1-" + (i + 1);
 
         writer.println("plink --bfile " + subdirs[i] + commonPlinkRoot + " --exclude " + subdirs[i]
-                       + commonPlinkRoot + ".bim_unambiguous.txt --make-bed --out " + subdirs[i]
-                       + "ambiguous");
-        writer.println("plink --bfile " + trav + " --bmerge " + subdirs[i] + "ambiguous.bed "
-                       + subdirs[i] + "ambiguous.bim " + subdirs[i]
-                       + "ambiguous.fam --make-bed --out " + next);
+            + commonPlinkRoot + ".bim_unambiguous.txt --make-bed --out " + subdirs[i]
+            + "ambiguous");
+        writer.println(
+            "plink --bfile " + trav + " --bmerge " + subdirs[i] + "ambiguous.bed " + subdirs[i]
+                + "ambiguous.bim " + subdirs[i] + "ambiguous.fam --make-bed --out " + next);
         writer.println("plink --bfile " + subdirs[i] + "ambiguous --flip " + next
-                       + ".missnp --make-bed --out " + subdirs[i] + "ambiguousFlipped");
+            + ".missnp --make-bed --out " + subdirs[i] + "ambiguousFlipped");
         writer.println("plink --bfile " + trav + " --bmerge " + subdirs[i] + "ambiguousFlipped.bed "
-                       + subdirs[i] + "ambiguousFlipped.bim " + subdirs[i]
-                       + "ambiguousFlipped.fam --make-bed --out " + next);
+            + subdirs[i] + "ambiguousFlipped.bim " + subdirs[i]
+            + "ambiguousFlipped.fam --make-bed --out " + next);
         writer.println();
 
         trav = next;
@@ -177,7 +176,7 @@ public class MergeDatasets {
   }
 
   public static void checkForHomogeneity(String dir, String[] dirs, String outputDir,
-                                         String hweCountFlag, Logger log) {
+      String hweCountFlag, Logger log) {
     Hashtable<String, Hashtable<String, String>> hashes;
     Vector<String> v = new Vector<String>();
     Hashtable<String, String> hash;
@@ -220,7 +219,7 @@ public class MergeDatasets {
           if (line[2].equals(hweCountFlag) || line[2].equals("ALL(NP)")
               || line[2].equals("ALL(QT)")) {
             HashVec.addToHashHash(hashes, line[1].toLowerCase(), i + "",
-                                  line[3] + " " + line[4] + " " + line[5]);
+                line[3] + " " + line[4] + " " + line[5]);
           }
         }
         reader.close();
@@ -239,7 +238,7 @@ public class MergeDatasets {
       writer2 = new PrintWriter(new FileWriter(outputDir + "homogeneityTests.xln"));
 
       writer2.println("SNP\t" + Array.toStr(dirs) + "\t" + Array.toStr(dirs)
-                      + "\t2allele_p-value\t3genotype_p-value");
+          + "\t2allele_p-value\t3genotype_p-value");
       writer3 = new PrintWriter(new FileWriter(outputDir + "homo.R"));
 
       writerProblematic = new PrintWriter(new FileWriter(outputDir + "problematic.dat"));
@@ -273,25 +272,24 @@ public class MergeDatasets {
             case Metal.STRAND_CONFIG_BOTH_NULL:
               break;
             case Metal.STRAND_CONFIG_DIFFERENT_ALLELES:
-              if (!problematicTrack.containsKey(markerNames[i] + "\t"
-                                                + Metal.STRAND_CONFIG_DIFFERENT_ALLELES)) {
+              if (!problematicTrack
+                  .containsKey(markerNames[i] + "\t" + Metal.STRAND_CONFIG_DIFFERENT_ALLELES)) {
                 writerProblematic.println(markerNames[i] + "\t"
-                                          + Metal.STRAND_CONFIG_DIFFERENT_ALLELES + "\t"
-                                          + dirs[index]);
+                    + Metal.STRAND_CONFIG_DIFFERENT_ALLELES + "\t" + dirs[index]);
                 problematicTrack.put(markerNames[i] + "\t" + Metal.STRAND_CONFIG_DIFFERENT_ALLELES,
-                                     markerNames[i] + "\t" + Metal.STRAND_CONFIG_DIFFERENT_ALLELES);
+                    markerNames[i] + "\t" + Metal.STRAND_CONFIG_DIFFERENT_ALLELES);
               }
               System.err.println("Error - for marker " + markerNames[i] + " " + dirs[index]
-                                 + " has different alleles (" + line[0] + "/" + line[1]
-                                 + ") than the rest (" + refAlleles[0] + "/" + refAlleles[1] + ")");
+                  + " has different alleles (" + line[0] + "/" + line[1] + ") than the rest ("
+                  + refAlleles[0] + "/" + refAlleles[1] + ")");
               break;
             case Metal.STRAND_CONFIG_SPECIAL_CASE:
-              if (!problematicTrack.containsKey(markerNames[i] + "\t"
-                                                + Metal.STRAND_CONFIG_SPECIAL_CASE)) {
-                writerProblematic.println(markerNames[i] + "\t" + Metal.STRAND_CONFIG_SPECIAL_CASE
-                                          + "\t" + dirs[index]);
+              if (!problematicTrack
+                  .containsKey(markerNames[i] + "\t" + Metal.STRAND_CONFIG_SPECIAL_CASE)) {
+                writerProblematic.println(
+                    markerNames[i] + "\t" + Metal.STRAND_CONFIG_SPECIAL_CASE + "\t" + dirs[index]);
                 problematicTrack.put(markerNames[i] + "\t" + Metal.STRAND_CONFIG_SPECIAL_CASE,
-                                     markerNames[i] + "\t" + Metal.STRAND_CONFIG_SPECIAL_CASE);
+                    markerNames[i] + "\t" + Metal.STRAND_CONFIG_SPECIAL_CASE);
               }
               // System.err.println("Warning - marker "+markerNames[i]+" has a special case starting
               // with "+dirs[index]+": alleles ("+line[0]+"/"+line[1]+") where previous had only
@@ -321,10 +319,8 @@ public class MergeDatasets {
             writer2.print("\tX");
           } else {
             writer2.print("\t" + ProbDist.ChiDist(
-                                                  ContingencyTable.ChiSquare(Matrix.toDoubleArrays(alleleCounts),
-                                                                             false, false),
-                                                  (alleleCounts.length
-                                                   - 1) * (alleleCounts[0].length - 1)));
+                ContingencyTable.ChiSquare(Matrix.toDoubleArrays(alleleCounts), false, false),
+                (alleleCounts.length - 1) * (alleleCounts[0].length - 1)));
           }
 
           genotypeCounts = Matrix.prune(genotypeCounts);
@@ -332,9 +328,9 @@ public class MergeDatasets {
             writer2.print("\tX");
             p = Double.NaN;
           } else {
-            p = ProbDist.ChiDist(ContingencyTable.ChiSquare(Matrix.toDoubleArrays(genotypeCounts),
-                                                            false, false),
-                                 (genotypeCounts.length - 1) * (genotypeCounts[0].length - 1));
+            p = ProbDist.ChiDist(
+                ContingencyTable.ChiSquare(Matrix.toDoubleArrays(genotypeCounts), false, false),
+                (genotypeCounts.length - 1) * (genotypeCounts[0].length - 1));
             writer2.print("\t" + p);
             if (p < LOOSE_HOMOGENEITY_THRESHOLD) {
               writer3.println("#" + markerNames[i]);
@@ -371,11 +367,12 @@ public class MergeDatasets {
     }
     System.out.println("Splitting up file");
     Files.splitFile(outputDir + "homo.R", 12, 0, 4, outputDir + "homo", ".R", false);
-    Files.qsub(outputDir + "runHomo", null, -1,
-               Rscript.getRExecutable(new Logger()) + " CMD BATCH " + outputDir + "homo[%0].R "
-                                                + outputDir + "homo[%0].Rout",
-               Matrix.toMatrix(Array.stringArraySequence(12, "")), 1000, 12);
-    System.out.println("To run Fisher's exact with permutations in R use either ./master or ./master.runHomo");
+    Files.qsub(outputDir + "runHomo", null,
+        -1, Rscript.getRExecutable(new Logger()) + " CMD BATCH " + outputDir + "homo[%0].R "
+            + outputDir + "homo[%0].Rout",
+        Matrix.toMatrix(Array.stringArraySequence(12, "")), 1000, 12);
+    System.out.println(
+        "To run Fisher's exact with permutations in R use either ./master or ./master.runHomo");
     System.out.println(ext.getTime() + "\tDone!");
   }
 
@@ -397,17 +394,15 @@ public class MergeDatasets {
     String plinkRoot = "final";
 
     String usage = "\n" + "gwas.MergeDatasets requires 0-1 arguments\n"
-                   + "   (1) directory (i.e. dir=" + dir + " (default))\n"
-                   + "   (2) check for homogeneity among control frequencies (i.e. -checkHomo (not the default))\n"
-                   + " OR:\n"
-                   + "   (2) parse test of homogeneity results (i.e. -parseHomo (not the default))\n"
-                   + " OR:\n"
-                   + "   (2) set up batch merge (i.e. batch=dir1/,dir2/,lastDir/ (not the default))\n"
-                   + "   (3) root of plink files (i.e. root=" + plinkRoot + " (default))\n"
-                   + " OR:\n"
-                   + "   (2) update indiviudal map with mergedMap (i.e. update=plink.bim (not the default))\n"
-                   + " OR:\n"
-                   + "   (2) mergedMap filename (i.e. map=allSNPs.xln (not the default))\n" + "";
+        + "   (1) directory (i.e. dir=" + dir + " (default))\n"
+        + "   (2) check for homogeneity among control frequencies (i.e. -checkHomo (not the default))\n"
+        + " OR:\n"
+        + "   (2) parse test of homogeneity results (i.e. -parseHomo (not the default))\n"
+        + " OR:\n"
+        + "   (2) set up batch merge (i.e. batch=dir1/,dir2/,lastDir/ (not the default))\n"
+        + "   (3) root of plink files (i.e. root=" + plinkRoot + " (default))\n" + " OR:\n"
+        + "   (2) update indiviudal map with mergedMap (i.e. update=plink.bim (not the default))\n"
+        + " OR:\n" + "   (2) mergedMap filename (i.e. map=allSNPs.xln (not the default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -444,8 +439,8 @@ public class MergeDatasets {
     // checkHomo = true;
     // parseHomo = true;
     if (!Files.exists(dir, false)) {
-      System.err.println("Error - using current directory instead of the one that does not exist: "
-                         + dir);
+      System.err.println(
+          "Error - using current directory instead of the one that does not exist: " + dir);
       dir = "./";
     }
 
@@ -508,8 +503,10 @@ public class MergeDatasets {
     try {
       writer = new PrintWriter(new FileWriter(dir + "unanimousPositions.xln"));
       writer2 = new PrintWriter(new FileWriter(dir + "discrepancies.xln"));
-      writer.println("SNP\tConsensus?\tMajor Count\tTotal Count\tPercentage\tChr\tPosition\tMajor datasets\tAlt_chr\tAlt_pos\tAlt datasets...");
-      writer2.println("SNP\tConsensus?\tMajor Count\tTotal Count\tPercentage\tChr\tPosition\tMajor datasets\tAlt_chr\tAlt_pos\tAlt datasets...");
+      writer.println(
+          "SNP\tConsensus?\tMajor Count\tTotal Count\tPercentage\tChr\tPosition\tMajor datasets\tAlt_chr\tAlt_pos\tAlt datasets...");
+      writer2.println(
+          "SNP\tConsensus?\tMajor Count\tTotal Count\tPercentage\tChr\tPosition\tMajor datasets\tAlt_chr\tAlt_pos\tAlt datasets...");
       // ext.timestamp();
       // System.out.println("Sorting marker names");
       ext.timestamp();
@@ -534,11 +531,10 @@ public class MergeDatasets {
         }
         order = Sort.quicksort(counts, Sort.DESCENDING);
         temp = key + "\t" + (order.length == 1 ? 1 : 0) + "\t" + counts[order[0]] + "\t"
-               + Array.sum(counts) + "\t"
-               + ((double) counts[order[0]] / (double) Array.sum(counts));
+            + Array.sum(counts) + "\t" + ((double) counts[order[0]] / (double) Array.sum(counts));
         for (int element : order) {
           temp += "\t" + values.elementAt(element) + "\t"
-                  + ext.listWithCommas(Array.toStringArray(datasets.elementAt(element)));
+              + ext.listWithCommas(Array.toStringArray(datasets.elementAt(element)));
         }
         if (order.length > 1) {
           writer2.println(temp);
@@ -609,8 +605,9 @@ public class MergeDatasets {
                   count++;
                 }
               } catch (Exception e) {
-                System.err.println("Error - p-values are not being parsed correctly, aborting at marker "
-                                   + record[0] + " in file " + file);
+                System.err
+                    .println("Error - p-values are not being parsed correctly, aborting at marker "
+                        + record[0] + " in file " + file);
                 return;
               }
             }
@@ -627,10 +624,9 @@ public class MergeDatasets {
       writer.close();
       writer2.close();
       System.out.println("Found results for " + count + " markers in " + ext.getTimeElapsed(time));
-      System.out.println("There were "
-                         + Files.countLines(dir + FISHER_OR_CHI_SQUARE_DROPS_FILENAME, 0)
-                         + " markers that had a minimum p-value less than "
-                         + HOMOGENEITY_THRESHOLD);
+      System.out
+          .println("There were " + Files.countLines(dir + FISHER_OR_CHI_SQUARE_DROPS_FILENAME, 0)
+              + " markers that had a minimum p-value less than " + HOMOGENEITY_THRESHOLD);
     } catch (Exception e) {
       System.err.println("Error writing to " + dir + "FisherResults.xln");
       e.printStackTrace();
@@ -677,7 +673,7 @@ public class MergeDatasets {
         loc = hash.get(line[1]);
         if (loc == null) {
           System.err.println("Error - merged map '" + mergedMap
-                             + "' does not contain a position for '" + line[1] + "'; aborting");
+              + "' does not contain a position for '" + line[1] + "'; aborting");
           writer.close();
           new File(fileToUpdate).delete();
           new File(fileToUpdate + "_").renameTo(new File(fileToUpdate));
@@ -689,8 +685,8 @@ public class MergeDatasets {
       reader.close();
       writer.close();
     } catch (FileNotFoundException fnfe) {
-      System.err.println("Error: file \"" + fileToUpdate + "_"
-                         + "\" not found in current directory");
+      System.err
+          .println("Error: file \"" + fileToUpdate + "_" + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + fileToUpdate + "_" + "\"");

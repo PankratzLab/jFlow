@@ -20,9 +20,8 @@ public class ResultSet implements Serializable {
   public static final int PROBABEL_FORMAT = 3;
 
   /** Marker name, Chr, Position, centiMorgans, A1, A2, annotation, header */
-  public static final int[][] SNP_INDICES =
-      {{0, -1, -1, -1, -1, -1, -1, 1}, {0, 1, 2, -1, -1, -1, -1, 1}, {0, -1, -1, -1, 1, 2, -1, 1},
-       {0, -1, -1, -1, 1, 2, -1, 1},};
+  public static final int[][] SNP_INDICES = {{0, -1, -1, -1, -1, -1, -1, 1},
+      {0, 1, 2, -1, -1, -1, -1, 1}, {0, -1, -1, -1, 1, 2, -1, 1}, {0, -1, -1, -1, 1, 2, -1, 1},};
 
   /** Effect, Stderr, p-value, annotation, header */
   public static final int[][] RESULT_INDICES =
@@ -79,8 +78,8 @@ public class ResultSet implements Serializable {
       for (int i = 0; i < numMarkers; i++) {
         line = reader.readLine().trim().split("[\\s]+");
         if (Array.max(result_indices) >= line.length) {
-          System.err.println("Error - required column does not exist for the marker in row "
-                             + (i + 1));
+          System.err
+              .println("Error - required column does not exist for the marker in row " + (i + 1));
           System.exit(1);
         }
 

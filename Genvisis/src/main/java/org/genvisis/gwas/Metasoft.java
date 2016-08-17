@@ -14,7 +14,7 @@ import org.genvisis.common.ext;
 
 public class Metasoft {
   public static void applyLambdas(String inputFile, String outputFile, double[] lambdas,
-                                  Logger logger) {
+      Logger logger) {
     String[] line;
 
     try {
@@ -29,8 +29,8 @@ public class Metasoft {
         line = reader.readLine().trim().split("[\\s]+");
         if (line.length != lambdas.length * 2 + 1) {
           System.err.println("Error - mismatched number of lambdas and/or columns in '" + inputFile
-                             + "' (with " + lambdas.length + " lambdas, expecting "
-                             + (lambdas.length * 2 + 1) + " (1+" + lambdas.length + "*2) columns");
+              + "' (with " + lambdas.length + " lambdas, expecting " + (lambdas.length * 2 + 1)
+              + " (1+" + lambdas.length + "*2) columns");
         }
         for (int i = 0; i < lambdas.length; i++) {
           if (!line[1 + i * 2 + 1].equals("NA")) {
@@ -53,9 +53,9 @@ public class Metasoft {
   }
 
   public static void generateRawFile(String[] markers, String[] filenamesAndColumnIDs,
-                                     String outputFilename, Logger log) {
+      String outputFilename, Logger log) {
     Files.combineWithLessMemory(markers, filenamesAndColumnIDs, null, "MarkerName", ".",
-                                outputFilename, log, true, false, false, false);
+        outputFilename, log, true, false, false, false);
   }
 
   public static void processRawToInputFile(String rawFilename, String outputFilename, Logger log) {
@@ -72,7 +72,8 @@ public class Metasoft {
       line = reader.readLine().trim().split("[\\s]+");
       numStudies = (line.length - 1) / 4;
       if (line.length != numStudies * 4 + 1) {
-        System.err.println("Error determining number of studies, are you now parsing more than 4 parameters?");
+        System.err.println(
+            "Error determining number of studies, are you now parsing more than 4 parameters?");
         reader.close();
         return;
       }
@@ -91,9 +92,8 @@ public class Metasoft {
           } else if (stdAlleles == null) {
             stdAlleles = new String[] {line[1 + i * 4 + 0], line[1 + i * 4 + 1]};
           } else {
-            switch (Metal.determineStrandConfig(new String[] {line[1 + i * 4 + 0],
-                                                              line[1 + i * 4 + 1]},
-                                                stdAlleles)) {
+            switch (Metal.determineStrandConfig(
+                new String[] {line[1 + i * 4 + 0], line[1 + i * 4 + 1]}, stdAlleles)) {
               case Metal.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
                 numFlipped[i]++;
               case Metal.STRAND_CONFIG_SAME_ORDER_SAME_STRAND:
@@ -108,16 +108,14 @@ public class Metasoft {
                 break;
               case Metal.STRAND_CONFIG_DIFFERENT_ALLELES:
                 System.err.println("Error - for marker " + line[0] + " Study" + (i + 1)
-                                   + " has different alleles (" + line[1 + i * 4 + 0] + "/"
-                                   + line[1 + i * 4 + 1] + ") than the rest (" + stdAlleles[0] + "/"
-                                   + stdAlleles[1] + ")");
+                    + " has different alleles (" + line[1 + i * 4 + 0] + "/" + line[1 + i * 4 + 1]
+                    + ") than the rest (" + stdAlleles[0] + "/" + stdAlleles[1] + ")");
                 break;
               case Metal.STRAND_CONFIG_SPECIAL_CASE:
                 System.err.println("Warning - marker " + line[0]
-                                   + " has a special case starting with Study" + (i + 1)
-                                   + ": alleles (" + line[1 + i * 4 + 0] + "/" + line[1 + i * 4 + 1]
-                                   + ") where previous had only (" + stdAlleles[0] + "/"
-                                   + stdAlleles[1] + ")");
+                    + " has a special case starting with Study" + (i + 1) + ": alleles ("
+                    + line[1 + i * 4 + 0] + "/" + line[1 + i * 4 + 1]
+                    + ") where previous had only (" + stdAlleles[0] + "/" + stdAlleles[1] + ")");
                 break;
               default:
                 System.err.println("Error - unknown determineStrandConfig return code");

@@ -20,7 +20,7 @@ public class simParseAllegro {
     } else {
       try {
         new simParseAllegro(Integer.valueOf(args[0]).intValue(),
-                            Integer.valueOf(args[1]).intValue());
+            Integer.valueOf(args[1]).intValue());
         // new parseoutputs(1,1000);
       } catch (Exception e) {
         e.printStackTrace();

@@ -22,7 +22,7 @@ public class whichJournals {
     String filename = "REP1_papers.txt";
 
     String usage = "\n" + "park.whichJournals requires 0-1 arguments\n"
-                   + "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
+        + "   (1) filename (i.e. file=" + filename + " (default)\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -55,9 +55,8 @@ public class whichJournals {
 
     jk = new Hashtable<String, String>();
     try {
-      for (reader =
-          new BufferedReader(new FileReader(JOURNAL_KEY)); reader.ready(); jk.put(line[1].toLowerCase(),
-                                                                                  line[0].toLowerCase())) {
+      for (reader = new BufferedReader(new FileReader(JOURNAL_KEY)); reader.ready(); jk
+          .put(line[1].toLowerCase(), line[0].toLowerCase())) {
         line = reader.readLine().split("\\|");
       }
     } catch (FileNotFoundException fnfe) {
@@ -145,7 +144,7 @@ public class whichJournals {
     for (String element : js) {
       line = (impacts.containsKey(element) ? impacts.get(element) : new String[] {"?"});
       writer.println(element + "\t" + line[line.length - 1] + "\t"
-                     + (hash.get(element)).split("[\\s]+").length + "\t" + hash.get(element));
+          + (hash.get(element)).split("[\\s]+").length + "\t" + hash.get(element));
     }
     writer.close();
 

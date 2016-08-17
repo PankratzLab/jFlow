@@ -18,7 +18,7 @@ import org.genvisis.common.Logger;
 // TODO actual loggers
 public class CNVMarkerQC implements Runnable {
   private static Hashtable<String, ArrayList<String>> assignFiles(MarkerLookup markerLookup,
-                                                                  String[] markerNames) {
+      String[] markerNames) {
     Hashtable<String, ArrayList<String>> markerFiles = new Hashtable<String, ArrayList<String>>();
     for (int i = 0; i < markerNames.length; i++) {
       if (!markerFiles.containsKey(markerLookup.get(markerNames[i]).split("[\\s]+")[0])) {
@@ -50,8 +50,7 @@ public class CNVMarkerQC implements Runnable {
   }
 
   private static CNVMarkerQC[] computeFileMAFS(Project proj, int threads,
-                                               ArrayList<ArrayList<String>> cabinet,
-                                               boolean[] samplesToBeUsed) {
+      ArrayList<ArrayList<String>> cabinet, boolean[] samplesToBeUsed) {
     CNVMarkerQC[] markerFrequencies = new CNVMarkerQC[threads];
     Thread[] runningthreads = new Thread[threads];
     for (int i = 0; i < threads; i++) {
@@ -65,7 +64,7 @@ public class CNVMarkerQC implements Runnable {
   }
 
   public static void computeMAFs(Project proj, int threads, boolean excludeSamples,
-                                 String outputSer) {
+      String outputSer) {
     MarkerLookup markerLookup = proj.getMarkerLookup();
     MarkerSet markerSet = proj.getMarkerSet();
     SampleData sampleData = proj.getSampleData(2, false);
@@ -75,12 +74,12 @@ public class CNVMarkerQC implements Runnable {
     boolean[] samplesToBeUsed = getSamplesToBeUsed(proj, excludeSamples, sampleData);
     CNVMarkerQC[] markerFrequencies = computeFileMAFS(proj, threads, cabinet, samplesToBeUsed);
     double[] mafs = summarize(proj, markerFrequencies, markerNames);
-    new MarkerFreqs(mafs, markerSet.getFingerprint()).serialize(proj.PROJECT_DIRECTORY.getValue()
-                                                                + outputSer);
+    new MarkerFreqs(mafs, markerSet.getFingerprint())
+        .serialize(proj.PROJECT_DIRECTORY.getValue() + outputSer);
   }
 
-  private static ArrayList<ArrayList<String>> getcabinet(Hashtable<String, ArrayList<String>> markerFiles,
-                                                         int threads) {
+  private static ArrayList<ArrayList<String>> getcabinet(
+      Hashtable<String, ArrayList<String>> markerFiles, int threads) {
     ArrayList<ArrayList<String>> cabinet = new ArrayList<ArrayList<String>>();
     Set<String> keys = markerFiles.keySet();
     for (int i = 0; i < threads; i++) {
@@ -95,7 +94,7 @@ public class CNVMarkerQC implements Runnable {
   }
 
   private static boolean[] getSamplesToBeUsed(Project proj, boolean excludeSamples,
-                                              SampleData sampleData) {
+      SampleData sampleData) {
     boolean doExclude = shouldExclude(proj, excludeSamples, sampleData);
     if (!doExclude) {
       return null;
@@ -118,14 +117,13 @@ public class CNVMarkerQC implements Runnable {
     String markerFreqSer = "MarkerFreq.ser";
     String markerFreqTxt = "MarkerFreq.txt";
     String usage = "\n" + "cnv.filesys.MarkerFrequencies requires 0-4 arguments\n"
-                   + "   (1) project properties filename (i.e. proj=" + filename + " (default))\n"
-                   + " OPTIONAL:\n" + "   (2) number of threads to use (i.e. threads=" + numThreads
-                   + " (default))\n" + "   (3) name of serialized  MarkerFreq file (i.e ser="
-                   + markerFreqSer + " (default))\n"
-                   + "   (4) name of text MarkerFreq file (i.e txt=" + markerFreqTxt
-                   + " (default))\n"
-                   + "   (5) exclude samples as defined in sampleData (i.e -exclude (not the default ,currently not supported))\n"
-                   + "   (6) convert from an existing .txt file (i.e -convert (not the default))\n";
+        + "   (1) project properties filename (i.e. proj=" + filename + " (default))\n"
+        + " OPTIONAL:\n" + "   (2) number of threads to use (i.e. threads=" + numThreads
+        + " (default))\n" + "   (3) name of serialized  MarkerFreq file (i.e ser=" + markerFreqSer
+        + " (default))\n" + "   (4) name of text MarkerFreq file (i.e txt=" + markerFreqTxt
+        + " (default))\n"
+        + "   (5) exclude samples as defined in sampleData (i.e -exclude (not the default ,currently not supported))\n"
+        + "   (6) convert from an existing .txt file (i.e -convert (not the default))\n";
     // String usage = "\n"+
     // "cnv.filesys.MarkerFrequencies requires 0-4 arguments\n"+
     // " (1) project properties filename (i.e. proj="+filename+" (default))\n"+
@@ -181,22 +179,22 @@ public class CNVMarkerQC implements Runnable {
   }
 
   private static boolean shouldExclude(Project proj, boolean excludeSamples,
-                                       SampleData sampleData) {
+      SampleData sampleData) {
     boolean doExclude = false;
     if (!excludeSamples) {
       doExclude = false;
     } else if (sampleData != null && sampleData.hasExcludedIndividuals()) {
       doExclude = true;
     } else {
-      proj.getLog()
-          .reportError("Error - cannot exclude individuals for MAF computation, no factor named 'Exclude/CLASS=Exclude' in Sample Data");
+      proj.getLog().reportError(
+          "Error - cannot exclude individuals for MAF computation, no factor named 'Exclude/CLASS=Exclude' in Sample Data");
       System.exit(1);
     }
     return doExclude;
   }
 
   private static double[] summarize(Project proj, CNVMarkerQC[] markerFrequencies,
-                                    String[] markerNames) {
+      String[] markerNames) {
     Hashtable<String, Double> mafBuilder = new Hashtable<String, Double>();
     double[] mafs = new double[markerNames.length];
     for (CNVMarkerQC markerFrequencie : markerFrequencies) {
@@ -210,8 +208,8 @@ public class CNVMarkerQC implements Runnable {
       if (mafBuilder.containsKey(markerNames[i])) {
         mafs[i] = mafBuilder.get(markerNames[i]);
       } else {
-        proj.getLog().reportError("Error - could not find marker " + markerNames[i]
-                                  + ", this should not happen");
+        proj.getLog().reportError(
+            "Error - could not find marker " + markerNames[i] + ", this should not happen");
         System.exit(1);
       }
     }

@@ -31,14 +31,14 @@ public class CompareCalls_dev {
   public static final Double DEFAULT_BP_FRACTION = 0.3;
   public static final Double DEFAULT_NUM_MARKER_FRACTION = 0.3;
 
-  private static boolean alreadyDefinedID(Hashtable<String, Hashtable<String, Integer>> defineCompHash,
-                                          String[] line) {
+  private static boolean alreadyDefinedID(
+      Hashtable<String, Hashtable<String, Integer>> defineCompHash, String[] line) {
     boolean alreadyDefined = false;
     for (String element : line) {
       // same id not allowed in same line
       if (defineCompHash.containsKey(element)) {
         System.err.println("Warning - duplicate IDs were detectected in the comparision file: "
-                           + element + " was seen twice, only the first comparison will be used ");
+            + element + " was seen twice, only the first comparison will be used ");
         alreadyDefined = true;
       }
     }
@@ -46,7 +46,7 @@ public class CompareCalls_dev {
   }
 
   private static void assignMax(Hashtable<String, Hashtable<String, Integer>> defineCompHash,
-                                int maxNumComparisions) {
+      int maxNumComparisions) {
     defineCompHash.put("MAX_COMP_NUMBER", new Hashtable<String, Integer>());
     defineCompHash.get("MAX_COMP_NUMBER").put("MAX_COMP_NUMBER", maxNumComparisions);
   }
@@ -78,11 +78,9 @@ public class CompareCalls_dev {
   }
 
   private static boolean checkAll(double bpFraction, double markerFraction,
-                                  Hashtable<Byte, List<Integer>> markers, CNVariant thisCNV,
-                                  CNVariant nextCNV) {
+      Hashtable<Byte, List<Integer>> markers, CNVariant thisCNV, CNVariant nextCNV) {
     return checkChr(thisCNV, nextCNV) && bpGapCheck(thisCNV, nextCNV, bpFraction)
-           && checkCN(thisCNV, nextCNV)
-           && markerGapCheck(thisCNV, nextCNV, markers, markerFraction);
+        && checkCN(thisCNV, nextCNV) && markerGapCheck(thisCNV, nextCNV, markers, markerFraction);
   }
 
   private static boolean checkChr(CNVariant thisCNV, CNVariant nextCNV) {
@@ -95,7 +93,7 @@ public class CompareCalls_dev {
 
   // merges CNVs based on gap percentages in base pairs and number of markers, copy number aware
   public static String cleanCNVs(String rootDir, String cnvfile, String markerFile,
-                                 double bpFraction, double markerFraction) {
+      double bpFraction, double markerFraction) {
     PrintWriter writer;
     String[] inds;
     String file;
@@ -165,8 +163,8 @@ public class CompareCalls_dev {
       }
     }
     System.out.println("Info - " + changecount + " individual calls were combined into " + newCalls
-                       + " new calls,\t" + nochange + " Calls were Unchanged,\tA total "
-                       + totalCount + " of Calls Examined from " + inds.length + " individuals");
+        + " new calls,\t" + nochange + " Calls were Unchanged,\tA total " + totalCount
+        + " of Calls Examined from " + inds.length + " individuals");
     writer.close();
     return file;
   }
@@ -203,13 +201,13 @@ public class CompareCalls_dev {
       inds1 = toStringArray(fileIDs.get(allPossibleCombinations[i][0]));
       inds2 = toStringArray(fileIDs.get(allPossibleCombinations[i][1]));
       if (inds1.length != inds2.length || inds1.length == 0 || inds2.length == 0) {
-        System.err.println("Info - there are " + inds1.length + " ids  in "
-                           + files[allPossibleCombinations[i][0]] + " and " + inds2.length
-                           + " ids in " + files[allPossibleCombinations[i][1]]);
+        System.err.println(
+            "Info - there are " + inds1.length + " ids  in " + files[allPossibleCombinations[i][0]]
+                + " and " + inds2.length + " ids in " + files[allPossibleCombinations[i][1]]);
         if (inds1.length == 0 || inds2.length == 0) {
-          System.err.println("Info - skipping the comparison between "
-                             + files[allPossibleCombinations[i][0]] + " and "
-                             + files[allPossibleCombinations[i][1]]);
+          System.err.println(
+              "Info - skipping the comparison between " + files[allPossibleCombinations[i][0]]
+                  + " and " + files[allPossibleCombinations[i][1]]);
         }
       }
       try {
@@ -246,7 +244,7 @@ public class CompareCalls_dev {
                 cnNumbers = getCNNumbers(cnvs[0], cnvs[1], cnNumbers);
                 goodCalls = goodCallCN(cnvs[0], cnvs[1], counts, goodCalls);
                 double callPercent = ((double) ((2 * exactMatches[j]) + sigOlapMatches[j])
-                                      / (cnvs[0].length + cnvs[1].length));
+                    / (cnvs[0].length + cnvs[1].length));
                 // TODO tabulate with CN presence only
                 numPassingAndPresent++;
                 indPercentMatches[j] = callPercent;
@@ -259,13 +257,13 @@ public class CompareCalls_dev {
         }
         averageCNPercent = averageCNPercents(goodCalls, cnNumbers);
         System.err.println("Info - " + numPassingAndPresent
-                           + " with valid comparison matched Ids were found and compared");
+            + " with valid comparison matched Ids were found and compared");
         comparedCalls[i] = new CompareCalls_dev(numPassingAndPresent, averageCNPercent, cnNumbers,
-                                                files, exactMatches, sigOlapMatches, olapMatches,
-                                                comparedIDs, indCNVCalls, indPercentMatches);
+            files, exactMatches, sigOlapMatches, olapMatches, comparedIDs, indCNVCalls,
+            indPercentMatches);
       } catch (Exception e) {
         System.err.println("Error comparing " + files[allPossibleCombinations[i][0]] + " and "
-                           + files[allPossibleCombinations[i][1]]);
+            + files[allPossibleCombinations[i][1]]);
         e.printStackTrace();
       }
     }
@@ -321,11 +319,11 @@ public class CompareCalls_dev {
               match = 3;
               CN = cnvs[1][b].getCN();
             } else if (match < 2 && cnvs[1][b].getSource() != 99
-                       && cnvs[1][b].significantOverlap(cnvs[0][a])) {
+                && cnvs[1][b].significantOverlap(cnvs[0][a])) {
               match = 4;
               CN = cnvs[1][b].getCN();
             } else if (match < 2 && cnvs[1][b].getSource() != 99
-                       && cnvs[1][b].overlaps(cnvs[0][a])) {
+                && cnvs[1][b].overlaps(cnvs[0][a])) {
               match = 2;
               CN = cnvs[1][b].getCN();
             }
@@ -351,14 +349,14 @@ public class CompareCalls_dev {
     return counts;
   }
 
-  private static void defineComparisons(Hashtable<String, Hashtable<String, Integer>> defineCompHash,
-                                        String[] line) {
+  private static void defineComparisons(
+      Hashtable<String, Hashtable<String, Integer>> defineCompHash, String[] line) {
     Hashtable<String, Integer> defined = new Hashtable<String, Integer>();
     for (int i = 0; i < line.length; i++) {
       for (int j = 0; j < line.length; j++) {
         if (i != j && line[i] == line[j]) {
           System.err.println("Warning - duplicate IDs were detectected in the comparision file: "
-                             + line[i] + " in column " + i + "and " + line[j] + " in column " + j);
+              + line[i] + " in column " + i + "and " + line[j] + " in column " + j);
         }
 
         defined.put(line[j], j);
@@ -369,7 +367,7 @@ public class CompareCalls_dev {
 
   // defines comparisons for appropriate parsing and comparing
   private static Hashtable<String, Hashtable<String, Integer>> defineCompLists(String rootDir,
-                                                                               String compFile) {
+      String compFile) {
     Hashtable<String, Hashtable<String, Integer>> defineCompHash =
         new Hashtable<String, Hashtable<String, Integer>>();
     BufferedReader reader;
@@ -393,8 +391,8 @@ public class CompareCalls_dev {
       reader.close();
       assignMax(defineCompHash, maxNumComparisions);
     } catch (FileNotFoundException fnfe) {
-      System.err.println("Error: file \"" + rootDir + compFile
-                         + "\" not found in current directory");
+      System.err
+          .println("Error: file \"" + rootDir + compFile + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + rootDir + compFile + "\"");
@@ -405,9 +403,8 @@ public class CompareCalls_dev {
 
   // do both filtering and cleaning
   public static String[] filterAndClean(String rootDir, String cnvFile, String LRR_lookup,
-                                        String compFile, double lrrFilter, double confFilter,
-                                        int numMarkers, String markerFile, double bpFraction,
-                                        double markerFraction) {
+      String compFile, double lrrFilter, double confFilter, int numMarkers, String markerFile,
+      double bpFraction, double markerFraction) {
     String[] filteredFiles, cleanedFiles;
     filteredFiles =
         filterCNVs(rootDir, cnvFile, LRR_lookup, compFile, lrrFilter, confFilter, numMarkers);
@@ -420,8 +417,7 @@ public class CompareCalls_dev {
   }
 
   public static String[] filterCNVs(String rootDir, String cnvFile, String LRR_lookup,
-                                    String compFile, double lrrFilter, double confFilter,
-                                    int numMarkers) {
+      String compFile, double lrrFilter, double confFilter, int numMarkers) {
     Hashtable<String, Double> lrrs = new Hashtable<String, Double>();
     Hashtable<String, Hashtable<String, Integer>> defineCompHash =
         new Hashtable<String, Hashtable<String, Integer>>();
@@ -440,13 +436,13 @@ public class CompareCalls_dev {
       lrrs = getLRRs(rootDir, LRR_lookup);
       reader = new BufferedReader(new FileReader(rootDir + cnvFile));
       if (!ext.checkHeader(reader.readLine().trim().split("[\\s]+"), CNVariant.PLINK_CNV_HEADER,
-                           false)) {
+          false)) {
         reader.close();
         System.err.println("quitting comparison");
       } else {
         for (int i = 0; i < maxRepNumber; i++) {
           files[i] = rootDir + "intermediateFiles/Filtered_LRR_" + lrrFilter + "_conf_" + confFilter
-                     + "_numMarkers_" + numMarkers + "_rep" + i + ".cnv";
+              + "_numMarkers_" + numMarkers + "_rep" + i + ".cnv";
           writers[i] = new PrintWriter(new FileWriter(files[i]));
           writers[i].println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
           filteredCounts[i] = 0;
@@ -470,16 +466,15 @@ public class CompareCalls_dev {
           writers[i].close();
           int totalInCompFile = includeCounts[i] + filteredCounts[i];
           System.out.println("Info - Out of a total of " + totalCounts + " cnv calls in " + rootDir
-                             + cnvFile + ", a total of " + totalInCompFile
-                             + " calls had matched ids listed in " + compFile + " column " + i
-                             + ": " + filteredCounts[i] + " were filtered out, " + includeCounts[i]
-                             + " were included for comparison in " + files[i]);
+              + cnvFile + ", a total of " + totalInCompFile + " calls had matched ids listed in "
+              + compFile + " column " + i + ": " + filteredCounts[i] + " were filtered out, "
+              + includeCounts[i] + " were included for comparison in " + files[i]);
         }
       }
       reader.close();
     } catch (FileNotFoundException fnfe) {
-      System.err.println("Error: file \"" + rootDir + cnvFile
-                         + "\" not found in current directory");
+      System.err
+          .println("Error: file \"" + rootDir + cnvFile + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + rootDir + cnvFile + "\"");
@@ -503,9 +498,9 @@ public class CompareCalls_dev {
   }
 
   private static CNVariant[][] getCompareCNVs(String ind1, String ind2, int[] combinations,
-                                              Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>> indFileCNVs) {
+      Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>> indFileCNVs) {
     return new CNVariant[][] {toCNVArray(indFileCNVs.get(combinations[0]).get(ind1)),
-                              toCNVArray(indFileCNVs.get(combinations[1]).get(ind2))};
+        toCNVArray(indFileCNVs.get(combinations[1]).get(ind2))};
   }
 
   private static String[] getComparisons(CompareCalls_dev comparedCall) {
@@ -532,16 +527,16 @@ public class CompareCalls_dev {
   }
 
   private static String getFileName(String rootDir, String compareType, double start, double stop,
-                                    String[] comparisons) {
+      String[] comparisons) {
     String file;
     if (compareType.equals("lrr")) {
       file = rootDir + "test" + comparisons[0] + "_vs_" + comparisons[1] + "_" + compareType
-             + "_Concordance_" + start + "_" + stop + "_numMarkers_" + DEFAULT_NUM_MARKERS_FILTER
-             + "_Conf_" + DEFAULT_CONF_FILTER + ".concord";
+          + "_Concordance_" + start + "_" + stop + "_numMarkers_" + DEFAULT_NUM_MARKERS_FILTER
+          + "_Conf_" + DEFAULT_CONF_FILTER + ".concord";
     } else if (compareType.equals("conf")) {
       file = rootDir + "test" + comparisons[0] + "_vs_" + comparisons[1] + "_" + compareType
-             + "_Concordance_" + start + "_" + stop + "_lrr_" + DEFAULT_LRR_FILTER + "_numMarkers_"
-             + DEFAULT_NUM_MARKERS_FILTER + ".concord";
+          + "_Concordance_" + start + "_" + stop + "_lrr_" + DEFAULT_LRR_FILTER + "_numMarkers_"
+          + DEFAULT_NUM_MARKERS_FILTER + ".concord";
     } else {
       System.err.println("invalid invalid Comparison type");
       file = "NA";
@@ -550,12 +545,12 @@ public class CompareCalls_dev {
   }
 
   private static String getFileName(String rootDir, String compareType, int start, int stop,
-                                    String[] comparisons) {
+      String[] comparisons) {
     String file;
     if (compareType.equals("numMarkers")) {
       file = rootDir + "test" + comparisons[0] + "_vs_" + comparisons[1] + "_" + compareType
-             + "_Concordance_" + start + "_" + stop + "_LRR_" + DEFAULT_LRR_FILTER + "Conf_"
-             + DEFAULT_CONF_FILTER + ".concord";
+          + "_Concordance_" + start + "_" + stop + "_LRR_" + DEFAULT_LRR_FILTER + "Conf_"
+          + DEFAULT_CONF_FILTER + ".concord";
     } else {
       System.err.println("invalid invalid Comparison type");
       file = "NA";
@@ -565,7 +560,7 @@ public class CompareCalls_dev {
 
   private static String getHeader(String iterType) {
     return iterType
-           + "\tCN=any;avgPercent\tCN=any;numCallsAnalyzed\tCN=0;avgPercent\tCN=0;numCallsAnalyzed\tCN=1;avgPercent\tCN=1;numCallsAnalyzed\tCN=3;avgPercent\tCN=3;numCallsAnalyzed\tCN=4;avgPercent\tCN=4;numCallsAnalyzed\tPairs of Individuals PassingFilters";
+        + "\tCN=any;avgPercent\tCN=any;numCallsAnalyzed\tCN=0;avgPercent\tCN=0;numCallsAnalyzed\tCN=1;avgPercent\tCN=1;numCallsAnalyzed\tCN=3;avgPercent\tCN=3;numCallsAnalyzed\tCN=4;avgPercent\tCN=4;numCallsAnalyzed\tPairs of Individuals PassingFilters";
   }
 
   public static ArrayList<String> getIDList(CNVariant[] afileCNVs) {
@@ -600,7 +595,8 @@ public class CompareCalls_dev {
     return indFileCNVs;
   }
 
-  private static Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>> getindCNVsfromFiles(CNVariant[][] fileCNVs) {
+  private static Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>> getindCNVsfromFiles(
+      CNVariant[][] fileCNVs) {
     Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>> indCNVs =
         new Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>>();
     for (int i = 0; i < fileCNVs.length; i++) {
@@ -620,15 +616,15 @@ public class CompareCalls_dev {
         line = reader.readLine().trim().split("[\\s]+");
         if (lrrs.containsKey(line[0])) {
           System.err.println("Warning - duplicate samples found in " + rootDir + LRR_lookup
-                             + " only using one of them");
+              + " only using one of them");
         } else {
           lrrs.put(line[0], Double.parseDouble(line[1]));
         }
       }
       reader.close();
     } catch (FileNotFoundException fnfe) {
-      System.err.println("Error: file \"" + rootDir + LRR_lookup
-                         + "\" not found in current directory");
+      System.err
+          .println("Error: file \"" + rootDir + LRR_lookup + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + rootDir + LRR_lookup + "\"");
@@ -638,7 +634,7 @@ public class CompareCalls_dev {
   }
 
   private static Hashtable<Byte, List<Integer>> getMarkerLookup(String rootDir,
-                                                                String markerPositionsFile) {
+      String markerPositionsFile) {
     Hashtable<Byte, List<Integer>> markers = new Hashtable<Byte, List<Integer>>();
     BufferedReader reader;
     byte chr;
@@ -671,8 +667,8 @@ public class CompareCalls_dev {
         }
       }
     } catch (FileNotFoundException fnfe) {
-      System.err.println("Error: file \"" + markerPositionsFile
-                         + "\" not found in current directory");
+      System.err
+          .println("Error: file \"" + markerPositionsFile + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + rootDir + markerPositionsFile + "\"");
@@ -692,9 +688,9 @@ public class CompareCalls_dev {
     double[] avePercents = comparedCall.getAveragePercent();
     int[] totalCallsAnalyzed = comparedCall.getTotalCallsAnalyzed();
     printString = avePercents[2] + "\t" + totalCallsAnalyzed[2] + "\t" + avePercents[0] + "\t"
-                  + totalCallsAnalyzed[0] + "\t" + avePercents[1] + "\t" + totalCallsAnalyzed[1]
-                  + "\t" + avePercents[3] + "\t" + totalCallsAnalyzed[3] + "\t" + avePercents[4]
-                  + "\t" + totalCallsAnalyzed[4] + "\t" + comparedCall.getnumPassingAndPresent();
+        + totalCallsAnalyzed[0] + "\t" + avePercents[1] + "\t" + totalCallsAnalyzed[1] + "\t"
+        + avePercents[3] + "\t" + totalCallsAnalyzed[3] + "\t" + avePercents[4] + "\t"
+        + totalCallsAnalyzed[4] + "\t" + comparedCall.getnumPassingAndPresent();
 
     return printString;
   }
@@ -708,8 +704,7 @@ public class CompareCalls_dev {
   }
 
   private static PrintWriter[] getWriters(String rootDir, CompareCalls_dev[] comparedCalls,
-                                          String compareType, double start, double stop,
-                                          boolean append) {
+      String compareType, double start, double stop, boolean append) {
     PrintWriter[] writers = new PrintWriter[comparedCalls.length];
     for (int i = 0; i < comparedCalls.length; i++) {
       String[] comparisons = getComparisons(comparedCalls[i]);
@@ -727,7 +722,7 @@ public class CompareCalls_dev {
   }
 
   private static PrintWriter[] getWriters(String rootDir, CompareCalls_dev[] comparedCalls,
-                                          String compareType, int start, int stop, boolean append) {
+      String compareType, int start, int stop, boolean append) {
     PrintWriter[] writers = new PrintWriter[comparedCalls.length];
     for (int i = 0; i < comparedCalls.length; i++) {
       String[] comparisons = getComparisons(comparedCalls[i]);
@@ -746,7 +741,7 @@ public class CompareCalls_dev {
 
   // computes average percent match for each copy number, and a total for all copy numbers
   private static double[] goodCallCN(CNVariant[] cnvs0, CNVariant[] cnvs1, int[][] counts,
-                                     double[] goodCalls) {
+      double[] goodCalls) {
     // CN state percents as defined here are ,0,1,2,3,4,5...where 2 is a total non-copy number aware
     // count, and 5 is for non matching (overlap,exact,sigoverlap)
     int[] indCNNumbers = new int[6];
@@ -771,9 +766,8 @@ public class CompareCalls_dev {
   // "rootsANDdubs.compsmall.txt", markerFile);
   // iterate over parameters(lrr, conf, numMarkers) and compare results among duplicates
   public static void iterate(double lrrstart, double lrrstop, int numLrrBins, double confstart,
-                             double confstop, int numConfBins, int probestart, int probeStop,
-                             String rootDir, String cnvFile, String LRR_lookup, String compFile,
-                             String markerFile) {
+      double confstop, int numConfBins, int probestart, int probeStop, String rootDir,
+      String cnvFile, String LRR_lookup, String compFile, String markerFile) {
     PrintWriter[] probeWriters, lrrWriters, confWriters;
     CompareCalls_dev[] comparedCalls;
     double[] lrrValues = new double[numLrrBins];
@@ -813,12 +807,11 @@ public class CompareCalls_dev {
 
       for (int i = probestart; i < probeStop + 1; i += 5) {
         String iterType = "numMarkers";
-        comparedCalls =
-            compare(rootDir,
-                    filterAndClean(rootDir, cnvFile, LRR_lookup, compFile, DEFAULT_LRR_FILTER,
-                                   DEFAULT_CONF_FILTER, i, markerFile, DEFAULT_BP_FRACTION,
-                                   DEFAULT_NUM_MARKER_FRACTION),
-                    DEFAULT_COMP_LIST);
+        comparedCalls = compare(rootDir,
+            filterAndClean(rootDir, cnvFile, LRR_lookup, compFile, DEFAULT_LRR_FILTER,
+                DEFAULT_CONF_FILTER, i, markerFile, DEFAULT_BP_FRACTION,
+                DEFAULT_NUM_MARKER_FRACTION),
+            DEFAULT_COMP_LIST);
         if (i == probestart) {
           probeWriters = getWriters(rootDir, comparedCalls, iterType, probestart, probeStop, false);
         } else {
@@ -839,12 +832,11 @@ public class CompareCalls_dev {
 
       for (int i = 0; i < lrrValues.length; i++) {
         String iterType = "lrr";
-        comparedCalls =
-            compare(rootDir,
-                    filterAndClean(rootDir, cnvFile, LRR_lookup, compFile, lrrValues[i],
-                                   DEFAULT_CONF_FILTER, DEFAULT_NUM_MARKERS_FILTER, markerFile,
-                                   DEFAULT_BP_FRACTION, DEFAULT_NUM_MARKER_FRACTION),
-                    DEFAULT_COMP_LIST);
+        comparedCalls = compare(rootDir,
+            filterAndClean(rootDir, cnvFile, LRR_lookup, compFile, lrrValues[i],
+                DEFAULT_CONF_FILTER, DEFAULT_NUM_MARKERS_FILTER, markerFile, DEFAULT_BP_FRACTION,
+                DEFAULT_NUM_MARKER_FRACTION),
+            DEFAULT_COMP_LIST);
         if (i == 0) {
           lrrWriters = getWriters(rootDir, comparedCalls, iterType, lrrstart, lrrstop, false);
         } else {
@@ -865,12 +857,11 @@ public class CompareCalls_dev {
 
       for (int i = 0; i < confValues.length; i++) {
         String iterType = "conf";
-        comparedCalls =
-            compare(rootDir,
-                    filterAndClean(rootDir, cnvFile, LRR_lookup, compFile, DEFAULT_LRR_FILTER,
-                                   confValues[i], DEFAULT_NUM_MARKERS_FILTER, markerFile,
-                                   DEFAULT_BP_FRACTION, DEFAULT_NUM_MARKER_FRACTION),
-                    DEFAULT_COMP_LIST);
+        comparedCalls = compare(rootDir,
+            filterAndClean(rootDir, cnvFile, LRR_lookup, compFile, DEFAULT_LRR_FILTER,
+                confValues[i], DEFAULT_NUM_MARKERS_FILTER, markerFile, DEFAULT_BP_FRACTION,
+                DEFAULT_NUM_MARKER_FRACTION),
+            DEFAULT_COMP_LIST);
         if (i == 0) {
           confWriters = getWriters(rootDir, comparedCalls, iterType, confstart, confstop, false);
         } else {
@@ -949,7 +940,7 @@ public class CompareCalls_dev {
       // String compFile, double lrrFilter, double confFilter, int numMarkers, String markerFile,
       // double bpFraction, double markerFraction) {
       filterAndClean(rootDir, cnvFile, LRR_lookup, "Full_SAMP.txt", lrrFilter, confFilter,
-                     numMarkers, markerFile, 0.3, 0.3);
+          numMarkers, markerFile, 0.3, 0.3);
       // // cleanCNVs(rootDir, filterCNVs(rootDir, cnvFile, LRR_lookup, DEFAULT_COMP_LIST,
       // lrrFilter, confFilter, numMarkers)[0], markerFile, 0.2, 0.2);
       // compare(rootDir, filterAndClean(rootDir, cnvFile, LRR_lookup, DEFAULT_COMP_LIST, lrrFilter,
@@ -968,8 +959,7 @@ public class CompareCalls_dev {
   }
 
   private static boolean markerGapCheck(CNVariant thisCNV, CNVariant nextCNV,
-                                        Hashtable<Byte, List<Integer>> markers,
-                                        double markerFraction) {
+      Hashtable<Byte, List<Integer>> markers, double markerFraction) {
     int gapLengthMarkers = getStartIndex(nextCNV, markers) - getStopIndex(thisCNV, markers) - 1;
     int proposedNewMarkerLength =
         getStopIndex(nextCNV, markers) - getStartIndex(thisCNV, markers) + 1;
@@ -978,7 +968,7 @@ public class CompareCalls_dev {
 
   // new confidence value = old+old+..., as per PennCNV folks
   private static CNVariant mergeCNVs(CNVariant[] cnvs, int startCombine, int stopCombine,
-                                     Hashtable<Byte, List<Integer>> markers) {
+      Hashtable<Byte, List<Integer>> markers) {
     CNVariant mergedCNV;
     double newConf = 0.0;
     int newNumMarkers = 0;
@@ -991,9 +981,8 @@ public class CompareCalls_dev {
     }
     mergedCNV =
         new CNVariant(cnvs[startCombine].getFamilyID(), cnvs[startCombine].getIndividualID(),
-                      cnvs[startCombine].getChr(), cnvs[startCombine].getStart(),
-                      cnvs[stopCombine].getStop(), cnvs[startCombine].getCN(), newConf,
-                      newNumMarkers, cnvs[startCombine].getSource());
+            cnvs[startCombine].getChr(), cnvs[startCombine].getStart(), cnvs[stopCombine].getStop(),
+            cnvs[startCombine].getCN(), newConf, newNumMarkers, cnvs[startCombine].getSource());
     return mergedCNV;
   }
 
@@ -1045,9 +1034,8 @@ public class CompareCalls_dev {
   private final String[][] comparedIDs;
 
   public CompareCalls_dev(int numPassingAndPresent, double averagePercent[],
-                          int[] totalCallsAnalyzed, String[] cnvFiles, int[] exactMatches,
-                          int[] sigOlapMatches, int[] olapMatches, String[][] comparedIDs,
-                          int[][] indCNVCalls, double[] indPercentMatches) {
+      int[] totalCallsAnalyzed, String[] cnvFiles, int[] exactMatches, int[] sigOlapMatches,
+      int[] olapMatches, String[][] comparedIDs, int[][] indCNVCalls, double[] indPercentMatches) {
     this.numPassingAndPresent = numPassingAndPresent;
     this.averagePercent = averagePercent;
     this.totalCallsAnalyzed = totalCallsAnalyzed;

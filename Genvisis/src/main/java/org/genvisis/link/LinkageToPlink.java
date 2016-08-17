@@ -47,9 +47,9 @@ public class LinkageToPlink {
 
       System.out.println("Merging files...");
       System.out.println("plink --ped " + v.elementAt(0)[0] + " --map " + v.elementAt(0)[1]
-                         + " --merge-list plink-merge.txt --make-bed");
+          + " --merge-list plink-merge.txt --make-bed");
       CmdLine.run("plink --ped " + v.elementAt(0)[0] + " --map " + v.elementAt(0)[1]
-                  + " --merge-list plink-merge.txt --make-bed", dir);
+          + " --merge-list plink-merge.txt --make-bed", dir);
     }
   }
 
@@ -59,9 +59,9 @@ public class LinkageToPlink {
     String db = DEFAULT_DATABASE;
 
     String usage = "\\n" + "link.LinkageToPlink requires 0-1 arguments\n"
-                   + "   (1) directory (i.e. dir=" + dir + " (default))\n"
-                   + "   (2) database of SNP chromosomes and positions (i.e. db=null or db=filename (default is db="
-                   + db + "))\n" + "";
+        + "   (1) directory (i.e. dir=" + dir + " (default))\n"
+        + "   (2) database of SNP chromosomes and positions (i.e. db=null or db=filename (default is db="
+        + db + "))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

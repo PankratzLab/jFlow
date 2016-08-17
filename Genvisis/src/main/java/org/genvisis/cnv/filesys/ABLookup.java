@@ -34,7 +34,7 @@ public class ABLookup {
    * Enum defining potential {@link ABLookup} parse sources.
    */
   public static enum ABSource {
-                               GENCLUSTER, MANIFEST, VCF, ORIGEN;
+    GENCLUSTER, MANIFEST, VCF, ORIGEN;
   }
 
   public static final String DEFAULT_AB_FILE = "AB_lookup.dat";
@@ -58,8 +58,8 @@ public class ABLookup {
     } else {
       if (!Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
         proj.getLog().reportError(
-                                  "Error - cannot applyABLookupToFullSampleFiles without the AB Lookup file ('"
-                                  + proj.AB_LOOKUP_FILENAME.getValue() + "').");
+            "Error - cannot applyABLookupToFullSampleFiles without the AB Lookup file ('"
+                + proj.AB_LOOKUP_FILENAME.getValue() + "').");
         return;
       }
       abLookupFilename = proj.AB_LOOKUP_FILENAME.getValue();
@@ -74,7 +74,8 @@ public class ABLookup {
       fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
       forwardGenotypes = fsamp.getForwardGenotypes();
       if (forwardGenotypes.length != abLookup.markerNames.length) {
-        log.reportError("Error - mismatched array lengths for forwardGenotypes and abLookup markerNames");
+        log.reportError(
+            "Error - mismatched array lengths for forwardGenotypes and abLookup markerNames");
       }
       abGenotypes = new byte[forwardGenotypes.length];
       for (int j = 0; j < abLookup.markerNames.length; j++) {
@@ -88,16 +89,15 @@ public class ABLookup {
               abGenotypes[j]++;
             } else if (genotype.charAt(k) != abLookup.lookup[j][0]) {
               log.reportError("Error - mismatched alleles found " + genotype.charAt(k)
-                              + " for marker " + abLookup.markerNames[j] + " for sample "
-                              + samples[i] + " (expecting " + abLookup.lookup[j][0] + "/"
-                              + abLookup.lookup[j][1] + ")");
+                  + " for marker " + abLookup.markerNames[j] + " for sample " + samples[i]
+                  + " (expecting " + abLookup.lookup[j][0] + "/" + abLookup.lookup[j][1] + ")");
             }
           }
         }
       }
       fsamp.setAB_Genotypes(abGenotypes);
-      fsamp.saveToRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(false, true) + samples[i]
-                                   + Sample.SAMPLE_FILE_EXTENSION);
+      fsamp.saveToRandomAccessFile(
+          proj.SAMPLE_DIRECTORY.getValue(false, true) + samples[i] + Sample.SAMPLE_FILE_EXTENSION);
     }
   }
 
@@ -105,7 +105,7 @@ public class ABLookup {
    * @return {@code false} if an exception was caught, aborting execution. {@code true} otherwise.
    */
   public static boolean fillInMissingAlleles(Project proj, String incompleteABlookupFilename,
-                                             String mapFile, boolean updatingPlinkFile) {
+      String mapFile, boolean updatingPlinkFile) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
@@ -135,14 +135,14 @@ public class ABLookup {
 
     if (!mapFile.toLowerCase().endsWith(".csv")) {
       log.reportError("Error - expecting an Illumina style format, but this map file '" + mapFile
-                      + "' does not end in .csv; aborting...");
+          + "' does not end in .csv; aborting...");
       return false;
     }
 
 
     if (!Files.exists(incompleteABlookupFilename)) {
       log.reportError("Error - could not find incomplete ABLookup file '"
-                      + incompleteABlookupFilename + "'; aborting...");
+          + incompleteABlookupFilename + "'; aborting...");
       return false;
     }
 
@@ -163,7 +163,7 @@ public class ABLookup {
         second = 2;
         line = reader.readLine().trim().split("[\\s]+");
         ext.checkHeader(line, new String[] {"Marker", "A", "B"}, new int[] {0, 1, 2}, false, log,
-                        true);
+            true);
         writer.println(Array.toStr(line));
       }
       while (reader.ready()) {
@@ -195,7 +195,7 @@ public class ABLookup {
             }
             if (knownIndex != -9) {
               log.reportError("Error - failed to reconcile " + Array.toStr(line, "/")
-                              + " with reference alleles: " + refAlleles[0] + "/" + refAlleles[1]);
+                  + " with reference alleles: " + refAlleles[0] + "/" + refAlleles[1]);
             }
           }
 
@@ -207,31 +207,33 @@ public class ABLookup {
 
       clusterFilterCollection = proj.getClusterFilterCollection();
       log.report("There were " + markersWithNoLink.size()
-                 + " markers that were zeroed out in the original export; these are set to alleles 'A' and 'B'; for list check "
-                 + Files.getNextAvailableFilename(ext.rootOf(incompleteABlookupFilename, false)
-                                                  + "_test_markersWithNoLink#.txt"));
+          + " markers that were zeroed out in the original export; these are set to alleles 'A' and 'B'; for list check "
+          + Files.getNextAvailableFilename(
+              ext.rootOf(incompleteABlookupFilename, false) + "_test_markersWithNoLink#.txt"));
       markerNames = Array.toStringArray(markersWithNoLink);
       markerDataLoader = null;
-      output = Files.getNextAvailableFilename(ext.rootOf(incompleteABlookupFilename, false)
-                                              + "_test_markersWithNoLink#.txt");
+      output = Files.getNextAvailableFilename(
+          ext.rootOf(incompleteABlookupFilename, false) + "_test_markersWithNoLink#.txt");
       try {
         if (Files.exists(proj.MARKER_DATA_DIRECTORY.getValue(false, false))) {
           markerDataLoader =
               MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
-          log.reportError("Warning - allele frequencies for any chrX markers will be slightly inaccurate");
+          log.reportError(
+              "Warning - allele frequencies for any chrX markers will be slightly inaccurate");
         } else {
           log.report("Warning - since " + proj.MARKER_DATA_DIRECTORY.getValue(false, false)
-                     + " does not exist, marker data can not be loaded and frequency of B allele will not be reported in "
-                     + output
-                     + ".\n If you would like to obtain the frequency of B allele for these markers, please transpose the data and then run the following");
+              + " does not exist, marker data can not be loaded and frequency of B allele will not be reported in "
+              + output
+              + ".\n If you would like to obtain the frequency of B allele for these markers, please transpose the data and then run the following");
           log.report("java -cp /your/path/to/" + org.genvisis.common.PSF.Java.GENVISIS
-                     + " cnv.filesys.ABLookup proj=" + proj.getPropertyFilename() + " incompleteAB="
-                     + incompleteABlookupFilename + " mapFile=" + mapFile);
+              + " cnv.filesys.ABLookup proj=" + proj.getPropertyFilename() + " incompleteAB="
+              + incompleteABlookupFilename + " mapFile=" + mapFile);
         }
       } catch (NullPointerException nullPointerException) {// MarkerDataLoader will likely throw
                                                            // this if there are other issues
-        log.report("Warning - was not able to load marker data, frequency of B allele will not be reported in "
-                   + output);
+        log.report(
+            "Warning - was not able to load marker data, frequency of B allele will not be reported in "
+                + output);
         log.reportException(nullPointerException);
       }
       for (int i = 0; i < markerNames.length; i++) {
@@ -241,17 +243,15 @@ public class ABLookup {
           MarkerData markerData = markerDataLoader.requestMarkerData(i);
           // markerNames[i] = markerNames[i] + "\t" + markerData.getFrequencyOfB(null, null,
           // clusterFilterCollection, proj.getFloat(proj.GC_THRESHOLD));
-          markerNames[i] = markerNames[i] + "\t"
-                           + markerData.getFrequencyOfB(null, null, clusterFilterCollection,
-                                                        proj.GC_THRESHOLD.getValue().floatValue(),
-                                                        log);
+          markerNames[i] = markerNames[i] + "\t" + markerData.getFrequencyOfB(null, null,
+              clusterFilterCollection, proj.GC_THRESHOLD.getValue().floatValue(), log);
           markerDataLoader.releaseIndex(i);
         }
       }
       Files.writeList(markerNames, output);
     } catch (FileNotFoundException fnfe) {
-      log.reportError("Error: file \"" + incompleteABlookupFilename
-                      + "\" not found in current directory");
+      log.reportError(
+          "Error: file \"" + incompleteABlookupFilename + "\" not found in current directory");
       return false;
     } catch (IOException ioe) {
       log.reportError("Error reading file \"" + incompleteABlookupFilename + "\"");
@@ -298,7 +298,7 @@ public class ABLookup {
         line = temp.trim().split(",");
       } while (reader.ready() && (!temp.contains("Name") || !temp.contains("SNP")));
       indices = ext.indexFactors(new String[][] {{"Name", "MarkerName"}, {"SNP"}}, line, false,
-                                 true, true, log, true);
+          true, true, log, true);
       prev = temp;
       while (reader.ready()) {
         temp = reader.readLine();
@@ -313,7 +313,7 @@ public class ABLookup {
           try {
             line = temp.trim().split(",");
             hash.put(line[indices[0]],
-                     new char[] {line[indices[1]].charAt(1), line[indices[1]].charAt(3)});
+                new char[] {line[indices[1]].charAt(1), line[indices[1]].charAt(3)});
           } catch (ArrayIndexOutOfBoundsException aioobe) {
             log.reportError("Error - could not parse line:");
             log.reportError(temp);
@@ -363,7 +363,7 @@ public class ABLookup {
     CLI.addArg(options, MANIFEST, "parse ABLookup from Illumina manifest file", illumina);
     CLI.addFlag(options, VCF, "parse ABLookup from VCF annotation file");
     CLI.addArg(options, PARTAB,
-               "fill in a partial existing ABLookup file using an Illumina SNP Table", abLookup);
+        "fill in a partial existing ABLookup file using an Illumina SNP Table", abLookup);
     CLI.addArg(options, MAP, "the filename of the Illumina SNP Tabl", mapFile);
     CLI.addFlag(options, PLINK, "use a plink.bim file as input instead of an ABLookup file");
     CLI.addFlag(options, APPLYAB, "apply the project's AB lookup to all Sample files in project");
@@ -401,7 +401,7 @@ public class ABLookup {
    *        {@link #parseFromManifest(Project, String)}
    */
   public static void parseABLookup(Project proj, ABSource parseSource, String outfile,
-                                   Object... args) {
+      Object... args) {
     ABLookup abLookup = new ABLookup();
 
     if (!Files.exists(outfile)) {
@@ -434,7 +434,7 @@ public class ABLookup {
   }
 
   public ABLookup(String[] markerNames, String filename, boolean verbose, boolean allOrNothing,
-                  Logger log) {
+      Logger log) {
     Hashtable<String, char[]> lookupHash;
     int count;
 
@@ -460,7 +460,7 @@ public class ABLookup {
     }
     if (count > 0) {
       log.reportError("Warning - there " + (count > 1 ? "were " : "was only ") + count + " marker"
-                      + (count > 1 ? "s" : "") + " without an AB value");
+          + (count > 1 ? "s" : "") + " without an AB value");
     }
     if (allOrNothing && count > 0) {
       lookup = null;
@@ -481,12 +481,12 @@ public class ABLookup {
   public void parseFromAnnotationVCF(Project proj) {
     if (!Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
       proj.getLog().reportTimeWarning("Could not find " + proj.BLAST_ANNOTATION_FILENAME.getValue()
-                                      + ", trying to parse from original genotypes instead");
+          + ", trying to parse from original genotypes instead");
     } else {
       proj.getLog()
           .reportTimeWarning("This method has not been completely tested, you have been warned");
-      proj.getLog()
-          .reportTimeWarning("This does not convert to positive strand anymore you have been warned again");
+      proj.getLog().reportTimeWarning(
+          "This does not convert to positive strand anymore you have been warned again");
 
       try {
         MarkerSet markerSet = proj.getMarkerSet();
@@ -494,9 +494,8 @@ public class ABLookup {
 
         MarkerBlastAnnotation[] masterMarkerList =
             MarkerBlastAnnotation.initForMarkers(markerNames);
-        MarkerAnnotationLoader annotationLoader =
-            new MarkerAnnotationLoader(proj, null, proj.BLAST_ANNOTATION_FILENAME.getValue(),
-                                       markerSet, true);
+        MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(proj, null,
+            proj.BLAST_ANNOTATION_FILENAME.getValue(), markerSet, true);
         annotationLoader.setReportEvery(10000);
         ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
         parsers.add(masterMarkerList);
@@ -518,7 +517,7 @@ public class ABLookup {
               a = 'D';
               b = 'I';// actually this is typically just :equals reference;
             } else if (tmp.isbDeletion()
-                       || A.getBaseString().length() > B.getBaseString().length()) {
+                || A.getBaseString().length() > B.getBaseString().length()) {
               a = 'I';
               b = 'D';
             } else {
@@ -541,10 +540,9 @@ public class ABLookup {
         return;
 
       } catch (Exception e) {
-        proj.getLog()
-            .reportTimeWarning("Could not generate AB lookup from "
-                               + proj.BLAST_ANNOTATION_FILENAME.getValue()
-                               + ", trying to parse from original genotypes instead");
+        proj.getLog().reportTimeWarning(
+            "Could not generate AB lookup from " + proj.BLAST_ANNOTATION_FILENAME.getValue()
+                + ", trying to parse from original genotypes instead");
 
       }
     }
@@ -595,8 +593,8 @@ public class ABLookup {
               countsForGenotypes[j][1]++;
             } else {
               log.reportError("Error - different heterozygote (" + trav
-                              + ") than the on seen previously (" + genotypesSeen[j][1]
-                              + ") for marker " + markerNames[j] + " and sample " + samples[i]);
+                  + ") than the on seen previously (" + genotypesSeen[j][1] + ") for marker "
+                  + markerNames[j] + " and sample " + samples[i]);
             }
           } else {
             if (genotypesSeen[j][0] == null || genotypesSeen[j][0].equals(trav)) {
@@ -609,8 +607,8 @@ public class ABLookup {
               countsForGenotypes[j][2]++;
             } else {
               log.reportError("Error - different genotype (" + trav
-                              + ") than anything seen before (" + Array.toStr(genotypesSeen[j], "/")
-                              + ") for marker " + markerNames[j] + " and sample " + samples[i]);
+                  + ") than anything seen before (" + Array.toStr(genotypesSeen[j], "/")
+                  + ") for marker " + markerNames[j] + " and sample " + samples[i]);
             }
           }
         }
@@ -620,9 +618,10 @@ public class ABLookup {
     try {
       writer =
           new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "AB_breakdown.xln"));
-      writer.println("Marker\tG11\tG12\tG22\tG11 counts\tG12 counts\tG22 counts\tMean Theta G11\tMean Theta G12\tMean Theta G22\torder\tA allele\tB allele");
-      writer2 = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "posssible_"
-                                               + DEFAULT_AB_FILE));
+      writer.println(
+          "Marker\tG11\tG12\tG22\tG11 counts\tG12 counts\tG22 counts\tMean Theta G11\tMean Theta G12\tMean Theta G22\torder\tA allele\tB allele");
+      writer2 = new PrintWriter(
+          new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "posssible_" + DEFAULT_AB_FILE));
       writer2.println("Marker\tA\tB");
       // int countMissing;
       lookup = new char[markerNames.length][];
@@ -635,10 +634,10 @@ public class ABLookup {
           // }
         }
         writer.print(markerNames[i] + "\t" + genotypesSeen[i][0] + "\t" + genotypesSeen[i][1] + "\t"
-                     + genotypesSeen[i][2] + "\t" + countsForGenotypes[i][0] + "\t"
-                     + countsForGenotypes[i][1] + "\t" + countsForGenotypes[i][2] + "\t"
-                     + meanThetasForGenotypes[i][0] + "\t" + meanThetasForGenotypes[i][1] + "\t"
-                     + meanThetasForGenotypes[i][2]);
+            + genotypesSeen[i][2] + "\t" + countsForGenotypes[i][0] + "\t"
+            + countsForGenotypes[i][1] + "\t" + countsForGenotypes[i][2] + "\t"
+            + meanThetasForGenotypes[i][0] + "\t" + meanThetasForGenotypes[i][1] + "\t"
+            + meanThetasForGenotypes[i][2]);
 
         alleles = new char[] {'N', 'N'};
         for (int j = 0; j < 3; j++) {
@@ -651,9 +650,9 @@ public class ABLookup {
                 alleles[1] = genotypesSeen[i][j].charAt(k);
               } else if (alleles[1] == genotypesSeen[i][j].charAt(k)) {
               } else {
-                log.reportError("Error - too many alleles for " + markerNames[i] + " first "
-                                + alleles[0] + " and " + alleles[1] + " and now "
-                                + genotypesSeen[i][j].charAt(k));
+                log.reportError(
+                    "Error - too many alleles for " + markerNames[i] + " first " + alleles[0]
+                        + " and " + alleles[1] + " and now " + genotypesSeen[i][j].charAt(k));
               }
             }
           }
@@ -698,8 +697,8 @@ public class ABLookup {
       writer.close();
       writer2.close();
     } catch (Exception e) {
-      log.reportError("Error writing to either " + "AB_breakdown.xln" + " or " + "possible_"
-                      + DEFAULT_AB_FILE);
+      log.reportError(
+          "Error writing to either " + "AB_breakdown.xln" + " or " + "possible_" + DEFAULT_AB_FILE);
       log.reportException(e);
     }
 
@@ -710,13 +709,13 @@ public class ABLookup {
    */
   public void parseFromManifest(Project proj, String manifestFile) {
     if (Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
-      proj.getLog()
-          .reportError("Error - annotation file '" + proj.BLAST_ANNOTATION_FILENAME.getValue()
-                       + "' already exists; use that instead of the Illumina Manifest file to parse AB values (or rename that file to get around this check)");
+      proj.getLog().reportError("Error - annotation file '"
+          + proj.BLAST_ANNOTATION_FILENAME.getValue()
+          + "' already exists; use that instead of the Illumina Manifest file to parse AB values (or rename that file to get around this check)");
       return;
     }
     MarkerBlast.blastEm(proj, manifestFile, FILE_SEQUENCE_TYPE.MANIFEST_FILE, -1, -1, -1, 1, false,
-                        false, false);
+        false, false);
     parseFromAnnotationVCF(proj);
   }
 
@@ -753,8 +752,8 @@ public class ABLookup {
             genotypesSeen[j][abGenotypes[j]] = fullGenotype;
           } else if (!fullGenotype.equals(genotypesSeen[j][abGenotypes[j]])) {
             log.reportError("Error - different heterozygote (" + fullGenotype
-                            + ") than the on seen previously (" + genotypesSeen[j][1]
-                            + ") for marker " + markerNames[j] + " and sample " + samples[i]);
+                + ") than the on seen previously (" + genotypesSeen[j][1] + ") for marker "
+                + markerNames[j] + " and sample " + samples[i]);
           }
           countsForGenotypes[j][abGenotypes[j]]++;
         }
@@ -767,12 +766,12 @@ public class ABLookup {
       if (countsForGenotypes[i][1] > 0
           && genotypesSeen[i][1].charAt(0) == genotypesSeen[i][1].charAt(1)) {
         log.reportError("Error - impossible heterozygote (" + genotypesSeen[i][1] + ") for marker "
-                        + markerNames[i]);
+            + markerNames[i]);
       }
       if (countsForGenotypes[i][0] > 0) {
         if (genotypesSeen[i][0].charAt(0) != genotypesSeen[i][0].charAt(1)) {
           log.reportError("Error - impossible A/A homozygote (" + genotypesSeen[i][0]
-                          + ") for marker " + markerNames[i]);
+              + ") for marker " + markerNames[i]);
         } else {
           lookup[i][0] = genotypesSeen[i][0].charAt(0);
         }
@@ -780,7 +779,7 @@ public class ABLookup {
       if (countsForGenotypes[i][2] > 0) {
         if (genotypesSeen[i][2].charAt(0) != genotypesSeen[i][2].charAt(1)) {
           log.reportError("Error - impossible B/B homozygote (" + genotypesSeen[i][2]
-                          + ") for marker " + markerNames[i]);
+              + ") for marker " + markerNames[i]);
         } else {
           lookup[i][1] = genotypesSeen[i][2].charAt(0);
         }
@@ -788,16 +787,16 @@ public class ABLookup {
       if (countsForGenotypes[i][1] > 0
           && countsForGenotypes[i][0] + countsForGenotypes[i][2] == 0) {
         log.reportError("Error - only heterozygotes present for marker " + markerNames[i]
-                        + "; cannot determine which allele is the A allele versus the B allele");
+            + "; cannot determine which allele is the A allele versus the B allele");
       } else if (countsForGenotypes[i][1] > 0 && countsForGenotypes[i][0] == 0) {
         if (genotypesSeen[i][1].charAt(0) == lookup[i][1]) {
           lookup[i][0] = genotypesSeen[i][1].charAt(1);
         } else if (genotypesSeen[i][1].charAt(1) == lookup[i][1]) {
           lookup[i][0] = genotypesSeen[i][1].charAt(0);
         } else {
-          log.reportError("Error - heterozygote for marker " + markerNames[i] + " ("
-                          + genotypesSeen[i][1] + ") does not match up with the B allele ("
-                          + lookup[i][1] + ")");
+          log.reportError(
+              "Error - heterozygote for marker " + markerNames[i] + " (" + genotypesSeen[i][1]
+                  + ") does not match up with the B allele (" + lookup[i][1] + ")");
         }
       } else if (countsForGenotypes[i][1] > 0 && countsForGenotypes[i][2] == 0) {
         if (genotypesSeen[i][1].charAt(0) == lookup[i][0]) {
@@ -805,9 +804,9 @@ public class ABLookup {
         } else if (genotypesSeen[i][1].charAt(1) == lookup[i][0]) {
           lookup[i][1] = genotypesSeen[i][1].charAt(0);
         } else {
-          log.reportError("Error - heterozygote for marker " + markerNames[i] + " ("
-                          + genotypesSeen[i][1] + ") does not match up with the A allele ("
-                          + lookup[i][1] + ")");
+          log.reportError(
+              "Error - heterozygote for marker " + markerNames[i] + " (" + genotypesSeen[i][1]
+                  + ") does not match up with the A allele (" + lookup[i][1] + ")");
         }
       }
     }

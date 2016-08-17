@@ -62,17 +62,17 @@ public class Ancestry {
   }
 
   public static void runAncestry(String vcf, String hapMapRsIds, String g1000RsIds, String vpopFile,
-                                 String outputDirectory) {
+      String outputDirectory) {
     new File(outputDirectory).mkdirs();
 
     Logger log = new Logger(outputDirectory + "ancestry.log");
     log.reportTimeInfo("Output directory: " + outputDirectory);
 
     String curVCF = VCFOps.extractIDs(vcf, g1000RsIds, outputDirectory, true, true, null, null,
-                                      false, true, log);
+        false, true, log);
     log.reportTimeInfo("Current VCF: " + curVCF);
     curVCF = VCFOps.extractIDs(curVCF, hapMapRsIds, outputDirectory, true, true, null, null, false,
-                               true, log);
+        true, log);
     log.reportTimeInfo("Current VCF: " + curVCF);
 
     String[] filenames =

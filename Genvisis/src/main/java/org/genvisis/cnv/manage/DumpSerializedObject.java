@@ -13,18 +13,18 @@ public class DumpSerializedObject {
     object = SerializedFiles.readSerial(filename, false, proj.getLog(), false, false);
 
     if (object instanceof TextExport) {
-      ((TextExport) object).exportToText(proj, ext.parseDirectoryOfFile(filename)
-                                               + ext.rootOf(filename) + "_dump.xln");
+      ((TextExport) object).exportToText(proj,
+          ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump.xln");
       return;
     } else if (object instanceof PlainTextExport) {
-      ((PlainTextExport) object).exportToText(ext.parseDirectoryOfFile(filename)
-                                              + ext.rootOf(filename) + "_dump.xln", proj.getLog());
+      ((PlainTextExport) object).exportToText(
+          ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump.xln", proj.getLog());
     }
 
     proj.getLog()
         .report("Information on class:" + "\n" + "object.getClass().getName()="
-                + object.getClass().getName() + "\n" + "object.getClass()=" + object.getClass()
-                + "\n" + "object.toString()=" + object.toString());
+            + object.getClass().getName() + "\n" + "object.getClass()=" + object.getClass() + "\n"
+            + "object.toString()=" + object.toString());
     /**
      * Classes we should support now:
      * 
@@ -47,9 +47,8 @@ public class DumpSerializedObject {
 
 
     if (filename.endsWith("outliers.ser")) { // Hashtable<String, Float>
-      Sample.dumpOutOfRangeValues(filename, ext.parseDirectoryOfFile(filename)
-                                            + ext.rootOf(filename) + "_dump.xln",
-                                  false);
+      Sample.dumpOutOfRangeValues(filename,
+          ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump.xln", false);
     }
 
 
@@ -62,7 +61,7 @@ public class DumpSerializedObject {
     String logfile = null;
 
     String usage = "\n" + "widgets.DumpSerializedObject requires 0-1 arguments\n"
-                   + "   (1) filename (e.g. file=outliers.ser (default))\n" + "";
+        + "   (1) filename (e.g. file=outliers.ser (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

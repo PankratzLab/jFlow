@@ -31,7 +31,7 @@ public class sumOSA {
   public static int NUM_PTS = 10;
 
   public static String[] SUGGESTIONS = {"struct111-/", "struct100-/", "mm/struct111-/",
-                                        "gh/struct111-/", "mm/struct100-/", "gh/struct100-/"};
+      "gh/struct111-/", "mm/struct100-/", "gh/struct100-/"};
 
   public static void main(String[] args) {
     if (args.length > 1) {
@@ -116,7 +116,7 @@ public class sumOSA {
     for (int run = 0; run < runDirs.size(); run++) {
       writer.print((run == 0 ? "\t" : "") + "\t" + runDirs.elementAt(run) + "\t\t\t\t\t\t\t\t");
       temp += "\t" + (run == 0 ? "Direction" : "")
-              + "\tPosition\tmaxLOD\tbaseLOD\tIncrease\tSignificance\tFamsUsed\tTotalFams\tProportion";
+          + "\tPosition\tmaxLOD\tbaseLOD\tIncrease\tSignificance\tFamsUsed\tTotalFams\tProportion";
     }
     writer.println();
     writer.println(temp);
@@ -128,14 +128,12 @@ public class sumOSA {
           osac = runs.elementAt(run);
           if (osac[k][i] != null) {
             writer.print("\t" + osac[k][i].maxPos + "\t" + ext.formDeci(osac[k][i].maxLOD, 2, true)
-                         + "\t" + ext.formDeci(osac[k][i].baseLOD, 2, true) + "\t"
-                         + ext.formDeci(osac[k][i].maxLOD - osac[k][i].baseLOD, 2, true) + "\t"
-                         + osac[k][i].pval + "\t" + osac[k][i].maxFams + "\t"
-                         + osac[k][i].totalFams + "\t" + ext.formDeci(
-                                                                      ((double) osac[k][i].maxFams
-                                                                       / (double) osac[k][i].totalFams),
-                                                                      3, true)
-                         + "\t");
+                + "\t" + ext.formDeci(osac[k][i].baseLOD, 2, true) + "\t"
+                + ext.formDeci(osac[k][i].maxLOD - osac[k][i].baseLOD, 2, true) + "\t"
+                + osac[k][i].pval + "\t" + osac[k][i].maxFams + "\t" + osac[k][i].totalFams + "\t"
+                + ext.formDeci(((double) osac[k][i].maxFams / (double) osac[k][i].totalFams), 3,
+                    true)
+                + "\t");
           } else {
             writer.print("\t\t\t\t\t\t\t\t\t");
           }
@@ -186,8 +184,8 @@ public class sumOSA {
     return osac;
   }
 
-  public osaChrom[][] parseMapmaker(String base, PrintWriter batch,
-                                    String plug) throws IOException {
+  public osaChrom[][] parseMapmaker(String base, PrintWriter batch, String plug)
+      throws IOException {
     BufferedReader reader = null;
     String[] line;
     String temp, chrome;
@@ -241,8 +239,8 @@ public class sumOSA {
 
         count = total = 0;
         if (new File(base + "chrom" + chrome + "/sims/perm" + chrome + ".out").exists()) {
-          reader = new BufferedReader(new FileReader(base + "chrom" + chrome + "/sims/perm" + chrome
-                                                     + ".out"));
+          reader = new BufferedReader(
+              new FileReader(base + "chrom" + chrome + "/sims/perm" + chrome + ".out"));
           while (reader.ready()) {
             line = reader.readLine().split("[\\s]+");
             if (Double.valueOf(line[2]).doubleValue() >= osac[i][j].maxLOD) {
@@ -272,7 +270,7 @@ public class sumOSA {
       chr = j + 1;
       chrome = (chr < 10) ? "0" + chr : "" + chr;
       reps = (osac[0][j] != null ? osac[0][j].repsRequested : 0)
-             + (osac[1][j] != null ? osac[1][j].repsRequested : 0);
+          + (osac[1][j] != null ? osac[1][j].repsRequested : 0);
       if (reps > 0) {
         if (reps > 200) {
           reps = 100;
@@ -282,10 +280,10 @@ public class sumOSA {
           batch.println("mkdir sims");
         }
         batch.println("cd sims");
-        batch.println("cp ../../trait.dat ../../re_chrom" + chrome + ".pre ../../map" + chrome
-                      + ".dat .");
+        batch.println(
+            "cp ../../trait.dat ../../re_chrom" + chrome + ".pre ../../map" + chrome + ".dat .");
         batch.println(Files.getRunString() + " permOSA trait.dat " + chr + " " + reps + " d " + plug
-                      + " >> perm" + chrome + ".out");
+            + " >> perm" + chrome + ".out");
       }
     }
 

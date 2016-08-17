@@ -34,8 +34,8 @@ public class GeneSet implements Serializable {
     boolean known = false;
 
     String usage = "\n" + "filesys.GeneSet requires 0-1 arguments\n"
-                   + "   (1) parse RefSeq genes (i.e. -refseq (not the default))\n"
-                   + "   (2) parse UCSC known genes (i.e. -known (not the default))\n" + "";
+        + "   (1) parse RefSeq genes (i.e. -refseq (not the default))\n"
+        + "   (2) parse UCSC known genes (i.e. -known (not the default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -161,10 +161,9 @@ public class GeneSet implements Serializable {
           }
         }
         finalList.add(new GeneData(geneNames[i], Array.toStringArray(assessionNumbers),
-                                   overlapping.elementAt(0).getChr(), true, strand,
-                                   exonBoundaries[0][0], exonBoundaries[exons.size() - 1][1],
-                                   exonBoundaries, (count == 1 && v.size() == 0 ? 0 : count),
-                                   true));
+            overlapping.elementAt(0).getChr(), true, strand, exonBoundaries[0][0],
+            exonBoundaries[exons.size() - 1][1], exonBoundaries,
+            (count == 1 && v.size() == 0 ? 0 : count), true));
       }
     }
 
@@ -243,8 +242,8 @@ public class GeneSet implements Serializable {
       } else {
         hash.put(element.getChr() + "", segs = new Vector<Segment>());
       }
-      segs.add(new Segment(element.getChr(), element.getStart() - window,
-                           element.getStop() + window));
+      segs.add(
+          new Segment(element.getChr(), element.getStart() - window, element.getStop() + window));
     }
     chrs = Array.toIntArray(HashVec.getKeys(hash));
     lists = new Segment[Array.max(chrs) + 1][];

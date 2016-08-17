@@ -38,8 +38,7 @@ public class BamContamination {
     private final Logger log;
 
     public BamContaminationProducer(Segment[] q, FilterNGS filterNGS,
-                                    ReferenceGenome referenceGenome, String[] bamFiles,
-                                    Logger log) {
+        ReferenceGenome referenceGenome, String[] bamFiles, Logger log) {
       super();
       this.q = q;
       this.filterNGS = filterNGS;
@@ -57,9 +56,8 @@ public class BamContamination {
 
     @Override
     public Callable<DynamicHistogram> next() {
-      bamPileWorker worker =
-          new bamPileWorker(bamFiles[index], q, filterNGS, referenceGenome, 1,
-                            PILE_TYPE.CONTAMINATION, SAM_FILTER_TYPE.GENOTYPE, log);
+      bamPileWorker worker = new bamPileWorker(bamFiles[index], q, filterNGS, referenceGenome, 1,
+          PILE_TYPE.CONTAMINATION, SAM_FILTER_TYPE.GENOTYPE, log);
       index++;
       return worker;
     }
@@ -83,20 +81,20 @@ public class BamContamination {
     String usage = "\n" + "seq.manage.BamPileUp requires 1-2 arguments\n";
     usage +=
         "   (1) full path to a directory of *.bam files or a file listing bam files in the first column, to pile-up (i.e. bams="
-             + bams + " (no default))\n" + "";
+            + bams + " (no default))\n" + "";
     usage += "   (2) full path to a reference fasta  (i.e. ref= (no default))\n" + "";
     usage +=
         "   (3) full path to a file of segments to subset the pile up  (i.e. segs= (no default))\n"
-             + "";
+            + "";
     usage += "   (4) minimum phred score for a base pair to be piled  (i.e. minPhred=" + minPhred
-             + " (default))\n" + "";
+        + " (default))\n" + "";
     usage += "   (5) minimum mapping quality score for a read to be piled  (i.e. minMapQ=" + minMapQ
-             + " (default))\n" + "";
+        + " (default))\n" + "";
     usage += "   (6) minimum total depth for a position to be reported  (i.e. minDepth=" + minDepth
-             + " (default))\n" + "";
+        + " (default))\n" + "";
     usage +=
         "   (7) minimum alternate allele depth for a position to be reported  (i.e. minAltDepth="
-             + minAltDepth + " (default, no minimum))\n" + "";
+            + minAltDepth + " (default, no minimum))\n" + "";
     usage += "   (8) file listing pfbs for known variants  (i.e. pfb= (no default))\n" + "";
 
     usage += PSF.Ext.getNumThreadsCommand(9, numthreads);
@@ -154,7 +152,7 @@ public class BamContamination {
   }
 
   public static void runContam(String bams, String referenceGenomeFasta, String segFile,
-                               String pfbFile, FilterNGS filterNGS, int numthreads, Logger log) {
+      String pfbFile, FilterNGS filterNGS, int numthreads, Logger log) {
     String[] bamFiles = null;
     if (Files.isDirectory(bams)) {
       bamFiles = Files.listFullPaths(bams, ".bam", false);

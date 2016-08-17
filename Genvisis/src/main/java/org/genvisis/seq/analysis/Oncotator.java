@@ -59,8 +59,8 @@ public class Oncotator {
     } else {
       ver = Files.exists(oncoDBLoc);
       if (!ver) {
-        log.reportTimeError(ONCOTATOR + " db directory " + oncoDBLoc
-                            + " did not exist, cannot run ");
+        log.reportTimeError(
+            ONCOTATOR + " db directory " + oncoDBLoc + " did not exist, cannot run ");
       }
     }
     return ver;
@@ -81,7 +81,7 @@ public class Oncotator {
    * @param log
    */
   public Oncotator(String oncoDBLoc, String genomeBuild, boolean overWriteExistingOutput,
-                   Logger log) {
+      Logger log) {
     super();
     this.oncoDBLoc = oncoDBLoc;
     this.genomeBuild = genomeBuild;
@@ -107,7 +107,7 @@ public class Oncotator {
     command.add(oncotator_Analysis.getOutputVcf());
     command.add(genomeBuild);
     anno = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputFiles,
-                                            outputFiles, true, overWriteExistingOutput, false, log);
+        outputFiles, true, overWriteExistingOutput, false, log);
 
     return anno;
   }

@@ -27,8 +27,8 @@ public class GATK_Genotyper {
 
         return new ANNOVCF(tag, annos, vcf);
       } catch (Exception e) {
-        System.err.println("Could not process merge arg " + arg
-                           + " format is tag:vcf.vcf:anno1,anno2");
+        System.err
+            .println("Could not process merge arg " + arg + " format is tag:vcf.vcf:anno1,anno2");
         return null;
       }
     }
@@ -95,7 +95,7 @@ public class GATK_Genotyper {
     private final Logger log;
 
     public JointGATKGenotyper(String rootInputDir, String rootOutputDir, String output,
-                              Logger log) {
+        Logger log) {
       super();
       this.rootInputDir = rootInputDir;
       this.rootOutputDir = rootOutputDir;
@@ -173,15 +173,16 @@ public class GATK_Genotyper {
       this.fileOfGVCFs = fileOfGVCFs;
       initOutputs();
       if (fileOfGVCFs != null) {
-        log.report(ext.getTime() + " Info - using GVCF files listed in the first column of"
-                   + fileOfGVCFs);
+        log.report(
+            ext.getTime() + " Info - using GVCF files listed in the first column of" + fileOfGVCFs);
         inputGVCFs = HashVec.loadFileToStringArray(fileOfGVCFs, false, new int[] {0}, true);
       } else if (rootInputDir == null) {
-        log.reportError("Error - a file listing GVCF files was not provided and the root input directory was not provided, halting...");
+        log.reportError(
+            "Error - a file listing GVCF files was not provided and the root input directory was not provided, halting...");
         fail = true;
       } else {
         log.report(ext.getTime() + " Info - finding files with extension " + GATK.GVCF + " in "
-                   + rootInputDir);
+            + rootInputDir);
         inputGVCFs = Files.toFullPaths(Files.list(rootInputDir, GATK.GVCF, false), rootInputDir);
 
       }
@@ -189,8 +190,8 @@ public class GATK_Genotyper {
         log.reportError("Error - could not find any GVCF files to joint genotype");
         fail = true;
       } else {
-        log.report(ext.getTime() + " Info - using " + inputGVCFs.length
-                   + " file(s) for joint Genotyping");
+        log.report(
+            ext.getTime() + " Info - using " + inputGVCFs.length + " file(s) for joint Genotyping");
       }
 
     }
@@ -262,15 +263,15 @@ public class GATK_Genotyper {
     }
 
   }
-  private static class WorkerSingleSampleAllSites implements
-                                                  Callable<GATK.SingleSampleHaplotypeCaller> {
+  private static class WorkerSingleSampleAllSites
+      implements Callable<GATK.SingleSampleHaplotypeCaller> {
     private final GATK GATK;
     private final String inputBam, baseId;
     private final int numWithinSampleThreads;
     private final Logger altLog;
 
     public WorkerSingleSampleAllSites(org.genvisis.seq.analysis.GATK gATK, String inputBam,
-                                      String baseId, int numWithinSampleThreads, Logger altLog) {
+        String baseId, int numWithinSampleThreads, Logger altLog) {
       super();
       GATK = gATK;
       this.inputBam = inputBam;
@@ -307,27 +308,24 @@ public class GATK_Genotyper {
   public static final String EXTRA_VCF_ANNOTATIONS = "extraVCFAnno=";
 
   public static String annotateOnly(String vcf, String gATKLocation, String referenceGenomeFasta,
-                                    String snpEffLocation, String snpSiftLocation,
-                                    String annovarLocation, String annoBuild, boolean verbose,
-                                    boolean overwriteExisting, Logger log) {
+      String snpEffLocation, String snpSiftLocation, String annovarLocation, String annoBuild,
+      boolean verbose, boolean overwriteExisting, Logger log) {
     return annotateOnly(vcf, gATKLocation, referenceGenomeFasta, null, null, null, null, null, null,
-                        snpEffLocation, snpSiftLocation, annovarLocation, annoBuild, null, verbose,
-                        overwriteExisting, log);
+        snpEffLocation, snpSiftLocation, annovarLocation, annoBuild, null, verbose,
+        overwriteExisting, log);
   }
 
   public static String annotateOnly(String vcf, String gATKLocation, String referenceGenomeFasta,
-                                    String fileOfGVCFs, String hapMapTraining, String omniTraining,
-                                    String thousandGTraining, String dbSnpTraining,
-                                    String millsIndelTraining, String snpEffLocation,
-                                    String snpSiftLocation, String annovarLocation,
-                                    String annoBuild, ANNOVCF annoVCF, boolean verbose,
-                                    boolean overwriteExisting, Logger log) {
+      String fileOfGVCFs, String hapMapTraining, String omniTraining, String thousandGTraining,
+      String dbSnpTraining, String millsIndelTraining, String snpEffLocation,
+      String snpSiftLocation, String annovarLocation, String annoBuild, ANNOVCF annoVCF,
+      boolean verbose, boolean overwriteExisting, Logger log) {
     String snpSiftLoc = snpSiftLocation;
     if (snpSiftLoc == null || snpSiftLoc.equals(PSF.Ext.BLANK)) {
       snpSiftLoc = snpEffLocation;
     }
     GATK gatk = new GATK(gATKLocation, referenceGenomeFasta, null, null, null, verbose,
-                         overwriteExisting, log);
+        overwriteExisting, log);
     SNPEFF snpeff = new SNPEFF(snpEffLocation, verbose, overwriteExisting, log);
     SNPSIFT snpsift = new SNPSIFT(snpSiftLoc, verbose, overwriteExisting, log);
     ANNOVAR annovar = new ANNOVAR(annovarLocation, verbose, overwriteExisting, log);
@@ -337,26 +335,21 @@ public class GATK_Genotyper {
   }
 
   public static String annotateOnlyWithDefualtLocations(String vcf, ANNOVCF annoVCF,
-                                                        boolean verbose, boolean overwriteExisting,
-                                                        Logger log) {
+      boolean verbose, boolean overwriteExisting, Logger log) {
     return annotateOnly(vcf, AnnotationDefaults.GATK_LOC, AnnotationDefaults.REF, null, null, null,
-                        null, null, null, AnnotationDefaults.SNP_EFF, null,
-                        AnnotationDefaults.ANNOVAR, SNPEFF.BUILDS[0], annoVCF, verbose,
-                        overwriteExisting, log);
+        null, null, null, AnnotationDefaults.SNP_EFF, null, AnnotationDefaults.ANNOVAR,
+        SNPEFF.BUILDS[0], annoVCF, verbose, overwriteExisting, log);
   }
 
   public static void jointGenotype(String rootInputDir, String rootOutputDir, String output,
-                                   String gATKLocation, String referenceGenomeFasta,
-                                   String fileOfGVCFs, String hapMapTraining, String omniTraining,
-                                   String thousandGTraining, String dbSnpTraining,
-                                   String millsIndelTraining, String snpEffLocation,
-                                   String snpSiftLocation, String annovarLocation, String annoBuild,
-                                   String regionsFile, MergeVCF mergeVCF, ANNOVCF annoVCF,
-                                   boolean verbose, boolean overwriteExisting, boolean batch,
-                                   boolean annotate, int numThreads, int memoryInMB,
-                                   int wallTimeInHours, Logger log) {
+      String gATKLocation, String referenceGenomeFasta, String fileOfGVCFs, String hapMapTraining,
+      String omniTraining, String thousandGTraining, String dbSnpTraining,
+      String millsIndelTraining, String snpEffLocation, String snpSiftLocation,
+      String annovarLocation, String annoBuild, String regionsFile, MergeVCF mergeVCF,
+      ANNOVCF annoVCF, boolean verbose, boolean overwriteExisting, boolean batch, boolean annotate,
+      int numThreads, int memoryInMB, int wallTimeInHours, Logger log) {
     GATK gatk = new GATK(gATKLocation, referenceGenomeFasta, null, null, null, verbose,
-                         overwriteExisting, log);
+        overwriteExisting, log);
     gatk.setDbSnpTraining(dbSnpTraining);
     gatk.setHapMapTraining(hapMapTraining);
     gatk.setOmniTraining(omniTraining);
@@ -374,15 +367,15 @@ public class GATK_Genotyper {
     new File(rootOutputDir).mkdirs();
     if (batch) {
       genotyper.batch(jGatkGenotyper, rootOutputDir, mergeVCF, annoVCF, annotate, memoryInMB,
-                      wallTimeInHours, output);
+          wallTimeInHours, output);
     } else {
       boolean progress = genotyper.runJointGenotyping(jGatkGenotyper);
       if (progress) {
         if (gatk.getRegionsFile() != null) {
-          log.reportTimeInfo("Subsetting the vcf to regions defined in " + regionsFile
-                             + " with a 100 bp buffer");
+          log.reportTimeInfo(
+              "Subsetting the vcf to regions defined in " + regionsFile + " with a 100 bp buffer");
           String subsetVcf = VCFOps.extractSegments(jGatkGenotyper.getRawVCF(), regionsFile, 100,
-                                                    null, rootOutputDir, false, false, 1, log);
+              null, rootOutputDir, false, false, 1, log);
           String newOutput = ext.removeDirectoryInfo(subsetVcf);
           jGatkGenotyper.setOutput(newOutput);
           jGatkGenotyper.initOutputs();// now starting with the subset vcf
@@ -392,7 +385,7 @@ public class GATK_Genotyper {
           progress = genotyper.determineTsTV(jGatkGenotyper.getRecalSNP_Indel_VCF_File());
           if (progress && annotate) {
             genotyper.annotateVCF(jGatkGenotyper.getRecalSNP_Indel_VCF_File(), annoBuild, mergeVCF,
-                                  annoVCF);
+                annoVCF);
           }
         }
       }
@@ -431,63 +424,62 @@ public class GATK_Genotyper {
     ANNOVCF annoVCF = null;
     String usage = "\n" + "seq.GATK_Genotyper requires 2 argument\n";
     usage += "   (1) root input directory (i.e. " + GATK_LanePrep.ROOT_INPUT_COMMAND + rootInputDir
-             + " (no default))\n" + "";
+        + " (no default))\n" + "";
     usage += "   (2) root output directory (i.e. " + GATK_LanePrep.ROOT_OUTPUT_COMMAND
-             + rootOutputDir + " (no default))\n" + "";
+        + rootOutputDir + " (no default))\n" + "";
     usage += "   (3) tab-delimited file with no header of (i.e. " + FILE_OF_GVCFS + fileOfGVCFs
-             + " (optional, no default))\n" + "";
+        + " (optional, no default))\n" + "";
     usage += "   (4) the full path to a  reference genome in fasta format (i.e."
-             + GATK_LanePrep.REFERENCE_GENOME_COMMAND + referenceGenomeFasta + " (no default))\n"
-             + "";
+        + GATK_LanePrep.REFERENCE_GENOME_COMMAND + referenceGenomeFasta + " (no default))\n" + "";
     usage += "   (5) the full path to the GATK executable (i.e. " + GATK.GATK_LOCATION_COMMAND
-             + gATKLocation + " (defaults to systems path))\n" + "";
+        + gATKLocation + " (defaults to systems path))\n" + "";
 
     usage += "   (6) run in quiet mode (i.e. " + GATK_LanePrep.QUIET_COMMAND
-             + " (not tbe default))\n" + "";
+        + " (not tbe default))\n" + "";
     usage += "   (7) number of  threads for analysis(i.e." + NUM_THREADS + numThreads
-             + " (default))\n" + "";
+        + " (default))\n" + "";
 
     usage += "   (8) filename for a log (i.e. " + GATK_LanePrep.LOG_FILE_COMMAND + logFile
-             + " (default))\n" + "";
+        + " (default))\n" + "";
     usage += "   (9) over-write exsiting files (i.e. " + GATK_LanePrep.OVERWRITE_EXISTING_COMMAND
-             + " (not the default))\n" + "";
+        + " (not the default))\n" + "";
     usage += "   (10) set up a batch analysis for the root input directory for a log (i.e. "
-             + GATK_LanePrep.BATCH_COMMAND + " (not the default))\n" + "";
+        + GATK_LanePrep.BATCH_COMMAND + " (not the default))\n" + "";
     usage +=
         "   (11) root output for analysis (i.e. " + OUTPUT_COMMAND + output + " ( default))\n" + "";
     usage += "   (12) HapMap SNP Training Referenece (i.e. " + HAPMAP_TRAIN_COMMAND
-             + " ( no default))\n" + "";
+        + " ( no default))\n" + "";
     usage += "   (13) Omni SNP Training Referenece (i.e. " + OMNI_TRAIN_COMMAND
-             + " ( no default))\n" + "";
+        + " ( no default))\n" + "";
     usage += "   (14) 1000 SNP genomes Training Referenece (i.e. " + G1000_COMMAND
-             + " ( no default))\n" + "";
+        + " ( no default))\n" + "";
     usage +=
         "   (15) dbSNP SNP Training Referenece (i.e. " + DBSNP_COMMMAND + " ( no default))\n" + "";
     usage += "   (16) mills INDEL Training Referenece (i.e. " + MILLS + " ( no default))\n" + "";
     usage += "   (17) full path to the SNP EFF directory (i.e. " + SNPEFF.SNP_EFF_COMMAND
-             + " ( no default))\n" + "";
+        + " ( no default))\n" + "";
     usage += "   (18) the build version for SNP EFF annotation (options are "
-             + Array.toStr(SNPEFF.BUILDS, ", ") + " (i.e. " + SNPEFF.SNP_EFF_BUILD_COMMAND
-             + annoBuild + " ( default))\n" + "";
+        + Array.toStr(SNPEFF.BUILDS, ", ") + " (i.e. " + SNPEFF.SNP_EFF_BUILD_COMMAND + annoBuild
+        + " ( default))\n" + "";
     usage +=
         "   (19) full path to the SNP SIFT directory (only if different from the SNP EFF directory) (i.e. "
-             + SNPSIFT.SNP_SIFT_LOCATION_COMMAND + " ( no default))\n" + "";
+            + SNPSIFT.SNP_SIFT_LOCATION_COMMAND + " ( no default))\n" + "";
     usage += "   (20) do not annotate with SNP EFF/SIFT/ANNOVAR (i.e. "
-             + SNPEFF.SNP_EFF_NO_ANNO_COMMAND + " ( not the default))\n" + "";
+        + SNPEFF.SNP_EFF_NO_ANNO_COMMAND + " ( not the default))\n" + "";
     usage += "   (21) full path to the ANNOVAR directory (i.e. " + ANNOVAR.ANNOVAR_COMMAND
-             + " ( no default))\n" + "";
+        + " ( no default))\n" + "";
     usage +=
         "   (23) full path to a file for restricting the vcf...and subsequent recalibrations (i.e. "
-             + REGIONS_FILE + " ( no default))\n" + "";
+            + REGIONS_FILE + " ( no default))\n" + "";
 
     usage += "   (24) annotate this vcf only (skipping all previous steps) (i.e. " + ANNOTATE_VCF
-             + " ( no default))\n" + "";
+        + " ( no default))\n" + "";
     usage +=
         "   (25) merge in these vcfs prior to annotating( like ARIC) (ex. MERGE_WITH=ARIC:aric1.vcf,aric2.vcf) ( (i.e. "
-             + MERGE_WITH + " ( no default))\n" + "";
+            + MERGE_WITH + " ( no default))\n" + "";
     usage +=
         "   (26) use another vcf to add more annotations (ex. EXTRA_VCF_ANNOTATIONS=charge.vcf:charge.maf1,charge.maf2) ( (i.e. "
-             + EXTRA_VCF_ANNOTATIONS + " ( no default))\n" + "";
+            + EXTRA_VCF_ANNOTATIONS + " ( no default))\n" + "";
 
     // usage += " (18) log file name (i.e. " + MILLS + " ( no default))\n" + "";
 
@@ -593,20 +585,19 @@ public class GATK_Genotyper {
     if (vcfToAnnotate != null) {
       log.reportTimeInfo("Attempting to annotate " + vcfToAnnotate);
       annotateOnly(vcfToAnnotate, gATKLocation, referenceGenomeFasta, fileOfGVCFs, hapMapTraining,
-                   omniTraining, thousandGTraining, dbSnpTraining, millsIndelTraining,
-                   snpEffLocation, snpSiftLocation, annovarLocation, annoBuild, null, verbose,
-                   overwriteExisting, log);
+          omniTraining, thousandGTraining, dbSnpTraining, millsIndelTraining, snpEffLocation,
+          snpSiftLocation, annovarLocation, annoBuild, null, verbose, overwriteExisting, log);
     } else {
       jointGenotype(rootInputDir, rootOutputDir, output, gATKLocation, referenceGenomeFasta,
-                    fileOfGVCFs, hapMapTraining, omniTraining, thousandGTraining, dbSnpTraining,
-                    millsIndelTraining, snpEffLocation, snpSiftLocation, annovarLocation, annoBuild,
-                    regionsFile, mergeVCF, annoVCF, verbose, overwriteExisting, batch, annotate,
-                    numThreads, memoryInMB, wallTimeInHours, log);
+          fileOfGVCFs, hapMapTraining, omniTraining, thousandGTraining, dbSnpTraining,
+          millsIndelTraining, snpEffLocation, snpSiftLocation, annovarLocation, annoBuild,
+          regionsFile, mergeVCF, annoVCF, verbose, overwriteExisting, batch, annotate, numThreads,
+          memoryInMB, wallTimeInHours, log);
     }
   }
 
   private static int[] optimizeThreads(int numInputs, int numBetweenSampleThreads,
-                                       int numWithinSampleThreads, Logger log) {
+      int numWithinSampleThreads, Logger log) {
     int[] optimizedWithin = new int[numInputs];
     Arrays.fill(optimizedWithin, numWithinSampleThreads);
     if (numInputs < numBetweenSampleThreads) {
@@ -621,9 +612,9 @@ public class GATK_Genotyper {
         }
       }
       log.report(ext.getTime()
-                 + " Info - since we have extra between sample threads, we will allocate some to within sample(s) threads");
+          + " Info - since we have extra between sample threads, we will allocate some to within sample(s) threads");
       log.report(ext.getTime() + " Info - allocated " + (numBetweenSampleThreads - numInputs)
-                 + " extra thread(s) within sample(s) as follows: " + Array.toStr(optimizedWithin));
+          + " extra thread(s) within sample(s) as follows: " + Array.toStr(optimizedWithin));
     }
     return optimizedWithin;
   }
@@ -647,8 +638,7 @@ public class GATK_Genotyper {
   private final Logger log;
 
   public GATK_Genotyper(GATK gatk, SNPEFF snpeff, SNPSIFT snpsift, ANNOVAR annovar,
-                        int numBetweenSampleThreads, int numWithinSampleThreads, boolean verbose,
-                        Logger log) {
+      int numBetweenSampleThreads, int numWithinSampleThreads, boolean verbose, Logger log) {
     super();
     this.gatk = gatk;
     this.snpeff = snpeff;
@@ -668,7 +658,7 @@ public class GATK_Genotyper {
         in = VCFOps.getAppropriateRoot(inputVCF, false) + ".merge_" + mergeVCF.getTag() + ".vcf";
         log.reportTimeInfo("Output merge: " + in);
         gatk.mergeVCFs(Array.concatAll(new String[] {inputVCF}, mergeVCF.getVcfsToMergeWith()), in,
-                       numWithinSampleThreads, false, log);
+            numWithinSampleThreads, false, log);
         out = in;
       }
 
@@ -685,14 +675,14 @@ public class GATK_Genotyper {
           if (annoVCF != null) {
             log.reportTimeInfo("Applying annotations from " + annoVCF.getArg());
             out = VCFOps.getAppropriateRoot(snpEffResult.getOutputGatkSnpEffVCF(), false) + ".anno_"
-                  + annoVCF.getTag() + ".vcf";
+                + annoVCF.getTag() + ".vcf";
             log.reportTimeInfo("Output anno: " + out);
             gatk.annotateWithAnotherVCF(snpEffResult.getOutputGatkSnpEffVCF(), annoVCF.getVcf(),
-                                        out, annoVCF.getAnnos(), annoVCF.getTag(),
-                                        numWithinSampleThreads);
+                out, annoVCF.getAnnos(), annoVCF.getTag(), numWithinSampleThreads);
             in = out;
           }
-          log.reportTimeInfo("Since Annovar uses invalid char sequence for 1000g2014oct_* and 1000g2015aug_* (starts with number), replacing with g10002014oct_* or g10002015aug_*");
+          log.reportTimeInfo(
+              "Since Annovar uses invalid char sequence for 1000g2014oct_* and 1000g2015aug_* (starts with number), replacing with g10002014oct_* or g10002015aug_*");
           log.reportTimeInfo("Note this is a hard-coded sed, so...");
           in = sed1000g(out, log);
           out = VCFOps.gzipAndIndex(in, log);
@@ -706,8 +696,7 @@ public class GATK_Genotyper {
   }
 
   public void batch(JointGATKGenotyper jointGATKGenotyper, String rootOutputDir, MergeVCF mergeVCF,
-                    ANNOVCF annoVCF, boolean annotate, int memoryInMB, int wallTimeInHours,
-                    String baseName) {
+      ANNOVCF annoVCF, boolean annotate, int memoryInMB, int wallTimeInHours, String baseName) {
     // TODO, change classpath
     String command = Array.toStr(PSF.Load.getAllModules(), "\n");
     command += "\njava -cp parkGATK.jar -Xmx" + memoryInMB + "m seq.analysis.GATK_Genotyper ";
@@ -718,7 +707,7 @@ public class GATK_Genotyper {
     command += NUM_THREADS + numWithinSampleThreads + SPACE;
     command += OUTPUT_COMMAND + jointGATKGenotyper.getOutput() + SPACE;
     command += GATK_LanePrep.LOG_FILE_COMMAND
-               + ext.removeDirectoryInfo(jointGATKGenotyper.getLog().getFilename()) + SPACE;
+        + ext.removeDirectoryInfo(jointGATKGenotyper.getLog().getFilename()) + SPACE;
     if (jointGATKGenotyper.getFileOfGVCFs() != null) {
       command += FILE_OF_GVCFS + jointGATKGenotyper.getFileOfGVCFs() + SPACE;
     }
@@ -744,7 +733,7 @@ public class GATK_Genotyper {
       command += REGIONS_FILE + gatk.getRegionsFile();
     }
     Files.qsub("GATK_Genotype_" + baseName, command, memoryInMB, wallTimeInHours,
-               numWithinSampleThreads);
+        numWithinSampleThreads);
   }
 
   public boolean determineTsTV(String inputVCF) {
@@ -770,9 +759,8 @@ public class GATK_Genotyper {
   public boolean runJointGenotyping(JointGATKGenotyper jGatkGenotyper) {
     boolean progress = !jGatkGenotyper.isFail();
     if (progress) {
-      progress =
-          gatk.jointGenotypeGVCFs(jGatkGenotyper.getInputGVCFs(), jGatkGenotyper.getOutputVCF(),
-                                  numWithinSampleThreads, jGatkGenotyper.getLog());
+      progress = gatk.jointGenotypeGVCFs(jGatkGenotyper.getInputGVCFs(),
+          jGatkGenotyper.getOutputVCF(), numWithinSampleThreads, jGatkGenotyper.getLog());
       jGatkGenotyper.setFail(!progress);
     }
     return progress;
@@ -799,17 +787,16 @@ public class GATK_Genotyper {
         for (int i = 0; i < inputBams.length; i++) {
           Logger altLog = new Logger(ext.rootOf(inputBams[i], false) + ".HC_ERC.log");
           workers[i] = new WorkerSingleSampleAllSites(gatk, inputBams[i], ext.rootOf(inputBams[i]),
-                                                      actualWithinSampleThreads[i], altLog);
+              actualWithinSampleThreads[i], altLog);
         }
         hive.addCallables(workers);
         hive.execute(true);
-        siSampleHaplotypeCallers =
-            hive.getResults()
-                .toArray(new GATK.SingleSampleHaplotypeCaller[hive.getResults().size()]);
+        siSampleHaplotypeCallers = hive.getResults()
+            .toArray(new GATK.SingleSampleHaplotypeCaller[hive.getResults().size()]);
         for (int i = 0; i < workers.length; i++) {
           if (siSampleHaplotypeCallers[i].isFail()) {
             log.reportTimeError("Failed single sample haplotype calling for "
-                                + siSampleHaplotypeCallers[i].getInputBam());
+                + siSampleHaplotypeCallers[i].getInputBam());
             fail = true;
           }
         }
@@ -821,13 +808,12 @@ public class GATK_Genotyper {
 
   private String sed1000g(String in, Logger log) {
     String out = ext.addToRoot(in, ".sed1000g");
-    String command =
-        "cat " + in + "|sed 's/1000g2014oct_/g10002014oct_/g'|sed 's/1000g2015aug_/g10002015aug_/g'>"
-                     + out;
+    String command = "cat " + in
+        + "|sed 's/1000g2014oct_/g10002014oct_/g'|sed 's/1000g2015aug_/g10002015aug_/g'>" + out;
     String[] bat =
         CmdLine.prepareBatchForCommandLine(new String[] {command}, out + ".bat", true, log);
     if (CmdLine.runCommandWithFileChecks(bat, "", new String[] {in}, new String[] {out}, true,
-                                         false, false, log)) {
+        false, false, log)) {
       return out;
     } else {
       return null;

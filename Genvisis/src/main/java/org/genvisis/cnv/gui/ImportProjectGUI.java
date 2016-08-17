@@ -139,7 +139,7 @@ public class ImportProjectGUI extends JDialog {
     contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     getContentPane().add(contentPanel, BorderLayout.CENTER);
     contentPanel.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow 70][grow 40]",
-                                         "[grow][][grow][][][][grow][][grow][grow][][][][grow][][]"));
+        "[grow][][grow][][][][grow][][grow][grow][][][][grow][][]"));
     CaretListener caretListener = new CaretListener() {
       @Override
       public void caretUpdate(CaretEvent arg0) {
@@ -206,8 +206,8 @@ public class ImportProjectGUI extends JDialog {
     {
       JPanel panel = new JPanel();
       contentPanel.add(panel, "cell 0 8 4 7,grow");
-      panel.setLayout(new MigLayout("", "[][grow][][10px:10px:10px][grow][][]",
-                                    "[grow][][][][][][grow]"));
+      panel.setLayout(
+          new MigLayout("", "[][grow][][10px:10px:10px][grow][][]", "[grow][][][][][][grow]"));
       {
         JLabel lblRequired = new JLabel("<html><u>Required:</u><html>");
         panel.add(lblRequired, "cell 1 1,alignx left");
@@ -315,7 +315,7 @@ public class ImportProjectGUI extends JDialog {
   private boolean checkProjectName() {
     String name = txtFldProjName.getText().trim();
     return !name.equals("") && !"New Project".equals(name)
-           && !(new File(propertyFilePath + name + MitoPipeline.PROJECT_EXT)).exists();
+        && !(new File(propertyFilePath + name + MitoPipeline.PROJECT_EXT)).exists();
   }
 
   private void close(boolean cancelled) {
@@ -361,11 +361,11 @@ public class ImportProjectGUI extends JDialog {
     boolean foundMarkerList =
         Files.exists(baseDir + "data/markers.bim") || Files.exists(baseDir + "data/markers.ser");
     boolean foundMarkerLookup = Files.exists(baseDir + "data/markerLookup.bml")
-                                || Files.exists(baseDir + "data/markerLookup.ser");
+        || Files.exists(baseDir + "data/markerLookup.ser");
     return new boolean[] {/* 0 */ foundProject, /* 1 */ foundData, /* 2 */ foundSampleList,
-                          /* 3 */ foundMarkerList,
-                          // /*4*/ foundSampleData,
-                          /* 5 */ foundSamples, /* 6 */ foundTransposed, /* 7 */ foundMarkerLookup};
+        /* 3 */ foundMarkerList,
+        // /*4*/ foundSampleData,
+        /* 5 */ foundSamples, /* 6 */ foundTransposed, /* 7 */ foundMarkerLookup};
   }
 
   public boolean run() {

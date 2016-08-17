@@ -21,7 +21,7 @@ public class Permap {
     String filename = "permap.dat";
 
     String usage = "\n" + "park.permap requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-                   + filename + " (default))\n" + "";
+        + filename + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -119,8 +119,8 @@ public class Permap {
       writer.close();
       reader.close();
     } catch (FileNotFoundException fnfe) {
-      System.err.println("Error: file \"" + DIR + "plink.mdist.missing"
-                         + "\" not found in current directory");
+      System.err.println(
+          "Error: file \"" + DIR + "plink.mdist.missing" + "\" not found in current directory");
       System.exit(1);
     } catch (IOException ioe) {
       System.err.println("Error reading file \"" + DIR + "plink.mdist.missing" + "\"");

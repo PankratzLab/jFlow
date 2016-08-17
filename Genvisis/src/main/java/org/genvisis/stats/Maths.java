@@ -149,7 +149,7 @@ public class Maths {
     for (String element : OPERATORS) {
       if (str.indexOf(element) >= 0) {
         return new String[] {str.substring(0, str.indexOf(element)), element,
-                             str.substring(str.indexOf(element) + element.length())};
+            str.substring(str.indexOf(element) + element.length())};
       }
     }
 

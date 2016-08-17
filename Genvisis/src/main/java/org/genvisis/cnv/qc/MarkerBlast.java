@@ -62,7 +62,7 @@ public class MarkerBlast {
     private Allele[] alts;
 
     private AlleleParser(String markerName, Segment loc, String aS, String bS, String pseqB,
-                         ReferenceGenome referenceGenome) {
+        ReferenceGenome referenceGenome) {
       super();
       this.markerName = markerName;
       this.loc = loc;
@@ -110,8 +110,7 @@ public class MarkerBlast {
           }
           if (tmp.length != 1) {// don't think we need multiple
             throw new IllegalArgumentException("base query must be length one ("
-                                               + loc.getUCSClocation() + " returned "
-                                               + Array.toStr(tmp));
+                + loc.getUCSClocation() + " returned " + Array.toStr(tmp));
           } else if (array.isCNOnly(markerName)) {
 
             ref = Allele.create(tmp[0], true);
@@ -172,8 +171,8 @@ public class MarkerBlast {
         throw new IllegalArgumentException("Assumptions violated for single probe indel ");
 
       } else if (!(aS.equals("I") && bS.equals("D")) && !(aS.equals("D") && bS.equals("I"))) {
-        throw new IllegalArgumentException("Assumptions violated for insertion deletion codes " + aS
-                                           + " and " + bS);
+        throw new IllegalArgumentException(
+            "Assumptions violated for insertion deletion codes " + aS + " and " + bS);
 
       } else {
 
@@ -182,8 +181,8 @@ public class MarkerBlast {
 
         String indel = sourceSeq.substring(start, stop);
         if (!indel.startsWith("-/") && !indel.startsWith("+/")) {
-          throw new IllegalArgumentException("Indel source seq must start with - or + for "
-                                             + indel);
+          throw new IllegalArgumentException(
+              "Indel source seq must start with - or + for " + indel);
         }
         indel = indel.substring(2);
         int len = indel.length() - 1;
@@ -196,16 +195,15 @@ public class MarkerBlast {
                                                                                                 // ref
                                                                                                 // bp
           String[] tmp = referenceGenome == null ? Array.stringArray(indel.length() + 1, "N")
-                                                 : referenceGenome.getSequenceFor(newQuery);
+              : referenceGenome.getSequenceFor(newQuery);
           if (tmp.length - 1 != indel.length()) {
             throw new IllegalStateException("Invalid reference indel query; REF -> "
-                                            + Array.toStr(tmp) + "\t indel -> " + indel);
+                + Array.toStr(tmp) + "\t indel -> " + indel);
           }
           boolean insertionisRef = true;
           for (int i = 0; i < indel.length(); i++) {
-            if (!tmp[i + 1].equalsIgnoreCase(indel.charAt(i) + "")
-                && !tmp[i + 1].equalsIgnoreCase(StrandOps.flipIfNeeded(indel.charAt(i) + "", strand,
-                                                                       false))) {
+            if (!tmp[i + 1].equalsIgnoreCase(indel.charAt(i) + "") && !tmp[i + 1]
+                .equalsIgnoreCase(StrandOps.flipIfNeeded(indel.charAt(i) + "", strand, false))) {
               insertionisRef = false;
               break;
             }
@@ -276,18 +274,18 @@ public class MarkerBlast {
   }
 
   public enum FILE_SEQUENCE_TYPE {
-                                  // /**
-                                  // * like HumanOmni2-5-8-v1-2-A-Strand-Report-FDT.txt
-                                  // */
-                                  // STRAND_REPORT,
-                                  /**
-                                   * Like HumanExome-12-v1-0-B.csv
-                                   */
-                                  MANIFEST_FILE,
-                                  /**
-                                   * Like GenomeWideSNP_6.probe_tab
-                                   */
-                                  AFFY_ANNOT;
+    // /**
+    // * like HumanOmni2-5-8-v1-2-A-Strand-Report-FDT.txt
+    // */
+    // STRAND_REPORT,
+    /**
+     * Like HumanExome-12-v1-0-B.csv
+     */
+    MANIFEST_FILE,
+    /**
+     * Like GenomeWideSNP_6.probe_tab
+     */
+    AFFY_ANNOT;
   }
 
   public static class MarkerBlastResult {
@@ -298,7 +296,7 @@ public class MarkerBlast {
     private final int sequenceSize;
 
     public MarkerBlastResult(String output, int blastWordSize, int reportWordSize,
-                             int sequenceSize) {
+        int sequenceSize) {
       super();
       this.output = output;
       this.blastWordSize = blastWordSize;
@@ -347,8 +345,8 @@ public class MarkerBlast {
 
     // IlmnStrand
     public MarkerFastaEntry(String name, String seqA, String seqB, Strand strand,
-                            int interrogationPosition, Segment markerSegment, TOP_BOT topBotProbe,
-                            TOP_BOT topBotRef, Allele A, Allele B, Allele ref, Allele[] alts) {
+        int interrogationPosition, Segment markerSegment, TOP_BOT topBotProbe, TOP_BOT topBotRef,
+        Allele A, Allele B, Allele ref, Allele[] alts) {
       super(name, seqA);
       this.seqB = seqB;
       this.strand = strand;
@@ -461,10 +459,9 @@ public class MarkerBlast {
           new MarkerGCAnnotation(builder, marker, fastaEntrie.getMarkerSegment());
       gcAnnotations[index] = markerGCAnnotation;
     }
-    AnnotationFileWriter writer =
-        new AnnotationFileWriter(proj, null,
-                                 new AnnotationData[] {MarkerGCAnnotation.getGCAnnotationDatas()},
-                                 proj.BLAST_ANNOTATION_FILENAME.getValue(), false) {};
+    AnnotationFileWriter writer = new AnnotationFileWriter(proj, null,
+        new AnnotationData[] {MarkerGCAnnotation.getGCAnnotationDatas()},
+        proj.BLAST_ANNOTATION_FILENAME.getValue(), false) {};
     for (int i = 0; i < gcAnnotations.length; i++) {
       if (gcAnnotations[i] != null) {// currently some markers may not be represented, such as affy
                                      // CN markers
@@ -476,10 +473,9 @@ public class MarkerBlast {
         AnnotationData annotationData = MarkerGCAnnotation.getGCAnnotationDatas();
         annotationData.setData(gcContent + "");
         builder.annotations(new AnnotationData[] {annotationData});
-        MarkerGCAnnotation blank = new MarkerGCAnnotation(builder, markerNames[i],
-                                                          new Segment(markerSet.getChrs()[i],
-                                                                      markerSet.getPositions()[i],
-                                                                      markerSet.getPositions()[i]));
+        MarkerGCAnnotation blank =
+            new MarkerGCAnnotation(builder, markerNames[i], new Segment(markerSet.getChrs()[i],
+                markerSet.getPositions()[i], markerSet.getPositions()[i]));
         writer.write(blank, false, true);
       }
     }
@@ -490,28 +486,25 @@ public class MarkerBlast {
    * {@link MarkerBlast#blastEm(Project, String, FILE_SEQUENCE_TYPE, int, int, int, int, boolean, boolean, boolean)}
    */
   public static MarkerBlastResult blastEm(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type,
-                                          int blastWordSize, int reportWordSize,
-                                          int maxAlignmentsReported, int numThreads,
-                                          boolean reportToTmp, boolean annotateGCContent,
-                                          boolean doBlast) {
+      int blastWordSize, int reportWordSize, int maxAlignmentsReported, int numThreads,
+      boolean reportToTmp, boolean annotateGCContent, boolean doBlast) {
     String fastaDb = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
     if (!Files.exists(fastaDb) && doBlast) {
       proj.getLog().reportTimeError("Was not able to find reference genome defined by "
-                                    + proj.REFERENCE_GENOME_FASTA_FILENAME.getName());
+          + proj.REFERENCE_GENOME_FASTA_FILENAME.getName());
       return null;
     } else {
       double evalueCutoff = 10000;
-      BlastParams blastParams =
-          new BlastParams(fileSeq, fastaDb, maxAlignmentsReported, reportWordSize, blastWordSize,
-                          ext.getTimestampForFilename(), evalueCutoff,
-                          proj.getMarkerSet().getFingerprint(), "", proj.getLog());
+      BlastParams blastParams = new BlastParams(fileSeq, fastaDb, maxAlignmentsReported,
+          reportWordSize, blastWordSize, ext.getTimestampForFilename(), evalueCutoff,
+          proj.getMarkerSet().getFingerprint(), "", proj.getLog());
       Blast blast = new Blast(fastaDb, blastWordSize, reportWordSize, proj.getLog(), true, true);
       blast.setEvalue(evalueCutoff);// we rely on the wordSize instead
       String dir = proj.PROJECT_DIRECTORY.getValue() + "Blasts/";
       new File(dir).mkdirs();
 
       String root = dir + ext.rootOf(fileSeq, true) + ".blasted.ws." + blastWordSize + ".rep."
-                    + reportWordSize;
+          + reportWordSize;
       String output = root + ".blasted";
 
       String[] tmps = new String[numThreads];
@@ -554,12 +547,10 @@ public class MarkerBlast {
           }
         }
       }
-      proj.getLog()
-          .reportTimeWarning("Assuming that all sequences have length "
-                             + proj.getArrayType().getProbeLength() + " based on array type "
-                             + proj.getArrayType());
+      proj.getLog().reportTimeWarning("Assuming that all sequences have length "
+          + proj.getArrayType().getProbeLength() + " based on array type " + proj.getArrayType());
       MarkerBlastResult result = new MarkerBlastResult(output, blastWordSize, reportWordSize,
-                                                       proj.getArrayType().getProbeLength());
+          proj.getArrayType().getProbeLength());
       result.setTmpFiles(tmps);
 
       // TODO, revert this to addition mode again
@@ -568,19 +559,16 @@ public class MarkerBlast {
       }
       MarkerFastaEntry[] entries = getMarkerFastaEntries(proj, fileSeq, type, blastParams, true);
 
-      proj.getLog().reportTimeInfo("Summarizing blast results to "
-                                   + proj.BLAST_ANNOTATION_FILENAME.getValue());
-      BlastAnnotationWriter blastAnnotationWriter =
-          new BlastAnnotationWriter(proj, new AnalysisParams[] {blastParams},
-                                    proj.BLAST_ANNOTATION_FILENAME.getValue(),
-                                    doBlast ? tmps : new String[] {}, reportWordSize,
-                                    proj.getArrayType().getProbeLength(),
-                                    proj.getArrayType().getProbeLength(), maxAlignmentsReported);
+      proj.getLog().reportTimeInfo(
+          "Summarizing blast results to " + proj.BLAST_ANNOTATION_FILENAME.getValue());
+      BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj,
+          new AnalysisParams[] {blastParams}, proj.BLAST_ANNOTATION_FILENAME.getValue(),
+          doBlast ? tmps : new String[] {}, reportWordSize, proj.getArrayType().getProbeLength(),
+          proj.getArrayType().getProbeLength(), maxAlignmentsReported);
 
       if (proj.getArrayType() != ARRAY.ILLUMINA) {
-        proj.getLog()
-            .reportTimeWarning("Did not detect array type " + ARRAY.ILLUMINA
-                               + " , probe sequence annotation may not reflect the true design since multiple designs may be reported");
+        proj.getLog().reportTimeWarning("Did not detect array type " + ARRAY.ILLUMINA
+            + " , probe sequence annotation may not reflect the true design since multiple designs may be reported");
       }
       blastAnnotationWriter.setMarkerFastaEntries(entries);
       blastAnnotationWriter.summarizeResultFiles(false);
@@ -619,13 +607,12 @@ public class MarkerBlast {
    * @return a String[] of marker names found in the manifest file
    */
   public static String[] extractMarkerPositionsFromManifest(String csv, ARRAY array,
-                                                            FILE_SEQUENCE_TYPE type, String output,
-                                                            String delimiter, Logger log) {
+      FILE_SEQUENCE_TYPE type, String output, String delimiter, Logger log) {
 
     if (type != FILE_SEQUENCE_TYPE.MANIFEST_FILE || array != ARRAY.ILLUMINA) {
-      throw new IllegalArgumentException("This method should only be used in preparing marker positions for an "
-                                         + ARRAY.ILLUMINA + " array using a "
-                                         + FILE_SEQUENCE_TYPE.MANIFEST_FILE);
+      throw new IllegalArgumentException(
+          "This method should only be used in preparing marker positions for an " + ARRAY.ILLUMINA
+              + " array using a " + FILE_SEQUENCE_TYPE.MANIFEST_FILE);
     }
     String[] required = new String[] {"Name", "Chr", "MapInfo"};
     ArrayList<String> markerNames = new ArrayList<String>();
@@ -666,8 +653,8 @@ public class MarkerBlast {
       reader.close();
       writer.close();
       if (!start) {
-        throw new IllegalStateException("Could not find required header subset "
-                                        + Array.toStr(required, ",") + " in " + csv);
+        throw new IllegalStateException(
+            "Could not find required header subset " + Array.toStr(required, ",") + " in " + csv);
       }
 
     } catch (FileNotFoundException fnfe) {
@@ -681,15 +668,14 @@ public class MarkerBlast {
   }
 
   private static ExtProjectDataParser.ProjectDataParserBuilder formatParser(Project proj,
-                                                                            FILE_SEQUENCE_TYPE type,
-                                                                            String strandReportFile) {
+      FILE_SEQUENCE_TYPE type, String strandReportFile) {
     ExtProjectDataParser.ProjectDataParserBuilder builder =
         new ExtProjectDataParser.ProjectDataParserBuilder();
     switch (type) {
       case MANIFEST_FILE:
         if (proj.getArrayType() != ARRAY.ILLUMINA) {
           proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType()
-                                        + " and this file is for " + ARRAY.ILLUMINA);
+              + " and this file is for " + ARRAY.ILLUMINA);
           builder = null;
           break;
         }
@@ -712,13 +698,12 @@ public class MarkerBlast {
           return null;
         }
         String[] dataTitles = new String[] {"AlleleA_ProbeSeq", "AlleleB_ProbeSeq", "SNP",
-                                            "IlmnStrand", "SourceStrand", "SourceSeq", "IlmnID"};
+            "IlmnStrand", "SourceStrand", "SourceSeq", "IlmnID"};
         if (ref != null) {
           dataTitles = Array.concatAll(dataTitles, new String[] {ref});
         } else {
-          proj.getLog()
-              .reportTimeWarning(strandReportFile
-                                 + " did not have a column for RefStrand, will determine strand from IlmnID but these will be inacurate, forward assigned to +");
+          proj.getLog().reportTimeWarning(strandReportFile
+              + " did not have a column for RefStrand, will determine strand from IlmnID but these will be inacurate, forward assigned to +");
           // proj.getLog().reportTimeError("Actully we are stopping, get the strands from
           // http://www.well.ox.ac.uk/~wrayner/strand/");
           // return null;
@@ -729,10 +714,8 @@ public class MarkerBlast {
 
       case AFFY_ANNOT:
         if (proj.getArrayType() != ARRAY.AFFY_GW6 && proj.getArrayType() != ARRAY.AFFY_GW6_CN) {
-          proj.getLog()
-              .reportTimeError("Array type was set to " + proj.getArrayType()
-                               + " and this file is for " + ARRAY.AFFY_GW6 + " or "
-                               + ARRAY.AFFY_GW6_CN);
+          proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType()
+              + " and this file is for " + ARRAY.AFFY_GW6 + " or " + ARRAY.AFFY_GW6_CN);
           builder = null;
           break;
         }
@@ -757,9 +740,7 @@ public class MarkerBlast {
    * {@link MarkerBlast#getMarkerFastaEntries(Project, String, FILE_SEQUENCE_TYPE, BlastParams, boolean)}
    */
   private static MarkerFastaEntry[] getMarkerFastaEntries(Project proj, String strandReportFile,
-                                                          FILE_SEQUENCE_TYPE type,
-                                                          BlastParams params,
-                                                          boolean alleleLookup) {
+      FILE_SEQUENCE_TYPE type, BlastParams params, boolean alleleLookup) {
     ExtProjectDataParser.ProjectDataParserBuilder builder =
         formatParser(proj, type, strandReportFile);
     MarkerFastaEntry[] fastaEntries = null;
@@ -774,29 +755,30 @@ public class MarkerBlast {
       MarkerSet markerSet = proj.getMarkerSet();
       // SequenceLookup sequenceLookup = new SequenceLookup(proj.getLog());
       ReferenceGenome referenceGenome =
-          Files.exists(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue()) ? new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
-                                                                                              proj.getLog())
-                                                                        : null;
+          Files.exists(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue())
+              ? new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog())
+              : null;
       if (referenceGenome == null) {
         proj.getLog().reportTimeWarning("A reference genome was not found");
       }
       String refStrandTitle = getRefStrand(parser);
       if (refStrandTitle == null && params != null) {
-        params.setNotes("Warning, the positive and negative strands of the probe design are actually forward and reverse designations, due to parsing IlmnIDs ");
+        params.setNotes(
+            "Warning, the positive and negative strands of the probe design are actually forward and reverse designations, due to parsing IlmnIDs ");
       }
       for (int i = 0; i < parser.getDataPresent().length; i++) {
         if (parser.getDataPresent()[i]) {
           if (alleleLookup) {
             if ((i + 1) % 10000 == 0 && referenceGenome != null) {
               proj.getLog().reportTimeInfo("Loaded " + (i + 1) + " reference alleles from "
-                                           + referenceGenome.getReferenceFasta());
+                  + referenceGenome.getReferenceFasta());
             }
           }
           String seqA = null;
           String seqB = null;
           String markerName = parser.getDataToLoad()[i];
           Segment markerSegment = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i],
-                                              markerSet.getPositions()[i]);
+              markerSet.getPositions()[i]);
           if (type != FILE_SEQUENCE_TYPE.AFFY_ANNOT) {
 
             // builder.stringDataTitles(new String[] { "AlleleA_ProbeSeq", "AlleleB_ProbeSeq",
@@ -812,9 +794,8 @@ public class MarkerBlast {
             if (refStrandTitle != null) {
               refStrand = parser.getStringDataForTitle(refStrandTitle)[i];
             } else {
-              refStrand =
-                  parseStrandFromIlmnID(parser.getStringDataForTitle("IlmnID")[i].split("_"),
-                                        topBotProbe);
+              refStrand = parseStrandFromIlmnID(
+                  parser.getStringDataForTitle("IlmnID")[i].split("_"), topBotProbe);
             }
             Strand strand = null;
             if (refStrand.equals("+")) {
@@ -826,41 +807,34 @@ public class MarkerBlast {
               return null;
             }
             if (seqA.length() != seqLength) {
-              proj.getLog()
-                  .reportTimeError("Sequence " + seqA + " did not have length "
-                                   + proj.ARRAY_TYPE.getValue().getProbeLength() + " "
-                                   + markerName);
+              proj.getLog().reportTimeError("Sequence " + seqA + " did not have length "
+                  + proj.ARRAY_TYPE.getValue().getProbeLength() + " " + markerName);
               return null;
             }
 
             String[] snp = parser.getStringDataForTitle("SNP")[i].replaceAll("\\[", "")
-                                                                 .replaceAll("\\]", "").split("/");
+                .replaceAll("\\]", "").split("/");
             AlleleParser alleleParser =
                 new AlleleParser(markerName, markerSegment, snp[0], snp[1], seqB, referenceGenome);
             if (alleleLookup) {
               alleleParser.parse(proj.getArrayType(), strand,
-                                 parser.getStringDataForTitle("SourceSeq")[i]);
+                  parser.getStringDataForTitle("SourceSeq")[i]);
             }
             if (seqB.equals("")) {// not ambiguous
               entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.BOTH.getTag(), seqA, seqB,
-                                               strand, seqLength, markerSegment, topBotProbe,
-                                               topBotRef, alleleParser.getA(), alleleParser.getB(),
-                                               alleleParser.getRef(), alleleParser.getAlts()));
+                  strand, seqLength, markerSegment, topBotProbe, topBotRef, alleleParser.getA(),
+                  alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
 
             } else {// interrogationPosition is the last bp for Ambiguous SNPS
               entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.A.getTag(), seqA, seqB,
-                                               strand, seqLength - 1, markerSegment, topBotProbe,
-                                               topBotRef, alleleParser.getA(), alleleParser.getB(),
-                                               alleleParser.getRef(), alleleParser.getAlts()));
+                  strand, seqLength - 1, markerSegment, topBotProbe, topBotRef, alleleParser.getA(),
+                  alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
               entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B.getTag(), seqB, seqB,
-                                               strand, seqLength - 1, markerSegment, topBotProbe,
-                                               topBotRef, alleleParser.getA(), alleleParser.getB(),
-                                               alleleParser.getRef(), alleleParser.getAlts()));
+                  strand, seqLength - 1, markerSegment, topBotProbe, topBotRef, alleleParser.getA(),
+                  alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
               if (seqB.length() != seqLength) {
-                proj.getLog()
-                    .reportTimeError("Sequence " + seqB + " did not have length "
-                                     + proj.ARRAY_TYPE.getValue().getProbeLength() + " "
-                                     + markerName);
+                proj.getLog().reportTimeError("Sequence " + seqB + " did not have length "
+                    + proj.ARRAY_TYPE.getValue().getProbeLength() + " " + markerName);
                 return null;
               }
             }
@@ -872,15 +846,13 @@ public class MarkerBlast {
             if (tmpSeq.length != 2) {
               proj.getLog()
                   .reportTimeError("Marker " + markerName + " did not have 2 unique probe designs");
-              proj.getLog().reportTimeError("found the following " + markerName + "\t"
-                                            + Array.toStr(tmpSeq));
+              proj.getLog().reportTimeError(
+                  "found the following " + markerName + "\t" + Array.toStr(tmpSeq));
               return null;
             } else {
               if (tmpSeq[0].length() != seqLength || tmpSeq[1].length() != seqLength) {
-                proj.getLog()
-                    .reportTimeError("Sequence " + tmpSeq[0] + " or " + tmpSeq[1]
-                                     + "  did not have length "
-                                     + proj.ARRAY_TYPE.getValue().getProbeLength());
+                proj.getLog().reportTimeError("Sequence " + tmpSeq[0] + " or " + tmpSeq[1]
+                    + "  did not have length " + proj.ARRAY_TYPE.getValue().getProbeLength());
                 return null;
               }
               int interrogationPosition = -1;
@@ -920,15 +892,13 @@ public class MarkerBlast {
                 alleleParser.parse(proj.getArrayType(), strand, null);
               }
               entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.A, tmpSeq[0], tmpSeq[1],
-                                               strand, interrogationPosition, markerSegment,
-                                               TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(),
-                                               alleleParser.getB(), alleleParser.getRef(),
-                                               alleleParser.getAlts()));
+                  strand, interrogationPosition, markerSegment, TOP_BOT.NA, TOP_BOT.NA,
+                  alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(),
+                  alleleParser.getAlts()));
               entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B, tmpSeq[1], tmpSeq[1],
-                                               strand, interrogationPosition, markerSegment,
-                                               TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(),
-                                               alleleParser.getB(), alleleParser.getRef(),
-                                               alleleParser.getAlts()));
+                  strand, interrogationPosition, markerSegment, TOP_BOT.NA, TOP_BOT.NA,
+                  alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(),
+                  alleleParser.getAlts()));
             }
           }
         }
@@ -969,27 +939,27 @@ public class MarkerBlast {
     String usage = "\n" + "cnv.qc.MarkerBlast requires 3 arguments\n";
     usage += "   (1) Project file name (i.e. proj=" + filename + " (default))\n" + "";
     usage += "   (2) full path to an Illumina manifest file  (i.e. fileSeq=" + fileSeq
-             + " (default))\n" + "";
+        + " (default))\n" + "";
     usage += "   (3) number of threads to use  (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + numThreads
-             + " (default))\n" + "";
+        + " (default))\n" + "";
     usage += "   (4) word size for initial match in blast db  (i.e. blastWordSize=" + blastWordSize
-             + " (defaults are array dependent))\n" + "";
+        + " (defaults are array dependent))\n" + "";
     usage += "   (5) number of base pairs with an exact match to report (i.e. reportWordSize="
-             + reportWordSize + " (defaults are array dependent))\n" + "";
+        + reportWordSize + " (defaults are array dependent))\n" + "";
     // usage += " (6) report results to temporary files (i.e. -report (not the default))\n" + "";
     usage += "   (6) the maximum number of alignments to summarize (i.e. maxAlignmentsReported="
-             + maxAlignmentsReported + " (default))\n" + "";
+        + maxAlignmentsReported + " (default))\n" + "";
     usage +=
         "   (7) annotate the summary file with GC content, both the probe's gc content and the regions gc content  (i.e. annoGC="
-             + annotateGCContent + " (default))\n";
+            + annotateGCContent + " (default))\n";
     usage += "   (8) sequence file type  (i.e. seqType=" + fSequence_TYPE + " (default))\n"
-             + ", Options are:\n ";
+        + ", Options are:\n ";
     usage +=
         "   (9) skip the blast analysis and simply add the manifest annotations (i.e. -noBlast (not the default))\n"
-             + ", Options are:\n ";
+            + ", Options are:\n ";
     usage +=
         "   (10) full path to a reference genome if not using the project's default (i.e. ref= ( no default))\n"
-             + ", Options are:\n ";
+            + ", Options are:\n ";
 
     for (int i = 0; i < FILE_SEQUENCE_TYPE.values().length; i++) {
       usage += FILE_SEQUENCE_TYPE.values()[i] + "\n";
@@ -1018,9 +988,8 @@ public class MarkerBlast {
         reportWordSize = ext.parseIntArg(arg);
         numArgs--;
       } else if (arg.startsWith("seqType=")) {
-        fSequence_TYPE =
-            FILE_SEQUENCE_TYPE.valueOf(ext.parseStringArg(arg,
-                                                          FILE_SEQUENCE_TYPE.MANIFEST_FILE.toString()));
+        fSequence_TYPE = FILE_SEQUENCE_TYPE
+            .valueOf(ext.parseStringArg(arg, FILE_SEQUENCE_TYPE.MANIFEST_FILE.toString()));
         numArgs--;
       } else if (arg.startsWith("annoGC=")) {
         annotateGCContent = ext.parseBooleanArg(arg);
@@ -1071,7 +1040,7 @@ public class MarkerBlast {
             break;
         }
         proj.getLog().reportTimeInfo("report word size updated to default " + reportWordSize
-                                     + " for array " + proj.getArrayType());
+            + " for array " + proj.getArrayType());
       }
       if (blastWordSize == -1) {
         switch (proj.getArrayType()) {
@@ -1089,11 +1058,11 @@ public class MarkerBlast {
             break;
         }
         proj.getLog().reportTimeInfo("blast word size updated to default " + blastWordSize
-                                     + " for array " + proj.getArrayType());
+            + " for array " + proj.getArrayType());
 
       }
       blastEm(proj, fileSeq, fSequence_TYPE, blastWordSize, reportWordSize, maxAlignmentsReported,
-              numThreads, true, annotateGCContent, doBlast);
+          numThreads, true, annotateGCContent, doBlast);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -1105,9 +1074,9 @@ public class MarkerBlast {
     String fr = fullId[fullId.length - 2];
     if ((!tb.equals("B") && !tb.equals("T") && !tb.equals("M"))
         || (!fr.equals("F") && !fr.equals("R"))) {
-      throw new IllegalStateException("Invalid IlmnID parsing asumption, splitting with _ for "
-                                      + Array.toStr(fullId, "_") + "\t" + tb + "\t" + fr
-                                      + "\nPlease update TOP/BOT strand designation");
+      throw new IllegalStateException(
+          "Invalid IlmnID parsing asumption, splitting with _ for " + Array.toStr(fullId, "_")
+              + "\t" + tb + "\t" + fr + "\nPlease update TOP/BOT strand designation");
     }
 
     switch (topBotRef) {
@@ -1117,7 +1086,7 @@ public class MarkerBlast {
             || tb.equals("T") && fr.equals("R")) {
           refStrand = "+";
         } else if (((tb.equals("B") || tb.equals("M")) && fr.equals("R"))
-                   || tb.equals("T") && fr.equals("F")) {
+            || tb.equals("T") && fr.equals("F")) {
           refStrand = "-";
         }
 
@@ -1138,7 +1107,7 @@ public class MarkerBlast {
     }
     if (refStrand == null) {
       throw new IllegalStateException("Could not parse ref TOP/BOT  " + topBotRef + " using IlmnID"
-                                      + Array.toStr(fullId, "_") + " to a strand");
+          + Array.toStr(fullId, "_") + " to a strand");
     }
     return refStrand;
   }
@@ -1165,10 +1134,9 @@ public class MarkerBlast {
           proj.ARRAY_TYPE.setValue(ARRAY.ILLUMINA);
           log.reportTimeWarning("Extracting marker positions from " + csv);
           String[] markerNames = extractMarkerPositionsFromManifest(csv, proj.getArrayType(), type,
-                                                                    proj.MARKER_POSITION_FILENAME.getValue(),
-                                                                    ",", log);
+              proj.MARKER_POSITION_FILENAME.getValue(), ",", log);
           Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
-                               proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+              proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 
           break;
         default:

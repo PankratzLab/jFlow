@@ -8,8 +8,7 @@ import org.genvisis.common.Logger;
 
 public class Rvtests {
   public static void generateRvtestsScript(String dirOfRvtestsCommands, String dirOfPedFiles,
-                                           String fullpathToVcf, String scriptsDir,
-                                           String resultsDir, Logger log) {
+      String fullpathToVcf, String scriptsDir, String resultsDir, Logger log) {
     String[] files;
     String command = null;
     String[][] iterations;
@@ -32,10 +31,10 @@ public class Rvtests {
 
     command =
         dirOfRvtestsCommands + "vcf2kinship" + " --ped " + dirOfPedFiles + "[%0]" + " --inVcf "
-              + fullpathToVcf + " --bn" + " --out " + resultsDir + "[%1]" + " --xLabel X --xHemi"
-              + "\n" + dirOfRvtestsCommands + "rvtest" + " --pheno " + dirOfPedFiles + "[%0]"
-              + " --inVcf " + fullpathToVcf + " --out " + resultsDir + "[%1]" + " --kinship "
-              + resultsDir + "[%1].kinship" + " --xLabel X --meta score,cov,dominant,recessive";
+            + fullpathToVcf + " --bn" + " --out " + resultsDir + "[%1]" + " --xLabel X --xHemi"
+            + "\n" + dirOfRvtestsCommands + "rvtest" + " --pheno " + dirOfPedFiles + "[%0]"
+            + " --inVcf " + fullpathToVcf + " --out " + resultsDir + "[%1]" + " --kinship "
+            + resultsDir + "[%1].kinship" + " --xLabel X --meta score,cov,dominant,recessive";
 
     // Files.qsub("rvtests", command, Matrix.toMatrix(files), -1, 6, -1);
     Files.qsub(scriptsDir + "[%1]", command, iterations, -1, 6, -1);
@@ -76,22 +75,19 @@ public class Rvtests {
     filenameSegmentIndices = "0,2,COHORT,1,'121114',np";
 
     String usage = "\nTo generate scripts for all the .ped files in a single directory:"
-                   + "\n   (1) command for generating scripts (i.e. " + commandIsScript
-                   + " (default))" + "\n   (2) directory of the RvTests executable files (i.e. "
-                   + commandRvExecutable + dirOfRvtestsCommands + " (default))"
-                   + "\n   (3) directory of the .ped files (i.e. " + commandPedDir + dirOfPedFiles
-                   + " (default))" + "\n   (4) directory of the condition files (i.e. " + commandVcf
-                   + fullpathToVcf + " (default))"
-                   + "\n   (5) directory to output the RvTests results files (i.e. "
-                   + commandResultsDir + resultsDir + " (default))"
-                   + "\n   (6) directory to output the scripts (i.e. " + commandScriptDir
-                   + rScriptDir + " (default))" + "\n"
-                   + "\nTo rename the output files per naming scheme:"
-                   + "\n   (1) command for renaming file (i.e. " + commandIsScript + " (default))"
-                   + "\n   (2) directory to output the RvTests results files (i.e. "
-                   + commandResultsDir + resultsDir + " (default))"
-                   + "\n   (3) indices of file name segements (i.e. " + resultsDir + " (default))"
-                   + "\n" + "";
+        + "\n   (1) command for generating scripts (i.e. " + commandIsScript + " (default))"
+        + "\n   (2) directory of the RvTests executable files (i.e. " + commandRvExecutable
+        + dirOfRvtestsCommands + " (default))" + "\n   (3) directory of the .ped files (i.e. "
+        + commandPedDir + dirOfPedFiles + " (default))"
+        + "\n   (4) directory of the condition files (i.e. " + commandVcf + fullpathToVcf
+        + " (default))" + "\n   (5) directory to output the RvTests results files (i.e. "
+        + commandResultsDir + resultsDir + " (default))"
+        + "\n   (6) directory to output the scripts (i.e. " + commandScriptDir + rScriptDir
+        + " (default))" + "\n" + "\nTo rename the output files per naming scheme:"
+        + "\n   (1) command for renaming file (i.e. " + commandIsScript + " (default))"
+        + "\n   (2) directory to output the RvTests results files (i.e. " + commandResultsDir
+        + resultsDir + " (default))" + "\n   (3) indices of file name segements (i.e. " + resultsDir
+        + " (default))" + "\n" + "";
 
     // resultsDir = "D:/RvTests/";
     resultsDir = "/home/pankrat2/shared/skatMeta/giant_hematology/results/";
@@ -141,22 +137,22 @@ public class Rvtests {
     if (isScripts) {
       log = new Logger();
       generateRvtestsScript(dirOfRvtestsCommands, dirOfPedFiles, fullpathToVcf, rScriptDir,
-                            resultsDir, log);
+          resultsDir, log);
     } else if (isRename) {
       log = new Logger();
       renameToNamingScheme(resultsDir, filenameConversionTable.split(","),
-                           filenameSegmentIndices.split(","), log);
+          filenameSegmentIndices.split(","), log);
     } else {
       log = new Logger();
-      log.reportError("No command executed, due to none of the following is specified: "
-                      + commandIsScript);
+      log.reportError(
+          "No command executed, due to none of the following is specified: " + commandIsScript);
     }
 
     log.report("Program completed.");
   }
 
   public static void renameToNamingScheme(String resultsDir, String[] filenameConversionDictionary,
-                                          String[] segmentIndices, Logger log) {
+      String[] segmentIndices, Logger log) {
     String[] filenames, tmp1;
     String newFilename, tmp2;
     Vector<String> filenameAdditionalSegments;
@@ -193,9 +189,8 @@ public class Rvtests {
       for (int j = 0; j < conversionTable.size(); j++) {
         if (i != j && conversionTable.elementAt(i)[1].contains(conversionTable.elementAt(j)[0])) {
           log.reportError("Error - chained conversion: " + conversionTable.elementAt(i)[0] + "="
-                          + conversionTable.elementAt(i)[1] + ";\t"
-                          + conversionTable.elementAt(j)[0] + "="
-                          + conversionTable.elementAt(j)[1]);
+              + conversionTable.elementAt(i)[1] + ";\t" + conversionTable.elementAt(j)[0] + "="
+              + conversionTable.elementAt(j)[1]);
           System.exit(0);
         }
       }
