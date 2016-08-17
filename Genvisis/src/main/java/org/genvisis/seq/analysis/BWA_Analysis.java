@@ -394,7 +394,10 @@ public class BWA_Analysis {
       System.err.println(usage);
       System.exit(1);
     }
-    Logger log = new Logger((rootOutputDir == null ? rootInputDir : rootOutputDir) + "bwa.log");
+    if (rootOutputDir == null) {
+      rootOutputDir = rootInputDir;
+    }
+    Logger log = new Logger(rootOutputDir + "bwa.log");
     run(rootInputDir, rootOutputDir, referenceGenomeFasta, bwaLocation, fileOfSamplePairs,
         overwriteExisting, verbose, numMemThreads, numSampleThreads, batch, numBatches, memoryInMB,
         wallTimeInHours, baseName, log);

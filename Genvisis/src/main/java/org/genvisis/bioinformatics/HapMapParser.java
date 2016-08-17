@@ -121,10 +121,13 @@ public class HapMapParser {
       System.exit(1);
     }
     try {
+      if (filename == null) {
+        filename = map;
+      }
       if (!map.equals("")) {
         generateHaploviewBatch("", ext.removeDirectoryInfo(map.substring(0, map.lastIndexOf("."))),
             false, new Logger(
-                ext.rootOf(filename == null ? map : filename, false) + "_haploview_prep.log"));
+                ext.rootOf(filename, false) + "_haploview_prep.log"));
       } else if (!bed.equals("")) {
         splitBedByChromosome(bed);
       } else if (!ped.equals("")) {
@@ -133,7 +136,7 @@ public class HapMapParser {
         fixAffectionStatusInBed(fix);
       } else {
         parse(dir, filename, famstruct, new Logger(
-            ext.rootOf(filename == null ? map : filename, false) + "_hapmap_parser.log"));
+            ext.rootOf(filename, false) + "_hapmap_parser.log"));
       }
     } catch (Exception e) {
       e.printStackTrace();
