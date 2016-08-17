@@ -266,7 +266,7 @@ public class SkatMeta2 {
     for (String pheno : phenos) {
       log.report("Processing pheno " + pheno);
       isInitialConditionReady = false;
-      phenoDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, pheno);
+      phenoDirFilenameTemplate = phenoDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, pheno);
       condFileDirAndNameTemplateAfterPhenoFilled =
           condFileDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, pheno);
       resultsDir = previousResultFileDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, pheno);
