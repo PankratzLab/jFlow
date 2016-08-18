@@ -48,7 +48,7 @@ public class CNV1000gConcordance {
 
 					String[] markers = markerSet.getMarkersIn(set.getLoci()[i], indicesByChr);
 					// If the number of markers >= 3
-					if (markers != null && markers.length >= 3) {
+					if (markers != null && markers.length >= 10) {
 						CNVBuilder builder = new CNVBuilder(set.getLoci()[i]);
 						// Set the number of markers
 						builder.numMarkers(markers.length);
@@ -103,13 +103,18 @@ public class CNV1000gConcordance {
 		writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 		for (int j = 0; j < set.getLoci().length; j++) {
 			CNVBuilder builder = new CNVBuilder(set.getLoci()[j]);
-			builder.cn(1);
+			// builder.cn(1);
 			writer.println(builder.build().toPlinkFormat());
 		}
 		for (int j = 0; j < genset.getLoci().length; j++) {
 			if (finals.contains(genset.getLoci()[j].getIndividualID())) {
 				CNVBuilder builder = new CNVBuilder(genset.getLoci()[j]);
-				builder.cn(1);
+				if (builder.getCn() == 4) {
+					builder.cn(3);
+				}
+				if (builder.getCn() == 0) {
+					builder.cn(1);
+				}
 				writer.println(builder.build().toPlinkFormat());
 			}
 		}
