@@ -19,6 +19,7 @@
 
 	<properties>
 		<outname>genvisis</outname>
+		<mainClass>org.genvisis.cnv.Launch</mainClass>
 	</properties>
 
 	<dependencies>
@@ -37,7 +38,7 @@
 					<appendAssemblyId>false</appendAssemblyId>
 					<archive>
 						<manifest>
-							<mainClass>org.genvisis.cnv.Launch</mainClass>
+							<mainClass>${mainClass}</mainClass>
 						</manifest>
 						<manifestEntries>
 							<Implementation-Version>${project.version}</Implementation-Version>
