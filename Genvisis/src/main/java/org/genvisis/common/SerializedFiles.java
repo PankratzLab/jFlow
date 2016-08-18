@@ -113,9 +113,8 @@ public class SerializedFiles {
           }
           String convertedClassDesc =
               name.substring(0, startInsert) + "org.genvisis." + name.substring(startInsert);
-          @SuppressWarnings("restriction")
           Class<?> convertedClass =
-              Class.forName(convertedClassDesc, false, sun.misc.VM.latestUserDefinedLoader());
+              Class.forName(convertedClassDesc, false, ClassLoader.getSystemClassLoader());
           log.reportTimeWarning("The Class (" + name + ") for the Serialized Object " + filename
                                 + " cannot be resolved, attempting to use " + convertedClassDesc);
           return convertedClass;
