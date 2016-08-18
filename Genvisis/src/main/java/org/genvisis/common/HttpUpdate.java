@@ -22,309 +22,320 @@ import javax.swing.JTextArea;
  *
  */
 public class HttpUpdate {
-	private static final String CHANGELOG = "https://github.com/npankrat/Genvisis/blob/master/CHANGELOG.md";
-	public static final String REMOTE_JAR = "http://genvisis.org/genvisis.jar";
-	public static final String UNDETERMINED_VERSION ="v.-1.-1.-1";
-	public static RemoteJarStatus getRemoteJarVersion(String remoteJar, Logger log) {
-		CHECK_STATUS status = CHECK_STATUS.OTHER_ERROR;
-		String version =UNDETERMINED_VERSION;
-		if (HttpDownloadUtility.canDownload(remoteJar, log)) {
-			URL url;
-			try {
-				url = new URL(remoteJar);
-				ZipInputStream zip = new ZipInputStream(url.openStream());
-				ZipEntry entry;
-				do {
-					entry = zip.getNextEntry();
-				} while (entry != null && !entry.getName().startsWith("META-INF/MANIFEST.MF"));
-				if (entry != null) {
-					Scanner sc = new Scanner(zip);
-					while (sc.hasNextLine()) {
-						String line = sc.nextLine();
-						if (line.startsWith(CurrentManifest.IMPLEMENTATION_VERSION)) {
-							version = line.replaceAll(CurrentManifest.IMPLEMENTATION_VERSION + ":", "").replaceAll(" ", "");
-							status = CHECK_STATUS.OK;
-							break;
-						}
-					}
-					if (version.equals("undetermined")) {
-						status = CHECK_STATUS.LINE_NOT_FOUND;
-					}
-					sc.close();
-				} else {
-					status = CHECK_STATUS.FILE_NOT_FOUND;
-				}
-				zip.close();
-			} catch (MalformedURLException e) {
-				status = CHECK_STATUS.HTTP_ERROR;
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				status = CHECK_STATUS.FILE_NOT_FOUND;
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+  private static final String CHANGELOG =
+      "https://github.com/npankrat/Genvisis/blob/master/CHANGELOG.md";
+  public static final String REMOTE_JAR = "http://genvisis.org/genvisis.jar";
+  public static final String UNDETERMINED_VERSION = "v.-1.-1.-1";
 
-		} else {
-			status = CHECK_STATUS.HTTP_ERROR;
-		}
+  public static RemoteJarStatus getRemoteJarVersion(String remoteJar, Logger log) {
+    CHECK_STATUS status = CHECK_STATUS.OTHER_ERROR;
+    String version = UNDETERMINED_VERSION;
+    if (HttpDownloadUtility.canDownload(remoteJar, log)) {
+      URL url;
+      try {
+        url = new URL(remoteJar);
+        ZipInputStream zip = new ZipInputStream(url.openStream());
+        ZipEntry entry;
+        do {
+          entry = zip.getNextEntry();
+        } while (entry != null && !entry.getName().startsWith("META-INF/MANIFEST.MF"));
+        if (entry != null) {
+          Scanner sc = new Scanner(zip);
+          while (sc.hasNextLine()) {
+            String line = sc.nextLine();
+            if (line.startsWith(CurrentManifest.IMPLEMENTATION_VERSION)) {
+              version = line.replaceAll(CurrentManifest.IMPLEMENTATION_VERSION + ":", "")
+                            .replaceAll(" ", "");
+              status = CHECK_STATUS.OK;
+              break;
+            }
+          }
+          if (version.equals("undetermined")) {
+            status = CHECK_STATUS.LINE_NOT_FOUND;
+          }
+          sc.close();
+        } else {
+          status = CHECK_STATUS.FILE_NOT_FOUND;
+        }
+        zip.close();
+      } catch (MalformedURLException e) {
+        status = CHECK_STATUS.HTTP_ERROR;
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch (IOException e) {
+        status = CHECK_STATUS.FILE_NOT_FOUND;
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
 
-		return new RemoteJarStatus(new Version(version), remoteJar, status);
-	}
+    } else {
+      status = CHECK_STATUS.HTTP_ERROR;
+    }
 
-	public static String checkGenvisisVersion(Logger log) {
-		try {
-			RemoteJarStatus remoteJarStatus = getRemoteJarVersion(REMOTE_JAR, log);
-			CurrentManifest currentManifest = CurrentManifest.loadGenvisisManifest();
-			if (currentManifest.getVersion().isLessThan(remoteJarStatus.getVersion())) {
-				return "Your version of Genvisis (" + currentManifest.getVersion().getVersion()
-						+ ") is not up to date. Latest version is " + remoteJarStatus.getVersion().getVersion();
-			} else if (currentManifest.getVersion().isGreaterThan(remoteJarStatus.getVersion())) {
-				if (!remoteJarStatus.getVersion().getVersion().equals(UNDETERMINED_VERSION)) {
-					String fun = "Looks like you are using a bleeding edge version of genvisis ("
-							+ currentManifest.getVersion().getVersion() + ")\n";
-					fun += "The latest released version at " + REMOTE_JAR + " is "
-							+ remoteJarStatus.getVersion().getVersion() + ", good luck to ya";
-					return fun;
-				} else {
-					return "Unable to determine genvisis version";
+    return new RemoteJarStatus(new Version(version), remoteJar, status);
+  }
 
-				}
-			} else {
-				return "Genvisis (" + currentManifest.getVersion().getVersion() + ") is up to date";
-			}
-		} catch (Exception e) {
-			return "Unable to determine genvisis version";
-		}
-	}
+  public static String checkGenvisisVersion(Logger log) {
+    try {
+      RemoteJarStatus remoteJarStatus = getRemoteJarVersion(REMOTE_JAR, log);
+      CurrentManifest currentManifest = CurrentManifest.loadGenvisisManifest();
+      if (currentManifest.getVersion().isLessThan(remoteJarStatus.getVersion())) {
+        return "Your version of Genvisis (" + currentManifest.getVersion().getVersion()
+               + ") is not up to date. Latest version is "
+               + remoteJarStatus.getVersion().getVersion();
+      } else if (currentManifest.getVersion().isGreaterThan(remoteJarStatus.getVersion())) {
+        if (!remoteJarStatus.getVersion().getVersion().equals(UNDETERMINED_VERSION)) {
+          String fun = "Looks like you are using a bleeding edge version of genvisis ("
+                       + currentManifest.getVersion().getVersion() + ")\n";
+          fun += "The latest released version at " + REMOTE_JAR + " is "
+                 + remoteJarStatus.getVersion().getVersion() + ", good luck to ya";
+          return fun;
+        } else {
+          return "Unable to determine genvisis version";
 
-	public enum CHECK_STATUS {
-		OK, HTTP_ERROR, FILE_NOT_FOUND, LINE_NOT_FOUND, OTHER_ERROR;
-	}
+        }
+      } else {
+        return "Genvisis (" + currentManifest.getVersion().getVersion() + ") is up to date";
+      }
+    } catch (Exception e) {
+      return "Unable to determine genvisis version";
+    }
+  }
 
-	public static class Version {
-		private String version;
-		private int major;
-		private int minor;
-		private int patch;
+  public enum CHECK_STATUS {
+                            OK, HTTP_ERROR, FILE_NOT_FOUND, LINE_NOT_FOUND, OTHER_ERROR;
+  }
 
-		public Version(String version) {
-			super();
-			this.version = version;
-			int[] tmp = parse();
-			this.major = tmp[0];
-			this.minor = tmp[1];
-			this.patch = tmp[2];
-		}
+  public static class Version {
+    private final String version;
+    private final int major;
+    private final int minor;
+    private final int patch;
 
-		public String getVersion() {
-			return version;
-		}
+    public Version(String version) {
+      super();
+      this.version = version;
+      int[] tmp = parse();
+      major = tmp[0];
+      minor = tmp[1];
+      patch = tmp[2];
+    }
 
-		public int getMajor() {
-			return major;
-		}
+    public String getVersion() {
+      return version;
+    }
 
-		public int getMinor() {
-			return minor;
-		}
+    public int getMajor() {
+      return major;
+    }
 
-		public int getPatch() {
-			return patch;
-		}
+    public int getMinor() {
+      return minor;
+    }
 
-		public boolean isLessThan(Version other) {
-			if (major < other.getMajor()) {
-				return true;
-			} else if (minor < other.getMinor()) {
-				return true;
-			} else if (patch < other.getPatch()) {
-				return true;
-			}
-			return false;
-		}
+    public int getPatch() {
+      return patch;
+    }
 
-		public boolean isGreaterThan(Version other) {
-			if (major > other.getMajor()) {
-				return true;
-			} else if (minor > other.getMinor()) {
-				return true;
-			} else if (patch > other.getPatch()) {
-				return true;
-			}
-			return false;
-		}
+    public boolean isLessThan(Version other) {
+      if (major < other.getMajor()) {
+        return true;
+      } else if (minor < other.getMinor()) {
+        return true;
+      } else if (patch < other.getPatch()) {
+        return true;
+      }
+      return false;
+    }
 
-		private int[] parse() {
-			int[] v = Array.toIntArray(version.replaceAll("v", "").split("\\."));
-			return v;
+    public boolean isGreaterThan(Version other) {
+      if (major > other.getMajor()) {
+        return true;
+      } else if (minor > other.getMinor()) {
+        return true;
+      } else if (patch > other.getPatch()) {
+        return true;
+      }
+      return false;
+    }
 
-		}
+    private int[] parse() {
+      int[] v = Array.toIntArray(version.replaceAll("v", "").split("\\."));
+      return v;
 
-	}
+    }
 
-	public static class RemoteJarStatus {
-		private Version version;
-		private CHECK_STATUS status;
-		private String jarChecked;
+  }
 
-		public RemoteJarStatus(Version version, String jarChecked, CHECK_STATUS status) {
-			super();
-			this.version = version;
-			this.status = status;
-			this.jarChecked = jarChecked;
-		}
+  public static class RemoteJarStatus {
+    private final Version version;
+    private final CHECK_STATUS status;
+    private final String jarChecked;
 
-		public Version getVersion() {
-			return version;
-		}
+    public RemoteJarStatus(Version version, String jarChecked, CHECK_STATUS status) {
+      super();
+      this.version = version;
+      this.status = status;
+      this.jarChecked = jarChecked;
+    }
 
-		public CHECK_STATUS getStatus() {
-			return status;
-		}
+    public Version getVersion() {
+      return version;
+    }
 
-		public String getJarChecked() {
-			return jarChecked;
-		}
+    public CHECK_STATUS getStatus() {
+      return status;
+    }
 
-	}
+    public String getJarChecked() {
+      return jarChecked;
+    }
 
-	public static class UpdateInfo extends JFrame {
+  }
 
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-		private JTextArea infoPane;
-		private JButton ok;
-		private JButton cancel;
-		private JPanel pan1;
-		private JPanel pan2;
-		private RemoteJarStatus remoteJarStatus;
-		private CurrentManifest manifest;
-		private String newFileDir;
-		private String newJarFile;
-		private boolean upToDate;
-		private Logger log;
+  public static class UpdateInfo extends JFrame {
 
-		public UpdateInfo(String directoryToSave, RemoteJarStatus remoteJarStatus, Logger log) {
-			this.newFileDir = directoryToSave;
-			this.manifest = CurrentManifest.loadGenvisisManifest();
-			new File(newFileDir).mkdirs();
-			this.newJarFile = newFileDir + ext.addToRoot(PSF.Java.GENVISIS, remoteJarStatus.getVersion().getVersion());
-			this.remoteJarStatus = remoteJarStatus;
-			initComponents();
-			this.log = log;
-		}
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private JTextArea infoPane;
+    private JButton ok;
+    private JButton cancel;
+    private JPanel pan1;
+    private JPanel pan2;
+    private final RemoteJarStatus remoteJarStatus;
+    private final CurrentManifest manifest;
+    private final String newFileDir;
+    private final String newJarFile;
+    private boolean upToDate;
+    private final Logger log;
 
-		private String generateMessage() {
-			StringBuilder builder = new StringBuilder();
-			if (manifest.getVersion().isLessThan(remoteJarStatus.getVersion())) {
-				builder.append("The current version of Genvisis is " + manifest.getVersion().getVersion() + "\n");
-				builder.append("You can check out the latest change log at " + CHANGELOG + "\n");
-				builder.append("Would you like to update to " + remoteJarStatus.getVersion().getVersion() + "\n");
-				builder.append("The latest version will be saved to " + newJarFile);
-				upToDate = false;
-			} else {
-				builder.append("Genvisis is up to date " + remoteJarStatus.getVersion().getVersion() + "\n");
-				builder.append("If you think this is an error, you can just download " + remoteJarStatus.getJarChecked() + "\n");
-				upToDate = true;
-			}
-			return builder.toString();
-		}
+    public UpdateInfo(String directoryToSave, RemoteJarStatus remoteJarStatus, Logger log) {
+      newFileDir = directoryToSave;
+      manifest = CurrentManifest.loadGenvisisManifest();
+      new File(newFileDir).mkdirs();
+      newJarFile =
+          newFileDir + ext.addToRoot(PSF.Java.GENVISIS, remoteJarStatus.getVersion().getVersion());
+      this.remoteJarStatus = remoteJarStatus;
+      initComponents();
+      this.log = log;
+    }
 
-		private void initComponents() {
+    private String generateMessage() {
+      StringBuilder builder = new StringBuilder();
+      if (manifest.getVersion().isLessThan(remoteJarStatus.getVersion())) {
+        builder.append("The current version of Genvisis is " + manifest.getVersion().getVersion()
+                       + "\n");
+        builder.append("You can check out the latest change log at " + CHANGELOG + "\n");
+        builder.append("Would you like to update to " + remoteJarStatus.getVersion().getVersion()
+                       + "\n");
+        builder.append("The latest version will be saved to " + newJarFile);
+        upToDate = false;
+      } else {
+        builder.append("Genvisis is up to date " + remoteJarStatus.getVersion().getVersion()
+                       + "\n");
+        builder.append("If you think this is an error, you can just download "
+                       + remoteJarStatus.getJarChecked() + "\n");
+        upToDate = true;
+      }
+      return builder.toString();
+    }
 
-			this.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-			this.setTitle("New Update Found");
-			pan1 = new JPanel();
-			pan1.setLayout(new BorderLayout());
+    private void initComponents() {
 
-			pan2 = new JPanel();
-			pan2.setLayout(new FlowLayout());
+      setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+      setTitle("New Update Found");
+      pan1 = new JPanel();
+      pan1.setLayout(new BorderLayout());
 
-			infoPane = new JTextArea();
-			infoPane.setEditable(false);
-			infoPane.setText(generateMessage());
+      pan2 = new JPanel();
+      pan2.setLayout(new FlowLayout());
 
-			if (!upToDate) {
-				ok = new JButton("Update");
+      infoPane = new JTextArea();
+      infoPane.setEditable(false);
+      infoPane.setText(generateMessage());
 
-				cancel = new JButton("Cancel");
-			} else {
-				ok = new JButton("OK");
+      if (!upToDate) {
+        ok = new JButton("Update");
 
-				cancel = new JButton("");
-				cancel.setVisible(false);
-			}
-			ok.addActionListener(new ActionListener() {
+        cancel = new JButton("Cancel");
+      } else {
+        ok = new JButton("OK");
 
-				public void actionPerformed(ActionEvent e) {
-					update();
-				}
-			});
-			cancel.addActionListener(new ActionListener() {
+        cancel = new JButton("");
+        cancel.setVisible(false);
+      }
+      ok.addActionListener(new ActionListener() {
 
-				public void actionPerformed(ActionEvent e) {
-					UpdateInfo.this.dispose();
-				}
-			});
-			pan2.add(ok);
-			pan2.add(cancel);
-			pan1.add(pan2, BorderLayout.SOUTH);
-			pan1.add(infoPane, BorderLayout.CENTER);
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          update();
+        }
+      });
+      cancel.addActionListener(new ActionListener() {
 
-			this.add(pan1);
-			pack();
-			setVisible(true);
-		}
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          UpdateInfo.this.dispose();
+        }
+      });
+      pan2.add(ok);
+      pan2.add(cancel);
+      pan1.add(pan2, BorderLayout.SOUTH);
+      pan1.add(infoPane, BorderLayout.CENTER);
 
-		private void update()
+      this.add(pan1);
+      pack();
+      setVisible(true);
+    }
 
-		{
-			boolean success = false;
-			if (!upToDate) {
-				if (HttpDownloadUtility.canDownload(remoteJarStatus.getJarChecked(), log)) {
-					try {
-						HttpDownloadUtility.downloadFile(remoteJarStatus.getJarChecked(), newJarFile, true, log);
-						success = Files.exists(newJarFile);
-						if (success) {
-							log.reportTimeInfo("New version of Genvisis can be found at " + newJarFile);
-						}
-					} catch (IOException e) {
-						log.reportTimeError("Could not download " + remoteJarStatus.getJarChecked());
-						e.printStackTrace();
-					}
-				} else {
-					log.reportTimeError("Could not download " + remoteJarStatus.getJarChecked());
-				}
-			}
-			this.dispose();
-		}
-	}
+    private void update()
 
-	/**
-	 * @param remoteJar
-	 *            the full url
-	 * @param dir
-	 *            directory to save any updates
-	 * @param log
-	 */
-	public static void update(String remoteJar, String dir, Logger log) {
-		RemoteJarStatus remoteJarStatus = getRemoteJarVersion(remoteJar, new Logger());
-		if (remoteJarStatus.getStatus() == CHECK_STATUS.OK) {
-			new UpdateInfo(dir, remoteJarStatus, new Logger());
-		} else {
-			log.reportTimeError("Unable to fetch updates");
-		}
-	}
+    {
+      boolean success = false;
+      if (!upToDate) {
+        if (HttpDownloadUtility.canDownload(remoteJarStatus.getJarChecked(), log)) {
+          try {
+            HttpDownloadUtility.downloadFile(remoteJarStatus.getJarChecked(), newJarFile, true,
+                                             log);
+            success = Files.exists(newJarFile);
+            if (success) {
+              log.reportTimeInfo("New version of Genvisis can be found at " + newJarFile);
+            }
+          } catch (IOException e) {
+            log.reportTimeError("Could not download " + remoteJarStatus.getJarChecked());
+            e.printStackTrace();
+          }
+        } else {
+          log.reportTimeError("Could not download " + remoteJarStatus.getJarChecked());
+        }
+      }
+      dispose();
+    }
+  }
 
-	public static void main(String[] args) {
-		long time = System.currentTimeMillis();
-		RemoteJarStatus remoteJarStatus = getRemoteJarVersion("http://genvisis.org/genvisis_dev.jar", new Logger());
-		new Logger().reportTimeElapsed(time);
-		if (remoteJarStatus.getStatus() == CHECK_STATUS.OK) {
+  /**
+   * @param remoteJar the full url
+   * @param dir directory to save any updates
+   * @param log
+   */
+  public static void update(String remoteJar, String dir, Logger log) {
+    RemoteJarStatus remoteJarStatus = getRemoteJarVersion(remoteJar, new Logger());
+    if (remoteJarStatus.getStatus() == CHECK_STATUS.OK) {
+      new UpdateInfo(dir, remoteJarStatus, new Logger());
+    } else {
+      log.reportTimeError("Unable to fetch updates");
+    }
+  }
 
-		}
-	}
+  public static void main(String[] args) {
+    long time = System.currentTimeMillis();
+    RemoteJarStatus remoteJarStatus =
+        getRemoteJarVersion("http://genvisis.org/genvisis_dev.jar", new Logger());
+    new Logger().reportTimeElapsed(time);
+    if (remoteJarStatus.getStatus() == CHECK_STATUS.OK) {
+
+    }
+  }
 }

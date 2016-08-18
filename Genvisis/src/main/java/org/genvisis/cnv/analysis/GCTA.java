@@ -1,5 +1,7 @@
 package org.genvisis.cnv.analysis;
 
+import com.google.common.primitives.Doubles;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,8 +26,6 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Qc;
-
-import com.google.common.primitives.Doubles;
 
 /**
  * Class for running GCTA (http://cnsgenomics.com/software/gcta/)
@@ -70,12 +70,13 @@ public class GCTA {
   // Nother source
 
   public enum PHENO_TYPE {
-    PRE_PROCESSED,
-    /**
-     * 
-     * Assumes a DNA column as first index, and all other columns of phenotypes
-     */
-    DNA_PHENO_FILE;
+                          PRE_PROCESSED,
+                          /**
+                           * 
+                           * Assumes a DNA column as first index, and all other columns of
+                           * phenotypes
+                           */
+                          DNA_PHENO_FILE;
   }
 
   // /**
@@ -204,7 +205,8 @@ public class GCTA {
   // gcta64 --grm test --pheno test.phen --reml --qcovar test_10PCs.txt --out
   // test --thread-num 10
   private static VarianceResult determineVarianceExplained(String inputGrm, String output,
-      String phenoFile, String covarFile, int numthreads, Logger log) {
+                                                           String phenoFile, String covarFile,
+                                                           int numthreads, Logger log) {
     String[] inputs =
         new String[] {inputGrm + ".grm.bin", inputGrm + ".grm.N.bin", inputGrm + ".grm.id"};
     String summaryFile = output + ".hsq";
@@ -231,7 +233,7 @@ public class GCTA {
     command.add("--thread-num");
     command.add(numthreads + "");
     boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs,
-        outputs, true, false, false, log);
+                                                       outputs, true, false, false, log);
     return new VarianceResult(summaryFile, success, log);
   }
 
@@ -303,7 +305,7 @@ public class GCTA {
 
   // gcta64 --grm test --keep test.indi.list --pca 20 --out test
   private static boolean generatePCACovars(String inputGrm, String output, int numPCs,
-      int numthreads, Logger log) {
+                                           int numthreads, Logger log) {
     String[] inputs =
         new String[] {inputGrm + ".grm.bin", inputGrm + ".grm.N.bin", inputGrm + ".grm.id"};
 
@@ -321,13 +323,15 @@ public class GCTA {
     command.add("--thread-num");
     command.add(numthreads + "");
     boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs,
-        outputs, true, false, false, log);
+                                                       outputs, true, false, false, log);
     return success;
   }
 
   private static ArrayList<VarianceResult> processDNAPhenoFile(final Project proj, String mitoFile,
-      final String mergedGRM, boolean invNormalize, final String covarFile, int numThreads,
-      Logger log) {
+                                                               final String mergedGRM,
+                                                               boolean invNormalize,
+                                                               final String covarFile,
+                                                               int numThreads, Logger log) {
     ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
     builder.sampleBased(true);
     builder.requireAll(true);
@@ -379,7 +383,7 @@ public class GCTA {
           @Override
           public VarianceResult call() throws Exception {
             return determineVarianceExplained(mergedGRM, resultsDir + current, phenoFile, covarFile,
-                1, proj.getLog());
+                                              1, proj.getLog());
           }
         });
 
@@ -395,7 +399,7 @@ public class GCTA {
 
   // https://espace.library.uq.edu.au/view/UQ:342517/UQ342517_OA.pdf
   private static boolean removeCrypticRelated(String inputGrm, String outputGrm, double grmCutoff,
-      Logger log) {
+                                              Logger log) {
     // String[] inputs = new String[] { inputGrm };
 
     String[] outputs = new String[] {outputGrm + ".grm.N.bin", outputGrm + ".grm.id"};
@@ -409,7 +413,7 @@ public class GCTA {
     command.add("--out");
     command.add(outputGrm);
     boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", null,
-        outputs, true, false, false, log);
+                                                       outputs, true, false, false, log);
     return success;
   }
 
@@ -424,9 +428,11 @@ public class GCTA {
    * @param numthreads
    */
   private static void run(Project proj, String sampFile, String[] phenoFiles, PHENO_TYPE pType,
-      int pcCovars, double grmCutoff, int numthreads) {
+                          int pcCovars, double grmCutoff, int numthreads) {
     String[] samples = sampFile == null ? null
-        : HashVec.loadFileToStringArray(sampFile, false, false, new int[] {0}, false, true, "\t");
+                                        : HashVec.loadFileToStringArray(sampFile, false, false,
+                                                                        new int[] {0}, false, true,
+                                                                        "\t");
     Logger log = proj.getLog();
     String outDir = proj.PROJECT_DIRECTORY.getValue() + "gcta/";
     String plinkRoot = outDir + "gcta";
@@ -517,20 +523,21 @@ public class GCTA {
           PrintWriter writer = Files.getAppropriateWriter(output);
 
           for (int i = 0; i < phenoFiles.length; i++) {
-            ArrayList<VarianceResult> results = processDNAPhenoFile(proj, phenoFiles[i], mergeRmGRM,
-                true, covarFile, numthreads, log);
+            ArrayList<VarianceResult> results =
+                processDNAPhenoFile(proj, phenoFiles[i], mergeRmGRM, true, covarFile, numthreads,
+                                    log);
             if (i == 0) {
               // note that index is a sneaky way to report which PC
               // was used.
               writer.println("PhenoFile\tresultFile\tIndex\t"
-                  + Array.toStr(Array.toStringArray(results.get(0).source)));
+                             + Array.toStr(Array.toStringArray(results.get(0).source)));
             }
             for (VarianceResult varianceResult : results) {
-              writer.println(
-                  ext.removeDirectoryInfo(phenoFiles[i]) + "\t" + varianceResult.summaryFile + "\t"
-                      + ext.removeDirectoryInfo(varianceResult.summaryFile).replaceAll("\\.hsq", "")
-                          .replaceAll("PC", "")
-                      + "\t" + Array.toStr(Doubles.toArray(varianceResult.variance)));
+              writer.println(ext.removeDirectoryInfo(phenoFiles[i]) + "\t"
+                             + varianceResult.summaryFile + "\t"
+                             + ext.removeDirectoryInfo(varianceResult.summaryFile)
+                                  .replaceAll("\\.hsq", "").replaceAll("PC", "")
+                             + "\t" + Array.toStr(Doubles.toArray(varianceResult.variance)));
             }
           }
           writer.close();
@@ -561,7 +568,7 @@ public class GCTA {
    * Focusing on generating the grm for a single autosomal chromosome
    */
   private static GRM runGCTA(String plinkRoot, String output, double maf, byte chr, int numthreads,
-      Logger log) {
+                             Logger log) {
 
     String[] inputs = PSF.Plink.getPlinkBedBimFam(plinkRoot);
     ArrayList<String> command = new ArrayList<String>();
@@ -586,7 +593,7 @@ public class GCTA {
 
     String[] outputs = new String[] {output + ".grm.N.bin", output + ".grm.id"};
     boolean success = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs,
-        outputs, true, false, false, log);
+                                                       outputs, true, false, false, log);
 
     return new GRM(success, output);
   }
@@ -601,17 +608,17 @@ public class GCTA {
     Project proj;
     int numthreads = 24;
     int pcCovars = 10;
-  
+
     String usage = "\n" + "cnv.analysis.GCTA requires 1-3 arguments\n"
-        + "   (1) project properties filename (i.e. proj="
-        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-        + "   (2) samples to use (i.e. samps= (defaults to all samples))\n"
-        + PSF.Ext.getNumThreadsCommand(3, numthreads) + "\n"
-        + "   (4) phenotype file(s) (i.e. pheno= (no default))\n"
-        + "   (5) number of Principal components to compute for covariate use, set to -1 to skip (i.e. pcCovars="
-        + pcCovars + " (default))\n" + "   (6) grm relatedness cutoff (i.e. grmCutoff=" + grmCutoff
-        + " (default))\n" + "";
-  
+                   + "   (1) project properties filename (i.e. proj="
+                   + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+                   + "   (2) samples to use (i.e. samps= (defaults to all samples))\n"
+                   + PSF.Ext.getNumThreadsCommand(3, numthreads) + "\n"
+                   + "   (4) phenotype file(s) (i.e. pheno= (no default))\n"
+                   + "   (5) number of Principal components to compute for covariate use, set to -1 to skip (i.e. pcCovars="
+                   + pcCovars + " (default))\n" + "   (6) grm relatedness cutoff (i.e. grmCutoff="
+                   + grmCutoff + " (default))\n" + "";
+
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
         System.err.println(usage);

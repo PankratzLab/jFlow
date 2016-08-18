@@ -18,7 +18,7 @@ import org.genvisis.common.ext;
 import org.genvisis.stats.Maths;
 
 public class GenParser {
-   private static class StringListReader extends BufferedReader {
+  private static class StringListReader extends BufferedReader {
 
     public StringListReader(List<String> data) {
       super(new StringReader(makeString(data)));
@@ -40,8 +40,9 @@ public class GenParser {
   public static final int DIVIDE = 3;
   public static final String OPERATORS = "+-*/";
 
-  public static final String[][] LINUX_SUBSTITUTIONS = {{"<=", "LTE"}, {"<", "LT"}, {">=", "GTE"},
-      {">", "GT"}, {"=>", "replace"}, {"$", "F"}, {"*", "x"}, {"/", "div"}};
+  public static final String[][] LINUX_SUBSTITUTIONS =
+      {{"<=", "LTE"}, {"<", "LT"}, {">=", "GTE"}, {">", "GT"}, {"=>", "replace"}, {"$", "F"},
+       {"*", "x"}, {"/", "div"}};
 
   private Logger log;
   private BufferedReader reader;
@@ -91,14 +92,15 @@ public class GenParser {
     filename = data == null ? line[0] : "in-memory";
     commaDelimited =
         (data == null ? Files.suggestDelimiter(filename, log) : ext.determineDelimiter(data.get(0)))
-            .equals(",") || ext.indexOfStr(",", line) >= 0;
+                                                                                                    .equals(",")
+                     || ext.indexOfStr(",", line) >= 0;
     tabDelimited = ext.indexOfStr("tab", line, false, true, log, false) >= 0;
     simplifyQuotes = ext.indexOfStr("doNotSimplifyQuotes", line) == -1;
 
     String delim =
         commaDelimited ? "," + (simplifyQuotes ? "!" : "") : (tabDelimited ? "\t" : "[\\s]+");
     columnHeaders = data == null ? Files.getHeaderOfFile(filename, delim, log)
-        : ext.splitLine(data.get(0), delim, log);
+                                 : ext.splitLine(data.get(0), delim, log);
     if (Array.toStr(line).contains("'")) {
       for (int i = 0; i < line.length; i++) {
         indices = ext.indicesWithinString("'", line[i]);
@@ -111,13 +113,13 @@ public class GenParser {
           trav = line[i].substring(indices[j * 2 + 0] + 1, indices[j * 2 + 1]);
           index = ext.indexOfStr(trav, columnHeaders);
           if (index == -1) {
-            System.err.println(
-                "Error - could not find a column labeled \"" + trav + "\" in file " + filename);
+            System.err.println("Error - could not find a column labeled \"" + trav + "\" in file "
+                               + filename);
             failed = true;
             return;
           } else {
             line[i] = line[i].substring(0, indices[j * 2 + 0]) + index
-                + line[i].substring(indices[j * 2 + 1] + 1);
+                      + line[i].substring(indices[j * 2 + 1] + 1);
           }
         }
       }
@@ -140,10 +142,9 @@ public class GenParser {
       } else if (line[j].startsWith("replace=")) {
         replaceBlanks = ext.parseStringArg(line[j], "");
       } else if (line[j].equals("simplifyQuotes")) {
-        log.report(
-            "The GenParser argument \"simplifyQuotes\" has been deprecated; it is now the default functionality and you must use \"doNotSimplifyQuotes\" if you don't want it");
+        log.report("The GenParser argument \"simplifyQuotes\" has been deprecated; it is now the default functionality and you must use \"doNotSimplifyQuotes\" if you don't want it");
       } else if (line[j].equalsIgnoreCase("tab") || line[j].equals(",")
-          || line[j].equalsIgnoreCase("doNotSimplifyQuotes")) {
+                 || line[j].equalsIgnoreCase("doNotSimplifyQuotes")) {
         // already taken care of
       } else if (line[j].equalsIgnoreCase("fail")) {
         forceFailCodes = true;
@@ -153,7 +154,7 @@ public class GenParser {
         filters.add(line[j].substring(1));
       } else if (line[j].indexOf("=>") >= 0) {
         replacesV.add(new String[] {line[j].substring(0, line[j].indexOf("=>")),
-            line[j].substring(line[j].indexOf("=>") + 2)});
+                                    line[j].substring(line[j].indexOf("=>") + 2)});
       } else if (line[j].equals("*")) {
         for (int i = 0; i < columnHeaders.length; i++) {
           columns.add(i + "");
@@ -228,16 +229,20 @@ public class GenParser {
 
     maxCol = -9;
     try {
-      reader =
-          data == null ? Files.getAppropriateReader(filename) : new StringListReader(data);
+      reader = data == null ? Files.getAppropriateReader(filename) : new StringListReader(data);
       if (skip == -2) {
         if (commaDelimited) {
-          originalColumnNames = ext.splitCommasIntelligently(
-              ext.replaceAllWith(reader.readLine().trim(), replaces), simplifyQuotes, log);
+          originalColumnNames =
+              ext.splitCommasIntelligently(ext.replaceAllWith(reader.readLine().trim(), replaces),
+                                           simplifyQuotes, log);
         } else {
-          originalColumnNames = ext.replaceAllWith(
-              commaDelimited || tabDelimited ? reader.readLine() : reader.readLine().trim(),
-              replaces).split(tabDelimited ? "\t" : "[\\s]+", -1);
+          originalColumnNames = ext
+                                   .replaceAllWith(commaDelimited || tabDelimited
+                                                                                  ? reader.readLine()
+                                                                                  : reader.readLine()
+                                                                                          .trim(),
+                                                   replaces)
+                                   .split(tabDelimited ? "\t" : "[\\s]+", -1);
         }
         for (int j = 0; j < cols.length; j++) {
           if (colNames[j] == null) {
@@ -334,9 +339,8 @@ public class GenParser {
     truncatedLine = false;
     if (line.length < maxCol) {
       if (numTruncatedLines < 3) {
-        log.reportError(
-            "Error - the number of tokens in the following string is less than the max column index of "
-                + maxCol);
+        log.reportError("Error - the number of tokens in the following string is less than the max column index of "
+                        + maxCol);
         log.reportError(temp);
       } else if (numTruncatedLines == 10) {
         log.reportError("...");
@@ -357,8 +361,8 @@ public class GenParser {
             passedFilter = false;
           }
         } else if (ext.isMissingValue(line[filterCols[i]])
-            || !Maths.op(Double.parseDouble(line[filterCols[i]]),
-                Double.parseDouble(filterValues[i]), filterOps[i])) {
+                   || !Maths.op(Double.parseDouble(line[filterCols[i]]),
+                                Double.parseDouble(filterValues[i]), filterOps[i])) {
           passedFilter = false;
         }
       }
@@ -394,8 +398,8 @@ public class GenParser {
                   try {
                     d = procDouble(line[Integer.parseInt(computes[spi][i])], Double.NaN, log);
                   } catch (NumberFormatException nfe) {
-                    log.reportError(
-                        "Error - invalid operator or something... \"" + computes[spi][i] + "\"");
+                    log.reportError("Error - invalid operator or something... \"" + computes[spi][i]
+                                    + "\"");
                     log.reportException(nfe);
                     failed = true;
                     return parsed;
@@ -492,7 +496,7 @@ public class GenParser {
     ArrayList<String> returnData = new ArrayList<String>();
     time = new Date().getTime();
     parser = new GenParser(line, data, log);
-  
+
     if (log.getLevel() > 8) {
       log.report("Parsing '" + line[0] + "'", true, true, 1);
     }
@@ -517,7 +521,7 @@ public class GenParser {
     if (log.getLevel() > 8) {
       log.report(" which took " + ext.getTimeElapsed(time), true, true, 1);
     }
-  
+
     return returnData;
   }
 
@@ -528,10 +532,10 @@ public class GenParser {
     String[] header, trav;
     int nonNull;
     String filename, delimiter;
-  
+
     time = new Date().getTime();
     parser = new GenParser(line, null, log);
-  
+
     filename = parser.getOutfile();
     delimiter = Files.suggestDelimiter(filename, log);
     writer = Files.getAppropriateWriter(filename);// new PrintWriter(new FileWriter(filename));
@@ -564,11 +568,10 @@ public class GenParser {
 
   public static void parseFile(String filename, Logger log) {
     String[][] params;
-  
+
     params = Files.parseControlFile(filename, false, "parse",
-        new String[] {
-            "data.csv , out=parsed_data.xln !11!NA !10>-5 !10<5 !1=2 0 'Chr'=chr 2=pos 10 11 $12*13=effN;0 $'n'*'Rsq'=effN2 skip=11 replace=. 12=Needed;NA fail RS=>rs doNotSimplifyQuotes"},
-        log);
+                                    new String[] {"data.csv , out=parsed_data.xln !11!NA !10>-5 !10<5 !1=2 0 'Chr'=chr 2=pos 10 11 $12*13=effN;0 $'n'*'Rsq'=effN2 skip=11 replace=. 12=Needed;NA fail RS=>rs doNotSimplifyQuotes"},
+                                    log);
     if (params != null) {
       parse(params[0], log);
     }
@@ -576,13 +579,13 @@ public class GenParser {
 
   public static String parseSerialFilename(String[] line) {
     String str;
-  
+
     str = line[0];
     for (int i = 1; i < line.length; i++) {
       str += "_" + ext.replaceAllWith(line[i], LINUX_SUBSTITUTIONS);
     }
     str += ".ser";
-  
+
     return str;
   }
 
@@ -610,41 +613,42 @@ public class GenParser {
   public static void main(String[] args) throws IOException {
     String usage =
         "\n" + "parse.GenParser requires 2+ arguments and will take the form of something like:\n"
-            + "    data.csv , out=parsed_data.xln !1=2 !11!NA !10>-5 !10<5 0 1 2 10 11\n" + "\n"
-            + "  where at a minimum you will have the file name and the columns you are intrested in.\n"
-            + "\n" + "  Optional parameters include:\n"
-            + "    ,               file is comma delimited (default is whitespace delimited, unless filename ends with .csv)\n"
-            + "    tab             file is tab delimited (i.e. fields can include blanks and spaces)\n"
-            + "    out=file.txt    delineates a specific output file name\n"
-            + "    skip=5          skip the first 5 rows (default is skip=1)\n"
-            + "    noHeader        will start parsing the first row (i.e. skip=0)\n"
-            + "    RS=>rs          replaces all instances of 'RS' in the line with 'rs'\n"
-            + "    'beta'          report the column called \"beta\"\n"
-            + "    1=chr           report index 1 and call the column \"chr\"\n"
-            + "    !               anything starting with ! indicates a filter\n"
-            + "    !1=2            includes only those rows with a 2 in column index 1 (column 2)\n"
-            + "    !11!NA          will filter out any line where column index 11 equals 'NA'\n"
-            + "    !10>-5          includes lines where the number in column index 10 is greater than -5\n"
-            + "    !10>=-5         includes lines where the number in column index 10 is greater than or equal to -5\n"
-            + "    $               anything starting with $ indicates a computation\n"
-            + "    $12*13=effN     multiply column index 13 by column index 12\n"
-            + "    $'n'*'Rsq'=effN multiply column with header 'n' by column with header 'Rsq'\n"
-            + "    $#12*13=rate    multiply column index 13 by a constant (here 12.0)\n"
-            + "    replace=.       replace empty columns with a period\n"
-            + "    fail            normally row is absent if the row fails criteria, this will force fail codes\n"
-            + "    12=Needed;NA    fail code for this column will be set to \"NA\" instead of the default \".\"\n"
-            + "    @1.1 or @fini   set to this value no matter what\n"
-            + "    $%2;3:1;2:1;1:0;.	check value in column index 2 and if it is 3 or 2 then replace with 1, if 1 then replace with 0, otherwise set to missing\n"
-            + "    *               all columns in file with the original header\n"
-            + "    doNotSimplifyQuotes  after smartCommaSplit, the surrounding quotes are normally removed and the rest are simplified; this will prevent that\n"
-            + "";
-  
+                   + "    data.csv , out=parsed_data.xln !1=2 !11!NA !10>-5 !10<5 0 1 2 10 11\n"
+                   + "\n"
+                   + "  where at a minimum you will have the file name and the columns you are intrested in.\n"
+                   + "\n" + "  Optional parameters include:\n"
+                   + "    ,               file is comma delimited (default is whitespace delimited, unless filename ends with .csv)\n"
+                   + "    tab             file is tab delimited (i.e. fields can include blanks and spaces)\n"
+                   + "    out=file.txt    delineates a specific output file name\n"
+                   + "    skip=5          skip the first 5 rows (default is skip=1)\n"
+                   + "    noHeader        will start parsing the first row (i.e. skip=0)\n"
+                   + "    RS=>rs          replaces all instances of 'RS' in the line with 'rs'\n"
+                   + "    'beta'          report the column called \"beta\"\n"
+                   + "    1=chr           report index 1 and call the column \"chr\"\n"
+                   + "    !               anything starting with ! indicates a filter\n"
+                   + "    !1=2            includes only those rows with a 2 in column index 1 (column 2)\n"
+                   + "    !11!NA          will filter out any line where column index 11 equals 'NA'\n"
+                   + "    !10>-5          includes lines where the number in column index 10 is greater than -5\n"
+                   + "    !10>=-5         includes lines where the number in column index 10 is greater than or equal to -5\n"
+                   + "    $               anything starting with $ indicates a computation\n"
+                   + "    $12*13=effN     multiply column index 13 by column index 12\n"
+                   + "    $'n'*'Rsq'=effN multiply column with header 'n' by column with header 'Rsq'\n"
+                   + "    $#12*13=rate    multiply column index 13 by a constant (here 12.0)\n"
+                   + "    replace=.       replace empty columns with a period\n"
+                   + "    fail            normally row is absent if the row fails criteria, this will force fail codes\n"
+                   + "    12=Needed;NA    fail code for this column will be set to \"NA\" instead of the default \".\"\n"
+                   + "    @1.1 or @fini   set to this value no matter what\n"
+                   + "    $%2;3:1;2:1;1:0;.	check value in column index 2 and if it is 3 or 2 then replace with 1, if 1 then replace with 0, otherwise set to missing\n"
+                   + "    *               all columns in file with the original header\n"
+                   + "    doNotSimplifyQuotes  after smartCommaSplit, the surrounding quotes are normally removed and the rest are simplified; this will prevent that\n"
+                   + "";
+
     // args = new String [] {"subset.genome_parsed.xln out=admixedUnrelatedsCheck.txt 0 1 2 3 6 7 8
     // 9 !9>0.2"};
     // args = new String [] {"ESFreeze3_snpinfo_042913.csv.gz
     // out=ESFreeze3_snpinfo_042913_min.csv'SNP' 'CHROM' 'POS' 'REF' 'ALT' 'MAF' 'SKATgene'
     // 'sc_nonsynSplice'"};
-  
+
     if (args.length == 1) {
       args = ext.removeQuotes(args[0]).trim().split("[\\s]+");
     }
@@ -652,7 +656,7 @@ public class GenParser {
       System.err.println(usage);
       System.exit(1);
     }
-  
+
     try {
       parse(args, new Logger());
     } catch (Exception e) {

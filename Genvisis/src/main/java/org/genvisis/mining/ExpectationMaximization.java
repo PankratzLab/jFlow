@@ -13,19 +13,18 @@ public class ExpectationMaximization {
   /**
    * Initializes the mixture model with points that are closet the given means.
    */
-  public static UnivariateGaussianMixtureModel initialize(Point[] points, double[] means,double[] sd) {
+  public static UnivariateGaussianMixtureModel initialize(Point[] points, double[] means,
+                                                          double[] sd) {
     UnivariateGaussianMixtureModel mm = new UnivariateGaussianMixtureModel(means.length);
-  
+
     for (int i = 0; i < means.length; i++) {
-      mm.weight[i] = (float) 1/means.length;
+      mm.weight[i] = (float) 1 / means.length;
       PVector param = new PVector(2);
 
-      Point tmpPoint = null;
       double minD = Double.MAX_VALUE;
-      for (int j=0; j<points.length; j++) {
-        double d = Math.abs(points[j].value - means[i]);
-        if ( d < minD ) {
-          tmpPoint = points[j];
+      for (Point point : points) {
+        double d = Math.abs(point.value - means[i]);
+        if (d < minD) {
           minD = d;
         }
       }
@@ -45,7 +44,7 @@ public class ExpectationMaximization {
 
     Integer[] arr = sampleNUniquePoints(n, points.length);
     for (int i = 0; i < n; i++) {
-      mm.weight[i] = (float) 1/n;
+      mm.weight[i] = (float) 1 / n;
       PVector param = new PVector(2);
       param.array[0] = points[arr[i]].value;
       param.array[1] = 1;
@@ -63,7 +62,8 @@ public class ExpectationMaximization {
    * @param m initial mixture model
    * @return learned mixture model
    */
-  public static UnivariateGaussianMixtureModel run(Point[] points, UnivariateGaussianMixtureModel m) {
+  public static UnivariateGaussianMixtureModel run(Point[] points,
+                                                   UnivariateGaussianMixtureModel m) {
     UnivariateGaussianMixtureModel mixtureModel = m.clone();
 
     // Variables
@@ -75,7 +75,7 @@ public class ExpectationMaximization {
 
     // Initial log likelihood
     double logLikelihoodNew = logLikelihood(points, mixtureModel);
-    double logLikelihoodThreshold = 10e-10; //Math.abs(logLikelihoodNew) * 0.01;
+    double logLikelihoodThreshold = 10e-10; // Math.abs(logLikelihoodNew) * 0.01;
     double logLikelihoodOld;
 
     System.out.printf("Iteration %2d: LL = %12.6f\n", iterations, logLikelihoodNew);
@@ -88,8 +88,9 @@ public class ExpectationMaximization {
       for (n = 0; n < numPoints; n++) {
         double sum = 0;
         for (k = 0; k < numComponents; k++) {
-          double tmp = mixtureModel.weight[k] *
-              UnivariateGaussianMixtureModel.densityOfGaussian(points[n], mixtureModel.param[k]);
+          double tmp = mixtureModel.weight[k]
+                       * UnivariateGaussianMixtureModel.densityOfGaussian(points[n],
+                                                                          mixtureModel.param[k]);
           p[n][k] = tmp;
           sum += tmp;
         }
@@ -134,8 +135,9 @@ public class ExpectationMaximization {
       logLikelihoodNew = logLikelihood(points, mixtureModel);
 
       System.out.printf("Iteration %2d: LL = %12.6f\n", iterations, logLikelihoodNew);
-    } while (Math.abs((logLikelihoodNew - logLikelihoodOld)/logLikelihoodOld) > logLikelihoodThreshold
-        && iterations < MAX_ITERATIONS);
+    } while (Math.abs((logLikelihoodNew - logLikelihoodOld)
+                      / logLikelihoodOld) > logLikelihoodThreshold
+             && iterations < MAX_ITERATIONS);
 
     return mixtureModel;
   }
@@ -149,22 +151,22 @@ public class ExpectationMaximization {
    */
   public static double logLikelihood(Point[] points, UnivariateGaussianMixtureModel f) {
     double value = 0;
-    for (int i = 0; i < points.length; i++) {
-      value += Math.log(f.density(points[i]));
+    for (Point point : points) {
+      value += Math.log(f.density(point));
     }
-		return value;
-	}
+    return value;
+  }
 
-	public static final Integer[] sampleNUniquePoints(int n, int length) {
-		Random rand = new Random();
-		HashSet<Integer> set = new HashSet<Integer>();
-		while (set.size() < n) {
-			int r = rand.nextInt(length);
-			if (!set.contains(r)) {
-				set.add(r);
-			}
-		}
+  public static final Integer[] sampleNUniquePoints(int n, int length) {
+    Random rand = new Random();
+    HashSet<Integer> set = new HashSet<Integer>();
+    while (set.size() < n) {
+      int r = rand.nextInt(length);
+      if (!set.contains(r)) {
+        set.add(r);
+      }
+    }
 
-		return set.toArray(new Integer[set.size()]);
+    return set.toArray(new Integer[set.size()]);
   }
 }

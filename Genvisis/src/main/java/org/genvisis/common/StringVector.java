@@ -7,21 +7,21 @@ import java.util.Vector;
  */
 public class StringVector extends Vector<String> implements PrimitiveVector {
 
-	private static final long serialVersionUID = -3741807344249792544L;
+  private static final long serialVersionUID = -3741807344249792544L;
 
-	/**
-	 * Create an empty vector.
-	 */
-	public StringVector() {
-		super();
-	}
+  /**
+   * Create an empty vector.
+   */
+  public StringVector() {
+    super();
+  }
 
-	/**
-	 * Create a vector with the given initial values.
-	 */
-	public StringVector(String... strings) {
-		for (String s : strings) {
-			add(s);
-		}
-	}
+  /**
+   * Create a vector with the given initial values.
+   */
+  public StringVector(String... strings) {
+    for (String s : strings) {
+      add(s);
+    }
+  }
 }

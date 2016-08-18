@@ -18,7 +18,7 @@ public class SerializedFiles {
 
   /**
    * returns a serialized version of the non serial filename
-   * 
+   *
    * @param altDir if the file should be in a different directory (optional)
    * @param nonSerialFilename
    * @return
@@ -44,7 +44,7 @@ public class SerializedFiles {
   }
 
   public static Object readSerial(String filename, boolean jar, Logger log, boolean kill,
-      boolean gzipped) {
+                                  boolean gzipped) {
     InputStream in;
     ObjectInputStream ois = null;
     Object o = null;
@@ -80,8 +80,10 @@ public class SerializedFiles {
   }
 
   private static synchronized Object readSerialFixClassname(final String filename, boolean jar,
-      final Logger log, boolean kill, boolean gzipped)
-      throws FileNotFoundException, IOException, ClassNotFoundException {
+                                                            final Logger log, boolean kill,
+                                                            boolean gzipped) throws FileNotFoundException,
+                                                                             IOException,
+                                                                             ClassNotFoundException {
     InputStream in;
     ObjectInputStream ois;
     Object o;
@@ -95,8 +97,8 @@ public class SerializedFiles {
     }
     ois = new ObjectInputStream(in) {
       @Override
-      protected Class<?> resolveClass(ObjectStreamClass desc)
-          throws IOException, ClassNotFoundException {
+      protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException,
+                                                              ClassNotFoundException {
         try {
           return super.resolveClass(desc);
         } catch (ClassNotFoundException cnfe) {
@@ -114,7 +116,7 @@ public class SerializedFiles {
           Class<?> convertedClass =
               Class.forName(convertedClassDesc, false, ClassLoader.getSystemClassLoader());
           log.reportTimeWarning("The Class (" + name + ") for the Serialized Object " + filename
-              + " cannot be resolved, attempting to use " + convertedClassDesc);
+                                + " cannot be resolved, attempting to use " + convertedClassDesc);
           return convertedClass;
 
         }
@@ -128,8 +130,8 @@ public class SerializedFiles {
     if (writeSerial(o, filename, gzipped)) {
       log.report("Succesfully rewrote " + filename + " as a serialized " + o.getClass().getName());
     } else {
-      log.reportTimeError(
-          "Could not rewrite " + filename + " as a serialized " + o.getClass().getName());
+      log.reportTimeError("Could not rewrite " + filename + " as a serialized "
+                          + o.getClass().getName());
       if (Files.copyFile(backupFile, filename)) {
         new File(backupFile).delete();
       }
@@ -139,7 +141,7 @@ public class SerializedFiles {
 
   /**
    * Checks if a serialized version of the non serial filename exists
-   * 
+   *
    * @param altDir if the file should be in a different directory (optional)
    * @param nonSerialFilename
    * @return

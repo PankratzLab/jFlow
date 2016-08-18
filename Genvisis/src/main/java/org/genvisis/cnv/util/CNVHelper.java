@@ -7,17 +7,20 @@ import htsjdk.tribble.annotation.Strand;
  */
 public final class CNVHelper {
 
-	/**
-	 * @param strand
-	 * @return Single-character string equivalent of the given Strand enum.
-	 */
-	public static String decode(Strand strand) {
-		switch (strand) {
-			case NEGATIVE: return "-";
-			case POSITIVE: return "+";
-			case NONE:
-			default: return "!";
-		}
+  /**
+   * @param strand
+   * @return Single-character string equivalent of the given Strand enum.
+   */
+  public static String decode(Strand strand) {
+    switch (strand) {
+      case NEGATIVE:
+        return "-";
+      case POSITIVE:
+        return "+";
+      case NONE:
+      default:
+        return "!";
+    }
 
-	}
+  }
 }

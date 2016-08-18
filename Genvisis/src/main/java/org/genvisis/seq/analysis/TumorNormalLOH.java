@@ -8,10 +8,10 @@ package org.genvisis.seq.analysis;
  */
 public class TumorNormalLOH {
 
-//	private static void scan(String vcf, String vpopFile, String outputDir) {
-//		new File(outputDir).mkdirs();
-//		Logger log = new Logger(outputDir + "lohscan.log");
-//
-//	}
+  // private static void scan(String vcf, String vpopFile, String outputDir) {
+  // new File(outputDir).mkdirs();
+  // Logger log = new Logger(outputDir + "lohscan.log");
+  //
+  // }
 
 }

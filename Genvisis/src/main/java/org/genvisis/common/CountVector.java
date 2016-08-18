@@ -1,113 +1,116 @@
-// The speed of CountHash is constant for a fixed number of entries. CountVector has a comparable speed up to 50 unique values and then becomes much slower: 50% slower at 100 values, twice as slow at 200 values, 8x at 1000 values, nearly linear
+// The speed of CountHash is constant for a fixed number of entries. CountVector has a comparable
+// speed up to 50 unique values and then becomes much slower: 50% slower at 100 values, twice as
+// slow at 200 values, 8x at 1000 values, nearly linear
 package org.genvisis.common;
-
-import java.util.*;
 
 import com.google.common.primitives.Ints;
 
+import java.util.Hashtable;
+import java.util.Vector;
+
 public class CountVector {
-	private Vector<String> v;
-	private IntVector iv;
-	private int[] order;
+  private final Vector<String> v;
+  private final IntVector iv;
+  private int[] order;
 
-	public CountVector() {
-		v = new Vector<String>();
-		iv = new IntVector();
-		order = null;
-	}
+  public CountVector() {
+    v = new Vector<String>();
+    iv = new IntVector();
+    order = null;
+  }
 
-	public CountVector(Hashtable<String,String> hash) {
-		this();
+  public CountVector(Hashtable<String, String> hash) {
+    this();
 
-		String[] keys;
-		
-		keys = HashVec.getKeys(hash);
-		for (int i = 0; i < keys.length; i++) {
-			add(hash.get(keys[i]));
-		}
-	}
+    String[] keys;
 
-	public void add(String str) {
-		int index = v.indexOf(str);
+    keys = HashVec.getKeys(hash);
+    for (String key : keys) {
+      add(hash.get(key));
+    }
+  }
 
-		if (index==-1) {
-			v.add(str);
-			iv.add(1);
-		} else {
-			iv.set(index, iv.get(index)+1);
-		}
-		order = null;
-	}
-	
-	public void clear() {
-		v.clear();
-		iv.clear();
-		order = null;
-	}	
+  public void add(String str) {
+    int index = v.indexOf(str);
 
-	public String[] getValues() {
-		if (order == null) {
-			return Array.toStringArray(v);
-		} else {
-			return Array.toStringArray(v, order);
-		}
-	}
+    if (index == -1) {
+      v.add(str);
+      iv.add(1);
+    } else {
+      iv.set(index, iv.get(index) + 1);
+    }
+    order = null;
+  }
 
-	public int[] getCounts() {
-		if (order == null) {
-			return Ints.toArray(iv);
-		} else {
-			return Vectors.orderedArray(iv, order);
-		}
-	}
+  public void clear() {
+    v.clear();
+    iv.clear();
+    order = null;
+  }
 
-	public int getSize() {
-		return v.size();
-	}
+  public String[] getValues() {
+    if (order == null) {
+      return Array.toStringArray(v);
+    } else {
+      return Array.toStringArray(v, order);
+    }
+  }
 
-	public String[] list() {
-		String[] results = new String[v.size()];
+  public int[] getCounts() {
+    if (order == null) {
+      return Ints.toArray(iv);
+    } else {
+      return Vectors.orderedArray(iv, order);
+    }
+  }
 
-		for (int i = 0; i<v.size(); i++) {
-			results[i] = v.elementAt(i)+" (n="+iv.elementAt(i)+")";
-		}
+  public int getSize() {
+    return v.size();
+  }
 
-		return results;
-	}
+  public String[] list() {
+    String[] results = new String[v.size()];
 
-	public Hashtable<String,String> convertToHash() {
-		Hashtable<String,String> hash;
-		
-		hash = new Hashtable<String,String>();
-		for (int i = 0; i<v.size(); i++) {
-			hash.put(v.elementAt(i), iv.elementAt(i)+"");
-        }
-		
-		return hash;
-	}
-	
-	public void sort(boolean ascending) {
-		order = Sort.quicksort(Ints.toArray(iv), ascending?Sort.ASCENDING:Sort.DESCENDING);
-	}
+    for (int i = 0; i < v.size(); i++) {
+      results[i] = v.elementAt(i) + " (n=" + iv.elementAt(i) + ")";
+    }
 
-	public static CountVector[] initArray(int size) {
-		CountVector[] array = new CountVector[size];
+    return results;
+  }
 
-		for (int i = 0; i<array.length; i++) {
-			array[i] = new CountVector();
-		}
+  public Hashtable<String, String> convertToHash() {
+    Hashtable<String, String> hash;
 
-		return array;
-	}
+    hash = new Hashtable<String, String>();
+    for (int i = 0; i < v.size(); i++) {
+      hash.put(v.elementAt(i), iv.elementAt(i) + "");
+    }
 
-	public int getCount(String value) {
-		for (int i = 0; i < v.size(); i++) {
-			if (value.equals(v.elementAt(i))) {
-				return iv.elementAt(i);
-			}
-		}
-		
-		return 0;
-	}
-	
+    return hash;
+  }
+
+  public void sort(boolean ascending) {
+    order = Sort.quicksort(Ints.toArray(iv), ascending ? Sort.ASCENDING : Sort.DESCENDING);
+  }
+
+  public static CountVector[] initArray(int size) {
+    CountVector[] array = new CountVector[size];
+
+    for (int i = 0; i < array.length; i++) {
+      array[i] = new CountVector();
+    }
+
+    return array;
+  }
+
+  public int getCount(String value) {
+    for (int i = 0; i < v.size(); i++) {
+      if (value.equals(v.elementAt(i))) {
+        return iv.elementAt(i);
+      }
+    }
+
+    return 0;
+  }
+
 }

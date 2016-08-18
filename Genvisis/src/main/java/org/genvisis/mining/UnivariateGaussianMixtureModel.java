@@ -1,6 +1,6 @@
 package org.genvisis.mining;
 
-//	public int n
+// public int n
 
 import java.util.Random;
 
@@ -14,21 +14,21 @@ public class UnivariateGaussianMixtureModel {
    * Class constructor.
    */
   public UnivariateGaussianMixtureModel() {
-    this.size = 0;
+    size = 0;
   }
-  
-  public void setSize(int n){
-    this.size = n;
-    this.weight = new double[n];
-    this.param = new PVector[n];  
-    this.pos = new int[n];
+
+  public void setSize(int n) {
+    size = n;
+    weight = new double[n];
+    param = new PVector[n];
+    pos = new int[n];
   }
-  
+
   public UnivariateGaussianMixtureModel(int n) {
-    this.size = n;
-    this.weight = new double[n];
-    this.param = new PVector[n];
-    this.pos = new int[n];
+    size = n;
+    weight = new double[n];
+    param = new PVector[n];
+    pos = new int[n];
   }
 
   /**
@@ -39,8 +39,9 @@ public class UnivariateGaussianMixtureModel {
    */
   public double density(Point x) {
     double cumul = 0.0d;
-    for (int i = 0; i < this.size; i++)
-      cumul += this.weight[i] * densityOfGaussian(x, this.param[i]);
+    for (int i = 0; i < size; i++) {
+      cumul += weight[i] * densityOfGaussian(x, param[i]);
+    }
     return cumul;
   }
 
@@ -51,20 +52,23 @@ public class UnivariateGaussianMixtureModel {
   public void normalizeWeights() {
     double sum = 0;
     int i;
-    for (i = 0; i < this.size; i++)
-      sum += this.weight[i];
-    for (i = 0; i < this.size; i++)
-      this.weight[i] /= sum;
+    for (i = 0; i < size; i++) {
+      sum += weight[i];
+    }
+    for (i = 0; i < size; i++) {
+      weight[i] /= sum;
+    }
   }
 
   /**
    * Method toString.
-   * 
+   *
    * @return string describing the mixture model
    */
+  @Override
   public String toString() {
     String output = String.format("Mixture containing %d components\n", size);
-    for (int i = 0; i < this.size; i++) {
+    for (int i = 0; i < size; i++) {
       output += String.format("  Component %4d: ", pos[i]);
       output += String.format("Weight = %8.6f ", weight[i]);
       output += String.format("Parameters = %s\n", param[i]);
@@ -74,30 +78,32 @@ public class UnivariateGaussianMixtureModel {
 
   /**
    * Creates and returns a copy of the instance.
-   * 
+   *
    * @return a clone of the instance
    */
+  @Override
   public UnivariateGaussianMixtureModel clone() {
-    UnivariateGaussianMixtureModel mm = new UnivariateGaussianMixtureModel(this.size);
-    mm.weight = this.weight.clone();
-    mm.pos = this.pos.clone();
-    for (int i = 0; i < this.size; i++)
-      mm.param[i] = (PVector) this.param[i].clone();
+    UnivariateGaussianMixtureModel mm = new UnivariateGaussianMixtureModel(size);
+    mm.weight = weight.clone();
+    mm.pos = pos.clone();
+    for (int i = 0; i < size; i++) {
+      mm.param[i] = param[i].clone();
+    }
     return mm;
   }
 
   /**
    * Return the dimension of the parameters of the mixture model.
-   * 
+   *
    * @return parameters's dimension
    */
   public int getDimension() {
-    return this.param[0].getDimension();
+    return param[0].getDimension();
   }
 
   /**
    * Draws points from the considered mixture model.
-   * 
+   *
    * @param m number of points to draw
    * @return a point
    */
@@ -107,11 +113,11 @@ public class UnivariateGaussianMixtureModel {
     Point[] points = new Point[m];
 
     // Cumulative array
-    int n = this.size;
+    int n = size;
     double[] t = new double[n];
     double sum = 0;
     for (int i = 0; i < n; i++) {
-      sum += this.weight[i];
+      sum += weight[i];
       t[i] = sum;
     }
 
@@ -123,18 +129,19 @@ public class UnivariateGaussianMixtureModel {
 
       // Find generative class
       int idx = 0;
-      while (t[idx] < r && idx < n - 1)
+      while (t[idx] < r && idx < n - 1) {
         idx++;
+      }
 
       // Draw and return the point from the idx-th model
-      points[i] = drawRandomPointFromGaussian(this.param[idx]);
+      points[i] = drawRandomPointFromGaussian(param[idx]);
     }
     return points;
   }
 
   /**
    * Computes the density value \f$ f(x;\mu,\sigma^2) \f$.
-   * 
+   *
    * @param x point
    * @param param parameters (source, natural, or expectation)
    * @return \f$ f(x;\mu,\sigma^2) = \frac{1}{ \sqrt{2\pi \sigma^2} } \exp \left( -
@@ -142,13 +149,13 @@ public class UnivariateGaussianMixtureModel {
    */
   public static double densityOfGaussian(Point x, PVector param) {
     return Math.exp(-(x.value - param.array[0]) * (x.value - param.array[0])
-          / (2.0d * param.array[1]))
-          / (Math.sqrt(2.0d * Math.PI * param.array[1]));
+                    / (2.0d * param.array[1]))
+           / (Math.sqrt(2.0d * Math.PI * param.array[1]));
   }
 
   /**
    * Draws a point from the considered distribution.
-   * 
+   *
    * @param L source parameters \f$ \mathbf{\Lambda} = ( \mu , \sigma^2 )\f$
    * @return a point
    */

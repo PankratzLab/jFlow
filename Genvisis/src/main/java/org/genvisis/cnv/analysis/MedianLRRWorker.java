@@ -120,8 +120,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
         if (index.containsKey(markersInRegion.get(i))) {
           markerIndex.add(index.get(markersInRegion.get(i)));
         } else {
-          computelog.reportError(
-              "Error -could not find marker " + markersInRegion.get(i) + " in Marker Lookup");
+          computelog.reportError("Error -could not find marker " + markersInRegion.get(i)
+                                 + " in Marker Lookup");
         }
       }
     }
@@ -199,8 +199,9 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
     private String[] cnvFileNames;
 
     public RegionResults(float[][] regionMedianValues, float[][] regionMADValues,
-        float[][] regionBDeviationAll, float[][] regionBDeviationHet, float[][] regionBmafMetric,
-        float[][] regionBmafMetricPenalty, float[][] regionPercentHet) {
+                         float[][] regionBDeviationAll, float[][] regionBDeviationHet,
+                         float[][] regionBmafMetric, float[][] regionBmafMetricPenalty,
+                         float[][] regionPercentHet) {
       super();
       this.regionMedianValues = regionMedianValues;
       this.regionMADValues = regionMADValues;
@@ -286,16 +287,18 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
   private static final String MARKER_REGION_REGEX = "[%0]";
   private static final int MARKER_REGION_START_OF_MARKERS = 2;
   private static final double[] QUANTILES = {0.5};
-  private static final String[] MEDIAN_WORKER_JOBS = {"Parsing and intitializing Regions",
-      "Computing Median Log R Ratios for " + MARKER_REGION_REGEX,
-      "Waiting for data to Load for Region " + MARKER_REGION_REGEX, "Creating Output Files",
-      "Assigning cnv copyNumber for "};
+  private static final String[] MEDIAN_WORKER_JOBS =
+      {"Parsing and intitializing Regions",
+       "Computing Median Log R Ratios for " + MARKER_REGION_REGEX,
+       "Waiting for data to Load for Region " + MARKER_REGION_REGEX, "Creating Output Files",
+       "Assigning cnv copyNumber for "};
   private static final String[] CLASSES_TO_DUMP = {"IID"};
 
   // private static final String CNV_CLASSES = "COPYNUMBER" + MARKER_REGION_REGEX;
 
-  private static final String[] MARKER_REGION_RESULTS_SUFFIX = {"MEDIAN", "MAD", "BDeviation_All",
-      "BDeviation_Het", "BMAF_Metric", "BMAF_Metric_Penalty", "Proportion_Het"};
+  private static final String[] MARKER_REGION_RESULTS_SUFFIX =
+      {"MEDIAN", "MAD", "BDeviation_All", "BDeviation_Het", "BMAF_Metric", "BMAF_Metric_Penalty",
+       "Proportion_Het"};
   private static final String CNV_CLASSES =
       "COPYNUMBER" + MARKER_REGION_REGEX + ";5=CN0;1=CN1;2=CN2;3=CN3;4=CN4";
 
@@ -331,8 +334,9 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
   private final JProgressBar progressBar;
 
   public MedianLRRWorker(Project proj, String[] input, int transformationType, int scope,
-      String outputBase, JProgressBar jProgressBar, boolean recomputeLRR, boolean correctLRR,
-      boolean correctXY, boolean homozygousOnly, Logger log) {
+                         String outputBase, JProgressBar jProgressBar, boolean recomputeLRR,
+                         boolean correctLRR, boolean correctXY, boolean homozygousOnly,
+                         Logger log) {
     this.proj = proj;
     this.input = input;
     this.outputBase = outputBase;
@@ -376,7 +380,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       for (int k = 0; k < regionMarkers.length; k++) {
         if (!markerRegions[i].getIndex().containsKey(regionMarkers[k])) {
           computelog.reportError("Error - could not find " + regionMarkers[k]
-              + " in markerLookup file , was this probeset analyzed?");
+                                 + " in markerLookup file , was this probeset analyzed?");
         } else {
           int index = markerRegions[i].getIndex().get(regionMarkers[k]);
           transChrs[chrs[index]] = true;
@@ -444,7 +448,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       RegionResults regionResults;
       if (transformationType == 0) {
         job = ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]",
-            Transforms.TRANFORMATIONS[transformationType]);
+                                 Transforms.TRANFORMATIONS[transformationType]);
         newJob(job);
         computelog.report(job);
         assignMarkerProgress();
@@ -455,7 +459,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       } else {
         assignSampleProgress();
         job = ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]",
-            Transforms.TRANFORMATIONS[transformationType] + " " + Transforms.SCOPES[scope]);
+                                 Transforms.TRANFORMATIONS[transformationType] + " "
+                                                                        + Transforms.SCOPES[scope]);
         computelog.report(job);
         // String[] smallSamples = { samples[0] };
         // samples = smallSamples;
@@ -506,8 +511,9 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
     computelog.report("Computing mean Log R ratios for:");
     // norm by genome
     if (scope == 1) {
-      indices = new int[][] {Array
-          .arrayOfIndices(proj.getPartialSampleFromRandomAccessFile(samples[0]).getLRRs().length)};
+      indices =
+          new int[][] {Array.arrayOfIndices(proj.getPartialSampleFromRandomAccessFile(samples[0])
+                                                .getLRRs().length)};
     } else {
       // only normalize chrs with markers in regions
       indices = markerSet.getIndicesByChr();
@@ -519,8 +525,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       process(i + 1);
       if (i % 100 == 0) {
         time = new Date().getTime();
-        computelog
-            .report((i + 1) + " of " + samples.length + " (" + ext.getTimeElapsed(time) + ")");
+        computelog.report((i + 1) + " of " + samples.length + " (" + ext.getTimeElapsed(time)
+                          + ")");
       }
       float[] lrrs = proj.getPartialSampleFromRandomAccessFile(samples[i]).getLRRs();
       // genome
@@ -577,7 +583,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       rawBDevPercentHet[i] = results[6];
     }
     return new RegionResults(rawMediansRegions, rawMADRegions, rawBDevRegionsAll, rawBDevRegionsHet,
-        rawBDevBmafMetric, rawBDevBmafMetricPenalty, rawBDevPercentHet);
+                             rawBDevBmafMetric, rawBDevBmafMetricPenalty, rawBDevPercentHet);
   }
 
   private float[][] getRawValueResultsForRegion(MarkerRegion markerRegion) {
@@ -596,7 +602,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
         // String Error = "Error - could not find the file " +
         // proj.getFilename(proj.INTENSITY_PC_FILENAME) + ", cannot perform intensity correction";
         String Error = "Error - could not find the file " + proj.INTENSITY_PC_FILENAME.getValue()
-            + ", cannot perform intensity correction";
+                       + ", cannot perform intensity correction";
         computelog.reportError(Error);
         warnAndCancel(Error);
       } else {
@@ -605,7 +611,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
         // Integer.parseInt(proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false,
         // false, null);
         pcrs = new PrincipalComponentsResiduals(proj, proj.INTENSITY_PC_FILENAME.getValue(), null,
-            proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS), false, 0, false, false, null);
+                                                proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS),
+                                                false, 0, false, false, null);
         samplesToUse = proj.getSamplesToInclude(null);
         // projLog.report("Info - using " + Array.booleanArraySum(samplesToUse) + " individuals that
         // were not defined as excluded in " + proj.getFilename(proj.SAMPLE_DATA_FILENAME) + " for
@@ -613,10 +620,10 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
         // projLog.reportTimeInfo("Correcting with " +
         // proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS) + " components");
         projLog.report("Info - using " + Array.booleanArraySum(samplesToUse)
-            + " individuals that were not defined as excluded in "
-            + proj.SAMPLE_DATA_FILENAME.getValue() + " for correction clustering");
-        projLog.reportTimeInfo(
-            "Correcting with " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components");
+                       + " individuals that were not defined as excluded in "
+                       + proj.SAMPLE_DATA_FILENAME.getValue() + " for correction clustering");
+        projLog.reportTimeInfo("Correcting with " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
+                               + " components");
       }
 
     }
@@ -630,11 +637,13 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
     org.genvisis.cnv.qc.CNVBMAF.PoplulationBAFs pDeviation =
         new org.genvisis.cnv.qc.CNVBMAF.PoplulationBAFs(samples.length,
-            CNVBDeviation.DEFAULT_INTENSITY_ONLY_FLAGS, CNVBDeviation.DEFAULT_GC_THRESHOLD);
+                                                        CNVBDeviation.DEFAULT_INTENSITY_ONLY_FLAGS, CNVBDeviation.DEFAULT_GC_THRESHOLD);
     for (int i = 0; i < regionMarkers.length; i++) {
       if (i % 10 == 0 || correctXY) {
         newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]",
-            markerRegion.getRegionName() + " (" + (i) + " of " + regionMarkers.length + ")"));
+                                  markerRegion.getRegionName() + " (" + (i) + " of "
+                                                                         + regionMarkers.length
+                                                                         + ")"));
       }
       MarkerData markerData = markerDataLoader.requestMarkerData(i);
       processTracker[1]++;
@@ -648,15 +657,17 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       float[] bafs = markerData.getBAFs();
       float[] gcs = markerData.getGCs();
       byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection,
-          regionMarkers[i], 0, projLog);
+                                                               regionMarkers[i], 0, projLog);
 
       if (recomputeLRR || correctLRR || correctXY) {
         // int numThreads = Integer.parseInt(proj.getProperty(proj.NUM_THREADS));
         int numThreads = proj.getProperty(proj.NUM_THREADS);
-        PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcrs,
-            markerData, true, null, samplesToUse, 1, 0, clusterFilterCollection, true,
-            LS_TYPE.REGULAR, 2, 5, PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER,
-            PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO, numThreads, false, null);
+        PrincipalComponentsIntensity pcIntensity =
+            new PrincipalComponentsIntensity(pcrs, markerData, true, null, samplesToUse, 1, 0,
+                                             clusterFilterCollection, true, LS_TYPE.REGULAR, 2, 5,
+                                             PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER,
+                                             PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO,
+                                             numThreads, false, null);
         if (recomputeLRR && !correctLRR) {
           lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
           // bafs = pcIntensity.getCentroidCompute().getRecomputedBAF();
@@ -665,9 +676,11 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
           // double[] tmplrrs = pcIntensity.getCorrectedDataAt(Array.toDoubleArray(lrrs), null,
           // Integer.parseInt(proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS)), false,
           // regionMarkers[i], true).getResiduals();
-          double[] tmplrrs = pcIntensity.getCorrectedDataAt(Array.toDoubleArray(lrrs), null,
-              proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS), LS_TYPE.REGULAR, regionMarkers[i],
-              true).getResiduals();
+          double[] tmplrrs = pcIntensity
+                                        .getCorrectedDataAt(Array.toDoubleArray(lrrs), null,
+                                                            proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS),
+                                                            LS_TYPE.REGULAR, regionMarkers[i], true)
+                                        .getResiduals();
           if (tmplrrs != null) {
             lrrs = Array.toFloatArray(tmplrrs);
           } else {
@@ -724,13 +737,13 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       // CN are reported as 1=homzydel,2=hetrodel,3=none,4=hetrodup,5=homozydup;
       process(0);
       newJob("loading " + proj.CNV_FILENAMES.getValue().length + " cnv "
-          + (proj.CNV_FILENAMES.getValue().length > 1 ? " files" : " file"));
+             + (proj.CNV_FILENAMES.getValue().length > 1 ? " files" : " file"));
       // TODO potential bug in old code - sets array length to length of String, not of value array
       // cnvFileCNs = new int[markerRegions.length][samples.length][proj.CNV_FILENAMES.length()];
       cnvFileCNs =
           new int[markerRegions.length][samples.length][proj.CNV_FILENAMES.getValue().length];
-      computelog.report(
-          "Info - assigning cnvs for " + proj.CNV_FILENAMES.getValue().length + " cnv files");
+      computelog.report("Info - assigning cnvs for " + proj.CNV_FILENAMES.getValue().length
+                        + " cnv files");
       sampleData.loadCNVs(proj.CNV_FILENAMES.getValue(), false, proj.getLog());
       String[] cnvClasses = sampleData.getCnvClasses();
       computelog.report("Info - assigning cnvs for " + proj.CNV_FILENAMES.getValue().length);
@@ -747,14 +760,14 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
         boolean oneChromosome = markerRegions[i].isOneChromosome();
         if (!oneChromosome) {
           computelog.report("Warning - region " + markerRegions[i].getRegionName()
-              + " spans more than one chromosome , setting all Copy number States to zero");
+                            + " spans more than one chromosome , setting all Copy number States to zero");
         }
         Segment region = markerRegions[i].getSegment(chr);
         for (int j = 0; j < samples.length; j++) {
           processTracker[1]++;
           if (j % 10 == 0) {
             newJob(MEDIAN_WORKER_JOBS[4] + " region " + markerRegions[i].getRegionName() + " (" + j
-                + " of " + samples.length + " samples)");
+                   + " of " + samples.length + " samples)");
             process(processTracker[1]);
           }
           for (int k = 0; k < cnvClasses.length; k++) {
@@ -797,10 +810,10 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       }
     }
     pDeviation.summarize(CNVBMAF.DEFUALT_GENO_HET_PENALTY, CNVBMAF.DEFUALT_BAF_HET_PENALTY,
-        CNVBMAF.SUMMARY_BY_NUM_ALL_MARKERS, proj.getLog());
+                         CNVBMAF.SUMMARY_BY_NUM_ALL_MARKERS, proj.getLog());
     double[] cnvbmafsNoPenalty = pDeviation.getCnvbmafsMetrics();
     pDeviation.summarize(CNVBMAF.DEFUALT_GENO_HET_PENALTY, CNVBMAF.DEFUALT_BAF_HET_PENALTY,
-        CNVBMAF.SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY, proj.getLog());
+                         CNVBMAF.SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY, proj.getLog());
     double[] cnvbmafsPenalty = pDeviation.getCnvbmafsMetrics();
 
     for (int i = 0; i < sampleLRRS.size(); i++) {
@@ -815,7 +828,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
       } else {
         proj.getLog().reportError("Warning - sample " + proj.getSamples()[i]
-            + " did not have any data for a region, setting to NaN");
+                                  + " did not have any data for a region, setting to NaN");
         results[0][i] = Float.NaN;
         results[1][i] = Float.NaN;
         results[2][i] = Float.NaN;
@@ -844,7 +857,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
           String[] regionMarkers = input[i].split(MARKER_REGION_DELIMITER);
           if (regionMarkers.length <= 1) {
             String Error = "Error - markers must be " + MARKER_REGION_DELIMITER
-                + " delimited for Marker Region " + input[i];
+                           + " delimited for Marker Region " + input[i];
             computelog.reportError(Error);
             warnAndCancel(Error);
           }
@@ -857,9 +870,10 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
           regions[i].addUCSCMarkers(input[i]);
         } else {
           String Error = "Error - Improper Formatting for Input " + input[i]
-              + "\n Input must one per line of \n(1) UCSC Formatted\n or\n(2) "
-              + MARKER_REGION_PREFIX + MARKER_REGION_DELIMITER + "(Your Region Name)"
-              + MARKER_REGION_DELIMITER + "marker names(" + MARKER_REGION_DELIMITER + ") delimited";
+                         + "\n Input must one per line of \n(1) UCSC Formatted\n or\n(2) "
+                         + MARKER_REGION_PREFIX + MARKER_REGION_DELIMITER + "(Your Region Name)"
+                         + MARKER_REGION_DELIMITER + "marker names(" + MARKER_REGION_DELIMITER
+                         + ") delimited";
           computelog.reportError(Error);
           warnAndCancel(Error);
         }
@@ -879,8 +893,9 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
     // Hashtable<String, String> hashSamps =
     // HashVec.loadFileToHashString(proj.getFilename(proj.SAMPLE_DATA_FILENAME), "DNA",
     // CLASSES_TO_DUMP, "\t");
-    Hashtable<String, String> hashSamps = HashVec
-        .loadFileToHashString(proj.SAMPLE_DATA_FILENAME.getValue(), "DNA", CLASSES_TO_DUMP, "\t");
+    Hashtable<String, String> hashSamps =
+        HashVec.loadFileToHashString(proj.SAMPLE_DATA_FILENAME.getValue(), "DNA", CLASSES_TO_DUMP,
+                                     "\t");
     int[][][] cnvFileCNs = getRegionCNs(markerRegions);
     String[] cnvFiles = proj.CNV_FILENAMES.getValue();
     if (cnvFileCNs != null) {
@@ -902,9 +917,11 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
         }
         if (reportCNVCN) {
           for (int j = 0; j < cnvFiles.length; j++) {
-            writer.print("\t" + (ext.replaceAllWith(CNV_CLASSES, "[%" + 0 + "]",
-                ext.rootOf(regionResults.getCnvFileNames()[j]) + "_"
-                    + markerRegion.getRegionName())));
+            writer.print("\t"
+                         + (ext.replaceAllWith(CNV_CLASSES,
+                                               "[%" + 0 + "]",
+                                               ext.rootOf(regionResults.getCnvFileNames()[j]) + "_"
+                                                               + markerRegion.getRegionName())));
             // writer.print("\t" + ext.rootOf(regionResults.getCnvFileNames()[j]) + "_" +
             // markerRegions[i].getRegionName());
           }
@@ -912,14 +929,17 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       }
       writer.println();
       for (int i = 0; i < samples.length; i++) {
-        writer.print(samples[i] + "\t" + (hashSamps.containsKey(samples[i])
-            ? hashSamps.get(samples[i]) : Array.stringArray(CLASSES_TO_DUMP.length, ".")));
+        writer.print(samples[i] + "\t"
+                     + (hashSamps.containsKey(samples[i]) ? hashSamps.get(samples[i])
+                                                          : Array.stringArray(CLASSES_TO_DUMP.length,
+                                                                              ".")));
         for (int j = 0; j < markerRegions.length; j++) {
           writer.print("\t" + regionResults.getMedianAt(j, i) + "\t" + regionResults.getMADAt(j, i)
-              + "\t" + regionResults.getBDeviationAllAt(j, i) + "\t"
-              + regionResults.getBDeviationHetAt(j, i) + "\t" + regionResults.getBmafMetricAt(j, i)
-              + "\t" + regionResults.getBmafMetricPenaltyAt(j, i) + "\t"
-              + regionResults.getPercentHetAt(j, i));
+                       + "\t" + regionResults.getBDeviationAllAt(j, i) + "\t"
+                       + regionResults.getBDeviationHetAt(j, i) + "\t"
+                       + regionResults.getBmafMetricAt(j, i) + "\t"
+                       + regionResults.getBmafMetricPenaltyAt(j, i) + "\t"
+                       + regionResults.getPercentHetAt(j, i));
           if (reportCNVCN) {
             for (int k = 0; k < cnvFiles.length; k++) {
               writer.print("\t" + format(regionResults.getCNAt(j, i, k)));
@@ -946,18 +966,19 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
         if (markerRegion.getRegionType() == 0) {
           Segment seg = new Segment(markerRegion.getRegionName());
           writer.println(seg.getUCSClocation() + "\t" + regionMarkers.length + "\t" + seg.getChr()
-              + "\t" + seg.getStart() + "\t" + seg.getStop() + "\t" + Array.toStr(regionMarkers));
+                         + "\t" + seg.getStart() + "\t" + seg.getStop() + "\t"
+                         + Array.toStr(regionMarkers));
         } else if (markerRegion.getRegionType() == 1) {
           writer.println(markerRegion.getRegionName() + "\t" + regionMarkers.length
-              + "\tNA\tNA\tNA\t" + Array.toStr(regionMarkers));
+                         + "\tNA\tNA\tNA\t" + Array.toStr(regionMarkers));
         } else {
           computelog.reportError("Error - Unknonwn Region Type " + markerRegion.getRegionType());
         }
       }
       writer.close();
     } catch (Exception e) {
-      computelog
-          .reportError("Error writing the list of marker names within the regions to " + output);
+      computelog.reportError("Error writing the list of marker names within the regions to "
+                             + output);
       computelog.reportException(e);
     }
   }
@@ -993,14 +1014,15 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
   // for access from command line
   public static void computeMedianLrrs(Project proj, String regionFileName, int transfromationType,
-      int scope, String outputBase) {
+                                       int scope, String outputBase) {
     Logger log = proj.getLog();
     String[] input = readToArray(proj.PROJECT_DIRECTORY.getValue() + regionFileName, log);
-    MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj, input, transfromationType, scope,
-        outputBase, null, false, false, false, false, log);
+    MedianLRRWorker medianLRRWorker =
+        new MedianLRRWorker(proj, input, transfromationType, scope, outputBase, null, false, false,
+                            false, false, log);
     log.report("Starting job for " + input.length + " regions");
     medianLRRWorker.execute();
-  
+
   }
 
   public static String format(Number n) {
@@ -1012,7 +1034,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
   }
 
   private static String[] readToArray(String filename, Logger log) {
-  
+
     ArrayList<String> lines = new ArrayList<String>();
     try {
       FileReader fileReader = new FileReader(filename);
@@ -1023,7 +1045,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       reader.close();
     } catch (FileNotFoundException fnfe) {
       log.reportError("Error unable to find" + filename);
-  
+
     } catch (IOException e) {
       log.reportError("Error reading file " + filename);
       log.reportException(e);
@@ -1053,7 +1075,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
     String logfile = outputBase + ".log";
     Logger log;
     Project proj;
-  
+
     // String usage = "cnv.analysis.MedianLRRWorker requires 2 arguments\n" + "" + " (1) project
     // properties filename (i.e. proj=" + cnv.Launch.getDefaultDebugProjectFile(false) + "
     // (default))\n" + " (2) filename of the regions (one per line) in UCSC format
@@ -1070,17 +1092,17 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
     // forwarding\n is un-available (i.e. headless=true (default));" + "";
     String usage = "cnv.analysis.MedianLRRWorker requires 2 arguments\n";
     usage += "   (1) project properties filename (i.e. proj="
-        + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n";
+             + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n";
     usage +=
         "   (2) filename of the regions (one per line) in UCSC format (chr8:25129632-25130278) \n";
     usage += "       OR:\n";
     usage += "       formatted as \"" + MARKER_REGION_PREFIX + MARKER_REGION_DELIMITER
-        + "(Your Region Name)" + MARKER_REGION_DELIMITER + "marker name 1" + MARKER_REGION_DELIMITER
-        + "marker name 2...\"" + MARKER_REGION_DELIMITER + "\n";
+             + "(Your Region Name)" + MARKER_REGION_DELIMITER + "marker name 1"
+             + MARKER_REGION_DELIMITER + "marker name 2...\"" + MARKER_REGION_DELIMITER + "\n";
     usage += "       (i.e. regions=" + regionFileName + "(default))\n";
     usage += "       OPTIONAL:\n";
     usage += "   (3) transformation type (i.e. transform=0 (default, "
-        + Transforms.TRANFORMATIONS[transformationType] + ")) \n";
+             + Transforms.TRANFORMATIONS[transformationType] + ")) \n";
     usage += "       transformations are: " + Array.toStr(Transforms.TRANFORMATIONS) + "\n";
     usage += "   (4) scope of transformation (i.e. scope=0 (default))\n";
     usage += "       scopes are: " + Array.toStr(Transforms.SCOPES) + "\n";
@@ -1090,10 +1112,10 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
         "   (7) run program in headless mode to quiet gui errors when X11 forwarding\n is un-available (i.e. headless=true (default));";
     usage +=
         "   (8) correct data with principal components (must be defined by the properties file) (i.e. correctXY="
-            + correctXY + " (default));";
-  
+             + correctXY + " (default));";
+
     usage += "";
-  
+
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
         System.err.println(usage);
@@ -1134,11 +1156,13 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       time = new Date().getTime();
       proj = new Project(filename, logfile, false);
       log = proj.getLog();
-  
+
       System.setProperty("java.awt.headless", headless);
-      MedianLRRWorker medianLRRWorker = new MedianLRRWorker(proj,
-          readToArray(proj.PROJECT_DIRECTORY.getValue() + regionFileName, log), transformationType,
-          scope, outputBase, null, false, false, correctXY, false, log);
+      MedianLRRWorker medianLRRWorker =
+          new MedianLRRWorker(proj,
+                              readToArray(proj.PROJECT_DIRECTORY.getValue() + regionFileName, log),
+                              transformationType, scope, outputBase, null, false, false, correctXY,
+                              false, log);
       medianLRRWorker.execute();
       while (!medianLRRWorker.isDone()) {
         Thread.sleep(100);
