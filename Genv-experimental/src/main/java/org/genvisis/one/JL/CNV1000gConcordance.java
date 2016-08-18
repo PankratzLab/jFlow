@@ -25,7 +25,7 @@ public class CNV1000gConcordance {
 		String dupFIle = "/Volumes/Beta/data/1000G/duplicates.cnv";
 		String genFile = "/Volumes/Beta/data/1000G/genvisis.old.cnv";
 		String finalCNVFile = "/Volumes/Beta/data/1000G/merge.cnv";
-		
+
 		Logger log = new Logger();
 		if (!Files.exists(pfile)) {
 			HashSet<String> samps = new HashSet<String>();
@@ -102,17 +102,21 @@ public class CNV1000gConcordance {
 		PrintWriter writer = Files.getAppropriateWriter(finalCNVFile);
 		writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 		for (int j = 0; j < set.getLoci().length; j++) {
-			writer.println(set.getLoci()[j].toPlinkFormat());
+			CNVBuilder builder = new CNVBuilder(set.getLoci()[j]);
+			builder.cn(1);
+			writer.println(builder.build().toPlinkFormat());
 		}
 		for (int j = 0; j < genset.getLoci().length; j++) {
 			if (finals.contains(genset.getLoci()[j].getIndividualID())) {
-				writer.println(genset.getLoci()[j].toPlinkFormat());
+				CNVBuilder builder = new CNVBuilder(genset.getLoci()[j]);
+				builder.cn(1);
+				writer.println(builder.build().toPlinkFormat());
 			}
 		}
 		writer.close();
-		
-		Hashtable<String, String> match = new Hashtable<String,String>();
-		String[] one = HashVec.loadFileToStringArray(dupFIle, false, new int[]{0}, false);
+
+		Hashtable<String, String> match = new Hashtable<String, String>();
+		String[] one = HashVec.loadFileToStringArray(dupFIle, false, new int[] { 0 }, false);
 
 	}
 
