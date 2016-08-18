@@ -584,7 +584,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		}
 		new File(outputDir).mkdirs();
 		Logger log = new Logger(outputDir + "TN.log");
-		GATK gatk = new GATK(gatkLocation, referenceGenomeFasta, knownSnps, regions, cosmic, true, false, true, log);
+		GATK gatk = new GATK.Mutect(gatkLocation, referenceGenomeFasta, knownSnps, regions, cosmic, true, false, log);
 		switch (run) {
 		case COMBINE_NORMALS:
 		case CALL_SOMATIC:

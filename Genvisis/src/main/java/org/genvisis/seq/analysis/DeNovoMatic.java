@@ -438,7 +438,7 @@ public class DeNovoMatic {
 		}
 		new File(outputDir).mkdirs();
 		Logger log = new Logger(outputDir + "TN.log");
-		GATK gatk = new GATK(gatkLocation, referenceGenomeFasta, knownSnps, regions, cosmic, true, false, true, log);
+		GATK gatk = new GATK.Mutect(gatkLocation, referenceGenomeFasta, knownSnps, regions, cosmic, true, false, log);
 		try {
 			run(vpopFile, fileOfBams, outputDir, ponVCF, freqFilter, gatk, MUTECT_RUN_TYPES.CALL_SOMATIC, numthreads, numSampleThreads, annoVCF, finalVCF, tparams, log);
 		} catch (IllegalStateException e) {

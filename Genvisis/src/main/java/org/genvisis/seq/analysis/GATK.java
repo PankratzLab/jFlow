@@ -145,44 +145,57 @@ public class GATK {
 	private String regionsFile;
 	private String supportingSnps;
 
-	public GATK(String gATKLocation, String referenceGenomeFasta, String javaLocation, String[] knownSitesSnpFile, String[] knownSitesIndelFile, boolean verbose, boolean overWriteExisting, Logger log) {
-		super();
-		this.GATKLocation = gATKLocation;
-		this.referenceGenomeFasta = referenceGenomeFasta;
-		this.javaLocation = (javaLocation == null ? DEFAULT_JAVA : javaLocation);
-		this.knownSitesSnpFile = knownSitesSnpFile;
-		this.knownSitesIndelFile = knownSitesIndelFile;
-		this.fail = verifyGATKLocation();
-		this.verbose = verbose;
-		this.overWriteExistingOutput = overWriteExisting;
-		this.log = log;
-	}
+  /**
+   * Mutect constructor
+   */
+  private GATK(String gATKLocation, String referenceGenomeFasta, String javaLocation,
+               String dbSnpKnownSites, String regionsFile, String cosmicKnownSites, boolean verbose,
+               boolean overWriteExisting, Logger log) {
+    this(gATKLocation, referenceGenomeFasta, javaLocation, verbose, overWriteExisting, log);
+    this.dbSnpKnownSites = dbSnpKnownSites;
+    this.cosmicKnownSites = cosmicKnownSites;
+    this.regionsFile = regionsFile;
+  }
 
-	public GATK(String gATKLocation, String referenceGenomeFasta, boolean verbose, boolean overWriteExisting, Logger log) {
-		this.GATKLocation = gATKLocation;
-		this.javaLocation = (javaLocation == null ? DEFAULT_JAVA : javaLocation);
-		this.referenceGenomeFasta = referenceGenomeFasta;
-		this.verbose = verbose;
-		this.overWriteExistingOutput = overWriteExisting;
-		this.log = log;
-		this.fail = verifyGATKLocation();
-	}
+  public GATK(String gATKLocation, String referenceGenomeFasta, boolean verbose,
+              boolean overWriteExisting, Logger log) {
+    this(gATKLocation, referenceGenomeFasta, null, verbose, overWriteExisting, log);
+}
 
-	public GATK(String gATKLocation, String referenceGenomeFasta, String dbSnpKnownSites, String regionsFile, String cosmicKnownSites, boolean verbose, boolean overWriteExisting, boolean mutect, Logger log) {
-		if (!mutect) {
-			throw new IllegalArgumentException("This is the mutect constructor");
-		}
-		this.GATKLocation = gATKLocation;
-		this.javaLocation = (javaLocation == null ? DEFAULT_JAVA : javaLocation);
-		this.referenceGenomeFasta = referenceGenomeFasta;
-		this.dbSnpKnownSites = dbSnpKnownSites;
-		this.cosmicKnownSites = cosmicKnownSites;
-		this.regionsFile = regionsFile;
-		this.verbose = verbose;
-		this.overWriteExistingOutput = overWriteExisting;
-		this.log = log;
-		this.fail = verifyGATKLocation();
-	}
+  public GATK(String GATKLocation, String referenceGenomeFasta, String javaLocation,
+              boolean verbose, boolean overWriteExisting, Logger log) {
+    this.GATKLocation = GATKLocation;
+    this.referenceGenomeFasta = referenceGenomeFasta;
+    this.javaLocation = javaLocation == null ? DEFAULT_JAVA : javaLocation;
+    this.verbose = verbose;
+    overWriteExistingOutput = overWriteExisting;
+    this.log = log;
+    fail = verifyGATKLocation();
+  }
+
+  public GATK(String gATKLocation, String referenceGenomeFasta, String javaLocation,
+              String[] knownSitesSnpFile, String[] knownSitesIndelFile, boolean verbose,
+              boolean overWriteExisting, Logger log) {
+    this(gATKLocation, referenceGenomeFasta, javaLocation, verbose, overWriteExisting, log);
+    this.knownSitesSnpFile = knownSitesSnpFile;
+    this.knownSitesIndelFile = knownSitesIndelFile;
+  }
+
+  public static class Mutect extends GATK {
+    public Mutect(String gATKLocation, String referenceGenomeFasta, String dbSnpKnownSites,
+                  String regionsFile, String cosmicKnownSites, boolean verbose,
+                  boolean overWriteExisting, Logger log) {
+      this(gATKLocation, referenceGenomeFasta, null, dbSnpKnownSites, regionsFile, cosmicKnownSites,
+           verbose, overWriteExisting, log);
+    }
+
+    public Mutect(String gATKLocation, String referenceGenomeFasta, String javaLocation,
+                  String dbSnpKnownSites, String regionsFile, String cosmicKnownSites,
+                  boolean verbose, boolean overWriteExisting, Logger log) {
+      super(gATKLocation, referenceGenomeFasta, javaLocation, dbSnpKnownSites, regionsFile,
+            cosmicKnownSites, verbose, overWriteExisting, log);
+    }
+  }
 
 	public String getRegionsFile() {
 		return regionsFile;

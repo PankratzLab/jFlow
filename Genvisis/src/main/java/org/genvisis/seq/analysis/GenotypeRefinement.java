@@ -9,6 +9,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.GATK.GenotypeRefiner;
+import org.genvisis.seq.analysis.GATK.Mutect;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
@@ -92,7 +93,7 @@ public class GenotypeRefinement {
 		}
 		new File(outputDir).mkdirs();
 		Logger log = new Logger(outputDir + "TN.log");
-		GATK gatk = new GATK(gatkLocation, referenceGenomeFasta, null, null, null, true, false, true, log);
+		GATK gatk = new Mutect(gatkLocation, referenceGenomeFasta, null, null, null, true, false, log);
 		gatk.setSupportingSnps(supportingSnps);
 		refineGenotypes(inputVcf, ped, outputDir, gatk);
 	}

@@ -292,7 +292,7 @@ public class SomaticSniper {
 		int numThreads = 1;
 		new File(outputDir).mkdirs();
 		Logger log = new Logger(outputDir + "somaticSniper.log");
-		GATK gatk = new GATK(gatkLoc, refGenome, true, false, log);
+		GATK gatk = new GATK(gatkLoc, refGenome, null, true, false, log);
 		SomaticParams params = new SomaticParams(somaticSnipLoc, gatk.getReferenceGenomeFasta(), outputDir, false);
 		run(gatk, params, bams, vpop, numThreads, log);
 
