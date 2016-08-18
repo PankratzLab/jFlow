@@ -19,6 +19,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Numbers;
 import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
@@ -437,7 +438,7 @@ public class GCTA {
         // reduce magnitude of
         // variance
         for (int j = 0; j < data.length; j++) {
-          pheno.add(fidIID.get(j) + "\t" + (Double.isFinite(data[j]) ? data[j] + "" : "NA"));
+          pheno.add(fidIID.get(j) + "\t" + (Numbers.isFinite(data[j]) ? data[j] + "" : "NA"));
         }
         final String phenoFile = resultsDir + current + ".txt";
         Files.writeArrayList(pheno, phenoFile);
