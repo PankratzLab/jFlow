@@ -7,24 +7,23 @@ import org.genvisis.common.SerializedFiles;
 
 public class CNVQC implements Serializable {
 
-  public static final long serialVersionUID = 1L;
+	public static final long serialVersionUID = 1L;
+	private CNVariantQC[] cnVariantQCs;
 
-  public static CNVQC load(String filename, boolean jar) {
-    return (CNVQC) SerializedFiles.readSerial(filename, jar, true);
-  }
+	public CNVQC(CNVariantQC[] cnVariantQCs) {
+		this.cnVariantQCs = cnVariantQCs;
+	}
 
-  private final CNVariantQC[] cnVariantQCs;
+	public void serialize(String filename) {
+		SerializedFiles.writeSerial(this, filename);
+	}
 
-  public CNVQC(CNVariantQC[] cnVariantQCs) {
-    this.cnVariantQCs = cnVariantQCs;
-  }
+	public static CNVQC load(String filename, boolean jar) {
+		return (CNVQC) SerializedFiles.readSerial(filename, jar, true);
+	}
 
-  public CNVariantQC[] getCnVariantQCs() {
-    return cnVariantQCs;
-  }
-
-  public void serialize(String filename) {
-    SerializedFiles.writeSerial(this, filename);
-  }
+	public CNVariantQC[] getCnVariantQCs() {
+		return cnVariantQCs;
+	}
 
 }

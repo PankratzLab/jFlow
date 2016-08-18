@@ -58,9 +58,9 @@ public class SRAUtils {
       command.add(outputBam);
 
       String[] bat = CmdLine.prepareBatchForCommandLine(Array.toStringArray(command),
-                                                        outputBam + ".bat", true, log);
+          outputBam + ".bat", true, log);
       return CmdLine.runCommandWithFileChecks(bat, "", inputs, outputs, true, false, false, false,
-                                              log);
+          log);
     }
 
 
@@ -115,17 +115,45 @@ public class SRAUtils {
 
   private static final String SRA_EXT = ".sra";
 
+  
+
+  // sam-dump.2.6.3 SRR1737697 |samtools view -bS -
+
+  /**
+   * @param sraDir your directory that contains .sra files
+   * @param outDir
+   * @param threads
+   * @return
+   */
+  public static List<SRAConversionResult> run(String sraDir, String outDir, int threads) {
+    new File(outDir).mkdirs();
+    Logger log = new Logger(outDir + "sraConv.log");
+    String[] sraFiles = Files.listFullPaths(sraDir, SRA_EXT, false);
+    log.reportTimeInfo("Found " + sraFiles.length + " " + SRA_EXT + " files");
+    String bamDir = outDir + "bams/";
+    new File(bamDir).mkdirs();
+
+    WorkerHive<SRAConversionResult> hive =
+        new WorkerHive<SRAUtils.SRAConversionResult>(threads, 10, log);
+    for (String sraFile : sraFiles) {
+      sraFile = sraFile.trim();
+      hive.addCallable(new SRABamWorker(sraFile, bamDir + ext.rootOf(sraFile) + ".bam", log));
+    }
+    hive.execute(true);
+    return hive.getResults();
+  }
+
   public static void main(String[] args) {
     int numArgs = args.length;
     String sraDir = "/scratch.global/lanej/aric_raw/sra/";
     String outDir = "/scratch.global/lanej/aric_raw/";
     int threads = 24;
-
+  
     String usage =
         "\n" + " SRAUtils requires 0-1 arguments\n" + "   (1) SRA directory (i.e. sraDir=" + sraDir
-                   + " (default))\n" + "   (2) out directory (i.e. outDir=" + outDir
-                   + " (default))\n" + PSF.Ext.getNumThreadsCommand(3, threads) + "";
-
+            + " (default))\n" + "   (2) out directory (i.e. outDir=" + outDir + " (default))\n"
+            + PSF.Ext.getNumThreadsCommand(3, threads) + "";
+  
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
         System.err.println(usage);
@@ -152,32 +180,6 @@ public class SRAUtils {
     } catch (Exception e) {
       e.printStackTrace();
     }
-  }
-
-  // sam-dump.2.6.3 SRR1737697 |samtools view -bS -
-
-  /**
-   * @param sraDir your directory that contains .sra files
-   * @param outDir
-   * @param threads
-   * @return
-   */
-  public static List<SRAConversionResult> run(String sraDir, String outDir, int threads) {
-    new File(outDir).mkdirs();
-    Logger log = new Logger(outDir + "sraConv.log");
-    String[] sraFiles = Files.listFullPaths(sraDir, SRA_EXT, false);
-    log.reportTimeInfo("Found " + sraFiles.length + " " + SRA_EXT + " files");
-    String bamDir = outDir + "bams/";
-    new File(bamDir).mkdirs();
-
-    WorkerHive<SRAConversionResult> hive =
-        new WorkerHive<SRAUtils.SRAConversionResult>(threads, 10, log);
-    for (String sraFile : sraFiles) {
-      sraFile = sraFile.trim();
-      hive.addCallable(new SRABamWorker(sraFile, bamDir + ext.rootOf(sraFile) + ".bam", log));
-    }
-    hive.execute(true);
-    return hive.getResults();
   }
 
 

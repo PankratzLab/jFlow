@@ -2,12 +2,12 @@ package org.genvisis.cnv.filesys;
 
 public interface WritingFilePrep {
 
-  public void close();
+	public boolean overwriteExisting();
 
-  public void init();
+	public void init();
 
-  public boolean overwriteExisting();
-
-  public boolean validate();
+	public boolean validate();
+	
+	public void close();
 
 }

@@ -31,10 +31,10 @@ public class CmdLine {
    */
 
   public static String[] prepareBatchForCommandLine(String[] commandArray, String batFile,
-                                                    boolean verbose, Logger log) {
+      boolean verbose, Logger log) {
     if (verbose) {
       log.report(ext.getTime() + " Info - running command " + Array.toStr(commandArray, " ")
-                 + "\nUsing file " + batFile);
+          + "\nUsing file " + batFile);
     }
     Files.write(Array.toStr(commandArray, " "), batFile);
     Files.chmod(batFile);
@@ -50,12 +50,12 @@ public class CmdLine {
   }
 
   public static boolean run(String command, String dir, PrintStream os,
-                            boolean ignoreIllegalStateExceptions) {
+      boolean ignoreIllegalStateExceptions) {
     return run(command, null, dir, os, os, null, ignoreIllegalStateExceptions);
   }
 
   public static boolean run(String command, String[] commandArray, String dir, PrintStream inOs,
-                            PrintStream errOS, Logger log, boolean ignoreIllegalStateExceptions) {
+      PrintStream errOS, Logger log, boolean ignoreIllegalStateExceptions) {
     Process proc;
     InputStream in, err;
     // PrintWriter writer;
@@ -70,7 +70,8 @@ public class CmdLine {
 
     try {
       if (Files.isWindows() && (command.contains(">") || command.contains("|"))) {
-        log.reportError("FYI - the Runtime.exec command will likely not work, since it contains a pipe, write command to a .bat file and exec that instead");
+        log.reportError(
+            "FYI - the Runtime.exec command will likely not work, since it contains a pipe, write command to a .bat file and exec that instead");
       }
       if (commandArray != null) {
         proc = Runtime.getRuntime().exec(commandArray, null, new File(dir));
@@ -138,8 +139,8 @@ public class CmdLine {
       if (message.startsWith("Cannot run program ")) {
         message = message.substring(20);
         log.reportError("Error - The program \"" + message.substring(0, message.indexOf("\""))
-                        + "\" is not installed or is not accessible "
-                        + message.substring(message.indexOf("("), message.indexOf(")") + 1));
+            + "\" is not installed or is not accessible "
+            + message.substring(message.indexOf("("), message.indexOf(")") + 1));
         noError = false;
       } else {
         log.reportException(ioe);
@@ -171,12 +172,10 @@ public class CmdLine {
    */
 
   public static boolean runCommandWithFileChecks(String[] commandArray, String dir,
-                                                 String[] neccesaryInputFiles,
-                                                 String[] expectedOutputFiles, boolean verbose,
-                                                 boolean overWriteExistingOutput,
-                                                 boolean skipReporting, Logger log) {
+      String[] neccesaryInputFiles, String[] expectedOutputFiles, boolean verbose,
+      boolean overWriteExistingOutput, boolean skipReporting, Logger log) {
     return runCommandWithFileChecks(commandArray, dir, neccesaryInputFiles, expectedOutputFiles,
-                                    verbose, overWriteExistingOutput, skipReporting, true, log);
+        verbose, overWriteExistingOutput, skipReporting, true, log);
   }
 
   /**
@@ -199,11 +198,9 @@ public class CmdLine {
    * @return
    */
   public static boolean runCommandWithFileChecks(String[] commandArray, String dir,
-                                                 String[] neccesaryInputFiles,
-                                                 String[] expectedOutputFiles, boolean verbose,
-                                                 boolean overWriteExistingOutput,
-                                                 boolean skipReporting, boolean treatEmptyAsMissing,
-                                                 Logger log) {
+      String[] neccesaryInputFiles, String[] expectedOutputFiles, boolean verbose,
+      boolean overWriteExistingOutput, boolean skipReporting, boolean treatEmptyAsMissing,
+      Logger log) {
     boolean success = false;
     if (expectedOutputFiles == null || !Files.exists(dir, expectedOutputFiles, treatEmptyAsMissing)
         || (Files.exists(dir, expectedOutputFiles) && overWriteExistingOutput)) {
@@ -212,15 +209,15 @@ public class CmdLine {
           log.report(ext.getTime() + " Info - running command " + Array.toStr(commandArray, " "));
         }
         if (run(Array.toStr(commandArray, " "), commandArray, dir, null, null,
-                (skipReporting ? null : log), false)) {
+            (skipReporting ? null : log), false)) {
           if (expectedOutputFiles != null && !Files.exists(dir, expectedOutputFiles)) {
             log.reportError("Error - the command " + Array.toStr(commandArray, " ")
-                            + " appeared to run, but could not find all neccesary output files:"
-                            + Array.toStr(expectedOutputFiles, "\n"));
+                + " appeared to run, but could not find all neccesary output files:"
+                + Array.toStr(expectedOutputFiles, "\n"));
           } else {
             if (verbose) {
               log.report(ext.getTime() + " Info - finished running command "
-                         + Array.toStr(commandArray, " "));
+                  + Array.toStr(commandArray, " "));
             }
             success = true;
           }
@@ -229,12 +226,12 @@ public class CmdLine {
         }
       } else {
         log.reportError("Error - could not find all necessary input files:\n"
-                        + Array.toStr(neccesaryInputFiles, "\n"));
+            + Array.toStr(neccesaryInputFiles, "\n"));
       }
     } else {
       if (verbose) {
         log.report(ext.getTime()
-                   + " Info - all of the expected output files exist and the overwrite option was not flagged, skipping:");
+            + " Info - all of the expected output files exist and the overwrite option was not flagged, skipping:");
         log.report("COMMAND SKIPPED: " + Array.toStr(commandArray, " "));
       }
       success = true;

@@ -22,121 +22,117 @@ import htsjdk.variant.vcf.VCFFileReader;
  *         Trying to make an indexed bed file reader, mimicking {@link VCFFileReader}
  */
 public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
-  public static class BEDFeatureSeg extends Segment {
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
-    private final BEDFeature bedFeature;
+	private final FeatureReader<BEDFeature> reader;
 
-    public BEDFeatureSeg(BEDFeature bedFeature, Logger log) {
-      super(bedFeature.getContig(), bedFeature.getStart(), bedFeature.getEnd());
-      this.bedFeature = bedFeature;
-    }
+	public BEDFileReader(final String file, final boolean requireIndex) {
+		this.reader = AbstractFeatureReader.getFeatureReader(file, new BEDCodec(), requireIndex);
+	}
 
-    public BEDFeature getBedFeature() {
-      return bedFeature;
-    }
+	/** Queries for records within the region specified. */
+	public CloseableIterator<BEDFeature> query(final String chrom, final int start, final int end) {
+		try {
+			return reader.query(chrom, start, end);
+		} catch (final IOException ioe) {
+			throw new TribbleException("Could not create an iterator from a feature reader.", ioe);
+		}
+	}
 
-  }
+	/** Queries for records within the region specified. */
+	public CloseableIterator<BEDFeature> query(Segment seg) {
+		return query(Positions.getChromosomeUCSC(seg.getChr(), true), seg.getStart(), seg.getStop());
+	}
 
-  private final FeatureReader<BEDFeature> reader;
+	public LocusSet<BEDFeatureSeg> loadSegsFor(Segment segment, Logger log) {
+		CloseableIterator<BEDFeature> iterator = query(segment);
+		ArrayList<BEDFeatureSeg> bedSegs = new ArrayList<BEDFeatureSeg>();
+		while (iterator.hasNext()) {
+			BEDFeature bedFeature = iterator.next();
+			bedSegs.add(new BEDFeatureSeg(bedFeature, log));
 
-  public BEDFileReader(final String file, final boolean requireIndex) {
-    reader = AbstractFeatureReader.getFeatureReader(file, new BEDCodec(), requireIndex);
-  }
+		}
+		LocusSet<BEDFeatureSeg> segSet = new LocusSet<BEDFeatureSeg>(bedSegs.toArray(new BEDFeatureSeg[bedSegs.size()]), true, log) {
 
-  @Override
-  public void close() {
-    try {
-      reader.close();
-    } catch (final IOException ioe) {
-      throw new TribbleException("Could not close a bed context feature reader.", ioe);
-    }
-  }
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
 
-  /** Returns an iterator over all records in this VCF/BCF file. */
-  @Override
-  public CloseableIterator<BEDFeature> iterator() {
-    try {
-      return reader.iterator();
-    } catch (final IOException ioe) {
-      throw new TribbleException("Could not create an iterator from a feature reader.", ioe);
-    }
-  }
+		};
 
-  public LocusSet<BEDFeatureSeg> loadAll(Logger log) {
-    ArrayList<BEDFeatureSeg> bedSegs = new ArrayList<BEDFeatureSeg>();
-    CloseableIterator<BEDFeature> iterator;
-    try {
-      iterator = reader.iterator();
-      while (iterator.hasNext()) {
-        BEDFeature bedFeature = iterator.next();
-        bedSegs.add(new BEDFeatureSeg(bedFeature, log));
-      }
-    } catch (IOException e) {
-      log.reportException(e);
-      e.printStackTrace();
-      return null;
-    }
+		return segSet;
+	}
 
-    LocusSet<BEDFeatureSeg> segSet =
-        new LocusSet<BEDFeatureSeg>(bedSegs.toArray(new BEDFeatureSeg[bedSegs.size()]), true, log) {
+	public LocusSet<BEDFeatureSeg> loadAll(Logger log) {
+		ArrayList<BEDFeatureSeg> bedSegs = new ArrayList<BEDFeatureSeg>();
+		CloseableIterator<BEDFeature> iterator;
+		try {
+			iterator = reader.iterator();
+			while (iterator.hasNext()) {
+				BEDFeature bedFeature = iterator.next();
+				bedSegs.add(new BEDFeatureSeg(bedFeature, log));
+			}
+		} catch (IOException e) {
+			log.reportException(e);
+			e.printStackTrace();
+			return null;
+		}
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+		LocusSet<BEDFeatureSeg> segSet = new LocusSet<BEDFeatureSeg>(bedSegs.toArray(new BEDFeatureSeg[bedSegs.size()]), true, log) {
 
-        };
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
 
-    return segSet;
+		};
 
-  }
+		return segSet;
 
-  public BEDFeature[] loadBEDFeaturesFor(Segment segment, Logger log) {
-    CloseableIterator<BEDFeature> iterator = query(segment);
-    ArrayList<BEDFeature> bedSegs = new ArrayList<BEDFeature>();
-    while (iterator.hasNext()) {
-      bedSegs.add(iterator.next());
-    }
+	}
 
-    return bedSegs.toArray(new BEDFeature[bedSegs.size()]);
-  }
+	public static class BEDFeatureSeg extends Segment {
+		private BEDFeature bedFeature;
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 
-  public LocusSet<BEDFeatureSeg> loadSegsFor(Segment segment, Logger log) {
-    CloseableIterator<BEDFeature> iterator = query(segment);
-    ArrayList<BEDFeatureSeg> bedSegs = new ArrayList<BEDFeatureSeg>();
-    while (iterator.hasNext()) {
-      BEDFeature bedFeature = iterator.next();
-      bedSegs.add(new BEDFeatureSeg(bedFeature, log));
+		public BEDFeatureSeg(BEDFeature bedFeature, Logger log) {
+			super(bedFeature.getContig(), bedFeature.getStart(), bedFeature.getEnd());
+			this.bedFeature = bedFeature;
+		}
 
-    }
-    LocusSet<BEDFeatureSeg> segSet =
-        new LocusSet<BEDFeatureSeg>(bedSegs.toArray(new BEDFeatureSeg[bedSegs.size()]), true, log) {
+		public BEDFeature getBedFeature() {
+			return bedFeature;
+		}
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+	}
 
-        };
+	public BEDFeature[] loadBEDFeaturesFor(Segment segment, Logger log) {
+		CloseableIterator<BEDFeature> iterator = query(segment);
+		ArrayList<BEDFeature> bedSegs = new ArrayList<BEDFeature>();
+		while (iterator.hasNext()) {
+			bedSegs.add(iterator.next());
+		}
 
-    return segSet;
-  }
+		return bedSegs.toArray(new BEDFeature[bedSegs.size()]);
+	}
 
-  /** Queries for records within the region specified. */
-  public CloseableIterator<BEDFeature> query(Segment seg) {
-    return query(Positions.getChromosomeUCSC(seg.getChr(), true), seg.getStart(), seg.getStop());
-  }
+	public void close() {
+		try {
+			this.reader.close();
+		} catch (final IOException ioe) {
+			throw new TribbleException("Could not close a bed context feature reader.", ioe);
+		}
+	}
 
-  /** Queries for records within the region specified. */
-  public CloseableIterator<BEDFeature> query(final String chrom, final int start, final int end) {
-    try {
-      return reader.query(chrom, start, end);
-    } catch (final IOException ioe) {
-      throw new TribbleException("Could not create an iterator from a feature reader.", ioe);
-    }
-  }
+	/** Returns an iterator over all records in this VCF/BCF file. */
+	public CloseableIterator<BEDFeature> iterator() {
+		try {
+			return reader.iterator();
+		} catch (final IOException ioe) {
+			throw new TribbleException("Could not create an iterator from a feature reader.", ioe);
+		}
+	}
 
 }

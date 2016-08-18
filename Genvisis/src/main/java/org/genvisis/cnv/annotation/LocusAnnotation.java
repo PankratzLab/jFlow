@@ -12,137 +12,135 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 
 public class LocusAnnotation {
-  public static class Builder {
-    private Allele ref = Allele.create("A", true);
-    private Allele[] alts = new Allele[] {Allele.create("N", false)};
-    private AnnotationData[] annotations = null;
-    private Logger log = new Logger();
+	private String locusName;
+	private Segment seg;
+	private Allele ref;
+	private Allele[] alts;
+	private Logger log;
+	private AnnotationData[] annotations;
 
-    public Builder alts(Allele[] alts) {
-      this.alts = alts;
-      return this;
-    }
+	public void setRef(Allele ref) {
+		this.ref = ref;
+	}
 
-    public Builder annotations(AnnotationData[] annotations) {
-      this.annotations = annotations;
-      return this;
-    }
+	public void setAlts(Allele[] alts) {
+		this.alts = alts;
+	}
 
-    public LocusAnnotation build(String locusName, Segment seg) {
-      return new LocusAnnotation(this, locusName, seg);
-    }
+	/**
+	 * @param skipDefaultValue
+	 *            if true, annotations that are set to their default value will not be added to the {@link VariantContext}
+	 * @return
+	 */
+	public VariantContext annotateLocus(boolean skipDefaultValue) {
+		ArrayList<Allele> alleles = new ArrayList<Allele>();
+		Allele refA = Allele.create(ref, false);
+		alleles.add(refA);
+		int maxAlleleLength = refA.getBases().length - 1;
+		boolean isIndel = false;
+		for (int i = 0; i < alts.length; i++) {
+			Allele altA = Allele.create(alts[i], false);
+			alleles.add(altA);
+			if (!isIndel) {
+				isIndel = alts[i].getBases().length != refA.getBases().length;
+			}
+		}
 
-    public Builder log(Logger log) {
-      this.log = log;
-      return this;
-    }
+		VariantContextBuilder vBuilder = new VariantContextBuilder();
+		vBuilder.chr(Positions.getChromosomeUCSC(seg.getChr(), true));
+		if (seg.getChr() == 0) {
+			vBuilder.start(seg.getStart() <= 0 ? 1 : seg.getStart());
+			vBuilder.stop(seg.getStop() <= 0 ? 1 + maxAlleleLength : seg.getStop() + maxAlleleLength);
 
-    public Builder ref(Allele ref) {
-      this.ref = ref;
-      return this;
-    }
-  }
+		} else {
+			vBuilder.start(seg.getStart());
+			vBuilder.stop(seg.getStop() + maxAlleleLength);
+		}
+		vBuilder.id(locusName);
+		vBuilder.alleles(alleles);
+		if (annotations != null) {
+			for (int i = 0; i < annotations.length; i++) {
+				if (!skipDefaultValue || !annotations[i].getDefaultValue().equals(annotations[i].getData())) {
+					annotations[i].addAnnotation(vBuilder);
+				}
+			}
+		}
+		VariantContext vc = null;
+		try {
+			vc = vBuilder.make();
+		} catch (Exception e) {
+			log.reportException(e);
+			log.reportTimeError("Could not create VC at " + seg.getUCSClocation() + " for " + locusName);
+			log.reportTimeError("Ref " + ref.getDisplayString());
+			for (int i = 0; i < alts.length; i++) {
+				log.reportTimeError("Alt " + alts[i].getDisplayString());
 
-  private final String locusName;
-  private final Segment seg;
-  private Allele ref;
-  private Allele[] alts;
-  private final Logger log;
+			}
+			for (int i = 0; i < annotations.length; i++) {
+				log.reportTimeError("Annotation: " + annotations[i].getData());
+			}
+		}
+		return vc;
+	}
 
-  private AnnotationData[] annotations;
+	public Segment getSeg() {
+		return seg;
+	}
 
-  public LocusAnnotation(Builder builder, String locusName, Segment seg) {
-    this.locusName = locusName;
-    this.seg = seg;
-    annotations = builder.annotations;
-    ref = builder.ref;
-    alts = builder.alts;
-    log = builder.log;
-  }
+	public String getLocusName() {
 
-  public void addAnnotation(AnnotationData annotationData) {
-    annotations = Array.concatAll(annotations, new AnnotationData[] {annotationData});
-  }
+		return locusName;
+	}
 
-  /**
-   * @param skipDefaultValue if true, annotations that are set to their default value will not be
-   *        added to the {@link VariantContext}
-   * @return
-   */
-  public VariantContext annotateLocus(boolean skipDefaultValue) {
-    ArrayList<Allele> alleles = new ArrayList<Allele>();
-    Allele refA = Allele.create(ref, false);
-    alleles.add(refA);
-    int maxAlleleLength = refA.getBases().length - 1;
-    boolean isIndel = false;
-    for (Allele alt : alts) {
-      Allele altA = Allele.create(alt, false);
-      alleles.add(altA);
-      if (!isIndel) {
-        isIndel = alt.getBases().length != refA.getBases().length;
-      }
-    }
+	public void setAnnotations(AnnotationData[] annotations) {
+		this.annotations = annotations;
+	}
 
-    VariantContextBuilder vBuilder = new VariantContextBuilder();
-    vBuilder.chr(Positions.getChromosomeUCSC(seg.getChr(), true));
-    if (seg.getChr() == 0) {
-      vBuilder.start(seg.getStart() <= 0 ? 1 : seg.getStart());
-      vBuilder.stop(seg.getStop() <= 0 ? 1 + maxAlleleLength : seg.getStop() + maxAlleleLength);
+	public AnnotationData[] getAnnotations() {
+		return annotations;
+	}
 
-    } else {
-      vBuilder.start(seg.getStart());
-      vBuilder.stop(seg.getStop() + maxAlleleLength);
-    }
-    vBuilder.id(locusName);
-    vBuilder.alleles(alleles);
-    if (annotations != null) {
-      for (int i = 0; i < annotations.length; i++) {
-        if (!skipDefaultValue
-            || !annotations[i].getDefaultValue().equals(annotations[i].getData())) {
-          annotations[i].addAnnotation(vBuilder);
-        }
-      }
-    }
-    VariantContext vc = null;
-    try {
-      vc = vBuilder.make();
-    } catch (Exception e) {
-      log.reportException(e);
-      log.reportTimeError("Could not create VC at " + seg.getUCSClocation() + " for " + locusName);
-      log.reportTimeError("Ref " + ref.getDisplayString());
-      for (Allele alt : alts) {
-        log.reportTimeError("Alt " + alt.getDisplayString());
+	public void addAnnotation(AnnotationData annotationData) {
+		annotations = Array.concatAll(annotations, new AnnotationData[] { annotationData });
+	}
 
-      }
-      for (AnnotationData annotation : annotations) {
-        log.reportTimeError("Annotation: " + annotation.getData());
-      }
-    }
-    return vc;
-  }
+	public static class Builder {
+		private Allele ref = Allele.create("A", true);
+		private Allele[] alts = new Allele[] { Allele.create("N", false) };
+		private AnnotationData[] annotations = null;
+		private Logger log = new Logger();
 
-  public AnnotationData[] getAnnotations() {
-    return annotations;
-  }
+		public Builder ref(Allele ref) {
+			this.ref = ref;
+			return this;
+		}
 
-  public String getLocusName() {
+		public Builder log(Logger log) {
+			this.log = log;
+			return this;
+		}
 
-    return locusName;
-  }
+		public Builder alts(Allele[] alts) {
+			this.alts = alts;
+			return this;
+		}
 
-  public Segment getSeg() {
-    return seg;
-  }
+		public Builder annotations(AnnotationData[] annotations) {
+			this.annotations = annotations;
+			return this;
+		}
 
-  public void setAlts(Allele[] alts) {
-    this.alts = alts;
-  }
+		public LocusAnnotation build(String locusName, Segment seg) {
+			return new LocusAnnotation(this, locusName, seg);
+		}
+	}
 
-  public void setAnnotations(AnnotationData[] annotations) {
-    this.annotations = annotations;
-  }
-
-  public void setRef(Allele ref) {
-    this.ref = ref;
-  }
+	public LocusAnnotation(Builder builder, String locusName, Segment seg) {
+		this.locusName = locusName;
+		this.seg = seg;
+		this.annotations = builder.annotations;
+		this.ref = builder.ref;
+		this.alts = builder.alts;
+		this.log = builder.log;
+	}
 }

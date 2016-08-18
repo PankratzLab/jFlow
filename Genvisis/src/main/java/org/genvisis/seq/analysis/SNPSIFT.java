@@ -8,147 +8,138 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class SNPSIFT {
-  public static class SnpSiftResult {
-    public static final String[] TYPES = {".dbnsfp", ".tstv"};
-    private final String inputVCF;
-    private String outputVCF;
-    private String outputTsTv;
-    private final boolean verbose;
-    private boolean fail;
-    private final Logger log;
+	public static final String SNP_SIFT_LOCATION_COMMAND = "snpSift=";
+	public static final String SNP_SIFT_JAR = "SnpSift.jar";
+	public static final String DB_NSFP = "dbnsfp";
+	public static final String TSTV = "tstv";
+	public static final String HOM = "hom";
 
-    public SnpSiftResult(String inputVCF, boolean verbose, Logger log) {
-      super();
-      this.inputVCF = inputVCF;
-      this.verbose = verbose;
-      this.log = log;
+	public static final String V = "-v";
 
-    }
+	private String snpSiftLocation;
+	private boolean verbose, fail, overWriteExisting;
+	private Logger log;
 
-    public String getInputVCF() {
-      return inputVCF;
-    }
+	public SNPSIFT(String snpSiftLocation, boolean verbose, boolean overWriteExisting, Logger log) {
+		super();
+		this.snpSiftLocation = snpSiftLocation;
+		this.verbose = verbose;
+		this.overWriteExisting = overWriteExisting;
+		this.log = log;
+		this.fail = !verify();
+	}
 
-    public Logger getLog() {
-      return log;
-    }
+	public String getSnpSiftLocation() {
+		return snpSiftLocation;
+	}
 
-    public String getOutputTsTv() {
-      return outputTsTv;
-    }
+	public SnpSiftResult annotateDbnsfp(String inputVCF, Logger log) {
+		boolean progress = true;
+		SnpSiftResult snSiftResult = new SnpSiftResult(inputVCF, verbose, log);
+		snSiftResult.parse();
+		progress = dbnsfpAVCF(snSiftResult.getInputVCF(), snSiftResult.getOutputVCF(), log);
+		snSiftResult.setFail(!progress);
+		return snSiftResult;
+	}
 
-    public String getOutputVCF() {
-      return outputVCF;
-    }
+	public SnpSiftResult tsTv(String inputVCF, Logger log) {
+		boolean progress = true;
+		SnpSiftResult snSiftResult = new SnpSiftResult(inputVCF, verbose, log);
+		snSiftResult.parse();
+		progress = tsTvVcf(snSiftResult.getInputVCF(), snSiftResult.getOutputTsTv(), log);
+		snSiftResult.setFail(!progress);
+		return snSiftResult;
+	}
 
-    public boolean isFail() {
-      return fail;
-    }
+	private boolean dbnsfpAVCF(String inputVCF, String outputVCF, Logger log) {
+		boolean progress = true;
+		if (!fail) {
+			String[] command = PSF.Java.buildJavaJar(snpSiftLocation + SNP_SIFT_JAR);
+			String[] args = new String[] { DB_NSFP, V, inputVCF, PSF.Ext.CARROT, outputVCF };
+			command = Array.concatAll(command, args);
+			String batFile = outputVCF + ".bat";
+			command = CmdLine.prepareBatchForCommandLine(command, batFile, true, log);
+			progress = CmdLine.runCommandWithFileChecks(command, "", new String[] { inputVCF, batFile }, new String[] { outputVCF }, verbose, overWriteExisting, false, log);
+		} else {
+			progress = false;
+		}
+		return progress;
+	}
 
-    public boolean isVerbose() {
-      return verbose;
-    }
+	private boolean tsTvVcf(String inputVCF, String outputTsTv, Logger log) {
+		boolean progress = true;
+		if (!fail) {
+			String[] command = PSF.Java.buildJavaJar(snpSiftLocation + SNP_SIFT_JAR);
+			String[] args = new String[] { TSTV, HOM, inputVCF, PSF.Ext.CARROT, outputTsTv };
+			command = Array.concatAll(command, args);
+			String batFile = outputTsTv + ".bat";
+			command = CmdLine.prepareBatchForCommandLine(command, batFile, true, log);
+			progress = CmdLine.runCommandWithFileChecks(command, "", new String[] { inputVCF, batFile }, new String[] { outputTsTv }, verbose, overWriteExisting, false, log);
+		} else {
+			progress = false;
+		}
+		return progress;
+	}
 
-    public void parse() {
-      outputVCF = ext.addToRoot(inputVCF, TYPES[0]);
-      outputTsTv = ext.rootOf(inputVCF, false) + TYPES[1];
-    }
+	private boolean verify() {
+		boolean verify = true;
+		if (!Files.exists(snpSiftLocation)) {
+			verify = false;
+			log.reportError("Warning - could not find SNP SIFT location " + snpSiftLocation);
+		}
+		if (!Files.exists(snpSiftLocation + SNP_SIFT_JAR)) {
+			verify = false;
+			log.reportError("Warning - could not find the SNP SIFT jar file " + snpSiftLocation + SNP_SIFT_JAR);
+		}
+		return verify;
+	}
 
-    public void setFail(boolean fail) {
-      this.fail = fail;
-    }
-  }
+	public static class SnpSiftResult {
+		public static final String[] TYPES = { ".dbnsfp", ".tstv" };
+		private String inputVCF, outputVCF, outputTsTv;
+		private boolean verbose, fail;
+		private Logger log;
 
-  public static final String SNP_SIFT_LOCATION_COMMAND = "snpSift=";
-  public static final String SNP_SIFT_JAR = "SnpSift.jar";
-  public static final String DB_NSFP = "dbnsfp";
-  public static final String TSTV = "tstv";
+		public SnpSiftResult(String inputVCF, boolean verbose, Logger log) {
+			super();
+			this.inputVCF = inputVCF;
+			this.verbose = verbose;
+			this.log = log;
 
-  public static final String HOM = "hom";
+		}
 
-  public static final String V = "-v";
-  private final String snpSiftLocation;
-  private final boolean verbose, fail, overWriteExisting;
+		public void parse() {
+			this.outputVCF = ext.addToRoot(inputVCF, TYPES[0]);
+			this.outputTsTv = ext.rootOf(inputVCF, false) + TYPES[1];
+		}
 
-  private final Logger log;
+		public boolean isVerbose() {
+			return verbose;
+		}
 
-  public SNPSIFT(String snpSiftLocation, boolean verbose, boolean overWriteExisting, Logger log) {
-    super();
-    this.snpSiftLocation = snpSiftLocation;
-    this.verbose = verbose;
-    this.overWriteExisting = overWriteExisting;
-    this.log = log;
-    fail = !verify();
-  }
+		public Logger getLog() {
+			return log;
+		}
 
-  public SnpSiftResult annotateDbnsfp(String inputVCF, Logger log) {
-    boolean progress = true;
-    SnpSiftResult snSiftResult = new SnpSiftResult(inputVCF, verbose, log);
-    snSiftResult.parse();
-    progress = dbnsfpAVCF(snSiftResult.getInputVCF(), snSiftResult.getOutputVCF(), log);
-    snSiftResult.setFail(!progress);
-    return snSiftResult;
-  }
+		public boolean isFail() {
+			return fail;
+		}
 
-  private boolean dbnsfpAVCF(String inputVCF, String outputVCF, Logger log) {
-    boolean progress = true;
-    if (!fail) {
-      String[] command = PSF.Java.buildJavaJar(snpSiftLocation + SNP_SIFT_JAR);
-      String[] args = new String[] {DB_NSFP, V, inputVCF, PSF.Ext.CARROT, outputVCF};
-      command = Array.concatAll(command, args);
-      String batFile = outputVCF + ".bat";
-      command = CmdLine.prepareBatchForCommandLine(command, batFile, true, log);
-      progress = CmdLine.runCommandWithFileChecks(command, "", new String[] {inputVCF, batFile},
-                                                  new String[] {outputVCF}, verbose,
-                                                  overWriteExisting, false, log);
-    } else {
-      progress = false;
-    }
-    return progress;
-  }
+		public void setFail(boolean fail) {
+			this.fail = fail;
+		}
 
-  public String getSnpSiftLocation() {
-    return snpSiftLocation;
-  }
+		public String getInputVCF() {
+			return inputVCF;
+		}
 
-  public SnpSiftResult tsTv(String inputVCF, Logger log) {
-    boolean progress = true;
-    SnpSiftResult snSiftResult = new SnpSiftResult(inputVCF, verbose, log);
-    snSiftResult.parse();
-    progress = tsTvVcf(snSiftResult.getInputVCF(), snSiftResult.getOutputTsTv(), log);
-    snSiftResult.setFail(!progress);
-    return snSiftResult;
-  }
+		public String getOutputVCF() {
+			return outputVCF;
+		}
 
-  private boolean tsTvVcf(String inputVCF, String outputTsTv, Logger log) {
-    boolean progress = true;
-    if (!fail) {
-      String[] command = PSF.Java.buildJavaJar(snpSiftLocation + SNP_SIFT_JAR);
-      String[] args = new String[] {TSTV, HOM, inputVCF, PSF.Ext.CARROT, outputTsTv};
-      command = Array.concatAll(command, args);
-      String batFile = outputTsTv + ".bat";
-      command = CmdLine.prepareBatchForCommandLine(command, batFile, true, log);
-      progress = CmdLine.runCommandWithFileChecks(command, "", new String[] {inputVCF, batFile},
-                                                  new String[] {outputTsTv}, verbose,
-                                                  overWriteExisting, false, log);
-    } else {
-      progress = false;
-    }
-    return progress;
-  }
-
-  private boolean verify() {
-    boolean verify = true;
-    if (!Files.exists(snpSiftLocation)) {
-      verify = false;
-      log.reportError("Warning - could not find SNP SIFT location " + snpSiftLocation);
-    }
-    if (!Files.exists(snpSiftLocation + SNP_SIFT_JAR)) {
-      verify = false;
-      log.reportError("Warning - could not find the SNP SIFT jar file " + snpSiftLocation
-                      + SNP_SIFT_JAR);
-    }
-    return verify;
-  }
+		public String getOutputTsTv() {
+			return outputTsTv;
+		}
+	}
 
 }

@@ -10,17 +10,17 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.analysis.BeastScore;
-import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.GeneData;
 import org.genvisis.filesys.GeneTrack;
@@ -37,328 +37,308 @@ import com.google.common.primitives.Ints;
  */
 public class SomaticCNVEvaluation {
 
-  private static class BeastFilt {
-    private final double normalCutoff;
-    private final double diffCutoff;
+	private static class TNTrack {
+		private String tumorFidIid;
+		private String tumorSample;
+		private String normalSample;
 
-    public BeastFilt(double normalCutoff, double diffCutoff) {
-      super();
-      this.normalCutoff = normalCutoff;
-      this.diffCutoff = diffCutoff;
-    }
+		private TNTrack(String tumorFidIid, String tumorSample, String normalSample) {
+			super();
+			this.tumorFidIid = tumorFidIid;
+			this.tumorSample = tumorSample;
+			this.normalSample = normalSample;
+		}
 
-    private double getDiffCutoff() {
-      return diffCutoff;
-    }
+		private String getTumorFidIid() {
+			return tumorFidIid;
+		}
 
-    private double getNormalCutoff() {
-      return normalCutoff;
-    }
+		private String getTumorSample() {
+			return tumorSample;
+		}
 
-  }
+		private String getNormalSample() {
+			return normalSample;
+		}
 
-  private static class SomaticEvaluation {
-    private static final String[] HEADER =
-        new String[] {"TYPE", "BEAST_HEIGHT_TUMOR", "BEAST_HEIGHT_NORMAL", "BEAST_HEIGHT_DIFF",
-                      "HQ"};
-    private final String type;
-    private final double bhTumor;
-    private final double bhNormal;
-    private double heightDiff;
-    private boolean hq;
+	}
 
-    public SomaticEvaluation(String type, double bhTumor, double bhNormal) {
-      super();
-      this.type = type;
-      this.bhTumor = bhTumor;
-      this.bhNormal = bhNormal;
-    }
+	private static void filter(Project proj, String vpopFile, String cnvFile, double normalCutoff, double diffCutoff, int numThreads) {
+		Logger log = proj.getLog();
+		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.TUMOR_NORMAL, log);
+		vpop.report();
+		// String[] markFilter = proj.MARKER_COLOR_KEY_FILENAMES.getValue();
+		// log.reportTimeInfo(markFilter.length + " filter files detected");
 
-    private void determineHQ(double normalCutoff, double diffCutoff) {
-      hq = true;
-      if (Math.abs(bhNormal) > normalCutoff) {// might remove since somatic can get weird
-        hq = false;
-      }
-      boolean posN = bhNormal > 0;
-      boolean posT = bhTumor > 0;
+		LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(cnvFile, log);
+		Hashtable<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs, log);
+		Set<String> tumors = vpop.getTumorSamples();
+		ArrayList<TNTrack> trackers = new ArrayList<TNTrack>();
+		SampleData sampleData = proj.getSampleData(0, false);
 
-      boolean same = posN == posT;
+		for (String tnPair : vpop.getSubPop().keySet()) {
+			Set<String> pair = vpop.getSubPop().get(tnPair);
+			String tumor = null;
+			String normal = null;
+			for (String samp : pair) {
+				if (tumors.contains(samp)) {
+					tumor = samp;
+				} else {
+					normal = samp;
+				}
+			}
 
-      if (same) {
-        heightDiff = Math.abs(bhTumor) - Math.abs(bhNormal);
-        if (heightDiff < diffCutoff) {
-          hq = false;
-        }
+			String fidIid = sampleData.lookup(tumor)[1];
+			if (inds.containsKey(fidIid)) {
+				trackers.add(new TNTrack(fidIid, tumor, normal));
+			}
+		}
+		// ArrayList<ColorManager<String>> managers = new ArrayList<ColorExt.ColorManager<String>>();
+		// if (markFilter != null) {
+		// for (int i = 0; i < markFilter.length; i++) {
+		// proj.getLog().reportTimeInfo("Loading " + markFilter[i]);
+		// managers.add(ColorExt.getColorManager(proj, markFilter[i]));
+		//
+		// }
+		// }
+		BeastFilt beastFilt = new BeastFilt(normalCutoff, diffCutoff);
+		TNCNVProducer producer = new TNCNVProducer(proj, inds, trackers, beastFilt);
+		WorkerTrain<TNCNV> train = new WorkerTrain<SomaticCNVEvaluation.TNCNV>(producer, numThreads, numThreads, proj.getLog());
+		String outDir = proj.PROJECT_DIRECTORY.getValue() + "SomaticCNV/";
+		new File(outDir).mkdirs();
+		String outFile = outDir + ext.rootOf(cnvFile) + ".somaticEvals.txt";
+		if (!Files.exists(outFile)) {
+			System.exit(1);
+			try {
+				PrintWriter writer = new PrintWriter(new FileWriter(outFile));
+				writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\t" + Array.toStr(SomaticEvaluation.HEADER));
+				while (train.hasNext()) {
+					TNCNV current = train.next();
+					for (int i = 0; i < current.getTumorCnvs().getLoci().length; i++) {
+						CNVariant currentCNV = current.getTumorCnvs().getLoci()[i];
+						writer.println(currentCNV.toPlinkFormat() + "\t" + Array.toStr(current.getSomaticEvaluations()[i].getSummary()) + "\t" + Array.toStr(currentCNV.toTrailerFormat()));
+					}
+				}
+				writer.close();
+			} catch (Exception e) {
+				log.reportError("Error writing to " + outFile);
+				log.reportException(e);
+			}
+		}
+		String[][] results = HashVec.loadFileToStringMatrix(outFile, false, null, false);
+		String geneOutFile = ext.addToRoot(outFile, ".genes");
+		try {
+			GeneTrack geneTrack = GeneTrack.load(proj.getGeneTrackFilename(true), false);
+			PrintWriter writer = new PrintWriter(new FileWriter(geneOutFile));
+			writer.println(Array.toStr(results[0]) + "\tGENE");
+			for (int i = 1; i < results.length; i++) {
+				Segment current = new Segment(Byte.parseByte(results[i][2]), Integer.parseInt(results[i][3]), Integer.parseInt(results[i][4]));
+				GeneData[] geneDatas = geneTrack.getOverlappingGenes(current);
+				HashSet<String> written = new HashSet<String>();
+				for (int j = 0; j < geneDatas.length; j++) {
+					if (!written.contains(geneDatas[j].getGeneName())) {
+						writer.println(Array.toStr(results[i]) + "\t" + geneDatas[j].getGeneName());
+						written.add(geneDatas[j].getGeneName());
+					}
+				}
+			}
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + outFile);
+			log.reportException(e);
+		}
+	}
 
-      } else {
-        heightDiff = Math.abs(bhTumor);
-        if (heightDiff < diffCutoff) {
-          hq = false;
+	private static class BeastFilt {
+		private double normalCutoff;
+		private double diffCutoff;
 
-        }
-      }
+		private double getNormalCutoff() {
+			return normalCutoff;
+		}
 
-    }
+		private double getDiffCutoff() {
+			return diffCutoff;
+		}
 
-    private String[] getSummary() {
-      ArrayList<String> summary = new ArrayList<String>();
-      summary.add(type);
-      summary.add(bhTumor + "");
-      summary.add(bhNormal + "");
-      summary.add(heightDiff + "");
-      summary.add(hq + "");
-      return Array.toStringArray(summary);
-    }
+		public BeastFilt(double normalCutoff, double diffCutoff) {
+			super();
+			this.normalCutoff = normalCutoff;
+			this.diffCutoff = diffCutoff;
+		}
 
-  }
+	}
 
-  private static class TNCNV implements Callable<TNCNV> {
-    private final Project proj;
-    private final LocusSet<CNVariant> tumorCnvs;
-    private final String tumorSample;
-    private final String normalSample;
-    private PreparedMarkerSet markerSet;
-    private SomaticEvaluation[] somaticEvaluations;
-    private final BeastFilt beastFilt;
+	private static class TNCNVProducer extends AbstractProducer<TNCNV> {
+		private Project proj;
 
-    public TNCNV(Project proj, LocusSet<CNVariant> tumorCnvs, String tumorSample,
-                 String normalSample, BeastFilt beastFilt) {
-      super();
-      this.proj = proj;
-      this.tumorCnvs = tumorCnvs;
-      this.tumorSample = tumorSample;
-      this.normalSample = normalSample;
-      this.beastFilt = beastFilt;
-    }
+		private Hashtable<String, LocusSet<CNVariant>> inds;
+		private ArrayList<TNTrack> tncnvs;
+		private int index;
+		private BeastFilt beastFilt;
 
-    @Override
-    public TNCNV call() throws Exception {
-      somaticEvaluations = new SomaticEvaluation[tumorCnvs.getLoci().length];
+		public TNCNVProducer(Project proj, Hashtable<String, LocusSet<CNVariant>> inds, ArrayList<TNTrack> tncnvs, BeastFilt beastFilt) {
+			super();
+			this.proj = proj;
+			this.inds = inds;
+			this.tncnvs = tncnvs;
+			this.index = 0;
+			this.beastFilt = beastFilt;
+		}
 
-      markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
+		@Override
+		public boolean hasNext() {
+			// TODO Auto-generated method stub
+			return index < tncnvs.size();
+		}
 
-      proj.getLog().reportTimeInfo("Loading" + tumorSample);
+		@Override
+		public Callable<TNCNV> next() {
+			TNTrack trackCurrent = tncnvs.get(index);
+			TNCNV current = new TNCNV(proj, inds.get(trackCurrent.getTumorFidIid()), trackCurrent.getTumorSample(), trackCurrent.getNormalSample(), beastFilt);
+			index++;
+			return current;
+		}
+	}
 
-      Sample tumorSamp = proj.getFullSampleFromRandomAccessFile(tumorSample);
-      proj.getLog().reportTimeInfo("Loading" + normalSample);
+	private static class SomaticEvaluation {
+		private static final String[] HEADER = new String[] { "TYPE", "BEAST_HEIGHT_TUMOR", "BEAST_HEIGHT_NORMAL", "BEAST_HEIGHT_DIFF", "HQ" };
+		private String type;
+		private double bhTumor;
+		private double bhNormal;
+		private double heightDiff;
+		private boolean hq;
 
-      Sample normalSamp = proj.getFullSampleFromRandomAccessFile(normalSample);
+		public SomaticEvaluation(String type, double bhTumor, double bhNormal) {
+			super();
+			this.type = type;
+			this.bhTumor = bhTumor;
+			this.bhNormal = bhNormal;
+		}
 
-      int[][] cnvIndices = new int[tumorCnvs.getLoci().length][];
-      Hashtable<String, Integer> track = proj.getMarkerIndices();
-      for (int i = 0; i < tumorCnvs.getLoci().length; i++) {
-        String[] namesIn =
-            markerSet.getMarkersIn(tumorCnvs.getLoci()[i], markerSet.getIndicesByChr());
-        ArrayList<Integer> nonVariant = new ArrayList<Integer>();
+		private void determineHQ(double normalCutoff, double diffCutoff) {
+			this.hq = true;
+			if (Math.abs(bhNormal) > normalCutoff) {// might remove since somatic can get weird
+				hq = false;
+			}
+			boolean posN = bhNormal > 0;
+			boolean posT = bhTumor > 0;
 
-        for (String element : namesIn) {
-          NGS_MARKER_TYPE type = NGS_MARKER_TYPE.getType(element);
-          if (type != NGS_MARKER_TYPE.VARIANT_SITE) {
-            nonVariant.add(track.get(element));
-          }
-        }
-        cnvIndices[i] = Ints.toArray(nonVariant);
-      }
+			boolean same = posN == posT;
 
-      proj.getLog().reportTimeInfo("Computing scores for " + tumorSample);
-      BeastScore beastScoreTumor = new BeastScore(tumorSamp.getLRRs(), markerSet.getIndicesByChr(),
-                                                  cnvIndices, proj.getLog());
-      // beastScoreTumor.setUse(useForMedian);
-      beastScoreTumor.computeBeastScores();
-      proj.getLog().reportTimeInfo("Computing scores for " + normalSample);
-      BeastScore beastScoreNormal =
-          new BeastScore(normalSamp.getLRRs(), markerSet.getIndicesByChr(), cnvIndices,
-                         proj.getLog());
-      beastScoreNormal.computeBeastScores();
-      markerSet = null;
-      for (int i = 0; i < cnvIndices.length; i++) {
-        double bhTumor = beastScoreTumor.getBeastHeights()[i];
-        double bhNormal = beastScoreNormal.getBeastHeights()[i];
-        SomaticEvaluation somaticEvaluation =
-            new SomaticEvaluation("ALL_MARKERS", bhTumor, bhNormal);
-        somaticEvaluation.determineHQ(beastFilt.getNormalCutoff(), beastFilt.getDiffCutoff());
-        somaticEvaluations[i] = somaticEvaluation;
-      }
-      return this;
-    }
+			if (same) {
+				this.heightDiff = Math.abs(bhTumor) - Math.abs(bhNormal);
+				if (heightDiff < diffCutoff) {
+					hq = false;
+				}
 
-    private SomaticEvaluation[] getSomaticEvaluations() {
-      return somaticEvaluations;
-    }
+			} else {
+				this.heightDiff = Math.abs(bhTumor);
+				if (heightDiff < diffCutoff) {
+					hq = false;
 
-    private LocusSet<CNVariant> getTumorCnvs() {
-      return tumorCnvs;
-    }
-  }
+				}
+			}
 
-  private static class TNCNVProducer extends AbstractProducer<TNCNV> {
-    private final Project proj;
+		}
 
-    private final Hashtable<String, LocusSet<CNVariant>> inds;
-    private final ArrayList<TNTrack> tncnvs;
-    private int index;
-    private final BeastFilt beastFilt;
+		private String[] getSummary() {
+			ArrayList<String> summary = new ArrayList<String>();
+			summary.add(type);
+			summary.add(bhTumor + "");
+			summary.add(bhNormal + "");
+			summary.add(heightDiff + "");
+			summary.add(hq + "");
+			return Array.toStringArray(summary);
+		}
 
-    public TNCNVProducer(Project proj, Hashtable<String, LocusSet<CNVariant>> inds,
-                         ArrayList<TNTrack> tncnvs, BeastFilt beastFilt) {
-      super();
-      this.proj = proj;
-      this.inds = inds;
-      this.tncnvs = tncnvs;
-      index = 0;
-      this.beastFilt = beastFilt;
-    }
+	}
 
-    @Override
-    public boolean hasNext() {
-      // TODO Auto-generated method stub
-      return index < tncnvs.size();
-    }
+	private static class TNCNV implements Callable<TNCNV> {
+		private Project proj;
+		private LocusSet<CNVariant> tumorCnvs;
+		private String tumorSample;
+		private String normalSample;
+		private PreparedMarkerSet markerSet;
+		private SomaticEvaluation[] somaticEvaluations;
+		private BeastFilt beastFilt;
 
-    @Override
-    public Callable<TNCNV> next() {
-      TNTrack trackCurrent = tncnvs.get(index);
-      TNCNV current =
-          new TNCNV(proj, inds.get(trackCurrent.getTumorFidIid()), trackCurrent.getTumorSample(),
-                    trackCurrent.getNormalSample(), beastFilt);
-      index++;
-      return current;
-    }
-  }
+		public TNCNV(Project proj, LocusSet<CNVariant> tumorCnvs, String tumorSample, String normalSample, BeastFilt beastFilt) {
+			super();
+			this.proj = proj;
+			this.tumorCnvs = tumorCnvs;
+			this.tumorSample = tumorSample;
+			this.normalSample = normalSample;
+			this.beastFilt = beastFilt;
+		}
 
-  private static class TNTrack {
-    private final String tumorFidIid;
-    private final String tumorSample;
-    private final String normalSample;
+		private LocusSet<CNVariant> getTumorCnvs() {
+			return tumorCnvs;
+		}
 
-    private TNTrack(String tumorFidIid, String tumorSample, String normalSample) {
-      super();
-      this.tumorFidIid = tumorFidIid;
-      this.tumorSample = tumorSample;
-      this.normalSample = normalSample;
-    }
+		private SomaticEvaluation[] getSomaticEvaluations() {
+			return somaticEvaluations;
+		}
 
-    private String getNormalSample() {
-      return normalSample;
-    }
+		@Override
+		public TNCNV call() throws Exception {
+			this.somaticEvaluations = new SomaticEvaluation[tumorCnvs.getLoci().length];
 
-    private String getTumorFidIid() {
-      return tumorFidIid;
-    }
+			markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
 
-    private String getTumorSample() {
-      return tumorSample;
-    }
+			proj.getLog().reportTimeInfo("Loading" + tumorSample);
 
-  }
+			Sample tumorSamp = proj.getFullSampleFromRandomAccessFile(tumorSample);
+			proj.getLog().reportTimeInfo("Loading" + normalSample);
 
-  private static void filter(Project proj, String vpopFile, String cnvFile, double normalCutoff,
-                             double diffCutoff, int numThreads) {
-    Logger log = proj.getLog();
-    VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.TUMOR_NORMAL, log);
-    vpop.report();
-    // String[] markFilter = proj.MARKER_COLOR_KEY_FILENAMES.getValue();
-    // log.reportTimeInfo(markFilter.length + " filter files detected");
+			Sample normalSamp = proj.getFullSampleFromRandomAccessFile(normalSample);
 
-    LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(cnvFile, log);
-    Hashtable<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs, log);
-    Set<String> tumors = vpop.getTumorSamples();
-    ArrayList<TNTrack> trackers = new ArrayList<TNTrack>();
-    SampleData sampleData = proj.getSampleData(0, false);
+			int[][] cnvIndices = new int[tumorCnvs.getLoci().length][];
+			Hashtable<String, Integer> track = proj.getMarkerIndices();
+			for (int i = 0; i < tumorCnvs.getLoci().length; i++) {
+				String[] namesIn = markerSet.getMarkersIn(tumorCnvs.getLoci()[i], markerSet.getIndicesByChr());
+				ArrayList<Integer> nonVariant = new ArrayList<Integer>();
 
-    for (String tnPair : vpop.getSubPop().keySet()) {
-      Set<String> pair = vpop.getSubPop().get(tnPair);
-      String tumor = null;
-      String normal = null;
-      for (String samp : pair) {
-        if (tumors.contains(samp)) {
-          tumor = samp;
-        } else {
-          normal = samp;
-        }
-      }
+				for (int j = 0; j < namesIn.length; j++) {
+					NGS_MARKER_TYPE type = NGS_MARKER_TYPE.getType(namesIn[j]);
+					if (type != NGS_MARKER_TYPE.VARIANT_SITE) {
+						nonVariant.add(track.get(namesIn[j]));
+					}
+				}
+				cnvIndices[i] = Ints.toArray(nonVariant);
+			}
 
-      String fidIid = sampleData.lookup(tumor)[1];
-      if (inds.containsKey(fidIid)) {
-        trackers.add(new TNTrack(fidIid, tumor, normal));
-      }
-    }
-    // ArrayList<ColorManager<String>> managers = new ArrayList<ColorExt.ColorManager<String>>();
-    // if (markFilter != null) {
-    // for (int i = 0; i < markFilter.length; i++) {
-    // proj.getLog().reportTimeInfo("Loading " + markFilter[i]);
-    // managers.add(ColorExt.getColorManager(proj, markFilter[i]));
-    //
-    // }
-    // }
-    BeastFilt beastFilt = new BeastFilt(normalCutoff, diffCutoff);
-    TNCNVProducer producer = new TNCNVProducer(proj, inds, trackers, beastFilt);
-    WorkerTrain<TNCNV> train =
-        new WorkerTrain<SomaticCNVEvaluation.TNCNV>(producer, numThreads, numThreads,
-                                                    proj.getLog());
-    String outDir = proj.PROJECT_DIRECTORY.getValue() + "SomaticCNV/";
-    new File(outDir).mkdirs();
-    String outFile = outDir + ext.rootOf(cnvFile) + ".somaticEvals.txt";
-    if (!Files.exists(outFile)) {
-      System.exit(1);
-      try {
-        PrintWriter writer = new PrintWriter(new FileWriter(outFile));
-        writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
-                       + Array.toStr(SomaticEvaluation.HEADER));
-        while (train.hasNext()) {
-          TNCNV current = train.next();
-          for (int i = 0; i < current.getTumorCnvs().getLoci().length; i++) {
-            CNVariant currentCNV = current.getTumorCnvs().getLoci()[i];
-            writer.println(currentCNV.toPlinkFormat() + "\t"
-                           + Array.toStr(current.getSomaticEvaluations()[i].getSummary()) + "\t"
-                           + Array.toStr(currentCNV.toTrailerFormat()));
-          }
-        }
-        writer.close();
-      } catch (Exception e) {
-        log.reportError("Error writing to " + outFile);
-        log.reportException(e);
-      }
-    }
-    String[][] results = HashVec.loadFileToStringMatrix(outFile, false, null, false);
-    String geneOutFile = ext.addToRoot(outFile, ".genes");
-    try {
-      GeneTrack geneTrack = GeneTrack.load(proj.getGeneTrackFilename(true), false);
-      PrintWriter writer = new PrintWriter(new FileWriter(geneOutFile));
-      writer.println(Array.toStr(results[0]) + "\tGENE");
-      for (int i = 1; i < results.length; i++) {
-        Segment current =
-            new Segment(Byte.parseByte(results[i][2]), Integer.parseInt(results[i][3]),
-                        Integer.parseInt(results[i][4]));
-        GeneData[] geneDatas = geneTrack.getOverlappingGenes(current);
-        HashSet<String> written = new HashSet<String>();
-        for (int j = 0; j < geneDatas.length; j++) {
-          if (!written.contains(geneDatas[j].getGeneName())) {
-            writer.println(Array.toStr(results[i]) + "\t" + geneDatas[j].getGeneName());
-            written.add(geneDatas[j].getGeneName());
-          }
-        }
-      }
-      writer.close();
-    } catch (Exception e) {
-      log.reportError("Error writing to " + outFile);
-      log.reportException(e);
-    }
-  }
+			proj.getLog().reportTimeInfo("Computing scores for " + tumorSample);
+			BeastScore beastScoreTumor = new BeastScore(tumorSamp.getLRRs(), markerSet.getIndicesByChr(), cnvIndices, proj.getLog());
+			// beastScoreTumor.setUse(useForMedian);
+			beastScoreTumor.computeBeastScores();
+			proj.getLog().reportTimeInfo("Computing scores for " + normalSample);
+			BeastScore beastScoreNormal = new BeastScore(normalSamp.getLRRs(), markerSet.getIndicesByChr(), cnvIndices, proj.getLog());
+			beastScoreNormal.computeBeastScores();
+			this.markerSet = null;
+			for (int i = 0; i < cnvIndices.length; i++) {
+				double bhTumor = beastScoreTumor.getBeastHeights()[i];
+				double bhNormal = beastScoreNormal.getBeastHeights()[i];
+				SomaticEvaluation somaticEvaluation = new SomaticEvaluation("ALL_MARKERS", bhTumor, bhNormal);
+				somaticEvaluation.determineHQ(beastFilt.getNormalCutoff(), beastFilt.getDiffCutoff());
+				somaticEvaluations[i] = somaticEvaluation;
+			}
+			return this;
+		}
+	}
 
-  public static void main(String[] args) {
-    Project proj =
-        new Project("C:/workspace/Genvisis/projects/CushingsPCCorrected.properties", false);
-    String[] cnvFiles = proj.CNV_FILENAMES.getValue();
-    String vpopFile = proj.PROJECT_DIRECTORY.getValue() + "TN.vpop";
-    int numthreads = 4;
-    double normalCutoff = .25;
-    double diffCutoff = .5;
-    filter(proj, vpopFile, cnvFiles[0], normalCutoff, diffCutoff, numthreads);
+	public static void main(String[] args) {
+		Project proj = new Project("C:/workspace/Genvisis/projects/CushingsPCCorrected.properties", false);
+		String[] cnvFiles = proj.CNV_FILENAMES.getValue();
+		String vpopFile = proj.PROJECT_DIRECTORY.getValue() + "TN.vpop";
+		int numthreads = 4;
+		double normalCutoff = .25;
+		double diffCutoff = .5;
+		filter(proj, vpopFile, cnvFiles[0], normalCutoff, diffCutoff, numthreads);
 
-    // for (int i = 0; i < cnvFiles.length; i++) {
-    // }
+		// for (int i = 0; i < cnvFiles.length; i++) {
+		// }
 
-  }
+	}
 
 }

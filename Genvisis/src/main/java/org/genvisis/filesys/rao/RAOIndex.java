@@ -13,90 +13,89 @@ import org.genvisis.common.SerializedFiles;
  *
  */
 public class RAOIndex implements RAObject {
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private String indexFileName;
+	private Hashtable<String, ArrayList<Long>> index;
+	private long maxSize;
 
-  public static RAOIndex load(String indexFileName, Logger log) {
-    return (RAOIndex) SerializedFiles.readSerial(indexFileName, false, log, false, true);
-  }
+	public String getFileName() {
+		return indexFileName;
+	}
 
-  private String indexFileName;
-  private Hashtable<String, ArrayList<Long>> index;
+	public RAOIndex(String fileName, Hashtable<String, ArrayList<Long>> index) {
+		super();
+		this.indexFileName = fileName;
+		this.index = index;
+		this.maxSize = 0;
+	}
 
-  private long maxSize;
+	public void setFileName(String fileName) {
+		this.indexFileName = fileName;
+	}
 
-  public RAOIndex() {}
+	public long getMaxSize() {
+		return maxSize;
+	}
 
-  public RAOIndex(String fileName, Hashtable<String, ArrayList<Long>> index) {
-    super();
-    indexFileName = fileName;
-    this.index = index;
-    maxSize = 0;
-  }
+	public void setMaxSize(long maxSize) {
+		this.maxSize = maxSize;
+	}
 
-  public String getFileName() {
-    return indexFileName;
-  }
+	public long[] getPostionsInOrder() {
+		long[] pos = new long[index.size()];
+		HashSet<Long> all = new HashSet<Long>();
+		for (String key : index.keySet()) {
+			all.addAll(index.get(key));
+		}
+		if (all.size() != pos.length) {
+			throw new IllegalStateException("All objects could not be detected");
+		}
+		Arrays.sort(pos);
+		return pos;
+	}
 
-  public Hashtable<String, ArrayList<Long>> getIndex() {
-    return index;
-  }
+	public Hashtable<String, ArrayList<Long>> getIndex() {
+		return index;
+	}
 
-  @Override
-  public String[] getIndexKeys() {
-    return new String[] {indexFileName};
-  }
+	public void setIndex(Hashtable<String, ArrayList<Long>> index) {
+		this.index = index;
+	}
 
-  public long getMaxSize() {
-    return maxSize;
-  }
+	@Override
+	public String[] getIndexKeys() {
+		return new String[] { indexFileName };
+	}
 
-  public long[] getPostionsInOrder() {
-    long[] pos = new long[index.size()];
-    HashSet<Long> all = new HashSet<Long>();
-    for (String key : index.keySet()) {
-      all.addAll(index.get(key));
-    }
-    if (all.size() != pos.length) {
-      throw new IllegalStateException("All objects could not be detected");
-    }
-    Arrays.sort(pos);
-    return pos;
-  }
+	public void serialize() {
+		SerializedFiles.writeSerial(this, indexFileName, true);
+	}
 
-  public void serialize() {
-    SerializedFiles.writeSerial(this, indexFileName, true);
-  }
+	public static RAOIndex load(String indexFileName, Logger log) {
+		return (RAOIndex) SerializedFiles.readSerial(indexFileName, false, log, false, true);
+	}
 
-  public void setFileName(String fileName) {
-    indexFileName = fileName;
-  }
+	public RAOIndex() {
+	}
 
-  public void setIndex(Hashtable<String, ArrayList<Long>> index) {
-    this.index = index;
-  }
-
-  public void setMaxSize(long maxSize) {
-    this.maxSize = maxSize;
-  }
-
-  // @Override
-  // public void writeExternal(ObjectOutput out) throws IOException {
-  // out.writeObject(indexFileName);
-  // out.writeObject(index);
-  // out.writeLong(maxSize);
-  // // TODO Auto-generated method stub
-  //
-  // }
-  //
-  // @SuppressWarnings("unchecked")
-  // @Override
-  // public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-  // this.indexFileName = (String) in.readObject();
-  // this.index = (Hashtable<String, ArrayList<Long>>) in.readObject();
-  // this.maxSize = in.readLong();
-  // }
+	// @Override
+	// public void writeExternal(ObjectOutput out) throws IOException {
+	// out.writeObject(indexFileName);
+	// out.writeObject(index);
+	// out.writeLong(maxSize);
+	// // TODO Auto-generated method stub
+	//
+	// }
+	//
+	// @SuppressWarnings("unchecked")
+	// @Override
+	// public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	// this.indexFileName = (String) in.readObject();
+	// this.index = (Hashtable<String, ArrayList<Long>>) in.readObject();
+	// this.maxSize = in.readLong();
+	// }
 
 }

@@ -27,198 +27,190 @@ import org.genvisis.seq.manage.BamOps;
  *
  *
  * Computel is a little annoying to set up, so this will reflect that...
- *
- *
- * NOTE: I had to re-build the samtools version to operate using MSI's libs for C
- *
- * Also, Currently looks like computel takes a perfectly nice ~10 gigabyte bam file and converts it
- * into a massive 250GB monster
+ * 
+ * 
+ * NOTE: I had to re-build the samtools version to operate using MSI's libs for
+ * C
+ * 
+ * Also, Currently looks like computel takes a perfectly nice ~10 gigabyte bam
+ * file and converts it into a massive 250GB monster
  */
 public class Computel {
 
-  private static final String SAM_TO_FASTQ_LOC = "SamToFastq.jar";
+	private static final String SAM_TO_FASTQ_LOC = "SamToFastq.jar";
 
-  private static boolean convertToFasta(String inputBam, String computelLoc, String r1, String r2,
-                                        Logger log) {
-    String[] inputs = new String[] {inputBam};
-    String[] outputs = new String[] {r1, r2};
-    ArrayList<String> command = new ArrayList<String>();
-    command.add("java");
-    command.add("-jar");
-    command.add(computelLoc + SAM_TO_FASTQ_LOC);
-    command.add("I=");
-    command.add(inputBam);
-    command.add("F=");
-    command.add(r1);
-    command.add("F2=");
-    command.add(r2);
+	private Computel() {
 
-    return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
-                                            false, false, log);
-  }
+	}
 
-  private static void copyDirectory(File sourceLocation, File targetLocation) throws IOException {
+	private static boolean runComputel(String config, String computelCommandR, Logger log) {
+		String[] inputs = new String[] { config, computelCommandR };
+		String execDir = ext.parseDirectoryOfFile(config);
+		// TODO, cleanup computels mess, and determine appropriate outputs
+		String[] outputs = null;
+		// String[] outputs = execDir + "";
+		// new String[] { r1, r2 };
+		ArrayList<String> command = new ArrayList<String>();
+		command.add("Rscript");
+		command.add(computelCommandR);
+		command.add(config);
 
-    if (sourceLocation.isDirectory()) {
-      if (!targetLocation.exists()) {
-        targetLocation.mkdir();
-      }
+		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true, false, false,
+				log);
+	}
 
-      String[] children = sourceLocation.list();
-      for (String element : children) {
-        copyDirectory(new File(sourceLocation, element), new File(targetLocation, element));
-      }
-    } else {
+	private static boolean convertToFasta(String inputBam, String computelLoc, String r1, String r2, Logger log) {
+		String[] inputs = new String[] { inputBam };
+		String[] outputs = new String[] { r1, r2 };
+		ArrayList<String> command = new ArrayList<String>();
+		command.add("java");
+		command.add("-jar");
+		command.add(computelLoc + SAM_TO_FASTQ_LOC);
+		command.add("I=");
+		command.add(inputBam);
+		command.add("F=");
+		command.add(r1);
+		command.add("F2=");
+		command.add(r2);
 
-      InputStream in = new FileInputStream(sourceLocation);
-      OutputStream out = new FileOutputStream(targetLocation);
+		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true, false, false,
+				log);
+	}
 
-      // Copy the bits from instream to outstream
-      byte[] buf = new byte[1024];
-      int len;
-      while ((len = in.read(buf)) > 0) {
-        out.write(buf, 0, len);
-      }
-      in.close();
-      out.close();
-    }
-  }
+	/**
+	 * @param computelOperatingDir
+	 *            Where the config will be setup relative to
+	 */
+	private static String processConfig(String computelOperatingDir, String bowtieSamDir, String config, String r1,
+			String r2, int readLength) {
+		config = config.replaceAll("scripts.dir	./scripts", "scripts.dir	" + computelOperatingDir + "src/scripts");
+		String btieBuild = bowtieSamDir + "bowtie2-2.1.0-linux/bowtie2-build";
+		Files.chmod(btieBuild);
 
-  public static void main(String[] args) {
-    String targetBam = "bam.bam";
-    String computelLocation = "computel/";
-    String outDir = "out/";
+		config = config.replaceAll("bowtie.build.path	./bowtie2-2.1.0-linux/bowtie2-build",
+				"bowtie.build.path	" + btieBuild);
+		String btieAln = bowtieSamDir + "bowtie2-2.1.0-linux/bowtie2-align";
+		Files.chmod(btieAln);
 
-    Options options = CLI.defaultOptions();
-    final String bam = "bam";
-    CLI.addArg(options, bam, "bam file to analyze", targetBam);
+		config = config.replaceAll("bowtie.align.path	./bowtie2-2.1.0-linux/bowtie2-align",
+				"bowtie.align.path	" + btieAln);
+		String samTools = bowtieSamDir + "samtools-0.1.19-linux/samtools";
+		Files.chmod(samTools);
+		config = config.replaceAll("samtools.path	./samtools-0.1.19-linux/samtools", "samtools.path	" + samTools);
 
-    final String computel = "computel";
-    CLI.addArg(options, computel, "full computel directory (as git clone ideally)",
-               computelLocation);
+		String samToFastQ = computelOperatingDir + SAM_TO_FASTQ_LOC;
+		Files.chmod(samToFastQ);
+		config = config.replaceAll("picard.samtofastq.jar	./SamToFastq.jar", "picard.samtofastq.jar	" + samToFastQ);
 
-    final String outdir = "out";
-    CLI.addArg(options, outdir, "the output directory for results", outDir);
+		config = config.replaceAll("read.length	76", "read.length	" + readLength);
 
-    Map<String, String> parsed = CLI.parseWithExit(Computel.class, options, args);
+		config = config.replaceAll("files.with.prefix	T", "files.with.prefix	F");
 
-    test(parsed.get(bam), parsed.get(computel), parsed.get(outdir));
-  }
+		config = config.replaceAll("fastq	examples/tel_reads.fq, examples/tel_reads1.fq, examples/tel_reads2.fq",
+				"fastq	" + r1 + "," + r2);
 
-  private static String manageConfig(Logger log, String finalOutDirectory, String bowtieSamDir,
-                                     String r1, String r2,
-                                     int readLength) throws FileNotFoundException {
-    Scanner s = new Scanner(new File(finalOutDirectory + "src/examples/config_unix.txt"));
+		config = config.replaceAll("compute.base.cov	F", "compute.base.cov	T");
 
-    String config = s.useDelimiter("\\Z").next();
-    s.close();
-    config = processConfig(finalOutDirectory, bowtieSamDir, config, r1, r2, readLength);
-    log.report(config);
-    return config;
-  }
+		config = config.replaceAll("base.index.pathtoprefix	./examples/base.index/base_index",
+				"base.index.pathtoprefix	" + computelOperatingDir + "src/examples/base.index/base_index");
 
-  /**
-   * @param computelOperatingDir Where the config will be setup relative to
-   */
-  private static String processConfig(String computelOperatingDir, String bowtieSamDir,
-                                      String config, String r1, String r2, int readLength) {
-    config = config.replaceAll("scripts.dir	./scripts",
-                               "scripts.dir	" + computelOperatingDir + "src/scripts");
-    String btieBuild = bowtieSamDir + "bowtie2-2.1.0-linux/bowtie2-build";
-    Files.chmod(btieBuild);
+		config = config.replaceAll("output.dir	output", "output.dir	" + computelOperatingDir + "results");
+		// compute.base.cov F
+		return config;
+	}
 
-    config = config.replaceAll("bowtie.build.path	./bowtie2-2.1.0-linux/bowtie2-build",
-                               "bowtie.build.path	" + btieBuild);
-    String btieAln = bowtieSamDir + "bowtie2-2.1.0-linux/bowtie2-align";
-    Files.chmod(btieAln);
+	private static void runComputel(String inputBam, String outputDir, String computelDirectory, Logger log) {
+		String finalOutDirectory = outputDir + ext.rootOf(inputBam) + "/";
+		new File(finalOutDirectory).mkdirs();
 
-    config = config.replaceAll("bowtie.align.path	./bowtie2-2.1.0-linux/bowtie2-align",
-                               "bowtie.align.path	" + btieAln);
-    String samTools = bowtieSamDir + "samtools-0.1.19-linux/samtools";
-    Files.chmod(samTools);
-    config = config.replaceAll("samtools.path	./samtools-0.1.19-linux/samtools",
-                               "samtools.path	" + samTools);
+		try {
+			copyDirectory(new File(computelDirectory), new File(finalOutDirectory));
+		} catch (IOException e) {
+			log.reportException(e);
+		}
+		String bowtieSamDir = finalOutDirectory + "bowtie2_samtools_binaries_for_linux/";
+		if (!Files.exists(bowtieSamDir)) {
+			Zip.unzipFile(finalOutDirectory + "bowtie2_samtools_binaries_for_linux.zip", bowtieSamDir);
+		}
+		try {
 
-    String samToFastQ = computelOperatingDir + SAM_TO_FASTQ_LOC;
-    Files.chmod(samToFastQ);
-    config = config.replaceAll("picard.samtofastq.jar	./SamToFastq.jar",
-                               "picard.samtofastq.jar	" + samToFastQ);
+			String r1 = finalOutDirectory + "src/examples/analysis_reads1.fq";
+			String r2 = finalOutDirectory + "src/examples/analysis_reads2.fq";
+			boolean converted = convertToFasta(inputBam, finalOutDirectory, r1, r2, log);
+			if (converted) {
+				int readLength = BamOps.estimateReadSize(inputBam, 100000, log);
 
-    config = config.replaceAll("read.length	76", "read.length	" + readLength);
+				String config = manageConfig(log, finalOutDirectory, bowtieSamDir, r1, r2, readLength);
+				String configFile = finalOutDirectory + "computelConfig.txt";
+				String computelCommand = finalOutDirectory + "src/scripts/computel.cmd.R";
+				Files.write(config, configFile);
+				runComputel(configFile, computelCommand, log);
+			}
+		} catch (FileNotFoundException e) {
+			log.reportException(e);
+		}
 
-    config = config.replaceAll("files.with.prefix	T", "files.with.prefix	F");
+	}
 
-    config =
-        config.replaceAll("fastq	examples/tel_reads.fq, examples/tel_reads1.fq, examples/tel_reads2.fq",
-                          "fastq	" + r1 + "," + r2);
+	private static String manageConfig(Logger log, String finalOutDirectory, String bowtieSamDir, String r1, String r2,
+			int readLength) throws FileNotFoundException {
+		Scanner s = new Scanner(new File(finalOutDirectory + "src/examples/config_unix.txt"));
 
-    config = config.replaceAll("compute.base.cov	F", "compute.base.cov	T");
+		String config = s.useDelimiter("\\Z").next();
+		s.close();
+		config = processConfig(finalOutDirectory, bowtieSamDir, config, r1, r2, readLength);
+		log.report(config);
+		return config;
+	}
 
-    config =
-        config.replaceAll("base.index.pathtoprefix	./examples/base.index/base_index",
-                          "base.index.pathtoprefix	" + computelOperatingDir + "src/examples/base.index/base_index");
+	private static void copyDirectory(File sourceLocation, File targetLocation) throws IOException {
 
-    config = config.replaceAll("output.dir	output",
-                               "output.dir	" + computelOperatingDir + "results");
-    // compute.base.cov F
-    return config;
-  }
+		if (sourceLocation.isDirectory()) {
+			if (!targetLocation.exists()) {
+				targetLocation.mkdir();
+			}
 
-  private static boolean runComputel(String config, String computelCommandR, Logger log) {
-    String[] inputs = new String[] {config, computelCommandR};
-    ext.parseDirectoryOfFile(config);
-    // TODO, cleanup computels mess, and determine appropriate outputs
-    String[] outputs = null;
-    // String[] outputs = execDir + "";
-    // new String[] { r1, r2 };
-    ArrayList<String> command = new ArrayList<String>();
-    command.add("Rscript");
-    command.add(computelCommandR);
-    command.add(config);
+			String[] children = sourceLocation.list();
+			for (int i = 0; i < children.length; i++) {
+				copyDirectory(new File(sourceLocation, children[i]), new File(targetLocation, children[i]));
+			}
+		} else {
 
-    return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
-                                            false, false, log);
-  }
+			InputStream in = new FileInputStream(sourceLocation);
+			OutputStream out = new FileOutputStream(targetLocation);
 
-  private static void runComputel(String inputBam, String outputDir, String computelDirectory,
-                                  Logger log) {
-    String finalOutDirectory = outputDir + ext.rootOf(inputBam) + "/";
-    new File(finalOutDirectory).mkdirs();
+			// Copy the bits from instream to outstream
+			byte[] buf = new byte[1024];
+			int len;
+			while ((len = in.read(buf)) > 0) {
+				out.write(buf, 0, len);
+			}
+			in.close();
+			out.close();
+		}
+	}
 
-    try {
-      copyDirectory(new File(computelDirectory), new File(finalOutDirectory));
-    } catch (IOException e) {
-      log.reportException(e);
-    }
-    String bowtieSamDir = finalOutDirectory + "bowtie2_samtools_binaries_for_linux/";
-    if (!Files.exists(bowtieSamDir)) {
-      Zip.unzipFile(finalOutDirectory + "bowtie2_samtools_binaries_for_linux.zip", bowtieSamDir);
-    }
-    try {
+	public static void test(String bam, String computelLocation, String outDir) {
+		runComputel(bam, outDir, computelLocation, new Logger(outDir + "computel.Log"));
+	}
 
-      String r1 = finalOutDirectory + "src/examples/analysis_reads1.fq";
-      String r2 = finalOutDirectory + "src/examples/analysis_reads2.fq";
-      boolean converted = convertToFasta(inputBam, finalOutDirectory, r1, r2, log);
-      if (converted) {
-        int readLength = BamOps.estimateReadSize(inputBam, 100000, log);
+	public static void main(String[] args) {
+		String targetBam = "bam.bam";
+		String computelLocation = "computel/";
+		String outDir = "out/";
 
-        String config = manageConfig(log, finalOutDirectory, bowtieSamDir, r1, r2, readLength);
-        String configFile = finalOutDirectory + "computelConfig.txt";
-        String computelCommand = finalOutDirectory + "src/scripts/computel.cmd.R";
-        Files.write(config, configFile);
-        runComputel(configFile, computelCommand, log);
-      }
-    } catch (FileNotFoundException e) {
-      log.reportException(e);
-    }
+		Options options = CLI.defaultOptions();
+		final String bam = "bam";
+		CLI.addArg(options, bam, "bam file to analyze", targetBam);
 
-  }
+		final String computel = "computel";
+		CLI.addArg(options, computel, "full computel directory (as git clone ideally)", computelLocation);
 
-  public static void test(String bam, String computelLocation, String outDir) {
-    runComputel(bam, outDir, computelLocation, new Logger(outDir + "computel.Log"));
-  }
+		final String outdir = "out";
+		CLI.addArg(options, outdir, "the output directory for results", outDir);
 
-  private Computel() {
+		Map<String, String> parsed = CLI.parseWithExit(Computel.class, options, args);
 
-  }
+		test(parsed.get(bam), parsed.get(computel), parsed.get(outdir));
+	}
 }

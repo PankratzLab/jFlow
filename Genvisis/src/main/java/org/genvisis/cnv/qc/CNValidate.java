@@ -15,331 +15,278 @@ import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 public class CNValidate implements Runnable {
-  private static final double SCALE_FACTOR_MAD = 0.134894516;
+	private static final double SCALE_FACTOR_MAD = 0.134894516;
+	private Project proj;
+	private String[] inds;
+	private Hashtable<String, CNVariantQC[]> allIndcnVariantQCs;
+	private SampleData sampleData;
+	private MarkerSet markerSet;
+	private CNVariantQC[][] indcnVariantQCs;
+	private Logger log;
 
-  private static void checkThreadStatus(int processors, Thread[] threads) {
-    boolean complete;
-    complete = false;
-    while (!complete) {
-      complete = true;
-      for (int i = 0; i < processors; i++) {
-        if (threads[i].isAlive()) {
-          complete = false;
-        }
-      }
-      if (!complete) {
-        try {
-          Thread.sleep(1000L);
-        } catch (InterruptedException ex) {
-        }
-      }
-    }
-  }
+	public CNValidate(Project proj, String[] inds, Hashtable<String, CNVariantQC[]> allIndcnVariantQCs, MarkerSet markerSet) {
+		this.proj = proj;
+		this.inds = inds;
+		this.allIndcnVariantQCs = allIndcnVariantQCs;
+		this.sampleData = proj.getSampleData(2, false);
+		this.markerSet = markerSet;
+		this.indcnVariantQCs = new CNVariantQC[inds.length][];
+		this.log = proj.getLog();
+	}
 
-  private static CNVariantQC[][] collectAllValidations(int processors, CNValidate[] cnvals,
-                                                       String[] inds, Logger log) {
-    CNVariantQC[][] cnVariantQCs = new CNVariantQC[inds.length][];
-    int indIndex = 0;
-    int counter = 0;
-    for (int i = 0; i < inds.length; i++) {
-      counter++;
-      if (counter > processors) {
-        indIndex += 1;
-        counter = 1;
-      }
-      if (cnvals[i % processors].getInds()[indIndex].equals(inds[i])) {
-        if (cnvals[i
-                   % processors].getIndcnVariantQCs()[indIndex].length == cnvals[i
-                                                                                 % processors].getAllIndcnVariantQCs()
-                                                                                              .get(inds[i]).length) {
-          cnVariantQCs[i] = cnvals[i % processors].getIndcnVariantQCs()[indIndex];
-        } else {
-          log.reportError("Error - recieved unmatched cnv numbers while collecting results for  "
-                          + inds[i] + ": "
-                          + cnvals[i % processors].getIndcnVariantQCs()[indIndex].length + " and "
-                          + cnvals[i % processors].getAllIndcnVariantQCs().get(inds[i]).length);
-          System.exit(1);
-        }
-      } else {
-        log.reportError("Error - recieved unmatched ids while collecting results for "
-                        + cnvals[i % processors].getInds()[indIndex] + "\t" + inds[i]);
-        System.exit(1);
-      }
-    }
-    return cnVariantQCs;
-  }
+	public void run() {
 
-  public static CNVariantQC[][] computeMultiThreadedValidations(Project proj, String[] inds,
-                                                                Hashtable<String, CNVariantQC[]> allIndcnVariantQCs,
-                                                                MarkerSet markerSet,
-                                                                int processors) {
-    if (processors == 0) {
-      processors = Runtime.getRuntime().availableProcessors();
-    }
-    Thread[] threads = new Thread[processors];
-    Vector<Vector<String>> cabinet = getcabinet(inds, processors);
-    CNValidate[] cnvals =
-        processValidations(proj, processors, threads, cabinet, allIndcnVariantQCs, markerSet);
-    return collectAllValidations(processors, cnvals, inds, proj.getLog());
+		for (int i = 0; i < inds.length; i++) {
+			log.report(ext.getTime() + "\t" + (i + 1) + " of " + inds.length);
+			CNVariantQC[] cnVariantQCs = allIndcnVariantQCs.get(inds[i]);
+			String[] ids = sampleData.lookup(cnVariantQCs[0].getCnVariant().getFamilyID() + "\t" + cnVariantQCs[0].getCnVariant().getIndividualID());
+			if (ids != null) {
+				Sample samp = proj.getFullSampleFromRandomAccessFile(ids[0]);
+				if (samp != null) {
+					log.report(ext.getTime() + " Loaded Sample..." + samp.getSampleName());
+					if (markerSet.getFingerprint() != samp.getFingerprint()) {
+						log.reportError("Error - sample and marker fingerprints do not match");
+						System.exit(1);
+					} else {
+						log.report(ext.getTime() + " Computing validations for sample..." + samp.getSampleName());
+						indcnVariantQCs[i] = computeValidations(samp, markerSet, cnVariantQCs, log);
+						log.report(ext.getTime() + " Finshed computing validations for sample..." + samp.getSampleName());
+					}
+				}
+			} else {
+				log.reportError("Error - Sample data for " + inds[i] + " not found in samples directory");
+				System.exit(1);
+			}
+		}
+	}
 
-  }
+	public static CNVariantQC[][] computeMultiThreadedValidations(Project proj, String[] inds, Hashtable<String, CNVariantQC[]> allIndcnVariantQCs, MarkerSet markerSet, int processors) {
+		if (processors == 0) {
+			processors = Runtime.getRuntime().availableProcessors();
+		}
+		Thread[] threads = new Thread[processors];
+		Vector<Vector<String>> cabinet = getcabinet(inds, processors);
+		CNValidate[] cnvals = processValidations(proj, processors, threads, cabinet, allIndcnVariantQCs, markerSet);
+		return collectAllValidations(processors, cnvals, inds, proj.getLog());
 
-  private static CNVariantQC[] computeValidations(Sample samp, MarkerSet markerSet,
-                                                  CNVariantQC[] cnVariantQCs, Logger log) {
-    int[][] indices = markerSet.getIndicesByChr();
-    float[] LRRsInvTransformedByChr = Transforms.transform(samp.getLRRs(), 2, true, markerSet);
-    double[] chrLRRMediansMADScaled =
-        getChrLRRMediansMADScaled(indices, LRRsInvTransformedByChr, SCALE_FACTOR_MAD, log);
-    double[] LRRsInvTransformedByChrMADScaled =
-        scaleMAD(indices, LRRsInvTransformedByChr, chrLRRMediansMADScaled);
-    return evaluateCNVariantQCs(samp, markerSet, cnVariantQCs, LRRsInvTransformedByChrMADScaled,
-                                indices, log);
-  }
+	}
 
-  // the main event
-  private static CNVariantQC[] evaluateCNVariantQCs(Sample samp, MarkerSet markerSet,
-                                                    CNVariantQC[] cnVariantQCs,
-                                                    double[] LRRsInvTransformedByChrMADScaled,
-                                                    int[][] indices, Logger log) {
-    String[] markerNames = markerSet.getMarkerNames();
-    float[] bafs = samp.getBAFs();
-    byte[] abGenotypes = samp.getAB_Genotypes();
-    double callRate = getCallRate(markerNames, abGenotypes);
-    for (CNVariantQC cnVariantQC : cnVariantQCs) {
-      Hashtable<String, Integer> markersIncnVariant = cnVariantQC.getMarkersIncnVariant();
-      String[] markerList = cnVariantQC.getMarkerList();
-      double[] variantLRRs = new double[markerList.length];
-      double[] variantbafs = new double[markerList.length];
-      byte[] variantGenotypes = new byte[markerList.length];
-      for (int k = 0; k < markerList.length; k++) {
-        int markerindex = markersIncnVariant.get(markerList[k]);
-        if (markerNames[markerindex].equals(markerList[k])) {
-          if (Double.isNaN(LRRsInvTransformedByChrMADScaled[markerindex])) {
-            log.reportError("Error - the cnv " + cnVariantQC.getCnVariant().toPlinkFormat()
-                            + " contained a NaN LRR value at marker " + markerList[k]
-                            + " the height will be set to zero. QC metrics may be inaccurate");
-            variantLRRs[k] = 0;
-          } else {
-            variantLRRs[k] = LRRsInvTransformedByChrMADScaled[markerindex];
-            variantbafs[k] = bafs[markerindex];
-            variantGenotypes[k] = abGenotypes[markerindex];
-          }
-        } else {
-          log.reportError("Error - Received unmatched indices for marker " + markerList[k]
-                          + ", got " + markerNames[markerindex] + "this should not happen");
-          System.exit(1);
-        }
-      }
-      if (markerList.length == cnVariantQC.getCnVariant().getNumMarkers()
-          && markerList.length == variantLRRs.length) {
-        cnVariantQC.setHeight(Array.median(variantLRRs));
-        cnVariantQC.setBafs(variantbafs);
-        cnVariantQC.setGenotypes(variantGenotypes);
-        cnVariantQC.setLrrs(variantLRRs);
-        cnVariantQC.setSampleCallRate(callRate);
-        cnVariantQC.setSourceFile(samp.getSampleName());
-      } else {
-        log.reportError("Error - there were less markers contained in the cnv region "
-                        + cnVariantQC.getCnVariant().toPlinkFormat()
-                        + "  than markers in the position file ");
-        System.exit(1);
-      }
-    }
-    return cnVariantQCs;
-  }
+	public Hashtable<String, CNVariantQC[]> getAllIndcnVariantQCs() {
+		return allIndcnVariantQCs;
+	}
 
-  private static Vector<Vector<String>> getcabinet(String[] inds, int processors) {
-    Vector<Vector<String>> cabinet = new Vector<Vector<String>>();
-    for (int i = 0; i < processors; i++) {
-      cabinet.add(new Vector<String>());
-    }
-    for (int i = 0; i < inds.length; i++) {
-      cabinet.elementAt(i % processors).add(inds[i]);
-    }
-    return cabinet;
-  }
+	public CNVariantQC[][] getIndcnVariantQCs() {
+		return indcnVariantQCs;
+	}
 
-  // TODO
-  // Affy AND Illumina specific, need to determine SNP markers
-  private static double getCallRate(String[] markerNames, byte[] abGenotypes) {
-    double calls = 0;
-    double snpMarkers = 0;
-    for (int i = 0; i < markerNames.length; i++) {
-      if (!markerNames[i].startsWith("CN_") || markerNames[i].startsWith("cnv")) {
-        snpMarkers++;
-        if (abGenotypes[i] != -1) {
-          calls++;
-        }
-      }
-    }
-    return (calls / snpMarkers);
-  }
+	public String[] getInds() {
+		return inds;
+	}
 
-  private static double[] getChrLRRMediansMADScaled(int[][] indices,
-                                                    float[] LRRsInvTransformedByChr,
-                                                    double SCALE_FACTOR_MAD, Logger log) {
-    double[] chrLRRMediansMADScaled = new double[indices.length];
-    for (int i = 0; i < indices.length; i++) {
-      if (indices[i].length > 0) {
-        ArrayList<Float> chrLRRal = new ArrayList<Float>();
-        for (int j = 0; j < indices[i].length; j++) {
-          // check for NaN
-          if (LRRsInvTransformedByChr[j] == LRRsInvTransformedByChr[j]) {
-            chrLRRal.add(Math.abs(LRRsInvTransformedByChr[j]));
-          }
-        }
-        chrLRRMediansMADScaled[i] = median(getFloatArray(chrLRRal)) / SCALE_FACTOR_MAD;
-      } else {
-        log.report("Warning - not analyzing chromomosome " + i + " , did not find any markers");
-        continue;
-      }
-    }
-    return chrLRRMediansMADScaled;
-  }
+	private static CNVariantQC[] computeValidations(Sample samp, MarkerSet markerSet, CNVariantQC[] cnVariantQCs, Logger log) {
+		int[][] indices = markerSet.getIndicesByChr();
+		float[] LRRsInvTransformedByChr = Transforms.transform(samp.getLRRs(), 2, true, markerSet);
+		double[] chrLRRMediansMADScaled = getChrLRRMediansMADScaled(indices, LRRsInvTransformedByChr, SCALE_FACTOR_MAD, log);
+		double[] LRRsInvTransformedByChrMADScaled = scaleMAD(indices, LRRsInvTransformedByChr, chrLRRMediansMADScaled);
+		return evaluateCNVariantQCs(samp, markerSet, cnVariantQCs, LRRsInvTransformedByChrMADScaled, indices, log);
+	}
 
-  private static float[] getFloatArray(ArrayList<Float> al) {
-    float[] array = new float[al.size()];
-    for (int i = 0; i < al.size(); i++) {
-      array[i] = al.get(i);
-    }
-    return array;
-  }
+	// the main event
+	private static CNVariantQC[] evaluateCNVariantQCs(Sample samp, MarkerSet markerSet, CNVariantQC[] cnVariantQCs, double[] LRRsInvTransformedByChrMADScaled, int[][] indices, Logger log) {
+		String[] markerNames = markerSet.getMarkerNames();
+		float[] bafs = samp.getBAFs();
+		byte[] abGenotypes = samp.getAB_Genotypes();
+		double callRate =getCallRate(markerNames , abGenotypes);
+		for (int i = 0; i < cnVariantQCs.length; i++) {
+			Hashtable<String, Integer> markersIncnVariant = cnVariantQCs[i].getMarkersIncnVariant();
+			String[] markerList = cnVariantQCs[i].getMarkerList();
+			double[] variantLRRs = new double[markerList.length];
+			double[] variantbafs = new double[markerList.length];
+			byte[] variantGenotypes = new byte[markerList.length];
+			for (int k = 0; k < markerList.length; k++) {
+				int markerindex = markersIncnVariant.get(markerList[k]);
+				if (markerNames[markerindex].equals(markerList[k])) {
+					if (Double.isNaN(LRRsInvTransformedByChrMADScaled[markerindex])) {
+						log.reportError("Error - the cnv " + cnVariantQCs[i].getCnVariant().toPlinkFormat() + " contained a NaN LRR value at marker " + markerList[k] + " the height will be set to zero. QC metrics may be inaccurate");
+						variantLRRs[k] = 0;
+					} else {
+						variantLRRs[k] = LRRsInvTransformedByChrMADScaled[markerindex];
+						variantbafs[k] = bafs[markerindex];
+						variantGenotypes[k] = abGenotypes[markerindex];
+					}
+				} else {
+					log.reportError("Error - Received unmatched indices for marker " + markerList[k] + ", got " + markerNames[markerindex] + "this should not happen");
+					System.exit(1);
+				}
+			}
+			if (markerList.length == cnVariantQCs[i].getCnVariant().getNumMarkers() && markerList.length == variantLRRs.length) {
+				cnVariantQCs[i].setHeight(Array.median(variantLRRs));
+				cnVariantQCs[i].setBafs(variantbafs);
+				cnVariantQCs[i].setGenotypes(variantGenotypes);
+				cnVariantQCs[i].setLrrs(variantLRRs);
+				cnVariantQCs[i].setSampleCallRate(callRate);
+				cnVariantQCs[i].setSourceFile(samp.getSampleName());
+			} else {
+				log.reportError("Error - there were less markers contained in the cnv region " + cnVariantQCs[i].getCnVariant().toPlinkFormat() + "  than markers in the position file ");
+				System.exit(1);
+			}
+		}
+		return cnVariantQCs;
+	}
 
-  private static float median(float[] array) {
-    return (quant(array, (float) 0.50));
-  }
+	// TODO
+	// Affy AND Illumina specific, need to determine SNP markers
+	private static double getCallRate(String[] markerNames, byte[] abGenotypes) {
+		double calls = 0;
+		double snpMarkers = 0;
+		for (int i = 0; i < markerNames.length; i++) {
+			if (!markerNames[i].startsWith("CN_") || markerNames[i].startsWith("cnv")) {
+				snpMarkers++;
+				if (abGenotypes[i] != -1) {
+					calls++;
+				}
+			}
+		}
+		return (calls / snpMarkers);
+	}
 
-  private static CNValidate[] processValidations(Project proj, int processors, Thread[] threads,
-                                                 Vector<Vector<String>> cabinet,
-                                                 Hashtable<String, CNVariantQC[]> allIndcnVariantQCs,
-                                                 MarkerSet markerSet) {
-    CNValidate[] cnvals = new CNValidate[processors];
-    for (int i = 0; i < processors; i++) {
-      cnvals[i] =
-          new CNValidate(proj,
-                         cabinet.elementAt(i).toArray(new String[cabinet.elementAt(i).size()]),
-                         allIndcnVariantQCs, markerSet);
-      threads[i] = new Thread(cnvals[i]);
-      threads[i].start();
-    }
-    checkThreadStatus(processors, threads);
-    return cnvals;
-  }
+	private static double[] scaleMAD(int[][] indices, float[] LRRsInvTransformedByChr, double[] chrLRRMediansMADScaled) {
+		double[] LRRsInvTransformedByChrMADScaled = new double[LRRsInvTransformedByChr.length];
+		for (int i = 0; i < indices.length; i++) {
+			if (indices[i].length > 0) {
+				for (int j = 0; j < indices[i].length; j++) {
+					LRRsInvTransformedByChrMADScaled[indices[i][j]] = (double) (LRRsInvTransformedByChr[indices[i][j]] / (chrLRRMediansMADScaled[i]));
+				}
+			}
+		}
+		return LRRsInvTransformedByChrMADScaled;
+	}
 
-  private static float quant(float[] array, float q) {
-    int keys[] = Sort.quicksort(array);
-    try {
-      if (q > 1 || q < 0) {
-        return (0);
-      } else {
-        double index = (array.length + 1) * q;
-        if (index - (int) index == 0) {
-          return array[keys[(int) index - 1]];
-        } else {
-          return q * array[keys[(int) Math.floor(index) - 1]]
-                 + (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
-        }
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      return -1234567890;
-    }
-  }
+	private static double[] getChrLRRMediansMADScaled(int[][] indices, float[] LRRsInvTransformedByChr, double SCALE_FACTOR_MAD, Logger log) {
+		double[] chrLRRMediansMADScaled = new double[indices.length];
+		for (int i = 0; i < indices.length; i++) {
+			if (indices[i].length > 0) {
+				ArrayList<Float> chrLRRal = new ArrayList<Float>();
+				for (int j = 0; j < indices[i].length; j++) {
+					// check for NaN
+					if (LRRsInvTransformedByChr[j] == LRRsInvTransformedByChr[j]) {
+						chrLRRal.add(Math.abs(LRRsInvTransformedByChr[j]));
+					}
+				}
+				chrLRRMediansMADScaled[i] = (double) (median(getFloatArray(chrLRRal)) / SCALE_FACTOR_MAD);
+			} else {
+				log.report("Warning - not analyzing chromomosome " + i + " , did not find any markers");
+				continue;
+			}
+		}
+		return chrLRRMediansMADScaled;
+	}
 
-  private static double[] scaleMAD(int[][] indices, float[] LRRsInvTransformedByChr,
-                                   double[] chrLRRMediansMADScaled) {
-    double[] LRRsInvTransformedByChrMADScaled = new double[LRRsInvTransformedByChr.length];
-    for (int i = 0; i < indices.length; i++) {
-      if (indices[i].length > 0) {
-        for (int j = 0; j < indices[i].length; j++) {
-          LRRsInvTransformedByChrMADScaled[indices[i][j]] =
-              LRRsInvTransformedByChr[indices[i][j]] / (chrLRRMediansMADScaled[i]);
-        }
-      }
-    }
-    return LRRsInvTransformedByChrMADScaled;
-  }
+	private static float[] getFloatArray(ArrayList<Float> al) {
+		float[] array = new float[al.size()];
+		for (int i = 0; i < al.size(); i++) {
+			array[i] = al.get(i);
+		}
+		return array;
+	}
 
-  private final Project proj;
+	private static CNValidate[] processValidations(Project proj, int processors, Thread[] threads, Vector<Vector<String>> cabinet, Hashtable<String, CNVariantQC[]> allIndcnVariantQCs, MarkerSet markerSet) {
+		CNValidate[] cnvals = new CNValidate[processors];
+		for (int i = 0; i < processors; i++) {
+			cnvals[i] = new CNValidate(proj, cabinet.elementAt(i).toArray(new String[cabinet.elementAt(i).size()]), allIndcnVariantQCs, markerSet);
+			threads[i] = new Thread(cnvals[i]);
+			threads[i].start();
+		}
+		checkThreadStatus(processors, threads);
+		return cnvals;
+	}
 
-  private final String[] inds;
+	private static CNVariantQC[][] collectAllValidations(int processors, CNValidate[] cnvals, String[] inds, Logger log) {
+		CNVariantQC[][] cnVariantQCs = new CNVariantQC[inds.length][];
+		int indIndex = 0;
+		int counter = 0;
+		for (int i = 0; i < inds.length; i++) {
+			counter++;
+			if (counter > processors) {
+				indIndex += 1;
+				counter = 1;
+			}
+			if (cnvals[i % processors].getInds()[indIndex].equals(inds[i])) {
+				if (cnvals[i % processors].getIndcnVariantQCs()[indIndex].length == cnvals[i % processors].getAllIndcnVariantQCs().get(inds[i]).length) {
+					cnVariantQCs[i] = cnvals[i % processors].getIndcnVariantQCs()[indIndex];
+				} else {
+					log.reportError("Error - recieved unmatched cnv numbers while collecting results for  " + inds[i] + ": " + cnvals[i % processors].getIndcnVariantQCs()[indIndex].length + " and " + cnvals[i % processors].getAllIndcnVariantQCs().get(inds[i]).length);
+					System.exit(1);
+				}
+			} else {
+				log.reportError("Error - recieved unmatched ids while collecting results for " + cnvals[i % processors].getInds()[indIndex] + "\t" + inds[i]);
+				System.exit(1);
+			}
+		}
+		return cnVariantQCs;
+	}
 
-  private final Hashtable<String, CNVariantQC[]> allIndcnVariantQCs;
+	private static Vector<Vector<String>> getcabinet(String[] inds, int processors) {
+		Vector<Vector<String>> cabinet = new Vector<Vector<String>>();
+		for (int i = 0; i < processors; i++) {
+			cabinet.add(new Vector<String>());
+		}
+		for (int i = 0; i < inds.length; i++) {
+			cabinet.elementAt(i % processors).add(inds[i]);
+		}
+		return cabinet;
+	}
 
-  private final SampleData sampleData;
+	private static float median(float[] array) {
+		return (quant(array, (float) 0.50));
+	}
 
-  private final MarkerSet markerSet;
+	private static float quant(float[] array, float q) {
+		int keys[] = Sort.quicksort(array);
+		try {
+			if (q > 1 || q < 0) {
+				return (0);
+			} else {
+				double index = (array.length + 1) * q;
+				if (index - (int) index == 0) {
+					return array[keys[(int) index - 1]];
+				} else {
+					return q * array[keys[(int) Math.floor(index) - 1]] + (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return -1234567890;
+		}
+	}
 
-  private final CNVariantQC[][] indcnVariantQCs;
-
-  private final Logger log;
-
-  public CNValidate(Project proj, String[] inds,
-                    Hashtable<String, CNVariantQC[]> allIndcnVariantQCs, MarkerSet markerSet) {
-    this.proj = proj;
-    this.inds = inds;
-    this.allIndcnVariantQCs = allIndcnVariantQCs;
-    sampleData = proj.getSampleData(2, false);
-    this.markerSet = markerSet;
-    indcnVariantQCs = new CNVariantQC[inds.length][];
-    log = proj.getLog();
-  }
-
-  public Hashtable<String, CNVariantQC[]> getAllIndcnVariantQCs() {
-    return allIndcnVariantQCs;
-  }
-
-  public CNVariantQC[][] getIndcnVariantQCs() {
-    return indcnVariantQCs;
-  }
-
-  public String[] getInds() {
-    return inds;
-  }
-
-  @Override
-  public void run() {
-
-    for (int i = 0; i < inds.length; i++) {
-      log.report(ext.getTime() + "\t" + (i + 1) + " of " + inds.length);
-      CNVariantQC[] cnVariantQCs = allIndcnVariantQCs.get(inds[i]);
-      String[] ids = sampleData.lookup(cnVariantQCs[0].getCnVariant().getFamilyID() + "\t"
-                                       + cnVariantQCs[0].getCnVariant().getIndividualID());
-      if (ids != null) {
-        Sample samp = proj.getFullSampleFromRandomAccessFile(ids[0]);
-        if (samp != null) {
-          log.report(ext.getTime() + " Loaded Sample..." + samp.getSampleName());
-          if (markerSet.getFingerprint() != samp.getFingerprint()) {
-            log.reportError("Error - sample and marker fingerprints do not match");
-            System.exit(1);
-          } else {
-            log.report(ext.getTime() + " Computing validations for sample..."
-                       + samp.getSampleName());
-            indcnVariantQCs[i] = computeValidations(samp, markerSet, cnVariantQCs, log);
-            log.report(ext.getTime() + " Finshed computing validations for sample..."
-                       + samp.getSampleName());
-          }
-        }
-      } else {
-        log.reportError("Error - Sample data for " + inds[i] + " not found in samples directory");
-        System.exit(1);
-      }
-    }
-  }
+	private static void checkThreadStatus(int processors, Thread[] threads) {
+		boolean complete;
+		complete = false;
+		while (!complete) {
+			complete = true;
+			for (int i = 0; i < processors; i++) {
+				if (threads[i].isAlive()) {
+					complete = false;
+				}
+			}
+			if (!complete) {
+				try {
+					Thread.sleep(1000L);
+				} catch (InterruptedException ex) {
+				}
+			}
+		}
+	}
 }
 
 // TODO for testing purposes , delete later
-// if
-// (samp.getSampleName().matches("BURDS_p_ARIC_batch4_011_affy_GenomeWideSNP_6_G05_213086.CEL.IND.txt"))
-// {
+// if (samp.getSampleName().matches("BURDS_p_ARIC_batch4_011_affy_GenomeWideSNP_6_G05_213086.CEL.IND.txt")) {
 // try {
 // int nanacount = 0;
-// PrintWriter cnvOutput = new PrintWriter(new
-// FileWriter("D:/data/compare/BURDS_p_ARIC_batch4_011_affy_GenomeWideSNP_6_G05_213086.CEL.IND.LRRE.txt",
-// false));
+// PrintWriter cnvOutput = new PrintWriter(new FileWriter("D:/data/compare/BURDS_p_ARIC_batch4_011_affy_GenomeWideSNP_6_G05_213086.CEL.IND.LRRE.txt", false));
 // System.err.println("HIDDFMGenomeWideSNP_6_F04_213068");
-// cnvOutput.println("Name\tBURDS_p_ARIC_batch4_011_affy_GenomeWideSNP_6_G05_213086.CEL.Log R
-// Ratio");
+// cnvOutput.println("Name\tBURDS_p_ARIC_batch4_011_affy_GenomeWideSNP_6_G05_213086.CEL.Log R Ratio");
 // for (int i = 0; i < markerSet.getMarkerNames().length; i++) {
 // if ((samp.getLRRs()[i] + "").equals("NaN")) {
 // nanacount++;
@@ -377,8 +324,7 @@ public class CNValidate implements Runnable {
 // Thread[] threads = new Thread[processors];
 // CNVariant[] fileCNVs = CNVariant.loadPlinkFile(plinkCnvs, false);
 // String[] inds = CompareCalls_dev.toStringArray(CompareCalls_dev.getIDList(fileCNVs));
-// Hashtable<String, ArrayList<CNVariant>> allIndCNVs =
-// cnv.park.CompareCalls_dev.getindCNVsfromFile(fileCNVs);
+// Hashtable<String, ArrayList<CNVariant>> allIndCNVs = cnv.park.CompareCalls_dev.getindCNVsfromFile(fileCNVs);
 // Vector<Vector<String>> cabinet = getcabinet(inds, processors);
 //
 // startJobs(proj, processors, threads, cabinet, allIndCNVs);
@@ -390,26 +336,21 @@ public class CNValidate implements Runnable {
 // int numArgs = args.length;
 // // String filename = cnv.Launch.getDefaultDebugProjectFile();
 // String filename = "C:/workspace/Genvisis/projects/inSilicoValidate.properties";
-// String plinkCnvs =
-// "C:/data/inSilicoValidate/Filtered_LRR_35.35_conf_0.0_numMarkers_0_RootsANDDups.cnv";
+// String plinkCnvs = "C:/data/inSilicoValidate/Filtered_LRR_35.35_conf_0.0_numMarkers_0_RootsANDDups.cnv";
 //
 // String loggerFilename = "C:/data/inSilicoValidate/SureIllLog.txt";
 // Logger log;
-// String usage = "\n" + "cnv.qc.CNValidate requires 0-1 arguments\n" + " (0) project properties
-// filename (i.e. proj=" + filename + " (default))\n" + " (1) plink CNV format .cnv file to
-// validate(i.e. cnvs=all_cnvs.cnv\n" + " (2) clean the .cnv file before validation (i.e -clean\n" +
-// "";
+// String usage = "\n" + "cnv.qc.CNValidate requires 0-1 arguments\n" + "   (0) project properties filename (i.e. proj=" + filename + " (default))\n" + "   (1) plink CNV format .cnv file to validate(i.e. cnvs=all_cnvs.cnv\n" + "   (2) clean the .cnv file before validation (i.e -clean\n" + "";
 // // String usage = "\n"+
 // // "cnv.park.PennCNV requires 0-1 arguments\n"+
-// // " (0) project properties filename (i.e. proj="+filename+" (default))\n"+
-// // " (1) plink CNV format .cnv file to validate(i.e. cnvs=all_cnvs.cnv\n"+
-// // " (2) clean the .cnv file before validation (i.e -clean)\n"+
-// // " (3) filter the .cnv file before validation (i.e -filter)\n"+
+// // "   (0) project properties filename (i.e. proj="+filename+" (default))\n"+
+// // "   (1) plink CNV format .cnv file to validate(i.e. cnvs=all_cnvs.cnv\n"+
+// // "   (2) clean the .cnv file before validation (i.e -clean)\n"+
+// // "   (3) filter the .cnv file before validation (i.e -filter)\n"+
 // // "";
 //
 // for (int i = 0; i < args.length; i++) {
-// if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") ||
-// args[i].equals("/help")) {
+// if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 // System.err.println(usage);
 // System.exit(1);
 // } else if (args[i].startsWith("proj=")) {
@@ -452,8 +393,7 @@ public class CNValidate implements Runnable {
 // try {
 // // PrintWriter writercnv = Files.getAppropriateWriter("BMI_NEGR1_BEASTYSummary");
 // BufferedReader reader = Files.getAppropriateReader(cnvFile + ".summary.res");
-// PrintWriter writer = new PrintWriter(new
-// FileWriter("D:/data/inSilicoValidate/NEGR1_all_BEAST.txt", true));
+// PrintWriter writer = new PrintWriter(new FileWriter("D:/data/inSilicoValidate/NEGR1_all_BEAST.txt", true));
 // try {
 // reader.readLine();
 // Vector<Double> thierTransforms = new Vector<Double>();
@@ -500,20 +440,15 @@ public class CNValidate implements Runnable {
 // // System.out.println(i);
 // continue;
 // } else {
-// String cnvFile = "D:/data/inSilicoValidate/UnleashTheBEAST/" +
-// samp.getSampleName().replaceAll(".*affy", "") + "_chr" + i + ".dat";
-// String configFile = "D:/data/inSilicoValidate/UnleashTheBEAST/" +
-// samp.getSampleName().replaceAll(".*affy", "") + "_chr" + i + ".config";
+// String cnvFile = "D:/data/inSilicoValidate/UnleashTheBEAST/" + samp.getSampleName().replaceAll(".*affy", "") + "_chr" + i + ".dat";
+// String configFile = "D:/data/inSilicoValidate/UnleashTheBEAST/" + samp.getSampleName().replaceAll(".*affy", "") + "_chr" + i + ".config";
 // PrintWriter writercnv = Files.getAppropriateWriter(cnvFile);
 // writercnv.println("probeset_id\tchr\tposition\tLRR");
 // PrintWriter writerconfig = Files.getAppropriateWriter(configFile);
-// writerconfig.println("6\n30\n0.25\n50000\n2\n3\n" + cnvFile + "\n1\n0.4\n9\n1\n1\n" + cnvFile +
-// ".summary.res\n" + cnvFile + ".pred.res\n");
+// writerconfig.println("6\n30\n0.25\n50000\n2\n3\n" + cnvFile + "\n1\n0.4\n9\n1\n1\n" + cnvFile + ".summary.res\n" + cnvFile + ".pred.res\n");
 // for (int k = 0; k < indices[i].length; k++) {
-// writercnv.println(markerNames[indices[i][k]] + "\t" + i + "\t" + positions[indices[i][k]] + "\t"
-// + LRRs[indices[i][k]]);
-// // System.out.println(markerNames[indices[i][k]] + "\t" + i + "\t" + positions[indices[i][k]] +
-// "\t" + LRRs[indices[i][k]]);
+// writercnv.println(markerNames[indices[i][k]] + "\t" + i + "\t" + positions[indices[i][k]] + "\t" + LRRs[indices[i][k]]);
+// // System.out.println(markerNames[indices[i][k]] + "\t" + i + "\t" + positions[indices[i][k]] + "\t" + LRRs[indices[i][k]]);
 //
 // }
 // writercnv.close();
@@ -527,8 +462,7 @@ public class CNValidate implements Runnable {
 // try {
 // // PrintWriter writercnv = Files.getAppropriateWriter("BMI_NEGR1_BEASTYSummary");
 // BufferedReader reader = Files.getAppropriateReader(cnvFile + ".pred.res");
-// PrintWriter writer = new PrintWriter(new
-// FileWriter("D:/data/inSilicoValidate/NEGR1_all_BEAST.txt", true));
+// PrintWriter writer = new PrintWriter(new FileWriter("D:/data/inSilicoValidate/NEGR1_all_BEAST.txt", true));
 // try {
 // reader.readLine();
 // Vector<Double> thierTransforms = new Vector<Double>();
@@ -560,12 +494,11 @@ public class CNValidate implements Runnable {
 // // TODO Auto-generated catch block
 // e1.printStackTrace();
 // }
-// PrintWriter writer = new PrintWriter(new
-// FileWriter("D:/data/inSilicoValidate/NEGR1_all_BEAST.txt", true));
+// PrintWriter writer = new PrintWriter(new FileWriter("D:/data/inSilicoValidate/NEGR1_all_BEAST.txt", true));
 // BufferedReader reader = Files.getAppropriateReader(cnvFile + ".summary.res");
 // String testline = reader.readLine();
 // if (testline == null) {
-// System.err.println("there is a blank line on " + cnvFile);
+// System.err.println("there is a blank line on   " + cnvFile);
 // break;
 // }
 // while (reader.ready()) {
@@ -588,9 +521,7 @@ public class CNValidate implements Runnable {
 //
 // }
 
-// private static void evaluateCNVs(Sample samp, MarkerSet markerSet, CNVariant[] cnvs, double[]
-// LRRsInvTransformedByChrMADScaled, int[][] indices, double alpha, float[] LRRsInvTransformedByChr,
-// double[] chrLRRMediansMADScaled) {
+// private static void evaluateCNVs(Sample samp, MarkerSet markerSet, CNVariant[] cnvs, double[] LRRsInvTransformedByChrMADScaled, int[][] indices, double alpha, float[] LRRsInvTransformedByChr, double[] chrLRRMediansMADScaled) {
 // int[] positions = markerSet.getPositions();
 // CNVariant[] beastConfcnvs = new CNVariant[cnvs.length];
 // String[] markerNames = markerSet.getMarkerNames();
@@ -609,11 +540,7 @@ public class CNValidate implements Runnable {
 // int position = positions[indices[cnvs[i].getChr()][k]];
 // if (position >= cnvs[i].getStart() && position <= cnvs[i].getStop()) {
 // cnvLRRs[index] = LRRsInvTransformedByChrMADScaled[indices[cnvs[i].getChr()][k]];
-// // writer.println((index) + "\t" + cnvs[i].toPlinkFormat() + "\t" + cnvLRRs.length + "\t" +
-// markerNames[indices[cnvs[i].getChr()][k]] + "\t" + position + "\t" +
-// LRRsInvTransformedByChrMADScaled[indices[cnvs[i].getChr()][k]] + "\t" +
-// LRRsInvTransformedByChr[indices[cnvs[i].getChr()][k]] + "\t" +
-// chrLRRMediansMADScaled[cnvs[i].getChr()]);
+// // writer.println((index) + "\t" + cnvs[i].toPlinkFormat() + "\t" + cnvLRRs.length + "\t" + markerNames[indices[cnvs[i].getChr()][k]] + "\t" + position + "\t" + LRRsInvTransformedByChrMADScaled[indices[cnvs[i].getChr()][k]] + "\t" + LRRsInvTransformedByChr[indices[cnvs[i].getChr()][k]] + "\t" + chrLRRMediansMADScaled[cnvs[i].getChr()]);
 // index++;
 // }
 // }
@@ -622,18 +549,15 @@ public class CNValidate implements Runnable {
 //
 // if (index == cnvs[i].getNumMarkers() && index == cnvLRRs.length) {
 // score = score(cnvs[i], alpha, cnvLRRs);
-// writer.println(cnvs[i].toPlinkFormat() + "\t" + cnvLRRs.length + "\t" + Array.median(cnvLRRs) +
-// "\t" + score);
+// writer.println(cnvs[i].toPlinkFormat() + "\t" + cnvLRRs.length + "\t" + Array.median(cnvLRRs) + "\t" + score);
 // } else {
-// System.err.println("Error - mismatched number of markers contained in cnv " +
-// cnvs[i].toPlinkFormat() + " and markers in the position file ");
+// System.err.println("Error - mismatched number of markers contained in cnv " + cnvs[i].toPlinkFormat() + " and markers in the position file ");
 // }
 // }
 //
 // writer.close();
 // } catch (FileNotFoundException fnfe) {
-// System.err.println("Error: file \"" + cnvFile + "\" could not be written to (it's probably
-// open)");
+// System.err.println("Error: file \"" + cnvFile + "\" could not be written to (it's probably open)");
 // System.exit(1);
 // } catch (IOException ioe) {
 // System.err.println("Error reading file \"" + cnvFile + "\"");
@@ -642,15 +566,12 @@ public class CNValidate implements Runnable {
 //
 // }
 
-// private static void startJobs(Project proj, int processors, Thread[] threads,
-// Vector<Vector<String>> cabinet, Hashtable<String, CNVariant[]> allIndCNVsArrays) {
+// private static void startJobs(Project proj, int processors, Thread[] threads, Vector<Vector<String>> cabinet, Hashtable<String, CNVariant[]> allIndCNVsArrays) {
 // CNValidate cnval;
-// // cnval = new CNValidate(proj, cabinet.elementAt(i).toArray(new
-// String[cabinet.elementAt(i).size()]), allIndCNVs);
+// // cnval = new CNValidate(proj, cabinet.elementAt(i).toArray(new String[cabinet.elementAt(i).size()]), allIndCNVs);
 // for (int i = 0; i < processors; i++) {
 //
-// cnval = new CNValidate(proj, cabinet.elementAt(i).toArray(new
-// String[cabinet.elementAt(i).size()]), allIndCNVsArrays);
+// cnval = new CNValidate(proj, cabinet.elementAt(i).toArray(new String[cabinet.elementAt(i).size()]), allIndCNVsArrays);
 //
 // // threads[i] = new Thread();
 // threads[i] = new Thread(cnval);
@@ -666,23 +587,18 @@ public class CNValidate implements Runnable {
 // float[] LRRs = samp.getLRRs();
 //
 // for (int i = 1; i < indices.length; i++) {
-// String cnvFile = "D:/data/inSilicoValidate/UnleashTheBEAST/" +
-// samp.getSampleName().replaceAll(".*affy", "") + "_chr" + i + ".dat";
-// String configFile = "D:/data/inSilicoValidate/UnleashTheBEAST/" +
-// samp.getSampleName().replaceAll(".*affy", "") + "_chr" + i + ".config";
+// String cnvFile = "D:/data/inSilicoValidate/UnleashTheBEAST/" + samp.getSampleName().replaceAll(".*affy", "") + "_chr" + i + ".dat";
+// String configFile = "D:/data/inSilicoValidate/UnleashTheBEAST/" + samp.getSampleName().replaceAll(".*affy", "") + "_chr" + i + ".config";
 // try {
 //
 // PrintWriter writercnv = new PrintWriter(new FileWriter(cnvFile, false));
 // PrintWriter writerconfig = new PrintWriter(new FileWriter(configFile, false));
 // writercnv.println("probeset_id\tchr\tposition\tLRR");
-// writerconfig.println("6\n30\n0.25\n5000000\n2\n3\n" + cnvFile + "\n1\n0.4\n9\n1\n1\n" + cnvFile +
-// ".summary.res\n" + cnvFile + ".pred.res\n");
+// writerconfig.println("6\n30\n0.25\n5000000\n2\n3\n" + cnvFile + "\n1\n0.4\n9\n1\n1\n" + cnvFile + ".summary.res\n" + cnvFile + ".pred.res\n");
 // Hashtable<Integer, Float> tracker = new Hashtable<Integer, Float>();
 //
 // for (int k = 0; k < indices[i].length; k++) {
-// if (tracker.containsKey(positions[indices[i][k]]) &&
-// (!markerNames[indices[i][k]].startsWith("AFFX") ||
-// !markerNames[indices[i][k]].startsWith("CN_"))) {
+// if (tracker.containsKey(positions[indices[i][k]]) && (!markerNames[indices[i][k]].startsWith("AFFX") || !markerNames[indices[i][k]].startsWith("CN_"))) {
 // tracker.put(positions[indices[i][k]], LRRs[indices[i][k]]);
 // } else {
 // tracker.put(positions[indices[i][k]], LRRs[indices[i][k]]);
@@ -690,15 +606,11 @@ public class CNValidate implements Runnable {
 // }
 //
 // for (int k = 0; k < indices[i].length; k++) {
-// if (tracker.containsKey(positions[indices[i][k]]) && tracker.get(positions[indices[i][k]]) ==
-// LRRs[indices[i][k]]) {
-// writercnv.println(markerNames[indices[i][k]] + "\t" + i + "\t" + positions[indices[i][k]] + "\t"
-// + LRRs[indices[i][k]]);
+// if (tracker.containsKey(positions[indices[i][k]]) && tracker.get(positions[indices[i][k]]) == LRRs[indices[i][k]]) {
+// writercnv.println(markerNames[indices[i][k]] + "\t" + i + "\t" + positions[indices[i][k]] + "\t" + LRRs[indices[i][k]]);
 // tracker.remove(positions[indices[i][k]]);
 // } else {
-// // System.err.println("Skipping this marker since it was on a duplicate location " +
-// markerNames[indices[i][k]] + "\t" + i + "\t" + positions[indices[i][k]] + "\t" +
-// LRRs[indices[i][k]]);
+// // System.err.println("Skipping this marker since it was on a duplicate location " + markerNames[indices[i][k]] + "\t" + i + "\t" + positions[indices[i][k]] + "\t" + LRRs[indices[i][k]]);
 // }
 // }
 //
@@ -760,10 +672,8 @@ public class CNValidate implements Runnable {
 // // System.out.println(line[4] + "\t" + type + "\t" + line[2]);
 // for (int k = 0; k < numTests; k++) {
 // double alpha = (double) ((k / constant));
-// double score = Math.abs(Math.pow(Double.parseDouble(line[3]), alpha) *
-// Double.parseDouble(line[2]));
-// writer[k].println(sampleData.lookup(samp.getSampleName())[1] + "\t" + chr + "\t" + line[0] + "\t"
-// + line[1] + "\t" + type + "\t" + score + "\t" + line[3]);
+// double score = Math.abs(Math.pow(Double.parseDouble(line[3]), alpha) * Double.parseDouble(line[2]));
+// writer[k].println(sampleData.lookup(samp.getSampleName())[1] + "\t" + chr + "\t" + line[0] + "\t" + line[1] + "\t" + type + "\t" + score + "\t" + line[3]);
 // }
 // }
 // }

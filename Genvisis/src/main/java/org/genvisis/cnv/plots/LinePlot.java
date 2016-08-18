@@ -57,7 +57,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
 public class LinePlot extends JPanel
-                      implements WindowListener, ActionListener, TreeSelectionListener {
+    implements WindowListener, ActionListener, TreeSelectionListener {
   public static final long serialVersionUID = 1L;
   public static final byte DEFAULT_SIZE = 8;
 
@@ -78,52 +78,13 @@ public class LinePlot extends JPanel
       {ADD_DATA_FILE, REMOVE_DATA_FILE, SET_AS_COLORKEY, SET_AS_LINKKEY};
   public static final String[][] LINKERS =
       {{"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID", "Sample"},
-       {"Family ID", "FamID", "FID"}, {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"},
-       {"MarkerName", "Marker", "SNP", "Variant", "VariantName"}, // will link to Scatter Plot
-       {"Region", "UCSC", "Band", "Arm"}, // will link to Trailer
-       {"Chromosome", "Chr"}, // secondary link to Trailer
-       {"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
-       {"Stop Position", "Stop", "End"} // secondary link to Trailer
+          {"Family ID", "FamID", "FID"}, {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"},
+          {"MarkerName", "Marker", "SNP", "Variant", "VariantName"}, // will link to Scatter Plot
+          {"Region", "UCSC", "Band", "Arm"}, // will link to Trailer
+          {"Chromosome", "Chr"}, // secondary link to Trailer
+          {"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
+          {"Stop Position", "Stop", "End"} // secondary link to Trailer
       };
-
-  /**
-   * Create the GUI and show it. For thread safety, this method should be invoked from the
-   * event-dispatching thread.
-   * 
-   * @param proj {@link Project} the project
-   * @param log {@link Logger} a logger
-   */
-  public static void createAndShowGUI(Project proj) {
-
-    // Create and set up the window.
-    // JFrame frame = new JFrame("Line Plot");
-    JFrame frame = new JFrame("Genvisis - EnrichmentPlot");
-    frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
-    // Create and set up the content pane.
-    LinePlot twoDPlot = new LinePlot(proj);
-    frame.setJMenuBar(twoDPlot.menuBar());
-    twoDPlot.setOpaque(true); // content panes must be opaque
-    frame.setContentPane(twoDPlot);
-    frame.addWindowListener(twoDPlot);
-    frame.setBounds(20, 20, 1000, 600);
-
-    // Display the window.
-    frame.pack();
-    frame.setVisible(true);
-  }
-
-  public static void main(String[] args) {
-
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        createAndShowGUI(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true),
-                                     false));
-      }
-    });
-
-  }
 
   private LinePanel linePanel;
   private JLayeredPane layeredPane;
@@ -258,7 +219,7 @@ public class LinePlot extends JPanel
 
     setVisible(true);
     readColorKeyFile(proj.PROJECT_DIRECTORY.getValue() + File.separator + LINE_PLOT_DIR_NAME
-                     + File.separator + LINE_PLOT_COLOR_FILENAME);
+        + File.separator + LINE_PLOT_COLOR_FILENAME);
     updateColorKey();
   }
 
@@ -275,9 +236,9 @@ public class LinePlot extends JPanel
       int fileOpenActionSelected = fileChooser.showOpenDialog(null);
       if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
         for (int i = 0; tree != null
-                        && i < tree.getModel().getChildCount(tree.getModel().getRoot()); i++) {
+            && i < tree.getModel().getChildCount(tree.getModel().getRoot()); i++) {
           if (ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/")
-                 .equals(tree.getModel().getChild(tree.getModel().getRoot(), i).toString())) {
+              .equals(tree.getModel().getChild(tree.getModel().getRoot(), i).toString())) {
             found = true;
             break;
           }
@@ -345,70 +306,6 @@ public class LinePlot extends JPanel
     legendPanel.validate();
   }
 
-  private void generateFlipButton() {
-    flipButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg"));
-    flipButton.setRolloverIcon(Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue.jpg"));
-    flipButton.setToolTipText("Inverts axes");
-    flipButton.setBorder(null);
-    flipButton.setVisible(true);
-    flipStatus = true;
-    flipButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        linePanel.setPointsGeneratable(true);
-        linePanel.setSwapAxes(flipStatus);
-        linePanel.paintAgain();
-        if (flipStatus) {
-          flipStatus = false;
-        } else {
-          flipStatus = true;
-        }
-      }
-    });
-  }
-
-  private void generateInvXButton() {
-    invXButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/right_10.gif"));
-    invXButton.setBorder(null);
-    invXButton.setVisible(true);
-    xInvStatus = true;
-    invXButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        linePanel.setPointsGeneratable(true);
-        linePanel.setXinversion(xInvStatus);
-        linePanel.paintAgain();
-        if (xInvStatus) {
-          invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/left_10.gif"));
-        } else {
-          invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/right_10.gif"));
-        }
-        xInvStatus = !xInvStatus;
-      }
-    });
-  }
-
-  private void generateInvYButton() {
-    invYButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/up_10.gif"));
-    invYButton.setBorder(null);
-    invYButton.setVisible(true);
-    yInvStatus = true;
-    invYButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        linePanel.setPointsGeneratable(true);
-        linePanel.setYinversion(yInvStatus);
-        linePanel.paintAgain();
-        if (yInvStatus) {
-          invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/down_10.gif"));
-        } else {
-          invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/up_10.gif"));
-        }
-        yInvStatus = !yInvStatus;
-      }
-    });
-  }
-
   /**
    * Function to get the color for a filename (celltype)
    * 
@@ -417,7 +314,7 @@ public class LinePlot extends JPanel
    *         black color as byte
    */
   public byte getColorFromFilename(String filename) {
-
+  
     Set<String> keySet = colorKeyHash.keySet();
     Iterator<String> it = keySet.iterator();
     while (it.hasNext()) {
@@ -431,44 +328,6 @@ public class LinePlot extends JPanel
       }
     }
     return (byte) LinePanel.DEFAULT_COLORS_BLACK_INDEX;
-  }
-
-  /**
-   * Function to get comments from a given line
-   * 
-   * @param line String[] which contains the line
-   * @return {@link ArrayList} of String[] in which data is at 0th position and comment is at 1st
-   *         position
-   */
-  private ArrayList<String[]> getComments(String[] line) {
-    String[] comment = new String[line.length];
-    if (line != null) {
-      for (int i = 0; i < line.length; i++) {
-        if (line[i].contains(":")) {
-          // The data has comment separated by :
-          // split and get comments and update data
-          String[] temp = line[i].split(":");
-          // the first record is data and rest all is comment
-          // update line to have just data
-          line[i] = temp[0];
-          // get the comment; if the comment has : inside it then it will be
-          // splitted into multiple parts so marge it
-          String thisComment = null;
-          for (int j = 1; j < temp.length; j++) {
-            thisComment += temp[j];
-          }
-          // Store the complete comment
-          comment[i] = thisComment;
-        } else {
-          // the data does not have comments
-          comment[i] = "NA";
-        }
-      }
-    }
-    ArrayList<String[]> result = new ArrayList<String[]>();
-    result.add(line);
-    result.add(comment);
-    return result;
   }
 
   public int[] getCurrentLinkKeyColumnLabels() {
@@ -514,14 +373,14 @@ public class LinePlot extends JPanel
             if (yHash.containsKey(key)) {
               colorCode = getColorFromFilename(recordName);
               v.add(new String[] {xHash.get(key)[0], xHash.get(key)[0], yHash.get(key),
-                                  colorCode + "", xHash.get(key)[0]});
+                  colorCode + "", xHash.get(key)[0]});
             }
           }
         } else {
           for (String key : keys) {
             if (yHash.containsKey(key)) {
               v.add(new String[] {xHash.get(key)[0], xHash.get(key)[0], yHash.get(key),
-                                  "all other keys", xHash.get(key)[0]});
+                  "all other keys", xHash.get(key)[0]});
             }
           }
         }
@@ -539,7 +398,7 @@ public class LinePlot extends JPanel
         result[i] = "";
       } else {
         result[i] = ext.removeDirectoryInfo(selectionValues[i][0]) + " _ "
-                    + namesHash.get(selectionValues[i][0])[Integer.parseInt(selectionValues[i][1])];
+            + namesHash.get(selectionValues[i][0])[Integer.parseInt(selectionValues[i][1])];
       }
     }
     return result;
@@ -553,20 +412,6 @@ public class LinePlot extends JPanel
     return proj;
   }
 
-  private void initializeTree() {
-    tree = new CheckBoxTree(new String[0], new String[0], new String[0][], new boolean[0], 2);
-  }
-
-  private void inputMapAndActionMap() {
-    InputMap inputMap = linePanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), ALT_UP);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), ALT_DOWN);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), ALT_LEFT);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), ALT_RIGHT);
-    ActionMap actionMap = linePanel.getActionMap();
-    linePanel.setActionMap(actionMap);
-  }
-
   /**
    * Function to load the data for a given filename
    * 
@@ -578,45 +423,45 @@ public class LinePlot extends JPanel
     String readBuffer;
     int[] linkKeyIndices;
     int count;
-
+  
     // if this file is already added
     if (treeFilenameLookup.contains(filename)) {
       return;
     }
-
+  
     try {
       reader = new BufferedReader(new FileReader(filename));
       treeFilenameLookup.add(filename);
       readBuffer = reader.readLine();
-
+  
       // Split the line on whitespaces and get all the headers in the file
       if (readBuffer.contains("\t")) {
         header = readBuffer.trim().split("\t", -1);
       } else {
         header = readBuffer.trim().split("[\\s]+");
       }
-
+  
       // Adding headers of the file
       namesHash.put(filename, header);
-
+  
       linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, log, false);
-
+  
       if (linkKeyIndices[0] == -1) {
         log.report("ID linker not automatically identified for file '" + filename
-                   + "'; assuming the first column.");
+            + "'; assuming the first column.");
         linkKeyIndices[0] = 0;
       }
-
+  
       keyIndices.put(filename, linkKeyIndices);
-
+  
       numericHash.put(filename, new boolean[namesHash.get(filename).length]);
       for (int i = 0; i < numericHash.get(filename).length; i++) {
         numericHash.get(filename)[i] = true;
       }
-
+  
       dataHash.put(filename, new Vector<String[]>());
       commentHash.put(filename, new Vector<String[]>());
-
+  
       count = 1;
       while (reader.ready()) {
         if (readBuffer.contains("\t")) {
@@ -626,12 +471,12 @@ public class LinePlot extends JPanel
         }
         if (line.length != header.length) {
           JOptionPane.showMessageDialog(null,
-                                        "File '" + filename
-                                              + "' does not have a uniform number of columns and was not properly loaded",
-                                        "Error", JOptionPane.ERROR_MESSAGE);
+              "File '" + filename
+                  + "' does not have a uniform number of columns and was not properly loaded",
+              "Error", JOptionPane.ERROR_MESSAGE);
           log.report("Error - mismatched number of columns (n=" + line.length
-                     + " versus the header, which had " + header.length + ") at line " + count
-                     + " of file " + filename);
+              + " versus the header, which had " + header.length + ") at line " + count
+              + " of file " + filename);
           reader.close();
           return;
         }
@@ -651,70 +496,6 @@ public class LinePlot extends JPanel
     } catch (IOException ioe) {
       log.report("Error reading file \"" + filename + "\"");
     }
-  }
-
-  private JMenuBar menuBar() {
-    JMenuBar menuBar;
-    JMenu menu;
-    JMenuItem menuItemExit, menuItemOpen, menuItemSave;
-
-    menuBar = new JMenuBar();
-    menu = new JMenu("File");
-    menu.setMnemonic(KeyEvent.VK_F);
-    menuBar.add(menu);
-    menuItemOpen = new JMenuItem("Open", KeyEvent.VK_O);
-    menuItemOpen.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        JFileChooser fileChooser =
-            new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
-        int fileOpenActionSelected = fileChooser.showOpenDialog(null);
-        if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
-          loadFile(ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/"));
-          updateTree();
-          displayAll();
-          tree.expandRow(0);
-        }
-      }
-    });
-    menu.add(menuItemOpen);
-    menuItemSave = new JMenuItem("Save Image", KeyEvent.VK_S);
-    menuItemSave.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        JFileChooser fileChooser =
-            new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
-        int fileOpenActionSelected = fileChooser.showOpenDialog(null);
-        if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
-          File fileToOpen = fileChooser.getSelectedFile();
-          linePanel.screenCapture(fileToOpen.toString() + ".png"); // ??? zx: How to avoid LinePanel
-                                                                   // being static?
-        }
-      }
-    });
-    menu.add(menuItemSave);
-    menuItemExit = new JMenuItem("Close", KeyEvent.VK_C);
-    menuItemExit.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        System.exit(0);
-      }
-    });
-    menu.add(menuItemExit);
-    menu = new JMenu("Edit");
-    menu.setMnemonic(KeyEvent.VK_E);
-    menuBar.add(menu);
-    menu.add(new JMenuItem("Cut"));
-    menu.add(new JMenuItem("Copy"));
-    menu.add(new JMenuItem("Paste"));
-    menu.add(new JMenuItem("Paste Image"));
-    menu.add(new JMenuItem("Find"));
-    menu = new JMenu("Help");
-    menuBar.add(menu);
-    menu.add(new JMenuItem("Contents"));
-    menu.add(new JMenuItem("Search"));
-    menu.add(new JMenuItem("About"));
-    return menuBar;
   }
 
   /**
@@ -803,8 +584,7 @@ public class LinePlot extends JPanel
               if (groupToColorLabelHash.containsKey(classValue)) {
                 JLabel thisColorLabel[] = groupToColorLabelHash.get(classValue);
                 thisColorLabel[0] = new JLabel(new ColorIcon(12, 12,
-                                                             LinePanel.DEFAULT_COLORS[LinePanel.DEFAULT_COLORS.length
-                                                                                      - 1]));
+                    LinePanel.DEFAULT_COLORS[LinePanel.DEFAULT_COLORS.length - 1]));
                 generateColorKeyPanel();
               }
               performGroupCheckboxAction(classValue, ItemEvent.DESELECTED);
@@ -819,9 +599,8 @@ public class LinePlot extends JPanel
               // set this group color block in ColorKeyPanel to black
               if (groupToColorLabelHash.containsKey(classValue)) {
                 JLabel thisColorLabel[] = groupToColorLabelHash.get(classValue);
-                thisColorLabel[0] =
-                    new JLabel(new ColorIcon(12, 12,
-                                             LinePanel.DEFAULT_COLORS[LinePanel.DEFAULT_COLORS_BLACK_INDEX]));
+                thisColorLabel[0] = new JLabel(new ColorIcon(12, 12,
+                    LinePanel.DEFAULT_COLORS[LinePanel.DEFAULT_COLORS_BLACK_INDEX]));
                 generateColorKeyPanel();
               }
               performGroupCheckboxAction(classValue, ItemEvent.SELECTED);
@@ -831,9 +610,8 @@ public class LinePlot extends JPanel
             // set the color block to this group's color in the ColorKeyPanel
             if (groupToColorLabelHash.containsKey(classValue)) {
               JLabel thisColorLabel[] = groupToColorLabelHash.get(classValue);
-              thisColorLabel[0] =
-                  new JLabel(new ColorIcon(12, 12,
-                                           LinePanel.DEFAULT_COLORS[groupToColorHash.get(classValue)]));
+              thisColorLabel[0] = new JLabel(new ColorIcon(12, 12,
+                  LinePanel.DEFAULT_COLORS[groupToColorHash.get(classValue)]));
               generateColorKeyPanel();
             }
             performGroupCheckboxAction(classValue, ItemEvent.SELECTED);
@@ -885,44 +663,6 @@ public class LinePlot extends JPanel
     linePanel.paintAgain();
   }
 
-  private void updateTree() {
-    String[] namesOfBranches;
-    String[] branchHandles;
-    String[][] namesOfNodes;
-
-    treeFileVariableNameLookup = new String[treeFilenameLookup.size()][];
-    int maxSelectable = 0;
-    for (int i = 0; i < treeFilenameLookup.size(); i++) {
-      treeFileVariableNameLookup[i] = namesHash.get(treeFilenameLookup.elementAt(i));
-      maxSelectable += treeFileVariableNameLookup[i].length;
-
-      if (tree == null) {
-        namesOfBranches = new String[1];
-        branchHandles = new String[1];
-        namesOfNodes = new String[1][];
-        namesOfBranches[0] = ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i));
-        branchHandles[0] = treeFilenameLookup.elementAt(i);
-        namesOfNodes[0] = treeFileVariableNameLookup[i];
-        tree = new CheckBoxTree(namesOfBranches, branchHandles, namesOfNodes,
-                                numericHash.get(treeFilenameLookup.elementAt(0)), 2);
-      } else {
-        boolean found = false;
-        for (int j = 0; j < tree.getModel().getChildCount(tree.getModel().getRoot()); j++) {
-          if (tree.getModel().getChild(tree.getModel().getRoot(), j).toString()
-                  .equals(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)))) {
-            found = true;
-          }
-        }
-        if (!found) {
-          tree.addNode(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)),
-                       treeFilenameLookup.elementAt(i), treeFileVariableNameLookup[i],
-                       numericHash.get(treeFilenameLookup.elementAt(i)), null);
-        }
-      }
-      tree.setMaxSelections(maxSelectable);
-    }
-  }
-
   @Override
   public void valueChanged(TreeSelectionEvent e) {
     linePanel.setPointsGeneratable(true);
@@ -951,4 +691,261 @@ public class LinePlot extends JPanel
 
   @Override
   public void windowOpened(WindowEvent e) {}
+
+  private void generateFlipButton() {
+    flipButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg"));
+    flipButton.setRolloverIcon(Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue.jpg"));
+    flipButton.setToolTipText("Inverts axes");
+    flipButton.setBorder(null);
+    flipButton.setVisible(true);
+    flipStatus = true;
+    flipButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        linePanel.setPointsGeneratable(true);
+        linePanel.setSwapAxes(flipStatus);
+        linePanel.paintAgain();
+        if (flipStatus) {
+          flipStatus = false;
+        } else {
+          flipStatus = true;
+        }
+      }
+    });
+  }
+
+  private void generateInvXButton() {
+    invXButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/right_10.gif"));
+    invXButton.setBorder(null);
+    invXButton.setVisible(true);
+    xInvStatus = true;
+    invXButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        linePanel.setPointsGeneratable(true);
+        linePanel.setXinversion(xInvStatus);
+        linePanel.paintAgain();
+        if (xInvStatus) {
+          invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/left_10.gif"));
+        } else {
+          invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/right_10.gif"));
+        }
+        xInvStatus = !xInvStatus;
+      }
+    });
+  }
+
+  private void generateInvYButton() {
+    invYButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/up_10.gif"));
+    invYButton.setBorder(null);
+    invYButton.setVisible(true);
+    yInvStatus = true;
+    invYButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        linePanel.setPointsGeneratable(true);
+        linePanel.setYinversion(yInvStatus);
+        linePanel.paintAgain();
+        if (yInvStatus) {
+          invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/down_10.gif"));
+        } else {
+          invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/up_10.gif"));
+        }
+        yInvStatus = !yInvStatus;
+      }
+    });
+  }
+
+  /**
+   * Function to get comments from a given line
+   * 
+   * @param line String[] which contains the line
+   * @return {@link ArrayList} of String[] in which data is at 0th position and comment is at 1st
+   *         position
+   */
+  private ArrayList<String[]> getComments(String[] line) {
+    String[] comment = new String[line.length];
+    if (line != null) {
+      for (int i = 0; i < line.length; i++) {
+        if (line[i].contains(":")) {
+          // The data has comment separated by :
+          // split and get comments and update data
+          String[] temp = line[i].split(":");
+          // the first record is data and rest all is comment
+          // update line to have just data
+          line[i] = temp[0];
+          // get the comment; if the comment has : inside it then it will be
+          // splitted into multiple parts so marge it
+          String thisComment = null;
+          for (int j = 1; j < temp.length; j++) {
+            thisComment += temp[j];
+          }
+          // Store the complete comment
+          comment[i] = thisComment;
+        } else {
+          // the data does not have comments
+          comment[i] = "NA";
+        }
+      }
+    }
+    ArrayList<String[]> result = new ArrayList<String[]>();
+    result.add(line);
+    result.add(comment);
+    return result;
+  }
+
+  private void initializeTree() {
+    tree = new CheckBoxTree(new String[0], new String[0], new String[0][], new boolean[0], 2);
+  }
+
+  private void inputMapAndActionMap() {
+    InputMap inputMap = linePanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), ALT_UP);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), ALT_DOWN);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), ALT_LEFT);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), ALT_RIGHT);
+    ActionMap actionMap = linePanel.getActionMap();
+    linePanel.setActionMap(actionMap);
+  }
+
+  private JMenuBar menuBar() {
+    JMenuBar menuBar;
+    JMenu menu;
+    JMenuItem menuItemExit, menuItemOpen, menuItemSave;
+  
+    menuBar = new JMenuBar();
+    menu = new JMenu("File");
+    menu.setMnemonic(KeyEvent.VK_F);
+    menuBar.add(menu);
+    menuItemOpen = new JMenuItem("Open", KeyEvent.VK_O);
+    menuItemOpen.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        JFileChooser fileChooser =
+            new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
+        int fileOpenActionSelected = fileChooser.showOpenDialog(null);
+        if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
+          loadFile(ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/"));
+          updateTree();
+          displayAll();
+          tree.expandRow(0);
+        }
+      }
+    });
+    menu.add(menuItemOpen);
+    menuItemSave = new JMenuItem("Save Image", KeyEvent.VK_S);
+    menuItemSave.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        JFileChooser fileChooser =
+            new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
+        int fileOpenActionSelected = fileChooser.showOpenDialog(null);
+        if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
+          File fileToOpen = fileChooser.getSelectedFile();
+          linePanel.screenCapture(fileToOpen.toString() + ".png"); // ??? zx: How to avoid LinePanel
+                                                                   // being static?
+        }
+      }
+    });
+    menu.add(menuItemSave);
+    menuItemExit = new JMenuItem("Close", KeyEvent.VK_C);
+    menuItemExit.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        System.exit(0);
+      }
+    });
+    menu.add(menuItemExit);
+    menu = new JMenu("Edit");
+    menu.setMnemonic(KeyEvent.VK_E);
+    menuBar.add(menu);
+    menu.add(new JMenuItem("Cut"));
+    menu.add(new JMenuItem("Copy"));
+    menu.add(new JMenuItem("Paste"));
+    menu.add(new JMenuItem("Paste Image"));
+    menu.add(new JMenuItem("Find"));
+    menu = new JMenu("Help");
+    menuBar.add(menu);
+    menu.add(new JMenuItem("Contents"));
+    menu.add(new JMenuItem("Search"));
+    menu.add(new JMenuItem("About"));
+    return menuBar;
+  }
+
+  private void updateTree() {
+    String[] namesOfBranches;
+    String[] branchHandles;
+    String[][] namesOfNodes;
+  
+    treeFileVariableNameLookup = new String[treeFilenameLookup.size()][];
+    int maxSelectable = 0;
+    for (int i = 0; i < treeFilenameLookup.size(); i++) {
+      treeFileVariableNameLookup[i] = namesHash.get(treeFilenameLookup.elementAt(i));
+      maxSelectable += treeFileVariableNameLookup[i].length;
+  
+      if (tree == null) {
+        namesOfBranches = new String[1];
+        branchHandles = new String[1];
+        namesOfNodes = new String[1][];
+        namesOfBranches[0] = ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i));
+        branchHandles[0] = treeFilenameLookup.elementAt(i);
+        namesOfNodes[0] = treeFileVariableNameLookup[i];
+        tree = new CheckBoxTree(namesOfBranches, branchHandles, namesOfNodes,
+            numericHash.get(treeFilenameLookup.elementAt(0)), 2);
+      } else {
+        boolean found = false;
+        for (int j = 0; j < tree.getModel().getChildCount(tree.getModel().getRoot()); j++) {
+          if (tree.getModel().getChild(tree.getModel().getRoot(), j).toString()
+              .equals(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)))) {
+            found = true;
+          }
+        }
+        if (!found) {
+          tree.addNode(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)),
+              treeFilenameLookup.elementAt(i), treeFileVariableNameLookup[i],
+              numericHash.get(treeFilenameLookup.elementAt(i)), null);
+        }
+      }
+      tree.setMaxSelections(maxSelectable);
+    }
+  }
+
+  /**
+   * Create the GUI and show it. For thread safety, this method should be invoked from the
+   * event-dispatching thread.
+   * 
+   * @param proj {@link Project} the project
+   * @param log {@link Logger} a logger
+   */
+  public static void createAndShowGUI(Project proj) {
+  
+    // Create and set up the window.
+    // JFrame frame = new JFrame("Line Plot");
+    JFrame frame = new JFrame("Genvisis - EnrichmentPlot");
+    frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+  
+    // Create and set up the content pane.
+    LinePlot twoDPlot = new LinePlot(proj);
+    frame.setJMenuBar(twoDPlot.menuBar());
+    twoDPlot.setOpaque(true); // content panes must be opaque
+    frame.setContentPane(twoDPlot);
+    frame.addWindowListener(twoDPlot);
+    frame.setBounds(20, 20, 1000, 600);
+  
+    // Display the window.
+    frame.pack();
+    frame.setVisible(true);
+  }
+
+  public static void main(String[] args) {
+  
+    SwingUtilities.invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        createAndShowGUI(
+            new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true), false));
+      }
+    });
+  
+  }
 }

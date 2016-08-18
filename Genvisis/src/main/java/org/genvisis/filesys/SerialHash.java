@@ -1,129 +1,122 @@
 package org.genvisis.filesys;
 
-import java.io.Serializable;
-import java.util.Hashtable;
+import java.io.*;
+import java.util.*;
 
-import org.genvisis.common.SerializedFiles;
+import org.genvisis.common.*;
 
 public class SerialHash implements Serializable {
-  public static final long serialVersionUID = 1L;
+	public static final long serialVersionUID = 1L;
 
-  public static void createSerializedIntHash(String filename, Hashtable<Integer, Integer> intHash) {
-    SerialHash sHash = new SerialHash();
-    sHash.setIntHash(intHash);
-    sHash.serialize(filename);
-  }
+	private Hashtable<String,String> stringHash;
+	private Hashtable<String,String[]> stringArrayHash;
+	private Hashtable<String,int[]> stringIntArrayHash;
+	private Hashtable<Integer,Integer> intHash;
+	private Hashtable<Long,Long> longHash;
 
-  public static void createSerializedLongHash(String filename, Hashtable<Long, Long> longHash) {
-    SerialHash sHash = new SerialHash();
-    sHash.setLongHash(longHash);
-    sHash.serialize(filename);
-  }
+	public SerialHash() {
+		stringHash = null;
+		stringArrayHash = null;
+		stringIntArrayHash = null;
+		intHash = null;
+		longHash = null;
+	}
 
-  public static void createSerializedStringArrayHash(String filename,
-                                                     Hashtable<String, String[]> stringArrayHash) {
-    SerialHash sHash = new SerialHash();
-    sHash.setStringArrayHash(stringArrayHash);
-    sHash.serialize(filename);
-  }
+	private void setStringHash(Hashtable<String,String> stringHash) {
+		this.stringHash = stringHash;
+	}
 
-  public static void createSerializedStringHash(String filename,
-                                                Hashtable<String, String> stringHash) {
-    SerialHash sHash = new SerialHash();
-    sHash.setStringHash(stringHash);
-    sHash.serialize(filename);
-  }
+	private Hashtable<String,String> getStringHash() {
+		return stringHash;
+	}
 
-  public static void createSerializedStringIntArrayHash(String filename,
-                                                        Hashtable<String, int[]> stringIntArrayHash) {
-    SerialHash sHash = new SerialHash();
-    sHash.setStringIntArrayHash(stringIntArrayHash);
-    sHash.serialize(filename);
-  }
+	public static void createSerializedStringHash(String filename, Hashtable<String,String> stringHash) {
+		SerialHash sHash = new SerialHash();
+		sHash.setStringHash(stringHash);
+		sHash.serialize(filename);
+	}
 
-  private static SerialHash load(String filename, boolean jar) {
-    return (SerialHash) SerializedFiles.readSerial(filename, jar, true);
-  }
+	public static Hashtable<String,String> loadSerializedStringHash(String filename) {
+		return load(filename, false).getStringHash();
+	}
 
-  public static Hashtable<Integer, Integer> loadSerializedIntHash(String filename) {
-    return load(filename, false).getIntHash();
-  }
+	private void setStringArrayHash(Hashtable<String,String[]> stringArrayHash) {
+		this.stringArrayHash = stringArrayHash;
+	}
 
-  public static Hashtable<Long, Long> loadSerializedLongHash(String filename) {
-    return load(filename, false).getLongHash();
-  }
+	private Hashtable<String,String[]> getStringArrayHash() {
+		return stringArrayHash;
+	}
 
-  public static Hashtable<String, String[]> loadSerializedStringArrayHash(String filename) {
-    return load(filename, false).getStringArrayHash();
-  }
+	public static void createSerializedStringArrayHash(String filename, Hashtable<String,String[]> stringArrayHash) {
+		SerialHash sHash = new SerialHash();
+		sHash.setStringArrayHash(stringArrayHash);
+		sHash.serialize(filename);
+	}
 
-  public static Hashtable<String, String> loadSerializedStringHash(String filename) {
-    return load(filename, false).getStringHash();
-  }
+	public static Hashtable<String,String[]> loadSerializedStringArrayHash(String filename) {
+		return load(filename, false).getStringArrayHash();
+	}
 
-  public static Hashtable<String, int[]> loadSerializedStringIntArrayHash(String filename) {
-    return load(filename, false).getStringIntArrayHash();
-  }
+	private void setStringIntArrayHash(Hashtable<String,int[]> stringIntArrayHash) {
+		this.stringIntArrayHash = stringIntArrayHash;
+	}
 
-  private Hashtable<String, String> stringHash;
+	private Hashtable<String,int[]> getStringIntArrayHash() {
+		return stringIntArrayHash;
+	}
 
-  private Hashtable<String, String[]> stringArrayHash;
+	public static void createSerializedStringIntArrayHash(String filename, Hashtable<String,int[]> stringIntArrayHash) {
+		SerialHash sHash = new SerialHash();
+		sHash.setStringIntArrayHash(stringIntArrayHash);
+		sHash.serialize(filename);
+	}
 
-  private Hashtable<String, int[]> stringIntArrayHash;
+	public static Hashtable<String,int[]> loadSerializedStringIntArrayHash(String filename) {
+		return load(filename, false).getStringIntArrayHash();
+	}
 
-  private Hashtable<Integer, Integer> intHash;
+	private void setIntHash(Hashtable<Integer,Integer> intHash) {
+		this.intHash = intHash;
+	}
 
-  private Hashtable<Long, Long> longHash;
+	private Hashtable<Integer,Integer> getIntHash() {
+		return intHash;
+	}
 
-  public SerialHash() {
-    stringHash = null;
-    stringArrayHash = null;
-    stringIntArrayHash = null;
-    intHash = null;
-    longHash = null;
-  }
+	public static void createSerializedIntHash(String filename, Hashtable<Integer,Integer> intHash) {
+		SerialHash sHash = new SerialHash();
+		sHash.setIntHash(intHash);
+		sHash.serialize(filename);
+	}
 
-  private Hashtable<Integer, Integer> getIntHash() {
-    return intHash;
-  }
+	public static Hashtable<Integer,Integer> loadSerializedIntHash(String filename) {
+		return load(filename, false).getIntHash();
+	}
 
-  private Hashtable<Long, Long> getLongHash() {
-    return longHash;
-  }
+	private void setLongHash(Hashtable<Long,Long> longHash) {
+		this.longHash = longHash;
+	}
 
-  private Hashtable<String, String[]> getStringArrayHash() {
-    return stringArrayHash;
-  }
+	private Hashtable<Long,Long> getLongHash() {
+		return longHash;
+	}
 
-  private Hashtable<String, String> getStringHash() {
-    return stringHash;
-  }
+	public static void createSerializedLongHash(String filename, Hashtable<Long,Long> longHash) {
+		SerialHash sHash = new SerialHash();
+		sHash.setLongHash(longHash);
+		sHash.serialize(filename);
+	}
 
-  private Hashtable<String, int[]> getStringIntArrayHash() {
-    return stringIntArrayHash;
-  }
+	public static Hashtable<Long,Long> loadSerializedLongHash(String filename) {
+		return load(filename, false).getLongHash();
+	}
 
-  public void serialize(String filename) {
-    SerializedFiles.writeSerial(this, filename);
-  }
+	public void serialize(String filename) {
+		SerializedFiles.writeSerial(this, filename);
+	}
 
-  private void setIntHash(Hashtable<Integer, Integer> intHash) {
-    this.intHash = intHash;
-  }
-
-  private void setLongHash(Hashtable<Long, Long> longHash) {
-    this.longHash = longHash;
-  }
-
-  private void setStringArrayHash(Hashtable<String, String[]> stringArrayHash) {
-    this.stringArrayHash = stringArrayHash;
-  }
-
-  private void setStringHash(Hashtable<String, String> stringHash) {
-    this.stringHash = stringHash;
-  }
-
-  private void setStringIntArrayHash(Hashtable<String, int[]> stringIntArrayHash) {
-    this.stringIntArrayHash = stringIntArrayHash;
-  }
+	private static SerialHash load(String filename, boolean jar) {
+		return (SerialHash)SerializedFiles.readSerial(filename, jar, true);
+	}
 }

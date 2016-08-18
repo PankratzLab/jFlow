@@ -14,136 +14,127 @@ import org.genvisis.common.HttpUpdate.Version;
  *
  */
 public class CurrentManifest {
-  public static final String IMPLEMENTATION_VERSION = "Implementation-Version";
+	public static final String IMPLEMENTATION_VERSION = "Implementation-Version";
+	private Attributes attributes;
+	private Version version;
+	private String compileTime;
+	private String buildType;
+	private String builtBy;
+	private String copyright;
 
-  private static File getCurrentFile() {
-    File file = new File(new CurrentManifest().getClass().getProtectionDomain().getCodeSource()
-                                              .getLocation().getFile());// get
+	public CurrentManifest() {
 
-    if (!file.exists() || !file.getAbsolutePath().endsWith(".jar")) {
-      file = new File("../" + PSF.Java.GENVISIS);
-    }
-    return file;
-  }
+	}
 
-  public static String getGenvisisInfo() {
-    try {
-      CurrentManifest manifest = CurrentManifest.loadGenvisisManifest();// until it always works
-      return "Genvisis, " + manifest.getVersion().getVersion() + "\n" + manifest.getCopyright()
-             + "\n\n" + (new Date());
-    } catch (Exception e) {
-      return "Genvisis, v0.0.0\n(c)2009-2015 Nathan Pankratz, GNU General Public License, v2\n\n"
-             + (new Date());
-    }
-  }
+	public CurrentManifest(Attributes attributes) {
+		super();
+		this.attributes = attributes;
+	}
 
-  public static CurrentManifest loadGenvisisManifest() {
-    File file = getCurrentFile();
-    return loadManifest(file);
-  }
+	private void populate() {
 
-  // https://ant.apache.org/manual/Tasks/manifest.html
-  public static CurrentManifest loadManifest(File file) {
-    JarFile jar = null;
+		this.version = new Version("v-1.-1.-1");
+		this.compileTime = "";
+		this.buildType = "";
+		this.builtBy = "";
+		if (attributes != null) {
+			Iterator<Object> it = attributes.keySet().iterator();
+			while (it.hasNext()) {
+				java.util.jar.Attributes.Name key = (java.util.jar.Attributes.Name) it.next();
+				String keyword = key.toString();
+				if (keyword.equals(IMPLEMENTATION_VERSION)) {
+					this.version = new Version((String) attributes.get(key));
+				}
+				if (keyword.equals("Compile-Time")) {
+					this.compileTime = (String) attributes.get(key);
+				}
+				if (keyword.equals("Build-Type")) {
+					this.buildType = (String) attributes.get(key);
+				}
+				if (keyword.equals("Built-By")) {
+					this.builtBy = (String) attributes.get(key);
+				}
+				if (keyword.equals("Copyright")) {
+					this.copyright = (String) attributes.get(key);
+				}
+			}
+		}
+	}
 
-    CurrentManifest currentManifest = new CurrentManifest(new Attributes());
-    try {
+	public String getBuiltBy() {
+		return builtBy;
+	}
 
-      if (file != null && file.exists()) {
-        jar = new java.util.jar.JarFile(file);
+	public String getCopyright() {
+		return copyright;
+	}
 
-        java.util.jar.Manifest manifest = jar.getManifest();
+	public Attributes getAttributes() {
+		return attributes;
+	}
 
-        Attributes attributes = manifest.getMainAttributes();
+	public String getBuildType() {
+		return buildType;
+	}
 
-        jar.close();
-        currentManifest = new CurrentManifest(attributes);
-      }
-    } catch (IOException ioe) {
+	public Version getVersion() {
+		return version;
+	}
 
-    }
-    currentManifest.populate();
-    return currentManifest;
-  }
+	public String getCompileTime() {
+		return compileTime;
+	}
 
-  public static void main(String[] args) {
+	public static CurrentManifest loadGenvisisManifest() {
+		File file = getCurrentFile();
+		return loadManifest(file);
+	}
 
-    loadGenvisisManifest();
+	public static String getGenvisisInfo() {
+		try {
+			CurrentManifest manifest = CurrentManifest.loadGenvisisManifest();// until it always works
+			return "Genvisis, " + manifest.getVersion().getVersion() + "\n" + manifest.getCopyright() + "\n\n" + (new Date());
+		} catch (Exception e) {
+			return "Genvisis, v0.0.0\n(c)2009-2015 Nathan Pankratz, GNU General Public License, v2\n\n" + (new Date());
+		}
+	}
 
-  }
+	// https://ant.apache.org/manual/Tasks/manifest.html
+	public static CurrentManifest loadManifest(File file) {
+		JarFile jar = null;
 
-  private Attributes attributes;
+		CurrentManifest currentManifest = new CurrentManifest(new Attributes());
+		try {
 
-  private Version version;
+			if (file != null && file.exists()) {
+				jar = new java.util.jar.JarFile(file);
 
-  private String compileTime;
+				java.util.jar.Manifest manifest = jar.getManifest();
 
-  private String buildType;
+				Attributes attributes = manifest.getMainAttributes();
 
-  private String builtBy;
+				jar.close();
+				currentManifest = new CurrentManifest(attributes);
+			}
+		} catch (IOException ioe) {
 
-  private String copyright;
+		}
+		currentManifest.populate();
+		return currentManifest;
+	}
 
-  public CurrentManifest() {
+	private static File getCurrentFile() {
+		File file = new File(new CurrentManifest().getClass().getProtectionDomain().getCodeSource().getLocation().getFile());// get
 
-  }
+		if (!file.exists() || !file.getAbsolutePath().endsWith(".jar")) {
+			file = new File("../" + PSF.Java.GENVISIS);
+		}
+		return file;
+	}
 
-  public CurrentManifest(Attributes attributes) {
-    super();
-    this.attributes = attributes;
-  }
+	public static void main(String[] args) {
 
-  public Attributes getAttributes() {
-    return attributes;
-  }
+		loadGenvisisManifest();
 
-  public String getBuildType() {
-    return buildType;
-  }
-
-  public String getBuiltBy() {
-    return builtBy;
-  }
-
-  public String getCompileTime() {
-    return compileTime;
-  }
-
-  public String getCopyright() {
-    return copyright;
-  }
-
-  public Version getVersion() {
-    return version;
-  }
-
-  private void populate() {
-
-    version = new Version("v-1.-1.-1");
-    compileTime = "";
-    buildType = "";
-    builtBy = "";
-    if (attributes != null) {
-      Iterator<Object> it = attributes.keySet().iterator();
-      while (it.hasNext()) {
-        java.util.jar.Attributes.Name key = (java.util.jar.Attributes.Name) it.next();
-        String keyword = key.toString();
-        if (keyword.equals(IMPLEMENTATION_VERSION)) {
-          version = new Version((String) attributes.get(key));
-        }
-        if (keyword.equals("Compile-Time")) {
-          compileTime = (String) attributes.get(key);
-        }
-        if (keyword.equals("Build-Type")) {
-          buildType = (String) attributes.get(key);
-        }
-        if (keyword.equals("Built-By")) {
-          builtBy = (String) attributes.get(key);
-        }
-        if (keyword.equals("Copyright")) {
-          copyright = (String) attributes.get(key);
-        }
-      }
-    }
-  }
+	}
 }

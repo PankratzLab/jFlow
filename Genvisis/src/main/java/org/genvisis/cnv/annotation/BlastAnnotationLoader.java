@@ -1,5 +1,9 @@
 package org.genvisis.cnv.annotation;
 
+import htsjdk.samtools.TextCigarCodec;
+import htsjdk.tribble.annotation.Strand;
+import htsjdk.variant.variantcontext.VariantContext;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -11,215 +15,199 @@ import org.genvisis.cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Array;
-import org.genvisis.common.ArraySpecialList.ArrayBlastAnnotationList;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.common.ArraySpecialList.ArrayBlastAnnotationList;
 import org.genvisis.filesys.Segment;
-
-import htsjdk.samtools.TextCigarCodec;
-import htsjdk.tribble.annotation.Strand;
-import htsjdk.variant.variantcontext.VariantContext;
 
 /**
  * @author lane0212 Loads summarized blast results in annotation format
  */
 public class BlastAnnotationLoader extends AnnotationFileLoader {
-  /**
-   * @author lane0212 Probably could be its own class
-   */
-  public static class MarkerBlastResult implements AnnotationParser {
-    private final BLAST_ANNOTATION_TYPES[] bTypes;
-    private final ArrayBlastAnnotationList[] annotationLists;
-    private final String markerName;
-    private boolean found;
+	private byte[] chrs;
+	private int[] pos;
+	private Hashtable<String, Integer> markerIndices;
 
-    public MarkerBlastResult(String markerName, BLAST_ANNOTATION_TYPES[] bTypes,
-                             int initialCapacity) {
-      super();
-      this.markerName = markerName;
-      this.bTypes = bTypes;
-      annotationLists = new ArrayBlastAnnotationList[bTypes.length];
-      for (int i = 0; i < annotationLists.length; i++) {
-        annotationLists[i] = new ArrayBlastAnnotationList(initialCapacity);
-      }
-    }
+	/**
+	 * @param proj
+	 * @param annotationFilename
+	 *            the file created by a {@link BlastAnnotationWriter} run
+	 * @param indexRequired
+	 *            , should always be set to true
+	 */
+	public BlastAnnotationLoader(Project proj, String annotationFilename, boolean indexRequired) {
+		super(proj, null,BlastAnnotationTypes.getBaseAnnotations(), annotationFilename, indexRequired);
+		MarkerSet markerSet = proj.getMarkerSet();
+		this.chrs = markerSet.getChrs();
+		this.pos = markerSet.getPositions();
+		this.markerIndices = proj.getMarkerIndices();
+	}
 
-    private int getAnnotationIndexFor(BLAST_ANNOTATION_TYPES bType, Logger log) {
-      int index = -1;
-      for (int i = 0; i < bTypes.length; i++) {
-        if (bTypes[i] == bType) {
-          index = i;
-          break;
-        }
-      }
-      if (index < 0) {
-        String error = "Internal error: Annotation does not contain " + bType;
-        log.reportTimeError(error);
-        throw new IllegalStateException(error);
-      }
-      return index;
-    }
+	/**
+	 * @param markers
+	 * @param otherQueries
+	 *            these queries can be null, but if not the appropriate annotations will be parsed
+	 * @return
+	 */
+	public MarkerBlastResult[] loadBlastAnnotationsFor(String[] markers, AnnotationParser[]... otherQueries) {
 
-    public ArrayBlastAnnotationList[] getAnnotationLists() {
-      return annotationLists;
-    }
+		if (Array.unique(markers).length != markers.length) {
+			String error = "Internal error, markers for blast annotation retrieval must be unique";
+			proj.getLog().reportTimeError(error);
+			throw new IllegalArgumentException(error);
+		}
 
-    public ArrayList<BlastAnnotation> getAnnotationsFor(BLAST_ANNOTATION_TYPES btype, Logger log) {
-      int testIndex = getAnnotationIndexFor(btype, log);
-      return annotationLists[testIndex];
-    }
+		MarkerBlastResult[] blastAnnotations = initResults(markers);
 
-    public BLAST_ANNOTATION_TYPES[] getbTypes() {
-      return bTypes;
-    }
+		Segment[] segs = getSegmentsForMarkers(markers);
 
-    public int getNumOffTarget(Logger log) {
-      return getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log).size();
-    }
+		AnnotationQuery annotationQuery = getAnnotationQuery(segs);
 
-    public boolean hasPerfectMatch(Logger log) {
-      return getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH, log).size() > 0;
-    }
+		boolean[] found = Array.booleanArray(markers.length, false);
 
-    @Override
-    public boolean isFound() {
-      return found;
-    }
+		int count = 0;
+		while (annotationQuery.hasNext()) {
+			count++;
+			if (count % proj.MAX_MARKERS_LOADED_PER_CYCLE.getValue() == 0) {
+				proj.getLog().reportTimeInfo("Loaded " + count + " annotations");
+			}
+			VariantContext vc = annotationQuery.next();
+			if (otherQueries != null) {
+				for (AnnotationParser[] annotationParsers : otherQueries) {
+					for (int i = 0; i < annotationParsers.length; i++) {
+						if (annotationParsers[i].shouldAnnotateWith(vc, proj.getLog())) {
+							annotationParsers[i].parseAnnotation(vc, proj.getLog());
+						}
+					}
+				}
+			}
+			String id = vc.getID();
+			int annoIndex = ext.indexOfStr(id, markers);
+			if (annoIndex < 0) {
+				proj.getLog().reportTimeWarning("Query has returned un-desired marker " + id + ", ignoring");
+			} else {
+				found[annoIndex] = true;
+				blastAnnotations[annoIndex].parseAnnotation(vc, proj.getLog());
+			}
+		}
+		if (Array.booleanArraySum(found) != markers.length) {
+			String error = markers.length + " markers were expected to be loaded, but only " + Array.booleanArraySum(found) + " markers were found";
+			for (int i = 0; i < found.length; i++) {
+				if (!found[i]) {
+					error += "\nMissing " + markers[i];
+				}
+			}
+			proj.getLog().reportTimeError(error);
+			proj.getLog().reportTimeError(Array.toStr(markers));
+			// throw new IllegalStateException(error);
+		} else {
+			proj.getLog().reportTimeInfo("Loaded " + markers.length + " marker annotations");
+		}
+		return blastAnnotations;
+	}
 
-    @Override
-    public void parseAnnotation(VariantContext vc, Logger log) {
-      for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {// each annotation type has
-                                                                        // a separate key in the
-                                                                        // file
-        String info = vc.getCommonInfo()
-                        .getAttributeAsString(BLAST_ANNOTATION_TYPES.values()[i].toString(),
-                                              BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue());
-        if (!info.equals(BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue())) {
-          List<String> groups =
-              Arrays.asList(info.replaceAll("\\[", "").replaceAll("\\]", "").split("\\s*,\\s*"));
-          for (String group : groups) {
-            String[] segCigarStrand = group.split("/");
-            annotationLists[i].add(new BlastAnnotation(TextCigarCodec.decode(segCigarStrand[0]),
-                                                       new Segment(segCigarStrand[1]),
-                                                       Strand.valueOf(segCigarStrand[2]),
-                                                       PROBE_TAG.valueOf(segCigarStrand[3]),
-                                                       Double.parseDouble(segCigarStrand[4])));
-          }
-        }
-      }
-    }
+	private MarkerBlastResult[] initResults(String[] markers) {
+		MarkerBlastResult[] blastAnnotations = new MarkerBlastResult[markers.length];
+		for (int i = 0; i < blastAnnotations.length; i++) {
+			blastAnnotations[i] = new MarkerBlastResult(markers[i], BLAST_ANNOTATION_TYPES.values(), 100);
+		}
+		return blastAnnotations;
+	}
 
-    @Override
-    public void setFound(boolean found) {
-      this.found = found;
-    }
+	private Segment[] getSegmentsForMarkers(final String[] markers) {
+		Segment[] segs = new Segment[markers.length];
+		for (int i = 0; i < segs.length; i++) {
+			int markerIndex = markerIndices.get(markers[i]);
+			Segment markerSeg = new Segment(chrs[markerIndex], pos[markerIndex], pos[markerIndex]);
+			segs[i] = markerSeg;
+		}
+		return segs;
+	}
 
-    @Override
-    public boolean shouldAnnotateWith(VariantContext vc, Logger log) {
-      return markerName.equals(vc.getID());
-    }
+	/**
+	 * @author lane0212 Probably could be its own class
+	 */
+	public static class MarkerBlastResult implements AnnotationParser {
+		private BLAST_ANNOTATION_TYPES[] bTypes;
+		private ArrayBlastAnnotationList[] annotationLists;
+		private String markerName;
+		private boolean found;
 
-  }
+		public MarkerBlastResult(String markerName, BLAST_ANNOTATION_TYPES[] bTypes, int initialCapacity) {
+			super();
+			this.markerName = markerName;
+			this.bTypes = bTypes;
+			this.annotationLists = new ArrayBlastAnnotationList[bTypes.length];
+			for (int i = 0; i < annotationLists.length; i++) {
+				annotationLists[i] = new ArrayBlastAnnotationList(initialCapacity);
+			}
+		}
 
-  private final byte[] chrs;
-  private final int[] pos;
+		public boolean hasPerfectMatch(Logger log) {
+			return getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH, log).size() > 0;
+		}
 
-  private final Hashtable<String, Integer> markerIndices;
+		public int getNumOffTarget(Logger log) {
+			return getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log).size();
+		}
 
-  /**
-   * @param proj
-   * @param annotationFilename the file created by a {@link BlastAnnotationWriter} run
-   * @param indexRequired , should always be set to true
-   */
-  public BlastAnnotationLoader(Project proj, String annotationFilename, boolean indexRequired) {
-    super(proj, null, BlastAnnotationTypes.getBaseAnnotations(), annotationFilename, indexRequired);
-    MarkerSet markerSet = proj.getMarkerSet();
-    chrs = markerSet.getChrs();
-    pos = markerSet.getPositions();
-    markerIndices = proj.getMarkerIndices();
-  }
+		public ArrayList<BlastAnnotation> getAnnotationsFor(BLAST_ANNOTATION_TYPES btype, Logger log) {
+			int testIndex = getAnnotationIndexFor(btype, log);
+			return annotationLists[testIndex];
+		}
 
-  private Segment[] getSegmentsForMarkers(final String[] markers) {
-    Segment[] segs = new Segment[markers.length];
-    for (int i = 0; i < segs.length; i++) {
-      int markerIndex = markerIndices.get(markers[i]);
-      Segment markerSeg = new Segment(chrs[markerIndex], pos[markerIndex], pos[markerIndex]);
-      segs[i] = markerSeg;
-    }
-    return segs;
-  }
+		public BLAST_ANNOTATION_TYPES[] getbTypes() {
+			return bTypes;
+		}
 
-  private MarkerBlastResult[] initResults(String[] markers) {
-    MarkerBlastResult[] blastAnnotations = new MarkerBlastResult[markers.length];
-    for (int i = 0; i < blastAnnotations.length; i++) {
-      blastAnnotations[i] = new MarkerBlastResult(markers[i], BLAST_ANNOTATION_TYPES.values(), 100);
-    }
-    return blastAnnotations;
-  }
+		public ArrayBlastAnnotationList[] getAnnotationLists() {
+			return annotationLists;
+		}
 
-  /**
-   * @param markers
-   * @param otherQueries these queries can be null, but if not the appropriate annotations will be
-   *        parsed
-   * @return
-   */
-  public MarkerBlastResult[] loadBlastAnnotationsFor(String[] markers,
-                                                     AnnotationParser[]... otherQueries) {
+		private int getAnnotationIndexFor(BLAST_ANNOTATION_TYPES bType, Logger log) {
+			int index = -1;
+			for (int i = 0; i < bTypes.length; i++) {
+				if (bTypes[i] == bType) {
+					index = i;
+					break;
+				}
+			}
+			if (index < 0) {
+				String error = "Internal error: Annotation does not contain " + bType;
+				log.reportTimeError(error);
+				throw new IllegalStateException(error);
+			}
+			return index;
+		}
 
-    if (Array.unique(markers).length != markers.length) {
-      String error = "Internal error, markers for blast annotation retrieval must be unique";
-      proj.getLog().reportTimeError(error);
-      throw new IllegalArgumentException(error);
-    }
+		@Override
+		public void parseAnnotation(VariantContext vc, Logger log) {
+			for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {// each annotation type has a separate key in the file
+				String info = vc.getCommonInfo().getAttributeAsString(BLAST_ANNOTATION_TYPES.values()[i].toString(), BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue());
+				if (!info.equals(BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue())) {
+					List<String> groups = Arrays.asList(info.replaceAll("\\[", "").replaceAll("\\]", "").split("\\s*,\\s*"));
+					for (String group : groups) {
+						String[] segCigarStrand = group.split("/");
+						annotationLists[i].add(new BlastAnnotation(TextCigarCodec.decode(segCigarStrand[0]), new Segment(segCigarStrand[1]), Strand.valueOf(segCigarStrand[2]), PROBE_TAG.valueOf(segCigarStrand[3]), Double.parseDouble(segCigarStrand[4])));
+					}
+				}
+			}
+		}
 
-    MarkerBlastResult[] blastAnnotations = initResults(markers);
+		@Override
+		public boolean shouldAnnotateWith(VariantContext vc, Logger log) {
+			return markerName.equals(vc.getID());
+		}
 
-    Segment[] segs = getSegmentsForMarkers(markers);
+		@Override
+		public void setFound(boolean found) {
+			this.found = found;
+		}
 
-    AnnotationQuery annotationQuery = getAnnotationQuery(segs);
+		@Override
+		public boolean isFound() {
+			return found;
+		}
 
-    boolean[] found = Array.booleanArray(markers.length, false);
-
-    int count = 0;
-    while (annotationQuery.hasNext()) {
-      count++;
-      if (count % proj.MAX_MARKERS_LOADED_PER_CYCLE.getValue() == 0) {
-        proj.getLog().reportTimeInfo("Loaded " + count + " annotations");
-      }
-      VariantContext vc = annotationQuery.next();
-      if (otherQueries != null) {
-        for (AnnotationParser[] annotationParsers : otherQueries) {
-          for (AnnotationParser annotationParser : annotationParsers) {
-            if (annotationParser.shouldAnnotateWith(vc, proj.getLog())) {
-              annotationParser.parseAnnotation(vc, proj.getLog());
-            }
-          }
-        }
-      }
-      String id = vc.getID();
-      int annoIndex = ext.indexOfStr(id, markers);
-      if (annoIndex < 0) {
-        proj.getLog()
-            .reportTimeWarning("Query has returned un-desired marker " + id + ", ignoring");
-      } else {
-        found[annoIndex] = true;
-        blastAnnotations[annoIndex].parseAnnotation(vc, proj.getLog());
-      }
-    }
-    if (Array.booleanArraySum(found) != markers.length) {
-      String error = markers.length + " markers were expected to be loaded, but only "
-                     + Array.booleanArraySum(found) + " markers were found";
-      for (int i = 0; i < found.length; i++) {
-        if (!found[i]) {
-          error += "\nMissing " + markers[i];
-        }
-      }
-      proj.getLog().reportTimeError(error);
-      proj.getLog().reportTimeError(Array.toStr(markers));
-      // throw new IllegalStateException(error);
-    } else {
-      proj.getLog().reportTimeInfo("Loaded " + markers.length + " marker annotations");
-    }
-    return blastAnnotations;
-  }
+	}
 }

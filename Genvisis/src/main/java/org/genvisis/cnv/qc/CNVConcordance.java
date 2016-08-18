@@ -217,278 +217,6 @@ public class CNVConcordance {
   public static final String COMMAND_CNV_CONCORDANCE_DESCRIPTION =
       "- compute the concordance between replicates in a cnv file";
 
-  private static ComparisionIndividualResults compareIndCNVs(CNVariant[] ind1CNVs,
-      CNVariant[] ind2CNVs) {
-    ComparisionIndividualResults currentComparison = new ComparisionIndividualResults(
-        ind1CNVs[0].getFamilyID() + "\t" + ind1CNVs[0].getIndividualID(),
-        ind2CNVs[0].getFamilyID() + "\t" + ind2CNVs[0].getIndividualID(), ind1CNVs.length,
-        ind2CNVs.length);
-    for (CNVariant ind1cnv : ind1CNVs) {
-      for (int j = 0; j < ind2CNVs.length; j++) {
-        if (ind1cnv.getCN() == ind2CNVs[j].getCN()) {
-          if (ind1cnv.overlaps(ind2CNVs[j])) {
-            double minOverLapScore =
-                Math.min(ind1cnv.overlapScore(ind2CNVs[j]), ind2CNVs[j].overlapScore(ind1cnv));
-            currentComparison.addOverlapScore(minOverLapScore);
-            currentComparison.addOverlap();
-          }
-          if ((ind1cnv.significantOverlap(ind2CNVs[j]))
-              && (ind2CNVs[j].significantOverlap(ind1cnv))) {
-            currentComparison.addSigOverlap();
-          }
-          if (ind1cnv.equals(ind2CNVs[j])) {
-            currentComparison.addPerfect();
-          }
-        }
-      }
-    }
-    return currentComparison;
-  }
-
-  public static void determineConcordance(Project proj, String cnvFile, String dir,
-      String duplicateFile, CNVFilter filter, int numCNVs, int CN, String output) {
-    if ((duplicateFile == null) || (duplicateFile.equals(""))) {
-      proj.getLog()
-          .reportError("Error - a file of duplicates must be provided to determine concordance");
-      return;
-    }
-    if (((cnvFile == null) || (cnvFile.equals(""))) && (dir == null)) {
-      proj.getLog().reportError("Error - a file of cnvs must be provided to determine concordance");
-      return;
-    }
-    filter.setCN(CN);
-    String[][] duplicates = loadDuplicates(proj.PROJECT_DIRECTORY.getValue() + duplicateFile);
-    if (dir != null) {
-      String[] cnvFiles = Files.list(proj.PROJECT_DIRECTORY.getValue() + dir, ".cnv", false);
-      cnvFiles = Files.toFullPaths(cnvFiles, proj.PROJECT_DIRECTORY.getValue() + dir);
-      proj.getLog().report(Array.toStr(cnvFiles));
-      try {
-        PrintWriter writer =
-            new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + dir + output));
-        int start = filter.getMinNumMarkers();
-        // int stop = filter.getMaxNumMarkers();
-        CNVariantHash[] cNVariantHash = new CNVariantHash[cnvFiles.length];
-        for (int i = 0; i < cnvFiles.length; i++) {
-          cNVariantHash[i] = CNVariantHash.load(cnvFiles[i], 1, false, proj.getLog());
-          for (int j = 0; j < REPORT.length; j++) {
-            writer.print(
-                ((i == 0) && (j == 0) ? "" : "\t") + REPORT[j] + "." + ext.rootOf(cnvFiles[i]));
-          }
-          writer.print("\tnumberOFProbes." + ext.rootOf(cnvFiles[i]));
-        }
-        writer.println();
-        for (int j = start; j <= 100; j++) {
-          filter.setMinNumMarkers(j);
-          for (int i = 0; i < cnvFiles.length; i++) {
-            long time = System.currentTimeMillis();
-            proj.getLog()
-                .report(ext.getTime() + " Info - beginning comparision for " + cnvFiles[i]);
-
-            CNVConcordance cnvConcordance =
-                new CNVConcordance(proj, duplicates, cNVariantHash[i], filter, numCNVs);
-            cnvConcordance.determineConcordance();
-            writer.print((i == 0 ? "" : "\t") + cnvConcordance.getReport() + "\t" + j);
-            proj.getLog().report(ext.getTime() + " Info - finished comparision for " + cnvFiles[i]
-                + " and took " + ext.getTimeElapsed(time));
-          }
-          writer.println();
-        }
-        writer.close();
-      } catch (Exception e) {
-        proj.getLog().reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue() + output);
-        proj.getLog().reportException(e);
-      }
-    } else {
-      CNVariantHash cNVariantHash =
-          CNVariantHash.load(proj.PROJECT_DIRECTORY.getValue() + cnvFile, 1, false, proj.getLog());
-      CNVConcordance cnvConcordance =
-          new CNVConcordance(proj, duplicates, cNVariantHash, filter, numCNVs);
-      cnvConcordance.determineConcordance();
-      try {
-        PrintWriter writer =
-            new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output));
-        writer.println(Array.toStr(REPORT));
-        writer.println(cnvConcordance.getReport());
-
-        writer.close();
-      } catch (Exception e) {
-        proj.getLog().reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue() + output);
-        proj.getLog().reportException(e);
-      }
-      proj.getLog().report(Array.toStr(REPORT));
-      proj.getLog().report(cnvConcordance.getReport());
-    }
-  }
-
-  private static CNVariant[] extractVariants(Hashtable<String, CNVariant[]> indCNVS) {
-    ArrayList<CNVariant> cnvs = new ArrayList<CNVariant>();
-    ArrayList<String> arr = Collections.list(indCNVS.keys());
-    for (int i = 0; i < arr.size(); i++) {
-      CNVariant[] chrCNVs = indCNVS.get(arr.get(i));
-      for (CNVariant chrCNV : chrCNVs) {
-        cnvs.add(chrCNV);
-      }
-    }
-    return cnvs.toArray(new CNVariant[cnvs.size()]);
-  }
-
-  public static CNVariant[] filterCNVs(CNVFilter cnvFilter, CNVariant[] cnvs, Project proj) {
-    ArrayList<CNVariant> filtered = new ArrayList<CNVariant>(cnvs.length);
-    for (CNVariant cnv : cnvs) {
-      CNVFilterPass filterPass = cnvFilter.getCNVFilterPass(cnv);
-      if (filterPass.passedFilter()) {
-        if ((filterPass.isCentromeric()) && (cnvFilter.isBreakupCentromeres())) {
-          filtered.add(cnvFilter.breakUpCentromere(filterPass, cnv)[0]);
-          filtered.add(cnvFilter.breakUpCentromere(filterPass, cnv)[1]);
-        } else {
-          filtered.add(cnv);
-        }
-      } else if (filterPass.isIndIsExcluded()) {
-        return null;
-      }
-    }
-    return filtered.toArray(new CNVariant[filtered.size()]);
-  }
-
-  public static void fromParameters(String filename, Logger log) {
-    Vector<String> params =
-        Files.parseControlFile(filename, "cnvConcordance", getParserParams(), log);
-    if (params != null) {
-      main(Array.toStringArray(params));
-    }
-  }
-
-  public static String[] getParserParams() {
-    String[] params = new String[15];
-    params[0] = "#To intialize the cnv concorder, provide the following arguments";
-    params[1] = "#the full path to a project properties file";
-    params[2] = "proj=";
-    params[3] = "#a path (relative to the project directory) to a cnv file ";
-    params[4] = "cnvFile=";
-    params[5] = "#a path (relative to the project directory) to a file of duplicates ";
-    params[6] = "duplicateFile=";
-    params[7] = "#a threshold for log R ratio Standard deviation, but this is not implemented yet";
-    params[8] = "#lrrSD=";
-    params[9] = "#a path (relative to the project directory) to a file for ouput";
-    params[10] = "#output=";
-    params[11] =
-        "#a path (relative to the project directory) containing multiple \".cnv\" files, all will be analyzed and the cnvFile= command will be overridden";
-    params[12] = "#dir=";
-
-    params[13] = "#maximum number of cnvs per individual";
-    params[14] = "#numCNVS=";
-
-    System.out.println(Array.toStr(CNVFilter.getDefaultCNVParams()));
-    params = Array.concatAll(params, new String[][] {CNVFilter.getDefaultCNVParams()});
-
-    return params;
-  }
-
-  private static String[][] loadDuplicates(String duplicateFile) {
-    String[] load = HashVec.loadFileToStringArray(duplicateFile, false, null, false);
-    String[][] duplicates = new String[load.length][];
-    for (int i = 0; i < load.length; i++) {
-      String[] tmp = load[i].split("\t");
-      ArrayList<String> compareDef = new ArrayList<String>();
-      for (int j = 0; j < tmp.length; j++) {
-        if (!tmp[j].equals("")) {
-          compareDef.add(tmp[j]);
-        }
-      }
-      duplicates[i] = (compareDef.toArray(new String[compareDef.size()]));
-    }
-    return duplicates;
-  }
-
-  public static void main(String[] args) {
-    int numArgs = args.length;
-    String filename = null;
-    String logfile = null;
-    String cnvFile = null;
-    String duplicateFile = null;
-    String dir = null;
-    int numCNVs = 2147483647;
-    boolean defaults = false;
-    String output = "cnv.concordance.txt";
-    int CN = -1;
-
-    String usage = "\njlDev.CNVConcordance requires 0-1 arguments\n";
-    usage = usage + "   (1) project filename  (i.e. proj=" + filename + " (no default))\n";
-    usage = usage + "   (2) cnvFile  (i.e.cnvFile=" + filename + " (no default))\n";
-    usage = usage + "   (3) duplicate file  (i.e. duplicateFile=" + filename + " (no default))\n";
-    usage = usage + "   OPTIONAL:";
-    usage = usage + "   (4) output file name  (i.e.output=" + output + " (default))\n";
-    usage = usage + "   (5) log file  (i.e. log=" + filename + " (no default))\n";
-    usage = usage
-        + "\t (6) For cnv filtering, use the default values (i.e. -default ( not the default))\n";
-    usage = usage + "\t (7) a directory containing multiple cnv files (i.e. dir= ( no default))\n";
-    usage = usage + "\t (8) maximum number of cnvs (i.e. numCNVS=" + numCNVs + " (default))\n";
-
-    usage = usage + "\t (9) further usage:\n" + Array.toStr(CNVFilter.getDefaultCNVParams());
-    Project proj;
-    if (ext.indexOfStr("proj=", args, true, false) >= 0) {
-      proj = new Project(ext.parseStringArg(args[ext.indexOfStr("proj=", args, true, false)], ""),
-          logfile, false);
-    } else {
-      proj = new Project(filename, logfile, false);
-    }
-    CNVFilter filter =
-        ProjectCNVFiltering.setupCNVFilterFromArgs(proj, args, null, defaults, proj.getLog());
-    if (ext.indexOfStr("-defaults", args) >= 0) {
-      ProjectCNVFiltering.setCNVDefaults(filter, proj);
-    }
-    for (String arg : args) {
-      if ((arg.equals("-h")) || (arg.equals("-help")) || (arg.equals("/h"))
-          || (arg.equals("/help"))) {
-        System.err.println(usage);
-        System.exit(1);
-      } else if (arg.startsWith("proj=")) {
-        filename = ext.parseStringArg(arg, "");
-        numArgs--;
-      } else if (arg.startsWith("cnvFile=")) {
-        cnvFile = ext.parseStringArg(arg, "");
-        numArgs--;
-      } else if (arg.startsWith("duplicateFile=")) {
-        duplicateFile = ext.parseStringArg(arg, "");
-        numArgs--;
-      } else if (arg.startsWith("output=")) {
-        output = ext.parseStringArg(arg, "");
-        numArgs--;
-      } else if (arg.startsWith("dir=")) {
-        dir = ext.parseStringArg(arg, "");
-        numArgs--;
-      } else if (arg.startsWith("numCNVS=")) {
-        numCNVs = ext.parseIntArg(arg);
-        numArgs--;
-      } else if (arg.startsWith("CN=")) {
-        CN = ext.parseIntArg(arg);
-        numArgs--;
-      } else if (arg.startsWith("log=")) {
-        logfile = ext.parseStringArg(arg, "");
-        numArgs--;
-      } else if (arg.startsWith("-default")) {
-        defaults = true;
-        numArgs--;
-      } else if (filter.isCommandLineFilterInEffect(arg)) {
-        numArgs--;
-      } else {
-        System.err.println("Error - invalid argument: " + arg);
-      }
-    }
-    if (numArgs != 0) {
-      System.err.println(usage);
-      System.exit(1);
-    }
-    try {
-      proj.setLog(
-          new Logger(proj.PROJECT_DIRECTORY.getValue() + (dir == null ? "" : dir) + "concordLog"));
-
-      determineConcordance(proj, cnvFile, dir, duplicateFile, filter, numCNVs, CN, output);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
   private final Project proj;
 
   private final String[][] duplicates;
@@ -516,6 +244,21 @@ public class CNVConcordance {
     this.filter = filter;
     fail = validDuplicateFormat();
     this.numCNVs = numCNVs;
+  }
+
+  public void determineConcordance() {
+    comparisionResults = compareAll();
+    if (!fail) {
+      ComparisionGlobalResults cgr = new ComparisionGlobalResults(comparisionResults);
+      cgr.populateMetrics();
+      report = cgr.getReport();
+    } else {
+      proj.getLog().reportError("Error - comparison has failed");
+    }
+  }
+
+  public String getReport() {
+    return report;
   }
 
   private ComparisionIndividualResults[] compareAll() {
@@ -583,21 +326,6 @@ public class CNVConcordance {
     return compareIndCNVs(ind1CNVs, ind2CNVs);
   }
 
-  public void determineConcordance() {
-    comparisionResults = compareAll();
-    if (!fail) {
-      ComparisionGlobalResults cgr = new ComparisionGlobalResults(comparisionResults);
-      cgr.populateMetrics();
-      report = cgr.getReport();
-    } else {
-      proj.getLog().reportError("Error - comparison has failed");
-    }
-  }
-
-  public String getReport() {
-    return report;
-  }
-
   private boolean validDuplicateFormat() {
     boolean valid = true;
     if (duplicates == null) {
@@ -634,5 +362,277 @@ public class CNVConcordance {
       }
     }
     return !valid;
+  }
+
+  public static void determineConcordance(Project proj, String cnvFile, String dir,
+      String duplicateFile, CNVFilter filter, int numCNVs, int CN, String output) {
+    if ((duplicateFile == null) || (duplicateFile.equals(""))) {
+      proj.getLog()
+          .reportError("Error - a file of duplicates must be provided to determine concordance");
+      return;
+    }
+    if (((cnvFile == null) || (cnvFile.equals(""))) && (dir == null)) {
+      proj.getLog().reportError("Error - a file of cnvs must be provided to determine concordance");
+      return;
+    }
+    filter.setCN(CN);
+    String[][] duplicates = loadDuplicates(proj.PROJECT_DIRECTORY.getValue() + duplicateFile);
+    if (dir != null) {
+      String[] cnvFiles = Files.list(proj.PROJECT_DIRECTORY.getValue() + dir, ".cnv", false);
+      cnvFiles = Files.toFullPaths(cnvFiles, proj.PROJECT_DIRECTORY.getValue() + dir);
+      proj.getLog().report(Array.toStr(cnvFiles));
+      try {
+        PrintWriter writer =
+            new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + dir + output));
+        int start = filter.getMinNumMarkers();
+        // int stop = filter.getMaxNumMarkers();
+        CNVariantHash[] cNVariantHash = new CNVariantHash[cnvFiles.length];
+        for (int i = 0; i < cnvFiles.length; i++) {
+          cNVariantHash[i] = CNVariantHash.load(cnvFiles[i], 1, false, proj.getLog());
+          for (int j = 0; j < REPORT.length; j++) {
+            writer.print(
+                ((i == 0) && (j == 0) ? "" : "\t") + REPORT[j] + "." + ext.rootOf(cnvFiles[i]));
+          }
+          writer.print("\tnumberOFProbes." + ext.rootOf(cnvFiles[i]));
+        }
+        writer.println();
+        for (int j = start; j <= 100; j++) {
+          filter.setMinNumMarkers(j);
+          for (int i = 0; i < cnvFiles.length; i++) {
+            long time = System.currentTimeMillis();
+            proj.getLog()
+                .report(ext.getTime() + " Info - beginning comparision for " + cnvFiles[i]);
+  
+            CNVConcordance cnvConcordance =
+                new CNVConcordance(proj, duplicates, cNVariantHash[i], filter, numCNVs);
+            cnvConcordance.determineConcordance();
+            writer.print((i == 0 ? "" : "\t") + cnvConcordance.getReport() + "\t" + j);
+            proj.getLog().report(ext.getTime() + " Info - finished comparision for " + cnvFiles[i]
+                + " and took " + ext.getTimeElapsed(time));
+          }
+          writer.println();
+        }
+        writer.close();
+      } catch (Exception e) {
+        proj.getLog().reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue() + output);
+        proj.getLog().reportException(e);
+      }
+    } else {
+      CNVariantHash cNVariantHash =
+          CNVariantHash.load(proj.PROJECT_DIRECTORY.getValue() + cnvFile, 1, false, proj.getLog());
+      CNVConcordance cnvConcordance =
+          new CNVConcordance(proj, duplicates, cNVariantHash, filter, numCNVs);
+      cnvConcordance.determineConcordance();
+      try {
+        PrintWriter writer =
+            new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output));
+        writer.println(Array.toStr(REPORT));
+        writer.println(cnvConcordance.getReport());
+  
+        writer.close();
+      } catch (Exception e) {
+        proj.getLog().reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue() + output);
+        proj.getLog().reportException(e);
+      }
+      proj.getLog().report(Array.toStr(REPORT));
+      proj.getLog().report(cnvConcordance.getReport());
+    }
+  }
+
+  public static CNVariant[] filterCNVs(CNVFilter cnvFilter, CNVariant[] cnvs, Project proj) {
+    ArrayList<CNVariant> filtered = new ArrayList<CNVariant>(cnvs.length);
+    for (CNVariant cnv : cnvs) {
+      CNVFilterPass filterPass = cnvFilter.getCNVFilterPass(cnv);
+      if (filterPass.passedFilter()) {
+        if ((filterPass.isCentromeric()) && (cnvFilter.isBreakupCentromeres())) {
+          filtered.add(cnvFilter.breakUpCentromere(filterPass, cnv)[0]);
+          filtered.add(cnvFilter.breakUpCentromere(filterPass, cnv)[1]);
+        } else {
+          filtered.add(cnv);
+        }
+      } else if (filterPass.isIndIsExcluded()) {
+        return null;
+      }
+    }
+    return filtered.toArray(new CNVariant[filtered.size()]);
+  }
+
+  public static void fromParameters(String filename, Logger log) {
+    Vector<String> params =
+        Files.parseControlFile(filename, "cnvConcordance", getParserParams(), log);
+    if (params != null) {
+      main(Array.toStringArray(params));
+    }
+  }
+
+  public static String[] getParserParams() {
+    String[] params = new String[15];
+    params[0] = "#To intialize the cnv concorder, provide the following arguments";
+    params[1] = "#the full path to a project properties file";
+    params[2] = "proj=";
+    params[3] = "#a path (relative to the project directory) to a cnv file ";
+    params[4] = "cnvFile=";
+    params[5] = "#a path (relative to the project directory) to a file of duplicates ";
+    params[6] = "duplicateFile=";
+    params[7] = "#a threshold for log R ratio Standard deviation, but this is not implemented yet";
+    params[8] = "#lrrSD=";
+    params[9] = "#a path (relative to the project directory) to a file for ouput";
+    params[10] = "#output=";
+    params[11] =
+        "#a path (relative to the project directory) containing multiple \".cnv\" files, all will be analyzed and the cnvFile= command will be overridden";
+    params[12] = "#dir=";
+  
+    params[13] = "#maximum number of cnvs per individual";
+    params[14] = "#numCNVS=";
+  
+    System.out.println(Array.toStr(CNVFilter.getDefaultCNVParams()));
+    params = Array.concatAll(params, new String[][] {CNVFilter.getDefaultCNVParams()});
+  
+    return params;
+  }
+
+  private static ComparisionIndividualResults compareIndCNVs(CNVariant[] ind1CNVs,
+      CNVariant[] ind2CNVs) {
+    ComparisionIndividualResults currentComparison = new ComparisionIndividualResults(
+        ind1CNVs[0].getFamilyID() + "\t" + ind1CNVs[0].getIndividualID(),
+        ind2CNVs[0].getFamilyID() + "\t" + ind2CNVs[0].getIndividualID(), ind1CNVs.length,
+        ind2CNVs.length);
+    for (CNVariant ind1cnv : ind1CNVs) {
+      for (int j = 0; j < ind2CNVs.length; j++) {
+        if (ind1cnv.getCN() == ind2CNVs[j].getCN()) {
+          if (ind1cnv.overlaps(ind2CNVs[j])) {
+            double minOverLapScore =
+                Math.min(ind1cnv.overlapScore(ind2CNVs[j]), ind2CNVs[j].overlapScore(ind1cnv));
+            currentComparison.addOverlapScore(minOverLapScore);
+            currentComparison.addOverlap();
+          }
+          if ((ind1cnv.significantOverlap(ind2CNVs[j]))
+              && (ind2CNVs[j].significantOverlap(ind1cnv))) {
+            currentComparison.addSigOverlap();
+          }
+          if (ind1cnv.equals(ind2CNVs[j])) {
+            currentComparison.addPerfect();
+          }
+        }
+      }
+    }
+    return currentComparison;
+  }
+
+  private static CNVariant[] extractVariants(Hashtable<String, CNVariant[]> indCNVS) {
+    ArrayList<CNVariant> cnvs = new ArrayList<CNVariant>();
+    ArrayList<String> arr = Collections.list(indCNVS.keys());
+    for (int i = 0; i < arr.size(); i++) {
+      CNVariant[] chrCNVs = indCNVS.get(arr.get(i));
+      for (CNVariant chrCNV : chrCNVs) {
+        cnvs.add(chrCNV);
+      }
+    }
+    return cnvs.toArray(new CNVariant[cnvs.size()]);
+  }
+
+  private static String[][] loadDuplicates(String duplicateFile) {
+    String[] load = HashVec.loadFileToStringArray(duplicateFile, false, null, false);
+    String[][] duplicates = new String[load.length][];
+    for (int i = 0; i < load.length; i++) {
+      String[] tmp = load[i].split("\t");
+      ArrayList<String> compareDef = new ArrayList<String>();
+      for (int j = 0; j < tmp.length; j++) {
+        if (!tmp[j].equals("")) {
+          compareDef.add(tmp[j]);
+        }
+      }
+      duplicates[i] = (compareDef.toArray(new String[compareDef.size()]));
+    }
+    return duplicates;
+  }
+
+  public static void main(String[] args) {
+    int numArgs = args.length;
+    String filename = null;
+    String logfile = null;
+    String cnvFile = null;
+    String duplicateFile = null;
+    String dir = null;
+    int numCNVs = 2147483647;
+    boolean defaults = false;
+    String output = "cnv.concordance.txt";
+    int CN = -1;
+  
+    String usage = "\njlDev.CNVConcordance requires 0-1 arguments\n";
+    usage = usage + "   (1) project filename  (i.e. proj=" + filename + " (no default))\n";
+    usage = usage + "   (2) cnvFile  (i.e.cnvFile=" + filename + " (no default))\n";
+    usage = usage + "   (3) duplicate file  (i.e. duplicateFile=" + filename + " (no default))\n";
+    usage = usage + "   OPTIONAL:";
+    usage = usage + "   (4) output file name  (i.e.output=" + output + " (default))\n";
+    usage = usage + "   (5) log file  (i.e. log=" + filename + " (no default))\n";
+    usage = usage
+        + "\t (6) For cnv filtering, use the default values (i.e. -default ( not the default))\n";
+    usage = usage + "\t (7) a directory containing multiple cnv files (i.e. dir= ( no default))\n";
+    usage = usage + "\t (8) maximum number of cnvs (i.e. numCNVS=" + numCNVs + " (default))\n";
+  
+    usage = usage + "\t (9) further usage:\n" + Array.toStr(CNVFilter.getDefaultCNVParams());
+    Project proj;
+    if (ext.indexOfStr("proj=", args, true, false) >= 0) {
+      proj = new Project(ext.parseStringArg(args[ext.indexOfStr("proj=", args, true, false)], ""),
+          logfile, false);
+    } else {
+      proj = new Project(filename, logfile, false);
+    }
+    CNVFilter filter =
+        ProjectCNVFiltering.setupCNVFilterFromArgs(proj, args, null, defaults, proj.getLog());
+    if (ext.indexOfStr("-defaults", args) >= 0) {
+      ProjectCNVFiltering.setCNVDefaults(filter, proj);
+    }
+    for (String arg : args) {
+      if ((arg.equals("-h")) || (arg.equals("-help")) || (arg.equals("/h"))
+          || (arg.equals("/help"))) {
+        System.err.println(usage);
+        System.exit(1);
+      } else if (arg.startsWith("proj=")) {
+        filename = ext.parseStringArg(arg, "");
+        numArgs--;
+      } else if (arg.startsWith("cnvFile=")) {
+        cnvFile = ext.parseStringArg(arg, "");
+        numArgs--;
+      } else if (arg.startsWith("duplicateFile=")) {
+        duplicateFile = ext.parseStringArg(arg, "");
+        numArgs--;
+      } else if (arg.startsWith("output=")) {
+        output = ext.parseStringArg(arg, "");
+        numArgs--;
+      } else if (arg.startsWith("dir=")) {
+        dir = ext.parseStringArg(arg, "");
+        numArgs--;
+      } else if (arg.startsWith("numCNVS=")) {
+        numCNVs = ext.parseIntArg(arg);
+        numArgs--;
+      } else if (arg.startsWith("CN=")) {
+        CN = ext.parseIntArg(arg);
+        numArgs--;
+      } else if (arg.startsWith("log=")) {
+        logfile = ext.parseStringArg(arg, "");
+        numArgs--;
+      } else if (arg.startsWith("-default")) {
+        defaults = true;
+        numArgs--;
+      } else if (filter.isCommandLineFilterInEffect(arg)) {
+        numArgs--;
+      } else {
+        System.err.println("Error - invalid argument: " + arg);
+      }
+    }
+    if (numArgs != 0) {
+      System.err.println(usage);
+      System.exit(1);
+    }
+    try {
+      proj.setLog(
+          new Logger(proj.PROJECT_DIRECTORY.getValue() + (dir == null ? "" : dir) + "concordLog"));
+  
+      determineConcordance(proj, cnvFile, dir, duplicateFile, filter, numCNVs, CN, output);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 }

@@ -20,279 +20,263 @@ import org.genvisis.link.Heritability;
 import org.genvisis.stats.ICC;
 
 class EvaluationResult implements Serializable {
-  public static class EvalHeritabilityResult {
-    private final String ped;
-    private final String db;
-    private final String crf;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private String title;
+	private ORDER_TYPE orType;
+	private ITERATION_TYPE itType;
+	private MODEL_BUILDER_TYPE bType;
+	private double[] estimateData;
+	private double rSquared;
+	private ArrayList<ICC> iccs;
+	private ArrayList<String> iccTitles;
+	private ArrayList<double[]> pearsonCorrels;
+	private ArrayList<double[]> spearmanCorrel;
+	private ArrayList<String> correlTitles;
 
-    public EvalHeritabilityResult(String ped, String db, String crf) {
-      super();
-      this.ped = ped;
-      this.db = db;
-      this.crf = crf;
-    }
+	private ArrayList<Integer> numIndsIcc;
+	private ArrayList<Integer> numIndsCorrel;
+	private ArrayList<Integer> numIndsPearsonCorrel;
 
-    public String getCrf() {
-      return crf;
-    }
+	public EvaluationResult(String title, double[] estimateData, double rSquared) {
+		super();
+		this.title = title;
+		this.rSquared = rSquared;
+		this.estimateData = estimateData;
+		this.iccs = new ArrayList<ICC>();
+		this.iccTitles = new ArrayList<String>();
+		this.pearsonCorrels = new ArrayList<double[]>();
+		this.spearmanCorrel = new ArrayList<double[]>();
+		this.correlTitles = new ArrayList<String>();
+		this.numIndsIcc = new ArrayList<Integer>();
+		this.numIndsPearsonCorrel = new ArrayList<Integer>();
+		this.numIndsCorrel = new ArrayList<Integer>();
+	}
 
-    public String getDb() {
-      return db;
-    }
+	public double getrSquared() {
+		return rSquared;
+	}
 
-    public String getPed() {
-      return ped;
-    }
-  }
+	public void setOrType(ORDER_TYPE orType) {
+		this.orType = orType;
+	}
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+	public void setbType(MODEL_BUILDER_TYPE bType) {
+		this.bType = bType;
+	}
 
-  private static void generateHeritabilityDb(Project proj, EvaluationResult[] results,
-                                             double[] otherData, String otherDataTitle,
-                                             boolean[] samplesToEvaluate, String output, String ped,
-                                             String crf, Logger log) {
-    log.reportTimeWarning("Assuming stored estimate results are in project order to create heritability db "
-                          + output);
-    log.reportTimeWarning("Assuming ped file has DNA listed in the last column of  " + output);
-    if (samplesToEvaluate != null) {
-      log.reportTimeInfo("Using " + Array.booleanArraySum(samplesToEvaluate)
-                         + " samples that are not excluded");
-    }
-    try {
-      Hashtable<String, String> pedHash =
-          HashVec.loadFileToHashString(ped, 6, new int[] {0, 1, 2, 3, 4, 5}, "\t", false);
-      String[] samples = proj.getSamples();
-      String[] titles = new String[results.length];
-      PrintWriter writer = new PrintWriter(new FileWriter(output));
-      writer.print("IID\tFID");
-      if (otherData == null) {
-        for (int i = 0; i < results.length; i++) {
-          writer.print("\t" + i);
-          titles[i] = i + "";
-        }
-      } else {
-        titles = new String[1];
-        titles[0] = otherDataTitle;
-        writer.print("\t" + otherDataTitle);
-      }
-      writer.println();
+	public void setItType(ITERATION_TYPE itType) {
+		this.itType = itType;
+	}
 
-      ArrayList<String> sampsNotSeen = new ArrayList<String>();
-      ArrayList<String> sampsHave = new ArrayList<String>();
+	public ArrayList<Integer> getNumIndsPearsonCorrel() {
+		return numIndsPearsonCorrel;
+	}
 
-      for (int i = 0; i < samples.length; i++) {
-        if (samplesToEvaluate == null || samplesToEvaluate[i]) {
-          if (pedHash.containsKey(samples[i])) {
-            sampsHave.add(pedHash.get(samples[i]) + "\t" + samples[i]);
-            String[] fidIid = Array.subArray(pedHash.get(samples[i]).split("\t"), 0, 2);
-            writer.print(fidIid[1] + "\t" + fidIid[0]);
-            if (otherData == null) {
-              for (EvaluationResult result : results) {
-                writer.print("\t" + result.getEstimateData()[i]);
-              }
-            } else {
-              writer.print("\t" + otherData[i]);
-            }
-            writer.println();
+	public String[] getHeader() {
+		ArrayList<String> tmp = new ArrayList<String>();
+		tmp.add("Evaluated");
+		tmp.add("IterationType");
+		tmp.add("OrderType");
+		tmp.add("Model Building type");
 
-          } else {
-            sampsNotSeen.add(samples[i]);
-          }
-        }
-      }
+		tmp.add("Rsquare_correction");
+		for (int i = 0; i < iccTitles.size(); i++) {
+			tmp.add("ICC_" + iccTitles.get(i));
+		}
 
-      writer.close();
-      if (sampsNotSeen.size() > 0) {
-        String missing = ext.addToRoot(ped, ".missing");
-        String have = ext.addToRoot(ped, ".have");
-        log.reportTimeWarning(sampsNotSeen.size()
-                              + " samples were not found in the ped file , writing to " + missing);
-        Files.writeList(sampsNotSeen.toArray(new String[sampsNotSeen.size()]), missing);
-        Files.writeList(sampsHave.toArray(new String[sampsHave.size()]), have);
+		for (int i = 0; i < correlTitles.size(); i++) {
+			tmp.add("PEARSON_CORREL_" + correlTitles.get(i));
+			tmp.add("PEARSON_P_" + correlTitles.get(i));
+			tmp.add("SPEARMAN_CORREL_" + correlTitles.get(i));
+			tmp.add("SPEARMAN_P_" + correlTitles.get(i));
+		}
+		return tmp.toArray(new String[tmp.size()]);
+	}
 
-      }
-      Heritability.developCrf(ped, output, crf, ext.rootOf(output), titles, log);
-    } catch (Exception e) {
-      log.reportError("Error writing to " + output);
-      log.reportException(e);
-    }
-  }
+	public double[] getEstimateData() {
+		return estimateData;
+	}
 
-  public static EvalHeritabilityResult prepareHeritability(Project proj, String ped,
-                                                           boolean[] samplesToEvaluate,
-                                                           String serFile, double[] otherData,
-                                                           String otherDataTitle) {
-    Logger log = proj.getLog();
-    EvaluationResult[] evaluationResults = readSerial(serFile, log);
-    log.reportTimeInfo("Loaded " + evaluationResults.length + " evaluation results");
-    String db = ext.rootOf(serFile, false) + ".heritability.dat";
-    String crf = ext.rootOf(serFile, false) + ".heritability.crf";
-    // System.out.println(db);
-    // System.out.println(crf);
-    // System.out.println(ext.rootOf(crf, false)+"_summary.xln");
-    // System.exit(1);
-    generateHeritabilityDb(proj, evaluationResults, otherData, otherDataTitle, samplesToEvaluate,
-                           db, ped, crf, log);
-    Heritability.fromParameters(crf, true, log);
-    EvalHeritabilityResult evalHeritabilityResult = new EvalHeritabilityResult(ped, db, crf);
-    return evalHeritabilityResult;
-  }
+	public void shrink() {
+		for (int i = 0; i < iccs.size(); i++) {
+			iccs.get(i).shrink();
+		}
+	}
 
-  public static EvaluationResult[] readSerial(String fileName, Logger log) {
-    return (EvaluationResult[]) SerializedFiles.readSerial(fileName, false, log, false, true);
-  }
+	public String[] getData() {
+		ArrayList<String> tmp = new ArrayList<String>();
+		tmp.add(title);
+		tmp.add(itType == null ? "NA" : itType.toString());
+		tmp.add(orType == null ? "NA" : orType.toString());
+		tmp.add(bType == null ? "NA" : bType.toString());
 
-  public static void serialize(EvaluationResult[] results, String fileName) {
-    SerializedFiles.writeSerial(results, fileName, true);
-  }
+		tmp.add(rSquared + "");
+		for (int i = 0; i < iccs.size(); i++) {
+			tmp.add(iccs.get(i).getICC() + "");
+		}
+		for (int i = 0; i < pearsonCorrels.size(); i++) {
+			for (int j = 0; j < pearsonCorrels.get(i).length; j++) {
+				tmp.add(pearsonCorrels.get(i)[j] + "");
+			}
+			for (int j = 0; j < spearmanCorrel.get(i).length; j++) {
+				tmp.add(spearmanCorrel.get(i)[j] + "");
+			}
+		}
+		return tmp.toArray(new String[tmp.size()]);
+	}
 
-  private final String title;
-  private ORDER_TYPE orType;
-  private ITERATION_TYPE itType;
-  private MODEL_BUILDER_TYPE bType;
-  private final double[] estimateData;
-  private final double rSquared;
+	public String getTitle() {
+		return title;
+	}
 
-  private final ArrayList<ICC> iccs;
-  private final ArrayList<String> iccTitles;
-  private final ArrayList<double[]> pearsonCorrels;
+	public ArrayList<ICC> getIccs() {
+		return iccs;
+	}
 
-  private final ArrayList<double[]> spearmanCorrel;
+	public ArrayList<String> getIccTitles() {
+		return iccTitles;
+	}
 
-  private final ArrayList<String> correlTitles;
+	public ArrayList<double[]> getPearsonCorrels() {
+		return pearsonCorrels;
+	}
 
-  private final ArrayList<Integer> numIndsIcc;
+	public ArrayList<double[]> getSpearmanCorrel() {
+		return spearmanCorrel;
+	}
 
-  private final ArrayList<Integer> numIndsCorrel;
+	public ArrayList<String> getCorrelTitles() {
+		return correlTitles;
+	}
 
-  private final ArrayList<Integer> numIndsPearsonCorrel;
+	public ArrayList<Integer> getNumIndsIcc() {
+		return numIndsIcc;
+	}
 
-  public EvaluationResult(String title, double[] estimateData, double rSquared) {
-    super();
-    this.title = title;
-    this.rSquared = rSquared;
-    this.estimateData = estimateData;
-    iccs = new ArrayList<ICC>();
-    iccTitles = new ArrayList<String>();
-    pearsonCorrels = new ArrayList<double[]>();
-    spearmanCorrel = new ArrayList<double[]>();
-    correlTitles = new ArrayList<String>();
-    numIndsIcc = new ArrayList<Integer>();
-    numIndsPearsonCorrel = new ArrayList<Integer>();
-    numIndsCorrel = new ArrayList<Integer>();
-  }
+	public ArrayList<Integer> getNumIndsCorrel() {
+		return numIndsCorrel;
+	}
 
-  public ArrayList<String> getCorrelTitles() {
-    return correlTitles;
-  }
+	public static void serialize(EvaluationResult[] results, String fileName) {
+		SerializedFiles.writeSerial(results, fileName, true);
+	}
 
-  public String[] getData() {
-    ArrayList<String> tmp = new ArrayList<String>();
-    tmp.add(title);
-    tmp.add(itType == null ? "NA" : itType.toString());
-    tmp.add(orType == null ? "NA" : orType.toString());
-    tmp.add(bType == null ? "NA" : bType.toString());
+	public static EvaluationResult[] readSerial(String fileName, Logger log) {
+		return (EvaluationResult[]) SerializedFiles.readSerial(fileName, false, log, false, true);
+	}
 
-    tmp.add(rSquared + "");
-    for (int i = 0; i < iccs.size(); i++) {
-      tmp.add(iccs.get(i).getICC() + "");
-    }
-    for (int i = 0; i < pearsonCorrels.size(); i++) {
-      for (int j = 0; j < pearsonCorrels.get(i).length; j++) {
-        tmp.add(pearsonCorrels.get(i)[j] + "");
-      }
-      for (int j = 0; j < spearmanCorrel.get(i).length; j++) {
-        tmp.add(spearmanCorrel.get(i)[j] + "");
-      }
-    }
-    return tmp.toArray(new String[tmp.size()]);
-  }
+	public static EvalHeritabilityResult prepareHeritability(Project proj, String ped, boolean[] samplesToEvaluate, String serFile,double[] otherData, String otherDataTitle) {
+		Logger log = proj.getLog();
+		EvaluationResult[] evaluationResults = readSerial(serFile, log);
+		log.reportTimeInfo("Loaded " + evaluationResults.length + " evaluation results");
+		String db = ext.rootOf(serFile, false) + ".heritability.dat";
+		String crf = ext.rootOf(serFile, false) + ".heritability.crf";
+		// System.out.println(db);
+		// System.out.println(crf);
+		// System.out.println(ext.rootOf(crf, false)+"_summary.xln");
+		// System.exit(1);
+		generateHeritabilityDb(proj, evaluationResults, otherData, otherDataTitle, samplesToEvaluate, db, ped, crf, log);
+		Heritability.fromParameters(crf, true, log);
+		EvalHeritabilityResult evalHeritabilityResult = new EvalHeritabilityResult(ped, db, crf);
+		return evalHeritabilityResult;
+	}
 
-  public double[] getEstimateData() {
-    return estimateData;
-  }
+	public static class EvalHeritabilityResult {
+		private String ped;
+		private String db;
+		private String crf;
 
-  public String[] getHeader() {
-    ArrayList<String> tmp = new ArrayList<String>();
-    tmp.add("Evaluated");
-    tmp.add("IterationType");
-    tmp.add("OrderType");
-    tmp.add("Model Building type");
+		public EvalHeritabilityResult(String ped, String db, String crf) {
+			super();
+			this.ped = ped;
+			this.db = db;
+			this.crf = crf;
+		}
 
-    tmp.add("Rsquare_correction");
-    for (int i = 0; i < iccTitles.size(); i++) {
-      tmp.add("ICC_" + iccTitles.get(i));
-    }
+		public String getPed() {
+			return ped;
+		}
 
-    for (int i = 0; i < correlTitles.size(); i++) {
-      tmp.add("PEARSON_CORREL_" + correlTitles.get(i));
-      tmp.add("PEARSON_P_" + correlTitles.get(i));
-      tmp.add("SPEARMAN_CORREL_" + correlTitles.get(i));
-      tmp.add("SPEARMAN_P_" + correlTitles.get(i));
-    }
-    return tmp.toArray(new String[tmp.size()]);
-  }
+		public String getDb() {
+			return db;
+		}
 
-  public ArrayList<ICC> getIccs() {
-    return iccs;
-  }
+		public String getCrf() {
+			return crf;
+		}
+	}
 
-  public ArrayList<String> getIccTitles() {
-    return iccTitles;
-  }
+	private static void generateHeritabilityDb(Project proj, EvaluationResult[] results, double[] otherData, String otherDataTitle, boolean[] samplesToEvaluate, String output, String ped, String crf, Logger log) {
+		log.reportTimeWarning("Assuming stored estimate results are in project order to create heritability db " + output);
+		log.reportTimeWarning("Assuming ped file has DNA listed in the last column of  " + output);
+		if (samplesToEvaluate != null) {
+			log.reportTimeInfo("Using " + Array.booleanArraySum(samplesToEvaluate) + " samples that are not excluded");
+		}
+		try {
+			Hashtable<String, String> pedHash = HashVec.loadFileToHashString(ped, 6, new int[] { 0, 1, 2, 3, 4, 5 }, "\t", false);
+			String[] samples = proj.getSamples();
+			String[] titles = new String[results.length];
+			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			writer.print("IID\tFID");
+			if (otherData == null) {
+				for (int i = 0; i < results.length; i++) {
+					writer.print("\t" + i);
+					titles[i] = i + "";
+				}
+			} else {
+				titles = new String[1];
+				titles[0]=otherDataTitle;
+				writer.print("\t" + otherDataTitle);
+			}
+			writer.println();
 
-  public ArrayList<Integer> getNumIndsCorrel() {
-    return numIndsCorrel;
-  }
+			ArrayList<String> sampsNotSeen = new ArrayList<String>();
+			ArrayList<String> sampsHave = new ArrayList<String>();
 
-  public ArrayList<Integer> getNumIndsIcc() {
-    return numIndsIcc;
-  }
+			for (int i = 0; i < samples.length; i++) {
+				if (samplesToEvaluate == null || samplesToEvaluate[i]) {
+					if (pedHash.containsKey(samples[i])) {
+						sampsHave.add(pedHash.get(samples[i]) + "\t" + samples[i]);
+						String[] fidIid = Array.subArray(pedHash.get(samples[i]).split("\t"), 0, 2);
+						writer.print(fidIid[1] + "\t" + fidIid[0]);
+						if (otherData == null) {
+							for (int j = 0; j < results.length; j++) {
+								writer.print("\t" + results[j].getEstimateData()[i]);
+							}
+						} else {
+							writer.print("\t" + otherData[i]);
+						}
+						writer.println();
 
-  public ArrayList<Integer> getNumIndsPearsonCorrel() {
-    return numIndsPearsonCorrel;
-  }
+					} else {
+						sampsNotSeen.add(samples[i]);
+					}
+				}
+			}
 
-  public ArrayList<double[]> getPearsonCorrels() {
-    return pearsonCorrels;
-  }
+			writer.close();
+			if (sampsNotSeen.size() > 0) {
+				String missing = ext.addToRoot(ped, ".missing");
+				String have = ext.addToRoot(ped, ".have");
+				log.reportTimeWarning(
+						sampsNotSeen.size() + " samples were not found in the ped file , writing to " + missing);
+				Files.writeList(sampsNotSeen.toArray(new String[sampsNotSeen.size()]), missing);
+				Files.writeList(sampsHave.toArray(new String[sampsHave.size()]), have);
 
-  public double getrSquared() {
-    return rSquared;
-  }
+			}
+			Heritability.developCrf(ped, output, crf, ext.rootOf(output), titles, log);
+		} catch (Exception e) {
+			log.reportError("Error writing to " + output);
+			log.reportException(e);
+		}
+	}
 
-  public ArrayList<double[]> getSpearmanCorrel() {
-    return spearmanCorrel;
-  }
-
-  public String getTitle() {
-    return title;
-  }
-
-  public void setbType(MODEL_BUILDER_TYPE bType) {
-    this.bType = bType;
-  }
-
-  public void setItType(ITERATION_TYPE itType) {
-    this.itType = itType;
-  }
-
-  public void setOrType(ORDER_TYPE orType) {
-    this.orType = orType;
-  }
-
-  public void shrink() {
-    for (int i = 0; i < iccs.size(); i++) {
-      iccs.get(i).shrink();
-    }
-  }
-
-  // @Override
-  // public String[] getIndexKeys() {
-  // return new String[] { title };
-  // }
+	// @Override
+	// public String[] getIndexKeys() {
+	// return new String[] { title };
+	// }
 
 }

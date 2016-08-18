@@ -18,88 +18,88 @@ import org.genvisis.common.ext;
  */
 public abstract class FileActionMenu {
 
-  private final String[] actionFiles;
-  private JMenu actionMenu;
-  private ArrayList<String> existingFiles;
-  private HashMap<String, JCheckBoxMenuItem> buttonMap;
-  private Hashtable<String, Integer> namePathMap;
-  private final String menuTitle;
-  private final Font font = new Font("Arial", 0, 12);
+	private String[] actionFiles;
+	private JMenu actionMenu;
+	private ArrayList<String> existingFiles;
+	private HashMap<String, JCheckBoxMenuItem> buttonMap;
+	private Hashtable<String, Integer> namePathMap;
+	private String menuTitle;
+	private Font font = new Font("Arial", 0, 12);
 
-  public FileActionMenu(String menuTitle, String[] actionFiles) {
-    super();
-    this.menuTitle = menuTitle;
-    this.actionFiles = actionFiles;
-    init();
-  }
+	public FileActionMenu(String menuTitle, String[] actionFiles) {
+		super();
+		this.menuTitle = menuTitle;
+		this.actionFiles = actionFiles;
+		init();
+	}
 
-  public void developMenu() {
-    actionMenu = new JMenu(menuTitle);
-    ButtonGroup buttonGroup = new ButtonGroup();
-    JCheckBoxMenuItem blankBox = new JCheckBoxMenuItem("None");
-    blankBox.addItemListener(getListener());
-    blankBox.setFont(font);
-    blankBox.setSelected(true);
-    buttonGroup.add(blankBox);
-    buttonMap.put("None", blankBox);
-    actionMenu.setFont(font);
-    actionMenu.add(blankBox);
-    for (String key : namePathMap.keySet()) {
-      buttonMap.get(key).addItemListener(getListener());
-      buttonMap.get(key).setFont(font);
-      buttonGroup.add(buttonMap.get(key));
-      actionMenu.add(buttonMap.get(key));
-    }
-  }
+	public ItemListener getListener() {
+		return null;
+	}
 
-  public String[] getActionFiles() {
-    return actionFiles;
-  }
+	private void init() {
+		this.existingFiles = new ArrayList<String>();
+		this.buttonMap = new HashMap<String, JCheckBoxMenuItem>();
+		this.namePathMap = new Hashtable<String, Integer>();
+		if (actionFiles != null) {
+			for (int i = 0; i < actionFiles.length; i++) {
+				if (Files.exists(actionFiles[i])) {
+					existingFiles.add(actionFiles[i]);
+					String name = ext.rootOf(actionFiles[i]);
+					namePathMap.put(name, i);
+					JCheckBoxMenuItem boxMenuItem = new JCheckBoxMenuItem(name);
+					buttonMap.put(name, boxMenuItem);
+				}
+			}
+		}
 
-  public JMenu getActionMenu() {
-    return actionMenu;
-  }
+	}
 
-  public HashMap<String, JCheckBoxMenuItem> getButtonMap() {
-    return buttonMap;
-  }
+	public void developMenu() {
+		this.actionMenu = new JMenu(menuTitle);
+		ButtonGroup buttonGroup = new ButtonGroup();
+		JCheckBoxMenuItem blankBox = new JCheckBoxMenuItem("None");
+		blankBox.addItemListener(getListener());
+		blankBox.setFont(font);
+		blankBox.setSelected(true);
+		buttonGroup.add(blankBox);
+		buttonMap.put("None", blankBox);
+		actionMenu.setFont(font);
+		actionMenu.add(blankBox);
+		for (String key : namePathMap.keySet()) {
+			buttonMap.get(key).addItemListener(getListener());
+			buttonMap.get(key).setFont(font);
+			buttonGroup.add(buttonMap.get(key));
+			actionMenu.add(buttonMap.get(key));
+		}
+	}
 
-  public ArrayList<String> getExistingFiles() {
-    return existingFiles;
-  }
+	public String[] getActionFiles() {
+		return actionFiles;
+	}
 
-  public Font getFont() {
-    return font;
-  }
+	public JMenu getActionMenu() {
+		return actionMenu;
+	}
 
-  public ItemListener getListener() {
-    return null;
-  }
+	public ArrayList<String> getExistingFiles() {
+		return existingFiles;
+	}
 
-  public String getMenuTitle() {
-    return menuTitle;
-  }
+	public HashMap<String, JCheckBoxMenuItem> getButtonMap() {
+		return buttonMap;
+	}
 
-  public Hashtable<String, Integer> getNamePathMap() {
-    return namePathMap;
-  }
+	public Hashtable<String, Integer> getNamePathMap() {
+		return namePathMap;
+	}
 
-  private void init() {
-    existingFiles = new ArrayList<String>();
-    buttonMap = new HashMap<String, JCheckBoxMenuItem>();
-    namePathMap = new Hashtable<String, Integer>();
-    if (actionFiles != null) {
-      for (int i = 0; i < actionFiles.length; i++) {
-        if (Files.exists(actionFiles[i])) {
-          existingFiles.add(actionFiles[i]);
-          String name = ext.rootOf(actionFiles[i]);
-          namePathMap.put(name, i);
-          JCheckBoxMenuItem boxMenuItem = new JCheckBoxMenuItem(name);
-          buttonMap.put(name, boxMenuItem);
-        }
-      }
-    }
+	public String getMenuTitle() {
+		return menuTitle;
+	}
 
-  }
+	public Font getFont() {
+		return font;
+	}
 
 }

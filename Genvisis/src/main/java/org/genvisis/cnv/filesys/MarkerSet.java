@@ -1,330 +1,307 @@
 package org.genvisis.cnv.filesys;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Serializable;
+import java.io.*;
 import java.util.ArrayList;
 
 import org.genvisis.cnv.manage.TextExport;
-import org.genvisis.common.Array;
-import org.genvisis.common.IntVector;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Positions;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.ext;
+import org.genvisis.common.*;
 import org.genvisis.filesys.Segment;
 
 import com.google.common.primitives.Ints;
 
 public class MarkerSet implements Serializable, TextExport {
-  /**
-   * Same functionality as a {@link MarkerSet} but indicesByChr are explicitly computed and stored
-   * since that can be expensive<br>
-   * Is nice if a function needs pos, chr, names, and indicesByChr across threads etc;
-   */
-  public static class PreparedMarkerSet extends MarkerSet {
+	public static final long serialVersionUID = 1L;
+	public static final char[] ALLELES = {'A', 'C', 'G', 'T', 'I', 'D'};
+	// TODO these alleles were recently added, should they not be from some place else??
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+	private long fingerprint;
+	private String[] markerNames;
+	private byte[] chrs;
+	private int[] positions;
+//	private char[][] abAlleles;
 
-    public static PreparedMarkerSet getPreparedMarkerSet(MarkerSet markerSet) {
-      if (markerSet == null) {
-        return null;
-      } else {
-        return new PreparedMarkerSet(markerSet);
-      }
-    }
+	public MarkerSet(String[] markerNames, byte[] chrs, int[] positions) {
+		if (markerNames.length!=chrs.length||markerNames.length!=positions.length) {
+			System.err.println("Error - mismatched number of markers and positions");
+			System.exit(1);
+		}
 
-    private final int[][] indicesByChr;
+		this.markerNames = markerNames;
+		this.chrs = chrs;
+		this.positions = positions;
+		this.fingerprint = fingerprint(markerNames);
+	}
 
-    private final int[][] positionsByChr;
+	public MarkerSet(String[] rawMarkerNames, byte[] rawChrs, int[] rawPositions, int[] keys) {
+		if (rawMarkerNames.length!=rawChrs.length||rawMarkerNames.length!=rawPositions.length||rawMarkerNames.length!=keys.length) {
+			System.err.println("Error - mismatched number of markers and positions/keys");
+			System.exit(1);
+		}
 
-    private PreparedMarkerSet(MarkerSet markerSet) {
-      super(markerSet.markerNames, markerSet.chrs, markerSet.positions);
-      indicesByChr = super.getIndicesByChr();
-      positionsByChr = super.getPositionsByChr();
+		markerNames = new String[rawMarkerNames.length];
+		chrs = new byte[rawChrs.length];
+		positions = new int[rawPositions.length];
 
-    }
+		for (int i = 0; i<keys.length; i++) {
+			markerNames[i] = rawMarkerNames[keys[i]];
+			chrs[i] = rawChrs[keys[i]];
+			positions[i] = rawPositions[keys[i]];
+		}
 
-    @Override
-    public int[][] getIndicesByChr() {
-      return indicesByChr;
-    }
+		fingerprint = fingerprint(markerNames);
+	}
 
-    @Override
-    public int[][] getPositionsByChr() {
-      return positionsByChr;
-    }
+	public String[] getMarkerNames() {
+		return markerNames;
+	}
 
-  }
+	public byte[] getChrs() {
+		return chrs;
+	}
 
-  public static final long serialVersionUID = 1L;
+	public int[] getPositions() {
+		return positions;
+	}
 
-  public static final char[] ALLELES = {'A', 'C', 'G', 'T', 'I', 'D'};
-
-  // TODO these alleles were recently added, should they not be from some place else??
-  public static void convert(String filename) {
-    BufferedReader reader;
-    String[] line;
-    int count;
-    String[] markerNames;
-    byte[] chrs;
-    int[] positions;
-
-    try {
-      reader = new BufferedReader(new FileReader(filename));
-      count = 0;
-      while (reader.ready()) {
-        reader.readLine();
-        count++;
-      }
-      reader.close();
-
-      markerNames = new String[count];
-      chrs = new byte[count];
-      positions = new int[count];
-
-      reader = new BufferedReader(new FileReader(filename));
-      for (int i = 0; i < count; i++) {
-        line = reader.readLine().trim().split("[\\s]+");
-        markerNames[i] = line[0];
-        chrs[i] = Positions.chromosomeNumber(line[1]);
-        positions[i] = Integer.parseInt(line[2]);
-      }
-      reader.close();
-
-      new MarkerSet(markerNames, chrs, positions).serialize(filename + ".ser");
-    } catch (FileNotFoundException fnfe) {
-      System.err.println("Error: file \"" + filename + "\" not found in current directory");
-      System.exit(1);
-    } catch (IOException ioe) {
-      System.err.println("Error reading file \"" + filename + "\"");
-      System.exit(2);
-    }
-  }
-
-  public static long fingerprint(String[] names) {
-    long sum, trav;
-
-    sum = 0;
-    for (int i = 0; i < names.length; i++) {
-      trav = 0;
-      for (int j = 0; j < names[i].length(); j++) {
-        trav += names[i].charAt(j);
-      }
-      sum += trav * (i + 1);
-    }
-
-    return sum;
-  }
-
-  public static MarkerSet load(String filename, boolean jar) {
-    return (MarkerSet) SerializedFiles.readSerial(filename, jar, true);
-  }
-
-  public static MarkerData[] loadFromList(Project proj, String[] markerNames) {
-    // TODO remove completely
-    return null;
-  }
-
-  public static byte[] translateABtoForwardGenotypes(byte[] abGenotypes, char[][] abLookup) {
-    byte[] result;
-    String geno;
-
-    result = Array.byteArray(abGenotypes.length, (byte) -3);
-    for (int i = 0; i < abGenotypes.length; i++) {
-      switch (abGenotypes[i]) {
-        case 0:
-          geno = abLookup[i][0] + "" + abLookup[i][0];
-          break;
-        case 1:
-          geno = abLookup[i][0] + "" + abLookup[i][1];
-          break;
-        case 2:
-          geno = abLookup[i][1] + "" + abLookup[i][1];
-          break;
-        case -1:
-          geno = Sample.ALLELE_PAIRS[0];
-          break;
-        default:
-          System.err.println("Error - invalid AB genotype: " + abGenotypes[i]);
-          geno = null;
-      }
-      // System.out.println(geno);
-      for (byte j = 0; j < Sample.ALLELE_PAIRS.length; j++) {
-        if (geno.equals(Sample.ALLELE_PAIRS[j])) {
-          result[i] = j;
+	public int[][] getPositionsByChr() {
+		IntVector iv;
+		byte chr;
+		int[][] positionsByChr;
+		boolean done;
+		
+		positionsByChr = new int[27][0];
+		
+		chr = 0;
+		iv = new IntVector(20000);
+		done = false;
+		for (int i = 0; !done; i++) {
+			if (i==chrs.length || chrs[i] != chr) {
+				positionsByChr[chr] = Ints.toArray(iv);
+				chr = i==chrs.length?0:chrs[i];
+				iv = new IntVector(20000);
+			}
+			if (i==chrs.length) {
+				done = true;
+			} else {
+				iv.add(positions[i]);
+			}
         }
-      }
-    }
+		
+		return positionsByChr;
+	}
 
-    return result;
-  }
+	public int[][] getIndicesByChr() {
+		IntVector iv;
+		byte chr;
+		int[][] indicesByChr;
+		boolean done;
+		
+		indicesByChr = new int[27][0];
+		
+		chr = 0;
+		iv = new IntVector(20000);
+		done = false;
+		for (int i = 0; !done; i++) {
+			if (i==chrs.length || chrs[i] != chr) {
+				indicesByChr[chr] = Ints.toArray(iv);
+				chr = i==chrs.length?0:chrs[i];
+				iv = new IntVector(20000);
+			}
+			if (i==chrs.length) {
+				done = true;
+			} else {
+				iv.add(i);
+			}
+        }
+		
+		return indicesByChr;
+	}
 
-  private final long fingerprint;
+	public long getFingerprint() {
+		return fingerprint;
+	}
+	
+	public void exportToText(Project proj, String filename) {
+		PrintWriter writer;
 
-  private final String[] markerNames;
+		try {
+			writer = new PrintWriter(new FileWriter(filename));
+			for (int i = 0; i<markerNames.length; i++) {
+				writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]);
+			}
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing "+filename);
+			e.printStackTrace();
+		}
+	}
 
-  private final byte[] chrs;
+	public void serialize(String filename) {
+		SerializedFiles.writeSerial(this, filename);
+	}
 
-  private final int[] positions;
-  // private char[][] abAlleles;
+	public static MarkerSet load(String filename, boolean jar) {
+		return (MarkerSet)SerializedFiles.readSerial(filename, jar, true);
+	}
 
-  public MarkerSet(String[] markerNames, byte[] chrs, int[] positions) {
-    if (markerNames.length != chrs.length || markerNames.length != positions.length) {
-      System.err.println("Error - mismatched number of markers and positions");
-      System.exit(1);
-    }
+	public static long fingerprint(String[] names) {
+		long sum, trav;
 
-    this.markerNames = markerNames;
-    this.chrs = chrs;
-    this.positions = positions;
-    fingerprint = fingerprint(markerNames);
-  }
+		sum = 0;
+		for (int i = 0; i<names.length; i++) {
+			trav = 0;
+			for (int j = 0; j<names[i].length(); j++) {
+				trav += names[i].charAt(j);
+			}
+			sum += trav*(i+1);
+		}
 
-  public MarkerSet(String[] rawMarkerNames, byte[] rawChrs, int[] rawPositions, int[] keys) {
-    if (rawMarkerNames.length != rawChrs.length || rawMarkerNames.length != rawPositions.length
-        || rawMarkerNames.length != keys.length) {
-      System.err.println("Error - mismatched number of markers and positions/keys");
-      System.exit(1);
-    }
+		return sum;
+	}
 
-    markerNames = new String[rawMarkerNames.length];
-    chrs = new byte[rawChrs.length];
-    positions = new int[rawPositions.length];
+	public int[] getIndicesOfMarkersIn(Segment seg, int[][] indicesByChr, Logger log) {
+		return ext.indexLargeFactors(getMarkersIn(seg, indicesByChr), markerNames, true, log, true, false);
+	}
+	
+	
+	public String[] getMarkersIn(Segment seg, int[][] indicesByChr) {
+		int index = seg.getChr();
+		ArrayList<String> markersIn = new ArrayList<String>();
+		int[] indices = indicesByChr == null ? getIndicesByChr()[index] : indicesByChr[index];
+		for (int i = 0; i < indices.length; i++) {
+			int bp = positions[indices[i]];
 
-    for (int i = 0; i < keys.length; i++) {
-      markerNames[i] = rawMarkerNames[keys[i]];
-      chrs[i] = rawChrs[keys[i]];
-      positions[i] = rawPositions[keys[i]];
-    }
+			if (bp >= seg.getStart() && bp <= seg.getStop()) {
+				markersIn.add(markerNames[indices[i]]);
+			}
+			if (bp > seg.getStop()) {
+				break;
+			}
+		}
+		return Array.toStringArray(markersIn);
+	}
+	
+	public void checkFingerprint(Sample samp) {
+		if (samp.getFingerprint() != fingerprint) {
+			System.err.println("Error - Sample has a different fingerprint ("+samp.getFingerprint()+") than the MarkerSet ("+fingerprint+")");
+		}
+	}
 
-    fingerprint = fingerprint(markerNames);
-  }
+	public static void convert(String filename) {
+		BufferedReader reader;
+		String[] line;
+		int count;
+		String[] markerNames;
+		byte[] chrs;
+		int[] positions;
 
-  public void checkFingerprint(Sample samp) {
-    if (samp.getFingerprint() != fingerprint) {
-      System.err.println("Error - Sample has a different fingerprint (" + samp.getFingerprint()
-                         + ") than the MarkerSet (" + fingerprint + ")");
-    }
-  }
+		try {
+			reader = new BufferedReader(new FileReader(filename));
+			count = 0;
+			while (reader.ready()) {
+				reader.readLine();
+				count++;
+			}
+			reader.close();
 
-  @Override
-  public void exportToText(Project proj, String filename) {
-    PrintWriter writer;
+			markerNames = new String[count];
+			chrs = new byte[count];
+			positions = new int[count];
 
-    try {
-      writer = new PrintWriter(new FileWriter(filename));
-      for (int i = 0; i < markerNames.length; i++) {
-        writer.println(markerNames[i] + "\t" + chrs[i] + "\t" + positions[i]);
-      }
-      writer.close();
-    } catch (Exception e) {
-      System.err.println("Error writing " + filename);
-      e.printStackTrace();
-    }
-  }
+			reader = new BufferedReader(new FileReader(filename));
+			for (int i = 0; i<count; i++) {
+				line = reader.readLine().trim().split("[\\s]+");
+				markerNames[i] = line[0];
+				chrs[i] = (byte)Positions.chromosomeNumber(line[1]);
+				positions[i] = Integer.parseInt(line[2]);
+			}
+			reader.close();
 
-  public byte[] getChrs() {
-    return chrs;
-  }
+			new MarkerSet(markerNames, chrs, positions).serialize(filename+".ser");
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \""+filename+"\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \""+filename+"\"");
+			System.exit(2);
+		}
+	}
 
-  public long getFingerprint() {
-    return fingerprint;
-  }
+	public static MarkerData[] loadFromList(Project proj, String[] markerNames) {
+		// TODO remove completely
+		return null;
+	}
 
-  public int[][] getIndicesByChr() {
-    IntVector iv;
-    byte chr;
-    int[][] indicesByChr;
-    boolean done;
+	public static byte[] translateABtoForwardGenotypes(byte[] abGenotypes, char[][] abLookup) {
+		byte[] result;
+		String geno;
+		
+		result = Array.byteArray(abGenotypes.length, (byte)-3);
+		for (int i=0; i<abGenotypes.length; i++) {
+			switch (abGenotypes[i]) {
+			case 0:
+				geno = abLookup[i][0]+""+abLookup[i][0];
+				break;
+			case 1:
+				geno = abLookup[i][0]+""+abLookup[i][1];
+				break;
+			case 2:
+				geno = abLookup[i][1]+""+abLookup[i][1];
+				break;
+			case -1:
+				geno = Sample.ALLELE_PAIRS[0];
+				break;
+			default:
+				System.err.println("Error - invalid AB genotype: "+abGenotypes[i]);
+				geno = null;
+			}
+//			System.out.println(geno);
+			for (byte j=0; j<Sample.ALLELE_PAIRS.length; j++) {
+				if (geno.equals(Sample.ALLELE_PAIRS[j])) {
+					result[i]=j;
+				}
+			}
+		}
+		
+		return result;
+	}
 
-    indicesByChr = new int[27][0];
+	/**
+	 * Same functionality as a {@link MarkerSet} but indicesByChr are explicitly computed and stored since that can be expensive<br>
+	 * Is nice if a function needs pos, chr, names, and indicesByChr across threads etc;
+	 */
+	public static class PreparedMarkerSet extends MarkerSet {
 
-    chr = 0;
-    iv = new IntVector(20000);
-    done = false;
-    for (int i = 0; !done; i++) {
-      if (i == chrs.length || chrs[i] != chr) {
-        indicesByChr[chr] = Ints.toArray(iv);
-        chr = i == chrs.length ? 0 : chrs[i];
-        iv = new IntVector(20000);
-      }
-      if (i == chrs.length) {
-        done = true;
-      } else {
-        iv.add(i);
-      }
-    }
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 
-    return indicesByChr;
-  }
+		private int[][] indicesByChr;
+		private int[][] positionsByChr;
 
+		public static PreparedMarkerSet getPreparedMarkerSet(MarkerSet markerSet) {
+		    if (markerSet == null) {
+		        return null;
+		    } else {
+		        return new PreparedMarkerSet(markerSet);
+		    }
+		}
 
-  public int[] getIndicesOfMarkersIn(Segment seg, int[][] indicesByChr, Logger log) {
-    return ext.indexLargeFactors(getMarkersIn(seg, indicesByChr), markerNames, true, log, true,
-                                 false);
-  }
+		private PreparedMarkerSet(MarkerSet markerSet) {
+			super(markerSet.markerNames, markerSet.chrs, markerSet.positions);
+			this.indicesByChr = super.getIndicesByChr();
+			this.positionsByChr = super.getPositionsByChr();
 
-  public String[] getMarkerNames() {
-    return markerNames;
-  }
+		}
 
-  public String[] getMarkersIn(Segment seg, int[][] indicesByChr) {
-    int index = seg.getChr();
-    ArrayList<String> markersIn = new ArrayList<String>();
-    int[] indices = indicesByChr == null ? getIndicesByChr()[index] : indicesByChr[index];
-    for (int indice : indices) {
-      int bp = positions[indice];
+		public int[][] getIndicesByChr() {
+			return indicesByChr;
+		}
 
-      if (bp >= seg.getStart() && bp <= seg.getStop()) {
-        markersIn.add(markerNames[indice]);
-      }
-      if (bp > seg.getStop()) {
-        break;
-      }
-    }
-    return Array.toStringArray(markersIn);
-  }
-
-  public int[] getPositions() {
-    return positions;
-  }
-
-  public int[][] getPositionsByChr() {
-    IntVector iv;
-    byte chr;
-    int[][] positionsByChr;
-    boolean done;
-
-    positionsByChr = new int[27][0];
-
-    chr = 0;
-    iv = new IntVector(20000);
-    done = false;
-    for (int i = 0; !done; i++) {
-      if (i == chrs.length || chrs[i] != chr) {
-        positionsByChr[chr] = Ints.toArray(iv);
-        chr = i == chrs.length ? 0 : chrs[i];
-        iv = new IntVector(20000);
-      }
-      if (i == chrs.length) {
-        done = true;
-      } else {
-        iv.add(positions[i]);
-      }
-    }
-
-    return positionsByChr;
-  }
-
-  public void serialize(String filename) {
-    SerializedFiles.writeSerial(this, filename);
-  }
+		public int[][] getPositionsByChr() {
+			return positionsByChr;
+		}
+		
+	}
 }

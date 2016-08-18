@@ -3,21 +3,21 @@ package org.genvisis.mining;
 import org.genvisis.common.Array;
 
 public class Distance {
-  public static final double euclidean(double[] p1, double[] p2) {
-    double dist = 0;
+	public static final double euclidean(int[] p1, int[] p2) {
+		return euclidean(Array.toDoubleArray(p1), Array.toDoubleArray(p2));
+	}
 
-    if (p1.length != p2.length) {
-      System.err.println("Error - points have different numbers of dimensions");
-    }
+	public static final double euclidean(double[] p1, double[] p2) {
+		double dist = 0;
 
-    for (int i = 0; i < p1.length; i++) {
-      dist += (p1[i] - p2[i]) * (p1[i] - p2[i]);
-    }
+		if (p1.length!=p2.length) {
+			System.err.println("Error - points have different numbers of dimensions");
+		}
 
-    return Math.sqrt(dist);
-  }
+		for (int i = 0; i<p1.length; i++) {
+			dist += (p1[i]-p2[i])*(p1[i]-p2[i]);
+		}
 
-  public static final double euclidean(int[] p1, int[] p2) {
-    return euclidean(Array.toDoubleArray(p1), Array.toDoubleArray(p2));
-  }
+		return Math.sqrt(dist);
+	}
 }

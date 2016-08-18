@@ -8,32 +8,31 @@ import java.util.zip.GZIPOutputStream;
 
 public class RAOExt {
 
-  public static ByteArrayOutputStream convertAndCompress(RAObject raObject) throws IOException {
-    ByteArrayOutputStream bos = new ByteArrayOutputStream(0);
-    GZIPOutputStream gzipOutput = new GZIPOutputStream(bos) {
+	public static ByteArrayOutputStream convertToByte(RAObject raObject) throws IOException {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream(0);
+		ObjectOutputStream oos = new ObjectOutputStream(bos);
+		oos.writeObject(raObject);
+		oos.flush();
+		//oos.close();
+		return bos;
+	}
 
-      {
-        def.setLevel(Deflater.BEST_COMPRESSION);
-      }
-    };
-
-    gzipOutput.write(convertToByte(raObject).toByteArray());
-    gzipOutput.close();
-    return bos;
-  }
-
-  public static ByteArrayOutputStream convertToByte(RAObject raObject) throws IOException {
-    ByteArrayOutputStream bos = new ByteArrayOutputStream(0);
-    ObjectOutputStream oos = new ObjectOutputStream(bos);
-    oos.writeObject(raObject);
-    oos.flush();
-    // oos.close();
-    return bos;
-  }
+	public static ByteArrayOutputStream convertAndCompress(RAObject raObject) throws IOException {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream(0);
+		GZIPOutputStream gzipOutput = new GZIPOutputStream(bos){
+ 
+            {
+                def.setLevel(Deflater.BEST_COMPRESSION);
+            }
+        };
+ 
+		gzipOutput.write(convertToByte(raObject).toByteArray());
+		gzipOutput.close();
+		return bos;
+	}
 }
 //
-// ObjectInputStream ois = new ObjectInputStream(new GZIPInputStream(new
-// ByteArrayInputStream(bos.toByteArray())));
+// ObjectInputStream ois = new ObjectInputStream(new GZIPInputStream(new ByteArrayInputStream(bos.toByteArray())));
 // try {
 // CNVariant cnv = (CNVariant)ois.readObject();
 // cnv.getUCSClocation();
