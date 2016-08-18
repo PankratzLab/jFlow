@@ -28,7 +28,7 @@ public class GenParser {
       StringBuilder sb = new StringBuilder();
       for (String s : data) {
         sb.append(s);
-        sb.append(System.lineSeparator());
+        sb.append(System.getProperty("line.separator"));
       }
       return sb.toString();
     }
