@@ -9,7 +9,8 @@ import java.util.Vector;
 
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.var.SampleData;
+// import org.genvisis.cnv.qc.CNVConcordance.ComparisionIndividualResults;
+// import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
@@ -220,33 +221,24 @@ public class CNVConcordance {
   public static final String COMMAND_CNV_CONCORDANCE = "cnvConcordance";
   public static final String COMMAND_CNV_CONCORDANCE_DESCRIPTION =
                                                                  "- compute the concordance between replicates in a cnv file";
-
   private final Project proj;
-
   private final String[][] duplicates;
-
   private String report;
-
   private final CNVariantHash cNVariantHash;
-
-  private final SampleData sampleData;
-
+  // private SampleData sampleData;
   private ComparisionIndividualResults[] comparisionResults;
-
-  private final boolean fail;
-
+  private boolean fail;
   private final CNVFilter filter;
-
   private final int numCNVs;
 
   public CNVConcordance(Project proj, String[][] duplicates, CNVariantHash cNVariantHash,
                         CNVFilter filter, int numCNVs) {
     this.proj = proj;
-    sampleData = proj.getSampleData(0, false);
+    // this.sampleData = proj.getSampleData(0, false);
     this.duplicates = duplicates;
     this.cNVariantHash = cNVariantHash;
     this.filter = filter;
-    fail = validDuplicateFormat();
+    // this.fail = validDuplicateFormat();
     this.numCNVs = numCNVs;
   }
 
@@ -271,7 +263,15 @@ public class CNVConcordance {
       ArrayList<ComparisionIndividualResults> allResults =
                                                          new ArrayList<ComparisionIndividualResults>();
       for (String[] duplicate : duplicates) {
-        Hashtable<String, String> track = new Hashtable<String, String>();
+        numComp++;
+        String ind1 = duplicate[0] + "\t" + duplicate[0];
+        String ind2 = duplicate[1] + "\t" + duplicate[1];
+        ComparisionIndividualResults results = compareInds(ind1, ind2);
+        if (results.getTotalCNVCount() > 0) {
+          allResults.add(results);
+        }
+      }
+      /*  Hashtable<String, String> track = new Hashtable<String, String>();
         for (int j = 0; j < duplicate.length; j++) {
           for (int k = 0; k < duplicate.length; k++) {
             String currentComp = j + "V" + k;
@@ -290,12 +290,12 @@ public class CNVConcordance {
             }
           }
         }
-      }
-      System.out.println(numComp + " This many comparisons");
+      }*/
+      System.out.println("Total of " + numComp + " comparisons");
       return allResults.toArray(new ComparisionIndividualResults[allResults.size()]);
     }
     return null;
-  }
+  }// This command is what the kids call "janky." currently won't work if the FIDs and IIDs don't
 
   private ComparisionIndividualResults compareInds(String ind1, String ind2) {
     CNVariant[] ind1CNVs = extractVariants(cNVariantHash.getDataFor(ind1));
@@ -319,7 +319,7 @@ public class CNVConcordance {
     }
     if (ind2CNVs.length > 1000) {
       proj.getLog().report("Warning - " + ind2 + " has more than " + 1000 + " CNVs ("
-                           + ind1CNVs.length + "), this could lead to skewed concordance rates");
+                           + ind2CNVs.length + "), this could lead to skewed concordance rates");
     }
     if (ind1CNVs.length == 0) {
       return new ComparisionIndividualResults(ind1, ind2, 0, ind2CNVs.length);
@@ -329,7 +329,8 @@ public class CNVConcordance {
     }
     return compareIndCNVs(ind1CNVs, ind2CNVs);
   }
-
+  
+  /*
   private boolean validDuplicateFormat() {
     boolean valid = true;
     if (duplicates == null) {
@@ -367,7 +368,7 @@ public class CNVConcordance {
       }
     }
     return !valid;
-  }
+  } */
 
   public static void determineConcordance(Project proj, String cnvFile, String dir,
                                           String duplicateFile, CNVFilter filter, int numCNVs,
@@ -561,7 +562,7 @@ public class CNVConcordance {
     String logfile = null;
     String cnvFile = null;
     String duplicateFile = null;
-    String dir = null;
+    String dir = null; 
     int numCNVs = 2147483647;
     boolean defaults = false;
     String output = "cnv.concordance.txt";
@@ -644,3 +645,4 @@ public class CNVConcordance {
     }
   }
 }
+
