@@ -143,12 +143,12 @@ public class MatchesVisualized {
     // int[] factorIndices = new int[] {1,2,3,4,5,6,7,8,9,10};
     int[] factorIndices = new int[] {1, 2};
 
-    String usage =
-        "\\n" + "kaput.MatchesVisualized requires 0-1 arguments\n" + "   (0) directory (i.e. dir="
-                   + dir + " (default))\n" + "   (1) anchors (i.e. anchors=" + anchors
-                   + " (default))\n" + "   (2) barnacles (i.e. barnacles=" + barnacles
-                   + " (default))\n" + "   (3) file with factors (i.e. factors=" + factors
-                   + " (default))\n" + "   (4) indices of factors in clusterfile (i.e. indices="
+    String usage = "\\n" + "kaput.MatchesVisualized requires 0-1 arguments\n"
+                   + "   (0) directory (i.e. dir=" + dir + " (default))\n"
+                   + "   (1) anchors (i.e. anchors=" + anchors + " (default))\n"
+                   + "   (2) barnacles (i.e. barnacles=" + barnacles + " (default))\n"
+                   + "   (3) file with factors (i.e. factors=" + factors + " (default))\n"
+                   + "   (4) indices of factors in clusterfile (i.e. indices="
                    + Array.toStr(factorIndices, ",") + " (default))\n" + "";
 
     for (String arg : args) {

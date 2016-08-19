@@ -121,7 +121,7 @@ public class diff {
             || trav1 != null && trav2 == null || buffer1.size() + buffer2.size() > 0) {
           if (nothingChanged) {
             writer =
-                new PrintWriter(new FileWriter("diff bw '" + file1 + "' & '" + file2 + "'.out"));
+                   new PrintWriter(new FileWriter("diff bw '" + file1 + "' & '" + file2 + "'.out"));
             nothingChanged = false;
           }
           if (trav1 != null) {
@@ -211,9 +211,9 @@ public class diff {
       ;
     }
     offs[2] = str1.length();
-    for (offs[3] =
-        str2.length(); offs[2] > offs[1] && offs[3] > offs[1]
-                       && str1.charAt(offs[2] - 1) == str2.charAt(offs[3] - 1); offs[3]--) {
+    for (offs[3] = str2.length(); offs[2] > offs[1] && offs[3] > offs[1]
+                                  && str1.charAt(offs[2] - 1) == str2.charAt(offs[3]
+                                                                             - 1); offs[3]--) {
       offs[2]--;
     }
 

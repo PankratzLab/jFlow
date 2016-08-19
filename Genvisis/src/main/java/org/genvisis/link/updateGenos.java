@@ -19,7 +19,7 @@ public class updateGenos {
     Hashtable<String, String> allMarkers = new Hashtable<String, String>();
     Hashtable<String, Vector<String>> people;
     Hashtable<String, Hashtable<String, Vector<String>>> chrs =
-        new Hashtable<String, Hashtable<String, Vector<String>>>();
+                                                              new Hashtable<String, Hashtable<String, Vector<String>>>();
     Vector<String> changes, markerNames;
     String temp, bakFilename;
     String[] line, alteration;

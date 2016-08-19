@@ -109,14 +109,13 @@ public class Computel {
     config = config.replaceAll("files.with.prefix	T", "files.with.prefix	F");
 
     config =
-        config.replaceAll("fastq	examples/tel_reads.fq, examples/tel_reads1.fq, examples/tel_reads2.fq",
-                          "fastq	" + r1 + "," + r2);
+           config.replaceAll("fastq	examples/tel_reads.fq, examples/tel_reads1.fq, examples/tel_reads2.fq",
+                             "fastq	" + r1 + "," + r2);
 
     config = config.replaceAll("compute.base.cov	F", "compute.base.cov	T");
 
-    config =
-        config.replaceAll("base.index.pathtoprefix	./examples/base.index/base_index",
-                          "base.index.pathtoprefix	" + computelOperatingDir + "src/examples/base.index/base_index");
+    config = config.replaceAll("base.index.pathtoprefix	./examples/base.index/base_index",
+                               "base.index.pathtoprefix	" + computelOperatingDir + "src/examples/base.index/base_index");
 
     config = config.replaceAll("output.dir	output",
                                "output.dir	" + computelOperatingDir + "results");

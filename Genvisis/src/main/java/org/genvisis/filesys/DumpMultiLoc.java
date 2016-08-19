@@ -14,9 +14,9 @@ public class DumpMultiLoc {
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(outputFile));
       for (GeneData[] gene : genes) {
-        for (int j = 0; j < gene.length; j++) {
-          if (gene[j].getMultiLoc() > 0) {
-            writer.println(gene[j].getChr() + "\t" + gene[j].getStart() + "\t" + gene[j].getStop());
+        for (GeneData element : gene) {
+          if (element.getMultiLoc() > 0) {
+            writer.println(element.getChr() + "\t" + element.getStart() + "\t" + element.getStop());
           }
         }
       }

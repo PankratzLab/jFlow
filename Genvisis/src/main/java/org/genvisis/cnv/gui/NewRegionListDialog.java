@@ -23,10 +23,10 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.common.Files;
 import org.genvisis.common.Positions;
+
+import net.miginfocom.swing.MigLayout;
 
 public class NewRegionListDialog extends JDialog implements ActionListener {
 
@@ -52,8 +52,8 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
       @Override
       public void run() {
         try {
-          NewRegionListDialog frame =
-              new NewRegionListDialog(new String[0], null, true, DEFAULT_MISSING_UCSC_LOCATION);
+          NewRegionListDialog frame = new NewRegionListDialog(new String[0], null, true,
+                                                              DEFAULT_MISSING_UCSC_LOCATION);
           frame.setVisible(true);
         } catch (Exception e) {
           e.printStackTrace();
@@ -72,8 +72,8 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
   public NewRegionListDialog(String[] sampleNames, final String dir, boolean allowMissing,
                              String missingValue) {
     this.allowMissing = allowMissing;
-    this.missingValue =
-        allowMissing && missingValue == null ? DEFAULT_MISSING_UCSC_LOCATION : missingValue;
+    this.missingValue = allowMissing && missingValue == null ? DEFAULT_MISSING_UCSC_LOCATION
+                                                             : missingValue;
     this.dir = dir;
     setTitle("Create New UCSC Regions List");
     setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -90,8 +90,8 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
     scrollPane.setViewportView(textArea);
 
     String label =
-        sampleNames == null ? "UCSC regions (one per line, with optional tab-separated comments): "
-                            : "Sample IDs with (optional) UCSC regions and comments (tab-separated, one set per line): ";
+                 sampleNames == null ? "UCSC regions (one per line, with optional tab-separated comments): "
+                                     : "Sample IDs with (optional) UCSC regions and comments (tab-separated, one set per line): ";
     JLabel lblMarkerNamesone = new JLabel(label);
     contentPane.add(lblMarkerNamesone, "cell 0 0,growx,aligny top");
 
@@ -188,8 +188,8 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
     if (invalidPositions.size() > 0) {
       String[] options = {"Ignore and Continue", "Return"};
       StringBuilder msg =
-          new StringBuilder("Warning - ").append(invalidPositions.size())
-                                         .append(" regions are not valid UCSC regions:");
+                        new StringBuilder("Warning - ").append(invalidPositions.size())
+                                                       .append(" regions are not valid UCSC regions:");
       for (String inv : invalidPositions) {
         msg.append("\n").append(inv);
       }

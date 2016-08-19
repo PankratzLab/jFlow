@@ -1,7 +1,5 @@
 package org.genvisis.gwas;
 
-import com.google.common.primitives.Booleans;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -18,6 +16,8 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+
+import com.google.common.primitives.Booleans;
 
 public class EmimPipeline {
 
@@ -124,8 +124,8 @@ public class EmimPipeline {
         generateKeepsFile(popDir + "keeps.txt", popFile, p, null, 0, log);
 
         for (int sP = 0; sP < subPopFile.pops.length; sP++) {
-          String subPopDir =
-              popDir + ext.replaceWithLinuxSafeCharacters(subPopFile.pops[sP], true) + "/";
+          String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopFile.pops[sP], true)
+                             + "/";
           if (Files.exists(subPopDir)) {
             log.report(subPopDir + " already exists, will not be created");
           } else if (!new File(subPopDir).mkdir()) {
@@ -333,8 +333,8 @@ public class EmimPipeline {
   }
 
   private static String[] combineRoots(String[] cnvFiles, String[] plinkRoots) {
-    int length =
-        (cnvFiles != null ? cnvFiles.length : 0) + (plinkRoots != null ? plinkRoots.length : 0);
+    int length = (cnvFiles != null ? cnvFiles.length : 0)
+                 + (plinkRoots != null ? plinkRoots.length : 0);
     String[] fileroots = new String[length];
     int i = 0;
     if (cnvFiles != null) {
@@ -445,8 +445,8 @@ public class EmimPipeline {
           String[] subPopResultFiles = new String[subPopData.pops.length];
 
           for (int sP = 0; sP < subPopData.pops.length; sP++) {
-            subPopResultFiles[sP] =
-                getResultsFilename(finalDir, fileroot, popData.pops[p], subPopData.pops[sP], model);
+            subPopResultFiles[sP] = getResultsFilename(finalDir, fileroot, popData.pops[p],
+                                                       subPopData.pops[sP], model);
             writeResults(subPopResultFiles[sP], writer, fileroot, popData.pops[p],
                          subPopData.pops[sP], thresh, first, log);
           }
@@ -476,8 +476,8 @@ public class EmimPipeline {
         return;
       }
       int[] resultFileIndices =
-          ext.indexFactors(headers, Files.getHeaderOfFile(resultFiles[i], log), true, log, false,
-                           false);
+                              ext.indexFactors(headers, Files.getHeaderOfFile(resultFiles[i], log),
+                                               true, log, false, false);
       for (int j = 0; j < headers.length; j++) {
         if (resultFileIndices[j] == -1) {
           log.reportError("Could not find " + headers[j] + " in " + resultFiles[i]);
@@ -487,8 +487,8 @@ public class EmimPipeline {
       }
     }
     for (int i = 0; i < headers.length; i++) {
-      String label =
-          baseName + "_" + (headers[i].equals("tdt_P") ? "" : model.toString() + "_") + headers[i];
+      String label = baseName + "_" + (headers[i].equals("tdt_P") ? "" : model.toString() + "_")
+                     + headers[i];
       QQPlot qqPlot = QQPlot.loadPvals(resultFilesWithCols[i], label, false, true, false, -1, false,
                                        Float.MAX_VALUE, log);
       qqPlot.screenCap(baseDir + label + "_QQPlot.png");
@@ -525,8 +525,10 @@ public class EmimPipeline {
 
         for (Emim.EMIM_MODEL model : models) {
           String[][] resultFiles = new String[subPopData.pops.length + 1][];
-          resultFiles[subPopData.pops.length] =
-              new String[] {".", getResultsFilename(finalDir, fileRoot, popData.pops[p], model)};
+          resultFiles[subPopData.pops.length] = new String[] {".",
+                                                              getResultsFilename(finalDir, fileRoot,
+                                                                                 popData.pops[p],
+                                                                                 model)};
           for (int sP = 0; sP < subPopData.pops.length; sP++) {
             resultFiles[sP] = new String[] {subPopData.pops[sP],
                                             getResultsFilename(finalDir, fileRoot, popData.pops[p],

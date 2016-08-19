@@ -1,8 +1,6 @@
 // -Xms1024M -Xmx1024M
 package org.genvisis.cnv.analysis;
 
-import com.google.common.primitives.Floats;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -41,10 +39,13 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 
+import com.google.common.primitives.Floats;
+
 public class Mosaicism {
-  public static final String[] HEADER =
-      {"Sample", "Arm", "#CNVs", "Summed_Size", "%covered", "Custom_metric", "LRR_SD",
-       "LRR_SD_flag", "Flagged_via_Mosaicism", "Mosaicism_level", "Mosaicism description"};
+  public static final String[] HEADER = {"Sample", "Arm", "#CNVs", "Summed_Size", "%covered",
+                                         "Custom_metric", "LRR_SD", "LRR_SD_flag",
+                                         "Flagged_via_Mosaicism", "Mosaicism_level",
+                                         "Mosaicism description"};
   public static final double LOWER_BOUND = 0.15;
   public static final double UPPER_BOUND = 0.85;
 
@@ -111,9 +112,9 @@ public class Mosaicism {
       // samples = new String[] { "7355066051_R03C01", "7330686030_R02C01", "7159911135_R01C02" };
       // samples = new String[] { "7355066051_R03C01" };
 
-      MosaicResultProducer producer =
-          new MosaicResultProducer(proj, samples, snpDropped, chrBoundaries, markerSet,
-                                   indicesByChr);
+      MosaicResultProducer producer = new MosaicResultProducer(proj, samples, snpDropped,
+                                                               chrBoundaries, markerSet,
+                                                               indicesByChr);
       WorkerTrain<String[]> train = new WorkerTrain<String[]>(producer,
                                                               numthreads > 0 ? numthreads
                                                                              : proj.NUM_THREADS.getValue(),
@@ -271,9 +272,7 @@ public class Mosaicism {
           int lrrSize = lrrAl.size();
           float[] bafTmp = Floats.toArray(bafAl);
           String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t"
-                          + ext.formDeci(Array.mean(Floats.toArray(lrrAl)),
-                                         5)
-                          + "\t" + bafAl.size()
+                          + ext.formDeci(Array.mean(Floats.toArray(lrrAl)), 5) + "\t" + bafAl.size()
                           + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t"
                                             + ext.formDeci(Array.iqrExclusive(bafTmp), 5)
                                           : "\t.\t.")
@@ -445,18 +444,19 @@ public class Mosaicism {
     sampleData = proj.getSampleData(2, new String[] {cnvFiles[0]});
     if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + "lrr_sd.xln",
                      proj.JAR_STATUS.getValue())) {
-      lrrsdHash =
-          HashVec.loadFileToHashString(proj.PROJECT_DIRECTORY.getValue() + "lrr_sd.xln", false);
+      lrrsdHash = HashVec.loadFileToHashString(proj.PROJECT_DIRECTORY.getValue() + "lrr_sd.xln",
+                                               false);
     } else {
       System.err.println("Warning - could not find 'lrr_sd.xln' in project directory; no flags will be generated");
       lrrsdHash = new Hashtable<String, String>();
     }
     if (Files.exists(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false, false),
                      proj.JAR_STATUS.getValue())) {
-      mosaicHash =
-          HashVec.loadFileToHashString(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false, false),
-                                       new int[] {0, 1}, new int[] {2, 3}, false, "\t", true,
-                                       proj.JAR_STATUS.getValue(), true);
+      mosaicHash = HashVec.loadFileToHashString(
+                                                proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false,
+                                                                                          false),
+                                                new int[] {0, 1}, new int[] {2, 3}, false, "\t",
+                                                true, proj.JAR_STATUS.getValue(), true);
     } else {
       System.err.println("Warning - could not find "
                          + proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false, false)

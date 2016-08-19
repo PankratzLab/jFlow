@@ -50,11 +50,11 @@ public class Merlin {
     if (qsub != null) {
       if (blade) {
         commands =
-            "merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --npl --tabulate --step 5 --markerNames --information --ibd --prefix merlin-chr##";
+                 "merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --npl --tabulate --step 5 --markerNames --information --ibd --prefix merlin-chr##";
         Files.qsub(qsub, "java", CHR_START, CHR_STOP, commands, 1, 10, null);
       } else {
         commands =
-            "/share/apps/bin/merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --npl --tabulate --step 5 --markerNames --information --ibd --prefix merlin-chr##";
+                 "/share/apps/bin/merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --npl --tabulate --step 5 --markerNames --information --ibd --prefix merlin-chr##";
         Files.qsub(qsub, CHR_START, CHR_STOP, commands);
       }
     } else {

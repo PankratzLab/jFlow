@@ -46,7 +46,8 @@ public class CNVMarkerQC implements Runnable {
     // TODO add sex specific calculation, and include/exclude from sampleData
 
     MarkerDataLoader markerDataLoader =
-        MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
+                                      MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+                                                                                              markerNames);
     for (int i = 0; i < markerNames.length; i++) {
       MarkerData markerData = markerDataLoader.requestMarkerData(i);
       mafs[i] = markerData.getMAF(samplesToBeUsed, null, null, 0, log);
@@ -129,8 +130,8 @@ public class CNVMarkerQC implements Runnable {
     CNVMarkerQC[] markerFrequencies = new CNVMarkerQC[threads];
     Thread[] runningthreads = new Thread[threads];
     for (int i = 0; i < threads; i++) {
-      markerFrequencies[i] =
-          new CNVMarkerQC(proj, toStringArray(cabinet.get(i)), samplesToBeUsed, proj.getLog());
+      markerFrequencies[i] = new CNVMarkerQC(proj, toStringArray(cabinet.get(i)), samplesToBeUsed,
+                                             proj.getLog());
       runningthreads[i] = new Thread(markerFrequencies[i]);
       runningthreads[i].start();
     }

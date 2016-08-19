@@ -47,9 +47,9 @@ public class GeneQC {
       // int totalMrna = 0;
       // int mrnaNoUtrs = 0;
       for (int j = 0; j < genes.getLoci()[i].getExonBoundaries().length; j++) {
-        Segment exon =
-            new Segment(genes.getLoci()[i].getChr(), genes.getLoci()[i].getExonBoundaries()[j][0],
-                        genes.getLoci()[i].getExonBoundaries()[j][1]);
+        Segment exon = new Segment(genes.getLoci()[i].getChr(),
+                                   genes.getLoci()[i].getExonBoundaries()[j][0],
+                                   genes.getLoci()[i].getExonBoundaries()[j][1]);
         // totalMrna += exon.getSize();
         // mrnaNoUtrs += exon.getSize();
         Segment[] utrsOlap = utrs.getOverLappingLoci(exon);
@@ -69,9 +69,9 @@ public class GeneQC {
 
   public void qcByGene() {
     String output = bamQCFile + ".quickSummary";
-    String[] targets =
-        new String[] {"GENE", "NumOtherGenes", "NumExons", "averageCoverage", "averageGC",
-                      "numBaitsPerTarget", "MRNA_Overlap", "NonUTRMrnaOverlap"};
+    String[] targets = new String[] {"GENE", "NumOtherGenes", "NumExons", "averageCoverage",
+                                     "averageGC", "numBaitsPerTarget", "MRNA_Overlap",
+                                     "NonUTRMrnaOverlap"};
 
     try {
       BufferedReader reader = Files.getAppropriateReader(bamQCFile);
@@ -266,23 +266,24 @@ public class GeneQC {
 
   public static void test(String bamQCFile, String geneTrackFile, String utr5p, String utr3p,
                           Logger log) {
-    LocusSet<Segment> utr5pSegs =
-        LocusSet.loadSegmentSetFromFile(utr5p, 0, 1, 2, 0, true, true, 0, log);
+    LocusSet<Segment> utr5pSegs = LocusSet.loadSegmentSetFromFile(utr5p, 0, 1, 2, 0, true, true, 0,
+                                                                  log);
     log.reportTimeInfo("Loaded " + utr5pSegs.getLoci().length + " 5' UTRs");
 
-    LocusSet<Segment> utr3pSegs =
-        LocusSet.loadSegmentSetFromFile(utr3p, 0, 1, 2, 0, true, true, 0, log);
+    LocusSet<Segment> utr3pSegs = LocusSet.loadSegmentSetFromFile(utr3p, 0, 1, 2, 0, true, true, 0,
+                                                                  log);
     log.reportTimeInfo("Loaded " + utr3pSegs.getLoci().length + " 3' UTRs");
-    LocusSet<Segment> utrs =
-        new LocusSet<Segment>(Array.concatAll(utr5pSegs.getLoci(), utr3pSegs.getLoci()), true,
-                              log) {
+    LocusSet<Segment> utrs = new LocusSet<Segment>(
+                                                   Array.concatAll(utr5pSegs.getLoci(),
+                                                                   utr3pSegs.getLoci()),
+                                                   true, log) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1L;
 
-        };
+    };
     ArrayList<GeneData> genes = new ArrayList<GeneData>();
 
     GeneTrack geneTrack = GeneTrack.load(geneTrackFile, false);
@@ -292,15 +293,15 @@ public class GeneQC {
         genes.add(geneTrack.getGenes()[i][j]);
       }
     }
-    LocusSet<GeneData> geneSet =
-        new LocusSet<GeneData>(genes.toArray(new GeneData[genes.size()]), true, log) {
+    LocusSet<GeneData> geneSet = new LocusSet<GeneData>(genes.toArray(new GeneData[genes.size()]),
+                                                        true, log) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1L;
 
-        };
+    };
 
     GeneQC geneQC = new GeneQC(geneSet, bamQCFile, utrs, new Logger(bamQCFile + ".gqc.log"));
     geneQC.qcByGene();

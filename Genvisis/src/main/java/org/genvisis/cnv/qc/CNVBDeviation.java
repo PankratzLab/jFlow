@@ -1,11 +1,11 @@
 package org.genvisis.cnv.qc;
 
-import com.google.common.primitives.Doubles;
-
 import java.util.ArrayList;
 
 import org.genvisis.common.Array;
 import org.genvisis.common.ext;
+
+import com.google.common.primitives.Doubles;
 
 /**
  * Class for computing the B-Deviation for markers in a cnv call, similar to

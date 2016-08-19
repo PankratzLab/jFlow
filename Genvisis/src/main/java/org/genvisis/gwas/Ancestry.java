@@ -1,7 +1,5 @@
 package org.genvisis.gwas;
 
-import com.google.common.primitives.Ints;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -16,12 +14,14 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 
+import com.google.common.primitives.Ints;
+
 
 
 public class Ancestry {
 
   public static final String DEFAULT_HAPMAP_PLINKROOT =
-      "/home/pankrat2/shared/bin/HapMap/unambiguousHapMapFounders";
+                                                      "/home/pankrat2/shared/bin/HapMap/unambiguousHapMapFounders";
   public static final String RACE_IMPUTATIONAS_FILENAME = "raceImputations.mds";
   public static final String RACE_FREQS_FILENAME = "freqsByRace.xln";
 
@@ -201,17 +201,21 @@ public class Ancestry {
   public static void imputeRace(String dir, Project proj) {
     if (!Files.exists(dir + RACE_IMPUTATIONAS_FILENAME)) {
       String[][] pcResults =
-          HashVec.loadFileToStringMatrix(dir + "combo_fancy_postnormed_eigens.xln", true,
-                                         new int[] {0, 1, 2, 3}, false);
+                           HashVec.loadFileToStringMatrix(dir + "combo_fancy_postnormed_eigens.xln",
+                                                          true, new int[] {0, 1, 2, 3}, false);
 
       String sd = proj.SAMPLE_DATA_FILENAME.getValue();
       String[] sdHeader = Files.getHeaderOfFile(sd, proj.getLog());
-      Hashtable<String, Hashtable<String, String>> hapmaps =
-          HashVec.loadFileToHashHash(sd, ext.indexOfStr("FID", sdHeader, false, true),
-                                     ext.indexOfStr("IID", sdHeader, false, true),
-                                     ext.indexOfStr("Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT",
-                                                    sdHeader, false, true),
-                                     true);
+      Hashtable<String, Hashtable<String, String>> hapmaps = HashVec.loadFileToHashHash(sd,
+                                                                                        ext.indexOfStr("FID",
+                                                                                                       sdHeader,
+                                                                                                       false,
+                                                                                                       true),
+                                                                                        ext.indexOfStr("IID",
+                                                                                                       sdHeader, false, true),
+                                                                                        ext.indexOfStr("Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT",
+                                                                                                       sdHeader, false, true),
+                                                                                        true);
 
       String[] fidiids = new String[pcResults.length];
       double[] pc1 = new double[pcResults.length];
@@ -254,9 +258,9 @@ public class Ancestry {
 
 
       }
-      PCImputeRace pcir =
-          new PCImputeRace(proj, fidiids, pc1, pc2, Ints.toArray(europeans), Ints.toArray(africans),
-                           Ints.toArray(asians), proj.getLog());
+      PCImputeRace pcir = new PCImputeRace(proj, fidiids, pc1, pc2, Ints.toArray(europeans),
+                                           Ints.toArray(africans), Ints.toArray(asians),
+                                           proj.getLog());
       pcir.correctPCsToRace(dir + RACE_IMPUTATIONAS_FILENAME);
     }
 

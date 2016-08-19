@@ -1,8 +1,8 @@
 package org.genvisis.common;
 
-import com.google.common.primitives.Ints;
-
 import java.util.Vector;
+
+import com.google.common.primitives.Ints;
 
 /**
  * {@link PrimitiveVector} of {@link Integer} types.

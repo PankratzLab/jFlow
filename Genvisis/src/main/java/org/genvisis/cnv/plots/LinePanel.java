@@ -29,27 +29,29 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
   public static final String X_AXIS_LABEL = "Threshold; -log10(p-value)";
   public static final String Y_AXIS_LABEL = "Fold enrichment";
   public static final int DEFAULT_COLORS_BLACK_INDEX = 0;
-  public static final Color[] DEFAULT_COLORS =
-      {new Color(33, 31, 53), // dark dark
-       new Color(23, 58, 172), // dark blue
-       new Color(201, 30, 10), // deep red
-       new Color(140, 20, 180), // deep purple
-       new Color(33, 87, 0), // dark green
-       new Color(55, 129, 252), // light blue
-       new Color(94, 88, 214), // light purple
-       new Color(189, 243, 61), // light green
-       new Color(217, 109, 194), // pink
-       new Color(0, 0, 128), // ALL KINDS OF BLUES
-       new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
-       new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
-       new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
-       new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
-       new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
-       new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
-       new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
-       new Color(224, 255, 255),
+  public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
+                                                new Color(23, 58, 172), // dark blue
+                                                new Color(201, 30, 10), // deep red
+                                                new Color(140, 20, 180), // deep purple
+                                                new Color(33, 87, 0), // dark green
+                                                new Color(55, 129, 252), // light blue
+                                                new Color(94, 88, 214), // light purple
+                                                new Color(189, 243, 61), // light green
+                                                new Color(217, 109, 194), // pink
+                                                new Color(0, 0, 128), // ALL KINDS OF BLUES
+                                                new Color(100, 149, 237), new Color(72, 61, 139),
+                                                new Color(106, 90, 205), new Color(123, 104, 238),
+                                                new Color(132, 112, 255), new Color(0, 0, 205),
+                                                new Color(65, 105, 225), new Color(0, 0, 255),
+                                                new Color(30, 144, 255), new Color(0, 191, 255),
+                                                new Color(135, 206, 250), new Color(135, 206, 250),
+                                                new Color(70, 130, 180), new Color(176, 196, 222),
+                                                new Color(173, 216, 230), new Color(176, 224, 230),
+                                                new Color(175, 238, 238), new Color(0, 206, 209),
+                                                new Color(72, 209, 204), new Color(64, 224, 208),
+                                                new Color(0, 255, 255), new Color(224, 255, 255),
 
-      };
+  };
 
   protected LinePlot tdp;
   private boolean updateQcPanel;
@@ -358,30 +360,30 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
   /*
    * public void mouseMoved(MouseEvent event) { Graphics g = getGraphics(); IntVector iv; String
    * pos; int x, y;
-   * 
+   *
    * float[][] datapoints; IndiPheno indi; // Hashtable<String,IndiPheno> sampleHash =
    * sampleData.getSampleHash(); float[] gcScores; byte[] alleleCounts; float gcThreshold; int
    * xWidth; int plotType, currentClass; int i; byte chr; int position; int markerIndex; byte size,
    * xFontSize;
-   * 
+   *
    * x = event.getX(); y = event.getY();
-   * 
+   *
    * canvasSectionMinimumX = WIDTH_Y_AXIS; canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
    * canvasSectionMinimumY = HEIGHT_X_AXIS; canvasSectionMaximumY = getHeight()-HEAD_BUFFER; pos =
    * (int)Math.floor(x/DEFAULT_LOOKUP_RESOLUTION)+"x"+(int)Math.floor(y/DEFAULT_LOOKUP_RESOLUTION);
    * if (!pos.equals(prevPos)) { repaint(); } iv = locLookup.get(pos); prox = new IntVector();
-   * 
+   *
    * plotType = sp.getPlotType(); currentClass = sp.getCurrentClass(); markerIndex =
    * sp.getMarkerIndex(); datapoints = markerData[markerIndex].getDatapoints(plotType); gcScores =
    * markerData[markerIndex].getGCs(); alleleCounts = markerData[markerIndex].getAB_Genotypes(); chr
    * = markerData[markerIndex].getChr(); position = markerData[markerIndex].getPosition();
    * gcThreshold = sp.getGCthreshold();
-   * 
+   *
    * size = sp.getPointSize(); xFontSize = (byte)(size*2);
-   * 
+   *
    * g.setFont(new Font("Arial", 0, (int)(xFontSize*1.5))); xWidth =
    * g.getFontMetrics(g.getFont()).stringWidth("X");
-   * 
+   *
    * for (int l = 0; iv!=null&&l<iv.size(); l++) { i = iv.elementAt(l); if (Distance.euclidean(new
    * int[] {x, y}, new int[] {getX(datapoints[0][i]),
    * getY(datapoints[1][i])})<Math.sqrt(size*size/2)) { indi = sampleHash.get(samples[i]); if
@@ -390,9 +392,9 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
    * getX(datapoints[0][i])-xWidth/2, getY(datapoints[1][i])+(int)(xFontSize*1.5/2.0)-1); } else {
    * g.fillOval(getX(datapoints[0][i])-(int)(size*1.5)/2, getY(datapoints[1][i])-(int)(size*1.5)/2,
    * (int)(size*1.5), (int)(size*1.5)); } }
-   * 
+   *
    * prox.add(i); } }
-   * 
+   *
    * prevPos = pos; } // End of original section
    */
 

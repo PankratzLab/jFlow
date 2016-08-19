@@ -59,7 +59,7 @@ public class QuantileNormalization {
         int numNan = tmp.length - Array.removeNaN(tmp).length;
         if (numNan != 0 && numNan != tmp.length) {
           String error =
-              i + "\tAll indices must either have complete (non-NaN) data, or all NaN data "
+                       i + "\tAll indices must either have complete (non-NaN) data, or all NaN data "
                          + numNan + " Nans out of " + tmp.length;
           log.reportTimeError(error);
           throw new IllegalArgumentException(error);

@@ -35,9 +35,9 @@ public class SequenceLookup {
   }
 
   /**
-   * 
+   *
    * Derived from https://en.wikipedia.org/wiki/FASTA_format
-   * 
+   *
    * @return
    */
   private static Hashtable<String, String> getNucleotideLookup() {

@@ -20,8 +20,8 @@ import org.genvisis.common.ext;
 public class ForestPlot {
   public static final String[] MARKER_ID_POSSIBILITIES = {"Marker", "SNP", "Variant"};
 
-  public static final String[][] SUFFIXES =
-      {{"A1", "Allele1"}, {"A2", "Allele2"}, {"Beta"}, {"SE", "StdErr"}, {"Freq", "Freq1"},};
+  public static final String[][] SUFFIXES = {{"A1", "Allele1"}, {"A2", "Allele2"}, {"Beta"},
+                                             {"SE", "StdErr"}, {"Freq", "Freq1"},};
 
   public static void fromParameters(String filename, Logger log) {
     String trav;

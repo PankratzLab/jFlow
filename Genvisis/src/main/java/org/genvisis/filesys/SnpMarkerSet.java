@@ -2,8 +2,6 @@
 // added in centiMoragns to the 4th column, make sure that's not causing any trouble for you
 package org.genvisis.filesys;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,6 +35,8 @@ import org.genvisis.common.Unique;
 import org.genvisis.common.ext;
 import org.genvisis.link.LinkageMap;
 
+import com.google.common.primitives.Ints;
+
 public class SnpMarkerSet implements Serializable, PlainTextExport {
   public static final long serialVersionUID = 1L;
   public static final int NAMES_ONLY = 0;
@@ -59,36 +59,42 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
   public static final String[] NULL_ALLLES = {"0", "-"};
   public static final String[] INDEL_ALLLES = {"I", "D"};
 
-  public static final String[] HAPMAP_CM_SRC_HEADER =
-      {"position", "COMBINED_rate(cM/Mb)", "Genetic_Map(cM)"};
-  public static final String[][] HEADERS =
-      {null, null, null, null, null, {"Marker", "Chr", "Position"}, null,
-       {"Marker", "Chr", "Position", "Annotation"},
-       {"SNP", "Al1", "Al2", "Freq1", "MAF", "Quality", "Rsq"}, null,
-       {"SNP", "Al1", "Al2", "Freq1", "MAF", "AvgCall", "Rsq", "Genotyped", "LooRsq", "EmpR",
-        "EmpRsq", "Dose1", "Dose2"},
-       null, {"Marker", "Chr", "Position", "REF", "ALT", "gene", "AAF", "Function"},
-       {"snp_id", "rs_id", "position", "exp_freq_a1", "info", "certainty", "type", "info_type0",
-        "concord_type0", "r2_type0"},
-       null,};
+  public static final String[] HAPMAP_CM_SRC_HEADER = {"position", "COMBINED_rate(cM/Mb)",
+                                                       "Genetic_Map(cM)"};
+  public static final String[][] HEADERS = {null, null, null, null, null,
+                                            {"Marker", "Chr", "Position"}, null,
+                                            {"Marker", "Chr", "Position", "Annotation"},
+                                            {"SNP", "Al1", "Al2", "Freq1", "MAF", "Quality", "Rsq"},
+                                            null,
+                                            {"SNP", "Al1", "Al2", "Freq1", "MAF", "AvgCall", "Rsq",
+                                             "Genotyped", "LooRsq", "EmpR", "EmpRsq", "Dose1", "Dose2"},
+                                            null,
+                                            {"Marker", "Chr", "Position", "REF", "ALT", "gene",
+                                             "AAF", "Function"},
+                                            {"snp_id", "rs_id", "position", "exp_freq_a1", "info",
+                                             "certainty", "type", "info_type0", "concord_type0", "r2_type0"},
+                                            null,};
 
-  public static final String[][] HEADER_ELEMEMTS =
-      {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS, Aliases.CENTIMORGANS,
-       Aliases.ALLELES[0], Aliases.ALLELES[1]};
+  public static final String[][] HEADER_ELEMEMTS = {Aliases.MARKER_NAMES, Aliases.CHRS,
+                                                    Aliases.POSITIONS, Aliases.CENTIMORGANS,
+                                                    Aliases.ALLELES[0], Aliases.ALLELES[1]};
 
   public static final int CHR_INFO_IN_FILENAME = -2;
 
   /** 0 1 2 3 4 5 6+ */
   /** Marker name, Chr, Position, centiMorgans, A1, A2, annotation */
-  public static final int[][] INDICES =
-      {{0, -1, -1, -1, -1, -1}, {0, 1, 2, -1, -1, -1}, {1, 0, 3, 2, 4, 5}, {1, 0, 3, 2, -1, -1},
-       {0, 1, 3, 2, 4, 5}, {0, 1, 2, -1, -1, -1}, {0, 1, 2, -1, -1, -1, 3},
-       {0, 1, 2, -1, -1, -1, 3}, {0, -1, -1, -1, 1, 2, 3, 4, 5, 6}, {0, -1, 1, -1, -1, -1},
-       {0, -1, -1, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, {1, 0, 2, -1, -1, -1},
-       {0, 1, 2, -1, 3, 4, 5, 6, 7}, {1, CHR_INFO_IN_FILENAME, 2, -1, -1, -1, 3, 4, 5, 6, 7, 8, 9},
-       {0, 1, 2, -1, 3, 4},
+  public static final int[][] INDICES = {{0, -1, -1, -1, -1, -1}, {0, 1, 2, -1, -1, -1},
+                                         {1, 0, 3, 2, 4, 5}, {1, 0, 3, 2, -1, -1},
+                                         {0, 1, 3, 2, 4, 5}, {0, 1, 2, -1, -1, -1},
+                                         {0, 1, 2, -1, -1, -1, 3}, {0, 1, 2, -1, -1, -1, 3},
+                                         {0, -1, -1, -1, 1, 2, 3, 4, 5, 6}, {0, -1, 1, -1, -1, -1},
+                                         {0, -1, -1, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+                                         {1, 0, 2, -1, -1, -1}, {0, 1, 2, -1, 3, 4, 5, 6, 7},
+                                         {1, CHR_INFO_IN_FILENAME, 2, -1, -1, -1, 3, 4, 5, 6, 7, 8,
+                                          9},
+                                         {0, 1, 2, -1, 3, 4},
       // make sure to add an entry into HEADERS as well
-      };
+  };
 
   private long fingerprint;
   private int[] rsNumbers;
@@ -289,7 +295,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 
   /**
    * Sets the genome build for this marker set
-   * 
+   *
    * @param build build of the genome (36, 37, 38, etc)
    */
   public void setBuild(int build) {
@@ -298,7 +304,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 
   /**
    * Returns the genome build for this marker set
-   * 
+   *
    * @return build of the genome (36, 37, 38, etc)
    */
   public int getBuild() {
@@ -329,7 +335,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
   /**
    * Caution - if markers were not in order, positions will not be in order (meaning binarySearch
    * will be inaccurate)
-   * 
+   *
    * @return
    */
   public int[][] getPositionsByChr() {
@@ -514,7 +520,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
     int[] counts = new int[10];
     for (int i = 0; i < positions.length; i++) {
       index =
-          Array.binarySearch(srcPositions, positions[i], starts[chrs[i]], stops[chrs[i]], false);
+            Array.binarySearch(srcPositions, positions[i], starts[chrs[i]], stops[chrs[i]], false);
       if (chrs[i] == srcChrs[index] && positions[i] == srcPositions[index]) {
         counts[0]++;
         centiMorgans[i] = srcCentiMorgans[index];
@@ -532,10 +538,10 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
                  && positions[i] < srcPositions[index]) {
         counts[3]++;
         // log.reportError(srcPositions[index-1]+"\t"+srcPositions[index]);
-        centiMorgans[i] =
-            srcCentiMorgans[index - 1] + (srcCentiMorgans[index] - srcCentiMorgans[index - 1])
-                                         * (positions[i] - srcPositions[index - 1])
-                                         / (srcPositions[index] - srcPositions[index - 1]);
+        centiMorgans[i] = srcCentiMorgans[index - 1]
+                          + (srcCentiMorgans[index] - srcCentiMorgans[index - 1])
+                            * (positions[i] - srcPositions[index - 1])
+                            / (srcPositions[index] - srcPositions[index - 1]);
       } else {
         log.reportError("Error - finding nearby markers");
       }
@@ -582,9 +588,9 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
       return;
     }
 
-    Set<String> excludeMarkers =
-        excludeMarkersFile == null ? new HashSet<String>()
-                                   : HashVec.loadFileToHashSet(excludeMarkersFile, false);
+    Set<String> excludeMarkers = excludeMarkersFile == null ? new HashSet<String>()
+                                                            : HashVec.loadFileToHashSet(excludeMarkersFile,
+                                                                                        false);
 
     try {
       writer = Files.getAppropriateWriter(filename);
@@ -748,7 +754,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
     for (int i = 0; i < markerNames.length; i++) {
       if (markerNames[i].startsWith("rs")) {
         index =
-            Array.binarySearch(dbRSnumbers, Integer.parseInt(markerNames[i].substring(2)), true);
+              Array.binarySearch(dbRSnumbers, Integer.parseInt(markerNames[i].substring(2)), true);
         if (index == -1) {
           if (mergeDB != null) {
             if (mergeHash == null) {

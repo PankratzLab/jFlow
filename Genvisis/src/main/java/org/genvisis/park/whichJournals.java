@@ -28,8 +28,8 @@ public class whichJournals {
     jk = new Hashtable<String, String>();
     try {
       for (reader =
-          new BufferedReader(new FileReader(JOURNAL_KEY)); reader.ready(); jk.put(line[1].toLowerCase(),
-                                                                                  line[0].toLowerCase())) {
+                  new BufferedReader(new FileReader(JOURNAL_KEY)); reader.ready(); jk.put(line[1].toLowerCase(),
+                                                                                          line[0].toLowerCase())) {
         line = reader.readLine().split("\\|");
       }
     } catch (FileNotFoundException fnfe) {

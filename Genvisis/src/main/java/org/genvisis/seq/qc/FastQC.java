@@ -40,8 +40,8 @@ public class FastQC {
   public static final String FAST_SUMMARY_FILE = ".fastqc.allSamples.summary.txt";
 
   public static final String ZIP = ".zip";
-  public static final String[] MODULES_TO_EXTRACT =
-      {">>Sequence Duplication Levels", ">>Adapter Content"};
+  public static final String[] MODULES_TO_EXTRACT = {">>Sequence Duplication Levels",
+                                                     ">>Adapter Content"};
   public static final String FASTA_QC_LOCATION_COMMAND = "fastaQCLocation=";
   public static final String NUM_THREADS_COMMAND = "numThreads=";
   private final String fastQCLocation;
@@ -148,10 +148,11 @@ public class FastQC {
             }
             if (currentModule.startsWith("Per_sequence_GC_content")) {
               String gcOutSame = rootOutputDir + currentModule + "same_plot";
-              RScatter gcContentSame =
-                  new RScatter(currentOutput, gcOutSame + ".rscript",
-                               ext.removeDirectoryInfo(gcOutSame), gcOutSame + ".jpeg",
-                               "GC Content", new String[] {"Count"}, null, SCATTER_TYPE.POINT, log);
+              RScatter gcContentSame = new RScatter(currentOutput, gcOutSame + ".rscript",
+                                                    ext.removeDirectoryInfo(gcOutSame),
+                                                    gcOutSame + ".jpeg", "GC Content",
+                                                    new String[] {"Count"}, null,
+                                                    SCATTER_TYPE.POINT, log);
               gcContentSame.setyLabel("Read Count");
               gcContentSame.setxLabel("GC content");
               gcContentSame.setTitle(currentModule);
@@ -159,10 +160,10 @@ public class FastQC {
               rscaScatters.add(gcContentSame);
 
               String gcOut = rootOutputDir + currentModule + "_plot";
-              RScatter gcContent =
-                  new RScatter(currentOutput, gcOut + ".rscript", ext.removeDirectoryInfo(gcOut),
-                               gcOut + ".jpeg", "GC Content", new String[] {"Count"}, "Sample",
-                               SCATTER_TYPE.POINT, log);
+              RScatter gcContent = new RScatter(currentOutput, gcOut + ".rscript",
+                                                ext.removeDirectoryInfo(gcOut), gcOut + ".jpeg",
+                                                "GC Content", new String[] {"Count"}, "Sample",
+                                                SCATTER_TYPE.POINT, log);
               gcContent.setyLabel("Read Count");
               gcContent.setxLabel("GC content");
               gcContent.setTitle(currentModule);
@@ -170,11 +171,11 @@ public class FastQC {
               rscaScatters.add(gcContent);
             } else if (currentModule.startsWith("Per_base_sequence_quality")) {
               String qual = rootOutputDir + currentModule + "_plot";
-              RScatter qualPlot =
-                  new RScatter(currentOutput, qual + ".rscript", ext.removeDirectoryInfo(qual),
-                               qual + ".jpeg", "InternalKey",
-                               new String[] {"Mean", "Median", "Lower Quartile"}, null,
-                               SCATTER_TYPE.POINT, log);
+              RScatter qualPlot = new RScatter(currentOutput, qual + ".rscript",
+                                               ext.removeDirectoryInfo(qual), qual + ".jpeg",
+                                               "InternalKey",
+                                               new String[] {"Mean", "Median", "Lower Quartile"},
+                                               null, SCATTER_TYPE.POINT, log);
               qualPlot.setyLabel("Phred");
               qualPlot.setxLabel("Base");
               qualPlot.setTitle(currentModule);
@@ -183,28 +184,28 @@ public class FastQC {
               rscaScatters.add(qualPlot);
 
               String errorQual = rootOutputDir + currentModule + "Error_plot";
-              RScatter qualError =
-                  new RScatter(currentOutput, errorQual + ".rscript",
-                               ext.removeDirectoryInfo(errorQual), errorQual + ".jpeg",
-                               "InternalKey", new String[] {"Median"}, null, SCATTER_TYPE.POINT,
-                               log);
+              RScatter qualError = new RScatter(currentOutput, errorQual + ".rscript",
+                                                ext.removeDirectoryInfo(errorQual),
+                                                errorQual + ".jpeg", "InternalKey",
+                                                new String[] {"Median"}, null, SCATTER_TYPE.POINT,
+                                                log);
               qualError.setyLabel("Phred");
               qualError.setxLabel("Base");
               qualError.setTitle(currentModule);
               qualError.setOverWriteExisting(true);
               ErrorBars errorBars =
-                  new ErrorBars(new String[] {"Median"},
-                                new String[] {"Lower Quartile", "Upper Quartile"});
+                                  new ErrorBars(new String[] {"Median"},
+                                                new String[] {"Lower Quartile", "Upper Quartile"});
               errorBars.setDoubleCoded(true);
               qualError.setErrorBars(errorBars);
               rscaScatters.add(qualError);
 
               String justMedian = rootOutputDir + currentModule + "Median_plot";
-              RScatter qualMedian =
-                  new RScatter(currentOutput, justMedian + ".rscript",
-                               ext.removeDirectoryInfo(justMedian), justMedian + ".jpeg",
-                               "InternalKey", new String[] {"Median"}, null, SCATTER_TYPE.POINT,
-                               log);
+              RScatter qualMedian = new RScatter(currentOutput, justMedian + ".rscript",
+                                                 ext.removeDirectoryInfo(justMedian),
+                                                 justMedian + ".jpeg", "InternalKey",
+                                                 new String[] {"Median"}, null, SCATTER_TYPE.POINT,
+                                                 log);
               qualMedian.setyLabel("Phred");
               qualMedian.setxLabel("Base");
               qualMedian.setTitle(currentModule);
@@ -215,12 +216,12 @@ public class FastQC {
 
             } else if (currentModule.startsWith("Adapter_Content")) {
               String gcOut = rootOutputDir + currentModule + "_plot";
-              RScatter gcContent =
-                  new RScatter(currentOutput, gcOut + ".rscript", ext.removeDirectoryInfo(gcOut),
-                               gcOut + ".jpeg", "Position",
-                               new String[] {"Illumina Universal Adapter",
-                                             "Illumina Small RNA Adapter", "Nextera Transposase Sequence"},
-                               null, SCATTER_TYPE.POINT, log);
+              RScatter gcContent = new RScatter(currentOutput, gcOut + ".rscript",
+                                                ext.removeDirectoryInfo(gcOut), gcOut + ".jpeg",
+                                                "Position",
+                                                new String[] {"Illumina Universal Adapter",
+                                                              "Illumina Small RNA Adapter", "Nextera Transposase Sequence"},
+                                                null, SCATTER_TYPE.POINT, log);
               gcContent.setyLabel("Adapter Content");
               gcContent.setxLabel("Position");
               gcContent.setTitle(currentModule);
@@ -228,10 +229,11 @@ public class FastQC {
               rscaScatters.add(gcContent);
             } else if (currentModule.startsWith("Sequence_Duplication_Levels")) {
               String gcOut = rootOutputDir + currentModule + "_plot";
-              RScatter seqQuality =
-                  new RScatter(currentOutput, gcOut + ".rscript", ext.removeDirectoryInfo(gcOut),
-                               gcOut + ".jpeg", "Duplication Level",
-                               new String[] {"Percentage of total"}, null, SCATTER_TYPE.POINT, log);
+              RScatter seqQuality = new RScatter(currentOutput, gcOut + ".rscript",
+                                                 ext.removeDirectoryInfo(gcOut), gcOut + ".jpeg",
+                                                 "Duplication Level",
+                                                 new String[] {"Percentage of total"}, null,
+                                                 SCATTER_TYPE.POINT, log);
               seqQuality.setyLabel("Duplication Percent");
               seqQuality.setxLabel("Duplication Level");
               seqQuality.setTitle(currentModule);
@@ -241,9 +243,10 @@ public class FastQC {
             } else if (currentModule.startsWith("Per_sequence_quality_scores")) {
               String outSame = rootOutputDir + currentModule + "same_plot";
               RScatter seqQuality =
-                  new RScatter(currentOutput, outSame + ".rscript",
-                               ext.removeDirectoryInfo(outSame), outSame + ".jpeg", "Quality",
-                               new String[] {"Count"}, null, SCATTER_TYPE.POINT, log);
+                                  new RScatter(currentOutput, outSame + ".rscript",
+                                               ext.removeDirectoryInfo(outSame), outSame + ".jpeg",
+                                               "Quality", new String[] {"Count"}, null,
+                                               SCATTER_TYPE.POINT, log);
               seqQuality.setyLabel("Read Count");
               seqQuality.setxLabel("Sequence Quality");
               seqQuality.setTitle(currentModule);
@@ -252,10 +255,10 @@ public class FastQC {
               rscaScatters.add(seqQuality);
 
               String out = rootOutputDir + currentModule + "_plot";
-              RScatter seqQualitySample =
-                  new RScatter(currentOutput, out + ".rscript", ext.removeDirectoryInfo(out),
-                               out + ".jpeg", "Quality", new String[] {"Count"}, "Sample",
-                               SCATTER_TYPE.POINT, log);
+              RScatter seqQualitySample = new RScatter(currentOutput, out + ".rscript",
+                                                       ext.removeDirectoryInfo(out), out + ".jpeg",
+                                                       "Quality", new String[] {"Count"}, "Sample",
+                                                       SCATTER_TYPE.POINT, log);
               seqQualitySample.setyLabel("Read Count");
               seqQualitySample.setxLabel("Sequence Quality");
               seqQualitySample.setTitle(currentModule);
@@ -266,9 +269,10 @@ public class FastQC {
           }
           String finalOut = rootOutputDir + "FastQC_summary";
           RScatters rscScatters =
-              new RScatters(rscaScatters.toArray(new RScatter[rscaScatters.size()]),
-                            finalOut + ".rscript", finalOut + ".pdf",
-                            COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
+                                new RScatters(rscaScatters.toArray(new RScatter[rscaScatters.size()]),
+                                              finalOut + ".rscript", finalOut + ".pdf",
+                                              COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1,
+                                              PLOT_DEVICE.PDF, log);
           rscScatters.execute();
         }
       }
@@ -278,7 +282,7 @@ public class FastQC {
   private static FastaQCModuleResults[] parseFastaQCResult(String fullPathFastQCZipFile,
                                                            boolean allModules, Logger log) {
     ArrayList<FastaQCModuleResults> fastaQCModuleResults =
-        new ArrayList<FastQC.FastaQCModuleResults>(10);
+                                                         new ArrayList<FastQC.FastaQCModuleResults>(10);
     try {
       ZipFile zipFile = new ZipFile(fullPathFastQCZipFile);
       Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -429,10 +433,10 @@ public class FastQC {
         log.report(ext.getTime() + " Info - beginning fastaQC for " + fastaQFile);
       }
       boolean success =
-          CmdLine.runCommandWithFileChecks(command, "", new String[] {fastaQFile},
-                                           new String[] {baseOutput + FASTQC_ZIP,
-                                                         baseOutput + FASTQC_HTML},
-                                           verbose, overWriteExistingOutput, true, log);
+                      CmdLine.runCommandWithFileChecks(command, "", new String[] {fastaQFile},
+                                                       new String[] {baseOutput + FASTQC_ZIP,
+                                                                     baseOutput + FASTQC_HTML},
+                                                       verbose, overWriteExistingOutput, true, log);
       if (verbose && success) {
         log.report(ext.getTime() + " Info - finished fastaQC for " + fastaQFile);
       } else if (!success) {

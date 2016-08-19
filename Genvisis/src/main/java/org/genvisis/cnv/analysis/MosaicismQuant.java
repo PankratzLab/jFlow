@@ -1,8 +1,5 @@
 package org.genvisis.cnv.analysis;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -41,6 +38,9 @@ import org.genvisis.stats.Rscript.PLOT_DEVICE;
 import org.genvisis.stats.Rscript.RScatter;
 import org.genvisis.stats.Rscript.RScatters;
 import org.genvisis.stats.Rscript.SCATTER_TYPE;
+
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
 
 import be.ac.ulg.montefiore.run.distributions.GaussianMixtureDistribution;
 
@@ -122,7 +122,7 @@ public class MosaicismQuant implements Calcfc {
   }
 
   /**
-   * 
+   *
    * Loads current sample and controls, develops cdfs
    */
   public void prepareMosiacQuant(int numThreads, double minBaf, double maxBaf) {
@@ -251,15 +251,15 @@ public class MosaicismQuant implements Calcfc {
       controlDataNames.add(proj.getSamples()[sorted[minIndex]]);
     }
 
-    double[] distanceToSample =
-        Array.InplaceAbs(Array.InplaceSub(Doubles.toArray(controlData), sampData));
+    double[] distanceToSample = Array.InplaceAbs(Array.InplaceSub(Doubles.toArray(controlData),
+                                                                  sampData));
     int[] minDists = Sort.quicksort(distanceToSample);
 
     for (int i = 0; i < controls.length; i++) {
       int index = minDists[i];
-      SampleMosiacBase control =
-          new SampleMosiacBase(proj, controlDataNames.get(index), qcMetric, controlData.get(index),
-                               distanceToSample[index], true);
+      SampleMosiacBase control = new SampleMosiacBase(proj, controlDataNames.get(index), qcMetric,
+                                                      controlData.get(index),
+                                                      distanceToSample[index], true);
       controls[i] = control;
     }
     return new SampleMosiac(proj, sampleName, qcMetric, sampData, controls);
@@ -297,7 +297,9 @@ public class MosaicismQuant implements Calcfc {
       if (!loaded) {
         load();
         WorkerHive<SampleMosiacBase> hive =
-            new WorkerHive<MosaicismQuant.SampleMosiacBase>(numThreads, 10, getProj().getLog());
+                                          new WorkerHive<MosaicismQuant.SampleMosiacBase>(numThreads,
+                                                                                          10,
+                                                                                          getProj().getLog());
         for (SampleMosiacBase control2 : controls) {
           hive.addCallable(control2);
         }
@@ -444,10 +446,10 @@ public class MosaicismQuant implements Calcfc {
 
     protected void developCDF(MarkerSet markerSet, int[][] indicesByChr, Segment seg, double minBaf,
                               double maxBaf, int numControlForce) {
-      BafSelection bafSelection =
-          selectBafs(markerSet, indicesByChr, seg, minBaf, maxBaf, numControlForce);
-      double[] bafs =
-          CNVCaller.adjustBaf(bafSelection.getBafs(), minBaf, maxBaf, false, proj.getLog());
+      BafSelection bafSelection = selectBafs(markerSet, indicesByChr, seg, minBaf, maxBaf,
+                                             numControlForce);
+      double[] bafs = CNVCaller.adjustBaf(bafSelection.getBafs(), minBaf, maxBaf, false,
+                                          proj.getLog());
       cdf = new CDF(new BafSelection(bafs, bafSelection.getProjectIndices()));
     }
 
@@ -586,7 +588,7 @@ public class MosaicismQuant implements Calcfc {
 
   public static class MosaicQuantResults implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final String sample;
@@ -643,7 +645,7 @@ public class MosaicismQuant implements Calcfc {
       this.bins = new LocusSet<Segment>(bins, true, proj.getLog()) {
 
         /**
-         * 
+         *
          */
         private static final long serialVersionUID = 1L;
 
@@ -692,9 +694,11 @@ public class MosaicismQuant implements Calcfc {
           // System.out.println("Num Markers\t" + numMarkers[j][i]);
           if (numMarkers[j][i] > 0) {
             double[] x = params.getX();
-            CobylaExitStatus cobylaExitStatus =
-                Cobyla.FindMinimum(mosiacismQuant, params.getX().length, params.getCon().length, x,
-                                   params.getX_Bounds(), 100, .001, 0, 50000);
+            CobylaExitStatus cobylaExitStatus = Cobyla.FindMinimum(mosiacismQuant,
+                                                                   params.getX().length,
+                                                                   params.getCon().length, x,
+                                                                   params.getX_Bounds(), 100, .001,
+                                                                   0, 50000);
             switch (cobylaExitStatus) {
               case DivergingRoundingErrors:
                 proj.getLog()
@@ -728,8 +732,8 @@ public class MosaicismQuant implements Calcfc {
 
       }
       for (int i = 0; i < results.length; i++) {
-        results[i] =
-            new MosaicQuantResults(sample, fs[i], shifts[i], numMarkers[i], numErrors, types[i]);
+        results[i] = new MosaicQuantResults(sample, fs[i], shifts[i], numMarkers[i], numErrors,
+                                            types[i]);
       }
       return results;
     }
@@ -761,8 +765,8 @@ public class MosaicismQuant implements Calcfc {
 
     @Override
     public Callable<MosaicQuantResults[]> next() {
-      MosaicQuantWorker worker =
-          new MosaicQuantWorker(bins, proj, samples[index], types, numControls);
+      MosaicQuantWorker worker = new MosaicQuantWorker(bins, proj, samples[index], types,
+                                                       numControls);
       index++;
       return worker;
     }
@@ -770,7 +774,7 @@ public class MosaicismQuant implements Calcfc {
 
   public static class FullMosiacResults implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final MosaicQuantResults[] sampleMosaicQuantResults;
@@ -812,14 +816,17 @@ public class MosaicismQuant implements Calcfc {
     String ser = rootOut + ".ser";
     if (!Files.exists(ser)) {
       ReferenceGenome referenceGenome =
-          new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog());
+                                      new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
+                                                          proj.getLog());
 
       LocusSet<Segment> set = referenceGenome.getBins(bpWindow);
-      MosaicQuantProducer mProducer =
-          new MosaicQuantProducer(proj, proj.getSamples(), set, MOSAIC_TYPE.values(), numControls);
+      MosaicQuantProducer mProducer = new MosaicQuantProducer(proj, proj.getSamples(), set,
+                                                              MOSAIC_TYPE.values(), numControls);
       WorkerTrain<MosaicQuantResults[]> train =
-          new WorkerTrain<MosaicismQuant.MosaicQuantResults[]>(mProducer, numThreads, 1,
-                                                               proj.getLog());
+                                              new WorkerTrain<MosaicismQuant.MosaicQuantResults[]>(mProducer,
+                                                                                                   numThreads,
+                                                                                                   1,
+                                                                                                   proj.getLog());
 
       try {
         PrintWriter writer = new PrintWriter(new FileWriter(out));
@@ -829,7 +836,7 @@ public class MosaicismQuant implements Calcfc {
         }
         writer.println();
         MosaicQuantResults[] sampleMosaicQuantResults =
-            new MosaicQuantResults[proj.getSamples().length];
+                                                      new MosaicQuantResults[proj.getSamples().length];
         int index = 0;
         while (train.hasNext()) {
 
@@ -880,20 +887,20 @@ public class MosaicismQuant implements Calcfc {
     // Segment segTest = new Segment("chr17:42,963,198-78,940,173");
     // Segment segTest = new Segment("chr17:42,963,198-78,940,173");
     Segment segTest = new Segment((byte) 11, 0, Integer.MAX_VALUE);
-    int[] currentIndices =
-        ext.indexLargeFactors(markerSet.getMarkersIn(segTest, indices), markerSet.getMarkerNames(),
-                              true, proj.getLog(), true, false);
+    int[] currentIndices = ext.indexLargeFactors(markerSet.getMarkersIn(segTest, indices),
+                                                 markerSet.getMarkerNames(), true, proj.getLog(),
+                                                 true, false);
     MosaicParamsBuilder builder = new MosaicParamsBuilder();
     ComputeParams params = builder.build();
     MosaicismQuant mosiacismQuant =
-        new MosaicismQuant(proj, sampleMosiac, MOSAIC_TYPE.TRISOMY_DISOMY, params, segTest,
-                           markerSet, indices);
+                                  new MosaicismQuant(proj, sampleMosiac, MOSAIC_TYPE.TRISOMY_DISOMY,
+                                                     params, segTest, markerSet, indices);
     mosiacismQuant.prepareMosiacQuant(5, MIN_BAF, MAX_BAF);
 
     String testDir = proj.PROJECT_DIRECTORY.getValue() + "TestMosaic/";
     new File(testDir).mkdirs();
-    String out =
-        testDir + ext.replaceWithLinuxSafeCharacters(segTest.getUCSClocation(), true) + ".txt";
+    String out = testDir + ext.replaceWithLinuxSafeCharacters(segTest.getUCSClocation(), true)
+                 + ".txt";
     int[] autosomal = proj.getAutosomalMarkerIndices();
     double[] val0_33 = Array.getValuesBetween(
                                               Array.toDoubleArray(Array.subArray(mosiacismQuant.getSampleMosiac()
@@ -1004,45 +1011,46 @@ public class MosaicismQuant implements Calcfc {
       writer.close();
       String outBase = out + ".base";
       ArrayList<RScatter> rd = new ArrayList<RScatter>();
-      RScatter rsScatter =
-          new RScatter(out, outBase + ".rscript", ext.removeDirectoryInfo(outBase),
-                       outBase + ".jpeg", "Position", new String[] {"Baf", "Pval", "BaseLinePval"},
-                       SCATTER_TYPE.POINT, proj.getLog());
+      RScatter rsScatter = new RScatter(out, outBase + ".rscript", ext.removeDirectoryInfo(outBase),
+                                        outBase + ".jpeg", "Position",
+                                        new String[] {"Baf", "Pval", "BaseLinePval"},
+                                        SCATTER_TYPE.POINT, proj.getLog());
       rsScatter.setOverWriteExisting(true);
       rsScatter.execute();
       rd.add(rsScatter);
       String outMA = out + ".ma";
-      RScatter rsScatterMa =
-          new RScatter(out, outMA + ".rscript", ext.removeDirectoryInfo(outMA), outMA + ".jpeg",
-                       "Position", Array.concatAll(new String[] {"Baf", "BaseLinePval"}, MAtitles),
-                       SCATTER_TYPE.POINT, proj.getLog());
+      RScatter rsScatterMa = new RScatter(out, outMA + ".rscript", ext.removeDirectoryInfo(outMA),
+                                          outMA + ".jpeg", "Position",
+                                          Array.concatAll(new String[] {"Baf", "BaseLinePval"},
+                                                          MAtitles),
+                                          SCATTER_TYPE.POINT, proj.getLog());
       rsScatterMa.setOverWriteExisting(true);
       rsScatterMa.execute();
       rd.add(rsScatterMa);
       String outMA50 = out + ".ma50";
 
       RScatter rsScatter50 =
-          new RScatter(out, outMA50 + ".rscript", ext.removeDirectoryInfo(outMA50),
-                       outMA50 + ".jpeg", "Position",
-                       new String[] {"Baf", "Pval", "MA50", "BaseLinePval"}, SCATTER_TYPE.POINT,
-                       proj.getLog());
+                           new RScatter(out, outMA50 + ".rscript", ext.removeDirectoryInfo(outMA50),
+                                        outMA50 + ".jpeg", "Position",
+                                        new String[] {"Baf", "Pval", "MA50", "BaseLinePval"},
+                                        SCATTER_TYPE.POINT, proj.getLog());
       rsScatter50.setOverWriteExisting(true);
       rsScatter50.execute();
       rd.add(rsScatter50);
       String outRand = out + ".rand";
 
-      RScatter rsScatterRand =
-          new RScatter(out, outRand + ".rscript", ext.removeDirectoryInfo(outRand),
-                       outRand + ".jpeg", "Position", new String[] {"Baf", "RandBaf"},
-                       SCATTER_TYPE.POINT, proj.getLog());
+      RScatter rsScatterRand = new RScatter(out, outRand + ".rscript",
+                                            ext.removeDirectoryInfo(outRand), outRand + ".jpeg",
+                                            "Position", new String[] {"Baf", "RandBaf"},
+                                            SCATTER_TYPE.POINT, proj.getLog());
       rsScatterRand.setOverWriteExisting(true);
       // rsScatterRand.setTitle("Sample SD=" + sd + ", mean=" + mean);
       rsScatterRand.execute();
       rd.add(rsScatterRand);
 
-      RScatters rScatters =
-          new RScatters(rd.toArray(new RScatter[rd.size()]), out + ".rscript", out + ".pdf",
-                        COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
+      RScatters rScatters = new RScatters(rd.toArray(new RScatter[rd.size()]), out + ".rscript",
+                                          out + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1,
+                                          PLOT_DEVICE.PDF, proj.getLog());
       rScatters.execute();
     } catch (Exception e) {
       proj.getLog().reportError("Error writing to " + out);

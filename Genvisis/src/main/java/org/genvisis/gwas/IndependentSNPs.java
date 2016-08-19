@@ -15,8 +15,6 @@
 //
 package org.genvisis.gwas;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -42,13 +40,15 @@ import org.genvisis.filesys.LongLDdb;
 import org.genvisis.filesys.ResultSet;
 import org.genvisis.filesys.SnpMarkerSet;
 
+import com.google.common.primitives.Ints;
+
 public class IndependentSNPs {
   // public static final float DEFAULT_PVAL_THRESHOLD = 5E-4;
   public static final float DEFAULT_PVAL_THRESHOLD = 1;
   public static final float DEFAULT_R2_THRESHOLD = 0.80f;
   // public static final float DEFAULT_R2_THRESHOLD = 0.05f;
   public static final String DEFAULT_DIR_ILLUMINA_SCORES =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\selection_db\\";
+                                                         "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\selection_db\\";
   // public static final String DEFAULT_DIR_ILLUMINA_SCORES = null;
   // public static final String DEFAULT_FORCED_DATASET =
   // "/home/npankrat/NCBI/HapMap/CEU_660/CEU_660_founders.bim";
@@ -57,10 +57,10 @@ public class IndependentSNPs {
   // "preferredTags.dat";
   public static final String DEFAULT_FORCE_INCLUDE_BEFORE_TAGGING_IF_MEETS_CRITERIA = null;
   public static final String DEFAULT_FORCE_INCLUDE_AFTER_TAGGING_IF_MEETS_CRITERIA =
-      "common_nonsynonymous+UTR.dat";
+                                                                                   "common_nonsynonymous+UTR.dat";
   public static final String DEFAULT_FORCE_INCLUDE_REGARDLESS = "missingGenotypes.dat";
-  public static final String[] ILLUMINA_TARGET_COLUMNS =
-      {"Locus_Name", "Failure_Message", "Final_Score"};
+  public static final String[] ILLUMINA_TARGET_COLUMNS = {"Locus_Name", "Failure_Message",
+                                                          "Final_Score"};
   // public static final float DEFAULT_SCORE_THRESHOLD = 0;
   public static final String DEFAULT_SCORE_THRESHOLDS = "0.4<1E-5;0.6";
   public static final float DEFAULT_SCORE_DIFF_THRESHOLD = 0.2f;
@@ -350,9 +350,9 @@ public class IndependentSNPs {
           for (int j = 0; j < 2; j++) {
             offset = j == 0 ? -1 : 1;
             for (int k =
-                1; index + k * offset >= 0 && index + k * offset < pvals.length
-                   && Math.abs(positions[index]
-                               - positions[index + k * offset]) < LDdatabase.BP_LIMIT; k++) {
+                       1; index + k * offset >= 0 && index + k * offset < pvals.length
+                          && Math.abs(positions[index]
+                                      - positions[index + k * offset]) < LDdatabase.BP_LIMIT; k++) {
               if (pvals[index + k * offset] < 2) {
                 r2 = LDdatabase.multiCheck(chrLDdbs, subset[index], subset[index + k * offset],
                                            r2_compType, log);
@@ -458,8 +458,8 @@ public class IndependentSNPs {
 
     try {
       writer =
-          new PrintWriter(new FileWriter(dir + (outputRoot == null ? pval_threshold : outputRoot)
-                                         + "_summary.xln"));
+             new PrintWriter(new FileWriter(dir + (outputRoot == null ? pval_threshold : outputRoot)
+                                            + "_summary.xln"));
       writer.println("\tp<" + pval_threshold);
       writer.println("Total SNPs meeting threshold" + "\t" + iv.size());
       writer.println("Independent index SNPs meeting threshold" + "\t" + tags.size());
@@ -808,7 +808,7 @@ public class IndependentSNPs {
     // String filename = "hits_wMAF_GTE0.024_described.xln";
 
     String dir =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\analysisOfImputation\\Aff_AAO_combo\\";
+               "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\analysisOfImputation\\Aff_AAO_combo\\";
     String filename = "minComputed.xln";
 
     // String dir = "C:\\Documents and Settings\\npankrat\\My
@@ -819,9 +819,9 @@ public class IndependentSNPs {
     // Documents\\tWork\\Consortium\\Fst\\Discovery\\TopFst\\";
     // String filename = "TopFst.txt";
 
-    String usage =
-        "\n" + "gwas.IndependentSNPs requires 0-1 arguments\n" + "   (1) directory (i.e. dir=" + dir
-                   + " (default))\n" + "   (2) filename (i.e. file=" + filename + " (default))\n"
+    String usage = "\n" + "gwas.IndependentSNPs requires 0-1 arguments\n"
+                   + "   (1) directory (i.e. dir=" + dir + " (default))\n"
+                   + "   (2) filename (i.e. file=" + filename + " (default))\n"
                    + "   (3) roots of PLINK files to test for LD (i.e. ldRoots=" + ldRoots
                    + " (default; separate roots with semicolon))\n"
                    + "   (4) r^2 threshold (i.e. r2=" + r2_threshold + " (default))\n"

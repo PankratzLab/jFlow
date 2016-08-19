@@ -1,7 +1,5 @@
 package org.genvisis.cnv.analysis.pca;
 
-import com.google.common.primitives.Ints;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -22,6 +20,8 @@ import org.genvisis.stats.SimpleM;
 import org.genvisis.stats.StatsCrossTabs.STAT_TYPE;
 import org.genvisis.stats.StatsCrossTabs.StatsCrossTabRank;
 import org.genvisis.stats.StatsCrossTabs.VALUE_TYPE;
+
+import com.google.common.primitives.Ints;
 
 /**
  * @author lane0212 <br>
@@ -92,8 +92,9 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
     String currentQC = LrrSd.NUMERIC_COLUMNS[index];
     proj.getLog().reportTimeInfo("Analyzing QC metric " + currentQC);
     StatsCrossTabRank sRank =
-        pResiduals.getStatRankFor(sampleQC.getDataFor(LrrSd.NUMERIC_COLUMNS[index]), null, null,
-                                  currentQC, sType, VALUE_TYPE.STAT, false, 1, proj.getLog());
+                            pResiduals.getStatRankFor(sampleQC.getDataFor(LrrSd.NUMERIC_COLUMNS[index]),
+                                                      null, null, currentQC, sType, VALUE_TYPE.STAT,
+                                                      false, 1, proj.getLog());
     index++;
     return sRank;
   }
@@ -209,16 +210,18 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
       String[] titles = summarize(ranks, selector.getpResiduals().getPcTitles(), null, outputAll);
       summarize(ranks, selector.getpResiduals().getPcTitles(), finalSelection, outputSelect);
 
-      RScatter rScatterAll =
-          plot(proj, sType, " n=" + selector.getpResiduals().getPcTitles().length + " total PCs",
-               selector.getpResiduals().getPcTitles().length + 1, outputAll, titles);
-      RScatter rScatterSelect =
-          plot(proj, sType, title + "; n=" + sigPCs.size() + " QC PCs",
-               selector.getpResiduals().getPcTitles().length + 1, outputSelect, titles);
+      RScatter rScatterAll = plot(proj, sType,
+                                  " n=" + selector.getpResiduals().getPcTitles().length
+                                               + " total PCs",
+                                  selector.getpResiduals().getPcTitles().length + 1, outputAll,
+                                  titles);
+      RScatter rScatterSelect = plot(proj, sType, title + "; n=" + sigPCs.size() + " QC PCs",
+                                     selector.getpResiduals().getPcTitles().length + 1,
+                                     outputSelect, titles);
 
-      RScatters rScatters =
-          new RScatters(new RScatter[] {rScatterAll, rScatterSelect}, outputBoth + ".rscript",
-                        outputBoth + ".pdf", null, PLOT_DEVICE.PDF, proj.getLog());
+      RScatters rScatters = new RScatters(new RScatter[] {rScatterAll, rScatterSelect},
+                                          outputBoth + ".rscript", outputBoth + ".pdf", null,
+                                          PLOT_DEVICE.PDF, proj.getLog());
       rScatters.execute();
       rankResult = new SelectionResult(Ints.toArray(sigPCs), rScatterAll, rScatterSelect);
 
@@ -229,8 +232,8 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
   private static RScatter plot(Project proj, STAT_TYPE sType, String title, int xmax, String output,
                                String[] titles) {
     RScatter rScatter =
-        new RScatter(output, output + ".rscript", ext.rootOf(output), output + ".pdf", "PC", titles,
-                     SCATTER_TYPE.POINT, proj.getLog());
+                      new RScatter(output, output + ".rscript", ext.rootOf(output), output + ".pdf",
+                                   "PC", titles, SCATTER_TYPE.POINT, proj.getLog());
     rScatter.setyLabel(sType.toString());
     rScatter.setOverWriteExisting(true);
     rScatter.setxLabel("PC");
@@ -300,7 +303,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
     String usage = "\n" + "cnv.analysis.pca.PCSelector requires 0-1 arguments\n";
     usage += "   (1) project filename (i.e. proj=" + filename + " ( no default))\n" + "";
     usage +=
-        "   (2) the minimum (absolute value of the test statistic) across all qc metrics (i.e. statMin="
+          "   (2) the minimum (absolute value of the test statistic) across all qc metrics (i.e. statMin="
              + absStatMin + " (default))\n" + "";
 
     for (String arg : args) {

@@ -9,12 +9,14 @@ import org.genvisis.filesys.CNVariant;
 public class MosaicRegion extends CNVariant implements Serializable {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   public static final String[] ADD_HEADER =
-      new String[] {"bpWeightedScore", "nearestStatScore", "pdfScore", "delta", "f", "customF",
-                    "numFMarkers", "numCustomFMarkers", "beastScore", "beastHeight", "beastLength"};
+                                          new String[] {"bpWeightedScore", "nearestStatScore",
+                                                        "pdfScore", "delta", "f", "customF",
+                                                        "numFMarkers", "numCustomFMarkers",
+                                                        "beastScore", "beastHeight", "beastLength"};
   private final double nearestStateScore;
   private final double bpWeightedScore;
   private final double pdfScore;

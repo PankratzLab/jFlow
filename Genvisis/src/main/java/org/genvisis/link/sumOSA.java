@@ -169,8 +169,8 @@ public class sumOSA {
         if (!new File(temp).exists() || !(new BufferedReader(new FileReader(temp))).ready()) {
           continue;
         }
-        osac[i][j] =
-            new osaChrom(Integer.valueOf(cutLookup.elementAt(cutLookup.size() - 1)).intValue());
+        osac[i][j] = new osaChrom(Integer.valueOf(cutLookup.elementAt(cutLookup.size() - 1))
+                                         .intValue());
 
         reader = new BufferedReader(new FileReader(temp));
         reader.readLine();

@@ -45,8 +45,6 @@ import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.GenvisisWorkflow;
@@ -57,6 +55,8 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
 
+import net.miginfocom.swing.MigLayout;
+
 public class GenvisisWorkflowGUI extends JDialog {
 
   private static final long serialVersionUID = 1L;
@@ -65,22 +65,22 @@ public class GenvisisWorkflowGUI extends JDialog {
 
 
   private final ConcurrentHashMap<STEP, JCheckBox> checkBoxes =
-      new ConcurrentHashMap<STEP, JCheckBox>();
+                                                              new ConcurrentHashMap<STEP, JCheckBox>();
   private final ConcurrentHashMap<STEP, JLabel> descLabels = new ConcurrentHashMap<STEP, JLabel>();
   private final ConcurrentHashMap<STEP, ArrayList<JLabel>> requirementsLabels =
-      new ConcurrentHashMap<STEP, ArrayList<JLabel>>();
+                                                                              new ConcurrentHashMap<STEP, ArrayList<JLabel>>();
   private final ConcurrentHashMap<STEP, JAccordionPanel> panels =
-      new ConcurrentHashMap<GenvisisWorkflow.STEP, JAccordionPanel>();
+                                                                new ConcurrentHashMap<GenvisisWorkflow.STEP, JAccordionPanel>();
   public ConcurrentHashMap<STEP, ArrayList<? extends JComponent>> varFields =
-      new ConcurrentHashMap<GenvisisWorkflow.STEP, ArrayList<? extends JComponent>>();
+                                                                            new ConcurrentHashMap<GenvisisWorkflow.STEP, ArrayList<? extends JComponent>>();
   public ConcurrentHashMap<STEP, JProgressBar> progBars =
-      new ConcurrentHashMap<GenvisisWorkflow.STEP, JProgressBar>();
+                                                        new ConcurrentHashMap<GenvisisWorkflow.STEP, JProgressBar>();
   public ConcurrentHashMap<STEP, ArrayList<JButton>> fileBtns =
-      new ConcurrentHashMap<GenvisisWorkflow.STEP, ArrayList<JButton>>();
+                                                              new ConcurrentHashMap<GenvisisWorkflow.STEP, ArrayList<JButton>>();
   public ConcurrentHashMap<STEP, JLabel> alreadyRunLbls =
-      new ConcurrentHashMap<GenvisisWorkflow.STEP, JLabel>();
+                                                        new ConcurrentHashMap<GenvisisWorkflow.STEP, JLabel>();
   public ConcurrentHashMap<STEP, JButton> cancelStepBtns =
-      new ConcurrentHashMap<GenvisisWorkflow.STEP, JButton>();
+                                                         new ConcurrentHashMap<GenvisisWorkflow.STEP, JButton>();
 
   Project proj;
 
@@ -431,7 +431,7 @@ public class GenvisisWorkflowGUI extends JDialog {
     final JCheckBox chckbx = new JCheckBox();
     chckbx.setAction(new StepRefresher(GenvisisWorkflowGUI.this, step) {
       /**
-      * 
+      *
       */
       private static final long serialVersionUID = 1L;
 
@@ -494,8 +494,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 
         for (int j = 0; j < reqs[i].length; j++) {
           // OR
-          JLabel indLbl =
-              new JLabel("" + (i + 1) + (reqs[i].length > 1 ? reqSteps.charAt(j) : "") + ". ");
+          JLabel indLbl = new JLabel("" + (i + 1) + (reqs[i].length > 1 ? reqSteps.charAt(j) : "")
+                                     + ". ");
           indLbl.setFont(indLbl.getFont().deriveFont(Font.PLAIN, 9));
           panel.contentPanel.add(indLbl, "gapleft 25, aligny top, split 1, cell 0 " + rowIndex);
           JLabel requirementLbl = new JLabel("<html><p>" + reqs[i][j] + "</p></html>");
@@ -654,7 +654,7 @@ public class GenvisisWorkflowGUI extends JDialog {
   public static class StepRefresher extends AbstractAction {
 
     /**
-    * 
+    *
     */
     private static final long serialVersionUID = 1L;
     private final transient Set<STEP> stepsToRefresh;
@@ -745,10 +745,9 @@ public class GenvisisWorkflowGUI extends JDialog {
                   int lblIndex = 0;
                   for (boolean[] reqVal : reqVals) {
                     boolean hasAny = Array.booleanArraySum(reqVal) > 0;
-                    for (int j = 0; j < reqVal.length; j++) {
+                    for (boolean element : reqVal) {
                       reqLbls.get(lblIndex)
-                             .setForeground(reqVal[j] ? greenDark
-                                                      : hasAny ? Color.GRAY : Color.RED);
+                             .setForeground(element ? greenDark : hasAny ? Color.GRAY : Color.RED);
                       lblIndex++;
                     }
                   }
@@ -791,7 +790,7 @@ public class GenvisisWorkflowGUI extends JDialog {
                   gui.descLabels.get(step).setForeground(dark);
                   gui.checkBoxes.get(step).setForeground(dark);
                   for (boolean[] reqVal : reqVals) {
-                    for (int j = 0; j < reqVal.length; j++) {
+                    for (boolean element : reqVal) {
                       reqLbls.get(lblIndex).setForeground(dark);
                       lblIndex++;
                     }
@@ -887,7 +886,7 @@ public class GenvisisWorkflowGUI extends JDialog {
         HashMap<STEP, ArrayList<String>> variables = getVariables();
         if (checkRequirementsAndNotify(selectedSteps, variables)) {
           StringBuilder output =
-              new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
+                               new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
           for (int i = 0; i < options.length; i++) {
             if (options[i]) {
               String cmd = steps[i].getCommandLine(proj, variables);
@@ -964,7 +963,9 @@ public class GenvisisWorkflowGUI extends JDialog {
               endStep(steps[i], code);
               if (code == FINAL_CODE.FAILED) {
                 StringBuilder failureMessage =
-                    new StringBuilder("Error Occurred on Step ").append(i + 1).append(":");
+                                             new StringBuilder("Error Occurred on Step ").append(i
+                                                                                                 + 1)
+                                                                                         .append(":");
                 if (e != null) {
                   proj.getLog().reportException(e, 0);
                   failureMessage.append("\n").append(e.getMessage());
@@ -977,11 +978,11 @@ public class GenvisisWorkflowGUI extends JDialog {
                 }
                 failureMessage.append("\nPlease check project log for more details.");
                 String[] opts = {"Continue", "Retry", "Cancel"};
-                int opt =
-                    JOptionPane.showOptionDialog(GenvisisWorkflowGUI.this,
-                                                 failureMessage.toString(), "Error!",
-                                                 JOptionPane.YES_NO_OPTION,
-                                                 JOptionPane.ERROR_MESSAGE, null, opts, opts[2]);
+                int opt = JOptionPane.showOptionDialog(GenvisisWorkflowGUI.this,
+                                                       failureMessage.toString(), "Error!",
+                                                       JOptionPane.YES_NO_OPTION,
+                                                       JOptionPane.ERROR_MESSAGE, null, opts,
+                                                       opts[2]);
                 if (opt == JOptionPane.CLOSED_OPTION || opt == 2) { // closed or cancel
                   for (STEP step : steps) {
                     step.resetRun();
@@ -1008,10 +1009,10 @@ public class GenvisisWorkflowGUI extends JDialog {
                 }
                 boolean continueExec = false;
                 if (foundMore) {
-                  int opt =
-                      JOptionPane.showConfirmDialog(GenvisisWorkflowGUI.this,
-                                                    "A step was cancelled.  Do you wish to continue?",
-                                                    "Step Cancelled", JOptionPane.YES_NO_OPTION);
+                  int opt = JOptionPane.showConfirmDialog(GenvisisWorkflowGUI.this,
+                                                          "A step was cancelled.  Do you wish to continue?",
+                                                          "Step Cancelled",
+                                                          JOptionPane.YES_NO_OPTION);
                   if (opt == JOptionPane.YES_OPTION) {
                     continueExec = true;
                   }
@@ -1052,7 +1053,7 @@ public class GenvisisWorkflowGUI extends JDialog {
     boolean retVal = true;
     if (reqMsgs.size() > 0) {
       StringBuilder msg =
-          new StringBuilder("Prerequisite requirements are unmet for the following steps:");
+                        new StringBuilder("Prerequisite requirements are unmet for the following steps:");
       for (String str : reqMsgs) {
         msg.append("\n").append(str);
       }
@@ -1064,7 +1065,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 
   private HashMap<STEP, ArrayList<String>> getVariables() {
     HashMap<STEP, ArrayList<String>> returnVars =
-        new HashMap<GenvisisWorkflow.STEP, ArrayList<String>>();
+                                                new HashMap<GenvisisWorkflow.STEP, ArrayList<String>>();
     for (Entry<STEP, ArrayList<? extends JComponent>> entry : varFields.entrySet()) {
       ArrayList<String> values = new ArrayList<String>();
       returnVars.put(entry.getKey(), values);

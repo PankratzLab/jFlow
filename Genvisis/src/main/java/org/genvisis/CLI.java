@@ -479,8 +479,8 @@ public final class CLI {
     formatter.setLongOptSeparator("=");
     formatter.setOptionComparator(null);
 
-    StringBuilder sb =
-        new StringBuilder().append(System.getProperty("line.separator")).append(errorMessage);
+    StringBuilder sb = new StringBuilder().append(System.getProperty("line.separator"))
+                                          .append(errorMessage);
     String program = appName + " [-FLAG | ARG=value]...";
     PrintWriter pw = new PrintWriter(System.out);
     formatter.printHelp(pw, OUT_WIDTH, program, "", options, HelpFormatter.DEFAULT_LEFT_PAD,

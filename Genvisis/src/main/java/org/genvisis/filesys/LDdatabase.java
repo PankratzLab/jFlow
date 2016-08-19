@@ -52,8 +52,8 @@ public class LDdatabase implements Serializable {
   public static final int REPORT_UNANIMOUS = 4;
   public static final String REPORT_INCONSISTENT = "inconsistent";
 
-  public static final String[] HAPLOVIEW_LD_HEADER =
-      {"L1", "L2", "D'", "LOD", "r^2", "CIlow", "CIhi", "Dist", "T-int"};
+  public static final String[] HAPLOVIEW_LD_HEADER = {"L1", "L2", "D'", "LOD", "r^2", "CIlow",
+                                                      "CIhi", "Dist", "T-int"};
   public static final String[] FREQ_HEADER = {"CHR", "SNP", "A1", "A2", "MAF", "NCHROBS"};
   public static final String MASTER_HAPMAP_ROOT = ext.rootOf(
                                                              Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS,
@@ -103,8 +103,8 @@ public class LDdatabase implements Serializable {
       return subHash;
     } else {
       if (chrHash == null) {
-        chrHash =
-            SnpMarkerSet.loadSnpMarkerSetToChrHash(root + ".bim", SnpMarkerSet.PLINK_BIM_FORMAT);
+        chrHash = SnpMarkerSet.loadSnpMarkerSetToChrHash(root + ".bim",
+                                                         SnpMarkerSet.PLINK_BIM_FORMAT);
       }
       return chrHash;
     }
@@ -136,7 +136,7 @@ public class LDdatabase implements Serializable {
     if (listName != null) {
       if (Files.exists(dir + listName + ".list", false)) {
         check =
-            HashVec.loadFileToStringArray(dir + listName + ".list", false, new int[] {0}, false);
+              HashVec.loadFileToStringArray(dir + listName + ".list", false, new int[] {0}, false);
         if (Array.equals(targets, check, false)) {
           unchanged = true;
           subHash = SerialHash.loadSerializedStringHash(dir + listName + ".chrHash.ser");
@@ -151,7 +151,7 @@ public class LDdatabase implements Serializable {
 
     if (chrHash == null) {
       chrHash =
-          SnpMarkerSet.loadSnpMarkerSetToChrHash(root + ".bim", SnpMarkerSet.PLINK_BIM_FORMAT);
+              SnpMarkerSet.loadSnpMarkerSetToChrHash(root + ".bim", SnpMarkerSet.PLINK_BIM_FORMAT);
     }
     subHash = new Hashtable<String, String>();
 

@@ -152,7 +152,7 @@ public class ProjectCNVFiltering {
   }
 
   /**
-   * 
+   *
    * @param cnvsAsPositions get the start and stop positions from the {@link CNVariant}s themselves
    *        so that a {@link MarkerSet} is not needed
    */
@@ -225,15 +225,15 @@ public class ProjectCNVFiltering {
       } while (numPrior > cnvs.length);
     } else if (freqFilterPrior) {
       int numPrior = cnvs.length;
-      cnvs =
-          FilterCalls.filterBasedOnNumberOfCNVsAtLocusInMemory(proj, cnvs, freqFilter.totalRequired,
-                                                               freqFilter.delRequired,
-                                                               freqFilter.dupRequired,
-                                                               freqFilter.totalLimitedTo,
-                                                               freqFilter.delLimitedTo,
-                                                               freqFilter.dupLimitedTo,
-                                                               freqFilter.proportionOfProbesThatNeedToPassForFinalInclusion,
-                                                               cnvsAsPositions);
+      cnvs = FilterCalls.filterBasedOnNumberOfCNVsAtLocusInMemory(proj, cnvs,
+                                                                  freqFilter.totalRequired,
+                                                                  freqFilter.delRequired,
+                                                                  freqFilter.dupRequired,
+                                                                  freqFilter.totalLimitedTo,
+                                                                  freqFilter.delLimitedTo,
+                                                                  freqFilter.dupLimitedTo,
+                                                                  freqFilter.proportionOfProbesThatNeedToPassForFinalInclusion,
+                                                                  cnvsAsPositions);
       log.report("CNV filtering by frequency complete: started with " + numPrior
                  + " CNVs, now have " + cnvs.length + " CNVs remaining.");
     }

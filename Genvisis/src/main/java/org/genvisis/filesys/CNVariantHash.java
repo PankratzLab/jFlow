@@ -169,7 +169,7 @@ public class CNVariantHash implements Serializable {
 
   /**
    * This method will return all of the CNVs within a specified range
-   * 
+   *
    * @param chr Which chromosome to use
    * @param start Starting position
    * @param stop Ending position
@@ -215,7 +215,7 @@ public class CNVariantHash implements Serializable {
   public static void main(String[] args) {
     int numArgs = args.length;
     String filename =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\data\\penncnv_1SNP.cnv";
+                    "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\data\\penncnv_1SNP.cnv";
 
     String usage = "\n" + "cnv.var.CNVariantHash requires 0-1 arguments\n"
                    + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";

@@ -430,9 +430,9 @@ public class CNVBurdenIterator {
     } else {
       inclGenderDataCols = dataCols;
     }
-    Hashtable<String, String> dataTable =
-        HashVec.loadFileToHashString(dataFile, idCols, inclGenderDataCols, false, "\t", true, false,
-                                     true);
+    Hashtable<String, String> dataTable = HashVec.loadFileToHashString(dataFile, idCols,
+                                                                       inclGenderDataCols, false,
+                                                                       "\t", true, false, true);
     idData = new HashMap<String, MappedData>();
     for (java.util.Map.Entry<String, String> entry : dataTable.entrySet()) {
       String[] dataLine = entry.getValue().split("\t");
@@ -531,12 +531,12 @@ public class CNVBurdenIterator {
                              + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz],
                                                                             CNV_FILTERS[cn] - 1)
                                                  : 0);
-              float smaller =
-                  sz == 0 ? 0
-                          : indiv.getValue().getCNVs(CNV_SIZES[sz - 1], CNV_FILTERS[cn])
-                            + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz - 1],
-                                                                           CNV_FILTERS[cn] - 1)
-                                                : 0);
+              float smaller = sz == 0 ? 0
+                                      : indiv.getValue().getCNVs(CNV_SIZES[sz - 1], CNV_FILTERS[cn])
+                                        + (collapseCNVTypes ? indiv.getValue()
+                                                                   .getCNVs(CNV_SIZES[sz - 1],
+                                                                            CNV_FILTERS[cn] - 1)
+                                                            : 0);
               indepVars[cnt][0] = larger - smaller;
             } else {
               indepVars[cnt][0] = indiv.getValue().getCNVs(CNV_SIZES[sz], CNV_FILTERS[cn])
@@ -626,12 +626,12 @@ public class CNVBurdenIterator {
                                                                      CNV_FILTERS[cn] - 1)
                                           : 0);
             if (stepSizes) {
-              int smaller =
-                  sz == 0 ? 0
-                          : indiv.getValue().getCNVs(CNV_SIZES[sz - 1], CNV_FILTERS[cn])
-                            + (collapseCNVTypes ? indiv.getValue().getCNVs(CNV_SIZES[sz - 1],
-                                                                           CNV_FILTERS[cn] - 1)
-                                                : 0);
+              int smaller = sz == 0 ? 0
+                                    : indiv.getValue().getCNVs(CNV_SIZES[sz - 1], CNV_FILTERS[cn])
+                                      + (collapseCNVTypes ? indiv.getValue()
+                                                                 .getCNVs(CNV_SIZES[sz - 1],
+                                                                          CNV_FILTERS[cn] - 1)
+                                                          : 0);
               val -= smaller;
             }
             counts[0][cn][sz] += val > 0 ? 1 : 0;

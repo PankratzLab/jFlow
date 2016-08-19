@@ -86,8 +86,8 @@ public class haplorParser {
 
     writers = new PrintWriter[TARGET_HAPLOTYPES.length];
     for (int i = 0; i < TARGET_HAPLOTYPES.length; i++) {
-      writers[i] =
-          new PrintWriter(new FileWriter("BRI3-haplotype-" + TARGET_HAPLOTYPES[i] + "-cases.dat"));
+      writers[i] = new PrintWriter(new FileWriter("BRI3-haplotype-" + TARGET_HAPLOTYPES[i]
+                                                  + "-cases.dat"));
       writers[i].println("UniqueID\tFamID\tIndID\thaplotype-" + TARGET_HAPLOTYPES[i]);
     }
 
@@ -324,7 +324,7 @@ public class haplorParser {
                          + translateHap(hInd.maxHap, haplotypes) + "\t"
                          + ext.formDeci(hInd.maxPost, 3, true));
             temp =
-                (Integer.valueOf(hFam.id).intValue() * 1000 + Integer.valueOf(hInd.id).intValue())
+                 (Integer.valueOf(hFam.id).intValue() * 1000 + Integer.valueOf(hInd.id).intValue())
                    + "";
             writer.println(compare ? (hash.containsKey(temp) ? "\t" + hash.get(temp) : "\t.\t.\t.")
                                    : "");

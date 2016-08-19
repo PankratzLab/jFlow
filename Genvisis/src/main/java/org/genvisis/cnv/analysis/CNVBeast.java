@@ -47,8 +47,8 @@ public class CNVBeast {
   public static final String BEAST_DELIM = "\\s+";
 
   public static final String[] BEAST_DATA_HEADER = {"probeset_id", "chr", "position", "LRR"};
-  public static final String[] BEAST_RESULTS_HEADER =
-      {"start", "end", "height", "length", "type", "score", "start_probe", "end_probe"};
+  public static final String[] BEAST_RESULTS_HEADER = {"start", "end", "height", "length", "type",
+                                                       "score", "start_probe", "end_probe"};
   public static final String[] STRANGE_BEAST_SOURCE = {"***"};
 
   private final Project proj;
@@ -89,8 +89,8 @@ public class CNVBeast {
           .reportError("Error - mismatched array sizes for project's samples and sample mask");
     } else {
       MarkerSet markerSet = proj.getMarkerSet();
-      int numSamples =
-          (samplesToAnalyze != null ? Array.booleanArraySum(samplesToAnalyze) : samples.length);
+      int numSamples = (samplesToAnalyze != null ? Array.booleanArraySum(samplesToAnalyze)
+                                                 : samples.length);
       BeastConfig[][] sampleConfigs = new BeastConfig[numSamples][];
       int configIndex = 0;
       proj.getLog().report(ext.getTime() + " Initializing configurations for " + numSamples
@@ -109,7 +109,7 @@ public class CNVBeast {
         }
       }
       BeastConfig[] allConfigs =
-          parseAllSamples(proj, sampleConfigs, markerSet, gcModel, numThreads);
+                               parseAllSamples(proj, sampleConfigs, markerSet, gcModel, numThreads);
       allConfigs = analyzeConfigs(proj, allConfigs, numThreads);
       CNVariant[][] allCNVs = parseBeastResults(proj, allConfigs);
       reportAllCNVs(proj, allCNVs,
@@ -124,8 +124,8 @@ public class CNVBeast {
       writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
       for (CNVariant[] allCNV : allCNVs) {
         if (allCNV != null) {
-          for (int j = 0; j < allCNV.length; j++) {
-            writer.println(allCNV[j].toPlinkFormat());
+          for (CNVariant element : allCNV) {
+            writer.println(element.toPlinkFormat());
           }
         }
       }
@@ -231,10 +231,13 @@ public class CNVBeast {
         if ((i + 1) % 100 == 0) {
           callString = "Info - parsing sample " + (i + 1) + " of " + configs.length;
         }
-        BeastSampleParserThread worker =
-            new BeastSampleParserThread(proj, configs[i], configs[i][0].getSample(), gcModel,
-                                        markerSet.getIndicesByChr(), markerSet.getMarkerNames(),
-                                        markerSet.getPositions(), callString);
+        BeastSampleParserThread worker = new BeastSampleParserThread(proj, configs[i],
+                                                                     configs[i][0].getSample(),
+                                                                     gcModel,
+                                                                     markerSet.getIndicesByChr(),
+                                                                     markerSet.getMarkerNames(),
+                                                                     markerSet.getPositions(),
+                                                                     callString);
         tmpResults.add(executor.submit(worker));
       }
     }
@@ -297,9 +300,10 @@ public class CNVBeast {
         String baseName = sample + "_chr" + i;
         String subDir = "chr" + i + "/";
         BeastConfig sampChrConfig =
-            new BeastConfig(sample, baseName, fullPathToBeastExe,
-                            analysisDirectoryFullPath + subDir, overWriteExistingFiles, i,
-                            markerSet.getMarkerNames().length, proj.getLog());
+                                  new BeastConfig(sample, baseName, fullPathToBeastExe,
+                                                  analysisDirectoryFullPath + subDir,
+                                                  overWriteExistingFiles, i,
+                                                  markerSet.getMarkerNames().length, proj.getLog());
         configs.add(sampChrConfig);
       }
     }
@@ -522,7 +526,7 @@ public class CNVBeast {
 
     /**
      * This executes cnv.beast.exe in a given directory and configuration
-     * 
+     *
      * @return true if successfully produced output
      */
     public boolean executeConfig() {
@@ -664,11 +668,11 @@ public class CNVBeast {
     } else {
       samplesToUse = new boolean[proj.getSamples().length];
       Arrays.fill(samplesToUse, false);
-      String[] samps =
-          HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue() + samplesToAnalyzeFile,
-                                        false, new int[] {0}, true);
-      int[] indices =
-          ext.indexLargeFactors(samps, proj.getSamples(), true, proj.getLog(), true, false);
+      String[] samps = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue()
+                                                     + samplesToAnalyzeFile, false, new int[] {0},
+                                                     true);
+      int[] indices = ext.indexLargeFactors(samps, proj.getSamples(), true, proj.getLog(), true,
+                                            false);
       for (int i = 0; i < indices.length; i++) {
         if (indices[i] >= 0) {
           samplesToUse[indices[i]] = true;
@@ -692,8 +696,9 @@ public class CNVBeast {
                        + " could not be found, aborting");
     } else {
       CNVBeast cnvBeast =
-          new CNVBeast(proj, fullPathToBeastExe, getSubset(proj, samplesToAnalyzeFile),
-                       overWriteExistingFiles, analysisDirectory, outputCNVFile, numThreads);
+                        new CNVBeast(proj, fullPathToBeastExe,
+                                     getSubset(proj, samplesToAnalyzeFile), overWriteExistingFiles,
+                                     analysisDirectory, outputCNVFile, numThreads);
       GcAdjustor.GcModel gcModel = null;
       if (gcCorrect) {
         gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false),
@@ -718,38 +723,38 @@ public class CNVBeast {
     String usage = "\n" + "cnv.analysis.CNVBeast requires 1 argument\n";
     usage += "   (1) project filename (i.e. file=" + filename + " (no default))\n" + "";
     usage +=
-        "   (2) full path to beast.exe (i.e. beast=" + fullPathToBeastExe + " (default))\n" + "";// if
-                                                                                                 // you
-                                                                                                 // can
-                                                                                                 // get
-                                                                                                 // this
-                                                                                                 // to
-                                                                                                 // work
-                                                                                                 // on
-                                                                                                 // linux,
-                                                                                                 // this
-                                                                                                 // same
-                                                                                                 // argument
-                                                                                                 // could
-                                                                                                 // be
-                                                                                                 // used
-                                                                                                 // in
-                                                                                                 // that
-                                                                                                 // environment
+          "   (2) full path to beast.exe (i.e. beast=" + fullPathToBeastExe + " (default))\n" + "";// if
+                                                                                                   // you
+                                                                                                   // can
+                                                                                                   // get
+                                                                                                   // this
+                                                                                                   // to
+                                                                                                   // work
+                                                                                                   // on
+                                                                                                   // linux,
+                                                                                                   // this
+                                                                                                   // same
+                                                                                                   // argument
+                                                                                                   // could
+                                                                                                   // be
+                                                                                                   // used
+                                                                                                   // in
+                                                                                                   // that
+                                                                                                   // environment
     usage += "   (3) analysis subdirectory under the project directory (i.e. dir="
              + analysisDirectory + " (default))\n" + "";
     usage +=
-        "   (4) overwrite existing result files (i.e. " + OVERWRITE_OPTION + " (default))\n" + "";
+          "   (4) overwrite existing result files (i.e. " + OVERWRITE_OPTION + " (default))\n" + "";
+    usage += "   (5) int number of threads to use (i.e. numThreads=" + numThreads + " (default))\n"
+             + "";
     usage +=
-        "   (5) int number of threads to use (i.e. numThreads=" + numThreads + " (default))\n" + "";
-    usage +=
-        "   (6) output filename (relative to the project directory, and analysis directory if supplied) (i.e. output="
+          "   (6) output filename (relative to the project directory, and analysis directory if supplied) (i.e. output="
              + outputCNVFile + " (default))\n" + "";
     usage +=
-        "   (7) name of file containing DNA id of individuals to analyze (relative to the project directory) (i.e. samples="
+          "   (7) name of file containing DNA id of individuals to analyze (relative to the project directory) (i.e. samples="
              + samplesToAnalyzeFile + " (no default))\n" + "";
     usage +=
-        "   (8) use the gc model file defined in the project properties file to gc correct data (which must exist) (i.e. -gcCorrect (not the default))\n"
+          "   (8) use the gc model file defined in the project properties file to gc correct data (which must exist) (i.e. -gcCorrect (not the default))\n"
              + "";
     usage += "   (9) name of a log file (i.e. log=" + logfile + " (no default))\n" + "";
 

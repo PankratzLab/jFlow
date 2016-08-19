@@ -39,7 +39,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
   }
 
   /**
-   * 
+   *
    * @return All CNVs associated with this rectangle
    */
   public ArrayList<CNVariant> getCNVs() {
@@ -47,7 +47,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
   }
 
   /**
-   * 
+   *
    * @return The first CNV in the list (the only CNV in non-Collapsed display modes)
    */
   public CNVariant getCNV() {
@@ -55,7 +55,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
   }
 
   /**
-   * 
+   *
    * @param variants A list of CNVs to be associated with this rectangle
    */
   public void setCNVs(ArrayList<CNVariant> variants) {
@@ -64,7 +64,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
 
   /**
    * Associates a CNV with this rectangle
-   * 
+   *
    * @param variant The CNV to be added
    */
   public void addCNV(CNVariant variant) {
@@ -101,7 +101,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
 
   /**
    * Sets the color to render for the CNV. Adjusts the brightness based on number of copies.
-   * 
+   *
    * @param CNVColor
    */
   public void setCNVColor(Color CNVColor, String displayMode) {
@@ -118,8 +118,8 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
     }
 
     // Need to adjust the brightness
-    float[] hsbVals =
-        Color.RGBtoHSB(CNVColor.getRed(), CNVColor.getGreen(), CNVColor.getBlue(), null);
+    float[] hsbVals = Color.RGBtoHSB(CNVColor.getRed(), CNVColor.getGreen(), CNVColor.getBlue(),
+                                     null);
     float newBrightness = hsbVals[2];
 
     if (copies > 2) {
@@ -145,7 +145,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
   }
 
   /**
-   * 
+   *
    * @param filename The name of the file from which this CNV originated
    */
   public void setFilename(String filename) {
@@ -162,7 +162,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
   /**
    * Defines a rectangle for this CNV. X and Y are not direct coordinates, they are base positions.
    * They get translated to relative coordinates in CompPanel.
-   * 
+   *
    * @param x Start X coordinate for this rectangle
    * @param y Start Y coordinate for this rectangle
    * @param width Width of this rectangle
@@ -175,7 +175,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
   /**
    * Indicates whether this rectangle is selected. Selected rectangles have a black border drawn
    * around them
-   * 
+   *
    * @param sel True to select it, false otherwise
    */
   public void setSelected(boolean sel) {
@@ -183,7 +183,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
   }
 
   /**
-   * 
+   *
    * @return true if the rectangle is selected, false otherwise
    */
   public boolean isSelected() {
@@ -192,7 +192,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
 
   /**
    * Flag for CNVRectangles to use when deciding whether the rectangle has been sorted
-   * 
+   *
    * @param used
    */
   public void setUsed(boolean used) {
@@ -201,7 +201,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
 
   /**
    * Indicates the rectangle has already been sorted
-   * 
+   *
    * @return true if it's been sorted, false otherwise
    */
   public boolean isInUse() {

@@ -18,7 +18,7 @@ public class Elision extends Exception {
    * <code>str</code> can later be retrieved by the
    * <code>{@link java.lang.Throwable#getMessage}</code> method of class
    * <code>java.lang.Throwable</code>.
-   * 
+   *
    * @param str the detail message.
    */
   public Elision(String str) {

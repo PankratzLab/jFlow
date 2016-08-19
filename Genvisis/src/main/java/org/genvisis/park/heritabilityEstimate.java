@@ -200,7 +200,7 @@ public class heritabilityEstimate {
     // "BlessedFunctionality;Education;UPDRSliving;Hoehn&Yahr;MMSE;DurationFromAOO;UPDRSmotor;PIGD_score";
     // String covariates = "BlessedFunctionality;Education;UPDRSliving;MMSE";
     String covariates =
-        "UPDRSmotor;PIGD_score;BlessedFunctionality;Education;UPDRSliving;Hoehn&Yahr;MMSE;DurationFromAOO";
+                      "UPDRSmotor;PIGD_score;BlessedFunctionality;Education;UPDRSliving;Hoehn&Yahr;MMSE;DurationFromAOO";
     String root = DEFAULT_ROOT;
     String batch = "batch.heritabilities";
     boolean run = true;

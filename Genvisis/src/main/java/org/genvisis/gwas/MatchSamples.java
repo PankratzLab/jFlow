@@ -1,7 +1,5 @@
 package org.genvisis.gwas;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,6 +21,8 @@ import org.genvisis.mining.Distance;
 import org.genvisis.mining.Transformations;
 import org.genvisis.stats.Correlation;
 import org.genvisis.stats.Ttest;
+
+import com.google.common.primitives.Doubles;
 
 public class MatchSamples {
   public static String matchMaker(String dir, String anchorList, String barnacleList,
@@ -48,7 +48,7 @@ public class MatchSamples {
     filename = "distances_";
     for (int i = 0; i < factorTargets.length; i++) {
       filename +=
-          (i == 0 ? "" : ",") + factorTargets[i] + "x" + ext.formDeci(factorLoadings[i], 10);
+               (i == 0 ? "" : ",") + factorTargets[i] + "x" + ext.formDeci(factorLoadings[i], 10);
     }
     filename += ".xln";
 
@@ -519,11 +519,12 @@ public class MatchSamples {
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
         if (ext.indexOfStr(line[0], anchors) >= 0) {
-          data[ext.indexOfStr(line[0], anchors)][0] =
-              new int[] {Integer.parseInt(line[ageIndex]), Integer.parseInt(line[genIndex])};
+          data[ext.indexOfStr(line[0], anchors)][0] = new int[] {Integer.parseInt(line[ageIndex]),
+                                                                 Integer.parseInt(line[genIndex])};
         } else if (ext.indexOfStr(line[0], barnacles) >= 0) {
           data[ext.indexOfStr(line[0], barnacles)][1] =
-              new int[] {Integer.parseInt(line[ageIndex]), Integer.parseInt(line[genIndex])};
+                                                      new int[] {Integer.parseInt(line[ageIndex]),
+                                                                 Integer.parseInt(line[genIndex])};
         }
       }
       reader.close();
@@ -779,9 +780,9 @@ public class MatchSamples {
           results += "\t" + ext.formPercent(sums[i][0], 0) + "\t" + ext.formPercent(sums[i][1], 1)
                      + "\t" + ext.formPercent(sums[i][2], 1) + "\t";
         } else {
-          results +=
-              "\t" + ext.formDeci(sums[i][0], 1, true) + "\t" + ext.formDeci(sums[i][1], 2, true)
-                     + "\t\t" + ext.formDeci(sums[i][2], 2, true);
+          results += "\t" + ext.formDeci(sums[i][0], 1, true) + "\t"
+                     + ext.formDeci(sums[i][1], 2, true) + "\t\t"
+                     + ext.formDeci(sums[i][2], 2, true);
         }
         results += "\n";
       }
@@ -843,8 +844,8 @@ public class MatchSamples {
       }
 
       try {
-        file =
-            matchMaker("", anchorFile, barnacleFile, factorFile, factors, factorWeights, normalize);
+        file = matchMaker("", anchorFile, barnacleFile, factorFile, factors, factorWeights,
+                          normalize);
         file = normalizeDistances("", file, 0, 100);
         pairs = matchPairs("", file, true);
         eval("", pairs, demographicsFile, demoFactors);
@@ -880,9 +881,9 @@ public class MatchSamples {
     String clusterfile = "cluster.genome";
     String file, pairs;
 
-    String usage =
-        "\\n" + "gwas.MatchSamples requires 0-1 arguments\n" + "   (0) directory (i.e. dir=" + dir
-                   + " (default))\n" + "   (1) anchors (i.e. anchors=" + anchors + " (default))\n"
+    String usage = "\\n" + "gwas.MatchSamples requires 0-1 arguments\n"
+                   + "   (0) directory (i.e. dir=" + dir + " (default))\n"
+                   + "   (1) anchors (i.e. anchors=" + anchors + " (default))\n"
                    + "   (2) barnacles (i.e. barnacles=" + barnacles + " (default))\n"
                    + "   (3) file with factors (i.e. factors=" + factors + " (default))\n" +
                    // " (4) indices of factors in clusterfile (i.e.

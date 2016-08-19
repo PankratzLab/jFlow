@@ -40,9 +40,9 @@ public class GenParser {
   public static final int DIVIDE = 3;
   public static final String OPERATORS = "+-*/";
 
-  public static final String[][] LINUX_SUBSTITUTIONS =
-      {{"<=", "LTE"}, {"<", "LT"}, {">=", "GTE"}, {">", "GT"}, {"=>", "replace"}, {"$", "F"},
-       {"*", "x"}, {"/", "div"}};
+  public static final String[][] LINUX_SUBSTITUTIONS = {{"<=", "LTE"}, {"<", "LT"}, {">=", "GTE"},
+                                                        {">", "GT"}, {"=>", "replace"}, {"$", "F"},
+                                                        {"*", "x"}, {"/", "div"}};
 
   private Logger log;
   private BufferedReader reader;
@@ -90,15 +90,14 @@ public class GenParser {
     numTruncatedLines = 0;
 
     filename = data == null ? line[0] : "in-memory";
-    commaDelimited =
-        (data == null ? Files.suggestDelimiter(filename, log) : ext.determineDelimiter(data.get(0)))
-                                                                                                    .equals(",")
+    commaDelimited = (data == null ? Files.suggestDelimiter(filename, log)
+                                   : ext.determineDelimiter(data.get(0))).equals(",")
                      || ext.indexOfStr(",", line) >= 0;
     tabDelimited = ext.indexOfStr("tab", line, false, true, log, false) >= 0;
     simplifyQuotes = ext.indexOfStr("doNotSimplifyQuotes", line) == -1;
 
-    String delim =
-        commaDelimited ? "," + (simplifyQuotes ? "!" : "") : (tabDelimited ? "\t" : "[\\s]+");
+    String delim = commaDelimited ? "," + (simplifyQuotes ? "!" : "")
+                                  : (tabDelimited ? "\t" : "[\\s]+");
     columnHeaders = data == null ? Files.getHeaderOfFile(filename, delim, log)
                                  : ext.splitLine(data.get(0), delim, log);
     if (Array.toStr(line).contains("'")) {
@@ -232,9 +231,11 @@ public class GenParser {
       reader = data == null ? Files.getAppropriateReader(filename) : new StringListReader(data);
       if (skip == -2) {
         if (commaDelimited) {
-          originalColumnNames =
-              ext.splitCommasIntelligently(ext.replaceAllWith(reader.readLine().trim(), replaces),
-                                           simplifyQuotes, log);
+          originalColumnNames = ext.splitCommasIntelligently(
+                                                             ext.replaceAllWith(reader.readLine()
+                                                                                      .trim(),
+                                                                                replaces),
+                                                             simplifyQuotes, log);
         } else {
           originalColumnNames = ext
                                    .replaceAllWith(commaDelimited || tabDelimited
@@ -327,7 +328,7 @@ public class GenParser {
       temp = commaDelimited || tabDelimited ? reader.readLine() : reader.readLine().trim();
       if (commaDelimited) {
         line =
-            ext.splitCommasIntelligently(ext.replaceAllWith(temp, replaces), simplifyQuotes, log);
+             ext.splitCommasIntelligently(ext.replaceAllWith(temp, replaces), simplifyQuotes, log);
       } else {
         line = ext.replaceAllWith(temp, replaces).split(tabDelimited ? "\t" : "[\\s]+", -1);
       }
@@ -611,8 +612,8 @@ public class GenParser {
   }
 
   public static void main(String[] args) throws IOException {
-    String usage =
-        "\n" + "parse.GenParser requires 2+ arguments and will take the form of something like:\n"
+    String usage = "\n"
+                   + "parse.GenParser requires 2+ arguments and will take the form of something like:\n"
                    + "    data.csv , out=parsed_data.xln !1=2 !11!NA !10>-5 !10<5 0 1 2 10 11\n"
                    + "\n"
                    + "  where at a minimum you will have the file name and the columns you are intrested in.\n"

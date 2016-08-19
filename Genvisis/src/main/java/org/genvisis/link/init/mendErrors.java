@@ -166,7 +166,7 @@ public class mendErrors {
         }
         reader = new BufferedReader(new FileReader("pedcheck.err"));
         writer =
-            new PrintWriter(new FileWriter("review chrom" + chrome + " errors.out", true), true);
+               new PrintWriter(new FileWriter("review chrom" + chrome + " errors.out", true), true);
 
         while (reader.ready() && !reader.readLine().startsWith(" *********** LEVEL 1 ERRORS ")) {
           ;
@@ -197,8 +197,8 @@ public class mendErrors {
 
         reader.close();
         writer.close();
-        String bakFilename =
-            Files.getBakFilename("chromosome" + chromosome + ".dat", super.getClass().getName());
+        String bakFilename = Files.getBakFilename("chromosome" + chromosome + ".dat",
+                                                  super.getClass().getName());
         (new File("chromosome" + chromosome + ".dat")).renameTo((new File(bakFilename)));
 
         reader = new BufferedReader(new FileReader(bakFilename));

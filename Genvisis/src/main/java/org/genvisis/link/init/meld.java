@@ -103,8 +103,8 @@ public class meld {
                   off = Integer.valueOf(line1[k]).intValue() - Integer.valueOf(line2[k]).intValue();
                   store[(k - 3) / 2]++;
                   if (offs.elementAt((k - 3) / 2).containsKey(off + "")) {
-                    offCount =
-                        Integer.valueOf(offs.elementAt((k - 3) / 2).get(off + "")).intValue() + 1;
+                    offCount = Integer.valueOf(offs.elementAt((k - 3) / 2).get(off + "")).intValue()
+                               + 1;
                   } else {
                     offCount = 1;
                   }

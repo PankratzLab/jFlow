@@ -1,8 +1,5 @@
 package org.genvisis.cnv.analysis;
 
-import com.google.common.primitives.Bytes;
-import com.google.common.primitives.Doubles;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -30,6 +27,9 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.Segment;
 
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Doubles;
+
 // TODO, split the centromeres or remove?
 /**
  * Class for filtering denovo calls in offspring by BEAST SCORE and LRR_SD, and a few other metrics
@@ -38,27 +38,33 @@ import org.genvisis.filesys.Segment;
 public class cnvTrio extends CNVariant {
   private static final long serialVersionUID = 1L;
   private static final String[] SPLITS = {"\t"};
-  private static final String[] COMBINED_TRIOS =
-      {"denovo_joint.cnv", "denovo_trio.cnv", ".filtered", ".cnv"};
+  private static final String[] COMBINED_TRIOS = {"denovo_joint.cnv", "denovo_trio.cnv",
+                                                  ".filtered", ".cnv"};
   private static final String[] TRIOS = {".jointcnv", ".triocnv"};
-  private static final String[] BEAST_OUTPUT =
-      {".trio.cnv", ".beast.cnv", ".filtered", ".qc", "parental.cnv"};
-  public static final String[] BEAST_HEADER =
-      {"NUM_MARKERS", "IDNA", "ILRR_SD", "IBAF1585_SD", "IHEIGHT", "INumbProbes", "IBEAST", "FADNA",
-       "FALRR_SD", "FABAF1585_SD", "FAHEIGHT", "FANumProbes", "FABEAST", "MODNA", "MOLRR_SD",
-       "MOBAF1585_SD", "MOHEIGHT", "MONumProbes", "MOBEAST", "MinBeastDiff", "MaxTrioLRR_SD",
-       "MaxTrioBAF1585_SD", "NumCalls", "DenovoLength(BP)", "DenovoMedianLRR",
-       "NumRawOverlappingCNVs"};
-  public static final String[] OUTPUT_HEADER =
-      {"IDNA", "FADNA", "MODNA", "ILRR_SD", "FALRR_SD", "MOLRR_SD", "IBAF1585_SD", "FABAF1585_SD",
-       "MOBAF1585_SD", "IHEIGHT", "FAHEIGHT", "MOHEIGHT", "IMedianLRR", "FAMedianLRR",
-       "MOMedianLRR", "NumCalls", "INumMarkers", "FANumMarkers", "MONumMarkers", "IBEAST",
-       "FABEAST", "MOBEAST", "NumRawOverlappingCNVs"};
+  private static final String[] BEAST_OUTPUT = {".trio.cnv", ".beast.cnv", ".filtered", ".qc",
+                                                "parental.cnv"};
+  public static final String[] BEAST_HEADER = {"NUM_MARKERS", "IDNA", "ILRR_SD", "IBAF1585_SD",
+                                               "IHEIGHT", "INumbProbes", "IBEAST", "FADNA",
+                                               "FALRR_SD", "FABAF1585_SD", "FAHEIGHT",
+                                               "FANumProbes", "FABEAST", "MODNA", "MOLRR_SD",
+                                               "MOBAF1585_SD", "MOHEIGHT", "MONumProbes", "MOBEAST",
+                                               "MinBeastDiff", "MaxTrioLRR_SD", "MaxTrioBAF1585_SD",
+                                               "NumCalls", "DenovoLength(BP)", "DenovoMedianLRR",
+                                               "NumRawOverlappingCNVs"};
+  public static final String[] OUTPUT_HEADER = {"IDNA", "FADNA", "MODNA", "ILRR_SD", "FALRR_SD",
+                                                "MOLRR_SD", "IBAF1585_SD", "FABAF1585_SD",
+                                                "MOBAF1585_SD", "IHEIGHT", "FAHEIGHT", "MOHEIGHT",
+                                                "IMedianLRR", "FAMedianLRR", "MOMedianLRR",
+                                                "NumCalls", "INumMarkers", "FANumMarkers",
+                                                "MONumMarkers", "IBEAST", "FABEAST", "MOBEAST",
+                                                "NumRawOverlappingCNVs"};
   // TODO better map for OUT and Filt
-  public static final String[] FILTERED_OUTPUT_HEADER =
-      {"IDNA", "FADNA", "MODNA", "ILRR_SD", "FALRR_SD", "MOLRR_SD", "IBAF1585_SD", "FABAF1585_SD",
-       "MOBAF1585_SD", "IHEIGHT", "FAHEIGHT", "MOHEIGHT", "IMedianLRR", "FAMedianLRR",
-       "MOMedianLRR", "NumCalls", "MinBeastDiff", "UCSC", "UCSC_LINK"};
+  public static final String[] FILTERED_OUTPUT_HEADER = {"IDNA", "FADNA", "MODNA", "ILRR_SD",
+                                                         "FALRR_SD", "MOLRR_SD", "IBAF1585_SD",
+                                                         "FABAF1585_SD", "MOBAF1585_SD", "IHEIGHT",
+                                                         "FAHEIGHT", "MOHEIGHT", "IMedianLRR",
+                                                         "FAMedianLRR", "MOMedianLRR", "NumCalls",
+                                                         "MinBeastDiff", "UCSC", "UCSC_LINK"};
 
   public static final String COMMAND_PARSE = "-parse";
   public static final String COMMAND_PROJECT = "proj=";
@@ -385,7 +391,7 @@ public class cnvTrio extends CNVariant {
    * <p>
    * If FID/IIDs are not unique (correspond to more than one DNA, the CNV will be dropped due to the
    * ambiguity)
-   * 
+   *
    * @param cnVariants
    * @param trios
    * @param sampleData
@@ -446,9 +452,9 @@ public class cnvTrio extends CNVariant {
     int[][] indi = markerSet.getIndicesByChr();
     ExecutorService executor = Executors.newFixedThreadPool(numThreads);
     for (int i = 0; i < trios.length; i++) {
-      Runnable worker =
-          new WorkerThread(proj, proj.getSampleData(0, false), trios[i], markerSet.getChrs(),
-                           markerSet.getPositions(), Matrix.clone(indi), rawRegionFrequency, i);
+      Runnable worker = new WorkerThread(proj, proj.getSampleData(0, false), trios[i],
+                                         markerSet.getChrs(), markerSet.getPositions(),
+                                         Matrix.clone(indi), rawRegionFrequency, i);
       executor.execute(worker);
     }
     executor.shutdown();
@@ -500,15 +506,15 @@ public class cnvTrio extends CNVariant {
   /**
    * Creates two output files, one with all the qc metrics, and another with just the list of
    * filtered trio calls
-   * 
+   *
    * @param proj
    * @param trios
    * @param fileType
    * @param log
    */
   private static void summarizeTrios(Project proj, TrioQC[] trios, String fileType) {
-    PrintWriter writerFullSummary =
-        Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + fileType + BEAST_OUTPUT[0]);
+    PrintWriter writerFullSummary = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                               + fileType + BEAST_OUTPUT[0]);
     writerFullSummary.print(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
                             + Array.toStr(OUTPUT_HEADER) + "\n");
     for (TrioQC trio : trios) {
@@ -524,7 +530,7 @@ public class cnvTrio extends CNVariant {
 
   /**
    * Assign the offspring FID/IIDs to a hash so we know which trio to add a particular CNVariant to
-   * 
+   *
    * @param trios
    * @param sampleData
    * @return
@@ -551,11 +557,11 @@ public class cnvTrio extends CNVariant {
 
   /**
    * Helper class to hold trio related information, and handle the computation/QC/summarization
-   * 
+   *
    */
   public static class TrioQC {
-    private static final String[] PED_TRIO_HEADER =
-        {"fId", "iId", "faId", "moId", "iDna", "faDna", "moDna"};
+    private static final String[] PED_TRIO_HEADER = {"fId", "iId", "faId", "moId", "iDna", "faDna",
+                                                     "moDna"};
     private final String fID;
     private final String iID;
     private final String faID;
@@ -690,9 +696,9 @@ public class cnvTrio extends CNVariant {
                   + moBeast.getBeastLengths()[i];
           fSum += "\t" + iBeast.getBeastScores()[i] + "\t" + faBeast.getBeastScores()[i] + "\t"
                   + moBeast.getBeastScores()[i];
-          fSum +=
-              "\t" + (rawRegionFrequency.containsKey(analyzeCNV[i].getUCSClocation()) ? rawRegionFrequency.get(analyzeCNV[i].getUCSClocation())
-                                                                                      : "0");
+          fSum += "\t"
+                  + (rawRegionFrequency.containsKey(analyzeCNV[i].getUCSClocation()) ? rawRegionFrequency.get(analyzeCNV[i].getUCSClocation())
+                                                                                     : "0");
           fullSummary.add(fSum);
         }
       }
@@ -753,14 +759,14 @@ public class cnvTrio extends CNVariant {
 
     /**
      * Make sure the FID/IID lookup returns the correct DNA
-     * 
+     *
      * @param sampleData
      * @param cnVariant
      * @return
      */
     private boolean checkValid(SampleData sampleData, CNVariant cnVariant) {
-      String lookup =
-          sampleData.lookup(cnVariant.getFamilyID() + "\t" + cnVariant.getIndividualID())[0];
+      String lookup = sampleData.lookup(cnVariant.getFamilyID() + "\t"
+                                        + cnVariant.getIndividualID())[0];
       String FIDIID = fID + "\t" + iID;
       return iDNA.equals(lookup)
              && FIDIID.equals(cnVariant.getFamilyID() + "\t" + cnVariant.getIndividualID());
@@ -779,8 +785,8 @@ public class cnvTrio extends CNVariant {
 
       try {
         BufferedReader reader =
-            Files.getReader(proj.DATA_DIRECTORY.getValue(false, true) + trioFile, false, true,
-                            false);
+                              Files.getReader(proj.DATA_DIRECTORY.getValue(false, true) + trioFile,
+                                              false, true, false);
         String[] line = reader.readLine().trim().split(SPLITS[0]);
         int[] indices = ext.indexFactors(PED_TRIO_HEADER, line, true, true);
         while (reader.ready()) {
@@ -810,7 +816,7 @@ public class cnvTrio extends CNVariant {
 
   /**
    * Get the indices for the markers contained in the cnv
-   * 
+   *
    * @param chr
    * @param positions
    * @param cnVariants
@@ -829,7 +835,7 @@ public class cnvTrio extends CNVariant {
   /**
    * if offSpringHeight and parentHeight are different signs, return 0 for parentHeight Note, checks
    * for a real cnv should be done prior to using this function
-   * 
+   *
    * @param offSpringHeight
    * @param parentHeight
    * @return
@@ -845,8 +851,8 @@ public class cnvTrio extends CNVariant {
   public static void parse(Project proj, String trioResultsFile, CNVTrioFilter trioFilter,
                            boolean excludeFromSampleData, String ouput) {
     SampleData sampleData = proj.getSampleData(0, false);
-    cnvTrio[] rawCNVTrios =
-        loadTrios(proj.PROJECT_DIRECTORY.getValue() + trioResultsFile, proj.getLog());
+    cnvTrio[] rawCNVTrios = loadTrios(proj.PROJECT_DIRECTORY.getValue() + trioResultsFile,
+                                      proj.getLog());
     ArrayList<Double> tmpMinBestDiffs = new ArrayList<Double>();
     ArrayList<cnvTrio> tmpFilteredCnvTrios = new ArrayList<cnvTrio>();
     for (cnvTrio rawCNVTrio : rawCNVTrios) {
@@ -862,23 +868,23 @@ public class cnvTrio extends CNVariant {
     }
     double[] beastDiffsToSort = Doubles.toArray(tmpMinBestDiffs);
     cnvTrio[] filteredCNVTrios =
-        tmpFilteredCnvTrios.toArray(new cnvTrio[tmpFilteredCnvTrios.size()]);
+                               tmpFilteredCnvTrios.toArray(new cnvTrio[tmpFilteredCnvTrios.size()]);
     int[] sorted = org.genvisis.common.Sort.quicksort(beastDiffsToSort, 1);
     try {
       PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
                                                                  + ouput + COMBINED_TRIOS[2]));
-      PrintWriter writerCNV =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + ouput
-                                         + COMBINED_TRIOS[2] + COMBINED_TRIOS[3]));
+      PrintWriter writerCNV = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                             + ouput + COMBINED_TRIOS[2]
+                                                             + COMBINED_TRIOS[3]));
       // TODO potential bug? gets first CNV filename and writes to file
       // PrintWriter writerList = new PrintWriter(new
       // FileWriter(proj.getFilename(proj.INDIVIDUAL_CNV_LIST_FILENAMES)));
       PrintWriter writerList =
-          new PrintWriter(new FileWriter(proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue()[0]));
+                             new PrintWriter(new FileWriter(proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue()[0]));
       // PrintWriter writerRegion = new PrintWriter(new
       // FileWriter(proj.getFilename(proj.REGION_LIST_FILENAMES)));
       PrintWriter writerRegion =
-          new PrintWriter(new FileWriter(proj.REGION_LIST_FILENAMES.getValue()[0]));
+                               new PrintWriter(new FileWriter(proj.REGION_LIST_FILENAMES.getValue()[0]));
       writerSummary.println(Array.toStr(PLINK_CNV_HEADER) + "\t"
                             + Array.toStr(FILTERED_OUTPUT_HEADER));
       writerCNV.println(Array.toStr(PLINK_CNV_HEADER));
@@ -1010,9 +1016,9 @@ public class cnvTrio extends CNVariant {
 
     if (ext.indexOfStr(COMMAND_PROJECT, args, true, false) >= 0) {
       proj =
-          new Project(ext.parseStringArg(args[ext.indexOfStr(COMMAND_PROJECT, args, true, false)],
-                                         ""),
-                      logFile, false);
+           new Project(ext.parseStringArg(args[ext.indexOfStr(COMMAND_PROJECT, args, true, false)],
+                                          ""),
+                       logFile, false);
     } else {
       proj = new Project(filename, logFile, false);
     }

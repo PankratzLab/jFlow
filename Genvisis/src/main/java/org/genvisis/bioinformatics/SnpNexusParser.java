@@ -15,48 +15,56 @@ import org.genvisis.common.ext;
 
 public class SnpNexusParser {
   public static final String[] MARKS =
-      {"Genomic Coordinates and External Links", "Hapmap CEU population", "Hapmap YRI population",
-       "Hapmap JPT population", "Hapmap CHB population", "Consequences on Refseq",
-       "Consequences on Ensembl", "Consequences on VEGA", "Consequences on AceView",
-       "Consequences on UCSC", "Conserved Transcription Factor Binding Sites (TFBS)",
-       "First-Exon and Promoter Prediction (FirstEF)", "miRBASE 11.0",
-       "TargetScan miRNA Regulatory Sites",
-       "microRNAs (miRNA Registry) / snoRNAs and scaRNAs (snoRNA-LBME-DB)",
-       "Genetic Association Studies of Complex Diseases and Disorders (GAD)"};
+                                     {"Genomic Coordinates and External Links",
+                                      "Hapmap CEU population", "Hapmap YRI population",
+                                      "Hapmap JPT population", "Hapmap CHB population",
+                                      "Consequences on Refseq", "Consequences on Ensembl",
+                                      "Consequences on VEGA", "Consequences on AceView",
+                                      "Consequences on UCSC",
+                                      "Conserved Transcription Factor Binding Sites (TFBS)",
+                                      "First-Exon and Promoter Prediction (FirstEF)",
+                                      "miRBASE 11.0", "TargetScan miRNA Regulatory Sites",
+                                      "microRNAs (miRNA Registry) / snoRNAs and scaRNAs (snoRNA-LBME-DB)",
+                                      "Genetic Association Studies of Complex Diseases and Disorders (GAD)"};
 
-  public static final String[][] HEADERS =
-      {{"SNP_name", "Contig", "contigStart", "contigEnd", "Chromosome", "chromStart", "chromEnd",
-        "dbSNP", "HapMap"},
-       {"Name", "Genotype1", "Count", "Frequency", "Genotype2", "Count", "Frequency", "Genotype3",
-        "Count", "Frequency", "Allele1", "Count", "Frequency", "Allele2", "Count", "Frequency"},
-       {"Name", "Genotype1", "Count", "Frequency", "Genotype2", "Count", "Frequency", "Genotype3",
-        "Count", "Frequency", "Allele1", "Count", "Frequency", "Allele2", "Count", "Frequency"},
-       {"Name", "Genotype1", "Count", "Frequency", "Genotype2", "Count", "Frequency", "Genotype3",
-        "Count", "Frequency", "Allele1", "Count", "Frequency", "Allele2", "Count", "Frequency"},
-       {"Name", "Genotype1", "Count", "Frequency", "Genotype2", "Count", "Frequency", "Genotype3",
-        "Count", "Frequency", "Allele1", "Count", "Frequency", "Allele2", "Count", "Frequency"},
-       {"SNP_name", "Refseq_gene", "Refseq_transcript", "EntrezGene_ID", "SNP_Predicted_function",
-        "cdna_position", "cds_position", "aa_position", "peptide_shift", "distanceTOsplice"},
-       {"SNP_name", "Ensembl_gene", "Ensembl_transcript", "Symbol", "SNP_Predicted_function",
-        "cdna_position", "cds_position", "aa_position", "peptide_shift", "distanceTOsplice"},
-       {"SNP_name", "VEGA_gene", "VEGA_transcript", "Symbol", "SNP_Predicted_function",
-        "cdna_position", "cds_position", "aa_position", "peptide_shift", "distanceTOsplice"},
-       {"SNP_name", "AceView_gene", "SNP_Predicted_function", "cdna_position", "cds_position",
-        "aa_position", "peptide_shift", "distanceTOsplice"},
-       {"SNP_name", "UCSC_known_gene", "EntrezGene_ID", "SNP_Predicted_function", "cdna_position",
-        "cds_position", "aa_position", "peptide_shift", "distanceTOsplice"},
-       {"SNP_name", "TFBS_id", "chromStart", "chromEnd", "TFBS_Accession", "TFBS_Species",
-        "TFBS_name", "SwissProt_Accession"},
-       {"SNP_name", "chrom", "chromStart", "chromEnd", "Name", "Score", "Strand"},
-       {"SNP_name", "chrom", "chromStart", "chromEnd", "Name", "Score", "Strand", "Type"},
-       {"SNP_name", "chrom", "chromStart", "chromEnd", "Name", "Score", "Strand"},
-       {"SNP_name", "chrom", "chromStart", "chromEnd", "Name", "Score", "Strand", "Type"},
-       {"GAD_ID", "Association(Y/N)", "Phenotype", "Disease Class", "Gene", "Reference", "Pubmed",
-        "Population", "EntrezGene_ID"}};
+  public static final String[][] HEADERS = {
+                                            {"SNP_name", "Contig", "contigStart", "contigEnd",
+                                             "Chromosome", "chromStart", "chromEnd", "dbSNP",
+                                             "HapMap"},
+                                            {"Name", "Genotype1", "Count", "Frequency", "Genotype2",
+                                             "Count", "Frequency", "Genotype3", "Count", "Frequency", "Allele1", "Count", "Frequency", "Allele2", "Count", "Frequency"},
+                                            {"Name", "Genotype1", "Count", "Frequency", "Genotype2",
+                                             "Count", "Frequency", "Genotype3", "Count", "Frequency", "Allele1", "Count", "Frequency", "Allele2", "Count", "Frequency"},
+                                            {"Name", "Genotype1", "Count", "Frequency", "Genotype2",
+                                             "Count", "Frequency", "Genotype3", "Count", "Frequency", "Allele1", "Count", "Frequency", "Allele2", "Count", "Frequency"},
+                                            {"Name", "Genotype1", "Count", "Frequency", "Genotype2",
+                                             "Count", "Frequency", "Genotype3", "Count", "Frequency", "Allele1", "Count", "Frequency", "Allele2", "Count", "Frequency"},
+                                            {"SNP_name", "Refseq_gene", "Refseq_transcript",
+                                             "EntrezGene_ID", "SNP_Predicted_function", "cdna_position", "cds_position", "aa_position", "peptide_shift", "distanceTOsplice"},
+                                            {"SNP_name", "Ensembl_gene", "Ensembl_transcript",
+                                             "Symbol", "SNP_Predicted_function", "cdna_position", "cds_position", "aa_position", "peptide_shift", "distanceTOsplice"},
+                                            {"SNP_name", "VEGA_gene", "VEGA_transcript", "Symbol",
+                                             "SNP_Predicted_function", "cdna_position", "cds_position", "aa_position", "peptide_shift", "distanceTOsplice"},
+                                            {"SNP_name", "AceView_gene", "SNP_Predicted_function",
+                                             "cdna_position", "cds_position", "aa_position", "peptide_shift", "distanceTOsplice"},
+                                            {"SNP_name", "UCSC_known_gene", "EntrezGene_ID",
+                                             "SNP_Predicted_function", "cdna_position", "cds_position", "aa_position", "peptide_shift", "distanceTOsplice"},
+                                            {"SNP_name", "TFBS_id", "chromStart", "chromEnd",
+                                             "TFBS_Accession", "TFBS_Species", "TFBS_name", "SwissProt_Accession"},
+                                            {"SNP_name", "chrom", "chromStart", "chromEnd", "Name",
+                                             "Score", "Strand"},
+                                            {"SNP_name", "chrom", "chromStart", "chromEnd", "Name",
+                                             "Score", "Strand", "Type"},
+                                            {"SNP_name", "chrom", "chromStart", "chromEnd", "Name",
+                                             "Score", "Strand"},
+                                            {"SNP_name", "chrom", "chromStart", "chromEnd", "Name",
+                                             "Score", "Strand", "Type"},
+                                            {"GAD_ID", "Association(Y/N)", "Phenotype",
+                                             "Disease Class", "Gene", "Reference", "Pubmed", "Population", "EntrezGene_ID"}};
 
-  public static final boolean[] HEADER_ON_SAME_LINE =
-      {false, true, true, true, true, false, false, false, false, false, false, false, false, false,
-       false, false,};
+  public static final boolean[] HEADER_ON_SAME_LINE = {false, true, true, true, true, false, false,
+                                                       false, false, false, false, false, false,
+                                                       false, false, false,};
 
   public static final int[] KEY_TYPE = {0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,};
 
@@ -65,7 +73,7 @@ public class SnpNexusParser {
     PrintWriter writer;
     String[] line;
     Hashtable<String, Hashtable<String, String[]>> hashes =
-        new Hashtable<String, Hashtable<String, String[]>>();
+                                                          new Hashtable<String, Hashtable<String, String[]>>();
     Hashtable<String, String[]> hash;
     Vector<String> v = new Vector<String>();
     int index, option;
@@ -190,7 +198,7 @@ public class SnpNexusParser {
   public static void main(String[] args) {
     int numArgs = args.length;
     String dir =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\SequencingProjectWithCIDR\\TestInDeepTrio\\";
+               "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\SequencingProjectWithCIDR\\TestInDeepTrio\\";
     // String filename = "results180.txt";
     String filename = "resultsAll.txt";
 

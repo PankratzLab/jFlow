@@ -93,11 +93,11 @@ public class CNVRectangles {
   /**
    * Collapse the rectangles so that all CNVs with the same footprint (filename, start, and end)
    * appear as a single rectangle
-   * 
+   *
    * Hash key is:
-   * 
+   *
    * filename:startX-stopX
-   * 
+   *
    * @return ArrayList of collapsed rectangles
    */
   public ArrayList<CNVRectangle> getCollapsedRectangles() {
@@ -149,7 +149,7 @@ public class CNVRectangles {
 
   /**
    * Return all of the rectangles with one Individual ID per line
-   * 
+   *
    * @return ArrayList of all rectangles sorted by Individual ID
    */
   public ArrayList<CNVRectangle> getFullRectangles() {
@@ -160,7 +160,7 @@ public class CNVRectangles {
      * CNVs associated with that ID on the same line
      */
     HashMap<String, ArrayList<CNVRectangle>> cnvMap =
-        new HashMap<String, ArrayList<CNVRectangle>>();
+                                                    new HashMap<String, ArrayList<CNVRectangle>>();
     for (CNVRectangle cnvRect : cnvRectangles) {
       String iid = cnvRect.getFilename() + ":" + cnvRect.getCNV().getIndividualID();
       if (cnvMap.containsKey(iid)) {
@@ -203,7 +203,7 @@ public class CNVRectangles {
 
   /**
    * Pack the rectangles with as few gaps as possible. Perform no sorting.
-   * 
+   *
    * @return ArrayList of packed rectangles
    */
   public ArrayList<CNVRectangle> getPackedRectangles() {
@@ -216,7 +216,7 @@ public class CNVRectangles {
 
   /**
    * Pack the provided rectangles, filling in line by line and setting the x,y coordinates
-   * 
+   *
    * @param cnvRects
    * @return ArrayList of packed rectangles
    */
@@ -280,7 +280,7 @@ public class CNVRectangles {
 
   /**
    * Find the rectangle with the lowest X value (furthest left)
-   * 
+   *
    * @param cnvRects
    * @return integer value of the lowest X value
    */
@@ -299,7 +299,7 @@ public class CNVRectangles {
 
   /**
    * Determine whether there are any rectangles we haven't looked at
-   * 
+   *
    * @param cnvRects
    * @return true if any have not been used
    */
@@ -318,7 +318,7 @@ public class CNVRectangles {
 
   /**
    * Clear the used flag on all rectangles
-   * 
+   *
    * @param cnvRects
    */
   private void clearUsed(ArrayList<CNVRectangle> cnvRects) {
@@ -329,7 +329,7 @@ public class CNVRectangles {
 
   /**
    * Get the next leftmost rectangle, starting at startX
-   * 
+   *
    * @param startX
    * @param cnvRects
    * @return The leftmost rectangle
@@ -363,7 +363,7 @@ public class CNVRectangles {
 
   /**
    * Get the height of the rectangles
-   * 
+   *
    * @return Height of the rectangles as an integer
    */
   public int getRectangleHeight() {
@@ -372,7 +372,7 @@ public class CNVRectangles {
 
   /**
    * Set the height of the rectangles
-   * 
+   *
    * @param rectangleHeight
    */
   public void setRectangleHeight(int rectangleHeight) {
@@ -381,7 +381,7 @@ public class CNVRectangles {
 
   /**
    * Get the scaling factor (based on the current viewing window)
-   * 
+   *
    * @return scaling factor as a float
    */
   public float getScalingFactor() {
@@ -390,7 +390,7 @@ public class CNVRectangles {
 
   /**
    * Set the scaling factor (from CompPanel)
-   * 
+   *
    * @param scalingFactor
    */
   public void setScalingFactor(float scalingFactor) {
@@ -399,7 +399,7 @@ public class CNVRectangles {
 
   /**
    * Get the number of probes on which we're filtering
-   * 
+   *
    * @return the number of probes on which we're filtering
    */
   public int getProbes() {
@@ -408,7 +408,7 @@ public class CNVRectangles {
 
   /**
    * Set the number of probes on which to filter
-   * 
+   *
    * @param The minimum number of probes
    */
   public void setProbes(int probes) {
@@ -417,7 +417,7 @@ public class CNVRectangles {
 
   /**
    * Get the smallest size of CNV on which we're filtering
-   * 
+   *
    * @return the smallest size of CNV on which we're filtering
    */
   public int getMinSize() {
@@ -426,7 +426,7 @@ public class CNVRectangles {
 
   /**
    * Set the minimum CNV size on which to filter
-   * 
+   *
    * @param minSize Minimum CNV size
    */
   public void setMinSize(int minSize) {
@@ -435,7 +435,7 @@ public class CNVRectangles {
 
   /**
    * Get the minimum quality score on which we're filtering
-   * 
+   *
    * @return the minimum quality score on which we're filtering
    */
   public int getQualityScore() {
@@ -444,7 +444,7 @@ public class CNVRectangles {
 
   /**
    * Set the minimum quality score on which to filter
-   * 
+   *
    * @param qualityScore The minimum quality score on which to filter
    */
   public void setQualityScore(int qualityScore) {

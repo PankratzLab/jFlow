@@ -154,10 +154,10 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
     }
 
     private void generatePON(int numThreads, int numSampleThreads) throws IllegalStateException {
-      NormalProducer producer =
-          new NormalProducer(gatk, normalSamples, ponDir, numSampleThreads, log);
-      WorkerTrain<Mutect2Normal> train =
-          new WorkerTrain<GATK.Mutect2Normal>(producer, numThreads, 2, log);
+      NormalProducer producer = new NormalProducer(gatk, normalSamples, ponDir, numSampleThreads,
+                                                   log);
+      WorkerTrain<Mutect2Normal> train = new WorkerTrain<GATK.Mutect2Normal>(producer, numThreads,
+                                                                             2, log);
       ArrayList<String> vcfsToCombine = new ArrayList<String>();
 
       while (train.hasNext()) {
@@ -318,13 +318,14 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
     if (!merge) {
       log.reportTimeInfo("Will not merge results as strict tumor normal comparison");
     }
-    String[][] tumorNormalMatchedBams =
-        HashVec.loadFileToStringMatrix(fileOftumorNormalMatchedBams, false, new int[] {0, 1},
-                                       false);
-    Mutect2 mutect2 =
-        new Mutect2(gatk, tumorNormalMatchedBams, ponVcf, outputDir, numSampleThreads, log);
-    WorkerTrain<MutectTumorNormal> train =
-        new WorkerTrain<GATK.MutectTumorNormal>(mutect2, numThreads, 2, log);
+    String[][] tumorNormalMatchedBams = HashVec.loadFileToStringMatrix(fileOftumorNormalMatchedBams,
+                                                                       false, new int[] {0, 1},
+                                                                       false);
+    Mutect2 mutect2 = new Mutect2(gatk, tumorNormalMatchedBams, ponVcf, outputDir, numSampleThreads,
+                                  log);
+    WorkerTrain<MutectTumorNormal> train = new WorkerTrain<GATK.MutectTumorNormal>(mutect2,
+                                                                                   numThreads, 2,
+                                                                                   log);
     ArrayList<MutectTumorNormal> results = new ArrayList<GATK.MutectTumorNormal>();
     ArrayList<String> finalTNnoFiltVCfs = new ArrayList<String>();
     ArrayList<String> finalTNFiltVCFS = new ArrayList<String>();
@@ -339,8 +340,8 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
     if (merge) {
       String rootNoFilter = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) + ".merged";
       String anno =
-          mergeAndAnnotate(outputDir, gatk, annoVCF, finalMergeWithVCF, numThreads, log,
-                           tumorNormalMatchedBams, finalTNnoFiltVCfs, false, rootNoFilter);
+                  mergeAndAnnotate(outputDir, gatk, annoVCF, finalMergeWithVCF, numThreads, log,
+                                   tumorNormalMatchedBams, finalTNnoFiltVCfs, false, rootNoFilter);
 
       // String rootFilter = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) +
       // ".merged.filtered";
@@ -436,12 +437,12 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
     if (extract) {
       ArrayList<String> bamsToExtract = new ArrayList<String>();
       for (String[] tumorNormalMatchedBam : tumorNormalMatchedBams) {
-        for (int j = 0; j < tumorNormalMatchedBam.length; j++) {
-          bamsToExtract.add(tumorNormalMatchedBam[j]);
+        for (String element : tumorNormalMatchedBam) {
+          bamsToExtract.add(element);
         }
       }
-      String extractFiltDir =
-          outputDir + "extract_" + VCFOps.getAppropriateRoot(finalAnno, true) + "/";
+      String extractFiltDir = outputDir + "extract_" + VCFOps.getAppropriateRoot(finalAnno, true)
+                              + "/";
       new File(extractFiltDir).mkdirs();
       extractBamsTo(extractFiltDir, Array.toStringArray(bamsToExtract), finalAnno, numThreads, log);
     }
@@ -478,10 +479,12 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 
   private static void batchPON(int numNormalBatches, GATK gatk, String bamFilesFullPath,
                                String outputDir, int numthreads, int numSampleThreads, Logger log) {
-    ArrayList<String[]> splits =
-        Array.splitUpArray(HashVec.loadFileToStringArray(bamFilesFullPath, false, new int[] {0},
-                                                         true),
-                           numNormalBatches, log);
+    ArrayList<String[]> splits = Array.splitUpArray(
+                                                    HashVec.loadFileToStringArray(bamFilesFullPath,
+                                                                                  false,
+                                                                                  new int[] {0},
+                                                                                  true),
+                                                    numNormalBatches, log);
     ArrayList<String> command = new ArrayList<String>();
     String[][] batches = new String[splits.size()][1];
     String baseOut = "[%0]";
@@ -572,10 +575,10 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
     usage += "   (12) number of threads per sample (i.e. numSampleThreads=" + numSampleThreads
              + " (default))\n" + "";
     usage +=
-        "   (13) full path to a file of tumor-normal matched (tab-delimited) bam files, normal in first column, tumor in second (i.e. tumorNormalBams= (no default))\n"
+          "   (13) full path to a file of tumor-normal matched (tab-delimited) bam files, normal in first column, tumor in second (i.e. tumorNormalBams= (no default))\n"
              + "";
     usage +=
-        "   (14) full path to a final merge vcf to merge somatic calls with (i.e. finalVCF= (no default))\n"
+          "   (14) full path to a final merge vcf to merge somatic calls with (i.e. finalVCF= (no default))\n"
              + "";
     usage += "   (15) full path to a vcf tallyparamFile (i.e. tparams= (no default))\n" + "";
 

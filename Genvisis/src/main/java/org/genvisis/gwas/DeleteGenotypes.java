@@ -18,9 +18,9 @@ import org.genvisis.common.ext;
 
 public class DeleteGenotypes {
   public static final String WINDOWS_DIRECTORY =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\mosaics\\original\\";
+                                               "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\mosaics\\original\\";
   public static final String LINUX_DIRECTORY =
-      "/archive/parkinsons/gwas/Genotype and intensity data files/";
+                                             "/archive/parkinsons/gwas/Genotype and intensity data files/";
   public static final String BACKUP_DIRECTORY = "backup/";
   public static final String OUTPUT_DIRECTORY = "updated/";
   public static final String LOOKUP = "lookup.txt";
@@ -33,7 +33,7 @@ public class DeleteGenotypes {
     int count;
     String id = "", dir, trav;
     Hashtable<String, Hashtable<String, String>> hash =
-        new Hashtable<String, Hashtable<String, String>>();
+                                                      new Hashtable<String, Hashtable<String, String>>();
     Hashtable<String, String> markers, markerList;
     Hashtable<String, Vector<String>> lookup;
     Vector<String> sources;

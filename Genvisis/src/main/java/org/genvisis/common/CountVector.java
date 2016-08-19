@@ -3,10 +3,10 @@
 // slow at 200 values, 8x at 1000 values, nearly linear
 package org.genvisis.common;
 
-import com.google.common.primitives.Ints;
-
 import java.util.Hashtable;
 import java.util.Vector;
+
+import com.google.common.primitives.Ints;
 
 public class CountVector {
   private final Vector<String> v;

@@ -36,8 +36,8 @@ public class Minimac {
                                                                     // the recommendation of the
                                                                     // website
   public static final String BGL_TO_PED = "/home/npankrat/bin/bgl_to_ped";
-  public static final String[] FREQ_HEADER =
-      {"Marker", "numMissing", "numA", "numC", "numG", "numT", "%A", "%C", "%G", "%T"};
+  public static final String[] FREQ_HEADER = {"Marker", "numMissing", "numA", "numC", "numG",
+                                              "numT", "%A", "%C", "%G", "%T"};
   public static final double CHISQ_THRESHOLD = 15.05;
 
   public static void splitBglToPedOutputToMachHaplotypes(String filename) {
@@ -426,13 +426,13 @@ public class Minimac {
 
     } else {
       commands +=
-          "cp MACH_step2_chr# target.haps\n" + "awk '{print $2}' all.chr#.map > target.snps\n";
+               "cp MACH_step2_chr# target.haps\n" + "awk '{print $2}' all.chr#.map > target.snps\n";
     }
 
-    commands +=
-        Files.getRunString() + " gwas.Minimac -freq hapFile=target.haps mapFile=target.snps\n" + // compute
-                                                                                                 // allele
-                                                                                                 // frequencies
+    commands += Files.getRunString()
+                + " gwas.Minimac -freq hapFile=target.haps mapFile=target.snps\n" + // compute
+                                                                                    // allele
+                                                                                    // frequencies
                 Files.getRunString() + " gwas.Minimac compStrand=target_freq.xln compRef="
                 + REF_FREQ_ROOT + "/\n" + // process strand issues
                 Files.getRunString()
@@ -469,7 +469,8 @@ public class Minimac {
                                           new int[] {-7}, false, "\t", false, false, false);
       for (int j = 0; j < markerNames.length; j++) {
         markerIndices[i][j] =
-            hash.containsKey(markerNames[j]) ? Integer.parseInt(hash.get(markerNames[j])) : -1;
+                            hash.containsKey(markerNames[j]) ? Integer.parseInt(hash.get(markerNames[j]))
+                                                             : -1;
       }
     }
     ids = new String[numToCompare][2];
@@ -775,8 +776,8 @@ public class Minimac {
     strs[2] = "[";
 
     first = true;
-    denoms =
-        new double[] {Array.sum(Array.toDoubleArray(target)), Array.sum(Array.toDoubleArray(ref))};
+    denoms = new double[] {Array.sum(Array.toDoubleArray(target)),
+                           Array.sum(Array.toDoubleArray(ref))};
     for (int i = 0; i < allelesUsed.length; i++) {
       if (allelesUsed[i]) {
         if (first) {

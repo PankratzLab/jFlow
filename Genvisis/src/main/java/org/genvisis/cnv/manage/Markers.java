@@ -146,8 +146,14 @@ public class Markers {
     delimiter = Files.determineDelimiter(filename, log);
 
     count = countBad = 0;
-    numBlankNames = numBlankChrs = numBlankPositions =
-        numRepeatedNames = numInvalidChrs = numInvalidPositions = numIncompleteLines = 0;
+    numBlankNames =
+                  numBlankChrs =
+                               numBlankPositions =
+                                                 numRepeatedNames =
+                                                                  numInvalidChrs =
+                                                                                 numInvalidPositions =
+                                                                                                     numIncompleteLines =
+                                                                                                                        0;
     try {
       reader = Files.getAppropriateReader(filename);
       while (reader.ready()) {
@@ -289,10 +295,10 @@ public class Markers {
       }
       reader = Files.getAppropriateReader(snpTable);
       writer =
-          new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue(false, false)));
+             new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue(false, false)));
       indices =
-          ext.indexFactors(SourceFileParser.SNP_TABLE_FIELDS,
-                           reader.readLine().trim().split(delimiter), false, true, true, true);
+              ext.indexFactors(SourceFileParser.SNP_TABLE_FIELDS,
+                               reader.readLine().trim().split(delimiter), false, true, true, true);
       writer.println("Marker\tChr\tPosition");
       while (reader.ready()) {
         line = reader.readLine().trim().split(delimiter);

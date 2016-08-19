@@ -74,8 +74,8 @@ public class CNValidate implements Runnable {
     }
     Thread[] threads = new Thread[processors];
     Vector<Vector<String>> cabinet = getcabinet(inds, processors);
-    CNValidate[] cnvals =
-        processValidations(proj, processors, threads, cabinet, allIndcnVariantQCs, markerSet);
+    CNValidate[] cnvals = processValidations(proj, processors, threads, cabinet, allIndcnVariantQCs,
+                                             markerSet);
     return collectAllValidations(processors, cnvals, inds, proj.getLog());
 
   }
@@ -96,10 +96,10 @@ public class CNValidate implements Runnable {
                                                   CNVariantQC[] cnVariantQCs, Logger log) {
     int[][] indices = markerSet.getIndicesByChr();
     float[] LRRsInvTransformedByChr = Transforms.transform(samp.getLRRs(), 2, true, markerSet);
-    double[] chrLRRMediansMADScaled =
-        getChrLRRMediansMADScaled(indices, LRRsInvTransformedByChr, SCALE_FACTOR_MAD, log);
-    double[] LRRsInvTransformedByChrMADScaled =
-        scaleMAD(indices, LRRsInvTransformedByChr, chrLRRMediansMADScaled);
+    double[] chrLRRMediansMADScaled = getChrLRRMediansMADScaled(indices, LRRsInvTransformedByChr,
+                                                                SCALE_FACTOR_MAD, log);
+    double[] LRRsInvTransformedByChrMADScaled = scaleMAD(indices, LRRsInvTransformedByChr,
+                                                         chrLRRMediansMADScaled);
     return evaluateCNVariantQCs(samp, markerSet, cnVariantQCs, LRRsInvTransformedByChrMADScaled,
                                 indices, log);
   }
@@ -178,8 +178,8 @@ public class CNValidate implements Runnable {
     for (int i = 0; i < indices.length; i++) {
       if (indices[i].length > 0) {
         for (int j = 0; j < indices[i].length; j++) {
-          LRRsInvTransformedByChrMADScaled[indices[i][j]] =
-              LRRsInvTransformedByChr[indices[i][j]] / (chrLRRMediansMADScaled[i]);
+          LRRsInvTransformedByChrMADScaled[indices[i][j]] = LRRsInvTransformedByChr[indices[i][j]]
+                                                            / (chrLRRMediansMADScaled[i]);
         }
       }
     }

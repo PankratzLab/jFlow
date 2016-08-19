@@ -169,9 +169,9 @@ public class PlinkToLinkage {
     // String pedigree = "fullPedigree.dat";
     // String pedigree = "FullPedigreeWithoutDuplicates.dat";
 
-    String usage =
-        "\n" + "link.PlinkToLinkage requires 0-1 arguments\n" + "   (1) directory (i.e. dir=" + dir
-                   + " (default))\n" + "   (2) plink root name (i.e. root=" + root + " (default))\n"
+    String usage = "\n" + "link.PlinkToLinkage requires 0-1 arguments\n"
+                   + "   (1) directory (i.e. dir=" + dir + " (default))\n"
+                   + "   (2) plink root name (i.e. root=" + root + " (default))\n"
                    + "   (3) number of markers to slim down to (i.e. slim=" + slim + " (default))\n"
                    + "   (4) make LinkageFormat files (i.e. -create (" + (create ? "" : "not the ")
                    + " default))\n" + "   (5) pedigree file to update to (i.e. ped=" + pedigree

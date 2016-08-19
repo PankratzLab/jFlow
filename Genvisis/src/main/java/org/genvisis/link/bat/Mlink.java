@@ -23,8 +23,8 @@ public class Mlink {
   // public static final double[] DEFAULT_MODEL = {0.0, 1.0, 1.0};
   public static final int MAX_MARKERS = 49;
 
-  public static final String[] THETAS =
-      {" 0.000", " 0.010", " 0.050", " 0.100", " 0.200", " 0.300", " 0.400"};
+  public static final String[] THETAS = {" 0.000", " 0.010", " 0.050", " 0.100", " 0.200", " 0.300",
+                                         " 0.400"};
 
   public static final boolean DEFAULT_PED = true;
 
@@ -112,7 +112,7 @@ public class Mlink {
     try {
       for (int i = 0; i < numFiles; i++) {
         reader =
-            new BufferedReader(new FileReader(dir + "stream" + chrome + "-" + (i + 1) + ".out"));
+               new BufferedReader(new FileReader(dir + "stream" + chrome + "-" + (i + 1) + ".out"));
         for (int j = 0; j < (i == numFiles - 1 ? (markerNames.length - (numFiles - 1) * MAX_MARKERS)
                                                : MAX_MARKERS); j++) {
           for (int k = 0; k < 53; k++) {
@@ -179,8 +179,8 @@ public class Mlink {
       numFiles = (int) (Math.ceil(numMarkers / (double) MAX_MARKERS));
       writers = new PrintWriter[numFiles];
       for (int i = 0; i < numFiles; i++) {
-        writers[i] =
-            new PrintWriter(new FileWriter(destination + "map" + chrome + "-" + (i + 1) + ".dat"));
+        writers[i] = new PrintWriter(new FileWriter(destination + "map" + chrome + "-" + (i + 1)
+                                                    + ".dat"));
         line[0] = i == numFiles - 1 ? "" + (numMarkers - (numFiles - 1) * MAX_MARKERS + 1)
                                     : "" + (MAX_MARKERS + 1);
         writers[i].println(Array.toStr(line, " "));
@@ -190,12 +190,11 @@ public class Mlink {
       for (int i = 0; i < numFiles - 1; i++) {
         writers[i].println(Array.toStr(Array.stringArraySequence(MAX_MARKERS + 1, ""), " "));
       }
-      writers[numFiles - 1].println(Array.toStr(
-                                                Array.stringArraySequence(numMarkers
-                                                                          - (numFiles - 1)
-                                                                            * MAX_MARKERS
-                                                                          + 1, ""),
-                                                " "));
+      writers[numFiles
+              - 1].println(Array.toStr(Array.stringArraySequence(numMarkers
+                                                                 - (numFiles - 1) * MAX_MARKERS + 1,
+                                                                 ""),
+                                       " "));
       for (int i = 0; i < (chr == 23 ? 5 : 4); i++) {
         ext.writeToAll(reader.readLine(), writers);
       }
@@ -233,13 +232,12 @@ public class Mlink {
                                                     + (pedformat ? ".ped" : ".pre")));
       }
       if (pedformat) {
-        pedStruct2 = procPedStruct(
-                                   new File("re_chrom" + chrome + ".ped").exists()
-                                                                                   ? "re_chrom"
-                                                                                     + chrome
-                                                                                     + ".ped"
-                                                                                   : searchForPedStruct(),
-                                   true);
+        pedStruct2 =
+                   procPedStruct(new File("re_chrom" + chrome + ".ped").exists()
+                                                                                 ? "re_chrom"
+                                                                                   + chrome + ".ped"
+                                                                                 : searchForPedStruct(),
+                                 true);
       } else {
         pedStruct2 = procPedStruct("re_chrom" + chrome + ".pre", false);
       }
@@ -463,10 +461,10 @@ public class Mlink {
     String filename = null;
     boolean pedformat = DEFAULT_PED;
 
-    String usage =
-        "\n" + "park.mlink requires 0-4 arguments\n" + "   (1) chromosome start number (i.e. start="
-                   + start + " (default))\n" + "   (2) chromosome stop number (i.e. stop=" + stop
-                   + " (default))\n" + " OR simply a single chromosome number\n"
+    String usage = "\n" + "park.mlink requires 0-4 arguments\n"
+                   + "   (1) chromosome start number (i.e. start=" + start + " (default))\n"
+                   + "   (2) chromosome stop number (i.e. stop=" + stop + " (default))\n"
+                   + " OR simply a single chromosome number\n"
                    + "   (1) chromosome number (i.e. 2)\n" + " PLUS\n"
                    + "   (3) filename of models (i.e. file=models.dat (default is a dominant model)\n"
                    + "   (4) use PED format (i.e. ped=" + pedformat

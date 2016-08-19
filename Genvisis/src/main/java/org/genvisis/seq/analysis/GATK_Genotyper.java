@@ -68,9 +68,9 @@ public class GATK_Genotyper {
   public boolean runJointGenotyping(JointGATKGenotyper jGatkGenotyper) {
     boolean progress = !jGatkGenotyper.isFail();
     if (progress) {
-      progress =
-          gatk.jointGenotypeGVCFs(jGatkGenotyper.getInputGVCFs(), jGatkGenotyper.getOutputVCF(),
-                                  numWithinSampleThreads, jGatkGenotyper.getLog());
+      progress = gatk.jointGenotypeGVCFs(jGatkGenotyper.getInputGVCFs(),
+                                         jGatkGenotyper.getOutputVCF(), numWithinSampleThreads,
+                                         jGatkGenotyper.getLog());
       jGatkGenotyper.setFail(!progress);
     }
     return progress;
@@ -132,11 +132,11 @@ public class GATK_Genotyper {
 
   private String sed1000g(String in, Logger log) {
     String out = ext.addToRoot(in, ".sed1000g");
-    String command =
-        "cat " + in + "|sed 's/1000g2014oct_/g10002014oct_/g'|sed 's/1000g2015aug_/g10002015aug_/g'>"
+    String command = "cat " + in
+                     + "|sed 's/1000g2014oct_/g10002014oct_/g'|sed 's/1000g2015aug_/g10002015aug_/g'>"
                      + out;
-    String[] bat =
-        CmdLine.prepareBatchForCommandLine(new String[] {command}, out + ".bat", true, log);
+    String[] bat = CmdLine.prepareBatchForCommandLine(new String[] {command}, out + ".bat", true,
+                                                      log);
     if (CmdLine.runCommandWithFileChecks(bat, "", new String[] {in}, new String[] {out}, true,
                                          false, false, log)) {
       return out;
@@ -196,10 +196,12 @@ public class GATK_Genotyper {
     if (!isFail() && Files.checkAllFiles("", inputBams, verbose, log)) {
       if (inputBams != null) {
         siSampleHaplotypeCallers = new GATK.SingleSampleHaplotypeCaller[inputBams.length];
-        int[] actualWithinSampleThreads =
-            optimizeThreads(inputBams.length, numBetweenSampleThreads, numWithinSampleThreads, log);
+        int[] actualWithinSampleThreads = optimizeThreads(inputBams.length, numBetweenSampleThreads,
+                                                          numWithinSampleThreads, log);
         WorkerHive<GATK.SingleSampleHaplotypeCaller> hive =
-            new WorkerHive<GATK.SingleSampleHaplotypeCaller>(numBetweenSampleThreads, 10, log);
+                                                          new WorkerHive<GATK.SingleSampleHaplotypeCaller>(numBetweenSampleThreads,
+                                                                                                           10,
+                                                                                                           log);
         WorkerSingleSampleAllSites[] workers = new WorkerSingleSampleAllSites[inputBams.length];
         for (int i = 0; i < inputBams.length; i++) {
           Logger altLog = new Logger(ext.rootOf(inputBams[i], false) + ".HC_ERC.log");
@@ -208,9 +210,9 @@ public class GATK_Genotyper {
         }
         hive.addCallables(workers);
         hive.execute(true);
-        siSampleHaplotypeCallers =
-            hive.getResults()
-                .toArray(new GATK.SingleSampleHaplotypeCaller[hive.getResults().size()]);
+        siSampleHaplotypeCallers = hive.getResults()
+                                       .toArray(new GATK.SingleSampleHaplotypeCaller[hive.getResults()
+                                                                                         .size()]);
         for (int i = 0; i < workers.length; i++) {
           if (siSampleHaplotypeCallers[i].isFail()) {
             log.reportTimeError("Failed single sample haplotype calling for "
@@ -450,10 +452,10 @@ public class GATK_Genotyper {
     SNPEFF snpeff = new SNPEFF(snpEffLocation, verbose, overwriteExisting, log);
     SNPSIFT snpsift = new SNPSIFT(snpSiftLocation, verbose, overwriteExisting, log);
     ANNOVAR annovar = new ANNOVAR(annovarLocation, verbose, overwriteExisting, log);
-    GATK_Genotyper genotyper =
-        new GATK_Genotyper(gatk, snpeff, snpsift, annovar, 0, numThreads, verbose, log);
-    JointGATKGenotyper jGatkGenotyper =
-        new JointGATKGenotyper(rootInputDir, rootOutputDir, output, log);
+    GATK_Genotyper genotyper = new GATK_Genotyper(gatk, snpeff, snpsift, annovar, 0, numThreads,
+                                                  verbose, log);
+    JointGATKGenotyper jGatkGenotyper = new JointGATKGenotyper(rootInputDir, rootOutputDir, output,
+                                                               log);
     jGatkGenotyper.init(fileOfGVCFs);
     new File(rootOutputDir).mkdirs();
     if (batch) {
@@ -509,7 +511,7 @@ public class GATK_Genotyper {
     SNPSIFT snpsift = new SNPSIFT(snpSiftLoc, verbose, overwriteExisting, log);
     ANNOVAR annovar = new ANNOVAR(annovarLocation, verbose, overwriteExisting, log);
     GATK_Genotyper genotyper =
-        new GATK_Genotyper(gatk, snpeff, snpsift, annovar, 0, 1, verbose, log);
+                             new GATK_Genotyper(gatk, snpeff, snpsift, annovar, 0, 1, verbose, log);
     return genotyper.annotateVCF(vcf, annoBuild, null, annoVCF);
   }
 
@@ -673,16 +675,16 @@ public class GATK_Genotyper {
              + " (not the default))\n" + "";
     usage += "   (10) set up a batch analysis for the root input directory for a log (i.e. "
              + GATK_LanePrep.BATCH_COMMAND + " (not the default))\n" + "";
-    usage +=
-        "   (11) root output for analysis (i.e. " + OUTPUT_COMMAND + output + " ( default))\n" + "";
+    usage += "   (11) root output for analysis (i.e. " + OUTPUT_COMMAND + output + " ( default))\n"
+             + "";
     usage += "   (12) HapMap SNP Training Referenece (i.e. " + HAPMAP_TRAIN_COMMAND
              + " ( no default))\n" + "";
     usage += "   (13) Omni SNP Training Referenece (i.e. " + OMNI_TRAIN_COMMAND
              + " ( no default))\n" + "";
     usage += "   (14) 1000 SNP genomes Training Referenece (i.e. " + G1000_COMMAND
              + " ( no default))\n" + "";
-    usage +=
-        "   (15) dbSNP SNP Training Referenece (i.e. " + DBSNP_COMMMAND + " ( no default))\n" + "";
+    usage += "   (15) dbSNP SNP Training Referenece (i.e. " + DBSNP_COMMMAND + " ( no default))\n"
+             + "";
     usage += "   (16) mills INDEL Training Referenece (i.e. " + MILLS + " ( no default))\n" + "";
     usage += "   (17) full path to the SNP EFF directory (i.e. " + SNPEFF.SNP_EFF_COMMAND
              + " ( no default))\n" + "";
@@ -690,23 +692,23 @@ public class GATK_Genotyper {
              + Array.toStr(SNPEFF.BUILDS, ", ") + " (i.e. " + SNPEFF.SNP_EFF_BUILD_COMMAND
              + annoBuild + " ( default))\n" + "";
     usage +=
-        "   (19) full path to the SNP SIFT directory (only if different from the SNP EFF directory) (i.e. "
+          "   (19) full path to the SNP SIFT directory (only if different from the SNP EFF directory) (i.e. "
              + SNPSIFT.SNP_SIFT_LOCATION_COMMAND + " ( no default))\n" + "";
     usage += "   (20) do not annotate with SNP EFF/SIFT/ANNOVAR (i.e. "
              + SNPEFF.SNP_EFF_NO_ANNO_COMMAND + " ( not the default))\n" + "";
     usage += "   (21) full path to the ANNOVAR directory (i.e. " + ANNOVAR.ANNOVAR_COMMAND
              + " ( no default))\n" + "";
     usage +=
-        "   (23) full path to a file for restricting the vcf...and subsequent recalibrations (i.e. "
+          "   (23) full path to a file for restricting the vcf...and subsequent recalibrations (i.e. "
              + REGIONS_FILE + " ( no default))\n" + "";
 
     usage += "   (24) annotate this vcf only (skipping all previous steps) (i.e. " + ANNOTATE_VCF
              + " ( no default))\n" + "";
     usage +=
-        "   (25) merge in these vcfs prior to annotating( like ARIC) (ex. MERGE_WITH=ARIC:aric1.vcf,aric2.vcf) ( (i.e. "
+          "   (25) merge in these vcfs prior to annotating( like ARIC) (ex. MERGE_WITH=ARIC:aric1.vcf,aric2.vcf) ( (i.e. "
              + MERGE_WITH + " ( no default))\n" + "";
     usage +=
-        "   (26) use another vcf to add more annotations (ex. EXTRA_VCF_ANNOTATIONS=charge.vcf:charge.maf1,charge.maf2) ( (i.e. "
+          "   (26) use another vcf to add more annotations (ex. EXTRA_VCF_ANNOTATIONS=charge.vcf:charge.maf1,charge.maf2) ( (i.e. "
              + EXTRA_VCF_ANNOTATIONS + " ( no default))\n" + "";
 
     // usage += " (18) log file name (i.e. " + MILLS + " ( no default))\n" + "";

@@ -1,8 +1,5 @@
 package org.genvisis.cnv.analysis;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Floats;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -29,6 +26,9 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.Segment;
 import org.genvisis.stats.RegressionModel;
+
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
 
 public class MeanLRR {
   public static void createFilesFromFullSample(Project proj, String regionsFile) {
@@ -202,7 +202,7 @@ public class MeanLRR {
                        + regions[i].getStop() + "\t" + Array.toStr(markerNames));
         log.report("Computing mean Log R ratios for: " + regions[i].getUCSClocation());
         markerDataLoader =
-            MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
+                         MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
         counts = new int[samples.length];
         for (int j = 0; j < markerNames.length; j++) {
           markerData = markerDataLoader.requestMarkerData(j);
@@ -338,8 +338,8 @@ public class MeanLRR {
 
     // hash = HashVec.loadFileToHashString(proj.getFilename(proj.SAMPLE_DATA_FILENAME), "DNA",
     // phenotypes, "\t");
-    hash =
-        HashVec.loadFileToHashString(proj.SAMPLE_DATA_FILENAME.getValue(), "DNA", phenotypes, "\t");
+    hash = HashVec.loadFileToHashString(proj.SAMPLE_DATA_FILENAME.getValue(), "DNA", phenotypes,
+                                        "\t");
     sampleList = proj.getSampleList();
     samples = sampleList.getSamples();
 
@@ -355,8 +355,8 @@ public class MeanLRR {
     }
 
     if (regionToDumpOrNullForAll != null) {
-      regionToDumpOrNullForAll =
-          ext.replaceAllWith(regionToDumpOrNullForAll, new String[][] {{",", ""}});
+      regionToDumpOrNullForAll = ext.replaceAllWith(regionToDumpOrNullForAll,
+                                                    new String[][] {{",", ""}});
     }
 
     try {
@@ -365,10 +365,10 @@ public class MeanLRR {
         writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
                                                 + ext.rootOf(mlrrSetFile) + "_dump.xln"));
       } else {
-        writer =
-            new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-                                           + ext.replaceAllWith(regionToDumpOrNullForAll, ":", "_")
-                                           + ".xln"));
+        writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                + ext.replaceAllWith(regionToDumpOrNullForAll, ":",
+                                                                     "_")
+                                                + ".xln"));
 
         for (int i = 0; i < regions.length; i++) {
           if (regionToDumpOrNullForAll.equals(regions[i].getUCSClocation())) {
@@ -428,19 +428,19 @@ public class MeanLRR {
     Vector<String> params;
 
     params =
-        Files.parseControlFile(filename, "MeanLRR",
-                               new String[] {"proj=/home/npankrat/projects/GEDI.properties",
-                                             "# list of regions for which to compute the mean LRR: use the format chr8:25129632-25130278 using one region per line",
-                                             "regions=listOfCNPs.txt",
-                                             "# phenotype in SampleData.txt to use; delimit with a comma if several are desired in an export file, only first will be analyzed",
-                                             "pheno=CLASS=Use32Phenotype,CLASS=Sex,Filter=Age",
-                                             "# compute transforms as well (takes much much longer, as in ~20 minutes versus 1 second, since it loads all project data into)",
-                                             "transform=false", "analyze=false", "dumpAll=true",
-                                             "# If dumping all and only one transform is desired, then delineate the index of the transformation to export, -1 will export all transforms",
-                                             "transIndex=-1",
-                                             "# Alternatively, if all transformations for only a particular region are desired, then uncomment and list here (must be in the regions file)",
-                                             "#dump=chr8:25129632-25130278"},
-                               log);
+           Files.parseControlFile(filename, "MeanLRR",
+                                  new String[] {"proj=/home/npankrat/projects/GEDI.properties",
+                                                "# list of regions for which to compute the mean LRR: use the format chr8:25129632-25130278 using one region per line",
+                                                "regions=listOfCNPs.txt",
+                                                "# phenotype in SampleData.txt to use; delimit with a comma if several are desired in an export file, only first will be analyzed",
+                                                "pheno=CLASS=Use32Phenotype,CLASS=Sex,Filter=Age",
+                                                "# compute transforms as well (takes much much longer, as in ~20 minutes versus 1 second, since it loads all project data into)",
+                                                "transform=false", "analyze=false", "dumpAll=true",
+                                                "# If dumping all and only one transform is desired, then delineate the index of the transformation to export, -1 will export all transforms",
+                                                "transIndex=-1",
+                                                "# Alternatively, if all transformations for only a particular region are desired, then uncomment and list here (must be in the regions file)",
+                                                "#dump=chr8:25129632-25130278"},
+                                  log);
 
     if (params != null) {
       params.add("log=" + log.getFilename());

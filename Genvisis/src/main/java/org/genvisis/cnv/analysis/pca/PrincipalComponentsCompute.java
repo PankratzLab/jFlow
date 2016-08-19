@@ -34,14 +34,15 @@ import org.genvisis.common.ext;
  * @author Peter Abeles , John Lane
  */
 public class PrincipalComponentsCompute {
-  public static final String[] OUTPUT_EXT =
-      {".PCs.txt", ".PCs.MarkerReport.txt", ".PCs.MarkerLoadings.txt", ".PCs.SingularValues.txt",
-       ".Summary.txt"};
+  public static final String[] OUTPUT_EXT = {".PCs.txt", ".PCs.MarkerReport.txt",
+                                             ".PCs.MarkerLoadings.txt", ".PCs.SingularValues.txt",
+                                             ".Summary.txt"};
   public static final String PC_STRING = "PC";
   public static final String[] SAMPLE = {"sample", "FID", "IID"};
   public static final String MARKER = "markerName";
   private static final String[] MARKER_REPORT_SMALL =
-      {"Marker", "Used for PCA (Contains at least one value that is not NaN)"};
+                                                    {"Marker",
+                                                     "Used for PCA (Contains at least one value that is not NaN)"};
   private static final String SV_STRING = "Singular Value";
   // principle component subspace is stored in the rows
   private DenseMatrix64F V_t;
@@ -155,8 +156,8 @@ public class PrincipalComponentsCompute {
 
     // Compute SVD and save time by not computing U,
     // if loadings are wanted, we compute them later/on the fly to save memory
-    SingularValueDecomposition<DenseMatrix64F> svd =
-        DecompositionFactory.svd(A.numRows, A.numCols, false, true, false);
+    SingularValueDecomposition<DenseMatrix64F> svd = DecompositionFactory.svd(A.numRows, A.numCols,
+                                                                              false, true, false);
     System.gc();
     if (!svd.decompose(A)) {
       throw new RuntimeException("SVD failed");
@@ -187,7 +188,7 @@ public class PrincipalComponentsCompute {
 
   /**
    * Extract a particular basis vector (principal component)
-   * 
+   *
    * @param which basis to extract
    * @return
    */
@@ -419,8 +420,8 @@ public class PrincipalComponentsCompute {
   private static boolean[] getSamplesFromFile(Project proj, String useFile) {
     SampleData sampleData = proj.getSampleData(0, false);
     Logger log = proj.getLog();
-    String[] samplesToUseFromFile =
-        HashVec.loadFileToStringArray(useFile, false, false, new int[] {0}, true, true, "\t");
+    String[] samplesToUseFromFile = HashVec.loadFileToStringArray(useFile, false, false,
+                                                                  new int[] {0}, true, true, "\t");
     // previous method causes issues with spaces in sample names
     // HashVec.loadFileToStringArray(useFile, false, new int[] { 0 }, true);
     String[] projSamples = proj.getSampleList().getSamples();
@@ -471,7 +472,7 @@ public class PrincipalComponentsCompute {
   /**
    * This is necessary to allow marker data loader to load markers in order. Otherwise it can easily
    * reach the read ahead limit, and parent thread cannot release
-   * 
+   *
    * @param proj
    * @param markers
    * @return
@@ -505,7 +506,7 @@ public class PrincipalComponentsCompute {
 
   /**
    * Set up a matrix for the number of markers and samples
-   * 
+   *
    * @param numMarkers
    * @param samplesToUse
    * @return
@@ -574,7 +575,7 @@ public class PrincipalComponentsCompute {
         // call rate either
         // TODO Recompute only from samplesToUse??
         data[0] =
-            markerData.getRecomputedLRR_BAF(null, null, false, 1, 0, null, true, true, log)[1];
+                markerData.getRecomputedLRR_BAF(null, null, false, 1, 0, null, true, true, log)[1];
       } else {
         data[0] = markerData.getLRRs();
       }
@@ -647,8 +648,8 @@ public class PrincipalComponentsCompute {
   private static boolean hasNAN(float[][] data) {
     for (float[] element : data) {
       if (element != null) {
-        for (int j = 0; j < element.length; j++) {
-          if (Float.isNaN(element[j])) {
+        for (float element2 : element) {
+          if (Float.isNaN(element2)) {
             return true;
           }
         }
@@ -671,7 +672,7 @@ public class PrincipalComponentsCompute {
                                         double[][] dataToUse, boolean printFullData,
                                         boolean[] samplesToUse, String output) {
     String markersUsedForPCA =
-        proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(output) + OUTPUT_EXT[1];
+                             proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(output) + OUTPUT_EXT[1];
     Logger log = proj.getLog();
 
     try {
@@ -743,8 +744,8 @@ public class PrincipalComponentsCompute {
         Files.backup(output, proj.PROJECT_DIRECTORY.getValue(),
                      proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
       }
-      PrintWriter writer =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output));
+      PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                          + output));
       double[] singularValues = pcs.getSingularValues();
       writer.println(PC_STRING + "\t" + SV_STRING);
       for (int i = 0; i < singularValues.length; i++) {
@@ -781,8 +782,8 @@ public class PrincipalComponentsCompute {
         Files.backup(output, proj.PROJECT_DIRECTORY.getValue(),
                      proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
       }
-      PrintWriter writer =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output));
+      PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                          + output));
       writer.print(MARKER);
       for (int i = 0; i < pcsBasis.length; i++) {
         writer.print("\t" + PC_STRING + (i + 1));
@@ -828,7 +829,7 @@ public class PrincipalComponentsCompute {
   /**
    * Extract a given number of principal components to a double[][] organized as double[pc0][pcs for
    * samples]
-   * 
+   *
    * @param pcs PrincipalComponentsCompute object with computed basis vectors
    * @param numComponents number of components to extract
    * @param log
@@ -870,8 +871,8 @@ public class PrincipalComponentsCompute {
                                / (double) Runtime.getRuntime().totalMemory() * 100.0))
                  + "%");
       log.report(ext.getTime() + " Reporting top " + numComponents + " PCs");
-      PrintWriter writer =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output));
+      PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                          + output));
       String[] samples = proj.getSampleList().getSamples();
       writer.print(SAMPLE[1] + "\t" + SAMPLE[2]);
       for (int i = 0; i < numComponents; i++) {

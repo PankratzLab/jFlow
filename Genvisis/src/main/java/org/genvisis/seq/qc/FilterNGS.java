@@ -216,7 +216,7 @@ public class FilterNGS implements Serializable {
                                      /**
                                       * https://www.broadinstitute.org/cancer/cga/mutect for
                                       * description of why 6.3 and 2.3
-                                      * 
+                                      *
                                       */
                                      /**
                                       * Set so errors are half the somatic mutation rate
@@ -344,7 +344,7 @@ public class FilterNGS implements Serializable {
   }
 
   /**
-   * 
+   *
    * Handles common variant filtering options
    *
    */
@@ -365,7 +365,7 @@ public class FilterNGS implements Serializable {
    */
   public abstract class VcFilterDouble implements VcFilterI<Double>, Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final VARIANT_FILTER_DOUBLE dfilter;
@@ -450,7 +450,7 @@ public class FilterNGS implements Serializable {
     }
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
 
@@ -468,7 +468,7 @@ public class FilterNGS implements Serializable {
    */
   public class VcFilterJEXL extends VcFilterBoolean implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final String[] names, expressions;
@@ -499,7 +499,7 @@ public class FilterNGS implements Serializable {
    */
   public abstract class VcFilterBoolean implements VcFilterI<Boolean>, Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final VARIANT_FILTER_BOOLEAN bfilter;
@@ -556,7 +556,7 @@ public class FilterNGS implements Serializable {
   private VcFilterDouble getMAFFilter(VARIANT_FILTER_DOUBLE dfilter) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -570,7 +570,7 @@ public class FilterNGS implements Serializable {
   private VcFilterDouble getHWEFilter(VARIANT_FILTER_DOUBLE dfilter) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -601,7 +601,7 @@ public class FilterNGS implements Serializable {
   private VcFilterDouble getCallRateFilter(VARIANT_FILTER_DOUBLE dfilter) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -618,7 +618,7 @@ public class FilterNGS implements Serializable {
   private VcFilterDouble getHetAltAlleleDepthRatioFilter(VARIANT_FILTER_DOUBLE dfilter) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -659,7 +659,7 @@ public class FilterNGS implements Serializable {
   private VcFilterDouble getAltAlleleDepthFilter(VARIANT_FILTER_DOUBLE dfilter) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -683,7 +683,7 @@ public class FilterNGS implements Serializable {
   private VcFilterDouble getVQSLODFilter(VARIANT_FILTER_DOUBLE dfilter) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -710,7 +710,7 @@ public class FilterNGS implements Serializable {
   private VcFilterDouble getMACFilter(VARIANT_FILTER_DOUBLE dfilter) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -724,7 +724,7 @@ public class FilterNGS implements Serializable {
   private VcFilterDouble getAvgGQFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -748,7 +748,7 @@ public class FilterNGS implements Serializable {
   private VcFilterDouble getAvgAD_TUMORFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -762,7 +762,7 @@ public class FilterNGS implements Serializable {
   private VcFilterDouble getAvgAD_NORMALFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -776,7 +776,7 @@ public class FilterNGS implements Serializable {
   private VcFilterDouble getAvgALT_AD_TUMORFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -791,7 +791,7 @@ public class FilterNGS implements Serializable {
                                                    final Logger log) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -805,7 +805,7 @@ public class FilterNGS implements Serializable {
   private VcFilterDouble getAvgAF_TUMORFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -819,7 +819,7 @@ public class FilterNGS implements Serializable {
   private VcFilterDouble getAvgTLODFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -833,7 +833,7 @@ public class FilterNGS implements Serializable {
   private VcFilterDouble getAvgNLODFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -847,7 +847,7 @@ public class FilterNGS implements Serializable {
   private VcFilterDouble getAvgDPFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
     return new VcFilterDouble(dfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -861,7 +861,7 @@ public class FilterNGS implements Serializable {
   private VcFilterBoolean getBiallelicFilter(VARIANT_FILTER_BOOLEAN bfilter) {
     return new VcFilterBoolean(bfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -875,7 +875,7 @@ public class FilterNGS implements Serializable {
   private VcFilterBoolean getFailureFilter(VARIANT_FILTER_BOOLEAN bfilter) {
     return new VcFilterBoolean(bfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -889,7 +889,7 @@ public class FilterNGS implements Serializable {
   private VcFilterBoolean getMutectFailureFilter(VARIANT_FILTER_BOOLEAN bfilter) {
     return new VcFilterBoolean(bfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -902,7 +902,8 @@ public class FilterNGS implements Serializable {
         boolean pass = true;
         if (g.hasAnyAttribute(GENOTYPE_INFO.MUTECT_FILTERS.getFlag())) {
           List<String> filts =
-              Arrays.asList(g.getAnyAttribute(GENOTYPE_INFO.MUTECT_FILTERS.getFlag()).toString());
+                             Arrays.asList(g.getAnyAttribute(GENOTYPE_INFO.MUTECT_FILTERS.getFlag())
+                                            .toString());
           pass = filts.size() == 0 || filts.get(0).equals("PASS");
         }
 
@@ -915,7 +916,7 @@ public class FilterNGS implements Serializable {
                                        final GENOTYPE_FLAG_INFO info, final Logger log) {
     return new VcFilterBoolean(bfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -932,7 +933,7 @@ public class FilterNGS implements Serializable {
   private VcFilterBoolean getUnambiguousFilter(VARIANT_FILTER_BOOLEAN bfilter) {
     return new VcFilterBoolean(bfilter) {
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -1066,7 +1067,7 @@ public class FilterNGS implements Serializable {
    */
   public static class VariantContextFilter implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private VcFilterDouble[] vDoubles;
@@ -1147,8 +1148,9 @@ public class FilterNGS implements Serializable {
       private VcFilterDouble[] vDoubles = new VcFilterDouble[] {};
       private VcFilterBoolean[] vBooleans = new VcFilterBoolean[] {};
       private VcFilterJEXL vFilterJEXL =
-          new FilterNGS().getJEXLFilter(VARIANT_FILTER_BOOLEAN.JEXL, new String[] {},
-                                        new String[] {}, new Logger());
+                                       new FilterNGS().getJEXLFilter(VARIANT_FILTER_BOOLEAN.JEXL,
+                                                                     new String[] {},
+                                                                     new String[] {}, new Logger());
 
       public VariantContextFilterBuilder altAlleleDepthRatioFilter(double[] altAlleleDepthRatioFilter) {
         return this;
@@ -1273,7 +1275,7 @@ public class FilterNGS implements Serializable {
       // VARIANT_FILTER_DOUBLE[] caseF = new VARIANT_FILTER_DOUBLE[] { macCase, callRate, dp, gq };
       refFilters = new VariantContextFilter(refF, new VARIANT_FILTER_BOOLEAN[] {}, null, null, log);
       caseFilters =
-          new VariantContextFilter(caseF, new VARIANT_FILTER_BOOLEAN[] {}, null, null, log);
+                  new VariantContextFilter(caseF, new VARIANT_FILTER_BOOLEAN[] {}, null, null, log);
     }
 
     public VariantContextFilterPass filter(final VariantContext vc, Logger log) {
@@ -1425,9 +1427,9 @@ public class FilterNGS implements Serializable {
   private static final String AND = "&&";
 
   public static String getPopFreqFilterString(double maf) {
-    String freq =
-        ESP_FILTER + maf + ")" + AND + G10002014_FILTER + maf + ")" + AND + G10002015_FILTER + maf
-                  + ")" + AND + ESPV2_FILTER + maf + ")" + AND + POPFREQ_MAXFILTER + maf + ")";
+    String freq = ESP_FILTER + maf + ")" + AND + G10002014_FILTER + maf + ")" + AND
+                  + G10002015_FILTER + maf + ")" + AND + ESPV2_FILTER + maf + ")" + AND
+                  + POPFREQ_MAXFILTER + maf + ")";
     return freq;
   }
 
@@ -1518,7 +1520,8 @@ public class FilterNGS implements Serializable {
     // VARIANT_FILTER_BOOLEAN mutectFail = VARIANT_FILTER_BOOLEAN.MUTECT_FAIL_FILTER;
 
     VARIANT_FILTER_DOUBLE[] qualFilts =
-        new VARIANT_FILTER_DOUBLE[] {tlod, nlod, dpMut, dpNormal, altADTumor, altAdNormal, mutAF};
+                                      new VARIANT_FILTER_DOUBLE[] {tlod, nlod, dpMut, dpNormal,
+                                                                   altADTumor, altAdNormal, mutAF};
 
     String[] jexl = new String[] {};
     String[] jexp = new String[] {};

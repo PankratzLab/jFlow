@@ -128,7 +128,7 @@ public class Additionals {
     Vector<String> fams = new Vector<String>();
     Hashtable<String, String> affecteds = new Hashtable<String, String>();
     Hashtable<String, Vector<Vector<String>>> hash =
-        new Hashtable<String, Vector<Vector<String>>>();
+                                                   new Hashtable<String, Vector<Vector<String>>>();
     Vector<Vector<String>> data;
     int numDads, numMoms;
 

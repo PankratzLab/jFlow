@@ -186,8 +186,8 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 
   public AnnotationQuery getAnnotationQuery(Segment[] segs) {
     if (valid) {
-      AnnotationQuery annotationIterator =
-          new AnnotationQuery(annotationFilename, segs, indexRequired, proj.getLog());
+      AnnotationQuery annotationIterator = new AnnotationQuery(annotationFilename, segs,
+                                                               indexRequired, proj.getLog());
       return annotationIterator;
     } else {
       proj.getLog().reportTimeError("Invalid loader...");
@@ -277,12 +277,12 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
       currentIndex = 0;
       queryIntervals = segs == null ? null : VCFOps.convertSegsToQI(segs, vcfHeader, 0, true, log);
       currentIterator =
-          queryIntervals == null ? vcfFileReader.iterator()
-                                 : vcfFileReader.query(vcfHeader.getSequenceDictionary()
-                                                                .getSequence(queryIntervals[currentIndex].referenceIndex)
-                                                                .getSequenceName(),
-                                                       queryIntervals[currentIndex].start,
-                                                       queryIntervals[currentIndex].end);
+                      queryIntervals == null ? vcfFileReader.iterator()
+                                             : vcfFileReader.query(vcfHeader.getSequenceDictionary()
+                                                                            .getSequence(queryIntervals[currentIndex].referenceIndex)
+                                                                            .getSequenceName(),
+                                                                   queryIntervals[currentIndex].start,
+                                                                   queryIntervals[currentIndex].end);
     }
 
     @Override

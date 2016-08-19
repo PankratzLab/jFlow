@@ -185,7 +185,7 @@ public class PSF {
 
     /**
      * Get a command that will convert a vcf to plink format using plink2
-     * 
+     *
      * @param inputVCF
      * @param outputBase
      * @return
@@ -208,7 +208,7 @@ public class PSF {
 
     /**
      * Get the .bim, .bed, and .fam files associated with this root
-     * 
+     *
      * @param root
      * @return
      */

@@ -25,9 +25,10 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 
 public class TargetRegions<T extends Segment> {
-  private static final String[] TO_REPORT =
-      new String[] {"SNPEFF_GENE_NAME", "SNPEFF_EFFECT", "SNPEFF_IMPACT", "AAChange.refGene",
-                    "SNPEFF_EXON_ID", "culprit", "snp138", "esp6500si_all", "g10002014oct_all"};
+  private static final String[] TO_REPORT = new String[] {"SNPEFF_GENE_NAME", "SNPEFF_EFFECT",
+                                                          "SNPEFF_IMPACT", "AAChange.refGene",
+                                                          "SNPEFF_EXON_ID", "culprit", "snp138",
+                                                          "esp6500si_all", "g10002014oct_all"};
 
   private final String vcfFile;
   private final LocusSet<T> targetRegions;
@@ -48,7 +49,7 @@ public class TargetRegions<T extends Segment> {
     T[] regions = targetRegions.getLoci();
 
     String[] subpop =
-        vpop.getSubPop().keySet().toArray(new String[vpop.getSubPop().keySet().size()]);
+                    vpop.getSubPop().keySet().toArray(new String[vpop.getSubPop().keySet().size()]);
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutput));
       writer.print("CHR\tStart\tStop\tRef\tAlt\tFILTER");
@@ -70,9 +71,11 @@ public class TargetRegions<T extends Segment> {
       }
       writer.println();
       for (T region : regions) {
-        CloseableIterator<VariantContext> cIterator =
-            reader.query(Positions.getChromosomeUCSC(region.getChr(), true), region.getStart(),
-                         region.getStop());
+        CloseableIterator<VariantContext> cIterator = reader.query(
+                                                                   Positions.getChromosomeUCSC(region.getChr(),
+                                                                                               true),
+                                                                   region.getStart(),
+                                                                   region.getStop());
 
         while (cIterator.hasNext()) {
           VariantContext vc = cIterator.next();
@@ -95,8 +98,8 @@ public class TargetRegions<T extends Segment> {
             writer.print("\t");
             int index = 0;
             for (String altSamp : tmpSamps) {
-              VariantContext curContext =
-                  VCOps.getSubset(vcAlt, altSamp, VC_SUBSET_TYPE.SUBSET_STRICT);
+              VariantContext curContext = VCOps.getSubset(vcAlt, altSamp,
+                                                          VC_SUBSET_TYPE.SUBSET_STRICT);
               writer.print((index > 0 ? "|" : "") + altSamp + ":GQ="
                            + curContext.getGenotype(0).getGQ() + ":AD="
                            + Array.toStr(curContext.getGenotype(0).getAD(), ","));
@@ -143,10 +146,10 @@ public class TargetRegions<T extends Segment> {
 
   public static void test() {
     String vcf =
-        "D:/data/Project_Tsai_21_25_26_spector/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf.gz";
+               "D:/data/Project_Tsai_21_25_26_spector/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf.gz";
     String vpopFile = "D:/data/Project_Tsai_21_25_26_spector/candidateGenes/USP8/usp8.vpop";
     String toMatchVCF =
-        "D:/data/CHARGE/CHARGE_MAFS/charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.vcf";
+                      "D:/data/CHARGE/CHARGE_MAFS/charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.vcf";
     String[] toMatchAnnotations = new String[] {"MAF_blacks", "MAF_whites"};
     String output = ext.parseDirectoryOfFile(vpopFile) + "targetRegions.txt";
     Logger log = new Logger(ext.parseDirectoryOfFile(vpopFile) + "target.log");
@@ -156,7 +159,7 @@ public class TargetRegions<T extends Segment> {
     LocusSet<Segment> set = new LocusSet<Segment>(segs, true, log) {
 
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
     };

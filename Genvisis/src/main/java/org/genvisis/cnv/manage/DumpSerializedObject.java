@@ -27,16 +27,16 @@ public class DumpSerializedObject {
                 + "\n" + "object.toString()=" + object.toString());
     /**
      * Classes we should support now:
-     * 
+     *
      * outliers.ser --* AnnotationCollection --* Centroids --* ClusterFilterCollection --* MarkerSet
      * CNVariant --- would only write one cnvariant to one file... --* SNPMarkerSet --* SegmentList
      * --* SegmentLists
-     * 
+     *
      */
 
     /**
      * Classes we might consider supporting in the future:
-     * 
+     *
      * BurdenMatrix ChromatinAccessibility GenotypeMatrix LDdatabase SerialStringMatrix SuperNovo
      */
 

@@ -54,8 +54,8 @@ public class BamSoftClip {
       SamReader reader = samReaderFactory.open(new File(bam));
       log.report(ext.getTime() + " Info - beginning processing of " + bam);
       int numTotalReads = 0;
-      DynamicAveragingHistogram dynamicAveragingHistogram =
-          new DynamicAveragingHistogram(-700, 700, 0);
+      DynamicAveragingHistogram dynamicAveragingHistogram = new DynamicAveragingHistogram(-700, 700,
+                                                                                          0);
       Hashtable<String, Integer> seqCount = new Hashtable<String, Integer>();
       HashSet<String> rgs = new HashSet<String>();
       for (SAMRecord samRecord : reader) {
@@ -148,10 +148,10 @@ public class BamSoftClip {
 
   public static void main(String[] args) {
     String bamFile =
-        "/scratch.global/lane0212/Project_Tsai_Project_028/151120_D00635_0090_BC81JNANXX/mutect/tnMatch.txt";
+                   "/scratch.global/lane0212/Project_Tsai_Project_028/151120_D00635_0090_BC81JNANXX/mutect/tnMatch.txt";
     String[] bams = HashVec.loadFileToStringArray(bamFile, false, new int[] {1}, true);
     String outputDir =
-        "/scratch.global/lane0212/Project_Tsai_Project_028/151120_D00635_0090_BC81JNANXX/mutect/clipMe/";
+                     "/scratch.global/lane0212/Project_Tsai_Project_028/151120_D00635_0090_BC81JNANXX/mutect/clipMe/";
     new File(outputDir).mkdirs();
     Logger log = new Logger(outputDir + "clip.log");
     clipVInsert(bams, outputDir, log);

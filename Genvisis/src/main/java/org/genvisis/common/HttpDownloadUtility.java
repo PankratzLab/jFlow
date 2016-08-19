@@ -31,7 +31,7 @@ public class HttpDownloadUtility {
 
   /**
    * Downloads a file from a URL
-   * 
+   *
    * @param fileURL HTTP URL of the file to be downloaded
    * @param saveFile path to where to save the file
    * @param verbose report nice things to know

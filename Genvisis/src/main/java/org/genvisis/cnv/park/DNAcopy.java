@@ -24,8 +24,9 @@ public class DNAcopy {
   // public static final String ROOT_DIR = "C:\\Documents and Settings\\npankrat\\My
   // Documents\\CNV\\Software\\DNAcopy\\";
   public static final String[] ROOT_DIRS =
-      {"C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\dnacopy\\",
-       "/work/parkinsons/cnvs/dnacopy/", "/home/npankrat/penncnv/again/dnacopy/"};
+                                         {"C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\dnacopy\\",
+                                          "/work/parkinsons/cnvs/dnacopy/",
+                                          "/home/npankrat/penncnv/again/dnacopy/"};
   // public static final String CNV_DIRECTORY = "../quantisnp/source/";
   public static final String CNV_DIRECTORY = "../cnvs/";
   public static final String DEFAULT_OUTPUT = "results/";
@@ -33,8 +34,8 @@ public class DNAcopy {
   public static final String LOOKUP_PLUS_GENDER_FILE = "LookupPlusGender.xln";
   public static final double ABSOLUT_THRESHOLD = 1.5;
   public static final String[] LOOKUP_HEADER = {"Sample_ID", "FID", "IID", "Gender"};
-  public static final String[] RESULTS_HEADER =
-      {"ID", "chrom", "loc.start", "loc.end", "num.mark", "seg.mean"};
+  public static final String[] RESULTS_HEADER = {"ID", "chrom", "loc.start", "loc.end", "num.mark",
+                                                 "seg.mean"};
 
   public static void createBatch(String inputDirectory, String batchDirectory,
                                  String outputDirectory, int numBatches) {

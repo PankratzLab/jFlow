@@ -106,14 +106,14 @@ public class FilterVariantLists {
   public static void main(String[] args) {
     int numArgs = args.length;
     String dir =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\SequencingProjectWithCIDR\\SNPlists\\older_variant_files\\by_bed\\";
+               "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\SequencingProjectWithCIDR\\SNPlists\\older_variant_files\\by_bed\\";
     String chrs = "=2";
     String positions = ">200000000";
     boolean indelsOnly = true;
 
-    String usage =
-        "\n" + "seq.FilterVariantLists requires 0-1 arguments\n" + "   (1) filename (i.e. file="
-                   + dir + " (default))\n" + "   (2) chrs (i.e. chrs=" + chrs + " (default))\n"
+    String usage = "\n" + "seq.FilterVariantLists requires 0-1 arguments\n"
+                   + "   (1) filename (i.e. file=" + dir + " (default))\n"
+                   + "   (2) chrs (i.e. chrs=" + chrs + " (default))\n"
                    + "   (3) positions (i.e. positions=" + positions + " (default))\n"
                    + "   (4) keep indels only (i.e. --indeplsOnly (not the default))\n" + "";
 

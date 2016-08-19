@@ -43,8 +43,8 @@ public class ConvertToBuild37 {
     err = new Hashtable<String, String>();
     files = Files.list(dir, ".err", false);
     for (String file : files) {
-      lines =
-          HashVec.loadFileToStringArray(dir + file, false, false, new int[] {0}, true, false, ",");
+      lines = HashVec.loadFileToStringArray(dir + file, false, false, new int[] {0}, true, false,
+                                            ",");
       for (int j = 0; j < lines.length; j++) {
         if (lines[j].equals("#Deleted in new")) {
           err.put(lines[j + 1], "");
@@ -59,7 +59,7 @@ public class ConvertToBuild37 {
     if (new File(dir + "liftOver.in").exists() && new File(dir + "liftOver.bed").exists()) {
       locs = HashVec.loadFileToStringArray(dir + "liftOver.in", false, new int[] {0}, false);
       conversions =
-          HashVec.loadFileToStringArray(dir + "liftOver.bed", false, new int[] {0}, false);
+                  HashVec.loadFileToStringArray(dir + "liftOver.bed", false, new int[] {0}, false);
       if (locs.length == conversions.length) {
         for (int i = 0; i < locs.length; i++) {
           hash.put(locs[i], conversions[i]);

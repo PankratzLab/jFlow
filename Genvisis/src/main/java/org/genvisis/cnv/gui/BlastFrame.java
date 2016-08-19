@@ -34,8 +34,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.MarkerBlastAnnotation;
@@ -51,6 +49,7 @@ import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.tribble.annotation.Strand;
+import net.miginfocom.swing.MigLayout;
 
 public class BlastFrame extends JFrame implements WindowFocusListener {
 
@@ -471,23 +470,23 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
       @Override
       public int compare(BlastLabel arg0, BlastLabel arg1) {
         int res1 =
-            (new Byte(arg0.fullSegment.getChr())).compareTo(new Byte(arg1.fullSegment.getChr()));
+                 (new Byte(arg0.fullSegment.getChr())).compareTo(new Byte(arg1.fullSegment.getChr()));
         if (res1 != 0) {
           return res1;
         }
         res1 =
-            (new Integer(arg0.fullSegment.getStart())).compareTo(new Integer(arg1.fullSegment.getStart()));
+             (new Integer(arg0.fullSegment.getStart())).compareTo(new Integer(arg1.fullSegment.getStart()));
         if (res1 != 0) {
           return res1;
         }
         res1 =
-            (new Integer(arg0.fullSegment.getStop())).compareTo(new Integer(arg1.fullSegment.getStop()));
+             (new Integer(arg0.fullSegment.getStop())).compareTo(new Integer(arg1.fullSegment.getStop()));
         return res1;
       }
     });
     ArrayList<BlastAnnotation> onT =
-        blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
-                                      proj.getLog());
+                                   blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
+                                                                 proj.getLog());
     probeLbl.setAnnotation(onT.size() > 0 ? onT.get(0) : null);
 
     SwingUtilities.invokeLater(new Runnable() {
@@ -504,8 +503,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         int len = proj.ARRAY_TYPE.getValue().getProbeLength();
         probeLengthLbl.setText(len + "");
         ArrayList<BlastAnnotation> onT =
-            blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
-                                          proj.getLog());
+                                       blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
+                                                                     proj.getLog());
         String lbl = "";
         // if (onT.size() > 0) {
         // if (onT.size() > 1) {
@@ -536,11 +535,11 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
           probeDescLbl.setText("<reference sequence:>");
           Segment seg = referenceAnnotation.getSeg();
           int start =
-              hasMatch ? seg.getStart()
-                       : referenceAnnotation.goLeft() ? seg.getStart() - len : seg.getStart();
+                    hasMatch ? seg.getStart()
+                             : referenceAnnotation.goLeft() ? seg.getStart() - len : seg.getStart();
           int stop =
-              hasMatch ? seg.getStop()
-                       : referenceAnnotation.goLeft() ? seg.getStart() : seg.getStart() + len;
+                   hasMatch ? seg.getStop()
+                            : referenceAnnotation.goLeft() ? seg.getStart() : seg.getStart() + len;
           if (posStrand) {
             stop = stop + 1;
           } else {
@@ -549,8 +548,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
           locationLbl.setText(seg.getChromosomeUCSC() + ":" + start + "-" + stop);
 
           String[] gen = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start, stop));
-          String[] act =
-              Array.subArray(gen, posStrand ? 0 : 1, posStrand ? gen.length - 1 : gen.length);
+          String[] act = Array.subArray(gen, posStrand ? 0 : 1,
+                                        posStrand ? gen.length - 1 : gen.length);
 
           nextBaseLbl.setText(posStrand ? gen[gen.length - 1] : gen[0]);
           String seq = Array.toStr(act, "");
@@ -611,8 +610,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     probeDescLbl.setFont(lblFont);
     hdrPanel.add(probeDescLbl, "cell 0 1");
     strandLbl =
-        new JLabel(referenceAnnotation == null ? ""
-                                               : CNVHelper.decode(referenceAnnotation.getStrand()));
+              new JLabel(referenceAnnotation == null ? ""
+                                                     : CNVHelper.decode(referenceAnnotation.getStrand()));
     strandLbl.setFont(lblFont);
     hdrPanel.add(strandLbl, "cell 1 0");
     probeLengthLbl = new JLabel(proj.ARRAY_TYPE.getValue().getProbeLength() + "");

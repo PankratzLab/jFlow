@@ -18,13 +18,13 @@ public class PowerCalculatorForQuantitativeTraits {
   // 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50};
   // public static final double[] MAFs = {0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.15, 0.20, 0.25,
   // 0.30, 0.40, 0.50};
-  public static final double[] MAFs =
-      {0.0001, 0.0002, 0.0004, 0.0005, 0.0007, 0.001, 0.002, 0.004, 0.005, 0.007, 0.01, 0.02, 0.04,
-       0.05, 0.07, 0.10, 0.20, 0.40, 0.50}; //
+  public static final double[] MAFs = {0.0001, 0.0002, 0.0004, 0.0005, 0.0007, 0.001, 0.002, 0.004,
+                                       0.005, 0.007, 0.01, 0.02, 0.04, 0.05, 0.07, 0.10, 0.20, 0.40,
+                                       0.50}; //
   public static final double[] ALPHAS = {0.05, 0.01, 0.0000025, 0.000000227, 0.00000005};
   public static final double[] SIGMAS = {0.10, 0.20, 0.40, 0.60, 0.80, 1.00};
-  public static final double[] VARIANCES_EXPLAINED =
-      {0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.10};
+  public static final double[] VARIANCES_EXPLAINED = {0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005,
+                                                      0.01, 0.02, 0.05, 0.10};
   // public static final double[] MAFs = {0.20};
   public static final String[] FORMATTING_TO_REMOVE = {"<em><font color=\"navy\">", "</font></em>"};
   public static final double VARIANCE_INCREMENT = 0.001;
@@ -53,8 +53,8 @@ public class PowerCalculatorForQuantitativeTraits {
     data.put("s", "1"); // singletons, not siblings
     data.put("alpha", ext.prettyP(alpha, 2, 100, 2, true));
     data.put("power", "0.80");
-    results =
-        Internat.doSubmit("http://pngu.mgh.harvard.edu/~purcell/cgi-bin/qtlassoc.cgi", data, 1000);
+    results = Internat.doSubmit("http://pngu.mgh.harvard.edu/~purcell/cgi-bin/qtlassoc.cgi", data,
+                                1000);
 
     Files.writeList(results, "D:/test.html");
 

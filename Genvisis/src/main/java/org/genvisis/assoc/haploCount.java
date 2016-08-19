@@ -181,15 +181,15 @@ public class haploCount {
       } while (!done && !line[0 + offset].equals(count + ""));
       if (!done) {
         counts[Integer.valueOf(hash.get(line[1 + offset]))
-                      .intValue()][Integer.valueOf(line[2 + offset]).intValue() - 1] +=
-                          Double.valueOf(line[4 + offset]).doubleValue();
+                      .intValue()][Integer.valueOf(line[2 + offset]).intValue()
+                                   - 1] += Double.valueOf(line[4 + offset]).doubleValue();
         counts[Integer.valueOf(hash.get(line[1 + offset]))
-                      .intValue()][Integer.valueOf(line[3 + offset]).intValue() - 1] +=
-                          Double.valueOf(line[4 + offset]).doubleValue();
+                      .intValue()][Integer.valueOf(line[3 + offset]).intValue()
+                                   - 1] += Double.valueOf(line[4 + offset]).doubleValue();
         genotypes[Integer.valueOf(hash.get(line[1 + offset]))
                          .intValue()][Integer.valueOf(line[2 + offset]).intValue()
-                                      - 1][Integer.valueOf(line[3 + offset]).intValue() - 1] +=
-                                          Double.valueOf(line[4 + offset]).doubleValue();
+                                      - 1][Integer.valueOf(line[3 + offset]).intValue()
+                                           - 1] += Double.valueOf(line[4 + offset]).doubleValue();
         count++;
       }
     }

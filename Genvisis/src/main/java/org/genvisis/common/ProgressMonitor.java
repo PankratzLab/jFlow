@@ -176,7 +176,7 @@ public class ProgressMonitor {
 
   /**
    * Start monitoring a new indeterminate task with a default timeout
-   * 
+   *
    * @param taskName Unique String ID for task
    * @param label Initial display label for task (can be changed later)
    */
@@ -187,7 +187,7 @@ public class ProgressMonitor {
 
   /**
    * Begin monitoring a new task, with a default timeout
-   * 
+   *
    * @param taskName Unique String ID for task
    * @param label Initial display label for task (can be changed later)
    * @param indeterminate Is the task indeterminate or not?
@@ -201,7 +201,7 @@ public class ProgressMonitor {
 
   /**
    * Begin tracking a new task
-   * 
+   *
    * @param taskName Unique String ID for task
    * @param label Initial display label for task (can be changed later)
    * @param indeterminate Is the task indeterminate or not?

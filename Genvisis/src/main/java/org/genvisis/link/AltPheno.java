@@ -16,8 +16,8 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
 public class AltPheno {
-  public static final String[] MERLIN_BINARY_HEADER =
-      {"CHR", "POS", "LABEL", "ANALYSIS", "ZSCORE", "DELTA", "LOD", "PVALUE"};
+  public static final String[] MERLIN_BINARY_HEADER = {"CHR", "POS", "LABEL", "ANALYSIS", "ZSCORE",
+                                                       "DELTA", "LOD", "PVALUE"};
 
   public static void rerunAnalyses(String dir, String filename) {
     BufferedReader reader;
@@ -25,7 +25,7 @@ public class AltPheno {
     String[] line;
     String trav;
     Hashtable<String, Hashtable<String, String>> hash =
-        new Hashtable<String, Hashtable<String, String>>();
+                                                      new Hashtable<String, Hashtable<String, String>>();
     Vector<String> v;
     String[] chrs, phenoNames = null, fams, phenos;
     String classpath;
@@ -85,8 +85,8 @@ public class AltPheno {
           reader = new BufferedReader(new FileReader(dir + "re_chrom" + chr2 + ".pre"));
           writers = new PrintWriter[phenoNames.length];
           for (int j = 0; j < phenoNames.length; j++) {
-            writers[j] =
-                new PrintWriter(new FileWriter(trav + phenoNames[j] + "/re_chrom" + chr2 + ".pre"));
+            writers[j] = new PrintWriter(new FileWriter(trav + phenoNames[j] + "/re_chrom" + chr2
+                                                        + ".pre"));
             Files.copyFile(dir + "map" + chr2 + ".dat",
                            trav + phenoNames[j] + "/map" + chr2 + ".dat");
           }
@@ -159,7 +159,7 @@ public class AltPheno {
     PrintWriter writer;
     String[] line, percentages;
     Hashtable<String, Hashtable<String, Vector<String>>> hashes =
-        new Hashtable<String, Hashtable<String, Vector<String>>>();
+                                                                new Hashtable<String, Hashtable<String, Vector<String>>>();
     Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
     Vector<String> v;
     String[] phenoNames = null, fams;
@@ -274,7 +274,7 @@ public class AltPheno {
     PrintWriter writer;
     String[] line;
     Hashtable<String, Hashtable<String, Vector<String>>> hashes =
-        new Hashtable<String, Hashtable<String, Vector<String>>>();
+                                                                new Hashtable<String, Hashtable<String, Vector<String>>>();
     Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
     String[] phenoNames = null, fams;
 
@@ -360,7 +360,7 @@ public class AltPheno {
     // String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\6K
     // Screens\\07_audit\\testBatch\\";
     String dir =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\6K Screens\\08_AltPheno\\";
+               "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\6K Screens\\08_AltPheno\\";
     // String dir = "";
     String filename = "AltPheno_6K.dat";
     boolean parse = false;

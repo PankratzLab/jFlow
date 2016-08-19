@@ -1,8 +1,5 @@
 package org.genvisis.cnv.var;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
-
 import java.awt.GraphicsEnvironment;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -39,10 +36,13 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariantHash;
 import org.genvisis.filesys.Segment;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 public class SampleData {
   /**
    * A helper class to facilitate creating sample data from either .ped or Sample_Map.csv formats
-   * 
+   *
    */
   public static class Individual {
     private final String fid;
@@ -123,9 +123,13 @@ public class SampleData {
   public static final String[] MINIMAL_SAMPLE_DATA_HEADER = {"DNA", "FID", "IID"};
   public static final String[] EUPHEMISMS = {"CleanedSex", "Sex", "Gender",};
   public static final String[] EXCLUDE_ALIASES = {"Exclude"};
-  public static final String[][][] KEYS_FOR_BASIC_CLASSES =
-      {{{"0", "All"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}},
-       {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}};
+  public static final String[][][] KEYS_FOR_BASIC_CLASSES = {{{"0", "All"}},
+                                                             {{"1", "A/A"}, {"2", "A/B"},
+                                                              {"3", "B/B"}},
+                                                             {{"1", "A/A"}, {"2", "A/B"},
+                                                              {"3", "B/B"}},
+                                                             {{"1", "A/A"}, {"2", "A/B"},
+                                                              {"3", "B/B"}}};
 
   // public static final String[][] LINKERS = {
   // //TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
@@ -139,9 +143,10 @@ public class SampleData {
   // {"Stop Position", "Stop", "End"} // secondary link to Trailer
   // };
   public static final String[][] LINKERS =
-      {Aliases.INDIVIDUAL_ID, Aliases.FAMILY_ID, Aliases.DNA, Aliases.MARKER_NAMES, Aliases.REGION,
-       Aliases.CHRS, Array.combine(Aliases.POSITIONS, Aliases.POSITIONS_START),
-       Aliases.POSITIONS_STOP};
+                                         {Aliases.INDIVIDUAL_ID, Aliases.FAMILY_ID, Aliases.DNA,
+                                          Aliases.MARKER_NAMES, Aliases.REGION, Aliases.CHRS,
+                                          Array.combine(Aliases.POSITIONS, Aliases.POSITIONS_START),
+                                          Aliases.POSITIONS_STOP};
   // Hashtable<String, Integer> linkKeyIndex;
   // Hashtable<String, ArrayList<Integer>> colorKeyIndex;
   public static final int IID_INDEX_IN_LINKERS = 0;
@@ -560,8 +565,8 @@ public class SampleData {
    * Popped this warning into a new Thread for gui reporting
    */
   private static void warnMissingFiles(final Project proj, final Vector<String> missingFiles) {
-    final String message =
-        "The following CNV " + (missingFiles.size() > 1 ? "files do not" : "file does not")
+    final String message = "The following CNV "
+                           + (missingFiles.size() > 1 ? "files do not" : "file does not")
                            + " exist and therefore " + (missingFiles.size() > 1 ? "were" : "was")
                            + " not loaded:\n     "
                            + Array.toStr(Array.toStringArray(missingFiles), "\n     ")
@@ -797,7 +802,7 @@ public class SampleData {
           return 0;
         } else {
           index =
-              Segment.binarySearchForOverlap(new Segment(chr, position - 2, position + 2), segs);
+                Segment.binarySearchForOverlap(new Segment(chr, position - 2, position + 2), segs);
           if (index == -1) {
             return 0;
           } else {
@@ -1127,8 +1132,8 @@ public class SampleData {
       }
 
       // load the sample data without the color key column which has to bed deleted
-      String[][] sampleDataMatrix =
-          HashVec.loadFileToStringMatrix(sampleDatafilename, false, colToLoad, false);
+      String[][] sampleDataMatrix = HashVec.loadFileToStringMatrix(sampleDatafilename, false,
+                                                                   colToLoad, false);
 
       String sampleDataDelimiter = Files.determineDelimiter(sampleDatafilename, null);
 
@@ -1153,7 +1158,7 @@ public class SampleData {
    * Warning - existing matching columns are left in place with their header edited for posterity
    * <p>
    * Warning - alternate names for linker are not determined, please do that prior to use
-   * 
+   *
    * @param linkData Hashtable with the linker entry as the key (DNA, , FID, IID, plate, sex etc),
    *        and data to add as value. If adding more than one column, the data to add can be
    *        delimited
@@ -1168,7 +1173,7 @@ public class SampleData {
    * @param linkDataDelimiter The delimiter to use for the data in linkData, or <code>null</code> if
    *        only adding one column of data
    * @param log a log!
-   * 
+   *
    * @return true if data was added successfully, false if not
    */
   public boolean addData(Hashtable<String, String> linkData, String linker, String[] columnHeaders,
@@ -1180,8 +1185,8 @@ public class SampleData {
     // String sampleDatafilename = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
     String sampleDatafilename = proj.SAMPLE_DATA_FILENAME.getValue();
     // in memory backup
-    String[][] sampleDataMatrix =
-        HashVec.loadFileToStringMatrix(sampleDatafilename, false, null, false);
+    String[][] sampleDataMatrix = HashVec.loadFileToStringMatrix(sampleDatafilename, false, null,
+                                                                 false);
     String[] sampleDataHeader = Files.getHeaderOfFile(sampleDatafilename, log);
     int linkerIndex = ext.indexOfStr(linker, sampleDataHeader);
     // fail if can't find linker
@@ -1291,7 +1296,7 @@ public class SampleData {
    * Warning - alternate names for linker are not determined, please do that prior to use
    * <p>
    * Warning - missing values are left unchanged
-   * 
+   *
    * @param linkData Hashtable with the linker entry as the key (DNA, , FID, IID, plate, sex etc),
    *        and data to set as value. If replacing more than one column, the data to replace can be
    *        delimited If there are entries in Sample Data missing, the existing data is added to
@@ -1305,7 +1310,7 @@ public class SampleData {
    * @param linkDataDelimiter The delimiter to use for the data in linkData, or <code>null</code> if
    *        only replacing one column of data
    * @param log a log!
-   * 
+   *
    * @return true if data was replaced successfully, false if not
    */
   public boolean replaceData(Hashtable<String, String> linkData, String linker,
@@ -1316,8 +1321,8 @@ public class SampleData {
     PrintWriter writer;
     String sampleDatafilename = proj.SAMPLE_DATA_FILENAME.getValue();
     // in memory backup
-    String[][] sampleDataMatrix =
-        HashVec.loadFileToStringMatrix(sampleDatafilename, false, null, false);
+    String[][] sampleDataMatrix = HashVec.loadFileToStringMatrix(sampleDatafilename, false, null,
+                                                                 false);
     String[] sampleDataHeader = Files.getHeaderOfFile(sampleDatafilename, log);
     int linkerIndex = ext.indexOfStr(linker, sampleDataHeader);
     // fail if can't find linker
@@ -1354,8 +1359,8 @@ public class SampleData {
                 existingIndices[i] = indices[0];
                 for (int index = 1; index < indices.length; index++) {
                   // If more than one instance of the header exists, deactivate the others
-                  sampleDataHeader[indices[index]] =
-                      "x" + sampleDataHeader[indices[index]] + "_replaced_" + dateTime;
+                  sampleDataHeader[indices[index]] = "x" + sampleDataHeader[indices[index]]
+                                                     + "_replaced_" + dateTime;
                   log.report("Warning - Additional instance of column \"" + columnHeaders[i]
                              + "\" found, header changed to: " + sampleDataHeader[indices[index]]);
                 }
@@ -1451,8 +1456,8 @@ public class SampleData {
       log.reportException(e1);
     }
 
-    String bakFile =
-        bakDir + ext.removeDirectoryInfo(sampleDatafilename) + "_" + System.currentTimeMillis();
+    String bakFile = bakDir + ext.removeDirectoryInfo(sampleDatafilename) + "_"
+                     + System.currentTimeMillis();
     // fail if can't back up file
     if (!Files.copyFile(sampleDatafilename, bakFile) || !new File(bakFile).exists()) {
       log.reportError("Error - could not back up sample data file " + sampleDatafilename
@@ -1578,8 +1583,8 @@ public class SampleData {
         log.report("No header elements found, assuming no header and standard pedigree.dat format...");
         indices = new int[] {6, 0, 1, 2, 3, 4, 5};
         indi =
-            new Individual(line[indices[0]], line[indices[1]], line[indices[2]], line[indices[3]],
-                           line[indices[4]], line[indices[5]], line[indices[6]]);
+             new Individual(line[indices[0]], line[indices[1]], line[indices[2]], line[indices[3]],
+                            line[indices[4]], line[indices[5]], line[indices[6]]);
         al.add(indi);
         if (!sampSet.remove(indi.iid)) {
           foundMissing.add(indi.iid);
@@ -1589,8 +1594,8 @@ public class SampleData {
       while ((temp = reader.readLine()) != null) {
         line = temp.trim().split(delim);
         indi =
-            new Individual(line[indices[0]], line[indices[1]], line[indices[2]], line[indices[3]],
-                           line[indices[4]], line[indices[5]], line[indices[6]]);
+             new Individual(line[indices[0]], line[indices[1]], line[indices[2]], line[indices[3]],
+                            line[indices[4]], line[indices[5]], line[indices[6]]);
         al.add(indi);
         if (!sampSet.remove(indi.iid)) {
           foundMissing.add(indi.iid);
@@ -1688,7 +1693,7 @@ public class SampleData {
    * <p>
    * Warning - samples must be parsed prior to using this method as sample names are retrieved with
    * {@link Project#getSamples}
-   * 
+   *
    * @return true if a minimal sample data file was created, false if not
    */
   public static boolean createMinimalSampleData(Project proj) {

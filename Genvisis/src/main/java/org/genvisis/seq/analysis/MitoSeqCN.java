@@ -58,8 +58,8 @@ public class MitoSeqCN {
       log.reportTimeInfo("Detected " + bams.length + " bam files");
       ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
       BedOps.verifyBedIndex(captureBed, log);
-      LocusSet<Segment> genomeBinsMinusBinsCaputure =
-          referenceGenome.getBins(20000).autosomal(true, log);
+      LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).autosomal(true,
+                                                                                               log);
       if (captureBed != null) {// Should only be used for
         BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
 
@@ -91,11 +91,12 @@ public class MitoSeqCN {
         int mitoLength = referenceGenome.getContigLength(params.getMitoContig());
         log.reportTimeInfo("Mitochondrial genome length = " + mitoLength);
 
-        MitoCNProducer producer =
-            new MitoCNProducer(bams, referenceGenome, genomeBinsMinusBinsCaputure, outDir, params,
-                               log);
-        WorkerTrain<MitoCNResult> train =
-            new WorkerTrain<MitoSeqCN.MitoCNResult>(producer, numthreads, numthreads, log);
+        MitoCNProducer producer = new MitoCNProducer(bams, referenceGenome,
+                                                     genomeBinsMinusBinsCaputure, outDir, params,
+                                                     log);
+        WorkerTrain<MitoCNResult> train = new WorkerTrain<MitoSeqCN.MitoCNResult>(producer,
+                                                                                  numthreads,
+                                                                                  numthreads, log);
         ArrayList<MitoCNResult> results = new ArrayList<MitoSeqCN.MitoCNResult>();
         try {
           PrintWriter writer = new PrintWriter(new FileWriter(output));
@@ -126,10 +127,11 @@ public class MitoSeqCN {
    *
    */
   public static class MitoCNResult {
-    private static final String[] header =
-        new String[] {"Sample", "NumMitoReads", "TotalAlignedReads", "XReads", "YReads",
-                      "AutosomalOnTargetAlignedReads", "OffTargetReads", "MitoLen", "OffTLen",
-                      "MTBamFile", "MTBamFileTrim"};
+    private static final String[] header = new String[] {"Sample", "NumMitoReads",
+                                                         "TotalAlignedReads", "XReads", "YReads",
+                                                         "AutosomalOnTargetAlignedReads",
+                                                         "OffTargetReads", "MitoLen", "OffTLen",
+                                                         "MTBamFile", "MTBamFileTrim"};
     private final String sample;
     private final int numMitoReads;
     private final int numXReads;
@@ -217,9 +219,9 @@ public class MitoSeqCN {
         SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT);
 
         SAMFileWriter sAMFileWriter =
-            new SAMFileWriterFactory().setCreateIndex(true)
-                                      .makeSAMOrBAMWriter(reader.getFileHeader(), true,
-                                                          new File(outputMTBam));
+                                    new SAMFileWriterFactory().setCreateIndex(true)
+                                                              .makeSAMOrBAMWriter(reader.getFileHeader(),
+                                                                                  true, new File(outputMTBam));
 
         ArrayList<Segment> toSearch = new ArrayList<Segment>();
         toSearch.add(new Segment(params.getMitoContig(), 0, mitoLength + 1));
@@ -229,9 +231,11 @@ public class MitoSeqCN {
           log.reportTimeInfo("Will search : " + segment.getUCSClocation());
         }
         QueryInterval[] queryInterestIntervals =
-            BamOps.convertSegsToQI(toSearch.toArray(new Segment[toSearch.size()]),
-                                   reader.getFileHeader(), 0, true, params == ASSEMBLY_NAME.HG19,
-                                   log);
+                                               BamOps.convertSegsToQI(toSearch.toArray(new Segment[toSearch.size()]),
+                                                                      reader.getFileHeader(), 0,
+                                                                      true,
+                                                                      params == ASSEMBLY_NAME.HG19,
+                                                                      log);
         SAMRecordIterator sIterator = reader.query(queryInterestIntervals, false);
         int numMitoReads = 0;
         int numXReads = 0;
@@ -257,8 +261,10 @@ public class MitoSeqCN {
         sAMFileWriter.close();
 
         QueryInterval[] offTargetIntervalse =
-            BamOps.convertSegsToQI(genomeBinsMinusBinsCaputure.getLoci(), reader.getFileHeader(), 0,
-                                   true, params == ASSEMBLY_NAME.HG19, log);
+                                            BamOps.convertSegsToQI(genomeBinsMinusBinsCaputure.getLoci(),
+                                                                   reader.getFileHeader(), 0, true,
+                                                                   params == ASSEMBLY_NAME.HG19,
+                                                                   log);
         sIterator = reader.query(offTargetIntervalse, false);
         while (sIterator.hasNext()) {
           SAMRecord samRecord = sIterator.next();

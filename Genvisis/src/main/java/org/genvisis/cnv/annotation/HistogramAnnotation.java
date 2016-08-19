@@ -28,7 +28,7 @@ public abstract class HistogramAnnotation extends AnnotationData {
       }
       for (int i = index; i < dynamicHistogram.getCounts().length; i++) {
         truncatedHistogram +=
-            (i == index ? "" : DEFUALT_DELIMITER) + dynamicHistogram.getCounts()[i];
+                           (i == index ? "" : DEFUALT_DELIMITER) + dynamicHistogram.getCounts()[i];
       }
       setData(truncatedHistogram);
     } else {

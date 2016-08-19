@@ -14,8 +14,8 @@ import org.genvisis.common.HashVec;
 
 public class procTagsToGeneIDs {
   public static final String[] FILES_WITH_GENE = {"d1_gene_info.prn", "nbt1239-S4.prn"};
-  public static final String[] FILES_WITH_GENE_ID =
-      {"gnf1b-anntable_geneID_tag.prn", "lookup.xls.prn"};
+  public static final String[] FILES_WITH_GENE_ID = {"gnf1b-anntable_geneID_tag.prn",
+                                                     "lookup.xls.prn"};
   public static final String TAGS = "probset.txt";
   public static final String OVERRIDE = "override.prn";
   public static final String DEFAULT_Q = "C:\\Download\\seq_gene.q";
@@ -27,7 +27,7 @@ public class procTagsToGeneIDs {
     String temp, trav, geneid;
     // Hashtable override = new Hashtable();
     Hashtable<String, Hashtable<String, String>> hash =
-        new Hashtable<String, Hashtable<String, String>>();
+                                                      new Hashtable<String, Hashtable<String, String>>();
     Hashtable<String, String> h2;
     Hashtable<String, Vector<String>> aliases = new Hashtable<String, Vector<String>>();
     Vector<String> v;

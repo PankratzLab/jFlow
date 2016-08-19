@@ -56,7 +56,7 @@ public class SerialStringMatrix implements Serializable {
 
   public static void main(String[] args) {
     String filename =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\UMN\\Folson\\VTE_meta_analysis\\finalAnalysis\\ARIC_autosomes_table.csv";
+                    "C:\\Documents and Settings\\npankrat\\My Documents\\UMN\\Folson\\VTE_meta_analysis\\finalAnalysis\\ARIC_autosomes_table.csv";
     new SerialStringMatrix(filename, ",").serialize(filename + ".ser");
   }
 }

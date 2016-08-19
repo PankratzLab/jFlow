@@ -55,8 +55,8 @@ public class Ahk {
     matrix = "";
     for (int j = 0; j < Dimension; j++) {
       for (int i = 0; i < Dimension; i++) {
-        matrix +=
-            (i == 0 && j == 0 ? "" : "|") + colorToHex(bot.getPixelColor(StartX + i, StartY + j));
+        matrix += (i == 0 && j == 0 ? "" : "|")
+                  + colorToHex(bot.getPixelColor(StartX + i, StartY + j));
       }
     }
 

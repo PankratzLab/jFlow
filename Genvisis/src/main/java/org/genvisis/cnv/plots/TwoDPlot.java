@@ -1,7 +1,5 @@
 package org.genvisis.cnv.plots;
 
-import com.google.common.base.Strings;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -75,6 +73,8 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.parse.GenParser;
 
+import com.google.common.base.Strings;
+
 public class TwoDPlot extends JPanel
                       implements WindowListener, ActionListener, TreeSelectionListener {
   public static final long serialVersionUID = 1L;
@@ -82,7 +82,7 @@ public class TwoDPlot extends JPanel
   public static final int DEFAULT_GC_THRESHOLD = 25;
   public static final String TWO_D_STICH_COMMAND = "twoDScreenshots";
   public static final String TWO_D_STICH_COMMAND_DESCRIPTION =
-      "Have two-d plot create a series of images";
+                                                             "Have two-d plot create a series of images";
   private static final String ALT_UP = "ALT UP";
   private static final String ALT_DOWN = "ALT DOWN";
   private static final String ALT_LEFT = "ALT LEFT";
@@ -111,9 +111,10 @@ public class TwoDPlot extends JPanel
   // {"Stop Position", "Stop", "End"} // secondary link to Trailer
   // };
   public static final String[][] LINKERS =
-      {Aliases.INDIVIDUAL_ID, Aliases.FAMILY_ID, Aliases.DNA, Aliases.MARKER_NAMES, Aliases.REGION,
-       Aliases.CHRS, Array.combine(Aliases.POSITIONS, Aliases.POSITIONS_START),
-       Aliases.POSITIONS_STOP};
+                                         {Aliases.INDIVIDUAL_ID, Aliases.FAMILY_ID, Aliases.DNA,
+                                          Aliases.MARKER_NAMES, Aliases.REGION, Aliases.CHRS,
+                                          Array.combine(Aliases.POSITIONS, Aliases.POSITIONS_START),
+                                          Aliases.POSITIONS_STOP};
   public static final int IID_INDEX_IN_LINKERS = 0;
   public static final int FID_INDEX_IN_LINKERS = 1;
   public static final int DNA_INDEX_IN_LINKERS = 2;
@@ -161,13 +162,13 @@ public class TwoDPlot extends JPanel
   private final HashSet<String> selectedDataHash = new HashSet<String>();
   private final ImageIcon flip1_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg");
   private final ImageIcon flip1_2 =
-      Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue_3.jpg");
+                                  Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue_3.jpg");
   private final ImageIcon flip2_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv.jpg");
   private final ImageIcon flip2_2 =
-      Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv_blue_3.jpg");
+                                  Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv_blue_3.jpg");
   private final ImageIcon flipX1_1 = Grafik.getImageIcon("images/flip_and_invert/right_10.gif");
   private final ImageIcon flipX1_2 =
-      Grafik.getImageIcon("images/flip_and_invert/right_10_blue.jpg");
+                                   Grafik.getImageIcon("images/flip_and_invert/right_10_blue.jpg");
   private final ImageIcon flipX2_1 = Grafik.getImageIcon("images/flip_and_invert/left_10.gif");
   private final ImageIcon flipX2_2 = Grafik.getImageIcon("images/flip_and_invert/left_10_blue.jpg");
   private final ImageIcon flipY1_1 = Grafik.getImageIcon("images/flip_and_invert/up_10.gif");
@@ -504,8 +505,8 @@ public class TwoDPlot extends JPanel
     menuItemSave.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        JFileChooser fileChooser =
-            new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
+        JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue()
+                                                                 : ".");
         int fileOpenActionSelected = fileChooser.showSaveDialog(TwoDPlot.this);
         if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
           File fileToOpen = fileChooser.getSelectedFile();
@@ -640,8 +641,8 @@ public class TwoDPlot extends JPanel
       Vector<String> params = parseControlFile(selFile.getAbsolutePath(), log);
       // final String projFile = params.get(0).split("=")[1];
       final String baseDir = params.get(1).split("=")[1];
-      final ArrayList<ScreenToCapture> screens =
-          condenseCtrlFile(params.subList(2, params.size()), true);
+      final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()),
+                                                                  true);
       createScreenshots(baseDir, screens);
     }
   }
@@ -1077,13 +1078,13 @@ public class TwoDPlot extends JPanel
   }
 
   HashMap<String, ArrayList<String[]>> genParserFiltersMap =
-      new HashMap<String, ArrayList<String[]>>();
+                                                           new HashMap<String, ArrayList<String[]>>();
 
   /**
    * All columns must be named, not indexed, due to concatenating arrays of data from two files. If
    * filter is for two-column/two-file data, columns must be prefixed by
    * <code>selectedFile + "__" + column</code>.
-   * 
+   *
    * @param fileKey
    * @param filterLine
    */
@@ -1164,8 +1165,8 @@ public class TwoDPlot extends JPanel
 
             int sampColorKey = 0;
             if (indi != null) {
-              sampColorKey =
-                  sampleData.determineCodeFromClass(currentClass, (byte) 0, indi, (byte) 0, 0);
+              sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, indi,
+                                                               (byte) 0, 0);
             }
             if (hideExcludes && sampleData.individualShouldBeExcluded(curSample)) {
               continue outer;
@@ -1329,8 +1330,8 @@ public class TwoDPlot extends JPanel
 
               int sampColorKey = 0;
               if (indi != null) {
-                sampColorKey =
-                    sampleData.determineCodeFromClass(currentClass, (byte) 0, indi, (byte) 0, 0);
+                sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, indi,
+                                                                 (byte) 0, 0);
               }
               if (hideExcludes && sampleData.individualShouldBeExcluded(curSample)) {
                 continue outer;
@@ -1389,10 +1390,10 @@ public class TwoDPlot extends JPanel
                   start = Integer.parseInt(metaData[0][2]);
                   stop = Integer.parseInt(metaData[0][3]);
                 }
-                colorCode =
-                    sampleData.determineCodeFromClass(currentClass, (byte) 0,
-                                                      sampleData.getIndiFromSampleHash(ids[0]),
-                                                      (byte) chr, start + ((stop - start) / 2));
+                colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0,
+                                                              sampleData.getIndiFromSampleHash(ids[0]),
+                                                              (byte) chr,
+                                                              start + ((stop - start) / 2));
               }
             } else {
               colorCode = 0;
@@ -1548,7 +1549,7 @@ public class TwoDPlot extends JPanel
      * if (centBoxes[i].isSelected()) { if (!recomputed) {
      * markerData[markerIndex].recompute(cents[i][markerIndex]); recomputed = true; } else {
      * centBoxes[i].setSelected(false); } }
-     * 
+     *
      * } }
      */
 
@@ -1714,12 +1715,12 @@ public class TwoDPlot extends JPanel
     } else {
       System.out.println("message: '" + message + "'");
       choice =
-          JOptionPane.showOptionDialog(null,
-                                       message
-                                             + " Would you like to keep this configuration for the next time 2D Plot is loaded?",
-                                       "Preserve 2D Plot workspace?",
-                                       JOptionPane.YES_NO_CANCEL_OPTION,
-                                       JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+             JOptionPane.showOptionDialog(null,
+                                          message
+                                                + " Would you like to keep this configuration for the next time 2D Plot is loaded?",
+                                          "Preserve 2D Plot workspace?",
+                                          JOptionPane.YES_NO_CANCEL_OPTION,
+                                          JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
       if (choice == JOptionPane.YES_OPTION) {
         proj.TWOD_LOADED_FILENAMES.setValue(Array.toStringArray(dataKeys));
         proj.TWOD_LOADED_VARIABLES.setValue(selections.split(";"));
@@ -2043,8 +2044,8 @@ public class TwoDPlot extends JPanel
         } else {
           twoDPanel.screenCapture(screenname);
 
-          String legName =
-              baseDir + ext.replaceWithLinuxSafeCharacters(basename, true) + "_legend.png";
+          String legName = baseDir + ext.replaceWithLinuxSafeCharacters(basename, true)
+                           + "_legend.png";
           count = 1;
           while ((new File(legName).exists())) {
             legName = baseDir + ext.replaceWithLinuxSafeCharacters(basename, true) + "_legend_v"
@@ -2067,8 +2068,10 @@ public class TwoDPlot extends JPanel
 
   private void loadColor(String baseDir, ScreenToCapture screencap) {
     Hashtable<String, String> colorData =
-        HashVec.loadFileToHashString(baseDir + screencap.colorFile, screencap.colorIDIndex,
-                                     new int[] {screencap.colorIndex}, "\t", true);
+                                        HashVec.loadFileToHashString(baseDir + screencap.colorFile,
+                                                                     screencap.colorIDIndex,
+                                                                     new int[] {screencap.colorIndex},
+                                                                     "\t", true);
     this.colorData = new HashMap<String, Integer>();
     for (java.util.Map.Entry<String, String> entry : colorData.entrySet()) {
       this.colorData.put(entry.getKey(), Integer.valueOf(entry.getValue()));
@@ -2271,7 +2274,7 @@ public class TwoDPlot extends JPanel
   /**
    * Create the GUI and show it. For thread safety, this method should be invoked from the
    * event-dispatching thread.
-   * 
+   *
    * @param proj Project
    * @param show setVisible
    * @param promptOnClose prompt to save files/vars on close
@@ -2351,8 +2354,8 @@ public class TwoDPlot extends JPanel
     if (params != null) {
       final String projFile = params.get(0).split("=")[1];
       final String baseDir = params.get(1).split("=")[1];
-      final ArrayList<ScreenToCapture> screens =
-          condenseCtrlFile(params.subList(2, params.size()), true);
+      final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()),
+                                                                  true);
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
         @Override
         public void run() {

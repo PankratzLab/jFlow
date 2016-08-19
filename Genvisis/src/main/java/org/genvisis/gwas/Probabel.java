@@ -1,7 +1,5 @@
 package org.genvisis.gwas;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,16 +25,20 @@ import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.parse.GenParser;
 import org.genvisis.stats.ProbDist;
 
+import com.google.common.primitives.Ints;
+
 public class Probabel {
   public static final int PALOGIST = 0;
   public static final int PALINEAR = 1;
   public static final int PACOXPH = 2;
   // public static final String[] EXECS = {"palogist", "palinear", "pacoxph"};
   public static final String[] EXECS =
-      {"/home/npankrat/bin/palogist", "/home/npankrat/bin/palinear", "/home/npankrat/bin/pacoxph"};
+                                     {"/home/npankrat/bin/palogist", "/home/npankrat/bin/palinear",
+                                      "/home/npankrat/bin/pacoxph"};
   public static final String[] LOGIST_OUTPUT_HEADER =
-      {"name", "A1", "A2", "Freq1", "MAF", "Quality", "Rsq", "n", "Mean_predictor_allele", "chrom",
-       "beta_SNP_add", "sebeta_SNP_add", "chi2_SNP"};
+                                                    {"name", "A1", "A2", "Freq1", "MAF", "Quality",
+                                                     "Rsq", "n", "Mean_predictor_allele", "chrom",
+                                                     "beta_SNP_add", "sebeta_SNP_add", "chi2_SNP"};
 
   public static void createQsubs(String pheno, int type, boolean minimac, int maxGb) {
     String commands;
@@ -111,7 +113,7 @@ public class Probabel {
         commands = "cd chr#\n";
         if (minimac) {
           commands +=
-              "awk '{print $1\"\\t\"$2\"\\t\"$3\"\\t\"$4\"\\t\"$5\"\\t\"$6\"\\t\"$7}' chr#.info > chr#.pinfo\n";
+                   "awk '{print $1\"\\t\"$2\"\\t\"$3\"\\t\"$4\"\\t\"$5\"\\t\"$6\"\\t\"$7}' chr#.info > chr#.pinfo\n";
         }
         commands += EXECS[type] + " -p ../" + pheno + " -d "
                     + (minimac ? "chr#.dose" : "MACH_step2_chr#.mldose") + " -i "
@@ -132,13 +134,14 @@ public class Probabel {
   }
 
   public static void createQsubFilesForBlade(String filename) {
-    String[][] parameters =
-        new String[][] {{"1", "7", "4"}, {"2", "7", "4"}, {"3", "7", "4"}, {"4", "7", "4"},
-                        {"5", "7", "4"}, {"6", "7", "4"}, {"7", "6", "4"}, {"8", "6", "4"},
-                        {"9", "6", "1"}, {"10", "6", "1"}, {"11", "6", "1"}, {"12", "5", "1"},
-                        {"13", "4", "1"}, {"14", "4", "1"}, {"15", "4", "1"}, {"16", "4", "1"},
-                        {"17", "4", "1"}, {"18", "4", "1"}, {"19", "4", "1"}, {"20", "4", "1"},
-                        {"21", "2", "1"}, {"22", "2", "1"}};
+    String[][] parameters = new String[][] {{"1", "7", "4"}, {"2", "7", "4"}, {"3", "7", "4"},
+                                            {"4", "7", "4"}, {"5", "7", "4"}, {"6", "7", "4"},
+                                            {"7", "6", "4"}, {"8", "6", "4"}, {"9", "6", "1"},
+                                            {"10", "6", "1"}, {"11", "6", "1"}, {"12", "5", "1"},
+                                            {"13", "4", "1"}, {"14", "4", "1"}, {"15", "4", "1"},
+                                            {"16", "4", "1"}, {"17", "4", "1"}, {"18", "4", "1"},
+                                            {"19", "4", "1"}, {"20", "4", "1"}, {"21", "2", "1"},
+                                            {"22", "2", "1"}};
     String commands = "";
 
     commands += "#!/bin/bash -l\n";
@@ -391,8 +394,8 @@ public class Probabel {
 
     try {
       reader = new BufferedReader(new FileReader(pheno));
-      writer =
-          new PrintWriter(new FileWriter(ext.rootOf(pheno, false) + "_" + selectedClass + ".dat"));
+      writer = new PrintWriter(new FileWriter(ext.rootOf(pheno, false) + "_" + selectedClass
+                                              + ".dat"));
       writer.println(reader.readLine());
       count = 0;
       while (reader.ready()) {
@@ -536,7 +539,7 @@ public class Probabel {
 
   public static void exploreStrata() {
     String dir =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\analysisOfImputation\\local\\";
+               "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\analysisOfImputation\\local\\";
     // String dir = "";
     String[] studies = {"CIDR", "Fung", "Sing550", "LEAPS", "Miami", "NGRC"};
     String[] classes = {"Ashk", "Italian", "EastEur", "Scand", "Germ", "British"};
@@ -573,11 +576,12 @@ public class Probabel {
                         + "_vs_" + classes[classes.length - 1] + "_" + dataset + "\n",
                         dir + studie);
             line = new String[] {dir + studie + "/" + studie + "_Aff_final_" + classes[j] + "_vs_"
-                                 + classes[classes.length - 1] + "_" + dataset + "_add.out.txt",
+                                 + classes[classes.length - 1] + "_" + dataset
+                                 + "_add.out.txt",
                                  "out=" + dir + studie + "/" + dataset + "_" + classes[j] + "_vs_"
-                                                                                                 + classes[classes.length
-                                                                                                           - 1]
-                                                                                                 + ".metal",
+                                                   + classes[classes.length
+                                                             - 1]
+                                                   + ".metal",
                                  "!6>0.30", "!10>-5", "!10<5", "!11!nan", "!11!0", "0", "1", "2",
                                  "10", "11"};
             GenParser.parse(line, new Logger(dir + studie + "/" + dataset + "_" + classes[j]
@@ -702,7 +706,7 @@ public class Probabel {
   /**
    * Given a source file directory containing .dose and .info files, split files into chunks of
    * 500,000 SNP dosage values
-   * 
+   *
    * @param fileDir
    * @param chunkDir
    * @param overwrite
@@ -716,7 +720,7 @@ public class Probabel {
   /**
    * Given two source directories, one containing .dose and the other .info files, split files into
    * chunks of 500,000 SNP dosage values
-   * 
+   *
    * @param dosageFileDir
    * @param infoFileDir
    * @param chunkDir

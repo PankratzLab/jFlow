@@ -12,8 +12,8 @@ import org.genvisis.common.Files;
 public class batch {
   public static int[] maxes = {281, 253, 216, 202, 193, 180, 174, 153, 151, 168, 144, 164, 104, 127,
                                106, 115, 125, 126, 89, 95, 36, 47, 176};
-  public int[] chrs =
-      {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
+  public int[] chrs = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+                       22, 23};
 
   public batch(String[] arguments) throws IOException {
     PrintWriter writer;

@@ -14,12 +14,12 @@ import org.genvisis.common.ext;
 
 public class tools {
   public static final String NINFO_DIR =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\00ninfos\\";
+                                       "C:\\Documents and Settings\\npankrat\\My Documents\\00ninfos\\";
   public static final String CRF_DIR =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\";
+                                     "C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\";
   public static final String PARKIN_DIR = CRF_DIR + "parkin\\";
   public static final String MASTER_PLATELIST_DIR =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\2_platelists\\";
+                                                  "C:\\Documents and Settings\\npankrat\\My Documents\\2_platelists\\";
   public static final String[] NINFO1_HEADER = {"FamNo", "IndNo", "AgeOfOnset", "IllnessStatusCode",
                                                 "DNA", "Sex", "IllnessCode", "RaceCode"};
   public static final String[] NINFO2_HEADER = {"FamNo", "IndNo", "Sex", "Deceased", "FatherInd",
@@ -363,8 +363,8 @@ public class tools {
 
     try {
       reader = new BufferedReader(new FileReader(dbFile));
-      index =
-          ext.indexFactors(new String[] {trait}, reader.readLine().split("[\\s]+"), true, true)[0];
+      index = ext.indexFactors(new String[] {trait}, reader.readLine().split("[\\s]+"), true,
+                               true)[0];
       while (reader.ready()) {
         line = reader.readLine().split("[\\s]+");
         hash.put(line[1] + "\t" + line[2], line[index]);
@@ -383,7 +383,7 @@ public class tools {
 
   /**
    * Returns the members of the largest sibship for each family
-   * 
+   *
    * @return a matrix with a row for each family whith famid, father, mother, and the IndID of each
    *         member of the sibship
    */

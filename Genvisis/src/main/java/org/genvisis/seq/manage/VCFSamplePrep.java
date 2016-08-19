@@ -42,10 +42,10 @@ public class VCFSamplePrep {
         break;
       case NORMALIZED_GC_CORRECTED:
         if (gcModel != null) {
-          normDepth =
-              GcAdjustor.getComputedAdjustor(proj, null, Array.toFloatArray(normDepth), gcModel,
-                                             GC_CORRECTION_METHOD.GENVISIS_GC, true, true, false)
-                        .getCorrectedIntensities();
+          normDepth = GcAdjustor.getComputedAdjustor(proj, null, Array.toFloatArray(normDepth),
+                                                     gcModel, GC_CORRECTION_METHOD.GENVISIS_GC,
+                                                     true, true, false)
+                                .getCorrectedIntensities();
         } else {
           proj.getLog()
               .reportTimeError("Projects gcmodel file must be valid for this method, skipping gc correction");
@@ -60,9 +60,9 @@ public class VCFSamplePrep {
     float[] ys = scale(samp.getYs(), totalDepth, normDepth);
     float[] fake = new float[xs.length];
     Arrays.fill(fake, 0);
-    Sample preppedSamp =
-        new Sample(samp.getSampleName(), samp.getFingerprint(), samp.getGCs(), xs, ys, fake, fake,
-                   samp.getForwardGenotypes(), samp.getAB_Genotypes(), samp.getCanXYBeNegative());
+    Sample preppedSamp = new Sample(samp.getSampleName(), samp.getFingerprint(), samp.getGCs(), xs,
+                                    ys, fake, fake, samp.getForwardGenotypes(),
+                                    samp.getAB_Genotypes(), samp.getCanXYBeNegative());
     return preppedSamp;
   }
 
@@ -134,7 +134,8 @@ public class VCFSamplePrep {
         public Hashtable<String, Float> call() throws Exception {
           Hashtable<String, Float> outliers = new Hashtable<String, Float>();
           VCFSamplePrep prep =
-              new VCFSamplePrep(proj, proj.getFullSampleFromRandomAccessFile(sample), gcModel);
+                             new VCFSamplePrep(proj, proj.getFullSampleFromRandomAccessFile(sample),
+                                               gcModel);
           Sample prepped = prep.getPreppedSample(type);
           prepped.saveToRandomAccessFile(sampleDir + prepped.getSampleName()
                                          + Sample.SAMPLE_FILE_EXTENSION, outliers,

@@ -23,8 +23,8 @@ public class ParseRawSNPs {
   public static final String[] MISSING_GENOTYPE_CODES = {"1", "*Undetermined", "U", ""};
   public static final String[] CONTROL_DNA_TYPES = {"Control", "Ceph", "From Core"};
   public static final String[] CONTROL_ID_TYPES = {"H2O", "Blank"};
-  public static final String[][] REPLACEMENTS =
-      {{"SNP VIC", "snp_vic"}, {"VIC", "snp_vic"}, {"undetermined", "Undetermined"},};
+  public static final String[][] REPLACEMENTS = {{"SNP VIC", "snp_vic"}, {"VIC", "snp_vic"},
+                                                 {"undetermined", "Undetermined"},};
   public static final String SNP_POSITIONS = "snp_positions.dat";
 
   // public static final String DEFAULT_DIR = "C:\\Documents and
@@ -38,7 +38,7 @@ public class ParseRawSNPs {
   // public static final String DEFAULT_DIR =
   // "C:\\Users\\npankrat\\Documents\\1_CRFdb\\GBA\\1st_RawData\\";
   public static final String DEFAULT_DIR =
-      "C:\\Users\\npankrat\\Documents\\1_CRFdb\\GBA\\2nd_set\\";
+                                         "C:\\Users\\npankrat\\Documents\\1_CRFdb\\GBA\\2nd_set\\";
 
   public static final int DEFAULT_VERBOSITY = 8;
 

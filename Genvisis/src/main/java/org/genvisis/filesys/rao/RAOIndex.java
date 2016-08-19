@@ -14,7 +14,7 @@ import org.genvisis.common.SerializedFiles;
  */
 public class RAOIndex implements RAObject {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private String indexFileName;

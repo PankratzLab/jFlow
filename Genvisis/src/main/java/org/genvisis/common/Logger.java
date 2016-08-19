@@ -121,7 +121,7 @@ public class Logger implements Serializable {
 
   /**
    * @param filenames report the files that do not exist in this string array
-   * 
+   *
    */
   public void reportFilesNotFound(String[] filenames) {
     if (filenames == null) {
@@ -289,8 +289,8 @@ public class Logger implements Serializable {
   public double memoryPercentFree() {
     double percentFree;
 
-    percentFree =
-        ((float) 100 * Runtime.getRuntime().freeMemory() / Runtime.getRuntime().totalMemory());
+    percentFree = ((float) 100 * Runtime.getRuntime().freeMemory()
+                   / Runtime.getRuntime().totalMemory());
 
     report("Percent free heap size is: " + ext.formDeci(percentFree, 1) + "%");
 

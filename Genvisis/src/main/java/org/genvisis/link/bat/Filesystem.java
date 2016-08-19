@@ -1,8 +1,6 @@
 // created a vector of vectors, no expected problems
 package org.genvisis.link.bat;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,6 +21,8 @@ import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.link.LinkageMap;
 import org.genvisis.link.Markers;
+
+import com.google.common.primitives.Doubles;
 
 public class Filesystem {
   public static void create(int chr) throws IOException {
@@ -45,7 +45,7 @@ public class Filesystem {
     int tempI, total, count = 0, alleleCount;
     Hashtable<String, String> handle, changes;
     Hashtable<String, Hashtable<String, String>> hash =
-        new Hashtable<String, Hashtable<String, String>>();
+                                                      new Hashtable<String, Hashtable<String, String>>();
     Enumeration<String> hashKeys;
     Vector<String> alleles;
     Vector<Vector<String>> alleleSizes;
@@ -230,7 +230,8 @@ public class Filesystem {
       alleleFreqs[i] = new double[quickkey.length - numMissing];
       for (int j = numMissing; j < quickkey.length; j++) {
         alleleFreqs[i][j - numMissing] =
-            (double) Integer.valueOf(handle.get(alleles.elementAt(quickkey[j]))).intValue()
+                                       (double) Integer.valueOf(handle.get(alleles.elementAt(quickkey[j])))
+                                                       .intValue()
                                          / (double) total;
         for (int k = 0; k < Integer.valueOf(handle.get(alleles.elementAt(quickkey[j])))
                                    .intValue(); k++) {

@@ -51,14 +51,15 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
 
     }
     LocusSet<BEDFeatureSeg> segSet =
-        new LocusSet<BEDFeatureSeg>(bedSegs.toArray(new BEDFeatureSeg[bedSegs.size()]), true, log) {
+                                   new LocusSet<BEDFeatureSeg>(bedSegs.toArray(new BEDFeatureSeg[bedSegs.size()]),
+                                                               true, log) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+                                     /**
+                                      * 
+                                      */
+                                     private static final long serialVersionUID = 1L;
 
-        };
+                                   };
 
     return segSet;
   }
@@ -79,14 +80,15 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
     }
 
     LocusSet<BEDFeatureSeg> segSet =
-        new LocusSet<BEDFeatureSeg>(bedSegs.toArray(new BEDFeatureSeg[bedSegs.size()]), true, log) {
+                                   new LocusSet<BEDFeatureSeg>(bedSegs.toArray(new BEDFeatureSeg[bedSegs.size()]),
+                                                               true, log) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+                                     /**
+                                      * 
+                                      */
+                                     private static final long serialVersionUID = 1L;
 
-        };
+                                   };
 
     return segSet;
 
@@ -95,7 +97,7 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
   public static class BEDFeatureSeg extends Segment {
     private final BEDFeature bedFeature;
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
 

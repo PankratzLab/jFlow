@@ -16,7 +16,7 @@ import org.genvisis.common.ext;
 
 public class CNVtools {
   public static final String WINDOWS_DIRECTORY =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\00src\\";
+                                               "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\00src\\";
 
   // public static final String LINUX_DIRECTORY =
   // "/archive/parkinsons/gwas/Genotype and intensity data files";

@@ -1,7 +1,5 @@
 package org.genvisis.cnv.analysis;
 
-import com.google.common.primitives.Doubles;
-
 import java.util.ArrayList;
 
 import org.genvisis.cnv.filesys.MarkerSet;
@@ -12,6 +10,8 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.Segment;
+
+import com.google.common.primitives.Doubles;
 
 /**
  * Class to compute beast scores similar to the beast algorithm
@@ -56,11 +56,11 @@ public class BeastScore {
     super();
     this.inputData = inputData;
     this.indicesToChunk =
-        indicesToChunk == null ? new int[][] {Array.arrayOfIndices(inputData.length)}
-                               : indicesToChunk;
+                        indicesToChunk == null ? new int[][] {Array.arrayOfIndices(inputData.length)}
+                                               : indicesToChunk;
     this.indicesForScores =
-        indicesForScores == null ? new int[][] {Array.arrayOfIndices(inputData.length)}
-                                 : indicesForScores;
+                          indicesForScores == null ? new int[][] {Array.arrayOfIndices(inputData.length)}
+                                                   : indicesForScores;
     beastHeights = new float[this.indicesForScores.length];
     beastScores = new float[this.indicesForScores.length];
     beastLengths = new int[this.indicesForScores.length];
@@ -106,13 +106,13 @@ public class BeastScore {
   /**
    * Inverse transforms data, scales chunks (usually chromosomes) by MAD scale factor, uses scaled
    * chromosome values to obtain scaled MAD values for input data
-   * 
+   *
    * @param alpha
    * @param computeSTDevRaw compute standard deviation of each chunk corresponding to the
    *        indicesForScores from raw data
    * @param computeSTDevtransformed compute standard deviation of each chunk corresponding to the
    *        indicesForScores from inverseTransformed and scaled data
-   * 
+   *
    */
   public void computeBeastScores(float alpha) {
     float[] inverseTransformedDataScaleMAD = getinverseTransformedDataScaleMAD(SCALE_FACTOR_MAD);
@@ -126,22 +126,22 @@ public class BeastScore {
    */
   public float[] getinverseTransformedDataScaleMAD(double scaleFactorMAD) {
     float[] inverseTransformedData = transformData(inputData, indicesToChunk, use, log);
-    float[] indicesMADScaled =
-        getscaleMADIndices(indicesToChunk, inverseTransformedData, use, scaleFactorMAD, log);
-    float[] inverseTransformedDataScaleMAD =
-        getscaleMADData(inverseTransformedData, indicesToChunk, use, indicesMADScaled, log);
+    float[] indicesMADScaled = getscaleMADIndices(indicesToChunk, inverseTransformedData, use,
+                                                  scaleFactorMAD, log);
+    float[] inverseTransformedDataScaleMAD = getscaleMADData(inverseTransformedData, indicesToChunk,
+                                                             use, indicesMADScaled, log);
     return inverseTransformedDataScaleMAD;
   }// JOHN hijack this
 
   public float[] getScaleMadRawData(double scaleFactorMAD) {
-    float[] indicesMADScaled =
-        getscaleMADIndices(indicesToChunk, inputData, use, scaleFactorMAD, log);
+    float[] indicesMADScaled = getscaleMADIndices(indicesToChunk, inputData, use, scaleFactorMAD,
+                                                  log);
     float[] madScale = getscaleMADData(inputData, indicesToChunk, use, indicesMADScaled, log);
     return madScale;
   }
 
   /**
-   * 
+   *
    * @param inputData
    * @param indicesToTransform
    * @return inputData inverse Transformed with 5 df according to the indicesToChunk
@@ -154,10 +154,10 @@ public class BeastScore {
   }
 
   /**
-   * 
+   *
    * Computes the median across indicesToScale of inverseTransformedData and scales by
    * SCALE_FACTOR_MAD
-   * 
+   *
    * @param indicesToScale
    * @param inverseTransformedData
    * @param useScaleFactorMAD using {@link BeastScore#SCALE_FACTOR_MAD} mimics the computation
@@ -178,16 +178,16 @@ public class BeastScore {
           }
         }
         indicesMADScaled[i] =
-            (float) (Array.median(Doubles.toArray(medianIndices)) / scaleFactorMAD);
+                            (float) (Array.median(Doubles.toArray(medianIndices)) / scaleFactorMAD);
       }
     }
     return indicesMADScaled;
   }
 
   /**
-   * 
+   *
    * scales inverseTransformedData according to indicesToScale and by the factors in scaleMAD
-   * 
+   *
    * @param data
    * @param indicesToScale
    * @param scaleMAD
@@ -206,8 +206,8 @@ public class BeastScore {
         for (int j = 0; j < indicesToScale[i].length; j++) {
           int index = indicesToScale[i][j];
           if (use == null || use[index]) {
-            inverseTransformedDataScaleMAD[index] =
-                data[index] / (scaleMAD[i] == 0 ? 1 : scaleMAD[i]);
+            inverseTransformedDataScaleMAD[index] = data[index]
+                                                    / (scaleMAD[i] == 0 ? 1 : scaleMAD[i]);
           } else {
             inverseTransformedDataScaleMAD[index] = data[index];
           }
@@ -300,7 +300,7 @@ public class BeastScore {
 
   /**
    * Helper function to extract indices of markers contained in a CNVariant
-   * 
+   *
    * @param chr
    * @param positions
    * @param cnVariant
@@ -342,7 +342,7 @@ public class BeastScore {
   /**
    * Helper Function to compute the beast scores for cNVariantInds[][], where cNVariantInds.lenght =
    * number of individuals and cNVariantInds[i].length is the number of cnvs per indivdual
-   * 
+   *
    * @return an array of beastScores, 1 per with scores computed across the individuals cnvs
    */
   public static BeastScore[] beastInds(Project proj, CNVariant[][] cNVariantInds) {
@@ -367,7 +367,7 @@ public class BeastScore {
 
   /**
    * Helper function to compute beast scores for CNVariant[] representing a single individual
-   * 
+   *
    * @return BeastScore (for all the individual's cnvs)
    */
   public static BeastScore beastInd(Project proj, SampleData sampleData, float[] lrrs,

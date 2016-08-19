@@ -38,7 +38,7 @@ import htsjdk.variant.vcf.VCFFileReader;
  */
 public class VCFTally implements Serializable {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private final String vcf;
@@ -48,13 +48,15 @@ public class VCFTally implements Serializable {
   protected Logger log;
   private static final String AND = "&&";
   private static final String[] SNPEFF_IMPACTS =
-      {"(SNPEFF_EFFECT=='STOP_LOST'||SNPEFF_EFFECT=='STOP_GAINED')", "SNPEFF_IMPACT=='HIGH'",
-       "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE')",
-       "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW')",
-       "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW'||SNPEFF_IMPACT=='MODIFIER')"};
+                                               {"(SNPEFF_EFFECT=='STOP_LOST'||SNPEFF_EFFECT=='STOP_GAINED')",
+                                                "SNPEFF_IMPACT=='HIGH'",
+                                                "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE')",
+                                                "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW')",
+                                                "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW'||SNPEFF_IMPACT=='MODIFIER')"};
   protected static final String[] SNPEFF_NAMES =
-      {"SNPEFF_STOPGAIN_LOSS", "SNPEFF_HIGH", "SNPEFF_HIGH_MODERATE", "SNPEFF_HIGH_MODERATE_LOW",
-       "SNPEFF_HIGH_MODERATE_LOW_MODIFIER", "NO_SNPEFF"};
+                                               {"SNPEFF_STOPGAIN_LOSS", "SNPEFF_HIGH",
+                                                "SNPEFF_HIGH_MODERATE", "SNPEFF_HIGH_MODERATE_LOW",
+                                                "SNPEFF_HIGH_MODERATE_LOW_MODIFIER", "NO_SNPEFF"};
   private static final String ESP_FILTER = "(esp6500si_all=='.'||esp6500si_all <= 0.01)";
   private static final String G1000_FILTER = "(g10002014oct_all=='.'||g10002014oct_all <= 0.01)";
   protected CASE_CONTROL_TYPE type;
@@ -114,8 +116,8 @@ public class VCFTally implements Serializable {
                                                                                            // is alt
 
             VariantContext vcCase = VCOps.getSubset(vc, cases, VC_SUBSET_TYPE.SUBSET_STRICT, false);
-            VariantContext vcControl =
-                VCOps.getSubset(vc, controls, VC_SUBSET_TYPE.SUBSET_STRICT, false);
+            VariantContext vcControl = VCOps.getSubset(vc, controls, VC_SUBSET_TYPE.SUBSET_STRICT,
+                                                       false);
 
             if ((type == CASE_CONTROL_TYPE.BOTH_PASS && totalQuality.filter(vcCase).passed()
                  && totalQuality.filter(vcControl).passed())
@@ -134,13 +136,14 @@ public class VCFTally implements Serializable {
                   || (type == CASE_CONTROL_TYPE.ONE_PASS
                       && (totalQuality.filter(vcAltCase).passed()
                           || totalQuality.filter(vcAltControl).passed()))) {
-                GeneData[] genesThatOverlap =
-                    VCOps.getGenesThatOverlap(vc, genomeRegions.getGeneTrack(), log);
+                GeneData[] genesThatOverlap = VCOps.getGenesThatOverlap(vc,
+                                                                        genomeRegions.getGeneTrack(),
+                                                                        log);
 
                 for (int i = 0; i < trackersCase.length; i++) {
                   int caseAdded = trackersCase[i].addIfPasses(vcCase, genesThatOverlap, filterNGS);
-                  int controlAdded =
-                      trackersControl[i].addIfPasses(vcControl, genesThatOverlap, filterNGS);
+                  int controlAdded = trackersControl[i].addIfPasses(vcControl, genesThatOverlap,
+                                                                    filterNGS);
                   if (caseAdded + controlAdded > 0) {
                     Segment vcSeg = VCOps.getSegment(vc);
                     writer.println("VAR\t" + SNPEFF_NAMES[i] + "_" + type + "\t"
@@ -194,20 +197,22 @@ public class VCFTally implements Serializable {
       VariantContextFilter[] vContextFilters = new VariantContextFilter[2];
       vContextFilters[0] = getQualityFilter(log);
       vContextFilters[1] = getJEXLAt(i, log);
-      trackersCase[i] =
-          new TallyTracker("CASE_" + SNPEFF_NAMES[i], genomeRegions, vContextFilters, log);
-      trackersControl[i] =
-          new TallyTracker("CONTROL_" + SNPEFF_NAMES[i], genomeRegions, vContextFilters, log);
+      trackersCase[i] = new TallyTracker("CASE_" + SNPEFF_NAMES[i], genomeRegions, vContextFilters,
+                                         log);
+      trackersControl[i] = new TallyTracker("CONTROL_" + SNPEFF_NAMES[i], genomeRegions,
+                                            vContextFilters, log);
     }
     VariantContextFilter[] vContextFilters = new VariantContextFilter[2];
     vContextFilters[0] = getQualityFilter(log);
     vContextFilters[1] = getJEXLAt(SNPEFF_NAMES.length - 1, log);
     trackersCase[SNPEFF_NAMES.length - 1] =
-        new TallyTracker("CASE_" + SNPEFF_NAMES[SNPEFF_NAMES.length - 1], genomeRegions,
-                         vContextFilters, log);
-    trackersControl[SNPEFF_NAMES.length - 1] =
-        new TallyTracker("CONTROL_" + SNPEFF_NAMES[SNPEFF_NAMES.length - 1], genomeRegions,
-                         vContextFilters, log);
+                                          new TallyTracker("CASE_"
+                                                           + SNPEFF_NAMES[SNPEFF_NAMES.length - 1],
+                                                           genomeRegions, vContextFilters, log);
+    trackersControl[SNPEFF_NAMES.length
+                    - 1] =
+                         new TallyTracker("CONTROL_" + SNPEFF_NAMES[SNPEFF_NAMES.length - 1],
+                                          genomeRegions, vContextFilters, log);
     return totalQuality;
   }
 
@@ -217,22 +222,23 @@ public class VCFTally implements Serializable {
     for (int i = 0; i < SNPEFF_IMPACTS.length; i++) {
       VariantContextFilter[] vContextFilters = new VariantContextFilter[1];
       vContextFilters[0] = getJEXLAt(i, log);
-      trackersCharge[i] =
-          new TallyTracker("CHARGE_" + SNPEFF_NAMES[i], genomeRegions, vContextFilters, log);
+      trackersCharge[i] = new TallyTracker("CHARGE_" + SNPEFF_NAMES[i], genomeRegions,
+                                           vContextFilters, log);
       trackersCharge[i].setCharge(true);
     }
     VariantContextFilter[] vContextFilters = new VariantContextFilter[1];
     vContextFilters[0] = getJEXLAt(SNPEFF_NAMES.length - 1, log);
-    trackersCharge[SNPEFF_NAMES.length - 1] =
-        new TallyTracker("CHARGE_" + SNPEFF_NAMES[SNPEFF_NAMES.length - 1], genomeRegions,
-                         vContextFilters, log);
+    trackersCharge[SNPEFF_NAMES.length
+                   - 1] =
+                        new TallyTracker("CHARGE_" + SNPEFF_NAMES[SNPEFF_NAMES.length - 1],
+                                         genomeRegions, vContextFilters, log);
     trackersCharge[SNPEFF_NAMES.length - 1].setCharge(true);
     int count = 0;
     VCFFileReader reader = new VCFFileReader(new File(fullpathToChargeVCF), false);
 
     for (VariantContext vc : reader) {
       GeneData[] genesThatOverlap =
-          VCOps.getGenesThatOverlap(vc, genomeRegions.getGeneTrack(), log);
+                                  VCOps.getGenesThatOverlap(vc, genomeRegions.getGeneTrack(), log);
       for (TallyTracker element : trackersCharge) {
         element.addIfPasses(vc, genesThatOverlap, null);
       }
@@ -339,7 +345,7 @@ public class VCFTally implements Serializable {
 
   protected static class TallyTracker implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final Hashtable<String, Float> tally;
@@ -439,8 +445,8 @@ public class VCFTally implements Serializable {
       Hashtable<String, Float> tally = new Hashtable<String, Float>();
       GeneData[][] gDatas = genomeRegions.getGeneTrack().getGenes();
       for (GeneData[] gData : gDatas) {
-        for (int j = 0; j < gData.length; j++) {
-          tally.put(gData[j].getGeneName(), (float) 0.0);
+        for (GeneData element : gData) {
+          tally.put(element.getGeneName(), (float) 0.0);
         }
       }
       Pathway[] ways = genomeRegions.getPathways().getPathways();
@@ -525,7 +531,7 @@ public class VCFTally implements Serializable {
         addTally(geneDatas[i].getGeneName(), 1, (float) mac);
         // TODO alt allele context
         Set<String> samplesWithAlts =
-            VCOps.getAltAlleleContext(vc, filterNGS, log).getSampleNames();
+                                    VCOps.getAltAlleleContext(vc, filterNGS, log).getSampleNames();
         uniqs.get(geneDatas[i].getGeneName()).addAll(samplesWithAlts);
         all.get(geneDatas[i].getGeneName()).addAll(samplesWithAlts);
         for (Pathway way : ways) {
@@ -610,9 +616,9 @@ public class VCFTally implements Serializable {
 
   private static VariantContextFilter getJEXLFilter(String[] jexlNames, String[] jexls,
                                                     Logger log) {
-    VariantContextFilter vContextFilter =
-        new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {}, new VARIANT_FILTER_BOOLEAN[] {},
-                                 jexlNames, jexls, log);
+    VariantContextFilter vContextFilter = new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {},
+                                                                   new VARIANT_FILTER_BOOLEAN[] {},
+                                                                   jexlNames, jexls, log);
     return vContextFilter;
   }
 
@@ -627,14 +633,15 @@ public class VCFTally implements Serializable {
 
     // VARIANT_FILTER_BOOLEAN[] bQualFilts = new VARIANT_FILTER_BOOLEAN[] { amb };
     VARIANT_FILTER_DOUBLE[] qualFilts = new VARIANT_FILTER_DOUBLE[] {callRate, dp, gq, vqslod};
-    VariantContextFilter vContextFilter =
-        new VariantContextFilter(qualFilts, new VARIANT_FILTER_BOOLEAN[] {fail}, null, null, log);
+    VariantContextFilter vContextFilter = new VariantContextFilter(qualFilts,
+                                                                   new VARIANT_FILTER_BOOLEAN[] {fail},
+                                                                   null, null, log);
     return vContextFilter;
   }
 
   private static class GenePass implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final Segment varSeg;
@@ -657,12 +664,12 @@ public class VCFTally implements Serializable {
 
   public static void test() {
     String vcf =
-        "D:/data/Project_Tsai_Project_021/JointAnalysis/joint_genotypes.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.AgilentCaptureRegions.vcf.gz";
+               "D:/data/Project_Tsai_Project_021/JointAnalysis/joint_genotypes.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.AgilentCaptureRegions.vcf.gz";
     String[] vpopFiles =
-        new String[] {"D:/data/Project_Tsai_Project_021/JointAnalysis/vPopCaseControl.txt",
-                      "D:/data/Project_Tsai_Project_021/JointAnalysis/vPopCaseControlAllRaces.txt"};
+                       new String[] {"D:/data/Project_Tsai_Project_021/JointAnalysis/vPopCaseControl.txt",
+                                     "D:/data/Project_Tsai_Project_021/JointAnalysis/vPopCaseControlAllRaces.txt"};
     String fullpathToChargeVCF =
-        "D:/data/CHARGE/CHARGE_MAFS/charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.vcf";
+                               "D:/data/CHARGE/CHARGE_MAFS/charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.vcf";
 
     Logger log = new Logger(ext.rootOf(vcf, false) + "tally.log");
     for (String vpopFile : vpopFiles) {

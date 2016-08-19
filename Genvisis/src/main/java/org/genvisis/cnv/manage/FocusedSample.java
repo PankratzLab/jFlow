@@ -49,9 +49,9 @@ public class FocusedSample {
   }
 
   private Sample getFocusedSample(Sample sample, int[] focusedIndices, long newFingerPrint) {
-    byte[] abGenotypes =
-        sample.getAB_Genotypes() == null ? null
-                                         : Array.subArray(sample.getAB_Genotypes(), focusedIndices);
+    byte[] abGenotypes = sample.getAB_Genotypes() == null ? null
+                                                          : Array.subArray(sample.getAB_Genotypes(),
+                                                                           focusedIndices);
     byte[] forwardGenotypes = sample.getForwardGenotypes() == null ? null
                                                                    : Array.subArray(sample.getForwardGenotypes(),
                                                                                     focusedIndices);
@@ -60,9 +60,9 @@ public class FocusedSample {
     float[] ys = sample.getYs() == null ? null : Array.subArray(sample.getYs(), focusedIndices);
 
     float[] lrrs =
-        sample.getLRRs() == null ? null : Array.subArray(sample.getLRRs(), focusedIndices);
+                 sample.getLRRs() == null ? null : Array.subArray(sample.getLRRs(), focusedIndices);
     float[] bafs =
-        sample.getBAFs() == null ? null : Array.subArray(sample.getBAFs(), focusedIndices);
+                 sample.getBAFs() == null ? null : Array.subArray(sample.getBAFs(), focusedIndices);
 
     float[] gcs = sample.getGCs() == null ? null : Array.subArray(sample.getGCs(), focusedIndices);
     boolean canXYBeNegative = sample.getCanXYBeNegative();
@@ -108,8 +108,8 @@ public class FocusedSample {
       Sample samp = original.getFullSampleFromRandomAccessFile(sample);
       FocusedSample focusedSample = null;
       if (samp != null) {
-        String newSampleFileName =
-            newFocus.SAMPLE_DIRECTORY.getValue(true, true) + sample + Sample.SAMPLE_FILE_EXTENSION;
+        String newSampleFileName = newFocus.SAMPLE_DIRECTORY.getValue(true, true) + sample
+                                   + Sample.SAMPLE_FILE_EXTENSION;
         focusedSample = new FocusedSample(focusedIndices, samp, newFingerPrint, overwriteExisting);
         focusedSample.saveToRandomAccessFile(newSampleFileName, samp.getSampleName(),
                                              original.getLog());
@@ -139,16 +139,16 @@ public class FocusedSample {
     } else {
       log.reportTimeInfo("Markers to export = " + markersToUse.length);
       log.reportTimeInfo("Samples to export = " + Array.booleanArraySum(samplesToUse));
-      int[] markerToUseIndices =
-          ext.indexLargeFactors(markersToUse, original.getMarkerNames(), true, log, true, false);
+      int[] markerToUseIndices = ext.indexLargeFactors(markersToUse, original.getMarkerNames(),
+                                                       true, log, true, false);
       WorkerHive<FocusedSample> hive = new WorkerHive<FocusedSample>(numThreads, 10, log);
       WorkerSubset[] workerSubsets = getWorkers(original, newFocus, markerToUseIndices,
                                                 samplesToUse, newFingerPrint, overwriteExisting);
       hive.addCallables(workerSubsets);
       hive.setReportEvery(100);
       hive.execute(true);
-      FocusedSample[] focusedSamples =
-          hive.getResults().toArray(new FocusedSample[hive.getResults().size()]);
+      FocusedSample[] focusedSamples = hive.getResults()
+                                           .toArray(new FocusedSample[hive.getResults().size()]);
       writeOutliers(newFocus, focusedSamples);
       return focused;
     }

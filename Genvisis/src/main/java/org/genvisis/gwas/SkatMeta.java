@@ -1,7 +1,5 @@
 package org.genvisis.gwas;
 
-import com.google.common.primitives.Ints;
-
 import java.io.File;
 import java.util.Vector;
 
@@ -16,22 +14,30 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.MetaAnalysisParams;
 import org.genvisis.stats.Rscript;
 
+import com.google.common.primitives.Ints;
+
 public class SkatMeta {
   public static final String[] ALGORITHMS =
-      {"singlesnpMeta", "burdenMeta", "skatMeta", "skatOMeta"};
+                                          {"singlesnpMeta", "burdenMeta", "skatMeta", "skatOMeta"};
 
-  public static final String[][] UNIT_OF_ANALYSIS =
-      {Aliases.MARKER_NAMES, Aliases.GENE_UNITS, Aliases.GENE_UNITS, Aliases.GENE_UNITS};
+  public static final String[][] UNIT_OF_ANALYSIS = {Aliases.MARKER_NAMES, Aliases.GENE_UNITS,
+                                                     Aliases.GENE_UNITS, Aliases.GENE_UNITS};
 
   public static final boolean[] SINGLE_VARIANTS = {true, false, false, false};
 
-  public static final String[][] HEADER_TYPES =
-      {{"gene", "Name", "p", "maf", "nmiss", "ntotal", "beta", "se"}, // Single SNP
-       {"gene", "p", "beta", "se", "cmafTotal", "cmafUsed", "nsnpsTotal", "nsnpsUsed", "nmiss"}, // Burden
-                                                                                                 // Test
-       {"gene", "p", "Qmeta", "cmaf", "nmiss", "nsnps"}, // SKAT test
-       {"gene", "p", "Qmeta", "cmaf", "nmiss", "nsnps"} // SKAT-O test (not verified)
-      };
+  public static final String[][] HEADER_TYPES = {
+                                                 {"gene", "Name", "p", "maf", "nmiss", "ntotal",
+                                                  "beta", "se"}, // Single SNP
+                                                 {"gene", "p", "beta", "se", "cmafTotal",
+                                                  "cmafUsed", "nsnpsTotal", "nsnpsUsed", "nmiss"}, // Burden
+                                                                                                   // Test
+                                                 {"gene", "p", "Qmeta", "cmaf", "nmiss", "nsnps"}, // SKAT
+                                                                                                   // test
+                                                 {"gene", "p", "Qmeta", "cmaf", "nmiss", "nsnps"} // SKAT-O
+                                                                                                  // test
+                                                                                                  // (not
+                                                                                                  // verified)
+  };
 
   public static String getRscriptExecutable(MetaAnalysisParams maps, Logger log) {
     if (maps != null && maps.getRExec() != null) {
@@ -260,8 +266,8 @@ public class SkatMeta {
       for (int j = 0; j < studies.length; j++) {
         for (int k = 0; k < races.length; k++) {
           if (!finalSets[i][j][k].equals("<missing>")) {
-            localDir =
-                dir + "objects/" + studies[j] + "/" + races[k][0] + "/" + phenotypes[i][0] + "/";
+            localDir = dir + "objects/" + studies[j] + "/" + races[k][0] + "/" + phenotypes[i][0]
+                       + "/";
             new File(localDir).mkdirs();
 
             files = finalSets[i][j][k].split(";");
@@ -283,8 +289,8 @@ public class SkatMeta {
               maxChr = getMaxChr();
               for (int chr = 1; chr <= maxChr; chr++) {
                 chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
-                subsetObject =
-                    studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
+                subsetObject = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr"
+                               + chrom;
                 if (!Files.exists(localDir + subsetObject + "_f" + f + ".RData")
                     && !Files.exists(localDir + subsetObject + ".RData")) {
                   chrsToDo.add(chr);
@@ -302,8 +308,8 @@ public class SkatMeta {
                                                     : (chrsToDo.elementAt(c) == 24 ? "Y"
                                                                                    : chrsToDo.elementAt(c)
                                                                                      + "");
-                subsetObject =
-                    studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
+                subsetObject = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr"
+                               + chrom;
 
                 // filter for the gene names present on the chromosome
                 commands.add("genes <- unique(" + snpInfoName + "[" + snpInfoName + "$" + chromName
@@ -404,8 +410,8 @@ public class SkatMeta {
           for (int k = 0; k < races.length; k++) {
             if (!finalSets[i][j][k].equals("<missing>")) {
               System.out.println("    " + races[k][0]);
-              localDir =
-                  dir + "objects/" + studies[j] + "/" + races[k][0] + "/" + phenotypes[i][0] + "/";
+              localDir = dir + "objects/" + studies[j] + "/" + races[k][0] + "/" + phenotypes[i][0]
+                         + "/";
               files = finalSets[i][j][k].split(";");
               if (iter == 0) {
                 finalSelections[i][j][k] = Array.intArray(maxChr, -1);
@@ -414,8 +420,8 @@ public class SkatMeta {
               for (int chr = 1; chr <= maxChr; chr++) {
 
                 chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
-                subsetObject =
-                    studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
+                subsetObject = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr"
+                               + chrom;
 
                 largestFileSize = 0;
                 for (int f = 0; f < files.length; f++) {
@@ -558,15 +564,15 @@ public class SkatMeta {
       for (int j = 0; j < studies.length; j++) {
         for (int k = 0; k < races.length; k++) {
           if (!finalSets[i][j][k].equals("<missing>")) {
-            localDir =
-                dir + "objects/" + studies[j] + "/" + races[k][0] + "/" + phenotypes[i][0] + "/";
+            localDir = dir + "objects/" + studies[j] + "/" + races[k][0] + "/" + phenotypes[i][0]
+                       + "/";
 
             for (int chr = 1; chr <= (runningByChr ? maxChr : 1); chr++) {
               chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
 
               if (runningByChr) {
                 objectName =
-                    studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
+                           studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
                 objectFilename = localDir + objectName + ".RData";
                 snpInfoFile = "snpInfos/snpInfo_chr" + chrom + ".RData";
               } else {
@@ -688,7 +694,7 @@ public class SkatMeta {
                 localDir = dir + "objects/" + studies[j] + "/" + races[k][0] + "/"
                            + phenotypes[i][0] + "/";
                 objectName =
-                    studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
+                           studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
                 if (new File(localDir + objectName + ".RData").length() > 1024) {
                   commands.add("load(\"" + localDir + objectName + ".RData" + "\")");
                   objects.add(objectName);
@@ -787,7 +793,7 @@ public class SkatMeta {
                 localDir = dir + "objects/" + studies[j] + "/" + races[k][0] + "/"
                            + phenotypes[i][0] + "/";
                 objectName =
-                    studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
+                           studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
                 if (new File(localDir + objectName + ".RData").length() > 1024) {
                   commands.add("load(\"" + localDir + objectName + ".RData" + "\")");
                   objects.add(objectName);

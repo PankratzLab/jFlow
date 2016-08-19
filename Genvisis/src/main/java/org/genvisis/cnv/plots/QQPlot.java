@@ -24,44 +24,66 @@ public class QQPlot {
   public static final long serialVersionUID = 1L;
 
   public static final String[] DEFAULT_FILES =
-      {
-       // "C:\\Documents and Settings\\npankrat\\My Documents\\Downloads\\allelic.txt"
-       // "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\dominant.txt"
-       "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\no_covariates.txt,0",
-       // "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\4PCs.txt",
-       "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\E2_E4.txt,0",
-      // "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\4PCs_E2_E4.txt",
-      // "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\E4_binary.txt"
-      };
+                                             {
+                                              // "C:\\Documents and Settings\\npankrat\\My
+                                              // Documents\\Downloads\\allelic.txt"
+                                              // "C:\\Documents and Settings\\npankrat\\My
+                                              // Documents\\LOAD\\QQplots\\dominant.txt"
+                                              "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\no_covariates.txt,0",
+                                              // "C:\\Documents and Settings\\npankrat\\My
+                                              // Documents\\LOAD\\QQplots\\4PCs.txt",
+                                              "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\E2_E4.txt,0",
+                                             // "C:\\Documents and Settings\\npankrat\\My
+                                             // Documents\\LOAD\\QQplots\\4PCs_E2_E4.txt",
+                                             // "C:\\Documents and Settings\\npankrat\\My
+                                             // Documents\\LOAD\\QQplots\\E4_binary.txt"
+                                             };
 
   public static final boolean JAR = false;
-  public static final Color[] COLOR_SCHEME =
-      new Color[] {Color.BLACK, Color.GRAY, new Color(33, 31, 53), // dark dark
-                   new Color(23, 58, 172), // dark blue
-                   new Color(201, 30, 10), // deep red
-                   new Color(140, 20, 180), // deep purple
-                   new Color(33, 87, 0), // dark green
-                   new Color(55, 129, 252), // light blue
-                   new Color(94, 88, 214), // light purple
-                   new Color(189, 243, 61), // light green
-                   new Color(217, 109, 194), // pink
-                   new Color(0, 0, 128), // ALL KINDS OF BLUES
-                   new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
-                   new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
-                   new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
-                   new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
-                   new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
-                   new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
-                   new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
-                   new Color(224, 255, 255), new Color(255, 192, 0), // yellowy orange
-                   new Color(227, 108, 9), // halloween orange
-      };
+  public static final Color[] COLOR_SCHEME = new Color[] {Color.BLACK, Color.GRAY,
+                                                          new Color(33, 31, 53), // dark dark
+                                                          new Color(23, 58, 172), // dark blue
+                                                          new Color(201, 30, 10), // deep red
+                                                          new Color(140, 20, 180), // deep purple
+                                                          new Color(33, 87, 0), // dark green
+                                                          new Color(55, 129, 252), // light blue
+                                                          new Color(94, 88, 214), // light purple
+                                                          new Color(189, 243, 61), // light green
+                                                          new Color(217, 109, 194), // pink
+                                                          new Color(0, 0, 128), // ALL KINDS OF
+                                                                                // BLUES
+                                                          new Color(100, 149, 237),
+                                                          new Color(72, 61, 139),
+                                                          new Color(106, 90, 205),
+                                                          new Color(123, 104, 238),
+                                                          new Color(132, 112, 255),
+                                                          new Color(0, 0, 205),
+                                                          new Color(65, 105, 225),
+                                                          new Color(0, 0, 255),
+                                                          new Color(30, 144, 255),
+                                                          new Color(0, 191, 255),
+                                                          new Color(135, 206, 250),
+                                                          new Color(135, 206, 250),
+                                                          new Color(70, 130, 180),
+                                                          new Color(176, 196, 222),
+                                                          new Color(173, 216, 230),
+                                                          new Color(176, 224, 230),
+                                                          new Color(175, 238, 238),
+                                                          new Color(0, 206, 209),
+                                                          new Color(72, 209, 204),
+                                                          new Color(64, 224, 208),
+                                                          new Color(0, 255, 255),
+                                                          new Color(224, 255, 255),
+                                                          new Color(255, 192, 0), // yellowy orange
+                                                          new Color(227, 108, 9), // halloween
+                                                                                  // orange
+  };
 
   private final QQPanel qqPanel;
   private final Logger log;
 
   /**
-   * 
+   *
    * @param labels labels for each set of pvals
    * @param pvals array of pvals for each label in labels
    * @param log10 use -log10 of p values
@@ -105,7 +127,7 @@ public class QQPlot {
   }
 
   /**
-   * 
+   *
    * @param filenames files to load pvals from
    * @param plotLabel label for the plot
    * @param displayQuantiles display quantiles instead of -log10 pvals

@@ -19,12 +19,12 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
 public class GWAF {
-  public static final String[] HEADER_IMPUTED =
-      {"phen", "snp", "N", "AF", "h2q", "beta", "se", "pval"};
-  public static final String[] HEADER_GENOTYPED =
-      {"phen", "snp", "n0", "n1", "n2", "h2q", "beta", "se", "chisq", "df", "model", "pval"};
-  public static final String[] HEADER_SUMMARY =
-      {"MarkerName", "beta", "StdErr", "Pvalue", "N", "freqA1", "MAF"};
+  public static final String[] HEADER_IMPUTED = {"phen", "snp", "N", "AF", "h2q", "beta", "se",
+                                                 "pval"};
+  public static final String[] HEADER_GENOTYPED = {"phen", "snp", "n0", "n1", "n2", "h2q", "beta",
+                                                   "se", "chisq", "df", "model", "pval"};
+  public static final String[] HEADER_SUMMARY = {"MarkerName", "beta", "StdErr", "Pvalue", "N",
+                                                 "freqA1", "MAF"};
   // public static final String DELIMITER = "\t";
   public static final String DELIMITER = ",";
 
@@ -124,10 +124,10 @@ public class GWAF {
                 n = Integer.parseInt(line[2]);
                 freq = Double.parseDouble(line[3]);
               } else {
-                n = Integer.parseInt(line[2]) + Integer.parseInt(line[3])
-                    + Integer.parseInt(line[4]);
+                n =
+                  Integer.parseInt(line[2]) + Integer.parseInt(line[3]) + Integer.parseInt(line[4]);
                 freq =
-                    (Double.parseDouble(line[4]) * 2 + Double.parseDouble(line[3]) * 1) / (n * 2);
+                     (Double.parseDouble(line[4]) * 2 + Double.parseDouble(line[3]) * 1) / (n * 2);
 
               }
               maf = freq > 0.50 ? 1 - freq : freq;
@@ -179,12 +179,14 @@ public class GWAF {
     }
   }
 
-  public static final String[] IBC_OUTPUT_FORMAT1 =
-      {"CHR", "POS", "SNP", "STRAND (Illumina)", "STRAND (HapMap)", "N", "EFFECT_ALLELE1",
-       "NON_EFFECT_ALLELE", "EA_FREQ", "BETA", "SE", "P_VAL"};
-  public static final String[] TRADITIONAL_OUTPUT_FORMAT =
-      {"Chr", "Position", "MarkerName", "Strand", "HapMapStrand", "N", "Effect_allele",
-       "Reference_allele", "Freq1", "BETA", "SE", "P-value"};
+  public static final String[] IBC_OUTPUT_FORMAT1 = {"CHR", "POS", "SNP", "STRAND (Illumina)",
+                                                     "STRAND (HapMap)", "N", "EFFECT_ALLELE1",
+                                                     "NON_EFFECT_ALLELE", "EA_FREQ", "BETA", "SE",
+                                                     "P_VAL"};
+  public static final String[] TRADITIONAL_OUTPUT_FORMAT = {"Chr", "Position", "MarkerName",
+                                                            "Strand", "HapMapStrand", "N",
+                                                            "Effect_allele", "Reference_allele",
+                                                            "Freq1", "BETA", "SE", "P-value"};
 
   public static void parseToMetal(String resultsFile, String infoFile, String markersToReport,
                                   String outfile, boolean includeN, boolean includeFreq,
@@ -398,7 +400,7 @@ public class GWAF {
       while (new File(ext.replaceAllWith(dir + geneticDataTemplate, "#", count + "")).exists()
              && (geneticDataTemplate.contains("#") || count == startAt)) {
         writer =
-            new PrintWriter(new FileWriter(dir + ext.insertNumbers(rootTemplate, count) + ".R"));
+               new PrintWriter(new FileWriter(dir + ext.insertNumbers(rootTemplate, count) + ".R"));
         if (versionOfGWAF == 2) {
           writer.println("library(kinship2)");
         } else {
@@ -432,11 +434,11 @@ public class GWAF {
                          + ext.replaceAllWith(dir + geneticDataTemplate, "#", count + ""));
       if (numBatches < 1) {
         if (nodesToUse == null) {
-          v = Array.toStringVector(Files.qsub(dir, rootTemplate, startAt,
-                                              count,
-                                              "R --no-save < " + rootTemplate + ".R > "
-                                                     + rootTemplate + ".log",
-                                              null, 5000, 12, null));
+          v =
+            Array.toStringVector(Files.qsub(dir, rootTemplate, startAt, count,
+                                            "R --no-save < " + rootTemplate + ".R > " + rootTemplate
+                                                                               + ".log",
+                                            null, 5000, 12, null));
         } else {
           v = new Vector<String>();
           // step = (int)Math.ceil((double)((count-startAt)+1)/(double)nodesToUse.length);
@@ -498,7 +500,7 @@ public class GWAF {
       writers = new PrintWriter[numOutFiles];
       for (int i = 0; i < numOutFiles; i++) {
         writers[i] =
-            Files.getAppropriateWriter(ext.replaceAllWith(geneticDataTemplate, "#", i + ""));
+                   Files.getAppropriateWriter(ext.replaceAllWith(geneticDataTemplate, "#", i + ""));
       }
       reader.reset();
       while (reader.ready()) {

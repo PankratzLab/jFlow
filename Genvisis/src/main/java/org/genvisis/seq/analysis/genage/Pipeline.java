@@ -100,9 +100,9 @@ public class Pipeline {
     public PipelinePart call() throws Exception {
       String telSeqDir = rootOutDir + TELSEQ_DIR + ext.rootOf(bam) + "/";
       new File(telSeqDir).mkdir();
-      String result =
-          TelSeq.runTelSeq(new String[] {bam}, telSeqDir, captureBed, numthreads,
-                           ngsSample.getaType(), ngsSample.getaName(), captureBufferSize, log);
+      String result = TelSeq.runTelSeq(new String[] {bam}, telSeqDir, captureBed, numthreads,
+                                       ngsSample.getaType(), ngsSample.getaName(),
+                                       captureBufferSize, log);
       ArrayList<String> output = new ArrayList<String>();
       output.add(result);
       setOutput(output);

@@ -11,8 +11,8 @@ import org.genvisis.common.ext;
 
 public class CTable {
   // TODO merge with list in ext
-  public static String[] DEFAULT_NULL_VALUES =
-      {"", ".", "NA", "na", "N/A", "n/a", "NaN", "Missing", "missing"};
+  public static String[] DEFAULT_NULL_VALUES = {"", ".", "NA", "na", "N/A", "n/a", "NaN", "Missing",
+                                                "missing"};
 
   private Hashtable<String, Integer> cells;
   private String[][] rowLabels, columnLabels;

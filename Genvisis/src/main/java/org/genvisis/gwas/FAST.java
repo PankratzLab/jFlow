@@ -32,8 +32,8 @@ import org.genvisis.parse.GenParser;
 public class FAST {
 
   private static final String COUNT_SYMB = "<>";
-  private static final String CHARGE_FORMAT =
-      " 'SNP.id'=Markername 'Chr'=Chr 'Pos'=Pos $#" + COUNT_SYMB
+  private static final String CHARGE_FORMAT = " 'SNP.id'=Markername 'Chr'=Chr 'Pos'=Pos $#"
+                                              + COUNT_SYMB
                                               + "=N 'Coded.Allele'=Effect_allele 'NonCoded.Allele'=Other_allele 'Coded.Af'=EAF 'Qual'=Imp_info 'Beta' 'Se'=SE 'Pval'=Pvalue";
 
   public static final String[] FORMATS = new String[] {CHARGE_FORMAT};
@@ -106,12 +106,10 @@ public class FAST {
     final double pvalThresh = 0.001;
 
     final String finalResultDirName =
-        tempName.substring(0, tempName.length() - 1) + FINAL_RESULT_DIR;
+                                    tempName.substring(0, tempName.length() - 1) + FINAL_RESULT_DIR;
     final File finalResultDir = new File(finalResultDirName);
-    boolean fullParseOverrideTemp = false;
     if (!finalResultDir.exists()) {
       finalResultDir.mkdirs();
-      fullParseOverrideTemp = true;
     }
     final String finalResultsPath = ext.verifyDirFormat(finalResultDir.getAbsolutePath());
 
@@ -126,15 +124,15 @@ public class FAST {
           factorLog.report(ext.getTime() + "]\tBegin processing for factor " + factorName);
           File[] popDirs = factorDir.listFiles(dirFilter);
           factorLog.report(ext.getTime() + "]\tFound " + popDirs.length + " populations");
-          StringBuilder metalFileContents =
-              new StringBuilder(writeMetalCRF(factorName, pvalThresh, gcMetal));
+          StringBuilder metalFileContents = new StringBuilder(writeMetalCRF(factorName, pvalThresh,
+                                                                            gcMetal));
           int foundCount = 0;
           for (File popDir : popDirs) {
             String popName = ext.rootOf(popDir.getName(), true);
 
             auto: {
-              final String finalOut =
-                  buildFinalFilename(studyName, popName, factorName, SEX_CODES[0]);
+              final String finalOut = buildFinalFilename(studyName, popName, factorName,
+                                                         SEX_CODES[0]);
               FilenameFilter currFilter = new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
@@ -205,9 +203,9 @@ public class FAST {
             }
 
             final String finalOutF =
-                buildFinalFilename(studyName, popName, factorName, SEX_CODES[2]);
+                                   buildFinalFilename(studyName, popName, factorName, SEX_CODES[2]);
             final String finalOutM =
-                buildFinalFilename(studyName, popName, factorName, SEX_CODES[1]);
+                                   buildFinalFilename(studyName, popName, factorName, SEX_CODES[1]);
             File femaleDir = new File(popDir, "female/");
             File maleDir = new File(popDir, "male/");
             FilenameFilter femFilt = new FilenameFilter() {
@@ -225,7 +223,7 @@ public class FAST {
 
 
             StringBuilder metaSex =
-                new StringBuilder(writeMetalCRF(factorName, pvalThresh, gcMetal));
+                                  new StringBuilder(writeMetalCRF(factorName, pvalThresh, gcMetal));
             if (femaleDir.exists() && femaleDir.isDirectory() && maleDir.exists()
                 && maleDir.isDirectory()) {
               String[] dataFilesF = finalResultDir.list(femFilt);
@@ -241,7 +239,7 @@ public class FAST {
                 } else {
                   try {
                     String resultsDirPathFemale =
-                        ext.verifyDirFormat(femaleResultsDir.getAbsolutePath());
+                                                ext.verifyDirFormat(femaleResultsDir.getAbsolutePath());
                     String midOutF = "concatenated.result";
                     String traitFileF = ext.verifyDirFormat(femaleDir.getAbsolutePath()) + studyName
                                         + "_" + popName + "_" + factorName + "_female.trait";
@@ -284,7 +282,7 @@ public class FAST {
                 } else {
                   try {
                     String resultsDirPathMale =
-                        ext.verifyDirFormat(maleResultsDir.getAbsolutePath());
+                                              ext.verifyDirFormat(maleResultsDir.getAbsolutePath());
                     String midOutM = "concatenated.result";
                     String traitFileM = ext.verifyDirFormat(maleDir.getAbsolutePath()) + studyName
                                         + "_" + popName + "_" + factorName + "_male.trait";
@@ -340,7 +338,7 @@ public class FAST {
               // Runtime.exec doesn't play well with '~', so we have to find the location of the
               // genvisis.jar file
               String path =
-                  FAST.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+                          FAST.class.getProtectionDomain().getCodeSource().getLocation().getPath();
               String decodedPath = path;
               try {
                 decodedPath = URLDecoder.decode(path, "UTF-8");
@@ -354,9 +352,9 @@ public class FAST {
               factorLog.report(ext.getTime()
                                + "]\tRunning HitWindows analysis on METAL results...");
               try {
-                String[][] results1 =
-                    HitWindows.determine(metalDir + "topHits.xln", 0.00000005f, 500000, 0.000005f,
-                                         new String[0], factorLog);
+                String[][] results1 = HitWindows.determine(metalDir + "topHits.xln", 0.00000005f,
+                                                           500000, 0.000005f, new String[0],
+                                                           factorLog);
                 Files.writeMatrix(results1, metalDir + factorName + "_topHitWindows.out", "\t");
               } catch (Exception e) {
                 factorLog.report("ERROR - " + e.getMessage());
@@ -461,9 +459,9 @@ public class FAST {
   // }
 
   public static String writeMetalCRF(String factor, double pvalThresh, boolean gc) {
-    StringBuilder metalCRF =
-        new StringBuilder("metal\n").append(factor).append("\n").append("build=37\n")
-                                    .append("hits_p<=" + pvalThresh + "\n");
+    StringBuilder metalCRF = new StringBuilder("metal\n").append(factor).append("\n")
+                                                         .append("build=37\n")
+                                                         .append("hits_p<=" + pvalThresh + "\n");
     // .append("genomic_control=" + (gc ? "TRUE" : "FALSE") + "\n");
     return metalCRF.toString();
   }
@@ -612,8 +610,8 @@ public class FAST {
             fastRunMale.sex = SEX_CODES[1];
             fastRunMale.run();
             FAST fastRunFemale =
-                new FAST("FAST", dataDef.sexDir, dataDef.indivFile, femaleTraitFile,
-                         dataDef.sexSuffix, dir + "female/", covars, isLinear);
+                               new FAST("FAST", dataDef.sexDir, dataDef.indivFile, femaleTraitFile,
+                                        dataDef.sexSuffix, dir + "female/", covars, isLinear);
             fastRunFemale.study = study;
             fastRunFemale.factor = factor;
             fastRunFemale.pop = pop;
@@ -646,9 +644,9 @@ public class FAST {
           }
         }
       }
-      String metalCmd =
-          "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " gwas.FAST rundir=" + runDir
-                        + study + " data=" + dataFile + " gcMetal=" + gcMetal + " -process";
+      String metalCmd = "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " gwas.FAST rundir="
+                        + runDir + study + " data=" + dataFile + " gcMetal=" + gcMetal
+                        + " -process";
       Files.qsub(runDir + "step3_" + study + "_processAndMetaAnalyze.qsub", metalCmd, QSUB_RAM_MB,
                  QSUB_TIME_HRS, QSUB_THREADS);
       // Files.write("qsub" + (qsubQueue == null ? "" : " -q " + qsubQueue) + " step4_" + study +
@@ -700,38 +698,38 @@ public class FAST {
         chr = "23";
       }
 
-      StringBuilder fastString = new StringBuilder(FAST_LOC)
-                                                            .append(" --mode genotype --impute2-geno-file ")
-                                                            .append(dir).append(dataFile)
-                                                            .append(" --impute2-info-file ")
-                                                            .append(dir)
-                                                            .append(dataFile.substring(0,
-                                                                                       dataFile.length()
-                                                                                          - 3)) // TODO
-                                                                                                // assuming
-                                                                                                // files
-                                                                                                // are
-                                                                                                // gzipped
-                                                            .append("_info --indiv-file ") // TODO
-                                                                                           // assuming
-                                                                                           // info
-                                                                                           // files
-                                                                                           // end
-                                                                                           // with
-                                                                                           // _info
-                                                            .append(indivFile)
-                                                            .append(" --trait-file ")
-                                                            .append(traitFile)
-                                                            .append(" --num-covariates ")
-                                                            .append(covarCount)
-                                                            .append(isLinear ? " --linear-snp "
-                                                                             : " --logistic-snp")
-                                                            .append(" --chr ").append(chr)
-                                                            .append(" --out-file ").append(runDir)
-                                                            .append("output/")
-                                                            .append(dataFile.substring(0,
-                                                                                       dataFile.length() - 3))
-                                                            .append(".out");
+      StringBuilder fastString =
+                               new StringBuilder(FAST_LOC).append(" --mode genotype --impute2-geno-file ")
+                                                          .append(dir).append(dataFile)
+                                                          .append(" --impute2-info-file ")
+                                                          .append(dir)
+                                                          .append(dataFile.substring(0,
+                                                                                     dataFile.length()
+                                                                                        - 3)) // TODO
+                                                                                              // assuming
+                                                                                              // files
+                                                                                              // are
+                                                                                              // gzipped
+                                                          .append("_info --indiv-file ") // TODO
+                                                                                         // assuming
+                                                                                         // info
+                                                                                         // files
+                                                                                         // end
+                                                                                         // with
+                                                                                         // _info
+                                                          .append(indivFile)
+                                                          .append(" --trait-file ")
+                                                          .append(traitFile)
+                                                          .append(" --num-covariates ")
+                                                          .append(covarCount)
+                                                          .append(isLinear ? " --linear-snp "
+                                                                           : " --logistic-snp")
+                                                          .append(" --chr ").append(chr)
+                                                          .append(" --out-file ").append(runDir)
+                                                          .append("output/")
+                                                          .append(dataFile.substring(0,
+                                                                                     dataFile.length() - 3))
+                                                          .append(".out");
 
       scriptInputWriter.println(fastString.toString());
 
@@ -740,12 +738,12 @@ public class FAST {
     scriptInputWriter.flush();
     scriptInputWriter.close();
 
-    String command =
-        "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " one.ScriptExecutor file=\""
-                     + runDir + "input.txt\" token=took threads=" + QSUB_THREADS;
+    String command = "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS
+                     + " one.ScriptExecutor file=\"" + runDir + "input.txt\" token=took threads="
+                     + QSUB_THREADS;
     String procFileOut = buildFinalFilename();
-    String processCommand =
-        "cd \"" + runDir + "\"\njava -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS
+    String processCommand = "cd \"" + runDir + "\"\njava -cp ~/"
+                            + org.genvisis.common.PSF.Java.GENVISIS
                             + " gwas.FAST -convert -concat -writePVals -hitWindows out=\""
                             + procFileOut + "\" results=\"" + runDir + "output/\" trait=\""
                             + traitFile + "\"";
@@ -793,7 +791,7 @@ public class FAST {
     });
 
     HashMap<String, HashMap<String, HashMap<String, String>>> studyToFactorToPopToFile =
-        new HashMap<String, HashMap<String, HashMap<String, String>>>();
+                                                                                       new HashMap<String, HashMap<String, HashMap<String, String>>>();
 
     for (String file : files) {
       String[] pts = file.substring(0, file.lastIndexOf(".")).split("_");
@@ -817,7 +815,7 @@ public class FAST {
 
   public static HashMap<String, HashMap<String, DataDefinitions>> parseDataDefinitionsFile(String file) throws IOException {
     HashMap<String, HashMap<String, DataDefinitions>> defs =
-        new HashMap<String, HashMap<String, DataDefinitions>>();
+                                                           new HashMap<String, HashMap<String, DataDefinitions>>();
 
     BufferedReader reader = Files.getAppropriateReader(file);
     String line = null;
@@ -867,8 +865,8 @@ public class FAST {
                                          boolean male) throws IOException {
     (new File(destDir)).mkdirs();
     BufferedReader reader = Files.getAppropriateReader(traitFile);
-    String newFile =
-        destDir + ext.rootOf(traitFile, true) + "_" + (male ? "male" : "female") + ".trait";
+    String newFile = destDir + ext.rootOf(traitFile, true) + "_" + (male ? "male" : "female")
+                     + ".trait";
     PrintWriter writer = Files.getAppropriateWriter(newFile);
 
     String line = null;
@@ -879,8 +877,8 @@ public class FAST {
         writer.println(line);
       } else {
         String[] parts = line.split("\t");
-        String newLine =
-            parts[0] + "\t" + parts[1] + "\t" + parts[2] + "\t" + parts[3] + "\t" + parts[4];
+        String newLine = parts[0] + "\t" + parts[1] + "\t" + parts[2] + "\t" + parts[3] + "\t"
+                         + parts[4];
         for (int i = 0; i < parts.length - 5; i++) {
           newLine += "\tNA";
         }
@@ -909,8 +907,8 @@ public class FAST {
   private static void runParser(String FORMAT, String concattedResultsFile, String outFileName,
                                 int count) {
     System.out.println(ext.getTime() + "]\tParsing results file according to given FORMAT...");
-    String finalFormat =
-        concattedResultsFile + " tab out=" + outFileName + FORMAT.replace(COUNT_SYMB, count + "");
+    String finalFormat = concattedResultsFile + " tab out=" + outFileName
+                         + FORMAT.replace(COUNT_SYMB, count + "");
     String[] args = ext.removeQuotes(finalFormat).trim().split("[\\s]+");
     GenParser.parse(args, new Logger());
     System.out.println(ext.getTime() + "]\tParsing complete!");
@@ -928,17 +926,17 @@ public class FAST {
         String[] pts2 = o2.split("\\.");
 
         Integer chr1 =
-            pts1[0].substring(3)
-                   .charAt(0) == 'X' ? 23
-                                     : pts1[0].substring(3)
-                                              .charAt(0) == 'Y' ? 24
-                                                                : Integer.valueOf(pts1[0].substring(3));
+                     pts1[0].substring(3)
+                            .charAt(0) == 'X' ? 23
+                                              : pts1[0].substring(3)
+                                                       .charAt(0) == 'Y' ? 24
+                                                                         : Integer.valueOf(pts1[0].substring(3));
         Integer chr2 =
-            pts2[0].substring(3)
-                   .charAt(0) == 'X' ? 23
-                                     : pts2[0].substring(3)
-                                              .charAt(0) == 'Y' ? 24
-                                                                : Integer.valueOf(pts2[0].substring(3));
+                     pts2[0].substring(3)
+                            .charAt(0) == 'X' ? 23
+                                              : pts2[0].substring(3)
+                                                       .charAt(0) == 'Y' ? 24
+                                                                         : Integer.valueOf(pts2[0].substring(3));
 
         int chrComp = chr1.compareTo(chr2);
         if (chrComp != 0) {
@@ -963,8 +961,9 @@ public class FAST {
     PrintWriter writer = Files.getAppropriateWriter(resultsDir + resultsFile);
     int[] indices = null;
 
-    PrintWriter pvalWriter =
-        writePValThresh ? Files.getAppropriateWriter(resultsDir + "meetsPVal_" + ".out") : null;
+    PrintWriter pvalWriter = writePValThresh ? Files.getAppropriateWriter(resultsDir + "meetsPVal_"
+                                                                          + ".out")
+                                             : null;
     boolean first = true;
     System.out.print(ext.getTime() + "]\tConcatenating results files: <");
     for (String str : filenames) {
@@ -1050,9 +1049,9 @@ public class FAST {
 
     HashMap<String, String[]> studyPopIDs = new HashMap<String, String[]>();
     HashMap<String, HashMap<String, String[]>> studyPopDataPerSNP =
-        new HashMap<String, HashMap<String, String[]>>();
+                                                                  new HashMap<String, HashMap<String, String[]>>();
     HashMap<String, HashMap<String, String>> studyPopInfoPerSNP =
-        new HashMap<String, HashMap<String, String>>();
+                                                                new HashMap<String, HashMap<String, String>>();
     HashSet<String> snpSet = new HashSet<String>();
 
     String[] snps = null;
@@ -1073,8 +1072,8 @@ public class FAST {
         String pop = popEntry.getKey();
         final DataDefinitions dataDefs = popEntry.getValue();
 
-        String[] iids =
-            HashVec.loadFileToStringArray(dataDefs.indivFile, false, new int[] {0}, false);
+        String[] iids = HashVec.loadFileToStringArray(dataDefs.indivFile, false, new int[] {0},
+                                                      false);
         studyPopIDs.put(study + "\t" + pop, iids);
 
         String[] chrDataFiles = (new File(dataDefs.dataDir)).list(new FilenameFilter() {
@@ -1157,8 +1156,8 @@ public class FAST {
       String[] ids = studyPopIDs.get(studyPop);
 
       ArrayList<String> snpOrder = new ArrayList<String>(line.keySet());
-      PrintWriter writer =
-          Files.getAppropriateWriter(outfileBase + "_" + studyPop.replaceAll("\t", "_") + ".data");
+      PrintWriter writer = Files.getAppropriateWriter(outfileBase + "_"
+                                                      + studyPop.replaceAll("\t", "_") + ".data");
 
       StringBuilder sb = new StringBuilder();
       sb.append("IID");
@@ -1190,13 +1189,13 @@ public class FAST {
     }
 
     String infoHeader =
-        "snp_id rs_id position exp_freq_a1 info certainty type info_type0 concord_type0 r2_type0";
+                      "snp_id rs_id position exp_freq_a1 info certainty type info_type0 concord_type0 r2_type0";
     for (Entry<String, HashMap<String, String>> infoEntry : studyPopInfoPerSNP.entrySet()) {
       String studyPop = infoEntry.getKey();
       HashMap<String, String> line = infoEntry.getValue();
 
-      PrintWriter writer =
-          Files.getAppropriateWriter(outfileBase + "_" + studyPop.replaceAll("\t", "_") + ".info");
+      PrintWriter writer = Files.getAppropriateWriter(outfileBase + "_"
+                                                      + studyPop.replaceAll("\t", "_") + ".info");
       writer.println(infoHeader);
       for (String info : line.values()) {
         writer.println(info);

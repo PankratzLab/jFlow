@@ -116,9 +116,10 @@ public class BlastContamination {
         log.reportTimeInfo("Currently processing file " + ext.removeDirectoryInfo(fastaqs[i]) + " ("
                            + i + " of " + fastaqs.length + ") .fastqs; (" + j + " of "
                            + fastaDbs.length + ") dbs");
-        Hashtable<String, Integer> curCounts =
-            runContam(ext.rootOf(fastaDbs[j], false), numReads, fastaqs[i], numSampThreads,
-                      numReadsPerThread, blastWordSize, reportWordSize, log).getTaxonCounts();
+        Hashtable<String, Integer> curCounts = runContam(ext.rootOf(fastaDbs[j], false), numReads,
+                                                         fastaqs[i], numSampThreads,
+                                                         numReadsPerThread, blastWordSize,
+                                                         reportWordSize, log).getTaxonCounts();
         allCounts = ext.addHashCounts(allCounts, curCounts);
       }
       popCounts.add(allCounts);
@@ -158,8 +159,9 @@ public class BlastContamination {
                                               int blastWordSize, int reportWordSize, Logger log) {
     BlastFastaq bFastaq = new BlastFastaq(fastaq, numReads, fastaDb, blastWordSize, reportWordSize,
                                           numReadsPerThread, log);
-    WorkerTrain<BlastResultsSummary[]> train =
-        new WorkerTrain<BlastResultsSummary[]>(bFastaq, numSampThreads, 10, log);
+    WorkerTrain<BlastResultsSummary[]> train = new WorkerTrain<BlastResultsSummary[]>(bFastaq,
+                                                                                      numSampThreads,
+                                                                                      10, log);
     BlastContamination blastContamination = new BlastContamination(fastaDb, train, new Logger());
     blastContamination.runContam();
     return blastContamination;

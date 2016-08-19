@@ -15,12 +15,12 @@ import org.genvisis.common.ext;
 
 public class CountHets {
   public static final String WINDOWS_DIRECTORY =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\allMarkers\\chr14\\";
+                                               "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\allMarkers\\chr14\\";
   public static final String LINUX_DIRECTORY = "/home/npankrat/penncnv/allMarkers/cnvs/";
-  public static final String[] EXPECTED_HEADER =
-      {"Sample", "FID", "IID", "CHR", "BP1", "BP2", "TYPE", "SCORE", "SITES"};
-  public static final String[] CNV_SUFFIXES =
-      {"Name", "Chr", "Position", ".GType", ".Log R Ratio", ".B Allele Freq"};
+  public static final String[] EXPECTED_HEADER = {"Sample", "FID", "IID", "CHR", "BP1", "BP2",
+                                                  "TYPE", "SCORE", "SITES"};
+  public static final String[] CNV_SUFFIXES = {"Name", "Chr", "Position", ".GType", ".Log R Ratio",
+                                               ".B Allele Freq"};
 
   public static void count(String dir, String filename) {
     BufferedReader reader;

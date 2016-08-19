@@ -39,11 +39,11 @@ public class VCFTumorNormalOps {
   }
 
   /**
-   * 
+   *
    * NOTE, we also add "variant level" annotations to the genotypes format to preserve this
    * information after merging<br>
    * NOTE, really designed for mutect2
-   * 
+   *
    * @param vcf vcf to rename
    * @param tumorSamp the tumor sample
    * @param tumorDef tumorSamp will replace this sample
@@ -65,9 +65,10 @@ public class VCFTumorNormalOps {
     VCFFileReader reader = new VCFFileReader(new File(vcf), false);
     VariantContextWriter writer = VCFOps.initWriter(output, VCFOps.DEFUALT_WRITER_OPTIONS,
                                                     reader.getFileHeader().getSequenceDictionary());
-    VariantContextWriter writerFiltered =
-        VCFOps.initWriter(outputFiltered, VCFOps.DEFUALT_WRITER_OPTIONS,
-                          reader.getFileHeader().getSequenceDictionary());
+    VariantContextWriter writerFiltered = VCFOps.initWriter(outputFiltered,
+                                                            VCFOps.DEFUALT_WRITER_OPTIONS,
+                                                            reader.getFileHeader()
+                                                                  .getSequenceDictionary());
 
     Set<String> samps = new HashSet<String>();
     samps.add(normalSamp);
@@ -83,11 +84,11 @@ public class VCFTumorNormalOps {
           attsRemoveVCAddGT.add(vcfInfoHeaderLine.getID());
 
           VCFFormatHeaderLine newFormat =
-              new VCFFormatHeaderLine(vcfInfoHeaderLine.getID(),
-                                      vcfInfoHeaderLine.isFixedCount() ? vcfInfoHeaderLine.getCount()
-                                                                       : 1,
-                                      vcfInfoHeaderLine.getType(),
-                                      vcfInfoHeaderLine.getDescription());
+                                        new VCFFormatHeaderLine(vcfInfoHeaderLine.getID(),
+                                                                vcfInfoHeaderLine.isFixedCount() ? vcfInfoHeaderLine.getCount()
+                                                                                                 : 1,
+                                                                vcfInfoHeaderLine.getType(),
+                                                                vcfInfoHeaderLine.getDescription());
 
           newHeaderLines.add(newFormat);// transfer to genotype level annotations for merging
         }
@@ -96,12 +97,15 @@ public class VCFTumorNormalOps {
     }
 
     VCFFormatHeaderLine ADPreserve =
-        new VCFFormatHeaderLine(GENOTYPE_INFO.AD_TUMOR.getFlag(), VCFHeaderLineCount.UNBOUNDED,
-                                VCFHeaderLineType.Integer, "Allelic depths for the ref and alt alleles in the order listed for the tumor sample");
+                                   new VCFFormatHeaderLine(GENOTYPE_INFO.AD_TUMOR.getFlag(),
+                                                           VCFHeaderLineCount.UNBOUNDED,
+                                                           VCFHeaderLineType.Integer,
+                                                           "Allelic depths for the ref and alt alleles in the order listed for the tumor sample");
     VCFFormatHeaderLine filterPreserve =
-        new VCFFormatHeaderLine(GENOTYPE_INFO.MUTECT_FILTERS.getFlag(),
-                                VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.String,
-                                "Filters applied by mutect to somatic calls");
+                                       new VCFFormatHeaderLine(GENOTYPE_INFO.MUTECT_FILTERS.getFlag(),
+                                                               VCFHeaderLineCount.UNBOUNDED,
+                                                               VCFHeaderLineType.String,
+                                                               "Filters applied by mutect to somatic calls");
 
     newHeaderLines.add(ADPreserve);
     newHeaderLines.add(filterPreserve);
@@ -109,12 +113,12 @@ public class VCFTumorNormalOps {
     ArrayList<String> attsToTransferFromNormal = new ArrayList<String>();
     for (VCFFormatHeaderLine vcfFormatHeaderLine : reader.getFileHeader().getFormatHeaderLines()) {
       VCFFormatHeaderLine normal =
-          new VCFFormatHeaderLine(vcfFormatHeaderLine.getID() + NORMAL_TAG,
-                                  vcfFormatHeaderLine.isFixedCount() ? vcfFormatHeaderLine.getCount()
-                                                                     : 1,
-                                  vcfFormatHeaderLine.getType(), vcfFormatHeaderLine
-                                                                                    .getDescription()
-                                                                 + " in the normal sample from mutect calls");
+                                 new VCFFormatHeaderLine(vcfFormatHeaderLine.getID() + NORMAL_TAG,
+                                                         vcfFormatHeaderLine.isFixedCount() ? vcfFormatHeaderLine.getCount()
+                                                                                            : 1,
+                                                         vcfFormatHeaderLine.getType(),
+                                                         vcfFormatHeaderLine.getDescription()
+                                                                                        + " in the normal sample from mutect calls");
       newHeaderLines.add(normal);
       attsToTransferFromNormal.add(vcfFormatHeaderLine.getID());
     }
@@ -222,8 +226,8 @@ public class VCFTumorNormalOps {
       samps.add(fix);
     }
 
-    final VCFHeader outHeader =
-        new VCFHeader(reader.getFileHeader().getMetaDataInInputOrder(), samps);
+    final VCFHeader outHeader = new VCFHeader(reader.getFileHeader().getMetaDataInInputOrder(),
+                                              samps);
 
     VariantContextWriter writer = VCFOps.initWriter(outputVCF, VCFOps.DEFUALT_WRITER_OPTIONS,
                                                     reader.getFileHeader().getSequenceDictionary());

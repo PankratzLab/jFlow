@@ -284,9 +284,9 @@ public class HitWindows {
       segs[i] = new Segment[v.size()];
       for (int j = 0; j < segs[i].length; j++) {
         line = v.elementAt(j).split("[\\s]+");
-        segs[i][j] =
-            new Segment(Positions.chromosomeNumber(line[0]), Integer.parseInt(line[1]) - window,
-                        Integer.parseInt(line[1]) + window);
+        segs[i][j] = new Segment(Positions.chromosomeNumber(line[0]),
+                                 Integer.parseInt(line[1]) - window,
+                                 Integer.parseInt(line[1]) + window);
       }
     }
 
@@ -366,9 +366,9 @@ public class HitWindows {
     Logger log;
     String logfile = null;
 
-    String usage =
-        "\n" + "gwas.HitWindows requires 0-1 arguments\n" + "   (1) input filename (i.e. file="
-                   + filename + " (default))\n" + "   (2) filename of output (i.e. out=" + outfile
+    String usage = "\n" + "gwas.HitWindows requires 0-1 arguments\n"
+                   + "   (1) input filename (i.e. file=" + filename + " (default))\n"
+                   + "   (2) filename of output (i.e. out=" + outfile
                    + " (default; set to null to print to stdout))\n"
                    + "   (3) p-value threshold for index SNPs (i.e. indexThresh=" + indexThreshold
                    + " (default))\n" + "   (4) minimum num bp per side of window (i.e. minWinSize="

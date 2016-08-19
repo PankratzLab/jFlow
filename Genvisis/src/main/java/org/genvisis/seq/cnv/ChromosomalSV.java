@@ -1,8 +1,5 @@
 package org.genvisis.seq.cnv;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -20,6 +17,9 @@ import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 /**
  * Looking at large ( all or half) of chromosome structural variants
  *
@@ -29,11 +29,11 @@ public class ChromosomalSV {
   public static void run(Project proj, int numthreads) {
     Logger log = proj.getLog();
     PreparedMarkerSet preparedMarkerSet =
-        PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
+                                        PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
     String[] samples = proj.getSamples();
     ChrProducer producer = new ChrProducer(proj, samples, preparedMarkerSet);
-    WorkerTrain<ChrResult[][]> train =
-        new WorkerTrain<ChrResult[][]>(producer, numthreads, 10, proj.getLog());
+    WorkerTrain<ChrResult[][]> train = new WorkerTrain<ChrResult[][]>(producer, numthreads, 10,
+                                                                      proj.getLog());
     int index = 0;
     ChrResult[][][] allResults = new ChrResult[samples.length][][];
     Hashtable<String, ArrayList<Double>> summaryMedian = new Hashtable<String, ArrayList<Double>>();
@@ -169,9 +169,9 @@ public class ChromosomalSV {
     Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
     int[] pos = preparedMarkerSet.getPositions();
     int[][] boundaries =
-        Positions.determineCentromereBoundariesFromMarkerSet(preparedMarkerSet.getChrs(),
-                                                             preparedMarkerSet.getPositions(), 37,
-                                                             proj.getLog());
+                       Positions.determineCentromereBoundariesFromMarkerSet(preparedMarkerSet.getChrs(),
+                                                                            preparedMarkerSet.getPositions(),
+                                                                            37, proj.getLog());
     double[] lrrs = Array.toDoubleArray(samp.getLRRs());
     ChrResult[][] results = new ChrResult[preparedMarkerSet.getIndicesByChr().length][3];
     String[] markerNames = preparedMarkerSet.getMarkerNames();

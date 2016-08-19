@@ -1,7 +1,5 @@
 package org.genvisis.cnv.qc;
 
-import com.google.common.primitives.Doubles;
-
 import java.util.ArrayList;
 
 import org.genvisis.cnv.filesys.MarkerData;
@@ -10,6 +8,8 @@ import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.common.Array;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+
+import com.google.common.primitives.Doubles;
 
 /**
  * Class to compute a QC metric based on B-allele MINOR allele frequency (BMAF) "min(medianBAF,
@@ -32,7 +32,7 @@ public class CNVBMAF extends CNVBDeviation {
    * Metric is divided by all markers, and the average heterzygous bmaf is subtracted from the score
    */
   public static final String SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY =
-      "SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY";
+                                                                        "SUMMARY_BY_NUM_ALL_MARKERS_AVG_HET_PENALTY";
 
   /**
    * Metric is divided by sum of all markers
@@ -59,7 +59,7 @@ public class CNVBMAF extends CNVBDeviation {
   }
 
   /**
-   * 
+   *
    * @param markerName
    * @param genotype
    * @param baf
@@ -188,10 +188,11 @@ public class CNVBMAF extends CNVBDeviation {
     String display = proj.DISPLAY_MARKERS_FILENAMES.getValue()[0];
     String[] markers = HashVec.loadFileToStringArray(display, false, new int[] {0}, true);
     MarkerDataLoader markerDataLoader =
-        MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
-    PoplulationBAFs poplulationBDeviation =
-        new PoplulationBAFs(proj.getSamples().length, DEFAULT_INTENSITY_ONLY_FLAGS,
-                            DEFAULT_GC_THRESHOLD);
+                                      MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+                                                                                              markers);
+    PoplulationBAFs poplulationBDeviation = new PoplulationBAFs(proj.getSamples().length,
+                                                                DEFAULT_INTENSITY_ONLY_FLAGS,
+                                                                DEFAULT_GC_THRESHOLD);
     for (int i = 0; i < markers.length; i++) {
       MarkerData markerData = markerDataLoader.requestMarkerData(i);
       poplulationBDeviation.add(markers[i], markerData.getAbGenotypes(), markerData.getBAFs(),

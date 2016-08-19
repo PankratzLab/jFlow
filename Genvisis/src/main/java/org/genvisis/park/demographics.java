@@ -23,7 +23,7 @@ public class demographics {
     BufferedReader reader;
     PrintWriter writer;
     Hashtable<String, Hashtable<String, String[]>> hash =
-        new Hashtable<String, Hashtable<String, String[]>>();
+                                                        new Hashtable<String, Hashtable<String, String[]>>();
     Hashtable<String, String> unaffs = new Hashtable<String, String>();
     Hashtable<String, String[]> h;
     Vector<String> fams = new Vector<String>();
@@ -84,8 +84,10 @@ public class demographics {
       } else if (line[5].equals("2")) {
         if (h.containsKey(line[2] + "/" + line[3])) {
           info = h.get(line[2] + "/" + line[3]);
-          info[Integer.valueOf(line[4]).intValue() - 1] =
-              (Integer.valueOf(info[Integer.valueOf(line[4]).intValue() - 1]).intValue() + 1) + "";
+          info[Integer.valueOf(line[4]).intValue()
+               - 1] =
+                    (Integer.valueOf(info[Integer.valueOf(line[4]).intValue() - 1]).intValue() + 1)
+                      + "";
           total = Integer.valueOf(info[0]).intValue() + Integer.valueOf(info[1]).intValue();
         } else {
           info = new String[2];

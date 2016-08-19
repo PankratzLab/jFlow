@@ -1,7 +1,5 @@
 package org.genvisis.stats;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -17,6 +15,8 @@ import org.genvisis.common.Numbers;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
+
+import com.google.common.primitives.Ints;
 
 public class Stepwise {
   public static double ENTRY_PROB = 0.05;
@@ -168,10 +168,10 @@ public class Stepwise {
       highestRsq = 0;
       lowestP = 1;
       if (numThreads > 1) {
-        RegressionProducer producer =
-            new RegressionProducer(in, out, logistic, Ys, Xs, N, svdRegressionSwitch);
-        WorkerTrain<RegressionModel> train =
-            new WorkerTrain<RegressionModel>(producer, numThreads, 2, new Logger());
+        RegressionProducer producer = new RegressionProducer(in, out, logistic, Ys, Xs, N,
+                                                             svdRegressionSwitch);
+        WorkerTrain<RegressionModel> train = new WorkerTrain<RegressionModel>(producer, numThreads,
+                                                                              2, new Logger());
         int index = 0;
         int currentSize = in.size() + 1;
 
@@ -363,7 +363,7 @@ public class Stepwise {
 
     RegressionModel model;
     String Rsum =
-        " Model\t" + (logistic ? " ChiSq" : "    F") + "\t   Sig\t R-square" + line_ending;
+                " Model\t" + (logistic ? " ChiSq" : "    F") + "\t   Sig\t R-square" + line_ending;
     String ModelSum = ext.formStr("Variable", maxNameSize, true)
                       + "\t   Beta\t StdErr\t      T\t    Sig" + line_ending;
     IntVector ins;
@@ -445,10 +445,10 @@ public class Stepwise {
       double[] stats = new double[out.size()];
       int[] orderOfOriginal = Ints.toArray(out);
 
-      RegressionProducer producer =
-          new RegressionProducer(in, out, logistic, Ys, Xs, N, svdRegressionSwitch);
-      WorkerTrain<RegressionModel> train =
-          new WorkerTrain<RegressionModel>(producer, numThreads, 2, new Logger());
+      RegressionProducer producer = new RegressionProducer(in, out, logistic, Ys, Xs, N,
+                                                           svdRegressionSwitch);
+      WorkerTrain<RegressionModel> train = new WorkerTrain<RegressionModel>(producer, numThreads, 2,
+                                                                            new Logger());
       int index = 0;
 
       while (train.hasNext()) {

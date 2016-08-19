@@ -70,8 +70,6 @@ import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.NewRegionListDialog;
 import org.genvisis.cnv.var.Region;
@@ -97,6 +95,7 @@ import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
+import net.miginfocom.swing.MigLayout;
 
 public class VariantViewer extends JFrame implements ActionListener, MouseListener,
                            MouseMotionListener, MouseWheelListener {
@@ -210,7 +209,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
   private final ArrayList<Color[]> colorScheme = Trailer.getColor();
 
   private final HashMap<String, JCheckBoxMenuItem> regionFileNameBtn =
-      new HashMap<String, JCheckBoxMenuItem>();
+                                                                     new HashMap<String, JCheckBoxMenuItem>();
   private final HashMap<String, String> regionFileNameLoc = new HashMap<String, String>();
   private String geneFileName;
   private volatile boolean loadingFile = false;
@@ -336,8 +335,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
           return;
         }
         String tempFile =
-            (file.startsWith("./") && proj != null) ? proj.PROJECT_DIRECTORY.getValue() + file
-                                                    : file;
+                        (file.startsWith("./") && proj != null) ? proj.PROJECT_DIRECTORY.getValue()
+                                                                  + file
+                                                                : file;
         if (!Files.exists(tempFile)) {
           String msg = "Error - region file '" + shortName + "' doesn't exist.";
           if (proj != null) {
@@ -443,12 +443,12 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
             String message = newSet.size() + " files have been added.  ";
             int choice =
-                JOptionPane.showOptionDialog(null,
-                                             message
-                                                   + " Would you like to keep this configuration for the next time VariantViewer is loaded?",
-                                             "Preserve VariantViewer workspace?",
-                                             JOptionPane.YES_NO_CANCEL_OPTION,
-                                             JOptionPane.QUESTION_MESSAGE, null, null, null);
+                       JOptionPane.showOptionDialog(null,
+                                                    message
+                                                          + " Would you like to keep this configuration for the next time VariantViewer is loaded?",
+                                                    "Preserve VariantViewer workspace?",
+                                                    JOptionPane.YES_NO_CANCEL_OPTION,
+                                                    JOptionPane.QUESTION_MESSAGE, null, null, null);
             if (choice == 0) {
               VariantViewer.this.proj.GENE_LIST_FILENAMES.setValue(newList);
               VariantViewer.this.proj.saveProperties();
@@ -546,7 +546,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     geneToExonSegmentMap = new HashMap<String, HashMap<String, Segment[]>>();
     geneToCommentMap = new HashMap<String, String>();
     loadedVCFData =
-        new HashMap<String, HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>>>();
+                  new HashMap<String, HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>>>();
     headerMap = new HashMap<String, VCFHeader>();
     String[] genes = Array.extract(geneFile, 0);
     GeneData[][] geneData = track.lookupAllGeneData(genes);
@@ -566,7 +566,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
       }
       if (multiChr) {
         HashMap<Integer, HashMap<String, GeneData>> chrMap =
-            new HashMap<Integer, HashMap<String, GeneData>>();
+                                                           new HashMap<Integer, HashMap<String, GeneData>>();
         for (int g = 0; g < geneData[i].length; g++) {
           HashMap<String, GeneData> isoMap = chrMap.get((int) geneData[i][g].getChr());
           if (isoMap == null) {
@@ -683,10 +683,10 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
     String isoAttrSnpEff = vcF.vc.getAttributeAsString("SNPEFF_TRANSCRIPT_ID", ".").toString();
 
-    boolean snpIncl =
-        !isoAttrSnpEff.equals(".") && (selectedIsoform.equals(COLLAPSE_ISOFORMS_KEY)
-                                       || selectedIsoform.equals(isoAttrSnpEff)
-                                       || selectedIsoform.equals(isoAttrSnpEff.split("\\.")[0]));
+    boolean snpIncl = !isoAttrSnpEff.equals(".")
+                      && (selectedIsoform.equals(COLLAPSE_ISOFORMS_KEY)
+                          || selectedIsoform.equals(isoAttrSnpEff)
+                          || selectedIsoform.equals(isoAttrSnpEff.split("\\.")[0]));
     boolean annIncl = getANNOVARProteinChanges(vcF).length > 0;
     return new boolean[] {snpIncl, annIncl};
   }
@@ -1260,7 +1260,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
     jlbl = new JLabel() {
       /**
-      * 
+      *
       */
       private static final long serialVersionUID = 1L;
 
@@ -1289,7 +1289,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
     jlbl = new JLabel() {
       /**
-      * 
+      *
       */
       private static final long serialVersionUID = 1L;
 
@@ -1315,7 +1315,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
     jlbl = new JLabel() {
       /**
-      * 
+      *
       */
       private static final long serialVersionUID = 1L;
 
@@ -1347,7 +1347,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
     jlbl = new JLabel() {
       /**
-      * 
+      *
       */
       private static final long serialVersionUID = 1L;
 
@@ -1379,7 +1379,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                                                              + ")";
         jlbl = new JLabel() {
           /**
-          * 
+          *
           */
           private static final long serialVersionUID = 1L;
 
@@ -1440,8 +1440,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     float fsz = (float) Math.min(14d, 11 / prop);
     // float fsz = 11f;
     Font newFont =
-        (Fonts.SOURCE_CODE_PRO_REGULAR == null ? Font.decode(Font.MONOSPACED)
-                                               : Fonts.SOURCE_CODE_PRO_REGULAR).deriveFont(fsz);
+                 (Fonts.SOURCE_CODE_PRO_REGULAR == null ? Font.decode(Font.MONOSPACED)
+                                                        : Fonts.SOURCE_CODE_PRO_REGULAR).deriveFont(fsz);
     g.setFont(newFont);
     FontMetrics fm = g.getFontMetrics();
 
@@ -1479,9 +1479,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             continue;
           }
           String draw =
-              vcfLocs.get(v).mafMap.containsKey(pops.get(i)) ? ext.formDeci(vcfLocs.get(v).mafMap.get(pops.get(i)),
-                                                                            4)
-                                                             : "--";
+                      vcfLocs.get(v).mafMap.containsKey(pops.get(i)) ? ext.formDeci(vcfLocs.get(v).mafMap.get(pops.get(i)),
+                                                                                    4)
+                                                                     : "--";
           int width = fm.stringWidth(draw);
           if (v < vcfLocs.size() - 1) {
             if (vcfLocs.get(v).x + width > vcfLocs.get(v + 1).x) {
@@ -1530,9 +1530,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             continue;
           }
           String draw =
-              vcfLocs.get(v).macMap.containsKey(pops.get(i)) ? ext.formDeci(vcfLocs.get(v).macMap.get(pops.get(i)),
-                                                                            4)
-                                                             : "--";
+                      vcfLocs.get(v).macMap.containsKey(pops.get(i)) ? ext.formDeci(vcfLocs.get(v).macMap.get(pops.get(i)),
+                                                                                    4)
+                                                                     : "--";
           int width = fm.stringWidth(draw);
           if (v < vcfLocs.size() - 1) {
             if (vcfLocs.get(v).x + width > vcfLocs.get(v + 1).x) {
@@ -1575,8 +1575,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
   private int determineExonNumber(GeneData geneData, int[] exonBnds) {
     Segment seg = new Segment(exonBnds[0], exonBnds[1]);
     for (int i = 0; i < geneData.getExonBoundaries().length; i++) {
-      Segment exSeg =
-          new Segment(geneData.getExonBoundaries()[i][0], geneData.getExonBoundaries()[i][1]);
+      Segment exSeg = new Segment(geneData.getExonBoundaries()[i][0],
+                                  geneData.getExonBoundaries()[i][1]);
       if (exSeg.significantOverlap(seg)) {
         return i + 1;
       }
@@ -1599,9 +1599,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
   private String chooseNewFiles() {
     JFileChooser jfc =
-        new JFileChooser((proj != null
-                          || geneFileName == null ? proj.PROJECT_DIRECTORY.getValue()
-                                                  : ext.parseDirectoryOfFile(geneFileName)));
+                     new JFileChooser((proj != null
+                                       || geneFileName == null ? proj.PROJECT_DIRECTORY.getValue()
+                                                               : ext.parseDirectoryOfFile(geneFileName)));
     jfc.setMultiSelectionEnabled(true);
     if (jfc.showOpenDialog(VariantViewer.this) == JFileChooser.APPROVE_OPTION) {
       File[] files = jfc.getSelectedFiles();
@@ -1640,7 +1640,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
         if (!keep) {
           StringBuilder msg =
-              new StringBuilder("The following data file is already present:\n").append(file.getName());
+                            new StringBuilder("The following data file is already present:\n").append(file.getName());
           JOptionPane.showMessageDialog(VariantViewer.this, msg.toString());
           return null;
         } else {
@@ -1733,7 +1733,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     genePanel.setLayout(null);
     legendPanel = new JPanel() {
       /**
-      * 
+      *
       */
       private static final long serialVersionUID = 1L;
 
@@ -1996,9 +1996,12 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        NewRegionListDialog newRgnList =
-            new NewRegionListDialog(proj == null ? null : proj.getSamples(),
-                                    proj == null ? null : proj.PROJECT_DIRECTORY.getValue(), true);
+        NewRegionListDialog newRgnList = new NewRegionListDialog(
+                                                                 proj == null ? null
+                                                                              : proj.getSamples(),
+                                                                 proj == null ? null
+                                                                              : proj.PROJECT_DIRECTORY.getValue(),
+                                                                 true);
         newRgnList.setModal(true);
         newRgnList.setVisible(true);
         if (newRgnList.getReturnCode() == JOptionPane.YES_OPTION) {
@@ -2894,7 +2897,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
   private ArrayList<VariantContextWithFile> getExonVCFRecords(int exonIndex) {
     String gene = geneList.get(geneIndex);
     HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> isoformData =
-        loadedVCFData.get(gene);
+                                                                              loadedVCFData.get(gene);
     if (isoformData == null) {
       return new ArrayList<VariantContextWithFile>();
     }
@@ -3036,8 +3039,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         VCFFileReader vcfReader = new VCFFileReader(new File(vcfFile), true);
         VCFHeader header = vcfReader.getFileHeader();
         vcfHeader = header;
-        CloseableIterator<VariantContext> vcIter =
-            vcfReader.query(gd.getChromosomeUCSC(), gd.getStart(), gd.getStop());
+        CloseableIterator<VariantContext> vcIter = vcfReader.query(gd.getChromosomeUCSC(),
+                                                                   gd.getStart(), gd.getStop());
         // System.out.println(gd.getChromosomeUCSC() + ":" + gd.getStart() + "-" + gd.getStop());
         while (vcIter.hasNext()) {
           VariantContext vc = VCOps.getSubset(vcIter.next(), sub);
@@ -3054,7 +3057,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
   private HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> sortData(ArrayList<VariantContextWithFile> vcfEntries) {
     HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> isoformMapToVCFList =
-        new HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>>();
+                                                                                      new HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>>();
     HashMap<String, Segment[]> isoToExonSegMap = geneToExonSegmentMap.get(geneList.get(geneIndex));
 
     for (Entry<String, Segment[]> isoSegEntry : isoToExonSegMap.entrySet()) {
@@ -3062,7 +3065,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
       Segment[] isoExonSegs = isoSegEntry.getValue();
 
       ArrayList<ArrayList<VariantContextWithFile>> isoVCFLists =
-          new ArrayList<ArrayList<VariantContextWithFile>>();
+                                                               new ArrayList<ArrayList<VariantContextWithFile>>();
       isoformMapToVCFList.put(isoKey, isoVCFLists);
 
       for (int i = 0; i < isoExonSegs.length; i++) {
@@ -3097,7 +3100,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     // new VariantViewer(proj, vcfFiles3, popFile3);
     //
     String[] vcfFiles4 =
-        new String[] {"N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz"};
+                       new String[] {"N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz"};
     String popFile4 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS_OTEHRS.vpop";
     new VariantViewer(proj, geneList, vcfFiles4, popFile4);
     //
@@ -3116,8 +3119,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     String dir = "N:/statgen/VariantMapper/Fibrinogen/";
     geneList = dir + "genes.txt";
     String[] vcfFiles =
-        new String[] {dir
-                      + "charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.blanks.segs_noquotes.vcf"};
+                      new String[] {dir
+                                    + "charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.blanks.segs_noquotes.vcf"};
     VCFOps.verifyIndex(vcfFiles[0], new Logger());
     // new VariantViewer(proj, geneList, vcfFiles, popFile);
   }

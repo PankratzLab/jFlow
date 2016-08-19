@@ -1,7 +1,5 @@
 package org.genvisis.cnv.analysis;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -40,6 +38,8 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.SegmentLists;
 import org.genvisis.filesys.SnpMarkerSet;
 
+import com.google.common.primitives.Doubles;
+
 public class FilterCalls {
   public static final int DEFAULT_MIN_SIZE_KB = 0;
   public static final int DEFAULT_MIN_NUM_SNPS = 1;
@@ -50,7 +50,8 @@ public class FilterCalls {
   // public static final String DEFAULT_COMMON_CNP_REFERENCE = "data/common_CNPs.txt";
   public static final String DEFAULT_COMMON_CNP_REFERENCE = "data/all_CNPs.txt";
   public static final String[] DEFAULT_REGION_DIRECTORIES =
-      {"C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\", "/home/npankrat/", "P:\\"};
+                                                          {"C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\",
+                                                           "/home/npankrat/", "P:\\"};
   public static final int COMMON_IN = 1;
   public static final int COMMON_OUT = 2;
   public static final int COMMON_IGNORED = 3;
@@ -170,7 +171,7 @@ public class FilterCalls {
    * <br />
    * Columns can change depending on an internal array, CNV_STATS_THRESHOLDS, which define the
    * thresholds for the last few columns
-   * 
+   *
    * @param proj Project
    * @param dir Path to directory
    * @param filenameNoExt Filename (without extension) of CNV file
@@ -191,13 +192,13 @@ public class FilterCalls {
 
     sampleData = proj == null ? null : proj.getSampleData(0, false);
 
-    Vector<CNVariant> cnvList =
-        CNVariant.loadPlinkFile(cnvFile, null, true,
-                                proj == null ? false : proj.JAR_STATUS.getValue());
+    Vector<CNVariant> cnvList = CNVariant.loadPlinkFile(cnvFile, null, true,
+                                                        proj == null ? false
+                                                                     : proj.JAR_STATUS.getValue());
     HashMap<String, ArrayList<CNVariant>[]> cnvMap = new HashMap<String, ArrayList<CNVariant>[]>();
     for (CNVariant cnv : cnvList) {
-      ArrayList<CNVariant>[] indivLists =
-          cnvMap.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
+      ArrayList<CNVariant>[] indivLists = cnvMap.get(cnv.getFamilyID() + "\t"
+                                                     + cnv.getIndividualID());
       if (indivLists == null) {
         indivLists = new ArrayList[CNV_STATS_THRESHOLDS.length + 1];
         for (int i = 0; i < CNV_STATS_THRESHOLDS.length + 1; i++) {
@@ -262,7 +263,7 @@ public class FilterCalls {
   /**
    * Take a list of CNVs and search through other lists of CNVs, counting number of overlapping
    * (both major and minor overlap) CNVs with a minimum score and probe count
-   * 
+   *
    * @param cnvList List of CNVs for which to compile stats
    * @param cnvFiles Lists of CNV filenames in which to look for overlapping CNVs
    * @param outputFile Name of output file
@@ -325,8 +326,8 @@ public class FilterCalls {
 
     System.out.println(ext.getTime() + "] Writing results to \"" + outputFile + "\"...");
 
-    String header =
-        Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t") + "\t%major\t%minor\tStats(M)\tStats(m)";
+    String header = Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t")
+                    + "\t%major\t%minor\tStats(M)\tStats(m)";
 
     PrintWriter writer;
     try {
@@ -390,12 +391,12 @@ public class FilterCalls {
     ArrayList<CNVariant> mergedCNVs = new ArrayList<CNVariant>();
 
     HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap =
-        new HashMap<String, HashMap<Byte, ArrayList<CNVariant>>>();
+                                                                        new HashMap<String, HashMap<Byte, ArrayList<CNVariant>>>();
 
     log.report(ext.getTime() + "] Organizing CNVs in memory...");
     for (CNVariant cnv : inCNVs) {
-      HashMap<Byte, ArrayList<CNVariant>> chrCNVMap =
-          indivChrCNVMap.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
+      HashMap<Byte, ArrayList<CNVariant>> chrCNVMap = indivChrCNVMap.get(cnv.getFamilyID() + "\t"
+                                                                         + cnv.getIndividualID());
       if (chrCNVMap == null) {
         chrCNVMap = new HashMap<Byte, ArrayList<CNVariant>>();
         indivChrCNVMap.put(cnv.getFamilyID() + "\t" + cnv.getIndividualID(), chrCNVMap);
@@ -414,7 +415,7 @@ public class FilterCalls {
       LocusSet<CNVariant> tmp = new LocusSet<CNVariant>(inCNVs, true, proj.getLog()) {
 
         /**
-         * 
+         *
          */
         private static final long serialVersionUID = 1L;
 
@@ -554,7 +555,7 @@ public class FilterCalls {
         }
 
         HashMap<Integer, MergedCNVariant> removed =
-            new HashMap<Integer, FilterCalls.MergedCNVariant>();
+                                                  new HashMap<Integer, FilterCalls.MergedCNVariant>();
         TreeSet<Integer> indexList = new TreeSet<Integer>();
         boolean done = false;
         while (!done) {
@@ -603,15 +604,17 @@ public class FilterCalls {
 
           if (cnv.medianLRR > medSDLimits[0] && cnv.medianLRR < medSDLimits[1]) {
             MergedCNVariant newCNV =
-                new MergedCNVariant(actualCNV1.markerStart, actualCNV2.markerStop,
-                                    new CNVariant(actualCNV1.cnv.getFamilyID(),
-                                                  actualCNV1.cnv.getIndividualID(), chr,
-                                                  actualCNV1.cnv.getStart(),
-                                                  actualCNV2.cnv.getStop(), actualCNV1.cnv.getCN(),
-                                                  Math.max(actualCNV1.cnv.getScore(),
-                                                           actualCNV2.cnv.getScore()),
-                                                  actualCNV2.markerStop - actualCNV1.markerStart + 1,
-                                                  actualCNV1.cnv.getSource()));
+                                   new MergedCNVariant(actualCNV1.markerStart,
+                                                       actualCNV2.markerStop,
+                                                       new CNVariant(actualCNV1.cnv.getFamilyID(),
+                                                                     actualCNV1.cnv.getIndividualID(),
+                                                                     chr, actualCNV1.cnv.getStart(),
+                                                                     actualCNV2.cnv.getStop(),
+                                                                     actualCNV1.cnv.getCN(),
+                                                                     Math.max(actualCNV1.cnv.getScore(),
+                                                                              actualCNV2.cnv.getScore()),
+                                                                     actualCNV2.markerStop - actualCNV1.markerStart + 1,
+                                                                     actualCNV1.cnv.getSource()));
 
             setLRRMedStdDev(newCNV, actualCNV1, actualCNV2, droppedMarkerNames, markerNames, lrrs);
 
@@ -658,7 +661,7 @@ public class FilterCalls {
   }
 
   /**
-   * 
+   *
    * @param proj
    * @param in
    * @param out
@@ -675,12 +678,12 @@ public class FilterCalls {
       writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 
       HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap =
-          new HashMap<String, HashMap<Byte, ArrayList<CNVariant>>>();
+                                                                          new HashMap<String, HashMap<Byte, ArrayList<CNVariant>>>();
 
       log.report(ext.getTime() + "] Organizing CNVs in memory...");
       for (CNVariant cnv : srcCNVs) {
-        HashMap<Byte, ArrayList<CNVariant>> chrCNVMap =
-            indivChrCNVMap.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
+        HashMap<Byte, ArrayList<CNVariant>> chrCNVMap = indivChrCNVMap.get(cnv.getFamilyID() + "\t"
+                                                                           + cnv.getIndividualID());
         if (chrCNVMap == null) {
           chrCNVMap = new HashMap<Byte, ArrayList<CNVariant>>();
           indivChrCNVMap.put(cnv.getFamilyID() + "\t" + cnv.getIndividualID(), chrCNVMap);
@@ -832,7 +835,7 @@ public class FilterCalls {
           }
 
           HashMap<Integer, MergedCNVariant> removed =
-              new HashMap<Integer, FilterCalls.MergedCNVariant>();
+                                                    new HashMap<Integer, FilterCalls.MergedCNVariant>();
           TreeSet<Integer> indexList = new TreeSet<Integer>();
           boolean done = false;
           while (!done) {
@@ -882,16 +885,18 @@ public class FilterCalls {
 
             if (cnv.medianLRR > medSDLimits[0] && cnv.medianLRR < medSDLimits[1]) {
               MergedCNVariant newCNV =
-                  new MergedCNVariant(actualCNV1.markerStart, actualCNV2.markerStop,
-                                      new CNVariant(actualCNV1.cnv.getFamilyID(),
-                                                    actualCNV1.cnv.getIndividualID(), chr,
-                                                    actualCNV1.cnv.getStart(),
-                                                    actualCNV2.cnv.getStop(),
-                                                    actualCNV1.cnv.getCN(),
-                                                    Math.max(actualCNV1.cnv.getScore(),
-                                                             actualCNV2.cnv.getScore()),
-                                                    actualCNV2.markerStop - actualCNV1.markerStart + 1,
-                                                    actualCNV1.cnv.getSource()));
+                                     new MergedCNVariant(actualCNV1.markerStart,
+                                                         actualCNV2.markerStop,
+                                                         new CNVariant(actualCNV1.cnv.getFamilyID(),
+                                                                       actualCNV1.cnv.getIndividualID(),
+                                                                       chr,
+                                                                       actualCNV1.cnv.getStart(),
+                                                                       actualCNV2.cnv.getStop(),
+                                                                       actualCNV1.cnv.getCN(),
+                                                                       Math.max(actualCNV1.cnv.getScore(),
+                                                                                actualCNV2.cnv.getScore()),
+                                                                       actualCNV2.markerStop - actualCNV1.markerStart + 1,
+                                                                       actualCNV1.cnv.getSource()));
 
               setLRRMedStdDev(newCNV, actualCNV1, actualCNV2, droppedMarkerNames, markerNames,
                               lrrs);
@@ -1046,11 +1051,11 @@ public class FilterCalls {
                                                     float distFactor, int[][] positions) {
 
     HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap =
-        new HashMap<String, HashMap<Byte, ArrayList<CNVariant>>>();
+                                                                        new HashMap<String, HashMap<Byte, ArrayList<CNVariant>>>();
 
     for (CNVariant cnv : inputCNVs) {
-      HashMap<Byte, ArrayList<CNVariant>> chrCNVMap =
-          indivChrCNVMap.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
+      HashMap<Byte, ArrayList<CNVariant>> chrCNVMap = indivChrCNVMap.get(cnv.getFamilyID() + "\t"
+                                                                         + cnv.getIndividualID());
       if (chrCNVMap == null) {
         chrCNVMap = new HashMap<Byte, ArrayList<CNVariant>>();
         indivChrCNVMap.put(cnv.getFamilyID() + "\t" + cnv.getIndividualID(), chrCNVMap);
@@ -1384,9 +1389,15 @@ public class FilterCalls {
     Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, true, false);
     boolean[] remove = Array.booleanArray(cnvs.size(), !exclude);
     HashSet<String> indivList =
-        HashVec.convertHashNullToHashSet(HashVec.loadFileToHashString(indivFile, new int[] {0, 1},
-                                                                      null, false, "\t", false,
-                                                                      false, false));
+                              HashVec.convertHashNullToHashSet(HashVec.loadFileToHashString(indivFile,
+                                                                                            new int[] {0,
+                                                                                                       1},
+                                                                                            null,
+                                                                                            false,
+                                                                                            "\t",
+                                                                                            false,
+                                                                                            false,
+                                                                                            false));
 
     int cnt = 0;
     for (int i = 0; i < remove.length; i++) {
@@ -1506,7 +1517,7 @@ public class FilterCalls {
           || markerSetFilenameToBreakUpCentromeres.endsWith(".map")
           || markerSetFilenameToBreakUpCentromeres.endsWith(".txt")) {
         SnpMarkerSet markerSet =
-            new SnpMarkerSet(markerSetFilenameToBreakUpCentromeres, false, log);
+                               new SnpMarkerSet(markerSetFilenameToBreakUpCentromeres, false, log);
         markerSet.sortMarkers();
         pos = markerSet.getPositionsByChr();
         bnds = Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(),
@@ -1652,10 +1663,14 @@ public class FilterCalls {
       individualsToKeepFile = null;
     }
     individualsToKeepList =
-        individualsToKeepFile == null ? null
-                                      : HashVec.loadFileToStringArray(individualsToKeepFile, false,
-                                                                      false, new int[] {0, 1}, true,
-                                                                      false, "\t");
+                          individualsToKeepFile == null ? null
+                                                        : HashVec.loadFileToStringArray(individualsToKeepFile,
+                                                                                        false,
+                                                                                        false,
+                                                                                        new int[] {0,
+                                                                                                   1},
+                                                                                        true, false,
+                                                                                        "\t");
 
     filter(dir, in, out, delSize, dupSize, number, score, filenameOfProblematicRegions,
            commonInOutOrIgnore, individualsToKeepList, breakupCentromeres,
@@ -1682,8 +1697,8 @@ public class FilterCalls {
                                                           : Segment.loadUCSCregions(filenameOfProblematicRegions,
                                                                                     0, false, log);
     centromereBoundaries =
-        Positions.determineCentromereBoundariesFromMarkerSet(markerSetFilenameToBreakUpCentromeres,
-                                                             build, log);
+                         Positions.determineCentromereBoundariesFromMarkerSet(markerSetFilenameToBreakUpCentromeres,
+                                                                              build, log);
     centromereMidpoints = Positions.computeCentromereMidpoints(centromereBoundaries);
     commonReference = commonInOutOrIgnore != COMMON_IGNORED
                                                             ? Segment.loadUCSCregions(Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES,
@@ -1819,7 +1834,7 @@ public class FilterCalls {
   }
 
   /**
-   * 
+   *
    * @param cnvsAsPositions get the start and stop positions from the {@link CNVariant}s themselves
    *        so that a {@link MarkerSet} is not needed
    */
@@ -1850,7 +1865,7 @@ public class FilterCalls {
       LocusSet<CNVariant> tmp = new LocusSet<CNVariant>(cnvs, true, proj.getLog()) {
 
         /**
-         * 
+         *
          */
         private static final long serialVersionUID = 1L;
 
@@ -2163,56 +2178,58 @@ public class FilterCalls {
     String problematicRegionsLocation = "";
 
     problematicRegionsLocation =
-        Aliases.getPathToFileInReferenceDirectory("problematicRegions_hg19.dat", false, log);
+                               Aliases.getPathToFileInReferenceDirectory("problematicRegions_hg19.dat",
+                                                                         false, log);
     if (problematicRegionsLocation == null) {
       problematicRegionsLocation = "problematicRegions_hg19.dat";
     }
 
-    params =
-        Files.parseControlFile(filename, "filterCNVs",
-                               new String[] {"dir=", "in=penncnv.cnv", "out=conf15used.cnv",
-                                             "# minimum size of heterozygous deletions / duplications (in kb):",
-                                             "delSize=0", "dupSize=0",
-                                             "# minimum size of homozygous deletions / duplications (in kb):",
-                                             "hDelSize=0", "hDupSize=0",
-                                             "# minimum number of heterozygous SNPs:", "number=15",
-                                             "# minimum number of probes for homozygous deletions:",
-                                             "hNumber=15", "minScore=10.0",
-                                             "filterFile=" + problematicRegionsLocation,
-                                             "# pedfile to be used as a filter:", "ped=plink.fam",
-                                             "# if CNV spans centromere, break into two spanning actual markers",
-                                             "breakCentromere=true",
-                                             "# if breakCentromere is set to true, custom marker set to determine the last and first marker of the centromeres",
-                                             "markerFile=",
-                                             "# make a UCSC track (.bed file) as well", "ucsc=true",
-                                             "",
-                                             "# ALTERNATIVELY, in addition to dir/in/out and ignoring all other filters, you can",
-                                             "# keep only CNVs overlapping these segments (simply uncomment the following argument):",
-                                             "#segs=gene_region.dat",
-                                             "# exclude instead of include:",
-                                             "#excludeSegsInstead=true", "",
-                                             "# ALTERNATIVELY, in addition to dir/in/out, and ignoring all other filters, you can",
-                                             "#  filter CNVs by frequency of occurrence:",
-                                             "# Project Properties File",
-                                             "# proj=project.properties",
-                                             "# FAM file, or list or IDs (used to count number of individuals)",
-                                             "# famFile=plink.fam",
-                                             "# Percentage of total required before reporting CNVs at a locus",
-                                             "# totalRequired=0",
-                                             "# Percentage of deletions required before reporting CNVs at a locus",
-                                             "# delRequired=0",
-                                             "# Percentage of duplications required before reporting CNVs at a locus",
-                                             "# dupRequired=0",
-                                             "# Percentage limit of total before excluding CNVs at a locus",
-                                             "# totalLimitedTo=1",
-                                             "# Percentage limit of deletions before excluding CNVs at a locus",
-                                             "# delLimitedTo=1",
-                                             "# Percentage limit of duplications before excluding CNVs at a locus",
-                                             "# dupLimitedTo=1",
-                                             "# Proportion of probes that need to pass for final inclusion ",
-                                             "# proportion=0.5", "",
+    params = Files.parseControlFile(filename, "filterCNVs",
+                                    new String[] {"dir=", "in=penncnv.cnv", "out=conf15used.cnv",
+                                                  "# minimum size of heterozygous deletions / duplications (in kb):",
+                                                  "delSize=0", "dupSize=0",
+                                                  "# minimum size of homozygous deletions / duplications (in kb):",
+                                                  "hDelSize=0", "hDupSize=0",
+                                                  "# minimum number of heterozygous SNPs:",
+                                                  "number=15",
+                                                  "# minimum number of probes for homozygous deletions:",
+                                                  "hNumber=15", "minScore=10.0",
+                                                  "filterFile=" + problematicRegionsLocation,
+                                                  "# pedfile to be used as a filter:",
+                                                  "ped=plink.fam",
+                                                  "# if CNV spans centromere, break into two spanning actual markers",
+                                                  "breakCentromere=true",
+                                                  "# if breakCentromere is set to true, custom marker set to determine the last and first marker of the centromeres",
+                                                  "markerFile=",
+                                                  "# make a UCSC track (.bed file) as well",
+                                                  "ucsc=true", "",
+                                                  "# ALTERNATIVELY, in addition to dir/in/out and ignoring all other filters, you can",
+                                                  "# keep only CNVs overlapping these segments (simply uncomment the following argument):",
+                                                  "#segs=gene_region.dat",
+                                                  "# exclude instead of include:",
+                                                  "#excludeSegsInstead=true", "",
+                                                  "# ALTERNATIVELY, in addition to dir/in/out, and ignoring all other filters, you can",
+                                                  "#  filter CNVs by frequency of occurrence:",
+                                                  "# Project Properties File",
+                                                  "# proj=project.properties",
+                                                  "# FAM file, or list or IDs (used to count number of individuals)",
+                                                  "# famFile=plink.fam",
+                                                  "# Percentage of total required before reporting CNVs at a locus",
+                                                  "# totalRequired=0",
+                                                  "# Percentage of deletions required before reporting CNVs at a locus",
+                                                  "# delRequired=0",
+                                                  "# Percentage of duplications required before reporting CNVs at a locus",
+                                                  "# dupRequired=0",
+                                                  "# Percentage limit of total before excluding CNVs at a locus",
+                                                  "# totalLimitedTo=1",
+                                                  "# Percentage limit of deletions before excluding CNVs at a locus",
+                                                  "# delLimitedTo=1",
+                                                  "# Percentage limit of duplications before excluding CNVs at a locus",
+                                                  "# dupLimitedTo=1",
+                                                  "# Proportion of probes that need to pass for final inclusion ",
+                                                  "# proportion=0.5", "",
 
-                               }, log);
+                                    }, log);
 
     if (params != null) {
       params.add("log=" + log.getFilename());
@@ -2266,13 +2283,19 @@ public class FilterCalls {
 
     double totalRequired, delRequired, dupRequired, totalLimitedTo, delLimitedTo, dupLimitedTo,
         proportionOfProbesThatNeedToPassForFinalInclusion;
-    totalRequired = delRequired = dupRequired = totalLimitedTo =
-        delLimitedTo = dupLimitedTo = proportionOfProbesThatNeedToPassForFinalInclusion = 0.0;
+    totalRequired =
+                  delRequired =
+                              dupRequired =
+                                          totalLimitedTo =
+                                                         delLimitedTo =
+                                                                      dupLimitedTo =
+                                                                                   proportionOfProbesThatNeedToPassForFinalInclusion =
+                                                                                                                                     0.0;
     String famFile = null;
 
     String usage =
-        "cnv.analysis.FilterCalls requires 2+ arguments\n" + "   (1) directory (i.e. dir=" + dir
-                   + " (default))\n" + "   (2) file in (i.e. in=" + in + " (default))\n"
+                 "cnv.analysis.FilterCalls requires 2+ arguments\n" + "   (1) directory (i.e. dir="
+                   + dir + " (default))\n" + "   (2) file in (i.e. in=" + in + " (default))\n"
                    + "   (3) file out (i.e. out=" + out + " (default))\n"
                    + "   (4) minimum size of a deletion (in kb) (i.e. delSize=" + delSize
                    + " (default))\n" + "   (5) minimum size of a duplication (in kb) (i.e. dupSize="
@@ -2471,7 +2494,7 @@ public class FilterCalls {
      * listFile, dir, in, out, excludeFile, exclude --> filterForGroupCNVs listFiles, in, out,
      * score, number --> filterLists projName, dir, in --> CNVStats excludeFile, dir, in, out -->
      * filterExclusions proj, in, out, req[], lim[], proportion
-     * 
+     *
      * (dir, in, out) --> (filter) delSize hDelSize dupSize hDupSize number hNumber score
      * filenameOfProblematicRegions pedfile breakCent markerSetFilenameToBreakUpCentromeres tracks
      * build logfile --> (filterOutCommonCNVs) -common pct --> (filterForAllCNVsSharedInGroup)
@@ -2479,7 +2502,7 @@ public class FilterCalls {
      * excludeFile (dir, in) --> (stdFilters) -std tracks pedfile build --> (CNVStats) projName (in,
      * out) --> (filterList) -stats listFile score number --> (filterLists) -stats listFiles score
      * number --> (cleanCNVs) -clean
-     * 
+     *
      */
     try {
       // FilterCalls.filterOnSegments(dir+"conf_100kb_20SNP_10.0_CNPstatusIgnored.cnv",
@@ -2538,24 +2561,24 @@ public class FilterCalls {
  * lists=D:/data/ny_registry/new_york/penncnvShadow/sexSpecific/male/recodedM.cnv
  * out=D:/data/ny_registry/new_york/penncnvShadow/cnvstats_puv_repeat.cnv minScore=10 number=15
  * -stats
- * 
+ *
  * in=D:/data/ny_registry/new_york/data/cnvlist_puv.cnv
  * lists=D:/data/ny_registry/new_york/penncnvShadow/sexSpecific/male/recodedM.cnv,D:/data/
  * ny_registry/new_york/penncnvShadow/sexSpecific/female/recodedF.cnv
  * out=D:/data/ny_registry/new_york/penncnvShadow/cnvstats_puv_repeat.cnv minScore=0 number=0 -stats
- * 
+ *
  * ----------------------
- * 
+ *
  * in=D:/data/ny_registry/new_york/data/cnvlist_puv.cnv
  * lists=D:/data/ny_registry/new_york/penncnvShadow/sexSpecific/male/recodedM.cnv,D:/data/
  * ny_registry/new_york/penncnvShadow/sexSpecific/female/recodedF.cnv
  * out=D:/data/ny_registry/new_york/penncnvShadow/cnvstats_puv_all.cnv minScore=0 number=0 -stats
- * 
+ *
  * in=D:/data/ny_registry/new_york/data/cnvlist_puv.cnv
  * lists=D:/data/ny_registry/new_york/penncnvShadow/sexSpecific/male/recodedM.cnv,D:/data/
  * ny_registry/new_york/penncnvShadow/sexSpecific/female/recodedF.cnv
  * out=D:/data/ny_registry/new_york/penncnvShadow/cnvstats_puv_filtered.cnv minScore=10 number=15
  * -stats
- * 
- * 
+ *
+ *
  */

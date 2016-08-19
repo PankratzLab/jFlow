@@ -234,8 +234,8 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
       public void actionPerformed(ActionEvent e) {
 
         JFileChooser jfc =
-            new JFileChooser(new File(proj == null ? ext.parseDirectoryOfFile(forestPlot.getMarkerFileName())
-                                                   : proj.PROJECT_DIRECTORY.getValue()));
+                         new JFileChooser(new File(proj == null ? ext.parseDirectoryOfFile(forestPlot.getMarkerFileName())
+                                                                : proj.PROJECT_DIRECTORY.getValue()));
         int returnVal = jfc.showOpenDialog(null);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -322,8 +322,8 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
       @Override
       public void actionPerformed(ActionEvent e) {
         try {
-          int trav =
-              Integer.valueOf(((JTextField) e.getSource()).getText().split("[\\s]+")[0]).intValue()
+          int trav = Integer.valueOf(((JTextField) e.getSource()).getText().split("[\\s]+")[0])
+                            .intValue()
                      - 1;
           if (trav >= 0 && trav < forestPlot.getDataIndices().size()) {
             forestPlot.setCurrentData(trav);
@@ -529,8 +529,8 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
   }
 
   private void generateStudyNameFile() {
-    String fileName =
-        ext.verifyDirFormat(ext.parseDirectoryOfFile(forestPlot.getMarkerFileName())) + "sort.txt";
+    String fileName = ext.verifyDirFormat(ext.parseDirectoryOfFile(forestPlot.getMarkerFileName()))
+                      + "sort.txt";
     ArrayList<StudyData> currentData = forestPlot.getCurrentMetaStudy().getStudies();
     ArrayList<String> names = new ArrayList<String>();
     for (StudyData sd : currentData) {
@@ -549,8 +549,8 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 
   private void chooseNewFiles() {
     JFileChooser jfc =
-        new JFileChooser((proj != null ? proj.PROJECT_DIRECTORY.getValue()
-                                       : ext.parseDirectoryOfFile(forestPlot.getMarkerFileName())));
+                     new JFileChooser((proj != null ? proj.PROJECT_DIRECTORY.getValue()
+                                                    : ext.parseDirectoryOfFile(forestPlot.getMarkerFileName())));
     jfc.setMultiSelectionEnabled(true);
     if (jfc.showOpenDialog(ForestPlotFrame.this) == JFileChooser.APPROVE_OPTION) {
       File[] files = jfc.getSelectedFiles();
@@ -588,7 +588,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 
         if (!keep) {
           StringBuilder msg =
-              new StringBuilder("The following data file is already present:\n").append(file.getName());
+                            new StringBuilder("The following data file is already present:\n").append(file.getName());
           JOptionPane.showMessageDialog(ForestPlotFrame.this, msg.toString());
         } else {
           addFileToList(file.getAbsolutePath());

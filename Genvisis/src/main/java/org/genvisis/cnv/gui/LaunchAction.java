@@ -49,7 +49,7 @@ public class LaunchAction extends AbstractAction {
     plotHeight = (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / loc.length;
     for (int i = 0; i < loc.length; i++) {
       plotStartY[i] =
-          1 + i * (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / loc.length;
+                    1 + i * (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / loc.length;
     }
     putValue(Action.SMALL_ICON, new ColorIcon(12, 12, color));
   }

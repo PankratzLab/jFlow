@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Hashtable;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.filesys.Project;
@@ -38,11 +37,16 @@ public class ExomeDepthRun {
                                    String outputRoot, String rLoc, boolean somaticMode,
                                    int numthreads, Logger log) {
     VcfPopulation vpop = null;
-    String[] allReferenceBamFiles =
-        Files.isDirectory(bams) ? Files.listFullPaths(bams, BamOps.BAM_EXT, false)
-                                : HashVec.loadFileToStringArray(bams, false, new int[] {0}, true);
-    String outputResultsDir =
-        (outputDir == null ? ext.parseDirectoryOfFile(bams) : outputDir) + "results/";
+    String[] allReferenceBamFiles = Files.isDirectory(bams)
+                                                            ? Files.listFullPaths(bams,
+                                                                                  BamOps.BAM_EXT,
+                                                                                  false)
+                                                            : HashVec.loadFileToStringArray(bams,
+                                                                                            false,
+                                                                                            new int[] {0},
+                                                                                            true);
+    String outputResultsDir = (outputDir == null ? ext.parseDirectoryOfFile(bams) : outputDir)
+                              + "results/";
     new File(outputResultsDir).mkdirs();
     ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, allReferenceBamFiles,
                                            outputResultsDir, outputRoot, rLoc, log);
@@ -64,8 +68,8 @@ public class ExomeDepthRun {
       vpop.report();
       exomeDepth.parseVpop(vpop);
     }
-    ExomeDepthAnalysis[] eDepthAnalysis =
-        ExomeDepth.callCNVs(exomeDepth, outputResultsDir, outputRoot, numthreads, log);
+    ExomeDepthAnalysis[] eDepthAnalysis = ExomeDepth.callCNVs(exomeDepth, outputResultsDir,
+                                                              outputRoot, numthreads, log);
     log.reportTimeInfo("Finished running exome depth for " + eDepthAnalysis.length + " .bam files");
 
     log.reportTimeInfo("Generating project in " + outputResultsDir);
@@ -80,10 +84,11 @@ public class ExomeDepthRun {
     generateMarkerPositions(proj, eDepthAnalysis[0], log);
     String currentCnvFile = outputResultsDir + outputRoot + ".all.cnvs";
     proj.CNV_FILENAMES.setValue(new String[] {currentCnvFile});
-    GenvisisSampleProducer producer =
-        new GenvisisSampleProducer(proj, eDepthAnalysis, outputRoot, log);
+    GenvisisSampleProducer producer = new GenvisisSampleProducer(proj, eDepthAnalysis, outputRoot,
+                                                                 log);
     WorkerTrain<ExomeSample> train =
-        new WorkerTrain<ExomeDepthRun.ExomeSample>(producer, numthreads, 10, log);
+                                   new WorkerTrain<ExomeDepthRun.ExomeSample>(producer, numthreads,
+                                                                              10, log);
     Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
     ExomeSample[] exomeSamples = new ExomeSample[eDepthAnalysis.length];
     int index = 0;
@@ -104,24 +109,14 @@ public class ExomeDepthRun {
 
   }
 
-  private static class GeneCNVTracker {
-    private final Hashtable<String, Integer> geneCounts;
-
-    public GeneCNVTracker(String pop, Set<String> inds) {
-      super();
-      geneCounts = new Hashtable<String, Integer>();
-    }
-
-  }
-
   private static void generateMarkerPositions(Project proj, ExomeDepthAnalysis first, Logger log) {
     String[] header = Files.getHeaderOfFile(first.getExomeDepthRawDataOutput(), log);
     int chrCol = ext.indexOfStr("anno.chromosome", header);
     int startCol = ext.indexOfStr("anno.start", header);
     int stopCol = ext.indexOfStr("anno.end", header);
 
-    Segment[] segments =
-        Segment.loadRegions(first.getExomeDepthRawDataOutput(), chrCol, startCol, stopCol, true);
+    Segment[] segments = Segment.loadRegions(first.getExomeDepthRawDataOutput(), chrCol, startCol,
+                                             stopCol, true);
     String positions = proj.MARKER_POSITION_FILENAME.getValue();
     proj.getLog().reportTimeInfo("Postions will be set to the midpoint of each segment");
     String[] markerNames = new String[segments.length];
@@ -175,8 +170,8 @@ public class ExomeDepthRun {
     @Override
     public ExomeSample call() throws Exception {
       String sample = BamOps.getSampleName(eDepthAnalysis.getInputBam());
-      String sampFile =
-          proj.SAMPLE_DIRECTORY.getValue(true, false) + sample + Sample.SAMPLE_FILE_EXTENSION;
+      String sampFile = proj.SAMPLE_DIRECTORY.getValue(true, false) + sample
+                        + Sample.SAMPLE_FILE_EXTENSION;
 
       if (!Files.exists(sampFile)) {
         String input = eDepthAnalysis.getExomeDepthRawDataOutput();
@@ -269,7 +264,7 @@ public class ExomeDepthRun {
     usage += "   (3) output root command (i.e. root=" + outputRoot + " (default))\n" + "";
     usage += PSF.Ext.getNumThreadsCommand(4, numthreads);
     usage +=
-        "   (5) full path to a v population file, individuals with the same population will not be used as ref(i.e. vpop= (no default))\n"
+          "   (5) full path to a v population file, individuals with the same population will not be used as ref(i.e. vpop= (no default))\n"
              + "";
     usage += "   (6) alternative R location (i.e. rDir= (no default))\n" + "";
     usage += "   (7) somatic mode (i.e. somaticMode=" + somaticMode + " (default))\n" + "";

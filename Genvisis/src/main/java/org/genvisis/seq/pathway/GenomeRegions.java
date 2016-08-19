@@ -8,7 +8,7 @@ import org.genvisis.filesys.GeneTrack;
 
 public class GenomeRegions implements Serializable {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private final GeneTrack geneTrack;

@@ -48,7 +48,8 @@ import org.genvisis.filesys.SnpMarkerSet;
 public class DnaseEnrichment {
 
   private final static String[][] P_VALUE_FILE_HEADERS =
-      {{"MarkerName", "Marker", "SNP"}, {"Chr"}, {"Position", "Pos"}, {"P-value", "p-val"}};
+                                                       {{"MarkerName", "Marker", "SNP"}, {"Chr"},
+                                                        {"Position", "Pos"}, {"P-value", "p-val"}};
   private final static String INSIDE_REGION = "insideRegion";
   private final static String TOTAL_MARKERS = "totalMarkers";
   private final static int FAILURE = 1;
@@ -80,7 +81,11 @@ public class DnaseEnrichment {
   private static ArrayList<HashSet<String>> dhsregionsHashSetList; // global static variable to hold
                                                                    // DHS regions
   private static Hashtable<String, Integer> bedFileChrMapPartCount =
-      new Hashtable<String, Integer>(); // global static variable for ChrPositionMap
+                                                                   new Hashtable<String, Integer>(); // global
+                                                                                                     // static
+                                                                                                     // variable
+                                                                                                     // for
+                                                                                                     // ChrPositionMap
 
   /**
    * WorkerThreads which process different LD files and create ChrPositionMap concurrently
@@ -108,7 +113,7 @@ public class DnaseEnrichment {
 
   /**
    * Function to print the command line usage.
-   * 
+   *
    * @return a {@link String}: the command line usage help
    */
   private static String showCommandLineHelp() {
@@ -249,7 +254,7 @@ public class DnaseEnrichment {
 
   /**
    * Function to write overlap output to output file.
-   * 
+   *
    * @param overlapStats : an {@link ArrayList} of {@link OutputFileFormat} which is the overlap
    *        statistics
    */
@@ -304,7 +309,7 @@ public class DnaseEnrichment {
 
   /**
    * Function to find overlapping positions in segments
-   * 
+   *
    * @param dir : the directory path containing the segments file
    * @param filename : the filename of the p-value file
    * @return a Map<String, Map<Integer, Map<String, Integer>>> which shows the inside and outside
@@ -324,8 +329,8 @@ public class DnaseEnrichment {
     for (String element : bedFileList) {
       LOGGER.info("Processing: " + element);
       Segment[][] segs = getSegments(dir + element);
-      TreeMap<Integer, Map<String, Long>> overlapStats =
-          countOverlaps(segs, pValueRecords, element, bedFileChrMapPartCount);
+      TreeMap<Integer, Map<String, Long>> overlapStats = countOverlaps(segs, pValueRecords, element,
+                                                                       bedFileChrMapPartCount);
       double[][] ratioList = new double[maxBinSize + 1][2]; // array for holding numerator and
                                                             // denominator
       double cumBinMarkers = 0;
@@ -356,7 +361,7 @@ public class DnaseEnrichment {
 
   /**
    * Function to find the makers in DHS region for all the bedfiles
-   * 
+   *
    * @return {@link ArrayList} of {@link HashSet} of String which are the marker names in DHS region
    */
   private static ArrayList<HashSet<String>> findDHSRegionMarkers() {
@@ -366,10 +371,10 @@ public class DnaseEnrichment {
 
     String dir = ext.parseDirectoryOfFile(plinkFile);
     if (new File(dir + REFERENCE_MAP_FILENAME).exists()) {
-      SnpMarkerSet markerSet =
-          new SnpMarkerSet(plinkFile, false, new org.genvisis.common.Logger(null));
-      plinkFileContents =
-          new PlinkFile(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet.getPositions());
+      SnpMarkerSet markerSet = new SnpMarkerSet(plinkFile, false,
+                                                new org.genvisis.common.Logger(null));
+      plinkFileContents = new PlinkFile(markerSet.getMarkerNames(), markerSet.getChrs(),
+                                        markerSet.getPositions());
 
       ArrayList<Segment> plinkSegments = createSegmentsFromPlinkFile(plinkFileContents);
       LOGGER.info("Starting to find DHS regions for bed files");
@@ -396,7 +401,7 @@ public class DnaseEnrichment {
 
   /**
    * Function to create segments from {@link PlinkFile}
-   * 
+   *
    * @param plinkFileContents {@link PlinkFile} containing plink file contents
    * @return {@link ArrayList} of {@link Segment}
    */
@@ -431,14 +436,14 @@ public class DnaseEnrichment {
     HashSet<Integer> value;
     int partCount = 0;
     try {
-      BufferedReader reader =
-          new BufferedReader(new FileReader(ldDir + Files.removeExtention(curLdFilePath)
-                                            + FILTERED_FILE_EXTENSION));
+      BufferedReader reader = new BufferedReader(new FileReader(ldDir
+                                                                + Files.removeExtention(curLdFilePath)
+                                                                + FILTERED_FILE_EXTENSION));
       reader.readLine(); // skill the first header line
 
       while (reader.ready()) {
         Hashtable<String, ChrPositionMap> chrPositionMapList =
-            new Hashtable<String, ChrPositionMap>();
+                                                             new Hashtable<String, ChrPositionMap>();
         LOGGER.info("Processing: " + curLdFilePath + Files.SERIALIZED_FILE_EXTENSION);
 
         for (int ldLineCounter = 0; ldLineCounter < ldLines && reader.ready(); ldLineCounter++) {
@@ -481,7 +486,7 @@ public class DnaseEnrichment {
 
   /**
    * Function to get filepath for {@link ChrPositionMap}
-   * 
+   *
    * @param bedFilename the name of the {@link ChrPositionMap} bed file
    * @param chrNum the chrNum obtained from the ld file
    * @return the file path to where this {@link ChrPositionMap} should be written
@@ -497,15 +502,15 @@ public class DnaseEnrichment {
         System.out.println("DIR created");
       }
     }
-    String newFilepath =
-        Files.removeExtention(bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator + bedFilename)
+    String newFilepath = Files.removeExtention(bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator
+                                               + bedFilename)
                          + CHR_MAP_FILE_ID + chrNum + "_part" + partCount + BED_FILE_EXTENTION;
     return Files.getSerializedFilepath(newFilepath);
   }
 
   /**
    * Function to write ChrPositionMap for different bedfiles
-   * 
+   *
    * @param chrPositionMapList {@link ArrayList} containing
    *        {@link org.genvisis.common.ChrPositionMap} for all the bedfiles
    * @param chrNum the chrNum obtained from the ld file
@@ -525,7 +530,7 @@ public class DnaseEnrichment {
   /**
    * Function to write bedFileChrMapPartCount to a file for later use during re-run on the same ld
    * files
-   * 
+   *
    * @param bedFileChrMapPartCount : the bedFileChrMapPartCount to be written
    */
   private static void writeBedFileChrMapPartCount(Hashtable<String, Integer> bedFileChrMapPartCount) {
@@ -552,7 +557,7 @@ public class DnaseEnrichment {
 
   /**
    * Function to read the bedFileChrMaps if it exists
-   * 
+   *
    * @return a Hashtable of ChrPositionMapPartCount for different files
    */
   private static Hashtable<String, Integer> readBedFileChrMapPartCount() {
@@ -599,7 +604,7 @@ public class DnaseEnrichment {
 
   /**
    * Function to filter and write a ldFile data
-   * 
+   *
    * @param filename the name of the file which has to be filtered
    */
   private static void writeFilteredLDFile(String filename) {
@@ -640,7 +645,7 @@ public class DnaseEnrichment {
 
   /**
    * Function to find overlaps from a given pvalues list and segment list
-   * 
+   *
    * @param segs : a {@link Segment}[][] containing all the segments read from the file arranged
    *        with chr
    * @param pValueRecords : {@link ArrayList} of {@link PValueFileFormat} containing all the
@@ -705,8 +710,8 @@ public class DnaseEnrichment {
           // if not inside region then check in chr position map
           if (!insideRegion) {
             if (chrPositionMap.getChrPositionMap().containsKey(curRecord.seg.getChr())) {
-              HashSet<Integer> thisBedChrPosHashSet =
-                  chrPositionMap.getChrPositionMap().get(curRecord.seg.getChr());
+              HashSet<Integer> thisBedChrPosHashSet = chrPositionMap.getChrPositionMap()
+                                                                    .get(curRecord.seg.getChr());
               if (thisBedChrPosHashSet.contains(curRecord.seg.getStart())) {
                 insideRegion = true;
               }
@@ -736,7 +741,7 @@ public class DnaseEnrichment {
 
   /**
    * Function to read the p-value into memory
-   * 
+   *
    * @param pValueFilepath : the path to the p-value file
    * @return a {@link ArrayList} of {@link PValueFileFormat} containing all the pvalue records
    */
@@ -782,7 +787,7 @@ public class DnaseEnrichment {
    * Function to get all the segments from the file as a {@link Segment}[][] Gets the segments from
    * the serialized file if exists else reads the main segmentFile gets the segments and writes a
    * serialized output for future use.
-   * 
+   *
    * @param segmentFile : the filename
    * @return a {@link Segment}[][] containing all the segments read from the file arranged with chr
    */
@@ -807,7 +812,7 @@ public class DnaseEnrichment {
 
   /**
    * Function to get the indices of required headers from the file
-   * 
+   *
    * @param filename : the name of the file
    * @return a int[] which contains the indices of required headers
    */

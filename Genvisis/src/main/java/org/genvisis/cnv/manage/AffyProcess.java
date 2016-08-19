@@ -22,8 +22,9 @@ import org.genvisis.common.ext;
  */
 public class AffyProcess {
   private static final String[] AFFY_CHP_HEADER =
-      new String[] {"Probe Set ID", "Call Codes", "Forward Strand Base Calls", "Confidence",
-                    "Signal A", "Signal B"};
+                                                new String[] {"Probe Set ID", "Call Codes",
+                                                              "Forward Strand Base Calls",
+                                                              "Confidence", "Signal A", "Signal B"};
   private static final String[] AFFY_CN_CHP_HEADER = new String[] {"ProbeSet", "Log2Ratio"};
 
   private static final String CN_C5_PATTERN = "CN5.CNCHP";
@@ -52,8 +53,8 @@ public class AffyProcess {
 
   public void combineAll(int numthreads) {
     if (valid) {
-      CombineProducer producer =
-          new CombineProducer(proj, chpFiles, cn5chpFiles, combinedOutputFiles, delimiter, log);
+      CombineProducer producer = new CombineProducer(proj, chpFiles, cn5chpFiles,
+                                                     combinedOutputFiles, delimiter, log);
       WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numthreads, numthreads, log);
       while (train.hasNext()) {
         train.next();

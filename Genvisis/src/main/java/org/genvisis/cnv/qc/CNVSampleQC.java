@@ -53,7 +53,7 @@ public class CNVSampleQC {
 
     try {
       BufferedReader reader =
-          Files.getAppropriateReader(proj.PROJECT_DIRECTORY.getValue() + QCFile);
+                            Files.getAppropriateReader(proj.PROJECT_DIRECTORY.getValue() + QCFile);
       String[] line;
       do {
         line = reader.readLine().trim().split("\t", -1);

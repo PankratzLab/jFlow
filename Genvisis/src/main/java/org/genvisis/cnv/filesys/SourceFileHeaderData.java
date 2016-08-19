@@ -21,7 +21,7 @@ import org.genvisis.common.ext;
 
 public class SourceFileHeaderData implements Serializable {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = -6906302109843776908L;
 
@@ -132,34 +132,39 @@ public class SourceFileHeaderData implements Serializable {
 
   private static final String[] SAMPLE_FIELD_ID = {"Sample ID", "Sample Name"};
 
-  private static final String[] DATA_FIELDS_GC =
-      {"GC Score", "GCscore", "confidence", "confidenceScore"};
+  private static final String[] DATA_FIELDS_GC = {"GC Score", "GCscore", "confidence",
+                                                  "confidenceScore"};
   private static final String[] DATA_FIELDS_XRAW = {"X Raw"};
   private static final String[] DATA_FIELDS_YRAW = {"Y Raw"};
-  private static final String[] DATA_FIELDS_X =
-      {"X", "Xvalue", "Log Ratio", "intensity_1", "Signal A"};
-  private static final String[] DATA_FIELDS_Y =
-      {"Y", "Yvalue", "Strength", "intensity_2", "Signal B"};
+  private static final String[] DATA_FIELDS_X = {"X", "Xvalue", "Log Ratio", "intensity_1",
+                                                 "Signal A"};
+  private static final String[] DATA_FIELDS_Y = {"Y", "Yvalue", "Strength", "intensity_2",
+                                                 "Signal B"};
   private static final String[] DATA_FIELDS_THETA = {"Theta"};
   private static final String[] DATA_FIELDS_R = {"R"};
   private static final String[] DATA_FIELDS_BAF = {"B Allele Freq", "BAF"};
   private static final String[] DATA_FIELDS_LRR = {"Log R Ratio", "LRR"};
-  private static final String[] GENOTYPE_FIELDS_A1_FOR =
-      {"Allele1 - Forward", "Allele1", "genotype1", "Allele1 - Top", "Forward Strand Base Calls",
-       "Forced Call", "Forced Call Codes"};
-  private static final String[] GENOTYPE_FIELDS_A2_FOR =
-      {"Allele2 - Forward", "Allele B", "genotype2", "Allele2 - Top", "Forward Strand Base Calls",
-       "Forced Call", "Forced Call Codes"};
+  private static final String[] GENOTYPE_FIELDS_A1_FOR = {"Allele1 - Forward", "Allele1",
+                                                          "genotype1", "Allele1 - Top",
+                                                          "Forward Strand Base Calls",
+                                                          "Forced Call", "Forced Call Codes"};
+  private static final String[] GENOTYPE_FIELDS_A2_FOR = {"Allele2 - Forward", "Allele B",
+                                                          "genotype2", "Allele2 - Top",
+                                                          "Forward Strand Base Calls",
+                                                          "Forced Call", "Forced Call Codes"};
   private static final String[] GENOTYPE_FIELDS_A1_AB = {"Allele1 - AB", "Call Codes", "Call"};
   private static final String[] GENOTYPE_FIELDS_A2_AB = {"Allele2 - AB", "Call Codes", "Call"};
 
-  private static final String[][] LOOKUP =
-      {/* 0 */ SourceFileParser.SNP_HEADER_OPTIONS[0], /* 1 */ SAMPLE_FIELD_ID,
-       /* 2 */ DATA_FIELDS_GC, /* 3 */ DATA_FIELDS_XRAW, /* 4 */ DATA_FIELDS_YRAW,
-       /* 5 */ DATA_FIELDS_X, /* 6 */ DATA_FIELDS_Y, /* 7 */ DATA_FIELDS_THETA,
-       /* 8 */ DATA_FIELDS_R, /* 9 */ DATA_FIELDS_BAF, /* 10 */ DATA_FIELDS_LRR,
-       /* 11 */ GENOTYPE_FIELDS_A1_FOR, /* 12 */ GENOTYPE_FIELDS_A2_FOR,
-       /* 13 */ GENOTYPE_FIELDS_A1_AB, /* 14 */ GENOTYPE_FIELDS_A2_AB,};
+  private static final String[][] LOOKUP = {/* 0 */ SourceFileParser.SNP_HEADER_OPTIONS[0],
+                                            /* 1 */ SAMPLE_FIELD_ID, /* 2 */ DATA_FIELDS_GC,
+                                            /* 3 */ DATA_FIELDS_XRAW, /* 4 */ DATA_FIELDS_YRAW,
+                                            /* 5 */ DATA_FIELDS_X, /* 6 */ DATA_FIELDS_Y,
+                                            /* 7 */ DATA_FIELDS_THETA, /* 8 */ DATA_FIELDS_R,
+                                            /* 9 */ DATA_FIELDS_BAF, /* 10 */ DATA_FIELDS_LRR,
+                                            /* 11 */ GENOTYPE_FIELDS_A1_FOR,
+                                            /* 12 */ GENOTYPE_FIELDS_A2_FOR,
+                                            /* 13 */ GENOTYPE_FIELDS_A1_AB,
+                                            /* 14 */ GENOTYPE_FIELDS_A2_AB,};
 
   private static void parseColumnsBestGuess(String[] parts,
                                             SourceFileHeaderData frhd) throws Elision {

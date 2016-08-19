@@ -15,11 +15,11 @@ import org.genvisis.common.ext;
 
 public class MetaAnalysisParams {
   public static final String DEFAULT_PARAMETERS = "filesys/default_meta_anlaysis.params";
-  public static final String[] KEY_PARAMETERS =
-      {"STUDIES", "PHENOTYPES", "RACES", "METHODS", "GROUP_ANNOTATION_PARAMS"};
-  public static final String[] KEY_PROPERTIES =
-      {"SNP_INFO_FILE=", "VARIANT_NAME=", "CHROM_NAME=", "GENE_NAME=", "FUNCTIONAL=", "R_EXEC=",
-       "RUN_BY_CHR="};
+  public static final String[] KEY_PARAMETERS = {"STUDIES", "PHENOTYPES", "RACES", "METHODS",
+                                                 "GROUP_ANNOTATION_PARAMS"};
+  public static final String[] KEY_PROPERTIES = {"SNP_INFO_FILE=", "VARIANT_NAME=", "CHROM_NAME=",
+                                                 "GENE_NAME=", "FUNCTIONAL=", "R_EXEC=",
+                                                 "RUN_BY_CHR="};
 
   private String[] studies;
   private String[] studyGroupings;
@@ -122,8 +122,8 @@ public class MetaAnalysisParams {
         } else if (ext.indexOfStartsWith(trav, KEY_PROPERTIES, true) >= 0) {
           if (trav.startsWith("SNP_INFO_FILE=")) {
             snpInfoFilename =
-                ext.parseStringArg(trav,
-                                   "default_snp_info_file_that_probably_does_not_exist.RData");
+                            ext.parseStringArg(trav,
+                                               "default_snp_info_file_that_probably_does_not_exist.RData");
           } else if (trav.startsWith("VARIANT_NAME=")) {
             variantName = ext.parseStringArg(trav, "Name");
           } else if (trav.startsWith("CHROM_NAME=")) {

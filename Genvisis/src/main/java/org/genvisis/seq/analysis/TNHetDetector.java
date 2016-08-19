@@ -62,9 +62,9 @@ public class TNHetDetector {
 
     VCFFileReader readerTumor = new VCFFileReader(new File(vcfTumor), true);
     String output = outputDir + VCFOps.getAppropriateRoot(vcfTumor, true) + ".HET.vcf.gz";
-    VariantContextWriter writer =
-        VCFOps.initWriter(output, VCFOps.DEFUALT_WRITER_OPTIONS,
-                          readerTumor.getFileHeader().getSequenceDictionary());
+    VariantContextWriter writer = VCFOps.initWriter(output, VCFOps.DEFUALT_WRITER_OPTIONS,
+                                                    readerTumor.getFileHeader()
+                                                               .getSequenceDictionary());
     VCFOps.copyHeader(readerTumor, writer, vpop.getSuperPop().get(VcfPopulation.TUMOR),
                       HEADER_COPY_TYPE.FULL_COPY, log);
     int num = 0;
@@ -123,8 +123,8 @@ public class TNHetDetector {
     casePop.get(VcfPopulation.TUMOR).addAll(vpop.getSuperPop().get(VcfPopulation.TUMOR));
     casePop.get(VcfPopulation.NORMAL).addAll(vpop.getSuperPop().get(VcfPopulation.NORMAL));
 
-    VcfPopulation caseTumor =
-        new VcfPopulation(casePop, casePop, POPULATION_TYPE.CASE_CONTROL, new Logger());
+    VcfPopulation caseTumor = new VcfPopulation(casePop, casePop, POPULATION_TYPE.CASE_CONTROL,
+                                                new Logger());
     return caseTumor;
   }
 

@@ -238,11 +238,11 @@ public class LogisticRegression extends RegressionModel {
         LL = LL - 2 * Y1[i] * LnV - 2 * Y0[i] * Ln1mV;
         for (int j = 0; j <= M; j++) {
           double xij = X[ix(i, j, M + 1)];
-          Arr[ix(j, M + 1, M + 2)] =
-              Arr[ix(j, M + 1, M + 2)] + xij * (Y1[i] * (1 - v) + Y0[i] * (-v));
+          Arr[ix(j, M + 1, M + 2)] = Arr[ix(j, M + 1, M + 2)]
+                                     + xij * (Y1[i] * (1 - v) + Y0[i] * (-v));
           for (int k = j; k <= M; k++) {
-            Arr[ix(j, k, M + 2)] =
-                Arr[ix(j, k, M + 2)] + xij * X[ix(i, k, M + 1)] * q * (Y0[i] + Y1[i]);
+            Arr[ix(j, k, M + 2)] = Arr[ix(j, k, M + 2)]
+                                   + xij * X[ix(i, k, M + 1)] * q * (Y0[i] + Y1[i]);
           }
         }
       }

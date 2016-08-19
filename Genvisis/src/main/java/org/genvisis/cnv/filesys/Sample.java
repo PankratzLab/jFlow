@@ -1,7 +1,5 @@
 package org.genvisis.cnv.filesys;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -29,31 +27,41 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 
+import com.google.common.primitives.Doubles;
+
 public class Sample implements Serializable {
   public static final long serialVersionUID = 1L;
-  public static final String[][] DATA_FIELDS =
-      {{"GC Score", "GCscore", "confidence", "Confidence"}, {"X Raw"}, {"Y Raw"},
-       {"X", "Xvalue", "Log Ratio", "intensity_1", "Signal A"},
-       {"Y", "Yvalue", "Strength", "intensity_2", "Signal B"}, {"Theta"}, {"R"}, {"B Allele Freq"},
-       {"Log R Ratio"}};
+  public static final String[][] DATA_FIELDS = {{"GC Score", "GCscore", "confidence", "Confidence"},
+                                                {"X Raw"}, {"Y Raw"},
+                                                {"X", "Xvalue", "Log Ratio", "intensity_1",
+                                                 "Signal A"},
+                                                {"Y", "Yvalue", "Strength", "intensity_2",
+                                                 "Signal B"},
+                                                {"Theta"}, {"R"}, {"B Allele Freq"},
+                                                {"Log R Ratio"}};
   public static final String[][] GENOTYPE_FIELDS =
-      {{"Allele1 - Forward", "Allele1", "genotype1", "Allele1 - Top", "Forward Strand Base Calls",
-        "Forced Call", "Forced Call Codes"},
-       {"Allele2 - Forward", "Forward Strand Base Calls", "genotype2", "Allele2 - Top", "Allele B",
-        "Forced Call", "Forced Call Codes"},
-       {"Allele1 - AB", "Call Codes", "Call"}, {"Allele2 - AB", "Call Codes", "Call"}}; // ,
-                                                                                        // {"Forward
-                                                                                        // Strand
-                                                                                        // Base
-                                                                                        // Calls"},
-                                                                                        // {"Call
-                                                                                        // Codes"}
-  public static final String[] ALL_STANDARD_GENOTYPE_FIELDS =
-      {"Allele1 - AB", "Allele2 - AB", "Allele1 - Forward", "Allele2 - Forward", "Allele1 - Top",
-       "Allele2 - Top", "Allele1 - Design", "Allele2 - Design"};
-  public static final String[] ALLELE_PAIRS =
-      {"--", "AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT", "GA", "GC", "GG", "GT", "TA", "TC",
-       "TG", "TT", "DD", "DI", "II", "ID"};
+                                                 {{"Allele1 - Forward", "Allele1", "genotype1",
+                                                   "Allele1 - Top", "Forward Strand Base Calls",
+                                                   "Forced Call", "Forced Call Codes"},
+                                                  {"Allele2 - Forward", "Forward Strand Base Calls",
+                                                   "genotype2", "Allele2 - Top", "Allele B",
+                                                   "Forced Call", "Forced Call Codes"},
+                                                  {"Allele1 - AB", "Call Codes", "Call"},
+                                                  {"Allele2 - AB", "Call Codes", "Call"}}; // ,
+                                                                                           // {"Forward
+                                                                                           // Strand
+                                                                                           // Base
+                                                                                           // Calls"},
+                                                                                           // {"Call
+                                                                                           // Codes"}
+  public static final String[] ALL_STANDARD_GENOTYPE_FIELDS = {"Allele1 - AB", "Allele2 - AB",
+                                                               "Allele1 - Forward",
+                                                               "Allele2 - Forward", "Allele1 - Top",
+                                                               "Allele2 - Top", "Allele1 - Design",
+                                                               "Allele2 - Design"};
+  public static final String[] ALLELE_PAIRS = {"--", "AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT",
+                                               "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT", "DD",
+                                               "DI", "II", "ID"};
   public static final String[] ALT_NULL = {"-", "0"};
   public static final String[] ALT_NULLS = {"--", "00", "---", "NoCall", "NC", "NN", "NA"};
   public static final String[] AB_PAIRS = {"AA", "AB", "BB"};
@@ -395,9 +403,9 @@ public class Sample implements Serializable {
     if (bafs == null) {
       return null;
     } else {
-      float[] recompBaf =
-          params.getCentroids() == null ? bafs.clone()
-                                        : getBAFs(params.getCentroids().getCentroids());
+      float[] recompBaf = params.getCentroids() == null ? bafs.clone()
+                                                        : getBAFs(params.getCentroids()
+                                                                        .getCentroids());
       return recompBaf;
     }
   }
@@ -413,9 +421,9 @@ public class Sample implements Serializable {
     if (lrrs == null) {
       return null;
     } else {
-      float[] recompLrrs =
-          params.getCentroids() == null ? lrrs.clone()
-                                        : getLRRs(params.getCentroids().getCentroids());
+      float[] recompLrrs = params.getCentroids() == null ? lrrs.clone()
+                                                         : getLRRs(params.getCentroids()
+                                                                         .getCentroids());
       for (int i = 0; i < recompLrrs.length; i++) {
         recompLrrs[i] = (float) current.adjust(GC_CORRECTION_METHOD.GENVISIS_GC, recompLrrs[i],
                                                params.getGcContent()[i]);
@@ -654,7 +662,7 @@ public class Sample implements Serializable {
     // centroids = Centroids.load(proj.getFilename(proj.CUSTOM_CENTROIDS_FILENAME),
     // proj.getJarStatus());
     centroids =
-        Centroids.load(proj.CUSTOM_CENTROIDS_FILENAME.getValue(), proj.JAR_STATUS.getValue());
+              Centroids.load(proj.CUSTOM_CENTROIDS_FILENAME.getValue(), proj.JAR_STATUS.getValue());
     if (centroids.getFingerprint() != getFingerprint()) {
       System.err.println("Error - mismatched fingerprint for " + sampleName);
     }
@@ -709,7 +717,7 @@ public class Sample implements Serializable {
 
   /**
    * Save the instance of Sample to hard drive in Random Access File format.
-   * 
+   *
    * @param filename
    */
   public void saveToRandomAccessFile(String filename) {
@@ -830,8 +838,10 @@ public class Sample implements Serializable {
         }
         if (abGenotypes != null || forwardGenotypes != null) {
           writeBuffer[writeBufferIndex] =
-              Compression.genotypeCompress(abGenotypes == null ? -1 : abGenotypes[j],
-                                           forwardGenotypes == null ? 0 : forwardGenotypes[j]);
+                                        Compression.genotypeCompress(abGenotypes == null ? -1
+                                                                                         : abGenotypes[j],
+                                                                     forwardGenotypes == null ? 0
+                                                                                              : forwardGenotypes[j]);
           writeBufferIndex += Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
         }
         bytesRemained -= bytesPerSampleMarker;
@@ -939,8 +949,9 @@ public class Sample implements Serializable {
       if (numBytesOfOutOfRangeValues > 0) {
         outlierSectionLocation = PARAMETER_SECTION_BYTES + numMarkers * bytesPerSampleMarker;
         outOfRangeValues =
-            (Hashtable<String, Float>) Compression.bytesToObj(readBuffer, outlierSectionLocation,
-                                                              numBytesOfOutOfRangeValues);
+                         (Hashtable<String, Float>) Compression.bytesToObj(readBuffer,
+                                                                           outlierSectionLocation,
+                                                                           numBytesOfOutOfRangeValues);
       }
 
       indexStart = PARAMETER_SECTION_BYTES;
@@ -949,8 +960,8 @@ public class Sample implements Serializable {
         if (loadGC) {
           gcs = new float[numMarkers];
           for (int j = 0; j < numMarkers; j++) {
-            gcs[j] =
-                Compression.gcBafDecompress(new byte[] {readBuffer[index], readBuffer[index + 1]});
+            gcs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[index],
+                                                             readBuffer[index + 1]});
             index += bytesPerSampleMarker;
           }
         }
@@ -992,8 +1003,8 @@ public class Sample implements Serializable {
         if (loadBAF) {
           bafs = new float[numMarkers];
           for (int j = 0; j < numMarkers; j++) {
-            bafs[j] =
-                Compression.gcBafDecompress(new byte[] {readBuffer[index], readBuffer[index + 1]});
+            bafs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[index],
+                                                              readBuffer[index + 1]});
             index += bytesPerSampleMarker;
           }
         }
@@ -1005,8 +1016,8 @@ public class Sample implements Serializable {
           lrrs = new float[numMarkers];
           for (int j = 0; j < numMarkers; j++) {
             lrrs[j] =
-                Compression.lrrDecompress(new byte[] {readBuffer[index], readBuffer[index + 1],
-                                                      readBuffer[index + 2]});
+                    Compression.lrrDecompress(new byte[] {readBuffer[index], readBuffer[index + 1],
+                                                          readBuffer[index + 2]});
             if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT) {
               lrrs[j] = outOfRangeValues.get(j + "\tlrr");
             }
@@ -1104,8 +1115,8 @@ public class Sample implements Serializable {
           outlierSectionSize = sampleFile.readInt();
         }
 
-        seekPointer =
-            Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampleMarker;
+        seekPointer = Sample.PARAMETER_SECTION_BYTES
+                      + indexOfFirstMarkerToLoad * bytesPerSampleMarker;
         if (seekPointer != sampleFile.getFilePointer()) {
           sampleFile.seek(seekPointer);
         }
@@ -1140,8 +1151,9 @@ public class Sample implements Serializable {
           if (outlierSectionSize > 0) {
             pointer = Sample.PARAMETER_SECTION_BYTES + numMarkersInProj * bytesPerSampleMarker;
             sampleOutlierHash =
-                (Hashtable<String, Float>) Compression.bytesToObj(readBufferLocal, pointer,
-                                                                  outlierSectionSize);
+                              (Hashtable<String, Float>) Compression.bytesToObj(readBufferLocal,
+                                                                                pointer,
+                                                                                outlierSectionSize);
             keys = sampleOutlierHash.keys();
             while (keys.hasMoreElements()) {
               currentKey = keys.nextElement();
@@ -1162,7 +1174,7 @@ public class Sample implements Serializable {
 
 
   /*
-   * 
+   *
    */
   @SuppressWarnings("unchecked")
   public static void loadSampleFileWithoutDecompress(String sampleFileName, byte[] outputBuffer,
@@ -1187,7 +1199,7 @@ public class Sample implements Serializable {
       }
 
       seekPointer =
-          Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampleMarker;
+                  Sample.PARAMETER_SECTION_BYTES + indexOfFirstMarkerToLoad * bytesPerSampleMarker;
       if (seekPointer != sampleFile.getFilePointer()) {
         sampleFile.seek(seekPointer);
       }
@@ -1269,8 +1281,9 @@ public class Sample implements Serializable {
     if (numBytesOfOutOfRangeValues > 0) {
       outlierSectionLocation = PARAMETER_SECTION_BYTES + numMarkers * bytesPerSampleMarker;
       outOfRangeValues =
-          (Hashtable<String, Float>) Compression.bytesToObj(readBuffer, outlierSectionLocation,
-                                                            numBytesOfOutOfRangeValues);
+                       (Hashtable<String, Float>) Compression.bytesToObj(readBuffer,
+                                                                         outlierSectionLocation,
+                                                                         numBytesOfOutOfRangeValues);
     }
 
     return outOfRangeValues;
@@ -1377,11 +1390,11 @@ public class Sample implements Serializable {
 
       }
       WorkerHive<HashLoadResult> hive =
-          new WorkerHive<HashLoadResult>(numthreads, 10, proj.getLog());
+                                      new WorkerHive<HashLoadResult>(numthreads, 10, proj.getLog());
 
       for (int i = 0; i < proj.getSamples().length; i++) {
-        final String currentSampleRAF =
-            proj.SAMPLE_DIRECTORY.getValue() + proj.getSamples()[i] + Sample.SAMPLE_FILE_EXTENSION;
+        final String currentSampleRAF = proj.SAMPLE_DIRECTORY.getValue() + proj.getSamples()[i]
+                                        + Sample.SAMPLE_FILE_EXTENSION;
         final String sampleName = proj.getSamples()[i];
 
         final int index = i;
@@ -1397,7 +1410,7 @@ public class Sample implements Serializable {
             }
 
             Hashtable<String, Float> outs =
-                Sample.loadOutOfRangeValuesFromRandomAccessFile(currentSampleRAF);
+                                          Sample.loadOutOfRangeValuesFromRandomAccessFile(currentSampleRAF);
             return new HashLoadResult(outs, sampleName);
           }
 

@@ -54,10 +54,10 @@ public class Picard {
   }
 
   public boolean sortSam(String inputFile, String outputFile, Logger altLog) {
-    String[] command =
-        new String[] {javaLocation, JAR, picardLocation + SORT_SAM_JAR, INPUT + inputFile,
-                      OUTPUT + outputFile, SORT_ORDER + DEFAULT_SORT_ORDER,
-                      getTMPdirectory(inputFile, outputFile)};
+    String[] command = new String[] {javaLocation, JAR, picardLocation + SORT_SAM_JAR,
+                                     INPUT + inputFile, OUTPUT + outputFile,
+                                     SORT_ORDER + DEFAULT_SORT_ORDER,
+                                     getTMPdirectory(inputFile, outputFile)};
     return CmdLine.runCommandWithFileChecks(command, "", new String[] {inputFile},
                                             new String[] {outputFile}, verbose, overwriteExisting,
                                             true, (altLog == null ? log : altLog));
@@ -65,11 +65,11 @@ public class Picard {
 
   public boolean markDuplicates(String inputFile, String outputFile, String metricsFile,
                                 double memoryRatio, Logger altLog) {
-    String[] command =
-        new String[] {javaLocation, JAR, picardLocation + MARK_DUPLICATES_JAR, INPUT + inputFile,
-                      OUTPUT + outputFile, METRICS_FILE + metricsFile,
-                      getTMPdirectory(inputFile, inputFile),
-                      SORTING_COLLECTION_SIZE_RATIO + memoryRatio};
+    String[] command = new String[] {javaLocation, JAR, picardLocation + MARK_DUPLICATES_JAR,
+                                     INPUT + inputFile, OUTPUT + outputFile,
+                                     METRICS_FILE + metricsFile,
+                                     getTMPdirectory(inputFile, inputFile),
+                                     SORTING_COLLECTION_SIZE_RATIO + memoryRatio};
     return CmdLine.runCommandWithFileChecks(command, "", new String[] {inputFile},
                                             new String[] {outputFile, metricsFile}, verbose,
                                             overwriteExisting, true,
@@ -98,8 +98,8 @@ public class Picard {
   public Picard_Analysis picardASam(String baseId, String fullPathToSamFile, double memoryRatio,
                                     Logger altLog) {
     boolean progress = false;
-    Picard_Analysis picard_Analysis =
-        new Picard_Analysis(baseId, fullPathToSamFile, (altLog == null ? log : altLog));
+    Picard_Analysis picard_Analysis = new Picard_Analysis(baseId, fullPathToSamFile,
+                                                          (altLog == null ? log : altLog));
     picard_Analysis.parseInput();
     progress = sortSam(picard_Analysis.getFullPathToSamFile(),
                        picard_Analysis.getFullPathToSortedBamFile(), picard_Analysis.getLog());
@@ -157,8 +157,8 @@ public class Picard {
       fullPathToSortedBamFile = ext.rootOf(fullPathToSamFile, false) + SORTED + BAM;
       fullPathToSortedDeDuppedBamFile = ext.addToRoot(fullPathToSortedBamFile, DE_DUPPED);
       fullPathToMetricsTxt = ext.rootOf(fullPathToSortedDeDuppedBamFile, false) + METRICS;
-      fullPathToSortedDeDuppedBamFileIndex =
-          ext.rootOf(fullPathToSortedDeDuppedBamFile, false) + INDEXED;
+      fullPathToSortedDeDuppedBamFileIndex = ext.rootOf(fullPathToSortedDeDuppedBamFile, false)
+                                             + INDEXED;
     }
 
     public String getFullPathToMetricsTxt() {
@@ -201,9 +201,11 @@ public class Picard {
 
   public static class PicardMetricsParser {
     public static final String[] PICARD_METRICS =
-        {"LIBRARY", "UNPAIRED_READS_EXAMINED", "READ_PAIRS_EXAMINED", "UNMAPPED_READS",
-         "UNPAIRED_READ_DUPLICATES", "READ_PAIR_DUPLICATES", "READ_PAIR_OPTICAL_DUPLICATES",
-         "PERCENT_DUPLICATION", "ESTIMATED_LIBRARY_SIZE"};
+                                                {"LIBRARY", "UNPAIRED_READS_EXAMINED",
+                                                 "READ_PAIRS_EXAMINED", "UNMAPPED_READS",
+                                                 "UNPAIRED_READ_DUPLICATES", "READ_PAIR_DUPLICATES",
+                                                 "READ_PAIR_OPTICAL_DUPLICATES",
+                                                 "PERCENT_DUPLICATION", "ESTIMATED_LIBRARY_SIZE"};
     private final String[] picardMetricsFiles;
     private final double[][] consolidatedMetrics;
     private final boolean fail;

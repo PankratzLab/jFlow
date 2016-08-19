@@ -1,7 +1,5 @@
 package org.genvisis.link;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,6 +30,8 @@ import org.genvisis.parse.GenParser;
 import org.genvisis.stats.Correlation;
 import org.genvisis.stats.ICC;
 import org.genvisis.stats.RegressionModel;
+
+import com.google.common.primitives.Doubles;
 
 public class Heritability {
   public static final String DEFAULT_MERLIN_EXEC = "merlin";
@@ -93,18 +93,14 @@ public class Heritability {
         line = reader.readLine().trim().split("[\\s]+");
         writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t" + line[4]
                        + "\t"
-                       + (phenoHash.containsKey(line[0] + "\t" + line[1])
-                                                                          ? phenoHash.get(line[0]
-                                                                                          + "\t"
-                                                                                          + line[1])
-                                                                          : "x")
+                       + (phenoHash.containsKey(line[0] + "\t"
+                                                + line[1]) ? phenoHash.get(line[0] + "\t" + line[1])
+                                                           : "x")
                        + "\t"
-                       + (covarHash.containsKey(line[0] + "\t" + line[1])
-                                                                          ? covarHash.get(line[0]
-                                                                                          + "\t"
-                                                                                          + line[1])
-                                                                          : Array.toStr(Array.stringArray(covarHeader.length,
-                                                                                                          "x")))
+                       + (covarHash.containsKey(line[0] + "\t"
+                                                + line[1]) ? covarHash.get(line[0] + "\t" + line[1])
+                                                           : Array.toStr(Array.stringArray(covarHeader.length,
+                                                                                           "x")))
                        + "\t1\t1");
         seen.put(line[0] + "\t" + line[1], "");
         if (!line[2].equals("0")) {
@@ -382,10 +378,10 @@ public class Heritability {
         return;
       }
 
-      famIdHash =
-          HashVec.loadFileToHashString(pedigreeFile, new int[] {1}, new int[] {0},
-                                       Files.determineDelimiter(pedigreeFile, log).equals(","),
-                                       null, false, false, false);
+      famIdHash = HashVec.loadFileToHashString(pedigreeFile, new int[] {1}, new int[] {0},
+                                               Files.determineDelimiter(pedigreeFile, log)
+                                                    .equals(","),
+                                               null, false, false, false);
 
       log.setLevel(8);
 
@@ -494,14 +490,16 @@ public class Heritability {
             int cntTrio = 0;
             if (!skipExtra) {
               FamilyStructure ped = new FamilyStructure(pedigreeFile, false);
-              ArrayList<String[]> sibList =
-                  Pedigree.PedigreeUtils.loadSibs(ped, true, null, validIDs, true); // double actual
-                                                                                    // due to
-                                                                                    // bidirectionality
-              ArrayList<String[]> poPairs =
-                  Pedigree.PedigreeUtils.loadPOPairs(ped, true, null, validIDs, true);
-              ArrayList<int[]> trios =
-                  Pedigree.PedigreeUtils.loadCompleteTrios(ped, null, validIDs, true);
+              ArrayList<String[]> sibList = Pedigree.PedigreeUtils.loadSibs(ped, true, null,
+                                                                            validIDs, true); // double
+                                                                                             // actual
+                                                                                             // due
+                                                                                             // to
+                                                                                             // bidirectionality
+              ArrayList<String[]> poPairs = Pedigree.PedigreeUtils.loadPOPairs(ped, true, null,
+                                                                               validIDs, true);
+              ArrayList<int[]> trios = Pedigree.PedigreeUtils.loadCompleteTrios(ped, null, validIDs,
+                                                                                true);
 
               double[] resids = RegressionModel.processDeps(deps);
               if (indeps.size() > 0) {
@@ -540,11 +538,11 @@ public class Heritability {
                   sibICCResponseIDs.add(sibList.get(k)[0] + "\t" + sibList.get(k)[1]);
                 }
                 correlationData =
-                    new double[][] {Doubles.toArray(correl1), Doubles.toArray(correl2)};
+                                new double[][] {Doubles.toArray(correl1), Doubles.toArray(correl2)};
                 sibCorrel = Correlation.Pearson(correlationData);
-                ICC sibICCAnalysis =
-                    new ICC(Doubles.toArray(sibICCData), Array.toStringArray(sibICCResponseIDs),
-                            null, null, true, log);
+                ICC sibICCAnalysis = new ICC(Doubles.toArray(sibICCData),
+                                             Array.toStringArray(sibICCResponseIDs), null, null,
+                                             true, log);
                 sibICCAnalysis.computeICC();
                 sibICC = sibICCAnalysis.getICC();
               }
@@ -569,11 +567,11 @@ public class Heritability {
                   poICCResponseIDs.add(poPairs.get(k)[0] + "\t" + poPairs.get(k)[1]);
                 }
                 correlationData =
-                    new double[][] {Doubles.toArray(correl1), Doubles.toArray(correl2)};
+                                new double[][] {Doubles.toArray(correl1), Doubles.toArray(correl2)};
                 poCorrel = Correlation.Pearson(correlationData);
-                ICC poICCAnalysis =
-                    new ICC(Doubles.toArray(poICCData), Array.toStringArray(poICCResponseIDs), null,
-                            null, true, log);
+                ICC poICCAnalysis = new ICC(Doubles.toArray(poICCData),
+                                            Array.toStringArray(poICCResponseIDs), null, null, true,
+                                            log);
                 poICCAnalysis.computeICC();
                 poICC = poICCAnalysis.getICC();
               }
@@ -609,11 +607,11 @@ public class Heritability {
                                          + trios.get(k)[2]);
                 }
                 correlationData =
-                    new double[][] {Doubles.toArray(correl1), Doubles.toArray(correl2)};
+                                new double[][] {Doubles.toArray(correl1), Doubles.toArray(correl2)};
                 trioCorrel = Correlation.Pearson(correlationData);
-                ICC trioICCAnalysis =
-                    new ICC(Doubles.toArray(trioICCData), Array.toStringArray(trioICCResponseIDs),
-                            null, null, true, log);
+                ICC trioICCAnalysis = new ICC(Doubles.toArray(trioICCData),
+                                              Array.toStringArray(trioICCResponseIDs), null, null,
+                                              true, log);
                 trioICCAnalysis.computeICC();
                 trioICC = trioICCAnalysis.getICC();
               }
@@ -621,12 +619,12 @@ public class Heritability {
             log.report("Heritability for " + root);
             log.report(line[1] + " ~ " + Array.toStr(Array.subArray(line, 2), " "));
 
-            merlinEstimate =
-                computeWithMerlin(dir + root, pedigreeFile, "pheno.dat",
-                                  line.length > 2 ? "covars.dat" : null, root, merlinExec, log);
-            solarEstimate =
-                computeWithSolar(dir + root, pedigreeFile, "pheno.dat",
-                                 line.length > 2 ? "covars.dat" : null, root, solarExec, log);
+            merlinEstimate = computeWithMerlin(dir + root, pedigreeFile, "pheno.dat",
+                                               line.length > 2 ? "covars.dat" : null, root,
+                                               merlinExec, log);
+            solarEstimate = computeWithSolar(dir + root, pedigreeFile, "pheno.dat",
+                                             line.length > 2 ? "covars.dat" : null, root, solarExec,
+                                             log);
             if (solarEstimate == null) {
               solarEstimate = new String[] {"NaN", "NaN", "NaN", "NaN", "NaN"};
             }
@@ -686,7 +684,7 @@ public class Heritability {
 
   /**
    * For internal generation of heritability .crfs
-   * 
+   *
    * @param pedfile ped file
    * @param db db file
    * @param crf full path to the desired crf
@@ -729,10 +727,10 @@ public class Heritability {
     // new Logger());
     // System.exit(0);
 
-    String usage =
-        "\n" + "link.Heritability requires 0-1 arguments\n" + "   (1) pedigree filename (i.e. ped="
-                   + pedfile + " (default))\n" + "   (2) phenotype filename (i.e. pheno=" + pheno
-                   + " (default))\n" + "   (3) covariates filename (i.e. covars=" + covars
+    String usage = "\n" + "link.Heritability requires 0-1 arguments\n"
+                   + "   (1) pedigree filename (i.e. ped=" + pedfile + " (default))\n"
+                   + "   (2) phenotype filename (i.e. pheno=" + pheno + " (default))\n"
+                   + "   (3) covariates filename (i.e. covars=" + covars
                    + " (default; set to null if not needed))\n"
                    + "   (4) method: merlin/solar/both (i.e. method=" + method + " (default))\n"
                    + "   (5) (optional) prefix for the files (i.e. prefix=" + prefix

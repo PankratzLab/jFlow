@@ -104,11 +104,11 @@ public class CompareCalls_dev {
       for (int i = probestart; i < probeStop + 1; i += 5) {
         String iterType = "numMarkers";
         comparedCalls =
-            compare(rootDir,
-                    filterAndClean(rootDir, cnvFile, LRR_lookup, compFile, DEFAULT_LRR_FILTER,
-                                   DEFAULT_CONF_FILTER, i, markerFile, DEFAULT_BP_FRACTION,
-                                   DEFAULT_NUM_MARKER_FRACTION),
-                    DEFAULT_COMP_LIST);
+                      compare(rootDir,
+                              filterAndClean(rootDir, cnvFile, LRR_lookup, compFile,
+                                             DEFAULT_LRR_FILTER, DEFAULT_CONF_FILTER, i, markerFile,
+                                             DEFAULT_BP_FRACTION, DEFAULT_NUM_MARKER_FRACTION),
+                              DEFAULT_COMP_LIST);
         if (i == probestart) {
           probeWriters = getWriters(rootDir, comparedCalls, iterType, probestart, probeStop, false);
         } else {
@@ -129,12 +129,12 @@ public class CompareCalls_dev {
 
       for (int i = 0; i < lrrValues.length; i++) {
         String iterType = "lrr";
-        comparedCalls =
-            compare(rootDir,
-                    filterAndClean(rootDir, cnvFile, LRR_lookup, compFile, lrrValues[i],
-                                   DEFAULT_CONF_FILTER, DEFAULT_NUM_MARKERS_FILTER, markerFile,
-                                   DEFAULT_BP_FRACTION, DEFAULT_NUM_MARKER_FRACTION),
-                    DEFAULT_COMP_LIST);
+        comparedCalls = compare(rootDir,
+                                filterAndClean(rootDir, cnvFile, LRR_lookup, compFile, lrrValues[i],
+                                               DEFAULT_CONF_FILTER, DEFAULT_NUM_MARKERS_FILTER,
+                                               markerFile, DEFAULT_BP_FRACTION,
+                                               DEFAULT_NUM_MARKER_FRACTION),
+                                DEFAULT_COMP_LIST);
         if (i == 0) {
           lrrWriters = getWriters(rootDir, comparedCalls, iterType, lrrstart, lrrstop, false);
         } else {
@@ -155,12 +155,12 @@ public class CompareCalls_dev {
 
       for (int i = 0; i < confValues.length; i++) {
         String iterType = "conf";
-        comparedCalls =
-            compare(rootDir,
-                    filterAndClean(rootDir, cnvFile, LRR_lookup, compFile, DEFAULT_LRR_FILTER,
-                                   confValues[i], DEFAULT_NUM_MARKERS_FILTER, markerFile,
-                                   DEFAULT_BP_FRACTION, DEFAULT_NUM_MARKER_FRACTION),
-                    DEFAULT_COMP_LIST);
+        comparedCalls = compare(rootDir,
+                                filterAndClean(rootDir, cnvFile, LRR_lookup, compFile,
+                                               DEFAULT_LRR_FILTER, confValues[i],
+                                               DEFAULT_NUM_MARKERS_FILTER, markerFile,
+                                               DEFAULT_BP_FRACTION, DEFAULT_NUM_MARKER_FRACTION),
+                                DEFAULT_COMP_LIST);
         if (i == 0) {
           confWriters = getWriters(rootDir, comparedCalls, iterType, confstart, confstop, false);
         } else {
@@ -209,7 +209,7 @@ public class CompareCalls_dev {
     Hashtable<Integer, ArrayList<String>> fileIDs;
     Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>> indFileCNVs;
     Hashtable<String, Hashtable<String, Integer>> defineCompHash =
-        new Hashtable<String, Hashtable<String, Integer>>();
+                                                                 new Hashtable<String, Hashtable<String, Integer>>();
     defineCompHash = defineCompLists(rootDir, compFile);
     fileCNVs = getFileCNVs(files);
     fileIDs = getFileIDs(fileCNVs);
@@ -372,12 +372,12 @@ public class CompareCalls_dev {
                                         int numMarkers, String markerFile, double bpFraction,
                                         double markerFraction) {
     String[] filteredFiles, cleanedFiles;
-    filteredFiles =
-        filterCNVs(rootDir, cnvFile, LRR_lookup, compFile, lrrFilter, confFilter, numMarkers);
+    filteredFiles = filterCNVs(rootDir, cnvFile, LRR_lookup, compFile, lrrFilter, confFilter,
+                               numMarkers);
     cleanedFiles = new String[filteredFiles.length];
     for (int i = 0; i < filteredFiles.length; i++) {
       cleanedFiles[i] =
-          cleanCNVs(rootDir, filteredFiles[i], markerFile, bpFraction, markerFraction);
+                      cleanCNVs(rootDir, filteredFiles[i], markerFile, bpFraction, markerFraction);
     }
     return cleanedFiles;
   }
@@ -387,7 +387,7 @@ public class CompareCalls_dev {
                                     int numMarkers) {
     Hashtable<String, Double> lrrs = new Hashtable<String, Double>();
     Hashtable<String, Hashtable<String, Integer>> defineCompHash =
-        new Hashtable<String, Hashtable<String, Integer>>();
+                                                                 new Hashtable<String, Hashtable<String, Integer>>();
     BufferedReader reader;
     String[] line;
 
@@ -730,7 +730,7 @@ public class CompareCalls_dev {
 
   private static Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>> getindCNVsfromFiles(CNVariant[][] fileCNVs) {
     Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>> indCNVs =
-        new Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>>();
+                                                                        new Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>>();
     for (int i = 0; i < fileCNVs.length; i++) {
       indCNVs.put(i, getindCNVsfromFile(fileCNVs[i]));
     }
@@ -813,7 +813,7 @@ public class CompareCalls_dev {
   private static Hashtable<String, Hashtable<String, Integer>> defineCompLists(String rootDir,
                                                                                String compFile) {
     Hashtable<String, Hashtable<String, Integer>> defineCompHash =
-        new Hashtable<String, Hashtable<String, Integer>>();
+                                                                 new Hashtable<String, Hashtable<String, Integer>>();
     BufferedReader reader;
     String[] line;
     int maxNumComparisions = 0;
@@ -973,10 +973,10 @@ public class CompareCalls_dev {
       newNumMarkers += cnvs[j].getNumMarkers();
     }
     mergedCNV =
-        new CNVariant(cnvs[startCombine].getFamilyID(), cnvs[startCombine].getIndividualID(),
-                      cnvs[startCombine].getChr(), cnvs[startCombine].getStart(),
-                      cnvs[stopCombine].getStop(), cnvs[startCombine].getCN(), newConf,
-                      newNumMarkers, cnvs[startCombine].getSource());
+              new CNVariant(cnvs[startCombine].getFamilyID(), cnvs[startCombine].getIndividualID(),
+                            cnvs[startCombine].getChr(), cnvs[startCombine].getStart(),
+                            cnvs[stopCombine].getStop(), cnvs[startCombine].getCN(), newConf,
+                            newNumMarkers, cnvs[startCombine].getSource());
     return mergedCNV;
   }
 
@@ -984,8 +984,8 @@ public class CompareCalls_dev {
                                         Hashtable<Byte, List<Integer>> markers,
                                         double markerFraction) {
     int gapLengthMarkers = getStartIndex(nextCNV, markers) - getStopIndex(thisCNV, markers) - 1;
-    int proposedNewMarkerLength =
-        getStopIndex(nextCNV, markers) - getStartIndex(thisCNV, markers) + 1;
+    int proposedNewMarkerLength = getStopIndex(nextCNV, markers) - getStartIndex(thisCNV, markers)
+                                  + 1;
     return testFrac(markerFraction, ((double) gapLengthMarkers / proposedNewMarkerLength));
   }
 

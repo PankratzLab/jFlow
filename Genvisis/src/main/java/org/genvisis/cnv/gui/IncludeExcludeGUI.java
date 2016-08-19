@@ -22,7 +22,7 @@ import net.miginfocom.swing.MigLayout;
 public class IncludeExcludeGUI extends JDialog {
 
   /**
-  * 
+  *
   */
   private static final long serialVersionUID = 1L;
   private final JPanel contentPanel = new JPanel();

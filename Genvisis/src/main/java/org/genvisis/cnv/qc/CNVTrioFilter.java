@@ -27,7 +27,7 @@ public class CNVTrioFilter extends CNVFilter {
   public static final String COMMAND_MAX_NUM_CALLS = "numCalls=";
   public static final String COMMAND_CNV_TRIO_CRF = "filterCNVTrios";
   public static final String COMMAND_CNV_TRIO_CRF_DESCRIPTION =
-      " - filter a file of cnv trio results";
+                                                              " - filter a file of cnv trio results";
 
   public static final double NO_FILTER_MAX_BEAST_HEIGHT_PARENTS = 0;
   public static final double NO_FILTER_MIN_BEAST_HEIGHT_DIFFERENCE = 0;

@@ -17,8 +17,8 @@ import org.genvisis.link.LinkageFormat;
 import org.genvisis.link.LinkageMap;
 
 public class Mendel {
-  public static final String[] THETAS =
-      {"0.00", "0.01", "0.05", "0.10", "0.15", "0.20", "0.30", "0.40", "0.50"};
+  public static final String[] THETAS = {"0.00", "0.01", "0.05", "0.10", "0.15", "0.20", "0.30",
+                                         "0.40", "0.50"};
 
   public static void createFiles(String dir, String pedfile, String mapfile, boolean xLinked) {
     BufferedReader reader;
@@ -232,9 +232,9 @@ public class Mendel {
     String mapfile = "map16.dat";
     boolean xLinked = false;
 
-    String usage =
-        "\\n" + "park.Mendel requires 0-1 arguments\n" + "   (1) pedigree file (i.e. ped=" + pedfile
-                   + " (default))\n" + "   (2) map file (i.e. map=" + mapfile + " (default))\n"
+    String usage = "\\n" + "park.Mendel requires 0-1 arguments\n"
+                   + "   (1) pedigree file (i.e. ped=" + pedfile + " (default))\n"
+                   + "   (2) map file (i.e. map=" + mapfile + " (default))\n"
                    + "   (3) all markers are on the X chromosome (i.e. xLinked=" + xLinked
                    + " (default))\n" + "  OR\n" + "   (1) chromosome number (i.e. chr=1)\n" + "";
 

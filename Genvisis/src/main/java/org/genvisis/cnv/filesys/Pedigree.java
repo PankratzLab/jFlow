@@ -37,7 +37,10 @@ public class Pedigree extends FamilyStructure {
         return ped.cached_sib_pairs;
       }
       HashMap<String, ArrayList<String>> parentToChildren =
-          loadParentToChildrenMap(ped, completeOnly, excludedFIDIIDs, includedFIDIIDs, cache);
+                                                          loadParentToChildrenMap(ped, completeOnly,
+                                                                                  excludedFIDIIDs,
+                                                                                  includedFIDIIDs,
+                                                                                  cache);
 
       // at this point, only non-excluded IDs are present in all_trios and parentToChildren
       ArrayList<String[]> sibPairs = new ArrayList<String[]>();
@@ -212,11 +215,11 @@ public class Pedigree extends FamilyStructure {
                         + "]\t Error - cannot run checkMendelErrors without a Project");
         return null;
       }
-      MendelErrorCheck[] mendelErrorChecks =
-          new MendelErrorCheck[pedigree.getProject().getSamples().length];
-      byte[] genotypes =
-          markerData.getAbGenotypesAfterFilters(clusterFilters, markerData.getMarkerName(),
-                                                gcThreshold, log);
+      MendelErrorCheck[] mendelErrorChecks = new MendelErrorCheck[pedigree.getProject()
+                                                                          .getSamples().length];
+      byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilters,
+                                                               markerData.getMarkerName(),
+                                                               gcThreshold, log);
       if (!pedigree.isProjectOrder()) {
         log.reportTimeError("Pedigree file must be in project order, internal error");
         return null;
@@ -246,9 +249,9 @@ public class Pedigree extends FamilyStructure {
 
             }
             // System.out.println(faGenotype+"\t"+moGenotype);
-            MendelErrors mendelErrors =
-                new MendelErrors(markerData.getChr(), sampleSex, genotypes[sampleIndex], faGenotype,
-                                 moGenotype);
+            MendelErrors mendelErrors = new MendelErrors(markerData.getChr(), sampleSex,
+                                                         genotypes[sampleIndex], faGenotype,
+                                                         moGenotype);
             mendelErrorChecks[i] = mendelErrors.checkMendelError();
           } else {
             mendelErrorChecks[i] = new MendelErrors(markerData.getChr(), -1, (byte) -1, (byte) -1,
@@ -274,7 +277,7 @@ public class Pedigree extends FamilyStructure {
   }
 
   /**
-   * 
+   *
    * @param proj
    * @param projectOrder (Used for ProjectUtils.checkMendelErrors()) Indicates if the order of
    *        entries in the project's pedigree file (from the PEDIGREE_FILENAME property) matches the
@@ -285,7 +288,7 @@ public class Pedigree extends FamilyStructure {
   }
 
   /**
-   * 
+   *
    * @param proj
    * @param pedigreeFile
    * @param projectOrder (Used for ProjectUtils.checkMendelErrors()) Indicates if the order of

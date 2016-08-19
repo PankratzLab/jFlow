@@ -42,9 +42,9 @@ public class ExomeDepth {
   private static final String MY_MATRIX_VAR = "my.matrix";
   private static final String MY_ALL_EXONS_VAR = "all.exons";
   private static final String MY_CHOICE_VAR = "my.choice";
-  private static final String[] RESULT_PARSE =
-      new String[] {"type", "nexons", "start", "end", "chromosome", "BF", "reads.expected",
-                    "reads.observed", "reads.ratio"};
+  private static final String[] RESULT_PARSE = new String[] {"type", "nexons", "start", "end",
+                                                             "chromosome", "BF", "reads.expected",
+                                                             "reads.observed", "reads.ratio"};
 
   private final String[] allReferenceBAMFiles;
   private String[] allReferenceBAIFiles;
@@ -129,7 +129,7 @@ public class ExomeDepth {
           globalExclude.add(allSampleNames[i]);
         }
         String[] sampSpecificExclude =
-            vpop.getPopulationForInd(allSampleNames[i], RETRIEVE_TYPE.SUB);
+                                     vpop.getPopulationForInd(allSampleNames[i], RETRIEVE_TYPE.SUB);
         for (String element : sampSpecificExclude) {
           Set<String> curSet = vpop.getSubPop().get(element);
           for (String samp : curSet) {
@@ -213,17 +213,17 @@ public class ExomeDepth {
     script += "start = " + EXOME_COUNTS_DAFR + "$start,";
     script += "end = " + EXOME_COUNTS_DAFR + "$end,";
     script += "name = " + EXOME_COUNTS_DAFR + "$names)\n";
-    script +=
-        "write.table(" + MY_ALL_EXONS_VAR + "@CNV.calls, " + "\"" + eAnalysis.getExomeDepthOutput()
+    script += "write.table(" + MY_ALL_EXONS_VAR + "@CNV.calls, " + "\""
+              + eAnalysis.getExomeDepthOutput()
               + "\", sep=\"\\t\", row.names = FALSE , quote=FALSE)\n";
     script += MY_ALL_EXONS_VAR + "<- AnnotateExtra(x = " + MY_ALL_EXONS_VAR + ",";
     script +=
-        "reference.annotation = Conrad.hg19.common.CNVs, min.overlap = 0.5, column.name = 'Conrad.hg19')\n";
+           "reference.annotation = Conrad.hg19.common.CNVs, min.overlap = 0.5, column.name = 'Conrad.hg19')\n";
     script += "write.table(" + MY_ALL_EXONS_VAR + "@CNV.calls, " + "\""
               + eAnalysis.getAnnoExomeDepthOutput()
               + "\", sep=\"\\t\", row.names = FALSE , quote=FALSE)\n";
     script +=
-        "save(" + MY_ALL_EXONS_VAR + ",file=\"" + eAnalysis.getRDafrExomeDepthOutput() + "\")\n";
+           "save(" + MY_ALL_EXONS_VAR + ",file=\"" + eAnalysis.getRDafrExomeDepthOutput() + "\")\n";
     eAnalysis.setScript(script);
     Files.write(script, eAnalysis.getrScriptFile());
     return eAnalysis;
@@ -306,8 +306,10 @@ public class ExomeDepth {
     @Override
     public Callable<ExomeDepthAnalysis> next() {
       final ExomeDepthAnalysis eAnalysis =
-          new ExomeDepthAnalysis(exomeDepth.getAnalysisBamFiles()[index], exomeDepth.getOutputDir(),
-                                 exomeDepth.getOutputRoot(), exomeDepth.getRscriptCall(), log);
+                                         new ExomeDepthAnalysis(exomeDepth.getAnalysisBamFiles()[index],
+                                                                exomeDepth.getOutputDir(),
+                                                                exomeDepth.getOutputRoot(),
+                                                                exomeDepth.getRscriptCall(), log);
       eAnalysis.setExcludeFromRef(exomeDepth.getExcludeFromReference()
                                             .get(exomeDepth.getAllSampleNames()[index]));
       exomeDepth.generateCallingScript(eAnalysis);
@@ -464,7 +466,7 @@ public class ExomeDepth {
       script += "ratio <-  freq/ expected\n";
       script += "anno <- all.exons@annotations\n";
       script +=
-          "exomeObject = data.frame(anno$chromosome,anno$start,anno$end, test,expected,reference,ratio)\n";
+             "exomeObject = data.frame(anno$chromosome,anno$start,anno$end, test,expected,reference,ratio)\n";
       script += "write.table(exomeObject, \"" + exomeDepthRawDataOutput
                 + "\",row.names = FALSE,quote=FALSE )\n";
       return script;
@@ -474,14 +476,14 @@ public class ExomeDepth {
     private static String getPlotFor(double bufferPercent, SeqCNVariant cnv, String script) {
       script += "plot(all.exons , sequence = \"" + cnv.getChr() + "\",";
       int buffer = (int) (bufferPercent * cnv.getSize());
-      String[] curBoundary =
-          new String[] {cnv.getStart() + " - " + buffer, cnv.getStop() + " + " + buffer};
+      String[] curBoundary = new String[] {cnv.getStart() + " - " + buffer,
+                                           cnv.getStop() + " + " + buffer};
       script += "xlim = " + Rscript.generateRVector(curBoundary, false) + ",";
       script += "main = '" + cnv.getIndividualID();
       // + sampleName + "_" + i;
       for (int i = 0; i < cnv.getcExtraInfos().length; i++) {
-        script +=
-            "\\n" + cnv.getcExtraInfos()[i].getsExtra() + "=" + cnv.getcExtraInfos()[i].getdExtra();
+        script += "\\n" + cnv.getcExtraInfos()[i].getsExtra() + "="
+                  + cnv.getcExtraInfos()[i].getdExtra();
       }
       script += "\\nscore=" + cnv.getScore() + "' , cex.lab = 0.8,";
       script += "with.gene = FALSE)\n";
@@ -551,9 +553,14 @@ public class ExomeDepth {
   public static void runExomeDepth(String bams, String outputDir, String outputRoot, String Rloc,
                                    int numBatches, int numthreads, int wallTimeInHours,
                                    int memoryInMb, Logger log) {
-    String[] allReferenceBamFiles =
-        Files.isDirectory(bams) ? Files.listFullPaths(bams, BamOps.BAM_EXT, false)
-                                : HashVec.loadFileToStringArray(bams, false, new int[] {0}, true);
+    String[] allReferenceBamFiles = Files.isDirectory(bams)
+                                                            ? Files.listFullPaths(bams,
+                                                                                  BamOps.BAM_EXT,
+                                                                                  false)
+                                                            : HashVec.loadFileToStringArray(bams,
+                                                                                            false,
+                                                                                            new int[] {0},
+                                                                                            true);
     outputDir = outputDir == null ? ext.parseDirectoryOfFile(bams) : outputDir;
 
     log.reportTimeInfo("found " + allReferenceBamFiles.length + " bam files in " + bams);
@@ -562,8 +569,8 @@ public class ExomeDepth {
                          + ", preparing for batched run...");
       ArrayList<String[]> batches = Array.splitUpArray(allReferenceBamFiles, numBatches, log);
       for (int i = 0; i < batches.size(); i++) {
-        ExomeDepth exomeDepth =
-            new ExomeDepth(allReferenceBamFiles, batches.get(i), outputDir, outputRoot, Rloc, log);
+        ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, batches.get(i), outputDir,
+                                               outputRoot, Rloc, log);
         if (!Files.exists(exomeDepth.getCountFile())) {
           log.reportTimeWarning("Did not find " + exomeDepth.getCountFile()
                                 + ", generating it now (takes a long time)");
@@ -605,11 +612,13 @@ public class ExomeDepth {
       return null;
     }
     ExomeDepthAnalysis[] eAnalysis =
-        new ExomeDepthAnalysis[exomeDepth.getAnalysisBamFiles().length];
+                                   new ExomeDepthAnalysis[exomeDepth.getAnalysisBamFiles().length];
 
     ExomeDepthAnalysisProducer producer = new ExomeDepthAnalysisProducer(exomeDepth, log);
-    WorkerTrain<ExomeDepthAnalysis> train =
-        new WorkerTrain<ExomeDepth.ExomeDepthAnalysis>(producer, numthreads, numthreads, log);
+    WorkerTrain<ExomeDepthAnalysis> train = new WorkerTrain<ExomeDepth.ExomeDepthAnalysis>(producer,
+                                                                                           numthreads,
+                                                                                           numthreads,
+                                                                                           log);
     int index = 0;
     while (train.hasNext()) {
       eAnalysis[index] = train.next();
@@ -624,13 +633,14 @@ public class ExomeDepth {
     }
     allTmp = CNVariant.sortByQuality(allTmp.toArray(new SeqCNVariant[allTmp.size()]), 1);
     LocusSet<SeqCNVariant> set =
-        new LocusSet<SeqCNVariant>(allTmp.toArray(new SeqCNVariant[allTmp.size()]), true, log) {
+                               new LocusSet<SeqCNVariant>(allTmp.toArray(new SeqCNVariant[allTmp.size()]),
+                                                          true, log) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
-        };
+                                 /**
+                                  * 
+                                  */
+                                 private static final long serialVersionUID = 1L;
+                               };
     set.writeRegions(outputDir + outputRoot + ".all.cnvs", TO_STRING_TYPE.REGULAR, true, log);
     return eAnalysis;
   }

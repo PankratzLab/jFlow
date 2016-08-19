@@ -32,10 +32,10 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
   private static final long serialVersionUID = 1L;
 
   private static final String[] CORRECTION_METHODS =
-      {"Assign Missing Genotypes to Clusters (by nearest theta)",
-       "Two stage correction (use existing genotypes to find most predictive model)",
-       "N stage correction (use existing genotypes to find most predictive model)",
-       "N stage correction with residual filtering (use existing genotypes to find most predictive model)"};
+                                                   {"Assign Missing Genotypes to Clusters (by nearest theta)",
+                                                    "Two stage correction (use existing genotypes to find most predictive model)",
+                                                    "N stage correction (use existing genotypes to find most predictive model)",
+                                                    "N stage correction with residual filtering (use existing genotypes to find most predictive model)"};
   public static final String XY_RETURN = "X_Y";
   public static final String THETA_R_RETURN = "THETA_R";
   public static final String BAF_LRR_RETURN = "BAF_LRR";
@@ -250,14 +250,15 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
     if (type.equals(XY_RETURN)) {
       return getCorrectedXY(original);
     }
-    byte[] genotypesToUse =
-        originalGenotypes ? centroid.getMarkerData().getAbGenotypes() : getGenotypesUsed();
-    MarkerData tmpMarkerData =
-        new MarkerData(centroid.getMarkerData().getMarkerName(), centroid.getMarkerData().getChr(),
-                       centroid.getMarkerData().getPosition(),
-                       centroid.getMarkerData().getFingerprint(), centroid.getMarkerData().getGCs(),
-                       null, null, correctedXFull, correctedYFull, null, null, null, null,
-                       genotypesToUse, genotypesToUse);
+    byte[] genotypesToUse = originalGenotypes ? centroid.getMarkerData().getAbGenotypes()
+                                              : getGenotypesUsed();
+    MarkerData tmpMarkerData = new MarkerData(centroid.getMarkerData().getMarkerName(),
+                                              centroid.getMarkerData().getChr(),
+                                              centroid.getMarkerData().getPosition(),
+                                              centroid.getMarkerData().getFingerprint(),
+                                              centroid.getMarkerData().getGCs(), null, null,
+                                              correctedXFull, correctedYFull, null, null, null,
+                                              null, genotypesToUse, genotypesToUse);
 
     if (type.equals(THETA_R_RETURN)) {
       return getCorrectedThetaR(original, tmpMarkerData);
@@ -297,20 +298,21 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
   }
 
   private void correctXYRegression(int atComponent) {
-    CrossValidation[][] cvals =
-        threadIt(atComponent, Array.toDoubleArray(centroid.getMarkerData().getXs()),
-                 Array.toDoubleArray(centroid.getMarkerData().getYs()));
+    CrossValidation[][] cvals = threadIt(atComponent,
+                                         Array.toDoubleArray(centroid.getMarkerData().getXs()),
+                                         Array.toDoubleArray(centroid.getMarkerData().getYs()));
     for (int i = 0; i < genoSampleClusters.length; i++) {
       int clusterComponent =
-          getProperComponent(atComponent, genoClusterCounts[i], i, correctionRatio,
-                             centroid.getMarkerData().getMarkerName(), verbose, proj.getLog());
+                           getProperComponent(atComponent, genoClusterCounts[i], i, correctionRatio,
+                                              centroid.getMarkerData().getMarkerName(), verbose,
+                                              proj.getLog());
       if (cvals[i] != null && cvals[i][1] != null && cvals[i][0] != null
           && !cvals[i][0].analysisFailed() && !cvals[i][1].analysisFailed()
           && validClusterComponent(genoClusterCounts[i], clusterComponent, numTotalSamples)) {
-        correctedXCluster[i] =
-            Array.toFloatArray(Array.subArray(cvals[i][0].getResiduals(), genoSampleClusters[i]));
-        correctedYCluster[i] =
-            Array.toFloatArray(Array.subArray(cvals[i][1].getResiduals(), genoSampleClusters[i]));
+        correctedXCluster[i] = Array.toFloatArray(Array.subArray(cvals[i][0].getResiduals(),
+                                                                 genoSampleClusters[i]));
+        correctedYCluster[i] = Array.toFloatArray(Array.subArray(cvals[i][1].getResiduals(),
+                                                                 genoSampleClusters[i]));
       } else {
         if (cvals[i] == null || cvals[i][1] == null || cvals[i][0] == null
             || cvals[i][0].analysisFailed() || cvals[i][1].analysisFailed()) {
@@ -326,7 +328,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
   }
 
   /**
-   * 
+   *
    * Estimate the genotype based on the nearest cluster to the predicted values (across all
    * regression models tested)
    */
@@ -344,8 +346,9 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 
     for (int i = 0; i < genoSampleClusters.length; i++) {
       int clusterComponent =
-          getProperComponent(atComponent, genoClusterCounts[i], i, correctionRatio,
-                             centroid.getMarkerData().getMarkerName(), verbose, proj.getLog());
+                           getProperComponent(atComponent, genoClusterCounts[i], i, correctionRatio,
+                                              centroid.getMarkerData().getMarkerName(), verbose,
+                                              proj.getLog());
       if (validClusterComponent(genoClusterCounts[i], clusterComponent, numTotalSamples)) {
 
         CrossValidation cvalX = cvals[i][0];
@@ -417,8 +420,8 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
                     || (Math.abs(residY[j][i]) < residStandardDeviationFilter * residstdevY[j]
                         && Math.abs(residX[j][i]) < residStandardDeviationFilter
                                                     * residstdevX[j])) {
-                  double tmpDist =
-                      cartDistance(Xs[i], Ys[i], fullXPredicteds[j][i], fullYPredicteds[j][i]);
+                  double tmpDist = cartDistance(Xs[i], Ys[i], fullXPredicteds[j][i],
+                                                fullYPredicteds[j][i]);
                   if (tmpDist < minDist) {
                     minDist = tmpDist;
                     tmpGenotype = (byte) j;
@@ -472,11 +475,12 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
                                                                                      // maximum of 6
                                                                                      // needed
     Hashtable<String, Future<CrossValidation>> tmpResults =
-        new Hashtable<String, Future<CrossValidation>>();
+                                                          new Hashtable<String, Future<CrossValidation>>();
     for (int i = 0; i < genoSampleClusters.length; i++) {
       int clusterComponent =
-          getProperComponent(atComponent, genoClusterCounts[i], i, correctionRatio,
-                             centroid.getMarkerData().getMarkerName(), verbose, proj.getLog());
+                           getProperComponent(atComponent, genoClusterCounts[i], i, correctionRatio,
+                                              centroid.getMarkerData().getMarkerName(), verbose,
+                                              proj.getLog());
       if (verbose) {
         proj.getLog().reportTimeInfo("Attempting to enter regression model with " + clusterComponent
                                      + " principal components for genotype cluster " + i);
@@ -484,17 +488,17 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
       if (validClusterComponent(genoClusterCounts[i], clusterComponent, numTotalSamples)) {
         String keyX = i + "_" + clusterComponent + "_X";
         String keyY = i + "_" + clusterComponent + "_Y";
-        WorkerRegression workerX =
-            new WorkerRegression(this, Xs, genoSampleClusters[i], clusterComponent, lType,
-                                 "Genotype cluster: " + i + " X values for Marker " + centroid.getMarkerData()
-                                                                                              .getMarkerName(),
-                                 verbose, log);
+        WorkerRegression workerX = new WorkerRegression(this, Xs, genoSampleClusters[i],
+                                                        clusterComponent, lType,
+                                                        "Genotype cluster: " + i + " X values for Marker " + centroid.getMarkerData()
+                                                                                                                     .getMarkerName(),
+                                                        verbose, log);
         tmpResults.put(keyX, executor.submit(workerX));
-        WorkerRegression workerY =
-            new WorkerRegression(this, Ys, genoSampleClusters[i], clusterComponent, lType,
-                                 "Genotype cluster: " + i + " Y values for Marker " + centroid.getMarkerData()
-                                                                                              .getMarkerName(),
-                                 verbose, log);
+        WorkerRegression workerY = new WorkerRegression(this, Ys, genoSampleClusters[i],
+                                                        clusterComponent, lType,
+                                                        "Genotype cluster: " + i + " Y values for Marker " + centroid.getMarkerData()
+                                                                                                                     .getMarkerName(),
+                                                        verbose, log);
         tmpResults.put(keyY, executor.submit(workerY));
       } else {
         cvals[i][0] = null;
@@ -504,8 +508,9 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 
     for (int i = 0; i < genoSampleClusters.length; i++) {
       int clusterComponent =
-          getProperComponent(atComponent, genoClusterCounts[i], i, correctionRatio,
-                             centroid.getMarkerData().getMarkerName(), verbose, proj.getLog());
+                           getProperComponent(atComponent, genoClusterCounts[i], i, correctionRatio,
+                                              centroid.getMarkerData().getMarkerName(), verbose,
+                                              proj.getLog());
       if (validClusterComponent(genoClusterCounts[i], clusterComponent, numTotalSamples)) {
         String keyX = i + "_" + clusterComponent + "_X";
         String keyY = i + "_" + clusterComponent + "_Y";
@@ -542,7 +547,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 
   /**
    * Consolidates the results of the clustered regression back into single float[] for X and Y
-   * 
+   *
    */
   private void mergeCorrectedClusters() {
     int[] genoIndices = new int[genoSampleClusters.length];
@@ -593,7 +598,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
    * {@link PrincipalComponentsIntensity#CORRECTION_METHODS}
    * <p>
    * Warning - only samples with principal components will be analyzed
-   * 
+   *
    */
   private void assignGenotypeClusterStatus(byte[] abGenotypes) {
     extractThetaCenters();
@@ -637,10 +642,11 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
             assignTrueAt(i, abGenotypes[i], genoSampleClusters);
             genoClusterCounts[abGenotypes[i]]++;
           } else if (correctionMethod == CORRECTION_INTS[0]) {// assign missing genotype,
-            byte nearestThetaGenotype =
-                findNearestTheta(genotypeThetaCenters,
-                                 Centroids.calcTheta(centroid.getMarkerData().getXs()[i],
-                                                     centroid.getMarkerData().getYs()[i]));
+            byte nearestThetaGenotype = findNearestTheta(genotypeThetaCenters,
+                                                         Centroids.calcTheta(centroid.getMarkerData()
+                                                                                     .getXs()[i],
+                                                                             centroid.getMarkerData()
+                                                                                     .getYs()[i]));
             if (nearestThetaGenotype >= 0) {
               assignTrueAt(i, nearestThetaGenotype, genoSampleClusters);
               genoClusterCounts[nearestThetaGenotype]++;
@@ -870,7 +876,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 
   /**
    * corrects on multiple threads
-   * 
+   *
    *
    */
   public static class PcCorrectionProducer extends AbstractProducer<PrincipalComponentsIntensity> {
@@ -911,20 +917,32 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
     public Callable<PrincipalComponentsIntensity> next() {
       final MarkerData markerData = mdl.next();
       Callable<PrincipalComponentsIntensity> compute =
-          new Callable<PrincipalComponentsIntensity>() {
-            @Override
-            public PrincipalComponentsIntensity call() throws Exception {
-              PrincipalComponentsIntensity principalComponentsIntensity =
-                  new PrincipalComponentsIntensity(pcResiduals, markerData, true, sampleSex,
-                                                   samplesToUseCluster, 1, 0, null, true, lType, 2,
-                                                   5, DEFAULT_RESID_STDV_FILTER,
-                                                   DEFAULT_CORRECTION_RATIO, numCorrectionThreads,
-                                                   false, null);
-              principalComponentsIntensity.correctXYAt(correctAt);
-              return principalComponentsIntensity;
-            }
+                                                     new Callable<PrincipalComponentsIntensity>() {
+                                                       @Override
+                                                       public PrincipalComponentsIntensity call() throws Exception {
+                                                         PrincipalComponentsIntensity principalComponentsIntensity =
+                                                                                                                   new PrincipalComponentsIntensity(pcResiduals,
+                                                                                                                                                    markerData,
+                                                                                                                                                    true,
+                                                                                                                                                    sampleSex,
+                                                                                                                                                    samplesToUseCluster,
+                                                                                                                                                    1,
+                                                                                                                                                    0,
+                                                                                                                                                    null,
+                                                                                                                                                    true,
+                                                                                                                                                    lType,
+                                                                                                                                                    2,
+                                                                                                                                                    5,
+                                                                                                                                                    DEFAULT_RESID_STDV_FILTER,
+                                                                                                                                                    DEFAULT_CORRECTION_RATIO,
+                                                                                                                                                    numCorrectionThreads,
+                                                                                                                                                    false,
+                                                                                                                                                    null);
+                                                         principalComponentsIntensity.correctXYAt(correctAt);
+                                                         return principalComponentsIntensity;
+                                                       }
 
-          };
+                                                     };
       return compute;
     }
 

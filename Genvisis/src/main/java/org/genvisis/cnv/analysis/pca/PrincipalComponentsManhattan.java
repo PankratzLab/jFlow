@@ -39,11 +39,11 @@ import org.genvisis.stats.LeastSquares.LS_TYPE;
  */
 public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   /**
-   * 
+   *
    */
   public static final String PRINCIPAL_MANHATTAN_MI = "Generate manhattan plots";
   private static final String[] HEADER = {"Index", "SNP", "CHR", "BP", "P", "T_STAT_ABS"};
@@ -85,7 +85,8 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
     getProj().getLog().reportTimeInfo("Generating Manhattan plot(s) from " + markersToTest.length
                                       + " markers");
     MarkerDataLoader markerDataLoader =
-        MarkerDataLoader.loadMarkerDataFromListInSeparateThread(getProj(), markersToTest);
+                                      MarkerDataLoader.loadMarkerDataFromListInSeparateThread(getProj(),
+                                                                                              markersToTest);
     for (int i = 0; i < markersToTest.length; i++) {
       if (i != 0 && i % 50 == 0) {
         getProj().getLog().reportTimeInfo("marker " + i + " of " + markersToTest.length);
@@ -238,9 +239,9 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
         tmpdep = Array.subArray(tmpdep, dataMask);
         tmpInd = Array.subArray(tmpInd, dataMask);
       }
-      CrossValidation crossValidation =
-          new CrossValidation(tmpdep, Matrix.toMatrix(tmpInd), tmpdep, Matrix.toMatrix(tmpInd),
-                              verbose, lType, log);
+      CrossValidation crossValidation = new CrossValidation(tmpdep, Matrix.toMatrix(tmpInd), tmpdep,
+                                                            Matrix.toMatrix(tmpInd), verbose, lType,
+                                                            log);
       crossValidation.train();
       crossValidation.computePredictedValues();
       crossValidation.computeResiduals();
@@ -345,15 +346,14 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
       // for " + numMarkers + " marker(s) over " + proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS) + "
       // component(s)?", "Manhattan Plot", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
       // null, ObjButtons, ObjButtons[1]);
-      int promptResult =
-          JOptionPane.showOptionDialog(parentComponent,
-                                       "Generate manhattan plots for " + numMarkers
-                                                        + " marker(s) over "
-                                                        + proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
-                                                        + " component(s)?",
-                                       "Manhattan Plot", JOptionPane.DEFAULT_OPTION,
-                                       JOptionPane.WARNING_MESSAGE, null, ObjButtons,
-                                       ObjButtons[1]);
+      int promptResult = JOptionPane.showOptionDialog(parentComponent,
+                                                      "Generate manhattan plots for " + numMarkers
+                                                                       + " marker(s) over "
+                                                                       + proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
+                                                                       + " component(s)?",
+                                                      "Manhattan Plot", JOptionPane.DEFAULT_OPTION,
+                                                      JOptionPane.WARNING_MESSAGE, null, ObjButtons,
+                                                      ObjButtons[1]);
       if (promptResult == 0) {
         PrincipalComponentsManhattan.createManhattans(proj);
       }
@@ -387,10 +387,12 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
     String[] markers = HashVec.loadFileToStringArray(proj.TARGET_MARKERS_FILENAMES.getValue()[0],
                                                      false, new int[] {0}, true);
     PrincipalComponentsManhattan principalComponentsManhattan =
-        new PrincipalComponentsManhattan(proj, markers, altDataFile == null ? null
-                                                                            : proj.PROJECT_DIRECTORY.getValue()
-                                                                              + altDataFile,
-                                         numPCs);
+                                                              new PrincipalComponentsManhattan(proj,
+                                                                                               markers,
+                                                                                               altDataFile == null ? null
+                                                                                                                   : proj.PROJECT_DIRECTORY.getValue()
+                                                                                                                     + altDataFile,
+                                                                                               numPCs);
     principalComponentsManhattan.populateResults(numThreads, verbose, ltType);
     outputBase = proj.PROJECT_DIRECTORY.getValue() + outputBase;
     new File(ext.parseDirectoryOfFile(outputBase)).mkdirs();
@@ -411,7 +413,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
     usage += "   (1) project filename (i.e. proj=" + filename + " (default))\n" + "";
     usage += "   (2) number of PCs to test (i.e. numPCs=" + numPCs + " (default))\n" + "";
     usage +=
-        "   (3) another data file (under the project's directory) to use in the tests, must have a header with at least this column "
+          "   (3) another data file (under the project's directory) to use in the tests, must have a header with at least this column "
              + ManhattanTest.SAMPLE + " (i.e. altDataFile=" + altDataFile + " (no default))\n" + "";
     usage += "   (4) number of threads (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + numThreads
              + " (default))\n" + "";

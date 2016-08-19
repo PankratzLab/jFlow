@@ -32,8 +32,8 @@ public class gatherSimwalk2 {
     }
     peaks.println();
     for (int chromosome = 1; chromosome <= 23; chromosome++) {
-      chrome =
-          (Integer.valueOf(chromosome + "").intValue() < 10) ? "0" + chromosome : "" + chromosome;
+      chrome = (Integer.valueOf(chromosome + "").intValue() < 10) ? "0" + chromosome
+                                                                  : "" + chromosome;
       peaks.print(chromosome);
       writer = new PrintWriter(new FileWriter("summary" + chrome + ".xls"));
       mrkrNames.removeAllElements();

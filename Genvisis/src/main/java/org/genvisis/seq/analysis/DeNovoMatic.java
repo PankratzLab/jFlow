@@ -67,15 +67,15 @@ public class DeNovoMatic {
 
     // Mutect2.run(null, matchFile, callDir, ponVcf, gatk, type, numThreads, numSampleThreads, log);
     MutectTumorNormal[] results =
-        Mutect2.callSomatic(matchFile, outputDir, ponVcf, gatk, null, null, null, numThreads,
-                            numSampleThreads, false, log);
+                                Mutect2.callSomatic(matchFile, outputDir, ponVcf, gatk, null, null,
+                                                    null, numThreads, numSampleThreads, false, log);
 
-    MergeFamResult[] resultsMerge =
-        prepareResultsForFamilies(gatk, vpop, results, outputDir, numThreads, log);
+    MergeFamResult[] resultsMerge = prepareResultsForFamilies(gatk, vpop, results, outputDir,
+                                                              numThreads, log);
     String[] finalFilesToMerge = new String[resultsMerge.length];
 
     WorkerHive<MergeFamResult> hive =
-        new WorkerHive<DeNovoMatic.MergeFamResult>(numThreads, 10, log);
+                                    new WorkerHive<DeNovoMatic.MergeFamResult>(numThreads, 10, log);
     hive.addCallables(resultsMerge);
     hive.execute(true);
     ArrayList<MergeFamResult> resultsDenovo = hive.getResults();
@@ -90,8 +90,8 @@ public class DeNovoMatic {
     if (!Files.exists(renamed)) {
       VCFTumorNormalOps.renameMergeVCF(mergeDenovoOut, renamed);
     }
-    String annotatedVcf =
-        GATK_Genotyper.annotateOnlyWithDefualtLocations(renamed, annoVCF, false, false, log);
+    String annotatedVcf = GATK_Genotyper.annotateOnlyWithDefualtLocations(renamed, annoVCF, false,
+                                                                          false, log);
     String mergeFinal = VCFOps.getAppropriateRoot(annotatedVcf, false) + ".merged.vcf.gz";
     if (finalVcf != null) {
       gatk.mergeVCFs(new String[] {annotatedVcf, finalVcf}, mergeFinal, numThreads, false, log);
@@ -151,14 +151,15 @@ public class DeNovoMatic {
     }
 
     private void scanForDenovo() {
-      VariantContextFilter filter =
-          FilterNGS.generateFilter(FILTER_GENERATION_TYPE.TN, Double.NaN, false, log);
+      VariantContextFilter filter = FilterNGS.generateFilter(FILTER_GENERATION_TYPE.TN, Double.NaN,
+                                                             false, log);
 
       if (!VCFOps.existsWithIndex(potentialDenovoVcf)) {
         VCFFileReader reader = new VCFFileReader(new File(mergedVCF), true);
-        VariantContextWriter writer =
-            VCFOps.initWriter(potentialDenovoVcf, VCFOps.DEFUALT_WRITER_OPTIONS,
-                              reader.getFileHeader().getSequenceDictionary());
+        VariantContextWriter writer = VCFOps.initWriter(potentialDenovoVcf,
+                                                        VCFOps.DEFUALT_WRITER_OPTIONS,
+                                                        reader.getFileHeader()
+                                                              .getSequenceDictionary());
         HashSet<VCFHeaderLine> newHeader = new HashSet<VCFHeaderLine>();
         // for (VCFHeaderLine vcfHeaderLine : reader.getFileHeader().getMetaDataInInputOrder()) {
         // newHeader.add(vcfHeaderLine);
@@ -170,18 +171,25 @@ public class DeNovoMatic {
         newHeader.addAll(reader.getFileHeader().getFilterLines());
 
         VCFFormatHeaderLine hqInBoth =
-            new VCFFormatHeaderLine("HQ_DNM", VCFHeaderLineCount.UNBOUNDED,
-                                    VCFHeaderLineType.String, "Variant status for custom denovo filters in both MO -> off direction and FA -> OFF direction");
+                                     new VCFFormatHeaderLine("HQ_DNM", VCFHeaderLineCount.UNBOUNDED,
+                                                             VCFHeaderLineType.String,
+                                                             "Variant status for custom denovo filters in both MO -> off direction and FA -> OFF direction");
         VCFFormatHeaderLine ehqInBoth =
-            new VCFFormatHeaderLine("EHQ_DNM", VCFHeaderLineCount.UNBOUNDED,
-                                    VCFHeaderLineType.String, "Variant status for custom and mutect denovo filters in both MO -> off direction and FA -> OFF direction");
+                                      new VCFFormatHeaderLine("EHQ_DNM",
+                                                              VCFHeaderLineCount.UNBOUNDED,
+                                                              VCFHeaderLineType.String,
+                                                              "Variant status for custom and mutect denovo filters in both MO -> off direction and FA -> OFF direction");
 
         VCFFormatHeaderLine hqNonTransmissionP1 =
-            new VCFFormatHeaderLine("HQ_P1_NT", VCFHeaderLineCount.UNBOUNDED,
-                                    VCFHeaderLineType.String, "Variant  status for non-transmission of alleles filters in  P1 -> off direction");
+                                                new VCFFormatHeaderLine("HQ_P1_NT",
+                                                                        VCFHeaderLineCount.UNBOUNDED,
+                                                                        VCFHeaderLineType.String,
+                                                                        "Variant  status for non-transmission of alleles filters in  P1 -> off direction");
         VCFFormatHeaderLine hqNonTransmissionP2 =
-            new VCFFormatHeaderLine("HQ_P2_NT", VCFHeaderLineCount.UNBOUNDED,
-                                    VCFHeaderLineType.String, "Variant  status for non-transmission of alleles filters in  P2 -> off direction");
+                                                new VCFFormatHeaderLine("HQ_P2_NT",
+                                                                        VCFHeaderLineCount.UNBOUNDED,
+                                                                        VCFHeaderLineType.String,
+                                                                        "Variant  status for non-transmission of alleles filters in  P2 -> off direction");
 
         newHeader.add(hqInBoth);
         newHeader.add(ehqInBoth);
@@ -193,17 +201,19 @@ public class DeNovoMatic {
                                                              .getFormatHeaderLines()) {
           originalAtts.add(vcfFormatHeaderLine.getID());
           VCFFormatHeaderLine newFormatP1 =
-              new VCFFormatHeaderLine(vcfFormatHeaderLine.getID() + "_P1",
-                                      vcfFormatHeaderLine.isFixedCount() ? vcfFormatHeaderLine.getCount()
-                                                                         : 1,
-                                      vcfFormatHeaderLine.getType(),
-                                      vcfFormatHeaderLine.getDescription());
+                                          new VCFFormatHeaderLine(vcfFormatHeaderLine.getID()
+                                                                  + "_P1",
+                                                                  vcfFormatHeaderLine.isFixedCount() ? vcfFormatHeaderLine.getCount()
+                                                                                                     : 1,
+                                                                  vcfFormatHeaderLine.getType(),
+                                                                  vcfFormatHeaderLine.getDescription());
           VCFFormatHeaderLine newFormatP2 =
-              new VCFFormatHeaderLine(vcfFormatHeaderLine.getID() + "_P2",
-                                      vcfFormatHeaderLine.isFixedCount() ? vcfFormatHeaderLine.getCount()
-                                                                         : 1,
-                                      vcfFormatHeaderLine.getType(),
-                                      vcfFormatHeaderLine.getDescription());
+                                          new VCFFormatHeaderLine(vcfFormatHeaderLine.getID()
+                                                                  + "_P2",
+                                                                  vcfFormatHeaderLine.isFixedCount() ? vcfFormatHeaderLine.getCount()
+                                                                                                     : 1,
+                                                                  vcfFormatHeaderLine.getType(),
+                                                                  vcfFormatHeaderLine.getDescription());
           // if (!vcfFormatHeaderLine.getID().equals("GT") &&
           // !vcfFormatHeaderLine.getID().equals("AD")) {
           // newHeader.remove(vcfFormatHeaderLine);
@@ -230,11 +240,13 @@ public class DeNovoMatic {
 
           if (g1.sameGenotype(g2)) {// called somatic in both files
             VariantContextFilterPass pass1 =
-                filter.filter(VCOps.getSubset(vcSubOff, g1.getSampleName(),
-                                              VC_SUBSET_TYPE.SUBSET_STRICT));
+                                           filter.filter(VCOps.getSubset(vcSubOff,
+                                                                         g1.getSampleName(),
+                                                                         VC_SUBSET_TYPE.SUBSET_STRICT));
             VariantContextFilterPass pass2 =
-                filter.filter(VCOps.getSubset(vcSubOff, g2.getSampleName(),
-                                              VC_SUBSET_TYPE.SUBSET_STRICT));
+                                           filter.filter(VCOps.getSubset(vcSubOff,
+                                                                         g2.getSampleName(),
+                                                                         VC_SUBSET_TYPE.SUBSET_STRICT));
             GenotypeBuilder g1bBuilder = new GenotypeBuilder(g1);
             g1bBuilder.name(off);
             Hashtable<String, Object> map = new Hashtable<String, Object>();
@@ -307,7 +319,7 @@ public class DeNovoMatic {
                                                             String outputDir, int numThreads,
                                                             Logger log) {
     Hashtable<String, ArrayList<MutectTumorNormal>> offSpringMatch =
-        new Hashtable<String, ArrayList<MutectTumorNormal>>();
+                                                                   new Hashtable<String, ArrayList<MutectTumorNormal>>();
     if (results.length % 2 != 0) {
       throw new IllegalArgumentException("Expecting even number of results");
 
@@ -340,7 +352,9 @@ public class DeNovoMatic {
       String outputMerge = outputDir + fam + ".merge.vcf.gz";
       log.reportTimeInfo("Combining variants for " + fam + " to " + outputMerge);
       MutectTumorNormal[] famResults =
-          offSpringMatch.get(fam).toArray(new MutectTumorNormal[offSpringMatch.get(fam).size()]);
+                                     offSpringMatch.get(fam)
+                                                   .toArray(new MutectTumorNormal[offSpringMatch.get(fam)
+                                                                                                .size()]);
 
       ArrayList<String> toMerge = new ArrayList<String>();
       for (MutectTumorNormal famResult : famResults) {
@@ -354,9 +368,9 @@ public class DeNovoMatic {
       // gatk.mergeVCFs(vcfsToMerge, outputMerge, numThreads, false, log);
       // }
       String[] famMembers = vpop.getOffP1P2ForFam(fam);
-      MergeFamResult mergeFamResult =
-          new MergeFamResult(gatk, famResults, outputMerge, vcfsToMerge, famMembers[0],
-                             famMembers[1], famMembers[2], log);
+      MergeFamResult mergeFamResult = new MergeFamResult(gatk, famResults, outputMerge, vcfsToMerge,
+                                                         famMembers[0], famMembers[1],
+                                                         famMembers[2], log);
       mergeResults.add(mergeFamResult);
     }
     return mergeResults.toArray(new MergeFamResult[mergeResults.size()]);
@@ -439,7 +453,7 @@ public class DeNovoMatic {
     usage += "   (13) full to a vpop file (i.e. vpop= (no default))\n" + "";
     usage += "   (14) full path to a file of bams (i.e. bams= (no default))\n" + "";
     usage +=
-        "   (15) full path to a file of supporting snps (i.e. supportSnps= (no default))\n" + "";
+          "   (15) full path to a file of supporting snps (i.e. supportSnps= (no default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

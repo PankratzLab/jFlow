@@ -78,7 +78,7 @@ public class BamExtractor {
       } else {
         SAMFileHeader samFileHeader = reader.getFileHeader();
         QueryInterval[] qIntervals =
-            convertSegsToQI(segmentsToExtract, samFileHeader, bpBuffer, log);
+                                   convertSegsToQI(segmentsToExtract, samFileHeader, bpBuffer, log);
         qIntervals = QueryInterval.optimizeIntervals(qIntervals);
         if (qIntervals != null) {
           if (verbose) {
@@ -88,9 +88,9 @@ public class BamExtractor {
           }
           bed = getBedIntervals(qIntervals, samFileHeader);
           SAMFileWriter sAMFileWriter =
-              new SAMFileWriterFactory().setCreateIndex(true)
-                                        .makeSAMOrBAMWriter(reader.getFileHeader(), true,
-                                                            new File(outputFile));
+                                      new SAMFileWriterFactory().setCreateIndex(true)
+                                                                .makeSAMOrBAMWriter(reader.getFileHeader(),
+                                                                                    true, new File(outputFile));
           dumpIntervals(reader, sAMFileWriter, ext.removeDirectoryInfo(outputFile), qIntervals,
                         log);
           sAMFileWriter.close();
@@ -148,8 +148,8 @@ public class BamExtractor {
 
     public WorkerExtractor(Segment[] segmentsToExtract, String bamFile, boolean verbose,
                            boolean overWriteExisting, int bpBuffer, String outputBam, Logger log) {
-      bamExtractor =
-          new BamExtractor(segmentsToExtract, bamFile, bpBuffer, verbose, overWriteExisting, log);
+      bamExtractor = new BamExtractor(segmentsToExtract, bamFile, bpBuffer, verbose,
+                                      overWriteExisting, log);
       this.outputBam = outputBam;
     }
 
@@ -342,7 +342,7 @@ public class BamExtractor {
   public static void main(String[] args) {
     // int numArgs = args.length;
     String filename =
-        "D:/data/Project_Tsai_Project_021/testBamExtract/rrd_lane_HapMap_Control_CAGAGAGG-CTCTCTAT.merge.sorted.dedup.realigned.bam";
+                    "D:/data/Project_Tsai_Project_021/testBamExtract/rrd_lane_HapMap_Control_CAGAGAGG-CTCTCTAT.merge.sorted.dedup.realigned.bam";
     test(filename);
   }
 }

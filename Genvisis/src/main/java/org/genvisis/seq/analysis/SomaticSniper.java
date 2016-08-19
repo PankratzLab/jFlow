@@ -113,8 +113,8 @@ public class SomaticSniper {
         throw new IllegalArgumentException("Could not find bam file for Tumor " + tumor
                                            + " or for Normal " + normal);
       } else {
-        TNSample tSample =
-            new TNSample(all.get(normal), normal, all.get(tumor), tumor, somaticParams, log);
+        TNSample tSample = new TNSample(all.get(normal), normal, all.get(tumor), tumor,
+                                        somaticParams, log);
         tnSamples.add(tSample);
         analysisBams.add(all.get(normal));
         analysisBams.add(all.get(tumor));
@@ -239,9 +239,10 @@ public class SomaticSniper {
       commandCall.add(tumorBam);
       commandCall.add(indelPile);
 
-      boolean progress =
-          CmdLine.runCommandWithFileChecks(Array.toStringArray(commandCall), "", inputs, output,
-                                           true, somaticParams.isOverwriteExisting(), false, log);
+      boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(commandCall), "",
+                                                          inputs, output, true,
+                                                          somaticParams.isOverwriteExisting(),
+                                                          false, log);
       if (progress) {
         ArrayList<String> commandFilt = new ArrayList<String>();
         commandFilt.add("perl");
@@ -253,9 +254,9 @@ public class SomaticSniper {
         String[] runBat = CmdLine.prepareBatchForCommandLine(Array.toStringArray(commandFilt),
                                                              indelPileFilt + ".sh", true, log);
         progress =
-            CmdLine.runCommandWithFileChecks(runBat, "", new String[] {indelPile},
-                                             new String[] {indelPileFilt}, true,
-                                             somaticParams.isOverwriteExisting(), false, log);
+                 CmdLine.runCommandWithFileChecks(runBat, "", new String[] {indelPile},
+                                                  new String[] {indelPileFilt}, true,
+                                                  somaticParams.isOverwriteExisting(), false, log);
       }
       return progress;
 
@@ -268,9 +269,9 @@ public class SomaticSniper {
       String[] outputs = new String[] {output};
       String[] command = somaticParams.generateCommand(normalBam, tumorBam, output);
 
-      boolean progress =
-          CmdLine.runCommandWithFileChecks(command, "", inputs, outputs, true,
-                                           somaticParams.isOverwriteExisting(), false, log);
+      boolean progress = CmdLine.runCommandWithFileChecks(command, "", inputs, outputs, true,
+                                                          somaticParams.isOverwriteExisting(),
+                                                          false, log);
 
       if (progress) {
 
@@ -293,11 +294,11 @@ public class SomaticSniper {
 
   public static void main(String[] args) {
     String bams =
-        "/scratch.global/lane0212/Project_Tsai_Project_028/151120_D00635_0090_BC81JNANXX/somaticSniper/results/TN.vpop.analysis.bams";
+                "/scratch.global/lane0212/Project_Tsai_Project_028/151120_D00635_0090_BC81JNANXX/somaticSniper/results/TN.vpop.analysis.bams";
     String vpop =
-        "/scratch.global/lane0212/Project_Tsai_Project_028/151120_D00635_0090_BC81JNANXX/somaticSniper/TN.vpop";
+                "/scratch.global/lane0212/Project_Tsai_Project_028/151120_D00635_0090_BC81JNANXX/somaticSniper/TN.vpop";
     String outputDir =
-        "/scratch.global/lane0212/Project_Tsai_Project_028/151120_D00635_0090_BC81JNANXX/somaticSniper/results/";
+                     "/scratch.global/lane0212/Project_Tsai_Project_028/151120_D00635_0090_BC81JNANXX/somaticSniper/results/";
     String refGenome = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
     String somaticSnipLoc = "/home/pankrat2/public/bin/somaticSniper/somatic-sniper/";
     String gatkLoc = "/home/pankrat2/public/bin/GATK/";
@@ -306,8 +307,8 @@ public class SomaticSniper {
     new File(outputDir).mkdirs();
     Logger log = new Logger(outputDir + "somaticSniper.log");
     GATK gatk = new GATK(gatkLoc, refGenome, null, true, false, log);
-    SomaticParams params =
-        new SomaticParams(somaticSnipLoc, gatk.getReferenceGenomeFasta(), outputDir, false);
+    SomaticParams params = new SomaticParams(somaticSnipLoc, gatk.getReferenceGenomeFasta(),
+                                             outputDir, false);
     run(gatk, params, bams, vpop, numThreads, log);
 
   }

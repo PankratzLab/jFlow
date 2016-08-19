@@ -25,10 +25,11 @@ import org.genvisis.filesys.Segment;
  *
  */
 public class CytoCompare {
-  private static final String[] OUTPUT_HEADER =
-      {"REGION", "UCSC_LINK", "ISCN", "INTERPRETATION", "GENE(s)", "AVERAGE_LOG_RATIO",
-       "NUMBER_OF_PROBES", "CNP_OVERLAP", "REPORTED_OVERLAP", "UNREPORTED_OVERLAP",
-       "NUM_UNREPORTED", "BEAST_SCORE"};
+  private static final String[] OUTPUT_HEADER = {"REGION", "UCSC_LINK", "ISCN", "INTERPRETATION",
+                                                 "GENE(s)", "AVERAGE_LOG_RATIO", "NUMBER_OF_PROBES",
+                                                 "CNP_OVERLAP", "REPORTED_OVERLAP",
+                                                 "UNREPORTED_OVERLAP", "NUM_UNREPORTED",
+                                                 "BEAST_SCORE"};
   private static final String[] TRACK_HEADERS = {"track name="};
   private static final String[] CHR = {"chr"};
   private static final int[] INDICES_TO_LOAD = {0, 1, 2};
@@ -48,7 +49,7 @@ public class CytoCompare {
    * @param outputDir output directory
    * @param computeBeast compute the Beast score (requires project and sample data)
    * @param log
-   * 
+   *
    * @return String[][] containing the full paths to the output files after parsing
    *         cytoCNVariantFiles
    */
@@ -110,8 +111,8 @@ public class CytoCompare {
     BeastScore[] beastScores = beast(proj, cytoCNVariantInds, computeBeast, log);
     for (int i = 0; i < cytoCNVariantInds.length; i++) {
       if (cytoCNVariantInds[i].length > 0) {
-        String ind =
-            cytoCNVariantInds[i][0].getFamilyID() + "_" + cytoCNVariantInds[i][0].getIndividualID();
+        String ind = cytoCNVariantInds[i][0].getFamilyID() + "_"
+                     + cytoCNVariantInds[i][0].getIndividualID();
         String output = ind + EXT;
         outputs[i] = outputDir + output;
         checkFile(outputDir, output, log);
@@ -125,11 +126,11 @@ public class CytoCompare {
 
             String report = cytoCNVariantInds[i][j].getMyReport();
             report +=
-                getOverLapSummary(cytoCNVariantInds[i][j], cnpSegs, scoreThreshold, false, log);
-            report +=
-                getOverLapSummary(cytoCNVariantInds[i][j], reportSegs, scoreThreshold, false, log);
-            report +=
-                getOverLapSummary(cytoCNVariantInds[i][j], unReportSegs, scoreThreshold, true, log);
+                   getOverLapSummary(cytoCNVariantInds[i][j], cnpSegs, scoreThreshold, false, log);
+            report += getOverLapSummary(cytoCNVariantInds[i][j], reportSegs, scoreThreshold, false,
+                                        log);
+            report += getOverLapSummary(cytoCNVariantInds[i][j], unReportSegs, scoreThreshold, true,
+                                        log);
 
             if (beastScores == null || beastScores[i] == null) {
               report += SPLITS[0] + ext.MISSING_VALUES[2];
@@ -151,7 +152,7 @@ public class CytoCompare {
   /**
    * Computes the beast score for an aberration (if computeBeast is flagged, and a valid
    * project/sample data file exists
-   * 
+   *
    * @param proj
    * @param cNVariantInds CNVariant[][] organized as cNVariantInds[sample0][variantsForSample0]
    * @param computeBeast flag to even try
@@ -180,7 +181,7 @@ public class CytoCompare {
 
   /**
    * If we have valid segments to compare to, we compute the overlap
-   * 
+   *
    * @param cytoCNVariantIndsSegment
    * @param segs
    * @param scoreThreshold
@@ -218,14 +219,16 @@ public class CytoCompare {
                                                             Segment[] compareSegs,
                                                             double scoreThreshold, Logger log) {
     Segment.SegmentCompare cytoAgilentCompare =
-        cytoCNVariantIndsSegment.new SegmentCompare(compareSegs, scoreThreshold, log);
+                                              cytoCNVariantIndsSegment.new SegmentCompare(compareSegs,
+                                                                                          scoreThreshold,
+                                                                                          log);
     cytoAgilentCompare.compare();
     return cytoAgilentCompare;
   }
 
   /**
    * We allow null input and output
-   * 
+   *
    * @param segFile
    * @param log
    * @return
@@ -266,8 +269,8 @@ public class CytoCompare {
           String[] line = reader.readLine().trim().split(SPLITS[0]);
           if (line.length >= 3) {
             try {
-              byte chr =
-                  Positions.chromosomeNumber(line[INDICES_TO_LOAD[0]].replaceAll(" ", ""), log);
+              byte chr = Positions.chromosomeNumber(line[INDICES_TO_LOAD[0]].replaceAll(" ", ""),
+                                                    log);
               int start = Integer.parseInt(line[INDICES_TO_LOAD[1]]);
               int stop = Integer.parseInt(line[INDICES_TO_LOAD[2]]);
               segs.add(new Segment(chr, start, stop));
@@ -317,7 +320,7 @@ public class CytoCompare {
     String cnpFile = "D:/data/Hirch_CYTO/Hirch_Cytolab/HG19 CNV edit for AGW.txt";
     String reportedOverlapFile = "D:/data/Hirch_CYTO/Hirch_Cytolab/HG19 Reported 2012.05.22.txt";
     String unreportedOverlapFile =
-        "D:/data/Hirch_CYTO/Hirch_Cytolab/HG19 Unreported 2012.05.22-2.txt";
+                                 "D:/data/Hirch_CYTO/Hirch_Cytolab/HG19 Unreported 2012.05.22-2.txt";
     String outputDir = "D:/data/Hirch_CYTO/Hirch_Cytolab/";
     String logFile = "D:/data/Hirch_CYTO/Hirch_Cytolab/Cytolog.log";
     double scoreThreshold = DEFAULT_SCORE_THRESHOLD;
@@ -333,18 +336,18 @@ public class CytoCompare {
     usage += "   (3) a file of reported aberrations to compute overlap (i.e. reportedOverlapFile="
              + reportedOverlapFile + " (default))\n";
     usage +=
-        "   (4) a file of un-reported aberrations to compute overlap (i.e. unreportedOverlapFile="
+          "   (4) a file of un-reported aberrations to compute overlap (i.e. unreportedOverlapFile="
              + unreportedOverlapFile + " (default))\n";
     usage += "   (5) the threshold to start counting aberration overlap (i.e. scoreThreshold="
              + scoreThreshold + " (default))\n";
     usage +=
-        "   (6) the output directory, output will be named according to the sample names in the cyto call file (i.e. outputDir="
+          "   (6) the output directory, output will be named according to the sample names in the cyto call file (i.e. outputDir="
              + outputDir + " (default))\n";
     usage += "   OPTIONAL: ";
     usage +=
-        "   (8) compute beast scores (a valid sample data file must exist, samples must be parsed, and a project file must be provided) in addition to comparing segments (i.e.-beast (not the default))\n";
+          "   (8) compute beast scores (a valid sample data file must exist, samples must be parsed, and a project file must be provided) in addition to comparing segments (i.e.-beast (not the default))\n";
     usage +=
-        "   (7) filename of the project (Only neccesary if computing Beast Scores (i.e. filename="
+          "   (7) filename of the project (Only neccesary if computing Beast Scores (i.e. filename="
              + filename + " (no default))\n";
     usage += "   (8) name of the log file (i.e. logFile=" + logFile + " (default))\n";
     usage += "   (9) directory where cyto call file is located (i.e. dir=" + dir + " (default))\n";

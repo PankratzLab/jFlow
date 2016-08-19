@@ -37,17 +37,23 @@ public class ParseKcol implements Runnable {
   public static final String CANCEL_OPTION_FILE = ".cancel_option";
   public static final String HOLD_OPTION_FILE = ".hold_option";
   public static final String FILENAME_AS_ID_OPTION = "[FILENAME_ROOT]";
-  public static final String[][] SNP_TABLE_FIELDS =
-      {{"Name", "SNP Name"}, {"Chr", "Chromosome"}, {"Position"}};
-  public static final String[][] DATA_FIELDS =
-      {{"GC Score", "GCscore", "Confidence"}, {"X Raw"}, {"Y Raw"},
-       {"X", "Chr", "Xvalue", "Log Ratio", "intensity_1", "Signal A"},
-       {"Y", "Yvalue", "Chr", "Strength", "intensity_2", "Signal B"}, {"Theta"}, {"R"},
-       {"B Allele Freq"}, {"Log R Ratio"}};
-  public static final String[][] GENOTYPE_FIELDS =
-      {{"Allele1 - Forward", "Position", "Allele1", "genotype1", "Call"},
-       {"Allele2 - Forward", "Position", "Allele2", "genotype2", "Forced Call"}, {"Allele1 - AB"},
-       {"Allele2 - AB"}, {"Forward Strand Base Calls"}, {"Call Codes"}};
+  public static final String[][] SNP_TABLE_FIELDS = {{"Name", "SNP Name"}, {"Chr", "Chromosome"},
+                                                     {"Position"}};
+  public static final String[][] DATA_FIELDS = {{"GC Score", "GCscore", "Confidence"}, {"X Raw"},
+                                                {"Y Raw"},
+                                                {"X", "Chr", "Xvalue", "Log Ratio", "intensity_1",
+                                                 "Signal A"},
+                                                {"Y", "Yvalue", "Chr", "Strength", "intensity_2",
+                                                 "Signal B"},
+                                                {"Theta"}, {"R"}, {"B Allele Freq"},
+                                                {"Log R Ratio"}};
+  public static final String[][] GENOTYPE_FIELDS = {
+                                                    {"Allele1 - Forward", "Position", "Allele1",
+                                                     "genotype1", "Call"},
+                                                    {"Allele2 - Forward", "Position", "Allele2",
+                                                     "genotype2", "Forced Call"},
+                                                    {"Allele1 - AB"}, {"Allele2 - AB"},
+                                                    {"Forward Strand Base Calls"}, {"Call Codes"}};
   // Log R Ratio
   // B Allele Freq
   private final Project proj;
@@ -141,7 +147,7 @@ public class ParseKcol implements Runnable {
           // reader = new BufferedReader(new
           // FileReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[i]));
           reader =
-              Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[i]);
+                 Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[i]);
           do {
             line = reader.readLine().trim().split(delimiter, -1);
           } while (reader.ready() && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false,
@@ -220,8 +226,8 @@ public class ParseKcol implements Runnable {
             line = testline.split(delimiter);
             if (idHeader.equals(FILENAME_AS_ID_OPTION)) {
               trav =
-                  files[i].substring(0,
-                                     files[i].indexOf(proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)));;
+                   files[i].substring(0,
+                                      files[i].indexOf(proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)));;
             } else {
               if (parseAtAt && line[sampIndex].indexOf("@") == -1) {
                 System.err.println("Error - " + idHeader + " '" + line[sampIndex]
@@ -291,9 +297,9 @@ public class ParseKcol implements Runnable {
               line[genotypeIndices[1]] = A;
 
             }
-            genotypes[0][key] =
-                (byte) ext.indexOfStr(line[genotypeIndices[0]] + line[genotypeIndices[1]],
-                                      Sample.ALLELE_PAIRS);
+            genotypes[0][key] = (byte) ext.indexOfStr(line[genotypeIndices[0]]
+                                                      + line[genotypeIndices[1]],
+                                                      Sample.ALLELE_PAIRS);
             if (genotypes[0][key] == -1) {
               if (ext.indexOfStr(line[genotypeIndices[0]] + line[genotypeIndices[1]],
                                  Sample.ALT_NULLS) == -1) {
@@ -308,8 +314,8 @@ public class ParseKcol implements Runnable {
               // do nothing, will need to use these files to determine AB lookup table
             } else if (abLookup == null) {
               genotypes[1][key] =
-                  (byte) ext.indexOfStr(line[genotypeIndices[2]] + line[genotypeIndices[3]],
-                                        Sample.AB_PAIRS);
+                                (byte) ext.indexOfStr(line[genotypeIndices[2]]
+                                                      + line[genotypeIndices[3]], Sample.AB_PAIRS);
             } else {
               if (genotypes[0][key] == 0) {
                 genotypes[1][key] = -1;
@@ -349,8 +355,8 @@ public class ParseKcol implements Runnable {
             sampleName = fixes.get(sampleName);
           }
 
-          filename =
-              determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName, timeBegan);
+          filename = determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName,
+                                       timeBegan);
           if (filename == null) {
             return;
           }
@@ -506,16 +512,15 @@ public class ParseKcol implements Runnable {
         response = 1;
       } else {
         do {
-          response =
-              JOptionPane.showOptionDialog(null,
-                                           "Error - the same sample name '" + sampleName
-                                                 + "' is being parsed again and the previous file existed before the current command began.\n"
-                                                 + "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"
-                                                 + "If you would like to start from scratch, the safest thing would be to cancel now and delete all files in the sample directory.\n"
-                                                 + "What would you like to do?",
-                                           "What to do?", JOptionPane.DEFAULT_OPTION,
-                                           JOptionPane.QUESTION_MESSAGE, null, overwriteOptions,
-                                           overwriteOptions[0]);
+          response = JOptionPane.showOptionDialog(null,
+                                                  "Error - the same sample name '" + sampleName
+                                                        + "' is being parsed again and the previous file existed before the current command began.\n"
+                                                        + "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"
+                                                        + "If you would like to start from scratch, the safest thing would be to cancel now and delete all files in the sample directory.\n"
+                                                        + "What would you like to do?",
+                                                  "What to do?", JOptionPane.DEFAULT_OPTION,
+                                                  JOptionPane.QUESTION_MESSAGE, null,
+                                                  overwriteOptions, overwriteOptions[0]);
         } while (response == -1);
       }
       new File(dir + HOLD_OPTION_FILE).delete();
@@ -721,8 +726,8 @@ public class ParseKcol implements Runnable {
       idHeader = proj.getProperty(proj.ID_HEADER);
       if (idHeader.equals(FILENAME_AS_ID_OPTION)) {
         sampleName =
-            files[0].substring(0,
-                               files[0].indexOf(proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)));
+                   files[0].substring(0,
+                                      files[0].indexOf(proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)));
       } else {
         sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
         reader.mark(1000);
@@ -743,16 +748,16 @@ public class ParseKcol implements Runnable {
         overwriteOptions = new String[] {"Delete All", "Customize", "Cancel parser"};
 
         response =
-            JOptionPane.showOptionDialog(null,
-                                         "These data (at least the first sample '" + sampleName
-                                               + "') have already been parsed.\n"
-                                               + "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"
-                                               + "If you would like to start from scratch, select \"Delete All\" earlier files.\n"
-                                               + "Otherwise, cancel or you can \"Customize\" and determine what to do on a sample-by-sample basis.\n"
-                                               + "What would you like to do?",
-                                         "What to do?", JOptionPane.DEFAULT_OPTION,
-                                         JOptionPane.QUESTION_MESSAGE, null, overwriteOptions,
-                                         overwriteOptions[2]);
+                 JOptionPane.showOptionDialog(null,
+                                              "These data (at least the first sample '" + sampleName
+                                                    + "') have already been parsed.\n"
+                                                    + "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"
+                                                    + "If you would like to start from scratch, select \"Delete All\" earlier files.\n"
+                                                    + "Otherwise, cancel or you can \"Customize\" and determine what to do on a sample-by-sample basis.\n"
+                                                    + "What would you like to do?",
+                                              "What to do?", JOptionPane.DEFAULT_OPTION,
+                                              JOptionPane.QUESTION_MESSAGE, null, overwriteOptions,
+                                              overwriteOptions[2]);
 
         switch (response) {
           case -1:
@@ -906,8 +911,8 @@ public class ParseKcol implements Runnable {
     if (abLookupRequired && Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
       // abLookup = new ABLookup(markerNames, proj.getFilename(proj.AB_LOOKUP_FILENAME), true,
       // false, proj.getLog());
-      abLookup =
-          new ABLookup(markerNames, proj.AB_LOOKUP_FILENAME.getValue(), true, false, proj.getLog());
+      abLookup = new ABLookup(markerNames, proj.AB_LOOKUP_FILENAME.getValue(), true, false,
+                              proj.getLog());
       lookup = abLookup.getLookup();
       if (lookup == null) {
         System.err.println("Warning - filed to provide columns \"" + GENOTYPE_FIELDS[2][0]
@@ -987,7 +992,7 @@ public class ParseKcol implements Runnable {
           // reader = new BufferedReader(new
           // FileReader(proj.getDir(proj.SOURCE_DIRECTORY)+files[i]));
           reader =
-              Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[i]);
+                 Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[i]);
           do {
             line = reader.readLine().trim().split(delimiter, -1);
           } while (reader.ready()
@@ -1158,8 +1163,8 @@ public class ParseKcol implements Runnable {
               .writeToTextFile(proj.PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt");
 
     try {
-      writer =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "ListOfMarkers.txt"));
+      writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+                                              + "ListOfMarkers.txt"));
       writer.println("Marker\tExpected\tTimesSeen\tTimesDuplicated");
       for (String markerName : markerNames) {
         writer.println(markerName + "\t1\t" + countHash.getCount(markerName) + "\t"
@@ -1259,15 +1264,15 @@ public class ParseKcol implements Runnable {
     }
 
     String[] dirList = Files.listDirectories(proj.SOURCE_DIRECTORY.getValue(false, true), false);
-    String[] chunkFiles =
-        Files.list(proj.SOURCE_DIRECTORY.getValue(false, true) + dirList[0] + commonSubFolder,
-                   proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+    String[] chunkFiles = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true) + dirList[0]
+                                     + commonSubFolder,
+                                     proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
 
     int counts = 0;
 
     for (int j = 0; j < chunkFiles.length; j++) {
-      writer =
-          Files.getAppropriateWriter(proj.SOURCE_DIRECTORY.getValue(false, true) + chunkFiles[j]);
+      writer = Files.getAppropriateWriter(proj.SOURCE_DIRECTORY.getValue(false, true)
+                                          + chunkFiles[j]);
       System.out.println("merging files " + (j + 1) + " of " + chunkFiles.length);
 
       for (int i = 0; i < dirList.length; i++) {

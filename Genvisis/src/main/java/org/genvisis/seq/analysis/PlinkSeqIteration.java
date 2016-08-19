@@ -69,7 +69,7 @@ public class PlinkSeqIteration {
     usage += "   (1) full path to a dir with vcfs (i.e. vcf= (no default))\n" + "";
     usage += "   (2) full path to a plinkseq phenotype file (i.e. phenoFile= (no default))\n" + "";
     usage +=
-        "   (3) full path to a plinkseq resource directory  (i.e. resourceDirectory= (no default))\n"
+          "   (3) full path to a plinkseq resource directory  (i.e. resourceDirectory= (no default))\n"
              + "";
     usage += "   (4) overwrite existing files  (i.e. -overwriteExisting (default))\n" + "";
     usage += "   (5) analysis output root  (i.e. outputRoot=" + outputRoot + " (default))\n" + "";

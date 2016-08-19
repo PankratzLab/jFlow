@@ -75,8 +75,8 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
       }
       if (additionReader != null) {
         if (!additionReader.hasNext()) {
-          String error =
-              "Mismatched number of entries in " + annotationFilename + " , cancelling addition...";
+          String error = "Mismatched number of entries in " + annotationFilename
+                         + " , cancelling addition...";
           proj.getLog().reportTimeError(error);
           throw new IllegalStateException(error);
         } else {
@@ -167,20 +167,22 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
   @Override
   public void init() {
     if (validate()) {
-      VCFHeader vcfHeader =
-          additionMode ? new VCFFileReader(new File(annotationFilename), true).getFileHeader()
-                       : new VCFHeader();// take previous header if needed
+      VCFHeader vcfHeader = additionMode
+                                         ? new VCFFileReader(new File(annotationFilename), true)
+                                                                                                .getFileHeader()
+                                         : new VCFHeader();// take previous header if needed
       for (int i = 0; i < annotations.length; i++) {
         if (!vcfHeader.hasInfoLine(annotations[i].getName())) {
           VCFInfoHeaderLine vHeaderLine = null;
           if (annotations[i].getCount() != null) {
-            vHeaderLine =
-                new VCFInfoHeaderLine(annotations[i].getName(), annotations[i].getCount(),
-                                      annotations[i].getType(), annotations[i].getDescription());
+            vHeaderLine = new VCFInfoHeaderLine(annotations[i].getName(), annotations[i].getCount(),
+                                                annotations[i].getType(),
+                                                annotations[i].getDescription());
           } else {
             vHeaderLine =
-                new VCFInfoHeaderLine(annotations[i].getName(), annotations[i].getNumber(),
-                                      annotations[i].getType(), annotations[i].getDescription());
+                        new VCFInfoHeaderLine(annotations[i].getName(), annotations[i].getNumber(),
+                                              annotations[i].getType(),
+                                              annotations[i].getDescription());
           }
 
           vcfHeader.addMetaDataLine(vHeaderLine);
@@ -198,11 +200,11 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
         }
       }
       VariantContextWriterBuilder builder =
-          new VariantContextWriterBuilder().setOutputFile(additionMode ? tmpFile
-                                                                       : annotationFilename);// tmp
-                                                                                             // file
-                                                                                             // if
-                                                                                             // needed
+                                          new VariantContextWriterBuilder().setOutputFile(additionMode ? tmpFile
+                                                                                                       : annotationFilename);// tmp
+                                                                                                                             // file
+                                                                                                                             // if
+                                                                                                                             // needed
       builder.clearOptions();
       builder.setOption(Options.INDEX_ON_THE_FLY);
       builder.setOption(Options.DO_NOT_WRITE_GENOTYPES);
@@ -211,10 +213,12 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
       proj.getLog().reportTimeInfo("Using reference genome" + refGenome);
 
       SAMSequenceDictionary samSequenceDictionary =
-          new ReferenceGenome(refGenome, proj.getLog()).getIndexedFastaSequenceFile()
-                                                       .getSequenceDictionary();
+                                                  new ReferenceGenome(refGenome,
+                                                                      proj.getLog()).getIndexedFastaSequenceFile()
+                                                                                    .getSequenceDictionary();
       SAMSequenceDictionary upDatedSamSequenceDictionary =
-          getUpdatedSamSequenceDictionary(proj, samSequenceDictionary);
+                                                         getUpdatedSamSequenceDictionary(proj,
+                                                                                         samSequenceDictionary);
 
       builder.setReferenceDictionary(upDatedSamSequenceDictionary);
       vcfHeader.setSequenceDictionary(upDatedSamSequenceDictionary);
@@ -265,8 +269,8 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
         if (contig > 0) {
           samSequenceRecord.setSequenceIndex(currentIndex);
 
-          int contigProjLength =
-              Array.max(Array.subArray(markerSet.getPositions(), indicesByChr[contig]));
+          int contigProjLength = Array.max(Array.subArray(markerSet.getPositions(),
+                                                          indicesByChr[contig]));
           if (samSequenceRecord.getSequenceLength() < contigProjLength) {
             proj.getLog()
                 .reportTimeError(samSequenceRecord.getSequenceName() + " had length "
@@ -304,8 +308,8 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
       int[] chrMLen = Array.subArray(markerSet.getPositions(), indicesByChr[26]);
       proj.getLog()
           .reportTimeInfo("Since the project contained markers designated as mitochondrial, a chrM entry is being added");
-      mitoRecord =
-          mitoRecord != null ? mitoRecord : new SAMSequenceRecord("chrM", Array.max(chrMLen) + 1);
+      mitoRecord = mitoRecord != null ? mitoRecord
+                                      : new SAMSequenceRecord("chrM", Array.max(chrMLen) + 1);
       mitoRecord.setSequenceIndex(currentIndex);
       updatedRecords.add(mitoRecord);
     }

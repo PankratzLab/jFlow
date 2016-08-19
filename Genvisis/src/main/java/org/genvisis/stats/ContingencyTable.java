@@ -283,9 +283,9 @@ public class ContingencyTable {
     expecteds = computeExpecteds(data);
     for (int i = 0; i < data.length; i++) {
       for (int j = 0; j < data[i].length; j++) {
-        residuals[i][j] =
-            (data[i][j] - expecteds[i][j]) / Math.sqrt(expecteds[i][j] * (1 - rowSums[i] / total)
-                                                       * (1 - colSums[j] / total));
+        residuals[i][j] = (data[i][j] - expecteds[i][j])
+                          / Math.sqrt(expecteds[i][j] * (1 - rowSums[i] / total)
+                                      * (1 - colSums[j] / total));
       }
     }
 

@@ -39,13 +39,15 @@ public class MarkerBlastQC {
     }
     MarkerSet markerSet = proj.getMarkerSet();
     String[] markerNames = markerSet.getMarkerNames();
-    MarkerAnnotationLoader markerAnnotationLoader =
-        new MarkerAnnotationLoader(proj, null, proj.BLAST_ANNOTATION_FILENAME.getValue(),
-                                   proj.getMarkerSet(), true);
+    MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(proj, null,
+                                                                               proj.BLAST_ANNOTATION_FILENAME.getValue(),
+                                                                               proj.getMarkerSet(),
+                                                                               true);
     markerAnnotationLoader.setReportEvery(500000);
     MarkerGCAnnotation[] gcAnnotations =
-        MarkerGCAnnotation.initForMarkers(proj, markerNames, markerAnnotationLoader.getMarkerSet(),
-                                          markerAnnotationLoader.getIndices());
+                                       MarkerGCAnnotation.initForMarkers(proj, markerNames,
+                                                                         markerAnnotationLoader.getMarkerSet(),
+                                                                         markerAnnotationLoader.getIndices());
     MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(markerNames);
     ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
     parsers.add(gcAnnotations);
@@ -58,7 +60,8 @@ public class MarkerBlastQC {
     for (int i = 0; i < blastResults.length; i++) {
       MarkerBlastAnnotation current = blastResults[i];
       ArrayList<BlastAnnotation> perfectMatches =
-          current.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH, log);
+                                                current.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
+                                                                          log);
       if (perfectMatches.size() == 1) {
         int[] alignmentHistogram = current.getAlignmentHistogram(proj);
         int sub = (int) Math.round(crossHybePercent * alignmentHistogram.length);

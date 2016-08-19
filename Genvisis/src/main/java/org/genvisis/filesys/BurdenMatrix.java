@@ -1,8 +1,6 @@
 // expand to dynamically load/save a certain chunk of markers at a time
 package org.genvisis.filesys;
 
-import com.google.common.primitives.Ints;
-
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -24,16 +22,23 @@ import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.RegressionModel;
 
+import com.google.common.primitives.Ints;
+
 public class BurdenMatrix implements Serializable {
   public static final long serialVersionUID = 1L;
 
-  public static final String[] ALL_KNOWN_ANNOTATIONS =
-      {"ncRNA", "stoploss_SNV", "synonymous_SNV", "intronic", "UTR3", "upstream",
-       "nonsynonymous_SNV", "splicing", "stopgain_SNV", "intergenic", "stoploss_SNV", "downstream",
-       "stopgain_SNV", "synonymous_SNV", "unknown", "nonsynonymous_SNV", "UTR5", "exonic_splicing"};
+  public static final String[] ALL_KNOWN_ANNOTATIONS = {"ncRNA", "stoploss_SNV", "synonymous_SNV",
+                                                        "intronic", "UTR3", "upstream",
+                                                        "nonsynonymous_SNV", "splicing",
+                                                        "stopgain_SNV", "intergenic",
+                                                        "stoploss_SNV", "downstream",
+                                                        "stopgain_SNV", "synonymous_SNV", "unknown",
+                                                        "nonsynonymous_SNV", "UTR5",
+                                                        "exonic_splicing"};
   public static final String[] DEFAULT_ANNOTATIONS_TO_INCLUDE =
-      {"TRUE", "1", "stopgain_SNV", "stoploss_SNV", "nonsynonymous_SNV", "splicing",
-       "exonic_splicing"};
+                                                              {"TRUE", "1", "stopgain_SNV",
+                                                               "stoploss_SNV", "nonsynonymous_SNV",
+                                                               "splicing", "exonic_splicing"};
   public static final String[] ANNOTATION_DELIMITERS = {"/"};
 
   private SnpMarkerSet markerSet;
@@ -83,8 +88,8 @@ public class BurdenMatrix implements Serializable {
     markerNames = markerSet.getMarkerNames();
 
     if (variantWeightsFile != null) {
-      importedWeights =
-          HashVec.loadFileToStringMatrix(variantWeightsFile, false, new int[] {0, 1}, false);
+      importedWeights = HashVec.loadFileToStringMatrix(variantWeightsFile, false, new int[] {0, 1},
+                                                       false);
       weightsHash = new Hashtable<String, Double>();
       for (int i = 0; i < importedWeights.length; i++) {
         try {
@@ -650,7 +655,10 @@ public class BurdenMatrix implements Serializable {
       // maxValueOfOne = false;
       mafThresholdToStartImputing = 0.01;
       imputeUsingDataFreqFromTheseIDsNotAnnotationFreq =
-          RegressionModel.getIDsWithCompleteData(dir + "phenall.csv", false, log);
+                                                       RegressionModel.getIDsWithCompleteData(dir
+                                                                                              + "phenall.csv",
+                                                                                              false,
+                                                                                              log);
 
 
       if (Files.exists(genoFile + ".ser")) {

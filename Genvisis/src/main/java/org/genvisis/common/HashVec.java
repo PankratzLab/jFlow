@@ -260,8 +260,8 @@ public class HashVec {
   }
 
   public static Hashtable<String, Integer> loadToHashIndices(String[] list, Logger log) {
-    Hashtable<String, Integer> hash =
-        new Hashtable<String, Integer>((list == null ? 10 : list.length));
+    Hashtable<String, Integer> hash = new Hashtable<String, Integer>((list == null ? 10
+                                                                                   : list.length));
 
     for (int i = 0; list != null && i < list.length; i++) {
       if (list[i] == null) {
@@ -304,8 +304,8 @@ public class HashVec {
                                                boolean ignoreFirstLine, int[] cols,
                                                boolean trimFirst, boolean onlyIfAbsent,
                                                String delimiter) {
-    Vector<String> v =
-        loadFileToVec(filename, ignoreFirstLine, cols, trimFirst, onlyIfAbsent, jar, delimiter);
+    Vector<String> v = loadFileToVec(filename, ignoreFirstLine, cols, trimFirst, onlyIfAbsent, jar,
+                                     delimiter);
     return v == null ? null : Array.toStringArray(v);
   }
 
@@ -597,7 +597,7 @@ public class HashVec {
     BufferedReader reader = null;
     String[] line;
     Hashtable<String, Hashtable<String, String>> hashes =
-        new Hashtable<String, Hashtable<String, String>>();
+                                                        new Hashtable<String, Hashtable<String, String>>();
     String temp;
 
     try {
@@ -636,7 +636,7 @@ public class HashVec {
     BufferedReader reader = null;
     String[] line;
     Hashtable<String, Hashtable<String, Vector<String>>> hashes =
-        new Hashtable<String, Hashtable<String, Vector<String>>>();
+                                                                new Hashtable<String, Hashtable<String, Vector<String>>>();
     String temp, str;
 
     try {

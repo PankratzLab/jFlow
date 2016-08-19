@@ -119,11 +119,15 @@ public class ExtProjectDataParser {
               }
               if (typedFileLine.hasStringData() && stringData != null) {
                 for (int i = 0; i < stringData.length; i++) {
-                  stringData[i][dataIndex] =
-                      (concat ? stringData[i][dataIndex] + typedFileParser.getSeparator()
-                                + typedFileLine.getStringData()[1][i]
-                              : typedFileLine.getStringData()[1][i]);// 0 is reserved for the
-                                                                     // samples
+                  stringData[i][dataIndex] = (concat
+                                                     ? stringData[i][dataIndex]
+                                                       + typedFileParser.getSeparator()
+                                                       + typedFileLine.getStringData()[1][i]
+                                                     : typedFileLine.getStringData()[1][i]);// 0 is
+                                                                                            // reserved
+                                                                                            // for
+                                                                                            // the
+                                                                                            // samples
                 }
               }
             }
@@ -157,7 +161,7 @@ public class ExtProjectDataParser {
 
   /**
    * Reads until the data begins
-   * 
+   *
    * @throws IOException
    */
   private void scanToData() throws IOException {
@@ -354,8 +358,8 @@ public class ExtProjectDataParser {
   }
 
   private void init() {
-    String[] header =
-        Files.getHeaderOfFile(fullPathToDataFile, typedFileParser.getSeparator(), proj.getLog());
+    String[] header = Files.getHeaderOfFile(fullPathToDataFile, typedFileParser.getSeparator(),
+                                            proj.getLog());
     dataToLoad = sampleBased ? proj.getSamples() : proj.getMarkerNames();
     if (sampleBased) {
       proj.getLog().reportTimeInfo("Sample based loader:");
@@ -498,7 +502,7 @@ public class ExtProjectDataParser {
     }
 
     /**
-     * 
+     *
      * @param numericDataIndices indices to extract for numeric data...all data goes to double[]
      * @return
      */
@@ -670,7 +674,7 @@ public class ExtProjectDataParser {
 
     /**
      * Construct the parser with the options set by the builder
-     * 
+     *
      * @param proj the project that will match the data
      * @param fullPathToDataFile data file to load
      * @return

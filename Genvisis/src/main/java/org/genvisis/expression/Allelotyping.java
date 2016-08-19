@@ -1,7 +1,5 @@
 package org.genvisis.expression;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -19,6 +17,8 @@ import org.genvisis.stats.Maths;
 import org.genvisis.stats.ProbDist;
 import org.genvisis.stats.Stats;
 
+import com.google.common.primitives.Doubles;
+
 public class Allelotyping {
   public static final String[] HEADER = {"Sample", "SNP", "Freq"};
   public static final String SWAP_INFO = "alleles.xln";
@@ -28,14 +28,14 @@ public class Allelotyping {
     PrintWriter writer, summary;
     String[] line, indKeys, regionKeys, snpKeys;
     Hashtable<String, Hashtable<String, Hashtable<String, DoubleVector>>> snps =
-        new Hashtable<String, Hashtable<String, Hashtable<String, DoubleVector>>>();
+                                                                               new Hashtable<String, Hashtable<String, Hashtable<String, DoubleVector>>>();
     Hashtable<String, Hashtable<String, DoubleVector>> regions;
     Hashtable<String, DoubleVector> inds;
     DoubleVector values, regionMeans, regionStdevs, allObs, allObsAroundZero, regionLog2ratios;
     IntVector regionCounts;
     String ind, region, snpName;
     Hashtable<String, String> lookup =
-        HashVec.loadFileToHashString(dir + "snpGeneLookup.txt", false);
+                                     HashVec.loadFileToHashString(dir + "snpGeneLookup.txt", false);
     double mean, stdev, z, t, val, ciLow, ciHigh;
     double[] log2ratios;
     Hashtable<String, String> swaps;

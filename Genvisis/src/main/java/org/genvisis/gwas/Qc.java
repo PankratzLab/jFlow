@@ -22,15 +22,18 @@ public class Qc {
   public static final String ANCESTRY_DIR = QC_DIR + "ancestry/";
 
   /** A rough listing of the Folders created by fullGamut */
-  public static String[] FOLDERS_CREATED =
-      {MARKER_QC_DIR, SAMPLE_QC_DIR, LD_PRUNING_DIR, GENOME_DIR, ANCESTRY_DIR};
+  public static String[] FOLDERS_CREATED = {MARKER_QC_DIR, SAMPLE_QC_DIR, LD_PRUNING_DIR,
+                                            GENOME_DIR, ANCESTRY_DIR};
   /** A rough listing of the files created, by folder, by fullGamut */
   public static String[][] FILES_CREATED =
-      {{"plink.bed", "freq.frq", "missing.imiss",
-        /* "test.missing.missing", *//* not actually necessary */ "hardy.hwe", "mishap.missing.hap",
-        "gender.assoc", "gender.missing", "miss_drops.dat"},
-       {"plink.bed", "missing.imiss"}, {"plink.bed", "plink.prune.in"},
-       {"plink.bed", "plink.genome", "plink.genome_keep.dat"}, {"plink.bed", "unrelateds.txt"}};
+                                         {{"plink.bed", "freq.frq", "missing.imiss",
+                                           /* "test.missing.missing", *//* not actually necessary */ "hardy.hwe",
+                                           "mishap.missing.hap", "gender.assoc", "gender.missing",
+                                           "miss_drops.dat"},
+                                          {"plink.bed", "missing.imiss"},
+                                          {"plink.bed", "plink.prune.in"},
+                                          {"plink.bed", "plink.genome", "plink.genome_keep.dat"},
+                                          {"plink.bed", "unrelateds.txt"}};
 
   public static void exportFullGamut(String dir, String plinkPrefix,
                                      boolean keepGenomeInfoForRelatedsOnly) {

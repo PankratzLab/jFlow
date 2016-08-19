@@ -11,13 +11,15 @@ import org.genvisis.common.ext;
 
 // class to store optimized thresholds
 public class OptimizedQCThresholds {
-  public static final String[] QC_Thresholds =
-      {"ALPHA", "BEAST_CONF", "SAMPLE_LRR_SD", "CNV_NUM_MARKERS", "BAF_QC", "TWOPQ", "PERCENT_HET",
-       "GCWF", "NUM_SAMPLE_CNVS", "CNV_LRR_SD", "SAMPLE_CALL_RATE", "PENN_CONF", "BAF_DRIFT",
-       "SIZE_IN_KB", "PROBE_DENSITY_IN_KB"};
-  public static final String[] OPT_QC_HEADS =
-      {"targetConcordance", "actualConcordance", Array.toStr(QC_Thresholds), "goodCalls",
-       "callsPassingFilter", "totalCalls", "pairsOfDuplicates", "CN"};
+  public static final String[] QC_Thresholds = {"ALPHA", "BEAST_CONF", "SAMPLE_LRR_SD",
+                                                "CNV_NUM_MARKERS", "BAF_QC", "TWOPQ", "PERCENT_HET",
+                                                "GCWF", "NUM_SAMPLE_CNVS", "CNV_LRR_SD",
+                                                "SAMPLE_CALL_RATE", "PENN_CONF", "BAF_DRIFT",
+                                                "SIZE_IN_KB", "PROBE_DENSITY_IN_KB"};
+  public static final String[] OPT_QC_HEADS = {"targetConcordance", "actualConcordance",
+                                               Array.toStr(QC_Thresholds), "goodCalls",
+                                               "callsPassingFilter", "totalCalls",
+                                               "pairsOfDuplicates", "CN"};
   private double targetConcordance;
   private double actualConcordance;
   private final double alpha;

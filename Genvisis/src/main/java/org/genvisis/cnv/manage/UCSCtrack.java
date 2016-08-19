@@ -18,9 +18,10 @@ public class UCSCtrack {
   public static final String SAMPLE_DEMOGRAPHICS = "SampleData.txt";
   public static final String DEFAULT_SAMPLE_DEMOGRAPHIC_DIRECTORY = "data/";
   public static final String[][] NEEDS =
-      new String[][] {{"CLASS=Original Phenotype", "CLASS=Final Phenotype", "CLASS=Phenotype",
-                       "CLASS=Affection", "CLASS=Affected"},
-                      {"COVAR=Age"}};
+                                       new String[][] {{"CLASS=Original Phenotype",
+                                                        "CLASS=Final Phenotype", "CLASS=Phenotype",
+                                                        "CLASS=Affection", "CLASS=Affected"},
+                                                       {"COVAR=Age"}};
 
   public static void makeTrack(String filename, String outfile, Logger log) {
     BufferedReader reader;
@@ -64,8 +65,8 @@ public class UCSCtrack {
         reader.close();
         return;
       }
-      track =
-          Files.getAppropriateWriter(filename.substring(0, filename.lastIndexOf(".")) + ".bed.gz");
+      track = Files.getAppropriateWriter(filename.substring(0, filename.lastIndexOf("."))
+                                         + ".bed.gz");
       track.println("track name=\"" + ext.rootOf(filename)
                     + "\" description=\"CNV data\" visibility=2 itemRgb=\"On\"");
       while (reader.ready()) {

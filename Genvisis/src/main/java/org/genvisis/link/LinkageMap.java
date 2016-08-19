@@ -22,10 +22,10 @@ public class LinkageMap {
   public static final double DEFAULT_DX_ALLELE_FREQ = 0.01;
   public static final double[][] DEFAULT_AUTOSOMAL_DOMINANT_PENTRANCE = {{0.03, 0.80, 0.80}};
   public static final double[][] DEFAULT_AUTOSOMAL_RECESSIVE_PENTRANCE = {{0.03, 0.03, 0.80}};
-  public static final double[][] DEFAULT_X_LINKED_DOMINANT_PENTRANCE =
-      {{0.03, 0.80, 0.80}, {0.03, 0.80}};
-  public static final double[][] DEFAULT_X_LINKED_RECESSIVE_PENTRANCE =
-      {{0.03, 0.03, 0.80}, {0.03, 0.80}};
+  public static final double[][] DEFAULT_X_LINKED_DOMINANT_PENTRANCE = {{0.03, 0.80, 0.80},
+                                                                        {0.03, 0.80}};
+  public static final double[][] DEFAULT_X_LINKED_RECESSIVE_PENTRANCE = {{0.03, 0.03, 0.80},
+                                                                         {0.03, 0.80}};
   public static final double MIN_DIST_STEP = 0.0001;
 
   private int chr;
@@ -112,7 +112,8 @@ public class LinkageMap {
       reader = new BufferedReader(new FileReader(filename));
 
       markerNames =
-          new String[Integer.valueOf(reader.readLine().trim().split("[\\s]+")[0]).intValue() - 1];
+                  new String[Integer.valueOf(reader.readLine().trim().split("[\\s]+")[0]).intValue()
+                             - 1];
       for (int i = 0; i < 3; i++) {
         reader.readLine();
       }
@@ -316,14 +317,12 @@ public class LinkageMap {
       // System.out.println("Writing in
       // "+(writeInMorgans?"":"centi")+"Morgans");
       for (int i = 0; i < markerNames.length - 1; i++) {
-        writer.print(" " + ext.formDeci(writeInMorgans
-                                                       ? (currentlyInMorgans ? distances[i + 1]
-                                                                             : distances[i + 1]
-                                                                               / 100)
-                                                       : (currentlyInMorgans ? distances[i + 1]
-                                                                               * 100
-                                                                             : distances[i + 1]),
-                                        8, false));
+        writer.print(" "
+                     + ext.formDeci(writeInMorgans ? (currentlyInMorgans ? distances[i + 1]
+                                                                         : distances[i + 1] / 100)
+                                                   : (currentlyInMorgans ? distances[i + 1] * 100
+                                                                         : distances[i + 1]),
+                                    8, false));
       }
       writer.println("  << RECOMB VALUES");
       writer.println("1 0.1 0.45  << REC VARIED, INCREMENT, FINISHING VALUE");

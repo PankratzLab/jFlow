@@ -20,7 +20,7 @@ public class CheckIDsAgainstDNAs {
   // public static final String DNA_YEAR_BUG_SOURCE = "C:\\Documents and Settings\\npankrat\\My
   // Documents\\tWork\\Global PD files\\year_bug_dnas.txt";
   public static final String DNA_YEAR_BUG_SOURCE =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\Global PD files\\year_bug_dnas.txt";
+                                                 "C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\Global PD files\\year_bug_dnas.txt";
 
   private final Hashtable<String, Vector<Vector<String>>> hashMatches;
   private final Hashtable<String, String> hashDNAs;

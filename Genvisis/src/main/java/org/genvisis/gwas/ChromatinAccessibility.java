@@ -31,11 +31,11 @@ public class ChromatinAccessibility {
   // public static final String SRC_DIR = "D:/grants/2012.06 Hepatoblastoma/Chromatin
   // accessibility/rawData/other/";
   public static final String SRC_DIR =
-      "D:/grants/2012.06 Hepatoblastoma/Chromatin accessibility/rawData/all/";
-  public static final String[][] PVAL_HEADER =
-      {{"Marker", "SNP"}, {"Chr"}, {"Pos"}, {"pval", "p-val"}};
-  public static final String[] CLASSES =
-      {"All", "Valid", "DNaseOnly_OpenChrom", "FAIREOnly_OpenChrom", "ChIPOnly"};
+                                     "D:/grants/2012.06 Hepatoblastoma/Chromatin accessibility/rawData/all/";
+  public static final String[][] PVAL_HEADER = {{"Marker", "SNP"}, {"Chr"}, {"Pos"},
+                                                {"pval", "p-val"}};
+  public static final String[] CLASSES = {"All", "Valid", "DNaseOnly_OpenChrom",
+                                          "FAIREOnly_OpenChrom", "ChIPOnly"};
 
   public static String[] coverage(Segment[][] segs) {
     double sumIn, sumOut;
@@ -142,8 +142,8 @@ public class ChromatinAccessibility {
         if (Files.exists(dir + files[i] + "_" + CLASSES[0] + ".ser", false)) {
           time = new Date().getTime();
           for (int j = 0; j < CLASSES.length; j++) {
-            segs[i][j] =
-                SegmentLists.load(dir + files[i] + "_" + CLASSES[j] + ".ser", false).getLists();
+            segs[i][j] = SegmentLists.load(dir + files[i] + "_" + CLASSES[j] + ".ser", false)
+                                     .getLists();
           }
           // System.out.println("Re-loaded serialized version of '"+ext.rootOf(files[i])+"' in " +
           // ext.getTimeElapsed(time));
@@ -188,7 +188,7 @@ public class ChromatinAccessibility {
           for (int j = 0; j < CLASSES.length; j++) {
             for (int k = 0; k <= 25; k++) {
               segs[i][j][k] =
-                  Segment.sortSegments(Segment.toArray(allSeg.elementAt(j).elementAt(k)));
+                            Segment.sortSegments(Segment.toArray(allSeg.elementAt(j).elementAt(k)));
             }
             new SegmentLists(segs[i][j]).serialize(dir + files[i] + "_" + CLASSES[j] + ".ser");
           }
@@ -212,8 +212,9 @@ public class ChromatinAccessibility {
     System.out.print("AllMerged");
     if (Files.exists(dir + "allFilesMerged_" + CLASSES[0] + ".ser", false)) {
       for (int j = 0; j < CLASSES.length; j++) {
-        segs[files.length][j] =
-            SegmentLists.load(dir + "allFilesMerged_" + CLASSES[j] + ".ser", false).getLists();
+        segs[files.length][j] = SegmentLists.load(dir + "allFilesMerged_" + CLASSES[j] + ".ser",
+                                                  false)
+                                            .getLists();
       }
       // System.out.println("Re-loaded serialized version of the merged summaries in " +
       // ext.getTimeElapsed(time));
@@ -282,22 +283,22 @@ public class ChromatinAccessibility {
             new File(file_dir + ext.rootOf(filename) + "/").mkdirs();
             if (i == files.length) {
               writers[i][j][0] =
-                  new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename) + "/"
-                                                 + ext.addToRoot(filename, "_allMerged_"
-                                                                           + CLASSES[j] + "_in")));
+                               new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename) + "/"
+                                                              + ext.addToRoot(filename,
+                                                                              "_allMerged_" + CLASSES[j] + "_in")));
               writers[i][j][1] =
-                  new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename) + "/"
-                                                 + ext.addToRoot(filename, "_allMerged_"
-                                                                           + CLASSES[j] + "_out")));
+                               new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename) + "/"
+                                                              + ext.addToRoot(filename,
+                                                                              "_allMerged_" + CLASSES[j] + "_out")));
             } else {
               writers[i][j][0] =
-                  new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename)
-                                                 + "/" + ext.addToRoot(filename,
-                                                                       "_" + ext.rootOf(files[i]) + "_" + CLASSES[j] + "_in")));
+                               new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename) + "/"
+                                                              + ext.addToRoot(filename,
+                                                                              "_" + ext.rootOf(files[i]) + "_" + CLASSES[j] + "_in")));
               writers[i][j][1] =
-                  new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename)
-                                                 + "/" + ext.addToRoot(filename,
-                                                                       "_" + ext.rootOf(files[i]) + "_" + CLASSES[j] + "_out")));
+                               new PrintWriter(new FileWriter(file_dir + ext.rootOf(filename) + "/"
+                                                              + ext.addToRoot(filename,
+                                                                              "_" + ext.rootOf(files[i]) + "_" + CLASSES[j] + "_out")));
             }
           }
         }
@@ -371,23 +372,23 @@ public class ChromatinAccessibility {
           if (j < 2) {
             double[] pvals;
 
-            double numIn =
-                Files.countLines(file_dir + ext.rootOf(filename) + "/"
-                                 + ext.addToRoot(filename,
-                                                 (i == files.length ? "_allMerged_"
-                                                                    : "_" + ext.rootOf(files[i])
-                                                                      + "_")
-                                                           + CLASSES[j] + "_in"),
-                                 0);
+            double numIn = Files.countLines(file_dir + ext.rootOf(filename) + "/"
+                                            + ext.addToRoot(filename,
+                                                            (i == files.length ? "_allMerged_"
+                                                                               : "_"
+                                                                                 + ext.rootOf(files[i])
+                                                                                 + "_")
+                                                                      + CLASSES[j] + "_in"),
+                                            0);
             // System.out.print("\t"+numIn);
-            double numOut =
-                Files.countLines(file_dir + ext.rootOf(filename) + "/"
-                                 + ext.addToRoot(filename,
-                                                 (i == files.length ? "_allMerged_"
-                                                                    : "_" + ext.rootOf(files[i])
-                                                                      + "_")
-                                                           + CLASSES[j] + "_out"),
-                                 0);
+            double numOut = Files.countLines(file_dir + ext.rootOf(filename) + "/"
+                                             + ext.addToRoot(filename,
+                                                             (i == files.length ? "_allMerged_"
+                                                                                : "_"
+                                                                                  + ext.rootOf(files[i])
+                                                                                  + "_")
+                                                                       + CLASSES[j] + "_out"),
+                                             0);
             // System.out.print("\t"+numOut+"\t"+ext.formPercent(numIn/(numIn+numOut), 2));
             System.out.print("\t" + ext.formPercent(numIn / (numIn + numOut), 2));
 

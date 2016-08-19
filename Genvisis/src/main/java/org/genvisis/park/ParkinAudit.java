@@ -35,65 +35,88 @@ public class ParkinAudit {
   // public static final String controlInfo = "C:\\Documents and Settings\\npankrat\\My
   // Documents\\tWork\\Global PD files\\control.db.xln";
   public static final String controlInfo =
-      "C:\\Users\\npankrat\\Documents\\1_CRFdb\\Global PD files\\control.db.xln";
-  public static final String[] CTRL_HEADER =
-      {"DNA#", "FamID", "IndID", "Index", "UniqueID", "Source", "Affected", "Male", "RaceCode",
-       "Caucasian", "DateOfBirth", "DateOfExam", "AgeAtExam", "Use", "Comment"};
+                                         "C:\\Users\\npankrat\\Documents\\1_CRFdb\\Global PD files\\control.db.xln";
+  public static final String[] CTRL_HEADER = {"DNA#", "FamID", "IndID", "Index", "UniqueID",
+                                              "Source", "Affected", "Male", "RaceCode", "Caucasian",
+                                              "DateOfBirth", "DateOfExam", "AgeAtExam", "Use",
+                                              "Comment"};
   // public static final String[] KNOWN_POLYMORPHISMS = {"S167N", "Ser167Asn", "V380L", "D394N"};
-  public static final String[] KNOWN_POLYMORPHISMS =
-      {"S167N", "Ser167Asn", "V380L", "D394N", "A91A", "C238C", "H279H", "L174L", "L228L", "L261L",
-       "L307L", "P37P"};
-  public static final String[][] CATEGORY_CRITERIA =
-      {{"KnownPolymorphisms", "equals", "S167N", "Ser167Asn", "V380L", "D394N"},
-       {"SynonymousMissense", "equals", "A91A", "C238C", "H279H", "L174L", "L228L", "L261L",
-        "L307L", "P37P"},
-       {"BenignMissense", "equals", "R33Q", "A82E", "T83A", "M192V", "E310D", "T240M", "R256C",
-        "P437L"},
-       {"DeleteriousMissense", "equals", "T173M", "K211N", "R275W", "G430D"},
-       {"Nonsense", "endswith", "x"}, {"Frameshift", "contains", "fs"},
-       {"Deletion", "contains", "deletion"},
-       {"Duplication", "contains", "duplication", "triplication"}, {"Indel", "contains", "dup"},
-       {"SpliceSite", "contains", "IVS"}};
+  public static final String[] KNOWN_POLYMORPHISMS = {"S167N", "Ser167Asn", "V380L", "D394N",
+                                                      "A91A", "C238C", "H279H", "L174L", "L228L",
+                                                      "L261L", "L307L", "P37P"};
+  public static final String[][] CATEGORY_CRITERIA = {
+                                                      {"KnownPolymorphisms", "equals", "S167N",
+                                                       "Ser167Asn", "V380L", "D394N"},
+                                                      {"SynonymousMissense", "equals", "A91A",
+                                                       "C238C", "H279H", "L174L", "L228L", "L261L", "L307L", "P37P"},
+                                                      {"BenignMissense", "equals", "R33Q", "A82E",
+                                                       "T83A", "M192V", "E310D", "T240M", "R256C", "P437L"},
+                                                      {"DeleteriousMissense", "equals", "T173M",
+                                                       "K211N", "R275W", "G430D"},
+                                                      {"Nonsense", "endswith", "x"},
+                                                      {"Frameshift", "contains", "fs"},
+                                                      {"Deletion", "contains", "deletion"},
+                                                      {"Duplication", "contains", "duplication",
+                                                       "triplication"},
+                                                      {"Indel", "contains", "dup"},
+                                                      {"SpliceSite", "contains", "IVS"}};
   public static final String[] MUT_CLASSES = {"nada", "het", "homo", "comp het", "odd"};
   public static final String[] DIANE_LIST_HEADER =
-      {"DNA # ", "Fam. and Ind. #", "Sequencing Plate"};
-  public static final String[] DIANE_RESULTS_HEADER =
-      {"Exon", "DNA #", "Family and Ind. #", "Nucleotide Change", "Amino Acid change"};
+                                                 {"DNA # ", "Fam. and Ind. #", "Sequencing Plate"};
+  public static final String[] DIANE_RESULTS_HEADER = {"Exon", "DNA #", "Family and Ind. #",
+                                                       "Nucleotide Change", "Amino Acid change"};
   public static final String[] SEAN_RESULTS_HEADER =
-      {"Family", "ID", "UniqueID", "nummuts", "AR lod", "Age of Onset", "dx", "unique mutation",
-       "mutation", "Exon", "type", "Nucleotide Change", "Amino Acid Change", "Homo/Hetero"};
-  public static final String[] MLPA_HEADER =
-      {"DNA #", "Fam.& Ind. #", "Exon 2", "Exon 3", "Exon 4", "Exon 5", "Exon 6", "Exon 7",
-       "Exon 8", "Exon 9", "Exon 10", "Exon 11", "Exon 12"};
-  public static final String[] PLATE_HEADER =
-      {"FamID", "IndID", "UniqueID", "time 1", "time 2", "time 3"};
-  public static final String[] LODS_HEADER =
-      {"Family", "linearLOD", "NPL", "AD LOD", "AR LOD", "", "positive"};
+                                                   {"Family", "ID", "UniqueID", "nummuts", "AR lod",
+                                                    "Age of Onset", "dx", "unique mutation",
+                                                    "mutation", "Exon", "type", "Nucleotide Change",
+                                                    "Amino Acid Change", "Homo/Hetero"};
+  public static final String[] MLPA_HEADER = {"DNA #", "Fam.& Ind. #", "Exon 2", "Exon 3", "Exon 4",
+                                              "Exon 5", "Exon 6", "Exon 7", "Exon 8", "Exon 9",
+                                              "Exon 10", "Exon 11", "Exon 12"};
+  public static final String[] PLATE_HEADER = {"FamID", "IndID", "UniqueID", "time 1", "time 2",
+                                               "time 3"};
+  public static final String[] LODS_HEADER = {"Family", "linearLOD", "NPL", "AD LOD", "AR LOD", "",
+                                              "positive"};
   public static final String[] INLAB_HEADER = {"FamNo", "IndNo", "DNA.", "CountOfIndNo"};
 
   // Recorded: Sean, Diane, MLPA
   // Change to: Sean, Diane, MLPA
   public static final String[][][][] INTERPRETATIONS =
-      {{{{"Gln57fs (+328 amino acids)", "Gln57fs (+328 amino acids)"}, {},
-         {"deletion 3", "deletion 2-4"}},
-        {{}, {}, {"deletion 2-3", "deletion 3-4"}}},
-       {{{"Q57fs (+328 amino acids)", "Q57fs (+328 amino acids)"}, {},
-         {"deletion 3", "deletion 2-4"}},
-        {{}, {}, {"deletion 2-3", "deletion 3-4"}}},
-       {{{"Gln57fs (+35 amino acids)", "Gln57fs (+35 amino acids)"}, {},
-         {"deletion 3-4", "deletion 3-4"}},
-        {{}, {}, {"deletion 3-4", "deletion 3-4"}}},
-       {{{"Q57fs (+35 amino acids)", "Q57fs (+35 amino acids)"}, {},
-         {"deletion 3-4", "deletion 3-4"}},
-        {{}, {}, {"deletion 3-4", "deletion 3-4"}}},
-       {{{}, {"G430D"}, {"duplication 2-4", "duplication 2-4"}},
-        {{}, {"G430D"}, {"triplication 2-4"}}},
-       {{{}, {}, {"duplication 2-4", "duplication 2-4"}}, {{}, {}, {"triplication 2-4"}}},
-       {{{}, {"T240M", "T240M"}, {"deletion 5-6"}}, {{}, {"T240M"}, {"deletion 5-6"}}},
-       {{{"P113fs (+51 amino acids)", "P113fs (+51 amino acids)"}, {}, {"deletion 3-4"}},
-        {{"P113fs (+51 amino acids)"}, {}, {"deletion 3-4"}}},
-       {{{}, {"P113fs (+51 amino acids)", "P113fs (+51 amino acids)"}, {"deletion 2-3"}},
-        {{}, {"P113fs (+51 amino acids)"}, {"deletion 2-3"}}}};
+                                                     {{{{"Gln57fs (+328 amino acids)",
+                                                         "Gln57fs (+328 amino acids)"},
+                                                        {}, {"deletion 3", "deletion 2-4"}},
+                                                       {{}, {}, {"deletion 2-3", "deletion 3-4"}}},
+                                                      {{{"Q57fs (+328 amino acids)",
+                                                         "Q57fs (+328 amino acids)"},
+                                                        {}, {"deletion 3", "deletion 2-4"}},
+                                                       {{}, {}, {"deletion 2-3", "deletion 3-4"}}},
+                                                      {{{"Gln57fs (+35 amino acids)",
+                                                         "Gln57fs (+35 amino acids)"},
+                                                        {}, {"deletion 3-4", "deletion 3-4"}},
+                                                       {{}, {}, {"deletion 3-4", "deletion 3-4"}}},
+                                                      {{{"Q57fs (+35 amino acids)",
+                                                         "Q57fs (+35 amino acids)"},
+                                                        {}, {"deletion 3-4", "deletion 3-4"}},
+                                                       {{}, {}, {"deletion 3-4", "deletion 3-4"}}},
+                                                      {{{}, {"G430D"},
+                                                        {"duplication 2-4", "duplication 2-4"}},
+                                                       {{}, {"G430D"}, {"triplication 2-4"}}},
+                                                      {{{}, {},
+                                                        {"duplication 2-4", "duplication 2-4"}},
+                                                       {{}, {}, {"triplication 2-4"}}},
+                                                      {{{}, {"T240M", "T240M"}, {"deletion 5-6"}},
+                                                       {{}, {"T240M"}, {"deletion 5-6"}}},
+                                                      {{{"P113fs (+51 amino acids)",
+                                                         "P113fs (+51 amino acids)"},
+                                                        {}, {"deletion 3-4"}},
+                                                       {{"P113fs (+51 amino acids)"}, {},
+                                                        {"deletion 3-4"}}},
+                                                      {{{},
+                                                        {"P113fs (+51 amino acids)",
+                                                         "P113fs (+51 amino acids)"},
+                                                        {"deletion 2-3"}},
+                                                       {{}, {"P113fs (+51 amino acids)"},
+                                                        {"deletion 2-3"}}}};
 
   public static void audit() throws IOException {
     BufferedReader reader;
@@ -312,10 +335,11 @@ public class ParkinAudit {
               if (line.length > 12 && ext.indexOfStr(line[12], KNOWN_POLYMORPHISMS) != -1) {
                 mc.knownPolymorphisms = Array.addStrToArray(line[12], mc.knownPolymorphisms);
               } else {
-                mc.seanMutations =
-                    Array.addStrToArray(line.length > 12 && !line[12].equals("") ? line[12]
-                                                                                 : line[11],
-                                        mc.seanMutations);
+                mc.seanMutations = Array.addStrToArray(
+                                                       line.length > 12 && !line[12].equals("")
+                                                                                                ? line[12]
+                                                                                                : line[11],
+                                                       mc.seanMutations);
               }
             }
           }
@@ -366,8 +390,9 @@ public class ParkinAudit {
               mc.knownPolymorphisms = Array.addStrToArray(line[4], mc.knownPolymorphisms);
             } else {
               mc.dianeMutations =
-                  Array.addStrToArray(line.length > 4 && !line[4].equals("") ? line[4] : line[3],
-                                      mc.dianeMutations);
+                                Array.addStrToArray(line.length > 4 && !line[4].equals("") ? line[4]
+                                                                                           : line[3],
+                                                    mc.dianeMutations);
             }
           }
           if (mc.dna.equals("")) {
@@ -539,8 +564,8 @@ public class ParkinAudit {
       mc.fullyChecked = (mc.seanSeqd || mc.dianeSeqd) && mc.MLPAd;
       mc.partiallyChecked = mc.seanSeqd || mc.dianeSeqd || mc.MLPAd;
       mc.numMutations =
-          (mc.seanMutations.length > mc.dianeMutations.length ? mc.seanMutations.length
-                                                              : mc.dianeMutations.length)
+                      (mc.seanMutations.length > mc.dianeMutations.length ? mc.seanMutations.length
+                                                                          : mc.dianeMutations.length)
                         + mc.MLPAresults.length;
       mc.numSeq = mc.seanMutations.length > mc.dianeMutations.length ? mc.seanMutations.length
                                                                      : mc.dianeMutations.length;

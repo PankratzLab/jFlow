@@ -50,7 +50,7 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 
   /**
    * Moves the chromosome viewer to the specified position and updates the view
-   * 
+   *
    * @param chr
    * @param start
    * @param stop
@@ -99,8 +99,8 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
           }
 
           // Maintain a list of the rectangles so we can check them on mouseover
-          GeneRectangle rectangle =
-              new GeneRectangle(gene.getGeneName(), new Rectangle(begin, 0, width, height));
+          GeneRectangle rectangle = new GeneRectangle(gene.getGeneName(),
+                                                      new Rectangle(begin, 0, width, height));
           geneRects.add(rectangle);
 
           g.drawRoundRect(begin, chromosomeRowStart, width, height, 2, 2);
@@ -180,7 +180,7 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 
   /**
    * Calculate the X coordinate of the given base position
-   * 
+   *
    * @param pos
    * @return
    */
@@ -190,7 +190,7 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 
   /**
    * Calculate the position given the x coordinate
-   * 
+   *
    * @param x
    * @return
    */
@@ -263,7 +263,7 @@ class GeneRectangle {
 
   /**
    * Returns whether the given point falls in this gene
-   * 
+   *
    * @param point
    * @return
    */
@@ -273,7 +273,7 @@ class GeneRectangle {
 
   /**
    * Returns the name of this gene
-   * 
+   *
    * @return
    */
   public String getName() {

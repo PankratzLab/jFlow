@@ -14,8 +14,8 @@ import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 public class procUnigene {
-  public static final String[] VARS =
-      {"ID", "GENE ", "TITLE", "GENE_ID", "CHROMOSOME", "CYTOBAND", "EXPRESS"};
+  public static final String[] VARS = {"ID", "GENE ", "TITLE", "GENE_ID", "CHROMOSOME", "CYTOBAND",
+                                       "EXPRESS"};
 
   public procUnigene(String filename) {
     BufferedReader reader = null;
@@ -58,10 +58,11 @@ public class procUnigene {
           }
         }
         if (temp.indexOf("ACC=NM_") > 0) {
-          temp =
-              temp.indexOf(";") > 0 ? temp.substring(temp.indexOf("ACC=NM_") + 4, temp.indexOf(";"))
-                                    : temp.substring(temp.indexOf("ACC=NM_") + 4)
-                                          .split("[\\s]+")[0];
+          temp = temp.indexOf(";") > 0
+                                       ? temp.substring(temp.indexOf("ACC=NM_") + 4,
+                                                        temp.indexOf(";"))
+                                       : temp.substring(temp.indexOf("ACC=NM_") + 4)
+                                             .split("[\\s]+")[0];
           if (data[0].equals(".")) {
             data[0] = temp;
           } else {

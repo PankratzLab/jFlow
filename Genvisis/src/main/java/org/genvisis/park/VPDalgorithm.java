@@ -16,40 +16,54 @@ import org.genvisis.db.crfDB;
 
 public class VPDalgorithm {
   public static boolean CARES_NOT_PROGENI = false;
-  public static final String CRF_A_FILE =
-      tools.CRF_DIR + (CARES_NOT_PROGENI ? "CARES_" : "") + "crf_a1.csv";
-  public static final String CRF_B_FILE =
-      tools.CRF_DIR + (CARES_NOT_PROGENI ? "CARES_" : "") + "crf_b.csv";
-  public static final String CRF_F_FILE =
-      tools.CRF_DIR + (CARES_NOT_PROGENI ? "CARES_" : "") + "crf_f.csv";
+  public static final String CRF_A_FILE = tools.CRF_DIR + (CARES_NOT_PROGENI ? "CARES_" : "")
+                                          + "crf_a1.csv";
+  public static final String CRF_B_FILE = tools.CRF_DIR + (CARES_NOT_PROGENI ? "CARES_" : "")
+                                          + "crf_b.csv";
+  public static final String CRF_F_FILE = tools.CRF_DIR + (CARES_NOT_PROGENI ? "CARES_" : "")
+                                          + "crf_f.csv";
   // public static final String BIRTH_DATES_FILE = tools.CRF_DIR+"ninfo1_BirthDates.csv";
-  public static final String[] CRF_A_HEADER =
-      {"SITE_NO", "FAM_NO", "INFO_DT", "SUBJ_NO", "NDOB", "QA", "QB", "Q1", "Q2A", "Q2B", "Q3",
-       "Q4", "Q5", "Q6", "Q7", "Q8", "Q9", "Q10", "Q11|1|3", "Q12", "Q13", "Q14", "Q15", "Q16",
-       "Q17", "Q18", "Q19", "Q40", "Q41_TXT", "STAFF_NO", "ERROR_FLAG", "EXCEPT_FLAG", "DE_DT"};
-  public static final String[] CRF_B_HEADER =
-      {"SITE_NO", "FAM_NO", "INFO_DT", "SUBJ_NO", "NDOB", "Q1|0|4", "Q2|0|4", "Q3|0|4", "Q4|0|4",
-       "Q5|0|4", "Q6|0|4", "Q7|0|4", "Q8|0|4", "Q9|0|4", "Q10|0|4", "Q11|0|4", "Q12|0|4", "Q13|0|4",
-       "STAFF1", "Q14|0|4", "Q15|0|4", "Q16A|0|4", "Q16B|0|4", "Q16C|0|4", "Q16D|0|4", "Q16E|0|4",
-       "Q17A|0|4", "Q17B|0|4", "Q18A|0|4", "Q18B|0|4", "Q18C|0|4", "Q18D|0|4", "Q18E|0|4",
-       "Q19A|0|4", "Q19B|0|4", "Q20A|0|4", "Q20B|0|4", "Q21A|0|4", "Q21B|0|4", "Q22A|0|4",
-       "Q22B|0|4", "Q23|0|4", "Q24|0|4", "Q25|0|4", "Q26|0|4", "Q27|0|4", "STAFF2", "Q28|0|100",
-       "Q29|0|100", "Q30|0|5", "Q31", "Q31_TXT", "STAFF3", "ERROR_FLAG", "EXCEPT_FLAG", "DE_DT"};
+  public static final String[] CRF_A_HEADER = {"SITE_NO", "FAM_NO", "INFO_DT", "SUBJ_NO", "NDOB",
+                                               "QA", "QB", "Q1", "Q2A", "Q2B", "Q3", "Q4", "Q5",
+                                               "Q6", "Q7", "Q8", "Q9", "Q10", "Q11|1|3", "Q12",
+                                               "Q13", "Q14", "Q15", "Q16", "Q17", "Q18", "Q19",
+                                               "Q40", "Q41_TXT", "STAFF_NO", "ERROR_FLAG",
+                                               "EXCEPT_FLAG", "DE_DT"};
+  public static final String[] CRF_B_HEADER = {"SITE_NO", "FAM_NO", "INFO_DT", "SUBJ_NO", "NDOB",
+                                               "Q1|0|4", "Q2|0|4", "Q3|0|4", "Q4|0|4", "Q5|0|4",
+                                               "Q6|0|4", "Q7|0|4", "Q8|0|4", "Q9|0|4", "Q10|0|4",
+                                               "Q11|0|4", "Q12|0|4", "Q13|0|4", "STAFF1", "Q14|0|4",
+                                               "Q15|0|4", "Q16A|0|4", "Q16B|0|4", "Q16C|0|4",
+                                               "Q16D|0|4", "Q16E|0|4", "Q17A|0|4", "Q17B|0|4",
+                                               "Q18A|0|4", "Q18B|0|4", "Q18C|0|4", "Q18D|0|4",
+                                               "Q18E|0|4", "Q19A|0|4", "Q19B|0|4", "Q20A|0|4",
+                                               "Q20B|0|4", "Q21A|0|4", "Q21B|0|4", "Q22A|0|4",
+                                               "Q22B|0|4", "Q23|0|4", "Q24|0|4", "Q25|0|4",
+                                               "Q26|0|4", "Q27|0|4", "STAFF2", "Q28|0|100",
+                                               "Q29|0|100", "Q30|0|5", "Q31", "Q31_TXT", "STAFF3",
+                                               "ERROR_FLAG", "EXCEPT_FLAG", "DE_DT"};
   public static final String[] CRF_F_HEADER =
-      {"SITE_NO", "FAM_NO", "INFO_DT", "SUBJ_NO", "NDOB", "Q1", "Q2|1|2", "Q3|1|7", "Q3_TXT",
-       "Q4|0|1", "Q5|0|1", "Q6|0|1", "Q7|0|1", "Q8|0|1", "Q9|0|1", "Q10|0|1", "Q11|0|1", "Q12|0|1",
-       "Q13|0|1", "Q14|0|1", "Q15|0|1", "Q16|0|1", "Q17|0|1", "Q18|0|1", "Q19|0|1", "Q20|0|1",
-       "Q21|0|1", "Q22|0|1", "Q23|0|1", "Q24|0|1", "Q25|0|1", "Q26|0|1", "Q27|0|1", "Q28|1|4",
-       "Q29|1|4", "Q30|0|42", "Q30_R37T", "Q30_R41T", "Q31", "Q31_TXT", "STAFF_NO", "FIELD__",
-       "SITE_PAYMENT", "EXCEPT_PAY", "PAY_COMMENT", "ERROR_FLAG", "EXCEPT_FLAG", "DE_DT"};
+                                            {"SITE_NO", "FAM_NO", "INFO_DT", "SUBJ_NO", "NDOB",
+                                             "Q1", "Q2|1|2", "Q3|1|7", "Q3_TXT", "Q4|0|1", "Q5|0|1",
+                                             "Q6|0|1", "Q7|0|1", "Q8|0|1", "Q9|0|1", "Q10|0|1",
+                                             "Q11|0|1", "Q12|0|1", "Q13|0|1", "Q14|0|1", "Q15|0|1",
+                                             "Q16|0|1", "Q17|0|1", "Q18|0|1", "Q19|0|1", "Q20|0|1",
+                                             "Q21|0|1", "Q22|0|1", "Q23|0|1", "Q24|0|1", "Q25|0|1",
+                                             "Q26|0|1", "Q27|0|1", "Q28|1|4", "Q29|1|4", "Q30|0|42",
+                                             "Q30_R37T", "Q30_R41T", "Q31", "Q31_TXT", "STAFF_NO",
+                                             "FIELD__", "SITE_PAYMENT", "EXCEPT_PAY", "PAY_COMMENT",
+                                             "ERROR_FLAG", "EXCEPT_FLAG", "DE_DT"};
   public static final String[] BIRTH_DATES_HEADER = {"FamID", "IndID", "DOB"};
   public static final String[] EXCLUSION_CRITERIA =
-      {"UnexplainedMotor", "Strokes", "Encephalitis", "OculogyricCrisis", "Alzheimers",
-       "SensoryDeficits_Apraxia", "PDfromDopaDrugs", "Remission", "UnilateralFor3PlusYears",
-       "SupranuclearGaze", "CerebellarSigns", "Hypotension", "NoResponseLDopa", "LesionOnMRI"};
-  public static final String[] SUPPORTING_CRITERIA =
-      {"PersistentAsymmetry", "ProgressiveDisorder", "levodopaChorea", "levodopa5PlusYears",
-       "Course10+"};
+                                                  {"UnexplainedMotor", "Strokes", "Encephalitis",
+                                                   "OculogyricCrisis", "Alzheimers",
+                                                   "SensoryDeficits_Apraxia", "PDfromDopaDrugs",
+                                                   "Remission", "UnilateralFor3PlusYears",
+                                                   "SupranuclearGaze", "CerebellarSigns",
+                                                   "Hypotension", "NoResponseLDopa", "LesionOnMRI"};
+  public static final String[] SUPPORTING_CRITERIA = {"PersistentAsymmetry", "ProgressiveDisorder",
+                                                      "levodopaChorea", "levodopa5PlusYears",
+                                                      "Course10+"};
 
   public static void implementAlgorithm() {
     BufferedReader reader;
@@ -314,9 +328,9 @@ public class VPDalgorithm {
 
     try {
       reader = tools.getNinfoReader(CARES_NOT_PROGENI ? 5 : 1);
-      writer =
-          new PrintWriter(new FileWriter(tools.CRF_DIR + (CARES_NOT_PROGENI ? "CARES_" : "PROGENI_")
-                                         + "verifiedData.xln"));
+      writer = new PrintWriter(new FileWriter(tools.CRF_DIR
+                                              + (CARES_NOT_PROGENI ? "CARES_" : "PROGENI_")
+                                              + "verifiedData.xln"));
       writer.println("UniqueID\tFamID\tIndID\tDx\tVPD\tCONF_PD\tAffected\tOnset_GT20\tBradykinesia\tBrady_B\tBrady_F\tRestT_B\tRestT_F\tActionT_B\tRigidity_B\tRigidity_F\tProbability_GTE50\tAtLeast1\tAtLeast2\tHasNoExclusionCriteria\tVerified\tNum VPD criteria\tInclusion\tSupporting\tReason NVPD\tUKBBC\tNum UKBBC criteria\tUKBBC Inclusion\tUKBBC Supporting\tReason not UKBBC");
       reader.readLine();
       while (reader.ready()) {
@@ -414,13 +428,14 @@ public class VPDalgorithm {
           missing = info.atLeast1missing + info.atLeast2missing + info.exclusionMissing
                     + info.restTremorMissing + info.rigidityMissing;
           temp =
-              (missing > 20 ? "Missing all data"
-                              + (info.exclusion.size() + info.reasoning.size() > 0 ? "; also " : "")
-                            : (missing > 10 ? "Missing quite a bit of data"
-                                              + (info.exclusion.size() + info.reasoning.size() > 0
-                                                                                                   ? "; also "
-                                                                                                   : "")
-                                            : ""))
+               (missing > 20 ? "Missing all data"
+                               + (info.exclusion.size() + info.reasoning.size() > 0 ? "; also "
+                                                                                    : "")
+                             : (missing > 10 ? "Missing quite a bit of data"
+                                               + (info.exclusion.size() + info.reasoning.size() > 0
+                                                                                                    ? "; also "
+                                                                                                    : "")
+                                             : ""))
                  + (info.exclusion.size() > 0 ? "Exclusion criteria: "
                                                 + ext.listWithCommas(Array.toStringArray(info.exclusion),
                                                                      true)
@@ -467,11 +482,11 @@ public class VPDalgorithm {
      * #ExclusionCriteriaList=+crf_f.csv:Q14+crf_f.csv:Q15+crf_f.csv:Q16+crf_f.csv:Q17+crf_f.csv:Q18
      * +crf_f.csv:Q19+crf_f.csv:Q20+crf_f.csv:Q21+crf_f.csv:Q22+crf_f.csv:Q23+crf_f.csv:Q24+crf_f.
      * csv:Q25+crf_f.csv:Q26+crf_f.csv:Q27 HasNoExclusionCriteria=$LTE,final:ExclusionCriteriaList,0
-     * 
+     *
      * Dx=#ninfo1.csv:IllnessStatusCode VPD=$RECODE,final:Dx,CONF_PD,1,VPD,1,NVPD,0,.
      * CONF_PD=$EQUALS,final:Dx,CONF_PD
      * Affected=$RECODE,final:Dx,CONF_PD,1,VPD,1,NVPD,1,RPD,1,NOEV,0,NRPD,0,NXAM,.,CONF,.,.
-     * 
+     *
      * #VerifiedCount=+final:Onset_GT20+final:Bradykinesia+final:Probability_GTE50+final:AtLeast1+
      * final:AtLeast2+final:HasNoExclusionCriteria Verified=$GTE,final:VerifiedCount,6
      */

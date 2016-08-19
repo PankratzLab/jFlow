@@ -1,7 +1,5 @@
 package org.genvisis.stats;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -11,6 +9,8 @@ import java.util.Vector;
 import org.genvisis.common.Array;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.ext;
+
+import com.google.common.primitives.Doubles;
 
 public class Ttest {
   private double meanDiff;

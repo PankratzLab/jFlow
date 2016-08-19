@@ -13,9 +13,9 @@ import org.genvisis.common.Array;
 import org.genvisis.common.HashVec;
 
 public class procTagsToGenes {
-  public static final String[] DEFAULT_FILES =
-      {"knownToGNfAtlas2.prn", "knownToGnf1h.prn", "knownToU133.prn", "knownToU133Plus2.prn",
-       "knownToU95.prn"};
+  public static final String[] DEFAULT_FILES = {"knownToGNfAtlas2.prn", "knownToGnf1h.prn",
+                                                "knownToU133.prn", "knownToU133Plus2.prn",
+                                                "knownToU95.prn"};
 
   public static void runProcTagsToGenes(String[] filenames) {
     BufferedReader reader = null;

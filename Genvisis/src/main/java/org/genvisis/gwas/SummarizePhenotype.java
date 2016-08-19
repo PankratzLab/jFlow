@@ -17,27 +17,38 @@ import org.genvisis.common.ext;
 
 public class SummarizePhenotype {
   public static final String PARAMETERS_FILE_NAME = "parameters.txt";
-  public static final String[][] FILETYPE_DELIMINATOR =
-      {{".csv", ","}, {".xln", "\t"}, {".txt", "\t"}};
+  public static final String[][] FILETYPE_DELIMINATOR = {{".csv", ","}, {".xln", "\t"},
+                                                         {".txt", "\t"}};
   public static final String PARAMETERS_FILE_DELIMITER_FOR_DATAFILES = "[;|]";
   public static final String PARAMETERS_FILE_DELIMITER_FOR_VARIABLES_IN_MODEL = "[~=+*]";
-  public static final String[] ID_NAMES =
-      {"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID", "Sample"};
+  public static final String[] ID_NAMES = {"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID",
+                                           "Sample"};
   public static final String FILENAME_EXTIONSION_TO_OUTPUT_PHENOTYPE_DATA_WITH = ".xln";
   public static final String[][] DEFAULT_PARAMS =
-      {{"Description", "statOperation", "columnLabel", "columnCriteria", "parameter"},
-       {"Trait - Minimum", "0 percentile", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
-       {"Trait - 1st Quartile", "25 percentile", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
-       {"Trait - Median", "50 percentile", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
-       {"Trait - Mean", "mean", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
-       {"Trait - 3rd Quartile", "75 percentile", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
-       {"Trait - maximum", "100 percentile", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
-       {"Trait- standard deviation", "stdev", "trait", "trait=ValidDouble", "-blank", "-sf=2"},
-       {"N", "count", "Female", "Female=ValidDouble", "-blank", "-sf=0"},
-       {"N - Female", "count", "Female", "Female=1", "-blank", "-sf=0"},
-       {"Age - Mean", "mean", "Age", "Age=ValidDouble", "-blank", "-sf=2"},
-       {"Age - standard deviation", "stdev", "Age", "Age=ValidDouble", "-blank", "-sf=2",
-        "-stdev"},};
+                                                {{"Description", "statOperation", "columnLabel",
+                                                  "columnCriteria", "parameter"},
+                                                 {"Trait - Minimum", "0 percentile", "trait",
+                                                  "trait=ValidDouble", "-blank", "-sf=2"},
+                                                 {"Trait - 1st Quartile", "25 percentile", "trait",
+                                                  "trait=ValidDouble", "-blank", "-sf=2"},
+                                                 {"Trait - Median", "50 percentile", "trait",
+                                                  "trait=ValidDouble", "-blank", "-sf=2"},
+                                                 {"Trait - Mean", "mean", "trait",
+                                                  "trait=ValidDouble", "-blank", "-sf=2"},
+                                                 {"Trait - 3rd Quartile", "75 percentile", "trait",
+                                                  "trait=ValidDouble", "-blank", "-sf=2"},
+                                                 {"Trait - maximum", "100 percentile", "trait",
+                                                  "trait=ValidDouble", "-blank", "-sf=2"},
+                                                 {"Trait- standard deviation", "stdev", "trait",
+                                                  "trait=ValidDouble", "-blank", "-sf=2"},
+                                                 {"N", "count", "Female", "Female=ValidDouble",
+                                                  "-blank", "-sf=0"},
+                                                 {"N - Female", "count", "Female", "Female=1",
+                                                  "-blank", "-sf=0"},
+                                                 {"Age - Mean", "mean", "Age", "Age=ValidDouble",
+                                                  "-blank", "-sf=2"},
+                                                 {"Age - standard deviation", "stdev", "Age",
+                                                  "Age=ValidDouble", "-blank", "-sf=2", "-stdev"},};
 
   public static String runDescriptiveStat(double[] data, String statOperation, boolean includeStdev,
                                           boolean useBlankForNull, boolean showPercent, int sf,
@@ -78,11 +89,10 @@ public class SummarizePhenotype {
         result = (data.length == 0 ? (useBlankForNull ? "" : "0")
                                    : ext.formDeci(data[data.length - 1], sf));
       } else {
-        result =
-            (data.length == 0 ? (useBlankForNull ? "" : "0")
-                              : ext.formDeci(data[(int) (((double) percentile / 100) * data.length
-                                                         + .5)],
-                                             sf));
+        result = (data.length == 0 ? (useBlankForNull ? "" : "0")
+                                   : ext.formDeci(data[(int) (((double) percentile / 100)
+                                                              * data.length + .5)],
+                                                  sf));
       }
 
     } else {

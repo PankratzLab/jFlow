@@ -236,7 +236,7 @@ public class VCOps {
 
   /**
    * @author lane0212
-   * 
+   *
    *         types of alternate contexts available
    *
    */
@@ -588,20 +588,20 @@ public class VCOps {
             break;
           case AD_TUMOR:
           case AD_NORMAL:
-            double[] adTotal =
-                Array.toDoubleArray(geno.getAnyAttribute(info.getFlag()).toString().split(","));
+            double[] adTotal = Array.toDoubleArray(geno.getAnyAttribute(info.getFlag()).toString()
+                                                       .split(","));
             avgGI += Array.sum(adTotal);
             break;
           case ALT_AD_TUMOR:
           case ALT_AD_NORMAL:
-            avgGI +=
-                Array.toDoubleArray(geno.getAnyAttribute(info.getFlag()).toString().split(","))[1];
+            avgGI += Array.toDoubleArray(geno.getAnyAttribute(info.getFlag()).toString()
+                                             .split(","))[1];
             break;
           case AF_TUMOR:
           case NLOD:
           case TLOD:
-            avgGI +=
-                Array.toDoubleArray(geno.getAnyAttribute(info.getFlag()).toString().split(","))[0];
+            avgGI += Array.toDoubleArray(geno.getAnyAttribute(info.getFlag()).toString()
+                                             .split(","))[0];
             break;
           default:
             throw new IllegalArgumentException("Invalid genotype flag " + info);

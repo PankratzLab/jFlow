@@ -140,14 +140,14 @@ public class WeightedSumStatistic {
       perms = new double[NUM_REPS];
       for (int i = 0; i < NUM_REPS; i++) {
         order = Array.random(affectionStatus.length);
-        permWeights =
-            computeWeights(Sort.putInOrder(affectionStatus, order), markerCounts, valid_subset);
+        permWeights = computeWeights(Sort.putInOrder(affectionStatus, order), markerCounts,
+                                     valid_subset);
         permScores = computeScores(markerCounts, permWeights, valid_subset);
         if (binary) {
           perms[i] = sumOfRanks(Sort.putInOrder(trait, order), permScores);
         } else {
-          perms[i] =
-              Correlation.Spearman(new double[][] {Sort.putInOrder(trait, order), permScores})[0];
+          perms[i] = Correlation.Spearman(new double[][] {Sort.putInOrder(trait, order),
+                                                          permScores})[0];
           // perms[i] = Correlation.Pearson(new double[][] {Sort.putInOrder(trait, order),
           // permScores})[0];
         }

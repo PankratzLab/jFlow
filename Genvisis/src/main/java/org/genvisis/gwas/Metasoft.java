@@ -127,8 +127,8 @@ public class Metasoft {
         }
         for (int i = 0; i < lambdas.length; i++) {
           if (!line[1 + i * 2 + 1].equals("NA")) {
-            line[1 + i * 2 + 1] =
-                ext.formDeci(Double.parseDouble(line[1 + i * 2 + 1]) * lambdas[i], 9);
+            line[1 + i * 2 + 1] = ext.formDeci(Double.parseDouble(line[1 + i * 2 + 1]) * lambdas[i],
+                                               9);
           }
         }
         writer.println(Array.toStr(line));

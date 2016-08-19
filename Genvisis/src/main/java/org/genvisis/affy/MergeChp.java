@@ -128,7 +128,7 @@ public class MergeChp implements Runnable {
 
     String[] dirList = Files.listDirectories(affyResultsDir, false);
     String[] files =
-        Files.list(affyResultsDir + dirList[0] + commonSubFolder, commonFilename, false);
+                   Files.list(affyResultsDir + dirList[0] + commonSubFolder, commonFilename, false);
     fileCabinet = new Vector<Vector<String>>();
     for (int i = 0; i < numThreads; i++) {
       fileCabinet.add(new Vector<String>());

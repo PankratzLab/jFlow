@@ -49,7 +49,7 @@ public class ConvertPlinkToMatrix {
 
   public static void main(String[] args) {
     String dir =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\SequencingProjectWithCIDR\\SNP_comparisons\\";
+               "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\SequencingProjectWithCIDR\\SNP_comparisons\\";
     // String root = "48snps";
     String root = "768snps";
 

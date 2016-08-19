@@ -14,7 +14,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 
 class PiledVcfRegion<T extends Segment> implements Serializable {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private final T region;

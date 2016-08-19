@@ -9,9 +9,8 @@ import org.genvisis.stats.StatsCrossTabs.STAT_TYPE;
 
 /**
  * @author lane0212 <br>
- *         From
- *         "A Multiple Testing Correction Method for Genetic Association Studies Using Correlated Single Nucleotide Polymorphisms"
- *         <br>
+ *         From "A Multiple Testing Correction Method for Genetic Association Studies Using
+ *         Correlated Single Nucleotide Polymorphisms" <br>
  *         http://www.ncbi.nlm.nih.gov/pubmed/18271029 <br>
  *         We extend this method to all double data, and unchunk the blocks <br>
  *         Test data set can be found at
@@ -68,8 +67,9 @@ public class SimpleM {
           m = scanBlocks();
           break;
         case SINGLE_FRAME_MODE:
-          PrincipalComponentsCompute principalComponentsCompute =
-              computePcs(dataM, dataTitles, precorrelated, verbose, log);
+          PrincipalComponentsCompute principalComponentsCompute = computePcs(dataM, dataTitles,
+                                                                             precorrelated, verbose,
+                                                                             log);
           m = getMeff(principalComponentsCompute, pcaCutoff);
           break;
         default:
@@ -103,8 +103,9 @@ public class SimpleM {
         double[][] block = Array.subArray(dataM, start, stop);
         String[] blockTitles = Array.subArray(dataTitles, start, stop);
         start = stop;
-        PrincipalComponentsCompute principalComponentsCompute =
-            computePcs(block, blockTitles, precorrelated, verbose, log);
+        PrincipalComponentsCompute principalComponentsCompute = computePcs(block, blockTitles,
+                                                                           precorrelated, verbose,
+                                                                           log);
         int mTmp = getMeff(principalComponentsCompute, pcaCutoff);
         m += mTmp;
 
@@ -116,7 +117,8 @@ public class SimpleM {
       String[] blockTitles = Array.subArray(dataTitles, start, numTotal);
       System.out.println("Subsetting from " + start + " -> " + numTotal);
       PrincipalComponentsCompute principalComponentsCompute =
-          computePcs(block, blockTitles, precorrelated, verbose, log);
+                                                            computePcs(block, blockTitles,
+                                                                       precorrelated, verbose, log);
       int mTmp = getMeff(principalComponentsCompute, pcaCutoff);
       log.reportTimeInfo("Index :" + index + " Current m = " + mTmp + " Total m = " + m);
       m += mTmp;
@@ -144,17 +146,19 @@ public class SimpleM {
                                                        Logger log) {
     PrincipalComponentsCompute principalComponentsCompute = null;
     if (!preCorrelated) {
-      StatsCrossTabs statsCrossTabs =
-          new StatsCrossTabs(data, null, null, dataTitles, STAT_TYPE.PEARSON_CORREL, verbose, log);
+      StatsCrossTabs statsCrossTabs = new StatsCrossTabs(data, null, null, dataTitles,
+                                                         STAT_TYPE.PEARSON_CORREL, verbose, log);
       statsCrossTabs.computeTable(true);
       principalComponentsCompute =
-          PrincipalComponentsCompute.getPrincipalComponents(data.length - 1, false,
-                                                            statsCrossTabs.getStatisticTable(),
-                                                            verbose, log);
+                                 PrincipalComponentsCompute.getPrincipalComponents(data.length - 1,
+                                                                                   false,
+                                                                                   statsCrossTabs.getStatisticTable(),
+                                                                                   verbose, log);
     } else {
       principalComponentsCompute =
-          PrincipalComponentsCompute.getPrincipalComponents(data.length - 1, false, data, verbose,
-                                                            log);
+                                 PrincipalComponentsCompute.getPrincipalComponents(data.length - 1,
+                                                                                   false, data,
+                                                                                   verbose, log);
 
     }
     return principalComponentsCompute;

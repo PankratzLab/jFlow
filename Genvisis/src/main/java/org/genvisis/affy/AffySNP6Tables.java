@@ -16,8 +16,8 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
 public class AffySNP6Tables {
-  public static final String[][] SNP_HEADER_OPTIONS =
-      {{"SNP Name", "rsID", "Probe Set ID", "probeset_id"}};
+  public static final String[][] SNP_HEADER_OPTIONS = {{"SNP Name", "rsID", "Probe Set ID",
+                                                        "probeset_id"}};
   StringBuilder[] indFiles;
   private final String outputDirectory;
   private String callFile;
@@ -421,7 +421,7 @@ public class AffySNP6Tables {
     try {
       if (SNP) {
         AffySNP6Tables AS6T =
-            new AffySNP6Tables(output, calls, conf, sig, maxwriters, new Logger());
+                            new AffySNP6Tables(output, calls, conf, sig, maxwriters, new Logger());
         AS6T.parseSNPTables(numLinesBuffer);
       }
       if (CN) {

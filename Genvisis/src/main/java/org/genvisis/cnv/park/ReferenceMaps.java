@@ -15,12 +15,12 @@ import org.genvisis.filesys.CNVariant;
 
 public class ReferenceMaps {
   public static final String MCCAROLL_DIR =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\McCaroll map\\";
+                                          "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\McCaroll map\\";
 
   public static final String MCCAROLL_MAP = "ng.238-S2.txt";
 
-  public static final String[] MCCAROLL_HEADER =
-      {"CNP_id", "chr", "start_hg17", "end_hg17", "start_hg18", "end_hg18", "CN classes observed"};
+  public static final String[] MCCAROLL_HEADER = {"CNP_id", "chr", "start_hg17", "end_hg17",
+                                                  "start_hg18", "end_hg18", "CN classes observed"};
 
   public static final String[] MCCAROLL_POPULATIONS = {"CEU", "YRI", "CHB+JPT"};
 
@@ -173,7 +173,7 @@ public class ReferenceMaps {
   public static void main(String[] args) {
     int numArgs = args.length;
     String filename =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\McCaroll map\\all_CNPs.txt";
+                    "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\McCaroll map\\all_CNPs.txt";
 
     String usage = "\n" + "cnv.ReferenceMaps requires 0-1 arguments\n"
                    + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";

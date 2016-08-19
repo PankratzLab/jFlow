@@ -72,7 +72,7 @@ public class MergeExtractPipeline {
   /**
    * Either absolute path to file, or relative path to file in either previously-specified
    * run-directory or current directory (depending on where the file exists)
-   * 
+   *
    * @param regionFile
    * @return
    */
@@ -165,8 +165,8 @@ public class MergeExtractPipeline {
         }
       }
     }
-    markers =
-        HashVec.loadFileToStringArray(markersFile, false, false, new int[] {0}, true, false, "\t");
+    markers = HashVec.loadFileToStringArray(markersFile, false, false, new int[] {0}, true, false,
+                                            "\t");
     SnpMarkerSet markerSet = new SnpMarkerSet(markers);
     markerSet.parseSNPlocations(log);
     markerLocations = markerSet.getChrAndPositionsAsInts();
@@ -212,7 +212,7 @@ public class MergeExtractPipeline {
 
   /**
    * Refers to DosageData formats
-   * 
+   *
    * @param format
    * @return
    */
@@ -320,8 +320,8 @@ public class MergeExtractPipeline {
                                              final String dataFileExt, final String mapFileExt,
                                              final String idFile, final int bpWindow) {
     initLog();
-    String[] filesToAdd =
-        (new File(dir)).list(getFilter(markerLocations, regions, dataFileExt, bpWindow, log));
+    String[] filesToAdd = (new File(dir)).list(getFilter(markerLocations, regions, dataFileExt,
+                                                         bpWindow, log));
     for (String file : filesToAdd) {
       addDataSource(lbl, dir, file,
                     file.substring(0, file.length() - dataFileExt.length()) + mapFileExt, idFile);
@@ -427,9 +427,9 @@ public class MergeExtractPipeline {
       String[] lbls = Array.toStringArray(plinkLabels);
       plinkRoots = null;
       String outRoot = dir + "plink_merged";
-      String mergeCommand =
-          PlinkMergePrep.merge(PlinkMergePrep.BEDBIMFAM, outRoot, overwrite, renameMarkers,
-                               regionsFile, markersFile, roots, lbls);
+      String mergeCommand = PlinkMergePrep.merge(PlinkMergePrep.BEDBIMFAM, outRoot, overwrite,
+                                                 renameMarkers, regionsFile, markersFile, roots,
+                                                 lbls);
 
       log.report("Running PLINK merge command: " + mergeCommand);
       boolean result = CmdLine.runDefaults(mergeCommand, dir);
@@ -679,8 +679,8 @@ public class MergeExtractPipeline {
     mep.setRenameMarkers(rename);
     mep.setOutputFiles(outfileD, outfileM);
     mep.initLog();
-    ArrayList<DataSource> dss =
-        parseDataFile(mep.runDir, mep.markerLocations, mep.regions, data, 0, mep.log);
+    ArrayList<DataSource> dss = parseDataFile(mep.runDir, mep.markerLocations, mep.regions, data, 0,
+                                              mep.log);
     for (DataSource ds : dss) {
       mep.addDataSource(ds);
     }

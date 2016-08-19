@@ -19,25 +19,33 @@ import org.genvisis.common.ext;
 
 public class AffyPowerTools {
   public static final String[] AFFY_QC_LIB_FILES =
-      {"GenomeWideSNP_6.chrXprobes", "GenomeWideSNP_6.chrYprobes", "GenomeWideSNP_6.r2.qca",
-       "GenomeWideSNP_6.r2.qcc", "GenomeWideSNP_6.cdf"};
+                                                 {"GenomeWideSNP_6.chrXprobes",
+                                                  "GenomeWideSNP_6.chrYprobes",
+                                                  "GenomeWideSNP_6.r2.qca",
+                                                  "GenomeWideSNP_6.r2.qcc", "GenomeWideSNP_6.cdf"};
   public static final String[] AFFY_GENOTYPE_SUMMARIZE_LIB_FILES =
-      {"GenomeWideSNP_6.cdf", "GenomeWideSNP_6.birdseed-v2.models", "GenomeWideSNP_6.specialSNPs",
-       "GenomeWideSNP_6.chrXprobes", "GenomeWideSNP_6.chrYprobes", "hapmap.quant-norm.normalization-target.txt"};
-  public static final String[] AFFY_ANALYSIS_OUTPUTS_PREFIXES =
-      {"probesGenotype_", "probesSummarize_", "probesSummarize_small"};
-  public static final String[] AFFY_ANALYSIS_OUTPUTS_SUFFIXES =
-      {".summary.txt", ".report.txt", ".calls.txt", ".confidences.txt", ".log"};
+                                                                 {"GenomeWideSNP_6.cdf",
+                                                                  "GenomeWideSNP_6.birdseed-v2.models",
+                                                                  "GenomeWideSNP_6.specialSNPs",
+                                                                  "GenomeWideSNP_6.chrXprobes",
+                                                                  "GenomeWideSNP_6.chrYprobes",
+                                                                  "hapmap.quant-norm.normalization-target.txt"};
+  public static final String[] AFFY_ANALYSIS_OUTPUTS_PREFIXES = {"probesGenotype_",
+                                                                 "probesSummarize_",
+                                                                 "probesSummarize_small"};
+  public static final String[] AFFY_ANALYSIS_OUTPUTS_SUFFIXES = {".summary.txt", ".report.txt",
+                                                                 ".calls.txt", ".confidences.txt",
+                                                                 ".log"};
   public static final String[] AFFY_GENVISIS_OUTPUTS_SUFFIXES = {".GENAFFY"};
   public static final String[] AFFY_GENVISIS_OUTPUTS_PREFIXES = {"SNP_", "CN_"};
   public static final String[] AFFY_PROBELIST_HEADER = {"probeset_id"};
   public static final String[] AFFY_CEL_LIST_HEADER = {"cel_files"};
-  public static final String[] AFFY_BATCH_NAMES =
-      {"AFFYQC", "AFFYGenotype_", "AFFYSummarize_", "GEN_AFFY", "B"};
-  public static final String[] AFFY_AUXILIARY_LISTS =
-      {"celList.txt", "celList_small.txt", "gw6_probesets.txt"};
-  public static final String[] AFFY_ANALYSIS_TYPES =
-      {"apt-geno-qc", "apt-probeset-genotype", "apt-probeset-summarize"};
+  public static final String[] AFFY_BATCH_NAMES = {"AFFYQC", "AFFYGenotype_", "AFFYSummarize_",
+                                                   "GEN_AFFY", "B"};
+  public static final String[] AFFY_AUXILIARY_LISTS = {"celList.txt", "celList_small.txt",
+                                                       "gw6_probesets.txt"};
+  public static final String[] AFFY_ANALYSIS_TYPES = {"apt-geno-qc", "apt-probeset-genotype",
+                                                      "apt-probeset-summarize"};
   public static final String AFFY_EXTENSION = ".CEL";
   public static final String[] PENN_CNV_OUTPUTS = {"gw6.genocluster", "gw6.lrr_baf.txt"};
   public static final String[] PENN_BATCH_NAMES = {"PennGenoClust", "PennLRRBAF"};
@@ -105,7 +113,7 @@ public class AffyPowerTools {
       log.report("Warning - a marker file was not provided , generating one to use at " + markerFile
                  + " using all available probesets");
       markerFile =
-          getFullProbesetList(dataDir, affyResultsDir, aptExeDir, affyCDF, markerFile, log);
+                 getFullProbesetList(dataDir, affyResultsDir, aptExeDir, affyCDF, markerFile, log);
       log.report("Info - a marker file was generated at " + markerFile);
 
     }
@@ -140,9 +148,9 @@ public class AffyPowerTools {
                         AFFY_GENVISIS_OUTPUTS_PREFIXES[1], totalMemory, walltimeRequestedInHours,
                         log);
 
-    String help =
-        generateGenoSumLogHelp(pbsDir, dataDir, aptExeDir, affyLib, affyResultsDir, celList,
-                               markerFile, numSNPJobs, numCNJobs, numSNPBatches, numCNBatches, log);
+    String help = generateGenoSumLogHelp(pbsDir, dataDir, aptExeDir, affyLib, affyResultsDir,
+                                         celList, markerFile, numSNPJobs, numCNJobs, numSNPBatches,
+                                         numCNBatches, log);
     log.report(help);
   }
 
@@ -224,9 +232,9 @@ public class AffyPowerTools {
                                       + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[0] + " out=" + projectSource
                                       + "[%0]/" + " numLinesBuffer=" + numLinesBuffer + " -"
                                       + AFFY_GENVISIS_OUTPUTS_PREFIXES[0];
-    String affySNP6TablesCNCommand =
-        javaLocation + " -Xmx" + totalMemory + "m -cp " + javaCp + " " + AFFY_TABLES_CLASS + " sig="
-                                     + affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]/"
+    String affySNP6TablesCNCommand = javaLocation + " -Xmx" + totalMemory + "m -cp " + javaCp + " "
+                                     + AFFY_TABLES_CLASS + " sig=" + affyResultsDir
+                                     + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]/"
                                      + AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]"
                                      + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[0] + " out=" + projectSource
                                      + "[%0]/" + " numLinesBuffer=" + numLinesBuffer + " -"
@@ -237,10 +245,10 @@ public class AffyPowerTools {
     writeCommandBatches(pbsDir + AFFY_BATCH_NAMES[3], affySNP6TablesCNCommand, numCNJobs,
                         numCNBatches, AFFY_GENVISIS_OUTPUTS_PREFIXES[1], totalMemory,
                         walltimeRequestedInHours, log);
-    String help =
-        generateAffyTableLogHelp(pbsDir, affyResultsDir, numSNPJobs, numCNJobs, numSNPBatches,
-                                 numCNBatches, totalMemory, walltimeRequestedInHours, javaLocation,
-                                 javaCp, numLinesBuffer, log);
+    String help = generateAffyTableLogHelp(pbsDir, affyResultsDir, numSNPJobs, numCNJobs,
+                                           numSNPBatches, numCNBatches, totalMemory,
+                                           walltimeRequestedInHours, javaLocation, javaCp,
+                                           numLinesBuffer, log);
     log.report(help);
 
   }
@@ -248,9 +256,9 @@ public class AffyPowerTools {
   public static void mergeFiles(String pbsDir, String affyResultsDir, String projectSource,
                                 int numJobs, int totalMemory, double walltimeRequestedInHours,
                                 String javaLocation, String javaCp, Logger log) {
-    String mergeCommand =
-        javaLocation + " -cp " + javaCp + " " + AFFY_TABLES_CLASS + "-merge affyResultsDir="
-                          + affyResultsDir + " out=" + projectSource + " threads=" + numJobs;
+    String mergeCommand = javaLocation + " -cp " + javaCp + " " + AFFY_TABLES_CLASS
+                          + "-merge affyResultsDir=" + affyResultsDir + " out=" + projectSource
+                          + " threads=" + numJobs;
     String[] mergeCommands = new String[1];
     mergeCommands[0] = mergeCommand;
 
@@ -277,7 +285,7 @@ public class AffyPowerTools {
     help += "(1) Run each of the commands  found in this log \n";
     help += "(2) Submit the .PBS files to a compute cluster\n";
     help +=
-        "Please note that the number of jobs and batches must equal the number of jobs and batches from -gtsum ";
+         "Please note that the number of jobs and batches must equal the number of jobs and batches from -gtsum ";
     help += "The final steps for importing into GENVISIS are to:\n";
     help += "(1) create a project file\n";
     help += "(2) run " + javaLocation + " -cp " + javaCp + " " + AFFY_TABLES_CLASS
@@ -300,7 +308,7 @@ public class AffyPowerTools {
     String help = "\n\n\nA few tips to continue with genotyping and summarizing your .CEL files in "
                   + dataDir + "\n";
     help +=
-        "If you would not actually like to break up the analysis, you can run from the command line...\n ";
+         "If you would not actually like to break up the analysis, you can run from the command line...\n ";
     help += "\n(1) " + aptExeDir + AFFY_ANALYSIS_TYPES[1] + " -c " + affyCDF
             + " --table-output true -a birdseed-v2 --set-gender-method cn-probe-chrXY-ratio --read-models-birdseed "
             + affyBirdseedModel + " --special-snps " + affySpecialSnps + " -out-dir "
@@ -322,7 +330,7 @@ public class AffyPowerTools {
             + " numSNPBatches=" + numSNPBatches + " numCNBatches=" + numCNBatches
             + "projectSource=YourDesiredSourceDirectory";
     help +=
-        "\n projectSource=YourDesiredSourceDirectory will be the location Genvisis will look to load data ";
+         "\n projectSource=YourDesiredSourceDirectory will be the location Genvisis will look to load data ";
     help += "\n*******Please note that the number of jobs and batches must be the same*******";
     return help;
 
@@ -350,9 +358,9 @@ public class AffyPowerTools {
     // -o " + affyResultsDir + " --cel-files " + smallCelList;
     log.report(ext.getTime() + " Info - running a command to extract probeset ids: " + psetCommand);
     CmdLine.run(psetCommand, aptExeDir);
-    String toExtractFile =
-        getMatchedFiles(affyResultsDir, log,
-                        AFFY_ANALYSIS_OUTPUTS_PREFIXES[2] + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[0])[0];
+    String toExtractFile = getMatchedFiles(affyResultsDir,
+                                           log, AFFY_ANALYSIS_OUTPUTS_PREFIXES[2]
+                                                + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[0])[0];
     log.report(ext.getTime() + " Info - extracting probesets from " + toExtractFile);
     extractProbesets(affyResultsDir, markerFile, toExtractFile, log);
     log.report(ext.getTime() + " Info - cleaning up files...");
@@ -840,9 +848,9 @@ public class AffyPowerTools {
                                  + affyChunkProbe + jobID;
         affyGenoJobs[i] = genotypeCommand;
 
-        String aptChptoTxt =
-            affyChpToText + " " + outDir + affyGenofolderOut + jobID + "/cc-chp*/*.chp -o " + outDir
-                             + "ARICGenvisis/00src/" + affyGenofolderOut + jobID + "/cc-chp";
+        String aptChptoTxt = affyChpToText + " " + outDir + affyGenofolderOut + jobID
+                             + "/cc-chp*/*.chp -o " + outDir + "ARICGenvisis/00src/"
+                             + affyGenofolderOut + jobID + "/cc-chp";
         chpToTxt[i] = aptChptoTxt;
 
         String summarizeCommand = affySummarize + " --cdf-file " + affyCDF
@@ -863,14 +871,14 @@ public class AffyPowerTools {
 
         affySNP6Tables[i] = affySNP6TablesCommand;
         // Include sex file later
-        String generate_affy_geno_cluster =
-            "perl " + pennCNVbin + "generate_affy_geno_cluster.pl " + outDir + affyGenofolderOut
-                                            + jobID + "/" + birdseedCalls + " " + outDir
-                                            + affyGenofolderOut + jobID + "/" + birdseedConf + " "
-                                            + outDir + affySumfolderOut + jobID + "/" + quantNorm
-                                            + " " + batchChunk + " -locfile " + locFile
-                                            + " -sexfile " + sexFile + " -out " + outDir
-                                            + affyGenoClusterFolderOut + jobID + "/" + genoCluster;
+        String generate_affy_geno_cluster = "perl " + pennCNVbin + "generate_affy_geno_cluster.pl "
+                                            + outDir + affyGenofolderOut + jobID + "/"
+                                            + birdseedCalls + " " + outDir + affyGenofolderOut
+                                            + jobID + "/" + birdseedConf + " " + outDir
+                                            + affySumfolderOut + jobID + "/" + quantNorm + " "
+                                            + batchChunk + " -locfile " + locFile + " -sexfile "
+                                            + sexFile + " -out " + outDir + affyGenoClusterFolderOut
+                                            + jobID + "/" + genoCluster;
 
         affyGenoClusterJobs[i] = generate_affy_geno_cluster;
 
@@ -911,7 +919,7 @@ public class AffyPowerTools {
         // affyDetectFolder + detectBatch + "/gw6.log -out " + outDir + affyDetectFolder +
         // detectBatch + "/gw6.rawcnv" + " -list " + lists + "indDetect" + detectBatch;
         String detectCNV =
-            "perl /home/pankrat2/shared/bin/penncnv/detect_cnv.pl --test -hmm /home/pankrat2/shared/aric_gw6/pennCNVAffy/gw6/lib/affygw6.hmm"
+                         "perl /home/pankrat2/shared/bin/penncnv/detect_cnv.pl --test -hmm /home/pankrat2/shared/aric_gw6/pennCNVAffy/gw6/lib/affygw6.hmm"
                            + " -pfb /home/pankrat2/shared/aric_gw6/pennCNVAffy/gw6/lib/affygw6.hg18.pfb -conf -gcmodel /home/pankrat2/shared/aric_gw6/pennCNVAffy/gw6/lib/affygw6.hg18.gcmodel -log /scratch/normDat/affyCelDetect/pennResult/"
                            + detectBatch + "gw6.log -out /scratch/normDat/affyCelDetect/pennResult/"
                            + detectBatch + "gw6.rawcnv" + " -list " + lists + "x" + detectBatch;

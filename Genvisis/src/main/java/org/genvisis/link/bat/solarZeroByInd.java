@@ -31,8 +31,8 @@ public class solarZeroByInd {
     reader.close();
 
     for (int chromosome = start; chromosome <= stop; chromosome++) {
-      String bakFilename =
-          Files.getBakFilename("solar.gtypes." + chromosome, super.getClass().getName());
+      String bakFilename = Files.getBakFilename("solar.gtypes." + chromosome,
+                                                super.getClass().getName());
       (new File("solar.gtypes." + chromosome)).renameTo(new File(bakFilename));
       reader = new BufferedReader(new FileReader(bakFilename));
       writer = new PrintWriter(new FileWriter("solar.gtypes." + chromosome));

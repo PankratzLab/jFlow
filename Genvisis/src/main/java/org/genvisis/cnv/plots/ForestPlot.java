@@ -83,7 +83,7 @@ class MetaStudy {
       sorted.add(new StudyBreak());
       for (int i = order.size() - 1; i >= 0; i--) {
         String name =
-            ext.replaceAllWith(order.get(i), ForestPlot.REPLACEMENTS_FOOLISHLY_HARD_CODED);
+                    ext.replaceAllWith(order.get(i), ForestPlot.REPLACEMENTS_FOOLISHLY_HARD_CODED);
         String repl = null;
         if (name.equals("")) {
           sorted.add(new StudyBreak());
@@ -329,8 +329,12 @@ class ForestInput {
 
 
 public class ForestPlot {
-  public static final String[][] REPLACEMENTS_FOOLISHLY_HARD_CODED =
-      new String[][] {{"_WBC_TOTAL", ""}, {"_WBC_NEUTRO", ""}, {"_", " "},};
+  public static final String[][] REPLACEMENTS_FOOLISHLY_HARD_CODED = new String[][] {
+                                                                                     {"_WBC_TOTAL",
+                                                                                      ""},
+                                                                                     {"_WBC_NEUTRO",
+                                                                                      ""},
+                                                                                     {"_", " "},};
 
   private static final String[] BETA_META_HEADERS = {"beta", "effect"};
   private static final String[] SE_META_HEADERS = {"se", "stderr"};
@@ -512,9 +516,10 @@ public class ForestPlot {
         }
         while (dataReader.ready() && !Thread.interrupted()) {
           String readLine = dataReader.readLine();
-          String readData[] =
-              delimiter.equals(",") ? ext.splitCommasIntelligently(readLine, true, log)
-                                    : readLine.split(delimiter);
+          String readData[] = delimiter.equals(",")
+                                                    ? ext.splitCommasIntelligently(readLine, true,
+                                                                                   log)
+                                                    : readLine.split(delimiter);
           String markerName = readData[idIndex];
           for (ForestInput inputData : fileMap.getValue()) {
             if (Thread.interrupted()) {
@@ -549,9 +554,11 @@ public class ForestPlot {
   private void mapMarkersToCol(ForestInput data, String hdr) throws RuntimeException,
                                                              InterruptedException {
     String delim = data.file.toLowerCase().endsWith(".csv") ? ",!" : ext.determineDelimiter(hdr);
-    String[] dataFileHeaders =
-        delim.startsWith(",") ? ext.splitCommasIntelligently(hdr, delim.endsWith("!"), log)
-                              : hdr.trim().split(delim);
+    String[] dataFileHeaders = delim.startsWith(",")
+                                                     ? ext.splitCommasIntelligently(hdr,
+                                                                                    delim.endsWith("!"),
+                                                                                    log)
+                                                     : hdr.trim().split(delim);
     for (int i = 0; i < dataFileHeaders.length; i++) {
       for (int j = 0; j < BETA_META_HEADERS.length; j++) {
         if (dataFileHeaders[i].toLowerCase().equals(BETA_META_HEADERS[j])) {

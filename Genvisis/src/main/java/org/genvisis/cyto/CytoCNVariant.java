@@ -19,8 +19,9 @@ import org.genvisis.filesys.CNVariant;
  * Class to store cyto variants and related info. Currently variants are loaded from files with
  * header containing the following:
  * <p>
- * "AberrationNo	CytoBand	ChrName	ProbeName	Start	Stop	Description	Genes		Logratio	Amplification	Deletion		Logratio	Amplification	Deletion		Logratio	Amplification	Deletion		Logratio	Amplification	Deletion"
- * but only CYTO_ABERATION_HEADER headers are needed
+ * "AberrationNo CytoBand ChrName ProbeName Start Stop Description Genes Logratio Amplification
+ * Deletion Logratio Amplification Deletion Logratio Amplification Deletion Logratio Amplification
+ * Deletion" but only CYTO_ABERATION_HEADER headers are needed
  * <p>
  * above each Logratio column should be a sample name
  * <p>
@@ -32,8 +33,8 @@ import org.genvisis.filesys.CNVariant;
  */
 public class CytoCNVariant extends CNVariant {
 
-  public static final String[][] CYTO_ABERATION_HEADER =
-      {{"AberrationNo", "CytoBand", "ChrName", "ProbeName", "Start", "Stop", "Genes"}};
+  public static final String[][] CYTO_ABERATION_HEADER = {{"AberrationNo", "CytoBand", "ChrName",
+                                                           "ProbeName", "Start", "Stop", "Genes"}};
   public static final String[] CYTO_SAMPLE_HEADER = {"Logratio", "Amplification", "Deletion"};
   public static final String[] SPLITS = {"\t"};
   public static final String[] NOTHINGS = {"0", "0.0", ""};
@@ -237,14 +238,14 @@ public class CytoCNVariant extends CNVariant {
    * <p>
    * Warning - samples are ordered on a "first-seen basis" when iterating over CytoCNVariant[]
    * cytoCNVariants
-   * 
+   *
    * @param cytoCNVariants the CytoCNVariant[] to parse
    * @param log
    * @return CytoCNVariant[][] organized as CytoCNVariant[sample0][CytoCNVariantsForSample0]
    */
   public static CytoCNVariant[][] toIndividuals(CytoCNVariant[] cytoCNVariants, Logger log) {
     Hashtable<String, ArrayList<CytoCNVariant>> track =
-        new Hashtable<String, ArrayList<CytoCNVariant>>();
+                                                      new Hashtable<String, ArrayList<CytoCNVariant>>();
     ArrayList<String> inds = new ArrayList<String>();
 
     for (CytoCNVariant cytoCNVariant : cytoCNVariants) {
@@ -258,8 +259,8 @@ public class CytoCNVariant extends CNVariant {
 
     CytoCNVariant[][] cytoCNVariantsInds = new CytoCNVariant[inds.size()][];
     for (int i = 0; i < inds.size(); i++) {
-      cytoCNVariantsInds[i] =
-          track.get(inds.get(i)).toArray(new CytoCNVariant[track.get(inds.get(i)).size()]);
+      cytoCNVariantsInds[i] = track.get(inds.get(i))
+                                   .toArray(new CytoCNVariant[track.get(inds.get(i)).size()]);
     }
     return cytoCNVariantsInds;
   }
@@ -392,23 +393,23 @@ public class CytoCNVariant extends CNVariant {
 
   /**
    * The base file name for each individual is FID_IID.cnv, we assume that FID_IID are unique
-   * 
+   *
    * @param cytoCNVariantInds CytoCNVariant[][] organized
    *        CytoCNVariant[sample0][CytoCNVariantsForSample0]
    * @param dir added to base file name of FID_IID,if not null
    * @param log
-   * 
+   *
    * @return String[] of the output files (full paths) written to: Final output will be dir (if not
    *         null)+FID_IID.cnv
-   * 
+   *
    */
   public static String[] writeIndCNVariantFiles(CytoCNVariant[][] cytoCNVariantInds, String dir,
                                                 Logger log) {
     String[] outputs = new String[cytoCNVariantInds.length];
     for (int i = 0; i < cytoCNVariantInds.length; i++) {
       if (cytoCNVariantInds[i] != null && cytoCNVariantInds[i].length > 0) {
-        String FID_IID =
-            cytoCNVariantInds[i][0].getFamilyID() + "_" + cytoCNVariantInds[i][0].getIndividualID();
+        String FID_IID = cytoCNVariantInds[i][0].getFamilyID() + "_"
+                         + cytoCNVariantInds[i][0].getIndividualID();
         String fileName = ext.replaceWithLinuxSafeCharacters(FID_IID, true);
         if (dir != null) {
           fileName = dir + fileName;
@@ -452,7 +453,7 @@ public class CytoCNVariant extends CNVariant {
    * If it is not the same, we create a new cytoCNVariant to track for the corresponding sample. If
    * the aberration has ended and a new one is not immediately following, we finalize the variant's
    * arrays and add it to tmps
-   * 
+   *
    * @param sampleNames
    * @param line
    * @param indicesCommon
@@ -535,7 +536,7 @@ public class CytoCNVariant extends CNVariant {
 
   /**
    * To finalize the last aberration(s) and add to the ArrayList of parsed aberrations
-   * 
+   *
    * @param cytoCNVariant
    * @param tmps
    */
@@ -552,7 +553,7 @@ public class CytoCNVariant extends CNVariant {
   /**
    * Need this due to strange blank formatting where the line length can vary, causing index out of
    * bounds exceptions
-   * 
+   *
    * @param line
    * @param index
    * @return "" if out of index
@@ -570,7 +571,7 @@ public class CytoCNVariant extends CNVariant {
   /**
    * The assumption here is that the sample names are the only non-blank entries on the line right
    * above the data header. The non-blank entries will be used for the FID/IID
-   * 
+   *
    * @param line
    * @return
    */
@@ -585,10 +586,10 @@ public class CytoCNVariant extends CNVariant {
   }
 
   /**
-   * 
+   *
    * We use this function to get the indices of each sample's (CYTO_SAMPLE_HEADER) info for the
    * file. Also, each of the samples must have all three columns present
-   * 
+   *
    * @param header
    * @param log
    * @return

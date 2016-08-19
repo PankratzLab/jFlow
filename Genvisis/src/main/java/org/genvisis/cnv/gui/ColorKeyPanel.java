@@ -28,28 +28,30 @@ import org.genvisis.common.HashVec;
  */
 public class ColorKeyPanel extends JPanel {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
-  public static final Color[] DEFAULT_COLORS =
-      {new Color(33, 31, 53), // dark dark
-       new Color(23, 58, 172), // dark blue
-       new Color(201, 30, 10), // deep red
-       new Color(140, 20, 180), // deep purple
-       new Color(33, 87, 0), // dark green
-       new Color(55, 129, 252), // light blue
-       new Color(94, 88, 214), // light purple
-       new Color(189, 243, 61), // light green
-       new Color(217, 109, 194), // pink
-       new Color(0, 0, 128), // ALL KINDS OF BLUES
-       new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
-       new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
-       new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
-       new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
-       new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
-       new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
-       new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
-       new Color(224, 255, 255)};
+  public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
+                                                new Color(23, 58, 172), // dark blue
+                                                new Color(201, 30, 10), // deep red
+                                                new Color(140, 20, 180), // deep purple
+                                                new Color(33, 87, 0), // dark green
+                                                new Color(55, 129, 252), // light blue
+                                                new Color(94, 88, 214), // light purple
+                                                new Color(189, 243, 61), // light green
+                                                new Color(217, 109, 194), // pink
+                                                new Color(0, 0, 128), // ALL KINDS OF BLUES
+                                                new Color(100, 149, 237), new Color(72, 61, 139),
+                                                new Color(106, 90, 205), new Color(123, 104, 238),
+                                                new Color(132, 112, 255), new Color(0, 0, 205),
+                                                new Color(65, 105, 225), new Color(0, 0, 255),
+                                                new Color(30, 144, 255), new Color(0, 191, 255),
+                                                new Color(135, 206, 250), new Color(135, 206, 250),
+                                                new Color(70, 130, 180), new Color(176, 196, 222),
+                                                new Color(173, 216, 230), new Color(176, 224, 230),
+                                                new Color(175, 238, 238), new Color(0, 206, 209),
+                                                new Color(72, 209, 204), new Color(64, 224, 208),
+                                                new Color(0, 255, 255), new Color(224, 255, 255)};
 
   private static final Color BACKGROUND_COLOR = Color.WHITE;
 
@@ -137,7 +139,8 @@ public class ColorKeyPanel extends JPanel {
     if (sampleData == null) {
       classRadioButtons = new JRadioButton[2];
       classRadioButtons[0] =
-          new JRadioButton("All points (link to a SampleData file for more options)", false);
+                           new JRadioButton("All points (link to a SampleData file for more options)",
+                                            false);
       classRadioButtons[0].setFont(new Font("Arial", 0, 14));
       classRadio.add(classRadioButtons[0]);
       classRadioButtons[0].addItemListener(classListener);

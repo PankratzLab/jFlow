@@ -2,9 +2,6 @@
 // -Xms1024M -Xmx1024M
 package org.genvisis.db;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -36,40 +33,53 @@ import org.genvisis.stats.RegressionModel;
 import org.genvisis.stats.Stepwise;
 import org.genvisis.stats.Ttest;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 public class comp {
   public static String DEFAULT_TRAIT = "AOO";
-  public static String[][] DEFAULT_ID_NAMES =
-      {{"UniqueID", "UID"}, {"FID", "FamID"}, {"IID", "IndID"}};
+  public static String[][] DEFAULT_ID_NAMES = {{"UniqueID", "UID"}, {"FID", "FamID"},
+                                               {"IID", "IndID"}};
   public static String DEFAULT_INPUT = "linear.ctl";
   public static String DEFAULT_DB =
-      "\"C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\crf_db.dat\"";
-  public static String[] DEFAULT_USE =
-      {"BirthDate", "AgeAtOnset", "AgeAtExam", "Duration", "AOO", "DurationFromAOO", "EarlyOnset45",
-       "EarlyOnset50", "EarlyOnset60", "VPD", "CONF_PD", "Male", "Caucasian", "Hispanic",
-       "AffFather", "AffMother", "AffParent", "parkin", "polymorph", "G2019S", "Depression",
-       "Depressed", "DSMIV_Dx_Depression", "MajorDepression", "MinorDepression", "MMSE", "Demented",
-       "BlessedFunctionality", "Education", "MilitaryYears", "smoked", "smoker", "alcohol",
-       "pesticides", "OnsetWithTremor", "DominantSideFirst", "LeftSideFirst", "RightSideFirst",
-       "BothSidesFirst", "HallucinationWithDrugs", "HallucinationsWithoutDrugs", "depressionBefore",
-       "depressionSince", "HeadInjury", "Infection", "SchwabExaminer", "SchwabSubject",
-       "SchwabDiff", "Hoehn&Yahr", "Bradykinesia", "Rigidity", "Instability", "PersistentAsymmetry",
-       "RestTremor", "ProgressiveDisorder", "levodopaChorea", "levodopa5PlusYears", "Course10+",
-       "UnexplainedMotor", "Strokes", "Encephalitis", "OculogyricCrisis", "Alzheimers",
-       "SensoryDeficits_Apraxia", "PDfromDopaDrugs", "Remission", "unilateral3PlusYears",
-       "SupranuclearGaze", "CerebellarSigns", "Hypotension", "NoResponseLDopa", "lesionMRI",
-       "ldopaResponse", "PDopinion", "PD>90%", "logisticE4", "logisticE2", "APOE4count",
-       "UPDRSliving", "UPDRSmotor", "BradykinesiaScore", "BradykinesiaSubScore", "RigiditySubScore",
-       "PIGD_score", "Tremor_score", "PIGD_scale", "PIGD_dominant", "PIGD_intermediate",
-       "Tremor_dominant", "SpeechScore", "RestTremorScore", "ActionTremorScore",
-       "CombinedTremorScore"};
+                                  "\"C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\crf_db.dat\"";
+  public static String[] DEFAULT_USE = {"BirthDate", "AgeAtOnset", "AgeAtExam", "Duration", "AOO",
+                                        "DurationFromAOO", "EarlyOnset45", "EarlyOnset50",
+                                        "EarlyOnset60", "VPD", "CONF_PD", "Male", "Caucasian",
+                                        "Hispanic", "AffFather", "AffMother", "AffParent", "parkin",
+                                        "polymorph", "G2019S", "Depression", "Depressed",
+                                        "DSMIV_Dx_Depression", "MajorDepression", "MinorDepression",
+                                        "MMSE", "Demented", "BlessedFunctionality", "Education",
+                                        "MilitaryYears", "smoked", "smoker", "alcohol",
+                                        "pesticides", "OnsetWithTremor", "DominantSideFirst",
+                                        "LeftSideFirst", "RightSideFirst", "BothSidesFirst",
+                                        "HallucinationWithDrugs", "HallucinationsWithoutDrugs",
+                                        "depressionBefore", "depressionSince", "HeadInjury",
+                                        "Infection", "SchwabExaminer", "SchwabSubject",
+                                        "SchwabDiff", "Hoehn&Yahr", "Bradykinesia", "Rigidity",
+                                        "Instability", "PersistentAsymmetry", "RestTremor",
+                                        "ProgressiveDisorder", "levodopaChorea",
+                                        "levodopa5PlusYears", "Course10+", "UnexplainedMotor",
+                                        "Strokes", "Encephalitis", "OculogyricCrisis", "Alzheimers",
+                                        "SensoryDeficits_Apraxia", "PDfromDopaDrugs", "Remission",
+                                        "unilateral3PlusYears", "SupranuclearGaze",
+                                        "CerebellarSigns", "Hypotension", "NoResponseLDopa",
+                                        "lesionMRI", "ldopaResponse", "PDopinion", "PD>90%",
+                                        "logisticE4", "logisticE2", "APOE4count", "UPDRSliving",
+                                        "UPDRSmotor", "BradykinesiaScore", "BradykinesiaSubScore",
+                                        "RigiditySubScore", "PIGD_score", "Tremor_score",
+                                        "PIGD_scale", "PIGD_dominant", "PIGD_intermediate",
+                                        "Tremor_dominant", "SpeechScore", "RestTremorScore",
+                                        "ActionTremorScore", "CombinedTremorScore"};
   public static double SIG_CUTOFF = 0.05;
   public static int NUM_THREADS_DEFAULT = 1;
   public static int FAM_REPS_DEFAULT = 10000;
   public static int BOOT_REPS_DEFAULT = 10000;
-  public static final String[] OPTIONS =
-      {"dump", "dumpAll", "sw", "allsw", "swBonf", "allswBonf", "predicteds", "residuals",
-       "normalized", "inverseNormalized", "exactRegressionValues", "table", "sdtable", "trend",
-       "oneperfamily", "verbose", "force", "noserialperm", "chis", "audit", "hwe"};
+  public static final String[] OPTIONS = {"dump", "dumpAll", "sw", "allsw", "swBonf", "allswBonf",
+                                          "predicteds", "residuals", "normalized",
+                                          "inverseNormalized", "exactRegressionValues", "table",
+                                          "sdtable", "trend", "oneperfamily", "verbose", "force",
+                                          "noserialperm", "chis", "audit", "hwe"};
   public static final int MAX_CLASSES = 15;
   public static final int DEFAULT_SIG_FIGS = 3;
   public static final int SIG_FIGS_PERCENTAGES = 1;
@@ -470,8 +480,8 @@ public class comp {
             validNames = new String[M + 1];
             for (int factor = 0; factor <= M; factor++) {
               trends[factor] = new DoubleVector();
-              validNames[factor] =
-                  ext.replaceWithLinuxSafeCharacters(factorNames[indices[factor]], true);
+              validNames[factor] = ext.replaceWithLinuxSafeCharacters(factorNames[indices[factor]],
+                                                                      true);
             }
             for (int factor = 1; factor <= M; factor++) {
               writer.println("data Rocks;");
@@ -707,13 +717,13 @@ public class comp {
                 counts[depCount.indexOf(data[i][0] + "")]++;
               }
               results =
-                  new PermuteOnePer(optionFlagged("oneperfamily") ? Matrix.extractColumn(Matrix.toStringArrays(idV),
-                                                                                         1)
-                                                                  : Array.stringArraySequence(idV.size(),
-                                                                                              "IND"),
-                                    Doubles.toArray(dv1), dummyIntMatrix(Doubles.toArray(dv2)),
-                                    new String[][] {{factorNames[indices[0]]},
-                                                    {factorNames[indices[factor]]}}).getResults()[0];
+                      new PermuteOnePer(optionFlagged("oneperfamily") ? Matrix.extractColumn(Matrix.toStringArrays(idV),
+                                                                                             1)
+                                                                      : Array.stringArraySequence(idV.size(),
+                                                                                                  "IND"),
+                                        Doubles.toArray(dv1), dummyIntMatrix(Doubles.toArray(dv2)),
+                                        new String[][] {{factorNames[indices[0]]},
+                                                        {factorNames[indices[factor]]}}).getResults()[0];
               for (int i = 0; i < k; i++) {
                 percentMe = vString.size() == 2;
                 writer.print((i == 0 ? (factor == 0 ? "N" : factorNames[indices[factor]]) : "")
@@ -755,8 +765,8 @@ public class comp {
 
       if (optionFlagged("exactRegressionValues")) {
         try {
-          writer =
-              new PrintWriter(new FileWriter(traits[trt] + suffix + "-exactRegressionValues.xln"));
+          writer = new PrintWriter(new FileWriter(traits[trt] + suffix
+                                                  + "-exactRegressionValues.xln"));
           writer.println("Factor\tT\tp-value\tcalcP");
           for (int i = 1; i <= M; i++) {
             writer.println(factorNames[indices[i]] + "\t" + sigs[i][2] + "\t" + sigs[i][0]
@@ -881,9 +891,10 @@ public class comp {
       double max = Math.max(Array.max(Matrix.extractColumn(means, 0)),
                             Array.max(Matrix.extractColumn(means, 1)));
 
-      int maxFigs =
-          Math.max(10, (int) Math.floor(Math.log10(Math.max(Math.max(Math.abs(min), Math.abs(max)),
-                                                            1))));
+      int maxFigs = Math.max(10, (int) Math.floor(Math.log10(Math.max(
+                                                                      Math.max(Math.abs(min),
+                                                                               Math.abs(max)),
+                                                                      1))));
 
       line = new String[] {"R-Sqr", "  Sig  ", "N",
                            (logistic ? ext.formStr("MeanAff", maxFigs, true)
@@ -902,29 +913,32 @@ public class comp {
         min = Math.min(means[i][0], means[i][1]);
         max = Math.max(means[i][0], means[i][1]);
 
-        int meanFigs =
-            5 - (int) Math.floor(Math.log10(Math.max(Math.max(Math.abs(min), Math.abs(max)), 1)));
+        int meanFigs = 5 - (int) Math.floor(Math.log10(Math.max(Math.max(Math.abs(min),
+                                                                         Math.abs(max)),
+                                                                1)));
 
         line = Array.stringArray(9, "error");
         try {
           line[0] =
-              ext.formStr(ext.formDeci(sigs[i][1] * 100, SIG_FIGS_PERCENTAGES * 2, true) + "%", 5);
+                  ext.formStr(ext.formDeci(sigs[i][1] * 100, SIG_FIGS_PERCENTAGES * 2, true) + "%",
+                              5);
           line[1] = ext.formDeci(sigs[i][0], 5, true);
           line[2] = factorNs[i] + "";
           line[3] =
-              (logistic ? ext.formStr(ext.formDeci(means[i][1], meanFigs, true), maxFigs, true)
-                          + ext.formStr(ext.formDeci(means[i][0], meanFigs, true), maxFigs, true)
-                        : "")
+                  (logistic ? ext.formStr(ext.formDeci(means[i][1], meanFigs, true), maxFigs, true)
+                              + ext.formStr(ext.formDeci(means[i][0], meanFigs, true), maxFigs,
+                                            true)
+                            : "")
                     + (factorDirections[i] ? "+" : "-");
           line[4] = ext.formDeci(effectsAndConfidenceIntervals[i][0], 3, true) + " ("
                     + ext.formDeci(effectsAndConfidenceIntervals[i][1], 3, true) + ", "
                     + ext.formDeci(effectsAndConfidenceIntervals[i][2], 3, true) + ")";
           line[5] = factorNames[indices[i]];
-          line[6] =
-              "(" + ext.formDeci(Array.mean(filterArray(data, i, Double.MIN_VALUE)), 3) + " +/- "
-                    + ext.formDeci(Array.stdev(filterArray(data, i, Double.MIN_VALUE)), 3) + ")";
-          line[7] =
-              (failures[i] > 0 ? ", " + failures[i] + " failures (potential cause of bias)" : "");
+          line[6] = "(" + ext.formDeci(Array.mean(filterArray(data, i, Double.MIN_VALUE)), 3)
+                    + " +/- " + ext.formDeci(Array.stdev(filterArray(data, i, Double.MIN_VALUE)), 3)
+                    + ")";
+          line[7] = (failures[i] > 0 ? ", " + failures[i] + " failures (potential cause of bias)"
+                                     : "");
           // line[8] = "("+ext.formSciNot(sigs[i][0], 1, true)+")";
           line[8] = factorNs[i] == 0 ? "."
                                      : (logistic ? "=NORMSDIST(-" + Math.sqrt(sigs[i][2]) + ")"

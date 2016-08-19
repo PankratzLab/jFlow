@@ -18,7 +18,7 @@ public class MarkerSeqAnnotation extends AnnotationData {
 
   private static final String DEFAULT_NAME = "PROBE_DESIGN";
   private static final String DESCRIPTION =
-      "The probe sequence for the A probe, probe sequence for the B probe (if different than A) interrogation position,strand by design,TOB_BOTTOM SNP designation,TOP_BOTTOM Reference Designation, A allele, and B allele ";
+                                          "The probe sequence for the A probe, probe sequence for the B probe (if different than A) interrogation position,strand by design,TOB_BOTTOM SNP designation,TOP_BOTTOM Reference Designation, A allele, and B allele ";
   private String seqA;
   private String seqB;
   private Strand strand;

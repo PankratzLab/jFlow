@@ -166,8 +166,8 @@ public class MergeDatasets {
           gCounts[index] = Array.toStr(genotypeCounts[j], "/");
           alleleCounts[j][0] = genotypeCounts[j][0] * 2 + genotypeCounts[j][1];
           alleleCounts[j][1] = genotypeCounts[j][1] + genotypeCounts[j][2] * 2;
-          freqs[index] =
-              (double) (alleleCounts[j][0]) / (double) (alleleCounts[j][0] + alleleCounts[j][1]);
+          freqs[index] = (double) (alleleCounts[j][0])
+                         / (double) (alleleCounts[j][0] + alleleCounts[j][1]);
         }
         if (keys.length > 1) {
           writer2.print(markerNames[i] + "\t" + Array.toStr(gCounts));
@@ -193,7 +193,8 @@ public class MergeDatasets {
             writer2.print("\tX");
             p = Double.NaN;
           } else {
-            p = ProbDist.ChiDist(ContingencyTable.ChiSquare(Matrix.toDoubleArrays(genotypeCounts),
+            p = ProbDist.ChiDist(
+                                 ContingencyTable.ChiSquare(Matrix.toDoubleArrays(genotypeCounts),
                                                             false, false),
                                  (genotypeCounts.length - 1) * (genotypeCounts[0].length - 1));
             writer2.print("\t" + p);
@@ -261,8 +262,8 @@ public class MergeDatasets {
     }
 
     try {
-      writer =
-          new PrintWriter(new FileWriter(dir + "batchMerge" + (Files.isWindows() ? ".bat" : "")));
+      writer = new PrintWriter(new FileWriter(dir + "batchMerge"
+                                              + (Files.isWindows() ? ".bat" : "")));
       for (String subdir : subdirs) {
         writer.println("java -cp /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS
                        + " filesys.SnpMarkerSet file=" + subdir + commonPlinkRoot + ".bim");

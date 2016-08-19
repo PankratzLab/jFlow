@@ -18,35 +18,41 @@ import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 
 public class SeattleSeq {
-  public static final String[][] NEEDS =
-      {{"Chr"}, {"MapInfo", "Position"}, {"MarkerName", "SNP"}, {"RefStrand"}};
-  public static final String[][] RELEVANTS =
-      {{"chromosome"}, {"position"}, {"sampleAlleles"}, {"accession"}, {"functionGVS"},
-       {"aminoAcids"}, {"geneList"}, {"inDBSNPOrNot"}, {"rsID"}, {"microRNAs"}};
+  public static final String[][] NEEDS = {{"Chr"}, {"MapInfo", "Position"}, {"MarkerName", "SNP"},
+                                          {"RefStrand"}};
+  public static final String[][] RELEVANTS = {{"chromosome"}, {"position"}, {"sampleAlleles"},
+                                              {"accession"}, {"functionGVS"}, {"aminoAcids"},
+                                              {"geneList"}, {"inDBSNPOrNot"}, {"rsID"},
+                                              {"microRNAs"}};
   // "# inDBSNPOrNot", "", "position", "referenceBase", "sampleGenotype", "sampleAlleles",
   // "allelesDBSNP", "accession", "functionGVS", "functionDBSNP", "rsID", "aminoAcids",
   // "proteinPosition", "cDNAPosition", "polyPhen", "granthamScore", "scorePhastCons",
   // "consScoreGERP", "chimpAllele", "CNV", "geneList", "AfricanHapMapFreq", "EuropeanHapMapFreq",
   // "AsianHapMapFreq", "hasGenotypes", "dbSNPValidation", "repeatMasker", "tandemRepeat",
   // "clinicalAssociation", "distanceToSplice", "microRNAs", "proteinSequence"
-  public static final String[] ORDER =
-      {"frameshift-near-splice", "frameshift", "stop-gained-near-splice", "stop-gained",
-       "stop-lost-near-splice", "stop-lost", "nonsense", "missense-near-splice", "missense",
-       "coding-near-splice", "coding", "splice-donor", "splice-5", "splice-acceptor", "splice-3",
-       "synonymous-near-splice", "intron-near-splice", "coding-unknown-near-splice", "synonymous",
-       "coding-synonymous", "coding-unknown", "coding-notMod3", "non-coding-exon-near-splice",
-       "non-coding-exon", "5-prime-UTR", "utr-5", "3-prime-UTR", "utr-3", "intron", "upstream-gene",
-       "near-gene-5", "downstream-gene", "near-gene-3", "intergenic"};
+  public static final String[] ORDER = {"frameshift-near-splice", "frameshift",
+                                        "stop-gained-near-splice", "stop-gained",
+                                        "stop-lost-near-splice", "stop-lost", "nonsense",
+                                        "missense-near-splice", "missense", "coding-near-splice",
+                                        "coding", "splice-donor", "splice-5", "splice-acceptor",
+                                        "splice-3", "synonymous-near-splice", "intron-near-splice",
+                                        "coding-unknown-near-splice", "synonymous",
+                                        "coding-synonymous", "coding-unknown", "coding-notMod3",
+                                        "non-coding-exon-near-splice", "non-coding-exon",
+                                        "5-prime-UTR", "utr-5", "3-prime-UTR", "utr-3", "intron",
+                                        "upstream-gene", "near-gene-5", "downstream-gene",
+                                        "near-gene-3", "intergenic"};
   // public static final String[] BAD = {"missense", "stop-gained", "stop-lost",
   // "missense-near-splice", "splice-donor", "splice-acceptor"};
-  public static final String[] BAD =
-      {"frameshift-near-splice", "frameshift", "stop-gained-near-splice", "stop-gained",
-       "stop-lost-near-splice", "stop-lost", "nonsense", "missense-near-splice", "missense",
-       "coding", "splice-donor", "splice-5", "splice-acceptor", "splice-3"};
-  public static final String[] NEUTRAL =
-      {"intron-near-splice", "5-prime-UTR", "downstream-gene", "upstream-gene", "synonymous",
-       "coding-synonymous", "intergenic", "non-coding-exon", "3-prime-UTR", "intron",
-       "coding-notMod3"};
+  public static final String[] BAD = {"frameshift-near-splice", "frameshift",
+                                      "stop-gained-near-splice", "stop-gained",
+                                      "stop-lost-near-splice", "stop-lost", "nonsense",
+                                      "missense-near-splice", "missense", "coding", "splice-donor",
+                                      "splice-5", "splice-acceptor", "splice-3"};
+  public static final String[] NEUTRAL = {"intron-near-splice", "5-prime-UTR", "downstream-gene",
+                                          "upstream-gene", "synonymous", "coding-synonymous",
+                                          "intergenic", "non-coding-exon", "3-prime-UTR", "intron",
+                                          "coding-notMod3"};
 
   public static void proc(String filename) {
     BufferedReader reader;
@@ -285,8 +291,8 @@ public class SeattleSeq {
                   function = line[8];
                   if (!line[11].equals("none")) {
                     function +=
-                        " " + ext.replaceAllWith(line[11], ",",
-                                                 line[12].substring(0, line[12].indexOf("/")));
+                             " " + ext.replaceAllWith(line[11], ",",
+                                                      line[12].substring(0, line[12].indexOf("/")));
                   }
                   function += "\t" + line[0];
                   hash.put(markerName, new String[] {function});
@@ -373,8 +379,8 @@ public class SeattleSeq {
             try {
               markerName = "chr" + line[1] + ":" + line[2] + "_" + line[3] + "_" + line[4];
               if (line[4].startsWith("I") || line[4].startsWith("D")) {
-                markerName =
-                    "chr" + line[1] + ":" + line[2] + "_" + line[3].charAt(0) + "_" + line[5];
+                markerName = "chr" + line[1] + ":" + line[2] + "_" + line[3].charAt(0) + "_"
+                             + line[5];
               }
               if (done || (v.size() > 0 && !markerName.equals(prev))) {
                 worst = -1;

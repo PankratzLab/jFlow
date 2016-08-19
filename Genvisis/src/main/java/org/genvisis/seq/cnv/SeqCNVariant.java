@@ -5,7 +5,7 @@ import org.genvisis.filesys.CNVariant;
 
 public class SeqCNVariant extends CNVariant {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private CNVExtraInfo[] cExtraInfos;

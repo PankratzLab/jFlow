@@ -70,7 +70,7 @@ public class CmdLineProcess implements Iterator<String> {
 
   /**
    * Sets up error streams,input streams, and output streams
-   * 
+   *
    * @return process was initiated
    */
   private boolean initProcess() {

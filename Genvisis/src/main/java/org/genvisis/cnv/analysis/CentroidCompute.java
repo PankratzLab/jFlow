@@ -1,7 +1,5 @@
 package org.genvisis.cnv.analysis;
 
-import com.google.common.primitives.Doubles;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
@@ -20,6 +18,8 @@ import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Maths;
+
+import com.google.common.primitives.Doubles;
 
 /**
  * A class for centroid related computations for a single {@link MarkerData}
@@ -49,7 +49,7 @@ public class CentroidCompute {
   private final Logger log;
 
   /**
-   * 
+   *
    * @param markerData the markerData to use for clustering
    * @param sampleSex (optional, can be null)an array representing sample sex, 1=male,2=female. Only
    *        utilized for clustering on sex chromosomes
@@ -613,7 +613,8 @@ public class CentroidCompute {
   public static void test(Project proj) {
     String[] markers = proj.getTargetMarkers();
     MarkerDataLoader markerDataLoader =
-        MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
+                                      MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+                                                                                              markers);
     Logger log;
 
     log = proj.getLog();
@@ -622,8 +623,8 @@ public class CentroidCompute {
     double mincor = .90;
     for (int i = 0; i < markers.length; i++) {
       MarkerData markerData = markerDataLoader.requestMarkerData(i);
-      CentroidCompute cent =
-          new CentroidCompute(markerData, null, null, false, 1, 0, null, true, proj.getLog());
+      CentroidCompute cent = new CentroidCompute(markerData, null, null, false, 1, 0, null, true,
+                                                 proj.getLog());
       cent.computeCentroid();
       double cor = markerData.compareLRRs(cent.getCentroid(), proj.getLog())[0];
       if (markerData.getChr() < 23 && cor < mincor) {
@@ -774,8 +775,9 @@ public class CentroidCompute {
     String[] markers = proj.getMarkerNames();
     float[][][][] centroids = new float[builders.length][markers.length][][];
     CentroidProducer producer = new CentroidProducer(proj, markers, builders, numDecompressThreads);
-    WorkerTrain<CentroidCompute[]> train =
-        new WorkerTrain<CentroidCompute[]>(producer, numCentThreads, 10, proj.getLog());
+    WorkerTrain<CentroidCompute[]> train = new WorkerTrain<CentroidCompute[]>(producer,
+                                                                              numCentThreads, 10,
+                                                                              proj.getLog());
     int index = 0;
     while (train.hasNext()) {
       CentroidCompute[] centroidCompute = train.next();
@@ -869,10 +871,10 @@ public class CentroidCompute {
     String[] markers = proj.getMarkerNames();
     long time = System.currentTimeMillis();
     CentroidBuilder builder = new CentroidBuilder();
-    CentroidProducer producer =
-        new CentroidProducer(proj, markers, new CentroidBuilder[] {builder}, 2);
-    WorkerTrain<CentroidCompute[]> train =
-        new WorkerTrain<CentroidCompute[]>(producer, 6, 100, proj.getLog());
+    CentroidProducer producer = new CentroidProducer(proj, markers, new CentroidBuilder[] {builder},
+                                                     2);
+    WorkerTrain<CentroidCompute[]> train = new WorkerTrain<CentroidCompute[]>(producer, 6, 100,
+                                                                              proj.getLog());
     int index = 0;
     while (train.hasNext()) {
       CentroidCompute[] centroidCompute = train.next();
@@ -888,22 +890,22 @@ public class CentroidCompute {
 
   /**
    * We use this in the case of intensity only probesets...We assign all genotypes to be the same
-   * 
+   *
    */
   public static void setFakeAB(MarkerData markerData, CentroidCompute centroid,
                                ClusterFilterCollection clusterFilterCollection, float gcThreshold,
                                Logger log) {
     byte[] fakeAB = new byte[centroid.getClustGenotypes().length];
-    byte[] clustAB =
-        markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(),
-                                              gcThreshold, log);
+    byte[] clustAB = markerData.getAbGenotypesAfterFilters(clusterFilterCollection,
+                                                           markerData.getMarkerName(), gcThreshold,
+                                                           log);
     int[] counts = new int[4];
     for (int i = 0; i < clustAB.length; i++) {
       counts[clustAB[i] + 1]++;
     }
     if (counts[0] == clustAB.length) {
-      byte tmpCluster =
-          Array.mean(markerData.getXs()) > Array.mean(markerData.getYs()) ? (byte) 0 : (byte) 1;
+      byte tmpCluster = Array.mean(markerData.getXs()) > Array.mean(markerData.getYs()) ? (byte) 0
+                                                                                        : (byte) 1;
       Arrays.fill(fakeAB, tmpCluster);
       centroid.setAlternateGenotypes(fakeAB);
 

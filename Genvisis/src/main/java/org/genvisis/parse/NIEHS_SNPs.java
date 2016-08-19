@@ -21,7 +21,7 @@ import org.genvisis.filesys.SnpMarkerSet;
 
 public class NIEHS_SNPs {
   public static final String DIR =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\UMN\\Myron\\ExcisionPathway\\expression\\NIEHS\\";
+                                 "C:\\Documents and Settings\\npankrat\\My Documents\\UMN\\Myron\\ExcisionPathway\\expression\\NIEHS\\";
   public static final String VARIANT_FILE = "EGP.prettybase.txt";
   public static final String RS_LOOKUP_FILE = "rsEGP.txt";
   public static final String SAMPLE_LOOKUP_FILE = "SampleLookup.xln";

@@ -31,7 +31,7 @@ import org.genvisis.common.ext;
  */
 public class ICC implements Serializable {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private double[] parsedData;
@@ -302,7 +302,7 @@ public class ICC implements Serializable {
 
   private static class ResponseEffect implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private String label;
@@ -419,7 +419,7 @@ public class ICC implements Serializable {
   public static void test() {
     try {
       BufferedReader in =
-          new BufferedReader(new InputStreamReader(new URL("http://www.uvm.edu/~dhowell/StatPages/More_Stuff/icc/PartnerCorr.dat").openStream()));
+                        new BufferedReader(new InputStreamReader(new URL("http://www.uvm.edu/~dhowell/StatPages/More_Stuff/icc/PartnerCorr.dat").openStream()));
       int lines = 0;
       while (in.ready()) {
         lines++;
@@ -429,7 +429,8 @@ public class ICC implements Serializable {
       in.close();
       String[] response = new String[lines * 2];
       double[] data = new double[lines * 2];
-      in = new BufferedReader(new InputStreamReader(new URL("http://www.uvm.edu/~dhowell/StatPages/More_Stuff/icc/PartnerCorr.dat").openStream()));
+      in =
+         new BufferedReader(new InputStreamReader(new URL("http://www.uvm.edu/~dhowell/StatPages/More_Stuff/icc/PartnerCorr.dat").openStream()));
       int index = 0;
       int count = 1;
       while (in.ready()) {

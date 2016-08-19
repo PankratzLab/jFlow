@@ -21,13 +21,14 @@ public class PlinkMergePrep {
   public static final String TEMP_MKR_FILE = "./tempMarkersForPlinkMerge.txt";;
 
   static int isValidRoot(final String plinkRootWithDir) {
-    String[] files =
-        (new File(ext.parseDirectoryOfFile(plinkRootWithDir + ".bim"))).list(new FilenameFilter() {
-          @Override
-          public boolean accept(File dir, String name) {
-            return name.startsWith(ext.rootOf(plinkRootWithDir));
-          }
-        });
+    String[] files = (new File(ext.parseDirectoryOfFile(plinkRootWithDir
+                                                        + ".bim"))).list(new FilenameFilter() {
+                                                          @Override
+                                                          public boolean accept(File dir,
+                                                                                String name) {
+                                                            return name.startsWith(ext.rootOf(plinkRootWithDir));
+                                                          }
+                                                        });
     boolean foundBed = false;
     boolean foundBim = false;
     boolean foundFam = false;
@@ -61,8 +62,8 @@ public class PlinkMergePrep {
     while (Files.exists(ext.parseDirectoryOfFile(regionFile) + outFile)) {
       outFile = "tempRegions_" + index++ + ".txt";
     }
-    String[] ucscLines =
-        HashVec.loadFileToStringArray(regionFile, false, false, new int[] {0}, true, false, "\t");
+    String[] ucscLines = HashVec.loadFileToStringArray(regionFile, false, false, new int[] {0},
+                                                       true, false, "\t");
     String[] plinkLines = new String[ucscLines.length];
     for (int i = 0; i < ucscLines.length; i++) {
       int[] pos = Positions.parseUCSClocation(ucscLines[i]);
@@ -182,8 +183,8 @@ public class PlinkMergePrep {
     if (markersFile != null && !markersFile.equals("") && Files.exists(markersFile)) {
       String mkrFile = markersFile;
       if (renameMarkers) {
-        String[] markers =
-            HashVec.loadFileToStringArray(mkrFile, false, false, new int[] {0}, true, false, "\t");
+        String[] markers = HashVec.loadFileToStringArray(mkrFile, false, false, new int[] {0}, true,
+                                                         false, "\t");
         ArrayList<String> newMkrs = new ArrayList<String>();
         String root = ext.rootOf(plinkRootWithDir1, true);
         for (String marker : markers) {
@@ -268,9 +269,10 @@ public class PlinkMergePrep {
     lines = new String[plinkRootsWithDirs.length - 1];
     for (int i = 1; i < plinkRootsWithDirs.length; i++) {
       lines[i - 1] =
-          rootTypes[i] == PEDMAP ? plinkRootsWithDirs[i] + ".ped " + plinkRootsWithDirs[i] + ".map"
-                                 : plinkRootsWithDirs[i] + ".bed " + plinkRootsWithDirs[i] + ".bim "
-                                   + plinkRootsWithDirs[i] + ".fam";
+                   rootTypes[i] == PEDMAP ? plinkRootsWithDirs[i] + ".ped " + plinkRootsWithDirs[i]
+                                            + ".map"
+                                          : plinkRootsWithDirs[i] + ".bed " + plinkRootsWithDirs[i]
+                                            + ".bim " + plinkRootsWithDirs[i] + ".fam";
     }
     fileListName = "./fileList.txt";
     index = 1;
@@ -297,8 +299,8 @@ public class PlinkMergePrep {
     if (markersFile != null && !markersFile.equals("") && Files.exists(markersFile)) {
       String mkrFile = markersFile;
       if (renameMarkers) {
-        String[] markers =
-            HashVec.loadFileToStringArray(mkrFile, false, false, new int[] {0}, true, false, "\t");
+        String[] markers = HashVec.loadFileToStringArray(mkrFile, false, false, new int[] {0}, true,
+                                                         false, "\t");
         ArrayList<String> newMkrs = new ArrayList<String>();
         for (String plinkRootsWithDir : plinkRootsWithDirs) { // add all newly-renamed markers
           String root = ext.rootOf(plinkRootsWithDir, true);
@@ -405,8 +407,8 @@ public class PlinkMergePrep {
         }
       }
 
-      String mergeCommand =
-          merge(outType, outRoot, overwrite, renameMarkers, rgnFile, mkrFile, roots, prepends);
+      String mergeCommand = merge(outType, outRoot, overwrite, renameMarkers, rgnFile, mkrFile,
+                                  roots, prepends);
       System.out.println(mergeCommand);
     } catch (Exception e) {
       e.printStackTrace();

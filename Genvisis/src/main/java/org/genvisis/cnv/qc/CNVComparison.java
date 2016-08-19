@@ -10,8 +10,8 @@ import org.genvisis.common.Logger;
 // numMarkers, and LRR_SD
 
 public class CNVComparison {
-  static final String[] QC_PARAMETERs =
-      {"0 - No Filtering ", " 1 - CNVQC and Sample QC", "2 -Sample QC only"};
+  static final String[] QC_PARAMETERs = {"0 - No Filtering ", " 1 - CNVQC and Sample QC",
+                                         "2 -Sample QC only"};
   private final CNVariantQC[][] filteredcnvQCs1;
   private CNVariantQC[][] filteredcnvQCs2;
   private ArrayList<CNVariantQC> misses;;

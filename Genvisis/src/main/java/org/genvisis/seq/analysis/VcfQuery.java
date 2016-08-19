@@ -48,12 +48,12 @@ public class VcfQuery {
    * filtered/
    */
   private static final String DEFUALT_DIRECTORY =
-      "ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/";
+                                                "ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/";
   /**
    * Continental MAF query
    */
-  private static final String[] CONTINENTAL_QUERY =
-      new String[] {"AF", "EAS_AF", "EUR_AF", "AFR_AF", "AMR_AF", "SAS_AF"};
+  private static final String[] CONTINENTAL_QUERY = new String[] {"AF", "EAS_AF", "EUR_AF",
+                                                                  "AFR_AF", "AMR_AF", "SAS_AF"};
   /**
    * Functional query
    */
@@ -62,8 +62,8 @@ public class VcfQuery {
   /**
    * Info that will be reported for every variant
    */
-  private static final String[] DEFAULT_HEADER =
-      new String[] {"ID", "CHR", "POS", "REF", "ALT", "POP_CALLRATE"};
+  private static final String[] DEFAULT_HEADER = new String[] {"ID", "CHR", "POS", "REF", "ALT",
+                                                               "POP_CALLRATE"};
 
   public enum Location {
                         /**
@@ -130,13 +130,13 @@ public class VcfQuery {
 
   /**
    * Returns all variants contained within the segment
-   * 
+   *
    * @param seg
    * @return
    */
   private VariantContext[] queryASegment(Segment seg) {
-    CloseableIterator<VariantContext> cdl =
-        vcfSourceReader.query(seg.getChr() + "", seg.getStart(), seg.getStop());
+    CloseableIterator<VariantContext> cdl = vcfSourceReader.query(seg.getChr() + "", seg.getStart(),
+                                                                  seg.getStop());
     ArrayList<VariantContext> vcs = new ArrayList<VariantContext>();
     while (cdl.hasNext()) {
       vcs.add(cdl.next());
@@ -401,8 +401,10 @@ public class VcfQuery {
     String tmpDir = ext.parseDirectoryOfFile(params.getOutputFileName());
     new File(tmpDir).mkdirs();
     VariantContextWriter writer =
-        VCFOps.initWriter(tmpDir + ext.rootOf(fullPathVCFs[0]) + ".query.vcf", null,
-                          VCFOps.getSequenceDictionary(new VCFSourceReader(fullPathVCFs[0], true)));
+                                VCFOps.initWriter(tmpDir + ext.rootOf(fullPathVCFs[0])
+                                                  + ".query.vcf", null,
+                                                  VCFOps.getSequenceDictionary(new VCFSourceReader(fullPathVCFs[0],
+                                                                                                   true)));
 
     // VCFOps.copyHeader(new VCFSourceReader(fullPathVCFs[0], true), writer,
     // VcfPopulation.load(params.getPopulationFile(), log).getSuperPop().get("EUR"));
@@ -420,8 +422,9 @@ public class VcfQuery {
     ArrayList<QueryResults> results = hive.getResults();
     asWriter.close();
     VariantContextWriter writer2 =
-        VCFOps.initWriter(tmpDir + "query.vcf", null,
-                          VCFOps.getSequenceDictionary(new VCFSourceReader(fullPathVCFs[0], true)));
+                                 VCFOps.initWriter(tmpDir + "query.vcf", null,
+                                                   VCFOps.getSequenceDictionary(new VCFSourceReader(fullPathVCFs[0],
+                                                                                                    true)));
 
     // VCFOps.copyHeader(new VCFSourceReader(fullPathVCFs[0], true), writer2,
     // VcfPopulation.load(params.getPopulationFile(), log).getSuperPop().get("EUR"));
@@ -563,11 +566,11 @@ public class VcfQuery {
 
     String usage = "\n" + "seq.analysis.VcfQuery requires 0-1 arguments\n";
     usage +=
-        "   (1) full path to a file of segments (no header,tab-delimited, chr start stop) (i.e. segFile= (no default))\n"
+          "   (1) full path to a file of segments (no header,tab-delimited, chr start stop) (i.e. segFile= (no default))\n"
              + "";
     usage += "	 OPTIONAL:\n";
     usage +=
-        "   (2) full path to an output filename (i.e. out= (no default, based off root of segment file))\n"
+          "   (2) full path to an output filename (i.e. out= (no default, based off root of segment file))\n"
              + "";
     usage += "   (3) number of threads for the query (i.e. " + PSF.Ext.NUM_THREADS_COMMAND
              + numThreads + "(default)\n" + "";
@@ -576,10 +579,10 @@ public class VcfQuery {
     usage += "   (5) a comma-delimited list of common info to extract (i.e. info= "
              + Array.toStr(CONTINENTAL_QUERY, ",") + " (default)\n" + "";
     usage +=
-        "   (6) the directory of vcfs to search is a local directory (i.e. -local (not the default)\n"
+          "   (6) the directory of vcfs to search is a local directory (i.e. -local (not the default)\n"
              + "";
     usage +=
-        "   (7) the vcf files are not one file per chromosome (i.e. -multi (not the default, the first variant's chromosome is used as a filter)\n"
+          "   (7) the vcf files are not one file per chromosome (i.e. -multi (not the default, the first variant's chromosome is used as a filter)\n"
              + "";
     usage += "   (8) the chromosome column in the segment file (i.e. chr=" + chrColumn
              + "(default)\n" + "";

@@ -20,13 +20,14 @@ public class ResultSet implements Serializable {
   public static final int PROBABEL_FORMAT = 3;
 
   /** Marker name, Chr, Position, centiMorgans, A1, A2, annotation, header */
-  public static final int[][] SNP_INDICES =
-      {{0, -1, -1, -1, -1, -1, -1, 1}, {0, 1, 2, -1, -1, -1, -1, 1}, {0, -1, -1, -1, 1, 2, -1, 1},
-       {0, -1, -1, -1, 1, 2, -1, 1},};
+  public static final int[][] SNP_INDICES = {{0, -1, -1, -1, -1, -1, -1, 1},
+                                             {0, 1, 2, -1, -1, -1, -1, 1},
+                                             {0, -1, -1, -1, 1, 2, -1, 1},
+                                             {0, -1, -1, -1, 1, 2, -1, 1},};
 
   /** Effect, Stderr, p-value, annotation, header */
-  public static final int[][] RESULT_INDICES =
-      {{-1, -1, 1, -1, 1}, {-1, -1, 1, -1, 1}, {3, 4, 5, 6, 1}, {10, 11, 12, -1, 1},};
+  public static final int[][] RESULT_INDICES = {{-1, -1, 1, -1, 1}, {-1, -1, 1, -1, 1},
+                                                {3, 4, 5, 6, 1}, {10, 11, 12, -1, 1},};
 
   private final SnpMarkerSet markerSet;
   private float[] effects;

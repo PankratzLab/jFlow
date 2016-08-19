@@ -12,10 +12,10 @@ import org.genvisis.common.ext;
 public class LinkageToPlink {
   // public static final String DEFAULT_DIRECTORY = "";
   public static final String DEFAULT_DIRECTORY =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\hearing\\";
+                                               "C:\\Documents and Settings\\npankrat\\My Documents\\hearing\\";
 
   public static final String DEFAULT_DATABASE =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\hearing\\local_b129.bcp";
+                                              "C:\\Documents and Settings\\npankrat\\My Documents\\hearing\\local_b129.bcp";
 
   public static void convert(String dir, String snp_database) {
     PrintWriter writer;

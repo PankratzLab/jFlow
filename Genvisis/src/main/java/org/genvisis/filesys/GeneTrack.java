@@ -184,9 +184,9 @@ public class GeneTrack implements Serializable {
   public GeneData[] getOverlappingGenes(Segment seg) {
     ArrayList<GeneData> tmp = new ArrayList<GeneData>();
     for (GeneData[] gene : genes) {
-      for (int j = 0; j < gene.length; j++) {
-        if (seg.overlaps(gene[j])) {
-          tmp.add(gene[j]);
+      for (GeneData element : gene) {
+        if (seg.overlaps(element)) {
+          tmp.add(element);
         }
       }
     }
@@ -196,18 +196,19 @@ public class GeneTrack implements Serializable {
   public LocusSet<GeneData> convertToLocusSet(Logger log) {
     ArrayList<GeneData> geneDatas = new ArrayList<GeneData>();
     for (GeneData[] gene : genes) {
-      for (int j = 0; j < gene.length; j++) {
-        geneDatas.add(gene[j]);
+      for (GeneData element : gene) {
+        geneDatas.add(element);
       }
     }
     LocusSet<GeneData> gLocusSet =
-        new LocusSet<GeneData>(geneDatas.toArray(new GeneData[geneDatas.size()]), true, log) {
+                                 new LocusSet<GeneData>(geneDatas.toArray(new GeneData[geneDatas.size()]),
+                                                        true, log) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
-        };
+                                   /**
+                                    * 
+                                    */
+                                   private static final long serialVersionUID = 1L;
+                                 };
     return gLocusSet;
   }
 

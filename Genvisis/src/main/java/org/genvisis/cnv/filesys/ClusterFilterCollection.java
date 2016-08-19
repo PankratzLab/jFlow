@@ -20,7 +20,7 @@ import org.genvisis.common.ext;
 
 /**
  * This is data structure to hold a group of filters that can be used to screen data points.
- * 
+ *
  * @author npankratz and zxu
  *
  */
@@ -28,8 +28,8 @@ public class ClusterFilterCollection implements Serializable, TextExport {
   private static final long serialVersionUID = 1L;
 
   /**
-   * The structure of "hash" is Hashtable<String markerName, ArrayList
-   * <ClusterFilter> clusterFilter>.
+   * The structure of "hash" is Hashtable<String markerName, ArrayList <ClusterFilter>
+   * clusterFilter>.
    */
   private final Hashtable<String, ArrayList<ClusterFilter>> hash;
 
@@ -168,15 +168,17 @@ public class ClusterFilterCollection implements Serializable, TextExport {
     clusterFilters = hash.get(markerName);
     for (int i = 0; clusterFilters != null && i < clusterFilters.size(); i++) {
       if (clusterFilters.get(i).getPlotType() == plotType) {
-        result[i] =
-            new GenericRectangle(clusterFilters.get(i).getXMin(), clusterFilters.get(i).getYMin(),
-                                 clusterFilters.get(i).getXMax(), clusterFilters.get(i).getYMax(),
-                                 thickness, fill, roundedCorners, color, layer, true);
+        result[i] = new GenericRectangle(clusterFilters.get(i).getXMin(),
+                                         clusterFilters.get(i).getYMin(),
+                                         clusterFilters.get(i).getXMax(),
+                                         clusterFilters.get(i).getYMax(), thickness, fill,
+                                         roundedCorners, color, layer, true);
       } else {
-        result[i] =
-            new GenericRectangle(clusterFilters.get(i).getXMin(), clusterFilters.get(i).getYMin(),
-                                 clusterFilters.get(i).getXMax(), clusterFilters.get(i).getYMax(),
-                                 thickness, fill, roundedCorners, color, (byte) -1, true);
+        result[i] = new GenericRectangle(clusterFilters.get(i).getXMin(),
+                                         clusterFilters.get(i).getYMin(),
+                                         clusterFilters.get(i).getXMax(),
+                                         clusterFilters.get(i).getYMax(), thickness, fill,
+                                         roundedCorners, color, (byte) -1, true);
       }
     }
     return result;
@@ -220,17 +222,17 @@ public class ClusterFilterCollection implements Serializable, TextExport {
   public static String getClusterFilterFilenameSelection(Project proj) {
     String result;
     result =
-        (String) JOptionPane.showInputDialog(null, "Please select a cluster filter file:",
-                                             "Apply Cluster Filters", JOptionPane.QUESTION_MESSAGE,
-                                             null,
-                                             Array.addStrToArray("(--Do not apply any cluster filter--)",
-                                                                 Files.list(proj.DATA_DIRECTORY.getValue(false,
-                                                                                                         true),
-                                                                            null,
-                                                                            ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)),
-                                                                            false,
-                                                                            proj.JAR_STATUS.getValue())),
-                                             proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME));
+           (String) JOptionPane.showInputDialog(null, "Please select a cluster filter file:",
+                                                "Apply Cluster Filters",
+                                                JOptionPane.QUESTION_MESSAGE, null,
+                                                Array.addStrToArray("(--Do not apply any cluster filter--)",
+                                                                    Files.list(proj.DATA_DIRECTORY.getValue(false,
+                                                                                                            true),
+                                                                               null,
+                                                                               ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)),
+                                                                               false,
+                                                                               proj.JAR_STATUS.getValue())),
+                                                proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME));
     if (result == null) {
       result = "cancel";
     } else if (result.equals("(--Do not apply any cluster filter--)")) {
@@ -242,12 +244,12 @@ public class ClusterFilterCollection implements Serializable, TextExport {
   public static String getGenotypeLookupTableSelection(Project proj) {
     String result;
     result =
-        (String) JOptionPane.showInputDialog(null, "Please select a AB genotype lookup table:",
-                                             "Select AB Genotype Lookup Table",
-                                             JOptionPane.QUESTION_MESSAGE, null,
-                                             new String[] {"Lookup Table 1", "Lookup Table 2",
-                                                           "Lookup Table 3"},
-                                             proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME));
+           (String) JOptionPane.showInputDialog(null, "Please select a AB genotype lookup table:",
+                                                "Select AB Genotype Lookup Table",
+                                                JOptionPane.QUESTION_MESSAGE, null,
+                                                new String[] {"Lookup Table 1", "Lookup Table 2",
+                                                              "Lookup Table 3"},
+                                                proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME));
     return result;
   }
 

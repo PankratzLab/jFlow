@@ -25,15 +25,15 @@ public class MarkerQC {
   public static final String DEFAULT_FILENAME = "thresholds.properties";
   public static final String[] FRQ_HEADER = {"CHR", "SNP", "A1", "A2", "MAF", "NCHROBS"};
   public static final String[] LMISS_HEADER = {"CHR", "SNP", "N_MISS", "N_GENO", "F_MISS"};
-  public static final String[] HWE_HEADER =
-      {"CHR", "SNP", "TEST", "A1", "A2", "GENO", "O(HET)", "E(HET)", "P"};
-  public static final String[] MISSHAP_HEADER =
-      {"SNP", "HAPLOTYPE", "F_0", "F_1", "M_H1", "M_H2", "CHISQ", "P", "FLANKING"};
+  public static final String[] HWE_HEADER = {"CHR", "SNP", "TEST", "A1", "A2", "GENO", "O(HET)",
+                                             "E(HET)", "P"};
+  public static final String[] MISSHAP_HEADER = {"SNP", "HAPLOTYPE", "F_0", "F_1", "M_H1", "M_H2",
+                                                 "CHISQ", "P", "FLANKING"};
   public static final String[] MISSTEST_HEADER = {"CHR", "SNP", "F_MISS_A", "F_MISS_U", "P"};
-  public static final String[] GENDER_ASSOC_HEADER =
-      {"CHR", "SNP", "BP", "A1", "F_A", "F_U", "A2", "CHISQ", "P", "OR"};
-  public static final String[] FINAL_HEADER =
-      {"SNP", "CHR", "MAF", "F_MISS", "P", "HETERO p-value", "miss.hap min p-value", "P_MISS"};
+  public static final String[] GENDER_ASSOC_HEADER = {"CHR", "SNP", "BP", "A1", "F_A", "F_U", "A2",
+                                                      "CHISQ", "P", "OR"};
+  public static final String[] FINAL_HEADER = {"SNP", "CHR", "MAF", "F_MISS", "P", "HETERO p-value",
+                                               "miss.hap min p-value", "P_MISS"};
   // public static final String[] THRESHOLDS = {"snp", "chr", "maf", "f_miss", "hwe", "hetero",
   // "minmishap", "p_miss"};
 
@@ -154,9 +154,9 @@ public class MarkerQC {
         }
       }
       markerNames =
-          HashVec.loadFileToStringArray(dir + params[1][1],
-                                        params[1].length > 3 && params[1][3].equals("header"),
-                                        new int[] {Integer.parseInt(params[1][2])}, false);
+                  HashVec.loadFileToStringArray(dir + params[1][1],
+                                                params[1].length > 3 && params[1][3].equals("header"),
+                                                new int[] {Integer.parseInt(params[1][2])}, false);
       log.report("Found " + markerNames.length + " markers to parse in " + params[1][1]);
       Files.writeList(Array.toStringArray(v), dir + "whatGoesIn.out");
       // Files.combine(markerNames, Array.toStringArray(v), Matrix.toStringArrays(headers),
@@ -257,8 +257,8 @@ public class MarkerQC {
                   }
                   reason += (reason.length() == 0 ? "" : "; ") + params[i + 3][0] + "="
                             + line[indices[i]];
-                  simpleReason +=
-                      (simpleReason.length() == 0 ? "" : ";") + params[i + 3][0] + params[i + 3][2];
+                  simpleReason += (simpleReason.length() == 0 ? "" : ";") + params[i + 3][0]
+                                  + params[i + 3][2];
                   fail++;
                 } else if (fail == 1) {
                   counts[2][i]++;

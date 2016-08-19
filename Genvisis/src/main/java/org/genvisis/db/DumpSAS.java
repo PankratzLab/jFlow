@@ -26,13 +26,17 @@ public class DumpSAS {
   // "/share/apps/src/sas/SASFoundation/9.2/bin/sas_en";
   public static final String DEFAULT_SAS_EXECUTABLE = "sas";
   public static final String[] CONTENTS_HEADER =
-      {"LIBNAME", "MEMNAME", "MEMLABEL", "TYPEMEM", "NAME", "TYPE", "LENGTH", "VARNUM", "LABEL",
-       "FORMAT", "FORMATL", "FORMATD", "INFORMAT", "INFORML", "INFORMD", "JUST", "NPOS", "NOBS",
-       "ENGINE", "CRDATE", "MODATE", "DELOBS", "IDXUSAGE", "MEMTYPE", "IDXCOUNT", "PROTECT",
-       "FLAGS", "COMPRESS", "REUSE", "SORTED", "SORTEDBY", "CHARSET", "COLLATE", "NODUPKEY",
-       "NODUPREC", "ENCRYPT", "POINTOBS", "GENMAX", "GENNUM", "GENNEXT"};
-  public static final String[] ALL_CONTENTS_HEADER =
-      {"MEMNAME", "NAME", "LABEL", "TYPE", "LENGTH", "VARNUM"};
+                                               {"LIBNAME", "MEMNAME", "MEMLABEL", "TYPEMEM", "NAME",
+                                                "TYPE", "LENGTH", "VARNUM", "LABEL", "FORMAT",
+                                                "FORMATL", "FORMATD", "INFORMAT", "INFORML",
+                                                "INFORMD", "JUST", "NPOS", "NOBS", "ENGINE",
+                                                "CRDATE", "MODATE", "DELOBS", "IDXUSAGE", "MEMTYPE",
+                                                "IDXCOUNT", "PROTECT", "FLAGS", "COMPRESS", "REUSE",
+                                                "SORTED", "SORTEDBY", "CHARSET", "COLLATE",
+                                                "NODUPKEY", "NODUPREC", "ENCRYPT", "POINTOBS",
+                                                "GENMAX", "GENNUM", "GENNEXT"};
+  public static final String[] ALL_CONTENTS_HEADER = {"MEMNAME", "NAME", "LABEL", "TYPE", "LENGTH",
+                                                      "VARNUM"};
 
   public static void dump(String dir, String sasExecutable, String password) {
     PrintWriter writer;
@@ -155,16 +159,16 @@ public class DumpSAS {
           try {
             reader = new BufferedReader(new FileReader(dir + db.toLowerCase() + ".xln"));
             if (Files.exists(dir + db.substring(0, db.indexOf("_")) + "_Whites" + ".fam", false)) {
-              typedWhites =
-                  HashVec.loadFileToHashString(dir + db.substring(0, db.indexOf("_")) + "_Whites"
-                                               + ".fam", 1, new int[] {4}, "\t", false);
+              typedWhites = HashVec.loadFileToHashString(dir + db.substring(0, db.indexOf("_"))
+                                                         + "_Whites" + ".fam", 1, new int[] {4},
+                                                         "\t", false);
             } else {
               typedWhites = new Hashtable<String, String>();
             }
             if (Files.exists(dir + db.substring(0, db.indexOf("_")) + "_Blacks" + ".fam", false)) {
-              typedBlacks =
-                  HashVec.loadFileToHashString(dir + db.substring(0, db.indexOf("_")) + "_Blacks"
-                                               + ".fam", 1, new int[] {4}, "\t", false);
+              typedBlacks = HashVec.loadFileToHashString(dir + db.substring(0, db.indexOf("_"))
+                                                         + "_Blacks" + ".fam", 1, new int[] {4},
+                                                         "\t", false);
             } else {
               typedBlacks = new Hashtable<String, String>();
             }

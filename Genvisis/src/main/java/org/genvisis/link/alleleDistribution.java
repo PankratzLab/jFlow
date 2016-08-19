@@ -177,13 +177,14 @@ public class alleleDistribution {
         for (int l = 0; l < species.size() + 1; l++) {
           writer.print((l == 0 ? "source" : species.elementAt(l - 1)));
           for (int k = 1; k < names[j].length; k++) {
-            counts[j][k][l] =
-                (counts[j][k][l] == 0 ? 0 : counts[j][k][l] / (l == 0 && !sum ? 1.0 : total[l]));
+            counts[j][k][l] = (counts[j][k][l] == 0 ? 0
+                                                    : counts[j][k][l]
+                                                      / (l == 0 && !sum ? 1.0 : total[l]));
             writer.print("\t" + ext.formDeci(counts[j][k][l], 6, true));
             if (l != species.size() + 1) {
               oe_sums[Integer.valueOf(names[j][k]).intValue() % 2][l] += counts[j][k][l];
-              oe_sums[Integer.valueOf(names[j][k]).intValue() % 2][species.size() + 1] +=
-                  counts[j][k][l];
+              oe_sums[Integer.valueOf(names[j][k]).intValue() % 2][species.size()
+                                                                   + 1] += counts[j][k][l];
             }
           }
           writer.println();
@@ -232,8 +233,8 @@ public class alleleDistribution {
                 avg += counts[j][k][m];
               }
             }
-            maxis[(k - 1) * species.size() + (l - 1)] =
-                Math.abs(counts[j][k][l] - avg / (species.size() - 1));
+            maxis[(k - 1) * species.size() + (l - 1)] = Math.abs(counts[j][k][l]
+                                                                 - avg / (species.size() - 1));
           }
         }
 

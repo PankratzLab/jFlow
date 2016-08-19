@@ -16,7 +16,8 @@ public class Markers {
   public static final String DEFAULT_MARKER_DATABASE = "marker.database";
 
   public static final String[] ALT_LOCS =
-      {"C:\\Documents and Settings\\npankrat\\My Documents\\jProjects\\park\\", "/home/npankrat/"};
+                                        {"C:\\Documents and Settings\\npankrat\\My Documents\\jProjects\\park\\",
+                                         "/home/npankrat/"};
 
   public static int[] order(String[] markers, boolean shouldBeOnSameChromosome) {
     return order(markers, DEFAULT_MARKER_DATABASE, shouldBeOnSameChromosome);

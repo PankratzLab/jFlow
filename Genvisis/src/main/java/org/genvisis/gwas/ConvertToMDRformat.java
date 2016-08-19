@@ -15,7 +15,7 @@ public class ConvertToMDRformat {
   // public static final String DEFAULT_DIR = "C:\\Documents and
   // Settings\\npankrat\\My Documents\\gwas\\merged\\results\\";
   public static final String DEFAULT_DIR =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\JustY\\";
+                                         "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\JustY\\";
 
   // public static final String DEFAULT_FILES = "tophits.recode";
   // public static final String DEFAULT_FILES = "singleAdditive.recode";

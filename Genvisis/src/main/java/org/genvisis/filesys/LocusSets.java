@@ -58,15 +58,15 @@ public class LocusSets<T extends Segment> {
         union.add(tmp.getIntersection(finalOverLap.get(j), log));
       }
     }
-    LocusSet<Segment> finalUnion =
-        new LocusSet<Segment>(union.toArray(new Segment[union.size()]), true, log) {
+    LocusSet<Segment> finalUnion = new LocusSet<Segment>(union.toArray(new Segment[union.size()]),
+                                                         true, log) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1L;
 
-        };
+    };
 
     finalUnion = finalUnion.mergeOverlapping();
     for (int i = 0; i < finalUnion.getLoci().length; i++) {
@@ -122,7 +122,7 @@ public class LocusSets<T extends Segment> {
 
     String usage = "\n" + "cnv.var.LocusSets requires 0-1 arguments\n";
     usage +=
-        "   (1) comma delimited list of filenames with chr\tstart\tstop (i.e. files= (no default))\n"
+          "   (1) comma delimited list of filenames with chr\tstart\tstop (i.e. files= (no default))\n"
              + "";
     usage += "   (2) output file (i.e. out= ( no default))\n" + "";
 

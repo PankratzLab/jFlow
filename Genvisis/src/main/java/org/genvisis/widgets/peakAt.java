@@ -55,9 +55,9 @@ public class peakAt {
       numLines = DEFAULT_NUM_LINES;
     }
 
-    outputFilename =
-        "PeakAt_" + (tail ? "last" : "first") + numLines + (columnsNotLines ? "column" : "line")
-                     + (numLines == 1 ? "" : "s") + "_" + ext.removeDirectoryInfo(temp);
+    outputFilename = "PeakAt_" + (tail ? "last" : "first") + numLines
+                     + (columnsNotLines ? "column" : "line") + (numLines == 1 ? "" : "s") + "_"
+                     + ext.removeDirectoryInfo(temp);
 
     actualPeak(filename, outputFilename, numLines, tail, counting, columnsNotLines);
   }
@@ -145,12 +145,12 @@ public class peakAt {
     boolean columnsNotLines = false;
 
     params =
-        Files.parseControlFile(filename, "peakat",
-                               new String[] {"input=" + inputFilename, "output=" + outputFilename,
-                                             "numLines=" + numLines, "tailNotHead=" + tail,
-                                             "countLines=" + counting,
-                                             "columnsNotLines=" + columnsNotLines},
-                               log);
+           Files.parseControlFile(filename, "peakat",
+                                  new String[] {"input=" + inputFilename,
+                                                "output=" + outputFilename, "numLines=" + numLines,
+                                                "tailNotHead=" + tail, "countLines=" + counting,
+                                                "columnsNotLines=" + columnsNotLines},
+                                  log);
 
     if (params != null) {
       for (int i = 0; i < params.size(); i++) {

@@ -139,10 +139,10 @@ public class Anova {
     dfD = totalN - data.length;
     Fstat = (SSb / dfN) / (SSw / dfD);
     MSE = SSw / dfD;
-    LSD05 =
-        ProbDist.TDistReverse(0.05, totalN) * Math.sqrt(2 * MSE) / Math.sqrt(totalN / data.length);
-    LSD01 =
-        ProbDist.TDistReverse(0.01, totalN) * Math.sqrt(2 * MSE) / Math.sqrt(totalN / data.length);
+    LSD05 = ProbDist.TDistReverse(0.05, totalN) * Math.sqrt(2 * MSE)
+            / Math.sqrt(totalN / data.length);
+    LSD01 = ProbDist.TDistReverse(0.01, totalN) * Math.sqrt(2 * MSE)
+            / Math.sqrt(totalN / data.length);
     HSD05 = Q05_3g * Math.sqrt(2 * MSE) / Math.sqrt(totalN / data.length);
     Fsig = ProbDist.FDist(Fstat, dfN, dfD);
 
@@ -267,8 +267,8 @@ public class Anova {
     String list = "";
 
     for (double[] element : data) {
-      for (int j = 0; j < element.length; j++) {
-        list += element[j] + "\t";
+      for (double element2 : element) {
+        list += element2 + "\t";
       }
       list += "\n";
     }

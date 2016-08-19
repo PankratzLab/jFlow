@@ -14,7 +14,7 @@ public interface AnnotationParser {
   /**
    * So that promiscuous methods can parse from an {@link AnnotationQuery} and
    * {@link VariantContext}
-   * 
+   *
    */
   public void parseAnnotation(VariantContext vc, Logger log);
 

@@ -1,8 +1,5 @@
 package org.genvisis.cnv.hmm;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -39,6 +36,9 @@ import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
+
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
 
 /**
  * @author lane0212
@@ -90,7 +90,7 @@ public class CNVCaller {
     this.debugMode = debugMode;
     if (lrrs.length != bafs.length || markerSet.getMarkerNames().length != lrrs.length) {
       String error =
-          "BUG: must supply entire lrr and baf data set for the project, consider using the markersToUse array to subset the analysis";
+                   "BUG: must supply entire lrr and baf data set for the project, consider using the markersToUse array to subset the analysis";
       proj.getLog().reportTimeError(error);
       throw new IllegalArgumentException(error);
     }
@@ -148,8 +148,8 @@ public class CNVCaller {
               GcAdjustor gcAdjustor = builder.build(proj, markerSet, gcModel, dataToCorrect);
               gcAdjustor.correctIntensities();
               gcAdjustor.computeQCMetrics(true, true);
-              analysisLrrs =
-                  Array.subArray(gcAdjustor.getCorrectedIntensities(), analysisProjectIndices);
+              analysisLrrs = Array.subArray(gcAdjustor.getCorrectedIntensities(),
+                                            analysisProjectIndices);
               proj.getLog().reportTimeInfo(gcAdjustor.getAnnotatedQCString());
               lrrSd = Array.stdev(Array.getValuesBetween(analysisLrrs, MIN_LRR_MEDIAN_ADJUST,
                                                          MAX_LRR_MEDIAN_ADJUST));
@@ -240,14 +240,15 @@ public class CNVCaller {
         double[] currentChrBaf = Array.subArray(analysisBafs, currentChrIndices);
         double[] currentChrPfbs = Array.subArray(analysisPfbs, currentChrIndices);
         boolean[] currentChrCnDef = Array.subArray(copyNumberDef, currentChrIndices);
-        String[] currentNames =
-            Array.subArray(Array.subArray(markerSet.getMarkerNames(), analysisProjectIndices),
-                           currentChrIndices);
-        CNVCallerWorker worker =
-            new CNVCallerWorker(proj, dna, (byte) curChr, currentChrPositions, currentNames,
-                                pennHmm, currentChrLrr, currentChrBaf, currentChrPfbs,
-                                snpDists[curChr], snpDistsReverse[curChr], currentChrCnDef,
-                                callReverse, debugMode);
+        String[] currentNames = Array.subArray(
+                                               Array.subArray(markerSet.getMarkerNames(),
+                                                              analysisProjectIndices),
+                                               currentChrIndices);
+        CNVCallerWorker worker = new CNVCallerWorker(proj, dna, (byte) curChr, currentChrPositions,
+                                                     currentNames, pennHmm, currentChrLrr,
+                                                     currentChrBaf, currentChrPfbs,
+                                                     snpDists[curChr], snpDistsReverse[curChr],
+                                                     currentChrCnDef, callReverse, debugMode);
         hive.addCallable(worker);
       } else {
         if (debugMode) {
@@ -298,36 +299,37 @@ public class CNVCaller {
     }
 
     LocusSet<CNVariant> allLocusSet =
-        new LocusSet<CNVariant>(allCNVs.toArray(new CNVariant[allCNVs.size()]), true,
-                                proj.getLog()) {
+                                    new LocusSet<CNVariant>(allCNVs.toArray(new CNVariant[allCNVs.size()]),
+                                                            true, proj.getLog()) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+                                      /**
+                                       * 
+                                       */
+                                      private static final long serialVersionUID = 1L;
 
-        };
+                                    };
 
     LocusSet<CNVariant> allLocusSetReverse =
-        new LocusSet<CNVariant>(allReverse.toArray(new CNVariant[allReverse.size()]), true,
-                                proj.getLog()) {
+                                           new LocusSet<CNVariant>(allReverse.toArray(new CNVariant[allReverse.size()]),
+                                                                   true, proj.getLog()) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+                                             /**
+                                              * 
+                                              */
+                                             private static final long serialVersionUID = 1L;
 
-        };
+                                           };
     LocusSet<CNVariant> allLocusSetReverseConsensus =
-        new LocusSet<CNVariant>(allReverseConsensus.toArray(new CNVariant[allReverseConsensus.size()]),
-                                true, proj.getLog()) {
+                                                    new LocusSet<CNVariant>(allReverseConsensus.toArray(new CNVariant[allReverseConsensus.size()]),
+                                                                            true, proj.getLog()) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+                                                      /**
+                                                       * 
+                                                       */
+                                                      private static final long serialVersionUID =
+                                                                                                 1L;
 
-        };
+                                                    };
     return new CNVCallResult(allLocusSet, allLocusSetReverse, allLocusSetReverseConsensus);
   }
 
@@ -374,33 +376,35 @@ public class CNVCaller {
 
     @Override
     public CNVCallResult call() throws Exception {
-      ViterbiResult viterbiResult =
-          PennHmm.ViterbiLogNP_CHMM(pennHmm, lrrs, bafs, pfbs, snipDists, cnDef);
-      LocusSet<CNVariant> chrCnvs =
-          viterbiResult.analyzeStateSequence(proj, dna, dna, currentChr, positions, names, 2, false,
-                                             verbose);
+      ViterbiResult viterbiResult = PennHmm.ViterbiLogNP_CHMM(pennHmm, lrrs, bafs, pfbs, snipDists,
+                                                              cnDef);
+      LocusSet<CNVariant> chrCnvs = viterbiResult.analyzeStateSequence(proj, dna, dna, currentChr,
+                                                                       positions, names, 2, false,
+                                                                       verbose);
       LocusSet<CNVariant> chrCnvsReverse = null;
       LocusSet<CNVariant> chrCNVsReverseConsensus = null;
 
       chrCnvs = PennHmm.scoreCNVsSameChr(pennHmm, chrCnvs, positions, lrrs, bafs, pfbs, cnDef,
                                          viterbiResult.getQ(), 2, proj.getLog());
       if (callReverse) {
-        ViterbiResult viterbiResultReverse =
-            PennHmm.ViterbiLogNP_CHMM(pennHmm, Array.reverse(lrrs), Array.reverse(bafs),
-                                      Array.reverse(pfbs), snipDistsReverse, Array.reverse(cnDef));
-        chrCnvsReverse =
-            viterbiResultReverse.analyzeStateSequence(proj, dna, dna, currentChr, positions, names,
-                                                      2, true, verbose);
+        ViterbiResult viterbiResultReverse = PennHmm.ViterbiLogNP_CHMM(pennHmm, Array.reverse(lrrs),
+                                                                       Array.reverse(bafs),
+                                                                       Array.reverse(pfbs),
+                                                                       snipDistsReverse,
+                                                                       Array.reverse(cnDef));
+        chrCnvsReverse = viterbiResultReverse.analyzeStateSequence(proj, dna, dna, currentChr,
+                                                                   positions, names, 2, true,
+                                                                   verbose);
         chrCnvsReverse = PennHmm.scoreCNVsSameChr(pennHmm, chrCnvs, positions, lrrs, bafs, pfbs,
                                                   cnDef, viterbiResult.getQ(), 2, proj.getLog());
         chrCNVsReverseConsensus =
-            developConsensus(chrCnvs, chrCnvsReverse, positions, proj.getLog());
-        chrCNVsReverseConsensus =
-            PennHmm.scoreCNVsSameChr(pennHmm, chrCNVsReverseConsensus, positions, lrrs, bafs, pfbs,
-                                     cnDef, viterbiResult.getQ(), 2, proj.getLog());
+                                developConsensus(chrCnvs, chrCnvsReverse, positions, proj.getLog());
+        chrCNVsReverseConsensus = PennHmm.scoreCNVsSameChr(pennHmm, chrCNVsReverseConsensus,
+                                                           positions, lrrs, bafs, pfbs, cnDef,
+                                                           viterbiResult.getQ(), 2, proj.getLog());
       }
       CNVCallResult callResult =
-          new CNVCallResult(chrCnvs, chrCnvsReverse, chrCNVsReverseConsensus);
+                               new CNVCallResult(chrCnvs, chrCnvsReverse, chrCNVsReverseConsensus);
       return callResult;
     }
   }
@@ -434,14 +438,15 @@ public class CNVCaller {
     }
 
     LocusSet<CNVariant> consensusSet =
-        new LocusSet<CNVariant>(consensus.toArray(new CNVariant[consensus.size()]), true, log) {
+                                     new LocusSet<CNVariant>(consensus.toArray(new CNVariant[consensus.size()]),
+                                                             true, log) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+                                       /**
+                                        * 
+                                        */
+                                       private static final long serialVersionUID = 1L;
 
-        };
+                                     };
     return consensusSet;
   }
 
@@ -636,12 +641,12 @@ public class CNVCaller {
     }
 
     CNVCaller caller =
-        new CNVCaller(proj, sampleName, pennHmm, gcModel, pfb, dAdjustments, markerSet,
-                      markersToUse, copyNumberDef, sampLrrs, sampBafs, debugMode);
+                     new CNVCaller(proj, sampleName, pennHmm, gcModel, pfb, dAdjustments, markerSet,
+                                   markersToUse, copyNumberDef, sampLrrs, sampBafs, debugMode);
     caller.adjustData();
 
     CNVCallResult cnvs =
-        caller.callCNVS(chrsToCall, callReverse, minNumMarkers, minConf, numThreads);
+                       caller.callCNVS(chrsToCall, callReverse, minNumMarkers, minConf, numThreads);
     return cnvs;
   }
 
@@ -688,7 +693,7 @@ public class CNVCaller {
         if (array == ARRAY.NGS) {
           String name = markerNames[autosomalMarkers[i]];
           markersToUse[autosomalMarkers[i]] =
-              NGS_MARKER_TYPE.getType(name) != NGS_MARKER_TYPE.VARIANT_SITE;
+                                            NGS_MARKER_TYPE.getType(name) != NGS_MARKER_TYPE.VARIANT_SITE;
         }
       }
     }
@@ -772,15 +777,15 @@ public class CNVCaller {
         @Override
         public CNVCallResult call() throws Exception {
           Sample curSample = proj.getFullSampleFromRandomAccessFile(sample);
-          float[] lrrs =
-              centroids == null ? curSample.getLRRs() : curSample.getLRRs(centroids.getCentroids());
-          float[] bafs =
-              centroids == null ? curSample.getBAFs() : curSample.getBAFs(centroids.getCentroids());
-          CNVCallResult cnvs =
-              callCNVsFor(proj, pennHmmTmp, curSample.getSampleName(), Array.toDoubleArray(lrrs),
-                          Array.toDoubleArray(bafs), gcModelTmp, pfbTmp, markerSet, chrsToCall,
-                          markersToUse, callReverse, minNumMarkers, minConf, numSampleThreads,
-                          debugMode);
+          float[] lrrs = centroids == null ? curSample.getLRRs()
+                                           : curSample.getLRRs(centroids.getCentroids());
+          float[] bafs = centroids == null ? curSample.getBAFs()
+                                           : curSample.getBAFs(centroids.getCentroids());
+          CNVCallResult cnvs = callCNVsFor(proj, pennHmmTmp, curSample.getSampleName(),
+                                           Array.toDoubleArray(lrrs), Array.toDoubleArray(bafs),
+                                           gcModelTmp, pfbTmp, markerSet, chrsToCall, markersToUse,
+                                           callReverse, minNumMarkers, minConf, numSampleThreads,
+                                           debugMode);
           System.gc();
           return cnvs;
         }
@@ -858,7 +863,7 @@ public class CNVCaller {
    * @param centroids use these centroids to call cnvs
    * @param numSampleThreads number of samples analyzed at once.
    * @param numChrThreads number of chromosomes in each sample analyzed at once
-   * 
+   *
    *        NOTE: total thread usage is numSampleThreads*numChrThreads
    */
   public static CNVCallerIterator getCallerIterator(Project proj, PreparedMarkerSet markerSet,
@@ -876,7 +881,7 @@ public class CNVCaller {
     PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
     if (!Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))) {
       Resource gmodelBase =
-          GENOME_RESOURCE_TYPE.GC5_BASE.getResource(proj.GENOME_BUILD_VERSION.getValue());
+                          GENOME_RESOURCE_TYPE.GC5_BASE.getResource(proj.GENOME_BUILD_VERSION.getValue());
       if (!Files.exists(proj.GC_MODEL_FILENAME.getValue())
           && gmodelBase.isAvailable(proj.getLog())) {
         proj.getLog()
@@ -888,23 +893,24 @@ public class CNVCaller {
                         proj.GC_MODEL_FILENAME.getValue(), 100);
       }
     }
-    GcModel gcModel =
-        GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false,
-                                            proj.getLog());
+    GcModel gcModel = GcAdjustor.GcModel.populateFromFile(
+                                                          proj.GC_MODEL_FILENAME.getValue(false,
+                                                                                          false),
+                                                          false, proj.getLog());
     if (gcModel == null) {
       proj.getLog().reportTimeWarning("Calling cnvs without gc correction");
     }
     CNVProducer producer = new CNVProducer(proj, markerSet, pennHmmOriginal, gcModel, pfb, samples,
                                            chrsToCall, markersToUse, centroids, minNumMarkers,
                                            minConf, numChrThreads, false, true);
-    WorkerTrain<CNVCallResult> train =
-        new WorkerTrain<CNVCallResult>(producer, numSampleThreads, 2, proj.getLog());
+    WorkerTrain<CNVCallResult> train = new WorkerTrain<CNVCallResult>(producer, numSampleThreads, 2,
+                                                                      proj.getLog());
     return new CNVCallerIterator(train);
   }
 
   /**
    * This method calls autosomal cnvs only
-   * 
+   *
    * @param output relative to the project directory
    */
   public static void callAutosomalCNVs(Project proj, String output, String[] samples,
@@ -914,9 +920,9 @@ public class CNVCaller {
     output = proj.PROJECT_DIRECTORY.getValue() + output;
     proj.getLog().reportTimeInfo("CNVS will be reported to " + output);
     new File(ext.parseDirectoryOfFile(output)).mkdirs();
-    CNVCallerIterator callerIterator =
-        getCallerIterator(proj, markerSet, samples, chrsToCall, null, centroids, minNumMarkers,
-                          minConf, numSampleThreads, numChrThreads);
+    CNVCallerIterator callerIterator = getCallerIterator(proj, markerSet, samples, chrsToCall, null,
+                                                         centroids, minNumMarkers, minConf,
+                                                         numSampleThreads, numChrThreads);
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(output));
       writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
@@ -952,12 +958,12 @@ public class CNVCaller {
     ArrayList<CNVariant> allCNVs = new ArrayList<CNVariant>();
     String[] sampTmp = new String[] {samples[ext.indexOfStr("7165764002_R06C02", samples)]};
     // String[] sampTmp= samples;
-    CNVProducer producer =
-        new CNVProducer(proj, PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet()),
-                        pennHmmOriginal, null, pfb, sampTmp, null, null, null, -1, 1, 1, true,
-                        true);
-    WorkerTrain<CNVCallResult> train =
-        new WorkerTrain<CNVCallResult>(producer, numThreads, 2, proj.getLog());
+    CNVProducer producer = new CNVProducer(proj,
+                                           PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet()),
+                                           pennHmmOriginal, null, pfb, sampTmp, null, null, null,
+                                           -1, 1, 1, true, true);
+    WorkerTrain<CNVCallResult> train = new WorkerTrain<CNVCallResult>(producer, numThreads, 2,
+                                                                      proj.getLog());
     int index = 0;
     while (train.hasNext()) {
       index++;
@@ -972,7 +978,7 @@ public class CNVCaller {
     LocusSet<CNVariant> finalSet = new LocusSet<CNVariant>(allCNVs, true, proj.getLog()) {
 
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -998,7 +1004,7 @@ public class CNVCaller {
     usage += "   (3) minimum number of markers to report a cnv  (i.e. minMarkers=" + minNumMarkers
              + " (default))\n" + "";
     usage +=
-        "   (4) minimum confidence report a cnv  (i.e. minConf=" + minConf + " (default))\n" + "";
+          "   (4) minimum confidence report a cnv  (i.e. minConf=" + minConf + " (default))\n" + "";
 
     usage += PSF.Ext.getNumThreadsCommand(4, numThreads);
 

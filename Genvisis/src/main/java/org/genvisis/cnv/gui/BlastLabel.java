@@ -90,8 +90,8 @@ public class BlastLabel extends JLabel {
 
   private static final long serialVersionUID = 1L;
   private static final Font BASE_FONT =
-      (Fonts.SOURCE_CODE_PRO_REGULAR == null ? Font.decode(Font.MONOSPACED)
-                                             : Fonts.SOURCE_CODE_PRO_REGULAR);
+                                      (Fonts.SOURCE_CODE_PRO_REGULAR == null ? Font.decode(Font.MONOSPACED)
+                                                                             : Fonts.SOURCE_CODE_PRO_REGULAR);
 
   public static void setFontSize(int size) {
     LBL_FONT = BASE_FONT.deriveFont((float) size);
@@ -132,14 +132,14 @@ public class BlastLabel extends JLabel {
     myAnnotation = annot;
     positiveStrand = annot.getStrand() == Strand.POSITIVE;
     oppositeStrand = ref.getStrand() != annot.getStrand();
-    reverseSequence =
-        oppositeStrand/*
-                       * && ((ref.getTopBotRef() == TOP_BOT.PLUS && ref.getTopBotProbe() ==
-                       * TOP_BOT.PLUS) || (ref.getTopBotRef() == TOP_BOT.BOT && ref.getTopBotProbe()
-                       * == TOP_BOT.BOT) || (ref.getTopBotRef() == TOP_BOT.TOP &&
-                       * ref.getTopBotProbe() == TOP_BOT.TOP) || (ref.getTopBotRef() ==
-                       * TOP_BOT.MINUS && ref.getTopBotProbe() == TOP_BOT.MINUS))
-                       */;
+    reverseSequence = oppositeStrand/*
+                                     * && ((ref.getTopBotRef() == TOP_BOT.PLUS &&
+                                     * ref.getTopBotProbe() == TOP_BOT.PLUS) || (ref.getTopBotRef()
+                                     * == TOP_BOT.BOT && ref.getTopBotProbe() == TOP_BOT.BOT) ||
+                                     * (ref.getTopBotRef() == TOP_BOT.TOP && ref.getTopBotProbe() ==
+                                     * TOP_BOT.TOP) || (ref.getTopBotRef() == TOP_BOT.MINUS &&
+                                     * ref.getTopBotProbe() == TOP_BOT.MINUS))
+                                     */;
     fullSegment = BlastFrame.BlastUtils.getSegmentForAnnotation(ref, annot);
     alignmentCount = BlastFrame.BlastUtils.countAlignment(annot);
     if (refGen != null) {
@@ -195,7 +195,7 @@ public class BlastLabel extends JLabel {
       if (ciggie.getOperator().consumesReferenceBases()) {
         if (/* flipSequence && */!ciggie.getOperator().consumesReadBases()) {
           Integer key =
-              /* reverseSequence ? refSeq.getSequence().length() - strandInd + 1 : */ strandInd;
+                      /* reverseSequence ? refSeq.getSequence().length() - strandInd + 1 : */ strandInd;
           if (spaceSets.containsKey(key)) {
             spaceSets.put(key, Math.max(spaceSets.get(key), ciggie.getLength()));
           } else {
@@ -238,9 +238,11 @@ public class BlastLabel extends JLabel {
     int mySpacesCnt = 0;
     int addedSpaces = 0;
     for (int i =
-        reverseSequence ? seqParts.size() - 1 : 0; reverseSequence ? i >= 0
-                                                                   : i < seqParts.size(); i +=
-                                                                       reverseSequence ? -1 : 1) {
+               reverseSequence ? seqParts.size() - 1
+                               : 0; reverseSequence ? i >= 0
+                                                    : i < seqParts.size(); i +=
+                                                                             reverseSequence ? -1
+                                                                                             : 1) {
       CigarSeq cs = seqParts.get(i);
       boolean diff = cs.elem.getOperator() != CigarOperator.EQ;
       boolean read = cs.elem.getOperator().consumesReadBases();
@@ -266,9 +268,12 @@ public class BlastLabel extends JLabel {
       } else {
         boolean strike = diff && read && !ref;
         int tempX = baseX;
-        for (int c = reverseSequence ? cs.elemSeq.length() - 1
-                                     : 0; reverseSequence ? c >= 0 : c < cs.elemSeq.length(); c +=
-                                         reverseSequence ? -1 : 1) {
+        for (int c =
+                   reverseSequence ? cs.elemSeq.length() - 1
+                                   : 0; reverseSequence ? c >= 0
+                                                        : c < cs.elemSeq.length(); c +=
+                                                                                     reverseSequence ? -1
+                                                                                                     : 1) {
           // if (expanded) {
           // if (mySpaces.contains(charInd - addedSpaces)) {
           // mySpacesCnt++;

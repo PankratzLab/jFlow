@@ -38,8 +38,9 @@ import org.genvisis.stats.Maths;
  */
 public class Centroids implements Serializable, TextExport {
   public static final long serialVersionUID = 1L;
-  public static final String[] ILLUMINA_CENTROID_SUFFIXES =
-      {"Name", "AA T Mean", "AA R Mean", "AB T Mean", "AB R Mean", "BB T Mean", "BB R Mean"};
+  public static final String[] ILLUMINA_CENTROID_SUFFIXES = {"Name", "AA T Mean", "AA R Mean",
+                                                             "AB T Mean", "AB R Mean", "BB T Mean",
+                                                             "BB R Mean"};
 
   private final float[][][] centroids; // marker, genotype (0=AA, 1=AB, 2=BB), coordinates (0=Mean
                                        // Theta, 1=Mean R) (a.k.a. follows the suffix order above)
@@ -156,16 +157,16 @@ public class Centroids implements Serializable, TextExport {
         estimatedR = centroids[1][1];
       } else {
         estimatedR =
-            centroids[0][1] + (theta - centroids[0][0]) * (centroids[1][1] - centroids[0][1])
-                              / (centroids[1][0] - centroids[0][0]);
+                   centroids[0][1] + (theta - centroids[0][0]) * (centroids[1][1] - centroids[0][1])
+                                     / (centroids[1][0] - centroids[0][0]);
       }
     } else if (centroids[2] != null && theta < centroids[2][0]) {
       if (centroids[1] == null) {
         estimatedR = centroids[2][1];
       } else {
         estimatedR =
-            centroids[1][1] + (theta - centroids[1][0]) * (centroids[2][1] - centroids[1][1])
-                              / (centroids[2][0] - centroids[1][0]);
+                   centroids[1][1] + (theta - centroids[1][0]) * (centroids[2][1] - centroids[1][1])
+                                     / (centroids[2][0] - centroids[1][0]);
       }
     } else {
       if (centroids[2] == null) {
@@ -458,12 +459,13 @@ public class Centroids implements Serializable, TextExport {
     public Hashtable<String, Float> call() throws Exception {
       Hashtable<String, Float> outliers = new Hashtable<String, Float>();
       Sample original = proj.getFullSampleFromRandomAccessFile(sample);
-      Sample sample =
-          new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(),
-                     original.getXs(), original.getYs(),
-                     preserveBafs ? original.getBAFs() : original.getBAFs(centroids.getCentroids()),
-                     original.getLRRs(centroids.getCentroids()), original.getForwardGenotypes(),
-                     original.getAB_Genotypes(), original.getCanXYBeNegative());
+      Sample sample = new Sample(original.getSampleName(), original.getFingerprint(),
+                                 original.getGCs(), original.getXs(), original.getYs(),
+                                 preserveBafs ? original.getBAFs()
+                                              : original.getBAFs(centroids.getCentroids()),
+                                 original.getLRRs(centroids.getCentroids()),
+                                 original.getForwardGenotypes(), original.getAB_Genotypes(),
+                                 original.getCanXYBeNegative());
       sample.saveToRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(false, true)
                                     + original.getSampleName() + Sample.SAMPLE_FILE_EXTENSION,
                                     outliers, sample.getSampleName());
@@ -534,7 +536,10 @@ public class Centroids implements Serializable, TextExport {
     Hashtable<String, Float> outliers = new Hashtable<String, Float>();
     RecomputeProducer producer = new RecomputeProducer(proj, samples, centroids, preserveBafs);
     WorkerTrain<Hashtable<String, Float>> train =
-        new WorkerTrain<Hashtable<String, Float>>(producer, numThreads, 10, proj.getLog());
+                                                new WorkerTrain<Hashtable<String, Float>>(producer,
+                                                                                          numThreads,
+                                                                                          10,
+                                                                                          proj.getLog());
     while (train.hasNext()) {
       Hashtable<String, Float> currentOutliers = train.next();
       outliers.putAll(currentOutliers);
@@ -613,7 +618,7 @@ public class Centroids implements Serializable, TextExport {
 
 
   /**
-   * 
+   *
    * @param proj
    * @param centFilename File path FROM THE PROJECT'S DIRECTORY
    * @param exportFilename File path FROM THE PROJECT'S DIRECTORY
@@ -730,8 +735,8 @@ public class Centroids implements Serializable, TextExport {
 
     for (int i = 0; i < threadCount; i++) {
       markerDataLoaders[i] =
-          MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
-                                                                  Array.toStringArray(markerLists[i]));
+                           MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+                                                                                   Array.toStringArray(markerLists[i]));
     }
 
     rawCentroidsMale = new float[allMarkers.length][][];
@@ -760,11 +765,11 @@ public class Centroids implements Serializable, TextExport {
 
             if (!includeList[index]) {
               rawCentroidsMale[index] =
-                  new float[][] {{Float.NaN, Float.NaN}, {Float.NaN, Float.NaN},
-                                 {Float.NaN, Float.NaN}};
-              rawCentroidsFemale[index] =
-                  new float[][] {{Float.NaN, Float.NaN}, {Float.NaN, Float.NaN},
-                                 {Float.NaN, Float.NaN}};
+                                      new float[][] {{Float.NaN, Float.NaN}, {Float.NaN, Float.NaN},
+                                                     {Float.NaN, Float.NaN}};
+              rawCentroidsFemale[index] = new float[][] {{Float.NaN, Float.NaN},
+                                                         {Float.NaN, Float.NaN},
+                                                         {Float.NaN, Float.NaN}};
               continue;
             }
 
@@ -780,12 +785,14 @@ public class Centroids implements Serializable, TextExport {
                                                             proj.getLog());
 
             CentroidCompute centCompF =
-                new CentroidCompute(markerData, null, inclSampFemales, false, // NOT intensity only
-                                    1, // no filtering
-                                    0, // no filtering
-                                    null, // no filtering
-                                    true, // median, not mean
-                                    proj.getLog());
+                                      new CentroidCompute(markerData, null, inclSampFemales, false, // NOT
+                                                                                                    // intensity
+                                                                                                    // only
+                                                          1, // no filtering
+                                                          0, // no filtering
+                                                          null, // no filtering
+                                                          true, // median, not mean
+                                                          proj.getLog());
 
 
             centCompM.computeCentroid(true);

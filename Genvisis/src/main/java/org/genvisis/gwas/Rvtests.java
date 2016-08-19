@@ -31,7 +31,7 @@ public class Rvtests {
     }
 
     command =
-        dirOfRvtestsCommands + "vcf2kinship" + " --ped " + dirOfPedFiles + "[%0]" + " --inVcf "
+            dirOfRvtestsCommands + "vcf2kinship" + " --ped " + dirOfPedFiles + "[%0]" + " --inVcf "
               + fullpathToVcf + " --bn" + " --out " + resultsDir + "[%1]" + " --xLabel X --xHemi"
               + "\n" + dirOfRvtestsCommands + "rvtest" + " --pheno " + dirOfPedFiles + "[%0]"
               + " --inVcf " + fullpathToVcf + " --out " + resultsDir + "[%1]" + " --kinship "
@@ -100,7 +100,8 @@ public class Rvtests {
       for (int j = 0; j < indices.length; j++) {
         if (indices[j] < 0) {
           newFilename +=
-              ("_" + filenameAdditionalSegments.elementAt(-indices[j] - 1).replaceAll("'", ""));
+                      ("_"
+                       + filenameAdditionalSegments.elementAt(-indices[j] - 1).replaceAll("'", ""));
         } else {
           newFilename += ("_" + tmp1[indices[j]]);
         }
@@ -112,7 +113,7 @@ public class Rvtests {
 
   /**
    * This is a program specifically for
-   * 
+   *
    * @param args
    */
   public static void main(String[] args) {
@@ -135,13 +136,13 @@ public class Rvtests {
     dirOfRvtestsCommands = "/home/pankrat2/shared/skatMeta/giant_hematology/rvtests/executable/";
     dirOfPedFiles = "/home/pankrat2/shared/skatMeta/giant_hematology/pedigrees/";
     fullpathToVcf =
-        "/home/pankrat2/shared/skatMeta/giant_hematology/vcf_files/CARDIA_AA_CHR1_23_STRANDALIGNED_FINAL_nochr.vcf.gz";
+                  "/home/pankrat2/shared/skatMeta/giant_hematology/vcf_files/CARDIA_AA_CHR1_23_STRANDALIGNED_FINAL_nochr.vcf.gz";
     rScriptDir = "/home/pankrat2/shared/skatMeta/giant_hematology/scripts/";
     resultsDir = "/home/pankrat2/shared/skatMeta/giant_hematology/results/";
 
     isRename = false;
     filenameConversionTable =
-        "RBC,HCT,HGB,MCV,MCH,MCHC,RDW,WBC_TOTAL=WBC,WBC_BASO=BAS,WBC_EOS=EOS,WBC_LYMPH=LYM,WBC_MONO=MON,WBC_NEUTRO=NEU,PLT,MPV";
+                            "RBC,HCT,HGB,MCV,MCH,MCHC,RDW,WBC_TOTAL=WBC,WBC_BASO=BAS,WBC_EOS=EOS,WBC_LYMPH=LYM,WBC_MONO=MON,WBC_NEUTRO=NEU,PLT,MPV";
     filenameSegmentIndices = "0,2,COHORT,1,'121114',np";
 
     String usage = "\nTo generate scripts for all the .ped files in a single directory:"
@@ -165,7 +166,7 @@ public class Rvtests {
     // resultsDir = "D:/RvTests/";
     resultsDir = "/home/pankrat2/shared/skatMeta/giant_hematology/results/";
     filenameConversionTable =
-        "RBC,HCT,HGB,MCV,MCH,MCHC,RDW,WBC_TOTAL=WBC,WBC_BASO=BAS,WBC_EOS=EOS,WBC_LYMPH=LYM,WBC_MONO=MON,WBC_NEUTRO=NEU,PLT,MPV";
+                            "RBC,HCT,HGB,MCV,MCH,MCHC,RDW,WBC_TOTAL=WBC,WBC_BASO=BAS,WBC_EOS=EOS,WBC_LYMPH=LYM,WBC_MONO=MON,WBC_NEUTRO=NEU,PLT,MPV";
     filenameSegmentIndices = "0,2,COHORT,1,'121114',np";
     isRename = true;
 

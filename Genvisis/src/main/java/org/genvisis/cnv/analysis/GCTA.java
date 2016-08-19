@@ -1,7 +1,5 @@
 package org.genvisis.cnv.analysis;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -26,6 +24,8 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Qc;
+
+import com.google.common.primitives.Doubles;
 
 /**
  * Class for running GCTA (http://cnsgenomics.com/software/gcta/)
@@ -72,7 +72,7 @@ public class GCTA {
   public enum PHENO_TYPE {
                           PRE_PROCESSED,
                           /**
-                           * 
+                           *
                            * Assumes a DNA column as first index, and all other columns of
                            * phenotypes
                            */
@@ -207,8 +207,8 @@ public class GCTA {
   private static VarianceResult determineVarianceExplained(String inputGrm, String output,
                                                            String phenoFile, String covarFile,
                                                            int numthreads, Logger log) {
-    String[] inputs =
-        new String[] {inputGrm + ".grm.bin", inputGrm + ".grm.N.bin", inputGrm + ".grm.id"};
+    String[] inputs = new String[] {inputGrm + ".grm.bin", inputGrm + ".grm.N.bin",
+                                    inputGrm + ".grm.id"};
     String summaryFile = output + ".hsq";
     // if (!Files.exists(summaryFile)) {
     // System.out.println(summaryFile);
@@ -306,8 +306,8 @@ public class GCTA {
   // gcta64 --grm test --keep test.indi.list --pca 20 --out test
   private static boolean generatePCACovars(String inputGrm, String output, int numPCs,
                                            int numthreads, Logger log) {
-    String[] inputs =
-        new String[] {inputGrm + ".grm.bin", inputGrm + ".grm.N.bin", inputGrm + ".grm.id"};
+    String[] inputs = new String[] {inputGrm + ".grm.bin", inputGrm + ".grm.N.bin",
+                                    inputGrm + ".grm.id"};
 
     String[] outputs = new String[] {output + ".eigenval", output + ".eigenvec"};
     ArrayList<String> command = new ArrayList<String>();
@@ -350,8 +350,8 @@ public class GCTA {
         fidIID.add(sampleData.lookup(sample)[1]);
       }
 
-      WorkerHive<VarianceResult> hive =
-          new WorkerHive<GCTA.VarianceResult>(numThreads, 10, proj.getLog());
+      WorkerHive<VarianceResult> hive = new WorkerHive<GCTA.VarianceResult>(numThreads, 10,
+                                                                            proj.getLog());
       for (int i = 0; i < Math.min(125, parser.getNumericDataTitles().length); i++) {
         final String current = parser.getNumericDataTitles()[i];
         ArrayList<String> pheno = new ArrayList<String>();
@@ -524,8 +524,8 @@ public class GCTA {
 
           for (int i = 0; i < phenoFiles.length; i++) {
             ArrayList<VarianceResult> results =
-                processDNAPhenoFile(proj, phenoFiles[i], mergeRmGRM, true, covarFile, numthreads,
-                                    log);
+                                              processDNAPhenoFile(proj, phenoFiles[i], mergeRmGRM,
+                                                                  true, covarFile, numthreads, log);
             if (i == 0) {
               // note that index is a sneaky way to report which PC
               // was used.

@@ -15,7 +15,7 @@ import org.genvisis.stats.McNemarsTest;
 
 public class MitoDNA {
   public static final String DEFAULT_DIR =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\mtDNA\\";
+                                         "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\mtDNA\\";
   // public static final String DEFAULT_DIR = "C:\\Documents and Settings\\npankrat\\My
   // Documents\\mtDNA\\";
   public static final String DEFAULT_REFS = "referenceHaps.dat";
@@ -24,10 +24,13 @@ public class MitoDNA {
   public static final String DEFAULT_PAIRS = "pairs.dat";
 
   public static final String[] ANALYSIS_VARS =
-      {"IJK", "JTUK", "JTIWX", "mito1719_dom", "mito4580_dom", "mito7028_dom", "mito8251_dom",
-       "mito9055_dom", "mito10398_dom", "mito10400_dom", "mito12308_dom", "mito13368_dom",
-       "mito13708_dom", "mito16391_dom", "H", "I", "J", "K", "M", "T", "U", "V", "W", "X", "Other",
-       "I_v_H", "J_v_H", "K_v_H", "M_v_H", "T_v_H", "U_v_H", "V_v_H", "W_v_H", "X_v_H"};
+                                             {"IJK", "JTUK", "JTIWX", "mito1719_dom",
+                                              "mito4580_dom", "mito7028_dom", "mito8251_dom",
+                                              "mito9055_dom", "mito10398_dom", "mito10400_dom",
+                                              "mito12308_dom", "mito13368_dom", "mito13708_dom",
+                                              "mito16391_dom", "H", "I", "J", "K", "M", "T", "U",
+                                              "V", "W", "X", "Other", "I_v_H", "J_v_H", "K_v_H",
+                                              "M_v_H", "T_v_H", "U_v_H", "V_v_H", "W_v_H", "X_v_H"};
 
   public static void hapit(String dir, String referenceHaps, String snps) {
     BufferedReader reader;

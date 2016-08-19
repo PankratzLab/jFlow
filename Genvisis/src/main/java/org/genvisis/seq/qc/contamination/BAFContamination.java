@@ -1,7 +1,5 @@
 package org.genvisis.seq.qc.contamination;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -23,6 +21,8 @@ import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 import org.genvisis.stats.RegressionModel;
+
+import com.google.common.primitives.Doubles;
 
 public class BAFContamination {
   private final double[] sampBAF;
@@ -58,8 +58,8 @@ public class BAFContamination {
     byte[] chrs = proj.getMarkerSet().getChrs();
     int subIndex = Array.indexOfFirstMaxByte(chrs, (byte) 23);
     // mafs = getMafs(mafs);
-    boolean[] use =
-        getPFBsToUse(getMafs(mafs), callRate, sampGenotypes, minFreq, minCallRate, subIndex);
+    boolean[] use = getPFBsToUse(getMafs(mafs), callRate, sampGenotypes, minFreq, minCallRate,
+                                 subIndex);
     double[][] indeps = new double[Array.booleanArraySum(use)][2];
 
     log.reportTimeInfo("Found " + Array.booleanArraySum(use)
@@ -81,8 +81,9 @@ public class BAFContamination {
 
     RegressionModel model = new LeastSquares(Array.subArray(sampBAF, use), indeps, null, false,
                                              verbose, LS_TYPE.REGULAR);
-    BAFContaminationResults results =
-        new BAFContaminationResults(model.getOverallSig(), model.getRsquare(), model.getBetas());
+    BAFContaminationResults results = new BAFContaminationResults(model.getOverallSig(),
+                                                                  model.getRsquare(),
+                                                                  model.getBetas());
     results.setsAlleleDeviation(new StandardAlleleDeviation(Array.subArray(sampGenotypes, use),
                                                             Array.subArray(sampBAF, use)));
     // System.out.println(Array.toStr(results.getBetas()));
@@ -225,7 +226,7 @@ public class BAFContamination {
     @Override
     public Callable<BAFContaminationResults> next() {
       BAFContaminationWorker worker =
-          new BAFContaminationWorker(proj, samples[index], pfb, callRate);
+                                    new BAFContaminationWorker(proj, samples[index], pfb, callRate);
       index++;
       return worker;
     }
@@ -251,9 +252,10 @@ public class BAFContamination {
       ClusterFilterCollection clusterFilterCollection = new ClusterFilterCollection();
       byte[] genos = samp.getAB_GenotypesAfterFilters(proj.getMarkerNames(),
                                                       clusterFilterCollection, (float) 0.20);
-      BAFContamination bafContamination =
-          new BAFContamination(proj, Array.toDoubleArray(samp.getBAFs()), genos, pfbs, callRate,
-                               MIN_MAF, MIN_CALL_RATE, true, proj.getLog());
+      BAFContamination bafContamination = new BAFContamination(proj,
+                                                               Array.toDoubleArray(samp.getBAFs()),
+                                                               genos, pfbs, callRate, MIN_MAF,
+                                                               MIN_CALL_RATE, true, proj.getLog());
       BAFContaminationResults results = bafContamination.getContamination();
       return results;
     }
@@ -263,7 +265,7 @@ public class BAFContamination {
   private static ExtProjectDataParser getParser(Project proj, String file, String dataKeyColumnName,
                                                 String[] numericColumns) throws FileNotFoundException {
     ExtProjectDataParser.ProjectDataParserBuilder builder =
-        new ExtProjectDataParser.ProjectDataParserBuilder();
+                                                          new ExtProjectDataParser.ProjectDataParserBuilder();
     builder.sampleBased(false);
     builder.treatAllNumeric(false);
     builder.requireAll(true);
@@ -312,8 +314,8 @@ public class BAFContamination {
 
     try {
       ExtProjectDataParser parserPfb = getParser(proj, pfb, "Name", new String[] {"PFB"});
-      ExtProjectDataParser parserMaf =
-          getParser(proj, mafs, "NAME", new String[] {"MAF", "CALLRATE"});
+      ExtProjectDataParser parserMaf = getParser(proj, mafs, "NAME",
+                                                 new String[] {"MAF", "CALLRATE"});
       parserPfb.determineIndicesFromTitles();
       parserMaf.determineIndicesFromTitles();
       parserPfb.loadData();
@@ -323,11 +325,13 @@ public class BAFContamination {
       double[] callRates = parserMaf.getNumericData()[1];
       proj.getLog().reportTimeInfo("found " + pfbs.length + "pfbs");
       String output = proj.PROJECT_DIRECTORY.getValue() + "contamination.txt";
-      ContaminationProducer producer =
-          new ContaminationProducer(proj, pfbs, callRates, proj.getSamples());
+      ContaminationProducer producer = new ContaminationProducer(proj, pfbs, callRates,
+                                                                 proj.getSamples());
       WorkerTrain<BAFContaminationResults> train =
-          new WorkerTrain<BAFContamination.BAFContaminationResults>(producer, numThreads, 1,
-                                                                    proj.getLog());
+                                                 new WorkerTrain<BAFContamination.BAFContaminationResults>(producer,
+                                                                                                           numThreads,
+                                                                                                           1,
+                                                                                                           proj.getLog());
 
       try {
         PrintWriter writer = new PrintWriter(new FileWriter(output));

@@ -1,8 +1,5 @@
 package org.genvisis.gwas;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,26 +40,36 @@ import org.genvisis.stats.Correlation;
 import org.genvisis.stats.ProbDist;
 import org.genvisis.stats.Rscript;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 public class SeqMeta {
   public static final String[] ALGORITHMS =
-      {"singlesnpMeta", "burdenMeta", "skatMeta", "skatOMeta"};
+                                          {"singlesnpMeta", "burdenMeta", "skatMeta", "skatOMeta"};
 
-  public static final String[][] UNIT_OF_ANALYSIS =
-      {Aliases.MARKER_NAMES, Aliases.GENE_UNITS, Aliases.GENE_UNITS, Aliases.GENE_UNITS};
+  public static final String[][] UNIT_OF_ANALYSIS = {Aliases.MARKER_NAMES, Aliases.GENE_UNITS,
+                                                     Aliases.GENE_UNITS, Aliases.GENE_UNITS};
 
   public static final boolean[] SINGLE_VARIANTS = {true, false, false, false};
 
-  public static final String[][] HEADER_TYPES =
-      {{"gene", "Name", "p", "maf", "nmiss", "ntotal", "beta", "se"}, // Single SNP
-       {"gene", "p", "beta", "se", "cmafTotal", "cmafUsed", "nsnpsTotal", "nsnpsUsed", "nmiss"}, // Burden
-                                                                                                 // Test
-       {"gene", "p", "Qmeta", "cmaf", "nmiss", "nsnps"}, // SKAT test
-       {"gene", "p", "Qmeta", "cmaf", "nmiss", "nsnps"} // SKAT-O test (not verified)
-      };
+  public static final String[][] HEADER_TYPES = {
+                                                 {"gene", "Name", "p", "maf", "nmiss", "ntotal",
+                                                  "beta", "se"}, // Single SNP
+                                                 {"gene", "p", "beta", "se", "cmafTotal",
+                                                  "cmafUsed", "nsnpsTotal", "nsnpsUsed", "nmiss"}, // Burden
+                                                                                                   // Test
+                                                 {"gene", "p", "Qmeta", "cmaf", "nmiss", "nsnps"}, // SKAT
+                                                                                                   // test
+                                                 {"gene", "p", "Qmeta", "cmaf", "nmiss", "nsnps"} // SKAT-O
+                                                                                                  // test
+                                                                                                  // (not
+                                                                                                  // verified)
+  };
 
-  public static final String[] SUMMARY_INFO_HEADER =
-      {"Study", "Ethnicity", "Units", "Trait", "meanTrait", "stdevTrait", "minTrait", "maxTrait",
-       "numFemales", "numMales", "meanAge", "stdevAge", "minAge", "maxAge"};
+  public static final String[] SUMMARY_INFO_HEADER = {"Study", "Ethnicity", "Units", "Trait",
+                                                      "meanTrait", "stdevTrait", "minTrait",
+                                                      "maxTrait", "numFemales", "numMales",
+                                                      "meanAge", "stdevAge", "minAge", "maxAge"};
 
   public static String getRscriptExecutable(MetaAnalysisParams maps, Logger log) {
     if (maps != null && maps.getRExec() != null) {
@@ -296,8 +303,8 @@ public class SeqMeta {
         for (int k = 0; k < races.length; k++) {
           // log.report(" Race: "+races[k][0]);
           if (!finalSets[i][j][k].equals("<missing>")) {
-            localDir =
-                dir + "objects/" + studies[j] + "/" + races[k][0] + "/" + phenotypes[i][0] + "/";
+            localDir = dir + "objects/" + studies[j] + "/" + races[k][0] + "/" + phenotypes[i][0]
+                       + "/";
             new File(localDir).mkdirs();
 
             files = finalSets[i][j][k].split(";");
@@ -321,8 +328,8 @@ public class SeqMeta {
               maxChr = getMaxChr();
               for (int chr = 1; chr <= maxChr; chr++) {
                 chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
-                subsetObject =
-                    studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
+                subsetObject = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr"
+                               + chrom;
                 if (!Files.exists(localDir + subsetObject + "_f" + f + ".RData")
                     && !Files.exists(localDir + subsetObject + ".RData")) {
                   chrsToDo.add(chr);
@@ -340,8 +347,8 @@ public class SeqMeta {
                                                     : (chrsToDo.elementAt(c) == 24 ? "Y"
                                                                                    : chrsToDo.elementAt(c)
                                                                                      + "");
-                subsetObject =
-                    studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
+                subsetObject = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr"
+                               + chrom;
 
                 // filter for the gene names present on the chromosome
                 commands.add("genes <- unique(" + snpInfoName + "[" + snpInfoName + "$" + chromName
@@ -438,8 +445,8 @@ public class SeqMeta {
           for (int k = 0; k < races.length; k++) {
             if (!finalSets[i][j][k].equals("<missing>")) {
               System.out.println("    " + races[k][0]);
-              localDir =
-                  dir + "objects/" + studies[j] + "/" + races[k][0] + "/" + phenotypes[i][0] + "/";
+              localDir = dir + "objects/" + studies[j] + "/" + races[k][0] + "/" + phenotypes[i][0]
+                         + "/";
               files = finalSets[i][j][k].split(";");
               if (iter == 0) {
                 finalSelections[i][j][k] = Array.intArray(maxChr, -1);
@@ -448,8 +455,8 @@ public class SeqMeta {
               for (int chr = 1; chr <= maxChr; chr++) {
 
                 chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
-                subsetObject =
-                    studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
+                subsetObject = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr"
+                               + chrom;
 
                 largestFileSize = 0;
                 for (int f = 0; f < files.length; f++) {
@@ -588,15 +595,15 @@ public class SeqMeta {
       for (int j = 0; j < studies.length; j++) {
         for (int k = 0; k < races.length; k++) {
           if (!finalSets[i][j][k].equals("<missing>")) {
-            localDir =
-                dir + "objects/" + studies[j] + "/" + races[k][0] + "/" + phenotypes[i][0] + "/";
+            localDir = dir + "objects/" + studies[j] + "/" + races[k][0] + "/" + phenotypes[i][0]
+                       + "/";
 
             for (int chr = 1; chr <= (runningByChr ? maxChr : 1); chr++) {
               chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
 
               if (runningByChr) {
                 objectName =
-                    studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
+                           studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
                 objectFilename = localDir + objectName + ".RData";
                 snpInfoFile = "snpInfos/snpInfo_chr" + chrom + ".RData";
               } else {
@@ -734,7 +741,7 @@ public class SeqMeta {
                 localDir = dir + "objects/" + studies[j] + "/" + races[k][0] + "/"
                            + phenotypes[i][0] + "/";
                 objectName =
-                    studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
+                           studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
                 if (new File(localDir + objectName + ".RData").length() > 1024) {
                   commands.add("load(\"" + localDir + objectName + ".RData" + "\")");
                   objects.add(objectName);
@@ -830,7 +837,7 @@ public class SeqMeta {
                 localDir = dir + "objects/" + studies[j] + "/" + races[k][0] + "/"
                            + phenotypes[i][0] + "/";
                 objectName =
-                    studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
+                           studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr" + chrom;
                 if (new File(localDir + objectName + ".RData").length() > 1024) {
                   commands.add("load(\"" + localDir + objectName + ".RData" + "\")");
                   objects.add(objectName);
@@ -1044,8 +1051,8 @@ public class SeqMeta {
               sampleSizes[k][j][i] = "";
             } else {
               root = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_" + method;
-              outputFilename =
-                  dir + phenotypes[i][0] + "/" + races[k][0] + "/" + method + "/" + root + ".csv";
+              outputFilename = dir + phenotypes[i][0] + "/" + races[k][0] + "/" + method + "/"
+                               + root + ".csv";
               if (Files.exists(outputFilename)) {
                 log.report("Processing " + outputFilename);
                 line = procFile(outputFilename, log);
@@ -1305,8 +1312,8 @@ public class SeqMeta {
       for (int j = 0; j < studies.length; j++) {
         for (int k = 0; k < races.length; k++) {
           if (!finalSets[i][j][k].equals("<missing>")) {
-            localDir =
-                dir + "objects/" + studies[j] + "/" + races[k][0] + "/" + phenotypes[i][0] + "/";
+            localDir = dir + "objects/" + studies[j] + "/" + races[k][0] + "/" + phenotypes[i][0]
+                       + "/";
             objectName = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr18";
             commands.add("load(\"" + localDir + objectName + ".RData" + "\")");
             commands.add("ls()");
@@ -1493,9 +1500,11 @@ public class SeqMeta {
       log.report(ext.getTime() + "\tStarting calculations for " + phenotypes[i][0]);
       macs = new Hashtable<String, int[]>();
       snpGeneFunctionalHashPan =
-          filterSnpGeneFunctionalHash(dir + phenotypes[i][0] + "/" + methods[0][0] + "/"
-                                      + phenotypes[i][0] + "_" + methods[0][0] + ".csv",
-                                      snpGeneFunctionalHash, mafThresholdDouble, log);
+                               filterSnpGeneFunctionalHash(dir + phenotypes[i][0] + "/"
+                                                           + methods[0][0] + "/" + phenotypes[i][0]
+                                                           + "_" + methods[0][0] + ".csv",
+                                                           snpGeneFunctionalHash,
+                                                           mafThresholdDouble, log);
       log.report(ext.getTime() + "\tThere are " + ext.addCommas(snpGeneFunctionalHashPan.size())
                  + " functional variants remaining after MAF checks in the cross-ethnic meta-analysis");
 
@@ -1503,11 +1512,14 @@ public class SeqMeta {
         log.report(ext.getTime() + "\tStarting calculations for " + phenotypes[i][0]
                    + " specifically for " + races[k][0]);
         raceSpecificMacs = new Hashtable<String, int[]>();
-        snpGeneFunctionalHashRaceSpecific =
-            filterSnpGeneFunctionalHash(dir + phenotypes[i][0] + "/" + races[k][0] + "/"
-                                        + methods[0][0] + "/" + races[k][0] + "_" + phenotypes[i][0]
-                                        + "_" + methods[0][0] + ".csv", snpGeneFunctionalHash,
-                                        mafThresholdDouble, log);
+        snpGeneFunctionalHashRaceSpecific = filterSnpGeneFunctionalHash(dir + phenotypes[i][0] + "/"
+                                                                        + races[k][0] + "/"
+                                                                        + methods[0][0] + "/"
+                                                                        + races[k][0] + "_"
+                                                                        + phenotypes[i][0] + "_"
+                                                                        + methods[0][0] + ".csv",
+                                                                        snpGeneFunctionalHash,
+                                                                        mafThresholdDouble, log);
         log.report(ext.getTime() + "\tThere are "
                    + ext.addCommas(snpGeneFunctionalHashRaceSpecific.size())
                    + " functional variants remaining after MAF checks in the " + races[k][0]
@@ -1526,7 +1538,7 @@ public class SeqMeta {
               // Array.intArray(expected.length), false, log, true);
 
               indices =
-                  ext.indexFactors(new String[] {"Name", "maf", "ntotal"}, header, false, true);
+                      ext.indexFactors(new String[] {"Name", "maf", "ntotal"}, header, false, true);
 
               while (reader.ready()) {
                 line = ext.splitCommasIntelligently(reader.readLine(), true, log);
@@ -1579,8 +1591,8 @@ public class SeqMeta {
 
         try {
           writer =
-              new PrintWriter(new FileWriter(dir + phenotypes[i][0] + "/" + races[k][0] + "/"
-                                             + "minorAlleleCounts.maf" + mafThreshold + ".xln"));
+                 new PrintWriter(new FileWriter(dir + phenotypes[i][0] + "/" + races[k][0] + "/"
+                                                + "minorAlleleCounts.maf" + mafThreshold + ".xln"));
           keys = HashVec.getKeys(raceSpecificMacs);
           writer.println("Gene\t" + Array.toStr(studies) + "\tTotal");
           for (String key : keys) {
@@ -1751,15 +1763,25 @@ public class SeqMeta {
           if (!macHashesHashByRace.get("PanEthnic").containsKey(methods[m][3])) {
             line = Array.addStrToArray("Total", studies);
             for (String[] race : races) {
-              macHashesHashByRace.get(race[0]).put(methods[m][3], macHash =
-                  HashVec.loadFileToHashString(dir + phenotypes[i][0] + "/" + race[0] + "/"
-                                               + "minorAlleleCounts.maf" + methods[m][3] + ".xln",
-                                               "Gene", line, "\t"));
+              macHashesHashByRace.get(race[0])
+                                 .put(methods[m][3],
+                                      macHash =
+                                              HashVec.loadFileToHashString(dir + phenotypes[i][0]
+                                                                           + "/" + race[0] + "/"
+                                                                           + "minorAlleleCounts.maf"
+                                                                           + methods[m][3] + ".xln",
+                                                                           "Gene", line, "\t"));
               macHash.put("studies", Array.toStr(line));
             }
-            macHashesHashByRace.get("PanEthnic").put(methods[m][3], macHash =
-                HashVec.loadFileToHashString(dir + phenotypes[i][0] + "/" + "minorAlleleCounts.maf"
-                                             + methods[m][3] + ".xln", "Gene", new String[] {"Total"}, "\t"));
+            macHashesHashByRace.get("PanEthnic")
+                               .put(methods[m][3],
+                                    macHash = HashVec.loadFileToHashString(dir + phenotypes[i][0]
+                                                                           + "/"
+                                                                           + "minorAlleleCounts.maf"
+                                                                           + methods[m][3] + ".xln",
+                                                                           "Gene",
+                                                                           new String[] {"Total"},
+                                                                           "\t"));
             macHash.put("studies", "Total");
           }
         }
@@ -1823,7 +1845,7 @@ public class SeqMeta {
           header[0] = "'" + header[0] + "'";
           for (int h = 1; h < header.length; h++) {
             header[h] =
-                "'" + header[h] + "'=" + races[k][0] + "_" + header[h] + "_" + methods[m][0];
+                      "'" + header[h] + "'=" + races[k][0] + "_" + header[h] + "_" + methods[m][0];
           }
           if (methods[m][1].equals("SingleVariant")) {
             temp = header[0];
@@ -1840,9 +1862,9 @@ public class SeqMeta {
         filename = phenotypes[i][0] + "_" + methods[m][0] + ".csv";
         pvalFile = "meta_panEthnic_pvals_mac" + macThresholdTotal + ".dat";
 
-        count =
-            parsePvals(localDir + filename, localDir + pvalFile, "Total", methods[m],
-                       macHashesHashByRace.get("PanEthnic"), macThresholdTotal, mafThreshold, log);
+        count = parsePvals(localDir + filename, localDir + pvalFile, "Total", methods[m],
+                           macHashesHashByRace.get("PanEthnic"), macThresholdTotal, mafThreshold,
+                           log);
         if (count == -1) {
           return;
         }
@@ -1931,9 +1953,9 @@ public class SeqMeta {
           }
         }
         try {
-          PrintWriter writer =
-              new PrintWriter(new FileWriter(phenotypes[i][0] + "/" + phenotypes[i][0] + "_" + group
-                                             + "_parser.crf"));
+          PrintWriter writer = new PrintWriter(new FileWriter(phenotypes[i][0] + "/"
+                                                              + phenotypes[i][0] + "_" + group
+                                                              + "_parser.crf"));
           writer.println("lookup");
           writer.println(phenotypes[i][0] + "_hitters.dat 0 out=" + dir + phenotypes[i][0] + "/"
                          + phenotypes[i][0] + "_" + group + ".csv");
@@ -2152,8 +2174,8 @@ public class SeqMeta {
         header = temp.trim().split(delimiter);
       }
       indices =
-          ext.indexFactors(new String[][] {Aliases.GENE_UNITS, Aliases.CHRS, Aliases.POSITIONS},
-                           header, false, false, true, false, log, true);
+              ext.indexFactors(new String[][] {Aliases.GENE_UNITS, Aliases.CHRS, Aliases.POSITIONS},
+                               header, false, false, true, false, log, true);
       while (reader.ready()) {
         temp = reader.readLine();
         if (delimiter.equals(",")) {
@@ -2330,9 +2352,9 @@ public class SeqMeta {
           }
         }
         if (Files.exists(dir + hitsDirectory + filename)) {
-          results =
-              HitWindows.determine(dir + hitsDirectory + filename, indexThreshold, 500000,
-                                   indexThreshold * 100, Array.toStringArray(additionalCols), log);
+          results = HitWindows.determine(dir + hitsDirectory + filename, indexThreshold, 500000,
+                                         indexThreshold * 100, Array.toStringArray(additionalCols),
+                                         log);
           if (results == null) {
             log.reportError("HitWindows result from " + filename + " was null");
           } else {
@@ -2618,8 +2640,8 @@ public class SeqMeta {
     outputFile = "SupplementalTable2.xln";
     try {
       writer = new PrintWriter(new FileWriter(dir + hitsDirectory + outputFile));
-      forestWriter =
-          new PrintWriter(new FileWriter(dir + hitsDirectory + "subthresholdForest.input"));
+      forestWriter = new PrintWriter(new FileWriter(dir + hitsDirectory
+                                                    + "subthresholdForest.input"));
 
       for (int i = 0; i < phenotypes.length; i++) {
         filename = phenotypes[i] + "_SingleVariant.csv";
@@ -2705,8 +2727,8 @@ public class SeqMeta {
     maxChr = getMaxChr();
     list = new String[maxChr];
     for (int chr = 1; chr <= maxChr; chr++) {
-      list[chr - 1] =
-          dir + ext.replaceAllWith(pattern, "#", chr == 23 ? "X" : (chr == 24 ? "Y" : chr + ""));
+      list[chr - 1] = dir + ext.replaceAllWith(pattern, "#",
+                                               chr == 23 ? "X" : (chr == 24 ? "Y" : chr + ""));
     }
     skips = Array.intArray(list.length, 1);
     skips[0] = 0;
@@ -3027,8 +3049,8 @@ public class SeqMeta {
               }
               unitsLine[i] = line[2];
               sampleSizes =
-                  Array.addIntToArray(Integer.parseInt(line[8]) + Integer.parseInt(line[9]),
-                                      sampleSizes);
+                          Array.addIntToArray(Integer.parseInt(line[8]) + Integer.parseInt(line[9]),
+                                              sampleSizes);
               proportionFemale = Array.addDoubleToArray(Double.parseDouble(line[8])
                                                         / (Double.parseDouble(line[8])
                                                            + Double.parseDouble(line[9])),
@@ -3293,12 +3315,11 @@ public class SeqMeta {
     if (files.length > 0) {
       for (String file : files) {
         localDir = ext.parseDirectoryOfFile(file);
-        Files.qsub(dir + "batchRuns/" + ext.rootOf(file) + ".qsub",
+        Files.qsub(dir + "batchRuns/" + ext.rootOf(file)
+                   + ".qsub",
                    "cd " + localDir + "\njava -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS
-                                                                    + " gwas.SeqMeta dir="
-                                                                    + localDir
-                                                                    + " metalSensitivity="
-                                                                    + ext.removeDirectoryInfo(file),
+                              + " gwas.SeqMeta dir=" + localDir + " metalSensitivity="
+                              + ext.removeDirectoryInfo(file),
                    25000, 3, 1);
         needToBeProcessed.add("qsub batchRuns/" + ext.rootOf(file) + ".qsub");
       }
@@ -3348,8 +3369,8 @@ public class SeqMeta {
       return;
     }
 
-    markerNames =
-        HashVec.loadFileToStringArray(maps.getSnpInfoFilename(), true, new int[] {0}, false);
+    markerNames = HashVec.loadFileToStringArray(maps.getSnpInfoFilename(), true, new int[] {0},
+                                                false);
     HashVec.loadToHashIndices(markerNames, log);
 
     for (int i = 0; i < phenotypes.length; i++) {
@@ -3364,8 +3385,8 @@ public class SeqMeta {
           for (int j = 0; j < studies.length; j++) {
             if (!finalSets[i][j][k].equals("<missing>")) {
               root = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_" + method;
-              outputFilename =
-                  dir + phenotypes[i][0] + "/" + races[k][0] + "/" + method + "/" + root + ".csv";
+              outputFilename = dir + phenotypes[i][0] + "/" + races[k][0] + "/" + method + "/"
+                               + root + ".csv";
 
               log.report("Loading maf info from " + outputFilename);
               if (Files.exists(outputFilename)) {

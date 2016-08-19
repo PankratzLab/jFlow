@@ -31,10 +31,12 @@ import htsjdk.samtools.ValidationStringency;
 
 public class BamQC {
   public static final String[] QC_HEADER =
-      {"Input File", "numTotal", "numUnique", "numDuplicated", "numUnMapped", "numOnTarget",
-       "NumSecondaryAlignments", "NumInvalidAlignments", "PercentDuplicated", "PercentUnMapped",
-       "PercentOnTarget", "AverageInsertSize", "AverageOnTargetInsertSize", "MappingQualityFilter",
-       "PhreadScoreFilter", "Total Base Pairs Targeted"};
+                                         {"Input File", "numTotal", "numUnique", "numDuplicated",
+                                          "numUnMapped", "numOnTarget", "NumSecondaryAlignments",
+                                          "NumInvalidAlignments", "PercentDuplicated",
+                                          "PercentUnMapped", "PercentOnTarget", "AverageInsertSize",
+                                          "AverageOnTargetInsertSize", "MappingQualityFilter",
+                                          "PhreadScoreFilter", "Total Base Pairs Targeted"};
   public static final String[] HIST_HEADER = {"Bin"};
   public static int NUM_GC_HISTOGRAMS = 2;
   public static int NO_QC_GC_HISTOGRAM = 0;
@@ -88,7 +90,7 @@ public class BamQC {
   public BamQC(String inputSamOrBamFile, String outputDir, FilterNGS filterNGS) {
     this.inputSamOrBamFile = inputSamOrBamFile;
     libraryReadDepthResultsFile =
-        SerializedFiles.getSerializedFileName(outputDir, inputSamOrBamFile);
+                                SerializedFiles.getSerializedFileName(outputDir, inputSamOrBamFile);
     numTotal = 0;
     numUnique = 0;
     numDuplicated = 0;
@@ -104,8 +106,8 @@ public class BamQC {
     percentCoverageAtDepth = new double[filterNGS.getReadDepthFilter().length];
     totalPercentGCAtDepth = new double[filterNGS.getReadDepthFilter().length];
     gHistograms = Histogram.DynamicHistogram.initHistograms(NUM_GC_HISTOGRAMS, 0, 1.0, 2);
-    insertHistograms =
-        Histogram.DynamicHistogram.initHistograms(NUM_INSERT_HISTOGRAMS, 0.0, 2000.0, 0);
+    insertHistograms = Histogram.DynamicHistogram.initHistograms(NUM_INSERT_HISTOGRAMS, 0.0, 2000.0,
+                                                                 0);
     this.filterNGS = filterNGS;
   }
 
@@ -130,9 +132,9 @@ public class BamQC {
     percentUnMapped = computePercent(numUnMapped, numUnique);
     percentOnTarget = computePercent(numOnTarget, numUnique);
     averageInsertSize[NO_QC_INSERT_HISTOGRAM] /=
-        Array.sum(getInsertHistogram(NO_QC_INSERT_HISTOGRAM).getCounts());
+                                              Array.sum(getInsertHistogram(NO_QC_INSERT_HISTOGRAM).getCounts());
     averageInsertSize[QC_INSERT_HISTOGRAM] /=
-        Array.sum(getInsertHistogram(QC_INSERT_HISTOGRAM).getCounts());
+                                           Array.sum(getInsertHistogram(QC_INSERT_HISTOGRAM).getCounts());
   }
 
   public void setPercentCoverageAtDepth(double[] percentCoverageAtDepth) {
@@ -254,7 +256,7 @@ public class BamQC {
   public String getSummary() {
     String summary = "";
     summary =
-        summary + inputSamOrBamFile + "\t" + numTotal + "\t" + numUnique + "\t" + numDuplicated
+            summary + inputSamOrBamFile + "\t" + numTotal + "\t" + numUnique + "\t" + numDuplicated
               + "\t" + numUnMapped + "\t" + numOnTarget + "\t" + numSecondaryAlignments + "\t"
               + numInvalidAligments + "\t" + percentDuplicated + "\t" + percentUnMapped + "\t"
               + percentOnTarget + "\t" + averageInsertSize[NO_QC_INSERT_HISTOGRAM] + "\t"
@@ -302,12 +304,13 @@ public class BamQC {
             libraryNGS.mapBaits(lBaitsLibrary, baitsAsTarget);
           }
         }
-        bamQCs =
-            qcBams(inputbams, outputDir, libraryNGS, filterNGS, normalizeDepthsTo, numThreads, log);
+        bamQCs = qcBams(inputbams, outputDir, libraryNGS, filterNGS, normalizeDepthsTo, numThreads,
+                        log);
         summarize(bamQCs, outputDir, filterNGS, output, log);
         String librarySummary =
-            outputDir + ext.addToRoot(output, baitsAsTarget ? ".libraryBaitsResults.summary"
-                                                            : ".libraryResults.summary");
+                              outputDir + ext.addToRoot(output,
+                                                        baitsAsTarget ? ".libraryBaitsResults.summary"
+                                                                      : ".libraryResults.summary");
         LibraryNGS.summarizeLibraries(libraryNGS, getLibraryReadDepthResultsFiles(bamQCs),
                                       librarySummary, filterNGS, log);
         SNPEFF snpeff = new SNPEFF(snpEffLocation, true, true, log);
@@ -396,9 +399,11 @@ public class BamQC {
             bamQC.addNumUnMapped(samRecord);
             if ((!samRecord.getReferenceName().equals("*")) && (libraryNGS != null)
                 && (readDepth != null)) {
-              Segment segment =
-                  new Segment(Positions.chromosomeNumber(samRecord.getReferenceName(), log),
-                              samRecord.getAlignmentStart(), samRecord.getAlignmentEnd());
+              Segment segment = new Segment(
+                                            Positions.chromosomeNumber(samRecord.getReferenceName(),
+                                                                       log),
+                                            samRecord.getAlignmentStart(),
+                                            samRecord.getAlignmentEnd());
               if (segment.getChr() >= 0) {
                 int[] libraryIndices = libraryNGS.indicesInLibrary(segment);
                 if ((!samRecord.getDuplicateReadFlag()) && (!samRecord.getReadUnmappedFlag())
@@ -415,8 +420,8 @@ public class BamQC {
               }
             }
             if ((numTotalReads != 0) && (numTotalReads % 1000000 == 0)) {
-              float usedMemory =
-                  Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+              float usedMemory = Runtime.getRuntime().totalMemory()
+                                 - Runtime.getRuntime().freeMemory();
               float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
               float maxMemory = Runtime.getRuntime().maxMemory();
               log.report(ext.getTime() + "Info - processed " + numTotalReads + " total reads from "
@@ -443,8 +448,9 @@ public class BamQC {
         log.report("Info -normalizing depth results from " + bamQC.getInputSamOrBamFile()
                    + " using a factor of (depth)*" + normalizeFactor);
       }
-      LibraryNGS.LibraryReadDepthResults lDepthResults =
-          readDepth.getDepthResults(libraryNGS, filterNGS, normalizeFactor);
+      LibraryNGS.LibraryReadDepthResults lDepthResults = readDepth.getDepthResults(libraryNGS,
+                                                                                   filterNGS,
+                                                                                   normalizeFactor);
       bamQC.setPercentCoverageAtDepth(lDepthResults.getTotalPercentCoveredAtDepth());
       bamQC.setTotalTargetedBasePairs(lDepthResults.getTotalBasePairsTargeted());
       bamQC.setTotalPercentGCAtDepth(lDepthResults.getTotalPercentCoveredAtDepth());
@@ -520,7 +526,7 @@ public class BamQC {
       if (Files.exists(fileOfinputSamOrBams)) {
         log.report(ext.getTime() + " Info - loading files to qc from " + fileOfinputSamOrBams);
         inputbams =
-            HashVec.loadFileToStringArray(fileOfinputSamOrBams, false, new int[] {0}, false);
+                  HashVec.loadFileToStringArray(fileOfinputSamOrBams, false, new int[] {0}, false);
         if (!Files.exists("", inputbams)) {
           log.reportError("Error - found files that do not exist in " + fileOfinputSamOrBams);
           inputbams = null;
@@ -692,8 +698,8 @@ public class BamQC {
     usage = usage
             + "   (3) full path to a target library file to compute on target percentage (i.e. target="
             + targetLibraryFile + " (no default))\n";
-    usage =
-        usage + "   (3) full path to a bait library file to map to the target library (i.e. baits="
+    usage = usage
+            + "   (3) full path to a bait library file to map to the target library (i.e. baits="
             + baitLibraryFile + " (no default))\n";
     usage = usage + "   (3) full path to output directory (i.e. outDir=" + outputDir
             + " (defualts to directory of first file qc -ed))\n";

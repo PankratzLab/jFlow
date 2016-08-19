@@ -13,7 +13,7 @@ public class RAOTests {
   public static void test(String testFile) {
     Logger log = new Logger(testFile + ".log");
     CNVariant[] segs =
-        new CNVariant[] {new CNVariant("HFS", "DS", (byte) 1, 32, 32, 3, 33, 10, -1)};
+                     new CNVariant[] {new CNVariant("HFS", "DS", (byte) 1, 32, 32, 3, 33, 10, -1)};
     ArrayList<CNVariant> daSegs = new ArrayList<CNVariant>();
     for (int i = 0; i < 100000; i++) {
       daSegs.add(new CNVariant("HFS", "DS", (byte) 1, i, i + 100, 3, 33, 10, -1));

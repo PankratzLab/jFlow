@@ -157,8 +157,8 @@ public class extractMarkers {
           for (int j = 0; j < markerNames.length; j++) {
             if (ext.indexOfInt(j, indices) != -1) {
               writer.print("\t" + line[6 + 2 * j + 0] + "\t" + line[6 + 2 * j + 1]);
-              count =
-                  Integer.parseInt(line[6 + 2 * j + 0]) + Integer.parseInt(line[6 + 2 * j + 1]) - 2;
+              count = Integer.parseInt(line[6 + 2 * j + 0]) + Integer.parseInt(line[6 + 2 * j + 1])
+                      - 2;
               if (count >= 0) {
                 genotypeCounts[ext.indexOfInt(j, indices)][count]++;
               }

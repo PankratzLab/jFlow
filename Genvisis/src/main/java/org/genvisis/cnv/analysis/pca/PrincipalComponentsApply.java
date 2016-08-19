@@ -57,13 +57,13 @@ public class PrincipalComponentsApply {
     super();
     this.proj = proj;
     log = proj.getLog();
-    singularValues =
-        new SingularValues(proj.PROJECT_DIRECTORY.getValue() + singularFile, numComponents, log);
+    singularValues = new SingularValues(proj.PROJECT_DIRECTORY.getValue() + singularFile,
+                                        numComponents, log);
     this.numComponents = numComponents;
     this.samplesToUse = samplesToUse;
     markerLoadings =
-        MarkerLoadings.getLoadings(proj.PROJECT_DIRECTORY.getValue() + markerLoadingFile,
-                                   numComponents, log);
+                   MarkerLoadings.getLoadings(proj.PROJECT_DIRECTORY.getValue() + markerLoadingFile,
+                                              numComponents, log);
     this.imputeMeanForNaN = imputeMeanForNaN;
     this.recomputeLRR = recomputeLRR;
     getMarkers();
@@ -167,7 +167,7 @@ public class PrincipalComponentsApply {
           applyMarkerLoading(lrrs, index);
         } else if (imputeMeanForNaN) {
           lrrs =
-              PrincipalComponentsCompute.imputeMeanForNaN(markers[index], lrrs, samplesToUse, log);
+               PrincipalComponentsCompute.imputeMeanForNaN(markers[index], lrrs, samplesToUse, log);
           applyMarkerLoading(lrrs, index);
         } else {
           log.reportError("Warning - marker " + markers[index]
@@ -193,8 +193,8 @@ public class PrincipalComponentsApply {
         Files.backup(output, proj.PROJECT_DIRECTORY.getValue(),
                      proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
       }
-      PrintWriter writer =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output));
+      PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                          + output));
       String[] samples = proj.getSampleList().getSamples();
       writer.print("FID\tIID");
       for (int i = 0; i < numComponents; i++) {
@@ -229,7 +229,7 @@ public class PrincipalComponentsApply {
   /**
    * builds the extrapolated PCs for each sample/component combination by summing the loadings of
    * marker (at each component) multiplied by the intensity value (for the marker at that sample)
-   * 
+   *
    * @param lrrs input data for all samples
    * @param markerIndex used to match the current marker data with the marker loading
    */
@@ -303,7 +303,7 @@ public class PrincipalComponentsApply {
 
   /**
    * Helper class to facilitate easy handling of the marker loadings
-   * 
+   *
    */
   public static class MarkerLoadings {
     private final String marker;
@@ -369,7 +369,7 @@ public class PrincipalComponentsApply {
 
   /**
    * Helper class to retrieve and store singular values
-   * 
+   *
    */
   public static class SingularValues {
     private final String singularFile;

@@ -16,8 +16,8 @@ import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class Prest {
-  public static final String[] RELATIONSHIP_TRANSLATION =
-      {".", "FS", "HS", "GG", "AV", "CO", "UN", "HA", "2C", "2C", "PO"};
+  public static final String[] RELATIONSHIP_TRANSLATION = {".", "FS", "HS", "GG", "AV", "CO", "UN",
+                                                           "HA", "2C", "2C", "PO"};
 
   public static void createFiles() {
     BufferedReader reader;
@@ -179,7 +179,7 @@ public class Prest {
     // String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\Family structure
     // issues\\secondPass\\prest\\";
     String dir =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\Family structure issues\\testFinalComplete\\";
+               "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\Family structure issues\\testFinalComplete\\";
     boolean create = false;
     boolean slimGenome = true;
     boolean slimPrest = true;

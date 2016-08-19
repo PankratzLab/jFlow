@@ -1,7 +1,5 @@
 package org.genvisis.filesys;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -19,6 +17,8 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
+
+import com.google.common.primitives.Ints;
 
 public class Segment implements Serializable {
   @Override
@@ -221,7 +221,7 @@ public class Segment implements Serializable {
    * @param segsToRemove remove all of these segments from the current
    * @param log
    * @return the list of remaining dust
-   * 
+   *
    *         NOTE: In the interest of speed, only pass segments that actually overlap
    */
   public LocusSet<Segment> removeAll(Segment[] segsToRemove, Logger log) {
@@ -271,13 +271,14 @@ public class Segment implements Serializable {
       }
 
       LocusSet<Segment> finalSet =
-          new LocusSet<Segment>(currentSegs.toArray(new Segment[currentSegs.size()]), true, log) {
-            /**
-            * 
-            */
-            private static final long serialVersionUID = 1L;
+                                 new LocusSet<Segment>(currentSegs.toArray(new Segment[currentSegs.size()]),
+                                                       true, log) {
+                                   /**
+                                   * 
+                                   */
+                                   private static final long serialVersionUID = 1L;
 
-          };
+                                 };
       int totalBpRemaining = 0;
       LocusSet<Segment> finalMergedSet = finalSet.mergeOverlapping();
 
@@ -305,7 +306,7 @@ public class Segment implements Serializable {
 
   /**
    * **Warning, not really tested
-   * 
+   *
    * @param seg
    * @param log
    * @return
@@ -543,7 +544,7 @@ public class Segment implements Serializable {
    * down to
    * <p>
    * retrieve any other matches
-   * 
+   *
    * @param seg segment to search for
    * @param orderedList orderList of segments, in order by chromosome and then position
    * @return index/indices of the overlapping segment, or null if not found
@@ -576,7 +577,7 @@ public class Segment implements Serializable {
   /**
    * Note that this function is chromosome aware and
    * {@link Segment#binarySearchForOverlap(Segment, Segment[])} is not
-   * 
+   *
    * @param seg segment to search for
    * @param orderedList orderList of segments, in order by chromosome and then position
    * @return index of the overlapping segment, or -1 if not found
@@ -843,7 +844,7 @@ public class Segment implements Serializable {
   /**
    * Nested class to compare a segment to a list of other segments using
    * {@link Segment#overlapScore}
-   * 
+   *
    */
   public class SegmentCompare {
 
@@ -855,11 +856,11 @@ public class Segment implements Serializable {
     private double avgOverlapScore;
 
     /**
-     * 
+     *
      * Usage: Segment.SegmentCompare segmentCompare = segment.new SegmentCompare(compareSegments,
      * scoreThreshold, log);
      * <p>
-     * 
+     *
      * @param compareSegments Segment[] to compare this Segment to
      * @param scoreThreshold score threshold for the {@link Segment#overlapScore}. The number of
      *        segments exceeding this threshold will be stored.

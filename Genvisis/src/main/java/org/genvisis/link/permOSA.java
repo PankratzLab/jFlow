@@ -113,8 +113,8 @@ public class permOSA {
         if (trav != prev && prev != -99999.777) {
           increment++;
           writer =
-              new PrintWriter(new FileWriter("chrom" + chrome + "/re_chrom" + chrome + "-"
-                                             + direction + ext.formNum(increment, 4) + ".pre"));
+                 new PrintWriter(new FileWriter("chrom" + chrome + "/re_chrom" + chrome + "-"
+                                                + direction + ext.formNum(increment, 4) + ".pre"));
           for (int j = 0; j < i; j++) {
             if (hash.containsKey(IDs.elementAt(randomKeys[j]))) {
               writer.print(hash.get(IDs.elementAt(randomKeys[j])));
@@ -174,9 +174,9 @@ public class permOSA {
       maxPos = -1;
       for (increment = 1; increment <= numOfIncrements; increment++) {
         try {
-          reader =
-              new BufferedReader(new FileReader("done" + chrome + "/chrom" + chrome + "-"
-                                                + direction + ext.formNum(increment, 4) + ".out"));
+          reader = new BufferedReader(new FileReader("done" + chrome + "/chrom" + chrome + "-"
+                                                     + direction + ext.formNum(increment, 4)
+                                                     + ".out"));
           pos = 0;
 
           if (chromosome < 23) {

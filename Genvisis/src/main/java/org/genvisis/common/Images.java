@@ -17,7 +17,7 @@ public class Images {
                                   boolean drawOuterBorder/* , boolean pack */) {
     System.out.print("Loading input file...");
     String[] imageFiles =
-        HashVec.loadFileToStringArray(dir + listFile, false, new int[] {0}, false);
+                        HashVec.loadFileToStringArray(dir + listFile, false, new int[] {0}, false);
     System.out.println("Complete!");
     int maxWid = 0;
     int maxHgt = 0;

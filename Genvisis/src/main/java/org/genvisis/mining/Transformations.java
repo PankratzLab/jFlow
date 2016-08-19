@@ -1,7 +1,5 @@
 package org.genvisis.mining;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -20,10 +18,13 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
+import com.google.common.primitives.Doubles;
+
 public class Transformations {
-  private static final String[] LABELS =
-      {"Identity", "Rank", "Log", "Inverse", "Square root", "Squared", "Cubed", "Box-Cox (maxLL)",
-       "Box-Cox (minKurt)", "Normalized", "Standardized", "InverseNormalized", "NegativeLog10"};
+  private static final String[] LABELS = {"Identity", "Rank", "Log", "Inverse", "Square root",
+                                          "Squared", "Cubed", "Box-Cox (maxLL)",
+                                          "Box-Cox (minKurt)", "Normalized", "Standardized",
+                                          "InverseNormalized", "NegativeLog10"};
   public static final int IDENTITY = 0;
   public static final int RANK = 1;
   public static final int LOG_NATURAL = 2;

@@ -42,9 +42,9 @@ public class BamSample {
   }
 
   /**
-   * 
+   *
    * See http://www.partek.com/Tutorials/microarray/User_Guides/UnderstandingReads.pdf , page 3
-   * 
+   *
    * @param numMappedReads
    * @param bin
    * @param numTotalMappedReads
@@ -180,8 +180,8 @@ public class BamSample {
     }
     int[][] chrIndices = markerSet.getIndicesByChr();
 
-    BeastScore beastScoreFirst =
-        new BeastScore(Array.toFloatArray(rawDepth), chrIndices, null, proj.getLog());
+    BeastScore beastScoreFirst = new BeastScore(Array.toFloatArray(rawDepth), chrIndices, null,
+                                                proj.getLog());
     beastScoreFirst.setUse(params[0].getMask());
     float[] scaleMAD = beastScoreFirst.getScaleMadRawData(MAD_FACTOR);// http://www.genomebiology.com/2014/15/12/550
 
@@ -234,11 +234,11 @@ public class BamSample {
     byte[] genos = Array.byteArray(bamPiles.length, (byte) 1);
     float[] blankLRRs = Array.floatArray(bamPiles.length, 1);
     String sampleFile =
-        proj.SAMPLE_DIRECTORY.getValue() + sampleName + Sample.SAMPLE_FILE_EXTENSION;
-    Sample sample =
-        new Sample(sampleFile, fingerprint, Array.toFloatArray(mapQs),
-                   Array.toFloatArray(normDepth), Array.toFloatArray(normDepth),
-                   Array.toFloatArray(percentWithMismatch), blankLRRs, genos, genos, false);
+                      proj.SAMPLE_DIRECTORY.getValue() + sampleName + Sample.SAMPLE_FILE_EXTENSION;
+    Sample sample = new Sample(sampleFile, fingerprint, Array.toFloatArray(mapQs),
+                               Array.toFloatArray(normDepth), Array.toFloatArray(normDepth),
+                               Array.toFloatArray(percentWithMismatch), blankLRRs, genos, genos,
+                               false);
     sample.saveToRandomAccessFile(sampleFile, outliers, sampleName);
     return outliers;
   }

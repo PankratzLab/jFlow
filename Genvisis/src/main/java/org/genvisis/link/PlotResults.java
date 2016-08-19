@@ -52,20 +52,30 @@ public class PlotResults extends JFrame implements ActionListener {
 
   public static final String[] RESULT_TYPES = {"Allegro", "Merlin", "Merlin-VC", "Merlin-Regress"};
   public static final String[][] RESULT_TYPE_NAMES =
-      {{"chrom\\d\\d.lin.out", "chrom\\d\\d.exp.out"},
-       {"merlin-chr\\d\\d-nonparametric.tbl", "merlin-chr\\d\\d-info.tbl"},
-       {"vc-chr\\d\\d-vc-chr\\d\\d.tbl", "vc-chr\\d\\d-info.tbl"},
-       {"regress-chr\\d\\d-regress-chr\\d\\d.tbl", "regress-chr\\d\\d-regress-chr\\d\\d.tbl"}};
-  public static final String[][][] RESULT_TYPE_HEADERS =
-      {{{"location", "LOD", "dhat", "NPL", "Zlr", "marker"},
-        {"location", "LOD", "dhat", "NPL", "Zlr", "info", "marker"}},
-       {{"CHR", "POS", "LABEL", "ANALYSIS", "ZSCORE", "DELTA", "LOD", "PVALUE"},
-        {"CHR", "POS", "LABEL", "INFO"}},
-       {{"CHR", "POS", "LABEL", "TRAIT", "H2", "LOD", "PVALUE"}, {"CHR", "POS", "LABEL", "INFO"}},
-       {{"CHR", "POS", "PHENOTYPE", "H2", "SD", "INFO", "LOD", "PVALUE"},
-        {"CHR", "POS", "PHENOTYPE", "H2", "SD", "INFO", "LOD", "PVALUE"}}};
+                                                   {{"chrom\\d\\d.lin.out", "chrom\\d\\d.exp.out"},
+                                                    {"merlin-chr\\d\\d-nonparametric.tbl",
+                                                     "merlin-chr\\d\\d-info.tbl"},
+                                                    {"vc-chr\\d\\d-vc-chr\\d\\d.tbl",
+                                                     "vc-chr\\d\\d-info.tbl"},
+                                                    {"regress-chr\\d\\d-regress-chr\\d\\d.tbl",
+                                                     "regress-chr\\d\\d-regress-chr\\d\\d.tbl"}};
+  public static final String[][][] RESULT_TYPE_HEADERS = {
+                                                          {{"location", "LOD", "dhat", "NPL", "Zlr",
+                                                            "marker"},
+                                                           {"location", "LOD", "dhat", "NPL", "Zlr",
+                                                            "info", "marker"}},
+                                                          {{"CHR", "POS", "LABEL", "ANALYSIS",
+                                                            "ZSCORE", "DELTA", "LOD", "PVALUE"},
+                                                           {"CHR", "POS", "LABEL", "INFO"}},
+                                                          {{"CHR", "POS", "LABEL", "TRAIT", "H2",
+                                                            "LOD", "PVALUE"},
+                                                           {"CHR", "POS", "LABEL", "INFO"}},
+                                                          {{"CHR", "POS", "PHENOTYPE", "H2", "SD",
+                                                            "INFO", "LOD", "PVALUE"},
+                                                           {"CHR", "POS", "PHENOTYPE", "H2", "SD",
+                                                            "INFO", "LOD", "PVALUE"}}};
   public static final int[][] RESULT_TYPE_LOD_INDICES =
-      {{0, 1, 5}, {1, 6, 2}, {1, 5, 2}, {1, 6, 1}};
+                                                      {{0, 1, 5}, {1, 6, 2}, {1, 5, 2}, {1, 6, 1}};
   public static final int[][] RESULT_TYPE_INFO_INDICES = {{0, 5}, {1, 3}, {1, 3}, {1, 5}};
   public static final int[] RESULT_TYPE_SKIP_EXTRA_LINES = {0, 2, 0, 0};
   public static final Color BACKGROUND_COLOR = Color.WHITE;
@@ -187,8 +197,8 @@ public class PlotResults extends JFrame implements ActionListener {
     for (int i = 0; i < NUM_CHR; i++) {
       for (int j = 0; j < data.length; j++) {
         if (markerPositions[j][i] != null) {
-          minMaxes[i][1] =
-              Math.max(markerPositions[j][i][markerPositions[j][i].length - 1], minMaxes[i][1]);
+          minMaxes[i][1] = Math.max(markerPositions[j][i][markerPositions[j][i].length - 1],
+                                    minMaxes[i][1]);
         }
         for (int k = 0; data[j][i] != null && k < data[j][i].length; k++) {
           minMaxes[i][0] = Math.min(data[j][i][k][0], minMaxes[i][0]);
@@ -418,8 +428,8 @@ public class PlotResults extends JFrame implements ActionListener {
     ItemListener classListener = new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent ie) {
-        inUse[ext.indexOfStr(((JCheckBox) ie.getSource()).getText(), dirNames)] =
-            ((JCheckBox) ie.getSource()).isSelected();
+        inUse[ext.indexOfStr(((JCheckBox) ie.getSource()).getText(),
+                             dirNames)] = ((JCheckBox) ie.getSource()).isSelected();
         updateGUI();
       }
     };
@@ -662,7 +672,7 @@ public class PlotResults extends JFrame implements ActionListener {
           prog.setProgress(i * 23 + chr);
 
           filename =
-              ext.replaceAllWith(RESULT_TYPE_NAMES[resultType][0], "\\d\\d", ext.chrome(chr));
+                   ext.replaceAllWith(RESULT_TYPE_NAMES[resultType][0], "\\d\\d", ext.chrome(chr));
           try {
             reader = Files.getReader(dir + dirs[i] + "/" + filename, jar, false, false);
             if (reader == null) {
@@ -699,7 +709,7 @@ public class PlotResults extends JFrame implements ActionListener {
             System.exit(2);
           }
           filename =
-              ext.replaceAllWith(RESULT_TYPE_NAMES[resultType][1], "\\d\\d", ext.chrome(chr));
+                   ext.replaceAllWith(RESULT_TYPE_NAMES[resultType][1], "\\d\\d", ext.chrome(chr));
           try {
             reader = Files.getReader(dir + dirs[i] + "/" + filename, jar, false, false);
             result = new Vector<double[]>();
@@ -708,8 +718,8 @@ public class PlotResults extends JFrame implements ActionListener {
             while (reader.ready()) {
               line = reader.readLine().trim().split(filename.endsWith(".tbl") ? "\t" : "[\\s]+");
               infoPair =
-                  new double[] {Double.parseDouble(line[RESULT_TYPE_INFO_INDICES[resultType][0]]),
-                                Double.parseDouble(line[RESULT_TYPE_INFO_INDICES[resultType][1]])};
+                       new double[] {Double.parseDouble(line[RESULT_TYPE_INFO_INDICES[resultType][0]]),
+                                     Double.parseDouble(line[RESULT_TYPE_INFO_INDICES[resultType][1]])};
               if (infoPair[1] > 1) {
                 infoPair[1] /= 100;
               }

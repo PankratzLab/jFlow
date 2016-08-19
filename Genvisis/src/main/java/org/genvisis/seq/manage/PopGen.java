@@ -25,7 +25,7 @@ import htsjdk.variant.vcf.VCFFileReader;
  */
 public class PopGen {
   public static final String DEFAULT_FTP_DIR =
-      "ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/";
+                                             "ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/";
   public static final String DEFAULT_FTP_EXT = ".genotypes.vcf.gz";
 
   public static void filterForPopGen(String directory, String outputVCF, String vcfSuffix,
@@ -44,10 +44,11 @@ public class PopGen {
         break;
     }
     VARIANT_FILTER_DOUBLE[] fullPopFilters =
-        hwePopTests == null ? VARIANT_FILTER_DOUBLE.values()
-                            : VARIANT_FILTER_DOUBLE.getFiltersExcluding(new VARIANT_FILTER_DOUBLE[] {VARIANT_FILTER_DOUBLE.HWE});
-    final VariantContextFilter vcfFilter =
-        new VariantContextFilter(fullPopFilters, VARIANT_FILTER_BOOLEAN.values(), null, null, log);
+                                           hwePopTests == null ? VARIANT_FILTER_DOUBLE.values()
+                                                               : VARIANT_FILTER_DOUBLE.getFiltersExcluding(new VARIANT_FILTER_DOUBLE[] {VARIANT_FILTER_DOUBLE.HWE});
+    final VariantContextFilter vcfFilter = new VariantContextFilter(fullPopFilters,
+                                                                    VARIANT_FILTER_BOOLEAN.values(),
+                                                                    null, null, log);
     final VariantContextFilter superPopFilter = new VariantContextFilter(
                                                                          new VARIANT_FILTER_DOUBLE[] {VARIANT_FILTER_DOUBLE.HWE,
                                                                                                       VARIANT_FILTER_DOUBLE.CALL_RATE_LOOSE},
@@ -71,7 +72,8 @@ public class PopGen {
       for (final VariantContext variantContext : tmp) {
         VariantContextFilterPass vcfp = vcfFilter.filter(variantContext);
         VariantContextFilterPass superPopPass =
-            new VariantContextFilterPass(true, "Did not need to test super populations");
+                                              new VariantContextFilterPass(true,
+                                                                           "Did not need to test super populations");
         if (vcfp.passed() && hwePopTests != null) {
           superPopPass = testSuperPopulations(hwePopTests, superPopFilter, variantContext, log);
         }
@@ -117,8 +119,8 @@ public class PopGen {
     VariantContextFilterPass hweContextFilterPass = new VariantContextFilterPass(true, "Passed");
     if (hwePopTests != null) {
       for (String superPopulation : hwePopTests.getSuperPop().keySet()) {
-        VariantContext vcSub =
-            VCOps.getSubset(variantContext, hwePopTests.getSuperPop().get(superPopulation));
+        VariantContext vcSub = VCOps.getSubset(variantContext,
+                                               hwePopTests.getSuperPop().get(superPopulation));
         VariantContextFilterPass vcfpHWE = hweFilter.filter(vcSub);
         if (!vcfpHWE.passed()) {
           hweContextFilterPass = vcfpHWE;

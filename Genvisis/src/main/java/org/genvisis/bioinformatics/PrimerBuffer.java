@@ -18,8 +18,9 @@ import org.genvisis.seq.manage.ReferenceGenome;
 
 public class PrimerBuffer {
   private static final String[] HEADER = new String[] {"CHR", "START", "STOP", "TARGET_SEQUENCE"};
-  private static final String[] HEADER_OUT_ADD =
-      new String[] {"BUFFER_LOCATION", "BUFFER_SEQUENCE_TOTAL_LENGTH", "BUFFER_SEQUENCE"};
+  private static final String[] HEADER_OUT_ADD = new String[] {"BUFFER_LOCATION",
+                                                               "BUFFER_SEQUENCE_TOTAL_LENGTH",
+                                                               "BUFFER_SEQUENCE"};
 
   private static void extractBuffer(String queryFile, String referenceGenomeFast, int bpBuffer,
                                     Logger log) {

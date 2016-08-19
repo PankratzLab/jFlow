@@ -92,8 +92,8 @@ public class FilterSNPsByRegion {
       regions = Segment.loadRegions(regionsFile, chrCol, startCol, stopCol, header);
     }
     if (regionNameIndex >= 0) {
-      regionNames =
-          HashVec.loadFileToStringArray(regionsFile, header, new int[] {regionNameIndex}, false);
+      regionNames = HashVec.loadFileToStringArray(regionsFile, header, new int[] {regionNameIndex},
+                                                  false);
     } else {
       regionNames = null;
     }

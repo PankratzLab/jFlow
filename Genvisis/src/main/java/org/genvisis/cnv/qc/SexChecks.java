@@ -1,8 +1,6 @@
 // -Xms1024M -Xmx1024M
 package org.genvisis.cnv.qc;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -39,6 +37,8 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.Ttest;
 
+import com.google.common.primitives.Doubles;
+
 public class SexChecks {
   public static final String[] ESTIMATED_SEXES = new String[] {"Unknown", // 0
                                                                "Male", // 1
@@ -54,11 +54,12 @@ public class SexChecks {
 
   private static final int[] EST_SEX_MAPPING = {0, 1, 2, 1, 1, 1, 2, 2, 2, 2};
   public static final String[] SEX_HEADER =
-      {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note", "Check", "Excluded", "Median X e^LRR",
-       "Median Y e^LRR", "e^LRR Ratio Y:X", "% X Heterozygote Calls", "% X BAF 0.15-0.85",
-       "Median X LRR", "Median Y LRR"};
-  public static final String[] KARYOTYPES =
-      {"", "XY", "XX", "XXY", "XXY", "XXY", "XXX", "XXX", "X", "X"};
+                                          {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note",
+                                           "Check", "Excluded", "Median X e^LRR", "Median Y e^LRR",
+                                           "e^LRR Ratio Y:X", "% X Heterozygote Calls",
+                                           "% X BAF 0.15-0.85", "Median X LRR", "Median Y LRR"};
+  public static final String[] KARYOTYPES = {"", "XY", "XX", "XXY", "XXY", "XXY", "XXX", "XXX", "X",
+                                             "X"};
 
   private static final float XY_ELRR_RATIO_MIN_SEED_MALE = 1.0f;
   private static final float XY_ELRR_RATIO_MAX_SEED_MALE = 1.5f;
@@ -245,9 +246,9 @@ public class SexChecks {
       markerData.getXs();
       markerData.getYs();
       lrrsX[m] = markerData.getLRRs();
-      genotypesX[m] =
-          markerData.getAbGenotypesAfterFilters(clusterFilters, markerData.getMarkerName(),
-                                                gcThreshold, log);
+      genotypesX[m] = markerData.getAbGenotypesAfterFilters(clusterFilters,
+                                                            markerData.getMarkerName(), gcThreshold,
+                                                            log);
       bafsX[m] = markerData.getBAFs();
       for (int s = 0; s < sampleNames.length; s++) {
         elrrs[s][m] = (float) Math.pow(Math.E, lrrsX[m][s]);
@@ -599,8 +600,8 @@ public class SexChecks {
                        .getBAFs();
     MosaicBuilder mosaicBuilder = new MosaicBuilder();
     mosaicBuilder.use(use);
-    MosaicismDetect mosaicismDetect =
-        mosaicBuilder.build(proj, sampleNames[sample], markerSet, Array.toDoubleArray(bafs));
+    MosaicismDetect mosaicismDetect = mosaicBuilder.build(proj, sampleNames[sample], markerSet,
+                                                          Array.toDoubleArray(bafs));
     int xStart = markerSet.getPositions()[indicesByChr[23][0]];
     int xStop = markerSet.getPositions()[indicesByChr[23][indicesByChr[23].length - 1]];
     Segment xSegment = new Segment((byte) 23, xStart, xStop);
@@ -618,7 +619,7 @@ public class SexChecks {
       totalCoverage += regionCoverage;
       weightedSumF += mr.getCustomF() * regionCoverage;
       notesAdd +=
-          "F=" + ext.formDeci(mr.getCustomF(), 4) + ", " + ext.formPercent(regionCoverage, 4)
+               "F=" + ext.formDeci(mr.getCustomF(), 4) + ", " + ext.formPercent(regionCoverage, 4)
                   + " coverage (" + mr.getStart() + " - " + mr.getStop() + "); ";
     }
     notesAdd += "Total Mosaic Coverage: " + ext.formPercent(totalCoverage, 4) + "; ";
@@ -647,7 +648,7 @@ public class SexChecks {
 
     try {
       writer =
-          new PrintWriter(new FileWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false)));
+             new PrintWriter(new FileWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false)));
       writer.println(Array.toStr(SEX_HEADER));
       for (int i = 0; i < sampleNames.length; i++) {
         lookup = sampleData.lookup(sampleNames[i]);

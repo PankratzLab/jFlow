@@ -1,7 +1,5 @@
 package org.genvisis.bioinformatics;
 
-import com.google.common.base.Strings;
-
 import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
@@ -37,25 +35,34 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.SegmentLists;
 
+import com.google.common.base.Strings;
+
 public class SuperNovo {
   public static final String[] SAMPLE_SUFFIX = new String[] {"C", "D", "M"};
   public static final char[] BASES = new char[] {'A', 'T', 'G', 'C'};
   public static final char[] BASES_WITH_N = new char[] {'A', 'T', 'G', 'C', 'N'};
-  public static final String[] BASES_WITH_N_INDEL =
-      new String[] {"A", "T", "G", "C", "N", "Ins", "Del"};
-  public static final String[] READS_COUNTS_ARRAY_STRUCT =
-      new String[] {"A", "T", "G", "C", "N", "Ins", "Del", "numAllelesStrictCount",
-                    "numAllelesLooseCount"};
+  public static final String[] BASES_WITH_N_INDEL = new String[] {"A", "T", "G", "C", "N", "Ins",
+                                                                  "Del"};
+  public static final String[] READS_COUNTS_ARRAY_STRUCT = new String[] {"A", "T", "G", "C", "N",
+                                                                         "Ins", "Del",
+                                                                         "numAllelesStrictCount",
+                                                                         "numAllelesLooseCount"};
   public static final byte INDEX_OF_N = 4;
   public static final byte INDEX_OF_INS = 5;
   public static final byte INDEX_OF_DEL = 6;
   public static final byte INDEX_OF_NUM_ALLELES_STRICT = 7;
   public static final byte INDEX_OF_NUM_ALLELES_LOOSE = 8;
   public static final String[] DENOVO_MUTATION_ARRAY_STRUCT =
-      new String[] {"i", "score", "C_readDepth", "D_readDepth", "M_readDepth", "C_allele1",
-                    "C_allele2", "D_allele1", "D_allele2", "M_allele1", "M_allele2"};
-  public static final String[] DENOVO_MUTATION_NOTES_ARRAY_STRUCT =
-      new String[] {"Ins", "Del", "Var", "3Allelic", "DeNovo"};
+                                                            new String[] {"i", "score",
+                                                                          "C_readDepth",
+                                                                          "D_readDepth",
+                                                                          "M_readDepth",
+                                                                          "C_allele1", "C_allele2",
+                                                                          "D_allele1", "D_allele2",
+                                                                          "M_allele1", "M_allele2"};
+  public static final String[] DENOVO_MUTATION_NOTES_ARRAY_STRUCT = new String[] {"Ins", "Del",
+                                                                                  "Var", "3Allelic",
+                                                                                  "DeNovo"};
   public static final int MIN_READ_DEPTH = 8;
   public static final int MIN_MAPPING_SCORE = 45;
   public static final int MIN_PHRED = 26;
@@ -84,23 +91,30 @@ public class SuperNovo {
   // public static final String OUTPUT_FILE_HEADER =
   // "id\tchr\tpos\tlookup\tref\talt\tcall\tnote\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore\t1\t2\t4\t5\t7\t8";
   public static final String OUTPUT_FILE_HEADER =
-      "id\tchr\tpos\tlookup\tref\talt\tcall\treadsCounts\tnumNearbyInDelVars\tposNearbyInDelVars\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore";
+                                                "id\tchr\tpos\tlookup\tref\talt\tcall\treadsCounts\tnumNearbyInDelVars\tposNearbyInDelVars\tdeNovoGT\tflag\tchildDepth\tdadDepth\tmomDepth\tPhredScores\tchildMappingScore\tdadMappingScore\tmomMappingScore";
   // public static final String OUTPUT_FILE_HEADER2 =
   // "id\tchr\tpos\tlookup\tref\talt\tcall\tcA\tcT\tcG\tcC\tcN\tcI\tcD\tdA\tdT\tdG\tdC\tdN\tdI\tdD\tmA\tmT\tmG\tmC\tmN\tmI\tmD\tcIns\tdIns\tmIns\tcDel\tdDel\tmDel\tcVar\tdVar\tmVar\tposNearbyInDelVars\tdeNovoGT\tflag\tcDepth\tdDepth\tmDepth\tcAPhred\tcTPhred\tcGPhred\tcCPhred\tdAPhred\tdTPhred\tdGPhred\tdCPhred\tmAPhred\tmTPhred\tmGPhred\tmCPhred\tcMap\tdMap\tmMap";
   public static final String OUTPUT_FILE_HEADER2 =
-      "id\tchr\tpos\tlookup\tref\talt\tcall\t#Reads_A_Child\t#Reads_T_Child\t#Reads_G_Child\t#Reads_C_Child\t#Reads_N_Child\t#Reads_I_Child\t#Reads_D_Child\t#Reads_A_Dad\t#Reads_T_Dad\t#Reads_G_Dad\t#Reads_C_Dad\t#Reads_N_Dad\t#Reads_I_Dad\t#Reads_D_Dad\t#Reads_A_Mom\t#Reads_T_Mom\t#Reads_G_Mom\t#Reads_C_Mom\t#Reads_N_Mom\t#Reads_I_Mom\t#Reads_D_Mom\t#Alleles_Child\t#Alleles_Dad\t#Alleles_Mom\t#NearbySites_I_Child\t#NearbySites_I_Dad\t#NearbySites_I_Mom\t#NearbySites_D_Child\t#NearbySites_D_Dad\t#NearbySites_D_Mom\t#NearbySites_Var_Child\t#NearbySites_Var_Dad\t#NearbySites_Var_Mom\t#NearbySites_3_Child\t#NearbySites_3_Dad\t#NearbySites_3_Mom\t#NearbySites_DeNovoVar\tposNearbyInDelVars\tdeNovoGT\tflag\tDepth_Child\tDepth_Dad\tDepth_Mom\t%Phred_A_Child\t%Phred_T_Child\t%Phred_G_Child\t%Phred_C_Child\t%Phred_A_Dad\t%Phred_T_Dad\t%Phred_G_Dad\t%Phred_C_Dad\t%Phred_A_Mom\t%Phred_T_Mom\t%Phred_G_Mom\t%Phred_C_Mom\tPhred_A_Child\tPhred_T_Child\tPhred_G_Child\tPhred_C_Child\tPhred_N_Child\tPhred_I_Child\tPhred_D_Child\tPhred_A_Dad\tPhred_T_Dad\tPhred_G_Dad\tPhred_C_Dad\tPhred_N_Dad\tPhred_I_Dad\tPhred_D_Dad\tPhred_A_Mom\tPhred_T_Mom\tPhred_G_Mom\tPhred_C_Mom\tPhred_N_Mom\tPhred_I_Mom\tPhred_D_Mom\tMapping_Child\tMapping_Dad\tMapping_Mom";
+                                                 "id\tchr\tpos\tlookup\tref\talt\tcall\t#Reads_A_Child\t#Reads_T_Child\t#Reads_G_Child\t#Reads_C_Child\t#Reads_N_Child\t#Reads_I_Child\t#Reads_D_Child\t#Reads_A_Dad\t#Reads_T_Dad\t#Reads_G_Dad\t#Reads_C_Dad\t#Reads_N_Dad\t#Reads_I_Dad\t#Reads_D_Dad\t#Reads_A_Mom\t#Reads_T_Mom\t#Reads_G_Mom\t#Reads_C_Mom\t#Reads_N_Mom\t#Reads_I_Mom\t#Reads_D_Mom\t#Alleles_Child\t#Alleles_Dad\t#Alleles_Mom\t#NearbySites_I_Child\t#NearbySites_I_Dad\t#NearbySites_I_Mom\t#NearbySites_D_Child\t#NearbySites_D_Dad\t#NearbySites_D_Mom\t#NearbySites_Var_Child\t#NearbySites_Var_Dad\t#NearbySites_Var_Mom\t#NearbySites_3_Child\t#NearbySites_3_Dad\t#NearbySites_3_Mom\t#NearbySites_DeNovoVar\tposNearbyInDelVars\tdeNovoGT\tflag\tDepth_Child\tDepth_Dad\tDepth_Mom\t%Phred_A_Child\t%Phred_T_Child\t%Phred_G_Child\t%Phred_C_Child\t%Phred_A_Dad\t%Phred_T_Dad\t%Phred_G_Dad\t%Phred_C_Dad\t%Phred_A_Mom\t%Phred_T_Mom\t%Phred_G_Mom\t%Phred_C_Mom\tPhred_A_Child\tPhred_T_Child\tPhred_G_Child\tPhred_C_Child\tPhred_N_Child\tPhred_I_Child\tPhred_D_Child\tPhred_A_Dad\tPhred_T_Dad\tPhred_G_Dad\tPhred_C_Dad\tPhred_N_Dad\tPhred_I_Dad\tPhred_D_Dad\tPhred_A_Mom\tPhred_T_Mom\tPhred_G_Mom\tPhred_C_Mom\tPhred_N_Mom\tPhred_I_Mom\tPhred_D_Mom\tMapping_Child\tMapping_Dad\tMapping_Mom";
   public static final String PARSE_RESULT_HEADER =
-      "chr\tpos\tlookup\tgeneCount_Pos\tgeneCount_Trio\tgeneCount_diff\tid\tnumVars\tnumDels\tnumIns\tnumDenovo\tgeneList\thasBam\tref\talt\tcall\tnote\tfwdGenotype\treadDepth_C\treadDepth_D\treadDepth_M\tPhred_A_Child\tPhred_T_Child\tPhred_G_Child\tPhred_C_Child\tPhred_A_Dad\tPhred_T_Dad\tPhred_G_Dad\tPhred_C_Dad\tPhred_A_Mom\tPhred_T_Mom\tPhred_G_Mom\tPhred_C_Mom\tMappingQuality_C\tMappingQuality_D\tMappingQuality_M\taltAllele%_C\taltAllele%_D\taltAllele%_M";
+                                                 "chr\tpos\tlookup\tgeneCount_Pos\tgeneCount_Trio\tgeneCount_diff\tid\tnumVars\tnumDels\tnumIns\tnumDenovo\tgeneList\thasBam\tref\talt\tcall\tnote\tfwdGenotype\treadDepth_C\treadDepth_D\treadDepth_M\tPhred_A_Child\tPhred_T_Child\tPhred_G_Child\tPhred_C_Child\tPhred_A_Dad\tPhred_T_Dad\tPhred_G_Dad\tPhred_C_Dad\tPhred_A_Mom\tPhred_T_Mom\tPhred_G_Mom\tPhred_C_Mom\tMappingQuality_C\tMappingQuality_D\tMappingQuality_M\taltAllele%_C\taltAllele%_D\taltAllele%_M";
   public static final String PARSE_RESULT_HEADER_FORMAT2 = "chr\tpos\tlookup\tnumTrios";
   public static final String READ_COUNTS_HEADER_FORMAT1 =
-      "chr\tpos\t#Reads_byAllele_C\t#Reads_byAllele_D\t#Reads_byAllele_M\t#Reads_total_C\t#Reads_total_D\t#Reads_total_M\tMap_C\tMap_D\tMap_M\tPhred_C\tPhred_D\tPhred_M\tHaploCount_C\tHaploCount_D\tHaploCount_M";
+                                                        "chr\tpos\t#Reads_byAllele_C\t#Reads_byAllele_D\t#Reads_byAllele_M\t#Reads_total_C\t#Reads_total_D\t#Reads_total_M\tMap_C\tMap_D\tMap_M\tPhred_C\tPhred_D\tPhred_M\tHaploCount_C\tHaploCount_D\tHaploCount_M";
   public static final String READ_COUNTS_HEADER_FORMAT2 =
-      "chr\tpos\t#Reads_total_C\t#Reads_total_D\t#Reads_total_M\tMap_C\tMap_D\tMap_M\tPhred_C\tPhred_D\tPhred_M";
+                                                        "chr\tpos\t#Reads_total_C\t#Reads_total_D\t#Reads_total_M\tMap_C\tMap_D\tMap_M\tPhred_C\tPhred_D\tPhred_M";
   public static final String[] COLUMNS_NEEDED_FROM_PHASE1_OUTPUT =
-      {"ref", "alt", "call", "posNearbyInDelVars", "deNovoGT", "Depth_Child", "Depth_Dad",
-       "Depth_Mom", "Phred_A_Child", "Phred_T_Child", "Phred_G_Child", "Phred_C_Child",
-       "Phred_A_Dad", "Phred_T_Dad", "Phred_G_Dad", "Phred_C_Dad", "Phred_A_Mom", "Phred_T_Mom",
-       "Phred_G_Mom", "Phred_C_Mom", "Mapping_Child", "Mapping_Dad", "Mapping_Mom"};
+                                                                 {"ref", "alt", "call",
+                                                                  "posNearbyInDelVars", "deNovoGT",
+                                                                  "Depth_Child", "Depth_Dad",
+                                                                  "Depth_Mom", "Phred_A_Child",
+                                                                  "Phred_T_Child", "Phred_G_Child",
+                                                                  "Phred_C_Child", "Phred_A_Dad",
+                                                                  "Phred_T_Dad", "Phred_G_Dad",
+                                                                  "Phred_C_Dad", "Phred_A_Mom",
+                                                                  "Phred_T_Mom", "Phred_G_Mom",
+                                                                  "Phred_C_Mom", "Mapping_Child",
+                                                                  "Mapping_Dad", "Mapping_Mom"};
   public static final String DEFAULT_OUTPUT_FILENAME = "SuperNovo_summary.xln";
   public static final String DEFAULT_READ_COUNTS_FILENAME_SUFFIX = ".txt.gz";
   public static final String INSERTION_DELIMITER_LEFT = " < ";
@@ -119,7 +133,7 @@ public class SuperNovo {
                + "samtools view [%0]M.bam  [%1]:[%2]-[%3] > " + "[%0]M_[%1]_[%3].txt";
     try {
       candidateList =
-          new BufferedReader(new FileReader(fileNameOfDeNovoPointMutationCandidateList));
+                    new BufferedReader(new FileReader(fileNameOfDeNovoPointMutationCandidateList));
       candidateList.readLine();
       iterationsVec = new Vector<String[]>();
       while (candidateList.ready()) {
@@ -151,7 +165,7 @@ public class SuperNovo {
 
     try {
       candidateList =
-          new BufferedReader(new FileReader(fileNameOfDeNovoPointMutationCandidateList));
+                    new BufferedReader(new FileReader(fileNameOfDeNovoPointMutationCandidateList));
       candidateList.readLine();
       writer = new PrintWriter(ext.parseDirectoryOfFile(fileNameOfDeNovoPointMutationCandidateList)
                                + ext.rootOf(fileNameOfDeNovoPointMutationCandidateList)
@@ -162,11 +176,10 @@ public class SuperNovo {
         // look for the chr location in bcfFile
         readsCounts = new int[3][];
         for (int i = 0; i < readsCounts.length; i++) {
-          readsCounts[i] =
-              getAlleleCounts(bamFileDir + line[0].substring(0, line[0].length() - 1)
-                              + SAMPLE_SUFFIX[i] + "_" + line[1] + "_" + line[3] + ".txt",
-                              Integer.parseInt(line[1].split("chr")[1]), Integer.parseInt(line[3]),
-                              thresholdFor3Alleles);
+          readsCounts[i] = getAlleleCounts(bamFileDir + line[0].substring(0, line[0].length() - 1)
+                                           + SAMPLE_SUFFIX[i] + "_" + line[1] + "_" + line[3]
+                                           + ".txt", Integer.parseInt(line[1].split("chr")[1]),
+                                           Integer.parseInt(line[3]), thresholdFor3Alleles);
         }
         score = getScoreForDeNovoMutation(readsCounts, line[9].charAt(0), line[8].charAt(0),
                                           thresholdFor3Alleles);
@@ -206,11 +219,11 @@ public class SuperNovo {
             && Integer.parseInt(line[1]) < 512) {
           startPositionOfTheRead = Integer.parseInt(line[3]);
           index = 0;
-          operatorsOperatorIndicesAndSplit =
-              ext.getOperatorsOperatorIndicesAndSplit(line[5], "DIMNPSH");
+          operatorsOperatorIndicesAndSplit = ext.getOperatorsOperatorIndicesAndSplit(line[5],
+                                                                                     "DIMNPSH");
           for (int i = 0; i < operatorsOperatorIndicesAndSplit[0].length; i++) {
             lengthOfCurrentSegmentOfCurrentRead =
-                Integer.parseInt(operatorsOperatorIndicesAndSplit[2][i]);
+                                                Integer.parseInt(operatorsOperatorIndicesAndSplit[2][i]);
             if ((startPositionOfTheRead + index
                  + lengthOfCurrentSegmentOfCurrentRead) > positionOnThisRead) {
               if (operatorsOperatorIndicesAndSplit[0][i].equals("I")
@@ -275,7 +288,7 @@ public class SuperNovo {
 
   /**
    * Annotate the markers with allele frequencies, allele counts, and deletion and insertion counts.
-   * 
+   *
    * @param readsCounts
    * @param alternativeAllele
    * @param thresholdFor3Alleles
@@ -308,7 +321,7 @@ public class SuperNovo {
   /**
    * A decimal value ranging 0 through 1 to indicate how likely the marker is a De Novo point
    * mutation, with 1 being very likely and 0 very unlikely
-   * 
+   *
    * @param readsCounts
    * @param alternativeAllele
    * @param referencedAllele
@@ -598,8 +611,8 @@ public class SuperNovo {
     SimpleDateFormat timeFormat;
 
     trioId = getRootOf(bamFilenames, false);
-    outFileName =
-        outputDir + trioId + "_denovoMutations_chr" + chr + "_" + start + "_" + stop + ".txt";
+    outFileName = outputDir + trioId + "_denovoMutations_chr" + chr + "_" + start + "_" + stop
+                  + ".txt";
     timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
     timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
     timer = new Date().getTime();
@@ -658,13 +671,14 @@ public class SuperNovo {
 
     window = Math.max(WINDOW_SIZE_FOR_NEARBY_INDEL, WINDOW_SIZE_FOR_NEARBY_VARIANCE);
     startPosAdjForWindow = Math.max(0, startPosition - window);
-    stopPosAdjForWindow =
-        Math.min(Positions.CHROMOSOME_LENGTHS_MAX[ext.indexOfStr(chr, Positions.CHR_CODES, false,
-                                                                 true)],
-                 stopPosition + window);
+    stopPosAdjForWindow = Math.min(
+                                   Positions.CHROMOSOME_LENGTHS_MAX[ext.indexOfStr(chr,
+                                                                                   Positions.CHR_CODES,
+                                                                                   false, true)],
+                                   stopPosition + window);
     numMarkersPlusWindow = stopPosAdjForWindow - startPosAdjForWindow + 1;
     readsCounts =
-        new int[SAMPLE_SUFFIX.length][numMarkersPlusWindow][READS_COUNTS_ARRAY_STRUCT.length];
+                new int[SAMPLE_SUFFIX.length][numMarkersPlusWindow][READS_COUNTS_ARRAY_STRUCT.length];
     phredScores = new int[SAMPLE_SUFFIX.length][numMarkersPlusWindow][BASES_WITH_N_INDEL.length];
     mappingScores = new int[SAMPLE_SUFFIX.length][numMarkersPlusWindow][BASES_WITH_N_INDEL.length];
     altAllelesForInsertions_Child = new Hashtable<String, String>();
@@ -673,8 +687,8 @@ public class SuperNovo {
 
     timer = new Date().getTime();
     for (int i = 0; i < samFilenames.length; i++) {
-      samContentVec =
-          loadBamByPipeline(samFilenames[i], chr, startPosAdjForWindow, stopPosAdjForWindow);
+      samContentVec = loadBamByPipeline(samFilenames[i], chr, startPosAdjForWindow,
+                                        stopPosAdjForWindow);
       numLines = samContentVec.size();
       for (int j = 0; j < numLines; j++) {
         cigarDecoding(samContentVec.elementAt(j), chr, startPosAdjForWindow, stopPosAdjForWindow, 0,
@@ -760,12 +774,12 @@ public class SuperNovo {
             loop = outputArrayPointer
                    + Math.min(lengthOfCurrentSegment, outputArrayLength - outputArrayPointer);
             while (outputArrayPointer < loop) {
-              indexInBases =
-                  ext.indexOfChar(aSingleLineOfBamFile[9].charAt(readPointer), BASES_WITH_N);
+              indexInBases = ext.indexOfChar(aSingleLineOfBamFile[9].charAt(readPointer),
+                                             BASES_WITH_N);
               if (indexInBases >= 0) {
                 output1_ReadsCounts[outputArrayPointer][indexInBases]++;
                 output2_PhredScores[outputArrayPointer][indexInBases] +=
-                    convertToPhredScore(aSingleLineOfBamFile[10].charAt(readPointer));
+                                                                      convertToPhredScore(aSingleLineOfBamFile[10].charAt(readPointer));
                 output3_MappingScores[outputArrayPointer][indexInBases] += currentMappingScore;
               } else {
                 System.err.println("Error - unrecognized base ("
@@ -785,7 +799,7 @@ public class SuperNovo {
           if (outputArrayPointer >= 0) {
             output1_ReadsCounts[outputArrayPointer][INDEX_OF_INS]++;
             output2_PhredScores[outputArrayPointer][INDEX_OF_INS] +=
-                convertToPhredScore(aSingleLineOfBamFile[10].charAt(readPointer));
+                                                                  convertToPhredScore(aSingleLineOfBamFile[10].charAt(readPointer));
             output3_MappingScores[outputArrayPointer][INDEX_OF_INS] += currentMappingScore;
             if (altAllelesForInDels != null) {
               tmp3 = "+" + aSingleLineOfBamFile[9].substring(readPointer,
@@ -829,7 +843,7 @@ public class SuperNovo {
             while (outputArrayPointer < loop) {
               output1_ReadsCounts[outputArrayPointer][INDEX_OF_DEL]++;
               output2_PhredScores[outputArrayPointer][INDEX_OF_DEL] +=
-                  DEFAULT_PHRED_SCORE_FOR_DELETION;
+                                                                    DEFAULT_PHRED_SCORE_FOR_DELETION;
               output3_MappingScores[outputArrayPointer][INDEX_OF_DEL] += currentMappingScore;
               outputArrayPointer++;
             }
@@ -1035,9 +1049,9 @@ public class SuperNovo {
     int[] numInsDelMismatch;
 
     numInsDelMismatch =
-        new int[] {readsCounts[0][i][INDEX_OF_INS] + readsCounts[0][i][INDEX_OF_DEL],
-                   readsCounts[1][i][INDEX_OF_INS] + readsCounts[1][i][INDEX_OF_DEL],
-                   readsCounts[2][i][INDEX_OF_INS] + readsCounts[2][i][INDEX_OF_DEL]};
+                      new int[] {readsCounts[0][i][INDEX_OF_INS] + readsCounts[0][i][INDEX_OF_DEL],
+                                 readsCounts[1][i][INDEX_OF_INS] + readsCounts[1][i][INDEX_OF_DEL],
+                                 readsCounts[2][i][INDEX_OF_INS] + readsCounts[2][i][INDEX_OF_DEL]};
     return ((numInsDelMismatch[0] <= MAX_ALLELE_COUNT_TREATED_AS_ZERO
              || (readsCounts[0][i][orderedIndices[0][0]]
                  + readsCounts[0][i][orderedIndices[0][1]]) >= 20 * numInsDelMismatch[0])
@@ -1207,7 +1221,7 @@ public class SuperNovo {
       }
       sum = 0;
       for (int j =
-          readsCounts[i][indexCurrentMarker][INDEX_OF_NUM_ALLELES_STRICT] - 1; j >= 0; j--) {
+                 readsCounts[i][indexCurrentMarker][INDEX_OF_NUM_ALLELES_STRICT] - 1; j >= 0; j--) {
         sum += readsCounts[i][indexCurrentMarker][orderedIndices[i][j]];
         if (sum > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
           readsCounts[i][indexCurrentMarker][INDEX_OF_NUM_ALLELES_LOOSE] = j + 1;
@@ -1265,10 +1279,11 @@ public class SuperNovo {
           index2 = denovoMutations.elementAt(j)[0];
           if (Math.abs(currentDenovoMuations[0] - index2) <= WINDOW_SIZE_FOR_NEARBY_DENOVO
               && currentDenovoMuations[3] > 10 && currentDenovoMuations[4] > 10) {
-            orderedIndices =
-                Sort.quicksort(new int[] {readsCounts[0][index2][0], readsCounts[0][index2][1],
-                                          readsCounts[0][index2][2], readsCounts[0][index2][3]},
-                               Sort.DESCENDING);
+            orderedIndices = Sort.quicksort(new int[] {readsCounts[0][index2][0],
+                                                       readsCounts[0][index2][1],
+                                                       readsCounts[0][index2][2],
+                                                       readsCounts[0][index2][3]},
+                                            Sort.DESCENDING);
             if ((readsCounts[0][index2][orderedIndices[0]] >= 5
                  && readsCounts[1][index2][orderedIndices[0]] <= 1
                  && readsCounts[2][index2][orderedIndices[0]] <= 1)
@@ -1351,9 +1366,10 @@ public class SuperNovo {
       for (int i = 0; i < loop; i++) {
         temp = denovoMutations.elementAt(i);
         pos = temp[0] + startPosAdjForWindow;
-        p = Runtime.getRuntime().exec("samtools faidx " + refFastaFilename + " chr" + chr + ":"
-                                      + pos + "-" + pos, null,
-                                      new File(ext.parseDirectoryOfFile(refFastaFilename)));
+        p =
+          Runtime.getRuntime()
+                 .exec("samtools faidx " + refFastaFilename + " chr" + chr + ":" + pos + "-" + pos,
+                       null, new File(ext.parseDirectoryOfFile(refFastaFilename)));
 
         // ps=new ProcessBuilder("samtools", "faidx", refFastaFilename, "chr" + chr + ":" + start +
         // "-" + stop);
@@ -1432,9 +1448,9 @@ public class SuperNovo {
       for (int i = 0; i < readsCounts.length; i++) {
         for (int j = 0; j < BASES_WITH_N_INDEL.length; j++) {
           result +=
-              ((i == 0 && j == 0 ? "" : "\t")
-               + (readsCounts[i][indexOfCurrentMarker][j] == 0 ? ""
-                                                               : readsCounts[i][indexOfCurrentMarker][j]));
+                 ((i == 0 && j == 0 ? "" : "\t")
+                  + (readsCounts[i][indexOfCurrentMarker][j] == 0 ? ""
+                                                                  : readsCounts[i][indexOfCurrentMarker][j]));
         }
       }
       for (int i = 0; i < readsCounts.length; i++) {
@@ -1458,16 +1474,16 @@ public class SuperNovo {
         result += (i == 0 ? "(" : " (");
         for (int j = 0; j < BASES.length; j++) {
           result +=
-              ((j == 0 ? "" : ",")
-               + (readsCounts[i][indexOfCurrentMarker][j] == 0 ? "-"
-                                                               : readsCounts[i][indexOfCurrentMarker][j]));
+                 ((j == 0 ? "" : ",")
+                  + (readsCounts[i][indexOfCurrentMarker][j] == 0 ? "-"
+                                                                  : readsCounts[i][indexOfCurrentMarker][j]));
         }
         result += "/";
         for (int j = BASES.length; j < BASES_WITH_N_INDEL.length; j++) {
           result +=
-              ((j == BASES.length ? "" : ",")
-               + (readsCounts[i][indexOfCurrentMarker][j] == 0 ? "-"
-                                                               : readsCounts[i][indexOfCurrentMarker][j]));
+                 ((j == BASES.length ? "" : ",")
+                  + (readsCounts[i][indexOfCurrentMarker][j] == 0 ? "-"
+                                                                  : readsCounts[i][indexOfCurrentMarker][j]));
         }
         result += ")";
       }
@@ -1525,7 +1541,7 @@ public class SuperNovo {
           if (temp[i][j] != null) {
             if (isFirstInTheSection) {
               result2 +=
-                  ((isFirstSection ? "" : " ") + DENOVO_MUTATION_NOTES_ARRAY_STRUCT[i] + "(");
+                      ((isFirstSection ? "" : " ") + DENOVO_MUTATION_NOTES_ARRAY_STRUCT[i] + "(");
               isFirstInTheSection = false;
               isFirstSection = false;
             } else {
@@ -1656,8 +1672,8 @@ public class SuperNovo {
 
     phredScoreProportions = new double[SAMPLE_SUFFIX.length][BASES.length];
     for (int j = 0; j < phredScoreProportions.length; j++) {
-      totalPhredScores =
-          phredScores[j][indexOfCurrentMarker][0] + phredScores[j][indexOfCurrentMarker][1]
+      totalPhredScores = phredScores[j][indexOfCurrentMarker][0]
+                         + phredScores[j][indexOfCurrentMarker][1]
                          + phredScores[j][indexOfCurrentMarker][2]
                          + phredScores[j][indexOfCurrentMarker][3];
       for (int k = 0; k < phredScoreProportions[j].length; k++) {
@@ -1669,10 +1685,10 @@ public class SuperNovo {
     if (format == 2) {
       for (int i = 0; i < phredScoreProportions.length; i++) {
         for (int j = 0; j < phredScoreProportions[i].length; j++) {
-          result +=
-              ((i == 0 && j == 0 ? "" : "\t")
-               + (phredScoreProportions[i][j] == 0 ? ""
-                                                   : ext.formDeci(phredScoreProportions[i][j], 3)));
+          result += ((i == 0 && j == 0 ? "" : "\t")
+                     + (phredScoreProportions[i][j] == 0 ? ""
+                                                         : ext.formDeci(phredScoreProportions[i][j],
+                                                                        3)));
         }
       }
 
@@ -1680,10 +1696,10 @@ public class SuperNovo {
         for (int j = 0; j < phredScores[i][indexOfCurrentMarker].length; j++) {
 
           result +=
-              ("\t"
-               + (phredScores[i][indexOfCurrentMarker][j] == 0 ? ""
-                                                               : (phredScores[i][indexOfCurrentMarker][j]
-                                                                  / readsCounts[i][indexOfCurrentMarker][j])));
+                 ("\t"
+                  + (phredScores[i][indexOfCurrentMarker][j] == 0 ? ""
+                                                                  : (phredScores[i][indexOfCurrentMarker][j]
+                                                                     / readsCounts[i][indexOfCurrentMarker][j])));
         }
       }
 
@@ -1691,10 +1707,9 @@ public class SuperNovo {
       for (int i = 0; i < phredScoreProportions.length; i++) {
         result += ((i == 0 ? "" : " ") + "(");
         for (int j = 0; j < phredScoreProportions[i].length; j++) {
-          result +=
-              ((j == 0 ? "" : ",")
-               + (phredScoreProportions[i][j] == 0 ? "-"
-                                                   : ext.formDeci(phredScoreProportions[i][j], 3)));
+          result += ((j == 0 ? "" : ",") + (phredScoreProportions[i][j] == 0 ? "-"
+                                                                             : ext.formDeci(phredScoreProportions[i][j],
+                                                                                            3)));
         }
         result += ")";
       }
@@ -2117,10 +2132,11 @@ public class SuperNovo {
             getNumVarsInDelsDenovos(line[44]);
 
             for (int j = 0; j < SAMPLE_SUFFIX.length; j++) {
-              orderedIndices[j] =
-                  Sort.quicksort(new int[] {readsCounts[j][0][0], readsCounts[j][0][1],
-                                            readsCounts[j][0][2], readsCounts[j][0][3]},
-                                 Sort.DESCENDING);
+              orderedIndices[j] = Sort.quicksort(new int[] {readsCounts[j][0][0],
+                                                            readsCounts[j][0][1],
+                                                            readsCounts[j][0][2],
+                                                            readsCounts[j][0][3]},
+                                                 Sort.DESCENDING);
             }
             if (true
             // if (filterMappingQuality(mappingScores, readsCounts, orderedIndices, 0)
@@ -2272,12 +2288,13 @@ public class SuperNovo {
                       resultElements = Array.subArray(line, indices);
                       resultElements = Array.concatAll(new String[] {annotation[7], miniBamLink},
                                                        resultElements);
-                      resultElements =
-                          Array.concatAll(resultElements,
-                                          new String[] {ext.formDeci(pctDenovoAllele[0], 3),
-                                                        ext.formDeci(pctDenovoAllele[1],
-                                                                     3),
-                                                        ext.formDeci(pctDenovoAllele[2], 3)});
+                      resultElements = Array.concatAll(resultElements,
+                                                       new String[] {ext.formDeci(pctDenovoAllele[0],
+                                                                                  3),
+                                                                     ext.formDeci(pctDenovoAllele[1],
+                                                                                  3),
+                                                                     ext.formDeci(pctDenovoAllele[2],
+                                                                                  3)});
                       resultElements = Array.concatAll(resultElements, annotation);
 
                       if (!result.containsKey(line[3])) {
@@ -2437,10 +2454,11 @@ public class SuperNovo {
             getNumVarsInDelsDenovos(line[44]);
 
             for (int j = 0; j < SAMPLE_SUFFIX.length; j++) {
-              orderedIndices[j] =
-                  Sort.quicksort(new int[] {readsCounts[j][0][0], readsCounts[j][0][1],
-                                            readsCounts[j][0][2], readsCounts[j][0][3]},
-                                 Sort.DESCENDING);
+              orderedIndices[j] = Sort.quicksort(new int[] {readsCounts[j][0][0],
+                                                            readsCounts[j][0][1],
+                                                            readsCounts[j][0][2],
+                                                            readsCounts[j][0][3]},
+                                                 Sort.DESCENDING);
             }
 
             if (true
@@ -2596,22 +2614,24 @@ public class SuperNovo {
                       resultElements = Array.subArray(line, indices);
                       resultElements = Array.concatAll(new String[] {annotation[7], miniBamLink},
                                                        resultElements);
-                      resultElements =
-                          Array.concatAll(resultElements,
-                                          new String[] {ext.formDeci(pctDenovoAllele[0], 3),
-                                                        ext.formDeci(pctDenovoAllele[1],
-                                                                     3),
-                                                        ext.formDeci(pctDenovoAllele[2], 3)});
+                      resultElements = Array.concatAll(resultElements,
+                                                       new String[] {ext.formDeci(pctDenovoAllele[0],
+                                                                                  3),
+                                                                     ext.formDeci(pctDenovoAllele[1],
+                                                                                  3),
+                                                                     ext.formDeci(pctDenovoAllele[2],
+                                                                                  3)});
                       resultElements = Array.concatAll(resultElements, annotation);
                       if (additionalComment != null
                           && additionalComment.containsKey(line[45].substring(0, 2))) {
                         resultElements =
-                            Array.concatAll(resultElements,
-                                            additionalComment.get(line[45].substring(0, 2)));
+                                       Array.concatAll(resultElements,
+                                                       additionalComment.get(line[45].substring(0,
+                                                                                                2)));
                       } else {
                         resultElements =
-                            Array.concatAll(resultElements,
-                                            new String[] {".", ".", ".", ".", ".", "."});
+                                       Array.concatAll(resultElements,
+                                                       new String[] {".", ".", ".", ".", ".", "."});
                       }
                       tmp = "";
                       if (additionalComment != null) {
@@ -2933,10 +2953,10 @@ public class SuperNovo {
       index = 62;
       for (int i = 0; i < SAMPLE_SUFFIX.length; i++) {
         for (int j = 0; j < BASES_WITH_N_INDEL.length; j++) {
-          phredScores[i][0][j] =
-              (line[index] == null
-               || line[index].equals("") ? 0
-                                         : (Integer.parseInt(line[index]) * readsCounts[i][0][j]));
+          phredScores[i][0][j] = (line[index] == null
+                                  || line[index].equals("") ? 0
+                                                            : (Integer.parseInt(line[index])
+                                                               * readsCounts[i][0][j]));
           index++;
         }
       }
@@ -3039,7 +3059,7 @@ public class SuperNovo {
   /**
    * Get the common root of all the filenames, assuming the filenames following the format of
    * "*_*_*"
-   * 
+   *
    * @param filenames
    * @return
    */
@@ -3273,8 +3293,8 @@ public class SuperNovo {
 
     bamFilenamesByTrios = loadNamesFromList(fullPathToTrioNameList);
     if (toOutputHaplotypeStrings) {
-      dirAndRoot =
-          ext.parseDirectoryOfFile(fullPathToParsedResult) + ext.rootOf(fullPathToParsedResult);
+      dirAndRoot = ext.parseDirectoryOfFile(fullPathToParsedResult)
+                   + ext.rootOf(fullPathToParsedResult);
     }
     try {
       writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(fullPathToParsedResult)
@@ -3292,17 +3312,15 @@ public class SuperNovo {
           }
         }
         if (x != -1) {
-          writer.println(line[2] + "\t" + line[6]
-                         + "\t" + getHaplotypes(
-                                                new String[] {bamDir + bamFilenamesByTrios[x][1],
-                                                              bamDir + bamFilenamesByTrios[x][2],
-                                                              bamDir + bamFilenamesByTrios[x][3]},
-                                                line[6], line[0], Integer.parseInt(line[1]),
-                                                Integer.parseInt(line[1]),
-                                                (toOutputHaplotypeStrings ? (dirAndRoot + "_"
-                                                                             + line[6])
-                                                                          : null),
-                                                log));
+          writer.println(line[2] + "\t" + line[6] + "\t"
+                         + getHaplotypes(new String[] {bamDir + bamFilenamesByTrios[x][1],
+                                                       bamDir + bamFilenamesByTrios[x][2],
+                                                       bamDir + bamFilenamesByTrios[x][3]},
+                                         line[6], line[0], Integer.parseInt(line[1]),
+                                         Integer.parseInt(line[1]),
+                                         (toOutputHaplotypeStrings ? (dirAndRoot + "_" + line[6])
+                                                                   : null),
+                                         log));
         }
       }
       reader.close();
@@ -3330,10 +3348,11 @@ public class SuperNovo {
 
     window = WINDOW_SIZE_FOR_HAPLOTYPE_CHECK;
     beginPositionExt = Math.max(0, beginPosition - window);
-    endPositionExt =
-        Math.min(Positions.CHROMOSOME_LENGTHS_MAX[ext.indexOfStr(chr, Positions.CHR_CODES, false,
-                                                                 true)],
-                 endPosition + window);
+    endPositionExt = Math.min(
+                              Positions.CHROMOSOME_LENGTHS_MAX[ext.indexOfStr(chr,
+                                                                              Positions.CHR_CODES,
+                                                                              false, true)],
+                              endPosition + window);
     haplotypeDb = new Hashtable<Byte, Hashtable<Integer, String>>();
     readCounts = new Hashtable<Byte, Vector<int[]>>();
     ref = new char[endPositionExt - beginPositionExt + 1];
@@ -3345,8 +3364,8 @@ public class SuperNovo {
 
       // samContentVec = loadBamByPipeline(samDir, samFilenames[i], chr, beginPositionExt,
       // endPositionExt);
-      samContentVec =
-          loadBamByFileReader(fullpathsToSamFiles[i], chr, beginPositionExt, endPositionExt);
+      samContentVec = loadBamByFileReader(fullpathsToSamFiles[i], chr, beginPositionExt,
+                                          endPositionExt);
       numLines = samContentVec.size();
       for (int j = 0; j < numLines; j++) {
         insertionStringOfCurrentRead = new Hashtable<Integer, String>();
@@ -3394,7 +3413,7 @@ public class SuperNovo {
    * String[] tmp; // Hashtable<Integer, String> altAllelesForInsertions_Child; Hashtable<Integer,
    * String> insertionStringOfCurrentRead, insertionPhredOfCurrentRead; Hashtable<Byte,
    * Hashtable<Integer, String>> haplotypeDb; Hashtable<Byte, Vector<int[]>> readCounts;
-   * 
+   *
    * window = WINDOW_SIZE_FOR_HAPLOTYPE_CHECK; beginPositionExt = Math.max(0, beginPosition -
    * window); endPositionExt = Math.min(Positions.CHROMOSOME_LENGTHS_MAX[ext.indexOfStr(chr,
    * Positions.CHR_CODES, false, true)], endPosition + window); numMarkersPlusWindow =
@@ -3407,9 +3426,9 @@ public class SuperNovo {
    * Hashtable<Byte, Hashtable<Integer, String>>(); readCounts = new Hashtable<Byte,
    * Vector<int[]>>(); ref = new char[endPositionExt - beginPositionExt + 1]; // haplotypeStrings =
    * new Vector<String>(); // haplotypeStrings.add("");
-   * 
+   *
    * if (! Files.exists(samDir, samFilenames)) { return -1; }
-   * 
+   *
    * for (int i = 0; i < samFilenames.length; i++) { // samContentVec = loadBamByPipeline(samDir,
    * samFilenames[i], chr, beginPositionExt, endPositionExt); samContentVec =
    * loadBamByFileReader(samDir, samFilenames[i], chr, beginPositionExt, endPositionExt); numLines =
@@ -3426,7 +3445,7 @@ public class SuperNovo {
    * samContentVec.elementAt(j)[5] // + "\t" + samContentVec.elementAt(j)[6] // + "\t" +
    * samContentVec.elementAt(j)[7] // + "\t" + samContentVec.elementAt(j)[8] // + "\t" +
    * samContentVec.elementAt(j)[9] // + "\t" + samContentVec.elementAt(j)[10]); } } }
-   * 
+   *
    * if (haplotypeFilename != null) { exportHaplotypes(haplotypeDb, readCounts, ref,
    * beginPositionExt, haplotypeFilename); } return (haplotypeDb.size() + 1); }
    */
@@ -3568,7 +3587,7 @@ public class SuperNovo {
   }
 
   /**
-   * 
+   *
    * @param reFormattedCigarString
    * @param begin
    * @param end inclusive
@@ -3682,7 +3701,7 @@ public class SuperNovo {
             varsNotInHaplotypeDbSorted = new int[varsNotInHaplotypeDbTmp[sortedIndices[i]].size()];
             for (int j = 0; j < varsNotInHaplotypeDbSorted.length; j++) {
               varsNotInHaplotypeDbSorted[j] =
-                  varsNotInHaplotypeDbTmp[sortedIndices[i]].elementAt(j);
+                                            varsNotInHaplotypeDbTmp[sortedIndices[i]].elementAt(j);
             }
             Arrays.sort(varsNotInHaplotypeDbSorted);
             if (getNumReadsCoveringThisRegion(haplotypeIdTmp, varsNotInHaplotypeDbSorted[0],
@@ -3987,9 +4006,9 @@ public class SuperNovo {
       temp += ("\n" + trioIdOfTheReadCountsFile + "\t>=" + thresholdsForReadCount[i]);
       for (int j = 0; j < thresholdForMapping.length; j++) {
         for (int k = 0; k < 4; k++) {
-          temp +=
-              ("\t"
-               + ext.formPercent((double) runningCounts[i][k + j * 4] / (double) onTargetReads, 1));
+          temp += ("\t"
+                   + ext.formPercent((double) runningCounts[i][k + j * 4] / (double) onTargetReads,
+                                     1));
         }
       }
     }
@@ -4127,19 +4146,19 @@ public class SuperNovo {
   public static void fromParameters(String filename, Logger log) {
     Vector<String> params;
 
-    params =
-        Files.parseControlFile(filename, "SuperNovo",
-                               new String[] {"file=snps.txt", "# set the program to parse results",
-                                             "-parseresult",
-                                             "# input: directory of the 1st phase results",
-                                             "outputdir=",
-                                             "# input: full path to the trio list file (leave as null, if no mini bam files are needed)",
-                                             "triolistfile=",
-                                             "# directory to output the SeattleSeq .needs files",
-                                             "seattleseqdir=",
-                                             "# directory to output the script files for generating the mini bam files",
-                                             "minibamdir="},
-                               log);
+    params = Files.parseControlFile(filename, "SuperNovo",
+                                    new String[] {"file=snps.txt",
+                                                  "# set the program to parse results",
+                                                  "-parseresult",
+                                                  "# input: directory of the 1st phase results",
+                                                  "outputdir=",
+                                                  "# input: full path to the trio list file (leave as null, if no mini bam files are needed)",
+                                                  "triolistfile=",
+                                                  "# directory to output the SeattleSeq .needs files",
+                                                  "seattleseqdir=",
+                                                  "# directory to output the script files for generating the mini bam files",
+                                                  "minibamdir="},
+                                    log);
 
     if (params != null) {
       params.add("log=" + log.getFilename());
@@ -4175,9 +4194,9 @@ public class SuperNovo {
     dirSam = "/home/spectorl/shared/exome_processing/bam/";
     // dirSam = "/home/spectorl/shared/exome/project126/all_101/";
     fullpathsToSamFilenamesOfTheTrio =
-        new String[] {"/home/spectorl/shared/exome_processing/bam/rrd_F10639C_L008.bam",
-                      "/home/spectorl/shared/exome_processing/bam/rrd_F10639D_L007.bam",
-                      "/home/spectorl/shared/exome_processing/bam/rrd_F10639M_L007.bam"};
+                                     new String[] {"/home/spectorl/shared/exome_processing/bam/rrd_F10639C_L008.bam",
+                                                   "/home/spectorl/shared/exome_processing/bam/rrd_F10639D_L007.bam",
+                                                   "/home/spectorl/shared/exome_processing/bam/rrd_F10639M_L007.bam"};
     if (fullpathsToSamFilenamesOfTheTrio != null
         && !fullpathsToSamFilenamesOfTheTrio[0].equals("")) {
       trioId = getRootOf(fullpathsToSamFilenamesOfTheTrio, false);
@@ -4189,7 +4208,7 @@ public class SuperNovo {
     fullPathBim = "/home/spectorl/xuz2/outputs/wholegenome.bim";
     fullPathReadCounts = "/home/spectorl/xuz2/readcounts/wholegenome_rrd/readCount_F10639.txt.gz";
     fullPathToSummaryOutputFile =
-        "/home/spectorl/xuz2/outputs/wholegenome_rrd_46/SuperNovo_summary.xln";
+                                "/home/spectorl/xuz2/outputs/wholegenome_rrd_46/SuperNovo_summary.xln";
     fullPathToOutputHaplotypeStrings = "/home/spectorl/xuz2/outputs/tests/haplotypes.txt";
     dirScript = "/home/spectorl/xuz2/scripts/";
     dirOutputsFromTheScanningOfSamFilesForDenovoMutations = "/home/spectorl/xuz2/outputs/";
@@ -4244,8 +4263,9 @@ public class SuperNovo {
     commandCandidate = "candidate=";
 
     helpMenu =
-        (fullpathsToSamFilenamesOfTheTrio == null
-         || fullpathsToSamFilenamesOfTheTrio[0] == null) ? "" : fullpathsToSamFilenamesOfTheTrio[0];
+             (fullpathsToSamFilenamesOfTheTrio == null
+              || fullpathsToSamFilenamesOfTheTrio[0] == null) ? ""
+                                                              : fullpathsToSamFilenamesOfTheTrio[0];
     for (int i = 1; fullpathsToSamFilenamesOfTheTrio != null
                     && i < fullpathsToSamFilenamesOfTheTrio.length
                     && fullpathsToSamFilenamesOfTheTrio[i] != null; i++) {
@@ -4253,7 +4273,7 @@ public class SuperNovo {
     }
 
     String usage =
-        "SuperNovo analyzes DNA sequencing data of family studies for De Novo variants through 2 steps (phases):"
+                 "SuperNovo analyzes DNA sequencing data of family studies for De Novo variants through 2 steps (phases):"
                    + "\nPhase 1: Scan the .bam/.sam file set of each family (trio) for candidate SNPs of De Novo variants, and output a text file for each family (trio);"
                    + "\nPhase 2: Scan all the output files from phase 1 for all the families (trios) in the project, add gene function annotations, and output a text summary file."
                    + "\n" + "\nNote:"
@@ -4516,7 +4536,7 @@ public class SuperNovo {
     isToSummarizeResults = true;
     // dirDenovoVars = "D:/logan/DeNovos/phase1outputs_denovos_rrd42_rrd46_dedup4/";
     dirOutputsFromTheScanningOfSamFilesForDenovoMutations =
-        "D:/logan/DeNovos/phase1outputs_inherited/";
+                                                          "D:/logan/DeNovos/phase1outputs_inherited/";
     dirSeattleSeq = "N:/statgen/OS_Logan/SuperNovo/SeattleSeqAnnotation/";
     dirMiniSamScripts = "D:/logan/DeNovos/mini_bam_scripts/";
     dirMiniSam = "D:/logan/DeNovos/mini_bams/";

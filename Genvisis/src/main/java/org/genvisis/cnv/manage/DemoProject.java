@@ -46,8 +46,8 @@ public class DemoProject extends Project {
   }
 
   private void init() {
-    String demoProjectDirectory =
-        demoDirectory + proj.PROJECT_NAME.getValue().replaceAll(" ", "") + "_" + dType + "/";
+    String demoProjectDirectory = demoDirectory + proj.PROJECT_NAME.getValue().replaceAll(" ", "")
+                                  + "_" + dType + "/";
     setProperty(PROJECT_DIRECTORY, demoProjectDirectory);
     if (!Files.exists(PROJECT_DIRECTORY.getValue()) || overwriteExisting) {
       new File(PROJECT_DIRECTORY.getValue()).mkdirs();
@@ -129,8 +129,8 @@ public class DemoProject extends Project {
     // String propertyValue = proj.getProperty(propertyWithMultipleFiles);
     String propertyValue = proj.getProperty(propertyWithMultipleFiles).getValueString();
     String propertyValueNew = propertyValue;
-    propertyValueNew =
-        propertyValueNew.replace(proj.PROJECT_DIRECTORY.getValue(), PROJECT_DIRECTORY.getValue());
+    propertyValueNew = propertyValueNew.replace(proj.PROJECT_DIRECTORY.getValue(),
+                                                PROJECT_DIRECTORY.getValue());
     setProperty(propertyWithMultipleFiles, propertyValueNew);
 
     // String[] filesOriginal = proj.getFilenames(propertyWithMultipleFiles);
@@ -138,8 +138,8 @@ public class DemoProject extends Project {
     // proj.<MultiFileProperty>getProperty(propertyWithMultipleFiles).getValue();
     // String[] filesNew =
     // this.<MultiFileProperty>getProperty(propertyWithMultipleFiles).getValue(true);
-    String[] filesOriginal =
-        proj.<StringListProperty>getProperty(propertyWithMultipleFiles).getValue();
+    String[] filesOriginal = proj.<StringListProperty>getProperty(propertyWithMultipleFiles)
+                                 .getValue();
     String[] filesNew = this.<StringListProperty>getProperty(propertyWithMultipleFiles).getValue();
     copyFiles(filesOriginal, filesNew);
   }

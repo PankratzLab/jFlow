@@ -122,7 +122,7 @@ public class SampleQC {
         pcBasisSubset[i] = pcResiduals.getBasisAt((i + 1));
       }
       Quantiles[] quantiles =
-          Quantiles.qetQuantilesFor(numQ, pcBasisSubset, pcTitles, proj.getLog());
+                            Quantiles.qetQuantilesFor(numQ, pcBasisSubset, pcTitles, proj.getLog());
       Hashtable<String, String> hashtable = new Hashtable<String, String>();
       for (int i = 0; i < proj.getSamples().length; i++) {
         String qcInfo = developMetricsLine(i, quantiles, pcBasisSubset, justQuantiles);
@@ -520,9 +520,9 @@ public class SampleQC {
   private static String getClassForQuantile(Quantiles quantiles, String qcTitle, int numQ) {
     String thisClass = "CLASS=QUANTILE_" + numQ + "_" + qcTitle;
     int[] uniqLabels =
-        Array.toIntArray(Array.unique(Array.toStringArray(quantiles.getQuantileMembershipAsRoundedInt())));
+                     Array.toIntArray(Array.unique(Array.toStringArray(quantiles.getQuantileMembershipAsRoundedInt())));
     double[] uniqQs =
-        Array.toDoubleArray(Array.unique(Array.toStringArray(quantiles.getQuantileMembership())));
+                    Array.toDoubleArray(Array.unique(Array.toStringArray(quantiles.getQuantileMembership())));
     int[] orderLabels = Sort.quicksort(uniqLabels);
     int[] orderQs = Sort.quicksort(uniqQs);
     for (int i = 0; i < orderLabels.length; i++) {
@@ -534,10 +534,10 @@ public class SampleQC {
   private static boolean verifyAllProjectSamples(Project proj, String lrrSdToLoad,
                                                  int sampleColumn) {
     String[] projSamples = proj.getSamples();
-    String[] fileSamples =
-        HashVec.loadFileToStringArray(lrrSdToLoad, false, new int[] {sampleColumn}, false);
-    int[] indices =
-        ext.indexLargeFactors(fileSamples, projSamples, true, proj.getLog(), false, false);
+    String[] fileSamples = HashVec.loadFileToStringArray(lrrSdToLoad, false,
+                                                         new int[] {sampleColumn}, false);
+    int[] indices = ext.indexLargeFactors(fileSamples, projSamples, true, proj.getLog(), false,
+                                          false);
     return fileSamples.length - Array.countIf(indices, -1) == projSamples.length;
   }
 
@@ -580,8 +580,8 @@ public class SampleQC {
       try {
         BufferedReader reader = Files.getAppropriateReader(lrrSdToLoad);
         String[] header = reader.readLine().trim().split("[\\s]+");
-        int[] indicesToLoad =
-            ext.indexFactors(qcTitlesToLoad, header, true, proj.getLog(), true, false);
+        int[] indicesToLoad = ext.indexFactors(qcTitlesToLoad, header, true, proj.getLog(), true,
+                                               false);
         int sampleColumn = ext.indexOfStr(sampleColumnName, header);
         if (Array.countIf(indicesToLoad, -1) > 0 || sampleColumn < 0) {
           proj.getLog()
@@ -679,23 +679,23 @@ public class SampleQC {
     String usage = "\n" + "cnv.qc.SampleQC requires 0-1 arguments\n";
     usage += "   (1) filename (i.e. proj=" + filename + " (default))\n" + "";
     usage +=
-        "   (2) number of quantiles to divide the sample QC metrics into (5 = quintiles, 100 = percentiles) (i.e. numQ="
+          "   (2) number of quantiles to divide the sample QC metrics into (5 = quintiles, 100 = percentiles) (i.e. numQ="
              + numQ + " (default))\n" + "";
     usage += "   (3) add only class (quantiled) qc data to sample data  (i.e. justQuantiles="
              + justQuantiles + " (default))\n" + "";
     usage +=
-        "   (4) if a pc file is available, add this many pcs to the sample data file , must be set to >=1 to be added  (i.e. numPCs="
+          "   (4) if a pc file is available, add this many pcs to the sample data file , must be set to >=1 to be added  (i.e. numPCs="
              + numPCs + " (default,no addition))\n" + "";
     usage += "   (5) use GC corrected LRR SD for filtering (i.e. gcCorrectedLrrSd="
              + gcCorrectedLrrSd + " (default))\n" + "";
     usage +=
-        "   (6) duplicates set file with 3 columns (FID IID DuplicateID) to ID duplicates, also adds use columns  (i.e. duplicatesSetFile=\\quality_control\\genome\\plink.genome_duplicatesSet.dat (not the default))\n"
+          "   (6) duplicates set file with 3 columns (FID IID DuplicateID) to ID duplicates, also adds use columns  (i.e. duplicatesSetFile=\\quality_control\\genome\\plink.genome_duplicatesSet.dat (not the default))\n"
              + "";
     usage += "   (7) replace fid and iid with pedigree values (i.e. correctFidIids="
              + correctFidIids + " (default))\n" + "";
 
     usage +=
-        "   NOTE: the projects sample qc file must be present, for the qc metrics to be added to sample data";
+          "   NOTE: the projects sample qc file must be present, for the qc metrics to be added to sample data";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

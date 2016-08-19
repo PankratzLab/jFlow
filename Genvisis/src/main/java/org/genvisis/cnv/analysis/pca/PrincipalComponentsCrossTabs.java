@@ -21,7 +21,7 @@ import org.genvisis.stats.StatsCrossTabs.STAT_TYPE;
  */
 public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -139,16 +139,15 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
       // with " + ext.removeDirectoryInfo(sampleQCFile) + " over " +
       // proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS) + " component(s)?", "Crosstabs",
       // JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, ObjButtons, ObjButtons[1]);
-      int promptResult =
-          JOptionPane.showOptionDialog(parentComponent,
-                                       "Generate cross tabs plots with "
-                                                        + ext.removeDirectoryInfo(sampleQCFile)
-                                                        + "  over "
-                                                        + proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
-                                                        + " component(s)?",
-                                       "Crosstabs", JOptionPane.DEFAULT_OPTION,
-                                       JOptionPane.WARNING_MESSAGE, null, ObjButtons,
-                                       ObjButtons[1]);
+      int promptResult = JOptionPane.showOptionDialog(parentComponent,
+                                                      "Generate cross tabs plots with "
+                                                                       + ext.removeDirectoryInfo(sampleQCFile)
+                                                                       + "  over "
+                                                                       + proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
+                                                                       + " component(s)?",
+                                                      "Crosstabs", JOptionPane.DEFAULT_OPTION,
+                                                      JOptionPane.WARNING_MESSAGE, null, ObjButtons,
+                                                      ObjButtons[1]);
       if (promptResult == 0) {
         // crossTabulate(proj, proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS), null, false);
         crossTabulate(proj, proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, false);
@@ -165,8 +164,8 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
                                    boolean verbose) {
     PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
     numPCs = numPCs > 0 ? numPCs : pcResiduals.getNumComponents();
-    PrincipalComponentsCrossTabs pcCorrelation =
-        new PrincipalComponentsCrossTabs(pcResiduals, numPCs, verbose);
+    PrincipalComponentsCrossTabs pcCorrelation = new PrincipalComponentsCrossTabs(pcResiduals,
+                                                                                  numPCs, verbose);
     pcCorrelation.developCrossTabs(alternateDataFile == null ? null
                                                              : proj.PROJECT_DIRECTORY.getValue()
                                                                + alternateDataFile);
@@ -185,7 +184,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
     usage += "   (2) number of principal components to cross tabulate (i.e. numPCs=" + numPCs
              + " (defaults to all PCs in the file))\n" + "";
     usage +=
-        "   (3) an optional data file to add, must have a column with \"DNA\" and numeric data in all other columns.  (i.e. alternateDataFile="
+          "   (3) an optional data file to add, must have a column with \"DNA\" and numeric data in all other columns.  (i.e. alternateDataFile="
              + alternateDataFile + " (no default))\n" + "";
 
     for (String arg : args) {

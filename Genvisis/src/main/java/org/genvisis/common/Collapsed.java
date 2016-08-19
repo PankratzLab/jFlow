@@ -29,8 +29,8 @@ public class Collapsed {
   public static final int GREATEROREQUAL = 2;
   public static final int LESSOREQUAL = 3;
 
-  public static final String RULES =
-      "<0<1<2<3<4<5<6<7<8<9" + "<a,A<b,B<c,C<d,D<e,E<f,F<g,G<h,H<i,I<j,J"
+  public static final String RULES = "<0<1<2<3<4<5<6<7<8<9"
+                                     + "<a,A<b,B<c,C<d,D<e,E<f,F<g,G<h,H<i,I<j,J"
                                      + "<k,K<l,L<m,M<n,N<o,O<p,P<q,Q<r,R<s,S<t,T"
                                      + "<u,U<v,V<w,W<x,X<y,Y<z,Z";
 
@@ -288,7 +288,7 @@ public class Collapsed {
 
   /**
    * Prints an array of objects separated by a tab
-   * 
+   *
    * @param array an array of objects
    * @return String of printed objects
    */
@@ -298,7 +298,7 @@ public class Collapsed {
 
   /**
    * Prints an array of objects separated by the specified delimiter
-   * 
+   *
    * @param array an array of objects
    * @param delimiter String delimiter
    * @return String of printed objects
@@ -315,7 +315,7 @@ public class Collapsed {
 
   /**
    * Creates an array of Strings and copies the contents of a Vector into it
-   * 
+   *
    * @param v vector of Strings
    * @return an array of Strings from the Vector
    */
@@ -325,7 +325,7 @@ public class Collapsed {
 
   /**
    * Sorts an array of strings and returns the sorted array
-   * 
+   *
    * @param array the array to be sorted
    * @return the sorted array
    */
@@ -342,7 +342,7 @@ public class Collapsed {
 
   /**
    * Sort an array of Strings into ASCENDING alphabetical order
-   * 
+   *
    * @param arr the array of Strings to index
    * @return an integer array of the sorted indices
    */
@@ -433,7 +433,7 @@ public class Collapsed {
 
   /**
    * Swaps the positions of data in an array
-   * 
+   *
    * @param array the array containg the data to swap
    * @param index1 position 1 to swap
    * @param index2 position 2 to swap
@@ -446,7 +446,7 @@ public class Collapsed {
 
   /**
    * Rule comparitor to compare 2 strings and return if it matches the comparison type
-   * 
+   *
    * @param collator the rule collator for the comparison
    * @param arg1 string 1
    * @param arg2 string 2

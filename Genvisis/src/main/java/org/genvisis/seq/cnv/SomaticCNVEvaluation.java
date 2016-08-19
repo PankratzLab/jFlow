@@ -1,7 +1,5 @@
 package org.genvisis.seq.cnv;
 
-import com.google.common.primitives.Ints;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -31,6 +29,8 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+
+import com.google.common.primitives.Ints;
 
 /**
  * Class to refine somatic cnv calls
@@ -105,8 +105,8 @@ public class SomaticCNVEvaluation {
     BeastFilt beastFilt = new BeastFilt(normalCutoff, diffCutoff);
     TNCNVProducer producer = new TNCNVProducer(proj, inds, trackers, beastFilt);
     WorkerTrain<TNCNV> train =
-        new WorkerTrain<SomaticCNVEvaluation.TNCNV>(producer, numThreads, numThreads,
-                                                    proj.getLog());
+                             new WorkerTrain<SomaticCNVEvaluation.TNCNV>(producer, numThreads,
+                                                                         numThreads, proj.getLog());
     String outDir = proj.PROJECT_DIRECTORY.getValue() + "SomaticCNV/";
     new File(outDir).mkdirs();
     String outFile = outDir + ext.rootOf(cnvFile) + ".somaticEvals.txt";
@@ -139,8 +139,8 @@ public class SomaticCNVEvaluation {
       writer.println(Array.toStr(results[0]) + "\tGENE");
       for (int i = 1; i < results.length; i++) {
         Segment current =
-            new Segment(Byte.parseByte(results[i][2]), Integer.parseInt(results[i][3]),
-                        Integer.parseInt(results[i][4]));
+                        new Segment(Byte.parseByte(results[i][2]), Integer.parseInt(results[i][3]),
+                                    Integer.parseInt(results[i][4]));
         GeneData[] geneDatas = geneTrack.getOverlappingGenes(current);
         HashSet<String> written = new HashSet<String>();
         for (int j = 0; j < geneDatas.length; j++) {
@@ -204,18 +204,18 @@ public class SomaticCNVEvaluation {
     @Override
     public Callable<TNCNV> next() {
       TNTrack trackCurrent = tncnvs.get(index);
-      TNCNV current =
-          new TNCNV(proj, inds.get(trackCurrent.getTumorFidIid()), trackCurrent.getTumorSample(),
-                    trackCurrent.getNormalSample(), beastFilt);
+      TNCNV current = new TNCNV(proj, inds.get(trackCurrent.getTumorFidIid()),
+                                trackCurrent.getTumorSample(), trackCurrent.getNormalSample(),
+                                beastFilt);
       index++;
       return current;
     }
   }
 
   private static class SomaticEvaluation {
-    private static final String[] HEADER =
-        new String[] {"TYPE", "BEAST_HEIGHT_TUMOR", "BEAST_HEIGHT_NORMAL", "BEAST_HEIGHT_DIFF",
-                      "HQ"};
+    private static final String[] HEADER = new String[] {"TYPE", "BEAST_HEIGHT_TUMOR",
+                                                         "BEAST_HEIGHT_NORMAL", "BEAST_HEIGHT_DIFF",
+                                                         "HQ"};
     private final String type;
     private final double bhTumor;
     private final double bhNormal;
@@ -310,8 +310,8 @@ public class SomaticCNVEvaluation {
       int[][] cnvIndices = new int[tumorCnvs.getLoci().length][];
       Hashtable<String, Integer> track = proj.getMarkerIndices();
       for (int i = 0; i < tumorCnvs.getLoci().length; i++) {
-        String[] namesIn =
-            markerSet.getMarkersIn(tumorCnvs.getLoci()[i], markerSet.getIndicesByChr());
+        String[] namesIn = markerSet.getMarkersIn(tumorCnvs.getLoci()[i],
+                                                  markerSet.getIndicesByChr());
         ArrayList<Integer> nonVariant = new ArrayList<Integer>();
 
         for (String element : namesIn) {
@@ -330,15 +330,15 @@ public class SomaticCNVEvaluation {
       beastScoreTumor.computeBeastScores();
       proj.getLog().reportTimeInfo("Computing scores for " + normalSample);
       BeastScore beastScoreNormal =
-          new BeastScore(normalSamp.getLRRs(), markerSet.getIndicesByChr(), cnvIndices,
-                         proj.getLog());
+                                  new BeastScore(normalSamp.getLRRs(), markerSet.getIndicesByChr(),
+                                                 cnvIndices, proj.getLog());
       beastScoreNormal.computeBeastScores();
       markerSet = null;
       for (int i = 0; i < cnvIndices.length; i++) {
         double bhTumor = beastScoreTumor.getBeastHeights()[i];
         double bhNormal = beastScoreNormal.getBeastHeights()[i];
         SomaticEvaluation somaticEvaluation =
-            new SomaticEvaluation("ALL_MARKERS", bhTumor, bhNormal);
+                                            new SomaticEvaluation("ALL_MARKERS", bhTumor, bhNormal);
         somaticEvaluation.determineHQ(beastFilt.getNormalCutoff(), beastFilt.getDiffCutoff());
         somaticEvaluations[i] = somaticEvaluation;
       }
@@ -347,8 +347,8 @@ public class SomaticCNVEvaluation {
   }
 
   public static void main(String[] args) {
-    Project proj =
-        new Project("C:/workspace/Genvisis/projects/CushingsPCCorrected.properties", false);
+    Project proj = new Project("C:/workspace/Genvisis/projects/CushingsPCCorrected.properties",
+                               false);
     String[] cnvFiles = proj.CNV_FILENAMES.getValue();
     String vpopFile = proj.PROJECT_DIRECTORY.getValue() + "TN.vpop";
     int numthreads = 4;

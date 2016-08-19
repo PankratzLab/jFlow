@@ -49,8 +49,8 @@ public class SourceFileParser implements Runnable {
   public static final String[][] SNP_HEADER_OPTIONS = {Aliases.MARKER_NAMES};
   // public static final String[][] SNP_TABLE_FIELDS = { SNP_HEADER_OPTIONS[0], { "Chr",
   // "Chromosome" }, { "Position" } };
-  public static final String[][] SNP_TABLE_FIELDS =
-      {SNP_HEADER_OPTIONS[0], Aliases.CHRS, Aliases.POSITIONS};
+  public static final String[][] SNP_TABLE_FIELDS = {SNP_HEADER_OPTIONS[0], Aliases.CHRS,
+                                                     Aliases.POSITIONS};
   public static final String[] DELIMITERS = {",", "\t", " "};
   public static final String[] DELIMITER_DESCRIPTIONS = {"COMMA", "TAB", "SPACE"};
   public static final String OVERWRITE_OPTION_FILE = ".overwrite_option";
@@ -136,7 +136,7 @@ public class SourceFileParser implements Runnable {
           }
 
           reader =
-              Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[i]);
+                 Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[i]);
           // temp = null;
           for (int k = 0; k < headerData.columnHeaderLineIndex + 1; k++) {
             // iterate
@@ -201,19 +201,19 @@ public class SourceFileParser implements Runnable {
                                 headerData.colR == -1 ? null : new float[markerNames.length],
                                 headerData.colBAF == -1 ? null : new float[markerNames.length],
                                 headerData.colLRR == -1 ? null : new float[markerNames.length],};
-          genotypes =
-              new byte[][] {Array.byteArray(markerNames.length, (byte) 0),
-                            ignoreAB ? null : Array.byteArray(markerNames.length, (byte) -1),}; // two
-                                                                                                // sets
-                                                                                                // of
-                                                                                                // genotypes,
-                                                                                                // the
-                                                                                                // "forward"
-                                                                                                // alleles
-                                                                                                // and
-                                                                                                // the
-                                                                                                // AB
-                                                                                                // alleles
+          genotypes = new byte[][] {Array.byteArray(markerNames.length, (byte) 0),
+                                    ignoreAB ? null
+                                             : Array.byteArray(markerNames.length, (byte) -1),}; // two
+                                                                                                 // sets
+                                                                                                 // of
+                                                                                                 // genotypes,
+                                                                                                 // the
+                                                                                                 // "forward"
+                                                                                                 // alleles
+                                                                                                 // and
+                                                                                                 // the
+                                                                                                 // AB
+                                                                                                 // alleles
           if (!headersOutput) {
             StringBuilder logOutput = new StringBuilder();
             logOutput.append("Column name assignments for data import:\n");
@@ -277,8 +277,8 @@ public class SourceFileParser implements Runnable {
             line = tmp.split(delimiter, -1);
             if (idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)) {
               trav =
-                  files[i].substring(0,
-                                     files[i].indexOf(proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)));
+                   files[i].substring(0,
+                                      files[i].indexOf(proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)));
             } else {
               if (parseAtAt && line[sampIndex].indexOf("@") == -1) {
                 log.reportError("Error - " + idHeader + " '" + line[sampIndex]
@@ -310,56 +310,56 @@ public class SourceFileParser implements Runnable {
             int col = headerData.colGC;
             try {
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 1;
               col = headerData.colXRaw;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 2;
               col = headerData.colYRaw;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 3;
               col = headerData.colX;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 4;
               col = headerData.colY;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 5;
               col = headerData.colTheta;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 6;
               col = headerData.colR;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 7;
               col = headerData.colBAF;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 8;
               col = headerData.colLRR;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
             } catch (NumberFormatException nfe) {
               log.reportError("Error - failed at line " + key + " to parse '" + line[col]
@@ -413,9 +413,9 @@ public class SourceFileParser implements Runnable {
                                     + Array.toStr(line) + " did not");
                 return;
               }
-              genotypes[0][key] =
-                  (byte) ext.indexOfStr(line[headerData.colGeno1] + line[headerData.colGeno2],
-                                        Sample.ALLELE_PAIRS);
+              genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.colGeno1]
+                                                        + line[headerData.colGeno2],
+                                                        Sample.ALLELE_PAIRS);
 
               if (genotypes[0][key] == -1) {
                 if (proj.getArrayType() == ARRAY.ILLUMINA) {// Affy matrix format does not use
@@ -430,9 +430,9 @@ public class SourceFileParser implements Runnable {
                   }
                   genotypes[0][key] = 0;
                 } else {
-                  genotypes[0][key] =
-                      (byte) ext.indexOfStr(line[headerData.colGenoAB1]
-                                            + line[headerData.colGenoAB2], Sample.AB_PAIRS);
+                  genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.colGenoAB1]
+                                                            + line[headerData.colGenoAB2],
+                                                            Sample.AB_PAIRS);
                   if (genotypes[0][key] == -1) {
                     log.reportError("Error - failed to lookup " + line[headerData.colGeno1]
                                     + line[headerData.colGeno2] + " for marker "
@@ -445,9 +445,9 @@ public class SourceFileParser implements Runnable {
               if (ignoreAB) {
                 // do nothing, will need to use these files to determine AB lookup table
               } else if (abLookup == null) {
-                genotypes[1][key] =
-                    (byte) ext.indexOfStr(line[headerData.colGenoAB1] + line[headerData.colGenoAB2],
-                                          Sample.AB_PAIRS);
+                genotypes[1][key] = (byte) ext.indexOfStr(line[headerData.colGenoAB1]
+                                                          + line[headerData.colGenoAB2],
+                                                          Sample.AB_PAIRS);
               } else {
                 if (genotypes[0][key] == 0) {
                   genotypes[1][key] = -1;
@@ -495,9 +495,9 @@ public class SourceFileParser implements Runnable {
             if (writer == null) {
               try {
                 writer =
-                    new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-                                                   + "FYI_IDS_WERE_CHANGED" + threadId + ".txt",
-                                                   true));
+                       new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                      + "FYI_IDS_WERE_CHANGED" + threadId + ".txt",
+                                                      true));
                 if (new File(proj.PROJECT_DIRECTORY.getValue() + "FYI_IDS_WERE_CHANGED" + threadId
                              + ".txt").length() == 0) {
                   writer.println("The following IDs were changed so that spaces are removed and so that they could be used as valid filenames:");
@@ -599,8 +599,8 @@ public class SourceFileParser implements Runnable {
 
     log = proj.getLog();
     if (abLookupRequired && Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
-      abLookup =
-          new ABLookup(markerNames, proj.AB_LOOKUP_FILENAME.getValue(), true, false, proj.getLog());
+      abLookup = new ABLookup(markerNames, proj.AB_LOOKUP_FILENAME.getValue(), true, false,
+                              proj.getLog());
       lookup = abLookup.getLookup();
       if (lookup == null) {
         log.report("Warning - failed to provide columns \"" + Sample.GENOTYPE_FIELDS[2][0]
@@ -671,16 +671,15 @@ public class SourceFileParser implements Runnable {
         }
 
         do {
-          response =
-              JOptionPane.showOptionDialog(null,
-                                           "Error - the same sample name '" + sampleName
-                                                 + "' is being parsed again and the previous file existed before the current command began.\n"
-                                                 + "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"
-                                                 + "If you would like to start from scratch, the safest thing would be to cancel now and delete all files in the sample directory.\n"
-                                                 + "What would you like to do?",
-                                           "What to do?", JOptionPane.DEFAULT_OPTION,
-                                           JOptionPane.QUESTION_MESSAGE, null, overwriteOptions,
-                                           overwriteOptions[0]);
+          response = JOptionPane.showOptionDialog(null,
+                                                  "Error - the same sample name '" + sampleName
+                                                        + "' is being parsed again and the previous file existed before the current command began.\n"
+                                                        + "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"
+                                                        + "If you would like to start from scratch, the safest thing would be to cancel now and delete all files in the sample directory.\n"
+                                                        + "What would you like to do?",
+                                                  "What to do?", JOptionPane.DEFAULT_OPTION,
+                                                  JOptionPane.QUESTION_MESSAGE, null,
+                                                  overwriteOptions, overwriteOptions[0]);
         } while (response == -1);
       }
       new File(dir + SourceFileParser.HOLD_OPTION_FILE).delete();
@@ -1058,11 +1057,11 @@ public class SourceFileParser implements Runnable {
         }
         log.reportTimeWarning("Affymetrix confidence scores will be imported as (1-conf)");
         log.reportTimeInfo("Initializing parser for array type " + array);
-        affyProcess = new AffyProcess(proj,
-                                      Files.toFullPaths(files,
-                                                        proj.SOURCE_DIRECTORY.getValue(false,
-                                                                                       true)),
-                                      delimiter, log);
+        affyProcess =
+                    new AffyProcess(proj,
+                                    Files.toFullPaths(files,
+                                                      proj.SOURCE_DIRECTORY.getValue(false, true)),
+                                    delimiter, log);
         affyProcess.matchCn();
         affyProcess.combineFirst();
         for (int i = 0; i < files.length; i++) {
@@ -1214,16 +1213,16 @@ public class SourceFileParser implements Runnable {
       if (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)) {
         ext.indexFactors(new String[] {idHeader}, line, false, true); // sampIndex
       }
-      snpIndex =
-          ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, true, true)[0];
+      snpIndex = ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, true,
+                                  true)[0];
 
       idHeader = proj.ID_HEADER.getValue();
       reader.mark(1000);
 
       if (idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)) {
         sampleName =
-            files[0].substring(0,
-                               files[0].indexOf(proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)));
+                   files[0].substring(0,
+                                      files[0].indexOf(proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)));
         sampIndex = -7;
         parseAtAt = false;
       } else {
@@ -1308,8 +1307,8 @@ public class SourceFileParser implements Runnable {
             // we should have all markers now...
             markerNames = Array.toStringArray(markerNameHash);
             keys =
-                Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
-                                     proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+                 Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
+                                      proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
             if (keys == null) {
               return 0;// checkForSNP_Map(proj, log);
             } else {
@@ -1528,16 +1527,15 @@ public class SourceFileParser implements Runnable {
 
       overwriteOptions = new String[] {"Delete All", "Cancel parser"};
 
-      response =
-          JOptionPane.showOptionDialog(null,
-                                       "Marker data files (at least the first file 'markers.0.mdRAF') have already been parsed.\n"
-                                             + "This happens if you had previously transposed the data or if the parser was interrupted and manually restarted.\n"
-                                             + "If you would like to start from scratch, select \"Delete All\" earlier files.\n"
-                                             + "Otherwise, press Cancel.\n"
-                                             + "What would you like to do?",
-                                       "Marker data exists", JOptionPane.DEFAULT_OPTION,
-                                       JOptionPane.QUESTION_MESSAGE, null, overwriteOptions,
-                                       overwriteOptions[1]);
+      response = JOptionPane.showOptionDialog(null,
+                                              "Marker data files (at least the first file 'markers.0.mdRAF') have already been parsed.\n"
+                                                    + "This happens if you had previously transposed the data or if the parser was interrupted and manually restarted.\n"
+                                                    + "If you would like to start from scratch, select \"Delete All\" earlier files.\n"
+                                                    + "Otherwise, press Cancel.\n"
+                                                    + "What would you like to do?",
+                                              "Marker data exists", JOptionPane.DEFAULT_OPTION,
+                                              JOptionPane.QUESTION_MESSAGE, null, overwriteOptions,
+                                              overwriteOptions[1]);
 
       switch (response) {
         case -1:
@@ -1656,7 +1654,7 @@ public class SourceFileParser implements Runnable {
           log.report(ext.getTime() + "\t" + (i + 1) + " of " + files.length + " (" + files[i]
                      + ")");
           reader =
-              Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[i]);
+                 Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[i]);
           do {
             line = reader.readLine().trim().replace("#Column header: ", "").split(delimiter, -1);
           } while (reader.ready() && (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line,
@@ -1666,7 +1664,7 @@ public class SourceFileParser implements Runnable {
           log.report("Searching: " + Array.toStr(line));
           dataIndices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, false, false);
           genotypeIndices =
-              ext.indexFactors(Sample.GENOTYPE_FIELDS, line, false, true, false, false);
+                          ext.indexFactors(Sample.GENOTYPE_FIELDS, line, false, true, false, false);
           sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
           snpIndex = ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false,
                                       true)[0];
@@ -1749,9 +1747,10 @@ public class SourceFileParser implements Runnable {
                   sampleName = fixes.get(sampleName);
                 }
 
-                filename =
-                    SourceFileParser.determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true),
-                                                       sampleName, timeBegan, log);
+                filename = SourceFileParser.determineFilename(
+                                                              proj.SAMPLE_DIRECTORY.getValue(true,
+                                                                                             true),
+                                                              sampleName, timeBegan, log);
                 if (filename == null) {
                   return 0;
                 }
@@ -1841,9 +1840,9 @@ public class SourceFileParser implements Runnable {
                   }
                 }
 
-                genotypes[0][key] =
-                    (byte) ext.indexOfStr(line[genotypeIndices[0]] + line[genotypeIndices[1]],
-                                          Sample.ALLELE_PAIRS);
+                genotypes[0][key] = (byte) ext.indexOfStr(line[genotypeIndices[0]]
+                                                          + line[genotypeIndices[1]],
+                                                          Sample.ALLELE_PAIRS);
                 if (genotypes[0][key] == -1) {
                   if (ext.indexOfStr(line[genotypeIndices[0]] + line[genotypeIndices[1]],
                                      Sample.ALT_NULLS) == -1) {
@@ -1862,9 +1861,9 @@ public class SourceFileParser implements Runnable {
                 if (ignoreAB) {
                   // do nothing, will need to use these files to determine AB lookup table
                 } else if (abLookup == null) {
-                  genotypes[1][key] =
-                      (byte) ext.indexOfStr(line[genotypeIndices[2]] + line[genotypeIndices[3]],
-                                            Sample.AB_PAIRS);
+                  genotypes[1][key] = (byte) ext.indexOfStr(line[genotypeIndices[2]]
+                                                            + line[genotypeIndices[3]],
+                                                            Sample.AB_PAIRS);
                 } else {
                   if (genotypes[0][key] == 0) {
                     genotypes[1][key] = -1;
@@ -1919,8 +1918,8 @@ public class SourceFileParser implements Runnable {
               .writeToTextFile(proj.PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt");
 
     try {
-      writer =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "ListOfMarkers.txt"));
+      writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+                                              + "ListOfMarkers.txt"));
       writer.println("Marker\tExpected\tTimesSeen\tTimesDuplicated");
       for (String markerName : markerNames) {
         writer.println(markerName + "\t1\t" + countHash.getCount(markerName) + "\t"
@@ -2006,12 +2005,16 @@ public class SourceFileParser implements Runnable {
     headers = proj.getSourceFileHeaders(true);// setting to true fixed an issue parsing NGRC data
     int count = 0;
     try {
-      LongFileFormatProducer producer =
-          new LongFileFormatProducer(proj, files, idHeader, fixes, delimiter, markerNames,
-                                     fingerprint, markerIndexMap, abLookup, renamedIDsHash, headers,
-                                     log);
+      LongFileFormatProducer producer = new LongFileFormatProducer(proj, files, idHeader, fixes,
+                                                                   delimiter, markerNames,
+                                                                   fingerprint, markerIndexMap,
+                                                                   abLookup, renamedIDsHash,
+                                                                   headers, log);
       WorkerTrain<LongFormatParseResult> train =
-          new WorkerTrain<SourceFileParser.LongFormatParseResult>(producer, numThreads, 10, log);
+                                               new WorkerTrain<SourceFileParser.LongFormatParseResult>(producer,
+                                                                                                       numThreads,
+                                                                                                       10,
+                                                                                                       log);
       while (train.hasNext()) {
         LongFormatParseResult result = train.next();
         if (result.count == 0) {
@@ -2072,8 +2075,8 @@ public class SourceFileParser implements Runnable {
       throw new RuntimeException(new InterruptedException());
     }
     try {
-      writer =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "ListOfMarkers.txt"));
+      writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+                                              + "ListOfMarkers.txt"));
       writer.println("Marker\tExpected\tTimesSeen\tTimesDuplicated");
       for (String markerName : markerNames) {
         writer.println(markerName + "\t1\t" + countHash.getCount(markerName) + "\t"
@@ -2418,8 +2421,8 @@ public class SourceFileParser implements Runnable {
             }
 
             filename =
-                SourceFileParser.determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true),
-                                                   sampleName, timeBegan, log);
+                     SourceFileParser.determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true),
+                                                        sampleName, timeBegan, log);
             if (filename == null) {
               return result;
             }
@@ -2451,15 +2454,15 @@ public class SourceFileParser implements Runnable {
               genotypes = samp.getAllGenotypes();
             } else {
               data =
-                  new float[][] {headerData.colGC == -1 ? null : new float[markerNames.length],
-                                 headerData.colXRaw == -1 ? null : new float[markerNames.length],
-                                 headerData.colYRaw == -1 ? null : new float[markerNames.length],
-                                 headerData.colX == -1 ? null : new float[markerNames.length],
-                                 headerData.colY == -1 ? null : new float[markerNames.length],
-                                 headerData.colTheta == -1 ? null : new float[markerNames.length],
-                                 headerData.colR == -1 ? null : new float[markerNames.length],
-                                 headerData.colBAF == -1 ? null : new float[markerNames.length],
-                                 headerData.colLRR == -1 ? null : new float[markerNames.length],};
+                   new float[][] {headerData.colGC == -1 ? null : new float[markerNames.length],
+                                  headerData.colXRaw == -1 ? null : new float[markerNames.length],
+                                  headerData.colYRaw == -1 ? null : new float[markerNames.length],
+                                  headerData.colX == -1 ? null : new float[markerNames.length],
+                                  headerData.colY == -1 ? null : new float[markerNames.length],
+                                  headerData.colTheta == -1 ? null : new float[markerNames.length],
+                                  headerData.colR == -1 ? null : new float[markerNames.length],
+                                  headerData.colBAF == -1 ? null : new float[markerNames.length],
+                                  headerData.colLRR == -1 ? null : new float[markerNames.length],};
               genotypes = new byte[2][];
               genotypes[0] = Array.byteArray(markerNames.length, (byte) 0); // used to be
                                                                             // initialized to
@@ -2488,56 +2491,56 @@ public class SourceFileParser implements Runnable {
             int col = headerData.colGC;
             try {
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 1;
               col = headerData.colXRaw;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 2;
               col = headerData.colYRaw;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 3;
               col = headerData.colX;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 4;
               col = headerData.colY;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 5;
               col = headerData.colTheta;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 6;
               col = headerData.colR;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 7;
               col = headerData.colBAF;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
               ind = 8;
               col = headerData.colLRR;
               if (col != -1) {
-                data[ind][key] =
-                    ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN
+                                                               : Float.parseFloat(line[col]);
               }
             } catch (NumberFormatException nfe) {
               log.reportError("Error - failed at line " + key + " to parse '" + line[col]
@@ -2579,9 +2582,9 @@ public class SourceFileParser implements Runnable {
                                     + Array.toStr(line) + " did not");
                 return result;
               }
-              genotypes[0][key] =
-                  (byte) ext.indexOfStr(line[headerData.colGeno1] + line[headerData.colGeno2],
-                                        Sample.ALLELE_PAIRS);
+              genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.colGeno1]
+                                                        + line[headerData.colGeno2],
+                                                        Sample.ALLELE_PAIRS);
               if (genotypes[0][key] == -1) {
                 if (proj.getArrayType() == ARRAY.ILLUMINA) {// Affy matrix format does not use
                                                             // ALLELE_PAIRS
@@ -2595,9 +2598,9 @@ public class SourceFileParser implements Runnable {
                   }
                   genotypes[0][key] = 0;
                 } else {
-                  genotypes[0][key] =
-                      (byte) ext.indexOfStr(line[headerData.colGenoAB1]
-                                            + line[headerData.colGenoAB2], Sample.AB_PAIRS);
+                  genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.colGenoAB1]
+                                                            + line[headerData.colGenoAB2],
+                                                            Sample.AB_PAIRS);
                   if (genotypes[0][key] == -1) {
                     log.reportError("Error - failed to lookup " + line[headerData.colGeno1]
                                     + line[headerData.colGeno2] + " for marker "
@@ -2611,9 +2614,9 @@ public class SourceFileParser implements Runnable {
               if (ignoreAB) {
                 // do nothing, will need to use these files to determine AB lookup table
               } else if (abLookup == null) {
-                genotypes[1][key] =
-                    (byte) ext.indexOfStr(line[headerData.colGenoAB1] + line[headerData.colGenoAB2],
-                                          Sample.AB_PAIRS);
+                genotypes[1][key] = (byte) ext.indexOfStr(line[headerData.colGenoAB1]
+                                                          + line[headerData.colGenoAB2],
+                                                          Sample.AB_PAIRS);
               } else {
                 if (genotypes[0][key] == 0) {
                   genotypes[1][key] = -1;

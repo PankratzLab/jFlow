@@ -24,19 +24,21 @@ import org.genvisis.stats.RegressionModel;
 
 public class GenCNV implements Runnable {
 
-  public static final String[] ANALYSIS_MODELS =
-      {"ANY_CNV_COLLAPSED", "ANY_CNV_ORDERED_NOT_COLLAPSED", "HOMOZYGOUS_DELETIONS_ONLY"};
+  public static final String[] ANALYSIS_MODELS = {"ANY_CNV_COLLAPSED",
+                                                  "ANY_CNV_ORDERED_NOT_COLLAPSED",
+                                                  "HOMOZYGOUS_DELETIONS_ONLY"};
   public static final String[] ANALYSIS_TYPES = {"POSITION", "WINDOW"};
   private static final int[] DEFAULT_WINDOWS = {0, 200000};
-  public static final String[] ANALYSIS_SUMMARY_HEADER =
-      {"MODEL", "TYPE", "PhenoType", "lambda", "MinPvalue", "MinPvalueLocus",
-       "NumPassing pval cutoff", "lociTested/lociTotal"};
-  public static final String[] ANALYSIS_LOCI_HEADER =
-      {"MODEL", "TYPE", "PhenoType", "lambda", "loci", "pvalue"};
+  public static final String[] ANALYSIS_SUMMARY_HEADER = {"MODEL", "TYPE", "PhenoType", "lambda",
+                                                          "MinPvalue", "MinPvalueLocus",
+                                                          "NumPassing pval cutoff",
+                                                          "lociTested/lociTotal"};
+  public static final String[] ANALYSIS_LOCI_HEADER = {"MODEL", "TYPE", "PhenoType", "lambda",
+                                                       "loci", "pvalue"};
 
-  public static final boolean[][] ANALYSIS_MODEL_PARAMS =
-      {{true, true, false, true, false}, {true, true, true, true, false},
-       {true, false, false, false, true}};
+  public static final boolean[][] ANALYSIS_MODEL_PARAMS = {{true, true, false, true, false},
+                                                           {true, true, true, true, false},
+                                                           {true, false, false, false, true}};
   public static final String[] GPHENO_HEADERS = {"FID", "IID"};
   public static final String[] GPED_HEADERS = {"markerName"};
   private static final int PHENO_START = 2;
@@ -77,8 +79,8 @@ public class GenCNV implements Runnable {
     for (int i = 0; i < phenos.length; i++) {
       if (hasVariance(phenos[i])) {
         RegressionModel model =
-            new LeastSquares(phenos[i].getArrayPheno(),
-                             Array.toDoubleArray(analysis.getBurdens()[i].getCounts()));
+                              new LeastSquares(phenos[i].getArrayPheno(),
+                                               Array.toDoubleArray(analysis.getBurdens()[i].getCounts()));
         if (!model.analysisFailed()) {
           analysis.getBurdens()[i].setBurdenPvalue(model.getOverallSig());
         }
@@ -402,7 +404,7 @@ public class GenCNV implements Runnable {
 
   public static class Burden implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final String analysisModel;
@@ -523,7 +525,7 @@ public class GenCNV implements Runnable {
   public static class AllSigs implements Serializable {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final Significance[] sigs;
@@ -555,7 +557,7 @@ public class GenCNV implements Runnable {
   // tracks significant results for each phenotype
   public static class Significance implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final String analysisModel;
@@ -837,8 +839,8 @@ public class GenCNV implements Runnable {
         Significance[] significance = new Significance[phenos.length];
         Burden[] burdens = new Burden[phenos.length];
         for (int k = 0; k < phenos.length; k++) {
-          significance[k] =
-              new Significance(ANALYSIS_MODELS[i], ANALYSIS_TYPES[j], phenos[k].getPhenoName());
+          significance[k] = new Significance(ANALYSIS_MODELS[i], ANALYSIS_TYPES[j],
+                                             phenos[k].getPhenoName());
           burdens[k] = new Burden(ANALYSIS_MODELS[i], ANALYSIS_TYPES[j], phenos[k].getPhenoName(),
                                   phenos[k].getArrayInds().length);
         }
@@ -889,8 +891,8 @@ public class GenCNV implements Runnable {
     Burden[] burdens = allSigs.getBurdens();
 
     try {
-      PrintWriter writer =
-          new PrintWriter(new FileWriter(dir + ext.rootOf(outputSummary) + "_lociResults.txt"));
+      PrintWriter writer = new PrintWriter(new FileWriter(dir + ext.rootOf(outputSummary)
+                                                          + "_lociResults.txt"));
       writer.println(Array.toStr(ANALYSIS_LOCI_HEADER));
 
       for (Significance significance : significances) {

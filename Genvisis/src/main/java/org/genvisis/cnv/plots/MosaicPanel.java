@@ -312,14 +312,14 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
         color = colorHash.get(samples[i][0] + "\t" + samples[i][1]);
       } else {
         color =
-            (byte) (ext.indexOfStr(samples[i][0] + Sample.SAMPLE_FILE_EXTENSION, files) >= 0 ? 0
-                                                                                             : 1); // What
-                                                                                                   // is
-                                                                                                   // the
-                                                                                                   // color
-                                                                                                   // code
-                                                                                                   // for
-                                                                                                   // Color.GRAY
+              (byte) (ext.indexOfStr(samples[i][0] + Sample.SAMPLE_FILE_EXTENSION, files) >= 0 ? 0
+                                                                                               : 1); // What
+                                                                                                     // is
+                                                                                                     // the
+                                                                                                     // color
+                                                                                                     // code
+                                                                                                     // for
+                                                                                                     // Color.GRAY
       }
       points[i] = new PlotPoint("", (byte) 1, (float) data[i][0], (float) data[i][1], (byte) SIZE,
                                 color, (byte) 0);

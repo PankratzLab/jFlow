@@ -23,7 +23,7 @@ import org.genvisis.common.ext;
 
 public class RegionNavigator extends JPanel implements ActionListener {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private JTextField textField;
@@ -92,7 +92,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
   }
 
   /**
-   * 
+   *
    * @return A Region object representing the current region
    */
   public Region getRegion() {
@@ -101,7 +101,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 
   /**
    * Updates the region (text field, button tooltips, etc.) to reflect the new current position
-   * 
+   *
    * @param index The index in the regions Vector to which this should be set
    */
   public void setRegion(int index) {

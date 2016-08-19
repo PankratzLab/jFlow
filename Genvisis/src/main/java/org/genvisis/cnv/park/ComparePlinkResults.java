@@ -26,7 +26,7 @@ public class ComparePlinkResults {
   // public static final String DEFAULT_ROOT = "C:\\Documents and Settings\\npankrat\\My
   // Documents\\CNV_PD\\results\\homozygosity\\";
   public static final String DEFAULT_ROOT =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\results\\paperComp\\";
+                                          "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\results\\paperComp\\";
   // public static final String DEFAULT_ROOT = "C:\\Documents and Settings\\npankrat\\My
   // Documents\\CNV_PD\\results\\HLA\\";
   // public static final String DEFAULT_ROOT = "C:\\Documents and Settings\\npankrat\\My
@@ -314,10 +314,10 @@ public class ComparePlinkResults {
       }
 
       list = HashVec.getKeys(hash);
-      writer = new PrintWriter(new FileWriter(rootDirectory
-                                              + callDirectory.substring(0,
-                                                                        callDirectory.length() - 1)
-                                              + "_comparison.xln"));
+      writer =
+             new PrintWriter(new FileWriter(rootDirectory
+                                            + callDirectory.substring(0, callDirectory.length() - 1)
+                                            + "_comparison.xln"));
       writer.print("CNV");
       for (File file : files) {
         writer.print("\t" + ext.rootOf(file.getName(), true));

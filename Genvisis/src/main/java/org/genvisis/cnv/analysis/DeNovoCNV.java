@@ -178,7 +178,7 @@ public class DeNovoCNV {
 
   /**
    * Call PennCNV to run trios analysis
-   * 
+   *
    * @param proj
    * @param listOfTrioSetsFullPath
    * @param pennDataDir
@@ -260,15 +260,15 @@ public class DeNovoCNV {
         if (found) {
           iterationsVec.add(new String[] {line[5], line[6], line[4]});
 
-          writer =
-              new PrintWriter(new FileOutputStream(pennOutDir + "lists/" + line[4] + "_solo.lst"));
+          writer = new PrintWriter(new FileOutputStream(pennOutDir + "lists/" + line[4]
+                                                        + "_solo.lst"));
           writer.println(commandPrefix + pennDataDir + line[5] + commandSuffix + "\n"
                          + commandPrefix + pennDataDir + line[6] + commandSuffix + "\n"
                          + commandPrefix + pennDataDir + line[4] + commandSuffix);
           writer.close();
 
-          writer =
-              new PrintWriter(new FileOutputStream(pennOutDir + "lists/" + line[4] + "_trio.lst"));
+          writer = new PrintWriter(new FileOutputStream(pennOutDir + "lists/" + line[4]
+                                                        + "_trio.lst"));
           writer.println(commandPrefix + pennDataDir + line[5] + commandSuffix + "\t"
                          + commandPrefix + pennDataDir + line[6] + commandSuffix + "\t"
                          + commandPrefix + pennDataDir + line[4] + commandSuffix);
@@ -403,9 +403,9 @@ public class DeNovoCNV {
     }
     try {
       filenames = Files.list(pennCnvResultDir, pennCnvResultFileNameExt, false);
-      writer =
-          new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
-                                         + pennCnvResultFileNameExt.replace("cnv", "") + ".cnv"));
+      writer = new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
+                                              + pennCnvResultFileNameExt.replace("cnv", "")
+                                              + ".cnv"));
       writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
       offspringCnv = new Hashtable<String, String>();
       for (String filename : filenames) {
@@ -422,7 +422,7 @@ public class DeNovoCNV {
                 position = Positions.parseUCSClocation(line[0]);
                 currentOffSpring = line[4];
                 currentOffSpring =
-                    currentOffSpring.substring(currentOffSpring.lastIndexOf("/") + 1);
+                                 currentOffSpring.substring(currentOffSpring.lastIndexOf("/") + 1);
                 ids = sampleData.lookup(currentOffSpring);
                 if (ids == null) {
                   // if (! offspringCnv.containsKey(trav)) {
@@ -509,9 +509,9 @@ public class DeNovoCNV {
       }
 
       filenames = Files.list(pennCnvResultDir, pennCnvResultFileNameExt, false);
-      writer1 =
-          new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
-                                         + pennCnvResultFileNameExt.replace("cnv", "") + ".cnv"));
+      writer1 = new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
+                                               + pennCnvResultFileNameExt.replace("cnv", "")
+                                               + ".cnv"));
       writer1.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
       writer2 = new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
                                                + pennCnvResultFileNameExt.replace("cnv", "")
@@ -530,8 +530,8 @@ public class DeNovoCNV {
                 position = Positions.parseUCSClocation(line[0]);
                 if (currentOffspring == null) {
                   currentOffspring = line[4];
-                  currentOffspring =
-                      currentOffspring.substring(currentOffspring.lastIndexOf("/") + 1);
+                  currentOffspring = currentOffspring.substring(currentOffspring.lastIndexOf("/")
+                                                                + 1);
                   currentParents = triosPedigree.get(currentOffspring);
                   currentFather = currentParents[0];
                   currentMother = currentParents[1];
@@ -603,8 +603,8 @@ public class DeNovoCNV {
       if (pedigreeHasHeader) {
         reader.readLine();
       }
-      writer =
-          new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true) + "trios.fam"));
+      writer = new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true)
+                                              + "trios.fam"));
       while (reader.ready()) {
         line = reader.readLine().split("\t");
         writer.println(line[0] + "\t" + line[1] + "\t" + line[2] + "\t" + line[3] + "\t"
@@ -680,7 +680,7 @@ public class DeNovoCNV {
     // C:/penncnv/lib/hh550.hg18.pfb -gcmodel C:/penncnv/lib/hh550.hg18.gcmodel [%1] [%2] [%3] -out
     // [%1].jointcnv";
     command =
-        "perl ../bin/penncnv/detect_cnv.pl -joint -hmm ../bin/penncnv/lib/hhall.hmm -pfb ../bin/custom.pfb -gcmodel ../bin/custom.gcmodel [%1] [%2] [%0] -out ../results/[%0].jointcnv -log ../results/[%0].log";
+            "perl ../bin/penncnv/detect_cnv.pl -joint -hmm ../bin/penncnv/lib/hhall.hmm -pfb ../bin/custom.pfb -gcmodel ../bin/custom.gcmodel [%1] [%2] [%0] -out ../results/[%0].jointcnv -log ../results/[%0].log";
 
     iterations = HashVec.loadFileToStringMatrix(pedigreeOfTrio, true, new int[] {4, 5, 6}, false);
 
@@ -692,11 +692,11 @@ public class DeNovoCNV {
    * 12/6/2013: Cannot remember what this method does. First, the same function is available in
    * another method, parsePennCnvResults(...). Second, looks like it is incomplete, - there is no
    * any writer in this method.
-   * 
+   *
    * @param pennCnvResultDir
-   * 
+   *
    * @param cnvFileExtensions
-   * 
+   *
    * @param log
    */
   public static void detectDenovoCnv(String pennCnvResultDir, String cnvFileExtensions,
@@ -800,8 +800,8 @@ public class DeNovoCNV {
     pennOutputDir = proj.PENNCNV_RESULTS_DIRECTORY.getValue(false, true);
     parseOrNot = false;
 
-    String usage =
-        "\n" + "cnv.analysis.DeNovoCNV analysis normally contains the following steps, split into several rounds, within each of which all the steps will be finished by just calling the program once."
+    String usage = "\n"
+                   + "cnv.analysis.DeNovoCNV analysis normally contains the following steps, split into several rounds, within each of which all the steps will be finished by just calling the program once."
                    + "1st round:" + "   (1) Search the pedigree file for list of trio sets;"
                    + "   (2) From .sampRAF data generate 'custom.pbf';"
                    + "   (3) From GC Base standarded file, generate custom GC model 'custom.gcmodel';"

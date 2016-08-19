@@ -49,8 +49,8 @@ public class PlinkSeqMegs {
     GenomeRegions gRegions = new GenomeRegions(geneTrack, pathways, log);
 
     VCFOps.verifyIndex(vcf, log);
-    String locFile =
-        resourceDirectory + ext.rootOf(gRegions.getGeneTrack().getGeneSetFilename()) + "_Gen.reg";
+    String locFile = resourceDirectory + ext.rootOf(gRegions.getGeneTrack().getGeneSetFilename())
+                     + "_Gen.reg";
     PlinkSeqUtils.generatePlinkSeqLoc(gRegions, locFile, log);
 
     PlinkSeq plinkSeq = new PlinkSeq(false, true, log);
@@ -66,9 +66,10 @@ public class PlinkSeqMegs {
     reader.close();
     // System.exit(1);
 
-    PlinkSeqWorker[] complete =
-        plinkSeq.fullGamutAssoc(pseqProject, new String[] {ext.rootOf(locFile)}, null, -1, maf + "",
-                                ext.rootOf(vpop.getFileName()), numthreads);
+    PlinkSeqWorker[] complete = plinkSeq.fullGamutAssoc(pseqProject,
+                                                        new String[] {ext.rootOf(locFile)}, null,
+                                                        -1, maf + "",
+                                                        ext.rootOf(vpop.getFileName()), numthreads);
     PlinkSeqBurdenSummary[] summaries = new PlinkSeqBurdenSummary[1];
     int index = 0;
     for (PlinkSeqWorker element : complete) {
@@ -77,8 +78,9 @@ public class PlinkSeqMegs {
         case BURDEN:
           String analysis = ext.rootOf(element.getOutputFiles()[0]);
           analysis = analysis.replaceAll(".*" + ext.rootOf(locFile) + ".", "");
-          PlinkSeqBurdenSummary plinkSeqBurdenSummary =
-              new PlinkSeqBurdenSummary(analysis, element.getOutputFiles()[0], log);
+          PlinkSeqBurdenSummary plinkSeqBurdenSummary = new PlinkSeqBurdenSummary(analysis,
+                                                                                  element.getOutputFiles()[0],
+                                                                                  log);
           plinkSeqBurdenSummary.load();
           plinkSeqBurdenSummary.correctPvalues();
           summaries[index] = plinkSeqBurdenSummary;
@@ -155,8 +157,10 @@ public class PlinkSeqMegs {
     ArrayList<PlinkSeqWorker> workers = new ArrayList<PlinkSeq.PlinkSeqWorker>();
     ImportProducer importer = new ImportProducer(vcfs, vpopFile, resourceDirectory, geneTrackFile,
                                                  keggPathwayFile, maf, loadLoc, log);
-    WorkerTrain<PlinkSeqWorker[]> importTrain =
-        new WorkerTrain<PlinkSeq.PlinkSeqWorker[]>(importer, numthreads, numthreads, log);
+    WorkerTrain<PlinkSeqWorker[]> importTrain = new WorkerTrain<PlinkSeq.PlinkSeqWorker[]>(importer,
+                                                                                           numthreads,
+                                                                                           numthreads,
+                                                                                           log);
     while (importTrain.hasNext()) {
       PlinkSeqWorker[] tmp = importTrain.next();
       for (PlinkSeqWorker element : tmp) {
@@ -164,9 +168,11 @@ public class PlinkSeqMegs {
       }
     }
     PlinkSeqProducer producer =
-        new PlinkSeqProducer(workers.toArray(new PlinkSeqWorker[workers.size()]), log);
+                              new PlinkSeqProducer(workers.toArray(new PlinkSeqWorker[workers.size()]),
+                                                   log);
     WorkerTrain<PlinkSeqWorker> train =
-        new WorkerTrain<PlinkSeq.PlinkSeqWorker>(producer, numthreads, numthreads, log);
+                                      new WorkerTrain<PlinkSeq.PlinkSeqWorker>(producer, numthreads,
+                                                                               numthreads, log);
     while (train.hasNext()) {
       train.next();
     }
@@ -187,15 +193,15 @@ public class PlinkSeqMegs {
     GenomeRegions gRegions = new GenomeRegions(geneTrack, pathways, log);
 
     VCFOps.verifyIndex(vcf, log);
-    String locFile =
-        resourceDirectory + ext.rootOf(gRegions.getGeneTrack().getGeneSetFilename()) + "_Gen.reg";
+    String locFile = resourceDirectory + ext.rootOf(gRegions.getGeneTrack().getGeneSetFilename())
+                     + "_Gen.reg";
     PlinkSeqUtils.generatePlinkSeqLoc(gRegions, locFile, log);
 
     PlinkSeq plinkSeq = new PlinkSeq(false, true, log);
     // ext.parseDirectoryOfFile(vpop.getFileName())
     PseqProject pseqProject =
-        PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()), directory, vcf, vpop,
-                            resourceDirectory, true, loadLoc, log);
+                            PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()), directory,
+                                                vcf, vpop, resourceDirectory, true, loadLoc, log);
     VCFFileReader reader = new VCFFileReader(new File(vcf), true);
     // int macFilter = (int) Math.round((float) VCFOps.getSamplesInFile(reader).length * maf);
     reader.close();
@@ -208,12 +214,13 @@ public class PlinkSeqMegs {
                                     int numthreads, int numBatches, Logger log) {
     log.reportTimeInfo("Utilizing " + (numthreads) + " total threads per batch");
     ChrSplitResults[] cSplitResults = VCFOps.splitByChrs(vcf, numthreads, true, log);
-    ArrayList<ChrSplitResults[]> cSplitResultsBatched =
-        Array.splitUpArray(cSplitResults, numBatches, log);
+    ArrayList<ChrSplitResults[]> cSplitResultsBatched = Array.splitUpArray(cSplitResults,
+                                                                           numBatches, log);
     String[] baseCommand =
-        Array.concatAll(PSF.Java.buildJavaCP(fullPathTojarFile),
-                        new String[] {"seq.analysis.PlinkSeqMegs", "vpop=" + vpopFile,
-                                      PSF.Ext.NUM_THREADS_COMMAND + numthreads + ""});
+                         Array.concatAll(PSF.Java.buildJavaCP(fullPathTojarFile),
+                                         new String[] {"seq.analysis.PlinkSeqMegs",
+                                                       "vpop=" + vpopFile, PSF.Ext.NUM_THREADS_COMMAND
+                                                                           + numthreads + ""});
     ArrayList<String> batches = new ArrayList<String>();
     ArrayList<String> masterVCFS = new ArrayList<String>();
     String rootOut = ext.parseDirectoryOfFile(vpopFile);
@@ -256,11 +263,11 @@ public class PlinkSeqMegs {
     // String vcf =
     // "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.CUSHINGS.vcf.gz";
     String vcf =
-        "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf";
+               "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf";
     String fileOfVcfs = null;
     boolean batch = false;
     String vpopFile =
-        "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControl.txt";
+                    "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControl.txt";
     // String resourceDirectory = "/home/tsaim/public/bin/pseqRef/hg19/";
     String resourceDirectory = "/home/spectorl/public/bin/pseqRef/hg19/";
     Logger log = new Logger(ext.rootOf(vcf, false) + "tally.log");

@@ -1,7 +1,5 @@
 package org.genvisis.link;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,9 +16,11 @@ import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
+import com.google.common.primitives.Ints;
+
 public class Phenotype {
-  public static final String[] OTHER_FILES =
-      {"map##.dat", "chr##.dat", "chr##.map", "chr##.freq", "run#.qsub", "chr#_vc.qsub"};
+  public static final String[] OTHER_FILES = {"map##.dat", "chr##.dat", "chr##.map", "chr##.freq",
+                                              "run#.qsub", "chr#_vc.qsub"};
 
   private static void update(String dir, String pheno, String pattern, int index,
                              String missingValue, Logger log) {

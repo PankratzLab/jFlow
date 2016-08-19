@@ -15,8 +15,8 @@ public class solarZeroByFam {
     StringTokenizer st;
 
     for (int chromosome = 1; chromosome <= 1; chromosome++) {
-      chrome =
-          (Integer.valueOf(chromosome + "").intValue() < 10) ? "0" + chromosome : "" + chromosome;
+      chrome = (Integer.valueOf(chromosome + "").intValue() < 10) ? "0" + chromosome
+                                                                  : "" + chromosome;
       reader = new BufferedReader(new FileReader("solar_marker." + chrome));
       writer = new PrintWriter(new FileWriter("solar_marker." + fam + "." + chrome));
       writer.println(reader.readLine());

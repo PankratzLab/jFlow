@@ -1,9 +1,6 @@
 // -Xms1024M -Xmx1024M
 package org.genvisis.nrss;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,6 +25,9 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.LDdatabase;
 import org.genvisis.filesys.LongLDdb;
 import org.genvisis.filesys.SnpMarkerSet;
+
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
 
 public class Algorithm {
   public static final double INDEX_THRESHOLD = 0.0001;
@@ -64,7 +64,8 @@ public class Algorithm {
     IntVector markerLocations = new IntVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
     DoubleVector pvalueVector = new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
     DoubleVector varVector =
-        variate_column == -1 ? null : new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
+                           variate_column == -1 ? null
+                                                : new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
     int count, lowIndex, highIndex, countMissing;
     IntVector indexVector = new IntVector();
     Vector<String> inclusionVector = new Vector<String>();
@@ -436,7 +437,7 @@ public class Algorithm {
     commands += "plink --bfile plink --chr [%0] --out chr[%0].recode --recode\n\n";
     commands += Files.getRunString() + " nrss.Nrss procMap=[%0]\n";
     commands +=
-        "java -Dsun.java2d.noddraw=true -Xmx1024m -classpath /home/npankrat/Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -log -pedfile chr[%0].recode.ped -info chr[%0].map -skipcheck -hwcutoff 0 -maxDistance 500 -dprime\n\n";
+             "java -Dsun.java2d.noddraw=true -Xmx1024m -classpath /home/npankrat/Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -log -pedfile chr[%0].recode.ped -info chr[%0].map -skipcheck -hwcutoff 0 -maxDistance 500 -dprime\n\n";
 
     Files.batchIt("haplo", null, numBatches, commands, Array.stringArraySequence(23, ""));
   }
@@ -964,7 +965,7 @@ public class Algorithm {
     // int var = -1;
 
     String dir =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\analysisOfImputation\\Aff_AAO_combo\\finalList\\";
+               "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\analysisOfImputation\\Aff_AAO_combo\\finalList\\";
     String filename = "v2_nrss_input.txt";
     int col = 3;
     int var = -1;

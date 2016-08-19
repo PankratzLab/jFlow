@@ -30,7 +30,7 @@ import org.genvisis.common.ext;
 public class GoogleMash implements Serializable {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   // public static String GOOGLE_API =
@@ -82,8 +82,8 @@ public class GoogleMash implements Serializable {
   public void queryAll(int numThreads) {
     GQuery[] tmp = new GQuery[queries.length];
     QueryProducer producer = new QueryProducer(queries);
-    WorkerTrain<GQuery> train =
-        new WorkerTrain<GoogleMash.GQuery>(producer, numThreads, numThreads, log);
+    WorkerTrain<GQuery> train = new WorkerTrain<GoogleMash.GQuery>(producer, numThreads, numThreads,
+                                                                   log);
     int index = 0;
     while (train.hasNext()) {
       tmp[index] = train.next();
@@ -169,7 +169,7 @@ public class GoogleMash implements Serializable {
 
   private static class GQuery implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final QUERY_TYPE type;
@@ -197,7 +197,7 @@ public class GoogleMash implements Serializable {
     public void query() {
       try {
         String spec =
-            type.getAddress() + URLEncoder.encode(base + " + \"" + extra + "\"", CHAR_SET);
+                    type.getAddress() + URLEncoder.encode(base + " + \"" + extra + "\"", CHAR_SET);
         URL url = new URL(spec);
         log.reportTimeInfo(spec);
         try {

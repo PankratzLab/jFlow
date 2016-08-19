@@ -1,7 +1,5 @@
 package org.genvisis.cnv.analysis.pca;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -18,6 +16,8 @@ import org.genvisis.common.ext;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+
+import com.google.common.primitives.Doubles;
 
 /**
  * @author lane0212 Class to compute percent race with genotyping pcs, hijacking the
@@ -47,7 +47,7 @@ public class PCPopulation {
     determinePCClusters();
     Hashtable<String, TestSampleDistances> dists = new Hashtable<String, TestSampleDistances>();
     Hashtable<String, TestPopulationDistances> pdists =
-        new Hashtable<String, TestPopulationDistances>();
+                                                      new Hashtable<String, TestPopulationDistances>();
     for (int i = 0; i < populations.length; i++) {
       if (populations[i].isTest()) {
         for (int j = 0; j < populations.length; j++) {
@@ -74,7 +74,7 @@ public class PCPopulation {
       }
     }
     ArrayList<TestSampleDistances> finalizedDists =
-        new ArrayList<PCPopulation.TestSampleDistances>(dists.size());
+                                                  new ArrayList<PCPopulation.TestSampleDistances>(dists.size());
     for (String ind : dists.keySet()) {
       TestSampleDistances curDist = dists.get(ind);
       curDist.computeNormDist(pdists, log);
@@ -141,9 +141,8 @@ public class PCPopulation {
       } else {
         double tmpDist = 0;
         for (int i = 0; i < population.getClusterCenters().length; i++) {
-          tmpDist +=
-              Math.pow(population.getClusterCenters()[i] - otherPopulation.getClusterCenters()[i],
-                       2);
+          tmpDist += Math.pow(population.getClusterCenters()[i]
+                              - otherPopulation.getClusterCenters()[i], 2);
         }
         tmpDist = Math.sqrt(tmpDist);
         otherDistances.add(tmpDist);
@@ -419,9 +418,9 @@ public class PCPopulation {
       } else {
         Set<String> testSamples = testPop.getSamples();
         distances = new ArrayList<TestSampleDistance>(testSamples.size());
-        double[][] trimmedPcs =
-            PrincipalComponentsResiduals.trimPcBasis(clusterComponents, pResiduals.getPcBasis(),
-                                                     log);
+        double[][] trimmedPcs = PrincipalComponentsResiduals.trimPcBasis(clusterComponents,
+                                                                         pResiduals.getPcBasis(),
+                                                                         log);
         for (String testSamp : testSamples) {
           int index = pResiduals.getSamplesInPc().get(testSamp);
           double distTmp = 0;
@@ -440,9 +439,9 @@ public class PCPopulation {
         throw new IllegalStateException("This method cannot be called on the test case");
       } else {
         clusterCenters = new double[clusterComponents];
-        double[][] trimmedPcs =
-            PrincipalComponentsResiduals.trimPcBasis(clusterComponents, pResiduals.getPcBasis(),
-                                                     log);
+        double[][] trimmedPcs = PrincipalComponentsResiduals.trimPcBasis(clusterComponents,
+                                                                         pResiduals.getPcBasis(),
+                                                                         log);
         for (int i = 0; i < clusterCenters.length; i++) {
           clusterCenters[i] = Array.median(Array.subArray(trimmedPcs[i], pcMatchedMask));
           log.reportTimeInfo(name + " Cluster " + i + " : " + clusterCenters[i]);

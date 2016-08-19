@@ -23,9 +23,9 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.common.Files;
+
+import net.miginfocom.swing.MigLayout;
 
 public class NewMarkerListDialog extends JDialog implements ActionListener {
 
@@ -76,7 +76,7 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
     scrollPane.setViewportView(textArea);
 
     JLabel lblMarkerNamesone =
-        new JLabel("Marker names (one per line, with tab-separated comments): ");
+                             new JLabel("Marker names (one per line, with tab-separated comments): ");
     contentPane.add(lblMarkerNamesone, "cell 0 0,growx,aligny top");
 
     JLabel lblFileName = new JLabel("File name (full path):");
@@ -155,8 +155,8 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
     if (invalid.size() > 0) {
       String[] options = {"Ignore and Continue", "Return"};
       StringBuilder msg =
-          new StringBuilder("Warning - ").append(invalid.size())
-                                         .append(" markers are not present in the current marker set:");
+                        new StringBuilder("Warning - ").append(invalid.size())
+                                                       .append(" markers are not present in the current marker set:");
       for (String inv : invalid) {
         msg.append("\n").append(inv);
       }

@@ -21,13 +21,13 @@ import org.genvisis.seq.SeqVariables.PLATFORM;
 public class SRARunTable extends HashMap<String, SRASample> {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
   /**
    * Corresponds to the SRA sample ID
-   * 
+   *
    */
   private static final String RUN_S = "Run_s";
 
@@ -57,13 +57,13 @@ public class SRARunTable extends HashMap<String, SRASample> {
     SRARunTable sraRunTable = new SRARunTable();
 
     try {
-      String[] requiredHeader =
-          new String[] {RUN_S, SUBMITTED_SAMPLE_ID_S, ASSAY_TYPE_S, ASSEMBLY_TYPE, PLATFORM_S};
+      String[] requiredHeader = new String[] {RUN_S, SUBMITTED_SAMPLE_ID_S, ASSAY_TYPE_S,
+                                              ASSEMBLY_TYPE, PLATFORM_S};
 
       BufferedReader reader = Files.getAppropriateReader(sraTable);
 
-      int[] indices =
-          ext.indexFactors(requiredHeader, reader.readLine().trim().split("\t"), true, false);
+      int[] indices = ext.indexFactors(requiredHeader, reader.readLine().trim().split("\t"), true,
+                                       false);
       int numLoaded = 0;
       while (reader.ready()) {
         String[] line = reader.readLine().trim().split("\t");

@@ -23,15 +23,15 @@ import org.genvisis.filesys.GeneTrack;
 
 public class Pathways implements Serializable {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private static final String HUMAN = "hsa";
   private static final String RS = "rs:";
 
   private static final String KEGG_HUMAN_PATHWAY_LIST = "http://rest.kegg.jp/list/pathway/" + HUMAN;
-  private static final String KEGG_HUMAN_PATHWAY_GENE_LINK =
-      "http://rest.kegg.jp/link/" + HUMAN + "/";
+  private static final String KEGG_HUMAN_PATHWAY_GENE_LINK = "http://rest.kegg.jp/link/" + HUMAN
+                                                             + "/";
   private static final String REF_SEQ_GENE_LINK = "http://rest.genome.jp/link/refnuc/";
   private static final String PATH = "path";
   private Pathway[] pathways;
@@ -195,12 +195,12 @@ public class Pathways implements Serializable {
       boolean found = false;
       for (GeneData[] geneData : geneDatas) {
         if (!found) {
-          for (int j = 0; j < geneData.length; j++) {
-            String[] ncbis = geneData[j].getNcbiAssessionNumbers();
+          for (GeneData element : geneData) {
+            String[] ncbis = element.getNcbiAssessionNumbers();
             for (int k = 0; k < tmp.size(); k++) {
               if (ext.indexOfStr(tmp.get(k), ncbis) >= 0) {
                 found = true;
-                pathGenes.add(geneData[j].getGeneName());
+                pathGenes.add(element.getGeneName());
               }
             }
           }
@@ -230,8 +230,9 @@ public class Pathways implements Serializable {
 
     try {
       BufferedReader in =
-          new BufferedReader(new InputStreamReader(new URL(KEGG_HUMAN_PATHWAY_GENE_LINK + "/"
-                                                           + pathway).openStream()));
+                        new BufferedReader(new InputStreamReader(new URL(KEGG_HUMAN_PATHWAY_GENE_LINK
+                                                                         + "/"
+                                                                         + pathway).openStream()));
       try {
         Thread.sleep(100);
       } catch (InterruptedException ie) {
@@ -257,9 +258,9 @@ public class Pathways implements Serializable {
 
     }
 
-    ArrayList<String[]> splits =
-        Array.splitUpArray(keggGenes.toArray(new String[keggGenes.size()]),
-                           Math.round((float) keggGenes.size() / 50) + 1, log);
+    ArrayList<String[]> splits = Array.splitUpArray(keggGenes.toArray(new String[keggGenes.size()]),
+                                                    Math.round((float) keggGenes.size() / 50) + 1,
+                                                    log);
     for (int i = 0; i < splits.size(); i++) {
 
       String q = Array.toStr(splits.get(i), "+");

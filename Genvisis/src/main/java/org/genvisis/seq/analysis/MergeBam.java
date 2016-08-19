@@ -101,10 +101,10 @@ public class MergeBam {
           tmpCommand.add(SMALL_H);
           tmpCommand.add(outputHeader);
           String[] command = tmpCommand.toArray(new String[tmpCommand.size()]);
-          progress =
-              CmdLine.runCommandWithFileChecks(command, "", inputBams, new String[] {outputBam},
-                                               verbose, overwriteExisting, true,
-                                               (altLog == null ? log : altLog));
+          progress = CmdLine.runCommandWithFileChecks(command, "", inputBams,
+                                                      new String[] {outputBam}, verbose,
+                                                      overwriteExisting, true,
+                                                      (altLog == null ? log : altLog));
         }
       } else {
         log.report(ext.getTime() + " Info - since there were less than two input bams, "
@@ -127,8 +127,8 @@ public class MergeBam {
         regex += "\\|SM:" + baseIds[i];
       }
     }
-    String sed =
-        "sed \"s/" + regex + "/SM:" + newBaseID + "/\" " + originalHeader + " > " + outputHeader;
+    String sed = "sed \"s/" + regex + "/SM:" + newBaseID + "/\" " + originalHeader + " > "
+                 + outputHeader;
     return sed;
   }
 
@@ -155,9 +155,9 @@ public class MergeBam {
     log.report(ext.getTime() + " Info - sample name " + oldSM + " will be replaced with " + newSM
                + " in  the header of " + bamFile);
     String sed = "sed \"s/SM:" + oldSM + "/SM:" + newSM + "/\"";
-    String[] command =
-        new String[] {samtoolsLocation, VIEW, H, bamFile, "|", sed, "|", samtoolsLocation, REHEADER,
-                      "-", bamFile, ">", reHeader.getReHeaderBam()};
+    String[] command = new String[] {samtoolsLocation, VIEW, H, bamFile, "|", sed, "|",
+                                     samtoolsLocation, REHEADER, "-", bamFile, ">",
+                                     reHeader.getReHeaderBam()};
     String bat = ext.rootOf(bamFile, false) + ".rh.bat";
     Files.write(Array.toStr(command, " "), bat);
     Files.chmod(bat);
@@ -292,8 +292,8 @@ public class MergeBam {
   private static String getFullHeader(String samtoolsLocation, String inputBam, String outputHeader,
                                       boolean full, Logger log) {
     String headerFile = ext.addToRoot(inputBam, ".header");
-    String[] fullHeaderCommand =
-        new String[] {samtoolsLocation, "view", H, inputBam, ">", headerFile};
+    String[] fullHeaderCommand = new String[] {samtoolsLocation, "view", H, inputBam, ">",
+                                               headerFile};
     String bat = ext.addToRoot(inputBam, ".header.bat");
     Files.write(Array.toStr(fullHeaderCommand, " "), bat);
     Files.chmod(bat);

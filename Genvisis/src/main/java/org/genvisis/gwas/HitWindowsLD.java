@@ -19,14 +19,17 @@ import org.genvisis.common.ext;
 
 // TODO, this is a bit sprawling for a simple thing
 public class HitWindowsLD {
-  private static final String[] MARK_REPORT_HEADER =
-      {"Target", "Target.chr", "Target.pos", "LD.Hits", "LD.refHits", "LD.minPos", "LD.minMarker",
-       "LD.maxPos", "LD.maxMarker", "Target.inRef", "UCSC", "UCSC.ExcelHyperLink", "Window",
-       "Source File"};
-  private static final String[] REGION_REPORT_HEADER =
-      {"Region", "Target.chr", "LD.Hits", "Region.minPos", "Region.minMarker", "Region.maxPos",
-       "Region.maxMarker", "Region.markersWithLDHits", "UCSC", "UCSC.ExcelHyperLink", "Window",
-       "Source File"};
+  private static final String[] MARK_REPORT_HEADER = {"Target", "Target.chr", "Target.pos",
+                                                      "LD.Hits", "LD.refHits", "LD.minPos",
+                                                      "LD.minMarker", "LD.maxPos", "LD.maxMarker",
+                                                      "Target.inRef", "UCSC", "UCSC.ExcelHyperLink",
+                                                      "Window", "Source File"};
+  private static final String[] REGION_REPORT_HEADER = {"Region", "Target.chr", "LD.Hits",
+                                                        "Region.minPos", "Region.minMarker",
+                                                        "Region.maxPos", "Region.maxMarker",
+                                                        "Region.markersWithLDHits", "UCSC",
+                                                        "UCSC.ExcelHyperLink", "Window",
+                                                        "Source File"};
   private static String[] FILE_TYPES = {".ld", ".flt", ".other"};
 
   private final String target;
@@ -260,7 +263,7 @@ public class HitWindowsLD {
                                           Logger log, int fileType, double filter,
                                           int filterOnColumn, String ldFile) {
     HitWindowsLD[] hitWindowsLD =
-        prepWindows(targetFile, referenceMap, window, region, filter, log);
+                                prepWindows(targetFile, referenceMap, window, region, filter, log);
     harvestLD(ldFile, hitWindowsLD, referenceMap, fileType, filter, filterOnColumn, log);
     summarize(targetFile, ldFile, referenceMap, liberal, hitWindowsLD, region, output, log);
   }

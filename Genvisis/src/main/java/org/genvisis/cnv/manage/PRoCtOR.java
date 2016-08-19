@@ -19,12 +19,12 @@ public class PRoCtOR {
 
   private static long getMaxSampleSize(Project proj) {
     File[] sampleFiles =
-        (new File(proj.SAMPLE_DIRECTORY.getValue())).listFiles(new FilenameFilter() {
-          @Override
-          public boolean accept(File dir, String name) {
-            return name.endsWith(Sample.SAMPLE_FILE_EXTENSION);
-          }
-        });
+                       (new File(proj.SAMPLE_DIRECTORY.getValue())).listFiles(new FilenameFilter() {
+                         @Override
+                         public boolean accept(File dir, String name) {
+                           return name.endsWith(Sample.SAMPLE_FILE_EXTENSION);
+                         }
+                       });
     long max = 0;
     for (File f : sampleFiles) {
       if (f.length() > max) {
@@ -60,9 +60,9 @@ public class PRoCtOR {
       // TODO error
       return;
     }
-    PrincipalComponentsApply pcApply =
-        PCA.generateFullPCA(proj, numComponents, outputBase, recomputeLRR_PCs, true, null,
-                            proj.getLog());
+    PrincipalComponentsApply pcApply = PCA.generateFullPCA(proj, numComponents, outputBase,
+                                                           recomputeLRR_PCs, true, null,
+                                                           proj.getLog());
     pcApply.getExtrapolatedPCsFile();
     PennCNVPrep.prepExport(proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
                            numMarkerThreads, LS_TYPE.REGULAR, false);

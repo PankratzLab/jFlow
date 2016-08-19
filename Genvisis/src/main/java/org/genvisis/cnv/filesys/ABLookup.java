@@ -147,8 +147,8 @@ public class ABLookup {
     }
 
     try {
-      writer =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "AB_breakdown.xln"));
+      writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+                                              + "AB_breakdown.xln"));
       writer.println("Marker\tG11\tG12\tG22\tG11 counts\tG12 counts\tG22 counts\tMean Theta G11\tMean Theta G12\tMean Theta G22\torder\tA allele\tB allele");
       writer2 = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "posssible_"
                                                + DEFAULT_AB_FILE));
@@ -273,10 +273,10 @@ public class ABLookup {
         markerNames = markerSet.getMarkerNames();
 
         MarkerBlastAnnotation[] masterMarkerList =
-            MarkerBlastAnnotation.initForMarkers(markerNames);
-        MarkerAnnotationLoader annotationLoader =
-            new MarkerAnnotationLoader(proj, null, proj.BLAST_ANNOTATION_FILENAME.getValue(),
-                                       markerSet, true);
+                                                 MarkerBlastAnnotation.initForMarkers(markerNames);
+        MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(proj, null,
+                                                                             proj.BLAST_ANNOTATION_FILENAME.getValue(),
+                                                                             markerSet, true);
         annotationLoader.setReportEvery(10000);
         ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
         parsers.add(masterMarkerList);
@@ -665,8 +665,8 @@ public class ABLookup {
     markersWithNoLink = new Vector<String>();
     try {
       reader = Files.getAppropriateReader(incompleteABlookupFilename);
-      writer =
-          new PrintWriter(new FileWriter(ext.addToRoot(incompleteABlookupFilename, "_filledIn")));
+      writer = new PrintWriter(new FileWriter(ext.addToRoot(incompleteABlookupFilename,
+                                                            "_filledIn")));
       if (updatingPlinkFile) {
         markerIndex = 1;
         first = 4;
@@ -730,8 +730,8 @@ public class ABLookup {
                                               + "_test_markersWithNoLink#.txt");
       try {
         if (Files.exists(proj.MARKER_DATA_DIRECTORY.getValue(false, false))) {
-          markerDataLoader =
-              MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
+          markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+                                                                                     markerNames);
           log.reportError("Warning - allele frequencies for any chrX markers will be slightly inaccurate");
         } else {
           log.report("Warning - since " + proj.MARKER_DATA_DIRECTORY.getValue(false, false)

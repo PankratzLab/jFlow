@@ -37,7 +37,7 @@ public class dat2loc {
 
     if (filename.startsWith("map")) {
       writer =
-          new PrintWriter(new FileWriter(filename.substring(0, filename.length() - 4) + ".loc"));
+             new PrintWriter(new FileWriter(filename.substring(0, filename.length() - 4) + ".loc"));
     } else if (filename.startsWith("nuke")) {
       writer = new PrintWriter(new FileWriter("map" + filename.substring(filename.length() - 2)
                                               + ".loc"));

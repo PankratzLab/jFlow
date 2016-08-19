@@ -28,17 +28,19 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.Hits;
 
 public class Metal {
-  public static final String[][] CONVERSION_REQS =
-      {{"SNP", "Marker", "Name", "name"}, {"A1", "Allele"}, {"N", "NMISS"}, {"BETA", "ODDS", "OR"},
-       {"P", "pval", "p-val", "p-value"}};
+  public static final String[][] CONVERSION_REQS = {{"SNP", "Marker", "Name", "name"},
+                                                    {"A1", "Allele"}, {"N", "NMISS"},
+                                                    {"BETA", "ODDS", "OR"},
+                                                    {"P", "pval", "p-val", "p-value"}};
 
   public static final int SE_ANALYSIS = 0;
   public static final int WEIGHTED_SE_ANALYSIS = 1;
   public static final int PVAL_ANALYSIS = 2;
 
   public static final String[][][] REQS =
-      {{Aliases.EFFECTS, Aliases.STD_ERRS}, {{"wbeta"}, {"wse"}},
-       {{"beta", "Direction", "Effect", "DIR"}, Aliases.PVALUES, Aliases.NS},};
+                                        {{Aliases.EFFECTS, Aliases.STD_ERRS}, {{"wbeta"}, {"wse"}},
+                                         {{"beta", "Direction", "Effect", "DIR"}, Aliases.PVALUES,
+                                          Aliases.NS},};
 
   public static final String[][] FREQS = {Aliases.ALLELE_FREQS, {"sampleAA", "fAllele11"},
                                           {"sampleAR", "fAllele12"}, {"sampleRR", "fAllele22"},};
@@ -64,10 +66,10 @@ public class Metal {
                                                                                           // always
                                                                                           // computed
 
-  public static final String[] TEXT =
-      {"NADA", "STRAND_CONFIG_SAME", "STRAND_CONFIG_SAME_FLIPPED", "STRAND_CONFIG_OPPOSITE",
-       "STRAND_CONFIG_OPPOSITE_FLIPPED", "STRAND_CONFIG_DIFFERENT_ALLELES",
-       "STRAND_CONFIG_BOTH_NULL", "STRAND_CONFIG_SPECIAL_CASE"};
+  public static final String[] TEXT = {"NADA", "STRAND_CONFIG_SAME", "STRAND_CONFIG_SAME_FLIPPED",
+                                       "STRAND_CONFIG_OPPOSITE", "STRAND_CONFIG_OPPOSITE_FLIPPED",
+                                       "STRAND_CONFIG_DIFFERENT_ALLELES", "STRAND_CONFIG_BOTH_NULL",
+                                       "STRAND_CONFIG_SPECIAL_CASE"};
 
   public static void convertPlinkResults(String dir, String results, String test, String method,
                                          String freq, boolean useSE, boolean useMetalNomenclature,
@@ -199,8 +201,8 @@ public class Metal {
       hash = new Hashtable<String, String>();
       header = reader.readLine().trim().split(delimiterIn);
 
-      markerIndices =
-          ext.indexFactors(new String[][] {unitOfAnlaysis}, header, false, true, false, log, false);
+      markerIndices = ext.indexFactors(new String[][] {unitOfAnlaysis}, header, false, true, false,
+                                       log, false);
       if (markerIndices[0] == -1) {
         log.reportError("Error - no unit of analysis in file " + filename + " ("
                         + Array.toStr(unitOfAnlaysis, "/") + ")");
@@ -268,12 +270,12 @@ public class Metal {
           }
           for (int[] reqIndice : reqIndices) {
             if (reqIndice != null) {
-              for (int j = 0; j < reqIndice.length; j++) {
-                if (reqIndice[j] != -1) {
-                  if (reqIndice[j] == Integer.MAX_VALUE) {
+              for (int element : reqIndice) {
+                if (element != -1) {
+                  if (element == Integer.MAX_VALUE) {
                     writer.print(delimiterOut + defaultN);
                   } else {
-                    writer.print(delimiterOut + line[reqIndice[j]]);
+                    writer.print(delimiterOut + line[element]);
                   }
                 }
               }
@@ -783,12 +785,13 @@ public class Metal {
     int countMismatches;
 
     params =
-        Files.parseControlFile(filename, "metal",
-                               new String[] {"outfile_root", "build=37",
-                                             /* "genomic_control=TRUE", */"hits_p<=0.001", "se<=5",
-                                             "maf>=0.001", "customCommand=file1.metal:aCommand",
-                                             "file1.metal", "file2.txt", "file3.assoc.logistic"},
-                               log);
+           Files.parseControlFile(filename, "metal",
+                                  new String[] {"outfile_root", "build=37",
+                                                /* "genomic_control=TRUE", */"hits_p<=0.001",
+                                                "se<=5", "maf>=0.001",
+                                                "customCommand=file1.metal:aCommand", "file1.metal",
+                                                "file2.txt", "file3.assoc.logistic"},
+                                  log);
 
     thresholdForHits = 0.001;
     gcControlOn = true;
@@ -798,7 +801,7 @@ public class Metal {
     double[] seValues = null;
     double[] mafValues = null;
     Hashtable<String, ArrayList<String>> customCommands =
-        new Hashtable<String, ArrayList<String>>();
+                                                        new Hashtable<String, ArrayList<String>>();
     if (params != null) {
       outputFile = params.remove(0);
       ArrayList<Integer> paramsToRemove = new ArrayList<Integer>();// to avoid modifying within loop
@@ -919,15 +922,15 @@ public class Metal {
       fileParameters = new String[4 + inputFiles.length];
 
       fileParameters[1] = "hits.txt 0 1=minPval skip=0";
-      fileParameters[2] =
-          outputFile + "_InvVar1.out 0 'Allele1' 'Allele2' 'Effect'=Beta 'StdErr' 'P-value' 'Direction'";
+      fileParameters[2] = outputFile
+                          + "_InvVar1.out 0 'Allele1' 'Allele2' 'Effect'=Beta 'StdErr' 'P-value' 'Direction'";
       fileParameters[3] = outputFile + "_NWeighted1.out 0 'Weight' 'P-value'";
       Hashtable<String, Hashtable<String, String>> altHeaders =
-          new Hashtable<String, Hashtable<String, String>>();
-      String[][] headersWithAlts =
-          new String[][] {Aliases.ALLELES[0], Aliases.ALLELES[1], Aliases.ALLELE_FREQS, Aliases.NS,
-                          Aliases.EFFECTS, Aliases.STD_ERRS, Aliases.PVALUES,
-                          Aliases.IMPUTATION_EFFICIENCY};
+                                                              new Hashtable<String, Hashtable<String, String>>();
+      String[][] headersWithAlts = new String[][] {Aliases.ALLELES[0], Aliases.ALLELES[1],
+                                                   Aliases.ALLELE_FREQS, Aliases.NS,
+                                                   Aliases.EFFECTS, Aliases.STD_ERRS,
+                                                   Aliases.PVALUES, Aliases.IMPUTATION_EFFICIENCY};
       for (int i = 0; i < inputFiles.length; i++) {
         header = Files.getHeaderOfFile(inputFiles[i], log);
         indices = ext.indexFactors(headersWithAlts, header, true, false, true, true, log, false);
@@ -1025,8 +1028,8 @@ public class Metal {
       Files.combine(hitList, fileParameters, null, "MarkerName", ".", "topHits.xln", log, true,
                     true, false, altHeaders);
 
-      String[][] results =
-          HitWindows.determine("topHits.xln", 0.00000005f, 500000, 0.000005f, new String[0], log);
+      String[][] results = HitWindows.determine("topHits.xln", 0.00000005f, 500000, 0.000005f,
+                                                new String[0], log);
       try {
         results = includeExtraInfoFromTopHits(results);
       } catch (IOException e) {
@@ -1059,9 +1062,10 @@ public class Metal {
     String headerLine = reader.readLine().trim();
     String delim = ext.determineDelimiter(headerLine);
     String[] line = headerLine.split(delim);
-    int[] topInd =
-        ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS},
-                         line, false, true, false, false);
+    int[] topInd = ext.indexFactors(
+                                    new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS,
+                                                    Aliases.POSITIONS},
+                                    line, false, true, false, false);
     int topMkrInd = topInd[0];
     String readLine = null;
     while ((readLine = reader.readLine()) != null) {
@@ -1118,12 +1122,12 @@ public class Metal {
     String[] files;
 
     params =
-        Files.parseControlFile(filename, "metal",
-                               new String[] {"Discovery.se.metal", "Replication.se.metal",
-                                             "outfile_root", "", "#Alternatively", "",
-                                             "Discovery.assoc.logistic",
-                                             "Replication.assoc.logistic", "outfile_root"},
-                               log);
+           Files.parseControlFile(filename, "metal",
+                                  new String[] {"Discovery.se.metal", "Replication.se.metal",
+                                                "outfile_root", "", "#Alternatively", "",
+                                                "Discovery.assoc.logistic",
+                                                "Replication.assoc.logistic", "outfile_root"},
+                                  log);
 
     if (params != null) {
       files = new String[] {"Discovery.se.metal", "Replication.se.metal", "something"};
@@ -1219,8 +1223,8 @@ public class Metal {
         w2 = null;
         w3 = null;
       } else {
-        w2 = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
-                                            + "_exceedingThreshold.dat"));
+        w2 =
+           new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_exceedingThreshold.dat"));
         w3 = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
                                             + "_notExceedingThreshold.dat"));
       }
@@ -1368,9 +1372,9 @@ public class Metal {
       writers = new PrintWriter[3];
       writers[0] = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_comp.xln"));
       writers[1] =
-          new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_compFlipped.xln"));
-      writers[2] =
-          new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_compAmbiguous.xln"));
+                 new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_compFlipped.xln"));
+      writers[2] = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
+                                                  + "_compAmbiguous.xln"));
       header = reader.readLine().trim().split("[\\s]+");
       v = new Vector<String>();
       for (int i = 1; i < header.length; i++) {
@@ -1642,12 +1646,12 @@ public class Metal {
 
     indices = new int[filenames.length][2][];
     for (int i = 0; i < filenames.length; i++) {
-      indices[i][0] =
-          ext.indexFactors(new String[][] {{"MarkerName"}},
-                           Files.getHeaderOfFile(filenames[i], log), false, true, true, log, true);
-      indices[i][1] =
-          ext.indexFactors(new String[][] {{"Direction"}}, Files.getHeaderOfFile(filenames[i], log),
-                           false, true, true, log, true);
+      indices[i][0] = ext.indexFactors(new String[][] {{"MarkerName"}},
+                                       Files.getHeaderOfFile(filenames[i], log), false, true, true,
+                                       log, true);
+      indices[i][1] = ext.indexFactors(new String[][] {{"Direction"}},
+                                       Files.getHeaderOfFile(filenames[i], log), false, true, true,
+                                       log, true);
     }
 
     time = new Date().getTime();
@@ -2022,9 +2026,8 @@ public class Metal {
         }
         numArgs--;
       } else if (arg.startsWith("unit=")) {
-        unitOfAnalyses =
-            ext.parseStringArg(arg, null).equalsIgnoreCase("gene") ? Aliases.GENE_UNITS
-                                                                   : Aliases.MARKER_NAMES;
+        unitOfAnalyses = ext.parseStringArg(arg, null)
+                            .equalsIgnoreCase("gene") ? Aliases.GENE_UNITS : Aliases.MARKER_NAMES;
         numArgs--;
       } else if (arg.startsWith("se=")) {
         se = ext.parseBooleanArg(arg);

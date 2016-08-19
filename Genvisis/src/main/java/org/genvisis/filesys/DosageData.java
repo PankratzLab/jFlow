@@ -2,8 +2,6 @@
 // expand to dynamically load/save a certain chunk of markers at a time
 package org.genvisis.filesys;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -40,6 +38,8 @@ import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.RegressionModel;
 
+import com.google.common.primitives.Ints;
+
 public class DosageData implements Serializable {
   public static final long serialVersionUID = 1L;
 
@@ -68,10 +68,10 @@ public class DosageData implements Serializable {
 
   public static final String CHR_REGEX = ".*?chr(\\d\\d?).*?";
 
-  public static final String[][] HEADS =
-      {null, null, {"id"}, {"SNP", "A1", "A2"}, null, null, {"FID", "IID"}};
-  public static final String[][] LEADS =
-      {{null, "MLDOSE"}, null, null, null, {null, "MLPROB"}, {null, "DOSE"}, null};
+  public static final String[][] HEADS = {null, null, {"id"}, {"SNP", "A1", "A2"}, null, null,
+                                          {"FID", "IID"}};
+  public static final String[][] LEADS = {{null, "MLDOSE"}, null, null, null, {null, "MLPROB"},
+                                          {null, "DOSE"}, null};
   public static final String[] DELIMITERS = {"\t", ",", " "};
 
   /** 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 */
@@ -82,26 +82,36 @@ public class DosageData implements Serializable {
    */
 
   /** 0 1 2 3 4 5 6 7 8 9 10 11 12 13 */
-  public static final int[][] PARAMETERS =
-      {{MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 0, 3, 3}, // .mldose
-                                                                                           // (MACH)
-       {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT, 3, 0, 1, 3, 4, 0, 2, 2, 1, 0, 3}, // .gen
-       {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0, -1, -1, -1, -1, 1, 2, 0, 3}, // .fhsR
-                                                                                       // (GWAF)
-       {FID_IID_TYPE, 3, MARKER_DOMINANT_FORMAT, 2, 1, 0, 1, 2, -1, -1, 0, 3, 3, 3}, // .dosage
-                                                                                     // (PLINK)
-       {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 2, 0, 0, -1, -1, -1, -1, 0, 4, 3, 3}, // .mlprob
-                                                                                           // (MACH)
-       {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 5, 3, 3}, // .dose
-                                                                                           // (MINIMAC)
-       {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT, 3, 0, 1, 3, 4, CHR_INFO_IN_FILENAME, 2, 0,
-        1, 3, 3}, // .impute2
-       {FID_IID_TYPE, 3, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0, 3, 4, -1, 2, 0, 6, 3, 3}, // .db.xln
-       {SEPARATE_FILE_ID_TYPE, 3, MARKER_DOMINANT_FORMAT, 1, 1, 0, 1, 2, -1, -1, 2, 1, 4, 4}, // .dose
-                                                                                              // (BEAGLE)
-       {FID_IID_TYPE, 3, PLINK_BINARY_FORMAT, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
-       {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 0, 3, 3}, // freeze5
-      };
+  public static final int[][] PARAMETERS = {
+                                            {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0,
+                                             -1, -1, -1, -1, 0, 0, 3, 3}, // .mldose
+                                                                          // (MACH)
+                                            {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT, 3, 0,
+                                             1, 3, 4, 0, 2, 2, 1, 0, 3}, // .gen
+                                            {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0, -1,
+                                             -1, -1, -1, 1, 2, 0, 3}, // .fhsR
+                                                                      // (GWAF)
+                                            {FID_IID_TYPE, 3, MARKER_DOMINANT_FORMAT, 2, 1, 0, 1, 2,
+                                             -1, -1, 0, 3, 3, 3}, // .dosage
+                                                                  // (PLINK)
+                                            {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 2, 0, 0,
+                                             -1, -1, -1, -1, 0, 4, 3, 3}, // .mlprob
+                                                                          // (MACH)
+                                            {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0,
+                                             -1, -1, -1, -1, 0, 5, 3, 3}, // .dose
+                                                                          // (MINIMAC)
+                                            {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT, 3, 0,
+                                             1, 3, 4, CHR_INFO_IN_FILENAME, 2, 0, 1, 3, 3}, // .impute2
+                                            {FID_IID_TYPE, 3, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0,
+                                             3, 4, -1, 2, 0, 6, 3, 3}, // .db.xln
+                                            {SEPARATE_FILE_ID_TYPE, 3, MARKER_DOMINANT_FORMAT, 1, 1,
+                                             0, 1, 2, -1, -1, 2, 1, 4, 4}, // .dose
+                                                                           // (BEAGLE)
+                                            {FID_IID_TYPE, 3, PLINK_BINARY_FORMAT, -1, -1, -1, -1,
+                                             -1, -1, -1, -1, -1, -1, -1},
+                                            {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1,
+                                             -1, -1, -1, 0, 0, 3, 3}, // freeze5
+  };
 
   private SnpMarkerSet markerSet;
 
@@ -211,7 +221,7 @@ public class DosageData implements Serializable {
         chr = (byte) Integer.parseInt(m.group(1));
         if (verbose) {
           String msg =
-              "Warning - the format given expects chromosome number to be part of the file name.  This was determined to be chr{"
+                     "Warning - the format given expects chromosome number to be part of the file name.  This was determined to be chr{"
                        + chr + "}.";
           log.report(msg);
         }
@@ -219,7 +229,7 @@ public class DosageData implements Serializable {
       } else {
         if (verbose) {
           String msg =
-              "Error - the format given expects chromosome number to be part of the file name, but no chromosome number was found.  Chromosome information will not be included.";
+                     "Error - the format given expects chromosome number to be part of the file name, but no chromosome number was found.  Chromosome information will not be included.";
           log.reportError(msg);
         }
       }
@@ -363,32 +373,38 @@ public class DosageData implements Serializable {
           }
           if (parameters[3] == 1) {
             for (int j = 0; j < ids.length; j++) {
-              dosageValues[index][j] =
-                  ext.isMissingValue(line[parameters[1] + j]) ? Float.NaN
-                                                              : Float.parseFloat(line[parameters[1]
-                                                                                      + j]);
+              dosageValues[index][j] = ext.isMissingValue(line[parameters[1]
+                                                               + j]) ? Float.NaN
+                                                                     : Float.parseFloat(line[parameters[1]
+                                                                                             + j]);
             }
           } else {
             for (int j = 0; j < ids.length; j++) {
               genotypeProbabilities[index][j][0] =
-                  ext.isMissingValue(line[parameters[1] + j * parameters[3] + 0]) ? Float.NaN
-                                                                                  : Float.parseFloat(line[parameters[1]
-                                                                                                          + j
-                                                                                                            * parameters[3]
-                                                                                                          + 0]);
+                                                 ext.isMissingValue(line[parameters[1]
+                                                                         + j * parameters[3]
+                                                                         + 0]) ? Float.NaN
+                                                                               : Float.parseFloat(line[parameters[1]
+                                                                                                       + j
+                                                                                                         * parameters[3]
+                                                                                                       + 0]);
               genotypeProbabilities[index][j][1] =
-                  ext.isMissingValue(line[parameters[1] + j * parameters[3] + 1]) ? Float.NaN
-                                                                                  : Float.parseFloat(line[parameters[1]
-                                                                                                          + j
-                                                                                                            * parameters[3]
-                                                                                                          + 1]);
+                                                 ext.isMissingValue(line[parameters[1]
+                                                                         + j * parameters[3]
+                                                                         + 1]) ? Float.NaN
+                                                                               : Float.parseFloat(line[parameters[1]
+                                                                                                       + j
+                                                                                                         * parameters[3]
+                                                                                                       + 1]);
               if (parameters[3] == 3) {
                 genotypeProbabilities[index][j][2] =
-                    ext.isMissingValue(line[parameters[1] + j * parameters[3] + 2]) ? Float.NaN
-                                                                                    : Float.parseFloat(line[parameters[1]
-                                                                                                            + j
-                                                                                                              * parameters[3]
-                                                                                                            + 2]);
+                                                   ext.isMissingValue(line[parameters[1]
+                                                                           + j * parameters[3]
+                                                                           + 2]) ? Float.NaN
+                                                                                 : Float.parseFloat(line[parameters[1]
+                                                                                                         + j
+                                                                                                           * parameters[3]
+                                                                                                         + 2]);
                 if (Math.abs((1 - genotypeProbabilities[index][j][1]
                               - genotypeProbabilities[index][j][0])
                              - genotypeProbabilities[index][j][2]) > 0.01) {
@@ -423,10 +439,10 @@ public class DosageData implements Serializable {
                 continue;
               }
               index++;
-              dosageValues[index][i] =
-                  ext.isMissingValue(line[parameters[1] + j]) ? Float.NaN
-                                                              : Float.parseFloat(line[parameters[1]
-                                                                                      + j]);
+              dosageValues[index][i] = ext.isMissingValue(line[parameters[1]
+                                                               + j]) ? Float.NaN
+                                                                     : Float.parseFloat(line[parameters[1]
+                                                                                             + j]);
             }
           } else {
             int index = -1;
@@ -436,24 +452,30 @@ public class DosageData implements Serializable {
               }
               index++;
               genotypeProbabilities[index][i][0] =
-                  ext.isMissingValue(line[parameters[1] + j * parameters[3] + 0]) ? Float.NaN
-                                                                                  : Float.parseFloat(line[parameters[1]
-                                                                                                          + j
-                                                                                                            * parameters[3]
-                                                                                                          + 0]);
+                                                 ext.isMissingValue(line[parameters[1]
+                                                                         + j * parameters[3]
+                                                                         + 0]) ? Float.NaN
+                                                                               : Float.parseFloat(line[parameters[1]
+                                                                                                       + j
+                                                                                                         * parameters[3]
+                                                                                                       + 0]);
               genotypeProbabilities[index][i][1] =
-                  ext.isMissingValue(line[parameters[1] + j * parameters[3] + 1]) ? Float.NaN
-                                                                                  : Float.parseFloat(line[parameters[1]
-                                                                                                          + j
-                                                                                                            * parameters[3]
-                                                                                                          + 1]);
+                                                 ext.isMissingValue(line[parameters[1]
+                                                                         + j * parameters[3]
+                                                                         + 1]) ? Float.NaN
+                                                                               : Float.parseFloat(line[parameters[1]
+                                                                                                       + j
+                                                                                                         * parameters[3]
+                                                                                                       + 1]);
               if (parameters[3] == 3) {
                 genotypeProbabilities[index][i][2] =
-                    ext.isMissingValue(line[parameters[1] + j * parameters[3] + 2]) ? Float.NaN
-                                                                                    : Float.parseFloat(line[parameters[1]
-                                                                                                            + j
-                                                                                                              * parameters[3]
-                                                                                                            + 2]);
+                                                   ext.isMissingValue(line[parameters[1]
+                                                                           + j * parameters[3]
+                                                                           + 2]) ? Float.NaN
+                                                                                 : Float.parseFloat(line[parameters[1]
+                                                                                                         + j
+                                                                                                           * parameters[3]
+                                                                                                         + 2]);
                 if (Math.abs((1 - genotypeProbabilities[index][i][1]
                               - genotypeProbabilities[index][i][0])
                              - genotypeProbabilities[index][i][2]) > 0.01) {
@@ -474,8 +496,8 @@ public class DosageData implements Serializable {
       markerNames = markerSet.getMarkerNames();
       if (markerNamePrepend != null && !"".equals(markerNamePrepend)) {
         for (int i = 0; i < markerNames.length; i++) {
-          markerNames[i] =
-              (markerNamePrepend.endsWith("_") ? markerNamePrepend : markerNamePrepend + "_")
+          markerNames[i] = (markerNamePrepend.endsWith("_") ? markerNamePrepend
+                                                            : markerNamePrepend + "_")
                            + markerNames[i];
         }
         markerSet.convertMarkerNamesToRSnumbers(markerNames, true, log); // resets/recreates the
@@ -678,7 +700,7 @@ public class DosageData implements Serializable {
     for (int i = 0; i < dosageValues.length; i++) {
       for (int j = 0; j < ids.length; j++) {
         dosageValues[i][j] =
-            genotypeProbabilities[i][j][0] * 2 + genotypeProbabilities[i][j][1] * 1;
+                           genotypeProbabilities[i][j][0] * 2 + genotypeProbabilities[i][j][1] * 1;
       }
     }
   }
@@ -712,10 +734,12 @@ public class DosageData implements Serializable {
   public void writeToFile(String filename, String mapOut, String extractMarkers, String regionsFile,
                           boolean allowIncompleteList, boolean writeNaNsAsPeriods, int format,
                           Logger log) {
-    String[] markersToKeep =
-        extractMarkers == null ? null
-                               : HashVec.loadFileToStringArray(extractMarkers, false, false,
-                                                               new int[] {0}, true, false, "\t");
+    String[] markersToKeep = extractMarkers == null ? null
+                                                    : HashVec.loadFileToStringArray(extractMarkers,
+                                                                                    false, false,
+                                                                                    new int[] {0},
+                                                                                    true, false,
+                                                                                    "\t");
     int[][] regions;
     if (regionsFile == null) {
       regions = null;
@@ -862,7 +886,7 @@ public class DosageData implements Serializable {
         for (int i = 0; i < markerNames.length; i++) {
           if ((markersToKeep == null && regionsToKeep == null) || keeps.contains(markerNames[i])) {
             line =
-                LEADS[parameters[11]] == null ? new String[parameters[1]] : LEADS[parameters[11]];
+                 LEADS[parameters[11]] == null ? new String[parameters[1]] : LEADS[parameters[11]];
             line[parameters[5]] = markerNames[i];
             if (parameters[6] >= 0) {
               if (alleles == null) {
@@ -1238,7 +1262,8 @@ public class DosageData implements Serializable {
     }
 
     ddNew.genotypeProbabilities =
-        ddNewNumGeno > 1 ? new float[markers.size()][ddNew.ids.length][ddNewNumGeno] : null;
+                                ddNewNumGeno > 1 ? new float[markers.size()][ddNew.ids.length][ddNewNumGeno]
+                                                 : null;
     ddNew.dosageValues = ddNewNumGeno == 1 ? new float[markers.size()][ddNew.ids.length] : null;
 
     if (ddNewNumGeno > 1) {
@@ -1260,8 +1285,9 @@ public class DosageData implements Serializable {
           } else {
             if (duplicatedSamplesAndIndices.containsKey(dd1.ids[s][0] + "\t" + dd1.ids[s][1])) {
               ddNew.genotypeProbabilities[m][s] =
-                  dd2.genotypeProbabilities[dd2markersAndIndices.get(mkr)][duplicatedSamplesAndIndices.get(dd1.ids[s][0]
-                                                                                                           + "\t" + dd1.ids[s][1])];
+                                                dd2.genotypeProbabilities[dd2markersAndIndices.get(mkr)][duplicatedSamplesAndIndices.get(dd1.ids[s][0]
+                                                                                                                                         + "\t"
+                                                                                                                                         + dd1.ids[s][1])];
             } else {
               ddNew.genotypeProbabilities[m][s] = Array.floatArray(ddNewNumGeno, missingGeno);
             }
@@ -1276,8 +1302,8 @@ public class DosageData implements Serializable {
             ddNew.genotypeProbabilities[m][newInd] = Array.floatArray(ddNewNumGeno, missingGeno);
           } else {
             ddNew.genotypeProbabilities[m][newInd] =
-                dd2.genotypeProbabilities[dd2IndM == -1 ? dd2markersAndIndices.get(mkr)
-                                                        : dd2IndM][s];
+                                                   dd2.genotypeProbabilities[dd2IndM == -1 ? dd2markersAndIndices.get(mkr)
+                                                                                           : dd2IndM][s];
           }
           newInd++;
         }
@@ -1303,8 +1329,9 @@ public class DosageData implements Serializable {
           } else {
             if (duplicatedSamplesAndIndices.containsKey(dd1.ids[s][0] + "\t" + dd1.ids[s][1])) {
               ddNew.dosageValues[m][s] =
-                  dd2.dosageValues[dd2markersAndIndices.get(mkr)][duplicatedSamplesAndIndices.get(dd1.ids[s][0]
-                                                                                                  + "\t" + dd1.ids[s][1])];
+                                       dd2.dosageValues[dd2markersAndIndices.get(mkr)][duplicatedSamplesAndIndices.get(dd1.ids[s][0]
+                                                                                                                       + "\t"
+                                                                                                                       + dd1.ids[s][1])];
             } else {
               ddNew.dosageValues[m][s] = missingDosage;
             }
@@ -1319,7 +1346,8 @@ public class DosageData implements Serializable {
             ddNew.dosageValues[m][newInd] = missingDosage;
           } else {
             ddNew.dosageValues[m][newInd] =
-                dd2.dosageValues[dd2IndM == -1 ? dd2markersAndIndices.get(mkr) : dd2IndM][s];
+                                          dd2.dosageValues[dd2IndM == -1 ? dd2markersAndIndices.get(mkr)
+                                                                         : dd2IndM][s];
           }
           newInd++;
         }
@@ -1399,8 +1427,8 @@ public class DosageData implements Serializable {
     if (extract == null) {
       keeps = null;
     } else {
-      markersToKeep =
-          HashVec.loadFileToStringArray(extract, false, false, new int[] {0}, true, false, "\t");
+      markersToKeep = HashVec.loadFileToStringArray(extract, false, false, new int[] {0}, true,
+                                                    false, "\t");
       keeps = HashVec.loadToHashSet(markersToKeep);
       root = ext.rootOf(outfile, false);
       markerSet = markerSet.trim(markersToKeep, true, false, log); // allows missing markers, but
@@ -1691,13 +1719,13 @@ public class DosageData implements Serializable {
                 if (fromParameters[3] == 1) {
                   dosageValue = Float.parseFloat(line[fromParameters[1] + j]);
                 } else {
-                  genotypeProbabilities[0] =
-                      Float.parseFloat(line[fromParameters[1] + j * fromParameters[3] + 0]);
-                  genotypeProbabilities[1] =
-                      Float.parseFloat(line[fromParameters[1] + j * fromParameters[3] + 1]);
+                  genotypeProbabilities[0] = Float.parseFloat(line[fromParameters[1]
+                                                                   + j * fromParameters[3] + 0]);
+                  genotypeProbabilities[1] = Float.parseFloat(line[fromParameters[1]
+                                                                   + j * fromParameters[3] + 1]);
                   if (fromParameters[3] == 3) {
-                    genotypeProbabilities[2] =
-                        Float.parseFloat(line[fromParameters[1] + j * fromParameters[3] + 2]);
+                    genotypeProbabilities[2] = Float.parseFloat(line[fromParameters[1]
+                                                                     + j * fromParameters[3] + 2]);
                     if (Math.abs((1 - genotypeProbabilities[1] - genotypeProbabilities[0])
                                  - genotypeProbabilities[2]) > 0.01) {
                       log.reportError("Error: P(BB) does not equal [ 1 - P(AA) - P(AB) ] for individual "
@@ -1769,13 +1797,13 @@ public class DosageData implements Serializable {
                 if (fromParameters[3] == 1) {
                   dosageValue = Float.parseFloat(line[fromParameters[1] + j]);
                 } else {
-                  genotypeProbabilities[0] =
-                      Float.parseFloat(line[fromParameters[1] + j * fromParameters[3] + 0]);
-                  genotypeProbabilities[1] =
-                      Float.parseFloat(line[fromParameters[1] + j * fromParameters[3] + 1]);
+                  genotypeProbabilities[0] = Float.parseFloat(line[fromParameters[1]
+                                                                   + j * fromParameters[3] + 0]);
+                  genotypeProbabilities[1] = Float.parseFloat(line[fromParameters[1]
+                                                                   + j * fromParameters[3] + 1]);
                   if (fromParameters[3] == 3) {
-                    genotypeProbabilities[2] =
-                        Float.parseFloat(line[fromParameters[1] + j * fromParameters[3] + 2]);
+                    genotypeProbabilities[2] = Float.parseFloat(line[fromParameters[1]
+                                                                     + j * fromParameters[3] + 2]);
                     if (Math.abs((1 - genotypeProbabilities[1] - genotypeProbabilities[0])
                                  - genotypeProbabilities[2]) > 0.01) {
                       log.reportError("Error: P(BB) does not equal [ 1 - P(AA) - P(AB) ] for individual "
@@ -1933,8 +1961,8 @@ public class DosageData implements Serializable {
       dd.alleles[index][1] = bimData[i][5].charAt(0);
       index++;
     }
-    dd.markerSet =
-        new SnpMarkerSet(markerNames, dd.chrs, dd.positions, dd.alleles, null, false, false);
+    dd.markerSet = new SnpMarkerSet(markerNames, dd.chrs, dd.positions, dd.alleles, null, false,
+                                    false);
     dd.dosageValues = new float[markerNames.length][dd.ids.length];
 
     RandomAccessFile in;

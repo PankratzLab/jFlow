@@ -17,17 +17,18 @@ import org.genvisis.common.ext;
 
 public class CreateMarkerDatabase {
   public static final String[] ALT_LOCS =
-      {"C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\genotypes\\"};
-  public static final String[] FIELDS =
-      {"!UniqueID", "!FamID", "!IndID", "!Source", ".AOO", "!AgeAtExam", ".Dx", ".VPD", "!Affected",
-       "!Male", "!Caucasian", ".AffParent", "0parkin", "1noKnownHomozygousParkinMutation",
-       "0G2019S", "0AnyLRRK2", "0CausativeMutation", "!Use", "!Comment"};
+                                        {"C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\genotypes\\"};
+  public static final String[] FIELDS = {"!UniqueID", "!FamID", "!IndID", "!Source", ".AOO",
+                                         "!AgeAtExam", ".Dx", ".VPD", "!Affected", "!Male",
+                                         "!Caucasian", ".AffParent", "0parkin",
+                                         "1noKnownHomozygousParkinMutation", "0G2019S", "0AnyLRRK2",
+                                         "0CausativeMutation", "!Use", "!Comment"};
   public static final String[] DATABASES =
-      {"C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\crf_db.dat",
-       "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Global PD files\\control.db.xln"};
-  public static final String[] POST_HOCS =
-      {"Age:AOO|AgeAtExam|AgeAtExam|AgeAtExam:Use=1", "VPD_Analysis:VPD|1|1|1:Use=1",
-       "ALL_Analysis:Affected|1|1|1:Use=1"};
+                                         {"C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\crf_db.dat",
+                                          "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Global PD files\\control.db.xln"};
+  public static final String[] POST_HOCS = {"Age:AOO|AgeAtExam|AgeAtExam|AgeAtExam:Use=1",
+                                            "VPD_Analysis:VPD|1|1|1:Use=1",
+                                            "ALL_Analysis:Affected|1|1|1:Use=1"};
   public static final String UNIQUEID = "UniqueID";
 
   public static void createFromParameters(String filename, Logger log) {
@@ -144,8 +145,8 @@ public class CreateMarkerDatabase {
       for (String[] element : info) {
         markerName = element[0].substring(0, element[0].lastIndexOf("."));
         for (int j = 2; j < element.length; j++) {
-          trav =
-              element[j].contains("|") ? element[j].substring(element[j].indexOf("|")) : element[j];
+          trav = element[j].contains("|") ? element[j].substring(element[j].indexOf("|"))
+                                          : element[j];
           writer.print("\t" + (info.length == 1 ? "" : markerName + "_") + trav);
         }
       }

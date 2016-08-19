@@ -44,9 +44,9 @@ public class PlinkData {
 
   /**
    * Convert a Plink .ped data set to Plink .bed data set.
-   * 
+   *
    * Note: This is the same feature as the Plink command "plink --file mydata --make-bed"
-   * 
+   *
    * @param plinkDirAndFilenameRoot
    * @param pedFileFilenameRoot
    * @param isSnpMajor
@@ -179,7 +179,7 @@ public class PlinkData {
   /**
    * Convert a PLINK .bed data set to PLINK .ped data set. Note: This is the same feature as the
    * PLINK command "plink --bfile mydata --recode --out mynewdata"
-   * 
+   *
    * @param plinkDirAndFilenameRoot
    * @param log
    */
@@ -205,7 +205,7 @@ public class PlinkData {
   /**
    * Convert a PLINK .bim file to PLINK .map file and return the list of alleles. This is normally
    * used as part of PlinkData.convertBedToPed(...)
-   * 
+   *
    * @param plinkDirAndFilenameRoot
    * @return
    */
@@ -245,7 +245,7 @@ public class PlinkData {
   /**
    * Convert PLINK .fam and .bed file to PLINK .ped file. This is normally used as part of
    * PlinkData.convertBedSetToPedSet().
-   * 
+   *
    * @param plinkDirAndFilenameRoot
    * @param alleles
    */
@@ -372,7 +372,7 @@ public class PlinkData {
 
   /**
    * Load a PLINK .fam or .bim file into a String vector
-   * 
+   *
    * @param famOrBimFileFullPath full path of the .fam or .bim file
    * @param indexOfStartSampleOrMarker index of the start sample, if this is a .fam file, or index
    *        of the start marker to load, if this is a .bim file
@@ -421,7 +421,7 @@ public class PlinkData {
 
   /**
    * Load a PLINK .fam file into a String array.
-   * 
+   *
    * @param famFileFullPath
    * @param indexOfStartSample
    * @param numberOfSamplesToLoad
@@ -445,7 +445,7 @@ public class PlinkData {
 
   /**
    * Load a PLINK .bim file into a String vector
-   * 
+   *
    * @param famFileFullPath
    * @param indexOfStartSample
    * @param numberOfSamplesToLoad
@@ -736,8 +736,8 @@ public class PlinkData {
       // clusterFiltersFilename =
       // proj.getProperty(proj.PROJECT_DIRECTORY)+proj.getProperty(proj.DATA_DIRECTORY)+clusterFiltersFilename;
       if (Files.exists(clusterFiltersFilename, proj.JAR_STATUS.getValue())) {
-        clusterFilterCollection =
-            ClusterFilterCollection.load(clusterFiltersFilename, proj.JAR_STATUS.getValue());
+        clusterFilterCollection = ClusterFilterCollection.load(clusterFiltersFilename,
+                                                               proj.JAR_STATUS.getValue());
       } else {
         proj.message("Error - cluster filter collection is not found at '" + clusterFiltersFilename
                      + "'");
@@ -942,7 +942,7 @@ public class PlinkData {
 
   /**
    * Convert Genvisis data into a PLINK .bed data set.
-   * 
+   *
    * @param proj
    * @param markerList
    * @param clusterFilterFileName
@@ -1002,8 +1002,8 @@ public class PlinkData {
           .beginIndeterminateTask(PROG_KEY, "Loading sample data",
                                   ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
       allSamplesInProj = proj.getSamples();
-      indicesOfTargetSamplesInProj =
-          getIndicesOfTargetSamplesInProj(allSamplesInProj, targetSamples, log);
+      indicesOfTargetSamplesInProj = getIndicesOfTargetSamplesInProj(allSamplesInProj,
+                                                                     targetSamples, log);
       // targetSamples = new String[indicesOfTargetSamplesInProj.length];
       // for (int i = 0; i < indicesOfTargetSamplesInProj.length; i++) {
       // targetSamples[i] = allSamplesInProj[indicesOfTargetSamplesInProj[i]];
@@ -1037,10 +1037,10 @@ public class PlinkData {
     if (isSnpMajor) {
       proj.getLog().report("Creating .bed file from SNP major data");
       abLookup =
-          createBedFileSnpMajor10KperCycle(proj, targetMarkers, indicesOfTargetMarkersInProj,
-                                           chrsOfTargetMarkers, posOfTargetMarkers,
-                                           indicesOfTargetSamplesInProj, clusterFilterFileName,
-                                           gcThreshold, outFileDirAndFilenameRoot, log);
+               createBedFileSnpMajor10KperCycle(proj, targetMarkers, indicesOfTargetMarkersInProj,
+                                                chrsOfTargetMarkers, posOfTargetMarkers,
+                                                indicesOfTargetSamplesInProj, clusterFilterFileName,
+                                                gcThreshold, outFileDirAndFilenameRoot, log);
     } else {
       proj.getLog().report("Creating .bed file from Sample major data");
       abLookup = createBedFileIndividualMajor(proj, targetSamples, targetMarkers,
@@ -1116,8 +1116,8 @@ public class PlinkData {
     allMarkersInProj = markerSet.getMarkerNames();
     chrs = markerSet.getChrs();
     positions = markerSet.getPositions();
-    int[] posInProj =
-        ext.indexLargeFactors(inputTargetMarkers, allMarkersInProj, false, log, true, false);
+    int[] posInProj = ext.indexLargeFactors(inputTargetMarkers, allMarkersInProj, false, log, true,
+                                            false);
     for (int i = 0; i < inputTargetMarkers.length; i++) {
       proj.getProgressMonitor().updateTask("PLINKBINARYEXPORT");
       if (posInProj[i] == -1) {
@@ -1234,7 +1234,7 @@ public class PlinkData {
    * Convert Genvisis data into binary PLINK .bed format (Individual Major, or in our term -
    * organized by samples). This is normally used as part of
    * PlinkData.createBinaryFileSetFromGenvisisData()
-   * 
+   *
    * @param proj
    * @param targetSamples samples selected to convert
    * @param targetMarkers markers selected to convert
@@ -1363,7 +1363,7 @@ public class PlinkData {
   /**
    * Convert Genvisis data to PLINK .bed format (SNP Major, or in our term - organized by markers)
    * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
-   * 
+   *
    * @param proj
    * @param targetMarkers markers selected to convert
    * @param indicesOfTargetMarkersInProj
@@ -1510,7 +1510,7 @@ public class PlinkData {
   /**
    * Convert Genvisis data to PLINK .bed format (SNP Major, or in our term - organized by markers)
    * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
-   * 
+   *
    * @param proj
    * @param targetMarkers markers selected to convert
    * @param indicesOfTargetMarkersInProj
@@ -1562,8 +1562,8 @@ public class PlinkData {
     if (clusterFilterFileName == null) {
       clusterFilterCollection = null;
     } else {
-      clusterFilterCollection =
-          ClusterFilterCollection.load(clusterFilterFileName, proj.JAR_STATUS.getValue());
+      clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFileName,
+                                                             proj.JAR_STATUS.getValue());
     }
 
     if (clusterFilterCollection == null) {
@@ -1666,11 +1666,11 @@ public class PlinkData {
                                     "Loading marker data from file ... " + filename,
                                     ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
         markerData =
-            MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, dir + filename,
-                                         /* indicesOfTargetMarkersInProj */indicesOfMarkersInProjForCurrentFile,
-                                         indicesOfMarkersInFileForCurrentFile, false, true, true,
-                                         true, true, sampleFingerPrint, outliersHash,
-                                         proj.getLog());
+                   MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, dir + filename,
+                                                /* indicesOfTargetMarkersInProj */indicesOfMarkersInProjForCurrentFile,
+                                                indicesOfMarkersInFileForCurrentFile, false, true,
+                                                true, true, true, sampleFingerPrint, outliersHash,
+                                                proj.getLog());
         proj.getProgressMonitor().endTask(PROG_KEY + filename + "_load");
 
         subTime = new Date().getTime();
@@ -1719,7 +1719,7 @@ public class PlinkData {
   /**
    * Convert Genvisis data to PLINK .bim format (SNP Major, or in our term - organized by markers)
    * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
-   * 
+   *
    * @param targetMarkers
    * @param chrsOfTargetMarkers.get(
    * @param posOfTargetMarkers
@@ -1762,7 +1762,7 @@ public class PlinkData {
   /**
    * Convert Genvisis data to PLINK .fam format (SNP Major, or in our term - organized by markers)
    * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
-   * 
+   *
    * @param proj
    * @param famDirAndFilenameRoot
    * @param log
@@ -1848,22 +1848,22 @@ public class PlinkData {
   /**
    * Transpose an array of byte steam read in from a PLINK .bed file from individual-major format to
    * SNP-major format.
-   * 
+   *
    * Note: This method does not address the memory management issue. The caller of this method is
    * supposed to implement the optimization of memory usage.
-   * 
+   *
    * This method is part of the process to convert a PLINK .bed format data from individual-major
    * (Sample lead, or organized by sample) to SNP-major (Marker lead, or organized by marker). This
    * method is normally used together with another method reading in and writing to PLINK .bed
    * files.
-   * 
+   *
    * This method can also reversely convert PLINK .bed format data from SNP-major (Marker lead, or
    * organized by marker) to individual-major (Sample lead, or organized by sample). Just treat all
    * the variables labeled with Mark as if they were labeled with Samp, and also Samp with Mark.
-   * 
+   *
    * The index parameters are all inclusive, meaning samples identified by indexOfStartSamp and
    * indesOfEndSamp are all going to be included in the output, and so do the markers.
-   * 
+   *
    * @param inputSampBytes array of a PLINK .bed stream, the input of this method
    * @param indexOfStartSamp index basing on all the samples in the input array, starting from 0.
    *        Please not to confuse with index of the input array, because 1 single element of the
@@ -1919,9 +1919,10 @@ public class PlinkData {
         iByteSamp = offsetSamp + j / 4;
         iBitSamp = (byte) (j % 4);
 
-        outputMarkBytes[iByteMark] =
-            (byte) ((outputMarkBytes[iByteMark] & (0xff - (0x03 << (iBitMark * 2))))
-                    | (inputSampBytes[iByteSamp] & (0x03 << (iBitSamp * 2))));
+        outputMarkBytes[iByteMark] = (byte) ((outputMarkBytes[iByteMark]
+                                              & (0xff - (0x03 << (iBitMark * 2))))
+                                             | (inputSampBytes[iByteSamp]
+                                                & (0x03 << (iBitSamp * 2))));
       }
     }
 
@@ -1946,19 +1947,19 @@ public class PlinkData {
   /**
    * Transpose one byte of data read in from a PLINK .bed file from individual-major format to
    * SNP-major format.
-   * 
+   *
    * This method is part of the process to convert a PLINK .bed format data from individual-major
    * (Sample lead, or organized by sample) to SNP-major (Marker lead, or organized by marker). This
    * method is normally used together with another method to read in a PLINK .bed file and write to
    * another one, and looping over the byte stream loaded from the PLINK .bed file.
-   * 
+   *
    * This method can also reversely convert PLINK .bed format data from SNP-major (Marker lead, or
    * organized by marker) to individual-major (Sample lead, or organized by sample). Just treat all
    * the variables labeled with Mark as if they were labeled with Samp, and also Samp with Mark.
-   * 
+   *
    * The index parameters are all inclusive, meaning samples identified by indexOfStartSamp and
    * indexOfEndSamp are all going to be included in the output, and so do the markers.
-   * 
+   *
    * @param inputSampByte
    * @param indexOfCurrentSampInProj
    * @param indexOfEndSamp
@@ -1984,16 +1985,16 @@ public class PlinkData {
     for (int j = indexOfStartMark; j < indexOfEndMark; j++) {
       iBitSamp = (byte) (j % 4);
 
-      outputMarkBytes[iByteMark] =
-          (byte) ((outputMarkBytes[iByteMark] & (0xff - (0x03 << (iBitMark * 2))))
-                  | (inputSampByte & (0x03 << (iBitSamp * 2))));
+      outputMarkBytes[iByteMark] = (byte) ((outputMarkBytes[iByteMark]
+                                            & (0xff - (0x03 << (iBitMark * 2))))
+                                           | (inputSampByte & (0x03 << (iBitSamp * 2))));
     }
   }
 
   /**
    * Translate Genvisis genotype genotype to PLINK genotype. This is specifically for markers on
    * chromosome X of males.
-   * 
+   *
    * @param genvisisGenotype
    * @param chromosome
    * @param sex
@@ -2015,7 +2016,7 @@ public class PlinkData {
   /**
    * Translate PLINK genotype genotype to Genvisis genotype. This is specifically for markers on
    * chromosome X of males.
-   * 
+   *
    * @param genvisisGenotype
    * @param chromosome
    * @return
@@ -2035,7 +2036,7 @@ public class PlinkData {
   /**
    * Translate Genvisis genotype genotype to PLINK genotype. This is specifically for markers on
    * chromosome X of males.
-   * 
+   *
    * @param genvisisGenotype
    * @param chromosome
    * @return
@@ -2054,7 +2055,7 @@ public class PlinkData {
 
   /**
    * Convert the array of genotypes into an array of PLINK .bed byte stream.
-   * 
+   *
    * @param genotype
    * @return
    */
@@ -2092,7 +2093,7 @@ public class PlinkData {
 
   /**
    * This is part of the method encodePlinkBedBytesForASingleMarkOrSamp(byte[] )
-   * 
+   *
    * @param genotype
    * @return
    * @throws Elision
@@ -2123,7 +2124,7 @@ public class PlinkData {
   /**
    * Convert an array of byte stream from a PLINK .bed file into an array of genotypes with each
    * element corresponding to one single sample
-   * 
+   *
    * @param bedBytes
    * @param startIndex
    * @param indicesOfSamplesOrMarkers
@@ -2140,8 +2141,8 @@ public class PlinkData {
       for (int i = 0; i <= genotypes.length; i++) {
         indexBedBytes = indicesOfSamplesOrMarkers[i] / 4;
         indexBedByte = indicesOfSamplesOrMarkers[i] % 4;
-        genotypes[i] =
-            decodeLastTwoBitsOfABedByte((byte) (bedBytes[indexBedBytes] >> (indexBedByte * 2)));
+        genotypes[i] = decodeLastTwoBitsOfABedByte((byte) (bedBytes[indexBedBytes] >> (indexBedByte
+                                                                                       * 2)));
       }
     } catch (Elision e) {
       e.printStackTrace();
@@ -2153,7 +2154,7 @@ public class PlinkData {
   /**
    * Convert an array of byte stream from a PLINK .bed file to an array of genotypes with each
    * element corresponding to one single sample
-   * 
+   *
    * @param bedBytes
    * @param startIndex
    * @param nSamplesOrMarkers
@@ -2183,7 +2184,7 @@ public class PlinkData {
   /**
    * Convert a single byte from a PLINK .bed file to the genotype of up to 4 samples and put them
    * into the output array.
-   * 
+   *
    * @param inputOneByteFromBed
    * @param outputGenotypes
    * @param startIndexOfOutput
@@ -2192,8 +2193,8 @@ public class PlinkData {
   public static void decodeBedByte(byte inputOneByteFromBed, byte[] outputGenotypes,
                                    int startIndexOfOutput) throws Elision {
     for (int i = 0; i < 4 && startIndexOfOutput < outputGenotypes.length; i++) {
-      outputGenotypes[startIndexOfOutput + i] =
-          decodeLastTwoBitsOfABedByte((byte) (inputOneByteFromBed >> (2 * i)));
+      outputGenotypes[startIndexOfOutput
+                      + i] = decodeLastTwoBitsOfABedByte((byte) (inputOneByteFromBed >> (2 * i)));
       startIndexOfOutput++;
     }
   }
@@ -2201,7 +2202,7 @@ public class PlinkData {
   /**
    * Convert a type from a PLINK .bed file to an array of genotypes with each element corresponding
    * to a single sample.
-   * 
+   *
    * @param bedByte
    * @return
    * @throws Elision
@@ -2219,7 +2220,7 @@ public class PlinkData {
 
   /**
    * This is part of the method decodeBedByte(byte)
-   * 
+   *
    * @param bedByte
    * @return
    * @throws Elision
@@ -2250,7 +2251,7 @@ public class PlinkData {
 
   /**
    * A utility to show the bit maps of several bytes read in from a PLINK .bed file.
-   * 
+   *
    * @param bedSetDirAndFilenameRoot
    * @param nSamplesToLoad
    */
@@ -2338,7 +2339,7 @@ public class PlinkData {
 
   /**
    * A utility to show the bit maps of several bytes read in from a PLINK .bed file.
-   * 
+   *
    * @param bedFileName
    * @param startByte with 0 meaning the 1st byte, 1 the 2nd, and etc.
    * @param nBytes
@@ -2377,7 +2378,7 @@ public class PlinkData {
 
   /**
    * A utility to show the bit map of a byte array;
-   * 
+   *
    * @param data
    * @param startByte
    * @param nBytes
@@ -2391,7 +2392,7 @@ public class PlinkData {
 
   /**
    * A utility to show the bit map of a byte.
-   * 
+   *
    * @param data
    */
   public static String showBitsLittleEndian(byte data) {
@@ -2407,7 +2408,7 @@ public class PlinkData {
 
   /**
    * A utility to show the bit map of a byte.
-   * 
+   *
    * @param data
    */
   public static String showBitsLittleEndian(byte data, byte index) {
@@ -2416,7 +2417,7 @@ public class PlinkData {
 
   /**
    * A utility to show the bit map of a byte array;
-   * 
+   *
    * @param data
    * @param startByte
    * @param nBytes
@@ -2430,7 +2431,7 @@ public class PlinkData {
 
   /**
    * A utility to show the bit map of a byte.
-   * 
+   *
    * @param data
    */
   public static String showBits(byte data) {
@@ -2448,7 +2449,7 @@ public class PlinkData {
   /**
    * Match samples in a PLINK data set with samples in a Genvisis project. This is part of the
    * process to convert PLINK data sets to Genvisis data.
-   * 
+   *
    * @param proj
    * @param plinkFileRoot
    * @param log
@@ -2499,7 +2500,7 @@ public class PlinkData {
   /**
    * Generate the list of sample indices for a PLINK data set. This is part of the process to
    * convert PLINK data to Genvisis data.
-   * 
+   *
    * @param plinkFileRoot
    * @param log
    * @return
@@ -2511,10 +2512,10 @@ public class PlinkData {
   /**
    * (This method is dropped, because of a conceptual error - PLINK data do not have intensity x and
    * y)
-   * 
+   *
    * This is a method to load data from a PLINK data set into MarkerData[]. This is part of the
    * process to convert PLINK data into Genvisis data.
-   * 
+   *
    * @param allMarkersInProj
    * @param allChrsInProj
    * @param allPositionsInProj
@@ -2572,8 +2573,8 @@ public class PlinkData {
           indexBedBytes = sampIndices[j] / 4;
           indexBedBits = sampIndices[i] % 4;
           genotypes[j] =
-              decodeLastTwoBitsOfABedByte((byte) (bytesOfOneMarkerInBed[indexBedBytes] >> (indexBedBits
-                                                                                           * 2)));
+                       decodeLastTwoBitsOfABedByte((byte) (bytesOfOneMarkerInBed[indexBedBytes] >> (indexBedBits
+                                                                                                    * 2)));
         }
 
         result[i] = new MarkerData(allMarkersInProj[markersIndicesInProj[i]],

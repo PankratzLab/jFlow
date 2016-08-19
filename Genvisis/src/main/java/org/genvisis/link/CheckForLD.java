@@ -24,11 +24,11 @@ import org.genvisis.filesys.LDdatabase;
 public class CheckForLD {
   public static final String DBSNP_SOURCE = ParseSNPlocations.DEFAULT_B36_SOURCE_FILENAME;
   public static final String DBSNP_LOCAL = "6K_b129.bcp";
-  public static final String[] LD_HEADER =
-      {"L1", "L2", "D'", "LOD", "r^2", "CIlow", "CIhi", "Dist", "T-int"};
-  public static final String[] CHECK_HEADER =
-      {"#", "Name", "Position", "ObsHET", "PredHET", "HWpval", "%Geno", "FamTrio", "MendErr", "MAF",
-       "Alleles", "Rating"};
+  public static final String[] LD_HEADER = {"L1", "L2", "D'", "LOD", "r^2", "CIlow", "CIhi", "Dist",
+                                            "T-int"};
+  public static final String[] CHECK_HEADER = {"#", "Name", "Position", "ObsHET", "PredHET",
+                                               "HWpval", "%Geno", "FamTrio", "MendErr", "MAF",
+                                               "Alleles", "Rating"};
   public static final double DEFAULT_MAX_DPRIME = 0.7;
   public static final double DEFAULT_R2 = 0.3;
 
@@ -77,8 +77,8 @@ public class CheckForLD {
     }
 
     for (int i = start; i <= stop; i++) {
-      markersByChrome.put(i + "", data =
-          new LinkageMap(dir + "map" + ext.chrome(i) + ".dat").getMarkerNames());
+      markersByChrome.put(i + "", data = new LinkageMap(dir + "map" + ext.chrome(i)
+                                                        + ".dat").getMarkerNames());
       for (String element : data) {
         markerPositions.put(element, "-1");
       }
@@ -109,7 +109,7 @@ public class CheckForLD {
       data = markersByChrome.get(i + "");
       try {
         writer =
-            new PrintWriter(new FileWriter(dir + checkDir + "check" + ext.chrome(i) + ".info"));
+               new PrintWriter(new FileWriter(dir + checkDir + "check" + ext.chrome(i) + ".info"));
         for (String element : data) {
           line = markerPositions.get(element).split("[\\s]+");
           if (line[0].equals("-1")) {
@@ -145,8 +145,8 @@ public class CheckForLD {
 
     new File(root + checkDir).mkdirs();
     for (int i = start; i <= stop; i++) {
-      markersByChrome.put(i + "", data =
-          new LinkageMap(root + "map" + ext.chrome(i) + ".dat").getMarkerNames());
+      markersByChrome.put(i + "", data = new LinkageMap(root + "map" + ext.chrome(i)
+                                                        + ".dat").getMarkerNames());
       for (String element : data) {
         markerPositions.put(element, "-1");
       }
@@ -285,7 +285,7 @@ public class CheckForLD {
       for (int chr = 1; chr <= 22; chr++) {
         maxObsLD = parseMaxLD(root + checkDir + prefix + ext.chrome(chr) + ".pre.LD", log);
         maxHapmapLD =
-            parseMaxLD(root + hapmapDir + hapmapPrefix + ext.chrome(chr) + ".pre.LD", log);
+                    parseMaxLD(root + hapmapDir + hapmapPrefix + ext.chrome(chr) + ".pre.LD", log);
         hapCheck = new Hashtable<String, String>();
         try {
           reader = new BufferedReader(new FileReader(root + hapmapDir + hapmapPrefix

@@ -87,15 +87,15 @@ public class ReferenceGenome {
                          + (binsAdded + 1) + " " + bpBinSize + "bp bins");
     }
 
-    LocusSet<Segment> binsToReturn =
-        new LocusSet<Segment>(bins.toArray(new Segment[bins.size()]), true, log) {
+    LocusSet<Segment> binsToReturn = new LocusSet<Segment>(bins.toArray(new Segment[bins.size()]),
+                                                           true, log) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1L;
 
-        };
+    };
     log.reportTimeInfo(referenceFasta + " broken up to " + bins.size() + " bins ");
     return binsToReturn;
   }
@@ -207,7 +207,9 @@ public class ReferenceGenome {
         }
       } else {
         ReferenceSequence subReferenceSequence =
-            indexedFastaSequenceFile.getSubsequenceAt(requestedContig, start, stop);
+                                               indexedFastaSequenceFile.getSubsequenceAt(requestedContig,
+                                                                                         start,
+                                                                                         stop);
         requestedSeq = Array.decodeByteArray(subReferenceSequence.getBases(),
                                              BYTE_DECODE_FORMAT.UPPER_CASE, log);
       }

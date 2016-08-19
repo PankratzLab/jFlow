@@ -21,9 +21,9 @@ import org.genvisis.filesys.CNVariant;
 
 public class QuantiSNP {
   public static final String WINDOWS_DIRECTORY =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\00src\\";
+                                               "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\00src\\";
   public static final String LINUX_DIRECTORY =
-      "/work/parkinsons/gwas/Genotype and intensity data files/Final_Reports";
+                                             "/work/parkinsons/gwas/Genotype and intensity data files/Final_Reports";
   // public static final String LINUX_DIRECTORY = "/work/parkinsons/gwas/Genotype and intensity data
   // files/Final_Reports/test";
   // public static final String ROOT_DIR = "C:\\Documents and Settings\\npankrat\\My
@@ -31,7 +31,7 @@ public class QuantiSNP {
   // public static final String ROOT_DIR = "Q:\\parkinsons\\cnvs\\quantisnp\\";
   // public static final String ROOT_DIR = "C:\\QuantiSNP\\";
   public static final String ROOT_DIR =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\quantisnp\\noGenderProblems\\";
+                                      "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\quantisnp\\noGenderProblems\\";
   public static final String OUTPUT_DIR = "output\\";
   public static final String CNV_DIRECTORY = "quanti_data/";
   // public static final String DEFAULT_OUTPUT = "output_e10/";
@@ -42,9 +42,9 @@ public class QuantiSNP {
   public static final double BAYES_FACTOR_CUTOFF = 10;
   // public static final int EM_ITERATIONS = 10;
   public static final int EM_ITERATIONS = 25;
-  public static final String[] FIELDS =
-      {"SNP Name", "Sample ID", "Sample Name", "GC Score", "Allele1 - Forward", "Allele2 - Forward",
-       "Allele1 - AB", "Allele2 - AB", "B Allele Freq", "Log R Ratio"};
+  public static final String[] FIELDS = {"SNP Name", "Sample ID", "Sample Name", "GC Score",
+                                         "Allele1 - Forward", "Allele2 - Forward", "Allele1 - AB",
+                                         "Allele2 - AB", "B Allele Freq", "Log R Ratio"};
   public static final String[] LOOKUP_HEADER = {"Sample_ID", "FID", "IID", "Gender"};
 
   public static void createFiles() {
@@ -132,10 +132,10 @@ public class QuantiSNP {
             line = reader.readLine().split(",");
             if (pdgwas) {
               trav =
-                  line[indices[ext.indexOfStr("Sample Name",
-                                              FIELDS)]].substring(0,
-                                                                  line[indices[ext.indexOfStr("Sample Name",
-                                                                                              FIELDS)]].indexOf("@"));
+                   line[indices[ext.indexOfStr("Sample Name",
+                                               FIELDS)]].substring(0,
+                                                                   line[indices[ext.indexOfStr("Sample Name",
+                                                                                               FIELDS)]].indexOf("@"));
             } else {
               trav = line[indices[ext.indexOfStr("Sample ID", FIELDS)]];
             }
@@ -146,9 +146,9 @@ public class QuantiSNP {
                               + ".qs").exists()) {
                 version++;
               }
-              cnvWriter =
-                  new PrintWriter(new FileWriter(CNV_DIRECTORY + id
-                                                 + (version == 0 ? "" : "." + version) + ".qs"));
+              cnvWriter = new PrintWriter(new FileWriter(CNV_DIRECTORY + id
+                                                         + (version == 0 ? "" : "." + version)
+                                                         + ".qs"));
               cnvWriter.println("Name\tChr\tPosition\t" + id + ".Log R Ratio\t" + id
                                 + ".B Allele Freq");
             } else if (!trav.equals(id)) {

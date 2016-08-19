@@ -171,8 +171,8 @@ public class CigarOps {
 
     if (currentReadLength != cigar.getReadLength()
         || cigar.getPaddedReferenceLength() != currentRefLength) {
-      String error =
-          "Could not properly uniqify " + original.toString() + ", came out as " + cigar.toString();
+      String error = "Could not properly uniqify " + original.toString() + ", came out as "
+                     + cigar.toString();
       System.out.println(currentReadLength + "\t" + cigar.getCigarElements().size() + "\t"
                          + cigar.toString());
       System.out.println(currentReadLength + "\t" + cigar.getCigarElements().size() + "\t"
@@ -225,7 +225,7 @@ public class CigarOps {
 
   /**
    * Break up the btop entry into Integer strings and String strings for later processing
-   * 
+   *
    * @param btop
    * @param log
    * @return

@@ -1,9 +1,5 @@
 package org.genvisis.common;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Floats;
-import com.google.common.primitives.Ints;
-
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -16,6 +12,10 @@ import java.util.Vector;
 
 import org.genvisis.stats.Maths;
 import org.genvisis.stats.ProbDist;
+
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
+import com.google.common.primitives.Ints;
 
 public class Array {
   private static final int MINI = -999;
@@ -32,7 +32,7 @@ public class Array {
 
   /**
    * Return the minimum in an array of integers
-   * 
+   *
    * @see {@link Ints#min(int...)}
    * @param array array of integers
    * @return the minimum
@@ -47,7 +47,7 @@ public class Array {
 
   /**
    * Return the minimum in an array of doubles
-   * 
+   *
    * @see {@link Doubles#min(double...)}
    * @param array array of doubles
    * @return the minimum
@@ -61,7 +61,7 @@ public class Array {
 
   /**
    * Return the minimum, non-{@link Float#NaN} value.
-   * 
+   *
    * @see {@link Floats#min(float...)}
    * @param array array of floats
    * @return the minimum
@@ -83,7 +83,7 @@ public class Array {
   /**
    * Return the minimum and maximum non-{@link Float#NaN} values, respectively, in an array of
    * floats
-   * 
+   *
    * @param array array of floats
    * @return the minimum and maximum, in that order
    */
@@ -106,7 +106,7 @@ public class Array {
   /**
    * Return the minimum and maximum non-{@link Double#NaN} values, respectively, in an array of
    * doubles
-   * 
+   *
    * @param array array of doubles
    * @return the minimum and maximum, in that order
    */
@@ -128,7 +128,7 @@ public class Array {
 
   /**
    * Return the minimum in an array of bytes
-   * 
+   *
    * @param array array of integers
    * @return the minimum
    */
@@ -145,7 +145,7 @@ public class Array {
 
   /**
    * Return the index of the minimum non-{@link Float#NaN} value in an array of floats
-   * 
+   *
    * @param array array of floats
    * @return the index of the minimum or -1 if an empty array is given
    */
@@ -168,7 +168,7 @@ public class Array {
 
   /**
    * Return the index of the minimum in an array of doubles
-   * 
+   *
    * @param array array of doubles
    * @return the minimum
    */
@@ -178,7 +178,7 @@ public class Array {
 
   /**
    * Return the index of the maximum in an array of integers
-   * 
+   *
    * @param array array of integers
    * @return the minimum
    */
@@ -208,7 +208,7 @@ public class Array {
 
   /**
    * Return the maximum in an array of integers
-   * 
+   *
    * @see {@link Ints#max(int...)}
    * @param array array of integers
    * @return the maximum
@@ -223,7 +223,7 @@ public class Array {
 
   /**
    * Return the maximum in an array of floats
-   * 
+   *
    * @see {@link Floats#max(float...)}
    * @param array array of floats
    * @return the minimum
@@ -238,7 +238,7 @@ public class Array {
 
   /**
    * Return the maximum in an array of numbers
-   * 
+   *
    * @param array array of numbers
    * @return the maximum
    */
@@ -251,7 +251,7 @@ public class Array {
 
   /**
    * Return the maximum in an array of bytes
-   * 
+   *
    * @param array array of numbers
    * @return the maximum
    */
@@ -269,7 +269,7 @@ public class Array {
 
   /**
    * Creates an integer array of given size and initializes values to their respective indices
-   * 
+   *
    * @param size size of array
    * @return array of integers with values initialized to their respective indices
    */
@@ -283,7 +283,7 @@ public class Array {
 
   /**
    * Creates an integer array of given size and initializes each element with the given value
-   * 
+   *
    * @param size size of array
    * @param initValue initial value of each element
    * @return array of integers initialized to the given value
@@ -297,7 +297,7 @@ public class Array {
   /**
    * Creates an integer array of given size and initializes each element to 1 except for the first,
    * which is set to zero
-   * 
+   *
    * @param size size of array
    * @return array of integers initialized to the correct values
    */
@@ -310,7 +310,7 @@ public class Array {
 
   /**
    * Creates a long array of given size and initializes each element with the given value
-   * 
+   *
    * @param size size of array
    * @param initValue initial value of each element
    * @return array of longs initialized to the given value
@@ -323,7 +323,7 @@ public class Array {
 
   /**
    * Creates an integer array from the contents of a string array
-   * 
+   *
    * @param array array of Strings to be converted
    * @return array of the converted integers
    */
@@ -341,7 +341,7 @@ public class Array {
 
   /**
    * Creates an integer array from the contents of a byte array
-   * 
+   *
    * @param array array of Strings to be converted
    * @return array of the converted integers
    */
@@ -355,7 +355,7 @@ public class Array {
 
   /**
    * Creates an integer array from the contents of a double array
-   * 
+   *
    * @param array array of double to be converted
    * @return array of the converted integers
    */
@@ -369,7 +369,7 @@ public class Array {
 
   /**
    * Creates an array of numbers from the contents of a string array
-   * 
+   *
    * @param array array of Strings to be converted
    * @return array of the converted numbers
    */
@@ -383,9 +383,9 @@ public class Array {
 
   /**
    * Creates an array of numbers from the contents of a string array
-   * 
+   *
    * @param array array of Strings to be converted
-   * 
+   *
    * @return array of the converted numbers
    */
   public static double[] toDoubleArray(String[] array) {
@@ -411,7 +411,7 @@ public class Array {
 
   /**
    * Creates an array of doubles from the contents of a float array
-   * 
+   *
    * @param array array of floats to be converted
    * @return array of the converted doubles
    */
@@ -429,7 +429,7 @@ public class Array {
 
   /**
    * Creates an array of doubles from the contents of a byte array
-   * 
+   *
    * @param array array of floats to be converted
    * @return array of the converted numbers
    */
@@ -447,7 +447,7 @@ public class Array {
 
   /**
    * Creates an array of doubles and copies the contents of an int array into it
-   * 
+   *
    * @param array an array of integers
    * @return an array of doubles copied from an array of integers
    */
@@ -461,7 +461,7 @@ public class Array {
 
   /**
    * Creates an array of doubles and copies the contents of a long array into it
-   * 
+   *
    * @param array an array of longs
    * @return an array of doubles copied from an array of longs
    */
@@ -475,7 +475,7 @@ public class Array {
 
   /**
    * Creates an array of floats from the contents of a double array
-   * 
+   *
    * @param array array of doubles to be converted
    * @return array of the converted numbers
    */
@@ -493,7 +493,7 @@ public class Array {
 
   /**
    * Creates an array of floats from the contents of a byte array
-   * 
+   *
    * @param array array of bytes to be converted
    * @return array of the converted numbers
    */
@@ -511,7 +511,7 @@ public class Array {
 
   /**
    * Creates a double array of given size and initializes each element with the given value
-   * 
+   *
    * @param size size of array
    * @param initValue initial value of each element
    * @return array of numbers initialized to the given value
@@ -524,7 +524,7 @@ public class Array {
 
   /**
    * Creates a float array of given size and initializes each element with the given value
-   * 
+   *
    * @param size size of array
    * @param initValue initial value of each element
    * @return array of floats initialized to the given value
@@ -537,7 +537,7 @@ public class Array {
 
   /**
    * Creates a byte array of given size and initializes each element with the given value
-   * 
+   *
    * @param size size of array
    * @param initValue initial value of each element
    * @return array of bytes initialized to the given value
@@ -550,7 +550,7 @@ public class Array {
 
   /**
    * Create a boolean array and make all states an initial value
-   * 
+   *
    * @param int size of array
    * @return the boolean array
    */
@@ -615,7 +615,7 @@ public class Array {
 
   /**
    * Creates a byte array from the contents of an integer array
-   * 
+   *
    * @param array array of ints to be converted
    * @return array of the converted bytes
    */
@@ -633,7 +633,7 @@ public class Array {
 
   /**
    * Creates a byte array from the contents of an integer array
-   * 
+   *
    * @param array array of floats to be converted
    * @return array of the converted bytes
    */
@@ -647,7 +647,7 @@ public class Array {
 
   /**
    * Creates a String array of given size and initializes each element with the given value
-   * 
+   *
    * @param size size of array
    * @param initValue initial value of each element
    * @return array of Strings initialized to the given value
@@ -663,7 +663,7 @@ public class Array {
   /**
    * Creates a String array of given size and initializes each element with the "base value"
    * +(index+1)
-   * 
+   *
    * @param size size of array
    * @param base base value of each element
    * @return array of Strings initialized to the given indexed values
@@ -675,7 +675,7 @@ public class Array {
   /**
    * Creates a String array of given size and initializes each element with the
    * "prefix"+(index+1)+"suffix"
-   * 
+   *
    * @param size size of array
    * @param prefix prefix for each element
    * @param suffix suffix for each element
@@ -691,7 +691,7 @@ public class Array {
 
   /**
    * Creates an array of blank Strings
-   * 
+   *
    * @param size size of array
    * @return array of blank Strings
    */
@@ -702,7 +702,7 @@ public class Array {
   /**
    * Creates an integer array of given size and initializes values by randomly sampling zero to size
    * without replacement
-   * 
+   *
    * @param size size of array
    * @return array of random indices for the given size
    */
@@ -713,7 +713,7 @@ public class Array {
   /**
    * Creates an integer array of a set number of selections, and initializes values by randomly
    * sampling zero to size with replacement
-   * 
+   *
    * @param size range of random values
    * @param numSelections number of random values to select
    * @return array of the specified number of selections from a distribution of the given size
@@ -725,7 +725,7 @@ public class Array {
   /**
    * Creates an integer array of a set number of selections, and initializes values by randomly
    * sampling zero to size without replacement
-   * 
+   *
    * @param size range of random values
    * @param numSelections number of random values to select
    * @return array of the specified number of selections from a distribution of the given size
@@ -757,7 +757,7 @@ public class Array {
    * <p>
    * TODO replace with Streams in Java 8
    * </p>
-   * 
+   *
    * @param array an array of numbers
    * @return sum of the array
    */
@@ -776,7 +776,7 @@ public class Array {
 
   /**
    * Calculates the sum of all values in an array specified by the indices in a second array
-   * 
+   *
    * @param array an array of numbers
    * @param order an array of indices to sum
    * @return sum of the array at the given indices
@@ -793,7 +793,7 @@ public class Array {
 
   /**
    * Calculates the sum of an array
-   * 
+   *
    * @param array an array of numbers
    * @return sum of the array
    */
@@ -812,7 +812,7 @@ public class Array {
    * <p>
    * TODO replace with Streams in Java 8
    * </p>
-   * 
+   *
    * @param array an array of numbers
    * @return sum of the array
    */
@@ -831,7 +831,7 @@ public class Array {
    * <p>
    * TODO replace with Streams in Java 8
    * </p>
-   * 
+   *
    * @param array an array of numbers
    * @return sum of the array
    */
@@ -850,7 +850,7 @@ public class Array {
    * <p>
    * TODO replace with Streams in Java 8
    * </p>
-   * 
+   *
    * @param array an array of integers
    * @return sum of the array
    */
@@ -869,7 +869,7 @@ public class Array {
    * <p>
    * TODO replace with Streams in Java 8
    * </p>
-   * 
+   *
    * @param array an array of integers
    * @return sum of the array
    */
@@ -888,7 +888,7 @@ public class Array {
    * <p>
    * TODO replace with Streams in Java 8
    * </p>
-   * 
+   *
    * @param array an array of long
    * @return sum of the array
    */
@@ -904,7 +904,7 @@ public class Array {
 
   /**
    * Calculates the mean of an array
-   * 
+   *
    * @param array an array of numbers
    * @return mean of the array
    */
@@ -1015,7 +1015,7 @@ public class Array {
 
   /**
    * Calculates the mean of an array
-   * 
+   *
    * @param array an array of numbers
    * @return mean of the array
    */
@@ -1041,7 +1041,7 @@ public class Array {
 
   /**
    * Calculates the mean of a float array
-   * 
+   *
    * @param array an array of numbers
    * @return mean of the array
    */
@@ -1067,7 +1067,7 @@ public class Array {
 
   /**
    * Calculates the mean of an array
-   * 
+   *
    * @param array an array of numbers
    * @return mean of the array
    */
@@ -1077,7 +1077,7 @@ public class Array {
 
   /**
    * Calculates the mean of an array
-   * 
+   *
    * @param array an array of numbers
    * @return mean of the array
    */
@@ -1087,7 +1087,7 @@ public class Array {
 
   /**
    * Calculates the mean of an array
-   * 
+   *
    * @param array an array of numbers
    * @return mean of the array
    */
@@ -1115,7 +1115,7 @@ public class Array {
 
   /**
    * Calculates the mean of an array
-   * 
+   *
    * @param array an array of numbers
    * @return mean of the array
    */
@@ -1125,7 +1125,7 @@ public class Array {
 
   /**
    * Calculates the mean of an array
-   * 
+   *
    * @param array an array of numbers
    * @return mean of the array
    */
@@ -1135,7 +1135,7 @@ public class Array {
 
   /**
    * Calculates the variance of an array
-   * 
+   *
    * @param array an array of numbers
    * @return variance of the array
    */
@@ -1152,7 +1152,7 @@ public class Array {
 
   /**
    * Calculates the variance of an array
-   * 
+   *
    * @param array an array of numbers
    * @return variance of the array
    */
@@ -1169,7 +1169,7 @@ public class Array {
 
   /**
    * Calculates the mean of an array if the sum is already known
-   * 
+   *
    * @param array an array of numbers
    * @return mean of the array
    */
@@ -1179,7 +1179,7 @@ public class Array {
 
   /**
    * Calculates the sum of squares of an array if the mean is already known
-   * 
+   *
    * @param array an array of numbers
    * @param avg precomputed average of the array
    * @return variance of the array
@@ -1194,7 +1194,7 @@ public class Array {
 
   /**
    * Calculates the variance of an array if the sum of squares is known
-   * 
+   *
    * @param array an array of numbers
    * @param avg precomputed average of the array
    * @return variance of the array
@@ -1205,7 +1205,7 @@ public class Array {
 
   /**
    * Calculates the variance of an array
-   * 
+   *
    * @param array an array of numbers
    * @return variance of the array
    */
@@ -1227,7 +1227,7 @@ public class Array {
 
   /**
    * Calculates the standard deviation of an array
-   * 
+   *
    * @param array an array of numbers
    * @return standard deviation of the array
    */
@@ -1237,7 +1237,7 @@ public class Array {
 
   /**
    * Calculates the standard deviation of an array
-   * 
+   *
    * @param array an array of numbers
    * @return standard deviation of the array
    */
@@ -1247,7 +1247,7 @@ public class Array {
 
   /**
    * Calculates the standard deviation of an array
-   * 
+   *
    * @param array an array of numbers
    * @param removeNaN remove any value that is not a number
    * @return standard deviation of the [filtered] array
@@ -1278,7 +1278,7 @@ public class Array {
 
   /**
    * Calculates the standard deviation of an array
-   * 
+   *
    * @param array an array of numbers
    * @param removeNaN remove any value that is not a number
    * @return standard deviation of the [filtered] array
@@ -1309,7 +1309,7 @@ public class Array {
 
   /**
    * Calculates the standard deviation of an array
-   * 
+   *
    * @param array an array of numbers
    * @param removeNaN remove any value that is not a number
    * @return standard deviation of the [filtered] array
@@ -1340,7 +1340,7 @@ public class Array {
 
   /**
    * Calculates the standard deviation of an array
-   * 
+   *
    * @param array an array of numbers
    * @param removeNaN remove any value that is not a number
    * @return standard deviation of the [filtered] array
@@ -1371,7 +1371,7 @@ public class Array {
 
   /**
    * Normalizes (calculates z-scores) for an array of numbers
-   * 
+   *
    * @param array an array of numbers
    * @return array of z-scores
    */
@@ -1389,7 +1389,7 @@ public class Array {
 
   /**
    * Standardizes (calculates z-scores) for an array of numbers
-   * 
+   *
    * @param array an array of numbers
    * @return array of z-scores
    */
@@ -1408,7 +1408,7 @@ public class Array {
   /**
    * Normalizes (calculates z-scores) for an array of numbers using separate standard deviations for
    * positive and negative numbers
-   * 
+   *
    * @param array an array of numbers
    * @return array of sign-specific z-scores
    */
@@ -1447,7 +1447,7 @@ public class Array {
 
   /**
    * Returns the quantiles of an array
-   * 
+   *
    * @param array an array of numbers
    * @return array of quantiles
    */
@@ -1466,7 +1466,7 @@ public class Array {
 
   /**
    * Returns the kurtosis of an array
-   * 
+   *
    * @param array
    * @return
    */
@@ -1488,7 +1488,7 @@ public class Array {
 
   /**
    * Returns the kurtosis of an array
-   * 
+   *
    * @param array
    * @return
    */
@@ -1518,7 +1518,7 @@ public class Array {
 
   /**
    * Inverse-normalizes an array of numbers
-   * 
+   *
    * @param array an array of numbers
    * @return array of inverse-normalized values
    */
@@ -1541,7 +1541,7 @@ public class Array {
 
   /**
    * Inverse-normalizes an array of numbers
-   * 
+   *
    * @param array an array of numbers
    * @return array of inverse-normalized values
    */
@@ -1564,7 +1564,7 @@ public class Array {
 
   /**
    * Returns the bootstrapped median of an array
-   * 
+   *
    * @param array an array of numbers
    * @param numReps number of replicates to perform
    * @return array of the median, the 2.5 and the 97.5 bootstrap percentile intervals
@@ -1610,7 +1610,7 @@ public class Array {
    * Determines the specified exclusive quantile of an array of numbers<br />
    * Returns a number guaranteed to be a member of the given array.<br />
    * This function matches Excel's QUARTILE.EXC function.
-   * 
+   *
    * @param array an array of numbers
    * @param q exclusive quantile to be determined
    * @return specified exclusive quantile of the array
@@ -1644,7 +1644,7 @@ public class Array {
    * Determines the specified exclusive quantile of an array of numbers<br />
    * Returns a number guaranteed to be a member of the given array.<br />
    * This function matches Excel's QUARTILE.EXC function.
-   * 
+   *
    * @param array an array of numbers
    * @param q exclusive quantile to be determined
    * @return specified exclusive quantile of the array
@@ -1678,7 +1678,7 @@ public class Array {
    * Determines the specified exclusive quantile of an array of numbers<br />
    * Returns a number guaranteed to be a member of the given array.<br />
    * This function matches Excel's QUARTILE.EXC function.
-   * 
+   *
    * @param array an array of numbers
    * @param q exclusive quantile to be determined
    * @return specified exclusive quantile of the array
@@ -1710,7 +1710,7 @@ public class Array {
 
   /**
    * Determines the specified quantile of an array of numbers
-   * 
+   *
    * @param array an array of numbers
    * @param q quantile to be determined
    * @return specified quantile of the array
@@ -1739,7 +1739,7 @@ public class Array {
 
   /**
    * Determines the specified quantiles of an array of numbers
-   * 
+   *
    * @param array an array of numbers
    * @param q quantiles to be determined
    * @return specified quantiles of the array
@@ -1773,7 +1773,7 @@ public class Array {
 
   /**
    * Determines the specified quantiles of an array of numbers
-   * 
+   *
    * @param array an array of numbers
    * @param q quantiles to be determined
    * @return specified quantiles of the array
@@ -1807,7 +1807,7 @@ public class Array {
 
   /**
    * Determines the median absolute difference of an array of double
-   * 
+   *
    * @param array an array of numbers
    * @return mad of the array
    */
@@ -1819,7 +1819,7 @@ public class Array {
 
   /**
    * Determines the median absolute difference of an array of double
-   * 
+   *
    * @param array an array of numbers
    * @return mad of the array
    */
@@ -1834,7 +1834,7 @@ public class Array {
 
   /**
    * Determines the median of an array of numbers
-   * 
+   *
    * @param array an array of numbers
    * @return median of the array
    */
@@ -1844,7 +1844,7 @@ public class Array {
 
   /**
    * Determines the median of an array of numbers
-   * 
+   *
    * @param array an array of numbers
    * @return median of the array
    */
@@ -1854,7 +1854,7 @@ public class Array {
 
   /**
    * Determines the median of an array of numbers
-   * 
+   *
    * @param array an array of numbers
    * @return median of the array
    */
@@ -1864,7 +1864,7 @@ public class Array {
 
   /**
    * Prints an array of objects separated by a tab
-   * 
+   *
    * @param array an array of objects
    * @return String of printed objects
    */
@@ -1976,7 +1976,7 @@ public class Array {
 
   /**
    * Prints all values of an enum, separated by the specified delimiter
-   * 
+   *
    * @param enumValue An enum class, must be passed as ENUM.class (not the enum itself, but
    *        "&lt;enum&gt;.class")
    * @param delimiter
@@ -1993,7 +1993,7 @@ public class Array {
 
   /**
    * Prints an array of objects separated by the specified delimiter
-   * 
+   *
    * @param array an array of objects
    * @param delimiter String delimiter
    * @return String of printed objects
@@ -2004,7 +2004,7 @@ public class Array {
 
   /**
    * Prints an array of objects separated by the specified delimiter
-   * 
+   *
    * @param array an array of objects
    * @param delimiter String delimiter
    * @return String of printed objects
@@ -2032,7 +2032,7 @@ public class Array {
 
   /**
    * Prints the first element of each array in an array of arrays
-   * 
+   *
    * @param array an array of arrays
    * @param delimiter String delimiter
    * @return String of printed objects
@@ -2049,7 +2049,7 @@ public class Array {
 
   /**
    * Prints an array of objects separated by a tab
-   * 
+   *
    * @param array an array of objects
    * @return String of printed objects
    */
@@ -2059,7 +2059,7 @@ public class Array {
 
   /**
    * Prints an array of objects separated by the specified delimiter
-   * 
+   *
    * @param array an array of objects
    * @param delimiter String delimiter
    * @return String of printed objects
@@ -2070,7 +2070,7 @@ public class Array {
 
   /**
    * Prints an array of objects separated by the specified delimiter
-   * 
+   *
    * @param array an array of objects
    * @param delimiter String delimiter
    * @return String of printed objects
@@ -2099,7 +2099,7 @@ public class Array {
 
   /**
    * Prints an array of integers separated by a tab
-   * 
+   *
    * @param array an array of integers
    * @return String of printed integers
    */
@@ -2109,7 +2109,7 @@ public class Array {
 
   /**
    * Prints an array of integers separated by the specified delimiter
-   * 
+   *
    * @param array an array of integers
    * @param delimiter String delimiter
    * @return String of printed integers
@@ -2126,7 +2126,7 @@ public class Array {
 
   /**
    * Prints an array of bytes separated by the specified delimiter
-   * 
+   *
    * @param array an array of bytes
    * @param delimiter String delimiter
    * @return String of printed bytes
@@ -2143,7 +2143,7 @@ public class Array {
 
   /**
    * Prints an array of numbers with as many sigfigs as necessary, each separated by a tab
-   * 
+   *
    * @param array an array of numbers
    * @return String of printed numbers
    */
@@ -2154,7 +2154,7 @@ public class Array {
   /**
    * Prints an array of numbers with as many sigfigs as necessary, each separated by a given
    * delimiter
-   * 
+   *
    * @param array an array of numbers
    * @return String of printed numbers
    */
@@ -2164,7 +2164,7 @@ public class Array {
 
   /**
    * Prints an array of numbers separated by the specified delimiter
-   * 
+   *
    * @param array an array of numbers
    * @param sigfigs number of significant digits
    * @param delimiter String delimiter
@@ -2184,7 +2184,7 @@ public class Array {
 
   /**
    * Prints an array of numbers with as many sigfigs as necessary, each separated by a tab
-   * 
+   *
    * @param array an array of numbers
    * @return String of printed numbers
    */
@@ -2194,7 +2194,7 @@ public class Array {
 
   /**
    * Prints an array of numbers separated by the specified delimiter
-   * 
+   *
    * @param array an array of numbers
    * @param sigfigs number of significant digits
    * @param delimiter String delimiter
@@ -2216,7 +2216,7 @@ public class Array {
   /**
    * Breaks an array nChunks <br>
    * Warning, one of my first times with the <T> stuff
-   * 
+   *
    * @param array the array
    * @param nChunks number of chunks
    * @param log
@@ -2252,7 +2252,7 @@ public class Array {
   /**
    * Breaks an array of strings into nChunks. This is geared toward spliting up filenames etc for
    * batching
-   * 
+   *
    * @param strings the array
    * @param nChunks number of chunks
    * @param log
@@ -2286,7 +2286,7 @@ public class Array {
   /**
    * Breaks an array of strings into nChunks with boolean representation, each boolean array has the
    * same length as the original input
-   * 
+   *
    * @param strings the array
    * @param nChunks number of chunks
    * @param log
@@ -2295,8 +2295,8 @@ public class Array {
     String[][] stringSplits = splitUpStringArray(strings, nChunks, log);
     boolean[][] stringBoolSplits = new boolean[stringSplits.length][];
     for (int i = 0; i < stringBoolSplits.length; i++) {
-      int[] indicesThisChunk =
-          ext.indexLargeFactors(stringSplits[i], strings, true, log, true, false);
+      int[] indicesThisChunk = ext.indexLargeFactors(stringSplits[i], strings, true, log, true,
+                                                     false);
       stringBoolSplits[i] = new boolean[strings.length];
       Arrays.fill(stringBoolSplits[i], false);
       for (int j = 0; j < indicesThisChunk.length; j++) {
@@ -2308,7 +2308,7 @@ public class Array {
 
   /**
    * Returns an array splitting a number as equally as possible into different amounts
-   * 
+   *
    * @param total number to be split into groups
    * @param numSplits number of groups to split total into
    * @return array of the numbers for each group
@@ -2357,7 +2357,7 @@ public class Array {
 
   /**
    * Creates an array of Strings and copies the contents of a Vector into it
-   * 
+   *
    * @param v vector of Strings
    * @return an array of Strings from the Vector
    */
@@ -2367,7 +2367,7 @@ public class Array {
 
   /**
    * Creates an array of Strings and copies the contents of a String[][] into it
-   * 
+   *
    * @param matrix matrix of String
    * @param delimiter delimiter to use in the concatenated result
    * @return an array of Strings from the matrix
@@ -2384,7 +2384,7 @@ public class Array {
 
   /**
    * Creates an array of Strings and copies the contents of a Vector into it in the specified order
-   * 
+   *
    * @param v vector of Strings
    * @param order order of elements
    * @return an array of ordered Strings from the Vector
@@ -2406,7 +2406,7 @@ public class Array {
 
   /**
    * Creates an array of Strings and copies the contents of an ArrayList into it
-   * 
+   *
    * @param v vector of Strings
    * @return an array of Strings from the ArrayList
    */
@@ -2416,7 +2416,7 @@ public class Array {
 
   /**
    * Creates an array of Strings and copies the contents of an array of booleans
-   * 
+   *
    * @param array array of boolean
    * @param onesAndZeros array of boolean
    * @return an array of the converted Strings
@@ -2434,7 +2434,7 @@ public class Array {
 
   /**
    * Creates an array of Strings and copies the contents of an array of int
-   * 
+   *
    * @param array array of int
    * @return an array of the converted Strings
    */
@@ -2451,7 +2451,7 @@ public class Array {
 
   /**
    * Creates an array of Strings and copies the contents of an array of long
-   * 
+   *
    * @param array array of long
    * @return an array of the converted Strings
    */
@@ -2468,7 +2468,7 @@ public class Array {
 
   /**
    * Creates an array of Strings and copies the contents of an array of double
-   * 
+   *
    * @param array array of double
    * @return an array of the converted Strings
    */
@@ -2485,7 +2485,7 @@ public class Array {
 
   /**
    * Creates an array of Strings and copies the contents of an array of float
-   * 
+   *
    * @param array array of float
    * @return an array of the converted Strings
    */
@@ -2503,7 +2503,7 @@ public class Array {
   /**
    * Creates an array of Strings and copies the contents of a Hashtbable into it (in the correct
    * order)
-   * 
+   *
    * @param hash Hashtable of Strings as keys, and their index position as the value
    * @return an array of Strings from the Hashtable
    */
@@ -2525,7 +2525,7 @@ public class Array {
   /**
    * Creates an array of Strings and copies the contents of a Hashtbable into it (in the correct
    * order)
-   * 
+   *
    * @param hash Hashtable of Strings as keys, and their index position as the value
    * @return an array of Strings from the Hashtable
    */
@@ -2546,7 +2546,7 @@ public class Array {
 
   /**
    * Prints an array of Strings (culled from a Vector) separated by a tab
-   * 
+   *
    * @param v a Vector of Strings
    * @return String of printed objects
    */
@@ -2556,7 +2556,7 @@ public class Array {
 
   /**
    * Creates a Vector and copies the conents of a String array into it
-   * 
+   *
    * @param array an array of Strings
    * @return a vector of Strings
    */
@@ -2571,7 +2571,7 @@ public class Array {
 
   /**
    * Returns an array of the unique Strings
-   * 
+   *
    * @param array an array of Strings
    * @return array of the unique Strings
    */
@@ -2592,7 +2592,7 @@ public class Array {
 
   /**
    * Returns an array of the unique Strings
-   * 
+   *
    * @param array an array of Strings
    * @return array of the unique Strings
    */
@@ -2629,7 +2629,7 @@ public class Array {
 
   /**
    * Inserts the specified String into an array the specified position
-   * 
+   *
    * @param str String to be inserted
    * @param array an array of Strings
    * @param pos position for str to be inserted
@@ -2650,7 +2650,7 @@ public class Array {
 
   /**
    * Populate an array of doubles by converting the indicated members of a String array
-   * 
+   *
    * @param line array of Strings
    * @param indices indices of the Strings to be converted to doubles
    * @return the resulting double array
@@ -2748,7 +2748,7 @@ public class Array {
   /**
    * Find all instances of the values found in the first column of the matrix and replace them with
    * the values from the second column
-   * 
+   *
    * @param array an array of integers
    * @param swaps a matrix of old and new values
    * @return the same array but with the swapped values
@@ -2773,10 +2773,10 @@ public class Array {
    * <p>
    * For example, calling {@link Array#indexOfLastMinByte} using (new byte[] {0,1,2,24,25}, 23),
    * would return 3 (all values up to index 3 are less than 23);
-   * 
+   *
    * @param array an array of bytes
    * @param maxByte the number to find
-   * 
+   *
    * @return the index, or -1 if all values were greater than the maximum, or the array's length if
    *         all values were less than the maximum
    */
@@ -2800,7 +2800,7 @@ public class Array {
 
   /**
    * Creates a new array using only the indices at and after start
-   * 
+   *
    * @param array an array of doubles
    * @param start first index to use
    * @return the subset of the original array
@@ -2836,7 +2836,7 @@ public class Array {
 
   /**
    * Creates a new array using only the int values at indices defined by the Integer array
-   * 
+   *
    * @param array an array of double
    * @param use indices to use
    * @return the subset of the original array
@@ -2880,7 +2880,7 @@ public class Array {
 
   /**
    * Creates a new array using only the byte values at indices defined by the Integer array
-   * 
+   *
    * @param array an array of double
    * @param use indices to use
    * @return the subset of the original array
@@ -2904,7 +2904,7 @@ public class Array {
 
   /**
    * Creates a new array using only the float values at indices defined by the Integer array
-   * 
+   *
    * @param array an array of double
    * @param use indices to use
    * @return the subset of the original array
@@ -2928,7 +2928,7 @@ public class Array {
 
   /**
    * Creates a new array using only the strings at indices with a true in the boolean array
-   * 
+   *
    * @param array an array of Strings
    * @param use indices to use
    * @return the subset of the original array
@@ -2957,7 +2957,7 @@ public class Array {
 
   /**
    * Creates a new array using only the bytes at indices with a true in the boolean array
-   * 
+   *
    * @param array an array of byte
    * @param use indices to use
    * @return the subset of the original array
@@ -2986,7 +2986,7 @@ public class Array {
 
   /**
    * Creates a new array using only the indices between start and stop
-   * 
+   *
    * @param array an array of doubles
    * @param start first index to use
    * @param stop last index to use
@@ -3009,7 +3009,7 @@ public class Array {
 
   /**
    * Creates a new array using only the indices at and after start
-   * 
+   *
    * @param array an array of doubles
    * @param start first index to use
    * @param stop last index to use
@@ -3021,7 +3021,7 @@ public class Array {
 
   /**
    * Creates a new array using only the double values at indices with a true in the boolean array
-   * 
+   *
    * @param array an array of double
    * @param use indices to use
    * @return the subset of the original array
@@ -3050,7 +3050,7 @@ public class Array {
 
   /**
    * Creates a new array using only the double values at indices with a true in the boolean array
-   * 
+   *
    * @param array an array of double
    * @param use indices to use
    * @return the subset of the original array
@@ -3079,7 +3079,7 @@ public class Array {
 
   /**
    * Creates a new array using only the double values at indices defined by the Integer array
-   * 
+   *
    * @param array an array of double
    * @param use indices to use
    * @return the subset of the original array
@@ -3099,7 +3099,7 @@ public class Array {
 
   /**
    * Creates a new array using only the boolean values at indices defined by the Integer array
-   * 
+   *
    * @param array an array of double
    * @param use indices to use
    * @return the subset of the original array
@@ -3119,7 +3119,7 @@ public class Array {
 
   /**
    * Creates a new array using only the indices between start and stop
-   * 
+   *
    * @param array an array of double[]
    * @param start first index to use
    * @param stop last index to use
@@ -3142,7 +3142,7 @@ public class Array {
 
   /**
    * Creates a new array using only the indices between start and stop
-   * 
+   *
    * @param array an array of floats
    * @param start first index to use
    * @param stop last index to use
@@ -3165,7 +3165,7 @@ public class Array {
 
   /**
    * Creates a new array using only the indices between start and stop
-   * 
+   *
    * @param array an array of boolean
    * @param start first index to use
    * @param stop last index to use
@@ -3186,7 +3186,7 @@ public class Array {
 
   /**
    * Creates a new array using only the float values at indices with a true in the boolean array
-   * 
+   *
    * @param array an array of float
    * @param use indices to use
    * @return the subset of the original array
@@ -3215,7 +3215,7 @@ public class Array {
 
   /**
    * Creates a new array using only the indices between start and stop
-   * 
+   *
    * @param array an array of Strings
    * @param start first index to use
    * @param stop last index to use
@@ -3238,7 +3238,7 @@ public class Array {
 
   /**
    * Creates a new array using only the indices at and after start
-   * 
+   *
    * @param array an array of Strings
    * @param start first index to use
    * @return the subset of the original array
@@ -3249,7 +3249,7 @@ public class Array {
 
   /**
    * Creates a new array using only the indices provided
-   * 
+   *
    * @param array an array of Strings
    * @param indices indices to use
    * @return the subset of the original array
@@ -3260,7 +3260,7 @@ public class Array {
 
   /**
    * Creates a new array using only the indices provided
-   * 
+   *
    * @param array an array of Strings
    * @param indices indices to use
    * @param missingValue if an index equals -1, then missingValue will be inserted
@@ -3289,7 +3289,7 @@ public class Array {
 
   /**
    * Creates a new array using only the strings at indices with a true in the boolean array
-   * 
+   *
    * @param array an array of Strings
    * @param use indices to use
    * @return the subset of the original array
@@ -3318,7 +3318,7 @@ public class Array {
 
   /**
    * Increments a boolean array
-   * 
+   *
    * @param array an array of boolean
    */
   public static void incBoolean(boolean[] array) {
@@ -3336,7 +3336,7 @@ public class Array {
 
   /**
    * Provides a frequency distribution of an array of Strings
-   * 
+   *
    * @param array an array of Strings
    * @return the unique elements and their counts
    */
@@ -3381,7 +3381,7 @@ public class Array {
   /**
    * Takes two boolean arrays and sets the first array to the boolean AND of both arrays for a given
    * element.
-   * 
+   *
    * @param aRet First array, and altered array
    * @param b Second array
    * @return True if the operation succeeds, false if the operation fails
@@ -3550,7 +3550,7 @@ public class Array {
 
   /**
    * Calculates the interquartile range of an array (exclusive)
-   * 
+   *
    * @param array an array of numbers
    * @return iqr of the array
    */
@@ -3576,7 +3576,7 @@ public class Array {
 
   /**
    * Calculates the interquartile range of an array (exclusive)
-   * 
+   *
    * @param array an array of numbers
    * @return iqr of the array
    */
@@ -3602,7 +3602,7 @@ public class Array {
 
   /**
    * Trims null values from the end of a String array
-   * 
+   *
    * @param array an array of Strings
    * @return trimmed array
    */
@@ -3619,7 +3619,7 @@ public class Array {
 
   /**
    * Returns true if the String arrays are equal at all positions
-   * 
+   *
    * @param array1 an array of Strings
    * @param array2 an array of Strings
    * @param caseSensitive boolean flag
@@ -3645,7 +3645,7 @@ public class Array {
 
   /**
    * Returns true if the String arrays are equal at all positions
-   * 
+   *
    * @param array1 an array of Strings
    * @param array2 an array of Strings
    * @param caseSensitive boolean flag
@@ -3667,7 +3667,7 @@ public class Array {
 
   /**
    * Returns true if the byte arrays are equal at all positions
-   * 
+   *
    * @param array1 an array of byte
    * @param array2 an array of byte
    * @param caseSensitive boolean flag
@@ -3702,7 +3702,7 @@ public class Array {
 
   /**
    * Removes NaN values from the array
-   * 
+   *
    * @param array an array of doubles
    * @return scrubbed array
    */
@@ -3719,7 +3719,7 @@ public class Array {
 
   /**
    * Removes NaN values from the array
-   * 
+   *
    * @param array an array of doubles
    * @return scrubbed array
    */
@@ -3736,7 +3736,7 @@ public class Array {
 
   /**
    * Removes non-finite values from the array
-   * 
+   *
    * @param array an array of doubles
    * @return scrubbed array
    */
@@ -3753,7 +3753,7 @@ public class Array {
 
   /**
    * Removes non-finite values from the array
-   * 
+   *
    * @param array an array of floats
    * @return scrubbed array
    */
@@ -3770,7 +3770,7 @@ public class Array {
 
   /**
    * Removes all instances of a specified value from an array
-   * 
+   *
    * @param array an array of bytes
    * @param valueToRemove value to remove from the array
    * @return filtered array
@@ -3788,7 +3788,7 @@ public class Array {
 
   /**
    * Removes all instances of a specified value from an array
-   * 
+   *
    * @param array an array of int
    * @param valueToRemove value to remove from the array
    * @return filtered array
@@ -3894,7 +3894,7 @@ public class Array {
 
   /**
    * Extract the element at the given index in each sub-array and return a single flat array.
-   * 
+   *
    * @param srcArr Source array of type T[][]
    * @param index Index of elements in subArrays
    * @return null if <code>srcArr</code> is null or empty, <br />
@@ -3920,7 +3920,7 @@ public class Array {
 
   /**
    * Copies an array exactly
-   * 
+   *
    * @param array an array of integers
    * @return copy of array
    */
@@ -3938,7 +3938,7 @@ public class Array {
 
   /**
    * Removes certain values from the array
-   * 
+   *
    * @param array an array of Strings
    * @param thingsToRemove list of Strings to removed from the array
    * @return scrubbed array
@@ -3967,7 +3967,7 @@ public class Array {
 
   /**
    * Removes String at given index of the array
-   * 
+   *
    * @param array an array of Strings
    * @param index index of String to remove from the array
    * @return new array
@@ -3988,7 +3988,7 @@ public class Array {
 
   /**
    * Adds specified String to the end of an array
-   * 
+   *
    * @param array an array of Strings
    * @param str String to add to the array
    * @return new array
@@ -3999,7 +3999,7 @@ public class Array {
 
   /**
    * Adds specified String to a specified index of an array
-   * 
+   *
    * @param array an array of Strings
    * @param str String to add to the array
    * @param indexOfNewArray location of the string in the new array
@@ -4019,7 +4019,7 @@ public class Array {
 
   /**
    * Adds specified integer to the end of an array
-   * 
+   *
    * @param array an array of integers
    * @param value integer to add to the array
    * @return new array
@@ -4030,7 +4030,7 @@ public class Array {
 
   /**
    * Adds specified integer to a specified index of an array
-   * 
+   *
    * @param array an array of integers
    * @param value integer to add to the array
    * @param indexOfNewArray location of the integer in the new array
@@ -4048,7 +4048,7 @@ public class Array {
 
   /**
    * Adds specified double to the end of an array
-   * 
+   *
    * @param array an array of double
    * @param value double to add to the array
    * @return new array
@@ -4059,7 +4059,7 @@ public class Array {
 
   /**
    * Adds specified double to a specified index of an array
-   * 
+   *
    * @param array an array of double
    * @param value double to add to the array
    * @param indexOfNewArray location of the double in the new array
@@ -4077,7 +4077,7 @@ public class Array {
 
   /**
    * Determine if the trait contained within the file is dichotomous or continuous
-   * 
+   *
    * @param filename filename containing the trait to be evaluated
    * @param col column to extract
    * @param allow21 allow binary trait to be 2 and 1 instead of 1 and 0
@@ -4090,7 +4090,7 @@ public class Array {
 
   /**
    * Determine if the trait contained within the file is dichotomous or continuous
-   * 
+   *
    * @param filename filename containing the trait to be evaluated
    * @param col column to extract
    * @param exclusions values to exclude
@@ -4109,7 +4109,7 @@ public class Array {
 
   /**
    * Determine if the trait contained within the file is dichotomous or continuous
-   * 
+   *
    * @param array an array of doubles
    * @param allow21 allow binary trait to be 2 and 1 instead of 1 and 0
    * @return 0 if appropriate for logistic, 1 if appropriate for linear, -1 if appropraite for
@@ -4130,7 +4130,7 @@ public class Array {
 
   /**
    * Determine if the trait contained within the file is dichotomous or continuous
-   * 
+   *
    * @param array an array of doubles
    * @param allow21 allow binary trait to be 2 and 1 instead of 1 and 0
    * @return 0 if appropriate for logistic, 1 if appropriate for linear, -1 if appropraite for
@@ -4161,7 +4161,7 @@ public class Array {
 
   /**
    * Splits an array of Strings into an array of arrays of Strings
-   * 
+   *
    * @param array an array of Strings
    * @param tab split using tabs as opposed to white spaces
    * @return an array of arrays of Strings
@@ -4184,7 +4184,7 @@ public class Array {
   /**
    * Transposes array to a matrix with a Splits an array of Strings into an array of arrays of
    * Strings
-   * 
+   *
    * @param array an array of Strings
    * @param tab split using tabs as opposed to white spaces
    * @return an array of arrays of Strings
@@ -4202,7 +4202,7 @@ public class Array {
 
   /**
    * Replace all of one value of integers with another
-   * 
+   *
    * @param array an array of integers
    * @param from value to replace
    * @param to value to replace with
@@ -4225,7 +4225,7 @@ public class Array {
 
   /**
    * Merge contents of two String arrays
-   * 
+   *
    * @param array1 an array of Strings
    * @param array2 an array of Strings
    * @param numberOfMismatchesAllowed maximum number of mismatched values allowed before the null
@@ -4265,7 +4265,7 @@ public class Array {
 
   /**
    * Returns true if all Strings in the array represent numbers
-   * 
+   *
    * @param array an array of Strings
    * @return merged array of Strings if successful, otherwise null
    */
@@ -4283,7 +4283,7 @@ public class Array {
 
   /**
    * Returns the length of the largest String in the array
-   * 
+   *
    * @param array an array of Strings
    * @return largest length
    */
@@ -4338,7 +4338,7 @@ public class Array {
     }
     freqBinCountsSmooth[0] = (freqBinCounts[0] + freqBinCounts[1]) / 2;
     freqBinCountsSmooth[numBins - 1] =
-        (freqBinCounts[numBins - 2] + freqBinCounts[numBins - 1]) / 2;
+                                     (freqBinCounts[numBins - 2] + freqBinCounts[numBins - 1]) / 2;
 
     maxFreq = Double.NEGATIVE_INFINITY;
     localMinFreq = Double.POSITIVE_INFINITY;
@@ -4396,25 +4396,25 @@ public class Array {
     }
     if (freqBinCounts.length >= 2) {
       freqBinCountsSmooth[0] = (freqBinCounts[0] + freqBinCounts[1]) / 2;
-      freqBinCountsSmooth[numBins - 1] =
-          (freqBinCounts[numBins - 2] + freqBinCounts[numBins - 1]) / 2;
+      freqBinCountsSmooth[numBins - 1] = (freqBinCounts[numBins - 2] + freqBinCounts[numBins - 1])
+                                         / 2;
     }
 
     if (sensitiveToSmallNumbers) {
       proportionOfGlobalMaxRequiredForLocalMaxima =
-          Math.max(proportionOfGlobalMaxRequiredForLocalMaxima,
-                   Math.min(0.50,
-                            proportionOfGlobalMaxRequiredForLocalMaxima
-                                  * proportionOfGlobalMaxRequiredForLocalMaxima * 300
-                                  / array.length));
+                                                  Math.max(proportionOfGlobalMaxRequiredForLocalMaxima,
+                                                           Math.min(0.50,
+                                                                    proportionOfGlobalMaxRequiredForLocalMaxima
+                                                                          * proportionOfGlobalMaxRequiredForLocalMaxima
+                                                                          * 300 / array.length));
       if (array.length < 50) {
         // System.out.println(array.length+"\t"+proportionOfGlobalMaxRequiredForLocalMaxima);
       }
     }
 
-    indicesOfLocalMaxima =
-        getIndicesOfLocalMaxima(freqBinCountsSmooth, proportionOfLastPeakRequiredForNewLocalMinima,
-                                proportionOfGlobalMaxRequiredForLocalMaxima);
+    indicesOfLocalMaxima = getIndicesOfLocalMaxima(freqBinCountsSmooth,
+                                                   proportionOfLastPeakRequiredForNewLocalMinima,
+                                                   proportionOfGlobalMaxRequiredForLocalMaxima);
     modes = new double[indicesOfLocalMaxima.length];
     for (int i = 0; i < modes.length; i++) {
       modes[i] = minValue + indicesOfLocalMaxima[i] * binSize + binSize / 2;
@@ -4502,9 +4502,9 @@ public class Array {
   /**
    * Converts frequency counts into proportions. So, the input looks similar to this: FrequencyCount
    * --------------- Female 152 Male 148
-   * 
+   *
    * The output looks like this: FrequencyCount --------------- Female 50.67% Male 49.33%
-   * 
+   *
    * @param counts the frequency counts in array format
    * @return the corresponding proportion in array format
    */
@@ -4522,7 +4522,7 @@ public class Array {
 
   /**
    * Creates an array of char and copies the contents of an array of String
-   * 
+   *
    * @param array array of String
    * @return an array of the converted String
    */
@@ -4583,10 +4583,10 @@ public class Array {
 
   /**
    * Remove common elements from the front and/or back of strings Ex
-   * 
+   *
    * [acatcat3cat, acatcat4cat] -> [3,4] <br>
    * Not supremely tested though...
-   * 
+   *
    * @param front
    * @param back
    * @return
@@ -4734,7 +4734,7 @@ public class Array {
 
   /**
    * Takes the log base 2 of every element in the array a
-   * 
+   *
    * @param a an array of doubles
    * @return the array containing the log base 2 value of each element in the array
    */
@@ -4775,8 +4775,8 @@ public class Array {
   }
 
   public static void main(String[] args) {
-    double[] data =
-        {11.8, 0.93, 1.76, 14, 16.5, 17.1, 32.5, 33.4, 16.8, 21.5, 13.1, 22.2, 22.2, 16, 16.2};
+    double[] data = {11.8, 0.93, 1.76, 14, 16.5, 17.1, 32.5, 33.4, 16.8, 21.5, 13.1, 22.2, 22.2, 16,
+                     16.2};
     // float[] data = {11.8f, 0.93f, 1.76f, 14, 16.5f, 17.1f, 32.5f, 33.4f, 16.8f, 21.5f, 13.1f,
     // 22.2f, 22.2f, 16, 16.2f};
 

@@ -1,9 +1,6 @@
 // -Xms1024M -Xmx1024M
 package org.genvisis.nrss;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,6 +21,9 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Sort;
 import org.genvisis.common.Vectors;
 import org.genvisis.common.ext;
+
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
 
 public class OriginalNrss {
   public static final double INDEX_THRESHOLD = 0.001;
@@ -59,7 +59,8 @@ public class OriginalNrss {
     IntVector markerLocations = new IntVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
     DoubleVector pvalueVector = new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
     DoubleVector varVector =
-        variate_column == -1 ? null : new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
+                           variate_column == -1 ? null
+                                                : new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
     int count, lowIndex, highIndex;
     IntVector indexVector = new IntVector();
     String chr;
@@ -398,7 +399,7 @@ public class OriginalNrss {
     commands += "plink --bfile plink --chr [%0] --out chr[%0].recode --recode\n\n";
     commands += Files.getRunString() + " nrss.Nrss procMap=[%0]\n";
     commands +=
-        "java -Dsun.java2d.noddraw=true -Xmx1024m -classpath /home/npankrat/Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -log -pedfile chr[%0].recode.ped -info chr[%0].map -skipcheck -hwcutoff 0 -maxDistance 500 -dprime\n\n";
+             "java -Dsun.java2d.noddraw=true -Xmx1024m -classpath /home/npankrat/Haploview.jar -Djava.awt.headless=true edu.mit.wi.haploview.HaploView -nogui -log -pedfile chr[%0].recode.ped -info chr[%0].map -skipcheck -hwcutoff 0 -maxDistance 500 -dprime\n\n";
 
     Files.batchIt("haplo", null, numBatches, commands, Array.stringArraySequence(23, ""));
   }
@@ -865,7 +866,7 @@ public class OriginalNrss {
     // int var = -1;
 
     String dir =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Renewal\\progress report\\2q NRSS\\";
+               "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Renewal\\progress report\\2q NRSS\\";
     String filename = "SFH2q_final_perm.assoc.logistic.xln";
     int col = 4;
     int var = -1;

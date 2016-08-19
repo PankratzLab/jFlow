@@ -12,7 +12,7 @@ public class MarkerBlastHistogramAnnotation extends HistogramAnnotation {
 
   public static final String DEFAULT_NAME = "ALIGNMENT_HISTOGRAM";
   public static final String DEFAULT_DESCRIPTION =
-      "A histogam of blast alignment lengths, alignment lengths include gapped and mismatched alignments. Histogram is reported from the smallest alignment seen to the probe length";
+                                                 "A histogam of blast alignment lengths, alignment lengths include gapped and mismatched alignments. Histogram is reported from the smallest alignment seen to the probe length";
 
   private List<String> blastAlignmentCounts;
 

@@ -34,16 +34,16 @@ public class Grafik {
       graphics.dispose();
     }
     ImageIcon newBoxImage = new ImageIcon(boxImage);
-    Image finalBoxImage =
-        newBoxImage.getImage().getScaledInstance(boxFontMetrics.getHeight(),
-                                                 boxFontMetrics.getHeight(), Image.SCALE_SMOOTH);
+    Image finalBoxImage = newBoxImage.getImage().getScaledInstance(boxFontMetrics.getHeight(),
+                                                                   boxFontMetrics.getHeight(),
+                                                                   Image.SCALE_SMOOTH);
     checkbox.setIcon(new ImageIcon(finalBoxImage));
 
     checkbox.setSelected(true);
     Icon checkedBoxIcon = UIManager.getIcon("CheckBox.icon");
-    BufferedImage checkedBoxImage =
-        new BufferedImage(checkedBoxIcon.getIconWidth(), checkedBoxIcon.getIconHeight(),
-                          BufferedImage.TYPE_INT_ARGB);
+    BufferedImage checkedBoxImage = new BufferedImage(checkedBoxIcon.getIconWidth(),
+                                                      checkedBoxIcon.getIconHeight(),
+                                                      BufferedImage.TYPE_INT_ARGB);
     Graphics checkedGraphics = checkedBoxImage.createGraphics();
     try {
       checkedBoxIcon.paintIcon(checkbox, checkedGraphics, 0, 0);
@@ -51,10 +51,10 @@ public class Grafik {
       checkedGraphics.dispose();
     }
     ImageIcon newCheckedBoxImage = new ImageIcon(checkedBoxImage);
-    Image finalCheckedBoxImage =
-        newCheckedBoxImage.getImage().getScaledInstance(boxFontMetrics.getHeight(),
-                                                        boxFontMetrics.getHeight(),
-                                                        Image.SCALE_SMOOTH);
+    Image finalCheckedBoxImage = newCheckedBoxImage.getImage()
+                                                   .getScaledInstance(boxFontMetrics.getHeight(),
+                                                                      boxFontMetrics.getHeight(),
+                                                                      Image.SCALE_SMOOTH);
     checkbox.setSelectedIcon(new ImageIcon(finalCheckedBoxImage));
     checkbox.setSelected(false);
     checkbox.setSelected(previousState);

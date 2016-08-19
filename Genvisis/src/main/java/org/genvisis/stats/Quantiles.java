@@ -75,10 +75,10 @@ public class Quantiles {
   }
 
   public int[] getQuantileMembershipAsRoundedInt() {
-    int mult =
-        quantiles.length <= 10 ? 10
-                               : quantiles.length <= 100 ? 100
-                                                         : quantiles.length <= 1000 ? 1000 : 10000;
+    int mult = quantiles.length <= 10 ? 10
+                                      : quantiles.length <= 100 ? 100
+                                                                : quantiles.length <= 1000 ? 1000
+                                                                                           : 10000;
     return roundInt(quantileMembership, mult, log);
   }
 

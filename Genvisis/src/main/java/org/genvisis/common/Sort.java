@@ -17,14 +17,14 @@ public class Sort {
   public static final int GREATEROREQUAL = 2;
   public static final int LESSOREQUAL = 3;
 
-  public static final String RULES =
-      "<0<1<2<3<4<5<6<7<8<9" + "<a,A<b,B<c,C<d,D<e,E<f,F<g,G<h,H<i,I<j,J"
+  public static final String RULES = "<0<1<2<3<4<5<6<7<8<9"
+                                     + "<a,A<b,B<c,C<d,D<e,E<f,F<g,G<h,H<i,I<j,J"
                                      + "<k,K<l,L<m,M<n,N<o,O<p,P<q,Q<r,R<s,S<t,T"
                                      + "<u,U<v,V<w,W<x,X<y,Y<z,Z";
 
   /**
    * Reverses the order of an array key
-   * 
+   *
    * @param order array key
    * @return reverse order of array key
    */
@@ -86,7 +86,7 @@ public class Sort {
 
   /**
    * Performs an alphabetic sort on the data
-   * 
+   *
    * @param s array of strings to sort
    * @param direction either ASCENDING or DESCENDING
    * @return array of ordered indices
@@ -97,7 +97,7 @@ public class Sort {
 
   /**
    * Performs a quicksort on the data
-   * 
+   *
    * @param arr array of longs to sort
    * @param direction either ASCENDING or DESCENDING
    * @return array of ordered indices
@@ -108,7 +108,7 @@ public class Sort {
 
   /**
    * Performs a quicksort on the data. Returns the data in ASCENDING order.
-   * 
+   *
    * @param arr array of longs to sort
    * @return array of ordered indices
    */
@@ -188,7 +188,7 @@ public class Sort {
 
   /**
    * Performs a quicksort on the data
-   * 
+   *
    * @param arr array of longs to sort
    * @param direction either ASCENDING or DESCENDING
    * @return array of ordered indices
@@ -199,7 +199,7 @@ public class Sort {
 
   /**
    * Performs a quicksort on the data. Returns the data in ASCENDING order.
-   * 
+   *
    * @param arr array of longs to sort
    * @return array of ordered indices
    */
@@ -279,7 +279,7 @@ public class Sort {
 
   /**
    * Performs a quicksort on the data.
-   * 
+   *
    * @param arr array of integers to sort
    * @param direction either ASCENDING or DESCENDING
    * @return array of ordered indices
@@ -290,7 +290,7 @@ public class Sort {
 
   /**
    * Performs a quicksort on the data. Returns the data in ASCENDING order.
-   * 
+   *
    * @param arr array of integers to sort
    * @return array of ordered indices
    */
@@ -415,7 +415,7 @@ public class Sort {
   /**
    * uses {@link ScoreStringComp} to sort the double array first, then the string array within the
    * double order, and get indices
-   * 
+   *
    * @param results
    * @return
    */
@@ -477,7 +477,7 @@ public class Sort {
 
   /**
    * uses {@link ScoreDoubleIndex} to sort the double array and get indices
-   * 
+   *
    * @param results
    * @return
    */
@@ -496,7 +496,7 @@ public class Sort {
 
   /**
    * Performs a quicksort on the data.
-   * 
+   *
    * @param arr array of doubles to sort
    * @param direction either ASCENDING or DESCENDING
    * @return array of ordered indices
@@ -507,7 +507,7 @@ public class Sort {
 
   /**
    * Performs a quicksort on the data. Returns the data in ASCENDING order.
-   * 
+   *
    * @param arr array of doubles to sort
    * @return array of ordered indices
    */
@@ -587,7 +587,7 @@ public class Sort {
 
   /**
    * Performs a quicksort on the data.
-   * 
+   *
    * @param iv IntVector to sort
    * @param direction either ASCENDING or DESCENDING
    * @return array of ordered indices
@@ -598,7 +598,7 @@ public class Sort {
 
   /**
    * Performs a quicksort on the data. Returns the data in ASCENDING order.
-   * 
+   *
    * @param iv IntVector to sort
    * @return array of ordered indices
    */
@@ -612,7 +612,7 @@ public class Sort {
 
   /**
    * Performs a quicksort on the data.
-   * 
+   *
    * @param dv DoubleVector to sort
    * @param direction either ASCENDING or DESCENDING
    * @return array of ordered indices
@@ -623,7 +623,7 @@ public class Sort {
 
   /**
    * Performs a quicksort on the data. Returns the data in ASCENDING order.
-   * 
+   *
    * @param dv DoubleVector to sort
    * @return array of ordered indices
    */
@@ -637,7 +637,7 @@ public class Sort {
 
   /**
    * Sort an array of Strings into ASCENDING alphabetical order
-   * 
+   *
    * @param arr the array of Strings to index
    * @return an integer array of the sorted indices
    */
@@ -728,7 +728,7 @@ public class Sort {
 
   /**
    * Rule comparitor to compare 2 strings and return if it matches the comparison type
-   * 
+   *
    * @param collator the rule collator for the comparison
    * @param arg1 string 1
    * @param arg2 string 2
@@ -764,7 +764,7 @@ public class Sort {
 
   /**
    * Swaps the positions of data in an array
-   * 
+   *
    * @param array the array containg the data to swap
    * @param index1 position 1 to swap
    * @param index2 position 2 to swap
@@ -777,7 +777,7 @@ public class Sort {
 
   /**
    * Sorts an array of integers and returns the sorted array
-   * 
+   *
    * @param array the array to be sorted
    * @return the sorted array
    */
@@ -794,7 +794,7 @@ public class Sort {
 
   /**
    * Sorts an array of numbers and returns the sorted array
-   * 
+   *
    * @param array the array to be sorted
    * @return the sorted array
    */
@@ -811,7 +811,7 @@ public class Sort {
 
   /**
    * Sorts an array of strings and returns the sorted array
-   * 
+   *
    * @param array the array to be sorted
    * @return the sorted array
    */
@@ -821,7 +821,7 @@ public class Sort {
 
   /**
    * Sorts an array of strings and returns the sorted array
-   * 
+   *
    * @param array the array to be sorted
    * @return the sorted array
    */
@@ -853,7 +853,7 @@ public class Sort {
 
   /**
    * Sorts by the first column first and then by the second; returns the order
-   * 
+   *
    * @param matrix matrix to be sorted
    * @return array of sorted indices
    */
@@ -883,7 +883,7 @@ public class Sort {
 
   /**
    * @author lane0212 {@link Comparator} for {@link BII}
-   * 
+   *
    */
   private static class BIIComp implements Comparator<BII> {
 
@@ -983,10 +983,10 @@ public class Sort {
 
   /**
    * Sorts by the first array first and then by the second; returns the order
-   * 
+   *
    * @param first first order array
    * @param second second order array
-   * 
+   *
    * @return array of sorted indices
    */
   public static int[] orderTwoLayers(byte[] first, int[] second, boolean verbose, Logger log) {
@@ -996,7 +996,7 @@ public class Sort {
 
   /**
    * Sorts by the first array first and then by the second; returns the order
-   * 
+   *
    * @param first first order array
    * @param second second order array
    * @param trickSort use built in java sorting
@@ -1087,7 +1087,7 @@ public class Sort {
 
   /**
    * Sorts by the first array first and then by the second; returns the order
-   * 
+   *
    * @param first first order array
    * @param second second order array
    * @return array of sorted indices

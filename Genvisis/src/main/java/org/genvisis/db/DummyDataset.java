@@ -28,12 +28,13 @@ public class DummyDataset {
     String[][] params;
 
     params =
-        Files.parseControlFile(filename, true, "dummy",
-                               new String[] {"outputFile.xln", "header\tAffected\tAllele1\tAllele2",
-                                             "30\t1\tE2\tE3", "40\t0\tE2\tE3", "500\t1\tE3\tE3",
-                                             "400\t0\tE3\tE3", "200\t1\tE3\tE4", "100\t0\tE3\tE4",
-                                             "10\t1\tE4\tE4", "2\t0\tE4\tE4"},
-                               log);
+           Files.parseControlFile(filename, true, "dummy",
+                                  new String[] {"outputFile.xln",
+                                                "header\tAffected\tAllele1\tAllele2",
+                                                "30\t1\tE2\tE3", "40\t0\tE2\tE3", "500\t1\tE3\tE3",
+                                                "400\t0\tE3\tE3", "200\t1\tE3\tE4",
+                                                "100\t0\tE3\tE4", "10\t1\tE4\tE4", "2\t0\tE4\tE4"},
+                                  log);
     if (params != null) {
       outfile = params[0][0];
       header = null;

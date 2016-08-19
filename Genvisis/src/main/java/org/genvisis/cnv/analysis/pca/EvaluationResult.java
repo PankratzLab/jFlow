@@ -21,7 +21,7 @@ import org.genvisis.stats.ICC;
 
 class EvaluationResult implements Serializable {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private final String title;
@@ -225,8 +225,9 @@ class EvaluationResult implements Serializable {
                          + " samples that are not excluded");
     }
     try {
-      Hashtable<String, String> pedHash =
-          HashVec.loadFileToHashString(ped, 6, new int[] {0, 1, 2, 3, 4, 5}, "\t", false);
+      Hashtable<String, String> pedHash = HashVec.loadFileToHashString(ped, 6,
+                                                                       new int[] {0, 1, 2, 3, 4, 5},
+                                                                       "\t", false);
       String[] samples = proj.getSamples();
       String[] titles = new String[results.length];
       PrintWriter writer = new PrintWriter(new FileWriter(output));

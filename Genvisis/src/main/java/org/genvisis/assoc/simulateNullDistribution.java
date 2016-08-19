@@ -44,7 +44,7 @@ public class simulateNullDistribution {
     String[] line = null, trav, fams;
     String temp;
     Hashtable<String, Hashtable<String, String>> phenos =
-        new Hashtable<String, Hashtable<String, String>>();
+                                                        new Hashtable<String, Hashtable<String, String>>();
     Hashtable<String, String> affs;
     Hashtable<String, Vector<String>> vips = new Hashtable<String, Vector<String>>(), backup;
     Hashtable<String, Vector<String>> genos = new Hashtable<String, Vector<String>>();
@@ -118,13 +118,11 @@ public class simulateNullDistribution {
             affs = phenos.get(prev);
             for (int i = 0; i < v.size(); i++) {
               trav = v.elementAt(i).split("[\\s]+");
-              writer.println(Array.toStr(trav,
-                                         "\t")
-                             + "\t"
-                             + (affs.containsKey(trav[1]) ? (Integer.parseInt(affs.get(trav[1]))
-                                                             + 1)
-                                                            + "\t1\t1"
-                                                          : "0\t0\t0")
+              writer.println(Array.toStr(trav, "\t") + "\t" + (affs.containsKey(trav[1])
+                                                                                         ? (Integer.parseInt(affs.get(trav[1]))
+                                                                                            + 1)
+                                                                                           + "\t1\t1"
+                                                                                         : "0\t0\t0")
                              + "");
             }
           }

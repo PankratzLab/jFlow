@@ -161,8 +161,9 @@ public class AnnotationCollection implements Serializable, TextExport {
       matrix[i + 2] = Array.stringArray(keysAnnotations.length + 1, "0");
       matrix[i + 2][0] = keysMarkers[i];
       for (int j = 0; j < annotationsVector.size(); j++) {
-        annotationsOfTheMarker +=
-            (j == 0 ? "" : ";") + commentsHash.get(annotationsVector.elementAt(j).toCharArray()[0]);
+        annotationsOfTheMarker += (j == 0 ? "" : ";")
+                                  + commentsHash.get(annotationsVector.elementAt(j)
+                                                                      .toCharArray()[0]);
         matrix[i + 2][ext.indexOfStr(annotationsVector.elementAt(j), keysAnnotations) + 1] = "1";
       }
       list[i] = keysMarkers[i] + "\t" + annotationsOfTheMarker;

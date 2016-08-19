@@ -1,7 +1,5 @@
 package org.genvisis.common;
 
-import com.google.common.primitives.Ints;
-
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -29,17 +27,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+import com.google.common.primitives.Ints;
+
 public class ext {
-  public static final String[][] VALID_CHARS =
-      {{" ", "_"}, {"?", "_"}, {"'", "_"}, {"/", "_"}, {"\\", "_"}, {"<", "_"}, {">", "_"},
-       {"|", "_"}, {":", "_"}, {"*", "_"}, {"\"", "_"}};
+  public static final String[][] VALID_CHARS = {{" ", "_"}, {"?", "_"}, {"'", "_"}, {"/", "_"},
+                                                {"\\", "_"}, {"<", "_"}, {">", "_"}, {"|", "_"},
+                                                {":", "_"}, {"*", "_"}, {"\"", "_"}};
   public static final String[][] TO_BE_EXTRA_SAFE_CHARS = {{"(", "_"}, {")", "_"}, {"&", "_"}};
   public static final String[] MISSING_VALUES = {"", ".", "NA", "NaN", "x", "#N/A", "--", "-"};
-  public static final String[][] META_REPLACEMENTS =
-      {{"{Tab}", "\t"}, {"{Space}", " "}, {"{!}", "!"}, {"{#}", "#"}, {"{+}", "+"}};
+  public static final String[][] META_REPLACEMENTS = {{"{Tab}", "\t"}, {"{Space}", " "},
+                                                      {"{!}", "!"}, {"{#}", "#"}, {"{+}", "+"}};
   public static final String[] COMMON_IDS = {"id", "IID", "IndID", "gwas_id"};
   public static final String REGEX_TO_SPLIT_SPACES_NOT_IN_QUOTES =
-      "[ ]+(?=([^\"]*\"[^\"]*\")*[^\"]*$)";
+                                                                 "[ ]+(?=([^\"]*\"[^\"]*\")*[^\"]*$)";
 
   // safer, reports spurious errors when called a lot
   public static String replaceAllWithSafer(String str, String from, String to) {
@@ -104,8 +104,8 @@ public class ext {
 
     metaReplaces = new String[replaces.length][];
     for (int i = 0; i < replaces.length; i++) {
-      metaReplaces[i] =
-          new String[] {replaces[i][0], replaceAllWith(replaces[i][1], META_REPLACEMENTS)};
+      metaReplaces[i] = new String[] {replaces[i][0],
+                                      replaceAllWith(replaces[i][1], META_REPLACEMENTS)};
     }
 
     return metaReplaces;
@@ -321,7 +321,7 @@ public class ext {
 
   /**
    * Parses the operators, the indices of those operators, and the tokens
-   * 
+   *
    * @param str String to be parsed
    * @param operators String of the possible operators
    * @return a matrix of String[3][] with an array each of the operators, the indices of those
@@ -375,7 +375,7 @@ public class ext {
 
   /**
    * Adds whitespace to String to fill a specified number of characters
-   * 
+   *
    * @param str name
    * @param size number of characters
    * @param after add white space after the string (instead of before)
@@ -526,7 +526,7 @@ public class ext {
   /**
    * Converts a String (which is usually a p-value) to a double and then back to a String using
    * scientific notation if beyond a certain magnitude
-   * 
+   *
    * @param nummer the original number in String format
    * @param sigfigs the number of significant digits to use if there is no conversion (usually 2)
    * @param sigfigBeforeConverting the number of digits (i.e., the number of zeros after the decimal
@@ -783,7 +783,7 @@ public class ext {
    * Method very similar to other index factors, but uses a hash based approach. When subset and
    * superset are very large such as extracting marker subsets (i.e. 50K and 2500K), this might be a
    * bit faster
-   * 
+   *
    * @param subset : what to extract
    * @param superset : extract indices from
    * @param casesensitive : case sensitive match
@@ -792,7 +792,7 @@ public class ext {
    * @param kill : system.exit(1) if duplicates are found, or subset member is not contained in
    *        superset
    * @return indices of subset in superset
-   * 
+   *
    */
   public static int[] indexLargeFactors(String[] subset, String[] superset, boolean casesensitive,
                                         Logger log, boolean verbose, boolean kill) {
@@ -1058,8 +1058,8 @@ public class ext {
         System.exit(1);
       }
     }
-    for (int i =
-        0; i < (observed.length < expected.length ? observed.length : expected.length); i++) {
+    for (int i = 0; i < (observed.length < expected.length ? observed.length
+                                                           : expected.length); i++) {
       if (!observed[i].equalsIgnoreCase(expected[i])
           || (caseSensitive && !observed[i].equals(expected[i]))) {
         log.reportError("Error - Expecting " + expected[i] + " in column " + (i + 1) + "; got "
@@ -1462,7 +1462,7 @@ public class ext {
 
   /**
    * Parse a string array argument;
-   * 
+   *
    * @param arg argument in form of <code>arg=str1,str2,string3</code>, which will return
    *        <code>String[]{str1,str2,string3}</code>
    * @return
@@ -1478,7 +1478,7 @@ public class ext {
 
   /**
    * Parse an integer array argument;
-   * 
+   *
    * @param arg argument in form of <code>arg=2,4-10,20</code>, which will return
    *        <code>int[]{2,4,5,6,7,8,9,10,20}</code>
    * @return
@@ -1803,7 +1803,7 @@ public class ext {
   /**
    * Computes the Levenshtein distance score between two Strings (Copied from
    * http://rosettacode.org/wiki/Levenshtein_distance#Java)
-   * 
+   *
    * @param a First String
    * @param b Second String
    * @return Levenshtein difference score

@@ -75,8 +75,8 @@ public class BamPileUp implements Iterator<BamPile> {
   private void init() {
     reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT);
     log.reportTimeInfo("Optimizing " + intervals.length + " queries for pile up");
-    queryIntervals =
-        BamOps.convertSegsToQI(intervals, reader.getFileHeader(), 0, optimize, true, log);
+    queryIntervals = BamOps.convertSegsToQI(intervals, reader.getFileHeader(), 0, optimize, true,
+                                            log);
     log.reportTimeInfo("Finished Optimizing " + intervals.length + " queries to "
                        + queryIntervals.length + " intervals for pile up");
 
@@ -129,15 +129,15 @@ public class BamPileUp implements Iterator<BamPile> {
                              + SamRecordOps.getDisplayLoc(samRecord));
           bamPileUpSummary.setTime(System.currentTimeMillis());
         }
-        BamPileInitializer bamPileInitializer =
-            new BamPileInitializer(binSize, currentSegment, samRecord, log);
+        BamPileInitializer bamPileInitializer = new BamPileInitializer(binSize, currentSegment,
+                                                                       samRecord, log);
         while (bamPileInitializer.hasNext()) {
           bamPiles.add(bamPileInitializer.next());
         }
         currentSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
-        TmpBamPileProducer tmpBamPileProducer =
-            new TmpBamPileProducer(samRecord, currentSegment,
-                                   bamPiles.toArray(new BamPile[bamPiles.size()]), filterNGS, log);
+        TmpBamPileProducer tmpBamPileProducer = new TmpBamPileProducer(samRecord, currentSegment,
+                                                                       bamPiles.toArray(new BamPile[bamPiles.size()]),
+                                                                       filterNGS, log);
         train.setProducer(tmpBamPileProducer);
         bamPiles = new ArrayList<BamPile>(bamPiles.size());
         while (train.hasNext()) {
@@ -211,7 +211,7 @@ public class BamPileUp implements Iterator<BamPile> {
       this.samRecord = samRecord;
       samRecordSeg = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
       nextBin =
-          samRecordSeg.overlaps(previousBin) ? getNextBin(previousBin, binSize) : scanToNext();
+              samRecordSeg.overlaps(previousBin) ? getNextBin(previousBin, binSize) : scanToNext();
     }
 
     private Segment scanToNext() {
@@ -281,8 +281,8 @@ public class BamPileUp implements Iterator<BamPile> {
 
     @Override
     public Callable<TmpBamPile> next() {
-      TmpBamPile tmpBamPile =
-          new TmpBamPile(samRecord, samRecordSegment, bamPiles[index], filterNGS, log);
+      TmpBamPile tmpBamPile = new TmpBamPile(samRecord, samRecordSegment, bamPiles[index],
+                                             filterNGS, log);
       index++;
       return tmpBamPile;
     }

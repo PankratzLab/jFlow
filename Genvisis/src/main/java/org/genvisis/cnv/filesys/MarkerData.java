@@ -1,7 +1,5 @@
 package org.genvisis.cnv.filesys;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -21,6 +19,8 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Numbers;
 import org.genvisis.stats.Correlation;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
+
+import com.google.common.primitives.Doubles;
 
 public class MarkerData implements Serializable {
   public static final long serialVersionUID = 1L;
@@ -179,14 +179,23 @@ public class MarkerData implements Serializable {
       }
     } else {
       numThreads = Math.min(numThreads, 6);// currently can only utilize 6
-      PrincipalComponentsIntensity pcIntensity =
-          new PrincipalComponentsIntensity(pcResids, this, true, sampleSex,
-                                           pcResids.getProj().getSamplesToInclude(null, false),
-                                           missingnessThreshold, confThreshold,
-                                           clusterFilterCollection, medianCenter,
-                                           (numComponents > 130 ? LS_TYPE.SVD : LS_TYPE.REGULAR),
-                                           correctionType, nStage, residStandardDeviationFilter,
-                                           correctionRatio, numThreads, false, null);
+      PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcResids, this,
+                                                                                  true, sampleSex,
+                                                                                  pcResids.getProj()
+                                                                                          .getSamplesToInclude(null,
+                                                                                                               false),
+                                                                                  missingnessThreshold,
+                                                                                  confThreshold,
+                                                                                  clusterFilterCollection,
+                                                                                  medianCenter,
+                                                                                  (numComponents > 130 ? LS_TYPE.SVD
+                                                                                                       : LS_TYPE.REGULAR),
+                                                                                  correctionType,
+                                                                                  nStage,
+                                                                                  residStandardDeviationFilter,
+                                                                                  correctionRatio,
+                                                                                  numThreads, false,
+                                                                                  null);
       pcIntensity.correctXYAt(numComponents);
       // This will display the genotypes after correction in scatter plot for testing, note that you
       // will lose the original
@@ -218,15 +227,16 @@ public class MarkerData implements Serializable {
       return null;
     } else {
       float[][] recompBAFLRR =
-          params.getCentroids() == null ? new float[][] {bafs.clone(), lrrs.clone()}
-                                        : recomputeClone(params.getCentroids()
-                                                               .getCentroids()[markerIndexInProject]);
+                             params.getCentroids() == null ? new float[][] {bafs.clone(),
+                                                                            lrrs.clone()}
+                                                           : recomputeClone(params.getCentroids()
+                                                                                  .getCentroids()[markerIndexInProject]);
 
       for (int i = 0; i < recompBAFLRR[0].length; i++) {
         recompBAFLRR[1][i] =
-            (float) params.getGcAdjustorParameters()[i].adjust(GC_CORRECTION_METHOD.GENVISIS_GC,
-                                                               recompBAFLRR[1][i],
-                                                               params.getGcContent()[i]);
+                           (float) params.getGcAdjustorParameters()[i].adjust(GC_CORRECTION_METHOD.GENVISIS_GC,
+                                                                              recompBAFLRR[1][i],
+                                                                              params.getGcContent()[i]);
         if (Float.isNaN(recompBAFLRR[1][i])) {
           recompBAFLRR[1][i] = lrrs[i];
         }
@@ -252,13 +262,21 @@ public class MarkerData implements Serializable {
       }
       return abGenotypes;
     } else {
-      PrincipalComponentsIntensity pcIntensity =
-          new PrincipalComponentsIntensity(pcResids, this, true, sampleSex, samplesToUse,
-                                           missingnessThreshold, confThreshold,
-                                           clusterFilterCollection, medianCenter,
-                                           (numComponents > 130 ? LS_TYPE.SVD : LS_TYPE.REGULAR),
-                                           correctionType, nStage, residStandardDeviationFilter,
-                                           correctionRatio, numThreads, false, null);
+      PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcResids, this,
+                                                                                  true, sampleSex,
+                                                                                  samplesToUse,
+                                                                                  missingnessThreshold,
+                                                                                  confThreshold,
+                                                                                  clusterFilterCollection,
+                                                                                  medianCenter,
+                                                                                  (numComponents > 130 ? LS_TYPE.SVD
+                                                                                                       : LS_TYPE.REGULAR),
+                                                                                  correctionType,
+                                                                                  nStage,
+                                                                                  residStandardDeviationFilter,
+                                                                                  correctionRatio,
+                                                                                  numThreads, false,
+                                                                                  null);
       pcIntensity.correctXYAt(numComponents);
       return pcIntensity.getCentroidCompute().getClustGenotypes();
     }
@@ -409,7 +427,7 @@ public class MarkerData implements Serializable {
 
   /**
    * See {@link CentroidCompute#Centroid} for further usage
-   * 
+   *
    * @param LRRonly only return the lrr values. Warning the float[][] returned will have bafs=new
    *        float[0]. To get the LRRs, use getRecomputedLRR_BAF(...arguments...)[1];
    * @return float[][] organized as float[0] = new BAFs, float[1]= new LRRs
@@ -863,7 +881,7 @@ public class MarkerData implements Serializable {
         genoytpes = getAbGenotypes();
       } else {
         genoytpes =
-            getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold, log);
+                  getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold, log);
       }
 
       alleleCounts = new int[2];
@@ -912,7 +930,8 @@ public class MarkerData implements Serializable {
     }
     MarkerData[] markerDatas = new MarkerData[markers.length];
     MarkerDataLoader markerDataLoader =
-        MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
+                                      MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+                                                                                              markers);
     for (int i = 0; i < markerDatas.length; i++) {
       markerDatas[i] = markerDataLoader.requestMarkerData(i);
       markerDataLoader.releaseIndex(i);

@@ -131,8 +131,8 @@ public class BamImport {
 
     @Override
     public BamPileConversionResults call() throws Exception {
-      String sampleFile =
-          proj.SAMPLE_DIRECTORY.getValue() + BamOps.getSampleName(result.getBam(), log)
+      String sampleFile = proj.SAMPLE_DIRECTORY.getValue()
+                          + BamOps.getSampleName(result.getBam(), log)
                           + Sample.SAMPLE_FILE_EXTENSION;
       if (!Files.exists(sampleFile)) {
         BamSample bamSample = new BamSample(proj, result.getBam(), result.loadResults(log));
@@ -195,7 +195,7 @@ public class BamImport {
   private static class VariantSeg extends Segment {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final String tag;
@@ -212,15 +212,15 @@ public class BamImport {
   }
 
   private static LocusSet<VariantSeg> extractVCF(Project proj, String vcf) {
-    LocusSet<VariantSeg> varLocusSet =
-        new LocusSet<VariantSeg>(new VariantSeg[] {}, true, proj.getLog()) {
+    LocusSet<VariantSeg> varLocusSet = new LocusSet<VariantSeg>(new VariantSeg[] {}, true,
+                                                                proj.getLog()) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1L;
 
-        };
+    };
 
     if (vcf != null) {
 
@@ -284,15 +284,15 @@ public class BamImport {
 
         return null;
       }
-      varLocusSet =
-          new LocusSet<VariantSeg>(segs.toArray(new VariantSeg[segs.size()]), true, proj.getLog()) {
+      varLocusSet = new LocusSet<VariantSeg>(segs.toArray(new VariantSeg[segs.size()]), true,
+                                             proj.getLog()) {
 
-            /**
-             * 
-             */
-            private static final long serialVersionUID = 1L;
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 1L;
 
-          };
+      };
 
     }
 
@@ -326,14 +326,16 @@ public class BamImport {
         readerCapture.close();
         if (!bLocusSet.hasNoOverlap()) {
           ReferenceGenome referenceGenome =
-              new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), log);
+                                          new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
+                                                              log);
           log.memoryFree();
-          LocusSet<Segment> genomeBinsMinusBinsCaputure =
-              referenceGenome.getBins(20000)
-                             .removeThese(LocusSet.combine(bLocusSet, readerCapture.loadAll(log),
-                                                           true, log)
-                                                  .mergeOverlapping(true),
-                                          4000);//
+          LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000)
+                                                                         .removeThese(LocusSet.combine(bLocusSet,
+                                                                                                       readerCapture.loadAll(log),
+                                                                                                       true,
+                                                                                                       log)
+                                                                                              .mergeOverlapping(true),
+                                                                                      4000);//
           log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered()
                              + " bp covered by reference bins int the anti-on-target regions");
           log.memoryFree();
@@ -353,8 +355,9 @@ public class BamImport {
             log.reportTimeInfo(varFeatures.getBpCovered() + " bp covered by known variant sites");
           }
 
-          ArrayList<MarkerFileType> markerTypes =
-              generateMarkerPositions(proj, bLocusSet, genomeBinsMinusBinsCaputure, varFeatures);
+          ArrayList<MarkerFileType> markerTypes = generateMarkerPositions(proj, bLocusSet,
+                                                                          genomeBinsMinusBinsCaputure,
+                                                                          varFeatures);
           log.memoryFree();
           LocusSet<Segment> analysisSet = LocusSet.combine(bLocusSet.getStrictSegmentSet(),
                                                            genomeBinsMinusBinsCaputure, true, log);
@@ -366,11 +369,12 @@ public class BamImport {
           }
 
           FilterNGS filterNGS = new FilterNGS(20, 20, null);
-          PileupProducer pileProducer =
-              new PileupProducer(bamsToImport, serDir, referenceGenome.getReferenceFasta(),
-                                 filterNGS, analysisSet.getStrictSegments(), log);
-          WorkerTrain<BamPileResult> pileTrain =
-              new WorkerTrain<BamPileResult>(pileProducer, numthreads, 2, log);
+          PileupProducer pileProducer = new PileupProducer(bamsToImport, serDir,
+                                                           referenceGenome.getReferenceFasta(),
+                                                           filterNGS,
+                                                           analysisSet.getStrictSegments(), log);
+          WorkerTrain<BamPileResult> pileTrain = new WorkerTrain<BamPileResult>(pileProducer,
+                                                                                numthreads, 2, log);
           int index = 0;
           proj.SAMPLE_DIRECTORY.getValue(true, false);
           proj.XY_SCALE_FACTOR.setValue((double) 10);
@@ -387,11 +391,14 @@ public class BamImport {
           String[] mappedReadCounts = new String[bamsToImport.length + 1];
           mappedReadCounts[0] = "Sample\tAlignedReadCount\tUnalignedReadCount";
           long fingerPrint = proj.getMarkerSet().getFingerprint();
-          BamPileConverterProducer conversionProducer =
-              new BamPileConverterProducer(proj, results, fingerPrint, log);
+          BamPileConverterProducer conversionProducer = new BamPileConverterProducer(proj, results,
+                                                                                     fingerPrint,
+                                                                                     log);
           WorkerTrain<BamPileConversionResults> conversionTrain =
-              new WorkerTrain<BamImport.BamPileConversionResults>(conversionProducer, numthreads,
-                                                                  10, log);
+                                                                new WorkerTrain<BamImport.BamPileConversionResults>(conversionProducer,
+                                                                                                                    numthreads,
+                                                                                                                    10,
+                                                                                                                    log);
 
           Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 
@@ -404,8 +411,8 @@ public class BamImport {
             BamIndexStats bamIndexStats = conversionResult.getBamIndexStats();
             int numAligned = bamIndexStats.getAlignedRecordCount();
             int numNotAligned = bamIndexStats.getUnalignedRecordCount();
-            mappedReadCounts[convIndex + 1] =
-                conversionResult.getSample() + "\t" + numAligned + "\t" + numNotAligned;
+            mappedReadCounts[convIndex + 1] = conversionResult.getSample() + "\t" + numAligned
+                                              + "\t" + numNotAligned;
             convIndex++;
             if (conversionResult.getOutliers() != null
                 && conversionResult.getOutliers().size() > 0) {
@@ -458,16 +465,17 @@ public class BamImport {
           if (!Files.exists(proj.MOSAIC_RESULTS_FILENAME.getValue())) {
             Mosaicism.findOutliers(proj, numthreads);
           }
-          ArrayList<ProjectCorrected> correcteds =
-              correctifyProject(proj, markerTypes, offTargetsToUse, correctionPCs, numthreads);// Generates
-                                                                                               // and
-                                                                                               // corrects
-                                                                                               // the
-                                                                                               // project
-                                                                                               // for
-                                                                                               // each
-                                                                                               // marker
-                                                                                               // type
+          ArrayList<ProjectCorrected> correcteds = correctifyProject(proj, markerTypes,
+                                                                     offTargetsToUse, correctionPCs,
+                                                                     numthreads);// Generates
+                                                                                 // and
+                                                                                 // corrects
+                                                                                 // the
+                                                                                 // project
+                                                                                 // for
+                                                                                 // each
+                                                                                 // marker
+                                                                                 // type
 
           String newSampleDir = proj.PROJECT_DIRECTORY.getValue() + "samplesCorrected/";
           String newtransposedDir = proj.PROJECT_DIRECTORY.getValue() + "transposedCorrected/";
@@ -475,7 +483,10 @@ public class BamImport {
           RecompileProducer producer = new RecompileProducer(proj, proj.getSamples(), newSampleDir,
                                                              proj.getMarkerSet(), correcteds);
           WorkerTrain<Hashtable<String, Float>> train =
-              new WorkerTrain<Hashtable<String, Float>>(producer, numthreads, 10, proj.getLog());
+                                                      new WorkerTrain<Hashtable<String, Float>>(producer,
+                                                                                                numthreads,
+                                                                                                10,
+                                                                                                proj.getLog());
           Hashtable<String, Float> recompallOutliers = new Hashtable<String, Float>();
 
           while (train.hasNext()) {// consolidate the pc corrected
@@ -635,9 +646,9 @@ public class BamImport {
       pcCorrected.SAMPLE_DIRECTORY.setValue(pcCorrected.PROJECT_DIRECTORY.getValue()
                                             + "shadowSamples/");
 
-      String[] correctedSamps =
-          Array.tagOn(proj.getSamples(), pcCorrected.SAMPLE_DIRECTORY.getValue(),
-                      Sample.SAMPLE_FILE_EXTENSION);
+      String[] correctedSamps = Array.tagOn(proj.getSamples(),
+                                            pcCorrected.SAMPLE_DIRECTORY.getValue(),
+                                            Sample.SAMPLE_FILE_EXTENSION);
       if (!Files.exists("", correctedSamps)) {
         proj.getLog()
             .reportTimeInfo("PC correcting project using "
@@ -748,9 +759,10 @@ public class BamImport {
         }
       }
       Sample sampleCorrected =
-          new Sample(sampleName, markerSet.getFingerprint(), gcs, intensity, intensity, bafs, lrrs,
-                     sampleOriginal.getForwardGenotypes(), sampleOriginal.getAB_Genotypes(),
-                     sampleOriginal.getCanXYBeNegative());
+                             new Sample(sampleName, markerSet.getFingerprint(), gcs, intensity,
+                                        intensity, bafs, lrrs, sampleOriginal.getForwardGenotypes(),
+                                        sampleOriginal.getAB_Genotypes(),
+                                        sampleOriginal.getCanXYBeNegative());
       sampleCorrected.saveToRandomAccessFile(sampleFile, outliers, sampleName);
       if (numAccountedFor != markerNames.length) {
         throw new IllegalArgumentException("Not all markers accounted for in corrections");
@@ -765,12 +777,12 @@ public class BamImport {
   private static String[] dumpLikelyOffTargetProblems(Project proj) {
 
     MarkerSet markerSet = proj.getMarkerSet();
-    String problemFile =
-        ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), ".likelyOffTargetProblems");
-    String noproblemFile =
-        ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), ".withoutlikelyOffTargetProblems");
-    String allFile =
-        ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), ".OffTargetProblemsFlagged");
+    String problemFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(),
+                                       ".likelyOffTargetProblems");
+    String noproblemFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(),
+                                         ".withoutlikelyOffTargetProblems");
+    String allFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(),
+                                   ".OffTargetProblemsFlagged");
 
     ArrayList<String> problems = new ArrayList<String>();
     ArrayList<String> noProblems = new ArrayList<String>();
@@ -821,11 +833,11 @@ public class BamImport {
                                                                    LocusSet<VariantSeg> varFeatures) {
     String positions = proj.MARKER_POSITION_FILENAME.getValue();
     proj.getLog().reportTimeInfo("Postions will be set to the midpoint of each segment");
-    String[] markerNames =
-        new String[bLocusSet.getLoci().length + genomeBinsMinusBinsCaputure.getLoci().length
-                   + varFeatures.getLoci().length];
+    String[] markerNames = new String[bLocusSet.getLoci().length
+                                      + genomeBinsMinusBinsCaputure.getLoci().length
+                                      + varFeatures.getLoci().length];
     String header =
-        "BinName\tChr\tPosition\tCLASS=MARKER_COLOR;OFF_TARGET=Blue;VARIANT_SITE=RED;ON_TARGET=Green";
+                  "BinName\tChr\tPosition\tCLASS=MARKER_COLOR;OFF_TARGET=Blue;VARIANT_SITE=RED;ON_TARGET=Green";
     ArrayList<String> onTMarkers = new ArrayList<String>();
     onTMarkers.add(header);
 
@@ -861,7 +873,7 @@ public class BamImport {
       for (int i = 0; i < genomeBinsMinusBinsCaputure.getLoci().length; i++) {
         Segment binnedSeg = genomeBinsMinusBinsCaputure.getLoci()[i];
         String markerName =
-            binnedSeg.getUCSClocation() + "|" + NGS_MARKER_TYPE.OFF_TARGET.getFlag();
+                          binnedSeg.getUCSClocation() + "|" + NGS_MARKER_TYPE.OFF_TARGET.getFlag();
 
         markerNames[markerIndex] = markerName;
         int diff = binnedSeg.getStop() - binnedSeg.getStart();
@@ -979,7 +991,7 @@ public class BamImport {
     usage += Ext.getNumThreadsCommand(3, numthreads);
     usage += "(4) bed file to import  (i.e. captureBed=" + captureBed + " ( no default))\n" + "";
     usage +=
-        "(5) a vcf, if provided the variants will be imported with bp resolution  (i.e. vcf= ( no default))\n"
+          "(5) a vcf, if provided the variants will be imported with bp resolution  (i.e. vcf= ( no default))\n"
              + "";
     usage += "(6) number of PCs to correct with  (i.e. correctionPCs= ( no default))\n" + "";
 

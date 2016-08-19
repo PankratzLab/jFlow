@@ -1,7 +1,5 @@
 package org.genvisis.common;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -11,6 +9,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
+
+import com.google.common.primitives.Ints;
 
 public class FilterByLists {
   public static void fromParameters(String controlFile, Logger log) {

@@ -16,9 +16,9 @@ import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 public class CountProxies {
-  public static final String[][] HEADER_EXPECTATIONS =
-      {{"Region"}, {"MarkerName", "SNP", "RSID"}, {"Chr"}, {"Position", "BP"}, {"Rsq"},
-       {"Pval", "P-value"}, {"Replication"}};
+  public static final String[][] HEADER_EXPECTATIONS = {{"Region"}, {"MarkerName", "SNP", "RSID"},
+                                                        {"Chr"}, {"Position", "BP"}, {"Rsq"},
+                                                        {"Pval", "P-value"}, {"Replication"}};
   public static final double INDEX_THRESHOLD = 0.00000005;
   public static final double[] RSQ_THRESHOLDS = {0.80, 0.50, 0.30};
 
@@ -85,8 +85,8 @@ public class CountProxies {
           markerNames[i] = line[indices[1]];
           rsqs[i] = line[indices[4]].equals("NA") ? -1 : Double.parseDouble(line[indices[4]]);
           pvalues[i] = line[indices[5]].equals("NA") ? 999 : Double.parseDouble(line[indices[5]]);
-          replications[i] =
-              line[indices[6]].equals("NA") ? 999 : Double.parseDouble(line[indices[6]]);
+          replications[i] = line[indices[6]].equals("NA") ? 999
+                                                          : Double.parseDouble(line[indices[6]]);
         }
 
         order = Sort.quicksort(pvalues);

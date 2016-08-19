@@ -1,8 +1,5 @@
 package org.genvisis.filesys;
 
-import com.google.common.primitives.Bytes;
-import com.google.common.primitives.Ints;
-
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -18,9 +15,12 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Ints;
+
 public abstract class LocusSet<T extends Segment> implements Serializable {
   /**
-   * 
+   *
    */
   protected static final long serialVersionUID = 1L;
   private T[] loci;
@@ -119,8 +119,8 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
    * @param setToRemove remove the bases represented by this set from the current loci
    * @param bpBuffer the buffer to extend on either side of the removing set's loci
    * @return
-   * 
-   * 
+   *
+   *
    */
   public <E extends Segment> LocusSet<Segment> removeThese(final LocusSet<E> setToRemove,
                                                            int bpBuffer) {
@@ -140,14 +140,14 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
         }
       }
     }
-    LocusSet<Segment> toReturn =
-        new LocusSet<Segment>(newLoci.toArray(new Segment[newLoci.size()]), true, log) {
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+    LocusSet<Segment> toReturn = new LocusSet<Segment>(newLoci.toArray(new Segment[newLoci.size()]),
+                                                       true, log) {
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1L;
 
-        };
+    };
     for (int i = 0; i < operateSet.getLoci().length; i++) {
       if (toReturn.getOverLappingLoci(operateSet.getLoci()[i]) != null) {
         String error = "BUG: found overlapping loci from the removed set in the set to be returned";
@@ -164,15 +164,15 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
       buffered.add(element.getBufferedSegment(bpBuffer));
     }
 
-    LocusSet<Segment> bufSet =
-        new LocusSet<Segment>(buffered.toArray(new Segment[buffered.size()]), true, log) {
+    LocusSet<Segment> bufSet = new LocusSet<Segment>(buffered.toArray(new Segment[buffered.size()]),
+                                                     true, log) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1L;
 
-        };
+    };
     return bufSet;
   }
 
@@ -232,14 +232,15 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
         log.reportTimeInfo("Merged " + originalSize + " segments to " + merged.size());
       }
       LocusSet<Segment> mergedSet =
-          new LocusSet<Segment>(merged.toArray(new Segment[merged.size()]), true, log) {
+                                  new LocusSet<Segment>(merged.toArray(new Segment[merged.size()]),
+                                                        true, log) {
 
-            /**
-             * 
-             */
-            private static final long serialVersionUID = 1L;
+                                    /**
+                                     * 
+                                     */
+                                    private static final long serialVersionUID = 1L;
 
-          };
+                                  };
       return mergedSet;
     }
   }
@@ -248,7 +249,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
     LocusSet<Segment> segSet = new LocusSet<Segment>(getStrictSegments(), true, log) {
 
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -326,7 +327,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
     LocusSet<T> combined = new LocusSet<T>(combinedLoci, sort, log) {
 
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -347,7 +348,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
     LocusSet<T> aut = new LocusSet<T>(auto, sort, log) {
 
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
@@ -435,7 +436,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
     LocusSet<Segment> lSet = new LocusSet<Segment>(segs, true, log) {
 
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 

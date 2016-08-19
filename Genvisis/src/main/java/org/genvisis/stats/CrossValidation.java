@@ -317,8 +317,8 @@ public class CrossValidation {
       double[] val_deps = extractDeps(deps, folds[i], false, log);
       double[][] train_indeps = extractIndeps(indeps, folds[i], true, log);
       double[][] val_indeps = extractIndeps(indeps, folds[i], false, log);
-      crossValidations[i] =
-          crossValidate(train_deps, train_indeps, val_deps, val_indeps, verbose, lType, log);
+      crossValidations[i] = crossValidate(train_deps, train_indeps, val_deps, val_indeps, verbose,
+                                          lType, log);
       crossValidations[i].clearInputData(true);// save some memory
     }
     return crossValidations;
@@ -342,8 +342,8 @@ public class CrossValidation {
     for (int i = 0; i < chunks.length; i++) {
       double[] train_deps = extractDeps(deps, folds[i], true, log);
       double[][] train_indeps = extractIndeps(indeps, folds[i], true, log);
-      crossValidations[i] =
-          crossValidate(train_deps, train_indeps, val_deps, val_indeps, verbose, lType, log);
+      crossValidations[i] = crossValidate(train_deps, train_indeps, val_deps, val_indeps, verbose,
+                                          lType, log);
       crossValidations[i].clearInputData(true);
     }
     return crossValidations;
@@ -354,8 +354,8 @@ public class CrossValidation {
    */
   public static double kfoldAverageSSerr(double[] deps, double[][] indeps, int kFolds,
                                          boolean verbose, LS_TYPE lType, Logger log) {
-    CrossValidation[] crossValidations =
-        kFoldCrossValidate(deps, indeps, kFolds, verbose, lType, log);
+    CrossValidation[] crossValidations = kFoldCrossValidate(deps, indeps, kFolds, verbose, lType,
+                                                            log);
     return getEstimateError(crossValidations);
   }
 
@@ -510,8 +510,8 @@ public class CrossValidation {
    * identical residuals and thus identical SSerr
    */
   public static void testingStufff(double[] deps, double[][] indeps, String testNum, Logger log) {
-    CrossValidation crossValidation =
-        crossValidate(deps, indeps, deps, indeps, false, LS_TYPE.REGULAR, log);
+    CrossValidation crossValidation = crossValidate(deps, indeps, deps, indeps, false,
+                                                    LS_TYPE.REGULAR, log);
     double[] modelResiduals = crossValidation.getModel().getResiduals();
     double[] extrapResiduals = crossValidation.getResiduals();
     String[] toPrint = new String[modelResiduals.length];

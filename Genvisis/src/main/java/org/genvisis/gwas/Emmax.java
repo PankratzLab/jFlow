@@ -22,8 +22,8 @@ import org.genvisis.stats.ProbDist;
 public class Emmax {
   public static final String[] KINSHIP_LABELS = new String[] {"hBN", "hIBS"};
   public static final String[] KINSHIP_EXTENSIONS = new String[] {".hBN.kinf", ".hIBS.kinf"};
-  public static final String[] KINSHIP_PARAMETERS =
-      new String[] {"emmax-kin -v -h -d 10", "emmax-kin -v -h -s -d 10"};
+  public static final String[] KINSHIP_PARAMETERS = new String[] {"emmax-kin -v -h -d 10",
+                                                                  "emmax-kin -v -h -s -d 10"};
 
   public static void generateScripts(String commandFullPath, String kinshipGenoDirAndNameRoot,
                                      String analysisGenoDirAndNameRoot, String phenoCovDir,
@@ -212,7 +212,7 @@ public class Emmax {
         line = key + "\t" + numSamples;
         for (int i = 0; i < fileNameRootsTemp.length; i++) {
           line +=
-              "\t" + numMarkers[i] + "\t" + ext.formDeci(lambda[i], 4) + "\t" + numMarkersSig[i];
+               "\t" + numMarkers[i] + "\t" + ext.formDeci(lambda[i], 4) + "\t" + numMarkersSig[i];
         }
         writer.println(line);
       }
@@ -255,7 +255,7 @@ public class Emmax {
     covNameExtOrFullPath = "_covars.txt";
     kinshipGenoDirAndNameRoot = "/home/pankrat2/shared/boss/BOSS_plinkData/ldPruned/plink";
     analysisGenoDirAndNameRoot =
-        "/home/pankrat2/shared/boss/BOSS_plinkData/analyzeThis/analyzeThis";
+                               "/home/pankrat2/shared/boss/BOSS_plinkData/analyzeThis/analyzeThis";
     // genoDirAndNameRoot = "D:/boss/BOSS_plinkData/analyzeThis/analyzeThis";
     // genoNameExtOrFullPath = "plink";
     outDir = "/home/pankrat2/shared/boss/emmax/results/phenoCovs4/";

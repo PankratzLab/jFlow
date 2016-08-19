@@ -21,8 +21,9 @@ import org.genvisis.stats.Maths;
 
 public class AffyCentroids implements Serializable {
   public static final long serialVersionUID = 1L;
-  public static final String[] AFFY_CENTROID_SUFFIXES =
-      {"Name", "AA T Mean", "AA R Mean", "AB T Mean", "AB R Mean", "BB T Mean", "BB R Mean"};
+  public static final String[] AFFY_CENTROID_SUFFIXES = {"Name", "AA T Mean", "AA R Mean",
+                                                         "AB T Mean", "AB R Mean", "BB T Mean",
+                                                         "BB R Mean"};
 
   private final float[][][] AffyCentroids; // marker, genotype (0=AA, 1=AB, 2=BB), coordinates
                                            // (0=Mean Theta, 1=Mean R) (a.k.a. follows the suffix
@@ -221,7 +222,7 @@ public class AffyCentroids implements Serializable {
 
   public static void parseCentroids(Project proj, boolean[] samplesToBeUsed,
                                     double missingnessThreshold, double confThreshold) {
-    String[] samples, markerNames;
+    String[] samples;
     SampleList sampleList;
     MarkerSet markerSet;
     Logger log;
@@ -237,26 +238,11 @@ public class AffyCentroids implements Serializable {
       System.exit(1);
     }
     markerSet = proj.getMarkerSet();
-    markerNames = markerSet.getMarkerNames();
+    markerSet.getMarkerNames();
     CentroidBuilder builder = new CentroidBuilder();
     CentroidCompute.computeAndDumpCentroids(proj,
                                             new String[] {proj.CUSTOM_CENTROIDS_FILENAME.getValue()},
                                             new CentroidBuilder[] {builder}, 2, 2);
-  }
-
-  private static float[][] getCentroid(double missingnessThreshold, double[] meanThetas,
-                                       double[] meanRs, int[] counts, PrintWriter writer,
-                                       String markerName, Logger log) {
-    float[][] centroid;
-    centroid = new float[3][];
-    if (counts[1] >= counts[0] * missingnessThreshold) {
-      for (int k = 0; k < 3; k++) {
-        centroid[k] = new float[] {(float) meanThetas[0], (float) meanRs[0]};
-      }
-    } else {
-      processCentroid(centroid, meanThetas, meanRs, counts, writer, markerName, log);
-    }
-    return centroid;
   }
 
   private static boolean checkSexMarker(Project proj, int sex, MarkerData markerData) {

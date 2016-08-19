@@ -31,10 +31,12 @@ import org.genvisis.common.ext;
 public class MosaicPlot extends JFrame implements ActionListener {
   public static final long serialVersionUID = 1L;
   public static final String[] MOSAICISM_HEADER =
-      {"Sample", "Arm", "LRR N", "mean LRR", "BAF N", "SD of BAF (0.15-0.85)",
-       "IQR of BAF (0.15-0.85)", "%Homo", "ForcedCallArmPercentMosaicism", "BpWeightedAverageArm",
-       "BpWeightedAverageCalled", "NumberRegionsDetected", "BpCalledMosaic", "BpInArm",
-       "ProportionArmCalledMosaic"};
+                                                {"Sample", "Arm", "LRR N", "mean LRR", "BAF N",
+                                                 "SD of BAF (0.15-0.85)", "IQR of BAF (0.15-0.85)",
+                                                 "%Homo", "ForcedCallArmPercentMosaicism",
+                                                 "BpWeightedAverageArm", "BpWeightedAverageCalled",
+                                                 "NumberRegionsDetected", "BpCalledMosaic",
+                                                 "BpInArm", "ProportionArmCalledMosaic"};
 
   MosaicPanel panel;
 
@@ -54,8 +56,8 @@ public class MosaicPlot extends JFrame implements ActionListener {
     descrPanel.add(label);
 
     label =
-        new JLabel("Only those B Allele Frequency (BAF) values between 0.15 and 0.85 are used in these calculations",
-                   JLabel.CENTER);
+          new JLabel("Only those B Allele Frequency (BAF) values between 0.15 and 0.85 are used in these calculations",
+                     JLabel.CENTER);
     label.setFont(new Font("Arial", 0, 14));
     descrPanel.add(label);
     descrPanel.setBackground(Color.WHITE);

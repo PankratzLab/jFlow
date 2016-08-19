@@ -304,17 +304,19 @@ public class procGenePositions {
                                         + Integer.parseInt(data[i][k].start)
                                         - Integer.parseInt(data[orderler[k][low]][k].start))
                                        + "";
-                    data[i][j].stop =
-                        (Integer.parseInt(data[i][j].start) + Integer.parseInt(data[i][k].stop)
-                         - Integer.parseInt(data[i][k].start)) + "";
+                    data[i][j].stop = (Integer.parseInt(data[i][j].start)
+                                       + Integer.parseInt(data[i][k].stop)
+                                       - Integer.parseInt(data[i][k].start))
+                                      + "";
                   } else {
                     data[i][j].start = (Integer.parseInt(data[orderler[k][high]][k].start)
                                         + Integer.parseInt(data[i][k].start)
                                         - Integer.parseInt(data[orderler[k][high]][k].start))
                                        + "";
-                    data[i][j].stop =
-                        (Integer.parseInt(data[i][j].start) + Integer.parseInt(data[i][k].stop)
-                         - Integer.parseInt(data[i][k].start)) + "";
+                    data[i][j].stop = (Integer.parseInt(data[i][j].start)
+                                       + Integer.parseInt(data[i][k].stop)
+                                       - Integer.parseInt(data[i][k].start))
+                                      + "";
                   }
                   data[i][j].sense = data[i][k].sense;
                   data[i][j].placed = false;

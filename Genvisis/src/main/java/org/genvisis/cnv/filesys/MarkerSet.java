@@ -1,7 +1,5 @@
 package org.genvisis.cnv.filesys;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -19,6 +17,8 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
+
+import com.google.common.primitives.Ints;
 
 public class MarkerSet implements Serializable, TextExport {
   public static final long serialVersionUID = 1L;
@@ -289,7 +289,7 @@ public class MarkerSet implements Serializable, TextExport {
   public static class PreparedMarkerSet extends MarkerSet {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
 

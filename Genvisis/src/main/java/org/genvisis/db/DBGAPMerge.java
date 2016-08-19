@@ -418,10 +418,10 @@ public class DBGAPMerge {
     String logfile = null;
     Logger log;
 
-    String usage =
-        "\n" + "one.ben.DBGAPMergeAndLookup requires 3+ arguments\n" + "To MERGE dbGap files:\n"
-                   + "   (1) Data Output Filename (i.e. out=" + out + " (default))\n"
-                   + "   (2) Map Output Filename (i.e. outMap=" + outMap + " (default))\n"
+    String usage = "\n" + "one.ben.DBGAPMergeAndLookup requires 3+ arguments\n"
+                   + "To MERGE dbGap files:\n" + "   (1) Data Output Filename (i.e. out=" + out
+                   + " (default))\n" + "   (2) Map Output Filename (i.e. outMap=" + outMap
+                   + " (default))\n"
                    + "   (3) Input directory (or a comma-delimited list of directories) (i.e. dir="
                    + Array.toStr(dir, "") + " (default))\n" + "   (4) OPTIONAL: Log file (i.e. log="
                    + logfile + " (default))\n" + "\n" + "";
@@ -536,11 +536,11 @@ public class DBGAPMerge {
       String[] args;
 
       params =
-          Files.parseControlFile(filename, "dbgap",
-                                 new String[] {"variables=searchTerms.xln",
-                                               "dataFile=mergeOut.xln.gz",
-                                               "outputFile=searchedVariables.xln", "head=IID",},
-                                 log);
+             Files.parseControlFile(filename, "dbgap",
+                                    new String[] {"variables=searchTerms.xln",
+                                                  "dataFile=mergeOut.xln.gz",
+                                                  "outputFile=searchedVariables.xln", "head=IID",},
+                                    log);
 
       if (params != null) {
         args = params.toArray(new String[params.size()]);
@@ -642,8 +642,8 @@ public class DBGAPMerge {
         int[] searchInds = Array.intArray(search.length, -1);
         for (int s = 0; s < search.length; s++) {
           for (int col : searchCols) {
-            searchInds[s] =
-                Math.max(searchInds[s], parts[col].toLowerCase().indexOf(search[s].toLowerCase()));
+            searchInds[s] = Math.max(searchInds[s],
+                                     parts[col].toLowerCase().indexOf(search[s].toLowerCase()));
           }
         }
         boolean foundAny = false;

@@ -211,7 +211,7 @@ public class CNVFilter {
       this.delLimitedTo = delLimitedTo;
       this.dupLimitedTo = dupLimitedTo;
       this.proportionOfProbesThatNeedToPassForFinalInclusion =
-          proportionOfProbesThatNeedToPassForFinalInclusion;
+                                                             proportionOfProbesThatNeedToPassForFinalInclusion;
     }
 
   }
@@ -423,7 +423,7 @@ public class CNVFilter {
 
   /**
    * Any or all can be null,
-   * 
+   *
    * @param commonIn include (true) or exclude (false) common variants
    */
   public void setAllAuxillaryRegionsFromFiles(String fullPathToProblematicRegions,
@@ -469,8 +469,8 @@ public class CNVFilter {
 
   public void computeCentromereMidPoints() {
     centromereMidpoints =
-        centromereBoundaries == NO_FILTER_CENTROMERE_BOUNDARIES ? NO_FILTER_CENTROMERE_MIDPOINTS
-                                                                : Positions.computeCentromereMidpoints(centromereBoundaries);
+                        centromereBoundaries == NO_FILTER_CENTROMERE_BOUNDARIES ? NO_FILTER_CENTROMERE_MIDPOINTS
+                                                                                : Positions.computeCentromereMidpoints(centromereBoundaries);
   }
 
   public void setCommonReferenceFromFile(String fullPathToCommonCNPReference, boolean commonIn) {
@@ -653,15 +653,15 @@ public class CNVFilter {
       log.reportException(e);
     }
     LocusSet<CNVariant> cnLocusSet =
-        new LocusSet<CNVariant>(cnvsToReturn.toArray(new CNVariant[cnvsToReturn.size()]), true,
-                                log) {
+                                   new LocusSet<CNVariant>(cnvsToReturn.toArray(new CNVariant[cnvsToReturn.size()]),
+                                                           true, log) {
 
-          /**
-           *
-           */
-          private static final long serialVersionUID = 1L;
-          // Cannot instantiate the type LocusSet<CNVariant>
-        };
+                                     /**
+                                      *
+                                      */
+                                     private static final long serialVersionUID = 1L;
+                                     // Cannot instantiate the type LocusSet<CNVariant>
+                                   };
     return cnLocusSet;
   }
 

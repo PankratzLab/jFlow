@@ -17,16 +17,16 @@ import ca.mcgill.mcb.pcingola.vcf.VcfEntry;
 
 public class SNPEffAnnotation {
 
-  private static final String[][] FACTORS =
-      new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS};
-  private static final String[][] FACTORS_5 =
-      new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS, Aliases.ALLELES[0],
-                      Aliases.ALLELES[1]};
+  private static final String[][] FACTORS = new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS,
+                                                            Aliases.POSITIONS};
+  private static final String[][] FACTORS_5 = new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS,
+                                                              Aliases.POSITIONS, Aliases.ALLELES[0],
+                                                              Aliases.ALLELES[1]};
   private static final int DEFAULT_BUILD = 37;
   private static final String DEFAULT_BUILD_STR = "hg19";
 
   private static final String VCF_ANN_HEADER =
-      "##INFO=<ID=ANN,Number=.,Type=String,Description=\"Functional annotations: 'Allele | Annotation | Annotation_Impact | Gene_Name | Gene_ID | Feature_Type | Feature_ID | Transcript_BioType | Rank | HGVS.c | HGVS.p | cDNA.pos / cDNA.length | CDS.pos / CDS.length | AA.pos / AA.length | Distance | ERRORS / WARNINGS / INFO' \">";
+                                             "##INFO=<ID=ANN,Number=.,Type=String,Description=\"Functional annotations: 'Allele | Annotation | Annotation_Impact | Gene_Name | Gene_ID | Feature_Type | Feature_ID | Transcript_BioType | Rank | HGVS.c | HGVS.p | cDNA.pos / cDNA.length | CDS.pos / CDS.length | AA.pos / AA.length | Distance | ERRORS / WARNINGS / INFO' \">";
 
   public static String processInput(String infile, Logger log) {
     File f = new File(infile);
@@ -92,10 +92,12 @@ public class SNPEffAnnotation {
     while (new File(newFile).exists()) {
       newFile = ext.rootOf(file, false) + "_snpEffLookup_" + cnt++ + ".txt";
     }
-    int[] colsToLoad =
-        indicesToUse.length == 3 ? new int[] {indicesToUse[1], indicesToUse[2], indicesToUse[0]}
-                                 : new int[] {indicesToUse[1], indicesToUse[2], indicesToUse[0],
-                                              indicesToUse[3], indicesToUse[4]};
+    int[] colsToLoad = indicesToUse.length == 3
+                                                ? new int[] {indicesToUse[1], indicesToUse[2],
+                                                             indicesToUse[0]}
+                                                : new int[] {indicesToUse[1], indicesToUse[2],
+                                                             indicesToUse[0], indicesToUse[3],
+                                                             indicesToUse[4]};
     String[] rschrpos = HashVec.loadFileToStringArray(fileToUse, false, true, colsToLoad, false);
     Files.writeList(rschrpos, newFile);
     return newFile;

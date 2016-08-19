@@ -62,15 +62,15 @@ public class ColorExt {
    * using the CDF was to try to allow the color scale to highlight differences between the majority
    * of data points as opposed to simply scaling between the max and min values of the data range.
    * Maybe it accomplishes that goal, maybe it doesn't
-   * 
+   *
    * @param numColors corresponds to the number of different colors that will be generated and
    *        assigned to the data
    * @param data the data to assign colors to
    * @return an array of {@link Color}, one for each data point.
    */
   public static Color[] assignColorsForData(int numColors, double[] data) {
-    NormalDistribution nd =
-        new NormalDistribution(Array.mean(data, true), Math.pow(Array.stdev(data, true), 2));
+    NormalDistribution nd = new NormalDistribution(Array.mean(data, true),
+                                                   Math.pow(Array.stdev(data, true), 2));
     Color[] colorsAvailable = ColorExt.generatRGBScale(numColors);
     Color[] colorsforData = new Color[data.length];
     for (int i = 0; i < data.length; i++) {
@@ -93,7 +93,7 @@ public class ColorExt {
 
   public static class ColorItem<E> implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final E key;
@@ -168,7 +168,7 @@ public class ColorExt {
       } else {
         HashMap<String, Color> cols = parseColors(header[classIndex]);
         Hashtable<String, ColorItem<String>> manager =
-            new Hashtable<String, ColorExt.ColorItem<String>>();
+                                                     new Hashtable<String, ColorExt.ColorItem<String>>();
         Hashtable<String, String> lookup = new Hashtable<String, String>();
         Hashtable<String, Integer> indices = proj.getMarkerIndices();
         try {
@@ -199,7 +199,7 @@ public class ColorExt {
         ColorManager<String> markerColorManager = new ColorManager<String>(lookup, manager) {
 
           /**
-           * 
+           *
            */
           private static final long serialVersionUID = 1L;
         };
@@ -217,7 +217,7 @@ public class ColorExt {
   public static abstract class ColorManager<E> implements Serializable {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final HashSet<E> toUse;// color categories in play

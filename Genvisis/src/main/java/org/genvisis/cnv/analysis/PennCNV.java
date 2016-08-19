@@ -35,9 +35,9 @@ import org.genvisis.filesys.CNVariant;
 public class PennCNV {
   public static final String[] QC_HEADS = {"LRR_mean", "LRR_median", "LRR_SD", "BAF_mean",
                                            "BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF"};
-  public static final String[] ERRORS =
-      {"large SD for LRR", "drifting BAF values", "waviness factor values", "Small-sized CNV calls",
-       "NoCall rate"};
+  public static final String[] ERRORS = {"large SD for LRR", "drifting BAF values",
+                                         "waviness factor values", "Small-sized CNV calls",
+                                         "NoCall rate"};
   public static final String QC_SUMMARY_FILE = "Sample_QC.xln";
 
   public static void batch(Project proj, int numChunks, Vector<String> execList, String pfbFile,
@@ -404,8 +404,9 @@ public class PennCNV {
     if (sexInd == -1) {
       return "no estimated sex found in sample data file - please run SexChecks with -check argument to generate the required data";
     }
-    Hashtable<String, Vector<String>> sexData =
-        HashVec.loadFileToHashVec(sampleDataFile, 0, new int[] {sexInd}, "\t", true, false);
+    Hashtable<String, Vector<String>> sexData = HashVec.loadFileToHashVec(sampleDataFile, 0,
+                                                                          new int[] {sexInd}, "\t",
+                                                                          true, false);
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(resultsDir + "sex_file.txt"));
       for (Map.Entry<String, Vector<String>> lineData : sexData.entrySet()) {
@@ -560,7 +561,7 @@ public class PennCNV {
     // warning...?)
 
     java.util.HashMap<String, java.util.TreeMap<String, java.util.ArrayList<String[]>>> cnvSet =
-        new HashMap<String, TreeMap<String, ArrayList<String[]>>>();
+                                                                                               new HashMap<String, TreeMap<String, ArrayList<String[]>>>();
 
     String temp;
     String[] line;
@@ -779,14 +780,14 @@ public class PennCNV {
   /**
    * Calculate the population BAF (B Allele Frequency based on all the samples available in the)
    * data. Output is going to be saved on disk. In PennCnv, this file is also called snpFile.
-   * 
+   *
    * @param proj The project you are going to run PennCNV on.
-   * 
+   *
    *        The output file looks like the the following: Name Chr Position PFB rs1000113 5
    *        150220269 0.564615751221256 rs1000115 9 112834321 0.565931333264192 rs10001190 4 6335534
    *        0.5668604380025 rs10002186 4 38517993 0.57141752993563 rs10002743 4 6327482
    *        0.567557695424774
-   * 
+   *
    */
   public static void populationBAF(Project proj) {
     PrintWriter writer;
@@ -831,8 +832,8 @@ public class PennCNV {
       if (i % 100 == 0) {
         log.report("Loading file " + (i + 1) + " of " + sampleList.length);
       }
-      samp =
-          proj.getPartialSampleFromRandomAccessFile(sampleList[i], false, false, true, false, true);
+      samp = proj.getPartialSampleFromRandomAccessFile(sampleList[i], false, false, true, false,
+                                                       true);
       bafs = samp.getBAFs();
       genotypes = samp.getAB_Genotypes();
       for (int j = 0; j < bafSum.length; j++) {
@@ -883,7 +884,7 @@ public class PennCNV {
   /**
    * Generate the GCModel file needed by PennCNV software
    * (http://www.openbioinformatics.org/penncnv/).
-   * 
+   *
    * @param proj The project you are going to run PennCNV on.
    * @param inputGcBaseFullPath The user-supplied genome builds. Positions within each chromosome
    *        must be sorted by increasing order. For example,
@@ -892,11 +893,11 @@ public class PennCNV {
    * @param numwindow For each SNP, GC Content is calculated for the range of numwindow*5120 before
    *        its location through numwindow*5120 after. To use the default setting of 100, please
    *        enter 0.
-   * 
+   *
    *        In order to be able to cross-reference with the same feature in PennCNV, this code
    *        intends to base on cal_gc_snp.pl in PennCNV package. But since the difference between
    *        Java and Perl, significant structural changes have been made.
-   * 
+   *
    *        A sample gcBase file looks like below (There is no header line): 585 chr1 0 5120 chr1.0
    *        5 1024 0 /gbdb/hg18/wib/gc5Base.wib 0 100 1024 59840 3942400 585 chr1 5120 10240 chr1.1
    *        5 1024 1024 /gbdb/hg18/wib/gc5Base.wib 0 100 1024 59900 3904400 585 chr1 10240 15360
@@ -908,13 +909,13 @@ public class PennCNV {
    *        48.6531211131841 rs3025091 11 102219838 38.1080923507463 rs3092963 3 46371942
    *        44.4687694340796 rs3825776 15 56534122 40.7894123134328 rs17548390 6 3030512
    *        45.3604050062189 rs2276302 11 113355350 43.8200598569652
-   * 
+   *
    *        snpFile or pfb file (Population B Allele Frequency) is an additional data file that is
    *        required by the corresponding feature in PennCNV but not here. It looks like the this:
    *        Name Chr Position PFB rs1000113 5 150220269 0.564615751221256 rs1000115 9 112834321
    *        0.565931333264192 rs10001190 4 6335534 0.5668604380025 rs10002186 4 38517993
    *        0.57141752993563 rs10002743 4 6327482 0.567557695424774
-   * 
+   *
    */
   public static void gcModel(Project proj, String inputGcBaseFullPath, String outputGcModelFullPath,
                              int numwindow) {
@@ -1148,8 +1149,8 @@ public class PennCNV {
       proj.getLog().report("Transforming data for 'faked' chromosomal CNV analysis");
       // [males.pfb, females.pfb, sexSpecific.gcModel]
 
-      String[] files =
-          AnalysisFormats.pennCNVSexHackMultiThreaded(proj, gcmodelFile, useExcludes, threadCount);
+      String[] files = AnalysisFormats.pennCNVSexHackMultiThreaded(proj, gcmodelFile, useExcludes,
+                                                                   threadCount);
       // String[] files = AnalysisFormats.pennCNVSexHackSingleThreaded(proj, gcmodelFile);
 
       proj.getLog().report("Creating batch scripts for 'faked' chromosomal CNV analysis");

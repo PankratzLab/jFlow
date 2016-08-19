@@ -15,7 +15,7 @@ public class ANNOVAR {
   public static final String TABLE_ANNOVAR = "table_annovar.pl";
   private static final String PROTOCOL = "-protocol";
   private static final String DEFAULT_PROTOCOLS =
-      "refGene,cytoBand,genomicSuperDups,esp6500si_all,1000g2014oct_all,1000g2014oct_afr,1000g2014oct_eas,1000g2014oct_eur,snp138,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,popfreq_max_20150413,popfreq_all_20150413,esp6500siv2_all,esp6500siv2_aa,esp6500siv2_ea,cosmic70,dbnsfp30a,mitimpact24";
+                                                "refGene,cytoBand,genomicSuperDups,esp6500si_all,1000g2014oct_all,1000g2014oct_afr,1000g2014oct_eas,1000g2014oct_eur,snp138,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,popfreq_max_20150413,popfreq_all_20150413,esp6500siv2_all,esp6500siv2_aa,esp6500siv2_ea,cosmic70,dbnsfp30a,mitimpact24";
   private static final String OPERATION = "-operation";
   private static final String DEFAULT_OPERATIONS = "g,r,r,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f";
   private static final String REMOVE = "-remove";
@@ -74,9 +74,9 @@ public class ANNOVAR {
   public AnnovarResults AnnovarAVCF(String inputVCF, String build, int numthreads, Logger log) {
     AnnovarResults annovarResults = new AnnovarResults(inputVCF, build);
     annovarResults.parse();
-    boolean progress =
-        AnnovarAVCF(annovarResults.getInputVCF(), annovarResults.getOutput(),
-                    annovarResults.getOutputVCF(), annovarResults.getBuild(), numthreads, log);
+    boolean progress = AnnovarAVCF(annovarResults.getInputVCF(), annovarResults.getOutput(),
+                                   annovarResults.getOutputVCF(), annovarResults.getBuild(),
+                                   numthreads, log);
     annovarResults.setFail(!progress);
     if (!progress) {
       log.reportTimeError("The annovar has failed :( \n This is most likely caused by not having the required database files. Please see \"http://www.openbioinformatics.org/annovar/annovar_startup.html\" for commands to download the necessary files");
@@ -89,11 +89,11 @@ public class ANNOVAR {
     boolean progress = !fail;
     if (progress) {
       // THREAD, numthreads + ""
-      String[] command =
-          new String[] {PSF.Cmd.PERL, annovarLocation + TABLE_ANNOVAR, inputVCF,
-                        annovarLocation + DEFUALT_ANNOVAR_DB, BUILD_VERSION, build, OUT, outputBase,
-                        REMOVE, PROTOCOL, DEFAULT_PROTOCOLS, OPERATION, DEFAULT_OPERATIONS,
-                        NA_STRING, DEFAULT_NA_STRING, VCF_INPUT};
+      String[] command = new String[] {PSF.Cmd.PERL, annovarLocation + TABLE_ANNOVAR, inputVCF,
+                                       annovarLocation + DEFUALT_ANNOVAR_DB, BUILD_VERSION, build,
+                                       OUT, outputBase, REMOVE, PROTOCOL, DEFAULT_PROTOCOLS,
+                                       OPERATION, DEFAULT_OPERATIONS, NA_STRING, DEFAULT_NA_STRING,
+                                       VCF_INPUT};
       progress = CmdLine.runCommandWithFileChecks(command, "", new String[] {inputVCF},
                                                   new String[] {outputVCF}, verbose,
                                                   overWriteExistingOutput, false, log);

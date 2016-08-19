@@ -35,7 +35,7 @@ import org.genvisis.seq.qc.FilterNGS;
 public class VCFTallyPSeq extends VCFTally implements Serializable {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private final PlinkSeq plinkSeq;
@@ -117,14 +117,15 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
   public void fullGamutAssoc(int numPerm, String mac, FilterNGS filterNGS,
                              String fullpathToChargeVCF, int numThreads) {
     tally(filterNGS, fullpathToChargeVCF);
-    String[] varMasks =
-        Array.unique(HashVec.loadFileToStringArray(varList, false, new int[] {1}, true));
+    String[] varMasks = Array.unique(HashVec.loadFileToStringArray(varList, false, new int[] {1},
+                                                                   true));
     String locFile = pseqProject.getResourceDirectory()
                      + ext.rootOf(genomeRegions.getGeneTrack().getGeneSetFilename() + ".reg");
 
-    PlinkSeqWorker[] complete =
-        plinkSeq.fullGamutAssoc(pseqProject, new String[] {ext.rootOf(locFile)}, varMasks, numPerm,
-                                mac, ext.rootOf(vpop.getFileName()), numThreads);
+    PlinkSeqWorker[] complete = plinkSeq.fullGamutAssoc(pseqProject,
+                                                        new String[] {ext.rootOf(locFile)},
+                                                        varMasks, numPerm, mac,
+                                                        ext.rootOf(vpop.getFileName()), numThreads);
     summaries = new PlinkSeqBurdenSummary[SNPEFF_NAMES.length];
     int index = 0;
     for (PlinkSeqWorker element : complete) {
@@ -134,8 +135,9 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
           String analysis = ext.rootOf(element.getOutputFiles()[0]);
           analysis = analysis.replaceAll(".*" + ext.rootOf(locFile) + ".", "");
           analysis = analysis.replaceAll("_" + this.type + ".*", "");
-          PlinkSeqBurdenSummary plinkSeqBurdenSummary =
-              new PlinkSeqBurdenSummary(analysis, element.getOutputFiles()[0], log);
+          PlinkSeqBurdenSummary plinkSeqBurdenSummary = new PlinkSeqBurdenSummary(analysis,
+                                                                                  element.getOutputFiles()[0],
+                                                                                  log);
           plinkSeqBurdenSummary.load();
           plinkSeqBurdenSummary.correctPvalues();
           summaries[index] = plinkSeqBurdenSummary;
@@ -211,7 +213,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
           String curString = "";
           if (trackersCase[0].getGene(set) != null && trackersCase[0].getGene(set).length > 0) {
             String chr =
-                Positions.getChromosomeUCSC(trackersCase[0].getGene(set)[0].getChr(), true);
+                       Positions.getChromosomeUCSC(trackersCase[0].getGene(set)[0].getChr(), true);
             String start = trackersCase[0].getGene(set)[0].getStart() + "";
             String stop = trackersCase[0].getGene(set)[0].getStop() + "";
             curString += set + "\t" + chr + "\t" + start + "\t" + stop + "\t"
@@ -270,8 +272,8 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
                   }
                   if (hasGenvisisTest && curSummary.hasSummaryFor(key)
                       && curSummary.getPlinkSeqLocSummaryFor(key).getSummaries()[j2] != null) {
-                    PlinkSeqTestSummary pstSummary =
-                        curSummary.getPlinkSeqLocSummaryFor(key).getSummaries()[j2];
+                    PlinkSeqTestSummary pstSummary = curSummary.getPlinkSeqLocSummaryFor(key)
+                                                               .getSummaries()[j2];
                     if (pstSummary.getType() != test) {
                       System.out.println(pstSummary.getType() + "\t" + test);
                       log.reportTimeError("Mismatched parsing error, halting...");
@@ -285,7 +287,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
                                  + (test == BURDEN_Tests.BURDEN ? "\t" + Array.toStr(desc) : "");
                     curString += "\t" + pstSummary.getBonfFull();
                     for (int k =
-                        0; k < PlinkSeqUtils.PlinkSeqBurdenSummary.I_THRESHOLDS.length; k++) {
+                               0; k < PlinkSeqUtils.PlinkSeqBurdenSummary.I_THRESHOLDS.length; k++) {
                       curString += "\t" + pstSummary.getBonfsI()[k];
                     }
                   } else {
@@ -351,7 +353,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 
     for (String vpopFile : vpopFiles) {
       String fullpathToChargeVCF =
-          "/panfs/roc/groups/14/tsaim/shared/bin/CHARGE/charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.vcf";
+                                 "/panfs/roc/groups/14/tsaim/shared/bin/CHARGE/charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.vcf";
       String resourceDirectory = "/home/tsaim/public/bin/pseqRef/hg19/";
       Logger log = new Logger(ext.rootOf(vcf, false) + "tally.log");
       String geneTrackFile = "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/RefSeq_hg19.gtrack";
@@ -376,9 +378,9 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
       geneTrack.setGeneSetFilename(geneTrackFile);
       Pathways pathways = Pathways.load(keggPathwayFile);
       GenomeRegions gRegions = new GenomeRegions(geneTrack, pathways, log);
-      VCFTallyPSeq vcfTallyPSeq =
-          new VCFTallyPSeq(vcf, gRegions, vpop, CASE_CONTROL_TYPE.BOTH_PASS, resourceDirectory,
-                           ext.rootOf(vpop.getFileName()), log);
+      VCFTallyPSeq vcfTallyPSeq = new VCFTallyPSeq(vcf, gRegions, vpop, CASE_CONTROL_TYPE.BOTH_PASS,
+                                                   resourceDirectory,
+                                                   ext.rootOf(vpop.getFileName()), log);
       if (Files.exists(vcfTallyPSeq.getSerFile())) {
         vcfTallyPSeq = load(vcfTallyPSeq.getSerFile());
       }
@@ -399,10 +401,10 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
     // String vcf =
     // "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/joint_genotypes.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.CUSHINGS.vcf.gz";
     String vcf =
-        "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf";
+               "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf";
     String[] vpopFiles =
-        new String[] {"/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControl.txt",
-                      "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControlAllRaces.txt"};
+                       new String[] {"/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControl.txt",
+                                     "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControlAllRaces.txt"};
 
     // String logfile = null;
     // Logger log;

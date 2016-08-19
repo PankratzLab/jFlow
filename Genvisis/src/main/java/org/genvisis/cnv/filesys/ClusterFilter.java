@@ -1,16 +1,16 @@
 package org.genvisis.cnv.filesys;
 
-import com.google.common.primitives.Ints;
-
 import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.IntVector;
 
+import com.google.common.primitives.Ints;
+
 /**
  * This is a data structure to hold a single filter that can be used to screen the data points.
- * 
+ *
  * @author npankrat and zxu
  *
  */
@@ -189,8 +189,9 @@ public class ClusterFilter implements Serializable {
           clusterCenters[i] = new float[] {xSum / iv.size(), ySum / iv.size()};
           if (i != 3) {
             distancetemp =
-                (float) Math.sqrt(Math.pow(clusterCenters[i][0] - clusterCenters[3][0], 2)
-                                  + Math.pow(clusterCenters[i][1] - clusterCenters[3][1], 2));
+                         (float) Math.sqrt(Math.pow(clusterCenters[i][0] - clusterCenters[3][0], 2)
+                                           + Math.pow(clusterCenters[i][1] - clusterCenters[3][1],
+                                                      2));
             if (distancetemp < distance) {
               distance = distancetemp;
               result = i;
@@ -298,10 +299,11 @@ public class ClusterFilter implements Serializable {
     minDist = Float.MAX_VALUE;
     indexOfNearbyPoint = -1;
     for (int i = 0; i < indexOfPointsOutsideTheCluster.size(); i++) {
-      distancetemp =
-          (float) Math.sqrt(Math.pow(realX[indexOfPointsOutsideTheCluster.elementAt(i)] - xSum, 2)
-                            + Math.pow(realY[indexOfPointsOutsideTheCluster.elementAt(i)] - ySum,
-                                       2));
+      distancetemp = (float) Math.sqrt(
+                                       Math.pow(realX[indexOfPointsOutsideTheCluster.elementAt(i)]
+                                                - xSum, 2)
+                                       + Math.pow(realY[indexOfPointsOutsideTheCluster.elementAt(i)]
+                                                  - ySum, 2));
       if (distancetemp < minDist && genotypes[indexOfPointsOutsideTheCluster.elementAt(i)] != -1) {
         minDist = distancetemp;
         indexOfNearbyPoint = indexOfPointsOutsideTheCluster.elementAt(i);

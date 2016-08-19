@@ -74,17 +74,23 @@ public class LinePlot extends JPanel
   public static final String REMOVE_DATA_FILE = "Remove Data File";
   public static final String SET_AS_COLORKEY = "Set as Color Key";
   public static final String SET_AS_LINKKEY = "Set as Link Key";
-  public static final String[] BUTTONS =
-      {ADD_DATA_FILE, REMOVE_DATA_FILE, SET_AS_COLORKEY, SET_AS_LINKKEY};
-  public static final String[][] LINKERS =
-      {{"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID", "Sample"},
-       {"Family ID", "FamID", "FID"}, {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"},
-       {"MarkerName", "Marker", "SNP", "Variant", "VariantName"}, // will link to Scatter Plot
-       {"Region", "UCSC", "Band", "Arm"}, // will link to Trailer
-       {"Chromosome", "Chr"}, // secondary link to Trailer
-       {"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
-       {"Stop Position", "Stop", "End"} // secondary link to Trailer
-      };
+  public static final String[] BUTTONS = {ADD_DATA_FILE, REMOVE_DATA_FILE, SET_AS_COLORKEY,
+                                          SET_AS_LINKKEY};
+  public static final String[][] LINKERS = {
+                                            {"IndividualID", "ID", "IID", "UID", "UniqueID",
+                                             "IndID", "Sample"},
+                                            {"Family ID", "FamID", "FID"},
+                                            {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"},
+                                            {"MarkerName", "Marker", "SNP", "Variant",
+                                             "VariantName"}, // will link to Scatter Plot
+                                            {"Region", "UCSC", "Band", "Arm"}, // will link to
+                                                                               // Trailer
+                                            {"Chromosome", "Chr"}, // secondary link to Trailer
+                                            {"Position", "Pos", "Start", "Begin"}, // secondary link
+                                                                                   // to Trailer
+                                            {"Stop Position", "Stop", "End"} // secondary link to
+                                                                             // Trailer
+  };
 
   private LinePanel linePanel;
   private JLayeredPane layeredPane;
@@ -231,8 +237,8 @@ public class LinePlot extends JPanel
     String[] keys;
 
     if (command.equals(ADD_DATA_FILE)) {
-      JFileChooser fileChooser =
-          new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
+      JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue()
+                                                               : ".");
       int fileOpenActionSelected = fileChooser.showOpenDialog(null);
       if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
         for (int i = 0; tree != null
@@ -601,8 +607,8 @@ public class LinePlot extends JPanel
               if (groupToColorLabelHash.containsKey(classValue)) {
                 JLabel thisColorLabel[] = groupToColorLabelHash.get(classValue);
                 thisColorLabel[0] =
-                    new JLabel(new ColorIcon(12, 12,
-                                             LinePanel.DEFAULT_COLORS[LinePanel.DEFAULT_COLORS_BLACK_INDEX]));
+                                  new JLabel(new ColorIcon(12, 12,
+                                                           LinePanel.DEFAULT_COLORS[LinePanel.DEFAULT_COLORS_BLACK_INDEX]));
                 generateColorKeyPanel();
               }
               performGroupCheckboxAction(classValue, ItemEvent.SELECTED);
@@ -613,8 +619,8 @@ public class LinePlot extends JPanel
             if (groupToColorLabelHash.containsKey(classValue)) {
               JLabel thisColorLabel[] = groupToColorLabelHash.get(classValue);
               thisColorLabel[0] =
-                  new JLabel(new ColorIcon(12, 12,
-                                           LinePanel.DEFAULT_COLORS[groupToColorHash.get(classValue)]));
+                                new JLabel(new ColorIcon(12, 12,
+                                                         LinePanel.DEFAULT_COLORS[groupToColorHash.get(classValue)]));
               generateColorKeyPanel();
             }
             performGroupCheckboxAction(classValue, ItemEvent.SELECTED);
@@ -824,8 +830,8 @@ public class LinePlot extends JPanel
     menuItemOpen.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        JFileChooser fileChooser =
-            new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
+        JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue()
+                                                                 : ".");
         int fileOpenActionSelected = fileChooser.showOpenDialog(null);
         if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
           loadFile(ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/"));
@@ -840,8 +846,8 @@ public class LinePlot extends JPanel
     menuItemSave.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        JFileChooser fileChooser =
-            new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
+        JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue()
+                                                                 : ".");
         int fileOpenActionSelected = fileChooser.showOpenDialog(null);
         if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
           File fileToOpen = fileChooser.getSelectedFile();

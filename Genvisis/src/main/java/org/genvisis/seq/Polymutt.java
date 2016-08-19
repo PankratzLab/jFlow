@@ -24,13 +24,14 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.SegmentLists;
 
 public class Polymutt {
-  public static final String[] POLYMUTT_VCF_HEADER =
-      {"#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "2", "3", "1"};
-  public static final String[] COMMON_VCF_LOCATIONS =
-      {"/lustre/polymutt/", "/project/scratch/polymutt/", "c:/scratch/polymutt/",
-       "D:/Logan/Polymutt/results/", "./"};
-  public static final String[] GENOTYPE_ORDER =
-      {"A/A", "A/C", "A/G", "A/T", "C/C", "C/G", "C/T", "G/G", "G/T", "T/T"};
+  public static final String[] POLYMUTT_VCF_HEADER = {"#CHROM", "POS", "ID", "REF", "ALT", "QUAL",
+                                                      "FILTER", "INFO", "FORMAT", "2", "3", "1"};
+  public static final String[] COMMON_VCF_LOCATIONS = {"/lustre/polymutt/",
+                                                       "/project/scratch/polymutt/",
+                                                       "c:/scratch/polymutt/",
+                                                       "D:/Logan/Polymutt/results/", "./"};
+  public static final String[] GENOTYPE_ORDER = {"A/A", "A/C", "A/G", "A/T", "C/C", "C/G", "C/T",
+                                                 "G/G", "G/T", "T/T"};
 
   public static void batchAllGlf(String sourceDir) {
     String[] files;
@@ -80,9 +81,9 @@ public class Polymutt {
                                     "3 " + iteration[2] + ".bam.glf"},
                       iteration[0] + ".gif");
 
-      commands =
-          "cd " + ext.pwd() + "\n" + "~/bin/polymutt -p same_for_all.ped -d same_for_all.dat -g "
-                 + iteration[0] + ".gif --nthreads 8  --out_vcf " + scratch + iteration[0]
+      commands = "cd " + ext.pwd() + "\n"
+                 + "~/bin/polymutt -p same_for_all.ped -d same_for_all.dat -g " + iteration[0]
+                 + ".gif --nthreads 8  --out_vcf " + scratch + iteration[0]
                  + ".denovo.out.vcf --denovo --rate_denovo 1.5e-07\n" + "cd " + scratch + "\n"
                  + "more " + iteration[0]
                  + ".denovo.out.vcf | grep -v 'DQ=-0' | grep -v 'DQ=0.00' > " + iteration[0]
@@ -438,7 +439,7 @@ public class Polymutt {
             return;
           }
           mostLikelyGenotypes =
-              getMostLikelyGenotypesFromPhredScores(line[9 + i].split(":")[3], log);
+                              getMostLikelyGenotypesFromPhredScores(line[9 + i].split(":")[3], log);
           readDepths[i] = Integer.parseInt(line[9 + i].split(":")[2]);
           if (mostLikelyGenotypes.length == GENOTYPE_ORDER.length) {
             // writers[2].println(temp);
@@ -533,8 +534,8 @@ public class Polymutt {
             System.out.print("\t" + ext.replaceAllWith(pattern, "[%%]", fill));
             command = "samtools merge";
             command += " /scratch/polymutt/" + ext.replaceAllWith(pattern, "[%%]", fill);
-            for (int k = 0; k < element.length; k++) {
-              command += " " + ext.replaceAllWith(pattern, "[%%]", iterations[element[k]]);
+            for (int element2 : element) {
+              command += " " + ext.replaceAllWith(pattern, "[%%]", iterations[element2]);
             }
             v.add(command);
           }
@@ -599,12 +600,12 @@ public class Polymutt {
         log.report("Reading directly from '" + ext.rootOf(filename, false)
                    + "_onTargetCoverage.vcf.gz" + "'");
         reader =
-            Files.getAppropriateReader(ext.rootOf(filename, false) + "_onTargetCoverage.vcf.gz");
+               Files.getAppropriateReader(ext.rootOf(filename, false) + "_onTargetCoverage.vcf.gz");
         writer = null;
       } else {
         reader = Files.getAppropriateReader(filename);
         writer =
-            Files.getAppropriateWriter(ext.rootOf(filename, false) + "_onTargetCoverage.vcf.gz");
+               Files.getAppropriateWriter(ext.rootOf(filename, false) + "_onTargetCoverage.vcf.gz");
         do {
           temp = reader.readLine();
         } while (!temp.startsWith("#CHROM"));
@@ -854,9 +855,9 @@ public class Polymutt {
 
         for (int i = 0; i < filenames.length; i++) {
           if (chrs[i] == chr && positions[i] == minPosition) {
-            readCounts[i] =
-                new int[] {Integer.parseInt(currents[i][2]), Integer.parseInt(currents[i][3]),
-                           Integer.parseInt(currents[i][4])};
+            readCounts[i] = new int[] {Integer.parseInt(currents[i][2]),
+                                       Integer.parseInt(currents[i][3]),
+                                       Integer.parseInt(currents[i][4])};
             try {
               temp = readers[i].readLine();
               currents[i] = temp.split("[\\s]+");
@@ -926,7 +927,8 @@ public class Polymutt {
       for (int j = 0; j < thresholds.length; j++) {
         for (int k = 0; k < 4; k++) {
           results[i][j][k] =
-              ext.formPercent((double) runningCounts[i][j][k] / (double) onTargetReads, 1);
+                           ext.formPercent((double) runningCounts[i][j][k] / (double) onTargetReads,
+                                           1);
         }
       }
     }

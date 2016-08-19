@@ -12,7 +12,7 @@ import javax.swing.event.ChangeListener;
 public class FileNavigator extends JPanel implements ChangeListener {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private static ArrayList<String> fileList;

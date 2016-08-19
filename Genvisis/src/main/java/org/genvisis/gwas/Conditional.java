@@ -83,8 +83,8 @@ public class Conditional {
       log.report("All markers in the dataset will be added to the covars file, since no subset was pre-defined");
       CmdLine.run("plink --bfile " + plinkFileDirPlusRoot + " --make-bed", dir);
     } else {
-      markerNames =
-          HashVec.loadFileToStringArray(baseDir + allPossibleSNPs, false, new int[] {0}, true);
+      markerNames = HashVec.loadFileToStringArray(baseDir + allPossibleSNPs, false, new int[] {0},
+                                                  true);
       log.report("Curently using file '" + allPossibleSNPs + "', which has " + markerNames.length
                  + " independent elements in it");
       // CmdLine.run("plink --bfile "+plinkFiles+" --extract
@@ -535,8 +535,8 @@ public class Conditional {
       baseCovars = new String[dirs.length][];
       for (int k = 0; k < dirs.length; k++) {
         if (!dosageSets[k]) {
-          filename =
-              "conCovars" + (files[i] == null ? "" : "_" + ext.rootOf(files[i], false)) + ".dat";
+          filename = "conCovars" + (files[i] == null ? "" : "_" + ext.rootOf(files[i], false))
+                     + ".dat";
           log.report("Generating allele counts for " + dirs[k]);
           if (covariates != null && !new File(dirs[k] + covariates).exists()) {
             log.reportError("Error: file " + dirs[k] + covariates
@@ -545,8 +545,9 @@ public class Conditional {
           } else {
             addCountsAsCovariate(dirs[k], covariates, filename, files[i], log);
             if (covariates != null) {
-              baseCovars[k] =
-                  Array.subArray(Files.getHeaderOfFile(dirs[k] + covariates, "[\\s]+", log), 2);
+              baseCovars[k] = Array.subArray(Files.getHeaderOfFile(dirs[k] + covariates, "[\\s]+",
+                                                                   log),
+                                             2);
             }
           }
         }
@@ -680,7 +681,7 @@ public class Conditional {
         if ((run || iterate) && dirs.length > 1) {
           try {
             writer =
-                new PrintWriter(new FileWriter(ext.rootOf(outfile, false) + ".Nweighted.batch"));
+                   new PrintWriter(new FileWriter(ext.rootOf(outfile, false) + ".Nweighted.batch"));
             // writer.println("MARKER MARKER");
             // writer.println("ALLELE REF OTHER");
             // writer.println("WEIGHT N");
@@ -749,12 +750,12 @@ public class Conditional {
         if (iterate) {
           if (dirs.length > 1) {
             filename = ext.rootOf(outfile, false) + ".InvVar1.out";
-            pvals =
-                HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 3, 4}, false);
+            pvals = HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 3, 4},
+                                                   false);
           } else {
             filename = dirs[0] + ext.rootOf(outfile, false) + ".se.metal";
-            pvals =
-                HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 6, 7}, false);
+            pvals = HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 6, 7},
+                                                   false);
           }
           countSig = 0;
           minP = 1;
@@ -901,9 +902,8 @@ public class Conditional {
         }
         try {
           header = !new File(ext.parseDirectoryOfFile(outfile) + "All_tables.xln").exists();
-          writer =
-              new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(outfile) + "All_tables.xln",
-                                             true));
+          writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(outfile)
+                                                  + "All_tables.xln", true));
           if (header) {
             writer.println("Region\tNumMarkers\tMarker\tChr\tPosition\tAlleles (Ref/Other)\tMAF\tOR (95% CI)\tpval\t# SNPs tagged");
           }
@@ -966,11 +966,11 @@ public class Conditional {
         if (dirs.length > 1) {
           filename = filename + ".InvVar1.out";
           pvals =
-              HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 3, 4}, false);
+                HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 3, 4}, false);
         } else {
           filename = dirs[0] + filename + ".se.metal";
           pvals =
-              HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 6, 7}, false);
+                HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 6, 7}, false);
         }
         minP = 1;
         minIndex = -1;
@@ -1198,8 +1198,8 @@ public class Conditional {
     new File("results/").mkdirs();
     for (int i = 0; i < regionNames.length; i++) {
       try {
-        reader =
-            new BufferedReader(new FileReader(regionNames[i] + "/" + markers[i] + "_add.out.txt"));
+        reader = new BufferedReader(new FileReader(regionNames[i] + "/" + markers[i]
+                                                   + "_add.out.txt"));
         writer = new PrintWriter(new FileWriter("results/" + name + "_" + regionNames[i] + ".txt"));
         line = reader.readLine().trim().split("[\\s]+");
         ext.checkHeader(line, Probabel.LOGIST_OUTPUT_HEADER, true);
@@ -1395,7 +1395,7 @@ public class Conditional {
                 filename = dirsAndPattern[1];
                 for (int k = 0; k < markersAndChrs[i].length; k++) {
                   filename =
-                      ext.replaceAllWith(filename, "[%" + (k + 1) + "]", markersAndChrs[i][k]);
+                           ext.replaceAllWith(filename, "[%" + (k + 1) + "]", markersAndChrs[i][k]);
                 }
                 writer.println("PROCESS " + dirsAndPattern[0] + filename);
               }
@@ -1463,12 +1463,12 @@ public class Conditional {
                 filename = dirsAndPattern[0] + dirsAndPattern[1];
                 for (int k = 0; k < markersAndChrs[i].length; k++) {
                   filename =
-                      ext.replaceAllWith(filename, "[%" + (k + 1) + "]", markersAndChrs[i][k]);
+                           ext.replaceAllWith(filename, "[%" + (k + 1) + "]", markersAndChrs[i][k]);
                 }
                 if (Files.exists(filename, false)) {
                   indices =
-                      ext.indexFactors(new String[] {"MarkerName", "BETA", "SE", "P"},
-                                       Files.getHeaderOfFile(filename, "\t", log), false, true);
+                          ext.indexFactors(new String[] {"MarkerName", "BETA", "SE", "P"},
+                                           Files.getHeaderOfFile(filename, "\t", log), false, true);
                   results = HashVec.loadFileToStringMatrix(filename, true, indices, false);
                   index = ext.indexOfStr(minMarker, Matrix.extractColumn(results, 0));
                   if (index == -1) {
@@ -1634,8 +1634,8 @@ public class Conditional {
     // iterate = false;
 
 
-    String usage =
-        "\n" + "gwas.Conditional requires 0-1 arguments\n" + "  Parameters for all types of runs:\n"
+    String usage = "\n" + "gwas.Conditional requires 0-1 arguments\n"
+                   + "  Parameters for all types of runs:\n"
                    + "   (1) filenames of SNP subsets to analyze (i.e. files=" + filenames
                    + " (default; set to null for all markers; use a comma to differentiate separate runs))\n"
                    + "   (2) generate residuals first instead of including everything in the genetic model (i.e. residuals="

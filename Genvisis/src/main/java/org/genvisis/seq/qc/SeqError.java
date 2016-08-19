@@ -30,9 +30,9 @@ import htsjdk.variant.vcf.VCFHeader;
  *
  */
 public class SeqError {
-  public static final String[] OUTPUT_HEADER =
-      new String[] {"Samp1", "Samp2", "total", "missing", "matched", "proportionMissing",
-                    "proportionAgree", "averageGC"};
+  public static final String[] OUTPUT_HEADER = new String[] {"Samp1", "Samp2", "total", "missing",
+                                                             "matched", "proportionMissing",
+                                                             "proportionAgree", "averageGC"};
   private final String vcfFile;
   private DuplicateETwo[] dETwos;
   private final Logger log;
@@ -65,8 +65,8 @@ public class SeqError {
     log.reportTimeInfo("Computing concordance for (" + dETwos.length + ") comparisons per variant");
     int numTotal = 0;
     int numSetPass = 0;
-    WorkerTrain<DuplicateETwo> train =
-        new WorkerTrain<SeqError.DuplicateETwo>(null, numthreads, numthreads, log);
+    WorkerTrain<DuplicateETwo> train = new WorkerTrain<SeqError.DuplicateETwo>(null, numthreads,
+                                                                               numthreads, log);
     train.setAutoShutDown(false);
     long time = System.currentTimeMillis();
     for (VariantContext vcTmp : reader) {
@@ -177,7 +177,7 @@ public class SeqError {
         curDups.add(allSamps[i]);
         curDups.add(allSamps[j]);
         dETwos[index] =
-            new DuplicateETwo(curDups, type, mode, vContextFilterSample, filterNGS, log);
+                      new DuplicateETwo(curDups, type, mode, vContextFilterSample, filterNGS, log);
         index++;
       }
     }
@@ -207,7 +207,7 @@ public class SeqError {
                      */
                     BOTH_MUST_BE_CALLED,
                     /**
-                    * 
+                    *
                     */
                     ONE_MUST_BE_CALLED;
   }
@@ -277,12 +277,12 @@ public class SeqError {
 
     private void addVC(VariantContext vc, ReferenceGenome referenceGenome) {
       VariantContext vcSub = VCOps.getSubset(vc, dups, VC_SUBSET_TYPE.SUBSET_LOOSE);
-      VariantContext vcAlts =
-          VCOps.getAltAlleleContext(vcSub, null, null, ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);// start
-                                                                                                // with
-                                                                                                // unfiltered
-                                                                                                // easy
-                                                                                                // test;
+      VariantContext vcAlts = VCOps.getAltAlleleContext(vcSub, null, null,
+                                                        ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);// start
+                                                                                                 // with
+                                                                                                 // unfiltered
+                                                                                                 // easy
+                                                                                                 // test;
       if (vcAlts.getSampleNames().size() > 0) {// no variant calls, we do not care
         boolean tally = true;
         VariantContext vcFilteredAlts = null;

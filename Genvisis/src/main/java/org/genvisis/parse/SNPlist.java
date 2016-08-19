@@ -115,7 +115,7 @@ public class SNPlist {
   public static void main(String[] args) {
     int numArgs = args.length;
     String dir =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\UMN\\Myron\\Indian_Diabetes\\00src\\";
+               "C:\\Documents and Settings\\npankrat\\My Documents\\UMN\\Myron\\Indian_Diabetes\\00src\\";
     String snps = "W1_W2.dat";
     String pedigree = "secondPedigree.dat";
 

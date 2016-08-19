@@ -10,10 +10,10 @@ import org.genvisis.common.ext;
 public class PowerCalculator {
   // public static final double[] MAFs = {0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09,
   // 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50};
-  public static final double[] MAFs =
-      {0.001, 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50};
-  public static final double[] RELATIVE_RISKS =
-      {1.10, 1.20, 1.30, 1.40, 1.60, 1.80, 2.00, 2.2, 2.4, 2.6};
+  public static final double[] MAFs = {0.001, 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.15, 0.20,
+                                       0.25, 0.30, 0.40, 0.50};
+  public static final double[] RELATIVE_RISKS = {1.10, 1.20, 1.30, 1.40, 1.60, 1.80, 2.00, 2.2, 2.4,
+                                                 2.6};
   // public static final double[] MAFs = {0.20};
   public static final String[] FORMATTING_TO_REMOVE = {"<em><font color=\"navy\">", "</font></em>"};
   public static final double RR_INCREMENT = 0.01;
@@ -59,8 +59,8 @@ public class PowerCalculator {
     }
 
     try {
-      results =
-          Internat.doSubmit("http://pngu.mgh.harvard.edu/~purcell/cgi-bin/cc2k.cgi", data, 1000);
+      results = Internat.doSubmit("http://pngu.mgh.harvard.edu/~purcell/cgi-bin/cc2k.cgi", data,
+                                  1000);
     } catch (Exception e) {
       System.err.println("Error - failed to connect to website");
       e.printStackTrace();
@@ -108,11 +108,11 @@ public class PowerCalculator {
     while (!found) {
       rr = 1 + index * RR_INCREMENT;
       if (array[index] == -1) {
-        array[index] =
-            getSampleSize(prevalence, rr, maf, numCases, numControls, alpha, unselected, false);
+        array[index] = getSampleSize(prevalence, rr, maf, numCases, numControls, alpha, unselected,
+                                     false);
         if (array[index] == -9) {
-          array[index] =
-              getSampleSize(prevalence, rr, maf, numCases, numControls, alpha, unselected, true);
+          array[index] = getSampleSize(prevalence, rr, maf, numCases, numControls, alpha,
+                                       unselected, true);
         }
         // System.err.println("array["+index+"]: "+array[index]);
       } else if (array[index] == -9) {

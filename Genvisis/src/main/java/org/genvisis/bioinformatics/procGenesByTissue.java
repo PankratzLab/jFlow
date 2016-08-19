@@ -17,35 +17,50 @@ import org.genvisis.common.ext;
 public class procGenesByTissue {
   public static final int[] GENE_COLS = {0, 1, 2, 3, 4, 5, 6, 7};
 
-  public static final String[] HS_HEADER =
-      {"NM_ID", "ID", "GENE ", "TITLE", "GENE_ID", "CHROMOSOME", "CYTOBAND", "EXPRESS"};
+  public static final String[] HS_HEADER = {"NM_ID", "ID", "GENE ", "TITLE", "GENE_ID",
+                                            "CHROMOSOME", "CYTOBAND", "EXPRESS"};
 
   public static final String[] GENES_HEADER =
-      {"GeneID", "reference_name", "reference_chr", "reference_start", "reference_stop",
-       "reference_sense", "reference_placed", "reference_imputed", "Celera_name", "Celera_chr",
-       "Celera_start", "Celera_stop", "Celera_sense", "Celera_placed", "Celera_imputed"};
+                                            {"GeneID", "reference_name", "reference_chr",
+                                             "reference_start", "reference_stop", "reference_sense",
+                                             "reference_placed", "reference_imputed", "Celera_name",
+                                             "Celera_chr", "Celera_start", "Celera_stop",
+                                             "Celera_sense", "Celera_placed", "Celera_imputed"};
 
   public static final String[] TISSUE_TERMS_CHOSEN = {"brain"};
 
   public static final String[] TISSUE_TYPES =
-      {"fetal brain", "whole brain", "temporal lobe", "parietal lobe", "occipital lobe",
-       "prefrontal cortex", "cingulate cortex", "cerebellum", "cerebellum peduncles", "amygdala",
-       "hypothalamus", "thalamus", "subthalamic nucleus", "caudate nucleus", "globus pallidus",
-       "olfactory bulb", "pons", "medulla oblongata", "spinal cord", "ciliary ganglion",
-       "trigeminal ganglion", "superior cervical ganglion", "dorsal root ganglion", "thymus",
-       "tonsil", "lymph node", "bone marrow", "BM-CD71+ early erythroid", "BM-CD33+ myeloid",
-       "BM-CD105+ endothelial", "BM-CD34+", "whole blood", "PB-BDCA4+ dentritic cells",
-       "PB-CD14+ monocytes", "PB-CD56+ NKCells", "PB-CD4+ Tcells", "PB-CD8+ Tcells",
-       "PB-CD19+ Bcells", "leukemia lymphoblastic(molt4)", "721 B lymphoblasts",
-       "lymphoma Burkitts Raji", "leukemia promyelocytic(hl60)", "lymphoma Burkitts Daudi",
-       "leukemia chronic myelogenous(k562)", "colorectal adenocarcinoma", "appendix", "skin",
-       "adipocyte", "fetal thyroid", "thyroid", "pituitary gland", "adrenal gland",
-       "adrenal cortex", "prostate", "salivary gland", "pancreas", "pancreatic islets",
-       "atrioventricular node", "heart", "cardiac myocytes", "skeletal muscle", "tongue",
-       "smooth muscle", "uterus", "uterus corpus", "trachea", "bronchial epithelial cells",
-       "fetal lung", "lung", "kidney", "fetal liver", "liver", "placenta", "testis",
-       "testis Leydig cell", "testis germ cell", "testis interstitial",
-       "testis seminiferous tubule", "ovary"};
+                                            {"fetal brain", "whole brain", "temporal lobe",
+                                             "parietal lobe", "occipital lobe", "prefrontal cortex",
+                                             "cingulate cortex", "cerebellum",
+                                             "cerebellum peduncles", "amygdala", "hypothalamus",
+                                             "thalamus", "subthalamic nucleus", "caudate nucleus",
+                                             "globus pallidus", "olfactory bulb", "pons",
+                                             "medulla oblongata", "spinal cord", "ciliary ganglion",
+                                             "trigeminal ganglion", "superior cervical ganglion",
+                                             "dorsal root ganglion", "thymus", "tonsil",
+                                             "lymph node", "bone marrow",
+                                             "BM-CD71+ early erythroid", "BM-CD33+ myeloid",
+                                             "BM-CD105+ endothelial", "BM-CD34+", "whole blood",
+                                             "PB-BDCA4+ dentritic cells", "PB-CD14+ monocytes",
+                                             "PB-CD56+ NKCells", "PB-CD4+ Tcells", "PB-CD8+ Tcells",
+                                             "PB-CD19+ Bcells", "leukemia lymphoblastic(molt4)",
+                                             "721 B lymphoblasts", "lymphoma Burkitts Raji",
+                                             "leukemia promyelocytic(hl60)",
+                                             "lymphoma Burkitts Daudi",
+                                             "leukemia chronic myelogenous(k562)",
+                                             "colorectal adenocarcinoma", "appendix", "skin",
+                                             "adipocyte", "fetal thyroid", "thyroid",
+                                             "pituitary gland", "adrenal gland", "adrenal cortex",
+                                             "prostate", "salivary gland", "pancreas",
+                                             "pancreatic islets", "atrioventricular node", "heart",
+                                             "cardiac myocytes", "skeletal muscle", "tongue",
+                                             "smooth muscle", "uterus", "uterus corpus", "trachea",
+                                             "bronchial epithelial cells", "fetal lung", "lung",
+                                             "kidney", "fetal liver", "liver", "placenta", "testis",
+                                             "testis Leydig cell", "testis germ cell",
+                                             "testis interstitial", "testis seminiferous tubule",
+                                             "ovary"};
 
   // public static final String[] TISSUES_CHOSEN = {"whole brain", "prefrontal
   // cortex", "cingulate cortex", "cerebellum", "amygdala", "hypothalamus",
@@ -96,7 +111,7 @@ public class procGenesByTissue {
   // public static final String OMIMLINK =
   // "http://www.ncbi.nlm.nih.gov/entrez/dispomim.cgi?id=";
   public static final String OMIMLINK =
-      "http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=OMIM&dopt=Detailed&tmpl=dispomimTemplate&list_uids=";
+                                      "http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=OMIM&dopt=Detailed&tmpl=dispomimTemplate&list_uids=";
 
   public static class HS_DataPoint {
     public String GENE;

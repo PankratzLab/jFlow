@@ -26,10 +26,12 @@ public class CytoAgilentParse {
   public static final String[] MARKER_POSITION_HEADER = {"Marker", "Chr", "Position"};
   public static final String[] DATA_TO_GRAB = {"ProbeName", "gProcessedSignal", "rProcessedSignal",
                                                "LogRatio", "gMedianSignal", "rMedianSignal"};
-  public static final String[] CONVERT_TO =
-      {"SNP Name", Sample.DATA_FIELDS[7][0], Sample.DATA_FIELDS[8][0], Sample.DATA_FIELDS[3][0],
-       Sample.DATA_FIELDS[4][0], Sample.GENOTYPE_FIELDS[0][0], Sample.GENOTYPE_FIELDS[1][0],
-       Sample.GENOTYPE_FIELDS[2][0], Sample.GENOTYPE_FIELDS[3][0]};
+  public static final String[] CONVERT_TO = {"SNP Name", Sample.DATA_FIELDS[7][0],
+                                             Sample.DATA_FIELDS[8][0], Sample.DATA_FIELDS[3][0],
+                                             Sample.DATA_FIELDS[4][0], Sample.GENOTYPE_FIELDS[0][0],
+                                             Sample.GENOTYPE_FIELDS[1][0],
+                                             Sample.GENOTYPE_FIELDS[2][0],
+                                             Sample.GENOTYPE_FIELDS[3][0]};
 
   private static final String[] SPLITS = {"\t"};
   private static final String CHR = "chr";
@@ -38,7 +40,7 @@ public class CytoAgilentParse {
 
   /**
    * Will parse all appropriate files in the projects source directory
-   * 
+   *
    * @param proj
    * @param log
    * @return the list of parsed files
@@ -70,7 +72,7 @@ public class CytoAgilentParse {
    * Went with intermediate files to avoid a new parser, there are also some quirks
    * <p>
    * Warning - files will be overwritten so appropriate checks should be made
-   * 
+   *
    * @param proj
    * @param filesToParse (String[] of full paths)
    * @param log
@@ -80,8 +82,8 @@ public class CytoAgilentParse {
     boolean createdMarkerPostions = false;
     String[] parsedFiles = new String[filesToParse.length];
     for (int i = 0; i < filesToParse.length; i++) {
-      String genOutput =
-          proj.SOURCE_DIRECTORY.getValue(true, true) + ext.rootOf(filesToParse[i]) + GENVISIS_EXT;
+      String genOutput = proj.SOURCE_DIRECTORY.getValue(true, true) + ext.rootOf(filesToParse[i])
+                         + GENVISIS_EXT;
       parsedFiles[i] = genOutput;
       // TODO change to not , currently this overwrites existing files?
       // if (!Files.exists(genOutput)) {
@@ -119,7 +121,7 @@ public class CytoAgilentParse {
 
   /**
    * Generates an intermediate file with a .genvisis extension to be parsed with parseIllumina
-   * 
+   *
    * @param proj current project
    * @param fileToParse the file (full path)
    * @param output yup
@@ -214,7 +216,7 @@ public class CytoAgilentParse {
    * <p>
    * This definitely truncates the values, but you can still get a sense of the aberration i.e, this
    * value should follow the actual Log R Ratio
-   * 
+   *
    */
   private static float getBAF(float gMedianSignal, float rMedianSignal, float logRRatio) {
     float medianLogRRatio = (float) Math.log10(rMedianSignal / gMedianSignal);

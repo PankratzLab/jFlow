@@ -1,9 +1,6 @@
 // filter based on chromosome
 package org.genvisis.cnv.plots;
 
-import com.google.common.primitives.Booleans;
-import com.google.common.primitives.Bytes;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -34,12 +31,16 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 
+import com.google.common.primitives.Booleans;
+import com.google.common.primitives.Bytes;
+
 public class SexPlot extends JFrame {
   public static final long serialVersionUID = 1L;
 
   private static final String[] SEX_CHECKS_REQUIREMENTS =
-      {"Sample", "Sex", SexChecks.EST_SEX_HEADER, "Check", "Median X LRR", "Median Y LRR",
-       "Excluded", "Check", "Note"};
+                                                        {"Sample", "Sex", SexChecks.EST_SEX_HEADER,
+                                                         "Check", "Median X LRR", "Median Y LRR",
+                                                         "Excluded", "Check", "Note"};
 
   SexPanel sexPanel;
 
@@ -49,7 +50,7 @@ public class SexPlot extends JFrame {
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
     sexPanel =
-        new SexPanel(proj, samples, data, sexes, estimatedSexes, excluded, uncertains, notes);
+             new SexPanel(proj, samples, data, sexes, estimatedSexes, excluded, uncertains, notes);
     // panel.setToolTipText("");
     getContentPane().add(sexPanel, BorderLayout.CENTER);
 

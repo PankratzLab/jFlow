@@ -54,8 +54,8 @@ public class ParseSNPlocations {
   // useExistingPositions, log);
   // }
 
-  private static String[] TAG_SET =
-      {"NSF", "NSM", "NSN", "SYN", "U3", "U5", "ASS", "DSS", "INT", "R3", "R5"};
+  private static String[] TAG_SET = {"NSF", "NSM", "NSN", "SYN", "U3", "U5", "ASS", "DSS", "INT",
+                                     "R3", "R5"};
   private static String[] TAG_SET_2 = {"PM", "MUT"};
 
   public static int[][] parseSNPLocations(String snpListFile, String vcfFile, String unmappedVCF,
@@ -80,10 +80,12 @@ public class ParseSNPlocations {
       System.out.println("Processing " + lineCnt + " SNPs");
     }
     VCFFileReader vcfReader = new VCFFileReader(new File(vcfFile), true);
-    VCFFileReader unmappedVCFReader =
-        unmappedVCF == null ? null : new VCFFileReader(new File(unmappedVCF), true);
+    VCFFileReader unmappedVCFReader = unmappedVCF == null ? null
+                                                          : new VCFFileReader(new File(unmappedVCF),
+                                                                              true);
     VCFFileReader mergedVCFReader =
-        mergedVCF == null ? null : new VCFFileReader(new File(mergedVCF), true);
+                                  mergedVCF == null ? null
+                                                    : new VCFFileReader(new File(mergedVCF), true);
     try {
       reader = Files.getAppropriateReader(snpListFile);
 
@@ -107,8 +109,8 @@ public class ParseSNPlocations {
           int rsNumber = Integer.parseInt(rs.substring(2));// error checking on RS w/ allele
           int chrom = rsNumber / (512 * 1024 * 1024) + 1;
 
-          CloseableIterator<VariantContext> vcIter =
-              vcfReader.query("chr" + chrom, rsNumber - 2, rsNumber + 2);
+          CloseableIterator<VariantContext> vcIter = vcfReader.query("chr" + chrom, rsNumber - 2,
+                                                                     rsNumber + 2);
           VariantContext markerVC = null;
           while (vcIter.hasNext()) {
             VariantContext vc = vcIter.next();
@@ -123,8 +125,9 @@ public class ParseSNPlocations {
             // System.err.println("Error - couldn't find {" + rs + "} in the regular database.
             // Checking merged and unmapped marker databases...");
             if (unmappedVCFReader != null) {
-              CloseableIterator<VariantContext> vcIterUn =
-                  unmappedVCFReader.query("chr" + chrom, rsNumber - 2, rsNumber + 2);
+              CloseableIterator<VariantContext> vcIterUn = unmappedVCFReader.query("chr" + chrom,
+                                                                                   rsNumber - 2,
+                                                                                   rsNumber + 2);
               while (vcIterUn.hasNext()) {
                 VariantContext vc = vcIterUn.next();
                 if (vc.getID().equals(rs)) {
@@ -150,7 +153,9 @@ public class ParseSNPlocations {
                 int rsCurr = Integer.parseInt(curr.startsWith("rs") ? curr.substring(2) : curr);
                 int chromCurr = rsCurr / (512 * 1024 * 1024) + 1;
                 CloseableIterator<VariantContext> vcIterUn =
-                    mergedVCFReader.query("chr" + chromCurr, rsCurr - 2, rsCurr + 2);
+                                                           mergedVCFReader.query("chr" + chromCurr,
+                                                                                 rsCurr - 2,
+                                                                                 rsCurr + 2);
                 while (vcIterUn.hasNext()) {
                   VariantContext vc = vcIterUn.next();
                   if (vc.getID().equals(curr)) {
@@ -248,10 +253,12 @@ public class ParseSNPlocations {
       System.out.println("Processing " + lineCnt + " SNPs");
     }
     VCFFileReader vcfReader = new VCFFileReader(new File(vcfFile), true);
-    VCFFileReader unmappedVCFReader =
-        unmappedVCF == null ? null : new VCFFileReader(new File(unmappedVCF), true);
+    VCFFileReader unmappedVCFReader = unmappedVCF == null ? null
+                                                          : new VCFFileReader(new File(unmappedVCF),
+                                                                              true);
     VCFFileReader mergedVCFReader =
-        mergedVCF == null ? null : new VCFFileReader(new File(mergedVCF), true);
+                                  mergedVCF == null ? null
+                                                    : new VCFFileReader(new File(mergedVCF), true);
 
     try {
       reader = Files.getAppropriateReader(snpListFile);
@@ -281,8 +288,8 @@ public class ParseSNPlocations {
           int rsNumber = Integer.parseInt(rs.substring(2));// error checking on RS w/ allele
           int chrom = rsNumber / (512 * 1024 * 1024) + 1;
 
-          CloseableIterator<VariantContext> vcIter =
-              vcfReader.query("chr" + chrom, rsNumber - 2, rsNumber + 2);
+          CloseableIterator<VariantContext> vcIter = vcfReader.query("chr" + chrom, rsNumber - 2,
+                                                                     rsNumber + 2);
           VariantContext markerVC = null;
           while (vcIter.hasNext()) {
             VariantContext vc = vcIter.next();
@@ -297,8 +304,9 @@ public class ParseSNPlocations {
             // System.err.println("Error - couldn't find {" + rs + "} in the regular database.
             // Checking merged and unmapped marker databases...");
             if (unmappedVCFReader != null) {
-              CloseableIterator<VariantContext> vcIterUn =
-                  unmappedVCFReader.query("chr" + chrom, rsNumber - 2, rsNumber + 2);
+              CloseableIterator<VariantContext> vcIterUn = unmappedVCFReader.query("chr" + chrom,
+                                                                                   rsNumber - 2,
+                                                                                   rsNumber + 2);
               while (vcIterUn.hasNext()) {
                 VariantContext vc = vcIterUn.next();
                 if (vc.getID().equals(rs)) {
@@ -324,7 +332,9 @@ public class ParseSNPlocations {
                 int rsCurr = Integer.parseInt(curr.startsWith("rs") ? curr.substring(2) : curr);
                 int chromCurr = rsCurr / (512 * 1024 * 1024) + 1;
                 CloseableIterator<VariantContext> vcIterUn =
-                    mergedVCFReader.query("chr" + chromCurr, rsCurr - 2, rsCurr + 2);
+                                                           mergedVCFReader.query("chr" + chromCurr,
+                                                                                 rsCurr - 2,
+                                                                                 rsCurr + 2);
                 while (vcIterUn.hasNext()) {
                   VariantContext vc = vcIterUn.next();
                   if (vc.getID().equals(curr)) {
@@ -963,10 +973,10 @@ public class ParseSNPlocations {
           System.out.println("Took " + ext.getTimeElapsed(t));
         } else {
           long t = System.currentTimeMillis();
-          SnpMarkerSet map =
-              new SnpMarkerSet(dir + filename, plinkFormat ? SnpMarkerSet.PLINK_MAP_FORMAT
-                                                           : SnpMarkerSet.NAMES_ONLY,
-                               true, log);
+          SnpMarkerSet map = new SnpMarkerSet(dir + filename,
+                                              plinkFormat ? SnpMarkerSet.PLINK_MAP_FORMAT
+                                                          : SnpMarkerSet.NAMES_ONLY,
+                                              true, log);
           map.parseSNPlocations(db, merge, log);
           map.writeToFile(dir + ext.rootOf(filename) + "_newPositions.out",
                           SnpMarkerSet.GENERIC_FORMAT, log);

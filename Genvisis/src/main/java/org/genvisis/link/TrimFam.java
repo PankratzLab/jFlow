@@ -876,8 +876,8 @@ public class TrimFam {
       priorityScores = null;
     } else {
       priorityScores =
-          HashVec.loadFileToHashString(priorityScoresFile, new int[] {0, 1}, new int[] {2}, false,
-                                       "\t", false, false, false);
+                     HashVec.loadFileToHashString(priorityScoresFile, new int[] {0, 1},
+                                                  new int[] {2}, false, "\t", false, false, false);
     }
     fams = new Vector<String>();
     preHash = new Hashtable<String, Vector<String>>();

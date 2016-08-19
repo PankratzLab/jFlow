@@ -1,7 +1,5 @@
 package org.genvisis.filesys;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -16,6 +14,8 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Vectors;
 import org.genvisis.common.ext;
+
+import com.google.common.primitives.Ints;
 
 public class Pedfile {
   public static final String[] MISSING_VALUES = {"0"};

@@ -30,22 +30,24 @@ import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
 
 public class LrrSd extends Parallelizable {
-  private static final String BOUND_SD =
-      "LRR_SD_" + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_" + CNVCaller.MAX_LRR_MEDIAN_ADJUST;
-  private static final String BOUND_SD_CORRECTED =
-      "LRR_SD_Post_Correction_" + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_"
+  private static final String BOUND_SD = "LRR_SD_" + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_"
+                                         + CNVCaller.MAX_LRR_MEDIAN_ADJUST;
+  private static final String BOUND_SD_CORRECTED = "LRR_SD_Post_Correction_"
+                                                   + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_"
                                                    + CNVCaller.MAX_LRR_MEDIAN_ADJUST;
-  private static final String BOUND_MAD =
-      "LRR_MAD_" + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_" + CNVCaller.MAX_LRR_MEDIAN_ADJUST;
-  private static final String BOUND_MAD_CORRECTED =
-      "LRR_MAD_Post_Correction_" + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_"
+  private static final String BOUND_MAD = "LRR_MAD_" + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_"
+                                          + CNVCaller.MAX_LRR_MEDIAN_ADJUST;
+  private static final String BOUND_MAD_CORRECTED = "LRR_MAD_Post_Correction_"
+                                                    + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_"
                                                     + CNVCaller.MAX_LRR_MEDIAN_ADJUST;
 
-  public static final String[] NUMERIC_COLUMNS =
-      {"LRR_AVG", "LRR_SD", BOUND_SD, "LRR_MAD", BOUND_MAD, "BAF1585_SD", "Genotype_callrate",
-       "Genotype_heterozygosity", "WF_Prior_Correction", "GCWF_Prior_Correction",
-       "WF_Post_Correction", "GCWF_Post_Correction", "LRR_SD_Post_Correction", BOUND_SD_CORRECTED,
-       "LRR_MAD_Post_Correction", BOUND_MAD_CORRECTED};
+  public static final String[] NUMERIC_COLUMNS = {"LRR_AVG", "LRR_SD", BOUND_SD, "LRR_MAD",
+                                                  BOUND_MAD, "BAF1585_SD", "Genotype_callrate",
+                                                  "Genotype_heterozygosity", "WF_Prior_Correction",
+                                                  "GCWF_Prior_Correction", "WF_Post_Correction",
+                                                  "GCWF_Post_Correction", "LRR_SD_Post_Correction",
+                                                  BOUND_SD_CORRECTED, "LRR_MAD_Post_Correction",
+                                                  BOUND_MAD_CORRECTED};
   public static final String SAMPLE_COLUMN = "Sample";
   private final Project proj;
   private final String[] samples;
@@ -128,11 +130,11 @@ public class LrrSd extends Parallelizable {
         }
       }
 
-      int numAb =
-          (markersForCallrate == null ? chrs.length : Array.booleanArraySum(markersForCallrate));
+      int numAb = (markersForCallrate == null ? chrs.length
+                                              : Array.booleanArraySum(markersForCallrate));
       int numAllElse =
-          (markersForEverythingElse == null ? subIndex
-                                            : Array.booleanArraySum(markersForEverythingElse));
+                     (markersForEverythingElse == null ? subIndex
+                                                       : Array.booleanArraySum(markersForEverythingElse));
       if (threadNumber == 1) {// we can just show this once
         proj.getLog().report("Info - using " + numAb + " markers for sample call rate qc");
         proj.getLog().report("Info - using " + numAllElse
@@ -212,8 +214,8 @@ public class LrrSd extends Parallelizable {
    * lrrMadBoundPost<br/>
    * multimodal <br/>
    * Array.toStr(bafBinCounts)<br/>
-   * 
-   * 
+   *
+   *
    * @param proj
    * @param pMarkerSet
    * @param sampleID
@@ -257,11 +259,11 @@ public class LrrSd extends Parallelizable {
     forwardGenotypes = fsamp.getForwardGenotypes();
     // TODO, remove cnv only probes using proj Array type if markersForCallrate is not provided...
     if (markersForCallrate != null) {// we do not need autosomal only markers here...
-      abGenotypes =
-          (abGenotypes == null ? abGenotypes : Array.subArray(abGenotypes, markersForCallrate));
-      forwardGenotypes =
-          (forwardGenotypes == null ? forwardGenotypes
-                                    : Array.subArray(forwardGenotypes, markersForCallrate));
+      abGenotypes = (abGenotypes == null ? abGenotypes
+                                         : Array.subArray(abGenotypes, markersForCallrate));
+      forwardGenotypes = (forwardGenotypes == null ? forwardGenotypes
+                                                   : Array.subArray(forwardGenotypes,
+                                                                    markersForCallrate));
     }
 
     bafBinCounts = new int[101];
@@ -312,10 +314,11 @@ public class LrrSd extends Parallelizable {
     lrrMadPost = Double.NaN;
     lrrMadBoundPost = Double.NaN;
     if (gcModel != null) {
-      GcAdjustor gcAdjustor =
-          GcAdjustor.getComputedAdjustor(proj, pMarkerSet,
-                                         cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents),
-                                         gcModel, correctionMethod, true, true, false);
+      GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, pMarkerSet,
+                                                             cents == null ? fsamp.getLRRs()
+                                                                           : fsamp.getLRRs(cents),
+                                                             gcModel, correctionMethod, true, true,
+                                                             false);
       if (!gcAdjustor.isFail()) {
         wfPrior = gcAdjustor.getWfPrior();
         gcwfPrior = gcAdjustor.getGcwfPrior();
@@ -330,8 +333,8 @@ public class LrrSd extends Parallelizable {
                                     CNVCaller.MIN_LRR_MEDIAN_ADJUST,
                                     CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
         } else {
-          double[] subLrr =
-              Array.subArray(gcAdjustor.getCorrectedIntensities(), markersForEverythingElse);
+          double[] subLrr = Array.subArray(gcAdjustor.getCorrectedIntensities(),
+                                           markersForEverythingElse);
           lrrsdPost = Array.stdev(subLrr, true);
           lrrMadPost = Array.mad(Array.removeNaN(subLrr));
           tmp = CNVCaller.adjustLrr(subLrr, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
@@ -354,14 +357,15 @@ public class LrrSd extends Parallelizable {
     lrrMadBound = Array.mad(tmp);
 
     String[] retVals =
-        new String[] {sampleID, Array.mean(lrrs, true) + "", Array.stdev(lrrs, true) + "",
-                      lrrsdBound + "", Array.mad(Array.removeNaN(dlrrs)) + "", lrrMadBound + "",
-                      Array.stdev(bafs, true) + "",
-                      (abCallRate > 0 ? abCallRate : forwardCallRate) + "",
-                      (abCallRate > 0 ? abHetRate : forwardHetRate) + "", wfPrior + "",
-                      gcwfPrior + "", wfPost + "", gcwfPost + "", lrrsdPost + "",
-                      lrrsdPostBound + "", lrrMadPost + "", lrrMadBoundPost + "", multimodal + "",
-                      Array.toStr(bafBinCounts),};
+                     new String[] {sampleID, Array.mean(lrrs, true) + "",
+                                   Array.stdev(lrrs, true) + "", lrrsdBound + "",
+                                   Array.mad(Array.removeNaN(dlrrs)) + "", lrrMadBound + "",
+                                   Array.stdev(bafs, true) + "",
+                                   (abCallRate > 0 ? abCallRate : forwardCallRate) + "",
+                                   (abCallRate > 0 ? abHetRate : forwardHetRate) + "", wfPrior + "",
+                                   gcwfPrior + "", wfPost + "", gcwfPost + "", lrrsdPost + "",
+                                   lrrsdPostBound + "", lrrMadPost + "", lrrMadBoundPost + "",
+                                   multimodal + "", Array.toStr(bafBinCounts),};
     return retVals;
   }
 
@@ -387,7 +391,7 @@ public class LrrSd extends Parallelizable {
   /**
    * If the useFile is not null, we return a hash with the subset of individuals. Can return null if
    * useFile does not exist or does not contain any individuals
-   * 
+   *
    * @param useFile
    * @param log
    * @return
@@ -522,12 +526,13 @@ public class LrrSd extends Parallelizable {
         throw new RuntimeException(new InterruptedException());
       }
       BufferedReader reader =
-          Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true, false);
+                            Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true, false);
       PrintWriter writerUse = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
                                                              + outputBase + PCA.PCA_SAMPLES));
       PrintWriter writerSummary =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + outputBase
-                                         + MitoPipeline.PCA_SAMPLES_SUMMARY));
+                                new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                               + outputBase
+                                                               + MitoPipeline.PCA_SAMPLES_SUMMARY));
 
       writerSummary.println(Array.toStr(MitoPipeline.SAMPLE_QC_SUMMARY));
       if (!reader.ready()) {
@@ -623,7 +628,7 @@ public class LrrSd extends Parallelizable {
     int numPassing = 0;
     try {
       BufferedReader reader =
-          Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true, false);
+                            Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true, false);
       if (!reader.ready()) {
         reader.close();
         log.reportTimeError("Error - QC file (" + proj.SAMPLE_QC_FILENAME.getValue()
@@ -694,8 +699,8 @@ public class LrrSd extends Parallelizable {
       Arrays.fill(markerSubset, true);
     } else {
       Arrays.fill(markerSubset, false);
-      int[] indicesToUse =
-          ext.indexLargeFactors(subMarkers, markers, true, proj.getLog(), true, false);
+      int[] indicesToUse = ext.indexLargeFactors(subMarkers, markers, true, proj.getLog(), true,
+                                                 false);
       for (int i = 0; i < indicesToUse.length; i++) {
         if (indicesToUse[i] < 0) {
           return null;
@@ -756,9 +761,10 @@ public class LrrSd extends Parallelizable {
     markers = proj.getMarkerNames();
     if (markersForCallrateFile != null) {
       markersForCallrate =
-          getMarkerSubset(proj, HashVec.loadFileToStringArray(markersForCallrateFile, false,
-                                                              new int[] {0}, false),
-                          markers);
+                         getMarkerSubset(proj,
+                                         HashVec.loadFileToStringArray(markersForCallrateFile,
+                                                                       false, new int[] {0}, false),
+                                         markers);
       if (markersForCallrate == null) {
         log.reportError("Error - Some markers listed in " + markersForCallrateFile
                         + " were not found in the current project, or were duplicates");
@@ -776,10 +782,11 @@ public class LrrSd extends Parallelizable {
     }
     markersForEverythingElse = null;
     if (markersForEverythingElseFile != null) {
-      markersForEverythingElse =
-          getMarkerSubset(proj, HashVec.loadFileToStringArray(markersForEverythingElseFile, false,
-                                                              new int[] {0}, false),
-                          markers);
+      markersForEverythingElse = getMarkerSubset(proj,
+                                                 HashVec.loadFileToStringArray(markersForEverythingElseFile,
+                                                                               false, new int[] {0},
+                                                                               false),
+                                                 markers);
       if (markersForEverythingElse == null) {
         log.reportError("Error - Some markers listed in " + markersForEverythingElseFile
                         + " were not found in the current project, or were duplicates");

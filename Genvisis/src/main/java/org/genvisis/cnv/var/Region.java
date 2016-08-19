@@ -16,7 +16,7 @@ public class Region {
 
   /**
    * Set the region based on a tab-delimited string
-   * 
+   *
    * @param line
    */
   public Region(String line) {
@@ -33,7 +33,7 @@ public class Region {
 
   /**
    * Set the region based on a UCSC-compatible location array
-   * 
+   *
    * @param location
    */
   public Region(int[] location) {

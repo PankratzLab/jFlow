@@ -119,7 +119,7 @@ public class CompPanel extends JPanel
 
   /**
    * Use the appropriately arranged array of rectangles for our current display mode
-   * 
+   *
    * @param cnvRects
    */
   void setCNVRectangles(CNVRectangles cnvRects) {
@@ -135,7 +135,7 @@ public class CompPanel extends JPanel
 
   /**
    * Set the current rectangles and repaint the window
-   * 
+   *
    * @param rects
    */
   void setRectangles(ArrayList<CNVRectangle> rects) {
@@ -145,7 +145,7 @@ public class CompPanel extends JPanel
 
   /**
    * Need to know how big the visible window is in bases so we can scale it down to the panel width
-   * 
+   *
    * @param window
    */
   void setWindow(int start, int end) {
@@ -159,7 +159,7 @@ public class CompPanel extends JPanel
 
   /**
    * Return the current scaling factor
-   * 
+   *
    * @return
    */
   public float getScalingFactor() {
@@ -168,7 +168,7 @@ public class CompPanel extends JPanel
 
   /**
    * Set the height of the rectangles (Configured in CompConfig)
-   * 
+   *
    * @param height
    */
   void setRectangleHeight(int height) {
@@ -182,9 +182,9 @@ public class CompPanel extends JPanel
 
   /**
    * Set the display mode (Configured in CompConfig)
-   * 
+   *
    * Also retrieves the correct arrangement of rectangles
-   * 
+   *
    * @param dm
    */
   public void setDisplayMode(String dm) {

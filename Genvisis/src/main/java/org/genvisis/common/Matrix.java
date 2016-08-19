@@ -7,7 +7,7 @@ import java.util.Vector;
 public class Matrix {
   /**
    * Transposes an array of doubles
-   * 
+   *
    * @param a original matrix of doubles
    * @return transposed array
    */
@@ -37,7 +37,7 @@ public class Matrix {
 
   /**
    * Transposes an array of Strings
-   * 
+   *
    * @param a original matrix of Strings
    * @return transposed array
    */
@@ -56,7 +56,7 @@ public class Matrix {
   /**
    * Creates an array of double arrays of given size and initializes each element with the given
    * value
-   * 
+   *
    * @param numRows number of rows for the of array
    * @param numColumns number of columns for the of array
    * @param initValue initial value of each element
@@ -74,7 +74,7 @@ public class Matrix {
 
   /**
    * Creates a matrix of integers of given size and initializes each element with the given value
-   * 
+   *
    * @param numRows number of rows for the of array
    * @param numColumns number of columns for the of array
    * @param initValue initial value of each element
@@ -92,7 +92,7 @@ public class Matrix {
 
   /**
    * Creates a matrix of bytes of given size and initializes each element with the given value
-   * 
+   *
    * @param numRows number of rows for the of array
    * @param numColumns number of columns for the of array
    * @param initValue initial value of each element
@@ -116,7 +116,7 @@ public class Matrix {
 
   /**
    * Creates a matrix of booleans of given size and initializes each element with the given value
-   * 
+   *
    * @param numRows number of rows for the matrix
    * @param numColumns number of columns for the matrix
    * @param initValue initial value of each element
@@ -135,7 +135,7 @@ public class Matrix {
 
   /**
    * Creates a matrix of String of given size and initializes each element with the given value
-   * 
+   *
    * @param numRows number of rows for the matrix
    * @param numColumns number of columns for the matrix
    * @param initValue initial value of each element
@@ -154,7 +154,7 @@ public class Matrix {
 
   /**
    * Creates an array of integer arrays from the contents of a matrix of numbers
-   * 
+   *
    * @param matrix matrix of numbers to be converted
    * @return matrix of the converted numbers
    */
@@ -174,7 +174,7 @@ public class Matrix {
   /**
    * Creates an array of and array of double arrays of given size and initializes each element with
    * the given value
-   * 
+   *
    * @param length size of first dimension
    * @param breath size of second dimension
    * @param width size of third dimension
@@ -196,7 +196,7 @@ public class Matrix {
   /**
    * Creates an array of and array of double arrays of given size and initializes each element with
    * the given value
-   * 
+   *
    * @param length size of first dimension
    * @param breath size of second dimension
    * @param width size of third dimension
@@ -217,7 +217,7 @@ public class Matrix {
 
   /**
    * Calculates the sum of a matrix
-   * 
+   *
    * @param matrix a matrix of numbers
    * @return sum of the matrix
    */
@@ -233,7 +233,7 @@ public class Matrix {
 
   /**
    * Calculates the sum of a matrix
-   * 
+   *
    * @param matrix a matrix of integers
    * @return sum of the matrix
    */
@@ -249,7 +249,7 @@ public class Matrix {
 
   /**
    * Creates an array of an array of Strings and copies the contents of a vector into it
-   * 
+   *
    * @param v vector of String arrays
    * @return an array of an array of Strings from the vector
    */
@@ -263,7 +263,7 @@ public class Matrix {
 
   /**
    * Creates a matrix of doubles and copies the contents of a vector of double arrays into it
-   * 
+   *
    * @param v a vector of double arrays
    * @return a matrix of doubles copied from a vector of double arrays
    */
@@ -277,7 +277,7 @@ public class Matrix {
 
   /**
    * Creates a matrix of doubles and copies the contents of a matrix of integers into it
-   * 
+   *
    * @param v a matrix of integers
    * @return a matrix of doubles copied from a matrix of integers
    */
@@ -293,7 +293,7 @@ public class Matrix {
 
   /**
    * Creates a matrix of doubles and copies the contents of a matrix of String into it
-   * 
+   *
    * @param v a matrix of String
    * @return a matrix of doubles copied from a matrix of String
    */
@@ -309,7 +309,7 @@ public class Matrix {
 
   /**
    * Creates a matrix of ints and copies the contents of a matrix of Strings into it
-   * 
+   *
    * @param v a matrix of integers
    * @return a matrix of doubles copied from a matrix of integers
    */
@@ -325,7 +325,7 @@ public class Matrix {
 
   /**
    * Creates a matrix of float and copies the contents of a vector of float arrays into it
-   * 
+   *
    * @param v a vector of float arrays
    * @return a matrix of floats copied from a vector of float arrays
    */
@@ -339,7 +339,7 @@ public class Matrix {
 
   /**
    * Creates a matrix of short and copies the contents of a vector of short arrays into it
-   * 
+   *
    * @param v a vector of short arrays
    * @return a matrix of shorts copied from a vector of short arrays
    */
@@ -353,7 +353,7 @@ public class Matrix {
 
   /**
    * Creates a matrix of int and copies the contents of a vector of int arrays into it
-   * 
+   *
    * @param v a vector of int arrays
    * @return a matrix of ints copied from a vector of int arrays
    */
@@ -369,7 +369,7 @@ public class Matrix {
 
   /**
    * Creates a matrix of double and copies the contents of an array of double into the first column
-   * 
+   *
    * @param ds an array of double
    * @return a matrix of double copied from an array of double
    */
@@ -385,7 +385,7 @@ public class Matrix {
 
   /**
    * Creates a matrix of String and copies the contents of an array of String into the first column
-   * 
+   *
    * @param array an array of String
    * @return a matrix of String copied from an array of String
    */
@@ -402,7 +402,7 @@ public class Matrix {
   /**
    * Creates a matrix of String and copies the contents of an array of String after splitting on the
    * delimiter value
-   * 
+   *
    * @param array an array of double
    * @param delimiter the value with which to split the array
    * @return a matrix of String copied and split from an array of String
@@ -419,7 +419,7 @@ public class Matrix {
 
   /**
    * Extracts a column from a matrix
-   * 
+   *
    * @param data two-dimensional matrix
    * @param col number of column to be extracted
    * @return array of the elements in specified column
@@ -442,7 +442,7 @@ public class Matrix {
 
   /**
    * Extracts a column from a matrix
-   * 
+   *
    * @param data two-dimensional matrix
    * @param col number of column to be extracted
    * @return array of the elements in specified column
@@ -465,7 +465,7 @@ public class Matrix {
 
   /**
    * Extracts a column from a matrix
-   * 
+   *
    * @param data two-dimensional matrix
    * @param col number of column to be extracted
    * @return array of the elements in specified column
@@ -488,7 +488,7 @@ public class Matrix {
 
   /**
    * Extracts a column from a matrix
-   * 
+   *
    * @param data two-dimensional matrix
    * @param col number of column to be extracted
    * @return array of the elements in specified column
@@ -516,7 +516,7 @@ public class Matrix {
 
   /**
    * Extracts certain columns from a matrix
-   * 
+   *
    * @param data two-dimensional matrix
    * @param cols the indices of the columns to be included in the resulting array in their final
    *        order
@@ -544,7 +544,7 @@ public class Matrix {
 
   /**
    * Creates a new matrix from an old matrix using the specified columns in the specified order
-   * 
+   *
    * @param data two-dimensional matrix
    * @param cols the indices of the columns to be included in the final matrix in their final order
    * @return the rearranged matrix in specified order
@@ -569,7 +569,7 @@ public class Matrix {
 
   /**
    * Creates a new matrix from an old matrix using the specified columns in the specified order
-   * 
+   *
    * @param data two-dimensional matrix
    * @param cols the indices of the columns to be included in the final matrix in their final order
    * @return the rearranged matrix in specified order
@@ -604,7 +604,7 @@ public class Matrix {
 
   /**
    * Returns an array formed by lining up the rows of a matrix
-   * 
+   *
    * @param matrix a matrix of numbers
    * @return array of all the numbers
    */
@@ -620,8 +620,8 @@ public class Matrix {
 
     count = 0;
     for (double[] element : matrix) {
-      for (int j = 0; j < element.length; j++) {
-        array[count++] += element[j];
+      for (double element2 : element) {
+        array[count++] += element2;
       }
     }
 
@@ -630,7 +630,7 @@ public class Matrix {
 
   /**
    * Returns an array formed by lining up the rows of a matrix
-   * 
+   *
    * @param matrix a matrix of integers
    * @return array of all the integers
    */
@@ -646,8 +646,8 @@ public class Matrix {
 
     count = 0;
     for (int[] element : matrix) {
-      for (int j = 0; j < element.length; j++) {
-        array[count++] += element[j];
+      for (int element2 : element) {
+        array[count++] += element2;
       }
     }
 
@@ -698,7 +698,7 @@ public class Matrix {
 
   /**
    * Removes NaN values from a set of arrays
-   * 
+   *
    * @param matrix a matrix of doubles
    * @return scrubbed matrix
    */
@@ -745,7 +745,7 @@ public class Matrix {
 
   /**
    * Only keeps specified columns from a matrix
-   * 
+   *
    * @param matrix a matrix of String
    * @return pruned matrix
    */
@@ -766,7 +766,7 @@ public class Matrix {
 
   /**
    * Only keeps specified columns from a matrix
-   * 
+   *
    * @param matrix a matrix of String
    * @return pruned matrix
    */
@@ -787,9 +787,9 @@ public class Matrix {
 
     row = 0;
     newMatrix =
-        new String[rowsToKeep == null ? matrix.length
-                                      : Array.booleanArraySum(rowsToKeep)][columnsToKeep == null ? matrix[0].length
-                                                                                                 : Array.booleanArraySum(columnsToKeep)];
+              new String[rowsToKeep == null ? matrix.length
+                                            : Array.booleanArraySum(rowsToKeep)][columnsToKeep == null ? matrix[0].length
+                                                                                                       : Array.booleanArraySum(columnsToKeep)];
     for (int i = 0; i < matrix.length; i++) {
       if (rowsToKeep == null || rowsToKeep[i]) {
         if (columnsToKeep == null) {
@@ -812,7 +812,7 @@ public class Matrix {
 
   /**
    * Removes rows/columns with maginal counts of zero
-   * 
+   *
    * @param matrix a matrix of ints
    * @return pruned matrix
    */
@@ -943,7 +943,7 @@ public class Matrix {
 
   /**
    * Return the minimum in a matrix of integers
-   * 
+   *
    * @param matrix matrix of integers
    * @return the minimum
    */
@@ -952,8 +952,8 @@ public class Matrix {
 
     min = matrix[0][0];
     for (int[] element : matrix) {
-      for (int j = 0; j < element.length; j++) {
-        min = Math.min(element[j], min);
+      for (int element2 : element) {
+        min = Math.min(element2, min);
       }
     }
     return min;

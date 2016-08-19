@@ -71,8 +71,8 @@ public class RAOWriter {
   }
 
   public WriteComplete writeToFile() {
-    WriteComplete writeComplete =
-        new WriteComplete(fullPathToFile, fullPathToFile + RAO_INDEX_EXT, false);
+    WriteComplete writeComplete = new WriteComplete(fullPathToFile, fullPathToFile + RAO_INDEX_EXT,
+                                                    false);
     if (!fullPathToFile.endsWith(RAO_EXT)) {
       String error = "Invalid file extension, " + fullPathToFile + " must end with " + RAO_EXT;
       log.reportTimeError(error);

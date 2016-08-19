@@ -14,8 +14,8 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
 public class SasOutput {
-  public static final String[] HEADERS =
-      {"Variable", "Label", "N", "Mean", "Std Dev", "Minimum", "Maximum"};
+  public static final String[] HEADERS = {"Variable", "Label", "N", "Mean", "Std Dev", "Minimum",
+                                          "Maximum"};
 
   public static void parseMeans(String filename) {
     BufferedReader reader;

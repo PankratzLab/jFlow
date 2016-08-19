@@ -20,13 +20,13 @@ import htsjdk.samtools.SAMRecord;
 public class BamPile extends Segment implements Serializable {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
-  private static final String[] BASE_HEADER =
-      new String[] {"UCSC", "REF", "NUM_REF", "NUM_ALT", "PROP_REF", "PROP_ALT"};
-  private static final String[] COUNT_HEADER =
-      new String[] {"NUMA", "NUMG", "NUMC", "NUMT", "NUMN", "NUMDEL", "NUMINS"};
+  private static final String[] BASE_HEADER = new String[] {"UCSC", "REF", "NUM_REF", "NUM_ALT",
+                                                            "PROP_REF", "PROP_ALT"};
+  private static final String[] COUNT_HEADER = new String[] {"NUMA", "NUMG", "NUMC", "NUMT", "NUMN",
+                                                             "NUMDEL", "NUMINS"};
   private static final String[] EXT_HEADER = new String[] {"MAPQ", "PHRED"};
 
   private final Segment bin;

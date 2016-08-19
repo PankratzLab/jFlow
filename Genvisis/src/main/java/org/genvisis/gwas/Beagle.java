@@ -2,8 +2,6 @@
 // otherwise it hangs the whole cluster
 package org.genvisis.gwas;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,10 +30,12 @@ import org.genvisis.filesys.Pedfile;
 import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.SnpMarkerSet;
 
+import com.google.common.primitives.Ints;
+
 public class Beagle {
   public static final double[] PI_HAT_THRESHOLDS = {0.3, 0.5};
-  public static final String[] SEGMENT_HEADER =
-      {"FID1", "IID1", "FID2", "IID2", "PHE", "CHR", "BP1", "BP2", "SNP1", "SNP2", "NSNP", "KB"};
+  public static final String[] SEGMENT_HEADER = {"FID1", "IID1", "FID2", "IID2", "PHE", "CHR",
+                                                 "BP1", "BP2", "SNP1", "SNP2", "NSNP", "KB"};
   public static final String[] ALLELES = {"0", "A", "C", "G", "T"};
 
   public static final int[] FILTER_CM_THRESHOLDS = {1, 2, 3, 4, 5};
@@ -269,8 +269,8 @@ public class Beagle {
     for (int chr = 1; chr <= 22; chr++) {
       for (int rep = 1; rep <= numLists; rep++) {
         if (new File("chr" + chr + "/" + rep + ".ibds.pre_phase.bgl.ibd.gz").exists()) {
-          sizes[chr - 1][rep - 1] =
-              new File("chr" + chr + "/" + rep + ".ibds.pre_phase.bgl.ibd.gz").length();
+          sizes[chr - 1][rep - 1] = new File("chr" + chr + "/" + rep
+                                             + ".ibds.pre_phase.bgl.ibd.gz").length();
         } else if (new File("chr" + chr + "/" + rep + ".ibds.pre_phase.bgl.ibd").exists()) {
           sizes[chr - 1][rep - 1] = -3;
         } else if (new File("chr" + chr + "/" + rep + ".log").exists()) {
@@ -398,8 +398,8 @@ public class Beagle {
       return;
     }
     if (new File(dir + "plink.fam").exists() || new File(dir + "plink.ped").exists()) {
-      pedfile =
-          new Pedfile(new File(dir + "plink.fam").exists() ? dir + "plink.fam" : dir + "plink.ped");
+      pedfile = new Pedfile(new File(dir + "plink.fam").exists() ? dir + "plink.fam"
+                                                                 : dir + "plink.ped");
       famStruct = pedfile.getFamilyStructure();
       pedIDs = famStruct.getIDs();
       affs = famStruct.getAffections();
@@ -501,8 +501,8 @@ public class Beagle {
                     segMaxes[i][j][strict] = d;
                   }
                   for (int k = 0; k < 4; k++) {
-                    segsInfo[i][j][strict][k] +=
-                        (segsInfo[i][j][strict][k].equals("") ? "" : "\t") + line[i * 4 + k + 1];
+                    segsInfo[i][j][strict][k] += (segsInfo[i][j][strict][k].equals("") ? "" : "\t")
+                                                 + line[i * 4 + k + 1];
                   }
                 } else if (starts[i][j][strict] != -1) {
                   writers[j][strict][0].print(famids.get(ids[i][0]) + "\t" + ids[i][0] + "\t"
@@ -809,8 +809,8 @@ public class Beagle {
                 for (rep = 1; rep <= iv.size(); rep++) {
                   try {
                     reader =
-                        new BufferedReader(new FileReader("chr" + chr + "/" + rep
-                                                          + ".ibds.pre_phase.bgl.ibd_" + trav));
+                           new BufferedReader(new FileReader("chr" + chr + "/" + rep
+                                                             + ".ibds.pre_phase.bgl.ibd_" + trav));
                     while (reader.ready()) {
                       writer.println(reader.readLine());
                     }
@@ -995,8 +995,8 @@ public class Beagle {
 
     chr = -1;
     dir = ext.parseDirectoryOfFile(segInfoFile);
-    intervalStartAndStopMarkers =
-        HashVec.loadFileToStringMatrix(intervalFile, false, new int[] {0, 1}, false);
+    intervalStartAndStopMarkers = HashVec.loadFileToStringMatrix(intervalFile, false,
+                                                                 new int[] {0, 1}, false);
     if (segFile != null) {
       includes = HashVec.loadFileToHashVec(segFile, new int[] {1, 3}, new int[] {5, 6, 7}, "\t",
                                            true, false);
@@ -1044,8 +1044,8 @@ public class Beagle {
           System.err.println("Error - markers are on different chromosomes; can only process one chromosome at a time");
         }
       }
-      intervals[i] =
-          new Segment(chr, positions[intervalIndices[i][0]], positions[intervalIndices[i][1]]);
+      intervals[i] = new Segment(chr, positions[intervalIndices[i][0]],
+                                 positions[intervalIndices[i][1]]);
       System.out.println(intervals[i].getUCSClocation());
     }
     order = Segment.quicksort(intervals);

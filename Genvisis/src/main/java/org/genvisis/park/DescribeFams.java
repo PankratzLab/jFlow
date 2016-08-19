@@ -104,14 +104,19 @@ public class DescribeFams {
         vpdSibIndex = ext.indexOfStr(fam, vpdSibships);
         // dominantTransmission = sfh = false;
         dominantTransmission =
-            (majorSibships[sibIndex].length > 1
-             && (tools.isAffected(dxs.get(fam + "\t" + majorSibships[sibIndex][1])).equals("1")
-                 || tools.isAffected(dxs.get(fam + "\t" + majorSibships[sibIndex][2])).equals("1"))
-             || majorVPDsibships[sibIndex].length > 1
-                && (tools.isAffected(dxs.get(fam + "\t" + majorVPDsibships[sibIndex][1]))
-                         .equals("1")
-                    || tools.isAffected(dxs.get(fam + "\t" + majorVPDsibships[sibIndex][2]))
-                            .equals("1")));
+                             (majorSibships[sibIndex].length > 1
+                              && (tools.isAffected(dxs.get(fam + "\t" + majorSibships[sibIndex][1]))
+                                       .equals("1")
+                                  || tools.isAffected(dxs.get(fam + "\t"
+                                                              + majorSibships[sibIndex][2]))
+                                          .equals("1"))
+                              || majorVPDsibships[sibIndex].length > 1
+                                 && (tools.isAffected(dxs.get(fam + "\t"
+                                                              + majorVPDsibships[sibIndex][1]))
+                                          .equals("1")
+                                     || tools.isAffected(dxs.get(fam + "\t"
+                                                                 + majorVPDsibships[sibIndex][2]))
+                                             .equals("1")));
         sfh = majorVPDsibships[sibIndex].length - 3 >= 2
               && (dominantTransmission || vpd + nvpd + rpd >= 4);
 
@@ -152,9 +157,11 @@ public class DescribeFams {
         if (majorSibship.length > 1) {
           counts = new int[2][3];
           affFather =
-              tools.isAffected(affectionStatus, majorSibship[0] + "\t" + majorSibship[1]) ? 1 : 0;
+                    tools.isAffected(affectionStatus, majorSibship[0] + "\t" + majorSibship[1]) ? 1
+                                                                                                : 0;
           affMother =
-              tools.isAffected(affectionStatus, majorSibship[0] + "\t" + majorSibship[2]) ? 1 : 0;
+                    tools.isAffected(affectionStatus, majorSibship[0] + "\t" + majorSibship[2]) ? 1
+                                                                                                : 0;
           for (int j = 3; j < majorSibship.length; j++) {
             gender = Integer.parseInt(genderLookup.get(majorSibship[0] + "\t" + majorSibship[j]));
 
@@ -194,8 +201,8 @@ public class DescribeFams {
     int numArgs = args.length;
     boolean genderBalance = false;
 
-    String usage =
-        "\n" + "park.DescribeFams requires 0-1 arguments\n" + "   (1) describe fams (default)\n"
+    String usage = "\n" + "park.DescribeFams requires 0-1 arguments\n"
+                   + "   (1) describe fams (default)\n"
                    + "   (2) describe gender balances in major sibships (i.e. -genderBalance (not the default))\n"
                    + "";
 

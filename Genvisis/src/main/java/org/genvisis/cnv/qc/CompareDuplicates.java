@@ -115,7 +115,7 @@ public class CompareDuplicates {
 
     try {
       writer =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "DuplicateQC.xln"));
+             new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "DuplicateQC.xln"));
       writer.println("DNA1\tDNA2\tgenotypeConcordance\tx_correlation\tcorr_pval\t#diffGeno");
       for (int i = 0; i < pairs.length; i++) {
         System.out.println((i + 1) + " of " + pairs.length);

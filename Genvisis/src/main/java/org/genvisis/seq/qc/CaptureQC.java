@@ -27,10 +27,11 @@ import org.genvisis.stats.Rscript.SCATTER_TYPE;
 public class CaptureQC {
 
   private static final String UCSC = "UCSC";
-  private static final String[] PLOT_BY_POS_PERCENT =
-      new String[] {"Percent_Covered_at_depth_1", "Percent_Covered_at_depth_10",
-                    "Percent_Covered_at_depth_20", "Percent_Covered_at_depth_30",
-                    "Percent_Covered_at_depth_40"};
+  private static final String[] PLOT_BY_POS_PERCENT = new String[] {"Percent_Covered_at_depth_1",
+                                                                    "Percent_Covered_at_depth_10",
+                                                                    "Percent_Covered_at_depth_20",
+                                                                    "Percent_Covered_at_depth_30",
+                                                                    "Percent_Covered_at_depth_40"};
   private static final String[] PLOT_BY_POS_ACTUAL = new String[] {"averageCoverage"};
 
   public static void captureQC(String referenceGenomeFasta, String bamQCSummary,
@@ -53,15 +54,15 @@ public class CaptureQC {
           gds.add(element);
         }
       }
-      LocusSet<GeneData> geneSet =
-          new LocusSet<GeneData>(gds.toArray(new GeneData[gds.size()]), true, log) {
+      LocusSet<GeneData> geneSet = new LocusSet<GeneData>(gds.toArray(new GeneData[gds.size()]),
+                                                          true, log) {
 
-            /**
-            * 
-            */
-            private static final long serialVersionUID = 1L;
+        /**
+        * 
+        */
+        private static final long serialVersionUID = 1L;
 
-          };
+      };
 
       // for (int i = 0; i < geneNames.length; i++) {
 
@@ -84,9 +85,9 @@ public class CaptureQC {
             double gcRegion = referenceGenome.getGCContentFor(seg);
             for (GeneData currentData : overlapping) {
               for (int j = 0; j < currentData.getExonBoundaries().length; j++) {
-                Segment exon =
-                    new Segment(currentData.getChr(), currentData.getExonBoundaries()[j][0],
-                                currentData.getExonBoundaries()[j][1]);
+                Segment exon = new Segment(currentData.getChr(),
+                                           currentData.getExonBoundaries()[j][0],
+                                           currentData.getExonBoundaries()[j][1]);
                 if (seg.overlaps(exon)) {
                   if (allInOne) {
                     writer.println(currentData.getGeneName() + "\t" + (j + 1) + "\t"
@@ -140,10 +141,10 @@ public class CaptureQC {
 
         double average = Array.mean(data, true);
         String rootExon = ext.rootOf(output, false) + "_coverageHist_" + j;
-        RScatter rsScatterPos =
-            new RScatter(output, rootExon + ".rscript", ext.removeDirectoryInfo(rootExon),
-                         rootExon + ".jpeg", "InternalKey", new String[] {PLOT_BY_POS_PERCENT[j]},
-                         SCATTER_TYPE.HIST, log);
+        RScatter rsScatterPos = new RScatter(output, rootExon + ".rscript",
+                                             ext.removeDirectoryInfo(rootExon), rootExon + ".jpeg",
+                                             "InternalKey", new String[] {PLOT_BY_POS_PERCENT[j]},
+                                             SCATTER_TYPE.HIST, log);
         String format = PLOT_BY_POS_PERCENT[j].replaceAll("_", " ")
                                               .replaceAll("Percent", "Proportion of target ");
         rsScatterPos.setxRange(new double[] {0, 1});
@@ -159,9 +160,9 @@ public class CaptureQC {
 
     } else {
       String root = ext.rootOf(output, false);
-      RScatter rsScatterPos =
-          new RScatter(output, root + ".rscript", ext.removeDirectoryInfo(root), root + ".pdf",
-                       "Position", PLOT_BY_POS_PERCENT, SCATTER_TYPE.POINT, log);
+      RScatter rsScatterPos = new RScatter(output, root + ".rscript", ext.removeDirectoryInfo(root),
+                                           root + ".pdf", "Position", PLOT_BY_POS_PERCENT,
+                                           SCATTER_TYPE.POINT, log);
       rsScatterPos.setTitle(geneNames[i] + " capture");
       rsScatterPos.setxLabel("Position");
       rsScatterPos.setyLabel("Proportion Covered at Depth");
@@ -176,9 +177,10 @@ public class CaptureQC {
 
       String rootExon = ext.rootOf(output, false) + "_coverage";
 
-      RScatter rsScatterActual =
-          new RScatter(output, rootExon + ".rscript", ext.removeDirectoryInfo(rootExon),
-                       rootExon + ".pdf", "Position", PLOT_BY_POS_ACTUAL, SCATTER_TYPE.POINT, log);
+      RScatter rsScatterActual = new RScatter(output, rootExon + ".rscript",
+                                              ext.removeDirectoryInfo(rootExon), rootExon + ".pdf",
+                                              "Position", PLOT_BY_POS_ACTUAL, SCATTER_TYPE.POINT,
+                                              log);
       rsScatterActual.setTitle(geneNames[i] + " capture");
       rsScatterActual.setxLabel("Position");
       rsScatterActual.setyLabel("Average Coverage");

@@ -1,7 +1,5 @@
 package org.genvisis.parse;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,6 +15,8 @@ import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 import org.genvisis.link.LinkageMap;
+
+import com.google.common.primitives.Doubles;
 
 public class Hearing {
   public static boolean AFFECTEDS_ONLY = true;
@@ -77,7 +77,7 @@ public class Hearing {
           line[5] = "0";
         } else {
           line[5] =
-              trav.equals("A") ? "2" : (trav.equals("U") ? (AFFECTEDS_ONLY ? "0" : "1") : "0");
+                  trav.equals("A") ? "2" : (trav.equals("U") ? (AFFECTEDS_ONLY ? "0" : "1") : "0");
         }
         writer.println(Array.toStr(line));
       }

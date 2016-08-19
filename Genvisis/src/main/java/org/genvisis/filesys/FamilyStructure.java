@@ -12,8 +12,8 @@ import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 
 public class FamilyStructure {
-  public static final String[][] TYPICAL_HEADERS =
-      {{"FID", "famid"}, {"IID", "id"}, {"fa"}, {"mo"}, {"sex"}};
+  public static final String[][] TYPICAL_HEADERS = {{"FID", "famid"}, {"IID", "id"}, {"fa"}, {"mo"},
+                                                    {"sex"}};
 
   private static final byte MISSING_VALUE_BYTE = (byte) -9;
 
@@ -83,8 +83,8 @@ public class FamilyStructure {
 
   public FamilyStructure(String filename, boolean loadDNAs, Logger log) {
 
-    String[][] pedCols =
-        Matrix.transpose(HashVec.loadFileToStringMatrix(filename, false, null, false));
+    String[][] pedCols = Matrix.transpose(HashVec.loadFileToStringMatrix(filename, false, null,
+                                                                         false));
     if (pedCols == null) {
       return;
     }

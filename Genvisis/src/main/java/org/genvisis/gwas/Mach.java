@@ -1,8 +1,6 @@
 // -Xms1024M -Xmx1024M
 package org.genvisis.gwas;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,6 +27,8 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.FamilyStructure;
 import org.genvisis.filesys.SnpMarkerSet;
 
+import com.google.common.primitives.Ints;
+
 public class Mach {
   // public static final String EXECUTABLE = "mach1";
   public static final String EXECUTABLE = "/share/apps/bin/mach1";
@@ -41,14 +41,14 @@ public class Mach {
   public static final int IMPUTATION_AWARE_COLUMN = 6; // Rsq
   // public static final int PICK_BEST_SIZE = 50;
   public static final int PICK_BEST_SIZE = 125;
-  public static final String[] MLINFO_HEADER =
-      {"SNP", "Al1", "Al2", "Freq1", "MAF", "Quality", "Rsq"};
-  public static final String[] MINFO_HEADER =
-      {"SNP", "Al1", "Al2", "Freq1", "MAF", "AvgCall", "Rsq", "Genotyped", "LooRsq", "EmpR",
-       "EmpRsq", "Dose1", "Dose2"};
-  public static final String[] MACH2DAT_HEADER =
-      {"TRAIT", "MARKER", "ALLELES", "FREQ1", "RSQR", "EFFECT1", "OR", "STDERR", "WALDCHISQ",
-       "PVALUE", "LRCHISQ", "LRPVAL", "NCASES", "NCONTROLS"};
+  public static final String[] MLINFO_HEADER = {"SNP", "Al1", "Al2", "Freq1", "MAF", "Quality",
+                                                "Rsq"};
+  public static final String[] MINFO_HEADER = {"SNP", "Al1", "Al2", "Freq1", "MAF", "AvgCall",
+                                               "Rsq", "Genotyped", "LooRsq", "EmpR", "EmpRsq",
+                                               "Dose1", "Dose2"};
+  public static final String[] MACH2DAT_HEADER = {"TRAIT", "MARKER", "ALLELES", "FREQ1", "RSQR",
+                                                  "EFFECT1", "OR", "STDERR", "WALDCHISQ", "PVALUE",
+                                                  "LRCHISQ", "LRPVAL", "NCASES", "NCONTROLS"};
   public static final char[] DELIMITERS = {' ', (char) 9};
 
   public static void batchFileCreation(String root, String keeps, String excludes,
@@ -185,8 +185,8 @@ public class Mach {
     try {
       reader = new BufferedReader(new FileReader("genotypes_chr" + chr
                                                  + "_CEU_r22_nr.b36_fwd_legend.txt"));
-      writer =
-          new PrintWriter(new FileWriter("truncated_chr" + chr + "_CEU_r22_nr.b36_fwd_legend.txt"));
+      writer = new PrintWriter(new FileWriter("truncated_chr" + chr
+                                              + "_CEU_r22_nr.b36_fwd_legend.txt"));
       writer.println(reader.readLine());
       while (reader.ready()) {
         trav = reader.readLine();
@@ -537,8 +537,8 @@ public class Mach {
               count++;
             }
           }
-          for (int j =
-              0; j < (inc + step > markerNames.length ? markerNames.length - inc : step); j++) {
+          for (int j = 0; j < (inc + step > markerNames.length ? markerNames.length - inc
+                                                               : step); j++) {
             trav = "";
             while (ext.indexOfChar((char) (c = in.read()), DELIMITERS) == -1 && (char) c != '\n') {
               trav += (char) c;
@@ -561,8 +561,8 @@ public class Mach {
           }
         }
 
-        for (int i =
-            0; i < (inc + step > markerNames.length ? markerNames.length - inc : step); i++) {
+        for (int i = 0; i < (inc + step > markerNames.length ? markerNames.length - inc
+                                                             : step); i++) {
           if (allMarkers || ext.indexOfStr(markerNames[inc + i].split("[\\s]+")[0], subset) >= 0) {
             writer.print(markerNames[inc + i]);
             for (String[] element : data) {
@@ -1290,8 +1290,8 @@ public class Mach {
 
         try {
           reader = Files.getAppropriateReader(markersFile);
-          w2 = new PrintWriter(new FileWriter(dir
-                                              + (regions ? "data.info" : "chr" + chr + ".info")));
+          w2 =
+             new PrintWriter(new FileWriter(dir + (regions ? "data.info" : "chr" + chr + ".info")));
           line = reader.readLine().trim().split("[\\s]+");
           w2.println(Array.toStr(line));
           if (markersFile.endsWith(".gz") || markersFile.endsWith(".zip")) {

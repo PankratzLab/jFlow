@@ -38,8 +38,8 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
 
     log.report("File\tTrait\tLambda");
     for (int i = 0; i < pvals.length; i++) {
-      descriptions[i] =
-          "lambda = " + ext.formDeci(Array.lambda(pvals[i]), 4) + " (" + labels[i] + ")";
+      descriptions[i] = "lambda = " + ext.formDeci(Array.lambda(pvals[i]), 4) + " (" + labels[i]
+                        + ")";
       log.report(Array.toStr(ext.replaceAllWith(labels[i], "'", "").split("[\\s]+")) + "\t"
                  + ext.formDeci(Array.lambda(pvals[i]), 4));
     }
@@ -168,10 +168,10 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
                                         Math.min(maxValue, (float) (-1 * Math.log10(pvals[i][j]))),
                                         (byte) 6, (byte) (pvals.length == 1 ? 0 : i + 2), (byte) 0);
         } else {
-          points[count] =
-              new PlotPoint(keys[j] + "", PlotPoint.FILLED_CIRCLE,
-                            (float) (((double) keys[j] + 1) / pvals[i].length), (float) pvals[i][j],
-                            (byte) 6, (byte) (pvals.length == 1 ? 0 : i + 2), (byte) 0);
+          points[count] = new PlotPoint(keys[j] + "", PlotPoint.FILLED_CIRCLE,
+                                        (float) (((double) keys[j] + 1) / pvals[i].length),
+                                        (float) pvals[i][j], (byte) 6,
+                                        (byte) (pvals.length == 1 ? 0 : i + 2), (byte) 0);
         }
         count++;
       }

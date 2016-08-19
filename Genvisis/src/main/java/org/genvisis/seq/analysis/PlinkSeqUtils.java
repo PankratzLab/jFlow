@@ -40,7 +40,7 @@ public class PlinkSeqUtils {
    */
   public static class PseqPhenoTypes implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final String name, type, missingValue, description;
@@ -131,7 +131,7 @@ public class PlinkSeqUtils {
 
   public static class PseqProject extends Properties implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final Logger log;
@@ -180,7 +180,7 @@ public class PlinkSeqUtils {
 
     /**
      * Convert a property into the appropriate plink seq command
-     * 
+     *
      * @param prop
      * @return
      */
@@ -244,10 +244,10 @@ public class PlinkSeqUtils {
       PrintWriter writer = new PrintWriter(new FileWriter(locFileName));
       writer.println("#CHR\tPOS1\tPOS2\tID");
       for (GeneData[] gData : gDatas) {
-        for (int j = 0; j < gData.length; j++) {
-          writer.println(Positions.getChromosomeUCSC(gData[j].getChr(), true) + "\t"
-                         + gData[j].getStart() + "\t" + gData[j].getStop() + "\t"
-                         + gData[j].getGeneName() + GENVISIS_GENE);
+        for (GeneData element : gData) {
+          writer.println(Positions.getChromosomeUCSC(element.getChr(), true) + "\t"
+                         + element.getStart() + "\t" + element.getStop() + "\t"
+                         + element.getGeneName() + GENVISIS_GENE);
         }
       }
       // }
@@ -273,11 +273,11 @@ public class PlinkSeqUtils {
 
   public static class PlinkSeqBurdenSummary implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
-    private static final String[] HEADER =
-        new String[] {"LOCUS", "POS", "ALIAS", "NVAR", "TEST", "P", "I", "DESC"};
+    private static final String[] HEADER = new String[] {"LOCUS", "POS", "ALIAS", "NVAR", "TEST",
+                                                         "P", "I", "DESC"};
     public static final double[] I_THRESHOLDS = new double[] {0.5, 0.1, 0.01, 0.001};
     private final String analysis;
     private final String resultsFile;
@@ -399,7 +399,7 @@ public class PlinkSeqUtils {
 
   public static class PlinkSeqLocSummary implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private String locus;
@@ -485,7 +485,7 @@ public class PlinkSeqUtils {
 
   public static class PlinkSeqTestSummary implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     public static final String[] SUMMARY = new String[] {"P_VAL", "I"};
@@ -577,8 +577,8 @@ public class PlinkSeqUtils {
   }
 
   public static class PlinkSeqBurdenResults {
-    private static final String[] HEADER =
-        new String[] {"LOCUS", "POS", "ALIAS", "NVAR", "TEST", "P", "I", "DESC"};
+    private static final String[] HEADER = new String[] {"LOCUS", "POS", "ALIAS", "NVAR", "TEST",
+                                                         "P", "I", "DESC"};
     private final String resultsFile;
     private final int numTests;
     private final double bonferoniP;

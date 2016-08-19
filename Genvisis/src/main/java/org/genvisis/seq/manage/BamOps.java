@@ -55,7 +55,7 @@ public class BamOps {
   /**
    * This method will check if an appropriate .bai index file exists for a given .bam, and create it
    * if not
-   * 
+   *
    * @param bamFile bam file to verify
    * @param log
    * @return
@@ -105,8 +105,9 @@ public class BamOps {
                                   boolean include, Logger log) {
     SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
     SAMFileWriter sAMFileWriter =
-        new SAMFileWriterFactory().setCreateIndex(true).makeSAMOrBAMWriter(reader.getFileHeader(),
-                                                                           true, new File(outputBam));
+                                new SAMFileWriterFactory().setCreateIndex(true)
+                                                          .makeSAMOrBAMWriter(reader.getFileHeader(),
+                                                                              true, new File(outputBam));
 
     for (SAMRecord samRecord : reader) {
       Segment seg = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
@@ -441,7 +442,7 @@ public class BamOps {
   /**
    * Designed to take the sample names from
    * {@link VCFOps#getSamplesInFile(htsjdk.variant.vcf.VCFFileReader)} and match to an array of bams
-   * 
+   *
    * @param samples samples to match
    * @param variantSets variant sets that may be appended to the vcf sample names
    * @param bams the bam files
@@ -456,8 +457,9 @@ public class BamOps {
     HashMap<String, String> matched = new HashMap<String, String>();
     HashMap<String, String> bamSamples = new HashMap<String, String>();
     SampleNameProducer producer = new SampleNameProducer(bams);
-    WorkerTrain<SampleNameExtractor> train =
-        new WorkerTrain<SampleNameExtractor>(producer, numThreads, 10, log);
+    WorkerTrain<SampleNameExtractor> train = new WorkerTrain<SampleNameExtractor>(producer,
+                                                                                  numThreads, 10,
+                                                                                  log);
 
     while (train.hasNext()) {
       SampleNameExtractor ex = train.next();

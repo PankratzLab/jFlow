@@ -32,11 +32,12 @@ import htsjdk.variant.vcf.VCFFileReader;
  */
 public class TumorNormalSummary {
 
-  private static final String[] BASE_OUT =
-      new String[] {"CHROM", "POS", "ID", "REF", "FULL_ALT", "ALT", "HIGH||MODERATE||LOW",
-                    "TN_PAIR", "NORMAL_SAMPLE", "TUMOR_SAMPLE", "NORMAL_GENOTYPE", "TUMOR_GENOTYPE",
-                    "NORMAL_GQ", "TUMOR_GQ", "NORMAL_HAS_ALT", "TUMOR_HAS_ALT", "MIN_GQ",
-                    "TN_MATCH"};
+  private static final String[] BASE_OUT = new String[] {"CHROM", "POS", "ID", "REF", "FULL_ALT",
+                                                         "ALT", "HIGH||MODERATE||LOW", "TN_PAIR",
+                                                         "NORMAL_SAMPLE", "TUMOR_SAMPLE",
+                                                         "NORMAL_GENOTYPE", "TUMOR_GENOTYPE",
+                                                         "NORMAL_GQ", "TUMOR_GQ", "NORMAL_HAS_ALT",
+                                                         "TUMOR_HAS_ALT", "MIN_GQ", "TN_MATCH"};
 
   private static void run(String vcf, String vpopFile, String outputDir, Segment seg, String name,
                           int buffer, Logger log) {
@@ -54,9 +55,11 @@ public class TumorNormalSummary {
                                                     reader.getFileHeader().getSequenceDictionary());
     VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
     Segment segBuffer = seg.getBufferedSegment(buffer);
-    CloseableIterator<VariantContext> iter =
-        reader.query(Positions.getChromosomeUCSC(segBuffer.getChr(), true), segBuffer.getStart(),
-                     segBuffer.getStop());
+    CloseableIterator<VariantContext> iter = reader.query(
+                                                          Positions.getChromosomeUCSC(segBuffer.getChr(),
+                                                                                      true),
+                                                          segBuffer.getStart(),
+                                                          segBuffer.getStop());
     try {
       PrintWriter writerSummary = new PrintWriter(new FileWriter(outSummary));
       String[][] annos = VCFOps.getAnnotationKeys(vcf, log);
@@ -132,7 +135,7 @@ public class TumorNormalSummary {
 
   public static void main(String[] args) {
     String vcf =
-        "D:/data/Project_Tsai_21_25_26_28_spector/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.vcf.gz";
+               "D:/data/Project_Tsai_21_25_26_28_spector/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.vcf.gz";
     String outputDir = "D:/data/Project_Tsai_21_25_26_28_spector/TumorNormal/";
     String vpop = outputDir + "TN.vpop";
 

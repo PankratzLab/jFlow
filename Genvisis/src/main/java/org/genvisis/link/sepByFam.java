@@ -100,10 +100,10 @@ public class sepByFam {
       }
 
       reader[0] = new BufferedReader(new FileReader("allegro/chromf" + chrome + ".lin.out"));
-      reader[1] =
-          new BufferedReader(new FileReader("parametric dominant/chromf" + chrome + ".d.out"));
-      reader[2] =
-          new BufferedReader(new FileReader("parametric recessive/chromf" + chrome + ".r.out"));
+      reader[1] = new BufferedReader(new FileReader("parametric dominant/chromf" + chrome
+                                                    + ".d.out"));
+      reader[2] = new BufferedReader(new FileReader("parametric recessive/chromf" + chrome
+                                                    + ".r.out"));
 
       writer.println("Family\tlinearLOD\tNPL\tAD LOD\tAR LOD\t\tpositive");
 

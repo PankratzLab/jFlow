@@ -247,9 +247,9 @@ public class Fst {
                 reverse = false;
               }
               alleleCounts[count] =
-                  Array.toIntArray(Sort.putInOrder(line[3].split("/"),
-                                                   reverse ? new int[] {2, 1, 0}
-                                                           : new int[] {0, 1, 2}));
+                                  Array.toIntArray(Sort.putInOrder(line[3].split("/"),
+                                                                   reverse ? new int[] {2, 1, 0}
+                                                                           : new int[] {0, 1, 2}));
               count++;
             }
           }
@@ -413,9 +413,9 @@ public class Fst {
     // n = 2;
 
     filename =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\Fst\\Discovery\\EuropeanClasses.1clean.dat";
+             "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\Fst\\Discovery\\EuropeanClasses.1clean.dat";
     plinkRoot =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\Fst\\Discovery\\plink";
+              "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Consortium\\Fst\\Discovery\\plink";
     // incl = new String[] {"Ashk", "British"};
     incl = new String[] {"Ashk", "Italian"};
 

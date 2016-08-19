@@ -1,7 +1,5 @@
 package org.genvisis.cnv.plots;
 
-import com.google.common.primitives.Bytes;
-
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -18,6 +16,8 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Maths;
 
+import com.google.common.primitives.Bytes;
+
 /**
  * Forest Panel
  */
@@ -25,27 +25,29 @@ public class ForestPanel extends AbstractPanel {
   // FORESTPLOT
   static final long serialVersionUID = 4023579107L;
 
-  public static final Color[] DEFAULT_COLORS =
-      {new Color(33, 31, 53), // dark dark
-       new Color(23, 58, 172), // dark blue
-       new Color(201, 30, 10), // deep red
-       new Color(140, 20, 180), // deep purple
-       new Color(33, 87, 0), // dark green
-       new Color(55, 129, 252), // light blue
-       new Color(94, 88, 214), // light purple
-       new Color(189, 243, 61), // light green
-       new Color(217, 109, 194), // pink
-       new Color(0, 0, 128), // ALL KINDS OF BLUES
-       new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
-       new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
-       new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
-       new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
-       new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
-       new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
-       new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
-       new Color(224, 255, 255),
+  public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
+                                                new Color(23, 58, 172), // dark blue
+                                                new Color(201, 30, 10), // deep red
+                                                new Color(140, 20, 180), // deep purple
+                                                new Color(33, 87, 0), // dark green
+                                                new Color(55, 129, 252), // light blue
+                                                new Color(94, 88, 214), // light purple
+                                                new Color(189, 243, 61), // light green
+                                                new Color(217, 109, 194), // pink
+                                                new Color(0, 0, 128), // ALL KINDS OF BLUES
+                                                new Color(100, 149, 237), new Color(72, 61, 139),
+                                                new Color(106, 90, 205), new Color(123, 104, 238),
+                                                new Color(132, 112, 255), new Color(0, 0, 205),
+                                                new Color(65, 105, 225), new Color(0, 0, 255),
+                                                new Color(30, 144, 255), new Color(0, 191, 255),
+                                                new Color(135, 206, 250), new Color(135, 206, 250),
+                                                new Color(70, 130, 180), new Color(176, 196, 222),
+                                                new Color(173, 216, 230), new Color(176, 224, 230),
+                                                new Color(175, 238, 238), new Color(0, 206, 209),
+                                                new Color(72, 209, 204), new Color(64, 224, 208),
+                                                new Color(0, 255, 255), new Color(224, 255, 255),
 
-      };
+  };
 
   public static final String META_LABEL = "Overall";
   public static final Color META_COLOR = Color.BLACK;
@@ -87,7 +89,7 @@ public class ForestPanel extends AbstractPanel {
 
       if (forestPlot.getDataIndices().size() == 0) {
         errorMessage =
-            "No data file selected, or no data found in input file.  Please select a data file.";
+                     "No data file selected, or no data found in input file.  Please select a data file.";
       } else {
         input = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex());
         errorMessage = "Cannot generate points for marker " + input.marker
@@ -106,8 +108,8 @@ public class ForestPanel extends AbstractPanel {
       return;
     }
     @SuppressWarnings("unchecked")
-    ArrayList<StudyData> currentData =
-        (ArrayList<StudyData>) forestPlot.getCurrentMetaStudy().getStudies().clone();
+    ArrayList<StudyData> currentData = (ArrayList<StudyData>) forestPlot.getCurrentMetaStudy()
+                                                                        .getStudies().clone();
     // PlotPoint[] tempPoints = new PlotPoint[currentData.size()];
     ArrayList<PlotPoint> tempPoints = new ArrayList<PlotPoint>();
     ArrayList<GenericLine> linesData = new ArrayList<GenericLine>();
@@ -220,7 +222,7 @@ public class ForestPanel extends AbstractPanel {
     }
 
     rectangles =
-        Array.concatAll(rectangles, rectData.toArray(new GenericRectangle[rectData.size()]));
+               Array.concatAll(rectangles, rectData.toArray(new GenericRectangle[rectData.size()]));
   }
 
   @Override
@@ -240,8 +242,8 @@ public class ForestPanel extends AbstractPanel {
   @Override
   public void assignAxisLabels() {
     displayXaxis = displayYaxis = true;
-    xAxisLabel =
-        (oddsDisplay ? "Odds Ratio" : "Relative Risk") + " (" + forestPlot.getPlotLabel() + ")";
+    xAxisLabel = (oddsDisplay ? "Odds Ratio" : "Relative Risk") + " (" + forestPlot.getPlotLabel()
+                 + ")";
     yAxisLabel = " ";
   }
 
@@ -329,8 +331,8 @@ public class ForestPanel extends AbstractPanel {
     }
 
     double[] retArr =
-        new double[] {zoomMin, zoomMax, Double.parseDouble(ext.formDeci(plotStep, sf, true)),
-                      minBnd, sf};
+                    new double[] {zoomMin, zoomMax,
+                                  Double.parseDouble(ext.formDeci(plotStep, sf, true)), minBnd, sf};
     return retArr;
   }
 
@@ -463,24 +465,22 @@ public class ForestPanel extends AbstractPanel {
     maximumObservedRawY = maximumObservedRawY == Float.MIN_VALUE ? 1 : maximumObservedRawY;
 
     // otherwise step is off
-    minimumObservedRawX =
-        !oddsDisplay ? (minimumObservedRawX > 0 ? 0 : minimumObservedRawX) : minimumObservedRawX;
+    minimumObservedRawX = !oddsDisplay ? (minimumObservedRawX > 0 ? 0 : minimumObservedRawX)
+                                       : minimumObservedRawX;
     minimumObservedRawY = minimumObservedRawY > 0 ? 0 : minimumObservedRawY;
 
     minimumObservedRawX = Float.isNaN(forcePlotXmin) ? minimumObservedRawX : forcePlotXmin;
-    maximumObservedRawX = Float.isNaN(forcePlotXmax)
-                                                     ? (maximumObservedRawX
-                                                        + (maximumObservedRawX
-                                                           - minimumObservedRawX)
-                                                          * (float) 0.01)
-                                                     : forcePlotXmax;
+    maximumObservedRawX =
+                        Float.isNaN(forcePlotXmax) ? (maximumObservedRawX
+                                                      + (maximumObservedRawX - minimumObservedRawX)
+                                                        * (float) 0.01)
+                                                   : forcePlotXmax;
     minimumObservedRawY = Float.isNaN(forcePlotYmin) ? minimumObservedRawY : forcePlotYmin;
-    maximumObservedRawY = Float.isNaN(forcePlotYmax)
-                                                     ? (maximumObservedRawY
-                                                        + (maximumObservedRawY
-                                                           - minimumObservedRawY)
-                                                          * (float) 0.01)
-                                                     : forcePlotYmax;
+    maximumObservedRawY =
+                        Float.isNaN(forcePlotYmax) ? (maximumObservedRawY
+                                                      + (maximumObservedRawY - minimumObservedRawY)
+                                                        * (float) 0.01)
+                                                   : forcePlotYmax;
 
     setNumberOfNaNSamples(0);
     int leftsize = 0;

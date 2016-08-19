@@ -100,8 +100,8 @@ public class MarkerBlastAnnotation implements AnnotationParser {
                       .getAttributeAsString(BLAST_ANNOTATION_TYPES.values()[i].toString(),
                                             BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue());
       if (!info.equals(BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue())) {
-        List<String> groups =
-            Arrays.asList(info.replaceAll("\\[", "").replaceAll("\\]", "").split("\\s*,\\s*"));
+        List<String> groups = Arrays.asList(info.replaceAll("\\[", "").replaceAll("\\]", "")
+                                                .split("\\s*,\\s*"));
         for (String group : groups) {
           String[] segCigarStrand = group.split("/");
           int[] location = Positions.parseUCSClocation(segCigarStrand[1]);
@@ -116,15 +116,15 @@ public class MarkerBlastAnnotation implements AnnotationParser {
       }
     }
     blastAlignmentHistogram =
-        new MarkerBlastHistogramAnnotation(MarkerBlastHistogramAnnotation.DEFAULT_NAME,
-                                           MarkerBlastHistogramAnnotation.DEFAULT_DESCRIPTION,
-                                           null);
+                            new MarkerBlastHistogramAnnotation(MarkerBlastHistogramAnnotation.DEFAULT_NAME,
+                                                               MarkerBlastHistogramAnnotation.DEFAULT_DESCRIPTION,
+                                                               null);
     blastAlignmentHistogram.parseAnnotation(vc, log);
     markerSeqAnnotation = new MarkerSeqAnnotation();
     markerSeqAnnotation.parseAnnotation(vc, log);
     markerEvalueHistogramAnnotation =
-        new MarkerEvalueHistogramAnnotation(MarkerEvalueHistogramAnnotation.DEFAULT_NAME,
-                                            MarkerEvalueHistogramAnnotation.DEFAULT_DESCRIPTION);
+                                    new MarkerEvalueHistogramAnnotation(MarkerEvalueHistogramAnnotation.DEFAULT_NAME,
+                                                                        MarkerEvalueHistogramAnnotation.DEFAULT_DESCRIPTION);
     markerEvalueHistogramAnnotation.parseAnnotation(vc, log);
   }
 
@@ -146,8 +146,8 @@ public class MarkerBlastAnnotation implements AnnotationParser {
   public static MarkerBlastAnnotation[] initForMarkers(final String[] markers) {
     MarkerBlastAnnotation[] blastAnnotations = new MarkerBlastAnnotation[markers.length];
     for (int i = 0; i < blastAnnotations.length; i++) {
-      blastAnnotations[i] =
-          new MarkerBlastAnnotation(markers[i], BLAST_ANNOTATION_TYPES.values(), 100);
+      blastAnnotations[i] = new MarkerBlastAnnotation(markers[i], BLAST_ANNOTATION_TYPES.values(),
+                                                      100);
     }
     return blastAnnotations;
   }

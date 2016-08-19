@@ -45,8 +45,8 @@ public class QCIterator implements Runnable {
     for (int i = 0; i < targetPercentages.length; i++) {
       log.report(ext.getTime() + " Beginning iterations for target percentage "
                  + targetPercentages[i]);
-      optqcs[i] =
-          iterate(cnvSampleQCHash, cnvQCsAssigned, targetPercentages[i], optimizationType, log);
+      optqcs[i] = iterate(cnvSampleQCHash, cnvQCsAssigned, targetPercentages[i], optimizationType,
+                          log);
       log.report(ext.getTime() + " Finished iterations for target percentage "
                  + targetPercentages[i]);
     }
@@ -64,9 +64,11 @@ public class QCIterator implements Runnable {
     Thread[] threads = new Thread[processors];
     log.report(ext.getTime() + " Prepping cnvQCs in " + plinkCnvQCs + " for comparisons");
     Hashtable<String, Hashtable<String, Integer>> defineCompHash =
-        defineCompLists(proj.PROJECT_DIRECTORY.getValue(), duplicatesFile, log);
-    CNVariantQC[][][] cnvQCsAssigned =
-        CNVariantQC.prepCNVQCsForComparison(proj, plinkCnvQCs, defineCompHash);
+                                                                 defineCompLists(proj.PROJECT_DIRECTORY.getValue(),
+                                                                                 duplicatesFile,
+                                                                                 log);
+    CNVariantQC[][][] cnvQCsAssigned = CNVariantQC.prepCNVQCsForComparison(proj, plinkCnvQCs,
+                                                                           defineCompHash);
     log.report(ext.getTime() + " Finished prepping cnvQCs in " + plinkCnvQCs + " for "
                + cnvQCsAssigned[0].length + " comparisons");
     log.report(ext.getTime() + " Beginning iterations for " + allPercents.length
@@ -83,7 +85,9 @@ public class QCIterator implements Runnable {
   public static void filterByComparison(Project proj, String plinkCnvQCs, String duplicatesFile,
                                         Logger log) {
     Hashtable<String, Hashtable<String, Integer>> defineCompHash =
-        defineCompLists(proj.PROJECT_DIRECTORY.getValue(), duplicatesFile, log);
+                                                                 defineCompLists(proj.PROJECT_DIRECTORY.getValue(),
+                                                                                 duplicatesFile,
+                                                                                 log);
     CNVariantQC.filterCNVQCsByComparison(proj, plinkCnvQCs, defineCompHash);
 
   }
@@ -93,8 +97,9 @@ public class QCIterator implements Runnable {
                                               String QCsubset, int optimizationType) {
     Logger log = proj.getLog();
     OptimizedQCThresholds qcThresholds =
-        OptimizedQCThresholds.loadThresholdsFromTxt(proj.PROJECT_DIRECTORY.getValue()
-                                                    + qcThresholdFileName, log);
+                                       OptimizedQCThresholds.loadThresholdsFromTxt(proj.PROJECT_DIRECTORY.getValue()
+                                                                                   + qcThresholdFileName,
+                                                                                   log);
     log.report(ext.getTime() + " Loaded thresholds from " + proj.PROJECT_DIRECTORY.getValue()
                + qcThresholdFileName);
     log.report(ext.getTime() + " Retrieving sample qc data from "
@@ -102,21 +107,21 @@ public class QCIterator implements Runnable {
     Hashtable<String, CNVSampleQC> cnvSampleQCHash = CNVSampleQC.getSampleQCs(proj, SampleQCFile);
     log.report(ext.getTime() + " Loading cnvQCs from " + proj.PROJECT_DIRECTORY.getValue()
                + plinkCnvQCs);
-    CNVariantQC[] cnVariantQCs =
-        CNVQC.load(proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs, false).getCnVariantQCs();
+    CNVariantQC[] cnVariantQCs = CNVQC.load(proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs, false)
+                                      .getCnVariantQCs();
     log.report(ext.getTime() + " Finished loading cnvQCs from " + proj.PROJECT_DIRECTORY.getValue()
                + plinkCnvQCs);
     String[] inds = CNVariantQC.getIDList(cnVariantQCs, null);
     CNVariantQC[][] unfilteredcnvsQCs = new CNVariantQC[inds.length][];
-    Hashtable<String, CNVariantQC[]> allIndcnVariantQCs =
-        CNVariantQC.getIndCNVQCs(inds, cnVariantQCs);
+    Hashtable<String, CNVariantQC[]> allIndcnVariantQCs = CNVariantQC.getIndCNVQCs(inds,
+                                                                                   cnVariantQCs);
     for (int i = 0; i < inds.length; i++) {
       unfilteredcnvsQCs[i] = allIndcnVariantQCs.get(inds[i]);
     }
     log.report(ext.getTime() + " Beginning to filter " + plinkCnvQCs + " using filter type "
                + CNVComparison.QC_PARAMETERs[optimizationType]);
-    CNVComparison filteredOnly =
-        new CNVComparison(unfilteredcnvsQCs, cnvSampleQCHash, qcThresholds, optimizationType, log);
+    CNVComparison filteredOnly = new CNVComparison(unfilteredcnvsQCs, cnvSampleQCHash, qcThresholds,
+                                                   optimizationType, log);
     log.report(ext.getTime() + " Finished Filtering " + plinkCnvQCs + " using filter type "
                + CNVComparison.QC_PARAMETERs[optimizationType]);
     CNVariantQC[][] filteredcnvsQCs = filteredOnly.getFilteredcnvQCs1();
@@ -162,8 +167,8 @@ public class QCIterator implements Runnable {
     if (QCsubset != null) {
       log.report(ext.getTime() + " Filtering cnvs by the QC subset file");
       inds =
-          CNVariantQC.getIDList(cnVariantQCs,
-                                defineCompLists(proj.PROJECT_DIRECTORY.getValue(), QCsubset, log));
+           CNVariantQC.getIDList(cnVariantQCs,
+                                 defineCompLists(proj.PROJECT_DIRECTORY.getValue(), QCsubset, log));
       log.report(ext.getTime()
                  + " Finished filtering cnvs by the QC subset file , computing cnv QC metrics for "
                  + inds.length + " individuals");
@@ -172,8 +177,8 @@ public class QCIterator implements Runnable {
       log.report(ext.getTime() + " Using " + inds.length
                  + " individuals to compute cnv QC metrics ");
     }
-    Hashtable<String, CNVariantQC[]> allIndcnVariantQCs =
-        CNVariantQC.getIndCNVQCs(inds, cnVariantQCs);
+    Hashtable<String, CNVariantQC[]> allIndcnVariantQCs = CNVariantQC.getIndCNVQCs(inds,
+                                                                                   cnVariantQCs);
     Hashtable<String, Double> markerMAFhash = hashMAFs(markerNames, mafs);
     log.report(ext.getTime() + " Retrieving markers in cnvs and assigning MAFs");
     for (String ind : inds) {
@@ -183,8 +188,10 @@ public class QCIterator implements Runnable {
       }
     }
     CNVariantQC[][] allIndcnVariantQCsArrays =
-        CNValidate.computeMultiThreadedValidations(proj, inds, allIndcnVariantQCs, markerSet,
-                                                   threads);
+                                             CNValidate.computeMultiThreadedValidations(proj, inds,
+                                                                                        allIndcnVariantQCs,
+                                                                                        markerSet,
+                                                                                        threads);
     printNewCNVariantQCFile(proj, output, inds, allIndcnVariantQCsArrays);
     log.report(ext.getTime() + " Completed QC computations");
   }
@@ -193,7 +200,7 @@ public class QCIterator implements Runnable {
   public static void compareFiles(Project proj, String[] plinkCnvQCs, String[] SampleQCFiles,
                                   String compareThresholdFileName, Logger log) {
     Hashtable<Integer, Hashtable<String, CNVariantQC[]>> fileIndcnVariantQCs =
-        new Hashtable<Integer, Hashtable<String, CNVariantQC[]>>();
+                                                                             new Hashtable<Integer, Hashtable<String, CNVariantQC[]>>();
     String[][] inds = new String[plinkCnvQCs.length][];
     int[][] allPossibleCombinations = Maths.getIndicesForAllCombinations(plinkCnvQCs.length, 2);
     // CNVComparison cnvComparison;
@@ -229,20 +236,23 @@ public class QCIterator implements Runnable {
       CNVComparison cnvComparison;
       if (SampleQCFiles == null || compareThresholdFileName == null) {
         cnvComparison =
-            new CNVComparison(unfilteredcnvsQCs1, unfilteredcnvsQCs2, null, null, 0, log);
+                      new CNVComparison(unfilteredcnvsQCs1, unfilteredcnvsQCs2, null, null, 0, log);
       } else {
         log.report("Filtering on sample QC before comparisons");
         OptimizedQCThresholds qcThresholds =
-            OptimizedQCThresholds.loadThresholdsFromTxt(proj.PROJECT_DIRECTORY.getValue()
-                                                        + compareThresholdFileName, log);
+                                           OptimizedQCThresholds.loadThresholdsFromTxt(proj.PROJECT_DIRECTORY.getValue()
+                                                                                       + compareThresholdFileName,
+                                                                                       log);
         Hashtable<String, CNVSampleQC> cnvSampleQCHash1 =
-            CNVSampleQC.getSampleQCs(proj, SampleQCFiles[allPossibleCombination[0]]);
+                                                        CNVSampleQC.getSampleQCs(proj,
+                                                                                 SampleQCFiles[allPossibleCombination[0]]);
         Hashtable<String, CNVSampleQC> cnvSampleQCHash2 =
-            CNVSampleQC.getSampleQCs(proj, SampleQCFiles[allPossibleCombination[1]]);
-        CNVComparison filteredOnly1 =
-            new CNVComparison(unfilteredcnvsQCs1, cnvSampleQCHash1, qcThresholds, 1, log);
-        CNVComparison filteredOnly2 =
-            new CNVComparison(unfilteredcnvsQCs2, cnvSampleQCHash2, qcThresholds, 1, log);
+                                                        CNVSampleQC.getSampleQCs(proj,
+                                                                                 SampleQCFiles[allPossibleCombination[1]]);
+        CNVComparison filteredOnly1 = new CNVComparison(unfilteredcnvsQCs1, cnvSampleQCHash1,
+                                                        qcThresholds, 1, log);
+        CNVComparison filteredOnly2 = new CNVComparison(unfilteredcnvsQCs2, cnvSampleQCHash2,
+                                                        qcThresholds, 1, log);
         CNVariantQC[][] filteredcnvsQCs1 = filteredOnly1.getFilteredcnvQCs1();
         CNVariantQC[][] filteredcnvsQCs2 = filteredOnly2.getFilteredcnvQCs1();
         ArrayList<CNVariantQC[]> cnvQC1 = new ArrayList<CNVariantQC[]>();
@@ -281,8 +291,8 @@ public class QCIterator implements Runnable {
   private static void writeMisses(Project proj, ArrayList<CNVariantQC> misses, Logger log) {
     log.report("writing unmatched calls to " + proj.PROJECT_DIRECTORY.getValue() + "misses.cnv");
     try {
-      PrintWriter missWriter =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "misses.cnv"));
+      PrintWriter missWriter = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                              + "misses.cnv"));
       missWriter.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
       for (int i = 0; i < misses.size(); i++) {
         missWriter.println(misses.get(i).getCnVariant().toPlinkFormat());
@@ -315,12 +325,12 @@ public class QCIterator implements Runnable {
       defineCompHash = defineCompLists(proj.PROJECT_DIRECTORY.getValue(), QCsubset, log);
     }
     try {
-      sampleWriter =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output + ".txt"));
-      famWriter =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output + ".fam"));
-      cnvWriter =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output + ".cnv"));
+      sampleWriter = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output
+                                                    + ".txt"));
+      famWriter = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output
+                                                 + ".fam"));
+      cnvWriter = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output
+                                                 + ".cnv"));
       sampleWriter.println("Sample\tPassQC?0:1");
       cnvWriter.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
       for (int i = 0; i < inds.length; i++) {
@@ -355,13 +365,14 @@ public class QCIterator implements Runnable {
                                           double targetConcordancePercentage, int optimizationType,
                                           Logger log) {
     OptimizedQCThresholds[] bestOptqcs =
-        OptimizedQCThresholds.getNewOptqcs(targetConcordancePercentage, 6);
+                                       OptimizedQCThresholds.getNewOptqcs(targetConcordancePercentage,
+                                                                          6);
     OptimizedQCThresholds[] qcThresholds = getQCIterations();
     log.report(ext.getTime() + " Iterating " + qcThresholds.length + " parameter combinations");
     for (OptimizedQCThresholds qcThreshold : qcThresholds) {
       CNVComparison cnvComp =
-          new CNVComparison(cnvQCsAssigned[0], cnvQCsAssigned[1], cnvSampleQCHash, qcThreshold,
-                            optimizationType, log);
+                            new CNVComparison(cnvQCsAssigned[0], cnvQCsAssigned[1], cnvSampleQCHash,
+                                              qcThreshold, optimizationType, log);
       bestOptqcs = checkThresholds(cnvComp, bestOptqcs, targetConcordancePercentage, qcThreshold);
     }
     return bestOptqcs;
@@ -456,11 +467,11 @@ public class QCIterator implements Runnable {
     for (int i = 0; i < averageCNPercent.length; i++) {
       if (averageCNPercent[i] >= targetConcordancePercentage
           && bestOptqcs[i].getCallsPassingFilter() < numCallsPassing[i]) {
-        bestOptqcs[i] =
-            new OptimizedQCThresholds(qcIteration, targetConcordancePercentage, averageCNPercent[i],
-                                      numCallsPassing[i], cnvComp.getGoodCalls()[i],
-                                      cnvComp.getTotalCallsAvailable()[i],
-                                      cnvComp.getNumberIndsCompared(), i);
+        bestOptqcs[i] = new OptimizedQCThresholds(qcIteration, targetConcordancePercentage,
+                                                  averageCNPercent[i], numCallsPassing[i],
+                                                  cnvComp.getGoodCalls()[i],
+                                                  cnvComp.getTotalCallsAvailable()[i],
+                                                  cnvComp.getNumberIndsCompared(), i);
       }
     }
     return bestOptqcs;
@@ -545,7 +556,7 @@ public class QCIterator implements Runnable {
                                                                                String compFile,
                                                                                Logger log) {
     Hashtable<String, Hashtable<String, Integer>> defineCompHash =
-        new Hashtable<String, Hashtable<String, Integer>>();
+                                                                 new Hashtable<String, Hashtable<String, Integer>>();
     BufferedReader reader;
     String[] line;
     int maxNumComparisions = 0;
@@ -655,13 +666,13 @@ public class QCIterator implements Runnable {
     Logger log = proj.getLog();
 
     try {
-      PrintWriter qcoutput =
-          new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + output, false));
+      PrintWriter qcoutput = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                            + output, false));
       qcoutput.println(Array.toStr(OptimizedQCThresholds.OPT_QC_HEADS));
       for (OptimizedQCThresholds[] optqc : optqcs) {
         qcoutput.println(Array.toStr(OptimizedQCThresholds.OPT_QC_HEADS));
-        for (int k = 0; k < optqc.length; k++) {
-          qcoutput.print(optqc[k].getDisplayString());
+        for (OptimizedQCThresholds element : optqc) {
+          qcoutput.print(element.getDisplayString());
           qcoutput.print("\n");
         }
       }

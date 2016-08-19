@@ -143,8 +143,8 @@ public class checkForDupes {
                                + " in current directory");
             System.exit(2);
           }
-          bakFilename =
-              Files.getBakFilename("chromosome" + chromosome + ".dat", super.getClass().getName());
+          bakFilename = Files.getBakFilename("chromosome" + chromosome + ".dat",
+                                             super.getClass().getName());
           (new File("chromosome" + chromosome + ".dat")).renameTo(new File(bakFilename));
           reader = new BufferedReader(new FileReader(bakFilename));
           writer = new PrintWriter(new FileWriter("chromosome" + chromosome + ".dat"));

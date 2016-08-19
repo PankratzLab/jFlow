@@ -75,7 +75,7 @@ public class SNPEFF {
   public boolean runSnpEffCountOnBamDirectory(String inputDirectory, String output, String build,
                                               String match, String bedFile, int numThreads) {
     String[] inputBams =
-        Files.toFullPaths(Files.list(inputDirectory, match, false), inputDirectory);
+                       Files.toFullPaths(Files.list(inputDirectory, match, false), inputDirectory);
     if (inputBams != null && inputBams.length > 0) {
       return runSnpEFFCount(inputBams, output, build, bedFile, numThreads);
     } else {
@@ -103,9 +103,9 @@ public class SNPEFF {
     String batFile = ext.addToRoot(output, ".bat");
     Files.write(Array.toStr(command, " "), batFile);
     Files.chmod(batFile);
-    progress =
-        CmdLine.runCommandWithFileChecks(new String[] {batFile}, "", inputs, new String[] {output},
-                                         verbose, overWriteExistingOutput, false, log);
+    progress = CmdLine.runCommandWithFileChecks(new String[] {batFile}, "", inputs,
+                                                new String[] {output}, verbose,
+                                                overWriteExistingOutput, false, log);
     return progress;
   }
 
@@ -121,9 +121,9 @@ public class SNPEFF {
     boolean progress = true;
     String[] inputFiles = new String[] {snpEffResult.getInputVCF()};
     String[] outputFiles = new String[] {snpEffResult.getOutputSnpEffVCF()};
-    String[] command =
-        new String[] {JAVA, JAR, snpEffLocation + SNP_EFF, V, O, GATK, build,
-                      snpEffResult.getInputVCF(), CARROT, snpEffResult.getOutputSnpEffVCF()};
+    String[] command = new String[] {JAVA, JAR, snpEffLocation + SNP_EFF, V, O, GATK, build,
+                                     snpEffResult.getInputVCF(), CARROT,
+                                     snpEffResult.getOutputSnpEffVCF()};
     String batFile = ext.addToRoot(snpEffResult.getInputVCF(), ".bat");
     Files.write(Array.toStr(command, " "), batFile);
     Files.chmod(batFile);

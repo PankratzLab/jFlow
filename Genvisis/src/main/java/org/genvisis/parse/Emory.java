@@ -80,7 +80,7 @@ public class Emory {
     // String filename = "second11.dat";
 
     String dir =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\UMN\\Myron\\ExcisionPathway\\finalScores\\00src\\";
+               "C:\\Documents and Settings\\npankrat\\My Documents\\UMN\\Myron\\ExcisionPathway\\finalScores\\00src\\";
     String filename = "pooled.dat";
 
     try {

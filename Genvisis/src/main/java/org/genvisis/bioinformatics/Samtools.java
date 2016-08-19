@@ -132,7 +132,7 @@ public class Samtools {
   }
 
   /**
-   * 
+   *
    * @param scriptFileName
    * @param trioIdChrPos trioId + chr + pos
    * @param samFilenamesByTrios
@@ -188,7 +188,7 @@ public class Samtools {
   }
 
   /**
-   * 
+   *
    * @param scriptFileName
    * @param trioIdChrPos trioId + chr + pos
    * @param samFilenamesByTrios
@@ -327,7 +327,7 @@ public class Samtools {
     int numArgs = args.length;
     String filename = "Samtools.dat";
     String fullPathToSuperNovoPhase2Output =
-        "N:/statgen/OS_Logan/SuperNovo/output/SuperNovo_summary.txt";
+                                           "N:/statgen/OS_Logan/SuperNovo/output/SuperNovo_summary.txt";
     String fullPathToTrioNameList = "Samtools.dat";
     int windowInBp = 5000;
     String logfile = null;

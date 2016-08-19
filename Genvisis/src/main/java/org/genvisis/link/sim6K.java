@@ -66,9 +66,9 @@ public class sim6K {
     String pre = "fam.pre", map = "6Kpanel_map.dat";
     int numReps = 1000;
 
-    String usage =
-        "\n" + "park.sim6K requires 0-1 arguments\n" + "   (1) family structure file (i.e. pre="
-                   + pre + " (default)\n" + "   (2) map data (i.e. map=" + map + " (default)\n"
+    String usage = "\n" + "park.sim6K requires 0-1 arguments\n"
+                   + "   (1) family structure file (i.e. pre=" + pre + " (default)\n"
+                   + "   (2) map data (i.e. map=" + map + " (default)\n"
                    + "   (3) number of replicates (i.e. reps=" + numReps + " (default)\n" + "";
 
     for (String arg : args) {

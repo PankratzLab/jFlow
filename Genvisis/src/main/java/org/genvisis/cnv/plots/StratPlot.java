@@ -42,9 +42,9 @@ import org.genvisis.common.ext;
 public class StratPlot extends JFrame implements ActionListener, TreeSelectionListener {
   public static final long serialVersionUID = 1L;
   public static final String DEFAULT_FILENAME = "samplesCliskedInStratify.xln";
-  public static final String[] MOSAICISM_HEADER =
-      {"Sample", "Band", "LRR N", "mean LRR", "BAF N", "SD of BAF (0.15-0.85)",
-       "IQR of BAF (0.15-0.85)", "%Homo"};
+  public static final String[] MOSAICISM_HEADER = {"Sample", "Band", "LRR N", "mean LRR", "BAF N",
+                                                   "SD of BAF (0.15-0.85)",
+                                                   "IQR of BAF (0.15-0.85)", "%Homo"};
   public static final Color BACKGROUND_COLOR = Color.WHITE;
   public static final String SWAP_AXES = "Swap Axes";
   public static final String INVERT_X = "Invert X axis";
@@ -52,8 +52,8 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
   public static final String MASK_MISSING = "Mask missing values";
   public static final String UNMASK_MISSING = "Unmask missing values";
   private static final String REFRESH_SAMPLE_DATA = "Refresh SampleData";
-  public static final String[] BUTTONS =
-      {SWAP_AXES, INVERT_X, INVERT_Y, MASK_MISSING, REFRESH_SAMPLE_DATA};
+  public static final String[] BUTTONS = {SWAP_AXES, INVERT_X, INVERT_Y, MASK_MISSING,
+                                          REFRESH_SAMPLE_DATA};
 
   private Project proj;
   private CheckBoxTree tree;
@@ -230,8 +230,8 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
     keys = HashVec.getKeys(hash);
     for (int i = 0; i < keys.length; i++) {
       if (!keys[i].equals("-1")) {
-        block =
-            new JLabel(new ColorIcon(12, 12, StratPanel.DEFAULT_COLORS[Integer.parseInt(keys[i])]));
+        block = new JLabel(new ColorIcon(12, 12,
+                                         StratPanel.DEFAULT_COLORS[Integer.parseInt(keys[i])]));
         label = new JLabel((keys[i].equals("0") ? "missing" : keys[i]) + " (n=" + hash.get(keys[i])
                            + ")");
         label.setFont(new Font("Arial", 0, 14));
@@ -338,9 +338,9 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
           }
           data[i] = new float[n];
           for (int j = 0; j < n; j++) {
-            data[i][j] =
-                line[(sol ? 3 : 2) + j].equals(".") ? Float.NaN
-                                                    : Float.parseFloat(line[(sol ? 3 : 2) + j]);
+            data[i][j] = line[(sol ? 3 : 2) + j].equals(".") ? Float.NaN
+                                                             : Float.parseFloat(line[(sol ? 3 : 2)
+                                                                                     + j]);
           }
         }
         reader.close();

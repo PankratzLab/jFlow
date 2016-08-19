@@ -70,8 +70,8 @@ public class DemoPackage {
           }
         }
 
-        String other =
-            ext.parseDirectoryOfFile(runningJar, false) + ext.removeDirectoryInfo(copyOther);
+        String other = ext.parseDirectoryOfFile(runningJar, false)
+                       + ext.removeDirectoryInfo(copyOther);
         if (Files.exists(other) && !Files.exists(copyOther)
             && !other.endsWith(org.genvisis.common.PSF.Java.GENVISIS)) {
           if (Files.exists(other)) {
@@ -156,14 +156,14 @@ public class DemoPackage {
     // numThreads = numThreads > 0 ? numThreads : proj.getInt(proj.NUM_THREADS);
     numThreads = numThreads > 0 ? numThreads : proj.NUM_THREADS.getValue();
 
-    DemoProject demoProjectMarkerFocus =
-        new DemoProject(proj, demoDirectory, overwriteExisting, DEMO_TYPE.MARKER_FOCUS);
+    DemoProject demoProjectMarkerFocus = new DemoProject(proj, demoDirectory, overwriteExisting,
+                                                         DEMO_TYPE.MARKER_FOCUS);
     demoProjectMarkerFocus.createProjectDemo(markersFile, null, numThreads);// all samples for these
                                                                             // markers...
     saveDemoProperties(proj, demoProjectMarkerFocus, false);
 
-    DemoProject demoProjectSampleFocus =
-        new DemoProject(proj, demoDirectory, overwriteExisting, DEMO_TYPE.SAMPLE_FOCUS);
+    DemoProject demoProjectSampleFocus = new DemoProject(proj, demoDirectory, overwriteExisting,
+                                                         DEMO_TYPE.SAMPLE_FOCUS);
     demoProjectSampleFocus.createProjectDemo(null, samplesFile, numThreads);// all markers for these
                                                                             // samples...
     saveDemoProperties(proj, demoProjectSampleFocus, true);
@@ -209,7 +209,7 @@ public class DemoPackage {
                                          boolean overwriteExisting) {
 
     demoDirectory =
-        demoDirectory == null ? proj.DEMO_DIRECTORY.getValue(true, false) : demoDirectory;
+                  demoDirectory == null ? proj.DEMO_DIRECTORY.getValue(true, false) : demoDirectory;
     proj.getLog().reportTimeInfo("Using demo directory " + demoDirectory);
     DemoPackage demoPackage = new DemoPackage(demoDirectory, proj.getLog());
     if (!demoPackage.isFail()) {
@@ -236,15 +236,15 @@ public class DemoPackage {
              + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" + "";
     usage += "   OPTIONAL";
     usage +=
-        "   (2) full path to a file with markers to export for marker focused project (i.e. markersFile= ( default exports \"TARGET_MARKERS_FILENAME\", and all markers if targets does not exist))\n"
+          "   (2) full path to a file with markers to export for marker focused project (i.e. markersFile= ( default exports \"TARGET_MARKERS_FILENAME\", and all markers if targets does not exist))\n"
              + "";
     usage +=
-        "   (3) full path to a file of samples to export for sample focused project (i.e. samplesFile= ( default exports \"Project.SAMPLE_SUBSET_FILENAME\" and all samples if subset file does not exist))\n"
+          "   (3) full path to a file of samples to export for sample focused project (i.e. samplesFile= ( default exports \"Project.SAMPLE_SUBSET_FILENAME\" and all samples if subset file does not exist))\n"
              + "";
     usage += "   (4) number of threads (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + numThreads
              + " ( defaults to \"NUM_THREADS\" ))\n" + "";
     usage +=
-        "   (5) force overwrite option for existing demos (i.e. -overwriteExisting (not the default))\n"
+          "   (5) force overwrite option for existing demos (i.e. -overwriteExisting (not the default))\n"
              + "";
 
     for (String arg : args) {
@@ -324,11 +324,11 @@ public class DemoPackage {
     // String markersFile = !Files.exists(proj.getFilename(proj.TARGET_MARKERS_FILENAME)) ? null :
     // proj.getFilename(proj.TARGET_MARKERS_FILENAME);
     String samplesFile =
-        !Files.exists(proj.SAMPLE_SUBSET_FILENAME.getValue()) ? null
-                                                              : proj.SAMPLE_SUBSET_FILENAME.getValue();
+                       !Files.exists(proj.SAMPLE_SUBSET_FILENAME.getValue()) ? null
+                                                                             : proj.SAMPLE_SUBSET_FILENAME.getValue();
     String markersFile =
-        !Files.exists(proj.TARGET_MARKERS_FILENAMES.getDefaultValueString()) ? null
-                                                                             : proj.TARGET_MARKERS_FILENAMES.getDefaultValueString();
+                       !Files.exists(proj.TARGET_MARKERS_FILENAMES.getDefaultValueString()) ? null
+                                                                                            : proj.TARGET_MARKERS_FILENAMES.getDefaultValueString();
     JLabel sampleExists = new JLabel(samplesFile == null ? fileDoesNotExist : fileExists);
     JLabel markerExists = new JLabel(markersFile == null ? fileDoesNotExist : fileExists);
 
@@ -386,8 +386,8 @@ public class DemoPackage {
     JPanel filePanel = new JPanel(new GridLayout(2, 0));
     // JTextField sampFileText = new
     // JTextField(proj.getFilename(proj.SAMPLE_SUBSET_FILENAME).replaceAll("\"", ""));
-    JTextField sampFileText =
-        new JTextField(proj.SAMPLE_SUBSET_FILENAME.getValue().replaceAll("\"", ""));
+    JTextField sampFileText = new JTextField(proj.SAMPLE_SUBSET_FILENAME.getValue().replaceAll("\"",
+                                                                                               ""));
     sampFileText.setSize(width, 30);
     // JTextField markFileText = new
     // JTextField(proj.getFilename(proj.TARGET_MARKERS_FILENAME).replaceAll("\"", ""));
@@ -396,12 +396,12 @@ public class DemoPackage {
     filePanel.add(sampFileText, BorderLayout.SOUTH);
 
     JPanel selectPanel = new JPanel(new GridLayout(2, 2));
-    SelectButton markerButton =
-        new SelectButton(jFrame, proj, "Select Marker File", markFileText, markerExists);
+    SelectButton markerButton = new SelectButton(jFrame, proj, "Select Marker File", markFileText,
+                                                 markerExists);
     selectPanel.add(markerButton, BorderLayout.NORTH);
     selectPanel.add(markerExists);
-    SelectButton sampButton =
-        new SelectButton(jFrame, proj, "Select Sample File", sampFileText, sampleExists);
+    SelectButton sampButton = new SelectButton(jFrame, proj, "Select Sample File", sampFileText,
+                                               sampleExists);
     selectPanel.add(sampButton, BorderLayout.SOUTH);
     selectPanel.add(sampleExists);
     GoButton goButton = new GoButton(proj, markerButton, sampButton, jFrame);

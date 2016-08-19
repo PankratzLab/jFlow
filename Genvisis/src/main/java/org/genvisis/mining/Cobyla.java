@@ -53,7 +53,7 @@ public class Cobyla {
    * Minimizes the objective function F with respect to a set of inequality constraints CON, and
    * returns the optimal variable array. F and CON may be non-linear, and should preferably be
    * smooth.
-   * 
+   *
    * @param calcfc Interface implementation for calculating objective function and constraints.
    * @param n Number of variables.
    * @param m Number of constraints.
@@ -143,7 +143,7 @@ public class Cobyla {
         if (x_bound != null) {
           if (x_bound.length != 2) {
             String error =
-                "If explicit x bounds are set, each x must have an upper and lower bound";
+                         "If explicit x bounds are set, each x must have an upper and lower bound";
             throw new IllegalArgumentException(error);
           }
           if (x_bound[0] >= x_bound[1]) {
@@ -210,8 +210,8 @@ public class Cobyla {
       }
     };
 
-    CobylaExitStatus status =
-        cobylb(fcalcfc, n, m, mpp, iox, x_bounds, rhobeg, rhoend, iprint, maxfun);
+    CobylaExitStatus status = cobylb(fcalcfc, n, m, mpp, iox, x_bounds, rhobeg, rhoend, iprint,
+                                     maxfun);
     System.arraycopy(iox, 1, x, 0, n);
 
     return status;
@@ -443,8 +443,8 @@ public class Cobyla {
               }
 
               for (int i = 1; i <= n; ++i) {
-                a[i][k] =
-                    (k == mp ? -1.0 : 1.0) * DOT_PRODUCT(PART(w, 1, n), PART(COL(simi, i), 1, n));
+                a[i][k] = (k == mp ? -1.0 : 1.0)
+                          * DOT_PRODUCT(PART(w, 1, n), PART(COL(simi, i), 1, n));
               }
             }
 
@@ -904,7 +904,7 @@ public class Cobyla {
 
         L_70: do {
           double optnew =
-              mcon == m ? resmax : -DOT_PRODUCT(PART(dx, 1, n), PART(COL(a, mcon), 1, n));
+                        mcon == m ? resmax : -DOT_PRODUCT(PART(dx, 1, n), PART(COL(a, mcon), 1, n));
 
           if (icount == 0 || optnew < optold) {
             optold = optnew;

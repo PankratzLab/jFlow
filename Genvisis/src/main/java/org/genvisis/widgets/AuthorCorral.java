@@ -116,8 +116,8 @@ public class AuthorCorral {
           errors.add(err);
         } else {
           if ("".equals(line[3].trim())) {
-            String err =
-                "[Dept/Div/Inst] is blank for <" + fullname + "> for <" + line[4].trim() + ">";
+            String err = "[Dept/Div/Inst] is blank for <" + fullname + "> for <" + line[4].trim()
+                         + ">";
             System.err.println("Error - " + err);
             errors.add(err);
           }
@@ -378,9 +378,9 @@ public class AuthorCorral {
   public static void main(String[] args) {
     int numArgs = args.length;
     String inFile =
-        "C:/Users/pankr018/Documents/My Tresors/Nathan's tresor/Hematology/Acceptance/input2k4.txt";
+                  "C:/Users/pankr018/Documents/My Tresors/Nathan's tresor/Hematology/Acceptance/input2k4.txt";
     String outFile =
-        "C:/Users/pankr018/Documents/My Tresors/Nathan's tresor/Hematology/Acceptance/input2k4.rtf";
+                   "C:/Users/pankr018/Documents/My Tresors/Nathan's tresor/Hematology/Acceptance/input2k4.rtf";
     boolean rtf = true;
     boolean err = true;
     boolean periodsAfterInitials = false;

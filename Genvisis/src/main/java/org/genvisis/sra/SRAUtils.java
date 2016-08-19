@@ -133,8 +133,8 @@ public class SRAUtils {
     String bamDir = outDir + "bams/";
     new File(bamDir).mkdirs();
 
-    WorkerHive<SRAConversionResult> hive =
-        new WorkerHive<SRAUtils.SRAConversionResult>(threads, 10, log);
+    WorkerHive<SRAConversionResult> hive = new WorkerHive<SRAUtils.SRAConversionResult>(threads, 10,
+                                                                                        log);
     for (String sraFile : sraFiles) {
       sraFile = sraFile.trim();
       hive.addCallable(new SRABamWorker(sraFile, bamDir + ext.rootOf(sraFile) + ".bam", log));
@@ -150,8 +150,8 @@ public class SRAUtils {
     int threads = 24;
 
     String usage =
-        "\n" + " SRAUtils requires 0-1 arguments\n" + "   (1) SRA directory (i.e. sraDir=" + sraDir
-                   + " (default))\n" + "   (2) out directory (i.e. outDir=" + outDir
+                 "\n" + " SRAUtils requires 0-1 arguments\n" + "   (1) SRA directory (i.e. sraDir="
+                   + sraDir + " (default))\n" + "   (2) out directory (i.e. outDir=" + outDir
                    + " (default))\n" + PSF.Ext.getNumThreadsCommand(3, threads) + "";
 
     for (String arg : args) {

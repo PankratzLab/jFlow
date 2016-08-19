@@ -134,8 +134,8 @@ public class Recode implements Runnable {
     int stop = -1;
     int threads = 1;
 
-    String usage =
-        "\n" + "link.recode requires 0-3 arguments\n" + "   recode all chromosomes: recode\n"
+    String usage = "\n" + "link.recode requires 0-3 arguments\n"
+                   + "   recode all chromosomes: recode\n"
                    + "   recode in specific directory: recode dir=check/\n"
                    + "   recode chromosome 6: recode 6\n"
                    + "   recode chromosomes 1 through 5: recode 1 5\n"

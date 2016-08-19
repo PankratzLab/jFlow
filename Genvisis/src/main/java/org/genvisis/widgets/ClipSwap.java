@@ -1,7 +1,5 @@
 package org.genvisis.widgets;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.File;
 import java.util.Date;
 import java.util.HashSet;
@@ -20,6 +18,8 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.SerialStringArray;
 import org.genvisis.gwas.MetaAnalysis;
 import org.genvisis.stats.Histogram;
+
+import com.google.common.primitives.Doubles;
 
 public class ClipSwap {
   public static final String CONTRACT_EXPAND_DELIM = "^";
@@ -252,9 +252,9 @@ public class ClipSwap {
     time = new Date().getTime();
     temp = new StringBuilder();
     try {
-      result =
-          Files.combineInMemory(keys, Matrix.toMatrix(ext.getClipboard().trim().split("\\n"), "\t"),
-                                ".", false, false, log);
+      result = Files.combineInMemory(keys,
+                                     Matrix.toMatrix(ext.getClipboard().trim().split("\\n"), "\t"),
+                                     ".", false, false, log);
       if (new Date().getTime() - time > 1 * 1000) { // report if it took more than a second
         log.report("Performed lookup in " + ext.getTimeElapsed(time));
       }

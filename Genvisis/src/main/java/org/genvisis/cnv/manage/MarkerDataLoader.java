@@ -112,7 +112,7 @@ public class MarkerDataLoader implements Runnable {
 
     if (amountToLoadAtOnceInMB <= 0) {
       amountToLoadAtOnceInMB =
-          (int) ((double) Runtime.getRuntime().maxMemory() / 1024 / 1024 * 0.80);
+                             (int) ((double) Runtime.getRuntime().maxMemory() / 1024 / 1024 * 0.80);
       log.report("80% of max memory available ("
                  + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1)
                  + ") will be used by MarkerDataLoader: ");
@@ -182,8 +182,8 @@ public class MarkerDataLoader implements Runnable {
       // (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus
       // >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01);
       nBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
-      nSampObserved =
-          Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKERDATA_NUMSAMPLES_START);
+      nSampObserved = Compression.bytesToInt(parameterReadBuffer,
+                                             TransposeData.MARKERDATA_NUMSAMPLES_START);
       file.close();
       return nSampObserved * nBytesPerSampleMarker;
 
@@ -482,7 +482,7 @@ public class MarkerDataLoader implements Runnable {
    * Load MarkerData of selected markers from a single Random Access File of 12-byte
    * (half-precision) format that has incorporated the marker names. Load marker data (RAF) approach
    * 7b.
-   * 
+   *
    * @param proj
    * @param markerNamesOfInterest
    * @return
@@ -535,16 +535,16 @@ public class MarkerDataLoader implements Runnable {
       bytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
       numBytesPerMarker = bytesPerSampleMarker * numSamplesProj;
       readBuffer = new byte[markersIndicesInFile.length][numBytesPerMarker];
-      numSamplesObserved =
-          Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKERDATA_NUMSAMPLES_START);
+      numSamplesObserved = Compression.bytesToInt(parameterReadBuffer,
+                                                  TransposeData.MARKERDATA_NUMSAMPLES_START);
       if (numSamplesObserved != numSamplesProj) {
         log.reportError("Error - mismatched number of samples between sample list (n="
                         + numSamplesProj + ") and file '" + currentMarkFilename + "' (n="
                         + numSamplesObserved + ")");
         System.exit(1);
       }
-      fingerprint =
-          Compression.bytesToLong(parameterReadBuffer, TransposeData.MARKERDATA_FINGERPRINT_START);
+      fingerprint = Compression.bytesToLong(parameterReadBuffer,
+                                            TransposeData.MARKERDATA_FINGERPRINT_START);
       if (fingerprint != sampleFingerprint) {
         log.reportError("Error - mismatched sample fingerprints between sample list and file '"
                         + currentMarkFilename + "'");
@@ -552,11 +552,12 @@ public class MarkerDataLoader implements Runnable {
       }
 
       numBytesMarkernamesSection =
-          Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKERDATA_MARKERNAMELEN_START);
+                                 Compression.bytesToInt(parameterReadBuffer,
+                                                        TransposeData.MARKERDATA_MARKERNAMELEN_START);
       // TODO to optimize here. Adjacent markers can be read in at once.
       for (int i = 0; i < markersIndicesInFile.length; i++) {
-        seekLocation =
-            (long) TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN + (long) numBytesMarkernamesSection
+        seekLocation = (long) TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN
+                       + (long) numBytesMarkernamesSection
                        + markersIndicesInFile[i] * (long) numBytesPerMarker;
         file.seek(seekLocation);
         file.read(readBuffer[i]);
@@ -603,19 +604,19 @@ public class MarkerDataLoader implements Runnable {
           for (int j = 0; j < numSamplesProj; j++) {
             if (isNegativeXYAllowed) {
               xs[j] =
-                  Compression.xyDecompressAllowNegative(new byte[] {readBuffer[i][indexReadBuffer],
-                                                                    readBuffer[i][indexReadBuffer
-                                                                                  + 1]});
+                    Compression.xyDecompressAllowNegative(new byte[] {readBuffer[i][indexReadBuffer],
+                                                                      readBuffer[i][indexReadBuffer
+                                                                                    + 1]});
             } else {
               xs[j] =
-                  Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[i][indexReadBuffer],
-                                                                   readBuffer[i][indexReadBuffer
-                                                                                 + 1]});
+                    Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[i][indexReadBuffer],
+                                                                     readBuffer[i][indexReadBuffer
+                                                                                   + 1]});
             }
             if (xs[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
               // xs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tx");
-              Float f =
-                  outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\tx");
+              Float f = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j]
+                                             + "\tx");
               if (f == null) {
                 // System.out.println(outOfRangeValues.keySet());
                 if (allSampsInProj == null || allMarkersInProj == null
@@ -647,19 +648,19 @@ public class MarkerDataLoader implements Runnable {
           for (int j = 0; j < numSamplesProj; j++) {
             if (isNegativeXYAllowed) {
               ys[j] =
-                  Compression.xyDecompressAllowNegative(new byte[] {readBuffer[i][indexReadBuffer],
-                                                                    readBuffer[i][indexReadBuffer
-                                                                                  + 1]});
+                    Compression.xyDecompressAllowNegative(new byte[] {readBuffer[i][indexReadBuffer],
+                                                                      readBuffer[i][indexReadBuffer
+                                                                                    + 1]});
             } else {
               ys[j] =
-                  Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[i][indexReadBuffer],
-                                                                   readBuffer[i][indexReadBuffer
-                                                                                 + 1]});
+                    Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[i][indexReadBuffer],
+                                                                     readBuffer[i][indexReadBuffer
+                                                                                   + 1]});
             }
             if (ys[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
               // ys[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\ty");
-              Float f =
-                  outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\ty");
+              Float f = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j]
+                                             + "\ty");
               if (f == null) {
                 if (allSampsInProj == null || allMarkersInProj == null
                     || markersIndicesInProj == null) {
@@ -742,13 +743,14 @@ public class MarkerDataLoader implements Runnable {
           indexReadBuffer += bytesPerSampleMarker;
         }
       }
-      result[i] =
-          new MarkerData(allMarkersInProj == null ? null
-                                                  : allMarkersInProj[markersIndicesInProj[i]],
-                         allChrsInProj == null ? (byte) -1 : allChrsInProj[markersIndicesInProj[i]],
-                         allPosInProj == null ? -1 : allPosInProj[markersIndicesInProj[i]],
-                         fingerprint, gcs, null, null, xs, ys, null, null, bafs, lrrs, abGenotypes,
-                         forwardGenotypes);
+      result[i] = new MarkerData(
+                                 allMarkersInProj == null ? null
+                                                          : allMarkersInProj[markersIndicesInProj[i]],
+                                 allChrsInProj == null ? (byte) -1
+                                                       : allChrsInProj[markersIndicesInProj[i]],
+                                 allPosInProj == null ? -1 : allPosInProj[markersIndicesInProj[i]],
+                                 fingerprint, gcs, null, null, xs, ys, null, null, bafs, lrrs,
+                                 abGenotypes, forwardGenotypes);
     }
     return result;
   }
@@ -775,25 +777,26 @@ public class MarkerDataLoader implements Runnable {
     try {
       file = new RandomAccessFile(markerDataRafFileName, "r");
       file.read(parameterReadBuffer);
-      numSamplesProj =
-          Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKERDATA_NUMSAMPLES_START);
-      numMarkersCurrentFile =
-          Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKERDATA_NUMMARKERS_START);
-      fingerprintActual =
-          Compression.bytesToLong(parameterReadBuffer, TransposeData.MARKERDATA_FINGERPRINT_START);
+      numSamplesProj = Compression.bytesToInt(parameterReadBuffer,
+                                              TransposeData.MARKERDATA_NUMSAMPLES_START);
+      numMarkersCurrentFile = Compression.bytesToInt(parameterReadBuffer,
+                                                     TransposeData.MARKERDATA_NUMMARKERS_START);
+      fingerprintActual = Compression.bytesToLong(parameterReadBuffer,
+                                                  TransposeData.MARKERDATA_FINGERPRINT_START);
       if (fingerprintActual != fingerprintShouldBe) {
         log.reportError("Error - mismatched sample fingerprints between sample list and file '"
                         + markerDataRafFileName + "'");
         System.exit(1);
       }
       numBytesPerSampleMarker =
-          Sample.getNBytesPerSampleMarker(parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START]);
+                              Sample.getNBytesPerSampleMarker(parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START]);
       numBytesPerMarker = numBytesPerSampleMarker * numSamplesProj;
       if (numOfSamplesToLoad <= 0 || numOfSamplesToLoad > numSamplesProj) {
         numOfSamplesToLoad = numSamplesProj;
       }
       numBytesMarkernamesSection =
-          Compression.bytesToInt(parameterReadBuffer, TransposeData.MARKERDATA_MARKERNAMELEN_START);
+                                 Compression.bytesToInt(parameterReadBuffer,
+                                                        TransposeData.MARKERDATA_MARKERNAMELEN_START);
       if (indicesOfMarkersInTheFileToLoad != null) {
         Arrays.sort(indicesOfMarkersInTheFileToLoad);
         result = new byte[indicesOfMarkersInTheFileToLoad.length][numBytesPerSampleMarker

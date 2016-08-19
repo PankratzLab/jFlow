@@ -81,12 +81,14 @@ public class ExportCNVsToPedFormat {
     if (pedFilename != null) {
       log.report("Loading Pedigree file, assuming standard pedigree.dat file format (FID, IID, FA, MO, SEX, PHENO, DNA)");
       try {
-        sampleListHashFromCnvOrPedData =
-            HashVec.loadFileToHashString(pedFilename, new int[] {0, 1}, new int[] {-7},
-                                         pedFilename.endsWith(".csv"), "\t", false, false, false);
-        dnaHashFromCnvOrPedData =
-            HashVec.loadFileToHashString(pedFilename, new int[] {6, 6}, new int[] {-7},
-                                         pedFilename.endsWith(".csv"), "\t", false, false, false);
+        sampleListHashFromCnvOrPedData = HashVec.loadFileToHashString(pedFilename, new int[] {0, 1},
+                                                                      new int[] {-7},
+                                                                      pedFilename.endsWith(".csv"),
+                                                                      "\t", false, false, false);
+        dnaHashFromCnvOrPedData = HashVec.loadFileToHashString(pedFilename, new int[] {6, 6},
+                                                               new int[] {-7},
+                                                               pedFilename.endsWith(".csv"), "\t",
+                                                               false, false, false);
         dnaMapping = HashVec.loadFileToStringMatrix(pedFilename, true, new int[] {0, 1, 6},
                                                     "[\\s]+", false, 10000, false);
         HashSet<String> dnaSet = new HashSet<String>();
@@ -170,9 +172,9 @@ public class ExportCNVsToPedFormat {
     allChrPosSegs = new Segment[allChrPosKeys.length];
     for (int i = 0; i < allChrPosSegs.length; i++) {
       line = allChrPosKeys[i].split("\t");
-      allChrPosSegs[i] =
-          new Segment(Byte.parseByte(line[0]), Integer.parseInt(line[1]) - windowInBasepairs,
-                      Integer.parseInt(line[1]) + windowInBasepairs);
+      allChrPosSegs[i] = new Segment(Byte.parseByte(line[0]),
+                                     Integer.parseInt(line[1]) - windowInBasepairs,
+                                     Integer.parseInt(line[1]) + windowInBasepairs);
     }
     log.report("Generated hashtable of positions in " + ext.getTimeElapsed(time));
 
@@ -189,8 +191,9 @@ public class ExportCNVsToPedFormat {
     countValidLoci = 0;
     writer = null;
     outputFilename = "very first file";
-    for (int startPosition = 0; startPosition < allChrPosSegs.length; startPosition +=
-        markersPerFile) {
+    for (int startPosition =
+                           0; startPosition < allChrPosSegs.length; startPosition +=
+                                                                                  markersPerFile) {
       numMarkers = Math.min(markersPerFile, allChrPosSegs.length - startPosition);
       log.report("Calculating CN for positions " + (startPosition + 1) + " through "
                  + (startPosition + numMarkers));
@@ -213,23 +216,24 @@ public class ExportCNVsToPedFormat {
       for (int i = cnvIndex; !done && i < cnvs.length; i++) {
         // determine column from sample hash
         currentSampleIndex =
-            sampleListHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID() + "\t"
-                                                       + cnvs[i].getIndividualID()) ? Integer.parseInt(sampleListHashFromCnvOrPedData.get(cnvs[i].getFamilyID()
-                                                                                                                                          + "\t"
-                                                                                                                                          + cnvs[i].getIndividualID()))
-                                                                                    : dnaHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID()
-                                                                                                                          + "\t"
-                                                                                                                          + cnvs[i].getIndividualID()) ? Integer.parseInt(dnaHashFromCnvOrPedData.get(cnvs[i].getFamilyID()
-                                                                                                                                                                                                      + "\t" + cnvs[i].getIndividualID()))
-                                                                                                                                                       : -1;
+                           sampleListHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID() + "\t"
+                                                                      + cnvs[i].getIndividualID()) ? Integer.parseInt(sampleListHashFromCnvOrPedData.get(cnvs[i].getFamilyID()
+                                                                                                                                                         + "\t"
+                                                                                                                                                         + cnvs[i].getIndividualID()))
+                                                                                                   : dnaHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID()
+                                                                                                                                         + "\t"
+                                                                                                                                         + cnvs[i].getIndividualID()) ? Integer.parseInt(dnaHashFromCnvOrPedData.get(cnvs[i].getFamilyID()
+                                                                                                                                                                                                                     + "\t" + cnvs[i].getIndividualID()))
+                                                                                                                                                                      : -1;
         if (cnvs[i].getChr() > currentChrPosSegs[currentChrPosSegs.length - 1].getChr()
             || (cnvs[i].getChr() == currentChrPosSegs[currentChrPosSegs.length - 1].getChr()
                 && cnvs[i].getStart() > currentChrPosSegs[currentChrPosSegs.length
                                                           - 1].getStop())) {
           done = true;
         } else if (currentSampleIndex >= 0) {
-          indexOfCurrentSeg =
-              Math.max(Segment.binarySearchForStartPositions(cnvs[i], currentChrPosSegs), 0);
+          indexOfCurrentSeg = Math.max(Segment.binarySearchForStartPositions(cnvs[i],
+                                                                             currentChrPosSegs),
+                                       0);
           while (indexOfCurrentSeg < currentChrPosSegs.length
                  && currentChrPosSegs[indexOfCurrentSeg].overlaps(cnvs[i])) {
             currentCNs[indexOfCurrentSeg][currentSampleIndex] = (byte) (cnvs[i].getCN() - 2);
@@ -245,10 +249,12 @@ public class ExportCNVsToPedFormat {
         if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)
             && !fileFormat.equals(PLINK_BINARY_FORMAT) && !fileFormat.equals(PLINK_TEXT_FORMAT)) {
           finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] =
-              ext.replaceAllWith(tempSampleList[i], "\t", "-");
+                                                                                                   ext.replaceAllWith(tempSampleList[i],
+                                                                                                                      "\t",
+                                                                                                                      "-");
         } else {
           finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] =
-              tempSampleList[i];
+                                                                                                   tempSampleList[i];
         }
       }
 
@@ -420,8 +426,8 @@ public class ExportCNVsToPedFormat {
     if (pedFile != null) {
       iidMap = HashVec.loadFileToHashVec(pedFile, new int[] {0, 1}, new int[] {2, 3, 4, 5}, "\t",
                                          false, false);
-      dnaMap =
-          HashVec.loadFileToHashVec(pedFile, 6, new int[] {0, 1, 2, 3, 4, 5}, "\t", false, false);
+      dnaMap = HashVec.loadFileToHashVec(pedFile, 6, new int[] {0, 1, 2, 3, 4, 5}, "\t", false,
+                                         false);
       missingWriter = Files.getAppropriateWriter(outputRoot + "_missing.iid");
     } else {
       log.report("Warning - pedigree file missing, sex will be set to '0' for all individuals.");
@@ -515,9 +521,9 @@ public class ExportCNVsToPedFormat {
       writer = new PrintWriter(new FileWriter(dir + "rfgls/"
                                               + ext.removeDirectoryInfo(root + "_byMarker_"
                                                                         + fileNumber)));
-      mapWriter =
-          new PrintWriter(new FileWriter(dir + "rfgls/"
-                                         + ext.removeDirectoryInfo(root + "_map_" + fileNumber)));
+      mapWriter = new PrintWriter(new FileWriter(dir + "rfgls/"
+                                                 + ext.removeDirectoryInfo(root + "_map_"
+                                                                           + fileNumber)));
 
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");

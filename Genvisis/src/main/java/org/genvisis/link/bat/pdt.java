@@ -17,7 +17,7 @@ public class pdt {
   public static final int maxFams = 1000;
 
   public static final String DEFAULT_DIR =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\David Ginsburg\\pdt_equalFreq\\";
+                                         "C:\\Documents and Settings\\npankrat\\My Documents\\David Ginsburg\\pdt_equalFreq\\";
 
   public static void createFiles(int chr, int markerIncrement,
                                  String templateFile) throws IOException {

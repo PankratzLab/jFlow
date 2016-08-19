@@ -1,7 +1,5 @@
 package org.genvisis.stats;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -13,6 +11,8 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
+
+import com.google.common.primitives.Doubles;
 
 /**
  * Generates a matrix for comparing multiple columns of data,
@@ -51,11 +51,11 @@ public class StatsCrossTabs {
   /**
    * @param data organized as data[variable][dataForVariable]
    * @param data organized as data[dataForVariable][variable], must be the same length as data
-   * 
+   *
    * @param dataTitles must be the same length as data
-   * 
+   *
    * @param sType type of test to run, see {@link STAT_TYPE}
-   * 
+   *
    * @param log
    */
   public StatsCrossTabs(double[][] data, double[][] indeps, boolean[] dataToTest,
@@ -91,9 +91,9 @@ public class StatsCrossTabs {
             double sig = Double.NaN;
 
             if (all || !complete.containsKey(j)) {
-              double[][] dataToCorrel =
-                  cleanNaNs(new double[][] {data[i], data[j]},
-                            new String[] {dataTitles[i], dataTitles[j]}, verbose, log);
+              double[][] dataToCorrel = cleanNaNs(new double[][] {data[i], data[j]},
+                                                  new String[] {dataTitles[i], dataTitles[j]},
+                                                  verbose, log);
               double[] result;
               switch (sType) {
                 case PEARSON_CORREL:
@@ -109,7 +109,9 @@ public class StatsCrossTabs {
                   break;
                 case LIN_REGRESSION:
                   double[][] newIndeps =
-                      new double[data[i].length][indeps == null ? 1 : 1 + indeps[0].length];
+                                       new double[data[i].length][indeps == null ? 1
+                                                                                 : 1
+                                                                                   + indeps[0].length];
 
                   for (int k = 0; k < newIndeps.length; k++) {
 
@@ -123,8 +125,8 @@ public class StatsCrossTabs {
                   }
                   // log.reportTimeInfo("Using " + newIndeps[0].length + " independant predictors
                   // for regression");
-                  RegressionModel model =
-                      new LeastSquares(data[i], newIndeps, null, false, verbose, LS_TYPE.REGULAR);
+                  RegressionModel model = new LeastSquares(data[i], newIndeps, null, false, verbose,
+                                                           LS_TYPE.REGULAR);
                   stat = model.getRsquare();
                   sig = model.getOverallSig();
                   break;
@@ -270,7 +272,7 @@ public class StatsCrossTabs {
    */
   public static class StatsCrossTabRank implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     public static final String[] HEADER = new String[] {"Title", "OriginalOrder", "Stat", "Sig"};

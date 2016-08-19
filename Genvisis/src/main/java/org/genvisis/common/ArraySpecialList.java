@@ -9,7 +9,7 @@ import htsjdk.samtools.Cigar;
 public class ArraySpecialList {
   public static class ArrayStringList extends ArrayList<String> {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
 
@@ -23,7 +23,7 @@ public class ArraySpecialList {
 
   public static class ArrayIntList extends ArrayList<Integer> {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
 
@@ -35,7 +35,7 @@ public class ArraySpecialList {
 
   public static class ArrayCigarList extends ArrayList<Cigar> {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
 
@@ -50,7 +50,7 @@ public class ArraySpecialList {
     private double minEval;
     private int maxEvalIndex;
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
 

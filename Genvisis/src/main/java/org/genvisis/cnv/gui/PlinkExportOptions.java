@@ -26,13 +26,13 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
+
+import net.miginfocom.swing.MigLayout;
 
 public class PlinkExportOptions extends JDialog {
 
@@ -201,8 +201,8 @@ public class PlinkExportOptions extends JDialog {
           if (arg0.getStateChange() == ItemEvent.SELECTED) {
             String val = (String) comboBoxTargetMarkers.getSelectedItem();
             if (NEW_MARKERS_LIST.equals(val)) {
-              NewMarkerListDialog nmld =
-                  new NewMarkerListDialog(proj.getMarkerNames(), proj.PROJECT_DIRECTORY.getValue());
+              NewMarkerListDialog nmld = new NewMarkerListDialog(proj.getMarkerNames(),
+                                                                 proj.PROJECT_DIRECTORY.getValue());
               nmld.setModal(true);
               nmld.setVisible(true);
               if (nmld.getReturnCode() == JOptionPane.YES_OPTION) {
@@ -279,35 +279,35 @@ public class PlinkExportOptions extends JDialog {
     }
     {
       tooltipPedigree =
-          Grafik.getToolTipIconLabel("<html><p width=\"380\">The pedigree file has the standard 6 columns (Family ID, Individual ID, Father's ID, Mother's ID, Sex, Affection/Phenotype) as well as a 7th column with the DNA/Sample ID from the raw data to match it up to. There is no header row. See manual for more detail.</p></html>");
+                      Grafik.getToolTipIconLabel("<html><p width=\"380\">The pedigree file has the standard 6 columns (Family ID, Individual ID, Father's ID, Mother's ID, Sex, Affection/Phenotype) as well as a 7th column with the DNA/Sample ID from the raw data to match it up to. There is no header row. See manual for more detail.</p></html>");
       contentPanel.add(tooltipPedigree, "cell 0 0");
     }
     {
       tooltipTgtMkrs =
-          Grafik.getToolTipIconLabel("<html><p width=\"380\">The target marker file is optional and has one marker name per row. If there are any additional columns, then they are ignored. See manual for more detail.</p></html>");
+                     Grafik.getToolTipIconLabel("<html><p width=\"380\">The target marker file is optional and has one marker name per row. If there are any additional columns, then they are ignored. See manual for more detail.</p></html>");
       contentPanel.add(tooltipTgtMkrs, "cell 0 2");
     }
     {
       tooltipClusterFilters =
-          Grafik.getToolTipIconLabel("<html><p width=\"380\">The list of cluster filter files is generated from any file ending with \"*clusterFilters.ser\" in the project's data/ directory. The clusters can be manually added from within the ScatterPlot module. See manual for more detail.</p></html>");
+                            Grafik.getToolTipIconLabel("<html><p width=\"380\">The list of cluster filter files is generated from any file ending with \"*clusterFilters.ser\" in the project's data/ directory. The clusters can be manually added from within the ScatterPlot module. See manual for more detail.</p></html>");
       contentPanel.add(tooltipClusterFilters, "cell 0 4");
     }
     {
       tooltipExportType =
-          Grafik.getToolTipIconLabel("<html><p width=\"380\">AB Lookup Tooltip.</p></html>"); // TODO
-                                                                                              // ab
-                                                                                              // lookup
-                                                                                              // tooltip
+                        Grafik.getToolTipIconLabel("<html><p width=\"380\">AB Lookup Tooltip.</p></html>"); // TODO
+                                                                                                            // ab
+                                                                                                            // lookup
+                                                                                                            // tooltip
       contentPanel.add(tooltipExportType, "cell 0 6");
     }
     {
       tooltipExportType =
-          Grafik.getToolTipIconLabel("<html><p width=\"380\">PLINK format can either be compressed in a binary format or in full text. See the PLINK website for more detail.</p></html>");
+                        Grafik.getToolTipIconLabel("<html><p width=\"380\">PLINK format can either be compressed in a binary format or in full text. See the PLINK website for more detail.</p></html>");
       contentPanel.add(tooltipExportType, "cell 0 9");
     }
     {
       tooltipFileroot =
-          Grafik.getToolTipIconLabel("<html><p width=\"380\">The root of the filenames to be generated. If these already exist, you must click the checkbox to overwrite them.</p></html>");
+                      Grafik.getToolTipIconLabel("<html><p width=\"380\">The root of the filenames to be generated. If these already exist, you must click the checkbox to overwrite them.</p></html>");
       contentPanel.add(tooltipFileroot, "cell 0 11");
     }
     {
@@ -480,7 +480,7 @@ public class PlinkExportOptions extends JDialog {
    * Checks the pedigree file text field value against the current value of the project's
    * PEDIGREE_FILENAME property. If they are different and if the new value is a valid file, set the
    * PEDIGREE_FILENAME value to the new file path.
-   * 
+   *
    * @return the value of proj.PEDIGREE_FILENAME
    */
   public String getPedigree() {

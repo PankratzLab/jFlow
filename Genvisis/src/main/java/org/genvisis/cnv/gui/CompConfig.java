@@ -31,7 +31,7 @@ import org.genvisis.filesys.CNVariant;
 public class CompConfig extends JPanel implements ChangeListener, ActionListener {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -444,13 +444,13 @@ class CNVPanel extends JPanel implements ActionListener {
         // More than 4 seems to run out of heap space
         if (checkList.getSelected().size() > 4) {
           String[] options = {"Yes", "No"};
-          int answer =
-              JOptionPane.showOptionDialog(null,
-                                           "Warning - this will launch "
-                                                 + checkList.getSelected().size()
-                                                 + " instances of Trailer\nProceed?",
-                                           "Warning", JOptionPane.YES_NO_OPTION,
-                                           JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
+          int answer = JOptionPane.showOptionDialog(null,
+                                                    "Warning - this will launch "
+                                                          + checkList.getSelected().size()
+                                                          + " instances of Trailer\nProceed?",
+                                                    "Warning", JOptionPane.YES_NO_OPTION,
+                                                    JOptionPane.QUESTION_MESSAGE, null, options,
+                                                    options[1]);
           if (answer == JOptionPane.YES_OPTION) {
             for (CNVariant cnv : checkList.getSelected()) {
               String markerPosition = "chr" + location[0] + ":" + (cnv.getStart() - window) + "-"

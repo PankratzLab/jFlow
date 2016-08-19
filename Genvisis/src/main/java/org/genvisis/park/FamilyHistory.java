@@ -25,7 +25,7 @@ public class FamilyHistory {
     String[] line, data, trav;
     Hashtable<String, String[]> hashStringArray = new Hashtable<String, String[]>();
     Hashtable<String, Vector<String[]>> hashVecStringArray =
-        new Hashtable<String, Vector<String[]>>();
+                                                           new Hashtable<String, Vector<String[]>>();
     int index;
     Vector<String[]> v;
     Vector<String> variance = new Vector<String>();
@@ -48,8 +48,8 @@ public class FamilyHistory {
 
     try {
       reader = new BufferedReader(new FileReader(CRF_DIR + db_file));
-      index =
-          ext.indexFactors(new String[] {trait}, reader.readLine().split("\t", -1), true, true)[0];
+      index = ext.indexFactors(new String[] {trait}, reader.readLine().split("\t", -1), true,
+                               true)[0];
       while (reader.ready()) {
         line = reader.readLine().split("\t", -1);
         if (hashVecStringArray.containsKey(line[1])) {
@@ -82,8 +82,8 @@ public class FamilyHistory {
       } else {
         writer.println("FamID,IndID,NumRelativesWithHistory,NumFirstDegreesWithHistory,FamHist,FirstDegreeHist");
       }
-      index =
-          ext.indexFactors(new String[] {trait}, reader.readLine().split("\t", -1), true, true)[0];
+      index = ext.indexFactors(new String[] {trait}, reader.readLine().split("\t", -1), true,
+                               true)[0];
       while (reader.ready()) {
         line = reader.readLine().split("\t", -1);
         v = hashVecStringArray.get(line[1]);
@@ -110,8 +110,8 @@ public class FamilyHistory {
                   counts[1]++;
                   avg_max[2] += Double.parseDouble(data[1]);
                   avg_max[3] =
-                      Double.parseDouble(data[1]) > avg_max[3] ? Double.parseDouble(data[1])
-                                                               : avg_max[3];
+                             Double.parseDouble(data[1]) > avg_max[3] ? Double.parseDouble(data[1])
+                                                                      : avg_max[3];
                 }
               } else if (data[1].equals("1")) {
                 counts[0]++;

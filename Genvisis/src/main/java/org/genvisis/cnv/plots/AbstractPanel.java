@@ -1,7 +1,5 @@
 package org.genvisis.cnv.plots;
 
-import com.google.common.primitives.Bytes;
-
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -44,6 +42,8 @@ import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Distance;
 import org.genvisis.stats.Maths;
+
+import com.google.common.primitives.Bytes;
 
 public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener,
                                     MouseWheelListener, ComponentListener, ActionListener {
@@ -533,8 +533,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
       minimumObservedRawX = forcePlotXmin;
     }
     if (Float.isNaN(forcePlotXmax)) {
-      maximumObservedRawX =
-          (maximumObservedRawX + (maximumObservedRawX - minimumObservedRawX) * (float) 0.01);
+      maximumObservedRawX = (maximumObservedRawX
+                             + (maximumObservedRawX - minimumObservedRawX) * (float) 0.01);
     } else {
       if (forcePlotXmax < maximumObservedRawX) {
         if (DEBUGGING) {
@@ -558,8 +558,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
       minimumObservedRawY = forcePlotYmin;
     }
     if (Float.isNaN(forcePlotYmax)) {
-      maximumObservedRawY =
-          (maximumObservedRawY + (maximumObservedRawY - minimumObservedRawY) * (float) 0.01);
+      maximumObservedRawY = (maximumObservedRawY
+                             + (maximumObservedRawY - minimumObservedRawY) * (float) 0.01);
     } else {
       if (forcePlotYmax < maximumObservedRawY) {
         if (DEBUGGING) {
@@ -999,7 +999,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
       int PAD = 5;
       int fontHeight = (fontMetrics == null ? 25 : fontMetrics.getHeight());
       int titleWidth =
-          (fontMetrics == null ? title.length() * PAD : fontMetrics.stringWidth(title));
+                     (fontMetrics == null ? title.length() * PAD : fontMetrics.stringWidth(title));
 
       switch (titleLocation) {
         default: // DEFAULT TO TOP
@@ -1034,7 +1034,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
    * <li>SwingConstants.NORTH_EAST</li>
    * <li>SwingConstants.NORTH_WEST</li>
    * </ul>
-   * 
+   *
    * @param loc
    */
   public void setTitleLocation(int loc) {
@@ -1107,9 +1107,12 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
               if (zoomedIn) {
                 intensities[xPixel + j][yPixel + k]++;
               } else {
-                intensities[xPixel + j][yPixel + k] +=
-                    neighbor * neighbor - Distance.euclidean(new int[] {Math.abs(j), Math.abs(k)},
-                                                             origin);
+                intensities[xPixel + j][yPixel
+                                        + k] +=
+                                             neighbor * neighbor - Distance.euclidean(
+                                                                                      new int[] {Math.abs(j),
+                                                                                                 Math.abs(k)},
+                                                                                      origin);
               }
             }
           }
@@ -1125,9 +1128,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
     max = 0;
     for (int[] intensitie : intensities) {
-      for (int j = 0; j < intensitie.length; j++) {
-        if (max < intensitie[j]) {
-          max = intensitie[j];
+      for (int element : intensitie) {
+        if (max < element) {
+          max = element;
         }
       }
     }
@@ -1367,8 +1370,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
     for (int i = 0; i < proportions.length; i++) {
       dist = zoomSubsets[i][1] - zoomSubsets[i][0];
       for (int j = 0; j < proportions[i].length; j++) {
-        zoomSubsets[i][j] =
-            zoomSubsets[i][j] + (j == 0 ? -1 : 1) * (proportions[i][j] * multiplier * dist);
+        zoomSubsets[i][j] = zoomSubsets[i][j]
+                            + (j == 0 ? -1 : 1) * (proportions[i][j] * multiplier * dist);
       }
     }
 
@@ -1654,7 +1657,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   /**
    * Converts mouse location int X,Y into data points' value double rawX,rawY. The control variable
    * invertX is assigned elsewhere in the class.
-   * 
+   *
    * @param mouseX the mouse location X
    * @return the rawX value of the corresponding data point.
    */
@@ -1673,7 +1676,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   /**
    * Converts mouse location int X,Y into data points' value double rawX,rawY The control variable
    * invertY is assigned elsewhere in the class.
-   * 
+   *
    * @param mouseY the mouse location Y
    * @return the rawY value of the corresponding data point.
    */
@@ -1729,7 +1732,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
   //
   /**
    * Highlights those points that need to be highlighted
-   * 
+   *
    * @param array
    */
   public void highlightPoints(boolean[] array) {

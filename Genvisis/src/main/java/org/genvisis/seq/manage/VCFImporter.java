@@ -62,10 +62,10 @@ public class VCFImporter {
     ArrayList<LocusID> markers = new ArrayList<VCOps.LocusID>(1000000);
     log.reportTimeWarning("Only un-ambigous and biallelic variants will be exported...until we figure these out");
     FilterNGS.VariantContextFilter niceAllele =
-        new FilterNGS.VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {},
-                                           new VARIANT_FILTER_BOOLEAN[] {VARIANT_FILTER_BOOLEAN.BIALLELIC_FILTER,
-                                                                         VARIANT_FILTER_BOOLEAN.AMBIGUOUS_FILTER},
-                                           null, null, log);
+                                              new FilterNGS.VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {},
+                                                                                 new VARIANT_FILTER_BOOLEAN[] {VARIANT_FILTER_BOOLEAN.BIALLELIC_FILTER,
+                                                                                                               VARIANT_FILTER_BOOLEAN.AMBIGUOUS_FILTER},
+                                                                                 null, null, log);
     SampleNGS[] vcSamples = SampleNGS.getSamples(verifiedSamples);
     int numSkipped = 0;
     int total = 0;
@@ -149,7 +149,8 @@ public class VCFImporter {
   private void generateMarkerPositions(Project proj, ArrayList<LocusID> markers) {
     try {
       PrintWriter writer =
-          new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue(true, false)));
+                         new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue(true,
+                                                                                               false)));
       writer.println("Marker\tChr\tPosition");
       for (LocusID id : markers) {
         writer.println(id.getId() + "\t" + id.getChr() + "\t" + id.getStart());
@@ -326,7 +327,8 @@ public class VCFImporter {
 
     ArrayList<String[]> sampleChunks = Array.splitUpArray(samples, numRounds, proj.getLog());
     WorkerHive<ConversionResults> hive =
-        new WorkerHive<VCFImporter.ConversionResults>(numThreads, 10, proj.getLog());
+                                       new WorkerHive<VCFImporter.ConversionResults>(numThreads, 10,
+                                                                                     proj.getLog());
     proj.SAMPLE_DIRECTORY.getValue(true, false);
     proj.MARKER_DATA_DIRECTORY.getValue(true, false);
     proj.DATA_DIRECTORY.getValue(true, false);
@@ -399,12 +401,17 @@ public class VCFImporter {
     projNorm.DATA_DIRECTORY.getValue(true, false);
 
     if (projNorm.getSamples() == null || projNorm.getSamples().length == 0) {
-      VCFSamplePrepWorker vPrepWorker =
-          new VCFSamplePrepWorker(proj, projNorm.SAMPLE_DIRECTORY.getValue(true, false),
-                                  PREPPED_SAMPLE_TYPE.NORMALIZED_GC_CORRECTED, gcModel);
+      VCFSamplePrepWorker vPrepWorker = new VCFSamplePrepWorker(proj,
+                                                                projNorm.SAMPLE_DIRECTORY.getValue(true,
+                                                                                                   false),
+                                                                PREPPED_SAMPLE_TYPE.NORMALIZED_GC_CORRECTED,
+                                                                gcModel);
       Hashtable<String, Float> allNewOutliers = new Hashtable<String, Float>();
       WorkerTrain<Hashtable<String, Float>> train =
-          new WorkerTrain<Hashtable<String, Float>>(vPrepWorker, numThreads, 0, proj.getLog());
+                                                  new WorkerTrain<Hashtable<String, Float>>(vPrepWorker,
+                                                                                            numThreads,
+                                                                                            0,
+                                                                                            proj.getLog());
 
       int index = 0;
       while (train.hasNext()) {
@@ -496,7 +503,7 @@ public class VCFImporter {
     int numArgs = args.length;
     String filename = "C:/workspace/Genvisis/projects/Project_Tsai_21_25_26_spector.properties";
     String vcf =
-        "D:/data/Project_Tsai_21_25_26_spector/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf.gz";
+               "D:/data/Project_Tsai_21_25_26_spector/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf.gz";
     String gc5Base = "N:/statgen/NCBI/gc5Base.txt";
     int numRounds = 4;
     int numThreads = 4;

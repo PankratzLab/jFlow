@@ -17,10 +17,10 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.border.EmptyBorder;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.genvisis.common.Array;
+
+import net.miginfocom.swing.MigLayout;
 
 public class SourceFileHeaderGUI extends JDialog {
 
@@ -78,7 +78,7 @@ public class SourceFileHeaderGUI extends JDialog {
 
   /**
    * Create the frame.
-   * 
+   *
    * @param reportHdr
    */
   public SourceFileHeaderGUI(SourceFileHeaderData reportHdr) {

@@ -106,25 +106,25 @@ public class Mappability<SEGMENT extends Segment> {
     LocusSet<CNVariant> cLocusSet = new LocusSet<CNVariant>(cnvs, true, log) {
 
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
 
     };
 
-    Mappability<CNVariant> cnMappability =
-        new Mappability<CNVariant>(cLocusSet, mappabilityFile, callSubsetBed, log);
+    Mappability<CNVariant> cnMappability = new Mappability<CNVariant>(cLocusSet, mappabilityFile,
+                                                                      callSubsetBed, log);
     cnMappability.computeMappability();
     Hashtable<String, Integer> geneCounts = cnMappability.generateGeneCounts(gLocusSet);
     String outputRoot = ext.rootOf(cnvFile, false) + ".mappability.summary";
     // ArrayList<GeomText> geneLabels = new ArrayList<GeomText>();
-    String[] header1 =
-        new String[] {"GENE_NAME", "CNV_MAP_SCORE", "NUM_TOTAL_CNVS", "STRING_FACTOR_COUNT"};
+    String[] header1 = new String[] {"GENE_NAME", "CNV_MAP_SCORE", "NUM_TOTAL_CNVS",
+                                     "STRING_FACTOR_COUNT"};
     String out1 = outputRoot + ".txt";
     summarize1(log, gLocusSet, cnMappability, geneCounts, header1, out1);
-    RScatter rScatterBox =
-        new RScatter(out1, out1 + ".rscript", ext.removeDirectoryInfo(out1), out1 + ".jpeg",
-                     header1[1], new String[] {header1[2]}, SCATTER_TYPE.POINT, log);
+    RScatter rScatterBox = new RScatter(out1, out1 + ".rscript", ext.removeDirectoryInfo(out1),
+                                        out1 + ".jpeg", header1[1], new String[] {header1[2]},
+                                        SCATTER_TYPE.POINT, log);
     rScatterBox.setOverWriteExisting(true);
     rScatterBox.execute();
 
@@ -135,9 +135,12 @@ public class Mappability<SEGMENT extends Segment> {
       }
     }
     DynamicAveragingHistogram dynamicAveragingHistogramCNVCentered =
-        new DynamicAveragingHistogram(0, maxNumPer, 0);
+                                                                   new DynamicAveragingHistogram(0,
+                                                                                                 maxNumPer,
+                                                                                                 0);
     DynamicAveragingHistogram dynamicAveragingHistogramMapCentered =
-        new DynamicAveragingHistogram(0, 1, 2);
+                                                                   new DynamicAveragingHistogram(0,
+                                                                                                 1, 2);
 
     for (int i = 0; i < cnMappability.getMappabilityResults().size(); i++) {
       MappabilityResult<CNVariant> cnMapp = cnMappability.getMappabilityResults().get(i);
@@ -174,9 +177,10 @@ public class Mappability<SEGMENT extends Segment> {
       log.reportException(e);
     }
 
-    RScatter rScatterAverageCNVCENTER =
-        new RScatter(out2, out2 + ".rscript", ext.removeDirectoryInfo(out2), out2 + ".jpeg",
-                     header2[0], new String[] {header2[1]}, SCATTER_TYPE.POINT, log);
+    RScatter rScatterAverageCNVCENTER = new RScatter(out2, out2 + ".rscript",
+                                                     ext.removeDirectoryInfo(out2), out2 + ".jpeg",
+                                                     header2[0], new String[] {header2[1]},
+                                                     SCATTER_TYPE.POINT, log);
     rScatterAverageCNVCENTER.setxLabel("CNVS Per Gene");
     rScatterAverageCNVCENTER.setyLabel("Average CNV mapping score");
 
@@ -203,16 +207,18 @@ public class Mappability<SEGMENT extends Segment> {
       log.reportException(e);
     }
     RScatter rScatterAverageSCORECENTER =
-        new RScatter(out3, out3 + ".rscript", ext.removeDirectoryInfo(out3), out3 + ".jpeg",
-                     header3[0], new String[] {header3[1]}, SCATTER_TYPE.POINT, log);
+                                        new RScatter(out3, out3 + ".rscript",
+                                                     ext.removeDirectoryInfo(out3), out3 + ".jpeg",
+                                                     header3[0], new String[] {header3[1]},
+                                                     SCATTER_TYPE.POINT, log);
     rScatterAverageSCORECENTER.setxLabel("CNV mapping score");
     rScatterAverageSCORECENTER.setyLabel("Average CNVs Per gene");
 
     rScatterAverageSCORECENTER.setOverWriteExisting(true);
     rScatterAverageSCORECENTER.execute();
 
-    String[] header4 =
-        Array.concatAll(CNVariant.PLINK_CNV_HEADER, new String[] {"GENE_NAME", "MAP_SCORE"});
+    String[] header4 = Array.concatAll(CNVariant.PLINK_CNV_HEADER,
+                                       new String[] {"GENE_NAME", "MAP_SCORE"});
     String out4 = outputRoot + ".cnvSummary.txt";
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(out4));
@@ -314,8 +320,10 @@ public class Mappability<SEGMENT extends Segment> {
     }
 
     private void computeMappability(BEDFileReader reader, BEDFileReader callSubsetReader) {
-      CloseableIterator<BEDFeature> iterator =
-          reader.query(Positions.getChromosomeUCSC(t.getChr(), true), t.getStart(), t.getStop());
+      CloseableIterator<BEDFeature> iterator = reader.query(
+                                                            Positions.getChromosomeUCSC(t.getChr(),
+                                                                                        true),
+                                                            t.getStart(), t.getStop());
       // LocusSet<Segment> callSegs
       // =LocusSet.loadSegmentSetFromFile("C:/bin/ExomeDepth/exons.hg19.sort.bed", 0, 1, 2, 0, true,
       // true, 0, log);
@@ -354,7 +362,7 @@ public class Mappability<SEGMENT extends Segment> {
             if (element.getBedFeature().getName() == null
                 || element.getBedFeature().getName() == "") {
               String error =
-                  "The call subset file is expected to have the gene name in the fourth column";
+                           "The call subset file is expected to have the gene name in the fourth column";
               log.reportTimeError(error);
               throw new IllegalArgumentException(error);
             }

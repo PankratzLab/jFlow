@@ -61,7 +61,7 @@ public class SimpleTallyGene {
 
   private static void run() {
     String vcfGermline =
-        "D:/data/Project_Tsai_21_25_26_28_spector/joint_genotypes_tsai_21_25_26_28_spector.chrM.posAdjust_-1.hg19_multianno.eff.gatk.sed1000g.posAdjust_1.vcf";
+                       "D:/data/Project_Tsai_21_25_26_28_spector/joint_genotypes_tsai_21_25_26_28_spector.chrM.posAdjust_-1.hg19_multianno.eff.gatk.sed1000g.posAdjust_1.vcf";
     // Segment[] segs = new Segment[] { new Segment("chrM:0-20000"), new
     // Segment("chr6:31,371,371-31,383,090"), new Segment("chr17:7,571,720-7,590,868") };
     // String[] names = new String[] { "Mito", "MICA", "TP53" };
@@ -70,7 +70,7 @@ public class SimpleTallyGene {
     double maf = 0;
     // String vpopFileGermlineOsteo = "D:/data/logan/OSv2_seq/SRGAP2/OSTEO_OFF_INHERIT.vpop";
     String vpopFileGermlineCushing =
-        "D:/data/Project_Tsai_21_25_26_28_spector/Look_Freq/CUSHING_FREQ_V2.vpop";
+                                   "D:/data/Project_Tsai_21_25_26_28_spector/Look_Freq/CUSHING_FREQ_V2.vpop";
     // String vpopFileGermlineEPP = "D:/data/Project_Tsai_21_25_26_28_spector/Freq/EPP.vpop";
     String newDir = "D:/data/Project_Tsai_21_25_26_28_spector/Look_Freq/";
     new File(newDir).mkdirs();

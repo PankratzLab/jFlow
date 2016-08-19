@@ -1,7 +1,5 @@
 package org.genvisis.mining;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -15,6 +13,8 @@ import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Correlation;
 import org.genvisis.stats.LeastSquares;
+
+import com.google.common.primitives.Doubles;
 
 public class ExploreLinearity {
   private final double[][][] correlations;
@@ -39,17 +39,17 @@ public class ExploreLinearity {
     }
 
     correlations =
-        new double[M][Transformations.NUM_TRANSFORMATIONS][Transformations.NUM_TRANSFORMATIONS];
+                 new double[M][Transformations.NUM_TRANSFORMATIONS][Transformations.NUM_TRANSFORMATIONS];
     R_squares =
-        new double[M][Transformations.NUM_TRANSFORMATIONS][Transformations.NUM_TRANSFORMATIONS];
+              new double[M][Transformations.NUM_TRANSFORMATIONS][Transformations.NUM_TRANSFORMATIONS];
     for (int k = 0; k < Transformations.NUM_TRANSFORMATIONS; k++) {
       transDeps[k] = Transformations.transform(deps, k);
       for (int i = 0; i < M; i++) {
         for (int j = 0; j < Transformations.NUM_TRANSFORMATIONS; j++) {
           correlations[i][j][k] = Correlation.Pearson(transDeps[k], transIndeps[i][j])[0];
           R_squares[i][j][k] =
-              new LeastSquares(transDeps[k],
-                               LeastSquares.Transpose(new double[][] {transIndeps[i][j]})).getRsquare();
+                             new LeastSquares(transDeps[k],
+                                              LeastSquares.Transpose(new double[][] {transIndeps[i][j]})).getRsquare();
         }
       }
     }
@@ -87,10 +87,10 @@ public class ExploreLinearity {
           writer.print((preferredDepTrans == -1 ? (j + 1) + " " : "")
                        + Transformations.getLabel(j));
           for (int k =
-              (preferredDepTrans == -1 ? 0
-                                       : preferredDepTrans); k < (preferredDepTrans == -1 ? Transformations.NUM_TRANSFORMATIONS
-                                                                                          : preferredDepTrans
-                                                                                            + 1); k++) {
+                     (preferredDepTrans == -1 ? 0
+                                              : preferredDepTrans); k < (preferredDepTrans == -1 ? Transformations.NUM_TRANSFORMATIONS
+                                                                                                 : preferredDepTrans
+                                                                                                   + 1); k++) {
             writer.print(ext.formStr(measure == 1 ? (correlations[i][j][k] < 0 ? "" : " ")
                                                     + ext.formDeci(correlations[i][j][k], 3, true)
                                                   : ext.formDeci(R_squares[i][j][k], 3, true),

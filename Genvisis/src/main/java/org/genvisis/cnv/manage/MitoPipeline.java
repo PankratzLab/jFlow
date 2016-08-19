@@ -51,15 +51,15 @@ public class MitoPipeline {
   // TODO, time to re-factor/write, getting rotten
   public static final String FILE_BASE = "PCA_GENVISIS";
   public static final String[] PED_INPUT = {"DNA", "FID", "IID", "FA", "MO", "SEX", "AFF"};
-  public static final String[] SAMPLEMAP_INPUT =
-      {"Index", "Name", "ID", "Gender", "Plate", "Well", "Group", "Parent1", "Parent2", "Replicate",
-       "SentrixPosition"};
+  public static final String[] SAMPLEMAP_INPUT = {"Index", "Name", "ID", "Gender", "Plate", "Well",
+                                                  "Group", "Parent1", "Parent2", "Replicate",
+                                                  "SentrixPosition"};
   public static final String[] QC_COLUMNS = {"Sample", "LRR_SD", "Genotype_callrate"};
-  public static final String[] SAMPLE_QC_SUMMARY =
-      {"DNA", "LRR_SD", "Genotype_callrate", "Included in PC?"};
+  public static final String[] SAMPLE_QC_SUMMARY = {"DNA", "LRR_SD", "Genotype_callrate",
+                                                    "Included in PC?"};
   public static final String[] SEX = {"female", "male"};
-  public static final String[] SAMPLE_DATA_ADDITION_HEADERS =
-      {"LRR_SD", "Genotype_callrate", "CLASS=Exclude"};
+  public static final String[] SAMPLE_DATA_ADDITION_HEADERS = {"LRR_SD", "Genotype_callrate",
+                                                               "CLASS=Exclude"};
   public static final double[] DEFAULT_PVAL_OPTS = new double[] {0.05, 0.01, 0.001};
   public static final double DEFAULT_MKR_CALLRATE_FILTER = 0.98;
   public static final int DEFAULT_NUM_COMPONENTS = -1;
@@ -84,8 +84,8 @@ public class MitoPipeline {
       defaultCallRateFilter, targetMarkers, medianMarkers, markerPositions, idHeader, abLookup;
 
   /**
-   * 
-   * 
+   *
+   *
    * @param projectName future name of the project
    * @param projectDirectory future project directory
    * @param sourceDirectory where the data is
@@ -291,10 +291,10 @@ public class MitoPipeline {
                                           String medianMarkers, String markerPositions,
                                           String defaultLRRSdFilter, String defaultCallRateFilter,
                                           String logfile) {
-    MitoPipeline projG =
-        new MitoPipeline(proj, projectName, projectDirectory, sourceDirectory, dataExtension,
-                         idHeader, abLookup, defaultLRRSdFilter, defaultCallRateFilter,
-                         targetMarkers, markerPositions, medianMarkers, logfile);
+    MitoPipeline projG = new MitoPipeline(proj, projectName, projectDirectory, sourceDirectory,
+                                          dataExtension, idHeader, abLookup, defaultLRRSdFilter,
+                                          defaultCallRateFilter, targetMarkers, markerPositions,
+                                          medianMarkers, logfile);
     return projG.getProj();
   }
 
@@ -453,10 +453,11 @@ public class MitoPipeline {
           recomputeLRR_PCs = true;
         }
         sampsToUseRecompute = Array.booleanArray(proj.getSamples().length, false);
-        int[] indices =
-            ext.indexFactors(HashVec.loadFileToStringArray(samps, false, false, new int[] {0},
-                                                           false, true, "\t"),
-                             proj.getSamples(), true, false);
+        int[] indices = ext.indexFactors(
+                                         HashVec.loadFileToStringArray(samps, false, false,
+                                                                       new int[] {0}, false, true,
+                                                                       "\t"),
+                                         proj.getSamples(), true, false);
 
         // int[] indices = ext.indexFactors(HashVec.loadFileToStringArray(samps, false, new int[] {
         // 0 }, false), proj.getSamples(), true, false);
@@ -528,14 +529,17 @@ public class MitoPipeline {
             .reportTimeError("please supply a valid reference genome (full path) with the \"ref=\" argument");
       }
     }
-    PrincipalComponentsApply pcApply =
-        PCA.generateFullPCA(proj, numComponents, outputBase, recomputeLRR_PCs, imputeMeanForNaN,
-                            params, log);
+    PrincipalComponentsApply pcApply = PCA.generateFullPCA(proj, numComponents, outputBase,
+                                                           recomputeLRR_PCs, imputeMeanForNaN,
+                                                           params, log);
     if (pcApply != null) {
-      PrincipalComponentsResiduals pcResids =
-          PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(),
-                               ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f,
-                               homosygousOnly, recomputeLRR_Median, outputBase, params);
+      PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj,
+                                                                   pcApply.getExtrapolatedPCsFile(),
+                                                                   ext.removeDirectoryInfo(medianMarkers),
+                                                                   numComponents, true, 0f,
+                                                                   homosygousOnly,
+                                                                   recomputeLRR_Median, outputBase,
+                                                                   params);
       generateFinalReport(proj, outputBase, pcResids.getResidOutput());
       proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
       proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
@@ -602,7 +606,7 @@ public class MitoPipeline {
 
     if (useFile != null) {
       String[] samplesToVerify =
-          HashVec.loadFileToStringArray(useFile, false, new int[] {0}, false);
+                               HashVec.loadFileToStringArray(useFile, false, new int[] {0}, false);
       Hashtable<String, String> track = new Hashtable<String, String>();
       ArrayList<String> notAvailable = new ArrayList<String>();
       ArrayList<String> available = new ArrayList<String>();
@@ -682,8 +686,8 @@ public class MitoPipeline {
   private static boolean verifyAuxMarkers(Project proj, String fileOfMarkers, String command) {
     boolean allAvailable = true;
     MarkerLookup markerLookup = proj.getMarkerLookup();
-    String[] markersToVerify =
-        HashVec.loadFileToStringArray(fileOfMarkers, false, new int[] {0}, false);
+    String[] markersToVerify = HashVec.loadFileToStringArray(fileOfMarkers, false, new int[] {0},
+                                                             false);
     ArrayList<String> notAvailable = new ArrayList<String>();
     ArrayList<String> available = new ArrayList<String>();
     Logger log = proj.getLog();
@@ -762,7 +766,7 @@ public class MitoPipeline {
 
       DNAIndex = getDNAIndex(proj, proj.PROJECT_DIRECTORY.getValue() + residualFile);
       reader =
-          Files.getReader(proj.PROJECT_DIRECTORY.getValue() + residualFile, false, true, false);
+             Files.getReader(proj.PROJECT_DIRECTORY.getValue() + residualFile, false, true, false);
       writer = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + finalReport);
 
       while (reader.ready()) {
@@ -887,8 +891,8 @@ public class MitoPipeline {
 
     boolean[] requiredArray = new boolean[5];
     Arrays.fill(requiredArray, false);
-    String[] requiredArgs =
-        {"dirProj=", "dirSrc=", PC_MARKER_COMMAND, MITO_MARKER_COMMAND, "markerPositions="};
+    String[] requiredArgs = {"dirProj=", "dirSrc=", PC_MARKER_COMMAND, MITO_MARKER_COMMAND,
+                             "markerPositions="};
 
     String projectDirectory = null;
     String sourceDirectory = null;
@@ -935,75 +939,75 @@ public class MitoPipeline {
 
     String usage = "\n";
     usage +=
-        "The MitoPipeline currently requires 5 arguments and allows for many more optional arguments:\n";
+          "The MitoPipeline currently requires 5 arguments and allows for many more optional arguments:\n";
     usage += "  \n";
     usage +=
-        "   (1) The full path for the project directory (where results will be stored) (i.e. dirProj=/home/usr/projects/)\n";
+          "   (1) The full path for the project directory (where results will be stored) (i.e. dirProj=/home/usr/projects/)\n";
     usage +=
-        "   (2) The full path for the source data directory  (where final report files are located) (i.e. dirSrc=/home/usr/data/project1/)\n";
+          "   (2) The full path for the source data directory  (where final report files are located) (i.e. dirSrc=/home/usr/data/project1/)\n";
     usage +=
-        "   (3) The full path for a file with a list of markers (one per line) to use for computing PCs (i.e. "
+          "   (3) The full path for a file with a list of markers (one per line) to use for computing PCs (i.e. "
              + PC_MARKER_COMMAND + "/home/usr/auxFiles/exomeChip.PC_Markers.txt)\n";
     usage +=
-        "   (4) The full path for a file with a list of markers (one per line,mitochondrial markers) to use for computing computing median Log R Ratios (i.e. "
+          "   (4) The full path for a file with a list of markers (one per line,mitochondrial markers) to use for computing computing median Log R Ratios (i.e. "
              + MITO_MARKER_COMMAND + "/home/usr/auxFiles/exomeChip.MT_Markers.txt)\n";
     usage +=
-        "   (5) The full path for a tab-delimited file with marker positions (with columns \"Marker\", \"Chr\", and \"Position\")  (i.e. markerPositions=/home/usr/auxFiles/exomeChip.Positions.txt)\n";
+          "   (5) The full path for a tab-delimited file with marker positions (with columns \"Marker\", \"Chr\", and \"Position\")  (i.e. markerPositions=/home/usr/auxFiles/exomeChip.Positions.txt)\n";
     usage += "   (6) if relying on a gc5Base.txt (default), the genomic build to use (i.e. build="
              + build + " (default))\n";
 
     usage += "   OPTIONAL:\n";
     usage +=
-        "	 (7) A file listing a subset of samples (DNA ID) to use for QC and PC computation portions of the analysis, often a list of unrelated individuals. If a list is not provided, all samples in the source directory will be analyzed (i.e. "
+          "	 (7) A file listing a subset of samples (DNA ID) to use for QC and PC computation portions of the analysis, often a list of unrelated individuals. If a list is not provided, all samples in the source directory will be analyzed (i.e. "
              + USE_FILE_COMMAND + useFile + " (no default))\n";
     usage +=
-        "	 (8) A file listing a subset of samples (DNA ID) to use for determining optimal PC selection, typically a list of unrelated and single race samples. If a list is not provided, only samples passing sample qc thresholds will be used. (i.e. "
+          "	 (8) A file listing a subset of samples (DNA ID) to use for determining optimal PC selection, typically a list of unrelated and single race samples. If a list is not provided, only samples passing sample qc thresholds will be used. (i.e. "
              + PC_OPT_FILE + betaOptFile + " (no default))\n";
 
     usage += "   (9) The full path for a tab-delimited .PED format file with header \""
              + Array.toStr(PED_INPUT) + "\" (i.e. pedFile=" + pedFile + "(no default))\n";
     usage += "   OR:\n";
     usage +=
-        "   (10) The full path for a Sample_Map.csv file, with at least two columns having headers \""
+          "   (10) The full path for a Sample_Map.csv file, with at least two columns having headers \""
              + SAMPLEMAP_INPUT[1] + "\" and \"" + SAMPLEMAP_INPUT[2] + "\"(i.e. mapFile="
              + sampleMapCsv + " (default))\n\n";
     usage += "   NOTE:\n";
     usage +=
-        "   All samples to be analyzed must be contained in the sample manifest (.PED format file, or Sample_Map.csv file)\n";
+          "   All samples to be analyzed must be contained in the sample manifest (.PED format file, or Sample_Map.csv file)\n";
     usage +=
-        "   (11) The desired name of the project (i.e. projName=" + projectName + " (default))\n";
+          "   (11) The desired name of the project (i.e. projName=" + projectName + " (default))\n";
     usage += "   (12) Data extension for files contained in the source data directory (i.e. dirExt="
              + dataExtension + " (default))\n";
     usage +=
-        "   (13) Log R Ratio standard deviation filter to exclude samples from PCs (i.e. LRRSD= (default for Affymetrix = 0.35, Illumina = 0.30))\n";
+          "   (13) Log R Ratio standard deviation filter to exclude samples from PCs (i.e. LRRSD= (default for Affymetrix = 0.35, Illumina = 0.30))\n";
     usage += "   (14) Call rate filter to exclude samples from PCs (i.e. sampleCallRate="
              + sampleCallRateFilter + " (default))\n";
     usage +=
-        "   (15) Number of principal components to compute (if altered from default, must be less than the number of samples AND the number of markers) (i.e. numComponents= (defaults to 10% of the filtered sample size))\n";
+          "   (15) Number of principal components to compute (if altered from default, must be less than the number of samples AND the number of markers) (i.e. numComponents= (defaults to 10% of the filtered sample size))\n";
     usage += "   (16) Number of threads to use for multi-threaded portions of the analysis (i.e. "
              + PSF.Ext.NUM_THREADS_COMMAND + numThreads + " (default))\n";
     usage += "   (17) Output file full path and baseName (i.e. output=" + output + " (default))\n";
     usage +=
-        "   (18) Project filename (if you manually created a project properties file, or edited an existing project). Note that default arguments available here can overide existing project properties (i.e. proj="
+          "   (18) Project filename (if you manually created a project properties file, or edited an existing project). Note that default arguments available here can overide existing project properties (i.e. proj="
              + filename + " (no default))\n";
     usage +=
-        "   (19) The header of the column containing sample ids in the final report files (for command-line interpretability, space characters must be replaced with \"_\". Common options are \"Sample_ID\" and \"Sample_Name\", corresponding to \"Sample ID\" and \"Sample Name\")  (i.e. idHeader="
+          "   (19) The header of the column containing sample ids in the final report files (for command-line interpretability, space characters must be replaced with \"_\". Common options are \"Sample_ID\" and \"Sample_Name\", corresponding to \"Sample ID\" and \"Sample Name\")  (i.e. idHeader="
              + idHeader + " (default))\n";
     // usage += " (18) A file specifying the AB allele lookup for markers, often times required
     // (i.e. abLookup=" + idHeader + " (default))\n";
     usage +=
-        "   (20) Do not perform a marker qc step to select higher quality markers (or remove cnv-only markers) to use for computing the sample call rate (i.e. -nomarkerQC (not the default))\n";
+          "   (20) Do not perform a marker qc step to select higher quality markers (or remove cnv-only markers) to use for computing the sample call rate (i.e. -nomarkerQC (not the default))\n";
     usage +=
-        "   (21) If marker qc is performed, the call rate cutoff for markers to be passed on to the sample QC step (i.e. markerCallRate="
+          "   (21) If marker qc is performed, the call rate cutoff for markers to be passed on to the sample QC step (i.e. markerCallRate="
              + markerCallRateFilter + " (default))\n";
     usage +=
-        "   (21) Name of the log file (i.e. log=[project_directory]/logs/Genvisis_[date].log (default))\n";
+          "   (21) Name of the log file (i.e. log=[project_directory]/logs/Genvisis_[date].log (default))\n";
     // usage += " (21) Recompute Log R Ratios for each marker from genotypes/intensities when
     // computing AND extrapolating PCs(i.e. recomputeLRR_PCs=" + recomputeLRR_PCs + " (default))\n";
     // usage += " (22) Recompute Log R Ratios for each marker from genotypes/intensities when
     // computing median values(i.e. recomputeLRR_Median=" + recomputeLRR_Median + " (default))\n";
     usage +=
-        "   (23) Impute mean for markers with NaN data, if false markers with NaN values for any sample will be skipped (i.e. imputeMeanForNaN="
+          "   (23) Impute mean for markers with NaN data, if false markers with NaN values for any sample will be skipped (i.e. imputeMeanForNaN="
              + imputeMeanForNaN + " (default))\n";
     // usage += " (22) gc correct Log R Ratios, cannot be used with recomputeLRR options (i.e.
     // gcCorrect=" + gcCorrect + " (default))\n";
@@ -1016,18 +1020,18 @@ public class MitoPipeline {
     // usage += " (28) full path to a .gcmodel file, this model will take precedence over base-pair
     // bins, and the reference genome will not be used (i.e. gcmodel=" + gcmodel + " (default))\n";
     usage +=
-        "   (24) recompute LRR using only those samples that pass QC, and are in the use file (i.e. sampLRR="
+          "   (24) recompute LRR using only those samples that pass QC, and are in the use file (i.e. sampLRR="
              + recompSampleSpecific + " (default))\n";
     usage += "   (25) comma-delimited list of p-values for pc-beta optimization  (i.e. pvals="
              + Array.toStr(Array.toStringArray(pvalOpt), ",") + " (default))\n";
     usage +=
-        "   (26) use an external beta file to optimize PC selection  (i.e. betas= (no default))\n";
+          "   (26) use an external beta file to optimize PC selection  (i.e. betas= (no default))\n";
 
     usage += "   NOTE:\n";
     usage +=
-        "   Project properties can be manually edited in the .properties file for the project. If you would like to use an existing project properties file, please specify the filename using the \"proj=\" argument\n";
+          "   Project properties can be manually edited in the .properties file for the project. If you would like to use an existing project properties file, please specify the filename using the \"proj=\" argument\n";
     usage +=
-        "   Editing the project properties file can be useful when a command line option is not available\n";
+          "   Editing the project properties file can be useful when a command line option is not available\n";
 
     usage += "";
 
@@ -1238,12 +1242,12 @@ public class MitoPipeline {
         }
       }
 
-      result =
-          catAndCaboodle(proj, numThreads, medianMarkers, numComponents, output, homosygousOnly,
-                         markerQC, markerCallRateFilter, useFile, betaOptFile, pedFile,
-                         sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, recompSampleSpecific,
-                         doAbLookup, imputeMeanForNaN, gcCorrect, referenceGenomeFasta, bpGcModel,
-                         regressionDistance, build, pvalOpt, betaFile, plot);
+      result = catAndCaboodle(proj, numThreads, medianMarkers, numComponents, output,
+                              homosygousOnly, markerQC, markerCallRateFilter, useFile, betaOptFile,
+                              pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median,
+                              recompSampleSpecific, doAbLookup, imputeMeanForNaN, gcCorrect,
+                              referenceGenomeFasta, bpGcModel, regressionDistance, build, pvalOpt,
+                              betaFile, plot);
       attempts++;
       if (result == 41 || result == 40) {
         proj.getLog().report("Attempting to restart pipeline once to fix SampleList problem");

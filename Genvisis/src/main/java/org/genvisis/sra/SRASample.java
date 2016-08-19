@@ -19,7 +19,7 @@ public class SRASample extends NGSSample {
    * @param submittedSampleID study ID
    * @param aName
    * @param aType
-   * 
+   *
    * @param platform sequencing platform
    */
   public SRASample(String runS, String submittedSampleID, ASSEMBLY_NAME aName, ASSAY_TYPE aType,

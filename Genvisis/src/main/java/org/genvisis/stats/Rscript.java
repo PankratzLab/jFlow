@@ -19,7 +19,9 @@ import org.genvisis.common.ext;
 
 public class Rscript {
   public static final HashSet<String> R_INVALID_CHARS =
-      new HashSet<String>(Arrays.asList("-", "=", " ", "\\(", "\\)"));
+                                                      new HashSet<String>(Arrays.asList("-", "=",
+                                                                                        " ", "\\(",
+                                                                                        "\\)"));
   public static final String R_REPLACEMENT = ".";
   public static final String[] RSCRIPT_EXECS = {"/panfs/roc/itascasoft/R/3.2.2/bin/Rscript", // good
                                                                                              // for
@@ -166,7 +168,7 @@ public class Rscript {
   public enum SCATTER_TYPE {
                             LINE("geom_line"), POINT("geom_point"), BOX("geom_boxplot"),
                             /**
-                             * 
+                             *
                              * basic x v y
                              */
                             BASIC_POINT("geom_point"), NO_MELT_POINT("geom_point"), BOX_NO_MELT("geom_boxplot"), HIST("geom_histogram");
@@ -299,10 +301,12 @@ public class Rscript {
       String[] rScript = developScript();
       // log.report(Array.toStr(rScript, "\n"));
       Files.writeList(rScript, rScriptFile);
-      boolean ran =
-          CmdLine.runCommandWithFileChecks(new String[] {rScatters[0].getrScriptLoc(), rScriptFile},
-                                           "", new String[] {rScriptFile},
-                                           new String[] {mergeOutput}, true, true, false, log);
+      boolean ran = CmdLine.runCommandWithFileChecks(
+                                                     new String[] {rScatters[0].getrScriptLoc(),
+                                                                   rScriptFile},
+                                                     "", new String[] {rScriptFile},
+                                                     new String[] {mergeOutput}, true, true, false,
+                                                     log);
       return ran;
     }
 
@@ -948,10 +952,10 @@ public class Rscript {
       if (rScript != null) {
         // log.report(Array.toStr(rScript, "\n"));
         Files.writeList(rScript, rScriptFile);
-        boolean ran =
-            CmdLine.runCommandWithFileChecks(new String[] {rScriptLoc, rScriptFile}, "",
-                                             new String[] {rScriptFile}, new String[] {output},
-                                             true, overWriteExisting, false, log);
+        boolean ran = CmdLine.runCommandWithFileChecks(new String[] {rScriptLoc, rScriptFile}, "",
+                                                       new String[] {rScriptFile},
+                                                       new String[] {output}, true,
+                                                       overWriteExisting, false, log);
         return ran;
       } else {
         return false;
@@ -1045,8 +1049,8 @@ public class Rscript {
         toVec[i] = "\"" + original[i] + "\"=\"" + alts[i] + "\"";
       }
 
-      String rename =
-          dataframe + " <- rename(" + dataframe + "," + generateRVector(toVec, false) + ")";
+      String rename = dataframe + " <- rename(" + dataframe + "," + generateRVector(toVec, false)
+                      + ")";
       return rename;
     }
 
@@ -1105,13 +1109,13 @@ public class Rscript {
         if (colorColumn != null) {
           toExtract = Array.concatAll(toExtract, new String[] {rSafeColorColumn});
         }
-        String extract =
-            dataTableExtract + " <- " + dataTable + "[," + generateRVector(toExtract, true) + "]";
+        String extract = dataTableExtract + " <- " + dataTable + "[,"
+                         + generateRVector(toExtract, true) + "]";
 
         rCmd.add(extract);
 
-        String melt =
-            dataTableMelt + "<-  melt(" + dataTableExtract + ",id.vars =\"" + rSafeXColumn + "\")";
+        String melt = dataTableMelt + "<-  melt(" + dataTableExtract + ",id.vars =\"" + rSafeXColumn
+                      + "\")";
         rCmd.add(melt);
         int numColors = rSafeYColumns.length;
         if (errorBars != null) {
@@ -1162,7 +1166,7 @@ public class Rscript {
               System.out.println("DFSSDF");
               System.out.println();
               plot +=
-                  "+ scale_colour_gradient2(low=\"blue\", high=\"red\",mid=\"yellow\" , midpoint="
+                   "+ scale_colour_gradient2(low=\"blue\", high=\"red\",mid=\"yellow\" , midpoint="
                       + midScaleDensity + ", " + "\"" + rSafeColorColumn + "\"" + ")";
             }
           }
@@ -1178,8 +1182,8 @@ public class Rscript {
           String label = dataTable + "$label <- paste0(" + dataTable + "$" + rSafeXColumn
                          + ",\"\\n\",\"(n=\"," + dataTable + "$N,\")\")";
           rCmd.add(label);
-          String order =
-              dataTable + " <- " + dataTable + "[ order(" + dataTable + "$" + rSafeXColumn + "), ]";
+          String order = dataTable + " <- " + dataTable + "[ order(" + dataTable + "$"
+                         + rSafeXColumn + "), ]";
           // String sort = dataTableMelt + "$label <- ";
           // System.out.println(sort);
           rCmd.add(order);

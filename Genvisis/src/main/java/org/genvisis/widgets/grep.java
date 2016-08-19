@@ -82,13 +82,13 @@ public class grep {
     ArrayList<String> withs, withouts;
     boolean not;
 
-    params =
-        Files.parseControlFile(filename, "grep",
-                               new String[] {"input=" + inputFilename, "output=" + outputFilename,
-                                             "# any line below will be treated as a string of interest, (though any line starting with a has \"#\" will still be considered a comment). If the line starts with an exclamation point (\"!\"), then this will be treated as a NOT, as in no line with this phrase will pass on to the final file",
-                                             "first pattern", " second pattern ",
-                                             "!exclude this phrase"},
-                               log);
+    params = Files.parseControlFile(filename, "grep",
+                                    new String[] {"input=" + inputFilename,
+                                                  "output=" + outputFilename,
+                                                  "# any line below will be treated as a string of interest, (though any line starting with a has \"#\" will still be considered a comment). If the line starts with an exclamation point (\"!\"), then this will be treated as a NOT, as in no line with this phrase will pass on to the final file",
+                                                  "first pattern", " second pattern ",
+                                                  "!exclude this phrase"},
+                                    log);
 
     if (params != null) {
       withs = new ArrayList<String>();
@@ -135,12 +135,12 @@ public class grep {
     String searchTerm = "pattern_to_find";
     String exclusionCriteria = "pattern_to_exclude";
 
-    String usage =
-        "\n" + "widgets.grep requires 0-1 arguments\n" + "   (1) input filename (i.e. file="
-                   + filename + " (default))\n" + "   (2) output filename (i.e. out="
-                   + outputFilename + " (default))\n" + "   (3) term to require (i.e. include="
-                   + searchTerm + " (default))\n" + "   (4) term to exclude (i.e. exclude="
-                   + exclusionCriteria + " (default))\n" + "";
+    String usage = "\n" + "widgets.grep requires 0-1 arguments\n"
+                   + "   (1) input filename (i.e. file=" + filename + " (default))\n"
+                   + "   (2) output filename (i.e. out=" + outputFilename + " (default))\n"
+                   + "   (3) term to require (i.e. include=" + searchTerm + " (default))\n"
+                   + "   (4) term to exclude (i.e. exclude=" + exclusionCriteria + " (default))\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

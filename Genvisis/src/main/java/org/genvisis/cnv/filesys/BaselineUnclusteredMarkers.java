@@ -47,8 +47,8 @@ public class BaselineUnclusteredMarkers implements Serializable {
     int[] autosomalMarkerCalls = new int[autosomalMarkerIndices.length];
     for (String sampleID : proj.getSamples()) {
       proj.getProgressMonitor().updateTask(taskName);
-      Sample sample =
-          proj.getPartialSampleFromRandomAccessFile(sampleID, false, false, false, false, true);
+      Sample sample = proj.getPartialSampleFromRandomAccessFile(sampleID, false, false, false,
+                                                                false, true);
       if (sample.getAB_Genotypes() != null && sample.getAB_Genotypes().length != 0) {
         for (int i = 0; i < autosomalMarkerIndices.length; i++) {
           if (sample.getAB_Genotypes()[autosomalMarkerIndices[i]] != -1) {

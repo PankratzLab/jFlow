@@ -45,7 +45,7 @@ public class Haplotypes {
   public static void main(String[] args) {
     int numArgs = args.length;
     String filename =
-        "D:\\umn\\Myron\\CARe\\Pathway analysis\\results\\haplo.phase-CAGCA_parsed.xln";
+                    "D:\\umn\\Myron\\CARe\\Pathway analysis\\results\\haplo.phase-CAGCA_parsed.xln";
 
     String usage = "\n" + "gwas.Haplotypes requires 0-1 arguments\n" + "   (1) filename (i.e. file="
                    + filename + " (default))\n" + "";

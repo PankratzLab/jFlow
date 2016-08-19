@@ -12,27 +12,27 @@ public class Fonts {
 
   public static final String SOURCE_CODE_PRO_BLACK_NAME = "SourceCodePro/SourceCodePro-Black.ttf";
   public static final String SOURCE_CODE_PRO_BLACK_ITALIC_NAME =
-      "SourceCodePro/SourceCodePro-BlackIt.ttf";
+                                                               "SourceCodePro/SourceCodePro-BlackIt.ttf";
   public static final String SOURCE_CODE_PRO_BOLD_NAME = "SourceCodePro/SourceCodePro-Bold.ttf";
   public static final String SOURCE_CODE_PRO_BOLD_ITALIC_NAME =
-      "SourceCodePro/SourceCodePro-BoldIt.ttf";
+                                                              "SourceCodePro/SourceCodePro-BoldIt.ttf";
   public static final String SOURCE_CODE_PRO_EXTRALIGHT_NAME =
-      "SourceCodePro/SourceCodePro-ExtraLight.ttf";
+                                                             "SourceCodePro/SourceCodePro-ExtraLight.ttf";
   public static final String SOURCE_CODE_PRO_EXTRALIGHT_ITALIC_NAME =
-      "SourceCodePro/SourceCodePro-ExtraLightIt.ttf";
+                                                                    "SourceCodePro/SourceCodePro-ExtraLightIt.ttf";
   public static final String SOURCE_CODE_PRO_ITALIC_NAME = "SourceCodePro/SourceCodePro-It.ttf";
   public static final String SOURCE_CODE_PRO_LIGHT_NAME = "SourceCodePro/SourceCodePro-Light.ttf";
   public static final String SOURCE_CODE_PRO_LIGHT_ITALIC_NAME =
-      "SourceCodePro/SourceCodePro-LightIt.ttf";
+                                                               "SourceCodePro/SourceCodePro-LightIt.ttf";
   public static final String SOURCE_CODE_PRO_MEDIUM_NAME = "SourceCodePro/SourceCodePro-Medium.ttf";
   public static final String SOURCE_CODE_PRO_MEDIUM_ITALIC_NAME =
-      "SourceCodePro/SourceCodePro-MediumIt.ttf";
+                                                                "SourceCodePro/SourceCodePro-MediumIt.ttf";
   public static final String SOURCE_CODE_PRO_REGULAR_NAME =
-      "SourceCodePro/SourceCodePro-Regular.ttf";
+                                                          "SourceCodePro/SourceCodePro-Regular.ttf";
   public static final String SOURCE_CODE_PRO_SEMIBOLD_NAME =
-      "SourceCodePro/SourceCodePro-Semibold.ttf";
+                                                           "SourceCodePro/SourceCodePro-Semibold.ttf";
   public static final String SOURCE_CODE_PRO_SEMIBOLD_ITALIC_NAME =
-      "SourceCodePro/SourceCodePro-SemiboldIt.ttf";
+                                                                  "SourceCodePro/SourceCodePro-SemiboldIt.ttf";
 
   private static final Font getFont(String file) {
     try {
@@ -51,22 +51,22 @@ public class Fonts {
 
   public static final Font SOURCE_CODE_PRO_BLACK = getFont(SOURCE_CODE_PRO_BLACK_NAME);
   public static final Font SOURCE_CODE_PRO_BLACK_ITALIC =
-      getFont(SOURCE_CODE_PRO_BLACK_ITALIC_NAME);
+                                                        getFont(SOURCE_CODE_PRO_BLACK_ITALIC_NAME);
   public static final Font SOURCE_CODE_PRO_BOLD = getFont(SOURCE_CODE_PRO_BOLD_NAME);
   public static final Font SOURCE_CODE_PRO_BOLD_ITALIC = getFont(SOURCE_CODE_PRO_BOLD_ITALIC_NAME);
   public static final Font SOURCE_CODE_PRO_EXTRALIGHT = getFont(SOURCE_CODE_PRO_EXTRALIGHT_NAME);
   public static final Font SOURCE_CODE_PRO_EXTRALIGHT_ITALIC =
-      getFont(SOURCE_CODE_PRO_EXTRALIGHT_ITALIC_NAME);
+                                                             getFont(SOURCE_CODE_PRO_EXTRALIGHT_ITALIC_NAME);
   public static final Font SOURCE_CODE_PRO_ITALIC = getFont(SOURCE_CODE_PRO_ITALIC_NAME);
   public static final Font SOURCE_CODE_PRO_LIGHT = getFont(SOURCE_CODE_PRO_LIGHT_NAME);
   public static final Font SOURCE_CODE_PRO_LIGHT_ITALIC =
-      getFont(SOURCE_CODE_PRO_LIGHT_ITALIC_NAME);
+                                                        getFont(SOURCE_CODE_PRO_LIGHT_ITALIC_NAME);
   public static final Font SOURCE_CODE_PRO_MEDIUM = getFont(SOURCE_CODE_PRO_MEDIUM_NAME);
   public static final Font SOURCE_CODE_PRO_MEDIUM_ITALIC =
-      getFont(SOURCE_CODE_PRO_MEDIUM_ITALIC_NAME);
+                                                         getFont(SOURCE_CODE_PRO_MEDIUM_ITALIC_NAME);
   public static final Font SOURCE_CODE_PRO_REGULAR = getFont(SOURCE_CODE_PRO_REGULAR_NAME);
   public static final Font SOURCE_CODE_PRO_SEMIBOLD = getFont(SOURCE_CODE_PRO_SEMIBOLD_NAME);
   public static final Font SOURCE_CODE_PRO_SEMIBOLD_ITALIC =
-      getFont(SOURCE_CODE_PRO_SEMIBOLD_ITALIC_NAME);
+                                                           getFont(SOURCE_CODE_PRO_SEMIBOLD_ITALIC_NAME);
 
 }

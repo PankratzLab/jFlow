@@ -76,8 +76,8 @@ public class temp {
   public static void downloadAll(String filename, String dir) {
     String[][] files;
 
-    files =
-        HashVec.loadFileToStringMatrix(filename, false, new int[] {0, 1}, "\t", false, 1000, false);
+    files = HashVec.loadFileToStringMatrix(filename, false, new int[] {0, 1}, "\t", false, 1000,
+                                           false);
 
     for (String[] file : files) {
       Internat.downloadFile(file[0], dir + file[1]);
@@ -100,8 +100,8 @@ public class temp {
     String[][] trios;
     String commands;
 
-    trios =
-        HashVec.loadFileToStringMatrix(infile, true, new int[] {4, 5, 6}, "\t", false, 100, false);
+    trios = HashVec.loadFileToStringMatrix(infile, true, new int[] {4, 5, 6}, "\t", false, 100,
+                                           false);
     for (int i = 0; i < trios.length; i++) {
       boolean fine = true;
       for (int j = 0; j < 3; j++) {
@@ -122,7 +122,7 @@ public class temp {
     // Files.qsub("runJoint", commands, trios);
 
     commands =
-        "/home/npankrat/bin/detect_cnv.pl -trio -hmm /home/npankrat/bin/lib/hh550.hmm -pfb ../custom.pfb -gcmodel ../custom.gcmodel -cnv penncnv.rawcnv [%1] [%2] [%0] -out ../trio_results/[%0].triocnv 2> ../trio_results/[%0].log";
+             "/home/npankrat/bin/detect_cnv.pl -trio -hmm /home/npankrat/bin/lib/hh550.hmm -pfb ../custom.pfb -gcmodel ../custom.gcmodel -cnv penncnv.rawcnv [%1] [%2] [%0] -out ../trio_results/[%0].triocnv 2> ../trio_results/[%0].log";
     Files.qsub("runTrio", commands, trios);
   }
 

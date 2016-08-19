@@ -45,9 +45,9 @@ public class Dump {
       byte[] forwardGenotypes = samp.getForwardGenotypes();
       byte[] abGenotypes = samp.getAB_Genotypes();
 
-      writer =
-          new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename) + ext.rootOf(filename)
-                                         + "_dump_" + samp.getFingerprint() + ".xln"));
+      writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename)
+                                              + ext.rootOf(filename) + "_dump_"
+                                              + samp.getFingerprint() + ".xln"));
       writer.println((xs == null ? "" : "X") + (ys == null ? "" : "\tY")
                      + (thetas == null ? "" : "\tTheta") + (rs == null ? "" : "\tR")
                      + (bafs == null ? "" : "\tBAF") + (lrrs == null ? "" : "\tLRR")
@@ -82,11 +82,11 @@ public class Dump {
       byte[] chrs = set.getChrs();
       int[] positions = set.getPositions();
 
-      writer =
-          new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename) + ext.rootOf(filename)
-                                         + "_dump_" + "_" + set.getFingerprint()
-                                         + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()))
-                                         + ".xln"));
+      writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename)
+                                              + ext.rootOf(filename) + "_dump_" + "_"
+                                              + set.getFingerprint()
+                                              + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()))
+                                              + ".xln"));
       writer.println("MarkerName\tChr\tPosition");
       for (int i = 0; i < markerNames.length; i++) {
         writer.println(markerNames[i] + "\t" + chrs[i] + "\t" + positions[i]);

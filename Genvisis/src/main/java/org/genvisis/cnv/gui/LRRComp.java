@@ -43,14 +43,17 @@ public class LRRComp extends JFrame implements Runnable {
   private volatile int computeComplete = 42;
   public static final String FILENAME = "Enter Analysis Name";
   public static final String[] REGION_TEXT_FIELD_LABELS =
-      {"Input UCSC or probeset-based regions of Interest (one per Line):", "Progress...",
-       "Enter Analysis Name Here", "Transform by: ", "Select a Log R Ratio transformation: ",
-       "Select a correction method", "Select for homozygous markers only"};
+                                                        {"Input UCSC or probeset-based regions of Interest (one per Line):",
+                                                         "Progress...", "Enter Analysis Name Here",
+                                                         "Transform by: ",
+                                                         "Select a Log R Ratio transformation: ",
+                                                         "Select a correction method",
+                                                         "Select for homozygous markers only"};
   public static final String[] CLASSES_TO_DUMP = {"IID"};
   public static final String[] BASIC_CORRECTION = {"None", "Recompute LRR"};
   public static final String[] BASIC_CORRECTION_TIPS =
-      {"No Correction Procedure will be performed, select this option if you wish to transform the data",
-       "Recompute Log R Ratios"};
+                                                     {"No Correction Procedure will be performed, select this option if you wish to transform the data",
+                                                      "Recompute Log R Ratios"};
 
   public static final String[] EXTRA_CORRECTION = {"Correct LRR", "Correct XY"};
 
@@ -89,12 +92,12 @@ public class LRRComp extends JFrame implements Runnable {
       public void windowClosing(WindowEvent e) {
         String ObjButtons[] = {"Exit Anyway", "Cancel"};
         if (computeComplete != 42 && !medianLRRWorker.isDone()) {
-          int promptResult =
-              JOptionPane.showOptionDialog(null,
-                                           "A Thread is computing Median Log R Ratios\nThread will continue if you exit",
-                                           "Warning - Running thread", JOptionPane.DEFAULT_OPTION,
-                                           JOptionPane.WARNING_MESSAGE, null, ObjButtons,
-                                           ObjButtons[1]);
+          int promptResult = JOptionPane.showOptionDialog(null,
+                                                          "A Thread is computing Median Log R Ratios\nThread will continue if you exit",
+                                                          "Warning - Running thread",
+                                                          JOptionPane.DEFAULT_OPTION,
+                                                          JOptionPane.WARNING_MESSAGE, null,
+                                                          ObjButtons, ObjButtons[1]);
           System.out.println(promptResult);
           if (promptResult == 0) {
             dispose();
@@ -204,11 +207,13 @@ public class LRRComp extends JFrame implements Runnable {
       } else {
         valid = false;
         String ObjButtons[] = {"Overwrite", "Cancel"};
-        int promptResult =
-            JOptionPane.showOptionDialog(this, "The Files for Analysis " + outputBase + " Exist",
-                                         "Warning - Analysis Files Exist",
-                                         JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
-                                         null, ObjButtons, ObjButtons[1]);
+        int promptResult = JOptionPane.showOptionDialog(this,
+                                                        "The Files for Analysis " + outputBase
+                                                              + " Exist",
+                                                        "Warning - Analysis Files Exist",
+                                                        JOptionPane.DEFAULT_OPTION,
+                                                        JOptionPane.WARNING_MESSAGE, null,
+                                                        ObjButtons, ObjButtons[1]);
         if (promptResult == 0) {
           valid = true;
         } else {
@@ -220,24 +225,25 @@ public class LRRComp extends JFrame implements Runnable {
 
     private void startJob() {
       String ObjButtons[] = {"OK", "Cancel"};
-      int promptResult =
-          JOptionPane.showOptionDialog(this,
-                                       "Compute median using "
-                                             + Transforms.TRANFORMATIONS[transformationType] + "?",
-                                       "Log R Ratio " + Transforms.TRANFORMATIONS[transformationType],
-                                       JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
-                                       null, ObjButtons, ObjButtons[1]);
+      int promptResult = JOptionPane.showOptionDialog(this,
+                                                      "Compute median using "
+                                                            + Transforms.TRANFORMATIONS[transformationType]
+                                                            + "?",
+                                                      "Log R Ratio " + Transforms.TRANFORMATIONS[transformationType],
+                                                      JOptionPane.DEFAULT_OPTION,
+                                                      JOptionPane.WARNING_MESSAGE, null, ObjButtons,
+                                                      ObjButtons[1]);
       if (promptResult == 0) {
         add(progressBar);
         progressBar.setVisible(true);
         progressBar.setStringPainted(true);
         computeComplete = 0;
-        medianLRRWorker =
-            new MedianLRRWorker(proj, regionTextField.getText().split("\n"), transformationType,
-                                scope, outputBase, progressBar, correctionParams[1],
-                                correctionParams[2], correctionParams[3],
-                                homozygousCheckBox.isSelected(), proj.getLog());// TODO homozygous
-                                                                                // box
+        medianLRRWorker = new MedianLRRWorker(proj, regionTextField.getText().split("\n"),
+                                              transformationType, scope, outputBase, progressBar,
+                                              correctionParams[1], correctionParams[2],
+                                              correctionParams[3], homozygousCheckBox.isSelected(),
+                                              proj.getLog());// TODO homozygous
+                                                             // box
         medianLRRWorker.execute();
         revalidate();
       }
@@ -246,9 +252,9 @@ public class LRRComp extends JFrame implements Runnable {
 
     private void resetOutputBase() {
       outputBase =
-          outputBase.replaceFirst(ext.replaceWithLinuxSafeCharacters(fileInputArea.getText() + "_",
-                                                                     true),
-                                  "");
+                 outputBase.replaceFirst(ext.replaceWithLinuxSafeCharacters(fileInputArea.getText()
+                                                                            + "_", true),
+                                         "");
     }
 
     private JLabel addLabel(String text) {
@@ -278,7 +284,7 @@ public class LRRComp extends JFrame implements Runnable {
 
     private void addTransformButtons(ActionListener actionListener, int initScope) {
       JRadioButton[] transformationRadioButtons =
-          new JRadioButton[Transforms.TRANFORMATIONS.length];
+                                                new JRadioButton[Transforms.TRANFORMATIONS.length];
       for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
         transformationRadioButtons[i] = new JRadioButton(Transforms.TRANFORMATIONS[i], false);
         transformationRadioButtons[i].setFont(new Font("Arial", 0, 14));
@@ -309,7 +315,8 @@ public class LRRComp extends JFrame implements Runnable {
       if (extra) {
         for (int i = BASIC_CORRECTION.length; i < numButtons; i++) {
           correctionRadioButtons[i] =
-              new JRadioButton(EXTRA_CORRECTION[i - BASIC_CORRECTION.length], false);
+                                    new JRadioButton(EXTRA_CORRECTION[i - BASIC_CORRECTION.length],
+                                                     false);
           correctionRadioButtons[i].setFont(new Font("Arial", 0, 14));
           correctionRadio.add(correctionRadioButtons[i]);
           correctionRadioButtons[i].addActionListener(actionListener);
@@ -379,9 +386,9 @@ public class LRRComp extends JFrame implements Runnable {
 
         if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.TRANFORMATIONS, true, true,
                            proj.getLog(), false) >= 0) {
-          transformationType =
-              ext.indexOfStr(actionEvent.getActionCommand(), Transforms.TRANFORMATIONS, true, true,
-                             proj.getLog(), false);
+          transformationType = ext.indexOfStr(actionEvent.getActionCommand(),
+                                              Transforms.TRANFORMATIONS, true, true, proj.getLog(),
+                                              false);
           outputBase = Transforms.TRANFORMATIONS[transformationType];
         } else if (ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true,
                                   proj.getLog(), false) >= 0
@@ -393,7 +400,7 @@ public class LRRComp extends JFrame implements Runnable {
           scope = ext.indexOfStr(actionEvent.getActionCommand(), Transforms.SCOPES, true, true,
                                  proj.getLog(), false);
           outputBase =
-              Transforms.TRANFORMATIONS[transformationType] + "_" + Transforms.SCOPES[scope];
+                     Transforms.TRANFORMATIONS[transformationType] + "_" + Transforms.SCOPES[scope];
         } else if (ext.indexOfStr(actionEvent.getActionCommand(), BASIC_CORRECTION, true, true,
                                   proj.getLog(), false) >= 0) {
           int index = ext.indexOfStr(actionEvent.getActionCommand(), BASIC_CORRECTION, true, true,

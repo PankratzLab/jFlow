@@ -1,9 +1,6 @@
 // -Xms1024M -Xmx1024M
 package org.genvisis.nrss;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,6 +20,9 @@ import org.genvisis.common.Sort;
 import org.genvisis.common.Vectors;
 import org.genvisis.common.ext;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 public class NrsHap {
   public static final double INDEX_THRESHOLD = 0.001;
 
@@ -30,9 +30,10 @@ public class NrsHap {
 
   public static final int WINDOW = 150000;
 
-  public static final String[][] MODELS =
-      {{"0.001", "0.01", "150000"}, {"0.001", "0.01", "50000"}, {"0.001", "0.01", "25000"},
-       {"0.0001", "0.01", "250000"}, {"0.0001", "0.01", "150000"}, {"0.0001", "0.01", "25000"},};
+  public static final String[][] MODELS = {{"0.001", "0.01", "150000"}, {"0.001", "0.01", "50000"},
+                                           {"0.001", "0.01", "25000"}, {"0.0001", "0.01", "250000"},
+                                           {"0.0001", "0.01", "150000"},
+                                           {"0.0001", "0.01", "25000"},};
 
   // public static final String[][] MODELS = {{"0.01", "0.1", "150000"}};
 

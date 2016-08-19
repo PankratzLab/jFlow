@@ -60,7 +60,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
 
   /**
    * Function to update the maximum number of checkbox which can be selected after creating the tree
-   * 
+   *
    * @param maxSelectable the new maximum number of selectable checkboxes
    */
   public void setMaxSelections(int maxSelectable) {
@@ -732,8 +732,8 @@ class CheckBoxCellEditor extends AbstractCellEditor implements TreeCellEditor {
   @Override
   public Component getTreeCellEditorComponent(JTree tree, Object value, boolean selected,
                                               boolean expanded, boolean leaf, int row) {
-    Component editor =
-        renderer.getTreeCellRendererComponent(tree, value, true, expanded, leaf, row, true);
+    Component editor = renderer.getTreeCellRendererComponent(tree, value, true, expanded, leaf, row,
+                                                             true);
 
     // ItemListener itemListener = new ItemListener() {
     // public void itemStateChanged(ItemEvent itemEvent) {

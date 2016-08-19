@@ -169,12 +169,12 @@ public class FilterDB {
     String outputFilename = null;
     String logFilename = null;
 
-    String usage =
-        "\n" + "db.FilterDB requires 0-1 arguments\n" + "   (1) database filename (i.e. db="
-                   + dbFilename + " (default))\n" + "   (2) filters filename (i.e. filters="
-                   + dbFilename + " (default))\n" + "   (3) (optional) output filename (i.e. out="
-                   + logFilename + " (default))\n" + "   (4) (optional) log filename (i.e. log="
-                   + logFilename + " (default))\n" + "";
+    String usage = "\n" + "db.FilterDB requires 0-1 arguments\n"
+                   + "   (1) database filename (i.e. db=" + dbFilename + " (default))\n"
+                   + "   (2) filters filename (i.e. filters=" + dbFilename + " (default))\n"
+                   + "   (3) (optional) output filename (i.e. out=" + logFilename + " (default))\n"
+                   + "   (4) (optional) log filename (i.e. log=" + logFilename + " (default))\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -202,12 +202,12 @@ public class FilterDB {
     }
     try {
       if (logFilename == null) {
-        logFilename =
-            ext.parseDirectoryOfFile(filterFilename, false) + ext.rootOf(filterFilename) + ".log";
+        logFilename = ext.parseDirectoryOfFile(filterFilename, false) + ext.rootOf(filterFilename)
+                      + ".log";
       }
       if (outputFilename == null) {
-        outputFilename =
-            ext.parseDirectoryOfFile(filterFilename, false) + ext.rootOf(filterFilename) + ".out";
+        outputFilename = ext.parseDirectoryOfFile(filterFilename, false)
+                         + ext.rootOf(filterFilename) + ".out";
       }
       filter(dbFilename, filterFilename, outputFilename, new Logger(logFilename));
     } catch (Exception e) {

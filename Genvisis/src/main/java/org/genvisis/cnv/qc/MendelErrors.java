@@ -98,27 +98,27 @@ public class MendelErrors {
   public static class MendelErrorCheck {
 
     /**
-     * 
+     *
      * -1 is no error<br>
      * Code Pat , Mat -> Offspring<br>
-     * 
+     *
      * 1 AA , AA -> AB <br>
      * 2 BB , BB -> AB<br>
-     * 
+     *
      * 3 BB , ** -> AA<br>
      * 4 ** , BB -> AA<br>
      * 5 BB , BB -> AA<br>
-     * 
+     *
      * 6 AA , ** -> BB<br>
      * 7 ** , AA -> BB<br>
      * 8 AA , AA -> BB<br>
-     * 
+     *
      * 9 ** , AA -> BB (X chromosome male offspring)<br>
      * 10 ** , BB -> AA (X chromosome male offspring)<br>
-     * 
+     *
      * 11 **,AA -> !AA (Mitochondrial, maternal) <br>
      * 12 **,BB -> !BB (Mitochondrial, maternal)
-     * 
+     *
      */
     private final int errorCode;
     private String error;
@@ -241,8 +241,11 @@ public class MendelErrors {
         while (mdl.hasNext()) {
           MarkerData markerData = mdl.next();
           MendelErrorCheck[] mendelErrorChecks =
-              Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData, samplesToCheck, null,
-                                                       null, 0, log);
+                                               Pedigree.PedigreeUtils.checkMendelErrors(pedigree,
+                                                                                        markerData,
+                                                                                        samplesToCheck,
+                                                                                        null, null,
+                                                                                        0, log);
           int num = 0;
           for (MendelErrorCheck mendelErrorCheck : mendelErrorChecks) {
             if (mendelErrorCheck.getErrorCode() > 0) {

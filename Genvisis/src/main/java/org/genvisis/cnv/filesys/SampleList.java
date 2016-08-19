@@ -119,7 +119,7 @@ public class SampleList implements Serializable {
       try {
         String sampleFile = sampleDir + sample + Sample.SAMPLE_FILE_EXTENSION;
         Hashtable<String, Float> outliers =
-            Sample.loadOutOfRangeValuesFromRandomAccessFile(sampleFile);
+                                          Sample.loadOutOfRangeValuesFromRandomAccessFile(sampleFile);
 
         // TODO duplicates?
         if (outliers != null) {

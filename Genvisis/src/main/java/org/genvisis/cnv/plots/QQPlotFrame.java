@@ -15,7 +15,7 @@ public class QQPlotFrame extends JFrame implements ActionListener {
   public static final long serialVersionUID = 1L;
 
   /**
-   * 
+   *
    * @param plotLabel label for the plot
    * @param labels labels for each set of pvals
    * @param pvals array of pvals for each label in labels
@@ -44,7 +44,7 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 
 
   /**
-   * 
+   *
    * @param filenames files to load pvals from
    * @param plotLabel label for the plot
    * @param displayQuantiles display quantiles instead of -log10 pvals
@@ -148,9 +148,9 @@ public class QQPlotFrame extends JFrame implements ActionListener {
       if (computePrefix != null) {
         QQPlot.computeCI(computeDir, computePrefix, max, new Logger(logfile));
       } else if (outFile != null) {
-        QQPlot qqPlot =
-            QQPlot.loadPvals(filenames, plotLabel, displayQuantiles, displayStandardQQ,
-                             displayRotatedQQ, maxToPlot, symmetric, maxValue, new Logger(logfile));
+        QQPlot qqPlot = QQPlot.loadPvals(filenames, plotLabel, displayQuantiles, displayStandardQQ,
+                                         displayRotatedQQ, maxToPlot, symmetric, maxValue,
+                                         new Logger(logfile));
         qqPlot.screenCap(outFile);
       } else {
         loadPvals(filenames, plotLabel, displayQuantiles, displayStandardQQ, displayRotatedQQ,

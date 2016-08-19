@@ -19,24 +19,27 @@ import org.genvisis.common.ext;
 
 public class VariantSorter {
   public static final double MAF_LOWER_BOUND = 0.01;
-  public static final String[] SEATTLE_SEQ_REQS =
-      {"geneList", "functionGVS", "# inDBSNPOrNot", "chromosome", "position", "referenceBase",
-       "sampleGenotype", "AfricanHapMapFreq", "EuropeanHapMapFreq", "AsianHapMapFreq"};
+  public static final String[] SEATTLE_SEQ_REQS = {"geneList", "functionGVS", "# inDBSNPOrNot",
+                                                   "chromosome", "position", "referenceBase",
+                                                   "sampleGenotype", "AfricanHapMapFreq",
+                                                   "EuropeanHapMapFreq", "AsianHapMapFreq"};
   public static final String[] SIFT_REQS = {"Coordinates", "Prediction"};
-  public static final String[] CATS =
-      {"Total", "dbSNP>" + (MAF_LOWER_BOUND * 100) + "%", "dbSNP<" + (MAF_LOWER_BOUND * 100) + "%",
-       "dbSNP_noFreq", "not_in_dbSNP", "deleterious", "deleteriousRare", "deleteriousNotInDBSNP"};
-  public static final String[] FUNCS =
-      {"missense", "nonsense", "coding-synonymous", "coding-notMod3", "splice-5", "splice-3",
-       "utr-5", "utr-3", "near-gene-5", "near-gene-3", "intron", "intergenic"};
-  public static final boolean[] FUNC_DISPS =
-      {true, true, true, true, true, true, true, true, false, false, false, false};
+  public static final String[] CATS = {"Total", "dbSNP>" + (MAF_LOWER_BOUND * 100) + "%",
+                                       "dbSNP<" + (MAF_LOWER_BOUND * 100) + "%", "dbSNP_noFreq",
+                                       "not_in_dbSNP", "deleterious", "deleteriousRare",
+                                       "deleteriousNotInDBSNP"};
+  public static final String[] FUNCS = {"missense", "nonsense", "coding-synonymous",
+                                        "coding-notMod3", "splice-5", "splice-3", "utr-5", "utr-3",
+                                        "near-gene-5", "near-gene-3", "intron", "intergenic"};
+  public static final boolean[] FUNC_DISPS = {true, true, true, true, true, true, true, true, false,
+                                              false, false, false};
   public static final String[] SENSE = {"A", "C", "G", "T", "I", "D"};
   public static final String[] ANTISENSE = {"T", "G", "C", "A", "I", "D"};
   public static final String[][] IUB_LOOKUPS =
-      {{"A", "A"}, {"C", "C"}, {"G", "G"}, {"T", "T"}, {"R", "AG"}, {"Y", "CT"}, {"K", "GT"},
-       {"M", "AC"}, {"S", "GC"}, {"W", "AT"}, {"B", "CGT"}, {"D", "AGT"}, {"H", "ACT"},
-       {"V", "ACG"}, {"N", "AGCT"}};
+                                             {{"A", "A"}, {"C", "C"}, {"G", "G"}, {"T", "T"},
+                                              {"R", "AG"}, {"Y", "CT"}, {"K", "GT"}, {"M", "AC"},
+                                              {"S", "GC"}, {"W", "AT"}, {"B", "CGT"}, {"D", "AGT"},
+                                              {"H", "ACT"}, {"V", "ACG"}, {"N", "AGCT"}};
 
   public static void parse(String dir, String suffix, String favoriteGenes) {
     BufferedReader reader;
@@ -149,8 +152,8 @@ public class VariantSorter {
     if (Collapsed.exists(dir + "siftOutput.dat", false)) {
       try {
         reader = new BufferedReader(new FileReader(dir + "siftOutput.dat"));
-        indices =
-            Collapsed.indexFactors(SIFT_REQS, reader.readLine().trim().split("\\t"), true, true);
+        indices = Collapsed.indexFactors(SIFT_REQS, reader.readLine().trim().split("\\t"), true,
+                                         true);
         while (reader.ready()) {
           line = reader.readLine().trim().split("\\t");
           if (line[indices[1]].startsWith("DAMAGING")) {
@@ -349,14 +352,14 @@ public class VariantSorter {
         line = reader.readLine().trim().split("\t", -1);
         geneNames[count] = line[12];
         geneLocs[count] = new int[Integer.parseInt(line[7]) + 2][];
-        geneLocs[count][0] =
-            new int[] {Positions.chromosomeNumber(line[1]), line[2].equals("+") ? 1 : 0};
+        geneLocs[count][0] = new int[] {Positions.chromosomeNumber(line[1]),
+                                        line[2].equals("+") ? 1 : 0};
         geneLocs[count][1] = new int[] {Integer.parseInt(line[3]), Integer.parseInt(line[4])};
         starts = line[8].split(",");
         stops = line[9].split(",");
         for (int i = 0; i < Integer.parseInt(line[7]); i++) {
-          geneLocs[count][i + 2] =
-              new int[] {Integer.parseInt(starts[i]), Integer.parseInt(stops[i])};
+          geneLocs[count][i + 2] = new int[] {Integer.parseInt(starts[i]),
+                                              Integer.parseInt(stops[i])};
         }
         count++;
       }
@@ -461,11 +464,11 @@ public class VariantSorter {
     // String suffix = ".snplist";
 
     String dir =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\SequencingProjectWithCIDR\\SNPlists\\bfast_indels\\target\\";
+               "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\SequencingProjectWithCIDR\\SNPlists\\bfast_indels\\target\\";
     String suffix = ".snplist";
 
     String genes =
-        "ESPNL,ARMC9,DNER,FAM132B,ALPPL2,DGKD,DIS3L2,EFHD1,MMRN1,MYEOV2,COL4A3,HRB,LRRK2,SH3BP4";
+                 "ESPNL,ARMC9,DNER,FAM132B,ALPPL2,DGKD,DIS3L2,EFHD1,MMRN1,MYEOV2,COL4A3,HRB,LRRK2,SH3BP4";
     boolean indels = true;
 
     String usage = "\n" + "seq.VariantSorter requires 0-1 arguments\n"

@@ -19,9 +19,9 @@ public class UpdateCRFdb {
 
   public static final String PLATE_LIST_DIR = tools.MASTER_PLATELIST_DIR;
 
-  public static final String[] TRAITS =
-      {"Depressed", "MajorDepression", "MinorDepression", "Depression", "AOO", "parkin", "AnyLRRK2",
-       "GBA_carrier", "GBA_del"};
+  public static final String[] TRAITS = {"Depressed", "MajorDepression", "MinorDepression",
+                                         "Depression", "AOO", "parkin", "AnyLRRK2", "GBA_carrier",
+                                         "GBA_del"};
 
   public static void update() throws IOException {
     System.out.println("Parsing ninfos...");

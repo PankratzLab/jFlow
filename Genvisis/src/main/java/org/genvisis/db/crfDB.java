@@ -26,14 +26,17 @@ public class crfDB {
   public static boolean SHOW_ABSENTS = false;
   public static final String DELIMITERS = "$@#\\-!\\+\\/\\*";
   public static final String POSS_DIR = org.genvisis.park.tools.CRF_DIR;
-  public static final String[] DONT_COMP =
-      {"UniqueID", "FamID", "IndID", "Site", "BirthDate", "OnsetDate", "DiagnosisDate", "ExamDate",
-       "Dx", "CONF_PD", "Affected", "Gender", "BirthMonth", "BirthDay", "BirthYear", "Race",
-       "OtherLRRK2", "APOE", "MMSEcutoff", "InitialSymptom", "Ethnicity", "Onset>20",
-       "levodopaChorea", "PDopinion", "Alzheimers", "Remission", "lesionMRI"};
-  public static final String[] DONT_COMP_DEP =
-      {"Depression", "AdjDepression", "Depressed", "MajorDepression", "MinorDepression",
-       "DSMIV_Dx_Depression", "depressionBefore", "depressionSince"};
+  public static final String[] DONT_COMP = {"UniqueID", "FamID", "IndID", "Site", "BirthDate",
+                                            "OnsetDate", "DiagnosisDate", "ExamDate", "Dx",
+                                            "CONF_PD", "Affected", "Gender", "BirthMonth",
+                                            "BirthDay", "BirthYear", "Race", "OtherLRRK2", "APOE",
+                                            "MMSEcutoff", "InitialSymptom", "Ethnicity", "Onset>20",
+                                            "levodopaChorea", "PDopinion", "Alzheimers",
+                                            "Remission", "lesionMRI"};
+  public static final String[] DONT_COMP_DEP = {"Depression", "AdjDepression", "Depressed",
+                                                "MajorDepression", "MinorDepression",
+                                                "DSMIV_Dx_Depression", "depressionBefore",
+                                                "depressionSince"};
   public static final double DEFAULT_MISSING_THRESHOLD = 0.25;
 
   private final Logger log;
@@ -530,7 +533,7 @@ public class crfDB {
             logistic = (v.size() == 2);
 
             model =
-                logistic ? new LogisticRegression(deps, indeps) : new LeastSquares(deps, indeps);
+                  logistic ? new LogisticRegression(deps, indeps) : new LeastSquares(deps, indeps);
             dataline = temp.startsWith("$RESIDUAL") ? model.getResiduals() : model.getPredicteds();
 
             count = 0;
@@ -574,8 +577,8 @@ public class crfDB {
                 allData[numFiles][i] = ".";
               } else {
                 allData[numFiles][i] =
-                    recodeTo[recodeFrom.indexOf(allData[functionIndicies[0][0]][functionIndicies[0][1]])
-                             + 1];
+                                     recodeTo[recodeFrom.indexOf(allData[functionIndicies[0][0]][functionIndicies[0][1]])
+                                              + 1];
               }
             } else if (indices.length == 1 && operator[0] == '$' && subline[1].startsWith("HASH")) {
               line = subline[1].split("[,]+");
@@ -599,8 +602,8 @@ public class crfDB {
                                        + "'";
               } else {
                 allData[numFiles][i] =
-                    hashes.elementAt(index)
-                          .get(allData[functionIndicies[0][0]][functionIndicies[0][1]]);
+                                     hashes.elementAt(index)
+                                           .get(allData[functionIndicies[0][0]][functionIndicies[0][1]]);
               }
             } else {
               score = 0;
@@ -653,8 +656,8 @@ public class crfDB {
                       functionIndicies = new int[1][];
                       functionIndicies[0] = getVector(line[1], expecteds, filenameKey);
                       score +=
-                          allData[functionIndicies[0][0]][functionIndicies[0][1]].equals(line[2]) ? 1
-                                                                                                  : 0;
+                            allData[functionIndicies[0][0]][functionIndicies[0][1]].equals(line[2]) ? 1
+                                                                                                    : 0;
                     } else if (line[0].equals("AND")) {
                       if (line.length % 2 != 1) {
                         log.reportError("Error - improper use of the AND function. Requires an even number of additional arguments: (variable_name, target_value)*n");
@@ -718,9 +721,9 @@ public class crfDB {
                         missing++;
                       } else {
                         score +=
-                            procDouble(allData[functionIndicies[0][0]][functionIndicies[0][1]]) >= procDouble(line[2].indexOf(":") > 0 ? allData[functionIndicies[1][0]][functionIndicies[1][1]]
-                                                                                                                                       : line[2]) ? 1
-                                                                                                                                                  : 0;
+                              procDouble(allData[functionIndicies[0][0]][functionIndicies[0][1]]) >= procDouble(line[2].indexOf(":") > 0 ? allData[functionIndicies[1][0]][functionIndicies[1][1]]
+                                                                                                                                         : line[2]) ? 1
+                                                                                                                                                    : 0;
                       }
                     } else if (line[0].equals("LTE")) {
                       if (line.length != 3) {
@@ -745,9 +748,9 @@ public class crfDB {
                         missing++;
                       } else {
                         score +=
-                            procDouble(allData[functionIndicies[0][0]][functionIndicies[0][1]]) <= procDouble(line[2].indexOf(":") > 0 ? allData[functionIndicies[1][0]][functionIndicies[1][1]]
-                                                                                                                                       : line[2]) ? 1
-                                                                                                                                                  : 0;
+                              procDouble(allData[functionIndicies[0][0]][functionIndicies[0][1]]) <= procDouble(line[2].indexOf(":") > 0 ? allData[functionIndicies[1][0]][functionIndicies[1][1]]
+                                                                                                                                         : line[2]) ? 1
+                                                                                                                                                    : 0;
                       }
                     } else if (line[0].equals("FLOOR")) {
                       if (line.length != 2) {
@@ -760,9 +763,9 @@ public class crfDB {
                         missing++;
                       } else {
                         score +=
-                            procDouble(allData[functionIndicies[0][0]][functionIndicies[0][1]].indexOf(".") > 0 ? allData[functionIndicies[0][0]][functionIndicies[0][1]].substring(0,
-                                                                                                                                                                                    allData[functionIndicies[0][0]][functionIndicies[0][1]].indexOf("."))
-                                                                                                                : allData[functionIndicies[0][0]][functionIndicies[0][1]]);
+                              procDouble(allData[functionIndicies[0][0]][functionIndicies[0][1]].indexOf(".") > 0 ? allData[functionIndicies[0][0]][functionIndicies[0][1]].substring(0,
+                                                                                                                                                                                      allData[functionIndicies[0][0]][functionIndicies[0][1]].indexOf("."))
+                                                                                                                  : allData[functionIndicies[0][0]][functionIndicies[0][1]]);
                       }
                     } else {
                       log.reportError("Error - Unrecognized function header: " + line[0]);
@@ -777,8 +780,8 @@ public class crfDB {
                                           / (double) indices.length >= missingThreshold) {
                 allData[numFiles][i] = ".";
               } else {
-                allData[numFiles][i] =
-                    (doubleFun ? ext.formDeci(score, 2, true) : ext.formDeci(score, 0));
+                allData[numFiles][i] = (doubleFun ? ext.formDeci(score, 2, true)
+                                                  : ext.formDeci(score, 0));
               }
             }
             checkBounds(filenameKey[numFiles][0] + ":" + expecteds[numFiles][i],
@@ -800,12 +803,12 @@ public class crfDB {
       for (int i = 0; i < specials.size(); i++) {
         writer.print(dropFromFinal[i] ? "" : "\t" + expecteds[numFiles][i]);
         temp +=
-            dropFromFinal[i] ? ""
-                             : (ext.indexOfStr(expecteds[numFiles][i], DONT_COMP) == -1
-                                && ext.indexOfStr(expecteds[numFiles][i],
-                                                  DONT_COMP_DEP) == -1 ? "\t"
-                                                                         + expecteds[numFiles][i]
-                                                                       : "");
+             dropFromFinal[i] ? ""
+                              : (ext.indexOfStr(expecteds[numFiles][i], DONT_COMP) == -1
+                                 && ext.indexOfStr(expecteds[numFiles][i],
+                                                   DONT_COMP_DEP) == -1 ? "\t"
+                                                                          + expecteds[numFiles][i]
+                                                                        : "");
       }
       writer.println();
       temp = temp.length() > 0 ? temp.substring(1) : temp;
@@ -894,8 +897,8 @@ public class crfDB {
     PrintWriter writer = new PrintWriter(new FileWriter(dir + id + ".xln"));
     for (String[] element : data) {
       if (element != null) {
-        for (int j = 0; j < element.length; j++) {
-          writer.print(element[j] + "\t");
+        for (String element2 : element) {
+          writer.print(element2 + "\t");
         }
       }
       writer.println();

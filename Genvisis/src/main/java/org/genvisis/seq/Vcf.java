@@ -4,8 +4,6 @@
 // the previous
 package org.genvisis.seq;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -22,6 +20,8 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SerialHash;
 import org.genvisis.filesys.VariantList;
+
+import com.google.common.primitives.Ints;
 
 public class Vcf {
   public static final String[] BITS_TO_KEEP = {"AC=", "AN=", "DB"};
@@ -146,7 +146,7 @@ public class Vcf {
           currentChrom = variants[i][0];
           log.report("Loading hash for chr" + currentChrom);
           hash =
-              SerialHash.loadSerializedStringArrayHash(vcfFile + "." + currentChrom + ".serHash");
+               SerialHash.loadSerializedStringArrayHash(vcfFile + "." + currentChrom + ".serHash");
         }
         if (hash.containsKey(variants[i][0] + "\t" + variants[i][1])) {
           line = hash.get(variants[i][0] + "\t" + variants[i][1]);
@@ -233,11 +233,11 @@ public class Vcf {
     Vector<String> params;
 
     params =
-        Files.parseControlFile(filename, "vcf",
-                               new String[] {"list=snps.txt",
-                                             "vcf=D:/home/npankrat/NCBI/1000G/ALL.wgs.project_consensus_vqsr2b.20101123.snps.low_coverage.sites.vcf.gz",
-                                             "out1=finalProduct.out", "out2=vlookup_table.xln"},
-                               log);
+           Files.parseControlFile(filename, "vcf",
+                                  new String[] {"list=snps.txt",
+                                                "vcf=D:/home/npankrat/NCBI/1000G/ALL.wgs.project_consensus_vqsr2b.20101123.snps.low_coverage.sites.vcf.gz",
+                                                "out1=finalProduct.out", "out2=vlookup_table.xln"},
+                                  log);
 
     if (params != null) {
       params.add("log=" + log.getFilename());
@@ -250,7 +250,7 @@ public class Vcf {
     String variantList = "list.txt";
     // String vcfFile = "D:/home/npankrat/NCBI/1000G/CEU/CEU.low_coverage.2010_09.sites.vcf.gz";
     String vcfFile =
-        "D:/home/npankrat/NCBI/1000G/ALL.wgs.project_consensus_vqsr2b.20101123.snps.low_coverage.sites.vcf.gz";
+                   "D:/home/npankrat/NCBI/1000G/ALL.wgs.project_consensus_vqsr2b.20101123.snps.low_coverage.sites.vcf.gz";
     String outfile = null;
     String lookupReadyFile = null;
     String logfile = null;

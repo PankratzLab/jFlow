@@ -1,9 +1,6 @@
 // k-nearest neighbors algorithm
 package org.genvisis.mining;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -18,6 +15,9 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
+
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
 
 public class kNN {
   public static final int[] PARTITION_DEFAULTS = {60, 40, 0};
@@ -98,8 +98,8 @@ public class kNN {
 
       for (int i = startK; i <= stopK; i++) {
         for (int j = 0; j < 3; j++) {
-          errorRates[i][j] =
-              calcError(targetsFromPartition(j), score(predictorsFromPartition(j), i, false));
+          errorRates[i][j] = calcError(targetsFromPartition(j),
+                                       score(predictorsFromPartition(j), i, false));
         }
         if (errorRates[i][1] < minError) {
           minError = errorRates[i][1];
@@ -293,14 +293,14 @@ public class kNN {
     Vector<double[]> records = new Vector<double[]>();
     double[] dataline;
     DoubleVector dependents = new DoubleVector();
-    IntVector[] partitionIndices =
-        new IntVector[] {new IntVector(), new IntVector(), new IntVector()};
+    IntVector[] partitionIndices = new IntVector[] {new IntVector(), new IntVector(),
+                                                    new IntVector()};
     int count = 0;
 
     try {
       reader = new BufferedReader(new FileReader(filename));
-      output =
-          (filename.indexOf(".") >= 0 ? filename.substring(0, filename.lastIndexOf(".")) : filename)
+      output = (filename.indexOf(".") >= 0 ? filename.substring(0, filename.lastIndexOf("."))
+                                           : filename)
                + "-report.out";
       header = reader.readLine().split("\t", -1);
       System.out.println("Assuming the last column (" + header[header.length - 1]

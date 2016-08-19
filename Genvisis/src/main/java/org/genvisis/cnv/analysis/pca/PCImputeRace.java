@@ -1,7 +1,5 @@
 package org.genvisis.cnv.analysis.pca;
 
-import com.google.common.primitives.Ints;
-
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -18,14 +16,18 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Maths;
 
+import com.google.common.primitives.Ints;
+
 public class PCImputeRace {
   public static final String[] RACES = {"White", "African American", "Hispanic", "Asian"};
   public static final String[] STEP_PCS_HEADER = {"FID", "IID", "PC1", "PC2"};
-  public static final String[] CORRECTED_PCS_HEADER =
-      {"FID", "IID", "PC1", "PC2", "%African", "%Asian", "%White"};
+  public static final String[] CORRECTED_PCS_HEADER = {"FID", "IID", "PC1", "PC2", "%African",
+                                                       "%Asian", "%White"};
   public static final String[] IMPUTED_RACE_SAMPLE_DATA_HEADERS =
-      new String[] {"Class=ImputedRace;1=White;2=African American;3=Hispanic;4=Asian", "% African",
-                    "% Asian", "% European"};
+                                                                new String[] {"Class=ImputedRace;1=White;2=African American;3=Hispanic;4=Asian",
+                                                                              "% African",
+                                                                              "% Asian",
+                                                                              "% European"};
 
   private final Project proj;
   private final String[] fidiids;
@@ -137,8 +139,8 @@ public class PCImputeRace {
       if (theta <= minAsianTheta && theta >= maxAfricanTheta) {
         // If in target range, scale such that minAsianTheta becomes pi/2 (90) and maxAfricanTheta
         // becomes 0 (0)
-        polar[i][0] =
-            ((theta - maxAfricanTheta) / (minAsianTheta - maxAfricanTheta)) * (Math.PI / 2.0);
+        polar[i][0] = ((theta - maxAfricanTheta) / (minAsianTheta - maxAfricanTheta))
+                      * (Math.PI / 2.0);
       } else {
         // If out of target range, scale opposite such that minAsianTheta becomes pi/2 (90) and
         // maxAfricanTheta becomes 2*pi (360)
@@ -338,8 +340,8 @@ public class PCImputeRace {
     int key = ext.indexOfStr("SNP", header);
     int[] targets = new int[] {ext.indexOfStr("A1", header), ext.indexOfStr("A2", header),
                                ext.indexOfStr("MAF", header)};
-    Hashtable<String, String> overallFreq =
-        HashVec.loadFileToHashString(overallFrqFile, key, targets, "\t", true);
+    Hashtable<String, String> overallFreq = HashVec.loadFileToHashString(overallFrqFile, key,
+                                                                         targets, "\t", true);
 
     String[] raceListFiles = raceListFilenames(resultFile);
     @SuppressWarnings("unchecked")
@@ -426,12 +428,13 @@ public class PCImputeRace {
 
   private static int countFounders(String plinkroot, String keepFile) {
     int founders = 0;
-    Hashtable<String, String> plinkFam =
-        HashVec.loadFileToHashString(plinkroot + ".fam", new int[] {0, 1}, new int[] {2, 3}, false,
-                                     "\t", false, false, false);
-    Set<String> keeps =
-        keepFile == null ? plinkFam.keySet()
-                         : HashVec.loadFileToHashSet(keepFile, new int[] {0, 1}, "\t", false);
+    Hashtable<String, String> plinkFam = HashVec.loadFileToHashString(plinkroot + ".fam",
+                                                                      new int[] {0, 1},
+                                                                      new int[] {2, 3}, false, "\t",
+                                                                      false, false, false);
+    Set<String> keeps = keepFile == null ? plinkFam.keySet()
+                                         : HashVec.loadFileToHashSet(keepFile, new int[] {0, 1},
+                                                                     "\t", false);
     for (Entry<String, String> famEntry : plinkFam.entrySet()) {
       if (famEntry.getValue().equals("0\t0") && keeps.contains(famEntry.getKey())) {
         founders++;
@@ -500,9 +503,9 @@ public class PCImputeRace {
         }
       }
 
-      PCImputeRace raceChecker =
-          new PCImputeRace(proj, fidiids, pc1, pc2, Ints.toArray(europeans), Ints.toArray(africans),
-                           Ints.toArray(asians), new Logger());
+      PCImputeRace raceChecker = new PCImputeRace(proj, fidiids, pc1, pc2, Ints.toArray(europeans),
+                                                  Ints.toArray(africans), Ints.toArray(asians),
+                                                  new Logger());
       raceChecker.correctPCsToRace(ext.rootOf(inFile, false) + "_Corrected_PCS.mds");
 
     } catch (Exception e) {

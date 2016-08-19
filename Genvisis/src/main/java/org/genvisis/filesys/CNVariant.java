@@ -82,8 +82,8 @@ public class CNVariant extends Segment {
   }
 
   public static final long serialVersionUID = 1L;
-  public static final String[] PLINK_CNV_HEADER =
-      {"FID", "IID", "CHR", "BP1", "BP2", "TYPE", "SCORE", "SITES"};
+  public static final String[] PLINK_CNV_HEADER = {"FID", "IID", "CHR", "BP1", "BP2", "TYPE",
+                                                   "SCORE", "SITES"};
 
   private String familyID;
   private String individualID;
@@ -187,8 +187,8 @@ public class CNVariant extends Segment {
   }
 
   public boolean overlapsLocAndIndividualSignificantly(CNVariant cnv) {
-    boolean overlapsLocAndIndividualSignificantly =
-        familyID.equals(cnv.familyID) && individualID.equals(cnv.individualID)
+    boolean overlapsLocAndIndividualSignificantly = familyID.equals(cnv.familyID)
+                                                    && individualID.equals(cnv.individualID)
                                                     && significantOverlap(cnv);
     return overlapsLocAndIndividualSignificantly;
   }
@@ -200,7 +200,7 @@ public class CNVariant extends Segment {
 
   /**
    * Assumes that {@link CNVariant#individualID} is actually the DNA id
-   * 
+   *
    * @return region list ready for trailer, with the score as the comment
    */
   public String[] toTrailerFormat() {
@@ -318,7 +318,7 @@ public class CNVariant extends Segment {
       reader.close();
       /*
        * new MarkerSet(markerNames, chrs, positions).serialize(filename+".ser");
-       * 
+       *
        * writer = new PrintWriter(new FileWriter("????")); for (int i = 0; i<temp.length; i++) {
        * writer.println(temp[i].toPlinkFormat()); } writer.close();
        */
@@ -478,7 +478,7 @@ public class CNVariant extends Segment {
 
   public static class MatchResults implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final String file1;
@@ -721,7 +721,7 @@ public class CNVariant extends Segment {
     LocusSet<CNVariant> cLocusSet = new LocusSet<CNVariant>(cnvs, true, log) {
 
       /**
-      * 
+      *
       */
       private static final long serialVersionUID = 1L;
 
@@ -748,7 +748,7 @@ public class CNVariant extends Segment {
   public static Hashtable<String, LocusSet<CNVariant>> breakIntoInds(LocusSet<CNVariant> set,
                                                                      Logger log) {
     Hashtable<String, ArrayList<CNVariant>> cnvSplits =
-        new Hashtable<String, ArrayList<CNVariant>>();
+                                                      new Hashtable<String, ArrayList<CNVariant>>();
     for (int i = 0; i < set.getLoci().length; i++) {
       CNVariant tmp = set.getLoci()[i];
       String key = tmp.getFamilyID() + "\t" + tmp.getIndividualID();
@@ -762,14 +762,15 @@ public class CNVariant extends Segment {
     for (String fidIid : cnvSplits.keySet()) {
       ArrayList<CNVariant> indCNVs = cnvSplits.get(fidIid);
       LocusSet<CNVariant> indSet =
-          new LocusSet<CNVariant>(indCNVs.toArray(new CNVariant[indCNVs.size()]), true, log) {
+                                 new LocusSet<CNVariant>(indCNVs.toArray(new CNVariant[indCNVs.size()]),
+                                                         true, log) {
 
-            /**
-             * 
-             */
-            private static final long serialVersionUID = 1L;
+                                   /**
+                                    * 
+                                    */
+                                   private static final long serialVersionUID = 1L;
 
-          };
+                                 };
       setSplit.put(fidIid, indSet);
     }
     return setSplit;

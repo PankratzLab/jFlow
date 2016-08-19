@@ -1,9 +1,5 @@
 package org.genvisis.cnv.qc;
 
-import com.google.common.primitives.Bytes;
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
-
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -33,6 +29,10 @@ import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.stats.CrossValidation;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 import org.genvisis.stats.Stats;
+
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
 
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
@@ -100,34 +100,73 @@ public class GcAdjustor {
   public static final int[] DEFAULT_REGRESSION_DISTANCE = {1000000};
   public static final int[] DEFAULT_SKIP_PER_CHR = {0};
   public static final int DEFUALT_NUM_SNP_MAD = 10;// not available as command line option currently
-  public static final double[] DEFUALT_PENNCNV_CHR11_GC_BINS =
-      {54.8207535282258, 56.8381472081218, 53.1218950320513, 46.9484174679487, 39.9367227359694,
-       38.3365384615385, 41.9867788461538, 40.4431401466837, 44.5320512820513, 42.1979166666667,
-       41.6984215561224, 43.1598557692308, 43.4388020833333, 40.8104967948718, 39.8444475446429,
-       41.5357572115385, 38.7496995192308, 45.0213249362245, 42.3251201923077, 43.5287459935897,
-       40.7440808354592, 37.0492788461538, 36.5006009615385, 35.8518016581633, 35.2767427884615,
-       35.1972155448718, 36.5286192602041, 39.4890825320513, 36.5779246794872, 36.7275641025641,
-       38.3256935586735, 37.791266025641, 41.1777844551282, 41.950534119898, 42.3639823717949,
-       41.9208733974359, 41.2061543367347, 35.4974959935897, 35.2123397435897, 36.5101841517857,
-       36.7135416666667, 36.8268229166667, 37.6945153061224, 40.7453926282051, 47.7049278846154,
-       47.3233173076923, 44.7361288265306, 46.6585536858974, 39.1593549679487, 36.5684789540816,
-       38.2718466806667, 37.184425, 37.184425, 37.184425, 37.184425, 35.9227764423077,
-       41.1157852564103, 41.6662348533163, 39.7402844551282, 40.0149238782051, 46.6417211415816,
-       49.9136618589744, 45.2016225961538, 51.3019172512755, 52.0818309294872, 51.1320112179487,
-       49.9807185102302, 49.9807185102302, 49.5874473187766, 50.547349024718, 50.7186498397436,
-       45.6435347576531, 46.3352363782051, 42.4091546474359, 46.6399274553571, 43.7746394230769,
-       45.0160256410256, 41.8526642628205, 43.8899075255102, 38.5112179487179, 36.1038661858974,
-       36.1689851721939, 39.8506610576923, 37.0439703525641, 36.8012595663265, 40.2521033653846,
-       39.661858974359, 37.5013769093564, 35.5448717948718, 36.9039979272959, 35.2046274038462,
-       38.2195512820513, 40.074537627551, 40.7097355769231, 40.5470753205128, 38.4104380072343,
-       36.131109775641, 35.3915264423077, 34.9693080357143, 36.2953725961538, 37.9602363782051,
-       39.1942362882653, 37.4464142628205, 36.8879206730769, 35.7242588141026, 36.7556202168367,
-       37.0639022435897, 40.6929086538462, 38.385084502551, 39.4121594551282, 40.2410857371795,
-       42.0772879464286, 43.2935697115385, 43.2345753205128, 40.9113919005102, 44.9575320512821,
-       46.2513020833333, 46.4753069196429, 48.3886217948718, 47.8520633012821, 43.8001802884615,
-       39.808274872449, 44.5042067307692, 38.3835136217949, 44.9097177933673, 45.5366586538462,
-       41.7346754807692, 39.2198461415816, 41.9489182692308, 44.3351362179487, 42.7910754145408,
-       42.3190104166667, 42.0425681089744, 47.0514787946429, 45.3482603740699};
+  public static final double[] DEFUALT_PENNCNV_CHR11_GC_BINS = {54.8207535282258, 56.8381472081218,
+                                                                53.1218950320513, 46.9484174679487,
+                                                                39.9367227359694, 38.3365384615385,
+                                                                41.9867788461538, 40.4431401466837,
+                                                                44.5320512820513, 42.1979166666667,
+                                                                41.6984215561224, 43.1598557692308,
+                                                                43.4388020833333, 40.8104967948718,
+                                                                39.8444475446429, 41.5357572115385,
+                                                                38.7496995192308, 45.0213249362245,
+                                                                42.3251201923077, 43.5287459935897,
+                                                                40.7440808354592, 37.0492788461538,
+                                                                36.5006009615385, 35.8518016581633,
+                                                                35.2767427884615, 35.1972155448718,
+                                                                36.5286192602041, 39.4890825320513,
+                                                                36.5779246794872, 36.7275641025641,
+                                                                38.3256935586735, 37.791266025641,
+                                                                41.1777844551282, 41.950534119898,
+                                                                42.3639823717949, 41.9208733974359,
+                                                                41.2061543367347, 35.4974959935897,
+                                                                35.2123397435897, 36.5101841517857,
+                                                                36.7135416666667, 36.8268229166667,
+                                                                37.6945153061224, 40.7453926282051,
+                                                                47.7049278846154, 47.3233173076923,
+                                                                44.7361288265306, 46.6585536858974,
+                                                                39.1593549679487, 36.5684789540816,
+                                                                38.2718466806667, 37.184425,
+                                                                37.184425, 37.184425, 37.184425,
+                                                                35.9227764423077, 41.1157852564103,
+                                                                41.6662348533163, 39.7402844551282,
+                                                                40.0149238782051, 46.6417211415816,
+                                                                49.9136618589744, 45.2016225961538,
+                                                                51.3019172512755, 52.0818309294872,
+                                                                51.1320112179487, 49.9807185102302,
+                                                                49.9807185102302, 49.5874473187766,
+                                                                50.547349024718, 50.7186498397436,
+                                                                45.6435347576531, 46.3352363782051,
+                                                                42.4091546474359, 46.6399274553571,
+                                                                43.7746394230769, 45.0160256410256,
+                                                                41.8526642628205, 43.8899075255102,
+                                                                38.5112179487179, 36.1038661858974,
+                                                                36.1689851721939, 39.8506610576923,
+                                                                37.0439703525641, 36.8012595663265,
+                                                                40.2521033653846, 39.661858974359,
+                                                                37.5013769093564, 35.5448717948718,
+                                                                36.9039979272959, 35.2046274038462,
+                                                                38.2195512820513, 40.074537627551,
+                                                                40.7097355769231, 40.5470753205128,
+                                                                38.4104380072343, 36.131109775641,
+                                                                35.3915264423077, 34.9693080357143,
+                                                                36.2953725961538, 37.9602363782051,
+                                                                39.1942362882653, 37.4464142628205,
+                                                                36.8879206730769, 35.7242588141026,
+                                                                36.7556202168367, 37.0639022435897,
+                                                                40.6929086538462, 38.385084502551,
+                                                                39.4121594551282, 40.2410857371795,
+                                                                42.0772879464286, 43.2935697115385,
+                                                                43.2345753205128, 40.9113919005102,
+                                                                44.9575320512821, 46.2513020833333,
+                                                                46.4753069196429, 48.3886217948718,
+                                                                47.8520633012821, 43.8001802884615,
+                                                                39.808274872449, 44.5042067307692,
+                                                                38.3835136217949, 44.9097177933673,
+                                                                45.5366586538462, 41.7346754807692,
+                                                                39.2198461415816, 41.9489182692308,
+                                                                44.3351362179487, 42.7910754145408,
+                                                                42.3190104166667, 42.0425681089744,
+                                                                47.0514787946429, 45.3482603740699};
 
   private final Project proj;
   private final GcModel gcModel;
@@ -414,8 +453,8 @@ public class GcAdjustor {
     } else {
 
       preparedMarkerSet =
-          preparedMarkerSet == null ? PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet())
-                                    : preparedMarkerSet;
+                        preparedMarkerSet == null ? PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet())
+                                                  : preparedMarkerSet;
       String[] markers = preparedMarkerSet.getMarkerNames();
       int[][] indicesByChr = preparedMarkerSet.getIndicesByChr();
       byte[] chrs = preparedMarkerSet.getChrs();
@@ -775,17 +814,17 @@ public class GcAdjustor {
 
     private void developColorManager(int numBins, boolean redevelop) {
       if (redevelop || colorManager == null) {
-        OpdfGaussian gd =
-            new OpdfGaussian(Array.mean(gcs, true), Math.pow(Array.stdev(getGcs(), true), 2));
+        OpdfGaussian gd = new OpdfGaussian(Array.mean(gcs, true),
+                                           Math.pow(Array.stdev(getGcs(), true), 2));
         Color[] colors = ColorExt.generatRGBScale(numBins); // bin gc to 100 bins
         Hashtable<String, String> lookup = new Hashtable<String, String>();// items associated with
                                                                            // category
                                                                            // (marker->PoorQualityCategory)
         Hashtable<String, ColorItem<String>> manager =
-            new Hashtable<String, ColorExt.ColorItem<String>>();
+                                                     new Hashtable<String, ColorExt.ColorItem<String>>();
         for (int i = 0; i < gcs.length; i++) {
-          int gcColorIndex =
-              (int) Math.round(Stats.cdf(gd, new ObservationReal(gcs[i])) * numBins - 1);
+          int gcColorIndex = (int) Math.round(Stats.cdf(gd, new ObservationReal(gcs[i])) * numBins
+                                              - 1);
           gcColorIndex = Math.max(0, gcColorIndex);
           gcColorIndex = Math.min(numBins, gcColorIndex);
           lookup.put(markers[i], gcColorIndex + "");
@@ -795,7 +834,7 @@ public class GcAdjustor {
         colorManager = new ColorManager<String>(lookup, manager) {
 
           /**
-           * 
+           *
            */
           private static final long serialVersionUID = 1L;
 
@@ -1037,8 +1076,8 @@ public class GcAdjustor {
       }
       log.report("Info - parsing gc model file " + fullPathToGcModel);
 
-      int[] indices =
-          ext.indexFactors(Files.getHeaderOfFile(fullPathToGcModel, log), GC_HEADER, true, false);
+      int[] indices = ext.indexFactors(Files.getHeaderOfFile(fullPathToGcModel, log), GC_HEADER,
+                                       true, false);
       if (Array.countIf(indices, -1) > 0) {
         log.reportError("Error - could not find correct header for gc model file "
                         + fullPathToGcModel);
@@ -1151,8 +1190,8 @@ public class GcAdjustor {
                                                float[] markerIntensities, GcModel gcModel,
                                                boolean computePrior, boolean computePost,
                                                boolean verbose) {
-    GcAdjustor gcAdjustor =
-        builder.build(proj, preparedMarkerSet, gcModel, Array.toDoubleArray(markerIntensities));
+    GcAdjustor gcAdjustor = builder.build(proj, preparedMarkerSet, gcModel,
+                                          Array.toDoubleArray(markerIntensities));
     builder.verbose(verbose);
     gcAdjustor.correctIntensities(sample, gcParameters);
     gcAdjustor.computeQCMetrics(computePrior, computePost);
@@ -1162,8 +1201,8 @@ public class GcAdjustor {
   public static void test(Project proj, String fullPathToGcModel,
                           String fullPathToFileOfTestSamples) {
     GcModel gcModel = GcModel.populateFromFile(fullPathToGcModel, false, proj.getLog());
-    String[] samplesToTest =
-        Array.subArray(proj.getSamples(), proj.getSamplesToInclude(fullPathToFileOfTestSamples));
+    String[] samplesToTest = Array.subArray(proj.getSamples(),
+                                            proj.getSamplesToInclude(fullPathToFileOfTestSamples));
     String fileTest = proj.PROJECT_DIRECTORY.getValue() + "testGCWF.txt";
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(fileTest));
@@ -1172,8 +1211,8 @@ public class GcAdjustor {
         Sample samp = proj.getFullSampleFromRandomAccessFile(element);
         proj.getLog().report("Testing sample " + samp.getSampleName());
         GCAdjustorBuilder builder = new GCAdjustorBuilder();
-        GcAdjustor gcAdjusterNew =
-            builder.build(proj, null, gcModel, Array.toDoubleArray(samp.getLRRs()));
+        GcAdjustor gcAdjusterNew = builder.build(proj, null, gcModel,
+                                                 Array.toDoubleArray(samp.getLRRs()));
         gcAdjusterNew.correctIntensities();
         gcAdjusterNew.computeQCMetrics(true, true);
         writer.println(samp.getSampleName() + "\t" + gcAdjusterNew.getQCString() + "\t"
@@ -1190,7 +1229,7 @@ public class GcAdjustor {
     Project proj = new Project(null, null, false);
     String fullPathToGcModel = "D:/data/gedi_gwas/CompareGC_CORRECTION/custom.gcmodel";
     String fullPathToFileOfTestSamples =
-        "D:/data/gedi_gwas/CompareGC_CORRECTION/testGCCorrection.txt";
+                                       "D:/data/gedi_gwas/CompareGC_CORRECTION/testGCCorrection.txt";
     test(proj, fullPathToGcModel, fullPathToFileOfTestSamples);
   }
 

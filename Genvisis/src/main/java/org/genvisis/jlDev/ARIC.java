@@ -17,7 +17,7 @@ public class ARIC {
     String phenoDef = "/home/pankrat2/shared/aric_gw6/shadow_ARICGenvisis_CEL_FULL/vte/vte.txt";
     String cnvs = "/home/pankrat2/shared/aric_gw6/shadow_ARICGenvisis_CEL_FULL/vte/penncnv.cnv";
     String mapFile =
-        "/panfs/roc/groups/5/pankrat2/public/bin/ref/mapability/hg18/wgEncodeCrgMapabilityAlign100mer.bedgraph";
+                   "/panfs/roc/groups/5/pankrat2/public/bin/ref/mapability/hg18/wgEncodeCrgMapabilityAlign100mer.bedgraph";
     String geneTrackFile = "/home/pankrat2/public/bin/NCBI/RefSeq_hg18.gtrack";
 
     String[] vte = HashVec.loadFileToStringArray(phenoDef, false, new int[] {0}, true);
@@ -46,26 +46,26 @@ public class ARIC {
     proj.getLog().reportTimeInfo("excluded " + numExcluded);
 
     LocusSet<CNVariant> caseSet =
-        new LocusSet<CNVariant>(caseCNVs.toArray(new CNVariant[caseCNVs.size()]), true,
-                                proj.getLog()) {
+                                new LocusSet<CNVariant>(caseCNVs.toArray(new CNVariant[caseCNVs.size()]),
+                                                        true, proj.getLog()) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+                                  /**
+                                   * 
+                                   */
+                                  private static final long serialVersionUID = 1L;
 
-        };
+                                };
     caseSet.writeRegions(cases, TO_STRING_TYPE.REGULAR, true, proj.getLog());
     LocusSet<CNVariant> controlSet =
-        new LocusSet<CNVariant>(controlCNVs.toArray(new CNVariant[controlCNVs.size()]), true,
-                                proj.getLog()) {
+                                   new LocusSet<CNVariant>(controlCNVs.toArray(new CNVariant[controlCNVs.size()]),
+                                                           true, proj.getLog()) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+                                     /**
+                                      * 
+                                      */
+                                     private static final long serialVersionUID = 1L;
 
-        };
+                                   };
     controlSet.writeRegions(controls, TO_STRING_TYPE.REGULAR, true, proj.getLog());
 
     cnvsSet.getStrictSegmentSet().writeRegions(cnvs + "regions.txt", TO_STRING_TYPE.REGULAR, false,

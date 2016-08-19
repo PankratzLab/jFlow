@@ -12,22 +12,25 @@ public class Compression {
 
   public static final byte REDUCED_PRECISION_XY_NUM_BYTES = 2;
   public static final float[] REDUCED_PRECISION_XY_RANGE_POSITIVE_ONLY =
-      new float[] {(float) 0.000, (float) 65.533};
+                                                                       new float[] {(float) 0.000,
+                                                                                    (float) 65.533};
   public static final float[] REDUCED_PRECISION_XY_RANGE_ALLOW_NEGATIVE =
-      new float[] {(float) -32.765, (float) 32.767};
+                                                                        new float[] {(float) -32.765,
+                                                                                     (float) 32.767};
   public static final float[] REDUCED_PRECISION_XY_DEFAULT_RANGE =
-      REDUCED_PRECISION_XY_RANGE_ALLOW_NEGATIVE;
-  public static final byte[] REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES =
-      new byte[] {(byte) 255, (byte) 254};
+                                                                 REDUCED_PRECISION_XY_RANGE_ALLOW_NEGATIVE;
+  public static final byte[] REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES = new byte[] {(byte) 255,
+                                                                                        (byte) 254};
   public static final float REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT = (float) -32.677;
   public static final byte[] REDUCED_PRECISION_XY_NAN_BYTES = new byte[] {(byte) 255, (byte) 255};
   public static final byte REDUCED_PRECISION_GCBAF_NUM_BYTES = 2;
   public static final byte[] REDUCED_PRECISION_GCBAF_NAN_BYTES = new byte[] {(byte) 39, (byte) 18};
   public static final byte REDUCED_PRECISION_LRR_NUM_BYTES = 3;
-  public static final byte[] REDUCED_PRECISION_LRR_NAN_BYTES =
-      new byte[] {(byte) 2, (byte) 0, (byte) 0}; // -13.1072
-  public static final byte[] REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES =
-      new byte[] {(byte) 2, (byte) 0, (byte) 1}; // -13.1071
+  public static final byte[] REDUCED_PRECISION_LRR_NAN_BYTES = new byte[] {(byte) 2, (byte) 0,
+                                                                           (byte) 0}; // -13.1072
+  public static final byte[] REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES = new byte[] {(byte) 2,
+                                                                                         (byte) 0,
+                                                                                         (byte) 1}; // -13.1071
   public static final float REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT = (float) -13.1071; // {2,
                                                                                                   // 0,
                                                                                                   // 1}
@@ -176,7 +179,7 @@ public class Compression {
   /**
    * Converts the float xyValue into byte[]. This is a simple version that does not process the out
    * of range values.
-   * 
+   *
    * @param xyValue the float to be converted.
    * @return
    */
@@ -201,7 +204,7 @@ public class Compression {
    * Converts the float xyValue into byte[], which later becomes part of byte[] array. Out of range
    * values are converted into REDUCED_PRECISION_XY_OUT_OF_RANGE_BYTES, and the program will return
    * false. Within range values are converted regularly, and the program will return true.
-   * 
+   *
    * @param xOrY the float to be converted.
    * @param array the byte[] to hold the output.
    * @param startPosition the position of byte[] array to hold the output.
@@ -259,7 +262,7 @@ public class Compression {
 
   /**
    * Converts a byte[] into a float X or Y value.
-   * 
+   *
    * @param data the byte[] to hold the output.
    * @return the float.
    */
@@ -306,7 +309,7 @@ public class Compression {
 
   /**
    * Converts the float GC or BAF value into byte[].
-   * 
+   *
    * @param gcOrBaf the float to be converted.
    * @return
    * @throws Elision
@@ -328,7 +331,7 @@ public class Compression {
 
   /**
    * Converts the float GC or BAF value into byte[], which later becomes part of byte[] array.
-   * 
+   *
    * @param gcOrBaf the float to be converted.
    * @param array the byte[] to hold the output.
    * @param startPosition the position of byte[] array to hold the output.
@@ -354,7 +357,7 @@ public class Compression {
 
   /**
    * Converts a byte[] into a float GC or BAF value.
-   * 
+   *
    * @param data the byte[] to hold the output.
    * @return the float.
    */
@@ -373,7 +376,7 @@ public class Compression {
 
   /**
    * Converts the float LRR value into byte[].
-   * 
+   *
    * @param lrr the float to be converted.
    * @return
    * @throws Elision
@@ -399,7 +402,7 @@ public class Compression {
 
   /**
    * Converts the float LRR value into byte[], which later becomes part of byte[] array.
-   * 
+   *
    * @param lrr the float to be converted.
    * @param array the byte[] to hold the output.
    * @param startPosition the position of byte[] array to hold the output.
@@ -463,7 +466,7 @@ public class Compression {
   /**
    * Converts a byte[] into a float LRR value. If the byte[] represents an out of range value, the
    * program returns REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLOAT.
-   * 
+   *
    * @param array the byte[] to hold the output.
    * @return the float.
    */
@@ -489,7 +492,7 @@ public class Compression {
 
   /**
    * Converts the AB genotype and forward genotype value into byte.
-   * 
+   *
    * @param abGenotype
    * @param forwardGenotype
    * @return
@@ -507,7 +510,7 @@ public class Compression {
 
   /**
    * Converts the AB genotype and forward genotype value into byte.
-   * 
+   *
    * @param abGenotype
    * @param forwardGenotype
    * @param array the byte[] to hold the output.
@@ -528,7 +531,7 @@ public class Compression {
 
   /**
    * Converts a byte into a set of AB genotype and forward genotype values.
-   * 
+   *
    * @param data the byte for decompression.
    * @return the float.
    */

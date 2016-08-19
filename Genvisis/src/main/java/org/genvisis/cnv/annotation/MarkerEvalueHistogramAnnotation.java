@@ -21,7 +21,7 @@ public class MarkerEvalueHistogramAnnotation extends HistogramAnnotation {
   public static final String DEFAULT_NAME = "BLAST_EVALUE_COUNTS";
   public static final String DEFUALT_DELIM = "/";
   public static final String DEFAULT_DESCRIPTION =
-      "A list of evalues and counts for all blast hits a marker";
+                                                 "A list of evalues and counts for all blast hits a marker";
   private List<String> blastEvalueCounts;
   private List<String> blastEvalues;
   private final Hashtable<String, Integer> exactHistogram;

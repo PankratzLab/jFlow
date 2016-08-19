@@ -1,7 +1,5 @@
 package org.genvisis.expression;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,18 +16,20 @@ import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
+import com.google.common.primitives.Doubles;
+
 public class RelativeQuantification {
-  public static final String[] HEADER =
-      {"Plate", "Well ID", "Well", "Sample", "Detector", "Task", "Ct", "Ct Std Err", "Avg Ct",
-       "Avg dCt", "dCt Std Err", "ddCt", "RQ", "RQ Min", "RQ Max", "Omit", "Filtered", "Threshold",
-       "Auto Ct", "Baseline", "Start", "End"};
+  public static final String[] HEADER = {"Plate", "Well ID", "Well", "Sample", "Detector", "Task",
+                                         "Ct", "Ct Std Err", "Avg Ct", "Avg dCt", "dCt Std Err",
+                                         "ddCt", "RQ", "RQ Min", "RQ Max", "Omit", "Filtered",
+                                         "Threshold", "Auto Ct", "Baseline", "Start", "End"};
 
   public static void parse(String dir, String subdir) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, inds, regionNames, probeNames, values;
     Hashtable<String, Hashtable<String, Hashtable<String, String[]>>> individuals =
-        new Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>();
+                                                                                  new Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>();
     Hashtable<String, Hashtable<String, String[]>> probes;
     Hashtable<String, String[]> regions;
     double[][][] means, stderrs;
@@ -350,7 +350,7 @@ public class RelativeQuantification {
   public static void main(String[] args) {
     int numArgs = args.length;
     String dir =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\Expression\\RelativeQuantification\\";
+               "C:\\Documents and Settings\\npankrat\\My Documents\\Expression\\RelativeQuantification\\";
     String subdir = "source/";
     String filename = "RelativeQuantification.dat";
 

@@ -210,7 +210,7 @@ public class FindVNTRs {
   public static void main(String[] args) {
     int numArgs = args.length;
     String filename =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\cnvPositions.txt";
+                    "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\cnvPositions.txt";
     // String workup = "C:\\Documents and Settings\\npankrat\\My
     // Documents\\CNV_PD\\cnvPositions.txt_vntrs.xln";
     // String workup = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\rand1000.txt";

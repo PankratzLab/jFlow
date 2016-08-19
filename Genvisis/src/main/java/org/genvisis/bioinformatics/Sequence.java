@@ -9,7 +9,7 @@ public class Sequence {
   public static final char[] ALLELES = {'A', 'C', 'G', 'T'};
   public static final char[] SENSE = {'A', 'C', 'G', 'T', 'I', 'D', 'a', 'c', 'g', 't', 'i', 'd'};
   public static final char[] ANTISENSE =
-      {'T', 'G', 'C', 'A', 'I', 'D', 't', 'g', 'c', 'a', 'i', 'd'};
+                                       {'T', 'G', 'C', 'A', 'I', 'D', 't', 'g', 'c', 'a', 'i', 'd'};
 
   public static char flip(char allele) {
     return ANTISENSE[ext.indexOfChar(allele, SENSE)];

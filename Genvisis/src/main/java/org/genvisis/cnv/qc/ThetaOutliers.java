@@ -1,8 +1,5 @@
 package org.genvisis.cnv.qc;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
-
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Date;
@@ -21,6 +18,9 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Distance;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 public class ThetaOutliers {
   public static final String[] QC_HEADS = {"LRR_mean", "LRR_median", "LRR_SD", "BAF_mean",
                                            "BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF"};
@@ -31,9 +31,9 @@ public class ThetaOutliers {
 
   /**
    * Detect whether a null data point should be reclustered with a known genotype.
-   * 
+   *
    * @param proj The project where the data is.
-   * 
+   *
    */
   public static void loadData(Project proj, boolean useClusterFilters, byte stdDev) {
     PrintWriter writer;

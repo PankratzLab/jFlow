@@ -63,7 +63,7 @@ public class DuplicateConcordance {
   }
 
   /**
-   * 
+   *
    * @param proj Project to calculate duplicate concordance for
    * @param targetMarkers Markers to use in concordance checks or null to check all markers
    * @return
@@ -79,8 +79,8 @@ public class DuplicateConcordance {
       markerIndices = null;
     } else {
       markerNames = targetMarkers;
-      markerIndices =
-          ext.indexLargeFactors(markerNames, proj.getMarkerNames(), true, log, false, false);
+      markerIndices = ext.indexLargeFactors(markerNames, proj.getMarkerNames(), true, log, false,
+                                            false);
       for (int i = 0; i < markerIndices.length; i++) {
         if (markerIndices[i] == -1) {
           log.reportTimeError("Marker " + markerNames[i] + " could not be found in project");
@@ -100,8 +100,8 @@ public class DuplicateConcordance {
     }
     String[] sampleDataHeader = Files.getHeaderOfFile(sampleData, log);
     String[] sampleDataCols = new String[] {"DNA", "CLASS=Exclude", "DuplicateId"};
-    int[] sampleDataIndices =
-        ext.indexFactors(sampleDataCols, sampleDataHeader, false, log, false, false);
+    int[] sampleDataIndices = ext.indexFactors(sampleDataCols, sampleDataHeader, false, log, false,
+                                               false);
     for (int i = 0; i < sampleDataIndices.length; i++) {
       if (sampleDataIndices[i] == -1) {
         log.reportTimeError("Could not find " + sampleDataCols[i]
@@ -247,7 +247,7 @@ public class DuplicateConcordance {
       }
 
       DuplicateConcordance duplicateConcordance =
-          calculateDuplicateConcordances(proj, targetMarkers);
+                                                calculateDuplicateConcordances(proj, targetMarkers);
       if (duplicateConcordance != null) {
         proj.getLog().report(duplicateConcordance.getConcordanceString());
       }

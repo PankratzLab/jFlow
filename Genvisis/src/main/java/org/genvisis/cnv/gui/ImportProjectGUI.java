@@ -24,13 +24,13 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
+
+import net.miginfocom.swing.MigLayout;
 
 public class ImportProjectGUI extends JDialog {
 
@@ -222,7 +222,7 @@ public class ImportProjectGUI extends JDialog {
         panel.add(lblFoundProjectStatus, "cell 2 2,alignx left");
       }
       JLabel lblFoundSamplesDirectory =
-          new JLabel("<html>Found <code>samples/</code> Directory:</html>");
+                                      new JLabel("<html>Found <code>samples/</code> Directory:</html>");
       panel.add(lblFoundSamplesDirectory, "cell 4 2,alignx right");
       lblFoundSamplesStatus = new JLabel(redX);
       panel.add(lblFoundSamplesStatus, "cell 5 2,alignx left");
@@ -249,7 +249,7 @@ public class ImportProjectGUI extends JDialog {
       }
       {
         JLabel lblFoundTransposedDirectory =
-            new JLabel("<html>Found <code>transposed/</code> Directory:</html>");
+                                           new JLabel("<html>Found <code>transposed/</code> Directory:</html>");
         panel.add(lblFoundTransposedDirectory, "cell 4 4,alignx right");
       }
       lblFoundTransposedStatus = new JLabel(redX);
@@ -265,7 +265,7 @@ public class ImportProjectGUI extends JDialog {
       lblFoundMarkerListStatus = new JLabel(redX);
       panel.add(lblFoundMarkerListStatus, "cell 2 5,alignx left");
       JLabel lblFoundMarkerlookupFile =
-          new JLabel("<html>Found <code>MarkerLookup</code> File:</html>");
+                                      new JLabel("<html>Found <code>MarkerLookup</code> File:</html>");
       panel.add(lblFoundMarkerlookupFile, "cell 4 5,alignx right");
       {
         lblFoundMarkerLookupStatus = new JLabel(redX);
@@ -345,10 +345,10 @@ public class ImportProjectGUI extends JDialog {
     boolean foundSamples = Files.exists(baseDir + "samples/");
     boolean foundData = Files.exists(baseDir + "data/");
     boolean foundTransposed = Files.exists(baseDir + "transposed/");
-    boolean foundSampleList =
-        Files.exists(baseDir + "data/samples.bis") || Files.exists(baseDir + "data/samples.ser");
-    boolean foundMarkerList =
-        Files.exists(baseDir + "data/markers.bim") || Files.exists(baseDir + "data/markers.ser");
+    boolean foundSampleList = Files.exists(baseDir + "data/samples.bis")
+                              || Files.exists(baseDir + "data/samples.ser");
+    boolean foundMarkerList = Files.exists(baseDir + "data/markers.bim")
+                              || Files.exists(baseDir + "data/markers.ser");
     boolean foundMarkerLookup = Files.exists(baseDir + "data/markerLookup.bml")
                                 || Files.exists(baseDir + "data/markerLookup.ser");
     return new boolean[] {/* 0 */ foundProject, /* 1 */ foundData, /* 2 */ foundSampleList,

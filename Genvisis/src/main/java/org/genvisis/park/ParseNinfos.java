@@ -16,7 +16,7 @@ import org.genvisis.common.ext;
 
 public class ParseNinfos {
   public static final String DEFAULT_DIR =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\00ninfos\\";
+                                         "C:\\Documents and Settings\\npankrat\\My Documents\\00ninfos\\";
 
   // public static final String[] RAW_NINFO1_HEADER = {"FamNo", "IndNo",
   // "AgeOfOnset", "IllnessStatusCode", "DNA.", "Sex", "IllnessCode",
@@ -27,14 +27,19 @@ public class ParseNinfos {
   // "MonthofBirth", "DayofBirth", "YearofBirth", "Q28", "Q29", "prox_aod",
   // "prox_aoo", "RaceCode", "Autopsy?", "AutopsyStatus", "CenterCode"};
   public static final String[] RAW_NINFO1_HEADER =
-      {"FamNo", "IndNo", "AgeOfOnset", "IllnessStatusCode", "DNA", "Sex", "IllnessCode",
-       "MonthofBirth", "DayofBirth", "YearofBirth", "Q28", "Q29", "prox_aod", "prox_aoo",
-       "RaceCode", "Autopsy?", "AutopsyStatus", "CenterCode", "SDate", "Status"};
+                                                 {"FamNo", "IndNo", "AgeOfOnset",
+                                                  "IllnessStatusCode", "DNA", "Sex", "IllnessCode",
+                                                  "MonthofBirth", "DayofBirth", "YearofBirth",
+                                                  "Q28", "Q29", "prox_aod", "prox_aoo", "RaceCode",
+                                                  "Autopsy?", "AutopsyStatus", "CenterCode",
+                                                  "SDate", "Status"};
 
-  public static final String[] RAW_NINFO5_HEADER =
-      {"FamNo", "IndNo", "AgeOfOnset", "IllnessStatusCode", "DNANum", "Sex", "IllnessCode",
-       "MonthofBirth", "DayofBirth", "YearofBirth", "Q28", "Q29", "prox_aod", "prox_aoo",
-       "RaceCode", "Autopsy?", "AutopsyStatus", "SDate", "Status"};
+  public static final String[] RAW_NINFO5_HEADER = {"FamNo", "IndNo", "AgeOfOnset",
+                                                    "IllnessStatusCode", "DNANum", "Sex",
+                                                    "IllnessCode", "MonthofBirth", "DayofBirth",
+                                                    "YearofBirth", "Q28", "Q29", "prox_aod",
+                                                    "prox_aoo", "RaceCode", "Autopsy?",
+                                                    "AutopsyStatus", "SDate", "Status"};
 
   public static final String LAST_PERM_COL = "Autopsy?";
 

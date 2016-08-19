@@ -47,11 +47,11 @@ import htsjdk.variant.vcf.VCFFileReader;
 public class VCFHistogram implements Serializable {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
-  private static final String[] METRICS_TRACKED =
-      new String[] {"Avg_GQ", "Avg_DP", "GC_100bp", "GC_1000bp"};
+  private static final String[] METRICS_TRACKED = new String[] {"Avg_GQ", "Avg_DP", "GC_100bp",
+                                                                "GC_1000bp"};
 
   public enum HIST_WALKER {
                            /**
@@ -93,14 +93,14 @@ public class VCFHistogram implements Serializable {
 
   public RScatters dumpAndPlot(String dir, String root) {
     ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
-    LocusSet<Segment> toDump =
-        new LocusSet<Segment>(tested.toArray(new Segment[tested.size()]), true, log) {
+    LocusSet<Segment> toDump = new LocusSet<Segment>(tested.toArray(new Segment[tested.size()]),
+                                                     true, log) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
-        };
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1L;
+    };
     toDump.writeRegions(dir + root + ".segments", TO_STRING_TYPE.REGULAR, false, log);
 
     for (int i = 0; i < histograms[0].length; i++) {
@@ -140,10 +140,10 @@ public class VCFHistogram implements Serializable {
       rScatter.execute();
       rScatters.add(rScatter);
     }
-    RScatters rScattersAll =
-        new RScatters(rScatters.toArray(new RScatter[rScatters.size()]),
-                      dir + root + "full.rscript", dir + root + "full.pdf",
-                      COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
+    RScatters rScattersAll = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]),
+                                           dir + root + "full.rscript", dir + root + "full.pdf",
+                                           COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF,
+                                           log);
     rScattersAll.execute();
     return rScattersAll;
   }
@@ -197,8 +197,8 @@ public class VCFHistogram implements Serializable {
         // } catch (InterruptedException ie) {
         // }
 
-        VariantContext vcControls =
-            VCOps.getSubset(vc, controls, VC_SUBSET_TYPE.SUBSET_STRICT, false);
+        VariantContext vcControls = VCOps.getSubset(vc, controls, VC_SUBSET_TYPE.SUBSET_STRICT,
+                                                    false);
 
         double mafCase = VCOps.getMAF(vcCase, null);
         int numAltControl = VCOps.getNumWithAlt(vcControls);
@@ -390,10 +390,10 @@ public class VCFHistogram implements Serializable {
 
     @Override
     public Callable<VCFHistogram> next() {
-      final String currentRoot =
-          ext.rootOf(histInits[index].getVpop()) + histInits[index].getOutputRoot();
-      HistWorker worker =
-          new HistWorker(histInits[index], vcf, referenceGenomeFasta, outputDir, currentRoot, log);
+      final String currentRoot = ext.rootOf(histInits[index].getVpop())
+                                 + histInits[index].getOutputRoot();
+      HistWorker worker = new HistWorker(histInits[index], vcf, referenceGenomeFasta, outputDir,
+                                         currentRoot, log);
       index++;
       return worker;
     }
@@ -458,27 +458,28 @@ public class VCFHistogram implements Serializable {
     String[] allIters = divideToNewCaseControlStatus(vcfPopulation, outputDir, log);
 
     VariantFilterSample[] vfSamples =
-        new VariantFilterSample[] {new AricWesFilter(log).getARICVariantContextFilters(), null};
+                                    new VariantFilterSample[] {new AricWesFilter(log).getARICVariantContextFilters(),
+                                                               null};
     HistInit[] histInits = new HistInit[mafs.length * allIters.length * vfSamples.length];
     log.reportTimeInfo(histInits.length + " total comparisions");
-    String[] roots =
-        new String[] {new AricWesFilter(log).getARICVariantContextFilters().getFilterName(),
-                      "NO_FILTER"};
+    String[] roots = new String[] {new AricWesFilter(log).getARICVariantContextFilters()
+                                                         .getFilterName(),
+                                   "NO_FILTER"};
     int index = 0;
     for (double maf : mafs) {
       for (String allIter : allIters) {
         for (int j2 = 0; j2 < vfSamples.length; j2++) {
-          histInits[index] =
-              new HistInit(allIter, maf, vfSamples[j2], "_" + outputRoot + "_" + roots[j2]);
+          histInits[index] = new HistInit(allIter, maf, vfSamples[j2],
+                                          "_" + outputRoot + "_" + roots[j2]);
           index++;
         }
       }
     }
 
-    HistProducer producer =
-        new HistProducer(histInits, vcf, outputDir, outputRoot, referenceGenomeFasta, log);
-    WorkerTrain<VCFHistogram> train =
-        new WorkerTrain<VCFHistogram>(producer, numthreads, numthreads, log);
+    HistProducer producer = new HistProducer(histInits, vcf, outputDir, outputRoot,
+                                             referenceGenomeFasta, log);
+    WorkerTrain<VCFHistogram> train = new WorkerTrain<VCFHistogram>(producer, numthreads,
+                                                                    numthreads, log);
     VCFHistogram[] hists = new VCFHistogram[histInits.length];
     int indext = 0;
     while (train.hasNext()) {

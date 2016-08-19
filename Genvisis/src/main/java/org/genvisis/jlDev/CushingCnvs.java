@@ -52,7 +52,7 @@ public class CushingCnvs {
 
   private static class PlinkEmpSeg extends Segment {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final double emp1;
@@ -120,7 +120,7 @@ public class CushingCnvs {
       return new LocusSet<PlinkEmpSeg>(tmp.toArray(new PlinkEmpSeg[tmp.size()]), true, log) {
 
         /**
-         * 
+         *
          */
         private static final long serialVersionUID = 1L;
 
@@ -135,8 +135,8 @@ public class CushingCnvs {
       return true;
     }
     for (CNVariant element : overlap) {
-      double percentOverlap =
-          (double) cnVariant.amountOfOverlapInBasepairs(element) / cnVariant.getSize();
+      double percentOverlap = (double) cnVariant.amountOfOverlapInBasepairs(element)
+                              / cnVariant.getSize();
       if (percentOverlap > .5) {// exon is commonly deleted
         return false;
       }
@@ -201,8 +201,8 @@ public class CushingCnvs {
     // int delLimitedTo, int dupLimitedTo, double proportionOfProbesThatNeedToPassForFinalInclusion)
     // {
 
-    FreqFilter freqFilter =
-        new FreqFilter(totalLimitedTo, 0, 0, numControls, numControls, numControls, .9);
+    FreqFilter freqFilter = new FreqFilter(totalLimitedTo, 0, 0, numControls, numControls,
+                                           numControls, .9);
     // CNVFilter cnvFilter = new CNVFilter(proj.getLog());
     LocusSet<CNVariant> setToRemove = null;
     setToRemove = ProjectCNVFiltering.filterCNVFile(proj, cnSet2.getLoci(), outFilt, null, false,
@@ -362,8 +362,8 @@ public class CushingCnvs {
     String[] cnvRemoveFiles = Array.toStringArray(cnvFreqFiles);
     double[] controlFreqFilter = new double[] {0.01, 0.05, 1.1};
     double[] confs = new double[] {10, 20, 0};
-    WorkerHive<LocusSet<PlinkEmpSeg>> hive =
-        new WorkerHive<LocusSet<PlinkEmpSeg>>(6, 10, proj.getLog());
+    WorkerHive<LocusSet<PlinkEmpSeg>> hive = new WorkerHive<LocusSet<PlinkEmpSeg>>(6, 10,
+                                                                                   proj.getLog());
 
     if (proj != null) {
       for (String cnvRemoveFile : cnvRemoveFiles) {
@@ -426,8 +426,8 @@ public class CushingCnvs {
           SegmentCompare segmentCompareAll = currentCNV.new SegmentCompare(overlaps, 0, log);
           segmentCompareAll.compare();
           SegmentCompare segmentCompareSig =
-              currentCNV.new SegmentCompare(sigOlaps.toArray(new CNVariant[sigOlaps.size()]), 0,
-                                            log);
+                                           currentCNV.new SegmentCompare(sigOlaps.toArray(new CNVariant[sigOlaps.size()]),
+                                                                         0, log);
           segmentCompareSig.compare();
 
           summaryCNVs[j].getAverageOverlapScore()[i] = segmentCompareAll.getAvgOverlapScore();
@@ -438,8 +438,8 @@ public class CushingCnvs {
         }
       }
     }
-    Mappability<CNVariant> cnMappability =
-        new Mappability<CNVariant>(cLocusSet, mappabilityFile, callSubsetBed, log);
+    Mappability<CNVariant> cnMappability = new Mappability<CNVariant>(cLocusSet, mappabilityFile,
+                                                                      callSubsetBed, log);
     cnMappability.computeMappability();
 
     String output = ext.rootOf(cnvFile, false) + ".qc.summary.txt";
@@ -526,7 +526,9 @@ public class CushingCnvs {
       }
     }
     DynamicAveragingHistogram dynamicAveragingHistogramCNVCentered =
-        new DynamicAveragingHistogram(0, 150, 0);
+                                                                   new DynamicAveragingHistogram(0,
+                                                                                                 150,
+                                                                                                 0);
     String geneCountsFile = ext.rootOf(cnvFile, false) + "geneCounts.txt";
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(geneCountsFile));
@@ -598,10 +600,10 @@ public class CushingCnvs {
     rscatterNoGeom.setOverWriteExisting(true);
     rscatterNoGeom.execute();
 
-    RScatter rscatter =
-        new RScatter(outputRawPlot, outputRawPlot + ".rscript",
-                     ext.removeDirectoryInfo(outputRawPlot), outputRawPlot + ".jpeg", rawCounts[0],
-                     new String[] {rawCounts[1]}, SCATTER_TYPE.POINT, log);
+    RScatter rscatter = new RScatter(outputRawPlot, outputRawPlot + ".rscript",
+                                     ext.removeDirectoryInfo(outputRawPlot),
+                                     outputRawPlot + ".jpeg", rawCounts[0],
+                                     new String[] {rawCounts[1]}, SCATTER_TYPE.POINT, log);
     rscatter.setxLabel("CNVS Per Gene");
     rscatter.setyRange(new double[] {0, 1});
     rscatter.setxRange(new double[] {0, 150});
@@ -616,9 +618,9 @@ public class CushingCnvs {
     dynamicAveragingHistogramCNVCentered.average();
     dynamicAveragingHistogramCNVCentered.dump(hist, dump, true);
 
-    RScatter rscatterHist =
-        new RScatter(hist, hist + ".rscript", ext.removeDirectoryInfo(hist), hist + ".jpeg",
-                     dump[0], new String[] {dump[2]}, SCATTER_TYPE.POINT, log);
+    RScatter rscatterHist = new RScatter(hist, hist + ".rscript", ext.removeDirectoryInfo(hist),
+                                         hist + ".jpeg", dump[0], new String[] {dump[2]},
+                                         SCATTER_TYPE.POINT, log);
     rscatterHist.setxLabel("CNVS Per Gene");
     rscatterHist.setyRange(new double[] {0, 1});
     rscatterHist.setxRange(new double[] {0, 150});
@@ -628,10 +630,10 @@ public class CushingCnvs {
     rscatterHist.setOverWriteExisting(true);
     rscatterHist.execute();
 
-    RScatter rscatterHistNoGeom =
-        new RScatter(hist, hist + ".no_geom.rscript", ext.removeDirectoryInfo(hist) + ".no_geom",
-                     hist + ".no_geom" + ".jpeg", dump[0], new String[] {dump[2]},
-                     SCATTER_TYPE.POINT, log);
+    RScatter rscatterHistNoGeom = new RScatter(hist, hist + ".no_geom.rscript",
+                                               ext.removeDirectoryInfo(hist) + ".no_geom",
+                                               hist + ".no_geom" + ".jpeg", dump[0],
+                                               new String[] {dump[2]}, SCATTER_TYPE.POINT, log);
     rscatterHistNoGeom.setxLabel("CNVS Per Gene");
     rscatterHistNoGeom.setyRange(new double[] {0, 1});
     rscatterHistNoGeom.setxRange(new double[] {0, 150});
@@ -640,10 +642,10 @@ public class CushingCnvs {
     rscatterHistNoGeom.setOverWriteExisting(true);
     rscatterHistNoGeom.execute();
 
-    RScatter rscatterHistNumper =
-        new RScatter(hist, hist + ".numPer.rscript", ext.removeDirectoryInfo(hist) + ".numPer",
-                     hist + ".numPer" + ".jpeg", dump[0], new String[] {dump[1]},
-                     SCATTER_TYPE.POINT, log);
+    RScatter rscatterHistNumper = new RScatter(hist, hist + ".numPer.rscript",
+                                               ext.removeDirectoryInfo(hist) + ".numPer",
+                                               hist + ".numPer" + ".jpeg", dump[0],
+                                               new String[] {dump[1]}, SCATTER_TYPE.POINT, log);
     rscatterHistNumper.setxLabel("CNVS Per Gene");
     rscatterHistNumper.setyRange(new double[] {0, 1});
     rscatterHistNumper.setxRange(new double[] {0, 150});
@@ -745,7 +747,7 @@ public class CushingCnvs {
     usage += "   (1) mappability file (i.e. mapFile=" + mappabilityFile + " (default))\n" + "";
     usage += "   (2) cnv files (i.e. cnvs=" + Array.toStr(cnvFiles, ",") + " (default))\n" + "";
     usage +=
-        "   (3) geneTrackFile  (i.e. genes=" + Array.toStr(cnvFiles, ",") + " (default))\n" + "";
+          "   (3) geneTrackFile  (i.e. genes=" + Array.toStr(cnvFiles, ",") + " (default))\n" + "";
     usage += "   (4) call subsetBed  (i.e. callSubset=" + callSubsetBed + " (default))\n" + "";
     usage += "   (5) comma-Delimited list of files to remove  (i.e. cnvFreqFiles="
              + Array.toStr(cnvFreqFiles, ",") + " (default))\n" + "";

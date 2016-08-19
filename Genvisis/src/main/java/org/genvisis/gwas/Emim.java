@@ -225,8 +225,8 @@ public class Emim {
                  + "plink.*mendel files already exist, skipping mendelian error calculation");
     } else {
       forceParse = true;
-      commands +=
-          "plink2 --noweb --bfile emimPrep --mendel\n" + "mv plink.log plink_mendel.log\n" + "\n";
+      commands += "plink2 --noweb --bfile emimPrep --mendel\n" + "mv plink.log plink_mendel.log\n"
+                  + "\n";
     }
 
     if (!forceRun && Files.exists(currDir + "plink_tdt.log")
@@ -245,7 +245,7 @@ public class Emim {
     } else {
       forceParse = true;
       commands +=
-          "plink2 --noweb --bfile emimPrep --hardy\n" + "mv plink.log plink_hwe.log\n" + "\n";
+               "plink2 --noweb --bfile emimPrep --hardy\n" + "mv plink.log plink_hwe.log\n" + "\n";
     }
 
     if (!forceRun && Files.exists(currDir + "plink_freq.log")
@@ -254,7 +254,7 @@ public class Emim {
     } else {
       forceParse = true;
       commands +=
-          "plink2 --noweb --bfile emimPrep --freq\n" + "mv plink.log plink_freq.log\n" + "\n";
+               "plink2 --noweb --bfile emimPrep --freq\n" + "mv plink.log plink_freq.log\n" + "\n";
     }
 
     if (!forceRun && Files.exists(currDir + "premim.log")

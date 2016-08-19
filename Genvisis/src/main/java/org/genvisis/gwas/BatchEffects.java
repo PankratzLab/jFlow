@@ -185,10 +185,10 @@ public class BatchEffects {
     String pedfile = "pedfile.txt";
     String dnas = "dnas.txt";
 
-    String usage =
-        "\\n" + "park.gwa.BatchEffects requires 0-1 arguments\n" + "   (1) pedigree file (i.e. ped="
-                   + pedfile + " (default))\n" + "   (2) list of DNAs and their batch (i.e. dnas="
-                   + dnas + " (default))\n" + "";
+    String usage = "\\n" + "park.gwa.BatchEffects requires 0-1 arguments\n"
+                   + "   (1) pedigree file (i.e. ped=" + pedfile + " (default))\n"
+                   + "   (2) list of DNAs and their batch (i.e. dnas=" + dnas + " (default))\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

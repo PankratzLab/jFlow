@@ -28,19 +28,20 @@ public class PlateLists {
   public static final String PLATE_LIST_DIRECTORY = tools.MASTER_PLATELIST_DIR;
   public static final String PROGENI = "PROGENI";
   public static final String CARES = "CARES";
-  public static final String[][] LABELS =
-      {{"probands.xln", "Probands", "Sporadics"},
-       {"other_affecteds.xln", "OtherAffecteds", "ShouldNotBeOtherAffecteds"},
-       {"unaffecteds.xln", "Unaffecteds", "Controls"}, {"temps.xln", "TEMP", "CARES_TEMPS"}};
-  public static final String[] IGNORE_CODES =
-      new String[] {"CONF", "HS", "SWAPPED", "MZLINKAGE", "DEL4LINKAGE", "POORYIELD", "MUT",
-                    "PHENO"};
-  public static final String[] CREATE_HEADER =
-      {"DNA", "ID", "OldPlate", "OldWell", "NewPlate", "NewWell", "Batch", "Dx", "Note"};
-  public static final String[] UPDATE_FROM_CREATE_HEADER =
-      {"DNA", "ID", "NewPlate", "NewWell", "Batch", "Dx", "Note"};
+  public static final String[][] LABELS = {{"probands.xln", "Probands", "Sporadics"},
+                                           {"other_affecteds.xln", "OtherAffecteds",
+                                            "ShouldNotBeOtherAffecteds"},
+                                           {"unaffecteds.xln", "Unaffecteds", "Controls"},
+                                           {"temps.xln", "TEMP", "CARES_TEMPS"}};
+  public static final String[] IGNORE_CODES = new String[] {"CONF", "HS", "SWAPPED", "MZLINKAGE",
+                                                            "DEL4LINKAGE", "POORYIELD", "MUT",
+                                                            "PHENO"};
+  public static final String[] CREATE_HEADER = {"DNA", "ID", "OldPlate", "OldWell", "NewPlate",
+                                                "NewWell", "Batch", "Dx", "Note"};
+  public static final String[] UPDATE_FROM_CREATE_HEADER = {"DNA", "ID", "NewPlate", "NewWell",
+                                                            "Batch", "Dx", "Note"};
   public static final String[] UPDATE_HEADER =
-      {"DNA", "ID", "Plate", "Well", "Batch", "Dx", "Note"};
+                                             {"DNA", "ID", "Plate", "Well", "Batch", "Dx", "Note"};
 
   public static void create(String dir, String filename) {
     BufferedReader reader;
@@ -48,7 +49,7 @@ public class PlateLists {
     String[] line, fams, inds, dnas;
     String trav, fam;
     Hashtable<String, Hashtable<String, Vector<DnaSample>>> hash =
-        new Hashtable<String, Hashtable<String, Vector<DnaSample>>>();
+                                                                 new Hashtable<String, Hashtable<String, Vector<DnaSample>>>();
     Hashtable<String, Vector<DnaSample>> family;
     Vector<DnaSample> v = new Vector<DnaSample>();
     int[] indices, keys;
@@ -233,7 +234,7 @@ public class PlateLists {
     String[] line, fams, inds, dnas;
     String trav, fam;
     Hashtable<String, Hashtable<String, Vector<DnaSample>>> hash =
-        new Hashtable<String, Hashtable<String, Vector<DnaSample>>>();
+                                                                 new Hashtable<String, Hashtable<String, Vector<DnaSample>>>();
     Hashtable<String, Vector<DnaSample>> family;
     Vector<DnaSample> v = new Vector<DnaSample>();
     int[] indices, keys;
@@ -427,8 +428,9 @@ public class PlateLists {
           } else {
             if (v.elementAt(0).getProband()) {
               prior = j;
-              priorLevel =
-                  dx.equals("CONF_PD") ? 3 : (dx.equals("VPD") ? 2 : (dx.equals("NVPD") ? 1 : 0));
+              priorLevel = dx.equals("CONF_PD") ? 3
+                                                : (dx.equals("VPD") ? 2
+                                                                    : (dx.equals("NVPD") ? 1 : 0));
             }
             if (dx.equals("CONF_PD")) {
               if (probandLevel < 3) {

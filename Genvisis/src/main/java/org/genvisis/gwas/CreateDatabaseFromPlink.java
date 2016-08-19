@@ -1,7 +1,5 @@
 package org.genvisis.gwas;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -22,6 +20,8 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.mining.Transformations;
 import org.genvisis.stats.Maths;
+
+import com.google.common.primitives.Ints;
 
 public class CreateDatabaseFromPlink {
   public static final String[] POSSIBLE_MODELS = {"ADD", "DOM", "REC"};
@@ -56,14 +56,14 @@ public class CreateDatabaseFromPlink {
     String delimiter;
 
     params =
-        Files.parseControlFile(filename, false, "plink",
-                               new String[] {"plink.ped", "plink.map", "plink.frq",
-                                             "newDatabase.xln labelAlleles=false listPositions=false displayNotes=false maskModel=true maskFamID=false maskSex=false maskAffectionStatus=false allMarkers=true commaDelimited=false",
-                                             "# The following are examples if you just want a few markers from the file instead of all",
-                                             "# rs11550605\tADD",
-                                             "# rs10808555\tREC ADD note=CriticalMutation",
-                                             "# rs7837328\tADD DOM REC", "# rs3730881\tADD DOM"},
-                               log);
+           Files.parseControlFile(filename, false, "plink",
+                                  new String[] {"plink.ped", "plink.map", "plink.frq",
+                                                "newDatabase.xln labelAlleles=false listPositions=false displayNotes=false maskModel=true maskFamID=false maskSex=false maskAffectionStatus=false allMarkers=true commaDelimited=false",
+                                                "# The following are examples if you just want a few markers from the file instead of all",
+                                                "# rs11550605\tADD",
+                                                "# rs10808555\tREC ADD note=CriticalMutation",
+                                                "# rs7837328\tADD DOM REC", "# rs3730881\tADD DOM"},
+                                  log);
 
     if (params == null) {
       return;
@@ -215,11 +215,10 @@ public class CreateDatabaseFromPlink {
       writer.println();
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
-        writer.print((maskFIDs ? "" : line[0] + delimiter)
-                     + line[1] + (maskSex ? ""
-                                          : delimiter + (line[4].equals("1") ? "1"
-                                                                             : (line[4].equals("2") ? "0"
-                                                                                                    : ".")))
+        writer.print((maskFIDs ? "" : line[0] + delimiter) + line[1]
+                     + (maskSex ? ""
+                                : delimiter
+                                  + (line[4].equals("1") ? "1" : (line[4].equals("2") ? "0" : ".")))
                      + (maskAffStat ? ""
                                     : delimiter
                                       + (line[5].equals("2") ? "1"
@@ -406,11 +405,11 @@ public class CreateDatabaseFromPlink {
     IntVector monomorphs;
 
     params =
-        Files.parseControlFile(filename, false, "simpleM",
-                               new String[] {"plink.tped", "plink.frq", "simpleM.txt",
-                                             "# in order to generate the tped file, use the following command:",
-                                             "# plink --bfile plink --recode --transpose"},
-                               log);
+           Files.parseControlFile(filename, false, "simpleM",
+                                  new String[] {"plink.tped", "plink.frq", "simpleM.txt",
+                                                "# in order to generate the tped file, use the following command:",
+                                                "# plink --bfile plink --recode --transpose"},
+                                  log);
     if (params == null) {
       return;
     }
@@ -634,12 +633,11 @@ public class CreateDatabaseFromPlink {
     Vector<String> params;
     String pedfile, mapfile, freqfile, rlinker, outfile;
 
-    params =
-        Files.parseControlFile(filename, "gwaf",
-                               new String[] {"plink.ped", "plink.map", "plink.frq",
-                                             "leslie_lange.FHS.IBC.CEU.Rlinker", "gwaf.csv",
-                                             "# set Rlinker file to null if none is needed"},
-                               log);
+    params = Files.parseControlFile(filename, "gwaf",
+                                    new String[] {"plink.ped", "plink.map", "plink.frq",
+                                                  "leslie_lange.FHS.IBC.CEU.Rlinker", "gwaf.csv",
+                                                  "# set Rlinker file to null if none is needed"},
+                                    log);
     if (params != null) {
       pedfile = params.remove(0);
       mapfile = params.remove(0);
@@ -705,8 +703,8 @@ public class CreateDatabaseFromPlink {
                              + " (#markers*2+6)");
           try {
             writer =
-                new PrintWriter(new FileWriter("ERROR_NUMBER_OF_COLUMNS_DON'T_MATCHUP_FOR_THESE_LINES.TXT",
-                                               true));
+                   new PrintWriter(new FileWriter("ERROR_NUMBER_OF_COLUMNS_DON'T_MATCHUP_FOR_THESE_LINES.TXT",
+                                                  true));
             writer.println(count);
             writer.close();
           } catch (Exception e) {
@@ -722,8 +720,8 @@ public class CreateDatabaseFromPlink {
               if (batch_dna.length != 2) {
                 try {
                   writer =
-                      new PrintWriter(new FileWriter("ERROR_THESE_FIDS_AREN'T_CONCATENATED_BY_AN_UNDERSCORE.TXT",
-                                                     true));
+                         new PrintWriter(new FileWriter("ERROR_THESE_FIDS_AREN'T_CONCATENATED_BY_AN_UNDERSCORE.TXT",
+                                                        true));
                   writer.println("line" + count + "\t" + line[i]);
                   writer.close();
                 } catch (Exception e) {

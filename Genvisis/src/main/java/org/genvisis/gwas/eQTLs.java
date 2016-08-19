@@ -26,15 +26,20 @@ public class eQTLs {
   public static final double DEFAULT_CIS_THRESHOLD = 0.001;
 
   public static final String[][] REQS_WITH_STDERR =
-      {{"SNP", "Marker", "Name", "MarkerName", "name"}, {"A1", "Allele1", "REF"},
-       {"Effect", "beta", "beta_SNP_add"}, {"P", "pval", "p-val", "p-value"},
-       {"SE", "StdErr", "sebeta_SNP_add"}};
-  public static final String[][] REQS_WITHOUT_STDERR =
-      {{"SNP", "Marker", "Name", "MarkerName", "name"}, {"A1", "Allele1", "REF"},
-       {"Effect", "beta", "beta_SNP_add"}, {"P", "pval", "p-val", "p-value"}};
+                                                  {{"SNP", "Marker", "Name", "MarkerName", "name"},
+                                                   {"A1", "Allele1", "REF"},
+                                                   {"Effect", "beta", "beta_SNP_add"},
+                                                   {"P", "pval", "p-val", "p-value"},
+                                                   {"SE", "StdErr", "sebeta_SNP_add"}};
+  public static final String[][] REQS_WITHOUT_STDERR = {
+                                                        {"SNP", "Marker", "Name", "MarkerName",
+                                                         "name"},
+                                                        {"A1", "Allele1", "REF"},
+                                                        {"Effect", "beta", "beta_SNP_add"},
+                                                        {"P", "pval", "p-val", "p-value"}};
 
   public static final String DEFAULT_TRANSCRIPT_BED =
-      "D:/Myron/eQTLs/GEO_DataSet_GSE9703/GPL5188-122_withData.bed";
+                                                    "D:/Myron/eQTLs/GEO_DataSet_GSE9703/GPL5188-122_withData.bed";
 
   public static void parse(String filename) {
     for (int chr = 1; chr <= 22; chr++) {
@@ -88,10 +93,10 @@ public class eQTLs {
                         phenos[i] + "_SE", true, log);
 
       parameters[i * 3 + 0] = dir + phenos[i] + "_SE1.out" + " 0 5=Meta_" + phenos[i] + "_pval";
-      parameters[i * 3 + 1] =
-          dir + "CEU_" + phenos[i] + ".se.metal" + " 0 5=CEU_" + phenos[i] + "_pval";
-      parameters[i * 3 + 2] =
-          dir + "YRI_" + phenos[i] + ".se.metal" + " 0 5=YRI_" + phenos[i] + "_pval";
+      parameters[i * 3 + 1] = dir + "CEU_" + phenos[i] + ".se.metal" + " 0 5=CEU_" + phenos[i]
+                              + "_pval";
+      parameters[i * 3 + 2] = dir + "YRI_" + phenos[i] + ".se.metal" + " 0 5=YRI_" + phenos[i]
+                              + "_pval";
     }
     // Files.combineWithLessMemory(HashVec.loadFileToStringArray(dir+"allSNPs.dat", false, new int[]
     // {0}, false), parameters, null, "MarkerName", dir+"results.xln", log, true, true, false,

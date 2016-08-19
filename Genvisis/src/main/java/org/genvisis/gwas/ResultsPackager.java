@@ -21,41 +21,57 @@ import org.genvisis.common.ext;
 import org.genvisis.stats.ProbDist;
 
 public class ResultsPackager {
-  public static final String[] IBC_OUTPUT_FORMAT1 =
-      {"CHR", "POS", "SNP", "STRAND (Illumina)", "STRAND (HapMap)", "N", "EFFECT_ALLELE1",
-       "NON_EFFECT_ALLELE", "EA_FREQ", "BETA", "SE", "P_VAL"};
-  public static final String[] TRADITIONAL_OUTPUT_FORMAT =
-      {"Chr", "Position", "MarkerName", "Strand", "HapMapStrand", "N", "Effect_allele",
-       "Reference_allele", "Freq1", "BETA", "SE", "P-value"};
-  public static final String[] STANDARD_OUTPUT_FORMAT =
-      {"MarkerName", "Chr", "Position", "Effect_allele", "Reference_allele",
-       "Effect_allele_frequency", "N", "BETA", "SE", "P-value"};
+  public static final String[] IBC_OUTPUT_FORMAT1 = {"CHR", "POS", "SNP", "STRAND (Illumina)",
+                                                     "STRAND (HapMap)", "N", "EFFECT_ALLELE1",
+                                                     "NON_EFFECT_ALLELE", "EA_FREQ", "BETA", "SE",
+                                                     "P_VAL"};
+  public static final String[] TRADITIONAL_OUTPUT_FORMAT = {"Chr", "Position", "MarkerName",
+                                                            "Strand", "HapMapStrand", "N",
+                                                            "Effect_allele", "Reference_allele",
+                                                            "Freq1", "BETA", "SE", "P-value"};
+  public static final String[] STANDARD_OUTPUT_FORMAT = {"MarkerName", "Chr", "Position",
+                                                         "Effect_allele", "Reference_allele",
+                                                         "Effect_allele_frequency", "N", "BETA",
+                                                         "SE", "P-value"};
   // public static final String[] ABSOLUTE_MINIMUM_OUTPUT_FORMAT = {"MarkerName", "Effect_allele",
   // "BETA", "SE", "P-value"}; // ChiSquare value
-  public static final String[] EMIM_OUTPUT_FORMAT_SNPS =
-      {"Chr", "Pos", "MarkerName", "allele_A", "allele_B"};
+  public static final String[] EMIM_OUTPUT_FORMAT_SNPS = {"Chr", "Pos", "MarkerName", "allele_A",
+                                                          "allele_B"};
   public static final String[] EMIM_OUTPUT_FORMAT_MENDEL_ERRORS = {"Mendel_Errors"};
   public static final String[] EMIM_OUTPUT_FORMAT_HWE = {"HWE_GENO", "HWE_P", "SigHWE"};
   public static final String[] EMIM_OUTPUT_FORMAT_TDT =
-      {"tdt_T", "tdt_U", "tdt_OR", "tdt_P", "tdt_L95", "tdt_U95", "tdt_BETA", "tdt_SE"};
+                                                      {"tdt_T", "tdt_U", "tdt_OR", "tdt_P",
+                                                       "tdt_L95", "tdt_U95", "tdt_BETA", "tdt_SE"};
   public static final String[] EMIM_OUTPUT_FORMAT_EMIM_RESULTS =
-      {"freq", "C_lnR1", "C_se_lnR1", "C_lnR2", "C_se_lnR2", "C_lnS1", "C_se_lnS1", "C_lnS2",
-       "C_se_lnS2", "CM_lnR1", "CM_se_lnR1", "CM_lnR2", "CM_se_lnR2", "CM_lnS1", "CM_se_lnS1",
-       "CM_lnS2", "CM_se_lnS2", "M_lnR1", "M_se_lnR1", "M_lnR2", "M_se_lnR2", "M_lnS1", "M_se_lnS1",
-       "M_lnS2", "M_se_lnS2"};
-  public static final String[] EMIM_OUTPUT_FORMAT_EMIM_PVALS =
-      {"pVal_C_df2", "pVal_C_df2_Excel", "pVal_C_df1", "pVal_C_df1_Excel", "pVal_M_df2",
-       "pVal_M_df2_Excel", "pVal_M_df1", "pVal_M_df1_Excel", "pVal_CM-C_df2", "pVal_CM-C_df2_Excel",
-       "pVal_CM-C_df1", "pVal_CM-C_df1_Excel", "pVal_CM-M_df2", "pVal_CM-M_df2_Excel",
-       "pVal_CM-M_df1", "pVal_CM-M_df1_Excel"};
+                                                               {"freq", "C_lnR1", "C_se_lnR1",
+                                                                "C_lnR2", "C_se_lnR2", "C_lnS1",
+                                                                "C_se_lnS1", "C_lnS2", "C_se_lnS2",
+                                                                "CM_lnR1", "CM_se_lnR1", "CM_lnR2",
+                                                                "CM_se_lnR2", "CM_lnS1",
+                                                                "CM_se_lnS1", "CM_lnS2",
+                                                                "CM_se_lnS2", "M_lnR1", "M_se_lnR1",
+                                                                "M_lnR2", "M_se_lnR2", "M_lnS1",
+                                                                "M_se_lnS1", "M_lnS2", "M_se_lnS2"};
+  public static final String[] EMIM_OUTPUT_FORMAT_EMIM_PVALS = {"pVal_C_df2", "pVal_C_df2_Excel",
+                                                                "pVal_C_df1", "pVal_C_df1_Excel",
+                                                                "pVal_M_df2", "pVal_M_df2_Excel",
+                                                                "pVal_M_df1", "pVal_M_df1_Excel",
+                                                                "pVal_CM-C_df2",
+                                                                "pVal_CM-C_df2_Excel",
+                                                                "pVal_CM-C_df1",
+                                                                "pVal_CM-C_df1_Excel",
+                                                                "pVal_CM-M_df2",
+                                                                "pVal_CM-M_df2_Excel",
+                                                                "pVal_CM-M_df1",
+                                                                "pVal_CM-M_df1_Excel"};
 
   public static final String[] PLINK_REQS = {"SNP", "A1", "TEST", "NMISS", "OR", "BETA", "SE", "P"};
-  public static final String[] SOL_REQS =
-      {"Variant_ID", "Beta", "Se", "Pvalue", "CAF", "CAC", "N0", "N1", "N2", "NMISS"};
+  public static final String[] SOL_REQS = {"Variant_ID", "Beta", "Se", "Pvalue", "CAF", "CAC", "N0",
+                                           "N1", "N2", "NMISS"};
   // Standard Errors in emimsummary.out are currently labeled "sd"
-  public static final String[] EMIM_REQS =
-      {"snpID", "freq", "lnR1", "sd_lnR1", "lnR2", "sd_lnR2", "lnS1", "sd_lnS1", "lnS2", "sd_lnS2",
-       "lnliknull", "lnlikfull"};
+  public static final String[] EMIM_REQS = {"snpID", "freq", "lnR1", "sd_lnR1", "lnR2", "sd_lnR2",
+                                            "lnS1", "sd_lnS1", "lnS2", "sd_lnS2", "lnliknull",
+                                            "lnlikfull"};
   public static final String[] TDT_REQS = {"T", "U", "OR", "P", "L95", "U95"};
 
   public static void parseIBCFormatFromGWAF(String dir, String resultsFile, String mapFile,
@@ -84,18 +100,18 @@ public class ResultsPackager {
 
     mapHash = HashVec.loadFileToHashString(dir + mapFile, new int[] {1}, new int[] {0, 3}, false,
                                            "\t", false, false, false);
-    originalFreqHash =
-        HashVec.loadFileToHashString(dir + originalFrqFile, new int[] {1}, new int[] {2, 3}, false,
-                                     "\t", false, false, false); // add 4 if you want global
-                                                                 // frequency
+    originalFreqHash = HashVec.loadFileToHashString(dir + originalFrqFile, new int[] {1},
+                                                    new int[] {2, 3}, false, "\t", false, false,
+                                                    false); // add 4 if you want global
+                                                            // frequency
 
     if (customFrqFile != null) {
       System.err.println("Warning - use of custom freq file has not been tested properly; if it works then remove this warning");
-      customFreqHash =
-          HashVec.loadFileToHashString(originalFrqFile, new int[] {1}, new int[] {2, 3, 4}, false,
-                                       "\t", false, false, false); // add 4 if you want global
-                                                                   // frequency instead of custom
-                                                                   // Freq
+      customFreqHash = HashVec.loadFileToHashString(originalFrqFile, new int[] {1},
+                                                    new int[] {2, 3, 4}, false, "\t", false, false,
+                                                    false); // add 4 if you want global
+                                                            // frequency instead of custom
+                                                            // Freq
     } else {
       customFreqHash = null;
     }
@@ -139,12 +155,12 @@ public class ResultsPackager {
           if (customFreqHash != null) {
             if (customFreqHash.containsKey(trav)) {
               freq =
-                  Alleles.getAlleleFreqForA1(alleles[0], customFreqHash.get(trav).split("\t"))[2];
+                   Alleles.getAlleleFreqForA1(alleles[0], customFreqHash.get(trav).split("\t"))[2];
             } else if (customFreqHash.containsKey(ext.replaceAllWith(trav, ".", "-"))) {
-              freq = Alleles.getAlleleFreqForA1(alleles[0],
-                                                customFreqHash.get(ext.replaceAllWith(trav, ".",
-                                                                                      "-"))
-                                                              .split("\t"))[2];
+              freq =
+                   Alleles.getAlleleFreqForA1(alleles[0],
+                                              customFreqHash.get(ext.replaceAllWith(trav, ".", "-"))
+                                                            .split("\t"))[2];
             } else {
               log.reportError("Error - no alleles from custom .frq file for " + trav);
               freq = ".";
@@ -542,8 +558,8 @@ public class ResultsPackager {
       if (tdtResultsFile != null) {
         // tdtResults = one.SkatMeta.loadFile(tdtResultsFile, null, new String[] {"SNP"}, new
         // String[] {"T", "U", "OR", "P"}, null, null);
-        tdtResults =
-            SkatMeta2.loadFile(tdtResultsFile, null, new String[] {"SNP"}, TDT_REQS, null, null);
+        tdtResults = SkatMeta2.loadFile(tdtResultsFile, null, new String[] {"SNP"}, TDT_REQS, null,
+                                        null);
       }
 
       hweThreshold = 0.05 / Files.countLines(childResultsFile, 1);
@@ -576,9 +592,9 @@ public class ResultsPackager {
       while (reader1.ready()) {
         // lineC = reader1.readLine().replaceAll("\\*", " ").trim().split(delimiter1, -1);
         lineC =
-            reader1.readLine()
-                   .replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*", "            NaN")
-                   .trim().split(delimiter1, -1);
+              reader1.readLine()
+                     .replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*", "            NaN")
+                     .trim().split(delimiter1, -1);
         String snp = snpList
                             .get(Long.parseLong(lineC[indicesC.get("snpID")].substring(0,
                                                                                        lineC[indicesC.get("snpID")].indexOf("."))))
@@ -592,13 +608,12 @@ public class ResultsPackager {
         // lineM = reader2.readLine().replaceAll("\\*", " ").trim().split(delimiter2, -1);
         // lineCM = reader3.readLine().replaceAll("\\*", " ").trim().split(delimiter3, -1);
         lineM =
-            reader2.readLine()
-                   .replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*", "            NaN")
-                   .trim().split(delimiter2, -1);
-        lineCM =
-            reader3.readLine()
-                   .replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*", "            NaN")
-                   .trim().split(delimiter3, -1);
+              reader2.readLine()
+                     .replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*", "            NaN")
+                     .trim().split(delimiter2, -1);
+        lineCM = reader3.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*",
+                                               "            NaN")
+                        .trim().split(delimiter3, -1);
 
         if (!lineC[indicesC.get("snpID")].equals(lineM[indicesM.get("snpID")])
             || !lineC[indicesC.get("snpID")].equals(lineCM[indicesCM.get("snpID")])) {
@@ -623,10 +638,11 @@ public class ResultsPackager {
                  && pvalsPass(Array.addDoubleToArray(Double.parseDouble(temp), pvals),
                               pValueThreshold))
                 && Double.parseDouble(freq) >= .01)) {
-          pvalEquations =
-              getPvalEquations(lineC[indicesC.get("lnliknull")], lineC[indicesC.get("lnlikfull")],
-                               lineM[indicesM.get("lnliknull")], lineM[indicesM.get("lnlikfull")],
-                               lineCM[indicesCM.get("lnlikfull")], log);
+          pvalEquations = getPvalEquations(lineC[indicesC.get("lnliknull")],
+                                           lineC[indicesC.get("lnlikfull")],
+                                           lineM[indicesM.get("lnliknull")],
+                                           lineM[indicesM.get("lnlikfull")],
+                                           lineCM[indicesCM.get("lnlikfull")], log);
           // writer.println(getOutputString(snpList, lineC, indicesC, lineM, indicesM, lineCM,
           // indicesCM, log) + "\t" + pvals[0] + "\t" + pvalEquations[0] + "\t" + pvals[1] + "\t" +
           // pvalEquations[1] + "\t" + pvals[2] + "\t" + pvalEquations[2]);
@@ -719,8 +735,8 @@ public class ResultsPackager {
     long index;
 
     index =
-        Long.parseLong(lineC[indicesC.get("snpID")].substring(0,
-                                                              lineC[indicesC.get("snpID")].indexOf(".")));
+          Long.parseLong(lineC[indicesC.get("snpID")].substring(0,
+                                                                lineC[indicesC.get("snpID")].indexOf(".")));
     if (snpList.containsKey(index)) {
       tmp = "";
       snp = snpList.get(index).split("\t")[2];
@@ -802,7 +818,7 @@ public class ResultsPackager {
   }
 
   /**
-   * 
+   *
    * @param fullPathStatResults {{name of analysis ("." for main/overall), path of results
    *        file},...}
    * @param fullPathMarkerList Path to list of markers to use
@@ -815,16 +831,16 @@ public class ResultsPackager {
    *        use column names
    * @param fullPathOutFile Path to generate output file to
    * @param log a log
-   * 
+   *
    *        Examples of using this method:
-   * 
+   *
    *        getForestPlotParameterFile(new String[][] {{"extragonadal",
    *        "D:/temp/Poynter_emim/testing/allFinalPoynter_results_pvals_1.xln"}, {"germinoma",
    *        "D:/temp/Poynter_emim/testing/allFinalPoynter_results_pvals_2.xln"}},
    *        "D:/temp/Poynter_emim/testing/markerList.txt", "MarkerName", new String[] {"tdt",
    *        "emim"}, new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_se_lnR1",
    *        "pVal_C_df1"}}, null "D:/temp/Poynter_emim/testing/forestplot.xln", null);
-   * 
+   *
    *        getForestPlotParameterFile(HashVec.loadFileToStringMatrix(
    *        "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/fileList_allFinalPoynter.txt",
    *        false, null, false), "/home/pankrat2/shared/Poynter_emim/markerList.txt", "MarkerName",
@@ -854,8 +870,8 @@ public class ResultsPackager {
 
     columnsTmp = new Vector<String>();
     for (String[] columnNamesOfAnalyse : columnNamesOfAnalyses) {
-      for (int j = 0; j < columnNamesOfAnalyse.length; j++) {
-        columnsTmp.add(columnNamesOfAnalyse[j]);
+      for (String element : columnNamesOfAnalyse) {
+        columnsTmp.add(element);
       }
     }
     columnNamesToLoad = columnsTmp.toArray(new String[0]);
@@ -870,15 +886,15 @@ public class ResultsPackager {
     statResults = new String[fullPathStatResults.length][][];
     for (int i = 0; i < statResults.length; i++) {
       System.out.println("Loading " + fullPathStatResults[i][1]);
-      statResults[i] =
-          loadFile(fullPathStatResults[i][1], markerColumnName, markers, columnNamesToLoad, log);
+      statResults[i] = loadFile(fullPathStatResults[i][1], markerColumnName, markers,
+                                columnNamesToLoad, log);
     }
 
     out2 = new String[analyses.length * markers.length];
     mainIndex = -1;
     for (int i = 0; i < analyses.length; i++) {
       filename =
-          ext.rootOf(fullPathOutFile) + "_" + (analyses[i].equalsIgnoreCase("tdt") ? "_" : "")
+               ext.rootOf(fullPathOutFile) + "_" + (analyses[i].equalsIgnoreCase("tdt") ? "_" : "")
                  + ext.replaceWithLinuxSafeCharacters(analyses[i], true)
                  + fullPathOutFile.substring(fullPathOutFile.lastIndexOf("."));
       out1 = new String[markers.length + 1];
@@ -897,8 +913,8 @@ public class ResultsPackager {
                    + (isMain ? "" : "." + fullPathStatResults[j][0]) + "\tUpperCI"
                    + (isMain ? "" : "." + fullPathStatResults[j][0]);
         for (int k = 2; k < columnNamesOfAnalyses[i].length; k++) {
-          out1[0] +=
-              "\t" + columnNamesOfAnalyses[i][k] + (isMain ? "" : "." + fullPathStatResults[j][0]);
+          out1[0] += "\t" + columnNamesOfAnalyses[i][k]
+                     + (isMain ? "" : "." + fullPathStatResults[j][0]);
         }
         // } else {
         // for (int k = 0; k < columnNamesOfAnalyses[i].length; k++) {
@@ -927,8 +943,8 @@ public class ResultsPackager {
               int betaInd = ext.indexOfStr(columnNamesOfAnalyses[i][0], columnNamesToLoad);
               int seInd = ext.indexOfStr(columnNamesOfAnalyses[i][1], columnNamesToLoad);
               beta = Math.log(Double.parseDouble(statResults[k][markerIndex][betaInd]));
-              se = ((Math.log(Double.parseDouble(statResults[k][markerIndex][seInd])) - beta)
-                    / 1.96);
+              se =
+                 ((Math.log(Double.parseDouble(statResults[k][markerIndex][seInd])) - beta) / 1.96);
               out1[j] += "\t" + beta + "\t" + se + "\t" + Math.exp(beta) + "\t"
                          + Math.exp(beta - 1.96 * se) + "\t" + Math.exp(beta + 1.96 * se);
             } else {
@@ -1333,19 +1349,19 @@ public class ResultsPackager {
         String mkrFile = "/home/pankrat2/shared/Poynter_emim/gwasHits.txt";
         String mkrColNm = "markerName";
         String[] analyses = {"tdt", "emim_child", "emim_maternal"};
-        String[][] analysisNms =
-            {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_se_lnR1", "pVal_C_df1"},
-             {"CM_lnS1", "CM_se_lnS1", "pVal_CM-C_df1"}};
+        String[][] analysisNms = {{"tdt_OR", "tdt_U95", "tdt_P"},
+                                  {"C_lnR1", "C_se_lnR1", "pVal_C_df1"},
+                                  {"CM_lnS1", "CM_se_lnS1", "pVal_CM-C_df1"}};
 
         String[][] files =
-            {{"/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/fileList_allFinalWhitePoynter.txt",
-              "/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/allFinalWhitePoynter_forestplot.xln"},
-             {"/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/fileList_completeTriosPoynter.txt",
-              "/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/completeTriosPoynter_forestplot.xln"},
-             {"/home/pankrat2/shared/Poynter_emim/allFinalPoynter/fileList_allFinalPoynter.txt",
-              "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/allFinalPoynter_forestplot.xln"},
-             {"/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/fileList_completeWhiteTriosPoynter.txt",
-              "/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/completeWhiteTriosPoynter_forestplot.xln"},};
+                         {{"/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/fileList_allFinalWhitePoynter.txt",
+                           "/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/allFinalWhitePoynter_forestplot.xln"},
+                          {"/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/fileList_completeTriosPoynter.txt",
+                           "/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/completeTriosPoynter_forestplot.xln"},
+                          {"/home/pankrat2/shared/Poynter_emim/allFinalPoynter/fileList_allFinalPoynter.txt",
+                           "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/allFinalPoynter_forestplot.xln"},
+                          {"/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/fileList_completeWhiteTriosPoynter.txt",
+                           "/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/completeWhiteTriosPoynter_forestplot.xln"},};
 
         boolean oddsRatio = true;
         String sortFileName = "/home/pankrat2/shared/Poynter_emim/forestPlotDisplayOrder.txt";
@@ -1353,8 +1369,11 @@ public class ResultsPackager {
           getForestPlotParameterFile(HashVec.loadFileToStringMatrix(fileSet[0], false, null, false),
                                      mkrFile, mkrColNm, analyses, analysisNms, null, fileSet[1],
                                      null);
-          org.genvisis.cnv.plots.ForestPlot fp =
-              new org.genvisis.cnv.plots.ForestPlot(ext.rootOf(fileSet[1], false) + ".input", null);
+          org.genvisis.cnv.plots.ForestPlot fp = new org.genvisis.cnv.plots.ForestPlot(
+                                                                                       ext.rootOf(fileSet[1],
+                                                                                                  false)
+                                                                                       + ".input",
+                                                                                       null);
           fp.setOddsRatioDisplay(oddsRatio);
           fp.loadOrderFile(sortFileName, true);
           fp.screenCapAll("forestPlots", oddsRatio, false);

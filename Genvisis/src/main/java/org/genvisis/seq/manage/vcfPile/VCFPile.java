@@ -49,8 +49,8 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
 
   @Override
   public PiledVcfRegion<T> next() {
-    PiledVcfRegion<T> pRegion =
-        new PiledVcfRegion<T>(rIteratorVCF.getCurrentIndex(), referenceGenome, samplesTopile);
+    PiledVcfRegion<T> pRegion = new PiledVcfRegion<T>(rIteratorVCF.getCurrentIndex(),
+                                                      referenceGenome, samplesTopile);
     VariantContext[] vcs = rIteratorVCF.next();
     for (VariantContext vc : vcs) {
       pRegion.addVariantContext(vc, log);
@@ -69,15 +69,15 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
       outputDirectory = ext.parseDirectoryOfFile(vcfFile);
     }
     new File(outputDirectory).mkdirs();
-    Logger log =
-        new Logger(outputDirectory + VCFOps.getAppropriateRoot(vcfFile, true) + ".vcfPile.log");
+    Logger log = new Logger(outputDirectory + VCFOps.getAppropriateRoot(vcfFile, true)
+                            + ".vcfPile.log");
 
     log.reportTimeInfo("Loading regions from " + regionsFile);
     Segment[] segs = Segment.loadRegions(regionsFile, 0, 1, 2, false);
     LocusSet<Segment> toPile = new LocusSet<Segment>(segs, true, log) {
 
       /**
-       * 
+       *
        */
       private static final long serialVersionUID = 1L;
     };
@@ -86,8 +86,8 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
     ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFile, log);
     String[] samples = VCFOps.getSamplesInFile(new VCFFileReader(new File(vcfFile), true));
     VCFPile<Segment> vcfPile = new VCFPile<Segment>(vcfFile, referenceGenome, samples, toPile, log);
-    String output =
-        outputDirectory + VCFOps.getAppropriateRoot(vcfFile, true) + ".vcfPile.summary.txt";
+    String output = outputDirectory + VCFOps.getAppropriateRoot(vcfFile, true)
+                    + ".vcfPile.summary.txt";
     try {
 
       PrintWriter writer = new PrintWriter(new FileWriter(output));

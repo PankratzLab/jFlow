@@ -17,20 +17,20 @@ import org.genvisis.stats.Maths;
 
 public class CompareCalls {
   public static final String DEFAULT_ROOT =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\allCalls\\";
+                                          "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\allCalls\\";
 
   // public static final String[] DEFAULT_FILES = {"conf.cnv", "allMarkers.cnv"};
   // public static final String[] DEFAULT_FILES = {"conf_100kb_5SNP_10.0.cnv",
   // "allMarkers_100kb_5SNP_10.0.cnv"};
-  public static final String[] DEFAULT_FILES =
-      {"conf_100kb_5SNP_10.0.cnv", "conf_100kb_20SNP_10.0.cnv"};
+  public static final String[] DEFAULT_FILES = {"conf_100kb_5SNP_10.0.cnv",
+                                                "conf_100kb_20SNP_10.0.cnv"};
 
   public static void compare(String rootDir, String[] files) {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, inds;
     Hashtable<String, Hashtable<String, Vector<CNVariant>>> hash =
-        new Hashtable<String, Hashtable<String, Vector<CNVariant>>>();
+                                                                 new Hashtable<String, Hashtable<String, Vector<CNVariant>>>();
     Hashtable<String, Vector<CNVariant>> source = new Hashtable<String, Vector<CNVariant>>();
     CNVariant[][] cnvs;
     Vector<CNVariant> v = new Vector<CNVariant>();
@@ -74,11 +74,11 @@ public class CompareCalls {
     inds = HashVec.getKeys(hash);
     for (int[] allPossibleCombination : allPossibleCombinations) {
       try {
-        writer =
-            new PrintWriter(new FileWriter(rootDir + "Compare "
-                                           + ext.rootOf(files[allPossibleCombination[0]]) + " and "
-                                           + ext.rootOf(files[allPossibleCombination[1]])
-                                           + ".xln"));
+        writer = new PrintWriter(new FileWriter(rootDir + "Compare "
+                                                + ext.rootOf(files[allPossibleCombination[0]])
+                                                + " and "
+                                                + ext.rootOf(files[allPossibleCombination[1]])
+                                                + ".xln"));
         writer.println("FID\tIID\tTotal" + ext.rootOf(files[allPossibleCombination[0]]) + "\tTotal"
                        + ext.rootOf(files[allPossibleCombination[1]]) + "\tUnique"
                        + ext.rootOf(files[allPossibleCombination[0]]) + "\tUnique"

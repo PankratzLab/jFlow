@@ -28,7 +28,7 @@ public class Mapability {
 
     header = Files.getHeaderOfFile(filename, "\t", new Logger());
     data =
-        HashVec.loadFileToStringMatrix(filename, true, Array.arrayOfIndices(header.length), false);
+         HashVec.loadFileToStringMatrix(filename, true, Array.arrayOfIndices(header.length), false);
     indices = ext.indexFactors(REQS, header, false, true);
 
     max = -1;
@@ -59,7 +59,7 @@ public class Mapability {
 
     try {
       writer =
-          new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_brokenMatePairs.bed"));
+             new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_brokenMatePairs.bed"));
       writer.println("track name=percentBrokenMatePairs description=\"Percent of unique reads with broken mate pairs (scaled from 0-1000) \" useScore=1");
       for (String[] element : data) {
         pos = Integer.parseInt(element[indices[1]]);
@@ -91,8 +91,8 @@ public class Mapability {
     }
 
     try {
-      writer =
-          new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_notProperlyPaired.bed"));
+      writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
+                                              + "_notProperlyPaired.bed"));
       writer.println("track name=percentNotProperlyPaired description=\"Percent of unique reads that are not properly paired (scaled from 0-1000) \" useScore=1");
       for (String[] element : data) {
         pos = Integer.parseInt(element[indices[1]]);
@@ -107,8 +107,8 @@ public class Mapability {
     }
 
     try {
-      writer =
-          new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_compositePoorQualty.bed"));
+      writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
+                                              + "_compositePoorQualty.bed"));
       writer.println("track name=CompositePoorQuality description=\"Composite Poor Quality = MapQualityZero + NotProperlyPaired\" useScore=1");
       for (String[] element : data) {
         pos = Integer.parseInt(element[indices[1]]);

@@ -71,7 +71,7 @@ public class PennCNVPrep {
    * This creates the temporary serialized {@link MarkerData} lists stored in
    * {@link MarkerDataStorage} objects, and contain only LRR/BAF and genotypes (currently original
    * genotypes)
-   * 
+   *
    */
   public void exportSpecialMarkerDataMoreThreads(String tmpDir, boolean preserveBafs) {
     String output = (tmpDir == null ? proj.PROJECT_DIRECTORY.getValue() : tmpDir) + dir
@@ -81,12 +81,15 @@ public class PennCNVPrep {
     if (!Files.exists(output)) {
       new File(ext.parseDirectoryOfFile(output)).mkdirs();
       System.out.println("writing to " + output);
-      PcCorrectionProducer producer =
-          new PcCorrectionProducer(principalComponentsResiduals, numComponents, sampleSex,
-                                   samplesToUseCluster, lType, numCorrectionThreads, 1, markers);
+      PcCorrectionProducer producer = new PcCorrectionProducer(principalComponentsResiduals,
+                                                               numComponents, sampleSex,
+                                                               samplesToUseCluster, lType,
+                                                               numCorrectionThreads, 1, markers);
       WorkerTrain<PrincipalComponentsIntensity> train =
-          new WorkerTrain<PrincipalComponentsIntensity>(producer, numMarkerThreads, 10,
-                                                        proj.getLog());
+                                                      new WorkerTrain<PrincipalComponentsIntensity>(producer,
+                                                                                                    numMarkerThreads,
+                                                                                                    10,
+                                                                                                    proj.getLog());
       ArrayList<String> notCorrected = new ArrayList<String>();
       MarkerDataStorage markerDataStorage = new MarkerDataStorage(markers.length);
       int index = 0;
@@ -100,17 +103,19 @@ public class PennCNVPrep {
         } else {
           byte[] abGenotypes = principalComponentsIntensity.getGenotypesUsed();
           float[][] correctedXY =
-              principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.XY_RETURN,
-                                                                 true);
+                                principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.XY_RETURN,
+                                                                                   true);
           float[][] correctedLRRBAF =
-              principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN,
-                                                                 true);// for now
+                                    principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN,
+                                                                                       true);// for
+                                                                                             // now
           markerDataToStore =
-              new MarkerData(markerData.getMarkerName(), markerData.getChr(),
-                             markerData.getPosition(), markerData.getFingerprint(),
-                             markerData.getGCs(), null, null, correctedXY[0], correctedXY[1], null,
-                             null, preserveBafs ? markerData.getBAFs() : correctedLRRBAF[0],
-                             correctedLRRBAF[1], abGenotypes, abGenotypes);
+                            new MarkerData(markerData.getMarkerName(), markerData.getChr(),
+                                           markerData.getPosition(), markerData.getFingerprint(),
+                                           markerData.getGCs(), null, null, correctedXY[0],
+                                           correctedXY[1], null, null,
+                                           preserveBafs ? markerData.getBAFs() : correctedLRRBAF[0],
+                                           correctedLRRBAF[1], abGenotypes, abGenotypes);
         }
         markerDataStorage.addToNextIndex(markerDataToStore);
         index++;
@@ -130,11 +135,12 @@ public class PennCNVPrep {
    * This creates the temporary serialized {@link MarkerData} lists stored in
    * {@link MarkerDataStorage} objects, and contain only LRR/BAF and genotypes (currently original
    * genotypes)
-   * 
+   *
    */
   public void exportSpecialMarkerData() {
     MarkerDataLoader markerDataLoader =
-        MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
+                                      MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+                                                                                              markers);
     MarkerDataStorage markerDataStorage = new MarkerDataStorage(markers.length);
     ArrayList<String> notCorrected = new ArrayList<String>();
     if (lType == LS_TYPE.SVD) {
@@ -149,12 +155,23 @@ public class PennCNVPrep {
       MarkerData markerDataToStore = null;
 
       PrincipalComponentsIntensity principalComponentsIntensity =
-          new PrincipalComponentsIntensity(principalComponentsResiduals, markerData, true,
-                                           sampleSex, samplesToUseCluster, 1, 0, null, true, lType,
-                                           2, 5,
-                                           PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER,
-                                           PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO,
-                                           numCorrectionThreads, false, null);
+                                                                new PrincipalComponentsIntensity(principalComponentsResiduals,
+                                                                                                 markerData,
+                                                                                                 true,
+                                                                                                 sampleSex,
+                                                                                                 samplesToUseCluster,
+                                                                                                 1,
+                                                                                                 0,
+                                                                                                 null,
+                                                                                                 true,
+                                                                                                 lType,
+                                                                                                 2,
+                                                                                                 5,
+                                                                                                 PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER,
+                                                                                                 PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO,
+                                                                                                 numCorrectionThreads,
+                                                                                                 false,
+                                                                                                 null);
       markerDataLoader.releaseIndex(i);
       principalComponentsIntensity.correctXYAt(numComponents);
       if (principalComponentsIntensity.isFail()) {
@@ -163,16 +180,17 @@ public class PennCNVPrep {
       } else {
         byte[] abGenotypes = principalComponentsIntensity.getGenotypesUsed();
         float[][] correctedXY =
-            principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.XY_RETURN,
-                                                               true);
+                              principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.XY_RETURN,
+                                                                                 true);
         float[][] correctedLRRBAF =
-            principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN,
-                                                               true);// for now
-        markerDataToStore =
-            new MarkerData(markerData.getMarkerName(), markerData.getChr(),
-                           markerData.getPosition(), markerData.getFingerprint(),
-                           markerData.getGCs(), null, null, correctedXY[0], correctedXY[1], null,
-                           null, correctedLRRBAF[0], correctedLRRBAF[1], abGenotypes, abGenotypes);
+                                  principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN,
+                                                                                     true);// for
+                                                                                           // now
+        markerDataToStore = new MarkerData(markerData.getMarkerName(), markerData.getChr(),
+                                           markerData.getPosition(), markerData.getFingerprint(),
+                                           markerData.getGCs(), null, null, correctedXY[0],
+                                           correctedXY[1], null, null, correctedLRRBAF[0],
+                                           correctedLRRBAF[1], abGenotypes, abGenotypes);
       }
       markerDataStorage.addToNextIndex(markerDataToStore);
     }
@@ -191,23 +209,25 @@ public class PennCNVPrep {
   /**
    * This function exports to PennCNV format starting from the temporary files made in
    * {@link PennCNVPrep#exportSpecialMarkerData()} Currently, all individuals will be exported
-   * 
+   *
    * @param fileNamesOfMarkerDataInOrder files of serialized {@link MarkerDataStorage};
    */
   public void exportSpecialPennCNVData(String[] fileNamesOfMarkerDataInOrder) {
-    int[] sampleIndicesInProject =
-        ext.indexLargeFactors(Array.subArray(proj.getSamples(), samplesToExport), proj.getSamples(),
-                              true, proj.getLog(), true, true);
+    int[] sampleIndicesInProject = ext.indexLargeFactors(
+                                                         Array.subArray(proj.getSamples(),
+                                                                        samplesToExport),
+                                                         proj.getSamples(), true, proj.getLog(),
+                                                         true, true);
     // int numMarkersPerWrite =
     // Integer.parseInt(proj.getProperty(Project.MAX_MARKERS_LOADED_PER_CYCLE));
     int numMarkersPerWrite = proj.getProperty(proj.MAX_MARKERS_LOADED_PER_CYCLE);
     int numMarkersThisRound = 0;
     String[] subSamples = Array.subArray(proj.getSamples(), samplesToExport);
-    PennCNVIndividual[] pennCNVIndividuals =
-        initSamples(proj, dir, subSamples, false, numMarkersPerWrite, proj.getLog());
+    PennCNVIndividual[] pennCNVIndividuals = initSamples(proj, dir, subSamples, false,
+                                                         numMarkersPerWrite, proj.getLog());
     for (int i = 0; i < fileNamesOfMarkerDataInOrder.length; i++) {
-      MarkerDataStorage markerDataStorage =
-          MarkerDataStorage.load(fileNamesOfMarkerDataInOrder[i], false);
+      MarkerDataStorage markerDataStorage = MarkerDataStorage.load(fileNamesOfMarkerDataInOrder[i],
+                                                                   false);
       MarkerData[] markerDatas = markerDataStorage.getMarkerDatas();
       for (int j = 0; j < markerDatas.length; j++) {
         if ((j + 1) % 100 == 0) {
@@ -224,8 +244,8 @@ public class PennCNVPrep {
           for (PennCNVIndividual pennCNVIndividual : pennCNVIndividuals) {
             pennCNVIndividual.dump(proj);
           }
-          pennCNVIndividuals =
-              initSamples(proj, dir, subSamples, true, numMarkersPerWrite, proj.getLog());
+          pennCNVIndividuals = initSamples(proj, dir, subSamples, true, numMarkersPerWrite,
+                                           proj.getLog());
         }
       }
     }
@@ -234,15 +254,17 @@ public class PennCNVPrep {
   /**
    * This function exports to sampraf format starting from the temporary files made in
    * {@link PennCNVPrep#exportSpecialMarkerData()}
-   * 
+   *
    * @param fileNamesOfMarkerDataInOrder files of serialized {@link MarkerDataStorage};
    */
   public Hashtable<String, Float> exportSpecialSamples(String[] fileNamesOfMarkerDataInOrder,
                                                        boolean[] samplesToExport) {
     Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
-    int[] subSampleIndicesInProject =
-        ext.indexLargeFactors(Array.subArray(proj.getSamples(), samplesToExport), proj.getSamples(),
-                              true, proj.getLog(), true, true);
+    int[] subSampleIndicesInProject = ext.indexLargeFactors(
+                                                            Array.subArray(proj.getSamples(),
+                                                                           samplesToExport),
+                                                            proj.getSamples(), true, proj.getLog(),
+                                                            true, true);
     String[] subSamples = Array.subArray(proj.getSamples(), samplesToExport);
     String dir = proj.PROJECT_DIRECTORY.getValue() + "shadowSamples/";
     new File(dir).mkdirs();
@@ -277,7 +299,8 @@ public class PennCNVPrep {
         proj.getLog().reportTimeInfo("Loading " + fileNamesOfMarkerDataInOrder[i]);
 
         MarkerDataStorage markerDataStorage =
-            MarkerDataStorage.load(fileNamesOfMarkerDataInOrder[i], false);
+                                            MarkerDataStorage.load(fileNamesOfMarkerDataInOrder[i],
+                                                                   false);
         proj.getLog().reportTimeInfo("Finished loading " + fileNamesOfMarkerDataInOrder[i]);
 
         MarkerData[] markerDatas = markerDataStorage.getMarkerDatas();
@@ -287,16 +310,15 @@ public class PennCNVPrep {
                                  + " from file " + fileNamesOfMarkerDataInOrder[i]);
             if ((j + 1) % 100000 == 0) {
 
-              float usedMemory =
-                  Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+              float usedMemory = Runtime.getRuntime().totalMemory()
+                                 - Runtime.getRuntime().freeMemory();
               float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
               float maxMemory = Runtime.getRuntime().maxMemory();
-              proj.getLog().report(ext.getTime() + "\tData loaded = "
-                                   + Math.round(((double) i / (double) proj.getMarkerNames().length
-                                                 * 100.0))
-                                   + "%\tFree memory: "
-                                   + Math.round(((double) freeMemory / (double) maxMemory * 100.0))
-                                   + "%");
+              proj.getLog()
+                  .report(ext.getTime() + "\tData loaded = "
+                          + Math.round(((double) i / (double) proj.getMarkerNames().length * 100.0))
+                          + "%\tFree memory: "
+                          + Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
             }
           }
           MarkerData markerData = markerDatas[j];
@@ -533,9 +555,9 @@ public class PennCNVPrep {
                                                  boolean append, int numMarkers, Logger log) {
     PennCNVIndividual[] samples = new PennCNVIndividual[samplesToExport.length];
     for (int i = 0; i < samplesToExport.length; i++) {
-      String header =
-          PENN_STRINGS[0] + "\t" + samplesToExport[i] + PENN_STRINGS[1] + "\t" + samplesToExport[i]
-                      + PENN_STRINGS[2] + "\t" + samplesToExport[i] + PENN_STRINGS[3];
+      String header = PENN_STRINGS[0] + "\t" + samplesToExport[i] + PENN_STRINGS[1] + "\t"
+                      + samplesToExport[i] + PENN_STRINGS[2] + "\t" + samplesToExport[i]
+                      + PENN_STRINGS[3];
       samples[i] = new PennCNVIndividual(samplesToExport[i] + ".txt", header, numMarkers, append);
     }
     return samples;
@@ -620,20 +642,20 @@ public class PennCNVPrep {
     // }
     if (shadowSamples) {
 
-      boolean[][] batches =
-          Array.splitUpStringArrayToBoolean(proj.getSamples(), numSampleChunks, proj.getLog());
+      boolean[][] batches = Array.splitUpStringArrayToBoolean(proj.getSamples(), numSampleChunks,
+                                                              proj.getLog());
 
       ExecutorService executor = Executors.newFixedThreadPool(numThreads);
       Hashtable<String, Future<Hashtable<String, Float>>> tmpResults =
-          new Hashtable<String, Future<Hashtable<String, Float>>>();
+                                                                     new Hashtable<String, Future<Hashtable<String, Float>>>();
       String[] sortedFileNames = getSortedFileNames(proj, dir, tmpDir);
       Hashtable<String, Float> outliers = new Hashtable<String, Float>();
       String outlierFile = proj.PROJECT_DIRECTORY.getValue() + "shadowSamples3/outliers.ser";
       for (int i = 0; i < batches.length; i++) {
 
-        PennCNVPrep specialPennCNVFormat =
-            new PennCNVPrep(proj, null, null, null, null, null, numComponents, dir, lType,
-                            numThreads, numMarkerThreads);
+        PennCNVPrep specialPennCNVFormat = new PennCNVPrep(proj, null, null, null, null, null,
+                                                           numComponents, dir, lType, numThreads,
+                                                           numMarkerThreads);
 
         proj.getLog().reportTimeInfo("Found " + sortedFileNames.length + " special files");
 
@@ -698,9 +720,10 @@ public class PennCNVPrep {
           .report("Info - loaded " + markers.length + " markers from " + markerFile + " to export");
 
     }
-    PennCNVPrep specialPennCNVFormat =
-        new PennCNVPrep(proj, principalComponentsResiduals, null, proj.getSamplesToInclude(null),
-                        sex, markers, numComponents, dir, lType, numThreads, numMarkerThreads);
+    PennCNVPrep specialPennCNVFormat = new PennCNVPrep(proj, principalComponentsResiduals, null,
+                                                       proj.getSamplesToInclude(null), sex, markers,
+                                                       numComponents, dir, lType, numThreads,
+                                                       numMarkerThreads);
     specialPennCNVFormat.exportSpecialMarkerDataMoreThreads(tmpDir, preserveBafs);
   }
 
@@ -776,8 +799,8 @@ public class PennCNVPrep {
       log.report("Info - exporting batch " + batchIndex + " with thread "
                  + Thread.currentThread().getName());
 
-      Hashtable<String, Float> outliers =
-          specialPennCNVFormat.exportSpecialSamples(sortedFileNames, batch);
+      Hashtable<String, Float> outliers = specialPennCNVFormat.exportSpecialSamples(sortedFileNames,
+                                                                                    batch);
       return outliers;
     }
   }
@@ -824,41 +847,41 @@ public class PennCNVPrep {
     usage += "   (6) number of principal components for correction, (i.e. numComponents="
              + numComponents + " (default))\n" + "";
     usage +=
-        "   (7) a full path to a file listing markers to export in the current batch, (i.e. markers="
+          "   (7) a full path to a file listing markers to export in the current batch, (i.e. markers="
              + numComponents + " (default))\n" + "";
     usage +=
-        "   (8) create PennCNV files from the tempory markerData files, (i.e. -create ( not the default))\n"
+          "   (8) create PennCNV files from the tempory markerData files, (i.e. -create ( not the default))\n"
              + "";
     usage +=
-        "   (9) set this up for a batch run, which is recommended. Set to 0 if batch is not wanted (i.e. batch="
+          "   (9) set this up for a batch run, which is recommended. Set to 0 if batch is not wanted (i.e. batch="
              + batch + " (default))\n" + "";
     // usage += " (9) java location for batch run (i.e. java=" + java + " (default))\n" + "";
     usage += "   (10) classPath for batch run (i.e. classPath=" + classPath + " (default))\n" + "";
     usage +=
-        "   (12) export shadow samples for quickly comparing the current sample data to corrected data(i.e. -shadow ( not the default))\n"
+          "   (12) export shadow samples for quickly comparing the current sample data to corrected data(i.e. -shadow ( not the default))\n"
              + "";
     usage +=
-        "   (12) if exporting shadow samples, the number of chunks to export at once (this many samples*the number of threads will be held in memory) (i.e. sampleChunks="
+          "   (12) if exporting shadow samples, the number of chunks to export at once (this many samples*the number of threads will be held in memory) (i.e. sampleChunks="
              + sampleChunks + " (default))\n" + "";
     usage += "   (13) walltime in hours for batched run (i.e. walltime=" + wallTimeInHours
              + " (default))\n" + "";
     usage +=
-        "   (14) memory in mb for batched run (i.e. memory=" + memoryInMB + " (default))\n" + "";
+          "   (14) memory in mb for batched run (i.e. memory=" + memoryInMB + " (default))\n" + "";
     usage +=
-        "   (15) if using a large number of PCs (>150) use a svd regression method (i.e. -svd (not the default))\n"
+          "   (15) if using a large number of PCs (>150) use a svd regression method (i.e. -svd (not the default))\n"
              + "";
     usage +=
-        "   (16) number of threads for a single marker (correction within a marker) (i.e. numThreads="
+          "   (16) number of threads for a single marker (correction within a marker) (i.e. numThreads="
              + numThreads + " (default))\n" + "";
     usage +=
-        "   (17) number of threads for between a marker  (correction between a marker)(i.e. numMarkerThreads="
+          "   (17) number of threads for between a marker  (correction between a marker)(i.e. numMarkerThreads="
              + numThreads + " (default))\n" + "";
     usage += "   (18) full path to a temporary directory (i.e. tmpDir= (no default))\n" + "";
 
     usage += "   NOTE: the total number of threads is numThreads*numMarkerThreads";
     usage += "   NOTE: aprox 50 *(numSamples/5000) batches per 500,000 markers" + "";
     usage +=
-        "   NOTE: If using ChrX/ChrY markers, it is important that the projects sample data file has sex defined for all samples that are used for clustering"
+          "   NOTE: If using ChrX/ChrY markers, it is important that the projects sample data file has sex defined for all samples that are used for clustering"
              + "";
 
     for (String arg : args) {

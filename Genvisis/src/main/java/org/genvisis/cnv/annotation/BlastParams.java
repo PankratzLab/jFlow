@@ -10,13 +10,15 @@ import htsjdk.variant.vcf.VCFHeaderLine;
 public class BlastParams implements AnalysisParams {
 
   /**
-   * 
+   *
    */
   private static final String KEY = "GENVISIS_BLAST_PARAMETERS";
   private static final String DATA_DELIMITER = ",";
   private static final String[] parseKeys =
-      new String[] {"fileSeq=", "ref=", "maxAlignmentsReported=", "reportWordSize=",
-                    "blastWordSize=", "evalueCutoff=", "date=", "markerFingerPrint=", "notes="};
+                                          new String[] {"fileSeq=", "ref=",
+                                                        "maxAlignmentsReported=", "reportWordSize=",
+                                                        "blastWordSize=", "evalueCutoff=", "date=",
+                                                        "markerFingerPrint=", "notes="};
 
   private String fileSeq;
   private String fastaDb;

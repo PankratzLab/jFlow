@@ -30,8 +30,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
@@ -43,18 +41,20 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
 
+import net.miginfocom.swing.MigLayout;
+
 public class ProjectCreationGUI extends JDialog {
 
   private static final long serialVersionUID = 1L;
 
   private static final String PROJECT_DIR_TOOLTIP =
-      "<html>Directory in which to create, store, and manage all project files.</html>";
+                                                  "<html>Directory in which to create, store, and manage all project files.</html>";
   private static final String SOURCE_DIR_TOOLTIP =
-      "<html>Directory of source (e.g. FinalReport.txt.gz) files; this can be different than the Project Directory.</html>";
+                                                 "<html>Directory of source (e.g. FinalReport.txt.gz) files; this can be different than the Project Directory.</html>";
   private static final String SOURCE_EXT_TOOLTIP =
-      "<html>Extension of source files (e.g. for \"FinalReport.txt.gz\", the extension would be \".txt.gz\".</html>";
+                                                 "<html>Extension of source files (e.g. for \"FinalReport.txt.gz\", the extension would be \".txt.gz\".</html>";
   private static final String XY_TOOLTIP =
-      "<html>Suggested values for X/Y correction:<br />Illumina: use the default of 1.<br />Affymetrix: use 100.<br />DBGAP: use 2000.</html>";
+                                         "<html>Suggested values for X/Y correction:<br />Illumina: use the default of 1.<br />Affymetrix: use 100.<br />DBGAP: use 2000.</html>";
   private final JPanel contentPane;
   private final JTextField txtFldProjName;
   private final JTextField txtFldProjDir;
@@ -266,10 +266,10 @@ public class ProjectCreationGUI extends JDialog {
       @Override
       public void actionPerformed(ActionEvent e) {
         if (checkValues()) {
-          int resp =
-              JOptionPane.showConfirmDialog(ProjectCreationGUI.this,
-                                            "<html>Do you confirm that all source files are valid, correct, and uniform in structure? <br />[If not, or if unsure, select 'Validate and Create' to check for uniformity and validity]</html>",
-                                            "Confirm File Validity", JOptionPane.YES_NO_OPTION);
+          int resp = JOptionPane.showConfirmDialog(ProjectCreationGUI.this,
+                                                   "<html>Do you confirm that all source files are valid, correct, and uniform in structure? <br />[If not, or if unsure, select 'Validate and Create' to check for uniformity and validity]</html>",
+                                                   "Confirm File Validity",
+                                                   JOptionPane.YES_NO_OPTION);
           if (resp == JOptionPane.YES_OPTION) {
             if (createProject(false)) {
               doClose(false);
@@ -345,8 +345,8 @@ public class ProjectCreationGUI extends JDialog {
     } catch (IOException e) {
     }
 
-    boolean nameCheck =
-        !name.equals("") && !name.equals((new Project()).PROJECT_NAME.getDefaultValueString());
+    boolean nameCheck = !name.equals("")
+                        && !name.equals((new Project()).PROJECT_NAME.getDefaultValueString());
     if (nameCheck) {
       for (String s : existingNames) {
         if (s.equals(name)) {
@@ -444,9 +444,10 @@ public class ProjectCreationGUI extends JDialog {
     double xy = ((Double) spinnerXY.getValue()).doubleValue();
     String tgtMkrs = txtFldTgtMkrs.getText().trim();
 
-    HashMap<String, SourceFileHeaderData> headers =
-        SourceFileHeaderData.validate(srcDir, srcExt, actuallyValidate,
-                                      new org.genvisis.common.Logger(), progressBar);
+    HashMap<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(srcDir, srcExt,
+                                                                                  actuallyValidate,
+                                                                                  new org.genvisis.common.Logger(),
+                                                                                  progressBar);
     if (headers == null) {
       // errors found in headers - check output and retry?
       return false;

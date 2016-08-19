@@ -24,7 +24,7 @@ public class BWA_Analysis {
 
     public static String[] getBatchesByLane(BWA_AnalysisIndividual[] bwIndividuals) {
       Hashtable<String, ArrayList<BWA_AnalysisIndividual>> track =
-          new Hashtable<String, ArrayList<BWA_AnalysisIndividual>>();
+                                                                 new Hashtable<String, ArrayList<BWA_AnalysisIndividual>>();
       ArrayList<String> unique = new ArrayList<String>();
       for (BWA_AnalysisIndividual bwIndividual : bwIndividuals) {
         String baseId = bwIndividual.getID();
@@ -616,8 +616,8 @@ public class BWA_Analysis {
                          Logger log) {
     BWA bwa = new BWA(bwaLocation, overwriteExisting, verbose, log);
     BWA_Analysis bwa_Analysis =
-        new BWA_Analysis(rootInputDir, rootOutputDir, referenceGenomeFasta, verbose, numMemThreads,
-                         numSampleThreads, bwa, log);
+                              new BWA_Analysis(rootInputDir, rootOutputDir, referenceGenomeFasta,
+                                               verbose, numMemThreads, numSampleThreads, bwa, log);
     bwa_Analysis.init(fileOfSamplePairs);
     if (batch) {
       bwa_Analysis.batch(numBatches, memoryInMB, wallTimeInHours, baseName);
@@ -685,7 +685,7 @@ public class BWA_Analysis {
     usage += "   (11) over-write exsiting files (i.e. " + OVERWRITE_EXISTING_COMMAND
              + " (not the default))\n" + "";
     usage +=
-        "   (11) base-name for batch analysis (i.e. " + BASE_NAME_COMMAND + " (default))\n" + "";
+          "   (11) base-name for batch analysis (i.e. " + BASE_NAME_COMMAND + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

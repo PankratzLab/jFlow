@@ -56,7 +56,7 @@ public class GenericLine {
 
   /**
    * Constructor for GenericLine from two {@link PlotPoint}
-   * 
+   *
    * @param startPoint
    * @param endPoint
    * @param thickness

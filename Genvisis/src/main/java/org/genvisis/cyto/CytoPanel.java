@@ -36,7 +36,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 
   private static final String[] SAMP_DATA_TO_ADD = {"DNA", "FID", "IID", "CLASS=SEX"};
   private static final String SELECT_TITLE =
-      "Please select the directory containing workbench and raw data files";
+                                           "Please select the directory containing workbench and raw data files";
   private static final String WELCOME_TITLE = "Welcome to the Genvisis parser for Agilent files";
   private static final String WORKBENCH_TITLE = "Workbench Aberration File(s)";
   private static final String SAMP_DATA_TITLE = "Raw Data File(s)";
@@ -98,8 +98,8 @@ public class CytoPanel extends JPanel implements ActionListener {
    * add select file button, init parse and cancel buttonsb but do not show
    */
   public void initButtons() {
-    selectFilesButton =
-        getButton("Select Directory", "Select the directory containing data to parse", true);
+    selectFilesButton = getButton("Select Directory",
+                                  "Select the directory containing data to parse", true);
     parseButton = getButton("PARSE", "Import data to Genvisis", true);
     cancelButton = getButton("Cancel", "", true);
     add(selectFilesButton);
@@ -138,8 +138,8 @@ public class CytoPanel extends JPanel implements ActionListener {
     JComponent source = (JComponent) e.getSource();
     // gather the files from the directory navigated to
     if (source.equals(selectFilesButton)) {
-      FileChooser fileChooser =
-          new FileChooser(this, proj.PROJECT_DIRECTORY.getValue(), false, true, SELECT_TITLE, log);
+      FileChooser fileChooser = new FileChooser(this, proj.PROJECT_DIRECTORY.getValue(), false,
+                                                true, SELECT_TITLE, log);
       if (fileChooser.isSelected()) {
         startDir = fileChooser.getNavDir();
         log.report(startDir);
@@ -244,14 +244,14 @@ public class CytoPanel extends JPanel implements ActionListener {
 
   /**
    * To prevent running the same thing twice (and concurrently)
-   * 
+   *
    * @return true if the thread is available
    */
   private boolean checkThread() {
     if (thread != null && thread.isAlive()) {
       String[] options = new String[] {"OK"};
       String dialoge =
-          "Warning - processing files in the background, please wait until completion\n";
+                     "Warning - processing files in the background, please wait until completion\n";
       JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
                                    JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
       return false;
@@ -291,9 +291,9 @@ public class CytoPanel extends JPanel implements ActionListener {
     String[] options = new String[] {"Cancel", "OK"};
     String dialoge = "Warning: Could not find a file ending with extension " + sampleExt
                      + SAMPLES_EXT + " corresponding to sample found in " + workbenchFile + " \n";
-    int response =
-        JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
-                                     JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+    int response = JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
+                                                JOptionPane.QUESTION_MESSAGE, null, options,
+                                                options[0]);
     return (response == 0 ? false : true);
   }
 
@@ -547,23 +547,24 @@ public class CytoPanel extends JPanel implements ActionListener {
     }
     if (alreadyParsed.size() > 0) {
       String[] overwriteOptions = new String[] {"Overwrite All", "Cancel parser"};
-      String samples =
-          alreadyParsed.size() + " " + (alreadyParsed.size() > 1 ? " of the selected samples "
-                                                                 : " the selected sample");
+      String samples = alreadyParsed.size() + " "
+                       + (alreadyParsed.size() > 1 ? " of the selected samples "
+                                                   : " the selected sample");
       int response =
-          JOptionPane.showOptionDialog(null,
-                                       "These data (at least  " + samples
-                                             + ") have already been parsed to the project source directory "
-                                             + proj.SOURCE_DIRECTORY.getValue(false, true) + ".\n"
-                                             + "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted, or if there are non-unique filenames.\n"
-                                             + "Select \"" + overwriteOptions[0]
-                                             + "\" earlier files to overwrite the " + samples
-                                             + " already processed.\n"
-                                             + "Otherwise, cancel and manually remove the files.\n"
-                                             + "What would you like to do?",
-                                       "Samples already exist", JOptionPane.DEFAULT_OPTION,
-                                       JOptionPane.QUESTION_MESSAGE, null, overwriteOptions,
-                                       overwriteOptions[1]);
+                   JOptionPane.showOptionDialog(null,
+                                                "These data (at least  " + samples
+                                                      + ") have already been parsed to the project source directory "
+                                                      + proj.SOURCE_DIRECTORY.getValue(false, true)
+                                                      + ".\n"
+                                                      + "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted, or if there are non-unique filenames.\n"
+                                                      + "Select \"" + overwriteOptions[0]
+                                                      + "\" earlier files to overwrite the "
+                                                      + samples + " already processed.\n"
+                                                      + "Otherwise, cancel and manually remove the files.\n"
+                                                      + "What would you like to do?",
+                                                "Samples already exist", JOptionPane.DEFAULT_OPTION,
+                                                JOptionPane.QUESTION_MESSAGE, null,
+                                                overwriteOptions, overwriteOptions[1]);
 
       switch (response) {
         case 0:
@@ -619,8 +620,8 @@ public class CytoPanel extends JPanel implements ActionListener {
         sampfileBoxes[i] = new FileBox(cytoGUI, startDir, importFiles[i], SELECT_NEW + SAMPLES,
                                        REMOVE, sampleIndices[i], sampleNames[i]);
       } else {
-        sampfileBoxes[i] =
-            new FileBox(cytoGUI, NO_FILE_SELECTED, null, SELECT_NEW + SAMPLES, REMOVE, "-1", null);
+        sampfileBoxes[i] = new FileBox(cytoGUI, NO_FILE_SELECTED, null, SELECT_NEW + SAMPLES,
+                                       REMOVE, "-1", null);
       }
       // we only add up to a max amount to the Gui
       if (i < DEFAULT_MAX_NUM_SAMPLES) {
@@ -648,12 +649,13 @@ public class CytoPanel extends JPanel implements ActionListener {
   public void checkTooMany(String[] files, int tooMany, String type) {
     if (files.length > tooMany) {
       String[] options = new String[] {"OK", "See all files found"};
-      String dialoge =
-          "Warning - detected " + files.length + " files of type " + type + ", only " + tooMany
+      String dialoge = "Warning - detected " + files.length + " files of type " + type + ", only "
+                       + tooMany
                        + " will be displayed. Please make sure that the number detected is correct.";
-      int response =
-          JOptionPane.showOptionDialog(null, dialoge, "Warning", JOptionPane.DEFAULT_OPTION,
-                                       JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+      int response = JOptionPane.showOptionDialog(null, dialoge, "Warning",
+                                                  JOptionPane.DEFAULT_OPTION,
+                                                  JOptionPane.QUESTION_MESSAGE, null, options,
+                                                  options[0]);
       if (response == 1) {
         JOptionPane.showOptionDialog(null, Array.toStr(files, "\n"), "Warning",
                                      JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
@@ -671,15 +673,16 @@ public class CytoPanel extends JPanel implements ActionListener {
     if (issues != null && issues.length > 0) {
       String[] options = new String[] {"Continue", "Cancel"};
       String dialoge =
-          "Warning - the following samples were already present in the sample data file \""
+                     "Warning - the following samples were already present in the sample data file \""
                        + sampleDataFile + "\".\n";
       dialoge +=
-          "If you are re-parsing the same samples, select \"Continue\", otherwise please ensure that samples have unique names\n";
+              "If you are re-parsing the same samples, select \"Continue\", otherwise please ensure that samples have unique names\n";
       dialoge += "Please note that a FID/IID combination must be unique\n";
       dialoge += Array.toStr(issues, "\n");
       int response =
-          JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
-                                       JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+                   JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
+                                                JOptionPane.QUESTION_MESSAGE, null, options,
+                                                options[0]);
       if (response != 0) {
         keepGoing = false;
       }
@@ -732,14 +735,14 @@ public class CytoPanel extends JPanel implements ActionListener {
         int DNAIndex = ext.indexOfStr(SAMP_DATA_TO_ADD[0], header);
         keepGoing = warnIndex(DNAIndex, SAMP_DATA_TO_ADD[0], sampleDataFile);
         int FIDIndex = ext.indexOfStr(SAMP_DATA_TO_ADD[1], header);
-        keepGoing =
-            (keepGoing ? warnIndex(DNAIndex, SAMP_DATA_TO_ADD[1], sampleDataFile) : keepGoing);
+        keepGoing = (keepGoing ? warnIndex(DNAIndex, SAMP_DATA_TO_ADD[1], sampleDataFile)
+                               : keepGoing);
         int IIDIndex = ext.indexOfStr(SAMP_DATA_TO_ADD[2], header);
-        keepGoing =
-            (keepGoing ? warnIndex(DNAIndex, SAMP_DATA_TO_ADD[2], sampleDataFile) : keepGoing);
+        keepGoing = (keepGoing ? warnIndex(DNAIndex, SAMP_DATA_TO_ADD[2], sampleDataFile)
+                               : keepGoing);
         int SEXINDEX = ext.indexOfStr(SAMP_DATA_TO_ADD[3], header);
-        keepGoing =
-            (keepGoing ? warnIndex(DNAIndex, SAMP_DATA_TO_ADD[3], sampleDataFile) : keepGoing);
+        keepGoing = (keepGoing ? warnIndex(DNAIndex, SAMP_DATA_TO_ADD[3], sampleDataFile)
+                               : keepGoing);
         if (keepGoing) {
           try {
             PrintWriter writer = new PrintWriter(new FileWriter(sampleDataFile, true));
@@ -797,8 +800,8 @@ public class CytoPanel extends JPanel implements ActionListener {
     boolean keepGoing = true;
     if (index < 0) {
       String[] options = new String[] {"OK",};
-      String dialoge =
-          "Error: could not find column " + type + " in sample data file " + sampleDataFile;
+      String dialoge = "Error: could not find column " + type + " in sample data file "
+                       + sampleDataFile;
       JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
                                    JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
       keepGoing = false;
@@ -874,29 +877,29 @@ public class CytoPanel extends JPanel implements ActionListener {
       // String dialoge = "Could not find the Common CNP file " +
       // proj.getFilename(proj.COMMON_CNP_FILENAME);
       String dialoge = "Could not find the Common CNP file " + proj.COMMON_CNP_FILENAME.getValue();
-      response =
-          JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
-                                       JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+      response = JOptionPane.showOptionDialog(null, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
+                                              JOptionPane.QUESTION_MESSAGE, null, options,
+                                              options[0]);
     }
     // if (parseResponse(response) && !Files.exists(proj.getFilename(proj.REPORTED_CNP_FILENAME))) {
     // String dialoge = "Could not find the Reported CNP file " +
     // proj.getFilename(proj.REPORTED_CNP_FILENAME);
     if (parseResponse(response) && !Files.exists(proj.REPORTED_CNP_FILENAME.getValue())) {
-      String dialoge =
-          "Could not find the Reported CNP file " + proj.REPORTED_CNP_FILENAME.getValue();
-      response =
-          JOptionPane.showOptionDialog(this, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
-                                       JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+      String dialoge = "Could not find the Reported CNP file "
+                       + proj.REPORTED_CNP_FILENAME.getValue();
+      response = JOptionPane.showOptionDialog(this, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
+                                              JOptionPane.QUESTION_MESSAGE, null, options,
+                                              options[0]);
     }
     // if (parseResponse(response) && !Files.exists(proj.getFilename(proj.COMMON_CNP_FILENAME))) {
     // String dialoge = "Could not find the Un - Reported CNP file " +
     // proj.getFilename(proj.UNREPORTED_CNP_FILENAME);
     if (parseResponse(response) && !Files.exists(proj.COMMON_CNP_FILENAME.getValue())) {
-      String dialoge =
-          "Could not find the  Un - Reported CNP file " + proj.UNREPORTED_CNP_FILENAME.getValue();
-      response =
-          JOptionPane.showOptionDialog(this, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
-                                       JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+      String dialoge = "Could not find the  Un - Reported CNP file "
+                       + proj.UNREPORTED_CNP_FILENAME.getValue();
+      response = JOptionPane.showOptionDialog(this, dialoge, "Error", JOptionPane.DEFAULT_OPTION,
+                                              JOptionPane.QUESTION_MESSAGE, null, options,
+                                              options[0]);
     }
     return parseResponse(response);
   }
@@ -1033,10 +1036,10 @@ public class CytoPanel extends JPanel implements ActionListener {
         int response = 1;
         String[] overwriteOptions = new String[] {"Remove", "Cancel"};
         response =
-            JOptionPane.showOptionDialog(null, "Remove " + jFileNameTextField.getText() + "?",
-                                         "Cancel", JOptionPane.DEFAULT_OPTION,
-                                         JOptionPane.QUESTION_MESSAGE, null, overwriteOptions,
-                                         overwriteOptions[1]);
+                 JOptionPane.showOptionDialog(null, "Remove " + jFileNameTextField.getText() + "?",
+                                              "Cancel", JOptionPane.DEFAULT_OPTION,
+                                              JOptionPane.QUESTION_MESSAGE, null, overwriteOptions,
+                                              overwriteOptions[1]);
         if (response == 0) {
           setVisible(false);
           used = false;

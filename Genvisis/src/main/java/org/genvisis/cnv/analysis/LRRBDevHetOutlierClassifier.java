@@ -530,7 +530,7 @@ public class LRRBDevHetOutlierClassifier {
 
   /**
    * Validation file must be in format: {ID ... UCSC ... 0/1 ... 0-5}
-   * 
+   *
    * @param validationFile
    * @return
    * @throws IOException
@@ -542,7 +542,7 @@ public class LRRBDevHetOutlierClassifier {
     HashSet<String> locationsInValidationSet = new HashSet<String>();
     HashMap<String, HashSet<String>> outliersInRegionsMap = new HashMap<String, HashSet<String>>();
     HashMap<String, HashMap<String, Integer>> regionToIndivDetailMap =
-        new HashMap<String, HashMap<String, Integer>>();
+                                                                     new HashMap<String, HashMap<String, Integer>>();
 
     BufferedReader reader = Files.getAppropriateReader(validationFile);
     String line = reader.readLine(); // skip header
@@ -638,7 +638,7 @@ public class LRRBDevHetOutlierClassifier {
 
 
     PrintWriter writer =
-        Files.getAppropriateWriter(ext.rootOf(filename, false) + "_validation.txt");
+                       Files.getAppropriateWriter(ext.rootOf(filename, false) + "_validation.txt");
     String header = "UCSC\tTP\tFP\tFN\tTN\tScore";
     writer.println(header);
     for (java.util.Map.Entry<String, int[]> regionStat : regionStats.entrySet()) {
@@ -660,8 +660,8 @@ public class LRRBDevHetOutlierClassifier {
   /**
    * Validation File: <br />
    * Columns: {ID \t UCSC \t Outlier Code 0/1 \t Validation Code 0-9 } <br />
-   * 
-   * 
+   *
+   *
    * @param validationFile
    * @param resultsFile
    * @param outFile
@@ -672,7 +672,7 @@ public class LRRBDevHetOutlierClassifier {
     HashSet<String> locationsInValidationSet = new HashSet<String>();
     HashMap<String, HashSet<String>> outliersInRegionsMap = new HashMap<String, HashSet<String>>();
     HashMap<String, HashMap<String, Integer>> regionToIndivDetailMap =
-        new HashMap<String, HashMap<String, Integer>>();
+                                                                     new HashMap<String, HashMap<String, Integer>>();
 
     BufferedReader reader = Files.getAppropriateReader(validationFile);
     String line = reader.readLine();
@@ -794,8 +794,8 @@ public class LRRBDevHetOutlierClassifier {
 
         for (int i = 0; i < analyses.size(); i++) {
           for (String id : analyses.get(i).outlierList) {
-            StringBuilder resultLine =
-                new StringBuilder(id).append("\t").append(analyses.get(i).ucscRegion);
+            StringBuilder resultLine = new StringBuilder(id).append("\t")
+                                                            .append(analyses.get(i).ucscRegion);
             if (writeScores) {
               resultLine.append("\t").append(analyses.get(i).scoreMap.get(id));
             }

@@ -110,7 +110,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
   public static final String FILTER_MARKER_METRICS = "Filter marker metrics";
   public static final String TALLY_MARKER_ANNOTATIONS = "Tally marker annotations";
   public static final String TALLY_WITHOUT_DETERMINING_DROPS =
-      "Tally without determining dropped markers (much faster)";
+                                                             "Tally without determining dropped markers (much faster)";
   public static final String TALLY_CLUSTER_FILTERS = "Tally all reclustered markers";
 
   public static final String SCATTER = "Scatter Plot";
@@ -143,19 +143,22 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
   public static final String TEST = "Test new program";
 
   public static String[][] MENUS =
-      {{"File", NEW_PROJECT, IMPORT_PROJECT, "Select Project", EDIT, "Preferences",
-        CHECK_FOR_UPDATES, EXIT},
-       {"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // ,
-                                                                                                  // MITOPIPELINE
-       {"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS,
-        TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
-       {"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP,
-        FOREST_PLOT},
-       {"Tools", GENERATE_ABLOOKUP, EXPORT_TO_PLINK, GENERATE_PENNCNV_FILES,
-        PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV,
-        EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS, GENERATE_DEMO_PACKAGE,
-        ADD_QC_TO_SAMPLE_DATA, TEST},
-       {"Help", "Contents", "Search", "About"}};
+                                 {{"File", NEW_PROJECT, IMPORT_PROJECT, "Select Project", EDIT,
+                                   "Preferences", CHECK_FOR_UPDATES, EXIT},
+                                  {"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV,
+                                   TRANSPOSE_DATA, PIPELINE}, // ,
+                                                              // MITOPIPELINE
+                                  {"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM,
+                                   MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS,
+                                   TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
+                                  {"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER,
+                                   TWOD, LINE_PLOT, COMP, FOREST_PLOT},
+                                  {"Tools", GENERATE_ABLOOKUP, EXPORT_TO_PLINK,
+                                   GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF,
+                                   GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV, EXPORT_CNVS,
+                                   CYTO_WORKBENCH, PRINCIPAL_COMPONENTS, GENERATE_DEMO_PACKAGE,
+                                   ADD_QC_TO_SAMPLE_DATA, TEST},
+                                  {"Help", "Contents", "Search", "About"}};
 
 
   private Project proj;
@@ -476,8 +479,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
           menu.add(submenu);
         } else if (MENUS[i][j].equals(PRINCIPAL_COMPONENTS)) {
           String[] pcSubMenuOptions =
-              new String[] {PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI,
-                            PrincipalComponentsCrossTabs.PRINCIPAL_CROSSTABS_MI};
+                                    new String[] {PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI,
+                                                  PrincipalComponentsCrossTabs.PRINCIPAL_CROSSTABS_MI};
           JMenu pcSubMenu = new JMenu(MENUS[i][j]);
           for (String pcSubMenuOption : pcSubMenuOptions) {
             JMenuItem pcSubItem = new JMenuItem(pcSubMenuOption);
@@ -600,7 +603,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
       } else if (command.equals(CHECK_SEX)) {
         String blastAnnotationFile = proj.BLAST_ANNOTATION_FILENAME.getValue();
         String nonCrossHybridizingMarkersFile =
-            MarkerBlastQC.defaultOneHitWondersFilename(blastAnnotationFile);
+                                              MarkerBlastQC.defaultOneHitWondersFilename(blastAnnotationFile);
         if (!Files.exists(nonCrossHybridizingMarkersFile)) {
           if (Files.exists(blastAnnotationFile)) {
             MarkerBlastQC.getOneHitWonders(proj, blastAnnotationFile,
@@ -616,8 +619,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         ABLookup abLookup;
         String filename;
 
-        filename =
-            proj.PROJECT_DIRECTORY.getValue() + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+        filename = proj.PROJECT_DIRECTORY.getValue()
+                   + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
         if (!Files.exists(filename)) {
           abLookup = new ABLookup();
           abLookup.parseFromAnnotationVCF(proj);
@@ -771,9 +774,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
       } else if (command.equals(EXPORT_CNVS)) {
 
         String[] inOut =
-            FileAndOutputSelectorGUI.showFileAndOutputSelector(Launch.this, null,
-                                                               JFileChooser.FILES_ONLY, null, null,
-                                                               JFileChooser.FILES_ONLY);
+                       FileAndOutputSelectorGUI.showFileAndOutputSelector(Launch.this, null,
+                                                                          JFileChooser.FILES_ONLY,
+                                                                          null, null,
+                                                                          JFileChooser.FILES_ONLY);
         if (inOut == null) {
           return;
         }
@@ -948,7 +952,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
       // } else {
       log.report("Launching project properties editor...");
       final ProjectPropertiesEditor configurator =
-          new ProjectPropertiesEditor(proj, ProjectPropertiesEditor.ALL_PROPERTY_SETS);
+                                                 new ProjectPropertiesEditor(proj,
+                                                                             ProjectPropertiesEditor.ALL_PROPERTY_SETS);
       configurator.addWindowListener(new WindowAdapter() {
         @Override
         public void windowClosed(WindowEvent e) {

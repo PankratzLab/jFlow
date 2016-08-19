@@ -1,7 +1,5 @@
 package org.genvisis.gwas;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +26,8 @@ import org.genvisis.gwas.MergeExtractPipeline.DataSource;
 import org.genvisis.stats.ProbDist;
 import org.genvisis.stats.RegressionModel;
 
+import com.google.common.primitives.Doubles;
+
 public class GeneScorePipeline {
 
   private static float DEFAULT_INDEX_THRESHOLD = (float) 0.00000005;
@@ -45,11 +45,11 @@ public class GeneScorePipeline {
   private static final String CROSS_FILTERED_DATAFILE = "bimData.xln";
   private static final String DATA_SOURCE_FILENAME = "data.txt";
 
-  private static final String[][] LINKERS =
-      {Aliases.MARKER_NAMES, Aliases.ALLELES[0], Aliases.EFFECTS};
+  private static final String[][] LINKERS = {Aliases.MARKER_NAMES, Aliases.ALLELES[0],
+                                             Aliases.EFFECTS};
 
   private static final String REGRESSION_HEADER =
-      "STUDY\tDATAFILE\tINDEX-THRESHOLD\tFACTOR\tBASE-R-SQR\tR-SQR\tR-DIFF\tP-VALUE\tBETA\tSE\tNUM\t#DATASNPs\t#PLINKSNPs\t#HITSNPs\tB-F-SCORE\tINVCHI-SCORE\tEXCEL-SIG";
+                                                "STUDY\tDATAFILE\tINDEX-THRESHOLD\tFACTOR\tBASE-R-SQR\tR-SQR\tR-DIFF\tP-VALUE\tBETA\tSE\tNUM\t#DATASNPs\t#PLINKSNPs\t#HITSNPs\tB-F-SCORE\tINVCHI-SCORE\tEXCEL-SIG";
   private final String metaDir;
 
   private float[] indexThresholds = new float[] {DEFAULT_INDEX_THRESHOLD};
@@ -64,9 +64,9 @@ public class GeneScorePipeline {
   private final ArrayList<String> dataFiles = new ArrayList<String>();
   private final ArrayList<Study> studies = new ArrayList<GeneScorePipeline.Study>();
   private final HashMap<String, Constraint> analysisConstraints =
-      new HashMap<String, GeneScorePipeline.Constraint>();
+                                                                new HashMap<String, GeneScorePipeline.Constraint>();
   private final HashMap<String, HashMap<String, Integer>> dataCounts =
-      new HashMap<String, HashMap<String, Integer>>();
+                                                                     new HashMap<String, HashMap<String, Integer>>();
 
   // private int bimChrIndex = 0;
   // private int bimMkrIndex = 1;
@@ -92,26 +92,26 @@ public class GeneScorePipeline {
 
     // constraint -> datafile -> phenofile
     HashMap<String, HashMap<String, HashMap<String, RegressionResult>>> regressions =
-        new HashMap<String, HashMap<String, HashMap<String, RegressionResult>>>();
+                                                                                    new HashMap<String, HashMap<String, HashMap<String, RegressionResult>>>();
     // constraint -> datafile
     HashMap<String, HashMap<String, double[]>> scores =
-        new HashMap<String, HashMap<String, double[]>>();
+                                                      new HashMap<String, HashMap<String, double[]>>();
     // constraint -> datafile
     HashMap<String, HashMap<String, Integer>> hitSnpCounts =
-        new HashMap<String, HashMap<String, Integer>>();
+                                                           new HashMap<String, HashMap<String, Integer>>();
     // constraint -> datafile
     HashMap<String, HashMap<String, Integer>> hitWindowCnts =
-        new HashMap<String, HashMap<String, Integer>>();
+                                                            new HashMap<String, HashMap<String, Integer>>();
     // constraint -> datafile
     HashMap<String, HashMap<String, Integer>> dataCounts =
-        new HashMap<String, HashMap<String, Integer>>();
+                                                         new HashMap<String, HashMap<String, Integer>>();
     public HashMap<String, HashMap<String, String[]>> markerData =
-        new HashMap<String, HashMap<String, String[]>>();
+                                                                 new HashMap<String, HashMap<String, String[]>>();
 
     /**
      * Returns a hashSet containing all markers present in the data files that are present in
      * hitMkrSet.
-     * 
+     *
      * @param hitMkrSet
      * @return
      */
@@ -142,8 +142,8 @@ public class GeneScorePipeline {
       SnpMarkerSet markerSet = new SnpMarkerSet(hitMkrs);
       markerSet.parseSNPlocations(log);
       int[][] markerLocations = markerSet.getChrAndPositionsAsInts();
-      dataSources =
-          MergeExtractPipeline.parseDataFile(null, markerLocations, null, dataSource, 0, log);
+      dataSources = MergeExtractPipeline.parseDataFile(null, markerLocations, null, dataSource, 0,
+                                                       log);
       if (dataSources.size() == 0) {
         // error
         log.reportError("Error - no data sources loaded from file: " + dataSource);
@@ -295,10 +295,8 @@ public class GeneScorePipeline {
 
       for (String nonRSMkr : nonRS) {
         int pos = markerMap.get(nonRSMkr)[1];
-        String mkrNm =
-            pos > 0 && pos < posRS.length && null != posRS[pos] && !"".equals(posRS[pos])
-                                                                                          ? posRS[pos]
-                                                                                          : "";
+        String mkrNm = pos > 0 && pos < posRS.length && null != posRS[pos]
+                       && !"".equals(posRS[pos]) ? posRS[pos] : "";
         plinkFreqs.put(nonRSMkr,
                        "".equals(mkrNm) ? 0.0
                                         : Double.valueOf(rsToFullData.get(mkrNm).split("\t")[1]));
@@ -400,9 +398,9 @@ public class GeneScorePipeline {
         if (errorMsg.equals("")) {
           if (indices[1] == -1 || indices[2] == -1) {
             // No chromosomes/positions
-            snps =
-                HashVec.loadFileToStringArray(filename, false, true, new int[] {indices[0]}, false);// fileData.keySet().toArray(new
-                                                                                                    // String[fileData.size()]);
+            snps = HashVec.loadFileToStringArray(filename, false, true, new int[] {indices[0]},
+                                                 false);// fileData.keySet().toArray(new
+                                                        // String[fileData.size()]);
             Files.writeList(snps, ext.rootOf(filename, false) + ".snps");
             MapSNPsAndGenes.procSNPsToGenes(ext.parseDirectoryOfFile(filename),
                                             ext.rootOf(filename, true) + ".snps",
@@ -413,8 +411,8 @@ public class GeneScorePipeline {
                                                                                           // SnpEff
                                                                                           // too?
             data =
-                Array.toStringArray(HashVec.loadFileToVec(ext.rootOf(filename, false)
-                                                          + "_positions.xln", true, false, false));
+                 Array.toStringArray(HashVec.loadFileToVec(ext.rootOf(filename, false)
+                                                           + "_positions.xln", true, false, false));
             for (String element : data) {
               line = element.trim().split("[\\s]+");
               markerMap.put(line[0], new int[] {Positions.chromosomeNumber(line[1]),
@@ -433,9 +431,9 @@ public class GeneScorePipeline {
           if (indices[4] == -1) {
             // no frequencies
             if (markerMap.isEmpty()) {
-              fileData =
-                  HashVec.loadFileToHashVec(filename, indices[0],
-                                            new int[] {indices[1], indices[2]}, "\t", true, false);
+              fileData = HashVec.loadFileToHashVec(filename, indices[0],
+                                                   new int[] {indices[1], indices[2]}, "\t", true,
+                                                   false);
               for (String key : fileData.keySet()) {
                 markerMap.put(key,
                               new int[] {Positions.chromosomeNumber(fileData.get(key).get(0)
@@ -463,7 +461,7 @@ public class GeneScorePipeline {
           }
 
           PrintWriter metaWriter =
-              Files.getAppropriateWriter(ext.rootOf(filename, false) + ".meta");
+                                 Files.getAppropriateWriter(ext.rootOf(filename, false) + ".meta");
           metaWriter.println(newHeaderSB.toString());
           while ((temp = reader.readLine()) != null) {
             line = temp.trim().split("[\\s]+");
@@ -521,7 +519,7 @@ public class GeneScorePipeline {
     for (Study study : studies) {
       for (String pref : analysisConstraints.keySet()) {
         HashMap<String, HashMap<String, RegressionResult>> res =
-            new HashMap<String, HashMap<String, RegressionResult>>();
+                                                               new HashMap<String, HashMap<String, RegressionResult>>();
         for (String dFile : dataFiles) {
           String dataFile = ext.rootOf(dFile, false);
           HashMap<String, RegressionResult> res2 = new HashMap<String, RegressionResult>();
@@ -716,8 +714,8 @@ public class GeneScorePipeline {
             BufferedReader reader = Files.getAppropriateReader(metaDir + dFile);
             String line = reader.readLine();
             String[] temp = line.split("[\\s]+");
-            int[] indices =
-                ext.indexFactors(factors, temp, false, false, true, true, new Logger(), false);
+            int[] indices = ext.indexFactors(factors, temp, false, false, true, true, new Logger(),
+                                             false);
             while ((line = reader.readLine()) != null) {
               String mkr = line.split("[\\s]+")[indices[0]];
               if (hitMkrSet.contains(mkr)) {
@@ -746,7 +744,8 @@ public class GeneScorePipeline {
 
               HashMap<String, double[]> bimSubsetMarkers = new HashMap<String, double[]>();
               HashSet<String> bimMkrSet =
-                  study.retrieveMarkers(dataFile + "\t" + filePrefix.getKey(), hitMkrSet);
+                                        study.retrieveMarkers(dataFile + "\t" + filePrefix.getKey(),
+                                                              hitMkrSet);
 
               // pull betas and freqs for union markers
               for (String mkr : bimMkrSet) {
@@ -983,8 +982,8 @@ public class GeneScorePipeline {
         HashMap<String, int[]> mkrsBim;
 
         mkrsBim = new HashMap<String, int[]>();
-        SnpMarkerSet markerSet =
-            study.data.get(dataFile + "\t" + constraintEntry.getKey()).getMarkerSet();
+        SnpMarkerSet markerSet = study.data.get(dataFile + "\t" + constraintEntry.getKey())
+                                           .getMarkerSet();
         int cntAmbig = 0;
 
         String[] mkrNames = markerSet.getMarkerNames();
@@ -1062,11 +1061,11 @@ public class GeneScorePipeline {
           continue;
         }
         log.report(ext.getTime() + "]\tRunning hit window analysis [ --> '" + hitsFile + "']");
-        String[][] results =
-            HitWindows.determine(crossFilterFile, filePrefix.getValue().indexThreshold,
-                                 filePrefix.getValue().windowMinSizePerSide,
-                                 filePrefix.getValue().windowExtensionThreshold,
-                                 DEFAULT_ADDL_ANNOT_VAR_NAMES, log);
+        String[][] results = HitWindows.determine(crossFilterFile,
+                                                  filePrefix.getValue().indexThreshold,
+                                                  filePrefix.getValue().windowMinSizePerSide,
+                                                  filePrefix.getValue().windowExtensionThreshold,
+                                                  DEFAULT_ADDL_ANNOT_VAR_NAMES, log);
         if (results == null) {
           log.reportError("Error - HitWindows result from " + crossFilterFile + " was null");
         } else {
@@ -1087,8 +1086,8 @@ public class GeneScorePipeline {
 
         String crossFilterFile = prefDir + "\\" + CROSS_FILTERED_DATAFILE;
         String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
-        String[] hitMarkers =
-            HashVec.loadFileToStringArray(hitsFile, true, new int[] {hitsMkrIndex}, false);
+        String[] hitMarkers = HashVec.loadFileToStringArray(hitsFile, true,
+                                                            new int[] {hitsMkrIndex}, false);
         HashSet<String> hitMrkSet = new HashSet<String>();
         for (String mkr : hitMarkers) {
           hitMrkSet.add(mkr);
@@ -1104,10 +1103,10 @@ public class GeneScorePipeline {
           }
         }
         String[][] bimData =
-            HashVec.loadFileToStringMatrix(crossFilterFile, true, finalCols, false);
+                           HashVec.loadFileToStringMatrix(crossFilterFile, true, finalCols, false);
 
-        PrintWriter writer =
-            Files.getAppropriateWriter(prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln");
+        PrintWriter writer = Files.getAppropriateWriter(prefDir + "\\subsetData_"
+                                                        + filePrefix.getKey() + ".xln");
         HashMap<String, String[]> dataList = new HashMap<String, String[]>();
         for (String[] markerData : bimData) {
           if (hitMrkSet.contains(markerData[0])) {
@@ -1142,8 +1141,8 @@ public class GeneScorePipeline {
         }
 
         // marker, allele1, beta
-        HashMap<String, String[]> markerAlleleBeta =
-            study.markerData.get(dFile + "\t" + filePrefix.getKey());
+        HashMap<String, String[]> markerAlleleBeta = study.markerData.get(dFile + "\t"
+                                                                          + filePrefix.getKey());
         PrintWriter scoreWriter;
         scoreWriter = Files.getAppropriateWriter(prefDir + "\\" + SCORE_FILE);
 
@@ -1303,10 +1302,10 @@ public class GeneScorePipeline {
               baseCovars[k] = baselineIndeps.get(k);
             }
             RegressionModel baseModel =
-                RegressionModel.determineAppropriate(Doubles.toArray(depData), baseCovars, false,
-                                                     true);
-            RegressionModel model =
-                RegressionModel.determineAppropriate(Doubles.toArray(depData), covars, false, true);
+                                      RegressionModel.determineAppropriate(Doubles.toArray(depData),
+                                                                           baseCovars, false, true);
+            RegressionModel model = RegressionModel.determineAppropriate(Doubles.toArray(depData),
+                                                                         covars, false, true);
 
             RegressionResult rr = new RegressionResult();
             if (model.analysisFailed()) {
@@ -1370,49 +1369,51 @@ public class GeneScorePipeline {
         String dataFile = ext.rootOf(dFile, false);
         for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
           HashMap<String, RegressionResult> phenoResults =
-              study.regressions.get(filePrefix.getKey()).get(dataFile);
+                                                         study.regressions.get(filePrefix.getKey())
+                                                                          .get(dataFile);
 
           String resultPrefix = study.studyName + "\t" + dataFile + "\t"
                                 + ext.formSciNot(filePrefix.getValue().indexThreshold, 5, false)
                                 + "\t";
 
-          String middle = (new StringBuilder())
-                                               .append(dataCounts.get(dFile)
-                                                                 .get(filePrefix.getKey()))
-                                               .append("\t")
-                                               .append(study.hitSnpCounts.get(filePrefix.getKey())
-                                                                         .get(dataFile))
-                                               .append("\t")
-                                               .append(study.hitWindowCnts.get(filePrefix.getKey())
-                                                                          .get(dataFile))
-                                               .append("\t")
-                                               .append(study.scores.get(filePrefix.getKey())
-                                                                   .get(dataFile)[0])
-                                               .append("\t")
-                                               .append(study.scores.get(filePrefix.getKey())
-                                                                   .get(dataFile)[1])
-                                               .append("\t").toString();
+          String middle =
+                        (new StringBuilder()).append(dataCounts.get(dFile).get(filePrefix.getKey()))
+                                             .append("\t")
+                                             .append(study.hitSnpCounts.get(filePrefix.getKey())
+                                                                       .get(dataFile))
+                                             .append("\t")
+                                             .append(study.hitWindowCnts.get(filePrefix.getKey())
+                                                                        .get(dataFile))
+                                             .append("\t")
+                                             .append(study.scores.get(filePrefix.getKey())
+                                                                 .get(dataFile)[0])
+                                             .append("\t")
+                                             .append(study.scores.get(filePrefix.getKey())
+                                                                 .get(dataFile)[1])
+                                             .append("\t").toString();
           if (study.phenoFiles.isEmpty()) {
             RegressionResult rr = new RegressionResult();
             rr.dummy();
 
-            String pvalExcl =
-                rr.num == 0 ? "."
-                            : (rr.logistic ? "=NORMSDIST(" + Math.sqrt(rr.stats) + ")"
-                                           : "=TDIST(" + Math.abs(rr.stats) + "," + rr.num + ",2)");
+            String pvalExcl = rr.num == 0 ? "."
+                                          : (rr.logistic ? "=NORMSDIST(" + Math.sqrt(rr.stats) + ")"
+                                                         : "=TDIST(" + Math.abs(rr.stats) + ","
+                                                           + rr.num + ",2)");
 
             StringBuilder sb =
-                new StringBuilder(resultPrefix).append("--").append("\t").append(rr.baseRSq)
-                                               .append("\t").append(rr.rsq).append("\t")
-                                               .append((Double.isNaN(rr.rsq) ? Double.NaN
-                                                                             : (Double.isNaN(rr.baseRSq) ? rr.rsq
-                                                                                                         : (new BigDecimal(rr.rsq
-                                                                                                                           + "")).subtract(new BigDecimal(rr.baseRSq
-                                                                                                                                                          + "")))))
-                                               .append("\t").append(rr.pval).append("\t")
-                                               .append(rr.beta).append("\t").append(rr.se)
-                                               .append("\t").append(rr.num).append("\t")
-                                               .append(middle).append(pvalExcl);
+                             new StringBuilder(resultPrefix).append("--").append("\t")
+                                                            .append(rr.baseRSq).append("\t")
+                                                            .append(rr.rsq).append("\t")
+                                                            .append((Double.isNaN(rr.rsq) ? Double.NaN
+                                                                                          : (Double.isNaN(rr.baseRSq) ? rr.rsq
+                                                                                                                      : (new BigDecimal(rr.rsq
+                                                                                                                                        + "")).subtract(new BigDecimal(rr.baseRSq
+                                                                                                                                                                       + "")))))
+                                                            .append("\t").append(rr.pval)
+                                                            .append("\t").append(rr.beta)
+                                                            .append("\t").append(rr.se).append("\t")
+                                                            .append(rr.num).append("\t")
+                                                            .append(middle).append(pvalExcl);
 
             writer.println(sb.toString());
           } else {
@@ -1424,23 +1425,25 @@ public class GeneScorePipeline {
                 rr.dummy();
               }
               String pvalExcl =
-                  rr.num == 0 ? "."
-                              : (rr.logistic ? "=NORMSDIST(" + Math.sqrt(rr.stats) + ")"
-                                             : "=TDIST(" + Math.abs(rr.stats) + "," + rr.num
-                                               + ",2)");
+                              rr.num == 0 ? "."
+                                          : (rr.logistic ? "=NORMSDIST(" + Math.sqrt(rr.stats) + ")"
+                                                         : "=TDIST(" + Math.abs(rr.stats) + ","
+                                                           + rr.num + ",2)");
 
-              StringBuilder sb =
-                  new StringBuilder(resultPrefix).append(pheno).append("\t").append(rr.baseRSq)
-                                                 .append("\t").append(rr.rsq).append("\t")
-                                                 .append((Double.isNaN(rr.rsq) ? Double.NaN
-                                                                               : (Double.isNaN(rr.baseRSq) ? rr.rsq
-                                                                                                           : (new BigDecimal(rr.rsq
-                                                                                                                             + "")).subtract(new BigDecimal(rr.baseRSq
-                                                                                                                                                            + "")))))
-                                                 .append("\t").append(rr.pval).append("\t")
-                                                 .append(rr.beta).append("\t").append(rr.se)
-                                                 .append("\t").append(rr.num).append("\t")
-                                                 .append(middle).append("\t").append(pvalExcl);
+              StringBuilder sb = new StringBuilder(resultPrefix).append(pheno).append("\t")
+                                                                .append(rr.baseRSq).append("\t")
+                                                                .append(rr.rsq).append("\t")
+                                                                .append((Double.isNaN(rr.rsq) ? Double.NaN
+                                                                                              : (Double.isNaN(rr.baseRSq) ? rr.rsq
+                                                                                                                          : (new BigDecimal(rr.rsq
+                                                                                                                                            + "")).subtract(new BigDecimal(rr.baseRSq
+                                                                                                                                                                           + "")))))
+                                                                .append("\t").append(rr.pval)
+                                                                .append("\t").append(rr.beta)
+                                                                .append("\t").append(rr.se)
+                                                                .append("\t").append(rr.num)
+                                                                .append("\t").append(middle)
+                                                                .append("\t").append(pvalExcl);
 
               writer.println(sb.toString());
             }
@@ -1502,8 +1505,8 @@ public class GeneScorePipeline {
     // return;
     // }
 
-    String usage =
-        "\n" + "GeneScorePipeline is a convention-driven submodule.  It relies on a standard folder structure and file naming scheme:\n"
+    String usage = "\n"
+                   + "GeneScorePipeline is a convention-driven submodule.  It relies on a standard folder structure and file naming scheme:\n"
                    + "\tThe directory and file structure must conform to the following:\n"
                    + "\t\t>Root Directory ['broot' argument]\n" + "\t\t\t>SNP Effect files:\n"
                    + "\t\t\t\t-Effect files must end with '.meta'.\n"
@@ -1627,8 +1630,9 @@ public class GeneScorePipeline {
     // System.exit(1);
     // }
     Logger log = new Logger(logFile);
-    GeneScorePipeline gsp =
-        new GeneScorePipeline(broot, /* threads, runPlink, regress, writeHist, */ iT, mZ, wT, log);
+    GeneScorePipeline gsp = new GeneScorePipeline(broot,
+                                                  /* threads, runPlink, regress, writeHist, */ iT,
+                                                  mZ, wT, log);
     gsp.runPipeline();
   }
 

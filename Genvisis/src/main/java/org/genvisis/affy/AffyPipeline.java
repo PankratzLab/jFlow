@@ -218,10 +218,10 @@ public class AffyPipeline {
     log.report(ext.getTime() + " Info - running a command to extract probeset ids: " + psetCommand);
 
     String probeResults = outDir + currentAnalysis + ".summary.txt";
-    boolean progress =
-        CmdLine.runCommandWithFileChecks(Array.toStringArray(psetCommand), "",
-                                         new String[] {celFile}, new String[] {probeResults}, true,
-                                         false, false, log);
+    boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(psetCommand), "",
+                                                        new String[] {celFile},
+                                                        new String[] {probeResults}, true, false,
+                                                        false, log);
 
     log.reportTimeInfo("Parsing " + probeResults + " to obtain all probesIds");
     ArrayList<String> probesetIdsAll = new ArrayList<String>(1800000);
@@ -409,8 +409,8 @@ public class AffyPipeline {
     String reportFile = outCurrent + analysisName + ".report.txt";
 
     GenotypeResult genotypeResult = new GenotypeResult(callFile, confFile);
-    String[] output =
-        new String[] {genotypeResult.getCallFile(), genotypeResult.getConfFile(), reportFile};
+    String[] output = new String[] {genotypeResult.getCallFile(), genotypeResult.getConfFile(),
+                                    reportFile};
     boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(genotypeCommand), "",
                                                         null, output, true, false, false, log);
     genotypeResult.setFailed(!progress);
@@ -462,8 +462,8 @@ public class AffyPipeline {
                             + Resources.ARRAY_RESOURCE_TYPE.AFFY_SNP6_MARKER_POSITIONS.getResource(build)
                                                                                       .getResource(log));
         markerPositions =
-            Resources.ARRAY_RESOURCE_TYPE.AFFY_SNP6_MARKER_POSITIONS.getResource(build)
-                                                                    .getResource(log);
+                        Resources.ARRAY_RESOURCE_TYPE.AFFY_SNP6_MARKER_POSITIONS.getResource(build)
+                                                                                .getResource(log);
       }
     }
     if (quantNormTarget == null || !Files.exists(quantNormTarget)) {
@@ -477,17 +477,18 @@ public class AffyPipeline {
     }
 
     AffyPipeline pipeline = new AffyPipeline(aptExeDir, aptLibDir, full, log);
-    Probesets probeSets =
-        pipeline.getAnalysisProbesetList(celFiles[0], outDir, analysisName, markerPositions);
+    Probesets probeSets = pipeline.getAnalysisProbesetList(celFiles[0], outDir, analysisName,
+                                                           markerPositions);
     if (!probeSets.isFail()) {
       String celListFile = pipeline.generateCelList(celFiles, outDir, analysisName);
-      GenotypeResult genotypeResult =
-          pipeline.genotype(celListFile, probeSets.getSnpOnlyFile(), analysisName, outDir);
+      GenotypeResult genotypeResult = pipeline.genotype(celListFile, probeSets.getSnpOnlyFile(),
+                                                        analysisName, outDir);
       if (!genotypeResult.isFailed()) {
 
-        NormalizationResult normalizationResult =
-            pipeline.normalize(celListFile, probeSets.getAllFile(), analysisName, outDir,
-                               quantNormTarget);
+        NormalizationResult normalizationResult = pipeline.normalize(celListFile,
+                                                                     probeSets.getAllFile(),
+                                                                     analysisName, outDir,
+                                                                     quantNormTarget);
 
         if (!normalizationResult.isFail()) {
           String tmpDir = outDir + analysisName + "_TMP/";
@@ -495,18 +496,18 @@ public class AffyPipeline {
           String outSnpSrc = tmpDir + "SNP_Src/";
           new File(outSnpSrc).mkdirs();
 
-          AffySNP6Tables AS6T =
-              new AffySNP6Tables(outSnpSrc, genotypeResult.getCallFile(),
-                                 genotypeResult.getConfFile(),
-                                 normalizationResult.getQuantNormFile(), maxWritersOpen, log);
+          AffySNP6Tables AS6T = new AffySNP6Tables(outSnpSrc, genotypeResult.getCallFile(),
+                                                   genotypeResult.getConfFile(),
+                                                   normalizationResult.getQuantNormFile(),
+                                                   maxWritersOpen, log);
           AS6T.parseSNPTables(markerBuffer);
 
           String outCNSrc = tmpDir + "CN_Src/";
           new File(outCNSrc).mkdirs();
 
           AffySNP6Tables AS6TCN =
-              new AffySNP6Tables(outCNSrc, normalizationResult.getQuantNormFile(), maxWritersOpen,
-                                 log);
+                                new AffySNP6Tables(outCNSrc, normalizationResult.getQuantNormFile(),
+                                                   maxWritersOpen, log);
           AS6TCN.parseCNTable(markerBuffer);
           log.reportTimeInfo("Generating Genvisis project in " + outDir);
 

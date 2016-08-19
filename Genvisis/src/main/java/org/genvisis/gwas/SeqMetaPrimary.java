@@ -373,7 +373,7 @@ public class SeqMetaPrimary {
 
     // create directory called dir+root+"/"; example: "c:/diffpath/pheno_F7_studyIDs/"
     phenoDir =
-        ext.verifyDirFormat(ext.parseDirectoryOfFile(new File(phenoDirectory).getAbsolutePath()));
+             ext.verifyDirFormat(ext.parseDirectoryOfFile(new File(phenoDirectory).getAbsolutePath()));
     resultDir = phenoDir + "/results/";
     batchDir = phenoDir + "/batchFiles/";
 

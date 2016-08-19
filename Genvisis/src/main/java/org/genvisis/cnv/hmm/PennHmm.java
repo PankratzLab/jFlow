@@ -1,7 +1,5 @@
 package org.genvisis.cnv.hmm;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -16,6 +14,8 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariant.CNVBuilder;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.stats.Stats;
+
+import com.google.common.primitives.Ints;
 
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
@@ -185,8 +185,8 @@ public class PennHmm {
   private static double b1iot(int state, BStatus bStatus, double o) {
     double p = 0;
     p = bStatus.getB_uf();
-    p += (1 - bStatus.getB_uf())
-         * bStatus.getGaussians()[state].probability(new ObservationReal(o));
+    p +=
+      (1 - bStatus.getB_uf()) * bStatus.getGaussians()[state].probability(new ObservationReal(o));
 
     if (p == 0) {
       p = FLOAT_MINIMUM;
@@ -246,8 +246,8 @@ public class PennHmm {
         p += (1 - uf) * pfb / 2;
       } else {
         OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
-        OpdfGaussian opdfGaussianMinus =
-            new OpdfGaussian(1 - bStatus.getB_mean()[0], Math.pow(bStatus.getB_sd()[0], 2));
+        OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1 - bStatus.getB_mean()[0],
+                                                          Math.pow(bStatus.getB_sd()[0], 2));
 
         p += (1 - uf) * (1 - pfb) * opdfGaussian.probability(o);
         p += (1 - uf) * pfb * opdfGaussianMinus.probability(o);
@@ -259,8 +259,8 @@ public class PennHmm {
         p += (1 - uf) * pfb * pfb / 2;
       } else {
         OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
-        OpdfGaussian opdfGaussianMinus =
-            new OpdfGaussian(1 - bStatus.getB_mean()[0], Math.pow(bStatus.getB_sd()[0], 2));
+        OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1 - bStatus.getB_mean()[0],
+                                                          Math.pow(bStatus.getB_sd()[0], 2));
         OpdfGaussian opdfGaussian5 = bStatus.getGaussians()[3];
 
         p += (1 - uf) * (1 - pfb) * (1 - pfb) * opdfGaussian.probability(o);
@@ -274,8 +274,8 @@ public class PennHmm {
         p += (1 - uf) * pfb / 2;
       } else {
         OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
-        OpdfGaussian opdfGaussianMinus =
-            new OpdfGaussian(1 - bStatus.getB_mean()[0], Math.pow(bStatus.getB_sd()[0], 2));
+        OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1 - bStatus.getB_mean()[0],
+                                                          Math.pow(bStatus.getB_sd()[0], 2));
 
         p += (1 - uf) * (1 - pfb) * opdfGaussian.probability(o);
         p += (1 - uf) * pfb * opdfGaussianMinus.probability(o);
@@ -287,11 +287,11 @@ public class PennHmm {
         p += (1 - uf) * pfb * pfb * pfb / 2;
       } else {
         OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
-        OpdfGaussian opdfGaussianMinus =
-            new OpdfGaussian(1 - bStatus.getB_mean()[0], Math.pow(bStatus.getB_sd()[0], 2));
+        OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1 - bStatus.getB_mean()[0],
+                                                          Math.pow(bStatus.getB_sd()[0], 2));
         OpdfGaussian opdfGaussian33 = bStatus.getGaussians()[2];
-        OpdfGaussian opdfGaussianMinus33 =
-            new OpdfGaussian(1 - bStatus.getB_mean()[2], Math.pow(bStatus.getB_sd()[2], 2));
+        OpdfGaussian opdfGaussianMinus33 = new OpdfGaussian(1 - bStatus.getB_mean()[2],
+                                                            Math.pow(bStatus.getB_sd()[2], 2));
 
         p += (1 - uf) * (1 - pfb) * (1 - pfb) * (1 - pfb) * opdfGaussian.probability(o);
         p += (1 - uf) * 3 * (1 - pfb) * (1 - pfb) * pfb * opdfGaussian33.probability(o);
@@ -305,11 +305,11 @@ public class PennHmm {
         p += (1 - uf) * pfb * pfb * pfb * pfb / 2;
       } else {
         OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
-        OpdfGaussian opdfGaussianMinus =
-            new OpdfGaussian(1 - bStatus.getB_mean()[0], Math.pow(bStatus.getB_sd()[0], 2));
+        OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1 - bStatus.getB_mean()[0],
+                                                          Math.pow(bStatus.getB_sd()[0], 2));
         OpdfGaussian opdfGaussian25 = bStatus.getGaussians()[1];
-        OpdfGaussian opdfGaussianMinus25 =
-            new OpdfGaussian(1 - bStatus.getB_mean()[1], Math.pow(bStatus.getB_sd()[1], 2));
+        OpdfGaussian opdfGaussianMinus25 = new OpdfGaussian(1 - bStatus.getB_mean()[1],
+                                                            Math.pow(bStatus.getB_sd()[1], 2));
         OpdfGaussian opdfGaussian5 = bStatus.getGaussians()[3];
 
         p += (1 - uf) * (1 - pfb) * (1 - pfb) * (1 - pfb) * (1 - pfb) * opdfGaussian.probability(o);
@@ -503,8 +503,8 @@ public class PennHmm {
       indexStateChange = new ArrayList<int[]>();
       ArrayList<CNVariant> tmp = new ArrayList<CNVariant>();
       if (positions.length != q.length) {
-        String error =
-            "Have " + q.length + " state sequences, but " + positions.length + " positions";
+        String error = "Have " + q.length + " state sequences, but " + positions.length
+                       + " positions";
         proj.getLog().reportTimeError(error);
         throw new IllegalArgumentException(error);
       } else {
@@ -572,15 +572,15 @@ public class PennHmm {
         }
       }
 
-      LocusSet<CNVariant> cnvs =
-          new LocusSet<CNVariant>(tmp.toArray(new CNVariant[tmp.size()]), true, proj.getLog()) {
+      LocusSet<CNVariant> cnvs = new LocusSet<CNVariant>(tmp.toArray(new CNVariant[tmp.size()]),
+                                                         true, proj.getLog()) {
 
-            /**
-             * 
-             */
-            private static final long serialVersionUID = 1L;
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 1L;
 
-          };
+      };
 
       int numTotalMarkers = 0;
       for (int i = 0; i < cnvs.getLoci().length; i++) {
@@ -718,15 +718,17 @@ public class PennHmm {
                          / (1 - Math.exp(-5000 / D / 1000));
           } else {
             tmpA[i][j] =
-                pennHmm.getA()[i][j] * (1 - Math.exp(-dist / D)) / (1 - Math.exp(-5000 / D));
+                       pennHmm.getA()[i][j] * (1 - Math.exp(-dist / D)) / (1 - Math.exp(-5000 / D));
           }
           if (tmpA[i][j] > 1) {
             pennHmm.getLog()
                    .reportTimeWarning("Off-diagonal cell A[%i][%i] (%f to %f by %i) in transition matrix is over boundary of 1 (HMM model is not optimized). Assign 0.999 as the value instead.\n"
                                       + i + "\t" + j + "\t" + pennHmm.getA()[i][j] + "\t"
                                       + tmpA[i][j] + "\t" + dist);
-            tmpA[i][j] =
-                0.999; /* maximum possible off-diagonal value (since state3 frequency is 0.999) */
+            tmpA[i][j] = 0.999; /*
+                                 * maximum possible off-diagonal value (since state3 frequency is
+                                 * 0.999)
+                                 */
           }
           offdiagonal_sum += tmpA[i][j];
         }
@@ -793,14 +795,15 @@ public class PennHmm {
       scored.add(builder.build());
     }
     LocusSet<CNVariant> locusSetScored =
-        new LocusSet<CNVariant>(scored.toArray(new CNVariant[scored.size()]), true, log) {
+                                       new LocusSet<CNVariant>(scored.toArray(new CNVariant[scored.size()]),
+                                                               true, log) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+                                         /**
+                                          * 
+                                          */
+                                         private static final long serialVersionUID = 1L;
 
-        };
+                                       };
     return locusSetScored;
   }
 

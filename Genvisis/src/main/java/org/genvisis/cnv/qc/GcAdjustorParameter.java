@@ -173,15 +173,15 @@ public class GcAdjustorParameter implements Serializable {
   /**
    * @param val intensity values, like LRR
    * @param gc gc content from {@link GcModel}<br>
-   * 
-   * 
+   *
+   *
    *        For compatability with {@link GcAdjustor} methods
    */
   public CrossValidation adjust(GC_CORRECTION_METHOD method, String sampleName, double[] intensity,
                                 double[][] gc, boolean verbose, Logger log) {
     verify(method, sampleName, gc);
-    CrossValidation cv =
-        new CrossValidation(null, null, intensity, gc, verbose, LS_TYPE.REGULAR, log);
+    CrossValidation cv = new CrossValidation(null, null, intensity, gc, verbose, LS_TYPE.REGULAR,
+                                             log);
     cv.setBetas(betas);
     cv.computePredictedValues();
     cv.computeResiduals();
@@ -238,19 +238,22 @@ public class GcAdjustorParameter implements Serializable {
       int[] autoIndices = proj.getAutosomalMarkerIndices();
       proj.getLog().reportTimeInfo("sample " + sample);
       GcAdjustorParameter[][][] params =
-          new GcAdjustorParameter[builders.length][centroids == null ? 1 : 1 + centroids.length][];
+                                       new GcAdjustorParameter[builders.length][centroids == null ? 1
+                                                                                                  : 1
+                                                                                                    + centroids.length][];
       float[] intensites = samp.getLRRs();
       for (int i = 0; i < builders.length; i++) {
-        ArrayList<GcAdjustorParameter> parameters =
-            getParams(builders[i], compute[i][0], intensites, autoIndices);
+        ArrayList<GcAdjustorParameter> parameters = getParams(builders[i], compute[i][0],
+                                                              intensites, autoIndices);
         params[i][0] = parameters.toArray(new GcAdjustorParameter[parameters.size()]);
         if (centroids != null) {
           for (int j = 0; j < centroids.length; j++) {
             float[] centIntensites = samp.getLRRs(centroids[j].getCentroids());
             ArrayList<GcAdjustorParameter> centParameters =
-                getParams(builders[i], compute[i][j + 1], centIntensites, autoIndices);
+                                                          getParams(builders[i], compute[i][j + 1],
+                                                                    centIntensites, autoIndices);
             params[i][j + 1] =
-                centParameters.toArray(new GcAdjustorParameter[centParameters.size()]);
+                             centParameters.toArray(new GcAdjustorParameter[centParameters.size()]);
           }
         }
       }
@@ -264,27 +267,31 @@ public class GcAdjustorParameter implements Serializable {
       for (int i = 0; i < correction_METHODs.length; i++) {
         if (computeMethods[i]) {
           builder.correctionMethod(correction_METHODs[i]);
-          GcAdjustor gcAdjustor =
-              GcAdjustor.getComputedAdjustor(proj, builder, sample, null, markerSet, intensites,
-                                             gcmodel, true, true, debugMode);
+          GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, builder, sample, null,
+                                                                 markerSet, intensites, gcmodel,
+                                                                 true, true, debugMode);
           GcAdjustorParameter gcAdjustorParameters;
           if (gcAdjustor.isFail()) {
             // proj.getLog().reportTimeWarning("Sample "+sample +" failed GC correction");
-            gcAdjustorParameters =
-                new GcAdjustorParameter(sample, null, Double.NaN, Double.NaN, Double.NaN,
-                                        Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN,
-                                        correction_METHODs[i], proj.getLog());
+            gcAdjustorParameters = new GcAdjustorParameter(sample, null, Double.NaN, Double.NaN,
+                                                           Double.NaN, Double.NaN, Double.NaN,
+                                                           Double.NaN, Double.NaN, Double.NaN,
+                                                           correction_METHODs[i], proj.getLog());
           } else {
             double[] meandSdPrior = getMeanSd(intensites, autosomalIndices);
             double[] meandSdPost =
-                getMeanSd(Array.toFloatArray(gcAdjustor.getCorrectedIntensities()),
-                          autosomalIndices);
+                                 getMeanSd(Array.toFloatArray(gcAdjustor.getCorrectedIntensities()),
+                                           autosomalIndices);
             gcAdjustorParameters =
-                new GcAdjustorParameter(sample, gcAdjustor.getCrossValidation().getBetas(),
-                                        gcAdjustor.getWfPrior(), gcAdjustor.getWfPost(),
-                                        gcAdjustor.getGcwfPrior(), gcAdjustor.getGcwfPost(),
-                                        meandSdPrior[0], meandSdPost[0], meandSdPrior[1],
-                                        meandSdPost[1], correction_METHODs[i], proj.getLog());
+                                 new GcAdjustorParameter(sample,
+                                                         gcAdjustor.getCrossValidation().getBetas(),
+                                                         gcAdjustor.getWfPrior(),
+                                                         gcAdjustor.getWfPost(),
+                                                         gcAdjustor.getGcwfPrior(),
+                                                         gcAdjustor.getGcwfPost(), meandSdPrior[0],
+                                                         meandSdPost[0], meandSdPrior[1],
+                                                         meandSdPost[1], correction_METHODs[i],
+                                                         proj.getLog());
           }
           parameters.add(gcAdjustorParameters);
         } else {
@@ -342,9 +349,9 @@ public class GcAdjustorParameter implements Serializable {
     @Override
     public Callable<GcAdjustorParameter[][][]> next() {
 
-      GcAdjustorWorker worker =
-          new GcAdjustorWorker(proj, compute, builders, markerSet, samples[index], gcmodel,
-                               centroids, correction_METHODs, debugMode);
+      GcAdjustorWorker worker = new GcAdjustorWorker(proj, compute, builders, markerSet,
+                                                     samples[index], gcmodel, centroids,
+                                                     correction_METHODs, debugMode);
       index++;
       return worker;
     }
@@ -385,7 +392,7 @@ public class GcAdjustorParameter implements Serializable {
         }
       } else {
         gcSerModelFile =
-            outDir + ext.removeDirectoryInfo(proj.GC_MODEL_FILENAME.getValue()) + ".ser";
+                       outDir + ext.removeDirectoryInfo(proj.GC_MODEL_FILENAME.getValue()) + ".ser";
         proj.getLog()
             .reportTimeWarning("gc model file " + proj.GC_MODEL_FILENAME.getValue()
                                + " exists and a valid reference was not provided, ignoring gc model window argument");
@@ -405,12 +412,13 @@ public class GcAdjustorParameter implements Serializable {
         proj.getLog()
             .reportTimeInfo("Recompute LRR was flagged, will GC correct LRR post recomputing");
       }
-      String[][][] generated =
-          generateAdjustmentParameters(proj, new GCAdjustorBuilder[] {gcAdjustorBuilder},
-                                       new String[] {centroids},
-                                       new GC_CORRECTION_METHOD[] {GC_CORRECTION_METHOD.GENVISIS_GC},
-                                       gcModel, new String[] {rootDir + "default_"}, numThreads,
-                                       false);
+      String[][][] generated = generateAdjustmentParameters(proj,
+                                                            new GCAdjustorBuilder[] {gcAdjustorBuilder},
+                                                            new String[] {centroids},
+                                                            new GC_CORRECTION_METHOD[] {GC_CORRECTION_METHOD.GENVISIS_GC},
+                                                            gcModel,
+                                                            new String[] {rootDir + "default_"},
+                                                            numThreads, false);
       String file = generated[0][recomputedLrr ? 1 : 0][0];
       proj.GC_CORRECTION_PARAMETERS_FILENAMES.setValue(new String[] {file});
       proj.saveProperties();
@@ -466,9 +474,13 @@ public class GcAdjustorParameter implements Serializable {
     // samples = Array.subArray(samples, 10, 10 + numThreads);
 
     String[][][] outputs =
-        new String[builders.length][centroids == null ? 1 : 1 + centroids.length][methods.length];
+                         new String[builders.length][centroids == null ? 1
+                                                                       : 1
+                                                                         + centroids.length][methods.length];
     boolean[][][] compute =
-        new boolean[builders.length][centroids == null ? 1 : 1 + centroids.length][methods.length];
+                          new boolean[builders.length][centroids == null ? 1
+                                                                         : 1
+                                                                           + centroids.length][methods.length];
     boolean skip = true;
     double[] gcContent = gcModel.getGcsFor(proj.getMarkerNames());
 
@@ -476,7 +488,7 @@ public class GcAdjustorParameter implements Serializable {
 
       for (int centIndex = 0; centIndex < outputs[builderIndex].length; centIndex++) {
         for (int methodIndex =
-            0; methodIndex < outputs[builderIndex][centIndex].length; methodIndex++) {
+                             0; methodIndex < outputs[builderIndex][centIndex].length; methodIndex++) {
           String output = proj.PROJECT_DIRECTORY.getValue() + rootOuts[builderIndex]
                           + "gc_parameters." + methods[methodIndex] + ".ser";
           if (centIndex != 0) {
@@ -508,26 +520,29 @@ public class GcAdjustorParameter implements Serializable {
       GcAdjustorProducer producer = new GcAdjustorProducer(proj, compute, builders, gcModel,
                                                            samples, verbose, centroids, methods);
       WorkerTrain<GcAdjustorParameter[][][]> train =
-          new WorkerTrain<GcAdjustorParameter[][][]>(producer, numThreads, 2, proj.getLog());
+                                                   new WorkerTrain<GcAdjustorParameter[][][]>(producer,
+                                                                                              numThreads,
+                                                                                              2,
+                                                                                              proj.getLog());
       int sampleIndex = 0;
 
       GcAdjustorParameter[][][][] finalParams =
-          new GcAdjustorParameter[builders.length][centroids == null ? 1
-                                                                     : 1
-                                                                       + centroids.length][methods.length][samples.length];
+                                              new GcAdjustorParameter[builders.length][centroids == null ? 1
+                                                                                                         : 1
+                                                                                                           + centroids.length][methods.length][samples.length];
 
       while (train.hasNext()) {
         GcAdjustorParameter[][][] tmp = train.next();// builders, cents,methods
         for (int builderIndex = 0; builderIndex < tmp.length; builderIndex++) {
           for (int centIndex = 0; centIndex < tmp[builderIndex].length; centIndex++) {
             for (int methodIndex =
-                0; methodIndex < tmp[builderIndex][centIndex].length; methodIndex++) {
+                                 0; methodIndex < tmp[builderIndex][centIndex].length; methodIndex++) {
               if (compute[builderIndex][centIndex][methodIndex]
                   && tmp[builderIndex][centIndex][methodIndex] == null) {
                 throw new IllegalStateException("Mismatched compute mask");
               } else {
                 finalParams[builderIndex][centIndex][methodIndex][sampleIndex] =
-                    tmp[builderIndex][centIndex][methodIndex];
+                                                                               tmp[builderIndex][centIndex][methodIndex];
               }
             }
           }
@@ -542,7 +557,7 @@ public class GcAdjustorParameter implements Serializable {
       for (int builderIndex = 0; builderIndex < finalParams.length; builderIndex++) {
         for (int centIndex = 0; centIndex < finalParams[builderIndex].length; centIndex++) {
           for (int methodIndex =
-              0; methodIndex < finalParams[builderIndex][centIndex].length; methodIndex++) {
+                               0; methodIndex < finalParams[builderIndex][centIndex].length; methodIndex++) {
             String output = outputs[builderIndex][centIndex][methodIndex];
             if (compute[builderIndex][centIndex][methodIndex]
                 && finalParams[builderIndex][centIndex][methodIndex] == null) {
@@ -550,18 +565,24 @@ public class GcAdjustorParameter implements Serializable {
             } else {
               if (centIndex != 0) {
                 GcAdjustorParameters tmp =
-                    new GcAdjustorParameters(finalParams[builderIndex][centIndex][methodIndex],
-                                             gcContent, centroids[centIndex - 1],
-                                             methods[methodIndex],
-                                             proj.getSampleList().getFingerprint(),
-                                             proj.getMarkerSet().getFingerprint());
+                                         new GcAdjustorParameters(finalParams[builderIndex][centIndex][methodIndex],
+                                                                  gcContent,
+                                                                  centroids[centIndex - 1],
+                                                                  methods[methodIndex],
+                                                                  proj.getSampleList()
+                                                                      .getFingerprint(),
+                                                                  proj.getMarkerSet()
+                                                                      .getFingerprint());
                 tmp.writeSerial(output);
               } else {
                 GcAdjustorParameters tmp =
-                    new GcAdjustorParameters(finalParams[builderIndex][centIndex][methodIndex],
-                                             gcContent, null, methods[methodIndex],
-                                             proj.getSampleList().getFingerprint(),
-                                             proj.getMarkerSet().getFingerprint());
+                                         new GcAdjustorParameters(finalParams[builderIndex][centIndex][methodIndex],
+                                                                  gcContent, null,
+                                                                  methods[methodIndex],
+                                                                  proj.getSampleList()
+                                                                      .getFingerprint(),
+                                                                  proj.getMarkerSet()
+                                                                      .getFingerprint());
                 tmp.writeSerial(output);
               }
             }
@@ -579,7 +600,7 @@ public class GcAdjustorParameter implements Serializable {
    */
   public static class GcAdjustorParameters implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private final GcAdjustorParameter[] gcAdjustorParameters;

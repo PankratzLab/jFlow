@@ -14,7 +14,7 @@ import org.genvisis.mining.Transformations;
 
 public class Permap {
   public static final String DIR =
-      "C:\\Documents and Settings\\npankrat\\My Documents\\PD-singleton\\";
+                                 "C:\\Documents and Settings\\npankrat\\My Documents\\PD-singleton\\";
 
   public static void makePermapFile(String filename) throws IOException {
     BufferedReader reader = null;

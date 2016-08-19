@@ -12,11 +12,11 @@ public class SeqVariables {
 
   /**
    * Tracks which version of the genome a sample was aligned to.
-   * 
-   * 
+   *
+   *
    * Used to determine mitochondrial sequences, and non-autosomal X and Ys, etc
    *
-   * 
+   *
    */
   public enum ASSEMBLY_NAME {
 

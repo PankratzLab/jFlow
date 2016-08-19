@@ -131,7 +131,7 @@ public class MapSNPsAndGenes {
 
   /**
    * Map chromosome positions to genes.
-   * 
+   *
    * @param markerPositions a two dimensional array of marker positions. An example of the format is
    *        0 1 0 chr pos 1 chr pos ...
    * @param geneDB the database containing the start and stop positions of the genes
@@ -161,12 +161,12 @@ public class MapSNPsAndGenes {
         line = reader.readLine().split("[\\s]+");
         if (!line[3].equals(".")) {
           chr_start_stop[0] =
-              line[2].equals("X") ? 23
-                                  : (line[2].equals("Y") ? 24
-                                                         : (line[2].equals("XY") ? 25
-                                                                                 : (line[2].equals("MT") ? 26
-                                                                                                         : (line[2].equals("Un") ? 27
-                                                                                                                                 : Integer.parseInt(line[2])))));
+                            line[2].equals("X") ? 23
+                                                : (line[2].equals("Y") ? 24
+                                                                       : (line[2].equals("XY") ? 25
+                                                                                               : (line[2].equals("MT") ? 26
+                                                                                                                       : (line[2].equals("Un") ? 27
+                                                                                                                                               : Integer.parseInt(line[2])))));
           chr_start_stop[1] = Integer.parseInt(line[3]);
           chr_start_stop[2] = Integer.parseInt(line[4]);
 
@@ -221,10 +221,10 @@ public class MapSNPsAndGenes {
         order = Sort.quicksort(dists);
         for (int j = 0; j < geneNames.length; j++) {
           if (dists[j] == 0) {
-            finalGenes[i][0] =
-                finalGenes[i][0] == null ? geneNames[j] : finalGenes[i][0] + "|" + geneNames[j];
-            finalGenes[i][1] =
-                finalGenes[i][1] == null ? geneNames[j] : finalGenes[i][1] + "|" + geneNames[j];
+            finalGenes[i][0] = finalGenes[i][0] == null ? geneNames[j]
+                                                        : finalGenes[i][0] + "|" + geneNames[j];
+            finalGenes[i][1] = finalGenes[i][1] == null ? geneNames[j]
+                                                        : finalGenes[i][1] + "|" + geneNames[j];
           }
         }
         if (finalGenes[i][1] == null) {
@@ -284,8 +284,8 @@ public class MapSNPsAndGenes {
     }
 
     data =
-        Array.toStringArray(HashVec.loadFileToVec(ext.rootOf(dir + snps, false) + "_positions.xln",
-                                                  false, false, false));
+         Array.toStringArray(HashVec.loadFileToVec(ext.rootOf(dir + snps, false) + "_positions.xln",
+                                                   false, false, false));
 
     ArrayList<String> mkrList = new ArrayList<String>();
     ArrayList<int[]> posList = new ArrayList<int[]>();
@@ -361,31 +361,31 @@ public class MapSNPsAndGenes {
     Vector<String> params;
 
     String snpEffLoc =
-        Aliases.getPathToFileInReferenceDirectory(SNPEFF.SNP_EFF, true, new Logger());
+                     Aliases.getPathToFileInReferenceDirectory(SNPEFF.SNP_EFF, true, new Logger());
     if (snpEffLoc == null) {
-      snpEffLoc =
-          Aliases.getPathToFileInReferenceDirectory("snpEff/" + SNPEFF.SNP_EFF, true, new Logger());
+      snpEffLoc = Aliases.getPathToFileInReferenceDirectory("snpEff/" + SNPEFF.SNP_EFF, true,
+                                                            new Logger());
     }
     if (snpEffLoc == null) {
       snpEffLoc = "";
     }
-    String annovarLoc =
-        Aliases.getPathToFileInReferenceDirectory(ANNOVAR.TABLE_ANNOVAR, true, new Logger());
+    String annovarLoc = Aliases.getPathToFileInReferenceDirectory(ANNOVAR.TABLE_ANNOVAR, true,
+                                                                  new Logger());
     if (annovarLoc == null) {
-      annovarLoc =
-          Aliases.getPathToFileInReferenceDirectory("ANNOVAR/annovar/" + ANNOVAR.TABLE_ANNOVAR,
-                                                    true, new Logger());
+      annovarLoc = Aliases.getPathToFileInReferenceDirectory("ANNOVAR/annovar/"
+                                                             + ANNOVAR.TABLE_ANNOVAR, true,
+                                                             new Logger());
     }
     if (annovarLoc == null) {
       annovarLoc = "";
     }
 
-    params =
-        Files.parseControlFile(filename, "snps",
-                               new String[] {"file=list.snps", "dir=", "win=15000", "build=37",
-                                             "vcf=true", "snpeff=false", "annotate=false",
-                                             "snpeffLoc=" + snpEffLoc, "annovarLoc=" + annovarLoc,},
-                               log);
+    params = Files.parseControlFile(filename, "snps",
+                                    new String[] {"file=list.snps", "dir=", "win=15000", "build=37",
+                                                  "vcf=true", "snpeff=false", "annotate=false",
+                                                  "snpeffLoc=" + snpEffLoc,
+                                                  "annovarLoc=" + annovarLoc,},
+                                    log);
 
     if (params != null) {
       params.add("log=" + log.getFilename());
@@ -403,14 +403,14 @@ public class MapSNPsAndGenes {
     byte build = 37;
     Logger log;
     boolean vcf = true;
-    String snpEffLoc =
-        Aliases.getPathToFileInReferenceDirectory("snpEff/" + SNPEFF.SNP_EFF, false, new Logger());
+    String snpEffLoc = Aliases.getPathToFileInReferenceDirectory("snpEff/" + SNPEFF.SNP_EFF, false,
+                                                                 new Logger());
     if (snpEffLoc == null) {
       snpEffLoc = "";
     }
-    String annovarLoc =
-        Aliases.getPathToFileInReferenceDirectory("ANNOVAR/annovar/" + ANNOVAR.TABLE_ANNOVAR, false,
-                                                  new Logger());
+    String annovarLoc = Aliases.getPathToFileInReferenceDirectory("ANNOVAR/annovar/"
+                                                                  + ANNOVAR.TABLE_ANNOVAR, false,
+                                                                  new Logger());
     if (annovarLoc == null) {
       annovarLoc = "";
     }

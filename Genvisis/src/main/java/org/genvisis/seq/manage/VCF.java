@@ -49,7 +49,7 @@ public class VCF {
   private static final Set<String> SAMPLE = new TreeSet<String>();
   private static final String[] testExpress = {"CHROM == 'chr1' && DP > 0 && DP < 100"};
   private static final String[] testExpress2 =
-      {"ExonicFunc.refGene != '.' && ExonicFunc.refGene == 'nonsynonymous_SNV'"};
+                                             {"ExonicFunc.refGene != '.' && ExonicFunc.refGene == 'nonsynonymous_SNV'"};
   private final VCFFileReader vcfFileReader;
   private VariantContextWriter variantContextWriter;
   private final String vcfFile;
@@ -83,8 +83,8 @@ public class VCF {
   }
 
   public String[] getAvailableAnno() {
-    Collection<VCFInfoHeaderLine> vcfInfoHeaderLines =
-        vcfFileReader.getFileHeader().getInfoHeaderLines();
+    Collection<VCFInfoHeaderLine> vcfInfoHeaderLines = vcfFileReader.getFileHeader()
+                                                                    .getInfoHeaderLines();
     String[] infos = new String[vcfInfoHeaderLines.size()];
     int index = 0;
     for (VCFInfoHeaderLine vcfInfoHeaderLine : vcfInfoHeaderLines) {
@@ -129,8 +129,8 @@ public class VCF {
     ArrayList<String> keys = new ArrayList<String>();
     RareVariantFilter rareVariantFilter = null;
     if (vpop != null) {
-      rareVariantFilter =
-          new RareVariantFilter(vpop.getSubPop().get("CASE"), vpop.getSubPop().get("CONTROL"));
+      rareVariantFilter = new RareVariantFilter(vpop.getSubPop().get("CASE"),
+                                                vpop.getSubPop().get("CONTROL"));
       rareVariantFilter.setMafRef(0.01);
       rareVariantFilter.setMacCase(mac);
       rareVariantFilter.initFilters(log);
@@ -150,8 +150,8 @@ public class VCF {
         outputDir = ext.parseDirectoryOfFile(vcfFile);
       }
       new File(outputDir).mkdirs();
-      String outputVCF =
-          outputDir + ext.removeDirectoryInfo(vcfFile).replaceAll(".vcf", "").replaceAll(".gz", "");
+      String outputVCF = outputDir + ext.removeDirectoryInfo(vcfFile).replaceAll(".vcf", "")
+                                        .replaceAll(".gz", "");
       outputVCF = ext.addToRoot(outputVCF, "." + Array.toStr(name, "_"));
       if (!outputVCF.endsWith(".vcf.gz")) {
         outputVCF = outputVCF + ".vcf.gz";
@@ -161,7 +161,7 @@ public class VCF {
         log.reportTimeInfo("Since a bam directory was provided, we will verify that all samples in the vcf have a corresponding bam file prior to filtering");
         extractBams = true;
         bamSample =
-            new BamExtractor.BamSample(Files.listFullPaths(bamDir, ".bam", false), log, true);
+                  new BamExtractor.BamSample(Files.listFullPaths(bamDir, ".bam", false), log, true);
         bamSample.generateMap();
         bamSample.getBamSampleMap();
         if ((!bamSample.isFail()) && (bamSample.verify(getSamplesInVcf(), null))) {
@@ -262,8 +262,8 @@ public class VCF {
         Files.writeList(Array.toStringArray(toDumpTmp),
                         ext.rootOf(outputVCF, false) + ".filteredAnno");
         try {
-          PrintWriter writer =
-              new PrintWriter(new FileWriter(ext.rootOf(outputVCF, false) + ".hist"));
+          PrintWriter writer = new PrintWriter(new FileWriter(ext.rootOf(outputVCF, false)
+                                                              + ".hist"));
           for (int i = 0; i < keys.size(); i++) {
             writer.println(keys.get(i) + "\t" + histCOUNT.get(keys.get(i)) + "\t"
                            + histALLELE.get(keys.get(i)));
@@ -276,8 +276,8 @@ public class VCF {
       }
       if (extractBams) {
         BamExtractor.extractAll(bamSample, outputDir, bpBuffer, true, true, numThreads, log);
-        bamSample =
-            new BamExtractor.BamSample(Files.listFullPaths(outputDir, ".bam", false), log, true);
+        bamSample = new BamExtractor.BamSample(Files.listFullPaths(outputDir, ".bam", false), log,
+                                               true);
         bamSample.generateMap();
         bamSample.dumpToIGVMap(outputVCF, null);
       }
@@ -301,13 +301,14 @@ public class VCF {
 
   private static VariantContextWriter initWriter(VCFFileReader vcfFileReader, String output,
                                                  boolean siteOnly) {
-    VCFHeader inputVcfHeader =
-        siteOnly ? new VCFHeader(vcfFileReader.getFileHeader().getMetaDataInInputOrder())
-                 : vcfFileReader.getFileHeader();
+    VCFHeader inputVcfHeader = siteOnly
+                                        ? new VCFHeader(vcfFileReader.getFileHeader()
+                                                                     .getMetaDataInInputOrder())
+                                        : vcfFileReader.getFileHeader();
     SAMSequenceDictionary sequenceDictionary = inputVcfHeader.getSequenceDictionary();
     VariantContextWriterBuilder builder =
-        new VariantContextWriterBuilder().setOutputFile(output)
-                                         .setReferenceDictionary(sequenceDictionary);
+                                        new VariantContextWriterBuilder().setOutputFile(output)
+                                                                         .setReferenceDictionary(sequenceDictionary);
     builder.setOption(Options.INDEX_ON_THE_FLY);
     VariantContextWriter writer = builder.build();
     writer.writeHeader(siteOnly ? new VCFHeader(inputVcfHeader.getMetaDataInInputOrder(), SAMPLE)
@@ -335,7 +336,7 @@ public class VCF {
       try {
         Index index = IndexFactory.createLinearIndex(new File(vcfFile), new VCFCodec());
         LittleEndianOutputStream stream =
-            new LittleEndianOutputStream(new FileOutputStream(indexFile));
+                                        new LittleEndianOutputStream(new FileOutputStream(indexFile));
         index.write(stream);
         stream.close();
         created = true;
@@ -429,9 +430,9 @@ public class VCF {
   }
 
   public static void fromParameters(String filename, Logger log) {
-    Vector<String> params =
-        Files.parseControlFile(filename, "VCFilt",
-                               getParserParams(ext.parseDirectoryOfFile(filename)), log);
+    Vector<String> params = Files.parseControlFile(filename, "VCFilt",
+                                                   getParserParams(ext.parseDirectoryOfFile(filename)),
+                                                   log);
     if (params != null) {
       main(Array.toStringArray(params));
     }
@@ -440,7 +441,7 @@ public class VCF {
   public static void main(String[] args) {
     int numArgs = args.length;
     String vcfFile =
-        "D:/data/Project_Tsai_Project_021/Variants/joint_genotypes.SNP.recal.INDEL.recal.eff.gatk.vcf";
+                   "D:/data/Project_Tsai_Project_021/Variants/joint_genotypes.SNP.recal.INDEL.recal.eff.gatk.vcf";
 
     String logfile = null;
     String bamDir = null;
@@ -465,7 +466,7 @@ public class VCF {
             + "   (4) bam directory containing .bam files to match with variants in the vcf, defaults to not matching (i.e. bamDir="
             + bamDir + " (no default))\n";
     usage =
-        usage + "   (5) output directory, defualts to directory of the vcf file (i.e. outputdir="
+          usage + "   (5) output directory, defualts to directory of the vcf file (i.e. outputdir="
             + bamDir + " (no default))\n";
     usage = usage + "   (6) number of threads to use if extracting bams (i.e. numthreads="
             + numThreads + " ( default))\n";
@@ -547,7 +548,7 @@ public class VCF {
       String expression = null;
       if (filterExpression.size() > 0) {
         expression =
-            Array.toStr(filterExpression.toArray(new String[filterExpression.size()]), "&&");
+                   Array.toStr(filterExpression.toArray(new String[filterExpression.size()]), "&&");
       }
       if (extractAnnotation) {
         extractAvaliableAnnotations(vcfFile, log);

@@ -38,19 +38,22 @@ public class VCFFlip {
     } else {
       output = ext.addToRoot(inputVCF, ".flipped");
     }
-    VariantContextWriter writer =
-        VCFOps.initWriter(output, null, reader.getFileHeader().getSequenceDictionary());
+    VariantContextWriter writer = VCFOps.initWriter(output, null,
+                                                    reader.getFileHeader().getSequenceDictionary());
 
     VariantContextWriterBuilder builderError =
-        new VariantContextWriterBuilder().setOutputFile(inputVCF + ".errors.vcf.gz");
+                                             new VariantContextWriterBuilder().setOutputFile(inputVCF
+                                                                                             + ".errors.vcf.gz");
     builderError.setBuffer(2);
     builderError.setReferenceDictionary(reader.getFileHeader().getSequenceDictionary());
     VariantContextWriter writerError = builderError.build();
 
     VCFHeader vcfHeader = new VCFHeader(reader.getFileHeader());
     VCFFormatHeaderLine vcfFormatHeaderLine =
-        new VCFFormatHeaderLine("GT", 1, VCFHeaderLineType.String,
-                                "Ref to alt flipped genotypes from " + inputVCF);
+                                            new VCFFormatHeaderLine("GT", 1,
+                                                                    VCFHeaderLineType.String,
+                                                                    "Ref to alt flipped genotypes from "
+                                                                                              + inputVCF);
     vcfHeader.addMetaDataLine(vcfFormatHeaderLine);
     writer.writeHeader(vcfHeader);
     writerError.writeHeader(vcfHeader);

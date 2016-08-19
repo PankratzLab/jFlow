@@ -18,8 +18,8 @@ public class RankRecessive {
   // Hashtable is generated
   // public static final String[] REQS = {"Position", "Gene", "Ref_Allele", "GT of Siblings", "rs",
   // "merged_MAF"};
-  public static final String[] REQS =
-      {"Position", "Gene", "Ref_Allele", "GT_of_Siblings", "rs", "merged_MAF"};
+  public static final String[] REQS = {"Position", "Gene", "Ref_Allele", "GT_of_Siblings", "rs",
+                                       "merged_MAF"};
 
   public static void rank(String filename, double mafForMissingValues, double mafFloor) {
     BufferedReader reader;

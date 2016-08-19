@@ -36,7 +36,7 @@ package org.genvisis.mining;
 public interface Calcfc {
   /**
    * The objective and constraints function evaluation method used in COBYLA2 minimization.
-   * 
+   *
    * @param n Number of variables.
    * @param m Number of constraints.
    * @param x Variable values to be employed in function and constraints calculation. THESE SHOULD

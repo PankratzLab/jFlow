@@ -15,16 +15,26 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
 public class Coverage {
-  public static final String[] COVERAGE_HEADER =
-      {"Chromosome", "Position", "Reference base", "Consensus base",
-       "Percent of reads on the forward strand", "Percent of reads on the reverse strand",
-       "Percent of 'A' nucleotides", "Count of 'A' nucleotides", "Percent of 'T' nucleotides",
-       "Count of 'T' nucleotides", "Percent of 'C' nucleotides", "Count of 'C' nucleotides",
-       "Percent of 'G' nucleotides", "Count of 'G' nucleotides",
-       "Percent of 'N' nucleotides (no calls)", "Count of 'N' nucleotides (no calls)",
-       "Count of matches to the reference", "Count of mismatches to the reference",
-       "Percentage of matches to the reference", "Consensus Quality", "SNP quality",
-       "Root mean square", "read depth", "read base string", "base quality string"};
+  public static final String[] COVERAGE_HEADER = {"Chromosome", "Position", "Reference base",
+                                                  "Consensus base",
+                                                  "Percent of reads on the forward strand",
+                                                  "Percent of reads on the reverse strand",
+                                                  "Percent of 'A' nucleotides",
+                                                  "Count of 'A' nucleotides",
+                                                  "Percent of 'T' nucleotides",
+                                                  "Count of 'T' nucleotides",
+                                                  "Percent of 'C' nucleotides",
+                                                  "Count of 'C' nucleotides",
+                                                  "Percent of 'G' nucleotides",
+                                                  "Count of 'G' nucleotides",
+                                                  "Percent of 'N' nucleotides (no calls)",
+                                                  "Count of 'N' nucleotides (no calls)",
+                                                  "Count of matches to the reference",
+                                                  "Count of mismatches to the reference",
+                                                  "Percentage of matches to the reference",
+                                                  "Consensus Quality", "SNP quality",
+                                                  "Root mean square", "read depth",
+                                                  "read base string", "base quality string"};
 
   public static void parse(String filename, String dir) {
     BufferedReader reader;

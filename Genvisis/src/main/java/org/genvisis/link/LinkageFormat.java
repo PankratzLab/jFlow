@@ -194,10 +194,10 @@ public class LinkageFormat {
 
     for (int chr = 1; chr <= 23; chr++) {
       if (new File("map" + ext.chrome(chr) + ".dat").exists()) {
-        numDropped =
-            filterMarkers(prefix + ext.chrome(chr) + ".pre", prefix + ext.chrome(chr) + ".pre",
-                          "map" + ext.chrome(chr) + ".dat", "map" + ext.chrome(chr) + ".dat", null,
-                          dropFile);
+        numDropped = filterMarkers(prefix + ext.chrome(chr) + ".pre",
+                                   prefix + ext.chrome(chr) + ".pre",
+                                   "map" + ext.chrome(chr) + ".dat",
+                                   "map" + ext.chrome(chr) + ".dat", null, dropFile);
         if (numDropped > 0) {
           for (int i = 0; i < numDropped; i++) {
             counts[0].add(chr + "");
@@ -257,9 +257,10 @@ public class LinkageFormat {
     int numArgs = args.length;
     int chr = -1;
     String filename = "mrkr02.dat";
-    String fileout =
-        (filename.lastIndexOf(".") != -1 ? filename.substring(0, filename.lastIndexOf(".")) + ".pre"
-                                         : filename + ".pre");
+    String fileout = (filename.lastIndexOf(".") != -1 ? filename.substring(0,
+                                                                           filename.lastIndexOf("."))
+                                                        + ".pre"
+                                                      : filename + ".pre");
     boolean pheno = false;
     // String drops = "drops.dat";
     String drops = "";

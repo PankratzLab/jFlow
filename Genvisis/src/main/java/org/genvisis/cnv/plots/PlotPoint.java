@@ -42,7 +42,7 @@ public class PlotPoint implements Serializable {
 
   /**
    * Copy constructor. Don't depend on clone() to copy objects. Its messy!!!
-   * 
+   *
    * @param point a {@link PlotPoint} which is the source of copy
    */
   public PlotPoint(PlotPoint point) {

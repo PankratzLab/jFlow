@@ -27,8 +27,8 @@ import htsjdk.samtools.SamReaderFactory;
  *
  */
 public class SexCheck {
-  private static final String[] SEX_CHECK_HEADER =
-      {"DNA", "Bam_File", "CountX", "CountY", "PropX", "PropY"};
+  private static final String[] SEX_CHECK_HEADER = {"DNA", "Bam_File", "CountX", "CountY", "PropX",
+                                                    "PropY"};
   private static final byte X = 23;
   private static final byte Y = 24;
   private static final int MAPQ_FILTER = 60;
@@ -144,8 +144,8 @@ public class SexCheck {
 
       QueryInterval qX = new QueryInterval(refX, 0, -1);
       QueryInterval qY = new QueryInterval(refY, 0, -1);
-      sexCheckResults =
-          getCountsForSexChr(new QueryInterval[] {qX, qY}, reader, bamFile, sample, log);
+      sexCheckResults = getCountsForSexChr(new QueryInterval[] {qX, qY}, reader, bamFile, sample,
+                                           log);
       try {
         reader.close();
       } catch (IOException e) {
@@ -193,7 +193,7 @@ public class SexCheck {
   }
 
   /**
-   * 
+   *
    * @return true if the read is valid, not a duplicate, is primary, has a proper pair, and passes
    *         the MAPQ (trying to avoid pseudoautosomal)
    */

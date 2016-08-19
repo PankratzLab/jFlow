@@ -32,10 +32,10 @@ public class PCAPrep {
     String markersForEverythingElse;
     // if marker QC is not flagged, sample qc is based on all target markers by default
     String markersToQC = proj.PROJECT_DIRECTORY.getValue() + outputBase + "_" + MARKERS_TO_QC_FILE;
-    String markersABCallrate =
-        proj.PROJECT_DIRECTORY.getValue() + outputBase + "_" + MARKERS_FOR_ABCALLRATE;
+    String markersABCallrate = proj.PROJECT_DIRECTORY.getValue() + outputBase + "_"
+                               + MARKERS_FOR_ABCALLRATE;
     String baseLineMarkers =
-        proj.PROJECT_DIRECTORY.getValue() + outputBase + "_baselineMarkers.txt";
+                           proj.PROJECT_DIRECTORY.getValue() + outputBase + "_baselineMarkers.txt";
     String[] auto = proj.getAutosomalMarkers();
     ArrayList<String> tmp = new ArrayList<String>();
     for (int i = 0; i < auto.length; i++) {

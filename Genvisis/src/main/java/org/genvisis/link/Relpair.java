@@ -1,7 +1,5 @@
 package org.genvisis.link;
 
-import com.google.common.primitives.Bytes;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,11 +16,13 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 
+import com.google.common.primitives.Bytes;
+
 public class Relpair {
   public static final int MAX_NUM_DIGITS_IN_ALLELE = 2;
 
-  public static final String[][] FILTER_PAIRS =
-      {{"UN", "CO"}, {"UN", "AV"}, {"CO", "UN"}, {"CO", "AV"}};
+  public static final String[][] FILTER_PAIRS = {{"UN", "CO"}, {"UN", "AV"}, {"CO", "UN"},
+                                                 {"CO", "AV"}};
 
   public static void createFiles(String dir) {
     BufferedReader[] readers;
@@ -59,8 +59,8 @@ public class Relpair {
     readers = new BufferedReader[chrs.length];
     for (int i = 0; i < chrs.length; i++) {
       try {
-        readers[i] =
-            new BufferedReader(new FileReader(dir + "re_chrom" + ext.chrome(chrs[i]) + ".pre"));
+        readers[i] = new BufferedReader(new FileReader(dir + "re_chrom" + ext.chrome(chrs[i])
+                                                       + ".pre"));
       } catch (FileNotFoundException fnfe) {
         fnfe.printStackTrace();
       }
@@ -75,8 +75,8 @@ public class Relpair {
         }
       }
       readers[0].close();
-      readers[0] =
-          new BufferedReader(new FileReader(dir + "re_chrom" + ext.chrome(chrs[0]) + ".pre"));
+      readers[0] = new BufferedReader(new FileReader(dir + "re_chrom" + ext.chrome(chrs[0])
+                                                     + ".pre"));
     } catch (IOException ioe) {
       System.err.println("Error parsing first file: " + dir + "re_chrom" + ext.chrome(chrs[0])
                          + ".pre");
@@ -353,7 +353,7 @@ public class Relpair {
     // issues\\relpair\\";
     // String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\";
     String dir =
-        "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\Family structure issues\\fifthPass\\";
+               "C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\Family structure issues\\fifthPass\\";
     boolean create = false;
     boolean parse = true;
 
@@ -361,8 +361,8 @@ public class Relpair {
     String genome = "plink.genome";
     boolean filter = true;
 
-    String usage =
-        "\n" + "link.Relpair requires 1-4 arguments (make sure you use -Xms1024M -Xmx1024M for parsing)\n"
+    String usage = "\n"
+                   + "link.Relpair requires 1-4 arguments (make sure you use -Xms1024M -Xmx1024M for parsing)\n"
                    + "   (1) create files using all available re_chrom##.pre files (i.e. -createFiles (not the default))\n"
                    + "   (2) parse results files (i.e. -parseResults (not the default))\n"
                    + "   (3) include data from a plink genome file when parsing (i.e. genome=plink.genome (not the default))\n"

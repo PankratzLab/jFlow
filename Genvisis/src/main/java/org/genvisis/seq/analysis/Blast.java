@@ -23,10 +23,11 @@ import htsjdk.tribble.annotation.Strand;
 
 public class Blast {
   public static final String[] DB_EXTs = new String[] {".nsq", ".nin", ".nhr"};
-  public static final String[] BLAST_HEADER =
-      new String[] {"query id", "subject id", "% identity", "alignment length", "mismatches",
-                    "gap opens", "q. start", "q. end", "s. start", "s. end", "evalue", "bit score",
-                    "BTOP"};
+  public static final String[] BLAST_HEADER = new String[] {"query id", "subject id", "% identity",
+                                                            "alignment length", "mismatches",
+                                                            "gap opens", "q. start", "q. end",
+                                                            "s. start", "s. end", "evalue",
+                                                            "bit score", "BTOP"};
   private static final String DB = "-db";
   private static final String IN = "-in";
   private static final String DB_TYPE = "-dbtype";
@@ -114,9 +115,9 @@ public class Blast {
 
     if (!Files.isWindows()) {
       if (!fail) {
-        String[] command = new String[] {BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb, OUT_FMT,
-                                         DEFAULT_OUT_FMT + " std" + (taxonMode ? " staxids"
-                                                                               : " btop"),
+        String[] command = new String[] {BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb,
+                                         OUT_FMT, DEFAULT_OUT_FMT + " std"
+                                                  + (taxonMode ? " staxids" : " btop"),
                                          WORD_SIZE, blastWordSize + "",
                                          evalue != DEFAULT_EVALUE ? E : "",
                                          evalue != DEFAULT_EVALUE ? evalue + "" : ""};
@@ -130,8 +131,8 @@ public class Blast {
         builder.verbose(verbose);
         CmdLineProcess cmdLineProcess = builder.build(command);
         for (int i = 0; i < bSummaries.length; i++) {
-          bSummaries[i] =
-              new BlastResultsSummary(fastaEntries[i].getName(), taxonMode, reportWordSize);
+          bSummaries[i] = new BlastResultsSummary(fastaEntries[i].getName(), taxonMode,
+                                                  reportWordSize);
         }
         while (cmdLineProcess.hasNext()) {
           String line = cmdLineProcess.next();
@@ -160,8 +161,8 @@ public class Blast {
   public static boolean initDb(BLAST_DB_TYPE type, String fastaDb, Logger log) {
     boolean dbCreated = true;
     if (!Files.exists("", getDBFiles(fastaDb))) {
-      String[] dbCommand =
-          new String[] {BLAST_COMMANDS.MAKE_DB.getCommand(), IN, fastaDb, DB_TYPE, type.getTYPE()};
+      String[] dbCommand = new String[] {BLAST_COMMANDS.MAKE_DB.getCommand(), IN, fastaDb, DB_TYPE,
+                                         type.getTYPE()};
       dbCreated = CmdLine.runCommandWithFileChecks(dbCommand, "", new String[] {fastaDb},
                                                    getDBFiles(fastaDb), true, false, false, log);
     } else {
@@ -460,8 +461,8 @@ public class Blast {
           if (numPerfectMatches == 0) {
             if (blastResults.getSubjectID().startsWith("chr")) {
               perfectMatchSegment =
-                  new Segment(Positions.chromosomeNumber(blastResults.getSubjectID()),
-                              blastResults.getSstart(), blastResults.getSstop());
+                                  new Segment(Positions.chromosomeNumber(blastResults.getSubjectID()),
+                                              blastResults.getSstart(), blastResults.getSstop());
             }
 
           } else {
@@ -533,8 +534,8 @@ public class Blast {
     String fastaDb = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
     Blast blast = new Blast(fastaDb, 60, 100, new Logger(), true, true);
     FastaEntry fastaEntry =
-        new FastaEntry("HDSIF",
-                       "GAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTGTGTTAATTAATTAATGCTTGTAGGACATAATAATAACAATTGAAT");
+                          new FastaEntry("HDSIF",
+                                         "GAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTGTGTTAATTAATTAATGCTTGTAGGACATAATAATAACAATTGAAT");
     blast.blastSequence(new FastaEntry[] {fastaEntry}, null);
   }
 

@@ -1,8 +1,8 @@
 package org.genvisis.common;
 
-import com.google.common.primitives.Floats;
-
 import java.util.Vector;
+
+import com.google.common.primitives.Floats;
 
 /**
  * {@link PrimitiveVector} of {@link Float} types.

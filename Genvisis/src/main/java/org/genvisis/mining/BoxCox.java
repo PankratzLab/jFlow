@@ -1,7 +1,5 @@
 package org.genvisis.mining;
 
-import com.google.common.primitives.Doubles;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -11,6 +9,8 @@ import org.genvisis.common.Array;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+
+import com.google.common.primitives.Doubles;
 
 public class BoxCox {
   public static final int LOG_LIKELIHOOD = 1;
@@ -67,8 +67,8 @@ public class BoxCox {
     convergence_limit = Math.pow(0.1, SIGFIGS + 1);
 
     maxLL_Lambda = findLambda(low, high, convergence_limit, LOG_LIKELIHOOD);
-    minKurt_Lambda =
-        findLambda(maxLL_Lambda - KURT_CI, maxLL_Lambda + KURT_CI, convergence_limit, KURTOSIS);
+    minKurt_Lambda = findLambda(maxLL_Lambda - KURT_CI, maxLL_Lambda + KURT_CI, convergence_limit,
+                                KURTOSIS);
   }
 
   private double findLambda(double low, double high, double convergence_limit, int method) {

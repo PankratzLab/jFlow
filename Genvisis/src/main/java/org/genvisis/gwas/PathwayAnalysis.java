@@ -252,7 +252,7 @@ public class PathwayAnalysis {
     filenames = new String[2];
     filenames[0] = ext.rootOf(pheno, false) + "." + rep + pheno.substring(pheno.lastIndexOf("."));
     filenames[1] =
-        ext.rootOf(pheno, false) + "_cov." + rep + pheno.substring(pheno.lastIndexOf("."));
+                 ext.rootOf(pheno, false) + "_cov." + rep + pheno.substring(pheno.lastIndexOf("."));
     trait = HashVec.loadFileToStringArray(pheno, true, new int[] {2}, false);
     line = Files.getHeaderOfFile(pheno, "[\\s]+", new Logger());
     if (!line[0].equals("FID") || !line[1].equals("IID")) {
@@ -419,8 +419,8 @@ public class PathwayAnalysis {
             reader.close();
             return;
           }
-          results[count] =
-              line[indices[2]].equals("NA") ? Float.NaN : Float.parseFloat(line[indices[2]]);
+          results[count] = line[indices[2]].equals("NA") ? Float.NaN
+                                                         : Float.parseFloat(line[indices[2]]);
           count++;
         }
       }
@@ -450,7 +450,7 @@ public class PathwayAnalysis {
 
     quant = Array.determineType(pheno, 2, true) == 1;
     markerNames =
-        SerialStringArray.load(ext.rootOf(pheno, false) + ".markerNames", false).getArray();
+                SerialStringArray.load(ext.rootOf(pheno, false) + ".markerNames", false).getArray();
 
     count = 0;
     done = false;
@@ -459,8 +459,8 @@ public class PathwayAnalysis {
       if (covars == null) {
         filename = ext.rootOf(pheno, false) + "." + count + "." + (quant ? "q" : "") + "assoc";
       } else {
-        filename =
-            ext.rootOf(pheno, false) + "." + count + ".assoc." + (quant ? "linear" : "logistic");
+        filename = ext.rootOf(pheno, false) + "." + count + ".assoc."
+                   + (quant ? "linear" : "logistic");
       }
       if (new File(filename).exists()) {
         compress(filename, markerNames, true);

@@ -25,9 +25,9 @@ import org.genvisis.seq.manage.BamOps;
  */
 public class TelSeq {
 
-  private static final String[] TELSEQ_REPORT =
-      new String[] {"ReadGroup", "Library", "Sample", "Total", "Mapped", "Duplicates",
-                    "LENGTH_ESTIMATE"};
+  private static final String[] TELSEQ_REPORT = new String[] {"ReadGroup", "Library", "Sample",
+                                                              "Total", "Mapped", "Duplicates",
+                                                              "LENGTH_ESTIMATE"};
 
   private enum TYPE {
                      BASE, BED, BUFFERED_BED;
@@ -132,7 +132,7 @@ public class TelSeq {
     @Override
     public Callable<TelSeqResult> next() {
       TelSeqWorker worker =
-          new TelSeqWorker(inputBams[index], additionalArgs, outputDir, type, log);
+                          new TelSeqWorker(inputBams[index], additionalArgs, outputDir, type, log);
       index++;
       return worker;
     }
@@ -217,8 +217,8 @@ public class TelSeq {
 
       String buffDir = outDir + "buff_" + captureBufferSize + "_" + ext.rootOf(captureBed) + "/";
       new File(buffDir).mkdirs();
-      String buffBed =
-          buffDir + "buff_" + captureBufferSize + "bp_" + ext.rootOf(captureBed) + ".bed";
+      String buffBed = buffDir + "buff_" + captureBufferSize + "bp_" + ext.rootOf(captureBed)
+                       + ".bed";
       log.reportTimeInfo("writing bed to " + buffBed);
       segs.getBufferedSegmentSet(captureBufferSize)
           .writeSegmentRegions(buffBed, aName == ASSEMBLY_NAME.GRCH37, log);
@@ -237,8 +237,8 @@ public class TelSeq {
                               ArrayList<TelSeqResult> results, ArrayList<String> argPopulator,
                               String baseDir, TYPE type) {
     TelSeqProducer producer = new TelSeqProducer(bams, argPopulator, baseDir, type, log);
-    WorkerTrain<TelSeqResult> train =
-        new WorkerTrain<TelSeq.TelSeqResult>(producer, threads, 100, log);
+    WorkerTrain<TelSeqResult> train = new WorkerTrain<TelSeq.TelSeqResult>(producer, threads, 100,
+                                                                           log);
     while (train.hasNext()) {
       results.add(train.next());
     }

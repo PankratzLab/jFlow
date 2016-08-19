@@ -15,11 +15,13 @@ import org.genvisis.common.ext;
 public class gist {
   public static String TARGET_FREQ = "0.45";
 
-  public static double[][][] GIST_MATRIX =
-      {{{1.00, 1.00, 1.00}, {1.00, 0.50, 0.25}, {0.50, 0.50, 0.50}},
-       {{1.00, 0.50, 0.75}, {1.00, 0.00, 0.50},
-        {0.50, 0.00, 0.25}},
-       {{0.50, 0.50, 0.50}, {0.50, 0.00, 0.25}, {0.00, 0.00, 0.00}}};
+  public static double[][][] GIST_MATRIX = {
+                                            {{1.00, 1.00, 1.00}, {1.00, 0.50, 0.25},
+                                             {0.50, 0.50, 0.50}},
+                                            {{1.00, 0.50, 0.75}, {1.00, 0.00, 0.50},
+                                             {0.50, 0.00, 0.25}},
+                                            {{0.50, 0.50, 0.50}, {0.50, 0.00, 0.25},
+                                             {0.00, 0.00, 0.00}}};
 
   public gist(String mutation, int chr, int pos, String target) throws IOException {
     BufferedReader reader;

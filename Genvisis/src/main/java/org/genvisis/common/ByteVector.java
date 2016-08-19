@@ -1,8 +1,8 @@
 package org.genvisis.common;
 
-import com.google.common.primitives.Bytes;
-
 import java.util.Vector;
+
+import com.google.common.primitives.Bytes;
 
 public class ByteVector extends Vector<Byte> implements PrimitiveVector {
 

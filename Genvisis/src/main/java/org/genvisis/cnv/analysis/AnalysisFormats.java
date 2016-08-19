@@ -93,7 +93,7 @@ public class AnalysisFormats implements Runnable {
     // int threadCount = Runtime.getRuntime().availableProcessors();
 
     final ConcurrentLinkedQueue<Integer>[] sampleIndexQueues =
-        new ConcurrentLinkedQueue[threadCount];
+                                                             new ConcurrentLinkedQueue[threadCount];
     for (int i = 0; i < threadCount; i++) {
       sampleIndexQueues[i] = new ConcurrentLinkedQueue<Integer>();
     }
@@ -336,7 +336,7 @@ public class AnalysisFormats implements Runnable {
     }
 
     final ConcurrentLinkedQueue<Integer>[] sampleIndexQueues =
-        new ConcurrentLinkedQueue[threadCount];
+                                                             new ConcurrentLinkedQueue[threadCount];
     for (int i = 0; i < threadCount; i++) {
       sampleIndexQueues[i] = new ConcurrentLinkedQueue<Integer>();
     }
@@ -368,8 +368,8 @@ public class AnalysisFormats implements Runnable {
               sex = Integer.parseInt(sexData.get(sampleName.toUpperCase()).get(0));
             }
             boolean compFemale = SexChecks.KARYOTYPES[sex].contains("XX");
-            String exportFileName =
-                (compFemale ? femaleDir : maleDir) + sampleName + (gzip ? ".gz" : "");
+            String exportFileName = (compFemale ? femaleDir : maleDir) + sampleName
+                                    + (gzip ? ".gz" : "");
             if (!Files.exists(exportFileName)) {
               log.report(ext.getTime() + "\tExporting " + (sampleIndex + 1) + " of "
                          + allSamples.length);
@@ -400,11 +400,10 @@ public class AnalysisFormats implements Runnable {
                   }
 
                   float lrr =
-                      Centroids.calcLRR(thetas[j], rs[j],
-                                        (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
-                  float baf =
-                      Centroids.calcBAF(thetas[j],
-                                        (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
+                            Centroids.calcLRR(thetas[j], rs[j], (compFemale ? rawCentroidsFemale[j]
+                                                                            : rawCentroidsMale[j]));
+                  float baf = Centroids.calcBAF(thetas[j], (compFemale ? rawCentroidsFemale[j]
+                                                                       : rawCentroidsMale[j]));
 
                   writer.println(allMarkers[j] + "\t"
                                  + (genotypes[j] == -1 ? "NC" : Sample.AB_PAIRS[genotypes[j]])
@@ -712,9 +711,9 @@ public class AnalysisFormats implements Runnable {
       if (!Files.exists(exportFileName)) {
         log.report(ext.getTime() + "\tTransforming " + (i + 1) + " of " + samples.length);
         if (Files.exists(sampleDir + samples[i] + Sample.SAMPLE_FILE_EXTENSION, jar)) {
-          samp =
-              Sample.loadFromRandomAccessFile(sampleDir + samples[i] + Sample.SAMPLE_FILE_EXTENSION,
-                                              false, true, false, false, true, jar);
+          samp = Sample.loadFromRandomAccessFile(sampleDir + samples[i]
+                                                 + Sample.SAMPLE_FILE_EXTENSION, false, true, false,
+                                                 false, true, jar);
         } else {
           log.reportError("Error - the " + samples[i] + Sample.SAMPLE_FILE_EXTENSION
                           + " is not found.");
@@ -734,11 +733,11 @@ public class AnalysisFormats implements Runnable {
             int markerIndex = sexMarkerToIndex.get(sexMarkers[j]).intValue();
 
             float lrr =
-                Centroids.calcLRR(thetas[markerIndex], rs[markerIndex],
-                                  (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
+                      Centroids.calcLRR(thetas[markerIndex], rs[markerIndex],
+                                        (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
             float baf =
-                Centroids.calcBAF(thetas[markerIndex],
-                                  (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
+                      Centroids.calcBAF(thetas[markerIndex],
+                                        (compFemale ? rawCentroidsFemale[j] : rawCentroidsMale[j]));
 
             writer.println(sexMarkers[j] + "\t"
                            + (genotypes[markerIndex] == -1 ? "NC"
@@ -883,12 +882,12 @@ public class AnalysisFormats implements Runnable {
                                            new String[] {"CLASS=Gender"}, "");
 
     inputs =
-        new File(proj.PROJECT_DIRECTORY.getValue() + "quanti_data/").list(new FilenameFilter() {
-          @Override
-          public boolean accept(File file, String filename) {
-            return filename.endsWith(".qs");
-          }
-        });
+           new File(proj.PROJECT_DIRECTORY.getValue() + "quanti_data/").list(new FilenameFilter() {
+             @Override
+             public boolean accept(File file, String filename) {
+               return filename.endsWith(".qs");
+             }
+           });
 
     if (inputs == null) {
       System.err.println("Error - QuantiSNP inputs files have not yet been created");
@@ -940,8 +939,8 @@ public class AnalysisFormats implements Runnable {
     // commands = "quantisnp.exe --config ../windows/config.dat --emiters "+EM_ITERATIONS+"
     // --Lsetting 2000000 --maxcopy 3 --printRS --doGCcorrect --gcdir ../gc/b36/ --output
     // "+OUTPUT_DIRECTORIES[1]+"[%0].out --gender [%1]--input-files ../source/[%0].qs 300\n\n";
-    commands =
-        "quantisnp --output " + proj.RESULTS_DIRECTORY.getValue(false, true) + OUTPUT_DIRECTORIES[1]
+    commands = "quantisnp --output " + proj.RESULTS_DIRECTORY.getValue(false, true)
+               + OUTPUT_DIRECTORIES[1]
                + "[%0].out --gender [%1] --input-files ../source/[%0].qs 300\n\n";
     Files.batchIt("batch", null, numBatches, commands, Matrix.toStringArrays(v));
   }
@@ -967,8 +966,8 @@ public class AnalysisFormats implements Runnable {
     threads = new Thread[numThreads];
     for (int i = 0; i < numThreads; i++) {
       threads[i] =
-          new Thread(new AnalysisFormats(proj, Array.toStringArray(sampleLists.elementAt(i)),
-                                         program, hash, 1));
+                 new Thread(new AnalysisFormats(proj, Array.toStringArray(sampleLists.elementAt(i)),
+                                                program, hash, 1));
       threads[i].start();
       try {
         Thread.sleep(100L);

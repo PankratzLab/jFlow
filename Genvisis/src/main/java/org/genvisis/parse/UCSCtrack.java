@@ -259,9 +259,9 @@ public class UCSCtrack {
               }
               if (hash.containsKey(ignoreCase ? line[mapMarkerIndex].toLowerCase()
                                               : line[mapMarkerIndex])) {
-                value =
-                    hash.get(ignoreCase ? line[mapMarkerIndex].toLowerCase() : line[mapMarkerIndex])
-                        .doubleValue();
+                value = hash.get(ignoreCase ? line[mapMarkerIndex].toLowerCase()
+                                            : line[mapMarkerIndex])
+                            .doubleValue();
                 if (line[chrIndex].equals("0")) {
                   unplaced++;
                 } else if (line[chrIndex].equals("25")) {

@@ -69,8 +69,8 @@ public class CompPlot extends JFrame {
   public static final String DEFAULT_LOCATION = "chr6:161,624,000-163,776,000"; // PARK2 region
   private static final String REGION_LIST_NEW_FILE = "Load Region File";
 
-  public static Color[] colorScheme =
-      {Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA, Color.CYAN, Color.ORANGE, Color.YELLOW};
+  public static Color[] colorScheme = {Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA,
+                                       Color.CYAN, Color.ORANGE, Color.YELLOW};
 
   Project proj;
   private String[] files;
@@ -111,7 +111,7 @@ public class CompPlot extends JFrame {
   private JMenu loadRecentFileMenu;
   private ButtonGroup regionButtonGroup;
   private final HashMap<String, JCheckBoxMenuItem> regionFileNameBtn =
-      new HashMap<String, JCheckBoxMenuItem>();
+                                                                     new HashMap<String, JCheckBoxMenuItem>();
   private final HashMap<String, String> regionFileNameLoc = new HashMap<String, String>();
   private String[] originalRegionFiles = null;
 
@@ -146,7 +146,7 @@ public class CompPlot extends JFrame {
     }
     allSamples = proj.getSamples();
     subSamples =
-        Array.subArray(proj.getSamples(), Array.booleanNegative(proj.getSamplesToExclude()));
+               Array.subArray(proj.getSamples(), Array.booleanNegative(proj.getSamplesToExclude()));
     init();
 
     addWindowListener(new WindowAdapter() {
@@ -216,8 +216,8 @@ public class CompPlot extends JFrame {
       filterFiles.add(filename.getName());
       if (Files.exists(file, false)) {
         // Load the CNVs out of the files
-        CNVariantHash cnvHash =
-            CNVariantHash.load(file, CNVariantHash.CONSTRUCT_ALL, false, proj.getLog());
+        CNVariantHash cnvHash = CNVariantHash.load(file, CNVariantHash.CONSTRUCT_ALL, false,
+                                                   proj.getLog());
         hashes.add(cnvHash);
       } else {
         JOptionPane.showMessageDialog(null, "Error - File " + file + " does not exist");
@@ -238,7 +238,7 @@ public class CompPlot extends JFrame {
     setRegion(regionNavigator.getRegion());
 
     JCheckBoxMenuItem jcbmi =
-        regionFileNameBtn.get(ext.rootOf(CompPlot.this.regionNavigator.getRegionFile()));
+                            regionFileNameBtn.get(ext.rootOf(CompPlot.this.regionNavigator.getRegionFile()));
     if (jcbmi != null) {
       jcbmi.setSelected(true);
     }
@@ -313,9 +313,10 @@ public class CompPlot extends JFrame {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        NewRegionListDialog newRgnList =
-            new NewRegionListDialog(null, proj == null ? null : proj.PROJECT_DIRECTORY.getValue(),
-                                    false);
+        NewRegionListDialog newRgnList = new NewRegionListDialog(null,
+                                                                 proj == null ? null
+                                                                              : proj.PROJECT_DIRECTORY.getValue(),
+                                                                 false);
         newRgnList.setModal(true);
         newRgnList.setVisible(true);
         if (newRgnList.getReturnCode() == JOptionPane.YES_OPTION) {
@@ -526,9 +527,9 @@ public class CompPlot extends JFrame {
     @Override
     public void actionPerformed(ActionEvent e) {
       int opt =
-          JOptionPane.showConfirmDialog(CompPlot.this, "Delete file from disk?",
-                                        "Delete region file?", JOptionPane.YES_NO_CANCEL_OPTION,
-                                        JOptionPane.QUESTION_MESSAGE, null);
+              JOptionPane.showConfirmDialog(CompPlot.this, "Delete file from disk?",
+                                            "Delete region file?", JOptionPane.YES_NO_CANCEL_OPTION,
+                                            JOptionPane.QUESTION_MESSAGE, null);
       switch (opt) {
         case JOptionPane.CANCEL_OPTION:
           return;
@@ -633,8 +634,11 @@ public class CompPlot extends JFrame {
 
   private String chooseNewFiles() {
     JFileChooser jfc =
-        new JFileChooser((proj != null /* || regionFileName == null */ ? proj.PROJECT_DIRECTORY.getValue()
-                                       : null /* ext.parseDirectoryOfFile(regionFileName) */));
+                     new JFileChooser((proj != null /* || regionFileName == null */ ? proj.PROJECT_DIRECTORY.getValue()
+                                                    : null /*
+                                                            * ext.parseDirectoryOfFile(
+                                                            * regionFileName)
+                                                            */));
     jfc.setMultiSelectionEnabled(true);
     if (jfc.showOpenDialog(CompPlot.this) == JFileChooser.APPROVE_OPTION) {
       File[] files = jfc.getSelectedFiles();
@@ -678,7 +682,7 @@ public class CompPlot extends JFrame {
 
         if (!keep) {
           StringBuilder msg =
-              new StringBuilder("The following data file is already present:\n").append(file.getName());
+                            new StringBuilder("The following data file is already present:\n").append(file.getName());
           JOptionPane.showMessageDialog(CompPlot.this, msg.toString());
         } else {
           if (verifyValidFile(file.getAbsolutePath())) {

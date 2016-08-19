@@ -36,8 +36,8 @@ public class PrincipalComponentsValidate {
   private static final int MEMORY_MB = 23000;
   private static final double WALLTIME = 48;
 
-  private static final String[] PC_TYPES =
-      {PrincipalComponentsCompute.OUTPUT_EXT[0], PCA.FILE_EXTs[0]};
+  private static final String[] PC_TYPES = {PrincipalComponentsCompute.OUTPUT_EXT[0],
+                                            PCA.FILE_EXTs[0]};
   private static final String PC = "PC number from pc type";
 
   /**
@@ -74,7 +74,11 @@ public class PrincipalComponentsValidate {
     } else {
       log.report(ext.getTime() + " Info - initializing regressions");
       PrincipalComponentsResiduals[] principalComponentsResiduals =
-          initRegressions(proj, dir, stopAtComponent, pcType, mtMarkers, recomputeLRR, log);
+                                                                  initRegressions(proj, dir,
+                                                                                  stopAtComponent,
+                                                                                  pcType, mtMarkers,
+                                                                                  recomputeLRR,
+                                                                                  log);
       log.report(ext.getTime() + " Info - finished initializing regressions");
       if (principalComponentsResiduals.length > 0) {
         if (compareAcrossFiles) {
@@ -116,7 +120,10 @@ public class PrincipalComponentsValidate {
                                                                          String output,
                                                                          Logger log) {
     PrincipalComponentsResiduals[] principalComponentsResiduals =
-        initRegressions(proj, dir, stopAtComponent, pcType, mtMarkers, recomputeLRR, log);
+                                                                initRegressions(proj, dir,
+                                                                                stopAtComponent,
+                                                                                pcType, mtMarkers,
+                                                                                recomputeLRR, log);
     ArrayList<String> componentBatches = new ArrayList<String>();
     for (int i = 0; i < principalComponentsResiduals.length; i++) {
       int numTotalComponents = principalComponentsResiduals[i].getTotalNumComponents();
@@ -134,7 +141,7 @@ public class PrincipalComponentsValidate {
     }
 
     int[] uniqBatches =
-        Array.toIntArray(Array.unique(componentBatches.toArray(new String[componentBatches.size()])));
+                      Array.toIntArray(Array.unique(componentBatches.toArray(new String[componentBatches.size()])));
     Arrays.sort(uniqBatches);
     String[][] batches = new String[uniqBatches.length][1];
     for (int i = 0; i < uniqBatches.length; i++) {
@@ -143,9 +150,9 @@ public class PrincipalComponentsValidate {
     // String command = JAVA + CP + XMX + VAL_PIPE + "proj=" +
     // proj.getFilename(proj.PROJECT_PROPERTIES_FILENAME) + " dir=" + dir + BATCH + "[%0]/" + "
     // numThreads=" + numThreads;
-    String command =
-        JAVA + CP + XMX + VAL_PIPE + "proj=" + proj.PROJECT_PROPERTIES_FILENAME.getValue() + " dir="
-                     + dir + BATCH + "[%0]/" + "  numThreads=" + numThreads;
+    String command = JAVA + CP + XMX + VAL_PIPE + "proj="
+                     + proj.PROJECT_PROPERTIES_FILENAME.getValue() + " dir=" + dir + BATCH + "[%0]/"
+                     + "  numThreads=" + numThreads;
     command += " startAtComponent=" + startAtComponent + " stopAtComponent=" + stopAtComponent
                + " numPcIterations=" + numPcSamplings + " pcType=" + pcType;
     command += " kfolds=" + kfolds + " mtMarkers=" + mtMarkers + " output=regress[%0]";
@@ -160,10 +167,13 @@ public class PrincipalComponentsValidate {
                                         PrincipalComponentsResiduals[] principalComponentsResiduals) {
     assignMedians(principalComponentsResiduals, log);// compute the medians for samples in each PC
     ValidationResults[] validationResults =
-        computeRegressions(principalComponentsResiduals, null, startAtComponent, stopAtComponent,
-                           numPcSamplings, kfolds, numThreads,
-                           proj.PROJECT_DIRECTORY.getValue() + dir + "tmp_" + output + OUTPUT,
-                           lType, log);
+                                          computeRegressions(principalComponentsResiduals, null,
+                                                             startAtComponent, stopAtComponent,
+                                                             numPcSamplings, kfolds,
+                                                             numThreads,
+                                                             proj.PROJECT_DIRECTORY.getValue() + dir
+                                                                         + "tmp_" + output + OUTPUT,
+                                                             lType, log);
     summarize(validationResults, principalComponentsResiduals, pcType,
               proj.PROJECT_DIRECTORY.getValue() + dir + output + OUTPUT, log);
   }
@@ -200,7 +210,7 @@ public class PrincipalComponentsValidate {
    * We use the same {@link PrincipalComponentsValidate#computeRegressions()} as
    * {@link PrincipalComponentsValidate#compareWithinFile()} but provide a validation set that comes
    * from another pc file
-   * 
+   *
    */
   private static ValidationResults[][][] compareAcrossFiles(Project proj, String dir,
                                                             PrincipalComponentsResiduals[] principalComponentsResiduals,
@@ -212,19 +222,26 @@ public class PrincipalComponentsValidate {
                                                             Logger log) {
     assignMedians(principalComponentsResiduals, log);
     ValidationResults[] inSamplevalidationResults =
-        computeRegressions(principalComponentsResiduals, null, startAtComponent, stopAtComponent,
-                           numPcSamplings, kfolds, numThreads,
-                           proj.PROJECT_DIRECTORY.getValue() + dir + "tmp_" + output + OUTPUT,
-                           lType, log);
+                                                  computeRegressions(principalComponentsResiduals,
+                                                                     null, startAtComponent,
+                                                                     stopAtComponent,
+                                                                     numPcSamplings, kfolds,
+                                                                     numThreads,
+                                                                     proj.PROJECT_DIRECTORY.getValue()
+                                                                                 + dir + "tmp_"
+                                                                                 + output + OUTPUT,
+                                                                     lType, log);
     summarize(inSamplevalidationResults, principalComponentsResiduals, pcType,
               proj.PROJECT_DIRECTORY.getValue() + dir + output + OUTPUT, log);
 
     // train #,validation #, PC #
     ValidationResults[][][] outOfSampleValidationResults =
-        new ValidationResults[principalComponentsResiduals.length][principalComponentsResiduals.length
-                                                                   - 1][];// all v all
+                                                         new ValidationResults[principalComponentsResiduals.length][principalComponentsResiduals.length
+                                                                                                                    - 1][];// all
+                                                                                                                           // v
+                                                                                                                           // all
     String[][] comparisons =
-        new String[outOfSampleValidationResults.length][outOfSampleValidationResults[0].length];
+                           new String[outOfSampleValidationResults.length][outOfSampleValidationResults[0].length];
 
     for (int i = 0; i < principalComponentsResiduals.length; i++) {
       PrincipalComponentsResiduals[] train_pc = {principalComponentsResiduals[i]};
@@ -239,15 +256,22 @@ public class PrincipalComponentsValidate {
                         + val_pc.getPcBasis()[0].length + "_individuals";
           if (val_pc.getPcBasis()[0].length > 0) {
             outOfSampleValidationResults[i][index] =
-                computeRegressions(train_pc, val_pc, startAtComponent, stopAtComponent,
-                                   numPcSamplings, kfolds, numThreads, null, lType, log);// this can
-                                                                                         // create
-                                                                                         // alot of
-                                                                                         // tempory
-                                                                                         // files we
-                                                                                         // skip the
-                                                                                         // tmp
-                                                                                         // reporting
+                                                   computeRegressions(train_pc, val_pc,
+                                                                      startAtComponent,
+                                                                      stopAtComponent,
+                                                                      numPcSamplings, kfolds,
+                                                                      numThreads, null, lType, log);// this
+                                                                                                    // can
+                                                                                                    // create
+                                                                                                    // alot
+                                                                                                    // of
+                                                                                                    // tempory
+                                                                                                    // files
+                                                                                                    // we
+                                                                                                    // skip
+                                                                                                    // the
+                                                                                                    // tmp
+                                                                                                    // reporting
           } else {
             log.reportError("Warning - all individuals from the validation pc file "
                             + principalComponentsResiduals[j].getOutput()
@@ -367,8 +391,8 @@ public class PrincipalComponentsValidate {
     writer.print(PC + "\"" + PC_TYPES[pcType] + "\"");
     for (int uniqNumComponent : uniqNumComponents) {
       String numSamples = (uniqNumComponent + 1) + "";// the assumption
-      String repString =
-          "(" + validationResults[0].getNumReplicatesForPCNumber(uniqNumComponent) + ")X ";
+      String repString = "(" + validationResults[0].getNumReplicatesForPCNumber(uniqNumComponent)
+                         + ")X ";
       writer.print("\t" + repString + numSamples + ".samples.percentRegressed" + "\t" + repString
                    + numSamples + ".samples.averageSSerr" + "\t" + repString + numSamples
                    + ".samples.averageR2");
@@ -626,13 +650,14 @@ public class PrincipalComponentsValidate {
       return new PrincipalComponentsResiduals[0];
     }
     PrincipalComponentsResiduals[] principalComponentsResiduals =
-        new PrincipalComponentsResiduals[files.length];
+                                                                new PrincipalComponentsResiduals[files.length];
     log.report(ext.getTime() + " Info - Using the following files for validation\n"
                + Array.toStr(files, "\n"));
     for (int i = 0; i < files.length; i++) {
-      principalComponentsResiduals[i] =
-          new PrincipalComponentsResiduals(proj, files[i], mtMarkers, numComponents, false, 0, true,
-                                           recomputeLRR, ext.rootOf(files[i]));
+      principalComponentsResiduals[i] = new PrincipalComponentsResiduals(proj, files[i], mtMarkers,
+                                                                         numComponents, false, 0,
+                                                                         true, recomputeLRR,
+                                                                         ext.rootOf(files[i]));
     }
     return principalComponentsResiduals;
   }
@@ -641,7 +666,7 @@ public class PrincipalComponentsValidate {
    * Note: use this to set up a bunch of pca runs Warning: your project should be fully parsed prior
    * to using this Warning: you should have lrr_sd and markerMetrics computed prior to using this,
    * otherwise the multiple runs will get confused when filtering files etc..
-   * 
+   *
    * @param proj current project
    * @param dir directory within the project directory
    * @param indsToValidateFile list of inds to chunk at project directory/dir/
@@ -654,8 +679,8 @@ public class PrincipalComponentsValidate {
                                int numberOfChunks, int numComponents, String mtMarkers,
                                String pcMarkers, int pcReplicates, Logger log) {
     String curDir = proj.PROJECT_DIRECTORY.getValue() + dir;
-    String[] inds =
-        HashVec.loadFileToStringArray(curDir + indsToValidateFile, false, new int[] {0}, false);
+    String[] inds = HashVec.loadFileToStringArray(curDir + indsToValidateFile, false, new int[] {0},
+                                                  false);
     int[] chunks = Array.splitUp(inds.length, numberOfChunks);
     String[][] batches = getBatches(inds, chunks, pcReplicates, log);
     // Files.writeList(inds, curDir + BATCH + 0);
@@ -669,7 +694,7 @@ public class PrincipalComponentsValidate {
     // numComponents=[%1] medianMarkers=" + proj.getProjectDir() + mtMarkers + " useFile=" + curDir
     // + BATCH + "_[%0] output=" + dir + BATCH + "_[%0]";
     String command =
-        JAVA + CP + XMX + MT_PIPE + "proj=" + proj.PROJECT_PROPERTIES_FILENAME.getValue()
+                   JAVA + CP + XMX + MT_PIPE + "proj=" + proj.PROJECT_PROPERTIES_FILENAME.getValue()
                      + " PCmarkers=" + pcMarkers + " numComponents=[%1]  medianMarkers="
                      + proj.PROJECT_DIRECTORY.getValue() + mtMarkers + " useFile=" + curDir + BATCH
                      + "_[%0] output=" + dir + BATCH + "_[%0]";
@@ -761,7 +786,7 @@ public class PrincipalComponentsValidate {
     usage += "   For creating jobs to compute PCs:";
     usage += "   (1) Directory (i.e. dir=" + dir + " (default))\n" + "";
     usage +=
-        "   (2) Filename of individuals to validate by computing batches of PCs (i.e. indsToValidateFile="
+          "   (2) Filename of individuals to validate by computing batches of PCs (i.e. indsToValidateFile="
              + indsToValidateFile + " (default))\n" + "";
     usage += "   (3) Project filename  (i.e. proj=" + fileName + " (default))\n" + "";
     usage += "   (4) PCMarkers to validate on (i.e. pcMarkers=" + pcMarkers + " (default))\n" + "";
@@ -771,7 +796,7 @@ public class PrincipalComponentsValidate {
     usage += "   (7) Number of PC replicates for the batches(i.e. pcReplicates=" + pcReplicates
              + " (default))\n" + "";
     usage +=
-        "   Note: for each batch the number of PCs computed will be one less than the number of samples";
+          "   Note: for each batch the number of PCs computed will be one less than the number of samples";
     usage += "   For cross validating pre-computed PC files:";
     usage += "   (1) project filename  (i.e. proj=" + fileName + " (default))\n" + "";
     usage += "   (2) directory under the project directory with pc files(i.e. dir=" + dir
@@ -783,7 +808,7 @@ public class PrincipalComponentsValidate {
     usage += "   (5) Create the batches to run (i.e. -batch (not the default))\n" + "";
     usage += "   (6) Type of PC (i.e. pcType=" + pcType + " (default))\n" + "";
     usage +=
-        "   (7) Number of evenly spaced samplings of PCs to compute residuals with (e.g 100 PCs and 10 samplings = PC1,PC10,PC20...PC100) (i.e. numPcIterations="
+          "   (7) Number of evenly spaced samplings of PCs to compute residuals with (e.g 100 PCs and 10 samplings = PC1,PC10,PC20...PC100) (i.e. numPcIterations="
              + numPcIterations + " (default))\n" + "";
     usage += "   (8) Number of k-folds to cross validate with  (i.e. kfolds=" + kfolds
              + " (default))\n" + "";
@@ -792,10 +817,10 @@ public class PrincipalComponentsValidate {
     usage += "   (10) do not use SVD to compute betas (i.e. -noSVD (not the default))\n" + "";
     usage += "   (11) output base name (i.e. output=" + output + " (default))\n";
     usage +=
-        "   (12) along with the default within-file validation, train on each file, and predict the others(i.e -compareAcrossFiles)\n";
+          "   (12) along with the default within-file validation, train on each file, and predict the others(i.e -compareAcrossFiles)\n";
     usage += "   (13) batch the cross-validations(i.e -regressionBatch (not the default))\n";
     usage +=
-        "   (14) Recompute Log R Ratios for each marker from genotypes/intensities when computing median values(i.e. -recomputeLRR (not the default))\n";
+          "   (14) Recompute Log R Ratios for each marker from genotypes/intensities when computing median values(i.e. -recomputeLRR (not the default))\n";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

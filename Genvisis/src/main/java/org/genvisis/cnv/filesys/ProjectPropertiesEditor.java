@@ -52,8 +52,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.filesys.Project.DoubleProperty;
 import org.genvisis.cnv.filesys.Project.FileProperty;
@@ -65,58 +63,118 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
 
+import net.miginfocom.swing.MigLayout;
+
 public class ProjectPropertiesEditor extends JFrame {
 
   public static final String[][] ALL_PROPERTY_SETS =
-      new String[][] {{"Project Name and Locations", "PROJECT_NAME", "PROJECT_DIRECTORY",
-                       "DATA_DIRECTORY", "SAMPLE_DATA_FILENAME", "SAMPLE_DIRECTORY",
-                       "MARKER_DATA_DIRECTORY", "RESULTS_DIRECTORY", "DEMO_DIRECTORY",
-                       "BACKUP_DIRECTORY", "ARRAY_TYPE", "XY_SCALE_FACTOR"},
-                      {"Import", "SOURCE_DIRECTORY", "SOURCE_FILENAME_EXTENSION", "LONG_FORMAT",
-                       "SOURCE_FILE_DELIMITER", "ID_HEADER", "PARSE_AT_AT_SYMBOL",
-                       "MARKER_POSITION_FILENAME", "SAMPLE_ALIAS", "FID_ALIAS", "IID_ALIAS"},
-                      {"Global", "NUM_THREADS", "LOG_LEVEL", "CUSTOM_COLOR_SCHEME_FILENAME",
-                       "CLUSTER_FILTER_COLLECTION_FILENAME", "ANNOTATION_FILENAME",
-                       "AB_LOOKUP_FILENAME", "GENETRACK_FILENAME", "GC_MODEL_FILENAME",
-                       "GC_CORRECTION_PARAMETERS_FILENAMES", "REFERENCE_GENOME_FASTA_FILENAME"},
-                      {"Centroids", "SEX_CENTROIDS_MALE_FILENAME", "SEX_CENTROIDS_FEMALE_FILENAME",
-                       "ORIGINAL_CENTROIDS_FILENAME", "GENOTYPE_CENTROIDS_FILENAME",
-                       "CHIMERA_CENTROIDS_FILENAME", "CUSTOM_CENTROIDS_FILENAME"},
-                      {"DataExport", "PEDIGREE_FILENAME", "FILTERED_MARKERS_FILENAME",
-                       "SAMPLE_SUBSET_FILENAME", "TARGET_MARKERS_FILENAMES", "GC_THRESHOLD",},
-                      {"MosaicPlot", "MOSAIC_RESULTS_FILENAME", "MOSAIC_COLOR_CODES_FILENAME",},
-                      {"Data Cleaning", "SAMPLE_QC_FILENAME", "SEXCHECK_RESULTS_FILENAME",
-                       "LRRSD_CUTOFF", "SAMPLE_CALLRATE_THRESHOLD", "MARKER_METRICS_FILENAME",
-                       "MARKER_EXCLUSION_CRITERIA_FILENAME", "MARKER_REVIEW_CRITERIA_FILENAME",
-                       "MARKER_COMBINED_CRITERIA_FILENAME", "GENOME_CLUSTER_FILENAME"},
-                      {"CNV Files", "CNV_FILENAMES", "HMM_FILENAME", "CUSTOM_PFB_FILENAME",},
-                      {"CompPlot", "REGION_LIST_FILENAMES"},
-                      {"Trailer", "INDIVIDUAL_CNV_LIST_FILENAMES",
-                       "WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER"},
-                      {"ScatterPlot", "DISPLAY_MARKERS_FILENAMES", "SHIFT_SEX_CHR_COLORS_YESNO",
-                       "BLAST_ANNOTATION_FILENAME", "BLAST_PROPORTION_MATCH_FILTER",},
-                      {"TwoDPlot", "TWOD_LOADED_FILENAMES", "TWOD_LOADED_VARIABLES"},
-                      {"ForestPlot", "FOREST_PLOT_FILENAMES"},
-                      {"QQ-plot", "QQ_FILENAMES", "DISPLAY_QUANTILES", "DISPLAY_STANDARD_QQ",
-                       "DISPLAY_ROTATED_QQ", "QQ_MAX_NEG_LOG10_PVALUE"},
-                      {"PennCNV", "PENNCNV_EXECUTABLE_DIRECTORY", "PENNCNV_DATA_DIRECTORY",
-                       "PENNCNV_RESULTS_DIRECTORY", "PENNCNV_GZIP_YESNO",},
-                      {"CytoSpecific", "UNREPORTED_CNP_FILENAME", "COMMON_CNP_FILENAME",
-                       "REPORTED_CNP_FILENAME"},
-                      {"PC Intensity Correction", "INTENSITY_PC_FILENAME",
-                       "INTENSITY_PC_NUM_COMPONENTS", "INTENSITY_PC_MARKERS_FILENAME"},
-                      {"Optimization parameters", "MAX_MEMORY_USED_TO_LOAD_MARKER_DATA",
-                       "MAX_MARKERS_LOADED_PER_CYCLE"},
-                      {"Plink Directory/Filename Roots (edit to remove extension)",
-                       "PLINK_DIR_FILEROOTS"},
-                      {"COLORS", "MARKER_COLOR_KEY_FILENAMES"}};
-  String[] hiddenProperties =
-      new String[] {"PROJECT_PROPERTIES_FILENAME", "MARKERSET_FILENAME", "MARKERLOOKUP_FILENAME",
-                    "SAMPLELIST_FILENAME", "JAR_STATUS", "STRATIFICATION_RESULTS_FILENAMES"};
-  String[] uneditableProperties =
-      new String[] {"SOURCE_DIRECTORY", "SOURCE_FILENAME_EXTENSION", "LONG_FORMAT",
-                    "SOURCE_FILE_DELIMITER", "ID_HEADER", "PARSE_AT_AT_SYMBOL", "ARRAY_TYPE",
-                    "XY_SCALE_FACTOR"};
+                                                   new String[][] {{"Project Name and Locations",
+                                                                    "PROJECT_NAME",
+                                                                    "PROJECT_DIRECTORY",
+                                                                    "DATA_DIRECTORY",
+                                                                    "SAMPLE_DATA_FILENAME",
+                                                                    "SAMPLE_DIRECTORY",
+                                                                    "MARKER_DATA_DIRECTORY",
+                                                                    "RESULTS_DIRECTORY",
+                                                                    "DEMO_DIRECTORY",
+                                                                    "BACKUP_DIRECTORY",
+                                                                    "ARRAY_TYPE",
+                                                                    "XY_SCALE_FACTOR"},
+                                                                   {"Import", "SOURCE_DIRECTORY",
+                                                                    "SOURCE_FILENAME_EXTENSION",
+                                                                    "LONG_FORMAT",
+                                                                    "SOURCE_FILE_DELIMITER",
+                                                                    "ID_HEADER",
+                                                                    "PARSE_AT_AT_SYMBOL",
+                                                                    "MARKER_POSITION_FILENAME",
+                                                                    "SAMPLE_ALIAS", "FID_ALIAS",
+                                                                    "IID_ALIAS"},
+                                                                   {"Global", "NUM_THREADS",
+                                                                    "LOG_LEVEL",
+                                                                    "CUSTOM_COLOR_SCHEME_FILENAME",
+                                                                    "CLUSTER_FILTER_COLLECTION_FILENAME",
+                                                                    "ANNOTATION_FILENAME",
+                                                                    "AB_LOOKUP_FILENAME",
+                                                                    "GENETRACK_FILENAME",
+                                                                    "GC_MODEL_FILENAME",
+                                                                    "GC_CORRECTION_PARAMETERS_FILENAMES",
+                                                                    "REFERENCE_GENOME_FASTA_FILENAME"},
+                                                                   {"Centroids",
+                                                                    "SEX_CENTROIDS_MALE_FILENAME",
+                                                                    "SEX_CENTROIDS_FEMALE_FILENAME",
+                                                                    "ORIGINAL_CENTROIDS_FILENAME",
+                                                                    "GENOTYPE_CENTROIDS_FILENAME",
+                                                                    "CHIMERA_CENTROIDS_FILENAME",
+                                                                    "CUSTOM_CENTROIDS_FILENAME"},
+                                                                   {"DataExport",
+                                                                    "PEDIGREE_FILENAME",
+                                                                    "FILTERED_MARKERS_FILENAME",
+                                                                    "SAMPLE_SUBSET_FILENAME",
+                                                                    "TARGET_MARKERS_FILENAMES",
+                                                                    "GC_THRESHOLD",},
+                                                                   {"MosaicPlot",
+                                                                    "MOSAIC_RESULTS_FILENAME",
+                                                                    "MOSAIC_COLOR_CODES_FILENAME",},
+                                                                   {"Data Cleaning",
+                                                                    "SAMPLE_QC_FILENAME",
+                                                                    "SEXCHECK_RESULTS_FILENAME",
+                                                                    "LRRSD_CUTOFF",
+                                                                    "SAMPLE_CALLRATE_THRESHOLD",
+                                                                    "MARKER_METRICS_FILENAME",
+                                                                    "MARKER_EXCLUSION_CRITERIA_FILENAME",
+                                                                    "MARKER_REVIEW_CRITERIA_FILENAME",
+                                                                    "MARKER_COMBINED_CRITERIA_FILENAME",
+                                                                    "GENOME_CLUSTER_FILENAME"},
+                                                                   {"CNV Files", "CNV_FILENAMES",
+                                                                    "HMM_FILENAME",
+                                                                    "CUSTOM_PFB_FILENAME",},
+                                                                   {"CompPlot",
+                                                                    "REGION_LIST_FILENAMES"},
+                                                                   {"Trailer",
+                                                                    "INDIVIDUAL_CNV_LIST_FILENAMES",
+                                                                    "WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER"},
+                                                                   {"ScatterPlot",
+                                                                    "DISPLAY_MARKERS_FILENAMES",
+                                                                    "SHIFT_SEX_CHR_COLORS_YESNO",
+                                                                    "BLAST_ANNOTATION_FILENAME",
+                                                                    "BLAST_PROPORTION_MATCH_FILTER",},
+                                                                   {"TwoDPlot",
+                                                                    "TWOD_LOADED_FILENAMES",
+                                                                    "TWOD_LOADED_VARIABLES"},
+                                                                   {"ForestPlot",
+                                                                    "FOREST_PLOT_FILENAMES"},
+                                                                   {"QQ-plot", "QQ_FILENAMES",
+                                                                    "DISPLAY_QUANTILES",
+                                                                    "DISPLAY_STANDARD_QQ",
+                                                                    "DISPLAY_ROTATED_QQ",
+                                                                    "QQ_MAX_NEG_LOG10_PVALUE"},
+                                                                   {"PennCNV",
+                                                                    "PENNCNV_EXECUTABLE_DIRECTORY",
+                                                                    "PENNCNV_DATA_DIRECTORY",
+                                                                    "PENNCNV_RESULTS_DIRECTORY",
+                                                                    "PENNCNV_GZIP_YESNO",},
+                                                                   {"CytoSpecific",
+                                                                    "UNREPORTED_CNP_FILENAME",
+                                                                    "COMMON_CNP_FILENAME",
+                                                                    "REPORTED_CNP_FILENAME"},
+                                                                   {"PC Intensity Correction",
+                                                                    "INTENSITY_PC_FILENAME",
+                                                                    "INTENSITY_PC_NUM_COMPONENTS",
+                                                                    "INTENSITY_PC_MARKERS_FILENAME"},
+                                                                   {"Optimization parameters",
+                                                                    "MAX_MEMORY_USED_TO_LOAD_MARKER_DATA",
+                                                                    "MAX_MARKERS_LOADED_PER_CYCLE"},
+                                                                   {"Plink Directory/Filename Roots (edit to remove extension)",
+                                                                    "PLINK_DIR_FILEROOTS"},
+                                                                   {"COLORS",
+                                                                    "MARKER_COLOR_KEY_FILENAMES"}};
+  String[] hiddenProperties = new String[] {"PROJECT_PROPERTIES_FILENAME", "MARKERSET_FILENAME",
+                                            "MARKERLOOKUP_FILENAME", "SAMPLELIST_FILENAME",
+                                            "JAR_STATUS", "STRATIFICATION_RESULTS_FILENAMES"};
+  String[] uneditableProperties = new String[] {"SOURCE_DIRECTORY", "SOURCE_FILENAME_EXTENSION",
+                                                "LONG_FORMAT", "SOURCE_FILE_DELIMITER", "ID_HEADER",
+                                                "PARSE_AT_AT_SYMBOL", "ARRAY_TYPE",
+                                                "XY_SCALE_FACTOR"};
 
   private static final long serialVersionUID = 1L;
 
@@ -135,76 +193,99 @@ public class ProjectPropertiesEditor extends JFrame {
   }
 
   private final HashMap<String, InputValidator> validators =
-      new HashMap<String, ProjectPropertiesEditor.InputValidator>() {
-        private static final long serialVersionUID = 1L;
-        {
-          put("PLINK_DIR_FILEROOTS", new InputValidator() {
-            @Override
-            Object processNewValue(Object newValue, Object oldValue) {
-              if (newValue instanceof File[]) {
-                if (((File[]) newValue).length == 0
-                    || (((File[]) newValue).length == 1
-                        && ((File[]) newValue)[0].getPath().equals(""))) {
-                  return newValue;
-                }
-                File[] newFiles = new File[((File[]) newValue).length];
-                for (int i = 0; i < ((File[]) newValue).length; i++) {
-                  String newPath = ext.rootOf(((File[]) newValue)[i].getAbsolutePath(), false);
-                  newFiles[i] = new File(newPath);
-                }
-                return newFiles;
-              } else {
-                System.out.println("ERROR - new value should be a File[] (array)!");
-                return oldValue;
-              }
-            }
+                                                           new HashMap<String, ProjectPropertiesEditor.InputValidator>() {
+                                                             private static final long serialVersionUID =
+                                                                                                        1L;
+                                                             {
+                                                               put("PLINK_DIR_FILEROOTS",
+                                                                   new InputValidator() {
+                                                                     @Override
+                                                                     Object processNewValue(Object newValue,
+                                                                                            Object oldValue) {
+                                                                       if (newValue instanceof File[]) {
+                                                                         if (((File[]) newValue).length == 0
+                                                                             || (((File[]) newValue).length == 1
+                                                                                 && ((File[]) newValue)[0].getPath()
+                                                                                                          .equals(""))) {
+                                                                           return newValue;
+                                                                         }
+                                                                         File[] newFiles =
+                                                                                         new File[((File[]) newValue).length];
+                                                                         for (int i =
+                                                                                    0; i < ((File[]) newValue).length; i++) {
+                                                                           String newPath =
+                                                                                          ext.rootOf(((File[]) newValue)[i].getAbsolutePath(),
+                                                                                                     false);
+                                                                           newFiles[i] =
+                                                                                       new File(newPath);
+                                                                         }
+                                                                         return newFiles;
+                                                                       } else {
+                                                                         System.out.println("ERROR - new value should be a File[] (array)!");
+                                                                         return oldValue;
+                                                                       }
+                                                                     }
 
-            @Override
-            boolean acceptNewValue(Object newValue) {
-              if (newValue instanceof File[]) {
-                File[] files = (File[]) newValue;
-                if (files.length == 0 || (files.length == 1 && files[0].getPath().equals(""))) {
-                  return true;
-                }
-                for (File f : files) {
-                  if (!hasAllPLINKFiles(f)) {
-                    proj.message("Error - couldn't find all files {.bim/.fam/.bed} for PLINK root ["
-                                 + ext.rootOf(f.getPath(), true) + "]");
-                    return false;
-                  }
-                }
-                return true;
-              } else {
-                System.out.println("ERROR - new value should be a File[] (array)!");
-                return false;
-              }
-            }
+                                                                     @Override
+                                                                     boolean acceptNewValue(Object newValue) {
+                                                                       if (newValue instanceof File[]) {
+                                                                         File[] files =
+                                                                                      (File[]) newValue;
+                                                                         if (files.length == 0
+                                                                             || (files.length == 1
+                                                                                 && files[0].getPath()
+                                                                                            .equals(""))) {
+                                                                           return true;
+                                                                         }
+                                                                         for (File f : files) {
+                                                                           if (!hasAllPLINKFiles(f)) {
+                                                                             proj.message("Error - couldn't find all files {.bim/.fam/.bed} for PLINK root ["
+                                                                                          + ext.rootOf(f.getPath(),
+                                                                                                       true)
+                                                                                          + "]");
+                                                                             return false;
+                                                                           }
+                                                                         }
+                                                                         return true;
+                                                                       } else {
+                                                                         System.out.println("ERROR - new value should be a File[] (array)!");
+                                                                         return false;
+                                                                       }
+                                                                     }
 
-            private boolean hasAllPLINKFiles(File f) {
-              String[] files = f.getParentFile().list(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                  return name.endsWith(".fam") || name.endsWith(".bim") || name.endsWith(".bed");
-                }
-              });
-              if (files.length < 3) {
-                return false;
-              }
-              boolean hasBed = false, hasFam = false, hasBim = false;
-              for (String file : files) {
-                if (file.endsWith(".fam")) {
-                  hasFam = true;
-                } else if (file.endsWith(".bim")) {
-                  hasBim = true;
-                } else if (file.endsWith(".bed")) {
-                  hasBed = true;
-                }
-              }
-              return hasBed && hasFam && hasBim;
-            }
-          });
-        }
-      };
+                                                                     private boolean hasAllPLINKFiles(File f) {
+                                                                       String[] files =
+                                                                                      f.getParentFile()
+                                                                                       .list(new FilenameFilter() {
+                                                                                         @Override
+                                                                                         public boolean accept(File dir,
+                                                                                                               String name) {
+                                                                                           return name.endsWith(".fam")
+                                                                                                  || name.endsWith(".bim")
+                                                                                                  || name.endsWith(".bed");
+                                                                                         }
+                                                                                       });
+                                                                       if (files.length < 3) {
+                                                                         return false;
+                                                                       }
+                                                                       boolean hasBed = false,
+                                                                           hasFam = false,
+                                                                           hasBim = false;
+                                                                       for (String file : files) {
+                                                                         if (file.endsWith(".fam")) {
+                                                                           hasFam = true;
+                                                                         } else if (file.endsWith(".bim")) {
+                                                                           hasBim = true;
+                                                                         } else if (file.endsWith(".bed")) {
+                                                                           hasBed = true;
+                                                                         }
+                                                                       }
+                                                                       return hasBed && hasFam
+                                                                              && hasBim;
+                                                                     }
+                                                                   });
+                                                             }
+                                                           };
 
   /**
    * Launch the application.
@@ -214,8 +295,8 @@ public class ProjectPropertiesEditor extends JFrame {
       @Override
       public void run() {
         try {
-          ProjectPropertiesEditor frame =
-              new ProjectPropertiesEditor(new Project(), ALL_PROPERTY_SETS);
+          ProjectPropertiesEditor frame = new ProjectPropertiesEditor(new Project(),
+                                                                      ALL_PROPERTY_SETS);
           frame.setVisible(true);
         } catch (Exception e) {
           e.printStackTrace();
@@ -310,8 +391,8 @@ public class ProjectPropertiesEditor extends JFrame {
     rendererSpinner.setBorder(null);
     final SpinnerEditor numberEditor = new SpinnerEditor();
     final JPanel fileRenderer =
-        new JPanel(new MigLayout("ins -1 0 0 0, hidemode 3", "[grow][]", ""));// new
-                                                                              // BorderLayout());
+                              new JPanel(new MigLayout("ins -1 0 0 0, hidemode 3", "[grow][]", ""));// new
+                                                                                                    // BorderLayout());
     final JLabel fileLabel = new JLabel();
     final JButton fileBtn2 = new JButton("...");
     final JButton fileAddBtn2 = new JButton(" + ");
@@ -324,7 +405,8 @@ public class ProjectPropertiesEditor extends JFrame {
     fileRenderer.add(fileAddBtn2, "cell 1 0, width 21px, split 1");
     fileRenderer.add(fileBtn2, "cell 1 0, width 21px");
     final FileChooserCellEditor fileEditor =
-        new FileChooserCellEditor(true, proj.getProperty(proj.PROJECT_DIRECTORY));
+                                           new FileChooserCellEditor(true,
+                                                                     proj.getProperty(proj.PROJECT_DIRECTORY));
     final DefaultCellEditor stringEditor = new DefaultCellEditor(new JTextField()) {
       private static final long serialVersionUID = 1L;
 
@@ -385,8 +467,8 @@ public class ProjectPropertiesEditor extends JFrame {
         String tempKey = (String) table.getValueAt(row, 0);
         Component returnComp;
         if (labelRows.contains(row)) {
-          returnComp =
-              super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+          returnComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
+                                                           column);
           ((JComponent) returnComp).setToolTipText(null);
           ((JComponent) returnComp).setFont(((JComponent) returnComp).getFont()
                                                                      .deriveFont(Font.BOLD, 14f));
@@ -514,8 +596,8 @@ public class ProjectPropertiesEditor extends JFrame {
           // System.out.println("Found ENUM; values: [" + Array.toStr(((Enum)
           // value).getDeclaringClass(), ",") + "]");
           // use string renderer for enums
-          returnComp =
-              super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+          returnComp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
+                                                           column);
         } else {
           if (column == 0) {
             returnComp = super.getTableCellRendererComponent(table, "            " + value,
@@ -581,7 +663,8 @@ public class ProjectPropertiesEditor extends JFrame {
           editor = stringEditor;
         } else if (propVal instanceof String[]) {
           StringListProperty prop =
-              ((StringListProperty) proj.getProperty((String) table.getValueAt(row, 0)));
+                                  ((StringListProperty) proj.getProperty((String) table.getValueAt(row,
+                                                                                                   0)));
           if (prop.isFile || prop.isDir) {
             String[] valStrs = (String[]) propVal;
             File[] vals = new File[valStrs.length];
@@ -651,16 +734,18 @@ public class ProjectPropertiesEditor extends JFrame {
     };
 
     DefaultTableModel model =
-        new DefaultTableModel(new String[] {"Property Name", "Property Value"}, 0) {
-          private static final long serialVersionUID = 1L;
+                            new DefaultTableModel(new String[] {"Property Name", "Property Value"},
+                                                  0) {
+                              private static final long serialVersionUID = 1L;
 
-          @Override
-          public boolean isCellEditable(int row, int column) {
-            return column != 0 && !labelRows.contains(row) && super.isCellEditable(row, column)
-                   && !disabledKeys.contains(getValueAt(row, 0));
-          }
+                              @Override
+                              public boolean isCellEditable(int row, int column) {
+                                return column != 0 && !labelRows.contains(row)
+                                       && super.isCellEditable(row, column)
+                                       && !disabledKeys.contains(getValueAt(row, 0));
+                              }
 
-        };
+                            };
 
     int count = 0;
     HashSet<String> allKeys = new HashSet<String>();
@@ -766,7 +851,7 @@ public class ProjectPropertiesEditor extends JFrame {
     if (changes.size() > 0) {
       if (promptChanges) {
         StringBuilder message =
-            new StringBuilder("The following properties have been changed.  Would you like to save your changes?");
+                              new StringBuilder("The following properties have been changed.  Would you like to save your changes?");
         int cnt = 0;
         for (String key : changes.keySet()) {
           if (cnt == 10) {
@@ -797,7 +882,7 @@ public class ProjectPropertiesEditor extends JFrame {
   private HashMap<String, String> extract() {
     table.editingStopped(new ChangeEvent(table));
     String projectsDir =
-        new LaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE).getProperty(LaunchProperties.PROJECTS_DIR);
+                       new LaunchProperties(LaunchProperties.DEFAULT_PROPERTIES_FILE).getProperty(LaunchProperties.PROJECTS_DIR);
     String currProjDir = proj.getProperty(proj.PROJECT_DIRECTORY);
     int rowCount = table.getRowCount();
 
@@ -816,10 +901,10 @@ public class ProjectPropertiesEditor extends JFrame {
         if (set.length > 0) {
           value = set[0].getPath();
           if (!set[0].exists()) {
-            value =
-                ((StringListProperty) proj.getProperty(key)).isDir ? ext.verifyDirFormat(value)
-                                                                   : ext.replaceAllWith(value, "\\",
-                                                                                        "/");
+            value = ((StringListProperty) proj.getProperty(key)).isDir ? ext.verifyDirFormat(value)
+                                                                       : ext.replaceAllWith(value,
+                                                                                            "\\",
+                                                                                            "/");
           } else {
             value = set[0].isDirectory() ? ext.verifyDirFormat(value)
                                          : ext.replaceAllWith(value, "\\", "/");
@@ -855,11 +940,11 @@ public class ProjectPropertiesEditor extends JFrame {
         value = set.getPath();
         if (!set.exists()) {
           value =
-              ((FileProperty) proj.getProperty(key)).isDir ? ext.verifyDirFormat(value)
-                                                           : ext.replaceAllWith(value, "\\", "/");
+                ((FileProperty) proj.getProperty(key)).isDir ? ext.verifyDirFormat(value)
+                                                             : ext.replaceAllWith(value, "\\", "/");
         } else {
-          value =
-              set.isDirectory() ? ext.verifyDirFormat(value) : ext.replaceAllWith(value, "\\", "/");
+          value = set.isDirectory() ? ext.verifyDirFormat(value)
+                                    : ext.replaceAllWith(value, "\\", "/");
         }
         if (!key.equals(proj.SOURCE_DIRECTORY.getName())
             && !key.equals(proj.PROJECT_DIRECTORY.getName())) {
@@ -1281,7 +1366,7 @@ public class ProjectPropertiesEditor extends JFrame {
                   newValue = fileChooser.getSelectedFiles();
                 } /*
                    * else {
-                   * 
+                   *
                    * FileChooserCellEditor.this.setValue(value); }
                    */
 

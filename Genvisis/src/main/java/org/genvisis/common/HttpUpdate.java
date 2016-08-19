@@ -23,7 +23,7 @@ import javax.swing.JTextArea;
  */
 public class HttpUpdate {
   private static final String CHANGELOG =
-      "https://github.com/npankrat/Genvisis/blob/master/CHANGELOG.md";
+                                        "https://github.com/npankrat/Genvisis/blob/master/CHANGELOG.md";
   public static final String REMOTE_JAR = "http://genvisis.org/genvisis.jar";
   public static final String UNDETERMINED_VERSION = "v.-1.-1.-1";
 
@@ -196,7 +196,7 @@ public class HttpUpdate {
   public static class UpdateInfo extends JFrame {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
     private JTextArea infoPane;
@@ -215,8 +215,8 @@ public class HttpUpdate {
       newFileDir = directoryToSave;
       manifest = CurrentManifest.loadGenvisisManifest();
       new File(newFileDir).mkdirs();
-      newJarFile =
-          newFileDir + ext.addToRoot(PSF.Java.GENVISIS, remoteJarStatus.getVersion().getVersion());
+      newJarFile = newFileDir
+                   + ext.addToRoot(PSF.Java.GENVISIS, remoteJarStatus.getVersion().getVersion());
       this.remoteJarStatus = remoteJarStatus;
       initComponents();
       this.log = log;
@@ -331,8 +331,8 @@ public class HttpUpdate {
 
   public static void main(String[] args) {
     long time = System.currentTimeMillis();
-    RemoteJarStatus remoteJarStatus =
-        getRemoteJarVersion("http://genvisis.org/genvisis_dev.jar", new Logger());
+    RemoteJarStatus remoteJarStatus = getRemoteJarVersion("http://genvisis.org/genvisis_dev.jar",
+                                                          new Logger());
     new Logger().reportTimeElapsed(time);
     if (remoteJarStatus.getStatus() == CHECK_STATUS.OK) {
 

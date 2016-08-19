@@ -61,9 +61,11 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
                                                                  // Turner's
   };
 
-  public static String[] COLOR_SCHEME_MEANING =
-      {"Missing", "Normal Male", "Normal Female", "Full Klinefelter's", "UPD Klinefelter's",
-       "Mosaic Klinefelter's", "Triple X", "Mosaic Triple X", "Full Turner's", "Mosaic Turner's"};
+  public static String[] COLOR_SCHEME_MEANING = {"Missing", "Normal Male", "Normal Female",
+                                                 "Full Klinefelter's", "UPD Klinefelter's",
+                                                 "Mosaic Klinefelter's", "Triple X",
+                                                 "Mosaic Triple X", "Full Turner's",
+                                                 "Mosaic Turner's"};
 
   private final Project proj;
   private final String[] samples;
@@ -183,11 +185,12 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
                                                                                         - Trailer.DEFAULT_STARTX,
                                    (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / 2);
     Trailer yTrailer =
-        new Trailer(proj, uncertainsYRegions[0][0], proj.CNV_FILENAMES.getValue(),
-                    uncertainsYRegions[0][1], Trailer.DEFAULT_STARTX,
-                    1 + (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / 2,
-                    Toolkit.getDefaultToolkit().getScreenSize().width - 30 - Trailer.DEFAULT_STARTX,
-                    (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / 2);
+                     new Trailer(proj, uncertainsYRegions[0][0], proj.CNV_FILENAMES.getValue(),
+                                 uncertainsYRegions[0][1], Trailer.DEFAULT_STARTX,
+                                 1 + (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / 2,
+                                 Toolkit.getDefaultToolkit().getScreenSize().width - 30
+                                                                                                    - Trailer.DEFAULT_STARTX,
+                                 (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / 2);
 
     xTrailer.loadRegionFile(xRegionsFile);
     yTrailer.loadRegionFile(yRegionsFile);

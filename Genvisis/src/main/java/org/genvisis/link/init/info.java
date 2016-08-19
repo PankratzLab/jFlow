@@ -119,15 +119,13 @@ public class info {
           writer.println(positron.elementAt(i) + "\t"
                          + ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue() / numFams,
                                         5));
-          masterWriter.println(positron.elementAt(i) + "\t" + ext.formDeci(
-                                                                           Double.valueOf(victor.elementAt(i))
-                                                                                 .doubleValue()
-                                                                           / numFams, 5));
+          masterWriter.println(positron.elementAt(i) + "\t"
+                               + ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue()
+                                              / numFams, 5));
           if (!markerNames.elementAt(i).equals("-")) {
-            markerWriter.println(markerNames.elementAt(i) + "\t" + ext.formDeci(
-                                                                                Double.valueOf(victor.elementAt(i))
-                                                                                      .doubleValue()
-                                                                                / numFams, 5));
+            markerWriter.println(markerNames.elementAt(i) + "\t"
+                                 + ext.formDeci(Double.valueOf(victor.elementAt(i)).doubleValue()
+                                                / numFams, 5));
             masterMarkerWriter.println(markerNames.elementAt(i) + "\t" + ext.formDeci(
                                                                                       Double.valueOf(victor.elementAt(i))
                                                                                             .doubleValue()

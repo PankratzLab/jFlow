@@ -24,8 +24,9 @@ public class HapMapParser {
   public static final boolean USE_NUCLEOTIDES = true;
   public static final boolean INCLUDE_MONOMORPHIC = true;
 
-  public static final String[][] TARGETS_WITH_ALTS =
-      {{"genotype"}, {"position"}, {"reference allele"}, {"marker id"}, {"chromosome"}};
+  public static final String[][] TARGETS_WITH_ALTS = {{"genotype"}, {"position"},
+                                                      {"reference allele"}, {"marker id"},
+                                                      {"chromosome"}};
 
   public static void fixAffectionStatusInBed(String root) {
     FamilyStructure struct;

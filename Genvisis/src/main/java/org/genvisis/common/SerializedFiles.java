@@ -111,10 +111,10 @@ public class SerializedFiles {
               break;
             }
           }
-          String convertedClassDesc =
-              name.substring(0, startInsert) + "org.genvisis." + name.substring(startInsert);
-          Class<?> convertedClass =
-              Class.forName(convertedClassDesc, false, ClassLoader.getSystemClassLoader());
+          String convertedClassDesc = name.substring(0, startInsert) + "org.genvisis."
+                                      + name.substring(startInsert);
+          Class<?> convertedClass = Class.forName(convertedClassDesc, false,
+                                                  ClassLoader.getSystemClassLoader());
           log.reportTimeWarning("The Class (" + name + ") for the Serialized Object " + filename
                                 + " cannot be resolved, attempting to use " + convertedClassDesc);
           return convertedClass;

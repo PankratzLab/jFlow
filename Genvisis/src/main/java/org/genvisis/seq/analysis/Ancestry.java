@@ -25,8 +25,8 @@ public class Ancestry {
                                true, log);
     log.reportTimeInfo("Current VCF: " + curVCF);
 
-    String[] filenames =
-        VcfPopulation.splitVcfByPopulation(curVCF, vpopFile, false, false, false, log);
+    String[] filenames = VcfPopulation.splitVcfByPopulation(curVCF, vpopFile, false, false, false,
+                                                            log);
     for (String filename : filenames) {
       if (filename.endsWith(".USE.vcf.gz")) {
         curVCF = filename;
@@ -36,7 +36,7 @@ public class Ancestry {
         log.reportTimeInfo("Current VCF: " + curVCF);
 
         String copyVcf =
-            ext.parseDirectoryOfFile(curVCF) + ext.rootOf(vpopFile) + "ancestry.vcf.gz";
+                       ext.parseDirectoryOfFile(curVCF) + ext.rootOf(vpopFile) + "ancestry.vcf.gz";
         Files.copyFileUsingFileChannels(new File(curVCF), new File(copyVcf), log);
         Files.copyFileUsingFileChannels(new File(curVCF + ".tbi"), new File(copyVcf + ".tbi"), log);
         curVCF = copyVcf;
@@ -60,7 +60,7 @@ public class Ancestry {
     usage += "   (1) vcf (i.e. vcf=" + vcf + " (default))\n" + "";
     usage += "   (2) file of hapMap rs ids to extract (i.e. hapMap=" + vcf + " (default))\n" + "";
     usage +=
-        "   (3) file of 1000 genome rs ids to extract (i.e. g1000=" + vcf + " (default))\n" + "";
+          "   (3) file of 1000 genome rs ids to extract (i.e. g1000=" + vcf + " (default))\n" + "";
     usage += "   (4) vpopFile  (i.e. vpop=" + vpopFile + " (default))\n" + "";
     usage += PSF.Ext.getOutputDirCommand(4, "");
 

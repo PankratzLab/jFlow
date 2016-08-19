@@ -18,7 +18,7 @@ import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 public class GCBin extends Segment {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private final double avgGcContent;
@@ -50,8 +50,10 @@ public class GCBin extends Segment {
     int numStates = 50;
     int zeroState = 5;
     NormalDistribution nd =
-        new org.apache.commons.math3.distribution.NormalDistribution(Array.mean(gcs, true),
-                                                                     Array.stdev(gcs, true));
+                          new org.apache.commons.math3.distribution.NormalDistribution(Array.mean(gcs,
+                                                                                                  true),
+                                                                                       Array.stdev(gcs,
+                                                                                                   true));
     int[] stateSequence = new int[gcs.length];
     for (int i = 0; i < gcs.length; i++) {
       double cdf = nd.cumulativeProbability(gcs[i]);
@@ -81,15 +83,15 @@ public class GCBin extends Segment {
       }
     }
 
-    LocusSet<GCBin> binset =
-        new LocusSet<GCBin>(allGc.toArray(new GCBin[allGc.size()]), true, proj.getLog()) {
+    LocusSet<GCBin> binset = new LocusSet<GCBin>(allGc.toArray(new GCBin[allGc.size()]), true,
+                                                 proj.getLog()) {
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1L;
 
-        };
+    };
 
     return binset;
     // binset.writeRegions(outFile, TO_STRING_TYPE.REGULAR, true, proj.getLog());

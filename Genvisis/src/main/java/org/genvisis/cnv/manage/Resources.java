@@ -180,8 +180,8 @@ public class Resources {
     }
 
     public Resource getResource(GENOME_BUILD build) {
-      String resourceSubPath =
-          getGenomeBuildSubDir(build) + namePrefix + build.getBuild() + nameSuffix;
+      String resourceSubPath = getGenomeBuildSubDir(build) + namePrefix + build.getBuild()
+                               + nameSuffix;
       switch (this) {
         case DB_SNP:
           return new VCFResource(getLocalDirBase(), resourceSubPath, url);
@@ -258,8 +258,8 @@ public class Resources {
     }
 
     public Resource getResource(GENOME_BUILD build) {
-      String resourceSubPath =
-          ARRAY_SUB_DIR + namePrefix + (genomeBuildSpecific ? build.getBuild() : "") + nameSuffix;
+      String resourceSubPath = ARRAY_SUB_DIR + namePrefix
+                               + (genomeBuildSpecific ? build.getBuild() : "") + nameSuffix;
       return new Resource(getLocalDirBase(), resourceSubPath, url) {};
     }
   }
@@ -292,7 +292,7 @@ public class Resources {
     private final String fullUrl;
 
     /**
-     * 
+     *
      * @param localPath This can be used to create fully qualified locations i.e
      *        /home/usr/resources, or relative i.e resources/<br>
      *        Thinking this will be set by launch properties
@@ -304,7 +304,7 @@ public class Resources {
     }
 
     /**
-     * 
+     *
      * @param fullLocalPath full path to resource on local system
      * @param fullUrl full url path to resource on internet
      */

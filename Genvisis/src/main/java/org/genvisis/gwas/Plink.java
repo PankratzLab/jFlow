@@ -28,22 +28,22 @@ public class Plink {
   // public static final String[] CLUSTER_HEADER = {"FID1", "IID1", "FID2", "IID2", "Z0", "Z1",
   // "Z2", "PI_HAT", "PHE", "IBS0", "IBS1", "IBS2", "DST", "P", "HOMHOM", "HETHET", "RATIO"};
   public static final String[] CLUSTER_HEADER =
-      {"FID1", "IID1", "FID2", "IID2", "RT", "EZ", "Z0", "Z1", "Z2", "PI_HAT", "PHE", "DST", "PPC",
-       "RATIO"};
+                                              {"FID1", "IID1", "FID2", "IID2", "RT", "EZ", "Z0",
+                                               "Z1", "Z2", "PI_HAT", "PHE", "DST", "PPC", "RATIO"};
   public static final int[] RELEVANT_CLUSTER_INDICES = {0, 1, 2, 3, 6, 7, 8, 9};
-  public static final String[] IMISS_HEADER =
-      {"FID", "IID", "MISS_PHENO", "N_MISS", "N_GENO", "F_MISS"};
+  public static final String[] IMISS_HEADER = {"FID", "IID", "MISS_PHENO", "N_MISS", "N_GENO",
+                                               "F_MISS"};
   public static final String[] MPERM_HEADER = {"CHR", "SNP", "EMP1", "EMP2"};
-  public static final String[] LOGISTIC_SE_HEADER =
-      {"CHR", "SNP", "BP", "A1", "TEST", "NMISS", "OR", "SE", "L95", "U95", "STAT", "P"};
-  public static final String[] LINEAR_SE_HEADER =
-      {"CHR", "SNP", "BP", "A1", "TEST", "NMISS", "BETA", "SE", "L95", "U95", "STAT", "P"};
+  public static final String[] LOGISTIC_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
+                                                     "OR", "SE", "L95", "U95", "STAT", "P"};
+  public static final String[] LINEAR_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
+                                                   "BETA", "SE", "L95", "U95", "STAT", "P"};
   public static final int[][] BUILD_36_PARS = {{}};
   public static final int[][] BUILD_37_PARS = {{}};
 
-  public static final String[] FLAGS =
-      new String[] {"duplicate", "parent-offspring", "sibling", "avuncular,gg",
-                    "first cousins,halfsibs", "second cousins"};
+  public static final String[] FLAGS = new String[] {"duplicate", "parent-offspring", "sibling",
+                                                     "avuncular,gg", "first cousins,halfsibs",
+                                                     "second cousins"};
   public static final double[][] THRESHOLDS = new double[][] {{0, 0, 0, 0.95}, // duplicate
                                                               {0, 0.80, 0, 0.49}, // parent-offspring
                                                               {0, 0.30, 0.10, 0.35}, // sibling
@@ -325,8 +325,8 @@ public class Plink {
     Hashtable<String, String> hash = new Hashtable<String, String>();
 
     hash =
-        HashVec.loadFileToHashString(ids, filterPairs ? new int[] {0, 1, 2, 3} : new int[] {0, 1},
-                                     null, false, "\t", false, false, false);
+         HashVec.loadFileToHashString(ids, filterPairs ? new int[] {0, 1, 2, 3} : new int[] {0, 1},
+                                      null, false, "\t", false, false, false);
 
     try {
       reader = new BufferedReader(new FileReader(genomeFile));
@@ -355,7 +355,7 @@ public class Plink {
 
   /**
    * Filter a genomeFile by removing ids
-   * 
+   *
    * @param genomeFile da genome file (full path)
    * @param ids a file (full path) containing FID/IID (one per line, tab delimited) of individuals
    *        to remove.
@@ -366,8 +366,8 @@ public class Plink {
    */
   public static void removeIndividuals(String genomeFile, String ids) {
     String[] line;
-    Hashtable<String, String> hash =
-        HashVec.loadFileToHashString(ids, new int[] {0, 1}, null, false, "\t", false, false, false);
+    Hashtable<String, String> hash = HashVec.loadFileToHashString(ids, new int[] {0, 1}, null,
+                                                                  false, "\t", false, false, false);
     try {
       BufferedReader reader = new BufferedReader(new FileReader(genomeFile));
       PrintWriter writer = new PrintWriter(new FileWriter(genomeFile + "_" + ext.rootOf(ids)));
@@ -428,9 +428,9 @@ public class Plink {
                       + ") is missing, individuals will not be preferentially selected based on LRR_SD");
       lrr_sds = new Hashtable<String, String>();
     } else {
-      boolean properHeader =
-          ext.checkHeader(Files.getHeaderOfFile(lrrFile, "[\\s]+", log),
-                          new String[] {"SAMPLE", "LRR_SD"}, new int[] {0, 2}, false, log, true);
+      boolean properHeader = ext.checkHeader(Files.getHeaderOfFile(lrrFile, "[\\s]+", log),
+                                             new String[] {"SAMPLE", "LRR_SD"}, new int[] {0, 2},
+                                             false, log, true);
       if (properHeader) {
         lrr_sds = HashVec.loadFileToHashString(lrrFile, new int[] {0}, new int[] {2}, false, "\t",
                                                false, false, false);
@@ -657,8 +657,8 @@ public class Plink {
       log.report("Writing duplicates file - found " + duplicates.size()
                  + " sets of duplicate identifiers");
       try {
-        PrintWriter writerSet =
-            new PrintWriter(new FileWriter(genomeFileRoot + "_duplicatesSet.dat"));
+        PrintWriter writerSet = new PrintWriter(new FileWriter(genomeFileRoot
+                                                               + "_duplicatesSet.dat"));
         writer = new PrintWriter(new FileWriter(genomeFileRoot + "_duplicates.dat"));
         int set = 1;
         for (Set<String> dupeSet : duplicates) {

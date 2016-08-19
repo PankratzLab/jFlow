@@ -1,8 +1,6 @@
 // -Xms1024M -Xmx1024M
 package org.genvisis.common;
 
-import com.google.common.primitives.Ints;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,6 +39,8 @@ import java.util.zip.ZipOutputStream;
 import org.genvisis.filesys.SerialHash;
 import org.genvisis.parse.GenParser;
 
+import com.google.common.primitives.Ints;
+
 // class DeleteLater implements Runnable {
 // private String filename;
 // private int timeToWait;
@@ -62,8 +62,8 @@ public class Files {
   // public static final String ROOT_DIRECTORY = "/export/home/npankrat/"; // alcatraz
   // public static final String ROOT_DIRECTORY = "/state/partition1/npankrat/"; // indiviudal nodes
   public static final String JAVA = "/usr/java/latest/bin/java";
-  public static final String JCP =
-      JAVA + " -cp /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS;
+  public static final String JCP = JAVA + " -cp /home/npankrat/"
+                                   + org.genvisis.common.PSF.Java.GENVISIS;
   public static final String SERIALIZED_FILE_EXTENSION = ".ser";
 
   public static String getJarLocation() {
@@ -255,8 +255,8 @@ public class Files {
     for (int i = start; i <= stop; i++) {
       // filename = ext.parseDirectoryOfFile(prefix,
       // true)+(prefix==null?"":ext.removeDirectoryInfo(prefix))+(start!=stop||(start>0&&start<25)?(prefix==null||prefix.equals("")?i:(prefix.endsWith("chr")?"":".")+i):"")+(root==null?"":"_"+root)+".qsub";
-      filename =
-          ext.insertNumbers(filenameFormat, i) + (filenameFormat.endsWith(".qsub") ? "" : ".qsub");
+      filename = ext.insertNumbers(filenameFormat, i)
+                 + (filenameFormat.endsWith(".qsub") ? "" : ".qsub");
       try {
         writer = new PrintWriter(new FileWriter(dir + filename));
         writeQsubHeader(writer, filename, totalMemoryRequestedInMb, walltimeRequestedInHours, 1,
@@ -475,8 +475,8 @@ public class Files {
     try {
       if (numBatches > 1) {
         writer =
-            new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(root_batch_name) + "master."
-                                           + ext.removeDirectoryInfo(root_batch_name)));
+               new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(root_batch_name) + "master."
+                                              + ext.removeDirectoryInfo(root_batch_name)));
         if (!dir.equals("./") && !dir.equals("")) {
           writer.println("cd " + dir);
         }
@@ -690,7 +690,7 @@ public class Files {
 
   /**
    * Method should handle gzip and other binary /compressed formats like .ser
-   * 
+   *
    * @param source source file
    * @param dest destination file
    * @param log
@@ -894,7 +894,7 @@ public class Files {
   /**
    * Searches the current directory and then the alternate location for a file and then opens it
    * with the appropriate reader
-   * 
+   *
    * @param filename the name of the filename to search for
    * @param alt_locations the alternate directories in which to search for the file
    * @return a BufferedReader for this file
@@ -908,7 +908,7 @@ public class Files {
   /**
    * Searches the current directory and then all of the alternate locations until it finds the file
    * and then opens it with the appropriate reader
-   * 
+   *
    * @param filename the name of the filename to search for
    * @param alt_locations the alternate directories in which to search for the file
    * @return a BufferedReader for this file
@@ -1636,7 +1636,7 @@ public class Files {
 
   /**
    * Looks up the values for a set of keys in memory
-   * 
+   *
    * @param keys - the keys to lookup (if they contain tabs, then they will be matched on the first
    *        N set of columns in the lookup values)
    * @param lookupValues - Matrix of String with the lookup values
@@ -2197,8 +2197,8 @@ public class Files {
 
         colCount = Files.getHeaderOfFile(infile, log).length;
         log.report("There are " + colCount + " columns in the file");
-        suggestedStep =
-            (int) ((double) memoryAvailable / 40 / ((double) filesize / (double) colCount));
+        suggestedStep = (int) ((double) memoryAvailable / 40
+                               / ((double) filesize / (double) colCount));
         log.report("( " + memoryAvailable + " / 40 ) / ( " + filesize + " / " + colCount + " ) = "
                    + suggestedStep);
         if (step == -1) {
@@ -2246,7 +2246,7 @@ public class Files {
 
   /**
    * Searches all of the directories in the array to see if any of them exist
-   * 
+   *
    * @param dirs the array of directories to search
    * @param verbose whether to report an error if none of the locations exists
    * @param kill whether to System.exit() if no valid directory is found
@@ -2277,7 +2277,7 @@ public class Files {
 
   /**
    * Searches all of the directories in the array to see if it contains the specified file
-   * 
+   *
    * @param dirs the array of directories to search
    * @param filename the filename to search for
    * @param verbose whether to report an error if none of the locations exists or if none of the
@@ -2754,8 +2754,8 @@ public class Files {
     files = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false, false);
     files = Array.addStrToArray("outfile.xln", files, 0);
     files =
-        Array.addStrToArray("# include add_filename_as_first_column after the output filename if you want it",
-                            files, 1);
+          Array.addStrToArray("# include add_filename_as_first_column after the output filename if you want it",
+                              files, 1);
     for (int i = 3; i < files.length; i++) {
       files[i] += " skip=1";
     }
@@ -2790,11 +2790,9 @@ public class Files {
 
     // get all files in the directory, excluding the crf itself and its corresponding log
     files = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false, false);
-    params = parseControlFile(filename,
-                              "rename", Array.toStringArray(
-                                                            Matrix.transpose(new String[][] {files,
-                                                                                             files}),
-                                                            "\t"),
+    params = parseControlFile(filename, "rename",
+                              Array.toStringArray(Matrix.transpose(new String[][] {files, files}),
+                                                  "\t"),
                               log);
     if (params != null) {
       matchingFilenames = new String[params.size()][2];
@@ -3112,7 +3110,7 @@ public class Files {
 
   /**
    * Put a tester at {@link NumLineTest}. Let JL know if this is messed up
-   * 
+   *
    */
   public static int countLines(String filename, int numberOfLinesNotToCount) {
     try {
@@ -3782,7 +3780,7 @@ public class Files {
 
   /**
    * Function to get path of serialized file from a filepath
-   * 
+   *
    * @param filepath the fileopath
    * @return the filepath of serialized file obtained by adding ".ser" at end
    */
@@ -3883,7 +3881,7 @@ public class Files {
 
   /**
    * Function to remove exntention from a the filenaem of a give file path
-   * 
+   *
    * @param filePath the path of the file
    * @return the name of the file without exntention
    */
@@ -3964,7 +3962,7 @@ public class Files {
 
   /**
    * Warning - does not check existence,null, etc.. just appends and moves on
-   * 
+   *
    * @param fileNamesNoDirectory these are fileNames with directory info removed (i.e from
    *        Files.list)
    * @param directoryToAppend append this directory info to each file in fileNamesNoDirectory
@@ -3980,7 +3978,7 @@ public class Files {
 
   /**
    * trys to determine if the path is relative or absolute
-   * 
+   *
    * @param path
    */
   public static boolean isRelativePath(String path) {
@@ -3989,7 +3987,7 @@ public class Files {
 
   /**
    * Attempts to grab all file paths of a type from an ftp site
-   * 
+   *
    * @param ftpdirAddress a remote directory of an ftp site
    * @param type the type of file to collect
    * @param log

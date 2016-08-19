@@ -68,11 +68,11 @@ public class BlastAnnotationTypes {
                                                                   ANNO_DELIM, DEFAULT_VALUE),
 
                                       /**
-                                       * 
+                                       *
                                        */
                                       PERFECT_MATCH(VCFHeaderLineType.String, DEFAULT_COUNT, DEFAULT_NUMBER, "Alignments (Cigar-positive orientation, Segment - positive orientation, Strand -original orientation) that perfectly cover the region", ANNO_DELIM, DEFAULT_VALUE),
     /**
-    * 
+    *
     */
     // NON_PERFECT_MATCH_ON_TARGET(VCFHeaderLineType.String, "HAS_PERFECT_MATCH", "There is a
     // perfect match Alignment", ANNO_DELIM, DEFAULT_VALUE_PM),

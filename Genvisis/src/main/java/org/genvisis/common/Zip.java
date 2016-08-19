@@ -262,9 +262,10 @@ public class Zip {
     public Callable<Boolean> next() {
       log.report("compressing file #" + (index + 1) + " of " + filesToGzip.length + " ("
                  + filesToGzip[index] + ")");
-      GzipWorker worker =
-          new GzipWorker(filesToGzip[index],
-                         outputDir + ext.removeDirectoryInfo(filesToGzip[index]) + ".gz", log);
+      GzipWorker worker = new GzipWorker(filesToGzip[index],
+                                         outputDir + ext.removeDirectoryInfo(filesToGzip[index])
+                                                             + ".gz",
+                                         log);
       index++;
       return worker;
     }
@@ -372,7 +373,7 @@ public class Zip {
     try {
       ZipFile zf = new ZipFile(filename);
       for (Enumeration<ZipEntry> entries =
-          (Enumeration<ZipEntry>) zf.entries(); entries.hasMoreElements();) {
+                                         (Enumeration<ZipEntry>) zf.entries(); entries.hasMoreElements();) {
         v.add((entries.nextElement()).getName());
       }
       zf.close();
@@ -395,14 +396,14 @@ public class Zip {
     // get all files in the directory, excluding the crf itself and its corresponding log
     files = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false, false);
     files =
-        Array.addStrToArray("# Output directory (i.e., sometimes more efficient if on a different drive); default is the same directory as the original file",
-                            files, 0);
+          Array.addStrToArray("# Output directory (i.e., sometimes more efficient if on a different drive); default is the same directory as the original file",
+                              files, 0);
     files = Array.addStrToArray("outputDirectory=", files, 1);
     files = Array.addStrToArray("# retain the timestamp of the original file", files, 2);
     files = Array.addStrToArray("retainTimestamp=" + retainOriginalTimestamp, files, 3);
     files =
-        Array.addStrToArray("# Number of minutes to wait before beginning a step (can be used more than once)",
-                            files, 4);
+          Array.addStrToArray("# Number of minutes to wait before beginning a step (can be used more than once)",
+                              files, 4);
     files = Array.addStrToArray("delay_in_minutes=0", files, 5);
 
     params = Files.parseControlFile(filename, "gzip", files, log);
