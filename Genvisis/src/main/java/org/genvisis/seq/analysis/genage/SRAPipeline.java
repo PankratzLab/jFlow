@@ -99,7 +99,8 @@ public class SRAPipeline implements Callable<Boolean> {
       switch (sample.getaType()) {
         case WGS:
           if (!prelimGenvisisWGS) {
-            BamImport.generateAnalysisSet(null, null, null, vcf, BamImport.CAPTURE_BUFFER, log,
+            BamImport.generateAnalysisSet(null, null, null, vcf, BamImport.CAPTURE_BUFFER,
+                                          sample.getaType(), log,
                                           new ReferenceGenome(referenceGenome, log));
             prelimGenvisisWGS = true;
           }
@@ -107,7 +108,8 @@ public class SRAPipeline implements Callable<Boolean> {
         case WXS:
           if (!prelimGenvisisWXS) {
             BamImport.generateAnalysisSet(null, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER,
-                                          log, new ReferenceGenome(referenceGenome, log));
+                                          sample.getaType(), log,
+                                          new ReferenceGenome(referenceGenome, log));
             prelimGenvisisWXS = true;
           }
           break;

@@ -151,7 +151,7 @@ public class Pipeline {
     public PipelinePart call() throws Exception {
 
       BamImport.importTheWholeBamProject(null, binBed, captureBed, vcf, captureBufferSize, -1,
-                                         false, numthreads);
+                                         false, ngsSample.getaType(), numthreads);
 
       return null;
     }
