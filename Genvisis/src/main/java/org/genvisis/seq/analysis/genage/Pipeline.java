@@ -34,7 +34,7 @@ public class Pipeline {
 
   }
 
-  private static class MitoPipeResult extends PipelinePart {
+  private static class MitoPipePart extends PipelinePart {
     private final String bamFile;
     private final String rootOutDir;
     private final String captureBed;
@@ -43,7 +43,7 @@ public class Pipeline {
     private final int numthreads;
     private final Logger log;
 
-    private MitoPipeResult(String bamFile, String rootOutDir, String captureBed,
+    private MitoPipePart(String bamFile, String rootOutDir, String captureBed,
                            String referenceGenomeFasta, NGSSample ngsSample, int numthreads,
                            Logger log) {
       super();
@@ -74,7 +74,7 @@ public class Pipeline {
 
   }
 
-  private static class TelSeqResult extends PipelinePart {
+  private static class TelSeqPart extends PipelinePart {
 
     private final String bam;
     private final String rootOutDir;
@@ -84,7 +84,7 @@ public class Pipeline {
     private final int captureBufferSize;
     private final Logger log;
 
-    private TelSeqResult(String bam, String rootOutDir, String captureBed, NGSSample ngsSample,
+    private TelSeqPart(String bam, String rootOutDir, String captureBed, NGSSample ngsSample,
                          int numthreads, int captureBufferSize, Logger log) {
       super();
       this.bam = bam;
@@ -130,10 +130,10 @@ public class Pipeline {
 
     WorkerHive<PipelinePart> hive = new WorkerHive<Pipeline.PipelinePart>(1, 10, log);
     // mtDNA CN
-    hive.addCallable(new MitoPipeResult(inputBam, rootOutDir, captureBed, referenceGenome, sample,
+    hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, referenceGenome, sample,
                                         1, log));
 
-    hive.addCallable(new TelSeqResult(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
+    hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
     hive.execute(true);
 
     return hive.getResults();
