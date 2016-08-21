@@ -12,6 +12,8 @@ import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
+import org.genvisis.seq.manage.BamImport;
+import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.sra.SRARunTable;
 import org.genvisis.sra.SRASample;
 import org.genvisis.sra.SRAUtils;
@@ -73,17 +75,40 @@ public class SRAPipeline implements Callable<Boolean> {
    * many pre-downloaded files
    */
   private static void runAll(String sraDir, String sraRunTableFile, String rootOutDir,
-                             String referenceGenome, String captureBed, int numThreads) {
+                             String referenceGenome, String captureBed, String binBed, String vcf,
+                             int numThreads) {
     Logger log = new Logger();
     String[] sraFiles = Files.list(sraDir, ".sra", false);
     SRARunTable srRunTable = SRARunTable.load(sraRunTableFile, log);
     log.reportTimeInfo("Found " + sraFiles.length + " sra files in " + sraDir);
     WorkerHive<Boolean> hive = new WorkerHive<Boolean>(numThreads, 10, log);
+    boolean prelimGenvisisWGS = false;
+    boolean prelimGenvisisWXS = false;
+
     for (String sraFile : sraFiles) {
       SRASample sample = srRunTable.get(ext.rootOf(sraFile));
 
       SRAPipeline pipeline = new SRAPipeline(sample, sraFile, rootOutDir, referenceGenome,
                                              captureBed, 1, log);
+      switch (sample.getaType()) {
+        case WGS:
+          if (!prelimGenvisisWGS) {
+            BamImport.generateAnalysisSet(null, null, null, vcf, BamImport.CAPTURE_BUFFER, log,
+                                          new ReferenceGenome(referenceGenome, log));
+            prelimGenvisisWGS = true;
+          }
+          break;
+        case WXS:
+          if (!prelimGenvisisWXS) {
+            BamImport.generateAnalysisSet(null, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER,
+                                          log, new ReferenceGenome(referenceGenome, log));
+            prelimGenvisisWXS = true;
+          }
+          break;
+        default:
+          break;
+
+      }
       hive.addCallable(pipeline);
     }
 
@@ -120,10 +145,20 @@ public class SRAPipeline implements Callable<Boolean> {
     final String CAPTURE_BED = "bed";
     CLI.addArg(options, CAPTURE_BED, "bed file of targeted capture", captureBedFile);
 
+    String binBed = "targetsOfInterest.bed";
+    final String BIN_BED = "bin";
+    CLI.addArg(options, BIN_BED, "bed file of targets of interests", binBed);
+
+    String vcf = "vcf.vcf";
+    final String VCF = "vcf";
+    CLI.addArg(options, VCF, "vcf file of variants", vcf);
+
+
     Map<String, String> parsed = CLI.parseWithExit(SRAPipeline.class, options, args);
 
     runAll(parsed.get(SRA_DRI), parsed.get(SRA_RUN_TABLE), parsed.get(OUT_DIR),
-           parsed.get(REFERENC_GENOME), parsed.get(CAPTURE_BED), numThreads);
+           parsed.get(REFERENC_GENOME), parsed.get(CAPTURE_BED), parsed.get(BIN_BED),
+           parsed.get(VCF), numThreads);
 
   }
 
