@@ -53,6 +53,7 @@ import htsjdk.variant.vcf.VCFFileReader;
  *
  */
 public class BamImport {
+  public static final int CAPTURE_BUFFER = 4000;
 
   /**
    * Some enums that define NGS "marker" types
@@ -321,8 +322,8 @@ public class BamImport {
                                       new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
                                                           log);
       log.reportTimeInfo("Found " + bamsToImport.length + " bam files to import");
-      AnalysisSets analysisSet = generateAnalysisSet(proj, binBed, captureBed, optionalVCF, log,
-                                                     referenceGenome);
+      AnalysisSets analysisSet = generateAnalysisSet(proj, binBed, captureBed, optionalVCF,
+                                                     captureBuffer, log, referenceGenome);
       FilterNGS filterNGS = new FilterNGS(20, 20, null);
       PileupProducer pileProducer =
                                   new PileupProducer(bamsToImport, serDir,
@@ -366,7 +367,7 @@ public class BamImport {
    * @return
    */
   public static AnalysisSets generateAnalysisSet(Project proj, String binBed, String captureBed,
-                                                 String optionalVCF, Logger log,
+                                                 String optionalVCF, int captureBuffer, Logger log,
 
                                                  ReferenceGenome referenceGenome) {
     LocusSet<Segment> analysisSet = null;
@@ -385,7 +386,7 @@ public class BamImport {
                                                                                                      true,
                                                                                                      log)
                                                                                             .mergeOverlapping(true),
-                                                                                    4000);//
+                                                                                    captureBuffer);//
         log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered()
                            + " bp covered by reference bins int the anti-on-target regions");
         log.memoryFree();
@@ -1020,7 +1021,7 @@ public class BamImport {
     String binBed = "binsToImport.bed";
     String captureBed = "AgilentCaptureRegions.txt";
     int numthreads = 24;
-    int captureBuffer = 4000;
+    int captureBuffer = CAPTURE_BUFFER;
     String vcf = null;
     int correctionPCs = 4;
     // String referenceGenomeFasta = "hg19_canonical.fa";
