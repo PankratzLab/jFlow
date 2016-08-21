@@ -160,7 +160,8 @@ public class Pipeline {
 
   public static List<PipelinePart> pipeline(String inputBam, String rootOutDir,
                                             String referenceGenome, String captureBed,
-                                            NGSSample sample, int numThreads, Logger log) {
+                                            String binBed, String vcf, NGSSample sample,
+                                            int numThreads, Logger log) {
     if (!Files.exists(inputBam)) {
       throw new IllegalArgumentException("Bam file " + inputBam + " must exist");
     }
@@ -182,8 +183,8 @@ public class Pipeline {
 
     hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
 
-    // hive.addCallable(new GenvisisPart(inputBam, rootOutDir, captureBed, binBed, vcf, sample, 1,
-    // BamImport.CAPTURE_BUFFER, log));
+    hive.addCallable(new GenvisisPart(inputBam, rootOutDir, captureBed, binBed, vcf, sample, 1,
+                                      BamImport.CAPTURE_BUFFER, log));
 
     hive.execute(true);
 

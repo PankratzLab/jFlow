@@ -26,13 +26,15 @@ import org.genvisis.sra.SRAUtils.SRAConversionResult;
  */
 public class SRAPipeline implements Callable<Boolean> {
 
-  private final SRASample sraSample;
-  private final String inputSRA;
-  private final String rootOutDir;
-  private final String referenceGenome;
-  private final String captureBed;
-  private final int numThreads;
-  private final Logger log;
+  private SRASample sraSample;
+  private String inputSRA;
+  private String rootOutDir;
+  private String referenceGenome;
+  private String captureBed;
+  private String binBed;
+  private String vcf;
+  private int numThreads;
+  private Logger log;
 
   /**
    * @param sraSample an {@link SRASample} to analyze
@@ -46,13 +48,16 @@ public class SRAPipeline implements Callable<Boolean> {
    * @param log
    */
   public SRAPipeline(SRASample sraSample, String inputSRA, String rootOutDir,
-                     String referenceGenome, String captureBed, int numThreads, Logger log) {
+                     String referenceGenome, String captureBed, String binBed, String vcf,
+                     int numThreads, Logger log) {
     super();
     this.sraSample = sraSample;
     this.inputSRA = inputSRA;
     this.rootOutDir = rootOutDir;
     this.referenceGenome = referenceGenome;
     this.captureBed = captureBed;
+    this.binBed = binBed;
+    this.vcf = vcf;
     this.numThreads = numThreads;
     this.log = log;
   }
@@ -65,7 +70,8 @@ public class SRAPipeline implements Callable<Boolean> {
     WorkerHive<SRAConversionResult> hive = new WorkerHive<SRAUtils.SRAConversionResult>(1, 10, log);
     hive.addCallable(new SRABamWorker(inputSRA, bam, log));
     hive.execute(true);
-    Pipeline.pipeline(bam, rootOutDir, referenceGenome, captureBed, sraSample, numThreads, log);
+    Pipeline.pipeline(bam, rootOutDir, referenceGenome, captureBed, binBed, vcf, sraSample,
+                      numThreads, log);
 
     return true;
   }
@@ -89,7 +95,7 @@ public class SRAPipeline implements Callable<Boolean> {
       SRASample sample = srRunTable.get(ext.rootOf(sraFile));
 
       SRAPipeline pipeline = new SRAPipeline(sample, sraFile, rootOutDir, referenceGenome,
-                                             captureBed, 1, log);
+                                             captureBed, binBed, vcf, 1, log);
       switch (sample.getaType()) {
         case WGS:
           if (!prelimGenvisisWGS) {
@@ -114,6 +120,8 @@ public class SRAPipeline implements Callable<Boolean> {
 
     hive.execute(true);
   }
+
+
 
   public static void main(String[] args) {
 
