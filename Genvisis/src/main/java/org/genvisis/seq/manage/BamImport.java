@@ -317,91 +317,124 @@ public class BamImport {
         bamsToImport = HashVec.loadFileToStringArray(proj.SOURCE_DIRECTORY.getValue(), false,
                                                      new int[] {0}, true);
       }
-
+      ReferenceGenome referenceGenome =
+                                      new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
+                                                          log);
       log.reportTimeInfo("Found " + bamsToImport.length + " bam files to import");
-      if (BedOps.verifyBedIndex(binBed, log)) {
-        BEDFileReader readerBin = new BEDFileReader(binBed, false);
-        LocusSet<BEDFeatureSeg> bLocusSet = readerBin.loadAll(log);
-        readerBin.close();
-        BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
-        readerCapture.close();
-        if (!bLocusSet.hasNoOverlap()) {
-          ReferenceGenome referenceGenome =
-                                          new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
-                                                              log);
-          log.memoryFree();
-          LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000)
-                                                                         .removeThese(LocusSet.combine(bLocusSet,
-                                                                                                       readerCapture.loadAll(log),
-                                                                                                       true,
-                                                                                                       log)
-                                                                                              .mergeOverlapping(true),
-                                                                                      4000);//
-          log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered()
-                             + " bp covered by reference bins int the anti-on-target regions");
-          log.memoryFree();
+      AnalysisSets analysisSet = generateAnalysisSet(proj, binBed, captureBed, optionalVCF, log,
+                                                     referenceGenome);
+      FilterNGS filterNGS = new FilterNGS(20, 20, null);
+      PileupProducer pileProducer =
+                                  new PileupProducer(bamsToImport, serDir,
+                                                     referenceGenome.getReferenceFasta(), filterNGS,
+                                                     analysisSet.analysisSet.getStrictSegments(),
+                                                     log);
+      WorkerTrain<BamPileResult> pileTrain = new WorkerTrain<BamPileResult>(pileProducer,
+                                                                            numthreads, 2, log);
+      int index = 0;
+      proj.SAMPLE_DIRECTORY.getValue(true, false);
+      proj.XY_SCALE_FACTOR.setValue((double) 10);
 
-          LocusSet<VariantSeg> varFeatures = extractVCF(proj, optionalVCF);// get
-                                                                           // variant
-                                                                           // sites,
-                                                                           // piled
-                                                                           // up
-                                                                           // according
-                                                                           // to
-                                                                           // actual
-                                                                           // location,
-                                                                           // not
-                                                                           // bins
-          if (varFeatures.getLoci().length > 0) {
-            log.reportTimeInfo(varFeatures.getBpCovered() + " bp covered by known variant sites");
-          }
+      BamPileResult[] results = new BamPileResult[bamsToImport.length];
+      while (pileTrain.hasNext()) {// creating temporary bam
+                                   // pileup of read counts for
+                                   // positions/segments of
+                                   // interest
+        results[index] = pileTrain.next();
+        index++;
 
-          ArrayList<MarkerFileType> markerTypes = generateMarkerPositions(proj, bLocusSet,
-                                                                          genomeBinsMinusBinsCaputure,
-                                                                          varFeatures);
-          log.memoryFree();
-          LocusSet<Segment> analysisSet = LocusSet.combine(bLocusSet.getStrictSegmentSet(),
-                                                           genomeBinsMinusBinsCaputure, true, log);
-          analysisSet = LocusSet.combine(analysisSet, varFeatures.getStrictSegmentSet(), true, log);
-          String[] offTargetsToUse = dumpLikelyOffTargetProblems(proj);
-          log.memoryFree();
-          if (!analysisSet.verifyPositiveLength()) {
-            throw new IllegalArgumentException("all import segments must be gte length 1");
-          }
-
-          FilterNGS filterNGS = new FilterNGS(20, 20, null);
-          PileupProducer pileProducer = new PileupProducer(bamsToImport, serDir,
-                                                           referenceGenome.getReferenceFasta(),
-                                                           filterNGS,
-                                                           analysisSet.getStrictSegments(), log);
-          WorkerTrain<BamPileResult> pileTrain = new WorkerTrain<BamPileResult>(pileProducer,
-                                                                                numthreads, 2, log);
-          int index = 0;
-          proj.SAMPLE_DIRECTORY.getValue(true, false);
-          proj.XY_SCALE_FACTOR.setValue((double) 10);
-
-          BamPileResult[] results = new BamPileResult[bamsToImport.length];
-          while (pileTrain.hasNext()) {// creating temporary bam
-                                       // pileup of read counts for
-                                       // positions/segments of
-                                       // interest
-            results[index] = pileTrain.next();
-            index++;
-
-          }
-          if (compileProject) {
-            compileProject(proj, correctionPCs, numthreads, log, bamsToImport, referenceGenome,
-                           markerTypes, analysisSet, offTargetsToUse, results);
-          }
-        } else {
-          log.reportTimeError("The bed file " + binBed
-                              + " had overlapping segments, currently non -overlapping segments are required");
-        }
       }
+      if (compileProject) {
+        compileProject(proj, correctionPCs, numthreads, log, bamsToImport, referenceGenome,
+                       analysisSet.markerTypes, analysisSet.analysisSet,
+                       analysisSet.offTargetsToUse, results);
+      }
+
+
     } else {
       proj.getLog().reportTimeError(proj.ARRAY_TYPE.getName() + " must be set to " + ARRAY.NGS);
     }
   }
+
+  /**
+   * @param proj determining where everything will live
+   * @param binBed the bins of interest
+   * @param captureBed capture library
+   * @param optionalVCF vcf for variants
+   * @param log
+   * @param referenceGenome
+   * @return
+   */
+  public static AnalysisSets generateAnalysisSet(Project proj, String binBed, String captureBed,
+                                                 String optionalVCF, Logger log,
+
+                                                 ReferenceGenome referenceGenome) {
+    LocusSet<Segment> analysisSet = null;
+    if (BedOps.verifyBedIndex(binBed, log)) {
+      BEDFileReader readerBin = new BEDFileReader(binBed, false);
+      LocusSet<BEDFeatureSeg> bLocusSet = readerBin.loadAll(log);
+      readerBin.close();
+      BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
+      readerCapture.close();
+      if (!bLocusSet.hasNoOverlap()) {
+
+        log.memoryFree();
+        LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000)
+                                                                       .removeThese(LocusSet.combine(bLocusSet,
+                                                                                                     readerCapture.loadAll(log),
+                                                                                                     true,
+                                                                                                     log)
+                                                                                            .mergeOverlapping(true),
+                                                                                    4000);//
+        log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered()
+                           + " bp covered by reference bins int the anti-on-target regions");
+        log.memoryFree();
+
+        LocusSet<VariantSeg> varFeatures = extractVCF(proj, optionalVCF);
+
+        if (varFeatures.getLoci().length > 0) {
+          log.reportTimeInfo(varFeatures.getBpCovered() + " bp covered by known variant sites");
+        }
+
+        ArrayList<MarkerFileType> markerTypes = generateMarkerPositions(proj, bLocusSet,
+                                                                        genomeBinsMinusBinsCaputure,
+                                                                        varFeatures);
+        log.memoryFree();
+        analysisSet = LocusSet.combine(bLocusSet.getStrictSegmentSet(), genomeBinsMinusBinsCaputure,
+                                       true, log);
+        analysisSet = LocusSet.combine(analysisSet, varFeatures.getStrictSegmentSet(), true, log);
+        String[] offTargetsToUse = dumpLikelyOffTargetProblems(proj);
+        log.memoryFree();
+        if (!analysisSet.verifyPositiveLength()) {
+          throw new IllegalArgumentException("all import segments must be gte length 1");
+        }
+        return new AnalysisSets(analysisSet, offTargetsToUse, markerTypes);
+
+      } else {
+        log.reportTimeError("The bed file " + binBed
+                            + " had overlapping segments, currently non -overlapping segments are required");
+      }
+    }
+    return null;
+  }
+
+  private static class AnalysisSets {
+    private LocusSet<Segment> analysisSet;
+    private String[] offTargetsToUse;
+    private ArrayList<MarkerFileType> markerTypes;
+
+    private AnalysisSets(LocusSet<Segment> analysisSet, String[] offTargetsToUse,
+                         ArrayList<MarkerFileType> markerTypes) {
+      super();
+      this.analysisSet = analysisSet;
+      this.offTargetsToUse = offTargetsToUse;
+      this.markerTypes = markerTypes;
+    }
+
+
+  }
+
+
 
   private static void compileProject(Project proj, int correctionPCs, int numthreads, Logger log,
                                      String[] bamsToImport, ReferenceGenome referenceGenome,
