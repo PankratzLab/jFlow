@@ -109,13 +109,13 @@ public class PennCNVPrep {
                                     principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN,
                                                                                        true);// for
                                                                                              // now
-          markerDataToStore =
-                            new MarkerData(markerData.getMarkerName(), markerData.getChr(),
-                                           markerData.getPosition(), markerData.getFingerprint(),
-                                           markerData.getGCs(), null, null, correctedXY[0],
-                                           correctedXY[1], null, null,
-                                           preserveBafs ? markerData.getBAFs() : correctedLRRBAF[0],
-                                           correctedLRRBAF[1], abGenotypes, abGenotypes);
+          markerDataToStore = new MarkerData(markerData.getMarkerName(), markerData.getChr(),
+                                             markerData.getPosition(), markerData.getFingerprint(),
+                                             markerData.getGCs(), null, null, correctedXY[0],
+                                             correctedXY[1], null, null,
+                                             preserveBafs ? markerData.getBAFs()
+                                                          : correctedLRRBAF[0],
+                                             correctedLRRBAF[1], abGenotypes, abGenotypes);
         }
         markerDataStorage.addToNextIndex(markerDataToStore);
         index++;
@@ -314,11 +314,12 @@ public class PennCNVPrep {
                                  - Runtime.getRuntime().freeMemory();
               float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
               float maxMemory = Runtime.getRuntime().maxMemory();
-              proj.getLog()
-                  .report(ext.getTime() + "\tData loaded = "
-                          + Math.round(((double) i / (double) proj.getMarkerNames().length * 100.0))
-                          + "%\tFree memory: "
-                          + Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
+              proj.getLog().report(ext.getTime() + "\tData loaded = "
+                                   + Math.round(((double) i / (double) proj.getMarkerNames().length
+                                                 * 100.0))
+                                   + "%\tFree memory: "
+                                   + Math.round(((double) freeMemory / (double) maxMemory * 100.0))
+                                   + "%");
             }
           }
           MarkerData markerData = markerDatas[j];
@@ -650,7 +651,7 @@ public class PennCNVPrep {
                                                                      new Hashtable<String, Future<Hashtable<String, Float>>>();
       String[] sortedFileNames = getSortedFileNames(proj, dir, tmpDir);
       Hashtable<String, Float> outliers = new Hashtable<String, Float>();
-      String outlierFile = proj.PROJECT_DIRECTORY.getValue() + "shadowSamples3/outliers.ser";
+      String outlierFile = proj.PROJECT_DIRECTORY.getValue() + "shadowSamples/outliers.ser";
       for (int i = 0; i < batches.length; i++) {
 
         PennCNVPrep specialPennCNVFormat = new PennCNVPrep(proj, null, null, null, null, null,
