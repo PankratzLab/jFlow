@@ -12,6 +12,7 @@ import org.genvisis.common.ext;
 import org.genvisis.seq.NGSSample;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.analysis.MitoSeqCN;
+import org.genvisis.seq.manage.BamImport;
 import org.genvisis.seq.telomere.TelSeq;
 
 /**
@@ -44,8 +45,8 @@ public class Pipeline {
     private final Logger log;
 
     private MitoPipePart(String bamFile, String rootOutDir, String captureBed,
-                           String referenceGenomeFasta, NGSSample ngsSample, int numthreads,
-                           Logger log) {
+                         String referenceGenomeFasta, NGSSample ngsSample, int numthreads,
+                         Logger log) {
       super();
       this.bamFile = bamFile;
       this.rootOutDir = rootOutDir;
@@ -85,7 +86,7 @@ public class Pipeline {
     private final Logger log;
 
     private TelSeqPart(String bam, String rootOutDir, String captureBed, NGSSample ngsSample,
-                         int numthreads, int captureBufferSize, Logger log) {
+                       int numthreads, int captureBufferSize, Logger log) {
       super();
       this.bam = bam;
       this.rootOutDir = rootOutDir;
@@ -111,6 +112,52 @@ public class Pipeline {
 
   }
 
+  private static class GenvisisPart extends PipelinePart {
+
+    private final String bam;
+    private final String rootOutDir;
+    private final String captureBed;
+    private final NGSSample ngsSample;
+    private final String binBed;
+    private final int numthreads;
+    private final int captureBufferSize;
+    private final String vcf;
+    private final Logger log;
+
+
+
+    public GenvisisPart(String bam, String rootOutDir, String captureBed, String binBed, String vcf,
+                        NGSSample ngsSample, int numthreads, int captureBufferSize, Logger log) {
+      super();
+      this.bam = bam;
+      this.rootOutDir = rootOutDir;
+      this.captureBed = captureBed;
+      this.binBed = binBed;
+      this.vcf = vcf;
+      this.ngsSample = ngsSample;
+      this.numthreads = numthreads;
+      this.captureBufferSize = captureBufferSize;
+      this.log = log;
+    }
+
+
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.util.concurrent.Callable#call()
+     */
+    @Override
+    public PipelinePart call() throws Exception {
+
+      BamImport.importTheWholeBamProject(null, binBed, captureBed, vcf, captureBufferSize, -1,
+                                         false, numthreads);
+
+      return null;
+    }
+
+  }
+
   public static List<PipelinePart> pipeline(String inputBam, String rootOutDir,
                                             String referenceGenome, String captureBed,
                                             NGSSample sample, int numThreads, Logger log) {
@@ -130,8 +177,8 @@ public class Pipeline {
 
     WorkerHive<PipelinePart> hive = new WorkerHive<Pipeline.PipelinePart>(1, 10, log);
     // mtDNA CN
-    hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, referenceGenome, sample,
-                                        1, log));
+    hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, referenceGenome, sample, 1,
+                                      log));
 
     hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
     hive.execute(true);

@@ -389,147 +389,10 @@ public class BamImport {
             index++;
 
           }
-          String[] mappedReadCounts = new String[bamsToImport.length + 1];
-          mappedReadCounts[0] = "Sample\tAlignedReadCount\tUnalignedReadCount";
-          long fingerPrint = proj.getMarkerSet().getFingerprint();
-          BamPileConverterProducer conversionProducer = new BamPileConverterProducer(proj, results,
-                                                                                     fingerPrint,
-                                                                                     log);
-          WorkerTrain<BamPileConversionResults> conversionTrain =
-                                                                new WorkerTrain<BamImport.BamPileConversionResults>(conversionProducer,
-                                                                                                                    numthreads,
-                                                                                                                    10,
-                                                                                                                    log);
-
-          Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
-
-          int convIndex = 0;
-          while (conversionTrain.hasNext()) {// normalize read counts
-                                             // and dump to sampRAF,
-                                             // special care for
-                                             // variant sites
-            BamPileConversionResults conversionResult = conversionTrain.next();
-            BamIndexStats bamIndexStats = conversionResult.getBamIndexStats();
-            int numAligned = bamIndexStats.getAlignedRecordCount();
-            int numNotAligned = bamIndexStats.getUnalignedRecordCount();
-            mappedReadCounts[convIndex + 1] = conversionResult.getSample() + "\t" + numAligned
-                                              + "\t" + numNotAligned;
-            convIndex++;
-            if (conversionResult.getOutliers() != null
-                && conversionResult.getOutliers().size() > 0) {
-              allOutliers.putAll(conversionResult.getOutliers());
-            }
+          if (compileProject) {
+            compileProject(proj, correctionPCs, numthreads, log, bamsToImport, referenceGenome,
+                           markerTypes, analysisSet, offTargetsToUse, results);
           }
-          String readCountFile = proj.PROJECT_DIRECTORY.getValue() + "sample.readCounts.txt";
-
-          Files.writeList(mappedReadCounts, readCountFile);
-
-          if (allOutliers.size() > 0
-              || !Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {// currently
-                                                                                              // do
-                                                                                              // to
-                                                                                              // all
-                                                                                              // the
-                                                                                              // skipping
-            SerializedFiles.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true)
-                                                     + "outliers.ser");
-          }
-
-          if (!Files.exists(proj.CUSTOM_CENTROIDS_FILENAME.getValue())) {// compute
-                                                                         // Log
-                                                                         // R
-                                                                         // ratio,
-                                                                         // since
-                                                                         // its
-                                                                         // not
-                                                                         // immediately
-                                                                         // available
-            TransposeData.transposeData(proj, 2000000000, false);
-            CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(),
-                                                    new CentroidBuilder(), numthreads, 2);
-            Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true, numthreads);
-            TransposeData.transposeData(proj, 2000000000, false);
-          } else {
-            proj.getLog()
-                .reportTimeWarning(proj.CUSTOM_CENTROIDS_FILENAME.getValue()
-                                   + " exists, and currently is the proxy for LRR computation being completed");
-          }
-          proj.saveProperties();
-          // All below stuff is just for fun...
-
-          SampleData.createMinimalSampleData(proj);
-          if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
-            LrrSd.init(proj, null, null, numthreads);
-          } else {
-            log.reportFileExists(proj.SAMPLE_QC_FILENAME.getValue());
-          }
-          if (!Files.exists(proj.MOSAIC_RESULTS_FILENAME.getValue())) {
-            Mosaicism.findOutliers(proj, numthreads);
-          }
-          ArrayList<ProjectCorrected> correcteds = correctifyProject(proj, markerTypes,
-                                                                     offTargetsToUse, correctionPCs,
-                                                                     numthreads);// Generates
-                                                                                 // and
-                                                                                 // corrects
-                                                                                 // the
-                                                                                 // project
-                                                                                 // for
-                                                                                 // each
-                                                                                 // marker
-                                                                                 // type
-
-          String newSampleDir = proj.PROJECT_DIRECTORY.getValue() + "samplesCorrected/";
-          String newtransposedDir = proj.PROJECT_DIRECTORY.getValue() + "transposedCorrected/";
-
-          RecompileProducer producer = new RecompileProducer(proj, proj.getSamples(), newSampleDir,
-                                                             proj.getMarkerSet(), correcteds);
-          WorkerTrain<Hashtable<String, Float>> train =
-                                                      new WorkerTrain<Hashtable<String, Float>>(producer,
-                                                                                                numthreads,
-                                                                                                10,
-                                                                                                proj.getLog());
-          Hashtable<String, Float> recompallOutliers = new Hashtable<String, Float>();
-
-          while (train.hasNext()) {// consolidate the pc corrected
-                                   // projects back into a single
-                                   // sample
-            Hashtable<String, Float> tmp = train.next();
-            if (tmp != null) {
-              recompallOutliers.putAll(tmp);
-            }
-          }
-
-          proj.SAMPLE_DIRECTORY.setValue(newSampleDir);// Final
-                                                       // resting
-                                                       // place
-          if (recompallOutliers.size() > 0
-              || !Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {// currently
-                                                                                              // do
-                                                                                              // to
-                                                                                              // all
-                                                                                              // the
-                                                                                              // skipping
-            SerializedFiles.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true)
-                                                     + "outliers.ser");
-          }
-          proj.MARKER_DATA_DIRECTORY.setValue(newtransposedDir);
-          TransposeData.transposeData(proj, 2000000000, false);// already
-                                                               // recomputed
-                                                               // with
-                                                               // the
-                                                               // correction
-
-          proj.MOSAIC_RESULTS_FILENAME.setValue(ext.addToRoot(proj.MOSAIC_RESULTS_FILENAME.getValue(),
-                                                              ".pcCorrected"));
-          if (!Files.exists(proj.MOSAIC_RESULTS_FILENAME.getValue())) {
-            Mosaicism.findOutliers(proj, numthreads);
-          }
-
-          generateGCModel(proj, analysisSet, referenceGenome, 50);
-          generateGCModel(proj, analysisSet, referenceGenome, 100);
-          generateGCModel(proj, analysisSet, referenceGenome, 200);
-          generateGCModel(proj, analysisSet, referenceGenome, 500000);
-          generateGCModel(proj, analysisSet, referenceGenome, 1000000);
         } else {
           log.reportTimeError("The bed file " + binBed
                               + " had overlapping segments, currently non -overlapping segments are required");
@@ -538,6 +401,151 @@ public class BamImport {
     } else {
       proj.getLog().reportTimeError(proj.ARRAY_TYPE.getName() + " must be set to " + ARRAY.NGS);
     }
+  }
+
+  private static void compileProject(Project proj, int correctionPCs, int numthreads, Logger log,
+                                     String[] bamsToImport, ReferenceGenome referenceGenome,
+                                     ArrayList<MarkerFileType> markerTypes,
+                                     LocusSet<Segment> analysisSet, String[] offTargetsToUse,
+                                     BamPileResult[] results) {
+    String[] mappedReadCounts = new String[bamsToImport.length + 1];
+    mappedReadCounts[0] = "Sample\tAlignedReadCount\tUnalignedReadCount";
+    long fingerPrint = proj.getMarkerSet().getFingerprint();
+    BamPileConverterProducer conversionProducer = new BamPileConverterProducer(proj, results,
+                                                                               fingerPrint, log);
+    WorkerTrain<BamPileConversionResults> conversionTrain =
+                                                          new WorkerTrain<BamImport.BamPileConversionResults>(conversionProducer,
+                                                                                                              numthreads,
+                                                                                                              10,
+                                                                                                              log);
+
+    Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
+
+    int convIndex = 0;
+    while (conversionTrain.hasNext()) {// normalize read counts
+                                       // and dump to sampRAF,
+                                       // special care for
+                                       // variant sites
+      BamPileConversionResults conversionResult = conversionTrain.next();
+      BamIndexStats bamIndexStats = conversionResult.getBamIndexStats();
+      int numAligned = bamIndexStats.getAlignedRecordCount();
+      int numNotAligned = bamIndexStats.getUnalignedRecordCount();
+      mappedReadCounts[convIndex + 1] = conversionResult.getSample() + "\t" + numAligned + "\t"
+                                        + numNotAligned;
+      convIndex++;
+      if (conversionResult.getOutliers() != null && conversionResult.getOutliers().size() > 0) {
+        allOutliers.putAll(conversionResult.getOutliers());
+      }
+    }
+    String readCountFile = proj.PROJECT_DIRECTORY.getValue() + "sample.readCounts.txt";
+
+    Files.writeList(mappedReadCounts, readCountFile);
+
+    if (allOutliers.size() > 0
+        || !Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {// currently
+                                                                                        // do
+                                                                                        // to
+                                                                                        // all
+                                                                                        // the
+                                                                                        // skipping
+      SerializedFiles.writeSerial(allOutliers,
+                                  proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+    }
+
+    if (!Files.exists(proj.CUSTOM_CENTROIDS_FILENAME.getValue())) {// compute
+                                                                   // Log
+                                                                   // R
+                                                                   // ratio,
+                                                                   // since
+                                                                   // its
+                                                                   // not
+                                                                   // immediately
+                                                                   // available
+      TransposeData.transposeData(proj, 2000000000, false);
+      CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(),
+                                              new CentroidBuilder(), numthreads, 2);
+      Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true, numthreads);
+      TransposeData.transposeData(proj, 2000000000, false);
+    } else {
+      proj.getLog()
+          .reportTimeWarning(proj.CUSTOM_CENTROIDS_FILENAME.getValue()
+                             + " exists, and currently is the proxy for LRR computation being completed");
+    }
+    proj.saveProperties();
+    // All below stuff is just for fun...
+
+    SampleData.createMinimalSampleData(proj);
+    if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
+      LrrSd.init(proj, null, null, numthreads);
+    } else {
+      log.reportFileExists(proj.SAMPLE_QC_FILENAME.getValue());
+    }
+    if (!Files.exists(proj.MOSAIC_RESULTS_FILENAME.getValue())) {
+      Mosaicism.findOutliers(proj, numthreads);
+    }
+    ArrayList<ProjectCorrected> correcteds = correctifyProject(proj, markerTypes, offTargetsToUse,
+                                                               correctionPCs, numthreads);// Generates
+                                                                                          // and
+                                                                                          // corrects
+                                                                                          // the
+                                                                                          // project
+                                                                                          // for
+                                                                                          // each
+                                                                                          // marker
+                                                                                          // type
+
+    String newSampleDir = proj.PROJECT_DIRECTORY.getValue() + "samplesCorrected/";
+    String newtransposedDir = proj.PROJECT_DIRECTORY.getValue() + "transposedCorrected/";
+
+    RecompileProducer producer = new RecompileProducer(proj, proj.getSamples(), newSampleDir,
+                                                       proj.getMarkerSet(), correcteds);
+    WorkerTrain<Hashtable<String, Float>> train =
+                                                new WorkerTrain<Hashtable<String, Float>>(producer,
+                                                                                          numthreads,
+                                                                                          10,
+                                                                                          proj.getLog());
+    Hashtable<String, Float> recompallOutliers = new Hashtable<String, Float>();
+
+    while (train.hasNext()) {// consolidate the pc corrected
+                             // projects back into a single
+                             // sample
+      Hashtable<String, Float> tmp = train.next();
+      if (tmp != null) {
+        recompallOutliers.putAll(tmp);
+      }
+    }
+
+    proj.SAMPLE_DIRECTORY.setValue(newSampleDir);// Final
+                                                 // resting
+                                                 // place
+    if (recompallOutliers.size() > 0
+        || !Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {// currently
+                                                                                        // do
+                                                                                        // to
+                                                                                        // all
+                                                                                        // the
+                                                                                        // skipping
+      SerializedFiles.writeSerial(allOutliers,
+                                  proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+    }
+    proj.MARKER_DATA_DIRECTORY.setValue(newtransposedDir);
+    TransposeData.transposeData(proj, 2000000000, false);// already
+                                                         // recomputed
+                                                         // with
+                                                         // the
+                                                         // correction
+
+    proj.MOSAIC_RESULTS_FILENAME.setValue(ext.addToRoot(proj.MOSAIC_RESULTS_FILENAME.getValue(),
+                                                        ".pcCorrected"));
+    if (!Files.exists(proj.MOSAIC_RESULTS_FILENAME.getValue())) {
+      Mosaicism.findOutliers(proj, numthreads);
+    }
+
+    generateGCModel(proj, analysisSet, referenceGenome, 50);
+    generateGCModel(proj, analysisSet, referenceGenome, 100);
+    generateGCModel(proj, analysisSet, referenceGenome, 200);
+    generateGCModel(proj, analysisSet, referenceGenome, 500000);
+    generateGCModel(proj, analysisSet, referenceGenome, 1000000);
   }
 
   private static String generateGCModel(Project proj, LocusSet<Segment> analysisSet,
