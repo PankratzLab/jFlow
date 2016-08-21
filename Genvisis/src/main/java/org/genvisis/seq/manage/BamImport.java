@@ -302,7 +302,8 @@ public class BamImport {
 
   public static void importTheWholeBamProject(Project proj, String binBed, String captureBed,
                                               String optionalVCF, int captureBuffer,
-                                              int correctionPCs, int numthreads) {
+                                              int correctionPCs, boolean compileProject,
+                                              int numthreads) {
 
     if (proj.getArrayType() == ARRAY.NGS) {
       Logger log = proj.getLog();
@@ -1036,7 +1037,7 @@ public class BamImport {
     try {
       // log = new Logger(logfile);
       Project proj = new Project(filename, false);
-      importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs,
+      importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs, true,
                                numthreads);
     } catch (Exception e) {
       e.printStackTrace();
