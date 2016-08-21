@@ -399,6 +399,11 @@ public class BamImport {
       }
     } else if (atype == ASSAY_TYPE.WGS) {
       genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000);
+      String tmp = proj.PROJECT_DIRECTORY.getValue() + "tmp.bed";
+      Files.write("0\t1\t100000", tmp);
+      BEDFileReader readerBin = new BEDFileReader(tmp, false);
+      bLocusSet = readerBin.loadAll(log);
+      readerBin.close();
     } else {
       throw new IllegalArgumentException("Invalid assay type " + atype);
     }
