@@ -155,16 +155,25 @@ public class Pipeline {
                                          false, ngsSample.getaType(), new String[] {bam},
                                          numthreads);
 
-      return null;
+      return this;
     }
 
   }
 
+  /**
+   * @param aType the {@link ASSAY_TYPE} to format the project for
+   * @param rootOutDir where the results will be stored
+   * @return a project to use
+   */
   public static Project getProjectFor(ASSAY_TYPE aType, String rootOutDir) {
-
-
-    return null;
-
+    String projectName = aType.toString() + "_Genvisis_Project";
+    String projectDir = rootOutDir + "genvisis/" + aType + "/";
+    String projectFile = projectDir + projectName + ".properties";
+    Files.writeList(new String[] {"PROJECT_NAME=" + projectName, "PROJECT_DIRECTORY=" + projectDir},
+                    projectFile);
+    Project proj = new Project(projectFile, false);
+    proj.saveProperties();
+    return proj;
   }
 
 
