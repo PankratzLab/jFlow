@@ -119,7 +119,6 @@ public class SRAPipeline implements Callable<Boolean> {
           break;
 
       }
-      System.exit(1);
       hive.addCallable(pipeline);
     }
 

@@ -861,8 +861,9 @@ public class BamImport {
         if (current == NGS_MARKER_TYPE.OFF_TARGET) {
           NGS_MARKER_TYPE left = NGS_MARKER_TYPE.getType(names[indice[compLeft]]);
           NGS_MARKER_TYPE right = NGS_MARKER_TYPE.getType(names[indice[compRight]]);
-          if (aType != ASSAY_TYPE.WGS && (compLeft != j && left != NGS_MARKER_TYPE.OFF_TARGET)
-              || (compRight != j && right != NGS_MARKER_TYPE.OFF_TARGET)) {
+          if (aType != ASSAY_TYPE.WGS
+              && ((compLeft != j && left != NGS_MARKER_TYPE.OFF_TARGET)
+                  || (compRight != j && right != NGS_MARKER_TYPE.OFF_TARGET))) {
             goodOffTargets.add(names[indice[j]]);
             problems.add(names[indice[j]] + "\tLIKELY_OFF_TARGET_PROBLEM");
             all.add(names[indice[j]] + "\tLIKELY_OFF_TARGET_PROBLEM");
@@ -877,7 +878,7 @@ public class BamImport {
       }
     }
     proj.getLog()
-        .reportTimeInfo("Dumping " + problems.size()
+        .reportTimeInfo("Dumping " + (problems.size() - 1)
                         + " off target markers that will likely be biased to " + problemFile);
     Files.writeArrayList(problems, problemFile);
     Files.writeArrayList(noProblems, noproblemFile);

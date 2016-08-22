@@ -198,10 +198,11 @@ public class Pipeline {
 
     WorkerHive<PipelinePart> hive = new WorkerHive<Pipeline.PipelinePart>(1, 10, log);
     // mtDNA CN
-    hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, referenceGenome, sample, 1,
-                                      log));
-
-    hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
+    // hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, referenceGenome, sample,
+    // 1,
+    // log));
+    //
+    // hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
 
     hive.addCallable(new GenvisisPart(inputBam, rootOutDir, captureBed, binBed, vcf, sample, 1,
                                       BamImport.CAPTURE_BUFFER, log));
