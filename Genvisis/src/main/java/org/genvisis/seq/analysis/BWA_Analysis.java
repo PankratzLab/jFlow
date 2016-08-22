@@ -89,7 +89,7 @@ public class BWA_Analysis {
 					success = bwa.bwaMEM(referenceGenomeFasta, readFQ1, readFQ2, output, getReadGroup(),
 					                     numMemThreads, (altLog == null ? log : altLog));
 				} else {
-					log.reportError("Error - could not find both files for ID" + ID);
+					log.reportError("could not find both files for ID" + ID);
 				}
 			}
 			return success;
@@ -101,7 +101,7 @@ public class BWA_Analysis {
 			} else if (readFQ2 == null) {
 				readFQ2 = readFQ;
 			} else {
-				log.reportError("Error - internal error, adding too many samples to the bwa analysis");
+				log.reportError("internal error, adding too many samples to the bwa analysis");
 				fail = true;
 			}
 		}
@@ -217,7 +217,7 @@ public class BWA_Analysis {
 
 		public void parse() {
 			if (split.length < 4) {
-				log.reportError("Error - could not parse filename " + fileName
+				log.reportError("could not parse filename " + fileName
 				                + " to ID, lane, barcode, and batch");
 				valid = false;
 			} else {
@@ -263,7 +263,7 @@ public class BWA_Analysis {
 					           + bwAnalysisIndividual.getAvailableFiles("\n"));
 				}
 			} else {
-				log.reportError("Error - initializing has failed for analysis "
+				log.reportError("initializing has failed for analysis "
 				                + bwAnalysisIndividual.getAvailableFiles("\n"));
 			}
 			return success;
@@ -346,16 +346,16 @@ public class BWA_Analysis {
 				for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
 					try {
 						if (!tmpResults.get(i + "").get()) {
-							log.reportError("Error - failed bwa for "
+							log.reportError("failed bwa for "
 							                + bwAnalysisIndividuals[i].getAvailableFiles("\n"));
 							fail = true;
 						}
 					} catch (InterruptedException e) {
-						log.reportError("Error - could not complete running bwa mem on internal index " + i);
+						log.reportError("could not complete running bwa mem on internal index " + i);
 						log.reportException(e);
 						fail = true;
 					} catch (ExecutionException e) {
-						log.reportError("Error - could not complete running bwa mem on internal index " + i);
+						log.reportError("could not complete running bwa mem on internal index " + i);
 						log.reportException(e);
 						fail = true;
 					}
@@ -474,7 +474,7 @@ public class BWA_Analysis {
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("[\\s]+");
 				if (line.length != 2) {
-					log.reportError("Error - " + fileOfSamplePairs
+					log.reportError(fileOfSamplePairs
 					                + " must be two columns only, with lane matched samples in each");
 					fail = true;
 				} else {
@@ -489,7 +489,7 @@ public class BWA_Analysis {
 							                + " did not match up, please make sure this is what you want to do");
 						}
 						if (!fileNameParser1.getID().equals(fileNameParser2.getID())) {
-							log.reportError("Error - the determined root ID for the two samples "
+							log.reportError("the determined root ID for the two samples "
 							                + Array.toStr(line) + " did not match up");
 							fail = true;
 						} else {
@@ -518,11 +518,11 @@ public class BWA_Analysis {
 			}
 
 		} catch (FileNotFoundException e) {
-			log.reportError("Error - could not find file " + fileOfSamplePairs);
+			log.reportError("could not find file " + fileOfSamplePairs);
 			log.reportException(e);
 			e.printStackTrace();
 		} catch (IOException e) {
-			log.reportError("Error - could not read file " + fileOfSamplePairs);
+			log.reportError("could not read file " + fileOfSamplePairs);
 			log.reportException(e);
 		}
 	}
@@ -569,12 +569,12 @@ public class BWA_Analysis {
 							bwAnalysisIndividuals[track.get(fileNameParser.getIDLane())].assignFile(inputFile);
 						}
 					} else {
-						log.reportError("Error - file name " + inputFile
+						log.reportError("file name " + inputFile
 						                + " could not be parsed according to our assumptions");
 					}
 				}
 				if (currIndex != bwAnalysisIndividuals.length) {
-					log.reportError("Error - could not match all files for input set\n"
+					log.reportError("could not match all files for input set\n"
 					                + Array.toStr(inputFiles, "\n"));
 					fail = true;
 				}
@@ -585,7 +585,7 @@ public class BWA_Analysis {
 	private void verifyAnalsyisInds() {
 		for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
 			if (!bwAnalysisIndividuals[i].hasBothFiles()) {
-				log.reportError("Error - internal index " + i + " only had the following files:"
+				log.reportError("internal index " + i + " only had the following files:"
 				                + bwAnalysisIndividuals[i].getAvailableFiles("\n"));
 				fail = true;
 			}
@@ -596,7 +596,7 @@ public class BWA_Analysis {
 		if (inputFiles != null && inputFiles.length % 2 == 0) {
 			return true;
 		} else {
-			log.reportError("Error - found an odd number of input files, currently they must be paired reads");
+			log.reportError("found an odd number of input files, currently they must be paired reads");
 			return false;
 		}
 	}
@@ -604,7 +604,7 @@ public class BWA_Analysis {
 	private boolean verifyReferenceGenome() {
 		boolean verified = true;
 		if (!Files.exists(referenceGenomeFasta)) {
-			log.reportError("Error - could not find reference genome file" + referenceGenomeFasta);
+			log.reportError("could not find reference genome file" + referenceGenomeFasta);
 			verified = false;
 		}
 		return verified;
@@ -738,7 +738,7 @@ public class BWA_Analysis {
 				batch = true;
 				numArgs--;
 			} else {
-				System.err.println("Error - invalid argument: " + arg);
+				System.err.println("invalid argument: " + arg);
 			}
 		}
 
@@ -759,7 +759,7 @@ public class BWA_Analysis {
 // private boolean verifyReferenceGenome() {
 // boolean verfied = true;
 // if (referenceGenomeFasta == null && referenceGenomeIndexed == null) {
-// log.reportError("Error - a reference (indexed or un-indexed) genome must be supplied");
+// log.reportError("a reference (indexed or un-indexed) genome must be supplied");
 // verfied = false;
 // } else {
 // if (referenceGenomeIndexed != null) {
@@ -775,7 +775,7 @@ public class BWA_Analysis {
 // }
 // } else {
 // verfied = false;
-// log.reportError("Error - indexed reference genome was specified, but did not exist at" +
+// log.reportError("indexed reference genome was specified, but did not exist at" +
 // referenceGenomeIndexed);
 // }
 // } else if (referenceGenomeFasta != null) {
@@ -787,13 +787,13 @@ public class BWA_Analysis {
 // }
 // } else {
 // if (!Files.exists(referenceGenomeFasta)) {
-// log.reportError("Error - reference genome was specified, but did not exist at" +
+// log.reportError("reference genome was specified, but did not exist at" +
 // referenceGenomeFasta);
 // verfied = false;
 // } else {
 // new BWA(bwaLocation, false, verbose, log).indexReferenceGenome(referenceGenomeFasta);
 // if (!Files.exists(referenceGenomeIndexed)) {
-// log.reportError("Error - could not create indexed reference genome" + referenceGenomeIndexed);
+// log.reportError("could not create indexed reference genome" + referenceGenomeIndexed);
 // verfied = false;
 // }
 // }
