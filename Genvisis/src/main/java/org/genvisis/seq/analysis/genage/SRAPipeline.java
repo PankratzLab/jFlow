@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 import org.genvisis.CLI;
+import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerHive;
@@ -94,10 +95,12 @@ public class SRAPipeline implements Callable<Boolean> {
 
       SRAPipeline pipeline = new SRAPipeline(sample, sraFile, rootOutDir, referenceGenome,
                                              captureBed, binBed, vcf, 1, log);
-      switch (sample.getaType()) {
+      switch (sample.getaType()) {// create the required markerSets for import...prior to threading
         case WGS:
           if (!prelimGenvisisWGS) {
-            BamImport.generateAnalysisSet(null, null, null, vcf, BamImport.CAPTURE_BUFFER,
+            Project proj = Pipeline.getProjectFor(sample.getaType(), rootOutDir);
+
+            BamImport.generateAnalysisSet(proj, null, null, vcf, BamImport.CAPTURE_BUFFER,
                                           sample.getaType(), log,
                                           new ReferenceGenome(referenceGenome, log));
             prelimGenvisisWGS = true;
@@ -105,7 +108,8 @@ public class SRAPipeline implements Callable<Boolean> {
           break;
         case WXS:
           if (!prelimGenvisisWXS) {
-            BamImport.generateAnalysisSet(null, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER,
+            Project proj = Pipeline.getProjectFor(sample.getaType(), rootOutDir);
+            BamImport.generateAnalysisSet(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER,
                                           sample.getaType(), log,
                                           new ReferenceGenome(referenceGenome, log));
             prelimGenvisisWXS = true;

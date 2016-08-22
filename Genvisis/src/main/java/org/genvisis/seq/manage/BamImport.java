@@ -409,7 +409,8 @@ public class BamImport {
     } else {
       throw new IllegalArgumentException("Invalid assay type " + atype);
     }
-    log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by analysis  set");
+    log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by " + atype
+                       + " analysis  set");
     log.memoryFree();
 
 
