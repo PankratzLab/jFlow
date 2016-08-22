@@ -691,7 +691,16 @@ public class PennCNVPrep {
       } catch (InterruptedException e) {
         proj.getLog().reportException(e);
       }
-      SerializedFiles.writeSerial(outliers, outlierFile);
+      proj.SAMPLE_DIRECTORY.setValue("shadowSamples/");
+      proj.MARKER_DATA_DIRECTORY.setValue("shadowTransposed/");
+      if (outliers.size() == 0) {// usually caused by skipping sample export, so will generate it
+        proj.NUM_THREADS.setValue(numMarkerThreads * numThreads);
+        proj.verifyAndGenerateOutliers(true);
+      } else {
+        SerializedFiles.writeSerial(outliers, outlierFile);
+      }
+
+      proj.saveProperties(proj.PROJECT_DIRECTORY.getValue() + "shadow.properties");
     } else {
       prepExport(proj, dir, tmpDir, numComponents, markerFile, numThreads, numMarkerThreads, lType,
                  preserveBafs);
