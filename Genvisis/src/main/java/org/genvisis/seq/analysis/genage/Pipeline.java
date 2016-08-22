@@ -180,6 +180,19 @@ public class Pipeline {
   }
 
 
+  /**
+   * @param inputBam The bam file to run through the pipeline
+   * @param rootOutDir where output will be sent
+   * @param referenceGenome
+   * @param captureBed a bed file defining caputure regions
+   * @param binBed a bed file defining input targets (intersection of this and capture bed will be
+   *        imported)
+   * @param vcf a vcf file defining variant sites
+   * @param sample
+   * @param numThreads
+   * @param log
+   * @return
+   */
   public static List<PipelinePart> pipeline(String inputBam, String rootOutDir,
                                             String referenceGenome, String captureBed,
                                             String binBed, String vcf, NGSSample sample,
