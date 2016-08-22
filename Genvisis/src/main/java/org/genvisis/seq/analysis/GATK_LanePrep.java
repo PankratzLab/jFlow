@@ -104,7 +104,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 						getLog().report(ext.getTime()	+ "Info - retrieving picard results for "
 														+ picard_Analysis[i].getFullPathToSamFile());
 						if (picard_Analysis[i].isFail() && !isFail()) {
-							getLog().reportError("Error - failed picard for "
+              getLog().reportError("Failed picard for "
 																		+ picard_Analysis[i].getFullPathToSamFile());
 							setFail(true);
 						}
@@ -129,7 +129,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 					if (picard_Analysis[i].isAllThere()) {
 						picardFiles[i] = picard_Analysis[i].getFullPathToMetricsTxt();
 					} else {
-						getLog().reportError("Error - could not find picard metrics file for root input files:\n"
+            getLog().reportError("Could not find picard metrics file for root input files:\n"
 																	+ bwAnalysisIndividuals[i].getAvailableFiles("\n"));
 					}
 				}
@@ -148,7 +148,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 
   public String[] getCurrentFiles(boolean dedupStage) {
     if (!dedupStage) {
-      getLog().reportError("Error - should not be requesting other files with un implemented request");
+      getLog().reportError("Should not be requesting other files with un implemented request");
       return null;
     } else {
       String[] currentFiles = new String[picard_Analysis.length];
@@ -196,16 +196,16 @@ public class GATK_LanePrep extends BWA_Analysis {
   // try {
   // gIndelPreps[i] = tmpResults.get(i + "").get();
   // if (gIndelPreps[i].isFail() && !isFail()) {
-  // getLog().reportError("Error - failed indel re-alignment for "
+  // getLog().reportError("failed indel re-alignment for "
   // + gIndelPreps[i].getDedup_reads_bam());
   // setFail(true);
   // }
   // } catch (InterruptedException e) {
-  // getLog().reportError("Error - could running GATK indel Prep on internal index " + i);
+  // getLog().reportError("could running GATK indel Prep on internal index " + i);
   // getLog().reportException(e);
   // setFail(true);
   // } catch (ExecutionException e) {
-  // getLog().reportError("Error - could running GATK indel Prep on internal index " + i);
+  // getLog().reportError("could running GATK indel Prep on internal index " + i);
   // getLog().reportException(e);
   // setFail(true);
   // }
@@ -244,17 +244,17 @@ public class GATK_LanePrep extends BWA_Analysis {
           try {
             gRecalibrations[i] = tmpResults.get(i + "").get();
             if (gRecalibrations[i].isFail() && !isFail()) {
-              getLog().reportError("Error - failed recalibration for "
+              getLog().reportError("failed recalibration for "
                                    + gRecalibrations[i].getDedup_reads_bam());
               setFail(true);
             }
           } catch (InterruptedException e) {
-            getLog().reportError("Error - when running GATK Base recalibration on internal index "
+            getLog().reportError("When running GATK Base recalibration on internal index "
                                  + i);
             getLog().reportException(e);
             setFail(true);
           } catch (ExecutionException e) {
-            getLog().reportError("Error - when running GATK Base recalibration on internal index "
+            getLog().reportError("When running GATK Base recalibration on internal index "
                                  + i);
             getLog().reportException(e);
             setFail(true);
@@ -302,17 +302,17 @@ public class GATK_LanePrep extends BWA_Analysis {
 					try {
 						mBamMergers[i] = tmpResults.get(i + "").get();
 						if ((mergeBam.isFail() || mBamMergers[i].isFail()) && !isFail()) {
-							getLog().reportError("Error - failed merging for "
+              getLog().reportError("Failed merging for "
 																		+ Array.toStr(mBamMergers[i].getInputBams(), "\n"));
 							setFail(true);
 						}
 					} catch (InterruptedException e) {
-						getLog().reportError("Error - when running GATK Base recalibraion on internal index "
+            getLog().reportError("When running GATK Base recalibration on internal index "
 																	+ i);
 						getLog().reportException(e);
 						setFail(true);
 					} catch (ExecutionException e) {
-						getLog().reportError("Error - when running GATK Base recalibraion on internal index "
+            getLog().reportError("When running GATK Base recalibration on internal index "
 																	+ i);
 						getLog().reportException(e);
 						setFail(true);
@@ -531,7 +531,7 @@ public class GATK_LanePrep extends BWA_Analysis {
       if (!gLanePrep.isFail()) {
         mergedFiles = gLanePrep.getCurrentFiles(true);
         if (mergedFiles == null) {
-          log.reportError("Error - could not retrieve merged filenames");
+          log.reportError("Could not retrieve merged filenames");
           gLanePrep.setFail(true);
         }
       }
@@ -548,7 +548,7 @@ public class GATK_LanePrep extends BWA_Analysis {
         bamsToGenotype = filesNotMerged;
       }
       if (bamsToGenotype == null) {
-        log.reportError("Error - could not find any files to genotype, this should not happen");
+        log.reportError("Could not find any files to genotype, this should not happen");
       } else {
         GATK_Genotyper gatk_Genotyper = new GATK_Genotyper(gatk, null, null, null,
                                                            gLanePrep.getNumBetweenSampleThreads(),
@@ -601,7 +601,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 					// if (!reHeader.isFail()) {
 					// // calibrationsToMerge[i][j].setRrd_bam(reHeader.getReHeaderBam());
 					// } else {
-					// log.report("Error - could not re header file " +
+					// log.report("could not re header file " +
 					// calibrationsToMerge[i][j].getRrd_bam());
 					// calibrationsToMerge[i][j].setFail(reHeader.isFail());
 					// }
@@ -771,7 +771,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 				knownSitesIndelFile = ext.parseStringArg(arg, "").split(GATK.SPLIT);
 				numArgs--;
 			} else {
-				System.err.println("Error - invalid argument: " + arg);
+				System.err.println("invalid argument: " + arg);
 			}
 		}
 
