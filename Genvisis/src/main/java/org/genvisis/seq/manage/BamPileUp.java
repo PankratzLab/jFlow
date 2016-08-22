@@ -209,6 +209,7 @@ public class BamPileUp implements Iterator<BamPile> {
       this.binSize = binSize;
       this.previousBin = previousBin;
       this.samRecord = samRecord;
+      this.log = log;
       samRecordSeg = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
       nextBin =
               samRecordSeg.overlaps(previousBin) ? getNextBin(previousBin, binSize) : scanToNext();

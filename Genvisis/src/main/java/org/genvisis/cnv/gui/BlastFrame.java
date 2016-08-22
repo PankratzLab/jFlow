@@ -650,6 +650,9 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
       @Override
       public void run() {
         try {
+          //FIXME this is guaranteed to cause an NPE.
+          // Should convert to a standard constructor that
+          // handles default project creation.
           BlastFrame frame = new BlastFrame(null, null);
           frame.setVisible(true);
         } catch (Exception e) {

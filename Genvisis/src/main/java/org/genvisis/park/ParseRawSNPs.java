@@ -196,9 +196,10 @@ public class ParseRawSNPs {
                                      + ", but it is also " + line[indices[3]] + ")");
                 }
               }
-              checker.checkPair(line[indices[1]], line[indices[0]], verbosity >= 9)
-                     .startsWith("\t");
-              v.add(line);
+              if (checker.checkPair(line[indices[1]], line[indices[0]], verbosity >= 9)
+                     .startsWith("\t")) {
+                v.add(line);
+              }
 
             } else {
               if (verbosity >= 5) {

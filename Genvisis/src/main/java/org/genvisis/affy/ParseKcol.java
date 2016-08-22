@@ -1117,7 +1117,7 @@ public class ParseKcol implements Runnable {
                     }
                   } catch (NumberFormatException nfe) {
                     System.err.println("Error - failed to parse" + line[dataIndices[j]]
-                                       + " into a valid " + DATA_FIELDS[j]);
+                                       + " into a valid " + Array.toStr(DATA_FIELDS[j], ","));
                     return;
                   }
                 }
