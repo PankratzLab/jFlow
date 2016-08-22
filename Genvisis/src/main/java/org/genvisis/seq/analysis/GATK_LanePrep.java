@@ -681,7 +681,7 @@ public class GATK_LanePrep extends BWA_Analysis {
              + REFERENCE_GENOME_COMMAND + referenceGenomeFasta + " (no default))\n" + "";
     usage += "   (5) the full path to the bwa executable (i.e. " + BWA_LOCATION_COMMAND
              + bwaLocation + " (defualts to systems path))\n" + "";
-    usage += "   (6) the full path to the picard directory containing .jar files (i.e. "
+    usage += "   (6) the full path to the picard directory containing the .jar (i.e. "
              + Picard.PICARD_LOCATION_COMMAND + picardLocation + " (default))\n" + "";
     usage += "   (7) the full path to the GATK executable (i.e. " + GATK.GATK_LOCATION_COMMAND
              + gATKLocation + " (defualts to systems path))\n" + "";

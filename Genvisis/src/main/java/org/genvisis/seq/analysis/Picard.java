@@ -15,9 +15,10 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
 public class Picard {
-	public static final String SORT_SAM_JAR = "SortSam.jar";
-	public static final String MARK_DUPLICATES_JAR = "MarkDuplicates.jar";
-	public static final String BUILD_BAM_INDEX = "BuildBamIndex.jar";
+  public static final String PICARD_JAR = "picard.jar";
+  public static final String SORT_SAM = "SortSam";
+  public static final String MARK_DUPLICATES = "MarkDuplicates";
+  public static final String BUILD_BAM_INDEX = "BuildBamIndex";
 	public static final String BAM_INDEX_EXT = ".bai";
 	public static final String JAR = "-jar";
 	public static final String DEFAULT_JAVA = "java";
@@ -54,7 +55,7 @@ public class Picard {
 	}
 
 	public boolean sortSam(String inputFile, String outputFile, Logger altLog) {
-		String[] command = new String[] {	javaLocation, JAR, picardLocation + SORT_SAM_JAR,
+    String[] command = new String[] {javaLocation, JAR, picardLocation + PICARD_JAR, SORT_SAM,
 																			INPUT + inputFile, OUTPUT + outputFile,
 																			SORT_ORDER + DEFAULT_SORT_ORDER,
 																			getTMPdirectory(inputFile, outputFile)};
@@ -65,8 +66,8 @@ public class Picard {
 
 	public boolean markDuplicates(String inputFile, String outputFile, String metricsFile,
 																double memoryRatio, Logger altLog) {
-		String[] command = new String[] {	javaLocation, JAR, picardLocation + MARK_DUPLICATES_JAR,
-																			INPUT + inputFile, OUTPUT + outputFile,
+    String[] command = new String[] {javaLocation, JAR, picardLocation + PICARD_JAR,
+                                     MARK_DUPLICATES, INPUT + inputFile, OUTPUT + outputFile,
 																			METRICS_FILE + metricsFile,
 																			getTMPdirectory(inputFile, inputFile),
 																			SORTING_COLLECTION_SIZE_RATIO + memoryRatio};
@@ -77,7 +78,8 @@ public class Picard {
 	}
 
 	public boolean indexBAM(String inputFile, String expectedOutput, Logger altLog) {
-		String[] command = new String[] {	javaLocation, JAR, picardLocation + BUILD_BAM_INDEX,
+    String[] command =
+                     new String[] {javaLocation, JAR, picardLocation + PICARD_JAR, BUILD_BAM_INDEX,
 																			INPUT + inputFile,
 																			getTMPdirectory(inputFile, expectedOutput)};
 		return CmdLine.runCommandWithFileChecks(command, "", new String[] {inputFile},
