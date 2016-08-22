@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -14,6 +13,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.genvisis.CLI;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -313,167 +313,27 @@ public class DBGAPMerge {
     writer.flush();
     writer.close();
 
-    // lineOut = new StringBuilder("DBGAP_ID");
-    // for (FileSet fs : files) {
-    // for (int i = 0; i < fs.dataDefs.size(); i++) {
-    // DataColumn dc = fs.dataDefs.get(i);
-    // lineOut.append("\t").append(dc.varName).append(";").append(dc.varID).append(";").append(dc.table);
-    // if (dc.consentGroup != null) {
-    // lineOut.append(";").append(dc.consentGroup);
-    // }
-    // }
-    // }
-    // writer.println(lineOut.toString());
-    //
-    // for (String id : idSet) {
-    // lineOut = new StringBuilder(id);
-    // for (FileSet fs : files) {
-    // String[] data = fs.idDataMap.get(id);
-    // if (data == null) {
-    // data = Array.stringArray(fs.dataDefs.size(), MISSING_DATA);
-    // }
-    // for (int i = 0; i < fs.dataDefs.size(); i++) {
-    // lineOut.append("\t").append("".equals(data[i]) ? MISSING_DATA : data[i]);
-    // }
-    // }
-    // writer.println(lineOut.toString());
-    // }
-    // writer.flush();
-    // writer.close();
-
-    writer = Files.getAppropriateWriter(outMap);
-    writer.println("Source\tStudy\tTable\tVariable\tVariableID\tfinalColumnName\tcustomColumnName\tDescription\tUnits\tVariableMapping\tComment");
-    for (String key : dataColumnKeys) {
-      lineOut = new StringBuilder();
-
-      FileSet fs = dataColumnMap.get(key).get(0); // TODO fix selection of fileset?
-
-      DataColumn dc = fs.dataDefs.get(fs.getIndexOfDataColumn(key));
-
-      lineOut.append(dc.source).append("\t");
-      lineOut.append(dc.study).append("\t");
-      lineOut.append(dc.table).append("\t");
-      lineOut.append(dc.varName).append("\t");
-      lineOut.append(dc.varID).append("\t");
-      lineOut.append(key).append("\t");
-      lineOut.append(".").append("\t");
-      lineOut.append(dc.varDesc).append("\t");
-      lineOut.append(dc.varUnit == null ? "." : dc.varUnit).append("\t");
-      if (dc.varValueDescriptions.isEmpty()) {
-        lineOut.append(".").append("\t");
-      } else {
-        for (Entry<String, String> ent : dc.varValueDescriptions.entrySet()) {
-          lineOut.append(ent.getKey()).append("=").append(ent.getValue()).append(";");
-        }
-      }
-      if (dc.comment != null && !"".equals(dc.comment)) {
-        lineOut.append("\t").append(dc.comment);
-      } else {
-        lineOut.append("\t").append(".");
-      }
-
-      writer.println(lineOut.toString());
-    }
-    writer.flush();
-    writer.close();
-
-
-    // for (FileSet fs : files) {
-    // for (DataColumn dc : fs.dataDefs) {
-    // lineOut = new StringBuilder();
-    // lineOut.append(dc.source).append("\t");
-    // lineOut.append(dc.study).append("\t");
-    // lineOut.append(dc.table).append("\t");
-    // lineOut.append(dc.varName).append("\t");
-    // lineOut.append(dc.varID).append("\t");
-    // lineOut.append(dc.varName).append(";").append(dc.varID).append(";").append(dc.table);
-    // lineOut.append("\t");
-    // lineOut.append(".").append("\t");
-    // lineOut.append(dc.varDesc).append("\t");
-    // lineOut.append(dc.varUnit == null ? "." : dc.varUnit).append("\t");
-    // if (dc.varValueDescriptions.isEmpty()) {
-    // lineOut.append(".").append("\t");
-    // } else {
-    // for (Entry<String, String> ent : dc.varValueDescriptions.entrySet()) {
-    // lineOut.append(ent.getKey()).append("=").append(ent.getValue()).append(";");
-    // }
-    // }
-    // if (dc.comment != null && !"".equals(dc.comment)) {
-    // lineOut.append("\t").append(dc.comment);
-    // } else {
-    // lineOut.append("\t").append(".");
-    // }
-    // writer.println(lineOut.toString());
-    // }
-    // }
-    // writer.flush();
-    // writer.close();
   }
 
   public static void main(String[] args) {
-    int numArgs = args.length;
-    String out = null;
-    String outMap = null;
-    String[] dir = null;
-    String logfile = null;
+    String out = "out";
+    String outMap = "outMap";
+    String dir = "dir";
+    String logfile = "log";
     Logger log;
 
-    String usage = "\n" + "one.ben.DBGAPMergeAndLookup requires 3+ arguments\n"
-                   + "To MERGE dbGap files:\n" + "   (1) Data Output Filename (i.e. out=" + out
-                   + " (default))\n" + "   (2) Map Output Filename (i.e. outMap=" + outMap
-                   + " (default))\n"
-                   + "   (3) Input directory (or a comma-delimited list of directories) (i.e. dir="
-                   + Array.toStr(dir, "") + " (default))\n" + "   (4) OPTIONAL: Log file (i.e. log="
-                   + logfile + " (default))\n" + "\n" + "";
+    CLI c = new CLI();
+    c.addArg(out, "Data Output Filename", true);
+    c.addArg(outMap, "Map Output Filename", true);
+    c.addArg(dir, "Input directory (or comma-separated list)", true);
+    c.addArg(logfile, "Log file");
 
-    // boolean test = true;
-    // if (test) {
-    // DBGapLookup.fromParameters("F:/dbGap merge/search.crf", new Logger());
+    c.parseWithExit(DBGAPMerge.class, args);
 
-    // DBGapExtract.fromParameters("F:/dbGap merge/dbgap.crf", new Logger());
 
-    // String fileDir1 =
-    // "/home/pankrat2/shared/ARIC/phenos/dbGaP/50859/PhenoGenotypeFiles/RootStudyConsentSet_phs000280.ARIC_RootStudy.v3.p1.c1.HMB-IRB/PhenotypeFiles/";
-    // String fileDir2 =
-    // "/home/pankrat2/shared/ARIC/phenos/dbGaP/50865/PhenoGenotypeFiles/RootStudyConsentSet_phs000280.ARIC_RootStudy.v3.p1.c2.DS-CVD-IRB/PhenotypeFiles/";
-    // dir = new String[]{fileDir1, fileDir2};
-    //// dir = new String[]{fileDir1};
-    //// dir = new String[]{"/scratch.global/coleb/merge"};
-    // out = "/scratch.global/coleb/merge/mergeOut.xln.gz";
-    // outMap = "/scratch.global/coleb/merge/mergeMap.xln";
-    //
-    // log = new Logger(logfile);
-    // (new DBGAPMerge()).run(dir, out, outMap, log);
-    // return;
-    // }
-
-    for (String arg : args) {
-      if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
-        System.err.println(usage);
-        System.exit(1);
-      } else if (arg.startsWith("out=")) {
-        out = arg.split("=")[1];
-        numArgs--;
-      } else if (arg.startsWith("outMap=")) {
-        outMap = arg.split("=")[1];
-        numArgs--;
-      } else if (arg.startsWith("dir=")) {
-        dir = ext.parseStringArrayArg(arg, null);
-        numArgs--;
-      } else if (arg.startsWith("log=")) {
-        logfile = arg.split("=")[1];
-        numArgs--;
-      } else {
-        System.err.println("Error - invalid argument: " + arg);
-      }
-    }
-    if (numArgs != 0) {
-      System.err.println(usage);
-      System.exit(1);
-    }
     try {
-      log = new Logger(logfile);
-      (new DBGAPMerge()).run(dir, out, outMap, log);
+      log = new Logger(c.get(logfile));
+      (new DBGAPMerge()).run(c.get(dir).split(","), c.get(out), c.get(outMap), log);
     } catch (Exception e) {
       e.printStackTrace();
     }
