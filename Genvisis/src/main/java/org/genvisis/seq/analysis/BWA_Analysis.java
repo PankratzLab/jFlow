@@ -351,11 +351,11 @@ public class BWA_Analysis {
 							fail = true;
 						}
 					} catch (InterruptedException e) {
-						log.reportError("could not complete running bwa mem on internal index " + i);
+						log.reportError("Could not complete running bwa mem on internal index " + i);
 						log.reportException(e);
 						fail = true;
 					} catch (ExecutionException e) {
-						log.reportError("could not complete running bwa mem on internal index " + i);
+						log.reportError("Could not complete running bwa mem on internal index " + i);
 						log.reportException(e);
 						fail = true;
 					}
