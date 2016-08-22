@@ -11,6 +11,7 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
+import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
 
@@ -31,14 +32,16 @@ public class BamSegPileUp implements Iterator<BamPile> {
   private final SamReader reader;
   private final Logger log;
   private final AggregateFilter filter;
+  private ASSEMBLY_NAME aName;
   private final FilterNGS filterNGS;
   private int queryIndex;
   private final ReferenceGenome referenceGenome;
 
   public BamSegPileUp(String bam, String referenceGenomeFasta, Segment[] intervals,
-                      FilterNGS filterNGS, Logger log) {
+                      FilterNGS filterNGS, ASSEMBLY_NAME aName, Logger log) {
     super();
     this.bam = bam;
+    this.aName = aName;
     numReturned = 0;
     reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT);
     this.log = log;
@@ -68,7 +71,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
     Segment cs = currentPile.getBin();
     CloseableIterator<SAMRecord> iterator = reader.queryOverlapping(
                                                                     Positions.getChromosomeUCSC(cs.getChr(),
-                                                                                                true),
+                                                                                                aName != ASSEMBLY_NAME.GRCH37),
                                                                     cs.getStart(), cs.getStop());
     while (iterator.hasNext()) {
       SAMRecord samRecord = iterator.next();
@@ -118,6 +121,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
   }
   public static class PileUpWorker implements Callable<BamPileResult> {
     private final String bamFile;
+    private final ASSEMBLY_NAME aName;
     private final String serDir;
     private final Logger log;
     private final Segment[] pileSegs;
@@ -125,9 +129,10 @@ public class BamSegPileUp implements Iterator<BamPile> {
     private final String referenceGenomeFasta;
 
     public PileUpWorker(String bamFile, String serDir, String referenceGenomeFasta,
-                        Segment[] pileSegs, FilterNGS filterNGS, Logger log) {
+                        Segment[] pileSegs, FilterNGS filterNGS, ASSEMBLY_NAME aName, Logger log) {
       super();
       this.bamFile = bamFile;
+      this.aName = aName;
       this.serDir = serDir;
       this.referenceGenomeFasta = referenceGenomeFasta;
       this.pileSegs = pileSegs;
@@ -141,7 +146,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
       String ser = serDir + ext.rootOf(bamFile) + ".ser";
       if (!Files.exists(ser)) {
         BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceGenomeFasta, pileSegs,
-                                                     filterNGS, log);
+                                                     filterNGS, aName, log);
         ArrayList<BamPile> bamPiles = new ArrayList<BamPile>();
         while (bamSegPileUp.hasNext()) {
           BamPile bamPile = bamSegPileUp.next();
@@ -158,6 +163,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
   public static class PileupProducer extends AbstractProducer<BamPileResult> {
     private int index;
     private final String[] bamFiles;
+    private final ASSEMBLY_NAME aName;
     private final String serDir;
     private final Logger log;
     private final Segment[] pileSegs;
@@ -165,9 +171,11 @@ public class BamSegPileUp implements Iterator<BamPile> {
     private final String referenceGenomeFasta;
 
     public PileupProducer(String[] bamFiles, String serDir, String referenceGenomeFasta,
-                          FilterNGS filterNGS, Segment[] pileSegs, Logger log) {
+                          FilterNGS filterNGS, Segment[] pileSegs, ASSEMBLY_NAME aName,
+                          Logger log) {
       super();
       this.bamFiles = bamFiles;
+      this.aName = aName;
       this.serDir = serDir;
       this.referenceGenomeFasta = referenceGenomeFasta;
       this.log = log;
@@ -184,7 +192,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
     @Override
     public Callable<BamPileResult> next() {
       PileUpWorker worker = new PileUpWorker(bamFiles[index], serDir, referenceGenomeFasta,
-                                             pileSegs, filterNGS, log);
+                                             pileSegs, filterNGS, aName, log);
       index++;
       return worker;
     }

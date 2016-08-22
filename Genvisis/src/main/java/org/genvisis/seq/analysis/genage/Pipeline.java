@@ -156,7 +156,8 @@ public class Pipeline {
     public PipelinePart call() throws Exception {
       Project proj = getProjectFor(ngsSample.getaType(), rootOutDir, referenceGenomeFasta);
       BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBufferSize, -1,
-                                         false, ngsSample.getaType(), new String[] {bam}, 1);
+                                         false, ngsSample.getaType(), ngsSample.getaName(),
+                                         new String[] {bam}, 1);
 
       return this;
     }

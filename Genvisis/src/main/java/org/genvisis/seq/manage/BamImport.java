@@ -38,6 +38,7 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
+import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
 import org.genvisis.seq.manage.BamOps.BamIndexStats;
 import org.genvisis.seq.manage.BamSegPileUp.BamPileResult;
@@ -309,8 +310,8 @@ public class BamImport {
   public static void importTheWholeBamProject(Project proj, String binBed, String captureBed,
                                               String optionalVCF, int captureBuffer,
                                               int correctionPCs, boolean compileProject,
-                                              ASSAY_TYPE atType, String[] bamsToImport,
-                                              int numthreads) {
+                                              ASSAY_TYPE atType, ASSEMBLY_NAME aName,
+                                              String[] bamsToImport, int numthreads) {
 
     if (proj.getArrayType() == ARRAY.NGS) {
       Logger log = proj.getLog();
@@ -336,7 +337,7 @@ public class BamImport {
                                   new PileupProducer(bamsToImport, serDir,
                                                      referenceGenome.getReferenceFasta(), filterNGS,
                                                      analysisSet.analysisSet.getStrictSegments(),
-                                                     log);
+                                                     aName, log);
       WorkerTrain<BamPileResult> pileTrain = new WorkerTrain<BamPileResult>(pileProducer,
                                                                             numthreads, 2, log);
       int index = 0;
@@ -1011,8 +1012,12 @@ public class BamImport {
                     allMarkerFile);
     markerTypes.add(new MarkerFileType(null, allMarkerFile));
 
-    Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
-                         proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+    if (!Files.exists(proj.MARKERSET_FILENAME.getValue(true, true))) {
+      Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
+                           proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+    } else {
+      proj.getLog().reportFileExists(proj.MARKERSET_FILENAME.getValue(true, true));
+    }
     return markerTypes;
   }
 
@@ -1101,7 +1106,7 @@ public class BamImport {
       // log = new Logger(logfile);
       Project proj = new Project(filename, false);
       importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs, true,
-                               ASSAY_TYPE.WGS, null, numthreads);
+                               ASSAY_TYPE.WXS, ASSEMBLY_NAME.HG19, null, numthreads);
     } catch (Exception e) {
       e.printStackTrace();
     }
