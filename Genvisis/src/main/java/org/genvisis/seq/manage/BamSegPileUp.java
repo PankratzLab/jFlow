@@ -37,6 +37,15 @@ public class BamSegPileUp implements Iterator<BamPile> {
   private int queryIndex;
   private final ReferenceGenome referenceGenome;
 
+  /**
+   * 
+   * @param bam the bam file to pile
+   * @param referenceGenomeFasta corresponding reference genome
+   * @param intervals the intervals to pile on
+   * @param filterNGS any filters to apply using {@link FilterNGS}
+   * @param aName corresponding {@link ASSEMBLY_NAME} to determine proper contig searching
+   * @param log
+   */
   public BamSegPileUp(String bam, String referenceGenomeFasta, Segment[] intervals,
                       FilterNGS filterNGS, ASSEMBLY_NAME aName, Logger log) {
     super();
@@ -96,10 +105,21 @@ public class BamSegPileUp implements Iterator<BamPile> {
     return currentPile;
   }
 
+  /**
+   * @author Kitty
+   * 
+   *         The result of a pileup. Storing the input bam filename and the output serialized file
+   *         name
+   *
+   */
   public static class BamPileResult {
     private final String ser;
     private final String bam;
 
+    /**
+     * @param bam full path to bam
+     * @param ser full path to serialized file
+     */
     public BamPileResult(String bam, String ser) {
       super();
       this.bam = bam;
@@ -114,11 +134,19 @@ public class BamSegPileUp implements Iterator<BamPile> {
       return ser;
     }
 
+    /**
+     * @param log
+     * @return the de-serialized array of {@link BamPile}
+     */
     public BamPile[] loadResults(Logger log) {
       return BamPile.readSerial(ser, log);
     }
 
   }
+  /**
+   * @author Kitty Callable for threading pileups across bam files
+   *
+   */
   public static class PileUpWorker implements Callable<BamPileResult> {
     private final String bamFile;
     private final ASSEMBLY_NAME aName;
@@ -199,7 +227,6 @@ public class BamSegPileUp implements Iterator<BamPile> {
 
     @Override
     public void shutdown() {
-      // TODO Auto-generated method stub
 
     }
   }
