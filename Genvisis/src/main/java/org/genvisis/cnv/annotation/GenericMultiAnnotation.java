@@ -37,6 +37,7 @@ public class GenericMultiAnnotation implements AnnotationParser {
     super();
     this.locusNames = locusNames;
     this.keysToLoad = keysToLoad;
+    data = new String[keysToLoad.length][];
     found = false;
     index = new Hashtable<String, Integer>();
     for (int i = 0; i < locusNames.length; i++) {

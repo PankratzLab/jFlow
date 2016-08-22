@@ -692,8 +692,8 @@ public class GATK_LanePrep extends BWA_Analysis {
     usage += "   (7) the full path to the samtools directory containing .jar files (i.e. "
              + MergeBam.SAMTOOLS_COMMAND + samtoolsLocation + " (defualts to systems path))\n" + "";
     usage += "   (8) the full path to reference indel files (comma delimited if multiple) (i.e. "
-             + GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND + Array.toStr(knownSitesIndelFile, ",")
-             + " (default))\n" + "";
+             + GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND
+             + Array.toStr(new String[] {"site1", "site2", "site3"}, ",") + " (default))\n" + "";
     usage += "   (9) the full path to reference snp files (comma delimited if multiple) (i.e. "
              + GATK.KNOWN_SITES_SNP_LOCATION_COMMAND + Array.toStr(knownSitesSnpFile, ",")
              + " (default))\n" + "";

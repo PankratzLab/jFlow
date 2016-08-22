@@ -99,7 +99,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
   public static final String GENERATE_MARKER_POSITIONS = "Generate marker positions file";
   public static final String PARSE_FILES_CSV = "Parse .csv files";
   public static final String TRANSPOSE_DATA = "Transpose data";
-  // public static final String KITANDKABOODLE = "Kit and Kaboodle";
   public static final String MITOPIPELINE = "MitoPipeline";
 
   public static final String CHECK_SEX = "Check sex";
@@ -142,7 +141,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
   public static final String TEST = "Test new program";
 
-  public static String[][] MENUS =
+  public static final String[][] MENUS =
                                  {{"File", NEW_PROJECT, IMPORT_PROJECT, "Select Project", EDIT,
                                    "Preferences", CHECK_FOR_UPDATES, EXIT},
                                   {"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV,
@@ -163,7 +162,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
   private Project proj;
   private final boolean jar;
-  private JComboBox projectsBox;
+  private JComboBox<String> projectsBox;
   private String[] projects;
   private LaunchProperties launchProperties;
   private final String launchPropertiesFile;
@@ -192,7 +191,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
     projects = Files.list(launchProperties.getDirectory(), ".properties", false);
     projectNames = launchProperties.getListOfProjectNames();
-    projectsBox.setModel(new DefaultComboBoxModel(projectNames));
+    projectsBox.setModel(new DefaultComboBoxModel<String>(projectNames));
   }
 
 
@@ -272,15 +271,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
   private static void createAndShowGUI() {
     String launchPropertiesFile;
     final Launch frame;
-    // String path;
-
-    // try {
-    // UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
-    // } catch (Exception e) {
-    // System.err.println("Failed loading LookandFeel:
-    // com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-    // System.err.println(e);
-
 
     try {
       UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
@@ -288,16 +278,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
       System.err.println("Failed loading CrossPlatformLookAndFeel");
       System.err.println(e2);
     }
-    // }
-    //
-    // try {
-    // setUIFont(Font.createFont(Font.TRUETYPE_FONT,
-    // ClassLoader.getSystemResourceAsStream("cnv/gui/LiberationSansRegular.ttf")));
-    // } catch (Exception e) {
-    // System.err.println("Error - failed to load custom font 'LiberationSans'");
-    // e.printStackTrace();
-    // }
-
 
     ExceptionHandler ueh = new ExceptionHandler();
 
@@ -323,7 +303,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     }
     frame = new Launch(launchPropertiesFile, manifest, false);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    // frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     frame.setJMenuBar(frame.topMenuBar());
     frame.setContentPane(frame.createContentPane());
     frame.createPopupMenu();
@@ -331,10 +310,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     frame.setSize(650, 550);
     frame.setLocation(300, 200);
 
-    // frame.pack();
-    // frame.setBounds(20, 20, 1000, 600);
     frame.addWindowListener(frame);
-    // frame.setExtendedState(frame.getExtendedState()|JFrame.MAXIMIZED_BOTH);
 
     javax.swing.SwingUtilities.invokeLater(new Runnable() {
       @Override
@@ -367,8 +343,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
       pathToSet = path;
     }
     if (force || !new File(launchPropertiesFile).exists()) {
-      // frame.output.append("Could not find file '"+launchPropertiesFile+"'; generating a blank one
-      // that you can populate with your own project links");
       System.out.println("creating " + launchPropertiesFile);
       new File(path + "projects/").mkdirs();
       new File(path + "example/").mkdirs();
@@ -387,7 +361,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
     if (!Files.exists(bat)) {
       Files.write(getLaunchBat(), bat);
-      // Files.chmod(bat);
     }
     if (!Files.exists(sh)) {
       Files.write(getLaunchSH(), sh);
@@ -411,11 +384,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     output = new JTextArea(5, 30);
     output.setEditable(false);
     scrollPane = new JScrollPane(output);
-    // log.linkTextArea(output);
-    // log.report("Genvisis, v0.60\n(c)2012 Nathan Pankratz, GNU General Public License,
-    // v2\n\n"+(new Date()));
-    // output.append("Genvisis, v0.60\n(c)2012 Nathan Pankratz, GNU General Public License,
-    // v2\n\n"+(new Date()));
 
     // Add the text area to the content pane.
     contentPane.add(scrollPane, BorderLayout.CENTER);
@@ -447,35 +415,23 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         if (MENUS[i][j] == "1") {
           menu.addSeparator();
         } else if (MENUS[i][j].equals(NEW_PROJECT)) {
-          // submenu = new JMenu(MENUS[i][j]);
           menuItem = new JMenuItem(NEW_PROJECT);
           menuItem.addActionListener(this);
           menuItem.setMnemonic(KeyEvent.VK_N);
-          // submenu.add(menuItem);
           menu.add(menuItem);
         } else if (MENUS[i][j].equals(IMPORT_PROJECT)) {
-          // submenu = new JMenu(MENUS[i][j]);
           menuItem = new JMenuItem(IMPORT_PROJECT);
           menuItem.addActionListener(this);
           menuItem.setMnemonic(KeyEvent.VK_I);
-          // submenu.add(menuItem);
           menu.add(menuItem);
         } else if (MENUS[i][j].equals("Select Project")) {
           submenu = new JMenu(MENUS[i][j]);
-          // submenu.setMnemonic(KeyEvent.VK_S);
-
-          // menuItem = new JMenuItem("New");
-          // menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.ALT_MASK));
-          // menuItem.addActionListener(this);
-          // submenu.add(menuItem);
           projects = Files.list(launchProperties.getDirectory(), ".properties", false);
           for (String project : projects) {
             menuItem = new JMenuItem(ext.rootOf(project, true) + " ");
-            // menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2, ActionEvent.ALT_MASK));
             menuItem.addActionListener(this);
             submenu.add(menuItem);
           }
-          // projectsBox.setModel(new DefaultComboBoxModel<String>(projectNames));
           menu.add(submenu);
         } else if (MENUS[i][j].equals(PRINCIPAL_COMPONENTS)) {
           String[] pcSubMenuOptions =
@@ -498,12 +454,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
               k = MENUS[i][j].length();
             }
           }
-          // menuItem.setAccelerator(KeyStroke.getKeyStroke((int)(j+"").charAt(0),
-          // ActionEvent.ALT_MASK));
           menuItem.addActionListener(this);
           // TODO What is this?
           menuItem.getAccessibleContext().setAccessibleDescription("Under development");
-          // menuItem = new JMenuItem(menus[i][j], KeyEvent.VK_O);
           menu.add(menuItem);
         }
       }
@@ -529,8 +482,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     iconBar.setLayout(new FlowLayout(FlowLayout.LEFT));
     for (int i = 0; i < icons.length; i++) {
       button = new JButton(Grafik.getImageIcon(icons[i]));
-      // button.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
-      // button.addActionListener(this);
       button.setActionCommand(commands[i]);
       button.addActionListener(this);
       button.setToolTipText(commands[i]);
@@ -544,7 +495,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
   }
 
   public void addComponentsToPane(final Container pane) {
-    // String lastProjectOpened;
     launchProperties = new LaunchProperties(launchPropertiesFile);
     projectsBox = new JComboBox();
     loadProjects();
@@ -571,10 +521,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     menuItem = new JMenuItem("Another popup menu item");
     menuItem.addActionListener(this);
     popup.add(menuItem);
-
-    // Add listener to the text area so the popup menu can come up.
-    // MouseListener popupListener = new PopupListener(popup);
-    // output.addMouseListener(popupListener);
   }
 
   public class IndependentThread implements Runnable {
@@ -695,8 +641,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         org.genvisis.cnv.analysis.PennCNV.parseWarnings(proj, "penncnv.log");
         org.genvisis.cnv.analysis.PennCNV.parseResults(proj, "penncnv.rawcnv", false);
       } else if (command.equals(LRR_SD)) {
-        // cnv.qc.LrrSd.init(proj, null, null,
-        // Integer.parseInt(proj.getProperty(proj.NUM_THREADS)));
         org.genvisis.cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
       } else if (command.equals(CNP_SCAN)) {
         // TODO Genotyping
@@ -706,19 +650,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
       } else if (command.equals(SCATTER)) {
         ScatterPlot.createAndShowGUI(proj, null, null, false);
       } else if (command.equals(QQ)) {
-        // QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), "Q-Q Plot",
-        // Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)),
-        // Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)),
-        // Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)), -1, false,
-        // proj.getFloat(Project.QQ_MAX_NEG_LOG10_PVALUE), proj.getLog());
-        // QQPlot.loadPvals(proj.getFilenames(proj.QQ_FILENAMES, true), "Q-Q Plot",
-        // proj.getProperty(proj.DISPLAY_QUANTILES), proj.getProperty(proj.DISPLAY_STANDARD_QQ),
-        // proj.getProperty(proj.DISPLAY_ROTATED_QQ), -1, false,
-        // proj.getFloat(proj.QQ_MAX_NEG_LOG10_PVALUE), proj.getLog());
-        // QQPlot.loadPvals(proj.QQ_FILENAMES.getValue(true), "Q-Q Plot",
-        // proj.getProperty(proj.DISPLAY_QUANTILES), proj.getProperty(proj.DISPLAY_STANDARD_QQ),
-        // proj.getProperty(proj.DISPLAY_ROTATED_QQ), -1, false,
-        // proj.QQ_MAX_NEG_LOG10_PVALUE.getValue(), proj.getLog());
         QQPlotFrame.loadPvals(proj.QQ_FILENAMES.getValue(), "Q-Q Plot",
                               proj.getProperty(proj.DISPLAY_QUANTILES),
                               proj.getProperty(proj.DISPLAY_STANDARD_QQ),
@@ -808,12 +739,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
           }
         });
       } else if (command.equals(TEST)) {
-        // log.report("No new program to test");
-        // ScatterPlot.createAndShowGUI(proj, null, null, false);
-
         org.genvisis.cnv.qc.SexChecks.sexCheck(proj, true);
-        // cnv.qc.LrrSd.init(proj, null, null,
-        // Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
         org.genvisis.cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
         Mosaicism.findOutliers(proj);
 
@@ -845,12 +771,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
       } else if (command.equals(TALLY_CLUSTER_FILTERS)) {
         MarkerMetrics.tallyClusterFilters(proj, proj.getSamplesToInclude(null), null);
       } else if (command.equals(MITOPIPELINE)) {
-        // SwingUtilities.invokeLater(new Runnable() {
-        // @Override
-        // public void run() {
-        // MitoPipeline.guiLauncher(proj);
-        // }
-        // });
       } else if (command.equals(PIPELINE)) {
         SwingUtilities.invokeLater(new Runnable() {
           @Override
@@ -914,7 +834,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
       proj = null;
       loadProject();
     } else {
-      // log.report("No change in properties file");
     }
 
     if (proj != null
@@ -927,29 +846,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     if (command.equals(EXIT)) {
       System.exit(0);
     } else if (command.equals(EDIT)) {
-      // boolean promptNodepad = false;
-      // if (Files.isWindows()) {
-      // promptNodepad = Files.programExists("notepad.exe");
-      // }
-      // boolean notepad = false;
-      // if (promptNodepad) {
-      // notepad = JOptionPane.showConfirmDialog(null, "Use Notepad to edit?", "Use Notepad?",
-      // JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
-      // }
-      // if (notepad) {
-      // log.report("Launching notepad...");
-      // int index = projectsBox.getSelectedIndex();
-      // String dir = launchProperties.getDirectory();
-      // try {
-      // Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe
-      // \""+dir+projects[index]+"\"");
-      // if (!new File(dir+projects[index]).exists()) {
-      // log.report("Tried to open "+projects[index]+" which does not exist");
-      // }
-      // } catch (IOException ioe) {
-      // log.reportError("Error - failed to open Notepad");
-      // }
-      // } else {
       log.report("Launching project properties editor...");
       final ProjectPropertiesEditor configurator =
                                                  new ProjectPropertiesEditor(proj,
@@ -962,7 +858,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         };
       });
       configurator.setVisible(true);
-      // }
     } else if (command.equals(REFRESH)) {
       loadProjects();
       loadProject();
@@ -1022,26 +917,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
   @Override
   public void windowClosing(WindowEvent we) {
-    // boolean alive;
-    //
-    //// notify all threads that they need to close
-    // alive = false;
-    // for (int i = 0; i < threadsRunning.size(); i++) {
-    // if (threadsRunning.elementAt(i) != null) {
-    // threadsRunning.elementAt(i).interrupt();
-    // }
-    // }
-    //
-    // alive = false;
-    // for (int i = 0; i < threadsRunning.size(); i++) {
-    // if (threadsRunning.elementAt(i) != null && threadsRunning.elementAt(i).isAlive()) {
-    // alive = true;
-    // }
-    // }
-    //
-    // if (!alive) {
-    // GuiManager.disposeOfParentFrame(this);
-    // }
   }
 
   @Override
@@ -1061,13 +936,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
   @Override
   public void itemStateChanged(ItemEvent e) {
-    // byte i;
     if (e.getStateChange() == ItemEvent.SELECTED) {
       indexOfCurrentProj = projectsBox.getSelectedIndex();
-      // proj = new Project(launchProperties.getDirectory() + projects[indexOfCurrentProject], jar);
       loadProject();
-      // output.append("\nCurrent project: " + ext.rootOf(projects[indexOfCurrentProj]) + "\n");
-      // output.setCaretPosition(output.getDocument().getLength());
       log.report("\nCurrent project: " + ext.rootOf(projects[indexOfCurrentProj]) + "\n");
 
       launchProperties.setProperty(LaunchProperties.LAST_PROJECT_OPENED,
@@ -1113,6 +984,27 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
   }
 
   public static void main(String[] args) {
+    if (runMainClass(args)) {
+      return;
+    }
+
+    try {
+      System.out.println(ext.getTime() + "]\tStarting Genvisis...");
+      createAndShowGUI();
+      System.out.println(ext.getTime() + "]\tGenvisis Loaded.");
+    } catch (InternalError e) {
+      if (e.getMessage().contains("X11")) {
+        System.err.println("Error occurred with X11 forwarding - please install an X11 forwarding server (we recommend Xming - http://sourceforge.net/projects/xming/) or check your X11 forwarding configuration");
+      }
+    }
+  }
+
+  /**
+   * Helper method to execute alternate main classes. Can prepend packages, to handle moved classes.
+   * 
+   * @return true if a main class was executed.
+   */
+  private static boolean runMainClass(String[] args) {
     // Check for alternate main requests
     String mainClassName = args.length > 0 ? args[0] : null;
     Class<?> mainClass = null;
@@ -1150,24 +1042,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
           }
           System.err.println(exc.getMessage());
         }
-      }
-      // Whether it worked or not, if we were given a main class parameter we skip the UI.
-      return;
-    }
-
-    try {
-      // javax.swing.SwingUtilities.invokeLater(new Runnable() {
-      // public void run() {
-      System.out.println(ext.getTime() + "]\tStarting Genvisis...");
-      createAndShowGUI();
-      System.out.println(ext.getTime() + "]\tGenvisis Loaded.");
-      // }
-      // });
-    } catch (InternalError e) {
-      if (e.getMessage().contains("X11")) {
-        System.err.println("Error occurred with X11 forwarding - please install an X11 forwarding server (we recommend Xming - http://sourceforge.net/projects/xming/) or check your X11 forwarding configuration");
+        return true;
       }
     }
+    return false;
   }
 
   /**

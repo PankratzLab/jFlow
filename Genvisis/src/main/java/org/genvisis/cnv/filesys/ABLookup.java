@@ -8,10 +8,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Map;
 import java.util.Vector;
 
-import org.apache.commons.cli.Options;
 import org.genvisis.CLI;
 import org.genvisis.bioinformatics.Sequence;
 import org.genvisis.cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
@@ -792,36 +790,36 @@ public class ABLookup {
     final String PLINK = "plinkFile";
     final String APPLYAB = "applyAB";
 
-    Options options = CLI.defaultOptions();
-    CLI.addArg(options, PROJ, "project properties filename", projFile);
-    CLI.addArg(options, OUT, "parse ABLookup to this location", outfile);
-    CLI.addFlag(options, CLUSTER, "parse ABLookup from centroids");
-    CLI.addFlag(options, ORIGIN, "parse ABLookup from existing original genotypes");
-    CLI.addArg(options, MANIFEST, "parse ABLookup from Illumina manifest file", illumina);
-    CLI.addFlag(options, VCF, "parse ABLookup from VCF annotation file");
-    CLI.addArg(options, PARTAB,
+    CLI c = new CLI();
+    c.addArg(PROJ, "project properties filename", projFile);
+    c.addArg(OUT, "parse ABLookup to this location", outfile);
+    c.addFlag(CLUSTER, "parse ABLookup from centroids");
+    c.addFlag(ORIGIN, "parse ABLookup from existing original genotypes");
+    c.addArg(MANIFEST, "parse ABLookup from Illumina manifest file", illumina);
+    c.addFlag(VCF, "parse ABLookup from VCF annotation file");
+    c.addArg(PARTAB,
                "fill in a partial existing ABLookup file using an Illumina SNP Table", abLookup);
-    CLI.addArg(options, MAP, "the filename of the Illumina SNP Tabl", mapFile);
-    CLI.addFlag(options, PLINK, "use a plink.bim file as input instead of an ABLookup file");
-    CLI.addFlag(options, APPLYAB, "apply the project's AB lookup to all Sample files in project");
+    c.addArg(MAP, "the filename of the Illumina SNP Tabl", mapFile);
+    c.addFlag(PLINK, "use a plink.bim file as input instead of an ABLookup file");
+    c.addFlag(APPLYAB, "apply the project's AB lookup to all Sample files in project");
 
-    CLI.addGroup(options, OUT, PARTAB, APPLYAB);
+    c.addGroup(OUT, PARTAB, APPLYAB);
 
-    Map<String, String> parsed = CLI.parseWithExit(ABLookup.class, options, args);
+    c.parseWithExit(ABLookup.class, args);
 
-    proj = new Project(parsed.get(PROJ), false);
-    if (parsed.containsKey(PARTAB)) {
-      fillInMissingAlleles(proj, parsed.get(PARTAB), parsed.get(MAP), parsed.containsKey(PLINK));
-    } else if (parsed.containsKey(APPLYAB)) {
+    proj = new Project(c.get(PROJ), false);
+    if (c.has(PARTAB)) {
+      fillInMissingAlleles(proj, c.get(PARTAB), c.get(MAP), c.has(PLINK));
+    } else if (c.has(APPLYAB)) {
       applyABLookupToFullSampleFiles(proj);
-    } else if (parsed.containsKey(MANIFEST)) {
-      parseABLookup(proj, ABSource.MANIFEST, parsed.get(OUT), parsed.get(MANIFEST));
-    } else if (parsed.containsKey(VCF)) {
-      parseABLookup(proj, ABSource.VCF, parsed.get(OUT));
-    } else if (parsed.containsKey(ORIGIN)) {
-      parseABLookup(proj, ABSource.ORIGEN, parsed.get(OUT));
-    } else if (parsed.containsKey(CLUSTER)) {
-      parseABLookup(proj, ABSource.GENCLUSTER, parsed.get(OUT));
+    } else if (c.has(MANIFEST)) {
+      parseABLookup(proj, ABSource.MANIFEST, c.get(OUT), c.get(MANIFEST));
+    } else if (c.has(VCF)) {
+      parseABLookup(proj, ABSource.VCF, c.get(OUT));
+    } else if (c.has(ORIGIN)) {
+      parseABLookup(proj, ABSource.ORIGEN, c.get(OUT));
+    } else if (c.has(CLUSTER)) {
+      parseABLookup(proj, ABSource.GENCLUSTER, c.get(OUT));
     } else {
       System.err.println("No subroutine was selected");
       System.exit(1);

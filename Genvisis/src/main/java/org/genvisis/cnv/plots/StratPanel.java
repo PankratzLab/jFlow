@@ -287,11 +287,14 @@ public class StratPanel extends AbstractPanel
       // if (!pos.equals(prevPos)) {
       // repaint();
       // }
-      iv = locLookup.get(pos);
       prox = new IntVector();
       g.setColor(Color.RED);
       currentPair = sp.getCurrentPair();
-      for (int i = 0; iv != null && i < iv.size(); i++) {
+      if (locLookup == null || !locLookup.containsKey(pos)) {
+        return;
+      }
+      iv = locLookup.get(pos);
+      for (int i = 0; i < iv.size(); i++) {
         data = hash.get(sampleList[iv.elementAt(i)]);
 
         if (Distance.euclidean(new int[] {x, y},

@@ -127,33 +127,33 @@ public class SRAPipeline implements Callable<Boolean> {
 
   public static void main(String[] args) {
 
-    Options options = CLI.defaultOptions();
+    CLI c = new CLI();
 
     String sraDirDefault = "sra/";
     final String SRA_DRI = "sraDir";
-    CLI.addArg(options, SRA_DRI, "directory with .sra files", sraDirDefault);
+    c.addArg(SRA_DRI, "directory with .sra files", sraDirDefault);
 
     String outDir = "out/";
     final String OUT_DIR = "outDir";
-    CLI.addArg(options, OUT_DIR, "the output directory for results", outDir);
+    c.addArg(OUT_DIR, "the output directory for results", outDir);
 
     String sraRunTableDefault = "sraRuntable.txt";
     final String SRA_RUN_TABLE = "sraRunTable";
-    CLI.addArg(options, SRA_RUN_TABLE, "a sra run table providing sample information",
+    c.addArg(SRA_RUN_TABLE, "a sra run table providing sample information",
                sraRunTableDefault);
 
     int numThreads = 24;
     final String NUM_THREADS = "threads";
-    CLI.addArg(options, NUM_THREADS, "a sra run table providing sample information",
+    c.addArg(NUM_THREADS, "a sra run table providing sample information",
                Integer.toString(numThreads));
 
     String refGenomeFasta = "hg19.canonical.fa";
     final String REFERENC_GENOME = "ref";
-    CLI.addArg(options, REFERENC_GENOME, "appropriate reference genome file", refGenomeFasta);
+    c.addArg(REFERENC_GENOME, "appropriate reference genome file", refGenomeFasta);
 
     String captureBedFile = "VCRome_2_1_hg19_capture_targets.bed";
     final String CAPTURE_BED = "bed";
-    CLI.addArg(options, CAPTURE_BED, "bed file of targeted capture", captureBedFile);
+    c.addArg(CAPTURE_BED, "bed file of targeted capture", captureBedFile);
 
     String binBed = "targetsOfInterest.bed";
     final String BIN_BED = "bin";
@@ -164,11 +164,10 @@ public class SRAPipeline implements Callable<Boolean> {
     CLI.addArg(options, VCF, "vcf file of variants", vcf);
 
 
-    Map<String, String> parsed = CLI.parseWithExit(SRAPipeline.class, options, args);
+    c.parseWithExit(SRAPipeline.class, args);
 
-    runAll(parsed.get(SRA_DRI), parsed.get(SRA_RUN_TABLE), parsed.get(OUT_DIR),
-           parsed.get(REFERENC_GENOME), parsed.get(CAPTURE_BED), parsed.get(BIN_BED),
-           parsed.get(VCF), numThreads);
+    runAll(c.get(SRA_DRI), c.get(SRA_RUN_TABLE), c.get(OUT_DIR),
+           c.get(REFERENC_GENOME), c.get(CAPTURE_BED), numThreads);
 
   }
 

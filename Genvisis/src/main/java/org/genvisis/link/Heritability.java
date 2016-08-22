@@ -409,6 +409,7 @@ public class Heritability {
             }
             data = HashVec.loadFileToStringMatrix(dbFile, true, indices, dbDelimiter, false, 1000,
                                                   false);
+            //FIXME this is guaranteed to cause a NPE. What is supposed to be computed here?
             use = RegressionModel.getRowsWithCompleteData(null,
                                                           Matrix.prune(data, null,
                                                                        Array.subArray(Array.arrayOfIndices(line.length),

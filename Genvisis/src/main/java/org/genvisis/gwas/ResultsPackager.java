@@ -986,13 +986,7 @@ public class ResultsPackager {
       Files.writeList(out1, ext.parseDirectoryOfFile(fullPathOutFile) + filename);
 
       for (int j = 0; j < markers.length; j++) {
-        if (statResults[mainIndex][j][0] == null) {
-        } else {
-          if (analyses[i].equalsIgnoreCase("tdt")) {
-          } else {
-          }
-        }
-        filename = ext.rootOf(filename) + filename.substring(filename.lastIndexOf("."));
+        filename = ext.rootOf(filename) + filename.substring(filename.lastIndexOf('.'));
       }
     }
 

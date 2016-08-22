@@ -8,10 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Scanner;
 
-import org.apache.commons.cli.Options;
 import org.genvisis.CLI;
 import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
@@ -205,19 +203,19 @@ public class Computel {
     String computelLocation = "computel/";
     String outDir = "out/";
 
-    Options options = CLI.defaultOptions();
+    CLI c = new CLI();
     final String bam = "bam";
-    CLI.addArg(options, bam, "bam file to analyze", targetBam);
+    c.addArg(bam, "bam file to analyze", targetBam);
 
     final String computel = "computel";
-    CLI.addArg(options, computel, "full computel directory (as git clone ideally)",
+    c.addArg(computel, "full computel directory (as git clone ideally)",
                computelLocation);
 
     final String outdir = "out";
-    CLI.addArg(options, outdir, "the output directory for results", outDir);
+    c.addArg(outdir, "the output directory for results", outDir);
 
-    Map<String, String> parsed = CLI.parseWithExit(Computel.class, options, args);
+    c.parseWithExit(Computel.class, args);
 
-    test(parsed.get(bam), parsed.get(computel), parsed.get(outdir));
+    test(c.get(bam), c.get(computel), c.get(outdir));
   }
 }

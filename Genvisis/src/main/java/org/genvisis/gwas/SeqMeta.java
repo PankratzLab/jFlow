@@ -2838,7 +2838,7 @@ public class SeqMeta {
           localDir = dir + phenotypes[i][0] + "/" + (k == races.length ? "" : races[k][0] + "/")
                      + methods[0][0] + "/";
           for (int j = metasOnly ? studies.length : 0; j <= studies.length; j++) {
-            if ((k == races.length && j == studies.length) || j == studies.length
+            if (j == studies.length
                 || (k < races.length && !finalSets[i][j][k].equals("<missing>"))) {
               filename = (j == studies.length ? "" : studies[j] + "_")
                          + (k == races.length ? "" : races[k][0] + "_") + phenotypes[i][0] + "_"

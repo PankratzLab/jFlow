@@ -34,6 +34,7 @@ public class CNVComparison {
     this.cnvSampleQCHash = cnvSampleQCHash;
     this.qcThresholds = qcThresholds;
     this.filterType = filterType;
+    this.log = log;
     misses = new ArrayList<CNVariantQC>();
     filteredcnvQCs1 = getFilteredCnvsByType(unfilteredcnvsQCs1);
     filteredcnvQCs2 = getFilteredCnvsByType(unfilteredcnvsQCs2);

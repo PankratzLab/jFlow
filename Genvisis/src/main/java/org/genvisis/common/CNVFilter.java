@@ -820,6 +820,11 @@ public class CNVFilter {
     FreqFilter f = new FreqFilter();
     String famFile = null;
     for (String arg : args) {
+      // FIXME all of these addCommandLineFilter calls will force NPEs
+      // But what exactly is going on here is not clear.. why are we storing
+      // argument prefixes as the -value- with a complete arg + value string
+      // as the key? Why not just store the arg prefix as the key and the value as the value?
+      // Whatever is decided needs to be documented.
       if (arg.startsWith("famFile=")) {
         famFile = arg.split("=")[1];
         filter.addCommandLineFilter(arg, null);

@@ -1756,7 +1756,8 @@ public class Mach {
                    + " OR\n" + "   -createFiles (creates batch that creates files for MACH)\n"
                    + " OR\n" + "   -gethapmap (downloads data)\n" + " OR\n"
                    + "   (1) create batch files for MACH phasing (i.e. -batches (not the default))\n"
-                   + "   (2) nodes to use (i.e. nodesToUse=" + Array.toStr(nodesToUse, ",")
+                   + "   (2) nodes to use (i.e. nodesToUse="
+                   + Array.toStr(new String[] {"v1", "v2", "..."}, ",")
                    + " (default; qsubs only; full names, comma-delimited))\n" + " OR\n"
                    + "   chromosome to trim from source phase files (i.e. trim=1 (not the default))\n"
                    + " OR\n" + "   list IDs from .mldose file (i.e. list=chr21.mldose)\n" + " OR\n"
