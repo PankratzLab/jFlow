@@ -984,6 +984,27 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
   }
 
   public static void main(String[] args) {
+    if (runMainClass(args)) {
+      return;
+    }
+
+    try {
+      System.out.println(ext.getTime() + "]\tStarting Genvisis...");
+      createAndShowGUI();
+      System.out.println(ext.getTime() + "]\tGenvisis Loaded.");
+    } catch (InternalError e) {
+      if (e.getMessage().contains("X11")) {
+        System.err.println("Error occurred with X11 forwarding - please install an X11 forwarding server (we recommend Xming - http://sourceforge.net/projects/xming/) or check your X11 forwarding configuration");
+      }
+    }
+  }
+
+  /**
+   * Helper method to execute alternate main classes. Can prepend packages, to handle moved classes.
+   * 
+   * @return true if a main class was executed.
+   */
+  private static boolean runMainClass(String[] args) {
     // Check for alternate main requests
     String mainClassName = args.length > 0 ? args[0] : null;
     Class<?> mainClass = null;
@@ -1021,20 +1042,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
           }
           System.err.println(exc.getMessage());
         }
-      }
-      // Whether it worked or not, if we were given a main class parameter we skip the UI.
-      return;
-    }
-
-    try {
-      System.out.println(ext.getTime() + "]\tStarting Genvisis...");
-      createAndShowGUI();
-      System.out.println(ext.getTime() + "]\tGenvisis Loaded.");
-    } catch (InternalError e) {
-      if (e.getMessage().contains("X11")) {
-        System.err.println("Error occurred with X11 forwarding - please install an X11 forwarding server (we recommend Xming - http://sourceforge.net/projects/xming/) or check your X11 forwarding configuration");
+        return true;
       }
     }
+    return false;
   }
 
   /**
