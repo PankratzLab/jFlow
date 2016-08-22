@@ -1,10 +1,8 @@
 package org.genvisis.seq.analysis.genage;
 
 import java.io.File;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
-import org.apache.commons.cli.Options;
 import org.genvisis.CLI;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -139,13 +137,12 @@ public class SRAPipeline implements Callable<Boolean> {
 
     String sraRunTableDefault = "sraRuntable.txt";
     final String SRA_RUN_TABLE = "sraRunTable";
-    c.addArg(SRA_RUN_TABLE, "a sra run table providing sample information",
-               sraRunTableDefault);
+    c.addArg(SRA_RUN_TABLE, "a sra run table providing sample information", sraRunTableDefault);
 
     int numThreads = 24;
     final String NUM_THREADS = "threads";
     c.addArg(NUM_THREADS, "a sra run table providing sample information",
-               Integer.toString(numThreads));
+             Integer.toString(numThreads));
 
     String refGenomeFasta = "hg19.canonical.fa";
     final String REFERENC_GENOME = "ref";
@@ -157,17 +154,17 @@ public class SRAPipeline implements Callable<Boolean> {
 
     String binBed = "targetsOfInterest.bed";
     final String BIN_BED = "bin";
-    CLI.addArg(options, BIN_BED, "bed file of targets of interests", binBed);
+    c.addArg(BIN_BED, "bed file of targets of interests", binBed);
 
     String vcf = "vcf.vcf";
     final String VCF = "vcf";
-    CLI.addArg(options, VCF, "vcf file of variants", vcf);
+    c.addArg(VCF, "vcf file of variants", vcf);
 
 
     c.parseWithExit(SRAPipeline.class, args);
 
-    runAll(c.get(SRA_DRI), c.get(SRA_RUN_TABLE), c.get(OUT_DIR),
-           c.get(REFERENC_GENOME), c.get(CAPTURE_BED), numThreads);
+    runAll(c.get(SRA_DRI), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENC_GENOME),
+           c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), numThreads);
 
   }
 
