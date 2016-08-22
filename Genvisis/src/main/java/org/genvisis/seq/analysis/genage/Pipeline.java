@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerHive;
@@ -151,12 +152,21 @@ public class Pipeline {
     public PipelinePart call() throws Exception {
 
       BamImport.importTheWholeBamProject(null, binBed, captureBed, vcf, captureBufferSize, -1,
-                                         false, ngsSample.getaType(), numthreads);
+                                         false, ngsSample.getaType(), new String[] {bam},
+                                         numthreads);
 
       return null;
     }
 
   }
+
+  public static Project getProjectFor(ASSAY_TYPE aType, String rootOutDir) {
+
+
+    return null;
+
+  }
+
 
   public static List<PipelinePart> pipeline(String inputBam, String rootOutDir,
                                             String referenceGenome, String captureBed,

@@ -88,7 +88,7 @@ public class SRAPipeline implements Callable<Boolean> {
     WorkerHive<Boolean> hive = new WorkerHive<Boolean>(numThreads, 10, log);
     boolean prelimGenvisisWGS = false;
     boolean prelimGenvisisWXS = false;
-
+    log.reportTimeWarning("In testing mode");
     for (String sraFile : sraFiles) {
       SRASample sample = srRunTable.get(ext.rootOf(sraFile));
 
@@ -115,6 +115,7 @@ public class SRAPipeline implements Callable<Boolean> {
           break;
 
       }
+      System.exit(1);
       hive.addCallable(pipeline);
     }
 

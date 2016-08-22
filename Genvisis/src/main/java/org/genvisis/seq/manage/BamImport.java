@@ -305,19 +305,21 @@ public class BamImport {
   public static void importTheWholeBamProject(Project proj, String binBed, String captureBed,
                                               String optionalVCF, int captureBuffer,
                                               int correctionPCs, boolean compileProject,
-                                              ASSAY_TYPE atType, int numthreads) {
+                                              ASSAY_TYPE atType, String[] bamsToImport,
+                                              int numthreads) {
 
     if (proj.getArrayType() == ARRAY.NGS) {
       Logger log = proj.getLog();
 
       String serDir = proj.PROJECT_DIRECTORY.getValue() + "tmpBamSer/";
-      String[] bamsToImport;
-      if (Files.isDirectory(proj.SOURCE_DIRECTORY.getValue())) {
-        bamsToImport = Files.listFullPaths(proj.SOURCE_DIRECTORY.getValue(),
-                                           proj.SOURCE_FILENAME_EXTENSION.getValue(), false);
-      } else {
-        bamsToImport = HashVec.loadFileToStringArray(proj.SOURCE_DIRECTORY.getValue(), false,
-                                                     new int[] {0}, true);
+      if (bamsToImport == null) {
+        if (Files.isDirectory(proj.SOURCE_DIRECTORY.getValue())) {
+          bamsToImport = Files.listFullPaths(proj.SOURCE_DIRECTORY.getValue(),
+                                             proj.SOURCE_FILENAME_EXTENSION.getValue(), false);
+        } else {
+          bamsToImport = HashVec.loadFileToStringArray(proj.SOURCE_DIRECTORY.getValue(), false,
+                                                       new int[] {0}, true);
+        }
       }
       ReferenceGenome referenceGenome =
                                       new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
@@ -1093,7 +1095,7 @@ public class BamImport {
       // log = new Logger(logfile);
       Project proj = new Project(filename, false);
       importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs, true,
-                               ASSAY_TYPE.WGS, numthreads);
+                               ASSAY_TYPE.WGS, null, numthreads);
     } catch (Exception e) {
       e.printStackTrace();
     }
