@@ -282,25 +282,21 @@ public class GATK {
 		this.dbSnpTraining = dbSnpTraining;
 	}
 
-	public BaseRecalibration recalibrateABam(	String baseId, String realigned_dedup_reads_bam,
-																						Logger altLog) {
-		BaseRecalibration baseRecalibration = new BaseRecalibration(baseId, realigned_dedup_reads_bam,
+  public BaseRecalibration recalibrateABam(String baseId, String dedup_reads_bam, Logger altLog) {
+    BaseRecalibration baseRecalibration = new BaseRecalibration(baseId, dedup_reads_bam,
 																																(altLog == null ? log : altLog));
 		baseRecalibration.parseInput();
-		boolean progress = determineBaseCovariation(realigned_dedup_reads_bam,
-																								baseRecalibration.getBqsr_before(),
+    boolean progress = determineBaseCovariation(dedup_reads_bam, baseRecalibration.getBqsr_before(),
 																								baseRecalibration.getLog());
 		if (progress) {
-			progress = secondPassBaseCovariation(	realigned_dedup_reads_bam,
-																						baseRecalibration.getBqsr_before(),
+      progress = secondPassBaseCovariation(dedup_reads_bam, baseRecalibration.getBqsr_before(),
 																						baseRecalibration.getBqsr_post(), altLog);
 			if (progress) {
 				progress = analyzeBaseCovariation(baseRecalibration.getBqsr_before(),
 																					baseRecalibration.getBqsr_post(),
 																					baseRecalibration.getRecalibration_plots(), altLog);
 				if (progress) {
-					progress = applyBaseRecalibration(realigned_dedup_reads_bam,
-																						baseRecalibration.getBqsr_before(),
+          progress = applyBaseRecalibration(dedup_reads_bam, baseRecalibration.getBqsr_before(),
 																						baseRecalibration.getRrd_bam(), altLog);
 				}
 			}
@@ -439,13 +435,12 @@ public class GATK {
 																						true, (altLog == null ? log : altLog));
 	}
 
-	private boolean determineBaseCovariation(	String realigned_dedup_reads_bam, String output,
-																						Logger altLog) {
+  private boolean determineBaseCovariation(String dedup_reads_bam, String output, Logger altLog) {
 		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
-																			BASE_RECALIBRATOR, R, referenceGenomeFasta, I,
-																			realigned_dedup_reads_bam, O, output};
+                                     BASE_RECALIBRATOR, R, referenceGenomeFasta, I, dedup_reads_bam,
+                                     O, output};
 		if (checkKnowns()) {
-			String[] neccesaryInputFiles = new String[] {referenceGenomeFasta, realigned_dedup_reads_bam};
+      String[] neccesaryInputFiles = new String[] {referenceGenomeFasta, dedup_reads_bam};
 			neccesaryInputFiles = handleKnownSites(neccesaryInputFiles, command);
 			command = parseAndAddToCommand(command, KNOWN_SITES, knownSitesIndelFile);
 			command = parseAndAddToCommand(command, KNOWN_SITES, knownSitesSnpFile);
@@ -458,14 +453,13 @@ public class GATK {
 		}
 	}
 
-	private boolean secondPassBaseCovariation(String realigned_dedup_reads_bam, String bqsrFile,
-																						String output, Logger altLog) {
+  private boolean secondPassBaseCovariation(String dedup_reads_bam, String bqsrFile, String output,
+                                            Logger altLog) {
 		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
-																			BASE_RECALIBRATOR, R, referenceGenomeFasta, I,
-																			realigned_dedup_reads_bam, O, output, BQSR, bqsrFile};
+                                     BASE_RECALIBRATOR, R, referenceGenomeFasta, I, dedup_reads_bam,
+                                     O, output, BQSR, bqsrFile};
 		if (checkKnowns()) {
-			String[] neccesaryInputFiles = new String[] {	referenceGenomeFasta, realigned_dedup_reads_bam,
-																										bqsrFile};
+      String[] neccesaryInputFiles = new String[] {referenceGenomeFasta, dedup_reads_bam, bqsrFile};
 			neccesaryInputFiles = handleKnownSites(neccesaryInputFiles, command);
 			command = parseAndAddToCommand(command, KNOWN_SITES, knownSitesIndelFile);
 			command = parseAndAddToCommand(command, KNOWN_SITES, knownSitesSnpFile);
@@ -498,14 +492,14 @@ public class GATK {
 
 	}
 
-	private boolean applyBaseRecalibration(	String realigned_dedup_reads_bam, String bqsrFile,
-																					String output, Logger altLog) {
+  private boolean applyBaseRecalibration(String dedup_reads_bam, String bqsrFile, String output,
+                                         Logger altLog) {
 		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
-																			PRINT_READS, R, referenceGenomeFasta, I,
-																			realigned_dedup_reads_bam, BQSR, bqsrFile, O, output};
+                                     PRINT_READS, R, referenceGenomeFasta, I, dedup_reads_bam, BQSR,
+                                     bqsrFile, O, output};
 		return CmdLine.runCommandWithFileChecks(command, "",
-																						new String[] {referenceGenomeFasta,
-																													realigned_dedup_reads_bam, bqsrFile},
+                                            new String[] {referenceGenomeFasta, dedup_reads_bam,
+                                                          bqsrFile},
 																						new String[] {output}, verbose, overWriteExistingOutput,
 																						true, (altLog == null ? log : altLog));
 	}
@@ -1077,7 +1071,7 @@ public class GATK {
 		private static final String POST = ".post";
 		private static final String RECALIBRATION_PLOTS = ".recalibration_plots.pdf";
 
-		private final String realigned_dedup_reads_bam;
+    private final String dedup_reads_bam;
 		private String rrd_bam;
 		private String bqsr_before;
 		private String bqsr_post;
@@ -1088,20 +1082,20 @@ public class GATK {
 		private boolean allThere, fail;
 		private final Logger log;
 
-		public BaseRecalibration(String baseId, String realigned_dedup_reads_bam, Logger log) {
+    public BaseRecalibration(String baseId, String dedup_reads_bam, Logger log) {
 			super();
 			this.baseId = baseId;
-			this.realigned_dedup_reads_bam = realigned_dedup_reads_bam;
+      this.dedup_reads_bam = dedup_reads_bam;
 			allThere = false;
 			fail = false;
 			this.log = log;
 		}
 
 		public void parseInput() {
-			rrd_bam = ext.addToRoot(realigned_dedup_reads_bam, RECAL);
-			bqsr_before = ext.rootOf(realigned_dedup_reads_bam, false) + RECAL_DATA;
+      rrd_bam = ext.addToRoot(dedup_reads_bam, RECAL);
+      bqsr_before = ext.rootOf(dedup_reads_bam, false) + RECAL_DATA;
 			bqsr_post = ext.addToRoot(bqsr_before, POST);
-			recalibration_plots = ext.rootOf(realigned_dedup_reads_bam, false) + RECALIBRATION_PLOTS;
+      recalibration_plots = ext.rootOf(dedup_reads_bam, false) + RECALIBRATION_PLOTS;
 			if (baseId.split(BWA_Analysis.FileNameParser.SPLIT).length != 3) {
 				barcode = "";
 				log.reportTimeWarning("The current baseId "+ baseId + " did not have 3 "
@@ -1112,8 +1106,8 @@ public class GATK {
 			}
 		}
 
-		public String getRealigned_dedup_reads_bam() {
-			return realigned_dedup_reads_bam;
+    public String getDedup_reads_bam() {
+      return dedup_reads_bam;
 		}
 
 		public String getRrd_bam() {
