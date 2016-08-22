@@ -244,7 +244,7 @@ public class GATK_LanePrep extends BWA_Analysis {
           try {
             gRecalibrations[i] = tmpResults.get(i + "").get();
             if (gRecalibrations[i].isFail() && !isFail()) {
-              getLog().reportError("failed recalibration for "
+              getLog().reportError("Failed recalibration for "
                                    + gRecalibrations[i].getDedup_reads_bam());
               setFail(true);
             }
@@ -771,7 +771,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 				knownSitesIndelFile = ext.parseStringArg(arg, "").split(GATK.SPLIT);
 				numArgs--;
 			} else {
-				System.err.println("invalid argument: " + arg);
+				System.err.println("Error - invalid argument: " + arg);
 			}
 		}
 
