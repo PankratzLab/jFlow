@@ -1,5 +1,6 @@
 package org.genvisis;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -21,141 +22,238 @@ import org.genvisis.common.Logger;
 /**
  * Helper class for parsing command line arguments. Typical usage is:
  * <ol>
- * <li>Create an {@link Options} object with {@link #defaultOptions()}. This ensures a standard set
- * of help flags.</li>
- * <li>Build up this {@link Options} set by using {@link #addFlag} (e.g. <code>-doThisOption</code>)
- * and {@link #addArg} (e.g., <code>myOpt=someValue</code>)</li>
+ * <li>Create a {@link CLI} object with {@link #CLI()}. This ensures a standard set of help
+ * flags.</li>
+ * <li>Build up the parser options by using {@link #addFlag} (e.g. <code>-doThisOption</code>) and
+ * {@link #addArg} (e.g., <code>myOpt=someValue</code>)</li>
  * <li>(Optional) If your program includes mutually exclusive commands and you want to ensure a user
  * selects one (and only one), group these options with {@link #addGroup}</li>
- * <li>Parse your {@link Options} with <b>either</b> {@link #parseWithExit}, if you want your
+ * <li>Parse your the command line with <b>either</b> {@link #parseWithExit}, if you want your
  * application to exit if the command-line usage is printed, or {@link #parse} if you want to handle
  * any exception cases yourself.</li>
- * <li>After parsing you can interrogate the returned {@link Map} of argument names to values (or
- * {@code null} for flags)</li>
+ * <li>After parsing, you can interrogate the {@link CLI} with {@link #get(String)} or
+ * {@link #has(String)} methods.</li>
  * </ol>
  */
-public final class CLI {
-  private static final String HELP_CHAR = "h";
-  private static final String HELP_STRING = "help";
-  private static final String ARG_VALUE = "value";
-  private static final boolean REQUIRED = false;
-  private static final Class<?> TYPE = PatternOptionBuilder.STRING_VALUE;
-  private static final int OUT_WIDTH = 150;
+public class CLI {
+  /**
+   * Helper enum for supported parameter types. When using Commons-cli, must be a subset of
+   * {@link PatternOptionBuilder} class constants.
+   */
+  public enum Arg {
+                   STRING, NUMBER, FILE
+  }
+
+  private static final String HELP_CHAR = "h"; // short string to print usage
+  private static final String HELP_STRING = "help"; // long string to print usage
+  private static final String ARG_VALUE = "value"; // default value to print for arguments
+  private static final boolean REQUIRED = false; // default required state
+  private static final Arg TYPE = Arg.STRING; // default validation class
+  private static final int OUT_WIDTH = 150; // help output width
+  private static final String INDENT = "   "; // indentation for non-required, non-grouped arguments
+  private static final char SEPARATOR = '='; // argument separator
+
+  private final Options options;
+
+  private Map<String, String> parsed;
+
+  /**
+   * Create a {@link CLI} object with a default set of command line options (e.g. "-h, -help" to
+   * print usage).
+   */
+  public CLI() {
+    this(new Options());
+    addFlag(HELP_CHAR, "Print application usage", HELP_STRING);
+  }
+
+  /**
+   * Create a {@link CLI} object with the specified command line {@link Option}s as a starting
+   * point.
+   *
+   * @param o Baseline options to parse in this CLI instance.
+   */
+  public CLI(Options o) {
+    options = o;
+  }
+
+  /**
+   * @param key Parsed keyword to look up
+   * @return {@code true} if the given key was parsed
+   * @throws IllegalStateException if a {@link #parse} method has not been called yet.
+   */
+  public boolean has(String key) {
+    checkParse();
+    return parsed.containsKey(key);
+  }
+
+  /**
+   * @param key Parsed keyword to look up
+   * @return The parsed value for the given key
+   * @throws IllegalStateException if a {@link #parse} method has not been called yet.
+   */
+  public String get(String key) {
+    checkParse();
+    return parsed.get(key);
+  }
+
+  /**
+   * @param key Parsed keyword to look up
+   * @return The parsed value for the given key, converted to a {@link File}
+   * @throws IllegalStateException if a {@link #parse} method has not been called yet.
+   */
+  public File getF(String key) {
+    return new File(get(key));
+  }
+
+  /**
+   * @param key Parsed keyword to look up
+   * @return The parsed value for the given key, converted to an {@code int}
+   * @throws IllegalStateException if a {@link #parse} method has not been called yet.
+   */
+  public int getI(String key) {
+    return Integer.parseInt(get(key));
+  }
+
+  /**
+   * @param key Parsed keyword to look up
+   * @return The parsed value for the given key, converted to a {@code double}
+   * @throws IllegalStateException if a {@link #parse} method has not been called yet.
+   */
+  public double getD(String key) {
+    return Double.parseDouble(get(key));
+  }
+
+  /**
+   * Helper method to ensure it is safe to access the parser output.
+   */
+  private void checkParse() {
+    if (parsed == null) {
+      throw new IllegalStateException("Please call parse first");
+    }
+  }
 
   /**
    * Helper method to finish building an {@link Option}, whether from {@link #addFlag} or
-   * {@link #addArg}, and add it to the given {@link Options}
+   * {@link #addArg}.
    */
-  private static void add(Options options, Builder builder, String longName, String desc,
-                          boolean required, Class<?> type) {
+  private void add(Builder builder, String longName, String desc, boolean required, Arg type) {
     if (longName != null) {
       builder = builder.longOpt(longName);
     }
 
     // Mark the description so required flags will be clearly indicated in usage text
-    String description = (required ? "(required) " : "") + desc;
-    builder = builder.type(type);
+    String description = (required ? "(required) " : INDENT) + desc;
+    Class<?> argType;
+    switch (type) {
+      case NUMBER:
+        argType = PatternOptionBuilder.NUMBER_VALUE;
+        break;
+      case FILE:
+        argType = PatternOptionBuilder.FILE_VALUE;
+        break;
+      case STRING:
+      default:
+        argType = PatternOptionBuilder.STRING_VALUE;
+    }
+    builder = builder.type(argType);
     builder = builder.desc(description).required(required);
 
     options.addOption(builder.build());
   }
 
   /**
-   * @see #addArg(Options, String, String, String, boolean, Class)
+   * @see #addArg(String, String, String, boolean, Class)
    *
-   * @param options {@link Options} collection, modified in-place by adding the {@link Option}
-   *        created by this call.
    * @param name Argument name
    * @param description Text to use when printing command-line usage
    */
-  public static void addArg(Options options, String name, String description) {
-    addArg(options, name, description, null);
+  public void addArg(String name, String description) {
+    addArg(name, description, null);
   }
 
   /**
-   * @see #addArg(Options, String, String, String, boolean, Class)
+   * @see #addArg(String, String, String, boolean, Class)
    *
-   * @param options {@link Options} collection, modified in-place by adding the {@link Option}
-   *        created by this call.
    * @param name Argument name
    * @param description Text to use when printing command-line usage
    * @param required If {@code true}, {@link #parse} will fail if this argument is not explicitly
    *        set and no {@code argDefault} is provided. <i>Default: {@code false}</i>
    */
-  public static void addArg(Options options, String name, String description, boolean required) {
-    addArg(options, name, description, null, required);
+  public void addArg(String name, String description, boolean required) {
+    addArg(name, description, null, required);
   }
 
   /**
-   * @see #addArg(Options, String, String, String, boolean, Class)
+   * @see #addArg(String, String, String, boolean, Class)
    *
-   * @param options {@link Options} collection, modified in-place by adding the {@link Option}
-   *        created by this call.
    * @param name Argument name
    * @param description Text to use when printing command-line usage
    * @param required If {@code true}, {@link #parse} will fail if this argument is not explicitly
    *        set and no {@code argDefault} is provided. <i>Default: {@code false}</i>
-   * @param type Any argument value must be convertible to this type (e.g. through a string
-   *        constructor, or {@code valueOf(String)} method). <i>Default: {@link String}</i>
+   * @param type Enforced parameter type from the {@link #Arg} enum set.
    */
-  public static void addArg(Options options, String name, String description, boolean required,
-                            Class<?> type) {
-    addArg(options, name, description, null, required, type);
+  public void addArg(String name, String description, boolean required, Arg type) {
+    addArg(name, description, null, required, type);
   }
 
   /**
-   * @see #addArg(Options, String, String, String, boolean, Class)
+   * @see #addArg(String, String, String, boolean, Class)
    *
-   * @param options {@link Options} collection, modified in-place by adding the {@link Option}
-   *        created by this call.
    * @param name Argument name
    * @param description Text to use when printing command-line usage
    * @param argDefault Default value of this argument. If specified, {@code required} is set to
-   *        {@code false}. If this argument is not present on the command-line, the default value
-   *        will be used. <i>Default: {@code null}</i>
+   *        {@code false}. If this argument is not present on the command-line, this default value
+   *        will be used.
    */
-  public static void addArg(Options options, String name, String description, String argDefault) {
-    addArg(options, name, description, argDefault, REQUIRED);
+  public void addArg(String name, String description, String argDefault) {
+    addArg(name, description, argDefault, REQUIRED);
   }
 
 
   /**
-   * @see #addArg(Options, String, String, String, boolean, Class)
+   * @see #addArg(String, String, String, boolean, Class)
    *
-   * @param options {@link Options} collection, modified in-place by adding the {@link Option}
-   *        created by this call.
    * @param name Argument name
    * @param description Text to use when printing command-line usage
    * @param argDefault Default value of this argument. If specified, {@code required} is set to
-   *        {@code false}. If this argument is not present on the command-line, the default value
-   *        will be used. <i>Default: {@code null}</i>
-   * @param required If {@code true}, {@link #parse} will fail if this argument is not explicitly
-   *        set and no {@code argDefault} is provided. <i>Default: {@code false}</i>
+   *        {@code false}. If this argument is not present on the command-line, this default value
+   *        will be used.
+   * @param required If {@code true}, {@link #parse} methods will fail if this argument is not
+   *        explicitly set and no {@code argDefault} is provided.
    */
-  public static void addArg(Options options, String name, String description, String argDefault,
-                            boolean required) {
-    addArg(options, name, description, argDefault, required, TYPE);
+  public void addArg(String name, String description, String argDefault, boolean required) {
+    addArg(name, description, argDefault, required, TYPE);
   }
 
   /**
-   * Add an <b>argument</b> (e.g. "key=value") command-line option to the given {@link Options}
-   * object.
+   * @see #addArg(String, String, String, boolean, Class)
    *
-   * @param options {@link Options} collection, modified in-place by adding the {@link Option}
-   *        created by this call.
    * @param name Argument name
    * @param description Text to use when printing command-line usage
    * @param argDefault Default value of this argument. If specified, {@code required} is set to
-   *        {@code false}. If this argument is not present on the command-line, the default value
+   *        {@code false}. If this argument is not present on the command-line, this default value
+   *        will be used.
+   * @param type Enforced parameter type from the {@link #Arg} enum set.
+   */
+  public void addArg(String name, String description, String argDefault, Arg type) {
+    addArg(name, description, argDefault, REQUIRED, type);
+  }
+
+  /**
+   * Add an <b>argument</b> (e.g. "key=value") command-line option to this {@link CLI} instance.
+   *
+   * @param name Argument name
+   * @param description Text to use when printing command-line usage
+   * @param argDefault Default value of this argument. If specified, {@code required} is set to
+   *        {@code false}. If this argument is not present on the command-line, this default value
    *        will be used. <i>Default: {@code \<value\>}</i>
    * @param required If {@code true}, {@link #parse} will fail if this argument is not explicitly
    *        set and no {@code argDefault} is provided. <i>Default: {@code false}</i>
-   * @param type Enforce typing of this argument. <b>Notice</b>: the specified class must be one of
-   *        the {@link PatternOptionBuilder} value codes. <i>Default:
-   *        {@link PatternOptionBuilder#STRING_VALUE}</i>
+   * @param type Enforced parameter type from the {@link #Arg} enum set. <i>Default:
+   *        {@link CLI#STRING_VALUE}</i>
    */
-  public static void addArg(Options options, String name, String description, String argDefault,
-                            boolean required, Class<?> type) {
+  public void addArg(String name, String description, String argDefault, boolean required,
+                     Arg type) {
     String argVal = ARG_VALUE;
     boolean reallyRequired = required;
 
@@ -165,56 +263,47 @@ public final class CLI {
       argVal = argDefault;
     }
 
-    Builder builder = Option.builder().hasArg().argName(argVal).valueSeparator('=');
+    Builder builder = Option.builder().hasArg().argName(argVal).valueSeparator(SEPARATOR);
 
-    add(options, builder, name, description, reallyRequired, type);
+    add(builder, name, description, reallyRequired, type);
   }
 
   /**
-   * @see {@link #addFlag(Options, String, String, String, boolean)}
+   * @see {@link #addFlag(String, String, String, boolean)}
    *
-   * @param options {@link Options} collection, modified in-place by adding the {@link Option}
-   *        created by this call.
    * @param name Text to enable this flag on command line
    * @param description Text to use when printing command-line usage
    */
-  public static void addFlag(Options options, String name, String description) {
-    addFlag(options, name, description, null);
+  public void addFlag(String name, String description) {
+    addFlag(name, description, null);
   }
 
   /**
-   * @see {@link #addFlag(Options, String, String, String, boolean)}
+   * @see {@link #addFlag(String, String, String, boolean)}
    *
-   * @param options {@link Options} collection, modified in-place by adding the {@link Option}
-   *        created by this call.
    * @param name Text to enable this flag on command line
    * @param description Text to use when printing command-line usage
    * @param required If {@code true}, {@link #parse} will fail if this argument is not set.
-   *        <i>Default: {@code false}</i>
    */
-  public static void addFlag(Options options, String name, String description, boolean required) {
-    addFlag(options, name, description, null, required);
+  public void addFlag(String name, String description, boolean required) {
+    addFlag(name, description, null, required);
   }
 
   /**
-   * @see {@link #addFlag(Options, String, String, String, boolean)}
+   * @see {@link #addFlag(String, String, String, boolean)}
    *
-   * @param options {@link Options} collection, modified in-place by adding the {@link Option}
-   *        created by this call.
    * @param name Text to enable this flag on command line
    * @param description Text to use when printing command-line usage
    * @param longName Alternate long-parse name. If present, this and {@code name} can be used
    *        interchangeably
    */
-  public static void addFlag(Options options, String name, String description, String longName) {
-    addFlag(options, name, description, longName, REQUIRED);
+  public void addFlag(String name, String description, String longName) {
+    addFlag(name, description, longName, REQUIRED);
   }
 
   /**
-   * Add a <b>flag</b> (e.g. "-flag") command-line option to the given {@link Options} object.
+   * Add a <b>flag</b> (e.g. "-flag") command-line option to this {@link CLI}'s {@link Options} set.
    *
-   * @param options {@link Options} collection, modified in-place by adding the {@link Option}
-   *        created by this call.
    * @param name Text to enable this flag on command line
    * @param description Text to use when printing command-line usage
    * @param longName Alternate long-parse name. If present, this and {@code name} can be used
@@ -222,22 +311,20 @@ public final class CLI {
    * @param required If {@code true}, {@link #parse} will fail if this argument is not set.
    *        <i>Default: {@code false}</i>
    */
-  public static void addFlag(Options options, String name, String description, String longName,
-                             boolean required) {
+  public void addFlag(String name, String description, String longName, boolean required) {
     Builder builder = Option.builder(name);
 
-    add(options, builder, longName, description, required, null);
+    add(builder, longName, description, required, TYPE);
   }
 
   /**
-   * Create and add an {@link OptionGroup} to the given {@link Options} instance. An options group
-   * is a mutually-exclusive set of required options: <b>one and only one</b> of the options in this
-   * group will need to be set at runtime.
+   * Create and add an {@link OptionGroup} to this {@link CLI}'s {@link Options} instance. An
+   * options group is a mutually-exclusive set of required options: <b>one and only one</b> of the
+   * options in this group will need to be set at runtime.
    *
-   * @param options {@link Options} collection containing the {@link Option} instances to group.
    * @param toGroup The name of one or more {@link Option} instances to group together.
    */
-  public static void addGroup(Options options, String... toGroup) {
+  public void addGroup(String... toGroup) {
     OptionGroup g = new OptionGroup();
     g.setRequired(true);
 
@@ -252,7 +339,9 @@ public final class CLI {
         throw new IllegalArgumentException("Group creation failed. Option not found: " + opt);
       }
 
-      o.setDescription("(select one) " + o.getDescription());
+      // Pop the indentation off non-required args
+      o.setDescription("(select one) "
+                       + o.getDescription().substring(o.isRequired() ? 0 : INDENT.length()));
       g.addOption(o);
     }
 
@@ -262,54 +351,110 @@ public final class CLI {
   }
 
   /**
-   * @return A pre-configured {@link Options} that includes supports help flags
-   */
-  public static Options defaultOptions() {
-    Options options = new Options();
-    addFlag(options, HELP_CHAR, "Print application usage", HELP_STRING);
-
-    return options;
-  }
-
-  /**
-   * Helper method to get the name of the given {@link Option} by checking both
-   * {@link Option#getOpt()} and {@link Option#getLongOpt()}.
-   */
-  private static String getName(Option o) {
-    String name = o.getOpt();
-    if (name == null) {
-      name = o.getLongOpt();
-    }
-    return name;
-  }
-
-  /**
-   * @see {@link #parse(String, Options, Logger, String...)}
+   * Note: unlike {@link #parse} methods, if the act of parsing does not return normally (e.g. due
+   * to a parsing exception or help flag passed) this method <b>will stop program execution</b>. Use
+   * at your own risk.
+   *
+   * @see {@link #parseWithExit(String, Logger, String...)}
    *
    * @param appClass Class with {@code main} method being run (for usage message - how a user should
    *        invoke from command line)
-   * @param options {@link Options} instance to use in parsing
+   * @param args Provided command-line arguments to parse
+   */
+  public void parseWithExit(Class<?> appClass, String... args) {
+    parseWithExit(appClass, new Logger(), args);
+  }
+
+  /**
+   * Note: unlike {@link #parse} methods, if the act of parsing does not return normally (e.g. due
+   * to a parsing exception or help flag passed) this method <b>will stop program execution</b>. Use
+   * at your own risk.
+   *
+   * @see {@link #parseWithExit(String, Logger, String...)}
+   *
+   * @param appClass Class with {@code main} method being run (for usage message - how a user should
+   *        invoke from command line)
    * @param log {@link Logger} instance to report any information resulting from parse
    * @param args Provided command-line arguments to parse
-   * @return A {@link Map} of {@link Option} names to parsed values.
    */
-  public static Map<String, String> parse(Class<?> appClass, Options options, Logger log,
-                                          String... args) throws ParseException {
-    return parse(appClass.getName(), options, log, args);
+  public void parseWithExit(Class<?> appClass, Logger log, String... args) {
+    parseWithExit(appClass.getName(), log, args);
   }
 
   /**
-   * @see {@link #parse(String, Options, Logger, String...)}
+   * Note: unlike {@link #parse} methods, if the act of parsing does not return normally (e.g. due
+   * risk.
+   *
+   * @see {@link #parseWithExit(String, Logger, String...)}
+   *
+   * @param appName Name of the program being run (for usage message - how a user should invoke from
+   *        command line)
+   * @param args Provided command-line arguments to parse
+   */
+  public void parseWithExit(String appName, String... args) {
+    parseWithExit(appName, new Logger(), args);
+  }
+
+  /**
+   * Note: unlike {@link #parse} methods, if the act of parsing does not return normally (e.g. due
+   * to a parsing exception or help flag passed) this method <b>will stop program execution</b>. Use
+   * at your own risk.
+   *
+   * @see {@link #parse(String, Logger, String...)}
+   *
+   * @param appName Name of the program being run (for usage message - how a user should invoke from
+   *        command line)
+   * @param log {@link Logger} instance to report any information resulting from parse
+   * @param args Provided command-line arguments to parse
+   */
+  public void parseWithExit(String appName, Logger log, String... args) {
+    try {
+      parse(appName, log, args);
+    } catch (ParseException e) {
+      // If there's no error message then this exception was thrown because a help flag was passed.
+      int errorCode = e.getMessage().isEmpty() ? 0 : 1;
+      System.exit(errorCode);
+    }
+  }
+
+  /**
+   * @see {@link #parse(String, Logger, String...)}
    *
    * @param appClass Class with {@code main} method being run (for usage message - how a user should
    *        invoke from command line)
-   * @param options {@link Options} instance to use in parsing
    * @param args Provided command-line arguments to parse
-   * @return A {@link Map} of {@link Option} names to parsed values.
    */
-  public static Map<String, String> parse(Class<?> appClass, Options options,
-                                          String... args) throws ParseException {
-    return parse(appClass, options, new Logger(), args);
+  public void parse(Class<?> appClass, String... args) throws ParseException {
+    parse(appClass, new Logger(), args);
+  }
+
+  /**
+   * @see {@link #parse(String, Logger, String...)}
+   *
+   * @param appClass Class with {@code main} method being run (for usage message - how a user should
+   *        invoke from command line)
+   * @param log {@link Logger} instance to report any information resulting from parse
+   * @param args Provided command-line arguments to parse
+   *
+   * @throws ParseException If a problem is encountered during parsing or a help/usage flag is
+   *         parsed.
+   */
+  public void parse(Class<?> appClass, Logger log, String... args) throws ParseException {
+    parse(appClass.getName(), log, args);
+  }
+
+  /**
+   * @see {@link #parse(String, Logger, String...)}
+   *
+   * @param appName Name of the program being run (for usage message - how a user should invoke from
+   *        command line)
+   * @param args Provided command-line arguments to parse
+   *
+   * @throws ParseException If a problem is encountered during parsing or a help/usage flag is
+   *         parsed.
+   */
+  public void parse(String appName, String... args) throws ParseException {
+    parse(appName, new Logger(), args);
   }
 
   /**
@@ -318,23 +463,15 @@ public final class CLI {
    *
    * @param appName Name of the program being run (for usage message - how a user should invoke from
    *        command line)
-   * @param options {@link Options} instance to use in parsing
    * @param log {@link Logger} instance to report any information resulting from parse. <i>Default:
    *        new Logger()</i>
    * @param args Provided command-line arguments to parse
-   * @return A {@link Map} of {@link Option} names to parsed values.
+   *
+   * @throws ParseException If a problem is encountered during parsing or a help/usage flag is
+   *         parsed.
    */
-  public static Map<String, String> parse(String appName, Options options, Logger log,
-                                          String... args) throws ParseException {
-    // Can't figure out how to configure CommandLineParser to allow arguments (but not flags) to
-    // drop the "-"
-    // character... so, manually prepend it here.
-    for (int i = 0; i < args.length; i++) {
-      if (args[i].charAt(0) != '-') {
-        StringBuilder sb = new StringBuilder().append('-').append(args[i]);
-        args[i] = sb.toString();
-      }
-    }
+  public void parse(String appName, Logger log, String... args) throws ParseException {
+    formatArgs(args);
 
     try {
       CommandLineParser parser = new DefaultParser();
@@ -345,7 +482,7 @@ public final class CLI {
         throw new ParseException("");
       }
 
-      Map<String, String> parsed = new HashMap<String, String>();
+      parsed = new HashMap<String, String>();
       for (Option o : options.getOptions()) {
         String opt = getName(o);
 
@@ -360,7 +497,6 @@ public final class CLI {
           parsed.put(opt, o.getArgName());
         }
       }
-      return parsed;
     } catch (ParseException e) {
       printHelp(log, appName, e.getMessage(), options);
       throw e;
@@ -368,103 +504,29 @@ public final class CLI {
   }
 
   /**
-   * @see {@link #parse(String, Options, Logger, String...)}
-   *
-   * @param appName Name of the program being run (for usage message - how a user should invoke from
-   *        command line)
-   * @param options {@link Options} instance to use in parsing
-   * @param args Provided command-line arguments to parse
-   * @return A {@link Map} of {@link Option} names to parsed values.
+   * Helper method to ensure args conform to commons-cli format
    */
-  public static Map<String, String> parse(String appName, Options options,
-                                          String... args) throws ParseException {
-    return parse(appName, options, new Logger(), args);
-  }
-
-  /**
-   * Note: unlike {@link #parse} methods, if the act of parsing does not return normally (e.g. due
-   * to a parsing exception or help flag passed) this method <b>will not return</b>. Use at your own
-   * risk.
-   *
-   * @see {@link #parseWithExit(String, Options, Logger, String...)}
-   *
-   * @param appClass Class with {@code main} method being run (for usage message - how a user should
-   *        invoke from command line)
-   * @param options {@link Options} instance to use in parsing
-   * @param log {@link Logger} instance to report any information resulting from parse
-   * @param args Provided command-line arguments to parse
-   * @return A {@link Map} of {@link Option} names to parsed values.
-   */
-  public static Map<String, String> parseWithExit(Class<?> appClass, Options options, Logger log,
-                                                  String... args) {
-    return parseWithExit(appClass.getName(), options, log, args);
-  }
-
-  /**
-   * Note: unlike {@link #parse} methods, if the act of parsing does not return normally (e.g. due
-   * to a parsing exception or help flag passed) this method <b>will not return</b>. Use at your own
-   * risk.
-   *
-   * @see {@link #parseWithExit(String, Options, Logger, String...)}
-   *
-   * @param appClass Class with {@code main} method being run (for usage message - how a user should
-   *        invoke from command line)
-   * @param options {@link Options} instance to use in parsing
-   * @param args Provided command-line arguments to parse
-   * @return A {@link Map} of {@link Option} names to parsed values.
-   */
-  public static Map<String, String> parseWithExit(Class<?> appClass, Options options,
-                                                  String... args) {
-    return parseWithExit(appClass, options, new Logger(), args);
-  }
-
-  /**
-   * Performs the actual parsing of command-line options and return parsed values. This is the final
-   * step of command-line argument processing.
-   * <p>
-   * Note: unlike {@link #parse} methods, if the act of parsing does not return normally (e.g. due
-   * to a parsing exception or help flag passed) this method <b>will not return</b>. Use at your own
-   * risk.
-   * </p>
-   *
-   * @see {@link #parse(String, Options, Logger, String...)}
-   *
-   * @param appName Name of the program being run (for usage message - how a user should invoke from
-   *        command line) * @param options {@link Options} instance to use in parsing
-   * @param options {@link Options} instance to use in parsing
-   * @param log {@link Logger} instance to report any information resulting from parse
-   * @param args Provided command-line arguments to parse
-   * @return A {@link Map} of {@link Option} names to parsed values.
-   */
-  public static Map<String, String> parseWithExit(String appName, Options options, Logger log,
-                                                  String... args) {
-    Map<String, String> parsed = null;
-    try {
-      parsed = parse(appName, options, log, args);
-    } catch (ParseException e) {
-      // If there's no error message then this exception was thrown because a help flag was passed.
-      int errorCode = e.getMessage().isEmpty() ? 0 : 1;
-      System.exit(errorCode);
+  private static void formatArgs(String... args) {
+    // Can't figure out how to configure CommandLineParser to allow arguments (but not flags) to
+    // drop the "-" character... so, manually prepend it here.
+    for (int i = 0; i < args.length; i++) {
+      if (args[i].charAt(0) != '-') {
+        StringBuilder sb = new StringBuilder().append('-').append(args[i]);
+        args[i] = sb.toString();
+      }
     }
-
-    return parsed;
   }
 
   /**
-   * Note: unlike {@link #parse} methods, if the act of parsing does not return normally (e.g. due
-   * to a parsing exception or help flag passed) this method <b>will not return</b>. Use at your own
-   * risk.
-   *
-   * @see {@link #parseWithExit(String, Options, Logger, String...)}
-   *
-   * @param appName Name of the program being run (for usage message - how a user should invoke from
-   *        command line) * @param options {@link Options} instance to use in parsing
-   * @param options {@link Options} instance to use in parsing
-   * @param args Provided command-line arguments to parse
-   * @return A {@link Map} of {@link Option} names to parsed values.
+   * Helper method to get the name of the given {@link Option} by checking both
+   * {@link Option#getOpt()} and {@link Option#getLongOpt()}.
    */
-  public static Map<String, String> parseWithExit(String appName, Options options, String... args) {
-    return parseWithExit(appName, options, new Logger(), args);
+  private static String getName(Option o) {
+    String name = o.getOpt();
+    if (name == null) {
+      name = o.getLongOpt();
+    }
+    return name;
   }
 
   /**
@@ -519,9 +581,5 @@ public final class CLI {
         throw new ParseException(sb.toString());
       }
     }
-  }
-
-  private CLI() {
-    // Prevent construction of static utility class
   }
 }
