@@ -150,10 +150,9 @@ public class Pipeline {
      */
     @Override
     public PipelinePart call() throws Exception {
-
-      BamImport.importTheWholeBamProject(null, binBed, captureBed, vcf, captureBufferSize, -1,
-                                         false, ngsSample.getaType(), new String[] {bam},
-                                         numthreads);
+      Project proj = getProjectFor(ngsSample.getaType(), rootOutDir);
+      BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBufferSize, -1,
+                                         false, ngsSample.getaType(), new String[] {bam}, 1);
 
       return this;
     }
@@ -169,9 +168,12 @@ public class Pipeline {
     String projectName = aType.toString() + "_Genvisis_Project";
     String projectDir = rootOutDir + "genvisis/" + aType + "/";
     String projectFile = projectDir + projectName + ".properties";
-    new File(projectDir).mkdirs();
-    Files.writeList(new String[] {"PROJECT_NAME=" + projectName, "PROJECT_DIRECTORY=" + projectDir},
-                    projectFile);
+    if (!Files.exists(projectFile)) {
+      new File(projectDir).mkdirs();
+      Files.writeList(new String[] {"PROJECT_NAME=" + projectName,
+                                    "PROJECT_DIRECTORY=" + projectDir},
+                      projectFile);
+    }
     Project proj = new Project(projectFile, false);
     proj.saveProperties();
     return proj;
