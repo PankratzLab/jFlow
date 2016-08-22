@@ -442,6 +442,7 @@ public class Project {
     }
   }
 
+  //FIXME there should be a static constant for each of these string keys so they can be used elsewhere (e.g. in cnv.Launch)
   public IntegerProperty LOG_LEVEL = new IntegerProperty(this, "LOG_LEVEL", "", -1, 12, 1);
   public StringProperty PROJECT_NAME = new StringProperty(this, "PROJECT_NAME", "Project Name",
                                                           "New Project");

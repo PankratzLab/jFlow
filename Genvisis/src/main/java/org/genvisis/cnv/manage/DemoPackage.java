@@ -97,7 +97,7 @@ public class DemoPackage {
       // fail = true;
     }
     String launchProperties = demoDirectory + LaunchProperties.DEFAULT_PROPERTIES_FILE;
-    org.genvisis.cnv.Launch.initLaunchProperties(launchProperties, true, true);
+    org.genvisis.cnv.Launch.createLaunchProperties(launchProperties, true, true);
 
     newLaunchProperties = new LaunchProperties(launchProperties);
     System.out.println(newLaunchProperties.getProperty(LaunchProperties.PROJECTS_DIR));
