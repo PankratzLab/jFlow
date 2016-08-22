@@ -738,7 +738,7 @@ public class BWA_Analysis {
 				batch = true;
 				numArgs--;
 			} else {
-				System.err.println("invalid argument: " + arg);
+        System.err.println("Error - invalid argument: " + arg);
 			}
 		}
 
