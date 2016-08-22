@@ -225,7 +225,7 @@ public class BamImport {
     };
 
     if (vcf != null) {
-
+      proj.getLog().reportTimeInfo("Extracting variant sites from " + vcf);
       String outDir = proj.PROJECT_DIRECTORY.getValue() + "vcf/";
       new File(outDir).mkdirs();
       String out = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".regions.txt";
@@ -427,7 +427,7 @@ public class BamImport {
     analysisSet = LocusSet.combine(bLocusSet.getStrictSegmentSet(), genomeBinsMinusBinsCaputure,
                                    true, log);
     analysisSet = LocusSet.combine(analysisSet, varFeatures.getStrictSegmentSet(), true, log);
-    String[] offTargetsToUse = dumpLikelyOffTargetProblems(proj);
+    String[] offTargetsToUse = dumpLikelyOffTargetProblems(proj, atype);
     log.memoryFree();
     if (!analysisSet.verifyPositiveLength()) {
       throw new IllegalArgumentException("all import segments must be gte length 1");
@@ -833,7 +833,7 @@ public class BamImport {
     return outliers;
   }
 
-  private static String[] dumpLikelyOffTargetProblems(Project proj) {
+  private static String[] dumpLikelyOffTargetProblems(Project proj, ASSAY_TYPE aType) {
 
     MarkerSet markerSet = proj.getMarkerSet();
     String problemFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(),
@@ -861,7 +861,7 @@ public class BamImport {
         if (current == NGS_MARKER_TYPE.OFF_TARGET) {
           NGS_MARKER_TYPE left = NGS_MARKER_TYPE.getType(names[indice[compLeft]]);
           NGS_MARKER_TYPE right = NGS_MARKER_TYPE.getType(names[indice[compRight]]);
-          if ((compLeft != j && left != NGS_MARKER_TYPE.OFF_TARGET)
+          if (aType != ASSAY_TYPE.WGS && (compLeft != j && left != NGS_MARKER_TYPE.OFF_TARGET)
               || (compRight != j && right != NGS_MARKER_TYPE.OFF_TARGET)) {
             goodOffTargets.add(names[indice[j]]);
             problems.add(names[indice[j]] + "\tLIKELY_OFF_TARGET_PROBLEM");
