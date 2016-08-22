@@ -55,6 +55,10 @@ import htsjdk.variant.vcf.VCFFileReader;
  */
 public class BamImport {
   public static final int CAPTURE_BUFFER = 4000;
+  public static final int BIN_SIZE_WXS = 20000;
+  public static final int BIN_SIZE_WGS = 2000;
+
+
 
   /**
    * Some enums that define NGS "marker" types
@@ -387,7 +391,7 @@ public class BamImport {
         if (!bLocusSet.hasNoOverlap()) {
 
           log.memoryFree();
-          genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000)
+          genomeBinsMinusBinsCaputure = referenceGenome.getBins(BIN_SIZE_WXS)
                                                        .removeThese(LocusSet.combine(bLocusSet,
                                                                                      readerCapture.loadAll(log),
                                                                                      true, log)
@@ -400,7 +404,7 @@ public class BamImport {
         }
       }
     } else if (atype == ASSAY_TYPE.WGS) {
-      genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000);
+      genomeBinsMinusBinsCaputure = referenceGenome.getBins(BIN_SIZE_WGS);
       String tmp = proj.PROJECT_DIRECTORY.getValue() + "tmp.bed";
       Files.write("0\t1\t100000", tmp);
       BEDFileReader readerBin = new BEDFileReader(tmp, false);
