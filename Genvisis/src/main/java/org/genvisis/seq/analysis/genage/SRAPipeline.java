@@ -98,7 +98,7 @@ public class SRAPipeline implements Callable<Boolean> {
       switch (sample.getaType()) {// create the required markerSets for import...prior to threading
         case WGS:
           if (!prelimGenvisisWGS) {
-            Project proj = Pipeline.getProjectFor(sample.getaType(), rootOutDir);
+            Project proj = Pipeline.getProjectFor(sample.getaType(), rootOutDir, referenceGenome);
 
             BamImport.generateAnalysisSet(proj, null, null, vcf, BamImport.CAPTURE_BUFFER,
                                           sample.getaType(), log,
@@ -108,7 +108,7 @@ public class SRAPipeline implements Callable<Boolean> {
           break;
         case WXS:
           if (!prelimGenvisisWXS) {
-            Project proj = Pipeline.getProjectFor(sample.getaType(), rootOutDir);
+            Project proj = Pipeline.getProjectFor(sample.getaType(), rootOutDir, referenceGenome);
             BamImport.generateAnalysisSet(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER,
                                           sample.getaType(), log,
                                           new ReferenceGenome(referenceGenome, log));

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerHive;
@@ -117,6 +118,7 @@ public class Pipeline {
 
     private final String bam;
     private final String rootOutDir;
+    private final String referenceGenomeFasta;
     private final String captureBed;
     private final NGSSample ngsSample;
     private final String binBed;
@@ -127,11 +129,13 @@ public class Pipeline {
 
 
 
-    public GenvisisPart(String bam, String rootOutDir, String captureBed, String binBed, String vcf,
-                        NGSSample ngsSample, int numthreads, int captureBufferSize, Logger log) {
+    public GenvisisPart(String bam, String rootOutDir, String referenceGenomeFasta,
+                        String captureBed, String binBed, String vcf, NGSSample ngsSample,
+                        int numthreads, int captureBufferSize, Logger log) {
       super();
       this.bam = bam;
       this.rootOutDir = rootOutDir;
+      this.referenceGenomeFasta = referenceGenomeFasta;
       this.captureBed = captureBed;
       this.binBed = binBed;
       this.vcf = vcf;
@@ -150,7 +154,7 @@ public class Pipeline {
      */
     @Override
     public PipelinePart call() throws Exception {
-      Project proj = getProjectFor(ngsSample.getaType(), rootOutDir);
+      Project proj = getProjectFor(ngsSample.getaType(), rootOutDir, referenceGenomeFasta);
       BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBufferSize, -1,
                                          false, ngsSample.getaType(), new String[] {bam}, 1);
 
@@ -164,7 +168,8 @@ public class Pipeline {
    * @param rootOutDir where the results will be stored
    * @return a project to use
    */
-  public static Project getProjectFor(ASSAY_TYPE aType, String rootOutDir) {
+  public static Project getProjectFor(ASSAY_TYPE aType, String rootOutDir,
+                                      String referenceGenomeFasta) {
     String projectName = aType.toString() + "_Genvisis_Project";
     String projectDir = rootOutDir + "genvisis/" + aType + "/";
     String projectFile = projectDir + projectName + ".properties";
@@ -175,6 +180,8 @@ public class Pipeline {
                       projectFile);
     }
     Project proj = new Project(projectFile, false);
+    proj.ARRAY_TYPE.setValue(ARRAY.NGS);
+    proj.REFERENCE_GENOME_FASTA_FILENAME.setValue(referenceGenomeFasta);
     proj.saveProperties();
     return proj;
   }
@@ -212,6 +219,7 @@ public class Pipeline {
     }
 
     WorkerHive<PipelinePart> hive = new WorkerHive<Pipeline.PipelinePart>(1, 10, log);
+
     // mtDNA CN
     // hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, referenceGenome, sample,
     // 1,
@@ -219,8 +227,8 @@ public class Pipeline {
     //
     // hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
 
-    hive.addCallable(new GenvisisPart(inputBam, rootOutDir, captureBed, binBed, vcf, sample, 1,
-                                      BamImport.CAPTURE_BUFFER, log));
+    hive.addCallable(new GenvisisPart(inputBam, rootOutDir, referenceGenome, captureBed, binBed,
+                                      vcf, sample, 1, BamImport.CAPTURE_BUFFER, log));
 
     hive.execute(true);
 
