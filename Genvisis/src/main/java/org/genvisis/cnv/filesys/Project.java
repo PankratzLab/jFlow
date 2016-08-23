@@ -772,13 +772,23 @@ public class Project {
     if (logfile == null) {
       logfile = "Genvisis_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date())
                 + ".log";
+      String warn = "";
       if (!JAR_STATUS.getValue()) {
-        logfile = PROJECT_DIRECTORY.getValue() + "logs/" + logfile;
-        if (!Files.exists(PROJECT_DIRECTORY.getValue() + "logs/", JAR_STATUS.getValue())) {
-          new File(PROJECT_DIRECTORY.getValue() + "logs/").mkdirs();
+        String projectDir = PROJECT_DIRECTORY.getValue();
+        if (!Files.exists(projectDir)) {
+          warn = "Project directory: " + projectDir
+                 + " not found. Did project move? Re-creating directory...";
+
+        }
+        logfile =projectDir + "logs/" + logfile;
+        if (!Files.exists(projectDir + "logs/", JAR_STATUS.getValue())) {
+          new File(projectDir + "logs/").mkdirs();
         }
       }
       log = new Logger(logLevel < 0 ? null : logfile, false, Math.abs(logLevel));
+      if (!warn.isEmpty()) {
+        log.reportTimeWarning(warn);
+      }
     } else {
       log = new Logger(logfile, false, Math.abs(logLevel));
     }
