@@ -826,28 +826,41 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     Thread thread;
 
     log.report("Action performed: " + command + "\n");
+    //TODO in Java 7 we can make these a switch statement
 
-    if (proj == null) {
-      log.report("Trying again to load project");
-      loadProject();
-    } else if (timestampOfPropertiesFile < new File(proj.getPropertyFilename()).lastModified()) {
-      log.report("Detected a change in the project properties file; reloading from '"
-                 + proj.getPropertyFilename() + "'");
-      proj = null;
-      loadProject();
-    } else {
-    }
-
-    if (proj != null
-        && timestampOfSampleDataFile < new File(proj.SAMPLE_DATA_FILENAME.getValue(false,
-                                                                                   false)).lastModified()) {
-      log.report("Detected a change in the sampleData file; reloading sample data");
-      proj.resetSampleData();
-    }
-
+    // These options do not require an active project
     if (command.equals(EXIT)) {
       System.exit(0);
-    } else if (command.equals(EDIT)) {
+    } else if (command.equals(NEW_PROJECT)) {
+      createProject();
+      return;
+    } else if (command.equals(IMPORT_PROJECT)) {
+      importProject();
+      return;
+    } else if (indexOfCurrentProj < 0 || indexOfCurrentProj >= projects.size()) {
+      // Command requested requires an active project, so ensure
+      // current project is valid
+      log.report("No project currently selected. Attempting to create one now.");
+      int i =
+          JOptionPane.showOptionDialog(null,
+                                       "No projects available. You can create or import one now.",
+                                       "Create project?", JOptionPane.OK_CANCEL_OPTION,
+                                       JOptionPane.INFORMATION_MESSAGE, null,
+                                       new Object[] {NEW_PROJECT, IMPORT_PROJECT}, NEW_PROJECT);
+      if (i == 0) {
+        createProject();
+      } else if (i == 1) {
+        importProject();
+      }
+      //TODO it would be nice if we could wait for create/import to finish before deciding if
+      // we should return or continue execution
+      return;
+    }
+
+    refreshTimestamps();
+
+    // These options require an active project
+    if (command.equals(EDIT)) {
       log.report("Launching project properties editor...");
       final ProjectPropertiesEditor configurator =
                                                  new ProjectPropertiesEditor(proj,
@@ -857,7 +870,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
         public void windowClosed(WindowEvent e) {
           Launch.this.requestFocus();
           configurator.dispose();
-        };
+        }
       });
       configurator.setVisible(true);
     } else if (command.equals(REFRESH)) {
@@ -872,35 +885,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
           kAndK.showDialogAndRun();
         }
       });
-    } else if (command.equals(NEW_PROJECT)) {
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          final GenvisisWorkflow kAndK = new GenvisisWorkflow(null, Launch.this);
-          kAndK.showDialogAndRun();
-        }
-      });
-    } else if (command.equals(IMPORT_PROJECT)) {
-
-      ImportProjectGUI importGUI = new ImportProjectGUI();
-      importGUI.setModal(true);
-      importGUI.setVisible(true);
-
-      if (!importGUI.getCancelled()) {
-        if (importGUI.run()) {
-          String newFilename = importGUI.getNewProjectFilename();
-          loadProjects();
-          setIndexOfCurrentProject(newFilename);
-          loadProject();
-        }
-      }
-      importGUI.dispose();
-
     } else if (command.equals(CHECK_FOR_UPDATES)) {
 
       HttpUpdate.update("http://genvisis.org/genvisis_dev.jar", "./", log);
 
     } else if (command.endsWith(" ")) {
+      //FIXME this should be unified with the drop down combobox selector
       for (int i = 0; i < projects.size(); i++) {
         if (command.equals(ext.rootOf(projects.get(i)) + " ")) {
           projectsBox.setSelectedIndex(i);
@@ -914,6 +904,51 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     }
   }
 
+  /**
+   * Check the timestamps on the project and sample data. If they are out of date, reload as
+   * appropriate.
+   */
+  private void refreshTimestamps() {
+    if (timestampOfPropertiesFile < new File(proj.getPropertyFilename()).lastModified()) {
+      log.report("Detected a change in the project properties file; reloading from '"
+                 + proj.getPropertyFilename() + "'");
+      proj = null;
+      loadProject();
+    }
+
+    if (proj != null
+        && timestampOfSampleDataFile < new File(proj.SAMPLE_DATA_FILENAME.getValue(false,
+                                                                                   false)).lastModified()) {
+      log.report("Detected a change in the sampleData file; reloading sample data");
+      proj.resetSampleData();
+    }
+  }
+
+  private void importProject() {
+    ImportProjectGUI importGUI = new ImportProjectGUI();
+    importGUI.setModal(true);
+    importGUI.setVisible(true);
+
+    if (!importGUI.getCancelled() && importGUI.run()) {
+      String newFilename = importGUI.getNewProjectFilename();
+      loadProjects();
+      setIndexOfCurrentProject(newFilename);
+      loadProject();
+    }
+    importGUI.dispose();
+  }
+
+  private void createProject() {
+    SwingUtilities.invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        final GenvisisWorkflow kAndK = new GenvisisWorkflow(null, Launch.this);
+        kAndK.showDialogAndRun();
+      }
+    });
+  }
+
+  //FIXME factor out to subclass to reduce clutter
   @Override
   public void windowOpened(WindowEvent we) {}
 
@@ -934,7 +969,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
   @Override
   public void windowDeactivated(WindowEvent we) {}
-
 
 
   /**
