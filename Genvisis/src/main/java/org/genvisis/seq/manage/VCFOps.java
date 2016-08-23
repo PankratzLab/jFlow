@@ -1487,7 +1487,7 @@ public class VCFOps {
    * @param overWrite
    * @param log
    */
-  public static void createSiteOnlyVcf(String inputVCF, String outputVCF, double mafFilter,
+  public static void createSiteOnlyVcf(String inputVCF, String outputVCF, boolean removeSingletons,
                                        boolean overWrite, Logger log) {
     VCFFileReader reader = new VCFFileReader(new File(inputVCF), false);
     if (Files.exists(outputVCF) && !overWrite) {
@@ -1497,17 +1497,17 @@ public class VCFOps {
                                                new Options[] {Options.DO_NOT_WRITE_GENOTYPES},
                                                reader.getFileHeader().getSequenceDictionary());
       copyHeader(reader, writer, null, HEADER_COPY_TYPE.SITE_ONLY, log);
-      int numMafFilter = 0;
+      int numSingletonFilter = 0;
       for (VariantContext vc : reader) {
-        double maf = VCOps.getMAF(vc, null);
-        if (maf >= mafFilter) {
+        boolean singleton = (vc.getHetCount() + vc.getHomVarCount()) > 1;
+        if (!singleton || !removeSingletons) {
           writer.add(vc);
         } else {
-          numMafFilter++;
+          numSingletonFilter++;
         }
       }
-      if (mafFilter >= 0) {
-        log.reportTimeInfo(numMafFilter + " variants were skipped for maf threshold " + mafFilter);
+      if (removeSingletons) {
+        log.reportTimeInfo(numSingletonFilter + " variants were removed as singletons");
       }
       reader.close();
       writer.close();

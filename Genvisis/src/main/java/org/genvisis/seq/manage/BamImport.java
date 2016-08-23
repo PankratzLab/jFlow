@@ -219,7 +219,8 @@ public class BamImport {
 
   }
 
-  private static LocusSet<VariantSeg> extractVCF(Project proj, String vcf, double vcfMaf) {
+  private static LocusSet<VariantSeg> extractVCF(Project proj, String vcf,
+                                                 boolean removeSingletons) {
     LocusSet<VariantSeg> varLocusSet = new LocusSet<VariantSeg>(new VariantSeg[] {}, true,
                                                                 proj.getLog()) {
 
@@ -236,7 +237,7 @@ public class BamImport {
       new File(outDir).mkdirs();
       String out = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".regions.txt";
       String outVCF = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".site.only.vcf.gz";
-      VCFOps.createSiteOnlyVcf(vcf, outVCF, vcfMaf, false, proj.getLog());
+      VCFOps.createSiteOnlyVcf(vcf, outVCF, removeSingletons, false, proj.getLog());
       if (!Files.exists(out)) {
         try {
           PrintWriter writer = new PrintWriter(new FileWriter(out));
@@ -426,7 +427,7 @@ public class BamImport {
                                                 false, 1, log);
       vcfToCount = subsetVcf;
     }
-    LocusSet<VariantSeg> varFeatures = extractVCF(proj, vcfToCount, DEFUALT_VCF_MAF);
+    LocusSet<VariantSeg> varFeatures = extractVCF(proj, vcfToCount, true);
 
     if (varFeatures.getLoci().length > 0) {
       log.reportTimeInfo(varFeatures.getBpCovered() + " bp covered by known variant sites");
