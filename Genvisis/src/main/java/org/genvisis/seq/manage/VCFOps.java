@@ -1480,8 +1480,15 @@ public class VCFOps {
 
   }
 
-  public static void createSiteOnlyVcf(String inputVCF, String outputVCF, boolean overWrite,
-                                       Logger log) {
+  /**
+   * @param inputVCF
+   * @param outputVCF the output, site only vcf
+   * @param mafFilter an maf filter to apply, set to less than 0 for no filtering
+   * @param overWrite
+   * @param log
+   */
+  public static void createSiteOnlyVcf(String inputVCF, String outputVCF, double mafFilter,
+                                       boolean overWrite, Logger log) {
     VCFFileReader reader = new VCFFileReader(new File(inputVCF), false);
     if (Files.exists(outputVCF) && !overWrite) {
       log.reportTimeWarning(outputVCF + " exists, skipping site only");
@@ -1490,8 +1497,17 @@ public class VCFOps {
                                                new Options[] {Options.DO_NOT_WRITE_GENOTYPES},
                                                reader.getFileHeader().getSequenceDictionary());
       copyHeader(reader, writer, null, HEADER_COPY_TYPE.SITE_ONLY, log);
+      int numMafFilter = 0;
       for (VariantContext vc : reader) {
-        writer.add(vc);
+        double maf = VCOps.getMAF(vc, null);
+        if (maf >= mafFilter) {
+          writer.add(vc);
+        } else {
+          numMafFilter++;
+        }
+      }
+      if (mafFilter >= 0) {
+        log.reportTimeInfo(numMafFilter + " variants were skipped for maf threshold " + mafFilter);
       }
       reader.close();
       writer.close();

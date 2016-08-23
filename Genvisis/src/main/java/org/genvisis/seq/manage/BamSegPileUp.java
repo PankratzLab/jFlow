@@ -78,7 +78,6 @@ public class BamSegPileUp implements Iterator<BamPile> {
     }
 
     Segment cs = currentPile.getBin();
-    // TODO chrM vs MT, and other checks
     String chr = Positions.getChromosomeUCSC(cs.getChr(), aName != ASSEMBLY_NAME.GRCH37);
     if (cs.getChr() == 26) {
       chr = "MT";
@@ -103,7 +102,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
     numReturned++;
     iterator.close();
     if (numReturned % 1000 == 0) {
-      log.reportTimeInfo(numReturned + " queries found for " + bam);
+      log.reportTimeInfo(numReturned + " queries found of " + bamPiles.length + " for " + bam);
     }
 
     return currentPile;
