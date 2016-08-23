@@ -79,10 +79,12 @@ public class BamSegPileUp implements Iterator<BamPile> {
 
     Segment cs = currentPile.getBin();
     // TODO chrM vs MT, and other checks
-    CloseableIterator<SAMRecord> iterator = reader.queryOverlapping(
-                                                                    Positions.getChromosomeUCSC(cs.getChr(),
-                                                                                                aName != ASSEMBLY_NAME.GRCH37),
-                                                                    cs.getStart(), cs.getStop());
+    String chr = Positions.getChromosomeUCSC(cs.getChr(), aName != ASSEMBLY_NAME.GRCH37);
+    if (cs.getChr() == 26) {
+      chr = "MT";
+    }
+    CloseableIterator<SAMRecord> iterator =
+                                          reader.queryOverlapping(chr, cs.getStart(), cs.getStop());
     while (iterator.hasNext()) {
       SAMRecord samRecord = iterator.next();
       if (!filter.filterOut(samRecord)) {
@@ -103,6 +105,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
     if (numReturned % 1000 == 0) {
       log.reportTimeInfo(numReturned + " queries found for " + bam);
     }
+
     return currentPile;
   }
 
