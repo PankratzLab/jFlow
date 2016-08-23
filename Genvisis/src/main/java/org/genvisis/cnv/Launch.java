@@ -143,23 +143,21 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
   public static final String TEST = "Test new program";
 
-  public static final String[][] MENUS =
-                                 {{"File", NEW_PROJECT, IMPORT_PROJECT, "Select Project", EDIT,
-                                   "Preferences", CHECK_FOR_UPDATES, EXIT},
-                                  {"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV,
-                                   TRANSPOSE_DATA, PIPELINE}, // ,
-                                                              // MITOPIPELINE
-                                  {"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM,
-                                   MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS,
-                                   TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
-                                  {"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER,
-                                   TWOD, LINE_PLOT, COMP, FOREST_PLOT},
-                                  {"Tools", GENERATE_ABLOOKUP, EXPORT_TO_PLINK,
-                                   GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF,
-                                   GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV, EXPORT_CNVS,
-                                   CYTO_WORKBENCH, PRINCIPAL_COMPONENTS, GENERATE_DEMO_PACKAGE,
-                                   ADD_QC_TO_SAMPLE_DATA, TEST},
-                                  {"Help", "Contents", "Search", "About"}};
+  public static final String[][] MENUS = {
+                                          {"File", NEW_PROJECT, IMPORT_PROJECT, "Select Project",
+                                           EDIT, "Preferences", CHECK_FOR_UPDATES, EXIT},
+                                          {"Data", MAP_FILES, GENERATE_MARKER_POSITIONS,
+                                           PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // ,
+                                                                                       // MITOPIPELINE
+                                          {"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM,
+                                           MARKER_METRICS, FILTER_MARKER_METRICS,
+                                           TALLY_MARKER_ANNOTATIONS,
+                                           TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
+                                          {"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT,
+                                           TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT},
+                                          {"Tools", GENERATE_ABLOOKUP, EXPORT_TO_PLINK,
+                                           GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS, GENERATE_DEMO_PACKAGE, ADD_QC_TO_SAMPLE_DATA, TEST},
+                                          {"Help", "Contents", "Search", "About"}};
 
 
   private Project proj;
