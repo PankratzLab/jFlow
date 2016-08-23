@@ -1262,7 +1262,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
         zoomSubsets[i][1] += distance;
       }
     }
-    System.out.println();
     if (inDrag) {
       paintAgain();
       startX = curX;
