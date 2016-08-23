@@ -27,6 +27,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -855,9 +856,8 @@ public class PennCNV {
       }
     }
 
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
     try {
       writer = new PrintWriter(new FileWriter(output));
       writer.println("Name\tChr\tPosition\tPFB");
@@ -961,9 +961,8 @@ public class PennCNV {
 
     // load gcFile
     try {
-      if (Thread.currentThread().isInterrupted()) {
-        throw new RuntimeException(new InterruptedException());
-      }
+
+      PSF.checkInterrupted();
       reader = Files.getAppropriateReader(inputGcBaseFullPath);
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
@@ -1030,9 +1029,8 @@ public class PennCNV {
       return;
     }
 
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
     // load pfb file or generate it
 
     // output the result

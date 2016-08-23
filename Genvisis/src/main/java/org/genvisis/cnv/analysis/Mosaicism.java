@@ -54,7 +54,7 @@ public class Mosaicism {
   }
 
   public static void findOutliers(Project proj, int numthreads) {
-    PrintWriter writer;
+    final PrintWriter writer;
     String[] samples;
     int chr;
     Hashtable<String, String> hash = new Hashtable<String, String>();
@@ -102,9 +102,8 @@ public class Mosaicism {
       }
     }
 
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
     samples = proj.getSamples();
     try {
       writer = new PrintWriter(new FileWriter(proj.MOSAIC_RESULTS_FILENAME.getValue()));
@@ -124,10 +123,12 @@ public class Mosaicism {
       long time = System.currentTimeMillis();
 
       while (train.hasNext()) {
-        if (Thread.currentThread().isInterrupted()) {
-          writer.close();
-          throw new RuntimeException(new InterruptedException());
-        }
+        PSF.checkInterrupted(new Runnable() {
+          @Override
+          public void run() {
+            writer.close();
+          }
+        });
         try {
           String[] results = train.next();
           index++;

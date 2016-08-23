@@ -155,6 +155,7 @@ public class GeneScorePipeline {
             DosageData d1 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile,
                                            dataSources.get(i).mapFile, null, hitMkrs, false, log);
             d0 = DosageData.combine(d0, d1, log);
+            System.gc();
           }
         }
         data.put(dataKey, d0);
@@ -537,9 +538,6 @@ public class GeneScorePipeline {
     }
     loadDataCounts();
     runMetaHitWindowsAndLoadData();
-
-    createAffectedPhenoFiles();
-    loadPhenoFiles();
   }
 
   private void setFilePrefices() {
@@ -774,129 +772,125 @@ public class GeneScorePipeline {
     }
   }
 
-  private void createAffectedPhenoFiles() {
-    studyLoop: for (Study study : studies) {
-      // String famFile = study.studyDir + "plink.fam";
-      String affFile = study.studyDir + "AFFECTED.pheno";
+  private void createAffectedPhenoFiles(Study study) {
+    // String famFile = study.studyDir + "plink.fam";
+    String affFile = study.studyDir + "AFFECTED.pheno";
 
-      // skip if we don't have PHENO data
-      if (!study.isPlinkData()) {
-        continue;
-      }
-      // if affected.pheno file already exists, skip
-      if (study.phenoFiles.contains("AFFECTED.pheno")) {
-        continue;
-      }
-      // if any of the data folders have been created, skip creating affected.pheno file
-      for (String dFile : dataFiles) {
-        String dataFile = ext.rootOf(dFile, false);
-        if ((new File(study.studyDir + dataFile + "\\")).exists()) {
-          continue studyLoop;
-        }
-      }
-
-      BufferedReader reader;
-      // 0 - fid
-      // 1 - iid
-      // 2
-      // 3
-      // 4 - sex
-      // 5 - pheno
-      ArrayList<String> fam = new ArrayList<String>();
-      ArrayList<String> pheno = new ArrayList<String>();
-      String temp;
-      try {
-        for (int i = 0; i < study.dataSources.size(); i++) {
-          reader = Files.getAppropriateReader(study.dataSources.get(i).idFile); // only satisfies
-                                                                                // 'isPlinkData()'
-                                                                                // if only one data
-                                                                                // source is present
-          while ((temp = reader.readLine()) != null) {
-            String[] line = temp.split("[\\s]+");
-            String affLine = line[0] + "\t" + line[1] + "\t"
-                             + (ext.isMissingValue(line[5]) ? "."
-                                                            : -1 * (Integer.parseInt(line[5]) - 2))
-                             + "\t" + line[4];
-            if (!ext.isMissingValue(line[5])) {
-              if (ext.isValidDouble(line[5]) && Double.parseDouble(line[5]) != 0.0) {
-                fam.add(affLine);
-              }
-              pheno.add(line[5]);
-            }
-          }
-
-          String[] unique = Array.unique(pheno.toArray(new String[] {}));
-          if (unique.length == 1) {
-            log.report("Error - no variance in pheno data from .fam file for study '"
-                       + study.studyName + "'");
-            continue;
-          }
-        }
-      } catch (NumberFormatException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-
-      String header = "FID\tIID\tPHENO\tMALE";
-      PrintWriter writer = Files.getAppropriateWriter(affFile);
-      writer.println(header);
-      for (String line : fam) {
-        writer.println(line);
-      }
-      writer.flush();
-      writer.close();
-
-      study.phenoFiles.add("AFFECTED.pheno");
+    // skip if we don't have PHENO data
+    if (!study.isPlinkData()) {
+      return;
     }
+    // if affected.pheno file already exists, skip
+    if (study.phenoFiles.contains("AFFECTED.pheno")) {
+      return;
+    }
+    // if any of the data folders have been created, skip creating affected.pheno file
+    for (String dFile : dataFiles) {
+      String dataFile = ext.rootOf(dFile, false);
+      if ((new File(study.studyDir + dataFile + "\\")).exists()) {
+        return;
+      }
+    }
+
+    BufferedReader reader;
+    // 0 - fid
+    // 1 - iid
+    // 2
+    // 3
+    // 4 - sex
+    // 5 - pheno
+    ArrayList<String> fam = new ArrayList<String>();
+    ArrayList<String> pheno = new ArrayList<String>();
+    String temp;
+    try {
+      for (int i = 0; i < study.dataSources.size(); i++) {
+        reader = Files.getAppropriateReader(study.dataSources.get(i).idFile); // only satisfies
+                                                                              // 'isPlinkData()'
+                                                                              // if only one data
+                                                                              // source is present
+        while ((temp = reader.readLine()) != null) {
+          String[] line = temp.split("[\\s]+");
+          String affLine = line[0] + "\t" + line[1] + "\t"
+                           + (ext.isMissingValue(line[5]) ? "."
+                                                          : -1 * (Integer.parseInt(line[5]) - 2))
+                           + "\t" + line[4];
+          if (!ext.isMissingValue(line[5])) {
+            if (ext.isValidDouble(line[5]) && Double.parseDouble(line[5]) != 0.0) {
+              fam.add(affLine);
+            }
+            pheno.add(line[5]);
+          }
+        }
+
+        String[] unique = Array.unique(pheno.toArray(new String[] {}));
+        if (unique.length == 1) {
+          log.report("Error - no variance in pheno data from .fam file for study '"
+                     + study.studyName + "'");
+          continue;
+        }
+      }
+    } catch (NumberFormatException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+
+    String header = "FID\tIID\tPHENO\tMALE";
+    PrintWriter writer = Files.getAppropriateWriter(affFile);
+    writer.println(header);
+    for (String line : fam) {
+      writer.println(line);
+    }
+    writer.flush();
+    writer.close();
+
+    study.phenoFiles.add("AFFECTED.pheno");
   }
 
-  private void loadPhenoFiles() {
-    for (Study study : studies) {
-      for (String pheno : study.phenoFiles) {
-        PhenoData pd = new PhenoData();
-        pd.phenoName = pheno;
+  private void loadPhenoFiles(Study study) {
+    for (String pheno : study.phenoFiles) {
+      PhenoData pd = new PhenoData();
+      pd.phenoName = pheno;
 
-        try {
-          BufferedReader reader = Files.getAppropriateReader(study.studyDir + pheno);
-          String[] header = reader.readLine().split("\t");
-          // fid == header[0]
-          // iid == header[1]
-          // depvar = header[2];
-          ArrayList<String> covars = new ArrayList<String>();
-          for (int i = 3; i < header.length; i++) {
-            covars.add(header[i]);
-          }
-          pd.covars.addAll(covars);
-          String temp = reader.readLine();
-          indiv: do {
-            String[] line = temp.split("\t");
-
-            if (!ext.isMissingValue(line[2])) {
-              PhenoIndiv pi = new PhenoIndiv();
-              pi.fid = line[0];
-              pi.iid = line[1];
-              pi.depvar = Double.parseDouble(line[2]);
-              for (int i = 3; i < line.length; i++) {
-                if (ext.isMissingValue(line[i])) {
-                  continue indiv;
-                }
-                pi.covars.put(header[i], Double.parseDouble(line[i]));
-              }
-              pd.indivs.put(pi.fid + "\t" + pi.iid, pi);
-            }
-
-          } while ((temp = reader.readLine()) != null);
-
-          reader.close();
-        } catch (IOException e) {
-          e.printStackTrace();
+      try {
+        BufferedReader reader = Files.getAppropriateReader(study.studyDir + pheno);
+        String[] header = reader.readLine().split("\t");
+        // fid == header[0]
+        // iid == header[1]
+        // depvar = header[2];
+        ArrayList<String> covars = new ArrayList<String>();
+        for (int i = 3; i < header.length; i++) {
+          covars.add(header[i]);
         }
+        pd.covars.addAll(covars);
+        String temp = reader.readLine();
+        indiv: do {
+          String[] line = temp.split("\t");
 
-        study.phenoData.put(pheno, pd);
+          if (!ext.isMissingValue(line[2])) {
+            PhenoIndiv pi = new PhenoIndiv();
+            pi.fid = line[0];
+            pi.iid = line[1];
+            pi.depvar = Double.parseDouble(line[2]);
+            for (int i = 3; i < line.length; i++) {
+              if (ext.isMissingValue(line[i])) {
+                continue indiv;
+              }
+              pi.covars.put(header[i], Double.parseDouble(line[i]));
+            }
+            pd.indivs.put(pi.fid + "\t" + pi.iid, pi);
+          }
+
+        } while ((temp = reader.readLine()) != null);
+
+        reader.close();
+      } catch (IOException e) {
+        e.printStackTrace();
       }
+
+      study.phenoData.put(pheno, pd);
     }
   }
 
@@ -926,6 +920,8 @@ public class GeneScorePipeline {
     // processStudy(studyDir);
     // }
     for (Study study : studies) {
+      createAffectedPhenoFiles(study);
+      loadPhenoFiles(study);
       processStudy(study);
     }
     writeResults();

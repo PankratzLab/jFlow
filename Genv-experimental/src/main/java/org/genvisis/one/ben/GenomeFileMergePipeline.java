@@ -5,7 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.StringTokenizer;
 import java.util.Map.Entry;
 
 import org.genvisis.cnv.filesys.Project;
@@ -15,6 +17,8 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Qc;
+
+import com.google.common.collect.Lists;
 
 public class GenomeFileMergePipeline {
   
@@ -125,6 +129,7 @@ public class GenomeFileMergePipeline {
     String genFile;
     String[] parts;
     String[] outLine;
+    int outLineCount, lineCount, count;
     int projInd0, projInd1, projInd2, projInd3;
     int[] factors;
     Project proj;
@@ -167,33 +172,40 @@ public class GenomeFileMergePipeline {
       files.add(new GenomeFile(name, file));
     }
     
-    int outLineCount = 4 + (4 * files.size());  // fid1 iid1 fid2 iid2 + 4 columns per projects (ibd0, ibd1, ibd2, pi_hat)
+    outLineCount = 4 + (4 * files.size());  // fid1 iid1 fid2 iid2 + 4 columns per projects (ibd0, ibd1, ibd2, pi_hat)
     outLineMap = new HashMap<String, String[]>();
     
     try {
       for (int p = 0; p < files.size(); p++) {
-        log.report("Loading data from " + files.get(p).genomeFile);
+        lineCount = Files.countLines(files.get(p).genomeFile, 1);
+        log.report("Loading " + lineCount + " lines of data from " + files.get(p).genomeFile);
         projInd0 = 4 + p * 4 + 0;
         projInd1 = projInd0 + 1;
         projInd2 = projInd1 + 1;
         projInd3 = projInd2 + 1;
         
+        count = lineCount / 10;
+        lineCount = 0;
         reader = Files.getAppropriateReader(files.get(p).genomeFile);
         line = reader.readLine();
         factors = ext.indexFactors(GENOME_COLUMNS, line.trim().split("[\\s]+"), false, false);
         // do id lookup, determine which column of 1/2 and 3/4 (if not both) are in lookup
         while((line = reader.readLine()) != null) {
           line = line.trim();
-          parts = line.split("[\\s]+");
-          
-          fid1 = parts[factors[0]];
-          iid1 = parts[factors[1]];
-          fid2 = parts[factors[2]];
-          iid2 = parts[factors[3]];
-          ibd0 = parts[factors[4]];
-          ibd1 = parts[factors[5]];
-          ibd2 = parts[factors[6]];
-          piHt = parts[factors[7]];
+          StringTokenizer st = new StringTokenizer(line, " ", false);
+          ArrayList<String> pts = new ArrayList<String>();
+          while(st.hasMoreTokens()) {
+            pts.add(st.nextToken());
+          }
+          st = null;
+          fid1 = pts.get(factors[0]).toString();    
+          iid1 = pts.get(factors[1]).toString();  
+          fid2 = pts.get(factors[2]).toString();  
+          iid2 = pts.get(factors[3]).toString();  
+          ibd0 = pts.get(factors[4]).toString();  
+          ibd1 = pts.get(factors[5]).toString();  
+          ibd2 = pts.get(factors[6]).toString();  
+          piHt = pts.get(factors[7]).toString();        
 
           if (idMap.containsKey(iid1) && !idMap.containsKey(fid1)) {
             fid1 = idMap.get(iid1);
@@ -228,7 +240,12 @@ public class GenomeFileMergePipeline {
           outLine[projInd2] = ibd2;
           outLine[projInd3] = piHt;
           
+          lineCount++;
+          if (lineCount % count == 0) {
+            System.gc();
+          }
         }
+        System.gc();
         reader.close();
       }
     } catch (FileNotFoundException e) {

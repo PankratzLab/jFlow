@@ -22,6 +22,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 
@@ -141,9 +142,7 @@ public class TransposeData {
     numMarkers_WriteBuffer = Math.min(getOptimaleNumSamplesBasingOnHeapSpace(-1, numBytes_Mark),
                                       allMarkerNamesInProj.length);
     while (!done) {
-      if (Thread.currentThread().isInterrupted()) {
-        throw new RuntimeException(new InterruptedException());
-      }
+      PSF.checkInterrupted();
       try {
         numMarkers_File = (int) Math.min((double) markerFileSizeSuggested / (double) numBytes_Mark,
                                          allMarkerNamesInProj.length);
@@ -201,14 +200,11 @@ public class TransposeData {
           }
           markersInEachFile[i] = Compression.objToBytes(markersInEachFile1);
         }
-        if (Thread.currentThread().isInterrupted()) {
-          throw new RuntimeException(new InterruptedException());
-        }
+        PSF.checkInterrupted();
         new MarkerLookup(markerLookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue(false, false));
 
-        if (Thread.currentThread().isInterrupted()) {
-          throw new RuntimeException(new InterruptedException());
-        }
+
+        PSF.checkInterrupted();
         indexFirstMarkerCurrentIteration = 0;
         readBuffer = new byte[numMarkers_WriteBuffer * numBytesPerSampleMarker];
         writeBuffer = new byte[numChunks_WriteBuffer][numMarkers_Chunk * numBytes_Mark];
@@ -221,9 +217,7 @@ public class TransposeData {
         if (keepAllSampleFilesOpen) {
           sampleFiles = new RandomAccessFile[allSampleNamesInProj.length];
           for (int i = 0; i < allSampleNamesInProj.length; i++) {
-            if (Thread.currentThread().isInterrupted()) {
-              throw new RuntimeException(new InterruptedException());
-            }
+            PSF.checkInterrupted();
             try {
               sampleFiles[i] = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true)
                                                     + allSampleNamesInProj[i]
@@ -249,9 +243,8 @@ public class TransposeData {
         }
         markFileOutliers = getOutlierHashForEachMdRafFile(allOutliers, numFiles, numMarkers_File,
                                                           allSampleNamesInProj);
-        if (Thread.currentThread().isInterrupted()) {
-          throw new RuntimeException(new InterruptedException());
-        }
+
+        PSF.checkInterrupted();
 
         markerFileIndex = 0;
         numBufferChunksNeededCurrentMarkFile = 0;
@@ -260,9 +253,8 @@ public class TransposeData {
         timerWriteFiles = 0;
         log.report("--\ni (<" + numRounds_LoadSampFile + ")\tLoad\tTranspose\tWrite");
         for (int i = 0; i < numRounds_LoadSampFile; i++) {
-          if (Thread.currentThread().isInterrupted()) {
-            throw new RuntimeException(new InterruptedException());
-          }
+
+          PSF.checkInterrupted();
           if ((i + 1) == numRounds_LoadSampFile && numMarkers_LastRound != 0) {
             numChunks_WriteBuffer = (int) Math.ceil((double) numMarkers_LastRound
                                                     / (double) numMarkers_Chunk);
@@ -277,9 +269,8 @@ public class TransposeData {
           timerLoadFiles = 0;
           timerTransposeMemory = 0;
           for (int j = 0; j < allSampleNamesInProj.length; j++) {
-            if (Thread.currentThread().isInterrupted()) {
-              throw new RuntimeException(new InterruptedException());
-            }
+
+            PSF.checkInterrupted();
             timerTmp = new Date().getTime();
             if (!keepAllSampleFilesOpen) {
               sampleFile = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true)
@@ -294,18 +285,16 @@ public class TransposeData {
                                                              numBytesPerSampleMarker,
                                                              allMarkerNamesInProj.length, null,
                                                              log);
-            if (Thread.currentThread().isInterrupted()) {
-              throw new RuntimeException(new InterruptedException());
-            }
+
+            PSF.checkInterrupted();
 
             timerLoadFiles += (new Date().getTime() - timerTmp);
             timerTmp = new Date().getTime();
 
             transposeBuffer(writeBuffer, writeBufferSizes, readBuffer, numBytesPerSampleMarker,
                             indexFirstMarkerCurrentIteration, j, allSampleNamesInProj.length);
-            if (Thread.currentThread().isInterrupted()) {
-              throw new RuntimeException(new InterruptedException());
-            }
+
+            PSF.checkInterrupted();
 
             timerTransposeMemory += (new Date().getTime() - timerTmp);
 
@@ -322,9 +311,8 @@ public class TransposeData {
                                                      numChunks_WriteBuffer);
           countTotalChunks_writeBuffer -= numChunks_RemainedInWriteBuffer;
           for (int j = 0; j < numChunks_RemainedInWriteBuffer; j++) {
-            if (Thread.currentThread().isInterrupted()) {
-              throw new RuntimeException(new InterruptedException());
-            }
+
+            PSF.checkInterrupted();
             if (isFileClosed) {
               numBufferChunksNeededCurrentMarkFile = Math.min(numChunks_File,
                                                               countTotalChunks_MarkerFile);
@@ -365,9 +353,8 @@ public class TransposeData {
             writeBufferToRAF(writeBuffer, writeBufferSizes, j, index_WriteBufferEnd,
                              markerFilenames[markerFileIndex], markFileParameterSection,
                              markFileOutliersBytes);
-            if (Thread.currentThread().isInterrupted()) {
-              throw new RuntimeException(new InterruptedException());
-            }
+
+            PSF.checkInterrupted();
 
             j = index_WriteBufferEnd;
             if (isFileClosed) {

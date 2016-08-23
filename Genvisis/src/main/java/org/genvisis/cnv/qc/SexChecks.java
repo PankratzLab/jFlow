@@ -30,6 +30,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ProgressMonitor.DISPLAY_MODE;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.LocusSet;
@@ -136,9 +137,8 @@ public class SexChecks {
     markerSet = proj.getMarkerSet();
     sampleNames = proj.getSamples();
     qcPassedSamples = LrrSd.samplesPassingQc(proj);
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
 
     log.report("Finding Sex Chromosome Markers...");
     generateMarkerLists(nonCrossHybridizingMarkersFile);
@@ -156,6 +156,7 @@ public class SexChecks {
 
 
     log.report("Scanning for markers that express differently by sex...");
+    PSF.checkInterrupted();
 
     xUseMarkers = sexDiscriminatingXMarkers();
     yUseMarkers = sexDiscriminatingYMarkers();
@@ -166,20 +167,25 @@ public class SexChecks {
     log.report("Found " + Array.booleanArraySum(yUseMarkers)
                + " sex differentiating markers out of " + indicesByChr[24].length
                + " Y chromosome markers");
+    PSF.checkInterrupted();
 
     log.report("Calculating median sample LRR for identified X and Y chromosome markers");
     lrrMedX = calcMedianLRRs(lrrsX, Array.booleanArrayToIndices(xUseMarkers));
     lrrMedY = calcMedianLRRs(lrrsY, Array.booleanArrayToIndices(yUseMarkers));
+    PSF.checkInterrupted();
 
     lrrMeanX = calcMeanLRRs(lrrsX, Array.booleanArrayToIndices(xUseMarkers));
     lrrMeanY = calcMeanLRRs(lrrsY, Array.booleanArrayToIndices(yUseMarkers));
+    PSF.checkInterrupted();
 
     log.report("Calculating sample counts of heterozygote calls for identified X chromosome markers...");
     pctXHets = calcPctHets(genotypesX, Array.booleanArrayToIndices(xUseMarkers));
     pctXBaf15_85 = calcPctBaf15_85(bafsX, Array.booleanArrayToIndices(xUseMarkers));
+    PSF.checkInterrupted();
 
     log.report("Estimating sex for each sample...");
     estimateSexes();
+    PSF.checkInterrupted();
 
     log.report("Writing outputs...");
     writeToFile(appendToSampleData);

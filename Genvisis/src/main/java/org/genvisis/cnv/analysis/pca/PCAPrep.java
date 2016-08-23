@@ -13,6 +13,7 @@ import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 /**
@@ -228,17 +229,15 @@ public class PCAPrep {
       writeMarkersToQC(proj, targetMarkersFile, markersToQCFile);
       boolean[] samplesToExclude = new boolean[proj.getSamples().length];
       Arrays.fill(samplesToExclude, false);
-      if (Thread.currentThread().isInterrupted()) {
-        throw new RuntimeException(new InterruptedException());
-      }
+
+      PSF.checkInterrupted();
       MarkerMetrics.fullQC(proj, samplesToExclude, ext.removeDirectoryInfo(markersToQCFile), false,
                            numthreads);
 
       // MarkerMetrics.fullQC(proj, samplesToExclude, null, false, numthreads);
     }
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
     filterMarkerMetricsFile(proj, markerCallRateFilter, markersABCallrate);
   }
 }

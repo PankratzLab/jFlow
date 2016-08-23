@@ -426,7 +426,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 }
             }
             color = (byte) 0;
-            if (fcp.isBackgating()) {
+            if (fcp.isBackgating() && parentGating != null) {
                 if (parentGating[i]) {
                     color = (byte) fcp.getParentGate().getColorCode();
                 }

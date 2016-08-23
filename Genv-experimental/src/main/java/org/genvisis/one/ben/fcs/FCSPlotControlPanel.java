@@ -843,7 +843,7 @@ public class FCSPlotControlPanel extends JPanel {
 //        
 //    }
 
-    public void startFileLoading(FCSDataLoader newDataLoader) {
+    public void startFileLoading(final FCSDataLoader newDataLoader) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -891,9 +891,10 @@ public class FCSPlotControlPanel extends JPanel {
                                 }
                             }
                         });
-                    } catch (InvocationTargetException | InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                      e.printStackTrace();
+                    } catch (InterruptedException e) {
+                      e.printStackTrace();
                     }
 //                    Thread.yield();
                 }

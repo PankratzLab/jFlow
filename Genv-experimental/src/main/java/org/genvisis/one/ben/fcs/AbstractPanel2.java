@@ -183,7 +183,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	private int currentIndexInPlotPointSet;
 	private int lookupResolution;
 	private boolean flow;			//A control variable. If resizing is not yet done, don't start generatePoints() or drawAll();
-	private volatile int imageStatus;		//A control variable. If drawAll() is not yet done, don't start paintComponent();
+	private final Object IMAGE_LOCK = new Object();
+	private volatile int imageStatus = IMAGE_NULL;		//A control variable. If drawAll() is not yet done, don't start paintComponent();
 	private byte[] layersInBase;
 	private byte[] extraLayersVisible;
 //	private boolean pointsGeneratable;
@@ -225,11 +226,11 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 		image = null;
 		locLookup = new Hashtable<String,IntVector>();
-		imageStatus = IMAGE_NULL;
 		flow=true;
 //		pointsGeneratable = true;
 		beEfficient = true;
 		
+		setBackground(Color.WHITE);
 		colorScheme = new Color[] {Color.BLACK, Color.GRAY};
 		addMouseListener(this);
 		addMouseMotionListener(this);
@@ -247,15 +248,23 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		this.createLookup = value;
 	}
 	
+	public int getImageStatus() {
+	  synchronized(IMAGE_LOCK) {
+	    return imageStatus;
+	  }
+	}
+	
 	public void setImageStatus(int status) {
+	  synchronized(IMAGE_LOCK) {
 	    if (DEBUGGING) {
 	        System.out.println("Set image status to " + status);
 	    }
 		imageStatus = status;
+	  }
 	}
 
 	protected boolean imageIsFinal() {
-		return imageStatus == IMAGE_COMPLETE;
+		return getImageStatus() == IMAGE_COMPLETE;
 	}
 
 	public void resetCurrentIndexInPlotPointSet() {
@@ -284,14 +293,22 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	}
 
 	public void paintAgain() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-        		image = null;
-        		setImageStatus(IMAGE_NULL);
-        		repaint();
-            }
-        });
+      image = null;
+      setImageStatus(IMAGE_NULL);
+      if (getWidth() > 0 && getHeight() > 0) {
+//        new Thread(new Runnable() {
+//          @Override
+//          public void run() {
+            createImage();
+            SwingUtilities.invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                repaint();
+              }
+            });
+//          }
+//        }).start();
+      }
 	}
 
 	public boolean isRandomTest() {
@@ -340,28 +357,16 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 	public void paintComponent(final Graphics g) {
 	    if (waitingTimer != null) return;
-	    if (imageStatus == IMAGE_STARTED) return;
-		// this either doesn't affect anything or gets caught in an infinite loop while the lookup is being created
-//		while (imageStatus == IMAGE_STARTED) {
-//			if (DEBUGGING) {
-//				System.out.println("Additional call to paint before the first was completed; sleeping 100ms");
-//			}
-//			try {
-//				Thread.sleep(100);
-//			} catch (InterruptedException ie) {
-//			}
-//		}
-		if (image == null) {
+	    if (getImageStatus() == IMAGE_COMPLETE && image != null) {
+	      g.drawImage(image, 0, 0, AbstractPanel2.this);
+	      if (extraLayersVisible != null && extraLayersVisible.length > 0) {
+	        drawAll(g, false);
+	      }
+	    } else {
 			if (DEBUGGING) {
 				System.out.println("createImage() being called from paintComponent()");
-			}    
-            createImage(); // if you remove this, you get a blank screen and at least QQPlot ends up with a double title panel
-		} else if (DEBUGGING) {
-	        System.out.println("Skipping image creation");
-	    }
-		g.drawImage(image, 0, 0, AbstractPanel2.this);
-		if (extraLayersVisible != null && extraLayersVisible.length > 0) {
-			drawAll(g, false);
+			}
+			super.paintComponent(g);
 		}
 	}
 	
