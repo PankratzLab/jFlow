@@ -419,8 +419,14 @@ public class BamImport {
                        + " analysis  set");
     log.memoryFree();
 
-
-    LocusSet<VariantSeg> varFeatures = extractVCF(proj, optionalVCF, DEFUALT_VCF_MAF);
+    String vcfToCount = optionalVCF;
+    if (atype == ASSAY_TYPE.WXS) {
+      String subsetVcf = VCFOps.extractSegments(vcfToCount, captureBed, 100, null,
+                                                proj.PROJECT_DIRECTORY.getValue() + "vcf/", false,
+                                                false, 1, log);
+      vcfToCount = subsetVcf;
+    }
+    LocusSet<VariantSeg> varFeatures = extractVCF(proj, vcfToCount, DEFUALT_VCF_MAF);
 
     if (varFeatures.getLoci().length > 0) {
       log.reportTimeInfo(varFeatures.getBpCovered() + " bp covered by known variant sites");
