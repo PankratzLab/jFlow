@@ -6,6 +6,7 @@ import java.util.concurrent.Callable;
 
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -27,13 +28,14 @@ import org.genvisis.sra.SRAUtils.SRAConversionResult;
  */
 public class SRAPipeline implements Callable<Boolean> {
 
+
   private SRASample sraSample;
   private String inputSRA;
   private String rootOutDir;
   private String referenceGenome;
   private String captureBed;
   private String binBed;
-  private String vcf;
+  private String vcfFile;
   private int numThreads;
   private Logger log;
 
@@ -58,7 +60,7 @@ public class SRAPipeline implements Callable<Boolean> {
     this.referenceGenome = referenceGenome;
     this.captureBed = captureBed;
     this.binBed = binBed;
-    this.vcf = vcf;
+    this.vcfFile = vcf;
     this.numThreads = numThreads;
     this.log = log;
   }
@@ -71,7 +73,7 @@ public class SRAPipeline implements Callable<Boolean> {
     WorkerHive<SRAConversionResult> hive = new WorkerHive<SRAUtils.SRAConversionResult>(1, 10, log);
     hive.addCallable(new SRABamWorker(inputSRA, bam, log));
     hive.execute(true);
-    Pipeline.pipeline(bam, rootOutDir, referenceGenome, captureBed, binBed, vcf, sraSample,
+    Pipeline.pipeline(bam, rootOutDir, referenceGenome, captureBed, binBed, vcfFile, sraSample,
                       numThreads, log);
 
     return true;
@@ -83,7 +85,7 @@ public class SRAPipeline implements Callable<Boolean> {
    */
   private static void runAll(String sraInput, String sraRunTableFile, String rootOutDir,
                              String referenceGenome, String captureBed, String binBed, String vcf,
-                             int numThreads) {
+                             int numThreads, int numThreadsPipeline, int numBatches, CLI c) {
     Logger log = new Logger();
     String[] sraFiles = null;
     if (Files.isDirectory(sraInput)) {
@@ -103,25 +105,30 @@ public class SRAPipeline implements Callable<Boolean> {
       SRASample sample = srRunTable.get(ext.rootOf(sraFile));
       sampleSummary.add(sraFile + "\t" + sample.toString());
       SRAPipeline pipeline = new SRAPipeline(sample, sraFile, rootOutDir, referenceGenome,
-                                             captureBed, binBed, vcf, 1, log);
+                                             captureBed, binBed, vcf, numThreadsPipeline, log);
       switch (sample.getaType()) {// create the required markerSets for import...prior to threading
         case WGS:
           if (!prelimGenvisisWGS) {
             Project proj = Pipeline.getProjectFor(sample.getaType(), rootOutDir, referenceGenome);
-
-            BamImport.generateAnalysisSet(proj, null, null, vcf, BamImport.CAPTURE_BUFFER,
-                                          sample.getaType(), log,
-                                          new ReferenceGenome(referenceGenome, log));
+            if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
+              BamImport.generateAnalysisSet(proj, null, null, vcf, BamImport.CAPTURE_BUFFER,
+                                            sample.getaType(), log,
+                                            new ReferenceGenome(referenceGenome, log));
+            }
             prelimGenvisisWGS = true;
           }
           break;
         case WXS:
           if (!prelimGenvisisWXS) {
+
             Project proj = Pipeline.getProjectFor(sample.getaType(), rootOutDir, referenceGenome);
-            BamImport.generateAnalysisSet(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER,
-                                          sample.getaType(), log,
-                                          new ReferenceGenome(referenceGenome, log));
-            prelimGenvisisWXS = true;
+            if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
+
+              BamImport.generateAnalysisSet(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER,
+                                            sample.getaType(), log,
+                                            new ReferenceGenome(referenceGenome, log));
+              prelimGenvisisWXS = true;
+            }
           }
           break;
         default:
@@ -131,8 +138,49 @@ public class SRAPipeline implements Callable<Boolean> {
       hive.addCallable(pipeline);
     }
     Files.writeArrayList(sampleSummary, rootOutDir + "sampleAnalysis.summary.txt");
-    System.exit(1);
-    hive.execute(true);
+    if (numBatches > 0) {
+      batch(sraFiles, rootOutDir, c, log);
+    } else {
+      hive.execute(true);
+    }
+  }
+
+  private static final String SRA_INPUT = "sraInput";
+  private static final String OUT_DIR = "outDir";
+  private static final String SRA_RUN_TABLE = "sraRunTable";
+  private static final String NUM_THREADS = "threads";
+  private static final String NUM_THREADS_PIPELINE = "threadsPipe";
+
+  private static final String REFERENCE_GENOME = "ref";
+  private static final String CAPTURE_BED = "bed";
+  private static final String BIN_BED = "bin";
+  private static final String VCF = "vcf";
+  private static final String NUM_BATCHES = "batch";
+
+  private static void batch(String[] sraFiles, String rootOutDir, CLI c, Logger log) {
+    String[][] splits = Array.splitUpStringArray(sraFiles, c.getI(NUM_BATCHES), log);
+    ArrayList<String> baseCommand = new ArrayList<String>();
+    baseCommand.add(OUT_DIR + "=" + c.get(OUT_DIR));
+    baseCommand.add(SRA_RUN_TABLE + "=" + c.get(SRA_RUN_TABLE));
+    baseCommand.add(NUM_THREADS + "=" + c.get(NUM_THREADS));
+    baseCommand.add(NUM_THREADS_PIPELINE + "=" + c.get(NUM_THREADS_PIPELINE));
+    baseCommand.add(REFERENCE_GENOME + "=" + c.get(REFERENCE_GENOME));
+    baseCommand.add(CAPTURE_BED + "=" + c.get(CAPTURE_BED));
+    baseCommand.add(BIN_BED + "=" + c.get(BIN_BED));
+    baseCommand.add(VCF + "=" + c.get(VCF));
+
+    String batchDir = rootOutDir + "batches/";
+    new File(batchDir).mkdirs();
+    for (int i = 0; i < splits.length; i++) {
+      String batch = batchDir + "batch_" + i + ".txt";
+      String qsub = batchDir + "batch_" + i + ".qsub";
+      Files.writeList(splits[i], batch);
+      ArrayList<String> currentCommand = new ArrayList<String>();
+      currentCommand.add(SRA_INPUT + "=" + batch);
+      Files.qsub(qsub, Array.toStr(Array.toStringArray(currentCommand), " "), 63000, 15,
+                 c.getI(NUM_THREADS) * c.getI(NUM_THREADS_PIPELINE));
+    }
+
   }
 
 
@@ -142,43 +190,50 @@ public class SRAPipeline implements Callable<Boolean> {
     CLI c = new CLI();
 
     String sraDirDefault = "sra/";
-    final String SRA_Input = "sraInput";
-    c.addArg(SRA_Input, "directory or filename with .sra files", sraDirDefault);
+
+    c.addArg(SRA_INPUT, "directory or filename with .sra files", sraDirDefault);
 
     String outDir = "out/";
-    final String OUT_DIR = "outDir";
+
     c.addArg(OUT_DIR, "the output directory for results", outDir);
 
     String sraRunTableDefault = "sraRuntable.txt";
-    final String SRA_RUN_TABLE = "sraRunTable";
+
     c.addArg(SRA_RUN_TABLE, "a sra run table providing sample information", sraRunTableDefault);
 
     int numThreads = 24;
-    final String NUM_THREADS = "threads";
-    c.addArg(NUM_THREADS, "a sra run table providing sample information",
-             Integer.toString(numThreads));
+
+    c.addArg(NUM_THREADS, "number of threads across samples", Integer.toString(numThreads));
+
+    int numThreadsPipe = 1;
+    c.addArg(NUM_THREADS_PIPELINE, "number of threads within samples",
+             Integer.toString(numThreadsPipe));
 
     String refGenomeFasta = "hg19.canonical.fa";
-    final String REFERENCE_GENOME = "ref";
+
+
     c.addArg(REFERENCE_GENOME, "appropriate reference genome file", refGenomeFasta);
 
     String captureBedFile = "VCRome_2_1_hg19_capture_targets.bed";
-    final String CAPTURE_BED = "bed";
+
     c.addArg(CAPTURE_BED, "bed file of targeted capture", captureBedFile);
 
     String binBed = "targetsOfInterest.bed";
-    final String BIN_BED = "bin";
+
     c.addArg(BIN_BED, "bed file of targets of interests", binBed);
 
     String vcf = "vcf.vcf";
-    final String VCF = "vcf";
     c.addArg(VCF, "vcf file of variants", vcf);
 
-
+    int batch = -1;
+    c.addArg(NUM_BATCHES, "number of batches", Integer.toString(batch));
     c.parseWithExit(SRAPipeline.class, args);
 
-    runAll(c.get(SRA_Input), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
-           c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), numThreads);
+
+    runAll(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
+           c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.getI(NUM_THREADS),
+           c.getI(NUM_THREADS_PIPELINE), c.getI(NUM_BATCHES), c);
+
 
   }
 
