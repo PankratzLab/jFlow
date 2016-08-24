@@ -45,7 +45,10 @@ public class BWA {
                                           fullPathToReferenceIndexedFasta, fullPathToForwardReadFQ,
                                           fullPathToRevereseReadFQ, ">", fullPathToOutputFile};
     if (!fail) {
-      return CmdLine.runCommandWithFileChecks(commandArray, "", inputFiles, outputFiles,
+      String command = fullPathToOutputFile + ".bat";
+      Files.write(Array.toStr(commandArray, " "), command);
+      Files.chmod(command);
+      return CmdLine.runCommandWithFileChecks(new String[] {command}, "", inputFiles, outputFiles,
                                               verbose, overwriteExisting, true,
                                               altLog == null ? log : altLog);
     } else {
