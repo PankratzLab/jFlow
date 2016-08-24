@@ -90,7 +90,7 @@ public class SRAPipeline implements Callable<Boolean> {
     String[] sraFiles = null;
     if (Files.isDirectory(sraInput)) {
       log.reportTimeInfo("Gathering sra files from " + sraInput);
-      sraFiles = Files.list(sraInput, ".sra", false);
+      sraFiles = Files.listFullPaths(sraInput, ".sra", false);
     } else {
       log.reportTimeInfo("Reading sra files from " + sraInput);
       sraFiles = HashVec.loadFileToStringArray(sraInput, false, new int[] {0}, true);
@@ -117,6 +117,7 @@ public class SRAPipeline implements Callable<Boolean> {
             }
             prelimGenvisisWGS = true;
           }
+
           break;
         case WXS:
           if (!prelimGenvisisWXS) {
@@ -127,8 +128,8 @@ public class SRAPipeline implements Callable<Boolean> {
               BamImport.generateAnalysisSet(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER,
                                             sample.getaType(), log,
                                             new ReferenceGenome(referenceGenome, log));
-              prelimGenvisisWXS = true;
             }
+            prelimGenvisisWXS = true;
           }
           break;
         default:
@@ -160,6 +161,8 @@ public class SRAPipeline implements Callable<Boolean> {
   private static void batch(String[] sraFiles, String rootOutDir, CLI c, Logger log) {
     String[][] splits = Array.splitUpStringArray(sraFiles, c.getI(NUM_BATCHES), log);
     ArrayList<String> baseCommand = new ArrayList<String>();
+    baseCommand.add("module load gcc/4.8.1\n");
+    baseCommand.add("jcp seq.analysis.genage.SRAPipeline");
     baseCommand.add(OUT_DIR + "=" + c.get(OUT_DIR));
     baseCommand.add(SRA_RUN_TABLE + "=" + c.get(SRA_RUN_TABLE));
     baseCommand.add(NUM_THREADS + "=" + c.get(NUM_THREADS));
@@ -176,11 +179,11 @@ public class SRAPipeline implements Callable<Boolean> {
       String qsub = batchDir + "batch_" + i + ".qsub";
       Files.writeList(splits[i], batch);
       ArrayList<String> currentCommand = new ArrayList<String>();
+      currentCommand.addAll(baseCommand);
       currentCommand.add(SRA_INPUT + "=" + batch);
-      Files.qsub(qsub, Array.toStr(Array.toStringArray(currentCommand), " "), 63000, 15,
+      Files.qsub(qsub, Array.toStr(Array.toStringArray(currentCommand), " "), 55000, 55,
                  c.getI(NUM_THREADS) * c.getI(NUM_THREADS_PIPELINE));
     }
-
   }
 
 
