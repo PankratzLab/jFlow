@@ -1076,16 +1076,14 @@ public class GATK {
 		private String bqsr_before;
 		private String bqsr_post;
 		private String recalibration_plots;
-		private String baseId;
-		private String barcode;
-		private String newBaseId;
+    private String baseID;
 		private boolean allThere, fail;
 		private final Logger log;
 
     public BaseRecalibration(String baseId, String dedup_reads_bam, Logger log) {
 			super();
-			this.baseId = baseId;
-      this.dedup_reads_bam = dedup_reads_bam;
+			this.baseID = baseId;
+      		this.dedup_reads_bam = dedup_reads_bam;
 			allThere = false;
 			fail = false;
 			this.log = log;
@@ -1096,14 +1094,6 @@ public class GATK {
       bqsr_before = ext.rootOf(dedup_reads_bam, false) + RECAL_DATA;
 			bqsr_post = ext.addToRoot(bqsr_before, POST);
       recalibration_plots = ext.rootOf(dedup_reads_bam, false) + RECALIBRATION_PLOTS;
-			if (baseId.split(BWA_Analysis.FileNameParser.SPLIT).length != 3) {
-				barcode = "";
-				log.reportTimeWarning("The current baseId "+ baseId + " did not have 3 "
-															+ BWA_Analysis.FileNameParser.SPLIT
-															+ " - delimited fields, assuming no barcodes are present in the ids");
-			} else {
-				barcode = baseId.split(BWA_Analysis.FileNameParser.SPLIT)[2];
-			}
 		}
 
     public String getDedup_reads_bam() {
@@ -1146,28 +1136,12 @@ public class GATK {
 			this.fail = fail;
 		}
 
-		public String getBaseId() {
-			return baseId;
+    public String getBaseID() {
+      return baseID;
 		}
 
-		public void setBaseId(String baseId) {
-			this.baseId = baseId;
-		}
-
-		public String getNewBaseId() {
-			return newBaseId;
-		}
-
-		public void setNewBaseId(String newBaseId) {
-			this.newBaseId = newBaseId;
-		}
-
-		public String getBarcode() {
-			return barcode;
-		}
-
-		public void setBarcode(String barcode) {
-			this.barcode = barcode;
+    public void setBaseID(String baseId) {
+      this.baseID = baseId;
 		}
 
 		public void setRrd_bam(String rrd_bam) {
