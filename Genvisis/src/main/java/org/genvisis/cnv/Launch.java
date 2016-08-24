@@ -1139,7 +1139,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
           if (exc instanceof RuntimeException) {
             throw new RuntimeException(exc);
           }
-          System.err.println(exc.getMessage());
+          exc.printStackTrace();
         }
         return true;
       }
