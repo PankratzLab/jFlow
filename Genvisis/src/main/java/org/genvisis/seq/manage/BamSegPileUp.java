@@ -78,29 +78,32 @@ public class BamSegPileUp implements Iterator<BamPile> {
     }
 
     Segment cs = currentPile.getBin();
-    String chr = Positions.getChromosomeUCSC(cs.getChr(), aName != ASSEMBLY_NAME.GRCH37);
+    String chr = Positions.getChromosomeUCSC(cs.getChr(), aName != ASSEMBLY_NAME.GRCH37, true);
     if (cs.getChr() == 26) {
       chr = "MT";
     }
-    CloseableIterator<SAMRecord> iterator =
-                                          reader.queryOverlapping(chr, cs.getStart(), cs.getStop());
-    while (iterator.hasNext()) {
-      SAMRecord samRecord = iterator.next();
-      if (!filter.filterOut(samRecord)) {
-        Segment samRecordSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
-        boolean overlaps = samRecordSegment.overlaps(cs);
-        if (!overlaps) {
-          String error = "non overlapping record returned for query";
-          log.reportTimeError(error);
-          throw new IllegalStateException(error);
-        } else {
-          currentPile.addRecord(samRecord, currentRef, filterNGS.getPhreadScoreFilter(), log);
+    if (cs.getChr() > 0) {
+      CloseableIterator<SAMRecord> iterator = reader.queryOverlapping(chr, cs.getStart(),
+                                                                      cs.getStop());
+      while (iterator.hasNext()) {
+        SAMRecord samRecord = iterator.next();
+        if (!filter.filterOut(samRecord)) {
+          Segment samRecordSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
+          boolean overlaps = samRecordSegment.overlaps(cs);
+          if (!overlaps) {
+            String error = "non overlapping record returned for query";
+            log.reportTimeError(error);
+            throw new IllegalStateException(error);
+          } else {
+            currentPile.addRecord(samRecord, currentRef, filterNGS.getPhreadScoreFilter(), log);
+          }
         }
       }
+      iterator.close();
+
     }
     queryIndex++;
     numReturned++;
-    iterator.close();
     if (numReturned % 1000 == 0) {
       log.reportTimeInfo(numReturned + " queries found of " + bamPiles.length + " for " + bam);
     }

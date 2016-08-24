@@ -227,8 +227,8 @@ public class Pipeline {
 
     hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
 
-    hive.addCallable(new GenvisisPart(inputBam, rootOutDir, referenceGenome, captureBed, binBed,
-                                      vcf, sample, 1, BamImport.CAPTURE_BUFFER, log));
+    // hive.addCallable(new GenvisisPart(inputBam, rootOutDir, referenceGenome, captureBed, binBed,
+    // vcf, sample, 1, BamImport.CAPTURE_BUFFER, log));
 
     hive.execute(true);
 
