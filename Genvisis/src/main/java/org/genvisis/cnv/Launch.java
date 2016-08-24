@@ -846,7 +846,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
                                        "No projects available. You can create or import one now.",
                                        "Create project?", JOptionPane.OK_CANCEL_OPTION,
                                        JOptionPane.INFORMATION_MESSAGE, null,
-                                       new Object[] {NEW_PROJECT, IMPORT_PROJECT}, NEW_PROJECT);
+                                       new Object[] {"Create", "Import"}, "Create");
       if (i == 0) {
         createProject();
       } else if (i == 1) {
