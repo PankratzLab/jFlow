@@ -78,9 +78,9 @@ public class BamSegPileUp implements Iterator<BamPile> {
     }
 
     Segment cs = currentPile.getBin();
-    String chr = Positions.getChromosomeUCSC(cs.getChr(), aName != ASSEMBLY_NAME.GRCH37, true);
+    String chr = Positions.getChromosomeUCSC(cs.getChr(), aName.addChr(), true);
     if (cs.getChr() == 26) {
-      chr = "MT";
+      chr = aName.getMitoContig();
     }
     if (cs.getChr() > 0) {
       CloseableIterator<SAMRecord> iterator = reader.queryOverlapping(chr, cs.getStart(),

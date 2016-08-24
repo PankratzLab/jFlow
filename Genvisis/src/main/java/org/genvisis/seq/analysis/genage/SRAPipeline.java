@@ -1,11 +1,13 @@
 package org.genvisis.seq.analysis.genage;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
@@ -79,19 +81,27 @@ public class SRAPipeline implements Callable<Boolean> {
    * This will be a bit "reversed" in the final pipeline version...This method is for processing
    * many pre-downloaded files
    */
-  private static void runAll(String sraDir, String sraRunTableFile, String rootOutDir,
+  private static void runAll(String sraInput, String sraRunTableFile, String rootOutDir,
                              String referenceGenome, String captureBed, String binBed, String vcf,
                              int numThreads) {
     Logger log = new Logger();
-    String[] sraFiles = Files.list(sraDir, ".sra", false);
+    String[] sraFiles = null;
+    if (Files.isDirectory(sraInput)) {
+      log.reportTimeInfo("Gathering sra files from " + sraInput);
+      sraFiles = Files.list(sraInput, ".sra", false);
+    } else {
+      log.reportTimeInfo("Reading sra files from " + sraInput);
+      sraFiles = HashVec.loadFileToStringArray(sraInput, false, new int[] {0}, true);
+    }
     SRARunTable srRunTable = SRARunTable.load(sraRunTableFile, log);
-    log.reportTimeInfo("Found " + sraFiles.length + " sra files in " + sraDir);
+    log.reportTimeInfo("Found " + sraFiles.length + " sra files in " + sraInput);
     WorkerHive<Boolean> hive = new WorkerHive<Boolean>(numThreads, 10, log);
     boolean prelimGenvisisWGS = false;
     boolean prelimGenvisisWXS = false;
+    ArrayList<String> sampleSummary = new ArrayList<String>();
     for (String sraFile : sraFiles) {
       SRASample sample = srRunTable.get(ext.rootOf(sraFile));
-
+      sampleSummary.add(sraFile + "\t" + sample.toString());
       SRAPipeline pipeline = new SRAPipeline(sample, sraFile, rootOutDir, referenceGenome,
                                              captureBed, binBed, vcf, 1, log);
       switch (sample.getaType()) {// create the required markerSets for import...prior to threading
@@ -120,7 +130,8 @@ public class SRAPipeline implements Callable<Boolean> {
       }
       hive.addCallable(pipeline);
     }
-
+    Files.writeArrayList(sampleSummary, rootOutDir + "sampleAnalysis.summary.txt");
+    System.exit(1);
     hive.execute(true);
   }
 
@@ -131,8 +142,8 @@ public class SRAPipeline implements Callable<Boolean> {
     CLI c = new CLI();
 
     String sraDirDefault = "sra/";
-    final String SRA_DRI = "sraDir";
-    c.addArg(SRA_DRI, "directory with .sra files", sraDirDefault);
+    final String SRA_Input = "sraInput";
+    c.addArg(SRA_Input, "directory or filename with .sra files", sraDirDefault);
 
     String outDir = "out/";
     final String OUT_DIR = "outDir";
@@ -148,8 +159,8 @@ public class SRAPipeline implements Callable<Boolean> {
              Integer.toString(numThreads));
 
     String refGenomeFasta = "hg19.canonical.fa";
-    final String REFERENC_GENOME = "ref";
-    c.addArg(REFERENC_GENOME, "appropriate reference genome file", refGenomeFasta);
+    final String REFERENCE_GENOME = "ref";
+    c.addArg(REFERENCE_GENOME, "appropriate reference genome file", refGenomeFasta);
 
     String captureBedFile = "VCRome_2_1_hg19_capture_targets.bed";
     final String CAPTURE_BED = "bed";
@@ -166,7 +177,7 @@ public class SRAPipeline implements Callable<Boolean> {
 
     c.parseWithExit(SRAPipeline.class, args);
 
-    runAll(c.get(SRA_DRI), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENC_GENOME),
+    runAll(c.get(SRA_Input), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
            c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), numThreads);
 
   }
