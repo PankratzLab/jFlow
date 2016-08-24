@@ -542,8 +542,8 @@ public class GATK_LanePrep extends BWA_Analysis {
              + GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND + Array.toStr(knownSitesIndelFile, ",")
              + " (default))\n" + "";
     usage += "   (9) the full path to reference snp files (comma delimited if multiple) (i.e. "
-             + GATK.KNOWN_SITES_SNP_LOCATION_COMMAND + Array.toStr(knownSitesSnpFile, ",")
-             + " (default))\n" + "";
+             + GATK.KNOWN_SITES_SNP_LOCATION_COMMAND 
+             + Array.toStr(new String[] {"site1", "site2", "site3"}, ",") + " (not the default))\n" + "";
 
 		usage += "   (10) run in quiet mode (i.e. " + QUIET_COMMAND + " (not tbe default))\n" + "";
 		usage += "   (11) number of threads per sample for bwa mem (i.e."	+ NUM_BETWEEN_THREADS_COMMAND
