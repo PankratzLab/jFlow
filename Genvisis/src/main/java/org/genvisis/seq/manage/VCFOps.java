@@ -1499,7 +1499,7 @@ public class VCFOps {
       copyHeader(reader, writer, null, HEADER_COPY_TYPE.SITE_ONLY, log);
       int numSingletonFilter = 0;
       for (VariantContext vc : reader) {
-        boolean singleton = (vc.getHetCount() + vc.getHomVarCount()) > 1;
+        boolean singleton = (vc.getHetCount() + vc.getHomVarCount()) <= 1;
         if (!singleton || !removeSingletons) {
           writer.add(vc);
         } else {
