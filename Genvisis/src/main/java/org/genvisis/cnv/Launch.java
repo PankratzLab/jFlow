@@ -86,6 +86,7 @@ import org.genvisis.cyto.CytoGUI;
 // -XX:+UseParNewGC
 
 public class Launch extends JFrame implements ActionListener, WindowListener {
+
   public static final long serialVersionUID = 1L;
 
   public static final String VERSION = "0.60";
@@ -96,6 +97,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
   public static final String PIPELINE = "Genvisis Project Workflow";
   public static final String NEW_PROJECT = "New Project";
   public static final String IMPORT_PROJECT = "Import Project";
+  public static final String SELECT_PROJECT = "Select Project";
 
   public static final String MAP_FILES = "Map .csv files to IDs";
   public static final String GENERATE_MARKER_POSITIONS = "Generate marker positions file";
@@ -144,8 +146,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
   public static final String TEST = "Test new program";
 
   public static final String[][] MENUS = {
-                                          {"File", NEW_PROJECT, IMPORT_PROJECT, "Select Project",
-                                           EDIT, "Preferences", CHECK_FOR_UPDATES, EXIT},
+                                          {"File", NEW_PROJECT, IMPORT_PROJECT, SELECT_PROJECT,
+                                           EDIT, "Preferences", CHECK_FOR_UPDATES,
+                                           EXIT},
                                           {"Data", MAP_FILES, GENERATE_MARKER_POSITIONS,
                                            PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // ,
                                                                                        // MITOPIPELINE
@@ -411,7 +414,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
           menuItem.addActionListener(this);
           menuItem.setMnemonic(KeyEvent.VK_I);
           menu.add(menuItem);
-        } else if (element[j].equals("Select Project")) {
+        } else if (element[j].equals(SELECT_PROJECT)) {
           submenu = new JMenu(element[j]);
           for (String project : projects) {
             menuItem = new JMenuItem(ext.rootOf(project, true) + " ");
