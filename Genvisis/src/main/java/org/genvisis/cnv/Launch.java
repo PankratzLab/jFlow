@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.jar.Attributes;
 
+import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -463,25 +464,31 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
   }
 
   /**
-   * Add icon buttons for various operations
+   * Add icon buttons for various operations to the toolbar
    */
   private JPanel makeTopIconBar() {
     JPanel iconBar = new JPanel();
     iconBar.setLayout(new FlowLayout(FlowLayout.LEFT));
 
-    // Add buttons to left of project selector
+    // Add leftmost system icons
     addButtons(iconBar,
-               new String[] {"images/save1.png", "images/edit1.png", "images/refresh.gif",
-                             "images/gen_pipe_1.png", "images/scatterPlot2.png",
+               new String[] {"images/edit.png", "images/refresh.svg.png",
+                             "images/gen_pipe_1.png"}, new String[]{EDIT, REFRESH, PIPELINE});
+
+    // Add plot icons
+    iconBar.add(Box.createHorizontalStrut(15));
+    addButtons(iconBar, new String[]{ "images/scatterPlot2.png",
                              "images/trailerPlot2.png", "images/qqplot.gif",
                              "images/recluster1.png", "images/twoDPlot1.jpg",
                              "images/forestPlot1.png"},
-               new String[] {"", EDIT, REFRESH, PIPELINE, SCATTER, TRAILER, QQ, LINE_PLOT, TWOD,
+               new String[] {SCATTER, TRAILER, QQ, LINE_PLOT, TWOD,
                              FOREST_PLOT});
 
+    // Add project selector
+    iconBar.add(Box.createHorizontalStrut(15));
     addProjectSelector(iconBar);
 
-    // Add buttons to right of project selector
+    // Add project buttons to right of selector
     addButtons(iconBar, new String[] {"images/deleteProj.svg.png"}, new String[] {DELETE_PROJECT});
 
     return iconBar;
