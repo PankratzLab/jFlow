@@ -462,32 +462,52 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     return 0;
   }
 
+  /**
+   * Add icon buttons for various operations
+   */
   private JPanel makeTopIconBar() {
-    JPanel iconBar;
-    JButton button;
-
-    String[] icons = new String[] {"images/save1.png", "images/edit1.png", "images/refresh.gif",
-                          "images/gen_pipe_1.png", "images/scatterPlot2.png",
-                          "images/trailerPlot2.png", "images/qqplot.gif", "images/recluster1.png",
-                          "images/twoDPlot1.jpg", "images/forestPlot1.png"};
-    String[] commands = new String[] {"", EDIT, REFRESH, PIPELINE, SCATTER, TRAILER, QQ, LINE_PLOT, TWOD,
-                             FOREST_PLOT};
-
-
-    iconBar = new JPanel();
+    JPanel iconBar = new JPanel();
     iconBar.setLayout(new FlowLayout(FlowLayout.LEFT));
+
+    // Add buttons to left of project selector
+    addButtons(iconBar,
+               new String[] {"images/save1.png", "images/edit1.png", "images/refresh.gif",
+                             "images/gen_pipe_1.png", "images/scatterPlot2.png",
+                             "images/trailerPlot2.png", "images/qqplot.gif",
+                             "images/recluster1.png", "images/twoDPlot1.jpg",
+                             "images/forestPlot1.png"},
+               new String[] {"", EDIT, REFRESH, PIPELINE, SCATTER, TRAILER, QQ, LINE_PLOT, TWOD,
+                             FOREST_PLOT});
+
+    addProjectSelector(iconBar);
+
+    // Add buttons to right of project selector
+    addButtons(iconBar, new String[] {"images/deleteProj.svg.png"}, new String[] {DELETE_PROJECT});
+
+    return iconBar;
+  }
+
+  /**
+   * Helper method to create a set of standardized buttons to the given pane. {@code icons.length}
+   * must equal {@code commands.length}, which is also the number of buttons that will be created.
+   */
+  private void addButtons(final Container pane, String[] icons, String[] commands) {
+    if (icons.length != commands.length) {
+      throw new IllegalArgumentException("Error creating topbar buttons. Got " + icons.length
+                                         + " icons but " + commands.length + "commands.");
+    }
+
     for (int i = 0; i < icons.length; i++) {
-      button = new JButton(Grafik.getImageIcon(icons[i]));
+      JButton button = new JButton(Grafik.getImageIcon(icons[i]));
       button.setActionCommand(commands[i]);
       button.addActionListener(this);
       button.setToolTipText(commands[i]);
       button.setPreferredSize(new Dimension(25, 25));
-      button.setBorder(null);
-      iconBar.add(button);
+      button.setOpaque(false);
+      button.setContentAreaFilled(false);
+      button.setBorderPainted(false);
+      pane.add(button);
     }
-    addProjectSelector(iconBar);
-
-    return iconBar;
   }
 
   /**
