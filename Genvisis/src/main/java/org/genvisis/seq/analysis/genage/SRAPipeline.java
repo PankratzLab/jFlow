@@ -40,6 +40,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   private static final String BIN_BED = "bin";
   private static final String VCF = "vcf";
   private static final String NUM_BATCHES = "batch";
+  private static final String COMPILE = "compile";
 
   private SRASample sraSample;
   private String inputSRA;
@@ -79,7 +80,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
   @Override
   public List<PipelinePart> call() throws Exception {
-    String bamDir = rootOutDir + "bams/";
+    String bamDir = getBamDirectory(rootOutDir);
     new File(bamDir).mkdirs();
     String bam = bamDir + ext.rootOf(inputSRA) + ".bam";
     WorkerHive<SRAConversionResult> hive = new WorkerHive<SRAUtils.SRAConversionResult>(1, 10, log);
@@ -89,14 +90,16 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
                              sraSample, numThreads, log);
   }
 
-  /**
-   * This will be a bit "reversed" in the final pipeline version...This method is for processing
-   * many pre-downloaded files
-   */
-  private static void runAll(String sraInput, String sraRunTableFile, String rootOutDir,
-                             String referenceGenome, String captureBed, String binBed, String vcf,
-                             int numThreads, int numThreadsPipeline, int numBatches, CLI c) {
-    Logger log = new Logger();
+  private static String getBamDirectory(String rootOutDir) {
+    return rootOutDir + "bams/";
+  }
+
+
+  private static List<SRASample> loadSraSamples(String sraInput, String sraRunTableFile,
+                                                Logger log) {
+    ArrayList<SRASample> samples = new ArrayList<SRASample>();
+    SRARunTable srRunTable = SRARunTable.load(sraRunTableFile, log);
+
     String[] sraFiles;
     if (Files.isDirectory(sraInput)) {
       log.reportTimeInfo("Gathering sra files from " + sraInput);
@@ -105,17 +108,99 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
       log.reportTimeInfo("Reading sra files from " + sraInput);
       sraFiles = HashVec.loadFileToStringArray(sraInput, false, new int[] {0}, true);
     }
-    SRARunTable srRunTable = SRARunTable.load(sraRunTableFile, log);
     log.reportTimeInfo("Found " + sraFiles.length + " sra files in " + sraInput);
+    for (String sraFile : sraFiles) {
+      SRASample sample = srRunTable.get(ext.rootOf(sraFile));
+      sample.setSraFile(sraFile);
+      samples.add(sample);
+    }
+
+
+    return samples;
+  }
+
+  private static String[] getAssociatedBams(List<SRASample> samples, String rootOutDir) {
+    ArrayList<String> bams = new ArrayList<String>();
+    for (SRASample sample : samples) {
+      String bam = getBamDirectory(rootOutDir) + ext.rootOf(sample.getSraFile()) + ".bam";
+      bams.add(bam);
+    }
+    return Array.toStringArray(bams);
+
+  }
+
+  private static void runCompile(List<SRASample> samples, String rootOutDir, String referenceGenome,
+                                 String captureBed, String binBed, String vcf, int numThreads) {
+
+    String[] bams = getAssociatedBams(samples, rootOutDir);
+    ASSAY_TYPE atType = samples.get(0).getaType();
+    ASSEMBLY_NAME aName = samples.get(0).getaName();
+
+    for (SRASample sample : samples) {
+      if (sample.getaType() != atType) {
+        throw new IllegalArgumentException("Mismatched assay types");
+      }
+      if (sample.getaName() != aName) {
+        throw new IllegalArgumentException("Mismatched assembly name");
+      }
+
+    }
+    Project proj = Pipeline.getProjectFor(atType, rootOutDir, referenceGenome);
+
+    BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER, 4,
+                                       true, atType, aName, bams, numThreads);
+  }
+
+  private static void compile(String sraInput, String sraRunTableFile, String rootOutDir,
+                              String referenceGenome, String captureBed, String binBed, String vcf,
+                              int numThreads) {
+    Logger log = new Logger(rootOutDir + "compile.log");
+
+    List<SRASample> samples = loadSraSamples(sraInput, sraRunTableFile, log);
+    ArrayList<SRASample> wgsSamples = new ArrayList<SRASample>();
+    ArrayList<SRASample> wxsSamples = new ArrayList<SRASample>();
+    for (SRASample sample : samples) {
+      switch (sample.getaType()) {
+        case WGS:
+          wgsSamples.add(sample);
+          break;
+        case WXS:
+          wxsSamples.add(sample);
+          break;
+        default:
+          throw new IllegalArgumentException("Invalid assay type " + sample.getaType());
+      }
+    }
+    log.reportTimeInfo("Found " + wgsSamples.size() + " " + ASSAY_TYPE.WGS + " samples and "
+                       + wxsSamples.size() + " " + ASSAY_TYPE.WXS + " samples");
+    runCompile(wxsSamples, rootOutDir, referenceGenome, captureBed, binBed, vcf, numThreads);
+    runCompile(wgsSamples, rootOutDir, referenceGenome, captureBed, binBed, vcf, numThreads);
+
+  }
+
+
+  /**
+   * This will be a bit "reversed" in the final pipeline version...This method is for processing
+   * many pre-downloaded files
+   */
+  private static void runAll(String sraInput, String sraRunTableFile, String rootOutDir,
+                             String referenceGenome, String captureBed, String binBed, String vcf,
+                             int numThreads, int numThreadsPipeline, int numBatches, CLI c) {
+    Logger log = new Logger();
+
     WorkerHive<List<PipelinePart>> hive = new WorkerHive<List<PipelinePart>>(numThreads, 10, log);
     boolean prelimGenvisisWGS = false;
     boolean prelimGenvisisWXS = false;
+    List<SRASample> samples = loadSraSamples(sraInput, sraRunTableFile, log);
     ArrayList<String> sampleSummary = new ArrayList<String>();
-    for (String sraFile : sraFiles) {
-      SRASample sample = srRunTable.get(ext.rootOf(sraFile));
-      sampleSummary.add(sraFile + "\t" + sample.toString());
-      SRAPipeline pipeline = new SRAPipeline(sample, sraFile, rootOutDir, referenceGenome,
-                                             captureBed, binBed, vcf, numThreadsPipeline, log);
+    ArrayList<String> sraFiles = new ArrayList<String>();
+
+    for (SRASample sample : samples) {
+      sraFiles.add(sample.getSraFile());
+      sampleSummary.add(sample.getSraFile() + "\t" + sample.toString());
+      SRAPipeline pipeline =
+                           new SRAPipeline(sample, sample.getSraFile(), rootOutDir, referenceGenome,
+                                           captureBed, binBed, vcf, numThreadsPipeline, log);
       switch (sample.getaType()) {// create the required markerSets for import...prior to threading
         case WGS:
           if (!prelimGenvisisWGS) {
@@ -150,7 +235,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     }
     Files.writeArrayList(sampleSummary, rootOutDir + "sampleAnalysis.summary.txt");
     if (numBatches > 0) {
-      batch(sraFiles, rootOutDir, c, log);
+      batch(Array.toStringArray(sraFiles), rootOutDir, c, log);
     } else {
       hive.execute(true);
     }
@@ -230,12 +315,25 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
     int batch = -1;
     c.addArg(NUM_BATCHES, "number of batches", Integer.toString(batch));
+
+
+
+    c.addFlag(COMPILE, "Compile the genvisis portion of the pipeline");
+
+
+
     c.parseWithExit(SRAPipeline.class, args);
 
 
-    runAll(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
-           c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.getI(NUM_THREADS),
-           c.getI(NUM_THREADS_PIPELINE), c.getI(NUM_BATCHES), c);
+    if (c.has(COMPILE)) {
+      compile(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
+              c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.getI(NUM_THREADS));
+    } else {
+      runAll(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
+             c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.getI(NUM_THREADS),
+             c.getI(NUM_THREADS_PIPELINE), c.getI(NUM_BATCHES), c);
+    }
+
 
 
   }
