@@ -20,6 +20,7 @@ import org.genvisis.cnv.analysis.AnalysisFormats;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.TextExport;
+import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
@@ -925,7 +926,7 @@ public class Centroids implements Serializable, TextExport {
       Centroids.exportToText(proj, centFiles[1], centFiles[1] + ".txt", allMarkers);
       proj.SEX_CENTROIDS_FEMALE_FILENAME.setValue(centFiles[1]);
 
-      proj.saveProperties(new Project.Property[] {proj.SEX_CENTROIDS_MALE_FILENAME,
+      proj.saveProperties(new Property[] {proj.SEX_CENTROIDS_MALE_FILENAME,
                                                   proj.SEX_CENTROIDS_FEMALE_FILENAME});
     }
 

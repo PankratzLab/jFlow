@@ -20,6 +20,7 @@ import java.util.Vector;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
@@ -179,7 +180,7 @@ public class PennCNV {
     // proj.getJarStatus())) {
     if (!Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
                       proj.JAR_STATUS.getValue())) {
-      log.reportError("Error - sample data file " + proj.getProperty("SAMPLE_DATA_FILENAME")
+      log.reportError("Error - sample data file " + proj.getProperty(PropertyKeys.KEY_SAMPLE_DATA_FILENAME)
                       + " does not exist;");
       return;
     }

@@ -18,6 +18,7 @@ import org.genvisis.cnv.annotation.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.MarkerBlastAnnotation;
 import org.genvisis.cnv.annotation.MarkerSeqAnnotation;
 import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.MarkerBlast;
 import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
 import org.genvisis.common.Array;
@@ -566,7 +567,7 @@ public class ABLookup {
     // Otherwise, use the stored value
     if (abLookupFilename != null) {
       proj.AB_LOOKUP_FILENAME.setValue(abLookupFilename);
-      proj.saveProperties(new Project.Property[] {proj.AB_LOOKUP_FILENAME});
+      proj.saveProperties(new Property[] {proj.AB_LOOKUP_FILENAME});
     } else {
       if (!Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
         proj.getLog().reportError(

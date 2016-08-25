@@ -9,6 +9,7 @@ import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.prop.Property;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -99,7 +100,7 @@ public class AffyProcess {
           String match = null;
           String tmpExt = "." + proj.getArrayType() + ".tmp.gz";
           proj.SOURCE_FILENAME_EXTENSION.setValue(tmpExt);
-          proj.saveProperties(new Project.Property[] {proj.SOURCE_FILENAME_EXTENSION});
+          proj.saveProperties(new Property[] {proj.SOURCE_FILENAME_EXTENSION});
           for (int j = 0; j < allFiles.length; j++) {
             if (allFiles[j].startsWith(toMatch) && allFiles[j].contains(CN_C5_PATTERN)
                 && !allFiles[j].endsWith(tmpExt)) {

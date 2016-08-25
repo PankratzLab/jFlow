@@ -101,6 +101,7 @@ import org.genvisis.cnv.gui.CycleRadio;
 import org.genvisis.cnv.gui.NewMarkerListDialog;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.PlinkMarkerLoader;
+import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.AlleleFreq;
@@ -2466,7 +2467,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
                      / ((double) proj.ARRAY_TYPE.getValue().getProbeLength());
       if (ratio != proj.BLAST_PROPORTION_MATCH_FILTER.getValue().doubleValue()) {
         proj.BLAST_PROPORTION_MATCH_FILTER.setValue(ratio);
-        proj.saveProperties(new Project.Property[] {proj.BLAST_PROPORTION_MATCH_FILTER});
+        proj.saveProperties(new Property[] {proj.BLAST_PROPORTION_MATCH_FILTER});
       }
     }
 
