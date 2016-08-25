@@ -6,7 +6,10 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
+
+import com.google.common.collect.Lists;
 
 import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
@@ -76,21 +79,18 @@ public class Picard {
 
   public boolean markDuplicates(String[] inputFiles, String outputFile, String metricsFile,
                                 double memoryRatio, Logger altLog) {
-    String[] fixedCommands = new String[] {javaLocation, JAR, picardLocation + PICARD_JAR,
+    ArrayList<String> commands = Lists.newArrayList(javaLocation, JAR, picardLocation + PICARD_JAR,
                                            MARK_DUPLICATES, OUTPUT + outputFile,
                                            METRICS_FILE + metricsFile,
-                                           getTMPdirectory(inputFiles[0], inputFiles[0]),
-                                           SORTING_COLLECTION_SIZE_RATIO + memoryRatio};
-    String[] commands = new String[fixedCommands.length + inputFiles.length];
-    for (int i = 0; i < fixedCommands.length; i++) {
-      commands[i] = fixedCommands[i];
+                                                    getTMPdirectory(inputFiles[0], inputFiles[0]),
+                                                    SORTING_COLLECTION_SIZE_RATIO + memoryRatio);
+    for (int i = 0; i < inputFiles.length; i++) {
+      commands.add(INPUT + inputFiles[i]);
     }
-    for (int i = fixedCommands.length; i < commands.length; i++) {
-      commands[i] = INPUT + inputFiles[i];
-    }
-    return CmdLine.runCommandWithFileChecks(commands, "", inputFiles,
-                                            new String[] {outputFile, metricsFile}, verbose,
-                                            overwriteExisting, true, altLog == null ? log : altLog);
+    return CmdLine.runCommandWithFileChecks(commands.toArray(new String[commands.size()]), "",
+                                            inputFiles, new String[] {outputFile, metricsFile},
+                                            verbose, overwriteExisting, true,
+                                            altLog == null ? log : altLog);
   }
 
 	public boolean indexBAM(String inputFile, String expectedOutput, Logger altLog) {
@@ -178,7 +178,8 @@ public class Picard {
 
     /**
      * @param fullPathsToInputBams Paths to sorted BAM files to merge and dedupe
-     * @param fullPathsToInputBamIndices Paths to indices associated with BAMs in fullPathsToInputBams
+     * @param fullPathsToInputBamIndices Paths to indices associated with BAMs in
+     *        fullPathsToInputBams
      * @param outputDir Directory to output merged, deduped BAM to
      * @param baseID
      * @param log
