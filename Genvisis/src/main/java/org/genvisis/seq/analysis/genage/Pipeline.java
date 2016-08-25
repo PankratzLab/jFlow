@@ -30,14 +30,42 @@ public class Pipeline {
 
   }
 
-  private abstract static class PipelinePart implements Callable<PipelinePart> {
+  /**
+   * abstract part of the pipeline
+   *
+   */
+  public abstract static class PipelinePart implements Callable<PipelinePart> {
+
+    private List<String> input;
+    private List<String> output;
+
     private PipelinePart() {}
 
-    protected void setOutput(List<String> output) {}
+
+    protected List<String> getInput() {
+      return input;
+    }
+
+
+    protected void setInput(List<String> input) {
+      this.input = input;
+    }
+
+
+    protected List<String> getOutput() {
+      return output;
+    }
+
+
+    protected void setOutput(List<String> output) {
+      this.output = output;
+    }
+
+
 
   }
 
-  private static class MitoPipePart extends PipelinePart {
+  public static class MitoPipePart extends PipelinePart {
     private final String bamFile;
     private final String rootOutDir;
     private final String captureBed;
@@ -69,6 +97,10 @@ public class Pipeline {
                                     ngsSample.getaType() == ASSAY_TYPE.WGS ? null : captureBed,
                                     referenceGenomeFasta, ngsSample.getaName(),
                                     ngsSample.getaType(), numthreads, log);
+
+      ArrayList<String> input = new ArrayList<String>();
+      input.add(bamFile);
+      setInput(input);
       ArrayList<String> output = new ArrayList<String>();
       output.add(result);
       setOutput(output);
@@ -79,7 +111,7 @@ public class Pipeline {
 
   private static class TelSeqPart extends PipelinePart {
 
-    private final String bam;
+    private final String bamFile;
     private final String rootOutDir;
     private final String captureBed;
     private final NGSSample ngsSample;
@@ -90,7 +122,7 @@ public class Pipeline {
     private TelSeqPart(String bam, String rootOutDir, String captureBed, NGSSample ngsSample,
                        int numthreads, int captureBufferSize, Logger log) {
       super();
-      this.bam = bam;
+      this.bamFile = bam;
       this.rootOutDir = rootOutDir;
       this.captureBed = captureBed;
       this.ngsSample = ngsSample;
@@ -101,11 +133,14 @@ public class Pipeline {
 
     @Override
     public PipelinePart call() throws Exception {
-      String telSeqDir = rootOutDir + TELSEQ_DIR + ext.rootOf(bam) + "/";
+      String telSeqDir = rootOutDir + TELSEQ_DIR + ext.rootOf(bamFile) + "/";
       new File(telSeqDir).mkdir();
-      String result = TelSeq.runTelSeq(new String[] {bam}, telSeqDir, captureBed, numthreads,
+      String result = TelSeq.runTelSeq(new String[] {bamFile}, telSeqDir, captureBed, numthreads,
                                        ngsSample.getaType(), ngsSample.getaName(),
                                        captureBufferSize, log);
+      ArrayList<String> input = new ArrayList<String>();
+      input.add(bamFile);
+      setInput(input);
       ArrayList<String> output = new ArrayList<String>();
       output.add(result);
       setOutput(output);
@@ -114,35 +149,31 @@ public class Pipeline {
 
   }
 
-  private static class GenvisisPart extends PipelinePart {
+  public static class GenvisisPart extends PipelinePart {
 
-    private final String bam;
+    private final String bamFile;
     private final String rootOutDir;
     private final String referenceGenomeFasta;
     private final String captureBed;
     private final NGSSample ngsSample;
     private final String binBed;
-    private final int numthreads;
     private final int captureBufferSize;
     private final String vcf;
-    private final Logger log;
 
 
 
     public GenvisisPart(String bam, String rootOutDir, String referenceGenomeFasta,
                         String captureBed, String binBed, String vcf, NGSSample ngsSample,
-                        int numthreads, int captureBufferSize, Logger log) {
+                        int captureBufferSize) {
       super();
-      this.bam = bam;
+      this.bamFile = bam;
       this.rootOutDir = rootOutDir;
       this.referenceGenomeFasta = referenceGenomeFasta;
       this.captureBed = captureBed;
       this.binBed = binBed;
       this.vcf = vcf;
       this.ngsSample = ngsSample;
-      this.numthreads = numthreads;
       this.captureBufferSize = captureBufferSize;
-      this.log = log;
     }
 
 
@@ -157,8 +188,11 @@ public class Pipeline {
       Project proj = getProjectFor(ngsSample.getaType(), rootOutDir, referenceGenomeFasta);
       BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBufferSize, -1,
                                          false, ngsSample.getaType(), ngsSample.getaName(),
-                                         new String[] {bam}, 1);
+                                         new String[] {bamFile}, 1);
 
+      ArrayList<String> input = new ArrayList<String>();
+      input.add(bamFile);
+      setInput(input);
       return this;
     }
 
@@ -219,7 +253,7 @@ public class Pipeline {
       throw new IllegalArgumentException(captureBed + " must exist");
     }
 
-    WorkerHive<PipelinePart> hive = new WorkerHive<Pipeline.PipelinePart>(1, 10, log);
+    WorkerHive<PipelinePart> hive = new WorkerHive<Pipeline.PipelinePart>(numThreads, 10, log);
 
     // mtDNA CN
     hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, referenceGenome, sample, 1,
@@ -228,7 +262,7 @@ public class Pipeline {
     hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
 
     hive.addCallable(new GenvisisPart(inputBam, rootOutDir, referenceGenome, captureBed, binBed,
-                                      vcf, sample, 1, BamImport.CAPTURE_BUFFER, log));
+                                      vcf, sample, BamImport.CAPTURE_BUFFER));
 
     hive.execute(true);
 

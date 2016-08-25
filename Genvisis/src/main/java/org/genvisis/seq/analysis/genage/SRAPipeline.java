@@ -2,6 +2,7 @@ package org.genvisis.seq.analysis.genage;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.genvisis.CLI;
@@ -14,6 +15,7 @@ import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
+import org.genvisis.seq.analysis.genage.Pipeline.PipelinePart;
 import org.genvisis.seq.manage.BamImport;
 import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.sra.SRARunTable;
@@ -26,8 +28,18 @@ import org.genvisis.sra.SRAUtils.SRAConversionResult;
  * more specific version of {@link Pipeline} that starts with a single SRA file
  *
  */
-public class SRAPipeline implements Callable<Boolean> {
+public class SRAPipeline implements Callable<List<PipelinePart>> {
+  private static final String SRA_INPUT = "sraInput";
+  private static final String OUT_DIR = "outDir";
+  private static final String SRA_RUN_TABLE = "sraRunTable";
+  private static final String NUM_THREADS = "threads";
+  private static final String NUM_THREADS_PIPELINE = "threadsPipe";
 
+  private static final String REFERENCE_GENOME = "ref";
+  private static final String CAPTURE_BED = "bed";
+  private static final String BIN_BED = "bin";
+  private static final String VCF = "vcf";
+  private static final String NUM_BATCHES = "batch";
 
   private SRASample sraSample;
   private String inputSRA;
@@ -66,17 +78,15 @@ public class SRAPipeline implements Callable<Boolean> {
   }
 
   @Override
-  public Boolean call() throws Exception {
+  public List<PipelinePart> call() throws Exception {
     String bamDir = rootOutDir + "bams/";
     new File(bamDir).mkdirs();
     String bam = bamDir + ext.rootOf(inputSRA) + ".bam";
     WorkerHive<SRAConversionResult> hive = new WorkerHive<SRAUtils.SRAConversionResult>(1, 10, log);
     hive.addCallable(new SRABamWorker(inputSRA, bam, log));
     hive.execute(true);
-    Pipeline.pipeline(bam, rootOutDir, referenceGenome, captureBed, binBed, vcfFile, sraSample,
-                      numThreads, log);
-
-    return true;
+    return Pipeline.pipeline(bam, rootOutDir, referenceGenome, captureBed, binBed, vcfFile,
+                             sraSample, numThreads, log);
   }
 
   /**
@@ -87,7 +97,7 @@ public class SRAPipeline implements Callable<Boolean> {
                              String referenceGenome, String captureBed, String binBed, String vcf,
                              int numThreads, int numThreadsPipeline, int numBatches, CLI c) {
     Logger log = new Logger();
-    String[] sraFiles = null;
+    String[] sraFiles;
     if (Files.isDirectory(sraInput)) {
       log.reportTimeInfo("Gathering sra files from " + sraInput);
       sraFiles = Files.listFullPaths(sraInput, ".sra", false);
@@ -97,7 +107,7 @@ public class SRAPipeline implements Callable<Boolean> {
     }
     SRARunTable srRunTable = SRARunTable.load(sraRunTableFile, log);
     log.reportTimeInfo("Found " + sraFiles.length + " sra files in " + sraInput);
-    WorkerHive<Boolean> hive = new WorkerHive<Boolean>(numThreads, 10, log);
+    WorkerHive<List<PipelinePart>> hive = new WorkerHive<List<PipelinePart>>(numThreads, 10, log);
     boolean prelimGenvisisWGS = false;
     boolean prelimGenvisisWXS = false;
     ArrayList<String> sampleSummary = new ArrayList<String>();
@@ -133,7 +143,7 @@ public class SRAPipeline implements Callable<Boolean> {
           }
           break;
         default:
-          break;
+          throw new IllegalArgumentException("Invalid assay type " + sample.getaType());
 
       }
       hive.addCallable(pipeline);
@@ -146,17 +156,7 @@ public class SRAPipeline implements Callable<Boolean> {
     }
   }
 
-  private static final String SRA_INPUT = "sraInput";
-  private static final String OUT_DIR = "outDir";
-  private static final String SRA_RUN_TABLE = "sraRunTable";
-  private static final String NUM_THREADS = "threads";
-  private static final String NUM_THREADS_PIPELINE = "threadsPipe";
 
-  private static final String REFERENCE_GENOME = "ref";
-  private static final String CAPTURE_BED = "bed";
-  private static final String BIN_BED = "bin";
-  private static final String VCF = "vcf";
-  private static final String NUM_BATCHES = "batch";
 
   private static void batch(String[] sraFiles, String rootOutDir, CLI c, Logger log) {
     String[][] splits = Array.splitUpStringArray(sraFiles, c.getI(NUM_BATCHES), log);
