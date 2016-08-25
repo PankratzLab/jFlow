@@ -74,9 +74,8 @@ public class BamSegPileUp implements Iterator<BamPile> {
     BamPile currentPile = bamPiles[queryIndex];
     String[] currentRef = null;
     if (referenceGenome != null) {
-      currentRef = referenceGenome.getSequenceFor(currentPile.getBin());
+      currentRef = referenceGenome.getSequenceFor(currentPile.getBin(), aName, false);
     }
-
     Segment cs = currentPile.getBin();
     String chr = Positions.getChromosomeUCSC(cs.getChr(), aName.addChr(), true);
     if (cs.getChr() == 26) {
