@@ -260,6 +260,13 @@ public class SourceFileHeaderData implements Serializable {
         return name.endsWith(ext);
       }
     });
+
+    // No files found - not a valid project
+    if (possibleFiles.length == 0) {
+      log.report("Project validation failed: no project files found discovered.");
+      return null;
+    }
+
     if (progressBar != null) {
       progressBar.setVisible(true);
       progressBar.setMinimum(0);

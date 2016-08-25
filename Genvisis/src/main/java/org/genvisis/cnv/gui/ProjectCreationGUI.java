@@ -267,11 +267,16 @@ public class ProjectCreationGUI extends JDialog {
       public void actionPerformed(ActionEvent e) {
         if (checkValues()) {
           int resp = JOptionPane.showConfirmDialog(ProjectCreationGUI.this,
-                                                   "<html>Do you confirm that all source files are valid, correct, and uniform in structure? <br />[If not, or if unsure, select 'Validate and Create' to check for uniformity and validity]</html>",
+                                                   "<html>You are waiving the opporunity to review your project structure.<br />Are you sure that all source files are valid, correct, and uniform in structure?<br />[If not, select 'Validate and Create' to interactively review project structure]</html>",
                                                    "Confirm File Validity",
                                                    JOptionPane.YES_NO_OPTION);
           if (resp == JOptionPane.YES_OPTION) {
-            if (createProject(false)) {
+            // Don't care if createProject doesn't work nicely
+            if (!createProject(false)) {
+              JOptionPane.showMessageDialog(ProjectCreationGUI.this,
+                                            "Could not create project - please check your inputs and try again.",
+                                            "Project Creation Failed", JOptionPane.ERROR_MESSAGE);
+            } else {
               doClose(false);
             }
           }
