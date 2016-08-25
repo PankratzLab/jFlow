@@ -381,11 +381,11 @@ public class GATK_LanePrep extends BWA_Analysis {
 
 	public static boolean runPrep(String rootInputDir, String rootOutputDir, String fileOfSamplePairs,
 																String bwaLocation, String picardLocation, String gATKLocation,
-																String samtoolsLocation, String referenceGenomeFasta,
-																String[] knownSitesSnpFile, String[] knownSitesIndelFile,
-																boolean overwriteExisting, boolean verbose, int numSampleThreads,
-																int numOtherThreads, int memoryInMB, int wallTimeInHours,
-																boolean batch, int numBatches, Logger log) {
+                                String referenceGenomeFasta, String[] knownSitesSnpFile,
+                                String[] knownSitesIndelFile, boolean overwriteExisting,
+                                boolean verbose, int numSampleThreads, int numOtherThreads,
+                                int memoryInMB, int wallTimeInHours, boolean batch, int numBatches,
+                                Logger log) {
 		BWA bwa = new BWA(bwaLocation, overwriteExisting, verbose, log);
 		Picard picard = new Picard(picardLocation, null, overwriteExisting, verbose, log);
 		GATK gatk = new GATK(	gATKLocation, referenceGenomeFasta, null, knownSitesSnpFile,
@@ -502,7 +502,6 @@ public class GATK_LanePrep extends BWA_Analysis {
 		String bwaLocation = "";
 		String picardLocation = "";
 		String gATKLocation = "";
-		String samtoolsLocation = "";
 
 		String[] knownSitesSnpFile = new String[] {"NA"};
 		String[] knownSitesIndelFile = new String[] {"NA"};
@@ -531,12 +530,10 @@ public class GATK_LanePrep extends BWA_Analysis {
              + REFERENCE_GENOME_COMMAND + referenceGenomeFasta + " (no default))\n" + "";
     usage += "   (5) the full path to the bwa executable (i.e. " + BWA_LOCATION_COMMAND
              + bwaLocation + " (defualts to systems path))\n" + "";
-    usage += "   (6) the full path to the picard directory containing the .jar (i.e. "
+    usage += "   (6) the full path to the picard (2.6.0) directory containing the .jar (i.e. "
              + Picard.PICARD_LOCATION_COMMAND + picardLocation + " (default))\n" + "";
-    usage += "   (7) the full path to the GATK executable (i.e. " + GATK.GATK_LOCATION_COMMAND
+    usage += "   (7) the full path to the GATK (3.6) executable (i.e. " + GATK.GATK_LOCATION_COMMAND
              + gATKLocation + " (defualts to systems path))\n" + "";
-    usage += "   (7) the full path to the samtools directory containing .jar files (i.e. "
-             + MergeBam.SAMTOOLS_COMMAND + samtoolsLocation + " (defualts to systems path))\n" + "";
     usage += "   (8) the full path to reference indel files (comma delimited if multiple) (i.e. "
              + GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND + Array.toStr(knownSitesIndelFile, ",")
              + " (default))\n" + "";
@@ -577,9 +574,6 @@ public class GATK_LanePrep extends BWA_Analysis {
 				numArgs--;
 			} else if (arg.startsWith(BWA_LOCATION_COMMAND)) {
 				bwaLocation = ext.parseStringArg(arg, "");
-				numArgs--;
-			} else if (arg.startsWith(MergeBam.SAMTOOLS_COMMAND)) {
-				samtoolsLocation = ext.parseStringArg(arg, "");
 				numArgs--;
 			} else if (arg.startsWith(LOG_FILE_COMMAND)) {
 				logFile = ext.parseStringArg(arg, "");
@@ -632,8 +626,8 @@ public class GATK_LanePrep extends BWA_Analysis {
 		Logger log = new Logger((rootOutputDir == null ? rootInputDir : rootOutputDir)
 														+ "GATK_PREP.log");
 		runPrep(rootInputDir, rootOutputDir, fileOfSamplePairs, bwaLocation, picardLocation,
-						gATKLocation, samtoolsLocation, referenceGenomeFasta, knownSitesSnpFile,
-						knownSitesIndelFile, overwriteExisting, verbose, numWithinSampleThreads,
-						numBetweenSampleThreads, memoryInMB, wallTimeInHours, batch, numBatches, log);
+            gATKLocation, referenceGenomeFasta, knownSitesSnpFile, knownSitesIndelFile,
+            overwriteExisting, verbose, numWithinSampleThreads, numBetweenSampleThreads, memoryInMB,
+            wallTimeInHours, batch, numBatches, log);
 	}
 }
