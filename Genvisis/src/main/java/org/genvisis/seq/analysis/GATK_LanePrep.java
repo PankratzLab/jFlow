@@ -289,7 +289,6 @@ public class GATK_LanePrep extends BWA_Analysis {
 			batches[i][0] = "batch_" + i + "_" + baseName;
 			Files.writeArray(batchedMatchedFiles[i], getRootOutputDir() + batches[i][0] + ".txt");
 		}
-		// TODO, change classpath
 		String command = Array.toStr(PSF.Load.getAllModules(), "\n");
 		command += "\njava -Xmx"	+ memoryInMB + "m -jar ~/genvisisGATK.jar seq.analysis.GATK_LanePrep "
 								+ ROOT_INPUT_COMMAND + getRootInputDir() + SPACE + ROOT_OUTPUT_COMMAND
