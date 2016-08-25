@@ -65,7 +65,12 @@ public class Pipeline {
 
   }
 
-  public static class MitoPipePart extends PipelinePart {
+  /**
+   * @author Kitty <br>
+   *         The part of the pipeline that generates mtDNA CN estimates from a bam file
+   *
+   */
+  private static class MitoPipePart extends PipelinePart {
     private final String bamFile;
     private final String rootOutDir;
     private final String captureBed;
@@ -149,7 +154,7 @@ public class Pipeline {
 
   }
 
-  public static class GenvisisPart extends PipelinePart {
+  private static class GenvisisPart extends PipelinePart {
 
     private final String bamFile;
     private final String rootOutDir;
@@ -162,9 +167,9 @@ public class Pipeline {
 
 
 
-    public GenvisisPart(String bam, String rootOutDir, String referenceGenomeFasta,
-                        String captureBed, String binBed, String vcf, NGSSample ngsSample,
-                        int captureBufferSize) {
+    private GenvisisPart(String bam, String rootOutDir, String referenceGenomeFasta,
+                         String captureBed, String binBed, String vcf, NGSSample ngsSample,
+                         int captureBufferSize) {
       super();
       this.bamFile = bam;
       this.rootOutDir = rootOutDir;
@@ -201,6 +206,7 @@ public class Pipeline {
   /**
    * @param aType the {@link ASSAY_TYPE} to format the project for
    * @param rootOutDir where the results will be stored
+   * @param referenceGenomeFasta the reference genome that will be set for the project
    * @return a project to use
    */
   public static Project getProjectFor(ASSAY_TYPE aType, String rootOutDir,

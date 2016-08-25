@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.analysis.CentroidCompute;
@@ -58,7 +59,6 @@ public class BamImport {
   public static final int CAPTURE_BUFFER = 4000;
   public static final int BIN_SIZE_WXS = 20000;
   public static final int BIN_SIZE_WGS = 2000;
-  private static final double DEFUALT_VCF_MAF = 0.01;
 
 
 
@@ -177,8 +177,8 @@ public class BamImport {
     private final Logger log;
     private int index;
 
-    public BamPileConverterProducer(Project proj, BamPileResult[] pileResults, long fingerPrint,
-                                    Logger log) {
+    private BamPileConverterProducer(Project proj, BamPileResult[] pileResults, long fingerPrint,
+                                     Logger log) {
       super();
       this.proj = proj;
       this.pileResults = pileResults;
@@ -208,12 +208,12 @@ public class BamImport {
     private static final long serialVersionUID = 1L;
     private final String tag;
 
-    public VariantSeg(byte chr, int start, int stop, String tag) {
+    private VariantSeg(byte chr, int start, int stop, String tag) {
       super(chr, start, stop);
       this.tag = tag;
     }
 
-    public String getTag() {
+    private String getTag() {
       return tag;
     }
 
@@ -749,11 +749,11 @@ public class BamImport {
     private final String[] samples;
     private final String newSampleDirectory;
     private final MarkerSet markerSet;
-    private final ArrayList<ProjectCorrected> correctedProjects;
+    private final List<ProjectCorrected> correctedProjects;
     private int index;
 
     public RecompileProducer(Project proj, String[] samples, String newSampleDirectory,
-                             MarkerSet markerSet, ArrayList<ProjectCorrected> correctedProjects) {
+                             MarkerSet markerSet, List<ProjectCorrected> correctedProjects) {
       super();
       this.proj = proj;
       this.samples = samples;
@@ -783,10 +783,10 @@ public class BamImport {
     private final String sampleName;
     private final String newSampleDirectory;
     private final MarkerSet markerSet;
-    private final ArrayList<ProjectCorrected> correctedProjects;
+    private final List<ProjectCorrected> correctedProjects;
 
     public RecompileWorker(Project proj, String sampleName, String newSampleDirectory,
-                           MarkerSet markerSet, ArrayList<ProjectCorrected> correctedProjects) {
+                           MarkerSet markerSet, List<ProjectCorrected> correctedProjects) {
       super();
       this.proj = proj;
       this.sampleName = sampleName;
@@ -805,7 +805,7 @@ public class BamImport {
   private static Hashtable<String, Float> recompileSample(Project proj, String sampleName,
                                                           String newSampleDirectory,
                                                           MarkerSet markerSet,
-                                                          ArrayList<ProjectCorrected> correctedProjects) {
+                                                          List<ProjectCorrected> correctedProjects) {
     String sampleFile = newSampleDirectory + sampleName + Sample.SAMPLE_FILE_EXTENSION;
     proj.getLog().reportTimeInfo("Sample file = " + sampleFile);
     Hashtable<String, Float> outliers = new Hashtable<String, Float>();
@@ -822,8 +822,8 @@ public class BamImport {
       for (ProjectCorrected corrected : correctedProjects) {
         Sample typeCorrected = corrected.getProj().getFullSampleFromRandomAccessFile(sampleName);
         for (int i = 0; i < markerNames.length; i++) {
-          NGS_MARKER_TYPE marker_TYPE = NGS_MARKER_TYPE.getType(markerNames[i]);
-          if (marker_TYPE == corrected.getType()) {
+          NGS_MARKER_TYPE markerType = NGS_MARKER_TYPE.getType(markerNames[i]);
+          if (markerType == corrected.getType()) {
             intensity[i] = typeCorrected.getXs()[i];
             lrrs[i] = typeCorrected.getLRRs()[i];
             numAccountedFor++;
@@ -861,9 +861,11 @@ public class BamImport {
     ArrayList<String> all = new ArrayList<String>();
     ArrayList<String> goodOffTargets = new ArrayList<String>();
 
-    problems.add("BinName\tCLASS=MARKER_COLOR;OFF_TARGET_OK=Blue;LIKELY_OFF_TARGET_PROBLEM=RED;OTHER_TYPE=Green");
-    noProblems.add("BinName\tCLASS=MARKER_COLOR;OFF_TARGET_OK=Blue;LIKELY_OFF_TARGET_PROBLEM=RED;OTHER_TYPE=Green");
-    all.add("BinName\tCLASS=MARKER_COLOR;OFF_TARGET_OK=Blue;LIKELY_OFF_TARGET_PROBLEM=RED;OTHER_TYPE=Green");
+    String header =
+                  "BinName\tCLASS=MARKER_COLOR;OFF_TARGET_OK=Blue;LIKELY_OFF_TARGET_PROBLEM=RED;OTHER_TYPE=Green";
+    problems.add(header);
+    noProblems.add(header);
+    all.add(header);
     int[][] indices = markerSet.getIndicesByChr();
     String[] names = markerSet.getMarkerNames();
     for (int[] indice : indices) {
@@ -992,14 +994,14 @@ public class BamImport {
     String allMarkerFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), ".allMarkers");
     ArrayList<MarkerFileType> markerTypes = new ArrayList<MarkerFileType>();
 
-    if (onTMarkers.size() > 0) {
+    if (!onTMarkers.isEmpty()) {
       Files.writeList(Array.toStringArray(onTMarkers), onTargetFile);
       markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.ON_TARGET, onTargetFile));
     } else {
       proj.getLog()
           .reportTimeWarning("No " + NGS_MARKER_TYPE.ON_TARGET.getFlag() + " markers detected");
     }
-    if (offTMarkers.size() > 0) {
+    if (!offTMarkers.isEmpty()) {
       Files.writeList(Array.toStringArray(offTMarkers), offTargetFile);
       markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.OFF_TARGET, offTargetFile));
     } else {
@@ -1007,7 +1009,7 @@ public class BamImport {
           .reportTimeWarning("No " + NGS_MARKER_TYPE.OFF_TARGET.getFlag() + " markers detected");
     }
 
-    if (variantSiteMarkers.size() > 0) {
+    if (!variantSiteMarkers.isEmpty()) {
       Files.writeList(Array.toStringArray(variantSiteMarkers), variantSiteTargetFile);
       markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.VARIANT_SITE, variantSiteTargetFile));
     } else {
@@ -1058,9 +1060,7 @@ public class BamImport {
     int captureBuffer = CAPTURE_BUFFER;
     String vcf = null;
     int correctionPCs = 4;
-    // String referenceGenomeFasta = "hg19_canonical.fa";
-    // String logfile = null;
-    // Logger log;
+
 
     String usage = "\n" + "seq.manage.BamImport requires 0-1 arguments\n";
     usage += "(1) filename (i.e. proj= ( nodefault))\n" + "";
@@ -1072,8 +1072,6 @@ public class BamImport {
              + "";
     usage += "(6) number of PCs to correct with  (i.e. correctionPCs= ( no default))\n" + "";
 
-    // usage += "(3) reference genome (i.e. ref=" + referenceGenomeFasta + "
-    // ( default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -1098,10 +1096,7 @@ public class BamImport {
         correctionPCs = ext.parseIntArg(arg);
         numArgs--;
       }
-      // else if (args[i].startsWith("log=")) {
-      // logfile = args[i].split("=")[1];
-      // numArgs--;
-      // }
+
       else {
         System.err.println("Error - invalid argument: " + arg);
       }
@@ -1111,12 +1106,11 @@ public class BamImport {
       System.exit(1);
     }
     try {
-      // log = new Logger(logfile);
       Project proj = new Project(filename, false);
       importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs, true,
                                ASSAY_TYPE.WXS, ASSEMBLY_NAME.HG19, null, numthreads);
     } catch (Exception e) {
-      e.printStackTrace();
+      new Logger().reportException(e);
     }
   }
 }
