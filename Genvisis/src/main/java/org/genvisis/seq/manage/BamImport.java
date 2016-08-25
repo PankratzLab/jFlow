@@ -703,7 +703,7 @@ public class BamImport {
       MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, 20, base, false, true, 0, null,
                                   null, null, null, false, false, true, false, true, false, null,
                                   -1, -1, GENOME_BUILD.HG19, MitoPipeline.DEFAULT_PVAL_OPTS, null,
-                                  false);
+                                  false, true);
 
       String pcCorrectedFile = ext.addToRoot(proj.getPropertyFilename(),
                                              "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue()

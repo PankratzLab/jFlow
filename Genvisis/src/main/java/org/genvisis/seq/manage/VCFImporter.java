@@ -457,7 +457,7 @@ public class VCFImporter {
                                 projNorm.PROJECT_DIRECTORY.getValue() + "VCF_PCS", true, true, 0.98,
                                 useFile, null, null, null, true, true, true, false, true, false,
                                 null, -1, -1, GENOME_BUILD.HG19, MitoPipeline.DEFAULT_PVAL_OPTS,
-                                null, false);
+                                null, false, true);
     SampleQC sampleQC = SampleQC.loadSampleQC(projNorm);
     sampleQC.addQCsToSampleData(5, true);
     sampleQC.addPCsToSampleData(5, 10, true);

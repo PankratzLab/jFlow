@@ -310,7 +310,7 @@ public class MitoPipeline {
                                    boolean sampLrr, boolean doAbLookup, boolean imputeMeanForNaN,
                                    boolean gcCorrect, String refGenomeFasta, int bpGcModel,
                                    int regressionDistance, GENOME_BUILD build, double[] pvalOpt,
-                                   String betaFile, boolean plot) {
+                                   String betaFile, boolean plot, boolean skipEval) {
     String sampleDirectory;
     SampleList sampleList;
     Logger log;
@@ -1247,7 +1247,7 @@ public class MitoPipeline {
                               pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median,
                               recompSampleSpecific, doAbLookup, imputeMeanForNaN, gcCorrect,
                               referenceGenomeFasta, bpGcModel, regressionDistance, build, pvalOpt,
-                              betaFile, plot);
+                              betaFile, plot, false);
       attempts++;
       if (result == 41 || result == 40) {
         proj.getLog().report("Attempting to restart pipeline once to fix SampleList problem");

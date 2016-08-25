@@ -119,20 +119,27 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     return samples;
   }
 
-  private static String[] getAssociatedBams(List<SRASample> samples, String rootOutDir) {
+  private static String[] getAssociatedBams(List<SRASample> samples, String rootOutDir,
+                                            Logger log) {
     ArrayList<String> bams = new ArrayList<String>();
     for (SRASample sample : samples) {
       String bam = getBamDirectory(rootOutDir) + ext.rootOf(sample.getSraFile()) + ".bam";
-      bams.add(bam);
+      if (!Files.exists(bam)) {
+        log.reportTimeWarning("Associated bam " + bam + " for " + sample.getSraFile()
+                              + " did not exist, will not compile...run the import pipeline again");
+      } else {
+        bams.add(bam);
+      }
     }
     return Array.toStringArray(bams);
 
   }
 
   private static void runCompile(List<SRASample> samples, String rootOutDir, String referenceGenome,
-                                 String captureBed, String binBed, String vcf, int numThreads) {
+                                 String captureBed, String binBed, String vcf, int numThreads,
+                                 Logger log) {
 
-    String[] bams = getAssociatedBams(samples, rootOutDir);
+    String[] bams = getAssociatedBams(samples, rootOutDir, log);
     ASSAY_TYPE atType = samples.get(0).getaType();
     ASSEMBLY_NAME aName = samples.get(0).getaName();
 
@@ -171,10 +178,11 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
           throw new IllegalArgumentException("Invalid assay type " + sample.getaType());
       }
     }
+
     log.reportTimeInfo("Found " + wgsSamples.size() + " " + ASSAY_TYPE.WGS + " samples and "
                        + wxsSamples.size() + " " + ASSAY_TYPE.WXS + " samples");
-    runCompile(wxsSamples, rootOutDir, referenceGenome, captureBed, binBed, vcf, numThreads);
-    runCompile(wgsSamples, rootOutDir, referenceGenome, captureBed, binBed, vcf, numThreads);
+    runCompile(wxsSamples, rootOutDir, referenceGenome, captureBed, binBed, vcf, numThreads, log);
+    runCompile(wgsSamples, rootOutDir, referenceGenome, captureBed, binBed, vcf, numThreads, log);
 
   }
 
