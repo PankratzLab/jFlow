@@ -477,12 +477,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
     // Add plot icons
     iconBar.add(Box.createHorizontalStrut(15));
-    addButtons(iconBar, new String[]{ "images/scatterPlot2.png",
-                             "images/trailerPlot2.png", "images/qqplot.gif",
-                             "images/recluster1.png", "images/twoDPlot1.jpg",
+    addButtons(iconBar, new String[]{ "images/scatterPlot2.png", "images/qqplot.gif",
+                             "images/stratPlot.png", "images/mosaicPlot.png", "images/sexPlot.png", "images/trailerPlot2.png",
+                              "images/twoDPlot1.jpg","images/lineplot.png", "images/compPlot.png",
                              "images/forestPlot1.png"},
-               new String[] {SCATTER, TRAILER, QQ, LINE_PLOT, TWOD,
-                             FOREST_PLOT});
+               new String[] {SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT,
+                             TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT});
 
     // Add project selector
     iconBar.add(Box.createHorizontalStrut(15));
