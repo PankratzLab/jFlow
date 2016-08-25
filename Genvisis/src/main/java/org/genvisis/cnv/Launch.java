@@ -15,6 +15,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Date;
@@ -25,6 +26,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.jar.Attributes;
 
+import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -43,6 +45,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
+import org.apache.commons.io.FileUtils;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.DeNovoCNV;
 import org.genvisis.cnv.analysis.Mosaicism;
@@ -86,6 +89,7 @@ import org.genvisis.cyto.CytoGUI;
 // -XX:+UseParNewGC
 
 public class Launch extends JFrame implements ActionListener, WindowListener {
+
   public static final long serialVersionUID = 1L;
 
   public static final String VERSION = "0.60";
@@ -96,6 +100,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
   public static final String PIPELINE = "Genvisis Project Workflow";
   public static final String NEW_PROJECT = "New Project";
   public static final String IMPORT_PROJECT = "Import Project";
+  public static final String SELECT_PROJECT = "Select Project";
+  public static final String DELETE_PROJECT = "Delete Project";
 
   public static final String MAP_FILES = "Map .csv files to IDs";
   public static final String GENERATE_MARKER_POSITIONS = "Generate marker positions file";
@@ -144,8 +150,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
   public static final String TEST = "Test new program";
 
   public static final String[][] MENUS = {
-                                          {"File", NEW_PROJECT, IMPORT_PROJECT, "Select Project",
-                                           EDIT, "Preferences", CHECK_FOR_UPDATES, EXIT},
+                                          {"File", NEW_PROJECT, IMPORT_PROJECT, SELECT_PROJECT,
+                                           DELETE_PROJECT, EDIT, "Preferences", CHECK_FOR_UPDATES,
+                                           EXIT},
                                           {"Data", MAP_FILES, GENERATE_MARKER_POSITIONS,
                                            PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // ,
                                                                                        // MITOPIPELINE
@@ -235,6 +242,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     projectsBox.setSelectedIndex(indexOfCurrentProj);
 
     return proj;
+  }
+
+  public void setIndexOfCurrentProject(int projectIndex) {
+    setIndexOfCurrentProject(projects.get(projectIndex));
   }
 
   public void setIndexOfCurrentProject(String projPropertiesFileName) {
@@ -385,102 +396,125 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
   private void makeTopMenuBar() {
     JMenuBar menuBar;
-    JMenu menu, submenu;
-    JMenuItem menuItem;
+    JMenu menu;
+    JMenuItem menuItem = null;
     Set<Character> hash;
 
     menuBar = new JMenuBar();
+    // attach mnemonics and actionlisteners to menu elements
     for (String[] element : MENUS) {
       menu = new JMenu(element[0]);
       menu.setMnemonic((int) element[0].charAt(0));
       menuBar.add(menu);
       hash = new HashSet<Character>();
-      for (int j = 1; j < element.length; j++) {
-        if (element[j] == "") {
-          break;
-        }
+      for (int j = 1; j < element.length && !element[j].isEmpty(); j++) {
         if (element[j] == "1") {
           menu.addSeparator();
-        } else if (element[j].equals(NEW_PROJECT)) {
-          menuItem = new JMenuItem(NEW_PROJECT);
-          menuItem.addActionListener(this);
-          menuItem.setMnemonic(KeyEvent.VK_N);
-          menu.add(menuItem);
-        } else if (element[j].equals(IMPORT_PROJECT)) {
-          menuItem = new JMenuItem(IMPORT_PROJECT);
-          menuItem.addActionListener(this);
-          menuItem.setMnemonic(KeyEvent.VK_I);
-          menu.add(menuItem);
-        } else if (element[j].equals("Select Project")) {
-          submenu = new JMenu(element[j]);
+          continue;
+        } else if (element[j].equals(SELECT_PROJECT)) {
+          // Create "select project" submenu
+          menuItem = new JMenu(element[j]);
           for (String project : projects) {
-            menuItem = new JMenuItem(ext.rootOf(project, true) + " ");
-            menuItem.addActionListener(this);
-            submenu.add(menuItem);
+            String label = ext.rootOf(project, true) + " ";
+            JMenuItem subItem = new JMenuItem(label);
+            subItem.addActionListener(this);
+            subItem.setMnemonic(getMnemonic(label, hash));
+            menuItem.add(subItem);
           }
-          menu.add(submenu);
         } else if (element[j].equals(PRINCIPAL_COMPONENTS)) {
-          String[] pcSubMenuOptions =
-                                    new String[] {PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI,
-                                                  PrincipalComponentsCrossTabs.PRINCIPAL_CROSSTABS_MI};
-          JMenu pcSubMenu = new JMenu(element[j]);
-          for (String pcSubMenuOption : pcSubMenuOptions) {
+          // Create "principal components" submenu
+          menuItem = new JMenu(element[j]);
+          for (String pcSubMenuOption : new String[] {PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI,
+                                                      PrincipalComponentsCrossTabs.PRINCIPAL_CROSSTABS_MI}) {
             JMenuItem pcSubItem = new JMenuItem(pcSubMenuOption);
             pcSubItem.addActionListener(this);
-            pcSubMenu.add(pcSubItem);
+            menuItem.add(pcSubItem);
           }
-          menu.add(pcSubMenu);
-
         } else {
-          // Set mnemonic for this entry to the first letter in the entry not yet used at this
-          // level.
+          // standard menu item
           menuItem = new JMenuItem(element[j]);
-          for (int k = 0; k < element[j].length(); k++) {
-            char mnemonic = element[j].toLowerCase().charAt(k);
-            if (!hash.contains(mnemonic)) {
-              menuItem.setMnemonic(mnemonic);
-              hash.add(mnemonic);
-              break;
-            }
-          }
           menuItem.addActionListener(this);
-          // TODO What is this?
-          menuItem.getAccessibleContext().setAccessibleDescription("Under development");
-          menu.add(menuItem);
         }
+
+        menuItem.setMnemonic(getMnemonic(element[j], hash));
+        menu.add(menuItem);
       }
     }
     setJMenuBar(menuBar);
   }
 
+  private int getMnemonic(String string, Set<Character> hash) {
+    if (string.equals(NEW_PROJECT)) {
+      return KeyEvent.VK_N;
+    } else if (string.equals(IMPORT_PROJECT)) {
+      return KeyEvent.VK_I;
+    } else if (string.equals(DELETE_PROJECT)) {
+      return KeyEvent.VK_D;
+    } else {
+      String s2 = string.toLowerCase();
+      for (int k = 0; k < string.length(); k++) {
+        char mnemonic = s2.charAt(k);
+        if (!hash.contains(mnemonic)) {
+          hash.add(mnemonic);
+          return mnemonic;
+        }
+      }
+    }
+    return 0;
+  }
+
+  /**
+   * Add icon buttons for various operations to the toolbar
+   */
   private JPanel makeTopIconBar() {
-    JPanel iconBar;
-    JButton button;
-    String[] icons = null;
-    String[] commands = null;
-
-    icons = new String[] {"images/save1.png", "images/edit1.png", "images/refresh.gif",
-                          "images/gen_pipe_1.png", "images/scatterPlot2.png",
-                          "images/trailerPlot2.png", "images/qqplot.gif", "images/recluster1.png",
-                          "images/twoDPlot1.jpg", "images/forestPlot1.png"};
-    commands = new String[] {"", EDIT, REFRESH, PIPELINE, SCATTER, TRAILER, QQ, LINE_PLOT, TWOD,
-                             FOREST_PLOT};
-
-
-    iconBar = new JPanel();
+    JPanel iconBar = new JPanel();
     iconBar.setLayout(new FlowLayout(FlowLayout.LEFT));
+
+    // Add leftmost system icons
+    addButtons(iconBar,
+               new String[] {"images/edit.png", "images/refresh.svg.png",
+                             "images/gen_pipe_1.png"}, new String[]{EDIT, REFRESH, PIPELINE});
+
+    // Add plot icons
+    iconBar.add(Box.createHorizontalStrut(15));
+    addButtons(iconBar, new String[]{ "images/scatterPlot2.png", "images/qqplot.gif",
+                             "images/stratPlot.png", "images/mosaicPlot.png", "images/sexPlot.png", "images/trailerPlot2.png",
+                              "images/twoDPlot1.jpg","images/lineplot.png", "images/compPlot.png",
+                             "images/forestPlot1.png"},
+               new String[] {SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT,
+                             TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT});
+
+    // Add project selector
+    iconBar.add(Box.createHorizontalStrut(15));
+    addProjectSelector(iconBar);
+
+    // Add project buttons to right of selector
+    addButtons(iconBar, new String[] {"images/deleteProj.svg.png"}, new String[] {DELETE_PROJECT});
+
+    return iconBar;
+  }
+
+  /**
+   * Helper method to create a set of standardized buttons to the given pane. {@code icons.length}
+   * must equal {@code commands.length}, which is also the number of buttons that will be created.
+   */
+  private void addButtons(final Container pane, String[] icons, String[] commands) {
+    if (icons.length != commands.length) {
+      throw new IllegalArgumentException("Error creating topbar buttons. Got " + icons.length
+                                         + " icons but " + commands.length + "commands.");
+    }
+
     for (int i = 0; i < icons.length; i++) {
-      button = new JButton(Grafik.getImageIcon(icons[i]));
+      JButton button = new JButton(Grafik.getImageIcon(icons[i]));
       button.setActionCommand(commands[i]);
       button.addActionListener(this);
       button.setToolTipText(commands[i]);
       button.setPreferredSize(new Dimension(25, 25));
-      button.setBorder(null);
-      iconBar.add(button);
+      button.setOpaque(false);
+      button.setContentAreaFilled(false);
+      button.setBorderPainted(false);
+      pane.add(button);
     }
-    addProjectSelector(iconBar);
-
-    return iconBar;
   }
 
   /**
@@ -826,7 +860,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     Thread thread;
 
     log.report("Action performed: " + command + "\n");
-    //TODO in Java 7 we can make these a switch statement
+    // TODO in Java 7 we can make these a switch statement
 
     // These options do not require an active project
     if (command.equals(EXIT)) {
@@ -841,18 +875,17 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
       // Command requested requires an active project, so ensure
       // current project is valid
       log.report("No project currently selected. Attempting to create one now.");
-      int i =
-          JOptionPane.showOptionDialog(null,
-                                       "No projects available. You can create or import one now.",
-                                       "Create project?", JOptionPane.OK_CANCEL_OPTION,
-                                       JOptionPane.INFORMATION_MESSAGE, null,
-                                       new Object[] {NEW_PROJECT, IMPORT_PROJECT}, NEW_PROJECT);
+      int i = JOptionPane.showOptionDialog(null,
+                                           "No projects available. You can create or import one now.",
+                                           "Create project?", JOptionPane.OK_CANCEL_OPTION,
+                                           JOptionPane.INFORMATION_MESSAGE, null,
+                                           new Object[] {"Create", "Import"}, "Create");
       if (i == 0) {
         createProject();
       } else if (i == 1) {
         importProject();
       }
-      //TODO it would be nice if we could wait for create/import to finish before deciding if
+      // TODO it would be nice if we could wait for create/import to finish before deciding if
       // we should return or continue execution
       return;
     }
@@ -873,6 +906,40 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
         }
       });
       configurator.setVisible(true);
+    } else if (command.equals(DELETE_PROJECT)) {
+      String toDelete = projects.get(indexOfCurrentProj);
+      int newIndex = Math.max(0, --indexOfCurrentProj);
+      if (new File(launchProperties.getDirectory() + toDelete).delete()) {
+        int deleteDir = JOptionPane.showConfirmDialog(null, "Delete source directory as well?",
+                                                      "Delete project",
+                                                      JOptionPane.YES_NO_CANCEL_OPTION,
+                                                      JOptionPane.WARNING_MESSAGE);
+        projects = null;
+
+        // Update toDelete to just the project name
+        toDelete = ext.rootOf(toDelete, true);
+        // Find and remove the project entry in the "select projects" menu
+        deleteMenuItem(getJMenuBar(), "File", SELECT_PROJECT, toDelete);
+
+        if (deleteDir == JOptionPane.YES_OPTION) {
+          log = new Logger();
+          log.linkTextArea(output);
+          try {
+            FileUtils.deleteDirectory(new File(proj.PROJECT_DIRECTORY.getValue()));
+          } catch (IOException e) {
+            log.reportTimeWarning("Failed to delete project directory: "
+                                + proj.PROJECT_DIRECTORY.getValue());
+          }
+        }
+        loadProjects();
+        projectsBox.setModel(new DefaultComboBoxModel<String>(launchProperties.getListOfProjectNames()));
+        if (!projects.isEmpty()) {
+          loadProject();
+          setIndexOfCurrentProject(newIndex);
+        }
+      } else {
+        log.reportTimeWarning("Failed to delete current project: " + toDelete);
+      }
     } else if (command.equals(REFRESH)) {
       loadProjects();
       loadProject();
@@ -890,7 +957,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
       HttpUpdate.update("http://genvisis.org/genvisis_dev.jar", "./", log);
 
     } else if (command.endsWith(" ")) {
-      //FIXME this should be unified with the drop down combobox selector
+      // FIXME this should be unified with the drop down combobox selector
       for (int i = 0; i < projects.size(); i++) {
         if (command.equals(ext.rootOf(projects.get(i)) + " ")) {
           projectsBox.setSelectedIndex(i);
@@ -901,6 +968,59 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
       thread = new Thread(new IndependentThread(proj, command));
       thread.start();
       threadsRunning.add(thread);
+    }
+  }
+
+  /**
+   * Recursively search for the menu path specified by the given string array, removing the final
+   * entry from the given menu. Each entry except the last is assumed to be a sub menu.
+   */
+  private void deleteMenuItem(JMenuBar jMenuBar, String... entries) {
+    int toDelete = -1;
+    for (int i = 0; i < jMenuBar.getMenuCount(); i++) {
+      final JMenu menu = jMenuBar.getMenu(i);
+      if (menu.getText().equals(entries[0])) {
+        if (entries.length > 1) {
+          // Enter the JMenu recursion
+          deleteMenuItem(menu, Arrays.copyOfRange(entries, 1, entries.length));
+          break;
+        }
+
+        toDelete = i;
+        break;
+      }
+    }
+    if (toDelete >= 0) {
+      jMenuBar.remove(toDelete);
+    }
+    jMenuBar.validate();
+  }
+
+  /**
+   * @see {@link #deleteMenuItem(JMenuBar, String...)
+   */
+  private void deleteMenuItem(JMenu menu, String... entries) {
+    if (entries.length == 0) {
+      return;
+    }
+    int toDelete = -1;
+    for (int i = 0; i < menu.getItemCount(); i++) {
+      final JMenuItem item = menu.getItem(i);
+      if (item.getText().trim().equals(entries[0])) {
+        if (entries.length > 1) {
+          // Recursive step
+          deleteMenuItem((JMenu) item, Arrays.copyOfRange(entries, 1, entries.length));
+        } else {
+          log.report("Deleting: " + entries[0] + " from select project menu");
+          // End of recursion
+          toDelete = i;
+        }
+
+        break;
+      }
+    }
+    if (toDelete >= 0) {
+      menu.remove(toDelete);
     }
   }
 
@@ -948,7 +1068,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     });
   }
 
-  //FIXME factor out to subclass to reduce clutter
+  // FIXME factor out to subclass to reduce clutter
   @Override
   public void windowOpened(WindowEvent we) {}
 

@@ -1113,10 +1113,7 @@ public class DosageData implements Serializable {
       newMarkerSet = null;
     }
     if (markersToUse != null) {
-      HashSet<String> mkrsToKeep = new HashSet<String>();
-      for (String m : markersToUse) {
-        mkrsToKeep.add(m);
-      }
+      HashSet<String> mkrsToKeep = HashVec.loadToHashSet(markersToUse);
       markersToKeep = Array.booleanArray(markerNames.length, false);
       for (int i = 0; i < markerNames.length; i++) {
         if (mkrsToKeep.contains(markerNames[i])) {

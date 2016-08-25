@@ -2113,6 +2113,7 @@ public class TwoDPlot extends JPanel
     BufferedReader reader;
     String[] header, line;
     String readBuffer;
+    int lineLength;
 
     if (dataKeys.contains(filename)) {
       return;
@@ -2134,13 +2135,11 @@ public class TwoDPlot extends JPanel
     try {
       long t1 = System.currentTimeMillis();
       reader = new BufferedReader(new FileReader(filename));
-      dataKeys.add(filename);
 
       readBuffer = reader.readLine();
       String delim = ext.determineDelimiter(readBuffer);
       header = readBuffer.trim().split(delim);
-
-      addDataHeader(filename, header);
+      lineLength = header.length;
 
       // validColumnsHash.put(filename, Array.booleanArray(dataColumnsHash.get(filename).length,
       // true));
@@ -2149,18 +2148,30 @@ public class TwoDPlot extends JPanel
       // sampleData.initLinkKey(filename); // initialize the link key
       // }
       // createLinkKeyToDataHash(filename, linkKeyIndices);
-      dataHash.put(filename, new ArrayList<String[]>());
-
+      ArrayList<String[]> data = new ArrayList<String[]>();
+      boolean[] valid = Array.booleanArray(header.length, true);
       String tempLine = "";
+      int cnt = 0;
       while ((tempLine = reader.readLine()) != null) {
         if ("".equals(tempLine)) {
           continue;
         }
         line = tempLine.trim().split(delim);
-        dataHash.get(filename).add(line);
-        validColumnsHash.put(filename, validate(line));
+        if (line.length < lineLength) {
+          proj.message("Error on line " + cnt + " of file " + filename + ": expected " + header.length + " columns, but only found " + line.length);
+          reader.close();
+          return;
+        }
+        valid = Array.booleanArrayAnd(valid, validate(line));
+        data.add(line);
+        cnt++;
       }
       reader.close();
+      
+      addDataHeader(filename, header);
+      dataHash.put(filename, data);
+      validColumnsHash.put(filename, valid);
+      dataKeys.add(filename);
 
       log.reportTimeElapsed("Read file " + filename + " in: ", t1);
 

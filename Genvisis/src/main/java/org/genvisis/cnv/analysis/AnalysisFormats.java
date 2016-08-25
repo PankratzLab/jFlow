@@ -22,6 +22,7 @@ import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
@@ -686,7 +687,7 @@ public class AnalysisFormats implements Runnable {
       Centroids.exportToText(proj, centFilePathF[0], centFilePathF[0] + ".txt", sexMarkers);
       proj.SEX_CENTROIDS_FEMALE_FILENAME.setValue(centFilePathF[1]);
 
-      proj.saveProperties(new Project.Property[] {proj.SEX_CENTROIDS_MALE_FILENAME,
+      proj.saveProperties(new Property[] {proj.SEX_CENTROIDS_MALE_FILENAME,
                                                   proj.SEX_CENTROIDS_FEMALE_FILENAME});
     }
     centroidsMale = null;

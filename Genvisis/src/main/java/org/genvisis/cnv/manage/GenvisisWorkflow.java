@@ -22,6 +22,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
+import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.qc.MarkerBlastQC;
@@ -2194,7 +2195,7 @@ public class GenvisisWorkflow {
                                   CNVCaller.DEFUALT_MIN_SITES, CNVCaller.DEFUALT_MIN_CONF,
                                   numThreads, 1);// TODO, sex specific centroids,etc
       proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output);
-      proj.saveProperties(new Project.Property[] {proj.CNV_FILENAMES});
+      proj.saveProperties(new Property[] {proj.CNV_FILENAMES});
     }
 
     @Override

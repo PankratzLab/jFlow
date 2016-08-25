@@ -7,6 +7,8 @@ import java.util.Arrays;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
+import org.genvisis.cnv.prop.FileProperty;
+import org.genvisis.cnv.prop.StringListProperty;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;

@@ -27,6 +27,7 @@ import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources.GENOME_RESOURCE_TYPE;
 import org.genvisis.cnv.manage.Resources.MITO_RESOURCE_TYPE;
 import org.genvisis.cnv.manage.Resources.Resource;
+import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import org.genvisis.cnv.qc.GcAdjustorParameter;
@@ -543,7 +544,7 @@ public class MitoPipeline {
       generateFinalReport(proj, outputBase, pcResids.getResidOutput());
       proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
       proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
-      proj.saveProperties(new Project.Property[] {proj.INTENSITY_PC_FILENAME,
+      proj.saveProperties(new Property[] {proj.INTENSITY_PC_FILENAME,
                                                   proj.INTENSITY_PC_NUM_COMPONENTS});
       // generate estimates at each pc
       log.reportTimeWarning("Beginning experimental estimator... Please contact us if the next steps report errors");

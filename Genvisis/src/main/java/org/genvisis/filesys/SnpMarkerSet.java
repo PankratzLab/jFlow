@@ -960,7 +960,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
     char[][] newAlleles;
     String[][] newAnnotation;
     boolean error;
-    HashSet<String> hash;
+    HashSet<String> hash, dupeHash = null;
     int count, numMissing;
 
     if (markersToKeep.length != Array.unique(markersToKeep).length) {
@@ -972,9 +972,25 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
     numMissing = 0;
     markerNames = getMarkerNames();
     hash = HashVec.loadToHashSet(markerNames);
+    if (hash.size() < markerNames.length) {
+      log.reportTimeWarning((markerNames.length - hash.size()) + " duplicate markers detected in SnpMarkerSet");
+      // reload marker hash and identify duplicate markers
+      hash = new HashSet<String>((int) (1 + markerNames.length / .75));
+      dupeHash = new HashSet<String>((int) (1 + (markerNames.length - hash.size()) / .75));
+      for (String mkr : markerNames) {
+        if (hash.contains(mkr)) {
+          dupeHash.add(mkr);
+        } else {
+          hash.add(mkr);
+        }
+      }
+    }
     for (String element : markersToKeep) {
       if (hash.contains(element)) {
         count++;
+        if (dupeHash != null && dupeHash.contains(element)) {
+          count++;
+        }
       } else {
         if (!allowIncompleteList) {
           if (!error) {
@@ -987,7 +1003,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
       }
     }
     if (numMissing > 0) {
-      log.reportError("Warning - there "
+      log.reportError("Warning - there "    
                       + (numMissing == 1 ? "was 1 marker" : "were " + numMissing + " markers")
                       + " present in list but not in SnpMarkerSet");
     }
