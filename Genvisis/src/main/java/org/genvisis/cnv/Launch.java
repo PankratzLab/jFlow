@@ -19,7 +19,9 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 import java.util.jar.Attributes;
 
@@ -83,7 +85,7 @@ import org.genvisis.cyto.CytoGUI;
 // -XX:+UseConcMarkSweepGC
 // -XX:+UseParNewGC
 
-public class Launch extends JFrame implements ActionListener, WindowListener, ItemListener {
+public class Launch extends JFrame implements ActionListener, WindowListener {
   public static final long serialVersionUID = 1L;
 
   public static final String VERSION = "0.60";
@@ -141,29 +143,27 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
   public static final String TEST = "Test new program";
 
-  public static final String[][] MENUS =
-                                 {{"File", NEW_PROJECT, IMPORT_PROJECT, "Select Project", EDIT,
-                                   "Preferences", CHECK_FOR_UPDATES, EXIT},
-                                  {"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV,
-                                   TRANSPOSE_DATA, PIPELINE}, // ,
-                                                              // MITOPIPELINE
-                                  {"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM,
-                                   MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS,
-                                   TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
-                                  {"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER,
-                                   TWOD, LINE_PLOT, COMP, FOREST_PLOT},
-                                  {"Tools", GENERATE_ABLOOKUP, EXPORT_TO_PLINK,
-                                   GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF,
-                                   GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV, EXPORT_CNVS,
-                                   CYTO_WORKBENCH, PRINCIPAL_COMPONENTS, GENERATE_DEMO_PACKAGE,
-                                   ADD_QC_TO_SAMPLE_DATA, TEST},
-                                  {"Help", "Contents", "Search", "About"}};
+  public static final String[][] MENUS = {
+                                          {"File", NEW_PROJECT, IMPORT_PROJECT, "Select Project",
+                                           EDIT, "Preferences", CHECK_FOR_UPDATES, EXIT},
+                                          {"Data", MAP_FILES, GENERATE_MARKER_POSITIONS,
+                                           PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // ,
+                                                                                       // MITOPIPELINE
+                                          {"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM,
+                                           MARKER_METRICS, FILTER_MARKER_METRICS,
+                                           TALLY_MARKER_ANNOTATIONS,
+                                           TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
+                                          {"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT,
+                                           TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT},
+                                          {"Tools", GENERATE_ABLOOKUP, EXPORT_TO_PLINK,
+                                           GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS, GENERATE_DEMO_PACKAGE, ADD_QC_TO_SAMPLE_DATA, TEST},
+                                          {"Help", "Contents", "Search", "About"}};
 
 
   private Project proj;
   private final boolean jar;
   private JComboBox<String> projectsBox;
-  private String[] projects;
+  private transient List<String> projects;
   private LaunchProperties launchProperties;
   private final String launchPropertiesFile;
   private JTextArea output;
@@ -184,19 +184,32 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     timestampOfPropertiesFile = -1;
     timestampOfSampleDataFile = -1;
     threadsRunning = new Vector<Thread>();
+    log = new Logger();
   }
 
+  /**
+   * Safely initialize the projects list once, and only once.
+   */
+  private synchronized void initProjects() {
+    if (projects == null) {
+      List<String> list = Arrays.asList(launchProperties.getListOfProjectProperties());
+      projects = list;
+    }
+  }
+
+  /**
+   * Discover the projects declared in the projects directory and the last opened project.
+   */
   public void loadProjects() {
-    String[] projectNames;
-
-    projects = Files.list(launchProperties.getDirectory(), ".properties", false);
-    projectNames = launchProperties.getListOfProjectNames();
-    projectsBox.setModel(new DefaultComboBoxModel<String>(projectNames));
+    if (projects == null) {
+      initProjects();
+    }
+    setIndexOfCurrentProject(launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
   }
-
 
   public Project loadProject() {
-    proj = new Project(launchProperties.getDirectory() + projects[indexOfCurrentProj], jar);
+    // TODO if indexOfCurrentProj < 0 show dialog asking if user would like to create new project
+    proj = new Project(launchProperties.getDirectory() + projects.get(indexOfCurrentProj), jar);
     proj.setGuiState(true);
     timestampOfPropertiesFile = new Date().getTime();
     timestampOfSampleDataFile = new Date().getTime();
@@ -226,12 +239,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
   public void setIndexOfCurrentProject(String projPropertiesFileName) {
     indexOfCurrentProj = 0;
-    for (int i = 0; i < projects.length; i++) {
-      if (projects[i].equals(projPropertiesFileName)) {
+    // find the index
+    for (int i = 0; i < projects.size(); i++) {
+      if (projects.get(i).equals(projPropertiesFileName)) {
         indexOfCurrentProj = i;
       }
     }
-    if (projects.length > 0) {
+    // Update the UI component if available
+    if (projectsBox != null && !projects.isEmpty()) {
       projectsBox.setSelectedIndex(indexOfCurrentProj);
     }
   }
@@ -268,9 +283,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     }
   }
 
+  /**
+   * Entry point for graphical use
+   */
   private static void createAndShowGUI() {
     String launchPropertiesFile;
-    final Launch frame;
+    final Launch launchUI;
 
     try {
       UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
@@ -295,94 +313,64 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
     // Create and set up the content pane.
     launchPropertiesFile = LaunchProperties.DEFAULT_PROPERTIES_FILE;
-    initLaunchProperties(launchPropertiesFile, false, true);
     CurrentManifest manifest = new CurrentManifest(new Attributes());
     try {// try not to break the launch so we will catch anything
       manifest = CurrentManifest.loadGenvisisManifest();
     } catch (Exception e) {
     }
-    frame = new Launch(launchPropertiesFile, manifest, false);
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.setJMenuBar(frame.topMenuBar());
-    frame.setContentPane(frame.createContentPane());
-    frame.createPopupMenu();
+    launchUI = new Launch(launchPropertiesFile, manifest, false);
+    launchUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-    frame.setSize(650, 550);
-    frame.setLocation(300, 200);
+    // Have to read which projects are available before creating the menus
+    launchUI.initLaunchProperties();
 
-    frame.addWindowListener(frame);
+    launchUI.loadProjects();
+
+    launchUI.makeContentPane();
+    launchUI.makeTopMenuBar();
+    launchUI.makePopupMenu();
+
+    launchUI.setSize(650, 550);
+    launchUI.setLocation(300, 200);
+
+    launchUI.addWindowListener(launchUI);
 
     javax.swing.SwingUtilities.invokeLater(new Runnable() {
       @Override
       public void run() {
-        frame.setVisible(true);
+        launchUI.setVisible(true);
       }
     });
 
     // TODO only instantiate when used
-    frame.setIndexOfCurrentProject(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
-    if (frame.projects.length > 0) {
-      frame.loadProject();
+    launchUI.setIndexOfCurrentProject(launchUI.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
+    if (launchUI.projects.size() > 0) {
+      launchUI.loadProject();
     }
 
-    ueh.setLog(frame.log);
+    ueh.setLog(launchUI.log);
     try {
-      frame.log.report(HttpUpdate.checkGenvisisVersion(frame.log));
+      launchUI.log.report(HttpUpdate.checkGenvisisVersion(launchUI.log));
     } catch (Exception e) {
 
     }
   }
 
-  public static void initLaunchProperties(String launchPropertiesFile, boolean force,
-                                          boolean relativePath) {
-    String path = LaunchProperties.directoryOfLaunchProperties(launchPropertiesFile);
-    String pathToSet;
-    if (relativePath) {
-      pathToSet = "";
-    } else {
-      pathToSet = path;
-    }
-    if (force || !new File(launchPropertiesFile).exists()) {
-      System.out.println("creating " + launchPropertiesFile);
-      new File(path + "projects/").mkdirs();
-      new File(path + "example/").mkdirs();
-      Files.writeList(new String[] {"LAST_PROJECT_OPENED=example.properties",
-                                    "PROJECTS_DIR=" + pathToSet + "projects/"},
-                      launchPropertiesFile);
-      if (!new File(path + "projects/example.properties").exists()) {
-        Files.writeList(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/",
-                                      "SOURCE_DIRECTORY=sourceFiles/"},
-                        path + "projects/example.properties");
-      }
-    }
-    String bat = path + "Launch.bat";
-    String sh = path + "Launch.sh";
-    String command = path + "Launch.command";
-
-    if (!Files.exists(bat)) {
-      Files.write(getLaunchBat(), bat);
-    }
-    if (!Files.exists(sh)) {
-      Files.write(getLaunchSH(), sh);
-      Files.chmod(sh);
-    }
-    if (!Files.exists(command)) {
-      Files.write(getLaunchSH(), command);
-      Files.chmod(command);
-    }
-
+  private void initLaunchProperties() {
+    launchProperties = createLaunchProperties(launchPropertiesFile, false, true);
   }
 
-  public Container createContentPane() {
+  private void makeContentPane() {
     // Create the content-pane-to-be.
     JPanel contentPane = new JPanel(new BorderLayout());
     contentPane.setOpaque(true);
 
-    contentPane.add(topIconBar(), BorderLayout.NORTH);
+    contentPane.add(makeTopIconBar(), BorderLayout.NORTH);
 
     // Create a scrolled text area.
     output = new JTextArea(5, 30);
     output.setEditable(false);
+    log.linkTextArea(output);
     scrollPane = new JScrollPane(output);
 
     // Add the text area to the content pane.
@@ -392,52 +380,50 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     contentPane.add(progBar, BorderLayout.SOUTH);
     progBar.setVisible(false);
 
-    return contentPane;
+    setContentPane(contentPane);
   }
 
-  private JMenuBar topMenuBar() {
+  private void makeTopMenuBar() {
     JMenuBar menuBar;
     JMenu menu, submenu;
     JMenuItem menuItem;
-    Hashtable<Character, String> hash;
+    Set<Character> hash;
 
-    launchProperties = new LaunchProperties(launchPropertiesFile);
     menuBar = new JMenuBar();
-    for (int i = 0; i < MENUS.length; i++) {
-      menu = new JMenu(MENUS[i][0]);
-      menu.setMnemonic((int) MENUS[i][0].charAt(0));
+    for (String[] element : MENUS) {
+      menu = new JMenu(element[0]);
+      menu.setMnemonic((int) element[0].charAt(0));
       menuBar.add(menu);
-      hash = new Hashtable<Character, String>();
-      for (int j = 1; j < MENUS[i].length; j++) {
-        if (MENUS[i][j] == "") {
+      hash = new HashSet<Character>();
+      for (int j = 1; j < element.length; j++) {
+        if (element[j] == "") {
           break;
         }
-        if (MENUS[i][j] == "1") {
+        if (element[j] == "1") {
           menu.addSeparator();
-        } else if (MENUS[i][j].equals(NEW_PROJECT)) {
+        } else if (element[j].equals(NEW_PROJECT)) {
           menuItem = new JMenuItem(NEW_PROJECT);
           menuItem.addActionListener(this);
           menuItem.setMnemonic(KeyEvent.VK_N);
           menu.add(menuItem);
-        } else if (MENUS[i][j].equals(IMPORT_PROJECT)) {
+        } else if (element[j].equals(IMPORT_PROJECT)) {
           menuItem = new JMenuItem(IMPORT_PROJECT);
           menuItem.addActionListener(this);
           menuItem.setMnemonic(KeyEvent.VK_I);
           menu.add(menuItem);
-        } else if (MENUS[i][j].equals("Select Project")) {
-          submenu = new JMenu(MENUS[i][j]);
-          projects = Files.list(launchProperties.getDirectory(), ".properties", false);
+        } else if (element[j].equals("Select Project")) {
+          submenu = new JMenu(element[j]);
           for (String project : projects) {
             menuItem = new JMenuItem(ext.rootOf(project, true) + " ");
             menuItem.addActionListener(this);
             submenu.add(menuItem);
           }
           menu.add(submenu);
-        } else if (MENUS[i][j].equals(PRINCIPAL_COMPONENTS)) {
+        } else if (element[j].equals(PRINCIPAL_COMPONENTS)) {
           String[] pcSubMenuOptions =
                                     new String[] {PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI,
                                                   PrincipalComponentsCrossTabs.PRINCIPAL_CROSSTABS_MI};
-          JMenu pcSubMenu = new JMenu(MENUS[i][j]);
+          JMenu pcSubMenu = new JMenu(element[j]);
           for (String pcSubMenuOption : pcSubMenuOptions) {
             JMenuItem pcSubItem = new JMenuItem(pcSubMenuOption);
             pcSubItem.addActionListener(this);
@@ -446,12 +432,15 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
           menu.add(pcSubMenu);
 
         } else {
-          menuItem = new JMenuItem(MENUS[i][j]);
-          for (int k = 0; k < MENUS[i][j].length(); k++) {
-            if (!hash.containsKey(MENUS[i][j].toLowerCase().charAt(k))) {
-              menuItem.setMnemonic((int) MENUS[i][j].toLowerCase().charAt(k));
-              hash.put(MENUS[i][j].toLowerCase().charAt(k), "");
-              k = MENUS[i][j].length();
+          // Set mnemonic for this entry to the first letter in the entry not yet used at this
+          // level.
+          menuItem = new JMenuItem(element[j]);
+          for (int k = 0; k < element[j].length(); k++) {
+            char mnemonic = element[j].toLowerCase().charAt(k);
+            if (!hash.contains(mnemonic)) {
+              menuItem.setMnemonic(mnemonic);
+              hash.add(mnemonic);
+              break;
             }
           }
           menuItem.addActionListener(this);
@@ -461,10 +450,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         }
       }
     }
-    return menuBar;
+    setJMenuBar(menuBar);
   }
 
-  private JPanel topIconBar() {
+  private JPanel makeTopIconBar() {
     JPanel iconBar;
     JButton button;
     String[] icons = null;
@@ -489,28 +478,44 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
       button.setBorder(null);
       iconBar.add(button);
     }
-    addComponentsToPane(iconBar);
+    addProjectSelector(iconBar);
 
     return iconBar;
   }
 
-  public void addComponentsToPane(final Container pane) {
-    launchProperties = new LaunchProperties(launchPropertiesFile);
-    projectsBox = new JComboBox();
-    loadProjects();
+  /**
+   * Create project selector combobox and add it to the given pane
+   */
+  private void addProjectSelector(final Container pane) {
+
+    projectsBox = new JComboBox<String>();
     // In JDK1.4 this prevents action events from being fired when the up/down arrow keys are used
     // on the dropdown menu
     projectsBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
+    projectsBox.setModel(new DefaultComboBoxModel<String>(launchProperties.getListOfProjectNames()));
 
-    setIndexOfCurrentProject(launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
     if (indexOfCurrentProj > 0 && projectsBox.getItemCount() > 0) {
       projectsBox.setSelectedIndex(indexOfCurrentProj);
     }
-    projectsBox.addItemListener(this);
+
+    projectsBox.addItemListener(new ItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent e) {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+          indexOfCurrentProj = projectsBox.getSelectedIndex();
+          loadProject();
+          log.report("\nCurrent project: " + ext.rootOf(projects.get(indexOfCurrentProj)) + "\n");
+
+          launchProperties.setProperty(LaunchProperties.LAST_PROJECT_OPENED,
+                                       projects.get(projectsBox.getSelectedIndex()));
+          launchProperties.save();
+        }
+      }
+    });
     pane.add(projectsBox);
   }
 
-  public void createPopupMenu() {
+  private void makePopupMenu() {
     JMenuItem menuItem;
 
     // Create the popup menu.
@@ -820,32 +825,42 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     String command = ae.getActionCommand();
     Thread thread;
 
-    if (log == null) {
-      log = new Logger();
-    }
     log.report("Action performed: " + command + "\n");
+    //TODO in Java 7 we can make these a switch statement
 
-    if (proj == null) {
-      log.report("Trying again to load project");
-      loadProject();
-    } else if (timestampOfPropertiesFile < new File(proj.getPropertyFilename()).lastModified()) {
-      log.report("Detected a change in the project properties file; reloading from '"
-                 + proj.getPropertyFilename() + "'");
-      proj = null;
-      loadProject();
-    } else {
-    }
-
-    if (proj != null
-        && timestampOfSampleDataFile < new File(proj.SAMPLE_DATA_FILENAME.getValue(false,
-                                                                                   false)).lastModified()) {
-      log.report("Detected a change in the sampleData file; reloading sample data");
-      proj.resetSampleData();
-    }
-
+    // These options do not require an active project
     if (command.equals(EXIT)) {
       System.exit(0);
-    } else if (command.equals(EDIT)) {
+    } else if (command.equals(NEW_PROJECT)) {
+      createProject();
+      return;
+    } else if (command.equals(IMPORT_PROJECT)) {
+      importProject();
+      return;
+    } else if (indexOfCurrentProj < 0 || indexOfCurrentProj >= projects.size()) {
+      // Command requested requires an active project, so ensure
+      // current project is valid
+      log.report("No project currently selected. Attempting to create one now.");
+      int i =
+          JOptionPane.showOptionDialog(null,
+                                       "No projects available. You can create or import one now.",
+                                       "Create project?", JOptionPane.OK_CANCEL_OPTION,
+                                       JOptionPane.INFORMATION_MESSAGE, null,
+                                       new Object[] {NEW_PROJECT, IMPORT_PROJECT}, NEW_PROJECT);
+      if (i == 0) {
+        createProject();
+      } else if (i == 1) {
+        importProject();
+      }
+      //TODO it would be nice if we could wait for create/import to finish before deciding if
+      // we should return or continue execution
+      return;
+    }
+
+    refreshTimestamps();
+
+    // These options require an active project
+    if (command.equals(EDIT)) {
       log.report("Launching project properties editor...");
       final ProjectPropertiesEditor configurator =
                                                  new ProjectPropertiesEditor(proj,
@@ -855,7 +870,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         public void windowClosed(WindowEvent e) {
           Launch.this.requestFocus();
           configurator.dispose();
-        };
+        }
       });
       configurator.setVisible(true);
     } else if (command.equals(REFRESH)) {
@@ -870,39 +885,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
           kAndK.showDialogAndRun();
         }
       });
-    } else if (command.equals(NEW_PROJECT)) {
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          final GenvisisWorkflow kAndK = new GenvisisWorkflow(null, Launch.this);
-          kAndK.showDialogAndRun();
-        }
-      });
-    } else if (command.equals(IMPORT_PROJECT)) {
-
-      ImportProjectGUI importGUI = new ImportProjectGUI();
-      importGUI.setModal(true);
-      importGUI.setVisible(true);
-
-      if (!importGUI.getCancelled()) {
-        if (importGUI.run()) {
-          String newFilename = importGUI.getNewProjectFilename();
-          loadProjects();
-          setIndexOfCurrentProject(newFilename);
-          loadProject();
-        }
-      }
-      importGUI.dispose();
-
     } else if (command.equals(CHECK_FOR_UPDATES)) {
 
       HttpUpdate.update("http://genvisis.org/genvisis_dev.jar", "./", log);
 
     } else if (command.endsWith(" ")) {
-      for (int i = 0; i < projects.length; i++) {
-        if (command.equals(ext.rootOf(projects[i]) + " ")) {
+      //FIXME this should be unified with the drop down combobox selector
+      for (int i = 0; i < projects.size(); i++) {
+        if (command.equals(ext.rootOf(projects.get(i)) + " ")) {
           projectsBox.setSelectedIndex(i);
-          log.report("Selecting: " + projects[i]);
+          log.report("Selecting: " + projects.get(i));
         }
       }
     } else {
@@ -912,12 +904,56 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     }
   }
 
+  /**
+   * Check the timestamps on the project and sample data. If they are out of date, reload as
+   * appropriate.
+   */
+  private void refreshTimestamps() {
+    if (timestampOfPropertiesFile < new File(proj.getPropertyFilename()).lastModified()) {
+      log.report("Detected a change in the project properties file; reloading from '"
+                 + proj.getPropertyFilename() + "'");
+      proj = null;
+      loadProject();
+    }
+
+    if (proj != null
+        && timestampOfSampleDataFile < new File(proj.SAMPLE_DATA_FILENAME.getValue(false,
+                                                                                   false)).lastModified()) {
+      log.report("Detected a change in the sampleData file; reloading sample data");
+      proj.resetSampleData();
+    }
+  }
+
+  private void importProject() {
+    ImportProjectGUI importGUI = new ImportProjectGUI();
+    importGUI.setModal(true);
+    importGUI.setVisible(true);
+
+    if (!importGUI.getCancelled() && importGUI.run()) {
+      String newFilename = importGUI.getNewProjectFilename();
+      loadProjects();
+      setIndexOfCurrentProject(newFilename);
+      loadProject();
+    }
+    importGUI.dispose();
+  }
+
+  private void createProject() {
+    SwingUtilities.invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        final GenvisisWorkflow kAndK = new GenvisisWorkflow(null, Launch.this);
+        kAndK.showDialogAndRun();
+      }
+    });
+  }
+
+  //FIXME factor out to subclass to reduce clutter
   @Override
   public void windowOpened(WindowEvent we) {}
 
   @Override
-  public void windowClosing(WindowEvent we) {
-  }
+  public void windowClosing(WindowEvent we) {}
 
   @Override
   public void windowClosed(WindowEvent we) {}
@@ -934,16 +970,79 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
   @Override
   public void windowDeactivated(WindowEvent we) {}
 
-  @Override
-  public void itemStateChanged(ItemEvent e) {
-    if (e.getStateChange() == ItemEvent.SELECTED) {
-      indexOfCurrentProj = projectsBox.getSelectedIndex();
-      loadProject();
-      log.report("\nCurrent project: " + ext.rootOf(projects[indexOfCurrentProj]) + "\n");
 
-      launchProperties.setProperty(LaunchProperties.LAST_PROJECT_OPENED,
-                                   projects[projectsBox.getSelectedIndex()]);
-      launchProperties.save();
+  /**
+   * Ensures a minimum launch properties file is available, reading an existing file and creating a
+   * new properties file if needed/requested.
+   *
+   * @param launchPropertiesFile Path to the properties file, e.g. "launch.properties"
+   * @param force If true, any existing properties file will be disregarded and potentially
+   *        overwritten
+   * @param relativePath If true, relative paths will be written instead of fully qualified
+   */
+  public static LaunchProperties createLaunchProperties(String launchPropertiesFile, boolean force,
+                                                        boolean relativePath) {
+    Logger log = new Logger();
+    LaunchProperties launchProperties;
+    String path = relativePath ? ""
+                               : LaunchProperties.directoryOfLaunchProperties(launchPropertiesFile);
+
+    String projPath;
+
+    if (force || !new File(launchPropertiesFile).exists()) {
+      log.reportTime("No launch properties found. Creating default: " + launchPropertiesFile);
+      projPath = path + "projects" + File.separatorChar;
+      // Create a default launch.properties
+      // Set the "example" project as the default opened project
+      Files.writeList(new String[] {"LAST_PROJECT_OPENED=example.properties",
+                                    "PROJECTS_DIR=" + projPath},
+                      launchPropertiesFile);
+    }
+    launchProperties = new LaunchProperties(launchPropertiesFile);
+
+    createExampleProject(launchProperties, path);
+
+    String bat = path + "Launch.bat";
+    String sh = path + "Launch.sh";
+    String command = path + "Launch.command";
+
+    if (!Files.exists(bat)) {
+      Files.write(getLaunchBat(), bat);
+    }
+    if (!Files.exists(sh)) {
+      Files.write(getLaunchSH(), sh);
+      Files.chmod(sh);
+    }
+    if (!Files.exists(command)) {
+      Files.write(getLaunchSH(), command);
+      Files.chmod(command);
+    }
+
+    return launchProperties;
+  }
+
+  /**
+   * Creates the example project if it doesn't already exist
+   *
+   * @param properties launch properties file to use to determine project location
+   * @param path Base directory for the project data
+   */
+  private static void createExampleProject(LaunchProperties properties, String path) {
+    Logger log = new Logger();
+    String examplePath = path + "example" + File.separatorChar;
+    String exampleProperties = properties.getDirectory() + "example.properties";
+
+    File f = new File(examplePath);
+    if (!f.exists()) {
+      f.mkdirs();
+      log.reportTime("Creating example project: " + examplePath);
+    }
+
+    if (!new File(exampleProperties).exists()) {
+      log.reportTime("Creating example project properties: " + exampleProperties);
+      Files.writeList(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/",
+                                    "SOURCE_DIRECTORY=sourceFiles/"},
+                      exampleProperties);
     }
   }
 
@@ -1001,7 +1100,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
   /**
    * Helper method to execute alternate main classes. Can prepend packages, to handle moved classes.
-   * 
+   *
    * @return true if a main class was executed.
    */
   private static boolean runMainClass(String[] args) {
@@ -1040,7 +1139,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
           if (exc instanceof RuntimeException) {
             throw new RuntimeException(exc);
           }
-          System.err.println(exc.getMessage());
+          exc.printStackTrace();
         }
         return true;
       }

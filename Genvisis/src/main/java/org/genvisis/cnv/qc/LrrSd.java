@@ -25,6 +25,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Parallelizable;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
@@ -514,17 +515,13 @@ public class LrrSd extends Parallelizable {
       log.report("Will be reporting sample qc to " + proj.SAMPLE_QC_FILENAME.getValue());
       org.genvisis.cnv.qc.LrrSd.init(proj, null, markersForABCallRate, markersForEverythingElse,
                                      numThreads, null, gcMetrics);
-      if (Thread.currentThread().isInterrupted()) {
-        throw new RuntimeException(new InterruptedException());
-      }
+      PSF.checkInterrupted();
     }
 
     count = 0;
     numPassing = 0;
     try {
-      if (Thread.currentThread().isInterrupted()) {
-        throw new RuntimeException(new InterruptedException());
-      }
+      PSF.checkInterrupted();
       BufferedReader reader =
                             Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true, false);
       PrintWriter writerUse = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()

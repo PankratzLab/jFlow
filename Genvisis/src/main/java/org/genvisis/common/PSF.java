@@ -6,6 +6,20 @@ package org.genvisis.common;
  *
  */
 public class PSF {
+
+  public static final void checkInterrupted(Runnable runIfInterrupt) {
+    if (Thread.currentThread().isInterrupted()) {
+      runIfInterrupt.run();
+      throw new RuntimeException(new InterruptedException());
+    }
+  }
+  
+  public static final void checkInterrupted() {
+    if (Thread.currentThread().isInterrupted()) {
+      throw new RuntimeException(new InterruptedException());
+    }
+  }
+
   /**
    * related to java commands (-Xmx, -cp etc)
    *

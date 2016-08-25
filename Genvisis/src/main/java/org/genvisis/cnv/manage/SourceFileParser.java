@@ -31,6 +31,7 @@ import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
 import org.genvisis.common.WorkerTrain;
@@ -120,9 +121,8 @@ public class SourceFileParser implements Runnable {
     boolean headersOutput = false;
     try {
       for (int i = 0; i < files.length; i++) {
-        if (Thread.currentThread().isInterrupted()) {
-          throw new RuntimeException(new InterruptedException());
-        }
+
+        PSF.checkInterrupted();
         if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true)
                      + SourceFileParser.CANCEL_OPTION_FILE).exists()) {
           return;
@@ -1017,9 +1017,8 @@ public class SourceFileParser implements Runnable {
                + " files in: " + proj.SOURCE_DIRECTORY.getValue(false, true));
     files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true),
                        proj.SOURCE_FILENAME_EXTENSION.getValue(), false);
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
 
     // log.report("\t\tFound "+files.length+" file"+(files.length==1?"":"s")+" with a
     // "+proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)+" extension");
@@ -1052,9 +1051,7 @@ public class SourceFileParser implements Runnable {
         log.reportTimeWarning("Affymetrix confidence scores will be imported as (1-conf)");
         break;
       case AFFY_GW6_CN:
-        if (Thread.currentThread().isInterrupted()) {
-          throw new RuntimeException(new InterruptedException());
-        }
+        PSF.checkInterrupted();
         log.reportTimeWarning("Affymetrix confidence scores will be imported as (1-conf)");
         log.reportTimeInfo("Initializing parser for array type " + array);
         affyProcess =
@@ -1082,9 +1079,7 @@ public class SourceFileParser implements Runnable {
 
     proj.getSourceFileHeaders(true);
 
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+    PSF.checkInterrupted();
     try {
       reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true) + files[0]);
       log.report(ext.getTime() + "]\tFound appropriate reader for: "
@@ -1109,9 +1104,7 @@ public class SourceFileParser implements Runnable {
           foundIDon = count;
         }
 
-        if (Thread.currentThread().isInterrupted()) {
-          throw new RuntimeException(new InterruptedException());
-        }
+        PSF.checkInterrupted();
       } while (reader.ready() && count < 1000 && foundIDon != foundSNPon);
 
       // If we reached the end of the file, it means that we didn't find the header we are looking
@@ -1184,9 +1177,8 @@ public class SourceFileParser implements Runnable {
                                         && ext.indexOfStr(idHeader, line) == -1)));
       }
 
-      if (Thread.currentThread().isInterrupted()) {
-        throw new RuntimeException(new InterruptedException());
-      }
+
+      PSF.checkInterrupted();
       log.report(ext.getTime() + "]\tSearching for data fields...");
       // check immediately to make sure these fields are valid
       indices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, false, false); // dataIndices
@@ -1239,18 +1231,16 @@ public class SourceFileParser implements Runnable {
                                : line[sampIndex];
       }
 
-      if (Thread.currentThread().isInterrupted()) {
-        throw new RuntimeException(new InterruptedException());
-      }
+
+      PSF.checkInterrupted();
       code = checkForExistingMDRAF(proj);
       if (code == JOptionPane.NO_OPTION) {
         return code;
       }
       code = checkForExistingSAMPRAF(proj);
 
-      if (Thread.currentThread().isInterrupted()) {
-        throw new RuntimeException(new InterruptedException());
-      }
+
+      PSF.checkInterrupted();
       // log.report(ext.getTime() + "]\tCleaning up before continuing...");
 
       // this deletes any files that start with "outliers" and end with ".ser" that aren't
@@ -1266,9 +1256,7 @@ public class SourceFileParser implements Runnable {
                                                                                   // re-balance
       log.report(ext.getTime() + "]\tFound " + lines + " rows of data in the first file");
       while (reader.ready()) {
-        if (Thread.currentThread().isInterrupted()) {
-          throw new RuntimeException(new InterruptedException());
-        }
+        PSF.checkInterrupted();
         line = reader.readLine().trim().split(delimiter);
         trav = line[snpIndex];
         if (trav.equals("") || trav.equals("0")) {
@@ -1336,18 +1324,16 @@ public class SourceFileParser implements Runnable {
       return 0;
     }
 
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
     markerNames = Array.toStringArray(markerNameHash);
     keys = Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
                                 proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
     if (keys == null) {
       return 0;// checkForSNP_Map(proj, log);
     }
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
     keysKeys = Sort.quicksort(keys); // very important
     fingerprint = proj.getMarkerSet().getFingerprint();
     log.report("There are " + markerNames.length + " markers being processed (fingerprint: "
@@ -1358,9 +1344,8 @@ public class SourceFileParser implements Runnable {
     }
     lookup = SourceFileParser.getABLookup(abLookupRequired, markerNames, proj);
 
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
 
     if (affyProcess != null) {
       affyProcess.combineAll(numThreads);
@@ -1389,9 +1374,8 @@ public class SourceFileParser implements Runnable {
 
     complete = false;
     while (!complete) {
-      if (Thread.currentThread().isInterrupted()) {
-        throw new RuntimeException(new InterruptedException());
-      }
+
+      PSF.checkInterrupted();
       complete = true;
       for (int i = 0; i < numThreads; i++) {
         if (threads[i].isAlive()) {
@@ -1407,9 +1391,8 @@ public class SourceFileParser implements Runnable {
     }
 
     log.report(ext.getTime() + "]\tWriting sample list...");
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
     SampleList.generateSampleList(proj)
               .writeToTextFile(proj.PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt");
     if (!proj.LONG_FORMAT.getValue()) {
@@ -1426,9 +1409,8 @@ public class SourceFileParser implements Runnable {
 
     v = new Vector<String>();
 
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
     for (int i = 0; i < numThreads; i++) {
       if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + i + ".ser").exists()) {
         allOutliers.putAll((Hashtable<String, Float>) SerializedFiles.readSerial(proj.SAMPLE_DIRECTORY.getValue(true,
@@ -1451,9 +1433,8 @@ public class SourceFileParser implements Runnable {
       }
     }
 
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
     // changed 6-26-15 to always write an outliers.ser, even if no outliers exist
     SerializedFiles.writeSerial(allOutliers,
                                 proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
@@ -1974,9 +1955,8 @@ public class SourceFileParser implements Runnable {
     markerNames = markerSet.getMarkerNames();
     fingerprint = proj.getMarkerSet().getFingerprint();
 
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
     abLookup = SourceFileParser.getABLookup(abLookupRequired, markerNames, proj);
 
     markerIndexMap = new Hashtable<String, Integer>();
@@ -2037,9 +2017,8 @@ public class SourceFileParser implements Runnable {
       // parseLongFormatFile(proj, files[i], idHeader, fixes, delimiter, markerNames, fingerprint,
       // markerIndexMap, abLookup, renamedIDsHash, headers, log, countHash, i, files.length);
       // }
-      if (Thread.currentThread().isInterrupted()) {
-        throw new RuntimeException(new InterruptedException());
-      }
+
+      PSF.checkInterrupted();
 
       if (allOutliers.size() > 0) {
         if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser").exists()) {// why
@@ -2063,17 +2042,15 @@ public class SourceFileParser implements Runnable {
       log.reportException(e);
     }
 
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
 
     log.report(ext.getTime() + "\t" + "Parsed " + count + " sample(s)");
     SampleList.generateSampleList(proj)
               .writeToTextFile(proj.PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt");
 
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
     try {
       writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
                                               + "ListOfMarkers.txt"));
@@ -2092,9 +2069,8 @@ public class SourceFileParser implements Runnable {
       log.reportError("Error writing to " + "ListOfMarkers.txt");
       log.reportException(e);
     }
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
 
     new File(proj.SAMPLE_DIRECTORY.getValue(true, true)
              + SourceFileParser.OVERWRITE_OPTION_FILE).delete();
@@ -2324,17 +2300,15 @@ public class SourceFileParser implements Runnable {
         headerData = SourceFileHeaderData.parseHeader(file, log);
         headers.put(file, headerData);
       }
-      if (Thread.currentThread().isInterrupted()) {
-        throw new RuntimeException(new InterruptedException());
-      }
+
+      PSF.checkInterrupted();
 
       for (int k = 0; k < headerData.columnHeaderLineIndex + 1; k++) {
         // iterate
         reader.readLine();
       }
-      if (Thread.currentThread().isInterrupted()) {
-        throw new RuntimeException(new InterruptedException());
-      }
+
+      PSF.checkInterrupted();
 
       // if (headerData.colX == -1 || headerData.colY == -1) {
       // log.reportError("Error - File format not consistent! At the very least the files need to
@@ -2364,9 +2338,8 @@ public class SourceFileParser implements Runnable {
       numCols = -1;
       eofFound = false;
       while (!eofFound) {
-        if (Thread.currentThread().isInterrupted()) {
-          throw new RuntimeException(new InterruptedException());
-        }
+
+        PSF.checkInterrupted();
         if ((tempLine = reader.readLine()) != null) {
 
           line = tempLine.split(delimiter);
@@ -2426,9 +2399,8 @@ public class SourceFileParser implements Runnable {
             if (filename == null) {
               return result;
             }
-            if (Thread.currentThread().isInterrupted()) {
-              throw new RuntimeException(new InterruptedException());
-            }
+
+            PSF.checkInterrupted();
 
             samp = new Sample(sampleName, fingerprint, data, genotypes, false);
             samp.saveToRandomAccessFile(filename, fileOutliers, sampleName);

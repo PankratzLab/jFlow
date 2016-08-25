@@ -35,16 +35,19 @@ public class LaunchProperties extends Properties {
     }
   }
 
+  /**
+   * @return Path to directory of project .properties files
+   */
   public String getDirectory() {
     String dir;
 
     dir = (String) get(PROJECTS_DIR);
     if (dir == null || !Files.exists(dir)) {
-      new Logger().reportTimeWarning("Did not detect directory with projects (or was missing property). Defaulting to projects/");
-      // System.err.println("Error - '" + filename + "' did not contain a property called \"" +
-      // PROJECTS_DIR + "\"");
+      new Logger().reportTimeWarning("Did not detect directory with projects (or was missing property). Defaulting to: projects/");
       dir = "projects/";
       new File(dir).mkdirs();
+      setProperty(PROJECTS_DIR, dir);
+      save();
     }
 
     dir = ext.verifyDirFormat(dir);
@@ -78,8 +81,11 @@ public class LaunchProperties extends Properties {
     }
   }
 
+  /**
+   * @return A list of the short name (no directory or {@code .properties}) for each known project.
+   */
   public String[] getListOfProjectNames() {
-    String[] projects = Files.list(getDirectory(), ".properties", false);
+    String[] projects = getListOfProjectProperties();
     String[] projectNames = new String[projects.length];
     for (int i = 0; i < projectNames.length; i++) {
       projectNames[i] = ext.rootOf(projects[i], true);
@@ -87,4 +93,10 @@ public class LaunchProperties extends Properties {
     return projectNames;
   }
 
+  /**
+   * @return An array of all known {@code *.properties} files.
+   */
+  public String[] getListOfProjectProperties() {
+    return Files.list(getDirectory(), ".properties", false);
+  }
 }

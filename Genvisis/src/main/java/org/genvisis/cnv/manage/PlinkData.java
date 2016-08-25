@@ -34,6 +34,7 @@ import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
 
@@ -990,9 +991,8 @@ public class PlinkData {
                                                                     // pedigree order, not project
                                                                     // order
     proj.getProgressMonitor().endTask(PROG_KEY);
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
 
     if (targetSamples == null) {
       log.reportTimeError("FAM file wasn't written properly.");
@@ -1010,9 +1010,8 @@ public class PlinkData {
       // }
       proj.getProgressMonitor().endTask(PROG_KEY);
     }
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
 
     targetMarkers = proj.getTargetMarkers(targetMarkersFileName);
     proj.getProgressMonitor().beginDeterminateTask(PROG_KEY, "Loading marker data",
@@ -1025,9 +1024,8 @@ public class PlinkData {
                               chrsOfTargetMarkers, posOfTargetMarkers, log);
     proj.getProgressMonitor().endTask(PROG_KEY);
 
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+
+    PSF.checkInterrupted();
     if (gcThreshold < 0) {
       gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
     }
@@ -1252,7 +1250,7 @@ public class PlinkData {
                                                       float gcThreshold,
                                                       String bedDirAndFilenameRoot) {
     // String[] markList;
-    RandomAccessFile out;
+    final RandomAccessFile out;
     byte[] outStream;
     byte[] genotypes;
     // byte[] genotypesOfTargetMarkers;
@@ -1293,10 +1291,14 @@ public class PlinkData {
       out.write(outStream);
 
       for (String targetSample : targetSamples) {
-        if (Thread.currentThread().isInterrupted()) {
-          out.close();
-          throw new RuntimeException(new InterruptedException());
-        }
+        PSF.checkInterrupted(new Runnable() {
+          @Override
+          public void run() {
+            try {
+              out.close();
+            } catch (IOException e) {}
+          }
+        });
         fsamp = proj.getFullSampleFromRandomAccessFile(targetSample);
 
         if (fsamp == null) {
@@ -1531,7 +1533,7 @@ public class PlinkData {
                                                           float gcThreshold,
                                                           String plinkDirAndFilenameRoot,
                                                           Logger log) {
-    RandomAccessFile out;
+    final RandomAccessFile out;
     byte[] outStream;
     byte[] genotypes;
     byte[] genotypesOfTargetSamples;
@@ -1555,7 +1557,7 @@ public class PlinkData {
     HashMap<String, Integer> markerIndexHash;
     int targetIndex;
     ArrayList<String> markerOutputOrder;
-    PrintWriter bimWriter;
+    final PrintWriter bimWriter;
 
     startTime = new Date().getTime();
 
@@ -1601,9 +1603,7 @@ public class PlinkData {
         markerIndexHash.put(targetMarkers[i], i);
       }
     }
-    if (Thread.currentThread().isInterrupted()) {
-      throw new RuntimeException(new InterruptedException());
-    }
+    PSF.checkInterrupted();
 
     markerOutputOrder = new ArrayList<String>();
     sampleFingerPrint = proj.getSampleList().getFingerprint();
@@ -1640,11 +1640,15 @@ public class PlinkData {
       subTime = new Date().getTime();
 
       for (String filename : filenames) {
-        if (Thread.currentThread().isInterrupted()) {
-          bimWriter.close();
-          out.close();
-          throw new RuntimeException(new InterruptedException());
-        }
+        PSF.checkInterrupted(new Runnable() {
+          @Override
+          public void run() {
+            bimWriter.close();
+            try {
+              out.close();
+            } catch (IOException e) {}
+          }
+        });
         proj.getProgressMonitor().changeTaskLabelWithUpdate(PROG_KEY,
                                                             "Exporting data to .bed file from marker file ... "
                                                                       + filename);
