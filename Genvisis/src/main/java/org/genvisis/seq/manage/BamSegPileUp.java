@@ -187,6 +187,11 @@ public class BamSegPileUp implements Iterator<BamPile> {
           bamPiles.add(bamPile);
         }
         BamPile[] bamPilesFinal = bamPiles.toArray(new BamPile[bamPiles.size()]);
+        int numMiss = 0;
+        for (int i = 0; i < bamPilesFinal.length; i++) {
+          numMiss += bamPilesFinal[i].getNumBasesWithMismatch();
+        }
+        log.reportTimeInfo(bamFile + " had " + numMiss + " mismatched bases");
         BamPile.writeSerial(bamPilesFinal, ser);
       }
       return new BamPileResult(bamFile, ser);
