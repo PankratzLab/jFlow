@@ -1743,7 +1743,7 @@ public class GenvisisWorkflow {
                                                                       regressionDistance,
                                                                       proj.GENOME_BUILD_VERSION.getValue(),
                                                                       pvalOpt, betaFile, plot,
-                                                                      proj.getLog());
+                                                                      false, proj.getLog());
                                        } else {
                                          setFailed();
                                        }
