@@ -144,8 +144,8 @@ public class Picard {
                                            double memoryRatio, Logger altLog) {
     boolean progress = true;
     PicardMergeDedupe picardMergeDedupe = new PicardMergeDedupe(fullPathsToBamFiles,
-                                                                fullPathsToBamFileIndices, baseID,
-                                                                outputDir,
+                                                                fullPathsToBamFileIndices,
+                                                                outputDir, baseID,
                                                                 altLog == null ? log : altLog);
     picardMergeDedupe.parseInput();
     if (picardMergeDedupe.shouldMerge()) {
