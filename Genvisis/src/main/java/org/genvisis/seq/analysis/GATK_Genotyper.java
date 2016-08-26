@@ -13,6 +13,7 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.ANNOVAR.AnnovarResults;
+import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
 import org.genvisis.seq.analysis.SNPEFF.SnpEffResult;
 import org.genvisis.seq.manage.VCFOps;
 
@@ -153,9 +154,8 @@ public class GATK_Genotyper {
 	public void batch(JointGATKGenotyper jointGATKGenotyper, String rootOutputDir, MergeVCF mergeVCF,
 										ANNOVCF annoVCF, boolean annotate, int memoryInMB, int wallTimeInHours,
 										String baseName) {
-		// TODO, change classpath
 		String command = Array.toStr(PSF.Load.getAllModules(), "\n");
-		command += "\njava -Xmx" + memoryInMB + "m -jar parkGATK.jar seq.analysis.GATK_Genotyper ";
+    command += "\njava -Xmx" + memoryInMB + "m -jar ~/genvisisGATK.jar " + this.getClass().getName();
 		command += GATK_LanePrep.ROOT_INPUT_COMMAND + jointGATKGenotyper.getRootInputDir() + SPACE;
 		command += GATK_LanePrep.ROOT_OUTPUT_COMMAND + rootOutputDir + SPACE;
 		command += GATK_LanePrep.REFERENCE_GENOME_COMMAND + gatk.getReferenceGenomeFasta() + SPACE;
@@ -279,14 +279,22 @@ public class GATK_Genotyper {
 		public static final String TRANCHES_EXT = ".tranches";
 		public static final String RScript_EXT = ".R";
 
-		private final String rootInputDir, rootOutputDir;
+    private final String rootInputDir;
+    private final String rootOutputDir;
 		private String output;
 		private String rawVCF;
-		private String fileOfGVCFs, recalSNP_VCF_File, recalSNP_Indel_VCF_File;
-		private String recalSNPFile, tranchesSNPFile, rscriptSNPFile;
-		private String recalINDELFile, tranchesINDELFile, rscriptINDELFile;
+    private String fileOfGVCFs;
+    private String recalSNP_VCF_File;
+    private String recalSNP_Indel_VCF_File;
+    private String recalSNPFile;
+    private String tranchesSNPFile;
+    private String rscriptSNPFile;
+    private String recalINDELFile;
+    private String tranchesINDELFile;
+    private String rscriptINDELFile;
 		private String restrictionContig;
 		private String[] inputGVCFs;
+    private final SEQ_TARGET seqTarget;
 		private boolean fail;
 		private final Logger log;
 
@@ -298,12 +306,13 @@ public class GATK_Genotyper {
 		 * @param log
 		 */
 		public JointGATKGenotyper(String rootInputDir, String rootOutputDir, String output,
-															String restrictionContig, Logger log) {
+															String restrictionContig, SEQ_TARGET seqTarget, Logger log) {
 			super();
 			this.rootInputDir = rootInputDir;
 			this.rootOutputDir = rootOutputDir;
 			this.output = output;
 			this.restrictionContig = restrictionContig;
+      		this.seqTarget = seqTarget;
 			fileOfGVCFs = null;
 			this.log = log;
 			fail = false;
@@ -387,6 +396,10 @@ public class GATK_Genotyper {
 			return inputGVCFs;
 		}
 
+    public SEQ_TARGET getSeqTarget() {
+      return seqTarget;
+    }
+
 		public Logger getLog() {
 			return log;
 		}
@@ -451,7 +464,7 @@ public class GATK_Genotyper {
 																		String thousandGTraining, String dbSnpTraining,
 																		String millsIndelTraining, String snpEffLocation,
 																		String snpSiftLocation, String annovarLocation,
-																		String annoBuild, String regionsFile, MergeVCF mergeVCF,
+																		String annoBuild, String regionsFile, SEQ_TARGET seqTarget, MergeVCF mergeVCF,
 																		ANNOVCF annoVCF, String restrictionContig, boolean verbose,
 																		boolean overwriteExisting, boolean batch, boolean annotate,
 																		boolean skipRecalibration, int numThreads, int memoryInMB,
@@ -470,7 +483,7 @@ public class GATK_Genotyper {
 		GATK_Genotyper genotyper = new GATK_Genotyper(gatk, snpeff, snpsift, annovar, 0, numThreads,
 																									verbose, log);
 		JointGATKGenotyper jGatkGenotyper = new JointGATKGenotyper(	rootInputDir, rootOutputDir, output,
-																																restrictionContig, log);
+																																restrictionContig, seqTarget, log);
 		jGatkGenotyper.init(fileOfGVCFs);
 		new File(rootOutputDir).mkdirs();
 		if (batch) {
@@ -639,6 +652,7 @@ public class GATK_Genotyper {
 	public static final String MILLS = "mills=";
 	public static final String ANNOTATE_VCF = "annotateThisVCFOnly=";
 	public static final String REGIONS_FILE = "regionsFile=";
+  public static final String TARGETED_REGION = "seqTarget=";
 	public static final String MERGE_WITH = "mergeWith=";
 	public static final String EXTRA_VCF_ANNOTATIONS = "extraVCFAnno=";
 
@@ -672,6 +686,7 @@ public class GATK_Genotyper {
 		String regionsFile = null;
 		String logFile = "GATK_GENOTYPE.log";
 		boolean skipRecalibration = false;
+    SEQ_TARGET seqTarget = null;
 		MergeVCF mergeVCF = null;
 		ANNOVCF annoVCF = null;
 		String usage = "\n" + "seq.GATK_Genotyper requires 2 argument\n";
@@ -694,7 +709,7 @@ public class GATK_Genotyper {
 
 		usage += "   (8) filename for a log (i.e. "+ GATK_LanePrep.LOG_FILE_COMMAND + logFile
 							+ " (default))\n" + "";
-		usage += "   (9) over-write exsiting files (i.e. "+ GATK_LanePrep.OVERWRITE_EXISTING_COMMAND
+    usage += "   (9) over-write exsisting files (i.e. " + GATK_LanePrep.OVERWRITE_EXISTING_COMMAND
 							+ " (not the default))\n" + "";
 		usage += "   (10) set up a batch analysis for the root input directory for a log (i.e. "
 							+ GATK_LanePrep.BATCH_COMMAND + " (not the default))\n" + "";
@@ -728,10 +743,13 @@ public class GATK_Genotyper {
 		usage += "   (24) annotate this vcf only (skipping all previous steps) (i.e. "+ ANNOTATE_VCF
 							+ " ( no default))\n" + "";
 		usage +=
-					"   (25) merge in these vcfs prior to annotating( like ARIC) (ex. MERGE_WITH=ARIC:aric1.vcf,aric2.vcf) ( (i.e. "
+        "   (25) Region targeted by sequencing (" + Array.toStr(SEQ_TARGET.values(), ",") + ") ( (i.e. "
+           + TARGETED_REGION + " ( no default))\n" + "";
+    usage +=
+          "   (26) merge in these vcfs prior to annotating( like ARIC) (ex. MERGE_WITH=ARIC:aric1.vcf,aric2.vcf) ( (i.e. "
 							+ MERGE_WITH + " ( no default))\n" + "";
 		usage +=
-					"   (26) use another vcf to add more annotations (ex. EXTRA_VCF_ANNOTATIONS=charge.vcf:charge.maf1,charge.maf2) ( (i.e. "
+          "   (27) use another vcf to add more annotations (ex. EXTRA_VCF_ANNOTATIONS=charge.vcf:charge.maf1,charge.maf2) ( (i.e. "
 							+ EXTRA_VCF_ANNOTATIONS + " ( no default))\n" + "";
 
 		usage += "   (27) restrict genotyping to a specific contig ( (i.e. "+ "chrM"
@@ -825,6 +843,13 @@ public class GATK_Genotyper {
 			} else if (arg.startsWith(REGIONS_FILE)) {
 				regionsFile = ext.parseStringArg(arg, "");
 				numArgs--;
+      } else if (arg.startsWith(TARGETED_REGION)) {
+        try {
+        seqTarget = SEQ_TARGET.valueOf(arg);
+        numArgs--;
+        } catch (IllegalArgumentException iae) {
+          System.err.println(TARGETED_REGION + " must be one of: " + Array.toStr(SEQ_TARGET.values()));
+        }
 			} else if (arg.startsWith(MERGE_WITH)) {
 				mergeVCF = MergeVCF.fromArg(arg);
 				numArgs--;
@@ -838,6 +863,7 @@ public class GATK_Genotyper {
 			}
 		}
 		if (numArgs != 0) {
+      System.err.println(usage);
 			System.exit(1);
 		}
 		if (rootOutputDir != null) {
@@ -857,7 +883,7 @@ public class GATK_Genotyper {
 			jointGenotype(rootInputDir, rootOutputDir, output, gATKLocation, referenceGenomeFasta,
 										fileOfGVCFs, hapMapTraining, omniTraining, thousandGTraining, dbSnpTraining,
 										millsIndelTraining, snpEffLocation, snpSiftLocation, annovarLocation, annoBuild,
-										regionsFile, mergeVCF, annoVCF, restrictionContig, verbose, overwriteExisting,
+										regionsFile, seqTarget, mergeVCF, annoVCF, restrictionContig, verbose, overwriteExisting,
 										batch, annotate, skipRecalibration, numThreads, memoryInMB, wallTimeInHours,
 										log);
 		}

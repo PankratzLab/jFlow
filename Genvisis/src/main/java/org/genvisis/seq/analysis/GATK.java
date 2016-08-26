@@ -60,6 +60,13 @@ public class GATK {
 	public static final String COSMIC = "--cosmic";
 	public static final String PON = "-PON";
 
+  public static final String GENOTYPING_MODE = "--genotyping_mode";
+  public static final String DISCOVERY = "DISCOVERY";
+  public static final String STAND_EMIT_CONF = "-stand_emit_conf";
+  public static final String DEFAULT_STAND_EMIT_CONF = "10";
+  public static final String STAND_CALL_CONF = "-stand_call_conf";
+  public static final String DEFAULT_STAND_CALL_CONF = "30";
+
 	public static final String BEFORE = "-before";
 	public static final String AFTER = "-after";
 	public static final String PLOTS = "-plots";
@@ -91,11 +98,13 @@ public class GATK {
 	public static final String AN = "-an";
 	// from https://www.broadinstitute.org/gatk/guide/article?id=1259
 	// date = 12-17-14
-	public static final String[] ANS_SNP = {"QD", "MQ", "MQRankSum", "ReadPosRankSum", "FS", "SOR",
-																					"InbreedingCoeff"};// NO DP for
+  public static final String[] ANS_SNP_EXOME = {"QD", "FS", "SOR", "MQ", "MQRankSum",
+                                                "ReadPosRankSum", "InbreedingCoeff"}; // NO DP for
 																															// Exomes
-	public static final String[] ANS_INDEL = {"QD", "FS", "SOR", "ReadPosRankSum", "MQRankSum",
+  public static final String[] ANS_SNP_GENOME = Array.addStrToArray("DP", ANS_SNP_EXOME, 0);
+  public static final String[] ANS_INDEL_EXOME = {"QD", "FS", "SOR", "MQRankSum", "ReadPosRankSum",
 																						"InbreedingCoeff"};// NO DP for Exomes
+  public static final String[] ANS_INDEL_GENOME = Array.addStrToArray("DP", ANS_INDEL_EXOME, 0);
 
 	public static final String MODE = "-mode";
 	public static final String SNP = "SNP";
@@ -133,8 +142,10 @@ public class GATK {
 	public static final String INDEL_RESOURCE_FULL_MILLS = "-resource:mills,known=false,training=true,truth=true,prior=12.0";
 	public static final String INDEL_RESOURCE_FULL_DBSNP = "-resource:dbsnp,known=true,training=false,truth=false,prior=2.0";
 
-	private final String GATKLocation, referenceGenomeFasta;
-	private String[] knownSitesSnpFile, knownSitesIndelFile;
+  private final String gatkLocation;
+  private final String referenceGenomeFasta;
+  private String[] knownSitesSnpFile;
+  private String[] knownSitesIndelFile;
 	private String dbSnpKnownSites;
 	private String cosmicKnownSites;
 	private final String javaLocation;
@@ -169,7 +180,7 @@ public class GATK {
 
 	public GATK(String GATKLocation, String referenceGenomeFasta, String javaLocation,
 							boolean verbose, boolean overWriteExisting, Logger log) {
-		this.GATKLocation = GATKLocation;
+    this.gatkLocation = GATKLocation;
 		this.referenceGenomeFasta = referenceGenomeFasta;
 		this.javaLocation = javaLocation == null ? DEFAULT_JAVA : javaLocation;
 		this.verbose = verbose;
@@ -219,7 +230,7 @@ public class GATK {
 	}
 
 	public String getGATKLocation() {
-		return GATKLocation;
+    return gatkLocation;
 	}
 
 	public String[] getKnownSitesSnpFile() {
@@ -284,7 +295,7 @@ public class GATK {
 
   public BaseRecalibration recalibrateABam(String baseId, String dedup_reads_bam, Logger altLog) {
     BaseRecalibration baseRecalibration = new BaseRecalibration(baseId, dedup_reads_bam,
-																																(altLog == null ? log : altLog));
+                                                                altLog == null ? log : altLog);
 		baseRecalibration.parseInput();
     boolean progress = determineBaseCovariation(dedup_reads_bam, baseRecalibration.getBqsr_before(),
 																								baseRecalibration.getLog());
@@ -307,7 +318,7 @@ public class GATK {
 
 	public IndelPrep realignABam(String baseId, String dedup_reads_bam, Logger altLog) {
 		boolean progress = false;
-		IndelPrep indelPrep = new IndelPrep(baseId, dedup_reads_bam, (altLog == null ? log : altLog));
+    IndelPrep indelPrep = new IndelPrep(baseId, dedup_reads_bam, altLog == null ? log : altLog);
 		indelPrep.parseInput();
 		progress = determineTargetIndels(	indelPrep.getDedup_reads_bam(),
 																			indelPrep.getTargetIntervalsList(), indelPrep.getLog());
@@ -356,7 +367,7 @@ public class GATK {
 
 	private boolean verifyGATKLocation() {
 		boolean verified = false;
-		if (Files.exists(GATKLocation)) {
+    if (Files.exists(gatkLocation)) {
 			verified = true;
 		} else {
 			fail = true;
@@ -372,7 +383,7 @@ public class GATK {
 		ArrayList<String> command = new ArrayList<String>();
 		command.add(javaLocation);
 		command.add(JAR);
-		command.add(GATKLocation + GENOME_ANALYSIS_TK);
+    command.add(gatkLocation + GENOME_ANALYSIS_TK);
 		command.add(T);
 		command.add(VARIANT_ANNOTATOR);
 		command.add(R);
@@ -410,7 +421,7 @@ public class GATK {
 										+ Array.toStr(knownSitesIndelFile, "\n"));
 			}
 		}
-		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
+    String[] command = new String[] {javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
 																			REALIGNER_TARGET_CREATOR, R, referenceGenomeFasta, I,
 																			dedup_reads_bam, O, output};
 
@@ -420,23 +431,23 @@ public class GATK {
 		return CmdLine.runCommandWithFileChecks(command, "",
 																						new String[] {referenceGenomeFasta, dedup_reads_bam},
 																						new String[] {output}, verbose, overWriteExistingOutput,
-																						true, (altLog == null ? log : altLog));
+                                            true, altLog == null ? log : altLog);
 	}
 
 	private boolean realignTargetIndels(String dedup_reads_bam, String targetIntervalFile,
 																			String output, Logger altLog) {
-		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
+    String[] command = new String[] {javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
 																			INDEL_REALIGNER, R, referenceGenomeFasta, I, dedup_reads_bam,
 																			TARGET_INTERVALS, targetIntervalFile, O, output};
 		return CmdLine.runCommandWithFileChecks(command, "",
 																						new String[] {referenceGenomeFasta, dedup_reads_bam,
 																													targetIntervalFile},
 																						new String[] {output}, verbose, overWriteExistingOutput,
-																						true, (altLog == null ? log : altLog));
+                                            true, altLog == null ? log : altLog);
 	}
 
   private boolean determineBaseCovariation(String dedup_reads_bam, String output, Logger altLog) {
-		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
+		String[] command = new String[] {	javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
                                      BASE_RECALIBRATOR, R, referenceGenomeFasta, I, dedup_reads_bam,
                                      O, output};
 		if (checkKnowns()) {
@@ -447,7 +458,7 @@ public class GATK {
 			return CmdLine.runCommandWithFileChecks(command, "", neccesaryInputFiles,
 																							new String[] {output}, verbose,
 																							overWriteExistingOutput, true,
-																							(altLog == null ? log : altLog));
+                                              altLog == null ? log : altLog);
 		} else {
 			return false;
 		}
@@ -455,7 +466,7 @@ public class GATK {
 
   private boolean secondPassBaseCovariation(String dedup_reads_bam, String bqsrFile, String output,
                                             Logger altLog) {
-		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
+		String[] command = new String[] {	javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
                                      BASE_RECALIBRATOR, R, referenceGenomeFasta, I, dedup_reads_bam,
                                      O, output, BQSR, bqsrFile};
 		if (checkKnowns()) {
@@ -466,7 +477,7 @@ public class GATK {
 			return CmdLine.runCommandWithFileChecks(command, "", neccesaryInputFiles,
 																							new String[] {output}, verbose,
 																							overWriteExistingOutput, true,
-																							(altLog == null ? log : altLog));
+                                              altLog == null ? log : altLog);
 		} else {
 			return false;
 		}
@@ -475,14 +486,14 @@ public class GATK {
 	private boolean analyzeBaseCovariation(	String before_recal_data, String after_recal_data,
 																					String output, Logger altLog) {
 
-		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
+    String[] command = new String[] {javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
 																			ANALYZE_COVARIATES, R, referenceGenomeFasta, BEFORE,
 																			before_recal_data, AFTER, after_recal_data, PLOTS, output};
 		if (!CmdLine.runCommandWithFileChecks(command, "",
 																					new String[] {referenceGenomeFasta, before_recal_data,
 																												after_recal_data},
 																					new String[] {output}, verbose, overWriteExistingOutput,
-																					true, (altLog == null ? log : altLog))) {
+                                          true, altLog == null ? log : altLog)) {
 			altLog.reportError("Often this command fails due to not finding an R installation, R is needed to analyze the base covariation and is required for this pipeline");
 			altLog.reportError("	 Please add the R and Rscript directory to your environment ${PATH}, or module load R if using a compute cluster");
 			altLog.reportError("     Often the R library ggplot2 is unavailable, please install to generate plots using \"install.packages('ggplot2', dependencies = TRUE)\" on the R command line (you may need gplots, gsalib, and reshape as well)");
@@ -494,14 +505,14 @@ public class GATK {
 
   private boolean applyBaseRecalibration(String dedup_reads_bam, String bqsrFile, String output,
                                          Logger altLog) {
-		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
+		String[] command = new String[] {	javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
                                      PRINT_READS, R, referenceGenomeFasta, I, dedup_reads_bam, BQSR,
                                      bqsrFile, O, output};
 		return CmdLine.runCommandWithFileChecks(command, "",
                                             new String[] {referenceGenomeFasta, dedup_reads_bam,
                                                           bqsrFile},
 																						new String[] {output}, verbose, overWriteExistingOutput,
-																						true, (altLog == null ? log : altLog));
+                                            true, altLog == null ? log : altLog);
 	}
 
 	private boolean singleSampleAllSitesCall(	String bamFile, String output,
@@ -526,17 +537,15 @@ public class GATK {
 			input = Array.concatAll(input, new String[] {dbSnpFile});
 		}
 
-		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
-																			HAPLOTYPE_CALLER, R, referenceGenomeFasta, I, bamFile,
-																			ERC_MODE, GVCF_MODE, VARIANT_INDEX_TYPE, LINEAR,
-																			VARIANT_INDEX_PARAMETER, VARIANT_INDEX_DEFAULT,
-																			dbSnpFile == null ? "" : DB_SNP,
-																			dbSnpFile == null ? "" : dbSnpFile, O, output, NCT,
-																			numWithinSampleThreads + ""};
+    String[] command = new String[] {javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
+                                     HAPLOTYPE_CALLER, R, referenceGenomeFasta, I, bamFile,
+                                     STAND_EMIT_CONF, DEFAULT_STAND_EMIT_CONF, STAND_CALL_CONF,
+                                     DEFAULT_STAND_CALL_CONF, O, output, ERC_MODE, GVCF_MODE, NCT,
+                                     Integer.toString(numWithinSampleThreads)};
 		return CmdLine.runCommandWithFileChecks(command, "", input,
 																						new String[] {output, output + VCF_INDEX}, verbose,
 																						overWriteExistingOutput, true,
-																						(altLog == null ? log : altLog));
+                                            altLog == null ? log : altLog);
 	}
 
 	/**
@@ -554,7 +563,7 @@ public class GATK {
 		ArrayList<String> command = new ArrayList<String>();
 		command.add(javaLocation);
 		command.add(JAR);
-		command.add(GATKLocation + GENOME_ANALYSIS_TK);
+    command.add(gatkLocation + GENOME_ANALYSIS_TK);
 		command.add(T);
 		command.add(COMBINE_VARIANTS);
 		command.add(R);
@@ -594,7 +603,7 @@ public class GATK {
 		ArrayList<String> command = new ArrayList<String>();
 		command.add(javaLocation);
 		command.add(JAR);
-		command.add(GATKLocation + GENOME_ANALYSIS_TK);
+    command.add(gatkLocation + GENOME_ANALYSIS_TK);
 		command.add(T);
 		command.add(MUTECT2);
 		command.add(DB_SNP);
@@ -731,7 +740,7 @@ public class GATK {
 		ArrayList<String> command = new ArrayList<String>();
 		command.add(javaLocation);
 		command.add(JAR);
-		command.add(GATKLocation + GENOME_ANALYSIS_TK);
+    command.add(gatkLocation + GENOME_ANALYSIS_TK);
 		command.add(T);
 		command.add("VariantAnnotator");
 		command.add(R);
@@ -758,7 +767,7 @@ public class GATK {
 		ArrayList<String> command = new ArrayList<String>();
 		command.add(javaLocation);
 		command.add(JAR);
-		command.add(GATKLocation + GENOME_ANALYSIS_TK);
+    command.add(gatkLocation + GENOME_ANALYSIS_TK);
 		command.add(T);
 		command.add("VariantFiltration");
 		command.add(R);
@@ -784,7 +793,7 @@ public class GATK {
 		ArrayList<String> command = new ArrayList<String>();
 		command.add(javaLocation);
 		command.add(JAR);
-		command.add(GATKLocation + GENOME_ANALYSIS_TK);
+    command.add(gatkLocation + GENOME_ANALYSIS_TK);
 		command.add(T);
 		command.add("CalculateGenotypePosteriors");
 		command.add(R);
@@ -812,7 +821,7 @@ public class GATK {
 		ArrayList<String> command = new ArrayList<String>();
 		command.add(javaLocation);
 		command.add(JAR);
-		command.add(GATKLocation + GENOME_ANALYSIS_TK);
+    command.add(gatkLocation + GENOME_ANALYSIS_TK);
 		command.add(T);
 		command.add(MUTECT2);
 		command.add(R);
@@ -830,7 +839,7 @@ public class GATK {
 		command.add(outputVcf);
 		if (numWithinSampleThreads > 1) {
 			command.add(NCT);
-			command.add(numWithinSampleThreads + "");
+      command.add(Integer.toString(numWithinSampleThreads));
 		}
 
 		String[] outputs = new String[] {outputVcf, outputVcf + VCF_INDEX};
@@ -843,7 +852,7 @@ public class GATK {
 		boolean progress = true;
 		String[] inputFiles = new String[] {inputVCF, snpEffVcf};
 		String[] outputFiles = new String[] {inputVCF + VCF_INDEX, outputVCF};
-		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
+		String[] command = new String[] {	javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
 																			VARIANT_ANNOTATOR, R, referenceGenomeFasta, A, SNP_EFF,
 																			VARIANT, inputVCF, SNP_EFF_FILE, snpEffVcf, L, inputVCF, O,
 																			outputVCF};
@@ -884,7 +893,8 @@ public class GATK {
 			progress = buildSNPRecalibrationModel(jGatkGenotyper.getRawVCF(),
 																						jGatkGenotyper.getRecalSNPFile(),
 																						jGatkGenotyper.getTranchesSNPFile(),
-																						jGatkGenotyper.getRscriptSNPFile(), numThreads, log);
+                                            jGatkGenotyper.getRscriptSNPFile(),
+                                            jGatkGenotyper.getSeqTarget(), numThreads, log);
 			if (progress) {
 				progress = applySNPRecalibrationModel(jGatkGenotyper.getRawVCF(),
 																							jGatkGenotyper.getRecalSNPFile(),
@@ -895,7 +905,8 @@ public class GATK {
 					buildINDELRecalibrationModel(	jGatkGenotyper.getRecalSNP_VCF_File(),
 																				jGatkGenotyper.getRecalINDELFile(),
 																				jGatkGenotyper.getTranchesINDELFile(),
-																				jGatkGenotyper.getRscriptINDELFile(), numThreads, log);
+                                       jGatkGenotyper.getRscriptINDELFile(),
+                                       jGatkGenotyper.getSeqTarget(), numThreads, log);
 					if (progress) {
 						applyINDELRecalibrationModel(	jGatkGenotyper.getRecalSNP_VCF_File(),
 																					jGatkGenotyper.getRecalINDELFile(),
@@ -911,49 +922,52 @@ public class GATK {
 	}
 
 	private boolean buildSNPRecalibrationModel(	String inputVCF, String recalFile, String tranchesFile,
-																							String rscriptFile, int numThreads, Logger altLog) {
+                                             String rscriptFile, SEQ_TARGET seqTarget,
+                                             int numThreads, Logger altLog) {
 		String[] inputs = new String[] {inputVCF, getHapMapTraining(), getOmniTraining(),
 																		getThousandGTraining(), getDbSnpTraining()};
 		String[] ouputs = new String[] {recalFile, tranchesFile, rscriptFile};
-		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
+    String[] command = new String[] {javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
 																			VARIANT_RECALIBRATOR, R, referenceGenomeFasta, INPUT,
 																			inputVCF, MODE, SNP, TRANCHES_FILE, tranchesFile, RECAL_FILE,
 																			recalFile, R_SCRIPT_FILE, rscriptFile};
-		command = Array.concatAll(command, buildAns(true), getCurrentResourceBundle(), buildTranches());
+    command = Array.concatAll(command, buildAns(true, seqTarget, log), getCurrentResourceBundle(),
+                              buildTranches());
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
 																						overWriteExistingOutput, false,
-																						(altLog == null ? log : altLog));
+                                            altLog == null ? log : altLog);
 	}
 
 	private boolean applySNPRecalibrationModel(	String inputVCF, String recalFile, String tranchesFile,
 																							String output, int numThreads, Logger altLog) {
 		String[] inputs = new String[] {inputVCF, recalFile, tranchesFile};
 		String[] ouputs = new String[] {output};
-		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
+    String[] command = new String[] {javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
 																			APPLY_RECALIBRATION, R, referenceGenomeFasta, INPUT, inputVCF,
 																			MODE, SNP, TRANCHES_FILE, tranchesFile, RECAL_FILE, recalFile,
 																			TS_FILTER_LEVEL, DEFUALT_TS_FILTER_LEVEL_SNP, O, output};
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
 																						overWriteExistingOutput, true,
-																						(altLog == null ? log : altLog));
+                                            altLog == null ? log : altLog);
 	}
 
 	private boolean buildINDELRecalibrationModel(	String inputVCF, String recalFile,
 																								String tranchesFile, String rscriptFile,
-																								int numThreads, Logger altLog) {
+                                               SEQ_TARGET seqTarget, int numThreads,
+                                               Logger altLog) {
 		String[] inputs = new String[] {inputVCF, getMillsIndelTraining()};
 		String[] ouputs = new String[] {recalFile, tranchesFile, rscriptFile};
-		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
+		String[] command = new String[] {	javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
 																			VARIANT_RECALIBRATOR, R, referenceGenomeFasta, INPUT,
 																			inputVCF, MODE, INDEL, TRANCHES_FILE, tranchesFile,
 																			RECAL_FILE, recalFile, R_SCRIPT_FILE, rscriptFile,
 																			MAX_GAUSSIANS, DEFAULT_MAX_GAUSSIANS,
 																			INDEL_RESOURCE_FULL_MILLS, getMillsIndelTraining(),
 																			INDEL_RESOURCE_FULL_DBSNP, getDbSnpTraining()};
-		command = Array.concatAll(command, buildAns(false), buildTranches());
+    command = Array.concatAll(command, buildAns(false, seqTarget, log), buildTranches());
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
 																						overWriteExistingOutput, true,
-																						(altLog == null ? log : altLog));
+                                            altLog == null ? log : altLog);
 	}
 
 	private boolean applyINDELRecalibrationModel(	String inputVCF, String recalFile,
@@ -962,14 +976,14 @@ public class GATK {
 		String[] inputs = new String[] {inputVCF, recalFile, tranchesFile};
 		String[] ouputs = new String[] {output};
 		// NO DQ!
-		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
+		String[] command = new String[] {	javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
 																			APPLY_RECALIBRATION, R, referenceGenomeFasta, INPUT, inputVCF,
 																			MODE, INDEL, TRANCHES_FILE, tranchesFile, RECAL_FILE,
 																			recalFile, TS_FILTER_LEVEL, DEFUALT_TS_FILTER_LEVEL_INDEL, O,
 																			output};
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
 																						overWriteExistingOutput, true,
-																						(altLog == null ? log : altLog));
+                                            altLog == null ? log : altLog);
 	}
 
 	/**
@@ -987,14 +1001,12 @@ public class GATK {
 		String[] inputGVCFArgs = new String[inputGVCFs.length * 2];
 		int index = 0;
 		for (String inputGVCF : inputGVCFs) {
-			inputGVCFArgs[index] = VARIANT;
-			index++;
-			inputGVCFArgs[index] = inputGVCF;
-			index++;
+      inputGVCFArgs[index++] = VARIANT;
+      inputGVCFArgs[index++] = inputGVCF;
 		}
-		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
+    String[] command = new String[] {javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
 																			GENOTYPEGVCFS, R, referenceGenomeFasta, O, output, NT,
-																			numWithinSampleThreads + ""};
+                                     Integer.toString(numWithinSampleThreads)};
 		if (restrictContig != null) {
 			String[] restriction = new String[] {L, restrictContig};
 			command = Array.concatAll(command, restriction);
@@ -1003,7 +1015,7 @@ public class GATK {
 		command = Array.concatAll(command, inputGVCFArgs);
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, new String[] {output}, verbose,
 																						overWriteExistingOutput, true,
-																						(altLog == null ? log : altLog));
+                                            altLog == null ? log : altLog);
 	}
 
 	/**
@@ -1014,7 +1026,7 @@ public class GATK {
 	 */
 	public boolean mergeVCFs(	String[] vcfs, String output, int numthreads, boolean skipReporting,
 														Logger log) {
-		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
+    String[] command = new String[] {javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
 																			COMBINE_VARIANTS, R, referenceGenomeFasta, O, output,
 																			"-genotypeMergeOptions", "UNIQUIFY"};
 		if (numthreads > 1) {
@@ -1039,15 +1051,29 @@ public class GATK {
 																						verbose, overWriteExistingOutput, skipReporting, log);
 	}
 
-	private static String[] buildAns(boolean SNP) {
-		String[] ansToUse = SNP ? ANS_SNP : ANS_INDEL;
+  /**
+   * 
+   * @param SNP true for SNP recal, false for indel
+   * @param exome true for exome recal, false for genome
+   * @return
+   */
+  private static String[] buildAns(boolean SNP, SEQ_TARGET seqTarget, Logger log) {
+    String[] ansToUse;
+    switch (seqTarget) {
+      default:
+        log.reportError("Unrecognized Sequencing target, using Exome recalibration annotations");
+      case EXOME:
+        ansToUse = SNP ? ANS_SNP_EXOME : ANS_INDEL_EXOME;
+        break;
+      case GENOME:
+        ansToUse = SNP ? ANS_SNP_GENOME : ANS_INDEL_GENOME;
+        break;
+    }
 		String[] ans = new String[ansToUse.length * 2];
 		int index = 0;
 		for (String element : ansToUse) {
-			ans[index] = AN;
-			index++;
-			ans[index] = element;
-			index++;
+      ans[index++] = AN;
+      ans[index++] = element;
 		}
 		return ans;
 	}
@@ -1063,6 +1089,10 @@ public class GATK {
 		}
 		return tranches;
 	}
+
+  public static enum SEQ_TARGET {
+                                 EXOME, GENOME;
+  }
 
 	public static class BaseRecalibration {
 		private static final String RECAL_DATA = ".recal_data.table";
@@ -1094,7 +1124,7 @@ public class GATK {
       bqsr_before = ext.rootOf(dedup_reads_bam, false) + RECAL_DATA;
 			bqsr_post = ext.addToRoot(bqsr_before, POST);
       recalibration_plots = ext.rootOf(dedup_reads_bam, false) + RECALIBRATION_PLOTS;
-		}
+    }
 
     public String getDedup_reads_bam() {
       return dedup_reads_bam;
