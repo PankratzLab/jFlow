@@ -919,6 +919,9 @@ public class BamImport {
     ArrayList<String> variantSiteMarkers = new ArrayList<String>();
     variantSiteMarkers.add(header);
 
+    ArrayList<String> allMarkerColors = new ArrayList<String>();
+    allMarkerColors.add(header);
+
     try {
       PrintWriter writer = new PrintWriter(new FileWriter(positions));
       int markerIndex = 0;
@@ -939,6 +942,7 @@ public class BamImport {
         String out = markerName + "\t" + bFeatureSeg.getChr() + "\t" + pos + "\t"
                      + NGS_MARKER_TYPE.ON_TARGET.getFlag();
         onTMarkers.add(out);
+        allMarkerColors.add(out);
         writer.println(out);
         markerIndex++;
       }
@@ -954,6 +958,7 @@ public class BamImport {
         String out = markerName + "\t" + binnedSeg.getChr() + "\t" + pos + "\t"
                      + NGS_MARKER_TYPE.OFF_TARGET.getFlag();
         offTMarkers.add(out);
+        allMarkerColors.add(out);
         writer.println(out);
 
         markerIndex++;
@@ -972,7 +977,7 @@ public class BamImport {
         String out = markerName + "\t" + variantFeatureSeg.getChr() + "\t" + pos + "\t"
                      + NGS_MARKER_TYPE.VARIANT_SITE.getFlag();
         variantSiteMarkers.add(out);
-
+        allMarkerColors.add(out);
         writer.println(out);
         markerIndex++;
       }
@@ -988,7 +993,15 @@ public class BamImport {
                                          "." + NGS_MARKER_TYPE.OFF_TARGET.getFlag());
     String variantSiteTargetFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(),
                                                  "." + NGS_MARKER_TYPE.VARIANT_SITE.getFlag());
+
+    String allMarkerColorFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(),
+                                              ".allMarkers.color");
+    proj.MARKER_COLOR_KEY_FILENAMES.setValue(new String[] {onTargetFile, offTargetFile,
+                                                           variantSiteTargetFile,
+                                                           allMarkerColorFile});
     String allMarkerFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), ".allMarkers");
+
+
     ArrayList<MarkerFileType> markerTypes = new ArrayList<MarkerFileType>();
 
     if (!onTMarkers.isEmpty()) {
@@ -1013,6 +1026,8 @@ public class BamImport {
       proj.getLog()
           .reportTimeWarning("No " + NGS_MARKER_TYPE.VARIANT_SITE.getFlag() + " markers detected");
     }
+
+    Files.writeList(Array.toStringArray(allMarkerColors), allMarkerColorFile);
 
     Files.writeList(HashVec.loadFileToStringArray(proj.MARKER_POSITION_FILENAME.getValue(), true,
                                                   new int[] {0}, true),
