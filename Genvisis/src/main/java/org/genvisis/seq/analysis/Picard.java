@@ -355,7 +355,7 @@ public class Picard {
       this.barcode = barcode;
     }
 
-	}
+  }
 
 	public static class PicardMetricsParser {
 		public static final String[] PICARD_METRICS =
@@ -419,9 +419,9 @@ public class Picard {
 					log.reportError("Error - could not find neccesary header "	+ Array.toStr(PICARD_METRICS)
 													+ " in file " + picardMetricsFile);
 				} else {
-					int[] indices = ext.indexFactors(line, PICARD_METRICS, true, false);
+          int[] indices = ext.indexFactors(PICARD_METRICS, line, true, false);
 					line = reader.readLine().trim().split("[\\s]+");
-					for (int i = 0; i < line.length; i++) {
+          for (int i = 0; i < indices.length; i++) {
 						try {
 							curMetrics[i] = Double.parseDouble(line[indices[i]]);
 						} catch (NumberFormatException numberFormatException) {
