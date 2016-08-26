@@ -24,6 +24,7 @@ import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
@@ -601,11 +602,10 @@ public class BamImport {
       Mosaicism.findOutliers(proj, numthreads);
     }
 
-    generateGCModel(proj, analysisSet, referenceGenome, 50);
     generateGCModel(proj, analysisSet, referenceGenome, 100);
-    generateGCModel(proj, analysisSet, referenceGenome, 200);
-    generateGCModel(proj, analysisSet, referenceGenome, 500000);
-    generateGCModel(proj, analysisSet, referenceGenome, 1000000);
+    generateGCModel(proj, analysisSet, referenceGenome, 10000);
+    generateGCModel(proj, analysisSet, referenceGenome, GcModel.DEFAULT_GC_MODEL_BIN_FASTA);
+
   }
 
   private static String generateGCModel(Project proj, LocusSet<Segment> analysisSet,
