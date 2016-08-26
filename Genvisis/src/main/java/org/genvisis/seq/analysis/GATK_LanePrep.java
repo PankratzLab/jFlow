@@ -140,7 +140,7 @@ public class GATK_LanePrep extends BWA_Analysis {
                                      + getBwAnalysisIndividuals()[i].getLane() + ".log");
           String[] inputBams = new String[picardAnalysesToMerge[i].length];
           String[] inputBamIndices = new String[inputBams.length];
-          for (int j = 0; j < picardAnalysesToMerge[j].length; j++) {
+          for (int j = 0; j < picardAnalysesToMerge[i].length; j++) {
             inputBams[j] = picardAnalysesToMerge[i][j].getFullPathToSortedDeDuppedBamFile();
             inputBamIndices[j] =
                                picardAnalysesToMerge[i][j].getFullPathToSortedDeDuppedBamFileIndex();
