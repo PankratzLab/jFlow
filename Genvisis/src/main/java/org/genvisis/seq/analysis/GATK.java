@@ -140,7 +140,7 @@ public class GATK {
   public static final String[] TRANCHES = {"100.0", "99.9", "99.0", "90.0"};
 
   public static final String INDEL_RESOURCE_FULL_MILLS =
-                                                       "-resource:mills,known=true,training=false,truth=false,prior=12.0";
+                                                       "-resource:mills,known=true,training=true,truth=true,prior=12.0";
   public static final String INDEL_RESOURCE_FULL_DBSNP =
                                                        "-resource:dbsnp,known=true,training=false,truth=false,prior=2.0";
 
