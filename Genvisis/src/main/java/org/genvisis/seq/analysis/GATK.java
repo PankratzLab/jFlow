@@ -89,9 +89,9 @@ public class GATK {
 	public static final String INPUT = "-input";
 
 	public static final String MAX_GAUSSIANS = "--maxGaussians";
-	public static final String DEFAULT_MAX_GAUSSIANS = "4";
+  public static final String DEFAULT_INDEL_MAX_GAUSSIANS = "4";
 	public static final String TS_FILTER_LEVEL = "--ts_filter_level";
-	public static final String DEFUALT_TS_FILTER_LEVEL_SNP = "99.5";
+  public static final String DEFUALT_TS_FILTER_LEVEL_SNP = "99.0";
 	public static final String DEFUALT_TS_FILTER_LEVEL_INDEL = "99.0";
 	public static final String ARTIFACT_DETECTION_MODE = "--artifact_detection_mode";
 
@@ -137,10 +137,12 @@ public class GATK {
 	public static final String[] PRIORS = {"15.0", "12.0", "10.0", "2.0"};
 
 	public static final String TRANCHE = "-tranche";
-	public static final String[] TRANCHES = {"100.0", "99.9", "99.5", "99.0", "90.0"};
+  public static final String[] TRANCHES = {"100.0", "99.9", "99.0", "90.0"};
 
-	public static final String INDEL_RESOURCE_FULL_MILLS = "-resource:mills,known=false,training=true,truth=true,prior=12.0";
-	public static final String INDEL_RESOURCE_FULL_DBSNP = "-resource:dbsnp,known=true,training=false,truth=false,prior=2.0";
+  public static final String INDEL_RESOURCE_FULL_MILLS =
+                                                       "-resource:mills,known=true,training=false,truth=false,prior=12.0";
+  public static final String INDEL_RESOURCE_FULL_DBSNP =
+                                                       "-resource:dbsnp,known=true,training=false,truth=false,prior=2.0";
 
   private final String gatkLocation;
   private final String referenceGenomeFasta;
@@ -961,9 +963,8 @@ public class GATK {
 																			VARIANT_RECALIBRATOR, R, referenceGenomeFasta, INPUT,
 																			inputVCF, MODE, INDEL, TRANCHES_FILE, tranchesFile,
 																			RECAL_FILE, recalFile, R_SCRIPT_FILE, rscriptFile,
-																			MAX_GAUSSIANS, DEFAULT_MAX_GAUSSIANS,
-																			INDEL_RESOURCE_FULL_MILLS, getMillsIndelTraining(),
-																			INDEL_RESOURCE_FULL_DBSNP, getDbSnpTraining()};
+																			MAX_GAUSSIANS, DEFAULT_INDEL_MAX_GAUSSIANS,
+																			INDEL_RESOURCE_FULL_MILLS, getMillsIndelTraining()};
     command = Array.concatAll(command, buildAns(false, seqTarget, log), buildTranches());
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
 																						overWriteExistingOutput, true,
@@ -1082,10 +1083,8 @@ public class GATK {
 		String[] tranches = new String[TRANCHES.length * 2];
 		int index = 0;
 		for (String element : TRANCHES) {
-			tranches[index] = TRANCHE;
-			index++;
-			tranches[index] = element;
-			index++;
+      tranches[index++] = TRANCHE;
+      tranches[index++] = element;
 		}
 		return tranches;
 	}
