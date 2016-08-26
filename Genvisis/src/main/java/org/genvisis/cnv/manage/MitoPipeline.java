@@ -413,7 +413,7 @@ public class MitoPipeline {
                               homosygousOnly, markerCallRateFilter, betaOptFile, pedFile,
                               recomputeLRR_PCs, recomputeLRR_Median, sampLrr, imputeMeanForNaN,
                               gcCorrect, refGenomeFasta, bpGcModel, regressionDistance, build,
-                              pvalOpt, betaFile, plot, log);
+                              pvalOpt, betaFile, plot, skipEval, log);
             }
           }
         }
@@ -430,7 +430,7 @@ public class MitoPipeline {
                                      boolean imputeMeanForNaN, boolean gcCorrect,
                                      String refGenomeFasta, int bpGcModel, int regressionDistance,
                                      GENOME_BUILD build, double[] pvalOpt, String betaFile,
-                                     boolean plot, Logger log) {
+                                     boolean plot, boolean skipEval, Logger log) {
     GcAdjustorParameters params = null;
     String samps = proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES;
 
@@ -545,31 +545,36 @@ public class MitoPipeline {
       proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
       proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
       proj.saveProperties(new Property[] {proj.INTENSITY_PC_FILENAME,
-                                                  proj.INTENSITY_PC_NUM_COMPONENTS});
-      // generate estimates at each pc
-      log.reportTimeWarning("Beginning experimental estimator... Please contact us if the next steps report errors");
-      CorrectionIterator.runAll(proj, ext.removeDirectoryInfo(medianMarkers),
-                                proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES,
-                                null, pcApply.getExtrapolatedPCsFile(), pedFile, LS_TYPE.REGULAR,
-                                true, 0.05, plot, numThreads);
+                                          proj.INTENSITY_PC_NUM_COMPONENTS});
+      if (!skipEval) {
+        // generate estimates at each pc
 
-      boolean requireBeta = betaFile == null || !Files.exists(betaFile);
-      if (requireBeta) {
-        log.reportTimeWarning("Attempting to use pre-set beta file");
-      }
-      boolean mitoResourceAvailable = prepareMitoResources(proj, requireBeta, proj.getLog());
-      if (mitoResourceAvailable) {
-        BetaOptimizer.optimize(proj,
-                               proj.PROJECT_DIRECTORY.getValue() + pcApply.getExtrapolatedPCsFile(),
-                               proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/",
-                               requireBeta ? ext.parseDirectoryOfFile(Resources.MITO_RESOURCE_TYPE.ALL_WBC_BETA.getResource()
-                                                                                                               .getFullLocalPath())
-                                           : betaFile,
-                               betaOptFile,
-                               proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES,
-                               pvalOpt, numComponents, markerCallRateFilter, 25, numThreads);
-      } else {
-        proj.getLog().reportTimeError("Could not optimize betas due to missing files");
+        log.reportTimeWarning("Beginning experimental estimator... Please contact us if the next steps report errors");
+
+        CorrectionIterator.runAll(proj, ext.removeDirectoryInfo(medianMarkers),
+                                  proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES,
+                                  null, pcApply.getExtrapolatedPCsFile(), pedFile, LS_TYPE.REGULAR,
+                                  true, 0.05, plot, numThreads);
+
+        boolean requireBeta = betaFile == null || !Files.exists(betaFile);
+        if (requireBeta) {
+          log.reportTimeWarning("Attempting to use pre-set beta file");
+        }
+        boolean mitoResourceAvailable = prepareMitoResources(proj, requireBeta, proj.getLog());
+        if (mitoResourceAvailable) {
+          BetaOptimizer.optimize(proj,
+                                 proj.PROJECT_DIRECTORY.getValue()
+                                       + pcApply.getExtrapolatedPCsFile(),
+                                 proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/",
+                                 requireBeta ? ext.parseDirectoryOfFile(Resources.MITO_RESOURCE_TYPE.ALL_WBC_BETA.getResource()
+                                                                                                                 .getFullLocalPath())
+                                             : betaFile,
+                                 betaOptFile,
+                                 proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES,
+                                 pvalOpt, numComponents, markerCallRateFilter, 25, numThreads);
+        } else {
+          proj.getLog().reportTimeError("Could not optimize betas due to missing files");
+        }
       }
     }
   }
