@@ -543,9 +543,6 @@ public class BamImport {
     } else {
       log.reportFileExists(proj.SAMPLE_QC_FILENAME.getValue());
     }
-    if (!Files.exists(proj.MOSAIC_RESULTS_FILENAME.getValue())) {
-      Mosaicism.findOutliers(proj, numthreads);
-    }
     ArrayList<ProjectCorrected> correcteds = correctifyProject(proj, markerTypes, offTargetsToUse,
                                                                correctionPCs, numthreads);// Generates
                                                                                           // and
