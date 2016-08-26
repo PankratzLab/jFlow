@@ -664,7 +664,7 @@ public class BamImport {
                                                                String[] offTargetsToUse,
                                                                int correctionPCs, int numthreads) {
     proj.SAMPLE_CALLRATE_THRESHOLD.setValue(0.0);
-    proj.LRRSD_CUTOFF.setValue(.40);
+    proj.LRRSD_CUTOFF.setValue(.60);
     proj.INTENSITY_PC_NUM_COMPONENTS.setValue(20);
     String mediaMarks = ext.addToRoot(proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), ".median");
     ArrayList<ProjectCorrected> correctedProjects = new ArrayList<ProjectCorrected>();
@@ -731,7 +731,7 @@ public class BamImport {
         PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/",
                                          pcCorrected.PROJECT_DIRECTORY.getValue()
                                                                      + "tmpPCCorrection/",
-                                         correctionPCs, null, 1, 1, true, LS_TYPE.REGULAR, 2, true);
+                                         correctionPCs, null, 1, 5, true, LS_TYPE.REGULAR, 2, true);
       }
       pcCorrected.saveProperties();
       if (type.getType() != null) {
