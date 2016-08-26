@@ -22,7 +22,7 @@ import org.genvisis.common.ext;
 public class GATK_LanePrep extends BWA_Analysis {
 	private static final String PICARD_METRICS_SUMMARY = "picard_metrics_summary.txt";
 	private final Picard picard;
-  private Picard.PicardAnalysis[] picardAnalysis;
+  private Picard.PicardAnalysis[] picardAnalyses;
   private Picard.PicardMergeDedupe[] picardMergeDedupes;
 	private final GATK gatk;
 	private GATK.BaseRecalibration[] gRecalibrations;
@@ -47,7 +47,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 		if (!isFail()) {
 			BWA_AnalysisIndividual[] bwAnalysisIndividuals = getBwAnalysisIndividuals();
 			if (bwAnalysisIndividuals != null) {
-        picardAnalysis = new Picard.PicardAnalysis[bwAnalysisIndividuals.length];
+        picardAnalyses = new Picard.PicardAnalysis[bwAnalysisIndividuals.length];
         double memoryRatio = calcMemoryRatio(bwAnalysisIndividuals.length, getLog());
 				ExecutorService executor = Executors.newFixedThreadPool(getNumBetweenSampleThreads());
 				Hashtable<String, Future<Picard.PicardAnalysis>> tmpResults =
@@ -64,12 +64,12 @@ public class GATK_LanePrep extends BWA_Analysis {
 				for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
 					try {
 						getLog().memoryPercentFree();
-            picardAnalysis[i] = tmpResults.get(Integer.toString(i)).get();
+            picardAnalyses[i] = tmpResults.get(Integer.toString(i)).get();
 						getLog().report(ext.getTime()	+ "Info - retrieving picard results for "
-                            + picardAnalysis[i].getFullPathToSamFile());
-            if (picardAnalysis[i].isFail() && !isFail()) {
+                            + picardAnalyses[i].getFullPathToSamFile());
+            if (picardAnalyses[i].isFail() && !isFail()) {
               getLog().reportError("Failed picard for "
-                                       + picardAnalysis[i].getFullPathToSamFile());
+                                       + picardAnalyses[i].getFullPathToSamFile());
 							setFail(true);
 						}
 					} catch (InterruptedException e) {
@@ -88,10 +88,10 @@ public class GATK_LanePrep extends BWA_Analysis {
 				} catch (InterruptedException e) {
 					getLog().reportException(e);
 				}
-        String[] picardFiles = new String[picardAnalysis.length];
-        for (int i = 0; i < picardAnalysis.length; i++) {
-          if (picardAnalysis[i].isAllThere()) {
-            picardFiles[i] = picardAnalysis[i].getFullPathToMetricsTxt();
+        String[] picardFiles = new String[picardAnalyses.length];
+        for (int i = 0; i < picardAnalyses.length; i++) {
+          if (picardAnalyses[i].isAllThere()) {
+            picardFiles[i] = picardAnalyses[i].getFullPathToMetricsTxt();
 					} else {
             getLog().reportError("Could not find picard metrics file for root input files:\n"
 																	+ bwAnalysisIndividuals[i].getAvailableFiles("\n"));
@@ -115,9 +115,9 @@ public class GATK_LanePrep extends BWA_Analysis {
       getLog().reportError("Should not be requesting other files with un implemented request");
       return null;
     } else {
-      String[] currentFiles = new String[picardAnalysis.length];
+      String[] currentFiles = new String[picardAnalyses.length];
       for (int i = 0; i < currentFiles.length; i++) {
-        currentFiles[i] = picardAnalysis[i].getFullPathToSortedDeDuppedBamFile();
+        currentFiles[i] = picardAnalyses[i].getFullPathToSortedDeDuppedBamFile();
       }
       return currentFiles;
     }
@@ -125,8 +125,8 @@ public class GATK_LanePrep extends BWA_Analysis {
 
   private void runMergeDedupe() {
     if (!isFail()) {
-      if (picardAnalysis != null) {
-        Picard.PicardAnalysis[][] picardAnalysesToMerge = getPicardAnalysesToMerge(picardAnalysis,
+      if (picardAnalyses != null) {
+        Picard.PicardAnalysis[][] picardAnalysesToMerge = getPicardAnalysesToMerge(picardAnalyses,
                                                                                    getLog());
         picardMergeDedupes = new Picard.PicardMergeDedupe[picardAnalysesToMerge.length];
         double memoryRatio = calcMemoryRatio(picardAnalysesToMerge.length, getLog());
@@ -135,9 +135,8 @@ public class GATK_LanePrep extends BWA_Analysis {
                                                                        new Hashtable<String, Future<Picard.PicardMergeDedupe>>();
         for (int i = 0; i < picardMergeDedupes.length; i++) {
           Logger altLog = new Logger(ext.rootOf(getLog().getFilename(), false)
-                                     + "_Picard.PicardAnalysis_ID_"
-                                     + getBwAnalysisIndividuals()[i].getID() + "_Lane_"
-                                     + getBwAnalysisIndividuals()[i].getLane() + ".log");
+                                     + "_Picard.PicardMergeDedupe_ID_"
+                                     + picardAnalysesToMerge[i][0].getBaseID() + ".log");
           String[] inputBams = new String[picardAnalysesToMerge[i].length];
           String[] inputBamIndices = new String[inputBams.length];
           for (int j = 0; j < picardAnalysesToMerge[i].length; j++) {
