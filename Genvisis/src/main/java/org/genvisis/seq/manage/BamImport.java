@@ -728,10 +728,13 @@ public class BamImport {
                                                               + "tmpPCCorrection/",
                                          correctionPCs, null, numthreads, 1, false, LS_TYPE.REGULAR,
                                          -1, true);
+        // Warning currently set up for 24 threads..
+        // TODO
         PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/",
                                          pcCorrected.PROJECT_DIRECTORY.getValue()
                                                                      + "tmpPCCorrection/",
-                                         correctionPCs, null, 1, 5, true, LS_TYPE.REGULAR, 2, true);
+                                         correctionPCs, null, 1, 24, true, LS_TYPE.REGULAR, 5,
+                                         true);
       }
       pcCorrected.saveProperties();
       if (type.getType() != null) {
