@@ -169,7 +169,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
   private Project proj;
   private final boolean jar;
-  private JComboBox<String> projectsBox;
+  private JComboBox projectsBox;
   private transient List<String> projects;
   private LaunchProperties launchProperties;
   private final String launchPropertiesFile;
@@ -522,11 +522,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
    */
   private void addProjectSelector(final Container pane) {
 
-    projectsBox = new JComboBox<String>();
+    projectsBox = new JComboBox();
     // In JDK1.4 this prevents action events from being fired when the up/down arrow keys are used
     // on the dropdown menu
     projectsBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
-    projectsBox.setModel(new DefaultComboBoxModel<String>(launchProperties.getListOfProjectNames()));
+    projectsBox.setModel(new DefaultComboBoxModel(launchProperties.getListOfProjectNames()));
 
     if (indexOfCurrentProj > 0 && projectsBox.getItemCount() > 0) {
       projectsBox.setSelectedIndex(indexOfCurrentProj);
@@ -932,7 +932,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
           }
         }
         loadProjects();
-        projectsBox.setModel(new DefaultComboBoxModel<String>(launchProperties.getListOfProjectNames()));
+        projectsBox.setModel(new DefaultComboBoxModel(launchProperties.getListOfProjectNames()));
         if (!projects.isEmpty()) {
           loadProject();
           setIndexOfCurrentProject(newIndex);

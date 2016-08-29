@@ -26,21 +26,21 @@ public class SourceFileHeaderGUI extends JDialog {
 
   private static final long serialVersionUID = 1L;
   private final JPanel contentPane;
-  private final JComboBox<String> cbSnpInd;
-  private final JComboBox<String> cbSampInd;
-  private final JComboBox<String> cbA1Geno;
-  private final JComboBox<String> cbA2Geno;
-  private final JComboBox<String> cbA1AB;
-  private final JComboBox<String> cbA2AB;
-  private final JComboBox<String> cbX;
-  private final JComboBox<String> cbY;
-  private final JComboBox<String> cbBAF;
-  private final JComboBox<String> cbLRR;
-  private final JComboBox<String> cbGC;
-  private final JComboBox<String> cbXRaw;
-  private final JComboBox<String> cbYRaw;
-  private final JComboBox<String> cbR;
-  private final JComboBox<String> cbTheta;
+  private final JComboBox cbSnpInd;
+  private final JComboBox cbSampInd;
+  private final JComboBox cbA1Geno;
+  private final JComboBox cbA2Geno;
+  private final JComboBox cbA1AB;
+  private final JComboBox cbA2AB;
+  private final JComboBox cbX;
+  private final JComboBox cbY;
+  private final JComboBox cbBAF;
+  private final JComboBox cbLRR;
+  private final JComboBox cbGC;
+  private final JComboBox cbXRaw;
+  private final JComboBox cbYRaw;
+  private final JComboBox cbR;
+  private final JComboBox cbTheta;
 
   private boolean cancelled = false;
 
@@ -108,7 +108,7 @@ public class SourceFileHeaderGUI extends JDialog {
     String[] headerOptions = Array.addStrToArray(MISSING_STR, headerParts, 0);
     String[] sampOptions = Array.addStrToArray(FILENAME_STR, headerParts, 0);
 
-    cbSnpInd = new JComboBox<String>(headerParts);
+    cbSnpInd = new JComboBox(headerParts);
     cbSnpInd.setSelectedIndex(reportHdr.colSnpIdent == -1 ? 0 : reportHdr.colSnpIdent); // TODO SNP
                                                                                         // INDEX
                                                                                         // shouldn't
@@ -119,7 +119,7 @@ public class SourceFileHeaderGUI extends JDialog {
     JLabel lblSampleId = new JLabel("Sample ID:");
     panel.add(lblSampleId, "cell 1 3");
 
-    cbSampInd = new JComboBox<String>(sampOptions);
+    cbSampInd = new JComboBox(sampOptions);
     cbSampInd.setSelectedIndex(reportHdr.colSampleIdent == -1 ? 0 : 1 + reportHdr.colSampleIdent);
     panel.add(cbSampInd, "cell 2 3,growx");
 
@@ -130,63 +130,63 @@ public class SourceFileHeaderGUI extends JDialog {
     JLabel lblAllele_2 = new JLabel("Allele 1 - Genotype:");
     panel.add(lblAllele_2, "cell 1 5");
 
-    cbA1Geno = new JComboBox<String>(headerOptions);
+    cbA1Geno = new JComboBox(headerOptions);
     cbA1Geno.setSelectedIndex(reportHdr.colGeno1 == -1 ? 0 : 1 + reportHdr.colGeno1);
     panel.add(cbA1Geno, "cell 2 5,growx");
 
     JLabel lblAllele_3 = new JLabel("Allele 2 - Genotype:");
     panel.add(lblAllele_3, "cell 1 6");
 
-    cbA2Geno = new JComboBox<String>(headerOptions);
+    cbA2Geno = new JComboBox(headerOptions);
     cbA2Geno.setSelectedIndex(reportHdr.colGeno2 == -1 ? 0 : 1 + reportHdr.colGeno2);
     panel.add(cbA2Geno, "cell 2 6,growx");
 
     JLabel lblAllele = new JLabel("Allele 1 - AB:");
     panel.add(lblAllele, "cell 1 7");
 
-    cbA1AB = new JComboBox<String>(headerOptions);
+    cbA1AB = new JComboBox(headerOptions);
     cbA1AB.setSelectedIndex(reportHdr.colGenoAB1 == -1 ? 0 : 1 + reportHdr.colGenoAB1);
     panel.add(cbA1AB, "cell 2 7,growx");
 
     JLabel lblAllele_1 = new JLabel("Allele 2 - AB:");
     panel.add(lblAllele_1, "cell 1 8");
 
-    cbA2AB = new JComboBox<String>(headerOptions);
+    cbA2AB = new JComboBox(headerOptions);
     cbA2AB.setSelectedIndex(reportHdr.colGenoAB2 == -1 ? 0 : 1 + reportHdr.colGenoAB2);
     panel.add(cbA2AB, "cell 2 8,growx");
 
     JLabel lblX = new JLabel("X:");
     panel.add(lblX, "cell 1 9");
 
-    cbX = new JComboBox<String>(headerOptions);
+    cbX = new JComboBox(headerOptions);
     cbX.setSelectedIndex(reportHdr.colX == -1 ? 0 : 1 + reportHdr.colX);
     panel.add(cbX, "cell 2 9,growx");
 
     JLabel lblY = new JLabel("Y:");
     panel.add(lblY, "cell 1 10");
 
-    cbY = new JComboBox<String>(headerOptions);
+    cbY = new JComboBox(headerOptions);
     cbY.setSelectedIndex(reportHdr.colY == -1 ? 0 : 1 + reportHdr.colY);
     panel.add(cbY, "cell 2 10,growx");
 
     JLabel lblBAlleleFreq = new JLabel("B Allele Freq.:");
     panel.add(lblBAlleleFreq, "cell 1 11");
 
-    cbBAF = new JComboBox<String>(headerOptions);
+    cbBAF = new JComboBox(headerOptions);
     cbBAF.setSelectedIndex(reportHdr.colBAF == -1 ? 0 : 1 + reportHdr.colBAF);
     panel.add(cbBAF, "cell 2 11,growx");
 
     JLabel lblLogrRatio = new JLabel("Log-R Ratio:");
     panel.add(lblLogrRatio, "cell 1 12");
 
-    cbLRR = new JComboBox<String>(headerOptions);
+    cbLRR = new JComboBox(headerOptions);
     cbLRR.setSelectedIndex(reportHdr.colLRR == -1 ? 0 : 1 + reportHdr.colLRR);
     panel.add(cbLRR, "cell 2 12,growx");
 
     JLabel lblConfidence = new JLabel("Confidence:");
     panel.add(lblConfidence, "cell 1 13");
 
-    cbGC = new JComboBox<String>(headerOptions);
+    cbGC = new JComboBox(headerOptions);
     cbGC.setSelectedIndex(reportHdr.colGC == -1 ? 0 : 1 + reportHdr.colGC);
     panel.add(cbGC, "cell 2 13,growx");
 
@@ -197,28 +197,28 @@ public class SourceFileHeaderGUI extends JDialog {
     JLabel lblXRaw = new JLabel("X Raw:");
     panel.add(lblXRaw, "cell 1 15");
 
-    cbXRaw = new JComboBox<String>(headerOptions);
+    cbXRaw = new JComboBox(headerOptions);
     cbXRaw.setSelectedIndex(reportHdr.colXRaw == -1 ? 0 : 1 + reportHdr.colXRaw);
     panel.add(cbXRaw, "cell 2 15,growx");
 
     JLabel lblYRaw = new JLabel("Y Raw:");
     panel.add(lblYRaw, "cell 1 16");
 
-    cbYRaw = new JComboBox<String>(headerOptions);
+    cbYRaw = new JComboBox(headerOptions);
     cbYRaw.setSelectedIndex(reportHdr.colYRaw == -1 ? 0 : 1 + reportHdr.colYRaw);
     panel.add(cbYRaw, "cell 2 16,growx");
 
     JLabel lblR = new JLabel("R:");
     panel.add(lblR, "cell 1 17");
 
-    cbR = new JComboBox<String>(headerOptions);
+    cbR = new JComboBox(headerOptions);
     cbR.setSelectedIndex(reportHdr.colR == -1 ? 0 : 1 + reportHdr.colR);
     panel.add(cbR, "cell 2 17,growx");
 
     JLabel lblTheta = new JLabel("Theta:");
     panel.add(lblTheta, "cell 1 18");
 
-    cbTheta = new JComboBox<String>(headerOptions);
+    cbTheta = new JComboBox(headerOptions);
     cbTheta.setSelectedIndex(reportHdr.colTheta == -1 ? 0 : 1 + reportHdr.colTheta);
     panel.add(cbTheta, "cell 2 18,growx");
 
@@ -259,7 +259,7 @@ public class SourceFileHeaderGUI extends JDialog {
     return cbSampInd.getSelectedIndex() == 0 ? FILENAME_IND : cbSampInd.getSelectedIndex() - 1;
   }
 
-  private int getValue(JComboBox<String> cb) {
+  private int getValue(JComboBox cb) {
     return MISSING_STR.equals(cb.getSelectedItem()) ? MISSING_IND : cb.getSelectedIndex() - 1;
   }
 
