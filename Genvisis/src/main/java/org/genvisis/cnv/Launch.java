@@ -37,7 +37,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -85,15 +84,15 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.cyto.CytoGUI;
 
-// -XX:+UseConcMarkSweepGC
-// -XX:+UseParNewGC
-
+/**
+ * General entry point for application operation. In particular, can start the GUI, or delegate to
+ * alternate main classes.
+ */
 public class Launch extends JFrame implements ActionListener, WindowListener {
 
   public static final long serialVersionUID = 1L;
 
-  public static final String VERSION = "0.60";
-
+  // Menu entry constants
   public static final String EXIT = "Exit";
   public static final String EDIT = "Project Properties Editor";
   public static final String REFRESH = "Refresh";
@@ -149,6 +148,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
   public static final String TEST = "Test new program";
 
+  // This array represents the menu structure of the GUI. The first element of each array
+  // is the top-level menu, while each other element is a submenu item.
+
+  //FIXME this structure should be replaced with a map or dedicated class that links menu path to outcome.
+  // In particular this would allow us to unify logic for menu parsing and reuse that structure in other contexts,
+  // using dedicated API instead of relying on an array structure convention.
+  // A dedicated class could also include related information like an action listener or icon, and would
+  // not be limited to one level of nesting.
   public static final String[][] MENUS = {
                                           {"File", NEW_PROJECT, IMPORT_PROJECT, SELECT_PROJECT,
                                            DELETE_PROJECT, EDIT, "Preferences", CHECK_FOR_UPDATES,
@@ -167,7 +174,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
                                           {"Help", "Contents", "Search", "About"}};
 
 
-  private Project proj;
+  private transient Project proj;
   private final boolean jar;
   private JComboBox projectsBox;
   private transient List<String> projects;
@@ -183,6 +190,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
   private JProgressBar progBar;
 
+  /**
+   * Constructs a "Launch" object, which contains the Genvisis app state.
+   *
+   * @param launchPropertiesFile {@code launch.properties} file containing startup and project information.
+   * @param currentManifest Manifest for this execution
+   * @param jar Whether or not this was launched from a .jar
+   */
   public Launch(String launchPropertiesFile, CurrentManifest currentManifest, boolean jar) {
 
     super("Genvisis " + currentManifest.getVersion().getVersion());
@@ -214,12 +228,17 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     setIndexOfCurrentProject(launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
   }
 
+  /**
+   * Initialize project information based on the state of the GUI.
+   *
+   * @return Currently selected {@link Project} instance.
+   */
   public Project loadProject() {
-    // TODO if indexOfCurrentProj < 0 show dialog asking if user would like to create new project
     proj = new Project(launchProperties.getDirectory() + projects.get(indexOfCurrentProj), jar);
     proj.setGuiState(true);
     timestampOfPropertiesFile = new Date().getTime();
     timestampOfSampleDataFile = new Date().getTime();
+    // Warn if no project directory
     if (!Files.exists(proj.PROJECT_DIRECTORY.getValue(), proj.JAR_STATUS.getValue())) {
       JOptionPane.showMessageDialog(null,
                                     "Error - the directory ('" + proj.PROJECT_DIRECTORY.getValue()
@@ -228,6 +247,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
                                     "Error", JOptionPane.ERROR_MESSAGE);
     }
 
+    // Log to the project directory and the UI
     log = proj.getLog();
     log.linkTextArea(output);
 
@@ -239,15 +259,23 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     progBar.setStringPainted(false);
 
     proj.initializeProgressMonitor(progBar);
+
+    // If selected via the menu, ensure the UI picker is synchronized
     projectsBox.setSelectedIndex(indexOfCurrentProj);
 
     return proj;
   }
 
+  /**
+   * @param projectIndex Index in the project list of the desired project
+   */
   public void setIndexOfCurrentProject(int projectIndex) {
     setIndexOfCurrentProject(projects.get(projectIndex));
   }
 
+  /**
+   * @param projPropertiesFileName Name of the {@code .properties} file for the desired project
+   */
   public void setIndexOfCurrentProject(String projPropertiesFileName) {
     indexOfCurrentProj = 0;
     // find the index
@@ -262,9 +290,18 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     }
   }
 
-  @SuppressWarnings("rawtypes")
+  /**
+   * @return Current {@link LaunchProperties} instance.
+   */
+  public LaunchProperties getLaunchProperties() {
+    return launchProperties;
+  }
+
+  /**
+   * @param newFont Desired font to use in the UI
+   */
   public static void setUIFont(Font newFont) {
-    Enumeration keys = UIManager.getDefaults().keys();
+    Enumeration<Object> keys = UIManager.getDefaults().keys();
     while (keys.hasMoreElements()) {
       Object key = keys.nextElement();
       Object value = UIManager.get(key);
@@ -275,6 +312,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     }
   }
 
+  /**
+   * This helper class is a catch-all for any exceptions that would not otherwise be caught.
+   */
   private static final class ExceptionHandler implements Thread.UncaughtExceptionHandler {
     public Logger log;
 
@@ -309,7 +349,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     }
 
     ExceptionHandler ueh = new ExceptionHandler();
-
     Thread.setDefaultUncaughtExceptionHandler(ueh);
 
     // set system-wide anti-aliasing
@@ -325,27 +364,30 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     // Create and set up the content pane.
     launchPropertiesFile = LaunchProperties.DEFAULT_PROPERTIES_FILE;
     CurrentManifest manifest = new CurrentManifest(new Attributes());
-    try {// try not to break the launch so we will catch anything
+    try {
+      // try not to break the launch so we will catch anything
       manifest = CurrentManifest.loadGenvisisManifest();
     } catch (Exception e) {
+      // It's OK if there is no manifest
     }
+
     launchUI = new Launch(launchPropertiesFile, manifest, false);
+    // FIXME switch to dedicated shutdown method that can notify anything that needs to respond to shutdown requests
     launchUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    ueh.setLog(launchUI.log);
 
     // Have to read which projects are available before creating the menus
     launchUI.initLaunchProperties();
-
     launchUI.loadProjects();
 
+    // Create the UI here
     launchUI.makeContentPane();
     launchUI.makeTopMenuBar();
-    launchUI.makePopupMenu();
-
     launchUI.setSize(650, 550);
     launchUI.setLocation(300, 200);
-
     launchUI.addWindowListener(launchUI);
 
+    // Start the UI
     javax.swing.SwingUtilities.invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -353,24 +395,30 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
       }
     });
 
-    // TODO only instantiate when used
+    // restore the last project open (e.g. in the previous session)
     launchUI.setIndexOfCurrentProject(launchUI.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
-    if (launchUI.projects.size() > 0) {
+    if (!launchUI.projects.isEmpty()) {
       launchUI.loadProject();
     }
 
-    ueh.setLog(launchUI.log);
+    // Check version
     try {
       launchUI.log.report(HttpUpdate.checkGenvisisVersion(launchUI.log));
     } catch (Exception e) {
-
+      // User may be offline, etc.. version check is not critical
     }
   }
 
+  /**
+   * Read the launch properties file
+   */
   private void initLaunchProperties() {
     launchProperties = createLaunchProperties(launchPropertiesFile, false, true);
   }
 
+  /**
+   * Create the core GUI
+   */
   private void makeContentPane() {
     // Create the content-pane-to-be.
     JPanel contentPane = new JPanel(new BorderLayout());
@@ -394,6 +442,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     setContentPane(contentPane);
   }
 
+  /**
+   * Create the menu bar
+   */
   private void makeTopMenuBar() {
     JMenuBar menuBar;
     JMenu menu;
@@ -443,7 +494,17 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     setJMenuBar(menuBar);
   }
 
+  /**
+   * Helper method for creating mnemonics. Ensure a given mnemonic is not repeated within a given
+   * context.
+   * 
+   * @param string String to create mnemonic for (e.g. for input "New Project" a reasonable mnemonic
+   *        shortcut would be "N")
+   * @param hash Context of previously used mnemonics; essentially a blacklist
+   * @return An integer representation of the chosen mnemonic
+   */
   private int getMnemonic(String string, Set<Character> hash) {
+    // Put explicit mnemonics first
     if (string.equals(NEW_PROJECT)) {
       return KeyEvent.VK_N;
     } else if (string.equals(IMPORT_PROJECT)) {
@@ -451,6 +512,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     } else if (string.equals(DELETE_PROJECT)) {
       return KeyEvent.VK_D;
     } else {
+      // If no specific mnemonic, take the alphabetically first letter that hasn't been used before.
       String s2 = string.toLowerCase();
       for (int k = 0; k < string.length(); k++) {
         char mnemonic = s2.charAt(k);
@@ -549,20 +611,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     pane.add(projectsBox);
   }
 
-  private void makePopupMenu() {
-    JMenuItem menuItem;
-
-    // Create the popup menu.
-    JPopupMenu popup = new JPopupMenu();
-    menuItem = new JMenuItem("A popup menu item");
-    menuItem.addActionListener(this);
-    popup.add(menuItem);
-    menuItem = new JMenuItem("Another popup menu item");
-    menuItem.addActionListener(this);
-    popup.add(menuItem);
-  }
-
+  /**
+   * This is a helper class encapsulating commands that need to be run off the EDT, or can be parallelized.
+   */
   public class IndependentThread implements Runnable {
+    //FIXME this class feels like overkill, especially given that it has case logic for each supported command.
+    // The case logic is hard to read and not extensible, and defies reasonable expectations by essentially
+    // parsing the command string twice.
+    // If each runnable thing was turned into a plugin and either registered its command name or implemented
+    // ActionListener itself we could eliminate this class completely.
+    // NB: possibly related to previous fixme re:dedicated menu item class.
     private final Project proj;
     private final String command;
 
@@ -856,6 +914,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
   @Override
   public void actionPerformed(ActionEvent ae) {
+    //FIXME break down action listeners to smaller components that do not require
+    // massive if block to delegate out
     String command = ae.getActionCommand();
     Thread thread;
 
@@ -997,7 +1057,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
   }
 
   /**
-   * @see {@link #deleteMenuItem(JMenuBar, String...)
+   * @see {@link #deleteMenuItem(JMenuBar, String...)}
    */
   private void deleteMenuItem(JMenu menu, String... entries) {
     if (entries.length == 0) {
@@ -1044,6 +1104,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     }
   }
 
+  /**
+   * Create the UI for importing an existing project into the workspace
+   */
   private void importProject() {
     ImportProjectGUI importGUI = new ImportProjectGUI();
     importGUI.setModal(true);
@@ -1058,6 +1121,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     importGUI.dispose();
   }
 
+  /**
+   * Create the UI for creating a new project
+   */
   private void createProject() {
     SwingUtilities.invokeLater(new Runnable() {
       @Override
@@ -1068,7 +1134,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     });
   }
 
-  // FIXME factor out to subclass to reduce clutter
+  // FIXME refactor to subclass to reduce clutter, or delete completely if unnecessary
   @Override
   public void windowOpened(WindowEvent we) {}
 
@@ -1093,12 +1159,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
   /**
    * Ensures a minimum launch properties file is available, reading an existing file and creating a
-   * new properties file if needed/requested.
+   * new properties file if needed/requested. Also creates native launchers.
    *
    * @param launchPropertiesFile Path to the properties file, e.g. "launch.properties"
    * @param force If true, any existing properties file will be disregarded and potentially
    *        overwritten
    * @param relativePath If true, relative paths will be written instead of fully qualified
+   * @return A {@link LaunchProperties} instance containing all parsed metadata
    */
   public static LaunchProperties createLaunchProperties(String launchPropertiesFile, boolean force,
                                                         boolean relativePath) {
@@ -1126,6 +1193,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     String sh = path + "Launch.sh";
     String command = path + "Launch.command";
 
+    // FIXME this logic should probably be elsewhere, or made unnecessary with JavaFX launcher creation
     if (!Files.exists(bat)) {
       Files.write(getLaunchBat(), bat);
     }
@@ -1166,6 +1234,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     }
   }
 
+  /**
+   * @param verbose Whether or not to report information
+   * @return Path to the {@code default.properties} file
+   */
   public static String getDefaultDebugProjectFile(boolean verbose) {
     LaunchProperties launchProperties;
     String dir, filename;
@@ -1202,6 +1274,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     return dir + filename;
   }
 
+  /**
+   * This class can accept another main class as an argument, which control will pass to if valid.
+   * This delegation can account for package moves (e.g. {@code org.genvisis} prepending) so this
+   * class is the recommended entry point for any Genvisis operations.
+   * <p>
+   * If no main class is provided, the Genvisis UI will be launched.
+   * </p>
+   *
+   * @param args Command-line arguments
+   */
   public static void main(String[] args) {
     if (runMainClass(args)) {
       return;
@@ -1293,10 +1375,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     sh += "exec java -Xmx2000m \\\n";
     sh += "	-cp \"$prefix\"/genvisis.jar cnv.Launch \"$@\"\n";
     return sh;
-  }
-
-  public LaunchProperties getLaunchProperties() {
-    return launchProperties;
   }
 
 }
