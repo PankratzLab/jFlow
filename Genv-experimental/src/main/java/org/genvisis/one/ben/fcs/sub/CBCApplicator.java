@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import org.genvisis.common.Array;
@@ -14,7 +15,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
-public class CBCApplicator {
+public class CBCApplicator implements Runnable {
   
   private static final String[][] PANELS = {
     {"panel 1", "p1"},
@@ -34,26 +35,47 @@ public class CBCApplicator {
     }
   };
   
-  private static final String PNL_1_HDR_START = "Lymphocytes (SSC-A v FSC-A) | Freq. of Parent"; 
   private static final String PNL_1_CBC_START = "ALYMP x10e9/L";
-  
-  private static final String PNL_2_HDR_START = "PBMCs (SSC-A v FSC-A) | Freq. of Parent";
   private static final String[] PNL_2_CBC_COLS = {"WBC x10e9/L", "ANEU x10e9/L", "AEOS x10e9/L", "ABASO x10e9/L"};
-
-  private static final String PANEL_1_UNITS = PNL_1_CBC_START.split(" ")[1];
+  private static final String UNITS = "x10e9/L";
   
-  private String cbcDir = "F:/Flow/CBC_processing/cbc/";
-  private String dataDir = "F:/Flow/CBC_processing/data/";
+  private int panel1DataColumn;
+  private int[] panel2DataColumns;
+  private String cbcDir = null;
+  private String dataDir = null;
   private String outDir = null;
   private String[] filesP1;
   private String[] filesP2;
-  private int panel1DataColumn;
   
   private Logger log = new Logger();
   
   HashMap<String, String[]> idMap = new HashMap<String, String[]>();
   
+  public void setCBCDir(String cbcD) {
+    this.cbcDir = cbcD;
+  }
+  
+  public void setDataDir(String dataD) {
+    this.dataDir = dataD;
+  }
+  
+  public void setOutputDirectory(String outD) {
+    this.outDir = outD;
+  }
+  
+  public void setLog(Logger log) {
+    this.log = log;
+  }
+  
   private void loadCBCs() {
+    if (cbcDir == null || "".equals(cbcDir)) {
+      log.reportTimeError("CBC directory not set!");
+      return;
+    }
+    if (!Files.exists(cbcDir)) {
+      log.reportTimeError("CBC directory not found: " + cbcDir);
+      return;
+    }
     String[] files = new File(cbcDir).list();
     log.reportTime("Loading " + files.length + " CBC files from " + cbcDir);
     for (String file : files) {
@@ -66,20 +88,41 @@ public class CBCApplicator {
         }
       }
     }
-    panel1DataColumn = ext.indexOfStr(PNL_1_CBC_START, Files.getHeaderOfFile(cbcDir + files[0], files[0].endsWith(".csv") ? "," : null, log));
-    // TODO load panel 2 column indices
+    String[] hdr = Files.getHeaderOfFile(cbcDir + files[0], files[0].endsWith(".csv") ? "," : null, log);
+    if (hdr == null) {
+      log.reportTimeError("couldn't load header of file: " + cbcDir + files[0]);
+      return;
+    }
+    panel1DataColumn = ext.indexOfStr(PNL_1_CBC_START, hdr);
+    panel2DataColumns = ext.indexFactors(PNL_2_CBC_COLS, hdr, false, false);
+    if (panel1DataColumn == -1) {
+      log.reportTimeError("missing column " + PNL_1_CBC_START + " from CBC file: " + cbcDir + files[0]);
+      return;
+    }
+    if (Array.countIf(panel2DataColumns, -1) > 0) {
+      log.reportTimeError("missing column " + PNL_2_CBC_COLS[Arrays.asList(panel2DataColumns).indexOf(-1)] + " CBC file: " + cbcDir + files[0]);
+      return;
+    }
   }
   
   private void discoverDataFiles() {
+    if (dataDir == null || "".equals(dataDir)) {
+      log.reportTimeError("data file directory not set!");
+      return;
+    }
+    if (!Files.exists(dataDir)) {
+      log.reportTimeError("data file directory not found: " + dataDir);
+      return;
+    }
     File dataDirFile = new File(dataDir);
     filesP1 = dataDirFile.list(FILTER_P1);
     filesP2 = dataDirFile.list(FILTER_P2);
-    log.reportTime("Discovered " + filesP1.length + " Panel 1 files and " + filesP2.length + " Panel 2 files in " + dataDir);
+    log.reportTime("Discovered " + filesP1.length + " Panel_1 files and " + filesP2.length + " Panel_2 files in " + dataDir);
   }
   
   private void runPanel1() {
     if (filesP1 == null || filesP1.length == 0) {
-      log.reportTime("No Panel 1 files available!");
+      log.reportTime("No Panel_1 files available!");
       return;
     }
     for (int i = 0; i < filesP1.length; i++) {
@@ -89,7 +132,7 @@ public class CBCApplicator {
 
   private void runPanel2() {
     if (filesP2 == null || filesP2.length == 0) {
-      log.reportTime("No Panel 2 files available!");
+      log.reportTime("No Panel_2 files available!");
       return;
     }
     for (int i = 0; i < filesP2.length; i++) {
@@ -97,14 +140,10 @@ public class CBCApplicator {
     }
   }
   
-  private String getOutFile(String file) {
-    return ((outDir == null || "".equals(outDir)) ? dataDir : outDir) + ext.rootOf(file, true) + "_COUNTS.xln";
-  }
-  
   private void processPanel1File(String file) {
     BufferedReader reader;
     PrintWriter writer;
-    String outFile, line, id, cbcCnt;
+    String outFile, line, id, cbcCnt, delim;
     String[] header, parts, idParts, cbcData;
     StringBuilder outLine;
     
@@ -116,7 +155,7 @@ public class CBCApplicator {
     }
     outFile = getOutFile(file);
     if (Files.exists(outFile)) {
-      log.reportError("Error - output file " + outFile + " already exists!");
+      log.reportTimeError("output file " + outFile + " already exists!");
       try {
         reader.close();
       } catch (IOException e) {}
@@ -125,14 +164,16 @@ public class CBCApplicator {
     writer = Files.getAppropriateWriter(outFile);
     
     try {
-      header = reader.readLine().replaceAll("\"", "").split("\t", -1);
+      line = reader.readLine();
+      delim = ext.determineDelimiter(line);
+      header = reader.readLine().replaceAll("\"", "").split(delim, -1);
       outLine = new StringBuilder();
       for (int i = 1; i < header.length; i++) {
-        outLine.append("\t").append(header[i].split("\\|")[0]).append("| ").append(PANEL_1_UNITS);
+        outLine.append("\t").append(header[i].split("\\|")[0]).append("| ").append(PNL_1_CBC_START);
       }
       writer.println(outLine.toString());
     } catch (IOException e) {
-      log.reportTimeError("Error - unable to read file " + file);
+      log.reportTimeError("unable to read file " + file);
       try {
         reader.close();
       } catch (IOException e1) {}
@@ -145,13 +186,13 @@ public class CBCApplicator {
     line = null;
     try {
       while((line = reader.readLine()) != null) {
-        parts = line.split("\t", -1);
+        parts = line.split(delim, -1);
         if (parts[0].indexOf("_") == -1) continue; // skip mean/sd lines - TODO compute mean/sd of counts at end?
         idParts = parts[0].split("_");
         id = idParts[idParts.length - 2]; // id is always second to last token
         cbcData = idMap.get(id);
         if (cbcData == null) {
-          log.reportTimeWarning("id not found: " + id);
+          log.reportTimeWarning("CBC data not found for ID: " + id);
           continue;
         }
         cbcCnt = cbcData[panel1DataColumn];
@@ -164,7 +205,7 @@ public class CBCApplicator {
           for (int i = 2; i < parts.length; i++) {
             String column = header[i];
             double pct = Double.parseDouble(parts[i].replace("%", "")) / 100;
-            double parentCnt = cnts[getParentIndexPanel1(header, column) - 1];
+            double parentCnt = cnts[getParentIndex(header, column) - 1];
             cnts[i - 1] = parentCnt * pct;
           }
           
@@ -176,7 +217,110 @@ public class CBCApplicator {
         }
       }
     } catch (IOException e) {
-      log.reportTimeError("Error while reading file " + file + " - aborting.  Partial output file will be removed.");
+      log.reportTimeError("Exception occurred while reading file " + file + " - aborting.  Partial output file will be removed.");
+      try {
+        reader.close();
+      } catch (IOException e1) {}
+      writer.close();
+      (new File(outFile)).delete();
+      return;
+    }
+
+    writer.flush();
+    writer.close();
+    try {
+      reader.close();
+    } catch (IOException e) {}
+    
+  }
+  
+  private void processPanel2File(String file) {
+    BufferedReader reader;
+    PrintWriter writer;
+    String outFile, line, id, delim;
+    double cbcCnt;
+    String[] header, parts, idParts, cbcData;
+    StringBuilder outLine;
+    
+    try {
+      reader = Files.getAppropriateReader(dataDir + file);
+    } catch (FileNotFoundException e) {
+      log.reportTimeError("Data file " + file + " not found!");
+      return;
+    }
+    outFile = getOutFile(file);
+    if (Files.exists(outFile)) {
+      log.reportTimeError("output file " + outFile + " already exists!");
+      try {
+        reader.close();
+      } catch (IOException e) {}
+      return;
+    }
+    writer = Files.getAppropriateWriter(outFile);
+    
+    try {
+      line = reader.readLine();
+      delim = ext.determineDelimiter(line);
+      header = line.replaceAll("\"", "").split(delim, -1);
+      outLine = new StringBuilder();
+      for (int i = 1; i < header.length; i++) {
+        outLine.append("\t").append(header[i].split("\\|")[0]).append("| ").append(UNITS);
+        if (i == 1) {
+          outLine.append(" (");
+          outLine.append(PNL_2_CBC_COLS[0].split(" ")[0]);
+          for (int j = 1; j < PNL_2_CBC_COLS.length; j++) {
+            outLine.append(" - ").append(PNL_2_CBC_COLS[j].split(" ")[0]);
+          }
+          outLine.append(")");
+        }
+      }
+      writer.println(outLine.toString());
+    } catch (IOException e) {
+      log.reportTimeError("unable to read file " + file);
+      try {
+        reader.close();
+      } catch (IOException e1) {}
+      writer.close();
+      (new File(outFile)).delete();
+      return;
+    }
+
+    log.reportTime("Processing file " + file);
+    line = null;
+    try {
+      while((line = reader.readLine()) != null) {
+        parts = line.split(delim, -1);
+        if (parts[0].indexOf("_") == -1) continue; // skip mean/sd lines - TODO compute mean/sd of counts at end?
+        idParts = parts[0].split("_");
+        id = idParts[idParts.length - 2]; // id is always second to last token
+        cbcData = idMap.get(id);
+        if (cbcData == null) {
+          log.reportTimeWarning("id not found: " + id);
+          continue;
+        }
+        cbcCnt = getCBCCountPanel2(cbcData);
+        if (Double.isNaN(cbcCnt)) {
+          writer.println(id + "\t" + Array.toStr(Array.stringArray(parts.length - 1, "NaN")));
+        } else {
+          double[] cnts = new double[parts.length - 1];
+          cnts[0] = cbcCnt;
+          
+          for (int i = 2; i < parts.length; i++) {
+            String column = header[i];
+            double pct = Double.parseDouble(parts[i].replace("%", "")) / 100;
+            double parentCnt = cnts[getParentIndex(header, column) - 1];
+            cnts[i - 1] = parentCnt * pct;
+          }
+          
+          outLine = new StringBuilder(parts[0]);
+          for (int i = 0; i < cnts.length; i++) {
+            outLine.append("\t").append(cnts[i]);
+          }
+          writer.println(outLine.toString());
+        }
+      }
+    } catch (IOException e) {
+      log.reportTimeError("Exception occurred while reading file " + file + " - aborting.  Partial output file will be removed.");
       try {
         reader.close();
       } catch (IOException e1) {}
@@ -193,11 +337,26 @@ public class CBCApplicator {
     
   }
   
-  private void processPanel2File(String file) {
-    return;
+  private double getCBCCountPanel2(String[] cbcData) {
+    double[] cbcs = new double[PNL_2_CBC_COLS.length];
+    for (int i = 0; i < panel2DataColumns.length; i++) {
+      if ("NULL".equals(cbcData[panel2DataColumns[i]]) || "NA".equals(cbcData[panel2DataColumns[i]])) {
+        return Double.NaN;
+      }
+      cbcs[i] = Double.parseDouble(cbcData[panel2DataColumns[i]]);
+    }
+    double cbc = cbcs[0];
+    for (int i = 1; i < cbcs.length; i++) {
+      cbc -= cbcs[i];
+    }
+    return cbc;
   }
-  
-  private int getParentIndexPanel1(String[] header, String column) {
+
+  private String getOutFile(String file) {
+    return ((outDir == null || "".equals(outDir) || !Files.exists(outDir)) ? dataDir : outDir) + ext.rootOf(file, true) + "_COUNTS.xln";
+  }
+
+  private int getParentIndex(String[] header, String column) {
     String[] parts = column.split("\\|");
     String[] path = parts[0].split("/");
     StringBuilder sb = new StringBuilder();
@@ -227,8 +386,4 @@ public class CBCApplicator {
     runPanel2();
   }
   
-  public static void main(String[] args) {
-    new CBCApplicator().run();
-  }
-
 }
