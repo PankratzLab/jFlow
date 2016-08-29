@@ -621,6 +621,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     // If each runnable thing was turned into a plugin and either registered its command name or implemented
     // ActionListener itself we could eliminate this class completely.
     // NB: possibly related to previous fixme re:dedicated menu item class.
+    //FIXME rename to something that doesn't include the word "Thread", or refactor so this class is a Thread
+    // FIXME consider making static instead of an inner class...
     private final Project proj;
     private final String command;
 
@@ -909,6 +911,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
       } else {
         log.reportError("Error - unknown command: " + command);
       }
+      //FIXME If this class is not deleted we need to clean up the
+      // "threadsRunning" vector and remove the thread that ran this.
     }
   }
 
