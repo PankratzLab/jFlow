@@ -604,8 +604,7 @@ public class BamImport {
 
     generateGCModel(proj, analysisSet, referenceGenome, aName, 100);
     generateGCModel(proj, analysisSet, referenceGenome, aName, 10000);
-    generateGCModel(proj, analysisSet, referenceGenome, aName, GcModel.DEFAULT_GC_MODEL_BIN_FASTA);
-
+//    generateGCModel(proj, analysisSet, referenceGenome, aName, GcModel.DEFAULT_GC_MODEL_BIN_FASTA);
   }
 
   private static String generateGCModel(Project proj, LocusSet<Segment> analysisSet,

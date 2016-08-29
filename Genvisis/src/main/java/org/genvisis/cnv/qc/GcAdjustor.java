@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 
+import org.apache.commons.math3.distribution.NormalDistribution;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
@@ -28,14 +29,10 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.stats.CrossValidation;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
-import org.genvisis.stats.Stats;
 
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
-
-import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
-import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 
 /**
  * Class for correcting intensity using gc content, see
@@ -814,8 +811,9 @@ public class GcAdjustor {
 
     private void developColorManager(int numBins, boolean redevelop) {
       if (redevelop || colorManager == null) {
-        OpdfGaussian gd = new OpdfGaussian(Array.mean(gcs, true),
-                                           Math.pow(Array.stdev(getGcs(), true), 2));
+
+        NormalDistribution nd = new NormalDistribution(Array.mean(gcs, true),
+                                                       Array.stdev(getGcs(), true));
         Color[] colors = ColorExt.generatRGBScale(numBins); // bin gc to 100 bins
         Hashtable<String, String> lookup = new Hashtable<String, String>();// items associated with
                                                                            // category
@@ -823,8 +821,7 @@ public class GcAdjustor {
         Hashtable<String, ColorItem<String>> manager =
                                                      new Hashtable<String, ColorExt.ColorItem<String>>();
         for (int i = 0; i < gcs.length; i++) {
-          int gcColorIndex = (int) Math.round(Stats.cdf(gd, new ObservationReal(gcs[i])) * numBins
-                                              - 1);
+          int gcColorIndex = (int) Math.round(nd.cumulativeProbability(gcs[i]) * numBins - 1);
           gcColorIndex = Math.max(0, gcColorIndex);
           gcColorIndex = Math.min(numBins, gcColorIndex);
           lookup.put(markers[i], gcColorIndex + "");
