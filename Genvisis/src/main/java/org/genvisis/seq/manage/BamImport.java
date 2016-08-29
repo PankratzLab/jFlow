@@ -695,50 +695,55 @@ public class BamImport {
         }
       }
       Files.writeArrayList(autosomalToUse, markerfile);
+      if (!autosomalToUse.isEmpty()) {
+        proj.INTENSITY_PC_MARKERS_FILENAME.setValue(markerfile);
+        MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, 20, base, false, true, 0, null,
+                                    null, null, null, false, false, true, false, true, false, null,
+                                    -1, -1, GENOME_BUILD.HG19, MitoPipeline.DEFAULT_PVAL_OPTS, null,
+                                    false, true);
 
-      proj.INTENSITY_PC_MARKERS_FILENAME.setValue(markerfile);
-      MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, 20, base, false, true, 0, null,
-                                  null, null, null, false, false, true, false, true, false, null,
-                                  -1, -1, GENOME_BUILD.HG19, MitoPipeline.DEFAULT_PVAL_OPTS, null,
-                                  false, true);
+        String pcCorrectedFile = ext.addToRoot(proj.getPropertyFilename(),
+                                               "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
+                                                                           + "_pc_corrected_"
+                                                                           + base);
+        String newName = proj.PROJECT_NAME.getValue() + "_"
+                         + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base;
+        Files.copyFileUsingFileChannels(proj.getPropertyFilename(), pcCorrectedFile, proj.getLog());
+        Project pcCorrected = new Project(pcCorrectedFile, false);
+        pcCorrected.PROJECT_DIRECTORY.setValue(proj.PROJECT_DIRECTORY.getValue() + newName + "/");
+        pcCorrected.PROJECT_NAME.setValue(newName);
+        proj.copyBasicFiles(pcCorrected, true);
+        pcCorrected.SAMPLE_DIRECTORY.setValue(pcCorrected.PROJECT_DIRECTORY.getValue()
+                                              + "shadowSamples/");
 
-      String pcCorrectedFile = ext.addToRoot(proj.getPropertyFilename(),
-                                             "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
-                                                                         + "_pc_corrected_" + base);
-      String newName = proj.PROJECT_NAME.getValue() + "_"
-                       + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base;
-      Files.copyFileUsingFileChannels(proj.getPropertyFilename(), pcCorrectedFile, proj.getLog());
-      Project pcCorrected = new Project(pcCorrectedFile, false);
-      pcCorrected.PROJECT_DIRECTORY.setValue(proj.PROJECT_DIRECTORY.getValue() + newName + "/");
-      pcCorrected.PROJECT_NAME.setValue(newName);
-      proj.copyBasicFiles(pcCorrected, true);
-      pcCorrected.SAMPLE_DIRECTORY.setValue(pcCorrected.PROJECT_DIRECTORY.getValue()
-                                            + "shadowSamples/");
+        String[] correctedSamps = Array.tagOn(proj.getSamples(),
+                                              pcCorrected.SAMPLE_DIRECTORY.getValue(),
+                                              Sample.SAMPLE_FILE_EXTENSION);
+        if (!Files.exists("", correctedSamps)) {
+          proj.getLog()
+              .reportTimeInfo("PC correcting project using "
+                              + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components ");
 
-      String[] correctedSamps = Array.tagOn(proj.getSamples(),
-                                            pcCorrected.SAMPLE_DIRECTORY.getValue(),
-                                            Sample.SAMPLE_FILE_EXTENSION);
-      if (!Files.exists("", correctedSamps)) {
-        proj.getLog()
-            .reportTimeInfo("PC correcting project using "
-                            + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components ");
-
-        PennCNVPrep.exportSpecialPennCNV(proj, "correction/",
-                                         pcCorrected.PROJECT_DIRECTORY.getValue()
-                                                              + "tmpPCCorrection/",
-                                         correctionPCs, null, numthreads, 1, false, LS_TYPE.REGULAR,
-                                         -1, true);
-        // Warning currently set up for 24 threads..
-        // TODO
-        PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/",
-                                         pcCorrected.PROJECT_DIRECTORY.getValue()
-                                                                     + "tmpPCCorrection/",
-                                         correctionPCs, null, 1, 24, true, LS_TYPE.REGULAR, 5,
-                                         true);
-      }
-      pcCorrected.saveProperties();
-      if (type.getType() != null) {
-        correctedProjects.add(new ProjectCorrected(pcCorrected, type.getType()));
+          PennCNVPrep.exportSpecialPennCNV(proj, "correction/",
+                                           pcCorrected.PROJECT_DIRECTORY.getValue()
+                                                                + "tmpPCCorrection/",
+                                           correctionPCs, null, numthreads, 1, false,
+                                           LS_TYPE.REGULAR, -1, true);
+          // Warning currently set up for 24 threads..
+          // TODO
+          PennCNVPrep.exportSpecialPennCNV(pcCorrected,
+                                           "correction/",
+                                           pcCorrected.PROJECT_DIRECTORY.getValue()
+                                                          + "tmpPCCorrection/",
+                                           correctionPCs, null, 1, 24, true, LS_TYPE.REGULAR, 5,
+                                           true);
+        }
+        pcCorrected.saveProperties();
+        if (type.getType() != null) {
+          correctedProjects.add(new ProjectCorrected(pcCorrected, type.getType()));
+        }
+      } else {
+        proj.getLog().reportTimeWarning("Did not find any markers of type " + type);
       }
     }
     return correctedProjects;
