@@ -359,7 +359,7 @@ public class BamImport {
       if (compileProject) {
         compileProject(proj, correctionPCs, numthreads, log, bamsToImport, referenceGenome,
                        analysisSet.markerTypes, analysisSet.analysisSet,
-                       analysisSet.offTargetsToUse, results);
+                       analysisSet.offTargetsToUse, results, aName);
       }
 
 
@@ -471,7 +471,7 @@ public class BamImport {
                                      String[] bamsToImport, ReferenceGenome referenceGenome,
                                      ArrayList<MarkerFileType> markerTypes,
                                      LocusSet<Segment> analysisSet, String[] offTargetsToUse,
-                                     BamPileResult[] results) {
+                                     BamPileResult[] results, ASSEMBLY_NAME aName) {
     String[] mappedReadCounts = new String[bamsToImport.length + 1];
     mappedReadCounts[0] = "Sample\tAlignedReadCount\tUnalignedReadCount";
     long fingerPrint = proj.getMarkerSet().getFingerprint();
@@ -602,14 +602,15 @@ public class BamImport {
       Mosaicism.findOutliers(proj, numthreads);
     }
 
-    generateGCModel(proj, analysisSet, referenceGenome, 100);
-    generateGCModel(proj, analysisSet, referenceGenome, 10000);
-    generateGCModel(proj, analysisSet, referenceGenome, GcModel.DEFAULT_GC_MODEL_BIN_FASTA);
+    generateGCModel(proj, analysisSet, referenceGenome, aName, 100);
+    generateGCModel(proj, analysisSet, referenceGenome, aName, 10000);
+    generateGCModel(proj, analysisSet, referenceGenome, aName, GcModel.DEFAULT_GC_MODEL_BIN_FASTA);
 
   }
 
   private static String generateGCModel(Project proj, LocusSet<Segment> analysisSet,
-                                        ReferenceGenome referenceGenome, int buffer) {
+                                        ReferenceGenome referenceGenome, ASSEMBLY_NAME aName,
+                                        int buffer) {
     String gcFile = ext.addToRoot(proj.GC_MODEL_FILENAME.getValue(), ".buffer_" + buffer);
     if (!Files.exists(gcFile)) {
       MarkerSet markerSet = proj.getMarkerSet();
@@ -626,7 +627,7 @@ public class BamImport {
           writer.println(markerNames[i] + "\t" + markerSet.getChrs()[i] + "\t"
                          + markerSet.getPositions()[i] + "\t"
                          + ReferenceGenome.getPercentGC(referenceGenome.getSequenceFor(analysisSet.getLoci()[i].getBufferedSegment(buffer),
-                                                                                       buffer > 100000)));
+                                                                                       aName, buffer > 100000)));
         }
         writer.close();
       } catch (Exception e) {
