@@ -2,6 +2,7 @@ package org.genvisis.seq.analysis;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Set;
 
 import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
@@ -13,6 +14,9 @@ import org.genvisis.seq.analysis.SNPEFF.SnpEffResult;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCFTumorNormalOps;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 public class GATK {
 	public static final String GATK_LOCATION_COMMAND = "gatk=";
@@ -97,14 +101,15 @@ public class GATK {
 
 	public static final String AN = "-an";
 	// from https://www.broadinstitute.org/gatk/guide/article?id=1259
-	// date = 12-17-14
-  public static final String[] ANS_SNP_EXOME = {"QD", "FS", "SOR", "MQ", "MQRankSum",
-                                                "ReadPosRankSum", "InbreedingCoeff"}; // NO DP for
-																															// Exomes
-  public static final String[] ANS_SNP_GENOME = Array.addStrToArray("DP", ANS_SNP_EXOME, 0);
-  public static final String[] ANS_INDEL_EXOME = {"QD", "FS", "SOR", "MQRankSum", "ReadPosRankSum",
-																						"InbreedingCoeff"};// NO DP for Exomes
-  public static final String[] ANS_INDEL_GENOME = Array.addStrToArray("DP", ANS_INDEL_EXOME, 0);
+
+  // accessed 2016-08-29 (last updated 2016-06-28)
+  public static final Set<String> ANS_BASE = ImmutableSet.of("QD", "FS", "SOR", "MQRankSum",
+                                                             "ReadPosRankSum");
+  public static final Set<String> ANS_SNP_ADDITIONS = ImmutableSet.of("MQ");
+  public static final Set<String> ANS_INDEL_ADDITIONS = ImmutableSet.of();
+  public static final Set<String> ANS_GENOME_ADDITIONS = ImmutableSet.of("DP");
+  public static final Set<String> ANS_EXOME_ADDITIONS = ImmutableSet.of();
+  public static final Set<String> ANS_INBREEDING_ADDITIONS = ImmutableSet.of("InbreedingCoeff");
 
 	public static final String MODE = "-mode";
 	public static final String SNP = "SNP";
@@ -140,7 +145,7 @@ public class GATK {
   public static final String[] TRANCHES = {"100.0", "99.9", "99.0", "90.0"};
 
   public static final String INDEL_RESOURCE_FULL_MILLS =
-                                                       "-resource:mills,known=true,training=true,truth=true,prior=12.0";
+                                                       "-resource:mills,known=false,training=true,truth=true,prior=12.0";
   public static final String INDEL_RESOURCE_FULL_DBSNP =
                                                        "-resource:dbsnp,known=true,training=false,truth=false,prior=2.0";
 
@@ -896,7 +901,8 @@ public class GATK {
 																						jGatkGenotyper.getRecalSNPFile(),
 																						jGatkGenotyper.getTranchesSNPFile(),
                                             jGatkGenotyper.getRscriptSNPFile(),
-                                            jGatkGenotyper.getSeqTarget(), numThreads, log);
+                                            jGatkGenotyper.getSeqTarget(),
+                                            jGatkGenotyper.isIgnoreInbreeding(), numThreads, log);
 			if (progress) {
 				progress = applySNPRecalibrationModel(jGatkGenotyper.getRawVCF(),
 																							jGatkGenotyper.getRecalSNPFile(),
@@ -908,7 +914,8 @@ public class GATK {
 																				jGatkGenotyper.getRecalINDELFile(),
 																				jGatkGenotyper.getTranchesINDELFile(),
                                        jGatkGenotyper.getRscriptINDELFile(),
-                                       jGatkGenotyper.getSeqTarget(), numThreads, log);
+                                       jGatkGenotyper.getSeqTarget(),
+                                       jGatkGenotyper.isIgnoreInbreeding(), numThreads, log);
 					if (progress) {
 						applyINDELRecalibrationModel(	jGatkGenotyper.getRecalSNP_VCF_File(),
 																					jGatkGenotyper.getRecalINDELFile(),
@@ -925,7 +932,7 @@ public class GATK {
 
 	private boolean buildSNPRecalibrationModel(	String inputVCF, String recalFile, String tranchesFile,
                                              String rscriptFile, SEQ_TARGET seqTarget,
-                                             int numThreads, Logger altLog) {
+                                             boolean ignoreInbreeding, int numThreads, Logger altLog) {
 		String[] inputs = new String[] {inputVCF, getHapMapTraining(), getOmniTraining(),
 																		getThousandGTraining(), getDbSnpTraining()};
 		String[] ouputs = new String[] {recalFile, tranchesFile, rscriptFile};
@@ -933,7 +940,7 @@ public class GATK {
 																			VARIANT_RECALIBRATOR, R, referenceGenomeFasta, INPUT,
 																			inputVCF, MODE, SNP, TRANCHES_FILE, tranchesFile, RECAL_FILE,
 																			recalFile, R_SCRIPT_FILE, rscriptFile};
-    command = Array.concatAll(command, buildAns(true, seqTarget, log), getCurrentResourceBundle(),
+    command = Array.concatAll(command, buildAns(true, seqTarget, ignoreInbreeding, log), getCurrentResourceBundle(),
                               buildTranches());
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
 																						overWriteExistingOutput, false,
@@ -955,7 +962,7 @@ public class GATK {
 
 	private boolean buildINDELRecalibrationModel(	String inputVCF, String recalFile,
 																								String tranchesFile, String rscriptFile,
-                                               SEQ_TARGET seqTarget, int numThreads,
+                                               SEQ_TARGET seqTarget, boolean ignoreInbreeding, int numThreads,
                                                Logger altLog) {
 		String[] inputs = new String[] {inputVCF, getMillsIndelTraining()};
 		String[] ouputs = new String[] {recalFile, tranchesFile, rscriptFile};
@@ -965,7 +972,7 @@ public class GATK {
 																			RECAL_FILE, recalFile, R_SCRIPT_FILE, rscriptFile,
 																			MAX_GAUSSIANS, DEFAULT_INDEL_MAX_GAUSSIANS,
 																			INDEL_RESOURCE_FULL_MILLS, getMillsIndelTraining()};
-    command = Array.concatAll(command, buildAns(false, seqTarget, log), buildTranches());
+    command = Array.concatAll(command, buildAns(false, seqTarget, ignoreInbreeding, log), buildTranches());
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
 																						overWriteExistingOutput, true,
                                             altLog == null ? log : altLog);
@@ -1052,31 +1059,37 @@ public class GATK {
 																						verbose, overWriteExistingOutput, skipReporting, log);
 	}
 
+
   /**
    * 
    * @param SNP true for SNP recal, false for indel
    * @param exome true for exome recal, false for genome
+   * @param ignoreInbreeding true to leave out InbreedingCoeff an, false to include
    * @return
    */
-  private static String[] buildAns(boolean SNP, SEQ_TARGET seqTarget, Logger log) {
-    String[] ansToUse;
+  private static String[] buildAns(boolean SNP, SEQ_TARGET seqTarget, boolean ignoreInbreeding,
+                                   Logger log) {
+    Set<String> ansToUse = Sets.newHashSet(ANS_BASE);
+    if (SNP) {
+      ansToUse.addAll(ANS_SNP_ADDITIONS);
+    } else {
+      ansToUse.addAll(ANS_INDEL_ADDITIONS);
+    }
     switch (seqTarget) {
       default:
-        log.reportError("Unrecognized Sequencing target, using Exome recalibration annotations");
+        log.reportTimeError("Unrecognized Sequencing target, using Exome recalibration annotations");
       case EXOME:
-        ansToUse = SNP ? ANS_SNP_EXOME : ANS_INDEL_EXOME;
+        ansToUse.addAll(ANS_EXOME_ADDITIONS);
         break;
       case GENOME:
-        ansToUse = SNP ? ANS_SNP_GENOME : ANS_INDEL_GENOME;
+        ansToUse.addAll(ANS_GENOME_ADDITIONS);
         break;
     }
-		String[] ans = new String[ansToUse.length * 2];
-		int index = 0;
-		for (String element : ansToUse) {
-      ans[index++] = AN;
-      ans[index++] = element;
+    if (!ignoreInbreeding) {
+      ansToUse.addAll(ANS_INBREEDING_ADDITIONS);
 		}
-		return ans;
+
+    return ansToUse.toArray(new String[ansToUse.size()]);
 	}
 
 	private static String[] buildTranches() {

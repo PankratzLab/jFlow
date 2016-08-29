@@ -179,6 +179,10 @@ public class GATK_Genotyper {
 		} else {
 			command += SNPEFF.SNP_EFF_NO_ANNO_COMMAND + SPACE;
 		}
+    if (jointGATKGenotyper.isIgnoreInbreeding()) {
+      command += IGNORE_INBREEDING;
+    }
+    command += TARGETED_REGION + jointGATKGenotyper.getSeqTarget().toString();
 		if (mergeVCF != null) {
 			command += MERGE_WITH + mergeVCF.getArg() + SPACE;
 		}
@@ -281,6 +285,7 @@ public class GATK_Genotyper {
 
     private final String rootInputDir;
     private final String rootOutputDir;
+    private final boolean ignoreInbreeding;
 		private String output;
 		private String rawVCF;
     private String fileOfGVCFs;
@@ -306,13 +311,14 @@ public class GATK_Genotyper {
 		 * @param log
 		 */
 		public JointGATKGenotyper(String rootInputDir, String rootOutputDir, String output,
-															String restrictionContig, SEQ_TARGET seqTarget, Logger log) {
+															String restrictionContig, SEQ_TARGET seqTarget, boolean ignoreInbreeding, Logger log) {
 			super();
 			this.rootInputDir = rootInputDir;
 			this.rootOutputDir = rootOutputDir;
 			this.output = output;
 			this.restrictionContig = restrictionContig;
       		this.seqTarget = seqTarget;
+      		this.ignoreInbreeding = ignoreInbreeding;
 			fileOfGVCFs = null;
 			this.log = log;
 			fail = false;
@@ -456,6 +462,10 @@ public class GATK_Genotyper {
 			return rscriptINDELFile;
 		}
 
+    public boolean isIgnoreInbreeding() {
+      return ignoreInbreeding;
+    }
+
 	}
 
 	public static void jointGenotype(	String rootInputDir, String rootOutputDir, String output,
@@ -466,7 +476,7 @@ public class GATK_Genotyper {
 																		String snpSiftLocation, String annovarLocation,
 																		String annoBuild, String regionsFile, SEQ_TARGET seqTarget, MergeVCF mergeVCF,
 																		ANNOVCF annoVCF, String restrictionContig, boolean verbose,
-																		boolean overwriteExisting, boolean batch, boolean annotate,
+																		boolean overwriteExisting, boolean batch, boolean annotate, boolean ignoreInbreeding,
 																		boolean skipRecalibration, int numThreads, int memoryInMB,
 																		int wallTimeInHours, Logger log) {
 		GATK gatk = new GATK(	gATKLocation, referenceGenomeFasta, null, null, null, verbose,
@@ -483,7 +493,7 @@ public class GATK_Genotyper {
 		GATK_Genotyper genotyper = new GATK_Genotyper(gatk, snpeff, snpsift, annovar, 0, numThreads,
 																									verbose, log);
 		JointGATKGenotyper jGatkGenotyper = new JointGATKGenotyper(	rootInputDir, rootOutputDir, output,
-																																restrictionContig, seqTarget, log);
+																																restrictionContig, seqTarget, ignoreInbreeding, log);
 		jGatkGenotyper.init(fileOfGVCFs);
 		new File(rootOutputDir).mkdirs();
 		if (batch) {
@@ -651,6 +661,7 @@ public class GATK_Genotyper {
 	public static final String DBSNP_COMMMAND = "dbSNP=";
 	public static final String MILLS = "mills=";
 	public static final String ANNOTATE_VCF = "annotateThisVCFOnly=";
+  public static final String IGNORE_INBREEDING = "-ignoreInbreeding";
 	public static final String REGIONS_FILE = "regionsFile=";
   public static final String TARGETED_REGION = "seqTarget=";
 	public static final String MERGE_WITH = "mergeWith=";
@@ -683,6 +694,7 @@ public class GATK_Genotyper {
 		String vcfToAnnotate = null;
 		String restrictionContig = null;
 		boolean annotate = true;
+    boolean ignoreInbreeding = false;
 		String regionsFile = null;
 		String logFile = "GATK_GENOTYPE.log";
 		boolean skipRecalibration = false;
@@ -703,7 +715,7 @@ public class GATK_Genotyper {
 							+ gATKLocation + " (defaults to systems path))\n" + "";
 
 		usage += "   (6) run in quiet mode (i.e. "+ GATK_LanePrep.QUIET_COMMAND
-							+ " (not tbe default))\n" + "";
+             + " (not the default))\n" + "";
 		usage += "   (7) number of  threads for analysis(i.e."+ NUM_THREADS + numThreads
 							+ " (default))\n" + "";
 
@@ -743,8 +755,10 @@ public class GATK_Genotyper {
 		usage += "   (24) annotate this vcf only (skipping all previous steps) (i.e. "+ ANNOTATE_VCF
 							+ " ( no default))\n" + "";
 		usage +=
-        "   (25) Region targeted by sequencing (" + Array.toStr(SEQ_TARGET.values(), ",") + ") ( (i.e. "
-           + TARGETED_REGION + " ( no default))\n" + "";
+          "   (25) Don't use Inbreeding Coefficient in variant filtering (use when <10 samples or highly related) (i.e. "
+             + IGNORE_INBREEDING + " (not the default))";
+    usage += "   (25) Region targeted by sequencing (" + Array.toStr(SEQ_TARGET.values(), ",")
+             + ") ( (i.e. " + TARGETED_REGION + " ( no default))\n" + "";
     usage +=
           "   (26) merge in these vcfs prior to annotating( like ARIC) (ex. MERGE_WITH=ARIC:aric1.vcf,aric2.vcf) ( (i.e. "
 							+ MERGE_WITH + " ( no default))\n" + "";
@@ -811,7 +825,7 @@ public class GATK_Genotyper {
 				batch = true;
 				numArgs--;
 			} else if (arg.startsWith(GATK_LanePrep.OVERWRITE_EXISTING_COMMAND)) {
-				batch = true;
+        overwriteExisting = true;
 				numArgs--;
 			} else if (arg.startsWith(GATK.GATK_LOCATION_COMMAND)) {
 				gATKLocation = ext.parseStringArg(arg, "");
@@ -840,6 +854,9 @@ public class GATK_Genotyper {
 			} else if (arg.startsWith(GATK.L)) {
 				restrictionContig = ext.parseStringArg(arg, "");
 				numArgs--;
+      } else if (arg.startsWith(IGNORE_INBREEDING)) {
+        ignoreInbreeding = true;
+        numArgs--;
 			} else if (arg.startsWith(REGIONS_FILE)) {
 				regionsFile = ext.parseStringArg(arg, "");
 				numArgs--;
@@ -884,7 +901,7 @@ public class GATK_Genotyper {
 										fileOfGVCFs, hapMapTraining, omniTraining, thousandGTraining, dbSnpTraining,
 										millsIndelTraining, snpEffLocation, snpSiftLocation, annovarLocation, annoBuild,
 										regionsFile, seqTarget, mergeVCF, annoVCF, restrictionContig, verbose, overwriteExisting,
-										batch, annotate, skipRecalibration, numThreads, memoryInMB, wallTimeInHours,
+										batch, annotate, skipRecalibration, ignoreInbreeding, numThreads, memoryInMB, wallTimeInHours,
 										log);
 		}
 	}
