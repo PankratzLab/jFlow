@@ -195,6 +195,7 @@ public class CBCApplicator implements Runnable {
     String outFile, line, id, cbcCnt, delim;
     String[] header, parts, idParts, cbcData;
     StringBuilder outLine;
+    boolean skipFirstCol = false;
     
     try {
       reader = Files.getAppropriateReader(dataDir + file);
@@ -219,6 +220,12 @@ public class CBCApplicator implements Runnable {
       outLine = new StringBuilder();
       for (int i = "".equals(header[0]) ? 1 : 0; i < header.length; i++) {
         if ("".equals(header[i])) continue;
+        if (header[i].indexOf('|') == -1) {
+          if (i == 1) {
+            skipFirstCol = true;
+          }
+          continue;
+        }
         outLine.append("\t").append(header[i].split("\\|")[0]).append("| ").append(PNL_1_CBC_START);
       }
       writer.println(outLine.toString());
@@ -247,18 +254,19 @@ public class CBCApplicator implements Runnable {
         }
         cbcCnt = cbcData[panel1DataColumn];
         if ("NULL".equals(cbcCnt) || "NA".equals(cbcCnt)) {
-          writer.println(id + "\t" + Array.toStr(Array.stringArray(parts.length - 1, "NaN")));
+          writer.println(id + "\t" + Array.toStr(Array.stringArray(parts.length - (skipFirstCol ? 2 : 1), "NaN")));
         } else {
-          double[] cnts = new double[parts.length - 1];
+          double[] cnts = new double[parts.length - (skipFirstCol ? 2 : 1)];
           cnts[0] = Double.parseDouble(cbcCnt);
           
-          for (int i = 2; i < parts.length; i++) {
+          for (int i = (skipFirstCol ? 3 : 2); i < parts.length; i++) {
             String column = header[i];
             if ("".equals(column)) continue;
+            if (column.indexOf('|') == -1) continue;
             String temp = parts[i].replace("%", "");
             double pct = Double.parseDouble(temp) / 100;
-            double parentCnt = cnts[getParentIndex(header, column) - 1];
-            cnts[i - 1] = parentCnt * pct;
+            double parentCnt = cnts[getParentIndex(header, column) - (skipFirstCol ? 2 : 1)];
+            cnts[i - (skipFirstCol ? 2 : 1)] = parentCnt * pct;
           }
           
           outLine = new StringBuilder(parts[0]);
@@ -293,6 +301,7 @@ public class CBCApplicator implements Runnable {
     double cbcCnt;
     String[] header, parts, idParts, cbcData;
     StringBuilder outLine;
+    boolean skipFirstCol = false;
     
     try {
       reader = Files.getAppropriateReader(dataDir + file);
@@ -317,6 +326,12 @@ public class CBCApplicator implements Runnable {
       outLine = new StringBuilder();
       for (int i = 1; i < header.length; i++) {
         if ("".equals(header[i])) continue;
+        if (header[i].indexOf('|') == -1) {
+          if (i == 1) {
+            skipFirstCol = true;
+          }
+          continue;
+        }
         outLine.append("\t").append(header[i].split("\\|")[0]).append("| ").append(UNITS);
         if (i == 1) {
           outLine.append(" (");
@@ -353,17 +368,19 @@ public class CBCApplicator implements Runnable {
         }
         cbcCnt = getCBCCountPanel2(cbcData);
         if (Double.isNaN(cbcCnt)) {
-          writer.println(id + "\t" + Array.toStr(Array.stringArray(parts.length - 1, "NaN")));
+          writer.println(id + "\t" + Array.toStr(Array.stringArray(parts.length - (skipFirstCol ? 2 : 1), "NaN")));
         } else {
-          double[] cnts = new double[parts.length - 1];
+          double[] cnts = new double[parts.length - (skipFirstCol ? 2 : 1)];
           cnts[0] = cbcCnt;
           
-          for (int i = 2; i < parts.length; i++) {
+          for (int i = skipFirstCol ? 3 : 2; i < parts.length; i++) {
             String column = header[i];
             if ("".equals(column)) continue;
-            double pct = Double.parseDouble(parts[i].replace("%", "")) / 100;
-            double parentCnt = cnts[getParentIndex(header, column) - 1];
-            cnts[i - 1] = parentCnt * pct;
+            if (column.indexOf('|') == -1) continue;
+            String temp = parts[i].replace("%", "");
+            double pct = Double.parseDouble(temp) / 100;
+            double parentCnt = cnts[getParentIndex(header, column) - (skipFirstCol ? 2 : 1)];
+            cnts[i - (skipFirstCol ? 2 : 1)] = parentCnt * pct;
           }
           
           outLine = new StringBuilder(parts[0]);
