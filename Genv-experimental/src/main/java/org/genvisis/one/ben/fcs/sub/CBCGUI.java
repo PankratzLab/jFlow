@@ -28,6 +28,7 @@ import java.util.Properties;
 
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
+import javax.swing.JProgressBar;
 
 public class CBCGUI {
 
@@ -39,6 +40,7 @@ public class CBCGUI {
 
   /**
    * Create the application.
+   * @wbp.parser.entryPoint
    */
   public CBCGUI() {
     initialize();
@@ -70,12 +72,12 @@ public class CBCGUI {
           curr = "./";
         }
         JFileChooser jfc = new JFileChooser(curr);
-        jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         jfc.setDialogTitle("Select CBC Directory");
         jfc.setMultiSelectionEnabled(false);
         int resp = jfc.showOpenDialog(CBCGUI.this.frmCbcApplicator);
         if (resp == JFileChooser.APPROVE_OPTION) {
-          String newPath = jfc.getSelectedFile().getAbsolutePath();
+          String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
           txtCBCDir.setText(newPath);
           saveProps();
         }
@@ -99,11 +101,11 @@ public class CBCGUI {
         }
         JFileChooser jfc = new JFileChooser(curr);
         jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        jfc.setDialogTitle("Select Data File Directory");
+        jfc.setDialogTitle("Select Data File Directory (tab or comma delimited files)");
         jfc.setMultiSelectionEnabled(false);
         int resp = jfc.showOpenDialog(CBCGUI.this.frmCbcApplicator);
         if (resp == JFileChooser.APPROVE_OPTION) {
-          String newPath = jfc.getSelectedFile().getAbsolutePath();
+          String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
           txtDataDir.setText(newPath);
           saveProps();
         }
@@ -131,7 +133,7 @@ public class CBCGUI {
         jfc.setMultiSelectionEnabled(false);
         int resp = jfc.showOpenDialog(CBCGUI.this.frmCbcApplicator);
         if (resp == JFileChooser.APPROVE_OPTION) {
-          String newPath = jfc.getSelectedFile().getAbsolutePath();
+          String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
           txtOutDir.setText(newPath);
           saveProps();
         }
@@ -170,15 +172,21 @@ public class CBCGUI {
         };
         log.linkTextArea(textArea);
         cbcA.setLog(log);
+        cbcA.setProgressBar(prog);
         try {
           cbcA.run();
         } catch (RuntimeException e) {
+          e.printStackTrace();
           return;
         }
         JOptionPane.showMessageDialog(CBCGUI.this.frmCbcApplicator, "Done!", "Done!",
             JOptionPane.INFORMATION_MESSAGE);
       }
     });
+    
+    prog = new JProgressBar();
+    prog.setStringPainted(true);
+    panel.add(prog, "cell 0 0,grow");
     panel.add(btnRun, "cell 1 0,growx,aligny top");
 
     JButton btnClose = new JButton("Close");
@@ -197,6 +205,7 @@ public class CBCGUI {
   private static final String PROPKEY_CBC_DIR = "CBC_DIR";
   private static final String PROPKEY_DATA_DIR = "DATA_DIR";
   private static final String PROPKEY_OUT_DIR = "OUT_DIR";
+  private JProgressBar prog;
 
   private void saveProps() {
     try {

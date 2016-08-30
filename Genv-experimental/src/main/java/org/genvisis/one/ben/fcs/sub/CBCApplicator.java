@@ -9,6 +9,9 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import javax.swing.JProgressBar;
+import javax.swing.SwingUtilities;
+
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -50,6 +53,8 @@ public class CBCApplicator implements Runnable {
   private Logger log = new Logger();
   
   HashMap<String, String[]> idMap = new HashMap<String, String[]>();
+
+  private JProgressBar progressBar;
   
   public void setCBCDir(String cbcD) {
     this.cbcDir = cbcD;
@@ -67,6 +72,10 @@ public class CBCApplicator implements Runnable {
     this.log = log;
   }
   
+  public void setProgressBar(JProgressBar prog) {
+    this.progressBar = prog;
+  }
+
   private void loadCBCs() {
     if (cbcDir == null || "".equals(cbcDir)) {
       log.reportTimeError("CBC directory not set!");
@@ -125,8 +134,28 @@ public class CBCApplicator implements Runnable {
       log.reportTime("No Panel_1 files available!");
       return;
     }
+    if (progressBar != null) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          progressBar.setString("Panel 1");
+          progressBar.setMinimum(0);
+          progressBar.setMaximum(filesP1.length);
+        }
+      });
+    }
     for (int i = 0; i < filesP1.length; i++) {
       processPanel1File(filesP1[i]);
+      if (progressBar != null) {
+        final int ind = i + 1;
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            progressBar.setValue(ind);
+            progressBar.setString("Panel 1: (" + ind + " / " + filesP1.length + ")");
+          }
+        });
+      }
     }
   }
 
@@ -135,8 +164,28 @@ public class CBCApplicator implements Runnable {
       log.reportTime("No Panel_2 files available!");
       return;
     }
+    if (progressBar != null) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          progressBar.setString("Panel 2");
+          progressBar.setMinimum(0);
+          progressBar.setMaximum(filesP2.length);
+        }
+      });
+    }
     for (int i = 0; i < filesP2.length; i++) {
       processPanel2File(filesP2[i]);
+      if (progressBar != null) {
+        final int ind = i + 1;
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            progressBar.setValue(ind);
+            progressBar.setString("Panel 2: (" + ind + " / " + filesP2.length + ")");
+          }
+        });
+      }
     }
   }
   
@@ -165,10 +214,11 @@ public class CBCApplicator implements Runnable {
     
     try {
       line = reader.readLine();
-      delim = ext.determineDelimiter(line);
-      header = reader.readLine().replaceAll("\"", "").split(delim, -1);
+      delim = file.endsWith("csv") ? "," : ext.determineDelimiter(line);
+      header = delim.equals(",") ? ext.splitCommasIntelligently(line, true, log) : line.replaceAll("\"", "").split(delim, -1);
       outLine = new StringBuilder();
-      for (int i = 1; i < header.length; i++) {
+      for (int i = "".equals(header[0]) ? 1 : 0; i < header.length; i++) {
+        if ("".equals(header[i])) continue;
         outLine.append("\t").append(header[i].split("\\|")[0]).append("| ").append(PNL_1_CBC_START);
       }
       writer.println(outLine.toString());
@@ -204,7 +254,9 @@ public class CBCApplicator implements Runnable {
           
           for (int i = 2; i < parts.length; i++) {
             String column = header[i];
-            double pct = Double.parseDouble(parts[i].replace("%", "")) / 100;
+            if ("".equals(column)) continue;
+            String temp = parts[i].replace("%", "");
+            double pct = Double.parseDouble(temp) / 100;
             double parentCnt = cnts[getParentIndex(header, column) - 1];
             cnts[i - 1] = parentCnt * pct;
           }
@@ -260,10 +312,11 @@ public class CBCApplicator implements Runnable {
     
     try {
       line = reader.readLine();
-      delim = ext.determineDelimiter(line);
-      header = line.replaceAll("\"", "").split(delim, -1);
+      delim = file.endsWith("csv") ? "," : ext.determineDelimiter(line);
+      header = delim.equals(",") ? ext.splitCommasIntelligently(line, true, log) : line.replaceAll("\"", "").split(delim, -1);
       outLine = new StringBuilder();
       for (int i = 1; i < header.length; i++) {
+        if ("".equals(header[i])) continue;
         outLine.append("\t").append(header[i].split("\\|")[0]).append("| ").append(UNITS);
         if (i == 1) {
           outLine.append(" (");
@@ -307,6 +360,7 @@ public class CBCApplicator implements Runnable {
           
           for (int i = 2; i < parts.length; i++) {
             String column = header[i];
+            if ("".equals(column)) continue;
             double pct = Double.parseDouble(parts[i].replace("%", "")) / 100;
             double parentCnt = cnts[getParentIndex(header, column) - 1];
             cnts[i - 1] = parentCnt * pct;
@@ -353,7 +407,7 @@ public class CBCApplicator implements Runnable {
   }
 
   private String getOutFile(String file) {
-    return ((outDir == null || "".equals(outDir) || !Files.exists(outDir)) ? dataDir : outDir) + ext.rootOf(file, true) + "_COUNTS.xln";
+    return ((outDir == null || "".equals(outDir) || !Files.exists(outDir)) ? dataDir : outDir) + ext.rootOf(file, true) + "_COUNTS.tab.txt";
   }
 
   private int getParentIndex(String[] header, String column) {
@@ -384,6 +438,14 @@ public class CBCApplicator implements Runnable {
     discoverDataFiles();
     runPanel1();
     runPanel2();
+    if (progressBar != null) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          progressBar.setString("Done!");
+        }
+      });
+    }
   }
   
 }
