@@ -46,6 +46,12 @@ import htsjdk.variant.variantcontext.Allele;
  *
  */
 public class MarkerBlast {
+
+  public static final int DEFAULT_MAX_ALIGNMENTS_REPORTED = 20;
+  public static final boolean DEFAULT_REPORT_TO_TEMPORARY_FILE = true;
+  public static final boolean DEFAULT_ANNOTATE_GC_CONTENT = true;
+  public static final boolean DEFAULT_DO_BLAST = true;
+
   public enum FILE_SEQUENCE_TYPE {
                                   // /**
                                   // * like HumanOmni2-5-8-v1-2-A-Strand-Report-FDT.txt
@@ -59,6 +65,14 @@ public class MarkerBlast {
                                    * Like GenomeWideSNP_6.probe_tab
                                    */
                                   AFFY_ANNOT;
+  }
+
+  public static MarkerBlastResult blastEm(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type,
+                                          int numThreads) {
+    int wordSize = getDefaultWordSize(proj);
+    return blastEm(proj, fileSeq, type, wordSize, wordSize, DEFAULT_MAX_ALIGNMENTS_REPORTED,
+                   numThreads, DEFAULT_REPORT_TO_TEMPORARY_FILE, DEFAULT_ANNOTATE_GC_CONTENT,
+                   DEFAULT_DO_BLAST);
   }
 
   /**
@@ -178,6 +192,26 @@ public class MarkerBlast {
       // }
       return result;
     }
+  }
+
+  public static int getDefaultWordSize(Project proj) {
+    int reportWordSize;
+    switch (proj.getArrayType()) {
+      case AFFY_GW6:
+        reportWordSize = 15;
+        break;
+      case AFFY_GW6_CN:
+        reportWordSize = 15;
+        break;
+      case ILLUMINA:
+        reportWordSize = 25;
+        break;
+      default:
+        reportWordSize = -1;
+        proj.getLog().reportTimeError("Invalid array type " + proj.getArrayType());
+        break;
+    }
+    return reportWordSize;
   }
 
   /**
@@ -1053,10 +1087,10 @@ public class MarkerBlast {
     int numThreads = 4;
     int blastWordSize = -1;
     int reportWordSize = -1;
-    int maxAlignmentsReported = 20;
-    boolean annotateGCContent = true;
+    int maxAlignmentsReported = DEFAULT_MAX_ALIGNMENTS_REPORTED;
+    boolean annotateGCContent = DEFAULT_ANNOTATE_GC_CONTENT;
     String referenceGenomeFasta = null;
-    boolean doBlast = true;
+    boolean doBlast = DEFAULT_DO_BLAST;
     // boolean report = true;
     FILE_SEQUENCE_TYPE fSequence_TYPE = FILE_SEQUENCE_TYPE.MANIFEST_FILE;
     String usage = "\n" + "cnv.qc.MarkerBlast requires 3 arguments\n";
@@ -1167,26 +1201,17 @@ public class MarkerBlast {
                                      + " for array " + proj.getArrayType());
       }
       if (blastWordSize == -1) {
-        switch (proj.getArrayType()) {
-          case AFFY_GW6:
-            blastWordSize = 15;
-            break;
-          case AFFY_GW6_CN:
-            blastWordSize = 15;
-            break;
-          case ILLUMINA:
-            blastWordSize = 25;
-            break;
-          default:
-            proj.getLog().reportTimeError("Invalid array type " + proj.getArrayType());
-            break;
+        blastWordSize = getDefaultWordSize(proj);
+        if (blastWordSize != -1) {
+          proj.getLog().reportTimeInfo("blast word size updated to default " + blastWordSize
+                                       + " for array " + proj.getArrayType());
+        } else {
+          return;
         }
-        proj.getLog().reportTimeInfo("blast word size updated to default " + blastWordSize
-                                     + " for array " + proj.getArrayType());
 
       }
       blastEm(proj, fileSeq, fSequence_TYPE, blastWordSize, reportWordSize, maxAlignmentsReported,
-              numThreads, true, annotateGCContent, doBlast);
+              numThreads, DEFAULT_REPORT_TO_TEMPORARY_FILE, annotateGCContent, doBlast);
     } catch (Exception e) {
       e.printStackTrace();
     }
