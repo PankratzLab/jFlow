@@ -1077,7 +1077,7 @@ public class GATK {
     }
     switch (seqTarget) {
       default:
-        log.reportTimeError("Unrecognized Sequencing target, using Exome recalibration annotations");
+        log.reportError("Unrecognized Sequencing target, using Exome recalibration annotations");
       case EXOME:
         ansToUse.addAll(ANS_EXOME_ADDITIONS);
         break;
