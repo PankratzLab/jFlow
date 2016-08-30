@@ -799,8 +799,14 @@ public class Project {
   public String[] getPropertyKeys() {
     ArrayList<String> propList = new ArrayList<String>();
     for (Field f : PropertyKeys.class.getFields()) {
-      if (containsKey(f.getName())) {
-        propList.add(f.getName());
+      try {
+        if (containsKey((String) f.get(null))) {
+          propList.add((String) f.get(null));
+        }
+      } catch (IllegalArgumentException e) {
+        e.printStackTrace();
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
       }
     }
     return propList.toArray(new String[propList.size()]);
