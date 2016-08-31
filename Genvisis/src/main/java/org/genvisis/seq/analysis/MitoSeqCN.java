@@ -233,9 +233,7 @@ public class MitoSeqCN {
         QueryInterval[] queryInterestIntervals =
                                                BamOps.convertSegsToQI(toSearch.toArray(new Segment[toSearch.size()]),
                                                                       reader.getFileHeader(), 0,
-                                                                      true,
-                                                                      params == ASSEMBLY_NAME.HG19,
-                                                                      log);
+                                                                      true, params.addChr(), log);
         SAMRecordIterator sIterator = reader.query(queryInterestIntervals, false);
         int numMitoReads = 0;
         int numXReads = 0;
@@ -263,8 +261,7 @@ public class MitoSeqCN {
         QueryInterval[] offTargetIntervalse =
                                             BamOps.convertSegsToQI(genomeBinsMinusBinsCaputure.getLoci(),
                                                                    reader.getFileHeader(), 0, true,
-                                                                   params == ASSEMBLY_NAME.HG19,
-                                                                   log);
+                                                                   params.addChr(), log);
         sIterator = reader.query(offTargetIntervalse, false);
         while (sIterator.hasNext()) {
           SAMRecord samRecord = sIterator.next();
