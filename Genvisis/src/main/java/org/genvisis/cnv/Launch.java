@@ -209,22 +209,27 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
   }
 
   /**
-   * Safely initialize the projects list once, and only once.
+   * Safely initialize the projects list and all views on the projects (e.g. combo box and menus).
    */
   private synchronized void initProjects() {
-    if (projects == null) {
-      List<String> list = Arrays.asList(launchProperties.getListOfProjectProperties());
-      projects = list;
+    String[] properties = launchProperties.getListOfProjectProperties();
+    List<String> list = Arrays.asList(properties);
+    projects = list;
+
+    // update the project box
+    if (projectsBox != null) {
+      projectsBox.setModel(new DefaultComboBoxModel(launchProperties.getListOfProjectNames()));
     }
+
+    // update the menu
+    createProjectMenu();
   }
 
   /**
    * Discover the projects declared in the projects directory and the last opened project.
    */
   public void loadProjects() {
-    if (projects == null) {
-      initProjects();
-    }
+    initProjects();
     setIndexOfCurrentProject(launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
   }
 
@@ -278,9 +283,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
    */
   public void setIndexOfCurrentProject(String projPropertiesFileName) {
     indexOfCurrentProj = 0;
+    String projName = ext.rootOf(projPropertiesFileName, true) + ".properties";
     // find the index
     for (int i = 0; i < projects.size(); i++) {
-      if (projects.get(i).equals(projPropertiesFileName)) {
+      if (projects.get(i).equals(projName)) {
         indexOfCurrentProj = i;
       }
     }
@@ -465,13 +471,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
         } else if (element[j].equals(SELECT_PROJECT)) {
           // Create "select project" submenu
           menuItem = new JMenu(element[j]);
-          for (String project : projects) {
-            String label = ext.rootOf(project, true) + " ";
-            JMenuItem subItem = new JMenuItem(label);
-            subItem.addActionListener(this);
-            subItem.setMnemonic(getMnemonic(label, hash));
-            menuItem.add(subItem);
-          }
+          createProjectMenu(menuItem);
         } else if (element[j].equals(PRINCIPAL_COMPONENTS)) {
           // Create "principal components" submenu
           menuItem = new JMenu(element[j]);
@@ -492,6 +492,48 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
       }
     }
     setJMenuBar(menuBar);
+  }
+
+  /**
+   * If the project menu is initialized, finds the {@link #SELECT_PROJECT} menu entry and adds an
+   * entry to each project to it.
+   *
+   * @see {@link #createProjectMenu(JMenuItem)}
+   */
+  private void createProjectMenu() {
+    if (getJMenuBar() == null) {
+      return;
+    }
+
+    for (int i = 0; i < getJMenuBar().getMenuCount(); i++) {
+      JMenu menu = getJMenuBar().getMenu(i);
+      if ("File".equals(menu.getText())) {
+        for (int j=0; j<menu.getItemCount(); j++) {
+          JMenuItem item = menu.getItem(j);
+          if (SELECT_PROJECT.equals(item.getText())) {
+            createProjectMenu(item);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Add a menu entry for each project to the given menu
+   *
+   * @param menu Menu to add projects to
+   */
+  private void createProjectMenu(JMenuItem menu) {
+    Set<Character> hash = new HashSet<Character>();
+    menu.removeAll();
+
+    for (String project : projects) {
+      String label = ext.rootOf(project, true) + " ";
+      JMenuItem subItem = new JMenuItem(label);
+      subItem.addActionListener(this);
+      subItem.setMnemonic(getMnemonic(label, hash));
+      menu.add(subItem);
+    }
   }
 
   /**
@@ -996,7 +1038,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
           }
         }
         loadProjects();
-        projectsBox.setModel(new DefaultComboBoxModel(launchProperties.getListOfProjectNames()));
         if (!projects.isEmpty()) {
           loadProject();
           setIndexOfCurrentProject(newIndex);
