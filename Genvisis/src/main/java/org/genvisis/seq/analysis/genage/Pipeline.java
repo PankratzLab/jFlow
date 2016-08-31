@@ -309,12 +309,18 @@ public class Pipeline {
     }
 
     WorkerHive<PipelinePart> hive = new WorkerHive<Pipeline.PipelinePart>(numThreads, 10, log);
-
-    // mtDNA CN
-    hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, referenceGenome, sample, 1,
-                                      log));
-    // telseq
-    hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
+    //
+    //
+    // // genvisis import
+    // hive.addCallable(new GenvisisPart(inputBam, rootOutDir, referenceGenome, captureBed, binBed,
+    // vcf, sample, BamImport.CAPTURE_BUFFER));
+    //
+    // // mtDNA CN
+    // hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, referenceGenome, sample,
+    // 1,
+    // log));
+    // // telseq
+    // hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
 
     // computel
     if (computelLocation != null) {
@@ -324,10 +330,6 @@ public class Pipeline {
       log.reportTimeInfo("Computel location not provided, skipping computel");
     }
 
-
-    // genvisis import
-    hive.addCallable(new GenvisisPart(inputBam, rootOutDir, referenceGenome, captureBed, binBed,
-                                      vcf, sample, BamImport.CAPTURE_BUFFER));
 
     hive.execute(true);
 

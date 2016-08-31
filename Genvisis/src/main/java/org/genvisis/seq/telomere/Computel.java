@@ -43,10 +43,7 @@ public class Computel {
   private static boolean runComputel(String config, String computelCommandR, Logger log) {
     String[] inputs = new String[] {config, computelCommandR};
     ext.parseDirectoryOfFile(config);
-    // TODO, cleanup computels mess, and determine appropriate outputs
     String[] outputs = null;
-    // String[] outputs = execDir + "";
-    // new String[] { r1, r2 };
     ArrayList<String> command = new ArrayList<String>();
     command.add("Rscript");
     command.add(computelCommandR);
@@ -147,12 +144,27 @@ public class Computel {
         String configFile = finalOutDirectory + "computelConfig.txt";
         String computelCommand = finalOutDirectory + "src/scripts/computel.cmd.R";
         Files.write(config, configFile);
-        runComputel(configFile, computelCommand, log);
+        boolean success = runComputel(configFile, computelCommand, log);
+        if (success) {
+          ArrayList<String> filesToDelete = new ArrayList<String>();
+          filesToDelete.add(r1);
+          filesToDelete.add(r2);
+          deleteFiles(log, filesToDelete);
+        }
       }
     } catch (FileNotFoundException e) {
       log.reportException(e);
     }
 
+  }
+
+  private static void deleteFiles(Logger log, ArrayList<String> filesToDelete) {
+    for (String file : filesToDelete) {
+      log.reportTimeInfo("Deleting file " + file);
+      if (!new File(file).delete()) {
+        log.reportTimeError("Could not delete " + file);
+      }
+    }
   }
 
   private static String manageConfig(Logger log, String finalOutDirectory, String bowtieSamDir,
@@ -208,8 +220,7 @@ public class Computel {
     c.addArg(bam, "bam file to analyze", targetBam);
 
     final String computel = "computel";
-    c.addArg(computel, "full computel directory (as git clone ideally)",
-               computelLocation);
+    c.addArg(computel, "full computel directory (as git clone ideally)", computelLocation);
 
     final String outdir = "out";
     c.addArg(outdir, "the output directory for results", outDir);

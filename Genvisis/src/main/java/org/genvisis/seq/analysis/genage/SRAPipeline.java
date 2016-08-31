@@ -268,6 +268,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     baseCommand.add(CAPTURE_BED + "=" + c.get(CAPTURE_BED));
     baseCommand.add(BIN_BED + "=" + c.get(BIN_BED));
     baseCommand.add(VCF + "=" + c.get(VCF));
+    baseCommand.add(COMPUTEL + "=" + c.get(COMPUTEL));
 
     String batchDir = rootOutDir + "batches/";
     new File(batchDir).mkdirs();
