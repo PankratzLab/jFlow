@@ -2530,7 +2530,7 @@ public class GenvisisWorkflow {
       gui.setModal(true);
       gui.setVisible(true);
 
-      if (gui.getCancelled() == true) {
+      if (gui.getCancelled()) {
         return;
       }
     }
