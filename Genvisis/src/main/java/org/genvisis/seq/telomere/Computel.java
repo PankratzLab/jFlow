@@ -149,6 +149,11 @@ public class Computel {
           ArrayList<String> filesToDelete = new ArrayList<String>();
           filesToDelete.add(r1);
           filesToDelete.add(r2);
+          filesToDelete.add(finalOutDirectory + "results/align/tel.align.sam");
+          filesToDelete.add(finalOutDirectory + "results/align/tel.align.unmapped.sam");
+          filesToDelete.add(finalOutDirectory + "results/base/reads.unmapped.fastq");
+          filesToDelete.add(finalOutDirectory + "results/base/base.align.sam");
+
           deleteFiles(log, filesToDelete);
         }
       }
@@ -162,7 +167,7 @@ public class Computel {
     for (String file : filesToDelete) {
       log.reportTimeInfo("Deleting file " + file);
       if (!new File(file).delete()) {
-        log.reportTimeError("Could not delete " + file);
+        log.reportTimeError("Did not delete " + file);
       }
     }
   }
