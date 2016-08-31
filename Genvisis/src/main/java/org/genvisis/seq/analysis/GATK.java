@@ -125,11 +125,18 @@ public class GATK {
 	public static final String TARGET_INTERVALS = "-targetIntervals";
 	public static final String O = "-o";
 
+  public static final String GZ = ".gz";
+  public static final String GZ_INDEX = ".tbi";
+
 	public static final String VCF = ".vcf";
 	public static final String VCF_INDEX = ".idx";
-	public static final String VCF_GZ_INDEX = ".tbi";
 
-	public static final String GVCF = ".gvcf";
+  public static final String G = ".g";
+  public static final String GVCF = G + VCF;
+
+  public static final Set<String> VCF_EXTENSIONS = ImmutableSet.of(GZ, GZ_INDEX, VCF, VCF_INDEX,
+                                                                   GVCF, G);
+
 	public static final String RESOURCE = "-resource:";
 	public static final String[] RESOURCES = {"hapmap", "omni", "1000G", "dbsnp"};
 	public static final String KNOWN_RESOURCE = "known=";
@@ -219,6 +226,51 @@ public class GATK {
 						cosmicKnownSites, verbose, overWriteExisting, log);
 		}
 	}
+
+  /**
+   * 
+   * @param filename
+   * @return
+   */
+  public static final String getVcfIndex(String filename) {
+    if (filename.endsWith(GZ)) {
+      return filename + GZ_INDEX;
+    } else {
+      return filename + VCF_INDEX;
+    }
+  }
+
+  /**
+   * Gets the root of a VCF filename, removing the directory info and any extensions found in
+   * {@link org.genvisis.seq.manage.VCFOps.VCF_EXTENSIONS}
+   * 
+   * @param filename a VCF filename
+   * @param trimDirectoryInfo true to also remove the directory info
+   * @return the root of the filename
+   * 
+   */
+  public static final String getVcfRoot(String filename) {
+    return getVcfRoot(filename, true);
+  }
+
+  /**
+   * Gets the root of a VCF filename, removing any extensions found in
+   * {@link org.genvisis.seq.manage.VCFOps.VCF_EXTENSIONS}
+   * 
+   * @param filename a VCF filename
+   * @param trimDirectoryInfo true to also remove the directory info
+   * @return the root of the filename
+   * 
+   */
+  public static final String getVcfRoot(String filename, boolean trimDirectoryInfo) {
+    if (trimDirectoryInfo) {
+      filename = ext.removeDirectoryInfo(filename);
+    }
+    while (VCF_EXTENSIONS.contains(filename.substring(filename.lastIndexOf('.')))) {
+      filename = filename.substring(0, filename.lastIndexOf('.'));
+    }
+    return filename;
+  }
 
 	public String getRegionsFile() {
 		return regionsFile;
@@ -545,13 +597,13 @@ public class GATK {
 		}
 
     String[] command = new String[] {javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
-                                     HAPLOTYPE_CALLER, R, referenceGenomeFasta, I, bamFile,
-                                     STAND_EMIT_CONF, DEFAULT_STAND_EMIT_CONF, STAND_CALL_CONF,
-                                     DEFAULT_STAND_CALL_CONF, O, output, ERC_MODE, GVCF_MODE, NCT,
+                                     HAPLOTYPE_CALLER, R, referenceGenomeFasta, I, bamFile, O,
+                                     output, ERC_MODE, GVCF_MODE, dbSnpFile == null ? "" : DB_SNP,
+                                     dbSnpFile == null ? "" : dbSnpFile, NCT,
                                      Integer.toString(numWithinSampleThreads)};
 		return CmdLine.runCommandWithFileChecks(command, "", input,
-																						new String[] {output, output + VCF_INDEX}, verbose,
-																						overWriteExistingOutput, true,
+                                            new String[] {output, getVcfIndex(output)}, verbose,
+                                            overWriteExistingOutput, false,
                                             altLog == null ? log : altLog);
 	}
 
@@ -565,7 +617,7 @@ public class GATK {
 	public boolean combinePonVcfs(String[] vcfs, String outputVcf, int minN, Logger log) {
 		String[] input = new String[] {referenceGenomeFasta, regionsFile};
 		input = Array.concatAll(input, vcfs);
-		String[] outputs = new String[] {outputVcf, outputVcf + VCF_INDEX};
+    String[] outputs = new String[] {outputVcf, getVcfIndex(outputVcf)};
 
 		ArrayList<String> command = new ArrayList<String>();
 		command.add(javaLocation);
@@ -603,9 +655,7 @@ public class GATK {
 		} else {
 			log.reportTimeWarning("Running tumor normal calling without PON");
 		}
-		String[] outputs = new String[] {	outputVCF,
-																			outputVCF + (outputVCF.endsWith(".gz")	? VCF_GZ_INDEX
-																																							: VCF_INDEX)};
+    String[] outputs = new String[] {outputVCF, getVcfIndex(outputVCF)};
 
 		ArrayList<String> command = new ArrayList<String>();
 		command.add(javaLocation);
@@ -760,7 +810,7 @@ public class GATK {
 		command.add(inputVCF);
 		command.add(O);
 		command.add(outputVCF);
-		String[] outputs = new String[] {outputVCF, outputVCF + VCF_GZ_INDEX};
+    String[] outputs = new String[] {outputVCF, outputVCF + GZ_INDEX};
 		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs,
 																						verbose, overWriteExistingOutput, false, log);
 	}
@@ -787,7 +837,7 @@ public class GATK {
 		command.add(inputVCF);
 		command.add(O);
 		command.add(outputVCF);
-		String[] outputs = new String[] {outputVCF, outputVCF + VCF_GZ_INDEX};
+    String[] outputs = new String[] {outputVCF, outputVCF + GZ_INDEX};
 		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs,
 																						verbose, overWriteExistingOutput, false, log);
 	}
@@ -814,7 +864,7 @@ public class GATK {
 		command.add(inputVCF);
 		command.add(O);
 		command.add(outputVCF);
-		String[] outputs = new String[] {outputVCF, outputVCF + VCF_GZ_INDEX};
+    String[] outputs = new String[] {outputVCF, outputVCF + GZ_INDEX};
 		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs,
 																						verbose, overWriteExistingOutput, false, log);
 	}
@@ -849,7 +899,7 @@ public class GATK {
       command.add(Integer.toString(numWithinSampleThreads));
 		}
 
-		String[] outputs = new String[] {outputVcf, outputVcf + VCF_INDEX};
+    String[] outputs = new String[] {outputVcf, getVcfIndex(outputVcf)};
 		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs,
 																						verbose, overWriteExistingOutput, false, log);
 	}
@@ -858,7 +908,7 @@ public class GATK {
 																			boolean addDBSNP, Logger log) {
 		boolean progress = true;
 		String[] inputFiles = new String[] {inputVCF, snpEffVcf};
-		String[] outputFiles = new String[] {inputVCF + VCF_INDEX, outputVCF};
+    String[] outputFiles = new String[] {getVcfIndex(outputVCF), outputVCF};
 		String[] command = new String[] {	javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
 																			VARIANT_ANNOTATOR, R, referenceGenomeFasta, A, SNP_EFF,
 																			VARIANT, inputVCF, SNP_EFF_FILE, snpEffVcf, L, inputVCF, O,
@@ -1051,12 +1101,8 @@ public class GATK {
 		}
 		command = Array.concatAll(command, inputArgVCF);
 		return CmdLine.runCommandWithFileChecks(command, "", vcfs,
-																						new String[] {output,
-																													output.endsWith(".gz")	? output
-																																										+ VCF_GZ_INDEX
-																																									: output
-																																										+ VCF_INDEX},
-																						verbose, overWriteExistingOutput, skipReporting, log);
+                                            new String[] {output, getVcfIndex(output)}, verbose,
+                                            overWriteExistingOutput, skipReporting, log);
 	}
 
 
@@ -1206,7 +1252,7 @@ public class GATK {
 		}
 
 		public void parseInput() {
-			outputGVCF = ext.rootOf(inputBam, false) + GVCF;
+      outputGVCF = ext.rootOf(inputBam, false) + GVCF + GZ;
 		}
 
 		public String getBaseId() {

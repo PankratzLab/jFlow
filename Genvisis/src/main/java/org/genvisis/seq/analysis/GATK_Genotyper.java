@@ -343,9 +343,9 @@ public class GATK_Genotyper {
 				log.reportError("Error - a file listing GVCF files was not provided and the root input directory was not provided, halting...");
 				fail = true;
 			} else {
-				log.report(ext.getTime()+ " Info - finding files with extension " + GATK.GVCF + " in "
+        log.report(ext.getTime() + " Info - finding files with extension " + GATK.GVCF + GATK.GZ + " in "
 										+ rootInputDir);
-				inputGVCFs = Files.toFullPaths(Files.list(rootInputDir, GATK.GVCF, false), rootInputDir);
+        inputGVCFs = Files.toFullPaths(Files.list(rootInputDir, GATK.GVCF + GATK.GZ, false), rootInputDir);
 
 			}
 			if (inputGVCFs == null || inputGVCFs.length < 1) {
@@ -359,8 +359,8 @@ public class GATK_Genotyper {
 		}
 
 		public void initOutputs() {
-			String currentRoot = rootOutputDir + ext.rootOf(output);
-			rawVCF = currentRoot + GATK.VCF;
+      String currentRoot = rootOutputDir + GATK.getVcfRoot(output);
+      rawVCF = currentRoot + GATK.VCF + GATK.GZ;
 
 			recalSNPFile = currentRoot + "." + GATK.SNP + RECAL_EXT;
 			tranchesSNPFile = currentRoot + "." + GATK.SNP + TRANCHES_EXT;

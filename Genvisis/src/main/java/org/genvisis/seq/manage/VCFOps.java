@@ -192,7 +192,7 @@ public class VCFOps {
 	 * @return appropriate index
 	 */
 	public static String getIndex(String vcf) {
-		return vcf.endsWith("gz") ? vcf + GATK.VCF_GZ_INDEX : GATK.VCF_INDEX;
+    return GATK.getVcfIndex(vcf);
 
 	}
 
