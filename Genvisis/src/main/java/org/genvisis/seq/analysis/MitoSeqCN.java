@@ -251,6 +251,7 @@ public class MitoSeqCN {
             } else if (samRecord.getContig().equals(params.getyContig())) {
               numYReads++;
             } else {
+              reader.close();
               throw new IllegalArgumentException("Invalid contig " + samRecord.getContig());
             }
           }

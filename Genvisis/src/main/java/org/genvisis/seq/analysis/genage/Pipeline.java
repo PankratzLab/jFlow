@@ -15,6 +15,7 @@ import org.genvisis.seq.NGSSample;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.analysis.MitoSeqCN;
 import org.genvisis.seq.manage.BamImport;
+import org.genvisis.seq.telomere.Computel;
 import org.genvisis.seq.telomere.TelSeq;
 
 /**
@@ -25,6 +26,8 @@ public class Pipeline {
 
   private static final String MITO_DIR = "mtDNACN/";
   private static final String TELSEQ_DIR = "telseq/";
+  private static final String COMPUTEL_DIR = "computel/";
+
 
   private Pipeline() {
 
@@ -198,6 +201,51 @@ public class Pipeline {
       ArrayList<String> input = new ArrayList<String>();
       input.add(bamFile);
       setInput(input);
+      return this;
+    }
+
+  }
+
+
+  private static class ComputelPart extends PipelinePart {
+
+    private final String bamFile;
+    private final String rootOutDir;
+    private final String computelLocation;
+    private final String captureBed;
+    private final NGSSample ngsSample;
+    private final int numthreads;
+    private final int captureBufferSize;
+    private final Logger log;
+
+    private ComputelPart(String bam, String rootOutDir, String computelLocation, String captureBed,
+                         NGSSample ngsSample, int numthreads, int captureBufferSize, Logger log) {
+      super();
+      this.bamFile = bam;
+      this.rootOutDir = rootOutDir;
+      this.computelLocation = computelLocation;
+      this.captureBed = captureBed;
+      this.ngsSample = ngsSample;
+      this.numthreads = numthreads;
+      this.captureBufferSize = captureBufferSize;
+      this.log = log;
+    }
+
+    @Override
+    public PipelinePart call() throws Exception {
+      String computelDirectory = rootOutDir + COMPUTEL_DIR + ext.rootOf(bamFile) + "/";
+      new File(computelDirectory).mkdir();
+      Computel.test(bamFile, computelLocation, computelDirectory);
+
+      String result = TelSeq.runTelSeq(new String[] {bamFile}, computelDirectory, captureBed,
+                                       numthreads, ngsSample.getaType(), ngsSample.getaName(),
+                                       captureBufferSize, log);
+      ArrayList<String> input = new ArrayList<String>();
+      input.add(bamFile);
+      setInput(input);
+      ArrayList<String> output = new ArrayList<String>();
+      output.add(result);
+      setOutput(output);
       return this;
     }
 
