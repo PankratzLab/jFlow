@@ -285,6 +285,7 @@ public class Pipeline {
    *        imported)
    * @param vcf a vcf file defining variant sites
    * @param sample
+   * @param the location of the computel directory
    * @param numThreads
    * @param log
    * @return
@@ -292,7 +293,7 @@ public class Pipeline {
   public static List<PipelinePart> pipeline(String inputBam, String rootOutDir,
                                             String referenceGenome, String captureBed,
                                             String binBed, String vcf, NGSSample sample,
-                                            int numThreads, Logger log) {
+                                            String computelLocation, int numThreads, Logger log) {
     if (!Files.exists(inputBam)) {
       throw new IllegalArgumentException("Bam file " + inputBam + " must exist");
     }
@@ -312,9 +313,19 @@ public class Pipeline {
     // mtDNA CN
     hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, referenceGenome, sample, 1,
                                       log));
-
+    // telseq
     hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
 
+    // computel
+    if (computelLocation != null) {
+      hive.addCallable(new ComputelPart(inputBam, rootOutDir, computelLocation, captureBed, sample,
+                                        1, 100, log));
+    } else {
+      log.reportTimeInfo("Computel location not provided, skipping computel");
+    }
+
+
+    // genvisis import
     hive.addCallable(new GenvisisPart(inputBam, rootOutDir, referenceGenome, captureBed, binBed,
                                       vcf, sample, BamImport.CAPTURE_BUFFER));
 

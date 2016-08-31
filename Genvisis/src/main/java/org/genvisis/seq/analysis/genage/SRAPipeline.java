@@ -41,6 +41,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   private static final String VCF = "vcf";
   private static final String NUM_BATCHES = "batch";
   private static final String COMPILE = "compile";
+  private static final String COMPUTEL = "computel";
 
   private SRASample sraSample;
   private String inputSRA;
@@ -49,6 +50,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   private String captureBed;
   private String binBed;
   private String vcfFile;
+  private String computelLocation;
   private int numThreads;
   private Logger log;
 
@@ -65,7 +67,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
    */
   public SRAPipeline(SRASample sraSample, String inputSRA, String rootOutDir,
                      String referenceGenome, String captureBed, String binBed, String vcf,
-                     int numThreads, Logger log) {
+                     String computelLocation, int numThreads, Logger log) {
     super();
     this.sraSample = sraSample;
     this.inputSRA = inputSRA;
@@ -74,6 +76,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     this.captureBed = captureBed;
     this.binBed = binBed;
     this.vcfFile = vcf;
+    this.computelLocation = computelLocation;
     this.numThreads = numThreads;
     this.log = log;
   }
@@ -87,7 +90,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     hive.addCallable(new SRABamWorker(inputSRA, bam, log));
     hive.execute(true);
     return Pipeline.pipeline(bam, rootOutDir, referenceGenome, captureBed, binBed, vcfFile,
-                             sraSample, numThreads, log);
+                             sraSample, computelLocation, numThreads, log);
   }
 
   private static String getBamDirectory(String rootOutDir) {
@@ -193,7 +196,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
    */
   private static void runAll(String sraInput, String sraRunTableFile, String rootOutDir,
                              String referenceGenome, String captureBed, String binBed, String vcf,
-                             int numThreads, int numThreadsPipeline, int numBatches, CLI c) {
+                             String computelLocation, int numThreads, int numThreadsPipeline,
+                             int numBatches, CLI c) {
     Logger log = new Logger();
 
     WorkerHive<List<PipelinePart>> hive = new WorkerHive<List<PipelinePart>>(numThreads, 10, log);
@@ -206,9 +210,9 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     for (SRASample sample : samples) {
       sraFiles.add(sample.getSraFile());
       sampleSummary.add(sample.getSraFile() + "\t" + sample.toString());
-      SRAPipeline pipeline =
-                           new SRAPipeline(sample, sample.getSraFile(), rootOutDir, referenceGenome,
-                                           captureBed, binBed, vcf, numThreadsPipeline, log);
+      SRAPipeline pipeline = new SRAPipeline(sample, sample.getSraFile(), rootOutDir,
+                                             referenceGenome, captureBed, binBed, vcf,
+                                             computelLocation, numThreadsPipeline, log);
       switch (sample.getaType()) {// create the required markerSets for import...prior to threading
         case WGS:
           if (!prelimGenvisisWGS) {
@@ -321,6 +325,9 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     String vcf = "vcf.vcf";
     c.addArg(VCF, "vcf file of variants", vcf);
 
+    String computelLocation = null;
+    c.addArg(COMPUTEL, "directory of computel", computelLocation);
+
     int batch = -1;
     c.addArg(NUM_BATCHES, "number of batches", Integer.toString(batch));
 
@@ -338,7 +345,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
               c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.getI(NUM_THREADS));
     } else {
       runAll(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
-             c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.getI(NUM_THREADS),
+             c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.get(COMPUTEL), c.getI(NUM_THREADS),
              c.getI(NUM_THREADS_PIPELINE), c.getI(NUM_BATCHES), c);
     }
 
