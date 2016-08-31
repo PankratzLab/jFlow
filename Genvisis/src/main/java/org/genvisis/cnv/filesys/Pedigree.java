@@ -215,8 +215,7 @@ public class Pedigree extends FamilyStructure {
                         + "]\t Error - cannot run checkMendelErrors without a Project");
         return null;
       }
-      MendelErrorCheck[] mendelErrorChecks = new MendelErrorCheck[pedigree.getProject()
-                                                                          .getSamples().length];
+      MendelErrorCheck[] mendelErrorChecks = new MendelErrorCheck[pedigree.getIDs().length];
       byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilters,
                                                                markerData.getMarkerName(),
                                                                gcThreshold, log);

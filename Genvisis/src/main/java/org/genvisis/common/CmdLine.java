@@ -7,6 +7,92 @@ import java.io.PrintStream;
 import java.util.Map;
 
 public class CmdLine {
+  public static class Command {
+    String[] commandArray;
+    String[] neccesaryInputFiles;
+    String[] expectedOutputFiles;
+    String dir;
+
+    /**
+     * @param commandArray the String array of commands with associated commands grouped at a given
+     *        index (String[] commands = new
+     *        String[]{"myFavoriteCommand","input=one.txt","output=2.txt"}
+     * @param neccesaryInputFiles will check these files for existence, will fail if they do not all
+     *        exist
+     * @param expectedOutputFiles will check these files for existence, will skip the command if all
+     *        exist
+     * @param dir directory to run the command in, and also directory to check for existing files
+     */
+    public Command(String[] commandArray, String[] neccesaryInputFiles,
+                   String[] expectedOutputFiles, String dir) {
+      super();
+      this.commandArray = commandArray;
+      this.neccesaryInputFiles = neccesaryInputFiles;
+      this.expectedOutputFiles = expectedOutputFiles;
+      this.dir = dir;
+    }
+
+    public boolean runCommand(Logger log) {
+      return runCommand(true, false, true, true, log);
+    }
+
+    /**
+     * @param verbose
+     * @param overWriteExistingOutput
+     * @param skipReporting if set to false, the cmdline reporting will be sent to the log,
+     *        otherwise it will be ignored. Nice to report when error checking, but there is a high
+     *        probability of reduced performance and strange output if always used
+     * @param log
+     * @return true on success, false on failure
+     */
+    public boolean runCommand(boolean verbose, boolean overWriteExistingOutput,
+                              boolean skipReporting, boolean treatEmptyAsMissing, Logger log) {
+      boolean success = false;
+      if (expectedOutputFiles == null
+          || !Files.exists(dir, expectedOutputFiles, treatEmptyAsMissing)
+          || overWriteExistingOutput) {
+        if (neccesaryInputFiles == null
+            || Files.exists(dir, neccesaryInputFiles, treatEmptyAsMissing)) {
+          if (verbose) {
+            log.report(ext.getTime() + " Info - running command " + Array.toStr(commandArray, " "));
+          }
+          if (run(Array.toStr(commandArray, " "), commandArray, dir, null, null,
+                  (skipReporting ? null : log), false)) {
+            if (expectedOutputFiles != null
+                && !Files.exists(dir, expectedOutputFiles, treatEmptyAsMissing)) {
+              log.reportError("Error - the command " + Array.toStr(commandArray, " ")
+                              + " appeared to run, but could not find all neccesary output files:"
+                              + Array.toStr(expectedOutputFiles, "\n"));
+            } else {
+              if (verbose) {
+                log.report(ext.getTime() + " Info - finished running command "
+                           + Array.toStr(commandArray, " "));
+              }
+              success = true;
+            }
+          } else {
+            log.reportError("Error - the command " + Array.toStr(commandArray, " ")
+                            + " has failed");
+          }
+        } else {
+          log.reportError("Error - could not find all necessary input files:\n"
+                          + Array.toStr(neccesaryInputFiles, "\n"));
+        }
+      } else {
+        if (verbose) {
+          log.report(ext.getTime()
+                     + " Info - all of the expected output files exist and the overwrite option was not flagged, skipping:");
+          log.report("COMMAND SKIPPED: " + Array.toStr(commandArray, " "));
+        }
+        success = true;
+      }
+      return success;
+    }
+
+
+
+  }
+
   public static String getCmdLocation(String commmand) {
     Map<String, String> env = System.getenv();
     for (String envName : env.keySet()) {
@@ -169,7 +255,6 @@ public class CmdLine {
    * @param log
    * @return
    */
-
   public static boolean runCommandWithFileChecks(String[] commandArray, String dir,
                                                  String[] neccesaryInputFiles,
                                                  String[] expectedOutputFiles, boolean verbose,
@@ -204,42 +289,9 @@ public class CmdLine {
                                                  boolean overWriteExistingOutput,
                                                  boolean skipReporting, boolean treatEmptyAsMissing,
                                                  Logger log) {
-    boolean success = false;
-    if (expectedOutputFiles == null || !Files.exists(dir, expectedOutputFiles, treatEmptyAsMissing)
-        || (Files.exists(dir, expectedOutputFiles) && overWriteExistingOutput)) {
-      if (neccesaryInputFiles == null || Files.exists(dir, neccesaryInputFiles)) {
-        if (verbose) {
-          log.report(ext.getTime() + " Info - running command " + Array.toStr(commandArray, " "));
-        }
-        if (run(Array.toStr(commandArray, " "), commandArray, dir, null, null,
-                (skipReporting ? null : log), false)) {
-          if (expectedOutputFiles != null && !Files.exists(dir, expectedOutputFiles)) {
-            log.reportError("Error - the command " + Array.toStr(commandArray, " ")
-                            + " appeared to run, but could not find all neccesary output files:"
-                            + Array.toStr(expectedOutputFiles, "\n"));
-          } else {
-            if (verbose) {
-              log.report(ext.getTime() + " Info - finished running command "
-                         + Array.toStr(commandArray, " "));
-            }
-            success = true;
-          }
-        } else {
-          log.reportError("Error - the command " + Array.toStr(commandArray, " ") + " has failed");
-        }
-      } else {
-        log.reportError("Error - could not find all necessary input files:\n"
-                        + Array.toStr(neccesaryInputFiles, "\n"));
-      }
-    } else {
-      if (verbose) {
-        log.report(ext.getTime()
-                   + " Info - all of the expected output files exist and the overwrite option was not flagged, skipping:");
-        log.report("COMMAND SKIPPED: " + Array.toStr(commandArray, " "));
-      }
-      success = true;
-    }
-    return success;
+    return new Command(commandArray, neccesaryInputFiles, expectedOutputFiles,
+                       dir).runCommand(verbose, overWriteExistingOutput, skipReporting,
+                                       treatEmptyAsMissing, log);
   }
 
   public static boolean runDefaults(String command, String dir) {

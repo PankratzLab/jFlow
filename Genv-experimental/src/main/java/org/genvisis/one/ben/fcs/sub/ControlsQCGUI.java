@@ -38,6 +38,9 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -164,378 +167,405 @@ public class ControlsQCGUI extends JFrame {
      * Create the frame.
      */
     public ControlsQCGUI() {
-        super("Controls QC");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(50, 50, 850, 400);
-        this.log = new Logger();
-        contentPane = new JPanel();
-        contentPane.setBorder(null);
-        setContentPane(contentPane);
-        contentPane.setLayout(new MigLayout("ins 7 7 3 7,hidemode 3", "[][grow][]", "[][][grow][]"));
-        
-        JLabel lblFileDir = new JLabel("<html><u>B</u>aseline File:</html>");
-        contentPane.add(lblFileDir, "cell 0 0,alignx trailing");
-        
-        txtFldBaseFile = new JTextField();
-        
-        txtFldBaseFile.setEditable(false);
-        contentPane.add(txtFldBaseFile, "cell 1 0,growx");
-        txtFldBaseFile.setColumns(10);
-        
-        Insets btnInsets = new Insets(0, 14, 0, 14);
-        
-        btnBaseFileSelect = new JButton(">");
-        btnBaseFileSelect.setMargin(btnInsets);
-        btnBaseFileSelect.setMnemonic(KeyEvent.VK_B);
-        btnBaseFileSelect.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
-                String curr = txtFldBaseFile.getText();
-                if (curr.equals("")) {
-                    curr = "./";
-                }
-                JFileChooser jfc = new JFileChooser(curr);
-                jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                jfc.setDialogTitle("Select Baseline File");
-                jfc.setMultiSelectionEnabled(false);
-                jfc.setFileFilter(new FileNameExtensionFilter("CSV Files", "csv"));
-                int resp = jfc.showOpenDialog(ControlsQCGUI.this);
-                if (resp == JFileChooser.APPROVE_OPTION) {
-                    String newPath = jfc.getSelectedFile().getAbsolutePath();
-                    txtFldBaseFile.setText(newPath);
-                    loadBaseline(newPath);
-                    saveProps();
-                }
-            }
-        });
-        contentPane.add(btnBaseFileSelect, "cell 2 0,growx");
-        
-        lblCompareFiles = new JLabel("<html>Compare <u>D</u>ir/Files:</html>");
-        contentPane.add(lblCompareFiles, "cell 0 1,alignx trailing");
-        
-        txtFldCompDir = new JTextField();
-        txtFldCompDir.setEditable(false);
-        contentPane.add(txtFldCompDir, "cell 1 1,growx");
-        txtFldCompDir.setColumns(10);
+      super("Controls QC");
+      setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      setBounds(50, 50, 850, 400);
+      this.log = new Logger();
+      contentPane = new JPanel();
+      contentPane.setBorder(null);
+      setContentPane(contentPane);
+      contentPane.setLayout(new MigLayout("ins 7 7 3 7,hidemode 3", "[][grow][]", "[][][grow][]"));
+      
+      JLabel lblFileDir = new JLabel("<html><u>B</u>aseline File:</html>");
+      contentPane.add(lblFileDir, "cell 0 0,alignx trailing");
+      
+      txtFldBaseFile = new JTextField();
+      
+      txtFldBaseFile.setEditable(false);
+      contentPane.add(txtFldBaseFile, "cell 1 0,growx");
+      txtFldBaseFile.setColumns(10);
+      
+      Insets btnInsets = new Insets(0, 14, 0, 14);
+      
+      btnBaseFileSelect = new JButton(">");
+      btnBaseFileSelect.setMargin(btnInsets);
+      btnBaseFileSelect.setMnemonic(KeyEvent.VK_B);
+      btnBaseFileSelect.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent arg0) {
+              String curr = txtFldBaseFile.getText();
+              if (curr.equals("")) {
+                  curr = "./";
+              }
+              JFileChooser jfc = new JFileChooser(curr);
+              jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+              jfc.setDialogTitle("Select Baseline File");
+              jfc.setMultiSelectionEnabled(false);
+              jfc.setFileFilter(new FileNameExtensionFilter("CSV Files", "csv"));
+              int resp = jfc.showOpenDialog(ControlsQCGUI.this);
+              if (resp == JFileChooser.APPROVE_OPTION) {
+                  String newPath = jfc.getSelectedFile().getAbsolutePath();
+                  txtFldBaseFile.setText(newPath);
+                  loadBaseline(newPath);
+                  saveProps();
+              }
+          }
+      });
+      contentPane.add(btnBaseFileSelect, "cell 2 0,growx");
+      
+      lblCompareFiles = new JLabel("<html>Compare <u>D</u>ir/Files:</html>");
+      contentPane.add(lblCompareFiles, "cell 0 1,alignx trailing");
+      
+      txtFldCompDir = new JTextField();
+      txtFldCompDir.setEditable(false);
+      contentPane.add(txtFldCompDir, "cell 1 1,growx");
+      txtFldCompDir.setColumns(10);
 
-        btnAddComp = new JButton("+");
-        btnAddComp.setMnemonic(KeyEvent.VK_O);
-        btnAddComp.setMargin(new Insets(0, 6, 0, 6));
-        btnAddComp.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
-                String curr = txtFldCompDir.getText();
-                if (curr.equals("")) {
-                    curr = txtFldBaseFile.getText();
-                    if (!"".equals(curr)) {
-                        curr = ext.parseDirectoryOfFile(curr);
-                    } else {
-                        curr = "./";
-                    }
-                } else {
-                    String[] pts = curr.split(";");
-                    curr = ext.parseDirectoryOfFile(pts[pts.length - 1]);
-                }
-                JFileChooser jfc = new JFileChooser(curr);
-                jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                jfc.setDialogTitle("Select Additional Compare Files");
-                jfc.setMultiSelectionEnabled(true);
-                int resp = jfc.showOpenDialog(ControlsQCGUI.this);
-                if (resp == JFileChooser.APPROVE_OPTION) {
-                    File[] addlFiles = jfc.getSelectedFiles();
-                    curr = txtFldCompDir.getText();
-                    if (!"".equals(curr) && addlFiles.length > 0) {
-                        curr += ";";
-                    } else if (addlFiles.length == 0) {
-                        return;
-                    }
-                    StringBuilder path = new StringBuilder(curr);
-                    for (int i = 0; i < addlFiles.length; i++) {
-                        String pt = addlFiles[i].getAbsolutePath();
-                        pt = ext.verifyDirFormat(ext.parseDirectoryOfFile(pt)) + ext.removeDirectoryInfo(pt);
-                        path.append(pt);
-                        if (i < addlFiles.length - 1) {
-                            path.append(";");
-                        }
-                    }
-                    txtFldCompDir.setText(path.toString());
-                    loadCompare(path.toString().split(";")); // TODO replace split call
-                    saveProps();
-                }
-            }
-        });
-        
-        btnRemoveComp = new JButton("-");
-        btnRemoveComp.setMnemonic(KeyEvent.VK_O);
-        btnRemoveComp.setMargin(new Insets(0, 6, 0, 6));
-        btnRemoveComp.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
-                String curr = txtFldCompDir.getText();
-                String[] pts;
-                if (curr.equals("")) {
-                    return;
-                } else {
-                    pts = curr.split(";");
-                }
-                IncludeExcludeGUI dialog = new IncludeExcludeGUI(ControlsQCGUI.this, pts, Array.booleanArray(pts.length, true));
-                dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                dialog.pack();
-                dialog.setVisible(true);
-                int code = dialog.getCloseCode();
-                if (code == JOptionPane.OK_OPTION) {
-                    StringBuilder sb = new StringBuilder();
-                    boolean[] inc = dialog.getSelected();
-                    for (int i = 0; i < pts.length; i++) {
-                        if (inc[i]) {
-                            sb.append(pts[i]).append(";");
-                        }
-                    }
-                    if (sb.length() > 0) {
-                        sb.deleteCharAt(sb.length() - 1); // remove trailing semicolon
-                    }
-                    txtFldCompDir.setText(sb.toString());
-                    loadCompare(sb.toString().split(";")); // TODO replace split call
-                    saveProps();
-                }
-                
-            }
-        });
-        contentPane.add(btnRemoveComp, "cell 2 1");
-        
-        contentPane.add(btnAddComp, "flowx,cell 2 1");
-        contentPane.add(btnRemoveComp, "cell 2 1");
-        
-        scrollPane = new JScrollPane();
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        contentPane.add(scrollPane, "cell 0 2 3 1,grow");
-                
-        table = new JTable() {
-            
-            @Override
-            public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
-                Component c = super.prepareRenderer(renderer, row, column);
-                
-                if (/*column == 0 &&*/ boldRows.contains(row)) {
-                    c.setFont(c.getFont().deriveFont(Font.BOLD));
-                }
-                if (isCellSelected(row, column)) return c;
-                
-                Color col = Color.WHITE;
-                if (column > 0 && !statRows.contains(row)) {
-                    Object val = table.getModel().getValueAt(table.convertRowIndexToModel(row), table.convertColumnIndexToModel(column));
-                    if (val != null) {
-                        if (val instanceof Float) {
-                            String colNm = (String) table.getModel().getValueAt(0, table.convertColumnIndexToModel(column));
-                            Float value = (Float) val;
-                            if (paramMeans.containsKey(colNm)) {
-                                if (value > (paramMeans.get(colNm) + paramSDs.get(colNm)) || value < (paramMeans.get(colNm) - paramSDs.get(colNm))) {
-                                    col = SD1_COLOR;
-                                }  
-                                if (value > (paramMeans.get(colNm) + 2*paramSDs.get(colNm)) || value < (paramMeans.get(colNm) - 2*paramSDs.get(colNm))) {
-                                    col = SD2_COLOR;
-                                }
-                            }
-                        }
-                    } 
-                }
-                c.setBackground(col);
-                
-                return c;
-            }
-        };
+      btnAddComp = new JButton("+");
+      btnAddComp.setMnemonic(KeyEvent.VK_O);
+      btnAddComp.setMargin(new Insets(0, 6, 0, 6));
+      btnAddComp.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent arg0) {
+              String curr = txtFldCompDir.getText();
+              if (curr.equals("")) {
+                  curr = txtFldBaseFile.getText();
+                  if (!"".equals(curr)) {
+                      curr = ext.parseDirectoryOfFile(curr);
+                  } else {
+                      curr = "./";
+                  }
+              } else {
+                  String[] pts = curr.split(";");
+                  curr = ext.parseDirectoryOfFile(pts[pts.length - 1]);
+              }
+              JFileChooser jfc = new JFileChooser(curr);
+              jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+              jfc.setDialogTitle("Select Additional Compare Files");
+              jfc.setMultiSelectionEnabled(true);
+              int resp = jfc.showOpenDialog(ControlsQCGUI.this);
+              if (resp == JFileChooser.APPROVE_OPTION) {
+                  File[] addlFiles = jfc.getSelectedFiles();
+                  curr = txtFldCompDir.getText();
+                  if (!"".equals(curr) && addlFiles.length > 0) {
+                      curr += ";";
+                  } else if (addlFiles.length == 0) {
+                      return;
+                  }
+                  StringBuilder path = new StringBuilder(curr);
+                  for (int i = 0; i < addlFiles.length; i++) {
+                      String pt = addlFiles[i].getAbsolutePath();
+                      pt = ext.verifyDirFormat(ext.parseDirectoryOfFile(pt)) + ext.removeDirectoryInfo(pt);
+                      path.append(pt);
+                      if (i < addlFiles.length - 1) {
+                          path.append(";");
+                      }
+                  }
+                  txtFldCompDir.setText(path.toString());
+                  loadCompare(path.toString().split(";")); // TODO replace split call
+                  saveProps();
+              }
+          }
+      });
+      
+      btnRemoveComp = new JButton("-");
+      btnRemoveComp.setMnemonic(KeyEvent.VK_O);
+      btnRemoveComp.setMargin(new Insets(0, 6, 0, 6));
+      btnRemoveComp.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent arg0) {
+              String curr = txtFldCompDir.getText();
+              String[] pts;
+              if (curr.equals("")) {
+                  return;
+              } else {
+                  pts = curr.split(";");
+              }
+              IncludeExcludeGUI dialog = new IncludeExcludeGUI(ControlsQCGUI.this, pts, Array.booleanArray(pts.length, true));
+              dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+              dialog.pack();
+              dialog.setVisible(true);
+              int code = dialog.getCloseCode();
+              if (code == JOptionPane.OK_OPTION) {
+                  StringBuilder sb = new StringBuilder();
+                  boolean[] inc = dialog.getSelected();
+                  for (int i = 0; i < pts.length; i++) {
+                      if (inc[i]) {
+                          sb.append(pts[i]).append(";");
+                      }
+                  }
+                  if (sb.length() > 0) {
+                      sb.deleteCharAt(sb.length() - 1); // remove trailing semicolon
+                  }
+                  txtFldCompDir.setText(sb.toString());
+                  loadCompare(sb.toString().split(";")); // TODO replace split call
+                  saveProps();
+              }
+              
+          }
+      });
+      contentPane.add(btnRemoveComp, "cell 2 1");
+      
+      contentPane.add(btnAddComp, "flowx,cell 2 1");
+      contentPane.add(btnRemoveComp, "cell 2 1");
+      
+      scrollPane = new JScrollPane();
+      scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+      scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+      contentPane.add(scrollPane, "cell 0 2 3 1,grow");
+              
+      table = new JTable() {
+          
+          @Override
+          public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+              Component c = super.prepareRenderer(renderer, row, column);
+              
+              if (/*column == 0 &&*/ boldRows.contains(row)) {
+                  c.setFont(c.getFont().deriveFont(Font.BOLD));
+              }
+              if (isCellSelected(row, column)) return c;
+              
+              Color col = Color.WHITE;
+              if (column > 0 && !statRows.contains(row)) {
+                  Object val = table.getModel().getValueAt(table.convertRowIndexToModel(row), table.convertColumnIndexToModel(column));
+                  if (val != null) {
+                      if (val instanceof Float) {
+                          String colNm = (String) table.getModel().getValueAt(0, table.convertColumnIndexToModel(column));
+                          Float value = (Float) val;
+                          if (paramMeans.containsKey(colNm)) {
+                              if (value > (paramMeans.get(colNm) + paramSDs.get(colNm)) || value < (paramMeans.get(colNm) - paramSDs.get(colNm))) {
+                                  col = SD1_COLOR;
+                              }  
+                              if (value > (paramMeans.get(colNm) + 2*paramSDs.get(colNm)) || value < (paramMeans.get(colNm) - 2*paramSDs.get(colNm))) {
+                                  col = SD2_COLOR;
+                              }
+                          }
+                      }
+                  } 
+              }
+              c.setBackground(col);
+              
+              return c;
+          }
+      };
 
-        table.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    JTable target = (JTable) e.getSource();
-                    int row = target.getSelectedRow();
-                    int column = target.getSelectedColumn();
-                    if (column == 0) return;
-                    if (row != 0 && boldRows.contains(row)) return;
-                    Object o1 = target.getValueAt(row, column);
-                    if (o1 == null) return;
-                    
-                    final String col = (String) target.getValueAt(0, column);
-                    if (row == 0) {
-                        ControlsQCGUI.this.showMeanPanel(col);
-                    }
-                }
-            }
-        });
-        table.getTableHeader().addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    int colInd = table.columnAtPoint(e.getPoint());
-                    String col = (String) table.getValueAt(0, colInd);
-                    ControlsQCGUI.this.showMeanPanel(col);
-                }
-            }
-        });
-        table.setShowVerticalLines(false);
-        table.setShowHorizontalLines(false);
-        scrollPane.setViewportView(table);
+      table.addMouseListener(new MouseAdapter() {
+          public void mouseClicked(MouseEvent e) {
+              if (e.getClickCount() == 2) {
+                  JTable target = (JTable) e.getSource();
+                  int row = target.getSelectedRow();
+                  int column = target.getSelectedColumn();
+                  if (column == 0) return;
+                  if (row != 0 && boldRows.contains(row)) return;
+                  Object o1 = target.getValueAt(row, column);
+                  if (o1 == null) return;
+                  
+                  final String col = (String) target.getValueAt(0, column);
+                  if (row == 0) {
+                      ControlsQCGUI.this.showMeanPanel(col);
+                  }
+              }
+          }
+      });
+      table.getTableHeader().addMouseListener(new MouseAdapter() {
+          @Override
+          public void mouseClicked(MouseEvent e) {
+              if (e.getClickCount() == 2) {
+                  int colInd = table.columnAtPoint(e.getPoint());
+                  String col = (String) table.getValueAt(0, colInd);
+                  ControlsQCGUI.this.showMeanPanel(col);
+              }
+          }
+      });
+      table.setShowVerticalLines(false);
+      table.setShowHorizontalLines(false);
+      scrollPane.setViewportView(table);
 //        table.setCellSelectionEnabled(false);
-        table.setColumnModel(new DefaultTableColumnModel() {
-            @Override
-            public void moveColumn(int columnIndex, int newIndex) {
-                if (columnIndex == 0 || newIndex == 0) return; 
-                super.moveColumn(columnIndex, newIndex);
-            }
-        });
-        table.setRowSelectionAllowed(true);
-        table.setColumnSelectionAllowed(true);
-        
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        
-        panel_1 = new JPanel();
-        panel_1.setBorder(null);
-        contentPane.add(panel_1, "cell 0 3 3 1,grow");
-        panel_1.setLayout(new MigLayout("hidemode 3, ins 0", "[][][][][][][][][][][][grow]", "[]"));
-        
-        btnHideshowColumns = new JButton("Hide/Show Columns");
-        panel_1.add(btnHideshowColumns, "cell 0 0");
-        
-        separator = new JSeparator();
-        separator.setOrientation(SwingConstants.VERTICAL);
-        panel_1.add(separator, "cell 1 0,growy");
-        
-        lblControlGroup = new JLabel("Control:");
-        panel_1.add(lblControlGroup, "cell 2 0,alignx trailing");
-        
-        ActionListener reCalcListener = new ActionListener() {
-            @SuppressWarnings("unchecked")
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-                if (((JComboBox<String>)arg0.getSource()).isPopupVisible()) {
-                    saveProps();
-                }
-                reCalcTableData();
-            }
-        };
-        
-        comboControl = new JComboBox<String>();
-        comboControl.addActionListener(reCalcListener);
-        panel_1.add(comboControl, "cell 3 0,growx");
-        
-        separator_1 = new JSeparator();
-        separator_1.setOrientation(SwingConstants.VERTICAL);
-        panel_1.add(separator_1, "cell 4 0,growy");
-        
-        lblPanel = new JLabel("Panel:");
-        panel_1.add(lblPanel, "cell 5 0,alignx trailing");
-        
-        comboPanel = new JComboBox<String>();
-        comboPanel.addActionListener(reCalcListener);
-        panel_1.add(comboPanel, "cell 6 0,growx");
-        
-        separator_3 = new JSeparator();
-        separator_3.setOrientation(SwingConstants.VERTICAL);
-        panel_1.add(separator_3, "cell 7 0,growy");
-        
-        lblOfControls = new JLabel("# of Controls (0 = all):");
-        panel_1.add(lblOfControls, "cell 8 0");
-        
-        spinner = new JSpinner();
-        spinner.setModel(new SpinnerNumberModel(new Integer(0), new Integer(0), null, new Integer(1)));
-        spinner.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent arg0) {
-                reCalcTableData();
-            }
-        });
-        panel_1.add(spinner, "cell 9 0");
-        
-        separator_4 = new JSeparator();
-        separator_4.setOrientation(SwingConstants.VERTICAL);
-        panel_1.add(separator_4, "cell 10 0,growy");
-        
-        lblWarning = new JLabel("");
-        panel_1.add(lblWarning, "flowx,cell 11 0,alignx right");
-        
-        btnMore = new JButton("More");
-        btnMore.setVisible(false);
-        panel_1.add(btnMore, "cell 11 0,alignx right");
-        
-        btnHideshowColumns.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
-                if (baseData == null) return;
-                String[] opts = new String[baseData.getAllParams().size()];
-                boolean[] incl = new boolean[baseData.getAllParams().size()];
-                int ind = 0;
-                for (String p : baseData.getAllParams()) {
-                    opts[ind] = p;
-                    incl[ind] = !hiddenCols.contains(p);
-                    ind++;
-                }
-                IncludeExcludeGUI dialog = new IncludeExcludeGUI(ControlsQCGUI.this, opts, incl);
-                dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                dialog.pack();
-                dialog.setVisible(true);
-                int code = dialog.getCloseCode();
-                if (code == JOptionPane.OK_OPTION) {
-                    boolean[] inc = dialog.getSelected();
-                    hiddenCols.clear();
-                    for (int i = 0; i < opts.length; i++) {
-                        if (!inc[i]) {
-                            hiddenCols.add(opts[i]);
-                        }
-                    }
-                    saveProps();
-                    reCalcTableData();
-                }
-            }
-        });
+      table.setColumnModel(new DefaultTableColumnModel() {
+          @Override
+          public void moveColumn(int columnIndex, int newIndex) {
+              if (columnIndex == 0 || newIndex == 0) return; 
+              super.moveColumn(columnIndex, newIndex);
+          }
+      });
+      table.setRowSelectionAllowed(true);
+      table.setColumnSelectionAllowed(true);
+      
+      table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+      
+      panel_1 = new JPanel();
+      panel_1.setBorder(null);
+      contentPane.add(panel_1, "cell 0 3 3 1,grow");
+      panel_1.setLayout(new MigLayout("hidemode 3, ins 0", "[][][][][][][][][][][][grow]", "[]"));
+      
+      btnHideshowColumns = new JButton("Hide/Show Columns");
+      panel_1.add(btnHideshowColumns, "cell 0 0");
+      
+      separator = new JSeparator();
+      separator.setOrientation(SwingConstants.VERTICAL);
+      panel_1.add(separator, "cell 1 0,growy");
+      
+      lblControlGroup = new JLabel("Control:");
+      panel_1.add(lblControlGroup, "cell 2 0,alignx trailing");
+      
+      ActionListener reCalcListener = new ActionListener() {
+          @SuppressWarnings("unchecked")
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+              if (((JComboBox<String>)arg0.getSource()).isPopupVisible()) {
+                  saveProps();
+              }
+              reCalcTableData();
+          }
+      };
+      
+      comboControl = new JComboBox<String>();
+      comboControl.addActionListener(reCalcListener);
+      panel_1.add(comboControl, "cell 3 0,growx");
+      
+      separator_1 = new JSeparator();
+      separator_1.setOrientation(SwingConstants.VERTICAL);
+      panel_1.add(separator_1, "cell 4 0,growy");
+      
+      lblPanel = new JLabel("Panel:");
+      panel_1.add(lblPanel, "cell 5 0,alignx trailing");
+      
+      comboPanel = new JComboBox<String>();
+      comboPanel.addActionListener(reCalcListener);
+      panel_1.add(comboPanel, "cell 6 0,growx");
+      
+      separator_3 = new JSeparator();
+      separator_3.setOrientation(SwingConstants.VERTICAL);
+      panel_1.add(separator_3, "cell 7 0,growy");
+      
+      lblOfControls = new JLabel("# of Controls (0 = all):");
+      panel_1.add(lblOfControls, "cell 8 0");
+      
+      spinner = new JSpinner();
+      spinner.setModel(new SpinnerNumberModel(new Integer(0), new Integer(0), null, new Integer(1)));
+      spinner.addChangeListener(new ChangeListener() {
+          @Override
+          public void stateChanged(ChangeEvent arg0) {
+              reCalcTableData();
+          }
+      });
+      panel_1.add(spinner, "cell 9 0");
+      
+      separator_4 = new JSeparator();
+      separator_4.setOrientation(SwingConstants.VERTICAL);
+      panel_1.add(separator_4, "cell 10 0,growy");
+      
+      lblWarning = new JLabel("");
+      panel_1.add(lblWarning, "flowx,cell 11 0,alignx right");
+      
+      btnMore = new JButton("More");
+      btnMore.setVisible(false);
+      panel_1.add(btnMore, "cell 11 0,alignx right");
+      
+      btnHideshowColumns.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent arg0) {
+              if (baseData == null) return;
+              String[] opts = new String[baseData.getAllParams().size()];
+              boolean[] incl = new boolean[baseData.getAllParams().size()];
+              int ind = 0;
+              for (String p : baseData.getAllParams()) {
+                  opts[ind] = p;
+                  incl[ind] = !hiddenCols.contains(p);
+                  ind++;
+              }
+              IncludeExcludeGUI dialog = new IncludeExcludeGUI(ControlsQCGUI.this, opts, incl);
+              dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+              dialog.pack();
+              dialog.setVisible(true);
+              int code = dialog.getCloseCode();
+              if (code == JOptionPane.OK_OPTION) {
+                  boolean[] inc = dialog.getSelected();
+                  hiddenCols.clear();
+                  for (int i = 0; i < opts.length; i++) {
+                      if (!inc[i]) {
+                          hiddenCols.add(opts[i]);
+                      }
+                  }
+                  saveProps();
+                  reCalcTableData();
+              }
+          }
+      });
 
-        meanPanel.setOpaque(true);
-        meanFrame.getContentPane().add(meanPanel, BorderLayout.CENTER);
-        meanFrame.getContentPane().add(meanCtrlPanel, BorderLayout.SOUTH);
-        ActionListener prevLst = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-                String newCol = arg0.getActionCommand();
-                showMeanPanel(newCol);
-            }
-        };
-        ActionListener plotLst = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-                String newCol = arg0.getActionCommand();
-                if ("DOT".equalsIgnoreCase(newCol)) {
-                    meanPanel.setOpaque(true);
-                    meanPanel.setPlotType(OneDPanel.PLOT_TYPE.DOT_LINE_PLOT);
-                    meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS/5);
-                    meanPanel.setXAxisLabel("File by Date");
-                } else if ("BOX".equalsIgnoreCase(newCol)) {
-                    meanPanel.setPlotType(PLOT_TYPE.BOX_PLOT);
-                    meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 2);
-                    meanPanel.setAxisYWidth(AbstractPanel2.WIDTH_Y_AXIS - AbstractPanel2.WIDTH_Y_AXIS / 3);
-                    meanPanel.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
-                    meanPanel.setYAxisLabel(meanPanel.plotLabel.split("\\|")[1].trim());
-                }
-                meanPanel.invalidate();
-                meanPanel.repaint();
+      meanPanel.setOpaque(true);
+      meanFrame.getContentPane().add(meanPanel, BorderLayout.CENTER);
+      meanFrame.getContentPane().add(meanCtrlPanel, BorderLayout.SOUTH);
+      ActionListener prevLst = new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+              String newCol = arg0.getActionCommand();
+              showMeanPanel(newCol);
+          }
+      };
+      ActionListener plotLst = new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent arg0) {
+              String newCol = arg0.getActionCommand();
+              if ("DOT".equalsIgnoreCase(newCol)) {
+                  meanPanel.setOpaque(true);
+                  meanPanel.setPlotType(OneDPanel.PLOT_TYPE.DOT_LINE_PLOT);
+                  meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS/5);
+                  meanPanel.setXAxisLabel("File by Date");
+              } else if ("BOX".equalsIgnoreCase(newCol)) {
+                  meanPanel.setPlotType(PLOT_TYPE.BOX_PLOT);
+                  meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 2);
+                  meanPanel.setAxisYWidth(AbstractPanel2.WIDTH_Y_AXIS - AbstractPanel2.WIDTH_Y_AXIS / 3);
+                  meanPanel.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
+                  meanPanel.setYAxisLabel(meanPanel.plotLabel.split("\\|")[1].trim());
+              }
+              meanPanel.invalidate();
+              meanPanel.repaint();
 //                showMeanPanel(newCol);
-            }
-        };
-        meanCtrlPanel.setChangeListener(prevLst);
-        meanCtrlPanel.setPlotChangeListener(plotLst);
-        meanPanel.setPlotType(PLOT_TYPE.BOX_PLOT);
-        meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 2);
-        meanPanel.setAxisYWidth(AbstractPanel2.WIDTH_Y_AXIS - AbstractPanel2.WIDTH_Y_AXIS / 3);
-        meanPanel.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
+          }
+      };
+      meanCtrlPanel.setChangeListener(prevLst);
+      meanCtrlPanel.setPlotChangeListener(plotLst);
+      meanPanel.setPlotType(PLOT_TYPE.BOX_PLOT);
+      meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 2);
+      meanPanel.setAxisYWidth(AbstractPanel2.WIDTH_Y_AXIS - AbstractPanel2.WIDTH_Y_AXIS / 3);
+      meanPanel.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
 //        meanPanel.setYAxisLabel(meanPanel.plotLabel.split("\\|")[1].trim());
-        meanCtrlPanel.setLabelPresenter(new LabelPresenter() {
-            @Override
-            public String getPresentationView(String label) {
-                String[] pts = label.split("\\|")[0].trim().split("/");
-                String col = pts[pts.length - 1];
-                return col;
-            }
-        });
-        meanFrame.setBounds(FCSPlot.START_X, FCSPlot.START_Y, FCSPlot.START_WIDTH, FCSPlot.START_HEIGHT);
-        
-        loadProps();
+      meanCtrlPanel.setLabelPresenter(new LabelPresenter() {
+          @Override
+          public String getPresentationView(String label) {
+              String[] pts = label.split("\\|")[0].trim().split("/");
+              String col = pts[pts.length - 1];
+              return col;
+          }
+      });
+      meanFrame.setBounds(FCSPlot.START_X, FCSPlot.START_Y, FCSPlot.START_WIDTH, FCSPlot.START_HEIGHT);
+      
+      setJMenuBar(createMenuBar());
+      
+      loadProps();
     }
+    
+    private JMenuBar createMenuBar() {
+      JMenuBar menuBar = new JMenuBar();
+      
+      JMenu actMenu = new JMenu("Actions");
+      JMenuItem screenshotItem = new JMenuItem("Screenshot");
+      screenshotItem.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          JFileChooser fileChooser = new JFileChooser(".");
+          int fileOpenActionSelected = fileChooser.showSaveDialog(ControlsQCGUI.this);
+          if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
+              File fileToOpen = fileChooser.getSelectedFile();
+              meanPanel.screenCapture(fileToOpen.toString()+".png");
+          }
+        }
+      });
+      
+      actMenu.add(screenshotItem);
+      menuBar.add(actMenu);
+      
+      return menuBar;
+    }
+    
+    
     
     private void showMeanPanel(String col) {
         // Get all means (yData), get Files&Dates (xData), get Mean/SD (meanSD)

@@ -74,6 +74,19 @@ For convenience, you can also [create a dedicated run configuration](https://www
 
 Creating a run configuration will allow you to select the Maven build from the [Run toolbar button](https://developers.google.com/eclipse/docs/running_and_debugging_2_0), and also allows customization of properties (in contrast to the global properties declared in your `settings.xml`).
 
+#### Changing main class or jar name
+
+The Assembly project uses two parameters to determine how to build the final `.jar`:
+
+* `outname`  - name of the .jar, default: "genvisis"
+* `mainClass` - fully qualified main class to run when executing the .jar, default: org.genvisis.cnv.Launch
+
+These parameters can be overridden [the standard Maven way](http://books.sonatype.com/mvnref-book/reference/running-sect-options.html) to customize the output .jar.
+
+Additionally, when creating a run configuration in Eclipse there is a section to override parameters, so you can use multiple run configurations to manage your different views of the Genvisis codebase.
+
+A final option is to create a `pom.xml` that uses the `Assembly` pom as its parent and overrides these parameters. The advantage to this method is that it provides a tangible `pom.xml` that implicitly documents the parameters, and can be shared with the community
+
 ## Automatic upload and copy
 
 You can use Maven to automatically upload `genvisis.jar` to a remote location after each build, and/or copy the output file to a directory on your local filesystem. To enable this feature, create a `settings.xml` in your `${user.home}/.m2` directory with the following structure:
