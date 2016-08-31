@@ -1016,10 +1016,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
       String toDelete = projects.get(indexOfCurrentProj);
       int newIndex = Math.max(0, --indexOfCurrentProj);
       if (new File(launchProperties.getDirectory() + toDelete).delete()) {
-        int deleteDir = JOptionPane.showConfirmDialog(null, "Delete source directory as well?",
-                                                      "Delete project",
-                                                      JOptionPane.YES_NO_CANCEL_OPTION,
-                                                      JOptionPane.WARNING_MESSAGE);
         projects = null;
 
         // Update toDelete to just the project name
@@ -1027,16 +1023,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
         // Find and remove the project entry in the "select projects" menu
         deleteMenuItem(getJMenuBar(), "File", SELECT_PROJECT, toDelete);
 
-        if (deleteDir == JOptionPane.YES_OPTION) {
-          log = new Logger();
-          log.linkTextArea(output);
-          try {
-            FileUtils.deleteDirectory(new File(proj.PROJECT_DIRECTORY.getValue()));
-          } catch (IOException e) {
-            log.reportTimeWarning("Failed to delete project directory: "
-                                + proj.PROJECT_DIRECTORY.getValue());
-          }
-        }
         loadProjects();
         if (!projects.isEmpty()) {
           loadProject();
