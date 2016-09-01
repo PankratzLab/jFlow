@@ -1,7 +1,5 @@
 package org.genvisis.one.JL;
 
-import htsjdk.tribble.annotation.Strand;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,8 +14,8 @@ import org.genvisis.cnv.analysis.pca.BetaOptimizer.MarkerRsFormat;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.cnv.manage.Resources.GENOME_RESOURCE_TYPE;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -46,7 +44,7 @@ public class processAricExomeBetas {
 		abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog());
 		String mapSer = out + "rsIDMap.ser";
 		if (!Files.exists(mapSer)) {
-			BetaOptimizer.mapToRsIds(proj, abLookup, GENOME_RESOURCE_TYPE.DB_SNP.getResource(GENOME_BUILD.HG19).getResource(proj.getLog()), markerSet.getMarkerNames(), mapSer, proj.getLog());
+			BetaOptimizer.mapToRsIds(proj, abLookup, Resources.genome(GENOME_BUILD.HG19, proj.getLog()).getDBSNP().get(), markerSet.getMarkerNames(), mapSer, proj.getLog());
 		}
 		ArrayList<MarkerRsFormat> markerRsFormats = MarkerRsFormat.readSerial(mapSer, proj.getLog());
 		ArrayList<String> rsOut = new ArrayList<String>();

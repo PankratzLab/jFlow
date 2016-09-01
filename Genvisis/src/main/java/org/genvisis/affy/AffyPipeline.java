@@ -19,6 +19,7 @@ import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
@@ -454,16 +455,12 @@ public class AffyPipeline {
     log.reportTimeInfo("Found " + celFiles.length + " .cel files to process");
     if (markerPositions == null || !Files.exists(markerPositions)) {
       log.reportTimeError("Could not find marker position file " + markerPositions);
-      if (!Resources.ARRAY_RESOURCE_TYPE.AFFY_SNP6_MARKER_POSITIONS.getResource(build)
-                                                                   .isAvailable(log)) {
+      Resource markerPos = Resources.affy(log).getMarkerPositions(build);
+      if (!markerPos.isAvailable()) {
         throw new IllegalArgumentException();
       } else {
-        log.reportTimeError("Using "
-                            + Resources.ARRAY_RESOURCE_TYPE.AFFY_SNP6_MARKER_POSITIONS.getResource(build)
-                                                                                      .getResource(log));
-        markerPositions =
-                        Resources.ARRAY_RESOURCE_TYPE.AFFY_SNP6_MARKER_POSITIONS.getResource(build)
-                                                                                .getResource(log);
+        log.report("Using " + markerPos.get());
+        markerPositions = markerPos.get();
       }
     }
     if (quantNormTarget == null || !Files.exists(quantNormTarget)) {

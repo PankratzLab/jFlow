@@ -15,7 +15,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.hmm.PennHmm.ViterbiResult;
-import org.genvisis.cnv.manage.Resources.GENOME_RESOURCE_TYPE;
+import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GCAdjustorBuilder;
@@ -880,17 +880,15 @@ public class CNVCaller {
     }
     PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
     if (!Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))) {
-      Resource gmodelBase =
-                          GENOME_RESOURCE_TYPE.GC5_BASE.getResource(proj.GENOME_BUILD_VERSION.getValue());
-      if (!Files.exists(proj.GC_MODEL_FILENAME.getValue())
-          && gmodelBase.isAvailable(proj.getLog())) {
+      Resource gmodelBase = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog())
+                                     .getModelBase();
+      if (!Files.exists(proj.GC_MODEL_FILENAME.getValue()) && gmodelBase.isAvailable()) {
         proj.getLog()
             .reportTimeWarning("Generating gcModel for " + proj.GENOME_BUILD_VERSION.getValue()
                                + " at " + proj.GC_MODEL_FILENAME.getValue() + " from "
-                               + gmodelBase.getResource(proj.getLog()));
+                               + gmodelBase.get());
         proj.getLog().setLevel(3);
-        PennCNV.gcModel(proj, gmodelBase.getResource(proj.getLog()),
-                        proj.GC_MODEL_FILENAME.getValue(), 100);
+        PennCNV.gcModel(proj, gmodelBase.get(), proj.GC_MODEL_FILENAME.getValue(), 100);
       }
     }
     GcModel gcModel = GcAdjustor.GcModel.populateFromFile(

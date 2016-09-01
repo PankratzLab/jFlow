@@ -26,9 +26,8 @@ import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.Markers;
-import org.genvisis.cnv.manage.Resources.ARRAY_RESOURCE_TYPE;
+import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.cnv.manage.Resources.GENOME_RESOURCE_TYPE;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.common.AlleleFreq;
 import org.genvisis.common.Array;
@@ -892,12 +891,11 @@ public class BetaOptimizer {
           || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN) {
         proj.getLog().reportTimeInfo("Attempting to use " + GENOME_BUILD.HG19.getBuild()
                                      + " positions for rsID lookup");
-        Resource affyhg19 =
-                          ARRAY_RESOURCE_TYPE.AFFY_SNP6_MARKER_POSITIONS.getResource(GENOME_BUILD.HG19);
+        Resource affyhg19 = Resources.affy(log).getMarkerPositions(GENOME_BUILD.HG19);
         String tmpSer = ext.rootOf(outSer, false) + "hg19.positions.ser";
 
         if (!Files.exists(tmpSer)) {
-          Markers.orderMarkers(null, affyhg19.getResource(log), tmpSer, proj.getLog());
+          Markers.orderMarkers(null, affyhg19.get(), tmpSer, proj.getLog());
 
         }
         markerSet = MarkerSet.load(tmpSer, false);
@@ -1157,10 +1155,9 @@ public class BetaOptimizer {
       } else {
         if (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
             || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN) {
-          Resource abAffy =
-                          ARRAY_RESOURCE_TYPE.AFFY_SNP6_ABLOOKUP.getResource(proj.GENOME_BUILD_VERSION.getValue());
-          if (abAffy.isAvailable(proj.getLog())) {
-            String tmpAB = abAffy.getResource(proj.getLog());
+          Resource abAffy = Resources.affy(proj.getLog()).getABLookup();
+          if (abAffy.isAvailable()) {
+            String tmpAB = abAffy.get();
             Files.copyFile(tmpAB, proj.AB_LOOKUP_FILENAME.getValue());
           } else {
             throw new IllegalStateException("Could not retrieve required AB lookup for affymetrix array, halting");
@@ -1178,9 +1175,9 @@ public class BetaOptimizer {
     MarkerSet markerSet = proj.getMarkerSet();
     abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true,
                             true, proj.getLog());
-    Resource dbsnp = GENOME_RESOURCE_TYPE.DB_SNP.getResource(GENOME_BUILD.HG19);// TODO, need hg 18
+    Resource dbsnp = Resources.genome(GENOME_BUILD.HG19, proj.getLog()).getDBSNP();// TODO, need hg 18
                                                                                 // db snp
-    if (!dbsnp.isAvailable(proj.getLog())) {
+    if (!dbsnp.isAvailable()) {
       throw new IllegalStateException("Could not retrieve required dbSNP vcf");
     }
     String[] betaFiles = null;
@@ -1191,7 +1188,7 @@ public class BetaOptimizer {
     } else {
       betaFiles = new String[] {betaLoc};
     }
-    analyzeAll(proj, pcFile, unRelatedFile, markerSet, abLookup, dbsnp.getResource(proj.getLog()),
+    analyzeAll(proj, pcFile, unRelatedFile, markerSet, abLookup, dbsnp.get(),
                proj.getNonCNMarkers(), outDir, betaFiles, pvals, markerCallRate, maxPCs, numthreads,
                pcSamps, pvalRefineCutoff, proj.getLog());
   }
@@ -1296,7 +1293,7 @@ public class BetaOptimizer {
     MarkerSet markerSet = proj.getMarkerSet();
     abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true,
                             true, proj.getLog());
-    Resource dbsnp = GENOME_RESOURCE_TYPE.DB_SNP.getResource(GENOME_BUILD.HG19);
+    Resource dbsnp = Resources.genome(GENOME_BUILD.HG19, proj.getLog()).getDBSNP();
     String betaFileDir = "/home/pankrat2/shared/MitoPipeLineResources/betas/" + args[0] + "/";
 
     String[] betaFiles = Files.list(betaFileDir, "", ".beta", true, false, true);
@@ -1312,7 +1309,7 @@ public class BetaOptimizer {
     proj.getLog().reportTimeInfo("Using " + numthreads + " of "
                                  + Runtime.getRuntime().availableProcessors() + " available cores");
     int maxPCs = 120;
-    analyzeAll(proj, pcFile, toUseFile, markerSet, abLookup, dbsnp.getResource(proj.getLog()),
+    analyzeAll(proj, pcFile, toUseFile, markerSet, abLookup, dbsnp.get(),
                proj.getNonCNMarkers(), out, betaFiles, pvals, markerCallRate, maxPCs, numthreads,
                usedInPCFile, 25, proj.getLog());
   }

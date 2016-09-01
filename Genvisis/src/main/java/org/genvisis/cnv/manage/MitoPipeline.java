@@ -24,8 +24,6 @@ import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.cnv.manage.Resources.GENOME_RESOURCE_TYPE;
-import org.genvisis.cnv.manage.Resources.MITO_RESOURCE_TYPE;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.GcAdjustor;
@@ -478,15 +476,15 @@ public class MitoPipeline {
                                + " , but will likely not be required");
         refGenomeFasta = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
       }
-      Resource gmodelBase = GENOME_RESOURCE_TYPE.GC5_BASE.getResource(build);
+      Resource gmodelBase = Resources.genome(build, log).getModelBase();
       if (!Files.exists(proj.GC_MODEL_FILENAME.getValue())
           && (refGenomeFasta == null || !Files.exists(refGenomeFasta))
-          && gmodelBase.isAvailable(log)) {
+          && gmodelBase.isAvailable()) {
         log.reportTimeWarning("Generating gcModel for " + build.getBuild() + " at "
                               + proj.GC_MODEL_FILENAME.getValue() + " from "
-                              + gmodelBase.getResource(log));
+                              + gmodelBase.get());
         proj.getLog().setLevel(3);
-        PennCNV.gcModel(proj, gmodelBase.getResource(log), proj.GC_MODEL_FILENAME.getValue(), 100);
+        PennCNV.gcModel(proj, gmodelBase.get(), proj.GC_MODEL_FILENAME.getValue(), 100);
         refGenomeFasta = null;
       }
       if (Files.exists(refGenomeFasta) || Files.exists(proj.GC_MODEL_FILENAME.getValue())) {// TODO,
@@ -562,8 +560,7 @@ public class MitoPipeline {
         BetaOptimizer.optimize(proj,
                                proj.PROJECT_DIRECTORY.getValue() + pcApply.getExtrapolatedPCsFile(),
                                proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/",
-                               requireBeta ? ext.parseDirectoryOfFile(Resources.MITO_RESOURCE_TYPE.ALL_WBC_BETA.getResource()
-                                                                                                               .getFullLocalPath())
+                               requireBeta ? ext.parseDirectoryOfFile(Resources.mitoCN(log).getTotalWBC().get())
                                            : betaFile,
                                betaOptFile,
                                proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES,
@@ -575,19 +572,18 @@ public class MitoPipeline {
   }
 
   private static boolean prepareMitoResources(Project proj, boolean requireBeta, Logger log) {
-    boolean dbSnpA = GENOME_RESOURCE_TYPE.DB_SNP.getResource(proj.GENOME_BUILD_VERSION.getValue())
-                                                .validateWithHint(log);
+    boolean dbSnpA = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getDBSNP().isAvailable(true);
     if (!dbSnpA && (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
                     || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN)) {
       log.reportTimeWarning("Build version was set to " + proj.GENOME_BUILD_VERSION.getValue()
                             + " , performing liftover and using rsIDs from " + GENOME_BUILD.HG19);
-      dbSnpA = GENOME_RESOURCE_TYPE.DB_SNP.getResource(GENOME_BUILD.HG19).validateWithHint(log);
-      GENOME_RESOURCE_TYPE.DB_SNP.getResource(GENOME_BUILD.HG19).getResource(log);
+      dbSnpA = Resources.genome(GENOME_BUILD.HG19, log).getDBSNP().isAvailable(true);
+      Resources.genome(GENOME_BUILD.HG19, log).getDBSNP().get();
     }
     boolean mitoAvail = true;
-    for (MITO_RESOURCE_TYPE m : MITO_RESOURCE_TYPE.values()) {
-      boolean tmp = m.getResource().validateWithHint(log);
-      m.getResource().getResource(log);
+    for (Resource r : Resources.mitoCN(log).getResources()) {
+      boolean tmp = r.isAvailable(true);
+      r.get();
       if (mitoAvail && requireBeta) {
         mitoAvail = tmp;
       }
