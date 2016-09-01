@@ -509,8 +509,8 @@ public class GATK_LanePrep extends BWA_Analysis {
 		boolean verbose = true;
 		boolean batch = false;
 		int numBatches = 5;
-		int memoryInMB = 23000;
-		int wallTimeInHours = 24;
+    int memoryInMB = 61000;
+    int wallTimeInHours = 96;
 		int numWithinSampleThreads = 1;
 		int numBetweenSampleThreads = 1;
 		boolean overwriteExisting = false;
