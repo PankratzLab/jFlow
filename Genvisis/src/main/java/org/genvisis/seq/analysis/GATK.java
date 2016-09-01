@@ -266,7 +266,7 @@ public class GATK {
     if (trimDirectoryInfo) {
       filename = ext.removeDirectoryInfo(filename);
     }
-    while (VCF_EXTENSIONS.contains(filename.substring(filename.lastIndexOf('.')))) {
+    while (filename.lastIndexOf('.') > 0 && VCF_EXTENSIONS.contains(filename.substring(filename.lastIndexOf('.')))) {
       filename = filename.substring(0, filename.lastIndexOf('.'));
     }
     return filename;
