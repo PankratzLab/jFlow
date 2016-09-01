@@ -42,6 +42,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   private static final String NUM_BATCHES = "batch";
   private static final String COMPILE = "compile";
   private static final String COMPUTEL = "computel";
+  private static final String CLEANUP = "clean";
 
   private SRASample sraSample;
   private String inputSRA;
@@ -51,6 +52,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   private String binBed;
   private String vcfFile;
   private String computelLocation;
+  private boolean cleanup;
   private int numThreads;
   private Logger log;
 
@@ -63,11 +65,12 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
    * @param atype {@link ASSAY_TYPE} of the sample
    * @param aName {@link ASSEMBLY_NAME} for the sample
    * @param numThreads number of threads for the pipeline branches
+   * @param cleanup clean up by deleting the .sra and .bam file after completion
    * @param log
    */
   public SRAPipeline(SRASample sraSample, String inputSRA, String rootOutDir,
                      String referenceGenome, String captureBed, String binBed, String vcf,
-                     String computelLocation, int numThreads, Logger log) {
+                     String computelLocation, int numThreads, boolean cleanup, Logger log) {
     super();
     this.sraSample = sraSample;
     this.inputSRA = inputSRA;
@@ -78,23 +81,38 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     this.vcfFile = vcf;
     this.computelLocation = computelLocation;
     this.numThreads = numThreads;
+    this.cleanup = cleanup;
     this.log = log;
   }
 
   @Override
   public List<PipelinePart> call() throws Exception {
     String bamDir = getBamDirectory(rootOutDir);
-    // TODO logic for completed files
-    new File(bamDir).mkdirs();
-    String bam = bamDir + ext.rootOf(inputSRA) + ".bam";
-    WorkerHive<SRAConversionResult> hive = new WorkerHive<SRAUtils.SRAConversionResult>(1, 10, log);
-    hive.addCallable(new SRABamWorker(inputSRA, bam, log));
-    hive.execute(true);
-    List<PipelinePart> parts = Pipeline.pipeline(bam, rootOutDir, referenceGenome, captureBed,
-                                                 binBed, vcfFile, sraSample, computelLocation,
-                                                 numThreads, log);
-    makeComplete(bamDir, inputSRA);
-    return parts;
+
+    if (!Files.exists(getCompleteFile(rootOutDir, inputSRA)) && !Files.exists(inputSRA)) {
+      throw new IllegalArgumentException("Missing complete file and " + inputSRA);
+    } else if (!Files.exists(getCompleteFile(rootOutDir, inputSRA))) {
+      new File(bamDir).mkdirs();
+      String bam = bamDir + ext.rootOf(inputSRA) + ".bam";
+      WorkerHive<SRAConversionResult> hive =
+                                           new WorkerHive<SRAUtils.SRAConversionResult>(1, 10, log);
+      hive.addCallable(new SRABamWorker(inputSRA, bam, log));
+      hive.execute(true);
+      List<PipelinePart> parts = Pipeline.pipeline(bam, rootOutDir, referenceGenome, captureBed,
+                                                   binBed, vcfFile, sraSample, computelLocation,
+                                                   numThreads, log);
+
+      if (cleanup) {
+        cleanup = new File(bam).delete();
+        cleanup = new File(inputSRA).delete();
+      }
+      makeComplete(bamDir, inputSRA);
+      return parts;
+
+    } else {
+
+      return new ArrayList<Pipeline.PipelinePart>();
+    }
   }
 
   private void makeComplete(String rootOutDir, String sra) {
@@ -213,7 +231,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   private static void runAll(String sraInput, String sraRunTableFile, String rootOutDir,
                              String referenceGenome, String captureBed, String binBed, String vcf,
                              String computelLocation, int numThreads, int numThreadsPipeline,
-                             int numBatches, CLI c) {
+                             int numBatches, CLI c, boolean cleanup) {
     Logger log = new Logger();
 
     WorkerHive<List<PipelinePart>> hive = new WorkerHive<List<PipelinePart>>(numThreads, 10, log);
@@ -228,7 +246,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
       sampleSummary.add(sample.getSraFile() + "\t" + sample.toString());
       SRAPipeline pipeline = new SRAPipeline(sample, sample.getSraFile(), rootOutDir,
                                              referenceGenome, captureBed, binBed, vcf,
-                                             computelLocation, numThreadsPipeline, log);
+                                             computelLocation, numThreadsPipeline, cleanup, log);
       switch (sample.getaType()) {// create the required markerSets for import...prior to threading
         case WGS:
           if (!prelimGenvisisWGS) {
@@ -351,6 +369,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
 
     c.addFlag(COMPILE, "Compile the genvisis portion of the pipeline");
+    c.addFlag(CLEANUP, "Cleanup by deleting .sra and .bam after completion");
 
 
 
@@ -363,7 +382,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     } else {
       runAll(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
              c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.get(COMPUTEL), c.getI(NUM_THREADS),
-             c.getI(NUM_THREADS_PIPELINE), c.getI(NUM_BATCHES), c);
+             c.getI(NUM_THREADS_PIPELINE), c.getI(NUM_BATCHES), c, c.has(CLEANUP));
     }
 
 

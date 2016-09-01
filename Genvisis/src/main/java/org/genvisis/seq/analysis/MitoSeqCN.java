@@ -128,7 +128,8 @@ public class MitoSeqCN {
    */
   public static class MitoCNResult {
     private static final String[] header = new String[] {"Sample", "NumMitoReads",
-                                                         "TotalAlignedReads", "XReads", "YReads",
+                                                         "TotalAlignedReads", "TotalUnAlignedReads",
+                                                         "XReads", "YReads",
                                                          "AutosomalOnTargetAlignedReads",
                                                          "OffTargetReads", "MitoLen", "OffTLen",
                                                          "MTBamFile", "MTBamFileTrim"};
@@ -169,6 +170,7 @@ public class MitoSeqCN {
       result.add(sample);
       result.add(Integer.toString(numMitoReads));
       result.add(Integer.toString(bamIndexStats.getAlignedRecordCount()));
+      result.add(Integer.toString(bamIndexStats.getUnalignedRecordCount()));
       result.add(Integer.toString(numXReads));
       result.add(Integer.toString(numYReads));
       result.add(Integer.toString(autosomalOnTargetReads));
@@ -178,9 +180,7 @@ public class MitoSeqCN {
       result.add(outBam);
       result.add(ext.rootOf(ext.rootOf(outBam)));
       return Array.toStringArray(result);
-
     }
-
   }
 
   private static class MitoCNWorker implements Callable<MitoCNResult> {
