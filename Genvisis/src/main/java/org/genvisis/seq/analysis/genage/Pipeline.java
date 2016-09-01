@@ -236,15 +236,11 @@ public class Pipeline {
       String computelDirectory = rootOutDir + COMPUTEL_DIR + ext.rootOf(bamFile) + "/";
       new File(computelDirectory).mkdir();
       Computel.test(bamFile, computelLocation, computelDirectory);
-
-      String result = TelSeq.runTelSeq(new String[] {bamFile}, computelDirectory, captureBed,
-                                       numthreads, ngsSample.getaType(), ngsSample.getaName(),
-                                       captureBufferSize, log);
       ArrayList<String> input = new ArrayList<String>();
       input.add(bamFile);
       setInput(input);
       ArrayList<String> output = new ArrayList<String>();
-      output.add(result);
+      output.add(null);
       setOutput(output);
       return this;
     }

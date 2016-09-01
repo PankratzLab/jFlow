@@ -40,15 +40,16 @@ public class Computel {
 
   }
 
-  private static boolean runComputel(String config, String computelCommandR, Logger log) {
+  private static boolean run(String outputDir, String config, String computelCommandR, Logger log) {
     String[] inputs = new String[] {config, computelCommandR};
     ext.parseDirectoryOfFile(config);
-    String[] outputs = null;
+    String[] outputs = new String[] {outputDir + "results/tel.length.xls"};
     ArrayList<String> command = new ArrayList<String>();
     command.add("Rscript");
     command.add(computelCommandR);
     command.add(config);
-
+    System.out.println(Files.exists(outputs[0]));
+    System.exit(1);
     return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
                                             false, false, log);
   }
@@ -144,7 +145,7 @@ public class Computel {
         String configFile = finalOutDirectory + "computelConfig.txt";
         String computelCommand = finalOutDirectory + "src/scripts/computel.cmd.R";
         Files.write(config, configFile);
-        boolean success = runComputel(configFile, computelCommand, log);
+        boolean success = run(configFile, finalOutDirectory, computelCommand, log);
         if (success) {
           ArrayList<String> filesToDelete = new ArrayList<String>();
           filesToDelete.add(r1);
@@ -153,6 +154,8 @@ public class Computel {
           filesToDelete.add(finalOutDirectory + "results/align/tel.align.unmapped.sam");
           filesToDelete.add(finalOutDirectory + "results/base/reads.unmapped.fastq");
           filesToDelete.add(finalOutDirectory + "results/base/base.align.sam");
+          filesToDelete.add(finalOutDirectory + "results/base/base.align.bam");
+          filesToDelete.add(finalOutDirectory + "results/base/base.align.bam_sorted.bam");
 
           deleteFiles(log, filesToDelete);
         }
