@@ -233,9 +233,9 @@ public class Pipeline {
 
     @Override
     public PipelinePart call() throws Exception {
-      String computelDirectory = rootOutDir + COMPUTEL_DIR + ext.rootOf(bamFile) + "/";
-      new File(computelDirectory).mkdir();
-      Computel.test(bamFile, computelLocation, computelDirectory);
+      String outputDir = rootOutDir + COMPUTEL_DIR + ext.rootOf(bamFile) + "/";
+      new File(outputDir).mkdir();
+      Computel.runComputel(bamFile, outputDir, computelLocation, log);
       ArrayList<String> input = new ArrayList<String>();
       input.add(bamFile);
       setInput(input);
@@ -307,16 +307,15 @@ public class Pipeline {
     WorkerHive<PipelinePart> hive = new WorkerHive<Pipeline.PipelinePart>(numThreads, 10, log);
     //
     //
-    // // genvisis import
-    // hive.addCallable(new GenvisisPart(inputBam, rootOutDir, referenceGenome, captureBed, binBed,
-    // vcf, sample, BamImport.CAPTURE_BUFFER));
-    //
-    // // mtDNA CN
-    // hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, referenceGenome, sample,
-    // 1,
-    // log));
-    // // telseq
-    // hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
+    // genvisis import
+    hive.addCallable(new GenvisisPart(inputBam, rootOutDir, referenceGenome, captureBed, binBed,
+                                      vcf, sample, BamImport.CAPTURE_BUFFER));
+
+    // mtDNA CN
+    hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, referenceGenome, sample, 1,
+                                      log));
+    // telseq
+    hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
 
     // computel
     if (computelLocation != null) {

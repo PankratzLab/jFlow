@@ -40,7 +40,7 @@ public class Computel {
 
   }
 
-  private static boolean run(String outputDir, String config, String computelCommandR, Logger log) {
+  private static boolean run(String config, String outputDir, String computelCommandR, Logger log) {
     String[] inputs = new String[] {config, computelCommandR};
     ext.parseDirectoryOfFile(config);
     String[] outputs = new String[] {outputDir + "results/tel.length.xls"};
@@ -48,8 +48,6 @@ public class Computel {
     command.add("Rscript");
     command.add(computelCommandR);
     command.add(config);
-    System.out.println(Files.exists(outputs[0]));
-    System.exit(1);
     return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
                                             false, false, log);
   }
@@ -119,8 +117,8 @@ public class Computel {
     return config;
   }
 
-  private static void runComputel(String inputBam, String outputDir, String computelDirectory,
-                                  Logger log) {
+  public static void runComputel(String inputBam, String outputDir, String computelDirectory,
+                                 Logger log) {
     String finalOutDirectory = outputDir + ext.rootOf(inputBam) + "/";
     new File(finalOutDirectory).mkdirs();
 
@@ -156,8 +154,16 @@ public class Computel {
           filesToDelete.add(finalOutDirectory + "results/base/base.align.sam");
           filesToDelete.add(finalOutDirectory + "results/base/base.align.bam");
           filesToDelete.add(finalOutDirectory + "results/base/base.align.bam_sorted.bam");
-
           deleteFiles(log, filesToDelete);
+          deleteDir(new File(finalOutDirectory + ".git/"));
+          deleteDir(new File(finalOutDirectory + "bowtie2-2.1.0-linux/"));
+          deleteDir(new File(finalOutDirectory + "bowtie2_samtools_binaries_for_linux/"));
+          deleteDir(new File(finalOutDirectory + "samtools-0.1.19-linux/"));
+          // deleteDir(new File(finalOutDirectory + "samtools-0.1.19-linux/"));
+
+          Files.write("blanked", r1);
+          Files.write("blanked", r2);
+
         }
       }
     } catch (FileNotFoundException e) {
@@ -173,6 +179,19 @@ public class Computel {
         log.reportTimeError("Did not delete " + file);
       }
     }
+  }
+
+  private static boolean deleteDir(File dir) {
+    if (dir.isDirectory()) {
+      String[] children = dir.list();
+      for (int i = 0; i < children.length; i++) {
+        boolean success = deleteDir(new File(dir, children[i]));
+        if (!success) {
+          return false;
+        }
+      }
+    }
+    return dir.delete();
   }
 
   private static String manageConfig(Logger log, String finalOutDirectory, String bowtieSamDir,
@@ -214,9 +233,7 @@ public class Computel {
     }
   }
 
-  public static void test(String bam, String computelLocation, String outDir) {
-    runComputel(bam, outDir, computelLocation, new Logger(outDir + "computel.Log"));
-  }
+
 
   public static void main(String[] args) {
     String targetBam = "bam.bam";
@@ -235,6 +252,5 @@ public class Computel {
 
     c.parseWithExit(Computel.class, args);
 
-    test(c.get(bam), c.get(computel), c.get(outdir));
   }
 }
