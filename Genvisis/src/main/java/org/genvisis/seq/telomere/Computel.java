@@ -117,6 +117,12 @@ public class Computel {
     return config;
   }
 
+  /**
+   * @param inputBam the bam to compute telomere length from
+   * @param outputDir where the output should be placed
+   * @param computelDirectory the full path to a (git clone) of computel
+   * @param log
+   */
   public static void runComputel(String inputBam, String outputDir, String computelDirectory,
                                  Logger log) {
     String finalOutDirectory = outputDir + ext.rootOf(inputBam) + "/";
@@ -159,7 +165,6 @@ public class Computel {
           deleteDir(new File(finalOutDirectory + "bowtie2-2.1.0-linux/"));
           deleteDir(new File(finalOutDirectory + "bowtie2_samtools_binaries_for_linux/"));
           deleteDir(new File(finalOutDirectory + "samtools-0.1.19-linux/"));
-          // deleteDir(new File(finalOutDirectory + "samtools-0.1.19-linux/"));
 
           Files.write("blanked", r1);
           Files.write("blanked", r2);
@@ -235,6 +240,9 @@ public class Computel {
 
 
 
+  /**
+   * @param args
+   */
   public static void main(String[] args) {
     String targetBam = "bam.bam";
     String computelLocation = "computel/";
@@ -251,6 +259,8 @@ public class Computel {
     c.addArg(outdir, "the output directory for results", outDir);
 
     c.parseWithExit(Computel.class, args);
+
+    runComputel(c.get(bam), c.get(outdir), c.get(computel), new Logger());
 
   }
 }

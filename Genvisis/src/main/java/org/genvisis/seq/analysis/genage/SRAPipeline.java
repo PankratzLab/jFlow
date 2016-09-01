@@ -84,14 +84,30 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   @Override
   public List<PipelinePart> call() throws Exception {
     String bamDir = getBamDirectory(rootOutDir);
+    // TODO logic for completed files
     new File(bamDir).mkdirs();
     String bam = bamDir + ext.rootOf(inputSRA) + ".bam";
     WorkerHive<SRAConversionResult> hive = new WorkerHive<SRAUtils.SRAConversionResult>(1, 10, log);
     hive.addCallable(new SRABamWorker(inputSRA, bam, log));
     hive.execute(true);
-    return Pipeline.pipeline(bam, rootOutDir, referenceGenome, captureBed, binBed, vcfFile,
-                             sraSample, computelLocation, numThreads, log);
+    List<PipelinePart> parts = Pipeline.pipeline(bam, rootOutDir, referenceGenome, captureBed,
+                                                 binBed, vcfFile, sraSample, computelLocation,
+                                                 numThreads, log);
+    makeComplete(bamDir, inputSRA);
+    return parts;
   }
+
+  private void makeComplete(String rootOutDir, String sra) {
+    String file = getCompleteFile(rootOutDir, sra);
+    new File(ext.parseDirectoryOfFile(file)).mkdirs();
+    Files.write("complete", file);
+  }
+
+  private static String getCompleteFile(String rootOutDir, String sraFile) {
+    return rootOutDir + "completes/" + ext.rootOf(sraFile) + ".complete";
+  }
+
+
 
   private static String getBamDirectory(String rootOutDir) {
     return rootOutDir + "bams/";
