@@ -18,29 +18,37 @@ import org.genvisis.common.Logger;
 import org.genvisis.seq.manage.VCFOps;
 
 /**
- * All resources are ultimately a string path. Need to be able to ask for a resource via API, or by
- * string Some resources are nested within other resources
+ * Static utility class for accessing {@link Resource} instances.
  */
-public class Resources {
+public final class Resources {
 
   public static final String DEFAULT_URL = "http://genvisis.org/rsrc/";
   public static final String DEFAULT_LOCAL_DIR = "resources" + File.separator;
   public static final String BIN_DIR = "bin";
   public static final String GENOME_DIR = "Genome";
 
-  // TODO, a big TODO
-  // need to add web-based download, and local file structure
-  // could probably do this like project properties...
+  private Resources() {
+    // prevent instantiation of utility class
+  }
 
+  /**
+   * Helper method for chaining resource calls
+   */
   public static MiniMac miniMac(Logger log) {
     return new MiniMac(log);
   }
 
+  /**
+   * MiniMac resource container
+   */
   public static class MiniMac extends AbstractResourceFactory {
     public MiniMac(Logger log) {
       super(BIN_DIR + "/Minimac3", log);
     }
 
+    /**
+     * @return A resource for the MiniMac3 app
+     */
     public Resource getMiniMac3() {
       return getTarGzResource("Minimac3.v1.0.14.tar.gz");
     }
@@ -53,10 +61,16 @@ public class Resources {
     }
   }
 
+  /**
+   * Helper method for chaining resource calls
+   */
   public static Shapeit shapeit(Logger log) {
     return new Shapeit(log);
   }
 
+  /**
+   * Shapeit resource container
+   */
   public static class Shapeit extends AbstractResourceFactory {
     public Shapeit(Logger log) {
       super(DEFAULT_LOCAL_DIR + BIN_DIR + File.separator + "shapeit" + File.separator
@@ -65,6 +79,9 @@ public class Resources {
             log);
     }
 
+    /**
+     * @return A resource for the shapeit app
+     */
     public Resource getShapeit() {
       return getResource("");
     }
@@ -77,6 +94,9 @@ public class Resources {
     }
   }
 
+  /**
+   * Chromasome-related resource container. Always requires a related {@link GENOME_BUILD}.
+   */
   public static class Chr extends AbstractResourceFactory {
     private String build;
 
@@ -85,18 +105,30 @@ public class Resources {
       this.build = build.getBuild();
     }
 
+    /**
+     * @return The genetic map for the requested {@link CHROMASOME}
+     */
     public Resource getGeneticMap(CHROMASOME c) {
+      String prefix = "genetic_map_";
+      String extension = ".txt.gz";
+
       if (CHROMASOME.CX_PAR.equals(c)) {
-        getResource(getPath("genetic_map_", c.toString() + "2", ".txt.gz"));
-        return getResource(getPath("genetic_map_", c.getLabel() + "1", ".txt.gz"));
+        getResource(getPath(prefix, c.toString() + "2", extension));
+        return getResource(getPath(prefix, c.getLabel() + "1", extension));
       }
-      return getResource(getPath("genetic_map_", c.getLabel(), ".txt.gz"));
+      return getResource(getPath(prefix, c.getLabel(), extension));
     }
 
+    /**
+     * @return The G1K ref for the requested {@link CHROMASOME}
+     */
     public Resource getG1Kphase3v5RefPanel(CHROMASOME c) {
       return getResource(getPath("1000genomes_ref_panel_Phase3v5_", c.getLabel(), ".m3vcf.gz"));
     }
 
+    /**
+     * Helper method to format the resource path
+     */
     private String getPath(String prefix, String chromasome, String suffix) {
       return prefix + build + "_chr" + chromasome + suffix;
     }
@@ -112,10 +144,16 @@ public class Resources {
     }
   }
 
+  /**
+   * Helper method for chaining resource calls
+   */
   public static Genome genome(GENOME_BUILD build, Logger log) {
     return new Genome(build, log);
   }
 
+  /**
+   * Container for {@link GENOME_BUILD}-related resources.
+   */
   public static class Genome extends AbstractResourceFactory {
     private GENOME_BUILD build;
 
@@ -124,19 +162,31 @@ public class Resources {
       this.build = build;
     }
 
+    /**
+     * @return The GC5 base for this {@link GENOME_BUILD}
+     */
     public Resource getModelBase() {
       return getResource(getPath() + "_gc5Base.txt");
     }
 
+    /**
+     * @return The DB Snp for this {@link GENOME_BUILD}
+     */
     public Resource getDBSNP() {
       return getVCFResource(getPath() + "_dbSnp147.vcf.gz");
     }
 
+    /**
+     * Helper method for formatting resource path
+     */
     private String getPath() {
       String b = build.getBuild();
       return new StringBuilder().append(b).append("/").append(b).toString();
     }
 
+    /**
+     * Helper method for chaining resource calls
+     */
     public Chr chr() {
       return new Chr(build, log());
     }
@@ -150,23 +200,38 @@ public class Resources {
     }
   }
 
+  /**
+   * Helper method for chaining resource calls
+   */
   public static MitoCN mitoCN(Logger log) {
     return new MitoCN(log);
   }
 
+  /**
+   * Container for MitoCN resources
+   */
   public static class MitoCN extends AbstractResourceFactory {
     public MitoCN(Logger log) {
       super("MitoCN", log);
     }
 
+    /**
+     * @return White WBC data
+     */
     public Resource getWhiteWBC() {
       return getResource("Whites_WBC_TOTAL_SingleSNPmatched.final.beta");
     }
 
+    /**
+     * @return Black WBC data
+     */
     public Resource getBlackWBC() {
       return getResource("Blacks_WBC_TOTAL_SingleSNPmatched.final.beta");
     }
 
+    /**
+     * @return Total WBC data
+     */
     public Resource getTotalWBC() {
       return getResource("WBC_TOTAL_SingleSNPmatched.final.beta");
     }
@@ -185,23 +250,38 @@ public class Resources {
    * Illumina Bundle TODO
    */
 
+  /**
+   * Helper method for chaining resource calls
+   */
   public static AffySnp6 affy(Logger log) {
     return new AffySnp6(log);
   }
 
+  /**
+   * Container for Affy resources.
+   */
   public static class AffySnp6 extends AbstractResourceFactory {
     public AffySnp6(Logger log) {
       super("Arrays/AffySnp6", log);
     }
 
+    /**
+     * @return Marker positions for the specified {@link GENOME_BUILD}
+     */
     public Resource getMarkerPositions(GENOME_BUILD build) {
       return getResource(build.getBuild() + "_markerPositions.txt");
     }
 
+    /**
+     * @return HMM file
+     */
     public Resource getHMM() {
       return getResource("affygw6.hmm");
     }
 
+    /**
+     * @return ABLookup file
+     */
     public Resource getABLookup() {
       return getResource("AB_lookup.dat");
     }
@@ -219,6 +299,9 @@ public class Resources {
     }
   }
 
+  /**
+   * Abstract superclass for containers that create {@link Resource} instances.
+   */
   private abstract static class AbstractResourceFactory implements ResourceFactory {
     private final String localPath;
     private final String remotePath;
@@ -255,6 +338,9 @@ public class Resources {
     List<Resource> getResources();
   }
 
+  /**
+   * Resource that may be .tar.gz compressed
+   */
   public static class TarGzResource extends AbstractResource {
     private String unzippedDir;
     private String unzippedPath;
@@ -333,6 +419,9 @@ public class Resources {
     }
   }
 
+  /**
+   * VCF resource with an accompanying index file
+   */
   public static class VCFResource extends AbstractResource {
     public VCFResource(String resourceName, String path, String url, Logger log) {
       super(resourceName, path, url, log);
@@ -351,14 +440,19 @@ public class Resources {
     }
   }
 
+  /**
+   * Basic resource class
+   */
   public static class DefaultResource extends AbstractResource {
     public DefaultResource(String resourceName, String path, String url, Logger log) {
       super(resourceName, path, url, log);
     }
   }
 
+  /**
+   * Abstract {@link Resource} superclass
+   */
   public abstract static class AbstractResource implements Resource {
-
     private final String localPath;
     private final String remotePath;
     private final String rsrc;
@@ -447,7 +541,8 @@ public class Resources {
 
     @Override
     public boolean isAvailable(boolean showHint) {
-      boolean isAvailable = isLocallyAvailable(localPath + rsrc) || isRemotelyAvailable(remotePath + rsrc);
+      boolean isAvailable = isLocallyAvailable(localPath + rsrc)
+                            || isRemotelyAvailable(remotePath + rsrc);
 
       if (!isAvailable) {
         log.reportTimeError("Could not find local file " + getLocalPath()
@@ -459,16 +554,42 @@ public class Resources {
     }
   }
 
+  /**
+   * A resource is a general-purpose file used by Genvisis but not shipped with the Genvisis core.
+   * Resources are typically available remotely and thus can be downloaded automatically if missing.
+   */
   public static interface Resource {
+    /**
+     * @return {@code true} if this resource can be found locally or remotely.
+     */
     boolean isAvailable();
 
+    /**
+     * As {@link #isAvailable()} but can display a hint to the user on how to manually download, if
+     * the resource is not available.
+     *
+     * @return {@code true} if this resource can be found locally or remotely.
+     */
     boolean isAvailable(boolean showHint);
 
+    /**
+     * Ensure this resource is available locally, downloading it if necessary.
+     *
+     * @return The local path to this resource.
+     */
     String get();
 
+    /**
+     * Unlike {@link #get()}, this method will not download a remote resource.
+     *
+     * @return The local path to this resource.
+     */
     String getLocalPath();
   }
 
+  /**
+   * Supported genome reference builds
+   */
   public enum GENOME_BUILD {
                             HG19("hg19", 37), HG18("hg18", 36);
 
@@ -489,6 +610,9 @@ public class Resources {
     }
   }
 
+  /**
+   * Supported chromasomes
+   */
   public enum CHROMASOME {
                           C1("1"), C2("2"), C3("3"), C4("4"), C5("5"), C6("6"), C7("7"), C8("8"), C9("9"), C10("10"), C11("11"), C12("12"), C13("13"), C14("14"), C15("15"), C16("16"), C17("17"), C18("18"), C19("19"), C20("20"), C21("21"), C22("22"), CX_PAR("X_PAR"), CX_nonPAR("X_nonPAR");
 
