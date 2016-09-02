@@ -95,17 +95,22 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     } else if (!Files.exists(getCompleteFile(rootOutDir, inputSRA))) {
       new File(bamDir).mkdirs();
       String bam = bamDir + ext.rootOf(inputSRA) + ".bam";
-      WorkerHive<SRAConversionResult> hive =
-                                           new WorkerHive<SRAUtils.SRAConversionResult>(1, 10, log);
-      hive.addCallable(new SRABamWorker(inputSRA, bam, log));
-      hive.execute(true);
+      if (!Files.exists(bam)) {
+        WorkerHive<SRAConversionResult> hive = new WorkerHive<SRAUtils.SRAConversionResult>(1, 10,
+                                                                                            log);
+        hive.addCallable(new SRABamWorker(inputSRA, bam, log));
+        hive.execute(true);
+      }
+      if (cleanup) {
+        cleanup = new File(inputSRA).delete();
+      }
+
       List<PipelinePart> parts = Pipeline.pipeline(bam, rootOutDir, referenceGenome, captureBed,
                                                    binBed, vcfFile, sraSample, computelLocation,
                                                    numThreads, log);
 
       if (cleanup) {
         cleanup = new File(bam).delete();
-        cleanup = new File(inputSRA).delete();
       }
       makeComplete(bamDir, inputSRA);
       return parts;
@@ -296,16 +301,26 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
     String processFile = processDir + "process.sh";
 
-    String[][] batches = batch(srRunTable.getAllSraFiles(), c.get(OUT_DIR), c, log);
+    String[][] batches = batch(Array.tagOn(srRunTable.getAllRunSFiles(), c.get(SRA_INPUT), null),
+                               c.get(OUT_DIR), c, log);
 
     ArrayList<String> process = new ArrayList<String>();
+    int num = 0;
+    int processBatch = 0;
     for (int i = 0; i < batches.length; i++) {
-      for (int j = 0; j < batches.length; j++) {
-        process.add("prefetch.2.6.3 --max-size 100000000000 " + batches[i][j]);
+      for (int j = 0; j < batches[i].length; j++) {
+        process.add("cd " + ext.parseDirectoryOfFile(batches[i][j]));
+        process.add("prefetch.2.6.3 --max-size 100000000000 " + ext.rootOf(batches[i][j]));
+        num++;
       }
-      process.add("qsub -q small " + getBatch(getBatchDirectory(c.get(OUT_DIR)), i));
+      process.add("qsub -q small " + getBatch(getBatchDirectory(c.get(OUT_DIR)) + ".qsub", i));
+      if (num >= 1000) {
+        Files.writeArrayList(process, ext.addToRoot(processFile, "_" + processBatch));
+        num = 0;
+        processBatch++;
+        process.clear();
+      }
     }
-    Files.writeArrayList(process, processFile);
     generatePrelim(c.get(OUT_DIR), c.get(REFERENCE_GENOME), c.get(CAPTURE_BED), c.get(BIN_BED),
                    c.get(VCF), log, ASSAY_TYPE.WXS);
     generatePrelim(c.get(OUT_DIR), c.get(REFERENCE_GENOME), null, null, c.get(VCF), log,
@@ -327,7 +342,10 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     baseCommand.add(BIN_BED + "=" + c.get(BIN_BED));
     baseCommand.add(VCF + "=" + c.get(VCF));
     baseCommand.add(COMPUTEL + "=" + c.get(COMPUTEL));
+    if (c.has(CLEANUP)) {
+      baseCommand.add("-" + CLEANUP);
 
+    }
     String batchDir = getBatchDirectory(rootOutDir);
     new File(batchDir).mkdirs();
     for (int i = 0; i < splits.length; i++) {
@@ -411,9 +429,12 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     c.parseWithExit(SRAPipeline.class, args);
 
 
+
     if (c.has(COMPILE)) {
       compile(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
               c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.getI(NUM_THREADS));
+    } else if (c.has(FULL_PIPELINE)) {
+      fullPipeline(c);
     } else {
       runAll(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
              c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.get(COMPUTEL), c.getI(NUM_THREADS),

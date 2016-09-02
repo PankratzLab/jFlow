@@ -49,10 +49,10 @@ public class SRARunTable extends HashMap<String, SRASample> {
     super();
   }
 
-  public String[] getAllSraFiles() {
+  public String[] getAllRunSFiles() {
     ArrayList<String> sraFiles = new ArrayList<String>();
     for (String sample : keySet()) {
-      sraFiles.add(get(sample).getSraFile());
+      sraFiles.add(get(sample).getRunS());
     }
     return Array.toStringArray(sraFiles);
   }
@@ -84,10 +84,12 @@ public class SRARunTable extends HashMap<String, SRASample> {
         ASSEMBLY_NAME name = ASSEMBLY_NAME.valueOf(parsed[3].toUpperCase());
         PLATFORM platform = PLATFORM.valueOf(parsed[4]);
 
-        sraRunTable.put(runS, new SRASample(runS, submittedSampleID, name, aType, platform));
-        numLoaded++;
+        if (platform == PLATFORM.ILLUMINA) {
+          sraRunTable.put(runS, new SRASample(runS, submittedSampleID, name, aType, platform));
+          numLoaded++;
+        }
       }
-      log.reportTimeInfo("Loaded " + numLoaded + " samples from " + sraTable);
+      log.reportTimeInfo("Loaded " + numLoaded + " ILLUMINA samples from " + sraTable);
       reader.close();
     } catch (FileNotFoundException e) {
       log.reportException(e);
