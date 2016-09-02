@@ -113,6 +113,8 @@ public class Computel {
 
     config = config.replaceAll("output.dir	output",
                                "output.dir	" + computelOperatingDir + "results");
+
+    config = config.replaceAll("num.proc    3", "num.proc    1");
     // compute.base.cov F
     return config;
   }
