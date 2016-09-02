@@ -24,6 +24,8 @@ import org.genvisis.seq.telomere.TelSeq;
  */
 public class Pipeline {
 
+
+
   private static final String MITO_DIR = "mtDNACN/";
   private static final String TELSEQ_DIR = "telseq/";
   private static final String COMPUTEL_DIR = "computel/";
@@ -275,6 +277,31 @@ public class Pipeline {
 
 
   /**
+   * @author Kitty
+   * 
+   *         Used to specify which parts of the pipeline will be run
+   *
+   */
+  public enum PIPELINE_PARTS {
+                              /**
+                               * Create temporary source files for genvisis
+                               */
+                              GENVISIS,
+                              /**
+                               * Generate mtDNA CN estimates
+                               */
+                              MTDNACN,
+                              /**
+                               * Compute telomere length with TelSeq
+                               */
+                              TELSEQ,
+                              /**
+                               * Compute telomere length with Computel
+                               */
+                              COMPUTEL;
+  }
+
+  /**
    * @param inputBam The bam file to run through the pipeline
    * @param rootOutDir where output will be sent
    * @param referenceGenome
@@ -291,7 +318,8 @@ public class Pipeline {
   public static List<PipelinePart> pipeline(String inputBam, String rootOutDir,
                                             String referenceGenome, String captureBed,
                                             String binBed, String vcf, NGSSample sample,
-                                            String computelLocation, int numThreads, Logger log) {
+                                            List<PIPELINE_PARTS> parts, String computelLocation,
+                                            int numThreads, Logger log) {
     if (!Files.exists(inputBam)) {
       throw new IllegalArgumentException("Bam file " + inputBam + " must exist");
     }
@@ -308,27 +336,31 @@ public class Pipeline {
 
 
     WorkerHive<PipelinePart> hive = new WorkerHive<Pipeline.PipelinePart>(numThreads, 10, log);
-    //
-    //
-    // genvisis import
-    hive.addCallable(new GenvisisPart(inputBam, rootOutDir, referenceGenome, captureBed, binBed,
-                                      vcf, sample, BamImport.CAPTURE_BUFFER));
 
-    // mtDNA CN
-    hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, referenceGenome, sample, 1,
-                                      log));
-    // telseq
-    hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1,
-                                    TELOMERE_CAPTURE_BUFFER, log));
+    for (PIPELINE_PARTS part : parts) {
+      switch (part) {
+        case COMPUTEL:
+          hive.addCallable(new ComputelPart(inputBam, rootOutDir, computelLocation, captureBed,
+                                            sample, 1, TELOMERE_CAPTURE_BUFFER, log));
+          break;
+        case GENVISIS:
+          hive.addCallable(new GenvisisPart(inputBam, rootOutDir, referenceGenome, captureBed,
+                                            binBed, vcf, sample, BamImport.CAPTURE_BUFFER));
+          break;
+        case MTDNACN:
+          hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, referenceGenome,
+                                            sample, 1, log));
+          break;
+        case TELSEQ:
+          hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1,
+                                          TELOMERE_CAPTURE_BUFFER, log));
+          break;
+        default:
 
-    // computel
-    if (computelLocation != null) {
-      hive.addCallable(new ComputelPart(inputBam, rootOutDir, computelLocation, captureBed, sample,
-                                        1, TELOMERE_CAPTURE_BUFFER, log));
-    } else {
-      log.reportTimeInfo("Computel location not provided, skipping computel");
+          throw new IllegalArgumentException(part + " not implemented yet");
+      }
+
     }
-
 
     hive.execute(true);
 

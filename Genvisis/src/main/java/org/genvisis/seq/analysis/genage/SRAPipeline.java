@@ -15,6 +15,7 @@ import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
+import org.genvisis.seq.analysis.genage.Pipeline.PIPELINE_PARTS;
 import org.genvisis.seq.analysis.genage.Pipeline.PipelinePart;
 import org.genvisis.seq.manage.BamImport;
 import org.genvisis.seq.manage.ReferenceGenome;
@@ -41,9 +42,15 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   private static final String VCF = "vcf";
   private static final String NUM_BATCHES = "batch";
   private static final String COMPILE = "compile";
-  private static final String COMPUTEL = "computel";
+  private static final String COMPUTEL_LOCATION = "computelLocation";
   private static final String CLEANUP = "clean";
   private static final String FULL_PIPELINE = "full";
+
+  private static final String GENVISIS_PART = "genvisis";
+  private static final String MTDNACN_PART = "mtDNACN";
+  private static final String TELSEQ_PART = "telseq";
+  private static final String COMPUTEL_PART = "computel";
+  private static final String ALL_PART = "all";
 
   private SRASample sraSample;
   private String inputSRA;
@@ -53,6 +60,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   private String binBed;
   private String vcfFile;
   private String computelLocation;
+  private List<PIPELINE_PARTS> partsToRun;
   private boolean cleanup;
   private int numThreads;
   private Logger log;
@@ -71,7 +79,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
    */
   public SRAPipeline(SRASample sraSample, String inputSRA, String rootOutDir,
                      String referenceGenome, String captureBed, String binBed, String vcf,
-                     String computelLocation, int numThreads, boolean cleanup, Logger log) {
+                     String computelLocation, int numThreads, boolean cleanup,
+                     List<PIPELINE_PARTS> parts, Logger log) {
     super();
     this.sraSample = sraSample;
     this.inputSRA = inputSRA;
@@ -83,6 +92,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     this.computelLocation = computelLocation;
     this.numThreads = numThreads;
     this.cleanup = cleanup;
+    this.partsToRun = parts;
     this.log = log;
   }
 
@@ -106,8 +116,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
       }
 
       List<PipelinePart> parts = Pipeline.pipeline(bam, rootOutDir, referenceGenome, captureBed,
-                                                   binBed, vcfFile, sraSample, computelLocation,
-                                                   numThreads, log);
+                                                   binBed, vcfFile, sraSample, partsToRun,
+                                                   computelLocation, numThreads, log);
 
       if (cleanup) {
         cleanup = new File(bam).delete();
@@ -201,9 +211,9 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
                                        true, atType, aName, bams, numThreads);
   }
 
-  private static void compile(String sraInput, String sraRunTableFile, String rootOutDir,
-                              String referenceGenome, String captureBed, String binBed, String vcf,
-                              int numThreads) {
+  private static void compilePrep(String sraInput, String sraRunTableFile, String rootOutDir,
+                                  String referenceGenome, String captureBed, String binBed,
+                                  String vcf, int numThreads) {
     Logger log = new Logger(rootOutDir + "compile.log");
 
     List<SRASample> samples = loadSraSamples(sraInput, sraRunTableFile, log);
@@ -230,10 +240,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   }
 
 
-  /**
-   * This will be a bit "reversed" in the final pipeline version...This method is for processing
-   * many pre-downloaded files
-   */
+
   private static void runAll(String sraInput, String sraRunTableFile, String rootOutDir,
                              String referenceGenome, String captureBed, String binBed, String vcf,
                              String computelLocation, int numThreads, int numThreadsPipeline,
@@ -247,12 +254,34 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     ArrayList<String> sampleSummary = new ArrayList<String>();
     ArrayList<String> sraFiles = new ArrayList<String>();
 
+    ArrayList<PIPELINE_PARTS> partsToRun = new ArrayList<Pipeline.PIPELINE_PARTS>();
+    if (c.has(ALL_PART)) {
+      for (PIPELINE_PARTS part : PIPELINE_PARTS.values()) {
+        partsToRun.add(part);
+      }
+    } else {
+      if (c.has(COMPUTEL_PART)) {
+        partsToRun.add(PIPELINE_PARTS.COMPUTEL);
+      }
+      if (c.has(TELSEQ_PART)) {
+        partsToRun.add(PIPELINE_PARTS.TELSEQ);
+      }
+      if (c.has(MTDNACN_PART)) {
+        partsToRun.add(PIPELINE_PARTS.MTDNACN);
+      }
+      if (c.has(GENVISIS_PART)) {
+        partsToRun.add(PIPELINE_PARTS.GENVISIS);
+      }
+
+    }
+
     for (SRASample sample : samples) {
       sraFiles.add(sample.getSraFile());
       sampleSummary.add(sample.getSraFile() + "\t" + sample.toString());
-      SRAPipeline pipeline = new SRAPipeline(sample, sample.getSraFile(), rootOutDir,
-                                             referenceGenome, captureBed, binBed, vcf,
-                                             computelLocation, numThreadsPipeline, cleanup, log);
+      SRAPipeline pipeline =
+                           new SRAPipeline(sample, sample.getSraFile(), rootOutDir, referenceGenome,
+                                           captureBed, binBed, vcf, computelLocation,
+                                           numThreadsPipeline, cleanup, partsToRun, log);
       switch (sample.getaType()) {// create the required markerSets for import...prior to threading
         case WGS:
           if (!prelimGenvisisWGS) {
@@ -341,9 +370,13 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
   private static String[][] batch(String[] sraFiles, String rootOutDir, CLI c, Logger log) {
     String[][] splits = Array.splitUpStringArray(sraFiles, c.getI(NUM_BATCHES), log);
-    String jarRun = "~/sraJars/genvisis" + ext.getTimestampForFilename() + ".jar";
+    String runningJar = SRAPipeline.class.getProtectionDomain().getCodeSource().getLocation()
+                                         .getFile();
+
+    String jarRun = ext.parseDirectoryOfFile(runningJar) + "/sraJars/" + ext.rootOf(runningJar)
+                    + ext.getTimestampForFilename() + ".jar";
     new File(ext.parseDirectoryOfFile(jarRun)).mkdirs();
-    Files.copyFileUsingFileChannels("~/genvisis.jar", jarRun, log);
+    Files.copyFileUsingFileChannels(runningJar, jarRun, log);
     ArrayList<String> baseCommand = new ArrayList<String>();
     baseCommand.add("module load gcc/4.8.1\n");
     baseCommand.add("java -Xmx60g -jar " + jarRun + " seq.analysis.genage.SRAPipeline");
@@ -355,10 +388,24 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     baseCommand.add(CAPTURE_BED + "=" + c.get(CAPTURE_BED));
     baseCommand.add(BIN_BED + "=" + c.get(BIN_BED));
     baseCommand.add(VCF + "=" + c.get(VCF));
-    baseCommand.add(COMPUTEL + "=" + c.get(COMPUTEL));
+    baseCommand.add(COMPUTEL_LOCATION + "=" + c.get(COMPUTEL_LOCATION));
     if (c.has(CLEANUP)) {
       baseCommand.add("-" + CLEANUP);
-
+    }
+    if (c.has(ALL_PART)) {
+      baseCommand.add("-" + ALL_PART);
+    }
+    if (c.has(COMPUTEL_PART)) {
+      baseCommand.add("-" + COMPUTEL_PART);
+    }
+    if (c.has(TELSEQ_PART)) {
+      baseCommand.add("-" + TELSEQ_PART);
+    }
+    if (c.has(MTDNACN_PART)) {
+      baseCommand.add("-" + MTDNACN_PART);
+    }
+    if (c.has(GENVISIS_PART)) {
+      baseCommand.add("-" + GENVISIS_PART);
     }
     String batchDir = getBatchDirectory(rootOutDir);
     new File(batchDir).mkdirs();
@@ -388,6 +435,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   public static void main(String[] args) {
 
     CLI c = new CLI();
+
+
 
     String sraDirDefault = "sra/";
 
@@ -426,7 +475,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     c.addArg(VCF, "vcf file of variants", vcf);
 
     String computelLocation = null;
-    c.addArg(COMPUTEL, "directory of computel", computelLocation);
+    c.addArg(COMPUTEL_LOCATION, "directory of computel", computelLocation);
 
     int batch = -1;
     c.addArg(NUM_BATCHES, "number of batches", Integer.toString(batch));
@@ -438,21 +487,26 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     c.addFlag(FULL_PIPELINE,
               "prepare for a run of the full pipeline, which will include downloading .sra files");
 
-
+    c.addFlag(GENVISIS_PART, "run the genvisis portion of the pipeline");
+    c.addFlag(MTDNACN_PART, "run the mtDNA CN portion of the pipeline");
+    c.addFlag(TELSEQ_PART, "run the telseq portion of the pipeline");
+    c.addFlag(COMPUTEL_PART, "run the computel portion of the pipeline");
+    c.addFlag(ALL_PART, "run the entire pipeline");
 
     c.parseWithExit(SRAPipeline.class, args);
 
 
 
     if (c.has(COMPILE)) {
-      compile(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
-              c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.getI(NUM_THREADS));
+      compilePrep(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
+                  c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.getI(NUM_THREADS));
     } else if (c.has(FULL_PIPELINE)) {
       fullPipeline(c);
     } else {
       runAll(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
-             c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.get(COMPUTEL), c.getI(NUM_THREADS),
-             c.getI(NUM_THREADS_PIPELINE), c.getI(NUM_BATCHES), c, c.has(CLEANUP));
+             c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.get(COMPUTEL_LOCATION),
+             c.getI(NUM_THREADS), c.getI(NUM_THREADS_PIPELINE), c.getI(NUM_BATCHES), c,
+             c.has(CLEANUP));
     }
 
 
