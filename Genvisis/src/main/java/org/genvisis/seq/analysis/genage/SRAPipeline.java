@@ -43,6 +43,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   private static final String COMPILE = "compile";
   private static final String COMPUTEL = "computel";
   private static final String CLEANUP = "clean";
+  private static final String FULL_PIPELINE = "full";
 
   private SRASample sraSample;
   private String inputSRA;
@@ -370,6 +371,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
     c.addFlag(COMPILE, "Compile the genvisis portion of the pipeline");
     c.addFlag(CLEANUP, "Cleanup by deleting .sra and .bam after completion");
+    c.addFlag(FULL_PIPELINE,
+              "prepare for a run of the full pipeline, which will include downloading .sra files");
 
 
 
