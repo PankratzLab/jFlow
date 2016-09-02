@@ -27,6 +27,7 @@ public class Pipeline {
   private static final String MITO_DIR = "mtDNACN/";
   private static final String TELSEQ_DIR = "telseq/";
   private static final String COMPUTEL_DIR = "computel/";
+  private static final int TELOMERE_CAPTURE_BUFFER = 100;
 
 
   private Pipeline() {
@@ -235,6 +236,7 @@ public class Pipeline {
     public PipelinePart call() throws Exception {
       String outputDir = rootOutDir + COMPUTEL_DIR + ext.rootOf(bamFile) + "/";
       new File(outputDir).mkdir();
+      // TODO, remove capture bed prior to running
       Computel.runComputel(bamFile, outputDir, computelLocation, log);
       ArrayList<String> input = new ArrayList<String>();
       input.add(bamFile);
@@ -316,12 +318,13 @@ public class Pipeline {
     hive.addCallable(new MitoPipePart(inputBam, rootOutDir, captureBed, referenceGenome, sample, 1,
                                       log));
     // telseq
-    hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1, 100, log));
+    hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1,
+                                    TELOMERE_CAPTURE_BUFFER, log));
 
     // computel
     if (computelLocation != null) {
       hive.addCallable(new ComputelPart(inputBam, rootOutDir, computelLocation, captureBed, sample,
-                                        1, 100, log));
+                                        1, TELOMERE_CAPTURE_BUFFER, log));
     } else {
       log.reportTimeInfo("Computel location not provided, skipping computel");
     }

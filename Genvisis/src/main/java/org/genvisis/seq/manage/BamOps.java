@@ -495,4 +495,11 @@ public class BamOps {
 
   }
 
+  //TODO
+  public static void removeSegments(String inputBam, String outputBam, String bedFile, int buffer,
+                                    Logger log) {
+
+
+  }
+
 }

@@ -121,7 +121,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     }
   }
 
-  private void makeComplete(String rootOutDir, String sra) {
+  private static void makeComplete(String rootOutDir, String sra) {
     String file = getCompleteFile(rootOutDir, sra);
     new File(ext.parseDirectoryOfFile(file)).mkdirs();
     Files.write("complete", file);
@@ -301,8 +301,18 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
     String processFile = processDir + "process.sh";
 
-    String[][] batches = batch(Array.tagOn(srRunTable.getAllRunSFiles(), c.get(SRA_INPUT), null),
-                               c.get(OUT_DIR), c, log);
+    ArrayList<String> sraFilesToAnalyze = new ArrayList<String>();
+    String[] sraFiles = Array.tagOn(srRunTable.getAllRunSFiles(), c.get(SRA_INPUT), ".sra");
+    for (int i = 0; i < sraFiles.length; i++) {
+      if (!Files.exists(getCompleteFile(c.get(OUT_DIR), sraFiles[i]))) {
+        sraFilesToAnalyze.add(sraFiles[i]);
+      }
+    }
+    log.reportTimeInfo("Detected " + sraFilesToAnalyze.size() + " samples to analyze, "
+                       + (sraFiles.length - sraFilesToAnalyze.size())
+                       + " samples are already complete");
+
+    String[][] batches = batch(Array.toStringArray(sraFilesToAnalyze), c.get(OUT_DIR), c, log);
 
     ArrayList<String> process = new ArrayList<String>();
     int num = 0;
@@ -313,6 +323,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
         process.add("prefetch.2.6.3 --max-size 100000000000 " + ext.rootOf(batches[i][j]));
         num++;
       }
+      process.add("cd " + processDir);// so the qsubs get placed there
       process.add("qsub -q small " + getBatch(getBatchDirectory(c.get(OUT_DIR)), i) + ".qsub");
       if (num >= 1000) {
         Files.writeArrayList(process, ext.addToRoot(processFile, "_" + processBatch));
@@ -330,9 +341,12 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
   private static String[][] batch(String[] sraFiles, String rootOutDir, CLI c, Logger log) {
     String[][] splits = Array.splitUpStringArray(sraFiles, c.getI(NUM_BATCHES), log);
+    String jarRun = "~/sraJars/genvisis" + ext.getTimestampForFilename() + ".jar";
+    new File(ext.parseDirectoryOfFile(jarRun)).mkdirs();
+    Files.copyFileUsingFileChannels("~/genvisis.jar", jarRun, log);
     ArrayList<String> baseCommand = new ArrayList<String>();
     baseCommand.add("module load gcc/4.8.1\n");
-    baseCommand.add("jcp seq.analysis.genage.SRAPipeline");
+    baseCommand.add("java -Xmx60g -jar " + jarRun + " seq.analysis.genage.SRAPipeline");
     baseCommand.add(OUT_DIR + "=" + c.get(OUT_DIR));
     baseCommand.add(SRA_RUN_TABLE + "=" + c.get(SRA_RUN_TABLE));
     baseCommand.add(NUM_THREADS + "=" + c.get(NUM_THREADS));
