@@ -289,8 +289,28 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   }
 
 
+  private static void fullPipeline(CLI c) {
+    Logger log = new Logger();
+    SRARunTable srRunTable = SRARunTable.load(c.get(SRA_RUN_TABLE), log);
+    String processDir = c.get(OUT_DIR) + "process/";
+    new File(processDir).mkdirs();
 
-  private static void batch(String[] sraFiles, String rootOutDir, CLI c, Logger log) {
+    String processFile = processDir + "process.sh";
+
+    String[][] batches = batch(srRunTable.getAllSraFiles(), c.get(OUT_DIR), c, log);
+
+    ArrayList<String> process = new ArrayList<String>();
+    for (int i = 0; i < batches.length; i++) {
+      for (int j = 0; j < batches.length; j++) {
+        process.add("prefetch.2.6.3 --max-size 100000000000 " + batches[i][j]);
+      }
+      process.add("qsub -q small " + getBatch(getBatchDirectory(c.get(OUT_DIR)), i));
+    }
+    Files.writeArrayList(process, processFile);
+
+  }
+
+  private static String[][] batch(String[] sraFiles, String rootOutDir, CLI c, Logger log) {
     String[][] splits = Array.splitUpStringArray(sraFiles, c.getI(NUM_BATCHES), log);
     ArrayList<String> baseCommand = new ArrayList<String>();
     baseCommand.add("module load gcc/4.8.1\n");
@@ -305,11 +325,11 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     baseCommand.add(VCF + "=" + c.get(VCF));
     baseCommand.add(COMPUTEL + "=" + c.get(COMPUTEL));
 
-    String batchDir = rootOutDir + "batches/";
+    String batchDir = getBatchDirectory(rootOutDir);
     new File(batchDir).mkdirs();
     for (int i = 0; i < splits.length; i++) {
-      String batch = batchDir + "batch_" + i + ".txt";
-      String qsub = batchDir + "batch_" + i + ".qsub";
+      String batch = getBatch(batchDir, i) + ".txt";
+      String qsub = getBatch(batchDir, i) + ".qsub";
       Files.writeList(splits[i], batch);
       ArrayList<String> currentCommand = new ArrayList<String>();
       currentCommand.addAll(baseCommand);
@@ -317,6 +337,15 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
       Files.qsub(qsub, Array.toStr(Array.toStringArray(currentCommand), " "), 55000, 55,
                  c.getI(NUM_THREADS) * c.getI(NUM_THREADS_PIPELINE));
     }
+    return splits;
+  }
+
+  private static String getBatch(String batchDir, int index) {
+    return batchDir + "batch_" + index;
+  }
+
+  private static String getBatchDirectory(String rootOutDir) {
+    return rootOutDir + "batches/";
   }
 
 
@@ -382,6 +411,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     if (c.has(COMPILE)) {
       compile(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
               c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.getI(NUM_THREADS));
+    } else if (c.has(FULL_PIPELINE)) {
+      fullPipeline(c);
     } else {
       runAll(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
              c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.get(COMPUTEL), c.getI(NUM_THREADS),

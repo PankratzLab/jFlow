@@ -304,6 +304,7 @@ public class Pipeline {
       throw new IllegalArgumentException(captureBed + " must exist");
     }
 
+
     WorkerHive<PipelinePart> hive = new WorkerHive<Pipeline.PipelinePart>(numThreads, 10, log);
     //
     //

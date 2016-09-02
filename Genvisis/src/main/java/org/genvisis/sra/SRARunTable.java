@@ -3,6 +3,7 @@ package org.genvisis.sra;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.genvisis.common.Array;
@@ -46,6 +47,14 @@ public class SRARunTable extends HashMap<String, SRASample> {
    */
   public SRARunTable() {
     super();
+  }
+
+  public String[] getAllSraFiles() {
+    ArrayList<String> sraFiles = new ArrayList<String>();
+    for (String sample : keySet()) {
+      sraFiles.add(get(sample).getSraFile());
+    }
+    return Array.toStringArray(sraFiles);
   }
 
   /**
