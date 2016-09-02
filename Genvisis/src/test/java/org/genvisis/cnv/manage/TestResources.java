@@ -84,11 +84,11 @@ public class TestResources {
   public static void main(String[] args) {
     Logger log = new Logger();
 
-    testBinaries(log);
+//    testBinaries(log);
     testGenome(log);
-    testChr(log);
-    testAffy(log);
-    testMitoCN(log);
+//    testChr(log);
+//    testAffy(log);
+//    testMitoCN(log);
     System.out.println("--Test complete--");
     if (failures.isEmpty()) {
       System.out.println("---- No failures!");

@@ -161,6 +161,13 @@ public final class Resources {
       super(GENOME_DIR, log);
       this.build = build;
     }
+    
+    /**
+     * @return The RefSeq.gtrack for this {@link GENOME_BUILD}
+     */
+    public Resource getGTrack() {
+      return getResource(build.getBuild() + "/" + "RefSeq_" + build.getBuild() + ".gtrack");
+    }
 
     /**
      * @return The GC5 base for this {@link GENOME_BUILD}
@@ -196,6 +203,7 @@ public final class Resources {
       List<Resource> resources = new ArrayList<Resource>();
       resources.add(getModelBase());
       resources.add(getDBSNP());
+      resources.add(getGTrack());
       return resources;
     }
   }
