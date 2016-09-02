@@ -251,26 +251,15 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
       switch (sample.getaType()) {// create the required markerSets for import...prior to threading
         case WGS:
           if (!prelimGenvisisWGS) {
-            Project proj = Pipeline.getProjectFor(sample.getaType(), rootOutDir, referenceGenome);
-            if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
-              BamImport.generateAnalysisSet(proj, null, null, vcf, BamImport.CAPTURE_BUFFER,
-                                            sample.getaType(), log,
-                                            new ReferenceGenome(referenceGenome, log));
-            }
+            generatePrelim(rootOutDir, referenceGenome, null, null, vcf, log, sample.getaType());
             prelimGenvisisWGS = true;
           }
 
           break;
         case WXS:
           if (!prelimGenvisisWXS) {
-
-            Project proj = Pipeline.getProjectFor(sample.getaType(), rootOutDir, referenceGenome);
-            if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
-
-              BamImport.generateAnalysisSet(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER,
-                                            sample.getaType(), log,
-                                            new ReferenceGenome(referenceGenome, log));
-            }
+            generatePrelim(rootOutDir, referenceGenome, captureBed, binBed, vcf, log,
+                           sample.getaType());
             prelimGenvisisWXS = true;
           }
           break;
@@ -285,6 +274,16 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
       batch(Array.toStringArray(sraFiles), rootOutDir, c, log);
     } else {
       hive.execute(true);
+    }
+  }
+
+  private static void generatePrelim(String rootOutDir, String referenceGenome, String captureBed,
+                                     String binBed, String vcf, Logger log, ASSAY_TYPE aType) {
+    Project proj = Pipeline.getProjectFor(aType, rootOutDir, referenceGenome);
+    if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
+
+      BamImport.generateAnalysisSet(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER, aType,
+                                    log, new ReferenceGenome(referenceGenome, log));
     }
   }
 
@@ -307,6 +306,10 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
       process.add("qsub -q small " + getBatch(getBatchDirectory(c.get(OUT_DIR)), i));
     }
     Files.writeArrayList(process, processFile);
+    generatePrelim(c.get(OUT_DIR), c.get(REFERENCE_GENOME), c.get(CAPTURE_BED), c.get(BIN_BED),
+                   c.get(VCF), log, ASSAY_TYPE.WXS);
+    generatePrelim(c.get(OUT_DIR), c.get(REFERENCE_GENOME), null, null, c.get(VCF), log,
+                   ASSAY_TYPE.WGS);
 
   }
 
@@ -411,8 +414,6 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     if (c.has(COMPILE)) {
       compile(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
               c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.getI(NUM_THREADS));
-    } else if (c.has(FULL_PIPELINE)) {
-      fullPipeline(c);
     } else {
       runAll(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), c.get(REFERENCE_GENOME),
              c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.get(COMPUTEL), c.getI(NUM_THREADS),
