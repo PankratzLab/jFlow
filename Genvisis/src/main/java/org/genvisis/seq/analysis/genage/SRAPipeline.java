@@ -313,7 +313,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
         process.add("prefetch.2.6.3 --max-size 100000000000 " + ext.rootOf(batches[i][j]));
         num++;
       }
-      process.add("qsub -q small " + getBatch(getBatchDirectory(c.get(OUT_DIR)) + ".qsub", i));
+      process.add("qsub -q small " + getBatch(getBatchDirectory(c.get(OUT_DIR)), i) + ".qsub");
       if (num >= 1000) {
         Files.writeArrayList(process, ext.addToRoot(processFile, "_" + processBatch));
         num = 0;
