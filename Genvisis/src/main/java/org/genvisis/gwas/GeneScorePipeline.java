@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -117,6 +118,7 @@ public class GeneScorePipeline {
      */
     public HashSet<String> retrieveMarkers(String dataKey, HashSet<String> hitMkrSet) {
       HashSet<String> returnMarkers = new HashSet<String>();
+      if (data.get(dataKey).isEmpty()) return returnMarkers;
       String[] mkrs = data.get(dataKey).getMarkerSet().getMarkerNames();
       for (String mkr : mkrs) {
         if (hitMkrSet.contains(mkr)) {
@@ -146,17 +148,20 @@ public class GeneScorePipeline {
                                                        log);
       if (dataSources.size() == 0) {
         // error
-        log.reportError("Error - no data sources loaded from file: " + dataSource);
+        log.reportTimeError("Error - no data sources loaded from file: " + dataSource);
       } else {
         DosageData d0 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile,
-                                       dataSources.get(0).mapFile, null, hitMkrs, false, log);
+                                       dataSources.get(0).mapFile, null, hitMkrs, true, log);
         if (dataSources.size() > 1) {
           for (int i = 1; i < dataSources.size(); i++) {
             DosageData d1 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile,
-                                           dataSources.get(i).mapFile, null, hitMkrs, false, log);
-            d0 = DosageData.combine(d0, d1, log);
+                                           dataSources.get(i).mapFile, null, hitMkrs, true, log);
+            d0 = DosageData.combine(d0, d1, DosageData.COMBINE_OP.DROP, log);
             System.gc();
           }
+        }
+        if (d0.isEmpty()) {
+          log.reportTimeError("no data for key: " + dataKey);
         }
         data.put(dataKey, d0);
         System.gc();
@@ -386,7 +391,7 @@ public class GeneScorePipeline {
           errorMsg = "ERROR - no MarkerName column found";
           // ERROR - couldn't find MarkerName column! COMPLETE FAIL
         }
-        if (indices[4] == -1) {
+        if (indices[5] == -1) {
           // NO BETAS! COMPLETE FAIL
           errorMsg = errorMsg.equals("") ? "ERROR - no Beta/Effect column found"
                                          : errorMsg + "; no Beta/Effect column found";
@@ -561,7 +566,7 @@ public class GeneScorePipeline {
       if (f.isDirectory()) {
         Study study = new Study();
         study.studyName = ext.rootOf(f.getAbsolutePath(), true);
-        study.studyDir = f.getAbsolutePath() + "\\";
+        study.studyDir = f.getAbsolutePath() + "/";
         for (File f1 : f.listFiles()) {
           if (f1.getName().endsWith(".pheno")) {
             study.phenoFiles.add(f1.getName());
@@ -787,7 +792,7 @@ public class GeneScorePipeline {
     // if any of the data folders have been created, skip creating affected.pheno file
     for (String dFile : dataFiles) {
       String dataFile = ext.rootOf(dFile, false);
-      if ((new File(study.studyDir + dataFile + "\\")).exists()) {
+      if ((new File(study.studyDir + dataFile + "/")).exists()) {
         return;
       }
     }
@@ -947,9 +952,9 @@ public class GeneScorePipeline {
 
   private void createFolders(Study study) {
     for (String dataFile : dataFiles) {
-      String dataFolder = study.studyDir + ext.rootOf(dataFile, true) + "\\";
+      String dataFolder = study.studyDir + ext.rootOf(dataFile, true) + "/";
       for (String constraints : analysisConstraints.keySet()) {
-        String constraintFolder = dataFolder + constraints + "\\";
+        String constraintFolder = dataFolder + constraints + "/";
         File f = new File(constraintFolder);
         if (!(f.exists())) {
           f.mkdirs();
@@ -962,24 +967,26 @@ public class GeneScorePipeline {
     for (String dFile : dataFiles) {
       String dataFile = ext.rootOf(dFile, false);
       for (java.util.Map.Entry<String, Constraint> constraintEntry : analysisConstraints.entrySet()) {
-        String crossFilterFile = study.studyDir + dataFile + "\\" + constraintEntry.getKey() + "\\"
+        String crossFilterFile = study.studyDir + dataFile + "/" + constraintEntry.getKey() + "/"
                                  + CROSS_FILTERED_DATAFILE;
         if ((new File(crossFilterFile).exists())) {
           log.report(ext.getTime() + "]\tCross-filtered data file already exists! [ --> '"
                      + crossFilterFile + "']");
-          study.hitSnpCounts.get(constraintEntry.getKey())
-                            .put(dataFile, Files.countLines(crossFilterFile, 1));
+          study.hitSnpCounts.get(constraintEntry.getKey()).put(dataFile, Files.countLines(crossFilterFile, 1));
           continue;
         }
-        log.report(ext.getTime() + "]\tCross-filtering data and .BIM files [ --> '"
-                   + crossFilterFile + "']");
+        if (study.data.get(dataFile + "\t" + constraintEntry.getKey()).isEmpty()) {
+          study.hitSnpCounts.get(constraintEntry.getKey()).put(dataFile, 0);
+          continue;
+        }
+        
+        log.report(ext.getTime() + "]\tCross-filtering data and .BIM files [ --> '" + crossFilterFile + "']");
         BufferedReader dataReader;
         PrintWriter dataWriter;
         HashMap<String, int[]> mkrsBim;
 
         mkrsBim = new HashMap<String, int[]>();
-        SnpMarkerSet markerSet = study.data.get(dataFile + "\t" + constraintEntry.getKey())
-                                           .getMarkerSet();
+        SnpMarkerSet markerSet = study.data.get(dataFile + "\t" + constraintEntry.getKey()).getMarkerSet();
         int cntAmbig = 0;
 
         String[] mkrNames = markerSet.getMarkerNames();
@@ -997,8 +1004,7 @@ public class GeneScorePipeline {
           }
         }
 
-        log.report(ext.getTime() + "]\tFound " + cntAmbig
-                   + " ambiguous markers (will be excluded)");
+        log.report(ext.getTime() + "]\tFound " + cntAmbig + " ambiguous markers (will be excluded)");
         dataReader = Files.getAppropriateReader(metaDir + dFile);
         dataWriter = new PrintWriter(crossFilterFile);
 
@@ -1047,15 +1053,19 @@ public class GeneScorePipeline {
       String dataFile = ext.rootOf(dFile, false);
 
       for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
-        File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
-        String crossFilterFile = prefDir + "\\" + CROSS_FILTERED_DATAFILE;
-        String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
+        File prefDir = new File(study.studyDir + dataFile + "/" + filePrefix.getKey() + "/");
+        String crossFilterFile = prefDir + "/" + CROSS_FILTERED_DATAFILE;
+        String hitsFile = prefDir + "/hits_" + filePrefix.getKey() + ".out";
         if ((new File(hitsFile)).exists()) {
           log.report(ext.getTime() + "]\tHit window analysis file already exists! [ --> '"
                      + hitsFile + "']");
           study.hitWindowCnts.get(filePrefix.getKey()).put(dataFile, Files.countLines(hitsFile, 1));
           continue;
         }
+        if (study.data.get(dataFile + "\t" + filePrefix.getKey()).isEmpty()) {
+          continue;
+        }
+        
         log.report(ext.getTime() + "]\tRunning hit window analysis [ --> '" + hitsFile + "']");
         String[][] results = HitWindows.determine(crossFilterFile,
                                                   filePrefix.getValue().indexThreshold,
@@ -1078,10 +1088,14 @@ public class GeneScorePipeline {
       String dataFile = ext.rootOf(dFile, false);
 
       for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
-        File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
+        if (study.data.get(dataFile + "\t" + filePrefix.getKey()).isEmpty()) {
+          continue;
+        }
+        
+        File prefDir = new File(study.studyDir + dataFile + "/" + filePrefix.getKey() + "/");
 
-        String crossFilterFile = prefDir + "\\" + CROSS_FILTERED_DATAFILE;
-        String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
+        String crossFilterFile = prefDir + "/" + CROSS_FILTERED_DATAFILE;
+        String hitsFile = prefDir + "/hits_" + filePrefix.getKey() + ".out";
         String[] hitMarkers = HashVec.loadFileToStringArray(hitsFile, true,
                                                             new int[] {hitsMkrIndex}, false);
         HashSet<String> hitMrkSet = new HashSet<String>();
@@ -1101,7 +1115,7 @@ public class GeneScorePipeline {
         String[][] bimData =
                            HashVec.loadFileToStringMatrix(crossFilterFile, true, finalCols, false);
 
-        PrintWriter writer = Files.getAppropriateWriter(prefDir + "\\subsetData_"
+        PrintWriter writer = Files.getAppropriateWriter(prefDir + "/subsetData_"
                                                         + filePrefix.getKey() + ".xln");
         HashMap<String, String[]> dataList = new HashMap<String, String[]>();
         for (String[] markerData : bimData) {
@@ -1124,15 +1138,19 @@ public class GeneScorePipeline {
     for (String dFile : dataFiles) {
       String dataFile = ext.rootOf(dFile, false);
       for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
-        File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
+        File prefDir = new File(study.studyDir + dataFile + "/" + filePrefix.getKey() + "/");
         if (!prefDir.exists()) {
           log.report(ext.getTime() + "]\tError - no subfolder for '" + filePrefix.getKey()
                      + "' analysis");
           continue;
         }
-        if ((new File(prefDir + "\\" + SCORE_FILE)).exists()) {
+        if ((new File(prefDir + "/" + SCORE_FILE)).exists()) {
           log.report(ext.getTime() + "]\tPlink analysis results file already exists! [ --> '"
-                     + prefDir + "\\" + SCORE_FILE + "']");
+                     + prefDir + "/" + SCORE_FILE + "']");
+          continue;
+        }
+        DosageData data = study.data.get(dataFile + "\t" + filePrefix.getKey());
+        if (data.isEmpty()) {
           continue;
         }
 
@@ -1140,9 +1158,8 @@ public class GeneScorePipeline {
         HashMap<String, String[]> markerAlleleBeta = study.markerData.get(dFile + "\t"
                                                                           + filePrefix.getKey());
         PrintWriter scoreWriter;
-        scoreWriter = Files.getAppropriateWriter(prefDir + "\\" + SCORE_FILE);
+        scoreWriter = Files.getAppropriateWriter(prefDir + "/" + SCORE_FILE);
 
-        DosageData data = study.data.get(dataFile + "\t" + filePrefix.getKey());
         String[][] ids = data.getIds();
         float[][] dose = data.getDosageValues();
         String[] markers = data.getMarkerSet().getMarkerNames();
@@ -1214,17 +1231,17 @@ public class GeneScorePipeline {
   // String dataFile = ext.rootOf(dFile, false);
   //
   // for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
-  // File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
+  // File prefDir = new File(study.studyDir + dataFile + "/" + filePrefix.getKey() + "/");
   // if (!prefDir.exists()) {
   // log.report(ext.getTime()+"]\tError - no subfolder for '" + filePrefix.getKey() + "' analysis");
   // continue;
   // }
-  // if ((new File(prefDir + "\\plink.profile")).exists()) {
+  // if ((new File(prefDir + "/plink.profile")).exists()) {
   // log.report(ext.getTime()+"]\tPlink analysis results file already exists! [ --> '" + prefDir +
-  // "\\plink.profile" + "']");
+  // "/plink.profile" + "']");
   // continue;
   // }
-  // String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
+  // String mkrDataFile = prefDir + "/subsetData_" + filePrefix.getKey() + ".xln";
   // log.report(ext.getTime()+"]\tRunning plink command [ --> '");
   // String cmd = "plink" + /*(plink2 ? "2" : "") +*/ " --noweb --bfile ../../" + study.plinkPref +
   // " --score " + mkrDataFile;
@@ -1239,10 +1256,13 @@ public class GeneScorePipeline {
       String dataFile = ext.rootOf(dFile, false);
 
       for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
+        if (study.data.get(dataFile + "\t" + filePrefix.getKey()).isEmpty()) {
+          continue;
+        }
         try {
-          File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
+          File prefDir = new File(study.studyDir + dataFile + "/" + filePrefix.getKey() + "/");
 
-          String scoreFile = prefDir + "\\" + SCORE_FILE;
+          String scoreFile = prefDir + "/" + SCORE_FILE;
 
           HashMap<String, Double> scoreData = new HashMap<String, Double>();
 
@@ -1255,7 +1275,7 @@ public class GeneScorePipeline {
           }
           scoreReader.close();
 
-          // if (!(new File(prefDir + "\\scores.hist").exists())) {
+          // if (!(new File(prefDir + "/scores.hist").exists())) {
           // double[] scores = new double[scoreData.size()];
           // int ind = 0;
           // for (double data : scoreData.values()) {
@@ -1267,7 +1287,7 @@ public class GeneScorePipeline {
           // log.report(ext.getTime()+"]\tError - no variance in scores for " + dataFile + " / " +
           // filePrefix.getKey() + " -- no .hist file created");
           // } else {
-          // Files.write((new Histogram(scores)).getSummary().trim(), prefDir + "\\scores.hist");
+          // Files.write((new Histogram(scores)).getSummary().trim(), prefDir + "/scores.hist");
           // }
           // }
 

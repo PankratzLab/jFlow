@@ -74,57 +74,31 @@ public class DosageData implements Serializable {
                                           {null, "DOSE"}, null};
   public static final String[] DELIMITERS = {"\t", ",", " "};
 
-  /** 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 */
-  /**
-   * id_type, column index where dosage/probability values begin, dominance format, number of
-   * columns summarizing the data, header row, marker/IID index, A1 index, A2 index, chr index, pos
-   * index, delimiter, index for head/lead, min number of digits, max number of digits
+  /**      0,                                                  1,                2,                                      3,          4,                5,        6,        7,         8,         9,        10,                  11,                   12,   13 
+   * id_type, column index where dosage/probability values begin, dominance format, number of columns summarizing the data, header row, marker/IID index, A1 index, A2 index, chr index, pos index, delimiter, index for head/lead, min number of digits, max number of digits
    */
 
-  /** 0 1 2 3 4 5 6 7 8 9 10 11 12 13 */
-  public static final int[][] PARAMETERS = {
-                                            {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0,
-                                             -1, -1, -1, -1, 0, 0, 3, 3}, // .mldose
-                                                                          // (MACH)
-                                            {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT, 3, 0,
-                                             1, 3, 4, 0, 2, 2, 1, 0, 3}, // .gen
-                                            {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0, -1,
-                                             -1, -1, -1, 1, 2, 0, 3}, // .fhsR
-                                                                      // (GWAF)
-                                            {FID_IID_TYPE, 3, MARKER_DOMINANT_FORMAT, 2, 1, 0, 1, 2,
-                                             -1, -1, 0, 3, 3, 3}, // .dosage
-                                                                  // (PLINK)
-                                            {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 2, 0, 0,
-                                             -1, -1, -1, -1, 0, 4, 3, 3}, // .mlprob
-                                                                          // (MACH)
-                                            {MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0,
-                                             -1, -1, -1, -1, 0, 5, 3, 3}, // .dose
-                                                                          // (MINIMAC)
-                                            {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT, 3, 0,
-                                             1, 3, 4, CHR_INFO_IN_FILENAME, 2, 0, 1, 3, 3}, // .impute2
-                                            {FID_IID_TYPE, 3, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0,
-                                             3, 4, -1, 2, 0, 6, 3, 3}, // .db.xln
-                                            {SEPARATE_FILE_ID_TYPE, 3, MARKER_DOMINANT_FORMAT, 1, 1,
-                                             0, 1, 2, -1, -1, 2, 1, 4, 4}, // .dose
-                                                                           // (BEAGLE)
-                                            {FID_IID_TYPE, 3, PLINK_BINARY_FORMAT, -1, -1, -1, -1,
-                                             -1, -1, -1, -1, -1, -1, -1},
-                                            {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1,
-                                             -1, -1, -1, 0, 0, 3, 3}, // freeze5
+  /**                                                            0  1                           2  3  4  5   6   7   8   9 10 11 12 13 */
+  public static final int[][] PARAMETERS = {{         MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 0, 3, 3}, // .mldose (MACH)
+                                            {SEPARATE_FILE_ID_TYPE, 5,     MARKER_DOMINANT_FORMAT, 3, 0, 1,  3,  4,  0,  2, 2, 1, 0, 3}, // .gen
+                                            {             IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0, -1, -1, -1, -1, 1, 2, 0, 3}, // .fhsR (GWAF)
+                                            {         FID_IID_TYPE, 3,     MARKER_DOMINANT_FORMAT, 2, 1, 0,  1,  2, -1, -1, 0, 3, 3, 3}, // .dosage (PLINK)
+                                            {         MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 2, 0, 0, -1, -1, -1, -1, 0, 4, 3, 3}, // .mlprob (MACH)
+                                            {         MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 5, 3, 3}, // .dose (MINIMAC)
+                                            {SEPARATE_FILE_ID_TYPE, 5,     MARKER_DOMINANT_FORMAT, 3, 0, 1,  3,  4, CHR_INFO_IN_FILENAME, 2, 0, 1, 3, 3}, // .impute2
+                                            {FID_IID_TYPE, 3, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0, 3, 4, -1, 2, 0, 6, 3, 3}, // .db.xln
+                                            {SEPARATE_FILE_ID_TYPE, 3, MARKER_DOMINANT_FORMAT, 1, 1, 0, 1, 2, -1, -1, 2, 1, 4, 4}, // .dose // (BEAGLE)
+                                            {FID_IID_TYPE, 3, PLINK_BINARY_FORMAT, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+                                            {IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 0, 3, 3}, // freeze5
   };
 
   private SnpMarkerSet markerSet;
 
   private String[][] ids;
-
   private float[][] dosageValues;
-
   private float[][][] genotypeProbabilities;
-
   private char[][] alleles;
-
   private byte[] chrs;
-
   private int[] positions;
 
   private boolean empty = false;
@@ -152,6 +126,34 @@ public class DosageData implements Serializable {
                     String regionsToUseFile, String markersToUseFile, boolean verbose, Logger log) {
     this(dosageFile, idFile, mapFile, PARAMETERS[type], regionsToUseFile, markersToUseFile, null,
          verbose, log);
+  }
+
+  public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters,
+                    String regionsToUseFile, String markersToUseFile, String markerNamePrepend,
+                    boolean verbose, Logger log) {
+    this(dosageFile, idFile, mapFile, parameters,
+         regionsToUseFile == null ? null : loadRegions(regionsToUseFile, log),
+         markersToUseFile == null ? null : loadMarkers(markersToUseFile, log), markerNamePrepend,
+         verbose, log);
+  }
+
+  public DosageData(String dosageFile, String idFile, String mapFile, int[][] regionsToUse,
+                    String[] markersToUse, boolean verbose, Logger log) {
+    this(dosageFile, idFile, mapFile, PARAMETERS[determineType(dosageFile)], regionsToUse,
+         markersToUse, null, verbose, log);
+  }
+
+  public DosageData(String dosageFile, String idFile, String mapFile, String regionsToUseFile,
+                    String markersToUseFile, boolean verbose, Logger log) {
+    this(dosageFile, idFile, mapFile, PARAMETERS[determineType(dosageFile)], regionsToUseFile,
+         markersToUseFile, null, verbose, log);
+  }
+
+  public DosageData(String dosageFile, String idFile, String mapFile, String regionsToUseFile,
+                    String markersToUseFile, String markerNamePrepend, boolean verbose,
+                    Logger log) {
+    this(dosageFile, idFile, mapFile, PARAMETERS[determineType(dosageFile)], regionsToUseFile,
+         markersToUseFile, markerNamePrepend, verbose, log);
   }
 
   public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters,
@@ -284,7 +286,7 @@ public class DosageData implements Serializable {
           }
         }
       }
-
+      
       if (parameters[2] == MARKER_DOMINANT_FORMAT) {
         int index = -1;
         for (int i = 0; i < markerNames.length; i++) {
@@ -509,7 +511,7 @@ public class DosageData implements Serializable {
       if (markerSet.getAlleles() == null && alleles != null) {
         markerSet.setAlleles(alleles);
       }
-
+      
       reader.close();
     } catch (FileNotFoundException fnfe) {
       System.err.println("Error: file \"" + dosageFile + "\" not found in current directory");
@@ -518,34 +520,6 @@ public class DosageData implements Serializable {
       System.err.println("Error reading file \"" + dosageFile + "\"");
       System.exit(2);
     }
-  }
-
-  public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters,
-                    String regionsToUseFile, String markersToUseFile, String markerNamePrepend,
-                    boolean verbose, Logger log) {
-    this(dosageFile, idFile, mapFile, parameters,
-         regionsToUseFile == null ? null : loadRegions(regionsToUseFile, log),
-         markersToUseFile == null ? null : loadMarkers(markersToUseFile, log), markerNamePrepend,
-         verbose, log);
-  }
-
-  public DosageData(String dosageFile, String idFile, String mapFile, int[][] regionsToUse,
-                    String[] markersToUse, boolean verbose, Logger log) {
-    this(dosageFile, idFile, mapFile, PARAMETERS[determineType(dosageFile)], regionsToUse,
-         markersToUse, null, verbose, log);
-  }
-
-  public DosageData(String dosageFile, String idFile, String mapFile, String regionsToUseFile,
-                    String markersToUseFile, boolean verbose, Logger log) {
-    this(dosageFile, idFile, mapFile, PARAMETERS[determineType(dosageFile)], regionsToUseFile,
-         markersToUseFile, null, verbose, log);
-  }
-
-  public DosageData(String dosageFile, String idFile, String mapFile, String regionsToUseFile,
-                    String markersToUseFile, String markerNamePrepend, boolean verbose,
-                    Logger log) {
-    this(dosageFile, idFile, mapFile, PARAMETERS[determineType(dosageFile)], regionsToUseFile,
-         markersToUseFile, markerNamePrepend, verbose, log);
   }
 
   public void analyze(String phenoFile, String phenoMissingValue, String snpList, boolean verbose,
@@ -1114,11 +1088,26 @@ public class DosageData implements Serializable {
     }
     if (markersToUse != null) {
       HashSet<String> mkrsToKeep = HashVec.loadToHashSet(markersToUse);
+      HashSet<String> markers = HashVec.loadToHashSet(markerNames);
+      HashSet<String> dupes = new HashSet<String>();
+      if (markerNames.length != markers.size()) {
+        HashSet<String> hash = new HashSet<String>((int) (1 + markerNames.length / .75));
+        for (String mkr : markerNames) {
+          if (hash.contains(mkr)) {
+            dupes.add(mkr);
+          } else {
+            hash.add(mkr);
+          }
+        }
+        hash = null;
+      }
       markersToKeep = Array.booleanArray(markerNames.length, false);
       for (int i = 0; i < markerNames.length; i++) {
         if (mkrsToKeep.contains(markerNames[i])) {
           markersToKeep[i] = true;
-          mkrsToKeep.remove(markerNames[i]);
+          if (!dupes.contains(markerNames[i])) {
+            mkrsToKeep.remove(markerNames[i]);
+          }
         }
       }
       if (mkrsToKeep.size() > 0) {
@@ -1130,7 +1119,12 @@ public class DosageData implements Serializable {
     return markersToKeep;
   }
 
-  public static DosageData combine(DosageData dd1, DosageData dd2, Logger log) {
+  public static enum COMBINE_OP {
+    FAIL,
+    DROP;
+  }
+  
+  public static DosageData combine(DosageData dd1, DosageData dd2, COMBINE_OP onDupeOp, Logger log) {
     if (!dd1.isEmpty() && !dd2.isEmpty()) {
       // let through
     } else if (dd1.isEmpty() && !dd2.isEmpty()) {
@@ -1143,7 +1137,6 @@ public class DosageData implements Serializable {
       log.reportError("Warning - both DosageData objects provided to combine() were empty.");
       return dd1;
     }
-
 
     byte missingChr = 0;
     int missingPos = 0;
@@ -1167,32 +1160,40 @@ public class DosageData implements Serializable {
         // TODO log? mark positions?
       }
     }
-    if (duplicatedSampleIndices.size() > 0) {
-      System.out.println(duplicatedSampleIndices.size() + " duplicate sample IDs found, out of "
-                         + dd2Ids.length + " samples present.");
+    if (duplicatedSamplesAndIndices.size() > 0) {
+      log.report(duplicatedSamplesAndIndices.size() + " duplicate sample IDs found, out of " + dd2Ids.length + " samples present.");
     }
 
     String[] dd1Mkrs = dd1.markerSet.getMarkerNames();
     String[] dd2Mkrs = dd2.markerSet.getMarkerNames();
     LinkedHashSet<String> markers = new LinkedHashSet<String>();
-    for (String mkr : dd1Mkrs) {
-      markers.add(mkr);
+    HashMap<String, Integer> dd1markersAndIndices = new HashMap<String, Integer>();
+    for (int i = 0; i < dd1Mkrs.length; i++) {
+      dd1markersAndIndices.put(dd1Mkrs[i], i);
+      markers.add(dd1Mkrs[i]);
     }
     HashSet<Integer> duplicatedMarkerIndices = new HashSet<Integer>();
     HashMap<String, Integer> duplicatedMarkersAndIndices = new HashMap<String, Integer>();
     HashMap<String, Integer> dd2markersAndIndices = new HashMap<String, Integer>();
+    HashSet<String> droppedMarkers = new HashSet<String>();
     for (int i = 0; i < dd2Mkrs.length; i++) {
       dd2markersAndIndices.put(dd2Mkrs[i], i);
       boolean alreadyPresentMkr = !markers.add(dd2Mkrs[i]);
       if (alreadyPresentMkr) {
+        log.reportTime("Duplicate marker: " + dd2Mkrs[i]);
+
         duplicatedMarkerIndices.add(i);
         duplicatedMarkersAndIndices.put(dd2Mkrs[i], i);
         if (duplicatedSampleIndices.size() > 0) {
-          System.out.println("Duplicate marker: " + dd2Mkrs[i]);
-          System.err.println("Error - cannot combine data sets with the same marker and sample names.  Yet.");
-          // TODO
-          // combining values when marker and sample are the same?
-          System.exit(1);
+          
+          if (onDupeOp == COMBINE_OP.FAIL) {
+            log.reportTimeError("Error - cannot combine data sets with duplicated marker AND sample names.  Yet.");
+            // TODO combining values when marker and sample are the same?
+            System.exit(1);
+          } else if (onDupeOp == COMBINE_OP.DROP) {
+            log.reportTimeWarning("cannot combine data sets with duplicated marker AND sample names.  Marker " + dd2Mkrs[i] + " will be dropped");
+            droppedMarkers.add(dd2Mkrs[i]);
+          }
         }
       }
     }
@@ -1206,32 +1207,46 @@ public class DosageData implements Serializable {
     }
     idSet = null; // can now refer to ddNew.ids
 
-    // ddNew.markerSet = SnpMarkerSet.merge(dd1.markerSet, dd2.markerSet); // don't use merge, as it
-    // sorts markers after merging
+    // don't use merge, as it sorts markers after merging
+    // ddNew.markerSet = SnpMarkerSet.merge(dd1.markerSet, dd2.markerSet); 
+    byte[] chrSrc;
+    char[][] alleleSrc;
+    int[] posSrc;
 
-    ddNew.alleles = new char[markers.size()][];
-    ddNew.chrs = new byte[markers.size()];
-    ddNew.positions = new int[markers.size()];
-    byte[] chrSrc = dd1.chrs == null ? dd1.markerSet.getChrs() : dd1.chrs;
-    char[][] alleleSrc = dd1.alleles == null ? dd1.markerSet.getAlleles() : dd1.alleles;
-    int[] posSrc = dd1.positions == null ? dd1.markerSet.getPositions() : dd1.positions;
+    ddNew.alleles = new char[markers.size() - droppedMarkers.size()][];
+    ddNew.chrs = new byte[markers.size() - droppedMarkers.size()];
+    ddNew.positions = new int[markers.size() - droppedMarkers.size()];
+    chrSrc = dd1.chrs == null ? dd1.markerSet.getChrs() : dd1.chrs;
+    alleleSrc = dd1.alleles == null ? dd1.markerSet.getAlleles() : dd1.alleles;
+    posSrc = dd1.positions == null ? dd1.markerSet.getPositions() : dd1.positions;
     int chrOffset = chrSrc == null ? dd1Mkrs.length : chrSrc.length;
+    ind = 0;
     for (int i = 0; i < chrOffset; i++) {
-      ddNew.chrs[i] = chrSrc == null ? missingChr : chrSrc[i];
-      ddNew.alleles[i] = alleleSrc == null ? missingAlleles : alleleSrc[i];
-      ddNew.positions[i] = posSrc == null ? missingPos : posSrc[i];
+      if (!droppedMarkers.contains(dd1Mkrs[i])) {
+        ddNew.chrs[ind] = chrSrc == null ? missingChr : chrSrc[i];
+        ddNew.alleles[ind] = alleleSrc == null ? missingAlleles : alleleSrc[i];
+        ddNew.positions[ind] = posSrc == null ? missingPos : posSrc[i];
+        ind++;
+      }
     }
     chrSrc = dd2.chrs == null ? dd2.markerSet.getChrs() : dd2.chrs;
     alleleSrc = dd2.alleles == null ? dd2.markerSet.getAlleles() : dd2.alleles;
     posSrc = dd2.positions == null ? dd2.markerSet.getPositions() : dd2.positions;
+    chrOffset = dd1Mkrs.length - droppedMarkers.size();
+    ind = 0;
     for (int i = 0; i < chrSrc.length; i++) {
-      if (!duplicatedMarkerIndices.contains(i)) {
-        ddNew.chrs[chrOffset + i] = chrSrc[i];
-        ddNew.alleles[chrOffset + i] = alleleSrc == null ? missingAlleles : alleleSrc[i];
-        ddNew.positions[chrOffset + i] = posSrc == null ? missingPos : posSrc[i];
+      if (!duplicatedMarkerIndices.contains(i) && !droppedMarkers.contains(dd2Mkrs[i])) {
+        ddNew.chrs[chrOffset + ind] = chrSrc == null ? missingChr : chrSrc[i];
+        ddNew.alleles[chrOffset + ind] = alleleSrc == null ? missingAlleles : alleleSrc[i];
+        ddNew.positions[chrOffset + ind] = posSrc == null ? missingPos : posSrc[i];
+        ind++;
       }
     }
-
+    
+    for (String s : droppedMarkers) {
+      markers.remove(s);
+    }
+    
     ddNew.markerSet = new SnpMarkerSet(markers.toArray(new String[markers.size()]), ddNew.chrs,
                                        ddNew.positions, ddNew.alleles, null, false, true);
 
@@ -1242,12 +1257,12 @@ public class DosageData implements Serializable {
 
     boolean dosageOverride = false;
     if ((dd1NumGeno > 1 || dd2NumGeno > 1) && dd1NumGeno != dd2NumGeno) {
-      System.err.println("Warning - cannot combine different numbers of genotype probabilities - result data will be imputed dosages.");
+      log.reportTimeError("Warning - cannot combine different numbers of genotype probabilities - result data will be imputed dosages.");
       dosageOverride = true;
     }
     int ddNewNumGeno = dosageOverride ? 1 : Math.min(dd1NumGeno, dd2NumGeno);
     if (ddNewNumGeno == 0) {
-      System.err.println("Error - cannot combine data sets when a dataset is missing both genotype and dosage data [dataset "
+      log.reportTimeError("Error - cannot combine data sets when a dataset is missing both genotype and dosage data [dataset "
                          + (dd1NumGeno == 0 ? "1" : "2") + "]");
       System.exit(1);
     }
@@ -1258,9 +1273,7 @@ public class DosageData implements Serializable {
       dd1.computeDosageValues(log);
     }
 
-    ddNew.genotypeProbabilities =
-                                ddNewNumGeno > 1 ? new float[markers.size()][ddNew.ids.length][ddNewNumGeno]
-                                                 : null;
+    ddNew.genotypeProbabilities = ddNewNumGeno > 1 ? new float[markers.size()][ddNew.ids.length][ddNewNumGeno] : null;
     ddNew.dosageValues = ddNewNumGeno == 1 ? new float[markers.size()][ddNew.ids.length] : null;
 
     if (ddNewNumGeno > 1) {
@@ -1268,7 +1281,7 @@ public class DosageData implements Serializable {
       Iterator<String> markerIter = markers.iterator();
       int m = 0;
       int dd2IndM = -1;
-      int dd1MarkerOffset = dd1Mkrs.length;
+      int dd1MarkerOffset = dd1Mkrs.length - droppedMarkers.size();
       while (markerIter.hasNext()) {
         String mkr = markerIter.next();
         dd2IndM = -1;
@@ -1278,13 +1291,13 @@ public class DosageData implements Serializable {
 
         for (int s = 0; s < dd1.ids.length; s++) {
           if (m < dd1MarkerOffset) {
-            ddNew.genotypeProbabilities[m][s] = dd1.genotypeProbabilities[m][s];
+            ddNew.genotypeProbabilities[m][s] = dd1.genotypeProbabilities[dd1markersAndIndices.get(mkr)][s];
           } else {
             if (duplicatedSamplesAndIndices.containsKey(dd1.ids[s][0] + "\t" + dd1.ids[s][1])) {
-              ddNew.genotypeProbabilities[m][s] =
-                                                dd2.genotypeProbabilities[dd2markersAndIndices.get(mkr)][duplicatedSamplesAndIndices.get(dd1.ids[s][0]
-                                                                                                                                         + "\t"
-                                                                                                                                         + dd1.ids[s][1])];
+              float[] probs = dd2.genotypeProbabilities[dd2markersAndIndices.get(mkr)][duplicatedSamplesAndIndices.get(dd1.ids[s][0]
+                  + "\t"
+                  + dd1.ids[s][1])];
+              ddNew.genotypeProbabilities[m][s] = probs; 
             } else {
               ddNew.genotypeProbabilities[m][s] = Array.floatArray(ddNewNumGeno, missingGeno);
             }
@@ -1298,8 +1311,7 @@ public class DosageData implements Serializable {
           if (!dd2markersAndIndices.containsKey(mkr)) {
             ddNew.genotypeProbabilities[m][newInd] = Array.floatArray(ddNewNumGeno, missingGeno);
           } else {
-            ddNew.genotypeProbabilities[m][newInd] =
-                                                   dd2.genotypeProbabilities[dd2IndM == -1 ? dd2markersAndIndices.get(mkr)
+            ddNew.genotypeProbabilities[m][newInd] = dd2.genotypeProbabilities[dd2IndM == -1 ? dd2markersAndIndices.get(mkr)
                                                                                            : dd2IndM][s];
           }
           newInd++;
@@ -1322,7 +1334,7 @@ public class DosageData implements Serializable {
 
         for (int s = 0; s < dd1.ids.length; s++) {
           if (m < dd1MarkerOffset) {
-            ddNew.dosageValues[m][s] = dd1.dosageValues[m][s];
+            ddNew.dosageValues[m][s] = dd1.dosageValues[dd1markersAndIndices.get(mkr)][s];
           } else {
             if (duplicatedSamplesAndIndices.containsKey(dd1.ids[s][0] + "\t" + dd1.ids[s][1])) {
               ddNew.dosageValues[m][s] =
