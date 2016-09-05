@@ -309,7 +309,7 @@ public class MitoPipeline {
                                    boolean sampLrr, boolean doAbLookup, boolean imputeMeanForNaN,
                                    boolean gcCorrect, String refGenomeFasta, int bpGcModel,
                                    int regressionDistance, GENOME_BUILD build, double[] pvalOpt,
-                                   String betaFile, boolean plot) {
+                                   String betaFile, boolean plot, boolean skipEval) {
     String sampleDirectory;
     SampleList sampleList;
     Logger log;
@@ -411,7 +411,7 @@ public class MitoPipeline {
                               homosygousOnly, markerCallRateFilter, betaOptFile, pedFile,
                               recomputeLRR_PCs, recomputeLRR_Median, sampLrr, imputeMeanForNaN,
                               gcCorrect, refGenomeFasta, bpGcModel, regressionDistance, build,
-                              pvalOpt, betaFile, plot, log);
+                              pvalOpt, betaFile, plot, skipEval, log);
             }
           }
         }
@@ -428,7 +428,7 @@ public class MitoPipeline {
                                      boolean imputeMeanForNaN, boolean gcCorrect,
                                      String refGenomeFasta, int bpGcModel, int regressionDistance,
                                      GENOME_BUILD build, double[] pvalOpt, String betaFile,
-                                     boolean plot, Logger log) {
+                                     boolean plot, boolean skipEval, Logger log) {
     GcAdjustorParameters params = null;
     String samps = proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES;
 
@@ -481,8 +481,7 @@ public class MitoPipeline {
           && (refGenomeFasta == null || !Files.exists(refGenomeFasta))
           && gmodelBase.isAvailable()) {
         log.reportTimeWarning("Generating gcModel for " + build.getBuild() + " at "
-                              + proj.GC_MODEL_FILENAME.getValue() + " from "
-                              + gmodelBase.get());
+                              + proj.GC_MODEL_FILENAME.getValue() + " from " + gmodelBase.get());
         proj.getLog().setLevel(3);
         PennCNV.gcModel(proj, gmodelBase.get(), proj.GC_MODEL_FILENAME.getValue(), 100);
         refGenomeFasta = null;
@@ -543,36 +542,43 @@ public class MitoPipeline {
       proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
       proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
       proj.saveProperties(new Property[] {proj.INTENSITY_PC_FILENAME,
-                                                  proj.INTENSITY_PC_NUM_COMPONENTS});
-      // generate estimates at each pc
-      log.reportTimeWarning("Beginning experimental estimator... Please contact us if the next steps report errors");
-      CorrectionIterator.runAll(proj, ext.removeDirectoryInfo(medianMarkers),
-                                proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES,
-                                null, pcApply.getExtrapolatedPCsFile(), pedFile, LS_TYPE.REGULAR,
-                                true, 0.05, plot, numThreads);
+                                          proj.INTENSITY_PC_NUM_COMPONENTS});
 
-      boolean requireBeta = betaFile == null || !Files.exists(betaFile);
-      if (requireBeta) {
-        log.reportTimeWarning("Attempting to use pre-set beta file");
-      }
-      boolean mitoResourceAvailable = prepareMitoResources(proj, requireBeta, proj.getLog());
-      if (mitoResourceAvailable) {
-        BetaOptimizer.optimize(proj,
-                               proj.PROJECT_DIRECTORY.getValue() + pcApply.getExtrapolatedPCsFile(),
-                               proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/",
-                               requireBeta ? ext.parseDirectoryOfFile(Resources.mitoCN(log).getTotalWBC().get())
-                                           : betaFile,
-                               betaOptFile,
-                               proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES,
-                               pvalOpt, numComponents, markerCallRateFilter, 25, numThreads);
-      } else {
-        proj.getLog().reportTimeError("Could not optimize betas due to missing files");
+      if (!skipEval) {
+        // generate estimates at each pc
+        log.reportTimeWarning("Beginning experimental estimator... Please contact us if the next steps report errors");
+        CorrectionIterator.runAll(proj, ext.removeDirectoryInfo(medianMarkers),
+                                  proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES,
+                                  null, pcApply.getExtrapolatedPCsFile(), pedFile, LS_TYPE.REGULAR,
+                                  true, 0.05, plot, numThreads);
+
+        boolean requireBeta = betaFile == null || !Files.exists(betaFile);
+        if (requireBeta) {
+          log.reportTimeWarning("Attempting to use pre-set beta file");
+        }
+        boolean mitoResourceAvailable = prepareMitoResources(proj, requireBeta, proj.getLog());
+        if (mitoResourceAvailable) {
+          BetaOptimizer.optimize(proj,
+                                 proj.PROJECT_DIRECTORY.getValue()
+                                       + pcApply.getExtrapolatedPCsFile(),
+                                 proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/",
+                                 requireBeta ? ext.parseDirectoryOfFile(Resources.mitoCN(log)
+                                                                                 .getTotalWBC()
+                                                                                 .get())
+                                             : betaFile,
+                                 betaOptFile,
+                                 proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES,
+                                 pvalOpt, numComponents, markerCallRateFilter, 25, numThreads);
+        } else {
+          proj.getLog().reportTimeError("Could not optimize betas due to missing files");
+        }
       }
     }
   }
 
   private static boolean prepareMitoResources(Project proj, boolean requireBeta, Logger log) {
-    boolean dbSnpA = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getDBSNP().isAvailable(true);
+    boolean dbSnpA = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getDBSNP()
+                              .isAvailable(true);
     if (!dbSnpA && (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
                     || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN)) {
       log.reportTimeWarning("Build version was set to " + proj.GENOME_BUILD_VERSION.getValue()
@@ -1244,7 +1250,7 @@ public class MitoPipeline {
                               pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median,
                               recompSampleSpecific, doAbLookup, imputeMeanForNaN, gcCorrect,
                               referenceGenomeFasta, bpGcModel, regressionDistance, build, pvalOpt,
-                              betaFile, plot);
+                              betaFile, plot, false);
       attempts++;
       if (result == 41 || result == 40) {
         proj.getLog().report("Attempting to restart pipeline once to fix SampleList problem");
