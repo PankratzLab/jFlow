@@ -147,7 +147,7 @@ public class CBCGUI {
     JScrollPane scrollPane = new JScrollPane();
     frmCbcApplicator.getContentPane().add(scrollPane, "cell 1 8 3 2,grow");
 
-    JTextArea textArea = new JTextArea();
+    final JTextArea textArea = new JTextArea();
     scrollPane.setViewportView(textArea);
     frmCbcApplicator.getContentPane().add(panel, "south,growx");
     panel.setLayout(new MigLayout("", "[grow][75px][75px]", "[23px]"));

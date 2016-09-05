@@ -1,271 +1,604 @@
 package org.genvisis.cnv.manage;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.genvisis.common.CmdLine;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.genvisis.common.Files;
 import org.genvisis.common.HttpDownloadUtility;
 import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
 import org.genvisis.seq.manage.VCFOps;
 
-public class Resources {
+/**
+ * Static utility class for accessing {@link Resource} instances.
+ */
+public final class Resources {
 
   public static final String DEFAULT_URL = "http://genvisis.org/rsrc/";
-  public static final String DEFUALT_LOCAL_DIR_BASE = "resources/";
+  public static final String DEFAULT_LOCAL_DIR = "resources" + File.separator;
+  public static final String BIN_DIR = "bin";
+  public static final String GENOME_DIR = "Genome";
 
-  public static final String BIN_SUB_DIR = "bin/";
-  public static final String GENOME_SUB_DIR = "Genome/";
-  public static final String MITO_SUB_DIR = "MitoCN/";
-
-  public static final String ARRAY_SUB_DIR = "Arrays/";
-
-  public static final String CHR_SUB_DIR = "chr/";
-
-  // TODO, a big TODO
-  // need to add web-based download, and local file structure
-  // could probably do this like project properties...
-
-  public static String getLocalDirBase() {
-    return DEFUALT_LOCAL_DIR_BASE;
+  private Resources() {
+    // prevent instantiation of utility class
   }
 
-  public enum BIN_RESOURCE_TYPE {
+  /**
+   * Helper method for chaining resource calls
+   */
+  public static MiniMac miniMac(Logger log) {
+    return new MiniMac(log);
+  }
 
-                                 SHAPEIT("shapeit/bin/shapeit",
-                                         "https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz",
-                                         false, "shapeit/shapeit.tar.gz"),
-
-                                 MINIMAC3("Minimac3/bin/Minimac3-omp",
-                                          DEFAULT_URL + BIN_SUB_DIR + "Minimac3/Minimac3.v1.0.14.tar.gz",
-                                          false, "Minimac3.tar.gz", "Minimac3/");
-
-    private final String localSubPath;
-    private final String url;
-    private final boolean windows;
-    private final boolean tarGz;
-    private final String tarGzSubPath;
-    private final boolean make;
-    private final String makeSubDir;
-
-    private BIN_RESOURCE_TYPE(String localSubPath, String url, boolean windows) {
-      this(localSubPath, url, windows, null, null);
-    }
-
-    private BIN_RESOURCE_TYPE(String localSubPath, String url, boolean windows,
-                              String tarGzSubPath) {
-      this(localSubPath, url, windows, tarGzSubPath, null);
+  /**
+   * MiniMac resource container
+   */
+  public static class MiniMac extends AbstractResourceFactory {
+    public MiniMac(Logger log) {
+      super(BIN_DIR + "/Minimac3", log);
     }
 
     /**
-     * @param localSubPath local subpath of binary
-     * @param url full url to retrieve
-     * @param windows true if binary is supported on windows
-     * @param tarGzSubPath if resource is archived, path to download tar.gz
-     * @param makeSubDir if resource needs to be built, directory to call make from after extracting
+     * @return A resource for the MiniMac3 app
      */
-    private BIN_RESOURCE_TYPE(String localSubPath, String url, boolean windows, String tarGzSubPath,
-                              String makeSubDir) {
-      this.localSubPath = localSubPath;
-      this.url = url;
-      this.windows = windows;
-      tarGz = tarGzSubPath != null;
-      this.tarGzSubPath = tarGzSubPath;
-      make = makeSubDir != null;
-      this.makeSubDir = makeSubDir;
+    public Resource getMiniMac3() {
+      return getTarGzResource("Minimac3.v1.0.14.tar.gz");
     }
 
-    public Resource getResource() {
-      final String localBinDir = getLocalDirBase() + BIN_SUB_DIR;
-      return new Resource(localBinDir + localSubPath, url) {
-        @Override
-        public boolean downloadResource(Logger log) {
-          if (!windows && Files.isWindows()) {
-            log.reportTimeError("Requested binary resource is not supported on Windows");
-            return false;
-          }
-          if (!tarGz) {
-            return super.downloadResource(log);
-          }
-          if (!downloadResource(localBinDir + tarGzSubPath, log)) {
-            return false;
-          }
-          if (tarGz && !extractTarGz(log)) {
-            log.reportTimeError(tarGzSubPath + " could not be extracted");
-            return false;
-          }
-          if (make && !makeBinary(log)) {
-            return false;
-          }
-          return true;
-        }
-
-        private boolean extractTarGz(Logger log) {
-          // TODO use Apache Commons or other Java utility to allow on Windows and not use command
-          // line
-          String file = ext.removeDirectoryInfo(tarGzSubPath);
-          String dir = ext.parseDirectoryOfFile(localBinDir + tarGzSubPath);
-          log.report("Extracting " + file);
-          if (!CmdLine.runDefaults("tar -xzf " + file, dir)) {
-            return false;
-          }
-          log.report("Extracted to " + dir);
-          log.report("Removing " + file);
-          CmdLine.runDefaults("rm " + file, dir);
-          return true;
-        }
-
-        private boolean makeBinary(Logger log) {
-          String dir = localBinDir + makeSubDir;
-          log.report("Building " + dir);
-          if (!CmdLine.runDefaults("make -s", dir)) {
-            return false;
-          }
-          log.report("Built to " + getFullLocalPath());
-          return true;
-        }
-      };
+    @Override
+    public List<Resource> getResources() {
+      List<Resource> resources = new ArrayList<Resource>();
+      resources.add(getMiniMac3());
+      return resources;
     }
-
   }
 
-  public enum GENOME_CHROMOSOME_RESOURCE_TYPE {
-                                               GENETIC_MAP("genetic_map_", ".txt.gz",
-                                                           DEFAULT_URL), G1K_PHASE3v5_REF_PANEL("1000genomes_ref_panel_Phase3v5_",
-                                                                                                ".m3vcf.gz",
-                                                                                                DEFAULT_URL);
-
-    private final String namePrefix;
-    private final String nameSuffix;
-    private final String url;
-
-    /**
-     * @param namePrefix
-     * @param nameSuffix
-     * @param url
-     */
-    private GENOME_CHROMOSOME_RESOURCE_TYPE(String namePrefix, String nameSuffix, String url) {
-      this.namePrefix = namePrefix;
-      this.nameSuffix = nameSuffix;
-      this.url = url;
-    }
-
-    public Resource getResource(GENOME_BUILD build, String chr) {
-      String resourceSubPath = GENOME_RESOURCE_TYPE.getGenomeBuildSubDir(build) + CHR_SUB_DIR
-                               + namePrefix + build.getBuild() + "_" + "chr" + chr + nameSuffix;
-      return new Resource(getLocalDirBase(), resourceSubPath, url) {};
-    }
-
+  /**
+   * Helper method for chaining resource calls
+   */
+  public static Shapeit shapeit(Logger log) {
+    return new Shapeit(log);
   }
 
-  public enum GENOME_RESOURCE_TYPE {
-                                    /**
-                                     * A gc5base file, for constructing gc-models
-                                     */
-                                    GC5_BASE("", "_gc5Base.txt", DEFAULT_URL), DB_SNP("", "_dbSnp147.vcf.gz", DEFAULT_URL),;
-
-    private final String namePrefix;
-    private final String nameSuffix;
-    private final String url;
-
-    /**
-     * @param namePrefix
-     * @param nameSuffix
-     * @param url
-     */
-    private GENOME_RESOURCE_TYPE(String namePrefix, String nameSuffix, String url) {
-      this.namePrefix = namePrefix;
-      this.nameSuffix = nameSuffix;
-      this.url = url;
+  /**
+   * Shapeit resource container
+   */
+  public static class Shapeit extends AbstractResourceFactory {
+    public Shapeit(Logger log) {
+      super(DEFAULT_LOCAL_DIR + BIN_DIR + File.separator + "shapeit" + File.separator
+            + "shapeit.tar.gz",
+            "https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz",
+            log);
     }
 
-    public Resource getResource(GENOME_BUILD build) {
-      String resourceSubPath = getGenomeBuildSubDir(build) + namePrefix + build.getBuild()
-                               + nameSuffix;
-      switch (this) {
-        case DB_SNP:
-          return new VCFResource(getLocalDirBase(), resourceSubPath, url);
-        default:
-          return new Resource(getLocalDirBase(), resourceSubPath, url) {};
+    /**
+     * @return A resource for the shapeit app
+     */
+    public Resource getShapeit() {
+      return getResource("");
+    }
+
+    @Override
+    public List<Resource> getResources() {
+      List<Resource> resources = new ArrayList<Resource>();
+      resources.add(getShapeit());
+      return resources;
+    }
+  }
+
+  /**
+   * Chromasome-related resource container. Always requires a related {@link GENOME_BUILD}.
+   */
+  public static class Chr extends AbstractResourceFactory {
+    private String build;
+
+    public Chr(GENOME_BUILD build, Logger log) {
+      super(GENOME_DIR + "/" + build.getBuild() + "/chr", log);
+      this.build = build.getBuild();
+    }
+
+    /**
+     * @return The genetic map for the requested {@link CHROMASOME}
+     */
+    public Resource getGeneticMap(CHROMASOME c) {
+      String prefix = "genetic_map_";
+      String extension = ".txt.gz";
+
+      if (CHROMASOME.CX_PAR.equals(c)) {
+        getResource(getPath(prefix, c.toString() + "2", extension));
+        return getResource(getPath(prefix, c.getLabel() + "1", extension));
+      }
+      return getResource(getPath(prefix, c.getLabel(), extension));
+    }
+
+    /**
+     * @return The G1K ref for the requested {@link CHROMASOME}
+     */
+    public Resource getG1Kphase3v5RefPanel(CHROMASOME c) {
+      return getResource(getPath("1000genomes_ref_panel_Phase3v5_", c.getLabel(), ".m3vcf.gz"));
+    }
+
+    /**
+     * Helper method to format the resource path
+     */
+    private String getPath(String prefix, String chromasome, String suffix) {
+      return prefix + build + "_chr" + chromasome + suffix;
+    }
+
+    @Override
+    public List<Resource> getResources() {
+      List<Resource> resources = new ArrayList<Resource>();
+      for (CHROMASOME c : CHROMASOME.values()) {
+        resources.add(getGeneticMap(c));
+        resources.add(getG1Kphase3v5RefPanel(c));
+      }
+      return resources;
+    }
+  }
+
+  /**
+   * Helper method for chaining resource calls
+   */
+  public static Genome genome(GENOME_BUILD build, Logger log) {
+    return new Genome(build, log);
+  }
+
+  /**
+   * Container for {@link GENOME_BUILD}-related resources.
+   */
+  public static class Genome extends AbstractResourceFactory {
+    private GENOME_BUILD build;
+
+    public Genome(GENOME_BUILD build, Logger log) {
+      super(GENOME_DIR, log);
+      this.build = build;
+    }
+    
+    /**
+     * @return The RefSeq.gtrack for this {@link GENOME_BUILD}
+     */
+    public Resource getGTrack() {
+      return getResource(build.getBuild() + "/" + "RefSeq_" + build.getBuild() + ".gtrack");
+    }
+
+    /**
+     * @return The GC5 base for this {@link GENOME_BUILD}
+     */
+    public Resource getModelBase() {
+      return getResource(getPath() + "_gc5Base.txt");
+    }
+
+    /**
+     * @return The DB Snp for this {@link GENOME_BUILD}
+     */
+    public Resource getDBSNP() {
+      return getVCFResource(getPath() + "_dbSnp147.vcf.gz");
+    }
+
+    /**
+     * Helper method for formatting resource path
+     */
+    private String getPath() {
+      String b = build.getBuild();
+      return new StringBuilder().append(b).append("/").append(b).toString();
+    }
+
+    /**
+     * Helper method for chaining resource calls
+     */
+    public Chr chr() {
+      return new Chr(build, log());
+    }
+
+    @Override
+    public List<Resource> getResources() {
+      List<Resource> resources = new ArrayList<Resource>();
+      resources.add(getModelBase());
+      resources.add(getDBSNP());
+      resources.add(getGTrack());
+      return resources;
+    }
+  }
+
+  /**
+   * Helper method for chaining resource calls
+   */
+  public static MitoCN mitoCN(Logger log) {
+    return new MitoCN(log);
+  }
+
+  /**
+   * Container for MitoCN resources
+   */
+  public static class MitoCN extends AbstractResourceFactory {
+    public MitoCN(Logger log) {
+      super("MitoCN", log);
+    }
+
+    /**
+     * @return White WBC data
+     */
+    public Resource getWhiteWBC() {
+      return getResource("Whites_WBC_TOTAL_SingleSNPmatched.final.beta");
+    }
+
+    /**
+     * @return Black WBC data
+     */
+    public Resource getBlackWBC() {
+      return getResource("Blacks_WBC_TOTAL_SingleSNPmatched.final.beta");
+    }
+
+    /**
+     * @return Total WBC data
+     */
+    public Resource getTotalWBC() {
+      return getResource("WBC_TOTAL_SingleSNPmatched.final.beta");
+    }
+
+    @Override
+    public List<Resource> getResources() {
+      List<Resource> resources = new ArrayList<Resource>();
+      resources.add(getWhiteWBC());
+      resources.add(getBlackWBC());
+      resources.add(getTotalWBC());
+      return resources;
+    }
+  }
+
+  /**
+   * Illumina Bundle TODO
+   */
+
+  /**
+   * Helper method for chaining resource calls
+   */
+  public static AffySnp6 affy(Logger log) {
+    return new AffySnp6(log);
+  }
+
+  /**
+   * Container for Affy resources.
+   */
+  public static class AffySnp6 extends AbstractResourceFactory {
+    public AffySnp6(Logger log) {
+      super("Arrays/AffySnp6", log);
+    }
+
+    /**
+     * @return Marker positions for the specified {@link GENOME_BUILD}
+     */
+    public Resource getMarkerPositions(GENOME_BUILD build) {
+      return getResource(build.getBuild() + "_markerPositions.txt");
+    }
+
+    /**
+     * @return HMM file
+     */
+    public Resource getHMM() {
+      return getResource("affygw6.hmm");
+    }
+
+    /**
+     * @return ABLookup file
+     */
+    public Resource getABLookup() {
+      return getResource("AB_lookup.dat");
+    }
+
+    @Override
+    public List<Resource> getResources() {
+      List<Resource> resources = new ArrayList<Resource>();
+      resources.add(getHMM());
+      resources.add(getABLookup());
+
+      for (GENOME_BUILD build : GENOME_BUILD.values()) {
+        resources.add(getMarkerPositions(build));
+      }
+      return resources;
+    }
+  }
+
+  /**
+   * Abstract superclass for containers that create {@link Resource} instances.
+   */
+  private abstract static class AbstractResourceFactory implements ResourceFactory {
+    private final String localPath;
+    private final String remotePath;
+    private final Logger log;
+
+    public AbstractResourceFactory(String subPath, Logger log) {
+      this(DEFAULT_LOCAL_DIR + subPath + File.separator, DEFAULT_URL + subPath + "/", log);
+    }
+
+    public AbstractResourceFactory(String localPath, String url, Logger log) {
+      this.localPath = localPath;
+      this.remotePath = url;
+      this.log = log;
+    }
+
+    protected Logger log() {
+      return log;
+    }
+
+    protected Resource getTarGzResource(String rsrc) {
+      return new TarGzResource(rsrc, localPath, remotePath, log);
+    }
+
+    protected Resource getVCFResource(String rsrc) {
+      return new VCFResource(rsrc, localPath, remotePath, log);
+    }
+
+    protected Resource getResource(String rsrc) {
+      return new DefaultResource(rsrc, localPath, remotePath, log);
+    }
+  }
+
+  private static interface ResourceFactory {
+    List<Resource> getResources();
+  }
+
+  /**
+   * Resource that may be .tar.gz compressed
+   */
+  public static class TarGzResource extends AbstractResource {
+    private String unzippedDir;
+    private String unzippedPath;
+
+    public TarGzResource(String resourceName, String path, String url, Logger log) {
+      super(resourceName, path, url, log);
+      unzippedDir = resourceName.substring(0, resourceName.lastIndexOf(".tar.gz",
+                                                                       resourceName.length()));
+      unzippedDir += File.separator;
+      unzippedPath = path + unzippedDir;
+    }
+
+    @Override
+    public String get() {
+      if (isLocallyAvailable(unzippedPath)) {
+        return unzippedPath;
+      }
+
+      String path = super.get();
+      if (path != null) {
+        return extractTarGz(path, unzippedPath);
+      }
+
+      return null;
+    }
+
+    private String extractTarGz(String targzPath, String destination) {
+      final int BUFFER = 2048;
+
+      try {
+        FileInputStream fin = new FileInputStream(targzPath);
+        BufferedInputStream in = new BufferedInputStream(fin);
+        GzipCompressorInputStream gzIn = new GzipCompressorInputStream(in);
+        TarArchiveInputStream tarIn = new TarArchiveInputStream(gzIn);
+
+        TarArchiveEntry entry = null;
+
+        /** Read the tar entries using the getNextEntry method **/
+
+        while ((entry = (TarArchiveEntry) tarIn.getNextEntry()) != null) {
+
+          /** If the entry is a directory, create the directory. **/
+
+          if (entry.isDirectory()) {
+
+            File f = new File(destination + entry.getName());
+            f.mkdirs();
+          }
+          /**
+           * If the entry is a file,write the decompressed file to the disk and close destination
+           * stream.
+           **/
+          else {
+            int count;
+            byte[] data = new byte[BUFFER];
+
+            FileOutputStream fos = new FileOutputStream(destination + entry.getName());
+            BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER);
+
+            while ((count = tarIn.read(data, 0, BUFFER)) != -1) {
+              dest.write(data, 0, count);
+            }
+            dest.close();
+          }
+        }
+
+        /** Close the input stream **/
+        tarIn.close();
+        new File(targzPath).delete();
+        return destination;
+      } catch (Exception e) {
+        log().reportError("Failed to extract: " + targzPath);
+        log().reportException(e);
+        return null;
       }
     }
+  }
 
-    protected static String getGenomeBuildSubDir(GENOME_BUILD build) {
-      return GENOME_SUB_DIR + build.getBuild() + "/";
+  /**
+   * VCF resource with an accompanying index file
+   */
+  public static class VCFResource extends AbstractResource {
+    public VCFResource(String resourceName, String path, String url, Logger log) {
+      super(resourceName, path, url, log);
+    }
+
+    @Override
+    public String get() {
+      String path = super.get();
+      if (path != null) {
+        String indexPath = VCFOps.getIndex(getName());
+        if (get(indexPath) == null) {
+          log().reportError("Warning: no index found for vcf file: " + path);
+        }
+      }
+      return path;
     }
   }
 
-
-
-  public enum MITO_RESOURCE_TYPE {
-                                  /**
-                                   * A gc5base file, for constructing gc-models
-                                   */
-                                  WHITE_WBC_BETA("", "Whites_WBC_TOTAL_SingleSNPmatched.final.beta", DEFAULT_URL), BLACK_WBC_BETA("", "WBC_TOTAL_SingleSNPmatched.final.beta", DEFAULT_URL), ALL_WBC_BETA("", "Blacks_WBC_TOTAL_SingleSNPmatched.final.beta", DEFAULT_URL);
-
-    private final String namePrefix;
-    private final String nameSuffix;
-    private final String url;
-
-    /**
-     * @param namePrefix
-     * @param nameSuffix
-     * @param url
-     */
-    private MITO_RESOURCE_TYPE(String namePrefix, String nameSuffix, String url) {
-      this.namePrefix = namePrefix;
-      this.nameSuffix = nameSuffix;
-      this.url = url;
-    }
-
-    public Resource getResource() {
-      String resourceSubPath = MITO_SUB_DIR + namePrefix + nameSuffix;
-      return new Resource(getLocalDirBase(), resourceSubPath, url) {
-
-      };
-    }
-
-  }
-
-  public enum ARRAY_RESOURCE_TYPE {
-
-                                   /**
-                                    * Affy Bundle
-                                    */
-                                   AFFY_SNP6_MARKER_POSITIONS("AffySnp6/", "_markerPositions.txt", DEFAULT_URL, true), AFFY_SNP6_HMM("AffySnp6/", "affygw6.hmm", DEFAULT_URL, false), AFFY_SNP6_ABLOOKUP("AffySnp6/", "AB_lookup.dat", DEFAULT_URL, false);
-
-    /**
-     * Illumina Bundle TODO
-     */
-
-
-    private final String namePrefix;
-    private final boolean genomeBuildSpecific;// some Array resources are, some aren't
-    private final String nameSuffix;
-    private final String url;
-
-    /**
-     * @param namePrefix
-     * @param nameSuffix
-     * @param url
-     */
-    private ARRAY_RESOURCE_TYPE(String namePrefix, String nameSuffix, String url,
-                                boolean genomeBuildSpecific) {
-      this.namePrefix = namePrefix;
-      this.nameSuffix = nameSuffix;
-      this.url = url;
-      this.genomeBuildSpecific = genomeBuildSpecific;
-    }
-
-    public Resource getResource(GENOME_BUILD build) {
-      String resourceSubPath = ARRAY_SUB_DIR + namePrefix
-                               + (genomeBuildSpecific ? build.getBuild() : "") + nameSuffix;
-      return new Resource(getLocalDirBase(), resourceSubPath, url) {};
+  /**
+   * Basic resource class
+   */
+  public static class DefaultResource extends AbstractResource {
+    public DefaultResource(String resourceName, String path, String url, Logger log) {
+      super(resourceName, path, url, log);
     }
   }
 
+  /**
+   * Abstract {@link Resource} superclass
+   */
+  public abstract static class AbstractResource implements Resource {
+    private final String localPath;
+    private final String remotePath;
+    private final String rsrc;
+    private final Logger log;
+
+    /**
+     *
+     * @param localPath This can be used to create fully qualified locations i.e
+     *        /home/usr/resources, or relative i.e resources/<br>
+     *        Thinking this will be set by launch properties
+     * @param subPath The path of the resource within local path and url
+     * @param url Typically {@link Resources#DEFAULT_URL}
+     */
+    public AbstractResource(String resourceName, String path, String url, Logger log) {
+      localPath = path;
+      remotePath = url;
+      this.log = log;
+      rsrc = resourceName;
+    }
+
+    public String getName() {
+      return rsrc;
+    }
+
+    @Override
+    public String getLocalPath() {
+      return localPath + rsrc;
+    }
+
+    public Logger log() {
+      return log;
+    }
+
+    protected boolean isLocallyAvailable(String file) {
+      return Files.exists(file);
+    }
+
+    protected boolean isRemotelyAvailable(String file) {
+      return HttpDownloadUtility.canDownload(file, log);
+    }
+
+    private boolean downloadResource(String url, String downloadPath) {
+      if (isRemotelyAvailable(url)) {
+        try {
+          HttpDownloadUtility.downloadFile(url, downloadPath, true, log);
+          return true;
+        } catch (IOException e) {
+          log.reportTimeError("Could not retrieve resource from " + downloadPath + " and save it to"
+                              + localPath);
+          log.reportException(e);
+        }
+      } else {
+        log.reportTimeError("Resource is not available for download: " + url);
+      }
+      return false;
+    }
+
+    protected String get(String file) {
+      String path = localPath + file;
+      String url = remotePath + file;
+
+      if (isLocallyAvailable(path)) {
+        return path;
+      }
+      log.report("Resource is not available at " + path + ", will attempt to download from " + url);
+
+      if (!downloadResource(url, path)) {
+        log.reportError("Download failed for: " + url);
+      } else if (!isLocallyAvailable(path)) {
+        log.reportError("Downloaded resource cannot be found at " + path);
+      } else {
+        return path;
+      }
+      return null;
+    }
+
+    @Override
+    public String get() {
+      return get(rsrc);
+    }
+
+    @Override
+    public boolean isAvailable() {
+      return isAvailable(false);
+    }
+
+    @Override
+    public boolean isAvailable(boolean showHint) {
+      boolean isAvailable = isLocallyAvailable(localPath + rsrc)
+                            || isRemotelyAvailable(remotePath + rsrc);
+
+      if (!isAvailable) {
+        log.reportTimeError("Could not find local file " + getLocalPath()
+                            + " and could not download it from " + remotePath + rsrc
+                            + " please manually download and save to " + getLocalPath());
+      }
+
+      return isAvailable;
+    }
+  }
+
+  /**
+   * A resource is a general-purpose file used by Genvisis but not shipped with the Genvisis core.
+   * Resources are typically available remotely and thus can be downloaded automatically if missing.
+   */
+  public static interface Resource {
+    /**
+     * @return {@code true} if this resource can be found locally or remotely.
+     */
+    boolean isAvailable();
+
+    /**
+     * As {@link #isAvailable()} but can display a hint to the user on how to manually download, if
+     * the resource is not available.
+     *
+     * @return {@code true} if this resource can be found locally or remotely.
+     */
+    boolean isAvailable(boolean showHint);
+
+    /**
+     * Ensure this resource is available locally, downloading it if necessary.
+     *
+     * @return The local path to this resource.
+     */
+    String get();
+
+    /**
+     * Unlike {@link #get()}, this method will not download a remote resource.
+     *
+     * @return The local path to this resource.
+     */
+    String getLocalPath();
+  }
+
+  /**
+   * Supported genome reference builds
+   */
   public enum GENOME_BUILD {
-
                             HG19("hg19", 37), HG18("hg18", 36);
 
     private final String build;
@@ -283,162 +616,22 @@ public class Resources {
     public int getBuildInt() {
       return buildInt;
     }
-
   }
 
-  public static abstract class Resource {
+  /**
+   * Supported chromasomes
+   */
+  public enum CHROMASOME {
+                          C1("1"), C2("2"), C3("3"), C4("4"), C5("5"), C6("6"), C7("7"), C8("8"), C9("9"), C10("10"), C11("11"), C12("12"), C13("13"), C14("14"), C15("15"), C16("16"), C17("17"), C18("18"), C19("19"), C20("20"), C21("21"), C22("22"), CX_PAR("X_PAR"), CX_nonPAR("X_nonPAR");
 
-    private final String fullLocalPath;
-    private final String fullUrl;
+    private String label;
 
-    /**
-     *
-     * @param localPath This can be used to create fully qualified locations i.e
-     *        /home/usr/resources, or relative i.e resources/<br>
-     *        Thinking this will be set by launch properties
-     * @param resourceSubPath The path of the resource within local path and url
-     * @param url Typically {@link Resources#DEFAULT_URL}
-     */
-    private Resource(String localPath, String resourceSubPath, String url) {
-      this(localPath + resourceSubPath, url + resourceSubPath);
+    private CHROMASOME(String c) {
+      label = c;
     }
 
-    /**
-     *
-     * @param fullLocalPath full path to resource on local system
-     * @param fullUrl full url path to resource on internet
-     */
-    private Resource(String fullLocalPath, String fullUrl) {
-      super();
-      this.fullLocalPath = fullLocalPath;
-      this.fullUrl = fullUrl;
+    public String getLabel() {
+      return label;
     }
-
-    private boolean isLocallyAvailable() {
-      return Files.exists(fullLocalPath);
-    }
-
-    public boolean validateWithHint(Logger log) {
-      boolean available = isLocallyAvailable() || isRemotelyAvailable(log);
-      if (!available) {
-        log.reportTimeError("Could not find local file " + fullLocalPath
-                            + " and could not download it from " + fullUrl
-                            + " please manually download and save to " + fullLocalPath);
-
-      }
-
-      return available;
-    }
-
-    private boolean isRemotelyAvailable(Logger log) {
-      return HttpDownloadUtility.canDownload(fullUrl, log);
-    }
-
-    protected String getFullLocalPath() {
-      return fullLocalPath;
-    }
-
-    protected boolean downloadResource(String downloadPath, Logger log) {
-      if (isRemotelyAvailable(log)) {
-        try {
-          HttpDownloadUtility.downloadFile(fullUrl, downloadPath, true, log);
-          return true;
-        } catch (IOException e) {
-          log.reportTimeError("Could not retrieve resource from " + downloadPath + " and save it to"
-                              + fullLocalPath);
-          e.printStackTrace();
-        }
-      } else {
-        log.reportTimeError("Resource is not available for download");
-      }
-      return false;
-    }
-
-    public boolean downloadResource(Logger log) {
-      return downloadResource(fullLocalPath, log);
-    }
-
-    public boolean isAvailable(Logger log) {
-      return isLocallyAvailable() || isRemotelyAvailable(log);
-    }
-
-    /**
-     * @param log
-     * @return the local path (immediately if available, or after downloading to the local path)
-     */
-    public String getResource(Logger log) {
-      if (isLocallyAvailable()) {
-        return fullLocalPath;
-      }
-      log.report("Resource is not available at " + fullLocalPath
-                 + ", will attempt to download from " + fullUrl);
-      if (downloadResource(log)) {
-        if (isLocallyAvailable()) {
-          return fullLocalPath;
-        }
-        log.reportError("Downloaded resource cannot be found at " + fullLocalPath);
-      }
-      return null;
-    }
-  }
-
-  private static class VCFResource extends Resource {
-    private final Resource index;
-
-    private VCFResource(String fullLocalPath, String fullUrl) {
-      super(fullLocalPath, fullUrl);
-      if (!fullLocalPath.endsWith(".vcf") && !fullLocalPath.endsWith(".vcf.gz")) {
-        throw new IllegalArgumentException("This should only be used for vcf files");
-      }
-      index = new Resource(VCFOps.getIndex(fullLocalPath), VCFOps.getIndex(fullUrl)) {
-
-      };
-    }
-
-    private VCFResource(String localPath, String resourceSubPath, String url) {
-      this(localPath + resourceSubPath, url + resourceSubPath);
-    }
-
-    @Override
-    public String getResource(Logger log) {
-      index.getResource(log);
-      return super.getResource(log);
-    }
-
-  }
-
-  private static void test() {
-    Logger log = new Logger();
-
-    for (GENOME_RESOURCE_TYPE gType : GENOME_RESOURCE_TYPE.values()) {
-      for (GENOME_BUILD gb : GENOME_BUILD.values()) {
-        log.reportTimeInfo("Testing " + gType + "\t" + gb);
-        Resource gResource = gType.getResource(gb);
-        gResource.downloadResource(log);
-        log.report("Available? " + gResource.isAvailable(log));
-        gResource.getResource(log);
-      }
-    }
-
-    for (BIN_RESOURCE_TYPE bType : BIN_RESOURCE_TYPE.values()) {
-      log.reportTimeInfo("Testing " + bType.toString());
-      Resource bResource = bType.getResource();
-      bResource.downloadResource(log);
-      log.report("Available? " + bResource.isAvailable(log));
-      bResource.getResource(log);
-    }
-    for (ARRAY_RESOURCE_TYPE atype : ARRAY_RESOURCE_TYPE.values()) {
-      for (GENOME_BUILD gb : GENOME_BUILD.values()) {
-        log.reportTimeInfo("Testing " + atype + "\t" + gb);
-        Resource bResource = atype.getResource(gb);
-        bResource.downloadResource(log);
-        log.report("Available? " + bResource.isAvailable(log));
-        bResource.getResource(log);
-      }
-    }
-  }
-
-  public static void main(String[] args) {
-    test();
   }
 }

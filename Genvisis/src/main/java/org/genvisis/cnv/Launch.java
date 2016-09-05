@@ -15,13 +15,15 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.jar.Attributes;
@@ -44,7 +46,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
-import org.apache.commons.io.FileUtils;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.DeNovoCNV;
 import org.genvisis.cnv.analysis.Mosaicism;
@@ -156,23 +157,43 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
   // using dedicated API instead of relying on an array structure convention.
   // A dedicated class could also include related information like an action listener or icon, and would
   // not be limited to one level of nesting.
-  public static final String[][] MENUS = {
-                                          {"File", NEW_PROJECT, IMPORT_PROJECT, SELECT_PROJECT,
-                                           DELETE_PROJECT, EDIT, "Preferences", CHECK_FOR_UPDATES,
-                                           EXIT},
-                                          {"Data", MAP_FILES, GENERATE_MARKER_POSITIONS,
-                                           PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // ,
-                                                                                       // MITOPIPELINE
-                                          {"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM,
-                                           MARKER_METRICS, FILTER_MARKER_METRICS,
-                                           TALLY_MARKER_ANNOTATIONS,
-                                           TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
-                                          {"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT,
-                                           TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT},
-                                          {"Tools", GENERATE_ABLOOKUP, EXPORT_TO_PLINK,
-                                           GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS, GENERATE_DEMO_PACKAGE, ADD_QC_TO_SAMPLE_DATA, TEST},
-                                          {"Help", "Contents", "Search", "About"}};
+  private static final Map<String, List<String>> MENUS = new LinkedHashMap<String, List<String>>();
+  private static final Map<String, String> plotIcons = new LinkedHashMap<String, String>();
 
+  // Static initializer
+  {
+    // Initialize plot icons. This determines their order in menus/toolbars
+    plotIcons.put(SCATTER, "images/scatterPlot2.png");
+    plotIcons.put(TRAILER, "images/trailerPlot2.png");
+    plotIcons.put(COMP, "images/compPlot.png");
+    plotIcons.put(MOSAIC_PLOT, "images/mosaicPlot.png");
+    plotIcons.put(SEX_PLOT, "images/sexPlot.png");
+    plotIcons.put(TWOD, "images/twoDPlot1.jpg");
+    plotIcons.put(LINE_PLOT, "images/lineplot.png");
+    plotIcons.put(QQ, "images/qqplot.gif");
+    plotIcons.put(STRAT, "images/stratPlot.png");
+    plotIcons.put(FOREST_PLOT, "images/forestPlot1.png");
+
+    // Initialize menu structure.
+    MENUS.put("File",
+              Arrays.asList(new String[] {NEW_PROJECT, IMPORT_PROJECT, SELECT_PROJECT,
+                                          DELETE_PROJECT, EDIT, "Preferences", CHECK_FOR_UPDATES,
+                                          EXIT}));
+    MENUS.put("Data", Arrays.asList(new String[] {MAP_FILES, GENERATE_MARKER_POSITIONS,
+                                                  PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}));
+    MENUS.put("Quality",
+              Arrays.asList(new String[] {CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS,
+                                          FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS,
+                                          TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS}));
+    MENUS.put("Plots", new ArrayList<String>(plotIcons.keySet()));
+    MENUS.put("Tools",
+              Arrays.asList(new String[] {GENERATE_ABLOOKUP, EXPORT_TO_PLINK,
+                                          GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS,
+                                          POPULATIONBAF, GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV,
+                                          EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS,
+                                          GENERATE_DEMO_PACKAGE, ADD_QC_TO_SAMPLE_DATA, TEST}));
+    MENUS.put("Help", Arrays.asList(new String[] {"Contents", "Search", "About"}));
+  }
 
   private transient Project proj;
   private final boolean jar;
@@ -206,25 +227,31 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     timestampOfSampleDataFile = -1;
     threadsRunning = new Vector<Thread>();
     log = new Logger();
+
   }
 
   /**
-   * Safely initialize the projects list once, and only once.
+   * Safely initialize the projects list and all views on the projects (e.g. combo box and menus).
    */
   private synchronized void initProjects() {
-    if (projects == null) {
-      List<String> list = Arrays.asList(launchProperties.getListOfProjectProperties());
-      projects = list;
+    String[] properties = launchProperties.getListOfProjectProperties();
+    List<String> list = Arrays.asList(properties);
+    projects = list;
+
+    // update the project box
+    if (projectsBox != null) {
+      projectsBox.setModel(new DefaultComboBoxModel(launchProperties.getListOfProjectNames()));
     }
+
+    // update the menu
+    createProjectMenu();
   }
 
   /**
    * Discover the projects declared in the projects directory and the last opened project.
    */
   public void loadProjects() {
-    if (projects == null) {
-      initProjects();
-    }
+    initProjects();
     setIndexOfCurrentProject(launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
   }
 
@@ -278,9 +305,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
    */
   public void setIndexOfCurrentProject(String projPropertiesFileName) {
     indexOfCurrentProj = 0;
+    String projName = ext.rootOf(projPropertiesFileName, true) + ".properties";
     // find the index
     for (int i = 0; i < projects.size(); i++) {
-      if (projects.get(i).equals(projPropertiesFileName)) {
+      if (projects.get(i).equals(projName)) {
         indexOfCurrentProj = i;
       }
     }
@@ -453,28 +481,23 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
     menuBar = new JMenuBar();
     // attach mnemonics and actionlisteners to menu elements
-    for (String[] element : MENUS) {
-      menu = new JMenu(element[0]);
-      menu.setMnemonic((int) element[0].charAt(0));
+    for (String title : MENUS.keySet()) {
+      menu = new JMenu(title);
+      menu.setMnemonic((int) title.charAt(0));
       menuBar.add(menu);
       hash = new HashSet<Character>();
-      for (int j = 1; j < element.length && !element[j].isEmpty(); j++) {
-        if (element[j] == "1") {
+      List<String> entries = MENUS.get(title);
+      for (String entry : entries) {
+        if (entry == "1") {
           menu.addSeparator();
           continue;
-        } else if (element[j].equals(SELECT_PROJECT)) {
+        } else if (entry.equals(SELECT_PROJECT)) {
           // Create "select project" submenu
-          menuItem = new JMenu(element[j]);
-          for (String project : projects) {
-            String label = ext.rootOf(project, true) + " ";
-            JMenuItem subItem = new JMenuItem(label);
-            subItem.addActionListener(this);
-            subItem.setMnemonic(getMnemonic(label, hash));
-            menuItem.add(subItem);
-          }
-        } else if (element[j].equals(PRINCIPAL_COMPONENTS)) {
+          menuItem = new JMenu(entry);
+          createProjectMenu(menuItem);
+        } else if (entry.equals(PRINCIPAL_COMPONENTS)) {
           // Create "principal components" submenu
-          menuItem = new JMenu(element[j]);
+          menuItem = new JMenu(entry);
           for (String pcSubMenuOption : new String[] {PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI,
                                                       PrincipalComponentsCrossTabs.PRINCIPAL_CROSSTABS_MI}) {
             JMenuItem pcSubItem = new JMenuItem(pcSubMenuOption);
@@ -483,15 +506,57 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
           }
         } else {
           // standard menu item
-          menuItem = new JMenuItem(element[j]);
+          menuItem = new JMenuItem(entry);
           menuItem.addActionListener(this);
         }
 
-        menuItem.setMnemonic(getMnemonic(element[j], hash));
+        menuItem.setMnemonic(getMnemonic(entry, hash));
         menu.add(menuItem);
       }
     }
     setJMenuBar(menuBar);
+  }
+
+  /**
+   * If the project menu is initialized, finds the {@link #SELECT_PROJECT} menu entry and adds an
+   * entry to each project to it.
+   *
+   * @see {@link #createProjectMenu(JMenuItem)}
+   */
+  private void createProjectMenu() {
+    if (getJMenuBar() == null) {
+      return;
+    }
+
+    for (int i = 0; i < getJMenuBar().getMenuCount(); i++) {
+      JMenu menu = getJMenuBar().getMenu(i);
+      if ("File".equals(menu.getText())) {
+        for (int j=0; j<menu.getItemCount(); j++) {
+          JMenuItem item = menu.getItem(j);
+          if (SELECT_PROJECT.equals(item.getText())) {
+            createProjectMenu(item);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Add a menu entry for each project to the given menu
+   *
+   * @param menu Menu to add projects to
+   */
+  private void createProjectMenu(JMenuItem menu) {
+    Set<Character> hash = new HashSet<Character>();
+    menu.removeAll();
+
+    for (String project : projects) {
+      String label = ext.rootOf(project, true) + " ";
+      JMenuItem subItem = new JMenuItem(label);
+      subItem.addActionListener(this);
+      subItem.setMnemonic(getMnemonic(label, hash));
+      menu.add(subItem);
+    }
   }
 
   /**
@@ -539,12 +604,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
     // Add plot icons
     iconBar.add(Box.createHorizontalStrut(15));
-    addButtons(iconBar, new String[]{ "images/scatterPlot2.png", "images/qqplot.gif",
-                             "images/stratPlot.png", "images/mosaicPlot.png", "images/sexPlot.png", "images/trailerPlot2.png",
-                              "images/twoDPlot1.jpg","images/lineplot.png", "images/compPlot.png",
-                             "images/forestPlot1.png"},
-               new String[] {SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT,
-                             TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT});
+    addButtons(iconBar, plotIcons.values().toArray(new String[plotIcons.size()]),
+               plotIcons.keySet().toArray(new String[plotIcons.size()]));
 
     // Add project selector
     iconBar.add(Box.createHorizontalStrut(15));
@@ -974,10 +1035,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
       String toDelete = projects.get(indexOfCurrentProj);
       int newIndex = Math.max(0, --indexOfCurrentProj);
       if (new File(launchProperties.getDirectory() + toDelete).delete()) {
-        int deleteDir = JOptionPane.showConfirmDialog(null, "Delete source directory as well?",
-                                                      "Delete project",
-                                                      JOptionPane.YES_NO_CANCEL_OPTION,
-                                                      JOptionPane.WARNING_MESSAGE);
         projects = null;
 
         // Update toDelete to just the project name
@@ -985,18 +1042,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
         // Find and remove the project entry in the "select projects" menu
         deleteMenuItem(getJMenuBar(), "File", SELECT_PROJECT, toDelete);
 
-        if (deleteDir == JOptionPane.YES_OPTION) {
-          log = new Logger();
-          log.linkTextArea(output);
-          try {
-            FileUtils.deleteDirectory(new File(proj.PROJECT_DIRECTORY.getValue()));
-          } catch (IOException e) {
-            log.reportTimeWarning("Failed to delete project directory: "
-                                + proj.PROJECT_DIRECTORY.getValue());
-          }
-        }
         loadProjects();
-        projectsBox.setModel(new DefaultComboBoxModel(launchProperties.getListOfProjectNames()));
         if (!projects.isEmpty()) {
           loadProject();
           setIndexOfCurrentProject(newIndex);

@@ -53,11 +53,11 @@ public class HttpDownloadUtility {
       int contentLength = httpConn.getContentLength();
 
       if (verbose) {
-        log.reportTimeInfo("Content-Type = " + contentType);
-        log.reportTimeInfo("Content-Disposition = " + disposition);
-        log.reportTimeInfo("Content-Length = " + contentLength);
-        // log.reportTimeInfo("fileName = " + fileName);
+        log.reportTimeInfo("Content-Type = " + (contentType == null ? "unknown" : contentType));
+        log.reportTimeInfo("Content-Disposition = " + (disposition == null ? "unknown" : disposition));
+        log.reportTimeInfo("Content-Length = " + (contentLength == -1 ? ">2GB" : contentLength));
       }
+      if (contentLength < 0) contentLength = Integer.MAX_VALUE;
 
       // opens input stream from the HTTP connection
       InputStream inputStream = httpConn.getInputStream();
@@ -66,11 +66,23 @@ public class HttpDownloadUtility {
       // opens an output stream to save into file
       FileOutputStream outputStream = new FileOutputStream(saveFilePath);
 
-      int bytesRead = -1;
+      int progressCount = 1;
+      int progressVal = contentLength / 10;
+      int bytesRead;
+      int byteTotal = 0;
       byte[] buffer = new byte[BUFFER_SIZE];
+      log.report("Downloading ", false, true);
       while ((bytesRead = inputStream.read(buffer)) != -1) {
+        // consider using:
+        // http://docs.oracle.com/javase/8/docs/api/javax/swing/ProgressMonitorInputStream.html
+        byteTotal += bytesRead;
+        if (byteTotal >= progressCount * progressVal) {
+          log.report(". ", false, true);
+          progressCount++;
+        }
         outputStream.write(buffer, 0, bytesRead);
       }
+      log.report("");
 
       outputStream.close();
       inputStream.close();

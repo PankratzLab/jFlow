@@ -137,8 +137,8 @@ public class GenomeFileMergePipeline {
     if (!Files.exists(plinkDir)) {
       msg = "no \"plink/\" directory in project directory " + proj.PROJECT_DIRECTORY.getValue();
       if (runPlinkOrQCIfMissing) {
-        log.report("Warning - " + msg);
-        log.report("PLINK files will be created and QC'd for project " + proj.PROJECT_NAME.getValue());
+        log.reportTime("Warning - " + msg);
+        log.reportTime("PLINK files will be created and QC'd for project " + proj.PROJECT_NAME.getValue());
         plink = true;
       } else {
         log.reportError("Error - " + msg);
@@ -147,8 +147,8 @@ public class GenomeFileMergePipeline {
     } else if (!Files.exists(genDir)) {
       msg = "no \"genome/\" directory in QC folders for PLINK data; looking for " + genDir;
       if (runPlinkOrQCIfMissing) {
-        log.report("Warning - " + msg);
-        log.report("PLINK files will be QC'd for project " + proj.PROJECT_NAME.getValue());
+        log.reportTime("Warning - " + msg);
+        log.reportTime("PLINK files will be QC'd for project " + proj.PROJECT_NAME.getValue());
         qc = true;
       } else {
         log.reportError("Error - " + msg);
@@ -157,8 +157,8 @@ public class GenomeFileMergePipeline {
     } else if (!Files.exists(genFile)) {
       msg = "no plink.genome file found for project " + proj.PROJECT_NAME.getValue();
       if (runPlinkOrQCIfMissing) {
-        log.report("Warning - " + msg);
-        log.report("PLINK files will be QC'd for project " + proj.PROJECT_NAME.getValue() + "; however, the output folders were found but the plink.genome file was missing, so other errors may be present.");
+        log.reportTime("Warning - " + msg);
+        log.reportTime("PLINK files will be QC'd for project " + proj.PROJECT_NAME.getValue() + "; however, the output folders were found but the plink.genome file was missing, so other errors may be present.");
         qc = true;
       } else {
         log.reportError("Error - " + msg);
@@ -176,7 +176,7 @@ public class GenomeFileMergePipeline {
   
   public void addGenomeFile(String name, String genomeFile) {
     if (!Files.exists(genomeFile)) {
-      log.reportError("Error - genome file \"" + genomeFile + "\" not found!");
+      log.reportTimeError("Error - genome file \"" + genomeFile + "\" not found!");
       return;
     }
     files.add(new GenomeFile(name, genomeFile, log));
@@ -219,7 +219,7 @@ public class GenomeFileMergePipeline {
       proj = projects.get(p);
       genFile = proj.PROJECT_DIRECTORY.getValue() + "plink/" + Qc.GENOME_DIR + "plink.genome";
       if (!Files.exists(genFile)) {
-        log.reportError("Error - plink.genome file missing for project " + proj.PROJECT_NAME.getValue() + "; data from project will not be included.");
+        log.reportTimeError("Error - plink.genome file missing for project " + proj.PROJECT_NAME.getValue() + "; data from project will not be included.");
         projects.remove(proj);
       } else {
         try {
@@ -229,7 +229,7 @@ public class GenomeFileMergePipeline {
           factors = ext.indexFactors(GENOME_COLUMNS, line.trim().split("[\\s]+"), false, false);
           for (int i = 0; i < factors.length; i++) {
             if (factors[i] == -1) {
-              log.reportError("Error - column " + GENOME_COLUMNS[i] + " was missing from plink.genome file: " + genFile + " ; data from this file will not be included in final output.");
+              log.reportTimeError("Error - column " + GENOME_COLUMNS[i] + " was missing from plink.genome file: " + genFile + " ; data from this file will not be included in final output.");
               projects.remove(proj);
               continue projectsLoop;
             }
@@ -258,7 +258,7 @@ public class GenomeFileMergePipeline {
     
     try {
       for (int p = 0; p < files.size(); p++) {
-        log.report("Loading data from " + files.get(p).genomeFile);
+        log.reportTime("Loading data from " + files.get(p).genomeFile);
         projInd0 = 4 + p * 4 + 0;
         projInd1 = projInd0 + 1;
         projInd2 = projInd1 + 1;
@@ -272,6 +272,7 @@ public class GenomeFileMergePipeline {
         // do id lookup, determine which column of 1/2 and 3/4 (if not both) are in lookup
         while((line = reader.readLine()) != null) {
           line = line.trim();
+          if ("".equals(line)) continue;
           st = new StringTokenizer(line, " ", false);
           pts.clear();
           while(st.hasMoreTokens()) {
@@ -337,7 +338,7 @@ public class GenomeFileMergePipeline {
     }
     
     // write outmap (options for exclusions?  split pops, ea/aa, etc?)
-    log.report("Writing output to " + outputFile);
+    log.reportTime("Writing output to " + outputFile);
     
     writer = Files.getAppropriateWriter(outputFile);
     
@@ -373,11 +374,11 @@ public class GenomeFileMergePipeline {
     GenomeFileMergePipeline gfmp = new GenomeFileMergePipeline();
     gfmp.setRunPlinkOrQCIfMissing(false);
     gfmp.loadIDLookupFile("/scratch.global/cole0482/genomeFiles/ids.txt", false);
-    gfmp.addGenomeFile("Exome_AA", "/scratch.global/cole0482/genomeFiles/exome_AA_plink.genome");
-    gfmp.addGenomeFile("IBC_AA", "/scratch.global/cole0482/genomeFiles/IBC_AA_plink.genome");
     gfmp.addGenomeFile("Exome_EA", "/scratch.global/cole0482/genomeFiles/exome_EA_plink.genome");
     gfmp.addGenomeFile("IBC_EA", "/scratch.global/cole0482/genomeFiles/IBC_EA_plink.genome");
     gfmp.addGenomeFile("WES", "/scratch.global/cole0482/genomeFiles/wes_plink.genome");
+    gfmp.addGenomeFile("Exome_AA", "/scratch.global/cole0482/genomeFiles/exome_AA_plink.genome");
+    gfmp.addGenomeFile("IBC_AA", "/scratch.global/cole0482/genomeFiles/IBC_AA_plink.genome");
     gfmp.setOutputFile("/scratch.global/cole0482/genomeFiles/tempAudit.xln");
     gfmp.run();
   

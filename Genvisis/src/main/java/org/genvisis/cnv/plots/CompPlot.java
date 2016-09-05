@@ -45,6 +45,8 @@ import org.genvisis.cnv.gui.FileNavigator;
 import org.genvisis.cnv.gui.LRRComp;
 import org.genvisis.cnv.gui.NewRegionListDialog;
 import org.genvisis.cnv.gui.RegionNavigator;
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.manage.UCSCtrack;
 import org.genvisis.cnv.var.CNVRectangles;
 import org.genvisis.cnv.var.Region;
@@ -196,11 +198,9 @@ public class CompPlot extends JFrame {
     originalRegionFiles = proj.REGION_LIST_FILENAMES.getValue();
 
     // Get the GeneTrack
-    String geneTrackFile = proj.getGeneTrackFilename(false);
-    if (geneTrackFile != null && !geneTrackFile.endsWith("/") && new File(geneTrackFile).exists()) {
-      track = GeneTrack.load(geneTrackFile, false);
-      // } else if (new File(GeneSet.REFSEQ_TRACK).exists()) {
-      // track = GeneTrack.load(GeneSet.REFSEQ_TRACK, false);
+    Resource geneTrack = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog()).getGTrack();
+    if (geneTrack.isAvailable()) {
+      track = GeneTrack.load(geneTrack.get(), false);
     } else {
       JOptionPane.showMessageDialog(this,
                                     "Gene track is not installed. Gene boundaries will not be displayed.",

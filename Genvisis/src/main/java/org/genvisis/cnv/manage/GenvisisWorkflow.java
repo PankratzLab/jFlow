@@ -22,6 +22,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
+import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.LrrSd;
@@ -576,16 +577,11 @@ public class GenvisisWorkflow {
 
                                          @Override
                                          public Object[] getRequirementDefaults(Project proj) {
-                                           if (Resources.GENOME_RESOURCE_TYPE.GC5_BASE.getResource(proj.GENOME_BUILD_VERSION.getValue())
-                                                                                      .isAvailable(proj.getLog())) {
-                                             return new Object[] {Resources.GENOME_RESOURCE_TYPE.GC5_BASE.getResource(proj.GENOME_BUILD_VERSION.getValue())
-                                                                                                         .getResource(proj.getLog()),
-                                                                  proj.GC_MODEL_FILENAME.getValue()};
-                                           } else {
-                                             Resources.GENOME_RESOURCE_TYPE.GC5_BASE.getResource(proj.GENOME_BUILD_VERSION.getValue())
-                                                                                    .validateWithHint(proj.getLog());
-                                             return null;
+                                           Resource gc5Base = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog()).getModelBase();
+                                           if (gc5Base.isAvailable(true)) {
+                                             return new Object[] {gc5Base.get(), proj.GC_MODEL_FILENAME.getValue()};
                                            }
+                                           return null;
                                          }
 
                                          @Override
@@ -2530,7 +2526,7 @@ public class GenvisisWorkflow {
       gui.setModal(true);
       gui.setVisible(true);
 
-      if (gui.getCancelled() == true) {
+      if (gui.getCancelled()) {
         return;
       }
     }

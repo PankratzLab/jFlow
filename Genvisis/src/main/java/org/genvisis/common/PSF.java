@@ -7,6 +7,10 @@ package org.genvisis.common;
  */
 public class PSF {
 
+  /**
+   * Check if the current thread has been interrupted and, if so, execute the given runnable and throw a RuntimeException (wrapped around an InterruptedException).
+   * @param runIfInterrupt
+   */
   public static final void checkInterrupted(Runnable runIfInterrupt) {
     if (Thread.currentThread().isInterrupted()) {
       runIfInterrupt.run();
@@ -14,6 +18,9 @@ public class PSF {
     }
   }
   
+  /**
+   * Check if the current thread has been interrupted and, if so, throw a RuntimeException (wrapped around an InterruptedException).
+   */
   public static final void checkInterrupted() {
     if (Thread.currentThread().isInterrupted()) {
       throw new RuntimeException(new InterruptedException());
