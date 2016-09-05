@@ -100,9 +100,10 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   public List<PipelinePart> call() throws Exception {
     String bamDir = getBamDirectory(rootOutDir);
 
-    if (!Files.exists(getCompleteFile(rootOutDir, inputSRA)) && !Files.exists(inputSRA)) {
-      throw new IllegalArgumentException("Missing complete file and " + inputSRA);
-    } else if (!Files.exists(getCompleteFile(rootOutDir, inputSRA))) {
+    // if (!Files.exists(getCompleteFile(rootOutDir, inputSRA)) && !Files.exists(inputSRA)) {
+    // throw new IllegalArgumentException("Missing complete file and " + inputSRA);
+    // } else
+    if (!Files.exists(getCompleteFile(rootOutDir, inputSRA))) {
       new File(bamDir).mkdirs();
       String bam = bamDir + ext.rootOf(inputSRA) + ".bam";
       if (!Files.exists(bam)) {
@@ -381,7 +382,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     String runningJar = SRAPipeline.class.getProtectionDomain().getCodeSource().getLocation()
                                          .getFile();
 
-    String jarRun = ext.parseDirectoryOfFile(runningJar) + "/sraJars/" + ext.rootOf(runningJar)
+    String jarRun = ext.parseDirectoryOfFile(runningJar) + "sraJars/" + ext.rootOf(runningJar)
                     + ext.getTimestampForFilename() + ".jar";
     new File(ext.parseDirectoryOfFile(jarRun)).mkdirs();
     Files.copyFileUsingFileChannels(runningJar, jarRun, log);
