@@ -124,6 +124,26 @@ public final class Resources {
   }
 
   /**
+   * Helper {@link Pathway} accessor for method chaining
+   */
+  public static Pathway path(Logger log) {
+    return new Pathway(log);
+  }
+
+  /**
+   * Container for pathway database resources
+   */
+  public static class Pathway extends AbstractResourceFactory {
+    public Pathway(Logger log) {
+      super("Pathways", log, Pathway.class);
+    }
+
+    public Resource getKegg() {
+      return getResource("kegg.ser");
+    }
+  }
+
+  /**
    * Helper method for chaining resource calls
    */
   public static Genome genome(GENOME_BUILD build, Logger log) {
