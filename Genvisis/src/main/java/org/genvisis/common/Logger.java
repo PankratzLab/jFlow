@@ -168,7 +168,7 @@ public class Logger implements Serializable {
     }
 
     if (level >= levelRequiredToReport && textArea != null) {
-      textArea.setText(textArea.getText() + str + (line ? System.lineSeparator() : ""));
+      textArea.setText(textArea.getText() + str + (line ? "\r\n" : ""));
       textArea.setCaretPosition(textArea.getDocument().getLength());
     }
 
@@ -209,7 +209,7 @@ public class Logger implements Serializable {
     }
 
     if (level >= levelRequiredToReport && textArea != null) {
-      textArea.setText(textArea.getText() + err + (line ? System.lineSeparator() : ""));
+      textArea.setText(textArea.getText() + err + (line ? "\r\n" : ""));
       textArea.setCaretPosition(textArea.getDocument().getLength());
     }
 
