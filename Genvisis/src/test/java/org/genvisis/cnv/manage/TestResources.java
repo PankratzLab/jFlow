@@ -3,6 +3,7 @@ package org.genvisis.cnv.manage;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.genvisis.cnv.manage.Resources.CHROMASOME;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.common.Logger;
@@ -54,8 +55,10 @@ public class TestResources {
    */
   private static void testChr(Logger log) {
     for (GENOME_BUILD build : GENOME_BUILD.values()) {
-      for (Resource r : Resources.genome(build, log).chr().getResources()) {
-        test(r);
+      for (CHROMASOME c : CHROMASOME.values()) {
+        for (Resource r : Resources.genome(build, log).chr(c).getResources()) {
+          test(r);
+        }
       }
     }
   }
@@ -84,11 +87,11 @@ public class TestResources {
   public static void main(String[] args) {
     Logger log = new Logger();
 
-//    testBinaries(log);
+    testBinaries(log);
     testGenome(log);
-//    testChr(log);
-//    testAffy(log);
-//    testMitoCN(log);
+    testChr(log);
+    testAffy(log);
+    testMitoCN(log);
     System.out.println("--Test complete--");
     if (failures.isEmpty()) {
       System.out.println("---- No failures!");

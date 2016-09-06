@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +45,7 @@ public final class Resources {
    */
   public static class MiniMac extends AbstractResourceFactory {
     public MiniMac(Logger log) {
-      super(BIN_DIR + "/Minimac3", log);
+      super(BIN_DIR + "/Minimac3", log, MiniMac.class);
     }
 
     /**
@@ -51,13 +53,6 @@ public final class Resources {
      */
     public Resource getMiniMac3() {
       return getTarGzResource("Minimac3.v1.0.14.tar.gz");
-    }
-
-    @Override
-    public List<Resource> getResources() {
-      List<Resource> resources = new ArrayList<Resource>();
-      resources.add(getMiniMac3());
-      return resources;
     }
   }
 
@@ -76,7 +71,7 @@ public final class Resources {
       super(DEFAULT_LOCAL_DIR + BIN_DIR + File.separator + "shapeit" + File.separator
             + "shapeit.tar.gz",
             "https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz",
-            log);
+            log, Shapeit.class);
     }
 
     /**
@@ -85,13 +80,6 @@ public final class Resources {
     public Resource getShapeit() {
       return getResource("");
     }
-
-    @Override
-    public List<Resource> getResources() {
-      List<Resource> resources = new ArrayList<Resource>();
-      resources.add(getShapeit());
-      return resources;
-    }
   }
 
   /**
@@ -99,16 +87,18 @@ public final class Resources {
    */
   public static class Chr extends AbstractResourceFactory {
     private String build;
+    private CHROMASOME c;
 
-    public Chr(GENOME_BUILD build, Logger log) {
-      super(GENOME_DIR + "/" + build.getBuild() + "/chr", log);
+    public Chr(GENOME_BUILD build, CHROMASOME c, Logger log) {
+      super(GENOME_DIR + "/" + build.getBuild() + "/chr", log, Chr.class);
       this.build = build.getBuild();
+      this.c = c;
     }
 
     /**
      * @return The genetic map for the requested {@link CHROMASOME}
      */
-    public Resource getGeneticMap(CHROMASOME c) {
+    public Resource getGeneticMap() {
       String prefix = "genetic_map_";
       String extension = ".txt.gz";
 
@@ -122,7 +112,7 @@ public final class Resources {
     /**
      * @return The G1K ref for the requested {@link CHROMASOME}
      */
-    public Resource getG1Kphase3v5RefPanel(CHROMASOME c) {
+    public Resource getG1Kphase3v5RefPanel() {
       return getResource(getPath("1000genomes_ref_panel_Phase3v5_", c.getLabel(), ".m3vcf.gz"));
     }
 
@@ -131,16 +121,6 @@ public final class Resources {
      */
     private String getPath(String prefix, String chromasome, String suffix) {
       return prefix + build + "_chr" + chromasome + suffix;
-    }
-
-    @Override
-    public List<Resource> getResources() {
-      List<Resource> resources = new ArrayList<Resource>();
-      for (CHROMASOME c : CHROMASOME.values()) {
-        resources.add(getGeneticMap(c));
-        resources.add(getG1Kphase3v5RefPanel(c));
-      }
-      return resources;
     }
   }
 
@@ -158,7 +138,7 @@ public final class Resources {
     private GENOME_BUILD build;
 
     public Genome(GENOME_BUILD build, Logger log) {
-      super(GENOME_DIR, log);
+      super(GENOME_DIR, log, Genome.class);
       this.build = build;
     }
     
@@ -194,17 +174,8 @@ public final class Resources {
     /**
      * Helper method for chaining resource calls
      */
-    public Chr chr() {
-      return new Chr(build, log());
-    }
-
-    @Override
-    public List<Resource> getResources() {
-      List<Resource> resources = new ArrayList<Resource>();
-      resources.add(getModelBase());
-      resources.add(getDBSNP());
-      resources.add(getGTrack());
-      return resources;
+    public Chr chr(CHROMASOME c) {
+      return new Chr(build, c, log());
     }
   }
 
@@ -220,7 +191,7 @@ public final class Resources {
    */
   public static class MitoCN extends AbstractResourceFactory {
     public MitoCN(Logger log) {
-      super("MitoCN", log);
+      super("MitoCN", log, MitoCN.class);
     }
 
     /**
@@ -243,15 +214,6 @@ public final class Resources {
     public Resource getTotalWBC() {
       return getResource("WBC_TOTAL_SingleSNPmatched.final.beta");
     }
-
-    @Override
-    public List<Resource> getResources() {
-      List<Resource> resources = new ArrayList<Resource>();
-      resources.add(getWhiteWBC());
-      resources.add(getBlackWBC());
-      resources.add(getTotalWBC());
-      return resources;
-    }
   }
 
   /**
@@ -270,7 +232,7 @@ public final class Resources {
    */
   public static class AffySnp6 extends AbstractResourceFactory {
     public AffySnp6(Logger log) {
-      super("Arrays/AffySnp6", log);
+      super("Arrays/AffySnp6", log, AffySnp6.class);
     }
 
     /**
@@ -293,36 +255,51 @@ public final class Resources {
     public Resource getABLookup() {
       return getResource("AB_lookup.dat");
     }
-
-    @Override
-    public List<Resource> getResources() {
-      List<Resource> resources = new ArrayList<Resource>();
-      resources.add(getHMM());
-      resources.add(getABLookup());
-
-      for (GENOME_BUILD build : GENOME_BUILD.values()) {
-        resources.add(getMarkerPositions(build));
-      }
-      return resources;
-    }
   }
 
   /**
    * Abstract superclass for containers that create {@link Resource} instances.
+   * <p>
+   * Note: the {@link #getResources()} implementation uses reflection to find all zero-parameter
+   * methods that return a {@link Resource} in the class list this factory is constructed with. A
+   * list of classes is used to facilitate inheritance between {@link ResourceFactory} classes. But,
+   * if you do not use this standard method format for accessing resources you should override this
+   * method.
+   * </p>
    */
   private abstract static class AbstractResourceFactory implements ResourceFactory {
     private final String localPath;
     private final String remotePath;
     private final Logger log;
+    private final Class<?>[] classes;
 
-    public AbstractResourceFactory(String subPath, Logger log) {
-      this(DEFAULT_LOCAL_DIR + subPath + File.separator, DEFAULT_URL + subPath + "/", log);
+    public AbstractResourceFactory(String subPath, Logger log, Class<?>... classes) {
+      this(DEFAULT_LOCAL_DIR + subPath + File.separator, DEFAULT_URL + subPath + "/", log, classes);
     }
 
-    public AbstractResourceFactory(String localPath, String url, Logger log) {
+    public AbstractResourceFactory(String localPath, String url, Logger log, Class<?>... classes) {
       this.localPath = localPath;
       this.remotePath = url;
       this.log = log;
+      this.classes = classes;
+    }
+
+    @Override
+    public List<Resource> getResources() {
+      List<Resource> resources = new ArrayList<Resource>();
+
+      for (Class<?> c : classes) {
+        for (Method m : c.getDeclaredMethods()) {
+          if (m.getReturnType().equals(Resources.Resource.class) && m.getParameterCount() == 0) {
+            try {
+              resources.add((Resource) m.invoke(this));
+            } catch (Exception e) {
+              log.reportError("Failed to add resource: " + m.getName());
+            }
+          }
+        }
+      }
+      return resources;
     }
 
     protected Logger log() {
