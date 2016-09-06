@@ -159,6 +159,7 @@ public class PennCNV {
     Files.chmod(pennDir + scriptSubDir + "assemblePenncnv");
   }
 
+  //FIXME need to unify this method with batch
   public static void batchX(Project proj, int numChunks, Vector<String> execList, String pfbFile,
                             String gcmodelFile, String hmmFile, String scriptSubDir,
                             String dataSubDir, String resultsSubDir) {
