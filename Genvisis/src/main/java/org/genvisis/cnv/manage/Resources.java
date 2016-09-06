@@ -163,6 +163,13 @@ public final class Resources {
     }
 
     /**
+     * @return b138 DB .ser resource
+     */
+    public Resource getB138() {
+      return getResource(build.getBuild() + "/b138_" + build.getBuildInt() + "_3.ser");
+    }
+
+    /**
      * @return The "genes##.xln" for this {@link GENOME_BUILD}
      */
     public Resource getGenes() {
