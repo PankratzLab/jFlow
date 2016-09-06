@@ -70,6 +70,12 @@ public class TestResources {
     for (Resource r : Resources.affy(log).getResources()) {
       test(r);
     }
+
+    for (GENOME_BUILD build : GENOME_BUILD.values()) {
+      for (Resource r : Resources.affy(log).genome(build).getResources()) {
+        test(r);
+      }
+    }
   }
 
   /**

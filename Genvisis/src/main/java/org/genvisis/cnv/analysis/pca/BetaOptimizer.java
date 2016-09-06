@@ -891,7 +891,7 @@ public class BetaOptimizer {
           || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN) {
         proj.getLog().reportTimeInfo("Attempting to use " + GENOME_BUILD.HG19.getBuild()
                                      + " positions for rsID lookup");
-        Resource affyhg19 = Resources.affy(log).getMarkerPositions(GENOME_BUILD.HG19);
+        Resource affyhg19 = Resources.affy(log).genome(GENOME_BUILD.HG19).getMarkerPositions();
         String tmpSer = ext.rootOf(outSer, false) + "hg19.positions.ser";
 
         if (!Files.exists(tmpSer)) {

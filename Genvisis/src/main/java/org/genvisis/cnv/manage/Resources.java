@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -235,18 +234,39 @@ public final class Resources {
   }
 
   /**
-   * Container for Affy resources.
+   * Container for build-specific Affy resources
    */
-  public static class AffySnp6 extends AbstractResourceFactory {
-    public AffySnp6(Logger log) {
-      super("Arrays/AffySnp6", log, AffySnp6.class);
+  public static class AffyGenomes extends AbstractResourceFactory {
+    private final GENOME_BUILD build;
+
+    public AffyGenomes(GENOME_BUILD build, Logger log) {
+      super(AffySnp6.DIR, log, AffyGenomes.class);
+      this.build = build;
     }
 
     /**
      * @return Marker positions for the specified {@link GENOME_BUILD}
      */
-    public Resource getMarkerPositions(GENOME_BUILD build) {
+    public Resource getMarkerPositions() {
       return getResource(build.getBuild() + "_markerPositions.txt");
+    }
+
+    /**
+     * @return gcmodel file
+     */
+    public Resource getGcmodel() {
+      return getResource("affygw6." + build.getBuild() + ".gcmodel");
+    }
+  }
+
+  /**
+   * Container for Affy resources.
+   */
+  public static class AffySnp6 extends AbstractResourceFactory {
+    private static final String DIR = "Arrays/AffySnp6";
+
+    public AffySnp6(Logger log) {
+      super(DIR, log, AffySnp6.class);
     }
 
     /**
@@ -261,6 +281,10 @@ public final class Resources {
      */
     public Resource getABLookup() {
       return getResource("AB_lookup.dat");
+    }
+
+    public AffyGenomes genome(GENOME_BUILD build) {
+      return new AffyGenomes(build, log());
     }
   }
 
