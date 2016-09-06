@@ -111,13 +111,13 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
                                                                                             log);
         hive.addCallable(new SRABamWorker(inputSRA, bam, log));
         hive.execute(true);
-        String vdbcache = ext.rootOf(inputSRA, false) + ".vdbcache";
+        String vdbcache = ext.rootOf(inputSRA, false) + "sra.vdbcache";
         if (!Files.exists(vdbcache)) {
-          log.reportError(vdbcache + " was was not seen, this sample will fail conversion to bam");
+          log.reportError(vdbcache + " was was not seen, this sample might fail conversion to bam");
           String bamFailDirectory = rootOutDir + "bamFail/";
           new File(bamFailDirectory).mkdirs();
           Files.write(inputSRA, bamFailDirectory + ext.rootOf(inputSRA) + ".fail");
-          return new ArrayList<Pipeline.PipelinePart>();
+          // return new ArrayList<Pipeline.PipelinePart>();
         }
       }
       if (cleanup) {
@@ -363,7 +363,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
       }
       process.add("cd " + processDir);// so the qsubs get placed there
       process.add("qsub -q small " + getBatch(getBatchDirectory(c.get(OUT_DIR)), i) + ".qsub");
-      if (num >= 1000) {
+      if (num >= 1500) {
         Files.writeArrayList(process, ext.addToRoot(processFile, "_" + processBatch));
         num = 0;
         processBatch++;

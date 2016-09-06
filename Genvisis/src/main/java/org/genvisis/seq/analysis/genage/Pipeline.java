@@ -127,11 +127,11 @@ public class Pipeline {
     private final String captureBed;
     private final NGSSample ngsSample;
     private final int numthreads;
-    private final int captureBufferSize;
+    private final int[] captureBufferSize;
     private final Logger log;
 
     private TelSeqPart(String bam, String rootOutDir, String captureBed, NGSSample ngsSample,
-                       int numthreads, int captureBufferSize, Logger log) {
+                       int numthreads, int[] captureBufferSize, Logger log) {
       super();
       this.bamFile = bam;
       this.rootOutDir = rootOutDir;
@@ -146,15 +146,20 @@ public class Pipeline {
     public PipelinePart call() throws Exception {
       String telSeqDir = rootOutDir + TELSEQ_DIR + ext.rootOf(bamFile) + "/";
       new File(telSeqDir).mkdir();
-      String result = TelSeq.runTelSeq(new String[] {bamFile}, telSeqDir, captureBed, numthreads,
-                                       ngsSample.getaType(), ngsSample.getaName(),
-                                       captureBufferSize, log);
-      ArrayList<String> input = new ArrayList<String>();
-      input.add(bamFile);
-      setInput(input);
-      ArrayList<String> output = new ArrayList<String>();
-      output.add(result);
-      setOutput(output);
+      for (int i = 0; i < captureBufferSize.length; i++) {
+        String result = TelSeq.runTelSeq(new String[] {bamFile}, telSeqDir, captureBed, numthreads,
+                                         ngsSample.getaType(), ngsSample.getaName(),
+                                         captureBufferSize[i], log);
+        ArrayList<String> input = new ArrayList<String>();
+        input.add(bamFile);
+        setInput(input);
+        ArrayList<String> output = new ArrayList<String>();
+        output.add(result);
+        setOutput(output);
+
+      }
+
+
       return this;
     }
 
@@ -353,7 +358,7 @@ public class Pipeline {
           break;
         case TELSEQ:
           hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1,
-                                          TELOMERE_CAPTURE_BUFFER, log));
+                                          new int[] {TELOMERE_CAPTURE_BUFFER}, log));
           break;
         default:
 
