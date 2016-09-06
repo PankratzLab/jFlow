@@ -30,6 +30,17 @@ import htsjdk.variant.variantcontext.Allele;
 
 public class ABLookup {
   public static final String DEFAULT_AB_FILE = "AB_lookup.dat";
+  
+  public static final String ARGS_PROJ = "proj";
+  public static final String ARGS_OUT = "out";
+  public static final String FLAGS_CLUSTER = "parseFromGenotypeClusterCenters";
+  public static final String FLAGS_ORIGIN = "parseFromOriginalGenotypes";
+  public static final String FLAGS_VCF = "parseFromAnnotationVCF";
+  public static final String ARGS_MANIFEST = "IlluminaManifestFile";
+  public static final String ARGS_PARTAB = "incompleteAB";
+  public static final String ARGS_MAP = "mapFile";
+  public static final String FLAGS_PLINK = "plinkFile";
+  public static final String FLAGS_APPLYAB = "applyAB";
 
   private String[] markerNames;
   private char[][] lookup;
@@ -780,47 +791,37 @@ public class ABLookup {
     String projFile = org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false);
     String illumina = "infiniumomni2-5-8-v1-3-a1-manifest-file-csv.zip";
     String abLookup = "possible_AB_lookup.dat";
-    final String PROJ = "proj";
-    final String OUT = "out";
-    final String CLUSTER = "parseFromGenotypeClusterCenters";
-    final String ORIGIN = "parseFromOriginalGenotypes";
-    final String VCF = "parseFromAnnotationVCF";
-    final String MANIFEST = "IlluminaManifestFile";
-    final String PARTAB = "incompleteAB";
-    final String MAP = "mapFile";
-    final String PLINK = "plinkFile";
-    final String APPLYAB = "applyAB";
 
     CLI c = new CLI();
-    c.addArg(PROJ, "project properties filename", projFile);
-    c.addArg(OUT, "parse ABLookup to this location", outfile);
-    c.addFlag(CLUSTER, "parse ABLookup from centroids");
-    c.addFlag(ORIGIN, "parse ABLookup from existing original genotypes");
-    c.addArg(MANIFEST, "parse ABLookup from Illumina manifest file", illumina);
-    c.addFlag(VCF, "parse ABLookup from VCF annotation file");
-    c.addArg(PARTAB,
+    c.addArg(ARGS_PROJ, "project properties filename", projFile);
+    c.addArg(ARGS_OUT, "parse ABLookup to this location", outfile);
+    c.addFlag(FLAGS_CLUSTER, "parse ABLookup from centroids");
+    c.addFlag(FLAGS_ORIGIN, "parse ABLookup from existing original genotypes");
+    c.addArg(ARGS_MANIFEST, "parse ABLookup from Illumina manifest file", illumina);
+    c.addFlag(FLAGS_VCF, "parse ABLookup from VCF annotation file");
+    c.addArg(ARGS_PARTAB,
                "fill in a partial existing ABLookup file using an Illumina SNP Table", abLookup);
-    c.addArg(MAP, "the filename of the Illumina SNP Tabl", mapFile);
-    c.addFlag(PLINK, "use a plink.bim file as input instead of an ABLookup file");
-    c.addFlag(APPLYAB, "apply the project's AB lookup to all Sample files in project");
+    c.addArg(ARGS_MAP, "the filename of the Illumina SNP Tabl", mapFile);
+    c.addFlag(FLAGS_PLINK, "use a plink.bim file as input instead of an ABLookup file");
+    c.addFlag(FLAGS_APPLYAB, "apply the project's AB lookup to all Sample files in project");
 
-    c.addGroup(OUT, PARTAB, APPLYAB);
+    c.addGroup(ARGS_OUT, ARGS_PARTAB, FLAGS_APPLYAB);
 
     c.parseWithExit(ABLookup.class, args);
 
-    proj = new Project(c.get(PROJ), false);
-    if (c.has(PARTAB)) {
-      fillInMissingAlleles(proj, c.get(PARTAB), c.get(MAP), c.has(PLINK));
-    } else if (c.has(APPLYAB)) {
+    proj = new Project(c.get(ARGS_PROJ), false);
+    if (c.has(FLAGS_APPLYAB)) {
       applyABLookupToFullSampleFiles(proj);
-    } else if (c.has(MANIFEST)) {
-      parseABLookup(proj, ABSource.MANIFEST, c.get(OUT), c.get(MANIFEST));
-    } else if (c.has(VCF)) {
-      parseABLookup(proj, ABSource.VCF, c.get(OUT));
-    } else if (c.has(ORIGIN)) {
-      parseABLookup(proj, ABSource.ORIGEN, c.get(OUT));
-    } else if (c.has(CLUSTER)) {
-      parseABLookup(proj, ABSource.GENCLUSTER, c.get(OUT));
+    } else if (c.has(FLAGS_VCF)) {
+      parseABLookup(proj, ABSource.VCF, c.get(ARGS_OUT));
+    } else if (c.has(ARGS_PARTAB)) {
+      fillInMissingAlleles(proj, c.get(ARGS_PARTAB), c.get(ARGS_MAP), c.has(FLAGS_PLINK));
+    } else  if (c.has(ARGS_MANIFEST)) {
+      parseABLookup(proj, ABSource.MANIFEST, c.get(ARGS_OUT), c.get(ARGS_MANIFEST));
+    } else  if (c.has(FLAGS_ORIGIN)) {
+      parseABLookup(proj, ABSource.ORIGEN, c.get(ARGS_OUT));
+    } else if (c.has(FLAGS_CLUSTER)) {
+      parseABLookup(proj, ABSource.GENCLUSTER, c.get(ARGS_OUT));
     } else {
       System.err.println("No subroutine was selected");
       System.exit(1);

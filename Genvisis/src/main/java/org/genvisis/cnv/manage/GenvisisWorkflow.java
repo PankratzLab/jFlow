@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.genvisis.cnv.Launch;
@@ -37,6 +38,10 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Ancestry;
 import org.genvisis.gwas.Qc;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 public class GenvisisWorkflow {
 
@@ -927,14 +932,25 @@ public class GenvisisWorkflow {
       String projFile = proj.getPropertyFilename();
       String mapFile = proj.getLocationOfSNP_Map(true);
 
+      List<String> baseCommand = ImmutableList.of(Files.getRunString(), ABLookup.class.getName(),
+                                                  ABLookup.ARGS_PROJ + "=" + projFile);
+      List<String> commandVcf = Lists.newArrayList(baseCommand);
+      commandVcf.add(ABLookup.ARGS_OUT + "=" + filename);
+      commandVcf.add("-" + ABLookup.FLAGS_VCF);
+
+      List<String> commandPartial = Lists.newArrayList(baseCommand);
+      commandPartial.add(ABLookup.ARGS_PARTAB + "=" + filename);
+      commandPartial.add(ABLookup.ARGS_MAP + "=" + mapFile);
+
+      List<String> commandApply = Lists.newArrayList(baseCommand);
+      commandApply.add("-" + ABLookup.FLAGS_APPLYAB);
+
       StringBuilder cmd = new StringBuilder();
-      cmd.append(Files.getRunString()).append(" org.genvisis.cnv.filesys.ABLookup out=")
-         .append(filename).append(" vcf=true proj=").append(projFile).append("\n");
-      cmd.append(Files.getRunString()).append(" org.genvisis.cnv.filesys.ABLookup incompleteAB=")
-         .append(filename).append(" mapFile=").append(mapFile).append(" proj=").append(projFile)
-         .append("\n");
-      cmd.append(Files.getRunString()).append(" org.genvisis.cnv.filesys.ABLookup -applyAB")
-         .append(" proj=").append(projFile);
+
+      cmd.append(Joiner.on(" ").join(commandVcf)).append("\n");
+      cmd.append(Joiner.on(" ").join(commandPartial)).append("\n");
+      cmd.append(Joiner.on(" ").join(commandApply));
+
       return cmd.toString();
     }
   };
