@@ -220,8 +220,8 @@ public class PennCNV {
     String newGCFile = dataDir + "chrX.gcModel";
     String newPFBFile = dataDir + "chrX.pfb";
 
-    pfbFile = filterPFB(proj, pfbFile, newPFBFile, new String[] {"23", "X"});
-    gcmodelFile = filterGCModel(proj, gcmodelFile, newGCFile, new String[] {"23", "X"});
+    pfbFile = filterFile(proj, pfbFile, newPFBFile, new String[] {"23", "X"});
+    gcmodelFile = filterFile(proj, gcmodelFile, newGCFile, new String[] {"23", "X"});
 
     String sexFileStatus = writeSexFile(proj, sampleData, dataDir, log);
     if (sexFileStatus.length() > 0) {
@@ -294,15 +294,15 @@ public class PennCNV {
     Files.chmod(pennDir + scriptSubDir + "assemblePenncnv");
   }
 
-  private static String filterGCModel(Project proj, String gcModelFile, String newGCFile,
+  private static String filterFile(Project proj, String fileToFilter, String outputFile,
                                       String[] chrs) {
     // TODO combine method with filterPFB - literally the same except different names/extensions
     BufferedReader reader = null;
     PrintWriter writer = null;
 
     try {
-      reader = new BufferedReader(new FileReader(gcModelFile));
-      writer = new PrintWriter(new FileWriter(newGCFile));
+      reader = new BufferedReader(new FileReader(fileToFilter));
+      writer = new PrintWriter(new FileWriter(outputFile));
 
       String header;
       String temp;
@@ -321,16 +321,16 @@ public class PennCNV {
         }
       }
     } catch (IOException e) {
-      proj.getLog().reportError("Error - filtering gcModel failed");
+      proj.getLog().reportError("Error - filtering failed for file: " + fileToFilter);
       proj.getLog().reportException(e);
-      return gcModelFile;
+      return fileToFilter;
     } finally {
       if (reader != null) {
         try {
           reader.close();
         } catch (IOException e) {
           proj.getLog()
-              .reportError("Error - couldn't properly close file reader for " + gcModelFile);
+              .reportError("Error - couldn't properly close file reader for " + fileToFilter);
           proj.getLog().reportException(e);
         }
         reader = null;
@@ -341,55 +341,7 @@ public class PennCNV {
       }
     }
 
-    return newGCFile;
-  }
-
-  private static String filterPFB(Project proj, String pfbFile, String newPFBFile, String[] chrs) {
-    // TODO combine method with filterGCModel - literally the same except different names/extensions
-    BufferedReader reader = null;
-    PrintWriter writer = null;
-
-    try {
-      reader = new BufferedReader(new FileReader(pfbFile));
-      writer = new PrintWriter(new FileWriter(newPFBFile));
-
-      String header;
-      String temp;
-      String[] line;
-      if (reader.ready()) {
-        header = reader.readLine();
-        writer.println(header);
-      }
-      while (reader.ready()) {
-        temp = reader.readLine();
-        line = temp.trim().split("[\\s]+");
-        for (String chr : chrs) {
-          if (line[1].equals(chr)) {
-            writer.println(temp);
-          }
-        }
-      }
-    } catch (IOException e) {
-      proj.getLog().reportError("Error - filtering PFB failed");
-      proj.getLog().reportException(e);
-      return pfbFile;
-    } finally {
-      if (reader != null) {
-        try {
-          reader.close();
-        } catch (IOException e) {
-          proj.getLog().reportError("Error - couldn't properly close file reader for " + pfbFile);
-          proj.getLog().reportException(e);
-        }
-        reader = null;
-      }
-      if (writer != null) {
-        writer.close();
-        writer = null;
-      }
-    }
-
-    return newPFBFile;
+    return outputFile;
   }
 
   private static String writeSexFile(Project proj, SampleData sampleData, String resultsDir,
