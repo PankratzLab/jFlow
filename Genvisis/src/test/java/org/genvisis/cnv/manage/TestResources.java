@@ -90,6 +90,17 @@ public class TestResources {
   }
 
   /**
+   * Helper method to test {@link Resources#cnv(Logger)} resources.
+   */
+  private static void testCnv(Logger log) {
+    test(Resources.cnv(log).getResources());
+
+    for (GENOME_BUILD build : GENOME_BUILD.values()) {
+      test(Resources.cnv(log).genome(build).getResources());
+    }
+  }
+
+  /**
    * Run all the tests and report the final outcome.
    */
   public static void main(String[] args) {
@@ -101,6 +112,7 @@ public class TestResources {
     testAffy(log);
     testMitoCN(log);
     testPathways(log);
+    testCnv(log);
     System.out.println("--Test complete--");
     if (failures.isEmpty()) {
       System.out.println("---- No failures!");

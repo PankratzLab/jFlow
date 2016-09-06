@@ -284,6 +284,13 @@ public final class Resources {
     public Resource getGcmodel() {
       return getResource("affygw6." + build.getBuild() + ".gcmodel");
     }
+
+    /**
+     * @return pfb file
+     */
+    public Resource getHmm() {
+      return getResource("affygw6." + build.getBuild() + ".pfb");
+    }
   }
 
   /**
@@ -312,6 +319,81 @@ public final class Resources {
 
     public AffyGenomes genome(GENOME_BUILD build) {
       return new AffyGenomes(build, log());
+    }
+  }
+
+  /**
+   * Helper method for chaining resource calls
+   */
+  public static CNV cnv(Logger log) {
+    return new CNV(log);
+  }
+
+  /**
+   * Get genome-specific CNV resources
+   */
+  public static class CNVGenomes extends AbstractResourceFactory {
+    private final GENOME_BUILD build;
+
+    public CNVGenomes(GENOME_BUILD build, Logger log) {
+      super(CNV.DIR, log, CNVGenomes.class);
+      this.build = build;
+    }
+
+    public Resource getAllPfb() {
+      return getPfb("all");
+    }
+
+    public Resource getAllGcmodel() {
+      return getGc("all");
+    }
+
+    public Resource get550Pfb() {
+      return getPfb("550");
+    }
+
+    public Resource get550Gcmodel() {
+      return getGc("550");
+    }
+
+    private Resource getPfb(String cnv) {
+      return get(cnv, "pfb");
+    }
+
+    private Resource getGc(String cnv) {
+      return get(cnv, "gcmodel");
+    }
+
+    private Resource get(String cnv, String extension) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("hh").append(cnv).append(".").append(build.build).append(".").append(extension);
+      return getResource(sb.toString());
+    }
+  }
+
+  /**
+   * Get general CNV resources
+   */
+  public static class CNV extends AbstractResourceFactory {
+    private static final String DIR = "CNV";
+
+    public CNV(Logger log) {
+      super(DIR, log, CNV.class);
+    }
+
+    public Resource getAllHmm() {
+      return getResource("hhall.hmm");
+    }
+
+    public Resource get550Hmm() {
+      return getResource("hh550.hmm");
+    }
+
+    /**
+     * Helper method for chaining resource calls.
+     */
+    public CNVGenomes genome(GENOME_BUILD build) {
+      return new CNVGenomes(build, log());
     }
   }
 
