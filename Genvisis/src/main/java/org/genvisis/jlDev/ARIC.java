@@ -3,6 +3,8 @@ package org.genvisis.jlDev;
 import java.util.ArrayList;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
@@ -18,7 +20,7 @@ public class ARIC {
     String cnvs = "/home/pankrat2/shared/aric_gw6/shadow_ARICGenvisis_CEL_FULL/vte/penncnv.cnv";
     String mapFile =
                    "/panfs/roc/groups/5/pankrat2/public/bin/ref/mapability/hg18/wgEncodeCrgMapabilityAlign100mer.bedgraph";
-    String geneTrackFile = "/home/pankrat2/public/bin/NCBI/RefSeq_hg18.gtrack";
+    String geneTrackFile = Resources.genome(GENOME_BUILD.HG18, proj.getLog()).getGTrack().get();
 
     String[] vte = HashVec.loadFileToStringArray(phenoDef, false, new int[] {0}, true);
 

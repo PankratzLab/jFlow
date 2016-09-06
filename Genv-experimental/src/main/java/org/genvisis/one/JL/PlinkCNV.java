@@ -9,6 +9,8 @@ import java.util.HashSet;
 import java.util.concurrent.Callable;
 
 import org.genvisis.cnv.analysis.FilterCalls;
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.ExcelConverter;
@@ -39,7 +41,7 @@ public class PlinkCNV {
 		String[] filters = Files.list(dir, ".crf", false);
 
 		WorkerHive<PlinkResult> hive = new WorkerHive<PlinkResult>(6, 10, log);
-		GeneTrack geneTrack = GeneTrack.load("N:/statgen/NCBI/RefSeq_" + build + ".gtrack", false);
+		GeneTrack geneTrack = GeneTrack.load(Resources.genome(GENOME_BUILD.valueOf(build), log).getGTrack().get(), false);
 		if (Files.exists(dir + "mitoCarta.txt")) {
 			String[] mitos = HashVec.loadFileToStringArray(dir + "mitoCarta.txt", false, new int[] { 0 }, true);
 			ArrayList<String> mitoList = new ArrayList<String>();
