@@ -146,7 +146,7 @@ public final class Resources {
      * @return The RefSeq.gtrack for this {@link GENOME_BUILD}
      */
     public Resource getGTrack() {
-      return getResource(build.getBuild() + "/" + "RefSeq_" + build.getBuild() + ".gtrack");
+      return getResource(build.getBuild() + "/RefSeq_" + build.getBuild() + ".gtrack");
     }
 
     /**
@@ -161,6 +161,13 @@ public final class Resources {
      */
     public Resource getDBSNP() {
       return getVCFResource(getPath() + "_dbSnp147.vcf.gz");
+    }
+
+    /**
+     * @return The "genes##.xln" for this {@link GENOME_BUILD}
+     */
+    public Resource getGenes() {
+      return getResource(build.getBuild() + "/genes" + build.getBuildInt() + ".xln");
     }
 
     /**
