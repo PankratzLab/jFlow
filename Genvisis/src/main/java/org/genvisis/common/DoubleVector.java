@@ -19,7 +19,7 @@ public class DoubleVector extends Vector<Double> implements PrimitiveVector {
    * Create an empty vector with the specified initial size.
    */
   public DoubleVector(int initialSize) {
-    this(new double[initialSize]);
+    super(initialSize);
   }
 
   /**

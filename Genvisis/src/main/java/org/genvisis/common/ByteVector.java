@@ -19,7 +19,7 @@ public class ByteVector extends Vector<Byte> implements PrimitiveVector {
    * Create an empty vector with the specified initial size.
    */
   public ByteVector(int initialSize) {
-    this(new byte[initialSize]);
+    super(initialSize);
   }
 
   /**

@@ -22,7 +22,7 @@ public class FloatVector extends Vector<Float> implements PrimitiveVector {
    * Create an empty vector with the specified initial size.
    */
   public FloatVector(int initialSize) {
-    this(new float[initialSize]);
+    super(initialSize);
   }
 
   /**

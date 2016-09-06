@@ -22,7 +22,7 @@ public class IntVector extends Vector<Integer> implements PrimitiveVector {
    * Create an empty vector with the specified initial size.
    */
   public IntVector(int initialSize) {
-    this(new int[initialSize]);
+    super(initialSize);
   }
 
   /**
