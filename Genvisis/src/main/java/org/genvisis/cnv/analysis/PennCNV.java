@@ -20,6 +20,8 @@ import java.util.Vector;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
@@ -1320,6 +1322,15 @@ public class PennCNV {
         gcModel(proj, gc5base, proj.GC_MODEL_FILENAME.getValue(), 100);
       }
       if (numChunks > 0) {
+        if (hmmFile == null || !new File(hmmFile).exists()) {
+          hmmFile = Resources.cnv(proj.getLog()).getAllHmm().get();
+        }
+        if (pfbFile == null || !new File(pfbFile).exists()) {
+          pfbFile = Resources.cnv(proj.getLog()).genome(GENOME_BUILD.HG18).getAllPfb().get();
+        }
+        if (gcmodelFile == null || !new File(pfbFile).exists()) {
+          pfbFile = Resources.cnv(proj.getLog()).genome(GENOME_BUILD.HG18).getAllGcmodel().get();
+        }
         doBatch(proj, auto, chrx, sexCent, transformData, numChunks, separateQsubs, pfbFile,
                 gcmodelFile, hmmFile, separateQsubs ? submit : false, recode, excludes, numThreads);
       }
