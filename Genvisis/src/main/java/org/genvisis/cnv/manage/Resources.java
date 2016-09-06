@@ -141,7 +141,7 @@ public final class Resources {
       super(GENOME_DIR, log, Genome.class);
       this.build = build;
     }
-    
+
     /**
      * @return The RefSeq.gtrack for this {@link GENOME_BUILD}
      */
@@ -319,6 +319,10 @@ public final class Resources {
     }
   }
 
+  /**
+   * A ResourceFactory holds all the configuration for building {@link Resource} instances.
+   * Typically this is just the local and remote path for a resource folder.
+   */
   private static interface ResourceFactory {
     List<Resource> getResources();
   }
@@ -542,6 +546,8 @@ public final class Resources {
   /**
    * A resource is a general-purpose file used by Genvisis but not shipped with the Genvisis core.
    * Resources are typically available remotely and thus can be downloaded automatically if missing.
+   * Use the {@link #isAvailable()} method to check if this resource can be obtained, and
+   * {@link #get()} to return the local path to the resource.
    */
   public static interface Resource {
     /**
