@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -18,6 +19,8 @@ import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
+
+import com.google.common.primitives.Doubles;
 
 import htsjdk.samtools.BAMIndex;
 import htsjdk.samtools.BAMIndexMetaData;
@@ -331,6 +334,78 @@ public class BamOps {
     return estimateReadSize(bamFile, NUM_READ_ESTIMATOR, log);
   }
 
+
+
+  /**
+   * @author Kitty Stores information regarding the insert size estimate
+   */
+  public static class InsertSizeEstimate {
+    private double avgInsertSize;
+    private double stDevInsertSize;
+
+    /**
+     * @param avgInsertSize
+     * @param stDevInsertSize
+     */
+    private InsertSizeEstimate(double avgInsertSize, double stDevInsertSize) {
+      super();
+      this.avgInsertSize = avgInsertSize;
+      this.stDevInsertSize = stDevInsertSize;
+    }
+
+    public double getAvgInsertSize() {
+      return avgInsertSize;
+    }
+
+    public double getStDevInsertSize() {
+      return stDevInsertSize;
+    }
+
+
+
+  }
+
+  /**
+   * @param bamFile estimate the insert size of reads comprising this bam file
+   * @param numReads the number of reads to compute the estimate from (reasonable performance with
+   *        100000)
+   * @param log
+   * @return the estimated insert size
+   */
+  public static InsertSizeEstimate estimateInsertSize(String bamFile, int numReads, Logger log) {
+    SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
+
+    SAMRecordIterator iterator = reader.iterator();
+    ArrayList<Double> insertSizes = new ArrayList<Double>();
+    int readsScanned = 0;
+    while (iterator.hasNext()) {
+      SAMRecord samRecord = iterator.next();
+      if (samRecord.getProperPairFlag() && !samRecord.getReadUnmappedFlag()
+          && samRecord.getCigar().getCigarElements().size() == 1) {
+        insertSizes.add((double) samRecord.getInferredInsertSize());
+        readsScanned++;
+
+      }
+      if (readsScanned > numReads) {
+        break;
+      }
+    }
+    try {
+      reader.close();
+    } catch (IOException e) {
+      log.reportException(e);
+
+    }
+    if (readsScanned > 0) {
+      double[] finals = Doubles.toArray(insertSizes);
+      double averageInsertSize = Array.mean(finals);
+      double stDevInsertSize = Array.stdev(finals);
+      return new InsertSizeEstimate(averageInsertSize, stDevInsertSize);
+
+    }
+    return new InsertSizeEstimate(0, 0);
+  }
+
   /**
    * @param bamFile estimate the length of reads comprising this bam file
    * @param numReads the number of reads to compute the estimate from (reasonable performance with
@@ -495,7 +570,7 @@ public class BamOps {
 
   }
 
-  //TODO
+  // TODO
   public static void removeSegments(String inputBam, String outputBam, String bedFile, int buffer,
                                     Logger log) {
 
