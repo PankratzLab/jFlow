@@ -430,7 +430,7 @@ public final class Resources {
 
       for (Class<?> c : classes) {
         for (Method m : c.getDeclaredMethods()) {
-          if (m.getReturnType().equals(Resources.Resource.class) && m.getParameterCount() == 0) {
+          if (m.getReturnType().equals(Resources.Resource.class) && m.getParameterTypes().length == 0) {
             try {
               resources.add((Resource) m.invoke(this));
             } catch (Exception e) {
