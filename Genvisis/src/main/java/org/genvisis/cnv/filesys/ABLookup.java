@@ -793,8 +793,8 @@ public class ABLookup {
     String abLookup = "possible_AB_lookup.dat";
 
     CLI c = new CLI(ABLookup.class);
-    c.addArg(ARGS_PROJ, "project properties filename", projFile);
-    c.addArg(ARGS_OUT, "parse ABLookup to this location", outfile);
+    c.addArgWithDefault(ARGS_PROJ, "project properties filename", projFile);
+    c.addArgWithDefault(ARGS_OUT, "parse ABLookup to this location", outfile);
     c.addFlag(FLAGS_CLUSTER, "parse ABLookup from centroids");
     c.addFlag(FLAGS_ORIGIN, "parse ABLookup from existing original genotypes");
     c.addArg(ARGS_MANIFEST, "parse ABLookup from Illumina manifest file", illumina);

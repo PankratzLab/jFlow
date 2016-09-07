@@ -551,31 +551,31 @@ public class GWAF {
     final String size = "size";
     CLI c = new CLI(GWAF.class);
 
-    c.addArg(outfileTemplate, "template for output files", "results#.csv");
-    c.addArg(startAt, "number to start looking for file pattern", "0", CLI.Arg.NUMBER);
+    c.addArgWithDefault(outfileTemplate, "template for output files", "results#.csv");
+    c.addArgWithDefault(startAt, "number to start looking for file pattern", "0", CLI.Arg.NUMBER);
     c.addFlag(imputed, "data is imputed, not phenotyped");
-    c.addArg(genoPrimer, "template for output files", "gwaf/file#.fhsR.gz");
+    c.addArgWithDefault(genoPrimer, "template for output files", "gwaf/file#.fhsR.gz");
     c.addArg(phenoFile, "name of comma-separated file with phenotypes", "pheno.csv", true);
-    c.addArg(pheno, "name of phenotype to run", pheno);
+    c.addArgWithDefault(pheno, "name of phenotype to run", pheno);
     c.addArg(covars, "comma-separated list of covariates to include");
     c.addArg(model, "genetic model to use [a/d/r/g]", "a");
-    c.addArg(genoPrimer, "format of genotype filenames (can be zipped)", "gwaf/file#.fhsR.gz");
-    c.addArg(startAt, "number to start looking for file pattern", "0", CLI.Arg.NUMBER);
+    c.addArgWithDefault(genoPrimer, "format of genotype filenames (can be zipped)", "gwaf/file#.fhsR.gz");
+    c.addArgWithDefault(startAt, "number to start looking for file pattern", "0", CLI.Arg.NUMBER);
     c.addFlag(imputed, "data is imputed, not genotyped");
-    c.addArg(pedfile, "name of pediree file", "pedfile.csv");
-    c.addArg(outfileTemplate, "template for output files", "results#.csv");
-    c.addArg(qsubRoot, "template for qsub files", "[trait]_file#.qsub");
+    c.addArgWithDefault(pedfile, "name of pediree file", "pedfile.csv");
+    c.addArgWithDefault(outfileTemplate, "template for output files", "results#.csv");
+    c.addArgWithDefault(qsubRoot, "template for qsub files", "[trait]_file#.qsub");
     c.addArg(nodesToUse, "comma-separated list of qsub nodes to use");
-    c.addArg(numBatches, "number of batches to create. Less than 1 creates qsubs", "-1",
+    c.addArgWithDefault(numBatches, "number of batches to create. Less than 1 creates qsubs", "-1",
              CLI.Arg.NUMBER);
-    c.addArg(gwafVersion, "version of gwaf to use (1 or 2)", Integer.toString(DEFAULT_VERSION_USED),
+    c.addArgWithDefault(gwafVersion, "version of gwaf to use (1 or 2)", Integer.toString(DEFAULT_VERSION_USED),
              CLI.Arg.NUMBER);
 
     c.addFlag(parseResults, "parse results");
     c.addArg(out, "name of parsed output file");
 
     c.addArg(split, "split file into subfiles", "gwaf.csv");
-    c.addArg(size, "size of chunks", "5000", CLI.Arg.NUMBER);
+    c.addArgWithDefault(size, "size of chunks", "5000", CLI.Arg.NUMBER);
 
     c.addGroup(phenoFile, parseResults, split);
 

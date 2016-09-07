@@ -55,6 +55,18 @@ public class TestCLI {
         // expected
       }
     }
+
+    // this parse is just to ensure the help message looks OK
+    c.addArg("group1", "This arg is in a group");
+    c.addArg("group2", "This arg is also in a group");
+    c.addGroup("group1", "group2");
+    c.addArg("required", "This arg is required", true);
+    c.addArgWithDefault("default", "This arg has a default value", "this is the value");
+    try {
+      c.parse("-h");
+    } catch (ParseException exc) {
+      // expected
+    }
   }
 
   /**
@@ -90,7 +102,7 @@ public class TestCLI {
     final String v2 = "Me too!";
 
     // Add two argument options, one with a default value and one without.
-    c.addArg(k1, "This argument has a default value", v1, true);
+    c.addArgWithDefault(k1, "This argument has a default value", v1);
     c.addArg(k2, "This argument does not have a default value", true);
     c.addArg(k3, "This argument is not required and does not have a default value");
 
@@ -117,14 +129,18 @@ public class TestCLI {
   public void groupTest() {
     final String k1 = "key1";
     final String k2 = "key2";
+    final String k3 = "key3";
     c.addArg(k1, "Option 1");
     c.addFlag(k2, "Option 2");
-    c.addGroup(k1, k2);
+    c.addArgWithDefault(k3, "Option 3", "default value");
+    c.addGroup(k1, k2, k3);
 
     // This should be fine
     try {
       c.parse(k1 + "=hello");
       Assert.assertTrue(c.has(k1));
+      // Even though a default value was given, it should have been removed due to addition to the group
+      Assert.assertFalse(c.has(k3));
     } catch (ParseException exc) {
       Assert.fail(exc.getMessage());
     }
@@ -143,5 +159,6 @@ public class TestCLI {
     } catch (ParseException exc) {
       // expected
     }
+
   }
 }

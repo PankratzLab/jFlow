@@ -94,29 +94,29 @@ public class SRAPipeline implements Callable<Boolean> {
 
     String sraDirDefault = "sra/";
     final String SRA_DRI = "sraDir";
-    c.addArg(SRA_DRI, "directory with .sra files", sraDirDefault);
+    c.addArgWithDefault(SRA_DRI, "directory with .sra files", sraDirDefault);
 
     String outDir = "out/";
     final String OUT_DIR = "outDir";
-    c.addArg(OUT_DIR, "the output directory for results", outDir);
+    c.addArgWithDefault(OUT_DIR, "the output directory for results", outDir);
 
     String sraRunTableDefault = "sraRuntable.txt";
     final String SRA_RUN_TABLE = "sraRunTable";
-    c.addArg(SRA_RUN_TABLE, "a sra run table providing sample information",
+    c.addArgWithDefault(SRA_RUN_TABLE, "a sra run table providing sample information",
                sraRunTableDefault);
 
     int numThreads = 24;
     final String NUM_THREADS = "threads";
-    c.addArg(NUM_THREADS, "a sra run table providing sample information",
+    c.addArgWithDefault(NUM_THREADS, "a sra run table providing sample information",
                Integer.toString(numThreads));
 
     String refGenomeFasta = "hg19.canonical.fa";
     final String REFERENC_GENOME = "ref";
-    c.addArg(REFERENC_GENOME, "appropriate reference genome file", refGenomeFasta);
+    c.addArgWithDefault(REFERENC_GENOME, "appropriate reference genome file", refGenomeFasta);
 
     String captureBedFile = "VCRome_2_1_hg19_capture_targets.bed";
     final String CAPTURE_BED = "bed";
-    c.addArg(CAPTURE_BED, "bed file of targeted capture", captureBedFile);
+    c.addArgWithDefault(CAPTURE_BED, "bed file of targeted capture", captureBedFile);
 
     c.parseWithExit(args);
 
