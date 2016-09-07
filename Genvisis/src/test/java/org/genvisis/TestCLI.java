@@ -65,14 +65,17 @@ public class TestCLI {
   @Test
   public void flagTest() {
     c.addFlag("testFlag", "this is a test flag", true);
+    c.addFlag("skippedFlag", "test negative set");
 
     boolean caught = false;
     try {
       c.parse(getClass(), "-testFlag");
+      Assert.assertFalse(c.has("skippedFlag"));
     } catch (ParseException e) {
       caught = true;
     }
     Assert.assertFalse(caught);
+
   }
 
   /**
@@ -106,6 +109,7 @@ public class TestCLI {
       Assert.assertEquals(v2, c.get(k2));
 
       // k3 should not be in the parsed output set
+      Assert.assertFalse(c.has(k3));
       Assert.assertNull(c.get(k3));
 
     } catch (ParseException e) {
