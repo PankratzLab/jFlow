@@ -39,16 +39,17 @@ public class Dinumt {
     double bpCoverage = Double.parseDouble(stats[0]) * BamOps.estimateReadSize(bamFile, log);
     double targeted = Double.parseDouble(stats[1]);
     double averageCoverage = bpCoverage / targeted;
+    System.out.println(Array.toStr(stats));
     return new QCParams(Double.parseDouble(stats[2]), Double.parseDouble(stats[3]),
                         averageCoverage);
   }
 
   private static String[] developDinumtCommand(String inputBam, String fullPathToDinumt,
                                                String refNumts, String referenceGenome,
-                                               String outputDir, Logger log) {
+                                               String outputDir, QCParams qcparams, Logger log) {
     ArrayList<String> command = new ArrayList<String>();
     String sampleName = BamOps.getSampleName(inputBam, log);
-    String outputFile = outputDir + sampleName + ".vcf";
+    String outputFile = outputDir + sampleName;
     command.add(fullPathToDinumt);
     command.add("--mask_filename=" + refNumts);
     command.add("--input_filename=" + inputBam);
@@ -56,19 +57,23 @@ public class Dinumt {
     command.add("--reference=" + referenceGenome);
     command.add("--min_reads_cluster=1");
     command.add("-include_mask");
-    command.add("--output_filename=" + outputFile);
+    command.add("--output_filename=" + outputFile + ".vcf");
     command.add("--prefix=" + sampleName);
-    command.add("--output_filename=" + outputFile);
-    command.add("--output_filename=" + outputFile);
+    // --len_cluster_include : width of window to consider anchor reads as part of the same cluster,
+    // typically calculated as mean_insert_size + 3 * standard_deviation
+    double clusterInclude = qcparams.avgInsertSize * 3 * qcparams.stDevInsertSize;
+    command.add("--len_cluster_include=" + clusterInclude);
 
+    // --len_cluster_link : width of window to link two clusters of anchor reads in proper
+    // orientation, typically calculated as 2 * len_cluster_include
+    command.add("--len_cluster_link=" + (clusterInclude * 2));
+    // --max_read_cov : maximum read depth at potential breakpoint location, used to filter out
+    // noisy regions of the genome, typically calculated as 5 * mean_coverage
+    command.add("--max_read_cov=29" + (qcparams.avgCoverage * 5));
+    command.add("--output_support");
+    command.add("--support_filename=" + outputFile + ".sam");
 
-    // --len_cluster_include=577 \
-    // --len_cluster_link=1154 \
-    // --insert_size=334.844984 \
-    // --max_read_cov=29 \
-    // --output_support \
-    // --support_filename=sample1_support.sam
-
+    System.out.println(Array.toStr(Array.toStringArray(command)));
     return Array.toStringArray(command);
   }
 
