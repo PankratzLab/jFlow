@@ -54,25 +54,46 @@ public class CLI {
   private static final char SEPARATOR = '='; // argument separator
 
   private final Options options;
+  private final String commandName;
 
   private Map<String, String> parsed;
 
   /**
+   * @see #CLI(String)
+   * @param program Program class for command invocation
+   */
+  public CLI(Class<?> program) {
+    this(program.getName());
+  }
+
+  /**
    * Create a {@link CLI} object with a default set of command line options (e.g. "-h, -help" to
    * print usage).
+   * @param program Program class for command invocation
    */
-  public CLI() {
-    this(new Options());
+  public CLI(String program) {
+    this(program, new Options());
     addFlag(HELP_CHAR, "Print application usage", HELP_STRING);
+  }
+
+  /**
+   * @see #CLI(String, Options)
+   * @param program Program class for command invocation
+   * @param o Baseline options to parse in this CLI instance.
+   */
+  public CLI(Class<?> program, Options o) {
+    this(program.getName(), o);
   }
 
   /**
    * Create a {@link CLI} object with the specified command line {@link Option}s as a starting
    * point.
    *
+   * @param program Program name for command invocation
    * @param o Baseline options to parse in this CLI instance.
    */
-  public CLI(Options o) {
+  public CLI(String program, Options o) {
+    commandName = program;
     options = o;
   }
 
@@ -351,18 +372,12 @@ public class CLI {
   }
 
   /**
-   * Note: unlike {@link #parse} methods, if the act of parsing does not return normally (e.g. due
-   * to a parsing exception or help flag passed) this method <b>will stop program execution</b>. Use
-   * at your own risk.
+   * @see #parseWithExit(Logger, String...)
    *
-   * @see {@link #parseWithExit(String, Logger, String...)}
-   *
-   * @param appClass Class with {@code main} method being run (for usage message - how a user should
-   *        invoke from command line)
    * @param args Provided command-line arguments to parse
    */
-  public void parseWithExit(Class<?> appClass, String... args) {
-    parseWithExit(appClass, new Logger(), args);
+  public void parseWithExit(String... args) {
+    parseWithExit(new Logger(), args);
   }
 
   /**
@@ -370,46 +385,14 @@ public class CLI {
    * to a parsing exception or help flag passed) this method <b>will stop program execution</b>. Use
    * at your own risk.
    *
-   * @see {@link #parseWithExit(String, Logger, String...)}
+   * @see #parse(Logger, String...)
    *
-   * @param appClass Class with {@code main} method being run (for usage message - how a user should
-   *        invoke from command line)
    * @param log {@link Logger} instance to report any information resulting from parse
    * @param args Provided command-line arguments to parse
    */
-  public void parseWithExit(Class<?> appClass, Logger log, String... args) {
-    parseWithExit(appClass.getName(), log, args);
-  }
-
-  /**
-   * Note: unlike {@link #parse} methods, if the act of parsing does not return normally (e.g. due
-   * risk.
-   *
-   * @see {@link #parseWithExit(String, Logger, String...)}
-   *
-   * @param appName Name of the program being run (for usage message - how a user should invoke from
-   *        command line)
-   * @param args Provided command-line arguments to parse
-   */
-  public void parseWithExit(String appName, String... args) {
-    parseWithExit(appName, new Logger(), args);
-  }
-
-  /**
-   * Note: unlike {@link #parse} methods, if the act of parsing does not return normally (e.g. due
-   * to a parsing exception or help flag passed) this method <b>will stop program execution</b>. Use
-   * at your own risk.
-   *
-   * @see {@link #parse(String, Logger, String...)}
-   *
-   * @param appName Name of the program being run (for usage message - how a user should invoke from
-   *        command line)
-   * @param log {@link Logger} instance to report any information resulting from parse
-   * @param args Provided command-line arguments to parse
-   */
-  public void parseWithExit(String appName, Logger log, String... args) {
+  public void parseWithExit(Logger log, String... args) {
     try {
-      parse(appName, log, args);
+      parse(log, args);
     } catch (ParseException e) {
       // If there's no error message then this exception was thrown because a help flag was passed.
       int errorCode = e.getMessage().isEmpty() ? 0 : 1;
@@ -418,51 +401,21 @@ public class CLI {
   }
 
   /**
-   * @see {@link #parse(String, Logger, String...)}
+   * @see #parse(Logger, String...)
    *
-   * @param appClass Class with {@code main} method being run (for usage message - how a user should
-   *        invoke from command line)
-   * @param args Provided command-line arguments to parse
-   */
-  public void parse(Class<?> appClass, String... args) throws ParseException {
-    parse(appClass, new Logger(), args);
-  }
-
-  /**
-   * @see {@link #parse(String, Logger, String...)}
-   *
-   * @param appClass Class with {@code main} method being run (for usage message - how a user should
-   *        invoke from command line)
-   * @param log {@link Logger} instance to report any information resulting from parse
    * @param args Provided command-line arguments to parse
    *
    * @throws ParseException If a problem is encountered during parsing or a help/usage flag is
    *         parsed.
    */
-  public void parse(Class<?> appClass, Logger log, String... args) throws ParseException {
-    parse(appClass.getName(), log, args);
-  }
-
-  /**
-   * @see {@link #parse(String, Logger, String...)}
-   *
-   * @param appName Name of the program being run (for usage message - how a user should invoke from
-   *        command line)
-   * @param args Provided command-line arguments to parse
-   *
-   * @throws ParseException If a problem is encountered during parsing or a help/usage flag is
-   *         parsed.
-   */
-  public void parse(String appName, String... args) throws ParseException {
-    parse(appName, new Logger(), args);
+  public void parse(String... args) throws ParseException {
+    parse(new Logger(), args);
   }
 
   /**
    * Performs the actual parsing of command-line options and return parsed values. This is the final
    * step of command-line argument processing.
    *
-   * @param appName Name of the program being run (for usage message - how a user should invoke from
-   *        command line)
    * @param log {@link Logger} instance to report any information resulting from parse. <i>Default:
    *        new Logger()</i>
    * @param args Provided command-line arguments to parse
@@ -470,7 +423,7 @@ public class CLI {
    * @throws ParseException If a problem is encountered during parsing or a help/usage flag is
    *         parsed.
    */
-  public void parse(String appName, Logger log, String... args) throws ParseException {
+  public void parse(Logger log, String... args) throws ParseException {
     formatArgs(args);
 
     try {
@@ -498,7 +451,7 @@ public class CLI {
         }
       }
     } catch (ParseException e) {
-      printHelp(log, appName, e.getMessage(), options);
+      printHelp(log, commandName, e.getMessage(), options);
       throw e;
     }
   }

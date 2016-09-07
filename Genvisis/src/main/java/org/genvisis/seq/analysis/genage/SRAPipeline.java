@@ -90,7 +90,7 @@ public class SRAPipeline implements Callable<Boolean> {
 
   public static void main(String[] args) {
 
-    CLI c = new CLI();
+    CLI c = new CLI(SRAPipeline.class);
 
     String sraDirDefault = "sra/";
     final String SRA_DRI = "sraDir";
@@ -118,7 +118,7 @@ public class SRAPipeline implements Callable<Boolean> {
     final String CAPTURE_BED = "bed";
     c.addArg(CAPTURE_BED, "bed file of targeted capture", captureBedFile);
 
-    c.parseWithExit(SRAPipeline.class, args);
+    c.parseWithExit(args);
 
     runAll(c.get(SRA_DRI), c.get(SRA_RUN_TABLE), c.get(OUT_DIR),
            c.get(REFERENC_GENOME), c.get(CAPTURE_BED), numThreads);

@@ -14,7 +14,7 @@ public class TestCLI {
 
   @Before
   public void setUp() {
-    c = new CLI();
+    c = new CLI(getClass());
   }
 
   /**
@@ -26,21 +26,22 @@ public class TestCLI {
 
     // Try parsing a non-integer and ensure it fails
     try {
-      c.parse(getClass(), "test=krakens");
+      c.parse("test=krakens");
       Assert.fail("Parsing number as string did not fail");
     } catch (ParseException e) {
+      // expected
     }
 
     // Verify that parsing a numerical assignment does not fail
     try {
-      c.parse(getClass(), "test=523");
+      c.parse("test=523");
     } catch (ParseException e) {
       Assert.fail();
     }
   }
 
   /**
-   * Ensure the {@link CLI#defaultOptions()} includes help commands.
+   * Ensure the default {@link CLI} includes help commands.
    */
   @Test
   public void helpTest() {
@@ -48,9 +49,10 @@ public class TestCLI {
     // as they are added in the default options
     for (String f : new String[] {"-h", "-help"}) {
       try {
-        c.parse(getClass(), f);
+        c.parse(f);
         Assert.fail("Parsing continued after printing help");
       } catch (ParseException e) {
+        // expected
       }
     }
   }
@@ -64,7 +66,7 @@ public class TestCLI {
     c.addFlag("skippedFlag", "test negative set");
 
     try {
-      c.parse(getClass(), "-testFlag");
+      c.parse("-testFlag");
       Assert.assertFalse(c.has("skippedFlag"));
     } catch (ParseException e) {
       Assert.fail(e.getMessage());
@@ -94,7 +96,7 @@ public class TestCLI {
 
     try {
       // Try parsing with just k2 set
-      c.parse(getClass(), k2 + "=" + v2);
+      c.parse(k2 + "=" + v2);
 
       // k1 should have a value since it had a default value
       Assert.assertEquals(v1, c.get(k1));
@@ -121,14 +123,14 @@ public class TestCLI {
 
     // This should be fine
     try {
-      c.parse(getClass(), k1 + "=hello");
+      c.parse(k1 + "=hello");
       Assert.assertTrue(c.has(k1));
     } catch (ParseException exc) {
       Assert.fail(exc.getMessage());
     }
 
     try {
-      c.parse(getClass(), "-" + k2);
+      c.parse("-" + k2);
       Assert.assertTrue(c.has(k2));
     } catch (ParseException exc) {
       Assert.fail(exc.getMessage());
@@ -136,9 +138,10 @@ public class TestCLI {
 
 
     try {
-      c.parse(getClass(), "-" + k2, k1 + "=hello");
+      c.parse("-" + k2, k1 + "=hello");
       Assert.fail("Parsing mutually exclusive options succeeded");
     } catch (ParseException exc) {
+      // expected
     }
   }
 }

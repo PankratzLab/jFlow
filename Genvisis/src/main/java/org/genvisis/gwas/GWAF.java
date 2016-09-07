@@ -549,7 +549,7 @@ public class GWAF {
     final String out = "out";
     final String split = "split";
     final String size = "size";
-    CLI c = new CLI();
+    CLI c = new CLI(GWAF.class);
 
     c.addArg(outfileTemplate, "template for output files", "results#.csv");
     c.addArg(startAt, "number to start looking for file pattern", "0", CLI.Arg.NUMBER);
@@ -579,7 +579,7 @@ public class GWAF {
 
     c.addGroup(phenoFile, parseResults, split);
 
-    c.parseWithExit(GWAF.class, args);
+    c.parseWithExit(args);
 
     try {
       if (c.has(parseResults)) {

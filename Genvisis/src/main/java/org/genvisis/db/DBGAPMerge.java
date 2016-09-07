@@ -322,13 +322,13 @@ public class DBGAPMerge {
     String logfile = "log";
     Logger log;
 
-    CLI c = new CLI();
+    CLI c = new CLI(DBGAPMerge.class);
     c.addArg(out, "Data Output Filename", true);
     c.addArg(outMap, "Map Output Filename", true);
     c.addArg(dir, "Input directory (or comma-separated list)", true);
     c.addArg(logfile, "Log file");
 
-    c.parseWithExit(DBGAPMerge.class, args);
+    c.parseWithExit(args);
 
 
     try {

@@ -203,7 +203,7 @@ public class Computel {
     String computelLocation = "computel/";
     String outDir = "out/";
 
-    CLI c = new CLI();
+    CLI c = new CLI(Computel.class);
     final String bam = "bam";
     c.addArg(bam, "bam file to analyze", targetBam);
 
@@ -214,7 +214,7 @@ public class Computel {
     final String outdir = "out";
     c.addArg(outdir, "the output directory for results", outDir);
 
-    c.parseWithExit(Computel.class, args);
+    c.parseWithExit(args);
 
     test(c.get(bam), c.get(computel), c.get(outdir));
   }

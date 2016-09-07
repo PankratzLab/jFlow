@@ -792,7 +792,7 @@ public class ABLookup {
     String illumina = "infiniumomni2-5-8-v1-3-a1-manifest-file-csv.zip";
     String abLookup = "possible_AB_lookup.dat";
 
-    CLI c = new CLI();
+    CLI c = new CLI(ABLookup.class);
     c.addArg(ARGS_PROJ, "project properties filename", projFile);
     c.addArg(ARGS_OUT, "parse ABLookup to this location", outfile);
     c.addFlag(FLAGS_CLUSTER, "parse ABLookup from centroids");
@@ -807,7 +807,7 @@ public class ABLookup {
 
     c.addGroup(FLAGS_APPLYAB, FLAGS_VCF, ARGS_PARTAB, ARGS_MANIFEST, FLAGS_ORIGIN, FLAGS_CLUSTER);
 
-    c.parseWithExit(ABLookup.class, args);
+    c.parseWithExit(args);
 
     proj = new Project(c.get(ARGS_PROJ), false);
     if (c.has(FLAGS_APPLYAB)) {
