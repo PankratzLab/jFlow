@@ -12,6 +12,7 @@ import java.util.concurrent.Callable;
 
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerTrain;
@@ -359,6 +360,17 @@ public class BamOps {
 
     public double getStDevInsertSize() {
       return stDevInsertSize;
+    }
+
+    public String getSummary() {
+      return "AvgInsertSize\t" + avgInsertSize + System.lineSeparator() + "StDevInsertSize\t"
+             + stDevInsertSize;
+
+    }
+
+    public static InsertSizeEstimate load(String file) {
+      String[] data = HashVec.loadFileToStringArray(file, false, new int[] {1}, false);
+      return new InsertSizeEstimate(Double.parseDouble(data[0]), Double.parseDouble(data[1]));
     }
 
 
