@@ -401,6 +401,8 @@ public class BamOps {
    * @return the estimated insert size
    */
   public static InsertSizeEstimate estimateInsertSize(String bamFile, int numReads, Logger log) {
+
+    log.reportTimeError("Dont use this for WXS");
     SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
 
     SAMRecordIterator iterator = reader.iterator();

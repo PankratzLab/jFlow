@@ -13,7 +13,6 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.genage.SRAPipeline;
 import org.genvisis.seq.manage.BamOps;
-import org.genvisis.seq.manage.BamOps.InsertSizeEstimate;
 import org.genvisis.seq.qc.BamQC;
 import org.genvisis.seq.qc.FilterNGS;
 
@@ -28,8 +27,9 @@ public class Dinumt {
 
 
 
-  private static double getAvgCoverage(String bamQCOutput, String bamFile, Logger log) {
-    String[] dataToLoad = new String[] {"numOnTarget", "basepairsTargeted"};
+  private static QCParams getQCParams(String bamQCOutput, String bamFile, Logger log) {
+    String[] dataToLoad = new String[] {"numOnTarget", "Total Base Pairs Targeted",
+                                        "AverageOnTargetInsertSize", "OnTargetInsertSizeStdev"};
     int[] indices = ext.indexFactors(dataToLoad, Files.getHeaderOfFile(bamQCOutput, log), true,
                                      false);
 
@@ -38,23 +38,30 @@ public class Dinumt {
                    HashVec.loadFileToStringArray(bamQCOutput, true, indices, false)[0].split("\t");
     double bpCoverage = Double.parseDouble(stats[0]) * BamOps.estimateReadSize(bamFile, log);
     double targeted = Double.parseDouble(stats[1]);
-
-    return bpCoverage / targeted;
+    double averageCoverage = bpCoverage / targeted;
+    return new QCParams(Double.parseDouble(stats[2]), Double.parseDouble(stats[3]),
+                        averageCoverage);
   }
 
   private static String[] developDinumtCommand(String inputBam, String fullPathToDinumt,
-                                               String refNumts, String referenceGenome) {
+                                               String refNumts, String referenceGenome,
+                                               String outputDir, Logger log) {
     ArrayList<String> command = new ArrayList<String>();
+    String sampleName = BamOps.getSampleName(inputBam, log);
+    String outputFile = outputDir + sampleName + ".vcf";
     command.add(fullPathToDinumt);
     command.add("--mask_filename=" + refNumts);
     command.add("--input_filename=" + inputBam);
 
     command.add("--reference=" + referenceGenome);
     command.add("--min_reads_cluster=1");
+    command.add("-include_mask");
+    command.add("--output_filename=" + outputFile);
+    command.add("--prefix=" + sampleName);
+    command.add("--output_filename=" + outputFile);
+    command.add("--output_filename=" + outputFile);
 
-    // --include_mask \
-    // --output_filename=sample1.vcf \
-    // --prefix=sample1 \
+
     // --len_cluster_include=577 \
     // --len_cluster_link=1154 \
     // --insert_size=334.844984 \
@@ -66,12 +73,15 @@ public class Dinumt {
   }
 
   private static class QCParams {
-    private InsertSizeEstimate insertSizeEstimate;
+    private double avgInsertSize;
+    private double stDevInsertSize;
+
     private double avgCoverage;
 
-    public QCParams(InsertSizeEstimate insertSizeEstimate, double avgCoverage) {
+    public QCParams(double avgInsertSize, double stDevInsertSize, double avgCoverage) {
       super();
-      this.insertSizeEstimate = insertSizeEstimate;
+      this.avgInsertSize = avgInsertSize;
+      this.stDevInsertSize = stDevInsertSize;
       this.avgCoverage = avgCoverage;
     }
 
@@ -95,15 +105,8 @@ public class Dinumt {
       BamQC.qcBams(null, bamQCDir, null, bamList, targetLibraryFile, null, 2, filterNGS, numThreads,
                    bamQCOutput, null, false, 0, false, log);
     }
-    String insertSizeFile = bamQCDir + "insertSize.txt";
-    InsertSizeEstimate insertSizeEstimate;
-    if (!Files.exists(insertSizeFile)) {
-      insertSizeEstimate = BamOps.estimateInsertSize(inputBam, BamOps.NUM_READ_ESTIMATOR, log);
-      Files.write(insertSizeEstimate.getSummary(), insertSizeFile);
-    } else {
-      insertSizeEstimate = InsertSizeEstimate.load(insertSizeFile);
-    }
-    return new QCParams(insertSizeEstimate, getAvgCoverage(bamQCDir + bamQCOutput, inputBam, log));
+
+    return getQCParams(bamQCDir + bamQCOutput, inputBam, log);
 
   }
 
