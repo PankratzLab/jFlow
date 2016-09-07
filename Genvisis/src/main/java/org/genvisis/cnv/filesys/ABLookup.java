@@ -805,7 +805,7 @@ public class ABLookup {
     c.addFlag(FLAGS_PLINK, "use a plink.bim file as input instead of an ABLookup file");
     c.addFlag(FLAGS_APPLYAB, "apply the project's AB lookup to all Sample files in project");
 
-    c.addGroup(ARGS_OUT, ARGS_PARTAB, FLAGS_APPLYAB);
+    c.addGroup(FLAGS_APPLYAB, FLAGS_VCF, ARGS_PARTAB, ARGS_MANIFEST, FLAGS_ORIGIN, FLAGS_CLUSTER);
 
     c.parseWithExit(ABLookup.class, args);
 
@@ -822,9 +822,6 @@ public class ABLookup {
       parseABLookup(proj, ABSource.ORIGEN, c.get(ARGS_OUT));
     } else if (c.has(FLAGS_CLUSTER)) {
       parseABLookup(proj, ABSource.GENCLUSTER, c.get(ARGS_OUT));
-    } else {
-      System.err.println("No subroutine was selected");
-      System.exit(1);
     }
   }
 }
