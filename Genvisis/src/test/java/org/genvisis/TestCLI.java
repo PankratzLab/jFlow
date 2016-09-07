@@ -116,4 +116,35 @@ public class TestCLI {
       Assert.fail(e.getMessage());
     }
   }
+
+  @Test
+  public void groupTest() {
+    final String k1 = "key1";
+    final String k2 = "key2";
+    c.addArg(k1, "Option 1");
+    c.addFlag(k2, "Option 2");
+    c.addGroup(k1, k2);
+
+    // This should be fine
+    try {
+      c.parse(getClass(), k1 + "=hello");
+      Assert.assertTrue(c.has(k1));
+    } catch (ParseException exc) {
+      Assert.fail(exc.getMessage());
+    }
+
+    try {
+      c.parse(getClass(), "-" + k2);
+      Assert.assertTrue(c.has(k2));
+    } catch (ParseException exc) {
+      Assert.fail(exc.getMessage());
+    }
+
+
+    try {
+      c.parse(getClass(), "-" + k2, k1 + "=hello");
+      Assert.fail("Parsing mutually exclusive options succeeded");
+    } catch (ParseException exc) {
+    }
+  }
 }
