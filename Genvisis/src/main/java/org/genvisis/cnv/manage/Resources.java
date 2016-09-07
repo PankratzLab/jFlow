@@ -86,22 +86,22 @@ public final class Resources {
    */
   public static class Chr extends AbstractResourceFactory {
     private String build;
-    private CHROMASOME c;
+    private CHROMOSOME c;
 
-    public Chr(GENOME_BUILD build, CHROMASOME c, Logger log) {
+    public Chr(GENOME_BUILD build, CHROMOSOME c, Logger log) {
       super(GENOME_DIR + "/" + build.getBuild() + "/chr", log, Chr.class);
       this.build = build.getBuild();
       this.c = c;
     }
 
     /**
-     * @return The genetic map for the requested {@link CHROMASOME}
+     * @return The genetic map for the requested {@link CHROMOSOME}
      */
     public Resource getGeneticMap() {
       String prefix = "genetic_map_";
       String extension = ".txt.gz";
 
-      if (CHROMASOME.CX_PAR.equals(c)) {
+      if (CHROMOSOME.CX_PAR.equals(c)) {
         getResource(getPath(prefix, c.toString() + "2", extension));
         return getResource(getPath(prefix, c.getLabel() + "1", extension));
       }
@@ -109,7 +109,7 @@ public final class Resources {
     }
 
     /**
-     * @return The G1K ref for the requested {@link CHROMASOME}
+     * @return The G1K ref for the requested {@link CHROMOSOME}
      */
     public Resource getG1Kphase3v5RefPanel() {
       return getResource(getPath("1000genomes_ref_panel_Phase3v5_", c.getLabel(), ".m3vcf.gz"));
@@ -207,7 +207,7 @@ public final class Resources {
     /**
      * Helper method for chaining resource calls
      */
-    public Chr chr(CHROMASOME c) {
+    public Chr chr(CHROMOSOME c) {
       return new Chr(build, c, log());
     }
   }
@@ -742,14 +742,14 @@ public final class Resources {
   }
 
   /**
-   * Supported chromasomes
+   * Supported chromosomes
    */
-  public enum CHROMASOME {
+  public enum CHROMOSOME {
                           C1("1"), C2("2"), C3("3"), C4("4"), C5("5"), C6("6"), C7("7"), C8("8"), C9("9"), C10("10"), C11("11"), C12("12"), C13("13"), C14("14"), C15("15"), C16("16"), C17("17"), C18("18"), C19("19"), C20("20"), C21("21"), C22("22"), CX_PAR("X_PAR"), CX_nonPAR("X_nonPAR");
 
     private String label;
 
-    private CHROMASOME(String c) {
+    private CHROMOSOME(String c) {
       label = c;
     }
 

@@ -3,7 +3,7 @@ package org.genvisis.cnv.manage;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.genvisis.cnv.manage.Resources.CHROMASOME;
+import org.genvisis.cnv.manage.Resources.CHROMOSOME;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.common.Logger;
@@ -58,7 +58,7 @@ public class TestResources {
    */
   private static void testChr(Logger log) {
     for (GENOME_BUILD build : GENOME_BUILD.values()) {
-      for (CHROMASOME c : CHROMASOME.values()) {
+      for (CHROMOSOME c : CHROMOSOME.values()) {
         test(Resources.genome(build, log).chr(c).getResources());
       }
     }
