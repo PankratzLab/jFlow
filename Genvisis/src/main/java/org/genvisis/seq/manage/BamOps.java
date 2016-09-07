@@ -49,7 +49,7 @@ public class BamOps {
   /**
    * Default number of reads to scan in order to estimate read length for a sample
    */
-  private static final int NUM_READ_ESTIMATOR = 100000;
+  public static final int NUM_READ_ESTIMATOR = 100000;
 
   private BamOps() {
 
