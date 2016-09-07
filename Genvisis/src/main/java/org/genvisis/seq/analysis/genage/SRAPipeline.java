@@ -117,7 +117,6 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
           String bamFailDirectory = rootOutDir + "bamFail/";
           new File(bamFailDirectory).mkdirs();
           Files.write(inputSRA, bamFailDirectory + ext.rootOf(inputSRA) + ".fail");
-          // return new ArrayList<Pipeline.PipelinePart>();
         }
       }
       if (cleanup) {
