@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.genvisis.CLI;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.analysis.AnalysisFormats;
 import org.genvisis.cnv.analysis.Mosaicism;
@@ -933,17 +934,17 @@ public class GenvisisWorkflow {
       String mapFile = proj.getLocationOfSNP_Map(true);
 
       List<String> baseCommand = ImmutableList.of(Files.getRunString(), ABLookup.class.getName(),
-                                                  ABLookup.ARGS_PROJ + "=" + projFile);
+                                                  CLI.formCmdLineArg(ABLookup.ARGS_PROJ, projFile));
       List<String> commandVcf = Lists.newArrayList(baseCommand);
-      commandVcf.add(ABLookup.ARGS_OUT + "=" + filename);
-      commandVcf.add("-" + ABLookup.FLAGS_VCF);
+      commandVcf.add(CLI.formCmdLineArg(ABLookup.ARGS_OUT, filename));
+      commandVcf.add(CLI.formCmdLineFlag(ABLookup.FLAGS_VCF));
 
       List<String> commandPartial = Lists.newArrayList(baseCommand);
-      commandPartial.add(ABLookup.ARGS_PARTAB + "=" + filename);
-      commandPartial.add(ABLookup.ARGS_MAP + "=" + mapFile);
+      commandPartial.add(CLI.formCmdLineArg(ABLookup.ARGS_PARTAB, filename));
+      commandPartial.add(CLI.formCmdLineArg(ABLookup.ARGS_MAP, mapFile));
 
       List<String> commandApply = Lists.newArrayList(baseCommand);
-      commandApply.add("-" + ABLookup.FLAGS_APPLYAB);
+      commandApply.add(CLI.formCmdLineFlag(ABLookup.FLAGS_APPLYAB));
 
       StringBuilder cmd = new StringBuilder();
 

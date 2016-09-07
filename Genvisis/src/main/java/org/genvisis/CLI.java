@@ -51,7 +51,9 @@ public class CLI {
   private static final Arg TYPE = Arg.STRING; // default validation class
   private static final int OUT_WIDTH = 150; // help output width
   private static final String INDENT = "   "; // indentation for non-required, non-grouped arguments
-  private static final char SEPARATOR = '='; // argument separator
+  private static final String ARG_PREFIX = "";
+  private static final char ARG_SEPARATOR = '=';
+  private static final String FLAG_PREFIX = "-"; 
 
   private final Options options;
   private final String commandName;
@@ -284,7 +286,7 @@ public class CLI {
       argVal = argDefault;
     }
 
-    Builder builder = Option.builder().hasArg().argName(argVal).valueSeparator(SEPARATOR);
+    Builder builder = Option.builder().hasArg().argName(argVal).valueSeparator(ARG_SEPARATOR);
 
     add(builder, name, description, reallyRequired, type);
   }
@@ -489,9 +491,9 @@ public class CLI {
    */
   private static void printHelp(Logger log, String appName, String errorMessage, Options options) {
     HelpFormatter formatter = new HelpFormatter();
-    formatter.setOptPrefix("-");
-    formatter.setLongOptPrefix("");
-    formatter.setLongOptSeparator("=");
+    formatter.setOptPrefix(FLAG_PREFIX);
+    formatter.setLongOptPrefix(ARG_PREFIX);
+    formatter.setLongOptSeparator(String.valueOf(ARG_SEPARATOR));
     formatter.setOptionComparator(null);
 
     StringBuilder sb = new StringBuilder().append(System.getProperty("line.separator"))
@@ -534,5 +536,24 @@ public class CLI {
         throw new ParseException(sb.toString());
       }
     }
+  }
+  
+  /**
+   * Helper method to forms a valid argument String
+   * @param name Argument name as specified to {@link #addArg(String, String, String, boolean, Class)}
+   * @param value Passed value for this argument
+   * @return Formatted command line argument
+   */
+  public static String formCmdLineArg(String name, String value) {
+    return ARG_PREFIX + name + ARG_SEPARATOR + value;
+  }
+  
+  /**
+   * Helper method to form a valid flag String
+   * @param name Flag name as specified to {@link #addFlag(String, String, String, boolean)}
+   * @return Formatted command line flag
+   */
+  public static String formCmdLineFlag(String name) {
+    return FLAG_PREFIX + name;
   }
 }
