@@ -343,34 +343,50 @@ public class BamOps {
   public static class InsertSizeEstimate {
     private double avgInsertSize;
     private double stDevInsertSize;
+    private double mad;
+
 
     /**
      * @param avgInsertSize
      * @param stDevInsertSize
      */
-    private InsertSizeEstimate(double avgInsertSize, double stDevInsertSize) {
+    private InsertSizeEstimate(double avgInsertSize, double stDevInsertSize, double mad) {
       super();
       this.avgInsertSize = avgInsertSize;
       this.stDevInsertSize = stDevInsertSize;
+      this.mad = mad;
     }
+
+
 
     public double getAvgInsertSize() {
       return avgInsertSize;
     }
 
+
+
     public double getStDevInsertSize() {
       return stDevInsertSize;
     }
 
+
+
+    public double getMad() {
+      return mad;
+    }
+
+
+
     public String getSummary() {
       return "AvgInsertSize\t" + avgInsertSize + System.lineSeparator() + "StDevInsertSize\t"
-             + stDevInsertSize;
+             + stDevInsertSize + System.lineSeparator() + "mad\t" + mad;
 
     }
 
     public static InsertSizeEstimate load(String file) {
       String[] data = HashVec.loadFileToStringArray(file, false, new int[] {1}, false);
-      return new InsertSizeEstimate(Double.parseDouble(data[0]), Double.parseDouble(data[1]));
+      return new InsertSizeEstimate(Double.parseDouble(data[0]), Double.parseDouble(data[1]),
+                                    Double.parseDouble(data[2]));
     }
 
 
@@ -412,10 +428,11 @@ public class BamOps {
       double[] finals = Doubles.toArray(insertSizes);
       double averageInsertSize = Array.mean(finals);
       double stDevInsertSize = Array.stdev(finals);
-      return new InsertSizeEstimate(averageInsertSize, stDevInsertSize);
+      double mad = Array.mad(finals);
+      return new InsertSizeEstimate(averageInsertSize, stDevInsertSize, mad);
 
     }
-    return new InsertSizeEstimate(0, 0);
+    return new InsertSizeEstimate(Double.NaN, Double.NaN, Double.NaN);
   }
 
   /**

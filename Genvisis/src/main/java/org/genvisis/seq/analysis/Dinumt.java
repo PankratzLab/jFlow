@@ -4,7 +4,9 @@
 package org.genvisis.seq.analysis;
 
 import java.io.File;
+import java.util.ArrayList;
 
+import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -40,6 +42,29 @@ public class Dinumt {
     return bpCoverage / targeted;
   }
 
+  private static String[] developDinumtCommand(String inputBam, String fullPathToDinumt,
+                                               String refNumts, String referenceGenome) {
+    ArrayList<String> command = new ArrayList<String>();
+    command.add(fullPathToDinumt);
+    command.add("--mask_filename=" + refNumts);
+    command.add("--input_filename=" + inputBam);
+
+    command.add("--reference=" + referenceGenome);
+    command.add("--min_reads_cluster=1");
+
+    // --include_mask \
+    // --output_filename=sample1.vcf \
+    // --prefix=sample1 \
+    // --len_cluster_include=577 \
+    // --len_cluster_link=1154 \
+    // --insert_size=334.844984 \
+    // --max_read_cov=29 \
+    // --output_support \
+    // --support_filename=sample1_support.sam
+
+    return Array.toStringArray(command);
+  }
+
   private static class QCParams {
     private InsertSizeEstimate insertSizeEstimate;
     private double avgCoverage;
@@ -53,8 +78,8 @@ public class Dinumt {
 
   }
 
-  private static void runQC(String inputBam, String outputDir, String targetLibraryFile,
-                            int numThreads, Logger log) {
+  private static QCParams runQC(String inputBam, String outputDir, String targetLibraryFile,
+                                int numThreads, Logger log) {
     String sampleName = BamOps.getSampleName(inputBam, log);
     String bamQCDir = outputDir + sampleName + "/";
     new File(bamQCDir).mkdirs();
@@ -67,8 +92,8 @@ public class Dinumt {
       int[] readDepth = {0, 1, 2, 3, 4, 10, 20, 30, 40};
       FilterNGS filterNGS = new FilterNGS(mappingQuality, phreadScore, readDepth);
 
-      BamQC.qcBams(null, outputDir, null, bamList, targetLibraryFile, null, 2, filterNGS,
-                   numThreads, bamQCOutput, null, false, 0, log);
+      BamQC.qcBams(null, bamQCDir, null, bamList, targetLibraryFile, null, 2, filterNGS, numThreads,
+                   bamQCOutput, null, false, 0, false, log);
     }
     String insertSizeFile = bamQCDir + "insertSize.txt";
     InsertSizeEstimate insertSizeEstimate;
@@ -78,6 +103,7 @@ public class Dinumt {
     } else {
       insertSizeEstimate = InsertSizeEstimate.load(insertSizeFile);
     }
+    return new QCParams(insertSizeEstimate, getAvgCoverage(bamQCDir + bamQCOutput, inputBam, log));
 
   }
 

@@ -270,7 +270,8 @@ public class BamQC {
                                String fileOfinputSamOrBams, String targetLibraryFile,
                                String baitLibraryFile, int skipNumLines, FilterNGS filterNGS,
                                int numThreads, String output, String snpEffLocation,
-                               boolean baitsAsTarget, double normalizeDepthsTo, Logger log) {
+                               boolean baitsAsTarget, double normalizeDepthsTo,
+                               boolean summarizeLib, Logger log) {
     long time = System.currentTimeMillis();
     log.report(ext.getTime() + " Info - beginning qc");
     BamQC[] bamQCs = null;
@@ -311,16 +312,18 @@ public class BamQC {
                               outputDir + ext.addToRoot(output,
                                                         baitsAsTarget ? ".libraryBaitsResults.summary"
                                                                       : ".libraryResults.summary");
-        LibraryNGS.summarizeLibraries(libraryNGS, getLibraryReadDepthResultsFiles(bamQCs),
-                                      librarySummary, filterNGS, log);
-        SNPEFF snpeff = new SNPEFF(snpEffLocation, true, true, log);
-        snpeff.runSnpEFFCount(inputbams,
-                              outputDir + ext.addToRoot(output,
-                                                        new StringBuilder(String.valueOf(baitsAsTarget ? ".libraryBaitsResults.summary"
-                                                                                                       : ".libraryResults.summary")).append("count")
-                                                                                                                                    .toString()),
-                              SNPEFF.BUILDS[0], baitsAsTarget ? null : targetLibraryFile,
-                              numThreads);
+        if (summarizeLib) {
+          LibraryNGS.summarizeLibraries(libraryNGS, getLibraryReadDepthResultsFiles(bamQCs),
+                                        librarySummary, filterNGS, log);
+          SNPEFF snpeff = new SNPEFF(snpEffLocation, true, true, log);
+          snpeff.runSnpEFFCount(inputbams,
+                                outputDir + ext.addToRoot(output,
+                                                          new StringBuilder(String.valueOf(baitsAsTarget ? ".libraryBaitsResults.summary"
+                                                                                                         : ".libraryResults.summary")).append("count")
+                                                                                                                                      .toString()),
+                                SNPEFF.BUILDS[0], baitsAsTarget ? null : targetLibraryFile,
+                                numThreads);
+        }
       }
     }
     log.report(ext.getTime() + " Info - finished qc in " + ext.getTimeElapsed(time));
@@ -795,7 +798,7 @@ public class BamQC {
       FilterNGS filterNGS = new FilterNGS(mappingQuality, phreadScore, readDepth);
       qcBams(dir, outputDir, commonExt, fileOfinputSamOrBams, targetLibraryFile, baitLibraryFile,
              skipNumLines, filterNGS, numThreads, output, snpEffLocation, baitsAsTarget,
-             normalizeDepthsTo, log);
+             normalizeDepthsTo, true, log);
     } catch (Exception e) {
       e.printStackTrace();
     }
