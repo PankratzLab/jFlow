@@ -25,13 +25,11 @@ public class TestCLI {
     c.addArg("test", "An integer argument", true, CLI.Arg.NUMBER);
 
     // Try parsing a non-integer and ensure it fails
-    boolean caught = false;
     try {
       c.parse(getClass(), "test=krakens");
+      Assert.fail("Parsing number as string did not fail");
     } catch (ParseException e) {
-      caught = true;
     }
-    Assert.assertTrue(caught);
 
     // Verify that parsing a numerical assignment does not fail
     try {
@@ -49,13 +47,11 @@ public class TestCLI {
     // These calls should be successful even though we didn't add any options explicitly
     // as they are added in the default options
     for (String f : new String[] {"-h", "-help"}) {
-      boolean caught = false;
       try {
         c.parse(getClass(), f);
+        Assert.fail("Parsing continued after printing help");
       } catch (ParseException e) {
-        caught = true;
       }
-      Assert.assertTrue(caught);
     }
   }
 
@@ -67,14 +63,12 @@ public class TestCLI {
     c.addFlag("testFlag", "this is a test flag", true);
     c.addFlag("skippedFlag", "test negative set");
 
-    boolean caught = false;
     try {
       c.parse(getClass(), "-testFlag");
       Assert.assertFalse(c.has("skippedFlag"));
     } catch (ParseException e) {
-      caught = true;
+      Assert.fail(e.getMessage());
     }
-    Assert.assertFalse(caught);
 
   }
 
