@@ -583,9 +583,13 @@ public class GenvisisWorkflow {
 
                                          @Override
                                          public Object[] getRequirementDefaults(Project proj) {
-                                           Resource gc5Base = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog()).getModelBase();
+                                           Resource gc5Base = Resources
+                                                                       .genome(proj.GENOME_BUILD_VERSION.getValue(),
+                                                                               proj.getLog())
+                                                                       .getModelBase();
                                            if (gc5Base.isAvailable(true)) {
-                                             return new Object[] {gc5Base.get(), proj.GC_MODEL_FILENAME.getValue()};
+                                             return new Object[] {gc5Base.get(),
+                                                                  proj.GC_MODEL_FILENAME.getValue()};
                                            }
                                            return null;
                                          }
@@ -869,7 +873,8 @@ public class GenvisisWorkflow {
         discriminatingMarkersFile = variables.get(this).get(2);
         if (!Files.exists(discriminatingMarkersFile)) {
           cmd.append(Files.getRunString()).append(" cnv.qc.MarkerBlastQC proj=" + projPropFile
-                                                  + " blastVCF=" + variables.get(this).get(3));
+                                                  + " blastVCF=" + variables.get(this).get(3))
+             .append("\n");
         }
       }
       return cmd.append(Files.getRunString())
