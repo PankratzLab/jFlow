@@ -357,7 +357,12 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     for (int i = 0; i < batches.length; i++) {
       for (int j = 0; j < batches[i].length; j++) {
         process.add("cd " + ext.parseDirectoryOfFile(batches[i][j]));
+        process.add("echo \"start " + ext.rootOf(batches[i][j]) + "\" `date` >>" + processDir
+                    + "sraDL.times");
+
         process.add("prefetch.2.6.3 --max-size 100000000000 " + ext.rootOf(batches[i][j]));
+        process.add("echo \"end " + ext.rootOf(batches[i][j]) + "\" `date` >>"
+                    + ext.parseDirectoryOfFile(batches[i][j]) + ".times");
         num++;
       }
       process.add("cd " + processDir);// so the qsubs get placed there
