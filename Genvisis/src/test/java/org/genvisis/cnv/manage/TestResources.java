@@ -54,7 +54,7 @@ public class TestResources {
   }
 
   /**
-   * Helper method to test the chromasome resources.
+   * Helper method to test the chromosome resources.
    */
   private static void testChr(Logger log) {
     for (GENOME_BUILD build : GENOME_BUILD.values()) {

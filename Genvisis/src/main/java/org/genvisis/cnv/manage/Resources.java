@@ -82,7 +82,7 @@ public final class Resources {
   }
 
   /**
-   * Chromasome-related resource container. Always requires a related {@link GENOME_BUILD}.
+   * Chromosome-related resource container. Always requires a related {@link GENOME_BUILD}.
    */
   public static class Chr extends AbstractResourceFactory {
     private String build;
@@ -118,8 +118,8 @@ public final class Resources {
     /**
      * Helper method to format the resource path
      */
-    private String getPath(String prefix, String chromasome, String suffix) {
-      return prefix + build + "_chr" + chromasome + suffix;
+    private String getPath(String prefix, String chromosome, String suffix) {
+      return prefix + build + "_chr" + chromosome + suffix;
     }
   }
 
