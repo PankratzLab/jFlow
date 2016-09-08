@@ -29,7 +29,7 @@ public class Pipeline {
   private static final String MITO_DIR = "mtDNACN/";
   private static final String TELSEQ_DIR = "telseq/";
   private static final String COMPUTEL_DIR = "computel/";
-  private static final int TELOMERE_CAPTURE_BUFFER = 100;
+  private static final int[] TELOMERE_CAPTURE_BUFFER = new int[] {100, 0, 1000, 2000, 3000};
 
 
   private Pipeline() {
@@ -127,11 +127,11 @@ public class Pipeline {
     private final String captureBed;
     private final NGSSample ngsSample;
     private final int numthreads;
-    private final int[] captureBufferSize;
+    private final int captureBufferSize;
     private final Logger log;
 
     private TelSeqPart(String bam, String rootOutDir, String captureBed, NGSSample ngsSample,
-                       int numthreads, int[] captureBufferSize, Logger log) {
+                       int numthreads, int captureBufferSize, Logger log) {
       super();
       this.bamFile = bam;
       this.rootOutDir = rootOutDir;
@@ -146,18 +146,16 @@ public class Pipeline {
     public PipelinePart call() throws Exception {
       String telSeqDir = rootOutDir + TELSEQ_DIR + ext.rootOf(bamFile) + "/";
       new File(telSeqDir).mkdir();
-      for (int i = 0; i < captureBufferSize.length; i++) {
-        String result = TelSeq.runTelSeq(new String[] {bamFile}, telSeqDir, captureBed, numthreads,
-                                         ngsSample.getaType(), ngsSample.getaName(),
-                                         captureBufferSize[i], log);
-        ArrayList<String> input = new ArrayList<String>();
-        input.add(bamFile);
-        setInput(input);
-        ArrayList<String> output = new ArrayList<String>();
-        output.add(result);
-        setOutput(output);
+      String result = TelSeq.runTelSeq(new String[] {bamFile}, telSeqDir, captureBed, numthreads,
+                                       ngsSample.getaType(), ngsSample.getaName(),
+                                       captureBufferSize, log);
+      ArrayList<String> input = new ArrayList<String>();
+      input.add(bamFile);
+      setInput(input);
+      ArrayList<String> output = new ArrayList<String>();
+      output.add(result);
+      setOutput(output);
 
-      }
 
 
       return this;
@@ -346,7 +344,7 @@ public class Pipeline {
       switch (part) {
         case COMPUTEL:
           hive.addCallable(new ComputelPart(inputBam, rootOutDir, computelLocation, captureBed,
-                                            sample, 1, TELOMERE_CAPTURE_BUFFER, log));
+                                            sample, 1, TELOMERE_CAPTURE_BUFFER[0], log));
           break;
         case GENVISIS:
           hive.addCallable(new GenvisisPart(inputBam, rootOutDir, referenceGenome, captureBed,
@@ -357,8 +355,11 @@ public class Pipeline {
                                             sample, 1, log));
           break;
         case TELSEQ:
-          hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1,
-                                          new int[] {TELOMERE_CAPTURE_BUFFER}, log));
+          for (int i = 0; i < TELOMERE_CAPTURE_BUFFER.length; i++) {
+            hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1,
+                                            TELOMERE_CAPTURE_BUFFER[i], log));
+          }
+
           break;
         default:
 
