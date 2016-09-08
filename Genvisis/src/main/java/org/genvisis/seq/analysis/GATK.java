@@ -101,7 +101,6 @@ public class GATK {
 
 	public static final String AN = "-an";
 	// from https://www.broadinstitute.org/gatk/guide/article?id=1259
-
   // accessed 2016-08-29 (last updated 2016-06-28)
   public static final Set<String> ANS_BASE = ImmutableSet.of("QD", "FS", "SOR", "MQRankSum",
                                                              "ReadPosRankSum");
@@ -1021,7 +1020,8 @@ public class GATK {
 																			inputVCF, MODE, INDEL, TRANCHES_FILE, tranchesFile,
 																			RECAL_FILE, recalFile, R_SCRIPT_FILE, rscriptFile,
 																			MAX_GAUSSIANS, DEFAULT_INDEL_MAX_GAUSSIANS,
-																			INDEL_RESOURCE_FULL_MILLS, getMillsIndelTraining()};
+																			INDEL_RESOURCE_FULL_MILLS, getMillsIndelTraining(), INDEL_RESOURCE_FULL_DBSNP,
+                                     getDbSnpTraining()};
     command = Array.concatAll(command, buildAns(false, seqTarget, ignoreInbreeding, log), buildTranches());
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, ouputs, verbose,
 																						overWriteExistingOutput, true,
@@ -1135,7 +1135,14 @@ public class GATK {
       ansToUse.addAll(ANS_INBREEDING_ADDITIONS);
 		}
 
-    return ansToUse.toArray(new String[ansToUse.size()]);
+    String[] ans = new String[ansToUse.size() * 2];
+    int index = 0;
+    for (String an : ansToUse) {
+      ans[index++] = AN;
+      ans[index++] = an;
+    }
+
+    return ans;
 	}
 
 	private static String[] buildTranches() {
