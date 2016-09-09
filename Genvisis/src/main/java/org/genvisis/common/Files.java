@@ -2393,8 +2393,26 @@ public class Files {
     boolean result;
 
     result = true;
-    for (int i = 0; i < filenames.length; i++) {
-      if (!exists(dir + filenames[i], false, treatEmptyAsMissing)) {
+    for (String filename : filenames) {
+      if (!exists(dir + filename, false, treatEmptyAsMissing)) {
+        result = false;
+        break;
+      }
+    }
+
+    return result;
+  }
+  
+  public static boolean exists(String dir, Iterable<String> filenames) {
+    return exists(dir, filenames, false);
+  }
+  
+  public static boolean exists(String dir, Iterable<String> filenames, boolean treatEmptyAsMissing) {
+    boolean result;
+
+    result = true;
+    for (String filename : filenames) {
+      if (!exists(dir + filename, false, treatEmptyAsMissing)) {
         result = false;
         break;
       }

@@ -347,7 +347,7 @@ public class FAST {
                 e.printStackTrace();
               }
               String metalDir = ext.parseDirectoryOfFile(metalCRF);
-              CmdLine.run(null, new String[] {"java", "-cp", decodedPath, "Launch", metalCRF},
+              CmdLine.run(new String[] {"java", "-cp", decodedPath, "Launch", metalCRF},
                           metalDir, System.out, System.err, factorLog, false);
               factorLog.report(ext.getTime()
                                + "]\tRunning HitWindows analysis on METAL results...");
