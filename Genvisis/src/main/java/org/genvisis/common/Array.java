@@ -2801,13 +2801,27 @@ public class Array {
   /**
    * Creates a new array using only the indices at and after start
    *
-   * @param array an array of doubles
-   * @param start first index to use
+   * @param array an array
+   * @param start first index to use (inclusive)
    * @return the subset of the original array
    */
-  public static int[] subArray(int[] array, int start) {
-    return Arrays.copyOfRange(array, start, array.length);
+  public static <T> T[] subArray(T[] array, int start) {
+    return subArray(array, start, array.length);
   }
+  
+  /**
+   * Creates a new array using only the indices at and after start and before end
+   *
+   * @param array an array
+   * @param start first index to use (inclusive)
+   * @param stop index to stop at (non-inclusive)
+   * @return the subset of the original array
+   */
+  public static <T> T[] subArray(T[] array, int start, int end) {
+    return Arrays.copyOfRange(array, start, end);
+  }
+  
+  
 
   @SuppressWarnings("unchecked")
   public static <T> T[] subArray(T[] array, boolean[] use) {
@@ -2832,6 +2846,17 @@ public class Array {
     }
 
     return subarray;
+  }
+  
+  /**
+   * Creates a new array using only the indices at and after start
+   *
+   * @param array an array of ints
+   * @param start first index to use
+   * @return the subset of the original array
+   */
+  public static int[] subArray(int[] array, int start) {
+    return Arrays.copyOfRange(array, start, array.length);
   }
 
   /**
@@ -4298,6 +4323,14 @@ public class Array {
     }
 
     return max;
+  }
+  
+  public static String[] addPrefixToArray(String[] array, String prefix) {
+    return addPrefixSuffixToArray(array, prefix, "");
+  }
+  
+  public static String[] addSuffixToArray(String[] array, String suffix) {
+    return addPrefixSuffixToArray(array, "", suffix);
   }
 
   public static String[] addPrefixSuffixToArray(String[] array, String prefix, String suffix) {
