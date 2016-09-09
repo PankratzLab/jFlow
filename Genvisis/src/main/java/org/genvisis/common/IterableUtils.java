@@ -9,9 +9,9 @@ public class IterableUtils {
   }
   
   /**
-   * Prints an {@link Iterable}'s element's, separated by the specified delimiter
+   * Returns a String of an {@link Iterable}'s elements, separated by the specified delimiter
    *
-   * @param array an iterable of objects
+   * @param iterable an {@link Iterable} of Objects
    * @param delimiter String delimiter
    * @return String of printed objects
    */
