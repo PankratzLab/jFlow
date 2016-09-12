@@ -1,6 +1,7 @@
 package org.genvisis.seq.analysis;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 
 import htsjdk.samtools.util.CloseableIterator;
@@ -27,7 +28,10 @@ public class VCFSourceReader extends VCFFileReader implements Closeable, Iterabl
   private final FeatureReader<VariantContext> reader;
 
   public VCFSourceReader(final String file, final boolean requireIndex) {
-    super(null, requireIndex);
+    super(new File(file), requireIndex);// unfortunately, I think passing null to this constructor
+                                        // will fail...so maybe we should just use the
+                                        // actual constructors in most places
+
     reader = AbstractFeatureReader.getFeatureReader(file,
                                                     file.endsWith(".bcf") ? (FeatureCodec) new BCF2Codec()
                                                                           : new VCFCodec(),
