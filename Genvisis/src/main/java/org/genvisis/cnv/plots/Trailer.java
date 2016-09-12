@@ -93,6 +93,8 @@ import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.hmm.CNVCaller.CNVCallResult;
 import org.genvisis.cnv.hmm.PFB;
 import org.genvisis.cnv.hmm.PennHmm;
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.plots.ColorExt.ColorManager;
 import org.genvisis.cnv.qc.GcAdjustor;
@@ -722,7 +724,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     System.out.println(Array.toStr(filenames, "; "));
 
     long time;
-    String trackFilename;
 
     this.proj = proj;
     log = proj.getLog();
@@ -761,10 +762,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
     time = new Date().getTime();
 
-    trackFilename = proj.getGeneTrackFilename(false);
-    if (trackFilename != null) {
-      log.report("Loading track from " + trackFilename);
-      track = GeneTrack.load(trackFilename, jar);
+    Resource gTrack = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getGTrack();
+    if (gTrack.isAvailable()) {
+      log.report("Loading track from " + gTrack.get());
+      track = GeneTrack.load(gTrack.get(), jar);
       log.report("Loaded track in " + ext.getTimeElapsed(time));
     }
 
