@@ -456,41 +456,43 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
     String outDir = "out/";
 
-    c.addArg(OUT_DIR, "the output directory for results", outDir);
+    c.addArgWithDefault(OUT_DIR, "the output directory for results", outDir);
 
     String sraRunTableDefault = "sraRuntable.txt";
 
-    c.addArg(SRA_RUN_TABLE, "a sra run table providing sample information", sraRunTableDefault);
+    c.addArgWithDefault(SRA_RUN_TABLE, "a sra run table providing sample information",
+                        sraRunTableDefault);
 
     int numThreads = 24;
 
-    c.addArg(NUM_THREADS, "number of threads across samples", Integer.toString(numThreads));
+    c.addArgWithDefault(NUM_THREADS, "number of threads across samples",
+                        Integer.toString(numThreads));
 
     int numThreadsPipe = 1;
-    c.addArg(NUM_THREADS_PIPELINE, "number of threads within samples",
-             Integer.toString(numThreadsPipe));
+    c.addArgWithDefault(NUM_THREADS_PIPELINE, "number of threads within samples",
+                        Integer.toString(numThreadsPipe));
 
     String refGenomeFasta = "hg19.canonical.fa";
 
 
-    c.addArg(REFERENCE_GENOME, "appropriate reference genome file", refGenomeFasta);
+    c.addArgWithDefault(REFERENCE_GENOME, "appropriate reference genome file", refGenomeFasta);
 
     String captureBedFile = "VCRome_2_1_hg19_capture_targets.bed";
 
-    c.addArg(CAPTURE_BED, "bed file of targeted capture", captureBedFile);
+    c.addArgWithDefault(CAPTURE_BED, "bed file of targeted capture", captureBedFile);
 
     String binBed = "targetsOfInterest.bed";
 
-    c.addArg(BIN_BED, "bed file of targets of interests", binBed);
+    c.addArgWithDefault(BIN_BED, "bed file of targets of interests", binBed);
 
     String vcf = "vcf.vcf";
-    c.addArg(VCF, "vcf file of variants", vcf);
+    c.addArgWithDefault(VCF, "vcf file of variants", vcf);
 
     String computelLocation = null;
-    c.addArg(COMPUTEL_LOCATION, "directory of computel", computelLocation);
+    c.addArgWithDefault(COMPUTEL_LOCATION, "directory of computel", computelLocation);
 
     int batch = -1;
-    c.addArg(NUM_BATCHES, "number of batches", Integer.toString(batch));
+    c.addArgWithDefault(NUM_BATCHES, "number of batches", Integer.toString(batch));
 
 
 
