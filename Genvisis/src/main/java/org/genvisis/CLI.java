@@ -22,7 +22,7 @@ import org.genvisis.common.Logger;
 /**
  * Helper class for parsing command line arguments. Typical usage is:
  * <ol>
- * <li>Create a {@link CLI} object with {@link #CLI()}. This ensures a standard set of help
+ * <li>Create a {@link CLI} object with {@link #CLI(String)}. This ensures a standard set of help
  * flags.</li>
  * <li>Build up the parser options by using {@link #addFlag} (e.g. <code>-doThisOption</code>) and
  * {@link #addArg} (e.g., <code>myOpt=someValue</code>)</li>
@@ -51,28 +51,52 @@ public class CLI {
   private static final Arg TYPE = Arg.STRING; // default validation class
   private static final int OUT_WIDTH = 150; // help output width
   private static final String INDENT = "   "; // indentation for non-required, non-grouped arguments
-  private static final char SEPARATOR = '='; // argument separator
+  private static final String ARG_PREFIX = "";
+  private static final char ARG_SEPARATOR = '=';
+  private static final String FLAG_PREFIX = "-"; 
 
   private final Options options;
+  private final String commandName;
+  private final Map<String, String> defaults = new HashMap<String, String>();
 
   private Map<String, String> parsed;
 
   /**
+   * @see #CLI(String)
+   * @param program Program class for command invocation
+   */
+  public CLI(Class<?> program) {
+    this(program.getName());
+  }
+
+  /**
    * Create a {@link CLI} object with a default set of command line options (e.g. "-h, -help" to
    * print usage).
+   * @param program Program class for command invocation
    */
-  public CLI() {
-    this(new Options());
+  public CLI(String program) {
+    this(program, new Options());
     addFlag(HELP_CHAR, "Print application usage", HELP_STRING);
+  }
+
+  /**
+   * @see #CLI(String, Options)
+   * @param program Program class for command invocation
+   * @param o Baseline options to parse in this CLI instance.
+   */
+  public CLI(Class<?> program, Options o) {
+    this(program.getName(), o);
   }
 
   /**
    * Create a {@link CLI} object with the specified command line {@link Option}s as a starting
    * point.
    *
+   * @param program Program name for command invocation
    * @param o Baseline options to parse in this CLI instance.
    */
-  public CLI(Options o) {
+  public CLI(String program, Options o) {
+    commandName = program;
     options = o;
   }
 
@@ -162,81 +186,113 @@ public class CLI {
   }
 
   /**
-   * @see #addArg(String, String, String, boolean, Class)
+   * @see #addArg(String, String, String, boolean, Arg)
    *
    * @param name Argument name
    * @param description Text to use when printing command-line usage
    */
   public void addArg(String name, String description) {
-    addArg(name, description, null);
+    addArg(name, description, REQUIRED);
   }
 
   /**
-   * @see #addArg(String, String, String, boolean, Class)
+   * @see #addArg(String, String, String, boolean, Arg)
    *
    * @param name Argument name
    * @param description Text to use when printing command-line usage
    * @param required If {@code true}, {@link #parse} will fail if this argument is not explicitly
-   *        set and no {@code argDefault} is provided. <i>Default: {@code false}</i>
+   *        set or {@link #addArgWithDefault} was not used.
    */
   public void addArg(String name, String description, boolean required) {
-    addArg(name, description, null, required);
+    addArg(name, description, required, TYPE);
   }
 
   /**
-   * @see #addArg(String, String, String, boolean, Class)
+   * @see #addArg(String, String, String, boolean, Arg)
+   *
+   * @param name Argument name
+   * @param description Text to use when printing command-line usage
+   * @param type Enforced parameter type from the {@link Arg} enum set.
+   */
+  public void addArg(String name, String description, Arg type) {
+    addArg(name, description, REQUIRED, type);
+  }
+
+  /**
+   * @see #addArg(String, String, String, boolean, Arg)
    *
    * @param name Argument name
    * @param description Text to use when printing command-line usage
    * @param required If {@code true}, {@link #parse} will fail if this argument is not explicitly
-   *        set and no {@code argDefault} is provided. <i>Default: {@code false}</i>
-   * @param type Enforced parameter type from the {@link #Arg} enum set.
+   *        set or {@link #addArgWithDefault} was not used.
+   * @param type Enforced parameter type from the {@link Arg} enum set.
    */
   public void addArg(String name, String description, boolean required, Arg type) {
     addArg(name, description, null, required, type);
   }
 
   /**
-   * @see #addArg(String, String, String, boolean, Class)
+   * @see #addArg(String, String, String, boolean, Arg)
    *
    * @param name Argument name
    * @param description Text to use when printing command-line usage
-   * @param argDefault Default value of this argument. If specified, {@code required} is set to
-   *        {@code false}. If this argument is not present on the command-line, this default value
-   *        will be used.
+   * @param example Example text for this arg.
    */
-  public void addArg(String name, String description, String argDefault) {
-    addArg(name, description, argDefault, REQUIRED);
+  public void addArg(String name, String description, String example) {
+    addArg(name, description, example, REQUIRED);
   }
 
 
   /**
-   * @see #addArg(String, String, String, boolean, Class)
+   * @see #addArg(String, String, String, boolean, Arg)
    *
    * @param name Argument name
    * @param description Text to use when printing command-line usage
-   * @param argDefault Default value of this argument. If specified, {@code required} is set to
-   *        {@code false}. If this argument is not present on the command-line, this default value
-   *        will be used.
-   * @param required If {@code true}, {@link #parse} methods will fail if this argument is not
-   *        explicitly set and no {@code argDefault} is provided.
+   * @param example Example text for this arg.
+   * @param required If {@code true}, {@link #parse} will fail if this argument is not explicitly
+   *        set or {@link #addArgWithDefault} was not used.
    */
-  public void addArg(String name, String description, String argDefault, boolean required) {
-    addArg(name, description, argDefault, required, TYPE);
+  public void addArg(String name, String description, String example, boolean required) {
+    addArg(name, description, example, required, TYPE);
   }
 
   /**
-   * @see #addArg(String, String, String, boolean, Class)
+   * @see #addArg(String, String, String, boolean, Arg)
    *
    * @param name Argument name
    * @param description Text to use when printing command-line usage
-   * @param argDefault Default value of this argument. If specified, {@code required} is set to
+   * @param example Example text for this arg.
+   * @param type Enforced parameter type from the {@link Arg} enum set.
+   */
+  public void addArg(String name, String description, String example, Arg type) {
+    addArg(name, description, example, REQUIRED, type);
+  }
+
+  /**
+   * @see #addArgWithDefault(String, String, String, Arg)
+   *
+   * @param name Argument name
+   * @param description Text to use when printing command-line usage
+   * @param example Default value of this argument. If specified, {@code required} is set to
    *        {@code false}. If this argument is not present on the command-line, this default value
    *        will be used.
-   * @param type Enforced parameter type from the {@link #Arg} enum set.
    */
-  public void addArg(String name, String description, String argDefault, Arg type) {
-    addArg(name, description, argDefault, REQUIRED, type);
+  public void addArgWithDefault(String name, String description, String example) {
+    addArgWithDefault(name, description, example, TYPE);
+  }
+
+  /**
+   * As {@link #addArg(String, String, String, boolean, Arg)} but the {@code example} value will
+   * also be used as the default value. This effectively sets {@code required} to {@code false}.
+   *
+   * @param name Argument name
+   * @param description Text to use when printing command-line usage
+   * @param example Default value of this argument. <i>Default: {@code \<value\>}</i>
+   * @param type Enforced parameter type from the {@link Arg} enum set.
+   */
+  public void addArgWithDefault(String name, String description, String example, Arg type) {
+    defaults.put(name, example);
+    addArg(name, description, example + " (default)", false, type);
   }
 
   /**
@@ -244,32 +300,22 @@ public class CLI {
    *
    * @param name Argument name
    * @param description Text to use when printing command-line usage
-   * @param argDefault Default value of this argument. If specified, {@code required} is set to
-   *        {@code false}. If this argument is not present on the command-line, this default value
-   *        will be used. <i>Default: {@code \<value\>}</i>
+   * @param example Example text for this arg. <i>Default: {@code \<value\>}</i>
    * @param required If {@code true}, {@link #parse} will fail if this argument is not explicitly
-   *        set and no {@code argDefault} is provided. <i>Default: {@code false}</i>
-   * @param type Enforced parameter type from the {@link #Arg} enum set. <i>Default:
-   *        {@link CLI#STRING_VALUE}</i>
+   *        set or {@link #addArgWithDefault} was not used. <i>Default: {@code false}</i>
+   * @param type Enforced parameter type from the {@link Arg} enum set. <i>Default:
+   *        {@link Arg#STRING}</i>
    */
-  public void addArg(String name, String description, String argDefault, boolean required,
-                     Arg type) {
-    String argVal = ARG_VALUE;
-    boolean reallyRequired = required;
+  public void addArg(String name, String description, String example, boolean required, Arg type) {
+    String argExample = example == null ? ARG_VALUE : example;
 
-    if (argDefault != null) {
-      // If a default value is present, this arg is not really required.
-      reallyRequired = false;
-      argVal = argDefault;
-    }
+    Builder builder = Option.builder().hasArg().argName(argExample).valueSeparator(ARG_SEPARATOR);
 
-    Builder builder = Option.builder().hasArg().argName(argVal).valueSeparator(SEPARATOR);
-
-    add(builder, name, description, reallyRequired, type);
+    add(builder, name, description, required, type);
   }
 
   /**
-   * @see {@link #addFlag(String, String, String, boolean)}
+   * @see #addFlag(String, String, String, boolean)
    *
    * @param name Text to enable this flag on command line
    * @param description Text to use when printing command-line usage
@@ -279,7 +325,7 @@ public class CLI {
   }
 
   /**
-   * @see {@link #addFlag(String, String, String, boolean)}
+   * @see #addFlag(String, String, String, boolean)
    *
    * @param name Text to enable this flag on command line
    * @param description Text to use when printing command-line usage
@@ -290,7 +336,7 @@ public class CLI {
   }
 
   /**
-   * @see {@link #addFlag(String, String, String, boolean)}
+   * @see #addFlag(String, String, String, boolean)
    *
    * @param name Text to enable this flag on command line
    * @param description Text to use when printing command-line usage
@@ -321,6 +367,9 @@ public class CLI {
    * Create and add an {@link OptionGroup} to this {@link CLI}'s {@link Options} instance. An
    * options group is a mutually-exclusive set of required options: <b>one and only one</b> of the
    * options in this group will need to be set at runtime.
+   * <p>
+   * Note that adding an option to a group removes any associated default value
+   * </p>
    *
    * @param toGroup The name of one or more {@link Option} instances to group together.
    */
@@ -343,6 +392,7 @@ public class CLI {
       o.setDescription("(select one) "
                        + o.getDescription().substring(o.isRequired() ? 0 : INDENT.length()));
       g.addOption(o);
+      defaults.remove(getName(o));
     }
 
     g.addOption(options.getOption(HELP_STRING));
@@ -351,18 +401,12 @@ public class CLI {
   }
 
   /**
-   * Note: unlike {@link #parse} methods, if the act of parsing does not return normally (e.g. due
-   * to a parsing exception or help flag passed) this method <b>will stop program execution</b>. Use
-   * at your own risk.
+   * @see #parseWithExit(Logger, String...)
    *
-   * @see {@link #parseWithExit(String, Logger, String...)}
-   *
-   * @param appClass Class with {@code main} method being run (for usage message - how a user should
-   *        invoke from command line)
    * @param args Provided command-line arguments to parse
    */
-  public void parseWithExit(Class<?> appClass, String... args) {
-    parseWithExit(appClass, new Logger(), args);
+  public void parseWithExit(String... args) {
+    parseWithExit(new Logger(), args);
   }
 
   /**
@@ -370,46 +414,14 @@ public class CLI {
    * to a parsing exception or help flag passed) this method <b>will stop program execution</b>. Use
    * at your own risk.
    *
-   * @see {@link #parseWithExit(String, Logger, String...)}
+   * @see #parse(Logger, String...)
    *
-   * @param appClass Class with {@code main} method being run (for usage message - how a user should
-   *        invoke from command line)
    * @param log {@link Logger} instance to report any information resulting from parse
    * @param args Provided command-line arguments to parse
    */
-  public void parseWithExit(Class<?> appClass, Logger log, String... args) {
-    parseWithExit(appClass.getName(), log, args);
-  }
-
-  /**
-   * Note: unlike {@link #parse} methods, if the act of parsing does not return normally (e.g. due
-   * risk.
-   *
-   * @see {@link #parseWithExit(String, Logger, String...)}
-   *
-   * @param appName Name of the program being run (for usage message - how a user should invoke from
-   *        command line)
-   * @param args Provided command-line arguments to parse
-   */
-  public void parseWithExit(String appName, String... args) {
-    parseWithExit(appName, new Logger(), args);
-  }
-
-  /**
-   * Note: unlike {@link #parse} methods, if the act of parsing does not return normally (e.g. due
-   * to a parsing exception or help flag passed) this method <b>will stop program execution</b>. Use
-   * at your own risk.
-   *
-   * @see {@link #parse(String, Logger, String...)}
-   *
-   * @param appName Name of the program being run (for usage message - how a user should invoke from
-   *        command line)
-   * @param log {@link Logger} instance to report any information resulting from parse
-   * @param args Provided command-line arguments to parse
-   */
-  public void parseWithExit(String appName, Logger log, String... args) {
+  public void parseWithExit(Logger log, String... args) {
     try {
-      parse(appName, log, args);
+      parse(log, args);
     } catch (ParseException e) {
       // If there's no error message then this exception was thrown because a help flag was passed.
       int errorCode = e.getMessage().isEmpty() ? 0 : 1;
@@ -418,51 +430,21 @@ public class CLI {
   }
 
   /**
-   * @see {@link #parse(String, Logger, String...)}
+   * @see #parse(Logger, String...)
    *
-   * @param appClass Class with {@code main} method being run (for usage message - how a user should
-   *        invoke from command line)
-   * @param args Provided command-line arguments to parse
-   */
-  public void parse(Class<?> appClass, String... args) throws ParseException {
-    parse(appClass, new Logger(), args);
-  }
-
-  /**
-   * @see {@link #parse(String, Logger, String...)}
-   *
-   * @param appClass Class with {@code main} method being run (for usage message - how a user should
-   *        invoke from command line)
-   * @param log {@link Logger} instance to report any information resulting from parse
    * @param args Provided command-line arguments to parse
    *
    * @throws ParseException If a problem is encountered during parsing or a help/usage flag is
    *         parsed.
    */
-  public void parse(Class<?> appClass, Logger log, String... args) throws ParseException {
-    parse(appClass.getName(), log, args);
-  }
-
-  /**
-   * @see {@link #parse(String, Logger, String...)}
-   *
-   * @param appName Name of the program being run (for usage message - how a user should invoke from
-   *        command line)
-   * @param args Provided command-line arguments to parse
-   *
-   * @throws ParseException If a problem is encountered during parsing or a help/usage flag is
-   *         parsed.
-   */
-  public void parse(String appName, String... args) throws ParseException {
-    parse(appName, new Logger(), args);
+  public void parse(String... args) throws ParseException {
+    parse(new Logger(), args);
   }
 
   /**
    * Performs the actual parsing of command-line options and return parsed values. This is the final
    * step of command-line argument processing.
    *
-   * @param appName Name of the program being run (for usage message - how a user should invoke from
-   *        command line)
    * @param log {@link Logger} instance to report any information resulting from parse. <i>Default:
    *        new Logger()</i>
    * @param args Provided command-line arguments to parse
@@ -470,7 +452,7 @@ public class CLI {
    * @throws ParseException If a problem is encountered during parsing or a help/usage flag is
    *         parsed.
    */
-  public void parse(String appName, Logger log, String... args) throws ParseException {
+  public void parse(Logger log, String... args) throws ParseException {
     formatArgs(args);
 
     try {
@@ -491,14 +473,14 @@ public class CLI {
           // Make sure the types match, then set the value.
           validateOption(cl, opt, o);
           parsed.put(opt, cl.getOptionValue(opt));
-        } else if (o.hasArg() && !ARG_VALUE.equals(o.getArgName())) {
+        } else if (o.hasArg() && defaults.containsKey(opt)) {
           // If an argument was not parsed but does have a default value,
           // we set it here
-          parsed.put(opt, o.getArgName());
+          parsed.put(opt, defaults.get(opt));
         }
       }
     } catch (ParseException e) {
-      printHelp(log, appName, e.getMessage(), options);
+      printHelp(log, commandName, e.getMessage(), options);
       throw e;
     }
   }
@@ -536,9 +518,9 @@ public class CLI {
    */
   private static void printHelp(Logger log, String appName, String errorMessage, Options options) {
     HelpFormatter formatter = new HelpFormatter();
-    formatter.setOptPrefix("-");
-    formatter.setLongOptPrefix("");
-    formatter.setLongOptSeparator("=");
+    formatter.setOptPrefix(FLAG_PREFIX);
+    formatter.setLongOptPrefix(ARG_PREFIX);
+    formatter.setLongOptSeparator(String.valueOf(ARG_SEPARATOR));
     formatter.setOptionComparator(null);
 
     StringBuilder sb = new StringBuilder().append(System.getProperty("line.separator"))
@@ -581,5 +563,24 @@ public class CLI {
         throw new ParseException(sb.toString());
       }
     }
+  }
+  
+  /**
+   * Helper method to forms a valid argument String
+   * @param name Argument name as specified to {@link #addArg(String, String, String, boolean, Class)}
+   * @param value Passed value for this argument
+   * @return Formatted command line argument
+   */
+  public static String formCmdLineArg(String name, String value) {
+    return ARG_PREFIX + name + ARG_SEPARATOR + value;
+  }
+  
+  /**
+   * Helper method to form a valid flag String
+   * @param name Flag name as specified to {@link #addFlag(String, String, String, boolean)}
+   * @return Formatted command line flag
+   */
+  public static String formCmdLineFlag(String name) {
+    return FLAG_PREFIX + name;
   }
 }

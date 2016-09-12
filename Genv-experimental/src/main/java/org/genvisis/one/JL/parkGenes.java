@@ -4,6 +4,8 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.Array;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.CNVariant;
@@ -17,7 +19,7 @@ public class parkGenes {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		GeneTrack geneTrack = GeneTrack.load("N:/statgen/NCBI/RefSeq_hg19.gtrack", false);
+		GeneTrack geneTrack = GeneTrack.load(Resources.genome(GENOME_BUILD.HG19, new Logger()).getGTrack().get(), false);
 		
 		LocusSet<CNVariant> set = CNVariant.loadLocSet("D:/data/NGRC/cnvs/decentCalls_centromeresBroken.cnv", new Logger());
 		ArrayList<CNVariant> found = new ArrayList<CNVariant>();

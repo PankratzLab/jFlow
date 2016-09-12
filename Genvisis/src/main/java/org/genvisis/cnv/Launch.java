@@ -1033,6 +1033,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
       configurator.setVisible(true);
     } else if (command.equals(DELETE_PROJECT)) {
       String toDelete = projects.get(indexOfCurrentProj);
+
+      int delete = JOptionPane.showConfirmDialog(null,
+                                                 "<html>Would you like to delete this project properties: " + toDelete
+                                                       + " ?<br /><br />Project source directory will <b>NOT</b> be deleted.</html>",
+                                                 "Delete Project", JOptionPane.WARNING_MESSAGE);
+      if (delete != JOptionPane.YES_OPTION) return;
+
       int newIndex = Math.max(0, --indexOfCurrentProj);
       if (new File(launchProperties.getDirectory() + toDelete).delete()) {
         projects = null;

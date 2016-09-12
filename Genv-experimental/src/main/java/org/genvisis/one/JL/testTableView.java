@@ -1,5 +1,5 @@
-package org.genvisis.one.JL;
-//package org.genvisis.one.jl;
+//package org.genvisis.one.JL;
+//
 //
 //import java.io.BufferedReader;
 //
@@ -31,7 +31,7 @@ package org.genvisis.one.JL;
 //	@Override
 //	public void start(Stage primaryStage) {
 //		final BorderPane root = new BorderPane();
-//		final TableView<ObservableList<StringProperty>> table = new TableView<>();
+//		final TableView<ObservableList<StringProperty>> table = new TableView<ObservableList<StringProperty>>();
 //		// final TextField urlTextEntry = new TextField();
 //		// urlTextEntry.setPromptText("Enter path of tab delimited file");
 //		// final CheckBox headerCheckBox = new CheckBox("Data has header line");
@@ -123,7 +123,7 @@ package org.genvisis.one.JL;
 //
 //	private TableColumn<ObservableList<StringProperty>, String> createColumn(
 //			final int columnIndex, String columnTitle) {
-//		TableColumn<ObservableList<StringProperty>, String> column = new TableColumn<>();
+//		TableColumn<ObservableList<StringProperty>, String> column = new TableColumn<ObservableList<StringProperty>, String>();
 //		String title;
 //		if (columnTitle == null || columnTitle.trim().length() == 0) {
 //			title = "Column " + (columnIndex + 1);
@@ -199,3 +199,4 @@ package org.genvisis.one.JL;
 //		launch(args);
 //	}
 //}
+//>>>>>>> refs/remotes/origin/master

@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +44,7 @@ public final class Resources {
    */
   public static class MiniMac extends AbstractResourceFactory {
     public MiniMac(Logger log) {
-      super(BIN_DIR + "/Minimac3", log);
+      super(BIN_DIR + "/Minimac3", log, MiniMac.class);
     }
 
     /**
@@ -51,13 +52,6 @@ public final class Resources {
      */
     public Resource getMiniMac3() {
       return getTarGzResource("Minimac3.v1.0.14.tar.gz");
-    }
-
-    @Override
-    public List<Resource> getResources() {
-      List<Resource> resources = new ArrayList<Resource>();
-      resources.add(getMiniMac3());
-      return resources;
     }
   }
 
@@ -76,7 +70,7 @@ public final class Resources {
       super(DEFAULT_LOCAL_DIR + BIN_DIR + File.separator + "shapeit" + File.separator
             + "shapeit.tar.gz",
             "https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz",
-            log);
+            log, Shapeit.class);
     }
 
     /**
@@ -85,34 +79,29 @@ public final class Resources {
     public Resource getShapeit() {
       return getResource("");
     }
-
-    @Override
-    public List<Resource> getResources() {
-      List<Resource> resources = new ArrayList<Resource>();
-      resources.add(getShapeit());
-      return resources;
-    }
   }
 
   /**
-   * Chromasome-related resource container. Always requires a related {@link GENOME_BUILD}.
+   * Chromosome-related resource container. Always requires a related {@link GENOME_BUILD}.
    */
   public static class Chr extends AbstractResourceFactory {
     private String build;
+    private CHROMOSOME c;
 
-    public Chr(GENOME_BUILD build, Logger log) {
-      super(GENOME_DIR + "/" + build.getBuild() + "/chr", log);
+    public Chr(GENOME_BUILD build, CHROMOSOME c, Logger log) {
+      super(GENOME_DIR + "/" + build.getBuild() + "/chr", log, Chr.class);
       this.build = build.getBuild();
+      this.c = c;
     }
 
     /**
-     * @return The genetic map for the requested {@link CHROMASOME}
+     * @return The genetic map for the requested {@link CHROMOSOME}
      */
-    public Resource getGeneticMap(CHROMASOME c) {
+    public Resource getGeneticMap() {
       String prefix = "genetic_map_";
       String extension = ".txt.gz";
 
-      if (CHROMASOME.CX_PAR.equals(c)) {
+      if (CHROMOSOME.CX_PAR.equals(c)) {
         getResource(getPath(prefix, c.toString() + "2", extension));
         return getResource(getPath(prefix, c.getLabel() + "1", extension));
       }
@@ -120,27 +109,37 @@ public final class Resources {
     }
 
     /**
-     * @return The G1K ref for the requested {@link CHROMASOME}
+     * @return The G1K ref for the requested {@link CHROMOSOME}
      */
-    public Resource getG1Kphase3v5RefPanel(CHROMASOME c) {
+    public Resource getG1Kphase3v5RefPanel() {
       return getResource(getPath("1000genomes_ref_panel_Phase3v5_", c.getLabel(), ".m3vcf.gz"));
     }
 
     /**
      * Helper method to format the resource path
      */
-    private String getPath(String prefix, String chromasome, String suffix) {
-      return prefix + build + "_chr" + chromasome + suffix;
+    private String getPath(String prefix, String chromosome, String suffix) {
+      return prefix + build + "_chr" + chromosome + suffix;
+    }
+  }
+
+  /**
+   * Helper {@link Pathway} accessor for method chaining
+   */
+  public static Pathway path(Logger log) {
+    return new Pathway(log);
+  }
+
+  /**
+   * Container for pathway database resources
+   */
+  public static class Pathway extends AbstractResourceFactory {
+    public Pathway(Logger log) {
+      super("Pathways", log, Pathway.class);
     }
 
-    @Override
-    public List<Resource> getResources() {
-      List<Resource> resources = new ArrayList<Resource>();
-      for (CHROMASOME c : CHROMASOME.values()) {
-        resources.add(getGeneticMap(c));
-        resources.add(getG1Kphase3v5RefPanel(c));
-      }
-      return resources;
+    public Resource getKegg() {
+      return getResource("kegg.ser");
     }
   }
 
@@ -158,15 +157,15 @@ public final class Resources {
     private GENOME_BUILD build;
 
     public Genome(GENOME_BUILD build, Logger log) {
-      super(GENOME_DIR, log);
+      super(GENOME_DIR, log, Genome.class);
       this.build = build;
     }
-    
+
     /**
      * @return The RefSeq.gtrack for this {@link GENOME_BUILD}
      */
     public Resource getGTrack() {
-      return getResource(build.getBuild() + "/" + "RefSeq_" + build.getBuild() + ".gtrack");
+      return getResource(build.getBuild() + "/RefSeq_" + build.getBuild() + ".gtrack");
     }
 
     /**
@@ -184,6 +183,20 @@ public final class Resources {
     }
 
     /**
+     * @return b138 DB .ser resource
+     */
+    public Resource getB138() {
+      return getResource(build.getBuild() + "/b138_" + build.getBuildInt() + "_3.ser");
+    }
+
+    /**
+     * @return The "genes##.xln" for this {@link GENOME_BUILD}
+     */
+    public Resource getGenes() {
+      return getResource(build.getBuild() + "/genes" + build.getBuildInt() + ".xln");
+    }
+
+    /**
      * Helper method for formatting resource path
      */
     private String getPath() {
@@ -194,17 +207,8 @@ public final class Resources {
     /**
      * Helper method for chaining resource calls
      */
-    public Chr chr() {
-      return new Chr(build, log());
-    }
-
-    @Override
-    public List<Resource> getResources() {
-      List<Resource> resources = new ArrayList<Resource>();
-      resources.add(getModelBase());
-      resources.add(getDBSNP());
-      resources.add(getGTrack());
-      return resources;
+    public Chr chr(CHROMOSOME c) {
+      return new Chr(build, c, log());
     }
   }
 
@@ -220,7 +224,7 @@ public final class Resources {
    */
   public static class MitoCN extends AbstractResourceFactory {
     public MitoCN(Logger log) {
-      super("MitoCN", log);
+      super("MitoCN", log, MitoCN.class);
     }
 
     /**
@@ -243,15 +247,6 @@ public final class Resources {
     public Resource getTotalWBC() {
       return getResource("WBC_TOTAL_SingleSNPmatched.final.beta");
     }
-
-    @Override
-    public List<Resource> getResources() {
-      List<Resource> resources = new ArrayList<Resource>();
-      resources.add(getWhiteWBC());
-      resources.add(getBlackWBC());
-      resources.add(getTotalWBC());
-      return resources;
-    }
   }
 
   /**
@@ -266,18 +261,46 @@ public final class Resources {
   }
 
   /**
-   * Container for Affy resources.
+   * Container for build-specific Affy resources
    */
-  public static class AffySnp6 extends AbstractResourceFactory {
-    public AffySnp6(Logger log) {
-      super("Arrays/AffySnp6", log);
+  public static class AffyGenomes extends AbstractResourceFactory {
+    private final GENOME_BUILD build;
+
+    public AffyGenomes(GENOME_BUILD build, Logger log) {
+      super(AffySnp6.DIR, log, AffyGenomes.class);
+      this.build = build;
     }
 
     /**
      * @return Marker positions for the specified {@link GENOME_BUILD}
      */
-    public Resource getMarkerPositions(GENOME_BUILD build) {
+    public Resource getMarkerPositions() {
       return getResource(build.getBuild() + "_markerPositions.txt");
+    }
+
+    /**
+     * @return gcmodel file
+     */
+    public Resource getGcmodel() {
+      return getResource("affygw6." + build.getBuild() + ".gcmodel");
+    }
+
+    /**
+     * @return pfb file
+     */
+    public Resource getHmm() {
+      return getResource("affygw6." + build.getBuild() + ".pfb");
+    }
+  }
+
+  /**
+   * Container for Affy resources.
+   */
+  public static class AffySnp6 extends AbstractResourceFactory {
+    private static final String DIR = "Arrays/AffySnp6";
+
+    public AffySnp6(Logger log) {
+      super(DIR, log, AffySnp6.class);
     }
 
     /**
@@ -294,35 +317,129 @@ public final class Resources {
       return getResource("AB_lookup.dat");
     }
 
-    @Override
-    public List<Resource> getResources() {
-      List<Resource> resources = new ArrayList<Resource>();
-      resources.add(getHMM());
-      resources.add(getABLookup());
+    public AffyGenomes genome(GENOME_BUILD build) {
+      return new AffyGenomes(build, log());
+    }
+  }
 
-      for (GENOME_BUILD build : GENOME_BUILD.values()) {
-        resources.add(getMarkerPositions(build));
-      }
-      return resources;
+  /**
+   * Helper method for chaining resource calls
+   */
+  public static CNV cnv(Logger log) {
+    return new CNV(log);
+  }
+
+  /**
+   * Get genome-specific CNV resources
+   */
+  public static class CNVGenomes extends AbstractResourceFactory {
+    private final GENOME_BUILD build;
+
+    public CNVGenomes(GENOME_BUILD build, Logger log) {
+      super(CNV.DIR, log, CNVGenomes.class);
+      this.build = build;
+    }
+
+    public Resource getAllPfb() {
+      return getPfb("all");
+    }
+
+    public Resource getAllGcmodel() {
+      return getGc("all");
+    }
+
+    public Resource get550Pfb() {
+      return getPfb("550");
+    }
+
+    public Resource get550Gcmodel() {
+      return getGc("550");
+    }
+
+    private Resource getPfb(String cnv) {
+      return get(cnv, "pfb");
+    }
+
+    private Resource getGc(String cnv) {
+      return get(cnv, "gcmodel");
+    }
+
+    private Resource get(String cnv, String extension) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("hh").append(cnv).append(".").append(build.build).append(".").append(extension);
+      return getResource(sb.toString());
+    }
+  }
+
+  /**
+   * Get general CNV resources
+   */
+  public static class CNV extends AbstractResourceFactory {
+    private static final String DIR = "CNV";
+
+    public CNV(Logger log) {
+      super(DIR, log, CNV.class);
+    }
+
+    public Resource getAllHmm() {
+      return getResource("hhall.hmm");
+    }
+
+    public Resource get550Hmm() {
+      return getResource("hh550.hmm");
+    }
+
+    /**
+     * Helper method for chaining resource calls.
+     */
+    public CNVGenomes genome(GENOME_BUILD build) {
+      return new CNVGenomes(build, log());
     }
   }
 
   /**
    * Abstract superclass for containers that create {@link Resource} instances.
+   * <p>
+   * Note: the {@link #getResources()} implementation uses reflection to find all zero-parameter
+   * methods that return a {@link Resource} in the class list this factory is constructed with. A
+   * list of classes is used to facilitate inheritance between {@link ResourceFactory} classes. But,
+   * if you do not use this standard method format for accessing resources you should override this
+   * method.
+   * </p>
    */
   private abstract static class AbstractResourceFactory implements ResourceFactory {
     private final String localPath;
     private final String remotePath;
     private final Logger log;
+    private final Class<?>[] classes;
 
-    public AbstractResourceFactory(String subPath, Logger log) {
-      this(DEFAULT_LOCAL_DIR + subPath + File.separator, DEFAULT_URL + subPath + "/", log);
+    public AbstractResourceFactory(String subPath, Logger log, Class<?>... classes) {
+      this(DEFAULT_LOCAL_DIR + subPath + File.separator, DEFAULT_URL + subPath + "/", log, classes);
     }
 
-    public AbstractResourceFactory(String localPath, String url, Logger log) {
+    public AbstractResourceFactory(String localPath, String url, Logger log, Class<?>... classes) {
       this.localPath = localPath;
       this.remotePath = url;
       this.log = log;
+      this.classes = classes;
+    }
+
+    @Override
+    public List<Resource> getResources() {
+      List<Resource> resources = new ArrayList<Resource>();
+
+      for (Class<?> c : classes) {
+        for (Method m : c.getDeclaredMethods()) {
+          if (m.getReturnType().equals(Resources.Resource.class) && m.getParameterTypes().length == 0) {
+            try {
+              resources.add((Resource) m.invoke(this));
+            } catch (Exception e) {
+              log.reportError("Failed to add resource: " + m.getName());
+            }
+          }
+        }
+      }
+      return resources;
     }
 
     protected Logger log() {
@@ -342,6 +459,10 @@ public final class Resources {
     }
   }
 
+  /**
+   * A ResourceFactory holds all the configuration for building {@link Resource} instances.
+   * Typically this is just the local and remote path for a resource folder.
+   */
   private static interface ResourceFactory {
     List<Resource> getResources();
   }
@@ -565,6 +686,8 @@ public final class Resources {
   /**
    * A resource is a general-purpose file used by Genvisis but not shipped with the Genvisis core.
    * Resources are typically available remotely and thus can be downloaded automatically if missing.
+   * Use the {@link #isAvailable()} method to check if this resource can be obtained, and
+   * {@link #get()} to return the local path to the resource.
    */
   public static interface Resource {
     /**
@@ -619,14 +742,14 @@ public final class Resources {
   }
 
   /**
-   * Supported chromasomes
+   * Supported chromosomes
    */
-  public enum CHROMASOME {
+  public enum CHROMOSOME {
                           C1("1"), C2("2"), C3("3"), C4("4"), C5("5"), C6("6"), C7("7"), C8("8"), C9("9"), C10("10"), C11("11"), C12("12"), C13("13"), C14("14"), C15("15"), C16("16"), C17("17"), C18("18"), C19("19"), C20("20"), C21("21"), C22("22"), CX_PAR("X_PAR"), CX_nonPAR("X_nonPAR");
 
     private String label;
 
-    private CHROMASOME(String c) {
+    private CHROMOSOME(String c) {
       label = c;
     }
 

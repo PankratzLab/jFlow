@@ -266,17 +266,17 @@ public class Computel {
     String computelLocation = "computel/";
     String outDir = "out/";
 
-    CLI c = new CLI();
+    CLI c = new CLI(Computel.class);
     final String bam = "bam";
-    c.addArg(bam, "bam file to analyze", targetBam);
+    c.addArgWithDefault(bam, "bam file to analyze", targetBam);
 
     final String computel = "computel";
-    c.addArg(computel, "full computel directory (as git clone ideally)", computelLocation);
+    c.addArgWithDefault(computel, "full computel directory (as git clone ideally)", computelLocation);
 
     final String outdir = "out";
-    c.addArg(outdir, "the output directory for results", outDir);
+    c.addArgWithDefault(outdir, "the output directory for results", outDir);
 
-    c.parseWithExit(Computel.class, args);
+    c.parseWithExit( args);
 
     runComputel(c.get(bam), c.get(outdir), c.get(computel), new Logger());
 

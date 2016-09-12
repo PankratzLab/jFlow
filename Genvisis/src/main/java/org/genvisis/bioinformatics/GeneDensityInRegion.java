@@ -26,6 +26,7 @@ public class GeneDensityInRegion {
     int sum;
     int[][] exonBoundaries;
 
+    //TODO not clear if this should be pulling from resources?
     geneSet = GeneSet.load(Aliases.getPathToFileInReferenceDirectory(GeneSet.REFSEQ_DB, true,
                                                                      new Logger()),
                            false);

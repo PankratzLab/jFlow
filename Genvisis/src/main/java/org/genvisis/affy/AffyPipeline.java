@@ -455,7 +455,7 @@ public class AffyPipeline {
     log.reportTimeInfo("Found " + celFiles.length + " .cel files to process");
     if (markerPositions == null || !Files.exists(markerPositions)) {
       log.reportTimeError("Could not find marker position file " + markerPositions);
-      Resource markerPos = Resources.affy(log).getMarkerPositions(build);
+      Resource markerPos = Resources.affy(log).genome(build).getMarkerPositions();
       if (!markerPos.isAvailable()) {
         throw new IllegalArgumentException();
       } else {

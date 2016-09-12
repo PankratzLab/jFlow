@@ -271,12 +271,12 @@ public class CBCGUI {
       final String DATA = "dataDir";
       final String OUT = "outDir";
       
-      CLI cli = new CLI();
+      CLI cli = new CLI("CBCGUI");
       cli.addArg(CBC, "CBC Directory", true);
       cli.addArg(DATA, "Datafile Directory", true);
       cli.addArg(OUT, "Output directory", false);
       
-      cli.parseWithExit("CBCGUI", args);
+      cli.parseWithExit(args);
       
       CBCApplicator cbcA = new CBCApplicator();
       cbcA.setCBCDir(cli.get(CBC));

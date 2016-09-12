@@ -447,13 +447,12 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
   public static void main(String[] args) {
 
-    CLI c = new CLI();
+    CLI c = new CLI(SRAPipeline.class);
 
 
 
     String sraDirDefault = "sra/";
-
-    c.addArg(SRA_INPUT, "directory or filename with .sra files", sraDirDefault);
+    c.addArgWithDefault(SRA_INPUT, "directory or filename with .sra files", sraDirDefault);
 
     String outDir = "out/";
 
@@ -506,7 +505,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     c.addFlag(COMPUTEL_PART, "run the computel portion of the pipeline");
     c.addFlag(ALL_PART, "run the entire pipeline");
 
-    c.parseWithExit(SRAPipeline.class, args);
+    c.parseWithExit(args);
 
 
 

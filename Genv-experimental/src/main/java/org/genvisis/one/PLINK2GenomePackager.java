@@ -307,7 +307,7 @@ public class PLINK2GenomePackager {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        CmdLine.run(null, new String[]{"java", "-cp", decodedPath, "Launch", metalName}, metalDir, System.out, System.err, new Logger(), false);
+        CmdLine.run(new String[]{"java", "-cp", decodedPath, "Launch", metalName}, metalDir, System.out, System.err, new Logger(), false);
         System.out.println(ext.getTime() + "]\tMETAL Complete!");
     }
     

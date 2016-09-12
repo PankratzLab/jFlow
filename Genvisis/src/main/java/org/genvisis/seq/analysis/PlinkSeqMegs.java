@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -271,7 +273,7 @@ public class PlinkSeqMegs {
     // String resourceDirectory = "/home/tsaim/public/bin/pseqRef/hg19/";
     String resourceDirectory = "/home/spectorl/public/bin/pseqRef/hg19/";
     Logger log = new Logger(ext.rootOf(vcf, false) + "tally.log");
-    String geneTrackFile = "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/RefSeq_hg19.gtrack";
+    String geneTrackFile = Resources.genome(GENOME_BUILD.HG19, log).getGTrack().get();
     String keggPathwayFile = "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/kegg.ser";
     String logfile = null;
     int numthreads = 4;

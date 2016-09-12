@@ -371,12 +371,6 @@ public class SexChecks {
       float[] sorted = cleaned.clone();
       Arrays.sort(sorted);
       meanLRRs[i] = Array.mean(cleaned);
-      if (i == 362) {
-        System.out.println(i);
-        meanLRRs[i] = Array.mean(cleaned);
-        Array.median(cleaned);
-        System.out.println(i);
-      }
     }
 
     return meanLRRs;
@@ -606,6 +600,7 @@ public class SexChecks {
                        .getBAFs();
     MosaicBuilder mosaicBuilder = new MosaicBuilder();
     mosaicBuilder.use(use);
+    mosaicBuilder.markerIndices(proj.getMarkerIndices());
     MosaicismDetect mosaicismDetect = mosaicBuilder.build(proj, sampleNames[sample], markerSet,
                                                           Array.toDoubleArray(bafs));
     int xStart = markerSet.getPositions()[indicesByChr[23][0]];

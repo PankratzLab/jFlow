@@ -72,6 +72,8 @@ import javax.swing.border.EtchedBorder;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.NewRegionListDialog;
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.var.Region;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.Array;
@@ -460,7 +462,6 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     });
 
     long time;
-    String trackFilename;
 
     this.proj = proj;
     log = proj == null ? new Logger() : proj.getLog();
@@ -471,11 +472,11 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
     time = new Date().getTime();
 
-    // trackFilename = proj.getGeneTrackFilename(false);
-    trackFilename = "N:/statgen/NCBI/fullIsoforms/RefSeq.gtrack";
-    if (trackFilename != null) {
-      log.report("Loading track from " + trackFilename);
-      track = GeneTrack.load(trackFilename, jar);
+    Resource geneTrack = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getGTrack();
+    if (geneTrack.isAvailable()) {
+      String trackPath = geneTrack.get();
+      log.report("Loading track from " + trackPath);
+      track = GeneTrack.load(trackPath, jar);
       log.report("Loaded track in " + ext.getTimeElapsed(time));
     } else {
       log.report("Cannot create display without GeneTrack");

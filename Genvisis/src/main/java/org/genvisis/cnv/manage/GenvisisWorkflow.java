@@ -6,8 +6,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.genvisis.CLI;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.analysis.AnalysisFormats;
 import org.genvisis.cnv.analysis.Mosaicism;
@@ -37,6 +39,10 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Ancestry;
 import org.genvisis.gwas.Qc;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 public class GenvisisWorkflow {
 
@@ -577,9 +583,13 @@ public class GenvisisWorkflow {
 
                                          @Override
                                          public Object[] getRequirementDefaults(Project proj) {
-                                           Resource gc5Base = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog()).getModelBase();
+                                           Resource gc5Base = Resources
+                                                                       .genome(proj.GENOME_BUILD_VERSION.getValue(),
+                                                                               proj.getLog())
+                                                                       .getModelBase();
                                            if (gc5Base.isAvailable(true)) {
-                                             return new Object[] {gc5Base.get(), proj.GC_MODEL_FILENAME.getValue()};
+                                             return new Object[] {gc5Base.get(),
+                                                                  proj.GC_MODEL_FILENAME.getValue()};
                                            }
                                            return null;
                                          }
@@ -863,7 +873,8 @@ public class GenvisisWorkflow {
         discriminatingMarkersFile = variables.get(this).get(2);
         if (!Files.exists(discriminatingMarkersFile)) {
           cmd.append(Files.getRunString()).append(" cnv.qc.MarkerBlastQC proj=" + projPropFile
-                                                  + " blastVCF=" + variables.get(this).get(3));
+                                                  + " blastVCF=" + variables.get(this).get(3))
+             .append("\n");
         }
       }
       return cmd.append(Files.getRunString())
@@ -927,14 +938,25 @@ public class GenvisisWorkflow {
       String projFile = proj.getPropertyFilename();
       String mapFile = proj.getLocationOfSNP_Map(true);
 
+      List<String> baseCommand = ImmutableList.of(Files.getRunString(), ABLookup.class.getName(),
+                                                  CLI.formCmdLineArg(ABLookup.ARGS_PROJ, projFile));
+      List<String> commandVcf = Lists.newArrayList(baseCommand);
+      commandVcf.add(CLI.formCmdLineArg(ABLookup.ARGS_OUT, filename));
+      commandVcf.add(CLI.formCmdLineFlag(ABLookup.FLAGS_VCF));
+
+      List<String> commandPartial = Lists.newArrayList(baseCommand);
+      commandPartial.add(CLI.formCmdLineArg(ABLookup.ARGS_PARTAB, filename));
+      commandPartial.add(CLI.formCmdLineArg(ABLookup.ARGS_MAP, mapFile));
+
+      List<String> commandApply = Lists.newArrayList(baseCommand);
+      commandApply.add(CLI.formCmdLineFlag(ABLookup.FLAGS_APPLYAB));
+
       StringBuilder cmd = new StringBuilder();
-      cmd.append(Files.getRunString()).append(" org.genvisis.cnv.filesys.ABLookup out=")
-         .append(filename).append(" vcf=true proj=").append(projFile).append("\n");
-      cmd.append(Files.getRunString()).append(" org.genvisis.cnv.filesys.ABLookup incompleteAB=")
-         .append(filename).append(" mapFile=").append(mapFile).append(" proj=").append(projFile)
-         .append("\n");
-      cmd.append(Files.getRunString()).append(" org.genvisis.cnv.filesys.ABLookup -applyAB")
-         .append(" proj=").append(projFile);
+
+      cmd.append(Joiner.on(" ").join(commandVcf)).append("\n");
+      cmd.append(Joiner.on(" ").join(commandPartial)).append("\n");
+      cmd.append(Joiner.on(" ").join(commandApply));
+
       return cmd.toString();
     }
   };

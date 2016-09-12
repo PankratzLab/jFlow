@@ -3,6 +3,7 @@ package org.genvisis.cnv.manage;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.genvisis.cnv.manage.Resources.CHROMOSOME;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.common.Logger;
@@ -27,15 +28,20 @@ public class TestResources {
   }
 
   /**
+   * Helper method to run {@link #test(Resource)} on a collection of resources.
+   */
+  private static void test(List<Resource> resources) {
+    for (Resource r : resources) {
+      test(r);
+    }
+  }
+
+  /**
    * Helper method to test program downloads
    */
   private static void testBinaries(Logger log) {
-    for (Resource r : Resources.miniMac(log).getResources()) {
-      test(r);
-    }
-    for (Resource r : Resources.shapeit(log).getResources()) {
-      test(r);
-    }
+    test(Resources.miniMac(log).getResources());
+    test(Resources.shapeit(log).getResources());
   }
 
   /**
@@ -43,19 +49,17 @@ public class TestResources {
    */
   private static void testGenome(Logger log) {
     for (GENOME_BUILD build : GENOME_BUILD.values()) {
-      for (Resource r : Resources.genome(build, log).getResources()) {
-        test(r);
-      }
+      test(Resources.genome(build, log).getResources());
     }
   }
 
   /**
-   * Helper method to test the chromasome resources.
+   * Helper method to test the chromosome resources.
    */
   private static void testChr(Logger log) {
     for (GENOME_BUILD build : GENOME_BUILD.values()) {
-      for (Resource r : Resources.genome(build, log).chr().getResources()) {
-        test(r);
+      for (CHROMOSOME c : CHROMOSOME.values()) {
+        test(Resources.genome(build, log).chr(c).getResources());
       }
     }
   }
@@ -64,8 +68,10 @@ public class TestResources {
    * Helper method to test {@link Resources#affy(Logger)} resources.
    */
   private static void testAffy(Logger log) {
-    for (Resource r : Resources.affy(log).getResources()) {
-      test(r);
+    test(Resources.affy(log).getResources());
+
+    for (GENOME_BUILD build : GENOME_BUILD.values()) {
+      test(Resources.affy(log).genome(build).getResources());
     }
   }
 
@@ -73,8 +79,24 @@ public class TestResources {
    * Helper method to test {@link Resources#mitoCN(Logger)} resources.
    */
   private static void testMitoCN(Logger log) {
-    for (Resource r : Resources.mitoCN(log).getResources()) {
-      test(r);
+    test(Resources.mitoCN(log).getResources());
+  }
+
+  /**
+   * Helper method to test {@link Resources#path(Logger)} resources.
+   */
+  private static void testPathways(Logger log) {
+    test(Resources.path(log).getResources());
+  }
+
+  /**
+   * Helper method to test {@link Resources#cnv(Logger)} resources.
+   */
+  private static void testCnv(Logger log) {
+    test(Resources.cnv(log).getResources());
+
+    for (GENOME_BUILD build : GENOME_BUILD.values()) {
+      test(Resources.cnv(log).genome(build).getResources());
     }
   }
 
@@ -84,16 +106,17 @@ public class TestResources {
   public static void main(String[] args) {
     Logger log = new Logger();
 
-//    testBinaries(log);
+    testBinaries(log);
     testGenome(log);
-//    testChr(log);
-//    testAffy(log);
-//    testMitoCN(log);
+    testChr(log);
+    testAffy(log);
+    testMitoCN(log);
+    testPathways(log);
+    testCnv(log);
     System.out.println("--Test complete--");
     if (failures.isEmpty()) {
       System.out.println("---- No failures!");
-    }
-    else {
+    } else {
       System.out.println("The following resources failed:");
       for (String s : failures) {
         System.out.println(s);
