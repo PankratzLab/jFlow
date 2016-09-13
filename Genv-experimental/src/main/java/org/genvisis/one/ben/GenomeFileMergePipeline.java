@@ -1,6 +1,7 @@
 package org.genvisis.one.ben;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -10,6 +11,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.StringTokenizer;
 import java.util.Map.Entry;
 
@@ -27,16 +29,22 @@ import com.google.common.collect.Lists;
 
 public class GenomeFileMergePipeline {
   
+  private static final String[] RELATEDS_COLUMNS = {"FID1", "IID1", "FID2", "IID2", "P(IBD=0)", "P(IBD=1)", "P(IBD=2)", "PI_HAT"};
   private static final String[] GENOME_COLUMNS = {"FID1", "IID1", "FID2", "IID2", "Z0", "Z1", "Z2", "PI_HAT"};
+  
+  private static final String SEARCHFOR_GENOME = "plink.genome";
+  private static final String SEARCHFOR_RELATEDS_SUFF = "genome_relateds.xln";
   
   private HashMap<String, String> idMap = new HashMap<String, String>();
   private ArrayList<Project> plinkProjects = new ArrayList<Project>();
   private ArrayList<Project> qcProjects = new ArrayList<Project>();
   private ArrayList<Project> projects = new ArrayList<Project>();
-  private ArrayList<GenomeFile> files = new ArrayList<GenomeFileMergePipeline.GenomeFile>();
+  private HashSet<String> dataLabelSet = new HashSet<String>();
+  private ArrayList<GenomeFileSet> files = new ArrayList<GenomeFileMergePipeline.GenomeFileSet>();
 
   private boolean runPlinkOrQCIfMissing = false;
   private String outputFile = "audit.xln";
+  private String prevAuditFile = null;
   
   private Logger log = new Logger();
   
@@ -96,16 +104,20 @@ public class GenomeFileMergePipeline {
     
   }
   
-  private static class GenomeFile {
-    public GenomeFile(String name2, String file, Logger log) {
+  private static class GenomeFileSet {
+    public GenomeFileSet(String name2, String relFile, String genFile, Logger log) {
       this.name = name2;
-      this.genomeFile = file;
-      this.lineCount = Files.countLines(genomeFile, 1);
-      log.report("Counted " + this.lineCount + " lines in " + genomeFile);
+      this.relatedsFile = relFile;
+      this.genomeFile = genFile;
+      this.relLineCount = Files.countLines(relatedsFile, 1);
+      this.genLineCount = Files.countLines(genomeFile, 1);
+      log.report("Counted " + this.genLineCount + " lines in " + genomeFile + " and " + this.relLineCount + " lines in " + relatedsFile);
     }
     String name;
+    String relatedsFile;
     String genomeFile;
-    int lineCount;
+    int relLineCount;
+    int genLineCount;
   }
 
   public void loadIDLookupFile(String file, boolean ignoreFirstLine) {
@@ -131,6 +143,7 @@ public class GenomeFileMergePipeline {
     String plinkDir = proj.PROJECT_DIRECTORY.getValue() + "plink/";
     String genDir = plinkDir + Qc.GENOME_DIR;
     String genFile = genDir = "plink.genome";
+    String[] rel = Files.list(genDir, SEARCHFOR_RELATEDS_SUFF, false);
     boolean plink = false;
     boolean qc = false;
     String msg;
@@ -141,7 +154,7 @@ public class GenomeFileMergePipeline {
         log.reportTime("PLINK files will be created and QC'd for project " + proj.PROJECT_NAME.getValue());
         plink = true;
       } else {
-        log.reportError("Error - " + msg);
+        log.reportTimeError("Error - " + msg);
         return;
       }
     } else if (!Files.exists(genDir)) {
@@ -151,7 +164,7 @@ public class GenomeFileMergePipeline {
         log.reportTime("PLINK files will be QC'd for project " + proj.PROJECT_NAME.getValue());
         qc = true;
       } else {
-        log.reportError("Error - " + msg);
+        log.reportTimeError("Error - " + msg);
         return;
       }
     } else if (!Files.exists(genFile)) {
@@ -161,7 +174,17 @@ public class GenomeFileMergePipeline {
         log.reportTime("PLINK files will be QC'd for project " + proj.PROJECT_NAME.getValue() + "; however, the output folders were found but the plink.genome file was missing, so other errors may be present.");
         qc = true;
       } else {
-        log.reportError("Error - " + msg);
+        log.reportTimeError("Error - " + msg);
+        return;
+      }
+    } else if (rel == null || rel.length == 0 || "".equals(rel[0]) || !Files.exists(rel[0])) {
+      msg = "no *.genome_relateds.xln file found for project " + proj.PROJECT_NAME.getValue();
+      if (runPlinkOrQCIfMissing) {
+        log.reportTime("Warning - " + msg);
+        log.reportTime("PLINK files will be QC'd for project " + proj.PROJECT_NAME.getValue() + "; however, the output folders were found but the *.genome_relateds.xln file was missing, so other errors may be present.");
+        qc = true;
+      } else {
+        log.reportTimeError("Error - " + msg);
         return;
       }
     }
@@ -174,12 +197,97 @@ public class GenomeFileMergePipeline {
     }
   }
   
-  public void addGenomeFile(String name, String genomeFile) {
-    if (!Files.exists(genomeFile)) {
-      log.reportTimeError("Error - genome file \"" + genomeFile + "\" not found!");
+  private boolean checkRelatedsFile(String relFile) {
+    if (new File(relFile).length() == 0) {
+      log.reportTimeError("Error - genome relateds file " + relFile + " is empty! Data from this file will not be included in the final output.");
+      return false;
+    }
+    
+    return true;
+  }
+  
+  private boolean checkGenomeFile(String genFile) {
+    BufferedReader reader;
+    String line;
+    int[] factors;
+    
+    if (new File(genFile).length() == 0) {
+      log.reportTimeError("Error - genome file " + genFile + " is empty! Data from this file will not be included in the final output.");
+      return false;
+    }
+    
+    try {
+      reader = Files.getAppropriateReader(genFile);
+      line = reader.readLine();
+      reader.close();
+      factors = ext.indexFactors(GENOME_COLUMNS, line.trim().split("[\\s]+"), false, false);
+      for (int i = 0; i < factors.length; i++) {
+        if (factors[i] == -1) {
+          log.reportTimeError("Error - column " + GENOME_COLUMNS[i] + " was missing from plink.genome file: " + genFile + " ; data from this file will not be included in final output.");
+          return false;
+        }
+      }
+      return true;
+    } catch (IOException e) {
+      log.reportException(e);
+      return false;
+    }
+  }
+  
+  public void addFiles(String name, String genomeDir) {
+    String genDir = ext.verifyDirFormat(genomeDir);
+    if (!Files.exists(genDir)) {
+      log.reportTimeError("Error - genome file directory \"" + genomeDir + "\" not found! Data set will be dropped: " + name);
       return;
     }
-    files.add(new GenomeFile(name, genomeFile, log));
+    if (!Files.exists(genDir + SEARCHFOR_GENOME)) {
+      log.reportTimeError("Error - genome file \"" + (genDir + SEARCHFOR_GENOME) + "\" not found! Data set will be dropped: " + name);
+      return;
+    }
+    String[] rel = Files.list(genDir, SEARCHFOR_RELATEDS_SUFF, false);
+    if (rel == null || rel.length == 0 || "".equals(rel[0]) || !Files.exists(genDir + rel[0])) {
+      log.reportTimeError("Error - genome relateds file matching filename pattern \"*" + SEARCHFOR_RELATEDS_SUFF + "\" not found in directory " + genomeDir + "! Data set will be dropped: " + name);
+      return;
+    }
+    if (dataLabelSet.contains(name)) {
+      log.reportTimeError("Error - duplicate data set name: " + name + ". Directory source will be dropped: " + genomeDir);
+      return;
+    }
+    boolean genPass = checkGenomeFile(genDir + SEARCHFOR_GENOME);
+    if (genPass) {
+      boolean relPass = checkRelatedsFile(genDir + rel[0]);
+      if (relPass) {
+        dataLabelSet.add(name);
+        files.add(new GenomeFileSet(name, genDir + rel[0], genDir + SEARCHFOR_GENOME, log));
+      }
+    }
+  }
+  
+  public void addFiles(String name, String relatedsFile, String genomeFile) {
+    if (!Files.exists(genomeFile)) {
+      log.reportTimeError("Error - genome file \"" + genomeFile + "\" not found! Data set will be dropped: " + name);
+      return;
+    }
+    if (!Files.exists(relatedsFile)) {
+      log.reportTimeError("Error - genome relateds file \"" + genomeFile + "\" not found! Data set will be dropped: " + name);
+      return;
+    }
+    if (dataLabelSet.contains(name)) {
+      log.reportTimeError("Error - duplicate data set name: " + name + ". File set will be dropped: " + relatedsFile + "  |  " + genomeFile);
+      return;
+    }
+    boolean genPass = checkGenomeFile(genomeFile);
+    if (genPass) {
+      boolean relPass = checkRelatedsFile(relatedsFile);
+      if (relPass) {
+        dataLabelSet.add(name);
+        files.add(new GenomeFileSet(name, relatedsFile, genomeFile, log));
+      }
+    }
+  }
+  
+  public void addPreviousRunFile(String prevFile) {
+    this.prevAuditFile = prevFile;
   }
   
   public void setOutputFile(String outFile) {
@@ -197,10 +305,9 @@ public class GenomeFileMergePipeline {
   public void run() {
     BufferedReader reader;
     String line, outKey1, outKey2;
-    String fid1, fid2, iid1, iid2;
-    CompactCharSequence ibd0, ibd1, ibd2, piHt;
+    String fid1, fid2, iid1, iid2, type;
+    String /*CompactCharSequence */ibd0, ibd1, ibd2, piHt;
     String genFile;
-    String[] parts;
     CharSequence[] outLine;
     int outLineCount, lineCount, count;
     int projInd0, projInd1, projInd2, projInd3;
@@ -215,78 +322,109 @@ public class GenomeFileMergePipeline {
     
     // for all projects in qcProjects, run gwas.Qc
     
-    projectsLoop : for (int p = projects.size() - 1; p >= 0; p++) {
-      proj = projects.get(p);
-      genFile = proj.PROJECT_DIRECTORY.getValue() + "plink/" + Qc.GENOME_DIR + "plink.genome";
-      if (!Files.exists(genFile)) {
-        log.reportTimeError("Error - plink.genome file missing for project " + proj.PROJECT_NAME.getValue() + "; data from project will not be included.");
-        projects.remove(proj);
-      } else {
-        try {
-          reader = Files.getAppropriateReader(genFile);
-          line = reader.readLine();
-          reader.close();
-          factors = ext.indexFactors(GENOME_COLUMNS, line.trim().split("[\\s]+"), false, false);
-          for (int i = 0; i < factors.length; i++) {
-            if (factors[i] == -1) {
-              log.reportTimeError("Error - column " + GENOME_COLUMNS[i] + " was missing from plink.genome file: " + genFile + " ; data from this file will not be included in final output.");
-              projects.remove(proj);
-              continue projectsLoop;
-            }
-          }
-        } catch (IOException e) {
-          log.reportException(e);
-          projects.remove(proj);
-        }
-      }
-    }
-    
     for (int p = 0; p < projects.size(); p++) {
       String name = projects.get(p).PROJECT_NAME.getValue();
-      String file = projects.get(p).PROJECT_DIRECTORY.getValue() + "plink/" + Qc.GENOME_DIR + "plink.genome";
-      files.add(new GenomeFile(name, file, log));
+      String dir = projects.get(p).PROJECT_DIRECTORY.getValue() + "plink/" + Qc.GENOME_DIR;
+      addFiles(name, dir);
     }
     
     System.gc();
-
+    
+    
+    // if not null, load previous audit file -- IGNORE FOR NOW
+    // load all genome_relateds files
+    // search all genome files for pairings in genome_relateds (and prev audit file if applicable) files
+    // write output
+    
     BigInteger max = new BigInteger("0");
-    for (GenomeFile f : files) {
-      max.add(new BigInteger("" + f.lineCount));
+    for (GenomeFileSet f : files) {
+      max.add(new BigInteger("" + f.relLineCount)); // only outputting data for relateds entries
     }
     outLineCount = 4 + (4 * files.size());  // fid1 iid1 fid2 iid2 + 4 columns per projects (ibd0, ibd1, ibd2, pi_hat)
     outLineMap = new HashMap<String, CharSequence[]>(max.intValue(), 0.95f);
     
-    try {
-      for (int p = 0; p < files.size(); p++) {
-        log.reportTime("Loading data from " + files.get(p).genomeFile);
-        projInd0 = 4 + p * 4 + 0;
-        projInd1 = projInd0 + 1;
-        projInd2 = projInd1 + 1;
-        projInd3 = projInd2 + 1;
-        
-        count = files.get(p).lineCount / 10;
-        lineCount = 0;
+    for (int p = 0; p < files.size(); p++) {
+      log.reportTime("Loading relateds data from " + files.get(p).relatedsFile);
+      projInd0 = 4 + p * 4 + 0;
+      projInd1 = projInd0 + 1;
+      projInd2 = projInd1 + 1;
+      projInd3 = projInd2 + 1;
+      
+      int[] cols = ext.indexFactors(RELATEDS_COLUMNS, Files.getHeaderOfFile(files.get(p).relatedsFile, log), false, log, true, false);
+      String[][] relatedsData = HashVec.loadFileToStringMatrix(files.get(p).relatedsFile, true, cols, false);
+
+      for (String[] parts : relatedsData) {
+        fid1 = parts[0];    
+        iid1 = parts[1];  
+        fid2 = parts[2];  
+        iid2 = parts[3];  
+        ibd0 = parts[4];
+        ibd1 = parts[5];  
+        ibd2 = parts[6];  
+        piHt = parts[7];
+
+        if (idMap.containsKey(iid1) && !idMap.containsKey(fid1)) {
+          fid1 = idMap.get(iid1);
+        } else if (idMap.containsKey(fid1) && !idMap.containsKey(iid1)) {
+          iid1 = idMap.get(fid1);
+        }
+        if (idMap.containsKey(iid2) && !idMap.containsKey(fid2)) {
+          fid2 = idMap.get(iid2);
+        } else if (idMap.containsKey(fid2) && !idMap.containsKey(iid2)) {
+          iid2 = idMap.get(fid2);
+        }
+
+        outKey1 = fid1 + "|" + iid1 + "||" + fid2 + "|" + iid2;
+        outKey2 = fid2 + "|" + iid2 + "||" + fid1 + "|" + iid1;
+
+        if (outLineMap.containsKey(outKey1)) {
+          outLine = outLineMap.get(outKey1);
+        } else if (outLineMap.containsKey(outKey2)) {
+          outLine = outLineMap.get(outKey2);
+          // TODO will IBD/PIHAT need to be altered due to flipped ids?
+        } else {
+          outLine = charSequenceArray(outLineCount, ".");
+          outLine[0] = fid1;
+          outLine[1] = iid1;
+          outLine[2] = fid2;
+          outLine[3] = iid2;
+          outLineMap.put(outKey1, outLine);
+        }
+
+        outLine[projInd0] = ibd0;
+        outLine[projInd1] = ibd1;
+        outLine[projInd2] = ibd2;
+        outLine[projInd3] = piHt;
+      }
+      
+      System.gc();
+    }
+    
+    String[] parts;
+    for (int p = 0; p < files.size(); p++) {
+      log.reportTime("Scanning genome file \"" + files.get(p).genomeFile + "\" for possible matches.");
+      projInd0 = 4 + p * 4 + 0;
+      projInd1 = projInd0 + 1;
+      projInd2 = projInd1 + 1;
+      projInd3 = projInd2 + 1;
+      try {
         reader = Files.getAppropriateReader(files.get(p).genomeFile);
         line = reader.readLine();
         factors = ext.indexFactors(GENOME_COLUMNS, line.trim().split("[\\s]+"), false, false);
-        // do id lookup, determine which column of 1/2 and 3/4 (if not both) are in lookup
-        while((line = reader.readLine()) != null) {
+
+        while ((line = reader.readLine()) != null) {
           line = line.trim();
           if ("".equals(line)) continue;
-          st = new StringTokenizer(line, " ", false);
-          pts.clear();
-          while(st.hasMoreTokens()) {
-            pts.add(st.nextToken());
-          }
-          st = null;
-          fid1 = pts.get(factors[0]).toString();    
-          iid1 = pts.get(factors[1]).toString();  
-          fid2 = pts.get(factors[2]).toString();  
-          iid2 = pts.get(factors[3]).toString();  
-          ibd0 = new CompactCharSequence(pts.get(factors[4]).toString().intern());  // intern because many of these are either "1" or "0"
-          ibd1 = new CompactCharSequence(pts.get(factors[5]).toString().intern());  
-          ibd2 = new CompactCharSequence(pts.get(factors[6]).toString().intern());  
-          piHt = new CompactCharSequence(pts.get(factors[7]).toString().intern());
+          parts = ext.splitLine(line, "[\\s]+", log);
+
+          fid1 = parts[factors[0]];    
+          iid1 = parts[factors[1]];  
+          fid2 = parts[factors[2]];  
+          iid2 = parts[factors[3]];  
+          ibd0 = parts[factors[4]];
+          ibd1 = parts[factors[5]];  
+          ibd2 = parts[factors[6]];  
+          piHt = parts[factors[7]];
 
           if (idMap.containsKey(iid1) && !idMap.containsKey(fid1)) {
             fid1 = idMap.get(iid1);
@@ -298,50 +436,42 @@ public class GenomeFileMergePipeline {
           } else if (idMap.containsKey(fid2) && !idMap.containsKey(iid2)) {
             iid2 = idMap.get(fid2);
           }
-          
+
           outKey1 = fid1 + "|" + iid1 + "||" + fid2 + "|" + iid2;
           outKey2 = fid2 + "|" + iid2 + "||" + fid1 + "|" + iid1;
-          
+
           if (outLineMap.containsKey(outKey1)) {
             outLine = outLineMap.get(outKey1);
           } else if (outLineMap.containsKey(outKey2)) {
             outLine = outLineMap.get(outKey2);
             // TODO will IBD/PIHAT need to be altered due to flipped ids?
           } else {
-            outLine = charSequenceArray(outLineCount, ".");
-            outLine[0] = fid1;
-            outLine[1] = iid1;
-            outLine[2] = fid2;
-            outLine[3] = iid2;
-            outLineMap.put(outKey1, outLine);
+            continue; // do not add entries from genome file unless already existing in relateds file
           }
-          
+
           outLine[projInd0] = ibd0;
           outLine[projInd1] = ibd1;
           outLine[projInd2] = ibd2;
           outLine[projInd3] = piHt;
-          
-          lineCount++;
-          if (lineCount % count == 0) {
-            System.gc();
-          }
         }
-        System.gc();
+        
         reader.close();
+      } catch (FileNotFoundException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
       }
-    } catch (FileNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      
+      System.gc();
     }
-    
-    // write outmap (options for exclusions?  split pops, ea/aa, etc?)
+
+    // write outmap (options for exclusions? split pops, ea/aa, etc?)
     log.reportTime("Writing output to " + outputFile);
-    
+
     writer = Files.getAppropriateWriter(outputFile);
-    
+
     outLine = charSequenceArray(outLineCount, "");
     for (int p = 0; p < files.size(); p++) {
       outLine[4 + (4 * p)] = files.get(p).name;
@@ -354,16 +484,16 @@ public class GenomeFileMergePipeline {
     outLine[3] = "IID2";
     for (int i = 4; i < outLine.length; i += 4) {
       outLine[i] = "P(IBD=0)";
-      outLine[i+1] = "P(IBD=1)";
-      outLine[i+2] = "P(IBD=2)";
-      outLine[i+3] = "PI_HAT";
+      outLine[i + 1] = "P(IBD=1)";
+      outLine[i + 2] = "P(IBD=2)";
+      outLine[i + 3] = "PI_HAT";
     }
     writer.println(Array.toStr(outLine, "\t"));
-    
+
     for (Entry<String, CharSequence[]> lines : outLineMap.entrySet()) {
       writer.println(Array.toStr(lines.getValue(), "\t"));
     }
-    
+
     writer.flush();
     writer.close();
     
@@ -374,11 +504,11 @@ public class GenomeFileMergePipeline {
     GenomeFileMergePipeline gfmp = new GenomeFileMergePipeline();
     gfmp.setRunPlinkOrQCIfMissing(false);
     gfmp.loadIDLookupFile("/scratch.global/cole0482/genomeFiles/ids.txt", false);
-    gfmp.addGenomeFile("Exome_EA", "/scratch.global/cole0482/genomeFiles/exome_EA_plink.genome");
-    gfmp.addGenomeFile("IBC_EA", "/scratch.global/cole0482/genomeFiles/IBC_EA_plink.genome");
-    gfmp.addGenomeFile("WES", "/scratch.global/cole0482/genomeFiles/wes_plink.genome");
-    gfmp.addGenomeFile("Exome_AA", "/scratch.global/cole0482/genomeFiles/exome_AA_plink.genome");
-    gfmp.addGenomeFile("IBC_AA", "/scratch.global/cole0482/genomeFiles/IBC_AA_plink.genome");
+    gfmp.addFiles("Exome_EA", "/scratch.global/cole0482/genomeFiles/exome_EA_plink.genome_relateds.xln", "/scratch.global/cole0482/genomeFiles/exome_EA_plink.genome");
+    gfmp.addFiles("Exome_AA", "/scratch.global/cole0482/genomeFiles/exome_AA_plink.genome_relateds.xln", "/scratch.global/cole0482/genomeFiles/exome_AA_plink.genome");
+    gfmp.addFiles("IBC_EA", "/scratch.global/cole0482/genomeFiles/IBC_EA_plink.genome_relateds.xln", "/scratch.global/cole0482/genomeFiles/IBC_EA_plink.genome");
+    gfmp.addFiles("IBC_AA", "/scratch.global/cole0482/genomeFiles/IBC_AA_plink.genome_relateds.xln", "/scratch.global/cole0482/genomeFiles/IBC_AA_plink.genome");
+    gfmp.addFiles("WES", "/scratch.global/cole0482/genomeFiles/WES_plink.genome_relateds.xln", "/scratch.global/cole0482/genomeFiles/WES_plink.genome");
     gfmp.setOutputFile("/scratch.global/cole0482/genomeFiles/tempAudit.xln");
     gfmp.run();
   
