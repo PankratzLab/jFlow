@@ -2,6 +2,7 @@ package org.genvisis.seq.analysis;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import org.genvisis.common.Array;
@@ -15,7 +16,9 @@ import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCFTumorNormalOps;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 public class GATK {
@@ -1054,25 +1057,29 @@ public class GATK {
 	 */
 	public boolean jointGenotypeGVCFs(String[] inputGVCFs, String output, String restrictContig,
 																		int numWithinSampleThreads, Logger altLog) {
-		String[] inputs = new String[] {referenceGenomeFasta};
-		inputs = Array.concatAll(inputs, inputGVCFs);
-		String[] inputGVCFArgs = new String[inputGVCFs.length * 2];
-		int index = 0;
+    List<String> inputs = Lists.newArrayList();
+    inputs.add(referenceGenomeFasta);
+    for (String inputGVCF : inputGVCFs) {
+      inputs.add(inputGVCF);
+      inputs.add(getVcfIndex(inputGVCF));
+    }
+    List<String> inputGVCFArgs = Lists.newArrayList();
 		for (String inputGVCF : inputGVCFs) {
-      inputGVCFArgs[index++] = VARIANT;
-      inputGVCFArgs[index++] = inputGVCF;
+      inputGVCFArgs.add(VARIANT);
+      inputGVCFArgs.add(inputGVCF);
 		}
-    String[] command = new String[] {javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK, T,
-																			GENOTYPEGVCFS, R, referenceGenomeFasta, O, output, NT,
-                                     Integer.toString(numWithinSampleThreads)};
+        List<String> command = Lists.newArrayList(javaLocation, JAR, gatkLocation + GENOME_ANALYSIS_TK,
+                                              T, GENOTYPEGVCFS, R, referenceGenomeFasta, O, output,
+                                              NT, Integer.toString(numWithinSampleThreads));
 		if (restrictContig != null) {
-			String[] restriction = new String[] {L, restrictContig};
-			command = Array.concatAll(command, restriction);
+		  command.add(L);
+		  command.add(restrictContig);
 			log.reportTimeInfo("Restricting joint genotyping to " + restrictContig);
 		}
-		command = Array.concatAll(command, inputGVCFArgs);
-		return CmdLine.runCommandWithFileChecks(command, "", inputs, new String[] {output}, verbose,
-																						overWriteExistingOutput, true,
+
+    return CmdLine.runCommandWithFileChecks(command, "", inputs,
+                                            ImmutableList.of(output, getVcfIndex(output)), verbose,
+                                            overWriteExistingOutput, true,
                                             altLog == null ? log : altLog);
 	}
 
