@@ -26,8 +26,8 @@ public class CmdLine {
      *        exist
      * @param dir directory to run the command in, and also directory to check for existing files
      */
-    public Command(List<String> commandList, List<String> necessaryInputFiles,
-                   List<String> expectedOutputFiles, String dir) {
+    public Command(List<String> commandList, Collection<String> necessaryInputFiles,
+                   Collection<String> expectedOutputFiles, String dir) {
       super();
       this.commandList = commandList;
       this.necessaryInputFiles = necessaryInputFiles;
@@ -337,6 +337,61 @@ public class CmdLine {
                                                  boolean skipReporting, boolean treatEmptyAsMissing,
                                                  Logger log) {
     return new Command(commandArray, necessaryInputFiles, expectedOutputFiles,
+                       dir).runCommand(verbose, overWriteExistingOutput, skipReporting,
+                                       treatEmptyAsMissing, log);
+  }
+  
+  /**
+   * @param commandList the commands as a List of Strings, spaces will be inserted between each
+     *        element
+   * @param dir directory to run the command in, and also directory to check for existing files
+   * @param necessaryInputFiles will check these files for existence, will fail if they do not all
+   *        exist
+   * @param expectedOutputFiles will check these files for existence, will skip the command if all
+   *        exist and overWriteExistingOutput is not flagged
+   * @param verbose
+   * @param overWriteExistingOutput
+   * @param treatEmptyAsMissing if true, 0 sized files will be set to missing. If 0 sized files are
+   *        used as placeholders, set to false
+   * @param log
+   * @return
+   */
+  public static boolean runCommandWithFileChecks(List<String> commandList, String dir,
+                                                 Collection<String> necessaryInputFiles,
+                                                 Collection<String> expectedOutputFiles,
+                                                 boolean verbose, boolean overWriteExistingOutput,
+                                                 boolean treatEmptyAsMissing, Logger log) {
+    return new Command(commandList, necessaryInputFiles, expectedOutputFiles,
+                       dir).runCommand(verbose, overWriteExistingOutput, true,
+                                       treatEmptyAsMissing, log);
+  }
+  
+  
+  /**
+   * @param commandList the commands as a List of Strings, spaces will be inserted between each
+     *        element
+   * @param dir directory to run the command in, and also directory to check for existing files
+   * @param necessaryInputFiles will check these files for existence, will fail if they do not all
+   *        exist
+   * @param expectedOutputFiles will check these files for existence, will skip the command if all
+   *        exist and overWriteExistingOutput is not flagged
+   * @param verbose
+   * @param overWriteExistingOutput
+   * @param skipReporting if set to true, the cmdline reporting will be sent to the log, otherwise
+   *        it will be ignored. Nice to report when error checking, but there is a high probability
+   *        of reduced performance and strange output if always used
+   * @param treatEmptyAsMissing if true, 0 sized files will be set to missing. If 0 sized files are
+   *        used as placeholders, set to false
+   * @param log
+   * @return
+   */
+  public static boolean runCommandWithFileChecks(List<String> commandList, String dir,
+                                                 Collection<String> necessaryInputFiles,
+                                                 Collection<String> expectedOutputFiles,
+                                                 boolean verbose, boolean overWriteExistingOutput,
+                                                 boolean skipReporting, boolean treatEmptyAsMissing,
+                                                 Logger log) {
+    return new Command(commandList, necessaryInputFiles, expectedOutputFiles,
                        dir).runCommand(verbose, overWriteExistingOutput, skipReporting,
                                        treatEmptyAsMissing, log);
   }
