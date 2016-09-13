@@ -12,7 +12,6 @@ public class SNPSIFT {
 	public static final String SNP_SIFT_JAR = "SnpSift.jar";
 	public static final String DB_NSFP = "dbnsfp";
 	public static final String TSTV = "tstv";
-	public static final String HOM = "hom";
 
 	public static final String V = "-v";
 
@@ -72,7 +71,7 @@ public class SNPSIFT {
 		boolean progress = true;
 		if (!fail) {
 			String[] command = PSF.Java.buildJavaJar(snpSiftLocation + SNP_SIFT_JAR);
-			String[] args = new String[] {TSTV, HOM, inputVCF, PSF.Ext.CARROT, outputTsTv};
+      String[] args = new String[] {TSTV, inputVCF, PSF.Ext.CARROT, outputTsTv};
 			command = Array.concatAll(command, args);
 			String batFile = outputTsTv + ".bat";
 			command = CmdLine.prepareBatchForCommandLine(command, batFile, true, log);
