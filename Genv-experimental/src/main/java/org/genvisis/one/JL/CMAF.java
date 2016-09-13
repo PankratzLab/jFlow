@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.genvisis.common.AlleleFreq;
 import org.genvisis.common.Logger;
 import org.genvisis.seq.analysis.VCFSourceReader;
 
@@ -25,18 +26,33 @@ public class CMAF {
 
 	}
 
+	private static String getKey(String group, double freq) {
+		return group + "_" + freq;
+
+	}
+
 	private static void compute(String vcf, double[] freqs, List<String> groups, int numSamples, Logger log) {
 		VCFFileReader reader = new VCFSourceReader(vcf, false);
+		HashMap<String, TrackCmaf> tracker = new HashMap<String, CMAF.TrackCmaf>();
+		for (String group : groups) {
+			for (int i = 0; i < freqs.length; i++) {
+				TrackCmaf current = new TrackCmaf();
+				tracker.put(getKey(group, freqs[i]), current);
+			}
+
+		}
+
 		for (VariantContext vc : reader) {
 			for (String group : groups) {
 				if (vc.hasAttribute(group)) {
 					for (int i = 0; i < freqs.length; i++) {
 						double freq = freqs[i];
 						try {
-							double af = Double.parseDouble(vc.getAttributeAsString("AC", "NaN"));
-
-							if (af <= freq) {
-								log.reportTimeInfo(af + "");
+							int ac = Integer.parseInt(vc.getAttributeAsString("AC", "NaN"));
+							double maf = AlleleFreq.calcMAF(numSamples - ac, 0, ac);
+							if (maf <= freq) {
+								log.reportTimeInfo(maf + "");
+								tracker.get("GD");
 							}
 						} catch (NumberFormatException nfe) {
 
