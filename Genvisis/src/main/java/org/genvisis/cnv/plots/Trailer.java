@@ -1194,6 +1194,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     previousRegion.addActionListener(this);
     previousRegion.setActionCommand(PREVIOUS_REGION);
     previousRegion.setPreferredSize(new Dimension(25, 25));
+    previousRegion.setToolTipText("Go to previous region");
 
     sampleList = new JComboBox();
     sampleList.setFont(new Font("Arial", 0, 20));
@@ -1230,6 +1231,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     nextRegion.addActionListener(this);
     nextRegion.setActionCommand(NEXT_REGION);
     nextRegion.setPreferredSize(new Dimension(25, 25));
+    nextRegion.setToolTipText("Go to next region");
     sampPanel.setPreferredSize(new Dimension(sampPanel.getPreferredSize().width,
                                              sampleList.getPreferredSize().height + 5));
     descrPanel.add(sampPanel, "cell 0 0");
@@ -1327,11 +1329,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     firstChr.addActionListener(this);
     firstChr.setActionCommand(FIRST_CHR);
     firstChr.setPreferredSize(new Dimension(20, 20));
+    firstChr.setToolTipText("Go to first chromosome");
     previousChr = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif"));
     previousChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif"));
     previousChr.addActionListener(this);
     previousChr.setActionCommand(PREVIOUS_CHR);
     previousChr.setPreferredSize(new Dimension(20, 20));
+    previousChr.setToolTipText("Go to previous chromosome");
     navigationField = new JTextField("", 20);
     navigationField.setHorizontalAlignment(JTextField.CENTER);
     navigationField.setFont(font);
@@ -1352,11 +1356,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     nextChr.addActionListener(this);
     nextChr.setActionCommand(NEXT_CHR);
     nextChr.setPreferredSize(new Dimension(20, 20));
+    nextChr.setToolTipText("Go to next chromosome");
     lastChr = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif"));
     lastChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif"));
     lastChr.addActionListener(this);
     lastChr.setActionCommand(LAST_CHR);
     lastChr.setPreferredSize(new Dimension(20, 20));
+    lastChr.setToolTipText("Go to last chromosome");
     navigateChrPanel.add(firstChr);
     navigateChrPanel.add(previousChr);
     navigateChrPanel.add(navigationField);
