@@ -1,6 +1,3 @@
-/**
- *
- */
 package org.genvisis.cnv.plots;
 
 import java.awt.BorderLayout;
@@ -22,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
@@ -36,6 +34,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
@@ -50,6 +49,7 @@ import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.manage.UCSCtrack;
 import org.genvisis.cnv.var.CNVRectangles;
 import org.genvisis.cnv.var.Region;
+import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Positions;
@@ -404,6 +404,7 @@ public class CompPlot extends JFrame {
     JMenuItem ucsc;
     JMenuItem bedUcsc;
     JMenuItem medianLRR;
+    JMenuItem openTrailer;
 
     ucsc = new JMenuItem();
     ucsc.setAction(ucscAction);
@@ -435,9 +436,75 @@ public class CompPlot extends JFrame {
     medianLRR.setToolTipText("Compute median Log R Ratios for a region");
     act.add(medianLRR);
 
+    openTrailer = new JMenuItem();
+    openTrailer.setAction(openTrailerAction);
+    openTrailer.setText("Open in Trailer");
+    openTrailer.setToolTipText("Open the Trailer plot view of all currently visible CNVs");
+    act.add(openTrailer);
 
     return menuBar;
   }
+
+  /**
+   * Open a {@link Trailer} plot for each {@link CNVariant} in the given list.
+   */
+  public void openTrailers(List<CNVariant> selectedCNVs) {
+    SampleData sampleData = proj.getSampleData(2, true);
+    int window = proj.getProperty(proj.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER);
+
+    // More than 4 seems to run out of heap space
+    // So warn the user
+    if (selectedCNVs.size() > 4) {
+      int answer = JOptionPane.showConfirmDialog(null,
+                                                 "Warning - this will launch "
+                                                       + selectedCNVs.size()
+                                                       + " instances of Trailer\nProceed?",
+                                                 "Warning", JOptionPane.YES_NO_OPTION,
+                                                 JOptionPane.QUESTION_MESSAGE);
+
+      if (answer != JOptionPane.YES_OPTION) {
+        return;
+      }
+    }
+    for (int i=0; i<selectedCNVs.size(); i++) {
+      CNVariant cnv = selectedCNVs.get(i);
+      String markerPosition = "chr" + location[0] + ":" + (cnv.getStart() - window) + "-"
+                              + (cnv.getStop() + window);
+
+      // Strip p or q from the end
+      if (markerPosition.endsWith("p") || markerPosition.endsWith("q")) {
+        markerPosition = markerPosition.substring(0, markerPosition.length() - 1);
+      }
+
+      String trailerID = cnv.getFamilyID() + "\t" + cnv.getIndividualID();
+      String[] ids = sampleData.lookup(trailerID);
+      if (ids == null || ids.length == 0) {
+        proj.message("Error - could not find a lookup for individual " + cnv.getFamilyID()
+                     + "-" + cnv.getIndividualID()
+                     + " in the SampleData file; cannot launch Trailer without knowing which DNA sample to open");
+      } else {
+        new Trailer(proj, ids[0], proj.CNV_FILENAMES.getValue(), markerPosition);
+      }
+    }
+  }
+
+  /**
+   * Open a {@link Trailer} plot for each visible CNV.
+   */
+  private final AbstractAction openTrailerAction = new AbstractAction() {
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      SwingUtilities.invokeLater(new Runnable() {
+
+        @Override
+        public void run() {
+          openTrailers(cnvRects.getCNVs());
+        }
+      });
+    }
+  };
 
   private final AbstractAction lrrCompAction = new AbstractAction() {
     private static final long serialVersionUID = 1L;
@@ -779,7 +846,10 @@ public class CompPlot extends JFrame {
     loadCNVs(location);
   }
 
-  public void setSelectedCNVs(ArrayList<CNVariant> cnvs) {
+  /**
+   * Set the selected CNVs from the main UI, e.g. when clicking on a rectangle
+   */
+  public void setSelectedCNVs(List<CNVariant> cnvs) {
     compConfig.setSelectedCNVs(cnvs);
   }
 

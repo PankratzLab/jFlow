@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 import org.genvisis.cnv.plots.CompPlot;
 import org.genvisis.filesys.CNVariant;
@@ -212,6 +213,17 @@ public class CNVRectangles {
     lowestStart = getLowestRect(cnvRectangles);
     packedRectangles = packRectangles(cnvRectangles);
     return packedRectangles;
+  }
+
+  /**
+   * @return A list of all {@link CNVariant} instances in all rectangles in this collection.
+   */
+  public List<CNVariant> getCNVs() {
+    List<CNVariant> variants = new ArrayList<CNVariant>();
+    for (CNVRectangle rectangle : cnvRectangles) {
+      variants.addAll(rectangle.getCNVs());
+    }
+    return variants;
   }
 
   /**

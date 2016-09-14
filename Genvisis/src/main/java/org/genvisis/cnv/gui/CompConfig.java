@@ -7,6 +7,9 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -15,17 +18,13 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.plots.CompPlot;
-import org.genvisis.cnv.plots.Trailer;
-import org.genvisis.cnv.var.SampleData;
 import org.genvisis.filesys.CNVariant;
 
 public class CompConfig extends JPanel implements ChangeListener, ActionListener {
@@ -185,7 +184,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
     }
   }
 
-  // Monitor the combobox for changes
+  // Monitor the display mode combobox for changes
   @Override
   public void actionPerformed(ActionEvent arg0) {
     @SuppressWarnings("unchecked")
@@ -216,7 +215,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
     return rectangleHeight;
   }
 
-  public void setSelectedCNVs(ArrayList<CNVariant> cnvs) {
+  public void setSelectedCNVs(List<CNVariant> cnvs) {
     cnvPanel.setCNVs(cnvs);
   }
 
@@ -229,9 +228,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 
 class CNVPanel extends JPanel implements ActionListener {
   private static final long serialVersionUID = 1L;
-  ArrayList<CNVariant> selectedCNVs;
   CNVariant selectedCNV;
-  CNVariant oldCNV;
   JPanel cnvPanel;
   JLabel iid; // Individual ID
   JLabel fid; // Family ID
@@ -241,7 +238,6 @@ class CNVPanel extends JPanel implements ActionListener {
   JLabel score; // Quality score
   String displayMode;
   JScrollPane cnvPane;
-  JComboBox cnvList;
   JScrollPane cnvScroll;
 
   JLabel cnvListLabel;
@@ -255,7 +251,6 @@ class CNVPanel extends JPanel implements ActionListener {
   public CNVPanel(CompPlot cp) {
     compPlot = cp;
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-    // setLayout(new MigLayout("debug", "[]", "[][][]"));
     add(new JLabel("Selected CNV:"));
     iid = new JLabel();
     fid = new JLabel();
@@ -299,31 +294,26 @@ class CNVPanel extends JPanel implements ActionListener {
     cnvPanel.add(new JLabel("Score:"));
     cnvPanel.add(score);
 
-    cnvListLabel = new JLabel("Select CNVs:");
+    cnvListLabel = new JLabel("");
     cnvPanel.add(cnvListLabel);
 
-    // add(cnvPanel, "cell 0 0");
     add(cnvPanel);
 
     cnvScroll = new JScrollPane();
-    // add(cnvScroll, "cell 0 1, hidemode 3");
     add(cnvScroll);
     cnvScroll.setVisible(false);
 
     JPanel btnPanel = new JPanel();
     btnPanel.setLayout(new FlowLayout(FlowLayout.LEADING));
-    // add(selectAll, "cell 0 2, split 3");
     btnPanel.add(selectAll);
     selectAll.setVisible(false);
     selectAll.addActionListener(this);
 
-    // add(selectNone, "cell 0 2");
     btnPanel.add(selectNone);
     selectNone.setVisible(false);
     selectNone.addActionListener(this);
 
     // Link off to Trailer
-    // add(trailerButton, "cell 0 2");
     btnPanel.add(trailerButton);
     trailerButton.setEnabled(false);
     trailerButton.addActionListener(this);
@@ -331,68 +321,57 @@ class CNVPanel extends JPanel implements ActionListener {
     add(btnPanel);
   }
 
-  // Update the fields
-  public void setCNVs(ArrayList<CNVariant> cnvs) {
-    selectedCNVs = new ArrayList<CNVariant>(cnvs);
+  /**
+   * Update the list of <b>available</b> CNVs. If there is only one CNV or we are not in collapsed
+   * mode, the single CNV will be selected. Otherwise, CNV selection will go through a
+   * checkbox-style side panel.
+   */
+  public void setCNVs(List<CNVariant> cnvs) {
+    selectedCNV = null;
 
     // In collapsed mode, if there are multiple CNVs associated, add a combo box that lets you
-    // select which CNV to look at
-    if (displayMode.equals("Collapsed")) {
-      if (selectedCNVs.size() > 1) {
-        cnvScroll.setPreferredSize(new Dimension(100, 100));
-        JPanel checkPanel = new JPanel(new GridLayout(selectedCNVs.size(), 1));
-        checkList = new CNVCheckList(selectedCNVs);
-        for (JCheckBox checkBox : checkList.checkList) {
-          checkPanel.add(checkBox);
-        }
-        cnvScroll.add(checkPanel);
-        cnvScroll.setViewportView(checkPanel);
-        cnvScroll.setVisible(true);
-        selectAll.setVisible(true);
-        selectNone.setVisible(true);
-      } else {
-        selectAll.setVisible(false);
-        selectNone.setVisible(false);
-        cnvScroll.setVisible(false);
+    // have granular control over which CNV to look at
+    // We start with no individual CNVs selected
+    if ("Collapsed".equals(displayMode) && cnvs.size() > 1) {
+      cnvScroll.setPreferredSize(new Dimension(100, 100));
+      JPanel checkPanel = new JPanel(new GridLayout(cnvs.size(), 1));
+      checkList = new CNVCheckList(cnvs);
+      for (JCheckBox checkBox : checkList.checkList) {
+        checkPanel.add(checkBox);
       }
-
-      selectedCNV = selectedCNVs.get(0);
-
-      setCNVText();
+      cnvScroll.add(checkPanel);
+      cnvScroll.setViewportView(checkPanel);
+      setUIElements(true);
     } else {
-      // There's only one CNV, so select it
-      selectedCNV = selectedCNVs.get(0);
-
-      // Clear the combo box
-      if (cnvList != null) {
-        cnvPanel.remove(cnvList);
-        cnvListLabel.setText("");
-        cnvPanel.validate();
-      }
-
-      setCNVText();
-    }
-
-    // Don't enable the button if there aren't any CNVs selected
-    if (selectedCNVs.size() > 0) {
-      trailerButton.setText("To Trailer");
-      trailerButton.setIcon(null);
-      trailerButton.setEnabled(true);
-    } else {
-      trailerButton.setEnabled(false);
+      // Select the first CNV
+      selectedCNV = cnvs.get(0);
+      setCNVText(selectedCNV);
+      setUIElements(false);
     }
 
     cnvPanel.repaint();
   }
 
+  /**
+   * Helper method to update UI elements that depend on whether or not we have selected a
+   * CNVRectangle with more than one CNV.
+   */
+  private void setUIElements(boolean cnvPanelVisible) {
+      cnvScroll.setVisible(cnvPanelVisible);
+      cnvListLabel.setText(cnvPanelVisible ? "Select CNVs:" : "");
+      selectAll.setVisible(cnvPanelVisible);
+      selectNone.setVisible(cnvPanelVisible);
+      trailerButton.setEnabled(!cnvPanelVisible);
+  }
+
   // Update the text with the currently selected CNV
-  public void setCNVText() {
-    iid.setText(selectedCNV.getIndividualID());
-    fid.setText(selectedCNV.getFamilyID());
-    length.setText("" + selectedCNV.getSize());
-    copies.setText("" + selectedCNV.getCN());
-    probes.setText("" + selectedCNV.getNumMarkers());
-    score.setText("" + selectedCNV.getScore());
+  public void setCNVText(CNVariant cnv) {
+    iid.setText(cnv.getIndividualID());
+    fid.setText(cnv.getFamilyID());
+    length.setText("" + cnv.getSize());
+    copies.setText("" + cnv.getCN());
+    probes.setText("" + cnv.getNumMarkers());
+    score.setText("" + cnv.getScore());
   }
 
   // Clear the CNV panel
@@ -407,147 +386,104 @@ class CNVPanel extends JPanel implements ActionListener {
     selectAll.setVisible(false);
     selectNone.setVisible(false);
     cnvScroll.setVisible(false);
-
-    if (cnvList != null) {
-      cnvPanel.remove(cnvList);
-      cnvListLabel.setText("");
-      cnvPanel.validate();
-    }
   }
 
   public void setDisplayMode(String mode) {
     displayMode = mode;
     clearCNVText();
     selectedCNV = null;
-    selectedCNVs = null;
   }
 
   @Override
   public void actionPerformed(ActionEvent arg0) {
-    if (arg0.getSource().equals(cnvList)) {
-      oldCNV = selectedCNV;
-      setCNVText();
-    } else if (arg0.getSource().equals(selectAll)) {
+    if (arg0.getSource().equals(selectAll) && !checkList.checkList.isEmpty()) {
       checkList.selectAll();
+      trailerButton.setEnabled(true);
     } else if (arg0.getSource().equals(selectNone)) {
       checkList.selectNone();
+      trailerButton.setEnabled(false);
     } else if (arg0.getSource().equals(trailerButton)) {
-      // Launch 1 or more instances of Trailer
-      Project proj = compPlot.getProject();
-      SampleData sampleData = compPlot.getProject().getSampleData(2, true);
-      int[] location = compPlot.getCPLocation();
-      // int window =
-      // Integer.parseInt(compPlot.getProject().getProperty(Project.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER));
-      int window = compPlot.getProject().getProperty(proj.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER);
-
-      if (selectedCNVs.size() > 1) {
-        // More than 4 seems to run out of heap space
-        if (checkList.getSelected().size() > 4) {
-          String[] options = {"Yes", "No"};
-          int answer = JOptionPane.showOptionDialog(null,
-                                                    "Warning - this will launch "
-                                                          + checkList.getSelected().size()
-                                                          + " instances of Trailer\nProceed?",
-                                                    "Warning", JOptionPane.YES_NO_OPTION,
-                                                    JOptionPane.QUESTION_MESSAGE, null, options,
-                                                    options[1]);
-          if (answer == JOptionPane.YES_OPTION) {
-            for (CNVariant cnv : checkList.getSelected()) {
-              String markerPosition = "chr" + location[0] + ":" + (cnv.getStart() - window) + "-"
-                                      + (cnv.getStop() + window);
-
-              // Strip p or q from the end
-              if (markerPosition.endsWith("p") || markerPosition.endsWith("q")) {
-                markerPosition = markerPosition.substring(0, markerPosition.length() - 1);
-              }
-
-              String trailerID = cnv.getFamilyID() + "\t" + cnv.getIndividualID();
-
-              new Trailer(proj, sampleData.lookup(trailerID)[0], proj.CNV_FILENAMES.getValue(),
-                          markerPosition);
-            }
-          }
-        } else if (checkList.getSelected().size() == 0) {
-          JOptionPane.showMessageDialog(null, "No CNVs selected");
-        } else {
-          for (CNVariant cnv : checkList.getSelected()) {
-            String markerPosition = "chr" + location[0] + ":" + (cnv.getStart() - window) + "-"
-                                    + (cnv.getStop() + window);
-            // Strip p or q from the end
-            if (markerPosition.endsWith("p") || markerPosition.endsWith("q")) {
-              markerPosition = markerPosition.substring(0, markerPosition.length() - 1);
-            }
-
-            String trailerID = cnv.getFamilyID() + "\t" + cnv.getIndividualID();
-
-            new Trailer(proj, sampleData.lookup(trailerID)[0], proj.CNV_FILENAMES.getValue(),
-                        markerPosition);
-          }
-        }
+      // if selectedCNV is not null, then we have a rect with one CNV and we use selectedCNV
+      // if we have a rect with multiple CNVs, we use the checkList.
+      List<CNVariant> selectedCNVs;
+      if (selectedCNV != null) {
+        selectedCNVs = new ArrayList<CNVariant>();
+        selectedCNVs.add(selectedCNV);
       } else {
-        String markerPosition = "chr" + location[0] + ":" + (selectedCNV.getStart() - window) + "-"
-                                + (selectedCNV.getStop() + window);
+        selectedCNVs = checkList.getSelected();
+      }
 
-        // Strip p or q from the end
-        if (markerPosition.endsWith("p") || markerPosition.endsWith("q")) {
-          markerPosition = markerPosition.substring(0, markerPosition.length() - 1);
-        }
+      compPlot.openTrailers(selectedCNVs);
+    }
+  }
 
-        String trailerID = selectedCNV.getFamilyID() + "\t" + selectedCNV.getIndividualID();
-        // TODO errors if IDs is null
-        String[] ids = sampleData.lookup(trailerID);
-        if (ids == null) {
-          proj.message("Error - could not find a lookup for individual " + selectedCNV.getFamilyID()
-                       + "-" + selectedCNV.getIndividualID()
-                       + " in the SampleData file; cannot launch Trailer without knowing which DNA sample to open");
-        } else {
-          String id = ids[0];
-          String[] fns = proj.CNV_FILENAMES.getValue();
-          new Trailer(proj, id, fns, markerPosition);
+
+  /**
+   * Create a checklist of variants. Used when multiple CNVs are collapsed into a single rectangle.
+   *
+   * @author Michael Vieths
+   * @author Mark Hiner
+   *
+   */
+  private class CNVCheckList {
+    List<JCheckBox> checkList;
+    Map<JCheckBox, CNVariant> variantMap;
+    int checkCount;
+
+    public CNVCheckList(List<CNVariant> variants) {
+      variantMap = new HashMap<JCheckBox, CNVariant>();
+      checkList = new ArrayList<JCheckBox>();
+      checkCount = 0;
+
+      // This will control behavior when checking or unchecking an option
+      // e.g., changing display text, enabling/disabling trailer button
+      ActionListener actionListener = new ActionListener() {
+        public void actionPerformed(ActionEvent actionEvent) {
+          JCheckBox checkBox = (JCheckBox) actionEvent.getSource();
+          if (checkBox.getModel().isSelected()) {
+            checkCount++;
+            setCNVText(variantMap.get(checkBox));
+          } else {
+            checkCount--;
+          }
+
+          trailerButton.setEnabled(checkCount > 0);
         }
+      };
+
+      for (CNVariant cnv : variants) {
+        JCheckBox box = new JCheckBox(cnv.getIndividualID());
+        box.addActionListener(actionListener);
+        checkList.add(box);
+        variantMap.put(box, cnv);
       }
     }
-  }
-}
 
-
-/**
- * Create a checklist of variants
- *
- * @author Michael Vieths
- *
- */
-class CNVCheckList {
-  ArrayList<JCheckBox> checkList;
-  ArrayList<CNVariant> variants;
-
-  public CNVCheckList(ArrayList<CNVariant> variants) {
-    this.variants = variants;
-    checkList = new ArrayList<JCheckBox>();
-    for (CNVariant cnv : variants) {
-      checkList.add(new JCheckBox(cnv.getIndividualID()));
-    }
-  }
-
-  public void selectAll() {
-    for (JCheckBox box : checkList) {
-      box.setSelected(true);
-    }
-  }
-
-  public void selectNone() {
-    for (JCheckBox box : checkList) {
-      box.setSelected(false);
-    }
-  }
-
-  ArrayList<CNVariant> getSelected() {
-    ArrayList<CNVariant> selected = new ArrayList<CNVariant>();
-    for (int i = 0; i < checkList.size(); i++) {
-      if (checkList.get(i).isSelected()) {
-        selected.add(variants.get(i));
+    public void selectAll() {
+      for (JCheckBox box : checkList) {
+        box.setSelected(true);
       }
     }
-    return selected;
+
+    public void selectNone() {
+      for (JCheckBox box : checkList) {
+        box.setSelected(false);
+      }
+    }
+
+    /**
+     * @return List of all selected CNVs
+     */
+    public List<CNVariant> getSelected() {
+      List<CNVariant> selected = new ArrayList<CNVariant>();
+      for (int i = 0; i < checkList.size(); i++) {
+        JCheckBox checkBox = checkList.get(i);
+        if (checkBox.isSelected()) {
+          selected.add(variantMap.get(checkBox));
+        }
+      }
+      return selected;
+    }
   }
+
 }
