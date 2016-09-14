@@ -374,14 +374,22 @@ class CNVPanel extends JPanel implements ActionListener {
     score.setText("" + cnv.getScore());
   }
 
-  // Clear the CNV panel
-  public void clearCNVText() {
+  /**
+   * Clear selected CNV text
+   */
+  private void clearCNVText() {
     iid.setText("");
     fid.setText("");
     length.setText("");
     copies.setText("");
     probes.setText("");
     score.setText("");
+  }
+
+  /**
+   * Clear CNV UI components and text
+   */
+  private void clearCNVPanel() {
     trailerButton.setEnabled(false);
     selectAll.setVisible(false);
     selectNone.setVisible(false);
@@ -390,7 +398,7 @@ class CNVPanel extends JPanel implements ActionListener {
 
   public void setDisplayMode(String mode) {
     displayMode = mode;
-    clearCNVText();
+    clearCNVPanel();
     selectedCNV = null;
   }
 
@@ -445,6 +453,7 @@ class CNVPanel extends JPanel implements ActionListener {
             setCNVText(variantMap.get(checkBox));
           } else {
             checkCount--;
+            clearCNVText();
           }
 
           trailerButton.setEnabled(checkCount > 0);
