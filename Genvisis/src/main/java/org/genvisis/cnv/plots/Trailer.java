@@ -129,29 +129,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                      MouseMotionListener, MouseWheelListener {
   public static final long serialVersionUID = 1L;
 
-  // public static final String DEFAULT_LOCATION = "chr6:161,739,001-163,119,245"; // parkin
-  // public static final String DEFAULT_LOCATION = "chr5:151497267-151499003"; // hit
-  // public static final String DEFAULT_LOCATION = "chr5:151,175,382-151,203,885"; // 1 gene
-  public static final String DEFAULT_LOCATION = "chr17:55,609,472-55,824,368"; // USP32
-  // public static final String DEFAULT_LOCATION = "chr12"; // USP32
+  public static final String DEFAULT_LOCATION = "chr1";
 
   public static final String DEFAULT_SAMPLE = null;
-  // public static final String DEFAULT_SAMPLE = "ND12014";
-
-  // public static final String DEFAULT_LOCATION = "chr10:96,040,187-97,106,178";
-  // public static final String DEFAULT_LOCATION = "chr23";
-
-  // public static final String[] DEFAULT_CNV_FILES = {"data/penncnv.cnv",
-  // "data/quantisnp_windows.cnv", "data/quantisnp_linux.cnv", "data/dnacopy10.cnv"};
-  // public static final String[] DEFAULT_CNV_FILES = {"data/conf.cnv", "data/allMarkers.cnv"};
-  // public static final String[] DEFAULT_CNV_FILES = {"data/conf_100kb_5SNP_10.0.cnv",
-  // "data/allMarkers_100kb_5SNP_10.0.cnv"};
-  // public static final String[] DEFAULT_CNV_FILES = {"data/conf_100bp_5SNP_10.0.cnv"};
-  // public static final String[] DEFAULT_CNV_FILES = {"conf_100bp_5SNP_10.0.cnv"};
-  // public static final String[] DEFAULT_CNV_FILES = {"data/penncnv_1SNP.cnv",
-  // "data/quantisnp_1SNP.cnv"};
-  // public static final String DEFAULT_GENE_TRACK = GeneSet.DIRECTORY+GeneSet.REFSEQ_TRACK;
-  // public static final String DEFAULT_GENE_TRACK = GeneSet.REFSEQ_TRACK;
   public static final boolean SHOW_MIDLINE = true;
 
   public static final double MOUSE_WHEEL_MULTIPLIER = 0.5;
@@ -162,16 +142,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   public static final int DOUBLE_CLICK_INTERVAL = 500;
   public static final int SIZE = 4;
   public static final int MIN_BUFFER = 10000;
-  // public static final String DEFAULT_SAMPLE_DATA = "data/SampleData.dat";
   public static final int DEFAULT_STARTX = 20;
   public static final int DEFAULT_STARTY = 20;
   public static final int DEFAULT_WIDTH = 1100;
   public static final int DEFAULT_HEIGHT = 720;
-
-  // private static final String ALT_UP = "ALT UP";
-  // private static final String ALT_DOWN = "ALT DOWN";
-  // private static final String ALT_LEFT = "ALT LEFT";
-  // private static final String ALT_RIGHT = "ALT RIGHT";
 
   private static final String FIRST_CHR = "First chr";
   private static final String PREVIOUS_CHR = "Previous chr";
