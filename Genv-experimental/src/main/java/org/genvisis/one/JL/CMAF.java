@@ -8,7 +8,6 @@ import org.genvisis.common.AlleleFreq;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.VCFSourceReader;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
@@ -37,7 +36,7 @@ public class CMAF {
 	}
 
 	private static void compute(String vcf, double[] freqs, List<String> groups, int numSamples, boolean useAC,
-			String outDir, Logger log) {
+			String outDir, String requiredAnno, Logger log) {
 		VCFFileReader reader = new VCFSourceReader(vcf, false);
 		HashMap<String, TrackCmaf> tracker = new HashMap<String, CMAF.TrackCmaf>();
 		for (String group : groups) {
@@ -57,7 +56,8 @@ public class CMAF {
 				int groupI = 0;
 				for (String group : groups) {
 
-					if (vc.hasAttribute(group)) {
+					if (vc.hasAttribute(group)
+							&& (requiredAnno == null || !vc.getAttributeAsString(requiredAnno, ".").equals("."))) {
 						double freq = freqs[i];
 						int ac = -1;
 						try {
@@ -96,32 +96,39 @@ public class CMAF {
 
 		ArrayList<String> out = new ArrayList<String>();
 		for (String group : tracker.keySet()) {
-			for (String subGroup : tracker.get(group).keySet()) {
-				out.add(group + "\t" + subGroup + "\t" + tracker.get(group).get(subGroup));
+			if (!group.startsWith("AC")) {
+				for (String subGroup : tracker.get(group).keySet()) {
+					out.add(group + "\t" + subGroup + "\t" + tracker.get(group).get(subGroup));
+				}
 			}
 		}
-		System.out.println(Array.toStr(numVars));
-		System.out.println(Array.toStr(numMuts));
+		log.reportTimeInfo(Array.toStr(numVars));
+		log.reportTimeInfo(Array.toStr(numMuts));
 
-		Files.writeArrayList(out, outDir + VCFOps.getAppropriateRoot(vcf, true) + ".cmaf.txt");
+		Files.writeArrayList(out, outDir + VCFOps.getAppropriateRoot(vcf, true)
+				+ (requiredAnno == null ? "" : requiredAnno) + ".cmaf.txt");
 
 	}
 
 	public static void main(String[] args) {
-		String vcf = "/Volumes/Beta/data/Cushings/mito/processDir/polymorphismsMTVariants.vcf";
+		String vcf = "/Volumes/Beta/data/Cushings/mito/processDir/polymorphismsMTVariants.pos_1.posAdjust_-1.hg19_multianno.eff.gatk.sed1000g.posAdjust_1.vcf";
 		ArrayList<String> groups = new ArrayList<String>();
 		groups.add("AC");
 		groups.add("Uniprot_name");
 
 		groups.add("OXPHOS_complex");
+		groups.add("Associated_disease");
 		double[] freqs = new double[] { 1000, .01, .001, .0001 };
 		int numSamples = 32059;
 		String outDir = "/Volumes/Beta/data/Cushings/mito/processDir/";
-		compute(vcf, freqs, groups, numSamples, true, outDir, new Logger());
-		// String second =
-		// "/Volumes/Beta/data/Cushings/mito/CUSHING_FREQ_V2_Mito/CUSHING_FREQ_V2.maf_1.2.final.CUSHING_FREQ_V2.vcf.gz";
-		// compute(second, freqs, groups, numSamples, false, outDir, new
-		// Logger());
+		String second = "/Volumes/Beta/data/Cushings/mito/CUSHING_FREQ_V2_Mito/CUSHING_FREQ_V2.maf_0.0.final.CUSHING_FREQ_V2.vcf.gz";
+
+		compute(vcf, freqs, groups, numSamples, true, outDir, null, new Logger());
+		compute(second, freqs, groups, numSamples, false, outDir, null, new Logger());
+
+		String required = "MitImpact_id";
+		compute(vcf, freqs, groups, numSamples, true, outDir, required, new Logger());
+		compute(second, freqs, groups, numSamples, false, outDir, required, new Logger());
 
 	}
 
