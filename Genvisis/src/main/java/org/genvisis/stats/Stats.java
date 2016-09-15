@@ -9,7 +9,8 @@ import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 public class Stats {
 
   public static double cdf(OpdfGaussian dist, ObservationReal n) {
-    return new NormalDistribution(dist.mean(), dist.variance()).cumulativeProbability(n.value);
+    return new NormalDistribution(dist.mean(),
+                                  Math.sqrt(dist.variance())).cumulativeProbability(n.value);
   }
 
   public static double ztest(double p1, int n1, double p2, int n2) {
