@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 
@@ -31,10 +31,8 @@ import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.CNVariant.CNVBuilder;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 
 import com.google.common.primitives.Doubles;
@@ -69,6 +67,22 @@ public class CNVCaller {
   private final DATA_ADJUSTMENTS[] dataAdjustments;
   private final boolean debugMode;
 
+  /**
+   * @param proj
+   * @param dna the samples dna ID
+   * @param pennHmm
+   * @param gcModel
+   * @param pfb
+   * @param dataAdjustments the order of operations for adjusting data (such as whether to scale to
+   *        median and then gc correct, or the other way around)
+   * @param markerSet
+   * @param markersToUse the markers to use to make CNV calls
+   * @param copyNumberDef boolean array defining copy number only (non snp) markers... which get
+   *        their own hmm params
+   * @param lrrs intense!city
+   * @param bafs
+   * @param debugMode
+   */
   public CNVCaller(Project proj, String dna, PennHmm pennHmm, GcModel gcModel, PFB pfb,
                    DATA_ADJUSTMENTS[] dataAdjustments, PreparedMarkerSet markerSet,
                    boolean[] markersToUse, boolean[] copyNumberDef, double[] lrrs, double[] bafs,
@@ -213,7 +227,7 @@ public class CNVCaller {
                                  double minConf, int numThreads) {
     WorkerHive<CNVCallResult> hive = new WorkerHive<CNVCallResult>(numThreads, 10, proj.getLog());
     boolean[] finalAnalysisSet = Array.booleanArray(markerSet.getMarkerNames().length, false);
-    Hashtable<String, ArrayList<Integer>> chrIndices = new Hashtable<String, ArrayList<Integer>>();
+    HashMap<String, ArrayList<Integer>> chrIndices = new HashMap<String, ArrayList<Integer>>();
     byte[] chrs = markerSet.getChrs();
 
     for (int i = 0; i < analysisProjectIndices.length; i++) {
@@ -225,14 +239,12 @@ public class CNVCaller {
       finalAnalysisSet[analysisProjectIndices[i]] = true;
     }
     int[][] snpDists = getSNPDist(proj, markerSet, false, finalAnalysisSet);
-    int[][] snpDistsReverse = getSNPDist(proj, markerSet, true, finalAnalysisSet);
 
     if (chrsToCall == null) {
       chrsToCall = Array.arrayOfIndices(snpDists.length);
     }
     for (int curChr : chrsToCall) {
       String chr = Positions.getChromosomeUCSC(curChr, true);
-      // if (i == 16) {
       if (snpDists[curChr].length > MIN_MARKERS_PER_CHROMOSOME && chrIndices.containsKey(chr)) {
         int[] currentChrIndices = Ints.toArray(chrIndices.get(chr));
         int[] currentChrPositions = Array.subArray(analysisPositions, currentChrIndices);
@@ -244,11 +256,11 @@ public class CNVCaller {
                                                Array.subArray(markerSet.getMarkerNames(),
                                                               analysisProjectIndices),
                                                currentChrIndices);
-        CNVCallerWorker worker = new CNVCallerWorker(proj, dna, (byte) curChr, currentChrPositions,
-                                                     currentNames, pennHmm, currentChrLrr,
-                                                     currentChrBaf, currentChrPfbs,
-                                                     snpDists[curChr], snpDistsReverse[curChr],
-                                                     currentChrCnDef, callReverse, debugMode);
+        CNVCallerWorker worker =
+                               new CNVCallerWorker(proj, dna, (byte) curChr, currentChrPositions,
+                                                   currentNames, pennHmm, currentChrLrr,
+                                                   currentChrBaf, currentChrPfbs, snpDists[curChr],
+                                                   currentChrCnDef, callReverse, debugMode);
         hive.addCallable(worker);
       } else {
         if (debugMode) {
@@ -258,9 +270,6 @@ public class CNVCaller {
                                  + " in the final call set, skipping");
         }
       }
-      // } else {
-      // proj.getLog().reportTimeError("REMVEMEBDE CHR!^");
-      // }
     }
     hive.execute(true);
     ArrayList<CNVCallResult> results = hive.getResults();
@@ -277,25 +286,8 @@ public class CNVCaller {
         }
       }
       if (callReverse) {
-        throw new IllegalArgumentException("Call reverse is no longer active since it gives identical results. If you really want to use it, find this message and uncomment");
+        throw new IllegalArgumentException("Call reverse is no longer active since it gives identical results. If you really want to use it, go back in git history");
       }
-      // if (callReverse && results.get(i).getChrCNVsReverse() != null) {
-      // for (int j = 0; j < results.get(i).getChrCNVsReverse().getLoci().length; j++) {
-      // if (results.get(i).getChrCNVsReverse().getLoci()[j].getNumMarkers() >= minNumMarkers &&
-      // results.get(i).getChrCNVsReverse().getLoci()[j].getScore() > minConf) {
-      // allReverse.add(results.get(i).getChrCNVsReverse().getLoci()[j]);
-      // }
-      // }
-      // }
-      // if (callReverse && results.get(i).getChrCNVsReverseConsensus() != null) {
-      // for (int j = 0; j < results.get(i).getChrCNVsReverseConsensus().getLoci().length; j++) {
-      // if (results.get(i).getChrCNVsReverseConsensus().getLoci()[j].getNumMarkers() >=
-      // minNumMarkers && results.get(i).getChrCNVsReverseConsensus().getLoci()[j].getScore() >
-      // minConf) {
-      // allReverseConsensus.add(results.get(i).getChrCNVsReverseConsensus().getLoci()[j]);
-      // }
-      // }
-      // }
     }
 
     LocusSet<CNVariant> allLocusSet =
@@ -347,16 +339,16 @@ public class CNVCaller {
     private final double[] bafs;
     private final double[] pfbs;
     private final int[] snipDists;
-    private final int[] snipDistsReverse;
 
     private final boolean[] cnDef;
-    private final boolean verbose, callReverse;
+    private final boolean verbose;
+    private final boolean callReverse;
     private final String[] names;
 
     private CNVCallerWorker(Project proj, String dna, byte currentChr, int[] positions,
                             String[] names, PennHmm pennHmm, double[] lrrs, double[] bafs,
-                            double[] pfbs, int[] snipDists, int[] snipDistsReverse, boolean[] cnDef,
-                            boolean callReverse, boolean verbose) {
+                            double[] pfbs, int[] snipDists, boolean[] cnDef, boolean callReverse,
+                            boolean verbose) {
       super();
       this.proj = proj;
       this.dna = dna;
@@ -367,7 +359,6 @@ public class CNVCaller {
       this.bafs = bafs;
       this.pfbs = pfbs;
       this.snipDists = snipDists;
-      this.snipDistsReverse = snipDistsReverse;
       this.cnDef = cnDef;
       this.names = names;
       this.callReverse = callReverse;
@@ -387,67 +378,13 @@ public class CNVCaller {
       chrCnvs = PennHmm.scoreCNVsSameChr(pennHmm, chrCnvs, positions, lrrs, bafs, pfbs, cnDef,
                                          viterbiResult.getQ(), 2, proj.getLog());
       if (callReverse) {
-        ViterbiResult viterbiResultReverse = PennHmm.ViterbiLogNP_CHMM(pennHmm, Array.reverse(lrrs),
-                                                                       Array.reverse(bafs),
-                                                                       Array.reverse(pfbs),
-                                                                       snipDistsReverse,
-                                                                       Array.reverse(cnDef));
-        chrCnvsReverse = viterbiResultReverse.analyzeStateSequence(proj, dna, dna, currentChr,
-                                                                   positions, names, 2, true,
-                                                                   verbose);
-        chrCnvsReverse = PennHmm.scoreCNVsSameChr(pennHmm, chrCnvs, positions, lrrs, bafs, pfbs,
-                                                  cnDef, viterbiResult.getQ(), 2, proj.getLog());
-        chrCNVsReverseConsensus =
-                                developConsensus(chrCnvs, chrCnvsReverse, positions, proj.getLog());
-        chrCNVsReverseConsensus = PennHmm.scoreCNVsSameChr(pennHmm, chrCNVsReverseConsensus,
-                                                           positions, lrrs, bafs, pfbs, cnDef,
-                                                           viterbiResult.getQ(), 2, proj.getLog());
+        throw new IllegalArgumentException("Call reverse is no longer active since it gives identical results.");
+
       }
       CNVCallResult callResult =
                                new CNVCallResult(chrCnvs, chrCnvsReverse, chrCNVsReverseConsensus);
       return callResult;
     }
-  }
-
-  private static LocusSet<CNVariant> developConsensus(LocusSet<CNVariant> chrCnvs,
-                                                      LocusSet<CNVariant> chrCnvsReverse,
-                                                      int[] positions, Logger log) {
-    ArrayList<CNVariant> consensus = new ArrayList<CNVariant>();
-    if (chrCnvsReverse != null) {
-      for (int i = 0; i < chrCnvs.getLoci().length; i++) {
-        CNVariant tmp = chrCnvs.getLoci()[i];
-
-        CNVariant[] revereseOverlaps = chrCnvsReverse.getOverLappingLoci(tmp);
-        if (revereseOverlaps != null && revereseOverlaps.length > 0) {
-          for (CNVariant revereseOverlap : revereseOverlaps) {
-            if (tmp.getCN() == revereseOverlap.getCN()) {
-              Segment intersect = tmp.getIntersection(revereseOverlap, log);
-              if (intersect.getSize() != tmp.getSize()) {
-                System.err.println("CONSENSUS FLAG");
-              }
-              CNVBuilder builder = new CNVBuilder(tmp);
-              builder.start(intersect.getStart());
-              builder.stop(intersect.getStop());
-              builder.numMarkers(Array.getValuesBetween(positions, intersect.getStart(),
-                                                        intersect.getStop(), true).length);
-              consensus.add(builder.build());
-            }
-          }
-        }
-      }
-    }
-
-    LocusSet<CNVariant> consensusSet =
-                                     new LocusSet<CNVariant>(consensus.toArray(new CNVariant[consensus.size()]),
-                                                             true, log) {
-
-                                       /**
-                                        * 
-                                        */
-                                       private static final long serialVersionUID = 1L;
-
-                                     };
-    return consensusSet;
   }
 
   public static class CNVCallResult {
@@ -631,7 +568,7 @@ public class CNVCaller {
                                            boolean[] markersToUse, boolean[] copyNumberDef,
                                            int[] chrsToCall, boolean callReverse, int minNumMarkers,
                                            double minConf, int numThreads, boolean debugMode) {
-    DATA_ADJUSTMENTS[] dAdjustments = null;
+    DATA_ADJUSTMENTS[] dAdjustments;
     if (gcModel == null) {
       dAdjustments = getPennCNVProcessingOrder();
       proj.getLog().reportTimeWarning("No gc model was provided, calling on cnvs on raw data");
@@ -645,9 +582,8 @@ public class CNVCaller {
                                    markersToUse, copyNumberDef, sampLrrs, sampBafs, debugMode);
     caller.adjustData();
 
-    CNVCallResult cnvs =
-                       caller.callCNVS(chrsToCall, callReverse, minNumMarkers, minConf, numThreads);
-    return cnvs;
+    return caller.callCNVS(chrsToCall, callReverse, minNumMarkers, minConf, numThreads);
+
   }
 
   /**
