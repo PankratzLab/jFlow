@@ -452,21 +452,8 @@ public class CompPlot extends JFrame {
     SampleData sampleData = proj.getSampleData(2, true);
     int window = proj.getProperty(proj.WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER);
 
-    // More than 4 seems to run out of heap space
-    // So warn the user
-    if (selectedCNVs.size() > 4) {
-      int answer = JOptionPane.showConfirmDialog(null,
-                                                 "Warning - this will launch "
-                                                       + selectedCNVs.size()
-                                                       + " instances of Trailer\nProceed?",
-                                                 "Warning", JOptionPane.YES_NO_OPTION,
-                                                 JOptionPane.QUESTION_MESSAGE);
-
-      if (answer != JOptionPane.YES_OPTION) {
-        return;
-      }
-    }
-    for (int i=0; i<selectedCNVs.size(); i++) {
+    String[][] sampleRegions = new String[selectedCNVs.size()][];
+    for (int i=0; i<sampleRegions.length; i++) {
       CNVariant cnv = selectedCNVs.get(i);
       String markerPosition = "chr" + location[0] + ":" + (cnv.getStart() - window) + "-"
                               + (cnv.getStop() + window);
@@ -478,13 +465,15 @@ public class CompPlot extends JFrame {
 
       String trailerID = cnv.getFamilyID() + "\t" + cnv.getIndividualID();
       String[] ids = sampleData.lookup(trailerID);
-      if (ids == null || ids.length == 0) {
-        proj.message("Error - could not find a lookup for individual " + cnv.getFamilyID()
-                     + "-" + cnv.getIndividualID()
-                     + " in the SampleData file; cannot launch Trailer without knowing which DNA sample to open");
-      } else {
-        new Trailer(proj, ids[0], proj.CNV_FILENAMES.getValue(), markerPosition);
+      if (ids != null && ids.length > 0) {
+        String id = ids[0];
+        sampleRegions[i] = new String[]{id, markerPosition};
       }
+    }
+    if (sampleRegions.length == 0) {
+      proj.message("Error - no valid selected CNVs; cannot launch Trailer without knowing which DNA sample to open");
+    } else {
+      new Trailer(proj, proj.CNV_FILENAMES.getValue(), sampleRegions);
     }
   }
 

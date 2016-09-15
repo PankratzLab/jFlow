@@ -160,6 +160,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   private static final String REGION_LIST_NEW_FILE = "Load Region File";
   private static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
   private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
+  private static final String REGION_LIST_PROVIDED = "Region list provided";
   private JComboBox sampleList;
   private String[] samplesPresent;
   private JTextField navigationField;
@@ -186,11 +187,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   // private float lrrMin, lrrMax;
   private boolean inDrag;
   private int startX;
-  private String[] cnvFilenames;
   private String[] cnvLabels;
   private CNVariant[][] cnvs;
   // private String[] regionsList;
   // private int regionsListIndex;
+
+  //FIXME should use org.genvisis.cnv.var.Region class here
   private String[][] regions;
   private int regionIndex;
   private JPanel lrrPanel;
@@ -277,7 +279,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         if (!shortName.equals(regionFileName)) {
           regionFileName = REGION_LIST_USE_CNVS;
           loadCNVsAsRegions();
-          procCNVs(chr);
+          updateCNVs(chr);
           updateGUI();
           showRegion(0);
         }
@@ -644,15 +646,87 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     }
   };
 
-  public Trailer(Project proj, String selectedSample, String[] filenames, String location) {
-    this(proj, selectedSample, filenames, location, DEFAULT_STARTX, DEFAULT_STARTX, DEFAULT_WIDTH,
-         DEFAULT_HEIGHT);
+  // TODO trailer takes a map<genome : region>
+  // builds region array, sets region filename to "From enumerated list"
+
+//  public Trailer(Project proj, String[] cnvFiles, Map<String, List<String>> regionMap) {
+//    this(proj, regionMap.keySet().iterator().next(), cnvFiles);
+//    cnvLabels = regionMap.keySet().toArray(new String[regionMap.size()]);
+//    samplesPresent = cnvLabels;
+//    regions = new String[cnvLabels.length][];
+//    for (int i=0; i<regions.length; i++) {
+//      List<String> list = regionMap.get(cnvLabels[i]);
+//      regions[i] = list.toArray(new String[list.size()]);
+//    }
+//    regionFileName = REGION_LIST_PROVIDED;
+//    setBounds(DEFAULT_STARTX, DEFAULT_STARTY, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+//    setVisible(true);
+//  }
+
+  /**
+   * Basic constructor. Use {@link #Trailer(Project, String, String[], String, String[][])} to
+   * specify a region list.
+   *
+   * @see #Trailer(Project, String, String[], String, String[][], int, int, int, int)
+   */
+  public Trailer(Project proj, String selectedSample, String[] cnvFiles, String startingLocation) {
+    this(proj, selectedSample, cnvFiles, startingLocation, null);
   }
 
+  /**
+   * Basic constructor allowing specified GUI dimensions. Use
+   * {@link #Trailer(Project, String, String[], String, String[][])} to specify a region list.
+   *
+   * @see #Trailer(Project, String, String[], String, String[][], int, int, int, int)
+   */
+  public Trailer(Project proj, String selectedSample, String[] cnvFiles,
+                 final String startingLocation, final int startX, final int startY, final int width,
+                 final int height) {
+    this(proj, selectedSample, cnvFiles, startingLocation, null, startX, startY, width, height);
+  }
+
+  /**
+   * As {@link #Trailer(Project, String, String[], String, String[][])} but uses the first of the
+   * specified regions to provide the default selectetd sample/starting location.
+   *
+   * @see #Trailer(Project, String, String[], String, String[][], int, int, int, int)
+   */
+  public Trailer(Project proj, String[] cnvFiles, String[][] specifiedRegions) {
+    this(proj, specifiedRegions[0][0], cnvFiles, specifiedRegions[0][1], specifiedRegions);
+  }
+
+  /**
+   * Constructor allowing a custom region list to be defined.
+   *
+   * @see #Trailer(Project, String, String[], String, String[][], int, int, int, int)
+   */
+  public Trailer(Project proj, String selectedSample, String[] cnvFiles, String startingLocation,
+                 String[][] specifiedRegions) {
+    this(proj, selectedSample, cnvFiles, startingLocation, specifiedRegions, DEFAULT_STARTX,
+         DEFAULT_STARTY, DEFAULT_WIDTH,  DEFAULT_HEIGHT);
+  }
+
+  /**
+   * Create and show a trailer plot. Trailers visualize the LRR and B allele frequency of a
+   * chromsomoal region of one sample genome (DNA).
+   *
+   * @param proj Project containing sample data of interest
+   * @param selectedSample The first sample to be selected
+   * @param cnvFiles List of CNV files (e.g. to read regions from)
+   * @param startingLocation First chromosomal location to load (of the format:
+   *        {@code chr<##>[:startPos-endPos]}
+   * @param specifiedRegions (OPTIONAL) a hard-coded enumeration of desired regions. The number of
+   *        regions = specifiedRegions.length. Each subarray should have the format:
+   *        {@code {sampleID, location, [comment]}}
+   * @param startX GUI starting x position
+   * @param startY GUI starting y positions
+   * @param width GUI width
+   * @param height GUI height
+   */
+  public Trailer(Project proj, String selectedSample, String[] cnvFiles, final String startingLocation, final String[][] specifiedRegions,
+                 final int startX, final int startY, final int width, final int height) {
   // TODO Trailer should have a createAndShowGUI, same as all the other plots, as opposed to being
   // its own frame
-  public Trailer(Project proj, String selectedSample, String[] filenames, final String location,
-                 final int startX, final int startY, final int width, final int height) {
     super("Genvisis - Trailer - " + proj.PROJECT_NAME.getValue());
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     addWindowListener(new WindowAdapter() {
@@ -663,13 +737,17 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
           String[] currSet = Trailer.this.proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue();
 
           ArrayList<String> newSet = new ArrayList<String>();
-          outer: for (String s : files) {
+          for (String s : files) {
+            boolean found = false;
             for (int i = 0; i < currSet.length; i++) {
               if (currSet[i].equals(s)) {
-                continue outer;
+                found = true;
+                break;
               }
             }
-            newSet.add(s);
+            if (!found) {
+              newSet.add(s);
+            }
           }
 
           if (newSet.size() > 0) {
@@ -693,22 +771,16 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
       }
     });
 
-    System.out.println("startX: " + startX + "\t startY: " + startY + "\t width: " + width
-                       + "\t height: " + height);
-    System.out.println(Array.toStr(filenames, "; "));
+    System.out.println(Array.toStr(cnvFiles, "; "));
 
     long time;
 
     this.proj = proj;
     log = proj.getLog();
     jar = proj.JAR_STATUS.getValue();
-    cnvFilenames = filenames;
     fail = false;
 
     time = new Date().getTime();
-
-    chr = (byte) Positions.parseUCSClocation(location)[0];
-    // parseLocation(location, false);
 
     fail = !loadMarkers();
     if (fail) {
@@ -728,7 +800,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     setJMenuBar(createMenuBar());
 
     sample = selectedSample == null ? samplesPresent[0] : selectedSample;
-    sampleData = proj.getSampleData(2, cnvFilenames);
+    sampleData = proj.getSampleData(2, cnvFiles);
     if (sampleData.failedToLoad()) {
       proj.getLog().reportError("Without a SampleData file, Trailer will not start");
       return;
@@ -743,69 +815,60 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
       log.report("Loaded track in " + ext.getTimeElapsed(time));
     }
 
-    if (!sampleData.getCNVsLoaded()) {
-      new Thread(new Runnable() {
-        @Override
-        public void run() {
+    System.out.println("startX: " + startX + "\t startY: " + startY + "\t width: " + width
+                       + "\t height: " + height);
+
+    parseLocation(startingLocation);
+
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        final long t = new Date().getTime();
+
+
+        if (specifiedRegions != null) {
+          regions = specifiedRegions;
+          regionFileName = REGION_LIST_PROVIDED; 
+        } else if (regionFileName == null || REGION_LIST_USE_CNVS.equals(regionFileName)) {
           while (!sampleData.getCNVsLoaded()) {
             try {
               Thread.sleep(30);
             } catch (InterruptedException e) {
             }
           }
-          cnvLabels = sampleData.getCnvClasses();
-          procCNVs(chr);
-          if (REGION_LIST_USE_CNVS.equals(regionFileName)) {
-            loadCNVsAsRegions();
-          }
           regionFileName = REGION_LIST_USE_CNVS;
-          SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              setBounds(startX, startY, width, height);
-              setVisible(true);
-
-              updateSample(sample);
-              parseLocation(location);
-              updateGUI();
-
-              if (location.equals(DEFAULT_LOCATION)) {
-                showRegion(0);
-              }
-            }
-          });
         }
-      }).start();
-    } else {
-      cnvLabels = sampleData.getCnvClasses();
-      updateSample(sample);
-      parseLocation(location);
-      setBounds(startX, startY, width, height);
-      setVisible(true);
 
-      Trailer.this.regionFileName = REGION_LIST_USE_CNVS;
-      loadCNVsAsRegions();
-      procCNVs(chr);
-      updateGUI();
-      regionIndex = -1;
-      if (location.equals(DEFAULT_LOCATION)) {
-        showRegion(0);
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            cnvLabels = sampleData.getCnvClasses();
+            setBounds(startX, startY, width, height);
+            updateLocation(startingLocation);
+            updateSample(sample);
+            setVisible(true);
+            updateGUI();
+
+            showRegion(0);
+            System.out.println("Loaded regions in " + ext.getTimeElapsed(t));
+          }
+        });
       }
-    }
+    }).start();
+//      cnvLabels = sampleData.getCnvClasses();
+//      updateSample(sample);
+//      updateLocation(startingLocation);
+//      setBounds(startX, startY, width, height);
+//      setVisible(true);
+//
+//      Trailer.this.regionFileName = REGION_LIST_USE_CNVS;
+//      loadCNVsAsRegions();
+//      updateCNVs(chr);
+//      updateGUI();
+//      if (startingLocation.equals(DEFAULT_LOCATION)) {
+//        showRegion(0);
+//      }
 
-    System.out.println("All in " + ext.getTimeElapsed(time));
-
-    // setBounds(startX, startY, width, height);
-    // setVisible(true);
-    //
-    // Trailer.this.regionFileName = REGION_LIST_USE_CNVS;
-    // loadCNVsAsRegions();
-    // procCNVs(chr);
-    // updateGUI();
-    // regionIndex = -1;
-    // if (location.equals(DEFAULT_LOCATION)) {
-    // showRegion(0);
-    // }
   }
 
   private void paintLRRPanel(Graphics g) {
@@ -1347,7 +1410,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         JTextField navField;
         navField = (JTextField) e.getSource();
         navField.setText(navField.getText().trim());
-        parseLocation(navField.getText());
+        updateLocation(navField.getText());
       }
     });
 
@@ -1395,7 +1458,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        parseLocation("chr1");
+        updateLocation("chr1");
       }
     });
     actionMap.put(PREVIOUS_CHR, new AbstractAction() {
@@ -1403,7 +1466,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        parseLocation("chr" + Math.max(chr - 1, 1));
+        updateLocation("chr" + Math.max(chr - 1, 1));
       }
     });
     actionMap.put(NEXT_CHR, new AbstractAction() {
@@ -1411,7 +1474,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        parseLocation("chr" + Math.min(chr + 1, 26));
+        updateLocation("chr" + Math.min(chr + 1, 26));
       }
     });
     actionMap.put(LAST_CHR, new AbstractAction() {
@@ -1419,7 +1482,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        parseLocation("chr26");
+        updateLocation("chr26");
       }
     });
     actionMap.put(FIRST_REGION, new AbstractAction() {
@@ -1918,7 +1981,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
             // addCnvsToPheno(callResult.getChrCNVsReverseConsensus().getLoci(), externalCNVs,
             // INTERNAL_CNV_TYPES.CONSENSUS);
             sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
-            procCNVs(chr);
+            updateCNVs(chr);
           }
           jrb.setSelected(false);
           updateGUI();
@@ -1943,7 +2006,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
           int externalCNVs = prepInternalClasses();
           addCnvsToPheno(mosSet.getLoci(), externalCNVs, INTERNAL_CNV_TYPES.MOSAIC_CALLER);
           sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
-          procCNVs(chr);
+          updateCNVs(chr);
 
           jrb.setSelected(false);
           updateGUI();
@@ -2165,13 +2228,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     // String[] filenames;
 
     if (command.equals(FIRST_CHR)) {
-      parseLocation("chr1");
+      updateLocation("chr1");
     } else if (command.equals(PREVIOUS_CHR)) {
-      parseLocation("chr" + Math.max(chr - 1, 1));
+      updateLocation("chr" + Math.max(chr - 1, 1));
     } else if (command.equals(NEXT_CHR)) {
-      parseLocation("chr" + Math.min(chr + 1, 26));
+      updateLocation("chr" + Math.min(chr + 1, 26));
     } else if (command.equals(LAST_CHR)) {
-      parseLocation("chr26");
+      updateLocation("chr26");
     } else if (command.equals(FIRST_REGION)) {
       if (regions == null || regions.length == 0) {
         JOptionPane.showMessageDialog(null, "Error - No regions have been loaded", "Error",
@@ -2497,7 +2560,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
       samp = proj.getPartialSampleFromRandomAccessFile(sample, false, true, true, true, false);
     }
     if (samp == null) {
-      System.err.println("Error - sample '" + sample + "' not found in "
+      System.err.println("Error - unspecified sample from "
                          + proj.SAMPLE_DIRECTORY.getValue(false, true));
     } else if (samp.getFingerprint() != fingerprint) {
       System.err.println("Error - Sample " + proj.SAMPLE_DIRECTORY.getValue(false, true) + sample
@@ -2552,7 +2615,15 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     // lrrMax = Math.ceil(lrrMax);
   }
 
-  public void parseLocation(String location) {
+
+  /**
+   * Updates the {@link #chr}, {@link #start} and {@link #stop} fields, based on the provided
+   * location.
+   *
+   * @param location Either a valid gene name recognized by the installed gene track, or a UCSC
+   *        location of the format "chr#:start-stop"
+   */
+  private void parseLocation(String location) {
     byte oldChr;
     int[] loc;
 
@@ -2597,7 +2668,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     }
     if (chr != oldChr) {
       start = stop = -1;
-      procCNVs(chr);
+      updateCNVs(chr);
     }
     start = loc[1];
     stop = loc[2];
@@ -2610,7 +2681,16 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     if (start >= stop) {
       start = stop - 1;
     }
+  }
 
+  /**
+   * Does {@link #parseLocation(String)} and also refreshes the UI.
+   *
+   * @param location Either a valid gene name recognized by the installed gene track, or a UCSC
+   *        location of the format "chr#:start-stop"
+   */
+  private void updateLocation(String location) {
+    parseLocation(location);
     updateGUI();
   }
 
@@ -2652,12 +2732,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
       // }
       if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
         loadCNVsAsRegions();
-        procCNVs(chr);
+        updateCNVs(chr);
         updateGUI();
         regionIndex = 0;
         // showRegion();
       } else {
-        procCNVs(chr);
+        updateCNVs(chr);
         updateGUI();
       }
       System.out.println("updated in " + ext.getTimeElapsed(time));
@@ -2844,6 +2924,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
       v = new Vector<String[]>();
       ignoredLines = countMissingRegions = invalidSamples = 0;
       line = null;
+      //FIXME here is the logic for turning strings to regions
       while ((line = reader.readLine()) != null) {
         parts = line.trim().split("\t");
         if (sampleData.lookup(parts[0]) == null) {
@@ -2899,7 +2980,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     count = 0;
     segs = new Segment[26][];
     for (int i = 0; i < segs.length; i++) {
-      procCNVs((byte) i);
+      updateCNVs((byte) i);
       segs[i] = findUniqueRegions(cnvs);
       count += segs[i].length;
     }
@@ -2940,19 +3021,17 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     return segs;
   }
 
+  /**
+   * Updates the active region and sample (if necessary).
+   */
   public void showRegion(int regionIndex) {
-    // SwingUtilities.invokeLater(new Runnable() {
-    // @Override
-    // public void run() {
-
     Trailer.this.regionIndex = regionIndex;
     if (regions == null || regions.length == 0) {
       regionField.setText("");
       commentLabel.setText(" ");
       return;
     }
-    // System.out.println("regionIndex="+regionIndex+"\t"+"regions.length="+regions.length);
-    parseLocation(regions[regionIndex][1]);
+    updateLocation(regions[regionIndex][1]);
     if (regions[regionIndex].length > 2) {
       commentField.setText(regions[regionIndex][2]);
       commentLabel.setText("region #" + (regionIndex + 1) + ":  " + regions[regionIndex][2]);
@@ -2966,8 +3045,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     }
 
     regionField.setText((regionIndex + 1) + " of " + regions.length);
-    // }
-    // });
   }
 
   // public static Vector<String[]> loadFileToVec(String filename, boolean demo, boolean
@@ -3029,31 +3106,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                                        + ext.addCommas(stop));
   }
 
-  // public static CNVariant[] getCNVlist(Hashtable<String,Hashtable<String,CNVariant[]>> cnvHashes,
-  // String[] filenames, String sample) {
-  // Hashtable<String,CNVariant[]> hash;
-  // Vector<CNVariant> v;
-  // CNVariant[] set;
-  //
-  // v = new Vector<CNVariant>();
-  //
-  // for (int i = 0; i<filenames.length; i++) {
-  // hash = cnvHashes.get(filenames[i]);
-  // if (hash != null) {
-  // set = hash.get(sample);
-  // if (set != null) {
-  // for (int j = 0; j<set.length; j++) {
-  // set[j].setSource(i);
-  // v.add(set[j]);
-  // }
-  // }
-  // }
-  // }
-  //
-  // return CNVariant.toArray(v);
-  // }
-
-  public void procCNVs(byte chr) {
+  /**
+   * Updates the {@link #cnvs} array for the specified chromosome. This first dimension of the
+   * resulting array = the number of CNV labels, while the second dimension is the CNV array for the
+   * current {@link IndiPheno} at that label index and chromosome.
+   */
+  private void updateCNVs(byte chr) {
     if (cnvLabels == null) {
       cnvs = new CNVariant[0][];
       return;
@@ -3065,7 +3123,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         if (cnvs[i] == null) {
           cnvs[i] = new CNVariant[0];
         }
-        // System.out.println("Processed "+cnvs[i].length+" "+cnvLabels[i]+" CNVs for chr"+chr);
       }
     }
   }
@@ -3177,7 +3234,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
     addCnvsToPheno(new CNVariant[] {builder.build()}, externalCNVs, type);
     sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
-    procCNVs(chr);
+    updateCNVs(chr);
     updateGUI();
   }
 
@@ -3231,7 +3288,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
       }
     }
     sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
-    procCNVs(chr);
+    updateCNVs(chr);
     updateGUI();
   }
 
@@ -3258,7 +3315,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
       tmpCurrent = new CNVariant[] {};
     }
     indiPheno.getCnvClasses().get(key).put(chr + "", tmpCurrent);
-    procCNVs(chr);
+    updateCNVs(chr);
     updateGUI();
 
   }
@@ -3468,16 +3525,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         return null;
       }
     }
-
-
   }
 
   public static void main(String[] args) {
-    // Project proj;
-    //
-    // proj = new Project(cnv.Launch.getDefaultDebugProjectFile(true), false);
-    Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
+     Project proj = new Project(args[0], false);
 
+//     Project proj = new Project(cnv.Launch.getDefaultDebugProjectFile(true), false);
+//     Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
     new Trailer(proj, DEFAULT_SAMPLE, proj.CNV_FILENAMES.getValue(), DEFAULT_LOCATION);
   }
 }
