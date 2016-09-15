@@ -34,6 +34,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -42,6 +43,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
@@ -389,6 +391,39 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
     UIManager.put("ToolTip.background", Color.decode("#F5F5DC"));
 
+    // Create a splash "loading" screen until it is safe to show the UI
+    final String loadMsg = "Loading Genvisis";
+    final JFrame splash = new JFrame();
+    final JLabel splashText = new JLabel(loadMsg, SwingConstants.CENTER);
+    splash.add(splashText);
+    splash.setSize(200, 75);
+    splash.setLocationRelativeTo(null);
+    splash.setVisible(true);
+    new Thread(new Runnable() {
+
+      @Override
+      public void run() {
+
+        // This just cycles the splash screen message
+        // with a varying number of trailing "." characters
+        int i = 0;
+        while (splash.isVisible()) {
+          i = ++i % 4;
+          StringBuilder sb = new StringBuilder().append(loadMsg);
+          for (int j = 0; j < i; j++) {
+            sb.append(".");
+          }
+          splashText.setText(sb.toString());
+          try {
+            Thread.sleep(500);
+          } catch (InterruptedException e) {
+            break;
+          }
+        }
+
+      }
+    }).start();
+
     // Create and set up the content pane.
     launchPropertiesFile = LaunchProperties.DEFAULT_PROPERTIES_FILE;
     CurrentManifest manifest = new CurrentManifest(new Attributes());
@@ -415,19 +450,20 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     launchUI.setLocation(300, 200);
     launchUI.addWindowListener(launchUI);
 
-    // Start the UI
-    javax.swing.SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        launchUI.setVisible(true);
-      }
-    });
-
     // restore the last project open (e.g. in the previous session)
     launchUI.setIndexOfCurrentProject(launchUI.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
     if (!launchUI.projects.isEmpty()) {
       launchUI.loadProject();
     }
+
+    // Start the UI
+    javax.swing.SwingUtilities.invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        splash.setVisible(false);
+        launchUI.setVisible(true);
+      }
+    });
 
     // Check version
     try {
