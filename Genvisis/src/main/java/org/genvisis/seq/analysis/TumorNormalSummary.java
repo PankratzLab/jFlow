@@ -135,14 +135,15 @@ public class TumorNormalSummary {
 
   public static void main(String[] args) {
     String vcf =
-               "D:/data/Project_Tsai_21_25_26_28_spector/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.vcf.gz";
-    String outputDir = "D:/data/Project_Tsai_21_25_26_28_spector/TumorNormal/";
-    String vpop = outputDir + "TN.vpop";
+               "/Volumes/Beta/data/Cushings/mito/joint_genotypes_tsai_21_25_26_28_spector.chrM.posAdjust_-1.hg19_multianno.eff.gatk.sed1000g.posAdjust_1.disease.poly.vcf";
+    String outputDir = "/Volumes/Beta/data/Cushings/mito/tumorNormal/";
+    String vpop = outputDir + "TN.form.vpop";
 
     Logger log = new Logger(outputDir + "TN.log");
     Segment[] segs = new Segment[] {new Segment("chr15:50714579-50795277"),
-                                    new Segment("chr8:143543377-143628368")};
-    String[] names = new String[] {"USP8", "BAI1"};
+                                    new Segment("chr8:143543377-143628368"),
+                                    new Segment("chrM:1-20000")};
+    String[] names = new String[] {"USP8", "BAI1", "mtDNA"};
     int buffer = 300;
     for (int i = 0; i < names.length; i++) {
       run(vcf, vpop, outputDir, segs[i], names[i], buffer, log);
