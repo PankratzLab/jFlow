@@ -1170,9 +1170,18 @@ public class Sort {
     if (array == null || array.length == 0) {
       return array;
     }
-    T[] newArray;
-
-    newArray = (T[]) java.lang.reflect.Array.newInstance(array[0].getClass(), array.length);
+    T[] newArray = null;
+    
+    for (int i = 0; i < array.length; i++) {
+      if (array[i] != null) {
+        newArray = (T[]) java.lang.reflect.Array.newInstance(array[i].getClass(), array.length);
+        break;
+      }
+    }
+    
+    if (newArray == null) {
+      return array; // all elements of array are null
+    }
 
     for (int i = 0; i < array.length; i++) {
       newArray[i] = array[order[i]];
