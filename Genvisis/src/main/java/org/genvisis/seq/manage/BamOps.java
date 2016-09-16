@@ -96,6 +96,34 @@ public class BamOps {
     return getDefaultReader(bamOrSam, stringency, new ArrayList<SamReaderFactory.Option>());
   }
 
+
+  /**
+   * @param bamFile bam file to extract un-alligned reads from
+   * @param outputBam where the reads will be dumped
+   * @param log
+   */
+  public static void dumpUnMappedReads(String bamFile, String outputBam, Logger log) {
+    SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
+    SAMFileWriter sAMFileWriter =
+                                new SAMFileWriterFactory().setCreateIndex(true)
+                                                          .makeSAMOrBAMWriter(reader.getFileHeader(),
+                                                                              true, new File(outputBam));
+
+    for (SAMRecord samRecord : reader) {
+      if (samRecord.getReadUnmappedFlag()) {
+        sAMFileWriter.addAlignment(samRecord);
+      }
+    }
+
+    try {
+      reader.close();
+    } catch (IOException e) {
+      log.reportException(e);
+    }
+    sAMFileWriter.close();
+  }
+
+
   /**
    * @param bamFile the input bam file
    * @param outputBam the output bam file
