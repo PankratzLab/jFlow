@@ -1323,18 +1323,18 @@ public class DosageData implements Serializable {
 
     int[] keys = Sort.orderTwoLayers(ddNew.chrs, ddNew.positions, new Logger());
     System.gc(); // each 'putInOrder' creates a duplicate array - use a System.gc() call to
-                 // obliviate those
+                 // (hopefully) obliviate those
     ddNew.chrs = Sort.putInOrder(ddNew.chrs, keys);
     System.gc();
     ddNew.positions = Sort.putInOrder(ddNew.positions, keys);
     System.gc();
-    ddNew.alleles = Sort.putInOrder(ddNew.alleles, keys);
+    ddNew.alleles = ddNew.alleles == null ? null : Sort.putInOrder(ddNew.alleles, keys);
     System.gc();
     ddNew.markerSet.sortMarkers();
     System.gc();
-    ddNew.genotypeProbabilities = Sort.putInOrder(ddNew.genotypeProbabilities, keys);
+    ddNew.genotypeProbabilities = ddNew.genotypeProbabilities == null ? null : Sort.putInOrder(ddNew.genotypeProbabilities, keys);
     System.gc();
-    ddNew.dosageValues = Sort.putInOrder(ddNew.dosageValues, keys);
+    ddNew.dosageValues = ddNew.dosageValues == null ? null : Sort.putInOrder(ddNew.dosageValues, keys);
     System.gc();
 
     return ddNew;
