@@ -127,6 +127,7 @@ import net.miginfocom.swing.MigLayout;
 
 public class Trailer extends JFrame implements ActionListener, ClickListener, MouseListener,
                      MouseMotionListener, MouseWheelListener {
+
   public static final long serialVersionUID = 1L;
 
   public static final String DEFAULT_LOCATION = "chr1";
@@ -157,7 +158,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   private static final String LAST_REGION = "Last region";
   private static final String TO_SCATTER_PLOT = "To Scatter Plot";
   private static final String TO_COMP_PLOT = "To Comp Plot";
-  private static final String REGION_LIST_NEW_FILE = "Load Region File";
+  private static final String REGION_LIST_LOAD_FILE = "Load Region File";
+  private static final String REGION_LIST_SAVE_FILE = "Save Regions to File...";
+  private static final String REGION_LIST_NEW_FILE = "New Region List File";
   private static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
   private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
   private static final String REGION_LIST_PROVIDED = "Region list provided";
@@ -245,7 +248,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     @Override
     public void actionPerformed(ActionEvent e) {
       String shortName = ((JCheckBoxMenuItem) e.getSource()).getText();
-      if (!loadingFile && !REGION_LIST_NEW_FILE.equals(shortName)
+      if (!loadingFile && !REGION_LIST_LOAD_FILE.equals(shortName)
           && !REGION_LIST_PLACEHOLDER.equals(shortName)
           && !REGION_LIST_USE_CNVS.equals(shortName)) {
         String file = regionFileNameLoc.get(shortName);
@@ -281,6 +284,27 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
           updateGUI();
           showRegion(0);
         }
+      }
+    }
+  };
+
+  AbstractAction saveRegionFileAction = new AbstractAction() {
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      JFileChooser jfc = new JFileChooser((proj != null ? proj.PROJECT_DIRECTORY.getValue() : ""));
+      if (jfc.showSaveDialog(Trailer.this) == JFileChooser.APPROVE_OPTION) {
+        String newFile = jfc.getSelectedFile().getAbsolutePath();
+        String[] regionLines = new String[regions.length];
+        for (int i = 0; i < regionLines.length; i++) {
+          regionLines[i] = Array.toStr(regions[i], "\t");
+        }
+        Files.writeList(regionLines, newFile);
+        addFileToList(newFile, true);
+
+        JOptionPane.showMessageDialog(Trailer.this, "Successfully saved " + regions.length
+                                                    + " regions to file: " + newFile);
       }
     }
   };
@@ -835,6 +859,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
             }
           }
           regionFileName = REGION_LIST_USE_CNVS;
+
+          // Select the file from the load recent menu
+          regionFileNameBtn.get(REGION_LIST_USE_CNVS).setSelected(true);
         }
 
         SwingUtilities.invokeLater(new Runnable() {
@@ -1034,6 +1061,17 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   }
 
   private boolean addFileToList(String rawfile) {
+    return addFileToList(rawfile, false);
+  }
+
+  /**
+   * Adds a file to the "load recent file" menu
+   *
+   * @param rawfile file to add
+   * @param selectFile If true, the file will also be selected in the UI
+   * @return true if added successfully
+   */
+  private boolean addFileToList(String rawfile, boolean selectFile) {
     String file = ext.verifyDirFormat(rawfile);
     file = file.substring(0, file.length() - 1);
     String name = ext.rootOf(file);
@@ -1045,6 +1083,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     JCheckBoxMenuItem item = new JCheckBoxMenuItem();
     item.setAction(markerFileSelectAction);
     item.setText(name);
+    item.setSelected(selectFile);
 
     regionFileNameBtn.put(name, item);
     regionButtonGroup.add(item);
@@ -1635,15 +1674,22 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         }
       }
     });
-    newRegionFile.setText("New Region List File");
+    newRegionFile.setText(REGION_LIST_NEW_FILE);
     newRegionFile.setMnemonic(KeyEvent.VK_N);
     Font font = new Font("Arial", 0, 12);
     newRegionFile.setFont(font);
     fileMenu.add(newRegionFile);
 
+    JMenuItem saveRegionFile = new JMenuItem();
+    saveRegionFile.setAction(saveRegionFileAction);
+    saveRegionFile.setText(REGION_LIST_SAVE_FILE);
+    saveRegionFile.setMnemonic(KeyEvent.VK_A);
+    saveRegionFile.setFont(font);
+    fileMenu.add(saveRegionFile);
+
     JMenuItem loadRegionFile = new JMenuItem();
     loadRegionFile.setAction(loadRegionFileAction);
-    loadRegionFile.setText(REGION_LIST_NEW_FILE);
+    loadRegionFile.setText(REGION_LIST_LOAD_FILE);
     loadRegionFile.setMnemonic(KeyEvent.VK_L);
     loadRegionFile.setFont(font);
     fileMenu.add(loadRegionFile);
@@ -1694,7 +1740,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     regionFileNameBtn.put(REGION_LIST_USE_CNVS, item1);
     regionButtonGroup.add(item1);
     loadRecentFileMenu.add(item1);
-    item1.setSelected(true);
 
     final JRadioButtonMenuItem[] transformBtns =
                                                new JRadioButtonMenuItem[Transforms.TRANFORMATIONS.length];
