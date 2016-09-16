@@ -15,6 +15,7 @@ import org.genvisis.seq.NGSSample;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.analysis.MitoSeqCN;
 import org.genvisis.seq.manage.BamImport;
+import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.telomere.Computel;
 import org.genvisis.seq.telomere.TelSeq;
 
@@ -29,6 +30,8 @@ public class Pipeline {
   private static final String MITO_DIR = "mtDNACN/";
   private static final String TELSEQ_DIR = "telseq/";
   private static final String COMPUTEL_DIR = "computel/";
+  private static final String UNMAPPED_DIR = "unmapped/";
+
   private static final int[] TELOMERE_CAPTURE_BUFFER = new int[] {100, 0, 1000, 2000, 3000};
 
 
@@ -212,6 +215,40 @@ public class Pipeline {
 
   }
 
+  private static class UnMappedPart extends PipelinePart {
+
+    private String inputBam;
+    private String bamFile;
+    private String rootOutDir;
+    private Logger log;
+
+    public UnMappedPart(String inputBam, String rootOutDir, Logger log) {
+      super();
+      this.inputBam = inputBam;
+      this.rootOutDir = rootOutDir;
+      this.log = log;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.util.concurrent.Callable#call()
+     */
+    @Override
+    public PipelinePart call() throws Exception {
+      String unmappedDir = rootOutDir + UNMAPPED_DIR;
+      new File(unmappedDir).mkdirs();
+      String unMappedBam = unmappedDir + ext.rootOf(bamFile, true) + ".unmapped.bam";
+      if (!Files.exists(unMappedBam)) {
+        BamOps.dumpUnMappedReads(inputBam, unMappedBam, log);
+      }
+      return this;
+    }
+
+
+
+  }
+
 
   private static class ComputelPart extends PipelinePart {
 
@@ -253,6 +290,8 @@ public class Pipeline {
     }
 
   }
+
+
 
   /**
    * @param aType the {@link ASSAY_TYPE} to format the project for
@@ -339,7 +378,7 @@ public class Pipeline {
 
 
     WorkerHive<PipelinePart> hive = new WorkerHive<Pipeline.PipelinePart>(numThreads, 10, log);
-
+    hive.addCallable(new UnMappedPart(inputBam, rootOutDir, log));// it's cheap to do
     for (PIPELINE_PARTS part : parts) {
       switch (part) {
         case COMPUTEL:
@@ -359,17 +398,13 @@ public class Pipeline {
             hive.addCallable(new TelSeqPart(inputBam, rootOutDir, captureBed, sample, 1,
                                             TELOMERE_CAPTURE_BUFFER[i], log));
           }
-
           break;
         default:
 
           throw new IllegalArgumentException(part + " not implemented yet");
       }
-
     }
-
     hive.execute(true);
-
     return hive.getResults();
   }
 
