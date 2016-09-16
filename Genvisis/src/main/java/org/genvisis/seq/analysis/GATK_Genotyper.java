@@ -92,7 +92,7 @@ public class GATK_Genotyper {
 			String out = "";
 			if (mergeVCF != null) {
 				log.reportTimeInfo("Applying merge " + mergeVCF.getArg() + " prior to annotation");
-				in = VCFOps.getAppropriateRoot(inputVCF, false) + ".merge_" + mergeVCF.getTag() + ".vcf";
+        in = VCFOps.getAppropriateRoot(inputVCF, false) + ".merge_" + mergeVCF.getTag() + GATK.VCF + GATK.GZ;
 				log.reportTimeInfo("Output merge: " + in);
 				gatk.mergeVCFs(	Array.concatAll(new String[] {inputVCF}, mergeVCF.getVcfsToMergeWith()), in,
 												numWithinSampleThreads, false, log);
