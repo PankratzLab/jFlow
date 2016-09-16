@@ -2731,19 +2731,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         }
       }
       loadValues();
-      // if (regionsList.length == 0 || !Files.exists(regionsList[regionsListIndex], jar)) {
-      // loadCNVsAsRegions();
-      // }
       if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
         loadCNVsAsRegions();
-        updateCNVs(chr);
-        updateGUI();
-        regionIndex = 0;
-        // showRegion();
-      } else {
-        updateCNVs(chr);
-        updateGUI();
       }
+      updateCNVs(chr);
+      updateGUI();
+      showRegion(0);
       System.out.println("updated in " + ext.getTimeElapsed(time));
     } else {
       for (int i = 0; i < samplesPresent.length && !found; i++) {
