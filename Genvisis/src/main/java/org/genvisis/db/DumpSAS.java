@@ -502,17 +502,19 @@ public class DumpSAS {
                               + "'). However, there was no such column header in the file.");
               error = true;
             }
-            indices = ext.indexFactors(Array.toStringArray(ids), header, false, log, false, false);
+            indices = ext.indexFactors(Array.toStringArray(ids), header, true, log, false, false);
           } else {
             foundAnID = false;
-            indices = ext.indexFactors(Array.toStringArray(ids), header, false, log, false, false);
+            // TODO If case insensitivity is necessary, make sure all downstream calls can and do
+            // ignore case (including GenParser)
+            indices = ext.indexFactors(Array.toStringArray(ids), header, true, log, false, false);
             for (int j = 0; j < ids.size(); j++) {
               if (indices[j] != -1) {
-                writer.print(" '" + ids.elementAt(j) + "'");
                 if (foundAnID) {
                   log.reportError("More than one \"valid\" ID available for file '" + file
-                                  + "'; the first will be used and the remainder flagged to be reported");
+                                  + "'; only the first will be used");
                 } else {
+                  writer.print(" '" + ids.elementAt(j) + "'");
                   foundAnID = true;
                   keys = Array.toStringArray(HashVec.loadFileToVec(rootDir + file, true,
                                                                    new int[] {indices[j]}, false,
@@ -533,7 +535,7 @@ public class DumpSAS {
 
           hash = hashes.get(file);
           keys = HashVec.getKeys(hash);
-          indices = Sort.putInOrder(ext.indexFactors(keys, header, false, false));
+          indices = Sort.putInOrder(ext.indexFactors(keys, header, true, false));
           for (int indice : indices) {
             writer.print(" '" + header[indice] + "'=" + header[indice]
                          + (hash.get(header[indice]).equals("") ? ""
