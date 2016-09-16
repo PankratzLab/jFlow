@@ -164,10 +164,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   private JComboBox sampleList;
   private String[] samplesPresent;
   private JTextField navigationField;
-  // private JTextField regionsField;
-  private JButton firstChr, previousChr, nextChr, lastChr, previousRegion, nextRegion;// ,
-                                                                                      // firstRegion,
-                                                                                      // lastRegion;
+  private JButton firstChr, previousChr, nextChr, lastChr, previousRegion, nextRegion, firstRegion,
+      lastRegion;
   private Project proj;
   private String sample;
   private boolean jar;
@@ -1252,6 +1250,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
     JPanel sampPanel = new JPanel();
     ((FlowLayout) sampPanel.getLayout()).setVgap(0);
+    firstRegion = new JButton(Grafik.getImageIcon("images/firstLast/First.gif"));
+    firstRegion.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif"));
+    firstRegion.addActionListener(this);
+    firstRegion.setActionCommand(FIRST_REGION);
+    firstRegion.setPreferredSize(new Dimension(25, 25));
+    firstRegion.setToolTipText("Go to first region");
+
     previousRegion = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif"));
     previousRegion.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif"));
     previousRegion.addActionListener(this);
@@ -1295,6 +1300,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     nextRegion.setActionCommand(NEXT_REGION);
     nextRegion.setPreferredSize(new Dimension(25, 25));
     nextRegion.setToolTipText("Go to next region");
+
+    lastRegion = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif"));
+    lastRegion.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif"));
+    lastRegion.addActionListener(this);
+    lastRegion.setActionCommand(LAST_REGION);
+    lastRegion.setPreferredSize(new Dimension(25, 25));
+    lastRegion.setToolTipText("Go to last region");
     sampPanel.setPreferredSize(new Dimension(sampPanel.getPreferredSize().width,
                                              sampleList.getPreferredSize().height + 5));
     descrPanel.add(sampPanel, "cell 0 0");
@@ -1326,10 +1338,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         updateGUI();
       }
     });
+    regionPanel.add(firstRegion);
     regionPanel.add(previousRegion);
     regionPanel.add(regionField);
     regionField.setPreferredSize(new Dimension(regionField.getPreferredSize().width, 26));
     regionPanel.add(nextRegion);
+    regionPanel.add(lastRegion);
     compPanel.add(regionPanel, "cell 0 0");
 
     commentLabel = new JLabel(" ", JLabel.CENTER);
@@ -2250,19 +2264,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
       }
       showRegion(Math.max(regionIndex - 1, 0));
     } else if (command.equals(NEXT_REGION)) {
-      // System.out.println("next");
       if (regions == null || regions.length == 0) {
-        // filenames = proj.getIndividualRegionLists();
-        // if (filenames.length == 0) {
-        // JOptionPane.showMessageDialog(null, "Error - No regions have been loaded, since there no
-        // individual CNV region files defined in the properties file", "Error",
-        // JOptionPane.ERROR_MESSAGE);
         JOptionPane.showMessageDialog(null, "Error - No regions have been loaded", "Error",
                                       JOptionPane.ERROR_MESSAGE);
-        // } else {
-        // JOptionPane.showMessageDialog(null, "Error - No regions have been loaded; files include:
-        // "+Array.toStr(filenames, ", "), "Error", JOptionPane.ERROR_MESSAGE);
-        // }
         return;
       }
       showRegion(Math.min(regionIndex + 1, regions.length - 1));
