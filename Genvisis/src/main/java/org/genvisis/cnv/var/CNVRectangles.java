@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.genvisis.cnv.plots.CompPlot;
@@ -103,7 +104,7 @@ public class CNVRectangles {
    */
   public ArrayList<CNVRectangle> getCollapsedRectangles() {
     ArrayList<CNVRectangle> collapsedRectangles = new ArrayList<CNVRectangle>();
-    HashMap<String, CNVRectangle> cnvMap = new HashMap<String, CNVRectangle>();
+    HashMap<String, CNVRectangle> cnvMap = new LinkedHashMap<String, CNVRectangle>();
 
     /**
      * Store the rectangles in a HashMap based on their signature
