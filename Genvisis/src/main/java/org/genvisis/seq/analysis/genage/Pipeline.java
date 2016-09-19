@@ -218,7 +218,6 @@ public class Pipeline {
   private static class UnMappedPart extends PipelinePart {
 
     private String inputBam;
-    private String bamFile;
     private String rootOutDir;
     private Logger log;
 
@@ -238,7 +237,7 @@ public class Pipeline {
     public PipelinePart call() throws Exception {
       String unmappedDir = rootOutDir + UNMAPPED_DIR;
       new File(unmappedDir).mkdirs();
-      String unMappedBam = unmappedDir + ext.rootOf(bamFile, true) + ".unmapped.bam";
+      String unMappedBam = unmappedDir + ext.rootOf(inputBam, true) + ".unmapped.bam";
       if (!Files.exists(unMappedBam)) {
         BamOps.dumpUnMappedReads(inputBam, unMappedBam, log);
       }
