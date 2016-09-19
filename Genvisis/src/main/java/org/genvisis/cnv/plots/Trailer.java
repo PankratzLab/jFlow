@@ -148,6 +148,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   public static final int DEFAULT_WIDTH = 1100;
   public static final int DEFAULT_HEIGHT = 720;
 
+  private static final String BLANK_COMMENT = " -- no comment -- ";
+
   private static final String FIRST_CHR = "First chr";
   private static final String PREVIOUS_CHR = "Previous chr";
   private static final String NEXT_CHR = "Next chr";
@@ -1416,7 +1418,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
             regionDetails = Array.addStrToArray(newComment, regionDetails);
           }
           regions[regionIndex] = regionDetails;
-          commentLabel.setText(regions[regionIndex][2].equals("") ? ""
+          commentLabel.setText(regions[regionIndex][2].isEmpty() ? BLANK_COMMENT
                                                                   : "region #" + (regionIndex + 1)
                                                                     + ":  "
                                                                     + regions[regionIndex][2]);
@@ -3084,7 +3086,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
       commentLabel.setText("region #" + (regionIndex + 1) + ":  " + regions[regionIndex][2]);
     } else {
       commentField.setText("");
-      commentLabel.setText(" -- no comment -- ");
+      commentLabel.setText(BLANK_COMMENT);
     }
 
     if (!regions[regionIndex][0].equals(sample)) {
