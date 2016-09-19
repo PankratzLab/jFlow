@@ -739,17 +739,26 @@ public class Array {
    * of distribution range, number of draws, and whether values can be repeated or not.
    */
   private static int[] random(int distSize, int numSelections, boolean withReplacement) {
-    List<Integer> asList = Ints.asList(arrayOfIndices(distSize));
-    int[] selections = new int[numSelections];
+    int[] selections;
     Random r = new Random();
-
-    for (int i = 0; i < numSelections; i++) {
-      int index = r.nextInt(asList.size() + 1);
-      selections[i] = withReplacement ? asList.get(index) : asList.remove(index);
+    if (withReplacement) {
+      // We can just take a random number from the distribution for each position
+      selections = new int[numSelections];
+      for (int i=0; i<numSelections; i++) {
+        selections[i] = r.nextInt(selections.length);
+      }
+    } else {
+      // Without replacement we start with an array of indices and do a fisher-yates shuffle
+      selections = arrayOfIndices(distSize);
+      for (int i=0; i<selections.length; i++) {
+        int idx = r.nextInt(selections.length);
+        int tmp = selections[i];
+        selections[i] = selections[idx];
+        selections[idx] = tmp;
+      }
     }
 
     return selections;
-
   }
 
   /**
