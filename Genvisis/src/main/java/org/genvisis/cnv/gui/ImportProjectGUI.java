@@ -16,6 +16,7 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
@@ -332,8 +333,14 @@ public class ImportProjectGUI extends JDialog {
 
   private boolean checkProjectName() {
     String name = txtFldProjName.getText().trim();
-    return !name.equals("") && !"New Project".equals(name)
-           && !(new File(propertyFilePath + name + MitoPipeline.PROJECT_EXT)).exists();
+    if (name.isEmpty() || "New Project".equals(name)
+        || new File(propertyFilePath + name + MitoPipeline.PROJECT_EXT).exists()) {
+      JOptionPane.showMessageDialog(null,
+                                    "Project name must have a value, must not be \"New Project\", and must not clash with an existing project.",
+                                    "Error", JOptionPane.ERROR_MESSAGE);
+      return false;
+    }
+    return true;
   }
 
   private boolean[] getStatuses() {
