@@ -642,6 +642,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     @Override
     public void mouseClicked(MouseEvent e) {
       super.mouseClicked(e);
+      Trailer.this.requestFocusInWindow();
       int x = e.getX();
       int y = e.getY();
 
@@ -843,6 +844,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                        + "\t height: " + height);
 
     parseLocation(startingLocation);
+    addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        Trailer.this.requestFocusInWindow();
+      }
+    });
 
     new Thread(new Runnable() {
       @Override
@@ -2374,6 +2381,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
   @Override
   public void mouseClicked(MouseEvent e) {
+    Trailer.this.requestFocusInWindow();
     if (e.getButton() == MouseEvent.BUTTON1) {
       if (leftClick != null && leftClick.isAlive()) {
         leftClick.cancel();
