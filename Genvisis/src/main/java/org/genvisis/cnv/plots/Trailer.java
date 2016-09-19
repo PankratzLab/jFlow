@@ -1403,6 +1403,14 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     compPanel.add(commentLabel, "cell 0 1, hidemode 3");
 
     commentField = new JTextField(20);
+    commentField.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        // When enter is pressed, request focus elsewhere to trigger the focus lost event
+        // of the comment field.
+        Trailer.this.requestFocusInWindow();
+      }
+    });
     commentField.setAlignmentX(Component.CENTER_ALIGNMENT);
     commentField.setFont(font);
     commentField.addFocusListener(new FocusAdapter() {
