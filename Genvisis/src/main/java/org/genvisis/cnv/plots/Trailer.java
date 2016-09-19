@@ -148,7 +148,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   public static final int DEFAULT_WIDTH = 1100;
   public static final int DEFAULT_HEIGHT = 720;
 
-  private static final String BLANK_COMMENT = " -- no comment -- ";
+  private static final String BLANK_COMMENT = " -- Click here to comment on this region -- ";
 
   private static final String FIRST_CHR = "First chr";
   private static final String PREVIOUS_CHR = "Previous chr";
