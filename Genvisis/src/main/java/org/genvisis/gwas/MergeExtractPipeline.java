@@ -245,7 +245,7 @@ public class MergeExtractPipeline {
       public boolean accept(File dir, String name) {
         boolean keep = false;
         if (name.endsWith(dataFileExt)) {
-          if (/* markerLocations == null && */regions == null) {
+          if (markerLocations == null && regions == null) {
             keep = true;
           } else {
             Matcher m = Pattern.compile(DosageData.CHR_REGEX).matcher(name);
@@ -291,7 +291,7 @@ public class MergeExtractPipeline {
                   }
                 }
               }
-              if (regions != null) {
+              if (!keep && regions != null) {
                 for (int[] region : regions) {
                   if (region[0] == chr) {
                     if (bpStart != -1 && bpEnd != -1) {
