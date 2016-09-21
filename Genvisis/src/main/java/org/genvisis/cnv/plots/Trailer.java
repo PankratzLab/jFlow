@@ -784,7 +784,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                                                     message
                                                           + " Would you like to keep this configuration for the next time Trailer is loaded?",
                                                     "Preserve Trailer workspace?",
-                                                    JOptionPane.YES_NO_CANCEL_OPTION,
+                                                    JOptionPane.YES_NO_OPTION,
                                                     JOptionPane.QUESTION_MESSAGE, null, null, null);
             if (choice == 0) {
               Trailer.this.proj.INDIVIDUAL_CNV_LIST_FILENAMES.setValue(newList);
