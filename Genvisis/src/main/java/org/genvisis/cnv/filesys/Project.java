@@ -277,6 +277,7 @@ public class Project {
   public EnumProperty<GENOME_BUILD> GENOME_BUILD_VERSION = new EnumProperty<GENOME_BUILD>(this,
       PropertyKeys.KEY_GENOME_BUILD_VERSION, "The build version of the genome, options are "
           + Arrays.asList(GENOME_BUILD.values()).toString(), 0, GENOME_BUILD.class);
+  public FileProperty TRAILER_REGION = new FileProperty(this, "Last trailer region", "Last region file opened in Trailer", "", false);
 
   private String projectPropertiesFilename;
   private SampleList sampleList;
@@ -800,8 +801,8 @@ public class Project {
     ArrayList<String> propList = new ArrayList<String>();
     for (Field f : PropertyKeys.class.getFields()) {
       try {
-        if (containsKey((String) f.get(null))) {
-          propList.add((String) f.get(null));
+        if (containsKey((String) f.get(this))) {
+          propList.add((String) f.get(this));
         }
       } catch (IllegalArgumentException e) {
         e.printStackTrace();

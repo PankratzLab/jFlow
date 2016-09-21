@@ -97,6 +97,7 @@ import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.plots.ColorExt.ColorManager;
+import org.genvisis.cnv.prop.StringProperty;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
@@ -147,9 +148,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   public static final int DEFAULT_STARTY = 20;
   public static final int DEFAULT_WIDTH = 1100;
   public static final int DEFAULT_HEIGHT = 720;
+  public static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
 
   private static final String BLANK_COMMENT = " -- Click here to comment on this region -- ";
-
   private static final String FIRST_CHR = "First chr";
   private static final String PREVIOUS_CHR = "Previous chr";
   private static final String NEXT_CHR = "Next chr";
@@ -163,7 +164,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   private static final String REGION_LIST_LOAD_FILE = "Load Region File";
   private static final String REGION_LIST_SAVE_FILE = "Save Regions to File...";
   private static final String REGION_LIST_NEW_FILE = "New Region List File";
-  private static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
   private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
   private static final String REGION_LIST_PROVIDED = "Region list provided";
   private JComboBox sampleList;
@@ -244,6 +244,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   private String[] otherColors;
   private Hashtable<String, ColorManager<String>> previouslyLoadedManagers;
   private Thread updateQCThread = null;
+  private StringProperty lastRegionFile;
 
   private final AbstractAction markerFileSelectAction = new AbstractAction() {
     private static final long serialVersionUID = 1L;
@@ -737,7 +738,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
    * @param width GUI width
    * @param height GUI height
    */
-  public Trailer(Project proj, String selectedSample, String[] cnvFiles, final String startingLocation, final String[][] specifiedRegions,
+  public Trailer(final Project proj, String selectedSample, String[] cnvFiles, final String startingLocation, final String[][] specifiedRegions,
                  final int startX, final int startY, final int width, final int height) {
   // TODO Trailer should have a createAndShowGUI, same as all the other plots, as opposed to being
   // its own frame
@@ -777,9 +778,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                                                     JOptionPane.QUESTION_MESSAGE, null, null, null);
             if (choice == 0) {
               Trailer.this.proj.INDIVIDUAL_CNV_LIST_FILENAMES.setValue(newList);
-              Trailer.this.proj.saveProperties();
             }
           }
+          proj.TRAILER_REGION.setValue(regionFileName);
+          Trailer.this.proj.saveProperties();
         }
         super.windowClosing(e);
       }
@@ -849,7 +851,16 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         if (specifiedRegions != null) {
           regions = specifiedRegions;
           regionFileName = REGION_LIST_PROVIDED; 
-        } else if (regionFileName == null || REGION_LIST_USE_CNVS.equals(regionFileName)) {
+        } else {
+          String lastRegionFile = proj.TRAILER_REGION.getValue();
+          if (new File(lastRegionFile).exists()) {
+            regionFileName = lastRegionFile;
+            loadRegionFile(regionFileName);
+            loadRegions();
+          }
+        }
+
+        if (regionFileName == null || REGION_LIST_USE_CNVS.equals(regionFileName)) {
           while (!sampleData.getCNVsLoaded()) {
             try {
               Thread.sleep(30);
@@ -2982,6 +2993,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     });
   }
 
+  /**
+   * Puts the specified file in the list of region files. Note that {@link #loadRegions()} must be
+   * called independently.
+   */
   public void loadRegionFile(String filename) {
     addFileToList(filename);
     String file = ext.verifyDirFormat(filename);
