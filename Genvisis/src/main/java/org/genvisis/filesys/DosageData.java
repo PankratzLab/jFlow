@@ -668,7 +668,7 @@ public class DosageData implements Serializable {
   public void computeDosageValues(Logger log) {
     if (genotypeProbabilities == null) {
       log.reportError("Error - cannot compute dosage values from genotype probabilities, if there are no genotype probabilities!");
-      System.exit(1);
+//      System.exit(1);
     }
     dosageValues = new float[genotypeProbabilities.length][genotypeProbabilities[0].length];
     for (int i = 0; i < dosageValues.length; i++) {

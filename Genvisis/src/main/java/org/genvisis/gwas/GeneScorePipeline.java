@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -144,8 +143,7 @@ public class GeneScorePipeline {
       SnpMarkerSet markerSet = new SnpMarkerSet(hitMkrs);
       markerSet.parseSNPlocations(log);
       int[][] markerLocations = markerSet.getChrAndPositionsAsInts();
-      dataSources = MergeExtractPipeline.parseDataFile(null, markerLocations, null, dataSource, 0,
-                                                       log);
+      dataSources = MergeExtractPipeline.parseDataFile(null, markerLocations, null, dataSource, 0, log);
       if (dataSources.size() == 0) {
         // error
         log.reportTimeError("Error - no data sources loaded from file: " + dataSource);
@@ -416,13 +414,10 @@ public class GeneScorePipeline {
                                                                                           // run
                                                                                           // SnpEff
                                                                                           // too?
-            data =
-                 Array.toStringArray(HashVec.loadFileToVec(ext.rootOf(filename, false)
-                                                           + "_positions.xln", true, false, false));
+            data = Array.toStringArray(HashVec.loadFileToVec(ext.rootOf(filename, false) + "_positions.xln", true, false, false));
             for (String element : data) {
               line = element.trim().split("[\\s]+");
-              markerMap.put(line[0], new int[] {Positions.chromosomeNumber(line[1]),
-                                                Integer.parseInt(line[2])});
+              markerMap.put(line[0], new int[] {Positions.chromosomeNumber(line[1]), ext.isMissingValue(line[2]) ? -1 : Integer.parseInt(line[2])});
             }
           } else {
             // fileData = HashVec.loadFileToHashVec(filename, indices[0], new int[]{indices[1],
@@ -686,31 +681,40 @@ public class GeneScorePipeline {
 
     for (String dFile : dataFiles) {
       String dataFile = ext.rootOf(dFile, false);
+      HashSet<String> hitMkrSet = new HashSet<String>();
       for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
-        // String[][] results = HitWindows.determine(metaDir + dFile,
-        // filePrefix.getValue().indexThreshold, filePrefix.getValue().windowMinSizePerSide,
-        // filePrefix.getValue().windowExtensionThreshold, DEFAULT_ADDL_ANNOT_VAR_NAMES, new
-        // Logger());
-        // if (results == null) {
-        // log.reportError("HitWindows result was null for "+dFile);
-        // } else {
-        // log.report(ext.getTime()+"]\tFound " + results.length + " hit windows");
-        // HashSet<String> hitMkrSet = new HashSet<String>();
-        // for (int i = 1; i < results.length; i++) { // skip header line
-        // hitMkrSet.add(results[i][1]);
-        // }
-
-        String[] mkrs = HashVec.loadFileToStringArray(metaDir + dFile, true, new int[] {0}, false);
-        if (mkrs == null) {
-          log.reportError("HitWindows result was null for " + dFile);
-        } else {
-          log.report(ext.getTime() + "]\tFound " + mkrs.length + " hit windows");
-
-          HashSet<String> hitMkrSet = new HashSet<String>();
-          for (int i = 1; i < mkrs.length; i++) { // skip header line
-            hitMkrSet.add(mkrs[i]);
+        
+        int metaCount = Files.countLines(metaDir + dFile, 0);
+        
+        if (metaCount > 1000) {
+          String[][] results =
+              HitWindows.determine(metaDir + dFile, filePrefix.getValue().indexThreshold,
+                  filePrefix.getValue().windowMinSizePerSide,
+                  filePrefix.getValue().windowExtensionThreshold, DEFAULT_ADDL_ANNOT_VAR_NAMES,
+                  new Logger());
+          if (results == null) {
+            log.reportError("HitWindows result was null for " + dFile + ". Using all SNPs");
+          } else {
+            log.report(ext.getTime() + "]\tFound " + results.length + " hit windows");
+            for (int i = 1; i < results.length; i++) { // skip header line
+              hitMkrSet.add(results[i][1]);
+            }
           }
+        }
+        if (hitMkrSet.isEmpty()) {
+          String[] mkrs = HashVec.loadFileToStringArray(metaDir + dFile, true, new int[] {0}, false);
+          if (mkrs == null) {
+            log.reportError(".meta file was empty for " + dFile);
+          } else {
+            log.report(ext.getTime() + "]\tUsing all " + mkrs.length + " SNPs in .meta file");
+            for (int i = 1; i < mkrs.length; i++) { // skip header line
+              hitMkrSet.add(mkrs[i]);
+            }
+          }
+        }
+        // uncomment to use all markers in dataFile
 
+        if (!hitMkrSet.isEmpty()) {
           // read betas and freqs for hitwindow markers
           HashMap<String, double[]> dataMarkers = new HashMap<String, double[]>();
           try {
@@ -1162,6 +1166,15 @@ public class GeneScorePipeline {
 
         String[][] ids = data.getIds();
         float[][] dose = data.getDosageValues();
+        if (dose == null) {
+          data.computeDosageValues(log);
+          dose = data.getDosageValues();
+        }
+        if (dose == null) {
+          log.reportTimeError("No dosage data available for {" + dataFile + "\t" + filePrefix.getKey() + "}");
+          scoreWriter.close();
+          continue;
+        }
         String[] markers = data.getMarkerSet().getMarkerNames();
         char[][] alleles = data.getMarkerSet().getAlleles();
         ArrayList<String> mkrs = new ArrayList<String>();
@@ -1510,16 +1523,18 @@ public class GeneScorePipeline {
     int[] mZ = new int[] {DEFAULT_WINDOW_MIN_SIZE_PER_SIDE};
     float[] wT = new float[] {DEFAULT_WINDOW_EXTENSION_THRESHOLD};
 
-    // boolean test = true;
-    // if (test) {
-    // preprocessDataFiles(new String[]{
+//     boolean test = true;
+//     if (test) {
+//     preprocessDataFiles(new String[]{
+//       "D:/GeneScorePipe/Telomere/telo.xln"
+//     });
     // "D:/GeneScorePipe/Cancer/InputCancer.xln",
-    // "D:/height/GeneScorePipeline/HeightScoring/ExtremeHeight.xln",
-    // "D:/height/GeneScorePipeline/HeightScoring/height_full.xln",
+//     "D:/GeneScorePipe/height/GeneScorePipeline/metas/ExtremeHeight.xln",
+//     "D:/GeneScorePipe/height/GeneScorePipeline/metas/height_full.xln",
     // "D:/height/GeneScorePipeline/HeightScoring/TannerSexCombined.xln"
-    // });
-    // return;
-    // }
+//     });
+//     return;
+//     }
 
     String usage = "\n"
                    + "GeneScorePipeline is a convention-driven submodule.  It relies on a standard folder structure and file naming scheme:\n"
