@@ -192,6 +192,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   private int startX;
   private String[] cnvLabels;
   private CNVariant[][] cnvs;
+  private boolean promptRegionCreation = true;
   // private String[] regionsList;
   // private int regionsListIndex;
 
@@ -295,19 +296,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      JFileChooser jfc = new JFileChooser((proj != null ? proj.PROJECT_DIRECTORY.getValue() : ""));
-      if (jfc.showSaveDialog(Trailer.this) == JFileChooser.APPROVE_OPTION) {
-        String newFile = jfc.getSelectedFile().getAbsolutePath();
-        String[] regionLines = new String[regions.length];
-        for (int i = 0; i < regionLines.length; i++) {
-          regionLines[i] = Array.toStr(regions[i], "\t");
-        }
-        Files.writeList(regionLines, newFile);
-        addFileToList(newFile, true);
-
-        JOptionPane.showMessageDialog(Trailer.this, "Successfully saved " + regions.length
-                                                    + " regions to file: " + newFile);
-      }
+      saveRegionFile();
     }
   };
 
@@ -1012,6 +1001,23 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
            + WIDTH_BUFFER;
   }
 
+  private void saveRegionFile() {
+      JFileChooser jfc = new JFileChooser((proj != null ? proj.PROJECT_DIRECTORY.getValue() : ""));
+      if (jfc.showSaveDialog(Trailer.this) == JFileChooser.APPROVE_OPTION) {
+        String newFile = jfc.getSelectedFile().getAbsolutePath();
+        String[] regionLines = new String[regions.length];
+        for (int i = 0; i < regionLines.length; i++) {
+          regionLines[i] = Array.toStr(regions[i], "\t");
+        }
+        Files.writeList(regionLines, newFile);
+        addFileToList(newFile, true);
+        regionFileName = newFile;
+
+        JOptionPane.showMessageDialog(Trailer.this, "Successfully saved " + regions.length
+                                                    + " regions to file: " + newFile);
+      }
+  }
+
   private String chooseNewFiles() {
     JFileChooser jfc =
                      new JFileChooser((proj != null
@@ -1425,7 +1431,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
       public void focusLost(FocusEvent e) {
         super.focusLost(e);
         String newComment = commentField.getText();
-        if (regions != null && regions.length > 0 && regionFileName != null) {
+        if (regions != null && regions.length > 0) {
           String[] regionDetails = regions[regionIndex];
           if (regionDetails.length >= 3) {
             regionDetails[2] = newComment;
@@ -1437,7 +1443,19 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                                                                   : "region #" + (regionIndex + 1)
                                                                     + ":  "
                                                                     + regions[regionIndex][2]);
-          Files.writeMatrix(regions, regionFileName, "\t");
+          if (promptRegionCreation
+              && (regionFileName == null || !new File(regionFileName).exists())) {
+            int createRegion = JOptionPane.showConfirmDialog(null, "No region file found - comments will not be saved.\nWould you like to create a region file now?", "Create region file?", JOptionPane.YES_NO_OPTION);
+            if (JOptionPane.YES_OPTION == createRegion) {
+              saveRegionFile();
+            } else {
+              promptRegionCreation = false;
+            }
+          }
+
+          if (regionFileName != null && new File(regionFileName).exists()) {
+            Files.writeMatrix(regions, regionFileName, "\t");
+          }
         }
         commentLabel.setVisible(true);
         commentField.setVisible(false);
