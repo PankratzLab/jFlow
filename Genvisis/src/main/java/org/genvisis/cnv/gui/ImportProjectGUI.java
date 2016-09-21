@@ -50,8 +50,11 @@ public class ImportProjectGUI extends JDialog {
   private JLabel lblFoundMarkerListStatus;
   private JLabel lblFoundTransposedStatus;
 
-  private final ImageIcon redX = Grafik.getImageIcon("images/redx.png");
-  private final ImageIcon tick = Grafik.getImageIcon("images/tick.png");
+  private static final ImageIcon redX = Grafik.getImageIcon("images/redx.png");
+  private static final ImageIcon tick = Grafik.getImageIcon("images/tick.png");
+  private static final String PROJECT = "PROJECT";
+  private static final String SAMPLEDATA = "SAMPLEDATA";
+  private static final String DEFAULT_PROJ_NAME = "New Project";
 
   volatile boolean cancelled = false;
 
@@ -80,7 +83,7 @@ public class ImportProjectGUI extends JDialog {
       JFileChooser jfc = new JFileChooser();
       String curr = ext.pwd();
       JTextField fld = null;
-      if (e.getActionCommand().equals("PROJECT")) {
+      if (PROJECT.equals(e.getActionCommand())) {
         String txt = txtFldProjDir.getText().trim();
         if (!txt.equals("") && !txt.equals("./")) {
           curr = txt;
@@ -90,7 +93,7 @@ public class ImportProjectGUI extends JDialog {
         jfc.setDialogTitle("Select Project Directory");
         jfc.setMultiSelectionEnabled(false);
         fld = txtFldProjDir;
-      } else if (e.getActionCommand().equals("SAMPLEDATA")) {
+      } else if (SAMPLEDATA.equals(e.getActionCommand())) {
         String txt = txtFldSampleDataFile.getText().trim();
         if (!txt.equals("") && !txt.equals("./")) {
           curr = txt;
@@ -118,6 +121,13 @@ public class ImportProjectGUI extends JDialog {
           if (jfc.getFileSelectionMode() == FileChooser.FILES_ONLY && txt.length() > 1
               && txt.endsWith("/")) {
             txt = txt.substring(0, txt.length() - 1);
+          }
+          // if a project directory is selected and the current project name is "" or "New project"
+          // update the project name too
+          if (PROJECT.equals(e.getActionCommand())
+              && (txtFldProjName.getText().isEmpty()
+                  || txtFldProjName.getText().equals(DEFAULT_PROJ_NAME))) {
+            txtFldProjName.setText(new File(txt).getName());
           }
           fld.setText(txt);
         }
@@ -161,7 +171,7 @@ public class ImportProjectGUI extends JDialog {
       contentPanel.add(lblProjectName, "cel   l 0 3,alignx right");
     }
     {
-      txtFldProjName = new JTextField("New Project");
+      txtFldProjName = new JTextField(DEFAULT_PROJ_NAME);
       txtFldProjName.setColumns(10);
       contentPanel.add(txtFldProjName, "cell 2 3,growx");
     }
@@ -179,7 +189,7 @@ public class ImportProjectGUI extends JDialog {
       JButton btnSelectProjDir = new JButton(fileSelectAction);
       btnSelectProjDir.setText("...");
       btnSelectProjDir.setMargin(btnInsets);
-      btnSelectProjDir.setActionCommand("PROJECT");
+      btnSelectProjDir.setActionCommand(PROJECT);
       contentPanel.add(btnSelectProjDir, "cell 2 4");
     }
     // {
@@ -333,7 +343,7 @@ public class ImportProjectGUI extends JDialog {
 
   private boolean checkProjectName() {
     String name = txtFldProjName.getText().trim();
-    if (name.isEmpty() || "New Project".equals(name)
+    if (name.isEmpty() || DEFAULT_PROJ_NAME.equals(name)
         || new File(propertyFilePath + name + MitoPipeline.PROJECT_EXT).exists()) {
       JOptionPane.showMessageDialog(null,
                                     "Project name must have a value, must not be \"New Project\", and must not clash with an existing project.",
