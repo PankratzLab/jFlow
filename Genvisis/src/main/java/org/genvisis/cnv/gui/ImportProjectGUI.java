@@ -343,10 +343,12 @@ public class ImportProjectGUI extends JDialog {
 
   private boolean checkProjectName() {
     String name = txtFldProjName.getText().trim();
-    if (name.isEmpty() || DEFAULT_PROJ_NAME.equals(name)
+    if (name.isEmpty() || DEFAULT_PROJ_NAME.equals(name) || name.length() > 23
         || new File(propertyFilePath + name + MitoPipeline.PROJECT_EXT).exists()) {
       JOptionPane.showMessageDialog(null,
-                                    "Project name must have a value, must not be \"New Project\", and must not clash with an existing project.",
+                                    "Project name must be 1-23 characters in length, must not be \""
+                                          + DEFAULT_PROJ_NAME
+                                          + "\", and must not clash with an existing project.",
                                     "Error", JOptionPane.ERROR_MESSAGE);
       return false;
     }
