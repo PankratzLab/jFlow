@@ -13,6 +13,7 @@ public class SRASample extends NGSSample {
 
   private final String runS;
   private final String submittedSampleID;
+  private String sraFile;
 
   /**
    * @param runS the SRA ID
@@ -27,7 +28,22 @@ public class SRASample extends NGSSample {
     super(aName, aType, platform);
     this.runS = runS;
     this.submittedSampleID = submittedSampleID;
+    this.sraFile = null;
   }
+
+
+
+  public void setSraFile(String sraFile) {
+    this.sraFile = sraFile;
+  }
+
+
+
+  public String getSraFile() {
+    return sraFile;
+  }
+
+
 
   public String getRunS() {
     return runS;

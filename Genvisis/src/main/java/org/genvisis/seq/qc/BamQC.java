@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
@@ -23,6 +24,9 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.analysis.SNPEFF;
 import org.genvisis.stats.Histogram;
+import org.genvisis.stats.Histogram.DynamicHistogram;
+
+import com.google.common.primitives.Doubles;
 
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
@@ -30,13 +34,13 @@ import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.ValidationStringency;
 
 public class BamQC {
-  public static final String[] QC_HEADER =
-                                         {"Input File", "numTotal", "numUnique", "numDuplicated",
-                                          "numUnMapped", "numOnTarget", "NumSecondaryAlignments",
-                                          "NumInvalidAlignments", "PercentDuplicated",
-                                          "PercentUnMapped", "PercentOnTarget", "AverageInsertSize",
-                                          "AverageOnTargetInsertSize", "MappingQualityFilter",
-                                          "PhreadScoreFilter", "Total Base Pairs Targeted"};
+  public static final String[] QC_HEADER = {"Input File", "numTotal", "numUnique", "numDuplicated",
+                                            "numUnMapped", "numOnTarget", "NumSecondaryAlignments",
+                                            "NumInvalidAlignments", "PercentDuplicated",
+                                            "PercentUnMapped", "PercentOnTarget",
+                                            "AverageInsertSize", "AverageOnTargetInsertSize",
+                                            "OnTargetInsertSizeStdev", "MappingQualityFilter",
+                                            "PhreadScoreFilter", "Total Base Pairs Targeted"};
   public static final String[] HIST_HEADER = {"Bin"};
   public static int NUM_GC_HISTOGRAMS = 2;
   public static int NO_QC_GC_HISTOGRAM = 0;
@@ -68,6 +72,8 @@ public class BamQC {
   private double[] percentCoverageAtDepth;
   private double[] totalPercentGCAtDepth;
   private final double[] averageInsertSize;
+  private double[] stDevInsertSize;
+
   private final Histogram.DynamicHistogram[] gHistograms;
   private final Histogram.DynamicHistogram[] insertHistograms;
   private final FilterNGS filterNGS;
@@ -111,6 +117,7 @@ public class BamQC {
     this.filterNGS = filterNGS;
   }
 
+
   public void addToGHistoGram(double gcContent, int which) {
     gHistograms[which].addDataPointToHistogram(gcContent);
   }
@@ -135,6 +142,27 @@ public class BamQC {
                                               Array.sum(getInsertHistogram(NO_QC_INSERT_HISTOGRAM).getCounts());
     averageInsertSize[QC_INSERT_HISTOGRAM] /=
                                            Array.sum(getInsertHistogram(QC_INSERT_HISTOGRAM).getCounts());
+
+    stDevInsertSize = new double[2];
+    stDevInsertSize[NO_QC_INSERT_HISTOGRAM] =
+                                            getStDevInsertSize(getInsertHistogram(NO_QC_INSERT_HISTOGRAM));
+    stDevInsertSize[QC_INSERT_HISTOGRAM] =
+                                         getStDevInsertSize(getInsertHistogram(QC_INSERT_HISTOGRAM));
+
+  }
+
+  private double getStDevInsertSize(DynamicHistogram dynamicHistogram) {
+    ArrayList<Double> inserts = new ArrayList<Double>();
+    double[] bins = dynamicHistogram.getBins();
+    for (int i = 0; i < bins.length; i++) {
+      int count = dynamicHistogram.getCounts()[i];
+      for (int j = 0; j < count; j++) {
+        inserts.add(bins[i]);
+      }
+
+    }
+    double[] finals = Doubles.toArray(inserts);
+    return Array.stdev(finals);
   }
 
   public void setPercentCoverageAtDepth(double[] percentCoverageAtDepth) {
@@ -259,8 +287,8 @@ public class BamQC {
             summary + inputSamOrBamFile + "\t" + numTotal + "\t" + numUnique + "\t" + numDuplicated
               + "\t" + numUnMapped + "\t" + numOnTarget + "\t" + numSecondaryAlignments + "\t"
               + numInvalidAligments + "\t" + percentDuplicated + "\t" + percentUnMapped + "\t"
-              + percentOnTarget + "\t" + averageInsertSize[NO_QC_INSERT_HISTOGRAM] + "\t"
-              + averageInsertSize[QC_INSERT_HISTOGRAM] + "\t" + filterNGS.getMappingQualityFilter()
+              + percentOnTarget + "\t" + averageInsertSize[NO_QC_INSERT_HISTOGRAM] + "\t" + "\t"
+              + stDevInsertSize[QC_INSERT_HISTOGRAM] + "\t" + filterNGS.getMappingQualityFilter()
               + "\t" + filterNGS.getPhreadScoreFilter() + "\t" + totalTargetedBasePairs + "\t"
               + Array.toStr(percentCoverageAtDepth) + "\t" + Array.toStr(totalPercentGCAtDepth);
     return summary;
@@ -270,7 +298,8 @@ public class BamQC {
                                String fileOfinputSamOrBams, String targetLibraryFile,
                                String baitLibraryFile, int skipNumLines, FilterNGS filterNGS,
                                int numThreads, String output, String snpEffLocation,
-                               boolean baitsAsTarget, double normalizeDepthsTo, Logger log) {
+                               boolean baitsAsTarget, double normalizeDepthsTo,
+                               boolean summarizeLib, Logger log) {
     long time = System.currentTimeMillis();
     log.report(ext.getTime() + " Info - beginning qc");
     BamQC[] bamQCs = null;
@@ -311,16 +340,18 @@ public class BamQC {
                               outputDir + ext.addToRoot(output,
                                                         baitsAsTarget ? ".libraryBaitsResults.summary"
                                                                       : ".libraryResults.summary");
-        LibraryNGS.summarizeLibraries(libraryNGS, getLibraryReadDepthResultsFiles(bamQCs),
-                                      librarySummary, filterNGS, log);
-        SNPEFF snpeff = new SNPEFF(snpEffLocation, true, true, log);
-        snpeff.runSnpEFFCount(inputbams,
-                              outputDir + ext.addToRoot(output,
-                                                        new StringBuilder(String.valueOf(baitsAsTarget ? ".libraryBaitsResults.summary"
-                                                                                                       : ".libraryResults.summary")).append("count")
-                                                                                                                                    .toString()),
-                              SNPEFF.BUILDS[0], baitsAsTarget ? null : targetLibraryFile,
-                              numThreads);
+        if (summarizeLib) {
+          LibraryNGS.summarizeLibraries(libraryNGS, getLibraryReadDepthResultsFiles(bamQCs),
+                                        librarySummary, filterNGS, log);
+          SNPEFF snpeff = new SNPEFF(snpEffLocation, true, true, log);
+          snpeff.runSnpEFFCount(inputbams,
+                                outputDir + ext.addToRoot(output,
+                                                          new StringBuilder(String.valueOf(baitsAsTarget ? ".libraryBaitsResults.summary"
+                                                                                                         : ".libraryResults.summary")).append("count")
+                                                                                                                                      .toString()),
+                                SNPEFF.BUILDS[0], baitsAsTarget ? null : targetLibraryFile,
+                                numThreads);
+        }
       }
     }
     log.report(ext.getTime() + " Info - finished qc in " + ext.getTimeElapsed(time));
@@ -795,7 +826,7 @@ public class BamQC {
       FilterNGS filterNGS = new FilterNGS(mappingQuality, phreadScore, readDepth);
       qcBams(dir, outputDir, commonExt, fileOfinputSamOrBams, targetLibraryFile, baitLibraryFile,
              skipNumLines, filterNGS, numThreads, output, snpEffLocation, baitsAsTarget,
-             normalizeDepthsTo, log);
+             normalizeDepthsTo, true, log);
     } catch (Exception e) {
       e.printStackTrace();
     }

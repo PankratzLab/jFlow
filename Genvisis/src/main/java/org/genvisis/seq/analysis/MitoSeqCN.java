@@ -42,12 +42,14 @@ public class MitoSeqCN {
    * @param outDir output directory for results
    * @param captureBed defining targeted capture regions
    * @param referenceGenomeFasta reference genomve
-   * @param params
+   * @param aName assembly name
+   * @param aType assembly type
    * @param numthreads
+   * @param log
    * @return the name of the output file
    */
   public static String run(String fileOfBams, String outDir, String captureBed,
-                           String referenceGenomeFasta, ASSEMBLY_NAME params, ASSAY_TYPE aType,
+                           String referenceGenomeFasta, ASSEMBLY_NAME aName, ASSAY_TYPE aType,
                            int numthreads, Logger log) {
     new File(outDir).mkdirs();
 
@@ -80,20 +82,20 @@ public class MitoSeqCN {
       }
       log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered()
                          + " bp covered by reference bin regions");
-      if (!referenceGenome.hasContig(params.getMitoContig())
-          || !referenceGenome.hasContig(params.getxContig())
-          || !referenceGenome.hasContig(params.getyContig())) {
-        throw new IllegalArgumentException("Required contig for " + params + " is missing ( "
-                                           + params.getMitoContig() + " ," + params.getxContig()
-                                           + ", " + params.getyContig() + " from "
+      if (!referenceGenome.hasContig(aName.getMitoContig())
+          || !referenceGenome.hasContig(aName.getxContig())
+          || !referenceGenome.hasContig(aName.getyContig())) {
+        throw new IllegalArgumentException("Required contig for " + aName + " is missing ( "
+                                           + aName.getMitoContig() + " ," + aName.getxContig()
+                                           + ", " + aName.getyContig() + " from "
                                            + referenceGenomeFasta);
       } else {
-        int mitoLength = referenceGenome.getContigLength(params.getMitoContig());
+        int mitoLength = referenceGenome.getContigLength(aName.getMitoContig());
         log.reportTimeInfo("Mitochondrial genome length = " + mitoLength);
 
-        MitoCNProducer producer = new MitoCNProducer(bams, referenceGenome,
-                                                     genomeBinsMinusBinsCaputure, outDir, params,
-                                                     log);
+        MitoCNProducer producer =
+                                new MitoCNProducer(bams, referenceGenome,
+                                                   genomeBinsMinusBinsCaputure, outDir, aName, log);
         WorkerTrain<MitoCNResult> train = new WorkerTrain<MitoSeqCN.MitoCNResult>(producer,
                                                                                   numthreads,
                                                                                   numthreads, log);
@@ -128,7 +130,8 @@ public class MitoSeqCN {
    */
   public static class MitoCNResult {
     private static final String[] header = new String[] {"Sample", "NumMitoReads",
-                                                         "TotalAlignedReads", "XReads", "YReads",
+                                                         "TotalAlignedReads", "TotalUnAlignedReads",
+                                                         "XReads", "YReads",
                                                          "AutosomalOnTargetAlignedReads",
                                                          "OffTargetReads", "MitoLen", "OffTLen",
                                                          "MTBamFile", "MTBamFileTrim"};
@@ -169,6 +172,7 @@ public class MitoSeqCN {
       result.add(sample);
       result.add(Integer.toString(numMitoReads));
       result.add(Integer.toString(bamIndexStats.getAlignedRecordCount()));
+      result.add(Integer.toString(bamIndexStats.getUnalignedRecordCount()));
       result.add(Integer.toString(numXReads));
       result.add(Integer.toString(numYReads));
       result.add(Integer.toString(autosomalOnTargetReads));
@@ -178,9 +182,7 @@ public class MitoSeqCN {
       result.add(outBam);
       result.add(ext.rootOf(ext.rootOf(outBam)));
       return Array.toStringArray(result);
-
     }
-
   }
 
   private static class MitoCNWorker implements Callable<MitoCNResult> {
@@ -233,9 +235,7 @@ public class MitoSeqCN {
         QueryInterval[] queryInterestIntervals =
                                                BamOps.convertSegsToQI(toSearch.toArray(new Segment[toSearch.size()]),
                                                                       reader.getFileHeader(), 0,
-                                                                      true,
-                                                                      params == ASSEMBLY_NAME.HG19,
-                                                                      log);
+                                                                      true, params.addChr(), log);
         SAMRecordIterator sIterator = reader.query(queryInterestIntervals, false);
         int numMitoReads = 0;
         int numXReads = 0;
@@ -253,6 +253,7 @@ public class MitoSeqCN {
             } else if (samRecord.getContig().equals(params.getyContig())) {
               numYReads++;
             } else {
+              reader.close();
               throw new IllegalArgumentException("Invalid contig " + samRecord.getContig());
             }
           }
@@ -263,8 +264,7 @@ public class MitoSeqCN {
         QueryInterval[] offTargetIntervalse =
                                             BamOps.convertSegsToQI(genomeBinsMinusBinsCaputure.getLoci(),
                                                                    reader.getFileHeader(), 0, true,
-                                                                   params == ASSEMBLY_NAME.HG19,
-                                                                   log);
+                                                                   params.addChr(), log);
         sIterator = reader.query(offTargetIntervalse, false);
         while (sIterator.hasNext()) {
           SAMRecord samRecord = sIterator.next();
@@ -334,6 +334,7 @@ public class MitoSeqCN {
   }
 
   public static void main(String[] args) {
+    // TODO, CLI version
     int numArgs = args.length;
     String fileOfBams = "fileOfBams.txt";
     String outDir = "mitoWES/";

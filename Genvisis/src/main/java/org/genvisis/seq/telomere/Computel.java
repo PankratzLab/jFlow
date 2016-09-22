@@ -14,7 +14,9 @@ import org.genvisis.CLI;
 import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
 import org.genvisis.common.Zip;
 import org.genvisis.common.ext;
 import org.genvisis.seq.manage.BamOps;
@@ -40,18 +42,14 @@ public class Computel {
 
   }
 
-  private static boolean runComputel(String config, String computelCommandR, Logger log) {
+  private static boolean run(String config, String outputDir, String computelCommandR, Logger log) {
     String[] inputs = new String[] {config, computelCommandR};
     ext.parseDirectoryOfFile(config);
-    // TODO, cleanup computels mess, and determine appropriate outputs
-    String[] outputs = null;
-    // String[] outputs = execDir + "";
-    // new String[] { r1, r2 };
+    String[] outputs = new String[] {outputDir + "results/tel.length.xls"};
     ArrayList<String> command = new ArrayList<String>();
     command.add("Rscript");
     command.add(computelCommandR);
     command.add(config);
-
     return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true,
                                             false, false, log);
   }
@@ -117,12 +115,20 @@ public class Computel {
 
     config = config.replaceAll("output.dir	output",
                                "output.dir	" + computelOperatingDir + "results");
+
+    config = config.replaceAll("num.proc    3", "num.proc    1");
     // compute.base.cov F
     return config;
   }
 
-  private static void runComputel(String inputBam, String outputDir, String computelDirectory,
-                                  Logger log) {
+  /**
+   * @param inputBam the bam to compute telomere length from
+   * @param outputDir where the output should be placed
+   * @param computelDirectory the full path to a (git clone) of computel
+   * @param log
+   */
+  public static void runComputel(String inputBam, String outputDir, String computelDirectory,
+                                 Logger log) {
     String finalOutDirectory = outputDir + ext.rootOf(inputBam) + "/";
     new File(finalOutDirectory).mkdirs();
 
@@ -147,12 +153,68 @@ public class Computel {
         String configFile = finalOutDirectory + "computelConfig.txt";
         String computelCommand = finalOutDirectory + "src/scripts/computel.cmd.R";
         Files.write(config, configFile);
-        runComputel(configFile, computelCommand, log);
+        boolean success = run(configFile, finalOutDirectory, computelCommand, log);
+        if (success) {
+          ArrayList<String> filesToDelete = new ArrayList<String>();
+          filesToDelete.add(r1);
+          filesToDelete.add(r2);
+          filesToDelete.add(finalOutDirectory + "results/align/tel.align.sam");
+          filesToDelete.add(finalOutDirectory + "results/align/tel.align.unmapped.sam");
+          filesToDelete.add(finalOutDirectory + "results/base/reads.unmapped.fastq");
+          filesToDelete.add(finalOutDirectory + "results/base/base.align.sam");
+          filesToDelete.add(finalOutDirectory + "results/base/base.align.bam");
+          filesToDelete.add(finalOutDirectory + "results/base/base.align.bam_sorted.bam");
+          deleteFiles(log, filesToDelete);
+          deleteDir(new File(finalOutDirectory + ".git/"));
+          deleteDir(new File(finalOutDirectory + "bowtie2-2.1.0-linux/"));
+          deleteDir(new File(finalOutDirectory + "bowtie2_samtools_binaries_for_linux/"));
+          deleteDir(new File(finalOutDirectory + "samtools-0.1.19-linux/"));
+
+          Files.write("blanked", r1);
+          Files.write("blanked", r2);
+          String finalResults = finalOutDirectory + "results/tel.length.xls";
+
+          if (Files.exists(finalResults)) {
+            String parsedFinalResults = finalResults + ".parsed";
+            String[][] file = HashVec.loadFileToStringMatrix(parsedFinalResults, false,
+                                                             new int[] {0, 1}, false);
+            for (int i = 0; i < file.length; i++) {
+              for (int j = 0; j < file[i].length; j++) {
+                file[i][j] = file[i][j].replaceAll("\"", "");
+              }
+            }
+            Files.writeMatrix(Matrix.transpose(file), parsedFinalResults, "\t");
+
+          }
+
+        }
       }
     } catch (FileNotFoundException e) {
       log.reportException(e);
     }
 
+  }
+
+  private static void deleteFiles(Logger log, ArrayList<String> filesToDelete) {
+    for (String file : filesToDelete) {
+      log.reportTimeInfo("Deleting file " + file);
+      if (!new File(file).delete()) {
+        log.reportTimeError("Did not delete " + file);
+      }
+    }
+  }
+
+  private static boolean deleteDir(File dir) {
+    if (dir.isDirectory()) {
+      String[] children = dir.list();
+      for (int i = 0; i < children.length; i++) {
+        boolean success = deleteDir(new File(dir, children[i]));
+        if (!success) {
+          return false;
+        }
+      }
+    }
+    return dir.delete();
   }
 
   private static String manageConfig(Logger log, String finalOutDirectory, String bowtieSamDir,
@@ -194,10 +256,11 @@ public class Computel {
     }
   }
 
-  public static void test(String bam, String computelLocation, String outDir) {
-    runComputel(bam, outDir, computelLocation, new Logger(outDir + "computel.Log"));
-  }
 
+
+  /**
+   * @param args
+   */
   public static void main(String[] args) {
     String targetBam = "bam.bam";
     String computelLocation = "computel/";
@@ -208,14 +271,14 @@ public class Computel {
     c.addArgWithDefault(bam, "bam file to analyze", targetBam);
 
     final String computel = "computel";
-    c.addArgWithDefault(computel, "full computel directory (as git clone ideally)",
-               computelLocation);
+    c.addArgWithDefault(computel, "full computel directory (as git clone ideally)", computelLocation);
 
     final String outdir = "out";
     c.addArgWithDefault(outdir, "the output directory for results", outDir);
 
-    c.parseWithExit(args);
+    c.parseWithExit( args);
 
-    test(c.get(bam), c.get(computel), c.get(outdir));
+    runComputel(c.get(bam), c.get(outdir), c.get(computel), new Logger());
+
   }
 }

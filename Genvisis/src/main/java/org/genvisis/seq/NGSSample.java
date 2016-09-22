@@ -26,10 +26,16 @@ public class NGSSample {
     this.platform = platform;
   }
 
+  /**
+   * @return the assembly name
+   */
   public ASSEMBLY_NAME getaName() {
     return aName;
   }
 
+  /**
+   * @return the assay type
+   */
   public ASSAY_TYPE getaType() {
     return aType;
   }

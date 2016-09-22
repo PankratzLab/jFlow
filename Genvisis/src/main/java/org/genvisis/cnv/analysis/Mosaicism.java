@@ -106,7 +106,7 @@ public class Mosaicism {
     PSF.checkInterrupted();
     samples = proj.getSamples();
     try {
-      writer = new PrintWriter(new FileWriter(proj.MOSAIC_RESULTS_FILENAME.getValue()));
+      writer = new PrintWriter(new FileWriter(proj.MOSAIC_RESULTS_FILENAME.getValue(true, true)));
       writer.println(Array.toStr(MosaicPlot.MOSAICISM_HEADER));
       // samples = new String[] { "7355066051_R03C01", "7330686030_R02C01", "7159911135_R01C02" };
       // samples = new String[] { "7355066051_R03C01" };
@@ -273,7 +273,9 @@ public class Mosaicism {
           int lrrSize = lrrAl.size();
           float[] bafTmp = Floats.toArray(bafAl);
           String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t"
-                          + ext.formDeci(Array.mean(Floats.toArray(lrrAl)), 5) + "\t" + bafAl.size()
+                          + ext.formDeci(Array.mean(Floats.toArray(lrrAl)),
+                                         5)
+                          + "\t" + bafAl.size()
                           + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t"
                                             + ext.formDeci(Array.iqrExclusive(bafTmp), 5)
                                           : "\t.\t.")

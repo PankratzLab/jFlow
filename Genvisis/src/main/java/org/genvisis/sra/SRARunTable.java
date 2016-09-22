@@ -3,6 +3,7 @@ package org.genvisis.sra;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.genvisis.common.Array;
@@ -48,6 +49,14 @@ public class SRARunTable extends HashMap<String, SRASample> {
     super();
   }
 
+  public String[] getAllRunSFiles() {
+    ArrayList<String> sraFiles = new ArrayList<String>();
+    for (String sample : keySet()) {
+      sraFiles.add(get(sample).getRunS());
+    }
+    return Array.toStringArray(sraFiles);
+  }
+
   /**
    * @param sraTable load this run table
    * @param log
@@ -75,10 +84,12 @@ public class SRARunTable extends HashMap<String, SRASample> {
         ASSEMBLY_NAME name = ASSEMBLY_NAME.valueOf(parsed[3].toUpperCase());
         PLATFORM platform = PLATFORM.valueOf(parsed[4]);
 
-        sraRunTable.put(runS, new SRASample(runS, submittedSampleID, name, aType, platform));
-        numLoaded++;
+        if (platform == PLATFORM.ILLUMINA) {
+          sraRunTable.put(runS, new SRASample(runS, submittedSampleID, name, aType, platform));
+          numLoaded++;
+        }
       }
-      log.reportTimeInfo("Loaded " + numLoaded + " samples from " + sraTable);
+      log.reportTimeInfo("Loaded " + numLoaded + " ILLUMINA samples from " + sraTable);
       reader.close();
     } catch (FileNotFoundException e) {
       log.reportException(e);

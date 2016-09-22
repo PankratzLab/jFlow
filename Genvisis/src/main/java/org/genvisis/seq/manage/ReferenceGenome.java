@@ -12,6 +12,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
+import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
@@ -147,7 +148,11 @@ public class ReferenceGenome {
   }
 
   public String[] getSequenceFor(Segment segment) {
-    return getSequenceFor(segment, false);
+    return getSequenceFor(segment, ASSEMBLY_NAME.HG19, false);
+  }
+
+  public String[] getSequenceFor(Segment segment, boolean memoryMode) {
+    return getSequenceFor(segment, ASSEMBLY_NAME.HG19, memoryMode);
   }
 
   public int getContigLength(Segment seg) {
@@ -170,8 +175,11 @@ public class ReferenceGenome {
    * @return will return null if {@link Positions#getChromosomeUCSC(int, boolean, boolean)} returns
    *         a contig not in the files {@link SAMSequenceDictionary}
    */
-  public String[] getSequenceFor(Segment segment, boolean memoryMode) {
-    String requestedContig = Positions.getChromosomeUCSC(segment.getChr(), true, true);
+  public String[] getSequenceFor(Segment segment, ASSEMBLY_NAME aName, boolean memoryMode) {
+    String requestedContig = Positions.getChromosomeUCSC(segment.getChr(), aName.addChr(), true);
+    if (segment.getChr() == 26) {
+      requestedContig = aName.getMitoContig();
+    }
     if (hasContig(requestedContig)) {
 
       int seqLength = indexedFastaSequenceFile.getSequenceDictionary().getSequence(requestedContig)

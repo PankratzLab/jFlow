@@ -1480,8 +1480,15 @@ public class VCFOps {
 
   }
 
-  public static void createSiteOnlyVcf(String inputVCF, String outputVCF, boolean overWrite,
-                                       Logger log) {
+  /**
+   * @param inputVCF
+   * @param outputVCF the output, site only vcf
+   * @param mafFilter an maf filter to apply, set to less than 0 for no filtering
+   * @param overWrite
+   * @param log
+   */
+  public static void createSiteOnlyVcf(String inputVCF, String outputVCF, boolean removeSingletons,
+                                       boolean overWrite, Logger log) {
     VCFFileReader reader = new VCFFileReader(new File(inputVCF), false);
     if (Files.exists(outputVCF) && !overWrite) {
       log.reportTimeWarning(outputVCF + " exists, skipping site only");
@@ -1490,8 +1497,17 @@ public class VCFOps {
                                                new Options[] {Options.DO_NOT_WRITE_GENOTYPES},
                                                reader.getFileHeader().getSequenceDictionary());
       copyHeader(reader, writer, null, HEADER_COPY_TYPE.SITE_ONLY, log);
+      int numSingletonFilter = 0;
       for (VariantContext vc : reader) {
-        writer.add(vc);
+        boolean singleton = (vc.getHetCount() + vc.getHomVarCount()) <= 1;
+        if (!singleton || !removeSingletons) {
+          writer.add(vc);
+        } else {
+          numSingletonFilter++;
+        }
+      }
+      if (removeSingletons) {
+        log.reportTimeInfo(numSingletonFilter + " variants were removed as singletons");
       }
       reader.close();
       writer.close();

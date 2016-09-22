@@ -17,6 +17,7 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
+import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
 import org.genvisis.seq.manage.BamPile;
@@ -405,7 +406,8 @@ public class CnvBamQC {
 
     String serToReport = serDir + ext.rootOf(cnvFile) + "_QC/";
     PileupProducer producer = new PileupProducer(bamFiles, serToReport, null, null,
-                                                 callSplit.getSegsToSearch(), log);
+                                                 callSplit.getSegsToSearch(), ASSEMBLY_NAME.HG19,
+                                                 log);
     WorkerTrain<BamPileResult> train = new WorkerTrain<BamPileResult>(producer, numThreads, 2, log);
     BamPile[][] bamPiles = new BamPile[bamFiles.length][];
     int index = 0;

@@ -20,19 +20,33 @@ public class SeqVariables {
    */
   public enum ASSEMBLY_NAME {
 
-                             GRCH37("MT", "X", "Y"), NCBI36("NA", "NA",
-                                                            "NA"), HG19("chrMT", "chrX",
-                                                                        "chrY"), OTHER("NA", "NA",
-                                                                                       "NA");
+                             /**
+                             * 
+                             */
+                             GRCH37("MT", "X", "Y", false),
+                             /**
+                             * 
+                             */
+                             NCBI36("NA", "NA", "NA", false),
+                             /**
+                             * 
+                             */
+                             HG19("chrMT", "chrX", "chrY", true),
+                             /**
+                             * 
+                             */
+                             OTHER("NA", "NA", "NA", false);
 
     private String mitoContig;
     private String xContig;
     private String yContig;
+    private boolean addChr;
 
-    private ASSEMBLY_NAME(String mitoContig, String xContig, String yContig) {
+    private ASSEMBLY_NAME(String mitoContig, String xContig, String yContig, boolean addChr) {
       this.mitoContig = mitoContig;
       this.xContig = xContig;
       this.yContig = yContig;
+      this.addChr = addChr;
     }
 
     /**
@@ -40,6 +54,14 @@ public class SeqVariables {
      */
     public String getMitoContig() {
       return mitoContig;
+    }
+
+
+    /**
+     * @return whether to add "chr" for all contigs
+     */
+    public boolean addChr() {
+      return addChr;
     }
 
     /**
