@@ -447,7 +447,7 @@ public class ABLookup {
                                    Object... args) {
     ABLookup abLookup = new ABLookup();
 
-    if (!Files.exists(outfile)) {
+    if (!Files.exists(outfile, false, true)) {
       switch (parseSource) {
         case GENCLUSTER:
           abLookup.parseFromGenotypeClusterCenters(proj);
@@ -462,9 +462,9 @@ public class ABLookup {
           abLookup.parseFromOriginalGenotypes(proj);
           break;
       }
+      abLookup.writeToFile(outfile, proj.getLog());
     }
 
-    abLookup.writeToFile(outfile, proj.getLog());
   }
 
   public static Hashtable<String, char[]> generateABLookupHash(String filename, Logger log) {
@@ -591,6 +591,8 @@ public class ABLookup {
     log = proj.getLog();
     abLookup = new ABLookup(proj.getMarkerNames(), abLookupFilename, false, false, proj.getLog());
     samples = proj.getSamples();
+    int alleleMismatches = 0;
+    int totalGenotypes = 0;
     for (int i = 0; i < samples.length; i++) {
       if (i % 100 == 0) {
         log.report((i + 1) + " of " + samples.length);
@@ -600,6 +602,7 @@ public class ABLookup {
       if (forwardGenotypes.length != abLookup.markerNames.length) {
         log.reportError("Error - mismatched array lengths for forwardGenotypes and abLookup markerNames");
       }
+      totalGenotypes += abLookup.markerNames.length;
       abGenotypes = new byte[forwardGenotypes.length];
       for (int j = 0; j < abLookup.markerNames.length; j++) {
         if (forwardGenotypes[j] == 0) {
@@ -611,10 +614,7 @@ public class ABLookup {
             if (genotype.charAt(k) == abLookup.lookup[j][1]) {
               abGenotypes[j]++;
             } else if (genotype.charAt(k) != abLookup.lookup[j][0]) {
-              log.reportError("Error - mismatched alleles found " + genotype.charAt(k)
-                              + " for marker " + abLookup.markerNames[j] + " for sample "
-                              + samples[i] + " (expecting " + abLookup.lookup[j][0] + "/"
-                              + abLookup.lookup[j][1] + ")");
+              alleleMismatches++;
             }
           }
         }
@@ -622,6 +622,10 @@ public class ABLookup {
       fsamp.setAB_Genotypes(abGenotypes);
       fsamp.saveToRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(false, true) + samples[i]
                                    + Sample.SAMPLE_FILE_EXTENSION);
+    }
+    if (alleleMismatches > 0) {
+      log.reportError("Warning - " + alleleMismatches + " total mismatched forward alleles found; ~" + alleleMismatches / samples.length + " per sample; ~" + 
+    ext.formPercent(alleleMismatches / (totalGenotypes * 2.0), 4) + " of total alleles");
     }
   }
 
@@ -817,9 +821,9 @@ public class ABLookup {
       parseABLookup(proj, ABSource.VCF, outfile);
     } else if (c.has(ARGS_PARTAB)) {
       fillInMissingAlleles(proj, c.get(ARGS_PARTAB), c.get(ARGS_MAP), c.has(FLAGS_PLINK));
-    } else  if (c.has(ARGS_MANIFEST)) {
+    } else if (c.has(ARGS_MANIFEST)) {
       parseABLookup(proj, ABSource.MANIFEST, outfile, c.get(ARGS_MANIFEST));
-    } else  if (c.has(FLAGS_ORIGIN)) {
+    } else if (c.has(FLAGS_ORIGIN)) {
       parseABLookup(proj, ABSource.ORIGEN, outfile);
     } else if (c.has(FLAGS_CLUSTER)) {
       parseABLookup(proj, ABSource.GENCLUSTER, outfile);
