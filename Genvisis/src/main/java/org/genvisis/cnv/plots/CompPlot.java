@@ -44,6 +44,7 @@ import org.genvisis.cnv.gui.FileNavigator;
 import org.genvisis.cnv.gui.LRRComp;
 import org.genvisis.cnv.gui.NewRegionListDialog;
 import org.genvisis.cnv.gui.RegionNavigator;
+import org.genvisis.cnv.gui.RegionNavigator.ChrNavigator;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.manage.UCSCtrack;
@@ -62,7 +63,7 @@ import org.genvisis.filesys.GeneTrack;
  * @author Michael Vieths
  *
  */
-public class CompPlot extends JFrame {
+public class CompPlot extends JFrame implements ChrNavigator {
   public static final long serialVersionUID = 1L;
 
   // public static final String DEFAULT_LOCATION = "chr17:55,609,472-55,824,368"; // USP32
@@ -235,13 +236,14 @@ public class CompPlot extends JFrame {
     rectangleHeight = compConfig.getRectangleHeight();
     setDisplayMode(compConfig.getDisplayMode());
 
-    setRegion(regionNavigator.getRegion());
+    setPosition(DEFAULT_LOCATION);
 
-    JCheckBoxMenuItem jcbmi =
-                            regionFileNameBtn.get(ext.rootOf(CompPlot.this.regionNavigator.getRegionFile()));
-    if (jcbmi != null) {
-      jcbmi.setSelected(true);
-    }
+    //FIXME update for actual region navigation
+//    JCheckBoxMenuItem jcbmi =
+//                            regionFileNameBtn.get(ext.rootOf(CompPlot.this.regionNavigator.getRegionFile()));
+//    if (jcbmi != null) {
+//      jcbmi.setSelected(true);
+//    }
   }
 
   private void setupGUI() {
@@ -263,7 +265,6 @@ public class CompPlot extends JFrame {
     topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
 
     regionNavigator = new RegionNavigator(this);
-    regionNavigator.addPropertyChangeListener(cpcl);
     topPanel.add(regionNavigator);
 
     fileNavigator = new FileNavigator(files, colorScheme);
@@ -326,10 +327,11 @@ public class CompPlot extends JFrame {
           remove.setAction(deleteFileAction);
           remove.setText(rgnFile);
           delRegionFileMenu.add(remove);
-          regionNavigator.loadRegions();
-          regionNavigator.setRegionFile(rgnFile);
-          regionNavigator.setRegion(0);
-          CompPlot.this.setRegion(regionNavigator.getRegion());
+          //FIXME add actual region navigation
+//          regionNavigator.loadRegions();
+//          regionNavigator.setRegionFile(rgnFile);
+//          regionNavigator.setRegion(0);
+//          CompPlot.this.setRegion(regionNavigator.getRegion());
         }
       }
     });
@@ -500,7 +502,7 @@ public class CompPlot extends JFrame {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      new Thread(new LRRComp(proj, regionNavigator.getTextField().getText())).start();
+      new Thread(new LRRComp(proj, regionNavigator.getChrText())).start();
     }
   };
 
@@ -533,8 +535,7 @@ public class CompPlot extends JFrame {
         // Direct the user to the BED upload page at UCSC Genome Browser
         Desktop desktop = Desktop.getDesktop();
         String URL = Positions.getUCSCUploadLink(
-                                                 Positions.parseUCSClocation(regionNavigator.getTextField()
-                                                                                            .getText()),
+                                                 Positions.parseUCSClocation(regionNavigator.getChrText()),
                                                  compressedFile);
 
         // UCSC uses chrX and chrY instead of 23 and 24
@@ -559,8 +560,7 @@ public class CompPlot extends JFrame {
     @Override
     public void actionPerformed(ActionEvent arg0) {
       Desktop desktop = Desktop.getDesktop();
-      String URL = Positions.getUCSClink(Positions.parseUCSClocation(regionNavigator.getTextField()
-                                                                                    .getText()));
+      String URL = Positions.getUCSClink(Positions.parseUCSClocation(regionNavigator.getChrText()));
 
       // UCSC uses chrX and chrY instead of 23 and 24
       URL = URL.replaceAll("chr23", "chrX");
@@ -602,11 +602,12 @@ public class CompPlot extends JFrame {
           break;
       }
       proj.REGION_LIST_FILENAMES.removeValue(e.getActionCommand());
-      // CompPlot.this.regionNavigator.loadRegions();
+//      regionNavigator.loadRegions();
       String[] val = proj.REGION_LIST_FILENAMES.getValue();
-      regionNavigator.setRegionFile(val.length > 0 ? val[0] : "");
-      regionNavigator.setRegion(0);
-      CompPlot.this.setRegion(regionNavigator.getRegion());
+      //FIXME update with actual region navigation
+//      regionNavigator.setRegionFile(val.length > 0 ? val[0] : "");
+//      regionNavigator.setRegion(0);
+//      CompPlot.this.setRegion(regionNavigator.getRegion());
       delRegionFileMenu.remove((JMenuItem) e.getSource());
       loadRecentFileMenu.remove(regionFileNameBtn.remove(ext.rootOf(e.getActionCommand())));
     }
@@ -644,7 +645,8 @@ public class CompPlot extends JFrame {
       String shortName = ((JCheckBoxMenuItem) e.getSource()).getText();
       // if (!loadingFile) {
       String file = regionFileNameLoc.get(shortName);
-      if (file == null || file.equals(regionNavigator.getRegionFile())) {
+      //FIXME update for region files
+      if (file == null /*|| file.equals(regionNavigator.getRegionFile())*/) {
         return;
       }
       String tempFile = file.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + file : file;
@@ -655,9 +657,9 @@ public class CompPlot extends JFrame {
         // proj.REGION_LIST_FILENAMES.setValue(Array.insertStringAt(file,
         // proj.REGION_LIST_FILENAMES.getValue(), 0));
         // CompPlot.this.regionNavigator.loadRegions();
-        regionNavigator.setRegionFile(file);
-        regionNavigator.setRegion(0);
-        CompPlot.this.setRegion(regionNavigator.getRegion());
+//        regionNavigator.setRegionFile(file);
+//        regionNavigator.setRegion(0);
+//        CompPlot.this.setRegion(regionNavigator.getRegion());
         // regionIndex = 0;
         // showRegion();
       }
@@ -678,11 +680,12 @@ public class CompPlot extends JFrame {
     public void actionPerformed(ActionEvent e) {
       String newFile = chooseNewFiles();
       if (newFile != null) {
-        regionNavigator.loadRegions();
-        regionNavigator.setRegionFile(newFile);
-        regionNavigator.setRegion(0);
-        regionFileNameBtn.get(ext.rootOf(regionNavigator.getRegionFile())).setSelected(true);
-        CompPlot.this.setRegion(regionNavigator.getRegion());
+        //FIXME update for region files
+//        regionNavigator.loadRegions();
+//        regionNavigator.setRegionFile(newFile);
+//        regionNavigator.setRegion(0);
+//        regionFileNameBtn.get(ext.rootOf(regionNavigator.getRegionFile())).setSelected(true);
+//        CompPlot.this.setRegion(regionNavigator.getRegion());
       }
     }
   };
@@ -845,6 +848,11 @@ public class CompPlot extends JFrame {
   /*
    * Method to set values pulled from RegionNavigator
    */
+  public void setPosition(String region) {
+    Region r = new Region(Positions.parseUCSClocation(region));
+    setRegion(r);
+  }
+
   public void setRegion(Region region) {
     location = Positions.parseUCSClocation(region.getRegion());
     byte chr;
@@ -858,23 +866,25 @@ public class CompPlot extends JFrame {
     stop = location[2];
     if (start == -1 || start < 0) {
       start = 1;
+      location[1] = start;
     }
     if (stop == -1 || stop > positions[chrBoundaries[chr][1]]) {
       stop = positions[chrBoundaries[chr][1]];
+      location[2] = stop;
     }
-    regionNavigator.getTextField().setText(Positions.getUCSCformat(new int[] {chr, start, stop}));
+    regionNavigator.setChrFieldText(chr, start, stop);
     chromosomeViewer.updateView(chr, start, stop);
     loadCNVs(location);
     chromosomeViewer.repaint();
   }
 
   public Region getRegion() {
-    return regionNavigator.getRegion();
+    return new Region(regionNavigator.getChrText());
   }
 
   public void setCPLocation(int[] location) {
     this.location = location;
-    regionNavigator.setLocation(location);
+    regionNavigator.setChrFieldText((byte) location[0], location[1], location[2]);
     chromosomeViewer.updateView(location[0], location[1], location[2]);
     loadCNVs(location);
     chromosomeViewer.repaint();
@@ -896,6 +906,7 @@ public class CompPlot extends JFrame {
   public ArrayList<String> getFilterFiles() {
     return filterFiles;
   }
+
 }
 
 
@@ -926,9 +937,7 @@ class CompPropertyChangeListener implements PropertyChangeListener {
       // } else if (propertyName.equals("previousRegion")) {
       // } else if (propertyName.equals("nextRegion")) {
       // } else if (propertyName.equals("lastRegion")) {
-    } else if (propertyName.equals("location")) {
-      compPlot.setRegion((Region) pve.getNewValue());
-    } else if (propertyName.equals("selectedCNV")) {
+    }  else if (propertyName.equals("selectedCNV")) {
       @SuppressWarnings("unchecked")
       ArrayList<CNVariant> cnvs = (ArrayList<CNVariant>) pve.getNewValue();
       compPlot.setSelectedCNVs(cnvs);

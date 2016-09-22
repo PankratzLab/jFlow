@@ -88,7 +88,9 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.ClickListener;
 import org.genvisis.cnv.gui.FileActionMenu;
 import org.genvisis.cnv.gui.NewRegionListDialog;
+import org.genvisis.cnv.gui.RegionNavigator;
 import org.genvisis.cnv.gui.SingleClick;
+import org.genvisis.cnv.gui.RegionNavigator.ChrNavigator;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.hmm.CNVCaller.CNVCallResult;
 import org.genvisis.cnv.hmm.CNVCaller.PFB_MANAGEMENT_TYPE;
@@ -127,7 +129,7 @@ import org.genvisis.mining.Transformations;
 
 import net.miginfocom.swing.MigLayout;
 
-public class Trailer extends JFrame implements ActionListener, ClickListener, MouseListener,
+public class Trailer extends JFrame implements ChrNavigator, ActionListener, ClickListener, MouseListener,
                      MouseMotionListener, MouseWheelListener {
 
   public static final long serialVersionUID = 1L;
@@ -152,10 +154,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   public static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
 
   private static final String BLANK_COMMENT = " -- Click here to comment on this region -- ";
-  private static final String FIRST_CHR = "First chr";
-  private static final String PREVIOUS_CHR = "Previous chr";
-  private static final String NEXT_CHR = "Next chr";
-  private static final String LAST_CHR = "Last chr";
+
   private static final String FIRST_REGION = "First region";
   private static final String PREVIOUS_REGION = "Previous region";
   private static final String NEXT_REGION = "Next region";
@@ -169,10 +168,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
   private static final String REGION_LIST_PROVIDED = "Region list provided";
   private JComboBox sampleList;
+  private RegionNavigator navPanel;
   private String[] samplesPresent;
-  private JTextField navigationField;
-  private JButton firstChr, previousChr, nextChr, lastChr, previousRegion, nextRegion, firstRegion,
-      lastRegion;
+  private JButton previousRegion, nextRegion, firstRegion, lastRegion;
   private Project proj;
   private String sample;
   private boolean jar;
@@ -689,6 +687,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     }
   };
 
+
   // TODO trailer takes a map<genome : region>
   // builds region array, sets region filename to "From enumerated list"
 
@@ -907,7 +906,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
           public void run() {
             cnvLabels = sampleData.getCnvClasses();
             setBounds(startX, startY, width, height);
-            updateLocation(startingLocation);
+            setPosition(startingLocation);
             updateSample(sample);
             setVisible(true);
             updateGUI();
@@ -1507,52 +1506,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     compPanel.setPreferredSize(new Dimension(compPanel.getPreferredSize().width, 95));
 
     JPanel navigateChrPanel = new JPanel();
-    ((FlowLayout) navigateChrPanel.getLayout()).setVgap(0);
-    firstChr = new JButton(Grafik.getImageIcon("images/firstLast/First.gif"));
-    firstChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif"));
-    firstChr.addActionListener(this);
-    firstChr.setActionCommand(FIRST_CHR);
-    firstChr.setPreferredSize(new Dimension(20, 20));
-    firstChr.setToolTipText("Go to first chromosome");
-    previousChr = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif"));
-    previousChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif"));
-    previousChr.addActionListener(this);
-    previousChr.setActionCommand(PREVIOUS_CHR);
-    previousChr.setPreferredSize(new Dimension(20, 20));
-    previousChr.setToolTipText("Go to previous chromosome");
-    navigationField = new JTextField("", 20);
-    navigationField.setHorizontalAlignment(JTextField.CENTER);
-    navigationField.setFont(font);
-    navigationField.setAction(new AbstractAction() {
-      private static final long serialVersionUID = 1L;
 
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        JTextField navField;
-        navField = (JTextField) e.getSource();
-        navField.setText(navField.getText().trim());
-        updateLocation(navField.getText());
-      }
-    });
-
-    nextChr = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif"));
-    nextChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif"));
-    nextChr.addActionListener(this);
-    nextChr.setActionCommand(NEXT_CHR);
-    nextChr.setPreferredSize(new Dimension(20, 20));
-    nextChr.setToolTipText("Go to next chromosome");
-    lastChr = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif"));
-    lastChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif"));
-    lastChr.addActionListener(this);
-    lastChr.setActionCommand(LAST_CHR);
-    lastChr.setPreferredSize(new Dimension(20, 20));
-    lastChr.setToolTipText("Go to last chromosome");
-    navigateChrPanel.add(firstChr);
-    navigateChrPanel.add(previousChr);
-    navigateChrPanel.add(navigationField);
-    navigateChrPanel.add(nextChr);
-    navigateChrPanel.add(lastChr);
-    descrPanel.add(navigateChrPanel, "cell 0 2");
+    navPanel = new RegionNavigator(this);
+    descrPanel.add(navPanel, "cell 0 2");
 
     JPanel overPanel = new JPanel();
     overPanel.setLayout(new BoxLayout(overPanel, BoxLayout.LINE_AXIS));
@@ -1570,40 +1526,41 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     InputMap inputMap = bafPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
     inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), PREVIOUS_REGION);
     inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), NEXT_REGION);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, InputEvent.CTRL_MASK), PREVIOUS_CHR);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, InputEvent.CTRL_MASK), NEXT_CHR);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, InputEvent.CTRL_MASK), RegionNavigator.PREVIOUS_CHR);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, InputEvent.CTRL_MASK), RegionNavigator.NEXT_CHR);
 
+    //FIXME this is a duplication of the action listening done by trailer..
     ActionMap actionMap = bafPanel.getActionMap();
-    actionMap.put(FIRST_CHR, new AbstractAction() {
+    actionMap.put(RegionNavigator.FIRST_CHR, new AbstractAction() {
       public static final long serialVersionUID = 5L;
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        updateLocation("chr1");
+        setPosition("chr1");
       }
     });
-    actionMap.put(PREVIOUS_CHR, new AbstractAction() {
+    actionMap.put(RegionNavigator.PREVIOUS_CHR, new AbstractAction() {
       public static final long serialVersionUID = 6L;
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        updateLocation("chr" + Math.max(chr - 1, 1));
+        setPosition("chr" + Math.max(chr - 1, 1));
       }
     });
-    actionMap.put(NEXT_CHR, new AbstractAction() {
+    actionMap.put(RegionNavigator.NEXT_CHR, new AbstractAction() {
       public static final long serialVersionUID = 7L;
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        updateLocation("chr" + Math.min(chr + 1, 26));
+        setPosition("chr" + Math.min(chr + 1, 26));
       }
     });
-    actionMap.put(LAST_CHR, new AbstractAction() {
+    actionMap.put(RegionNavigator.LAST_CHR, new AbstractAction() {
       public static final long serialVersionUID = 8L;
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        updateLocation("chr26");
+        setPosition("chr26");
       }
     });
     actionMap.put(FIRST_REGION, new AbstractAction() {
@@ -1641,9 +1598,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     bafPanel.setActionMap(actionMap);
 
     // doesn't seem to get captured properly...
-    nextChr.getInputMap().put(KeyStroke.getKeyStroke("space"), NEXT_REGION);
-    nextChr.setActionMap(actionMap);
-    previousChr.setActionMap(actionMap);
+    //FIXME move this to RegionNavigator if needed
+//    nextChr.getInputMap().put(KeyStroke.getKeyStroke("space"), NEXT_REGION);
+//    nextChr.setActionMap(actionMap);
+//    previousChr.setActionMap(actionMap);
   }
 
   private void doScreenCapture(String filename) {
@@ -2361,15 +2319,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     String command = ae.getActionCommand();
     // String[] filenames;
 
-    if (command.equals(FIRST_CHR)) {
-      updateLocation("chr1");
-    } else if (command.equals(PREVIOUS_CHR)) {
-      updateLocation("chr" + Math.max(chr - 1, 1));
-    } else if (command.equals(NEXT_CHR)) {
-      updateLocation("chr" + Math.min(chr + 1, 26));
-    } else if (command.equals(LAST_CHR)) {
-      updateLocation("chr26");
-    } else if (command.equals(FIRST_REGION)) {
+    if (command.equals(FIRST_REGION)) {
       if (regions == null || regions.length == 0) {
         JOptionPane.showMessageDialog(null, "Error - No regions have been loaded", "Error",
                                       JOptionPane.ERROR_MESSAGE);
@@ -2814,7 +2764,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
    * @param location Either a valid gene name recognized by the installed gene track, or a UCSC
    *        location of the format "chr#:start-stop"
    */
-  private void updateLocation(String location) {
+  @Override
+  public void setPosition(String location) {
     parseLocation(location);
     updateGUI();
   }
@@ -3158,7 +3109,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
       commentLabel.setText(" ");
       return;
     }
-    updateLocation(regions[regionIndex][1]);
+    setPosition(regions[regionIndex][1]);
     if (regions[regionIndex].length > 2) {
       commentField.setText(regions[regionIndex][2]);
       commentLabel.setText("region #" + (regionIndex + 1) + ":  " + regions[regionIndex][2]);
@@ -3228,9 +3179,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
       stop = positions[chrBoundaries[chr][1]];
     }
 
-    navigationField.setText(chr == 0 ? "all"
-                                     : "chr" + chr + ":" + ext.addCommas(start) + "-"
-                                       + ext.addCommas(stop));
+    navPanel.setChrFieldText(chr, start, stop);
   }
 
   /**

@@ -144,8 +144,6 @@ public class Positions {
     try {
       str = ext.replaceAllWith(str, ",", "");
       if (str.contains(":-") || str.contains("--")) {
-        System.err.println("Warning - UCSC position '" + str
-                           + "' contains a negative position; returning whole chromosome");
         chr = Positions.chromosomeNumber(str.substring(3, str.indexOf(":")));
         start = -1;
         stop = -1;
