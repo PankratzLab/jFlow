@@ -464,7 +464,7 @@ public class ABLookup {
       }
     }
 
-    abLookup.writeToFile(proj.PROJECT_DIRECTORY.getValue() + outfile, proj.getLog());
+    abLookup.writeToFile(outfile, proj.getLog());
   }
 
   public static Hashtable<String, char[]> generateABLookupHash(String filename, Logger log) {
@@ -810,18 +810,19 @@ public class ABLookup {
     c.parseWithExit(args);
 
     proj = new Project(c.get(ARGS_PROJ), false);
+    outfile = proj.PROJECT_DIRECTORY.getValue() + c.get(ARGS_OUT);
     if (c.has(FLAGS_APPLYAB)) {
       applyABLookupToFullSampleFiles(proj);
     } else if (c.has(FLAGS_VCF)) {
-      parseABLookup(proj, ABSource.VCF, c.get(ARGS_OUT));
+      parseABLookup(proj, ABSource.VCF, outfile);
     } else if (c.has(ARGS_PARTAB)) {
       fillInMissingAlleles(proj, c.get(ARGS_PARTAB), c.get(ARGS_MAP), c.has(FLAGS_PLINK));
     } else  if (c.has(ARGS_MANIFEST)) {
-      parseABLookup(proj, ABSource.MANIFEST, c.get(ARGS_OUT), c.get(ARGS_MANIFEST));
+      parseABLookup(proj, ABSource.MANIFEST, outfile, c.get(ARGS_MANIFEST));
     } else  if (c.has(FLAGS_ORIGIN)) {
-      parseABLookup(proj, ABSource.ORIGEN, c.get(ARGS_OUT));
+      parseABLookup(proj, ABSource.ORIGEN, outfile);
     } else if (c.has(FLAGS_CLUSTER)) {
-      parseABLookup(proj, ABSource.GENCLUSTER, c.get(ARGS_OUT));
+      parseABLookup(proj, ABSource.GENCLUSTER, outfile);
     }
   }
 }

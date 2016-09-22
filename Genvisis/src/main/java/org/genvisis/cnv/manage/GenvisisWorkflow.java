@@ -898,7 +898,7 @@ public class GenvisisWorkflow {
 
     @Override
     public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-      String filename = ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+      String filename = proj.PROJECT_DIRECTORY.getValue() + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
       ABLookup.parseABLookup(proj, ABSource.VCF, filename);
 
       if (ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false)) {
@@ -934,7 +934,7 @@ public class GenvisisWorkflow {
 
     @Override
     public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-      String filename = ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+      String filename = proj.PROJECT_DIRECTORY.getValue() + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
       String projFile = proj.getPropertyFilename();
       String mapFile = proj.getLocationOfSNP_Map(true);
 
