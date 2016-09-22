@@ -163,6 +163,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   private static final String TO_COMP_PLOT = "To Comp Plot";
   private static final String REGION_LIST_LOAD_FILE = "Load Region File";
   private static final String REGION_LIST_SAVE_FILE = "Save Regions to File...";
+  private static final String REGION_LIST_ADD = "Add current region";
   private static final String REGION_LIST_NEW_FILE = "New Region List File";
   private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
   private static final String REGION_LIST_PROVIDED = "Region list provided";
@@ -192,7 +193,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
   private int startX;
   private String[] cnvLabels;
   private CNVariant[][] cnvs;
-  private boolean promptRegionCreation = true;
+  // Variables for whether or not to prompt the user to save regions after given modifications are made.
+  private boolean promptCommentSave = true;
+  private boolean promptAddRegionSave = true;
   // private String[] regionsList;
   // private int regionsListIndex;
 
@@ -292,6 +295,29 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     }
   };
 
+  /**
+   * Menu action for adding current visible area as a region to the current list.
+   */
+  AbstractAction addRegionAction = new AbstractAction() {
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (regions != null) {
+        String[][] tmp = new String[regions.length + 1][];
+        System.arraycopy(regions, 0, tmp, 0, regions.length);
+        tmp[tmp.length - 1] = new String[]{sample, "chr" + chr + ":" + start + "-" + stop};
+        regions = tmp;
+        promptAddRegionSave = promptAndSaveRegions(promptAddRegionSave);
+        showRegion(regions.length-1);
+      }
+    }
+
+  };
+
+  /**
+   * Menu action for saving the current region list to a file.
+   */
   AbstractAction saveRegionFileAction = new AbstractAction() {
     private static final long serialVersionUID = 1L;
 
@@ -1454,19 +1480,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                                                                   : "region #" + (regionIndex + 1)
                                                                     + ":  "
                                                                     + regions[regionIndex][2]);
-          if (promptRegionCreation
-              && (regionFileName == null || !new File(regionFileName).exists())) {
-            int createRegion = JOptionPane.showConfirmDialog(null, "No region file found - comments will not be saved.\nWould you like to create a region file now?", "Create region file?", JOptionPane.YES_NO_OPTION);
-            if (JOptionPane.YES_OPTION == createRegion) {
-              saveRegionFile();
-            } else {
-              promptRegionCreation = false;
-            }
-          }
-
-          if (regionFileName != null && new File(regionFileName).exists()) {
-            Files.writeMatrix(regions, regionFileName, "\t");
-          }
+          promptCommentSave = promptAndSaveRegions(promptCommentSave);
         }
         commentLabel.setVisible(true);
         commentField.setVisible(false);
@@ -1725,6 +1739,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     Font font = new Font("Arial", 0, 12);
     newRegionFile.setFont(font);
     fileMenu.add(newRegionFile);
+
+    JMenuItem addRegion = new JMenuItem();
+    addRegion.setAction(addRegionAction);
+    addRegion.setText(REGION_LIST_ADD);
+    addRegion.setFont(font);
+    fileMenu.add(addRegion);
 
     JMenuItem saveRegionFile = new JMenuItem();
     saveRegionFile.setAction(saveRegionFileAction);
@@ -3451,6 +3471,33 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     }
 
     indiPheno.getCnvClasses().get(key).put(chr + "", tmpCurrent);
+  }
+
+  /**
+   * Updates the region file with the current region state. If no valid region file is currently
+   * being tracked, prompts the user if {@code doPrompt} is set. The return value can be assigned to
+   * the input variable to avoid future prompts.
+   *
+   * @param doPrompt Whether or not to prompt the user to create a region file if it doesn't already
+   *        exist.
+   * @return Updated value of the {@code doPrompt} param
+   */
+  private boolean promptAndSaveRegions(boolean doPrompt) {
+    if (doPrompt
+        && (regionFileName == null || !new File(regionFileName).exists())) {
+      int createRegion = JOptionPane.showConfirmDialog(null, "No region file found - changes will not persist.\nWould you like to create a region file now?", "Warning - temporary changes", JOptionPane.YES_NO_OPTION);
+      if (JOptionPane.YES_OPTION == createRegion) {
+        saveRegionFile();
+      } else {
+        doPrompt = false;
+      }
+    }
+
+    if (regionFileName != null && new File(regionFileName).exists()) {
+      Files.writeMatrix(regions, regionFileName, "\t");
+    }
+
+    return doPrompt;
   }
 
   // public static CNVariant[] loadCNVfiles(Project proj, String[] filenames) {
