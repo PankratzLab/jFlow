@@ -113,7 +113,7 @@ public class GATK_Genotyper {
                   + annoVCF.getTag() + ".vcf";
             log.reportTimeInfo("Output anno: " + out);
             gatk.annotateWithAnotherVCF(snpEffResult.getOutputGatkSnpEffVCF(), annoVCF.getVcf(),
-                                        out, annoVCF.getAnnos(), annoVCF.getTag(),
+                                        out, annoVCF.getAnnos(), annoVCF.getTag(), null,
                                         numWithinSampleThreads);
             in = out;
           }

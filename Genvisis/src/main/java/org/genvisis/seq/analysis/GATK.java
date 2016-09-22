@@ -371,7 +371,8 @@ public class GATK {
   }
 
   public boolean annotateWithAnotherVCF(String inputVcf, String annoVcf, String outVCF,
-                                        String[] annotations, String resourceName, int numThreads) {
+                                        String[] annotations, String resourceName,
+                                        String limitContig, int numThreads) {
     String[] inputs = new String[] {inputVcf, annoVcf};
     String[] outputs = new String[] {outVCF};
     ArrayList<String> command = new ArrayList<String>();
@@ -384,6 +385,10 @@ public class GATK {
     command.add(referenceGenomeFasta);
     command.add(V);
     command.add(inputVcf);
+    if (limitContig != null) {
+      command.add(L);
+      command.add(limitContig);
+    }
     command.add(O);
     command.add(outVCF);
     command.add(RESOURCE + resourceName);
