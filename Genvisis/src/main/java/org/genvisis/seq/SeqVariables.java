@@ -20,11 +20,22 @@ public class SeqVariables {
    */
   public enum ASSEMBLY_NAME {
 
-                             GRCH37("MT", "X", "Y",
-                                    false), NCBI36("NA", "NA", "NA",
-                                                   false), HG19("chrMT", "chrX", "chrY",
-                                                                true), OTHER("NA", "NA", "NA",
-                                                                             false);
+                             /**
+                             * 
+                             */
+                             GRCH37("MT", "X", "Y", false),
+                             /**
+                             * 
+                             */
+                             NCBI36("NA", "NA", "NA", false),
+                             /**
+                             * 
+                             */
+                             HG19("chrMT", "chrX", "chrY", true),
+                             /**
+                             * 
+                             */
+                             OTHER("NA", "NA", "NA", false);
 
     private String mitoContig;
     private String xContig;

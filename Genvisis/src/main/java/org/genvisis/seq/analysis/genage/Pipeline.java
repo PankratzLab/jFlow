@@ -351,7 +351,8 @@ public class Pipeline {
    *        imported)
    * @param vcf a vcf file defining variant sites
    * @param sample
-   * @param the location of the computel directory
+   * @param parts the parts of the pipeline to run, see {@link PIPELINE_PARTS} for options
+   * @param computelLocation the location of the computel directory, ideally freshly cloned
    * @param numThreads
    * @param log
    * @return

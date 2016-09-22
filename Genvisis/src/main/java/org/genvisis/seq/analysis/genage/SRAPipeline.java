@@ -99,10 +99,6 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   @Override
   public List<PipelinePart> call() throws Exception {
     String bamDir = getBamDirectory(rootOutDir);
-
-    // if (!Files.exists(getCompleteFile(rootOutDir, inputSRA)) && !Files.exists(inputSRA)) {
-    // throw new IllegalArgumentException("Missing complete file and " + inputSRA);
-    // } else
     if (!Files.exists(getCompleteFile(rootOutDir, inputSRA))) {
       new File(bamDir).mkdirs();
       String bam = bamDir + ext.rootOf(inputSRA) + ".bam";
@@ -525,9 +521,5 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
              c.getI(NUM_THREADS), c.getI(NUM_THREADS_PIPELINE), c.getI(NUM_BATCHES), c,
              c.has(CLEANUP));
     }
-
-
-
   }
-
 }
