@@ -796,11 +796,8 @@ public class PennCNV {
     ArrayList<String> missingGenotypeMarkers = new ArrayList<String>();
     for (int i = 0; i < bafSum.length; i++) {
       boolean cnOnly = proj.getArrayType().isCNOnly(markerNames[i]);
-      if (genoCounts[i] != 0) {
-        if (cnOnly) {
-          proj.getLog().reportTimeWarning("Marker " + markerNames[i]
-                                          + " was flagged as copy number only, but had genotypes");
-        }
+      if (genoCounts[i] != 0 && !cnOnly) {// Since mock genotypes can be present, we demand non-CN
+                                          // only
         bafAverage[i] = bafSum[i] / bafCounts[i];
       } else if (cnOnly) {
         bafAverage[i] = 2;
