@@ -2,6 +2,7 @@ package org.genvisis.cnv.hmm;
 
 import java.io.FileNotFoundException;
 
+import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
@@ -22,7 +23,8 @@ public class PFB {
     super();
     this.proj = proj;
     pfbs = pfbst;
-    if (pfbs.length != proj.getMarkerNames().length) {
+    MarkerSet markerSet = proj.getMarkerSet();
+    if (pfbs.length != markerSet.getMarkerNames().length) {
       String error = "Found " + pfbs.length + " pfb entries, but the project has" + pfbs.length
                      + " markers";
       proj.getLog().reportTimeError(error);
@@ -30,6 +32,7 @@ public class PFB {
     } else {
       this.proj.getLog().reportTimeInfo("Loaded " + pfbst.length + " pfb entries");
     }
+    int problems = 0;
     for (int i = 0; i < pfbs.length; i++) { // what PennCNV does
       if (!Double.isNaN(pfbs[i]) && pfbs[i] >= 0 && pfbs[i] <= 1) {
         if (pfbs[i] < 0.01) {
@@ -38,7 +41,14 @@ public class PFB {
         if (pfbs[i] > .99) {
           pfbs[i] = .99;
         }
+      } else if (!Double.isNaN(pfbs[i]) && pfbs[i] < 1) {
+        if (!proj.ARRAY_TYPE.getValue().isCNOnly(markerSet.getMarkerNames()[i])) {
+          problems++;
+        }
       }
+    }
+    if (problems > 0) {
+      proj.getLog().reportTimeWarning(problems + " markers " + " had a pfb value less than 1 ");
     }
   }
 

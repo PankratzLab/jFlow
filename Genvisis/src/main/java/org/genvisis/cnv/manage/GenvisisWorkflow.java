@@ -24,6 +24,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
+import org.genvisis.cnv.hmm.CNVCaller.PFB_MANAGEMENT_TYPE;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.GcAdjustor;
@@ -898,7 +899,8 @@ public class GenvisisWorkflow {
 
     @Override
     public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-      String filename = proj.PROJECT_DIRECTORY.getValue() + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+      String filename = proj.PROJECT_DIRECTORY.getValue()
+                        + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
       ABLookup.parseABLookup(proj, ABSource.VCF, filename);
 
       if (ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false)) {
@@ -934,7 +936,8 @@ public class GenvisisWorkflow {
 
     @Override
     public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-      String filename = proj.PROJECT_DIRECTORY.getValue() + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+      String filename = proj.PROJECT_DIRECTORY.getValue()
+                        + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
       String projFile = proj.getPropertyFilename();
       String mapFile = proj.getLocationOfSNP_Map(true);
 
@@ -2211,7 +2214,9 @@ public class GenvisisWorkflow {
       (new File(ext.parseDirectoryOfFile(proj.PROJECT_DIRECTORY.getValue() + output))).mkdirs();
       CNVCaller.callAutosomalCNVs(proj, output, proj.getSamples(), null, null,
                                   CNVCaller.DEFUALT_MIN_SITES, CNVCaller.DEFUALT_MIN_CONF,
-                                  numThreads, 1);// TODO, sex specific centroids,etc
+                                  PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);// TODO, sex
+                                                                                      // specific
+                                                                                      // centroids,etc
       proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output);
       proj.saveProperties(new Property[] {proj.CNV_FILENAMES});
     }

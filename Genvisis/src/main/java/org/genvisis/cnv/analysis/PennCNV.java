@@ -161,7 +161,7 @@ public class PennCNV {
     Files.chmod(pennDir + scriptSubDir + "assemblePenncnv");
   }
 
-  //FIXME need to unify this method with batch
+  // FIXME need to unify this method with batch
   public static void batchX(Project proj, int numChunks, Vector<String> execList, String pfbFile,
                             String gcmodelFile, String hmmFile, String scriptSubDir,
                             String dataSubDir, String resultsSubDir) {
@@ -183,7 +183,8 @@ public class PennCNV {
     // proj.getJarStatus())) {
     if (!Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
                       proj.JAR_STATUS.getValue())) {
-      log.reportError("Error - sample data file " + proj.getProperty(PropertyKeys.KEY_SAMPLE_DATA_FILENAME)
+      log.reportError("Error - sample data file "
+                      + proj.getProperty(PropertyKeys.KEY_SAMPLE_DATA_FILENAME)
                       + " does not exist;");
       return;
     }
@@ -298,7 +299,7 @@ public class PennCNV {
   }
 
   private static String filterFile(Project proj, String fileToFilter, String outputFile,
-                                      String[] chrs) {
+                                   String[] chrs) {
     // TODO combine method with filterPFB - literally the same except different names/extensions
     BufferedReader reader = null;
     PrintWriter writer = null;
@@ -747,23 +748,11 @@ public class PennCNV {
    *
    */
   public static void populationBAF(Project proj) {
-    PrintWriter writer;
-    Sample samp;
     String[] sampleList;
-    String[] markerNames;
-    double[] bafSum;
-    int[] bafCounts, genoCounts;
-    float[] bafs;
-    double[] bafAverage;
-    // Hashtable<String, String> samples;
-    MarkerSet markerSet;
-    byte[] chrs, genotypes;
-    int[] positions;
-    String filename, output;
-    Logger log;
+    String output;
 
-    log = proj.getLog();
-    filename = proj.SAMPLE_SUBSET_FILENAME.getValue(true, false);
+    Logger log = proj.getLog();
+    String filename = proj.SAMPLE_SUBSET_FILENAME.getValue(true, false);
 
     if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")
         || !Files.exists(filename, proj.JAR_STATUS.getValue())) {
@@ -778,21 +767,21 @@ public class PennCNV {
       return;
     }
 
-    markerSet = proj.getMarkerSet();
-    markerNames = markerSet.getMarkerNames();
-    chrs = markerSet.getChrs();
-    positions = markerSet.getPositions();
-    bafSum = new double[chrs.length];
-    bafCounts = new int[chrs.length];
-    genoCounts = new int[chrs.length];
+    MarkerSet markerSet = proj.getMarkerSet();
+    String[] markerNames = markerSet.getMarkerNames();
+    byte[] chrs = markerSet.getChrs();
+    int[] positions = markerSet.getPositions();
+    double[] bafSum = new double[chrs.length];
+    int[] bafCounts = new int[chrs.length];
+    int[] genoCounts = new int[chrs.length];
     for (int i = 0; i < sampleList.length; i++) {
       if (i % 100 == 0) {
         log.report("Loading file " + (i + 1) + " of " + sampleList.length);
       }
-      samp = proj.getPartialSampleFromRandomAccessFile(sampleList[i], false, false, true, false,
-                                                       true);
-      bafs = samp.getBAFs();
-      genotypes = samp.getAB_Genotypes();
+      Sample samp = proj.getPartialSampleFromRandomAccessFile(sampleList[i], false, false, true,
+                                                              false, true);
+      float[] bafs = samp.getBAFs();
+      byte[] genotypes = samp.getAB_Genotypes();
       for (int j = 0; j < bafSum.length; j++) {
         if (!Float.isNaN(bafs[j])) {
           bafSum[j] += bafs[j];
@@ -803,22 +792,33 @@ public class PennCNV {
         }
       }
     }
-    bafAverage = new double[chrs.length];
+    double[] bafAverage = new double[chrs.length];
+    ArrayList<String> missingGenotypeMarkers = new ArrayList<String>();
     for (int i = 0; i < bafSum.length; i++) {
+      boolean cnOnly = proj.getArrayType().isCNOnly(markerNames[i]);
       if (genoCounts[i] != 0) {
+        if (cnOnly) {
+          proj.getLog().reportTimeWarning("Marker " + markerNames[i]
+                                          + " was flagged as copy number only, but had genotypes");
+        }
         bafAverage[i] = bafSum[i] / bafCounts[i];
-      } else {
+      } else if (cnOnly) {
         bafAverage[i] = 2;
+      } else {
+        bafAverage[i] = -1; // This is to more clearly differentiate CN only markers from SNPs
+                            // without callrate
+
+        missingGenotypeMarkers.add(markerNames[i]);
       }
     }
 
 
     PSF.checkInterrupted();
     try {
-      writer = new PrintWriter(new FileWriter(output));
+
+      PrintWriter writer = new PrintWriter(new FileWriter(output));
       writer.println("Name\tChr\tPosition\tPFB");
       for (int i = 0; i < markerNames.length; i++) {
-        // writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]+"\t"+bafAverage[i]);
         writer.println(markerNames[i] + "\t"
                        + (chrs[i] < 23 ? chrs[i]
                                        : (chrs[i] == 23 ? "X"
@@ -830,6 +830,13 @@ public class PennCNV {
       }
       writer.close();
       log.report("Population BAF file is now ready at: " + output);
+      if (!missingGenotypeMarkers.isEmpty()) {
+        String missingGenoFile = ext.addToRoot(output, ".missingGenotypes");
+        log.reportTimeInfo(missingGenotypeMarkers.size()
+                           + " markers had missing genotypes and were set to -1 in " + output
+                           + ". These markers can be treated as CN only markers, or removed at your discretion with CNVCaller");
+        Files.writeArrayList(missingGenotypeMarkers, missingGenoFile);
+      }
     } catch (Exception e) {
       log.reportError("Error writing to '" + output + "'");
       log.reportException(e);

@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Array;
@@ -111,21 +112,31 @@ public class PennHmm {
     N = n;
     this.pi = pi;
     this.a = a;
-    B1 = b1;
-    B2 = b2;
-    B3 = b3;
+    this.B1 = b1;
+    this.B2 = b2;
+    this.B3 = b3;
     this.log = log;
   }
 
+  /**
+   * @param pennHmm make a clone essentially
+   */
   public PennHmm(PennHmm pennHmm) {
     M = pennHmm.M;
     N = pennHmm.N;
     pi = pennHmm.pi;
     a = pennHmm.a;
-    B1 = pennHmm.B1;
-    B2 = pennHmm.B2;
-    B3 = pennHmm.B3;
+    B1 = new BStatus(pennHmm.B1.b_mean, pennHmm.B1.b_sd, pennHmm.B1.b_uf);
+    B2 = new BStatus(pennHmm.B2.b_mean, pennHmm.B2.b_sd, pennHmm.B2.b_uf);
+    B3 = new BStatus(pennHmm.B3.b_mean, pennHmm.B3.b_sd, pennHmm.B3.b_uf);
     log = pennHmm.log;
+  }
+
+  @Override
+  public String toString() {
+    return "PennHmm [M=" + M + ", N=" + N + ", pi=" + Arrays.toString(pi) + ", a="
+           + Arrays.toString(a) + ", B1=" + B1.toString() + ", B2=" + B2.toString() + ", B3="
+           + B3.toString() + "]";
   }
 
   public int getN() {
@@ -262,7 +273,6 @@ public class PennHmm {
         OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1 - bStatus.getB_mean()[0],
                                                           Math.pow(bStatus.getB_sd()[0], 2));
         OpdfGaussian opdfGaussian5 = bStatus.getGaussians()[3];
-
         p += (1 - uf) * (1 - pfb) * (1 - pfb) * opdfGaussian.probability(o);
         p += (1 - uf) * 2 * pfb * (1 - pfb) * opdfGaussian5.probability(o);
         p += (1 - uf) * pfb * pfb * opdfGaussianMinus.probability(o);
@@ -327,7 +337,6 @@ public class PennHmm {
     if (p == 0) {
       p = FLOAT_MINIMUM;
     }
-
     return Math.log(p);
   }
 
@@ -389,8 +398,8 @@ public class PennHmm {
   }
 
   public static ViterbiResult ViterbiLogNP_CHMM(PennHmm pennHmm, double[] o1, double[] o2,
-                                                double[] pfb, int[] snpdist,
-                                                boolean[] copyNumberOnlyDef) {
+                                                double[] pfb, final int[] snpdist,
+                                                final boolean[] copyNumberOnlyDef) {
     if (o1.length != o2.length || o1.length != pfb.length || o1.length != snpdist.length
         || o1.length != copyNumberOnlyDef.length) {
       String error = "BUG: mismatched array lengths";
@@ -414,7 +423,7 @@ public class PennHmm {
     pennHmmLog.logPi();
     for (int i = 0; i < pennHmmLog.getN(); i++) {
       for (int t = 0; t < o1.length; t++) {
-        if (copyNumberOnlyDef[t] || o2[t] > 1) {
+        if (copyNumberOnlyDef[t] || o2[t] > 1 || pfb[t] > 1) {
           biot[i][t] = b1iot(i, pennHmmLog.getB3(), o1[t]);
         } else {
           double bioTmp = b1iot(i, pennHmmLog.getB1(), o1[t]);
@@ -461,11 +470,19 @@ public class PennHmm {
     return new ViterbiResult(q, delta);
   }
 
+  /**
+   * Stores the q state array and delta matrix
+   *
+   */
   public static class ViterbiResult {
     private final int[] q;
     private final double[][] delta;
     private ArrayList<int[]> indexStateChange;
 
+    /**
+     * @param q states
+     * @param delta transitions
+     */
     public ViterbiResult(int[] q, double[][] delta) {
       super();
       this.q = q;
@@ -635,12 +652,12 @@ public class PennHmm {
                                                  Logger log) throws IOException {
     String atag = reader.readLine();
     if (!atag.startsWith(tag)) {
-      log.reportTimeError("cannot read " + tag + " annotation from HMM file");
-      return null;
+      String error = "cannot read " + tag + " annotation from HMM file, invalid file format";
+      log.reportTimeError(error);
+      throw new IllegalStateException(error);
     } else {
       String[] line = reader.readLine().trim().split("[\\s]+");
-      double[] data = Array.toDoubleArray(line);
-      return data;
+      return Array.toDoubleArray(line);
     }
   }
 
@@ -672,6 +689,10 @@ public class PennHmm {
       this.b_uf = b_uf;
       gaussians = new OpdfGaussian[b_mean.length];
       for (int i = 0; i < b_mean.length; i++) {
+        if (!Numbers.isFinite(b_sd[i]) || !Numbers.isFinite(b_mean[i]) || b_sd[i] <= 0) {
+          throw new IllegalArgumentException("Invalid b status mean:" + b_mean[i] + " sd: "
+                                             + b_sd[i]);
+        }
         gaussians[i] = new OpdfGaussian(b_mean[i], Math.pow(b_sd[i], 2));
       }
     }
@@ -692,12 +713,24 @@ public class PennHmm {
       return b_uf;
     }
 
+
+
+    @Override
+    public String toString() {
+      return "BStatus [b_mean=" + Arrays.toString(b_mean) + ", b_sd=" + Arrays.toString(b_sd)
+             + ", gaussians=" + Arrays.toString(gaussians) + ", b_uf=" + b_uf + "]";
+    }
+
     /**
      * and create new distributions from the new sds
      */
-    private void setB_sd(double[] b_sd) {
-      this.b_sd = b_sd;
+    private void setB_sd(double[] b_sdToSet) {
+      this.b_sd = b_sdToSet;
       for (int i = 0; i < b_mean.length; i++) {
+        if (!Numbers.isFinite(b_sd[i]) || !Numbers.isFinite(b_mean[i]) || b_sd[i] <= 0) {
+          throw new IllegalArgumentException("Invalid b status mean:" + b_mean[i] + " sd: "
+                                             + b_sd[i]);
+        }
         gaussians[i] = new OpdfGaussian(b_mean[i], Math.pow(b_sd[i], 2));
       }
     }
@@ -781,8 +814,8 @@ public class PennHmm {
       int[] indices = Ints.toArray(indicestmp);
       if (indices.length != current.getNumMarkers()) {
         String error = "BUG: could not reconstruct original markers, found " + indices.length
-                       + " and should have found " + current.getNumMarkers();
-        error += "Sample FID: " + current.getFamilyID() + " IID: " + current.getIndividualID();
+                       + " and should have found " + current.getNumMarkers() + "Sample FID: "
+                       + current.getFamilyID() + " IID: " + current.getIndividualID();
         log.reportTimeError(error);
         throw new IllegalStateException(error);
       }
@@ -794,17 +827,14 @@ public class PennHmm {
       builder.score(score);
       scored.add(builder.build());
     }
-    LocusSet<CNVariant> locusSetScored =
-                                       new LocusSet<CNVariant>(scored.toArray(new CNVariant[scored.size()]),
-                                                               true, log) {
+    return new LocusSet<CNVariant>(scored.toArray(new CNVariant[scored.size()]), true, log) {
 
-                                         /**
-                                          * 
-                                          */
-                                         private static final long serialVersionUID = 1L;
+      /**
+       * 
+       */
+      private static final long serialVersionUID = 1L;
 
-                                       };
-    return locusSetScored;
+    };
   }
 
   private static int getStateCN(int q) {
@@ -822,12 +852,17 @@ public class PennHmm {
     int[] tests = new int[] {0, 1, 2, 4, 5};
     double confState = Double.NaN;
     double maxOther = -1 * Double.MAX_VALUE;
+
     for (int test : tests) {
       double tmp = GetStateProb_CHMM(pennHmm, o1, o2, pfb, copyNumberOnlyDef, test);
-      if (test == actualStateIndex) {
-        confState = tmp;
-      } else if (tmp > maxOther) {
-        maxOther = tmp;
+      if (Numbers.isFinite(tmp)) {
+        if (test == actualStateIndex) {
+          confState = tmp;
+        } else if (tmp > maxOther) {
+          maxOther = tmp;
+        }
+      } else {
+        throw new IllegalStateException("Invalid tmp score " + tmp);
       }
     }
     return confState - maxOther;
@@ -837,7 +872,7 @@ public class PennHmm {
                                           boolean[] copyNumberOnlyDef, int state) {
     double logProb = 0;
     for (int i = 0; i < o1.length; i++) {
-      if (copyNumberOnlyDef[i]) {
+      if (copyNumberOnlyDef[i] || o2[i] > 1 || pfb[i] > 1) {
         // TODO PennCNV uses B1 here, why not B3?
         logProb += b1iot(state, pennHmm.getB1(), o1[i]);
       } else {
@@ -850,6 +885,11 @@ public class PennHmm {
 
   /**
    * Parameterize the {@link PennHmm} by an empirical sd measure
+   * 
+   * @param pennHmm
+   * @param sdo must be strictly positive value
+   * @param log
+   * @return
    */
   public static PennHmm adjustBSD(PennHmm pennHmm, double sdo, Logger log)
   /*
@@ -857,6 +897,9 @@ public class PennHmm {
    * data (by an empirical method)
    */
   {
+    if (Double.isNaN(sdo) || sdo <= 0) {
+      throw new IllegalArgumentException("Invalid standard deviation " + sdo);
+    }
     PennHmm pennAdjusted = new PennHmm(pennHmm);
     double[] b1AdjustedSd = new double[pennHmm.getB1().getB_sd().length];
     double[] b2AdjustedSd = new double[pennHmm.getB2().getB_sd().length];
@@ -880,243 +923,4 @@ public class PennHmm {
     pennAdjusted.getB3().setB_sd(b3AdjustedSd);
     return pennAdjusted;
   }
-  // public static void test(Project proj, String hmmFile) {
-  // // long time = System.currentTimeMillis();
-  // // String testFile = "/home/pankrat2/shared/logan/OSv2_hg19/penn_dataDNA/7165764002_R06C02.gz";
-  // // PennHmm pennHmmOriginal = loadPennHmm(hmmFile, new Logger());
-  // // if (!Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
-  // // PennCNV.populationBAF(proj);
-  // // }
-  // // // GcModel.generateFromReferenceGenome(proj,
-  // proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.GC_MODEL_FILENAME.getValue() +
-  // "testRef");
-  // // PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
-  // // GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false,
-  // false), false, proj.getLog());
-  // // Sample sample = proj.getFullSampleFromRandomAccessFile(proj.getSamples()[0]);
-  // // proj.getLog().reportTimeInfo(proj.getSamples()[0]);
-  // // // GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, sample, gcModel, true, true,
-  // true, false);
-  // // // Check good vals
-  // // int[] autosomalMarkers = proj.getAutosomalMarkerIndices();
-  // // // double[] lrrs = adjustLrr(Array.subArray(gcAdjustor.getCorrectedIntensities(),
-  // autosomalMarkers), -2, 2, proj.getLog());
-  // // // double[] bafs = adjustBaf(Array.subArray(Array.toDoubleArray(sample.getBAFs()),
-  // autosomalMarkers), .25, .75, proj.getLog());
-  // // //
-  // // // double[] lrrs = adjustLrr(Array.subArray(Array.toDoubleArray(sample.getLRRs()),
-  // autosomalMarkers), -2, 2, proj.getLog());
-  // // // double[] bafs = adjustBaf(Array.subArray(Array.toDoubleArray(sample.getBAFs()),
-  // autosomalMarkers), .25, .75, proj.getLog());
-  // // // pennHmm = adjustBSD(pennHmm, Array.stdev(getValuesBetween(lrrs, -2, 2)), proj.getLog());
-  // // double[][] test = loadFromTest(proj, testFile, proj.getLog());
-  // // for (int i = 0; i < test[0].length; i++) {
-  // // if (Double.isNaN(test[0][i]) || Double.isNaN(test[1][i])) {
-  // // test[0][i] = 0;
-  // // test[1][i] = 0;
-  // // }
-  // // }
-  // // GcAdjustor gcAdjustor = new GcAdjustor(proj, gcModel, test[0], null, true, true);
-  // // gcAdjustor.correctIntensities();
-  // // gcAdjustor.computeQCMetrics(true, true);
-  // // test[0] = gcAdjustor.getCorrectedIntensities();
-  // // proj.getLog().reportTimeInfo(gcAdjustor.getAnnotatedQCString());
-  // // double[] lrrs = adjustLrr(Array.subArray(test[0], autosomalMarkers), -2, 2, proj.getLog());
-  // // double[] bafs = adjustBaf(Array.subArray(test[1], autosomalMarkers), .25, .75,
-  // proj.getLog());
-  // // PennHmm pennHmmAdjusted = adjustBSD(pennHmmOriginal, Array.stdev(getValuesBetween(lrrs, -2,
-  // 2)), proj.getLog());
-  // // // Check good vals
-  // //
-  // // MarkerSet markerSet = proj.getMarkerSet();
-  // // int[] autosomalPositions = Array.subArray(markerSet.getPositions(), autosomalMarkers);
-  // // double[] autosomalPFB = Array.subArray(pfb.getPfbs(), autosomalMarkers);
-  // // Hashtable<String, ArrayList<Integer>> newIndices = new Hashtable<String,
-  // ArrayList<Integer>>();
-  // // ArrayList<Byte> uniques = new ArrayList<Byte>();
-  // // byte[] chrs = markerSet.getChrs();
-  // // int countNAN = 0;
-  // // for (int i = 0; i < autosomalMarkers.length; i++) {
-  // // if (Double.isNaN(lrrs[i]) || Double.isNaN(bafs[i])) {
-  // // lrrs[i] = 0;
-  // // bafs[i] = 0;
-  // // countNAN++;
-  // // }
-  // // String chr = Positions.getChromosomeUCSC(chrs[autosomalMarkers[i]], true);
-  // // if (!newIndices.containsKey(chr)) {
-  // // newIndices.put(chr, new ArrayList<Integer>());
-  // // uniques.add(chrs[autosomalMarkers[i]]);
-  // // }
-  // // newIndices.get(chr).add(i);
-  // // }
-  // // if (countNAN > 0) {
-  // // proj.getLog().reportTimeWarning(countNAN + " markers were set to 0 with NaN lrr or baf
-  // values");
-  // // }
-  // //
-  // // int[][] snpdists = getSNPDist(proj);
-  // // ArrayList<CNVariant> allCNVsAL = new ArrayList<CNVariant>();
-  // // proj.getLog().reportTimeElapsed(time);
-  // // for (int i = 0; i < uniques.size(); i++) {
-  // // byte currentChr = uniques.get(i);
-  // // String key = Positions.getChromosomeUCSC(currentChr, true);
-  // // if (currentChr > 0 && newIndices.get(key).size() > 10 && currentChr < 23) {
-  // // int[] indices = Array.toIntArray(newIndices.get(key));
-  // // // System.out.println("Current CHR " + key + " probe count " + indices.length);
-  // // double[] bafsChr = Array.subArray(bafs, indices);
-  // // if (currentChr == 11) {
-  // // for (int j = 0; j < snpdists[currentChr].length; j++) {
-  // // if (bafsChr[j] == 0 || bafsChr[j] == 1) {
-  // // // System.exit(1);
-  // // }
-  // // if (j > 11) {
-  // // // System.exit(1);
-  // // }
-  // // // System.out.println(j + "\t" + snpdists[currentChr][j]);
-  // // }
-  // // // System.exit(1);
-  // // }
-  // // int[] positions = Array.subArray(autosomalPositions, indices);
-  // // double[] lrrChr = Array.subArray(lrrs, indices);
-  // // double[] pfbsChr = Array.subArray(autosomalPFB, indices);
-  // // String[] markersChr = Array.subArray(markerSet.getMarkerNames(), indices);
-  // // boolean[] cnDef = determineCNOnly(proj, markersChr);
-  // // ViterbiResult viterbiResult = ViterbiLogNP_CHMM(pennHmmAdjusted, lrrChr, bafsChr, pfbsChr,
-  // snpdists[currentChr], cnDef);
-  // // LocusSet<CNVariant> chrCnvs = viterbiResult.analyzeStateSequence(proj,
-  // sample.getSampleName(), sample.getSampleName(), currentChr, positions, null, 2, true);
-  // // if (chrCnvs.getLoci().length > 0) {
-  // // chrCnvs = scoreCNVsSameChr(pennHmmAdjusted, chrCnvs, positions, lrrChr, bafsChr, pfbsChr,
-  // cnDef, proj.getLog());
-  // // }
-  // // for (int j = 0; j < chrCnvs.getLoci().length; j++) {
-  // // allCNVsAL.add(chrCnvs.getLoci()[j]);
-  // // }
-  // //
-  // // }
-  // // }
-  // // LocusSet<CNVariant> allCNVs = new LocusSet<CNVariant>(allCNVsAL, true, proj.getLog()) {
-  // //
-  // // /**
-  // // *
-  // // */
-  // // private static final long serialVersionUID = 1L;
-  // //
-  // // };
-  // // allCNVs.writeRegions(proj.PROJECT_DIRECTORY.getValue() + "gennCNV.cnv",
-  // TO_STRING_TYPE.REGULAR, true, proj.getLog());
-  // //
-  // // proj.getLog().reportTimeElapsed(time);
-  // }
-
-  // // private static CNVariant[] analyzeStateSequence
-  //
-  // public static void main(String[] args) {
-  // int numArgs = args.length;
-  // String filename = "/home/pankrat2/public/bin/lib/hhall.hmm";
-  // Project proj = new Project("/home/pankrat2/lanej/projects/OSv2_hg19.properties", false);
-  //
-  // test(proj, filename);
-  // }
-
-  //
-  //
-  // private static double[][] loadFromTest(Project proj, String testFile, Logger log) {
-  // double[][] lrrBafs = new double[2][proj.getMarkerNames().length];
-  // try {
-  // BufferedReader reader = Files.getAppropriateReader(testFile);
-  // reader.readLine();
-  // int index = 0;
-  // while (reader.ready()) {
-  // String[] line = reader.readLine().trim().split("[\\s]+");
-  // double lrr = Double.parseDouble(line[2]);
-  // double baff = Double.parseDouble(line[3]);
-  // lrrBafs[0][index] = lrr;
-  // lrrBafs[1][index] = baff;
-  // index++;
-  // }
-  // reader.close();
-  // } catch (FileNotFoundException fnfe) {
-  // log.reportError("Error: file \"" + testFile + "\" not found in current directory");
-  // return null;
-  // } catch (IOException ioe) {
-  // log.reportError("Error reading file \"" + testFile + "\"");
-  // return null;
-  // }
-  // return lrrBafs;
-  // }
-
-  // private static boolean[] determineCNOnly(Project proj, String[] markers) {
-  // boolean[] copyNumberOnlyDef = new boolean[markers.length];
-  // ARRAY array = proj.getArrayType();
-  // for (int i = 0; i < markers.length; i++) {
-  // copyNumberOnlyDef[i] = array.isCNOnly(markers[i]);
-  // }
-  // return copyNumberOnlyDef;
-  // }
-  //
-  // private static double[] getValuesBetween(double[] array, double min, double max) {
-  // ArrayList<Double> tmp = new ArrayList<Double>();
-  // for (int i = 0; i < array.length; i++) {
-  // if (!Double.isNaN(array[i]) && array[i] > min && array[i] < max) {
-  // tmp.add(array[i]);
-  // }
-  // }
-  // return Array.toDoubleArray(tmp);
-  // }
-  //
-  // private static double[] adjustLrr(double[] lrrs, double minLrr, double maxLrr, Logger log) {
-  // double[] adjusted = new double[lrrs.length];
-  // double median = Array.median(getValuesBetween(lrrs, minLrr, maxLrr));
-  // log.reportTimeInfo("Median adjusting lrr values by " + median + "\t" +
-  // Array.median(Array.removeNaN(lrrs)));
-  // for (int i = 0; i < adjusted.length; i++) {
-  // adjusted[i] = lrrs[i] - median;
-  // }
-  // return adjusted;
-  // }
-  //
-  // private static double[] adjustBaf(double[] bafs, double minBaf, double maxBaf, Logger log) {
-  // double[] adjusted = new double[bafs.length];
-  // ArrayList<Double> bafsToMedian = new ArrayList<Double>();
-  // for (int i = 0; i < bafs.length; i++) {
-  // if (!Double.isNaN(bafs[i]) && bafs[i] > minBaf && bafs[i] < maxBaf) {
-  // bafsToMedian.add(bafs[i]);
-  // }
-  // }
-  // double median = Array.median(Array.toDoubleArray(bafsToMedian));
-  // double factor = median - 0.5;
-  // log.reportTimeInfo("Median adjusting baf measures by " + factor);
-  // for (int i = 0; i < adjusted.length; i++) {
-  // if (!Double.isNaN(bafs[i]) && bafs[i] > minBaf && bafs[i] < maxBaf) {
-  // adjusted[i] = bafs[i] - factor;
-  // } else {
-  // adjusted[i] = bafs[i];
-  // }
-  //
-  // }
-  // // return adjusted;
-  // // }
-  // /**
-  // * @param proj
-  // * @return the plus one index physical distance of each marker
-  // */
-  // private static int[][] getSNPDist(Project proj) {
-  // MarkerSet markerSet = proj.getMarkerSet();
-  // int[][] chrPos = markerSet.getPositionsByChr();
-  // int[][] snpDists = new int[chrPos.length][];
-  // for (int i = 0; i < chrPos.length; i++) {
-  // int[] distsTmp = new int[chrPos[i].length];
-  // if (distsTmp.length > 0) {
-  // distsTmp[chrPos[i].length - 1] = chrPos[i][chrPos[i].length - 1];
-  // for (int j = 0; j < distsTmp.length - 1; j++) {
-  // int dist = chrPos[i][j + 1] - chrPos[i][j];
-  // distsTmp[j] = dist > 0 ? dist : 1;
-  // }
-  // }
-  // snpDists[i] = distsTmp;
-  // }
-  // return snpDists;
-  //
-  // }
 }
