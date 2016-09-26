@@ -2699,44 +2699,11 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
    *        location of the format "chr#:start-stop"
    */
   private void parseLocation(String location) {
-    byte oldChr;
-    int[] loc;
+    byte oldChr = chr;
 
-    oldChr = chr;
+    Region r = new Region(location, track);
 
-    if (location == null) {
-      System.err.println("Error - null location");
-      return;
-    }
-
-    if (!location.startsWith("chr")) {
-      if (track == null) {
-        JOptionPane.showMessageDialog(this,
-                                      "Cannot parse '" + location
-                                            + "' since the gene track has either not been installed or did not load properly.",
-                                      "Error", JOptionPane.ERROR_MESSAGE);
-        return;
-      } else {
-        loc = track.lookupPosition(location);
-        if (loc[0] == -1) {
-          JOptionPane.showMessageDialog(this,
-                                        "'" + location
-                                              + "' is not a valid gene name and is not a valid UCSC location.",
-                                        "Error", JOptionPane.ERROR_MESSAGE);
-          return;
-        }
-      }
-    } else {
-      loc = Positions.parseUCSClocation(location);
-    }
-
-    if (loc == null) {
-      JOptionPane.showMessageDialog(this, "'" + location + "' is not a valid UCSC location.",
-                                    "Error", JOptionPane.ERROR_MESSAGE);
-      return;
-    }
-
-    chr = (byte) loc[0];
+    chr = (byte) r.getChr();
     if (chr == -1) {
       chr = oldChr;
       return;
@@ -2745,8 +2712,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
       start = stop = -1;
       updateCNVs(chr);
     }
-    start = loc[1];
-    stop = loc[2];
+    start = r.getStart();
+    stop = r.getStop();
     if (start == -1 || start < 0) {
       start = 1;
     }

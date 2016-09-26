@@ -849,7 +849,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
    * Method to set values pulled from RegionNavigator
    */
   public void setPosition(String region) {
-    Region r = new Region(Positions.parseUCSClocation(region));
+    Region r = new Region(region, track);
     setRegion(r);
   }
 
