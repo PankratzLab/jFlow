@@ -1,10 +1,12 @@
 package org.genvisis.one.JL.mtDNA;
 
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.one.JL.ssh.SSH;
 import org.genvisis.seq.analysis.GATK;
 import org.genvisis.seq.analysis.SimpleTallyGene;
+import org.genvisis.seq.analysis.TumorNormalSummary;
 import org.genvisis.seq.manage.mtdna.GenBankMtDNA;
 import org.genvisis.seq.manage.mtdna.RCRS;
 import org.genvisis.seq.manage.mtdna.VCFOpsMT;
@@ -44,19 +46,32 @@ public class Cushings {
 		VCFOpsMT.convertContigs(outAnnoD, finalOut, MT_GENOME.HG19, log);
 
 		String remoteVcf = "/home/pankrat2/lanej/tmp/cushings/" + ext.removeDirectoryInfo(finalOut);
-		String makeDir = "mkdir -p " + ext.parseDirectoryOfFile(remoteVcf);
-
-		SSH.runRemoteCommand(makeDir, log);
-		SSH.copyLocalToRemote(finalOut, remoteVcf, log);
+//		SSH.copyLocalToRemote(finalOut, remoteVcf, log);
 		String annotateCommand = "java -jar /home/pankrat2/lanej/genvisis.jar one.JL.quickAnno vcf=" + remoteVcf;
-		SSH.runRemoteCommand(annotateCommand, log);
-		String annoVcf = ext.addToRoot(finalOut, ".anno");
-		SSH.copyRemoteToLocal(remoteVcf + ".anno.vcf", annoVcf, log);
-		// =
-		// "/Volumes/Beta/data/Cushings/mito/joint_genotypes_tsai_21_25_26_28_spector.chrM.posAdjust_-1.hg19_multianno.eff.gatk.sed1000g.posAdjust_1.disease.poly.vcf";
-		//
-		SimpleTallyGene.run(annoVcf);
+		System.out.println(annotateCommand);
+		String annotated = "/home/pankrat2/lanej/tmp/cushings/joint_genotypes_tsai_21_25_26_28_spector.chrM.rcrs.poly.disease.conv.hg19_multianno.eff.gatk.sed1000g.vcf";
+		String annoVcf = "/Volumes/Beta/data/Cushings/mito/joint_genotypes_tsai_21_25_26_28_spector.chrM.rcrs.poly.disease.conv.hg19_multianno.eff.gatk.sed1000g.vcf";
+//		System.exit(1);
+
+//		SSH.copyRemoteToLocal(annoVcf, annotated, log);
+//		SSH.copyRemoteToLocal(annoVcf + ".idx", annotated + ".idx", log);
+		if (Files.exists(annoVcf)) {
+			//
+			SimpleTallyGene.run(annoVcf, new double[] { 1.2, .01, 0.0 });
+		}
+		TumorNormalSummary.main(new String[] { annoVcf });
 
 	}
+
+	// SSH.runRemoteCommand(makeDir, log);
+	// String annotateCommand = "java -jar /home/pankrat2/lanej/genvisis.jar
+	// one.JL.quickAnno vcf=" + remoteVcf;
+	// SSH.runRemoteCommand(annotateCommand, log);
+	// String annoVcf = ext.addToRoot(finalOut, ".anno");
+	// SSH.copyRemoteToLocal(remoteVcf + ".anno.vcf", annoVcf, log);
+	// // =
+	// //
+	// "/Volumes/Beta/data/Cushings/mito/joint_genotypes_tsai_21_25_26_28_spector.chrM.posAdjust_-1.hg19_multianno.eff.gatk.sed1000g.posAdjust_1.disease.poly.vcf";
+	// //
 
 }

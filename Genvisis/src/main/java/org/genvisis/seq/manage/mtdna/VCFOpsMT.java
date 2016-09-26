@@ -24,6 +24,8 @@ import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLineType;
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
 
 /**
  * Class for managing mitochondrial VCFs
@@ -34,6 +36,9 @@ import htsjdk.variant.vcf.VCFHeader;
  * cases will require more logic
  */
 public class VCFOpsMT {
+  private static final String HG_19_POS = "HG19POS";
+  private static final String HG_19_REF = "HG19REF";
+  private static final String HG_19_ALTS = "HG19ALTS";
 
   private static final String VCF = "vcf";
   private static final String OUTPUT = "out";
@@ -304,6 +309,10 @@ public class VCFOpsMT {
                                            // alt/ref position switches
           VariantContextBuilder builder = new VariantContextBuilder(vcSwap);
           builder.chr("MT");// GRCh mitochondrial contig
+          builder.attribute(HG_19_POS, vc.getStart());
+          builder.attribute(HG_19_REF, vc.getReference().toString());
+          builder.attribute(HG_19_ALTS, vc.getAlternateAlleles().toString().replaceAll(" ", ""));
+
           writer.add(builder.make());
         } else {
           log.reportError("Mismatched Allele counts");
@@ -318,6 +327,7 @@ public class VCFOpsMT {
     writerError.close();
   }
 
+
   private static VCFHeader getRcrsHeader(VCFFileReader reader, MT_GENOME mGenome) {
     VCFHeader header = new VCFHeader(reader.getFileHeader());
     ArrayList<SAMSequenceRecord> records = new ArrayList<SAMSequenceRecord>();
@@ -331,6 +341,17 @@ public class VCFOpsMT {
       default:
         throw new IllegalArgumentException("Invalid type " + mGenome);
     }
+    VCFInfoHeaderLine hg19Pos = new VCFInfoHeaderLine(HG_19_POS, 1, VCFHeaderLineType.String,
+                                                      "HG 19 variant position");
+    VCFInfoHeaderLine hg19REF = new VCFInfoHeaderLine(HG_19_REF, 1, VCFHeaderLineType.String,
+                                                      "HG 19 reference allele");
+    VCFInfoHeaderLine hg19Alts = new VCFInfoHeaderLine(HG_19_ALTS, 1, VCFHeaderLineType.String,
+                                                       "HG 19 alternate alleles");
+    header.addMetaDataLine(hg19Pos);
+    header.addMetaDataLine(hg19REF);
+    header.addMetaDataLine(hg19Alts);
+
+
     header.setSequenceDictionary(new SAMSequenceDictionary(records));
     return header;
   }

@@ -1635,9 +1635,14 @@ public class VCFOps {
       }
       CloseableIterator<VariantContext> iterator = reader.iterator();
       if (segsToSearch.length == 1) {
-        iterator = reader.query(segsToSearch[0].getChromosomeUCSC(), segsToSearch[0].getStart(),
-                                segsToSearch[0].getStop());
-        log.reportTimeInfo("Using iterating reader");
+        try {
+          iterator = reader.query(segsToSearch[0].getChromosomeUCSC(), segsToSearch[0].getStart(),
+                                  segsToSearch[0].getStop());
+          log.reportTimeInfo("Using iterating reader");
+        } catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
+          log.reportTimeInfo("Failed using iterating reader, you may want to double check your sequence dictionary");
+
+        }
       }
       while (iterator.hasNext()) {
         VariantContext vc = iterator.next();
@@ -1874,6 +1879,10 @@ public class VCFOps {
       writer.close();
       reader.close();
       chrSplitResults = new ChrSplitResults(chr, vcfFile, outputVCF, numChr);
+      if (numTotal > 0) {
+        log.reportTimeInfo("Scanned " + numTotal + " variants from " + vcfFile + " (" + numChr
+                           + " matching " + chr + ")");
+      }
     } else {
       log.reportFileExists(outputVCF);
       log.reportFileExists(chr);

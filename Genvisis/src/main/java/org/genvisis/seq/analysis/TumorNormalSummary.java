@@ -36,7 +36,9 @@ public class TumorNormalSummary {
                                                          "ALT", "HIGH||MODERATE||LOW", "TN_PAIR",
                                                          "NORMAL_SAMPLE", "TUMOR_SAMPLE",
                                                          "NORMAL_GENOTYPE", "TUMOR_GENOTYPE",
-                                                         "NORMAL_GQ", "TUMOR_GQ", "NORMAL_HAS_ALT",
+                                                         "NORMAL_ALLELES", "TUMOR_ALLELES",
+                                                         "NORMAL_AD", "TUMOR_AD", "NORMAL_GQ",
+                                                         "TUMOR_GQ", "NORMAL_HAS_ALT",
                                                          "TUMOR_HAS_ALT", "MIN_GQ", "TN_MATCH"};
 
   private static void run(String vcf, String vpopFile, String outputDir, Segment seg, String name,
@@ -63,7 +65,7 @@ public class TumorNormalSummary {
     try {
       PrintWriter writerSummary = new PrintWriter(new FileWriter(outSummary));
       String[][] annos = VCFOps.getAnnotationKeys(vcf, log);
-      writerSummary.println(Array.toStr(BASE_OUT) + "\t" + Array.toStr(annos[1]));
+      // writerSummary.println(Array.toStr(BASE_OUT) + "\t" + Array.toStr(annos[1]));
       writerSummary.println(Array.toStr(BASE_OUT) + "\t" + Array.toStr(annos[0]));
 
       while (iter.hasNext()) {
@@ -109,6 +111,10 @@ public class TumorNormalSummary {
               builder.append("\t" + tumor);
               builder.append("\t" + gNormal.toString());
               builder.append("\t" + gTumor.toString());
+              builder.append("\t" + gNormal.getGenotypeString());
+              builder.append("\t" + gTumor.getGenotypeString());
+              builder.append("\t" + Array.toStr(Array.toStringArray(gNormal.getAD()), ","));
+              builder.append("\t" + Array.toStr(Array.toStringArray(gTumor.getAD()), ","));
               builder.append("\t" + gNormal.getGQ());
               builder.append("\t" + gTumor.getGQ());
               builder.append("\t" + (gNormal.isCalled() && !gNormal.isHomRef()));
@@ -134,8 +140,7 @@ public class TumorNormalSummary {
   }
 
   public static void main(String[] args) {
-    String vcf =
-               "/Volumes/Beta/data/Cushings/mito/joint_genotypes_tsai_21_25_26_28_spector.chrM.posAdjust_-1.hg19_multianno.eff.gatk.sed1000g.posAdjust_1.disease.poly.vcf";
+    String vcf = args[0];
     String outputDir = "/Volumes/Beta/data/Cushings/mito/tumorNormal/";
     String vpop = outputDir + "TN.form.vpop";
 
