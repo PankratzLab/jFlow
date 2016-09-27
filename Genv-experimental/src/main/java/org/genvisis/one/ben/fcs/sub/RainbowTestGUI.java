@@ -18,6 +18,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -45,6 +47,9 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -101,8 +106,7 @@ public class RainbowTestGUI extends JFrame {
   HashMap<String, ArrayList<Double>> paramMeanLists = new HashMap<String, ArrayList<Double>>();
   HashMap<String, ArrayList<Double>> paramSDLists = new HashMap<String, ArrayList<Double>>();
   HashMap<String, ArrayList<Double>> paramCVLists = new HashMap<String, ArrayList<Double>>();
-  HashMap<String, HashMap<String, Double>> fileParamMeanMap =
-      new HashMap<String, HashMap<String, Double>>();
+  HashMap<String, HashMap<String, Double>> fileParamMeanMap = new HashMap<String, HashMap<String, Double>>();
   HashSet<Integer> boldRows = new HashSet<Integer>();
   HashSet<Integer> statRows = new HashSet<Integer>();
   HashMap<String, Double> paramMeans = new HashMap<String, Double>();
@@ -325,10 +329,10 @@ public class RainbowTestGUI extends JFrame {
               table.getModel().getValueAt(table.convertRowIndexToModel(row),
                   table.convertColumnIndexToModel(column));
           if (val != null) {
-            if (val instanceof Float) {
+            if (val instanceof Number) {
               String colNm =
                   table.getModel().getColumnName(table.convertColumnIndexToModel(column));
-              Float value = (Float) val;
+              double value = ((Number) val).doubleValue();
               if (rdbtnMean.isSelected()) {
                 if (paramMeans.containsKey(colNm)) {
                   double mn = paramMeans.get(colNm);
@@ -610,12 +614,6 @@ public class RainbowTestGUI extends JFrame {
     btnWarning.setVisible(false);
     contentPane.add(btnWarning, "cell 2 4");
 
-    loadCache();
-    loadProps();
-  }
-
-
-  {
     meanPanel.setXAxisLabel("File by Date");
     meanPanel.setOpaque(true);
     meanFrame.getContentPane().add(meanPanel, BorderLayout.CENTER);
@@ -628,12 +626,53 @@ public class RainbowTestGUI extends JFrame {
       }
     };
     meanCtrlPanel.setChangeListener(prevLst);
-    meanFrame
-        .setBounds(FCSPlot.START_X, FCSPlot.START_Y, FCSPlot.START_WIDTH, FCSPlot.START_HEIGHT);
+    meanFrame.setBounds(FCSPlot.START_X, FCSPlot.START_Y, FCSPlot.START_WIDTH, FCSPlot.START_HEIGHT);
     // meanPanel.setPlotType(OneDPanel.PLOT_TYPE.BOX_PLOT);
     meanPanel.setPlotType(OneDPanel.PLOT_TYPE.DOT_LINE_PLOT);
     meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 5);
+
+    meanPanel.setShow1SDLines(false);
+    meanPanel.setShow2SDLines(true);
+    meanPanel.setShowMean15Line(true);
+    meanPanel.setShowRegressionLine(true);
+    
+    meanPanel.addPropertyChangeListener("REGRESSION", new PropertyChangeListener() {
+      @Override
+      public void propertyChange(PropertyChangeEvent evt) {
+        saveProps();
+      }
+    });
+    
+    meanFrame.setJMenuBar(createMenuBar());
+    meanCtrlPanel.link(meanPanel);
+    
+    loadCache();
+    loadProps();
   }
+  
+  private JMenuBar createMenuBar() {
+    JMenuBar menuBar = new JMenuBar();
+    
+    JMenu actMenu = new JMenu("Actions");
+    JMenuItem screenshotItem = new JMenuItem("Screenshot");
+    screenshotItem.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        JFileChooser fileChooser = new JFileChooser(".");
+        int fileOpenActionSelected = fileChooser.showSaveDialog(RainbowTestGUI.this);
+        if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
+            File fileToOpen = fileChooser.getSelectedFile();
+            meanPanel.screenCapture(fileToOpen.toString()+".png");
+        }
+      }
+    });
+    
+    actMenu.add(screenshotItem);
+    menuBar.add(actMenu);
+    
+    return menuBar;
+  }
+  
 
   private void showMeanPanel(String col) {
     // Get all means (yData), get Files&Dates (xData), get Mean/SD (meanSD)
@@ -644,7 +683,12 @@ public class RainbowTestGUI extends JFrame {
     TreeMap<Date, ArrayList<String>> fileMap = new TreeMap<Date, ArrayList<String>>();
     int count = 0;
     for (Entry<String, FCSDataLoader> l : baseFiles.entrySet()) {
-      Date key = l.getValue().getRunDate();
+      Date key;
+      if (cache.containsKey(l.getKey())) {
+        key = cache.get(l.getKey()).runDate;
+      } else {
+        key = l.getValue().getRunDate();
+      }
       ArrayList<Double> means = meanMap.get(key);
       ArrayList<String> files = fileMap.get(key);
       if (means == null) {
@@ -675,7 +719,12 @@ public class RainbowTestGUI extends JFrame {
     fileMap = new TreeMap<Date, ArrayList<String>>();
     count = 0;
     for (Entry<String, FCSDataLoader> l : compFiles.entrySet()) {
-      Date key = l.getValue().getRunDate();
+      Date key;
+      if (cache.containsKey(l.getKey())) {
+        key = cache.get(l.getKey()).runDate;
+      } else {
+        key = l.getValue().getRunDate();
+      }
       ArrayList<Double> means = meanMap.get(key);
       ArrayList<String> files = fileMap.get(key);
       if (means == null) {
@@ -712,12 +761,11 @@ public class RainbowTestGUI extends JFrame {
 
     meanCtrlPanel.setColumns(cols, ind - 1);
 
-    meanPanel.setData(col, new String[][] {baseLbls, compLbls}, new double[][] {yDataBase,
-        yDataComp});
+    meanPanel.setData(col, new String[][] {baseLbls, compLbls}, new double[][] {yDataBase, yDataComp});
     meanPanel.setYAxisLabel("Mean - " + col);
-    meanPanel.paintAgain();
     meanFrame.setTitle("Genvisis - FCS Overall Mean/SD - " + col);
     meanFrame.setVisible(true);
+    meanPanel.paintAgain();
   }
   
   private static final String CACHE_FILE = ".URB_DATA_CACHE.ser.gz";
@@ -741,6 +789,8 @@ public class RainbowTestGUI extends JFrame {
   private static final String PROPKEY_BASEDIR = "BASE_DIR";
   private static final String PROPKEY_GATEFILE = "GATING_FILE";
   private static final String PROPKEY_COLS = "HIDDEN_COLUMNS";
+  private static final String PROPKEY_REGRESSION_L = "REGRESSION_DROPS";
+  private static final String PROPKEY_REGRESSION_G = "REGRESSION_DROPS_GLOBAL";
 
   private void saveProps() {
     try {
@@ -758,6 +808,38 @@ public class RainbowTestGUI extends JFrame {
         ind++;
       }
       props.setProperty(PROPKEY_COLS, cols.toString());
+      
+      HashMap<String, ArrayList<String>> localDrops = meanPanel.locallyDroppedPoints;
+      cols = new StringBuilder();
+      int cnt = 0;
+      for (Entry<String, ArrayList<String>> drops : localDrops.entrySet()) {
+        if (!drops.getValue().isEmpty()) {
+          cols.append(drops.getKey()).append("|");
+          for (int i = 0; i < drops.getValue().size(); i++) {
+            if (i > 0) {
+              cols.append(",");
+            }
+            cols.append(drops.getValue().get(i));
+          }
+          cnt++;
+          if (cnt < localDrops.size()) {
+            cols.append(";");
+          }
+        }
+      }
+      props.setProperty(PROPKEY_REGRESSION_L, cols.toString());
+      
+      cols = new StringBuilder();
+      ind = 0;
+      for (String s : meanPanel.globallyDroppedPoints) {
+        cols.append(s);
+        ind++;
+        if (ind < meanPanel.globallyDroppedPoints.size()) {
+          cols.append(";");
+        }
+      }
+      props.setProperty(PROPKEY_REGRESSION_G, cols.toString());
+      
       File f = new File(PROP_FILE);
       OutputStream out = new FileOutputStream(f);
       props.store(out, "");
@@ -778,6 +860,8 @@ public class RainbowTestGUI extends JFrame {
       String comp = props.getProperty(PROPKEY_COMPAREDIR, "");
       String gate = props.getProperty(PROPKEY_GATEFILE, "");
       String colsTemp = props.getProperty(PROPKEY_COLS, "");
+      String regDrops = props.getProperty(PROPKEY_REGRESSION_L, "");
+      String regDropsG = props.getProperty(PROPKEY_REGRESSION_G, "");
       String[] cols = colsTemp.split(";");
 
       if (!gate.equals("")) {
@@ -795,6 +879,25 @@ public class RainbowTestGUI extends JFrame {
       this.hiddenCols.clear();
       for (String c : cols) {
         this.hiddenCols.add(c);
+      }
+      if (!"".equals(regDrops)) {
+        String[] drops = regDrops.split(";");
+        for (int i = 0; i < drops.length; i++) {
+          String[] pts = drops[i].split("\\|");
+          String lbl = pts[0];
+          String[] ptIds = pts[1].split(",");
+          ArrayList<String> ids = new ArrayList<String>();
+          for (String s : ptIds) {
+            ids.add(s);
+          }
+          meanPanel.locallyDroppedPoints.put(lbl, ids);
+        }
+      }
+      if (!"".equals(regDropsG)) {
+        String[] drops = regDropsG.split(";");
+        for (String s : drops) {
+          meanPanel.globallyDroppedPoints.add(s);
+        }
       }
       reCalcTableData();
     } catch (Exception e) {

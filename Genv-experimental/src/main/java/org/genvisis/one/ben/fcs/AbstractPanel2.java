@@ -283,6 +283,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		colorScheme = scheme;
 	}
 	
+	public Color[] getColorScheme() {
+	  return colorScheme;
+	}
+	
 	public void setZoomable(boolean zoomable, boolean truncate) {
 		this.zoomable = zoomable;
 		this.truncate = truncate;
@@ -570,20 +574,20 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	public void drawAll(Graphics g, boolean base) {
 		float minimumObservedRawX, maximumObservedRawX, minimumObservedRawY, maximumObservedRawY;
 		double[] plotMinMaxStep; // needs to be double, else x <= plotXmax can be inexact and leave off the last tick mark 
-		int sigFigs;
-		String str, pos;
+//		int sigFigs;
+		String /*str,*/ pos;
 		int xLook, yLook;
-		BufferedImage yLabel;
+//		BufferedImage yLabel;
 		FontMetrics fontMetrics = null;
-		Graphics gfx;
+//		Graphics gfx;
 		Hashtable<String, Vector<PlotPoint>> layers;
 		Vector<PlotPoint> layer;
 		String trav;
 		String[] keys;
 		int[] order;
-		int step;
-		long time;
-		ProgressBarDialog prog;
+//		int step;
+//		long time;
+//		ProgressBarDialog prog;
     	int xPixel, yPixel, widthPixel, heightPixel;
 
 		setImageStatus(IMAGE_STARTED);
@@ -771,6 +775,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
 			canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
 			plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
+//			System.out.println("Whole: " + yAxisWholeNumbers + " | Min: " + minimumObservedRawY + " | Max: " + maximumObservedRawY + " | pmms: " + Array.toStr(plotMinMaxStep));
 			if (yAxisWholeNumbers) {
                 if (plotMinMaxStep[2] < 1) {
                     plotMinMaxStep[2] = 1;
@@ -806,8 +811,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
         // Draw data points, also build the lookup matrix for nearby points.
         locLookup.clear();
-        time = new Date().getTime();
-        step = Math.max((points.length)/100, 1);
+//        time = new Date().getTime();
+//        step = Math.max((points.length)/100, 1);
         layers = new Hashtable<String,Vector<PlotPoint>>();
 
         long pointTime;
@@ -1153,11 +1158,12 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
     	if (getYAxis() == AXIS_SCALE.LIN) {
 	    	for (double y = plotMinMaxStep[3]; y <= plotYmax; y += plotMinMaxStep[2]) {
-	    	    if (y >= plotYmin || !truncate) {
-	    	        Grafik.drawThickLine(g, canvasSectionMaximumX-TICK_LENGTH, getYPixel(y), canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
-	    	        str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, sigFigs, true);
-	    	        g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - 5 - fontMetrics.stringWidth(str), getYPixel(y) + fontMetrics.getHeight() / 2);
-	    	    }
+	    	  int yPix = getYPixel(y);
+	    	  str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, sigFigs, true);
+	    	  if ((yPix >= canvasSectionMinimumY && yPix < getHeight() - axisXHeight) || !truncate) {
+	    	    Grafik.drawThickLine(g, canvasSectionMaximumX-TICK_LENGTH, yPix, canvasSectionMaximumX, yPix, TICK_THICKNESS, Color.BLACK);
+	    	    g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - 5 - fontMetrics.stringWidth(str), yPix + fontMetrics.getHeight() / 2);
+	    	  }
 	    	}
     	} else if (getYAxis() == AXIS_SCALE.LOG) {
             double y;
@@ -1314,7 +1320,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     		gfx.setColor(Color.BLACK);
     		gfx.drawString(yAxisLabel, 0, yLabel.getHeight()-6);
     		
-    		g.drawImage(Grafik.rotateImage(yLabel, true), 10, (getHeight()-axisXHeight/*HEIGHT_X_AXIS*/)/2-fontMetrics.stringWidth(yAxisLabel)/2, this);
+    		g.drawImage(Grafik.rotateImage(yLabel, true), 0, (getHeight()-axisXHeight/*HEIGHT_X_AXIS*/)/2-fontMetrics.stringWidth(yAxisLabel)/2, this);
         }
     }
 
@@ -2026,7 +2032,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		y = getYPixel(point.getRawY());
 		size = point.getSize();
 		color = point.getColor();
-		
 
 		if (size == 0) {
 			return;

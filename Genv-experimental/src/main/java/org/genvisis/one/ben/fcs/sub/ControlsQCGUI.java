@@ -16,6 +16,8 @@ import java.awt.event.HierarchyListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -27,6 +29,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeSet;
 
@@ -326,9 +329,9 @@ public class ControlsQCGUI extends JFrame {
               if (column > 0 && !statRows.contains(row)) {
                   Object val = table.getModel().getValueAt(table.convertRowIndexToModel(row), table.convertColumnIndexToModel(column));
                   if (val != null) {
-                      if (val instanceof Float) {
+                      if (val instanceof Number) {
                           String colNm = (String) table.getModel().getValueAt(0, table.convertColumnIndexToModel(column));
-                          Float value = (Float) val;
+                          double value = ((Number) val).doubleValue();
                           if (paramMeans.containsKey(colNm)) {
                               if (value > (paramMeans.get(colNm) + paramSDs.get(colNm)) || value < (paramMeans.get(colNm) - paramSDs.get(colNm))) {
                                   col = SD1_COLOR;
@@ -513,10 +516,12 @@ public class ControlsQCGUI extends JFrame {
                   meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 2);
                   meanPanel.setAxisYWidth(AbstractPanel2.WIDTH_Y_AXIS - AbstractPanel2.WIDTH_Y_AXIS / 3);
                   meanPanel.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
-                  meanPanel.setYAxisLabel(meanPanel.plotLabel.split("\\|")[1].trim());
+                  String[] lbls = meanPanel.plotLabel.split("\\|")[0].split("/");
+                  String gateName = "Freq. of " + (lbls.length > 1 ? lbls[lbls.length - 2].trim() : " Parent");
+                  meanPanel.setYAxisLabel(gateName);
               }
               meanPanel.invalidate();
-              meanPanel.repaint();
+              meanPanel.paintAgain();
 //                showMeanPanel(newCol);
           }
       };
@@ -524,7 +529,7 @@ public class ControlsQCGUI extends JFrame {
       meanCtrlPanel.setPlotChangeListener(plotLst);
       meanPanel.setPlotType(PLOT_TYPE.BOX_PLOT);
       meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 2);
-      meanPanel.setAxisYWidth(AbstractPanel2.WIDTH_Y_AXIS - AbstractPanel2.WIDTH_Y_AXIS / 3);
+      meanPanel.setAxisYWidth(AbstractPanel2.WIDTH_Y_AXIS - AbstractPanel2.WIDTH_Y_AXIS / 4);
       meanPanel.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
 //        meanPanel.setYAxisLabel(meanPanel.plotLabel.split("\\|")[1].trim());
       meanCtrlPanel.setLabelPresenter(new LabelPresenter() {
@@ -535,9 +540,22 @@ public class ControlsQCGUI extends JFrame {
               return col;
           }
       });
+      meanCtrlPanel.link(meanPanel);
       meanFrame.setBounds(FCSPlot.START_X, FCSPlot.START_Y, FCSPlot.START_WIDTH, FCSPlot.START_HEIGHT);
       
-      setJMenuBar(createMenuBar());
+      meanFrame.setJMenuBar(createMenuBar());
+
+      meanPanel.setShow1SDLines(true);
+      meanPanel.setShow2SDLines(true);
+      meanPanel.setShowMean15Line(false);
+      meanPanel.setShowRegressionLine(true);
+      
+      meanPanel.addPropertyChangeListener("REGRESSION", new PropertyChangeListener() {
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+          saveProps();
+        }
+      });
       
       loadProps();
     }
@@ -564,8 +582,6 @@ public class ControlsQCGUI extends JFrame {
       
       return menuBar;
     }
-    
-    
     
     private void showMeanPanel(String col) {
         // Get all means (yData), get Files&Dates (xData), get Mean/SD (meanSD)
@@ -626,11 +642,19 @@ public class ControlsQCGUI extends JFrame {
         meanCtrlPanel.setColumns(cols, ind-2);
 
         meanPanel.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
-        meanPanel.setYAxisLabel(col.split("\\|")[1].trim());
-        meanPanel.setData(col, new String[][]{baseLbls, compLbls.toArray(new String[compLbls.size()])}, new double[][]{yDataBase, Doubles.toArray(compDbls)});
-        meanPanel.paintAgain();
-        meanFrame.setTitle("jFlow - Control QC - Overall Mean/SD - " + col);
-        meanFrame.setVisible(true);
+        String[] lbls = col.split("\\|")[0].split("/");
+        String gateName = "Freq. of " + (lbls.length > 1 ? lbls[lbls.length - 2].trim() : " Parent");
+        meanPanel.setYAxisLabel(gateName);
+        meanPanel.setData(gateName, new String[][]{baseLbls, compLbls.toArray(new String[compLbls.size()])}, new double[][]{yDataBase, Doubles.toArray(compDbls)});
+//        meanPanel.paintAgain();
+        meanFrame.setTitle("jFlow - Control QC - Overall Mean/SD - " + lbls[lbls.length - 1] + " | " + gateName);
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            meanFrame.setVisible(true);
+            meanPanel.paintAgain();
+          }
+        });
     }
     
     private static final String PROP_FILE = "controlsQC.properties";
@@ -639,6 +663,9 @@ public class ControlsQCGUI extends JFrame {
     private static final String PROPKEY_COLS = "HIDDEN_COLUMNS";
     private static final String PROPKEY_CTRL = "CONTROL_GROUP";
     private static final String PROPKEY_PANEL = "PANEL_GROUP";
+    private static final String PROPKEY_REGRESSION_L = "REGRESSION_DROPS";
+    private static final String PROPKEY_REGRESSION_G = "REGRESSION_DROPS_GLOBAL";
+    
     private JSeparator separator_3;
     private JSpinner spinner;
     private JLabel lblOfControls;
@@ -648,73 +675,126 @@ public class ControlsQCGUI extends JFrame {
     private Logger log;
     private JLabel lblWarning;
 
-    private void saveProps() {
-        try {
-            Properties props = new Properties();
-            props.setProperty(PROPKEY_RANGEFILE, txtFldBaseFile.getText());
-            props.setProperty(PROPKEY_COMPARE_FILES, txtFldCompDir.getText());
-            StringBuilder cols = new StringBuilder();
-            int ind = 0;
-            for (String c : hiddenCols) {
-                cols.append(c);
-                if (ind < hiddenCols.size() - 1) {
-                    cols.append(";");
-                }
-                ind++;
-            }
-            props.setProperty(PROPKEY_COLS, cols.toString());
-            props.setProperty(PROPKEY_CTRL, (String) comboControl.getSelectedItem());
-            props.setProperty(PROPKEY_PANEL, (String) comboPanel.getSelectedItem());
-            File f = new File(PROP_FILE);
-            OutputStream out = new FileOutputStream( f );
-            props.store(out, "");
-        } catch (Exception e ) {
-            e.printStackTrace();
+  private void saveProps() {
+    try {
+      Properties props = new Properties();
+      props.setProperty(PROPKEY_RANGEFILE, txtFldBaseFile.getText());
+      props.setProperty(PROPKEY_COMPARE_FILES, txtFldCompDir.getText());
+      StringBuilder cols = new StringBuilder();
+      int ind = 0;
+      for (String c : hiddenCols) {
+        cols.append(c);
+        if (ind < hiddenCols.size() - 1) {
+          cols.append(";");
         }
+        ind++;
+      }
+      props.setProperty(PROPKEY_COLS, cols.toString());
+      props.setProperty(PROPKEY_CTRL, (String) comboControl.getSelectedItem());
+      props.setProperty(PROPKEY_PANEL, (String) comboPanel.getSelectedItem());
+      
+      HashMap<String, ArrayList<String>> localDrops = meanPanel.locallyDroppedPoints;
+      cols = new StringBuilder();
+      int cnt = 0;
+      for (Entry<String, ArrayList<String>> drops : localDrops.entrySet()) {
+        if (!drops.getValue().isEmpty()) {
+          cols.append(drops.getKey()).append("|");
+          for (int i = 0; i < drops.getValue().size(); i++) {
+            if (i > 0) {
+              cols.append(",");
+            }
+            cols.append(drops.getValue().get(i));
+          }
+          cnt++;
+          if (cnt < localDrops.size()) {
+            cols.append(";");
+          }
+        }
+      }
+      props.setProperty(PROPKEY_REGRESSION_L, cols.toString());
+      
+      cols = new StringBuilder();
+      ind = 0;
+      for (String s : meanPanel.globallyDroppedPoints) {
+        cols.append(s);
+        ind++;
+        if (ind < meanPanel.globallyDroppedPoints.size()) {
+          cols.append(";");
+        }
+      }
+      props.setProperty(PROPKEY_REGRESSION_G, cols.toString());
+      
+      File f = new File(PROP_FILE);
+      OutputStream out = new FileOutputStream(f);
+      props.store(out, "");
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-    
-    private void loadProps() {
-        Properties props = new Properties();
-        InputStream is = null;
-     
-        try {
-            File f = new File(PROP_FILE);
-            if (!f.exists()) return;
-            is = new FileInputStream(f);
-            props.load(is);
-            String base = props.getProperty(PROPKEY_RANGEFILE, "");
-            String comp = props.getProperty(PROPKEY_COMPARE_FILES, "");
-            String colsTemp = props.getProperty(PROPKEY_COLS, "");
-            String selCtrl = props.getProperty(PROPKEY_CTRL, "");
-            String selPnl = props.getProperty(PROPKEY_PANEL, "");
-            String[] cols = colsTemp.split(";");
-            String[] compAll = comp.split(";");
-            
-            if (!base.equals("")) {
-                txtFldBaseFile.setText(base);
-                loadBaseline(base);
-            }
-            if (!comp.equals("")) {
-                txtFldCompDir.setText(comp);
-                loadCompare(compAll);
-            }
-            this.hiddenCols.clear();
-            for (String c : cols) {
-                this.hiddenCols.add(c);
-            }
-            if (selCtrl != null && !"".equals(selCtrl)) {
-                comboControl.setSelectedItem(selCtrl);
-            }
-            if (selPnl != null && !"".equals(selPnl)) {
-                comboPanel.setSelectedItem(selPnl);
-            }
-            reCalcTableData();
+  }
+
+  private void loadProps() {
+    Properties props = new Properties();
+    InputStream is = null;
+
+    try {
+      File f = new File(PROP_FILE);
+      if (!f.exists())
+        return;
+      is = new FileInputStream(f);
+      props.load(is);
+      String base = props.getProperty(PROPKEY_RANGEFILE, "");
+      String comp = props.getProperty(PROPKEY_COMPARE_FILES, "");
+      String colsTemp = props.getProperty(PROPKEY_COLS, "");
+      String selCtrl = props.getProperty(PROPKEY_CTRL, "");
+      String selPnl = props.getProperty(PROPKEY_PANEL, "");
+      String regDrops = props.getProperty(PROPKEY_REGRESSION_L, "");
+      String regDropsG = props.getProperty(PROPKEY_REGRESSION_G, "");
+      String[] cols = colsTemp.split(";");
+      String[] compAll = comp.split(";");
+
+      if (!base.equals("")) {
+        txtFldBaseFile.setText(base);
+        loadBaseline(base);
+      }
+      if (!comp.equals("")) {
+        txtFldCompDir.setText(comp);
+        loadCompare(compAll);
+      }
+      this.hiddenCols.clear();
+      for (String c : cols) {
+        this.hiddenCols.add(c);
+      }
+      if (selCtrl != null && !"".equals(selCtrl)) {
+        comboControl.setSelectedItem(selCtrl);
+      }
+      if (selPnl != null && !"".equals(selPnl)) {
+        comboPanel.setSelectedItem(selPnl);
+      }
+      if (!"".equals(regDrops)) {
+        String[] drops = regDrops.split(";");
+        for (int i = 0; i < drops.length; i++) {
+          String[] pts = drops[i].split("\\|");
+          String lbl = pts[0];
+          String[] ptIds = pts[1].split(",");
+          ArrayList<String> ids = new ArrayList<String>();
+          for (String s : ptIds) {
+            ids.add(s);
+          }
+          meanPanel.locallyDroppedPoints.put(lbl, ids);
         }
-        catch ( Exception e ) {
-            e.printStackTrace();
-            is = null; 
+      }
+      if (!"".equals(regDropsG)) {
+        String[] drops = regDropsG.split(";");
+        for (String s : drops) {
+          meanPanel.globallyDroppedPoints.add(s);
         }
+      }
+      reCalcTableData();
+    } catch (Exception e) {
+      e.printStackTrace();
+      is = null;
     }
+  }
     
     private void resizeColumnWidth() {
         final TableColumnModel columnModel = table.getColumnModel();

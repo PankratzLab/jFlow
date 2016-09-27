@@ -243,24 +243,27 @@ public class FCSDataLoader {
             lastModified = new Date(sysFile.lastModified());
         }
         
-        String[] arr = spillObj.getParameterNames();
-        for (int i = 0, count = arr.length; i < count; i++) {
-            compensatedNames.add(arr[i]);
-            compensatedIndices.put(arr[i], i);
-        }
-        
+        HashMap<String, String> names = new HashMap<String, String>();
         for (int i = 0; i < paramsCount; i++) {
             CFCSParameter param = params.getParameter(i);
             String name = null;
-            try { name = param.getShortName(); } catch (Exception e) {}
-            if (name == null) {
-                try { name = param.getFullName(); } catch (Exception e) {}
+            String shortName = null;
+            try { 
+              name = param.getFullName(); 
+            } catch (Exception e) {}
+            try { 
+              shortName = param.getShortName(); 
+            } catch (Exception e) {}
+//            if (name == null) {
+//                // TODO Error, no name set (included in spillover matrix?) -- will this scenario ever happen?
+//                name = "P" + i;
+//            }
+            String actName = shortName;
+            if (name != null) {
+              actName = shortName + " (" + name + ")";
             }
-            if (name == null) {
-                // TODO Error, no name set (included in spillover matrix?) -- will this scenario ever happen?
-                name = "P" + i;
-            }
-            paramNamesInOrder.add(name);
+            paramNamesInOrder.add(actName);
+            names.put(shortName, actName);
             
             String axisKeywork = "P" + (i + 1) + "DISPLAY";
             AXIS_SCALE scale = AXIS_SCALE.LIN;
@@ -280,6 +283,13 @@ public class FCSDataLoader {
                 rng = 262144;
             }
             ranges.add(rng);
+
+        }
+        
+        String[] arr = spillObj.getParameterNames();
+        for (int i = 0, count = arr.length; i < count; i++) {
+            compensatedNames.add(names.get(arr[i]));
+            compensatedIndices.put(names.get(arr[i]), i);
         }
         
         if (dataObj.getType() == CFCSData.LISTMODE) {
