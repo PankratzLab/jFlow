@@ -17,9 +17,9 @@ public class PlotPoint implements Serializable {
   public static final String NAN_STR = "NaN";
 
   private final String id;
-  private final byte type;
   private final float rawX;
   private final float rawY;
+  private byte type;
   private byte size;
   private Color tempColor;
   private byte color;
@@ -93,6 +93,10 @@ public class PlotPoint implements Serializable {
     return layer;
   }
 
+  public void setType(byte type) {
+    this.type = type;
+  }
+  
   public void setLayer(byte layer) {
     this.layer = layer;
   }
