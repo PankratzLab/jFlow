@@ -62,6 +62,7 @@ import org.genvisis.cnv.prop.StringListProperty;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
+import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
 import net.miginfocom.swing.MigLayout;
@@ -204,102 +205,153 @@ public class ProjectPropertiesEditor extends JFrame {
 
     abstract boolean acceptNewValue(Object newValue);
   }
+  
+  
+  private final InputValidator QQ_PLOT_VALIDATOR = new InputValidator() {
 
-  private final HashMap<String, InputValidator> validators =
-                                                           new HashMap<String, ProjectPropertiesEditor.InputValidator>() {
-                                                             private static final long serialVersionUID =
-                                                                                                        1L;
-                                                             {
-                                                               put(PropertyKeys.KEY_PLINK_DIR_FILEROOTS,
-                                                                   new InputValidator() {
-                                                                     @Override
-                                                                     Object processNewValue(Object newValue,
-                                                                                            Object oldValue) {
-                                                                       if (newValue instanceof File[]) {
-                                                                         if (((File[]) newValue).length == 0
-                                                                             || (((File[]) newValue).length == 1
-                                                                                 && ((File[]) newValue)[0].getPath()
-                                                                                                          .equals(""))) {
-                                                                           return newValue;
-                                                                         }
-                                                                         File[] newFiles =
-                                                                                         new File[((File[]) newValue).length];
-                                                                         for (int i =
-                                                                                    0; i < ((File[]) newValue).length; i++) {
-                                                                           String newPath =
-                                                                                          ext.rootOf(((File[]) newValue)[i].getAbsolutePath(),
-                                                                                                     false);
-                                                                           newFiles[i] =
-                                                                                       new File(newPath);
-                                                                         }
-                                                                         return newFiles;
-                                                                       } else {
-                                                                         System.out.println("ERROR - new value should be a File[] (array)!");
-                                                                         return oldValue;
-                                                                       }
-                                                                     }
+    @Override
+    Object processNewValue(Object newValue, Object oldValue) {
+      // general contract of InputValidator is that processNewValue is only called after acceptNewValue has returned true
+      return newValue;
+    }
 
-                                                                     @Override
-                                                                     boolean acceptNewValue(Object newValue) {
-                                                                       if (newValue instanceof File[]) {
-                                                                         File[] files =
-                                                                                      (File[]) newValue;
-                                                                         if (files.length == 0
-                                                                             || (files.length == 1
-                                                                                 && files[0].getPath()
-                                                                                            .equals(""))) {
-                                                                           return true;
-                                                                         }
-                                                                         for (File f : files) {
-                                                                           if (!hasAllPLINKFiles(f)) {
-                                                                             proj.message("Error - couldn't find all files {.bim/.fam/.bed} for PLINK root ["
-                                                                                          + ext.rootOf(f.getPath(),
-                                                                                                       true)
-                                                                                          + "]");
-                                                                             return false;
-                                                                           }
-                                                                         }
-                                                                         return true;
-                                                                       } else {
-                                                                         System.out.println("ERROR - new value should be a File[] (array)!");
-                                                                         return false;
-                                                                       }
-                                                                     }
+    @Override
+    boolean acceptNewValue(Object newValue) {
+      Logger log = proj == null ? new Logger() : proj.getLog();
+      if (newValue instanceof File[]) {
+        for (File f : ((File[]) newValue)) {
+          if (!f.exists()) {
+            log.reportTimeError("Missing file in " + PropertyKeys.KEY_QQ_FILENAMES + ": " + f);
+            return false;
+          }
+        }
+        return true;
+      }
+      if (newValue instanceof File) {
+        if (!((File) newValue).exists()) {
+          log.reportTimeError("Missing file in " + PropertyKeys.KEY_QQ_FILENAMES + ": " + newValue);
+          return false;
+        }
+        return true;
+      }
+      if (newValue instanceof String[] || newValue instanceof String) {
+        String[] vals = newValue instanceof String[] ? (String[]) newValue : new String[]{(String) newValue};
+        for (String val : vals) {
+          // expects <path>;<path>,#=hdr,#=hdr;<path>,#=hdr
+          String[] pts = val.split(",");
+          String fl = pts[0];
+          if (Files.isRelativePath(fl)) {
+            fl = ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue()) + fl;
+          }
+          if (!Files.exists(fl)) {
+            log.reportTimeError("Missing file in " + PropertyKeys.KEY_QQ_FILENAMES + ": " + fl);
+            return false;
+          }
+          if (pts.length > 1) {
+            String[] hdr = Files.getHeaderOfFile(fl, proj.getLog());
+            for (int i = 1; i < pts.length; i++) {
+              String[] sub = pts[i].split("=");
+              if (sub.length == 1 || sub.length > 2) {
+                log.reportTimeError("Malformed header replacement token (missing or extra '=' sign) in " + PropertyKeys.KEY_QQ_FILENAMES + ": {" + pts[i] + "}");
+                return false;
+              }
+              int ind = -1;
+              try {
+                ind = Integer.parseInt(sub[0]);
+              } catch (NumberFormatException e) {
+                log.reportTimeError("Malformed header replacement token (non-integer index) in " + PropertyKeys.KEY_QQ_FILENAMES + ": {" + pts[i] + "}");
+                return false;
+              }
+              if (ind < 0 || ind >= hdr.length) {
+                log.reportTimeError("Malformed header replacement token (index < 0 or > header length [HEADER: " + Array.toStr(hdr) + "]) in " + PropertyKeys.KEY_QQ_FILENAMES + ": {" + pts[i] + "}");
+                return false;
+              }
+            }
+          }
+        }
+        return true;
+      }
+      return false;
+    }
+  };
+  
+  private final InputValidator PLINK_VALIDATOR = new InputValidator() {
+    @Override
+    Object processNewValue(Object newValue,
+                           Object oldValue) {
+      if (newValue instanceof File[]) {
+        if (((File[]) newValue).length == 0 || (((File[]) newValue).length == 1 && ((File[]) newValue)[0].getPath().equals(""))) {
+          return newValue;
+        }
+        File[] newFiles = new File[((File[]) newValue).length];
+        for (int i = 0; i < ((File[]) newValue).length; i++) {
+          String newPath = ext.rootOf(((File[]) newValue)[i].getAbsolutePath(), false);
+          newFiles[i] = new File(newPath);
+        }
+        return newFiles;
+      } else {
+        proj.getLog().reportTimeError("setting PLINK property: new value should be a File[] (array)!");
+        return oldValue;
+      }
+    }
 
-                                                                     private boolean hasAllPLINKFiles(File f) {
-                                                                       String[] files =
-                                                                                      f.getParentFile()
-                                                                                       .list(new FilenameFilter() {
-                                                                                         @Override
-                                                                                         public boolean accept(File dir,
-                                                                                                               String name) {
-                                                                                           return name.endsWith(".fam")
-                                                                                                  || name.endsWith(".bim")
-                                                                                                  || name.endsWith(".bed");
-                                                                                         }
-                                                                                       });
-                                                                       if (files.length < 3) {
-                                                                         return false;
-                                                                       }
-                                                                       boolean hasBed = false,
-                                                                           hasFam = false,
-                                                                           hasBim = false;
-                                                                       for (String file : files) {
-                                                                         if (file.endsWith(".fam")) {
-                                                                           hasFam = true;
-                                                                         } else if (file.endsWith(".bim")) {
-                                                                           hasBim = true;
-                                                                         } else if (file.endsWith(".bed")) {
-                                                                           hasBed = true;
-                                                                         }
-                                                                       }
-                                                                       return hasBed && hasFam
-                                                                              && hasBim;
-                                                                     }
-                                                                   });
-                                                             }
-                                                           };
+    @Override
+    boolean acceptNewValue(Object newValue) {
+      if (newValue instanceof File[]) {
+        File[] files = (File[]) newValue;
+        if (files.length == 0 || (files.length == 1 && files[0].getPath() .equals(""))) {
+          return true;
+        }
+        for (File f : files) {
+          if (!hasAllPLINKFiles(f)) {
+            proj.message("Error - couldn't find all files {.bim/.fam/.bed} for PLINK root ["
+                         + ext.rootOf(f.getPath(), true)
+                         + "]");
+            return false;
+          }
+        }
+        return true;
+      } else {
+        proj.getLog().reportTimeError("setting PLINK property: new value should be a File[] (array)!");
+        return false;
+      }
+    }
 
+    private boolean hasAllPLINKFiles(File f) {
+      String[] files = f.getParentFile().list(new FilenameFilter() {
+                        @Override
+                        public boolean accept(File dir,
+                                              String name) {
+                            return name.endsWith(".fam")
+                                   || name.endsWith(".bim")
+                                   || name.endsWith(".bed");
+                        }
+                      });
+      if (files.length < 3) {
+        return false;
+      }
+      boolean hasBed = false,
+          hasFam = false,
+          hasBim = false;
+      for (String file : files) {
+        if (file.endsWith(".fam")) {
+          hasFam = true;
+        } else if (file.endsWith(".bim")) {
+          hasBim = true;
+        } else if (file.endsWith(".bed")) {
+          hasBed = true;
+        }
+      }
+      return hasBed && hasFam
+             && hasBim;
+    }
+  };
+  
+  private final HashMap<String, InputValidator> validators = new HashMap<String, ProjectPropertiesEditor.InputValidator>();
+  {
+    validators.put(PropertyKeys.KEY_PLINK_DIR_FILEROOTS, PLINK_VALIDATOR);
+    validators.put(PropertyKeys.KEY_QQ_FILENAMES, QQ_PLOT_VALIDATOR);
+  }
   /**
    * Launch the application.
    */

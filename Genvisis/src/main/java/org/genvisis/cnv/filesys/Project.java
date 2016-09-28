@@ -262,7 +262,7 @@ public class Project {
   public StringListProperty STRATIFICATION_RESULTS_FILENAMES = new StringListProperty(this,
       PropertyKeys.KEY_STRATIFICATION_RESULTS_FILENAMES, "", "", true, false);
   public StringListProperty QQ_FILENAMES = new StringListProperty(this,
-      PropertyKeys.KEY_QQ_FILENAMES, "", "", true, false);
+      PropertyKeys.KEY_QQ_FILENAMES, "", "", false, false); // not listed as file or directory, due to unique value format
   public StringListProperty GC_CORRECTION_PARAMETERS_FILENAMES = new StringListProperty(this,
       PropertyKeys.KEY_GC_CORRECTION_PARAMETERS_FILENAMES, "", "", true, false);
   public StringListProperty PLINK_DIR_FILEROOTS = new StringListProperty(this,
