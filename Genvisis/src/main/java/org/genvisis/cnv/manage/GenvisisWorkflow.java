@@ -2485,7 +2485,14 @@ public class GenvisisWorkflow {
       return sum == reqs.length;
     }
 
+    /**
+     * @return An array of requirements. At least one element of each subarray must be met to
+     *         satisfy the step pre-requisites - effectively this means elements of the first array
+     *         are AND'd together, while elements of the second array are OR'd.
+     */
     public String[][] getRequirements() {
+      // TODO unify requirement names, AND/OR structure, input types and default values to avoid
+      // maintaining these parallel arrays
       return reqs;
     }
 
