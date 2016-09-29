@@ -202,10 +202,8 @@ public class ProjectPropertiesEditor extends JFrame {
 
   private abstract class InputValidator {
     abstract Object processNewValue(Object newValue, Object oldValue);
-
     abstract boolean acceptNewValue(Object newValue);
   }
-  
   
   private final InputValidator QQ_PLOT_VALIDATOR = new InputValidator() {
 
@@ -236,6 +234,7 @@ public class ProjectPropertiesEditor extends JFrame {
       }
       if (newValue instanceof String[] || newValue instanceof String) {
         String[] vals = newValue instanceof String[] ? (String[]) newValue : new String[]{(String) newValue};
+        if (vals.length == 1 && "".equals(vals[0])) return true;
         for (String val : vals) {
           // expects <path>;<path>,#=hdr,#=hdr;<path>,#=hdr
           String[] pts = val.split(",");
@@ -521,6 +520,8 @@ public class ProjectPropertiesEditor extends JFrame {
       }
     };
 
+    
+    
     final DefaultTableCellRenderer renderer = new DefaultTableCellRenderer() {
       private static final long serialVersionUID = 1L;
 
@@ -540,6 +541,7 @@ public class ProjectPropertiesEditor extends JFrame {
           return returnComp;
         }
         String desc = proj.getProperty(tempKey).getDescription();
+        boolean alreadyValidated = validators.containsKey(tempKey);
         if (value instanceof Boolean) {
           rendererChkBx.setSelected(((Boolean) value).booleanValue());
           returnComp = rendererChkBx;
@@ -581,13 +583,13 @@ public class ProjectPropertiesEditor extends JFrame {
             if (txt.startsWith(projDir)) {
               txt = txt.substring(projDir.length());
             }
-            if (!exists && !defVal.contains(txt)) {
+            if (!alreadyValidated && (!exists && !defVal.contains(txt))) {
               sb.append("<font color='red'>");
             } else {
               exists = true;
             }
             sb.append(txt);
-            if (!exists) {
+            if (!alreadyValidated && !exists) {
               sb.append("</font>");
             }
             for (int i = 1; i < ((File[]) value).length; i++) {
@@ -602,13 +604,13 @@ public class ProjectPropertiesEditor extends JFrame {
                 txt = txt.substring(projDir.length());
               }
               sb.append(";");
-              if (!exists && !defVal.contains(txt)) {
+              if (!alreadyValidated && (!exists && !defVal.contains(txt))) {
                 sb.append("<font color='red'>");
               } else {
                 exists = true;
               }
               sb.append(txt);
-              if (!exists) {
+              if (!alreadyValidated && !exists) {
                 sb.append("</font>");
               }
             }
@@ -627,7 +629,7 @@ public class ProjectPropertiesEditor extends JFrame {
               continue;
             }
             boolean exists = (!prop.isFile() && !prop.isDirectory()) || Files.exists(values[i]);
-            if (!exists) {
+            if (!alreadyValidated && !exists) {
               sb.append("<font color='red'>");
             }
             if (values[i].startsWith(projDir)) {
@@ -635,7 +637,7 @@ public class ProjectPropertiesEditor extends JFrame {
             } else {
               sb.append(values[i]);
             }
-            if (!exists) {
+            if (!alreadyValidated && !exists) {
               sb.append("</font>");
             }
             if (i < values.length - 1) {
