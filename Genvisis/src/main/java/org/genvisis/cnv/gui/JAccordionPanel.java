@@ -1,5 +1,6 @@
 package org.genvisis.cnv.gui;
 
+import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,8 +19,8 @@ public class JAccordionPanel extends JPanel {
    */
   private static final long serialVersionUID = 1L;
 
-  private static final String UP = "/\\";
-  private static final String DOWN = "\\/";
+  private static final String UP = "-";
+  private static final String DOWN = "+";
 
   private final JButton expandoButton;
   public JPanel topPanel;
@@ -43,6 +44,7 @@ public class JAccordionPanel extends JPanel {
     panel.setLayout(new MigLayout("ins 4", "[]", "[]"));
 
     expandoButton = new JButton(UP);
+    expandoButton.setFont(expandoButton.getFont().deriveFont(Font.BOLD, 14));
     panel.add(expandoButton, "cell 0 0");
     expandoButton.addActionListener(new ActionListener() {
       @Override
