@@ -177,7 +177,7 @@ public class DosageData implements Serializable {
     String[] markerNames;
     boolean[] markersToKeep;
     Hashtable<String, String> invalids;
-    int keepTotal;
+    int keepTotal, index, firstMkr;
     if (log == null) {
       log = new Logger();
     }
@@ -207,23 +207,37 @@ public class DosageData implements Serializable {
       return;
     }
 
+//    int idType = parameters[0]; // unused
+    int beginDataCol = parameters[1];
+    int dominanceFormat = parameters[2]; 
+    int numDataCols = parameters[3]; 
+    int indexHeaderRow = parameters[4]; 
+    int indexMkrIID = parameters[5]; 
+    int indexA1 = parameters[6]; 
+    int indexA2 = parameters[7]; 
+    int indexChr = parameters[8]; 
+    int indexPos = parameters[9]; 
+    int delimiter = parameters[10]; 
+//    int indexHeadLead = parameters[11]; // unused
+//    int numDigitsMin = parameters[12]; // unused
+//    int numDigitsMax = parameters[13]; // unused 
+    
     ids = HashVec.loadFileToStringMatrix(idFile, false, new int[] {0, 1}, false);
-    if (parameters[3] == 1) {
+    if (numDataCols == 1) {
       dosageValues = new float[keepTotal][ids.length];
     } else {
-      genotypeProbabilities = new float[keepTotal][ids.length][parameters[3]];
+      genotypeProbabilities = new float[keepTotal][ids.length][numDataCols];
     }
-    if (parameters[6] != -1) {
+    if (indexA1 != -1) {
       alleles = new char[keepTotal][2];
     }
-    if (parameters[8] == CHR_INFO_IN_FILENAME) {
+    if (indexChr == CHR_INFO_IN_FILENAME) {
       Matcher m = Pattern.compile(CHR_REGEX).matcher(dosageFile);
       byte chr = -1;
       if (m.matches()) {
         chr = (byte) Integer.parseInt(m.group(1));
         if (verbose) {
-          String msg =
-                     "Warning - the format given expects chromosome number to be part of the file name.  This was determined to be chr{"
+          String msg = "Warning - the format given expects chromosome number to be part of the file name.  This was determined to be chr{"
                        + chr + "}.";
           log.report(msg);
         }
@@ -235,10 +249,10 @@ public class DosageData implements Serializable {
           log.reportError(msg);
         }
       }
-    } else if (parameters[8] != -1) {
+    } else if (indexChr != -1) {
       chrs = new byte[keepTotal];
     }
-    if (parameters[9] != -1) {
+    if (indexPos != -1) {
       positions = new int[keepTotal];
     }
 
@@ -250,21 +264,21 @@ public class DosageData implements Serializable {
     try {
       reader = Files.getAppropriateReader(dosageFile);// new BufferedReader(new
                                                       // FileReader(dosageFile));
-      if (parameters[4] == 1) {
-        line = reader.readLine().trim().split(parameters[10] == 1 ? "," : "[\\s]+");
-        if (parameters[2] == INDIVIDUAL_DOMINANT_FORMAT) {
+      if (indexHeaderRow == 1) {
+        line = reader.readLine().trim().split(delimiter == 1 ? "," : "[\\s]+");
+        if (dominanceFormat == INDIVIDUAL_DOMINANT_FORMAT) {
           for (int i = 0; i < markerNames.length; i++) {
-            if (!markerNames[i].equals(line[parameters[1] + parameters[3] * i])) {
+            if (!markerNames[i].equals(line[beginDataCol + numDataCols * i])) {
               String msg = "Error - mismatched name at marker " + (i + 1) + " of " + dosageFile
                            + "; expecting " + markerNames[i] + " given map file " + mapFile
-                           + ", found " + line[parameters[1] + parameters[3] * i];
+                           + ", found " + line[beginDataCol + numDataCols * i];
               log.reportError(msg);
               reader.close();
               return;
             }
           }
-        } else if (parameters[2] == MARKER_DOMINANT_FORMAT) {
-          if (parameters[3] != 2) {
+        } else if (dominanceFormat == MARKER_DOMINANT_FORMAT) {
+          if (numDataCols != 2) {
             if (verbose) {
               String msg = "Warning - ignoring the header with IDs in file " + dosageFile
                            + " because it does not contain 2 columns for each individual";
@@ -272,12 +286,12 @@ public class DosageData implements Serializable {
             }
           } else {
             for (int i = 0; i < ids.length; i++) {
-              if (!ids[i][0].equals(line[parameters[1] + parameters[3] * i + 0])
-                  || !ids[i][1].equals(line[parameters[1] + parameters[3] * i + 1])) {
+              if (!ids[i][0].equals(line[beginDataCol + numDataCols * i + 0])
+                  || !ids[i][1].equals(line[beginDataCol + numDataCols * i + 1])) {
                 String msg = "Error - mismatched IDs at individual " + (i + 1) + " of " + dosageFile
                              + "; expecting " + ids[i][0] + "," + ids[i][1] + " given id file "
-                             + idFile + ", found " + line[parameters[1] + parameters[3] * i + 0]
-                             + "," + line[parameters[1] + parameters[3] * i + 1];
+                             + idFile + ", found " + line[beginDataCol + numDataCols * i + 0]
+                             + "," + line[beginDataCol + numDataCols * i + 1];
                 log.reportError(msg);
                 reader.close();
                 return;
@@ -287,9 +301,19 @@ public class DosageData implements Serializable {
         }
       }
       
-      if (parameters[2] == MARKER_DOMINANT_FORMAT) {
-        int index = -1;
-        for (int i = 0; i < markerNames.length; i++) {
+      if (dominanceFormat == MARKER_DOMINANT_FORMAT) {
+        firstMkr = 0;
+        for (int i = 0; i < markersToKeep.length; i++) {
+          if (markersToKeep[i]) {
+            firstMkr = i;
+            break;
+          }
+        }
+        for (int i = 0; i < firstMkr; i++) {
+          reader.readLine(); // skip to first marker
+        }
+        index = -1;
+        for (int i = firstMkr; i < markerNames.length; i++) {
           String temp = reader.readLine();
           if (temp == null) {
             int rem = markerNames.length - i;
@@ -299,201 +323,213 @@ public class DosageData implements Serializable {
             reader.close();
             return;
           }
-          line = temp.trim().split(parameters[10] == 1 ? "," : "[\\s]+");
-          if (!markerNames[i].equals(line[parameters[5]])) {
+          if (!markersToKeep[i]) {
+            continue;
+          }
+          line = temp.trim().split(delimiter == 1 ? "," : "[\\s]+");
+          if (!markerNames[i].equals(line[indexMkrIID])) {
             if (verbose) {
               String msg = "Error - mismatched name at marker " + (i + 1) + " of " + dosageFile
                            + "; expecting " + markerNames[i] + " given map file " + mapFile
-                           + ", found " + line[parameters[5]];
+                           + ", found " + line[indexMkrIID];
               log.reportError(msg);
             }
             reader.close();
             return;
           }
-          if (!markersToKeep[i]) {
-            continue;
-          }
           index++;
-          if (parameters[6] != -1) {
-            if (line[parameters[6]].length() > 1 || !Sequence.validAllele(line[parameters[6]])) {
+          if (indexA1 != -1) {
+            if (line[indexA1].length() > 1 || !Sequence.validAllele(line[indexA1])) {
               if (verbose) {
-                String msg = "Warning - invalid allele ('" + line[parameters[6]] + "') at marker "
+                String msg = "Warning - invalid allele ('" + line[indexA1] + "') at marker "
                              + markerNames[i];
                 log.reportError(msg);
               }
             }
-            alleles[index][0] = line[parameters[6]].charAt(0);
+            alleles[index][0] = line[indexA1].charAt(0);
           }
-          if (parameters[7] != -1) {
-            if (line[parameters[7]].length() > 1 || !Sequence.validAllele(line[parameters[7]])) {
+          if (indexA2 != -1) {
+            if (line[indexA2].length() > 1 || !Sequence.validAllele(line[indexA2])) {
               if (verbose) {
-                String msg = "Warning - invalid allele ('" + line[parameters[7]] + "') at marker "
+                String msg = "Warning - invalid allele ('" + line[indexA2] + "') at marker "
                              + markerNames[i];
                 log.reportError(msg);
               }
             }
-            alleles[index][1] = line[parameters[7]].charAt(0);
+            alleles[index][1] = line[indexA2].charAt(0);
           }
-          if (parameters[8] >= 0) {
+          if (indexChr >= 0) {
             try {
-              chrs[index] = Byte.parseByte(line[parameters[8]]);
+              chrs[index] = Byte.parseByte(line[indexChr]);
             } catch (NumberFormatException nfe) {
               chrs[index] = -1;
-              if (!invalids.containsKey(line[parameters[8]])) {
+              if (!invalids.containsKey(line[indexChr])) {
                 if (verbose) {
-                  String msg = "Warning - invalid chromosome number ('" + line[parameters[8]]
+                  String msg = "Warning - invalid chromosome number ('" + line[indexChr]
                                + "'), first seen at marker " + markerNames[i];
                   log.reportError(msg);
                 }
-                invalids.put(line[parameters[8]], "");
+                invalids.put(line[indexChr], "");
               }
             }
           }
-          if (parameters[9] != -1) {
+          if (indexPos != -1) {
             try {
-              positions[index] = Integer.parseInt(line[parameters[9]]);
+              positions[index] = Integer.parseInt(line[indexPos]);
             } catch (NumberFormatException nfe) {
               positions[index] = -1;
-              if (!invalids.containsKey(line[parameters[9]])) {
+              if (!invalids.containsKey(line[indexPos])) {
                 if (verbose) {
-                  String msg = "Warning - invalid genome position ('" + line[parameters[9]]
+                  String msg = "Warning - invalid genome position ('" + line[indexPos]
                                + "') for marker " + markerNames[i];
                   log.reportError(msg);
                 }
-                invalids.put(line[parameters[9]], "");
+                invalids.put(line[indexPos], "");
               }
             }
           }
 
-          if (line.length - parameters[1] != ids.length * parameters[3]) {
-            String msg = "Error - mismatched number of elements in line " + (i + 1 + parameters[4])
-                         + " of " + dosageFile + "; expecting " + ids.length + "*" + parameters[3]
-                         + "+" + parameters[1] + "[=" + (ids.length * parameters[3] + parameters[1])
+          if (line.length - beginDataCol != ids.length * numDataCols) {
+            String msg = "Error - mismatched number of elements in line " + (i + 1 + indexHeaderRow)
+                         + " of " + dosageFile + "; expecting " + ids.length + "*" + numDataCols
+                         + "+" + beginDataCol + "[=" + (ids.length * numDataCols + beginDataCol)
                          + "], found " + line.length;
             log.reportError(msg);
             System.exit(1);
           }
-          if (parameters[3] == 1) {
+          if (numDataCols == 1) {
             for (int j = 0; j < ids.length; j++) {
-              dosageValues[index][j] = ext.isMissingValue(line[parameters[1]
+              dosageValues[index][j] = ext.isMissingValue(line[beginDataCol
                                                                + j]) ? Float.NaN
-                                                                     : Float.parseFloat(line[parameters[1]
+                                                                     : Float.parseFloat(line[beginDataCol
                                                                                              + j]);
             }
           } else {
             for (int j = 0; j < ids.length; j++) {
               genotypeProbabilities[index][j][0] =
-                                                 ext.isMissingValue(line[parameters[1]
-                                                                         + j * parameters[3]
+                                                 ext.isMissingValue(line[beginDataCol
+                                                                         + j * numDataCols
                                                                          + 0]) ? Float.NaN
-                                                                               : Float.parseFloat(line[parameters[1]
+                                                                               : Float.parseFloat(line[beginDataCol
                                                                                                        + j
-                                                                                                         * parameters[3]
+                                                                                                         * numDataCols
                                                                                                        + 0]);
               genotypeProbabilities[index][j][1] =
-                                                 ext.isMissingValue(line[parameters[1]
-                                                                         + j * parameters[3]
+                                                 ext.isMissingValue(line[beginDataCol
+                                                                         + j * numDataCols
                                                                          + 1]) ? Float.NaN
-                                                                               : Float.parseFloat(line[parameters[1]
+                                                                               : Float.parseFloat(line[beginDataCol
                                                                                                        + j
-                                                                                                         * parameters[3]
+                                                                                                         * numDataCols
                                                                                                        + 1]);
-              if (parameters[3] == 3) {
+              if (numDataCols == 3) {
                 genotypeProbabilities[index][j][2] =
-                                                   ext.isMissingValue(line[parameters[1]
-                                                                           + j * parameters[3]
+                                                   ext.isMissingValue(line[beginDataCol
+                                                                           + j * numDataCols
                                                                            + 2]) ? Float.NaN
-                                                                                 : Float.parseFloat(line[parameters[1]
+                                                                                 : Float.parseFloat(line[beginDataCol
                                                                                                          + j
-                                                                                                           * parameters[3]
+                                                                                                           * numDataCols
                                                                                                          + 2]);
                 if (Math.abs((1 - genotypeProbabilities[index][j][1]
                               - genotypeProbabilities[index][j][0])
                              - genotypeProbabilities[index][j][2]) > 0.01) {
                   String msg = "Error: P(BB) does not equal [ 1 - P(AA) - P(AB) ] for individual "
                                + ids[j][0] + "," + ids[j][1] + " at marker " + markerNames[i]
-                               + " which is line " + (i + 1 + parameters[4]) + " of " + dosageFile
-                               + ": " + line[parameters[1] + j * parameters[3] + 0] + " "
-                               + line[parameters[1] + j * parameters[3] + 1] + " "
-                               + line[parameters[1] + j * parameters[3] + 2];
+                               + " which is line " + (i + 1 + indexHeaderRow) + " of " + dosageFile
+                               + ": " + line[beginDataCol + j * numDataCols + 0] + " "
+                               + line[beginDataCol + j * numDataCols + 1] + " "
+                               + line[beginDataCol + j * numDataCols + 2];
                   log.reportError(msg);
                 }
               }
             }
           }
+          
+          if (index == keepTotal - 1) {
+            // found all markers, no need to continue reading
+            break;
+          }
         }
-      } else if (parameters[2] == INDIVIDUAL_DOMINANT_FORMAT) {
+      } else if (dominanceFormat == INDIVIDUAL_DOMINANT_FORMAT) {
         for (int i = 0; i < ids.length; i++) {
-          line = reader.readLine().trim().split(parameters[10] == 1 ? "," : "[\\s]+");
-          if (line.length - parameters[1] != markerNames.length * parameters[3]) {
-            String msg = "Error - mismatched number of elements in line " + (i + 1 + parameters[4])
+          line = reader.readLine().trim().split(delimiter == 1 ? "," : "[\\s]+");
+          if (line.length - beginDataCol != markerNames.length * numDataCols) {
+            String msg = "Error - mismatched number of elements in line " + (i + 1 + indexHeaderRow)
                          + " of " + dosageFile + "; expecting " + markerNames.length + "*"
-                         + parameters[3] + "+" + parameters[1] + "[="
-                         + (markerNames.length * parameters[3] + parameters[1]) + "], found "
+                         + numDataCols + "+" + beginDataCol + "[="
+                         + (markerNames.length * numDataCols + beginDataCol) + "], found "
                          + line.length;
             log.reportError(msg);
             System.exit(1);
           }
-          if (parameters[3] == 1) {
-            int index = -1;
+          if (numDataCols == 1) {
+            index = -1;
             for (int j = 0; j < markerNames.length; j++) {
               if (!markersToKeep[j]) {
                 continue;
               }
               index++;
-              dosageValues[index][i] = ext.isMissingValue(line[parameters[1]
+              dosageValues[index][i] = ext.isMissingValue(line[beginDataCol
                                                                + j]) ? Float.NaN
-                                                                     : Float.parseFloat(line[parameters[1]
+                                                                     : Float.parseFloat(line[beginDataCol
                                                                                              + j]);
+              if (index == keepTotal - 1) {
+                break;
+              }
             }
           } else {
-            int index = -1;
+            index = -1;
             for (int j = 0; j < markerNames.length; j++) {
               if (!markersToKeep[j]) {
                 continue;
               }
               index++;
               genotypeProbabilities[index][i][0] =
-                                                 ext.isMissingValue(line[parameters[1]
-                                                                         + j * parameters[3]
+                                                 ext.isMissingValue(line[beginDataCol
+                                                                         + j * numDataCols
                                                                          + 0]) ? Float.NaN
-                                                                               : Float.parseFloat(line[parameters[1]
+                                                                               : Float.parseFloat(line[beginDataCol
                                                                                                        + j
-                                                                                                         * parameters[3]
+                                                                                                         * numDataCols
                                                                                                        + 0]);
               genotypeProbabilities[index][i][1] =
-                                                 ext.isMissingValue(line[parameters[1]
-                                                                         + j * parameters[3]
+                                                 ext.isMissingValue(line[beginDataCol
+                                                                         + j * numDataCols
                                                                          + 1]) ? Float.NaN
-                                                                               : Float.parseFloat(line[parameters[1]
+                                                                               : Float.parseFloat(line[beginDataCol
                                                                                                        + j
-                                                                                                         * parameters[3]
+                                                                                                         * numDataCols
                                                                                                        + 1]);
-              if (parameters[3] == 3) {
+              if (numDataCols == 3) {
                 genotypeProbabilities[index][i][2] =
-                                                   ext.isMissingValue(line[parameters[1]
-                                                                           + j * parameters[3]
+                                                   ext.isMissingValue(line[beginDataCol
+                                                                           + j * numDataCols
                                                                            + 2]) ? Float.NaN
-                                                                                 : Float.parseFloat(line[parameters[1]
+                                                                                 : Float.parseFloat(line[beginDataCol
                                                                                                          + j
-                                                                                                           * parameters[3]
+                                                                                                           * numDataCols
                                                                                                          + 2]);
                 if (Math.abs((1 - genotypeProbabilities[index][i][1]
                               - genotypeProbabilities[index][i][0])
                              - genotypeProbabilities[index][i][2]) > 0.01) {
                   String msg = "Error: P(BB) does not equal [ 1 - P(AA) - P(AB) ] for individual "
                                + ids[i][0] + "," + ids[i][1] + " at marker " + markerNames[j]
-                               + " which is line " + (i + 1 + parameters[4]) + " of " + dosageFile
-                               + ": " + line[parameters[1] + j * parameters[3] + 0] + " "
-                               + line[parameters[1] + j * parameters[3] + 1] + " "
-                               + line[parameters[1] + j * parameters[3] + 2];
+                               + " which is line " + (i + 1 + indexHeaderRow) + " of " + dosageFile
+                               + ": " + line[beginDataCol + j * numDataCols + 0] + " "
+                               + line[beginDataCol + j * numDataCols + 1] + " "
+                               + line[beginDataCol + j * numDataCols + 2];
                   log.reportError(msg);
                 }
+              }
+              if (index == keepTotal - 1) {
+                break;
               }
             }
           }
         }
       }
+      reader.close();
 
       markerNames = markerSet.getMarkerNames();
       if (markerNamePrepend != null && !"".equals(markerNamePrepend)) {
@@ -512,7 +548,6 @@ public class DosageData implements Serializable {
         markerSet.setAlleles(alleles);
       }
       
-      reader.close();
     } catch (FileNotFoundException fnfe) {
       System.err.println("Error: file \"" + dosageFile + "\" not found in current directory");
       System.exit(1);

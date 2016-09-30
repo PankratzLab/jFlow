@@ -23,8 +23,11 @@ import org.genvisis.filesys.SnpMarkerSet;
 public class MergeExtractPipeline {
 
   public static class DataSource {
-    String label, dataFile, mapFile, idFile;
-    boolean relD, relM, relI;
+    public String label;
+    public String dataFile;
+    public String mapFile;
+    public String idFile;
+    public boolean relD, relM, relI;
 
     public DataSource(String label, String dir, String d, String m, String i) {
       relD = Files.isRelativePath(d);

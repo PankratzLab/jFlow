@@ -148,10 +148,12 @@ public class GeneScorePipeline {
         // error
         log.reportTimeError("Error - no data sources loaded from file: " + dataSource);
       } else {
+        log.reportTime("Loading data file " + dataSources.get(0).dataFile);
         DosageData d0 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile,
                                        dataSources.get(0).mapFile, null, hitMkrs, true, log);
         if (dataSources.size() > 1) {
           for (int i = 1; i < dataSources.size(); i++) {
+            log.reportTime("Loading data file " + dataSources.get(i).dataFile);
             DosageData d1 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile,
                                            dataSources.get(i).mapFile, null, hitMkrs, true, log);
             d0 = DosageData.combine(d0, d1, DosageData.COMBINE_OP.DROP, log);
@@ -1199,7 +1201,7 @@ public class GeneScorePipeline {
         }
         for (int i = 0; i < ids.length; i++) {
           float scoreSum = 0;
-          int cnt2 = 0;
+          float cnt2 = 0;
           int cnt = 0;
           ArrayList<Float> indivDosages = new ArrayList<Float>();
           for (int m = 0; m < markers.length; m++) {
