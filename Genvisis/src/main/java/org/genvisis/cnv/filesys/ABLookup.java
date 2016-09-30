@@ -41,6 +41,8 @@ public class ABLookup {
   public static final String ARGS_MAP = "mapFile";
   public static final String FLAGS_PLINK = "plinkFile";
   public static final String FLAGS_APPLYAB = "applyAB";
+  
+  public static final char MISSING_ALLELE = 'N';
 
   private String[] markerNames;
   private char[][] lookup;
@@ -55,6 +57,11 @@ public class ABLookup {
   public ABLookup() {
     markerNames = new String[0];
     lookup = new char[0][0];
+  }
+  
+  public ABLookup(String[] markerNames, char[][] lookup) {
+    this.markerNames = markerNames;
+    this.lookup = lookup;
   }
 
   public ABLookup(String[] markerNames, String filename, boolean verbose, boolean allOrNothing,
@@ -179,14 +186,14 @@ public class ABLookup {
                      + meanThetasForGenotypes[i][0] + "\t" + meanThetasForGenotypes[i][1] + "\t"
                      + meanThetasForGenotypes[i][2]);
 
-        alleles = new char[] {'N', 'N'};
+        alleles = new char[] {MISSING_ALLELE, MISSING_ALLELE};
         for (int j = 0; j < 3; j++) {
           for (int k = 0; k < 2; k++) {
             if (countsForGenotypes[i][j] > 0) {
-              if (alleles[0] == 'N') {
+              if (alleles[0] == MISSING_ALLELE) {
                 alleles[0] = genotypesSeen[i][j].charAt(k);
               } else if (alleles[0] == genotypesSeen[i][j].charAt(k)) {
-              } else if (alleles[1] == 'N') {
+              } else if (alleles[1] == MISSING_ALLELE) {
                 alleles[1] = genotypesSeen[i][j].charAt(k);
               } else if (alleles[1] == genotypesSeen[i][j].charAt(k)) {
               } else {
@@ -301,8 +308,8 @@ public class ABLookup {
           tmp.getStrand();
           Allele A = tmp.getA();
           Allele B = tmp.getB();
-          char a = 'N';
-          char b = 'N';
+          char a = MISSING_ALLELE;
+          char b = MISSING_ALLELE;
           if (tmp.isIndel() || A.getBaseString().length() != B.getBaseString().length()) {
             if (tmp.isaDeletion() || A.getBaseString().length() < B.getBaseString().length()) {
               a = 'D';
@@ -384,7 +391,7 @@ public class ABLookup {
 
     lookup = new char[markerNames.length][2];
     for (int i = 0; i < markerNames.length; i++) {
-      lookup[i] = new char[] {'N', 'N'};
+      lookup[i] = new char[] {MISSING_ALLELE, MISSING_ALLELE};
       if (countsForGenotypes[i][1] > 0
           && genotypesSeen[i][1].charAt(0) == genotypesSeen[i][1].charAt(1)) {
         log.reportError("Error - impossible heterozygote (" + genotypesSeen[i][1] + ") for marker "
