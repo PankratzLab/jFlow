@@ -110,7 +110,7 @@ public class Cushings {
 					summary.add(key + "\t" + tumorGCounts.get(key) + "\t0");
 				}
 			}
-			Files.writeArrayList(summary, ext.parseDirectoryOfFile(vpop) + "D310Summary.txt");
+			Files.writeIterable(summary, ext.parseDirectoryOfFile(vpop) + "D310Summary.txt");
 			// System.exit(1);
 			// SSH.copyRemoteToLocal(annoVcf, annotated, log);
 			// SSH.copyRemoteToLocal(annoVcf + ".idx", annotated + ".idx", log);

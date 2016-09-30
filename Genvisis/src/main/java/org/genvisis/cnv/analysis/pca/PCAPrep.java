@@ -44,7 +44,7 @@ public class PCAPrep {
         tmp.add(auto[i]);
       }
     }
-    Files.writeArrayList(tmp, baseLineMarkers);
+    Files.writeIterable(tmp, baseLineMarkers);
     if (markerQC) {
       String markerQCFile = outputBase + "_markerQC.txt";
       proj.MARKER_METRICS_FILENAME.setValue(markerQCFile);
@@ -117,7 +117,7 @@ public class PCAPrep {
       markers = setMarkersToQC(proj, markersToQC);
     }
     // TODO remove CNVi probe markers (here?)
-    Files.writeList(markers, markersToQCFile);
+    Files.writeArray(markers, markersToQCFile);
   }
 
   /**
@@ -181,7 +181,7 @@ public class PCAPrep {
         return false;
       } else {
         log.report("Sample call rate will be computed with " + abMarkersToUse.size() + " markers");
-        Files.writeList(abMarkersToUse.toArray(new String[abMarkersToUse.size()]),
+        Files.writeArray(abMarkersToUse.toArray(new String[abMarkersToUse.size()]),
                         markersABCallrate);
       }
       reader.close();

@@ -93,7 +93,7 @@ public class Rscript {
       v.add("qsub " + root + ".qsub");
     }
 
-    Files.writeList(Array.toStringArray(v), dir + "master");
+    Files.writeArray(Array.toStringArray(v), dir + "master");
     Files.chmod(dir + "master");
   }
 
@@ -300,7 +300,7 @@ public class Rscript {
     public boolean execute() {
       String[] rScript = developScript();
       // log.report(Array.toStr(rScript, "\n"));
-      Files.writeList(rScript, rScriptFile);
+      Files.writeArray(rScript, rScriptFile);
       boolean ran = CmdLine.runCommandWithFileChecks(
                                                      new String[] {rScatters[0].getrScriptLoc(),
                                                                    rScriptFile},
@@ -951,7 +951,7 @@ public class Rscript {
       String[] rScript = developScript();
       if (rScript != null) {
         // log.report(Array.toStr(rScript, "\n"));
-        Files.writeList(rScript, rScriptFile);
+        Files.writeArray(rScript, rScriptFile);
         boolean ran = CmdLine.runCommandWithFileChecks(new String[] {rScriptLoc, rScriptFile}, "",
                                                        new String[] {rScriptFile},
                                                        new String[] {output}, true,

@@ -147,7 +147,7 @@ public class Mach {
         }
       }
     }
-    Files.writeList(Array.toStringArray(v), "master.mach");
+    Files.writeArray(Array.toStringArray(v), "master.mach");
     Files.chmod("master.mach");
   }
 
@@ -1248,7 +1248,7 @@ public class Mach {
       batchFilename = "splitByRegion";
       // regionKeys = HashVec.getKeys(regionMarkerHashes, true, false);
       regionKeys = Array.toStringArray(v);
-      Files.writeList(regionKeys, "regionList.dat");
+      Files.writeArray(regionKeys, "regionList.dat");
       System.out.println("Found " + regionKeys.length + " regions to parse");
     } else {
       batchFilename = "intExtract";

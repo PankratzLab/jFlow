@@ -243,7 +243,7 @@ public class CorrectionIterator implements Serializable {
     pcResiduals = proj.loadPcResids();
     pcResiduals.fillInMissing();
     pcResiduals.setMarkersToAssessFile(markesToEvaluate);
-    Files.writeList(Array.subArray(proj.getSamples(), samplesForModels),
+    Files.writeArray(Array.subArray(proj.getSamples(), samplesForModels),
                     outputDir + iType + "_" + oType + "_" + bType + "_samplesForModels.txt");
     pcResiduals.setHomozygousOnly(true);
     proj.getLog().reportTimeWarning("In gc-correction mode now, using "
@@ -323,9 +323,9 @@ public class CorrectionIterator implements Serializable {
         for (int i = 0; i < order.length; i++) {
           outOrder.add((i + 1) + "\tPC" + order[i]);
         }
-        Files.writeArrayList(outOrder, out);
+        Files.writeIterable(outOrder, out);
       }
-      Files.writeList(Array.subArray(proj.getSamples(), samplesToEvaluate),
+      Files.writeArray(Array.subArray(proj.getSamples(), samplesToEvaluate),
                       outputDir + iType + "_" + oType + "_" + bType + "_samplesForEval.txt");
 
       cEvaluator = new CorrectionEvaluator(proj, pcResiduals, precomputed, order,

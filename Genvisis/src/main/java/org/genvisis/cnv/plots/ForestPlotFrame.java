@@ -536,7 +536,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
     for (StudyData sd : currentData) {
       names.add(sd.getLabel());
     }
-    Files.writeArrayList(names, fileName);
+    Files.writeIterable(names, fileName);
   }
 
   private void updateForestPlot() {

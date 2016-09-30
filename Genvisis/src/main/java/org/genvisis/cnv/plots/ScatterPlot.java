@@ -402,7 +402,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       if (masterMarkerList == null) {
         String[] tmp = Array.subArray(proj.getMarkerNames(), 0,
                                       Math.min(10, proj.getMarkerNames().length));
-        Files.writeList(tmp, proj.DISPLAY_MARKERS_FILENAMES.getValue()[0]);
+        Files.writeArray(tmp, proj.DISPLAY_MARKERS_FILENAMES.getValue()[0]);
         loadMarkerListFromFile(filename);
         if (masterMarkerList == null) {
           fail = true;
@@ -712,7 +712,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       jfc.setDialogType(JFileChooser.SAVE_DIALOG);
       int code = jfc.showSaveDialog(this);
       if (code == JFileChooser.APPROVE_OPTION) {
-        Files.writeList(markerList, jfc.getSelectedFile().getAbsolutePath());
+        Files.writeArray(markerList, jfc.getSelectedFile().getAbsolutePath());
       }
     } else if (command.equals(BLAST_DETAILS_COMMAND)) {
       displayBlast();

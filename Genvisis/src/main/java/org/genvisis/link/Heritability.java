@@ -307,7 +307,7 @@ public class Heritability {
       results[i] = computeWithMerlin(dir, pedigreeFile, phenos[i], covars, ext.rootOf(phenos[i]),
                                      merlinExec, log);
     }
-    Files.writeList(results, dir + "heritabilities.txt");
+    Files.writeArray(results, dir + "heritabilities.txt");
   }
 
   public static void fromParameters(String filename, boolean skipExtra, Logger log) {

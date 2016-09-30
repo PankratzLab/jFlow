@@ -280,7 +280,7 @@ public class DemoProject extends Project {
                 .reportTimeInfo("Finished subsetting the samples...Attempting to transpose the data");
             TransposeData.transposeData(this, 2000000000, false);
             // Files.writeList(markersToExport, getFilename(proj.DISPLAY_MARKERS_FILENAME));
-            Files.writeList(markersToExport, DISPLAY_MARKERS_FILENAMES.getValue()[0]);
+            Files.writeArray(markersToExport, DISPLAY_MARKERS_FILENAMES.getValue()[0]);
           }
           SampleList.generateSampleList(this)
                     .writeToTextFile(PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt");

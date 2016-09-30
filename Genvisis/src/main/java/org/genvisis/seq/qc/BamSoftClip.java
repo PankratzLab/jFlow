@@ -121,8 +121,8 @@ public class BamSoftClip {
       }
       Summary summary = new Summary(seqCount, rgs);
       summaries.add(summary);
-      Files.writeList(Array.toStringArray(outPrintCount), outCounts);
-      Files.writeList(Array.toStringArray(outPrint), out);
+      Files.writeArray(Array.toStringArray(outPrintCount), outCounts);
+      Files.writeArray(Array.toStringArray(outPrint), out);
     }
     String outFinal = outputDir + "summaryCounts.txt";
     try {

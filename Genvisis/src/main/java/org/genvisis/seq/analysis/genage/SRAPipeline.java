@@ -310,7 +310,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
       }
       hive.addCallable(pipeline);
     }
-    Files.writeArrayList(sampleSummary, rootOutDir + "sampleAnalysis.summary.txt");
+    Files.writeIterable(sampleSummary, rootOutDir + "sampleAnalysis.summary.txt");
     if (numBatches > 0) {
       batch(Array.toStringArray(sraFiles), rootOutDir, c, log);
     } else {
@@ -367,7 +367,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
       process.add("cd " + processDir);// so the qsubs get placed there
       process.add("qsub -q small " + getBatch(getBatchDirectory(c.get(OUT_DIR)), i) + ".qsub");
       if (num >= 1500) {
-        Files.writeArrayList(process, ext.addToRoot(processFile, "_" + processBatch));
+        Files.writeIterable(process, ext.addToRoot(processFile, "_" + processBatch));
         num = 0;
         processBatch++;
         process.clear();
@@ -424,7 +424,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     for (int i = 0; i < splits.length; i++) {
       String batch = getBatch(batchDir, i) + ".txt";
       String qsub = getBatch(batchDir, i) + ".qsub";
-      Files.writeList(splits[i], batch);
+      Files.writeArray(splits[i], batch);
       ArrayList<String> currentCommand = new ArrayList<String>();
       currentCommand.addAll(baseCommand);
       currentCommand.add(SRA_INPUT + "=" + batch);

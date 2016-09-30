@@ -204,8 +204,8 @@ public class Mega_Analyses {
 			System.err.println("Error writing to " + "discordant.out");
 			e.printStackTrace();
 		}
-		Files.writeList(Array.toStringArray(missingFrom2), "missingFrom2.out");
-		Files.writeList(HashVec.getKeys(hash2, false, false), "missingFrom1.out");
+		Files.writeArray(Array.toStringArray(missingFrom2), "missingFrom2.out");
+		Files.writeArray(HashVec.getKeys(hash2, false, false), "missingFrom1.out");
 		
 		
 	}

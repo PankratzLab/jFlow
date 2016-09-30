@@ -274,7 +274,7 @@ public class DossierMerge {
 
 				if (googleScholarCitationCount.equals("missing") || !numGS_results.equals("1")) {
 					System.err.println("Error - failed to properly parse google scholar results for "+pmid);
-					Files.writeList(results, dir+"scholar_"+pmid+".out");
+					Files.writeArray(results, dir+"scholar_"+pmid+".out");
 				}
 				
 //				googleScholarCitationCount = numGS_results = "1";

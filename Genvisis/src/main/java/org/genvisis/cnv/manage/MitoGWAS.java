@@ -89,7 +89,7 @@ public class MitoGWAS {
       proj.getLog().reportTimeInfo(numSkipped + " copy number or chr0 only probes  were removed, "
                                    + markersToAnalyze.size() + " remaining");
       String exportList = root + "_markers.txt";
-      Files.writeList(Array.toStringArray(markersToAnalyze), exportList);
+      Files.writeArray(Array.toStringArray(markersToAnalyze), exportList);
       String blankCluster = root + ".blankCluster.ser";
       proj.getLog().reportTimeWarning("Using blank cluster filter file to ensure AB lookup");
       new ClusterFilterCollection().serialize(blankCluster);
@@ -223,7 +223,7 @@ public class MitoGWAS {
           permParser.loadData();
           emp1s[j] = permParser.getNumericDataForTitle("P");
 
-          Files.writeList(Array.toStringArray(emp1s[j]), pvalFiles[j]);
+          Files.writeArray(Array.toStringArray(emp1s[j]), pvalFiles[j]);
         } catch (FileNotFoundException e) {
           e.printStackTrace();
           return;

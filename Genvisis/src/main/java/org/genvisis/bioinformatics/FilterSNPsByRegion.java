@@ -155,7 +155,7 @@ public class FilterSNPsByRegion {
     log.report("Found " + snps.size() + " SNPs within these regions");
 
     if (regionNumber) {
-      Files.writeList(Array.toStringArray(snpsWithRegionNumbers), "snp_region_matchup.dat");
+      Files.writeArray(Array.toStringArray(snpsWithRegionNumbers), "snp_region_matchup.dat");
       paramV.add("snp_region_matchup.dat 0 1=RegionNumber"
                  + (regionNameIndex >= 0 ? "\t2=RegionName" : ""));
     }

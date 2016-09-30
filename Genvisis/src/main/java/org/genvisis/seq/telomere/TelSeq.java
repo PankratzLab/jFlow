@@ -201,7 +201,7 @@ public class TelSeq {
         }
       }
     }
-    Files.writeArrayList(result, finalOut);
+    Files.writeIterable(result, finalOut);
     return finalOut;
   }
 

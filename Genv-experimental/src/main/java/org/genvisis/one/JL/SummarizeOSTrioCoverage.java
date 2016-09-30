@@ -65,7 +65,7 @@ public class SummarizeOSTrioCoverage {
 				}
 
 			}
-			Files.writeList(Array.toStringArray(famsNotFound), outDir + "famsNotFound.txt");
+			Files.writeArray(Array.toStringArray(famsNotFound), outDir + "famsNotFound.txt");
 			writer.close();
 
 		} catch (Exception e) {

@@ -142,10 +142,10 @@ public class LDdatabase implements Serializable {
           subHash = SerialHash.loadSerializedStringHash(dir + listName + ".chrHash.ser");
           return;
         } else {
-          Files.writeList(targets, dir + listName + ".list_");
+          Files.writeArray(targets, dir + listName + ".list_");
         }
       } else {
-        Files.writeList(targets, dir + listName + ".list_");
+        Files.writeArray(targets, dir + listName + ".list_");
       }
     }
 
@@ -232,7 +232,7 @@ public class LDdatabase implements Serializable {
           log.report("All calculations have been performed previously");
         } else {
           log.report("Extracting chr" + chr + " markers from " + root, false, true);
-          Files.writeList(Array.toStringArray(v), dir + LDDB_TARGETS + "_snplist.txt");
+          Files.writeArray(Array.toStringArray(v), dir + LDDB_TARGETS + "_snplist.txt");
           if (!new File(root + ".chr" + chr + ".bed").exists()) {
             CmdLine.run("plink --bfile " + root + " --chr " + chr + " --noweb --make-bed --out "
                         + root + ".chr" + chr, "./");

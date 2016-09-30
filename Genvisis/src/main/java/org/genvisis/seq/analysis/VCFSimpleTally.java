@@ -146,7 +146,7 @@ public class VCFSimpleTally {
             log.reportTimeWarning("CASE: " + aCase + " in vcf "
                                   + (ext.indexOfStr(aCase, allSamps) >= 0));
           }
-          Files.writeList(allSamps, ext.rootOf(casePop, false) + "samplesToPickFrom.txt");
+          Files.writeArray(allSamps, ext.rootOf(casePop, false) + "samplesToPickFrom.txt");
           throw new IllegalArgumentException("could not find all cases for " + casePop);
         }
         if (!vcCase.isMonomorphicInSamples() && vcCase.getNoCallCount() != cases.size()
@@ -1194,7 +1194,7 @@ public class VCFSimpleTally {
       filterSummary.add("CONTROL\tSTRING\t" + controlFilter.getvFilterJEXL().getjExps().get(0).name
                         + "\t" + controlFilter.getvFilterJEXL().getjExps().get(0).exp + "\tNA");
     }
-    Files.writeList(Array.toStringArray(filterSummary), output);
+    Files.writeArray(Array.toStringArray(filterSummary), output);
   }
 
   private static boolean isGeneSet(GeneSet[] geneSets, String tag) {

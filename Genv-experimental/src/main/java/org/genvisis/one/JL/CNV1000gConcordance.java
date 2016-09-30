@@ -95,8 +95,8 @@ public class CNV1000gConcordance {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		Files.writeArrayList(comps, "/Volumes/Beta/data/1000G/finalDupSet.txt");
-		Files.writeArrayList(newSampDat, "/Volumes/Beta/data/1000G/JLSampleData.txt");
+		Files.writeIterable(comps, "/Volumes/Beta/data/1000G/finalDupSet.txt");
+		Files.writeIterable(newSampDat, "/Volumes/Beta/data/1000G/JLSampleData.txt");
 
 		LocusSet<CNVariant> genset = CNVariant.loadLocSet(genFile, new Logger());
 		PrintWriter writer = Files.getAppropriateWriter(finalCNVFile);

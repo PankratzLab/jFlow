@@ -1300,7 +1300,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
       projPath = path + "projects" + File.separatorChar;
       // Create a default launch.properties
       // Set the "example" project as the default opened project
-      Files.writeList(new String[] {"LAST_PROJECT_OPENED=example.properties",
+      Files.writeArray(new String[] {"LAST_PROJECT_OPENED=example.properties",
                                     "PROJECTS_DIR=" + projPath},
                       launchPropertiesFile);
     }
@@ -1347,7 +1347,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
     if (!new File(exampleProperties).exists()) {
       log.reportTime("Creating example project properties: " + exampleProperties);
-      Files.writeList(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/",
+      Files.writeArray(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/",
                                     "SOURCE_DIRECTORY=sourceFiles/"},
                       exampleProperties);
     }

@@ -28,6 +28,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -171,7 +172,7 @@ public class Files {
                  walltimeRequestedInHours, null);
 
     if (lines.length > 1) {
-      writeList(lines, dir + "master." + (root == null ? "qsub" : root));
+      writeArray(lines, dir + "master." + (root == null ? "qsub" : root));
       chmod(dir + "master." + (root == null ? "qsub" : root));
     }
   }
@@ -365,7 +366,7 @@ public class Files {
             + ext.removeDirectoryInfo(batchRoot) + "." + count);
       count++;
     }
-    Files.writeList(Array.toStringArray(v), ext.parseDirectoryOfFile(batchRoot) + "master."
+    Files.writeArray(Array.toStringArray(v), ext.parseDirectoryOfFile(batchRoot) + "master."
                                             + ext.removeDirectoryInfo(batchRoot));
     Files.chmod(ext.parseDirectoryOfFile(batchRoot) + "master."
                 + ext.removeDirectoryInfo(batchRoot));
@@ -384,7 +385,7 @@ public class Files {
                                  Sort.quicksort(Ints.toArray(jobSizes), Sort.DESCENDING));
     }
 
-    Files.writeList(commands, batchRoot + ".chain");
+    Files.writeArray(commands, batchRoot + ".chain");
     Files.qsub(batchRoot + ".pbs",
                "cd " + dirToSwitchToBeforeRunning + "\njava -cp ~/"
                                    + org.genvisis.common.PSF.Java.GENVISIS
@@ -1814,7 +1815,7 @@ public class Files {
     reader.close();
     if (preserveKeyOrder) {
       lines = Array.removeMissingValues(lines);
-      Files.writeList(lines, fileOut);
+      Files.writeArray(lines, fileOut);
     }
   }
 
@@ -3186,24 +3187,28 @@ public class Files {
     }
   }
 
-  public static void writeArrayList(ArrayList<String> list, String filename) {
-    Files.writeList(Array.toStringArray(list), filename);
-  }
-
-  public static void writeHashSet(HashSet<String> list, String filename) {
-    Files.writeList(list.toArray(new String[list.size()]), filename);
-  }
-
-  public static void writeVector(Vector<String> list, String filename) {
-    Files.writeList(Array.toStringArray(list), filename);
-  }
-
-  public static void writeList(String[] list, String filename) {
+  public static void writeArray(String[] entries, String filename) {
     PrintWriter writer;
 
     try {
       writer = new PrintWriter(new FileWriter(filename));
-      for (String element : list) {
+      for (String element : entries) {
+        writer.println(element);
+      }
+      writer.flush();
+      writer.close();
+    } catch (Exception e) {
+      System.err.println("Error writing to " + filename);
+      e.printStackTrace();
+    }
+  }
+  
+  public static void writeIterable(Iterable<String> entries, String filename) {
+    PrintWriter writer;
+
+    try {
+      writer = new PrintWriter(new FileWriter(filename));
+      for (String element : entries) {
         writer.println(element);
       }
       writer.flush();
@@ -3461,7 +3466,7 @@ public class Files {
       trav++;
       done = true;
       trav = findNextRep(Array.addStrToArray("#.taken", patterns), numDigits, trav);
-      Files.writeList(new String[0], trav + "." + rand + ".reserved");
+      Files.writeArray(new String[0], trav + "." + rand + ".reserved");
       if (new File(trav + ".taken").exists()) {
         done = false;
       } else {
@@ -3492,7 +3497,7 @@ public class Files {
       }
     } while (!done);
 
-    Files.writeList(new String[0], trav + ".taken");
+    Files.writeArray(new String[0], trav + ".taken");
     new File(trav + "." + rand + ".reserved").delete();
 
     return trav;
@@ -3711,7 +3716,7 @@ public class Files {
     String temp;
 
     if (new File(filename).length() == 0) {
-      Files.writeList(Array.addStrToArray(command, sampleCode, 0), filename);
+      Files.writeArray(Array.addStrToArray(command, sampleCode, 0), filename);
       return null;
     }
 
@@ -3725,7 +3730,7 @@ public class Files {
       }
       if (!reader.ready()) {
         reader.close();
-        Files.writeList(Array.addStrToArray(command, sampleCode, 0), filename);
+        Files.writeArray(Array.addStrToArray(command, sampleCode, 0), filename);
         return null;
       } else {
         v = new Vector<String>();
@@ -3776,7 +3781,7 @@ public class Files {
                      patterns, 5000, 24, null);
         v.add(qsubs[0]);
       }
-      writeList(Array.toStringArray(v), "master." + ext.rootOf(filename));
+      writeArray(Array.toStringArray(v), "master." + ext.rootOf(filename));
       Files.chmod("master." + ext.rootOf(filename));
     } else {
       if (changeToCurrentWorkingDirectoryFirst) {
@@ -3788,7 +3793,7 @@ public class Files {
         qsubs = qsub("", ext.rootOf(filename) + "#", start, stop, Array.toStr(lines, "\n"),
                      patterns, 5000, 24, null);
         if (qsubs.length > 1) {
-          writeList(qsubs, "master." + ext.rootOf(filename));
+          writeArray(qsubs, "master." + ext.rootOf(filename));
           Files.chmod("master." + ext.rootOf(filename));
         }
       }

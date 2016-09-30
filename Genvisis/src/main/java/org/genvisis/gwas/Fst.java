@@ -217,7 +217,7 @@ public class Fst {
                                                            false),
                              false)
             || !new File(dir + keys[i] + ".hwe.ser").exists()) {
-          Files.writeList(array, dir + list);
+          Files.writeArray(array, dir + list);
           CmdLine.run("plink --bfile " + root + " --keep " + keys[i] + ".list --hardy --out "
                       + keys[i], dir);
           line = new String[] {dir + keys[i] + ".hwe", "!2=ALL", "1", "3", "4", "5"};
@@ -359,7 +359,7 @@ public class Fst {
 
     for (int i = 0; i < fileContents.length; i++) {
       String[] s = new String[fileContents[i].size()];
-      Files.writeList(fileContents[i].toArray(s),
+      Files.writeArray(fileContents[i].toArray(s),
                       ext.rootOf(filename, false) + "." + (i + 1) + ".dat");
     }
   }

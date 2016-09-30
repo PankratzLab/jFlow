@@ -138,7 +138,7 @@ public class BamExtractor {
 
     }
     hive.execute(true);
-    Files.writeList(hive.getResults().get(0).getBed(), outputDirectory + "regions.bed");
+    Files.writeArray(hive.getResults().get(0).getBed(), outputDirectory + "regions.bed");
 
   }
 

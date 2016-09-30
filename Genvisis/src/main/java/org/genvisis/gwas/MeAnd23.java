@@ -45,7 +45,7 @@ public class MeAnd23 {
 
     String[] inputs = toMerge.toArray(new String[toMerge.size()]);
     String toMergeFile = directory + "23AndMeMerge.txt";
-    Files.writeList(inputs, toMergeFile);
+    Files.writeArray(inputs, toMergeFile);
     String mergedRoot = Files.isRelativePath(outputRoot) ? directory + outputRoot : outputRoot;
     mergeResults(toMergeFile, mergedRoot, log);
 

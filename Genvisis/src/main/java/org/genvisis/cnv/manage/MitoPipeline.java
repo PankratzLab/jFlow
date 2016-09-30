@@ -150,11 +150,11 @@ public class MitoPipeline {
     }
     if (!new File(launchPropertiesFile).exists()) {
       new File(path + "example/").mkdirs();
-      Files.writeList(new String[] {"LAST_PROJECT_OPENED=example.properties",
+      Files.writeArray(new String[] {"LAST_PROJECT_OPENED=example.properties",
                                     "PROJECTS_DIR=" + path},
                       launchPropertiesFile);
       if (!new File(path + "example.properties").exists()) {
-        Files.writeList(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/",
+        Files.writeArray(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/",
                                       "SOURCE_DIRECTORY=sourceFiles/"},
                         path + "example.properties");
       }
@@ -627,8 +627,8 @@ public class MitoPipeline {
       if (notAvailable.size() > 0) {
         String missingFile = useFile + ".missing";
         String haveFile = useFile + ".have";
-        Files.writeList(notAvailable.toArray(new String[notAvailable.size()]), missingFile);
-        Files.writeList(available.toArray(new String[available.size()]), haveFile);
+        Files.writeArray(notAvailable.toArray(new String[notAvailable.size()]), missingFile);
+        Files.writeArray(available.toArray(new String[available.size()]), haveFile);
         log.reportError("Error - detected that not all samples (missing " + notAvailable.size()
                         + ") from " + useFile + " are availble in the current project");
         log.reportError("	   - Please review the missing samples in " + missingFile
@@ -710,8 +710,8 @@ public class MitoPipeline {
     if (notAvailable.size() > 0) {
       String missingFile = fileOfMarkers + ".missing";
       String haveFile = fileOfMarkers + ".have";
-      Files.writeList(notAvailable.toArray(new String[notAvailable.size()]), missingFile);
-      Files.writeList(available.toArray(new String[available.size()]), haveFile);
+      Files.writeArray(notAvailable.toArray(new String[notAvailable.size()]), missingFile);
+      Files.writeArray(available.toArray(new String[available.size()]), haveFile);
       log.reportError("Error - detected that not all markers (missing " + notAvailable.size()
                       + ") from " + fileOfMarkers + " are availble in the current project");
       log.reportError("	   - Please review the missing markers in " + missingFile

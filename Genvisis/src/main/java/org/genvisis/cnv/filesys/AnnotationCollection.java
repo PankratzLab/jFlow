@@ -139,7 +139,7 @@ public class AnnotationCollection implements Serializable, TextExport {
 
     keysAnnotations = HashVec.getKeys(annotationMarkerLists);
     for (String keysAnnotation : keysAnnotations) {
-      Files.writeList(Array.toStringArray(annotationMarkerLists.get(keysAnnotation)),
+      Files.writeArray(Array.toStringArray(annotationMarkerLists.get(keysAnnotation)),
                       outputDir + "annotation_" + keysAnnotation + "_" + ext.replaceWithLinuxSafeCharacters(getDescriptionForComment(keysAnnotation.charAt(0),
                                                                                                                                      false,
                                                                                                                                      false),
@@ -168,7 +168,7 @@ public class AnnotationCollection implements Serializable, TextExport {
       }
       list[i] = keysMarkers[i] + "\t" + annotationsOfTheMarker;
     }
-    Files.writeList(list, outputDir + "annotations_list.xln");
+    Files.writeArray(list, outputDir + "annotations_list.xln");
     Files.writeMatrix(matrix, outputDir + "annotations_matrix.xln", "\t");
   }
 

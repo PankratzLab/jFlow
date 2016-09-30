@@ -90,7 +90,7 @@ public class MarkerBlastQC {
     log.reportTime(oneHitters.size() + " one hit wonder markers identified out of "
                    + markerNames.length + " total markers");
     log.report("Writing results to " + outFile);
-    Files.writeArrayList(oneHitters, outFile);
+    Files.writeIterable(oneHitters, outFile);
   }
 
   public static void main(String[] args) {

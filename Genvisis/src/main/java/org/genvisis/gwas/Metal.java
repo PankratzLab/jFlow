@@ -1137,7 +1137,7 @@ public class Metal {
           files[i] = params.elementAt(i).trim().split("[\\s]+")[0];
         }
       }
-      Files.writeList(new String[] {"java -cp /home/npankrat/"
+      Files.writeArray(new String[] {"java -cp /home/npankrat/"
                                     + org.genvisis.common.PSF.Java.GENVISIS
                                     + " gwas.Metal test=ADD results=" + files[0]
                                     + " method=logistic freq=plink.frq -se -metal out=" + files[0]
@@ -1148,7 +1148,7 @@ public class Metal {
                                                    + " method=logistic freq=plink.frq -se -metal out="
                                                    + files[1] + ".se.metal"},
                       ext.rootOf(filename) + "_convert.bat");
-      Files.writeList(new String[] {"metal < " + ext.rootOf(filename) + "_metal_Nweighted.txt",
+      Files.writeArray(new String[] {"metal < " + ext.rootOf(filename) + "_metal_Nweighted.txt",
                                     "metal < " + ext.rootOf(filename) + "_metal_InvVar.txt"},
                       ext.rootOf(filename, false) + ".bat");
       // Files.writeList(new String[] {"MARKER MARKER", "ALLELE REF OTHER", "WEIGHT N", "EFFECT
@@ -1159,13 +1159,13 @@ public class Metal {
       // SE", "SCHEME STDERR", "GENOMICCONTROL OFF", "", "PROCESS "+files[0], "PROCESS "+files[1],
       // "", "OUTFILE "+files[2]+".InvVar .out", "ANALYZE", "", "QUIT"},
       // ext.rootOf(filename)+"_metal_InvVar.txt");
-      Files.writeList(new String[] {"MARKER MarkerName", "ALLELE Allele1 Allele2", "WEIGHT Weight",
+      Files.writeArray(new String[] {"MARKER MarkerName", "ALLELE Allele1 Allele2", "WEIGHT Weight",
                                     "EFFECT Direction", "PVALUE P-value", "", "PROCESS " + files[0],
                                     "PROCESS " + files[1], "",
                                     "OUTFILE " + files[2] + ".Nweighted .out",
                                     "ANALYZE HETEROGENEITY", "", "QUIT"},
                       ext.rootOf(filename) + "_metal_Nweighted.txt");
-      Files.writeList(new String[] {"MARKER MarkerName", "ALLELE Allele1 Allele2", "EFFECT Effect",
+      Files.writeArray(new String[] {"MARKER MarkerName", "ALLELE Allele1 Allele2", "EFFECT Effect",
                                     "STDERR StdErr", "SCHEME STDERR", "GENOMICCONTROL OFF", "",
                                     "PROCESS " + files[0], "PROCESS " + files[1], "",
                                     "OUTFILE " + files[2] + ".InvVar .out", "ANALYZE HETEROGENEITY",
@@ -1763,10 +1763,10 @@ public class Metal {
       log.report("Study" + (i + 1) + "\tStudy" + (matches[i] + 1) + "\t" + agreements[i][matches[i]]
                  + "\t" + missHash2.size() + "\t" + missHash1.size());
       if (missHash2.size() > 0) {
-        Files.writeList(HashVec.getKeys(missHash2), "Study" + (i + 1) + "_exclusiveTo.dat");
+        Files.writeArray(HashVec.getKeys(missHash2), "Study" + (i + 1) + "_exclusiveTo.dat");
       }
       if (missHash1.size() > 0) {
-        Files.writeList(HashVec.getKeys(missHash1), "Study" + (i + 1) + "_missingFrom.dat");
+        Files.writeArray(HashVec.getKeys(missHash1), "Study" + (i + 1) + "_missingFrom.dat");
       }
 
       // missHash1 = missings1.elementAt(i);

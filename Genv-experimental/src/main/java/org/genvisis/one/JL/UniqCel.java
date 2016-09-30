@@ -36,7 +36,7 @@ public class UniqCel {
 
 			}
 		}
-		Files.writeArrayList(finalCels, dir + "g1000Cels.txt");
+		Files.writeIterable(finalCels, dir + "g1000Cels.txt");
 
 	}
 }

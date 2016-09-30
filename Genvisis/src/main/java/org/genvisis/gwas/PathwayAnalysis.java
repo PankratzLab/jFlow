@@ -257,7 +257,7 @@ public class PathwayAnalysis {
     line = Files.getHeaderOfFile(pheno, "[\\s]+", new Logger());
     if (!line[0].equals("FID") || !line[1].equals("IID")) {
       System.err.println("Error - need to use FID/IID in both pheno and covar files");
-      Files.writeList(new String[] {"Error - need to use FID/IID in both pheno and covar files"},
+      Files.writeArray(new String[] {"Error - need to use FID/IID in both pheno and covar files"},
                       "NEED_TO_USE_FID-IID_IN_BOTH_PHENO_AND_COVAR_FILES.txt");
       new File("wait").delete();
       System.exit(1);
@@ -287,12 +287,12 @@ public class PathwayAnalysis {
                           HashVec.loadFileToStringArray(covars, true, new int[] {0, 1}, false),
                           false)) {
           System.err.println("Error - the covars files needs to match the ids in the pheno file line for line");
-          Files.writeList(new String[] {"Error - the covars files needs to match the ids in the pheno file line for line"},
+          Files.writeArray(new String[] {"Error - the covars files needs to match the ids in the pheno file line for line"},
                           "NEED_TO_SYNC_PHENO_AND_COVAR_FILES.txt");
           new File("wait").delete();
           System.exit(1);
         }
-        Files.writeList(new String[] {}, "pheno_covar_checks_out");
+        Files.writeArray(new String[] {}, "pheno_covar_checks_out");
       }
 
       line = Files.getHeaderOfFile(covars, "[\\s]+", new Logger());
@@ -335,7 +335,7 @@ public class PathwayAnalysis {
     quant = Array.determineType(pheno, 2, true) == 1;
 
     time = new Date().getTime();
-    Files.writeList(new String[0], "plug");
+    Files.writeArray(new String[0], "plug");
     root = ext.rootOf(pheno, false);
     exten = pheno.substring(pheno.lastIndexOf("."));
     if (new File(root + ".markerNames").exists()) {
@@ -353,7 +353,7 @@ public class PathwayAnalysis {
         } catch (Exception e) {
         }
       } else {
-        Files.writeList(new String[0], "wait");
+        Files.writeArray(new String[0], "wait");
         rep = Files.findNextRep(new String[] {root + ".#" + exten, root + ".#.results"}, -1, rep);
         filenames = permutePheno(pheno, linkCovToPheno ? covars : null, rep);
         new File("wait").delete();
@@ -665,7 +665,7 @@ public class PathwayAnalysis {
     new File(dir + "pathways/").mkdirs();
     keys = HashVec.getKeys(kegg.pathways);
     for (String key : keys) {
-      Files.writeList(Array.toStringArray(kegg.pathways.get(key)),
+      Files.writeArray(Array.toStringArray(kegg.pathways.get(key)),
                       dir + "pathways/" + key + ".list");
       try {
         writer = new PrintWriter(new FileWriter(dir + "pathways/" + key + ".crf"));
@@ -777,7 +777,7 @@ public class PathwayAnalysis {
     dir = ext.verifyDirFormat(ext.parseDirectoryOfFile(filename));
     hash = HashVec.loadFileToHashVec(filename, 0, new int[] {0}, "", false, false);
 
-    Files.writeList(Array.toStringArray(kegg.pathways.get("ko05010")), dir + "AlzGenes.xln");
+    Files.writeArray(Array.toStringArray(kegg.pathways.get("ko05010")), dir + "AlzGenes.xln");
 
     try {
       reader = new BufferedReader(new FileReader(groupings_file));
@@ -843,7 +843,7 @@ public class PathwayAnalysis {
           }
         }
       }
-      Files.writeList(Array.toStringArray(snpsInPathway),
+      Files.writeArray(Array.toStringArray(snpsInPathway),
                       ext.parseDirectoryOfFile(mapfile) + pathway + "_" + ((int) (offset / 1000.0))
                                                           + "K.dat");
     } else {

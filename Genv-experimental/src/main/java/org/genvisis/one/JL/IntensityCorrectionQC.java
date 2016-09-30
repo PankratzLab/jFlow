@@ -137,7 +137,7 @@ public class IntensityCorrectionQC {
 			CrossValidation crossValidation = pcComponentsResiduals.getCorrectedDataAt(data, modelDefMask, pc, lType, "PC" + pc, false);
 			currentData = crossValidation.getResiduals();
 			if(pc==100){
-				Files.writeList(Array.toStringArray(currentData), pcComponentsResiduals.getProj().PROJECT_DIRECTORY.getValue()+"DFSD.txt");
+				Files.writeArray(Array.toStringArray(currentData), pcComponentsResiduals.getProj().PROJECT_DIRECTORY.getValue()+"DFSD.txt");
 				System.exit(1);
 			}
 		}

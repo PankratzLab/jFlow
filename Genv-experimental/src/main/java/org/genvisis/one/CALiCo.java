@@ -146,7 +146,7 @@ public class CALiCo {
 					} else {
 						condGenoPlinkDirPlusRoot = genoPlinkDirPlusRoot;
 					}
-					Files.writeList(markersConditional, resultDir + models[i] + ".txt");
+					Files.writeArray(markersConditional, resultDir + models[i] + ".txt");
 
 					idVariable[0] = ext.indexOfStr(Files.getHeaderOfFile(phenoCovarDir + root + ".xln", null)[0], SAMPLE_ID_SYNONYMS);
 					sexAsCovariate = parsePhenotypes(condGenoPlinkDirPlusRoot, phenoCovarDir + root + ".xln", SAMPLE_ID_SYNONYMS[idVariable[0]], subDir, logs[i]);
@@ -258,7 +258,7 @@ public class CALiCo {
 			e.printStackTrace();
 		}
 
-		Files.writeList(uniqueMarkers, resultDir+"all_hits.txt");
+		Files.writeArray(uniqueMarkers, resultDir+"all_hits.txt");
 		
 		fileParameters = new String[models.length+3];
 		for (int i=0; i<models.length; i++) {
@@ -759,7 +759,7 @@ public class CALiCo {
 		for (int i=0; i<keysToRemove.size(); i++) {
 			hashPheno.remove(keys[keysToRemove.get(i)]);
 		}
-		Files.writeList(HashVec.getKeys(hashPheno), outputDir + root + "_used.dat");
+		Files.writeArray(HashVec.getKeys(hashPheno), outputDir + root + "_used.dat");
 		log.report("There were " + hashPheno.size() + " samples with complete phenotypic data");
 
 		
@@ -817,7 +817,7 @@ public class CALiCo {
 					plinkCommand + " --bfile " + genoFileDirPlusRoot + " --pheno " + phenoFileDirPlusRoot + "_pheno.dat --covar " + covarFileDirPlusName + (sexAsCovariate?" --sex":"") + " --logistic --ci 0.95 --out " + scratchDir + outFileRoot,
 					plinkCommand + " --bfile " + genoFileDirPlusRoot + " --keep " + phenoFileDirPlusRoot + "_used.dat --freq --out " + scratchDir + outFileRoot + "_freq"
 				  };
-		Files.writeList(commands, resultDir + "run_" + outFileRoot + ".bat");
+		Files.writeArray(commands, resultDir + "run_" + outFileRoot + ".bat");
 		Files.chmod(resultDir + "run_" + outFileRoot + ".bat");
 		
 		//run batch
@@ -923,7 +923,7 @@ public class CALiCo {
 				outFile.add(outLine);
 			}
 		}
-		Files.writeList(outFile.toArray(new String[0]), outFileName);
+		Files.writeArray(outFile.toArray(new String[0]), outFileName);
 		log.report("Output is ready at: " + outFileName + "\nPlease use other software to sort by model ID, index.rsID, and positions.");
 	}
 

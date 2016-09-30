@@ -71,12 +71,12 @@ public class Polymutt {
 
     v = new Vector<String>();
     Files.write("T\tGLF_Index", "same_for_all.dat");
-    Files.writeList(new String[] {"fam	3	0	0	1	3", "fam	2	0	0	2	2",
+    Files.writeArray(new String[] {"fam	3	0	0	1	3", "fam	2	0	0	2	2",
                                   "fam	1	3	2	2	1"},
                     "same_for_all.ped");
     iterations = HashVec.loadFileToStringMatrix(triosFile, false, new int[] {0, 1, 2}, false);
     for (String[] iteration : iterations) {
-      Files.writeList(new String[] {"1 " + iteration[0] + ".bam.glf",
+      Files.writeArray(new String[] {"1 " + iteration[0] + ".bam.glf",
                                     "2 " + iteration[1] + ".bam.glf",
                                     "3 " + iteration[2] + ".bam.glf"},
                       iteration[0] + ".gif");
@@ -94,7 +94,7 @@ public class Polymutt {
       v.add("qsub batches/run_" + iteration[0]);
     }
     v.insertElementAt("cd " + ext.pwd(), 0);
-    Files.writeList(Array.toStringArray(v), "master.allRuns");
+    Files.writeArray(Array.toStringArray(v), "master.allRuns");
     Files.chmod("master.allRuns");
   }
 
@@ -144,7 +144,7 @@ public class Polymutt {
     }
     if (unknownAnnotations.size() > 0) {
       filename = "SeattleSeq_" + ext.getTimestampForFilename() + ".input";
-      Files.writeList(Array.toStringArray(unknownAnnotations), annotationDir + filename);
+      Files.writeArray(Array.toStringArray(unknownAnnotations), annotationDir + filename);
     }
     temp = "Filename\tSampleRoot\tMarkerName\tChr\tPosition\tREF\tALT\tQUAL\tMapQual\tDenovoQual";
     for (int i = 1; i <= 3; i++) {
@@ -166,7 +166,7 @@ public class Polymutt {
     }
 
     finishedAnnotations.insertElementAt(temp, 0);
-    Files.writeList(Array.toStringArray(finishedAnnotations),
+    Files.writeArray(Array.toStringArray(finishedAnnotations),
                     ext.parseDirectoryOfFile(triosFile) + "summary.xln");
   }
 

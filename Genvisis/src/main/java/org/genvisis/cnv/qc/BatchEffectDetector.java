@@ -27,7 +27,7 @@ public class BatchEffectDetector {
       String qcFile = outDir + ext.removeDirectoryInfo(proj.MARKER_METRICS_FILENAME.getValue());
       if (!Files.exists(qcFile)) {
         String[] autosomal = proj.getAutosomalNonCNMarkers();
-        Files.writeList(autosomal, outDir + "detectMarkers.txt");
+        Files.writeArray(autosomal, outDir + "detectMarkers.txt");
 
         proj.MARKER_METRICS_FILENAME.setValue(qcFile);
         MarkerMetrics.fullQC(proj, null, outDir + "detectMarkers.txt", false, threads);

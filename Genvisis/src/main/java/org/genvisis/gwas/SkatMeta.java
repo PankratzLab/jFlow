@@ -69,7 +69,7 @@ public class SkatMeta {
                               "fileConn<-file(\"batchChecks/" + root + ".object\")",
                               "writeLines(c(name), fileConn)", "close(fileConn)",};
         filename = "batchChecks/" + root + ".R";
-        Files.writeList(lines, filename);
+        Files.writeArray(lines, filename);
         v.add(filename);
         remaining.add(file);
       }
@@ -246,7 +246,7 @@ public class SkatMeta {
     commands.add("}");
 
     filename = dir + "batchSplits/splitChrs.R";
-    Files.writeList(Array.toStringArray(commands), filename);
+    Files.writeArray(Array.toStringArray(commands), filename);
 
     new File(dir + "snpInfos/").mkdirs();
     Files.qsub(dir + "batchSplits/" + ext.rootOf(filename) + ".qsub",
@@ -336,7 +336,7 @@ public class SkatMeta {
               if (chrsToDo.size() > 0) {
                 filename = dir + "batchSplits/" + studies[j] + "_" + races[k][0] + "_"
                            + phenotypes[i][0] + "_f" + f + ".R";
-                Files.writeList(Array.toStringArray(commands), filename);
+                Files.writeArray(Array.toStringArray(commands), filename);
 
                 Files.qsub(dir + "batchSplits/" + ext.rootOf(filename) + ".qsub",
                            "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
@@ -360,7 +360,7 @@ public class SkatMeta {
     }
 
     toBeSplit.add("# make sure to run \"SkatMeta -consolidate\" after everything else is run!!!");
-    Files.writeList(Array.toStringArray(toBeSplit), dir + "master.toBeSplit");
+    Files.writeArray(Array.toStringArray(toBeSplit), dir + "master.toBeSplit");
     Files.chmod(dir + "master.toBeSplit");
 
     log.report("");
@@ -650,7 +650,7 @@ public class SkatMeta {
                              + (count == 0 ? "" : "_" + count) + ".R";
                   count++;
                 } while (Files.exists(filename));
-                Files.writeList(Array.toStringArray(commands), filename);
+                Files.writeArray(Array.toStringArray(commands), filename);
 
                 Files.qsub(dir + "batchRuns/" + ext.rootOf(filename) + ".qsub",
                            "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
@@ -666,7 +666,7 @@ public class SkatMeta {
       }
     }
 
-    Files.writeList(Array.toStringArray(toBeRunIndividually), dir + "master.toBeRunIndividually");
+    Files.writeArray(Array.toStringArray(toBeRunIndividually), dir + "master.toBeRunIndividually");
     Files.chmod(dir + "master.toBeRunIndividually");
     System.err.println("qsubing multiple individual runs");
     Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkRun", 16, true, "sb", -1, 62000, 2);
@@ -762,7 +762,7 @@ public class SkatMeta {
                          + ".R";
               count++;
             } while (Files.exists(filename));
-            Files.writeList(Array.toStringArray(commands), filename);
+            Files.writeArray(Array.toStringArray(commands), filename);
 
             Files.qsub(dir + "batchRuns/" + ext.rootOf(filename) + ".qsub",
                        "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
@@ -860,7 +860,7 @@ public class SkatMeta {
                        + (count == 0 ? "" : "_" + count) + ".R";
             count++;
           } while (Files.exists(filename));
-          Files.writeList(Array.toStringArray(commands), filename);
+          Files.writeArray(Array.toStringArray(commands), filename);
 
           Files.qsub(dir + "batchRuns/" + ext.rootOf(filename) + ".qsub",
                      "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
@@ -872,7 +872,7 @@ public class SkatMeta {
         }
       }
     }
-    Files.writeList(Array.toStringArray(toBeRunMetad), dir + "master.toBeMetaAnalyzed");
+    Files.writeArray(Array.toStringArray(toBeRunMetad), dir + "master.toBeMetaAnalyzed");
     Files.chmod(dir + "master.toBeMetaAnalyzed");
     System.err.println("qsubing multiple meta runs");
     Files.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkMeta", 16, true, "sb", -1, 62000, 2);

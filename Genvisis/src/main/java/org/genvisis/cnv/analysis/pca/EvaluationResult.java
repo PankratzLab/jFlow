@@ -274,8 +274,8 @@ class EvaluationResult implements Serializable {
         String have = ext.addToRoot(ped, ".have");
         log.reportTimeWarning(sampsNotSeen.size()
                               + " samples were not found in the ped file , writing to " + missing);
-        Files.writeList(sampsNotSeen.toArray(new String[sampsNotSeen.size()]), missing);
-        Files.writeList(sampsHave.toArray(new String[sampsHave.size()]), have);
+        Files.writeArray(sampsNotSeen.toArray(new String[sampsNotSeen.size()]), missing);
+        Files.writeArray(sampsHave.toArray(new String[sampsHave.size()]), have);
 
       }
       Heritability.developCrf(ped, output, crf, ext.rootOf(output), titles, log);

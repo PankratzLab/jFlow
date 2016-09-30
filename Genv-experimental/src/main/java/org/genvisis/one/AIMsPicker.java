@@ -106,7 +106,7 @@ public class AIMsPicker {
 			round++;
 		}
 		
-		Files.writeList(picks, ext.rootOf(filename, false)+"_picks.xln");
+		Files.writeArray(picks, ext.rootOf(filename, false)+"_picks.xln");
 		System.out.println("Filled "+count+" of "+picks.length+" slots");
 	}
 

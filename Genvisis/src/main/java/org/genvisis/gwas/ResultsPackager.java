@@ -483,7 +483,7 @@ public class ResultsPackager {
       return;
     }
 
-    Files.writeList(Array.toStringArray(lowCallrateMarkers),
+    Files.writeArray(Array.toStringArray(lowCallrateMarkers),
                     dir + outfile + "lowCallRateMarkers.out");
   }
 
@@ -983,14 +983,14 @@ public class ResultsPackager {
           }
         }
       }
-      Files.writeList(out1, ext.parseDirectoryOfFile(fullPathOutFile) + filename);
+      Files.writeArray(out1, ext.parseDirectoryOfFile(fullPathOutFile) + filename);
 
       for (int j = 0; j < markers.length; j++) {
         filename = ext.rootOf(filename) + filename.substring(filename.lastIndexOf('.'));
       }
     }
 
-    Files.writeList(out2, ext.parseDirectoryOfFile(fullPathOutFile) + ext.rootOf(fullPathOutFile)
+    Files.writeArray(out2, ext.parseDirectoryOfFile(fullPathOutFile) + ext.rootOf(fullPathOutFile)
                           + ".input");
   }
 

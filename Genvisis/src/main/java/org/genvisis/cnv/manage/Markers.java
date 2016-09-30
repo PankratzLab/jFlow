@@ -73,7 +73,7 @@ public class Markers {
       log.reportError("Error - There "
                       + (posNotFoundInRpt == 1 ? "was one" : "were " + posNotFoundInRpt)
                       + " markers found in the file of marker positions that were not listed in the FinalReport file.");
-      Files.writeList(databaseMarkers.toArray(new String[] {}),
+      Files.writeArray(databaseMarkers.toArray(new String[] {}),
                       ext.parseDirectoryOfFile(markerDatabase) + "markersNotInSourceFile.txt");
     }
     if (rptNotFoundInPos > 0) {
@@ -81,7 +81,7 @@ public class Markers {
                       + (rptNotFoundInPos == 1 ? "was one" : "were " + rptNotFoundInPos)
                       + " markers found in the FinalReport file that were not listed in the file of marker positions; halting parse operation.");
       log.reportError("\nThe best source of complete marker positions is the SNP manifest (e.g., SNP_Map.csv from Illumina's GenomeStudio that should be exported along with the FinalReport files)");
-      Files.writeList(reportMarkers.toArray(new String[] {}),
+      Files.writeArray(reportMarkers.toArray(new String[] {}),
                       ext.parseDirectoryOfFile(markerDatabase) + "markersNotInPositionsFile.txt");
     }
     databaseMarkersRef = null;
@@ -110,7 +110,7 @@ public class Markers {
       log.reportError("Error - There " + (v.size() == 1 ? "was one" : "were " + v.size())
                       + " markers found in the FinalReport file that were not listed in the file of marker positions; halting parse operation.");
       log.reportError("\nThe best source of complete marker positions is the SNP manifest (e.g., SNP_Map.csv from Illumina's GenomeStudio that should be exported along with the FinalReport files)");
-      Files.writeList(Array.toStringArray(v),
+      Files.writeArray(Array.toStringArray(v),
                       ext.parseDirectoryOfFile(markerDatabase) + "markersNotInPositionsFile.txt");
       // write markerPositionsNotInReport.txt
       return null;

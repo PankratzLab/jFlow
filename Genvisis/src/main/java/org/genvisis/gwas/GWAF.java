@@ -142,7 +142,7 @@ public class GWAF {
         if (!Files.exists(dir + "kmat.Rfile", false)) {
           v.insertElementAt("R --no-save < createKmat.R > createKmat.log", 0);
         }
-        Files.writeList(Array.toStringArray(v), dir + "master." + pheno);
+        Files.writeArray(Array.toStringArray(v), dir + "master." + pheno);
         Files.chmod(dir + "master." + pheno);
       } else {
         if (Files.isWindows()) {

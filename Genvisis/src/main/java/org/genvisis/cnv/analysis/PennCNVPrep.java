@@ -122,7 +122,7 @@ public class PennCNVPrep {
       }
       markerDataStorage.serialize(output);
       if (notCorrected.size() > 0) {
-        Files.writeList(notCorrected.toArray(new String[notCorrected.size()]),
+        Files.writeArray(notCorrected.toArray(new String[notCorrected.size()]),
                         output.replaceAll("\\.ser",
                                           "_") + notCorrected.size() + "_markersThatFailedCorrection.txt");
       }
@@ -200,7 +200,7 @@ public class PennCNVPrep {
                     + STORAGE_EXT;
     markerDataStorage.serialize(output);
     if (notCorrected.size() > 0) {
-      Files.writeList(notCorrected.toArray(new String[notCorrected.size()]),
+      Files.writeArray(notCorrected.toArray(new String[notCorrected.size()]),
                       output.replaceAll("\\.ser",
                                         "_") + notCorrected.size() + "_markersThatFailedCorrection.txt");
     }
@@ -754,7 +754,7 @@ public class PennCNVPrep {
         index++;
       }
       batches[i][0] = "batch_" + i + "_" + chunks[i] + "_markers";
-      Files.writeList(chunk.toArray(new String[chunk.size()]),
+      Files.writeArray(chunk.toArray(new String[chunk.size()]),
                       thisDir + dir + batches[i][0] + ".txt");
     }
     StringBuilder cmd = new StringBuilder("module load java\n");

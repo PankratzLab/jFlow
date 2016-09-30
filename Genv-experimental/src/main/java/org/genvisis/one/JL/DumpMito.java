@@ -20,7 +20,7 @@ public class DumpMito {
 					+ markerSet.getPositions()[indicesM[i]];
 
 		}
-		Files.writeList(mitos,"/Users/Kitty/git/affySnp6/MT.119.txt");//110 anno, 9 set to 0
+		Files.writeArray(mitos,"/Users/Kitty/git/affySnp6/MT.119.txt");//110 anno, 9 set to 0
 	}
 
 }

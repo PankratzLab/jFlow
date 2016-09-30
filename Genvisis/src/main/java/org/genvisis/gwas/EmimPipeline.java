@@ -603,7 +603,7 @@ public class EmimPipeline {
 
     }
 
-    Files.writeArrayList(qsubCommands, runDir + "runPBSFiles.sh");
+    Files.writeIterable(qsubCommands, runDir + "runPBSFiles.sh");
     Files.chmod(runDir + "runPBSFiles.sh");
   }
 

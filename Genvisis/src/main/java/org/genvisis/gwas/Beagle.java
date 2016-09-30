@@ -1287,14 +1287,14 @@ public class Beagle {
         reader.close();
 
         if (extras.size() > 0) {
-          Files.writeList(HashVec.getKeys(extras),
+          Files.writeArray(HashVec.getKeys(extras),
                           ext.parseDirectoryOfFile(groupsFile) + "SAMPLES_IN_"
                                                    + ext.removeDirectoryInfo(plinkFile)
                                                    + "_BUT_NOT_IN_"
                                                    + ext.removeDirectoryInfo(groupsFile) + ".TXT");
         }
         if (checks.size() > 0) {
-          Files.writeList(HashVec.getKeys(extras),
+          Files.writeArray(HashVec.getKeys(extras),
                           ext.parseDirectoryOfFile(groupsFile) + "SAMPLE_PAIRS_FROM_"
                                                    + ext.removeDirectoryInfo(groupsFile)
                                                    + "_BUT_NOT_IN_"

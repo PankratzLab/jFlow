@@ -503,7 +503,7 @@ public class BamImport {
     }
     String readCountFile = proj.PROJECT_DIRECTORY.getValue() + "sample.readCounts.txt";
 
-    Files.writeList(mappedReadCounts, readCountFile);
+    Files.writeArray(mappedReadCounts, readCountFile);
 
     if (allOutliers.size() > 0
         || !Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {// currently
@@ -668,7 +668,7 @@ public class BamImport {
     proj.INTENSITY_PC_NUM_COMPONENTS.setValue(20);
     String mediaMarks = ext.addToRoot(proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), ".median");
     ArrayList<ProjectCorrected> correctedProjects = new ArrayList<ProjectCorrected>();
-    Files.writeList(Array.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
+    Files.writeArray(Array.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
     String[] autoMarks = proj.getAutosomalMarkers();
     for (MarkerFileType type : types) {
       String base = "";
@@ -694,7 +694,7 @@ public class BamImport {
           autosomalToUse.add(autoMarks[indice]);
         }
       }
-      Files.writeArrayList(autosomalToUse, markerfile);
+      Files.writeIterable(autosomalToUse, markerfile);
       if (!autosomalToUse.isEmpty()) {
         proj.INTENSITY_PC_MARKERS_FILENAME.setValue(markerfile);
         MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, 20, base, false, true, 0, null,
@@ -900,9 +900,9 @@ public class BamImport {
     proj.getLog()
         .reportTimeInfo("Dumping " + (problems.size() - 1)
                         + " off target markers that will likely be biased to " + problemFile);
-    Files.writeArrayList(problems, problemFile);
-    Files.writeArrayList(noProblems, noproblemFile);
-    Files.writeArrayList(all, allFile);
+    Files.writeIterable(problems, problemFile);
+    Files.writeIterable(noProblems, noproblemFile);
+    Files.writeIterable(all, allFile);
     return Array.toStringArray(goodOffTargets);
 
   }
@@ -1013,14 +1013,14 @@ public class BamImport {
     ArrayList<MarkerFileType> markerTypes = new ArrayList<MarkerFileType>();
 
     if (!onTMarkers.isEmpty()) {
-      Files.writeList(Array.toStringArray(onTMarkers), onTargetFile);
+      Files.writeArray(Array.toStringArray(onTMarkers), onTargetFile);
       markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.ON_TARGET, onTargetFile));
     } else {
       proj.getLog()
           .reportTimeWarning("No " + NGS_MARKER_TYPE.ON_TARGET.getFlag() + " markers detected");
     }
     if (!offTMarkers.isEmpty()) {
-      Files.writeList(Array.toStringArray(offTMarkers), offTargetFile);
+      Files.writeArray(Array.toStringArray(offTMarkers), offTargetFile);
       markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.OFF_TARGET, offTargetFile));
     } else {
       proj.getLog()
@@ -1028,16 +1028,16 @@ public class BamImport {
     }
 
     if (!variantSiteMarkers.isEmpty()) {
-      Files.writeList(Array.toStringArray(variantSiteMarkers), variantSiteTargetFile);
+      Files.writeArray(Array.toStringArray(variantSiteMarkers), variantSiteTargetFile);
       markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.VARIANT_SITE, variantSiteTargetFile));
     } else {
       proj.getLog()
           .reportTimeWarning("No " + NGS_MARKER_TYPE.VARIANT_SITE.getFlag() + " markers detected");
     }
 
-    Files.writeList(Array.toStringArray(allMarkerColors), allMarkerColorFile);
+    Files.writeArray(Array.toStringArray(allMarkerColors), allMarkerColorFile);
 
-    Files.writeList(HashVec.loadFileToStringArray(proj.MARKER_POSITION_FILENAME.getValue(), true,
+    Files.writeArray(HashVec.loadFileToStringArray(proj.MARKER_POSITION_FILENAME.getValue(), true,
                                                   new int[] {0}, true),
                     allMarkerFile);
     markerTypes.add(new MarkerFileType(null, allMarkerFile));

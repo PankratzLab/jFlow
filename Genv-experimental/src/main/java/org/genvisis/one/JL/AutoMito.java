@@ -89,7 +89,7 @@ public class AutoMito {
 				nonCN_Only.add(autos[i]);
 			}
 		}
-		Files.writeArrayList(nonCN_Only, baseMarkers);
+		Files.writeIterable(nonCN_Only, baseMarkers);
 		if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
 			LrrSd.init(proj, null, baseMarkers, baseMarkers, numThreads, null, false);
 		}
@@ -105,7 +105,7 @@ public class AutoMito {
 			}
 		}
 		proj.getLog().reportTimeInfo(Array.booleanArraySum(samplesPassing) + " samples passed initial QC");
-		Files.writeList(Array.subArray(proj.getSamples(), samplesPassing), sampleFiltRound1);
+		Files.writeArray(Array.subArray(proj.getSamples(), samplesPassing), sampleFiltRound1);
 
 		if (!Files.exists(proj.MARKER_METRICS_FILENAME.getValue())) {
 			MarkerMetrics.fullQC(proj, samplesPassing, baseMarkers, false, numThreads);

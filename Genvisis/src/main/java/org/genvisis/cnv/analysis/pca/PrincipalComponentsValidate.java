@@ -687,7 +687,7 @@ public class PrincipalComponentsValidate {
     for (int i = 0; i < batches.length; i++) {
       String batchName = BATCH + "_" + i + "_" + batches[i].length;
       String batchFile = curDir + batchName;
-      Files.writeList(batches[i], batchFile);
+      Files.writeArray(batches[i], batchFile);
     }
     // String command = JAVA + CP + XMX + MT_PIPE + "proj=" +
     // proj.getFilename(proj.PROJECT_PROPERTIES_FILENAME) + " PCmarkers=" + pcMarkers + "

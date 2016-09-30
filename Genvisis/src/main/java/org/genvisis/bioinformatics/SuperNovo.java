@@ -2344,12 +2344,12 @@ public class SuperNovo {
     }
 
     if (annotationNeedsVars.size() > 0) {
-      Files.writeList(Array.toStringArray(annotationNeedsVars),
+      Files.writeArray(Array.toStringArray(annotationNeedsVars),
                       annotationDir + "seattleSeq_input_" + new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date())
                                                                 + ".txt");
     }
     if (annotationNeedsInDels.size() > 0) {
-      Files.writeList(Array.toStringArray(annotationNeedsInDels),
+      Files.writeArray(Array.toStringArray(annotationNeedsInDels),
                       annotationDir + "seattleSeq_input_InDels_" + new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date())
                                                                   + ".txt");
     }
@@ -2697,12 +2697,12 @@ public class SuperNovo {
     }
 
     if (annotationNeedsVars.size() > 0) {
-      Files.writeList(Array.toStringArray(annotationNeedsVars),
+      Files.writeArray(Array.toStringArray(annotationNeedsVars),
                       seatleSeqDir + "seattleSeq_input_" + new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date())
                                                                 + ".txt");
     }
     if (annotationNeedsInDels.size() > 0) {
-      Files.writeList(Array.toStringArray(annotationNeedsInDels),
+      Files.writeArray(Array.toStringArray(annotationNeedsInDels),
                       seatleSeqDir + "seattleSeq_input_InDels_" + new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date())
                                                                   + ".txt");
     }

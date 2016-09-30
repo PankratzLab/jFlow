@@ -378,7 +378,7 @@ public class GATK_LanePrep extends BWA_Analysis {
     String[][] batches = new String[batchedMatchedFiles.length][1];
     for (int i = 0; i < batches.length; i++) {
       batches[i][0] = "batch_" + i + "_" + baseName;
-      Files.writeList(batchedMatchedFiles[i], getRootOutputDir() + batches[i][0] + ".txt");
+      Files.writeArray(batchedMatchedFiles[i], getRootOutputDir() + batches[i][0] + ".txt");
     }
     // TODO, change classpath
     String command = Array.toStr(PSF.Load.getAllModules(), "\n");

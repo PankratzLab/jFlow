@@ -405,7 +405,7 @@ public class GeneScorePipeline {
             snps = HashVec.loadFileToStringArray(filename, false, true, new int[] {indices[0]},
                                                  false);// fileData.keySet().toArray(new
                                                         // String[fileData.size()]);
-            Files.writeList(snps, ext.rootOf(filename, false) + ".snps");
+            Files.writeArray(snps, ext.rootOf(filename, false) + ".snps");
             MapSNPsAndGenes.procSNPsToGenes(ext.parseDirectoryOfFile(filename),
                                             ext.rootOf(filename, true) + ".snps",
                                             MapSNPsAndGenes.DEFAULT_WIGGLE_ROOM, (byte) 37, log,

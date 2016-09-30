@@ -885,7 +885,7 @@ public class Project {
       Files.backup(ext.removeDirectoryInfo(projectPropertiesFilename),
                    ext.parseDirectoryOfFile(projectPropertiesFilename),
                    ext.parseDirectoryOfFile(projectPropertiesFilename) + "backup/", true);
-      Files.writeList(Array.toStringArray(corrections), projectPropertiesFilename);
+      Files.writeArray(Array.toStringArray(corrections), projectPropertiesFilename);
     }
   }
 
@@ -987,7 +987,7 @@ public class Project {
                    ext.parseDirectoryOfFile(projectPropertiesFilename),
                    ext.parseDirectoryOfFile(projectPropertiesFilename) + "backup/",
                    outfile.equals(projectPropertiesFilename));
-      Files.writeList(Array.toStringArray(props), outfile);
+      Files.writeArray(Array.toStringArray(props), outfile);
     }
 
   }

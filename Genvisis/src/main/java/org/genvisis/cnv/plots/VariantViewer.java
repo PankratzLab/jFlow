@@ -509,7 +509,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
   private void generateSampleLists(String[] vcfFiles) {
     for (String vcfFile : vcfFiles) {
       String[] samps = VCFOps.getSamplesInFile(vcfFile);
-      Files.writeList(samps, VCFOps.getAppropriateRoot(vcfFile, false) + ".samples.txt");
+      Files.writeArray(samps, VCFOps.getAppropriateRoot(vcfFile, false) + ".samples.txt");
     }
   }
 

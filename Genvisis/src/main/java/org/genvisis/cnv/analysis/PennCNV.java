@@ -145,7 +145,7 @@ public class PennCNV {
       Files.execListAdd(execList, commands, Array.stringArraySequence(numChunks, ""), log);
     }
 
-    Files.writeList(new String[] {"cd " + projDir,
+    Files.writeArray(new String[] {"cd " + projDir,
                                   "cat " + resultsDir + "*.log > " + resultsDir + "penncnv.rawlog",
                                   "cat " + resultsDir + "*.rawcnv > " + resultsDir + "penncnv.rawcnv",
                                   "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="
@@ -283,7 +283,7 @@ public class PennCNV {
     } else {
       Files.execListAdd(execList, commands, Array.stringArraySequence(numChunks, ""), log);
     }
-    Files.writeList(new String[] {"cd " + projDir,
+    Files.writeArray(new String[] {"cd " + projDir,
                                   "cat " + resultsDir + "*.log > " + resultsDir
                                                    + "penncnvX.rawlog",
                                   "cat " + resultsDir + "*.rawcnv > " + resultsDir + "penncnvX.rawcnv",
@@ -832,7 +832,7 @@ public class PennCNV {
         log.reportTimeInfo(missingGenotypeMarkers.size()
                            + " markers had missing genotypes and were set to -1 in " + output
                            + ". These markers can be treated as CN only markers, or removed at your discretion with CNVCaller");
-        Files.writeArrayList(missingGenotypeMarkers, missingGenoFile);
+        Files.writeIterable(missingGenotypeMarkers, missingGenoFile);
       }
     } catch (Exception e) {
       log.reportError("Error writing to '" + output + "'");
@@ -1095,7 +1095,7 @@ public class PennCNV {
       String outdir = resultsDir + "penn_scripts/";
       new File(outdir).mkdirs();
       String outfile = "combineAutoXCNVs";
-      Files.writeList(new String[] {"cd " + resultsDir,
+      Files.writeArray(new String[] {"cd " + resultsDir,
                                     "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS
                                                         + " cnv.analysis.PennCNV proj="
                                                         + proj.getPropertyFilename()
@@ -1121,7 +1121,7 @@ public class PennCNV {
       String resultsDir = proj.PENNCNV_RESULTS_DIRECTORY.getValue(false, true);
       String outdir = resultsDir + "penn_scripts/";
       String outfile = "combineMFCNVs";
-      Files.writeList(new String[] {"cd " + resultsDir,
+      Files.writeArray(new String[] {"cd " + resultsDir,
                                     "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS
                                                         + " cnv.analysis.PennCNV proj="
                                                         + proj.getPropertyFilename()
@@ -1134,7 +1134,7 @@ public class PennCNV {
 
       if (auto) {
         outfile = "combineAMFCNVs";
-        Files.writeList(new String[] {"cd " + resultsDir,
+        Files.writeArray(new String[] {"cd " + resultsDir,
                                       "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS
                                                           + " cnv.analysis.PennCNV proj="
                                                           + proj.getPropertyFilename()
@@ -1157,7 +1157,7 @@ public class PennCNV {
     }
     String dir = proj.PENNCNV_RESULTS_DIRECTORY.getValue();
     dir += "penn_scripts/";
-    Files.writeList(new String[] {dir + "assemblePenncnv", dir + "chrX/assemblePenncnv",
+    Files.writeArray(new String[] {dir + "assemblePenncnv", dir + "chrX/assemblePenncnv",
                                   dir + "sexSpecific/female/assemblePenncnv",
                                   dir + "sexSpecific/male/assemblePenncnv", dir + "combineAMFCNVs"},
                     dir + "parseAllPenncnv");

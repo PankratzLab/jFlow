@@ -69,7 +69,7 @@ public class PlinkMergePrep {
       int[] pos = Positions.parseUCSClocation(ucscLines[i]);
       plinkLines[i] = pos[0] + "\t" + pos[1] + "\t" + pos[2] + "\tPLINK_" + i;
     }
-    Files.writeList(plinkLines, ext.parseDirectoryOfFile(regionFile) + outFile);
+    Files.writeArray(plinkLines, ext.parseDirectoryOfFile(regionFile) + outFile);
     return ext.verifyDirFormat(new File(ext.parseDirectoryOfFile(regionFile)).getAbsolutePath())
            + outFile;
   }
@@ -197,7 +197,7 @@ public class PlinkMergePrep {
         for (String marker : markers) { // and add all original markers too
           newMkrs.add(marker);
         }
-        Files.writeArrayList(newMkrs, TEMP_MKR_FILE);
+        Files.writeIterable(newMkrs, TEMP_MKR_FILE);
         mkrFile = (new File(TEMP_MKR_FILE)).getAbsolutePath();
       }
       cmds.append(" --extract ").append(mkrFile);
@@ -279,7 +279,7 @@ public class PlinkMergePrep {
     while (Files.exists(fileListName)) {
       fileListName = "./fileList_" + index++ + ".txt";
     }
-    Files.writeList(lines, fileListName);
+    Files.writeArray(lines, fileListName);
 
     if (renameMarkers) {
       for (int i = 0; i < plinkRootsWithDirs.length; i++) {
@@ -311,7 +311,7 @@ public class PlinkMergePrep {
         for (String marker : markers) { // and add all original markers too
           newMkrs.add(marker);
         }
-        Files.writeArrayList(newMkrs, TEMP_MKR_FILE);
+        Files.writeIterable(newMkrs, TEMP_MKR_FILE);
         mkrFile = (new File(TEMP_MKR_FILE)).getAbsolutePath();
       }
       cmds.append(" --extract ").append(mkrFile);

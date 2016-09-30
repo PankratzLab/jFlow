@@ -124,7 +124,7 @@ public class PlinkExtractorFromVCF {
     }
 
     String mergeRoot = roots.remove(0);
-    Files.writeArrayList(roots, current + "temp/mergeList.txt");
+    Files.writeIterable(roots, current + "temp/mergeList.txt");
 
     String plinkMerge = "plink2 --noweb --bfile " + current + mergeRoot + " --merge-list " + current
                         + "temp/mergeList.txt --make-bed --out " + current + "merged";
@@ -133,7 +133,7 @@ public class PlinkExtractorFromVCF {
     commands.add("");
     commands.add("rm -r " + current + "temp/");
 
-    Files.writeArrayList(commands, current + "run.sh");
+    Files.writeIterable(commands, current + "run.sh");
     Files.chmod(current + "run.sh");
     Files.makeQsub(current + "run.sh", false, 1, 1, false, null, false);
   }

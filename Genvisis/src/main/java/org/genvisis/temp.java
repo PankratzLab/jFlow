@@ -148,7 +148,7 @@ public class temp {
     for (int i = 0; i < commands.length; i++) {
       commands[i] = "move " + list[i] + ".zip batch1";
     }
-    Files.writeList(commands, "C:/GEDI_exome/00src/move.out");
+    Files.writeArray(commands, "C:/GEDI_exome/00src/move.out");
 
 
   }

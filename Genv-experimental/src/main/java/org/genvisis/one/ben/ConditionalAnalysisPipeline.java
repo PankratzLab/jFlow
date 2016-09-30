@@ -415,7 +415,7 @@ public class ConditionalAnalysisPipeline {
             
             log("Writing new data.txt file..."); 
             String newDataFile = region.analysisRootDir + regionDir + "data_" + (isBaseline ? "baseline" : ext.replaceWithLinuxSafeCharacters(region.indexSNP, false)) + ".txt";
-            Files.writeList(newDataDefs.toArray(new String[newDataDefs.size()]), newDataFile);
+            Files.writeArray(newDataDefs.toArray(new String[newDataDefs.size()]), newDataFile);
             
             return new String[]{region.analysisRootDir + regionDir, newDataFile};
         }

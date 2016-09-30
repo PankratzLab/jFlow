@@ -64,7 +64,7 @@ public class MossyPlots {
 				filtered.add(data);
 			}
 		}
-		Files.writeList(Array.toStringArray(filtered), mosFile);
+		Files.writeArray(Array.toStringArray(filtered), mosFile);
 		ArrayList<RScatter> rscScatters = new ArrayList<RScatter>();
 
 		String tNAll = outDir + "tumorNormalAll.plot";

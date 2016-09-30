@@ -305,7 +305,7 @@ public class Pipeline {
     String projectFile = projectDir + projectName + ".properties";
     if (!Files.exists(projectFile)) {
       new File(projectDir).mkdirs();
-      Files.writeList(new String[] {"PROJECT_NAME=" + projectName,
+      Files.writeArray(new String[] {"PROJECT_NAME=" + projectName,
                                     "PROJECT_DIRECTORY=" + projectDir},
                       projectFile);
     }

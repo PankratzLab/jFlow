@@ -101,7 +101,7 @@ public class SeqMeta {
                               "fileConn<-file(\"batchChecks/" + root + ".object\")",
                               "writeLines(c(name), fileConn)", "close(fileConn)",};
         filename = "batchChecks/" + root + ".R";
-        Files.writeList(lines, filename);
+        Files.writeArray(lines, filename);
         v.add(filename);
         remaining.add(file);
       }
@@ -284,7 +284,7 @@ public class SeqMeta {
     commands.add("}");
 
     filename = dir + "batchSplits/splitChrs.R";
-    Files.writeList(Array.toStringArray(commands), filename);
+    Files.writeArray(Array.toStringArray(commands), filename);
 
     new File(dir + "snpInfos/").mkdirs();
     Files.qsub(dir + "batchSplits/" + ext.rootOf(filename) + ".qsub",
@@ -375,7 +375,7 @@ public class SeqMeta {
               if (chrsToDo.size() > 0) {
                 filename = dir + "batchSplits/" + studies[j] + "_" + races[k][0] + "_"
                            + phenotypes[i][0] + "_f" + f + ".R";
-                Files.writeList(Array.toStringArray(commands), filename);
+                Files.writeArray(Array.toStringArray(commands), filename);
 
                 jobNames.add(getRscriptExecutable(maps, log) + " --no-save " + filename);
                 jobSizes.add((int) (new File(dir + files[f]).length()));
@@ -696,7 +696,7 @@ public class SeqMeta {
                              + (count == 0 ? "" : "_" + count) + ".R";
                   count++;
                 } while (Files.exists(filename));
-                Files.writeList(Array.toStringArray(commands), filename);
+                Files.writeArray(Array.toStringArray(commands), filename);
 
                 jobNames.add(getRscriptExecutable(maps, log) + " --no-save " + filename);
                 jobSizes.add(infoSizes[chr]);
@@ -809,7 +809,7 @@ public class SeqMeta {
                          + ".R";
               count++;
             } while (Files.exists(filename));
-            Files.writeList(Array.toStringArray(commands), filename);
+            Files.writeArray(Array.toStringArray(commands), filename);
 
             jobNames.add(getRscriptExecutable(maps, log) + " --no-save " + filename);
             jobSizes.add(infoSizes[chr]);
@@ -904,7 +904,7 @@ public class SeqMeta {
                        + (count == 0 ? "" : "_" + count) + ".R";
             count++;
           } while (Files.exists(filename));
-          Files.writeList(Array.toStringArray(commands), filename);
+          Files.writeArray(Array.toStringArray(commands), filename);
 
           jobNames.add(getRscriptExecutable(maps, log) + " --no-save " + filename);
           jobSizes.add(infoSizes[chr]);
@@ -1329,7 +1329,7 @@ public class SeqMeta {
       }
     }
 
-    Files.writeList(Array.toStringArray(commands), dir + "checkNs.R");
+    Files.writeArray(Array.toStringArray(commands), dir + "checkNs.R");
     Files.qsub(dir + "checkNs.qsub",
                "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save checkNs.R", 5000,
                1, 1);
@@ -1400,7 +1400,7 @@ public class SeqMeta {
     time = new Date().getTime();
     filename = dir + ext.rootOf(snpInfoFile) + ".csv";
     if (!Files.exists(filename)) {
-      Files.writeList(new String[] {"load(\"" + dir + snpInfoFile + "\")",
+      Files.writeArray(new String[] {"load(\"" + dir + snpInfoFile + "\")",
                                     "write.table(" + getObjectName(dir, snpInfoFile) + ", \""
                                                                            + filename
                                                                            + "\", sep=\",\", row.names = F)",},
@@ -1966,7 +1966,7 @@ public class SeqMeta {
                              + ".crf");
           e.printStackTrace();
         }
-        Files.writeList(hits, phenotypes[i][0] + "_hitters.dat");
+        Files.writeArray(hits, phenotypes[i][0] + "_hitters.dat");
         Files.combine(hits, Array.toStringArray(groupParams.get(group)), null, group, ".",
                       dir + phenotypes[i][0] + "/" + phenotypes[i][0] + "_" + group + ".csv", log,
                       true, true, false);
@@ -1982,7 +1982,7 @@ public class SeqMeta {
     delineateRegions(dir, hitsDirectory, maps, macThresholdTotal);
 
     lineCounts.insertElementAt("Study\tRace\tPhenotype\tMethod\tCount", 0);
-    Files.writeList(Array.toStringArray(lineCounts), dir + "lineCounts.xln");
+    Files.writeArray(Array.toStringArray(lineCounts), dir + "lineCounts.xln");
     log.report("check lineCounts.xln for completeness");
   }
 
@@ -2407,7 +2407,7 @@ public class SeqMeta {
                 new int[0], log);
       batchesToCat.addElement(Files.getRunString() + " cnv.plots.ForestPlot markerList="
                               + hitsDirectory + "allForestPlots.input");
-      Files.writeList(Array.toStringArray(batchesToCat), dir + "allForestPlots.bat");
+      Files.writeArray(Array.toStringArray(batchesToCat), dir + "allForestPlots.bat");
     }
   }
 
@@ -2900,7 +2900,7 @@ public class SeqMeta {
           if (!finalSets[i][j][k].equals("<missing>")) {
             files = finalSets[i][j][k].split(";");
             for (String file : files) {
-              Files.writeList(new String[0], dir + "mockRdata/" + file);
+              Files.writeArray(new String[0], dir + "mockRdata/" + file);
             }
           }
         }
@@ -3077,9 +3077,9 @@ public class SeqMeta {
       }
     }
 
-    Files.writeList(Array.toStringArray(mainTable), dir + "pheno_summary_means.xln");
-    Files.writeList(Array.toStringArray(unitsTable), dir + "pheno_summary_units.xln");
-    Files.writeList(Array.toStringArray(countsTable), dir + "pheno_summary_counts.xln");
+    Files.writeArray(Array.toStringArray(mainTable), dir + "pheno_summary_means.xln");
+    Files.writeArray(Array.toStringArray(unitsTable), dir + "pheno_summary_units.xln");
+    Files.writeArray(Array.toStringArray(countsTable), dir + "pheno_summary_counts.xln");
   }
 
   public static void metalCohortSensitivity(String dir, String compareToMetal, Logger log) {
@@ -3323,7 +3323,7 @@ public class SeqMeta {
                    25000, 3, 1);
         needToBeProcessed.add("qsub batchRuns/" + ext.rootOf(file) + ".qsub");
       }
-      Files.writeList(Array.toStringArray(needToBeProcessed), dir + "master.toBeProcessed");
+      Files.writeArray(Array.toStringArray(needToBeProcessed), dir + "master.toBeProcessed");
       Files.chmod(dir + "master.toBeProcessed");
       log.report("Next run:\n./master.toBeProcessed");
     } else {

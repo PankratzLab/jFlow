@@ -56,7 +56,7 @@ public class PlinkCNV {
 				}
 			}
 			log.reportTimeInfo("Count " + count + " mitos of " + mitos.length);
-			Files.writeArrayList(mitoList, dir + "mitoList-" + build + ".txt");
+			Files.writeIterable(mitoList, dir + "mitoList-" + build + ".txt");
 
 		}
 		ArrayList<String> glist = new ArrayList<String>();
@@ -67,7 +67,7 @@ public class PlinkCNV {
 
 			}
 		}
-		Files.writeArrayList(glist, dir + "geneList-" + build + ".txt");
+		Files.writeIterable(glist, dir + "geneList-" + build + ".txt");
 
 		for (int filt = 0; filt < filters.length; filt++) {// for each filter crf found
 			String[][] phenos = HashVec.loadFileToStringMatrix(dir + "pheno.dat", false, null, false);
@@ -159,11 +159,11 @@ public class PlinkCNV {
 				}
 
 				// prep .fam and pheno files
-				Files.writeArrayList(fam, opDir + pheno + ".fam");
-				Files.writeArrayList(fam, opDir + pheno + "_gene.fam");
+				Files.writeIterable(fam, opDir + pheno + ".fam");
+				Files.writeIterable(fam, opDir + pheno + "_gene.fam");
 
-				Files.writeArrayList(quants, opDir + pheno + ".qPheno.txt");
-				Files.writeArrayList(quants, opDir + pheno + "_gene.qPheno.txt");
+				Files.writeIterable(quants, opDir + pheno + ".qPheno.txt");
+				Files.writeIterable(quants, opDir + pheno + "_gene.qPheno.txt");
 				String map = opDir + pheno + ".cnv.map";
 				String mapGene = opDir + pheno + "_gene.cnv.map";
 
@@ -290,7 +290,7 @@ public class PlinkCNV {
 								double b = ls.getBetas()[1];
 								summary.add(type + "\t" + b + "\t" + p);
 							}
-							Files.writeArrayList(summary, opDir + pheno + "_mito_tradBurden.cnv.indiv.sigs");
+							Files.writeIterable(summary, opDir + pheno + "_mito_tradBurden.cnv.indiv.sigs");
 
 							return new PlinkResult(filtFile, key + "_enrichment", out, Array.toStr(Array.toStringArray(cmd), " "), false, true);
 						}
@@ -333,7 +333,7 @@ public class PlinkCNV {
 								double b = ls.getBetas()[1];
 								summary.add(type + "\t" + b + "\t" + p);
 							}
-							Files.writeArrayList(summary, opDir + pheno + "_mito_tradBurden_count.cnv.indiv.sigs");
+							Files.writeIterable(summary, opDir + pheno + "_mito_tradBurden_count.cnv.indiv.sigs");
 
 							return new PlinkResult(filtFile, key + "_enrichment", out, Array.toStr(Array.toStringArray(cmd), " "), false, true);
 						}
@@ -375,7 +375,7 @@ public class PlinkCNV {
 								double b = ls.getBetas()[1];
 								summary.add(type + "\t" + b + "\t" + p);
 							}
-							Files.writeArrayList(summary, opDir + pheno + "_FulltradBurden.cnv.indiv.sigs");
+							Files.writeIterable(summary, opDir + pheno + "_FulltradBurden.cnv.indiv.sigs");
 
 							return new PlinkResult(filtFile, key + "_enrichment", out, Array.toStr(Array.toStringArray(cmd), " "), false, true);
 						}
@@ -540,8 +540,8 @@ public class PlinkCNV {
 
 					key.add(result.key + "\t" + index);
 					index++;
-					Files.writeArrayList(toReport, out);
-					Files.writeHashSet(allSigGenesListSpecific, allSigGenesSpecific);
+					Files.writeIterable(toReport, out);
+					Files.writeIterable(allSigGenesListSpecific, allSigGenesSpecific);
 					filesToCombine.add(out);
 				} else {
 					log.reportTimeInfo("Nothing to report for " + result.key);
@@ -551,11 +551,11 @@ public class PlinkCNV {
 			}
 		}
 
-		Files.writeArrayList(key, finalDir + "key.txt");
-		Files.writeArrayList(combo, comboOut);
-		Files.writeHashSet(allSigGenesList, allSigGenes);
-		Files.writeHashSet(allSigGenesList5k, allSigGenes5k);
-		Files.writeHashSet(allSigGenesListEMP2, allSigGenesEMP2);
+		Files.writeIterable(key, finalDir + "key.txt");
+		Files.writeIterable(combo, comboOut);
+		Files.writeIterable(allSigGenesList, allSigGenes);
+		Files.writeIterable(allSigGenesList5k, allSigGenes5k);
+		Files.writeIterable(allSigGenesListEMP2, allSigGenesEMP2);
 
 		ExcelConverter excelConverter = new ExcelConverter(filesToCombine, finalDir + "p_0_05.xlsx", log);
 		excelConverter.convert(true);

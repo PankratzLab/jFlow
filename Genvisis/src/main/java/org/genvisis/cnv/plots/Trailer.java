@@ -1048,7 +1048,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
       for (int i = 0; i < regionLines.length; i++) {
         regionLines[i] = Array.toStr(regions[i], "\t");
       }
-      Files.writeList(regionLines, newFile);
+      Files.writeArray(regionLines, newFile);
       addFileToList(newFile, true);
       regionFileName = newFile;
 

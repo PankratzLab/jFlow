@@ -418,7 +418,7 @@ public class DeNovoMatic {
       toWrite.add(p1 + "\t" + off);
       toWrite.add(p2 + "\t" + off);
     }
-    Files.writeList(Array.toStringArray(toWrite), output);
+    Files.writeArray(Array.toStringArray(toWrite), output);
   }
 
   public static void main(String[] args) {

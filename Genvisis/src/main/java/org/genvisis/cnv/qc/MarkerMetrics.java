@@ -1148,7 +1148,7 @@ public class MarkerMetrics {
       }
       writer.println("Any annotation\t" + markerNames.length + "\t" + reclusteredMarkers.size()
                      + "\t" + droppedMarkers.size());
-      Files.writeList(HashVec.getKeys(droppedMarkers), proj.RESULTS_DIRECTORY.getValue(false, true)
+      Files.writeArray(HashVec.getKeys(droppedMarkers), proj.RESULTS_DIRECTORY.getValue(false, true)
                                                        + "markers_that_were_dropped.out");
 
       allOtherMarkers = HashVec.loadToHashSet(proj.getMarkerNames());
@@ -1158,7 +1158,7 @@ public class MarkerMetrics {
       numReclustered = numDropped = 0;
       markerNames = HashVec.getKeys(allOtherMarkers, false, false);
       writer.print("Everything else\t" + markerNames.length);
-      Files.writeList(markerNames, proj.RESULTS_DIRECTORY.getValue(false, true)
+      Files.writeArray(markerNames, proj.RESULTS_DIRECTORY.getValue(false, true)
                                    + "markers_not_yet_annotated.out");
 
 

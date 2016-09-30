@@ -100,7 +100,7 @@ public class Samtools {
     dir = ext.verifyDirFormat(dir);
 
     if (!Files.exists(pwd + "samCountReadsPerChr")) {
-      Files.writeList(COUNT_READS_PER_CHR, pwd + "samCountReadsPerChr");
+      Files.writeArray(COUNT_READS_PER_CHR, pwd + "samCountReadsPerChr");
       Files.chmod(pwd + "samCountReadsPerChr");
     }
 

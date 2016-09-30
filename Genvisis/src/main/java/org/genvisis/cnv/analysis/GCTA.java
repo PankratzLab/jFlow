@@ -377,7 +377,7 @@ public class GCTA {
           pheno.add(fidIID.get(j) + "\t" + (Numbers.isFinite(data[j]) ? data[j] + "" : "NA"));
         }
         final String phenoFile = resultsDir + current + ".txt";
-        Files.writeArrayList(pheno, phenoFile);
+        Files.writeIterable(pheno, phenoFile);
         hive.addCallable(new Callable<GCTA.VarianceResult>() {
 
           @Override
@@ -443,7 +443,7 @@ public class GCTA {
     String[] plinks = PSF.Plink.getPlinkBedBimFam(plinkRoot);
     if (!Files.exists("", plinks)) {
       String nonCNFile = outDir + "markersToQC.txt";
-      Files.writeList(proj.getNonCNMarkers(), nonCNFile);
+      Files.writeArray(proj.getNonCNMarkers(), nonCNFile);
       Pedigree.build(proj, null, samples, false);
       PlinkData.saveGenvisisToPlinkBedSet(proj, "gcta/gcta", null, nonCNFile, -1, true);
     }

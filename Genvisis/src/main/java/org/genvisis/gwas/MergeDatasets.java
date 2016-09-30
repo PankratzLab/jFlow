@@ -415,7 +415,7 @@ public class MergeDatasets {
     }
 
     keys = HashVec.getKeys(hash, false, false);
-    Files.writeList(keys, dir + "list.0.snps");
+    Files.writeArray(keys, dir + "list.0.snps");
     try {
       writer = new PrintWriter(new FileWriter(dir + "unanimousPositions.xln"));
       writer2 = new PrintWriter(new FileWriter(dir + "discrepancies.xln"));

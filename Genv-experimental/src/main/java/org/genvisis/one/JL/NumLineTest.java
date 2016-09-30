@@ -18,7 +18,7 @@ public class NumLineTest {
 				"4",
 				"5"
 		};
-		Files.writeList(file, "test.txt");
+		Files.writeArray(file, "test.txt");
 		System.out.println(Files.countLines("test.txt", 0));
 		System.out.println(Files.countLines("test.txt", 1));
 		System.out.println(Files.countLines("test.txt", 2));

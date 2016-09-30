@@ -579,7 +579,7 @@ public class ExomeDepth {
           log.reportTimeWarning("Using existing count file " + exomeDepth.getCountFile());
         }
         String tmpBams = outputDir + outputRoot + "ExomeDepth_" + i + ".bams";
-        Files.writeList(batches.get(i), tmpBams);
+        Files.writeArray(batches.get(i), tmpBams);
 
         String qsub = outputDir + outputRoot + "ExomeDepth_" + i + ".pbs";
         String command = "";

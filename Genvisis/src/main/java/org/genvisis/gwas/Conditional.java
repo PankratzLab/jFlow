@@ -331,7 +331,7 @@ public class Conditional {
         v.add(snps[i] + "\t1");
       }
     }
-    Files.writeList(Array.toStringArray(v), dir + "condis.txt");
+    Files.writeArray(Array.toStringArray(v), dir + "condis.txt");
     hashes = new Hashtable<String, Hashtable<String, String>>();
     if (v.size() > 0) {
       if (Mach.extractSpecificMarkers(dir, dir + "condis.txt", dir + doseFile, dir + infoFile,
@@ -923,7 +923,7 @@ public class Conditional {
 
     if (iterate) {
       models.insertElementAt("#" + ext.getDate() + " " + ext.getTime(), 0);
-      Files.writeList(Array.toStringArray(models),
+      Files.writeArray(Array.toStringArray(models),
                       ext.parseDirectoryOfFile(outfile) + "All_models.dat");
     }
   }

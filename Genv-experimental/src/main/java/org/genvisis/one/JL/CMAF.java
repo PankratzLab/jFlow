@@ -105,7 +105,7 @@ public class CMAF {
 		log.reportTimeInfo(Array.toStr(numVars));
 		log.reportTimeInfo(Array.toStr(numMuts));
 
-		Files.writeArrayList(out, outDir + VCFOps.getAppropriateRoot(vcf, true)
+		Files.writeIterable(out, outDir + VCFOps.getAppropriateRoot(vcf, true)
 				+ (requiredAnno == null ? "" : requiredAnno) + ".cmaf.txt");
 
 	}

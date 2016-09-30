@@ -126,8 +126,8 @@ public class ExomeDepthEvaluation {
 
 					proj.INDIVIDUAL_CNV_LIST_FILENAMES.setValue(new String[] { listHitFile, listMissFile });
 
-					Files.writeList(listHit.toArray(new String[listHit.size()]), proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue()[0]);
-					Files.writeList(listMiss.toArray(new String[listMiss.size()]), proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue()[1]);
+					Files.writeArray(listHit.toArray(new String[listHit.size()]), proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue()[0]);
+					Files.writeArray(listMiss.toArray(new String[listMiss.size()]), proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue()[1]);
 
 					missSet.writeRegions(cnvMissFile, TO_STRING_TYPE.REGULAR, true, log);
 					proj.CNV_FILENAMES.setValue(new String[] { pennCNVFile, cnvMissFile, cnvHitsFile });

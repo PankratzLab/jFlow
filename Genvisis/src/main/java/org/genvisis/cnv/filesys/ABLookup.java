@@ -776,7 +776,7 @@ public class ABLookup {
           markerDataLoader.releaseIndex(i);
         }
       }
-      Files.writeList(markerNames, output);
+      Files.writeArray(markerNames, output);
     } catch (FileNotFoundException fnfe) {
       log.reportError("Error: file \"" + incompleteABlookupFilename
                       + "\" not found in current directory");

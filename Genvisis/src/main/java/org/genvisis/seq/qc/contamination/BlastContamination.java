@@ -176,7 +176,7 @@ public class BlastContamination {
     String[][] batches = new String[splits.size()][1];
     for (int i = 0; i < batches.length; i++) {
       batches[i][0] = "batch_" + i + "_" + outputRoot;
-      Files.writeList(splits.get(i), outputDir + batches[i][0] + ".txt");
+      Files.writeArray(splits.get(i), outputDir + batches[i][0] + ".txt");
     }
     command += "\njava -cp " + PSF.Java.GENVISIS + " -Xmx" + memoryInMB
                + "m seq.qc.contamination.BlastContamination" + PSF.Ext.SPACE;

@@ -152,7 +152,7 @@ public class AffyPipeline {
     String celListFile = outDir + analysisName + ".celList.txt";
     String[] toWrite = new String[] {AFFY_CEL_LIST_HEADER};
     toWrite = Array.concatAll(toWrite, celFiles);
-    Files.writeList(toWrite, celListFile);
+    Files.writeArray(toWrite, celListFile);
     return celListFile;
   }
 
@@ -275,13 +275,13 @@ public class AffyPipeline {
     if (markersNotUsed.size() > 0) {
       log.reportTimeInfo(markersNotUsed.size() + " markers where skipped");
       String pIdSkipFile = outDir + analysisName + ".probesetIdsSkipped.txt";
-      Files.writeList(Array.toStringArray(markersNotUsed), pIdSkipFile);
+      Files.writeArray(Array.toStringArray(markersNotUsed), pIdSkipFile);
 
     }
     String pIdAllFile = outDir + analysisName + ".probesetIdsAll.txt";
     String pIdSnpFile = outDir + analysisName + ".probesetIdsSNPS.txt";
-    Files.writeList(Array.toStringArray(probesetIdsAll), pIdAllFile);
-    Files.writeList(Array.toStringArray(probesetIdsSNP), pIdSnpFile);
+    Files.writeArray(Array.toStringArray(probesetIdsAll), pIdAllFile);
+    Files.writeArray(Array.toStringArray(probesetIdsSNP), pIdSnpFile);
 
     new File(smallCelList).delete();
     Probesets probesets = new Probesets(pIdSnpFile, pIdAllFile);

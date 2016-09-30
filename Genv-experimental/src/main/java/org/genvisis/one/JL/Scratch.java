@@ -143,7 +143,7 @@ public class Scratch {
 		}
 
 		String out = ext.addToRoot(pos, ".PC.mito.subset");
-		Files.writeArrayList(outMarks, out);
+		Files.writeIterable(outMarks, out);
 		Markers.orderMarkers(combo, out, out + "check", log);
 
 		// String[] us = HashVec.loadFileToStringArray(dir + "custom.gcmodel", false, new int[] { 0 }, false);

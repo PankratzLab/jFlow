@@ -259,7 +259,7 @@ public class VCF {
       vcfFileReader.close();
       variantContextWriter.close();
       if (toDump != null) {
-        Files.writeList(Array.toStringArray(toDumpTmp),
+        Files.writeArray(Array.toStringArray(toDumpTmp),
                         ext.rootOf(outputVCF, false) + ".filteredAnno");
         try {
           PrintWriter writer = new PrintWriter(new FileWriter(ext.rootOf(outputVCF, false)
@@ -393,7 +393,7 @@ public class VCF {
   public static void extractAvaliableAnnotations(String vcfFile, Logger log) {
     VCF vcf = new VCF(vcfFile, new Logger());
     String[] annos = vcf.getAvailableAnno();
-    Files.writeList(annos, ext.rootOf(vcfFile, false) + ".anno");
+    Files.writeArray(annos, ext.rootOf(vcfFile, false) + ".anno");
     vcf.closeReader();
   }
 

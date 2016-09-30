@@ -546,7 +546,7 @@ public class DumpSAS {
           writer.println();
         }
         writer.close();
-        Files.writeList(HashVec.getKeys(masterIDs, true, false), idfile);
+        Files.writeArray(HashVec.getKeys(masterIDs, true, false), idfile);
         if (error) {
           log.reportError("\nFailed to generate all bits of " + crffile
                           + "; the hits algorithm was not attempted");

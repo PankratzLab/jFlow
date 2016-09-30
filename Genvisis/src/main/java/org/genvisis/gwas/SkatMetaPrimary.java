@@ -196,7 +196,7 @@ public class SkatMetaPrimary {
       v.add(consolidate);
       v.add("class(" + cohort + ") <- \"skatCohort\"");
       v.add("save(" + cohort + ", file=\"" + cohort + ".RData\", compress=\"bzip2\")");
-      Files.writeList(Array.toStringArray(v), batchDir + "mergeRdataFiles.R");
+      Files.writeArray(Array.toStringArray(v), batchDir + "mergeRdataFiles.R");
       commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save " + batchDir
                  + "mergeRdataFiles.R";
       Files.qsub(batchDir + "run_mergeRdataFiles_" + cohort, commands, qsubMem * 4, qsubWalltime,
@@ -239,7 +239,7 @@ public class SkatMetaPrimary {
         v.add("");
       }
     }
-    Files.writeList(Array.toStringArray(v), "scriptAll");
+    Files.writeArray(Array.toStringArray(v), "scriptAll");
     Files.chmod("scriptAll");
 
     v = new Vector<String>();
@@ -251,7 +251,7 @@ public class SkatMetaPrimary {
         v.add("");
       }
     }
-    Files.writeList(Array.toStringArray(v), "scriptAllItasca");
+    Files.writeArray(Array.toStringArray(v), "scriptAllItasca");
     Files.chmod("scriptAllItasca");
 
     v = new Vector<String>();
@@ -266,7 +266,7 @@ public class SkatMetaPrimary {
         }
       }
     }
-    Files.writeList(Array.toStringArray(v), "finishUpOnSB");
+    Files.writeArray(Array.toStringArray(v), "finishUpOnSB");
     Files.chmod("finishUpOnSB");
 
     v = new Vector<String>();
@@ -279,7 +279,7 @@ public class SkatMetaPrimary {
         v.add("");
       }
     }
-    Files.writeList(Array.toStringArray(v), "mergeAll");
+    Files.writeArray(Array.toStringArray(v), "mergeAll");
     Files.chmod("mergeAll");
 
     v = new Vector<String>();
@@ -293,7 +293,7 @@ public class SkatMetaPrimary {
         v.add("");
       }
     }
-    Files.writeList(Array.toStringArray(v), "packageUpAll");
+    Files.writeArray(Array.toStringArray(v), "packageUpAll");
     Files.chmod("packageUpAll");
   }
 
@@ -316,7 +316,7 @@ public class SkatMetaPrimary {
       v.add("cd ../../");
       v.add("");
     }
-    Files.writeList(Array.toStringArray(v), "addAll");
+    Files.writeArray(Array.toStringArray(v), "addAll");
     Files.chmod("addAll");
   }
 

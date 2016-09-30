@@ -138,9 +138,9 @@ public class Minimac {
       System.exit(2);
     }
 
-    Files.writeList(Array.toStringArray(flips), "flips.txt");
-    Files.writeList(Array.toStringArray(mismatches), "mismatches.txt");
-    Files.writeList(Array.toStringArray(others), "problems.txt");
+    Files.writeArray(Array.toStringArray(flips), "flips.txt");
+    Files.writeArray(Array.toStringArray(mismatches), "mismatches.txt");
+    Files.writeArray(Array.toStringArray(others), "problems.txt");
   }
 
   public static void filterHaplotypes(String hapFile, String mapFile, String flips, String drops,
@@ -220,7 +220,7 @@ public class Minimac {
         count++;
       }
     }
-    Files.writeList(finalMarkerNames, newMapFilename);
+    Files.writeArray(finalMarkerNames, newMapFilename);
   }
 
   public static void extractMarkerGenotypesFromMultipleHaplotypes(String hapFileFormat,
@@ -274,7 +274,7 @@ public class Minimac {
     if (merges.size() > 1) {
       command = "plink --file " + ext.rootOf(merges.remove(0).split("[\\s]+")[0])
                 + " --merge-list merges.txt --make-bed --out " + ext.rootOf(markerFile);
-      Files.writeList(Array.toStringArray(merges), "merges.txt");
+      Files.writeArray(Array.toStringArray(merges), "merges.txt");
       CmdLine.run(command, "./");
 
     }
@@ -395,7 +395,7 @@ public class Minimac {
       System.exit(2);
     }
 
-    Files.writeList(new String[] {"java -jar /home/npankrat/Haploview.jar -pedfile " + rootForOutput
+    Files.writeArray(new String[] {"java -jar /home/npankrat/Haploview.jar -pedfile " + rootForOutput
                                   + ".ped -info " + rootForOutput + ".info"},
                     rootForOutput + ".bat");
   }
@@ -717,9 +717,9 @@ public class Minimac {
       System.exit(2);
     }
 
-    Files.writeList(Array.toStringArray(flips), "flips.txt");
-    Files.writeList(Array.toStringArray(mismatches), "mismatches.txt");
-    Files.writeList(Array.toStringArray(others), "problems.txt");
+    Files.writeArray(Array.toStringArray(flips), "flips.txt");
+    Files.writeArray(Array.toStringArray(mismatches), "mismatches.txt");
+    Files.writeArray(Array.toStringArray(others), "problems.txt");
 
   }
 

@@ -194,7 +194,7 @@ public class MarkerBlastIterator {
 				}
 
 			}
-			Files.writeList(markersOffTargetPerfectMatch.toArray(new String[markersOffTargetPerfectMatch.size()]), results[i].getOutput() + ".OFF_target_PM.TXT");
+			Files.writeArray(markersOffTargetPerfectMatch.toArray(new String[markersOffTargetPerfectMatch.size()]), results[i].getOutput() + ".OFF_target_PM.TXT");
 			ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 			builder.separator("\t");
 			builder.sampleBased(false);
@@ -292,7 +292,7 @@ public class MarkerBlastIterator {
 
 			String oneHitWonders = ext.addToRoot(results[i].getOutput(), ".oneHitWonders_" + oneHitWonderDef);
 			String oneHitTargets = ext.addToRoot(proj.TARGET_MARKERS_FILENAMES.getValue()[0], ".oneHitWonders_" + oneHitWonderDef);
-			Files.writeArrayList(oneHitters, oneHitWonders);
+			Files.writeIterable(oneHitters, oneHitWonders);
 			extractOneHitWondersFrom(proj.TARGET_MARKERS_FILENAMES.getValue()[0], Array.toStringArray(oneHitters), oneHitTargets, log);
 			if (otherMarkersToExtract != null) {
 				for (int j = 0; j < otherMarkersToExtract.length; j++) {

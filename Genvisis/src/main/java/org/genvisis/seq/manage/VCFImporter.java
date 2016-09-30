@@ -439,7 +439,7 @@ public class VCFImporter {
 
     processExt(projNorm, gc5Base);
     projNorm.TARGET_MARKERS_FILENAMES.setValue(new String[] {ext.rootOf(vcf) + ".targetMarkers"});
-    Files.writeList(projNorm.getAutosomalMarkers(),
+    Files.writeArray(projNorm.getAutosomalMarkers(),
                     projNorm.TARGET_MARKERS_FILENAMES.getValue()[0]);
     processCentroids(projNorm, vcf, numThreads);
     projNorm.LRRSD_CUTOFF.setValue(2.2);
@@ -448,9 +448,9 @@ public class VCFImporter {
     projNorm.saveProperties();
     String pretendMedian = projNorm.PROJECT_DIRECTORY.getValue() + "pretendMedian.txt";
 
-    Files.writeList(Array.subArray(projNorm.getAutosomalMarkers(), 0, 100), pretendMedian);
+    Files.writeArray(Array.subArray(projNorm.getAutosomalMarkers(), 0, 100), pretendMedian);
     String useFile = projNorm.PROJECT_DIRECTORY.getValue() + "VCF_SAMPLES_TO_USE.txt";
-    Files.writeList(Array.subArray(projNorm.getSamples(), projNorm.getSamplesToInclude(null, true)),
+    Files.writeArray(Array.subArray(projNorm.getSamples(), projNorm.getSamplesToInclude(null, true)),
                     useFile);
     projNorm.getSamplesToInclude(null);
     MitoPipeline.catAndCaboodle(projNorm, numThreads, pretendMedian, 100,

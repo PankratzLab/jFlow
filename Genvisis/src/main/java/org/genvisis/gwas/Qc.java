@@ -278,7 +278,7 @@ public class Qc {
       if (runCode1 != 0) {
         // ERROR! TODO not sure if we should quit here; for now, continue;
       }
-      Files.writeList(Array.addStrToArray("dir=" + dir + "marker_qc/",
+      Files.writeArray(Array.addStrToArray("dir=" + dir + "marker_qc/",
                                           HashVec.loadFileToStringArray(dir + "marker_qc/miss.crf",
                                                                         false, new int[] {0},
                                                                         false),

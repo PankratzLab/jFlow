@@ -120,7 +120,7 @@ public class ConvertToBuild37 {
                           false)) {
         System.err.println("Error - getting the same list of positions to convert and it's not the same number as is in liftOver.bed");
       } else {
-        Files.writeList(locs, dir + "liftOver.in");
+        Files.writeArray(locs, dir + "liftOver.in");
         System.out.println("Found " + locs.length + " new positions that have yet to be parsed:\n"
                            + "     1) upload file 'liftOver.in' to liftOver on UCSC\n"
                            + "     2) copy any .err files to the current directory\n"

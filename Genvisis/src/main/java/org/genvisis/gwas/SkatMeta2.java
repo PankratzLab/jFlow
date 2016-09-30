@@ -303,7 +303,7 @@ public class SkatMeta2 {
                                                                     "(ARIC_Whites_maf_SingleSNP || ARIC_Blacks_maf_SingleSNP) > 0"},
                                                       regionSearchDistance, log);
             if (fromPreConditionResults != null) {
-              Files.writeList(fromPreConditionResults, condFile);
+              Files.writeArray(fromPreConditionResults, condFile);
               isInitialConditionReady = true;
               log.report("No existing initial condition found. Has developed new initial condition from:\n  "
                          + resultFile);
@@ -327,7 +327,7 @@ public class SkatMeta2 {
                                                                     "(ARIC_Whites_maf_SingleSNP || ARIC_Blacks_maf_SingleSNP) > 0"},
                                                       regionSearchDistance, log);
           if (fromPreConditionResults != null) {
-            Files.writeList(fromPreConditionResults,
+            Files.writeArray(fromPreConditionResults,
                             condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT,
                                                                                   "cond1"));
             isInitialConditionReady = true;
@@ -545,7 +545,7 @@ public class SkatMeta2 {
     }
 
     if (significantSnpOfEachRegion.size() > 0) {
-      Files.writeList(getNextCondition(significantSnpOfEachRegion, previousCondition, regionToGenes,
+      Files.writeArray(getNextCondition(significantSnpOfEachRegion, previousCondition, regionToGenes,
                                        regionToSnps, log),
                       nextCondFileFullPath);
       result = true;
@@ -1559,7 +1559,7 @@ public class SkatMeta2 {
     if (newCondition == null) {
       return false;
     } else {
-      Files.writeList(newCondition, fullpathToOutputNextRoundCondition);
+      Files.writeArray(newCondition, fullpathToOutputNextRoundCondition);
       return true;
     }
   }
@@ -2716,7 +2716,7 @@ public class SkatMeta2 {
           }
         }
         if (list.size() > 0) {
-          Files.writeList(list.toArray(new String[0]), outFilename2);
+          Files.writeArray(list.toArray(new String[0]), outFilename2);
         }
       }
     }
@@ -3455,7 +3455,7 @@ public class SkatMeta2 {
       significantSnpOfEachRegion = getSignificantSnpOfEachRegion(resultFileForNextCond,
                                                                  regionToGenes, pThreshold, log);
       if (significantSnpOfEachRegion.size() > 0) {
-        Files.writeList(getNextCondition(significantSnpOfEachRegion, previousCondition,
+        Files.writeArray(getNextCondition(significantSnpOfEachRegion, previousCondition,
                                          regionToGenes, regionToSnps, log),
                         nextCondFileFullPath);
         result = true;

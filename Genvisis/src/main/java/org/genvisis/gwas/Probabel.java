@@ -129,7 +129,7 @@ public class Probabel {
       }
     }
 
-    Files.writeList(Array.toStringArray(v), "master." + ext.rootOf(pheno));
+    Files.writeArray(Array.toStringArray(v), "master." + ext.rootOf(pheno));
     Files.chmod("master." + ext.rootOf(pheno));
   }
 

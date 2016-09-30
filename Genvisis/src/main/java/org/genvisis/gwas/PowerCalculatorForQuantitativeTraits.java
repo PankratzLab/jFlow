@@ -56,7 +56,7 @@ public class PowerCalculatorForQuantitativeTraits {
     results = Internat.doSubmit("http://pngu.mgh.harvard.edu/~purcell/cgi-bin/qtlassoc.cgi", data,
                                 1000);
 
-    Files.writeList(results, "D:/test.html");
+    Files.writeArray(results, "D:/test.html");
 
     if (results[0].contains("Overall ")) {
       trav = results[0].substring(results[0].indexOf("Overall "));

@@ -427,7 +427,7 @@ public class IndependentSNPs {
     if (missingMarkers.size() > 0) {
       log.reportError("Error - Missing " + missingMarkers.size() + " markers for threshold "
                       + pval_threshold);
-      Files.writeList(Array.toStringArray(missingMarkers),
+      Files.writeArray(Array.toStringArray(missingMarkers),
                       dir + (outputRoot == null ? pval_threshold : outputRoot)
                                                            + "_missingValues.txt");
     }
@@ -435,7 +435,7 @@ public class IndependentSNPs {
       log.reportError("Error - Missing Illumina design scores for " + missingIlluminaValues.size()
                       + " markers");
       missingIlluminaValues.insertElementAt("Locus_Name", 0);
-      Files.writeList(Array.toStringArray(missingIlluminaValues),
+      Files.writeArray(Array.toStringArray(missingIlluminaValues),
                       dir + (outputRoot == null ? pval_threshold : outputRoot) + "_ill.txt");
     }
 
@@ -479,13 +479,13 @@ public class IndependentSNPs {
       e.printStackTrace();
     }
 
-    Files.writeList(trimList(tags, numSNPs),
+    Files.writeArray(trimList(tags, numSNPs),
                     dir + (outputRoot == null ? pval_threshold : outputRoot) + "_tags.xln");
     if (filteringDataset != null) {
-      Files.writeList(Array.toStringArray(checkTags),
+      Files.writeArray(Array.toStringArray(checkTags),
                       dir + (outputRoot == null ? pval_threshold : outputRoot)
                                                       + "_checkArray_tags.xln");
-      Files.writeList(Array.toStringArray(untaggedTags),
+      Files.writeArray(Array.toStringArray(untaggedTags),
                       dir + (outputRoot == null ? pval_threshold : outputRoot)
                                                          + "_untagged_tags.xln");
     }

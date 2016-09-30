@@ -223,7 +223,7 @@ public class ParseSNPlocations {
     }
 
     if (rsNotFound.size() > 0) {
-      Files.writeArrayList(rsNotFound, ext.rootOf(snpListFile, false) + "_missing.txt");
+      Files.writeIterable(rsNotFound, ext.rootOf(snpListFile, false) + "_missing.txt");
     }
     if (monitor != null) {
       monitor.endTask(PROG_KEY);
@@ -462,7 +462,7 @@ public class ParseSNPlocations {
     }
 
     if (rsNotFound.size() > 0) {
-      Files.writeArrayList(rsNotFound, ext.rootOf(snpListFile, false) + "_missing.txt");
+      Files.writeIterable(rsNotFound, ext.rootOf(snpListFile, false) + "_missing.txt");
     }
     if (monitor != null) {
       monitor.endTask(PROG_KEY);

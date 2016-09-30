@@ -1192,7 +1192,7 @@ public class VCFOps {
         }
       }
 
-      Files.writeList(toRemoveHash.toArray(new String[toRemoveHash.size()]), idFile);
+      Files.writeArray(toRemoveHash.toArray(new String[toRemoveHash.size()]), idFile);
       HashSet<String> sampleHash = new HashSet<String>();
       for (String sample : samples) {
         sampleHash.add(sample);
@@ -1260,8 +1260,8 @@ public class VCFOps {
         String anchorList = matchDir + "anchors.txt";
         String barnacleList = matchDir + j + "barnacles.txt";
 
-        Files.writeList(anchors.toArray(new String[anchors.size()]), anchorList);
-        Files.writeList(barnaclesPresent.toArray(new String[barnaclesPresent.size()]),
+        Files.writeArray(anchors.toArray(new String[anchors.size()]), anchorList);
+        Files.writeArray(barnaclesPresent.toArray(new String[barnaclesPresent.size()]),
                         barnacleList);
         String[] run = new String[] {"C1", "C3"};
         System.out.println("RUNNING match1");

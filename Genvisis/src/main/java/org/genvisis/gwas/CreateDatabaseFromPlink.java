@@ -487,7 +487,7 @@ public class CreateDatabaseFromPlink {
     if (monomorphs.size() > 0) {
       log.report("There were " + monomorphs.size()
                  + " monomorphic markers that will be filtered out");
-      Files.writeList(Array.subArray(markerNames, Ints.toArray(monomorphs)),
+      Files.writeArray(Array.subArray(markerNames, Ints.toArray(monomorphs)),
                       ext.parseDirectoryOfFile(filename) + "monomorphs.dat");
       temp = outfile + ".bak";
       new File(outfile).renameTo(new File(temp));

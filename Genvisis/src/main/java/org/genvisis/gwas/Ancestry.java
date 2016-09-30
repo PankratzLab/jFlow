@@ -93,7 +93,7 @@ public class Ancestry {
 
     if (!Files.exists(dir + "overlap.txt")) {
       log.report(ext.getTime() + "]\tGenerating list of overlapping SNPs");
-      Files.writeVector(HashVec.loadFileToVec(dir + "unambiguousHapMap.bim", false, new int[] {1},
+      Files.writeIterable(HashVec.loadFileToVec(dir + "unambiguousHapMap.bim", false, new int[] {1},
                                               false, false),
                         dir + "overlap.txt");
     }
@@ -141,7 +141,7 @@ public class Ancestry {
 
     if (!Files.exists(dir + "finalSNPs.txt")) {
       log.report(ext.getTime() + "]\tWriting final list of SNPs to use");
-      Files.writeVector(HashVec.loadFileToVec(dir + "combo.bim", false, new int[] {1}, false,
+      Files.writeIterable(HashVec.loadFileToVec(dir + "combo.bim", false, new int[] {1}, false,
                                               false),
                         dir + "finalSNPs.txt");
     }
@@ -161,7 +161,7 @@ public class Ancestry {
       Vector<String> unrelateds = HashVec.loadFileToVec(dir + "unambiguousHapMap.fam", false,
                                                         new int[] {0, 1}, false, false);
       unrelateds.addAll(HashVec.loadFileToVec(dir + "unrelateds.txt", false, false, false));
-      Files.writeVector(unrelateds, unrelatedsDir + "unrelateds.txt");
+      Files.writeIterable(unrelateds, unrelatedsDir + "unrelateds.txt");
     }
 
     if (!Files.exists(unrelatedsDir + "plink.bed")) {

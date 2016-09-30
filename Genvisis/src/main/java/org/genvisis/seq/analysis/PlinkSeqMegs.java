@@ -235,16 +235,16 @@ public class PlinkSeqMegs {
         vcfs.add(tmpVCF);
         masterVCFS.add(tmpVCF);
       }
-      Files.writeList(vcfs.toArray(new String[vcfs.size()]), vcfFile);
+      Files.writeArray(vcfs.toArray(new String[vcfs.size()]), vcfFile);
       String[] batchCommand = new String[] {"vcfs=" + vcfFile, (i == 0 ? "-loadLoc" : "")};
 
       batches.add("qsub -q " + batch);
       Files.qsub(batch, Array.toStr(Array.concatAll(baseCommand, batchCommand), " "),
                  totalMemoryRequestedInMb, walltimeRequestedInHours, numthreads);
     }
-    Files.writeList(batches.toArray(new String[batches.size()]),
+    Files.writeArray(batches.toArray(new String[batches.size()]),
                     rootOut + ext.rootOf(vpopFile) + "master.sh");
-    Files.writeList(masterVCFS.toArray(new String[masterVCFS.size()]),
+    Files.writeArray(masterVCFS.toArray(new String[masterVCFS.size()]),
                     rootOut + ext.rootOf(vpopFile) + "master.vcfs.txt");
 
     // Files.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir, batchRoot, maxJobsPerBatch,

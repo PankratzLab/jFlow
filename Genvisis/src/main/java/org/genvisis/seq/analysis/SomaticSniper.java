@@ -45,7 +45,7 @@ public class SomaticSniper {
     for (TNSample tnSample : tnSamples) {
       summaryMatch.add(tnSample.getNormalBam() + "\t" + tnSample.getTumorBam());
     }
-    Files.writeList(Array.toStringArray(summaryMatch), tnMatch);
+    Files.writeArray(Array.toStringArray(summaryMatch), tnMatch);
     TNProducer producer = new TNProducer(tnSamples);
     WorkerTrain<TNSample> train = new WorkerTrain<TNSample>(producer, numThreads, 2, log);
     ArrayList<String> finalOuts = new ArrayList<String>();
@@ -122,7 +122,7 @@ public class SomaticSniper {
       }
     }
     if (analysisBams.size() < bamFiles.length) {
-      Files.writeList(Array.toStringArray(analysisBams),
+      Files.writeArray(Array.toStringArray(analysisBams),
                       outputDir + ext.rootOf(vpop.getFileName() + ".analysis.bams.txt"));
     }
 

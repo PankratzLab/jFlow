@@ -26,6 +26,6 @@ public class SerialStringArray implements Serializable {
   }
 
   public static void dump(String filename) {
-    Files.writeList(load(filename, false).getArray(), filename + ".xln");
+    Files.writeArray(load(filename, false).getArray(), filename + ".xln");
   }
 }

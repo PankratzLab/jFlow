@@ -456,7 +456,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
     new File(extractDir).mkdirs();
     String segFile = extractDir + "segments.txt";
     String bamFile = extractDir + "bams.txt";
-    Files.writeList(bams, bamFile);
+    Files.writeArray(bams, bamFile);
     if (!Files.exists(segFile)) {
       try {
         PrintWriter writer = new PrintWriter(new FileWriter(segFile));
@@ -490,7 +490,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
     String baseOut = "[%0]";
     for (int i = 0; i < batches.length; i++) {
       batches[i][0] = outputDir + "batch_" + i + "_" + "pon.txt";
-      Files.writeList(splits.get(i), batches[i][0]);
+      Files.writeArray(splits.get(i), batches[i][0]);
     }
     getJava(command);
     command.addAll(getBaseArgs(gatk, outputDir, numthreads, numSampleThreads));

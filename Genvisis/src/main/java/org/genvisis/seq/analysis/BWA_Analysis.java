@@ -381,7 +381,7 @@ public class BWA_Analysis {
     String[][] batches = new String[batchedMatchedFiles.length][1];
     for (int i = 0; i < batches.length; i++) {
       batches[i][0] = "batch_" + i + "_" + baseName;
-      Files.writeList(batchedMatchedFiles[i], rootOutputDir + batches[i][0] + ".txt");
+      Files.writeArray(batchedMatchedFiles[i], rootOutputDir + batches[i][0] + ".txt");
     }
     // String rootInputDir, String rootOutputDir, String referenceGenomeFasta, String bwaLocation,
     // String fileOfSamplePairs, boolean overwriteExisting, boolean verbose, int numMemThreads, int
