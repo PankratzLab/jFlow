@@ -1,11 +1,13 @@
 package org.genvisis.cnv;
 
+import java.awt.AWTError;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -94,7 +96,7 @@ import org.genvisis.cyto.CytoGUI;
 public class Launch extends JFrame implements ActionListener, WindowListener {
 
   public static final long serialVersionUID = 1L;
-
+  
   // Menu entry constants
   public static final String EXIT = "Exit";
   public static final String EDIT = "Project Properties Editor";
@@ -345,7 +347,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
   /**
    * This helper class is a catch-all for any exceptions that would not otherwise be caught.
    */
-  private static final class ExceptionHandler implements Thread.UncaughtExceptionHandler {
+  private static final class ExceptionHandler implements Thread.UncaughtExceptionHandler {    
+    static final String X11_ERROR_MSG_FORE = "Error occurred with X11 forwarding - ";
+    static final String X11_ERROR_DISABLED = "it's likely that X11 forwarding is disabled; please check your SSH client settings and try again.";
+    static final String X11_ERROR_XMING_REC = "it's likely that X11 forwarding is enabled but you are missing an X11 forwarding server (we recommend Xming - http://sourceforge.net/projects/xming/)";
+    
     public Logger log;
 
     public void setLog(Logger log) {
@@ -373,6 +379,18 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
     try {
       UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+    } catch (AWTError e) {
+      if (e.getMessage().contains("X11")) {
+        // java 8, X11 forwarding enabled [in PUTTY], XMing not found
+        System.err.println(ExceptionHandler.X11_ERROR_MSG_FORE + ExceptionHandler.X11_ERROR_XMING_REC);
+        return;
+      }
+    } catch (InternalError e) {
+      if (e.getMessage().contains("X11")) {
+        // java 6, X11 forwarding enabled, XMing not found
+        System.err.println(ExceptionHandler.X11_ERROR_MSG_FORE + ExceptionHandler.X11_ERROR_XMING_REC);
+        return;
+      }
     } catch (Exception e2) {
       System.err.println("Failed loading CrossPlatformLookAndFeel");
       System.err.println(e2);
@@ -393,7 +411,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
     // Create a splash "loading" screen until it is safe to show the UI
     final String loadMsg = "Loading Genvisis";
-    final JFrame splash = new JFrame();
+    final JFrame splash;
+    try {
+      splash = new JFrame();
+    } catch (HeadlessException e) {
+      // X11 forwarding disabled
+      System.err.println(ExceptionHandler.X11_ERROR_MSG_FORE + ExceptionHandler.X11_ERROR_DISABLED);
+      return;
+    }
     final JLabel splashText = new JLabel(loadMsg, SwingConstants.CENTER);
     splash.add(splashText);
     splash.setSize(200, 75);
@@ -462,6 +487,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
       public void run() {
         splash.setVisible(false);
         launchUI.setVisible(true);
+        System.out.println(ext.getTime() + "]\tGenvisis Loaded.");
       }
     });
 
@@ -1385,10 +1411,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     try {
       System.out.println(ext.getTime() + "]\tStarting Genvisis...");
       createAndShowGUI();
-      System.out.println(ext.getTime() + "]\tGenvisis Loaded.");
     } catch (InternalError e) {
       if (e.getMessage().contains("X11")) {
-        System.err.println("Error occurred with X11 forwarding - please install an X11 forwarding server (we recommend Xming - http://sourceforge.net/projects/xming/) or check your X11 forwarding configuration");
+        System.err.println(ExceptionHandler.X11_ERROR_MSG_FORE + "cause of error unknown: " + e.toString());
       }
     }
   }
