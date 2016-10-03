@@ -409,7 +409,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
     // String logfile = null;
     // Logger log;
     String usage = "\n" + "seq.analysis.VCFTallyPSeq requires 0-1 arguments\n";
-    usage += "   (1) vcf file (i.e. file=" + vcf + " (default))\n" + "";
+    usage += "   (1) vcf file (i.e. vcf=" + vcf + " (default))\n" + "";
     usage += "   (2) vpop files, comma delimited (i.e. vpop=" + Array.toStr(vpopFiles)
              + " (default))\n" + "";
 
