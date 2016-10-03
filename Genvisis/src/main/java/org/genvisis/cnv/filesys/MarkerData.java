@@ -38,8 +38,6 @@ public class MarkerData implements Serializable {
   private final int position;
   private final long fingerprint;
   private final float[] gcs;
-  private final float[] xRaws;
-  private final float[] yRaws;
   private final float[] xs;
   private final float[] ys;
   private float[] thetas;
@@ -58,8 +56,6 @@ public class MarkerData implements Serializable {
     this.position = position;
     this.fingerprint = fingerprint;
     this.gcs = gcs;
-    this.xRaws = xRaws;
-    this.yRaws = yRaws;
     this.xs = xs;
     this.ys = ys;
     this.thetas = thetas;
@@ -304,11 +300,7 @@ public class MarkerData implements Serializable {
 
   int getDataLength() {
     int len = 0;
-    if (xRaws != null) {
-      len = xRaws.length;
-    } else if (yRaws != null) {
-      len = yRaws.length;
-    } else if (xs != null) {
+    if (xs != null) {
       len = xs.length;
     } else if (ys != null) {
       len = ys.length;
@@ -330,14 +322,6 @@ public class MarkerData implements Serializable {
 
   public float[] getGCs() {
     return gcs;
-  }
-
-  public float[] getX_Raws() {
-    return xRaws;
-  }
-
-  public float[] getY_Raws() {
-    return yRaws;
   }
 
   public float[] getXs() {
@@ -673,7 +657,6 @@ public class MarkerData implements Serializable {
       writer = new PrintWriter(new FileWriter(filename));
       writer.println((includeMarkerName ? "Marker\t" : "")
                      + (samples == null ? "SampleIndex" : "SampleId") + (gcs == null ? "" : "\tGC")
-                     + (xRaws == null ? "" : "\tRaw X") + (yRaws == null ? "" : "\tRaw Y")
                      + (xs == null ? "" : "\tX") + (ys == null ? "" : "\tY")
                      + (thetas == null ? "" : "\tTheta") + (rs == null ? "" : "\tR")
                      + (lrrs == null ? "" : "\tLRR") + (bafs == null ? "" : "\tBAF")
@@ -683,8 +666,7 @@ public class MarkerData implements Serializable {
       for (int i = 0; i < getDataLength(); i++) {
         writer.println((includeMarkerName ? markerName + "\t" : "")
                        + (samples != null ? samples[i] : i) + (gcs != null ? "\t" + gcs[i] : "")
-                       + (xRaws != null ? "\t" + xRaws[i] : "")
-                       + (yRaws != null ? "\t" + yRaws[i] : "") + (xs != null ? "\t" + xs[i] : "")
+                       + (xs != null ? "\t" + xs[i] : "")
                        + (ys != null ? "\t" + ys[i] : "") + (thetas != null ? "\t" + thetas[i] : "")
                        + (rs != null ? "\t" + rs[i] : "") + (lrrs != null ? "\t" + lrrs[i] : "")
                        + (bafs != null ? "\t" + bafs[i] : "")
