@@ -303,11 +303,8 @@ public class DosageData implements Serializable {
       
       if (dominanceFormat == MARKER_DOMINANT_FORMAT) {
         firstMkr = 0;
-        for (int i = 0; i < markersToKeep.length; i++) {
-          if (markersToKeep[i]) {
-            firstMkr = i;
-            break;
-          }
+        while(!markersToKeep[firstMkr]) {
+          firstMkr++;
         }
         for (int i = 0; i < firstMkr; i++) {
           reader.readLine(); // skip to first marker
@@ -1215,6 +1212,7 @@ public class DosageData implements Serializable {
     HashSet<String> droppedMarkers = new HashSet<String>();
     for (int i = 0; i < dd2Mkrs.length; i++) {
       dd2MarkersAndIndices.put(dd2Mkrs[i], i);
+      
       boolean alreadyPresentMkr = !markers.add(dd2Mkrs[i]);
       if (alreadyPresentMkr) {
         log.reportTime("Duplicate marker: " + dd2Mkrs[i]);
@@ -1244,48 +1242,54 @@ public class DosageData implements Serializable {
     idSet = null; // can now refer to ddNew.ids
 
     // don't use merge, as it sorts markers after merging
-    // ddNew.markerSet = SnpMarkerSet.merge(dd1.markerSet, dd2.markerSet); 
-    byte[] chrSrc;
-    char[][] alleleSrc;
-    int[] posSrc;
+//     ddNew.markerSet = SnpMarkerSet.merge(dd1.markerSet, dd2.markerSet); 
+    byte[] chrSrc, chrSrc2;
+    char[][] alleleSrc, alleleSrc2;
+    int[] posSrc, posSrc2;
 
-    ddNew.alleles = new char[markers.size() - droppedMarkers.size()][];
-    ddNew.chrs = new byte[markers.size() - droppedMarkers.size()];
-    ddNew.positions = new int[markers.size() - droppedMarkers.size()];
-    chrSrc = dd1.chrs == null ? dd1.markerSet.getChrs() : dd1.chrs;
-    alleleSrc = dd1.alleles == null ? dd1.markerSet.getAlleles() : dd1.alleles;
-    posSrc = dd1.positions == null ? dd1.markerSet.getPositions() : dd1.positions;
-    int chrOffset = chrSrc == null ? dd1Mkrs.length : chrSrc.length;
-    ind = 0;
-    for (int i = 0; i < chrOffset; i++) {
-      if (!droppedMarkers.contains(dd1Mkrs[i])) {
-        ddNew.chrs[ind] = chrSrc == null ? missingChr : chrSrc[i];
-        ddNew.alleles[ind] = alleleSrc == null ? missingAlleles : alleleSrc[i];
-        ddNew.positions[ind] = posSrc == null ? missingPos : posSrc[i];
-        ind++;
-      }
-    }
-    chrSrc = dd2.chrs == null ? dd2.markerSet.getChrs() : dd2.chrs;
-    alleleSrc = dd2.alleles == null ? dd2.markerSet.getAlleles() : dd2.alleles;
-    posSrc = dd2.positions == null ? dd2.markerSet.getPositions() : dd2.positions;
-    chrOffset = dd1Mkrs.length - droppedMarkers.size();
-    ind = 0;
-    for (int i = 0; i < chrSrc.length; i++) {
-      if (!duplicatedMarkerIndices.contains(i) && !droppedMarkers.contains(dd2Mkrs[i])) {
-        ddNew.chrs[chrOffset + ind] = chrSrc == null ? missingChr : chrSrc[i];
-        ddNew.alleles[chrOffset + ind] = alleleSrc == null ? missingAlleles : alleleSrc[i];
-        ddNew.positions[chrOffset + ind] = posSrc == null ? missingPos : posSrc[i];
-        ind++;
-      }
-    }
-    
     for (String s : droppedMarkers) {
       markers.remove(s);
     }
     
-    ddNew.markerSet = new SnpMarkerSet(markers.toArray(new String[markers.size()]), ddNew.chrs,
-                                       ddNew.positions, ddNew.alleles, null, false, true);
-
+    ddNew.alleles = new char[markers.size()][];
+    ddNew.chrs = new byte[markers.size()];
+    ddNew.positions = new int[markers.size()];
+    
+    chrSrc = dd1.chrs == null ? dd1.markerSet.getChrs() : dd1.chrs;
+    alleleSrc = dd1.alleles == null ? dd1.markerSet.getAlleles() : dd1.alleles;
+    posSrc = dd1.positions == null ? dd1.markerSet.getPositions() : dd1.positions;
+    
+    chrSrc2 = dd2.chrs == null ? dd2.markerSet.getChrs() : dd2.chrs;
+    alleleSrc2 = dd2.alleles == null ? dd2.markerSet.getAlleles() : dd2.alleles;
+    posSrc2 = dd2.positions == null ? dd2.markerSet.getPositions() : dd2.positions;
+    
+    String[] mkrs = new String[markers.size()];
+    Iterator<String> markerIter = markers.iterator();
+    int m = 0;
+    while (markerIter.hasNext()) {
+      String mkr = markerIter.next();
+      
+      mkrs[m] = mkr;
+      if (dd1MarkersAndIndices.containsKey(mkr)) {
+        ind = dd1MarkersAndIndices.get(mkr);
+        ddNew.chrs[m] = chrSrc == null ? missingChr : chrSrc[ind];
+        ddNew.alleles[m] = alleleSrc == null ? missingAlleles : alleleSrc[ind];
+        ddNew.positions[m] = posSrc == null ? missingPos : posSrc[ind];
+      } else if (dd2MarkersAndIndices.containsKey(mkr)) {
+        ind = dd2MarkersAndIndices.get(mkr);
+        ddNew.chrs[m] = chrSrc2 == null ? missingChr : chrSrc2[ind];
+        ddNew.alleles[m] = alleleSrc2 == null ? missingAlleles : alleleSrc2[ind];
+        ddNew.positions[m] = posSrc2 == null ? missingPos : posSrc2[ind];
+      } else {
+        ddNew.chrs[m] = missingChr;
+        ddNew.alleles[m] = missingAlleles;
+        ddNew.positions[m] = missingPos;
+      }
+      m++;
+    }
+    
+    ddNew.markerSet = new SnpMarkerSet(mkrs, ddNew.chrs, ddNew.positions, ddNew.alleles, null, false, true);
+    
     int dd1NumGeno = dd1.genotypeProbabilities == null ? (dd1.dosageValues == null ? 0 : 1)
                                                        : dd1.genotypeProbabilities[0][0].length;
     int dd2NumGeno = dd2.genotypeProbabilities == null ? (dd2.dosageValues == null ? 0 : 1)
@@ -1314,8 +1318,8 @@ public class DosageData implements Serializable {
 
     if (ddNewNumGeno > 1) {
       // combine genotypeProbs
-      Iterator<String> markerIter = markers.iterator();
-      int m = 0;
+      markerIter = markers.iterator();
+      m = 0;
       while (markerIter.hasNext()) {
         String mkr = markerIter.next();
         
@@ -1336,8 +1340,8 @@ public class DosageData implements Serializable {
       }
     } else if (ddNewNumGeno == 1) {
 
-      Iterator<String> markerIter = markers.iterator();
-      int m = 0;
+      markerIter = markers.iterator();
+      m = 0;
       while (markerIter.hasNext()) {
         String mkr = markerIter.next();
 

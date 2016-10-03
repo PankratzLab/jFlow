@@ -103,6 +103,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
   private double[] centiMorgans;
   private char[][] alleles;
   private String[][] annotation;
+  // if any more information is added, BE SURE TO ADD TO sortMarkers() 
   private Vector<String> nonRSmarkerNames;
   private int build;
 
@@ -840,6 +841,12 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
     rsNumbers = Sort.putInOrder(rsNumbers, keys);
     chrs = Sort.putInOrder(chrs, keys);
     positions = Sort.putInOrder(positions, keys);
+    if (alleles != null) {
+      alleles = Sort.putInOrder(alleles, keys);
+    }
+    if (centiMorgans != null) {
+      centiMorgans = Sort.putInOrder(centiMorgans, keys);
+    }
     if (annotation != null) {
       annotation = Sort.putInOrder(annotation, keys);
     }
