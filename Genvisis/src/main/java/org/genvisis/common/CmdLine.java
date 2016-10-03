@@ -47,8 +47,9 @@ public class CmdLine {
      */
     public Command(String[] commandArray, String[] necessaryInputFiles,
                    String[] expectedOutputFiles, String dir) {
-      this(Arrays.asList(commandArray), Arrays.asList(necessaryInputFiles),
-           Arrays.asList(expectedOutputFiles), dir);
+      this(Arrays.asList(commandArray),
+           necessaryInputFiles == null ? null : Arrays.asList(necessaryInputFiles),
+           expectedOutputFiles == null ? null : Arrays.asList(expectedOutputFiles), dir);
     }
 
     /**
