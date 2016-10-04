@@ -698,7 +698,7 @@ public class GeneScorePipeline {
             log.reportError("HitWindows result was null for " + dFile + ". Using all SNPs");
           } else {
             log.report(ext.getTime() + "]\tFound " + results.length + " hit windows");
-            for (int i = 1; i < results.length; i++) { // skip header line
+            for (int i = 0; i < results.length; i++) { 
               hitMkrSet.add(results[i][1]);
             }
           }
@@ -709,7 +709,7 @@ public class GeneScorePipeline {
             log.reportError(".meta file was empty for " + dFile);
           } else {
             log.report(ext.getTime() + "]\tUsing all " + mkrs.length + " SNPs in .meta file");
-            for (int i = 1; i < mkrs.length; i++) { // skip header line
+            for (int i = 0; i < mkrs.length; i++) {
               hitMkrSet.add(mkrs[i]);
             }
           }
@@ -1230,6 +1230,18 @@ public class GeneScorePipeline {
               cnt2 += isNaN ? 0 : dosage;
               scoreSum += (isNaN ? freqs.get(mkr) : dosage) * beta;
             }
+//            int code = Metal.determineStrandConfig(new String[]{}, new String[]{});
+//            if (code == Metal.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND || code == Metal.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND) {
+//              cnt += isNaN ? 0 : 1;
+//              cnt2 += isNaN ? 0 : (2.0 - dosage);
+//              scoreSum += (2.0 - (isNaN ? freqs.get(mkr) : dosage)) * beta;
+//            } else if (code == Metal.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND || code == Metal.STRAND_CONFIG_SAME_ORDER_SAME_STRAND) {
+//              cnt += isNaN ? 0 : 1;
+//              cnt2 += isNaN ? 0 : dosage;
+//              scoreSum += (isNaN ? freqs.get(mkr) : dosage) * beta;
+//            } else {
+//              System.err.println("Error - METAL CODE " + code + " - " + mkr + " == mkrAlleles: {" + mkrAllele1 + ", " + mkrAllele2 + "};  scoringAlleles: {" + scoringAllele1 + ", " + scoringAllele2 + "}");
+//            }
           }
           scoreWriter.println(ids[i][0] + "\t" + ids[i][1] + "\t" + markers.length + "\t"
                               + (2 * cnt) + "\t" + cnt2 + "\t" + ext.formDeci(scoreSum, 3));
