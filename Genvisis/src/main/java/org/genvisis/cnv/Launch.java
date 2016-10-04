@@ -1082,9 +1082,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     // These options require an active project
     if (command.equals(EDIT)) {
       log.report("Launching project properties editor...");
-      final ProjectPropertiesEditor configurator =
-                                                 new ProjectPropertiesEditor(proj,
-                                                                             ProjectPropertiesEditor.ALL_PROPERTY_SETS);
+      final ProjectPropertiesEditor configurator = new ProjectPropertiesEditor(proj);
       configurator.addWindowListener(new WindowAdapter() {
         @Override
         public void windowClosed(WindowEvent e) {

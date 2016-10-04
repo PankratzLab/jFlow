@@ -4,7 +4,6 @@ package org.genvisis.cnv.filesys;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -53,6 +52,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.filesys.Project.GROUP;
 import org.genvisis.cnv.prop.DoubleProperty;
 import org.genvisis.cnv.prop.FileProperty;
 import org.genvisis.cnv.prop.IntegerProperty;
@@ -68,128 +68,7 @@ import org.genvisis.common.ext;
 import net.miginfocom.swing.MigLayout;
 
 public class ProjectPropertiesEditor extends JFrame {
-
-  public static final String[][] ALL_PROPERTY_SETS =
-                                                   new String[][] {{"Project Name and Locations",
-                                                                    PropertyKeys.KEY_PROJECT_NAME,
-                                                                    PropertyKeys.KEY_PROJECT_DIRECTORY,
-                                                                    PropertyKeys.KEY_DATA_DIRECTORY,
-                                                                    PropertyKeys.KEY_SAMPLE_DATA_FILENAME,
-                                                                    PropertyKeys.KEY_SAMPLE_DIRECTORY,
-                                                                    PropertyKeys.KEY_MARKER_DATA_DIRECTORY,
-                                                                    PropertyKeys.KEY_RESULTS_DIRECTORY,
-                                                                    PropertyKeys.KEY_DEMO_DIRECTORY,
-                                                                    PropertyKeys.KEY_BACKUP_DIRECTORY,
-                                                                    PropertyKeys.KEY_ARRAY_TYPE,
-                                                                    PropertyKeys.KEY_XY_SCALE_FACTOR,},
-                                                                   {"Import",
-                                                                    PropertyKeys.KEY_SOURCE_DIRECTORY,
-                                                                    PropertyKeys.KEY_SOURCE_FILENAME_EXTENSION,
-                                                                    PropertyKeys.KEY_LONG_FORMAT,
-                                                                    PropertyKeys.KEY_SOURCE_FILE_DELIMITER,
-                                                                    PropertyKeys.KEY_ID_HEADER,
-                                                                    PropertyKeys.KEY_PARSE_AT_AT_SYMBOL,
-                                                                    PropertyKeys.KEY_MARKER_POSITION_FILENAME,
-                                                                    PropertyKeys.KEY_SAMPLE_ALIAS,
-                                                                    PropertyKeys.KEY_FID_ALIAS,
-                                                                    PropertyKeys.KEY_IID_ALIAS,},
-                                                                   {"Global", 
-                                                                    PropertyKeys.KEY_NUM_THREADS,
-                                                                    PropertyKeys.KEY_LOG_LEVEL,
-                                                                    PropertyKeys.KEY_CUSTOM_COLOR_SCHEME_FILENAME,
-                                                                    PropertyKeys.KEY_CLUSTER_FILTER_COLLECTION_FILENAME,
-                                                                    PropertyKeys.KEY_ANNOTATION_FILENAME,
-                                                                    PropertyKeys.KEY_AB_LOOKUP_FILENAME,
-                                                                    PropertyKeys.KEY_GENETRACK_FILENAME,
-                                                                    PropertyKeys.KEY_GC_MODEL_FILENAME,
-                                                                    PropertyKeys.KEY_GC_CORRECTION_PARAMETERS_FILENAMES,
-                                                                    PropertyKeys.KEY_REFERENCE_GENOME_FASTA_FILENAME,},
-                                                                   {"Centroids",
-                                                                    PropertyKeys.KEY_SEX_CENTROIDS_MALE_FILENAME,
-                                                                    PropertyKeys.KEY_SEX_CENTROIDS_FEMALE_FILENAME,
-                                                                    PropertyKeys.KEY_ORIGINAL_CENTROIDS_FILENAME,
-                                                                    PropertyKeys.KEY_GENOTYPE_CENTROIDS_FILENAME,
-                                                                    PropertyKeys.KEY_CHIMERA_CENTROIDS_FILENAME,
-                                                                    PropertyKeys.KEY_CUSTOM_CENTROIDS_FILENAME,},
-                                                                   {"DataExport",
-                                                                    PropertyKeys.KEY_PEDIGREE_FILENAME,
-                                                                    PropertyKeys.KEY_FILTERED_MARKERS_FILENAME,
-                                                                    PropertyKeys.KEY_SAMPLE_SUBSET_FILENAME,
-                                                                    PropertyKeys.KEY_TARGET_MARKERS_FILENAMES,
-                                                                    PropertyKeys.KEY_GC_THRESHOLD,},
-                                                                   {"MosaicPlot",
-                                                                    PropertyKeys.KEY_MOSAIC_RESULTS_FILENAME,
-                                                                    PropertyKeys.KEY_MOSAIC_COLOR_CODES_FILENAME,},
-                                                                   {"Data Cleaning",
-                                                                    PropertyKeys.KEY_SAMPLE_QC_FILENAME,
-                                                                    PropertyKeys.KEY_SEXCHECK_RESULTS_FILENAME,
-                                                                    PropertyKeys.KEY_LRRSD_CUTOFF,
-                                                                    PropertyKeys.KEY_SAMPLE_CALLRATE_THRESHOLD,
-                                                                    PropertyKeys.KEY_MARKER_METRICS_FILENAME,
-                                                                    PropertyKeys.KEY_MARKER_EXCLUSION_CRITERIA_FILENAME,
-                                                                    PropertyKeys.KEY_MARKER_REVIEW_CRITERIA_FILENAME,
-                                                                    PropertyKeys.KEY_MARKER_COMBINED_CRITERIA_FILENAME,
-                                                                    PropertyKeys.KEY_GENOME_CLUSTER_FILENAME,},
-                                                                   {"CNV Files", 
-                                                                    PropertyKeys.KEY_CNV_FILENAMES,
-                                                                    PropertyKeys.KEY_HMM_FILENAME,
-                                                                    PropertyKeys.KEY_CUSTOM_PFB_FILENAME,},
-                                                                   {"CompPlot",
-                                                                    PropertyKeys.KEY_REGION_LIST_FILENAMES,},
-                                                                   {"Trailer",
-                                                                    PropertyKeys.KEY_INDIVIDUAL_CNV_LIST_FILENAMES,
-                                                                    PropertyKeys.KEY_WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER,},
-                                                                   {"ScatterPlot",
-                                                                    PropertyKeys.KEY_DISPLAY_MARKERS_FILENAMES,
-                                                                    PropertyKeys.KEY_SHIFT_SEX_CHR_COLORS_YESNO,
-                                                                    PropertyKeys.KEY_BLAST_ANNOTATION_FILENAME,
-                                                                    PropertyKeys.KEY_BLAST_PROPORTION_MATCH_FILTER,},
-                                                                   {"TwoDPlot",
-                                                                    PropertyKeys.KEY_TWOD_LOADED_FILENAMES,
-                                                                    PropertyKeys.KEY_TWOD_LOADED_VARIABLES,},
-                                                                   {"ForestPlot",
-                                                                    PropertyKeys.KEY_FOREST_PLOT_FILENAMES,},
-                                                                   {"QQ-plot", 
-                                                                    PropertyKeys.KEY_QQ_FILENAMES,
-                                                                    PropertyKeys.KEY_DISPLAY_QUANTILES,
-                                                                    PropertyKeys.KEY_DISPLAY_STANDARD_QQ,
-                                                                    PropertyKeys.KEY_DISPLAY_ROTATED_QQ,
-                                                                    PropertyKeys.KEY_QQ_MAX_NEG_LOG10_PVALUE,},
-                                                                   {"PennCNV",
-                                                                    PropertyKeys.KEY_PENNCNV_EXECUTABLE_DIRECTORY,
-                                                                    PropertyKeys.KEY_PENNCNV_DATA_DIRECTORY,
-                                                                    PropertyKeys.KEY_PENNCNV_RESULTS_DIRECTORY,
-                                                                    PropertyKeys.KEY_PENNCNV_GZIP_YESNO,},
-                                                                   {"CytoSpecific",
-                                                                    PropertyKeys.KEY_UNREPORTED_CNP_FILENAME,
-                                                                    PropertyKeys.KEY_COMMON_CNP_FILENAME,
-                                                                    PropertyKeys.KEY_REPORTED_CNP_FILENAME,},
-                                                                   {"PC Intensity Correction",
-                                                                    PropertyKeys.KEY_INTENSITY_PC_FILENAME,
-                                                                    PropertyKeys.KEY_INTENSITY_PC_NUM_COMPONENTS,
-                                                                    PropertyKeys.KEY_INTENSITY_PC_MARKERS_FILENAME,},
-                                                                   {"Optimization parameters",
-                                                                      PropertyKeys.KEY_MAX_MEMORY_USED_TO_LOAD_MARKER_DATA,
-                                                                      PropertyKeys.KEY_MAX_MARKERS_LOADED_PER_CYCLE,},
-                                                                   {"Plink Directory/Filename Roots (edit to remove extension)",
-                                                                    PropertyKeys.KEY_PLINK_DIR_FILEROOTS,},
-                                                                   {"COLORS",
-                                                                    PropertyKeys.KEY_MARKER_COLOR_KEY_FILENAMES,}};
-  String[] hiddenProperties = new String[] {PropertyKeys.KEY_PROJECT_PROPERTIES_FILENAME, 
-                                            PropertyKeys.KEY_MARKERSET_FILENAME,
-                                            PropertyKeys.KEY_MARKERLOOKUP_FILENAME, 
-                                            PropertyKeys.KEY_SAMPLELIST_FILENAME,
-                                            PropertyKeys.KEY_JAR_STATUS, 
-                                            PropertyKeys.KEY_STRATIFICATION_RESULTS_FILENAMES,};
-  String[] uneditableProperties = new String[] {PropertyKeys.KEY_SOURCE_DIRECTORY, 
-                                                PropertyKeys.KEY_SOURCE_FILENAME_EXTENSION,
-                                                PropertyKeys.KEY_LONG_FORMAT, 
-                                                PropertyKeys.KEY_SOURCE_FILE_DELIMITER,
-                                                PropertyKeys.KEY_ID_HEADER,
-                                                PropertyKeys.KEY_PARSE_AT_AT_SYMBOL,
-                                                PropertyKeys.KEY_ARRAY_TYPE,
-                                                PropertyKeys.KEY_XY_SCALE_FACTOR,};
-
+  
   private static final long serialVersionUID = 1L;
 
   private JPanel contentPane;
@@ -351,28 +230,11 @@ public class ProjectPropertiesEditor extends JFrame {
     validators.put(PropertyKeys.KEY_PLINK_DIR_FILEROOTS, PLINK_VALIDATOR);
     validators.put(PropertyKeys.KEY_QQ_FILENAMES, QQ_PLOT_VALIDATOR);
   }
-  /**
-   * Launch the application.
-   */
-  public static void main(String[] args) {
-    EventQueue.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          ProjectPropertiesEditor frame = new ProjectPropertiesEditor(new Project(),
-                                                                      ALL_PROPERTY_SETS);
-          frame.setVisible(true);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    });
-  }
 
   /**
    * Create the frame.
    */
-  public ProjectPropertiesEditor(Project project, String[][] propertySets) {
+  public ProjectPropertiesEditor(Project project) {
     setTitle("Genvisis - " + project.PROJECT_NAME.getValue() + " - Project Properties Editor");
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     setBounds(100, 100, 700, 800);
@@ -686,10 +548,10 @@ public class ProjectPropertiesEditor extends JFrame {
       }
     };
 
-    final HashSet<String> disabledKeys = new HashSet<String>();
-    for (String key : uneditableProperties) {
-      disabledKeys.add(key);
-    }
+//    final HashSet<String> disabledKeys = new HashSet<String>();
+//    for (String key : uneditableProperties) {
+//      disabledKeys.add(key);
+//    }
 
     final Color bgColor2 = new Color(184, 207, 229);
     table = new JTable() {
@@ -773,11 +635,7 @@ public class ProjectPropertiesEditor extends JFrame {
         } else {
           superComp.setBackground(Color.WHITE);
         }
-        if (disabledKeys.contains(getValueAt(row, 0))) {
-          superComp.setEnabled(false);
-        } else {
-          superComp.setEnabled(true);
-        }
+        superComp.setEnabled(!proj.containsKey((String) table.getValueAt(row,0)) || proj.getProperty((String) table.getValueAt(row,0)).isEditable());
         return superComp;
       }
 
@@ -809,44 +667,37 @@ public class ProjectPropertiesEditor extends JFrame {
                               public boolean isCellEditable(int row, int column) {
                                 return column != 0 && !labelRows.contains(row)
                                        && super.isCellEditable(row, column)
-                                       && !disabledKeys.contains(getValueAt(row, 0));
+                                       && proj.getProperty((String) table.getValueAt(row,0)).isEditable();
                               }
 
                             };
 
     int count = 0;
-    HashSet<String> allKeys = new HashSet<String>();
+    HashMap<GROUP, ArrayList<String>> allGroupsAndKeys = new HashMap<GROUP, ArrayList<String>>();
     for (String key : proj.getPropertyKeys()) {
-      allKeys.add(key);
+      ArrayList<String> keys = allGroupsAndKeys.get(proj.getProperty(key).getGroup());
+      if (keys == null) {
+        keys = new ArrayList<String>();
+        allGroupsAndKeys.put(proj.getProperty(key).getGroup(), keys);
+      }
+      keys.add(key);
     }
-    for (String[] propKeySet : propertySets) {
-      String setName = propKeySet[0];
-      model.addRow(new Object[] {setName, ""});
+    
+    for (GROUP g : GROUP.values()) {
+      if (g == GROUP.SPECIAL_HIDDEN) {
+        continue;
+      }
+      String setName = g.getDescription();
+      model.addRow(new Object[]{setName, ""});
       labelRows.add(count);
       count++;
-      for (int i = 1; i < propKeySet.length; i++) {
-        boolean removed = allKeys.remove(propKeySet[i]);
-        if (removed) {
-          Object[] values = parseProperty(proj, propKeySet[i]);
+      if (allGroupsAndKeys.containsKey(g)) {
+        for (String s : allGroupsAndKeys.get(g)) {
+          Object[] values = parseProperty(proj, s);
           model.addRow(values);
           count++;
-        } else {
-          proj.getLog().reportError("Unknown key found: " + propKeySet[i]);
         }
       }
-    }
-    HashSet<String> excludedKeys = new HashSet<String>();
-    for (String key : hiddenProperties) {
-      excludedKeys.add(key);
-    }
-    ArrayList<String> leftovers = new ArrayList<String>();
-    for (String leftoverKey : allKeys) {
-      if (!excludedKeys.contains(leftoverKey)) {
-        leftovers.add(leftoverKey);
-      }
-    }
-    if (!leftovers.isEmpty()) {
-      proj.getLog().report("Found " + leftovers.size() + " unknown keys: " + leftovers.toString());
     }
 
     table.setModel(model);
@@ -1046,12 +897,12 @@ public class ProjectPropertiesEditor extends JFrame {
         }
       }
 
-      HashSet<String> ignorePrefix = new HashSet<String>();
-      ignorePrefix.add(PropertyKeys.KEY_PROJECT_DIRECTORY);
-      ignorePrefix.add(PropertyKeys.KEY_SOURCE_DIRECTORY);
+      HashSet<FileProperty> ignorePrefix = new HashSet<FileProperty>();
+      ignorePrefix.add(proj.PROJECT_DIRECTORY);
+      ignorePrefix.add(proj.SOURCE_DIRECTORY);
 
       String t1 = proj.getProperty(key).getValueString();
-      if (!ignorePrefix.contains(proj.getProperty(key).getName())) {
+      if (!ignorePrefix.contains(proj.getProperty(key))) {
         t1 = t1.replaceAll(proj.PROJECT_DIRECTORY.getValue(), "");
       }
       boolean same = t1.equals(value);

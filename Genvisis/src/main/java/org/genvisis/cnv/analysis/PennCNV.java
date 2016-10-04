@@ -184,7 +184,7 @@ public class PennCNV {
     if (!Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
                       proj.JAR_STATUS.getValue())) {
       log.reportError("Error - sample data file "
-                      + proj.getProperty(PropertyKeys.KEY_SAMPLE_DATA_FILENAME)
+                      + proj.SAMPLE_DATA_FILENAME.getValue()
                       + " does not exist;");
       return;
     }

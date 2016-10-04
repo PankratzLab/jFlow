@@ -1,6 +1,7 @@
 package org.genvisis.cnv.prop;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.GROUP;
 import org.genvisis.common.Array;
 import org.genvisis.common.ext;
 
@@ -17,16 +18,16 @@ public class StringListProperty extends Property<String[]> {
     return isDir;
   }
   
-  public StringListProperty(Project proj, String name, String desc, String[] defVal, boolean file,
+  public StringListProperty(Project proj, String name, String desc, GROUP group, boolean editable, String[] defVal, boolean file,
                             boolean dir) {
-    super(proj, name, desc, defVal);
+    super(proj, name, desc, group, editable, defVal);
     isFile = file;
     isDir = dir;
   }
 
-  public StringListProperty(Project proj, String name, String desc, String defVal, boolean file,
+  public StringListProperty(Project proj, String name, String desc, GROUP group, boolean editable, String defVal, boolean file,
                             boolean dir) {
-    super(proj, name, desc, defVal.equals("") ? new String[0] : defVal.split(delim));
+    super(proj, name, desc, group, editable, defVal.equals("") ? new String[0] : defVal.split(delim));
     isFile = file;
     isDir = dir;
   }

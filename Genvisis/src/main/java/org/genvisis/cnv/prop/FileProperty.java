@@ -4,14 +4,15 @@ import java.io.File;
 
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.GROUP;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class FileProperty extends StringProperty {
   final boolean isDir;
 
-  public FileProperty(Project proj, String name, String desc, String defVal, boolean dirOnly) {
-    super(proj, name, desc,
+  public FileProperty(Project proj, String name, String desc, GROUP group, boolean editable, String defVal, boolean dirOnly) {
+    super(proj, name, desc, group, editable,
           dirOnly ? ext.verifyDirFormat(defVal)
                   : ext.replaceAllWith(defVal, "\\", "/")/*
                                                           * == null || "".equals(defVal) ? null :

@@ -89,195 +89,134 @@ public class Project {
     }
   }
   
-  public IntegerProperty LOG_LEVEL = new IntegerProperty(this, PropertyKeys.KEY_LOG_LEVEL, "", -1,
-      12, 1);
-  public StringProperty PROJECT_NAME = new StringProperty(this, PropertyKeys.KEY_PROJECT_NAME,
-      "Project Name", "New Project");
-  public StringProperty SOURCE_FILENAME_EXTENSION = new StringProperty(this,
-      PropertyKeys.KEY_SOURCE_FILENAME_EXTENSION, "", ".csv");
-  public StringProperty ID_HEADER = new StringProperty(this, PropertyKeys.KEY_ID_HEADER, "",
-      "Sample Name");
-  public StringProperty FID_ALIAS = new StringProperty(this, PropertyKeys.KEY_FID_ALIAS, "",
-      "FID;F_ID;FamID;Fam_ID;Family;FamilyID;Family_ID");
-  public StringProperty IID_ALIAS = new StringProperty(this, PropertyKeys.KEY_IID_ALIAS, "",
-      "ID;IID;I_ID;IndID;Ind_ID");
-  public StringProperty SAMPLE_ALIAS = new StringProperty(this, PropertyKeys.KEY_SAMPLE_ALIAS, "",
-      "Sample;DNA;DNA#");
-  public BooleanProperty PARSE_AT_AT_SYMBOL = new BooleanProperty(this,
-      PropertyKeys.KEY_PARSE_AT_AT_SYMBOL, "", Boolean.FALSE);
-  public BooleanProperty JAR_STATUS = new BooleanProperty(this, PropertyKeys.KEY_JAR_STATUS, "",
-      Boolean.FALSE);
-  public BooleanProperty DISPLAY_QUANTILES = new BooleanProperty(this,
-      PropertyKeys.KEY_DISPLAY_QUANTILES, "", Boolean.FALSE);
-  public BooleanProperty DISPLAY_STANDARD_QQ = new BooleanProperty(this,
-      PropertyKeys.KEY_DISPLAY_STANDARD_QQ, "", Boolean.TRUE);
-  public BooleanProperty DISPLAY_ROTATED_QQ = new BooleanProperty(this,
-      PropertyKeys.KEY_DISPLAY_ROTATED_QQ, "", Boolean.FALSE);
-  public BooleanProperty PENNCNV_GZIP_YESNO = new BooleanProperty(this,
-      PropertyKeys.KEY_PENNCNV_GZIP_YESNO, "", Boolean.TRUE);
-  public BooleanProperty LONG_FORMAT = new BooleanProperty(this, PropertyKeys.KEY_LONG_FORMAT, "",
-      Boolean.FALSE);
-  public BooleanProperty SHIFT_SEX_CHR_COLORS_YESNO = new BooleanProperty(this,
-      PropertyKeys.KEY_SHIFT_SEX_CHR_COLORS_YESNO, "", Boolean.TRUE);
-  public DoubleProperty BLAST_PROPORTION_MATCH_FILTER = new DoubleProperty(this,
-      PropertyKeys.KEY_BLAST_PROPORTION_MATCH_FILTER, "", 0.0, 1.0, 0.80);
-  public DoubleProperty GC_THRESHOLD = new DoubleProperty(this, PropertyKeys.KEY_GC_THRESHOLD, "",
-      0.0, 1.0, 0.15);
-  public DoubleProperty XY_SCALE_FACTOR = new DoubleProperty(this,
-      PropertyKeys.KEY_XY_SCALE_FACTOR, "", 0.001, Double.MAX_VALUE, 1);
-  public DoubleProperty LRRSD_CUTOFF = new DoubleProperty(this, PropertyKeys.KEY_LRRSD_CUTOFF, "",
-      0.0, 3.0, 0.32);
-  public DoubleProperty SAMPLE_CALLRATE_THRESHOLD = new DoubleProperty(this,
-      PropertyKeys.KEY_SAMPLE_CALLRATE_THRESHOLD, "", 0.0, 1.0, 0.95);
-  public IntegerProperty NUM_THREADS = new IntegerProperty(this, PropertyKeys.KEY_NUM_THREADS, "",
-      1, 99, 1);
-  public IntegerProperty QQ_MAX_NEG_LOG10_PVALUE = new IntegerProperty(this,
-      PropertyKeys.KEY_QQ_MAX_NEG_LOG10_PVALUE, "", 1, 10000, 100);
-  public IntegerProperty WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER = new IntegerProperty(this,
-      PropertyKeys.KEY_WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER, "", 1, 1000000, 10000);
-  public IntegerProperty MAX_MARKERS_LOADED_PER_CYCLE = new IntegerProperty(this,
-      PropertyKeys.KEY_MAX_MARKERS_LOADED_PER_CYCLE, "", 1, 10000, 100);
-  public IntegerProperty MAX_MEMORY_USED_TO_LOAD_MARKER_DATA = new IntegerProperty(this,
-      PropertyKeys.KEY_MAX_MEMORY_USED_TO_LOAD_MARKER_DATA, "", 8, 65536, 250);
-  public IntegerProperty INTENSITY_PC_NUM_COMPONENTS = new IntegerProperty(this,
-      PropertyKeys.KEY_INTENSITY_PC_NUM_COMPONENTS, "", 0, 10000, 100);
-  public FileProperty PROJECT_DIRECTORY = new FileProperty(this,
-      PropertyKeys.KEY_PROJECT_DIRECTORY, "", "./", true);
-  public FileProperty SOURCE_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_SOURCE_DIRECTORY,
-      "", "./", true);
-  public FileProperty SAMPLE_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_SAMPLE_DIRECTORY,
-      "", "samples/", true);
-  public FileProperty DATA_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_DATA_DIRECTORY, "",
-      "data/", true);
-  public FileProperty MARKER_DATA_DIRECTORY = new FileProperty(this,
-      PropertyKeys.KEY_MARKER_DATA_DIRECTORY, "", "transposed/", true);
-  public FileProperty RESULTS_DIRECTORY = new FileProperty(this,
-      PropertyKeys.KEY_RESULTS_DIRECTORY, "", "results/", true);
-  public FileProperty DEMO_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_DEMO_DIRECTORY, "",
-      "demo/", true);
-  public FileProperty PENNCNV_EXECUTABLE_DIRECTORY = new FileProperty(this,
-      PropertyKeys.KEY_PENNCNV_EXECUTABLE_DIRECTORY, "", "/home/npankrat/bin/", true);
-  public FileProperty PENNCNV_DATA_DIRECTORY = new FileProperty(this,
-      PropertyKeys.KEY_PENNCNV_DATA_DIRECTORY, "", "penn_data/", true);
-  public FileProperty PENNCNV_RESULTS_DIRECTORY = new FileProperty(this,
-      PropertyKeys.KEY_PENNCNV_RESULTS_DIRECTORY, "", "penncnv/", true);
-  public FileProperty BACKUP_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_BACKUP_DIRECTORY,
-      "", "backup/", true);
-  public FileProperty PROJECT_PROPERTIES_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_PROJECT_PROPERTIES_FILENAME, "", "example.properties", false);
-  public FileProperty MARKER_POSITION_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_MARKER_POSITION_FILENAME, "", "markerPositions.txt", false);
-  public FileProperty MARKERSET_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_MARKERSET_FILENAME, "", "data/markers.ser", false);
-  public FileProperty MARKERLOOKUP_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_MARKERLOOKUP_FILENAME, "", "data/markerLookup.ser", false);
-  public FileProperty SAMPLELIST_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_SAMPLELIST_FILENAME, "", "data/samples.ser", false);
-  public FileProperty SAMPLE_SUBSET_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_SAMPLE_SUBSET_FILENAME, "", "sampleSubset.txt", false);
-  public FileProperty SAMPLE_DATA_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_SAMPLE_DATA_FILENAME, "", "data/SampleData.txt", false);
-  public FileProperty ORIGINAL_CENTROIDS_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_ORIGINAL_CENTROIDS_FILENAME, "", "data/original.cent", false);
-  public FileProperty GENOTYPE_CENTROIDS_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_GENOTYPE_CENTROIDS_FILENAME, "", "data/genotype.cent", false);
-  public FileProperty CHIMERA_CENTROIDS_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_CHIMERA_CENTROIDS_FILENAME, "", "data/chimera.cent", false);
-  public FileProperty CUSTOM_CENTROIDS_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_CUSTOM_CENTROIDS_FILENAME, "", "data/custom.cent", false);
-  public FileProperty FILTERED_MARKERS_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_FILTERED_MARKERS_FILENAME, "", "data/drops.dat", false);
-  public FileProperty PEDIGREE_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_PEDIGREE_FILENAME, "", "pedigree.dat", false);
-  public FileProperty MOSAIC_COLOR_CODES_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_MOSAIC_COLOR_CODES_FILENAME, "", "data/mosaic_colors.txt", false);
-  public FileProperty MOSAIC_RESULTS_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_MOSAIC_RESULTS_FILENAME, "", "results/Mosaicism.xln", false);
-  public FileProperty CLUSTER_FILTER_COLLECTION_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_CLUSTER_FILTER_COLLECTION_FILENAME, "", "data/clusterFilters.ser", false);
-  public FileProperty SEXCHECK_RESULTS_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_SEXCHECK_RESULTS_FILENAME, "", "results/sexCheck.xln", false);
-  public FileProperty GENETRACK_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_GENETRACK_FILENAME, "", "RefSeq.gtrack", false);
-  public FileProperty AB_LOOKUP_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_AB_LOOKUP_FILENAME, "", "AB_lookup.dat", false);
-  public FileProperty MARKER_METRICS_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_MARKER_METRICS_FILENAME, "", "results/markerQualityChecks.xln", false);
-  public FileProperty MARKER_REVIEW_CRITERIA_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_MARKER_REVIEW_CRITERIA_FILENAME, "", "results/review.criteria", false);
-  public FileProperty MARKER_EXCLUSION_CRITERIA_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_MARKER_EXCLUSION_CRITERIA_FILENAME, "", "results/exclusion.criteria", false);
-  public FileProperty MARKER_COMBINED_CRITERIA_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_MARKER_COMBINED_CRITERIA_FILENAME, "", "results/combined.criteria", false);
-  public FileProperty ANNOTATION_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_ANNOTATION_FILENAME, "", "data/annotationCollection.ser", false);
-  public FileProperty BLAST_ANNOTATION_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_BLAST_ANNOTATION_FILENAME, "", "data/blast.vcf.gz", false);
-  public FileProperty CUSTOM_COLOR_SCHEME_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_CUSTOM_COLOR_SCHEME_FILENAME, "", "", false);
-  public FileProperty GC_MODEL_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_GC_MODEL_FILENAME, "", "data/custom.gcmodel", false);
-  public FileProperty COMMON_CNP_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_COMMON_CNP_FILENAME, "", "data/HG19 CNV edit for AGW.txt", false);
-  public FileProperty REPORTED_CNP_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_REPORTED_CNP_FILENAME, "", "data/HG19 Reported 2012.05.22.txt", false);
-  public FileProperty UNREPORTED_CNP_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_UNREPORTED_CNP_FILENAME, "", "data/HG19 Unreported 2012.05.22-2.txt", false);
-  public FileProperty INTENSITY_PC_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_INTENSITY_PC_FILENAME, "", "PCA_GENVISIS.PCs.extrapolated.txt", false);
-  public FileProperty SAMPLE_QC_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_SAMPLE_QC_FILENAME, "", "lrr_sd.xln", false);
-  public FileProperty SEX_CENTROIDS_MALE_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_SEX_CENTROIDS_MALE_FILENAME, "", "", false);
-  public FileProperty SEX_CENTROIDS_FEMALE_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_SEX_CENTROIDS_FEMALE_FILENAME, "", "", false);
-  public FileProperty REFERENCE_GENOME_FASTA_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_REFERENCE_GENOME_FASTA_FILENAME, "", "hg19_canonical.fa", false);
-  public FileProperty GENOME_CLUSTER_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_GENOME_CLUSTER_FILENAME, "", "cluster.genome.gz", false);
-  public FileProperty CUSTOM_PFB_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_CUSTOM_PFB_FILENAME, "", "data/custom.pfb", false);
-  public FileProperty HMM_FILENAME = new FileProperty(this, PropertyKeys.KEY_HMM_FILENAME, "",
-      "data/hhall.hmm", false);
-  public FileProperty INTENSITY_PC_MARKERS_FILENAME = new FileProperty(this,
-      PropertyKeys.KEY_INTENSITY_PC_MARKERS_FILENAME, "", "GENVISIS.PCs.markers.txt", false);
-  public StringListProperty GENE_LIST_FILENAMES = new StringListProperty(this,
-      PropertyKeys.KEY_GENE_LIST_FILENAMES, "", "data/genes.txt", true, false);
-  public StringListProperty TARGET_MARKERS_FILENAMES = new StringListProperty(this,
-      PropertyKeys.KEY_TARGET_MARKERS_FILENAMES, "", "targetMarkers.txt", true, false);
-  public StringListProperty DISPLAY_MARKERS_FILENAMES = new StringListProperty(this,
-      PropertyKeys.KEY_DISPLAY_MARKERS_FILENAMES, "", "data/test.txt", true, false);
-  public StringListProperty TWOD_LOADED_FILENAMES = new StringListProperty(this,
-      PropertyKeys.KEY_TWOD_LOADED_FILENAMES, "", "", true, false);
-  public StringListProperty TWOD_LOADED_VARIABLES = new StringListProperty(this,
-      PropertyKeys.KEY_TWOD_LOADED_VARIABLES, "", "", false, false);
-  public StringListProperty FOREST_PLOT_FILENAMES = new StringListProperty(this,
-      PropertyKeys.KEY_FOREST_PLOT_FILENAMES, "", "", true, false);
-  public StringListProperty INDIVIDUAL_CNV_LIST_FILENAMES = new StringListProperty(this,
-      PropertyKeys.KEY_INDIVIDUAL_CNV_LIST_FILENAMES, "", "data/list.txt", true, false);
-  public StringListProperty REGION_LIST_FILENAMES = new StringListProperty(this,
-      PropertyKeys.KEY_REGION_LIST_FILENAMES, "", "data/regions.txt", true, false);
-  public StringListProperty CNV_FILENAMES = new StringListProperty(this,
-      PropertyKeys.KEY_CNV_FILENAMES, "", "", true, false);
-  public StringListProperty STRATIFICATION_RESULTS_FILENAMES = new StringListProperty(this,
-      PropertyKeys.KEY_STRATIFICATION_RESULTS_FILENAMES, "", "", true, false);
-  public StringListProperty QQ_FILENAMES = new StringListProperty(this,
-      PropertyKeys.KEY_QQ_FILENAMES, "", "", false, false); // not listed as file or directory, due to unique value format
-  public StringListProperty GC_CORRECTION_PARAMETERS_FILENAMES = new StringListProperty(this,
-      PropertyKeys.KEY_GC_CORRECTION_PARAMETERS_FILENAMES, "", "", true, false);
-  public StringListProperty PLINK_DIR_FILEROOTS = new StringListProperty(this,
-      PropertyKeys.KEY_PLINK_DIR_FILEROOTS, "", "", true, false);
-  public StringListProperty MARKER_COLOR_KEY_FILENAMES = new StringListProperty(this,
-      PropertyKeys.KEY_MARKER_COLOR_KEY_FILENAMES, "", "", true, false);
-  public EnumProperty<SOURCE_FILE_DELIMITERS> SOURCE_FILE_DELIMITER =
-      new EnumProperty<SOURCE_FILE_DELIMITERS>(this, PropertyKeys.KEY_SOURCE_FILE_DELIMITER, "", 0,
-          SOURCE_FILE_DELIMITERS.class);
-  public EnumProperty<ARRAY> ARRAY_TYPE = new EnumProperty<ARRAY>(this,
-      PropertyKeys.KEY_ARRAY_TYPE, "", 0, ARRAY.class);
-  public EnumProperty<GENOME_BUILD> GENOME_BUILD_VERSION = new EnumProperty<GENOME_BUILD>(this,
-      PropertyKeys.KEY_GENOME_BUILD_VERSION, "The build version of the genome, options are "
-          + Arrays.asList(GENOME_BUILD.values()).toString(), 0, GENOME_BUILD.class);
-  public FileProperty TRAILER_REGION = new FileProperty(this, "Last trailer region", "Last region file opened in Trailer", "", false);
+  public static enum GROUP {
+    PROJECT_NAME_LOCS("Project Name and Locations"),
+    IMPORT("Import"),
+    GLOBAL("Global"),
+    CENTROIDS("Centroids"),
+    DATA_EXPORT("Data Export"),
+    MOSAIC_PLOT("MosaicPlot"),
+    DATA_CLEANING("Data Cleaning"),
+    CNV_FILES("CNV Files"),
+    COMP_PLOT("CompPlot"),
+    TRAILER("Trailer"),
+    SCATTER_PLOT("ScatterPlot"),
+    TWO_D_PLOT("TwoDPlot"),
+    FOREST_PLOT("ForestPlot"),
+    QQ_PLOT("QQ-plot"),
+    PENN_CNV("PennCNV"),
+    CYTO_SPECIFIC("CytoSpecific"),
+    PC_INTENSITY_CORRECTION("PC Intensity Correction"),
+    OPTIMIZATION_PARAMETERS("Optimization Parameters"),
+    PLINK("Plink Directory/Filename Roots (edit to remove extension)"),
+    COLORS("Colors"),
+    SPECIAL_HIDDEN("HIDDEN");
+    
+    GROUP(String desc) {
+      this.description = desc;
+    }
+    
+    String description;
+    
+    public String getDescription() {
+      return description;
+    }
+  }
+  
+  public IntegerProperty LOG_LEVEL = new IntegerProperty(this, PropertyKeys.KEY_LOG_LEVEL, "", GROUP.GLOBAL, true, -1, 12, 1);
+  public StringProperty PROJECT_NAME = new StringProperty(this, PropertyKeys.KEY_PROJECT_NAME, "Project Name", GROUP.PROJECT_NAME_LOCS, true, "New Project");
+  public StringProperty SOURCE_FILENAME_EXTENSION = new StringProperty(this, PropertyKeys.KEY_SOURCE_FILENAME_EXTENSION, "", GROUP.IMPORT, false, ".csv");
+  public StringProperty ID_HEADER = new StringProperty(this, PropertyKeys.KEY_ID_HEADER, "", GROUP.IMPORT, false, "Sample Name");
+  public StringProperty FID_ALIAS = new StringProperty(this, PropertyKeys.KEY_FID_ALIAS, "", GROUP.IMPORT, true, "FID;F_ID;FamID;Fam_ID;Family;FamilyID;Family_ID");
+  public StringProperty IID_ALIAS = new StringProperty(this, PropertyKeys.KEY_IID_ALIAS, "", GROUP.IMPORT, true, "ID;IID;I_ID;IndID;Ind_ID");
+  public StringProperty SAMPLE_ALIAS = new StringProperty(this, PropertyKeys.KEY_SAMPLE_ALIAS, "", GROUP.IMPORT, true, "Sample;DNA;DNA#");
+  public BooleanProperty PARSE_AT_AT_SYMBOL = new BooleanProperty(this, PropertyKeys.KEY_PARSE_AT_AT_SYMBOL, "", GROUP.IMPORT, false, Boolean.FALSE);
+  public BooleanProperty JAR_STATUS = new BooleanProperty(this, PropertyKeys.KEY_JAR_STATUS, "", GROUP.SPECIAL_HIDDEN, true, Boolean.FALSE);
+  public BooleanProperty DISPLAY_QUANTILES = new BooleanProperty(this, PropertyKeys.KEY_DISPLAY_QUANTILES, "", GROUP.CENTROIDS, true, Boolean.FALSE);
+  public BooleanProperty DISPLAY_STANDARD_QQ = new BooleanProperty(this, PropertyKeys.KEY_DISPLAY_STANDARD_QQ, "", GROUP.QQ_PLOT, true, Boolean.TRUE);
+  public BooleanProperty DISPLAY_ROTATED_QQ = new BooleanProperty(this, PropertyKeys.KEY_DISPLAY_ROTATED_QQ, "", GROUP.QQ_PLOT, true, Boolean.FALSE);
+  public BooleanProperty PENNCNV_GZIP_YESNO = new BooleanProperty(this, PropertyKeys.KEY_PENNCNV_GZIP_YESNO, "", GROUP.PENN_CNV, true, Boolean.TRUE);
+  public BooleanProperty LONG_FORMAT = new BooleanProperty(this, PropertyKeys.KEY_LONG_FORMAT, "", GROUP.IMPORT, false, Boolean.FALSE);
+  public BooleanProperty SHIFT_SEX_CHR_COLORS_YESNO = new BooleanProperty(this, PropertyKeys.KEY_SHIFT_SEX_CHR_COLORS_YESNO, "", GROUP.SCATTER_PLOT, true, Boolean.TRUE);
+  public DoubleProperty BLAST_PROPORTION_MATCH_FILTER = new DoubleProperty(this, PropertyKeys.KEY_BLAST_PROPORTION_MATCH_FILTER, "", GROUP.SCATTER_PLOT, true, 0.0, 1.0, 0.80);
+  public DoubleProperty GC_THRESHOLD = new DoubleProperty(this, PropertyKeys.KEY_GC_THRESHOLD, "", GROUP.DATA_EXPORT, true, 0.0, 1.0, 0.15);
+  public DoubleProperty XY_SCALE_FACTOR = new DoubleProperty(this, PropertyKeys.KEY_XY_SCALE_FACTOR, "", GROUP.PROJECT_NAME_LOCS, false, 0.001, Double.MAX_VALUE, 1);
+  public DoubleProperty LRRSD_CUTOFF = new DoubleProperty(this, PropertyKeys.KEY_LRRSD_CUTOFF, "", GROUP.DATA_CLEANING, true, 0.0, 3.0, 0.32);
+  public DoubleProperty SAMPLE_CALLRATE_THRESHOLD = new DoubleProperty(this, PropertyKeys.KEY_SAMPLE_CALLRATE_THRESHOLD, "", GROUP.DATA_CLEANING, true, 0.0, 1.0, 0.95);
+  public IntegerProperty NUM_THREADS = new IntegerProperty(this, PropertyKeys.KEY_NUM_THREADS, "", GROUP.GLOBAL, true, 1, 99, 1);
+  public IntegerProperty QQ_MAX_NEG_LOG10_PVALUE = new IntegerProperty(this, PropertyKeys.KEY_QQ_MAX_NEG_LOG10_PVALUE, "", GROUP.QQ_PLOT, true, 1, 10000, 100);
+  public IntegerProperty WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER = new IntegerProperty(this, PropertyKeys.KEY_WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER, "", GROUP.TRAILER, true, 1, 1000000, 10000);
+  public IntegerProperty MAX_MARKERS_LOADED_PER_CYCLE = new IntegerProperty(this, PropertyKeys.KEY_MAX_MARKERS_LOADED_PER_CYCLE, "", GROUP.OPTIMIZATION_PARAMETERS, true, 1, 10000, 100);
+  public IntegerProperty MAX_MEMORY_USED_TO_LOAD_MARKER_DATA = new IntegerProperty(this, PropertyKeys.KEY_MAX_MEMORY_USED_TO_LOAD_MARKER_DATA, "", GROUP.OPTIMIZATION_PARAMETERS, true, 8, 65536, 250);
+  public IntegerProperty INTENSITY_PC_NUM_COMPONENTS = new IntegerProperty(this, PropertyKeys.KEY_INTENSITY_PC_NUM_COMPONENTS, "", GROUP.PC_INTENSITY_CORRECTION, true, 0, 10000, 100);
+  public FileProperty PROJECT_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_PROJECT_DIRECTORY, "", GROUP.PROJECT_NAME_LOCS, true, "./", true);
+  public FileProperty SOURCE_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_SOURCE_DIRECTORY, "", GROUP.IMPORT, false, "./", true);
+  public FileProperty SAMPLE_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_SAMPLE_DIRECTORY, "", GROUP.PROJECT_NAME_LOCS, true, "samples/", true);
+  public FileProperty DATA_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_DATA_DIRECTORY, "", GROUP.PROJECT_NAME_LOCS, true, "data/", true);
+  public FileProperty MARKER_DATA_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_MARKER_DATA_DIRECTORY, "", GROUP.PROJECT_NAME_LOCS, true, "transposed/", true);
+  public FileProperty RESULTS_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_RESULTS_DIRECTORY, "", GROUP.PROJECT_NAME_LOCS, true, "results/", true);
+  public FileProperty DEMO_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_DEMO_DIRECTORY, "", GROUP.PROJECT_NAME_LOCS, true, "demo/", true);
+  public FileProperty PENNCNV_EXECUTABLE_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_PENNCNV_EXECUTABLE_DIRECTORY, "", GROUP.PENN_CNV, true, "/home/npankrat/bin/", true);
+  public FileProperty PENNCNV_DATA_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_PENNCNV_DATA_DIRECTORY, "", GROUP.PENN_CNV, true, "penn_data/", true);
+  public FileProperty PENNCNV_RESULTS_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_PENNCNV_RESULTS_DIRECTORY, "", GROUP.PENN_CNV, true, "penncnv/", true);
+  public FileProperty BACKUP_DIRECTORY = new FileProperty(this, PropertyKeys.KEY_BACKUP_DIRECTORY, "", GROUP.PROJECT_NAME_LOCS, true, "backup/", true);
+  public FileProperty PROJECT_PROPERTIES_FILENAME = new FileProperty(this, PropertyKeys.KEY_PROJECT_PROPERTIES_FILENAME, "", GROUP.SPECIAL_HIDDEN, true, "example.properties", false);
+  public FileProperty MARKER_POSITION_FILENAME = new FileProperty(this, PropertyKeys.KEY_MARKER_POSITION_FILENAME, "", GROUP.IMPORT, true, "markerPositions.txt", false);
+  public FileProperty MARKERSET_FILENAME = new FileProperty(this, PropertyKeys.KEY_MARKERSET_FILENAME, "", GROUP.SPECIAL_HIDDEN, true, "data/markers.ser", false);
+  public FileProperty MARKERLOOKUP_FILENAME = new FileProperty(this, PropertyKeys.KEY_MARKERLOOKUP_FILENAME, "", GROUP.SPECIAL_HIDDEN, true, "data/markerLookup.ser", false);
+  public FileProperty SAMPLELIST_FILENAME = new FileProperty(this, PropertyKeys.KEY_SAMPLELIST_FILENAME, "", GROUP.SPECIAL_HIDDEN, true, "data/samples.ser", false);
+  public FileProperty SAMPLE_SUBSET_FILENAME = new FileProperty(this, PropertyKeys.KEY_SAMPLE_SUBSET_FILENAME, "", GROUP.DATA_EXPORT, true, "sampleSubset.txt", false);
+  public FileProperty SAMPLE_DATA_FILENAME = new FileProperty(this, PropertyKeys.KEY_SAMPLE_DATA_FILENAME, "", GROUP.PROJECT_NAME_LOCS, true, "data/SampleData.txt", false);
+  public FileProperty ORIGINAL_CENTROIDS_FILENAME = new FileProperty(this, PropertyKeys.KEY_ORIGINAL_CENTROIDS_FILENAME, "", GROUP.CENTROIDS, true, "data/original.cent", false);
+  public FileProperty GENOTYPE_CENTROIDS_FILENAME = new FileProperty(this, PropertyKeys.KEY_GENOTYPE_CENTROIDS_FILENAME, "", GROUP.CENTROIDS, true, "data/genotype.cent", false);
+  public FileProperty CHIMERA_CENTROIDS_FILENAME = new FileProperty(this, PropertyKeys.KEY_CHIMERA_CENTROIDS_FILENAME, "", GROUP.CENTROIDS, true, "data/chimera.cent", false);
+  public FileProperty CUSTOM_CENTROIDS_FILENAME = new FileProperty(this, PropertyKeys.KEY_CUSTOM_CENTROIDS_FILENAME, "", GROUP.CENTROIDS, true, "data/custom.cent", false);
+  public FileProperty FILTERED_MARKERS_FILENAME = new FileProperty(this, PropertyKeys.KEY_FILTERED_MARKERS_FILENAME, "", GROUP.DATA_EXPORT, true, "data/drops.dat", false);
+  public FileProperty PEDIGREE_FILENAME = new FileProperty(this, PropertyKeys.KEY_PEDIGREE_FILENAME, "", GROUP.DATA_EXPORT, true, "pedigree.dat", false);
+  public FileProperty MOSAIC_COLOR_CODES_FILENAME = new FileProperty(this, PropertyKeys.KEY_MOSAIC_COLOR_CODES_FILENAME, "", GROUP.MOSAIC_PLOT, true, "data/mosaic_colors.txt", false);
+  public FileProperty MOSAIC_RESULTS_FILENAME = new FileProperty(this, PropertyKeys.KEY_MOSAIC_RESULTS_FILENAME, "", GROUP.MOSAIC_PLOT, true, "results/Mosaicism.xln", false);
+  public FileProperty CLUSTER_FILTER_COLLECTION_FILENAME = new FileProperty(this, PropertyKeys.KEY_CLUSTER_FILTER_COLLECTION_FILENAME, "", GROUP.GLOBAL, true, "data/clusterFilters.ser", false);
+  public FileProperty SEXCHECK_RESULTS_FILENAME = new FileProperty(this, PropertyKeys.KEY_SEXCHECK_RESULTS_FILENAME, "", GROUP.DATA_CLEANING, true, "results/sexCheck.xln", false);
+  public FileProperty GENETRACK_FILENAME = new FileProperty(this, PropertyKeys.KEY_GENETRACK_FILENAME, "", GROUP.GLOBAL, true, "RefSeq.gtrack", false);
+  public FileProperty AB_LOOKUP_FILENAME = new FileProperty(this, PropertyKeys.KEY_AB_LOOKUP_FILENAME, "", GROUP.GLOBAL, true, "AB_lookup.dat", false);
+  public FileProperty MARKER_METRICS_FILENAME = new FileProperty(this, PropertyKeys.KEY_MARKER_METRICS_FILENAME, "", GROUP.DATA_CLEANING, true, "results/markerQualityChecks.xln", false);
+  public FileProperty MARKER_REVIEW_CRITERIA_FILENAME = new FileProperty(this, PropertyKeys.KEY_MARKER_REVIEW_CRITERIA_FILENAME, "", GROUP.DATA_CLEANING, true, "results/review.criteria", false);
+  public FileProperty MARKER_EXCLUSION_CRITERIA_FILENAME = new FileProperty(this, PropertyKeys.KEY_MARKER_EXCLUSION_CRITERIA_FILENAME, "", GROUP.DATA_CLEANING, true, "results/exclusion.criteria", false);
+  public FileProperty MARKER_COMBINED_CRITERIA_FILENAME = new FileProperty(this, PropertyKeys.KEY_MARKER_COMBINED_CRITERIA_FILENAME, "", GROUP.DATA_CLEANING, true, "results/combined.criteria", false);
+  public FileProperty ANNOTATION_FILENAME = new FileProperty(this, PropertyKeys.KEY_ANNOTATION_FILENAME, "", GROUP.GLOBAL, true, "data/annotationCollection.ser", false);
+  public FileProperty BLAST_ANNOTATION_FILENAME = new FileProperty(this, PropertyKeys.KEY_BLAST_ANNOTATION_FILENAME, "", GROUP.SCATTER_PLOT, true, "data/blast.vcf.gz", false);
+  public FileProperty CUSTOM_COLOR_SCHEME_FILENAME = new FileProperty(this, PropertyKeys.KEY_CUSTOM_COLOR_SCHEME_FILENAME, "", GROUP.GLOBAL, true, "", false);
+  public FileProperty GC_MODEL_FILENAME = new FileProperty(this, PropertyKeys.KEY_GC_MODEL_FILENAME, "", GROUP.GLOBAL, true, "data/custom.gcmodel", false);
+  public FileProperty COMMON_CNP_FILENAME = new FileProperty(this, PropertyKeys.KEY_COMMON_CNP_FILENAME, "", GROUP.CYTO_SPECIFIC, true, "data/HG19 CNV edit for AGW.txt", false);
+  public FileProperty REPORTED_CNP_FILENAME = new FileProperty(this, PropertyKeys.KEY_REPORTED_CNP_FILENAME, "", GROUP.CYTO_SPECIFIC, true, "data/HG19 Reported 2012.05.22.txt", false);
+  public FileProperty UNREPORTED_CNP_FILENAME = new FileProperty(this, PropertyKeys.KEY_UNREPORTED_CNP_FILENAME, "", GROUP.CYTO_SPECIFIC, true, "data/HG19 Unreported 2012.05.22-2.txt", false);
+  public FileProperty INTENSITY_PC_FILENAME = new FileProperty(this, PropertyKeys.KEY_INTENSITY_PC_FILENAME, "", GROUP.PC_INTENSITY_CORRECTION, true, "PCA_GENVISIS.PCs.extrapolated.txt", false);
+  public FileProperty SAMPLE_QC_FILENAME = new FileProperty(this, PropertyKeys.KEY_SAMPLE_QC_FILENAME, "", GROUP.DATA_CLEANING, true, "lrr_sd.xln", false);
+  public FileProperty SEX_CENTROIDS_MALE_FILENAME = new FileProperty(this, PropertyKeys.KEY_SEX_CENTROIDS_MALE_FILENAME, "", GROUP.CENTROIDS, true, "", false);
+  public FileProperty SEX_CENTROIDS_FEMALE_FILENAME = new FileProperty(this, PropertyKeys.KEY_SEX_CENTROIDS_FEMALE_FILENAME, "", GROUP.CENTROIDS, true, "", false);
+  public FileProperty REFERENCE_GENOME_FASTA_FILENAME = new FileProperty(this, PropertyKeys.KEY_REFERENCE_GENOME_FASTA_FILENAME, "", GROUP.GLOBAL, true, "hg19_canonical.fa", false);
+  public FileProperty GENOME_CLUSTER_FILENAME = new FileProperty(this, PropertyKeys.KEY_GENOME_CLUSTER_FILENAME, "", GROUP.DATA_CLEANING, true, "cluster.genome.gz", false);
+  public FileProperty CUSTOM_PFB_FILENAME = new FileProperty(this, PropertyKeys.KEY_CUSTOM_PFB_FILENAME, "", GROUP.CNV_FILES, true, "data/custom.pfb", false);
+  public FileProperty HMM_FILENAME = new FileProperty(this, PropertyKeys.KEY_HMM_FILENAME, "", GROUP.CNV_FILES, true, "data/hhall.hmm", false);
+  public FileProperty INTENSITY_PC_MARKERS_FILENAME = new FileProperty(this, PropertyKeys.KEY_INTENSITY_PC_MARKERS_FILENAME, "", GROUP.PC_INTENSITY_CORRECTION, true, "GENVISIS.PCs.markers.txt", false);
+  public StringListProperty GENE_LIST_FILENAMES = new StringListProperty(this, PropertyKeys.KEY_GENE_LIST_FILENAMES, "", GROUP.SCATTER_PLOT, true, "data/genes.txt", true, false);
+  public StringListProperty TARGET_MARKERS_FILENAMES = new StringListProperty(this, PropertyKeys.KEY_TARGET_MARKERS_FILENAMES, "", GROUP.DATA_EXPORT, true, "targetMarkers.txt", true, false);
+  public StringListProperty DISPLAY_MARKERS_FILENAMES = new StringListProperty(this, PropertyKeys.KEY_DISPLAY_MARKERS_FILENAMES, "", GROUP.SCATTER_PLOT, true, "data/test.txt", true, false);
+  public StringListProperty TWOD_LOADED_FILENAMES = new StringListProperty(this, PropertyKeys.KEY_TWOD_LOADED_FILENAMES, "", GROUP.TWO_D_PLOT, true, "", true, false);
+  public StringListProperty TWOD_LOADED_VARIABLES = new StringListProperty(this, PropertyKeys.KEY_TWOD_LOADED_VARIABLES, "", GROUP.TWO_D_PLOT, true, "", false, false);
+  public StringListProperty FOREST_PLOT_FILENAMES = new StringListProperty(this, PropertyKeys.KEY_FOREST_PLOT_FILENAMES, "", GROUP.FOREST_PLOT, true, "", true, false);
+  public StringListProperty INDIVIDUAL_CNV_LIST_FILENAMES = new StringListProperty(this, PropertyKeys.KEY_INDIVIDUAL_CNV_LIST_FILENAMES, "", GROUP.TRAILER, true, "data/list.txt", true, false);
+  public StringListProperty REGION_LIST_FILENAMES = new StringListProperty(this, PropertyKeys.KEY_REGION_LIST_FILENAMES, "", GROUP.COMP_PLOT, true, "data/regions.txt", true, false);
+  public StringListProperty CNV_FILENAMES = new StringListProperty(this, PropertyKeys.KEY_CNV_FILENAMES, "", GROUP.CNV_FILES, true, "", true, false);
+  public StringListProperty STRATIFICATION_RESULTS_FILENAMES = new StringListProperty(this, PropertyKeys.KEY_STRATIFICATION_RESULTS_FILENAMES, "", GROUP.SPECIAL_HIDDEN, true, "", true, false);
+  public StringListProperty QQ_FILENAMES = new StringListProperty(this, PropertyKeys.KEY_QQ_FILENAMES, "", GROUP.QQ_PLOT, true, "", false, false); // not listed as file or directory, due to unique value format
+  public StringListProperty GC_CORRECTION_PARAMETERS_FILENAMES = new StringListProperty(this, PropertyKeys.KEY_GC_CORRECTION_PARAMETERS_FILENAMES, "", GROUP.GLOBAL, true, "", true, false);
+  public StringListProperty PLINK_DIR_FILEROOTS = new StringListProperty(this, PropertyKeys.KEY_PLINK_DIR_FILEROOTS, "", GROUP.PLINK, true, "", true, false);
+  public StringListProperty MARKER_COLOR_KEY_FILENAMES = new StringListProperty(this, PropertyKeys.KEY_MARKER_COLOR_KEY_FILENAMES, "", GROUP.COLORS, true, "", true, false);
+  public EnumProperty<SOURCE_FILE_DELIMITERS> SOURCE_FILE_DELIMITER = new EnumProperty<SOURCE_FILE_DELIMITERS>(this, PropertyKeys.KEY_SOURCE_FILE_DELIMITER, "", GROUP.IMPORT, false, 0, SOURCE_FILE_DELIMITERS.class);
+  public EnumProperty<ARRAY> ARRAY_TYPE = new EnumProperty<ARRAY>(this, PropertyKeys.KEY_ARRAY_TYPE, "", GROUP.PROJECT_NAME_LOCS, false, 0, ARRAY.class);
+  public EnumProperty<GENOME_BUILD> GENOME_BUILD_VERSION = new EnumProperty<GENOME_BUILD>(this, PropertyKeys.KEY_GENOME_BUILD_VERSION, "The build version of the genome, options are "  + Arrays.asList(GENOME_BUILD.values()).toString(), GROUP.IMPORT, false, 0, GENOME_BUILD.class);
+  public FileProperty TRAILER_REGION = new FileProperty(this, "TRAILER_REGION", "Last region file opened in Trailer", GROUP.TRAILER, true, "", false);
 
   private String projectPropertiesFilename;
   private SampleList sampleList;
@@ -799,10 +738,10 @@ public class Project {
 
   public String[] getPropertyKeys() {
     ArrayList<String> propList = new ArrayList<String>();
-    for (Field f : PropertyKeys.class.getFields()) {
+    for (Field f : Project.class.getFields()) {
       try {
-        if (containsKey((String) f.get(this))) {
-          propList.add((String) f.get(this));
+        if (f.get(this) instanceof Property) {
+          propList.add(f.getName());
         }
       } catch (IllegalArgumentException e) {
         e.printStackTrace();

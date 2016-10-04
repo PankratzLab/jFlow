@@ -1,13 +1,14 @@
 package org.genvisis.cnv.prop;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.GROUP;
 
 public class IntegerProperty extends Property<Integer> {
   int currValue;
   int min, max;
 
-  public IntegerProperty(Project proj, String name, String desc, int min, int max, int defValue) {
-    super(proj, name, desc, defValue);
+  public IntegerProperty(Project proj, String name, String desc, GROUP group, boolean editable, int min, int max, int defValue) {
+    super(proj, name, desc, group, editable, defValue);
     if (min > max || defValue < min || defValue > max || (max == min && defValue != max)) {
       throw new RuntimeException("Cannot initialize IntegerProperty with: min=" + min + ", max="
                                  + max + ", and default value=" + defValue);
