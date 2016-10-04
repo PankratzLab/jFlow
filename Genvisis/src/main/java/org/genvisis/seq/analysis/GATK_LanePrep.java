@@ -78,8 +78,9 @@ public class GATK_LanePrep extends BWA_Analysis {
       BWA_AnalysisIndividual[] bwAnalysisIndividuals = getBwAnalysisIndividuals();
       if (bwAnalysisIndividuals != null) {
         picard_Analysis = new Picard.Picard_Analysis[bwAnalysisIndividuals.length];
-        double memoryRatio = (double) 1 / bwAnalysisIndividuals.length;// added this because with
+        double memoryRatio = (double) 1 / getNumBetweenSampleThreads();// added this because with
                                                                        // more than 4 samples,
+
         memoryRatio -= .01;
         if (memoryRatio > Picard.DEFAULT_SORTING_COLLECTION_SIZE_RATIO) {
           memoryRatio = Picard.DEFAULT_SORTING_COLLECTION_SIZE_RATIO;
