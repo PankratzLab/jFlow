@@ -659,8 +659,8 @@ public class GATK_LanePrep extends BWA_Analysis {
     String gATKLocation = "";
     String samtoolsLocation = "";
 
-    String[] knownSitesSnpFile = null;
-    String[] knownSitesIndelFile = null;
+    String[] knownSitesSnpFile = new String[] {"NA"};
+    String[] knownSitesIndelFile = new String[] {"NA"};
 
     String fileOfSamplePairs = null;
     boolean verbose = true;
