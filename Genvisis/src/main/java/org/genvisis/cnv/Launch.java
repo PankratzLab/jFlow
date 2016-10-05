@@ -813,6 +813,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
           log.reportFileNotFound(pedFile);
           return;
         }
+        proj.GC_THRESHOLD.setValue(peo.getGC());
         String clusterFiltersFilename = peo.getClusterFilterSelection();
         if (clusterFiltersFilename != null) {
           clusterFiltersFilename = proj.DATA_DIRECTORY.getValue() + clusterFiltersFilename;

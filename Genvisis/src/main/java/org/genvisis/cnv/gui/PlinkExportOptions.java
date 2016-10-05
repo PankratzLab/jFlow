@@ -19,11 +19,14 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
 
 import org.genvisis.cnv.filesys.Project;
@@ -47,6 +50,8 @@ public class PlinkExportOptions extends JDialog {
   private JComboBox comboBoxClusterFilters;
   private ButtonGroup exportTypeGroup;
   private JCheckBox chckbxOverwrite;
+  private JLabel lblGcCutoff;
+  private JSpinner gcSpinner;
 
   private JButton okButton;
   private JButton cancelButton;
@@ -272,6 +277,19 @@ public class PlinkExportOptions extends JDialog {
       contentPanel.add(chckbxOverwrite, "cell 0 14 2 1,alignx right");
     }
     {
+      lblGcCutoff = new JLabel("GC Cutoff:");
+      contentPanel.add(lblGcCutoff, "cell 0 15");
+      tooltipExportType =
+          Grafik.getToolTipIconLabel("<html><p width=\"380\">The minimum GC quality score for a sample to be exported.</p></html>");
+      contentPanel.add(tooltipExportType, "cell 0 15");
+      SpinnerNumberModel model = new SpinnerNumberModel(proj.GC_THRESHOLD.getValue().doubleValue(), 0, 1, 0.01);
+
+      gcSpinner = new JSpinner(model);
+      JFormattedTextField jftf = ((JSpinner.DefaultEditor) gcSpinner.getEditor()).getTextField();
+      jftf.setColumns(4);
+      contentPanel.add(gcSpinner, "flowx,cell 0 16");
+    }
+    {
       rdbtnBinary = new JRadioButton("Binary");
       exportTypeGroup.add(rdbtnBinary);
       rdbtnBinary.setSelected(true);
@@ -294,7 +312,7 @@ public class PlinkExportOptions extends JDialog {
     }
     {
       tooltipExportType =
-                        Grafik.getToolTipIconLabel("<html><p width=\"380\">AB Lookup Tooltip.</p></html>"); // TODO
+                        Grafik.getToolTipIconLabel("<html><p width=\"380\">The path to an AB lookup file.</p></html>"); // TODO
                                                                                                             // ab
                                                                                                             // lookup
                                                                                                             // tooltip
@@ -354,6 +372,7 @@ public class PlinkExportOptions extends JDialog {
         }
       } else if (arg0.getActionCommand().equals("OK")) {
         if (checkPedigree()) {
+          // Note that the actual export happens in org.genvisis.cnv.Launch
           close(false);
         } else {
           JOptionPane.showMessageDialog(PlinkExportOptions.this,
@@ -494,6 +513,10 @@ public class PlinkExportOptions extends JDialog {
 
   public boolean exportAsBinary() {
     return rdbtnBinary.isSelected();
+  }
+
+  public double getGC() {
+    return (Double)gcSpinner.getValue();
   }
 
   public String[] getFileExtensions() {
