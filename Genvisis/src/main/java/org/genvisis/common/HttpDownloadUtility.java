@@ -71,7 +71,7 @@ public class HttpDownloadUtility {
       int bytesRead;
       int byteTotal = 0;
       byte[] buffer = new byte[BUFFER_SIZE];
-      log.report("Downloading ", false, true);
+      log.report("Downloading " + fileURL + " ", false, true);
       while ((bytesRead = inputStream.read(buffer)) != -1) {
         // consider using:
         // http://docs.oracle.com/javase/8/docs/api/javax/swing/ProgressMonitorInputStream.html
