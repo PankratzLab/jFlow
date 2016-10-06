@@ -20,19 +20,24 @@ public class ExploreMica {
 	}
 
 	public static void main(String[] args) {
-		String vcfFile = "/Volumes/Beta/data/MICA/data/for_pankratz/allLocal_noWater_noHap.vcf";
-		Logger log = new Logger(ext.parseDirectoryOfFile(vcfFile) + "log.log");
-		Segment mSeg = new Segment("chr6:31,378,315-31,380,254");
-		VCFFileReader reader = new VCFFileReader(new File(vcfFile), false);
-		for (VariantContext vc : reader) {
-			if (VCOps.getSegment(vc).overlaps(mSeg)) {
-				// if (vc.isIndel()) {
-				log.report(VCOps.getSegment(vc).getUCSClocation() + "\t" + vc.getID() + "\t"
-						+ vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString());
-				log.report(vc.toStringWithoutGenotypes());
-				// }
+		String[] vcfFiles = new String[] { "/Volumes/Beta/data/MICA/data/for_pankratz/allLocal_noWater_noHap.test.norm.decomp.vcf" };
+
+		for (int i = 0; i < vcfFiles.length; i++) {
+			String vcfFile = vcfFiles[i];
+			Logger log = new Logger(ext.parseDirectoryOfFile(vcfFile) + "log.log");
+			Segment mSeg = new Segment("chr6:31,378,315-31,380,254");
+			VCFFileReader reader = new VCFFileReader(new File(vcfFile), false);
+			for (VariantContext vc : reader) {
+				if (VCOps.getSegment(vc).overlaps(mSeg)) {
+					if (vc.isIndel()) {
+						log.report(VCOps.getSegment(vc).getUCSClocation() + "\t" + vc.getID() + "\t"
+								+ vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString());
+						log.report(vc.toStringWithoutGenotypes());
+					}
+				}
 			}
+			reader.close();
 		}
-		reader.close();
+
 	}
 }
