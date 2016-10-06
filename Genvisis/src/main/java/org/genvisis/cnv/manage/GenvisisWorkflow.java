@@ -936,8 +936,7 @@ public class GenvisisWorkflow {
 
     @Override
     public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-      String filename = proj.PROJECT_DIRECTORY.getValue()
-                        + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+      String filename = ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
       String projFile = proj.getPropertyFilename();
       String mapFile = proj.getLocationOfSNP_Map(true);
 
