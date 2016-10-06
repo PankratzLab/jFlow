@@ -65,6 +65,8 @@ import org.genvisis.cnv.manage.DemoPackage;
 import org.genvisis.cnv.manage.ExportCNVsToPedFormat;
 import org.genvisis.cnv.manage.GenvisisWorkflow;
 import org.genvisis.cnv.manage.PlinkData;
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.plots.CompPlot;
 import org.genvisis.cnv.plots.ForestPlotFrame;
@@ -976,10 +978,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 
 
       } else if (command.equals(GCMODEL)) {
+        Resource gc5 = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog()).getModelBase();
         org.genvisis.cnv.analysis.PennCNV.gcModel(proj,
-                                                  Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS,
-                                                                                  "gc5Base.txt",
-                                                                                  true, false, log),
+                                                  new File(gc5.get()).getAbsolutePath(),
                                                   proj.PROJECT_DIRECTORY.getValue() + "data/custom.gcModel",
                                                   100);
       } else if (command.equals(MARKER_METRICS)) {
