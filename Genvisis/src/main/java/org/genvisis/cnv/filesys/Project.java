@@ -125,7 +125,7 @@ public class Project {
   
   public IntegerProperty LOG_LEVEL = new IntegerProperty(this, PropertyKeys.KEY_LOG_LEVEL, "", GROUP.GLOBAL, true, -1, 12, 1);
   public StringProperty PROJECT_NAME = new StringProperty(this, PropertyKeys.KEY_PROJECT_NAME, "Project Name", GROUP.PROJECT_NAME_LOCS, true, "New Project");
-  public StringProperty SOURCE_FILENAME_EXTENSION = new StringProperty(this, PropertyKeys.KEY_SOURCE_FILENAME_EXTENSION, "", GROUP.IMPORT, false, ".csv");
+  public StringProperty SOURCE_FILENAME_EXTENSION = new StringProperty(this, PropertyKeys.KEY_SOURCE_FILENAME_EXTENSION, "", GROUP.IMPORT, true, ".csv");
   public StringProperty ID_HEADER = new StringProperty(this, PropertyKeys.KEY_ID_HEADER, "", GROUP.IMPORT, false, "Sample Name");
   public StringProperty FID_ALIAS = new StringProperty(this, PropertyKeys.KEY_FID_ALIAS, "", GROUP.IMPORT, true, "FID;F_ID;FamID;Fam_ID;Family;FamilyID;Family_ID");
   public StringProperty IID_ALIAS = new StringProperty(this, PropertyKeys.KEY_IID_ALIAS, "", GROUP.IMPORT, true, "ID;IID;I_ID;IndID;Ind_ID");
