@@ -31,9 +31,7 @@ public abstract class Property<T> {
   }
 
   public void setValue(T value) {
-    if (editable) {
-      this.value = value;
-    }
+    this.value = value;
   }
 
   public String getName() {
