@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.ABLookup;
+import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.VCFOps;
@@ -27,13 +28,14 @@ public class MStr {
 		VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 		String[] samples = VCFOps.getSamplesInFile(reader);
 
-		writer.println("CHR\tPOS\tREF\tSAMPLE\tA1\tA2");
+		writer.println("CHR\tPOS\tREF\tFULL_ALT\tSAMPLE\tA1\tA2\tGQ\tAD");
 		for (VariantContext vc : reader) {
 			if (VCOps.getSegment(vc).overlaps(mSeg)) {
+				
 				if (vc.isIndel()) {
 					int index = 0;
-					StringBuilder builder = new StringBuilder(
-							vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getReference().getBaseString());
+					StringBuilder builder = new StringBuilder(vc.getContig() + "\t" + vc.getStart() + "\t"
+							+ vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString());
 					for (Genotype g : vc.getGenotypes()) {
 
 						if (!g.getSampleName().equals(samples[index])) {
@@ -55,6 +57,7 @@ public class MStr {
 								} else {
 									ref = a.getBaseString();
 								}
+
 							}
 							if (ref != null) {
 								if (alts.isEmpty()) {
@@ -81,6 +84,9 @@ public class MStr {
 						} else {
 							builder2.append("\t.\t.");
 						}
+						builder2.append("\t" + g.getGQ() + "\t"
+								+ (g.getAD() == null ? "NA" : Array.toStr(Array.toStringArray((g.getAD())), ",")));
+
 						writer.println(builder2.toString());
 					}
 				}
