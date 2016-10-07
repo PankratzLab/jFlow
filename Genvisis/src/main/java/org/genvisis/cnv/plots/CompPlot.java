@@ -785,7 +785,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
   public void loadCNVs(int[] location) {
     // long startTime = Calendar.getInstance().getTimeInMillis();
     cnvRects = new CNVRectangles(hashes, allFiles, filterFiles, location, probes, minSize,
-                                 qualityScore, showExcludes ? allSamples : subSamples);
+                                 qualityScore, proj.getSampleData(SampleData.BASIC_CLASSES.length, false), showExcludes ? allSamples : subSamples);
     cnvRects.setRectangleHeight(rectangleHeight);
     compPanel.setWindow(location[1], location[2]);
     cnvRects.setScalingFactor(compPanel.getScalingFactor());

@@ -26,6 +26,7 @@ import org.genvisis.filesys.CNVariantHash;
 public class CNVRectangles {
   private HashMap<String, ArrayList<CNVariant>> fileMap;
   private final ArrayList<CNVRectangle> cnvRectangles;
+  private SampleData referenceSamples;
   public Color[] colorScheme;
   private int rectangleHeight;
   private float scalingFactor;
@@ -37,12 +38,13 @@ public class CNVRectangles {
 
   public CNVRectangles(ArrayList<CNVariantHash> hashes, ArrayList<String> allFiles,
                        ArrayList<String> filterFiles, int[] location, int probes, int minSize,
-                       int qualityScore, String[] samplesToUse) {
+                       int qualityScore, SampleData referenceSamples, String[] samplesToUse) {
     // Set the color scheme
     colorScheme = CompPlot.colorScheme;
     // Read the data from the CNV files
     this.location = location;
     fileMap = new HashMap<String, ArrayList<CNVariant>>();
+    this.referenceSamples = referenceSamples;
     HashSet<String> sampleSet = null;
     if (samplesToUse != null) {
       sampleSet = new HashSet<String>();
@@ -71,9 +73,11 @@ public class CNVRectangles {
     for (String key : fileMap.keySet()) {
       if (filterFiles.contains(key)) {
         for (CNVariant variant : fileMap.get(key)) {
+          String[] ref = referenceSamples.lookup(variant.getIndividualID());
+          if (ref == null) ref = referenceSamples.lookup(variant.getFamilyID()+"\t"+variant.getIndividualID());
+
           // Set the color
-          if (sampleSet == null || sampleSet.contains(variant.getIndividualID())
-              || sampleSet.contains(variant.getFamilyID() + "\t" + variant.getIndividualID())) {
+          if (sampleSet == null || (ref != null && sampleSet.contains(ref[0]))) {
             CNVRectangle cnvRect = new CNVRectangle(variant, location[1]);
             cnvRect.setCNVColor(colorScheme[allFiles.indexOf(key) % colorScheme.length]);
             cnvRect.setFilename(key);
