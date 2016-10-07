@@ -1,5 +1,7 @@
 package org.genvisis.cnv.filesys;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,6 +18,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Vector;
 
@@ -47,15 +50,17 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.GeneSet;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 
-public class Project {
-
-  // private static String[] verifyFiles(String[] strs, boolean isDir) {
-  // String[] verified = new String[strs.length];
-  // for (int i = 0; i < strs.length; i++) {
-  // verified[i] = isDir ? ext.verifyDirFormat(strs[i]) : ext.replaceAllWith(strs[i], "\\", "/");
-  // }
-  // return verified;
-  // }
+public class Project implements PropertyChangeListener {
+  
+  @Override
+  public void propertyChange(PropertyChangeEvent evt) {
+    // CAUTION: do not call setValue on the same property that spawned this propertyChangeEvent
+    if (loadingProperties) return;
+    
+    if (((Property<?>) evt.getSource()).getGroup() == GROUP.IMPORT) {
+      updateImportMetaFile();
+    }
+  }
 
   public <T> T getProperty(Property<T> prop) {
     return prop.getValue();
@@ -127,9 +132,9 @@ public class Project {
   public StringProperty PROJECT_NAME = new StringProperty(this, PropertyKeys.KEY_PROJECT_NAME, "Project Name", GROUP.PROJECT_NAME_LOCS, true, "New Project");
   public StringProperty SOURCE_FILENAME_EXTENSION = new StringProperty(this, PropertyKeys.KEY_SOURCE_FILENAME_EXTENSION, "", GROUP.IMPORT, false, ".csv");
   public StringProperty ID_HEADER = new StringProperty(this, PropertyKeys.KEY_ID_HEADER, "", GROUP.IMPORT, false, "Sample Name");
-  public StringProperty FID_ALIAS = new StringProperty(this, PropertyKeys.KEY_FID_ALIAS, "", GROUP.IMPORT, true, "FID;F_ID;FamID;Fam_ID;Family;FamilyID;Family_ID");
-  public StringProperty IID_ALIAS = new StringProperty(this, PropertyKeys.KEY_IID_ALIAS, "", GROUP.IMPORT, true, "ID;IID;I_ID;IndID;Ind_ID");
-  public StringProperty SAMPLE_ALIAS = new StringProperty(this, PropertyKeys.KEY_SAMPLE_ALIAS, "", GROUP.IMPORT, true, "Sample;DNA;DNA#");
+//  public StringProperty FID_ALIAS = new StringProperty(this, PropertyKeys.KEY_FID_ALIAS, "", GROUP.IMPORT, true, "FID;F_ID;FamID;Fam_ID;Family;FamilyID;Family_ID");
+//  public StringProperty IID_ALIAS = new StringProperty(this, PropertyKeys.KEY_IID_ALIAS, "", GROUP.IMPORT, true, "ID;IID;I_ID;IndID;Ind_ID");
+//  public StringProperty SAMPLE_ALIAS = new StringProperty(this, PropertyKeys.KEY_SAMPLE_ALIAS, "", GROUP.IMPORT, true, "Sample;DNA;DNA#");
   public BooleanProperty PARSE_AT_AT_SYMBOL = new BooleanProperty(this, PropertyKeys.KEY_PARSE_AT_AT_SYMBOL, "", GROUP.IMPORT, false, Boolean.FALSE);
   public BooleanProperty JAR_STATUS = new BooleanProperty(this, PropertyKeys.KEY_JAR_STATUS, "", GROUP.SPECIAL_HIDDEN, true, Boolean.FALSE);
   public BooleanProperty DISPLAY_QUANTILES = new BooleanProperty(this, PropertyKeys.KEY_DISPLAY_QUANTILES, "", GROUP.CENTROIDS, true, Boolean.FALSE);
@@ -140,7 +145,7 @@ public class Project {
   public BooleanProperty SHIFT_SEX_CHR_COLORS_YESNO = new BooleanProperty(this, PropertyKeys.KEY_SHIFT_SEX_CHR_COLORS_YESNO, "", GROUP.SCATTER_PLOT, true, Boolean.TRUE);
   public DoubleProperty BLAST_PROPORTION_MATCH_FILTER = new DoubleProperty(this, PropertyKeys.KEY_BLAST_PROPORTION_MATCH_FILTER, "", GROUP.SCATTER_PLOT, true, 0.0, 1.0, 0.80);
   public DoubleProperty GC_THRESHOLD = new DoubleProperty(this, PropertyKeys.KEY_GC_THRESHOLD, "", GROUP.DATA_EXPORT, true, 0.0, 1.0, 0.15);
-  public DoubleProperty XY_SCALE_FACTOR = new DoubleProperty(this, PropertyKeys.KEY_XY_SCALE_FACTOR, "", GROUP.PROJECT_NAME_LOCS, false, 0.001, Double.MAX_VALUE, 1);
+  public DoubleProperty XY_SCALE_FACTOR = new DoubleProperty(this, PropertyKeys.KEY_XY_SCALE_FACTOR, "", GROUP.IMPORT, false, 0.001, Double.MAX_VALUE, 1);
   public DoubleProperty LRRSD_CUTOFF = new DoubleProperty(this, PropertyKeys.KEY_LRRSD_CUTOFF, "", GROUP.DATA_CLEANING, true, 0.0, 3.0, 0.32);
   public DoubleProperty SAMPLE_CALLRATE_THRESHOLD = new DoubleProperty(this, PropertyKeys.KEY_SAMPLE_CALLRATE_THRESHOLD, "", GROUP.DATA_CLEANING, true, 0.0, 1.0, 0.95);
   public IntegerProperty NUM_THREADS = new IntegerProperty(this, PropertyKeys.KEY_NUM_THREADS, "", GROUP.GLOBAL, true, 1, 99, 1);
@@ -214,7 +219,7 @@ public class Project {
   public StringListProperty PLINK_DIR_FILEROOTS = new StringListProperty(this, PropertyKeys.KEY_PLINK_DIR_FILEROOTS, "", GROUP.PLINK, true, "", true, false);
   public StringListProperty MARKER_COLOR_KEY_FILENAMES = new StringListProperty(this, PropertyKeys.KEY_MARKER_COLOR_KEY_FILENAMES, "", GROUP.COLORS, true, "", true, false);
   public EnumProperty<SOURCE_FILE_DELIMITERS> SOURCE_FILE_DELIMITER = new EnumProperty<SOURCE_FILE_DELIMITERS>(this, PropertyKeys.KEY_SOURCE_FILE_DELIMITER, "", GROUP.IMPORT, false, 0, SOURCE_FILE_DELIMITERS.class);
-  public EnumProperty<ARRAY> ARRAY_TYPE = new EnumProperty<ARRAY>(this, PropertyKeys.KEY_ARRAY_TYPE, "", GROUP.PROJECT_NAME_LOCS, false, 0, ARRAY.class);
+  public EnumProperty<ARRAY> ARRAY_TYPE = new EnumProperty<ARRAY>(this, PropertyKeys.KEY_ARRAY_TYPE, "", GROUP.IMPORT, false, 0, ARRAY.class);
   public EnumProperty<GENOME_BUILD> GENOME_BUILD_VERSION = new EnumProperty<GENOME_BUILD>(this, PropertyKeys.KEY_GENOME_BUILD_VERSION, "The build version of the genome, options are "  + Arrays.asList(GENOME_BUILD.values()).toString(), GROUP.IMPORT, false, 0, GENOME_BUILD.class);
   public FileProperty TRAILER_REGION = new FileProperty(this, "TRAILER_REGION", "Last region file opened in Trailer", GROUP.TRAILER, true, "", false);
 
@@ -227,6 +232,7 @@ public class Project {
   private Logger log;
   private boolean gui;
   private ProgressMonitor progressMonitor;
+  private boolean loadingProperties = false;
 
   public ProgressMonitor getProgressMonitor() {
     return progressMonitor;
@@ -337,6 +343,8 @@ public class Project {
     updateProperty(proj.MARKERSET_FILENAME, ".bim", "marker set");
     proj.saveProperties(new Property[] {proj.SAMPLELIST_FILENAME, proj.MARKERLOOKUP_FILENAME,
                                         proj.MARKERSET_FILENAME});
+    
+    proj.updateImportMetaFile();
   }
 
   private static void updateProperty(FileProperty prop, String prevExt, String fileDescriptor) {
@@ -379,7 +387,15 @@ public class Project {
     }
   }
 
-
+  private void updateImportMetaFile() {
+    List<Property<?>> importProps = getProperties(GROUP.IMPORT);
+    String file = DATA_DIRECTORY.getValue() + "import.ser";
+    HashMap<String, String> propMap = new HashMap<String, String>();
+    for (Property<?> p : importProps) {
+      propMap.put(p.getName(), p.getValueString());
+    }
+    SerializedFiles.writeSerial(propMap, file);
+  }
 
   private boolean reasonableCheckForParsedSource() {
     String sampleDirectory = SAMPLE_DIRECTORY.getValue(false, false);
@@ -736,6 +752,39 @@ public class Project {
     }
   }
 
+  public <T extends Property<?>> List<T> getProperties(GROUP g) {
+    ArrayList<T> propList = new ArrayList<T>();
+    for (Field f : Project.class.getFields()) {
+      try {
+        if (f.get(this) instanceof Property<?>) {
+          @SuppressWarnings("unchecked")
+          T prop = (T) f.get(this);
+          if (g == null || prop.getGroup() == g) {
+            propList.add(prop);
+          }
+        }
+      } catch (IllegalArgumentException e) {
+        e.printStackTrace();
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+      }
+    }
+    return propList;
+  }
+
+  public <T extends Property<?>> List<T> getProperties() {
+    return getProperties(null);
+  }
+  
+  public Property<?> getPropertyByName(String propertyName) {
+    if (propertyName == null || "".equals(propertyName)) return null;
+    List<Property<?>> props = getProperties();
+    for (Property<?> p : props) {
+      if (p.getName().equals(propertyName)) return p;
+    }
+    return null;
+  }
+  
   public String[] getPropertyKeys() {
     ArrayList<String> propList = new ArrayList<String>();
     for (Field f : Project.class.getFields()) {
@@ -950,8 +999,9 @@ public class Project {
 
   public void loadProperties(String filename, boolean jar) {
     InputStream is;
-
+    
     try {
+      loadingProperties = true;
       if (jar) {
         // if (verbose) {
         // System.out.println("Loading '"+filename+"'");
@@ -987,6 +1037,8 @@ public class Project {
       // if (kill) {
       // System.exit(1);
       // }
+    } finally {
+      loadingProperties = false;
     }
   }
 
@@ -1348,7 +1400,6 @@ public class Project {
     }
     return autoB;
   }
-
 
   /**
    * For copying an existing project to a new project that will have the same essential data
