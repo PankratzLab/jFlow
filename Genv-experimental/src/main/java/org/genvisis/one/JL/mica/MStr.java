@@ -8,6 +8,8 @@ import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
@@ -22,16 +24,16 @@ public class MStr {
 	private static void run(String vcf, String outDir) {
 		new File(outDir).mkdirs();
 		Segment mSeg = new Segment("chr6:31380150-31380165");
-		String outfile = outDir + "mica.matrix.txt";
+		String outfile = outDir + ext.rootOf(vcf) + ".mica.matrix.txt";
 		PrintWriter writer = Files.getAppropriateWriter(outfile);
-
+		Logger log = new Logger(outDir + "log.log");
 		VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 		String[] samples = VCFOps.getSamplesInFile(reader);
-
+		boolean[] samplesWithOneGenotype = Array.booleanArray(samples.length, false);
 		writer.println("CHR\tPOS\tREF\tFULL_ALT\tSAMPLE\tA1\tA2\tGQ\tAD");
 		for (VariantContext vc : reader) {
 			if (VCOps.getSegment(vc).overlaps(mSeg)) {
-				
+
 				if (vc.isIndel()) {
 					int index = 0;
 					StringBuilder builder = new StringBuilder(vc.getContig() + "\t" + vc.getStart() + "\t"
@@ -43,11 +45,11 @@ public class MStr {
 
 							throw new IllegalStateException("Sample mismatch");
 						}
-						index++;
 						StringBuilder builder2 = new StringBuilder(builder.toString());
 						builder2.append("\t" + g.getSampleName());
 
 						if (g.isCalled()) {
+							samplesWithOneGenotype[index] = true;
 
 							ArrayList<String> alts = new ArrayList<String>();
 							String ref = null;
@@ -84,16 +86,21 @@ public class MStr {
 						} else {
 							builder2.append("\t.\t.");
 						}
-						builder2.append("\t" + g.getGQ() + "\t"
-								+ (g.getAD() == null ? "NA" : Array.toStr(Array.toStringArray((g.getAD())), ",")));
+						builder2.append("\t" + g.getGQ() + "\t" + (g.getAD() == null ? g.getAnyAttribute("DPR")
+								: Array.toStr(Array.toStringArray((g.getAD())), ",")));
 
-						writer.println(builder2.toString());
+						if (!g.getSampleName().contains("H20-BLANK")) {
+							writer.println(builder2.toString());
+						}
+						index++;
 					}
 				}
 			}
 		}
 		writer.close();
 		reader.close();
+		log.reportTimeInfo(
+				Array.booleanArraySum(samplesWithOneGenotype) + " of " + samples.length + " samples had genotypes");
 
 	}
 
