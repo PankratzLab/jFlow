@@ -22,6 +22,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
@@ -923,6 +924,14 @@ public class PennCNV {
     try {
 
       PSF.checkInterrupted();
+
+      // If an invalid gc base path was given, try using the resources
+      if (!new File(inputGcBaseFullPath).exists()) {
+        Resource r = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getModelBase();
+        if (r.isAvailable()) {
+          inputGcBaseFullPath = r.get();
+        }
+      }
       reader = Files.getAppropriateReader(inputGcBaseFullPath);
       while (reader.ready()) {
         line = reader.readLine().trim().split("[\\s]+");
