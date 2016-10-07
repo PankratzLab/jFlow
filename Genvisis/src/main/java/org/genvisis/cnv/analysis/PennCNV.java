@@ -929,7 +929,7 @@ public class PennCNV {
       if (!new File(inputGcBaseFullPath).exists()) {
         Resource r = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getModelBase();
         if (r.isAvailable()) {
-          inputGcBaseFullPath = r.get();
+          inputGcBaseFullPath = r.getAbsolute();
         }
       }
       reader = Files.getAppropriateReader(inputGcBaseFullPath);
