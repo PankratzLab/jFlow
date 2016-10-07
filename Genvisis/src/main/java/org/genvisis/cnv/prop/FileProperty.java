@@ -47,8 +47,8 @@ public class FileProperty extends StringProperty {
     }
 
     String tempValue = valu;
-    if (!"".equals(valu) && !valu.startsWith(".") && !valu.startsWith("/")
-        && valu.indexOf(":") == -1) {
+//    if (!"".equals(valu) && !valu.startsWith(".") && !valu.startsWith("/") && valu.indexOf(":") == -1) {
+    if (!"".equals(valu) && Files.isRelativePath(valu)) {
       if (isDir) {
         if (getName().equals(PropertyKeys.KEY_PROJECT_DIRECTORY)) { // happens with example.properties
           tempValue =
