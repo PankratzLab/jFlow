@@ -84,7 +84,8 @@ public class Region {
     stop = location[2];
   }
 
-  private void parseLoc(String location, GeneTrack track) {
+  private void parseLoc(String rawLoc, GeneTrack track) {
+    String location = rawLoc.toLowerCase();
     int[] loc;
 
     if (!location.startsWith("chr")) {
