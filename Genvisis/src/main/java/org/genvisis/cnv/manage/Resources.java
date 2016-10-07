@@ -664,6 +664,11 @@ public final class Resources {
     }
 
     @Override
+    public String getAbsolute() {
+      return new File(get(rsrc)).getAbsolutePath();
+    }
+
+    @Override
     public boolean isAvailable() {
       return isAvailable(false);
     }
@@ -709,6 +714,14 @@ public final class Resources {
      * @return The local path to this resource.
      */
     String get();
+
+    /**
+     * As {@link #get()} but always returns a fully qualified path.
+     *
+     * @see #get()
+     * @return The absolute path to this resource.
+     */
+    String getAbsolute();
 
     /**
      * Unlike {@link #get()}, this method will not download a remote resource.
