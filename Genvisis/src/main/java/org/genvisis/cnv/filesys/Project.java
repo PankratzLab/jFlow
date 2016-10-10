@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 
@@ -240,6 +241,7 @@ public class Project implements PropertyChangeListener {
 
 
   public static final String HEADERS_FILENAME = "source_headers.ser";
+  public static final String IMPORT_FILE = "import.ser";
 
   public Project() {
     sampleList = null;
@@ -386,15 +388,26 @@ public class Project implements PropertyChangeListener {
       System.err.println(error);
     }
   }
-
+  
   private void updateImportMetaFile() {
     List<Property<?>> importProps = getProperties(GROUP.IMPORT);
-    String file = DATA_DIRECTORY.getValue() + "import.ser";
+    String file = DATA_DIRECTORY.getValue() + IMPORT_FILE;
     HashMap<String, String> propMap = new HashMap<String, String>();
     for (Property<?> p : importProps) {
       propMap.put(p.getName(), p.getValueString());
     }
     SerializedFiles.writeSerial(propMap, file);
+  }
+  
+  public Map<String, String> loadImportMetaFile() {
+    String file = DATA_DIRECTORY.getValue() + IMPORT_FILE;
+    if (Files.exists(file)) {
+      @SuppressWarnings("unchecked")
+      HashMap<String, String> map = (HashMap<String, String>) SerializedFiles.readSerial(file, false, log, false);
+      return map;
+    } else {
+      return new HashMap<String, String>();
+    }
   }
 
   private boolean reasonableCheckForParsedSource() {

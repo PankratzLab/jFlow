@@ -1229,12 +1229,17 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
     ImportProjectGUI importGUI = new ImportProjectGUI();
     importGUI.setModal(true);
     importGUI.setVisible(true);
-
-    if (!importGUI.getCancelled() && importGUI.run()) {
-      String newFilename = importGUI.getNewProjectFilename();
-      loadProjects();
-      setIndexOfCurrentProject(newFilename);
-      loadProject();
+    
+    while (!importGUI.getCancelled()) {
+      if (importGUI.run()) {
+        String newFilename = importGUI.getNewProjectFilename();
+        loadProjects();
+        setIndexOfCurrentProject(newFilename);
+        loadProject();
+        break;
+      } else {
+        importGUI.setVisible(true);
+      }
     }
     importGUI.dispose();
   }

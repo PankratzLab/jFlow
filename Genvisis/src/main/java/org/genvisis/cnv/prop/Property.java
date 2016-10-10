@@ -1,5 +1,7 @@
 package org.genvisis.cnv.prop;
 
+import java.beans.PropertyChangeEvent;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.GROUP;
 
@@ -31,7 +33,9 @@ public abstract class Property<T> {
   }
 
   public void setValue(T value) {
+    T oldValue = this.value;
     this.value = value;
+    myProj.propertyChange(new PropertyChangeEvent(this, this.getName(), oldValue, this.value));
   }
 
   public String getName() {
@@ -54,6 +58,11 @@ public abstract class Property<T> {
     return defaultValue;
   }
 
+  /**
+   * Parse a String representation of whatever <code>type</code> of value this Property holds.<br />
+   * All implementations of this method should use <code>setValue()</code> after parsing.
+   * @param valueStr
+   */
   public abstract void parseValue(String valueStr);
 
   public String getValueString() {
