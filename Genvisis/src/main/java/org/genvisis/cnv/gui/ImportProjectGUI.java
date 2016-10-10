@@ -5,8 +5,12 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -26,13 +30,19 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.GROUP;
 import org.genvisis.cnv.manage.MitoPipeline;
+import org.genvisis.cnv.prop.Property;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
 
 import net.miginfocom.swing.MigLayout;
+import javax.swing.Icon;
 
+/**
+ * Dialog for creating a project properties file from an existing directory of data and files. 
+ */
 public class ImportProjectGUI extends JDialog {
 
   private static final long serialVersionUID = 1L;
@@ -59,20 +69,6 @@ public class ImportProjectGUI extends JDialog {
   volatile boolean cancelled = false;
 
   private final String propertyFilePath = MitoPipeline.initGenvisisProject();
-
-  /**
-   * Launch the application.
-   */
-  public static void main(String[] args) {
-    try {
-      ImportProjectGUI dialog = new ImportProjectGUI();
-      dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-      dialog.setVisible(true);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
 
 
   private final Action fileSelectAction = new AbstractAction() {
@@ -141,15 +137,14 @@ public class ImportProjectGUI extends JDialog {
    * Create the dialog.
    */
   public ImportProjectGUI() {
-    setTitle("Genvisis: Import Existing Project Files");
+    setTitle("Genvisis - Create Project from existing data");
 
     setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-    setBounds(100, 100, 500, 450);
+    setBounds(100, 100, 350, 600);
     getContentPane().setLayout(new BorderLayout());
     contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     getContentPane().add(contentPanel, BorderLayout.CENTER);
-    contentPanel.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow 70][grow 40]",
-                                         "[grow][][grow][][][][grow][][grow][grow][][][][grow][][]"));
+    contentPanel.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow 70][grow 40]", "[grow][][grow][][][][][][][][][][][][]"));
     CaretListener caretListener = new CaretListener() {
       @Override
       public void caretUpdate(CaretEvent arg0) {
@@ -167,7 +162,7 @@ public class ImportProjectGUI extends JDialog {
       contentPanel.add(separator, "cell 0 1 5 1,growx");
     }
     {
-      JLabel lblProjectName = new JLabel("Project Name:");
+      JLabel lblProjectName = new JLabel("New Project Name:");
       contentPanel.add(lblProjectName, "cel   l 0 3,alignx right");
     }
     {
@@ -211,38 +206,24 @@ public class ImportProjectGUI extends JDialog {
     // }
     {
       JSeparator separator = new JSeparator();
-      contentPanel.add(separator, "cell 0 7 4 1,growx");
+      contentPanel.add(separator, "cell 0 6 4 1,growx");
     }
     {
       JPanel panel = new JPanel();
-      contentPanel.add(panel, "cell 0 8 4 7,grow");
-      panel.setLayout(new MigLayout("", "[][grow][][10px:10px:10px][grow][][]",
-                                    "[grow][][][][][][grow]"));
+      contentPanel.add(panel, "cell 0 7 4 7,grow");
+      panel.setLayout(new MigLayout("", "[grow][grow][][grow]", "[][][][][][][][][][][][]"));
       {
         JLabel lblRequired = new JLabel("<html><u>Required:</u><html>");
-        panel.add(lblRequired, "cell 1 1,alignx left");
-      }
-      {
-        JLabel lblSample = new JLabel("<html><u>Sample Import:</u></html>");
-        panel.add(lblSample, "cell 4 1,alignx left");
+        panel.add(lblRequired, "cell 1 0,growy, alignx left,growy");
       }
       {
         JLabel lblValidProjectDirectory = new JLabel("Valid Project Directory:");
-        panel.add(lblValidProjectDirectory, "cell 1 2,alignx right");
+        panel.add(lblValidProjectDirectory, "cell 1 1,alignx right,growy");
         lblFoundProjectStatus = new JLabel(redX);
-        panel.add(lblFoundProjectStatus, "cell 2 2,alignx left");
+        panel.add(lblFoundProjectStatus, "cell 2 1,alignx left,growy");
       }
-      JLabel lblFoundSamplesDirectory =
-                                      new JLabel("<html>Found <code>samples/</code> Directory:</html>");
-      panel.add(lblFoundSamplesDirectory, "cell 4 2,alignx right");
-      lblFoundSamplesStatus = new JLabel(redX);
-      panel.add(lblFoundSamplesStatus, "cell 5 2,alignx left");
       JLabel lblFoundDataDirectory = new JLabel("<html>Found <code>data/</code> Directory:</html>");
-      panel.add(lblFoundDataDirectory, "cell 1 3,alignx right");
-      {
-        JLabel lblMarkerDataImport = new JLabel("<html><u>Marker Import:</u></html>");
-        panel.add(lblMarkerDataImport, "cell 4 3,alignx left");
-      }
+      panel.add(lblFoundDataDirectory, "cell 1 2,alignx right,growy");
       // {
       // JLabel lblValidSampledataFile = new JLabel("<html>Valid <code>SampleData</code>
       // File:</html>");
@@ -252,41 +233,66 @@ public class ImportProjectGUI extends JDialog {
       // panel.add(lblFoundSampleDataStatus, "cell 5 4,alignx left");
       {
         JLabel lblFoundSampleList = new JLabel("<html>Found <code>SampleList</code> File:</html>");
-        panel.add(lblFoundSampleList, "cell 1 4,alignx right");
+        panel.add(lblFoundSampleList, "cell 1 3,alignx right,growy");
       }
       {
         lblFoundSampleListStatus = new JLabel(redX);
-        panel.add(lblFoundSampleListStatus, "cell 2 4,alignx left");
+        panel.add(lblFoundSampleListStatus, "cell 2 3,alignx left,growy");
+      }
+      {
+        JLabel lblFoundMarkerList = new JLabel("<html>Found <code>MarkerSet</code> File:</html>");
+        panel.add(lblFoundMarkerList, "cell 1 4,alignx right,growy");
+      }
+      {
+        lblFoundDataStatus = new JLabel(redX);
+        panel.add(lblFoundDataStatus, "cell 2 2,alignx left,growy");
+      }
+      lblFoundMarkerListStatus = new JLabel(redX);
+      panel.add(lblFoundMarkerListStatus, "cell 2 4,alignx left,growy");
+      {
+        JLabel lblSample = new JLabel("<html><u>Sample Import:</u></html>");
+        panel.add(lblSample, "cell 1 5,alignx left,growy");
+      }
+      JLabel lblFoundSamplesDirectory =
+                                      new JLabel("<html>Found <code>samples/</code> Directory:</html>");
+      panel.add(lblFoundSamplesDirectory, "cell 1 6,alignx right,growy");
+      lblFoundSamplesStatus = new JLabel(redX);
+      panel.add(lblFoundSamplesStatus, "cell 2 6,alignx left,growy");
+      {
+        JLabel lblMarkerDataImport = new JLabel("<html><u>Marker Import:</u></html>");
+        panel.add(lblMarkerDataImport, "cell 1 7,alignx left,growy");
       }
       {
         JLabel lblFoundTransposedDirectory =
                                            new JLabel("<html>Found <code>transposed/</code> Directory:</html>");
-        panel.add(lblFoundTransposedDirectory, "cell 4 4,alignx right");
+        panel.add(lblFoundTransposedDirectory, "cell 1 8,alignx right,growy");
       }
       lblFoundTransposedStatus = new JLabel(redX);
-      panel.add(lblFoundTransposedStatus, "cell 5 4,alignx left");
-      {
-        JLabel lblFoundMarkerList = new JLabel("<html>Found <code>MarkerSet</code> File:</html>");
-        panel.add(lblFoundMarkerList, "cell 1 5,alignx right");
-      }
-      {
-        lblFoundDataStatus = new JLabel(redX);
-        panel.add(lblFoundDataStatus, "cell 2 3,alignx left");
-      }
-      lblFoundMarkerListStatus = new JLabel(redX);
-      panel.add(lblFoundMarkerListStatus, "cell 2 5,alignx left");
+      panel.add(lblFoundTransposedStatus, "cell 2 8,alignx left,growy");
       JLabel lblFoundMarkerlookupFile =
                                       new JLabel("<html>Found <code>MarkerLookup</code> File:</html>");
-      panel.add(lblFoundMarkerlookupFile, "cell 4 5,alignx right");
+      panel.add(lblFoundMarkerlookupFile, "cell 1 9,alignx right,growy");
       {
         lblFoundMarkerLookupStatus = new JLabel(redX);
-        panel.add(lblFoundMarkerLookupStatus, "cell 5 5,alignx left");
+        panel.add(lblFoundMarkerLookupStatus, "cell 2 9,alignx left,growy");
+      }
+      {
+        JLabel lblpropertyImport = new JLabel("<html><u>Property Import:</u></html>");
+        panel.add(lblpropertyImport, "cell 1 10,growy");
+      }
+      {
+        JLabel lblFoundImportMeta = new JLabel("<html>Found <code>import.ser</code> meta File:</html>");
+        panel.add(lblFoundImportMeta, "cell 1 11,alignx right,growy");
+      }
+      {
+        lblFoundImportMetaStatus = new JLabel(redX);
+        panel.add(lblFoundImportMetaStatus, "cell 2 11");
       }
     }
     {
-      JLabel lblNewLabel = new JLabel("Note: Remember to set other properties as needed!");
+      JLabel lblNewLabel = new JLabel("<html><center>Note: Remember to set other properties as needed!</center></html>");
       lblNewLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
-      contentPanel.add(lblNewLabel, "cell 0 15 4 1,alignx center");
+      contentPanel.add(lblNewLabel, "cell 0 14 4 1,alignx center");
     }
     {
       JPanel buttonPane = new JPanel();
@@ -319,6 +325,15 @@ public class ImportProjectGUI extends JDialog {
         cancelButton.setActionCommand("Cancel");
         buttonPane.add(cancelButton, "cell 2 1,alignx left,aligny top");
       }
+    }
+    {
+      addWindowListener(new WindowAdapter() {
+        @Override
+        public void windowClosing(WindowEvent e) {
+          close(true);
+          super.windowClosing(e);
+        }
+      });
     }
   }
 
@@ -354,26 +369,38 @@ public class ImportProjectGUI extends JDialog {
     }
     return true;
   }
+  
+  // TODO these should ideally refer to Project/Property defaults
+  private String DEFAULT_SAMPLE_DIR = "samples/";
+  private String DEFAULT_DATA_DIR = "data/";
+  private String DEFAULT_TRANSPOSE_DIR = "transposed/";
+  private String DEFAULT_SAMPLELIST = DEFAULT_DATA_DIR + "samples.bis";
+  private String DEFAULT_SAMPLELIST_ALT = DEFAULT_DATA_DIR + "samples.ser";
+  private String DEFAULT_MARKERLIST = DEFAULT_DATA_DIR + "markers.bim";
+  private String DEFAULT_MARKERLIST_ALT = DEFAULT_DATA_DIR + "markers.ser";
+  private String DEFAULT_MARKERLOOKUP = DEFAULT_DATA_DIR + "markerLookup.bml";
+  private String DEFAULT_MARKERLOOKUP_ALT = DEFAULT_DATA_DIR + "markerLookup.ser";
 
+  private JLabel lblFoundImportMetaStatus;
+  
   private boolean[] getStatuses() {
     String baseDir = ext.verifyDirFormat(txtFldProjDir.getText().trim());
-    // String sampleData = txtFldSampleDataFile.getText().trim();
     boolean foundProject = Files.exists(baseDir);
-    // File sampDFile = new File(sampleData);
-    // boolean foundSampleData = sampDFile.exists() && sampDFile.isFile() && sampDFile.canRead();
-    boolean foundSamples = Files.exists(baseDir + "samples/");
-    boolean foundData = Files.exists(baseDir + "data/");
-    boolean foundTransposed = Files.exists(baseDir + "transposed/");
-    boolean foundSampleList = Files.exists(baseDir + "data/samples.bis")
-                              || Files.exists(baseDir + "data/samples.ser");
-    boolean foundMarkerList = Files.exists(baseDir + "data/markers.bim")
-                              || Files.exists(baseDir + "data/markers.ser");
-    boolean foundMarkerLookup = Files.exists(baseDir + "data/markerLookup.bml")
-                                || Files.exists(baseDir + "data/markerLookup.ser");
+    
+    boolean foundSamples = Files.exists(baseDir + DEFAULT_SAMPLE_DIR);
+    boolean foundData = Files.exists(baseDir + DEFAULT_DATA_DIR);
+    boolean foundTransposed = Files.exists(baseDir + DEFAULT_TRANSPOSE_DIR);
+    boolean foundSampleList = Files.exists(baseDir + DEFAULT_SAMPLELIST)
+                              || Files.exists(baseDir + DEFAULT_SAMPLELIST_ALT);
+    boolean foundMarkerList = Files.exists(baseDir + DEFAULT_MARKERLIST)
+                              || Files.exists(baseDir + DEFAULT_MARKERLIST_ALT);
+    boolean foundMarkerLookup = Files.exists(baseDir + DEFAULT_MARKERLOOKUP)
+                                || Files.exists(baseDir + DEFAULT_MARKERLOOKUP_ALT);
+    boolean foundImportMeta = Files.exists(baseDir + DEFAULT_DATA_DIR + Project.IMPORT_FILE);
     return new boolean[] {/* 0 */ foundProject, /* 1 */ foundData, /* 2 */ foundSampleList,
                           /* 3 */ foundMarkerList,
                           // /*4*/ foundSampleData,
-                          /* 5 */ foundSamples, /* 6 */ foundTransposed, /* 7 */ foundMarkerLookup};
+                          /* 5 */ foundSamples, /* 6 */ foundTransposed, /* 7 */ foundMarkerLookup, /* 8 */ foundImportMeta};
   }
 
   private void updateFound(final boolean[] statuses) {
@@ -389,6 +416,7 @@ public class ImportProjectGUI extends JDialog {
         lblFoundSamplesStatus.setIcon(statuses[4] ? tick : redX);
         lblFoundTransposedStatus.setIcon(statuses[5] ? tick : redX);
         lblFoundMarkerLookupStatus.setIcon(statuses[6] ? tick : redX);
+        lblFoundImportMetaStatus.setIcon(statuses[7] ? tick : redX);
       }
     });
   }
@@ -415,6 +443,17 @@ public class ImportProjectGUI extends JDialog {
     Project actualProj = new Project(filename, false);
     actualProj.PROJECT_NAME.setValue(name);
     actualProj.PROJECT_DIRECTORY.setValue(txtFldProjDir.getText().trim());
+    
+    Map<String, String> importProps = actualProj.loadImportMetaFile();
+    if (importProps != null && !importProps.isEmpty()) {
+      List<Property<?>> props = actualProj.getProperties(GROUP.IMPORT);
+      for (Property<?> p : props) {
+        if (importProps.containsKey(p.getName())) {
+          p.parseValue(importProps.get(p.getName()));
+        }
+      }
+    }
+    
     // actualProj.SOURCE_DIRECTORY.setValue(srcDir);
     // actualProj.SOURCE_FILENAME_EXTENSION.setValue(srcExt);
     // actualProj.LRRSD_CUTOFF.setValue(lrrSd);
