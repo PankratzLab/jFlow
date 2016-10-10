@@ -99,10 +99,19 @@ public class StringListProperty extends Property<String[]> {
   }
 
   public void addValue(String value) {
-    setValue(Array.addStrToArray(value, getValue(), 0));
+    addValue(value, 0);
   }
 
   public void addValue(String valu, int index) {
+    String[] curValue = getValue();
+
+    for (String s : curValue) {
+      // Check if the current value is already present
+      if (s.equals(valu)) {
+        return;
+      }
+    }
+
     String value = valu;
     if (isDir) {
       value = ext.verifyDirFormat(value);
@@ -110,6 +119,6 @@ public class StringListProperty extends Property<String[]> {
       value = ext.verifyDirFormat(value);
       value = value.substring(0, value.length() - 1);
     }
-    setValue(Array.addStrToArray(value, getValue(), index));
+    setValue(Array.addStrToArray(value, curValue, index));
   }
 }
