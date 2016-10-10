@@ -40,6 +40,7 @@ public class FileProperty extends StringProperty {
   }
 
   // TODO NP asks: When is this subdir option ever used?
+  // TODO use ext.isrelativepath, document that this is a relative path, and ensure it's being used as such
   public String getValue(String subdir, boolean mkdirs, boolean verbose) {
     String valu = super.getValue();
     if (valu.contains("~")) {
