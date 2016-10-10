@@ -942,7 +942,7 @@ public class CNVCaller {
 
           writer.println(cnvs.getLoci()[i].toPlinkFormat());
         }
-        proj.getLog().reportTimeInfo("Called CNVs for" + index + " samples");
+        proj.getLog().reportTimeInfo("Called CNVs for " + index + " of " + samples.length + " samples");
 
       }
       writer.close();
