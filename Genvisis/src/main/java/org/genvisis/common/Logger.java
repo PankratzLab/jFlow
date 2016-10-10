@@ -235,12 +235,15 @@ public class Logger implements Serializable {
 
   public void reportException(Throwable e, int levelRequiredToReport) {
     PrintWriter writer;
+    String msg = getVersion() + ext.getTime() + "\t" + e.getMessage();
 
+    System.err.println(msg);
     e.printStackTrace();
     if (level >= levelRequiredToReport && logging) {
       e.printStackTrace();
       try {
         writer = new PrintWriter(new FileWriter(filename, true));
+        writer.println(msg);
         e.printStackTrace(writer);
         writer.close();
       } catch (Exception e2) {
