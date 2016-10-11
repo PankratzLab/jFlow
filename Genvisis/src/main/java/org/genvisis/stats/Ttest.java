@@ -80,6 +80,44 @@ public class Ttest {
 					splitOut(groupings, values, Array.min(groupings) + 1));
 	}
 
+	public Ttest(String[] groupings, double[] values, String groupOfInterest) {
+		this(splitOut(groupings, values, groupOfInterest), groupOfInterest);
+	}
+
+	/**
+	 * Helper method to split the 2D array returned by {@link #splitOut(String[], double[], String)}
+	 */
+	private Ttest(double[][] splitValues, String groupOfInterest) {
+		this(splitValues[0], splitValues[1]);
+	}
+
+	/**
+	 * Groupings and values are parallel arrays, representing two columns of sample data (grouping
+	 * labels and numerical values). This method uses the grouping information to split the values
+	 * into two arrays: one with groupings matching the group of interest, and one with everything
+	 * else.
+	 *
+	 * @param groupings
+	 * @param values
+	 * @param groupOfInterest
+	 * @return Two arrays - position 0 is the set of values with groupings matching the group of
+	 *         interest, position 1 is the set of values that did not match.
+	 */
+	public static double[][] splitOut(String[] groupings, double[] values, String groupOfInterest) {
+		DoubleVector match = new DoubleVector();
+		DoubleVector noMatch = new DoubleVector();
+
+		for (int i = 0; i < groupings.length; i++) {
+			if (groupings[i].equals(groupOfInterest)) {
+				match.add(values[i]);
+			} else {
+				noMatch.add(values[i]);
+			}
+		}
+
+		return new double[][]{Doubles.toArray(match), Doubles.toArray(noMatch)};
+	}
+
 	public static double[] splitOut(int[] groupings, double[] values, int group) {
 		DoubleVector dv = new DoubleVector();
 
