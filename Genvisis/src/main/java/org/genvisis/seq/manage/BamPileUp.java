@@ -1,5 +1,6 @@
 package org.genvisis.seq.manage;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -330,6 +331,7 @@ public class BamPileUp implements Iterator<BamPile> {
 
   public static class bamPileWorker implements Callable<DynamicHistogram> {
     private final String bamFile;
+    private final String outDir;
     private final Segment[] q;
     private final FilterNGS filterNGS;
     private final ReferenceGenome referenceGenome;
@@ -338,11 +340,12 @@ public class BamPileUp implements Iterator<BamPile> {
     private final SAM_FILTER_TYPE filterType;
     private final Logger log;
 
-    public bamPileWorker(String bamFile, Segment[] q, FilterNGS filterNGS,
+    public bamPileWorker(String bamFile, String outDir, Segment[] q, FilterNGS filterNGS,
                          ReferenceGenome referenceGenome, int binSize, PILE_TYPE type,
                          SAM_FILTER_TYPE filterType, Logger log) {
       super();
       this.bamFile = bamFile;
+      this.outDir = outDir;
       this.q = q;
       this.filterNGS = filterNGS;
       this.referenceGenome = referenceGenome;
@@ -356,7 +359,8 @@ public class BamPileUp implements Iterator<BamPile> {
     public DynamicHistogram call() throws Exception {
       BamPileUp pileUp = new BamPileUp(bamFile, referenceGenome, binSize, filterNGS, q, type,
                                        filterType, true, log);
-      String output = ext.rootOf(bamFile, false) + ".bamPile.txt";
+      new File(outDir).mkdirs();
+      String output = outDir + ext.rootOf(bamFile, true) + ".bamPile.txt";
       PrintWriter writer = Files.getAppropriateWriter(output);
       writer.println(BamPile.getBampPileHeader());
       while (pileUp.hasNext()) {
