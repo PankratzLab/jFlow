@@ -21,22 +21,20 @@ public class Qtest {
 		@Override
 		public Callable<Hi> next() {
 
-			Hi hi = new Hi(index == 0,index);
+			Hi hi = new Hi(index == 0, index);
 			index++;
 			return hi;
 		}
 	}
 
 	private static class Hi implements Callable<Hi> {
-		private boolean halt;
-		private int index;
+		private final int index;
 
 		public Hi(boolean halt, int index) {
 			super();
-			this.halt = halt;
 			this.index = index;
 		}
-		
+
 
 		private int getIndex() {
 			return index;
@@ -45,21 +43,21 @@ public class Qtest {
 
 		@Override
 		public Hi call() throws Exception {
-			System.out.println("Hi from index " + index);//this will often be printed out of order
-//
+			System.out.println("Hi from index " + index);// this will often be printed out of order
+			//
 			return this;
-//			if (halt) {
-//				while (true) {
-//					try {
-//						Thread.sleep(100);
-//					} catch (InterruptedException ie) {
-//					}
-//				}
-//			} else {
-//				System.out.println("Hi from index " + index);
-//			}
+			// if (halt) {
+			// while (true) {
+			// try {
+			// Thread.sleep(100);
+			// } catch (InterruptedException ie) {
+			// }
+			// }
+			// } else {
+			// System.out.println("Hi from index " + index);
+			// }
 			// TODO Auto-generated method stub
-//			return null;
+			// return null;
 		}
 
 	}
@@ -68,7 +66,7 @@ public class Qtest {
 		HiProducer producer = new HiProducer();
 		WorkerTrain<Hi> train = new WorkerTrain<Hi>(producer, 4, 100, new Logger());
 		while (train.hasNext()) {
-			System.out.println("SDFD" + train.next().getIndex());//always in order
+			System.out.println("SDFD" + train.next().getIndex());// always in order
 		}
 
 	}

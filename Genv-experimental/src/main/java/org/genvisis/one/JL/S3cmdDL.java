@@ -12,7 +12,8 @@ import org.genvisis.common.ext;
 import org.genvisis.one.ScriptExecutor;
 
 /**
- * One timer but could be more, for getting specific file types from amazon buckets, I think there is an actual s3cmd to do this but oh well
+ * One timer but could be more, for getting specific file types from amazon buckets, I think there
+ * is an actual s3cmd to do this but oh well
  *
  */
 public class S3cmdDL {
@@ -31,7 +32,7 @@ public class S3cmdDL {
 		cmd1.add(txt);
 		Files.write(Array.toStr(Array.toStringArray(cmd1), " "), sh);
 		Files.chmod(sh);
-		CmdLine.runCommandWithFileChecks(new String[] { sh }, "", null, null, true, true, false, log);
+		CmdLine.runCommandWithFileChecks(new String[] {sh}, "", null, null, true, true, false, log);
 
 		String[] files = HashVec.loadFileToStringArray(txt, false, null, false);
 		ArrayList<String> filesGet = new ArrayList<String>();
@@ -69,7 +70,8 @@ public class S3cmdDL {
 			e.printStackTrace();
 		}
 
-		// CmdLine.runCommandWithFileChecks(new String[] { get }, "", null, null, true, true, false, log);
+		// CmdLine.runCommandWithFileChecks(new String[] { get }, "", null, null, true, true, false,
+		// log);
 
 	}
 

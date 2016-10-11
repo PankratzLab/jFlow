@@ -1,7 +1,14 @@
 package org.genvisis.kaput;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 public class keepFams {
 	public static boolean KEEPFIRSTLINE;
@@ -11,7 +18,7 @@ public class keepFams {
 		PrintWriter writer = null;
 		StringTokenizer st;
 		String temp, trav;
-		Hashtable<String,String> hash = new Hashtable<String,String>();
+		Hashtable<String, String> hash = new Hashtable<String, String>();
 		Vector<String> duplicateList = new Vector<String>();
 		boolean isFirstLine; // workaround for Leah
 
@@ -34,8 +41,8 @@ public class keepFams {
 
 		isFirstLine = true;
 
-		(new File(struct)).renameTo(new File(struct+".bak"));
-		reader = new BufferedReader(new FileReader(struct+".bak"));
+		(new File(struct)).renameTo(new File(struct + ".bak"));
+		reader = new BufferedReader(new FileReader(struct + ".bak"));
 		writer = new PrintWriter(new FileWriter(struct));
 		while (reader.ready()) {
 			temp = reader.readLine();
@@ -49,16 +56,16 @@ public class keepFams {
 				if (duplicateList.contains(trav)) {
 					duplicateList.remove(trav);
 				}
-			} else if (isFirstLine&&KEEPFIRSTLINE) {
+			} else if (isFirstLine && KEEPFIRSTLINE) {
 				writer.println(temp);
 				isFirstLine = false;
 			}
 		}
 		reader.close();
 		writer.close();
-		if (duplicateList.size()>0) {
+		if (duplicateList.size() > 0) {
 			System.err.println("Warning - the following were found in the list but not in the source:");
-			for (int i = 0; i<duplicateList.size(); i++) {
+			for (int i = 0; i < duplicateList.size(); i++) {
 				System.err.println(duplicateList.elementAt(i));
 			}
 		}
@@ -66,12 +73,12 @@ public class keepFams {
 	}
 
 	public static void main(String[] args) throws IOException {
-		if (args.length<2||args.length>3) {
+		if (args.length < 2 || args.length > 3) {
 			System.out.println("Expecting 2-3 arguments: source_filename and keys_to_keep filename (or \"key=key_you_want_to_keep\").");
 			System.out.println("Third optional argument: -keepfirstline");
 		} else {
 			try {
-				if (args.length==3&&args[2].equals("-keepfirstline")) {
+				if (args.length == 3 && args[2].equals("-keepfirstline")) {
 					KEEPFIRSTLINE = true;
 				} else {
 					KEEPFIRSTLINE = false;

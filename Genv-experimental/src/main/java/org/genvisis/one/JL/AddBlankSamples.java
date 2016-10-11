@@ -32,7 +32,9 @@ public class AddBlankSamples {
 		String outVcf = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".blanks.vcf.gz";
 		if (!VCFOps.existsWithIndex(outVcf)) {
 			VCFFileReader reader = new VCFFileReader(new File(vcf), true);
-			VariantContextWriter writer = VCFOps.initWriter(outVcf, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
+			VariantContextWriter writer =
+																	VCFOps.initWriter(outVcf, VCFOps.DEFUALT_WRITER_OPTIONS,
+																										reader.getFileHeader().getSequenceDictionary());
 
 			Set<String> samps = new HashSet<String>();
 			for (int i = 0; i < numBlanks; i++) {
@@ -43,7 +45,8 @@ public class AddBlankSamples {
 			newHeaderLines.addAll(reader.getFileHeader().getOtherHeaderLines());
 			newHeaderLines.addAll(reader.getFileHeader().getContigLines());
 			newHeaderLines.addAll(reader.getFileHeader().getFilterLines());
-			VCFFormatHeaderLine newFormat = new VCFFormatHeaderLine("GT", 1, VCFHeaderLineType.String, "A blank genotype");
+			VCFFormatHeaderLine newFormat = new VCFFormatHeaderLine("GT", 1, VCFHeaderLineType.String,
+																															"A blank genotype");
 			newHeaderLines.add(newFormat);
 
 			final VCFHeader outHeader = new VCFHeader(newHeaderLines, samps);
@@ -63,7 +66,8 @@ public class AddBlankSamples {
 			reader.close();
 			writer.close();
 		}
-		VCFOps.extractSegments(outVcf, segFile, 10, null, outDir, false, false, true, false, null, 1, new Logger());
+		VCFOps.extractSegments(	outVcf, segFile, 10, null, outDir, false, false, true, false, null, 1,
+														new Logger());
 	}
 
 }

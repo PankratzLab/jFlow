@@ -6,18 +6,12 @@ import org.genvisis.common.Files;
 
 
 /**
- * @author lane0212
- *Testing line counter
+ * @author lane0212 Testing line counter
  */
 public class NumLineTest {
 
 	public static void main(String[] args) {
-		String[] file = new String[] { "1",
-				"2",
-				"3",
-				"4",
-				"5"
-		};
+		String[] file = new String[] {"1", "2", "3", "4", "5"};
 		Files.writeArray(file, "test.txt");
 		System.out.println(Files.countLines("test.txt", 0));
 		System.out.println(Files.countLines("test.txt", 1));

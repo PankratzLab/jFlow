@@ -29,7 +29,7 @@ public class Em {
 
 	private static Logicle getBiexScale(double max) {
 		double w = 2; // linear decades // W=1 is weird, W=3 -> "scale() didn't
-						// converge"
+		// converge"
 		double a = 0; // negative decades
 		double decCnt = count(max);
 
@@ -51,7 +51,7 @@ public class Em {
 	 */
 	public static void main(String[] args) {
 		String export = "/Users/Kitty/temp/emflow/export.xln";
-		String[][] data = HashVec.loadFileToStringMatrix(export, false, new int[] { 1, 2 }, false);
+		String[][] data = HashVec.loadFileToStringMatrix(export, false, new int[] {1, 2}, false);
 		Logger log = new Logger();
 		log.reportTimeInfo(data.length + " by " + data[0].length);
 
@@ -59,9 +59,9 @@ public class Em {
 		ArrayList<Double> xt = new ArrayList<Double>();
 		ArrayList<Double> yt = new ArrayList<Double>();
 
-		for (int i = 0; i < data.length; i++) {
-			xt.add(Double.parseDouble(data[i][0]));
-			yt.add(Double.parseDouble(data[i][1]));
+		for (String[] element : data) {
+			xt.add(Double.parseDouble(element[0]));
+			yt.add(Double.parseDouble(element[1]));
 		}
 
 		double[] x = Doubles.toArray(xt);
@@ -77,11 +77,10 @@ public class Em {
 
 		}
 
-		double[][] m = new double[][] { x, y };
-		MultivariateNormalMixtureExpectationMaximization mle = new MultivariateNormalMixtureExpectationMaximization(
-				Matrix.transpose(m));
-		MixtureMultivariateNormalDistribution initialMix = MultivariateNormalMixtureExpectationMaximization
-				.estimate(Matrix.transpose(m), 3);
+		double[][] m = new double[][] {x, y};
+		MultivariateNormalMixtureExpectationMaximization mle = new MultivariateNormalMixtureExpectationMaximization(Matrix.transpose(m));
+		MixtureMultivariateNormalDistribution initialMix = MultivariateNormalMixtureExpectationMaximization.estimate(	Matrix.transpose(m),
+																																																									3);
 		mle.fit(initialMix, 500, 1E-5);
 		MixtureMultivariateNormalDistribution finalMix = mle.getFittedModel();
 		List<Pair<Double, MultivariateNormalDistribution>> dists = finalMix.getComponents();

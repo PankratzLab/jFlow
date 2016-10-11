@@ -1,9 +1,7 @@
 package org.genvisis.one.JL.ssh;
 
 import java.util.ArrayList;
-import java.util.List;
 
-import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Logger;
 
@@ -15,7 +13,7 @@ public class SSH {
 
 	/**
 	 * JLs remote
-	 * 
+	 *
 	 * @param local
 	 * @param remoteDir
 	 * @param log
@@ -26,7 +24,7 @@ public class SSH {
 
 	/**
 	 * JL run remote command
-	 * 
+	 *
 	 * @param commandToRun
 	 * @param log
 	 */
@@ -36,7 +34,7 @@ public class SSH {
 
 	/**
 	 * JLs remote
-	 * 
+	 *
 	 * @param local
 	 * @param remoteDir
 	 * @param log

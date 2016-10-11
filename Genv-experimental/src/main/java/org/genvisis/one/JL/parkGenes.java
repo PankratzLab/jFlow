@@ -16,12 +16,15 @@ import org.genvisis.filesys.Segment;
 
 public class parkGenes {
 
-	
+
 	public static void main(String[] args) {
-		int numArgs = args.length;
-		GeneTrack geneTrack = GeneTrack.load(Resources.genome(GENOME_BUILD.HG19, new Logger()).getGTrack().get(), false);
-		
-		LocusSet<CNVariant> set = CNVariant.loadLocSet("D:/data/NGRC/cnvs/decentCalls_centromeresBroken.cnv", new Logger());
+		GeneTrack geneTrack = GeneTrack.load(	Resources.genome(GENOME_BUILD.HG19, new Logger())
+																									.getGTrack().get(),
+																					false);
+
+		LocusSet<CNVariant> set =
+														CNVariant.loadLocSet(	"D:/data/NGRC/cnvs/decentCalls_centromeresBroken.cnv",
+																									new Logger());
 		ArrayList<CNVariant> found = new ArrayList<CNVariant>();
 		ArrayList<String> genes = new ArrayList<String>();
 		genes.add("HTRA2");
@@ -37,8 +40,8 @@ public class parkGenes {
 				throw new IllegalArgumentException(gene);
 			}
 			GeneData[] d = geneTrack.lookupAllGeneData(gene);
-			for (int i = 0; i < d.length; i++) {
-				genLocs.add(d[i]);
+			for (GeneData element : d) {
+				genLocs.add(element);
 			}
 		}
 		Segment[] segs = Segment.sortSegments(genLocs.toArray(new GeneData[genLocs.size()]));

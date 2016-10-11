@@ -16,35 +16,35 @@ import java.util.Hashtable;
  */
 public class ChrPositionMap implements Serializable {
 
-  public static final long serialVersionUID = 1L;
+	public static final long serialVersionUID = 1L;
 
-  Hashtable<Byte, HashSet<Integer>> chrPositionMap = new Hashtable<Byte, HashSet<Integer>>();
+	Hashtable<Byte, HashSet<Integer>> chrPositionMap = new Hashtable<Byte, HashSet<Integer>>();
 
-  public Hashtable<Byte, HashSet<Integer>> getChrPositionMap() {
-    return chrPositionMap;
-  }
+	public Hashtable<Byte, HashSet<Integer>> getChrPositionMap() {
+		return chrPositionMap;
+	}
 
 
-  public void setChrPositionMap(Hashtable<Byte, HashSet<Integer>> chrPositionMap) {
-    this.chrPositionMap = chrPositionMap;
-  }
+	public void setChrPositionMap(Hashtable<Byte, HashSet<Integer>> chrPositionMap) {
+		this.chrPositionMap = chrPositionMap;
+	}
 
-  public void writeToFile(String filepath) throws IOException {
+	public void writeToFile(String filepath) throws IOException {
 
-    ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filepath, false));
-    out.writeObject(this);
-    out.close();
-  }
+		ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filepath, false));
+		out.writeObject(this);
+		out.close();
+	}
 
-  public void readFromFile(String filepath) throws IOException, ClassNotFoundException {
-    FileInputStream in = new FileInputStream(filepath);
-    ObjectInputStream reader = new ObjectInputStream(in);
-    setChrPositionMap(((ChrPositionMap) reader.readObject()).chrPositionMap);
-    reader.close();
-  }
+	public void readFromFile(String filepath) throws IOException, ClassNotFoundException {
+		FileInputStream in = new FileInputStream(filepath);
+		ObjectInputStream reader = new ObjectInputStream(in);
+		setChrPositionMap(((ChrPositionMap) reader.readObject()).chrPositionMap);
+		reader.close();
+	}
 
-  @Override
-  public String toString() {
-    return chrPositionMap.toString();
-  }
+	@Override
+	public String toString() {
+		return chrPositionMap.toString();
+	}
 }

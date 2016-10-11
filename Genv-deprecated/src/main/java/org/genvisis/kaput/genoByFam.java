@@ -1,13 +1,19 @@
 package org.genvisis.kaput;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 public class genoByFam {
 	public genoByFam() throws IOException {
 		BufferedReader reader = null;
 		Vector<String> fams = new Vector<String>();
-		Hashtable<String,String> hash = new Hashtable<String,String>();
+		Hashtable<String, String> hash = new Hashtable<String, String>();
 		PrintWriter writer = new PrintWriter(new FileWriter("genoByFam"));
 		// PrintWriter writer = new PrintWriter(new FileWriter("correctByFam"));
 		String temp, chrome, i;
@@ -30,22 +36,24 @@ public class genoByFam {
 		writer.println("sleep 20");
 		writer.println();
 
-		for (int fam = 0; fam<fams.size(); fam++) {
+		for (int fam = 0; fam < fams.size(); fam++) {
 			i = fams.elementAt(fam);
-			writer.println("mkdir fam"+i);
-			writer.println("java -classpath /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + " park.zeroByFam "+i);
-			writer.println("mv solar_marker."+i+".* fam"+i);
-			writer.println("cp solar_freq.* fam"+i);
-			writer.println("cp solar_map.* fam"+i);
-			writer.println("cp solar_ped fam"+i);
+			writer.println("mkdir fam" + i);
+			writer.println("java -classpath /home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
+											+ " park.zeroByFam " + i);
+			writer.println("mv solar_marker." + i + ".* fam" + i);
+			writer.println("cp solar_freq.* fam" + i);
+			writer.println("cp solar_map.* fam" + i);
+			writer.println("cp solar_ped fam" + i);
 			// writer.println("cp newAAO.dat fam"+i);
-			writer.println("cp batch.this fam"+i);
-			writer.println("cp correct.aao fam"+i);
+			writer.println("cp batch.this fam" + i);
+			writer.println("cp correct.aao fam" + i);
 			// writer.println("cp correct.this fam"+i);
-			writer.println("cd fam"+i);
-			for (int chromosome = 2; chromosome<=2; chromosome++) {
-				chrome = (Integer.valueOf(chromosome+"").intValue()<10)?"0"+chromosome:""+chromosome;
-				writer.println("mv solar_marker."+i+"."+chrome+" solar_marker."+chrome);
+			writer.println("cd fam" + i);
+			for (int chromosome = 2; chromosome <= 2; chromosome++) {
+				chrome = (Integer.valueOf(chromosome + "").intValue() < 10)	? "0" + chromosome
+																																		: "" + chromosome;
+				writer.println("mv solar_marker." + i + "." + chrome + " solar_marker." + chrome);
 			}
 			writer.println("chmod +x batch.this");
 			writer.println("./batch.this");

@@ -41,17 +41,22 @@ public class PlinkCNV {
 		String[] filters = Files.list(dir, ".crf", false);
 
 		WorkerHive<PlinkResult> hive = new WorkerHive<PlinkResult>(6, 10, log);
-		GeneTrack geneTrack = GeneTrack.load(Resources.genome(GENOME_BUILD.valueOf(build), log).getGTrack().get(), false);
+		GeneTrack geneTrack = GeneTrack.load(	Resources.genome(GENOME_BUILD.valueOf(build), log)
+																									.getGTrack().get(),
+																					false);
 		if (Files.exists(dir + "mitoCarta.txt")) {
-			String[] mitos = HashVec.loadFileToStringArray(dir + "mitoCarta.txt", false, new int[] { 0 }, true);
+			String[] mitos = HashVec.loadFileToStringArray(dir	+ "mitoCarta.txt", false, new int[] {0},
+																											true);
 			ArrayList<String> mitoList = new ArrayList<String>();
 			int count = 0;
-			for (int j = 0; j < mitos.length; j++) {
-				if (geneTrack.lookupAllGeneData(mitos[j]) != null && geneTrack.lookupAllGeneData(mitos[j]).length > 0) {
+			for (String mito : mitos) {
+				if (geneTrack.lookupAllGeneData(mito) != null
+						&& geneTrack.lookupAllGeneData(mito).length > 0) {
 					count++;
-					GeneData[] gds = geneTrack.lookupAllGeneData(mitos[j]);
-					for (int k = 0; k < gds.length; k++) {
-						mitoList.add(gds[k].getChr() + "\t" + gds[k].getStart() + "\t" + gds[k].getStop() + "\t" + gds[k].getGeneName().toUpperCase());
+					GeneData[] gds = geneTrack.lookupAllGeneData(mito);
+					for (GeneData gd : gds) {
+						mitoList.add(gd.getChr()	+ "\t" + gd.getStart() + "\t" + gd.getStop() + "\t"
+													+ gd.getGeneName().toUpperCase());
 					}
 				}
 			}
@@ -63,19 +68,20 @@ public class PlinkCNV {
 		for (int j = 0; j < geneTrack.getGenes().length; j++) {
 			for (int j2 = 0; j2 < geneTrack.getGenes()[j].length; j2++) {
 				GeneData gds = geneTrack.getGenes()[j][j2];
-				glist.add(gds.getChr() + "\t" + gds.getStart() + "\t" + gds.getStop() + "\t" + gds.getGeneName().toUpperCase());
+				glist.add(gds.getChr()	+ "\t" + gds.getStart() + "\t" + gds.getStop() + "\t"
+									+ gds.getGeneName().toUpperCase());
 
 			}
 		}
 		Files.writeIterable(glist, dir + "geneList-" + build + ".txt");
 
-		for (int filt = 0; filt < filters.length; filt++) {// for each filter crf found
+		for (String filter : filters) {// for each filter crf found
 			String[][] phenos = HashVec.loadFileToStringMatrix(dir + "pheno.dat", false, null, false);
-			final String filtFile = dir + filters[filt];
-			String out = dir + ext.rootOf(filters[filt]) + ".cnv";
+			final String filtFile = dir + filter;
+			String out = dir + ext.rootOf(filter) + ".cnv";
 
 			if (!Files.exists(out)) {
-				FilterCalls.fromParameters(dir + filters[filt], new Logger());
+				FilterCalls.fromParameters(dir + filter, new Logger());
 			}
 			String sampCNVs = ext.addToRoot(out, "." + ext.rootOf(sampFile));
 			String geneSampCnvs = ext.addToRoot(out, "." + ext.rootOf(sampFile) + "_gene");
@@ -88,7 +94,8 @@ public class PlinkCNV {
 					int numTotal = 0;
 					int numSamps = 0;
 					PrintWriter writer = new PrintWriter(new FileWriter(sampCNVs)); // subset to samp cnvs
-					PrintWriter writerGene = new PrintWriter(new FileWriter(geneSampCnvs));// subset to samp and genes
+					PrintWriter writerGene = new PrintWriter(new FileWriter(geneSampCnvs));// subset to samp
+																																									// and genes
 
 					writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 					writerGene.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
@@ -105,7 +112,10 @@ public class PlinkCNV {
 							}
 						}
 					}
-					// CNVariant cheater = new CNVariant("ALOUD_p_ARIC_batch15_005_affy_GenomeWideSNP_6_E09_236930.CEL.IND.txt", "ALOUD_p_ARIC_batch15_005_affy_GenomeWideSNP_6_E09_236930.CEL.IND.txt", (byte) 6, 155662711, 155675684, 1, 24.5930, 9, -99);
+					// CNVariant cheater = new
+					// CNVariant("ALOUD_p_ARIC_batch15_005_affy_GenomeWideSNP_6_E09_236930.CEL.IND.txt",
+					// "ALOUD_p_ARIC_batch15_005_affy_GenomeWideSNP_6_E09_236930.CEL.IND.txt", (byte) 6,
+					// 155662711, 155675684, 1, 24.5930, 9, -99);
 					//
 					// log.reportTimeInfo("John remember you are adding this" + cheater.toPlinkFormat());
 					// writer.println(cheater.toPlinkFormat());
@@ -123,7 +133,7 @@ public class PlinkCNV {
 			for (int i = 3; i < phenos[0].length; i++) { // test each phenotype
 
 				final String pheno = phenos[0][i];
-				final String key = phenos[0][i] + "_" + ext.rootOf(sampFile) + "_" + ext.rootOf(filters[filt]);
+				final String key = phenos[0][i] + "_" + ext.rootOf(sampFile) + "_" + ext.rootOf(filter);
 				final String opDir = dir + key + "/";
 				boolean quant = false;
 
@@ -140,13 +150,15 @@ public class PlinkCNV {
 				HashSet<String> types = new HashSet<String>();
 				for (int j = 2; j < phenos.length; j++) {
 					if (sampSet.contains(phenos[j][1])) {// filter pheno file
-						fam.add(phenos[j][0] + "\t" + phenos[j][1] + "\t" + 0 + "\t" + 0 + "\t" + phenos[j][2] + "\t" + phenos[j][i]);
+						fam.add(phenos[j][0]	+ "\t" + phenos[j][1] + "\t" + 0 + "\t" + 0 + "\t" + phenos[j][2]
+										+ "\t" + phenos[j][i]);
 						quants.add(phenos[j][0] + "\t" + phenos[j][1] + "\t" + phenos[j][i]);
 					}
 					try {
 						double val = Double.parseDouble(phenos[j][i]);
-						if (val != 1 && val != 2)
+						if (val != 1 && val != 2) {
 							types.add(val + "");
+						}
 					} catch (NumberFormatException nfe) {
 
 					}
@@ -168,8 +180,10 @@ public class PlinkCNV {
 				String mapGene = opDir + pheno + "_gene.cnv.map";
 
 				if (!Files.exists(map) || !Files.exists(mapGene)) { // make the map
-					CmdLine.run(dir + "plink --cnv-list " + pheno + ".cnv --cnv-make-map --out " + pheno, opDir);
-					CmdLine.run(dir + "plink --cnv-list " + pheno + "_gene.cnv --cnv-make-map --out " + pheno + "_gene", opDir);
+					CmdLine.run(dir	+ "plink --cnv-list " + pheno + ".cnv --cnv-make-map --out " + pheno,
+											opDir);
+					CmdLine.run(dir	+ "plink --cnv-list " + pheno + "_gene.cnv --cnv-make-map --out " + pheno
+											+ "_gene", opDir);
 
 				}
 
@@ -192,8 +206,11 @@ public class PlinkCNV {
 							cmd.add(opDir + pheno);
 							// cmd.addAll(covarArgs);
 							String out = opDir + pheno + ".cnv.qt.summary.mperm";
-							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, oWrite, true, log);
-							return new PlinkResult(filtFile, key, out, Array.toStr(Array.toStringArray(cmd), " "), complete, true);
+							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "",
+																																	null, new String[] {out}, true,
+																																	oWrite, true, log);
+							return new PlinkResult(	filtFile, key, out, Array.toStr(Array.toStringArray(cmd), " "),
+																			complete, true);
 						}
 					};
 					Callable<PlinkResult> c2 = new Callable<PlinkResult>() {
@@ -221,8 +238,11 @@ public class PlinkCNV {
 							// cmd.add(dir + "MitoGenes.txt");
 							// cmd.add("--cnv-enrichment-test");
 							String out = opDir + pheno + "_mito.cnv.qt.summary.mperm";
-							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, oWrite, true, log);
-							return new PlinkResult(filtFile, key + "_enrichment", out, Array.toStr(Array.toStringArray(cmd), " "), complete, true);
+							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "",
+																																	null, new String[] {out}, true,
+																																	oWrite, true, log);
+							return new PlinkResult(	filtFile, key + "_enrichment", out,
+																			Array.toStr(Array.toStringArray(cmd), " "), complete, true);
 						}
 					};
 
@@ -248,8 +268,11 @@ public class PlinkCNV {
 							cmd.add("--cnv-enrichment-test");
 							// cmd.addAll(covarArgs);
 							String out = opDir + pheno + "_mitoBurden.cnv.burden.mperm";
-							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, oWrite, true, log);
-							return new PlinkResult(filtFile, key + "_burdenenrichment", out, Array.toStr(Array.toStringArray(cmd), " "), complete, true);
+							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "",
+																																	null, new String[] {out}, true,
+																																	oWrite, true, log);
+							return new PlinkResult(	filtFile, key + "_burdenenrichment", out,
+																			Array.toStr(Array.toStringArray(cmd), " "), complete, true);
 						}
 					};
 					Callable<PlinkResult> c4 = new Callable<PlinkResult>() {
@@ -273,13 +296,15 @@ public class PlinkCNV {
 
 							String out = opDir + pheno + "_mito_tradBurden.cnv.indiv";
 							System.out.println(Files.exists(opDir));
-							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, oWrite, true, log);
+							CmdLine.runCommandWithFileChecks(	Array.toStringArray(cmd), "", null,
+																								new String[] {out}, true, oWrite, true, log);
 
 							String[] header = Files.getHeaderOfFile(out, "[\\s]+", log);
 							ArrayList<String> summary = new ArrayList<String>();
 
-							int[] cols = new int[] { 2, 3, 4, 5 };
-							String[][] dataS = HashVec.loadFileToStringMatrix(out, true, cols, "[\\s]+", false, 1000, true);
+							int[] cols = new int[] {2, 3, 4, 5};
+							String[][] dataS = HashVec.loadFileToStringMatrix(out, true, cols, "[\\s]+", false,
+																																1000, true);
 							double[][] data = Array.toDoubleArrays(dataS, true);
 							double[] phe = Matrix.extractColumn(data, 0);
 							for (int j = 1; j < cols.length; j++) {
@@ -292,7 +317,8 @@ public class PlinkCNV {
 							}
 							Files.writeIterable(summary, opDir + pheno + "_mito_tradBurden.cnv.indiv.sigs");
 
-							return new PlinkResult(filtFile, key + "_enrichment", out, Array.toStr(Array.toStringArray(cmd), " "), false, true);
+							return new PlinkResult(	filtFile, key + "_enrichment", out,
+																			Array.toStr(Array.toStringArray(cmd), " "), false, true);
 						}
 					};
 
@@ -315,14 +341,16 @@ public class PlinkCNV {
 							cmd.add(dir + "mitoList-" + build + ".txt");
 
 							String out = opDir + pheno + "_mito_tradBurden_count.cnv.qt.summary";
-							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, oWrite, true, log);
+							CmdLine.runCommandWithFileChecks(	Array.toStringArray(cmd), "", null,
+																								new String[] {out}, true, oWrite, true, log);
 							ArrayList<String> summary = new ArrayList<String>();
 
 							String load = opDir + pheno + "_mito_tradBurden_count.cnv.indiv";
 							String[] header = Files.getHeaderOfFile(load, "[\\s]+", log);
 
-							int[] cols = new int[] { 2, 3, 4, 5, 6 };
-							String[][] dataS = HashVec.loadFileToStringMatrix(load, true, cols, "[\\s]+", false, 1000, true);
+							int[] cols = new int[] {2, 3, 4, 5, 6};
+							String[][] dataS = HashVec.loadFileToStringMatrix(load, true, cols, "[\\s]+", false,
+																																1000, true);
 							double[][] data = Array.toDoubleArrays(dataS, true);
 							double[] phe = Matrix.extractColumn(data, 0);
 							for (int j = 1; j < cols.length; j++) {
@@ -335,7 +363,8 @@ public class PlinkCNV {
 							}
 							Files.writeIterable(summary, opDir + pheno + "_mito_tradBurden_count.cnv.indiv.sigs");
 
-							return new PlinkResult(filtFile, key + "_enrichment", out, Array.toStr(Array.toStringArray(cmd), " "), false, true);
+							return new PlinkResult(	filtFile, key + "_enrichment", out,
+																			Array.toStr(Array.toStringArray(cmd), " "), false, true);
 						}
 					};
 
@@ -358,13 +387,15 @@ public class PlinkCNV {
 
 							String out = opDir + pheno + "_FulltradBurden.cnv.indiv";
 							System.out.println(Files.exists(opDir));
-							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, oWrite, true, log);
+							CmdLine.runCommandWithFileChecks(	Array.toStringArray(cmd), "", null,
+																								new String[] {out}, true, oWrite, true, log);
 
 							String[] header = Files.getHeaderOfFile(out, "[\\s]+", log);
 							ArrayList<String> summary = new ArrayList<String>();
 
-							int[] cols = new int[] { 2, 3, 4, 5 };
-							String[][] dataS = HashVec.loadFileToStringMatrix(out, true, cols, "[\\s]+", false, 1000, true);
+							int[] cols = new int[] {2, 3, 4, 5};
+							String[][] dataS = HashVec.loadFileToStringMatrix(out, true, cols, "[\\s]+", false,
+																																1000, true);
 							double[][] data = Array.toDoubleArrays(dataS, true);
 							double[] phe = Matrix.extractColumn(data, 0);
 							for (int j = 1; j < cols.length; j++) {
@@ -377,14 +408,15 @@ public class PlinkCNV {
 							}
 							Files.writeIterable(summary, opDir + pheno + "_FulltradBurden.cnv.indiv.sigs");
 
-							return new PlinkResult(filtFile, key + "_enrichment", out, Array.toStr(Array.toStringArray(cmd), " "), false, true);
+							return new PlinkResult(	filtFile, key + "_enrichment", out,
+																			Array.toStr(Array.toStringArray(cmd), " "), false, true);
 						}
 					};
 
 					// plink --cfile mycnv
-					//  --cnv-count genes.dat
-					//  --cnv-subset pathway.txt
-					//  --cnv-enrichment-test
+					// --cnv-count genes.dat
+					// --cnv-subset pathway.txt
+					// --cnv-enrichment-test
 
 					hive.addCallable(c1);
 					hive.addCallable(c2);
@@ -408,9 +440,12 @@ public class PlinkCNV {
 							cmd.add("--out");
 							cmd.add(opDir + pheno);
 							String out = opDir + pheno + ".cnv.summary.mperm";
-							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, false, true, log);
+							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "",
+																																	null, new String[] {out}, true,
+																																	false, true, log);
 
-							return new PlinkResult(filtFile, key, out, Array.toStr(Array.toStringArray(cmd), " "), complete, false);
+							return new PlinkResult(	filtFile, key, out, Array.toStr(Array.toStringArray(cmd), " "),
+																			complete, false);
 						}
 					};
 					Callable<PlinkResult> c2 = new Callable<PlinkResult>() {
@@ -427,8 +462,11 @@ public class PlinkCNV {
 							cmd.add(opDir + pheno + "_position");
 							String out = opDir + pheno + "_position.cnv.summary.mperm";
 
-							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, false, true, log);
-							return new PlinkResult(filtFile, key + "_pos", out, Array.toStr(Array.toStringArray(cmd), " "), complete, false);
+							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "",
+																																	null, new String[] {out}, true,
+																																	false, true, log);
+							return new PlinkResult(	filtFile, key + "_pos", out,
+																			Array.toStr(Array.toStringArray(cmd), " "), complete, false);
 
 						}
 					};
@@ -448,8 +486,11 @@ public class PlinkCNV {
 							cmd.add(opDir + pheno + "_window");
 							String out = opDir + pheno + "_window.cnv.summary.mperm";
 
-							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, false, true, log);
-							return new PlinkResult(filtFile, key + "_window", out, Array.toStr(Array.toStringArray(cmd), " "), complete, false);
+							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "",
+																																	null, new String[] {out}, true,
+																																	false, true, log);
+							return new PlinkResult(	filtFile, key + "_window", out,
+																			Array.toStr(Array.toStringArray(cmd), " "), complete, false);
 
 						}
 					};
@@ -488,14 +529,17 @@ public class PlinkCNV {
 		for (PlinkResult result : results) {
 			if (result.complete) {
 				String out = finalDir + result.key.substring(0, 26) + "_" + index + ".txt";
-				String[][] data = HashVec.loadFileToStringMatrix(result.file, false, null, "[\\s]+", false, 1000, true);
+				String[][] data = HashVec.loadFileToStringMatrix(	result.file, false, null, "[\\s]+", false,
+																													1000, true);
 				log.reportTimeInfo("Loading paired " + ext.rootOf(result.file, false));
-				String[][] dataCount = HashVec.loadFileToStringMatrix(ext.rootOf(result.file, false), false, null, "[\\s]+", false, 1000, true);
+				String[][] dataCount = HashVec.loadFileToStringMatrix(ext.rootOf(result.file, false), false,
+																															null, "[\\s]+", false, 1000, true);
 				String allSigGenesSpecific = finalDir + result.key + "_Genes" + index + ".txt";
 				HashSet<String> allSigGenesListSpecific = new HashSet<String>();
 
 				ArrayList<String> toReport = new ArrayList<String>();
-				toReport.add("Type\t" + Array.toStr(data[0]) + "\tUCSC\tGENE\tGENE_5k\tLink_buffer\tAFF\tUNAFF\tNCNV\tM0\tM1\tCMD");
+				toReport.add("Type\t"	+ Array.toStr(data[0])
+											+ "\tUCSC\tGENE\tGENE_5k\tLink_buffer\tAFF\tUNAFF\tNCNV\tM0\tM1\tCMD");
 
 				for (int i = 1; i < data.length; i++) {
 					if (data[i].length > 3 && Double.parseDouble(data[i][result.quant ? 3 : 2]) < 0.05) {
@@ -510,23 +554,29 @@ public class PlinkCNV {
 						if (result.quant) {
 							dataToReport = Array.removeFromArray(dataToReport, 2);
 						}
-						StringBuilder builder = new StringBuilder(result.key + "\t" + Array.toStr(dataToReport) + "\t" + seg.getUCSClocation() + "\t");
+						StringBuilder builder = new StringBuilder(result.key	+ "\t" + Array.toStr(dataToReport)
+																											+ "\t" + seg.getUCSClocation() + "\t");
 						for (int j = 0; j < geneDatas.length; j++) {
 							builder.append((j == 0 ? "" : ":") + geneDatas[j].getGeneName());
-							allSigGenesList.add(geneDatas[j].getGeneName() + "\t" + geneDatas[j].getUCSClocation() + "\t" + result.key);
-							allSigGenesListSpecific.add(geneDatas[j].getGeneName() + "\t" + geneDatas[j].getUCSClocation() + "\t" + result.key);
+							allSigGenesList.add(geneDatas[j].getGeneName()	+ "\t" + geneDatas[j].getUCSClocation()
+																	+ "\t" + result.key);
+							allSigGenesListSpecific.add(geneDatas[j].getGeneName()	+ "\t"
+																					+ geneDatas[j].getUCSClocation() + "\t" + result.key);
 							if (Double.parseDouble(data[i][result.quant ? 4 : 3]) < 1) {
-								allSigGenesListEMP2.add(geneDatas[j].getGeneName() + "\t" + geneDatas[j].getUCSClocation() + "\t" + result.key);
+								allSigGenesListEMP2.add(geneDatas[j].getGeneName()	+ "\t"
+																				+ geneDatas[j].getUCSClocation() + "\t" + result.key);
 							}
 						}
 						builder.append("\t");
 						for (int j = 0; j < geneDatasBuff.length; j++) {
 							builder.append((j == 0 ? "" : ":") + geneDatasBuff[j].getGeneName());
-							allSigGenesList5k.add(geneDatasBuff[j].getGeneName() + "\t" + geneDatasBuff[j].getUCSClocation() + "\t" + result.key);
+							allSigGenesList5k.add(geneDatasBuff[j].getGeneName()	+ "\t"
+																		+ geneDatasBuff[j].getUCSClocation() + "\t" + result.key);
 						}
 						builder.append("\t" + seg.getBufferedSegment(5000).getUCSCLink(build));
 						if (result.quant) {
-							builder.append("\tNA\tNA" + "\t" + dataCount[i][3] + "\t" + dataCount[i][4] + "\t" + dataCount[i][5]);
+							builder.append("\tNA\tNA"	+ "\t" + dataCount[i][3] + "\t" + dataCount[i][4] + "\t"
+															+ dataCount[i][5]);
 
 						} else {
 							builder.append("\t" + dataCount[i][3] + "\t" + dataCount[i][4] + "\tNA\tNA\tNA");
@@ -557,22 +607,22 @@ public class PlinkCNV {
 		Files.writeIterable(allSigGenesList5k, allSigGenes5k);
 		Files.writeIterable(allSigGenesListEMP2, allSigGenesEMP2);
 
-		ExcelConverter excelConverter = new ExcelConverter(filesToCombine, finalDir + "p_0_05.xlsx", log);
+		ExcelConverter excelConverter =
+																	new ExcelConverter(filesToCombine, finalDir + "p_0_05.xlsx", log);
 		excelConverter.convert(true);
 		System.exit(1);
 	}
 
 	private static class PlinkResult {
-		private String filtFile;
-		private String file;
-		private String key;
-		private String command;
-		private boolean quant;
-		private boolean complete;
+		private final String file;
+		private final String key;
+		private final String command;
+		private final boolean quant;
+		private final boolean complete;
 
-		public PlinkResult(String filtFile, String key, String file, String command, boolean complete, boolean quant) {
+		public PlinkResult(	String filtFile, String key, String file, String command, boolean complete,
+												boolean quant) {
 			super();
-			this.filtFile = filtFile;
 			this.key = key;
 			this.file = file;
 			this.command = command;
@@ -587,26 +637,24 @@ public class PlinkCNV {
 		String dir = "C:/data/ARIC/shadowCNVs/";
 		String cnvFile = dir + "combinedMF.cnv";
 		String build = "hg18";
-		String usage = "\n" +
-				"one.JL.ARICCNV requires 0-1 arguments\n" +
-				"   (1) cnvs (i.e. cnvs=" + cnvFile + " (default))\n" +
-				"";
+		String usage = "\n"	+ "one.JL.ARICCNV requires 0-1 arguments\n" + "   (1) cnvs (i.e. cnvs="
+										+ cnvFile + " (default))\n" + "";
 
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+		for (String arg : args) {
+			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith("file=")) {
-				cnvFile = args[i].split("=")[1];
+			} else if (arg.startsWith("file=")) {
+				cnvFile = arg.split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("dir=")) {
-				dir = args[i].split("=")[1];
+			} else if (arg.startsWith("dir=")) {
+				dir = arg.split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("build=")) {
-				build = args[i].split("=")[1];
+			} else if (arg.startsWith("build=")) {
+				build = arg.split("=")[1];
 				numArgs--;
 			} else {
-				System.err.println("Error - invalid argument: " + args[i]);
+				System.err.println("Error - invalid argument: " + arg);
 			}
 		}
 		if (numArgs != 0) {
@@ -614,10 +662,10 @@ public class PlinkCNV {
 			System.exit(1);
 		}
 		try {
-			String[] sampFiles = new String[] { dir + "all.txt", dir + "whites.txt", dir + "blacks.txt" };
+			String[] sampFiles = new String[] {dir + "all.txt", dir + "whites.txt", dir + "blacks.txt"};
 
-			for (int i = 0; i < sampFiles.length; i++) {
-				run(cnvFile, sampFiles[i], build);
+			for (String sampFile : sampFiles) {
+				run(cnvFile, sampFile, build);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

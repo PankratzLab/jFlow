@@ -25,52 +25,52 @@ import htsjdk.variant.vcf.VCFHeader;
  */
 public class VCFSourceReader extends VCFFileReader implements Closeable, Iterable<VariantContext> {
 
-  private final FeatureReader<VariantContext> reader;
+	private final FeatureReader<VariantContext> reader;
 
-  public VCFSourceReader(final String file, final boolean requireIndex) {
-    super(new File(file), requireIndex);// unfortunately, I think passing null to this constructor
-                                        // will fail...so maybe we should just use the
-                                        // actual constructors in most places
+	public VCFSourceReader(final String file, final boolean requireIndex) {
+		super(new File(file), requireIndex);// unfortunately, I think passing null to this constructor
+																				// will fail...so maybe we should just use the
+																				// actual constructors in most places
 
-    reader = AbstractFeatureReader.getFeatureReader(file,
-                                                    file.endsWith(".bcf") ? (FeatureCodec) new BCF2Codec()
-                                                                          : new VCFCodec(),
-                                                    requireIndex);
-  }
+		reader = AbstractFeatureReader.getFeatureReader(file,
+																										file.endsWith(".bcf")	? (FeatureCodec) new BCF2Codec()
+																																					: new VCFCodec(),
+																										requireIndex);
+	}
 
-  /** Returns the VCFHeader associated with this VCF/BCF file. */
-  @Override
-  public VCFHeader getFileHeader() {
-    return (VCFHeader) reader.getHeader();
-  }
+	/** Returns the VCFHeader associated with this VCF/BCF file. */
+	@Override
+	public VCFHeader getFileHeader() {
+		return (VCFHeader) reader.getHeader();
+	}
 
-  /** Returns an iterator over all records in this VCF/BCF file. */
-  @Override
-  public CloseableIterator<VariantContext> iterator() {
-    try {
-      return reader.iterator();
-    } catch (final IOException ioe) {
-      throw new TribbleException("Could not create an iterator from a feature reader.", ioe);
-    }
-  }
+	/** Returns an iterator over all records in this VCF/BCF file. */
+	@Override
+	public CloseableIterator<VariantContext> iterator() {
+		try {
+			return reader.iterator();
+		} catch (final IOException ioe) {
+			throw new TribbleException("Could not create an iterator from a feature reader.", ioe);
+		}
+	}
 
-  /** Queries for records within the region specified. */
-  @Override
-  public CloseableIterator<VariantContext> query(final String chrom, final int start,
-                                                 final int end) {
-    try {
-      return reader.query(chrom, start, end);
-    } catch (final IOException ioe) {
-      throw new TribbleException("Could not create an iterator from a feature reader.", ioe);
-    }
-  }
+	/** Queries for records within the region specified. */
+	@Override
+	public CloseableIterator<VariantContext> query(	final String chrom, final int start,
+																									final int end) {
+		try {
+			return reader.query(chrom, start, end);
+		} catch (final IOException ioe) {
+			throw new TribbleException("Could not create an iterator from a feature reader.", ioe);
+		}
+	}
 
-  @Override
-  public void close() {
-    try {
-      reader.close();
-    } catch (final IOException ioe) {
-      throw new TribbleException("Could not close a variant context feature reader.", ioe);
-    }
-  }
+	@Override
+	public void close() {
+		try {
+			reader.close();
+		} catch (final IOException ioe) {
+			throw new TribbleException("Could not close a variant context feature reader.", ioe);
+		}
+	}
 }

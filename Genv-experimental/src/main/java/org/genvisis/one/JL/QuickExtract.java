@@ -10,15 +10,16 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.VCFOps;
-import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.manage.VCOps;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 
 /**
- * @author lane0212 Quickly looking at few variants in specific regions and pulling out some info of interest
+ * @author lane0212 Quickly looking at few variants in specific regions and pulling out some info of
+ *         interest
  */
 public class QuickExtract {
 
@@ -57,7 +58,14 @@ public class QuickExtract {
 					VariantContext vcSub = VCOps.getSubset(vc, vpoppeer.getSubPop().get(VcfPopulation.CASE));
 					int numAlt = vc.getHetCount() + vc.getHomVarCount();
 					int numAltMinux = vcSub.getHetCount() + vcSub.getHomVarCount();
-					writer.println(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + numAlt + "\t" + numAltMinux + "\t" + Array.toStr(VCOps.getAnnotationsFor(new String[] { "g10002014oct_all", "SNPEFF_IMPACT", "SNPEFF_GENE_NAME" }, vc, ".")));
+					writer.println(vc.getContig()	+ "\t" + vc.getStart() + "\t"
+													+ vc.getReference().getBaseString() + "\t"
+													+ vc.getAlternateAlleles().toString() + "\t" + numAlt + "\t" + numAltMinux
+													+ "\t"
+													+ Array.toStr(VCOps.getAnnotationsFor(new String[] {"g10002014oct_all",
+																																							"SNPEFF_IMPACT",
+																																							"SNPEFF_GENE_NAME"},
+																																vc, ".")));
 					found++;
 				}
 			}

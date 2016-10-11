@@ -8,12 +8,13 @@ import org.genvisis.common.WorkerHive;
 
 public class CallableBufferSet<E, T> {
 
-	private int numThreads, timeOutDay;
-	private Logger log;
-	private CallableBuffer<E, T>[] buffers;
+	private final int numThreads, timeOutDay;
+	private final Logger log;
+	private final CallableBuffer<E, T>[] buffers;
 	private boolean full;
 
-	public CallableBufferSet(int numThreads, int timeOutDay, CallableBuffer<E, T>[] buffers, Logger log) {
+	public CallableBufferSet(	int numThreads, int timeOutDay, CallableBuffer<E, T>[] buffers,
+														Logger log) {
 		super();
 		this.numThreads = numThreads;
 		this.timeOutDay = timeOutDay;
@@ -44,8 +45,8 @@ public class CallableBufferSet<E, T> {
 	}
 
 	public void clearBuffers() {
-		for (int i = 0; i < buffers.length; i++) {
-			buffers[i].clearBuffer();
+		for (CallableBuffer<E, T> buffer : buffers) {
+			buffer.clearBuffer();
 
 		}
 	}
@@ -59,12 +60,12 @@ public class CallableBufferSet<E, T> {
 		return results;
 
 	}
-	
-	
+
+
 
 	public static abstract class CallableBuffer<E, T> implements Callable<T> {
-		private int bufferSize;
-		private ArrayList<E> buffer;
+		private final int bufferSize;
+		private final ArrayList<E> buffer;
 
 		public CallableBuffer(int bufferSize) {
 			this.bufferSize = bufferSize;

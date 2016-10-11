@@ -20,38 +20,38 @@ import htsjdk.tribble.index.IndexFactory.IndexType;
  */
 public class BedOps {
 
-  /**
-   * @param bedFile
-   * @param log
-   * @return whether the index file exists, or was able to be created
-   */
-  public static boolean verifyBedIndex(String bedFile, Logger log) {
-    boolean created = false;
-    if (Files.exists(bedFile)) {
-      String indexFile = bedFile + Tribble.STANDARD_INDEX_EXTENSION;
-      if (Files.exists(indexFile)) {
-        log.reportTimeInfo("Detected index file " + indexFile);
-        created = true;
-      } else {
-        Index index = IndexFactory.createIndex(new File(bedFile), new BEDCodec(), IndexType.LINEAR);
-        try {
-          index.writeBasedOnFeatureFile(new File(bedFile));
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-        if (Files.exists(indexFile)) {
-          created = true;
-        }
-      }
-    } else {
-      log.reportFileNotFound(bedFile);
-    }
-    return created;
+	/**
+	 * @param bedFile
+	 * @param log
+	 * @return whether the index file exists, or was able to be created
+	 */
+	public static boolean verifyBedIndex(String bedFile, Logger log) {
+		boolean created = false;
+		if (Files.exists(bedFile)) {
+			String indexFile = bedFile + Tribble.STANDARD_INDEX_EXTENSION;
+			if (Files.exists(indexFile)) {
+				log.reportTimeInfo("Detected index file " + indexFile);
+				created = true;
+			} else {
+				Index index = IndexFactory.createIndex(new File(bedFile), new BEDCodec(), IndexType.LINEAR);
+				try {
+					index.writeBasedOnFeatureFile(new File(bedFile));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				if (Files.exists(indexFile)) {
+					created = true;
+				}
+			}
+		} else {
+			log.reportFileNotFound(bedFile);
+		}
+		return created;
 
-  }
+	}
 
-  public static Segment getSegment(BEDFeature bedFeature, Logger log) {
-    return new Segment(bedFeature.getContig(), bedFeature.getStart(), bedFeature.getEnd());
-  }
+	public static Segment getSegment(BEDFeature bedFeature, Logger log) {
+		return new Segment(bedFeature.getContig(), bedFeature.getStart(), bedFeature.getEnd());
+	}
 
 }

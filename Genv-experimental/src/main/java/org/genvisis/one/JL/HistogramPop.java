@@ -96,8 +96,8 @@ public class HistogramPop extends Application {
 	 *
 	 */
 	private static class ParseResult {
-		private double[][] data;
-		private String[] titles;
+		private final double[][] data;
+		private final String[] titles;
 
 		private ParseResult(String[] titles, double[][] data) {
 			super();
@@ -130,9 +130,9 @@ public class HistogramPop extends Application {
 	}
 
 	private static class BasicHistogram {
-		private long[] counts;
-		private double[] binMax;
-		private double[] binMin;
+		private final long[] counts;
+		private final double[] binMax;
+		private final double[] binMin;
 
 		private BasicHistogram(long[] counts, double[] binMax, double[] binMin) {
 			super();
@@ -146,7 +146,7 @@ public class HistogramPop extends Application {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void start(final Stage stage) {
-		this.parseResult = parseData();
+		parseResult = parseData();
 		stage.initStyle(StageStyle.UNIFIED);
 		slider.setShowTickMarks(true);
 		slider.setValue(DEFAULT_BIN);
@@ -161,8 +161,8 @@ public class HistogramPop extends Application {
 	}
 
 	private void show(Stage stage) {
-		this.xAxis = new NumberAxis();
-		this.yAxis = new NumberAxis();
+		xAxis = new NumberAxis();
+		yAxis = new NumberAxis();
 		yAxis.setAutoRanging(true);
 		xAxis.setAutoRanging(true);
 
@@ -171,11 +171,11 @@ public class HistogramPop extends Application {
 
 		final Button button1 = new Button();
 		paramaterizeButton(button1);
-		this.toolBar = new ToolBar(button1);
-		this.root = new VBox();
+		toolBar = new ToolBar(button1);
+		root = new VBox();
 		root.setStyle("-fx-background-color: white");
 		root.getChildren().addAll(toolBar, areaChart, slider, button1);
-		this.scene = new Scene(root, 1600, 600);
+		scene = new Scene(root, 1600, 600);
 		stage.setScene(scene);
 		stage.show();
 
@@ -183,8 +183,7 @@ public class HistogramPop extends Application {
 
 	@SuppressWarnings("rawtypes")
 	private final class ChangeListenerImplementation implements ChangeListener {
-		private ChangeListenerImplementation() {
-		}
+		private ChangeListenerImplementation() {}
 
 		@Override
 		public void changed(ObservableValue arg0, Object arg1, Object arg2) {
@@ -197,15 +196,15 @@ public class HistogramPop extends Application {
 		areaChart.setHorizontalGridLinesVisible(true);
 		areaChart.setVerticalGridLinesVisible(false);
 		areaChart.setAnimated(false);
-		BasicHistogram[] histograms = getHistogram(Math.max(1, (int) slider.getValue()), parseResult.data);
+		BasicHistogram[] histograms = getHistogram(	Math.max(1, (int) slider.getValue()),
+																								parseResult.data);
 		addDataToChart(histograms, new DecimalFormat("#.##"));
 		areaChart.getXAxis().setLabel("Bins " + (int) slider.getValue());
 
 	}
 
 	/**
-	 * @param button1
-	 *            give this button a screen shot
+	 * @param button1 give this button a screen shot
 	 */
 	private void paramaterizeButton(final Button button1) {
 		button1.setText("Screen Shot");
@@ -244,14 +243,16 @@ public class HistogramPop extends Application {
 			countsBin.setName(parseResult.titles[i]);
 			for (int j = 0; j < histogram.binMax.length; j++) {
 				if (Double.isFinite(histogram.binMin[j]) && Double.isFinite(histogram.binMax[j])) {
-					countsBin.getData().add(new XYChart.Data<Number, Number>(
-							Double.valueOf(twoDForm.format(histogram.binMin[j])), histogram.counts[j]));
-					countsBin.getData().add(new XYChart.Data<Number, Number>(
-							Double.valueOf(twoDForm.format(histogram.binMax[j])), histogram.counts[j]));
+					countsBin	.getData()
+										.add(new XYChart.Data<Number, Number>(Double.valueOf(twoDForm.format(histogram.binMin[j])),
+																													histogram.counts[j]));
+					countsBin	.getData()
+										.add(new XYChart.Data<Number, Number>(Double.valueOf(twoDForm.format(histogram.binMax[j])),
+																													histogram.counts[j]));
 				}
 			}
 			if (replace && i < areaChart.getData().size()) {
-				 areaChart.getData().set(i, countsBin);
+				areaChart.getData().set(i, countsBin);
 				// areaChart.getData().add(countsBin);
 			} else {
 				areaChart.getData().add(countsBin);

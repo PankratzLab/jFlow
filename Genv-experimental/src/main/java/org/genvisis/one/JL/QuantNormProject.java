@@ -20,10 +20,10 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.ext;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
-import org.genvisis.stats.QuantileNormalization;
+import org.genvisis.common.ext;
 import org.genvisis.stats.Histogram.DynamicHistogram;
+import org.genvisis.stats.QuantileNormalization;
 import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
 import org.genvisis.stats.Rscript.PLOT_DEVICE;
 import org.genvisis.stats.Rscript.RScatter;
@@ -38,7 +38,11 @@ public class QuantNormProject {
 		numthreads = 7;
 		Project projNorm = Project.prepareNewProject(proj, "quantNorm");
 		QNormProducer producer = new QNormProducer(proj, projNorm, proj.getSamples());
-		WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(producer, numthreads, 2, proj.getLog());
+		WorkerTrain<Hashtable<String, Float>> train =
+																								new WorkerTrain<Hashtable<String, Float>>(producer,
+																																													numthreads,
+																																													2,
+																																													proj.getLog());
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 		int index = 0;
 		long time = System.currentTimeMillis();
@@ -46,7 +50,8 @@ public class QuantNormProject {
 		while (train.hasNext()) {
 
 			if (index % numthreads == 0) {
-				proj.getLog().reportTimeInfo("Normalized " + index + " samples in " + ext.getTimeElapsed(time));
+				proj.getLog()
+						.reportTimeInfo("Normalized " + index + " samples in " + ext.getTimeElapsed(time));
 				time = System.currentTimeMillis();
 
 			}
@@ -56,7 +61,8 @@ public class QuantNormProject {
 			index++;
 		}
 		if (!Files.exists(projNorm.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {
-			SerializedFiles.writeSerial(outliers, projNorm.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+			SerializedFiles.writeSerial(outliers,
+																	projNorm.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 			TransposeData.transposeData(projNorm, 2000000000, false);
 			CentroidCompute.computeAndDumpCentroids(projNorm);
 			Centroids.recompute(projNorm, projNorm.CUSTOM_CENTROIDS_FILENAME.getValue());
@@ -66,7 +72,8 @@ public class QuantNormProject {
 
 	}
 
-	private static void summarizeMetrics(Project projOriginal, Project projCorrected, int numThreads) {
+	private static void summarizeMetrics(	Project projOriginal, Project projCorrected,
+																				int numThreads) {
 		String prior = ext.addToRoot(projCorrected.SAMPLE_QC_FILENAME.getValue(), ".priorToCorrection");
 		projOriginal.SAMPLE_QC_FILENAME.setValue(prior);
 		if (!Files.exists(projCorrected.SAMPLE_QC_FILENAME.getValue())) {
@@ -85,11 +92,16 @@ public class QuantNormProject {
 		}
 
 		String comboQC = ext.addToRoot(projCorrected.SAMPLE_QC_FILENAME.getValue(), ".combinedQC");
-		String[] orginalFiles = new String[] { prior, priorNewCent, projCorrected.SAMPLE_QC_FILENAME.getValue() };
-		String[] titles = new String[] { "ORIGINAL", "ORIGINAL_NEW_CENT", "QuantNorm" };
-		String[] fullHeader = Array.concatAll(new String[] { LrrSd.SAMPLE_COLUMN }, LrrSd.NUMERIC_COLUMNS);
-		int[] indices = ext.indexFactors(fullHeader, Files.getHeaderOfFile(orginalFiles[0], projOriginal.getLog()), true, false);
-		String[][] newColums = Files.paste(orginalFiles, comboQC, indices, 0, titles, new String[] { LrrSd.SAMPLE_COLUMN }, projOriginal.getLog());
+		String[] orginalFiles = new String[] {prior, priorNewCent,
+																					projCorrected.SAMPLE_QC_FILENAME.getValue()};
+		String[] titles = new String[] {"ORIGINAL", "ORIGINAL_NEW_CENT", "QuantNorm"};
+		String[] fullHeader =
+												Array.concatAll(new String[] {LrrSd.SAMPLE_COLUMN}, LrrSd.NUMERIC_COLUMNS);
+		int[] indices = ext.indexFactors(	fullHeader,
+																			Files.getHeaderOfFile(orginalFiles[0], projOriginal.getLog()),
+																			true, false);
+		String[][] newColums = Files.paste(	orginalFiles, comboQC, indices, 0, titles,
+																				new String[] {LrrSd.SAMPLE_COLUMN}, projOriginal.getLog());
 		ArrayList<Integer> lrrIndices = new ArrayList<Integer>();
 		for (int i = 0; i < LrrSd.NUMERIC_COLUMNS.length; i++) {
 			if (LrrSd.NUMERIC_COLUMNS[i].startsWith("LRR_SD")) {
@@ -112,11 +124,12 @@ public class QuantNormProject {
 				reader.readLine();
 				while (reader.ready()) {
 					String[] line = reader.readLine().trim().split("[\\s]+");
-						String[] data = Array.subArray(line, indices);
-						if (!line[indices[0]].equals(LrrSd.SAMPLE_COLUMN)) {
+					String[] data = Array.subArray(line, indices);
+					if (!line[indices[0]].equals(LrrSd.SAMPLE_COLUMN)) {
 						writer.println(titles[i] + "\t" + Array.toStr(data));
 						for (int j = 0; j < lrrIndices.size(); j++) {
-							histograms[i][j].addDataPointToHistogram(Double.parseDouble(data[lrrIndices.get(j)+1]));
+							histograms[i][j].addDataPointToHistogram(Double.parseDouble(data[lrrIndices.get(j)
+																																								+ 1]));
 						}
 					}
 				}
@@ -126,10 +139,12 @@ public class QuantNormProject {
 			writer.close();
 
 		} catch (FileNotFoundException fnfe) {
-			projOriginal.getLog().reportError("Error: file(s) \"" + Array.toStr(orginalFiles) + "\" not found in current directory");
+			projOriginal.getLog().reportError("Error: file(s) \""	+ Array.toStr(orginalFiles)
+																				+ "\" not found in current directory");
 			return;
 		} catch (IOException ioe) {
-			projOriginal.getLog().reportError("Error reading file(s) \"" + Array.toStr(orginalFiles) + "\"");
+			projOriginal.getLog()
+									.reportError("Error reading file(s) \"" + Array.toStr(orginalFiles) + "\"");
 			return;
 		} catch (Exception e) {
 			projOriginal.getLog().reportError("Error writing to " + comboBox);
@@ -146,21 +161,27 @@ public class QuantNormProject {
 			String out = gcLookDir + "gc_" + LrrSd.NUMERIC_COLUMNS[lrrIndices.get(i)] + ".hist";
 			String curQc = LrrSd.NUMERIC_COLUMNS[lrrIndices.get(i)];
 			String[] titleTmp = Array.tagOn(titles, curQc, null);
-			for (int j = 0; j < titleTmp.length; j++) {
-				allTitles.add(titleTmp[j]);
+			for (String element : titleTmp) {
+				allTitles.add(element);
 			}
-			for (int j = 0; j < histograms.length; j++) {
-				tmps.add(histograms[j][i]);
-				all.add(histograms[j][i]);
+			for (DynamicHistogram[] histogram : histograms) {
+				tmps.add(histogram[i]);
+				all.add(histogram[i]);
 			}
-			DynamicHistogram.dumpToSameFile(tmps.toArray(new DynamicHistogram[tmps.size()]), titleTmp, out, false, projCorrected.getLog());
-			RScatter rtmp = new RScatter(out, out + ".rscript", ext.removeDirectoryInfo(out), out + ".jpeg", "Bin", titleTmp, SCATTER_TYPE.POINT, projCorrected.getLog());
+			DynamicHistogram.dumpToSameFile(tmps.toArray(new DynamicHistogram[tmps.size()]), titleTmp,
+																			out, false, projCorrected.getLog());
+			RScatter rtmp =
+										new RScatter(	out, out + ".rscript", ext.removeDirectoryInfo(out), out + ".jpeg",
+																	"Bin", titleTmp, SCATTER_TYPE.POINT, projCorrected.getLog());
 			rtmp.setyLabel("Count " + curQc);
 			rtmp.setxLabel("Bin " + curQc);
 			rtmp.setTitle("Original V News " + curQc);
 
 
-			RScatter rtmpCumulative = new RScatter(out, out + "cu.rscript", ext.removeDirectoryInfo(out) + "cu", out + "cu.jpeg", "Bin", Array.tagOn(titleTmp, "Cumulative_", null), SCATTER_TYPE.POINT, projCorrected.getLog());
+			RScatter rtmpCumulative = new RScatter(	out, out + "cu.rscript",
+																							ext.removeDirectoryInfo(out) + "cu", out + "cu.jpeg",
+																							"Bin", Array.tagOn(titleTmp, "Cumulative_", null),
+																							SCATTER_TYPE.POINT, projCorrected.getLog());
 			rtmpCumulative.setyLabel("Cumulative Count " + curQc);
 			rtmpCumulative.setxLabel("Bin " + curQc);
 			rtmpCumulative.setTitle("Original V News " + curQc);
@@ -169,18 +190,28 @@ public class QuantNormProject {
 
 		}
 		String allHist = gcLookDir + "Gc_summaryHistAll.txt";
-		DynamicHistogram.dumpToSameFile(all.toArray(new DynamicHistogram[all.size()]), Array.toStringArray(allTitles), allHist, false, projCorrected.getLog());
-		VertLine[] vertLines = new VertLine[]{new VertLine(0.30)};
-		RScatter rtmpCumulativeAll = new RScatter(allHist, allHist + "cu.rscript", ext.removeDirectoryInfo(allHist) + "cu", allHist + "cu.jpeg", "Bin", Array.tagOn(Array.toStringArray(allTitles), "Cumulative_", null), SCATTER_TYPE.POINT, projCorrected.getLog());
+		DynamicHistogram.dumpToSameFile(all.toArray(new DynamicHistogram[all.size()]),
+																		Array.toStringArray(allTitles), allHist, false,
+																		projCorrected.getLog());
+		VertLine[] vertLines = new VertLine[] {new VertLine(0.30)};
+		RScatter rtmpCumulativeAll = new RScatter(allHist, allHist + "cu.rscript",
+																							ext.removeDirectoryInfo(allHist) + "cu",
+																							allHist + "cu.jpeg", "Bin",
+																							Array.tagOn(Array.toStringArray(allTitles),
+																													"Cumulative_", null),
+																							SCATTER_TYPE.POINT, projCorrected.getLog());
 		rtmpCumulativeAll.setyLabel("Cumulative Count All");
 		rtmpCumulativeAll.setxLabel("Bin ");
 		rtmpCumulativeAll.setTitle("Original V News ");
 		rtmpCumulativeAll.setVertLines(vertLines);
 		rscatterHist.add(rtmpCumulativeAll);
-		
+
 		String finalHistRoot = gcLookDir + "Gc_summaryHist";
 
-		RScatters rScattersHists = new RScatters(rscatterHist.toArray(new RScatter[rscatterHist.size()]), finalHistRoot + ".rscript", finalHistRoot + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, projCorrected.getLog());
+		RScatters rScattersHists = new RScatters(	rscatterHist.toArray(new RScatter[rscatterHist.size()]),
+																							finalHistRoot + ".rscript", finalHistRoot + ".pdf",
+																							COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1,
+																							PLOT_DEVICE.PDF, projCorrected.getLog());
 		rScattersHists.execute();
 
 		ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
@@ -188,7 +219,11 @@ public class QuantNormProject {
 		for (int i = 1; i < newColums[0].length; i++) {
 
 			String curFile = gcLookDir + "gc_" + LrrSd.NUMERIC_COLUMNS[i - 1];
-			RScatter rScatter = new RScatter(comboQC, curFile + ".rscript", ext.removeDirectoryInfo(curFile), curFile + ".pdf", newColums[0][i], new String[] { newColums[1][i], newColums[2][i] }, SCATTER_TYPE.POINT, projCorrected.getLog());
+			RScatter rScatter = new RScatter(	comboQC, curFile + ".rscript",
+																				ext.removeDirectoryInfo(curFile), curFile + ".pdf",
+																				newColums[0][i],
+																				new String[] {newColums[1][i], newColums[2][i]},
+																				SCATTER_TYPE.POINT, projCorrected.getLog());
 			rScatter.setTitle("Original V News " + LrrSd.NUMERIC_COLUMNS[i - 1]);
 			rScatter.setxLabel("Original " + LrrSd.NUMERIC_COLUMNS[i - 1]);
 			rScatter.setyLabel("News " + LrrSd.NUMERIC_COLUMNS[i - 1]);
@@ -196,20 +231,26 @@ public class QuantNormProject {
 			rScatters.add(rScatter);
 
 			String curFileBox = gcLookDir + "gc_" + LrrSd.NUMERIC_COLUMNS[i - 1] + "_box";
-			RScatter rScatterBox = new RScatter(comboBox, curFileBox + ".rscript", ext.removeDirectoryInfo(curFileBox), curFileBox + ".pdf", status, new String[] { LrrSd.NUMERIC_COLUMNS[i - 1] }, SCATTER_TYPE.BOX, projCorrected.getLog());
+			RScatter rScatterBox = new RScatter(comboBox, curFileBox + ".rscript",
+																					ext.removeDirectoryInfo(curFileBox), curFileBox + ".pdf",
+																					status, new String[] {LrrSd.NUMERIC_COLUMNS[i - 1]},
+																					SCATTER_TYPE.BOX, projCorrected.getLog());
 			rScatterBox.setTitle("Original V News " + LrrSd.NUMERIC_COLUMNS[i - 1]);
 			rScatterBox.setyLabel(LrrSd.NUMERIC_COLUMNS[i - 1]);
 			rScatters.add(rScatterBox);
 		}
 		String finalRoot = gcLookDir + "Gc_summary";
-		RScatters rScatters2 = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]), finalRoot + ".rscript", finalRoot + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, projCorrected.getLog());
+		RScatters rScatters2 = new RScatters(	rScatters.toArray(new RScatter[rScatters.size()]),
+																					finalRoot + ".rscript", finalRoot + ".pdf",
+																					COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF,
+																					projCorrected.getLog());
 		rScatters2.execute();
 	}
 
 	private static class QNormProducer extends AbstractProducer<Hashtable<String, Float>> {
-		private Project projOriginal;
-		private Project projNorm;
-		private String[] samples;
+		private final Project projOriginal;
+		private final Project projNorm;
+		private final String[] samples;
 		private int index;
 
 		public QNormProducer(Project projOriginal, Project projNorm, String[] samples) {
@@ -241,24 +282,31 @@ public class QuantNormProject {
 		}
 	}
 
-	private static Hashtable<String, Float> quantNormSample(Project projOriginal, Project projNorm, String sample) {
+	private static Hashtable<String, Float> quantNormSample(Project projOriginal, Project projNorm,
+																													String sample) {
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 		String output = projNorm.SAMPLE_DIRECTORY.getValue() + sample + Sample.SAMPLE_FILE_EXTENSION;
 
 		if (!Files.exists(output)) {
 			Sample samp = projOriginal.getFullSampleFromRandomAccessFile(sample);
-			double[][] xy = new double[][] { Array.toDoubleArray(samp.getXs()), Array.toDoubleArray(samp.getYs()) };
+			double[][] xy = new double[][] {Array.toDoubleArray(samp.getXs()),
+																			Array.toDoubleArray(samp.getYs())};
 			QuantileNormalization qn = new QuantileNormalization(xy, projNorm.getLog());
 			qn.setThresholdFactor(THRESHOLD_FACTOR);
 			projNorm.getLog().reportTimeInfo("Beginning normalizing " + sample);
 			long time = System.currentTimeMillis();
 			qn.normalize();
-			projNorm.getLog().reportTimeInfo("Finished normalizing " + sample + " in " + ext.getTimeElapsed(time));
+			projNorm.getLog()
+							.reportTimeInfo("Finished normalizing " + sample + " in " + ext.getTimeElapsed(time));
 			double[][] xyNorm = qn.getNormData();
 			time = System.currentTimeMillis();
-			Sample sampNorm = new Sample(sample, samp.getFingerprint(), samp.getGCs(), Array.toFloatArray(xyNorm[0]), Array.toFloatArray(xyNorm[1]), samp.getBAFs(), samp.getLRRs(), samp.getForwardGenotypes(), samp.getAB_Genotypes(), samp.getCanXYBeNegative());
+			Sample sampNorm = new Sample(	sample, samp.getFingerprint(), samp.getGCs(),
+																		Array.toFloatArray(xyNorm[0]), Array.toFloatArray(xyNorm[1]),
+																		samp.getBAFs(), samp.getLRRs(), samp.getForwardGenotypes(),
+																		samp.getAB_Genotypes(), samp.getCanXYBeNegative());
 			sampNorm.saveToRandomAccessFile(output, outliers, sample);
-			projNorm.getLog().reportTimeInfo("Saved sample " + sample + " in " + ext.getTimeElapsed(time));
+			projNorm.getLog()
+							.reportTimeInfo("Saved sample " + sample + " in " + ext.getTimeElapsed(time));
 		}
 
 		return outliers;
@@ -268,17 +316,18 @@ public class QuantNormProject {
 		int numArgs = args.length;
 		String filename = null;
 
-		String usage = "\n" + "one.JL.QuantNormProject requires 0-1 arguments\n" + "   (1) filename (i.e. proj=" + filename + " (default))\n" + "";
+		String usage = "\n"	+ "one.JL.QuantNormProject requires 0-1 arguments\n"
+										+ "   (1) filename (i.e. proj=" + filename + " (default))\n" + "";
 
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+		for (String arg : args) {
+			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith("proj=")) {
-				filename = args[i].split("=")[1];
+			} else if (arg.startsWith("proj=")) {
+				filename = arg.split("=")[1];
 				numArgs--;
 			} else {
-				System.err.println("Error - invalid argument: " + args[i]);
+				System.err.println("Error - invalid argument: " + arg);
 			}
 		}
 		if (numArgs != 0) {

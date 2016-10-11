@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
-import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
@@ -26,14 +25,16 @@ import org.genvisis.common.ext;
  */
 public class AutoMito {
 
-	private static final String[] metrics = { "CallRate", "HetEx", "LRR_SEX_z" };
-
-	private static void run(Project proj, String name, String mitoMarks, int maxNumMarkers, double callRateSamp, double callRateMarker, double hetExMarker, double sexZscore, double lrrSDSamp, int numThreads) throws FileNotFoundException {
+	private static void run(Project proj, String name, String mitoMarks, int maxNumMarkers,
+													double callRateSamp, double callRateMarker, double hetExMarker,
+													double sexZscore, double lrrSDSamp,
+													int numThreads) throws FileNotFoundException {
 		long arrayLength = maxNumMarkers * proj.getSamples().length;
 		if (arrayLength >= Integer.MAX_VALUE) {
 			proj.getLog().reportTimeWarning("Maximum number of markers set to: " + maxNumMarkers);
 			proj.getLog().reportTimeWarning("Number of samples : " + proj.getSamples().length);
-			proj.getLog().reportTimeWarning(proj.getSamples().length + " X " + maxNumMarkers + " = " + arrayLength + " , which is greater than max java integer");
+			proj.getLog().reportTimeWarning(proj.getSamples().length	+ " X " + maxNumMarkers + " = "
+																			+ arrayLength + " , which is greater than max java integer");
 			maxNumMarkers = Math.round(Integer.MAX_VALUE / (proj.getSamples().length + 1f));
 			proj.getLog().reportTimeWarning("Updated max num markers to " + maxNumMarkers);
 		}
@@ -52,17 +53,22 @@ public class AutoMito {
 
 		String temporarySampleDataWithSex = qcDir + ext.addToRoot(temporarySampleData, ".withSex.txt");
 
-		if (ext.indexOfStr(SexChecks.EST_SEX_HEADER, Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(), proj.getLog())) < 0) {
+		if (ext.indexOfStr(	SexChecks.EST_SEX_HEADER,
+												Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(),
+																							proj.getLog())) < 0) {
 			ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
 			builder.sampleBased(true);
 			builder.dataKeyColumnName("Sample");
 			builder.treatAllNumeric(false);
-			builder.stringDataTitles(new String[] { SexChecks.EST_SEX_HEADER });
+			builder.stringDataTitles(new String[] {SexChecks.EST_SEX_HEADER});
 			builder.requireAll(true);
-			System.out.println(ext.indexOfStr(SexChecks.EST_SEX_HEADER, Files.getHeaderOfFile(proj.SEXCHECK_RESULTS_FILENAME.getValue(), proj.getLog())));
+			System.out.println(ext.indexOfStr(SexChecks.EST_SEX_HEADER,
+																				Files.getHeaderOfFile(proj.SEXCHECK_RESULTS_FILENAME.getValue(),
+																															proj.getLog())));
 			ExtProjectDataParser parser = builder.build(proj, proj.SEXCHECK_RESULTS_FILENAME.getValue());
 
-			String[][] matrix = HashVec.loadFileToStringMatrix(proj.SAMPLE_DATA_FILENAME.getValue(), false, null, false);
+			String[][] matrix = HashVec.loadFileToStringMatrix(	proj.SAMPLE_DATA_FILENAME.getValue(),
+																													false, null, false);
 			int sexIndex = ext.indexOfStr("CLASS=" + SampleData.EUPHEMISMS[1], matrix[0]);
 
 			for (int i = 1; i < matrix.length; i++) {
@@ -104,7 +110,8 @@ public class AutoMito {
 				samplesPassing[i] = true;
 			}
 		}
-		proj.getLog().reportTimeInfo(Array.booleanArraySum(samplesPassing) + " samples passed initial QC");
+		proj.getLog()
+				.reportTimeInfo(Array.booleanArraySum(samplesPassing) + " samples passed initial QC");
 		Files.writeArray(Array.subArray(proj.getSamples(), samplesPassing), sampleFiltRound1);
 
 		if (!Files.exists(proj.MARKER_METRICS_FILENAME.getValue())) {
@@ -113,10 +120,10 @@ public class AutoMito {
 
 		proj.getLog().reportTimeInfo("Loading " + baseMarkerQC);
 		ExtProjectDataParser parser = MarkerMetrics.developParser(proj, baseMarkerQC);
-		double[] callRateMarkers = parser.getNumericDataForTitle("CallRate");
-		double[] HetExMarkers = parser.getNumericDataForTitle("HetEx");
-		double[] lrrSexZ = parser.getNumericDataForTitle("LRR_SEX_z");
-	
+		parser.getNumericDataForTitle("CallRate");
+		parser.getNumericDataForTitle("HetEx");
+		parser.getNumericDataForTitle("LRR_SEX_z");
+
 		proj = new Project(proj.getPropertyFilename(), false);// reset everything
 
 	}
@@ -134,33 +141,32 @@ public class AutoMito {
 		double sexZscore = 2.5;
 		double lrrSDSamp = Double.NaN;
 
-		String usage = "\n" +
-				"one.JL.AutoMito requires 0-1 arguments\n" +
-				"   (1) an existing project filename (i.e. proj=" + filename + " (default))\n" +
-				"   (2) full path to mitochondrial markers (i.e. mitoMarks=" + mitoMarks + " (default))\n" +
-				"   (3) analysis name (i.e. name=" + name + " (default))\n" +
-				PSF.Ext.getNumThreadsCommand(4, numThreads) +
-				"   (5) maximum Number of markers(i.e. maxNumMarkers=" + maxNumMarkers + " (default))\n" +
-				"";
+		String usage = "\n"	+ "one.JL.AutoMito requires 0-1 arguments\n"
+										+ "   (1) an existing project filename (i.e. proj=" + filename + " (default))\n"
+										+ "   (2) full path to mitochondrial markers (i.e. mitoMarks=" + mitoMarks
+										+ " (default))\n" + "   (3) analysis name (i.e. name=" + name + " (default))\n"
+										+ PSF.Ext.getNumThreadsCommand(4, numThreads)
+										+ "   (5) maximum Number of markers(i.e. maxNumMarkers=" + maxNumMarkers
+										+ " (default))\n" + "";
 
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+		for (String arg : args) {
+			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith("proj=")) {
-				filename = args[i].split("=")[1];
+			} else if (arg.startsWith("proj=")) {
+				filename = arg.split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("mitoMarks=")) {
-				filename = args[i].split("=")[1];
+			} else if (arg.startsWith("mitoMarks=")) {
+				filename = arg.split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("name=")) {
-				name = args[i].split("=")[1];
+			} else if (arg.startsWith("name=")) {
+				name = arg.split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
-				numThreads = ext.parseIntArg(args[i]);
+			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+				numThreads = ext.parseIntArg(arg);
 				numArgs--;
 			} else {
-				System.err.println("Error - invalid argument: " + args[i]);
+				System.err.println("Error - invalid argument: " + arg);
 			}
 		}
 		if (numArgs != 0) {
@@ -175,13 +181,16 @@ public class AutoMito {
 			if (Double.isNaN(lrrSDSamp)) {
 				if (proj.getArrayType() == ARRAY.ILLUMINA) {
 					lrrSDSamp = 0.30;
-				} else if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
+				} else if (proj.getArrayType() == ARRAY.AFFY_GW6
+										|| proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
 					lrrSDSamp = 0.35;
 				} else {
-					throw new IllegalArgumentException("did not expect to see array type " + proj.getArrayType() + " here");
+					throw new IllegalArgumentException("did not expect to see array type "
+																							+ proj.getArrayType() + " here");
 				}
 			}
-			run(proj, name, mitoMarks, maxNumMarkers, callRateSamp, callRateMarker, hetExMarker, sexZscore, lrrSDSamp, numThreads);
+			run(proj, name, mitoMarks, maxNumMarkers, callRateSamp, callRateMarker, hetExMarker,
+					sexZscore, lrrSDSamp, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -16,7 +16,7 @@ import org.genvisis.common.WorkerTrain.AbstractProducer;
  */
 public class XYIntensityBias {
 
-	private static final String[] HEADER_BASE = new String[] { "Mean", "Median", "SD" };
+	private static final String[] HEADER_BASE = new String[] {"Mean", "Median", "SD"};
 
 	private static void run(Project proj) {
 
@@ -34,7 +34,8 @@ public class XYIntensityBias {
 			int index = 0;
 			while (train.hasNext()) {
 				double[][] vals = train.next();
-				writer.println(proj.getSamples()[index] + "\t" + Array.toStr(vals[0]) + "\t" + Array.toStr(vals[1]));
+				writer.println(proj.getSamples()[index]	+ "\t" + Array.toStr(vals[0]) + "\t"
+												+ Array.toStr(vals[1]));
 				index++;
 				proj.getLog().reportTimeInfo(index + "");
 			}
@@ -49,17 +50,18 @@ public class XYIntensityBias {
 		int numArgs = args.length;
 		String filename = null;
 
-		String usage = "\n" + "one.XYIntensityBias requires 0-1 arguments\n" + "   (1) proj (i.e. proj=" + filename + " (default))\n" + "";
+		String usage = "\n"	+ "one.XYIntensityBias requires 0-1 arguments\n" + "   (1) proj (i.e. proj="
+										+ filename + " (default))\n" + "";
 
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+		for (String arg : args) {
+			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith("proj=")) {
-				filename = args[i].split("=")[1];
+			} else if (arg.startsWith("proj=")) {
+				filename = arg.split("=")[1];
 				numArgs--;
 			} else {
-				System.err.println("Error - invalid argument: " + args[i]);
+				System.err.println("Error - invalid argument: " + arg);
 			}
 		}
 		if (numArgs != 0) {
@@ -75,15 +77,15 @@ public class XYIntensityBias {
 	}
 
 	private static class XYProducer extends AbstractProducer<double[][]> {
-		private Project proj;
-		private String[] samples;
+		private final Project proj;
+		private final String[] samples;
 		private int index;
 
 		public XYProducer(Project proj, String[] samples) {
 			super();
 			this.proj = proj;
 			this.samples = samples;
-			this.index = 0;
+			index = 0;
 		}
 
 		@Override

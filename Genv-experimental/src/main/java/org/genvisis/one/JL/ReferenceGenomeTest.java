@@ -14,12 +14,15 @@ public class ReferenceGenomeTest {
 	public static void testRef(Project proj) {
 
 		// basic
-		ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog());
-	//	String[] test1 = referenceGenome.getSequenceFor(new Segment((byte) 26, 1, 50));
+		ReferenceGenome referenceGenome =
+																		new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
+																												proj.getLog());
+		// String[] test1 = referenceGenome.getSequenceFor(new Segment((byte) 26, 1, 50));
 
 		// other testing
 		String[] test = referenceGenome.getSequenceFor(new Segment((byte) 26, 1, 50));
-		String[] bah = Files.getFirstNLinesOfFile(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), 2, proj.getLog());
+		String[] bah = Files.getFirstNLinesOfFile(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), 2,
+																							proj.getLog());
 		System.out.println(Array.toStr(test));
 		System.out.println(Array.toStr(bah));
 
@@ -31,7 +34,12 @@ public class ReferenceGenomeTest {
 		ArrayList<Segment> tseg = new ArrayList<Segment>();
 
 		for (int i = 1; i < 23; i++) {
-			tseg.add(new Segment((byte) i, referenceGenome.getIndexedFastaSequenceFile().getSequenceDictionary().getSequence(i).getSequenceLength() - 10000, referenceGenome.getIndexedFastaSequenceFile().getSequenceDictionary().getSequence(i).getSequenceLength() - 9800));
+			tseg.add(new Segment(	(byte) i,
+														referenceGenome	.getIndexedFastaSequenceFile().getSequenceDictionary()
+																						.getSequence(i).getSequenceLength()
+																			- 10000,
+														referenceGenome	.getIndexedFastaSequenceFile().getSequenceDictionary()
+																						.getSequence(i).getSequenceLength() - 9800));
 		}
 
 		int off = tseg.size();
@@ -62,7 +70,8 @@ public class ReferenceGenomeTest {
 		Segment[] markerSegs = new Segment[proj.getMarkerNames().length];
 		MarkerSet markerSet = proj.getMarkerSet();
 		for (int i = 0; i < markerSegs.length; i++) {
-			markerSegs[i] = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i] - 50, markerSet.getPositions()[i] + 50);
+			markerSegs[i] = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i] - 50,
+																	markerSet.getPositions()[i] + 50);
 		}
 		proj.getLog().reportTimeInfo("Going for every marker in the project n=" + markerSegs.length);
 		time = System.currentTimeMillis();
@@ -80,11 +89,14 @@ public class ReferenceGenomeTest {
 	public static void testRef2(Project proj) {
 
 		// basic
-		ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog());
+		ReferenceGenome referenceGenome =
+																		new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
+																												proj.getLog());
 		Segment[] markerSegs = new Segment[proj.getMarkerNames().length];
 		MarkerSet markerSet = proj.getMarkerSet();
 		for (int i = 0; i < markerSegs.length; i++) {
-			markerSegs[i] = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i] - 50, markerSet.getPositions()[i] + 50);
+			markerSegs[i] = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i] - 50,
+																	markerSet.getPositions()[i] + 50);
 		}
 		proj.getLog().reportTimeInfo("Going for every marker in the project n=" + markerSegs.length);
 		long time = System.currentTimeMillis();
@@ -96,7 +108,7 @@ public class ReferenceGenomeTest {
 		}
 		proj.getLog().reportTimeElapsed(time);
 		proj.getLog().reportTimeInfo(" n=" + markerSegs.length);
-		
+
 	}
 
 	public static void main(String[] args) {

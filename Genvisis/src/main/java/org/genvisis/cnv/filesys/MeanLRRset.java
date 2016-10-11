@@ -6,48 +6,48 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.filesys.Segment;
 
 public class MeanLRRset implements Serializable {
-  public static final long serialVersionUID = 1L;
+	public static final long serialVersionUID = 1L;
 
-  private final long sampleFingerprint;
-  private final Segment[] regions;
-  private final int[] numberOfMarkers;
-  private final float[][][] data;
-  private final String[] transformations;
+	private final long sampleFingerprint;
+	private final Segment[] regions;
+	private final int[] numberOfMarkers;
+	private final float[][][] data;
+	private final String[] transformations;
 
-  public MeanLRRset(long sampleFingerprint, Segment[] regions, int[] numberOfMarkers,
-                    float[][][] data, String[] transformations) {
-    this.sampleFingerprint = sampleFingerprint;
-    this.numberOfMarkers = numberOfMarkers;
-    this.regions = regions;
-    this.data = data;
-    this.transformations = transformations;
-  }
+	public MeanLRRset(long sampleFingerprint, Segment[] regions, int[] numberOfMarkers,
+										float[][][] data, String[] transformations) {
+		this.sampleFingerprint = sampleFingerprint;
+		this.numberOfMarkers = numberOfMarkers;
+		this.regions = regions;
+		this.data = data;
+		this.transformations = transformations;
+	}
 
-  public long getSampleFingerprint() {
-    return sampleFingerprint;
-  }
+	public long getSampleFingerprint() {
+		return sampleFingerprint;
+	}
 
-  public Segment[] getRegions() {
-    return regions;
-  }
+	public Segment[] getRegions() {
+		return regions;
+	}
 
-  public int[] getNumerOfMarkersPerRegion() {
-    return numberOfMarkers;
-  }
+	public int[] getNumerOfMarkersPerRegion() {
+		return numberOfMarkers;
+	}
 
-  public float[][][] getData() {
-    return data;
-  }
+	public float[][][] getData() {
+		return data;
+	}
 
-  public String[] getTransformations() {
-    return transformations;
-  }
+	public String[] getTransformations() {
+		return transformations;
+	}
 
-  public void serialize(String filename) {
-    SerializedFiles.writeSerial(this, filename);
-  }
+	public void serialize(String filename) {
+		SerializedFiles.writeSerial(this, filename);
+	}
 
-  public static MeanLRRset load(String filename, boolean jar) {
-    return (MeanLRRset) SerializedFiles.readSerial(filename, jar, true);
-  }
+	public static MeanLRRset load(String filename, boolean jar) {
+		return (MeanLRRset) SerializedFiles.readSerial(filename, jar, true);
+	}
 }

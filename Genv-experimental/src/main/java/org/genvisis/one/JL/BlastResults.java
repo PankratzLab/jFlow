@@ -18,8 +18,7 @@ import htsjdk.variant.vcf.VCFFileReader;
 public class BlastResults {
 
 	private static void getEm(Project proj) {
-		MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation
-				.initForMarkers(proj.getMarkerNames());
+		MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(proj.getMarkerNames());
 
 		String outDir = proj.PROJECT_DIRECTORY.getValue() + "blastSummary/";
 		new File(outDir).mkdirs();
@@ -29,16 +28,18 @@ public class BlastResults {
 			PrintWriter writer = new PrintWriter(new FileWriter(outSum));
 
 			writer.println("MarkerName\tPerfectMatch\tNonPerfectOnTarget\tOffTarget\tTotalAlignments");
-			VCFFileReader reader = new VCFFileReader(new File(proj.BLAST_ANNOTATION_FILENAME.getValue()), true);
+			VCFFileReader reader = new VCFFileReader(	new File(proj.BLAST_ANNOTATION_FILENAME.getValue()),
+																								true);
 			int index = 0;
 			for (VariantContext vc : reader) {
-				//proj.getLog().reportTimeInfo(vc.getID());
+				// proj.getLog().reportTimeInfo(vc.getID());
 				blastResults[index].parseAnnotation(vc, proj.getLog());
 				boolean pm = blastResults[index].hasPerfectMatch(proj.getLog());
 				int numOff = blastResults[index].getNumOffTarget(proj.getLog());
 				int numOnNonPerf = blastResults[index].getNumOnTargetNonPerfect(proj.getLog());
 				int numTotal = Array.sum(blastResults[index].getAlignmentHistogram(proj));
-				writer.println(vc.getID() + "\t" + pm + "\t" + numOnNonPerf + "\t" + numOff+"\t"+numTotal);
+				writer.println(vc.getID()	+ "\t" + pm + "\t" + numOnNonPerf + "\t" + numOff + "\t"
+												+ numTotal);
 				index++;
 			}
 			reader.close();
