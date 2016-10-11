@@ -21,54 +21,54 @@ import htsjdk.variant.vcf.VCFHeaderLineType;
  */
 public abstract class Annotation {
 
-  private final VCFHeaderLineType type;
-  protected String name;
-  private final String description;
-  private final String defaultValue;
-  private final int number;
-  private final VCFHeaderLineCount count;
+	private final VCFHeaderLineType type;
+	protected String name;
+	private final String description;
+	private final String defaultValue;
+	private final int number;
+	private final VCFHeaderLineCount count;
 
-  /**
-   * @param type {@link VCFHeaderLineType} , currently not used except by htsjdk error checks
-   * @param count {@link VCFHeaderLineCount}
-   * @param number number of entries, unbounded number can be specified with count
-   * @param name name of the entry
-   * @param description its description
-   * @param defaultValue
-   */
-  public Annotation(VCFHeaderLineType type, VCFHeaderLineCount count, int number, String name,
-                    String description, String defaultValue) {
-    super();
-    this.type = type;
-    this.count = count;
-    this.number = number;
-    this.name = name;
-    this.description = description;
-    this.defaultValue = defaultValue;
-  }
+	/**
+	 * @param type {@link VCFHeaderLineType} , currently not used except by htsjdk error checks
+	 * @param count {@link VCFHeaderLineCount}
+	 * @param number number of entries, unbounded number can be specified with count
+	 * @param name name of the entry
+	 * @param description its description
+	 * @param defaultValue
+	 */
+	public Annotation(VCFHeaderLineType type, VCFHeaderLineCount count, int number, String name,
+										String description, String defaultValue) {
+		super();
+		this.type = type;
+		this.count = count;
+		this.number = number;
+		this.name = name;
+		this.description = description;
+		this.defaultValue = defaultValue;
+	}
 
-  public VCFHeaderLineType getType() {
-    return type;
-  }
+	public VCFHeaderLineType getType() {
+		return type;
+	}
 
-  public String getName() {
-    return name;
-  }
+	public String getName() {
+		return name;
+	}
 
-  public String getDescription() {
-    return description;
-  }
+	public String getDescription() {
+		return description;
+	}
 
-  public String getDefaultValue() {
-    return defaultValue;
-  }
+	public String getDefaultValue() {
+		return defaultValue;
+	}
 
-  public int getNumber() {
-    return number;
-  }
+	public int getNumber() {
+		return number;
+	}
 
-  public VCFHeaderLineCount getCount() {
-    return count;
-  }
+	public VCFHeaderLineCount getCount() {
+		return count;
+	}
 
 }

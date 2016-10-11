@@ -24,185 +24,183 @@ import htsjdk.variant.vcf.VCFFileReader;
  *
  */
 public class PopGen {
-  public static final String DEFAULT_FTP_DIR =
-                                             "ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/";
-  public static final String DEFAULT_FTP_EXT = ".genotypes.vcf.gz";
+	public static final String DEFAULT_FTP_DIR = "ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20130502/";
+	public static final String DEFAULT_FTP_EXT = ".genotypes.vcf.gz";
 
-  public static void filterForPopGen(String directory, String outputVCF, String vcfSuffix,
-                                     Location location, final VCFOps.VcfPopulation hwePopTests,
-                                     int numThreads, Logger log) {
-    String[] vcfs = null;
-    switch (location) {
-      case LOCAL:
-        vcfs = Files.listFullPaths(directory, vcfSuffix, false);
-        break;
-      case REMOTE:
-        vcfs = Files.parseRemoteFTPFiles(directory, vcfSuffix, log);
-        break;
-      default:
-        log.reportTimeError("Invalid file location " + location);
-        break;
-    }
-    VARIANT_FILTER_DOUBLE[] fullPopFilters =
-                                           hwePopTests == null ? VARIANT_FILTER_DOUBLE.values()
-                                                               : VARIANT_FILTER_DOUBLE.getFiltersExcluding(new VARIANT_FILTER_DOUBLE[] {VARIANT_FILTER_DOUBLE.HWE});
-    final VariantContextFilter vcfFilter = new VariantContextFilter(fullPopFilters,
-                                                                    VARIANT_FILTER_BOOLEAN.values(),
-                                                                    null, null, log);
-    final VariantContextFilter superPopFilter = new VariantContextFilter(
-                                                                         new VARIANT_FILTER_DOUBLE[] {VARIANT_FILTER_DOUBLE.HWE,
-                                                                                                      VARIANT_FILTER_DOUBLE.CALL_RATE_LOOSE},
-                                                                         new VARIANT_FILTER_BOOLEAN[] {},
-                                                                         null, null, log);
+	public static void filterForPopGen(	String directory, String outputVCF, String vcfSuffix,
+																			Location location, final VCFOps.VcfPopulation hwePopTests,
+																			int numThreads, Logger log) {
+		String[] vcfs = null;
+		switch (location) {
+			case LOCAL:
+				vcfs = Files.listFullPaths(directory, vcfSuffix, false);
+				break;
+			case REMOTE:
+				vcfs = Files.parseRemoteFTPFiles(directory, vcfSuffix, log);
+				break;
+			default:
+				log.reportTimeError("Invalid file location " + location);
+				break;
+		}
+		VARIANT_FILTER_DOUBLE[] fullPopFilters = hwePopTests == null	? VARIANT_FILTER_DOUBLE.values()
+																																	: VARIANT_FILTER_DOUBLE.getFiltersExcluding(new VARIANT_FILTER_DOUBLE[] {VARIANT_FILTER_DOUBLE.HWE});
+		final VariantContextFilter vcfFilter = new VariantContextFilter(fullPopFilters,
+																																		VARIANT_FILTER_BOOLEAN.values(),
+																																		null, null, log);
+		final VariantContextFilter superPopFilter = new VariantContextFilter(
+																																					new VARIANT_FILTER_DOUBLE[] {	VARIANT_FILTER_DOUBLE.HWE,
+																																																				VARIANT_FILTER_DOUBLE.CALL_RATE_LOOSE},
+																																					new VARIANT_FILTER_BOOLEAN[] {},
+																																					null, null, log);
 
-    VCFFileReader tmp = new VCFFileReader(new File(vcfs[0]), true);
-    VariantContextWriter writer = VCFOps.initWriter(outputVCF, VCFOps.DEFUALT_WRITER_OPTIONS,
-                                                    VCFOps.getSequenceDictionary(tmp));
-    VCFOps.copyHeader(tmp, writer, VCFOps.BLANK_SAMPLE, HEADER_COPY_TYPE.FULL_COPY, log);
+		VCFFileReader tmp = new VCFFileReader(new File(vcfs[0]), true);
+		VariantContextWriter writer = VCFOps.initWriter(outputVCF, VCFOps.DEFUALT_WRITER_OPTIONS,
+																										VCFOps.getSequenceDictionary(tmp));
+		VCFOps.copyHeader(tmp, writer, VCFOps.BLANK_SAMPLE, HEADER_COPY_TYPE.FULL_COPY, log);
 
-    tmp.close();
-    int pass = 0;
-    int fail = 0;
-    int hweSuperPopFail = 0;
-    for (int i = 0; i < vcfs.length; i++) {
-      log.reportTimeInfo("Initializing reader for " + vcfs[i]);
-      tmp = new VCFFileReader(new File(vcfs[i]), true);
-      log.reportTimeInfo("Finished initializing reader for " + vcfs[i]);
-      long time = System.currentTimeMillis();
-      for (final VariantContext variantContext : tmp) {
-        VariantContextFilterPass vcfp = vcfFilter.filter(variantContext);
-        VariantContextFilterPass superPopPass =
-                                              new VariantContextFilterPass(true,
-                                                                           "Did not need to test super populations");
-        if (vcfp.passed() && hwePopTests != null) {
-          superPopPass = testSuperPopulations(hwePopTests, superPopFilter, variantContext, log);
-        }
-        if (vcfp.passed() && superPopPass.passed() && !variantContext.isFiltered()) {
-          try {
-            writer.add(variantContext);
-          } catch (IllegalStateException is) {
-            log.reportTimeError("A variant violated vcf convention, skipping file " + vcfs[i]);
-            tmp.close();
-            break;
-          } catch (IllegalArgumentException ia) {
-            log.reportTimeError("A variant violated vcf convention, skipping file " + vcfs[i]);
-            tmp.close();
-            break;
-          }
-          pass++;
-        } else {
-          fail++;
-          if (!superPopPass.passed()) {
-            hweSuperPopFail++;
-          }
-        }
-        if ((pass + fail) % 10000 == 0) {
-          log.report("");
-          log.reportTimeInfo(ext.getTimeElapsed(time) + " since last update");
-          log.reportTimeInfo("Currently reading file (" + (i + 1) + " of " + vcfs.length + ") : "
-                             + vcfs[i]);
-          log.reportTimeInfo(pass + " variants passed");
-          log.reportTimeInfo(fail + " variants failed");
-          log.reportTimeInfo(hweSuperPopFail + " variants failed for super population HWE tests");
-          time = System.currentTimeMillis();
-        }
-      }
-      tmp.close();
-    }
-    writer.close();
-  }
+		tmp.close();
+		int pass = 0;
+		int fail = 0;
+		int hweSuperPopFail = 0;
+		for (int i = 0; i < vcfs.length; i++) {
+			log.reportTimeInfo("Initializing reader for " + vcfs[i]);
+			tmp = new VCFFileReader(new File(vcfs[i]), true);
+			log.reportTimeInfo("Finished initializing reader for " + vcfs[i]);
+			long time = System.currentTimeMillis();
+			for (final VariantContext variantContext : tmp) {
+				VariantContextFilterPass vcfp = vcfFilter.filter(variantContext);
+				VariantContextFilterPass superPopPass =
+																							new VariantContextFilterPass(	true,
+																																						"Did not need to test super populations");
+				if (vcfp.passed() && hwePopTests != null) {
+					superPopPass = testSuperPopulations(hwePopTests, superPopFilter, variantContext, log);
+				}
+				if (vcfp.passed() && superPopPass.passed() && !variantContext.isFiltered()) {
+					try {
+						writer.add(variantContext);
+					} catch (IllegalStateException is) {
+						log.reportTimeError("A variant violated vcf convention, skipping file " + vcfs[i]);
+						tmp.close();
+						break;
+					} catch (IllegalArgumentException ia) {
+						log.reportTimeError("A variant violated vcf convention, skipping file " + vcfs[i]);
+						tmp.close();
+						break;
+					}
+					pass++;
+				} else {
+					fail++;
+					if (!superPopPass.passed()) {
+						hweSuperPopFail++;
+					}
+				}
+				if ((pass + fail) % 10000 == 0) {
+					log.report("");
+					log.reportTimeInfo(ext.getTimeElapsed(time) + " since last update");
+					log.reportTimeInfo("Currently reading file ("	+ (i + 1) + " of " + vcfs.length + ") : "
+															+ vcfs[i]);
+					log.reportTimeInfo(pass + " variants passed");
+					log.reportTimeInfo(fail + " variants failed");
+					log.reportTimeInfo(hweSuperPopFail + " variants failed for super population HWE tests");
+					time = System.currentTimeMillis();
+				}
+			}
+			tmp.close();
+		}
+		writer.close();
+	}
 
-  private static VariantContextFilterPass testSuperPopulations(final VCFOps.VcfPopulation hwePopTests,
-                                                               final VariantContextFilter hweFilter,
-                                                               final VariantContext variantContext,
-                                                               Logger log) {
-    VariantContextFilterPass hweContextFilterPass = new VariantContextFilterPass(true, "Passed");
-    if (hwePopTests != null) {
-      for (String superPopulation : hwePopTests.getSuperPop().keySet()) {
-        VariantContext vcSub = VCOps.getSubset(variantContext,
-                                               hwePopTests.getSuperPop().get(superPopulation));
-        VariantContextFilterPass vcfpHWE = hweFilter.filter(vcSub);
-        if (!vcfpHWE.passed()) {
-          hweContextFilterPass = vcfpHWE;
-          break;
-        }
-      }
-    } else {
-      hweContextFilterPass = new VariantContextFilterPass(true, "Super population not provided");
-    }
-    return hweContextFilterPass;
-  }
+	private static VariantContextFilterPass testSuperPopulations(	final VCFOps.VcfPopulation hwePopTests,
+																																final VariantContextFilter hweFilter,
+																																final VariantContext variantContext,
+																																Logger log) {
+		VariantContextFilterPass hweContextFilterPass = new VariantContextFilterPass(true, "Passed");
+		if (hwePopTests != null) {
+			for (String superPopulation : hwePopTests.getSuperPop().keySet()) {
+				VariantContext vcSub = VCOps.getSubset(	variantContext,
+																								hwePopTests.getSuperPop().get(superPopulation));
+				VariantContextFilterPass vcfpHWE = hweFilter.filter(vcSub);
+				if (!vcfpHWE.passed()) {
+					hweContextFilterPass = vcfpHWE;
+					break;
+				}
+			}
+		} else {
+			hweContextFilterPass = new VariantContextFilterPass(true, "Super population not provided");
+		}
+		return hweContextFilterPass;
+	}
 
-  public static void popGen(String inputDirectory, String output, String populationFile,
-                            Location location, String extension, int numThreads, Logger log) {
-    VcfPopulation vpop = VCFOps.VcfPopulation.load(populationFile, POPULATION_TYPE.ANY, log);
-    if (vpop != null) {
-      vpop.report();
-    }
-    filterForPopGen(inputDirectory, output, extension, location, vpop, numThreads, log);
-  }
+	public static void popGen(String inputDirectory, String output, String populationFile,
+														Location location, String extension, int numThreads, Logger log) {
+		VcfPopulation vpop = VCFOps.VcfPopulation.load(populationFile, POPULATION_TYPE.ANY, log);
+		if (vpop != null) {
+			vpop.report();
+		}
+		filterForPopGen(inputDirectory, output, extension, location, vpop, numThreads, log);
+	}
 
-  public static void main(String[] args) {
-    int numArgs = args.length;
-    String inputDirectory = "/Pop/";
-    String logfile = null;
-    Logger log;
-    String output = "Pop.vcf.gz";
-    String populationFile = "vpop.txt";
-    String extension = ".vcf.gz";
-    Location location = Location.LOCAL;
-    int numThreads = 3;
-    String usage = "\n" + "seq.manage.PopGen requires 0-1 arguments\n";
-    usage += "   (1) input directory containing vcf files (i.e. inputDirectory=" + inputDirectory
-             + " (default))\n" + "";
-    usage += "   (2) full path to an output file (i.e. output=" + output + " (default))\n" + "";
-    usage += "   (3) full path to file defining population sub and super structure (i.e. vpopFile="
-             + populationFile + " (default))\n" + "";
-    usage += "   (4) the directory is a remote directory (i.e. -remote (default))\n" + "";
-    usage += "   (5) extension of vcf files to use(i.e. ext=" + extension + " (default))\n" + "";
-    usage += PSF.Ext.getNumThreadsCommand(6, numThreads);
-    for (String arg : args) {
-      if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
-        System.err.println(usage);
-        System.exit(1);
-      } else if (arg.startsWith("inputDirectory=")) {
-        inputDirectory = ext.parseStringArg(arg, "");
-        numArgs--;
-      } else if (arg.startsWith("output=")) {
-        output = ext.parseStringArg(arg, "");
-        numArgs--;
-      } else if (arg.startsWith("vpopFile=")) {
-        populationFile = ext.parseStringArg(arg, "");
-        numArgs--;
-      } else if (arg.startsWith("ext=")) {
-        extension = ext.parseStringArg(arg, "");
-        numArgs--;
-      } else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
-        numThreads = ext.parseIntArg(arg);
-        numArgs--;
-      } else if (arg.startsWith("-remote")) {
-        location = Location.REMOTE;
-        numArgs--;
-      } else if (arg.startsWith("log=")) {
-        logfile = arg.split("=")[1];
-        numArgs--;
-      } else {
-        System.err.println("Error - invalid argument: " + arg);
-      }
-    }
-    if (numArgs != 0) {
-      System.err.println(usage);
-      System.exit(1);
-    }
-    try {
-      new File(ext.parseDirectoryOfFile(output)).mkdirs();
-      log = new Logger(logfile == null ? ext.rootOf(output, false) + ".log" : logfile);
-      popGen(inputDirectory, output, populationFile, location, extension, numThreads, log);
-      // parse(filename, log);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
+	public static void main(String[] args) {
+		int numArgs = args.length;
+		String inputDirectory = "/Pop/";
+		String logfile = null;
+		Logger log;
+		String output = "Pop.vcf.gz";
+		String populationFile = "vpop.txt";
+		String extension = ".vcf.gz";
+		Location location = Location.LOCAL;
+		int numThreads = 3;
+		String usage = "\n" + "seq.manage.PopGen requires 0-1 arguments\n";
+		usage += "   (1) input directory containing vcf files (i.e. inputDirectory="	+ inputDirectory
+							+ " (default))\n" + "";
+		usage += "   (2) full path to an output file (i.e. output=" + output + " (default))\n" + "";
+		usage += "   (3) full path to file defining population sub and super structure (i.e. vpopFile="
+							+ populationFile + " (default))\n" + "";
+		usage += "   (4) the directory is a remote directory (i.e. -remote (default))\n" + "";
+		usage += "   (5) extension of vcf files to use(i.e. ext=" + extension + " (default))\n" + "";
+		usage += PSF.Ext.getNumThreadsCommand(6, numThreads);
+		for (String arg : args) {
+			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (arg.startsWith("inputDirectory=")) {
+				inputDirectory = ext.parseStringArg(arg, "");
+				numArgs--;
+			} else if (arg.startsWith("output=")) {
+				output = ext.parseStringArg(arg, "");
+				numArgs--;
+			} else if (arg.startsWith("vpopFile=")) {
+				populationFile = ext.parseStringArg(arg, "");
+				numArgs--;
+			} else if (arg.startsWith("ext=")) {
+				extension = ext.parseStringArg(arg, "");
+				numArgs--;
+			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+				numThreads = ext.parseIntArg(arg);
+				numArgs--;
+			} else if (arg.startsWith("-remote")) {
+				location = Location.REMOTE;
+				numArgs--;
+			} else if (arg.startsWith("log=")) {
+				logfile = arg.split("=")[1];
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + arg);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		try {
+			new File(ext.parseDirectoryOfFile(output)).mkdirs();
+			log = new Logger(logfile == null ? ext.rootOf(output, false) + ".log" : logfile);
+			popGen(inputDirectory, output, populationFile, location, extension, numThreads, log);
+			// parse(filename, log);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 }
 

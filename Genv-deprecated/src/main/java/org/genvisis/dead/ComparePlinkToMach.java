@@ -1,9 +1,20 @@
 package org.genvisis.dead;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Hashtable;
+import java.util.Vector;
 
-import org.genvisis.common.*;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class ComparePlinkToMach {
 
@@ -18,35 +29,36 @@ public class ComparePlinkToMach {
 
 		// Vector<String> machPeopleIndicies;
 		Vector<String> plinkPeopleIndicies;
-		Hashtable<String,String[]> plinkData = new Hashtable<String,String[]>();
+		Hashtable<String, String[]> plinkData = new Hashtable<String, String[]>();
 		String[] markers;
 
 		markers = Array.toStringArray(HashVec.loadFileToVec(markersToDo, false, true, true));
 
 		plinkPeopleIndicies = new Vector<String>();
 		try {
-			reader1 = new BufferedReader(new FileReader(dir+"chr"+chr+".fam"));
+			reader1 = new BufferedReader(new FileReader(dir + "chr" + chr + ".fam"));
 			while (reader1.ready()) {
 				line = reader1.readLine().trim().split("[\\s]+");
-				if (Integer.parseInt(line[5])>0) {
+				if (Integer.parseInt(line[5]) > 0) {
 					plinkPeopleIndicies.add(line[1]);
 				}
 			}
 			reader1.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+dir+"chr"+chr+".fam"+"\" not found in current directory");
+			System.err.println("Error: file \""	+ dir + "chr" + chr + ".fam"
+													+ "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+dir+"chr"+chr+".fam"+"\"");
+			System.err.println("Error reading file \"" + dir + "chr" + chr + ".fam" + "\"");
 			System.exit(2);
 		}
 
 		try {
-			reader1 = new BufferedReader(new FileReader(dir+"chr"+chr+".proxy.impute.dosage"));
-			reader2 = new BufferedReader(new FileReader(dir+"chr"+chr+".trans.mldose"));
+			reader1 = new BufferedReader(new FileReader(dir + "chr" + chr + ".proxy.impute.dosage"));
+			reader2 = new BufferedReader(new FileReader(dir + "chr" + chr + ".trans.mldose"));
 			line = reader2.readLine().trim().split("[\\s]+");
 			// machPeopleIndicies = Array.newVector(Array.subArray(line, 1));
-			for (int i = 0; i<markers.length; i++) {
+			for (String marker : markers) {
 				while (reader1.ready()) {
 					line = reader1.readLine().trim().split("[\\s]+");
 					if (ext.containsAny(line[0], markers)) {
@@ -57,10 +69,12 @@ public class ComparePlinkToMach {
 			reader1.close();
 			reader2.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+dir+"chr"+chr+".proxy.impute.dosage"+"\" not found in current directory");
+			System.err.println("Error: file \""	+ dir + "chr" + chr + ".proxy.impute.dosage"
+													+ "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+dir+"chr"+chr+".proxy.impute.dosage"+"\"");
+			System.err.println("Error reading file \""	+ dir + "chr" + chr + ".proxy.impute.dosage"
+													+ "\"");
 			System.exit(2);
 		}
 
@@ -71,44 +85,49 @@ public class ComparePlinkToMach {
 		PrintWriter writer;
 		String[] line;
 		int count;
-		String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\imputation\\MACH comparison\\Mach_chr"+chr+"\\";
+		String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\imputation\\MACH comparison\\Mach_chr"
+									+ chr + "\\";
 
 		Vector<String> machMarkerIndices;
 
 		try {
-			if (new File(dir+"mach_step2_chr"+chr+".mldose-transposeHuge.xln").exists()) {
-				System.out.println("transposed file already exists for chr"+chr);
+			if (new File(dir + "mach_step2_chr" + chr + ".mldose-transposeHuge.xln").exists()) {
+				System.out.println("transposed file already exists for chr" + chr);
 			} else {
-				Files.transposeHuge(dir+"mach_step2_chr"+chr+".mldose", 1000, new Logger());
+				Files.transposeHuge(dir + "mach_step2_chr" + chr + ".mldose", 1000, new Logger());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		machMarkerIndices = HashVec.loadFileToVec(dir+"mach_step2_chr"+chr+".mlinfo", true, true, false);
+		machMarkerIndices = HashVec.loadFileToVec(dir	+ "mach_step2_chr" + chr + ".mlinfo", true, true,
+																							false);
 
 		try {
-			reader = new BufferedReader(new FileReader(dir+"mach_step2_chr"+chr+".mldose-transposeHuge.xln"));
-			writer = new PrintWriter(new FileWriter(dir+"mach_step2_chr"+chr+".trans.mldose"));
+			reader = new BufferedReader(new FileReader(dir	+ "mach_step2_chr" + chr
+																									+ ".mldose-transposeHuge.xln"));
+			writer = new PrintWriter(new FileWriter(dir + "mach_step2_chr" + chr + ".trans.mldose"));
 			line = reader.readLine().trim().split("[\\s]+");
 			writer.print("Marker");
-			for (int i = 0; i<line.length; i++) {
-				writer.print("\t"+line[i].substring(line[i].indexOf(">")+1));
+			for (String element : line) {
+				writer.print("\t" + element.substring(element.indexOf(">") + 1));
 			}
 			writer.println();
 			reader.readLine();
 			count = 0;
 			while (reader.ready()) {
-				writer.println(machMarkerIndices.elementAt(count)+"\t"+reader.readLine());
+				writer.println(machMarkerIndices.elementAt(count) + "\t" + reader.readLine());
 				count++;
 			}
 			reader.close();
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+dir+"mach_step2_chr"+chr+".mldose-transposeHuge.xln"+"\" not found in current directory");
+			System.err.println("Error: file \""	+ dir + "mach_step2_chr" + chr
+													+ ".mldose-transposeHuge.xln" + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+dir+"mach_step2_chr"+chr+".mldose-transposeHuge.xln"+"\"");
+			System.err.println("Error reading file \""	+ dir + "mach_step2_chr" + chr
+													+ ".mldose-transposeHuge.xln" + "\"");
 			System.exit(2);
 		}
 
@@ -120,21 +139,25 @@ public class ComparePlinkToMach {
 		int chr = 21;
 		String markersToDo = "markers.txt";
 
-		String usage = "\\n"+"park.gwa.ComparePlinkToMach requires 0-1 arguments\n"+"   (1) directory (i.e. dir="+dir+" (default))\n"+"   (2) chromosome (i.e. chr="+chr+" (default))\n"+"   (3) file with list of markers to do (i.e. file="+chr+" (default))\n"+"";
+		String usage = "\\n"	+ "park.gwa.ComparePlinkToMach requires 0-1 arguments\n"
+										+ "   (1) directory (i.e. dir=" + dir + " (default))\n"
+										+ "   (2) chromosome (i.e. chr=" + chr + " (default))\n"
+										+ "   (3) file with list of markers to do (i.e. file=" + chr + " (default))\n"
+										+ "";
 
-		for (int i = 0; i<args.length; i++) {
-			if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
+		for (String arg : args) {
+			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith("dir=")) {
-				dir = args[i].split("=")[1];
+			} else if (arg.startsWith("dir=")) {
+				dir = arg.split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("chr=")) {
-				chr = Integer.parseInt(args[i].split("=")[1]);
+			} else if (arg.startsWith("chr=")) {
+				chr = Integer.parseInt(arg.split("=")[1]);
 				numArgs--;
 			}
 		}
-		if (numArgs!=0) {
+		if (numArgs != 0) {
 			System.err.println(usage);
 			System.exit(1);
 		}

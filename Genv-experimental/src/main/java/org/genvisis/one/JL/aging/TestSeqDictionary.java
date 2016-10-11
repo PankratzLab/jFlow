@@ -34,7 +34,8 @@ public class TestSeqDictionary {
 				chr = "MT";
 			}
 			new Logger().reportTime(chr);
-			CloseableIterator<SAMRecord> iterator = reader.queryOverlapping(chr, cs.getStart(), cs.getStop());
+			CloseableIterator<SAMRecord> iterator = reader.queryOverlapping(chr, cs.getStart(),
+																																			cs.getStop());
 			int start = 0;
 			while (iterator.hasNext()) {
 				SAMRecord record = iterator.next();

@@ -17,22 +17,22 @@ public class UniqCel {
 		String[] celsP2 = Files.list(p2, ".CEL", false);
 
 		ArrayList<String> finalCels = new ArrayList<String>();
-		for (int i = 0; i < celsP1.length; i++) {
-			finalCels.add(p1 + celsP1[i]);
+		for (String element : celsP1) {
+			finalCels.add(p1 + element);
 		}
-		for (int i = 0; i < celsP2.length; i++) {
-			if (ext.indexOfStr(celsP2[i], celsP1) >= 0) {
-				System.out.println(celsP2[i] + " is duplicate");
-				String dupRename = ext.addToRoot(celsP2[i], "_2");
+		for (String element : celsP2) {
+			if (ext.indexOfStr(element, celsP1) >= 0) {
+				System.out.println(element + " is duplicate");
+				String dupRename = ext.addToRoot(element, "_2");
 				if (!Files.exists(dupRename)) {
-					Files.copyFileUsingFileChannels(p2 + celsP2[i], p2 + dupRename, new Logger());
+					Files.copyFileUsingFileChannels(p2 + element, p2 + dupRename, new Logger());
 					finalCels.add(p2 + dupRename);
 					System.out.println("renamed to " + dupRename);
 				} else {
 					throw new IllegalArgumentException();
 				}
 			} else {
-				finalCels.add(p1 + celsP2[i]);
+				finalCels.add(p1 + element);
 
 			}
 		}

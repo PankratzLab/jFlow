@@ -9,18 +9,18 @@ import htsjdk.variant.vcf.VCFHeaderLine;
  */
 public interface AnalysisParams {
 
-  /**
-   * @return a {@link VCFHeaderLine } to be added to a {@link VCFHeader}
-   */
-  public VCFHeaderLine developHeaderLine();
+	/**
+	 * @return a {@link VCFHeaderLine } to be added to a {@link VCFHeader}
+	 */
+	public VCFHeaderLine developHeaderLine();
 
-  /**
-   * @return the key for the header
-   */
-  public String getKey();
+	/**
+	 * @return the key for the header
+	 */
+	public String getKey();
 
-  /**
-   * @param vcfHeaderLine parse this header, ensure proper key match
-   */
-  public void parseHeaderLine(VCFHeaderLine vcfHeaderLine);
+	/**
+	 * @param vcfHeaderLine parse this header, ensure proper key match
+	 */
+	public void parseHeaderLine(VCFHeaderLine vcfHeaderLine);
 }

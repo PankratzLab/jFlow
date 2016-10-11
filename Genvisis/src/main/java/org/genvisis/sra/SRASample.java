@@ -11,52 +11,52 @@ import org.genvisis.seq.SeqVariables.PLATFORM;
  */
 public class SRASample extends NGSSample {
 
-  private final String runS;
-  private final String submittedSampleID;
-  private String sraFile;
+	private final String runS;
+	private final String submittedSampleID;
+	private String sraFile;
 
-  /**
-   * @param runS the SRA ID
-   * @param submittedSampleID study ID
-   * @param aName
-   * @param aType
-   *
-   * @param platform sequencing platform
-   */
-  public SRASample(String runS, String submittedSampleID, ASSEMBLY_NAME aName, ASSAY_TYPE aType,
-                   PLATFORM platform) {
-    super(aName, aType, platform);
-    this.runS = runS;
-    this.submittedSampleID = submittedSampleID;
-    this.sraFile = null;
-  }
-
-
-
-  public void setSraFile(String sraFile) {
-    this.sraFile = sraFile;
-  }
+	/**
+	 * @param runS the SRA ID
+	 * @param submittedSampleID study ID
+	 * @param aName
+	 * @param aType
+	 *
+	 * @param platform sequencing platform
+	 */
+	public SRASample(	String runS, String submittedSampleID, ASSEMBLY_NAME aName, ASSAY_TYPE aType,
+										PLATFORM platform) {
+		super(aName, aType, platform);
+		this.runS = runS;
+		this.submittedSampleID = submittedSampleID;
+		sraFile = null;
+	}
 
 
 
-  public String getSraFile() {
-    return sraFile;
-  }
+	public void setSraFile(String sraFile) {
+		this.sraFile = sraFile;
+	}
 
 
 
-  public String getRunS() {
-    return runS;
-  }
+	public String getSraFile() {
+		return sraFile;
+	}
 
-  public String getSubmittedSampleID() {
-    return submittedSampleID;
-  }
 
-  @Override
-  public String toString() {
-    return "SRASample [runS=" + runS + ", submittedSampleID=" + submittedSampleID + ", aName="
-           + getaName() + ", aType=" + getaType() + ", platform=" + getPlatform() + "]";
-  }
+
+	public String getRunS() {
+		return runS;
+	}
+
+	public String getSubmittedSampleID() {
+		return submittedSampleID;
+	}
+
+	@Override
+	public String toString() {
+		return "SRASample [runS="	+ runS + ", submittedSampleID=" + submittedSampleID + ", aName="
+						+ getaName() + ", aType=" + getaType() + ", platform=" + getPlatform() + "]";
+	}
 
 }

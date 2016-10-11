@@ -1,31 +1,42 @@
 package org.genvisis.one;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Hashtable;
+import java.util.Vector;
 
-import org.genvisis.common.*;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
+import org.genvisis.common.ext;
 
 public class TrimToDependencies implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	public static final String DEPENDENCY_FINDER_BINARIES = "D:/home/npankrat/jProjects/DependencyFinder/bin/";
+	public static final String DEPENDENCY_FINDER_BINARIES =
+																												"D:/home/npankrat/jProjects/DependencyFinder/bin/";
 	public static final String[] BASE_CLASSES = {"Math"};
 
-	private String[] filenames;
-	private FileInfo[] fileBits;
-	private Hashtable<String,Class> allClasses;
-	private Hashtable<String,Method> allMethods;
-	private Hashtable<String,Variable> allVariables;
-	private Logger log;
-	
+	private final String[] filenames;
+	private final FileInfo[] fileBits;
+	private final Hashtable<String, Class> allClasses;
+	private final Hashtable<String, Method> allMethods;
+	private final Hashtable<String, Variable> allVariables;
+	private final Logger log;
+
 	class FileInfo implements Serializable {
 		private static final long serialVersionUID = 1L;
-		private String name;
+		private final String name;
 		private String packageName;
 		private Vector<String> imports;
 		private Vector<Class> classes;
 		private boolean required;
-		
+
 		public FileInfo(String root, String filename) {
 			BufferedReader reader;
 			String[] line;
@@ -34,16 +45,17 @@ public class TrimToDependencies implements Serializable {
 			boolean withinComment;
 			String currentComment;
 			boolean done;
-			
+
 			packageName = null;
-			name = ext.replaceAllWith(filename.substring(0, filename.indexOf(".java")), new String[][] {{"/", "."}, {"\\", "."}});
+			name = ext.replaceAllWith(filename.substring(0, filename.indexOf(".java")),
+																new String[][] {{"/", "."}, {"\\", "."}});
 			required = false;
-			
+
 			done = false;
 			currentComment = null;
 			withinComment = false;
 			try {
-				reader = new BufferedReader(new FileReader(root+filename));
+				reader = new BufferedReader(new FileReader(root + filename));
 				imports = new Vector<String>();
 				classes = new Vector<TrimToDependencies.Class>();
 				while (reader.ready()) {
@@ -51,16 +63,19 @@ public class TrimToDependencies implements Serializable {
 					temp = removeAnyTrailingComment(reader.readLine());
 					if (temp.trim().startsWith("package ")) {
 						line = temp.trim().split("[\\s]+");
-						if (!line[1].substring(line[1].length()-1).equals(";")) {
+						if (!line[1].substring(line[1].length() - 1).equals(";")) {
 							log.reportError("Error with package declaration");
 						}
-						packageName = line[1].substring(0, line[1].length()-1);
+						packageName = line[1].substring(0, line[1].length() - 1);
 					} else if (temp.contains("import ")) {
 						imports.add(temp);
 					} else if (temp.contains("class ") || temp.contains("interface ")) {
 						line = temp.trim().split("[\\s]+");
 						reader.reset();
-						trav = (packageName==null?"":packageName+".")+line[Math.max(ext.indexOfStr("class", line), ext.indexOfStr("interface", line)) +1];
+						trav = (packageName == null ? "" : packageName + ".")
+										+ line[Math.max(ext.indexOfStr("class", line),
+																		ext.indexOfStr("interface", line))
+														+ 1];
 						if (allClasses.containsKey(trav)) {
 							clas = allClasses.get(trav);
 						} else {
@@ -73,25 +88,25 @@ public class TrimToDependencies implements Serializable {
 							currentComment = null;
 						}
 						classes.add(clas);
-					} else if (temp.trim().startsWith("//")){
-					} else if (temp.contains("/*")){
-						currentComment = temp+"\r\n";
+					} else if (temp.trim().startsWith("//")) {
+					} else if (temp.contains("/*")) {
+						currentComment = temp + "\r\n";
 						withinComment = true;
 					} else if (withinComment) {
-						currentComment += temp+"\r\n";
+						currentComment += temp + "\r\n";
 						if (temp.contains("*/")) {
 							withinComment = false;
 						}
 					} else if (temp.contains("}")) {
 						done = true;
-					} else if (temp.trim().equals("")){
+					} else if (temp.trim().equals("")) {
 					} else if (done) {
-						log.reportError("Error - line came after final bracket: "+temp);
+						log.reportError("Error - line came after final bracket: " + temp);
 					} else if (!reader.ready() && !done) {
-						log.reportError("Error - never got final bracket in "+name);
+						log.reportError("Error - never got final bracket in " + name);
 					} else {
-						log.reportError("Error - what to do with the following line from "+filename+":");
-						log.reportError("\""+temp+"\"");
+						log.reportError("Error - what to do with the following line from " + filename + ":");
+						log.reportError("\"" + temp + "\"");
 					}
 				}
 				reader.close();
@@ -103,7 +118,7 @@ public class TrimToDependencies implements Serializable {
 				System.exit(2);
 			}
 		}
-		
+
 		public String getName() {
 			return name;
 		}
@@ -128,29 +143,29 @@ public class TrimToDependencies implements Serializable {
 			return required;
 		}
 	}
-	
+
 	class Variable implements Serializable {
 		private static final long serialVersionUID = 1L;
 		private String type;
-		private String name;
+		private final String name;
 		private boolean constant;
-		private boolean required;
-		
+		private final boolean required;
+
 		public Variable(String newName) {
 			name = newName;
 			type = null;
 			constant = false;
 			required = false;
 		}
-		
+
 		public void setAsConstant() {
 			constant = true;
 		}
-		
+
 		public void setType(String newType) {
 			type = newType;
 		}
-		
+
 		public String getType() {
 			return type;
 		}
@@ -167,17 +182,17 @@ public class TrimToDependencies implements Serializable {
 			return required;
 		}
 	}
-	
+
 	class Class implements Serializable {
 		private static final long serialVersionUID = 1L;
-		private String name;
+		private final String name;
 		private String comment;
 		private FileInfo parentFile;
-		private Vector<Class> innerClasses;
-		private Vector<Variable> variables;
-		private Vector<Method> methods;
+		private final Vector<Class> innerClasses;
+		private final Vector<Variable> variables;
+		private final Vector<Method> methods;
 		private boolean required;
-		
+
 		public Class(String newName) {
 			name = newName;
 			parentFile = null;
@@ -186,7 +201,7 @@ public class TrimToDependencies implements Serializable {
 			variables = new Vector<Variable>();
 			required = false;
 		}
-		
+
 		public void populate(BufferedReader reader) {
 			String[] line;
 			String temp, trav;
@@ -196,26 +211,26 @@ public class TrimToDependencies implements Serializable {
 			Variable variable;
 			boolean withinComment;
 			String currentComment;
-			
-//			, FileInfo fileInfo
-//			if (parentFile == null) {
-//				parentFile = fileInfo;
-//			} else if (parentFile != fileInfo) {
-//				System.err.println("Error - two different files are declaring a class called '"+name+"'");
-//			}
-			
+
+			// , FileInfo fileInfo
+			// if (parentFile == null) {
+			// parentFile = fileInfo;
+			// } else if (parentFile != fileInfo) {
+			// System.err.println("Error - two different files are declaring a class called '"+name+"'");
+			// }
+
 			currentComment = null;
 			withinComment = false;
 			numBrackets = -9;
 			try {
-				log.report("Start of class '"+name+"'");
+				log.report("Start of class '" + name + "'");
 				temp = removeAnyTrailingComment(reader.readLine());
 				if (temp.contains("extends")) {
 					// oh well
 				}
 				numBrackets = updateBracketCount(numBrackets, temp);
-				log.report(" C"+numBrackets+"\t"+temp);
-				
+				log.report(" C" + numBrackets + "\t" + temp);
+
 				while (numBrackets == -9 || numBrackets > 0) {
 					reader.mark(10000);
 					temp = removeAnyTrailingComment(getRidOfAnythingInQuotes(reader.readLine()));
@@ -223,7 +238,9 @@ public class TrimToDependencies implements Serializable {
 					if (temp.contains("class ") || temp.contains("interface ")) {
 						line = temp.trim().split("[\\s]+");
 						reader.reset();
-						trav = name+"."+line[Math.max(ext.indexOfStr("class", line), ext.indexOfStr("interface", line))+1];
+						trav = name + "." + line[Math.max(ext.indexOfStr("class", line),
+																							ext.indexOfStr("interface", line))
+																			+ 1];
 						if (allClasses.containsKey(trav)) {
 							clas = allClasses.get(trav);
 						} else {
@@ -236,15 +253,25 @@ public class TrimToDependencies implements Serializable {
 							currentComment = null;
 						}
 						innerClasses.add(clas);
-					} else if ((line[0].equals("public") || line[0].equals("private") || line[0].equals("protected")) && getRidOfAnythingInQuotes(temp).contains("(") && !getRidOfAnythingInQuotes(temp).contains("=")) {
+					} else if ((line[0].equals("public")	|| line[0].equals("private")
+											|| line[0].equals("protected"))
+												&& getRidOfAnythingInQuotes(temp).contains("(")
+											&& !getRidOfAnythingInQuotes(temp).contains("=")) {
 						reader.reset();
-						line = flipGenPars(ext.replaceAllWith(temp.substring(0, temp.indexOf("(")), new String[][] {{" static ", ""}, {"abstract ", ""}, {"final ", ""}, {"public ", ""}, {"private ", ""}, {"protected ", ""}})).trim().split("[\\s]+");
+						line = flipGenPars(ext.replaceAllWith(temp.substring(0, temp.indexOf("(")),
+																									new String[][] {{" static ", ""},
+																																	{	"abstract ",
+																																		""},
+																																	{"final ", ""}, {"public ", ""},
+																																	{"private ", ""},
+																																	{	"protected ",
+																																		""}})).trim().split("[\\s]+");
 						if (line.length > 2) {
 							log.reportError("Error - thought I was parsing a method here:");
 							log.reportError(temp);
 							System.exit(1);
 						}
-						trav = name+"."+line[line.length-1];
+						trav = name + "." + line[line.length - 1];
 						if (allMethods.containsKey(trav)) {
 							method = allMethods.get(trav);
 						} else {
@@ -260,38 +287,44 @@ public class TrimToDependencies implements Serializable {
 						}
 						method.setParentClass(this);
 						methods.add(method);
-					} else if (temp.trim().startsWith("//")){
-					} else if (temp.contains("/*")){
-						currentComment = temp+"\r\n";
+					} else if (temp.trim().startsWith("//")) {
+					} else if (temp.contains("/*")) {
+						currentComment = temp + "\r\n";
 						withinComment = true;
 						if (temp.contains("*/")) {
 							withinComment = false;
 						}
 					} else if (withinComment) {
-						currentComment += temp+"\r\n";
+						currentComment += temp + "\r\n";
 						if (temp.contains("*/")) {
 							withinComment = false;
 						}
 					} else if (temp.contains("}") && updateBracketCount(0, temp) < 0) {
 						numBrackets = updateBracketCount(numBrackets, temp);
-					} else if (temp.trim().equals("")){
-					} else if (temp.trim().equals("@Override") || temp.trim().startsWith("@SuppressWarnings")){
-						currentComment += temp+"\r\n";
+					} else if (temp.trim().equals("")) {
+					} else if (temp.trim().equals("@Override")
+											|| temp.trim().startsWith("@SuppressWarnings")) {
+						currentComment += temp + "\r\n";
 					} else {
 						reader.reset();
 						temp = getNextCompleteLine(reader, log);
 						line = temp.trim().split("[\\s]+");
-						if (!line[0].equals("public") && !line[0].equals("private") && !line[0].equals("protected")) {
+						if (!line[0].equals("public")	&& !line[0].equals("private")
+								&& !line[0].equals("protected")) {
 							log.reportError("Error - assuming the following is an unsafe variable declaration; shame on you!");
 							log.reportError(temp);
 							System.exit(1);
 						}
-						line = ext.replaceAllWith(temp, new String[][] {{" static ", " "}, {"final ", ""}, {"public ", ""}, {"private ", ""}, {"protected ", ""}}).trim().split("[\\s]+");
+						line = ext.replaceAllWith(temp,
+																			new String[][] {{" static ", " "}, {"final ", ""},
+																											{"public ", ""}, {"private ", ""},
+																											{"protected ", ""}})
+											.trim().split("[\\s]+");
 						if (line.length < 2) {
 							log.reportError("Error - assumed the following was a variable, but I guess not:");
 							log.reportError(temp);
 						}
-						trav = name+"."+line[1];
+						trav = name + "." + line[1];
 						if (allVariables.containsKey(trav)) {
 							variable = allVariables.get(trav);
 						} else {
@@ -303,33 +336,34 @@ public class TrimToDependencies implements Serializable {
 						}
 						variables.add(variable);
 						numBrackets = updateBracketCount(numBrackets, temp);
-						log.report(" C"+numBrackets+"\t"+temp);
-					}					
-					
+						log.report(" C" + numBrackets + "\t" + temp);
+					}
+
 				}
-				log.report("End of class '"+name+"'");
+				log.report("End of class '" + name + "'");
 			} catch (IOException ioe) {
 				log.reportError("Error reading file \"" + name + "\"");
 				log.reportException(ioe);
 				System.exit(2);
 			}
 			if (numBrackets != 0) {
-				log.reportError("Error - must be some double brackets totalling "+numBrackets+" at the end of class '"+name+"'");
+				log.reportError("Error - must be some double brackets totalling "	+ numBrackets
+												+ " at the end of class '" + name + "'");
 			}
 		}
-		
+
 		public void determineDependents() {
 			Method method;
-//			Variable variable;
-			
+			// Variable variable;
+
 			for (int i = 0; i < methods.size(); i++) {
 				method = methods.elementAt(i);
-//				System.out.println(method.name);
+				// System.out.println(method.name);
 				method.determineDeps();
 			}
 
 		}
-		
+
 		public String getName() {
 			return name;
 		}
@@ -337,7 +371,7 @@ public class TrimToDependencies implements Serializable {
 		public void setComment(String currentComment) {
 			comment = currentComment;
 		}
-		
+
 		public String getComment() {
 			return comment;
 		}
@@ -345,7 +379,7 @@ public class TrimToDependencies implements Serializable {
 		public void setParentFile(FileInfo fileInfo) {
 			parentFile = fileInfo;
 		}
-		
+
 		public FileInfo getParentFile() {
 			return parentFile;
 		}
@@ -353,24 +387,24 @@ public class TrimToDependencies implements Serializable {
 		public void setRequired(boolean status) {
 			required = status;
 		}
-		
+
 		public boolean getRequired() {
 			return required;
 		}
-		
+
 	}
 
 	class Method implements Serializable {
 		private static final long serialVersionUID = 1L;
-		private String name;
+		private final String name;
 		private Class parentClass;
-		private Hashtable<String,Variable> variables;
+		private final Hashtable<String, Variable> variables;
 		private String returnType;
-		private Vector<Method> methodsUsed;
+		private final Vector<Method> methodsUsed;
 		private String comment;
 		private boolean required;
 		private String[] allLines;
-		
+
 		public Method(String newName) {
 			name = newName;
 			variables = new Hashtable<String, Variable>();
@@ -379,30 +413,31 @@ public class TrimToDependencies implements Serializable {
 			required = false;
 			allLines = null;
 		}
-		
+
 		public void populate(BufferedReader reader) {
 			String[] line, sub;
 			String temp;
 			int numBrackets;
-//			Method method;
+			// Method method;
 			String varName;
 			Variable variable;
 			Vector<String> vLines;
-			
+
 			vLines = new Vector<String>();
 			numBrackets = -9;
 			try {
-				log.report("Start of method '"+name+"'");
+				log.report("Start of method '" + name + "'");
 				temp = removeAnyTrailingComment(reader.readLine());
 				numBrackets = updateBracketCount(numBrackets, temp);
-				log.report("  M"+numBrackets+"\t"+temp);
-				temp = temp.substring(temp.indexOf("(")+1, temp.indexOf(")"));
+				log.report("  M" + numBrackets + "\t" + temp);
+				temp = temp.substring(temp.indexOf("(") + 1, temp.indexOf(")"));
 				if (temp.length() > 0) {
 					line = flipGenPars(temp.trim()).split(",");
-					for (int i = 0; i < line.length; i++) {
-						sub = ext.replaceAllWith(line[i], new String[][] {{" static ", " "}, {"final ", ""}}).trim().split("[\\s]+");
+					for (String element : line) {
+						sub = ext	.replaceAllWith(element, new String[][] {{" static ", " "}, {"final ", ""}})
+											.trim().split("[\\s]+");
 						if (sub.length != 2) {
-							log.reportError("Error - in argument: "+line[i]);
+							log.reportError("Error - in argument: " + element);
 						}
 						varName = sub[1];
 						variables.put(varName, variable = new Variable(varName));
@@ -411,30 +446,32 @@ public class TrimToDependencies implements Serializable {
 				}
 
 				while (numBrackets == -9 || numBrackets > 0) {
-//					temp = getNextCompleteLine(reader);
+					// temp = getNextCompleteLine(reader);
 					temp = removeAnyTrailingComment(getRidOfAnythingInQuotes(reader.readLine()));
-//					line = temp.trim().split("[\\s]+");
-//					if ((line[0].equals("public") || line[0].equals("private") || line[0].equals("protected")) && temp.contains("(")) {
-//						reader.reset();
-//						line = ext.replaceAllWith(temp, new String[][] {{" static ", ""}, {"(", " ("}}).trim().split("[\\s]+");
-//						trav = line[1];
-//						if (allMethods.containsKey(trav)) {
-//							method = allMethods.get(trav);
-//						} else {
-//							allMethods.put(trav, method = new Method(trav));
-//						}
-//						method.populate(reader);
-//						methods.add(method);
-//					} else if (!temp.trim().equals("")){
-//						System.err.println("Error - what to do with the following line from "+filename+":");
-//						System.err.println("\""+temp+"\"");
-//					}
-//					
+					// line = temp.trim().split("[\\s]+");
+					// if ((line[0].equals("public") || line[0].equals("private") ||
+					// line[0].equals("protected")) && temp.contains("(")) {
+					// reader.reset();
+					// line = ext.replaceAllWith(temp, new String[][] {{" static ", ""}, {"(", "
+					// ("}}).trim().split("[\\s]+");
+					// trav = line[1];
+					// if (allMethods.containsKey(trav)) {
+					// method = allMethods.get(trav);
+					// } else {
+					// allMethods.put(trav, method = new Method(trav));
+					// }
+					// method.populate(reader);
+					// methods.add(method);
+					// } else if (!temp.trim().equals("")){
+					// System.err.println("Error - what to do with the following line from "+filename+":");
+					// System.err.println("\""+temp+"\"");
+					// }
+					//
 					vLines.add(temp);
 					numBrackets = updateBracketCount(numBrackets, temp);
-					log.report("  M"+numBrackets+"\t"+temp);
+					log.report("  M" + numBrackets + "\t" + temp);
 				}
-				log.report("End of method '"+name+"'");
+				log.report("End of method '" + name + "'");
 				allLines = Array.toStringArray(vLines);
 			} catch (IOException ioe) {
 				log.reportError("Error reading file \"" + name + "\"");
@@ -442,27 +479,28 @@ public class TrimToDependencies implements Serializable {
 				System.exit(2);
 			}
 			if (numBrackets != 0) {
-				log.reportError("Error - must be some double brackets totalling "+numBrackets+" at the end of class '"+name+"'");
+				log.reportError("Error - must be some double brackets totalling "	+ numBrackets
+												+ " at the end of class '" + name + "'");
 			}
 		}
-		
+
 		public void determineDeps() {
 			String[] line;
-			
-			for (int i = 0; i < allLines.length; i++) {
-				line = allLines[i].trim().split("[\\s]+");
+
+			for (String allLine : allLines) {
+				line = allLine.trim().split("[\\s]+");
 				for (int j = 0; j < line.length; j++) {
 					if (line[j].contains("(")) {
-						if (j>0 && line[j-1].equals("new")) {
-							System.out.println("\tConstructor: "+line[j]);
+						if (j > 0 && line[j - 1].equals("new")) {
+							System.out.println("\tConstructor: " + line[j]);
 						} else {
-							System.out.println("\t"+line[j]);
+							System.out.println("\t" + line[j]);
 						}
 					}
 				}
 			}
 		}
-		
+
 		public String getName() {
 			return name;
 		}
@@ -470,7 +508,7 @@ public class TrimToDependencies implements Serializable {
 		public void setComment(String currentComment) {
 			comment = currentComment;
 		}
-		
+
 		public String getComment() {
 			return comment;
 		}
@@ -478,7 +516,7 @@ public class TrimToDependencies implements Serializable {
 		public void setParentClass(Class parent) {
 			parentClass = parent;
 		}
-		
+
 		public Class getParentClass() {
 			return parentClass;
 		}
@@ -498,12 +536,12 @@ public class TrimToDependencies implements Serializable {
 		public void setRequired(boolean status) {
 			required = status;
 		}
-		
+
 		public boolean getRequired() {
 			return required;
 		}
 	}
-	
+
 	public static String removeAnyTrailingComment(String str) {
 		if (str.contains("//")) {
 			return str.substring(0, str.indexOf("//"));
@@ -517,24 +555,26 @@ public class TrimToDependencies implements Serializable {
 			start = 0;
 		}
 
-		return start + ext.indicesWithinString("{", getRidOfAnythingInQuotes(str)).length - ext.indicesWithinString("}", getRidOfAnythingInQuotes(str)).length;
+		return start	+ ext.indicesWithinString("{", getRidOfAnythingInQuotes(str)).length
+						- ext.indicesWithinString("}", getRidOfAnythingInQuotes(str)).length;
 	}
-	
+
 	public static int netParenthesesCount(String str) {
-		return ext.indicesWithinString("(", getRidOfAnythingInQuotes(str)).length - ext.indicesWithinString(")", getRidOfAnythingInQuotes(str)).length;
+		return ext.indicesWithinString("(", getRidOfAnythingInQuotes(str)).length
+						- ext.indicesWithinString(")", getRidOfAnythingInQuotes(str)).length;
 	}
-	
+
 	public static String flipGenPars(String str) {
 		char[] chars;
 		int depth;
 		String newString;
-		
+
 		depth = 0;
 		newString = "";
 		chars = str.toCharArray();
 		for (int i = 0; i < chars.length; i++) {
 			if (depth > 0 && chars[i] == ' ') {
-				
+
 			} else {
 				if (chars[i] == '<') {
 					depth++;
@@ -545,52 +585,52 @@ public class TrimToDependencies implements Serializable {
 				} else if (depth > 0 && chars[i] == '`') {
 					chars[i] = ',';
 				}
-				newString += chars[i]+"";
+				newString += chars[i] + "";
 			}
 		}
-		
+
 		return newString;
 	}
-	
+
 	public static String getRidOfAnythingInQuotes(String str) {
 		char[] chars;
 		boolean insideQuotes, insideQuote, fakeout;
 		String newString;
-		
+
 		insideQuotes = false;
 		insideQuote = false;
 		fakeout = false;
 		newString = "";
 		chars = str.toCharArray();
-		for (int i = 0; i < chars.length; i++) {
+		for (char c : chars) {
 			if (fakeout) {
 				fakeout = false;
-			} else if (!insideQuote && chars[i] == '\"') {
+			} else if (!insideQuote && c == '\"') {
 				insideQuotes = !insideQuotes;
-				newString += chars[i]+"";
-			} else if (!insideQuotes && chars[i] == '\'') {
+				newString += c + "";
+			} else if (!insideQuotes && c == '\'') {
 				insideQuote = !insideQuote;
-				newString += chars[i]+"";
-			} else if ((insideQuotes || insideQuote) && chars[i] == '\\') {
+				newString += c + "";
+			} else if ((insideQuotes || insideQuote) && c == '\\') {
 				fakeout = true;
 			} else if (!insideQuotes && !insideQuote) {
-				newString += chars[i]+"";
+				newString += c + "";
 			}
 		}
-		
+
 		return newString;
 	}
-	
+
 	public static String getNextCompleteLine(BufferedReader reader, Logger log) {
 		String str, temp;
 		boolean acceptable;
-		
+
 		str = "";
 		try {
 			acceptable = false;
 			do {
 				temp = removeAnyTrailingComment(reader.readLine());
-				str += temp+" ";
+				str += temp + " ";
 				acceptable = netParenthesesCount(str) == 0 && updateBracketCount(0, str) <= 0;
 				if (netParenthesesCount(str) < 0) {
 					log.reportError("Error - how can this be??");
@@ -602,17 +642,17 @@ public class TrimToDependencies implements Serializable {
 			log.reportError("Error reading file");
 			System.exit(2);
 		}
-		
+
 		return ext.replaceAllWith(str, new String[][] {{"\t\t", "\t"}, {"\t", " "}});
 	}
 
 	public TrimToDependencies(String source_directory, String target_directory) {
-		allClasses = new Hashtable<String,Class>();
-		allMethods = new Hashtable<String,Method>();
-		allVariables = new Hashtable<String,Variable>();
+		allClasses = new Hashtable<String, Class>();
+		allMethods = new Hashtable<String, Method>();
+		allVariables = new Hashtable<String, Variable>();
 
 		log = new Logger();
-//		log = new Logger("trimming.log", false);
+		// log = new Logger("trimming.log", false);
 
 		filenames = Files.listAllFilesInTree(source_directory, false);
 		fileBits = new FileInfo[filenames.length];
@@ -622,48 +662,55 @@ public class TrimToDependencies implements Serializable {
 			}
 		}
 	}
-	
+
 	public void linkTo(String[] coreClasses, String freshJarFile) {
 		Class clas;
-		
-		if (new File(freshJarFile+".dependencies").exists()) {
-			
-			
-			
-			
+
+		if (new File(freshJarFile + ".dependencies").exists()) {
+
+
+
 			for (int i = 0; i < coreClasses.length; i++) {
 				if (!allClasses.containsKey(coreClasses[i])) {
-					System.err.println("Error - '"+coreClasses[i]+"' is not present in this massive archive");
+					System.err.println("Error - '"	+ coreClasses[i]
+															+ "' is not present in this massive archive");
 					System.exit(1);
 				}
 				clas = allClasses.get(coreClasses[i]);
 				System.out.println(clas.getName());
 				clas.determineDependents();
 			}
-			
-			
-			
-			
+
+
+
 		} else {
 			if (new File(freshJarFile).exists()) {
-				System.err.println("The file '"+freshJarFile+".dependencies' has not yet been created; creating a batch file to process '"+freshJarFile+"' called "+freshJarFile+".genDeps.bat in the directory: "+ext.parseDirectoryOfFile(freshJarFile));
+				System.err.println("The file '"	+ freshJarFile
+														+ ".dependencies' has not yet been created; creating a batch file to process '"
+														+ freshJarFile + "' called " + freshJarFile
+														+ ".genDeps.bat in the directory: "
+														+ ext.parseDirectoryOfFile(freshJarFile));
 				if (ext.getTimeSince(new File(freshJarFile).lastModified(), 'H') < 3) {
-					System.err.println("Warning - file '"+freshJarFile+"' is more than 3 hours old. Make sure it matches the source code exactly!");
+					System.err.println("Warning - file '"	+ freshJarFile
+															+ "' is more than 3 hours old. Make sure it matches the source code exactly!");
 				}
-				Files.write("DependencyExtractor.bat "+freshJarFile+" -xml -maximize 1> "+freshJarFile+".dependencies", freshJarFile+".genDeps.bat");
+				Files.write("DependencyExtractor.bat "	+ freshJarFile + " -xml -maximize 1> " + freshJarFile
+										+ ".dependencies", freshJarFile + ".genDeps.bat");
 			} else {
-				System.err.println("The file '"+freshJarFile+".dependencies' has not yet been created, and the file '"+freshJarFile+"' could not be found in order to create it.");
+				System.err.println("The file '"	+ freshJarFile
+														+ ".dependencies' has not yet been created, and the file '"
+														+ freshJarFile + "' could not be found in order to create it.");
 			}
-			
+
 		}
 	}
 
 	public void serialize(String filename) {
 		SerializedFiles.writeSerial(this, filename);
 	}
-	
+
 	public static TrimToDependencies load(String filename) {
-		return (TrimToDependencies)SerializedFiles.readSerial(filename, false, new Logger(), false);
+		return (TrimToDependencies) SerializedFiles.readSerial(filename, false, new Logger(), false);
 	}
 
 	public static void main(String[] args) {
@@ -671,10 +718,11 @@ public class TrimToDependencies implements Serializable {
 		String target_dir = "D:/home/npankrat/jProjects/target/src/";
 		String[] coreClasses = new String[] {"filesys.DosageData"};
 		String freshJarFile = "D:/home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + "";
-		TrimToDependencies trimmer;		
+		TrimToDependencies trimmer;
 
 		try {
-			if (new File("master.deps.ser").exists() && ext.getTimeSince(new File("master.deps.ser").lastModified(), 'D') < 7) {
+			if (new File("master.deps.ser").exists()
+					&& ext.getTimeSince(new File("master.deps.ser").lastModified(), 'D') < 7) {
 				System.err.println("Warning - loading source code from memory. Delete/rename file 'master.deps.ser' if you want to recreate from scratch.");
 				trimmer = load("master.deps.ser");
 			} else {

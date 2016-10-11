@@ -15,7 +15,6 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariant.CNVBuilder;
-
 import org.genvisis.filesys.LocusSet;
 
 public class CNV1000gConcordance {
@@ -30,13 +29,14 @@ public class CNV1000gConcordance {
 		if (!Files.exists(pfile)) {
 			HashSet<String> samps = new HashSet<String>();
 
-			samps.addAll(HashVec.loadFileToHashSet(dupFIle, new int[] { 0 }, "", false));
+			samps.addAll(HashVec.loadFileToHashSet(dupFIle, new int[] {0}, "", false));
 
-			samps.addAll(HashVec.loadFileToHashSet(dupFIle, new int[] { 1 }, "", false));
+			samps.addAll(HashVec.loadFileToHashSet(dupFIle, new int[] {1}, "", false));
 			log.reportTimeInfo(samps.size() + "");
 			MarkerSet markerSet = MarkerSet.load("/Volumes/Beta/data/1000G/markers.ser", false);
-			LocusSet<CNVariant> set = CNVariant
-					.loadLocSet("/Volumes/Beta/data/1000G/GRCh37_hg19_variants_2015-07-23.txt.cnv", new Logger());
+			LocusSet<CNVariant> set =
+															CNVariant.loadLocSet(	"/Volumes/Beta/data/1000G/GRCh37_hg19_variants_2015-07-23.txt.cnv",
+																										new Logger());
 			int[][] indicesByChr = markerSet.getIndicesByChr();
 			int num = 0;
 			log.reportTimeInfo("HFD");
@@ -120,8 +120,8 @@ public class CNV1000gConcordance {
 		}
 		writer.close();
 
-		Hashtable<String, String> match = new Hashtable<String, String>();
-		String[] one = HashVec.loadFileToStringArray(dupFIle, false, new int[] { 0 }, false);
+		new Hashtable<String, String>();
+		HashVec.loadFileToStringArray(dupFIle, false, new int[] {0}, false);
 
 	}
 

@@ -1,7 +1,10 @@
 package org.genvisis.dead;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Hashtable;
 
 import org.genvisis.park.tools;
 
@@ -10,7 +13,7 @@ public class pickProband {
 		BufferedReader reader = null;
 		PrintWriter writer = null;
 		String[] line;
-		Hashtable<String,String> hash = new Hashtable<String,String>();
+		Hashtable<String, String> hash = new Hashtable<String, String>();
 		String trav;
 		int pro, vpdpro;
 
@@ -30,14 +33,15 @@ public class pickProband {
 					trav = line[0];
 				}
 
-				writer.print(line[0]+","+line[1]);
-				if (pro==1&&tools.isAffected(hash, line[0]+"\t"+line[1])) {
+				writer.print(line[0] + "," + line[1]);
+				if (pro == 1 && tools.isAffected(hash, line[0] + "\t" + line[1])) {
 					writer.print(",1");
 					pro = 0;
 				} else {
 					writer.print(",0");
 				}
-				if (vpdpro==1&&hash.containsKey(line[0]+"\t"+line[1])&&hash.get(line[0]+"\t"+line[1]).equals("VPD")) {
+				if (vpdpro == 1	&& hash.containsKey(line[0] + "\t" + line[1])
+						&& hash.get(line[0] + "\t" + line[1]).equals("VPD")) {
 					writer.print(",1");
 					vpdpro = 0;
 				} else {
@@ -57,15 +61,15 @@ public class pickProband {
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 
-		String usage = "\n"+"park.pickProband requires no arguments\n"+"";
+		String usage = "\n" + "park.pickProband requires no arguments\n" + "";
 
-		for (int i = 0; i<args.length; i++) {
-			if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
+		for (String arg : args) {
+			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
 			}
 		}
-		if (numArgs!=0) {
+		if (numArgs != 0) {
 			System.err.println(usage);
 			System.exit(1);
 		}

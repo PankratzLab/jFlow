@@ -27,7 +27,8 @@ public class RandSortTest {
 
 	}
 
-	public static void orderMarkers(String[] markerNames, String markerDatabase, String output, Logger log) {
+	public static void orderMarkers(String[] markerNames, String markerDatabase, String output,
+																	Logger log) {
 		Hashtable<String, String> snpPositions;
 		byte[] chrs;
 		int[] positions;
@@ -45,9 +46,9 @@ public class RandSortTest {
 			return;
 		}
 		if (markerNames == null) {
-			for (int i = 0; i < Aliases.MARKER_NAMES.length; i++) {
-				if (snpPositions.containsKey(Aliases.MARKER_NAMES[i])) {
-					snpPositions.remove(Aliases.MARKER_NAMES[i]);
+			for (String element : Aliases.MARKER_NAMES) {
+				if (snpPositions.containsKey(element)) {
+					snpPositions.remove(element);
 				}
 			}
 			log.report(ext.getTime() + "\tdone safsaf data from " + markerDatabase);
@@ -139,12 +140,17 @@ public class RandSortTest {
 		Hashtable<String, String> hash = new Hashtable<String, String>();
 		String markerName, chr, position, delimiter, temp;
 		byte chrValue;
-		int count, countBad, numBlankNames, numBlankChrs, numBlankPositions, numRepeatedNames, numInvalidChrs, numInvalidPositions, numIncompleteLines;
+		int count, countBad, numBlankNames, numBlankChrs, numBlankPositions, numRepeatedNames,
+				numInvalidChrs, numInvalidPositions, numIncompleteLines;
 
 		delimiter = Files.determineDelimiter(filename, log);
 
 		count = countBad = 0;
-		numBlankNames = numBlankChrs = numBlankPositions = numRepeatedNames = numInvalidChrs = numInvalidPositions = numIncompleteLines = 0;
+		numBlankNames = numBlankChrs =
+																	numBlankPositions =
+																										numRepeatedNames = numInvalidChrs =
+																																											numInvalidPositions =
+																																																					numIncompleteLines = 0;
 		try {
 			reader = Files.getAppropriateReader(filename);
 			while (reader.ready()) {
@@ -160,7 +166,8 @@ public class RandSortTest {
 
 				} else if (line.length < 3) {
 					if (countBad < MAX_ERRORS_TO_REPORT) {
-						log.report("Error - incomplete line at row " + count + " for marker \"" + line[0] + "\"; line will not be added");
+						log.report("Error - incomplete line at row "	+ count + " for marker \"" + line[0]
+												+ "\"; line will not be added");
 					}
 					numIncompleteLines++;
 				} else {
@@ -176,19 +183,23 @@ public class RandSortTest {
 						countBad++;
 					} else if (chr.equals("")) {
 						if (countBad < MAX_ERRORS_TO_REPORT) {
-							log.reportError("Error - blank chr for marker '" + markerName + "' at line " + count + " of " + filename);
+							log.reportError("Error - blank chr for marker '"	+ markerName + "' at line " + count
+															+ " of " + filename);
 						}
 						numBlankChrs++;
 						countBad++;
 					} else if (position.equals("")) {
 						if (countBad < MAX_ERRORS_TO_REPORT) {
-							log.reportError("Error - blank position for marker '" + markerName + "' at line " + count + " of " + filename);
+							log.reportError("Error - blank position for marker '"	+ markerName + "' at line "
+															+ count + " of " + filename);
 						}
 						numBlankPositions++;
 						countBad++;
 					} else {
 						if (hash.containsKey(markerName)) {
-							log.reportError("Error - marker '" + markerName + "' is already listed in the markerPositions file and is seen again at line " + count + " of " + filename);
+							log.reportError("Error - marker '"	+ markerName
+															+ "' is already listed in the markerPositions file and is seen again at line "
+															+ count + " of " + filename);
 							numRepeatedNames++;
 							countBad++;
 						}
@@ -201,7 +212,8 @@ public class RandSortTest {
 							Integer.parseInt(position);
 						} catch (NumberFormatException nfe) {
 							if (countBad < 10) {
-								log.reportError("Error - invalid position (" + position + ") for marker '" + markerName + "' at line " + count + " of " + filename);
+								log.reportError("Error - invalid position ("	+ position + ") for marker '"
+																+ markerName + "' at line " + count + " of " + filename);
 							}
 							numInvalidPositions++;
 							countBad++;
@@ -231,10 +243,12 @@ public class RandSortTest {
 		}
 
 		if (countBad > 0) {
-			log.report("...with a total of " + ext.addCommas(countBad) + " problem" + (countBad == 1 ? "" : "s"));
+			log.report("...with a total of "	+ ext.addCommas(countBad) + " problem"
+									+ (countBad == 1 ? "" : "s"));
 		}
 		if (numIncompleteLines > 0) {
-			log.report("...including " + ext.addCommas(numIncompleteLines) + " incomplete line" + (numIncompleteLines == 1 ? "" : "s"));
+			log.report("...including "	+ ext.addCommas(numIncompleteLines) + " incomplete line"
+									+ (numIncompleteLines == 1 ? "" : "s"));
 		}
 		log.report("Number of final valid marker positions: " + ext.addCommas(hash.size()));
 		if (numBlankNames > 0) {

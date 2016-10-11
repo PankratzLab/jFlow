@@ -24,7 +24,7 @@ public class TextVenn {
 		log.reportTimeInfo("Found " + header.length + " categories in " + inputFile);
 		log.reportTimeInfo(Array.toStr(header));
 		ArrayList<HashSet<String>> cats = new ArrayList<HashSet<String>>();
-		for (int i = 0; i < header.length; i++) {
+		for (String element : header) {
 			cats.add(new HashSet<String>());
 		}
 		try {
@@ -57,7 +57,8 @@ public class TextVenn {
 		int maxOverlap = 0;
 		for (int i = 0; i < cats.size(); i++) {
 			for (int j = i + 1; j < cats.size(); j++) {
-				comp.add(header[i] + "(n=" + cats.get(i).size() + ") vs " + header[j] + " (n= " + cats.get(j).size() + ")");
+				comp.add(header[i]	+ "(n=" + cats.get(i).size() + ") vs " + header[j] + " (n= "
+									+ cats.get(j).size() + ")");
 				int overlap = 0;
 				ArrayList<String> tmp = new ArrayList<String>();
 				for (String hit : cats.get(i)) {
@@ -105,20 +106,21 @@ public class TextVenn {
 		String logfile = null;
 		Logger log;
 
-		String usage = "\n" + "one.JL.Overlapper requires 0-1 arguments\n" + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+		String usage = "\n"	+ "one.JL.Overlapper requires 0-1 arguments\n"
+										+ "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+		for (String arg : args) {
+			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith("file=")) {
-				filename = args[i].split("=")[1];
+			} else if (arg.startsWith("file=")) {
+				filename = arg.split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("log=")) {
-				logfile = args[i].split("=")[1];
+			} else if (arg.startsWith("log=")) {
+				logfile = arg.split("=")[1];
 				numArgs--;
 			} else {
-				System.err.println("Error - invalid argument: " + args[i]);
+				System.err.println("Error - invalid argument: " + arg);
 			}
 		}
 		if (numArgs != 0) {

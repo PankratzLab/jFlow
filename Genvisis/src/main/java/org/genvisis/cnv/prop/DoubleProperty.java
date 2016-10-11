@@ -4,41 +4,41 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.GROUP;
 
 public class DoubleProperty extends Property<Double> {
-  double currValue;
-  double min;
-  double max;
+	double currValue;
+	double min;
+	double max;
 
-  public DoubleProperty(Project proj, String name, String desc, GROUP group, boolean editable, double min, double max,
-                        double defValue) {
-    super(proj, name, desc, group, editable, defValue);
-    if (min > max || defValue < min || defValue > max || (max == min && defValue != max)) {
-      throw new RuntimeException("Cannot initialize DoubleProperty['" + name + "'] with: min="
-                                 + min + ", max=" + max + ", and default value=" + defValue);
-    }
-    this.min = min;
-    this.max = max;
-  }
+	public DoubleProperty(Project proj, String name, String desc, GROUP group, boolean editable,
+												double min, double max, double defValue) {
+		super(proj, name, desc, group, editable, defValue);
+		if (min > max || defValue < min || defValue > max || (max == min && defValue != max)) {
+			throw new RuntimeException("Cannot initialize DoubleProperty['"	+ name + "'] with: min=" + min
+																	+ ", max=" + max + ", and default value=" + defValue);
+		}
+		this.min = min;
+		this.max = max;
+	}
 
-  @Override
-  public void parseValue(String valueStr) {
-    Double newValue = valueStr.equals("") ? getDefaultValue() : Double.valueOf(valueStr);
-    setValue(newValue);
-  }
+	@Override
+	public void parseValue(String valueStr) {
+		Double newValue = valueStr.equals("") ? getDefaultValue() : Double.valueOf(valueStr);
+		setValue(newValue);
+	}
 
-  @Override
-  public void setValue(Double value) {
-    if (value < min || value > max) {
-      throw new RuntimeException("Error - values for property " + getName() + " must be within "
-                                 + min + "-" + max + "; " + value + " is not valid");
-    }
-    super.setValue(value);
-  }
+	@Override
+	public void setValue(Double value) {
+		if (value < min || value > max) {
+			throw new RuntimeException("Error - values for property "	+ getName() + " must be within "
+																	+ min + "-" + max + "; " + value + " is not valid");
+		}
+		super.setValue(value);
+	}
 
-  public double getMinValue() {
-    return min;
-  }
+	public double getMinValue() {
+		return min;
+	}
 
-  public double getMaxValue() {
-    return max;
-  }
+	public double getMaxValue() {
+		return max;
+	}
 }

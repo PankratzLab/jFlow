@@ -24,7 +24,7 @@ public class GenVCFTrio {
 			BufferedReader reader = Files.getAppropriateReader(list);
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("[\\s]+");
-				String fam = line[0].substring(0, line[0].length()-1);
+				String fam = line[0].substring(0, line[0].length() - 1);
 				if (!trios.containsKey(fam)) {
 					trios.put(fam, new HashSet<String>());
 				}

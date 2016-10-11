@@ -20,7 +20,7 @@ public class CMAF {
 	private static class TrackCmaf extends HashMap<String, Double> {
 
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = 1L;
 
@@ -35,14 +35,14 @@ public class CMAF {
 
 	}
 
-	private static void compute(String vcf, double[] freqs, List<String> groups, int numSamples, boolean useAC,
-			String outDir, String requiredAnno, Logger log) {
+	private static void compute(String vcf, double[] freqs, List<String> groups, int numSamples,
+															boolean useAC, String outDir, String requiredAnno, Logger log) {
 		VCFFileReader reader = new VCFSourceReader(vcf, false);
 		HashMap<String, TrackCmaf> tracker = new HashMap<String, CMAF.TrackCmaf>();
 		for (String group : groups) {
-			for (int i = 0; i < freqs.length; i++) {
+			for (double freq : freqs) {
 				TrackCmaf current = new TrackCmaf();
-				tracker.put(getKey(group, freqs[i]), current);
+				tracker.put(getKey(group, freq), current);
 			}
 
 		}
@@ -57,15 +57,16 @@ public class CMAF {
 				for (String group : groups) {
 
 					if (vc.hasAttribute(group)
-							&& (requiredAnno == null || !vc.getAttributeAsString(requiredAnno, ".").equals("."))) {
+							&& (requiredAnno == null
+									|| !vc.getAttributeAsString(requiredAnno, ".").equals("."))) {
 						double freq = freqs[i];
 						int ac = -1;
 						try {
 							double maf = Double.NaN;
 							if (useAC) {
-								ac = Array
-										.sum(Array.toIntArray(vc.getAttributeAsString("AC", "NaN").replaceAll("\\[", "")
-												.replaceAll("\\]", "").replaceAll(" ", "").trim().split(",")));
+								ac = Array.sum(Array.toIntArray(vc.getAttributeAsString("AC", "NaN")
+																									.replaceAll("\\[", "").replaceAll("\\]", "")
+																									.replaceAll(" ", "").trim().split(",")));
 								maf = AlleleFreq.calcMAF(numSamples - ac, 0, ac);
 							} else {
 								maf = VCOps.getMAF(vc, null);
@@ -105,8 +106,8 @@ public class CMAF {
 		log.reportTimeInfo(Array.toStr(numVars));
 		log.reportTimeInfo(Array.toStr(numMuts));
 
-		Files.writeIterable(out, outDir + VCFOps.getAppropriateRoot(vcf, true)
-				+ (requiredAnno == null ? "" : requiredAnno) + ".cmaf.txt");
+		Files.writeIterable(out, outDir	+ VCFOps.getAppropriateRoot(vcf, true)
+															+ (requiredAnno == null ? "" : requiredAnno) + ".cmaf.txt");
 
 	}
 
@@ -118,10 +119,11 @@ public class CMAF {
 
 		groups.add("OXPHOS_complex");
 		groups.add("Associated_disease");
-		double[] freqs = new double[] { 1000, .01, .001, .0001 };
+		double[] freqs = new double[] {1000, .01, .001, .0001};
 		int numSamples = 32059;
 		String outDir = "/Volumes/Beta/data/Cushings/mito/processDir/";
-		String second = "/Volumes/Beta/data/Cushings/mito/CUSHING_FREQ_V2_Mito/CUSHING_FREQ_V2.maf_0.0.final.CUSHING_FREQ_V2.vcf.gz";
+		String second =
+									"/Volumes/Beta/data/Cushings/mito/CUSHING_FREQ_V2_Mito/CUSHING_FREQ_V2.maf_0.0.final.CUSHING_FREQ_V2.vcf.gz";
 
 		compute(vcf, freqs, groups, numSamples, true, outDir, null, new Logger());
 		compute(second, freqs, groups, numSamples, false, outDir, null, new Logger());

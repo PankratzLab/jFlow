@@ -18,8 +18,8 @@ public class processChargeBetas {
 		String betaDir = "C:/data/misc/ChargeBetas/";
 		String[] betaFiles = Files.list(betaDir, "", ".txt", true, false, true);
 		Logger log = new Logger(betaDir + "log.log");
-		for (int i = 0; i < betaFiles.length; i++) {
-			String[] top = Files.getFirstNLinesOfFile(betaFiles[i], 2, log);
+		for (String betaFile : betaFiles) {
+			String[] top = Files.getFirstNLinesOfFile(betaFile, 2, log);
 			if (!top[0].contains("NCBI dbGaP analysis accession")) {
 				throw new IllegalArgumentException();
 			}
@@ -29,10 +29,10 @@ public class processChargeBetas {
 			String acc = top[0].split("\t")[1].replaceAll(" ", "_");
 			String type = top[1].split("\t")[1].replaceAll(" ", "_");
 			String file = betaDir + acc + "_" + type.replaceAll("/", "_") + ".beta";
-			String[] required = new String[] { "SNP ID", "Allele1", "Allele2", "|&beta;|", "P-value" };
+			String[] required = new String[] {"SNP ID", "Allele1", "Allele2", "|&beta;|", "P-value"};
 			try {
 
-				BufferedReader reader = Files.getAppropriateReader(betaFiles[i]);
+				BufferedReader reader = Files.getAppropriateReader(betaFile);
 				PrintWriter writer = new PrintWriter(new FileWriter(file));
 				int[] indices = null;
 				while (reader.ready()) {
@@ -50,10 +50,10 @@ public class processChargeBetas {
 
 				reader.close();
 			} catch (FileNotFoundException fnfe) {
-				log.reportError("Error: file \"" + betaFiles[i] + "\" not found in current directory");
+				log.reportError("Error: file \"" + betaFile + "\" not found in current directory");
 				return;
 			} catch (IOException ioe) {
-				log.reportError("Error reading file \"" + betaFiles[i] + "\"");
+				log.reportError("Error reading file \"" + betaFile + "\"");
 				return;
 			}
 		}

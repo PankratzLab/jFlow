@@ -5,8 +5,8 @@ import java.util.concurrent.Callable;
 
 
 public abstract class CB<E, T> implements Callable<T> {
-	private int bufferSize;
-	private ArrayList<E> buffer;
+	private final int bufferSize;
+	private final ArrayList<E> buffer;
 
 	public CB(int bufferSize) {
 		this.bufferSize = bufferSize;

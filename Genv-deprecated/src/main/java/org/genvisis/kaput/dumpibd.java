@@ -1,6 +1,8 @@
 package org.genvisis.kaput;
 
-import java.io.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 public class dumpibd {
 	public dumpibd() throws IOException {
@@ -15,14 +17,17 @@ public class dumpibd {
 		writer.println("threeB");
 		writer.println();
 
-		for (int j = 1; j<=23; j++) {
-			if (j<10) {
-				chrom = "0"+j;
+		for (int j = 1; j <= 23; j++) {
+			if (j < 10) {
+				chrom = "0" + j;
 			} else {
-				chrom = ""+j;
+				chrom = "" + j;
 			}
-			writer.println("java -classpath /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + " park.bat.dat2loc map"+chrom+".dat");
-			writer.println("echo -e \"pairs\\n3\\nload map"+chrom+".loc\\nprep re_chrom"+chrom+".pre\\nn\\nscan\\ndump ibd\\nmibd"+chrom+".dat\\nquit\\n\" | /software/bin/sibs");
+			writer.println("java -classpath /home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
+											+ " park.bat.dat2loc map" + chrom + ".dat");
+			writer.println("echo -e \"pairs\\n3\\nload map"	+ chrom + ".loc\\nprep re_chrom" + chrom
+											+ ".pre\\nn\\nscan\\ndump ibd\\nmibd" + chrom
+											+ ".dat\\nquit\\n\" | /software/bin/sibs");
 		}
 
 		writer.close();

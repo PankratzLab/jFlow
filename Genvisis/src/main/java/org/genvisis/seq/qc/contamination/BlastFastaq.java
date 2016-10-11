@@ -18,60 +18,60 @@ import htsjdk.samtools.fastq.FastqRecord;
  * @author lane0212 {@link BlastSeqProducer} for fasta type files
  */
 public class BlastFastaq extends BlastSeqProducer {
-  private final FastqReader reader;
-  private final int numToTest;
-  private int numTested;
+	private final FastqReader reader;
+	private final int numToTest;
+	private int numTested;
 
-  /**
-   * @param fastaqFile file with sequence to blast
-   * @param numToTest number of sequences (in order of file ) to blast
-   * @param fastaDb the blast db file to blast against
-   * @param blastWordSize the word size for initial matches
-   * @param reportWordSize word size to be reported
-   * @param numSeqsPerThread number of sequences given to each thread
-   * @param log
-   */
-  public BlastFastaq(String fastaqFile, int numToTest, String fastaDb, int blastWordSize,
-                     int reportWordSize, int numSeqsPerThread, Logger log) {
-    super(fastaDb, blastWordSize, reportWordSize, numSeqsPerThread, log);
-    numTested = 0;
-    this.numToTest = numToTest;
-    if (!Files.exists(fastaqFile)) {
-      log.reportFileNotFound(fastaqFile);
-    }
-    reader = new FastqReader(new File(fastaqFile), true);
-  }
+	/**
+	 * @param fastaqFile file with sequence to blast
+	 * @param numToTest number of sequences (in order of file ) to blast
+	 * @param fastaDb the blast db file to blast against
+	 * @param blastWordSize the word size for initial matches
+	 * @param reportWordSize word size to be reported
+	 * @param numSeqsPerThread number of sequences given to each thread
+	 * @param log
+	 */
+	public BlastFastaq(	String fastaqFile, int numToTest, String fastaDb, int blastWordSize,
+											int reportWordSize, int numSeqsPerThread, Logger log) {
+		super(fastaDb, blastWordSize, reportWordSize, numSeqsPerThread, log);
+		numTested = 0;
+		this.numToTest = numToTest;
+		if (!Files.exists(fastaqFile)) {
+			log.reportFileNotFound(fastaqFile);
+		}
+		reader = new FastqReader(new File(fastaqFile), true);
+	}
 
-  @Override
-  public void shutdown() {
-    reader.close();
+	@Override
+	public void shutdown() {
+		reader.close();
 
-  }
+	}
 
-  @Override
-  public boolean hasNext() {
-    return reader.hasNext() && numTested < numToTest;
-  }
+	@Override
+	public boolean hasNext() {
+		return reader.hasNext() && numTested < numToTest;
+	}
 
-  @Override
-  public Callable<BlastResultsSummary[]> next() {
-    int numAdded = 0;
-    ArrayList<FastaEntry> curEntries = new ArrayList<FastaEntry>();
-    while (reader.hasNext() && numAdded < numSeqsPerThread) {
-      numTested++;
-      FastqRecord record = reader.next();
-      String safeRecord = ext.replaceWithLinuxSafeCharacters(record.getReadHeader(), true);// everything
-                                                                                           // after
-                                                                                           // a
-                                                                                           // space
-                                                                                           // is
-                                                                                           // truncated
-                                                                                           // otherwise
-      FastaEntry entry = new FastaEntry(safeRecord, record.getReadString());
-      curEntries.add(entry);
-      numAdded++;
-    }
-    return new Blast.BlastWorker(blast, curEntries.toArray(new FastaEntry[curEntries.size()]),
-                                 null);
-  }
+	@Override
+	public Callable<BlastResultsSummary[]> next() {
+		int numAdded = 0;
+		ArrayList<FastaEntry> curEntries = new ArrayList<FastaEntry>();
+		while (reader.hasNext() && numAdded < numSeqsPerThread) {
+			numTested++;
+			FastqRecord record = reader.next();
+			String safeRecord = ext.replaceWithLinuxSafeCharacters(record.getReadHeader(), true);// everything
+																																														// after
+																																														// a
+																																														// space
+																																														// is
+																																														// truncated
+																																														// otherwise
+			FastaEntry entry = new FastaEntry(safeRecord, record.getReadString());
+			curEntries.add(entry);
+			numAdded++;
+		}
+		return new Blast.BlastWorker(	blast, curEntries.toArray(new FastaEntry[curEntries.size()]),
+																	null);
+	}
 }

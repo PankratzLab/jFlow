@@ -8,12 +8,12 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
+import org.genvisis.common.ext;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps;
-import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.manage.VCFOps.HEADER_COPY_TYPE;
+import org.genvisis.seq.manage.VCOps;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
@@ -21,7 +21,8 @@ import htsjdk.variant.vcf.VCFFileReader;
 
 public class VerifyBamID {
 
-	private static final String VerifyBamIDLocation = "/panfs/roc/groups/5/pankrat2/public/bin/verifyBamID_1.1.0/verifyBamID/bin/verifyBamID";
+	private static final String VerifyBamIDLocation =
+																									"/panfs/roc/groups/5/pankrat2/public/bin/verifyBamID_1.1.0/verifyBamID/bin/verifyBamID";
 
 	public static void verifyBamID(String bamFile, String vcf) {
 		String dir = ext.parseDirectoryOfFile(vcf) + "verifyBamID/";
@@ -37,7 +38,9 @@ public class VerifyBamID {
 		// output+=
 		if (!Files.exists(verfifyVCF)) {
 			VCFFileReader reader = new VCFFileReader(new File(vcf), true);
-			VariantContextWriter writer = VCFOps.initWriter(verfifyVCF, null, reader.getFileHeader().getSequenceDictionary());
+			VariantContextWriter writer =
+																	VCFOps.initWriter(verfifyVCF, null,
+																										reader.getFileHeader().getSequenceDictionary());
 			VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
 			int index = 0;
 			for (VariantContext vc : reader) {
@@ -54,13 +57,14 @@ public class VerifyBamID {
 			writer.close();
 		}
 
-		String[] command = new String[] { VerifyBamIDLocation, "--vcf", verfifyVCF, "--bam", bamFile, "--out", output, "--verbose", "--ignoreRG", "--chip-none" };
+		String[] command = new String[] {	VerifyBamIDLocation, "--vcf", verfifyVCF, "--bam", bamFile,
+																			"--out", output, "--verbose", "--ignoreRG", "--chip-none"};
 		CmdLine.runCommandWithFileChecks(command, "", null, null, false, false, false, log);
 	}
 
 	public static class VerifyProducer extends AbstractProducer<Boolean> {
-		private String[] bamFiles;
-		private String vcf;
+		private final String[] bamFiles;
+		private final String vcf;
 		private int index;
 
 		public VerifyProducer(String[] bamFiles, String vcf) {
@@ -96,10 +100,10 @@ public class VerifyBamID {
 	public static void runVerifies(String bamDir, String vcf, int nThreads) {
 		String[] bams = Files.listFullPaths(bamDir, ".bam", false);
 
-		//VerifyProducer producer = new VerifyProducer(bams, vcf);
-		//WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, nThreads, 10, new Logger());
-		for (int i = 0; i < bams.length; i++) {
-			verifyBamID(bams[i], vcf);
+		// VerifyProducer producer = new VerifyProducer(bams, vcf);
+		// WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, nThreads, 10, new Logger());
+		for (String bam : bams) {
+			verifyBamID(bam, vcf);
 		}
 	}
 
@@ -108,32 +112,32 @@ public class VerifyBamID {
 		String filename = "VerifyBamID.dat";
 		String bamDir = "/bams/";
 		int numThreads = 8;
-		//String logfile = null;
-		//Logger log;
+		// String logfile = null;
+		// Logger log;
 
 		String usage = "\n" + "one.JL.VerifyBamID requires 0-1 arguments\n";
 		usage += "   (1) vcf file name (i.e. file=" + filename + " (default))\n" + "";
 		usage += "   (2) bam Directory (i.e. bams=" + filename + " (default))\n" + "";
 		usage += PSF.Ext.getNumThreadsCommand(3, numThreads);
 
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+		for (String arg : args) {
+			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith("file=")) {
-				filename = args[i].split("=")[1];
+			} else if (arg.startsWith("file=")) {
+				filename = arg.split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("bams=")) {
-				bamDir = args[i].split("=")[1];
+			} else if (arg.startsWith("bams=")) {
+				bamDir = arg.split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
-				numThreads = ext.parseIntArg(args[i]);
+			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+				numThreads = ext.parseIntArg(arg);
 				numArgs--;
-			} else if (args[i].startsWith("log=")) {
-				//logfile = args[i].split("=")[1];
+			} else if (arg.startsWith("log=")) {
+				// logfile = args[i].split("=")[1];
 				numArgs--;
 			} else {
-				System.err.println("Error - invalid argument: " + args[i]);
+				System.err.println("Error - invalid argument: " + arg);
 			}
 		}
 		if (numArgs != 0) {
@@ -141,7 +145,7 @@ public class VerifyBamID {
 			System.exit(1);
 		}
 		try {
-			//log = new Logger(logfile);
+			// log = new Logger(logfile);
 			runVerifies(bamDir, filename, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();

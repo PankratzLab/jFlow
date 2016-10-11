@@ -28,17 +28,18 @@ import org.genvisis.common.ext;
 import org.genvisis.stats.Correlation;
 import org.genvisis.stats.ICC;
 import org.genvisis.stats.IrrTable;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 import org.genvisis.stats.Quantiles;
 
 import com.google.common.primitives.Doubles;
 
-import org.genvisis.stats.LeastSquares.LS_TYPE;
-
 public class PrincipalComponentsEval {
-	public static void evaluatePCs(Project proj, String markers, String evalFile, String output, String samplesFile, int jumpPC, int numQs,LS_TYPE lType) {
+	public static void evaluatePCs(	Project proj, String markers, String evalFile, String output,
+																	String samplesFile, int jumpPC, int numQs, LS_TYPE lType) {
 		PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
 		double[] eval = loadDataFile(proj, evalFile, proj.getLog());
-		boolean[] samplesToUse = proj.getSamplesToInclude( proj.PROJECT_DIRECTORY.getValue()+ samplesFile);
+		boolean[] samplesToUse = proj.getSamplesToInclude(proj.PROJECT_DIRECTORY.getValue()
+																											+ samplesFile);
 		if (samplesFile != null) {
 			boolean[] tmpsamplesToUse = proj.getSamplesToInclude(null);
 			for (int i = 0; i < tmpsamplesToUse.length; i++) {
@@ -47,14 +48,18 @@ public class PrincipalComponentsEval {
 				}
 			}
 		}
-		proj.getLog().report(ext.getTime() + " Info - models will be constructed with " + Array.booleanArraySum(samplesToUse) + " samples");
+		proj.getLog().report(ext.getTime()	+ " Info - models will be constructed with "
+													+ Array.booleanArraySum(samplesToUse) + " samples");
 
 		pcResiduals.setMarkersToAssessFile(markers);
 		pcResiduals.setRecomputeLRR(true);
 		pcResiduals.computeAssessmentDataMedians();
 		pcResiduals.setHomozygousOnly(true);
 
-		Files.writeMatrix(new String[][] { proj.getSamples(), Array.toStringArray(pcResiduals.getMedians()) }, ext.parseDirectoryOfFile(evalFile) + ext.rootOf(output) + ".medianValues", "\t");
+		Files.writeMatrix(new String[][] {proj.getSamples(),
+																			Array.toStringArray(pcResiduals.getMedians())},
+											ext.parseDirectoryOfFile(evalFile) + ext.rootOf(output) + ".medianValues",
+											"\t");
 		try {
 			output = ext.parseDirectoryOfFile(evalFile) + ext.rootOf(output) + ".evaluated";
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
@@ -63,7 +68,9 @@ public class PrincipalComponentsEval {
 				if (i == 0) {
 					data = pcResiduals.getMedians();
 				} else {
-					data = pcResiduals.getCorrectedDataAt(pcResiduals.getMedians(), samplesToUse, i, lType, "PC" + i, true).getResiduals();
+					data = pcResiduals.getCorrectedDataAt(pcResiduals.getMedians(), samplesToUse, i, lType,
+																								"PC" + i, true)
+														.getResiduals();
 				}
 				evalAndPrint(proj, eval, writer, i, data, numQs, i == 0, evalFile);
 			}
@@ -74,9 +81,13 @@ public class PrincipalComponentsEval {
 		}
 	}
 
-	private static void evalAndPrint(Project proj, double[] eval, PrintWriter writer, int PC, double[] data, int numQs, boolean header, String evalFile) {
+	private static void evalAndPrint(	Project proj, double[] eval, PrintWriter writer, int PC,
+																		double[] data, int numQs, boolean header, String evalFile) {
 		if (header) {
-			writer.print("PC\t" + ext.rootOf(evalFile) + ".PearsonCorrel" + "\t" + ext.rootOf(evalFile) + ".PearsonP\t" + ext.rootOf(evalFile) + ".SpearmanCorrel" + "\t" + ext.rootOf(evalFile) + ".SpearmanP" + "\t" + ext.rootOf(evalFile) + ".ICCMETHODS" + "\t" + ext.rootOf(evalFile) + ".ICCMATCHED");
+			writer.print("PC\t"	+ ext.rootOf(evalFile) + ".PearsonCorrel" + "\t" + ext.rootOf(evalFile)
+										+ ".PearsonP\t" + ext.rootOf(evalFile) + ".SpearmanCorrel" + "\t"
+										+ ext.rootOf(evalFile) + ".SpearmanP" + "\t" + ext.rootOf(evalFile)
+										+ ".ICCMETHODS" + "\t" + ext.rootOf(evalFile) + ".ICCMATCHED");
 		}
 		ArrayList<Double> evalHave = new ArrayList<Double>();
 		ArrayList<Double> residHave = new ArrayList<Double>();
@@ -113,7 +124,7 @@ public class PrincipalComponentsEval {
 		icc.computeICC();
 		double iccMa = icc.getICC();
 		double[] correlP = Correlation.Pearson(evals, resids);
-		double[] correlS = Correlation.Spearman(new double[][] { evals, resids });
+		double[] correlS = Correlation.Spearman(new double[][] {evals, resids});
 		double[][] pearsonCorrelQs = new double[numQs][];
 		double[][] quantileAgreement = new double[numQs][];
 		int[] qs = new int[numQs];
@@ -122,7 +133,8 @@ public class PrincipalComponentsEval {
 				qs[i] = (i + 2);
 				String q = "Q" + qs[i];
 				if (header) {
-					writer.print("\t" + q + ".PearsonCorrel\t" + q + ".PearsonPvalue\t" + q + ".PercentAgreementHigh\t" + q + ".PercentAgreementLow\t" + q + ".KAPPA");
+					writer.print("\t"	+ q + ".PearsonCorrel\t" + q + ".PearsonPvalue\t" + q
+												+ ".PercentAgreementHigh\t" + q + ".PercentAgreementLow\t" + q + ".KAPPA");
 				}
 			}
 			if (header) {
@@ -131,38 +143,55 @@ public class PrincipalComponentsEval {
 			Quantiles[] evalQs = Quantiles.qetQuantilesFor(qs, evals, "QPCR", proj.getLog());
 			Quantiles[] residQs = Quantiles.qetQuantilesFor(qs, resids, "US", proj.getLog());
 			for (int i = 0; i < qs.length; i++) {
-				pearsonCorrelQs[i] = Correlation.Pearson(Array.toDoubleArray(evalQs[i].getQuantileMembershipAsRoundedInt()), Array.toDoubleArray(residQs[i].getQuantileMembershipAsRoundedInt()));
+				pearsonCorrelQs[i] = Correlation.Pearson(	Array.toDoubleArray(evalQs[i].getQuantileMembershipAsRoundedInt()),
+																									Array.toDoubleArray(residQs[i].getQuantileMembershipAsRoundedInt()));
 				IrrTable irrTable = new IrrTable(2, evals.length, true, proj.getLog());
 				irrTable.addRatings(0, evalQs[i].getQuantileMembershipAsRoundedInt());
 				irrTable.addRatings(1, residQs[i].getQuantileMembershipAsRoundedInt());
 				irrTable.parseAgreement();
-				quantileAgreement[i] = new double[] { irrTable.getPercentAgreementFor(Array.min(irrTable.getUniqRatings())), irrTable.getPercentAgreementFor(Array.max(irrTable.getUniqRatings())), irrTable.getCohensKappa() };
+				quantileAgreement[i] = new double[] {	irrTable.getPercentAgreementFor(Array.min(irrTable.getUniqRatings())),
+																							irrTable.getPercentAgreementFor(Array.max(irrTable.getUniqRatings())),
+																							irrTable.getCohensKappa()};
 			}
 		}
 		proj.getLog().report(ext.getTime() + " Info - finshed PC " + PC);
-		proj.getLog().report(ext.getTime() + " Pearson " + Array.toStr(correlP) + "\tNumSamples: " + evalHave.size());
-		proj.getLog().report(ext.getTime() + " Spearman " + Array.toStr(correlS) + "\tNumSamples: " + evalHave.size());
-		proj.getLog().report(ext.getTime() + " ICCMethods " + iccM + "\tNumSamples: " + evalHave.size());
-		proj.getLog().report(ext.getTime() + " ICCMatched " + iccMa + "\tNumSamples: " + evalHave.size());
+		proj.getLog().report(ext.getTime()	+ " Pearson " + Array.toStr(correlP) + "\tNumSamples: "
+													+ evalHave.size());
+		proj.getLog().report(ext.getTime()	+ " Spearman " + Array.toStr(correlS) + "\tNumSamples: "
+													+ evalHave.size());
+		proj.getLog()
+				.report(ext.getTime() + " ICCMethods " + iccM + "\tNumSamples: " + evalHave.size());
+		proj.getLog()
+				.report(ext.getTime() + " ICCMatched " + iccMa + "\tNumSamples: " + evalHave.size());
 
-		writer.print(PC + "\t" + Array.toStr(correlP) + "\t" + Array.toStr(correlS) + "\t" + iccM + "\t" + iccMa);
+		writer.print(PC	+ "\t" + Array.toStr(correlP) + "\t" + Array.toStr(correlS) + "\t" + iccM + "\t"
+									+ iccMa);
 		if (numQs >= 2) {
 			for (int i = 0; i < pearsonCorrelQs.length; i++) {
-				writer.print("\t" + Array.toStr(pearsonCorrelQs[i]) + "\t" + quantileAgreement[i][0] + "\t" + quantileAgreement[i][1] + "\t" + quantileAgreement[i][2]);
+				writer.print("\t"	+ Array.toStr(pearsonCorrelQs[i]) + "\t" + quantileAgreement[i][0] + "\t"
+											+ quantileAgreement[i][1] + "\t" + quantileAgreement[i][2]);
 			}
 		}
 		writer.println();
 		writer.flush();
 	}
 
-	public static void evaluatePCsIntensityCorrection(Project proj, String markers, String evalFile, String output, String samplesFile, LS_TYPE lType, int numMarkerThreads, int numCorrectionThreads, int jump, int numQs) {
+	public static void evaluatePCsIntensityCorrection(Project proj, String markers, String evalFile,
+																										String output, String samplesFile,
+																										LS_TYPE lType, int numMarkerThreads,
+																										int numCorrectionThreads, int jump, int numQs) {
 		PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
 		pcResiduals.setHomozygousOnly(true);
 		double[] eval = loadDataFile(proj, evalFile, proj.getLog());
-		boolean[] samplesToUse = proj.getSamplesToInclude( proj.PROJECT_DIRECTORY.getValue()+ samplesFile);
-		String[] markersToUse = HashVec.loadFileToStringArray( proj.PROJECT_DIRECTORY.getValue() + markers, false, new int[1], true);
+		boolean[] samplesToUse = proj.getSamplesToInclude(proj.PROJECT_DIRECTORY.getValue()
+																											+ samplesFile);
+		String[] markersToUse =
+													HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue()	+ markers,
+																												false, new int[1], true);
 		MarkerData[] markerDatas = new MarkerData[markersToUse.length];
-		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markersToUse);
+		MarkerDataLoader markerDataLoader =
+																			MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+																																															markersToUse);
 		byte[][] abGentypes = new byte[markersToUse.length][proj.getSamples().length];
 		boolean[][] homozygousMarkersToUse = new boolean[markerDatas.length][proj.getSamples().length];
 		for (int i = 0; i < markerDatas.length; i++) {
@@ -180,7 +209,10 @@ public class PrincipalComponentsEval {
 		output = ext.parseDirectoryOfFile(evalFile) + ext.rootOf(output) + ".evaluatedByMarker";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
-			writer.println("PC\t" + ext.rootOf(evalFile) + ".PearsonCorrel" + "\t" + ext.rootOf(evalFile) + ".PearsonP\t" + ext.rootOf(evalFile) + ".SpearmanCorrel" + "\t" + ext.rootOf(evalFile) + ".SpearmanP" + "\t" + ext.rootOf(evalFile) + ".ICCMETHODS" + "\t" + ext.rootOf(evalFile) + ".ICCMATCHED");
+			writer.println("PC\t"	+ ext.rootOf(evalFile) + ".PearsonCorrel" + "\t" + ext.rootOf(evalFile)
+											+ ".PearsonP\t" + ext.rootOf(evalFile) + ".SpearmanCorrel" + "\t"
+											+ ext.rootOf(evalFile) + ".SpearmanP" + "\t" + ext.rootOf(evalFile)
+											+ ".ICCMETHODS" + "\t" + ext.rootOf(evalFile) + ".ICCMATCHED");
 			for (int i = 0; i <= pcResiduals.getNumComponents(); i += jump) {
 				double[][] curData = new double[markersToUse.length][proj.getSamples().length];
 				double[][] tmpData = new double[proj.getSamples().length][markersToUse.length];
@@ -189,8 +221,26 @@ public class PrincipalComponentsEval {
 				Hashtable<String, Future<double[]>> tmpResults = new Hashtable<String, Future<double[]>>();
 				if (i > 0) {
 					for (int j = 0; j < markersToUse.length; j++) {
-						PrincipalComponentsIntensity pcComponentsIntensity = new PrincipalComponentsIntensity(pcResiduals, markerDatas[j], true, null, homozygousMarkersToUse[j], 1.0D, 0.0D, null, false, lType, 2, 5, 0.0D, 0.1D, numCorrectionThreads, false, null);
-						tmpResults.put(j + "", executor.submit(new WorkerCorrection(pcComponentsIntensity, i, markersToUse[j], proj.getLog())));
+						PrincipalComponentsIntensity pcComponentsIntensity = new PrincipalComponentsIntensity(pcResiduals,
+																																																	markerDatas[j],
+																																																	true,
+																																																	null,
+																																																	homozygousMarkersToUse[j],
+																																																	1.0D,
+																																																	0.0D,
+																																																	null,
+																																																	false,
+																																																	lType,
+																																																	2,
+																																																	5,
+																																																	0.0D,
+																																																	0.1D,
+																																																	numCorrectionThreads,
+																																																	false,
+																																																	null);
+						tmpResults.put(j	+ "",
+														executor.submit(new WorkerCorrection(	pcComponentsIntensity, i,
+																																	markersToUse[j], proj.getLog())));
 					}
 					for (int j = 0; j < markersToUse.length; j++) {
 						try {
@@ -230,23 +280,27 @@ public class PrincipalComponentsEval {
 	}
 
 	private static class WorkerCorrection implements Callable<double[]> {
-		private PrincipalComponentsIntensity pcComponentsIntensity;
-		private int atComponent;
-		private String currentMarker;
-		private Logger log;
+		private final PrincipalComponentsIntensity pcComponentsIntensity;
+		private final int atComponent;
+		private final String currentMarker;
+		private final Logger log;
 
-		public WorkerCorrection(PrincipalComponentsIntensity pcComponentsIntensity, int atComponent, String currentMarker, Logger log) {
+		public WorkerCorrection(PrincipalComponentsIntensity pcComponentsIntensity, int atComponent,
+														String currentMarker, Logger log) {
 			this.atComponent = atComponent;
 			this.pcComponentsIntensity = pcComponentsIntensity;
 			this.currentMarker = currentMarker;
 			this.log = log;
 		}
 
+		@Override
 		public double[] call() {
-			this.log.reportTimeInfo("Starting corrections for PC" + this.atComponent + " for marker " + this.currentMarker + " on thread" + Thread.currentThread().getName());
-			this.pcComponentsIntensity.correctXYAt(this.atComponent);
-			this.log.reportTimeInfo("Finished corrections for PC" + this.atComponent + " for marker " + this.currentMarker + " on thread" + Thread.currentThread().getName());
-			return Array.toDoubleArray(this.pcComponentsIntensity.getCorrectedIntensity("BAF_LRR", true)[1]);
+			log.reportTimeInfo("Starting corrections for PC"	+ atComponent + " for marker "
+													+ currentMarker + " on thread" + Thread.currentThread().getName());
+			pcComponentsIntensity.correctXYAt(atComponent);
+			log.reportTimeInfo("Finished corrections for PC"	+ atComponent + " for marker "
+													+ currentMarker + " on thread" + Thread.currentThread().getName());
+			return Array.toDoubleArray(pcComponentsIntensity.getCorrectedIntensity("BAF_LRR", true)[1]);
 		}
 	}
 
@@ -262,7 +316,8 @@ public class PrincipalComponentsEval {
 				samples.add(line[0]);
 			}
 			reader.close();
-			int[] indices = ext.indexLargeFactors((String[]) samples.toArray(new String[samples.size()]), proj.getSamples(), true, log, true, true);
+			int[] indices = ext.indexLargeFactors(samples.toArray(new String[samples.size()]),
+																						proj.getSamples(), true, log, true, true);
 			reader = Files.getAppropriateReader(dataFile);
 			reader.readLine();
 			int index = 0;
@@ -302,53 +357,61 @@ public class PrincipalComponentsEval {
 		int numQs = 0;
 		String usage = "\nseq.BWA_Analysis requires 2 argument\n";
 		usage = usage + "   (1) project to use (i.e. proj=" + filename + " (no default))\n";
-		usage = usage + "   (2) data file of markers to compute median from (i.e. markers=" + markers + " (no default))\n";
+		usage = usage	+ "   (2) data file of markers to compute median from (i.e. markers=" + markers
+						+ " (no default))\n";
 		usage = usage + "   (3) data file to evaluate (i.e. eval=" + markers + " (no default))\n";
 
 		usage = usage + "   (4) use svd regression (i.e. -svd (not the default))\n";
-		usage = usage + "   (5) number of threads for markers (i.e. numMarkerThreads=" + numMarkerThreads + " ( default))\n";
-		usage = usage + "   (5) number of threads for each marker (i.e. numCorrectionThreads=" + numCorrectionThreads + " ( default))\n";
+		usage = usage	+ "   (5) number of threads for markers (i.e. numMarkerThreads="
+						+ numMarkerThreads + " ( default))\n";
+		usage = usage	+ "   (5) number of threads for each marker (i.e. numCorrectionThreads="
+						+ numCorrectionThreads + " ( default))\n";
 
 		usage = usage + "   (6) the jump for each pc tested(i.e. jump=" + jumpPC + " ( default))\n";
-		usage = usage + "   (7) file of samples to use for model building (i.e. samples=" + markers + " (no default))\n";
-		usage = usage + "   (8) correct each marker separately (takes a long time) (not the default))\n";
-		usage = usage + "   (9) test the quantiles from 2 to this number for correlation, must be >=2 (i.e. numQs=" + numQs + " (no default))\n";
-		for (int i = 0; i < args.length; i++) {
-			if ((args[i].equals("-h")) || (args[i].equals("-help")) || (args[i].equals("/h")) || (args[i].equals("/help"))) {
+		usage = usage	+ "   (7) file of samples to use for model building (i.e. samples=" + markers
+						+ " (no default))\n";
+		usage =
+					usage + "   (8) correct each marker separately (takes a long time) (not the default))\n";
+		usage = usage
+							+ "   (9) test the quantiles from 2 to this number for correlation, must be >=2 (i.e. numQs="
+						+ numQs + " (no default))\n";
+		for (String arg : args) {
+			if ((arg.equals("-h"))	|| (arg.equals("-help")) || (arg.equals("/h"))
+					|| (arg.equals("/help"))) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith("proj=")) {
-				filename = ext.parseStringArg(args[i], "");
+			} else if (arg.startsWith("proj=")) {
+				filename = ext.parseStringArg(arg, "");
 				numArgs--;
-			} else if (args[i].startsWith("markers=")) {
-				markers = ext.parseStringArg(args[i], "");
+			} else if (arg.startsWith("markers=")) {
+				markers = ext.parseStringArg(arg, "");
 				numArgs--;
-			} else if (args[i].startsWith("eval=")) {
-				evalFile = ext.parseStringArg(args[i], "");
+			} else if (arg.startsWith("eval=")) {
+				evalFile = ext.parseStringArg(arg, "");
 				numArgs--;
-			} else if (args[i].startsWith("samples=")) {
-				sampleFile = ext.parseStringArg(args[i], "");
+			} else if (arg.startsWith("samples=")) {
+				sampleFile = ext.parseStringArg(arg, "");
 				numArgs--;
-			} else if (args[i].startsWith("-svd")) {
+			} else if (arg.startsWith("-svd")) {
 				svdRegression = true;
 				numArgs--;
-			} else if (args[i].startsWith("numMarkerThreads=")) {
-				numMarkerThreads = ext.parseIntArg(args[i]);
+			} else if (arg.startsWith("numMarkerThreads=")) {
+				numMarkerThreads = ext.parseIntArg(arg);
 				numArgs--;
-			} else if (args[i].startsWith("numCorrectionThreads=")) {
-				numCorrectionThreads = ext.parseIntArg(args[i]);
+			} else if (arg.startsWith("numCorrectionThreads=")) {
+				numCorrectionThreads = ext.parseIntArg(arg);
 				numArgs--;
-			} else if (args[i].startsWith("-separate")) {
+			} else if (arg.startsWith("-separate")) {
 				separate = true;
 				numArgs--;
-			} else if (args[i].startsWith("jump=")) {
-				jumpPC = ext.parseIntArg(args[i]);
+			} else if (arg.startsWith("jump=")) {
+				jumpPC = ext.parseIntArg(arg);
 				numArgs--;
-			} else if (args[i].startsWith("numQs=")) {
-				numQs = ext.parseIntArg(args[i]);
+			} else if (arg.startsWith("numQs=")) {
+				numQs = ext.parseIntArg(arg);
 				numArgs--;
 			} else {
-				System.out.println("Invalid argument " + args[i]);
+				System.out.println("Invalid argument " + arg);
 			}
 		}
 		if (numArgs != 0) {
@@ -357,9 +420,12 @@ public class PrincipalComponentsEval {
 		}
 		Project proj = new Project(filename, null, false);
 		if (separate) {
-			evaluatePCsIntensityCorrection(proj, markers, evalFile, output, sampleFile, svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR, numMarkerThreads, numCorrectionThreads, jumpPC, numQs);
+			evaluatePCsIntensityCorrection(	proj, markers, evalFile, output, sampleFile,
+																			svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR,
+																			numMarkerThreads, numCorrectionThreads, jumpPC, numQs);
 		} else {
-			evaluatePCs(proj, markers, evalFile, output, sampleFile, jumpPC, numQs, svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR);
+			evaluatePCs(proj, markers, evalFile, output, sampleFile, jumpPC, numQs,
+									svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR);
 		}
 	}
 }

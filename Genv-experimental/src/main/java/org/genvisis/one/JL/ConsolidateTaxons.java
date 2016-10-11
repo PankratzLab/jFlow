@@ -25,17 +25,18 @@ public class ConsolidateTaxons {
 		HashSet<String> allTaxa = new HashSet<String>();
 		String output = rootDir + "taxaSummary.txt";
 		log.reportTimeInfo("NUMDIRS = " + dirs.length);
-		for (int i = 0; i < dirs.length; i++) {
-			String[] contams = Files.listFullPaths(rootDir + dirs[i] + "/", "", false);
-			log.reportTimeInfo("Current directory " + rootDir + dirs[i] + " Number of files " + contams.length);
+		for (String dir : dirs) {
+			String[] contams = Files.listFullPaths(rootDir + dir + "/", "", false);
+			log.reportTimeInfo("Current directory "	+ rootDir + dir + " Number of files "
+													+ contams.length);
 
-			for (int j = 0; j < contams.length; j++) {
+			for (String contam : contams) {
 
-				if (contams[j].endsWith("contam")) {
-					log.reportTimeInfo("Consolidating " + contams[j]);
+				if (contam.endsWith("contam")) {
+					log.reportTimeInfo("Consolidating " + contam);
 					Hashtable<String, String[]> current = new Hashtable<String, String[]>();
 					try {
-						BufferedReader reader = Files.getAppropriateReader(contams[j]);
+						BufferedReader reader = Files.getAppropriateReader(contam);
 						while (reader.ready()) {
 							String[] line = reader.readLine().trim().split("\t");
 							allTaxa.add(line[0]);
@@ -46,10 +47,10 @@ public class ConsolidateTaxons {
 						reader.close();
 						taxa.add(current);
 					} catch (FileNotFoundException fnfe) {
-						log.reportError("Error: file \"" + contams[j] + "\" not found in current directory");
+						log.reportError("Error: file \"" + contam + "\" not found in current directory");
 						return;
 					} catch (IOException ioe) {
-						log.reportError("Error reading file \"" + contams[j] + "\"");
+						log.reportError("Error reading file \"" + contam + "\"");
 						return;
 					}
 				}
@@ -61,8 +62,8 @@ public class ConsolidateTaxons {
 			writer.print("Taxa");
 			for (int i = 0; i < taxa.size(); i++) {
 				String[] files = taxa.get(i).get("Taxa");
-				for (int j = 0; j < files.length; j++) {
-					writer.print("\t" + ext.rootOf(files[j]));
+				for (String file : files) {
+					writer.print("\t" + ext.rootOf(file));
 				}
 			}
 			writer.println();
@@ -76,19 +77,19 @@ public class ConsolidateTaxons {
 						Arrays.fill(blanks, "0");
 						if (taxa.get(i).containsKey(ataxa)) {
 							String[] tmp = taxa.get(i).get(ataxa);
-							for (int j = 0; j < tmp.length; j++) {
-								counts.add( Integer.parseInt(tmp[j]));
+							for (String element : tmp) {
+								counts.add(Integer.parseInt(element));
 							}
 						} else {
-							for (int j = 0; j < blankCounts.length; j++) {
-								counts.add( blankCounts[j]);
+							for (int blankCount : blankCounts) {
+								counts.add(blankCount);
 
 							}
 						}
 					}
-					int[] allCounts =Ints.toArray(counts);
-					if(Array.max(allCounts)>100){
-						writer.println(ataxa+"\t"+Array.toStr(allCounts));
+					int[] allCounts = Ints.toArray(counts);
+					if (Array.max(allCounts) > 100) {
+						writer.println(ataxa + "\t" + Array.toStr(allCounts));
 					}
 				}
 			}
@@ -100,7 +101,7 @@ public class ConsolidateTaxons {
 	}
 
 	public static void main(String[] args) {
-		//int numArgs = args.length;
+		// int numArgs = args.length;
 		String rootDir = "/home/tsaim/shared/Project_Tsai_Project_021/contamination/";
 		consolidate(rootDir);
 	}

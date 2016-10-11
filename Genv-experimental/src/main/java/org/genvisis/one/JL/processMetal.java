@@ -11,8 +11,8 @@ import org.genvisis.common.ext;
 public class processMetal {
 
 	public static void main(String[] args) {
-		String[] conv = new String[] { "rsID", "alt", "ref", "beta", "p" };
-		String[] required = new String[] { "MarkerName", "Allele1", "Allele2", "Effect", "P.value" };
+		String[] conv = new String[] {"rsID", "alt", "ref", "beta", "p"};
+		String[] required = new String[] {"MarkerName", "Allele1", "Allele2", "Effect", "P.value"};
 		String dir = "/Volumes/Beta/data/wbcGwasMetal/oldWbcMeta/";
 		String[] metals = Files.listFullPaths(dir, ".metal", false);
 		Logger log = new Logger();

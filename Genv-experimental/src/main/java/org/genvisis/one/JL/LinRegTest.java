@@ -37,7 +37,7 @@ public class LinRegTest {
 		System.out.println(lssvd.getRsquare());
 		time = System.currentTimeMillis();
 
-	
+
 
 		OLSMultipleLinearRegression ols = new OLSMultipleLinearRegression();
 		ols.newSampleData(y, x2);
@@ -48,8 +48,10 @@ public class LinRegTest {
 
 		for (int i = 0; i < ls.getBetas().length; i++) {
 			if (i < 10) {
-//				System.out.println(LS_TYPE.REGULAR + ": " + ls.getBetas()[i] + "\t" + LS_TYPE.SVD + ": " + lssvd.getBetas()[i] + "\tOLS: " + lssvd.getBetas()[i]);
-//				System.out.println(LS_TYPE.REGULAR + ": " + ls.getSigs()[i] + "\t" + LS_TYPE.SVD + ": " + lssvd.getSigs()[i] + "\tOLS: " + lssvd.getSigs()[i]);
+				// System.out.println(LS_TYPE.REGULAR + ": " + ls.getBetas()[i] + "\t" + LS_TYPE.SVD + ": "
+				// + lssvd.getBetas()[i] + "\tOLS: " + lssvd.getBetas()[i]);
+				// System.out.println(LS_TYPE.REGULAR + ": " + ls.getSigs()[i] + "\t" + LS_TYPE.SVD + ": " +
+				// lssvd.getSigs()[i] + "\tOLS: " + lssvd.getSigs()[i]);
 			}
 
 		}

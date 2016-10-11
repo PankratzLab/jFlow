@@ -15,7 +15,6 @@ import org.genvisis.filesys.LocusSet;
 
 public class extractSamps {
 	public static void main(String[] args) {
-		int numArgs = args.length;
 		String filename = "C:/data/ARIC/shadowCNVs/combinedMF.cnv";
 		String sampFile = "C:/data/ARIC/shadowCNVs/VTECasesOnly.txt";
 		String sampCNVs = ext.addToRoot(filename, "." + ext.rootOf(sampFile));
