@@ -25,7 +25,9 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.seq.manage.StrandOps;
 
+import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
 
 public class ABLookup {
@@ -276,7 +278,7 @@ public class ABLookup {
       proj.getLog()
           .reportTimeWarning("This method has not been completely tested, you have been warned");
       proj.getLog()
-          .reportTimeWarning("This does not convert to positive strand anymore you have been warned again");
+          .reportTimeWarning("This method will convert AB genotypes to positive strand");
 
       try {
         MarkerSet markerSet = proj.getMarkerSet();
@@ -298,7 +300,7 @@ public class ABLookup {
         for (String markerName : markerNames) {
           int indx = indices.get(markerName);
           MarkerSeqAnnotation tmp = masterMarkerList[indx].getMarkerSeqAnnotation();
-          tmp.getStrand();
+          Strand strand = tmp.getStrand();
           Allele A = tmp.getA();
           Allele B = tmp.getB();
           char a = 'N';
@@ -316,13 +318,10 @@ public class ABLookup {
             }
           } else {
             if (!A.isSymbolic()) {
-              a = A.getDisplayString().charAt(0); // right? do we really want to convert ab to
-                                                  // positive strand?
-              // StrandOps.flipIfNeeded(A.getDisplayString(), strand, false).charAt(0);
+              a = StrandOps.flipIfNeeded(A.getDisplayString(), strand, false).charAt(0);
             }
             if (!B.isSymbolic()) {
-              b = B.getDisplayString().charAt(0);
-              // b = StrandOps.flipIfNeeded(B.getDisplayString(), strand, false).charAt(0);
+              b = StrandOps.flipIfNeeded(B.getDisplayString(), strand, false).charAt(0);
 
             }
           }
@@ -734,49 +733,52 @@ public class ABLookup {
       writer.close();
 
       clusterFilterCollection = proj.getClusterFilterCollection();
-      log.report("There were " + markersWithNoLink.size()
-                 + " markers that were zeroed out in the original export; these are set to alleles 'A' and 'B'; for list check "
-                 + Files.getNextAvailableFilename(ext.rootOf(incompleteABlookupFilename, false)
-                                                  + "_test_markersWithNoLink#.txt"));
-      markerNames = Array.toStringArray(markersWithNoLink);
-      markerDataLoader = null;
-      output = Files.getNextAvailableFilename(ext.rootOf(incompleteABlookupFilename, false)
-                                              + "_test_markersWithNoLink#.txt");
-      try {
-        if (Files.exists(proj.MARKER_DATA_DIRECTORY.getValue(false, false))) {
-          markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
-                                                                                     markerNames);
-          log.reportError("Warning - allele frequencies for any chrX markers will be slightly inaccurate");
-        } else {
-          log.report("Warning - since " + proj.MARKER_DATA_DIRECTORY.getValue(false, false)
-                     + " does not exist, marker data can not be loaded and frequency of B allele will not be reported in "
-                     + output
-                     + ".\n If you would like to obtain the frequency of B allele for these markers, please transpose the data and then run the following");
-          log.report("java -cp /your/path/to/" + org.genvisis.common.PSF.Java.GENVISIS
-                     + " cnv.filesys.ABLookup proj=" + proj.getPropertyFilename() + " incompleteAB="
-                     + incompleteABlookupFilename + " mapFile=" + mapFile);
+      
+      if (!markersWithNoLink.isEmpty()) {
+        String markersWithNoLinkFile  = Files.getNextAvailableFilename(ext.rootOf(incompleteABlookupFilename, false)
+                                                                       + "_test_markersWithNoLink#.txt");
+        log.report("There were " + markersWithNoLink.size()
+        + " markers that were zeroed out in the original export; these are set to alleles 'A' and 'B'; for list check "
+        + markersWithNoLinkFile);
+        markerNames = Array.toStringArray(markersWithNoLink);
+        markerDataLoader = null;
+        output = Files.getNextAvailableFilename(markersWithNoLinkFile);
+        try {
+          if (Files.exists(proj.MARKER_DATA_DIRECTORY.getValue(false, false))) {
+            markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
+                                                                                       markerNames);
+            log.reportError("Warning - allele frequencies for any chrX markers will be slightly inaccurate");
+          } else {
+            log.report("Warning - since " + proj.MARKER_DATA_DIRECTORY.getValue(false, false)
+            + " does not exist, marker data can not be loaded and frequency of B allele will not be reported in "
+            + output
+            + ".\n If you would like to obtain the frequency of B allele for these markers, please transpose the data and then run the following");
+            log.report("java -cp /your/path/to/" + org.genvisis.common.PSF.Java.GENVISIS
+                       + " cnv.filesys.ABLookup proj=" + proj.getPropertyFilename() + " incompleteAB="
+                       + incompleteABlookupFilename + " mapFile=" + mapFile);
+          }
+        } catch (NullPointerException nullPointerException) {// MarkerDataLoader will likely throw
+          // this if there are other issues
+          log.report("Warning - was not able to load marker data, frequency of B allele will not be reported in "
+              + output);
+          log.reportException(nullPointerException);
         }
-      } catch (NullPointerException nullPointerException) {// MarkerDataLoader will likely throw
-                                                           // this if there are other issues
-        log.report("Warning - was not able to load marker data, frequency of B allele will not be reported in "
-                   + output);
-        log.reportException(nullPointerException);
-      }
-      for (int i = 0; i < markerNames.length; i++) {
-        if (markerDataLoader == null) {
-          markerNames[i] = markerNames[i];// skip frequency of b allele
-        } else {
-          MarkerData markerData = markerDataLoader.requestMarkerData(i);
-          // markerNames[i] = markerNames[i] + "\t" + markerData.getFrequencyOfB(null, null,
-          // clusterFilterCollection, proj.getFloat(proj.GC_THRESHOLD));
-          markerNames[i] = markerNames[i] + "\t"
-                           + markerData.getFrequencyOfB(null, null, clusterFilterCollection,
-                                                        proj.GC_THRESHOLD.getValue().floatValue(),
-                                                        log);
-          markerDataLoader.releaseIndex(i);
+        for (int i = 0; i < markerNames.length; i++) {
+          if (markerDataLoader == null) {
+            markerNames[i] = markerNames[i];// skip frequency of b allele
+          } else {
+            MarkerData markerData = markerDataLoader.requestMarkerData(i);
+            // markerNames[i] = markerNames[i] + "\t" + markerData.getFrequencyOfB(null, null,
+            // clusterFilterCollection, proj.getFloat(proj.GC_THRESHOLD));
+            markerNames[i] = markerNames[i] + "\t"
+                + markerData.getFrequencyOfB(null, null, clusterFilterCollection,
+                                             proj.GC_THRESHOLD.getValue().floatValue(),
+                                             log);
+            markerDataLoader.releaseIndex(i);
+          }
         }
+        Files.writeArray(markerNames, output);
       }
-      Files.writeArray(markerNames, output);
     } catch (FileNotFoundException fnfe) {
       log.reportError("Error: file \"" + incompleteABlookupFilename
                       + "\" not found in current directory");
