@@ -56,9 +56,8 @@ public class Project implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		// CAUTION: do not call setValue on the same property that spawned this propertyChangeEvent
-		if (loadingProperties) {
+		if (loadingProperties)
 			return;
-		}
 
 		if (((Property<?>) evt.getSource()).getGroup() == GROUP.IMPORT) {
 			updateImportMetaFile();
@@ -101,7 +100,7 @@ public class Project implements PropertyChangeListener {
 														PROJECT_NAME_LOCS("Project Name and Locations"), IMPORT("Import"), GLOBAL("Global"), CENTROIDS("Centroids"), DATA_EXPORT("Data Export"), MOSAIC_PLOT("MosaicPlot"), DATA_CLEANING("Data Cleaning"), CNV_FILES("CNV Files"), COMP_PLOT("CompPlot"), TRAILER("Trailer"), SCATTER_PLOT("ScatterPlot"), TWO_D_PLOT("TwoDPlot"), FOREST_PLOT("ForestPlot"), QQ_PLOT("QQ-plot"), PENN_CNV("PennCNV"), CYTO_SPECIFIC("CytoSpecific"), PC_INTENSITY_CORRECTION("PC Intensity Correction"), OPTIMIZATION_PARAMETERS("Optimization Parameters"), PLINK("Plink Directory/Filename Roots (edit to remove extension)"), COLORS("Colors"), SPECIAL_HIDDEN("HIDDEN");
 
 		GROUP(String desc) {
-			description = desc;
+			this.description = desc;
 		}
 
 		String description;
@@ -225,7 +224,8 @@ public class Project implements PropertyChangeListener {
 	public FileProperty PENNCNV_EXECUTABLE_DIRECTORY = new FileProperty(this,
 																																			PropertyKeys.KEY_PENNCNV_EXECUTABLE_DIRECTORY,
 																																			"", GROUP.PENN_CNV, true,
-																																			"/home/npankrat/bin/", true);
+																																			"/home/pankrat2/shared/bin/",
+																																			true);
 	public FileProperty PENNCNV_DATA_DIRECTORY = new FileProperty(this,
 																																PropertyKeys.KEY_PENNCNV_DATA_DIRECTORY,
 																																"", GROUP.PENN_CNV, true,
@@ -1084,14 +1084,12 @@ public class Project implements PropertyChangeListener {
 	}
 
 	public Property<?> getPropertyByName(String propertyName) {
-		if (propertyName == null || "".equals(propertyName)) {
+		if (propertyName == null || "".equals(propertyName))
 			return null;
-		}
 		List<Property<?>> props = getProperties();
 		for (Property<?> p : props) {
-			if (p.getName().equals(propertyName)) {
+			if (p.getName().equals(propertyName))
 				return p;
-			}
 		}
 		return null;
 	}
