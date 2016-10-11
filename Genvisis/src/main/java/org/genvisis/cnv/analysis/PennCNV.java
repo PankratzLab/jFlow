@@ -23,7 +23,6 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources.Resource;
-import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
@@ -1043,12 +1042,19 @@ public class PennCNV {
 															int threadCount) {
 		boolean problem = false;
 		Vector<String> execList;
+		Logger log = proj.getLog();
 
-		if (pfbFile != null && !Files.exists(pfbFile)) {
+		if (hmmFile == null || !Files.exists(hmmFile)) {
+			hmmFile = Resources.cnv(log).getAllHmm().get();
+		}
+
+		if ((pfbFile == null || !Files.exists(pfbFile))
+				&& (pfbFile = proj.CUSTOM_PFB_FILENAME.getValue()) == null) {
 			System.err.println("Error - could not find " + pfbFile);
 			problem = true;
 		}
-		if (gcmodelFile != null && !Files.exists(gcmodelFile)) {
+		if ((gcmodelFile == null || !Files.exists(gcmodelFile))
+				&& (gcmodelFile = proj.GC_MODEL_FILENAME.getValue()) == null) {
 			System.err.println("Error - could not find " + gcmodelFile);
 			problem = true;
 		}
@@ -1067,16 +1073,16 @@ public class PennCNV {
 			String[] samples = getSamplesForTransform(proj, !useExcludes);
 
 			if (auto) {
-				proj.getLog().report("Transforming data for autosomal CNV analysis");
+				log.report("Transforming data for autosomal CNV analysis");
 				AnalysisFormats.penncnv(proj, samples, null, null,
 																Runtime.getRuntime().availableProcessors());
 			}
 			if (chrx) {
 				MarkerSet ms = proj.getMarkerSet();
 				if (ms == null) {
-					proj.getLog().reportError("Error - no marker set available.");
+					log.reportError("Error - no marker set available.");
 				} else {
-					proj.getLog().report("Transforming data for chromosomal CNV analysis");
+					log.report("Transforming data for chromosomal CNV analysis");
 					HashSet<String> xMarkers = new HashSet<String>();
 					byte[] chrs = ms.getChrs();
 					String[] markers = ms.getMarkerNames();
@@ -1091,11 +1097,11 @@ public class PennCNV {
 			}
 		}
 		if (auto) {
-			proj.getLog().report("Creating batch scripts for autosomal CNV analysis");
+			log.report("Creating batch scripts for autosomal CNV analysis");
 			batch(proj, numChunks, execList, pfbFile, gcmodelFile, hmmFile, "penn_scripts/", "", "");
 		}
 		if (chrx) {
-			proj.getLog().report("Creating batch scripts for chromosomal CNV analysis");
+			log.report("Creating batch scripts for chromosomal CNV analysis");
 			batchX(	proj, numChunks, execList, pfbFile, gcmodelFile, hmmFile, "penn_scripts/chrX/",
 							"chrX/", "chrX/");
 		}
@@ -1114,14 +1120,14 @@ public class PennCNV {
 			Files.chmod(outdir + outfile);
 		}
 		if (sexCent) {
-			proj.getLog().report("Transforming data for 'faked' chromosomal CNV analysis");
+			log.report("Transforming data for 'faked' chromosomal CNV analysis");
 			// [males.pfb, females.pfb, sexSpecific.gcModel]
 
 			String[] files = AnalysisFormats.pennCNVSexHackMultiThreaded(	proj, gcmodelFile, useExcludes,
 																																		threadCount);
 			// String[] files = AnalysisFormats.pennCNVSexHackSingleThreaded(proj, gcmodelFile);
 
-			proj.getLog().report("Creating batch scripts for 'faked' chromosomal CNV analysis");
+			log.report("Creating batch scripts for 'faked' chromosomal CNV analysis");
 			String scriptDir = "penn_scripts/sexSpecific/";
 			batch(proj, numChunks, execList, files[0], files[2], hmmFile, scriptDir + "male/",
 						"sexSpecific/male/", "sexSpecific/male/");
@@ -1161,9 +1167,8 @@ public class PennCNV {
 		if (execList != null) {
 			Files.qsubExecutor(	proj.PROJECT_DIRECTORY.getValue(), execList, null,
 													proj.PENNCNV_RESULTS_DIRECTORY.getValue() + "runAllPenncnv", 24, 5000, 8);
-			proj.getLog().report(
-														"All PennCNV files and scripts have been prepped. The next thing would be to qsub "
-														+ proj.PENNCNV_RESULTS_DIRECTORY.getValue() + "runAllPenncnv.pbs");
+			log.report("All PennCNV files and scripts have been prepped. The next thing would be to qsub "
+									+ proj.PENNCNV_RESULTS_DIRECTORY.getValue() + "runAllPenncnv.pbs");
 		}
 		String dir = proj.PENNCNV_RESULTS_DIRECTORY.getValue();
 		dir += "penn_scripts/";
@@ -1173,6 +1178,8 @@ public class PennCNV {
 																		dir + "combineAMFCNVs"},
 											dir + "parseAllPenncnv");
 		Files.chmod(dir + "parseAllPenncnv");
+
+		log.report("Script generation complete. See: " + dir);
 	}
 
 	public static void main(String[] args) {

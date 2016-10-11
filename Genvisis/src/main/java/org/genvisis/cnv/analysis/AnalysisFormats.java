@@ -188,8 +188,10 @@ public class AnalysisFormats implements Runnable {
 		} catch (InterruptedException e) {
 			log.report("Sample export was interrupted - exported sample files may not be complete or correct.");
 		}
-		computeHub = null;
 
+		// Create the scripts for building cnvs from the penncnv data
+		PennCNV.doBatch(proj, true, true, false, false, 1, true, null, null, null, false, true, false,
+										threadCount);
 	}
 
 	public static boolean[] getChromosomalMarkersOnly(Project proj) {
