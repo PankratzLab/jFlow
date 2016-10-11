@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
@@ -55,6 +56,8 @@ public class PennCNV {
 		Logger log;
 
 		log = proj.getLog();
+		final String runLine = Files.getRunString()	+ " " + PennCNV.class.getCanonicalName() + " proj="
+														+ new File(proj.getPropertyFilename()).getAbsolutePath();
 		projDir = proj.PROJECT_DIRECTORY.getValue();
 		execDir = proj.PENNCNV_EXECUTABLE_DIRECTORY.getValue(false, true);
 		pennDir = proj.PENNCNV_RESULTS_DIRECTORY.getValue(false, true);
@@ -149,15 +152,8 @@ public class PennCNV {
 																		"cat "			+ resultsDir + "*.log > " + resultsDir
 																								+ "penncnv.rawlog",
 																		"cat " + resultsDir + "*.rawcnv > " + resultsDir + "penncnv.rawcnv",
-																		"java -cp ~/"																													+ org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="
-																																																					+ proj.getPropertyFilename()
-																																																					+ " rawlog="
-																																																					+ resultsDir
-																																																					+ "penncnv.rawlog",
-																		"java -cp ~/"																																							+ org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename()
-																																																															+ " rawcnv="
-																																																															+ resultsDir
-																																																															+ "penncnv.rawcnv",},
+																		runLine + " rawlog=" + resultsDir + "penncnv.rawlog",
+																		runLine + " rawcnv=" + resultsDir + "penncnv.rawcnv",},
 											pennDir + scriptSubDir + "assemblePenncnv");
 		Files.chmod(pennDir + scriptSubDir + "assemblePenncnv");
 	}
@@ -174,6 +170,8 @@ public class PennCNV {
 		Logger log;
 
 		log = proj.getLog();
+		final String runLine = Files.getRunString()	+ " " + PennCNV.class.getCanonicalName() + " proj="
+														+ new File(proj.getPropertyFilename()).getAbsolutePath();
 		projDir = proj.PROJECT_DIRECTORY.getValue();
 		execDir = proj.PENNCNV_EXECUTABLE_DIRECTORY.getValue(false, true);
 		pennDir = proj.PENNCNV_RESULTS_DIRECTORY.getValue(false, true);
@@ -291,11 +289,7 @@ public class PennCNV {
 																		// don't parse warnings; the parseWarnings method isn't written
 																		// to
 																		// parse X-chromosome warnings
-																		"java -cp ~/"																						+ org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="
-																																														+ proj.getPropertyFilename()
-																																														+ " rawcnv="
-																																														+ resultsDir
-																																														+ "penncnvX.rawcnv",},
+																		runLine + " rawcnv=" + resultsDir + "penncnvX.rawcnv",},
 											pennDir + scriptSubDir + "assemblePenncnv");
 		Files.chmod(pennDir + scriptSubDir + "assemblePenncnv");
 	}
@@ -605,14 +599,6 @@ public class PennCNV {
 			}
 		}
 	}
-
-	/*
-	 * java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV
-	 * proj=/home/pankrat2/coleb/projects/NY_Registry_3defects.properties
-	 * combine=/home/pankrat2/shared/ny_registry/3defects/penncnv/sexSpecific/male/penncnv.cnv,/home/
-	 * pankrat2/shared/ny_registry/3defects/penncnv/sexSpecific/female/penncnv.cnv
-	 * output=/home/pankrat2/shared/ny_registry/3defects/penncnv/sexSpecific/combinedMF.cnv -recode
-	 */
 
 	public static void parseResults(Project proj, String filename, boolean denovoOnly) {
 		BufferedReader reader;
@@ -1043,6 +1029,11 @@ public class PennCNV {
 		boolean problem = false;
 		Vector<String> execList;
 		Logger log = proj.getLog();
+		final String runLine = Files.getRunString()	+ " " + PennCNV.class.getCanonicalName() + " proj="
+														+ new File(proj.getPropertyFilename()).getAbsolutePath();
+
+		String dir = proj.PENNCNV_RESULTS_DIRECTORY.getValue();
+		dir += "penn_scripts/";
 
 		if (hmmFile == null || !Files.exists(hmmFile)) {
 			hmmFile = Resources.cnv(log).getAllHmm().get();
@@ -1112,10 +1103,7 @@ public class PennCNV {
 			new File(outdir).mkdirs();
 			String outfile = "combineAutoXCNVs";
 			Files.writeArray(	new String[] {"cd "	+ resultsDir,
-																			"java -cp ~/"	+ org.genvisis.common.PSF.Java.GENVISIS
-																										+ " cnv.analysis.PennCNV proj="
-																										+ proj.getPropertyFilename()
-																										+ " combine=penncnv.cnv,chrX/penncnvX.cnv output=combinedAX.cnv",},
+																			runLine + " combine=penncnv.cnv,chrX/penncnvX.cnv output=combinedAX.cnv",},
 												outdir + outfile);
 			Files.chmod(outdir + outfile);
 		}
@@ -1138,26 +1126,18 @@ public class PennCNV {
 			String outdir = resultsDir + "penn_scripts/";
 			String outfile = "combineMFCNVs";
 			Files.writeArray(	new String[] {"cd "	+ resultsDir,
-																			"java -cp ~/"	+ org.genvisis.common.PSF.Java.GENVISIS
-																										+ " cnv.analysis.PennCNV proj="
-																										+ proj.getPropertyFilename()
-																										+ " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
-																			"java -cp ~/"																																													+ org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename()
-																																																																						+ " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
-																			"java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv -recode",},
+																			runLine + " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
+																			runLine + " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
+																			runLine + " combine=sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv -recode",},
 												outdir + outfile);
 			Files.chmod(outdir + outfile);
 
 			if (auto) {
 				outfile = "combineAMFCNVs";
 				Files.writeArray(	new String[] {"cd "	+ resultsDir,
-																				"java -cp ~/"	+ org.genvisis.common.PSF.Java.GENVISIS
-																											+ " cnv.analysis.PennCNV proj="
-																											+ proj.getPropertyFilename()
-																											+ " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
-																				"java -cp ~/"																																													+ org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename()
-																																																																							+ " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
-																				"java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=penncnv.cnv,sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv",},
+																				runLine + " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
+																				runLine + " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
+																				runLine + " combine=penncnv.cnv,sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv",},
 													outdir + outfile);
 				Files.chmod(outdir + outfile);
 			}
@@ -1170,13 +1150,15 @@ public class PennCNV {
 			log.report("All PennCNV files and scripts have been prepped. The next thing would be to qsub "
 									+ proj.PENNCNV_RESULTS_DIRECTORY.getValue() + "runAllPenncnv.pbs");
 		}
-		String dir = proj.PENNCNV_RESULTS_DIRECTORY.getValue();
-		dir += "penn_scripts/";
-		Files.writeArray(	new String[] {dir	+ "assemblePenncnv", dir + "chrX/assemblePenncnv",
-																		dir + "sexSpecific/female/assemblePenncnv",
-																		dir + "sexSpecific/male/assemblePenncnv",
-																		dir + "combineAMFCNVs"},
-											dir + "parseAllPenncnv");
+		List<String> toRun = new ArrayList<String>();
+		toRun.add(dir + "assemblePenncnv");
+		toRun.add(dir + "chrX/assemblePenncnv");
+		if (sexCent) {
+			toRun.add(dir + "sexSpecific/female/assemblePenncnv");
+			toRun.add(dir + "sexSpecific/male/assemblePenncnv");
+			toRun.add(dir + "combineAMFCNVs");
+		}
+		Files.writeArray(toRun.toArray(new String[toRun.size()]), dir + "parseAllPenncnv");
 		Files.chmod(dir + "parseAllPenncnv");
 
 		log.report("Script generation complete. See: " + dir);
