@@ -12,6 +12,9 @@ import org.genvisis.common.ext;
 
 import com.google.common.primitives.Doubles;
 
+	/**
+	 * @see org.apache.commons.math3.stat.inference.TTest
+	 */
 public class Ttest {
 	private double meanDiff;
 	private double stdev;
@@ -80,6 +83,11 @@ public class Ttest {
 					splitOut(groupings, values, Array.min(groupings) + 1));
 	}
 
+	/**
+	 * Convenience constructor for dividing datasets based on group
+	 *
+	 * @see #splitOut(String[], double[], String)
+	 */
 	public Ttest(String[] groupings, double[] values, String groupOfInterest) {
 		this(splitOut(groupings, values, groupOfInterest), groupOfInterest);
 	}
