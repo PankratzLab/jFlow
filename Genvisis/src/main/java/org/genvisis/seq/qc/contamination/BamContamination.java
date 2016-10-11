@@ -34,17 +34,19 @@ public class BamContamination {
     private final FilterNGS filterNGS;
     private final ReferenceGenome referenceGenome;
     private final String[] bamFiles;
+    private final String outDir;
     private int index;
     private final Logger log;
 
     public BamContaminationProducer(Segment[] q, FilterNGS filterNGS,
                                     ReferenceGenome referenceGenome, String[] bamFiles,
-                                    Logger log) {
+                                    String outDir, Logger log) {
       super();
       this.q = q;
       this.filterNGS = filterNGS;
       this.referenceGenome = referenceGenome;
       this.bamFiles = bamFiles;
+      this.outDir = outDir;
       this.log = log;
       index = 0;
     }
@@ -57,9 +59,9 @@ public class BamContamination {
 
     @Override
     public Callable<DynamicHistogram> next() {
-      bamPileWorker worker = new bamPileWorker(bamFiles[index], q, filterNGS, referenceGenome, 1,
-                                               PILE_TYPE.CONTAMINATION, SAM_FILTER_TYPE.GENOTYPE,
-                                               log);
+      bamPileWorker worker = new bamPileWorker(bamFiles[index], outDir, q, filterNGS,
+                                               referenceGenome, 1, PILE_TYPE.CONTAMINATION,
+                                               SAM_FILTER_TYPE.GENOTYPE, log);
       index++;
       return worker;
     }
@@ -81,7 +83,9 @@ public class BamContamination {
                                                                    : new ReferenceGenome(referenceGenomeFasta,
                                                                                          log);
     BamContaminationProducer producer = new BamContaminationProducer(q, filterNGS, referenceGenome,
-                                                                     bamFiles, log);
+                                                                     bamFiles,
+                                                                     ext.parseDirectoryOfFile(segFile),
+                                                                     log);
     log.reportTimeInfo("Detected " + bamFiles.length + " bam files in " + bams);
     DynamicHistogram[] hists = new DynamicHistogram[bamFiles.length];
     WorkerTrain<DynamicHistogram> train = new WorkerTrain<DynamicHistogram>(producer, numthreads,
