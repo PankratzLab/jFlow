@@ -28,9 +28,8 @@ public class MStr {
 		for (String vcf : vcfs) {
 			new File(outDir).mkdirs();
 			Segment mSeg = new Segment("chr6:31380150-31380165");
-			String outfile = outDir	+ ext.rootOf(vcf) + "_"
-												+ ext.replaceWithLinuxSafeCharacters(mSeg.getUCSClocation(), true)
-												+ ".matrix.txt";
+			String outfile = outDir + ext.rootOf(vcf) + "_"
+					+ ext.replaceWithLinuxSafeCharacters(mSeg.getUCSClocation(), true) + ".matrix.txt";
 			PrintWriter writer = Files.getAppropriateWriter(outfile);
 			Logger log = new Logger(outDir + "log.log");
 			VCFFileReader reader = new VCFFileReader(new File(vcf), false);
@@ -40,76 +39,73 @@ public class MStr {
 			for (VariantContext vc : reader) {
 				if (VCOps.getSegment(vc).overlaps(mSeg)) {
 
-					// if (vc.isIndel()) {
-					int index = 0;
-					StringBuilder builder = new StringBuilder(vc.getContig()	+ "\t" + vc.getStart() + "\t"
-																										+ vc.getReference().getBaseString() + "\t"
-																										+ vc.getAlternateAlleles().toString());
-					for (Genotype g : vc.getGenotypes()) {
+					if (vc.isIndel()) {
+						int index = 0;
+						StringBuilder builder = new StringBuilder(vc.getContig() + "\t" + vc.getStart() + "\t"
+								+ vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString());
+						for (Genotype g : vc.getGenotypes()) {
 
-						if (!g.getSampleName().equals(samples[index])) {
-							writer.close();
+							if (!g.getSampleName().equals(samples[index])) {
+								writer.close();
 
-							throw new IllegalStateException("Sample mismatch");
-						}
-						StringBuilder builder2 = new StringBuilder(builder.toString());
-						builder2.append("\t" + g.getSampleName());
-
-						if (g.isCalled()) {
-							samplesWithOneGenotype[index] = true;
-
-							ArrayList<String> alts = new ArrayList<String>();
-							String ref = null;
-							for (Allele a : g.getAlleles()) {
-								if (a.isNonReference()) {
-									alts.add(a.getBaseString());
-								} else {
-									ref = a.getBaseString();
-								}
-
+								throw new IllegalStateException("Sample mismatch");
 							}
-							if (ref != null) {
-								if (alts.isEmpty()) {
-									builder2.append("\t" + ref + "\t" + ref);
+							StringBuilder builder2 = new StringBuilder(builder.toString());
+							builder2.append("\t" + g.getSampleName());
+
+							if (g.isCalled()) {
+								samplesWithOneGenotype[index] = true;
+
+								ArrayList<String> alts = new ArrayList<String>();
+								String ref = null;
+								for (Allele a : g.getAlleles()) {
+									if (a.isNonReference()) {
+										alts.add(a.getBaseString());
+									} else {
+										ref = a.getBaseString();
+									}
+
+								}
+								if (ref != null) {
+									if (alts.isEmpty()) {
+										builder2.append("\t" + ref + "\t" + ref);
+									} else {
+										builder2.append("\t" + ref + "\t" + alts.get(0));
+										if (alts.size() != 1) {
+											writer.close();
+
+											throw new IllegalStateException("geno mismatch");
+										}
+									}
 								} else {
-									builder2.append("\t" + ref + "\t" + alts.get(0));
-									if (alts.size() != 1) {
+									if (alts.size() != 2) {
 										writer.close();
 
 										throw new IllegalStateException("geno mismatch");
+
+									}
+									for (String al : alts) {
+										builder2.append("\t" + al);
 									}
 								}
 							} else {
-								if (alts.size() != 2) {
-									writer.close();
-
-									throw new IllegalStateException("geno mismatch");
-
-								}
-								for (String al : alts) {
-									builder2.append("\t" + al);
-								}
+								builder2.append("\t.\t.");
 							}
-						} else {
-							builder2.append("\t.\t.");
+							builder2.append("\t" + g.getGQ() + "\t" + (g.getAD() == null ? g.getAnyAttribute("DPR")
+									: Array.toStr(Array.toStringArray((g.getAD())), ",")));
+							builder2.append(g.toString());
+							if (!g.getSampleName().contains("H20")) {
+								writer.println(builder2.toString());
+							}
+							index++;
 						}
-						builder2.append("\t"	+ g.getGQ() + "\t"
-														+ (g.getAD() == null	? g.getAnyAttribute("DPR")
-																									: Array.toStr(Array.toStringArray((g.getAD())),
-																																",")));
-						builder2.append(g.toString());
-						// if (!g.getSampleName().contains("H20-BLANK")) {
-						writer.println(builder2.toString());
-						// }
-						index++;
 					}
 				}
 			}
-			// }
 			writer.close();
 			reader.close();
-			log.reportTimeInfo(Array.booleanArraySum(samplesWithOneGenotype)	+ " of " + samples.length
-													+ " samples had genotypes");
+			log.reportTimeInfo(
+					Array.booleanArraySum(samplesWithOneGenotype) + " of " + samples.length + " samples had genotypes");
 		}
 
 	}
@@ -117,16 +113,14 @@ public class MStr {
 	public static void test() {
 		String fastaDb = "/Volumes/Beta/ref/hg19_canonical.fa";
 		Blast blast = new Blast(fastaDb, 60, 100, new Logger(), true, true);
-		FastaEntry fastaEntry =
-													new FastaEntry(	"HDSIF",
-																					"GAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTGTGTTAATTAATTAATGCTTGTAGGACATAATAATAACAATTGAAT");
-		blast.blastSequence(new FastaEntry[] {fastaEntry}, null);
+		FastaEntry fastaEntry = new FastaEntry("HDSIF",
+				"GAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTGTGTTAATTAATTAATGCTTGTAGGACATAATAATAACAATTGAAT");
+		blast.blastSequence(new FastaEntry[] { fastaEntry }, null);
 	}
 
 	public static void main(String[] args) {
 
-		test();
-		System.exit(1);
+		
 		CLI c = new CLI(ABLookup.class);
 		c.addArgWithDefault("vcfs", "vcf files to explore,comma-delimited list", null);
 		c.addArgWithDefault("outDir", "output directory", null);

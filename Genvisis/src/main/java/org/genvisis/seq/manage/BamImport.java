@@ -140,7 +140,7 @@ public class BamImport {
 		@Override
 		public BamPileConversionResults call() throws Exception {
 			String sampleFile = proj.SAMPLE_DIRECTORY.getValue()
-														+ BamOps.getSampleName(result.getBam(), log)
+													+ BamOps.getSampleName(result.getBam(), log)
 													+ Sample.SAMPLE_FILE_EXTENSION;
 			if (!Files.exists(sampleFile)) {
 				BamSample bamSample = new BamSample(proj, result.getBam(), result.loadResults(log));
@@ -256,7 +256,7 @@ public class BamImport {
 							name += "_ALT" + i + "_" + allele.getDisplayString();
 						}
 						Segment vcSeg = VCOps.getSegment(vc);
-						writer.println(vcSeg.getChromosomeUCSC()	+ "\t" + vcSeg.getStart() + "\t"
+						writer.println(vcSeg.getChromosomeUCSC()+ "\t" + vcSeg.getStart() + "\t"
 														+ vcSeg.getStop() + "\t" + name);
 					}
 					reader.close();
@@ -401,7 +401,7 @@ public class BamImport {
 																																							.mergeOverlapping(true),
 																																			captureBuffer);//
 				} else {
-					log.reportTimeError("The bed file "	+ binBed
+					log.reportTimeError("The bed file "+ binBed
 															+ " had overlapping segments, currently non -overlapping segments are required");
 					throw new IllegalArgumentException();
 				}
@@ -416,7 +416,7 @@ public class BamImport {
 		} else {
 			throw new IllegalArgumentException("Invalid assay type " + atype);
 		}
-		log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered()	+ " bp covered by " + atype
+		log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered()+ " bp covered by " + atype
 												+ " analysis  set");
 		log.memoryFree();
 
@@ -493,7 +493,7 @@ public class BamImport {
 			BamIndexStats bamIndexStats = conversionResult.getBamIndexStats();
 			int numAligned = bamIndexStats.getAlignedRecordCount();
 			int numNotAligned = bamIndexStats.getUnalignedRecordCount();
-			mappedReadCounts[convIndex + 1] = conversionResult.getSample()	+ "\t" + numAligned + "\t"
+			mappedReadCounts[convIndex + 1] = conversionResult.getSample()+ "\t" + numAligned + "\t"
 																				+ numNotAligned;
 			convIndex++;
 			if (conversionResult.getOutliers() != null && conversionResult.getOutliers().size() > 0) {
@@ -623,7 +623,7 @@ public class BamImport {
 					if (i % 1000 == 0) {
 						proj.getLog().reportTimeInfo("Loaded gc content for " + (i + 1) + " bins");
 					}
-					writer.println(markerNames[i]	+ "\t" + markerSet.getChrs()[i] + "\t"
+					writer.println(markerNames[i]+ "\t" + markerSet.getChrs()[i] + "\t"
 													+ markerSet.getPositions()[i] + "\t"
 													+ ReferenceGenome.getPercentGC(referenceGenome.getSequenceFor(analysisSet.getLoci()[i].getBufferedSegment(buffer),
 																																												aName, buffer > 100000)));
@@ -665,7 +665,7 @@ public class BamImport {
 																																int correctionPCs, int numthreads) {
 		proj.SAMPLE_CALLRATE_THRESHOLD.setValue(0.0);
 		proj.LRRSD_CUTOFF.setValue(.60);
-		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(20);
+		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(Math.max(20, correctionPCs));
 		String mediaMarks = ext.addToRoot(proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), ".median");
 		ArrayList<ProjectCorrected> correctedProjects = new ArrayList<ProjectCorrected>();
 		Files.writeArray(Array.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
@@ -681,7 +681,7 @@ public class BamImport {
 
 			String[] tmpList;
 			if (type.getType() != null && type.getType() == NGS_MARKER_TYPE.OFF_TARGET) {
-				proj.getLog().reportTimeInfo("Detected "	+ offTargetsToUse.length
+				proj.getLog().reportTimeInfo("Detected "+ offTargetsToUse.length
 																			+ " off target regions to use for pca of");
 				tmpList = offTargetsToUse;
 			} else {
@@ -697,16 +697,17 @@ public class BamImport {
 			Files.writeIterable(autosomalToUse, markerfile);
 			if (!autosomalToUse.isEmpty()) {
 				proj.INTENSITY_PC_MARKERS_FILENAME.setValue(markerfile);
-				MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, 20, base, false, true, 0, null,
-																		null, null, null, false, false, true, false, true, false, null,
-																		-1, -1, GENOME_BUILD.HG19, MitoPipeline.DEFAULT_PVAL_OPTS, null,
-																		false, true);
+				MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks,
+																		proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), base, false, true,
+																		0, null, null, null, null, false, false, true, false, true,
+																		false, null, -1, -1, GENOME_BUILD.HG19,
+																		MitoPipeline.DEFAULT_PVAL_OPTS, null, false, true);
 
 				String pcCorrectedFile = ext.addToRoot(	proj.getPropertyFilename(),
 																								"."													+ proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
 																																						+ "_pc_corrected_"
 																																						+ base);
-				String newName = proj.PROJECT_NAME.getValue()	+ "_"
+				String newName = proj.PROJECT_NAME.getValue()+ "_"
 													+ proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base;
 				Files.copyFileUsingFileChannels(proj.getPropertyFilename(), pcCorrectedFile, proj.getLog());
 				Project pcCorrected = new Project(pcCorrectedFile, false);
@@ -721,8 +722,7 @@ public class BamImport {
 																							Sample.SAMPLE_FILE_EXTENSION);
 				if (!Files.exists("", correctedSamps)) {
 					proj.getLog()
-							.reportTimeInfo("PC correcting project using "
-															+ proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components ");
+							.reportTimeInfo("PC correcting project using " + correctionPCs + " components ");
 
 					PennCNVPrep.exportSpecialPennCNV(	proj, "correction/",
 																						pcCorrected.PROJECT_DIRECTORY.getValue()
@@ -898,7 +898,7 @@ public class BamImport {
 			}
 		}
 		proj.getLog()
-				.reportTimeInfo("Dumping "	+ (problems.size() - 1)
+				.reportTimeInfo("Dumping "+ (problems.size() - 1)
 												+ " off target markers that will likely be biased to " + problemFile);
 		Files.writeIterable(problems, problemFile);
 		Files.writeIterable(noProblems, noproblemFile);
@@ -914,7 +914,7 @@ public class BamImport {
 		String positions = proj.MARKER_POSITION_FILENAME.getValue();
 		proj.getLog().reportTimeInfo("Postions will be set to the midpoint of each segment");
 		String[] markerNames = new String[bLocusSet.getLoci().length
-																				+ genomeBinsMinusBinsCaputure.getLoci().length
+																			+ genomeBinsMinusBinsCaputure.getLoci().length
 																			+ varFeatures.getLoci().length];
 		String header =
 									"BinName\tChr\tPosition\tCLASS=MARKER_COLOR;OFF_TARGET=Blue;VARIANT_SITE=RED;ON_TARGET=Green";
@@ -947,7 +947,7 @@ public class BamImport {
 				int diff = bFeatureSeg.getStop() - bFeatureSeg.getStart();
 				int mid = Math.round((float) diff / 2);
 				int pos = bFeatureSeg.getStart() + mid;
-				String out = markerName	+ "\t" + bFeatureSeg.getChr() + "\t" + pos + "\t"
+				String out = markerName+ "\t" + bFeatureSeg.getChr() + "\t" + pos + "\t"
 											+ NGS_MARKER_TYPE.ON_TARGET.getFlag();
 				onTMarkers.add(out);
 				allMarkerColors.add(out);
@@ -963,7 +963,7 @@ public class BamImport {
 				int diff = binnedSeg.getStop() - binnedSeg.getStart();
 				int mid = Math.round((float) diff / 2);
 				int pos = binnedSeg.getStart() + mid;
-				String out = markerName	+ "\t" + binnedSeg.getChr() + "\t" + pos + "\t"
+				String out = markerName+ "\t" + binnedSeg.getChr() + "\t" + pos + "\t"
 											+ NGS_MARKER_TYPE.OFF_TARGET.getFlag();
 				offTMarkers.add(out);
 				allMarkerColors.add(out);
@@ -982,7 +982,7 @@ public class BamImport {
 				markerName = markerName + "|" + NGS_MARKER_TYPE.VARIANT_SITE.getFlag();
 				markerNames[markerIndex] = markerName;
 				int pos = variantFeatureSeg.getStart();
-				String out = markerName	+ "\t" + variantFeatureSeg.getChr() + "\t" + pos + "\t"
+				String out = markerName+ "\t" + variantFeatureSeg.getChr() + "\t" + pos + "\t"
 											+ NGS_MARKER_TYPE.VARIANT_SITE.getFlag();
 				variantSiteMarkers.add(out);
 				allMarkerColors.add(out);
