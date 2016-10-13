@@ -440,10 +440,11 @@ public class ImportProjectGUI extends JDialog {
 		} else {
 			Files.write((new Project()).PROJECT_NAME.getName() + "=" + name, filename);
 		}
-
+		
+		String projDir = txtFldProjDir.getText().trim();
 		Project actualProj = new Project(filename, false);
 		actualProj.PROJECT_NAME.setValue(name);
-		actualProj.PROJECT_DIRECTORY.setValue(txtFldProjDir.getText().trim());
+		actualProj.PROJECT_DIRECTORY.setValue(projDir);
 
 		Map<String, String> importProps = actualProj.loadImportMetaFile();
 		if (importProps != null && !importProps.isEmpty()) {
@@ -454,6 +455,20 @@ public class ImportProjectGUI extends JDialog {
 				}
 			}
 		}
+		
+        boolean foundOldSampleList = Files.exists(projDir + DEFAULT_SAMPLELIST) && !Files.exists(projDir + DEFAULT_SAMPLELIST_ALT);
+        boolean foundOldMarkerList = Files.exists(projDir + DEFAULT_MARKERLIST) && !Files.exists(projDir + DEFAULT_MARKERLIST_ALT);
+        boolean foundOldMarkerLookup = Files.exists(projDir + DEFAULT_MARKERLOOKUP) && !Files.exists(projDir + DEFAULT_MARKERLOOKUP_ALT);
+        
+        if (foundOldMarkerList) {
+          actualProj.MARKERSET_FILENAME.setValue(projDir + DEFAULT_MARKERLIST);
+        }
+        if (foundOldMarkerLookup) {
+          actualProj.MARKERLOOKUP_FILENAME.setValue(projDir + DEFAULT_MARKERLOOKUP);
+        }
+        if (foundOldSampleList) {
+          actualProj.SAMPLELIST_FILENAME.setValue(projDir + DEFAULT_SAMPLELIST);
+        }
 
 		// actualProj.SOURCE_DIRECTORY.setValue(srcDir);
 		// actualProj.SOURCE_FILENAME_EXTENSION.setValue(srcExt);

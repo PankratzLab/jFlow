@@ -629,7 +629,7 @@ public class Project implements PropertyChangeListener {
 		updateProperty(proj.MARKERSET_FILENAME, ".bim", "marker set");
 		proj.saveProperties(new Property[] {proj.SAMPLELIST_FILENAME, proj.MARKERLOOKUP_FILENAME,
 																				proj.MARKERSET_FILENAME});
-
+		
 		proj.updateImportMetaFile();
 	}
 
@@ -688,8 +688,7 @@ public class Project implements PropertyChangeListener {
 		if (Files.exists(file)) {
 			@SuppressWarnings("unchecked")
 			HashMap<String, String> map =
-																	(HashMap<String, String>) SerializedFiles.readSerial(	file, false,
-																																												log, false);
+			  (HashMap<String, String>) SerializedFiles.readSerial(	file, false, log, false);
 			return map;
 		} else {
 			return new HashMap<String, String>();
