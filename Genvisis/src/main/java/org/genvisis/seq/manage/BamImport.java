@@ -720,7 +720,7 @@ public class BamImport {
 				String[] correctedSamps = Array.tagOn(proj.getSamples(),
 																							pcCorrected.SAMPLE_DIRECTORY.getValue(),
 																							Sample.SAMPLE_FILE_EXTENSION);
-				if (!Files.exists("", correctedSamps)) {
+				if (!Files.exists("", correctedSamps) && type.getType() != null) {
 					proj.getLog()
 							.reportTimeInfo("PC correcting project using " + correctionPCs + " components ");
 

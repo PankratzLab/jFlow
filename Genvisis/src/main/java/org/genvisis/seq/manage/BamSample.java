@@ -18,7 +18,7 @@ public class BamSample {
 	private static final double MAX_MAPQ = 60;
 	private static final double SCALE_FACTOR_NUM_READS = 1000000;
 	private static final double MAD_FACTOR = 1.4826;
-	private static final int MIN_NUM_MISMATCH = 5;// can set this later;
+	private static final int MIN_NUM_MISMATCH = 1;// can set this later;
 	private final String bamFile;
 	private final String sampleName;
 	private final BamPile[] bamPiles;
@@ -161,7 +161,7 @@ public class BamSample {
 
 			mapQs[i] = Math.min(currentPile.getOverallAvgMapQ() / MAX_MAPQ, 1);
 			if (Double.isNaN(rawDepth[i])) {
-				String warning = "Found invalid scale raw depth for "	+ bamFile + ", bin "
+				String warning = "Found invalid scale raw depth for "+ bamFile + ", bin "
 													+ markerSet.getMarkerNames()[i];
 				proj.getLog().reportTimeWarning(warning);
 				throw new IllegalArgumentException(warning);
@@ -198,7 +198,7 @@ public class BamSample {
 
 				if (!Numbers.isFinite(scaleMAD[index])) {// should only happen if the MAD is NaN
 					if (!error) {
-						String warning = "Found invalid scale MAD depth for "	+ bamFile + ", bin "
+						String warning = "Found invalid scale MAD depth for "+ bamFile + ", bin "
 															+ markerSet.getMarkerNames()[chrIndices[i][j]];
 						warning += "Setting all of chr" + i + " to 0";
 						warning += "This is usually caused by having zero passing reads for chr " + i;
@@ -217,7 +217,7 @@ public class BamSample {
 		normDepth = Array.scaleMinTo(Array.toDoubleArray(scaleMAD), 1);
 		for (int j = 0; j < normDepth.length; j++) {
 			if (Double.isNaN(normDepth[j])) {
-				String error = "Found invalid normalized depth for "	+ bamFile + ", bin "
+				String error = "Found invalid normalized depth for "+ bamFile + ", bin "
 												+ markerSet.getMarkerNames()[j];
 				proj.getLog().reportTimeError(error);
 				if (markerSet.getMarkerNames()[j].contains(NGS_MARKER_TYPE.OFF_TARGET.getFlag())) {
