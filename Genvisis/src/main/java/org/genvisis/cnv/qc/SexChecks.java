@@ -480,92 +480,88 @@ public class SexChecks {
 																										DISPLAY_MODE.GUI_AND_CONSOLE);
 
 		for (int i = 0; i < sampleNames.length; i++) {
-			if (qcPassedSamples[i]) {
-				boolean male = false;
-				boolean female = false;
-				if (lrrMedY[i] > maleFloorY) {
+			boolean male = false;
+			boolean female = false;
+			if (lrrMedY[i] > maleFloorY) {
+				male = true;
+			} else if (lrrMedY[i] < femaleCeilingY) {
+				female = true;
+			} else {
+				uncertains[i] = true;
+				notes[i] += "Median Y LRR ("	+ ext.formDeci(lrrMedY[i], 4)
+				+ ") is outside of both male and female acceptance intervals; ";
+				if (seedMales[i]) {
 					male = true;
-				} else if (lrrMedY[i] < femaleCeilingY) {
+				} else if (seedFemales[i]) {
 					female = true;
-				} else {
+				}
+			}
+
+			if (male) {
+				if (seedFemales[i]) {
 					uncertains[i] = true;
-					notes[i] += "Median Y LRR ("	+ ext.formDeci(lrrMedY[i], 4)
-											+ ") is outside of both male and female acceptance intervals; ";
-					if (seedMales[i]) {
-						male = true;
-					} else if (seedFemales[i]) {
-						female = true;
+					notes[i] += "Ratio of Median X e^LRR to Median Y e^LRR ("
+							+ ext.formDeci(elrrMedY[i] / elrrMedX[i], 4) + ") indicated female; ";
+				} else if (!seedMales[i]) {
+					notes[i] += "Ratio of Median X e^LRR to Median Y e^LRR ("
+							+ ext.formDeci(elrrMedY[i] / elrrMedX[i], 4) + ") outlier; ";
+				}
+				if (pctXHets[i] > (maleMeanPctXHets + NUM_SD_FOR_HET_OUTLIERS * maleStdDevPctXHets)
+						&& lrrMedX[i] > (maleMeanX + NUM_SD_FOR_MALE_X_OUTLIERS * maleStdDevX)) {
+					if (lrrMedX[i] < (maleMeanX + NUM_SD_FOR_MALE_X_FULL_ANEUPLOIDY * maleStdDevX)) {
+						uncertains[i] = true;
+						notes[i] += "Median X LRR ("	+ ext.formDeci(lrrMedX[i], 4)
+						+ ") not elevated enough to call Klinefelter without X heterozygosity ("
+						+ ext.formPercent(pctXHets[i], 4) + "); ";
 					}
+					if (checkXMosaicism(i, mosaicismCheckUse)) {
+						sexes[i] = 5; // Mosaic Klinefelter
+					} else {
+						sexes[i] = 3; // Full Klinefelter
+					}
+				} else if (lrrMedX[i] > (maleMeanX + NUM_SD_FOR_MALE_X_FULL_ANEUPLOIDY * maleStdDevX)) {
+					sexes[i] = 4; // UPD Klinefelter
+				} else {
+					if (pctXHets[i] > (maleMeanPctXHets + NUM_SD_FOR_HET_OUTLIERS * maleStdDevPctXHets)) {
+						uncertains[i] = true;
+						notes[i] += "X heterozygosity ("	+ ext.formPercent(pctXHets[i], 4)
+						+ ") suggests Klinefelter but Median X LRR ("
+						+ ext.formDeci(lrrMedX[i], 4) + ") is not elevated; ";
+					}
+					sexes[i] = 1; // Male
+				}
+			} else if (female) {
+				if (seedMales[i]) {
+					uncertains[i] = true;
+					notes[i] += "Ratio of Median X e^LRR to Median Y e^LRR ("
+							+ ext.formDeci(elrrMedY[i] / elrrMedX[i], 4) + ") indicated male; ";
+				} else if (!seedFemales[i]) {
+					notes[i] += "Ratio of Median X e^LRR to Median Y e^LRR ("
+							+ ext.formDeci(elrrMedY[i] / elrrMedX[i], 4) + ") outlier; ";
 				}
 
-				if (male) {
-					if (seedFemales[i]) {
-						uncertains[i] = true;
-						notes[i] += "Ratio of Median X e^LRR to Median Y e^LRR ("
-												+ ext.formDeci(elrrMedY[i] / elrrMedX[i], 4) + ") indicated female; ";
-					} else if (!seedMales[i]) {
-						notes[i] += "Ratio of Median X e^LRR to Median Y e^LRR ("
-												+ ext.formDeci(elrrMedY[i] / elrrMedX[i], 4) + ") outlier; ";
-					}
-					if (pctXHets[i] > (maleMeanPctXHets + NUM_SD_FOR_HET_OUTLIERS * maleStdDevPctXHets)
-							&& lrrMedX[i] > (maleMeanX + NUM_SD_FOR_MALE_X_OUTLIERS * maleStdDevX)) {
-						if (lrrMedX[i] < (maleMeanX + NUM_SD_FOR_MALE_X_FULL_ANEUPLOIDY * maleStdDevX)) {
-							uncertains[i] = true;
-							notes[i] += "Median X LRR ("	+ ext.formDeci(lrrMedX[i], 4)
-													+ ") not elevated enough to call Klinefelter without X heterozygosity ("
-													+ ext.formPercent(pctXHets[i], 4) + "); ";
-						}
-						if (checkXMosaicism(i, mosaicismCheckUse)) {
-							sexes[i] = 5; // Mosaic Klinefelter
-						} else {
-							sexes[i] = 3; // Full Klinefelter
-						}
-					} else if (lrrMedX[i] > (maleMeanX + NUM_SD_FOR_MALE_X_FULL_ANEUPLOIDY * maleStdDevX)) {
-						sexes[i] = 4; // UPD Klinefelter
+				if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX)
+						&& checkXMosaicism(i, mosaicismCheckUse)) {
+					if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX)) {
+						sexes[i] = 6; // Full Triple X
 					} else {
-						if (pctXHets[i] > (maleMeanPctXHets + NUM_SD_FOR_HET_OUTLIERS * maleStdDevPctXHets)) {
-							uncertains[i] = true;
-							notes[i] += "X heterozygosity ("	+ ext.formPercent(pctXHets[i], 4)
-													+ ") suggests Klinefelter but Median X LRR ("
-													+ ext.formDeci(lrrMedX[i], 4) + ") is not elevated; ";
-						}
-						sexes[i] = 1; // Male
+						sexes[i] = 7; // Mosaic Triple X
 					}
-				} else if (female) {
-					if (seedMales[i]) {
-						uncertains[i] = true;
-						notes[i] += "Ratio of Median X e^LRR to Median Y e^LRR ("
-												+ ext.formDeci(elrrMedY[i] / elrrMedX[i], 4) + ") indicated male; ";
-					} else if (!seedFemales[i]) {
-						notes[i] += "Ratio of Median X e^LRR to Median Y e^LRR ("
-												+ ext.formDeci(elrrMedY[i] / elrrMedX[i], 4) + ") outlier; ";
-					}
-
-					if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX)
-							&& checkXMosaicism(i, mosaicismCheckUse)) {
-						if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX)) {
-							sexes[i] = 6; // Full Triple X
-						} else {
-							sexes[i] = 7; // Mosaic Triple X
-						}
-					} else if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX)
-											&& checkXMosaicism(i, mosaicismCheckUse)) {
-						if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX)
-								&& pctXBaf15_85[i] < (femaleMeanPctXBaf15_85
-																			- NUM_SD_FOR_HET_OUTLIERS * femaleStdDevPctXBaf15_85)) {
-							sexes[i] = 8; // Full Turner
-						} else {
-							sexes[i] = 9; // Mosaic Turner
-						}
+				} else if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX)
+						&& checkXMosaicism(i, mosaicismCheckUse)) {
+					if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX)
+							&& pctXBaf15_85[i] < (femaleMeanPctXBaf15_85
+									- NUM_SD_FOR_HET_OUTLIERS * femaleStdDevPctXBaf15_85)) {
+						sexes[i] = 8; // Full Turner
 					} else {
-						sexes[i] = 2; // Female
+						sexes[i] = 9; // Mosaic Turner
 					}
 				} else {
-					sexes[i] = 0; // Missing
-					uncertains[i] = true;
+					sexes[i] = 2; // Female
 				}
 			} else {
-				sexes[i] = 0;
+				sexes[i] = 0; // Missing
+				uncertains[i] = true;
 			}
 			proj.getProgressMonitor().updateTask(taskName);
 		}
