@@ -693,6 +693,12 @@ public class SampleData {
 		return plinkClasses;
 	}
 
+	/**
+	 * Get all lookup indices from any single index.
+	 *
+	 * @param str One identifying key (DNA, FID\tIID, or IID)
+	 * @return Array of all identifiers {DNA, FID\tIID, IID}
+	 */
 	public String[] lookup(String str) {
 		return lookup.get(str.toLowerCase());
 	}
