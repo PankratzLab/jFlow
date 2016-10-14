@@ -53,6 +53,7 @@ import javax.swing.UIManager;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.DeNovoCNV;
 import org.genvisis.cnv.analysis.Mosaicism;
+import org.genvisis.cnv.analysis.pca.PCMatrix;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsCrossTabs;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsManhattan;
 import org.genvisis.cnv.filesys.ABLookup;
@@ -79,6 +80,7 @@ import org.genvisis.cnv.plots.TwoDPlot;
 import org.genvisis.cnv.qc.MarkerBlastQC;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
+import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.CurrentManifest;
@@ -568,7 +570,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 					// Create "principal components" submenu
 					menuItem = new JMenu(entry);
 					for (String pcSubMenuOption : new String[] {PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI,
-																											PrincipalComponentsCrossTabs.PRINCIPAL_CROSSTABS_MI}) {
+																											PrincipalComponentsCrossTabs.PRINCIPAL_CROSSTABS_MI,
+																											PCMatrix.MENU_ENTRY}) {
 						JMenuItem pcSubItem = new JMenuItem(pcSubMenuOption);
 						pcSubItem.addActionListener(this);
 						menuItem.add(pcSubItem);
@@ -1027,6 +1030,22 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 						PrincipalComponentsCrossTabs.guiAccess(proj, null);
 					}
 				});
+			} else if (command.equals(PCMatrix.MENU_ENTRY)) {
+				String[] list = proj.getSampleData(SampleData.BASIC_CLASSES.length, false).getMetaHeaders();
+				JComboBox jcb = new JComboBox(list);
+				jcb.setEditable(false);
+				int selectColumn = JOptionPane.showConfirmDialog(	null, jcb, "Select a column of interest",
+																													JOptionPane.OK_CANCEL_OPTION);
+
+				if (JOptionPane.OK_OPTION == selectColumn) {
+					final String column = (String) jcb.getSelectedItem();
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							PCMatrix.createMatrix(proj, column);
+						}
+					});
+				}
 			} else if (command.equals(GENERATE_DEMO_PACKAGE)) {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
