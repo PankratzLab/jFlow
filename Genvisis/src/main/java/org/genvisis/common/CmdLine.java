@@ -406,6 +406,14 @@ public class CmdLine {
 	public static boolean runDefaults(String command, String dir, Logger log) {
 		return run(command, dir, System.out, System.err, log, false);
 	}
+	
+	public static boolean runDefaults(Collection<String> command, String dir) {
+		return run(command, dir, System.out, System.err, null, false);
+	}
+
+	public static boolean runDefaults(Collection<String> command, String dir, Logger log) {
+		return run(command, dir, System.out, System.err, log, false);
+	}
 
 
 
