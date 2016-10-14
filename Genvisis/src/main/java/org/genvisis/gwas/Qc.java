@@ -183,12 +183,20 @@ public class Qc {
 	}
 
 	// TODO CAUTION, MAKE SURE ALL CHANGES TO fullGamut ARE ALSO CHANGED IN exportFullGamut
-	public static void fullGamut(	String dir, String plinkPrefix,
-																boolean keepGenomeInfoForRelatedsOnly, Logger log) {
-		long time;
+	/**
+	 * 
+	 * @param dir Directory with plink files to run from
+	 * @param plinkPrefix prefix of plink binaries
+	 * @param keepGenomeInfoForRelatedsOnly true to save disk usage if unrelated genome info is not required
+	 * @param log
+	 * @return full path to plinkroot of QC'd plink dataset
+	 */
+	public static String fullGamut(String dir, String plinkPrefix,
+	                               boolean keepGenomeInfoForRelatedsOnly, Logger log) {
+		long time = new Date().getTime();
 
-		time = new Date().getTime();
-
+		String qcPlinkroot = null;
+		
 		dir = ext.verifyDirFormat(dir) + "quality_control/";
 		if (!dir.startsWith("/") && !dir.contains(":")) {
 			dir = ext.verifyDirFormat((new File("./" + dir)).getAbsolutePath());
@@ -204,7 +212,7 @@ public class Qc {
 		}
 		if (!Files.exists(dir + "marker_qc/" + plink + ".bed")) {
 			System.err.println("Error - CRITICAL ERROR, creating initial PLINK files failed.");
-			return;
+			return qcPlinkroot;
 		}
 		if (!Files.exists(dir + "marker_qc/" + plink + "_geno20.bed")) {
 			log.report(ext.getTime() + "]\tRunning --geno 0.2");
@@ -312,7 +320,8 @@ public class Qc {
 		PSF.checkInterrupted();
 
 		new File(dir + "ld_pruning/").mkdirs();
-		if (!Files.exists(dir + "ld_pruning/" + plink + ".bed")) {
+		qcPlinkroot = dir + "ld_pruning/" + plink;
+		if (!Files.exists(qcPlinkroot + ".bed")) {
 			log.report(ext.getTime()
 									+ "]\tRunning --mind 0.05 (removes samples with callrate <95% for the markers that did pass QC)");
 			CmdLine.runDefaults("plink2 --bfile ../sample_qc/"	+ plink
@@ -379,6 +388,7 @@ public class Qc {
 
 
 		System.out.println("Finished this round in " + ext.getTimeElapsed(time));
+		return qcPlinkroot;
 	}
 
 	public static void fromParameters(String filename, Logger log) {
