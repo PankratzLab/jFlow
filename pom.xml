@@ -119,6 +119,9 @@
 		<!-- Commons-logging -->
 		<commons-logging.version>1.1.1</commons-logging.version>
 
+		<!-- Commons-math -->
+		<commons-math.version>3.6.1</commons-math.version>
+
 		<!-- Snappy-java -->
 		<snappy-java.version>1.1.2.6</snappy-java.version>
 
@@ -309,6 +312,13 @@
 				<groupId>commons-logging</groupId>
 				<artifactId>commons-logging</artifactId>
 				<version>${commons-logging.version}</version>
+			</dependency>
+
+			<!-- Commons-math -->
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-math3</artifactId>
+				<version>${commons-math.version}</version>
 			</dependency>
 
 			<!-- Snappy-Java -->
