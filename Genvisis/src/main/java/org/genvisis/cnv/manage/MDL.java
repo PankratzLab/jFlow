@@ -44,6 +44,15 @@ public class MDL implements Iterator<MarkerData> {
 	 * @param proj
 	 * @param markerSet if null, will be loaded
 	 * @param markerNames them to load
+	 */
+	public MDL(Project proj, MarkerSet markerSet, String[] markerNames) {
+		this(proj, markerSet, markerNames, 2, 100);
+	}
+	
+	/**
+	 * @param proj
+	 * @param markerSet if null, will be loaded
+	 * @param markerNames them to load
 	 * @param numDecompressThreads number of threads used to decompress the marker
 	 * @param markerBuffer number of markers to hold in the queue for processing
 	 */
