@@ -2277,6 +2277,19 @@ public class Files {
 	/**
 	 * Searches all of the directories in the array to see if it contains the specified file
 	 *
+	 * @param filename the filename to search for
+	 * @param dirs the array of directories to search
+
+	 * @return String the full path to the file of interest if it exists in one of the directories,
+	 *         otherwise null
+	 */
+	public static String firstPathToFileThatExists(String filename, String... dirs) {
+		return firstPathToFileThatExists(dirs, filename, false, false, new Logger());
+	}
+	
+	/**
+	 * Searches all of the directories in the array to see if it contains the specified file
+	 *
 	 * @param dirs the array of directories to search
 	 * @param filename the filename to search for
 	 * @param verbose whether to report an error if none of the locations exists or if none of the
