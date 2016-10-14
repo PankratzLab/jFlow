@@ -8,7 +8,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -51,7 +53,83 @@ public final class Resources {
 		 * @return A resource for the MiniMac3 app
 		 */
 		public Resource getMiniMac3() {
-			return getTarGzResource("Minimac3.v1.0.14.tar.gz");
+			return getTarGzResource(localPath() + "Minimac3", remotePath() + "Minimac3.v1.0.14.tar.gz");
+		}
+	}
+
+	/**
+	 * Helper method for chaining resource calls
+	 */
+	public static Eigenstrat eigenstrat(Logger log) {
+		return new Eigenstrat(log);
+	}
+
+	/**
+	 * Eigenstrat resource container
+	 */
+	public static class Eigenstrat extends AbstractResourceFactory {
+		public Eigenstrat(Logger log) {
+			super(BIN_DIR + "/Eigenstrat", log, Eigenstrat.class);
+		}
+
+		/**
+		 * @return A resource for the Eigenstrat program
+		 */
+		public Resource getEigenstrat() {
+			return getTarGzResource("eigenstrat");
+		}
+
+		/**
+		 * @return A resource for the EigenstratQTL program
+		 */
+		public Resource getEigenstratQTL() {
+			return getTarGzResource("eigenstratQTL");
+		}
+	}
+
+	/**
+	 * Helper method for chaining resource calls
+	 */
+	public static Convertf convertf(Logger log) {
+		return new Convertf(log);
+	}
+
+	/**
+	 * Convertf resource container
+	 */
+	public static class Convertf extends AbstractResourceFactory {
+		public Convertf(Logger log) {
+			super(BIN_DIR + "/Convertf", log, Convertf.class);
+		}
+
+		/**
+		 * @return A resource for the convertf app
+		 */
+		public Resource getConvertf() {
+			return getTarGzResource("convertf");
+		}
+	}
+
+	/**
+	 * Helper method for chaining resource calls
+	 */
+	public static Smartpca smartpca(Logger log) {
+		return new Smartpca(log);
+	}
+
+	/**
+	 * Smartpca resource container
+	 */
+	public static class Smartpca extends AbstractResourceFactory {
+		public Smartpca(Logger log) {
+			super(BIN_DIR + "/Smartpca", log, Smartpca.class);
+		}
+
+		/**
+		 * @return A resource for the MiniMac3 app
+		 */
+		public Resource getSmartpca() {
+			return getTarGzResource("smartpca");
 		}
 	}
 
@@ -67,9 +145,8 @@ public final class Resources {
 	 */
 	public static class Shapeit extends AbstractResourceFactory {
 		public Shapeit(Logger log) {
-			super(DEFAULT_LOCAL_DIR	+ BIN_DIR + File.separator + "shapeit" + File.separator
-						+ "shapeit.tar.gz",
-						"https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz",
+			super(DEFAULT_LOCAL_DIR + BIN_DIR + "/shapeit" + File.separator,
+						"",
 						log, Shapeit.class);
 		}
 
@@ -77,7 +154,7 @@ public final class Resources {
 		 * @return A resource for the shapeit app
 		 */
 		public Resource getShapeit() {
-			return getResource("");
+			return getTarGzResource(localPath() + "bin/shapeit", "https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz");
 		}
 	}
 
@@ -443,20 +520,40 @@ public final class Resources {
 			return resources;
 		}
 
+		protected String localPath() {
+			return localPath;
+		}
+
+		protected String remotePath() {
+			return remotePath;
+		}
+
 		protected Logger log() {
 			return log;
 		}
 
 		protected Resource getTarGzResource(String rsrc) {
-			return new TarGzResource(rsrc, localPath, remotePath, log);
+			return getTarGzResource(localPath() + rsrc, remotePath() + rsrc + ".tar.gz");
+		}
+
+		protected Resource getTarGzResource(String unzippedPath, String remotePath) {
+			return new TarGzResource(unzippedPath, localPath(), remotePath, log);
 		}
 
 		protected Resource getVCFResource(String rsrc) {
-			return new VCFResource(rsrc, localPath, remotePath, log);
+			return getVCFResource(localPath + rsrc, remotePath + rsrc);
+		}
+
+		protected Resource getVCFResource(String localPath, String remotePath) {
+			return new VCFResource(localPath, remotePath, log);
 		}
 
 		protected Resource getResource(String rsrc) {
-			return new DefaultResource(rsrc, localPath, remotePath, log);
+			return getResource(localPath + rsrc, remotePath + rsrc);
+		}
+
+		protected Resource getResource(String localPath, String remotePath) {
+			return new DefaultResource(localPath, remotePath, log);
 		}
 	}
 
@@ -469,18 +566,18 @@ public final class Resources {
 	}
 
 	/**
-	 * Resource that may be .tar.gz compressed
+	 * Resource that is .tar.gz compressed
 	 */
 	public static class TarGzResource extends AbstractResource {
-		private String unzippedDir;
 		private final String unzippedPath;
 
-		public TarGzResource(String resourceName, String path, String url, Logger log) {
-			super(resourceName, path, url, log);
-			unzippedDir = resourceName.substring(0, resourceName.lastIndexOf(	".tar.gz",
-																																				resourceName.length()));
-			unzippedDir += File.separator;
-			unzippedPath = path + unzippedDir;
+		/**
+		 * @param path Local path to unzipped indicator file
+		 * @param url Remote tar.gz path
+		 */
+		public TarGzResource(String unzippedPath, String extractionDir, String url, Logger log) {
+			super(extractionDir + new File(url).getName(), url, log);
+			this.unzippedPath = unzippedPath;
 		}
 
 		@Override
@@ -491,13 +588,13 @@ public final class Resources {
 
 			String path = super.get();
 			if (path != null) {
-				return extractTarGz(path, unzippedPath);
+				return extractTarGz(path);
 			}
 
 			return null;
 		}
 
-		private String extractTarGz(String targzPath, String destination) {
+		private String extractTarGz(String targzPath) {
 			final int BUFFER = 2048;
 
 			try {
@@ -507,40 +604,52 @@ public final class Resources {
 				TarArchiveInputStream tarIn = new TarArchiveInputStream(gzIn);
 
 				TarArchiveEntry entry = null;
+				String destination = new File(targzPath).getParent() + File.separator;
 
 				/** Read the tar entries using the getNextEntry method **/
+				Set<TarArchiveEntry> dirs = new HashSet<TarArchiveEntry>();
+				Set<TarArchiveEntry> files = new HashSet<TarArchiveEntry>();
 
 				while ((entry = (TarArchiveEntry) tarIn.getNextEntry()) != null) {
+					// Sort out the directories and files. Ensure the directories are all created first.
+					if (entry.isDirectory()) {
+						dirs.add(entry);
+					}
+					else {
+						files.add(entry);
+					}
+				}
 
 					/** If the entry is a directory, create the directory. **/
-
-					if (entry.isDirectory()) {
-
-						File f = new File(destination + entry.getName());
+				for (TarArchiveEntry e : dirs) {
+						File f = new File(destination + e.getName());
 						f.mkdirs();
-					}
+				}
+
 					/**
 					 * If the entry is a file,write the decompressed file to the disk and close destination
 					 * stream.
 					 **/
-					else {
+				for (TarArchiveEntry e : files) {
 						int count;
 						byte[] data = new byte[BUFFER];
+						String fileName = destination + e.getName();
+						File f = new File(fileName).getParentFile();
+						f.mkdirs();
 
-						FileOutputStream fos = new FileOutputStream(destination + entry.getName());
+						FileOutputStream fos = new FileOutputStream(fileName);
 						BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER);
 
 						while ((count = tarIn.read(data, 0, BUFFER)) != -1) {
 							dest.write(data, 0, count);
 						}
 						dest.close();
-					}
 				}
 
 				/** Close the input stream **/
 				tarIn.close();
 				new File(targzPath).delete();
-				return destination;
+				return unzippedPath;
 			} catch (Exception e) {
 				log().reportError("Failed to extract: " + targzPath);
 				log().reportException(e);
@@ -553,18 +662,18 @@ public final class Resources {
 	 * VCF resource with an accompanying index file
 	 */
 	public static class VCFResource extends AbstractResource {
-		public VCFResource(String resourceName, String path, String url, Logger log) {
-			super(resourceName, path, url, log);
+		private Resource index;
+
+		public VCFResource(String path, String url, Logger log) {
+			super(path, url, log);
+			index = new DefaultResource(VCFOps.getIndex(path), VCFOps.getIndex(url), log);
 		}
 
 		@Override
 		public String get() {
 			String path = super.get();
-			if (path != null) {
-				String indexPath = VCFOps.getIndex(getName());
-				if (get(indexPath) == null) {
-					log().reportError("Warning: no index found for vcf file: " + path);
-				}
+			if (path != null && index.get() == null) {
+				log().reportError("Warning: no index found for vcf file: " + path);
 			}
 			return path;
 		}
@@ -574,8 +683,8 @@ public final class Resources {
 	 * Basic resource class
 	 */
 	public static class DefaultResource extends AbstractResource {
-		public DefaultResource(String resourceName, String path, String url, Logger log) {
-			super(resourceName, path, url, log);
+		public DefaultResource(String path, String url, Logger log) {
+			super(path, url, log);
 		}
 	}
 
@@ -596,11 +705,11 @@ public final class Resources {
 		 * @param subPath The path of the resource within local path and url
 		 * @param url Typically {@link Resources#DEFAULT_URL}
 		 */
-		public AbstractResource(String resourceName, String path, String url, Logger log) {
+		public AbstractResource(String path, String url, Logger log) {
 			localPath = path;
 			remotePath = url;
 			this.log = log;
-			rsrc = resourceName;
+			rsrc = new File(path).getName();
 		}
 
 		public String getName() {
@@ -609,7 +718,7 @@ public final class Resources {
 
 		@Override
 		public String getLocalPath() {
-			return localPath + rsrc;
+			return localPath;
 		}
 
 		public Logger log() {
@@ -630,8 +739,8 @@ public final class Resources {
 					HttpDownloadUtility.downloadFile(url, downloadPath, true, log);
 					return true;
 				} catch (IOException e) {
-					log.reportTimeError("Could not retrieve resource from "	+ downloadPath + " and save it to"
-															+ localPath);
+					log.reportTimeError("Could not retrieve resource from "	+ url + " and save it to"
+															+ downloadPath);
 					log.reportException(e);
 				}
 			} else {
@@ -640,33 +749,26 @@ public final class Resources {
 			return false;
 		}
 
-		protected String get(String file) {
-			String path = localPath + file;
-			String url = remotePath + file;
-
-			if (isLocallyAvailable(path)) {
-				return path;
+		@Override
+		public String get() {
+			if (isLocallyAvailable(localPath)) {
+				return localPath;
 			}
-			log.report("Resource is not available at " + path + ", will attempt to download from " + url);
+			log.report("Resource is not available at " + localPath + ", will attempt to download from " + remotePath);
 
-			if (!downloadResource(url, path)) {
-				log.reportError("Download failed for: " + url);
-			} else if (!isLocallyAvailable(path)) {
-				log.reportError("Downloaded resource cannot be found at " + path);
+			if (!downloadResource(remotePath, localPath)) {
+				log.reportError("Download failed for: " + remotePath);
+			} else if (!isLocallyAvailable(localPath)) {
+				log.reportError("Downloaded resource cannot be found at " + localPath);
 			} else {
-				return path;
+				return localPath;
 			}
 			return null;
 		}
 
 		@Override
-		public String get() {
-			return get(rsrc);
-		}
-
-		@Override
 		public String getAbsolute() {
-			return new File(get(rsrc)).getAbsolutePath();
+			return new File(get()).getAbsolutePath();
 		}
 
 		@Override
@@ -676,13 +778,13 @@ public final class Resources {
 
 		@Override
 		public boolean isAvailable(boolean showHint) {
-			boolean isAvailable = isLocallyAvailable(localPath + rsrc)
-														|| isRemotelyAvailable(remotePath + rsrc);
+			boolean isAvailable = isLocallyAvailable(localPath)
+														|| isRemotelyAvailable(remotePath);
 
 			if (!isAvailable) {
-				log.reportTimeError("Could not find local file "	+ getLocalPath()
-														+ " and could not download it from " + remotePath + rsrc
-														+ " please manually download and save to " + getLocalPath());
+				log.reportTimeError("Could not find local file "	+ localPath
+														+ " and could not download it from " + remotePath
+														+ " please manually download and save to " + localPath);
 			}
 
 			return isAvailable;

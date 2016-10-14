@@ -42,6 +42,9 @@ public class TestResources {
 	private static void testBinaries(Logger log) {
 		test(Resources.miniMac(log).getResources());
 		test(Resources.shapeit(log).getResources());
+		test(Resources.eigenstrat(log).getResources());
+		test(Resources.convertf(log).getResources());
+		test(Resources.smartpca(log).getResources());
 	}
 
 	/**
