@@ -514,6 +514,7 @@ public class Project implements PropertyChangeListener {
 	private HashSet<String> cnvFilesLoadedInSampleData;
 	private HashMap<String, SourceFileHeaderData> sourceFileHeaders;
 	private MarkerLookup markerLookup;
+	private MarkerSet markerSet;
 	private Logger log;
 	private boolean gui;
 	private ProgressMonitor progressMonitor;
@@ -786,8 +787,15 @@ public class Project implements PropertyChangeListener {
 	public void setPropertyFilename(String projectPropertiesFilename) {
 		this.projectPropertiesFilename = projectPropertiesFilename;
 	}
-
+	
 	public MarkerSet getMarkerSet() {
+		if (markerSet == null) {
+			markerSet = loadMarkerSet();
+		}
+		return markerSet;
+	}
+
+	private MarkerSet loadMarkerSet() {
 		if (Files.exists(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue())) {
 			return MarkerSet.load(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue());
 		} else {
