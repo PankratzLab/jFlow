@@ -315,6 +315,16 @@ public class HashVec {
 													Files.determineDelimiter(filename, new Logger()));
 	}
 
+	/**
+	 * @param filename
+	 * @param ignoreFirstLine
+	 * @param cols
+	 * @param trimFirst
+	 * @param onlyIfAbsent If true, the resulting vector will only contain unique values in the specified columns.
+	 * @param jar
+	 * @param delimiter
+	 * @return
+	 */
 	public static Vector<String> loadFileToVec(	String filename, boolean ignoreFirstLine, int[] cols,
 																							boolean trimFirst, boolean onlyIfAbsent, boolean jar,
 																							String delimiter) {
