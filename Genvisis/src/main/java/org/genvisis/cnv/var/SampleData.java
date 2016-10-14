@@ -12,9 +12,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import javax.swing.SwingUtilities;
@@ -162,6 +166,8 @@ public class SampleData {
 	private String[] filters;
 	private String[] covars;
 	private String[] classes;
+	private String[] metaHeaders;
+	private Map<String, Integer> metaIndices;
 	private String[][][] classColorKeys;
 	private String[] cnvClasses;
 	private String[] plinkClasses;
@@ -276,15 +282,28 @@ public class SampleData {
 				indIndex = 2;
 				containsIID = false;
 			}
+			List<String> meta = new ArrayList<String>();
+			metaIndices = new HashMap<String, Integer>();
 			for (int i = 1; i < header.length; i++) {
-				if (header[i].toUpperCase().startsWith("FILTER=")) {
+				String label = header[i].toUpperCase();
+				if (label.startsWith("FILTER=")) {
 					filterIs.add(i);
-				} else if (header[i].toUpperCase().startsWith("CLASS=")) {
+				} else if (label.startsWith("CLASS=")) {
 					classIs.add(i);
-				} else if (header[i].toUpperCase().startsWith("COVAR=")) {
+				} else if (label.startsWith("COVAR=")) {
 					covarIs.add(i);
+				} else if (label.equals("DNA")	|| label.equals("FID") || label.equals("IID")
+										|| label.startsWith("XCLASS=")) {
+					// These columns are marked to be ignored
+				}
+				else {
+					meta.add(label);
+					metaIndices.put(label, i);
 				}
 			}
+			Collections.sort(meta);
+			metaHeaders = meta.toArray(new String[meta.size()]);
+
 			filters = new String[filterIs.size()];
 			for (int i = 0; i < filters.length; i++) {
 				filters[i] = header[filterIs.elementAt(i)].split("=")[1];
@@ -623,6 +642,21 @@ public class SampleData {
 
 	public String[] getBasicClasses() {
 		return basicClasses;
+	}
+
+	/**
+	 * @return A list of the column headers that were not individual identifiers or coloration classes.
+	 */
+	public String[] getMetaHeaders() {
+		return metaHeaders;
+	}
+
+	/**
+	 * @param header column of interest from {@link #getMetaHeaders()}
+	 * @return index of that column in the sample data
+	 */
+	public int getMetaIndex(String header) {
+		return metaIndices.get(header);
 	}
 
 	public String[] getClasses(boolean includeBasicClasses) {
