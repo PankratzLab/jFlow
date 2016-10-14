@@ -1,6 +1,7 @@
 package org.genvisis.cnv.filesys;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -27,11 +28,17 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.seq.manage.StrandOps;
 
+import com.google.common.base.Joiner;
+
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
 
 public class ABLookup {
 	public static final String DEFAULT_AB_FILE = "AB_lookup.dat";
+	public static final String MARKER_LABEL = "Marker";
+	public static final String A_LABEL = "A";
+	public static final String B_LABEL = "B";
+	public static final String[] AB_LOOKUP_COLS = new String[] {MARKER_LABEL, A_LABEL, B_LABEL};
 
 	public static final String ARGS_PROJ = "proj";
 	public static final String ARGS_OUT = "out";
@@ -92,7 +99,7 @@ public class ABLookup {
 			}
 		}
 		if (count > 0) {
-			log.reportError("Warning - there "	+ (count > 1 ? "were " : "was only ") + count + " marker"
+			log.reportError("Warning - there "	+ (count > 1 ? "were " : "was ") + count + " marker"
 											+ (count > 1 ? "s" : "") + " without an AB value");
 		}
 		if (allOrNothing && count > 0) {
@@ -552,10 +559,10 @@ public class ABLookup {
 
 	public void writeToFile(String outfile, Logger log) {
 		PrintWriter writer;
-
+		new File(ext.parseDirectoryOfFile(outfile)).mkdirs();
 		try {
 			writer = new PrintWriter(new FileWriter(outfile));
-			writer.println("Marker\tA\tB");
+			writer.println(Joiner.on("\t").join(AB_LOOKUP_COLS));
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(markerNames[i] + "\t" + lookup[i][0] + "\t" + lookup[i][1]);
 			}
@@ -692,12 +699,21 @@ public class ABLookup {
 				first = 4;
 				second = 5;
 			} else {
-				markerIndex = 0;
-				first = 1;
-				second = 2;
+				
 				line = reader.readLine().trim().split("[\\s]+");
-				ext.checkHeader(line, new String[] {"Marker", "A", "B"}, new int[] {0, 1, 2}, false, log,
-												true);
+				int[] colIndices = ext.indexFactors(AB_LOOKUP_COLS, line, false, log, true, false);
+
+				markerIndex = colIndices[0];
+				first = colIndices[1];
+				second = colIndices[2];
+				if (markerIndex == -1 || first == -1 || second == -1) {
+					log.reportTimeError(incompleteABlookupFilename +  " does not contain required columns: " + 
+															Joiner.on("\t").join(AB_LOOKUP_COLS));
+					reader.close();
+					writer.close();
+					return false;
+				}
+				
 				writer.println(Array.toStr(line));
 			}
 			while (reader.ready()) {
