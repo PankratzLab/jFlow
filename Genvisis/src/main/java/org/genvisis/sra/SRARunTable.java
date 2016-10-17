@@ -15,8 +15,8 @@ import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.SeqVariables.PLATFORM;
 
 /**
- * Class for managing SRA runtables - which can be used to obtain extra information from samples
- * downloaded from the short read archive
+ * Class for managing SRA runtables - which can be used to obtain extra
+ * information from samples downloaded from the short read archive
  *
  */
 public class SRARunTable extends HashMap<String, SRASample> {
@@ -33,7 +33,8 @@ public class SRARunTable extends HashMap<String, SRASample> {
 	private static final String RUN_S = "Run_s";
 
 	/**
-	 * The study ID upon submission to the SRA, useful to matching up to other data
+	 * The study ID upon submission to the SRA, useful to matching up to other
+	 * data
 	 */
 	private static final String SUBMITTED_SAMPLE_ID_S = "submitted_sample_id_s";
 
@@ -58,21 +59,21 @@ public class SRARunTable extends HashMap<String, SRASample> {
 	}
 
 	/**
-	 * @param sraTable load this run table
+	 * @param sraTable
+	 *            load this run table
 	 * @param log
 	 * @return {@link SRARunTable} filled with {@link SRASample}
 	 */
-	public static SRARunTable load(String sraTable, Logger log) {
+	public static SRARunTable load(String sraTable, PLATFORM platformToLoad, Logger log) {
 		SRARunTable sraRunTable = new SRARunTable();
 
 		try {
-			String[] requiredHeader = new String[] {RUN_S, SUBMITTED_SAMPLE_ID_S, ASSAY_TYPE_S,
-																							ASSEMBLY_TYPE, PLATFORM_S};
+			String[] requiredHeader = new String[] { RUN_S, SUBMITTED_SAMPLE_ID_S, ASSAY_TYPE_S, ASSEMBLY_TYPE,
+					PLATFORM_S };
 
 			BufferedReader reader = Files.getAppropriateReader(sraTable);
 
-			int[] indices = ext.indexFactors(	requiredHeader, reader.readLine().trim().split("\t"), true,
-																				false);
+			int[] indices = ext.indexFactors(requiredHeader, reader.readLine().trim().split("\t"), true, false);
 			int numLoaded = 0;
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("\t");
@@ -84,7 +85,7 @@ public class SRARunTable extends HashMap<String, SRASample> {
 				ASSEMBLY_NAME name = ASSEMBLY_NAME.valueOf(parsed[3].toUpperCase());
 				PLATFORM platform = PLATFORM.valueOf(parsed[4]);
 
-				if (platform == PLATFORM.ILLUMINA) {
+				if (platform == platformToLoad) {
 					sraRunTable.put(runS, new SRASample(runS, submittedSampleID, name, aType, platform));
 					numLoaded++;
 				}
@@ -101,6 +102,7 @@ public class SRARunTable extends HashMap<String, SRASample> {
 		return sraRunTable;
 	}
 
-	public static void main(String[] args) {}
+	public static void main(String[] args) {
+	}
 
 }

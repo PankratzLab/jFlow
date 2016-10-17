@@ -338,7 +338,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 	public LocusSet<T> autosomal(boolean sort, Logger log) {
 		ArrayList<T> auto = new ArrayList<T>();
 		for (int i = 0; i < getLoci().length; i++) {
-			if (getLoci()[i].getChr() < 23) {
+			if (getLoci()[i].getChr() < 23 && getLoci()[i].getChr() > 0) {
 				auto.add(getLoci()[i]);
 			}
 		}
@@ -365,7 +365,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(filename));
 			for (T seg : loci) {
-				writer.println(Positions.getChromosomeUCSC(seg.getChr(), !numericChrs)	+ "\t"
+				writer.println(Positions.getChromosomeUCSC(seg.getChr(), !numericChrs)+ "\t"
 												+ seg.getStart() + "\t" + seg.getStop());
 			}
 			writer.close();

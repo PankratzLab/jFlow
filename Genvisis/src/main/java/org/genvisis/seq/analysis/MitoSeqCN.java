@@ -83,9 +83,9 @@ public class MitoSeqCN {
 			log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered()
 													+ " bp covered by reference bin regions");
 			if (!referenceGenome.hasContig(aName.getMitoContig())
-						|| !referenceGenome.hasContig(aName.getxContig())
+					|| !referenceGenome.hasContig(aName.getxContig())
 					|| !referenceGenome.hasContig(aName.getyContig())) {
-				throw new IllegalArgumentException("Required contig for "	+ aName + " is missing ( "
+				throw new IllegalArgumentException("Required contig for "+ aName + " is missing ( "
 																						+ aName.getMitoContig() + " ," + aName.getxContig()
 																						+ ", " + aName.getyContig() + " from "
 																						+ referenceGenomeFasta);
@@ -271,7 +271,7 @@ public class MitoSeqCN {
 						numOffTarget++;
 
 						if (numOffTarget % 1000000 == 0) {
-							log.reportTimeInfo("Processing normalization-reads for sample "	+ sample + " , found "
+							log.reportTimeInfo("Processing normalization-reads for sample "+ sample + " , found "
 																	+ numOffTarget);
 						}
 					}
@@ -340,7 +340,7 @@ public class MitoSeqCN {
 		int numthreads = 24;
 		String captureBed = "AgilentCaptureRegions.txt";
 
-		String usage = "\n"	+ "seq.analysis.mitoSeqCN requires 0-1 arguments\n"
+		String usage = "\n"+ "seq.analysis.mitoSeqCN requires 0-1 arguments\n"
 										+ "   (1) file of Bams (i.e. bams=" + fileOfBams + " (default))\n"
 										+ "   (2) output directory (i.e. outDir=" + outDir + " (default))\n"
 										+ "   (3) number of threads (i.e. "

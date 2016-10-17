@@ -96,7 +96,6 @@ public class BamOps {
 		return getDefaultReader(bamOrSam, stringency, new ArrayList<SamReaderFactory.Option>());
 	}
 
-
 	/**
 	 * @param bamFile bam file to extract un-alligned reads from
 	 * @param outputBam where the reads will be dumped
@@ -122,7 +121,6 @@ public class BamOps {
 		}
 		sAMFileWriter.close();
 	}
-
 
 	/**
 	 * @param bamFile the input bam file
@@ -198,7 +196,7 @@ public class BamOps {
 			if (referenceIndex < 0) {
 				referenceIndex = sFileHeader.getSequenceIndex(sequenceName + "T");// MT
 				if (referenceIndex < 0) {
-					log.reportError("Error - could not find "	+ sequenceName
+					log.reportError("Error - could not find "+ sequenceName
 													+ " in the sequence dictionary, halting");
 					return null;
 				}
@@ -270,7 +268,7 @@ public class BamOps {
 			String[] id = samReadGroupRecord.getId().split("_");
 			String[] tmpCodes = id[id.length - 3].split("-");
 			if (tmpCodes.length != 2) {
-				throw new IllegalArgumentException("Could not parse barcodes for RG "	+ samReadGroupRecord
+				throw new IllegalArgumentException("Could not parse barcodes for RG "+ samReadGroupRecord
 																						+ " in bam file " + bam);
 
 			} else {
@@ -363,8 +361,6 @@ public class BamOps {
 		return estimateReadSize(bamFile, NUM_READ_ESTIMATOR, log);
 	}
 
-
-
 	/**
 	 * @author Kitty Stores information regarding the insert size estimate
 	 */
@@ -372,7 +368,6 @@ public class BamOps {
 		private final double avgInsertSize;
 		private final double stDevInsertSize;
 		private final double mad;
-
 
 		/**
 		 * @param avgInsertSize
@@ -385,28 +380,20 @@ public class BamOps {
 			this.mad = mad;
 		}
 
-
-
 		public double getAvgInsertSize() {
 			return avgInsertSize;
 		}
-
-
 
 		public double getStDevInsertSize() {
 			return stDevInsertSize;
 		}
 
-
-
 		public double getMad() {
 			return mad;
 		}
 
-
-
 		public String getSummary() {
-			return "AvgInsertSize\t"	+ avgInsertSize + System.lineSeparator() + "StDevInsertSize\t"
+			return "AvgInsertSize\t"+ avgInsertSize + System.lineSeparator() + "StDevInsertSize\t"
 							+ stDevInsertSize + System.lineSeparator() + "mad\t" + mad;
 
 		}
@@ -416,8 +403,6 @@ public class BamOps {
 			return new InsertSizeEstimate(Double.parseDouble(data[0]), Double.parseDouble(data[1]),
 																		Double.parseDouble(data[2]));
 		}
-
-
 
 	}
 
@@ -438,7 +423,7 @@ public class BamOps {
 		int readsScanned = 0;
 		while (iterator.hasNext()) {
 			SAMRecord samRecord = iterator.next();
-			if (samRecord.getProperPairFlag()	&& !samRecord.getReadUnmappedFlag()
+			if (samRecord.getProperPairFlag()&& !samRecord.getReadUnmappedFlag()
 					&& samRecord.getCigar().getCigarElements().size() == 1) {
 				insertSizes.add((double) samRecord.getInferredInsertSize());
 				readsScanned++;
@@ -514,14 +499,25 @@ public class BamOps {
 	 * @return
 	 */
 	public static String getSampleName(String bamFile, Logger log) {
-		SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
-		String sample = reader.getFileHeader().getReadGroups().get(0).getSample();
 		try {
-			reader.close();
-		} catch (IOException e) {
-			log.reportException(e);
+			SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
+
+			String sample = reader.getFileHeader().getReadGroups().get(0).getSample();
+			try {
+				reader.close();
+				return sample;
+
+			} catch (IOException e) {
+				log.reportException(e);
+			}
+		} catch (IndexOutOfBoundsException indexOutOfBoundsException) {
+			log.reportException(indexOutOfBoundsException);
+			log.reportTimeWarning("Could not determine sample name for "+ bamFile
+														+ ", calling it root of bam");
+			return ext.rootOf(bamFile);
 		}
-		return sample;
+		return null;
+
 	}
 
 	private static class SampleNameExtractor implements Callable<SampleNameExtractor> {
@@ -615,14 +611,14 @@ public class BamOps {
 				log.reportTimeWarning("Did not find matching bam file for " + samples[i]);
 			} else {
 				if (matched.containsKey(samples[i])) {
-					throw new IllegalArgumentException("Multiple bam files matched sample "	+ samples[i]
+					throw new IllegalArgumentException("Multiple bam files matched sample "+ samples[i]
 																							+ ", perhaps because of variant sets?");
 				}
 				matched.put(samples[i], bamSamples.get(samples[i]));
 			}
 		}
 
-		log.reportTimeInfo("Found matching bam files for"	+ matched.size() + " of " + samples.length
+		log.reportTimeInfo("Found matching bam files for"+ matched.size() + " of " + samples.length
 												+ " samples");
 
 		return matched;
@@ -632,7 +628,6 @@ public class BamOps {
 	// TODO
 	public static void removeSegments(String inputBam, String outputBam, String bedFile, int buffer,
 																		Logger log) {
-
 
 	}
 

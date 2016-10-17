@@ -27,7 +27,7 @@ public class SeqVariables {
 															/**
 															* 
 															*/
-															NCBI36("NA", "NA", "NA", false),
+															NCBI36("chrM", "chrX", "chrY", true),
 															/**
 															* 
 															*/
@@ -55,7 +55,6 @@ public class SeqVariables {
 		public String getMitoContig() {
 			return mitoContig;
 		}
-
 
 		/**
 		 * @return whether to add "chr" for all contigs
