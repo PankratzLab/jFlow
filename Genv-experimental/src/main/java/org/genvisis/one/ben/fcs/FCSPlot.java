@@ -57,6 +57,7 @@ import org.genvisis.one.ben.fcs.gating.GateFileReader;
 import org.genvisis.one.ben.fcs.gating.GateFileWriter;
 import org.genvisis.one.ben.fcs.gating.GateTreePanel;
 import org.genvisis.one.ben.fcs.gating.GatingStrategy;
+import org.genvisis.one.ben.fcs.gating.Workbench;
 import org.genvisis.one.ben.fcs.sub.DataExportGUI;
 import org.xml.sax.SAXException;
 
@@ -82,9 +83,9 @@ public class FCSPlot extends JPanel
 	Logger log;
 
 	FCSDataLoader dataLoader;
-	private GatingStrategy gating = new GatingStrategy();
-	private NullGate rootGate = new NullGate();
-	private Gate parentGate = rootGate;
+	private Workbench workbench = new Workbench();
+	private String currentSampleID = null;
+	private Gate parentGate = null;
 
 	private volatile String xDataName;
 	private volatile String yDataName;
@@ -114,8 +115,8 @@ public class FCSPlot extends JPanel
 		synchronized (PROPS_SYNC) {
 			try {
 				Properties props = new Properties();
-				if (gating != null) {
-					props.setProperty(PROPKEY_GATEFILE, gating.getFile() == null ? "" : gating.getFile());
+				if (getGatingStrategy() != null) {
+					props.setProperty(PROPKEY_GATEFILE, getGatingStrategy().getFile() == null ? "" : getGatingStrategy().getFile());
 				}
 				ArrayList<String> files = fcsControls.getAddedFiles();
 				if (files.size() > 0) {
@@ -550,7 +551,7 @@ public class FCSPlot extends JPanel
 
 	public boolean[] getParentGating() {
 		boolean[] gating = null;
-		if (parentGate != null && !(parentGate instanceof NullGate)) {
+		if (parentGate != null) {
 			gating = parentGate.gate(dataLoader);
 		}
 		return gating;
@@ -562,7 +563,7 @@ public class FCSPlot extends JPanel
 			data = null;
 		} else {
 			data = dataLoader.getData(xAxis ? getXDataName() : getYDataName(), wait);
-			if (!backgating && parentGate != null && !(parentGate instanceof NullGate)) {
+			if (!backgating && parentGate != null) {
 				boolean[] gating = parentGate.gate(dataLoader);
 				data = Array.subArray(data, gating);
 			}
@@ -663,6 +664,14 @@ public class FCSPlot extends JPanel
 			return;
 		}
 
+		// TODO
+		boolean applyTemplate = false;
+		if (workbench.containsSampleFile(filename)) {
+		  currentSampleID = workbench.getSampleID(filename);
+		} else {
+		  currentSampleID = workbench.addNewSample(filename, applyTemplate);
+		}
+		
 		if (loadedData.containsKey(filename)) {
 			if (display) {
 				setData(loadedData.get(filename));
@@ -689,9 +698,11 @@ public class FCSPlot extends JPanel
 		}
 	}
 
+	// TODO REVAMP to load workspace or template
 	public void loadGatingFile(String gateFile) {
 		try {
-			setGating(GateFileReader.readGateFile(gateFile));
+		  this.workbench = GateFileReader.loadWorkspace(gateFile);
+//			setGating(GateFileReader.readGateFile(gateFile));
 			saveProps();
 		} catch (ParserConfigurationException e) {
 			log.reportException(e);
@@ -703,9 +714,8 @@ public class FCSPlot extends JPanel
 	}
 
 	public void saveGating() {
-		if (gating.getRootGates().size() == 0) {
-			JOptionPane.showMessageDialog(this, "Error - no gates found!", "Error!",
-																		JOptionPane.ERROR_MESSAGE);
+		if (getGatingStrategy().getRootGates().size() == 0) {
+			JOptionPane.showMessageDialog(this, "Error - no gates found!", "Error!", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		JFileChooser jfc = new JFileChooser();
@@ -722,25 +732,31 @@ public class FCSPlot extends JPanel
 																			JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			GateFileWriter.writeGating(gating, outputFile, log);
+			GateFileWriter.writeGating(getGatingStrategy(), outputFile, log);
 		}
 	}
 
 	public GatingStrategy getGatingStrategy() {
-		return gating;
+	  if (currentSampleID != null) {
+		return workbench.getSample(currentSampleID).getGating();
+	  } else {
+	    return new GatingStrategy();
+	  }
 	}
 
 	public void clearGating() {
-		gating = new GatingStrategy();
-		parentGate = rootGate = new NullGate();
-		gatingSelector.resetGating(gating, null);
-		fcsPanel.clearGating();
+	  if (currentSampleID == null) return;
+	  workbench.clearGating(currentSampleID);
+//      gating = new GatingStrategy();
+      parentGate = null;
+      gatingSelector.resetGating(getGatingStrategy(), null);
+      fcsPanel.clearGating();
 	}
 
 	public void setGating(GatingStrategy gateStrat) {
-		gating = gateStrat;
-		parentGate = rootGate = new NullGate();
-		for (Gate g : gating.getRootGates()) {
+		workbench.setGatingForSample(currentSampleID, gateStrat);
+		parentGate = null;
+		for (Gate g : getGatingStrategy().getRootGates()) {
 			parentGate.getChildGates().add(g);
 		}
 		gatingSelector.resetGating(gateStrat, null);
@@ -748,40 +764,38 @@ public class FCSPlot extends JPanel
 	}
 
 	public void refreshGating() {
-		Gate sel = parentGate == null || parentGate instanceof NullGate ? null : parentGate;
-		gatingSelector.resetGating(gating, sel);
+		Gate sel = parentGate;
+		gatingSelector.resetGating(getGatingStrategy(), sel);
 		fcsPanel.setForceGatesChanged();
 		updateGUI();
 	}
 
-	public ArrayList<Gate> getGatingForCurrentPlot() {
-		ArrayList<Gate> gateList = new ArrayList<Gate>();
-		if (parentGate != null) {
-			ArrayList<Gate> children = parentGate.getChildGates();
-			for (Gate g : children) {
-				// boolean x = false;
-				boolean y = getYDataName().equals(FCSPlot.HISTOGRAM_COL) ? true : false;
-				if (g.getDimensions().size() == 1) {
-					if (y && g.getDimensions().get(0).getParam().equals(getXDataName())) {
-						gateList.add(g);
-					}
-					continue;
-				}
-				// >1 Gate Dimension
-				if (y) {
-					continue;
-				}
-				if (g.getDimensions().size() > 2) {
-					continue; // can't vis. multi-dim gates // TODO fix for 3D
-				}
-				if (g.getDimensions().get(0).getParam().equals(getXDataName())
-						&& g.getDimensions().get(1).getParam().equals(getYDataName())) {
-					gateList.add(g);
-				}
-			}
-		}
-		return gateList;
-	}
+    public ArrayList<Gate> getGatingForCurrentPlot() {
+      ArrayList<Gate> gateList = new ArrayList<Gate>();
+      ArrayList<Gate> children = parentGate == null ? getGatingStrategy().getRootGates() : parentGate.getChildGates();
+      for (Gate g : children) {
+        // boolean x = false;
+        boolean y = getYDataName().equals(FCSPlot.HISTOGRAM_COL) ? true : false;
+        if (g.getDimensions().size() == 1) {
+          if (y && g.getDimensions().get(0).getParam().equals(getXDataName())) {
+            gateList.add(g);
+          }
+          continue;
+        }
+        // >1 Gate Dimension
+        if (y) {
+          continue;
+        }
+        if (g.getDimensions().size() > 2) {
+          continue; // can't vis. multi-dim gates // TODO fix for 3D
+        }
+        if (g.getDimensions().get(0).getParam().equals(getXDataName())
+            && g.getDimensions().get(1).getParam().equals(getYDataName())) {
+          gateList.add(g);
+        }
+      }
+      return gateList;
+    }
 
 	public void setData(FCSDataLoader newDataLoader) {
 		if (dataLoader != null && dataLoader.getLoadedFile().equals(newDataLoader.getLoadedFile())) {
@@ -839,7 +853,7 @@ public class FCSPlot extends JPanel
 		if (dataLoader == null) {
 			return cnt;
 		}
-		if (!backgating && parentGate != null && !(parentGate instanceof NullGate)) {
+		if (!backgating && parentGate != null) {
 			cnt = Array.booleanArraySum(parentGate.gate(dataLoader));
 		} else {
 			cnt = dataLoader.getCount();
@@ -900,47 +914,26 @@ public class FCSPlot extends JPanel
 		return loadedData.containsKey(file);
 	}
 
-	private static class NullGate extends Gate {
-		private NullGate() {
-			super(null);
-		}
-
-		@Override
-		public boolean[] gate(FCSDataLoader dataLoader) {
-			return null;
-		}
-
-		@Override
-		public String getXMLTag() {
-			return null;
-		}
-	}
-
 	public Gate getParentGate() {
-		if (parentGate == null || parentGate instanceof NullGate) {
-			return null;
-		}
 		return parentGate;
 	}
 
 	public void addGate(Gate rg) {
 		if (parentGate == null) {
-			parentGate = rootGate;
+		  getGatingStrategy().addRootGate(rg);
+		} else {
+		  parentGate.addChildGate(rg);
 		}
-		if (parentGate instanceof NullGate) {
-			gating.addRootGate(rg);
-		}
-		parentGate.addChildGate(rg);
-		gatingSelector.resetGating(gating, parentGate instanceof NullGate ? null : parentGate);
+		gatingSelector.resetGating(getGatingStrategy(), parentGate);
 	}
 
 	public boolean duplicateGateName(String name) {
-		return gating.gateNameExists(name);
+		return getGatingStrategy().gateNameExists(name);
 	}
 
 	public void gateSelected(Gate gate, boolean reset) {
 		if (gate == null) {
-			parentGate = rootGate;
+			parentGate = null;
 		} else {
 			parentGate = gate;
 			ArrayList<GateDimension> gd = gate.getDimensions();
@@ -955,7 +948,7 @@ public class FCSPlot extends JPanel
 			// TODO set axis scales
 		}
 		if (reset) {
-			gatingSelector.resetGating(gating, gate);
+			gatingSelector.resetGating(getGatingStrategy(), gate);
 		}
 		fcsPanel.clearGating();
 	}
@@ -966,7 +959,7 @@ public class FCSPlot extends JPanel
 																		JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		if (gating.getRootGates().isEmpty()) {
+		if (getGatingStrategy().getRootGates().isEmpty()) {
 			JOptionPane.showMessageDialog(this, "Error - no gating available to export!", "Error!",
 																		JOptionPane.ERROR_MESSAGE);
 			return;
@@ -1046,13 +1039,11 @@ public class FCSPlot extends JPanel
 	}
 
 	public void deleteGate(Gate g) {
-		if (g.getParentGate() != null) {
-			g.getParentGate().getChildGates().remove(g);
-		} else {
-			rootGate.getChildGates().remove(g);
-		}
-		gating.deleteGate(g);
-		gatingSelector.resetGating(gating, parentGate instanceof NullGate ? null : parentGate);
+	  if (g == parentGate) {
+	    parentGate = null;
+	  }
+      getGatingStrategy().deleteGate(g);
+      gatingSelector.resetGating(getGatingStrategy(), parentGate);
 	}
 
 	public static void main(String[] args) {
