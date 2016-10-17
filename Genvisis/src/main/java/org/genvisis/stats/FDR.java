@@ -96,8 +96,13 @@ public class FDR {
 		FDR f = compute(pvals, q);
 		StringBuilder builder = new StringBuilder();
 		builder.append("\nThreshold =\t" + f.getThreshold() + "\n");
-		builder.append("N Threshold =\t" + f.getNThreshold());
+		builder.append("N Threshold =\t" + f.getNThreshold() + "\n\n");
 
+		builder.append("Pval\tSigAtFDR" + q + "\n");
+		for (int i = 0; i < pvals.length; i++) {
+			builder.append(pvals[i] + "\t" + (pvals[i] <= f.getThreshold()) + "\n");
+
+		}
 		log.reportTimeInfo(builder.toString());
 		Files.write(builder.toString(), output == null ? pvalFile + ".fdr" : output);
 
