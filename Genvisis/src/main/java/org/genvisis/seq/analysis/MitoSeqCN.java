@@ -134,7 +134,8 @@ public class MitoSeqCN {
 																													"TotalUnAlignedReads", "XReads", "YReads",
 																													"AutosomalOnTargetAlignedReads",
 																													"OffTargetReads", "MitoLen", "OffTLen",
-																													"MTBamFile", "MTBamFileTrim"};
+																													"MTBamFile", "MTBamFileTrim",
+																													"EstimatedReadLength"};
 		private final String sample;
 		private final int numMitoReads;
 		private final int numXReads;
@@ -142,13 +143,14 @@ public class MitoSeqCN {
 		private int autosomalOnTargetReads;
 		private final int offTargetReads;
 		private final int mitoLen;
+		private final int estimatedReadLength;
 		private final long offTLen;
 		private final BamIndexStats bamIndexStats;
 		private final String outBam;
 
 		private MitoCNResult(	String sample, int numMitoReads, int numXReads, int numYReads,
 													int offTargetReads, int mitoLen, long offTLen,
-													BamIndexStats bamIndexStats, String outBam) {
+													BamIndexStats bamIndexStats, int estimatedReadLength, String outBam) {
 			super();
 			this.sample = sample;
 			this.numMitoReads = numMitoReads;
@@ -159,6 +161,7 @@ public class MitoSeqCN {
 			this.offTargetReads = offTargetReads;
 			this.bamIndexStats = bamIndexStats;
 			this.outBam = outBam;
+			this.estimatedReadLength = estimatedReadLength;
 			autosomalOnTargetReads = bamIndexStats.getAlignedRecordCount();
 			autosomalOnTargetReads -= numMitoReads;
 			autosomalOnTargetReads -= numXReads;
@@ -181,6 +184,7 @@ public class MitoSeqCN {
 			result.add(Long.toString(offTLen));
 			result.add(outBam);
 			result.add(ext.rootOf(ext.rootOf(outBam)));
+			result.add(Integer.toString(estimatedReadLength));
 			return Array.toStringArray(result);
 		}
 	}
@@ -280,9 +284,10 @@ public class MitoSeqCN {
 
 				BamIndexStats bamIndexStats = BamOps.getBamIndexStats(reader);
 				reader.close();
+				int estimatedReadLength = BamOps.estimateReadSize(bam, log);
 				return new MitoCNResult(sample, numMitoReads, numXReads, numYReads, numOffTarget,
 																mitoLength, genomeBinsMinusBinsCaputure.getBpCovered(),
-																bamIndexStats, outputMTBam);
+																bamIndexStats, estimatedReadLength, outputMTBam);
 			} catch (Exception e) {
 				log.reportTimeError("Could not process " + bam);
 				log.reportException(e);
