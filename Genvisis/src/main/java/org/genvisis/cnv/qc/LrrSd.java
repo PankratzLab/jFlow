@@ -348,6 +348,7 @@ public class LrrSd extends Parallelizable {
 		}
 
 		multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
+		lrrs = Array.removeNonFinites(lrrs);
 		double[] dlrrs = Array.toDoubleArray(lrrs);
 		double[] tmp = CNVCaller.adjustLrr(	dlrrs, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
 																				CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, proj.getLog());
@@ -358,7 +359,7 @@ public class LrrSd extends Parallelizable {
 
 		String[] retVals = new String[] {	sampleID, Array.mean(lrrs, true) + "",
 																			Array.stdev(lrrs, true) + "", lrrsdBound + "",
-																			Array.mad(Array.removeNaN(dlrrs)) + "", lrrMadBound + "",
+																			Array.mad(dlrrs) + "", lrrMadBound + "",
 																			Array.stdev(bafs, true) + "",
 																			(abCallRate > 0 ? abCallRate : forwardCallRate) + "",
 																			(abCallRate > 0 ? abHetRate : forwardHetRate) + "",
