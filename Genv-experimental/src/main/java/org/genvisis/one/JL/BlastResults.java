@@ -3,6 +3,7 @@ package org.genvisis.one.JL;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.Map;
 
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.filesys.Project;
@@ -18,7 +19,7 @@ import htsjdk.variant.vcf.VCFFileReader;
 public class BlastResults {
 
 	private static void getEm(Project proj) {
-		MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(proj.getMarkerNames());
+		Map<String, MarkerBlastAnnotation> blastResults = MarkerBlastAnnotation.initForMarkers(proj.getMarkerNames());
 
 		String outDir = proj.PROJECT_DIRECTORY.getValue() + "blastSummary/";
 		new File(outDir).mkdirs();
@@ -33,13 +34,18 @@ public class BlastResults {
 			int index = 0;
 			for (VariantContext vc : reader) {
 				// proj.getLog().reportTimeInfo(vc.getID());
-				blastResults[index].parseAnnotation(vc, proj.getLog());
-				boolean pm = blastResults[index].hasPerfectMatch(proj.getLog());
-				int numOff = blastResults[index].getNumOffTarget(proj.getLog());
-				int numOnNonPerf = blastResults[index].getNumOnTargetNonPerfect(proj.getLog());
-				int numTotal = ArrayUtils.sum(blastResults[index].getAlignmentHistogram(proj));
-				writer.println(vc.getID() + "\t" + pm + "\t" + numOnNonPerf + "\t" + numOff + "\t"
-											 + numTotal);
+				MarkerBlastAnnotation blastResult = blastResults.get(vc.getID());
+				if (blastResult != null) {
+					blastResult.parseAnnotation(vc, proj.getLog());
+					boolean pm = blastResult.hasPerfectMatch(proj.getLog());
+					int numOff = blastResult.getNumOffTarget(proj.getLog());
+					int numOnNonPerf = blastResult.getNumOnTargetNonPerfect(proj.getLog());
+					int numTotal = ArrayUtils.sum(blastResult.getAlignmentHistogram(proj));
+					writer.println(vc.getID() + "\t" + pm + "\t" + numOnNonPerf + "\t" + numOff + "\t"
+												 + numTotal);
+				} else {
+					proj.getLog().reportError("Cannot find marker " + vc.getID() + " in project");
+				}
 				index++;
 			}
 			reader.close();

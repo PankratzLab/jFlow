@@ -2,23 +2,27 @@ package org.genvisis.one.JL;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.genvisis.cnv.annotation.markers.AnnotationData;
+import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationFileWriter;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationWriter;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation;
+import org.genvisis.cnv.annotation.markers.LocusAnnotation.Builder;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
-import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_ORDER;
-import org.genvisis.cnv.annotation.markers.LocusAnnotation.Builder;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
+
+import com.google.common.collect.Lists;
 
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
@@ -124,14 +128,15 @@ public class BlastAnnotationTesting {
 		// t.add(markers[2]);
 		// t.add(markers[200003]);
 
-		MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(ArrayUtils.toStringArray(t));
+		Map<String, MarkerBlastAnnotation> blastResults = MarkerBlastAnnotation.initForMarkers(ArrayUtils.toStringArray(t));
 		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(proj, null,
 																																				 proj.BLAST_ANNOTATION_FILENAME.getValue(),
 																																				 proj.getMarkerSet(), true);
-		ArrayList<AnnotationParser[]> toparse = new ArrayList<AnnotationParser[]>();
+		List<Map<String, ? extends AnnotationParser>> toparse = Lists.newArrayList();
 		toparse.add(blastResults);
-		annotationLoader.fillAnnotations(ArrayUtils.toStringArray(t), toparse, QUERY_ORDER.NO_ORDER);
-		for (MarkerBlastAnnotation blastResult : blastResults) {
+		annotationLoader.fillAnnotations(ArrayUtils.toStringArray(t), toparse,
+																		 QUERY_TYPE.DISCRETE_LIST);
+		for (MarkerBlastAnnotation blastResult : blastResults.values()) {
 			// System.out.println(Array.toStr(blastResults[i].getAlignmentHistogram(proj)));
 		}
 	}

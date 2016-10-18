@@ -5,12 +5,14 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
+import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerGCAnnotation;
-import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_ORDER;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
@@ -27,6 +29,8 @@ import org.genvisis.stats.Rscript.PLOT_DEVICE;
 import org.genvisis.stats.Rscript.RScatter;
 import org.genvisis.stats.Rscript.RScatters;
 import org.genvisis.stats.Rscript.SCATTER_TYPE;
+
+import com.google.common.collect.Lists;
 
 public class GcLook {
 	private static final int[] CHRS = new int[] {-1, 26};
@@ -119,16 +123,17 @@ public class GcLook {
 																																									 proj.getMarkerSet(),
 																																									 true);
 				markerAnnotationLoader.setReportEvery(500000);
-				MarkerGCAnnotation[] gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, markerNames,
-																																							 markerAnnotationLoader.getMarkerSet(),
-																																							 markerAnnotationLoader.getIndices());
-				MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(markerNames);
+				Map<String, MarkerGCAnnotation> gcAnnotations = MarkerGCAnnotation.initForMarkers(proj,
+																																													markerNames,
+																																													markerAnnotationLoader.getMarkerSet(),
+																																													markerAnnotationLoader.getIndices());
+				Map<String, MarkerBlastAnnotation> blastResults = MarkerBlastAnnotation.initForMarkers(markerNames);
 
-				ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
+				List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
 				parsers.add(gcAnnotations);
 				parsers.add(blastResults);
 
-				markerAnnotationLoader.fillAnnotations(null, parsers, QUERY_ORDER.ONE_PER_IN_ORDER);
+				markerAnnotationLoader.fillAnnotations(null, parsers, QUERY_TYPE.ONE_TO_ONE);
 
 				try {
 
@@ -157,7 +162,8 @@ public class GcLook {
 								gc = referenceGenome.getGCContentFor(markerSegment);
 							} else {
 								try {
-									gc = Double.parseDouble(gcAnnotations[i].getAnnotations()[0].getData());
+									gc = Double.parseDouble(gcAnnotations.get(markerNames[i])
+																											 .getAnnotations()[0].getData());
 
 								} catch (NumberFormatException nfe) {
 

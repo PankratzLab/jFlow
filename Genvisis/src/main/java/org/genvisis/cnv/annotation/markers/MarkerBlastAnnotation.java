@@ -3,6 +3,7 @@ package org.genvisis.cnv.annotation.markers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
@@ -13,6 +14,8 @@ import org.genvisis.common.ArraySpecialList.ArrayBlastAnnotationList;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.filesys.Segment;
+
+import com.google.common.collect.Maps;
 
 import htsjdk.samtools.TextCigarCodec;
 import htsjdk.tribble.annotation.Strand;
@@ -141,11 +144,12 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 		return found;
 	}
 
-	public static MarkerBlastAnnotation[] initForMarkers(final String[] markers) {
-		MarkerBlastAnnotation[] blastAnnotations = new MarkerBlastAnnotation[markers.length];
-		for (int i = 0; i < blastAnnotations.length; i++) {
-			blastAnnotations[i] = new MarkerBlastAnnotation(markers[i], BLAST_ANNOTATION_TYPES.values(),
-																											100);
+	public static Map<String, MarkerBlastAnnotation> initForMarkers(final String[] markers) {
+		Map<String, MarkerBlastAnnotation> blastAnnotations = Maps.newHashMapWithExpectedSize(markers.length);
+		for (String marker : markers) {
+			blastAnnotations.put(marker,
+													 new MarkerBlastAnnotation(marker, BLAST_ANNOTATION_TYPES.values(),
+																										 100));
 		}
 		return blastAnnotations;
 	}

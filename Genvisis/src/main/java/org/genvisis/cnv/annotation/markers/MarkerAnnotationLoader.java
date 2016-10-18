@@ -2,6 +2,7 @@ package org.genvisis.cnv.annotation.markers;
 
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
@@ -49,10 +50,11 @@ public class MarkerAnnotationLoader extends AnnotationFileLoader {
 	 * @param parsersQueries typically each entry in the {@link AnnotationParser} array represents a
 	 *        single marker
 	 */
-	public void fillAnnotations(final String[] markers, List<AnnotationParser[]> parsersQueries,
-															QUERY_ORDER qOrder) {
+	public void fillAnnotations(final String[] markers,
+															List<Map<String, ? extends AnnotationParser>> parsersQueries,
+															QUERY_TYPE qOrder) {
 		Segment[] markerSegments = null;
-		if (markers == null && qOrder != QUERY_ORDER.NO_ORDER) {
+		if (markers == null && qOrder != QUERY_TYPE.DISCRETE_LIST) {
 			proj.getLog()
 					.reportTimeWarning("No marker names were provided, searching entire annotation file");
 		} else {

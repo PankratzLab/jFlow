@@ -7,17 +7,18 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.genvisis.CLI;
 import org.genvisis.bioinformatics.Sequence;
+import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerSeqAnnotation;
-import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_ORDER;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.MarkerBlast;
@@ -29,6 +30,7 @@ import org.genvisis.common.ext;
 import org.genvisis.seq.manage.StrandOps;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
@@ -296,21 +298,21 @@ public class ABLookup {
 				MarkerSet markerSet = proj.getMarkerSet();
 				markerNames = markerSet.getMarkerNames();
 
-				MarkerBlastAnnotation[] masterMarkerList = MarkerBlastAnnotation.initForMarkers(markerNames);
+				Map<String, MarkerBlastAnnotation> masterMarkerList = MarkerBlastAnnotation.initForMarkers(markerNames);
 				MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(proj, null,
 																																						 proj.BLAST_ANNOTATION_FILENAME.getValue(),
 																																						 markerSet, true);
 				annotationLoader.setReportEvery(10000);
-				ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
+				List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
 				parsers.add(masterMarkerList);
-				annotationLoader.fillAnnotations(null, parsers, QUERY_ORDER.ONE_PER_IN_ORDER);
+				annotationLoader.fillAnnotations(null, parsers, QUERY_TYPE.ONE_TO_ONE);
 				Hashtable<String, Integer> indices = proj.getMarkerIndices();// should be in perfect order
 																																		 // but just in case;
 				lookup = new char[markerNames.length][2];
 
 				for (String markerName : markerNames) {
 					int indx = indices.get(markerName);
-					MarkerSeqAnnotation tmp = masterMarkerList[indx].getMarkerSeqAnnotation();
+					MarkerSeqAnnotation tmp = masterMarkerList.get(markerName).getMarkerSeqAnnotation();
 					Strand strand = tmp.getStrand();
 					Allele A = tmp.getA();
 					Allele B = tmp.getB();
