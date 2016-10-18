@@ -109,17 +109,16 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 				WorkerHive<SRAConversionResult> hive = new WorkerHive<SRAUtils.SRAConversionResult>(1, 10,
 																																														log);
 				hive.addCallable(new SRABamWorker(inputSRA, bam, log));
-				String vdbcache = inputSRA + ".vdbcache";
-				if (!Files.exists(vdbcache) && sraSample.getPlatform() != PLATFORM.ABI_SOLID) {
-					log.reportError(vdbcache
-													+ " was was not seen, this sample might fail conversion to bam, skipping");
-					String bamFailDirectory = rootOutDir + "bamFail/";
-					new File(bamFailDirectory).mkdirs();
-					Files.write(inputSRA, bamFailDirectory + ext.rootOf(inputSRA) + ".fail");
-					return new ArrayList<Pipeline.PipelinePart>();
-				} else {
-					hive.execute(true);
-				}
+				// String vdbcache = inputSRA + ".vdbcache";
+				// if (!Files.exists(vdbcache) && sraSample.getPlatform() != PLATFORM.ABI_SOLID) {
+				// log.reportError(vdbcache
+				// + " was was not seen, this sample might fail conversion to bam, skipping");
+				// // String bamFailDirectory = rootOutDir + "bamFail/";
+				// // new File(bamFailDirectory).mkdirs();
+				// // Files.write(inputSRA, bamFailDirectory + ext.rootOf(inputSRA) + ".fail");
+				// // return new ArrayList<Pipeline.PipelinePart>();
+				// }
+				hive.execute(true);
 			}
 			if (cleanup) {
 				cleanup = new File(inputSRA).delete();
