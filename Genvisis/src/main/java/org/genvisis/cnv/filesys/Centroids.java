@@ -693,7 +693,7 @@ public class Centroids implements Serializable, TextExport {
 		for (int i = 0; i < samples.length; i++) {
 			int sex = sampleData.getSexForIndividual(samples[i]);
 			if (sex == -1) {
-				sex = Integer.parseInt(sexData.get(samples[i].toUpperCase()).get(0));
+				sex = Integer.parseInt(sexData.get(samples[i]).get(0));
 			}
 			sampleSex[i] = sex;
 			if (sex == 1) {
