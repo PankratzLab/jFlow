@@ -348,6 +348,7 @@ public class LrrSd extends Parallelizable {
 		}
 
 		multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
+		lrrs = Array.replaceNonFinites(lrrs);
 		double[] dlrrs = Array.toDoubleArray(lrrs);
 		double[] tmp = CNVCaller.adjustLrr(	dlrrs, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
 																				CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, proj.getLog());
