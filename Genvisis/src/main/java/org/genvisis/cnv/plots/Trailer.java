@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -2568,6 +2569,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			samplesPresent[filesPresent.length] = refresh;
 		}
 
+		Arrays.sort(samplesPresent);
 		sampleList.setModel(new DefaultComboBoxModel(samplesPresent));
 		sampleList.setPreferredSize(new Dimension(maxWidth + 50, 30));
 
