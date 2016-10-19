@@ -2,6 +2,7 @@
 package org.genvisis.cnv.qc;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -640,8 +641,10 @@ public class SexChecks {
 		PrintWriter writer;
 		String[] lookup;
 		String famIndPair;
+		PrintWriter[] regionWriters = new PrintWriter[ESTIMATED_SEXES.length];
 
 		SampleData sampleData = proj.getSampleData(0, false);
+		String resultsDir = new File(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false)).getParent();
 
 		try {
 			writer = new PrintWriter(new FileWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true,
@@ -657,11 +660,24 @@ public class SexChecks {
 					writer.print(sampleNames[i]	+ "\t" + famIndPair + "\t"
 												+ sampleData.getSexForIndividual(sampleNames[i]));
 				}
-				writer.println("\t"	+ sexes[i] + "\t" + ("".equals(notes[i]) ? "." : notes[i]) + "\t"
+				int sex = sexes[i];
+				writer.println("\t"	+ sex + "\t" + ("".equals(notes[i]) ? "." : notes[i]) + "\t"
 												+ (uncertains[i] ? "1" : "0") + "\t" + (qcPassedSamples[i] ? "0" : "1")
 												+ "\t" + elrrMedX[i] + "\t" + elrrMedY[i] + "\t"
 												+ (elrrMedY[i] / elrrMedX[i]) + "\t" + pctXHets[i] + "\t" + pctXBaf15_85[i]
 												+ "\t" + lrrMedX[i] + "\t" + lrrMedY[i]);
+				// Create sex-specific region files for any "unusual" sex call to allow easy review
+				//TODO it would be nice to add these to Trailer automatically but not clear if that requires a UI, and public API
+				if (!qcPassedSamples[i]) {
+					writeSexRegion(regionWriters, 1, resultsDir + "regions_excluded.txt", lookup, "chr1");
+				} else if (sex != 1 && sex != 2) {
+					writeSexRegion(regionWriters, sex, resultsDir + "regions_" + ESTIMATED_SEXES[sex], lookup, sex == 0 ? "chr1" : "chr23");
+				}
+			}
+			for (int i=0; i<regionWriters.length; i++) {
+				if (regionWriters[i] != null) {
+					regionWriters[i].close();
+				}
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -678,6 +694,18 @@ public class SexChecks {
 				log.reportError("Error - failed to write Estimated Sex to sample data file");
 			}
 		}
+	}
+
+	/**
+	 * Helper method for adding regions to sex-specific region files.
+	 */
+	private void writeSexRegion(PrintWriter[] regionWriters, int i, String path, String[] lookup,
+													String chr) throws IOException {
+		if (regionWriters[i] == null) {
+			regionWriters[i] = new PrintWriter(new FileWriter(path));
+			log.report("SexChecks -- Creating sex-specific region file: " + path);
+		}
+		regionWriters[i].println(lookup[0] + "\t" + chr);
 	}
 
 	public static int mapEstimatedSexToSex(String estCode) {
