@@ -3853,6 +3853,24 @@ public class Array {
 		return Doubles.toArray(tmp);
 	}
 
+	/**
+	 * Create a new array with any non-finite value replaced with {@link Float#NaN}.
+	 *
+	 * @param array input array
+	 * @return a copy of the input array with all non-finite values set to NaN.
+	 */
+	public static float[] replaceNonFinites(float[] array) {
+		float[] ret = new float[array.length];
+		for (int i=0; i<array.length; i++) {
+			if (Numbers.isFinite(array[i])) {
+				ret[i] = array[i];
+			} else {
+				ret[i] = Float.NaN;
+			}
+		}
+		return ret;
+	}
+
 	public static float[] getValuesBetween(float[] array, double min, double max, boolean gteLte) {
 		ArrayList<Float> tmp = new ArrayList<Float>();
 		for (int i = 0; i < array.length; i++) {
