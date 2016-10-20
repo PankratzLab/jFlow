@@ -35,7 +35,7 @@ public class MStr {
 			VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 			String[] samples = VCFOps.getSamplesInFile(reader);
 			boolean[] samplesWithOneGenotype = Array.booleanArray(samples.length, false);
-			writer.println("CHR\tPOS\tREF\tFULL_ALT\tSAMPLE\tA1\tA2\tGQ\tAD\tFullGeno");
+			writer.println("CHR\tPOS\tREF\tFULL_ALT\tSAMPLE\tA1\tA2\tGQ\tAD\tPhaseInfo\tFullGeno");
 			for (VariantContext vc : reader) {
 				if (VCOps.getSegment(vc).overlaps(mSeg)) {
 
@@ -93,7 +93,8 @@ public class MStr {
 							}
 							builder2.append("\t" + g.getGQ() + "\t" + (g.getAD() == null ? g.getAnyAttribute("DPR")
 									: Array.toStr(Array.toStringArray((g.getAD())), ",")));
-							builder2.append(g.toString());
+							builder2.append("\t"+g.getAnyAttribute("PID"));
+							builder2.append("\t"+g.toString());
 							if (!g.getSampleName().contains("H20")) {
 								writer.println(builder2.toString());
 							}
@@ -120,7 +121,6 @@ public class MStr {
 
 	public static void main(String[] args) {
 
-		
 		CLI c = new CLI(ABLookup.class);
 		c.addArgWithDefault("vcfs", "vcf files to explore,comma-delimited list", null);
 		c.addArgWithDefault("outDir", "output directory", null);
