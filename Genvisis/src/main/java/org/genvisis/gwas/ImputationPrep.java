@@ -354,7 +354,7 @@ public class ImputationPrep {
 			String outputFile = outputRoot + ".vcf.gz";
 			Set<String> outputs = ImmutableSet.of(outputFile);
 			List<String> commandList = ImmutableList.of("plink2", "--bfile", inputPlinkroot,
-																									"--reference-allele", imputationABLookup,
+																									"--a2-allele", imputationABLookup,
 																									Integer.toString(indexA + 1),
 																									Integer.toString(indexMarker + 1),
 																									"--real-ref-alleles", "--chr",
