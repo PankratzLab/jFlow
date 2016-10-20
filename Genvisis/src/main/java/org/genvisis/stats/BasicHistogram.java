@@ -40,7 +40,7 @@ public class BasicHistogram {
 	}
 
 	public String[] getBinLabels() {
-		return getBinLabels("#.##");
+		return getBinLabels("#.#");
 	}
 
 	private String[] getBinLabels(String format) {
@@ -63,6 +63,7 @@ public class BasicHistogram {
 		long[] counts = new long[binCount];
 		double[] binMax = new double[binCount];
 		double[] binMin = new double[binCount];
+
 		EmpiricalDistribution distribution = new EmpiricalDistribution(binCount);
 		distribution.load(data);
 		int k = 0;
@@ -71,7 +72,6 @@ public class BasicHistogram {
 			binMax[k] = stats.getMax();
 			binMin[k] = stats.getMin();
 			k++;
-
 		}
 		return new BasicHistogram(counts, binMax, binMin);
 	}
