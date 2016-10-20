@@ -644,7 +644,7 @@ public class SexChecks {
 		PrintWriter[] regionWriters = new PrintWriter[ESTIMATED_SEXES.length];
 
 		SampleData sampleData = proj.getSampleData(0, false);
-		String resultsDir = new File(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false)).getParent();
+		String resultsDir = new File(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false)).getParent() + "/";
 
 		try {
 			writer = new PrintWriter(new FileWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true,
