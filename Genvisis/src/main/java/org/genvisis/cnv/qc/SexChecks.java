@@ -671,7 +671,7 @@ public class SexChecks {
 				if (!qcPassedSamples[i]) {
 					writeSexRegion(regionWriters, 1, resultsDir + "regions_excluded.txt", lookup, "chr1");
 				} else if (sex != 1 && sex != 2) {
-					writeSexRegion(regionWriters, sex, resultsDir + "regions_" + ESTIMATED_SEXES[sex], lookup, sex == 0 ? "chr1" : "chr23");
+					writeSexRegion(regionWriters, sex, resultsDir + "regions_" + ESTIMATED_SEXES[sex].replaceAll("\\s", "") + ".txt", lookup, sex == 0 ? "chr1" : "chr23");
 				}
 			}
 			for (int i=0; i<regionWriters.length; i++) {
