@@ -132,7 +132,7 @@ public class DistributionPlot {
 			xAxis.setAutoRanging(true);
 			xAxis.setLabel("Value");
 
-			ScatterChart<Number, Number> bc = new ScatterChart<>(xAxis, yAxis);
+			ScatterChart<Number, Number> bc = new ScatterChart<Number, Number>(xAxis, yAxis);
 			bc.setHorizontalGridLinesVisible(true);
 			bc.setVerticalGridLinesVisible(false);
 			bc.setAnimated(false);
@@ -152,7 +152,7 @@ public class DistributionPlot {
 
 		private static XYChart.Series<Number, Number> getHistogram(double[] data, String name) {
 
-			XYChart.Series<Number, Number> countsBin = new XYChart.Series<>();
+			XYChart.Series<Number, Number> countsBin = new XYChart.Series<Number, Number>();
 			countsBin.setName(name);
 			BasicHistogram histogram = BasicHistogram.getHistogram(100, data);
 			for (int j = 0; j < histogram.getCounts().length; j++) {
@@ -213,7 +213,7 @@ public class DistributionPlot {
 		}
 
 		private void replot(float[] xs, float[] ys, Axes axes) {
-			ArrayList<Circle> circles = new ArrayList<>();
+			ArrayList<Circle> circles = new ArrayList<Circle>();
 			double[][] data = new double[][] { Array.toDoubleArray(xs), Array.toDoubleArray(ys) };
 			double[][] dist = Matrix.transpose(data);
 
