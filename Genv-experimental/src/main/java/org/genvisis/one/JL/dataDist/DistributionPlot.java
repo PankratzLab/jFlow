@@ -71,20 +71,20 @@ public class DistributionPlot {
 		public void start(Stage primaryStage) throws Exception {
 			primaryStage.setTitle(proj.PROJECT_NAME.getValue());
 			String sampleName = proj.getSamples()[10];
-			int[] subset = proj.getAutosomalMarkerIndices();
+			final int[] subset = proj.getAutosomalMarkerIndices();
 			Sample samp = proj.getFullSampleFromRandomAccessFile(sampleName);
 			LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(proj.CNV_FILENAMES.getValue()[0], proj.getLog());
-			Hashtable<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs, proj.getLog());
+			final Hashtable<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs, proj.getLog());
 			float[] bafs = samp.getBAFs();
 			float[] lrrs = samp.getLRRs();
-			Axes axes = new DistributionPlot().new Axes(400, 300, 0, 1, 1, -10, 10, .1);
+			final Axes axes = new DistributionPlot().new Axes(400, 300, 0, 1, 1, -10, 10, .1);
 
 			plot = new DistributionPlot().new Plot(8, 0.1, axes);
 			plot.replot(bafs, lrrs, axes);
 
 			lrrScat = initialize();
 			lrrScat.setTitle("LRR values");
-			SampleData sampleData = proj.getSampleData(0, false);
+			final SampleData sampleData = proj.getSampleData(0, false);
 			lrrScat.getData().add(update(sampleData, sampleName, inds, bafs, lrrs, subset, false));
 
 			bafScat = initialize();
