@@ -116,14 +116,15 @@ public class LaunchAction extends AbstractAction {
 		switch (type) {
 			case LAUNCH_TRAILER:
 				ext.setClipboard(sample + "\t" + ext.listWithCommas(loc));
+				String[] cnvs = {};
 				for (int i = 0; i < loc.length; i++) {
-					new Trailer(proj, sample,
-											proj.CNV_FILENAMES.getValue(), loc[i].endsWith("p") || loc[i].endsWith("q")
-																																																		? loc[i].substring(	0,
-																																																											loc[i].length()
-																																																													- 1)
-																																																	: loc[i],
-											plotStartX, plotStartY[i], plotWidth, plotHeight);
+					String pos = loc[i].endsWith("p") || loc[i].endsWith("q")
+																																			? loc[i].substring(	0,
+																																												loc[i].length()
+																																														- 1)
+																																		: loc[i];
+					new Trailer(proj, sample, cnvs, pos, new String[][] {{sample, pos}}, plotStartX,
+											plotStartY[i], plotWidth, plotHeight);
 				}
 				break;
 			case LAUNCH_SCATTER:
