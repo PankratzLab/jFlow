@@ -102,12 +102,12 @@ public class DistributionPlot {
 					plot.replot(bafs, lrrs, axes);
 					XYChart.Series<Number, Number> newDataLrr = update(sampleData, newValue, inds, bafs, lrrs, subset,
 							false);
-					lrrScat.setData(FXCollections.observableArrayList());
+					lrrScat.setData(FXCollections.observableArrayList(newDataLrr));
 					lrrScat.getData().add(newDataLrr);
 
 					XYChart.Series<Number, Number> newDataBaf = update(sampleData, newValue, inds, bafs, lrrs, subset,
 							true);
-					bafScat.setData(FXCollections.observableArrayList());
+					bafScat.setData(FXCollections.observableArrayList(newDataBaf));
 					bafScat.getData().add(newDataBaf);
 
 				}
