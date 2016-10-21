@@ -1,14 +1,17 @@
 package org.genvisis.one.JL.dataDist;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 
-import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
 import org.genvisis.common.Matrix;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.LocusSet;
 import org.genvisis.stats.BasicHistogram;
 
 import javafx.application.Application;
@@ -25,7 +28,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 
 import javafx.stage.Stage;
@@ -71,6 +73,8 @@ public class DistributionPlot {
 			String sampleName = proj.getSamples()[10];
 			int[] subset = proj.getAutosomalMarkerIndices();
 			Sample samp = proj.getFullSampleFromRandomAccessFile(sampleName);
+			LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(proj.CNV_FILENAMES.getValue()[0], proj.getLog());
+			Hashtable<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs, proj.getLog());
 			float[] bafs = samp.getBAFs();
 			float[] lrrs = samp.getLRRs();
 			Axes axes = new DistributionPlot().new Axes(400, 300, 0, 1, 1, -10, 10, .1);
@@ -80,12 +84,13 @@ public class DistributionPlot {
 
 			lrrScat = initialize();
 			lrrScat.setTitle("LRR values");
-			lrrScat.getData().add(update(sampleName, bafs, lrrs, subset, false));
+			SampleData sampleData = proj.getSampleData(0, false);
+			lrrScat.getData().add(update(sampleData, sampleName, inds, bafs, lrrs, subset, false));
 
 			bafScat = initialize();
 			bafScat.setTitle("BAF values");
 
-			bafScat.getData().add(update(sampleName, bafs, lrrs, subset, true));
+			bafScat.getData().add(update(sampleData, sampleName, inds, bafs, lrrs, subset, true));
 
 			final ComboBox<String> comboBox = new ComboBox<String>(
 					FXCollections.observableArrayList(proj.getSamples()));
@@ -95,11 +100,13 @@ public class DistributionPlot {
 					float[] bafs = samp.getBAFs();
 					float[] lrrs = samp.getLRRs();
 					plot.replot(bafs, lrrs, axes);
-					XYChart.Series<Number, Number> newDataLrr = update(newValue, bafs, lrrs, subset, false);
+					XYChart.Series<Number, Number> newDataLrr = update(sampleData, newValue, inds, bafs, lrrs, subset,
+							false);
 					lrrScat.setData(FXCollections.observableArrayList());
 					lrrScat.getData().add(newDataLrr);
 
-					XYChart.Series<Number, Number> newDataBaf = update(newValue, bafs, lrrs, subset, true);
+					XYChart.Series<Number, Number> newDataBaf = update(sampleData, newValue, inds, bafs, lrrs, subset,
+							true);
 					bafScat.setData(FXCollections.observableArrayList());
 					bafScat.getData().add(newDataBaf);
 
@@ -120,8 +127,11 @@ public class DistributionPlot {
 		private static ScatterChart<Number, Number> initialize() {
 			NumberAxis yAxis = new NumberAxis();
 			yAxis.setAutoRanging(true);
+			yAxis.setLabel("Log count");
 			NumberAxis xAxis = new NumberAxis();
 			xAxis.setAutoRanging(true);
+			xAxis.setLabel("Value");
+
 			ScatterChart<Number, Number> bc = new ScatterChart<>(xAxis, yAxis);
 			bc.setHorizontalGridLinesVisible(true);
 			bc.setVerticalGridLinesVisible(false);
@@ -129,9 +139,13 @@ public class DistributionPlot {
 			return bc;
 		}
 
-		private XYChart.Series<Number, Number> update(String sampleName, float[] bafs, float[] lrrs, int[] subset,
-				boolean baf) {
-
+		private XYChart.Series<Number, Number> update(SampleData sampleData, String sampleName,
+				Hashtable<String, LocusSet<CNVariant>> inds, float[] bafs, float[] lrrs, int[] subset, boolean baf) {
+			String look = sampleData.lookup(sampleName)[1];
+			System.out.println(look);
+			if (inds.containsKey(look)) {
+				System.out.println("DHFD");
+			}
 			double[] data = Array.subArray(Array.toDoubleArray(baf ? bafs : lrrs), subset);
 			return getHistogram(data, sampleName);
 		}
@@ -204,10 +218,11 @@ public class DistributionPlot {
 			double[][] dist = Matrix.transpose(data);
 
 			for (int i = 0; i < ys.length; i++) {
+				if (Math.random() < .10) {
+					Circle circle = new Circle(mapX(xs[i], axes), mapY(ys[i], axes), 4);
 
-				Circle circle = new Circle(mapX(xs[i], axes), mapY(ys[i], axes), 4);
-
-				circles.add(circle);
+					circles.add(circle);
+				}
 
 			}
 
