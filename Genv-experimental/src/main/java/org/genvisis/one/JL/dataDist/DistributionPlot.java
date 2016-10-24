@@ -84,7 +84,7 @@
 //			bafVLrrScat = initialize("BAF", "LRR");
 //			bafVLrrScat.setTitle("BAF v LRR");
 //
-//			final ComboBox<String> comboBox = new ComboBox<String>(
+//			final ComboBox<String> comboBox = new ComboBox<>(
 //					FXCollections.observableArrayList(proj.getSamples()));
 //			comboBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
 //				public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -95,7 +95,7 @@
 //					ArrayList<Integer> copyNumbers = new ArrayList<>();
 //
 //					if (ind != null) {
-//						HashSet<Integer> markersInCnv = new HashSet<Integer>();
+//						HashSet<Integer> markersInCnv = new HashSet<>();
 //						for (int i = 0; i < markerSet.getChrs().length; i++) {
 //							if (markerSet.getChrs()[i] > 0 && markerSet.getChrs()[i] < 23) {
 //								Segment seg = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i]-1,
@@ -126,7 +126,7 @@
 //						bafScat.getData().add(newDataBaf);
 //						lrrScat.getData().add(newDataLrr);
 //
-//						ArrayList<XYChart.Series<Number, Number>> cnSeries = new ArrayList<XYChart.Series<Number, Number>>();
+//						ArrayList<XYChart.Series<Number, Number>> cnSeries = new ArrayList<>();
 //						for (int i = 0; i < 5; i++) {
 //							cnSeries.add(new XYChart.Series<Number, Number>());
 //							cnSeries.get(i).setName("CN-" + i);
@@ -165,7 +165,7 @@
 //			xAxis.setAutoRanging(true);
 //			xAxis.setLabel(x);
 //
-//			ScatterChart<Number, Number> bc = new ScatterChart<Number, Number>(xAxis, yAxis);
+//			ScatterChart<Number, Number> bc = new ScatterChart<>(xAxis, yAxis);
 //			bc.setHorizontalGridLinesVisible(true);
 //			bc.setVerticalGridLinesVisible(false);
 //			bc.setAnimated(false);

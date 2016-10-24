@@ -351,13 +351,16 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		ArrayList<String> process = new ArrayList<String>();
 		int num = 0;
 		int processBatch = 0;
+		// FIXME
+		log.reportTimeWarning("set up for lanej aspera");
 		for (int i = 0; i < batches.length; i++) {
 			for (int j = 0; j < batches[i].length; j++) {
 				process.add("cd " + ext.parseDirectoryOfFile(batches[i][j]));
 				process.add("echo \"start "+ ext.rootOf(batches[i][j]) + "\" `date` >>" + processDir
 										+ "sraDL.times");
 
-				process.add("prefetch.2.6.3 --max-size 100000000000 " + ext.rootOf(batches[i][j]));
+				process.add("prefetch.2.6.3 -a \"/home/pankrat2/lanej/.aspera/connect/bin/ascp|/home/pankrat2/lanej/.aspera/connect/etc/asperaweb_id_dsa.openssh\" --max-size 100000000000 "
+										+ ext.rootOf(batches[i][j]));
 				process.add("echo \"end "+ ext.rootOf(batches[i][j]) + "\" `date` >>"
 										+ ext.parseDirectoryOfFile(batches[i][j]) + ".times");
 				num++;

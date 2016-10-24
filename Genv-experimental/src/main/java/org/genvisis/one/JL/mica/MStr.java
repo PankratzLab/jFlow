@@ -35,7 +35,7 @@ public class MStr {
 			VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 			String[] samples = VCFOps.getSamplesInFile(reader);
 			boolean[] samplesWithOneGenotype = Array.booleanArray(samples.length, false);
-			writer.println("CHR\tPOS\tREF\tFULL_ALT\tSAMPLE\tA1\tA2\tGQ\tAD\tPhaseInfo\tFullGeno");
+			writer.println("CHR\tPOS\tREF\tFULL_ALT\tSAMPLE\tA1\tA2\tGQ\tAD\tHOM_HET\tFullGeno");
 			for (VariantContext vc : reader) {
 				if (VCOps.getSegment(vc).overlaps(mSeg)) {
 
@@ -93,8 +93,9 @@ public class MStr {
 							}
 							builder2.append("\t" + g.getGQ() + "\t" + (g.getAD() == null ? g.getAnyAttribute("DPR")
 									: Array.toStr(Array.toStringArray((g.getAD())), ",")));
-							builder2.append("\t"+g.getAnyAttribute("PID"));
-							builder2.append("\t"+g.toString());
+
+							builder2.append("\t" + (g.isCalled() ? (g.isHom() ? "HOM" : "ALT") : "NA"));
+							builder2.append("\t" + g.toString());
 							if (!g.getSampleName().contains("H20")) {
 								writer.println(builder2.toString());
 							}
