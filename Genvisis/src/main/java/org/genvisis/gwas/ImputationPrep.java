@@ -2,6 +2,7 @@ package org.genvisis.gwas;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -56,7 +57,7 @@ public class ImputationPrep {
 	private Logger log;
 
 	private Map<Byte, Map<Integer, Set<ReferencePosition>>> referencePositions;
-	private String imputationABLookup;
+	private String imputationRefAlleles;
 
 	private static class ReferencePosition {
 		private byte chr;
@@ -201,6 +202,7 @@ public class ImputationPrep {
 										new ABLookup(markerNames, proj.AB_LOOKUP_FILENAME.getValue(), true, true, log);
 		Set<String> keepMarkers = Sets.newHashSet();
 		char[][] lookup = projAB.getLookup().clone();
+		char[] refAlleles = new char[lookup.length];
 		int mismatchPos = 0;
 		int invalidAlleles = 0;
 		int palindromes = 0;
@@ -232,6 +234,7 @@ public class ImputationPrep {
 				refMatches = Sets.newHashSet(refMatches);
 				char a = lookup[i][0];
 				char b = lookup[i][1];
+				refAlleles[i] = a;
 				// Find the best matched ReferencePosition from all of the matches
 				if (!validateAlleles(a, b, refMatches)) {
 					invalidAlleles++;
@@ -243,7 +246,7 @@ public class ImputationPrep {
 				} else if (matches(b, a, refMatches)) {
 					alleleFlips++;
 					keepMarkers.add(markerNames[i]);
-					lookup[i] = new char[] {b, a};
+					refAlleles[i] = b;
 				} else {
 					char aFlip = PALINDROMIC_PAIRS.get(a);
 					char bFlip = PALINDROMIC_PAIRS.get(b);
@@ -251,10 +254,12 @@ public class ImputationPrep {
 						strandFlips++;
 						keepMarkers.add(markerNames[i]);
 						lookup[i] = new char[] {aFlip, bFlip};
+						refAlleles[i] = aFlip;
 					} else if (matches(bFlip, aFlip, refMatches)) {
 						strandAlelleFlips++;
 						keepMarkers.add(markerNames[i]);
-						lookup[i] = new char[] {bFlip, aFlip};
+						lookup[i] = new char[] {aFlip, bFlip};
+						refAlleles[i] = bFlip;
 					} else {
 						mismatchAlleles++;
 					}
@@ -279,9 +284,17 @@ public class ImputationPrep {
 		log.report("A total of "	+ (matches + alleleFlips + strandFlips + strandAlelleFlips)
 								+ " positions will be exported for imputation");
 
-		imputationABLookup = ext.addToRoot(proj.AB_LOOKUP_FILENAME.getDefaultValue(), "_imputation");
+		String imputationABLookup = ext.addToRoot(proj.AB_LOOKUP_FILENAME.getDefaultValue(), "_imputation");
 		new ABLookup(markerNames, lookup).writeToFile(proj.PROJECT_DIRECTORY.getValue()	+ targetDir
 																									+ imputationABLookup, log);
+
+		imputationRefAlleles = "refAlleles.txt";
+		PrintWriter writer = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + targetDir + imputationRefAlleles);
+		for (int i = 0; i < refAlleles.length; i++) {
+			writer.println(markerNames[i] + "\t" + refAlleles[i]);
+		}
+		writer.flush();
+		writer.close();
 
 		String imputationTargetMarkers = proj.PROJECT_DIRECTORY.getValue()	+ targetDir
 																			+ "targetMarkers.txt";
@@ -335,18 +348,6 @@ public class ImputationPrep {
 	}
 
 	private List<String> exportPlinkToChrVCFs(String inputPlinkroot) {
-		String[] abHeader = Files.getHeaderOfFile(proj.PROJECT_DIRECTORY.getValue()	+ targetDir
-																							+ imputationABLookup, log);
-		String[] desiredCols = new String[] {ABLookup.A_LABEL, ABLookup.MARKER_LABEL};
-		int[] colIndices = ext.indexFactors(desiredCols, abHeader, false, log, true, false);
-		int indexA = colIndices[0];
-		int indexMarker = colIndices[1];
-		if (indexA == -1 || indexMarker == -1) {
-			log.reportTimeError("AB Lookup file ("	+ proj.PROJECT_DIRECTORY.getValue() + targetDir
-													+ imputationABLookup + ") does not have proper header");
-			return null;
-		}
-
 		List<String> vcfs = Lists.newArrayList();
 		Set<String> inputs = ImmutableSet.copyOf(PSF.Plink.getPlinkBedBimFam(inputPlinkroot));
 		for (int i = 1; i <= 23; i++) {
@@ -354,9 +355,7 @@ public class ImputationPrep {
 			String outputFile = outputRoot + ".vcf.gz";
 			Set<String> outputs = ImmutableSet.of(outputFile);
 			List<String> commandList = ImmutableList.of("plink2", "--bfile", inputPlinkroot,
-																									"--a2-allele", imputationABLookup,
-																									Integer.toString(indexA + 1),
-																									Integer.toString(indexMarker + 1),
+																									"--a2-allele", imputationRefAlleles,
 																									"--real-ref-alleles", "--chr",
 																									Integer.toString(i), "--output-chr", "M",
 																									"--recode", "vcf", "bgz", "--out", outputRoot);
