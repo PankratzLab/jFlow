@@ -36,7 +36,8 @@ public class PhaserNGS {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "phaser.log");
 		String[] bams = Files.listFullPaths(bamDir, ".bam", false);
-
+		// VCFOps.extractSegments( vcf, "/Volumes/Beta/ref/strTargets.bed", 10, null,
+		// ext.parseDirectoryOfFile(vcf), false, false, false, 1, log);
 		for (String bam : bams) {
 			phase(phaserPy, bam, vcf, outDir, log);
 		}
@@ -61,7 +62,7 @@ public class PhaserNGS {
 		command.add("--sample");
 		command.add(sampleName);
 		command.add("--paired_end");
-		command.add(Integer.toString(1));
+		command.add(Integer.toString(0));
 		command.add("--mapq");
 		command.add(Integer.toString(20));
 		command.add("--baseq");
