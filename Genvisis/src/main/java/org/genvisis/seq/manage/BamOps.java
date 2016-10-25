@@ -393,8 +393,8 @@ public class BamOps {
 		}
 
 		public String getSummary() {
-			return "AvgInsertSize\t"+ avgInsertSize + System.lineSeparator() + "StDevInsertSize\t"
-							+ stDevInsertSize + System.lineSeparator() + "mad\t" + mad;
+			return "AvgInsertSize\t"+ avgInsertSize + "\nStDevInsertSize\t"
+							+ stDevInsertSize + "\nmad\t" + mad;
 
 		}
 
