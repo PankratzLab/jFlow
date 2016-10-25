@@ -47,7 +47,7 @@ public class GateTreePanel extends JPanel {
 	* 
 	*/
 	private static final long serialVersionUID = 1L;
-	GatingStrategy gating;
+	Gating gating;
 	private final JTree tree;
 	private final JPanel topPanel;
 	private final JScrollPane scrollPane;
@@ -144,7 +144,7 @@ public class GateTreePanel extends JPanel {
 		}
 	}
 
-	public void resetGating(GatingStrategy gating, Gate selectedGate) {
+	public void resetGating(Gating gating, Gate selectedGate) {
 		this.gating = gating;
 		ArrayList<Gate> roots = gating.getRootGates();
 

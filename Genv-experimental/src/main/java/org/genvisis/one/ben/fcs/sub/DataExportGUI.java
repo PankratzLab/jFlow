@@ -34,7 +34,7 @@ import org.genvisis.cnv.gui.JAccordionPanel;
 import org.genvisis.common.Files;
 import org.genvisis.one.ben.fcs.FCSPlot;
 import org.genvisis.one.ben.fcs.gating.Gate;
-import org.genvisis.one.ben.fcs.gating.GatingStrategy;
+import org.genvisis.one.ben.fcs.gating.Gating;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -48,7 +48,7 @@ public class DataExportGUI extends JDialog {
 	private final JTree tree;
 	private final HashMap<DefaultMutableTreeNode, Gate> gateMap =
 																															new HashMap<DefaultMutableTreeNode, Gate>();
-	private GatingStrategy gating;
+	private Gating gating;
 	private final FCSPlot plot;
 	private ArrayList<JCheckBox> boxes;
 	private volatile boolean cancelled = true;

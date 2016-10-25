@@ -56,9 +56,10 @@ import org.genvisis.one.ben.fcs.gating.GateDimension;
 import org.genvisis.one.ben.fcs.gating.GateFileReader;
 import org.genvisis.one.ben.fcs.gating.GateFileWriter;
 import org.genvisis.one.ben.fcs.gating.GateTreePanel;
-import org.genvisis.one.ben.fcs.gating.GatingStrategy;
+import org.genvisis.one.ben.fcs.gating.Gating;
 import org.genvisis.one.ben.fcs.gating.Workbench;
 import org.genvisis.one.ben.fcs.sub.DataExportGUI;
+import org.genvisis.one.ben.fcs.sub.EMFitter;
 import org.xml.sax.SAXException;
 
 public class FCSPlot extends JPanel
@@ -96,6 +97,7 @@ public class FCSPlot extends JPanel
 	private volatile boolean showMedianX = true;
 
 	private volatile boolean backgating = false;
+	private volatile boolean leafgating = false;
 	private volatile boolean drawPolyGatesBinned = false;
 
 	private JFrame parent;
@@ -286,7 +288,7 @@ public class FCSPlot extends JPanel
 	private JMenuBar menuBar() {
 		JMenuBar menuBar;
 		JMenu menu;
-		JMenuItem menuItemExit, menuItemOpen, menuItemExport, menuItemSave;
+		JMenuItem menuItemExit, menuItemOpen, menuItemExport, menuItemEM, menuItemSave;
 
 		menuBar = new JMenuBar();
 		menu = new JMenu("File");
@@ -322,6 +324,15 @@ public class FCSPlot extends JPanel
 			}
 		});
 		menu.add(menuItemExport);
+
+		menuItemEM = new JMenuItem("Run EM", KeyEvent.VK_M);
+		menuItemEM.addActionListener(new ActionListener() {
+		  @Override
+		  public void actionPerformed(ActionEvent e) {
+		    setupEM();
+		  }
+		});
+		menu.add(menuItemEM);
 
 		menuItemExit = new JMenuItem("Close", KeyEvent.VK_C);
 		menuItemExit.addActionListener(new ActionListener() {
@@ -494,6 +505,16 @@ public class FCSPlot extends JPanel
 		fcsPanel.setForceGatesChanged();
 		updateGUI();
 	}
+	
+	public boolean isLeafgating() {
+	  return leafgating;
+	}
+
+	public void setLeafgating(boolean leaf) {
+	  leafgating = leaf;
+	  fcsPanel.setForceGatesChanged();
+	  updateGUI();
+	}
 
 	public boolean isDrawPolysAsFlowJo() {
 		return drawPolyGatesBinned;
@@ -563,7 +584,7 @@ public class FCSPlot extends JPanel
 			data = null;
 		} else {
 			data = dataLoader.getData(xAxis ? getXDataName() : getYDataName(), wait);
-			if (!backgating && parentGate != null) {
+			if (!backgating && !leafgating && parentGate != null) {
 				boolean[] gating = parentGate.gate(dataLoader);
 				data = Array.subArray(data, gating);
 			}
@@ -697,21 +718,19 @@ public class FCSPlot extends JPanel
 			dataLoaderThread.start();
 		}
 	}
-
-	// TODO REVAMP to load workspace or template
-	public void loadGatingFile(String gateFile) {
-		try {
-		  this.workbench = GateFileReader.loadWorkspace(gateFile);
-//			setGating(GateFileReader.readGateFile(gateFile));
-			saveProps();
-		} catch (ParserConfigurationException e) {
-			log.reportException(e);
-		} catch (SAXException e) {
-			log.reportException(e);
-		} catch (IOException e) {
-			log.reportException(e);
-		}
-	}
+  
+    public void loadWorkspaceFile(String gateFile) {
+      try {
+        this.workbench = GateFileReader.loadWorkspace(gateFile);
+        saveProps();
+      } catch (ParserConfigurationException e) {
+        log.reportException(e);
+      } catch (SAXException e) {
+        log.reportException(e);
+      } catch (IOException e) {
+        log.reportException(e);
+      }
+    }
 
 	public void saveGating() {
 		if (getGatingStrategy().getRootGates().size() == 0) {
@@ -736,11 +755,11 @@ public class FCSPlot extends JPanel
 		}
 	}
 
-	public GatingStrategy getGatingStrategy() {
+	public Gating getGatingStrategy() {
 	  if (currentSampleID != null) {
 		return workbench.getSample(currentSampleID).getGating();
 	  } else {
-	    return new GatingStrategy();
+	    return new Gating();
 	  }
 	}
 
@@ -753,7 +772,7 @@ public class FCSPlot extends JPanel
       fcsPanel.clearGating();
 	}
 
-	public void setGating(GatingStrategy gateStrat) {
+	public void setGating(Gating gateStrat) {
 		workbench.setGatingForSample(currentSampleID, gateStrat);
 		parentGate = null;
 		for (Gate g : getGatingStrategy().getRootGates()) {
@@ -768,6 +787,18 @@ public class FCSPlot extends JPanel
 		gatingSelector.resetGating(getGatingStrategy(), sel);
 		fcsPanel.setForceGatesChanged();
 		updateGUI();
+	}
+	
+	protected HashMap<Gate, boolean[]> gateAllDataForLeafGates() {
+	  ArrayList<Gate> leafGates = getGatingStrategy().getAllLeafGates();
+	  HashMap<Gate, boolean[]> gatings = new HashMap<Gate, boolean[]>();
+	  log.reportTime("Gating on " + leafGates.size() + " leaf gates...");
+	  long t1 = System.currentTimeMillis();
+	  for (int i = 0; i < leafGates.size(); i++) {
+	    gatings.put(leafGates.get(i), leafGates.get(i).gate(dataLoader));
+	  }
+	  log.reportTimeElapsed("Gating complete - ", t1);
+	  return gatings;
 	}
 
     public ArrayList<Gate> getGatingForCurrentPlot() {
@@ -853,7 +884,7 @@ public class FCSPlot extends JPanel
 		if (dataLoader == null) {
 			return cnt;
 		}
-		if (!backgating && parentGate != null) {
+		if (!backgating && !leafgating && parentGate != null) {
 			cnt = Array.booleanArraySum(parentGate.gate(dataLoader));
 		} else {
 			cnt = dataLoader.getCount();
@@ -953,6 +984,17 @@ public class FCSPlot extends JPanel
 		fcsPanel.clearGating();
 	}
 
+	int[] clusterAssigns = null;
+	
+	public int[] getClusterAssignments() {
+	  return clusterAssigns;
+	}
+	
+	private void setupEM() {
+	  clusterAssigns = (new EMFitter()).run(dataLoader);
+	}
+	
+	
 	private void setupDataExport() {
 		if (getAddedFiles().isEmpty()) {
 			JOptionPane.showMessageDialog(this, "Error - no data files available to export!", "Error!",

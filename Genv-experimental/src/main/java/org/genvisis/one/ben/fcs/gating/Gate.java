@@ -13,6 +13,8 @@ import java.util.Random;
 
 import org.genvisis.common.Array;
 import org.genvisis.common.Numbers;
+import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
+//import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
 import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
@@ -226,11 +228,8 @@ public abstract class Gate {
       // if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
       // return gatingCache.get(dataLoader.getLoadedFile());
       // }
-      boolean[] includes =
-          parentGate == null ? new boolean[dataLoader.getCount()] : parentGate.gate(dataLoader);
-      parentGating =
-          parentGate == null ? Array.booleanArray(dataLoader.getCount(), true) : Arrays.copyOf(
-              includes, includes.length);
+      boolean[] includes =  parentGate == null ? new boolean[dataLoader.getCount()] : parentGate.gate(dataLoader);
+      parentGating = parentGate == null ? Array.booleanArray(dataLoader.getCount(), true) : Arrays.copyOf(includes, includes.length);
       boolean[][] paramIncludes = new boolean[dimensions.size()][dataLoader.getCount()];
       for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
         RectangleGateDimension rgd = (RectangleGateDimension) dimensions.get(p);
@@ -293,6 +292,7 @@ public abstract class Gate {
     private final ArrayList<Double> verticesX = new ArrayList<Double>();
     private final ArrayList<Double> verticesY = new ArrayList<Double>();
     private Path2D myPath;
+    private Path2D transformedPath;
     ArrayList<Rectangle> myRects = new ArrayList<Rectangle>();
     private boolean mimicFlowJo = false;
 
@@ -360,8 +360,10 @@ public abstract class Gate {
       double[] coords = new double[6];
       PathIterator pi = myPath.getPathIterator(null);
       while (!pi.isDone()) {
-        pi.currentSegment(coords);
-        addVertex(coords[0], coords[1]);
+        int type = pi.currentSegment(coords);
+        if (type != PathIterator.SEG_CLOSE) {
+          addVertex(coords[0], coords[1]);
+        }
         pi.next(); // TODO may require a 'next()' to start?
       }
     }
@@ -383,6 +385,22 @@ public abstract class Gate {
       return path;
     }
     
+    private Path2D transformPath() {
+      Path2D pathTr = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+      AxisTransform xTr, yTr;
+      xTr = getDimensions().get(0).scale.getTransform();
+      yTr = getDimensions().get(1).scale.getTransform();
+      if (verticesX.isEmpty() || verticesY.isEmpty()) {
+        resetVertices();
+      }
+      pathTr.moveTo(xTr.scaleX(verticesX.get(0)), yTr.scaleY(verticesY.get(0)));
+      for (int i = 1; i < verticesX.size(); ++i) {
+        pathTr.moveTo(xTr.scaleX(verticesX.get(i)), yTr.scaleY(verticesY.get(i)));
+      }
+      pathTr.closePath();
+      return pathTr;
+    }
+    
     @Override
     public Gate copy(Gate parentGate) {
       PolygonGate pg = new PolygonGate(parentGate, this.popName, this.mimicFlowJo);
@@ -396,19 +414,19 @@ public abstract class Gate {
       }
       return pg;
     }
-
+    
     @Override
     public boolean[] gate(FCSDataLoader dataLoader) {
       // if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
       // return gatingCache.get(dataLoader.getLoadedFile());
       // }
-      boolean[] includes =
-          parentGate == null ? new boolean[dataLoader.getCount()] : parentGate.gate(dataLoader);
-      parentGating =
-          parentGate == null ? Array.booleanArray(dataLoader.getCount(), true) : Arrays.copyOf(
-              includes, includes.length);
+      boolean[] includes = parentGate == null ? new boolean[dataLoader.getCount()] : parentGate.gate(dataLoader);
+      parentGating = parentGate == null ? Array.booleanArray(dataLoader.getCount(), true) : Arrays.copyOf(includes, includes.length);
       if (myPath == null) {
         myPath = constructPath();
+      }
+      if (transformedPath == null) {
+        transformedPath = transformPath();
       }
       double[][] paramData = new double[dimensions.size()][];
       for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
@@ -434,7 +452,10 @@ public abstract class Gate {
             }
           }
         } else {
-          if (myPath.contains(paramData[0][i], paramData[1][i])) {
+//          if (myPath.contains(paramData[0][i], paramData[1][i])) {
+//            include = true;
+//          }
+          if (myPath.contains(dimensions.get(0).scale.getTransform().scaleX(paramData[0][i]), dimensions.get(1).scale.getTransform().scaleY(paramData[1][i]))) {
             include = true;
           }
         }

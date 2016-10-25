@@ -30,7 +30,7 @@ public class GateFileReader {
   // in files
   private static final AXIS_SCALE DEFAULT_SCALE = AXIS_SCALE.LIN;
 
-  public static GatingStrategy readGateFile(String gateFile) throws ParserConfigurationException,
+  public static Gating readGateFile(String gateFile) throws ParserConfigurationException,
       SAXException, IOException {
     return gateFile.toLowerCase().endsWith(".wsp") || gateFile.toLowerCase().endsWith(".wspt") ? readFlowJoGatingFile(gateFile)
         : readGatingMLFile(gateFile);
@@ -45,6 +45,14 @@ public class GateFileReader {
     doc.getDocumentElement().normalize();
 
     // TODO load templateGating
+    NodeList groups = doc.getElementsByTagName("GroupNode");
+    for (int i = 0, count = groups.getLength(); i < count; i++) {
+      Element groupNode = (Element) groups.item(i);
+      
+    }
+    
+    
+    
     
     NodeList samples = doc.getElementsByTagName("Sample");
 
@@ -64,7 +72,7 @@ public class GateFileReader {
       sn.fcsFile = fcsFile;
       sn.sampleNode = sampleNode;
       sn.doc = doc;
-      GatingStrategy gs = new GatingStrategy();
+      Gating gs = new Gating();
       gs.setFile(file);
       NodeList nodes = sampleNode.getElementsByTagName("Population");
       gs.gateMap = GateFileUtils.buildPopGraph(nodes);
@@ -81,17 +89,17 @@ public class GateFileReader {
     return wb;
   }
   
-  public static GatingStrategy readFlowJoGatingFile(String filename)
+  public static Gating readFlowJoGatingFile(String filename)
       throws ParserConfigurationException, SAXException, IOException {
     return readFile(filename, true);
   }
 
-  public static GatingStrategy readGatingMLFile(String filename)
+  public static Gating readGatingMLFile(String filename)
       throws ParserConfigurationException, SAXException, IOException {
     return readFile(filename, false);
   }
 
-  private static GatingStrategy readFile(String filename, boolean flowjo)
+  private static Gating readFile(String filename, boolean flowjo)
       throws ParserConfigurationException, SAXException, IOException {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = factory.newDocumentBuilder();
@@ -105,7 +113,7 @@ public class GateFileReader {
     // TODO write transforms to gating-ml file
     // TODO why aren't transforms exported to Gating-ML by FlowJo?
 
-    GatingStrategy gs = new GatingStrategy();
+    Gating gs = new Gating();
     gs.setFile(filename);
     gs.gateMap = flowjo ? buildPopGraph(nodes) : buildGateGraph(nodes);
     gs.gateRoots = connectGates(gs.gateMap);

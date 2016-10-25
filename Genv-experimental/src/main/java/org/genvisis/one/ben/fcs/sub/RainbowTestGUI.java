@@ -80,7 +80,7 @@ import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
 import org.genvisis.one.ben.fcs.FCSPlot;
 import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.GateFileReader;
-import org.genvisis.one.ben.fcs.gating.GatingStrategy;
+import org.genvisis.one.ben.fcs.gating.Gating;
 import org.xml.sax.SAXException;
 
 import com.google.common.primitives.Doubles;
@@ -124,7 +124,7 @@ public class RainbowTestGUI extends JFrame {
 	JFrame meanFrame = new JFrame("Genvisis - FCS Overall Mean/SD");
 	OneDPanel meanPanel = new OneDPanel();
 	MeanCtrlPanel meanCtrlPanel = new MeanCtrlPanel();
-	GatingStrategy gateStrat;
+	Gating gateStrat;
 	String baseDir;
 	String[] baseFCSFiles;
 	DirFile dirStruct;

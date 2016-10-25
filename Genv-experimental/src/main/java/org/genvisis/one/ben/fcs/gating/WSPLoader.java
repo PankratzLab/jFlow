@@ -117,7 +117,7 @@ public class WSPLoader {
       sn.fcsFile = fcsFile;
       sn.sampleNode = sampleNode;
       sn.doc = doc;
-      GatingStrategy gs = new GatingStrategy();
+      Gating gs = new Gating();
       gs.setFile(file);
       NodeList nodes = sampleNode.getElementsByTagName("Population");
       gs.gateMap = GateFileUtils.buildPopGraph(nodes);

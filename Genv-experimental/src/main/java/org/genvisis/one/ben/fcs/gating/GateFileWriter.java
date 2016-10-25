@@ -26,7 +26,7 @@ import org.w3c.dom.Element;
 public class GateFileWriter {
 
 	// built from: https://stackoverflow.com/questions/7373567/java-how-to-read-and-write-xml-files
-	public static void writeGating(GatingStrategy gating, String outputFile, Logger log) {
+	public static void writeGating(Gating gating, String outputFile, Logger log) {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder;
 		try {

@@ -7,37 +7,37 @@ public class Workbench {
   public static class SampleNode {
     String id;
     String fcsFile;
-    GatingStrategy gating;
+    Gating gating;
     org.w3c.dom.Element sampleNode;
     org.w3c.dom.Document doc;
     
-    public GatingStrategy getGating() {
+    public Gating getGating() {
       return gating;
     }
   }
 
-  GatingStrategy templateGating;
+  Gating templateGating;
   HashMap<String, SampleNode> samples;
   
   public Workbench() {
-    templateGating = new GatingStrategy();
+    templateGating = new Gating();
     samples = new HashMap<String, Workbench.SampleNode>();
   }
   
   public String addNewSample(String fcsFile, boolean applyTemplate) {
     SampleNode sn = new SampleNode();
-    sn.id = getNewID();
+    sn.id = getNewSampleID();
     sn.fcsFile = fcsFile;
     if (applyTemplate) {
       sn.gating = templateGating.copy(fcsFile);
     } else {
-      sn.gating = new GatingStrategy();
+      sn.gating = new Gating();
     }
     samples.put(sn.id, sn);
     return sn.id;
   }
   
-  private String getNewID() {
+  private String getNewSampleID() {
     int id = samples.size();
     boolean done = false;
     notDone : while (!done) {
@@ -56,10 +56,10 @@ public class Workbench {
 
   public void clearGating(String currentSampleID) {
     // TODO should gate IDs be deleted here?  also, an UNDO might be nice...
-    setGatingForSample(currentSampleID, new GatingStrategy());
+    setGatingForSample(currentSampleID, new Gating());
   }
 
-  public void setGatingForSample(String currentSampleID, GatingStrategy gateStrat) {
+  public void setGatingForSample(String currentSampleID, Gating gateStrat) {
     samples.get(currentSampleID).gating = gateStrat;
   }
 

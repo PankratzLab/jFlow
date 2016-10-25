@@ -25,6 +25,7 @@ import java.util.TreeSet;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.InputMap;
 import javax.swing.JButton;
@@ -36,6 +37,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
@@ -137,7 +139,7 @@ public class FCSPlotControlPanel extends JPanel {
 		cbType = new JComboBox<PLOT_TYPE>(PLOT_TYPE.values());
 		panel.add(cbType, "cell 1 0 3 1,growx");
 
-		JLabel lblYaxisData = new JLabel("Y-Axis Data:");
+		JLabel lblYaxisData = new JLabel("Y-Axis:");
 		panel.add(lblYaxisData, "cell 0 2,alignx trailing");
 		lblYaxisData.setFont(lblFont);
 
@@ -204,7 +206,7 @@ public class FCSPlotControlPanel extends JPanel {
 		yBndsMax.setColumns(10);
 		yBndsMax.setEditable(false);
 
-		JLabel lblXaxisData = new JLabel("X-Axis Data:");
+		JLabel lblXaxisData = new JLabel("X-Axis:");
 		panel.add(lblXaxisData, "cell 0 7,alignx trailing");
 		lblXaxisData.setFont(lblFont);
 
@@ -382,20 +384,48 @@ public class FCSPlotControlPanel extends JPanel {
 		chkDrawPolysBinned.setHorizontalAlignment(SwingConstants.CENTER);
 		panel.add(chkDrawPolysBinned, "cell 0 5, grow");
 
-		JCheckBox chkBackgate = new JCheckBox("Backgate");
+		JRadioButton chkRegGate = new JRadioButton("Standard", true);
+		chkRegGate.addItemListener(new ItemListener() {
+		  @Override
+		  public void itemStateChanged(ItemEvent arg0) {
+		    plot.setLeafgating(arg0.getStateChange() != ItemEvent.SELECTED);
+		    plot.setBackgating(arg0.getStateChange() != ItemEvent.SELECTED);
+		  }
+		});
+		chkRegGate.setHorizontalAlignment(SwingConstants.CENTER);
+		panel.add(chkRegGate, "cell 0 6, grow");
+		
+		JRadioButton chkLeafgate = new JRadioButton("Leafgate");
+		chkLeafgate.addItemListener(new ItemListener() {
+		  @Override
+		  public void itemStateChanged(ItemEvent arg0) {
+		    plot.setLeafgating(arg0.getStateChange() == ItemEvent.SELECTED);
+		    plot.setBackgating(arg0.getStateChange() != ItemEvent.SELECTED);
+		  }
+		});
+		chkLeafgate.setHorizontalAlignment(SwingConstants.CENTER);
+		panel.add(chkLeafgate, "cell 0 7, grow");
+
+		JRadioButton chkBackgate = new JRadioButton("Backgate");
 		chkBackgate.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent arg0) {
 				plot.setBackgating(arg0.getStateChange() == ItemEvent.SELECTED);
+	            plot.setLeafgating(arg0.getStateChange() != ItemEvent.SELECTED);
 			}
 		});
 		chkBackgate.setHorizontalAlignment(SwingConstants.CENTER);
-		panel.add(chkBackgate, "cell 0 6, grow");
+		panel.add(chkBackgate, "cell 0 8, grow");
+		
+		ButtonGroup bg1 = new ButtonGroup();
+		bg1.add(chkRegGate);
+		bg1.add(chkLeafgate);
+		bg1.add(chkBackgate);
 
 		btnSaveGating = new JButton("Save Gating");
 		btnSaveGating.addActionListener(gateSaveListener);
 		btnSaveGating.setHorizontalAlignment(SwingConstants.CENTER);
-		panel.add(btnSaveGating, "cell 0 7, span 2, center");
+		panel.add(btnSaveGating, "cell 0 9, span 2, center");
 
 		dataControlsPanel = new JAccordionPanel();
 		panel_1.add(dataControlsPanel, "cell 0 2,grow");
@@ -759,7 +789,7 @@ public class FCSPlotControlPanel extends JPanel {
 
 	protected void loadGatingFile(String newFile) {
 		prevGateDir = ext.parseDirectoryOfFile(newFile);
-		plot.loadGatingFile(newFile);
+		plot.loadWorkspaceFile(newFile);
 		gateFileLabel.setText("<html><p>" + newFile + "</p></html>");
 		gateFileLabel.setVisible(true);
 		gateFileTitle.setVisible(true);
