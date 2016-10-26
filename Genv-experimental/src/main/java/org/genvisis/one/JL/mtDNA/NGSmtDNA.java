@@ -21,7 +21,7 @@ import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 
-public class Cushings {
+public class NGSmtDNA {
 	// VCF validation
 	// java -jar /Users/Kitty/bin/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar -T
 	// ValidateVariants -R /Volumes/Beta/ref/GRCh37_canon.fa -V
@@ -31,8 +31,7 @@ public class Cushings {
 
 		boolean summarize = false;
 		if (summarize) {
-			String cVcf =
-									"/Volumes/Beta/data/Cushings/mito/testRcrs/joint_genotypes_tsai_21_25_26_28_spector.chrM.vcf";
+			String cVcf = "/Volumes/Beta/data/Cushings/mito/testRcrs/joint_genotypes_tsai_21_25_26_28_spector.chrM.vcf";
 			String polyVCF = "/Volumes/Beta/data/Cushings/mito/testRcrs/polymorphismsMTVariants.vcf";
 			String diseaseVCF = "/Volumes/Beta/data/Cushings/mito/testRcrs/diseaseMTVariants.vcf";
 			String diseaseTrimVCF = ext.addToRoot(diseaseVCF, ".trim");
@@ -45,29 +44,29 @@ public class Cushings {
 
 			VCFOpsMT.convertHg19ToRCRS(cVcf, rcrsC, new Logger());
 
-			GATK gatk = new GATK(	"/Users/Kitty/bin/GenomeAnalysisTK-3.6/",
-														"/Volumes/Beta/ref/GRCh37_canon.fa", true, true, log);
+			GATK gatk = new GATK("/Users/Kitty/bin/GenomeAnalysisTK-3.6/", "/Volumes/Beta/ref/GRCh37_canon.fa", true,
+					true, log);
 
 			String outAnno = ext.addToRoot(rcrsC, ".poly");
-			gatk.annotateWithAnotherVCF(rcrsC, polyVCF, outAnno, new String[] {"AF", "AC"}, "mtPoly",
-																	"MT", 1);
+			gatk.annotateWithAnotherVCF(rcrsC, polyVCF, outAnno, new String[] { "AF", "AC" }, "mtPoly", "MT", 1);
 
 			String outAnnoD = ext.addToRoot(outAnno, ".disease");
 			gatk.annotateWithAnotherVCF(outAnno, diseaseTrimVCF, outAnnoD,
-																	new String[] {"AF", "AC", "DiseaseStatus", "Disease"}, "mtPoly",
-																	"MT", 1);
+					new String[] { "AF", "AC", "DiseaseStatus", "Disease" }, "mtPoly", "MT", 1);
 
 			String finalOut = ext.addToRoot(outAnnoD, ".conv");
 			VCFOpsMT.convertContigs(outAnnoD, finalOut, MT_GENOME.HG19, log);
 
 			String remoteVcf = "/home/pankrat2/lanej/tmp/cushings/" + ext.removeDirectoryInfo(finalOut);
 			// SSH.copyLocalToRemote(finalOut, remoteVcf, log);
-			String annotateCommand = "java -jar /home/pankrat2/lanej/genvisis.jar one.JL.quickAnno vcf="
-																+ remoteVcf;
+			String annotateCommand = "java -jar /home/pankrat2/lanej/genvisis.jar one.JL.quickAnno vcf=" + remoteVcf;
 			System.out.println(annotateCommand);
 		} else {
 
 			String annoVcf = "/Volumes/Beta/data/Cushings/mito/joint_genotypes_tsai_21_25_26_28_spector.chrM.rcrs.poly.disease.conv.hg19_multianno.eff.gatk.sed1000g.vcf";
+			String vpopFileGermlineCushing = "/Volumes/Beta/data/Cushings/mito/CUSHING_FREQ_V2.vpop";
+			String vpopFileEpp = "/Volumes/Beta/data/Cushings/mito/EPP_FREQ_V2.vpop";
+
 			// System.exit(1);
 
 			String outputDir = "/Volumes/Beta/data/Cushings/mito/tumorNormal/";
@@ -113,14 +112,12 @@ public class Cushings {
 				}
 			}
 			Files.writeIterable(summary, ext.parseDirectoryOfFile(vpop) + "D310Summary.txt");
-			// System.exit(1);
-			// SSH.copyRemoteToLocal(annoVcf, annotated, log);
-			// SSH.copyRemoteToLocal(annoVcf + ".idx", annotated + ".idx", log);
 			if (Files.exists(annoVcf)) {
-				//
-				SimpleTallyGene.run(annoVcf, new double[] {1.2, .01, 0.0});
+				SimpleTallyGene.run(annoVcf, vpopFileEpp, new double[] { 1.2, .01, 0.0 });
+
+				SimpleTallyGene.run(annoVcf, vpopFileGermlineCushing, new double[] { 1.2, .01, 0.0 });
 			}
-			TumorNormalSummary.main(new String[] {annoVcf});
+			TumorNormalSummary.main(new String[] { annoVcf });
 
 		}
 
