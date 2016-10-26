@@ -598,7 +598,7 @@ public abstract class RegressionModel {
 	}
 
 	public static boolean[] getRowsWithCompleteData(String[] deps, String[][] indeps, Logger log) {
-		return getRowsWithCompleteData(	Array.toDoubleArray(deps, true),
-																		Array.toDoubleArrays(indeps, true), log);
+		return getRowsWithCompleteData(	deps == null ? null : Array.toDoubleArray(deps, true),
+																		indeps == null ? null : Array.toDoubleArrays(indeps, true), log);
 	}
 }
