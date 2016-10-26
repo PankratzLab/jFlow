@@ -8,10 +8,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.apache.commons.math3.stat.inference.TTest;
@@ -641,7 +643,7 @@ public class SexChecks {
 		PrintWriter writer;
 		String[] lookup;
 		String famIndPair;
-		PrintWriter[] regionWriters = new PrintWriter[ESTIMATED_SEXES.length];
+		List<String>[] regionLists = new List[ESTIMATED_SEXES.length + 2];
 
 		SampleData sampleData = proj.getSampleData(0, false);
 		String resultsDir = new File(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false)).getParent() + "/";
@@ -668,18 +670,16 @@ public class SexChecks {
 												+ "\t" + lrrMedX[i] + "\t" + lrrMedY[i]);
 				// Create sex-specific region files for any "unusual" sex call to allow easy review
 				//TODO it would be nice to add these to Trailer automatically but not clear if that requires a UI, and public API
+				String dna = lookup == null ? sampleNames[i] : lookup[0];
 				if (!qcPassedSamples[i]) {
-					writeSexRegion(regionWriters, 1, resultsDir + "regions_excluded.txt", lookup, "chr1");
+					addRegion(regionLists, ESTIMATED_SEXES.length, dna, "chr1", "(excluded ) " + notes[i]);
+				}else if (uncertains[i]) {
+					addRegion(regionLists, ESTIMATED_SEXES.length + 1, dna, "chr1", "(uncertain ) " + notes[i]);
 				} else if (sex != 1 && sex != 2) {
-					writeSexRegion(regionWriters, sex, resultsDir + "regions_" + ESTIMATED_SEXES[sex].replaceAll("\\s", "") + ".txt", lookup, sex == 0 ? "chr1" : "chr23");
+					addRegion(regionLists, sex, dna, sex == 0 ? "chr1" : "chr23", "(" + ESTIMATED_SEXES[sex].replaceAll("\\s", "") + " ) " + notes[i]);
 				}
 			}
-			for (int i=0; i<regionWriters.length; i++) {
-				if (regionWriters[i] != null) {
-					regionWriters[i].close();
-				}
-			}
-			writer.close();
+			writeSexRegions(regionLists, resultsDir + "sexCheck_regions.txt");
 		} catch (Exception e) {
 			log.reportError("Error writing to " + proj.SEXCHECK_RESULTS_FILENAME.getValue());
 			log.reportException(e);
@@ -697,15 +697,36 @@ public class SexChecks {
 	}
 
 	/**
-	 * Helper method for adding regions to sex-specific region files.
+	 * Adds a string of the format "dna\tchr\tnote" to the list for the specified sex value. Lists are
+	 * created if they do not already exist.
 	 */
-	private void writeSexRegion(PrintWriter[] regionWriters, int i, String path, String[] lookup,
-													String chr) throws IOException {
-		if (regionWriters[i] == null) {
-			regionWriters[i] = new PrintWriter(new FileWriter(path));
-			log.report("SexChecks -- Creating sex-specific region file: " + path);
+	private void addRegion(	List<String>[] regionLists, int sex, String dna, String chr,
+													String note) {
+		if (regionLists[sex] == null) {
+			regionLists[sex] = new ArrayList<String>();
 		}
-		regionWriters[i].println(lookup[0] + "\t" + chr);
+		regionLists[sex].add(dna + "\t" + chr + "\t" + note);
+	}
+
+	/**
+	 * Write all samples of all regions to the specified path
+	 */
+	private void writeSexRegions(List<String>[] regions, String path) throws IOException {
+		PrintWriter out = new PrintWriter(new FileWriter(path));
+		log.report("SexChecks -- Creating sex-specific region file: " + path);
+		for (List<String> samples : regions) {
+			if (samples == null) {
+				continue;
+			}
+			// Insert count information to the region comment
+			String suffix = " of " + samples.size();
+			for (int i=0; i<samples.size(); i++) {
+				String line = samples.get(i);
+				int parIndex = line.indexOf(')');
+				out.println(line.substring(0, parIndex) + i + suffix + line.substring(parIndex));
+			}
+		}
+		out.close();
 	}
 
 	public static int mapEstimatedSexToSex(String estCode) {
