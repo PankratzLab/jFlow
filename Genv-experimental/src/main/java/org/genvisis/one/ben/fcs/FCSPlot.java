@@ -18,6 +18,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -288,7 +289,7 @@ public class FCSPlot extends JPanel
 	private JMenuBar menuBar() {
 		JMenuBar menuBar;
 		JMenu menu;
-		JMenuItem menuItemExit, menuItemOpen, menuItemExport, menuItemEM, menuItemSave;
+		JMenuItem menuItemExit, menuItemOpen, menuItemExport, menuItemDump, menuItemEM, menuItemSave;
 
 		menuBar = new JMenuBar();
 		menu = new JMenu("File");
@@ -315,6 +316,15 @@ public class FCSPlot extends JPanel
 			}
 		});
 		menu.add(menuItemSave);
+		
+		menuItemDump = new JMenuItem("Dump Data", KeyEvent.VK_D);
+		menuItemDump.addActionListener(new ActionListener() {
+		  @Override
+		  public void actionPerformed(ActionEvent e) {
+		    dumpData();
+		  }
+		});
+		menu.add(menuItemDump);
 
 		menuItemExport = new JMenuItem("Export Data", KeyEvent.VK_E);
 		menuItemExport.addActionListener(new ActionListener() {
@@ -602,23 +612,24 @@ public class FCSPlot extends JPanel
 			if (colNames.size() < 2) {
 				// TODO error, not enough data!!
 			}
-			// TODO reset GUI elements
-			// if (resetCols) {
-			// SwingUtilities.invokeLater(new Runnable() {
-			// @Override
-			// public void run() {
 			fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
 			fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
 			fcsControls.setColumns(colNamesY.toArray(new String[colNamesY.size()]), false, 1);
 			fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(0)), false);
 			fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(1)), true);
-			// }
-			// });
 
 			setYDataName(colNames.get(0));
 			setXDataName(colNames.get(1));
 			setYScale(newDataLoader.getScaleForParam(colNames.get(0)));
 			setXScale(newDataLoader.getScaleForParam(colNames.get(1)));
+			
+//			fcsControls.setPlotType(PLOT_TYPE.DOT_PLOT);
+//			fcsControls.setScale(AXIS_SCALE.BIEX, false);
+//			fcsControls.setScale(AXIS_SCALE.BIEX, true);
+//			setYDataName("Comp-APC-A (CD3)");
+//			setXDataName("Comp-PE-Cy7-A (CD19)");
+//			setYScale(AXIS_SCALE.BIEX);
+//			setXScale(AXIS_SCALE.BIEX);
 		} else {
 			new Thread(new Runnable() {
 				@Override
@@ -991,9 +1002,44 @@ public class FCSPlot extends JPanel
 	}
 	
 	private void setupEM() {
-	  clusterAssigns = (new EMFitter()).run(dataLoader);
+	  ArrayList<String> params = new ArrayList<>();
+	  params.add(getXDataName());
+	  params.add(getYDataName());
+	  clusterAssigns = EMFitter.run(dataLoader, params);
+	  updateGUI();
 	}
 	
+	private void dumpData() {
+	  boolean[] toDump = getParentGating();
+	  ArrayList<String> params = dataLoader.getAllDisplayableNames(DATA_SET.COMPENSATED);
+	  PrintWriter writer = Files.getAppropriateWriter(ext.rootOf(dataLoader.getLoadedFile(), false) + ".xln");
+	  for (int i = 0, count = params.size(); i < count; i++) {
+	    writer.print(params.get(i));
+	    if (i < count - 1) {
+	      writer.print("\t");
+	    }
+	  }
+	  writer.println();
+	  
+	  double[][] data = new double[params.size()][];
+	  for (int i = 0, count = params.size(); i < count; i++) {
+	    data[i] = dataLoader.getData(params.get(i), true);
+	  }
+  
+      for (int i = 0, count = data[0].length; i < count; i++) {
+        if (toDump[i]) {
+          for (int p = 0, pcount = params.size(); p < pcount; p++) {
+            writer.print(data[p][i]);
+            if (p < pcount - 1) {
+              writer.print("\t");
+            }
+          }
+          writer.println();
+        }
+      }
+	  writer.flush();
+	  writer.close();
+	}
 	
 	private void setupDataExport() {
 		if (getAddedFiles().isEmpty()) {

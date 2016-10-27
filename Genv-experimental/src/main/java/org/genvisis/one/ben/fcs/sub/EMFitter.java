@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.commons.math3.distribution.MixtureMultivariateNormalDistribution;
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
@@ -57,13 +58,12 @@ public class EMFitter {
     return transformed;
   }
 
-  private static double[][] process(FCSDataLoader dataLoader, Logger log) {
-    ArrayList<String> params = dataLoader.getAllDisplayableNames(DATA_SET.COMPENSATED);
+  private static double[][] process(FCSDataLoader dataLoader, ArrayList<String> params, Logger log) {
     double[][] data = new double[params.size()][];
     for (int i = 0; i < params.size(); i++) {
       data[i] = dataLoader.getData(params.get(i), true);
     }
-    
+
     Logicle[] mehs = new Logicle[params.size()];
     for (int i = 0; i < mehs.length; i++) {
       mehs[i] = getLogicle(data[i]);
@@ -114,38 +114,84 @@ public class EMFitter {
 
   private static MultivariateNormalMixtureExpectationMaximization getClusters(double[][] transposed, double[][] init, int clusters, Logger log) {
     log.report("Detecting clusters, num clusters set to " + clusters);
+
     MixtureMultivariateNormalDistribution initialMix = MultivariateNormalMixtureExpectationMaximization.estimate(init, clusters);
+
+    List<Pair<Double, MultivariateNormalDistribution>> clusts = initialMix.getComponents();
+    int numSamples = 1000;
+    double[][] newInit = new double[clusters*numSamples][];
+    int index = 0;
+    Random rand = new Random();
+    Logicle l = getBiexScale(10000);
+    int noise = 1000;
+    int noiseHalf = noise / 2;
+    
+    for (Pair<Double, MultivariateNormalDistribution> pair : clusts) {
+      for (int i = 0; i < numSamples; i++) {
+        if (i < numSamples / 4) {
+          newInit[index] = new double[]{l.scale(0 + rand.nextInt(noise) - noiseHalf), l.scale(0 + rand.nextInt(noise) - noiseHalf)};
+        } else if (i < numSamples / 2) {
+          newInit[index] = new double[]{l.scale(10000 + rand.nextInt(noise) - noiseHalf), l.scale(0 + rand.nextInt(noise) - noiseHalf)};
+        } else if (i > numSamples / 2 && i < (numSamples / 2 + numSamples / 4)) {
+          newInit[index] = new double[]{l.scale(10000 + rand.nextInt(noise) - noiseHalf), l.scale(10000 + rand.nextInt(noise) - noiseHalf)};
+        } else if (i > numSamples / 2) {
+          newInit[index] = new double[]{l.scale(0 + rand.nextInt(noise) - noiseHalf), l.scale(10000 + rand.nextInt(noise) - noiseHalf)};
+        } else {
+          newInit[index] = pair.getValue().sample();
+        }
+        index++;
+      }
+    }
+    initialMix = MultivariateNormalMixtureExpectationMaximization.estimate(newInit, clusters);
 
     MultivariateNormalMixtureExpectationMaximization mle = new MultivariateNormalMixtureExpectationMaximization(transposed);
 
-    mle.fit(initialMix, 500, 1E-15);
+    mle.fit(initialMix, 2000, 1E-5);
 
     return mle;
   }
   
-  
-  public int[] run(FCSDataLoader loader) {
+  public static int[] run(FCSDataLoader loader, ArrayList<String> params) {
     if (loader.getLoadState() != LOAD_STATE.LOADED) {
       System.err.println("Error - data not loaded yet; please wait a while and try again.");
       return null;
     }
     Logger log = new Logger();
     long t1 = System.currentTimeMillis();
-    double[][] transformed = process(loader, log);
+    double[][] transformed = process(loader, params, log);
     double[][] transposed = transpose(transformed);
     
-    double[][] initData = selectMaxVarInitialMix(transposed, .01, log);
+    double[][] initData = selectMaxVarInitialMix(transposed, .1, log);
     
     MultivariateNormalMixtureExpectationMaximization mnmem = null;
-    for (int clust = 2; clust < 50; clust++) {
-      try {
-        MultivariateNormalMixtureExpectationMaximization mnmem1 = getClusters(transposed, initData, clust, log);
-        mnmem = mnmem1;
-        break;
-      } catch (Exception e) {
-        System.out.println("Clustering " + clust + " -- " + e.getMessage());
+
+    try {
+      MultivariateNormalMixtureExpectationMaximization mnmem1 = getClusters(transposed, initData, 4, log);
+      mnmem = mnmem1;
+    } catch (Exception e) {
+      System.err.println("Error - 4 clusters failed: " + e.getMessage());
+      for (int clust = 6; clust > 1; clust--) {
+        try {
+          MultivariateNormalMixtureExpectationMaximization mnmem1 = getClusters(transposed, initData, clust, log);
+          mnmem = mnmem1;
+          break;
+        } catch (Exception e1) {
+          System.out.println("Clustering " + clust + " -- " + e1.getMessage());
+        }
       }
     }
+    
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        for (int clust = 2; clust < 4; clust++) {
+          MultivariateNormalMixtureExpectationMaximization mnmem1 = getClusters(transposed, initData, clust, log);
+          System.out.println("LogL - " + clust + ": " + mnmem1.getLogLikelihood());
+        }
+      }
+    });
+    
+    System.out.println("LogL - 4: " + mnmem.getLogLikelihood());    
     MixtureMultivariateNormalDistribution mmnd = mnmem.getFittedModel();
     
     List<Pair<Double, MultivariateNormalDistribution>> clusts = mmnd.getComponents();
@@ -166,20 +212,19 @@ public class EMFitter {
       for (int l = 0; l < transformed.length; l++) {
         line[l] = transformed[l][i];
       }
-      double curMax = 0.0001;
+      double curMax = .01;
       ArrayList<Integer> clustsBelong = new ArrayList<>();
       for (int j = 0; j < means.length; j++) {
         // determine if coords belongs to this cluster
         double tmp = clusts.get(j).getValue().density(line);
         if (tmp > curMax) {
           clustsBelong.add(j);
-          curMax = tmp;
+          curMax = tmp; 
         }
       }
-      
-      clustAssigns[i] = clustsBelong.isEmpty() ? 0 : clustsBelong.get(clustsBelong.size() - 1);
-      log.reportTimeElapsed("Clustered in ", t1);
+      clustAssigns[i] = clustsBelong.isEmpty() ? 0 : (1 + clustsBelong.get(clustsBelong.size() - 1));
     }
+    log.reportTimeElapsed("Clustered in ", t1);
     
     return clustAssigns;
   }

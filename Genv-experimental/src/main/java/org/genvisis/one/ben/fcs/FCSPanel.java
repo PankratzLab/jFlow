@@ -373,9 +373,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         points[i] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte) 0);
       }
     }
-    if (gatesChanged) {
+//    if (gatesChanged) {
       updateGateColor();
-    }
+//    }
   }
 
   private void refreshNonBaseLayers(boolean fullRedraw) {
