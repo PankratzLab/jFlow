@@ -29,8 +29,8 @@ import htsjdk.samtools.ValidationStringency;
 public class SpecialK {
 
 	private static final String STR = "GCT";
-	private static final String START = "TT";
-	private static final String END = "AT";
+	private static final String START = "TGCTGTT";
+	private static final String END = "ATTTTT";
 
 	private static final String G_INSERT = "G";
 
