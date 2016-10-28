@@ -1,25 +1,26 @@
 package org.genvisis.one.JL.mica;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
 import org.genvisis.CLI;
+import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.analysis.PhaserNGS;
 import org.genvisis.seq.manage.BamOps;
-import org.genvisis.seq.manage.StrandOps;
 
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;
-import htsjdk.tribble.annotation.Strand;
 
 /**
  * Special k-mer counter for mica
@@ -55,18 +56,15 @@ public class SpecialK {
 			repeatRef.append(END);
 			if (addRef) {
 				countMap.put(repeatRef.toString(), 0);
-				countMap.put(StrandOps.flipsIfNeeded(repeatRef.toString(), Strand.NEGATIVE, false), 0);
-
 			}
 			countMap.put(repeat.toString(), 0);
-			countMap.put(StrandOps.flipsIfNeeded(repeat.toString(), Strand.NEGATIVE, false), 0);
-
 		}
 		return countMap;
 	}
 
-	private static void run(String bamDir, String outDir) {
+	private static void run(String bamDir, String outDir, String mergeFile) {
 		new File(outDir).mkdirs();
+		HashMap<String, String> toMerge = loadMergeFile(mergeFile);
 		Logger log = new Logger(outDir + "sk.log");
 		String[] bams = Files.listFullPaths(bamDir, ".bam", false);
 		log.reportTimeInfo("Found " + bams.length + " bams");
@@ -74,12 +72,20 @@ public class SpecialK {
 		ArrayList<String> allRepeats = new ArrayList<>();
 		allRepeats.addAll(getCountMap().keySet());
 		StringBuilder results = new StringBuilder();
+		StringBuilder resultsBasic = new StringBuilder();
+
 		Collections.sort(allRepeats);
-		results.append("SampleName");
+		results.append("SAMPLE");
 		for (String repeat : allRepeats) {
 			results.append("\t" + repeat);
+			resultsBasic.append("\t" + repeat);
+
+		}
+		for (int i = 0; i < 3; i++) {
+			results.append("\t" + toMerge.get("SAMPLE"));
 		}
 		results.append("\n");
+		resultsBasic.append("\n");
 
 		for (int i = 0; i < bams.length; i++) {
 			HashMap<String, Integer> countMap = getCountMap();
@@ -90,7 +96,7 @@ public class SpecialK {
 			log.reportTimeInfo("Analyzing " + bams[i]);
 			while (sIterator.hasNext()) {
 				SAMRecord samRecord = sIterator.next();
-				if (samRecord.getAlignmentStart() < loc.getStart() && samRecord.getAlignmentEnd() >loc.getStop()) {
+				if (samRecord.getAlignmentStart() < loc.getStart() && samRecord.getAlignmentEnd() > loc.getStop()) {
 					String seq = samRecord.getReadString();
 					for (String repeat : countMap.keySet()) {
 						if (seq.toUpperCase().contains(repeat)) {
@@ -100,20 +106,47 @@ public class SpecialK {
 				}
 			}
 			sIterator.close();
-			results.append(BamOps.getSampleName(bams[i], log));
+			String samp = BamOps.getSampleName(bams[i], log);
+			results.append(samp);
 			for (String repeat : allRepeats) {
 				results.append("\t" + countMap.get(repeat));
+				resultsBasic.append("\t" + countMap.get(repeat));
+
 			}
-			results.append("\n");
+			results.append("\t" + toMerge.get(samp) + "\n");
+			resultsBasic.append("\n");
 
 			try {
 				reader.close();
 			} catch (IOException e) {
 				log.reportException(e);
 			}
-
 		}
 		Files.write(results.toString(), outDir + "repeatCounts.txt");
+		Files.write(resultsBasic.toString(), outDir + "repeatBasicCounts.txt");
+	}
+
+	private static HashMap<String, String> loadMergeFile(String mergeFile) {
+		HashMap<String, String> merge = new HashMap<String, String>();
+		try {
+			BufferedReader reader = Files.getAppropriateReader(mergeFile);
+			while (reader.ready()) {
+				String[] line = reader.readLine().trim().split("\t");
+				if (merge.containsKey(line[4])) {
+					merge.put(line[4], merge.get(line[4]) + "\t" + Array.toStr(line));
+				} else {
+					merge.put(line[4], Array.toStr(line));
+
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+
+		} catch (IOException e) {
+
+		}
+
+		return merge;
 	}
 
 	public static void main(String[] args) {
@@ -121,8 +154,10 @@ public class SpecialK {
 
 		c.addArgWithDefault("bams", "directory of bams", null);
 		c.addArgWithDefault("outDir", "output directory", null);
+		c.addArgWithDefault("mergeFile", "mergeFile", null);
+
 		c.parseWithExit(args);
-		run(c.get("bams"), c.get("outDir"));
+		run(c.get("bams"), c.get("outDir"), c.get("mergeFile"));
 	}
 
 }

@@ -94,7 +94,7 @@ public class MStr {
 							builder2.append("\t" + g.getGQ() + "\t" + (g.getAD() == null ? g.getAnyAttribute("DPR")
 									: Array.toStr(Array.toStringArray((g.getAD())), ",")));
 
-							builder2.append("\t" + (g.isCalled() ? (g.isHom() ? "HOM" : "ALT") : "NA"));
+							builder2.append("\t" + (g.isCalled() ? (g.isHom() ? "HOM" : "HET") : "NA"));
 							builder2.append("\t" + g.toString());
 							if (!g.getSampleName().contains("H20")) {
 								writer.println(builder2.toString());
