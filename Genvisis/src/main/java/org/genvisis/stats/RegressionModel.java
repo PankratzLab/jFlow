@@ -574,31 +574,42 @@ public abstract class RegressionModel {
 		return Array.toStringArray(v);
 	}
 
-	public static boolean[] getRowsWithCompleteData(double[] deps, double[][] indeps, Logger log) {
+	/**
+	 * 
+	 * @param deps an array that matches the length of {@code indeps}, or null to only use {@code indeps}
+	 * @param indeps a matrix that matches the length of {@code deps}, or null to only use {@code deps}
+	 * @param log
+	 * @return a boolean array where an index, {@code i} is false if {@code deps[i]} or any value in {@code indeps[i][]} is a missing value
+	 */
+	public static boolean[] getRowsWithCompleteData(String[] deps, String[][] indeps, Logger log) {
 		boolean[] use;
-
-		if (deps == null || indeps == null || deps.length != indeps.length) {
-			log.reportError("Error - cannot determine rows with compelte data since the deps length and the indeps length are not equal");
-			return new boolean[] {};
+		
+		if (deps != null && indeps != null && deps.length != indeps.length) {
+			log.reportError("Error - cannot determine rows with complete data since the deps length and the indeps length are not equal");
+			return null;
 		}
-
-		use = Array.booleanArray(deps.length, true);
-		for (int i = 0; i < deps.length; i++) {
-			if (Double.isNaN(deps[i])) {
+		
+		if (deps != null) {
+			use = Array.booleanArray(deps.length, true);
+		} else if (indeps != null) {
+			use = Array.booleanArray(indeps.length, true);
+		} else {
+			log.reportError("Error - cannot determine rows with complete data from two null arrays");
+			return null;
+		}
+		for (int i = 0; i < use.length; i++) {
+			if (deps != null && ext.isMissingValue(deps[i])) {
 				use[i] = false;
-			}
-			for (int j = 0; j < indeps[i].length; j++) {
-				if (Double.isNaN(indeps[i][j])) {
-					use[i] = false;
+			} else if (indeps != null) {
+				for (int j = 0; j < indeps[i].length; j++) {
+					if (ext.isMissingValue(indeps[i][j])) {
+						use[i] = false;
+						break;
+					}
 				}
 			}
 		}
-
+		
 		return use;
-	}
-
-	public static boolean[] getRowsWithCompleteData(String[] deps, String[][] indeps, Logger log) {
-		return getRowsWithCompleteData(	deps == null ? null : Array.toDoubleArray(deps, true),
-																		indeps == null ? null : Array.toDoubleArrays(indeps, true), log);
 	}
 }
