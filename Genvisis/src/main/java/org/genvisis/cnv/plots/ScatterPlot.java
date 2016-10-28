@@ -4453,7 +4453,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		typeLabel = new JLabel("# On-Target (mismatched) Alignments: ", JLabel.LEFT);
 		typeLabel.setFont(lblFont);
 		blastPanel.add(typeLabel, "cell 0 2");
-		ArrayList<BlastAnnotation> onTaligns = blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
+		List<BlastAnnotation> onTaligns = blastResult.getAnnotationsFor(	BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
 																																				 log);
 		String lbl = onTaligns == null ? " 0" : " " + onTaligns.size();
 		typeLabel = new JLabel(lbl);

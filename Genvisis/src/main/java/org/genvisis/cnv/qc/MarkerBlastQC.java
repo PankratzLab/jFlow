@@ -71,8 +71,8 @@ public class MarkerBlastQC {
 		for (Entry<String, MarkerBlastAnnotation> blastResult : blastResults.entrySet()) {
 			MarkerBlastAnnotation current = blastResult.getValue();
 			String markerName = blastResult.getKey();
-			ArrayList<BlastAnnotation> perfectMatches = current.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
-																																						log);
+			List<BlastAnnotation> perfectMatches = current.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
+																																			 log);
 			if (perfectMatches.size() == 1) {
 				int[] alignmentHistogram = current.getAlignmentHistogram(proj);
 				int sub = (int) Math.round(crossHybePercent * alignmentHistogram.length);

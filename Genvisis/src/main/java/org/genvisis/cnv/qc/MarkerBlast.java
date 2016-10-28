@@ -86,6 +86,7 @@ public class MarkerBlast {
 			proj.getLog().reportError("Unable to find or obtain reference genome");
 			return null;
 		} else {
+			extractMarkerSetAndPositionsIfNecessary(proj, fileSeq, type);
 			double evalueCutoff = 10000;
 			BlastParams blastParams = new BlastParams(fileSeq, fastaDb, maxAlignmentsReported,
 																								reportWordSize, blastWordSize,
@@ -163,6 +164,7 @@ public class MarkerBlast {
 																																							proj.BLAST_ANNOTATION_FILENAME.getValue(),
 																																							doBlast ? tmps
 																																											: new String[] {},
+																																							entries,
 																																							reportWordSize,
 																																							proj.getArrayType()
 																																									.getProbeLength(),
@@ -175,7 +177,6 @@ public class MarkerBlast {
 						.reportTimeWarning("Did not detect array type " + ARRAY.ILLUMINA
 															 + " , probe sequence annotation may not reflect the true design since multiple designs may be reported");
 			}
-			blastAnnotationWriter.setMarkerFastaEntries(entries);
 			blastAnnotationWriter.summarizeResultFiles(false);
 			blastAnnotationWriter.close();
 			if (annotateGCContent) {
@@ -994,6 +995,25 @@ public class MarkerBlast {
 		} else {
 			System.err.println("could not find " + csv);
 			return null;
+		}
+	}
+
+	public static void extractMarkerSetAndPositionsIfNecessary(Project proj, String fileSeq,
+																														 FILE_SEQUENCE_TYPE type) {
+		if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
+			proj.MARKERSET_FILENAME.setValue(proj.MARKERSET_FILENAME.getDefaultValue());
+			String[] markerNames = null;
+			if (!Files.exists(proj.MARKER_POSITION_FILENAME.getValue())) {
+				proj.MARKER_POSITION_FILENAME.setValue(proj.MARKER_POSITION_FILENAME.getDefaultValue());
+				markerNames = Markers.extractMarkerPositionsFromManifest(fileSeq, proj.getArrayType(),
+																																 proj.GENOME_BUILD_VERSION.getValue(),
+																																 type,
+																																 proj.MARKER_POSITION_FILENAME.getValue(),
+																																 proj.getLog());
+			}
+			Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(true, false),
+													 proj.MARKERSET_FILENAME.getValue(true, false), proj.getLog());
+
 		}
 	}
 

@@ -84,8 +84,8 @@ public class BlastAnnotationTesting {
 		// Writing:
 		BlastAnnotationWriter blastAnnotation = new BlastAnnotationWriter(proj, null, annoFile,
 																																			blastResultFiles,
-																																			minAlignmentLength, maxGaps,
-																																			maxMismatches, 15);
+																																			null, minAlignmentLength,
+																																			maxGaps, maxMismatches, 15);
 		blastAnnotation.summarizeResultFiles(true);
 		blastAnnotation.close();
 
@@ -93,7 +93,7 @@ public class BlastAnnotationTesting {
 		// "a test analysis addition", "DSDF") {
 		// };
 		blastAnnotation = new BlastAnnotationWriter(proj, null, annoFile, blastResultFiles,
-																								minAlignmentLength, maxGaps, maxMismatches, 15);
+																								null, minAlignmentLength, maxGaps, maxMismatches, 15);
 		blastAnnotation.summarizeResultFiles(true);
 		blastAnnotation.close();
 		// (Project proj, Annotation[] annotations, String annotationFilename, boolean overWriteExisting

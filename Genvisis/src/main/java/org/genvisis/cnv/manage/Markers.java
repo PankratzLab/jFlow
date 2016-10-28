@@ -128,7 +128,7 @@ public class Markers {
 				v.add(markerNames[i]);
 			}
 		}
-		if (v.size() > 0) {
+		if (!v.isEmpty()) {
 			log.reportError("Error - There " + (v.size() == 1 ? "was one" : "were " + v.size())
 											+ " markers found in the FinalReport file that were not listed in the file of marker positions; halting parse operation.");
 			log.reportError("\nThe best source of complete marker positions is the SNP manifest (e.g., SNP_Map.csv from Illumina's GenomeStudio that should be exported along with the FinalReport files)");

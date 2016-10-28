@@ -481,7 +481,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 				return res1;
 			}
 		});
-		ArrayList<BlastAnnotation> onT = blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
+		List<BlastAnnotation> onT = blastResult.getAnnotationsFor(	BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
 																																	 proj.getLog());
 		probeLbl.setAnnotation(onT.size() > 0 ? onT.get(0) : null);
 
@@ -498,7 +498,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 				strandLbl.setText(CNVHelper.decode(referenceAnnotation.getStrand()));
 				int len = proj.ARRAY_TYPE.getValue().getProbeLength();
 				probeLengthLbl.setText(len + "");
-				ArrayList<BlastAnnotation> onT = blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
+				List<BlastAnnotation> onT = blastResult.getAnnotationsFor(	BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
 																																			 proj.getLog());
 				String lbl = "";
 				// if (onT.size() > 0) {
