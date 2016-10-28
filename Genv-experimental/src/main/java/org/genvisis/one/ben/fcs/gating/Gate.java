@@ -13,6 +13,7 @@ import java.util.Random;
 
 import org.genvisis.common.Array;
 import org.genvisis.common.Numbers;
+import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 //import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
@@ -332,6 +333,7 @@ public abstract class Gate {
         prepGating();
       }
       parentGating = null;
+      transformedPath = null;
     }
 
     @Override
@@ -342,6 +344,7 @@ public abstract class Gate {
       }
       dimensions.add(gd);
       parentGating = null;
+      transformedPath = null;
     }
 
     public void setPath(Path2D pth) {
@@ -351,6 +354,7 @@ public abstract class Gate {
       if (mimicFlowJo) {
         prepGating();
       }
+      transformedPath = null;
       // clearCache();
     }
 
@@ -378,7 +382,7 @@ public abstract class Gate {
     private Path2D constructPath() {
       Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
       path.moveTo(verticesX.get(0), verticesY.get(0));
-      for (int i = 1; i < verticesX.size(); ++i) {
+      for (int i = 1; i < verticesX.size(); i++) {
         path.lineTo(verticesX.get(i), verticesY.get(i));
       }
       path.closePath();
@@ -386,19 +390,22 @@ public abstract class Gate {
     }
     
     private Path2D transformPath() {
-      Path2D pathTr = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+      Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
       AxisTransform xTr, yTr;
+      boolean x, y;
+      x = getDimensions().get(0).scale == AXIS_SCALE.LIN;
+      y = getDimensions().get(1).scale == AXIS_SCALE.LIN;
       xTr = getDimensions().get(0).scale.getTransform();
       yTr = getDimensions().get(1).scale.getTransform();
       if (verticesX.isEmpty() || verticesY.isEmpty()) {
         resetVertices();
       }
-      pathTr.moveTo(xTr.scaleX(verticesX.get(0)), yTr.scaleY(verticesY.get(0)));
-      for (int i = 1; i < verticesX.size(); ++i) {
-        pathTr.moveTo(xTr.scaleX(verticesX.get(i)), yTr.scaleY(verticesY.get(i)));
+      path.moveTo(x ? verticesX.get(0) : xTr.scaleX(verticesX.get(0)), y ? verticesY.get(0) : yTr.scaleY(verticesY.get(0)));
+      for (int i = 1; i < verticesX.size(); i++) {
+        path.lineTo(x ? verticesX.get(i) : xTr.scaleX(verticesX.get(i)), y ? verticesY.get(i) : yTr.scaleY(verticesY.get(i)));
       }
-      pathTr.closePath();
-      return pathTr;
+      path.closePath();
+      return path;
     }
     
     @Override
@@ -455,7 +462,9 @@ public abstract class Gate {
 //          if (myPath.contains(paramData[0][i], paramData[1][i])) {
 //            include = true;
 //          }
-          if (myPath.contains(dimensions.get(0).scale.getTransform().scaleX(paramData[0][i]), dimensions.get(1).scale.getTransform().scaleY(paramData[1][i]))) {
+          double x = dimensions.get(0).scale == AXIS_SCALE.LIN ? paramData[0][i] : dimensions.get(0).scale.getTransform().scaleX(paramData[0][i]);
+          double y = dimensions.get(1).scale == AXIS_SCALE.LIN ? paramData[1][i] : dimensions.get(1).scale.getTransform().scaleY(paramData[1][i]);
+          if (transformedPath.contains(x, y)) {
             include = true;
           }
         }
@@ -478,7 +487,6 @@ public abstract class Gate {
           }
         }
       }
-
 
       double xSum = 0, ySum = 0;
       for (Rectangle r : vertexRects) {
@@ -562,6 +570,7 @@ public abstract class Gate {
       verticesX.add(fX);
       verticesY.add(fY);
       parentGating = null;
+      transformedPath = null;
     }
 
     public void transform(AffineTransform at) {
@@ -571,6 +580,7 @@ public abstract class Gate {
         prepGating();
       }
       parentGating = null;
+      transformedPath = null;
     }
 
 

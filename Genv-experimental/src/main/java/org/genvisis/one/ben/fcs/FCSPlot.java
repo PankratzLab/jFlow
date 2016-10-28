@@ -60,7 +60,7 @@ import org.genvisis.one.ben.fcs.gating.GateTreePanel;
 import org.genvisis.one.ben.fcs.gating.Gating;
 import org.genvisis.one.ben.fcs.gating.Workbench;
 import org.genvisis.one.ben.fcs.sub.DataExportGUI;
-import org.genvisis.one.ben.fcs.sub.EMFitter;
+import org.genvisis.one.ben.fcs.sub.EMModel;
 import org.xml.sax.SAXException;
 
 public class FCSPlot extends JPanel
@@ -1005,7 +1005,8 @@ public class FCSPlot extends JPanel
 	  ArrayList<String> params = new ArrayList<>();
 	  params.add(getXDataName());
 	  params.add(getYDataName());
-	  clusterAssigns = EMFitter.run(dataLoader, params);
+	  EMModel model = EMModel.run(dataLoader, params);
+	  clusterAssigns = model.getClusterAssigns();
 	  updateGUI();
 	}
 	

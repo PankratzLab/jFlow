@@ -15,13 +15,20 @@ import org.apache.commons.math3.util.Pair;
 import org.genvisis.common.Array;
 import org.genvisis.common.Logger;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
-import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
 import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
 
 import edu.stanford.facs.logicle.Logicle;
 
-public class EMFitter {
+public class EMModel {
   
+  MultivariateNormalMixtureExpectationMaximization mnmem;
+  double[][] transformed;
+  int[] clusterAssigns;
+  public EMModel(MultivariateNormalMixtureExpectationMaximization mnmem, double[][] transformed) {
+    this.mnmem = mnmem;
+    this.transformed = transformed;
+  }
+
   private static double count(double max) {
     double dec = max;
     double decCnt = 0;
@@ -151,7 +158,7 @@ public class EMFitter {
     return mle;
   }
   
-  public static int[] run(FCSDataLoader loader, ArrayList<String> params) {
+  public static EMModel run(FCSDataLoader loader, ArrayList<String> params) {
     if (loader.getLoadState() != LOAD_STATE.LOADED) {
       System.err.println("Error - data not loaded yet; please wait a while and try again.");
       return null;
@@ -189,44 +196,53 @@ public class EMFitter {
           System.out.println("LogL - " + clust + ": " + mnmem1.getLogLikelihood());
         }
       }
-    });
+    }).run();
     
-    System.out.println("LogL - 4: " + mnmem.getLogLikelihood());    
-    MixtureMultivariateNormalDistribution mmnd = mnmem.getFittedModel();
-    
-    List<Pair<Double, MultivariateNormalDistribution>> clusts = mmnd.getComponents();
+    System.out.println("LogL - 4: " + mnmem.getLogLikelihood());
 
-    double[][] means = new double[clusts.size()][];
-    double[][] sds = new double[clusts.size()][];
-    
-    int[] clustAssigns = new int[transformed[0].length];
-    int clust = 0;
-    for (Pair<Double, MultivariateNormalDistribution> pair : clusts) {
-      means[clust] = pair.getValue().getMeans();
-      sds[clust] = pair.getValue().getStandardDeviations();
-      clust++;
-    }
-    
-    for (int i = 0; i < transformed[0].length; i++) {
-      double[] line = new double[transformed.length];
-      for (int l = 0; l < transformed.length; l++) {
-        line[l] = transformed[l][i];
-      }
-      double curMax = .01;
-      ArrayList<Integer> clustsBelong = new ArrayList<>();
-      for (int j = 0; j < means.length; j++) {
-        // determine if coords belongs to this cluster
-        double tmp = clusts.get(j).getValue().density(line);
-        if (tmp > curMax) {
-          clustsBelong.add(j);
-          curMax = tmp; 
-        }
-      }
-      clustAssigns[i] = clustsBelong.isEmpty() ? 0 : (1 + clustsBelong.get(clustsBelong.size() - 1));
-    }
     log.reportTimeElapsed("Clustered in ", t1);
     
-    return clustAssigns;
+    return new EMModel(mnmem, transformed);
+    
+  }
+  
+  public int[] getClusterAssigns() {
+    if (clusterAssigns == null) {
+      MixtureMultivariateNormalDistribution mmnd = mnmem.getFittedModel();
+      
+      List<Pair<Double, MultivariateNormalDistribution>> clusts = mmnd.getComponents();
+  
+      double[][] means = new double[clusts.size()][];
+      double[][] sds = new double[clusts.size()][];
+      
+      clusterAssigns = new int[transformed[0].length];
+      int clust = 0;
+      for (Pair<Double, MultivariateNormalDistribution> pair : clusts) {
+        means[clust] = pair.getValue().getMeans();
+        sds[clust] = pair.getValue().getStandardDeviations();
+        clust++;
+      }
+      
+      for (int i = 0; i < transformed[0].length; i++) {
+        double[] line = new double[transformed.length];
+        for (int l = 0; l < transformed.length; l++) {
+          line[l] = transformed[l][i];
+        }
+        double curMax = .01;
+        ArrayList<Integer> clustsBelong = new ArrayList<>();
+        for (int j = 0; j < means.length; j++) {
+          // determine if coords belongs to this cluster
+          double tmp = clusts.get(j).getValue().density(line);
+          if (tmp > curMax) {
+            clustsBelong.add(j);
+            curMax = tmp; 
+          }
+        }
+        clusterAssigns[i] = clustsBelong.isEmpty() ? 0 : (1 + clustsBelong.get(clustsBelong.size() - 1));
+      }
+    }
+    
+    return clusterAssigns;
   }
   
 }
