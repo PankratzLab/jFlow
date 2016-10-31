@@ -7,7 +7,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -31,6 +30,8 @@ import org.genvisis.seq.manage.StrandOps;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.io.Closeables;
 
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
@@ -73,42 +74,110 @@ public class ABLookup {
 		this.lookup = lookup;
 	}
 
+	public ABLookup(Project proj) {
+		this(proj, proj.getMarkerSet().getMarkerNames(), true, false);
+	}
+
+	public ABLookup(Project proj, boolean verbose, boolean allOrNothing) {
+		this(proj, proj.getMarkerSet().getMarkerNames(), verbose, allOrNothing);
+	}
+
+	public ABLookup(Project proj, String[] markerNames) {
+		this(proj, markerNames, true, false);
+	}
+
+	public ABLookup(Project proj, String[] markerNames, boolean verbose, boolean allOrNothing) {
+		this.markerNames = markerNames;
+
+		Logger log = proj.getLog();
+
+		if (Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
+			lookup = generateABLookupFromAnnotationVCF(proj, markerNames, verbose, allOrNothing);
+		} else if (Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
+			lookup = parseLookupFromFile(markerNames, proj.AB_LOOKUP_FILENAME.getValue(), verbose,
+																	 allOrNothing, log);
+		} else {
+			log.reportError("Neither a Marker Blast Annotation or AB Lookup file for the project could be found, cannot generate AB Lookup");
+			lookup = null;
+		}
+
+	}
+
 	public ABLookup(String[] markerNames, String filename, boolean verbose, boolean allOrNothing,
 									Logger log) {
-		Hashtable<String, char[]> lookupHash;
-		int count;
-
-		count = 0;
 		this.markerNames = markerNames;
-		lookup = new char[markerNames.length][];
-		if (filename.toLowerCase().endsWith(".csv")) {
-			lookupHash = generateABLookupHashFromCSV(filename, log);
+		lookup = parseLookupFromFile(markerNames, filename, verbose, allOrNothing, log);
+	}
+
+	private static char[][] parseLookupFromFile(String[] markerNames, String abLookupFilename,
+																							boolean verbose, boolean allOrNothing,
+																							Logger log) {
+		Map<String, char[]> lookupMap;
+		if (abLookupFilename.toLowerCase().endsWith(".csv")) {
+			lookupMap = generateABLookupHashFromCSV(abLookupFilename, log);
 		} else {
-			lookupHash = generateABLookupHash(filename, log);
+			lookupMap = generateABLookupHash(abLookupFilename, log);
 		}
+		return parseLookupFromMap(markerNames, lookupMap, allOrNothing, log, verbose);
+
+	}
+
+	private static char[][] parseLookupFromMap(String[] markerNames, Map<String, char[]> lookupMap,
+																						 boolean allOrNothing, Logger log, boolean verbose) {
+		char[][] lookup = new char[markerNames.length][];
+		int missing = 0;
 		for (int i = 0; i < markerNames.length; i++) {
-			// System.out.println(markerNames[i]);
-			// System.out.println(lookupHash.containsKey(markerNames[i]));
-			// System.out.println(lookupHash.get(markerNames[i]));
-			lookup[i] = lookupHash.get(markerNames[i]);
+			lookup[i] = lookupMap.get(markerNames[i]);
 			if (lookup[i] == null) {
 				if (verbose) {
 					log.reportError("Error - no AB value for marker '" + markerNames[i] + "'");
 				}
-				count++;
+				missing++;
 			}
 		}
-		if (count > 0) {
-			log.reportError("Warning - there " + (count > 1 ? "were " : "was ") + count + " marker"
-											+ (count > 1 ? "s" : "") + " without an AB value");
+		if (missing > 0) {
+			log.reportError("Warning - there " + (missing > 1 ? "were " : "was ") + missing + " marker"
+											+ (missing > 1 ? "s" : "") + " without an AB value");
+			if (allOrNothing) {
+				lookup = null;
+			}
 		}
-		if (allOrNothing && count > 0) {
-			lookup = null;
+		return lookup;
+	}
+
+	private static char[] parseABFromAnnotation(MarkerSeqAnnotation markerSeqAnnotation) {
+		Strand strand = markerSeqAnnotation.getStrand();
+		Allele A = markerSeqAnnotation.getA();
+		Allele B = markerSeqAnnotation.getB();
+		char a = MISSING_ALLELE;
+		char b = MISSING_ALLELE;
+		if (markerSeqAnnotation.isIndel() || A.getBaseString().length() != B.getBaseString().length()) {
+			if (markerSeqAnnotation.isaDeletion()
+					|| A.getBaseString().length() < B.getBaseString().length()) {
+				a = 'D';
+				b = 'I';// actually this is typically just :equals reference;
+			} else if (markerSeqAnnotation.isbDeletion()
+								 || A.getBaseString().length() > B.getBaseString().length()) {
+				a = 'I';
+				b = 'D';
+			} else {
+				throw new IllegalStateException("Both A and B should not be deletions");
+			}
+		} else {
+			if (!A.isSymbolic()) {
+				a = StrandOps.flipIfNeeded(A.getDisplayString(), strand, false).charAt(0);
+			}
+			if (!B.isSymbolic()) {
+				b = StrandOps.flipIfNeeded(B.getDisplayString(), strand, false).charAt(0);
+
+			}
 		}
+		return new char[] {a, b};
 	}
 
 	public void parseFromGenotypeClusterCenters(Project proj) {
-		PrintWriter writer, writer2;
+		PrintWriter writer = null;
+		PrintWriter writer2 = null;
 		String trav;
 		String[] samples;
 		String[][] genotypesSeen;
@@ -257,6 +326,13 @@ public class ABLookup {
 			log.reportError("Error writing to either " + "AB_breakdown.xln" + " or " + "possible_"
 											+ DEFAULT_AB_FILE);
 			log.reportException(e);
+		} finally {
+			if (writer != null) {
+				writer.close();
+			}
+			if (writer2 != null) {
+				writer2.close();
+			}
 		}
 
 	}
@@ -306,39 +382,14 @@ public class ABLookup {
 				List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
 				parsers.add(masterMarkerList);
 				annotationLoader.fillAnnotations(null, parsers, QUERY_TYPE.ONE_TO_ONE);
-				Hashtable<String, Integer> indices = proj.getMarkerIndices();// should be in perfect order
-																																		 // but just in case;
+				Map<String, Integer> indices = proj.getMarkerIndices();// should be in perfect order
+																															 // but just in case;
 				lookup = new char[markerNames.length][2];
 
 				for (String markerName : markerNames) {
 					int indx = indices.get(markerName);
-					MarkerSeqAnnotation tmp = masterMarkerList.get(markerName).getMarkerSeqAnnotation();
-					Strand strand = tmp.getStrand();
-					Allele A = tmp.getA();
-					Allele B = tmp.getB();
-					char a = MISSING_ALLELE;
-					char b = MISSING_ALLELE;
-					if (tmp.isIndel() || A.getBaseString().length() != B.getBaseString().length()) {
-						if (tmp.isaDeletion() || A.getBaseString().length() < B.getBaseString().length()) {
-							a = 'D';
-							b = 'I';// actually this is typically just :equals reference;
-						} else if (tmp.isbDeletion()
-											 || A.getBaseString().length() > B.getBaseString().length()) {
-							a = 'I';
-							b = 'D';
-						} else {
-							throw new IllegalStateException("Both A and B should not be deletions");
-						}
-					} else {
-						if (!A.isSymbolic()) {
-							a = StrandOps.flipIfNeeded(A.getDisplayString(), strand, false).charAt(0);
-						}
-						if (!B.isSymbolic()) {
-							b = StrandOps.flipIfNeeded(B.getDisplayString(), strand, false).charAt(0);
-
-						}
-					}
-					lookup[indx] = new char[] {a, b};
+					lookup[indx] = parseABFromAnnotation(masterMarkerList.get(markerName)
+																															 .getMarkerSeqAnnotation());
 				}
 				return;
 
@@ -479,37 +530,38 @@ public class ABLookup {
 
 	}
 
-	public static Hashtable<String, char[]> generateABLookupHash(String filename, Logger log) {
-		BufferedReader reader;
+	public static Map<String, char[]> generateABLookupHash(String filename, Logger log) {
+		BufferedReader reader = null;
 		String[] line;
-		Hashtable<String, char[]> hash;
+		Map<String, char[]> map;
 
-		hash = new Hashtable<String, char[]>();
+		map = Maps.newHashMap();
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
-				hash.put(line[0], new char[] {line[1].charAt(0), line[2].charAt(0)});
+				map.put(line[0], new char[] {line[1].charAt(0), line[2].charAt(0)});
 			}
-			reader.close();
-			return hash;
+			return map;
 		} catch (FileNotFoundException fnfe) {
 			return null;
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + filename + "\"");
 			return null;
+		} finally {
+			Closeables.closeQuietly(reader);
 		}
 	}
 
-	public static Hashtable<String, char[]> generateABLookupHashFromCSV(String filename, Logger log) {
+	public static Map<String, char[]> generateABLookupHashFromCSV(String filename, Logger log) {
 		BufferedReader reader;
 		String[] line;
-		Hashtable<String, char[]> hash;
+		Map<String, char[]> map;
 		int[] indices;
 		String temp, prev;
 		int count = 0;
 
-		hash = new Hashtable<String, char[]>();
+		map = Maps.newHashMap();
 		try {
 			reader = Files.getAppropriateReader(filename);
 			do {
@@ -531,8 +583,8 @@ public class ABLookup {
 				} else {
 					try {
 						line = temp.trim().split(",");
-						hash.put(line[indices[0]],
-										 new char[] {line[indices[1]].charAt(1), line[indices[1]].charAt(3)});
+						map.put(line[indices[0]],
+										new char[] {line[indices[1]].charAt(1), line[indices[1]].charAt(3)});
 					} catch (ArrayIndexOutOfBoundsException aioobe) {
 						log.reportError("Error - could not parse line:");
 						log.reportError(temp);
@@ -544,7 +596,7 @@ public class ABLookup {
 				}
 			}
 			reader.close();
-			return hash;
+			return map;
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("File not found: \"" + filename + "\"");
 			return null;
@@ -554,12 +606,55 @@ public class ABLookup {
 		}
 	}
 
+	public static char[][] generateABLookupFromAnnotationVCF(Project proj, String[] markerNames,
+																													 boolean verbose, boolean allOrNothing) {
+		char[][] lookup = new char[markerNames.length][];
+		if (!Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
+			proj.getLog().reportTimeWarning("Could not find " + proj.BLAST_ANNOTATION_FILENAME.getValue()
+																			+ ", cannot generate AB Lookup");
+			return lookup;
+		}
+
+		MarkerSet markerSet = proj.getMarkerSet();
+		Map<String, MarkerBlastAnnotation> masterMarkerList = MarkerBlastAnnotation.initForMarkers(markerNames);
+		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(proj, null,
+																																				 proj.BLAST_ANNOTATION_FILENAME.getValue(),
+																																				 markerSet, true);
+		annotationLoader.setReportEvery(10000);
+		List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
+		parsers.add(masterMarkerList);
+		annotationLoader.fillAnnotations(null, parsers, QUERY_TYPE.ONE_TO_ONE);
+
+		int missing = 0;
+		for (int i = 0; i < markerNames.length; i++) {
+			try {
+				lookup[i] = parseABFromAnnotation(masterMarkerList.get(markerNames[i])
+																													.getMarkerSeqAnnotation());
+			} catch (NullPointerException npe) {
+				if (verbose) {
+					proj.getLog().reportError("no AB value for marker '" + markerNames[i] + "'");
+				}
+				missing++;
+			}
+		}
+		if (missing > 0) {
+			proj.getLog().reportError("Warning - there " + (missing > 1 ? "were " : "was ") + missing
+																+ " marker" + (missing > 1 ? "s" : "") + " without an AB value");
+			if (allOrNothing) {
+				lookup = null;
+			}
+		}
+		return lookup;
+
+	}
+
+
 	public char[][] getLookup() {
 		return lookup;
 	}
 
 	public void writeToFile(String outfile, Logger log) {
-		PrintWriter writer;
+		PrintWriter writer = null;
 		new File(ext.parseDirectoryOfFile(outfile)).mkdirs();
 		try {
 			writer = Files.getAppropriateWriter(outfile);
@@ -572,6 +667,10 @@ public class ABLookup {
 		} catch (Exception e) {
 			log.reportError("Error writing to " + outfile);
 			log.reportException(e);
+		} finally {
+			if (writer != null) {
+				writer.close();
+			}
 		}
 	}
 
@@ -649,10 +748,10 @@ public class ABLookup {
 	 */
 	public static boolean fillInMissingAlleles(Project proj, String incompleteABlookupFilename,
 																						 String mapFile, boolean updatingPlinkFile) {
-		BufferedReader reader;
-		PrintWriter writer;
+		BufferedReader reader = null;
+		PrintWriter writer = null;
 		String[] line;
-		Hashtable<String, char[]> lookupHash;
+		Map<String, char[]> lookupMap;
 		char knownAllele;
 		int knownIndex;
 		Vector<String> markersWithNoLink;
@@ -689,7 +788,7 @@ public class ABLookup {
 			return false;
 		}
 
-		lookupHash = generateABLookupHashFromCSV(mapFile, proj.getLog());
+		lookupMap = generateABLookupHashFromCSV(mapFile, proj.getLog());
 
 		markersWithNoLink = new Vector<String>();
 		try {
@@ -727,7 +826,7 @@ public class ABLookup {
 				} else if (line[first].equals("N") || line[second].equals("N")) {
 					knownIndex = line[first].equals("N") ? 1 : 0;
 					knownAllele = line[first + knownIndex].charAt(0);
-					refAlleles = lookupHash.get(line[markerIndex]);
+					refAlleles = lookupMap.get(line[markerIndex]);
 					if (refAlleles == null) {
 						log.reportError("Error - allele lookup failed for marker " + line[markerIndex]);
 					} else {
@@ -754,8 +853,6 @@ public class ABLookup {
 				}
 				writer.println(ArrayUtils.toStr(line));
 			}
-			reader.close();
-			writer.close();
 
 			clusterFilterCollection = proj.getClusterFilterCollection();
 
@@ -812,6 +909,11 @@ public class ABLookup {
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + incompleteABlookupFilename + "\"");
 			return false;
+		} finally {
+			if (writer != null) {
+				writer.close();
+			}
+			Closeables.closeQuietly(reader);
 		}
 		return true;
 	}
