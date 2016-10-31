@@ -354,11 +354,11 @@ public class VCFOps {
 				}
 			}
 			if (currentIndex > maxAlleles) {
-				throw new IllegalArgumentException("max allele size was too small, found "	+ currentIndex
+				throw new IllegalArgumentException("max allele size was too small, found "+ currentIndex
 																						+ " alts for " + vc.toStringWithoutGenotypes());
 			}
 			while (currentIndex < samps.size()) {
-				GenotypeBuilder builder = new GenotypeBuilder("Allele"	+ currentIndex,
+				GenotypeBuilder builder = new GenotypeBuilder("Allele"+ currentIndex,
 																											GenotypeOps.getNoCall());
 				currentIndex++;
 				genos.add(builder.make());
@@ -413,7 +413,7 @@ public class VCFOps {
 					writer.println((vc.getID().equals(".") ? new VCOps.LocusID(vc).getId() : vc.getID())
 													+ "\t" + vc.getNoCallCount() + "\t" + vc.getNSamples());
 					Segment vcSeg = VCOps.getSegment(vc);
-					writerFilteredSeg.println(vcSeg.getChr()	+ "\t" + vcSeg.getStart() + "\t"
+					writerFilteredSeg.println(vcSeg.getChr()+ "\t" + vcSeg.getStart() + "\t"
 																		+ vcSeg.getStop());
 				}
 				writerAll.println((vc.getID().equals(".") ? new VCOps.LocusID(vc).getId() : vc.getID())
@@ -447,7 +447,7 @@ public class VCFOps {
 			writerHist.println("g1000Bin\tCount\tAvgCallRate");
 			dynamicAveragingHistogram.average();
 			for (int i = 0; i < dynamicAveragingHistogram.getBins().length; i++) {
-				writerHist.println(dynamicAveragingHistogram.getBins()[i]	+ "\t"
+				writerHist.println(dynamicAveragingHistogram.getBins()[i]+ "\t"
 														+ dynamicAveragingHistogram.getCounts()[i] + "\t"
 														+ dynamicAveragingHistogram.getAverages()[i]);
 			}
@@ -469,7 +469,7 @@ public class VCFOps {
 	public static String[] convertToPlinkSet(	String outputDir, String vcf, String rootOut,
 																						PLINK_SET_MODE mode, Logger log) {
 		String[] plinkCommand = null;
-		String dir = outputDir == null	? ext.parseDirectoryOfFile(vcf)	+ "plink" + ext.rootOf(vcf)
+		String dir = outputDir == null	? ext.parseDirectoryOfFile(vcf)+ "plink" + ext.rootOf(vcf)
 																			+ "/"
 																		: outputDir;
 
@@ -505,7 +505,7 @@ public class VCFOps {
 			} else if (mode == PLINK_SET_MODE.HOMOGENEITY) {
 
 				if (!Files.exists(ext.parseDirectoryOfFile(outFiles[2]) + "hardy.hwe")) {
-					CmdLine.run("plink --bfile "	+ rootOut
+					CmdLine.run("plink --bfile "+ rootOut
 											+ " --maf 0 --geno 1 --mind 1 --hardy --out hardy --noweb",
 											ext.parseDirectoryOfFile(outFiles[2]));
 				} else {
@@ -514,7 +514,7 @@ public class VCFOps {
 			}
 		}
 		if (!Files.exists(dir + ".qc.pbs")) {
-			String gwasQC = Array.toStr(PSF.Load.getAllModules(), "\n")	+ "\n" + Files.getRunString()
+			String gwasQC = Array.toStr(PSF.Load.getAllModules(), "\n")+ "\n" + Files.getRunString()
 											+ " gwas.Qc dir=" + dir;
 			Files.qsub(dir + "qc.pbs", gwasQC, 62000, 24, 16);
 		}
@@ -793,7 +793,7 @@ public class VCFOps {
 				writer.println(Array.toStr(HEADER));
 				HashSet<String> inds = getAllInds();
 				for (String ind : inds) {
-					writer.println(ind	+ "\t" + getPopulationForInd(ind, RETRIEVE_TYPE.SUB)[0] + "\t"
+					writer.println(ind+ "\t" + getPopulationForInd(ind, RETRIEVE_TYPE.SUB)[0] + "\t"
 													+ getPopulationForInd(ind, RETRIEVE_TYPE.SUPER)[0]);
 				}
 				writer.close();
@@ -841,7 +841,7 @@ public class VCFOps {
 					break;
 				case CASE_CONTROL:
 					if (!subPop.containsKey(CASE) || !subPop.containsKey(CONTROL)) {
-						log.reportTimeError("Population type was set to "	+ type + ", but did not contain "
+						log.reportTimeError("Population type was set to "+ type + ", but did not contain "
 																+ CASE + " and  " + CONTROL);
 					}
 					break;
@@ -849,9 +849,9 @@ public class VCFOps {
 					break;
 				case PC_ANCESTRY:
 					if (!superPop.containsKey(DETERMINE_ANCESTRY)) {
-						log.reportTimeError("Population type was set to "	+ type + ", but did not contain "
+						log.reportTimeError("Population type was set to "+ type + ", but did not contain "
 																+ DETERMINE_ANCESTRY);
-						log.reportTimeError(DETERMINE_ANCESTRY	+ " must be present in the " + HEADER[2]
+						log.reportTimeError(DETERMINE_ANCESTRY+ " must be present in the " + HEADER[2]
 																+ " column as a flag to determine ancestry, all other categories will be used as cluster generators");
 
 						valid = false;
@@ -859,7 +859,7 @@ public class VCFOps {
 					break;
 				case ANCHOR_BARNACLE:
 					if (!superPop.containsKey(ANCHOR) || !superPop.containsKey(BARNACLE)) {
-						log.reportTimeError("Population type was set to "	+ type + ", but did not contain "
+						log.reportTimeError("Population type was set to "+ type + ", but did not contain "
 																+ ANCHOR + " AND " + BARNACLE);
 						valid = false;
 					}
@@ -867,22 +867,22 @@ public class VCFOps {
 				case TUMOR_NORMAL:
 					if (superPop.size() != 3) {
 						throw new IllegalArgumentException(POPULATION_TYPE.TUMOR_NORMAL
-																									+ " must have two and only three types and found "
+																								+ " must have two and only three types and found "
 																								+ superPop.keySet());
 
 					} else if (!superPop.containsKey(TUMOR) || !superPop.containsKey(NORMAL)) {
-						throw new IllegalArgumentException(POPULATION_TYPE.TUMOR_NORMAL	+ " must only contain "
+						throw new IllegalArgumentException(POPULATION_TYPE.TUMOR_NORMAL+ " must only contain "
 																								+ TUMOR + " and " + NORMAL);
 					}
 					break;
 
 				case DENOVO:
 					if (superPop.size() != 3) {
-						throw new IllegalArgumentException(POPULATION_TYPE.DENOVO	+ " must have two and found "
+						throw new IllegalArgumentException(POPULATION_TYPE.DENOVO+ " must have two and found "
 																								+ superPop.keySet());
 
 					} else if (!superPop.containsKey(OFFSPRING) || !superPop.containsKey(PARENTS)) {
-						throw new IllegalArgumentException(POPULATION_TYPE.DENOVO	+ " must only contain "
+						throw new IllegalArgumentException(POPULATION_TYPE.DENOVO+ " must only contain "
 																								+ OFFSPRING + " and " + PARENTS);
 					}
 					break;
@@ -933,11 +933,11 @@ public class VCFOps {
 		public void report() {
 			log.reportTimeInfo("Population type :" + type);
 			for (String key : subPop.keySet()) {
-				log.reportTimeInfo("Sub - population "	+ key + " had " + subPop.get(key).size()
+				log.reportTimeInfo("Sub - population "+ key + " had " + subPop.get(key).size()
 														+ " individuals");
 			}
 			for (String key : superPop.keySet()) {
-				log.reportTimeInfo("Super - population "	+ key + " had " + superPop.get(key).size()
+				log.reportTimeInfo("Super - population "+ key + " had " + superPop.get(key).size()
 														+ " individuals");
 			}
 		}
@@ -1010,7 +1010,7 @@ public class VCFOps {
 				for (String samp : popSet) {
 					if (!header.getSampleNamesInOrder().contains(samp)) {
 						reader.close();
-						throw new IllegalArgumentException("Did not see sample "	+ samp + " in "
+						throw new IllegalArgumentException("Did not see sample "+ samp + " in "
 																								+ fullPathToPopFile);
 					}
 				}
@@ -1074,7 +1074,7 @@ public class VCFOps {
 				String[] header = Files.getHeaderOfFile(fullPathToPopFile, log);
 				int[] indices = ext.indexFactors(HEADER, header, true, false);
 				if (Array.countIf(indices, -1) > 0) {
-					log.reportTimeError("Could not find required headers "	+ Array.toStr(HEADER) + " in "
+					log.reportTimeError("Could not find required headers "+ Array.toStr(HEADER) + " in "
 															+ fullPathToPopFile);
 					return null;
 				}
@@ -1147,7 +1147,7 @@ public class VCFOps {
 									ext.parseDirectoryOfFile(convertToPlinkSet(	export, splits[j], "plink",
 																															PLINK_SET_MODE.HOMOGENEITY, log)[0]);
 					if (VCFOps.getSamplesInFile(splits[j]).length > 50) {
-						String callRateFiltered = dir	+ ext.rootOf(splits[j]) + ".CR." + callRate + ".hwe."
+						String callRateFiltered = dir+ ext.rootOf(splits[j]) + ".CR." + callRate + ".hwe."
 																			+ hwe + ".txt";
 						if (!Files.exists(callRateFiltered)) {
 							reportCallRateHWEFiltered(splits[j], callRateFiltered, callRate, hwe, log);
@@ -1161,7 +1161,7 @@ public class VCFOps {
 						for (String element : callRateRemove) {
 							toRemoveHash.add(element);
 						}
-						log.reportTimeInfo(callRateRemove.length	+ " variants removed from " + splits[j]
+						log.reportTimeInfo(callRateRemove.length+ " variants removed from " + splits[j]
 																+ " at callrate " + callRateFiltered);
 						toRemove = Array.unique(Array.concatAll(toRemove, callRateRemove));
 					}
@@ -1173,13 +1173,13 @@ public class VCFOps {
 					MergeDatasets.checkForHomogeneity(null, dirs, dir, "ALL", log);
 
 				} else {
-					log.reportTimeInfo("Found "	+ lackOfHomoGeneity
+					log.reportTimeInfo("Found "+ lackOfHomoGeneity
 															+ ", assuming this has run to completion");
 				}
 
 				String[] lackOfHomoGeneityIDs = HashVec.loadFileToStringArray(lackOfHomoGeneity, false,
 																																			new int[] {0}, true);
-				log.reportTimeInfo(lackOfHomoGeneityIDs.length	+ " markers lacking homogeneity from "
+				log.reportTimeInfo(lackOfHomoGeneityIDs.length+ " markers lacking homogeneity from "
 														+ fullPathToPopFile);
 				toRemove = Array.unique(Array.concatAll(toRemove, lackOfHomoGeneityIDs));
 				for (String lackOfHomoGeneityID : lackOfHomoGeneityIDs) {
@@ -1188,7 +1188,7 @@ public class VCFOps {
 				if (Files.exists(problems)) {
 					String[] problematic = HashVec.loadFileToStringArray(	problems, false, new int[] {0},
 																																true);
-					log.reportTimeInfo(problematic.length	+ " markers with problems from "
+					log.reportTimeInfo(problematic.length+ " markers with problems from "
 															+ fullPathToPopFile);
 					// toRemove = Array.unique(Array.concatAll(toRemove, problematic));
 				}
@@ -1218,7 +1218,7 @@ public class VCFOps {
 				convertToPlinkSet(finalDir, extractVCF, "plink", PLINK_SET_MODE.GWAS_QC, log);
 			}
 		} else {
-			log.reportTimeWarning("found file "	+ idFile + " and " + mdsFile
+			log.reportTimeWarning("found file "+ idFile + " and " + mdsFile
 														+ " , assuming processing up to this point has been completed");
 		}
 		org.genvisis.widgets.TabVersion.make(mdsFile);
@@ -1304,7 +1304,7 @@ public class VCFOps {
 				PrintWriter writer = new PrintWriter(new FileWriter(finalVpop));
 				writer.println(Array.toStr(VcfPopulation.HEADER));
 				for (int j = 0; j < currentBarns.size(); j++) {
-					writer.println(currentBarns.get(j)	+ "\t" + VcfPopulation.CONTROL + "\t"
+					writer.println(currentBarns.get(j)+ "\t" + VcfPopulation.CONTROL + "\t"
 													+ VcfPopulation.CONTROL);
 				}
 				for (String anchor : anchors) {
@@ -1404,7 +1404,7 @@ public class VCFOps {
 						if ((!skipFiltered || !vc.isFiltered()) && (keepIDs && tmp.contains(anno))
 								|| (!keepIDs && !tmp.contains(anno))) {
 							if (segsToExclude == null
-										|| (keepIDs && Segment.binarySearchForAllOverLappingIndices(VCOps.getSegment(vc),
+									|| (keepIDs && Segment.binarySearchForAllOverLappingIndices(VCOps.getSegment(vc),
 																																							segsToExclude) != null)
 									|| (!keepIDs
 											&& Segment.binarySearchForAllOverLappingIndices(VCOps.getSegment(vc),
@@ -1630,9 +1630,9 @@ public class VCFOps {
 			String[][] annotations = getAnnotationKeys(vcf, log);
 			if (createAnnotationFile) {
 				annoWriter = Files.getAppropriateWriter(annoFile);
-				annoWriter.println("##"	+ Array.toStr(ANNO_BASE) + "\t" + Array.toStr(annotations[1]) + "\t"
+				annoWriter.println("##"+ Array.toStr(ANNO_BASE) + "\t" + Array.toStr(annotations[1]) + "\t"
 														+ Array.toStr(VCFOps.getSamplesInFile(vcf)));
-				annoWriter.println(Array.toStr(ANNO_BASE)	+ "\t" + Array.toStr(annotations[0]) + "\t"
+				annoWriter.println(Array.toStr(ANNO_BASE)+ "\t" + Array.toStr(annotations[0]) + "\t"
 														+ Array.toStr(VCFOps.getSamplesInFile(vcf)));
 			}
 			CloseableIterator<VariantContext> iterator = reader.iterator();
@@ -1665,7 +1665,7 @@ public class VCFOps {
 																											vc.getStart(), vc.getEnd()));
 					}
 					if (createAnnotationFile) {
-						annoWriter.print(vc.getContig()	+ "\t" + vc.getStart() + "\t" + vc.getID() + "\t"
+						annoWriter.print(vc.getContig()+ "\t" + vc.getStart() + "\t" + vc.getID() + "\t"
 															+ vc.getReference().getBaseString() + "\t"
 															+ vc.getAlternateAlleles().toString() + "\t" + vc.getHomRefCount()
 															+ "\t" + vc.getHetCount() + "\t" + vc.getHomVarCount() + "\t"
@@ -1777,7 +1777,7 @@ public class VCFOps {
 			final String chr = toSplit[index];
 			String dir = newDir == null ? ext.parseDirectoryOfFile(vcfFile) : newDir + chr + "/";
 			new File(dir).mkdirs();
-			final String output = dir	+ getAppropriateRoot(vcfFile, true) + "." + chr
+			final String output = dir+ getAppropriateRoot(vcfFile, true) + "." + chr
 														+ VCF_EXTENSIONS.GZIP_VCF.getLiteral();
 			Callable<ChrSplitResults> callable = new Callable<VCFOps.ChrSplitResults>() {
 
@@ -1866,7 +1866,7 @@ public class VCFOps {
 			while (iterator.hasNext()) {
 				VariantContext vc = iterator.next();
 				if (numTotal % 100000 == 0) {
-					log.reportTimeInfo("Scanned "	+ numTotal + " variants from " + vcfFile + " (" + numChr
+					log.reportTimeInfo("Scanned "+ numTotal + " variants from " + vcfFile + " (" + numChr
 															+ " matching " + chr + ")");
 				}
 				if (vc.getContig().equals(chr)) {
@@ -1882,7 +1882,7 @@ public class VCFOps {
 			reader.close();
 			chrSplitResults = new ChrSplitResults(chr, vcfFile, outputVCF, numChr);
 			if (numTotal > 0) {
-				log.reportTimeInfo("Scanned "	+ numTotal + " variants from " + vcfFile + " (" + numChr
+				log.reportTimeInfo("Scanned "+ numTotal + " variants from " + vcfFile + " (" + numChr
 														+ " matching " + chr + ")");
 			}
 		} else {
@@ -2079,7 +2079,7 @@ public class VCFOps {
 																	".filtered")
 										+ (gzipOutput ? ".gz" : "");
 
-		output = getAppropriateRoot(vcf, false)	+ ".filtered"
+		output = getAppropriateRoot(vcf, false)+ ".filtered"
 							+ (gzipOutput	? VCF_EXTENSIONS.GZIP_VCF.getLiteral()
 														: VCF_EXTENSIONS.REG_VCF.getLiteral());
 		log.reportTimeInfo("Will write filtered variants to " + output);
@@ -2119,7 +2119,7 @@ public class VCFOps {
 				countFiltered++;
 			}
 			if (count % 100000 == 0) {
-				log.reportTimeInfo(count	+ " total variants, " + countPassed + " passed the filters, "
+				log.reportTimeInfo(count+ " total variants, " + countPassed + " passed the filters, "
 														+ countFiltered + " were filtered");
 			}
 		}
@@ -2207,7 +2207,7 @@ public class VCFOps {
 
 			int referenceIndex = vcfHeader.getSequenceDictionary().getSequenceIndex(sequenceName);
 			if (referenceIndex < 0) {
-				log.reportError("Error - could not find "	+ sequenceName
+				log.reportError("Error - could not find "+ sequenceName
 												+ " in the sequence dictionary, halting");
 				return null;
 			}
@@ -2235,10 +2235,10 @@ public class VCFOps {
 		System.out.println(bedFile);
 		String key = ext.rootOf(bedFile);
 		String description = "Custom annotation provide by genvisis from "
-														+ ext.removeDirectoryInfo(bedFile) + " on "
+													+ ext.removeDirectoryInfo(bedFile) + " on "
 													+ ext.getTimestampForFilename();
 		VCFFileReader reader = new VCFFileReader(new File(vcfFile), false);
-		String outputVcf = VCFOps.getAppropriateRoot(vcfFile, false)	+ "_" + ext.rootOf(bedFile)
+		String outputVcf = VCFOps.getAppropriateRoot(vcfFile, false)+ "_" + ext.rootOf(bedFile)
 												+ VCFOps.VCF_EXTENSIONS.GZIP_VCF.getLiteral();
 		VariantContextWriter writer = VCFOps.initWriter(outputVcf, DEFUALT_WRITER_OPTIONS, null);
 		VCFHeader vcfHeader = reader.getFileHeader();
@@ -2278,7 +2278,7 @@ public class VCFOps {
 			private static final long serialVersionUID = 1L;
 
 		};
-		String outSegs = VCFOps.getAppropriateRoot(vcfFile, false)	+ "_" + ext.rootOf(bedFile)
+		String outSegs = VCFOps.getAppropriateRoot(vcfFile, false)+ "_" + ext.rootOf(bedFile)
 											+ ".segs";
 		segSet.writeRegions(outSegs, TO_STRING_TYPE.REGULAR, false, new Logger());
 		extractSegments(outputVcf, outSegs, 0, null, ext.parseDirectoryOfFile(outSegs), false, true,
@@ -2389,9 +2389,9 @@ public class VCFOps {
 					"   (5) full path to a file name with chr,start,stop or *.bim to extract (i.e. segs= (no default))\n"
 							+ "";
 		usage += "   (6) bp buffer for segments to extract (i.e. bp=" + bpBuffer + "(default))\n" + "";
-		usage += "   (7) a bam directory to extract associtated reads (i.e. "	+ BAM_COMMAND + bams
+		usage += "   (7) a bam directory to extract associtated reads (i.e. "+ BAM_COMMAND + bams
 							+ "( no default))\n" + "";
-		usage += "   (8) an output directory for extracted vcfs/minibams (i.e. outDir="	+ outDir
+		usage += "   (8) an output directory for extracted vcfs/minibams (i.e. outDir="+ outDir
 							+ "( no default))\n" + "";
 		usage +=
 					"   (9) skip filtered variants when extracting (i.e. -skipFiltered (not the default))\n"
@@ -2400,7 +2400,7 @@ public class VCFOps {
 		usage += "   (11) full path to a file of ids (i.e. idFile= (no default))\n" + "";
 		usage +=
 					"   (12) when removing filtered variants, apply our standard filters as well (i.e. -standardFilters (not the default, GQ >="
-								+ VARIANT_FILTER_DOUBLE.GQ.getDFilter() + " and DP >="
+							+ VARIANT_FILTER_DOUBLE.GQ.getDFilter() + " and DP >="
 							+ VARIANT_FILTER_DOUBLE.DP.getDFilter() + "))\n" + "";
 		usage +=
 					"   (13) when subsetting by samples, remove monomorphic variants (i.e. -removeMonoMorphic (not the default))\n"
@@ -2411,7 +2411,7 @@ public class VCFOps {
 		usage +=
 					"   (14) when subsetting, keep variant ids if set to \".\" (i.e. -keepIds (not the default))\n"
 							+ "";
-		usage += "   (15) full path to a segment file  (i.e. "	+ SEGMENT_FILE_COMMAND
+		usage += "   (15) full path to a segment file  (i.e. "+ SEGMENT_FILE_COMMAND
 							+ "( no default)\n" + "";
 		usage += "   (16) full path to a bed file for annotating  (i.e. bed= (no default)\n" + "";
 		usage += "   (17) subset samples to bam files in vcf (i.e. subToBam=false (no default)\n" + "";

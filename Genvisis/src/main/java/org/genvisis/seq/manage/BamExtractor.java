@@ -73,7 +73,7 @@ public class BamExtractor {
 
 			reader.indexing();
 			if (!reader.hasIndex()) {
-				log.reportError("Error - the bam file "	+ bamFile
+				log.reportError("Error - the bam file "+ bamFile
 												+ " must have a \".bai\" index file associated with it, halting");
 			} else {
 				SAMFileHeader samFileHeader = reader.getFileHeader();
@@ -82,7 +82,7 @@ public class BamExtractor {
 				qIntervals = QueryInterval.optimizeIntervals(qIntervals);
 				if (qIntervals != null) {
 					if (verbose) {
-						log.reportTimeInfo("Attempting to extract "	+ qIntervals.length
+						log.reportTimeInfo("Attempting to extract "+ qIntervals.length
 																+ " intervals with a bp buffer of " + bpBuffer);
 						log.reportTimeInfo(bamFile + " " + ">" + " " + outputFile);
 					}
@@ -94,7 +94,7 @@ public class BamExtractor {
 					dumpIntervals(reader, sAMFileWriter, ext.removeDirectoryInfo(outputFile), qIntervals,
 												log);
 					sAMFileWriter.close();
-					log.reportTimeInfo("Finished extracting"	+ qIntervals.length
+					log.reportTimeInfo("Finished extracting"+ qIntervals.length
 															+ " intervals with a bp buffer of " + bpBuffer);
 					log.reportTimeInfo(bamFile + " " + ">" + " " + outputFile);
 					try {
@@ -166,7 +166,7 @@ public class BamExtractor {
 		while (sIterator.hasNext()) {
 			SAMRecord samRecord = sIterator.next();
 			if ((count != 0) && (count % 10000 == 0)) {
-				log.reportTimeInfo("Wrote "	+ count + " reads (currently on " + samRecord.getReferenceName()
+				log.reportTimeInfo("Wrote "+ count + " reads (currently on " + samRecord.getReferenceName()
 														+ " for file " + rootFile);
 			}
 			count++;
@@ -182,7 +182,7 @@ public class BamExtractor {
 			String sequenceName = Positions.getChromosomeUCSC(segs[i].getChr(), true);
 			int referenceIndex = sFileHeader.getSequenceIndex(sequenceName);
 			if (referenceIndex < 0) {
-				log.reportError("Error - could not find "	+ sequenceName
+				log.reportError("Error - could not find "+ sequenceName
 												+ " in the sequence dictionary, halting");
 				return null;
 			}
@@ -252,6 +252,9 @@ public class BamExtractor {
 				if (varset == null && !bamSampleMap.containsKey(samples[i])) {
 					verified = false;
 					log.reportTimeError("Could not find a matching bam file for sample " + samples[i]);
+				} else if (varset == null) {
+					verified = true;
+
 				} else {
 					boolean hasOne = false;
 
@@ -264,7 +267,7 @@ public class BamExtractor {
 						}
 					}
 					if (!hasOne) {
-						log.reportTimeError("Could not find a matching bam file for sample "	+ samples[i]
+						log.reportTimeError("Could not find a matching bam file for sample "+ samples[i]
 																+ " in the following var sets" + Array.toStr(varset, ","));
 
 					}
@@ -286,11 +289,11 @@ public class BamExtractor {
 				if (bamSampleMap.containsKey(curSample)) {
 					if (varSets != null) {
 						for (String varSet : varSets) {
-							dumper = dumper	+ curSample + varSet + "\t" + "./"
+							dumper = dumper+ curSample + varSet + "\t" + "./"
 												+ ext.removeDirectoryInfo(bamSampleMap.get(curSample) + "\n");
 						}
 					} else {
-						dumper = dumper	+ curSample + "\t" + "./"
+						dumper = dumper+ curSample + "\t" + "./"
 											+ ext.removeDirectoryInfo(bamSampleMap.get(curSample) + "\n");
 					}
 
@@ -333,7 +336,7 @@ public class BamExtractor {
 				fail = true;
 			}
 			if (verbose) {
-				log.reportTimeInfo("Found "	+ samples.length + " samples in " + bamFiles.length
+				log.reportTimeInfo("Found "+ samples.length + " samples in " + bamFiles.length
 														+ " .bam files");
 			}
 		}

@@ -172,6 +172,7 @@ public class SpecialK {
 					if (!found) {
 						countMapAll.put(OTHER, countMapAll.get(OTHER) + 1);
 					}
+					countMapAll.put(TOTAL, countMapAll.get(TOTAL) + 1);
 				}
 			}
 			sIterator.close();
