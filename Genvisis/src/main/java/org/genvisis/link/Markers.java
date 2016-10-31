@@ -62,7 +62,7 @@ public class Markers {
 
 		try {
 			if (shouldBeOnSameChromosome) {
-				keys = Sort.quicksort(distances);
+				keys = Sort.getSortedIndices(distances);
 				chr = chrs[keys[0]];
 				output = markers[keys[0]];
 				writer = new PrintWriter(new FileWriter("markerMap.dat"));

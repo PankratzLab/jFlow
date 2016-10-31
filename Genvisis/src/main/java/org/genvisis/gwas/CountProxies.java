@@ -70,7 +70,7 @@ public class CountProxies {
 											+ element + "SigReplication");
 			}
 			writer.println();
-			keys = HashVec.getKeys(hash, true, true);
+			keys = HashVec.getNumericKeys(hash);
 			for (String key : keys) {
 				v = hash.get(key);
 				// for (int regi = 1; regi <= Integer.parseInt(keys[keys.length-1]); regi++) {
@@ -89,7 +89,7 @@ public class CountProxies {
 																													: Double.parseDouble(line[indices[6]]);
 				}
 
-				order = Sort.quicksort(pvalues);
+				order = Sort.getSortedIndices(pvalues);
 				// writer.print(regi);
 				writer.print(key);
 

@@ -143,10 +143,10 @@ public class PlateLists {
 		}
 
 		try {
-			fams = HashVec.getKeys(hash, true, true);
+			fams = HashVec.getNumericKeys(hash);
 			for (String fam2 : fams) {
 				family = hash.get(fam2);
-				inds = HashVec.getKeys(family, true, true);
+				inds = HashVec.getNumericKeys(family);
 				proband = probandLevel = -1;
 				for (int j = 0; j < inds.length; j++) {
 					v = family.get(inds[j]);
@@ -154,7 +154,7 @@ public class PlateLists {
 					for (int k = 0; k < v.size(); k++) {
 						dnas[k] = v.elementAt(k).getDNA();
 					}
-					keys = Sort.quicksort(dnas);
+					keys = Sort.getSortedIndices(dnas);
 					for (int k = v.size() - 1; k >= 0; k--) {
 						if (k != keys[0]) {
 							if (v.elementAt(k).getDNA().equals(v.elementAt(keys[0]).getDNA())) {
@@ -195,7 +195,7 @@ public class PlateLists {
 				if (proband >= 0) {
 					categories.elementAt(0).add(family.remove(inds[proband]).elementAt(0));
 				}
-				inds = HashVec.getKeys(family, true, true);
+				inds = HashVec.getNumericKeys(family);
 				for (String ind : inds) {
 					dx = diagnoses.get(ind);
 					if (dx == null) {
@@ -389,10 +389,10 @@ public class PlateLists {
 		}
 
 		try {
-			fams = HashVec.getKeys(hash, true, true);
+			fams = HashVec.getNumericKeys(hash);
 			for (String fam2 : fams) {
 				family = hash.get(fam2);
-				inds = HashVec.getKeys(family, true, true);
+				inds = HashVec.getNumericKeys(family);
 				proband = probandLevel = prior = priorLevel = -1;
 				for (int j = 0; j < inds.length; j++) {
 					v = family.get(inds[j]);
@@ -405,7 +405,7 @@ public class PlateLists {
 						}
 					}
 					if (keys == null) {
-						keys = Sort.quicksort(dnas);
+						keys = Sort.getSortedIndices(dnas);
 					}
 					for (int k = v.size() - 1; k >= 0; k--) {
 						if (k != keys[0]) {
@@ -471,7 +471,7 @@ public class PlateLists {
 				} else if (proband >= 0) {
 					categories.elementAt(0).add(family.remove(inds[proband]).elementAt(0));
 				}
-				inds = HashVec.getKeys(family, true, true);
+				inds = HashVec.getNumericKeys(family);
 				for (String ind : inds) {
 					dx = diagnoses.get(ind);
 					if (dx == null) {

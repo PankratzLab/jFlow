@@ -172,7 +172,7 @@ public class StatsCrossTabs {
 				titlesRanked[curIndex] = dataTitles[i];
 				curIndex++;
 			}
-			int[] order = Sort.quicksort(type == VALUE_TYPE.STAT ? stats : sigs, 1);
+			int[] order = Sort.getReverseIndices(type == VALUE_TYPE.STAT ? stats : sigs);
 			sRank = new StatsCrossTabRank(dataTitles[variableIndex], order, sigs, stats, titlesRanked);
 		} else {
 			log.reportTimeError("Variable index greater than variable array length " + data.length);

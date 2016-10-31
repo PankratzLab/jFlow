@@ -7,16 +7,18 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.HashVec;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 import com.google.common.primitives.Doubles;
+
 
 public class PermuteOnePer {
 	public static final int SIGFIGS = 2;
@@ -48,7 +50,7 @@ public class PermuteOnePer {
 		Ttest tt;
 		Vector<String> v;
 		int count;
-		int[] keys, order;
+		int[] order;
 		double[][] contTable;
 
 		numTraits = variables[0].length;
@@ -74,10 +76,11 @@ public class PermuteOnePer {
 																			+ " levels, don't you think? (for '" + variableNames[1][i]
 																			+ "')");
 				}
-				order = Array.toIntArray(Array.toStringArray(v));
-				keys = Sort.quicksort(order);
-				counts[i] = order[keys[keys.length - 1]] - order[keys[0]] + 1;
-				offsets[i] = order[keys[0]];
+				Collections.sort(v);
+				order = Array.toIntArray(v);
+				Arrays.sort(order);
+				counts[i] = order[order.length - 1] - order[0] + 1;
+				offsets[i] = order[0];
 
 				if (counts[i] > UPPER_LIMIT) {
 					throw new RuntimeException("The spread for '"	+ variableNames[1][i]

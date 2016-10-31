@@ -1417,7 +1417,7 @@ public class CARe_Analyses {
 					travPos =
 									HashVec.loadFileToHashString(dir	+ root + ".bim", new int[] {1}, new int[] {0, 3},
 																								false, "\t", false, false, false);
-					keys = HashVec.getKeys(travPos, false, false);
+					keys = HashVec.getKeys(travPos, false);
 					for (int k = 0; k < keys.length; k++) {
 						if (!positions.containsKey(keys[k])) {
 							positions.put(keys[k], travPos.get(keys[k]));
@@ -1474,7 +1474,7 @@ public class CARe_Analyses {
 					travPos =
 									HashVec.loadFileToHashString(dir	+ root + ".pmap", new int[] {1},
 																								new int[] {0, 3}, false, "\t", false, false, false);
-					keys = HashVec.getKeys(travPos, false, false);
+					keys = HashVec.getKeys(travPos, false);
 					for (int k = 0; k < keys.length; k++) {
 						if (!positions.containsKey(keys[k])) {
 							positions.put(keys[k], travPos.get(keys[k]));

@@ -4,14 +4,14 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.RuleBasedCollator;
-import java.util.Enumeration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Vector;
 
 public class HashVec {
@@ -19,28 +19,28 @@ public class HashVec {
 		return addIfAbsent(str, v, false);
 	}
 
+	/**
+	 * @param inAlphabeticalOrder - if the vector is already sorted and the new element should be at
+	 *        the appropriate sorted index.
+	 * @return true if added
+	 */
 	public static boolean addIfAbsent(String str, Vector<String> v, boolean inAlphabeticalOrder) {
-		RuleBasedCollator collator;
 
-		if (v.contains(str)) {
-			return false;
-		} else {
-			if (inAlphabeticalOrder) {
-				try {
-					collator = new RuleBasedCollator(Sort.RULES);
-					for (int i = 0; i <= v.size(); i++) {
-						if (i == v.size() || collator.compare(v.elementAt(i), str) > 0) {
-							v.insertElementAt(str, i);
-							return true;
-						}
-					}
-				} catch (ParseException pe) {
-				}
-			} else {
-				v.add(str);
+		if (inAlphabeticalOrder) {
+			int idx = Collections.binarySearch(v, str);
+			// negative value indicates value was not present.
+			// adjust index and insert
+			if (idx < 0) {
+				idx = -(idx + 1);
+				v.insertElementAt(str, idx);
+				return true;
 			}
+		} else if (!v.contains(str)) {
+			v.add(str);
 			return true;
 		}
+
+		return false;
 	}
 
 	public static void addAllInArrayToVector(String[] array, Vector<String> vector) {
@@ -48,78 +48,6 @@ public class HashVec {
 			vector.add(element);
 		}
 	}
-
-	@SuppressWarnings("rawtypes")
-	public static String[] getKeys(Map hash) {
-		return getKeys(hash, true, false);
-	}
-
-	@SuppressWarnings({"rawtypes"})
-	public static String[] getKeys(Hashtable hash) {
-		return getKeys(hash, true, false);
-	}
-
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	public static String[] getKeys(Hashtable hash, boolean sort, boolean treatAsNumbers) {
-		String[] array = new String[hash.size()];
-		Enumeration<String> enumer = hash.keys();
-		int count = 0;
-
-		try {
-			while (enumer.hasMoreElements()) {
-				array[count++] = enumer.nextElement();
-			}
-		} catch (Exception e) {
-			System.err.println("Error - hash keys were not Strings");
-			e.printStackTrace();
-		}
-
-		if (sort) {
-			return Sort.putInOrder(array, treatAsNumbers);
-		} else {
-			return array;
-		}
-	}
-
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	public static String[] getKeys(Map hash, boolean sort, boolean treatAsNumbers) {
-		String[] array = new String[hash.size()];
-		Set<String> enumer = hash.keySet();
-		int count = 0;
-		Iterator<String> keyIter = enumer.iterator();
-
-		try {
-			while (keyIter.hasNext()) {
-				array[count++] = keyIter.next();
-			}
-		} catch (Exception e) {
-			System.err.println("Error - hash keys were not Strings");
-			e.printStackTrace();
-		}
-
-		if (sort) {
-			return Sort.putInOrder(array, treatAsNumbers);
-		} else {
-			return array;
-		}
-	}
-
-	public static String[] getKeys(HashSet<String> hash) {
-		return getKeys(hash, true, false);
-	}
-
-	public static String[] getKeys(HashSet<String> hash, boolean sort, boolean treatAsNumbers) {
-		String[] array;
-
-		array = hash.toArray(new String[hash.size()]);
-		if (sort) {
-			return Sort.putInOrder(array, treatAsNumbers);
-		} else {
-			return array;
-		}
-	}
-
-
 
 	public static Object addToHashIfAbsent(Hashtable<String, Object> hash, String key, Object value) {
 		Object o;
@@ -245,10 +173,12 @@ public class HashVec {
 	}
 
 	public static HashSet<String> loadToHashSet(String[] list) {
-		HashSet<String> hash = new HashSet<String>((list == null ? 10 : list.length));
+		if (list == null)
+			return new HashSet<String>();
+		HashSet<String> hash = new HashSet<String>(list.length);
 
-		for (int i = 0; list != null && i < list.length; i++) {
-			hash.add(list[i]);
+		for (String s : list) {
+			hash.add(s);
 		}
 
 		return hash;
@@ -256,7 +186,11 @@ public class HashVec {
 
 	@SuppressWarnings("rawtypes")
 	public static HashSet<String> convertHashNullToHashSet(Hashtable hash) {
-		return loadToHashSet(getKeys(hash, false, false));
+		HashSet<String> set = new HashSet<String>();
+		for (Object k : hash.keySet()) {
+			set.add(k.toString());
+		}
+		return set;
 	}
 
 	public static Hashtable<String, Integer> loadToHashIndices(String[] list, Logger log) {
@@ -315,16 +249,6 @@ public class HashVec {
 													Files.determineDelimiter(filename, new Logger()));
 	}
 
-	/**
-	 * @param filename
-	 * @param ignoreFirstLine
-	 * @param cols
-	 * @param trimFirst
-	 * @param onlyIfAbsent If true, the resulting vector will only contain unique values in the specified columns.
-	 * @param jar
-	 * @param delimiter
-	 * @return
-	 */
 	public static Vector<String> loadFileToVec(	String filename, boolean ignoreFirstLine, int[] cols,
 																							boolean trimFirst, boolean onlyIfAbsent, boolean jar,
 																							String delimiter) {
@@ -359,7 +283,7 @@ public class HashVec {
 					trav = "";
 					for (int i = 0; i < cols.length; i++) {
 						if (line.length <= cols[i]) {
-							System.err.println("Error - not enough columns at line "	+ count + " of file "
+							System.err.println("Error - not enough columns at line "+ count + " of file "
 																	+ filename + ": " + Array.toStr(line));
 						}
 						trav += (i == 0 ? "" : "\t") + line[cols[i]];
@@ -530,7 +454,7 @@ public class HashVec {
 					} else if (allowMissingData) {
 						temp += ((i == 0) ? "" : delimiterWithinHash) + ".";
 					} else {
-						System.err.println("Error - not enough columns for key '"	+ key + "' in file '"
+						System.err.println("Error - not enough columns for key '"+ key + "' in file '"
 																+ filename + "'; and allowMissingData was not flagged");
 					}
 				}
@@ -546,6 +470,10 @@ public class HashVec {
 		return hash;
 	}
 
+	/**
+	 * As {@link #loadFileToHashVec(String, int[], int[], String, boolean, boolean)} with a single key
+	 * index.
+	 */
 	public static Hashtable<String, Vector<String>> loadFileToHashVec(String filename, int keyIndex,
 																																		int[] valueIndices,
 																																		String delimiter,
@@ -555,6 +483,10 @@ public class HashVec {
 															ignoreFirstLine, onlyIfAbsent);
 	}
 
+	/**
+	 * Loads a file such that each line is a set of columns, separated by the specified delimiter. An
+	 * arbitrary number of key and valu columns may be specified.
+	 */
 	public static Hashtable<String, Vector<String>> loadFileToHashVec(String filename,
 																																		int[] keyIndices,
 																																		int[] valueIndices,
@@ -600,6 +532,10 @@ public class HashVec {
 		return hash;
 	}
 
+	/**
+	 * As {@link #loadFileToHashHashVec(String, int, int, int[], boolean, boolean)} but only the
+	 * targetIndex column is stored.
+	 */
 	public static Hashtable<String, Hashtable<String, String>> loadFileToHashHash(String filename,
 																																								int key1Index,
 																																								int key2Index,
@@ -637,11 +573,13 @@ public class HashVec {
 		return hashes;
 	}
 
+	/**
+	 * A file is read such that each line is an entry with the first two columns as keys.
+	 */
 	public static Hashtable<String, Hashtable<String, Vector<String>>> loadFileToHashHashVec(	String filename,
 																																														int key1Index,
 																																														int key2Index,
 																																														int[] targetIndices,
-																																														String delimiter,
 																																														boolean ignoreFirstLine,
 																																														boolean onlyifabsent) {
 		BufferedReader reader = null;
@@ -680,6 +618,9 @@ public class HashVec {
 		return hashes;
 	}
 
+	/**
+	 * Create a vector of String vectors, pre-allocated to the specified size
+	 */
 	public static Vector<Vector<String>> newVecVecString(int size) {
 		Vector<Vector<String>> v = new Vector<Vector<String>>();
 
@@ -690,6 +631,9 @@ public class HashVec {
 		return v;
 	}
 
+	/**
+	 * Create a vector of hashtables, pre-allocated to the specified size.
+	 */
 	public static Vector<Hashtable<String, String>> newVecHashStringString(int size) {
 		Vector<Hashtable<String, String>> hashes = new Vector<Hashtable<String, String>>();
 
@@ -700,39 +644,91 @@ public class HashVec {
 		return hashes;
 	}
 
+	/**
+	 * Copy the specified vector
+	 *
+	 * @return the new copy
+	 */
 	public static Vector<String> cloneVectorString(Vector<String> v) {
 		Vector<String> vec = new Vector<String>();
 
-		for (int i = 0; i < v.size(); i++) {
-			vec.add(v.elementAt(i));
+		for (String s : v) {
+			vec.add(s);
 		}
 
 		return vec;
 	}
 
-	public static void addToVector(Vector<String> container, Vector<String> additions) {
-		for (int i = 0; i < additions.size(); i++) {
-			container.add(additions.elementAt(i));
-		}
-	}
-
+	/**
+	 * Lookup the key in the given table. If not found, use missingValue instead.
+	 */
 	public static String get(Hashtable<String, String> hash, String key, String missingValue) {
+		// TODO this would be nicer in a subclass
 		if (hash.containsKey(key)) {
 			return hash.get(key);
-		} else {
-			System.err.println("Error - no valid value in hash for " + key);
-			return missingValue;
 		}
+		System.err.println("Error - no valid value in hash for " + key);
+		return missingValue;
 	}
 
-	public static void mergeHash2IntoHash1(	Hashtable<String, String> hash1,
-																					Hashtable<String, String> hash2) {
-		String[] keys;
-
-		keys = getKeys(hash2, true, false);
-		for (String key : keys) {
-			hash1.put(key, hash2.get(key));
-		}
+	/**
+	 * @return A sorted array of keys for the given map
+	 */
+	public static String[] getKeys(Map<String, ?> map) {
+		return getKeys(map, true);
 	}
 
+	/**
+	 * @return An array, optionally sorted, of the keys for the given map
+	 */
+	public static String[] getKeys(Map<String, ?> map, boolean sort) {
+		String[] keys = map.keySet().toArray(new String[map.size()]);
+		if (sort) {
+			Arrays.sort(keys);
+		}
+		return keys;
+	}
+
+	/**
+	 * @return A sorted list of keys for the given map
+	 */
+	public static List<String> getKeyList(Map<String, ?> map) {
+		List<String> keys = new ArrayList<String>(map.keySet());
+		Collections.sort(keys);
+		return keys;
+	}
+
+	/**
+	 * Sorting method when keys may contain numeric values. See <a href=
+	 * "http://stackoverflow.com/questions/104599/sort-on-a-string-that-may-contain-a-number">this SO
+	 * post</a> for information on how these keys are sorted.
+	 *
+	 * @return A sorted list of keys for the given hashtable, sorted alphanumerically
+	 */
+	public static List<String> getNumericKeyList(Map<String, ?> map) {
+		List<String> keys = new ArrayList<String>(map.keySet());
+		Collections.sort(keys, new SciStringComparator());
+		return keys;
+	}
+
+	/**
+	 * As {@link #getNumericKeys(Map)} but returns an array instead
+	 */
+	public static String[] getNumericKeys(Map<String, ?> map) {
+		String[] keys = map.keySet().toArray(new String[map.size()]);
+		Arrays.sort(keys, new SciStringComparator());
+		return keys;
+	}
+
+	public static void main(String...strings) {
+		Map<String, String> map = new HashMap<String, String>();
+		for (int i=0; i<1000000; i++) {
+			map.put(String.valueOf(i), "");
+		}
+
+		long t = System.currentTimeMillis();
+		getNumericKeys(map);
+		t = System.currentTimeMillis() - t;
+		System.out.println(t);
+	}
 }

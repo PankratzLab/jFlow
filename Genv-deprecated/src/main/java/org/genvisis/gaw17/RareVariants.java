@@ -94,7 +94,7 @@ public class RareVariants {
 					trait[i] = Double.parseDouble(trav);
 				}
 				wss.setTrait(trait);
-				order = Sort.quicksort(trait);
+				order = Sort.getSortedIndices(trait);
 				controlDesignations = new byte[ids.length];
 				for (int i = 0; i < ids.length; i++) {
 					controlDesignations[i] = (order[i] >= ids.length / 3

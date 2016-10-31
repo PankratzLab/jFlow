@@ -179,7 +179,7 @@ public class PlotResults extends JFrame implements ActionListener {
 					for (int k = 0; k < newMarkerInfo[i][j].length; k++) {
 						positions[k] = Double.parseDouble(newMarkerInfo[i][j][k][1]);
 					}
-					keys = Sort.quicksort(positions);
+					keys = Sort.getSortedIndices(positions);
 					markerNames[i][j] = new String[positions.length];
 					markerPositions[i][j] = new double[positions.length];
 					markerUsage[i][j] = new int[positions.length];

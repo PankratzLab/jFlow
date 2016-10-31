@@ -8,7 +8,6 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariant.CONSENSUS_TYPE;
@@ -110,7 +109,7 @@ public class ExomeDepthEvaluation {
 					cnvHitsFile = ext.parseDirectoryOfFile(serFile) + "ExomeDepth_Hits.cnv";
 					cnvMissFile = ext.parseDirectoryOfFile(serFile) + "ExomeDepth_Miss.cnv";
 
-					LocusSet<CNVariant> hitSet = new LocusSet<CNVariant>(	comparisons[0].getCnvsToStore(Sort.DESCENDING),
+					LocusSet<CNVariant> hitSet = new LocusSet<CNVariant>(	comparisons[0].getCnvsToStore(true),
 																																false, log) {
 
 						/**
@@ -121,7 +120,7 @@ public class ExomeDepthEvaluation {
 					};
 					hitSet.writeRegions(cnvHitsFile, TO_STRING_TYPE.REGULAR, true, log);
 					LocusSet<CNVariant> missSet =
-																			new LocusSet<CNVariant>(comparisons[1].getCnvsToStore(Sort.DESCENDING),
+																			new LocusSet<CNVariant>(comparisons[1].getCnvsToStore(true),
 																															false, log) {
 
 																				/**
@@ -231,11 +230,9 @@ public class ExomeDepthEvaluation {
 			}
 		}
 
-		public CNVariant[] getCnvsToStore(int direction) {
-			ArrayList<CNVariant> sorted =
-																	CNVariant.sortByQuality(cnvsToStore.toArray(new CNVariant[cnvsToStore.size()]),
-																													direction);
-			return sorted.toArray(new CNVariant[sorted.size()]);
+		public CNVariant[] getCnvsToStore(boolean reverse) {
+			CNVariant[] toStore = cnvsToStore.toArray(new CNVariant[cnvsToStore.size()]);
+			return CNVariant.sortInPlaceByQuality(toStore, reverse);
 		}
 
 		public DynamicHistogram[] getAll() {

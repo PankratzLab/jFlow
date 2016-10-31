@@ -258,7 +258,7 @@ public class Polymutt {
 					indexOfPhred = ext.indexOfStr(subline[0], GENOTYPE_ORDER);
 					phredOfCall[i] = phreds[indexOfPhred];
 					phreds[indexOfPhred] = 999;
-					nextBestGenotype[i] = GENOTYPE_ORDER[Sort.quicksort(phreds)[0]];
+					nextBestGenotype[i] = GENOTYPE_ORDER[Sort.getSortedIndices(phreds)[0]];
 					genotypeQualities[i] = Double.parseDouble(subline[1]);
 					readDepths[i] = Integer.parseInt(subline[2]);
 				}
@@ -336,7 +336,7 @@ public class Polymutt {
 		}
 
 		mostLikelyGenotypes = new Vector<String>();
-		order = Sort.quicksort(scores);
+		order = Sort.getSortedIndices(scores);
 		bestScore = scores[order[0]];
 		count = 0;
 		while (count < GENOTYPE_ORDER.length && scores[order[count]] == bestScore) {

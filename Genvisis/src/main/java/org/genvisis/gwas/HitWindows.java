@@ -119,13 +119,13 @@ public class HitWindows {
 																									String[][] annotation) {
 		int[] order;
 
-		order = Sort.orderTwoLayers(chrs, positions, new Logger());
+		order = Sort.getSort2DIndices(chrs, positions);
 
-		markerNames = Sort.putInOrder(markerNames, order);
-		chrs = Sort.putInOrder(chrs, order);
-		positions = Sort.putInOrder(positions, order);
-		pvals = Sort.putInOrder(pvals, order);
-		annotation = Sort.putInOrder(annotation, order);
+		markerNames = Sort.getOrdered(markerNames, order);
+		chrs = Sort.getOrdered(chrs, order);
+		positions = Sort.getOrdered(positions, order);
+		pvals = Sort.getOrdered(pvals, order);
+		annotation = Sort.getOrdered(annotation, order);
 
 		return determine(	markerNames, chrs, positions, pvals, indexThreshold, windowMinSizePerSide,
 											windowExtensionThreshold, additionalAnnotationVariableNames, annotation);

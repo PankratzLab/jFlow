@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
@@ -886,10 +887,10 @@ public class MarkerMetrics {
 					allOtherMarkers.remove(markerNames[j]);
 				}
 				numReclustered = numAnnotated = numDropped = 0;
-				markerNames = HashVec.getKeys(allOtherMarkers, false, false);
-				writer.print("Everything else\t" + markerNames.length);
+				Set<String> toRemove = new HashSet<String>();
+				writer.print("Everything else\t" + allOtherMarkers.size());
 
-				for (String markerName : markerNames) {
+				for (String markerName : allOtherMarkers) {
 					if (annotationCollection != null
 							&& annotationCollection.markerHasAnyAnnotation(markerName)) {
 						numAnnotated++;
@@ -898,10 +899,13 @@ public class MarkerMetrics {
 							&& clusterFilterCollection.getClusterFilters(markerName) != null) {
 						numReclustered++;
 					} else {
-						allOtherMarkers.remove(markerName);
+						toRemove.add(markerName);
 					}
 				}
-				markerNames = HashVec.getKeys(allOtherMarkers, false, false);
+
+				allOtherMarkers.removeAll(toRemove);
+
+				markerNames = allOtherMarkers.toArray(new String[allOtherMarkers.size()]);
 				if (checkForDeletedMarkers) {
 					markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(	proj,
 																																											markerNames);
@@ -952,13 +956,12 @@ public class MarkerMetrics {
 				log.reportException(e);
 			}
 
-
 			warningHashHash = new Hashtable<String, HashSet<String>>();
 			warningCounts = new int[warningKeys.length];
 			for (int k = 0; k < warningKeys.length; k++) {
-				warningHashHash.put(warningKeys[k],
-														HashVec.loadToHashSet(Array.toStringArray(warningHash.get(warningKeys[k]))));
-				warningCounts[k] = warningHashHash.get(warningKeys[k]).size();
+				String key = warningKeys[k];
+				warningHashHash.put(key, HashVec.loadToHashSet(Array.toStringArray(warningHash.get(key))));
+				warningCounts[k] = warningHashHash.get(key).size();
 			}
 			try {
 				writer = new PrintWriter(new FileWriter(dir + ext.rootOf(filename, false) + "_matrix.out"));
@@ -1157,21 +1160,22 @@ public class MarkerMetrics {
 				allOtherMarkers.remove(markerName);
 			}
 			numReclustered = numDropped = 0;
-			markerNames = HashVec.getKeys(allOtherMarkers, false, false);
-			writer.print("Everything else\t" + markerNames.length);
+			writer.print("Everything else\t" + allOtherMarkers.size());
 			Files.writeArray(markerNames, proj.RESULTS_DIRECTORY.getValue(false, true)
 																		+ "markers_not_yet_annotated.out");
 
-
-			for (String markerName : markerNames) {
+			Set<String> toRemove = new HashSet<String>();
+			for (String markerName : allOtherMarkers) {
 				if (clusterFilterCollection != null
 						&& clusterFilterCollection.getClusterFilters(markerName) != null) {
 					numReclustered++;
 				} else {
-					allOtherMarkers.remove(markerName);
+					toRemove.add(markerName);
 				}
 			}
-			markerNames = HashVec.getKeys(allOtherMarkers, false, false);
+			allOtherMarkers.removeAll(toRemove);
+
+			markerNames = allOtherMarkers.toArray(new String[allOtherMarkers.size()]);
 			if (checkForDeletedMarkers) {
 				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(	proj,
 																																										markerNames);

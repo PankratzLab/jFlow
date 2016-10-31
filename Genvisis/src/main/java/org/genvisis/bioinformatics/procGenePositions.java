@@ -254,8 +254,8 @@ public class procGenePositions {
 
 			orderler = new int[SOURCES.length][];
 			for (int i = 0; i < SOURCES.length; i++) {
-				orderler[i] = Sort.quicksort(poslarlar[i]);
-				poslarlar[i] = sortArrayLikeThis(poslarlar[i], orderler[i]);
+				orderler[i] = Sort.getSortedIndices(poslarlar[i]);
+				poslarlar[i] = Sort.getOrdered(poslarlar[i], orderler[i]);
 			}
 
 			System.err.println("5");
@@ -353,7 +353,7 @@ public class procGenePositions {
 					poslar[i] = -1;
 				}
 			}
-			order = Sort.quicksort(poslar);
+			order = Sort.getSortedIndices(poslar);
 
 			System.err.println("7");
 
@@ -404,16 +404,6 @@ public class procGenePositions {
 
 		System.err.println("8");
 
-	}
-
-	public static double[] sortArrayLikeThis(double[] unsorted, int[] order) {
-		double[] sorted = new double[unsorted.length];
-
-		for (int i = 0; i < unsorted.length; i++) {
-			sorted[i] = unsorted[order[i]];
-		}
-
-		return sorted;
 	}
 
 	public static void main(String[] args) throws IOException {

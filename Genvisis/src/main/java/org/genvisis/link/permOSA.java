@@ -60,7 +60,7 @@ public class permOSA {
 		for (int i = 0; i < IDs.size(); i++) {
 			covars[i] = Double.valueOf(hash.get(IDs.elementAt(i))).doubleValue();
 		}
-		keys = Sort.quicksort(covars);
+		keys = Sort.getSortedIndices(covars);
 		hash.clear();
 
 		for (int perm = 1; perm <= numPerms; perm++) {

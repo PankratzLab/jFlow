@@ -90,7 +90,8 @@ public class CountVector {
 	}
 
 	public void sort(boolean ascending) {
-		order = Sort.quicksort(Ints.toArray(iv), ascending ? Sort.ASCENDING : Sort.DESCENDING);
+		int[] array = Ints.toArray(iv);
+		order = ascending ? Sort.getSortedIndices(array) : Sort.getReverseIndices(array);
 	}
 
 	public static CountVector[] initArray(int size) {

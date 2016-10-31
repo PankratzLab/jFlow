@@ -49,7 +49,6 @@ import org.genvisis.seq.qc.FilterNGS.VariantContextFilterPass;
 import org.genvisis.seq.qc.FilterNGS.VcFilterBoolean;
 import org.genvisis.seq.qc.FilterNGS.VcFilterDouble;
 
-import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 
 import htsjdk.variant.variantcontext.Genotype;
@@ -520,16 +519,7 @@ public class VCFSimpleTally {
 					currentMemberDistance.add(member.get(j));
 				}
 
-				int[] sort = Sort.trickSort(Doubles.toArray(distances),
-																		Array.toStringArray(currentMemberDistance));// so
-																																								// that
-																																								// member
-																																								// is
-																																								// favored
-																																								// when
-																																								// there
-																																								// are
-																																								// ties
+				int[] sort = Sort.getSort2DIndices(distances, currentMemberDistance);
 				// for (int j = 0; j < sort.length; j++) {
 				// System.out.println(j + "\t" + currentMemberDistance.get(sort[j]) + "\t" +
 				// distances.get(sort[j])+"\t"+al.size());

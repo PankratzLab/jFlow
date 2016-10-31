@@ -539,7 +539,7 @@ public class LinkageMap {
 		for (int i = 0; i < markerNames.length; i++) {
 			alleleSizes = cvs[i].getValues();
 			alleleCounts = cvs[i].getCounts();
-			keys = Sort.quicksort(Array.toIntArray(alleleSizes));
+			keys = Sort.getSortedIndices(alleleSizes);
 			sum = 0;
 			numMissing = alleleSizes[keys[0]].equals("0") ? 1 : 0;
 			orderedAlleles[i] = new String[alleleSizes.length - numMissing];

@@ -48,7 +48,7 @@ public class GeneTrack implements Serializable {
 			for (int j = 0; j < v.size(); j++) {
 				poslar[j] = v.elementAt(j).getStart();
 			}
-			keys = Sort.quicksort(poslar);
+			keys = Sort.getSortedIndices(poslar);
 			starts[chr] = new int[keys.length];
 			genes[chr] = new GeneData[keys.length];
 			for (int j = 0; j < keys.length; j++) {

@@ -135,7 +135,7 @@ public class ParseMinPvalue {
 
 		hash = HashVec.loadFileToHashString(dir + "plink.assoc", 1, new int[] {0}, "\t", false);
 		try {
-			keys = Sort.quicksort(ps);
+			keys = Sort.getSortedIndices(ps);
 			count = 0;
 			writer = new PrintWriter(new FileWriter(dir + "Top" + TOP_N + ".txt"));
 			for (int i = 0; count < TOP_N; i++) {

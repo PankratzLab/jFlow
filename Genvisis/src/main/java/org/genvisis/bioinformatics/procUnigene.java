@@ -6,11 +6,15 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.genvisis.common.Array;
-import org.genvisis.common.IntVector;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 public class procUnigene {
@@ -22,11 +26,10 @@ public class procUnigene {
 		PrintWriter writer = null;
 		String[] line;
 		String temp = "", trav;
-		Vector<String> v = new Vector<String>();
-		IntVector iv = new IntVector();
-		int index, count = 0;
+		Set<String> v = new LinkedHashSet<String>();
+		Map<String, Integer> vCounts = new HashMap<String, Integer>();
+		int count = 0;
 		String[] data = Array.stringArray(VARS.length + 1, ".");
-		int[] keys;
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));
@@ -42,11 +45,10 @@ public class procUnigene {
 						for (String element : line) {
 							trav = element.trim();
 							if (v.contains(trav)) {
-								index = v.indexOf(trav);
-								iv.setElementAt(iv.elementAt(index) + 1, index);
+								vCounts.put(trav, vCounts.get(trav) + 1);
 							} else {
 								v.add(trav);
-								iv.add(1);
+								vCounts.put(trav, 1);
 							}
 						}
 					}
@@ -74,10 +76,12 @@ public class procUnigene {
 			reader.close();
 
 			writer = new PrintWriter(new FileWriter("possibleTissues.out"));
-			keys = Sort.quicksort(Array.toStringArray(v));
-			for (int i = 0; i < v.size(); i++) {
-				writer.println(v.elementAt(keys[i])	+ "\t" + iv.elementAt(keys[i]) + "\t"
-												+ ((double) iv.elementAt(keys[i]) / (double) count));
+			List<String> sortedVals = new ArrayList<String>(v);
+			Collections.sort(sortedVals);
+			for (int i = 0; i < sortedVals.size(); i++) {
+				String s = sortedVals.get(i);
+				writer.println(s	+ "\t" + vCounts.get(s) + "\t"
+												+ ((double) vCounts.get(s) / (double) count));
 			}
 			writer.println();
 			writer.println("Total\t" + count);

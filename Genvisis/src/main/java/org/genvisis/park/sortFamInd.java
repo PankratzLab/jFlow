@@ -7,13 +7,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
 import org.genvisis.common.Files;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 public class sortFamInd {
@@ -54,10 +53,10 @@ public class sortFamInd {
 			hash.put(trav, temp);
 		}
 
-		int[] key = Sort.quicksort(Array.toStringArray(vex));
+		Collections.sort(vex);
 
-		for (int element : key) {
-			writer.println(hash.get(vex.elementAt(element)));
+		for (String e : vex) {
+			writer.println(hash.get(e));
 		}
 		reader.close();
 		writer.close();

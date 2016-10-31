@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
@@ -20,7 +21,6 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Numbers;
-import org.genvisis.common.Sort;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
@@ -181,7 +181,6 @@ public class MitoGWAS {
 		}
 		proj.getLog().reportTimeInfo("Computing correlation matrix of results");
 		double[][] emp1s = new double[plinkCommands.size()][];
-		int[][] keys = new int[plinkCommands.size()][];
 		String[] empTitles = new String[plinkCommands.size()];
 		String outQQ = root + "summaryPvals";
 
@@ -368,7 +367,7 @@ public class MitoGWAS {
 
 			for (int i = 0; i < emp1s.length; i++) {
 				emp1s[i] = Array.subArray(emp1s[i], valids);
-				keys[i] = Sort.trickSort(emp1s[i]);
+				Arrays.sort(emp1s[i]);
 			}
 			PrintWriter writer = new PrintWriter(new FileWriter(pvalQQ));
 			writer.println("RANK\t" + Array.toStr(empLogP));
@@ -378,7 +377,7 @@ public class MitoGWAS {
 				double rankP = -1 * Math.log10(ranke / emp1s[0].length);
 				builder.append(rankP);
 				for (int j = 0; j < emp1s.length; j++) {
-					double plog = -1 * Math.log10(emp1s[j][keys[j][i]]);
+					double plog = -1 * Math.log10(emp1s[j][i]);
 					builder.append("\t" + plog);
 				}
 				writer.println(builder.toString());

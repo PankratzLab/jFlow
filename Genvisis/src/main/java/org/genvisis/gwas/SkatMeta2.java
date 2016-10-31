@@ -17,6 +17,7 @@ import java.util.Vector;
 import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -718,7 +719,7 @@ public class SkatMeta2 {
 
 		folders = Files.listDirectories(sourceRDataFilesDir, false);
 		if (ext.indexOfStr("EAAA", folders) != -1) {
-			folders = Sort.putInOrder(folders, Sort.quicksort(folders, Sort.DESCENDING));
+			Sort.reverseSort(folders);
 		}
 		if (folders == null || folders.length < 1) {
 			generateSkatMetaRScriptConditional(	sourceRDataFilesDir, snpInfoFile, condFileDir, rScriptDir,
@@ -1211,8 +1212,7 @@ public class SkatMeta2 {
 			for (int region : regionToChr.keySet()) {
 				ttt.put(regionToChr.get(region) + "\t" + regionToSnpWithMinP.get(region), region);
 			}
-			line = ttt.keySet().toArray(new String[0]);
-			Sort.putInOrder(line);
+			line = HashVec.getKeys(ttt);
 
 			output = new Vector<String>();
 			output.add("SNP\tSKATgene\tChr\tPos1\tPos2");
@@ -1401,7 +1401,7 @@ public class SkatMeta2 {
 			regionIdsOrdered[regionId] = region;
 			regionId++;
 		}
-		Sort.putInOrder(regionIdsOrdered);
+		Arrays.sort(regionIdsOrdered);
 
 		output = new Vector<String>();
 		output.add("SNP\tSKATgene\tChr");
@@ -1495,7 +1495,7 @@ public class SkatMeta2 {
 				regionIdsOrdered[regionId] = region;
 				regionId++;
 			}
-			Sort.putInOrder(regionIdsOrdered);
+			Arrays.sort(regionIdsOrdered);
 
 			output = new Vector<String>();
 			output.add("SNP\tSKATgene\tCHROM");

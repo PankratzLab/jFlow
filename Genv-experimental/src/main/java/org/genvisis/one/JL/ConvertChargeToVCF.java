@@ -124,8 +124,8 @@ public class ConvertChargeToVCF {
 			log.reportTimeInfo("Sorting and writing variants");
 
 			Segment[] segsA = segs.toArray(new Segment[segs.size()]);
-			segs = null;
-			Segment[] segsASorted = Segment.sortSegments(segsA);
+			Segment[] segsASorted = segs.toArray(new Segment[segs.size()]);
+			Arrays.sort(segsASorted);
 			log.reportTimeInfo("Finished sorting");
 
 			int[] order = new int[segsASorted.length];

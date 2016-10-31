@@ -509,7 +509,7 @@ public class MarkerBlastIterator {
 	private static void dumpMiss(	Logger log, int oneHitWonderDef, String output,
 																ArrayList<String> notOneHitters,
 																ArrayList<Double> notOneHittersMaxCrossHybe) {
-		int[] sorted = Sort.quicksort(Doubles.toArray(notOneHittersMaxCrossHybe));
+		int[] sorted = Sort.getSortedIndices(notOneHittersMaxCrossHybe);
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 			for (int element : sorted) {

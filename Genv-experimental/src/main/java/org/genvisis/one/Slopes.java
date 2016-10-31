@@ -240,7 +240,7 @@ public class Slopes {
 		ext.checkHeader(line, new String[] {"id"}, new int[] {0}, false, new Logger(), true);
 		hash = HashVec.loadFileToHashVec(dir + filename, idIndex, allIs, "\t", true, false);
 
-		ids = HashVec.getKeys(hash, true, true);
+		ids = HashVec.getNumericKeys(hash);
 		try {
 			writer = new PrintWriter(new FileWriter(dir	+ trait + "_slopes"
 																							+ (refFile == null	? ""
@@ -365,7 +365,7 @@ public class Slopes {
 		ext.checkHeader(line, new String[] {"id"}, new int[] {0}, false, new Logger(), true);
 		hash = HashVec.loadFileToHashVec(dir + filename, idIndex, allIs, "\t", true, false);
 
-		ids = HashVec.getKeys(hash, true, true);
+		ids = HashVec.getNumericKeys(hash);
 		try {
 			writer = new PrintWriter(new FileWriter(dir	+ trait + "_first"
 																							+ (refFile == null	? ""

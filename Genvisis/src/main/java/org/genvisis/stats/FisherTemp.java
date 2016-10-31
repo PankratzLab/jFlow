@@ -7,10 +7,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Date;
 
 import org.genvisis.common.Array;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 public class FisherTemp {
@@ -79,7 +79,7 @@ public class FisherTemp {
 			}
 		}
 
-		c = Sort.putInOrder(c);
+		Arrays.sort(c);
 
 		try {
 			time = new Date().getTime();

@@ -177,7 +177,7 @@ public class BamExtractor {
 	private static QueryInterval[] convertSegsToQI(	Segment[] segs, SAMFileHeader sFileHeader,
 																									int bpBuffer, Logger log) {
 		QueryInterval[] qIntervals = new QueryInterval[segs.length];
-		segs = Segment.sortSegments(segs);
+		segs = Array.sortedCopy(segs);
 		for (int i = 0; i < qIntervals.length; i++) {
 			String sequenceName = Positions.getChromosomeUCSC(segs[i].getChr(), true);
 			int referenceIndex = sFileHeader.getSequenceIndex(sequenceName);

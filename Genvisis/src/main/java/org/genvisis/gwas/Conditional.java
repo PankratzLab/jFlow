@@ -829,7 +829,7 @@ public class Conditional {
 				}
 				try {
 					writer = new PrintWriter(new FileWriter(filename + "_fullTable.xln"));
-					keys = HashVec.getKeys(allMarkers, false, false);
+					keys = HashVec.getKeys(allMarkers, false);
 					chrs = new byte[keys.length];
 					positions = new int[keys.length];
 					chrIndex = ext.indexOfStr("chr", annotationHeader, false, true);
@@ -862,7 +862,7 @@ public class Conditional {
 							}
 						}
 					}
-					order = Sort.orderTwoLayers(chrs, positions, log);
+					order = Sort.getSort2DIndices(chrs, positions);
 					writer.print("Marker\tChr\tPosition"
 												+ (annotationHeader.length > 0	? "\t" + Array.toStr(	annotationHeader,
 																																							annotationHeaderMask,

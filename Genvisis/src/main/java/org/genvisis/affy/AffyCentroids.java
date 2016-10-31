@@ -15,7 +15,6 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.Sort;
 import org.genvisis.stats.Maths;
 
 public class AffyCentroids implements Serializable {
@@ -298,17 +297,17 @@ public class AffyCentroids implements Serializable {
 	}
 
 	public static float quant(float[] array, float q) {
-		int keys[] = Sort.quicksort(array);
+		float[] copy = Array.sortedCopy(array);
 		try {
 			if (q > 1 || q < 0) {
-				return (0);
+				return 0;
 			} else {
-				double index = (array.length + 1) * q;
+				double index = (copy.length + 1) * q;
 				if (index - (int) index == 0) {
-					return array[keys[(int) index - 1]];
+					return copy[(int) index - 1];
 				} else {
-					return q * array[keys[(int) Math.floor(index) - 1]]
-									+ (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
+					return q * copy[(int) Math.floor(index) - 1]
+									+ (1 - q) * copy[(int) Math.ceil(index) - 1];
 				}
 			}
 		} catch (Exception e) {

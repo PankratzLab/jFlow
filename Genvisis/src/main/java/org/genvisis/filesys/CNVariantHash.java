@@ -209,7 +209,7 @@ public class CNVariantHash implements Serializable {
 				}
 			}
 		}
-		return CNVariant.sortCNVs(CNVariant.toCNVariantArray(inRegion));
+		return CNVariant.sortCNVsInPlace(CNVariant.toCNVariantArray(inRegion));
 	}
 
 	public static void main(String[] args) {

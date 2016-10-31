@@ -88,7 +88,7 @@ public class RankRecessive {
 							}
 						}
 					}
-					order = Sort.quicksort(mafs);
+					order = Sort.getSortedIndices(mafs);
 					writer.print(gene + "\t" + ext.formDeci(mafs[order[0]] * mafs[order[1]], 5));
 					for (int j = 0; j < 2; j++) {
 						line = variants.elementAt(order[j]);

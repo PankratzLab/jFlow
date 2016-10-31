@@ -918,10 +918,8 @@ public class SuperNovo {
 		orderedIndices = new int[readsCounts.length][];
 		for (int i = inputArrayStartIndex; i <= inputArrayStopIndex; i++) {
 			for (int j = 0; j < orderedIndices.length; j++) {
-				orderedIndices[j] = Sort.quicksort(
-																						new int[] {	readsCounts[j][i][0], readsCounts[j][i][1],
-																												readsCounts[j][i][2], readsCounts[j][i][3]},
-																						Sort.DESCENDING);
+				orderedIndices[j] = Sort.getReverseIndices(new int[] {	readsCounts[j][i][0], readsCounts[j][i][1],
+										readsCounts[j][i][2], readsCounts[j][i][3]});
 			}
 			updateNumAlleles(readsCounts, orderedIndices, i);
 
@@ -1282,11 +1280,10 @@ public class SuperNovo {
 					index2 = denovoMutations.elementAt(j)[0];
 					if (Math.abs(currentDenovoMuations[0] - index2) <= WINDOW_SIZE_FOR_NEARBY_DENOVO
 							&& currentDenovoMuations[3] > 10 && currentDenovoMuations[4] > 10) {
-						orderedIndices = Sort.quicksort(new int[] {	readsCounts[0][index2][0],
+						orderedIndices = Sort.getReverseIndices(new int[] {	readsCounts[0][index2][0],
 																												readsCounts[0][index2][1],
 																												readsCounts[0][index2][2],
-																												readsCounts[0][index2][3]},
-																						Sort.DESCENDING);
+																												readsCounts[0][index2][3]});
 						if ((readsCounts[0][index2][orderedIndices[0]] >= 5
 										&& readsCounts[1][index2][orderedIndices[0]] <= 1
 									&& readsCounts[2][index2][orderedIndices[0]] <= 1)
@@ -1918,9 +1915,8 @@ public class SuperNovo {
 							}
 						}
 
-						orderedIndices = Sort.quicksort(new int[] {	readsCounts[0][0], readsCounts[0][1],
-																												readsCounts[0][2], readsCounts[0][3]},
-																						Sort.DESCENDING);
+						orderedIndices = Sort.getReverseIndices(new int[] {	readsCounts[0][0], readsCounts[0][1],
+																												readsCounts[0][2], readsCounts[0][3]});
 						numTmp = readsCounts[0][4] + readsCounts[0][5] + readsCounts[0][6];
 						if (Integer.parseInt(line[14]) > 20	&& Integer.parseInt(line[15]) > 20
 								&& Integer.parseInt(line[16]) > 20
@@ -1966,9 +1962,8 @@ public class SuperNovo {
 							isThreeAllelesOrInDel = false;
 							altProportion = new double[3];
 							for (int j = 0; j < altProportion.length; j++) {
-								orderedIndices = Sort.quicksort(new int[] {	readsCounts[j][0], readsCounts[j][1],
-																														readsCounts[j][2], readsCounts[j][3]},
-																								Sort.DESCENDING);
+								orderedIndices = Sort.getReverseIndices(new int[] {	readsCounts[j][0], readsCounts[j][1],
+																														readsCounts[j][2], readsCounts[j][3]});
 								if ((readsCounts[j][orderedIndices[2]]
 											+ readsCounts[j][orderedIndices[3]]) > MAX_ALLELE_COUNT_TREATED_AS_ZERO) {
 									isThreeAllelesOrInDel = true;
@@ -2135,11 +2130,10 @@ public class SuperNovo {
 						getNumVarsInDelsDenovos(line[44]);
 
 						for (int j = 0; j < SAMPLE_SUFFIX.length; j++) {
-							orderedIndices[j] = Sort.quicksort(	new int[] {readsCounts[j][0][0],
+							orderedIndices[j] = Sort.getReverseIndices(	new int[] {readsCounts[j][0][0],
 																														readsCounts[j][0][1],
 																														readsCounts[j][0][2],
-																														readsCounts[j][0][3]},
-																									Sort.DESCENDING);
+																														readsCounts[j][0][3]});
 						}
 						if (true
 						// if (filterMappingQuality(mappingScores, readsCounts, orderedIndices, 0)
@@ -2459,11 +2453,10 @@ public class SuperNovo {
 						getNumVarsInDelsDenovos(line[44]);
 
 						for (int j = 0; j < SAMPLE_SUFFIX.length; j++) {
-							orderedIndices[j] = Sort.quicksort(	new int[] {readsCounts[j][0][0],
+							orderedIndices[j] = Sort.getReverseIndices(	new int[] {readsCounts[j][0][0],
 																														readsCounts[j][0][1],
 																														readsCounts[j][0][2],
-																														readsCounts[j][0][3]},
-																									Sort.DESCENDING);
+																														readsCounts[j][0][3]});
 						}
 
 						if (true
@@ -3692,7 +3685,7 @@ public class SuperNovo {
 					}
 				}
 			}
-			sortedIndices = Sort.quicksort(numMatches, Sort.DESCENDING);
+			sortedIndices = Sort.getReverseIndices(numMatches);
 
 			if (numMatches[sortedIndices[0]] == varsInCurrentString.size()) {
 				haplotypeId = (byte) sortedIndices[0];

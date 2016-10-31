@@ -228,7 +228,7 @@ public class BurdenMatrix implements Serializable {
 			}
 		}
 
-		geneNames = HashVec.getKeys(geneMappingHash, true, false);
+		geneNames = HashVec.getKeys(geneMappingHash, true);
 		System.out.println("Included "	+ included + " variant to gene mappings in " + geneNames.length
 												+ " genes (" + markerNames.length + " markers attempted; " + failedForMAF
 												+ " failed for maf; " + failedForFunction + " failed for function)");

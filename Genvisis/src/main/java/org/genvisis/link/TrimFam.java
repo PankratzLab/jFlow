@@ -287,7 +287,7 @@ public class TrimFam {
 				}
 			}
 
-			keys = HashVec.getKeys(poss, false, false);
+			keys = HashVec.getKeys(poss, false);
 			for (String key : keys) {
 				v = poss.get(key);
 				if (v.size() > maxt) {
@@ -447,7 +447,7 @@ public class TrimFam {
 			hash.get("root").createExtendedOutput(listGeneration);
 
 			// mark those that are genotyped and made it through to the last cut
-			keys = HashVec.getKeys(hash, false, false);
+			keys = HashVec.getKeys(hash, false);
 			for (String key : keys) {
 				if (genoed.containsKey(key)) {
 					genoed.put(key, "used");
@@ -456,7 +456,7 @@ public class TrimFam {
 			}
 		}
 
-		keys = HashVec.getKeys(genoed, false, false);
+		keys = HashVec.getKeys(genoed, false);
 		for (String key : keys) {
 			if (genoed.get(key).equals("unused")) {
 				unused.add(key);
@@ -640,7 +640,7 @@ public class TrimFam {
 					// System.out.println("oi!");
 					// }
 				}
-				purse = hash.get(inds[Sort.quicksort(scores)[scores.length - 1]]);
+				purse = hash.get(inds[Sort.getSortedIndices(scores)[scores.length - 1]]);
 				purse.necessary = true;
 				purse.removeParentalLines();
 				link(allowMissingIndividuals);
@@ -672,7 +672,7 @@ public class TrimFam {
 		String[] keys;
 
 		mostKids = 0;
-		keys = HashVec.getKeys(hash, false, false);
+		keys = HashVec.getKeys(hash, false);
 		for (String key : keys) {
 			count = 0;
 			purse = hash.get(key);
@@ -789,7 +789,7 @@ public class TrimFam {
 				for (int i = 0; i < subset.size(); i++) {
 					numArray[i] = Integer.parseInt(subset.elementAt(i));
 				}
-				keys = Sort.quicksort(numArray);
+				keys = Sort.getSortedIndices(numArray);
 				for (int i = 0; i < subset.size(); i++) {
 					order[count++] = unordered.indexOf(subset.elementAt(keys[i]));
 					pool.remove(subset.elementAt(i));

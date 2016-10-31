@@ -662,7 +662,7 @@ public class Metal {
 					for (int i = 0; i < values.length; i++) {
 						counts[i] = hash.get(values[i]).size();
 					}
-					order = Sort.quicksort(counts, Sort.DESCENDING);
+					order = Sort.getReverseIndices(counts);
 					writer.print(line[0] + "\t" + values[order[0]]);
 					for (int i = 1; i < values.length; i++) {
 						writer.print("\t"	+ Array.toStr(Array.toStringArray(hash.get(values[order[i]])), ",")
@@ -1663,7 +1663,7 @@ public class Metal {
 		log.report("Finished loading " + hash2.size() + " markers in " + ext.getTimeElapsed(time));
 
 		log.report(ext.getTime() + "\tParsing markers");
-		keys = HashVec.getKeys(hash1, false, false);
+		keys = HashVec.getKeys(hash1, false);
 		log.report(ext.getTime()	+ "\tThe following keys from " + filenames[0] + " were not found in "
 								+ filenames[1] + ":");
 		count = 0;
@@ -1682,7 +1682,7 @@ public class Metal {
 		log.report("");
 
 		log.report(ext.getTime() + "\tParsing markers");
-		keys = HashVec.getKeys(hash2, false, false);
+		keys = HashVec.getKeys(hash2, false);
 		log.report(ext.getTime()	+ "\tThe following keys from " + filenames[1] + " were not found in "
 								+ filenames[0] + ":");
 		count = 0;
@@ -1701,7 +1701,7 @@ public class Metal {
 		log.report("");
 
 		log.report(ext.getTime() + "\tParsing union of marker sets");
-		keys = HashVec.getKeys(hash1, false, false);
+		keys = HashVec.getKeys(hash1, false);
 		log.report(ext.getTime()	+ "\tDetermining differential counts for a combined " + keys.length
 								+ " markers");
 		count = 0;
@@ -1737,7 +1737,7 @@ public class Metal {
 		matches = new int[agreements.length];
 		log.report("F1_study\tF2_study\tnumAgree\tnumExclusiveToF1\tnumExclusiveToF2");
 		for (int i = 0; i < agreements.length; i++) {
-			matches[i] = Sort.quicksort(agreements[i], Sort.DESCENDING)[0];
+			matches[i] = Sort.getReverseIndices(agreements[i])[0];
 			missHash1 = new Hashtable<String, String>();
 			missHash2 = new Hashtable<String, String>();
 			for (String key : keys) {

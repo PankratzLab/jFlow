@@ -70,7 +70,7 @@ public class SequenceVariants {
 				freqs[2][3] = Array.sum(freqs[0]);
 
 				refIndex = Chars.indexOf(Sequence.ALLELES, line[2].charAt(0));
-				order = Sort.quicksort(freqs[2]);
+				order = Sort.getSortedIndices(freqs[2]);
 				for (int element : order) {
 					if (element != refIndex
 							&& (freqs[0][element] > MIN_FREQ || freqs[1][element] > MIN_FREQ)) {

@@ -261,7 +261,8 @@ public class temp {
 		for (int i = 0; i < files.length; i++) {
 			times[i] = new File(dir + files[i]).lastModified();
 		}
-		files = Sort.putInOrder(files, Sort.quicksort(times));
+		;
+		files = Sort.getOrdered(files, Sort.getSortedIndices(times));
 		for (String file : files) {
 			try {
 				System.out.println(ext.getDate(new Date(new File(dir + file).lastModified()), " ")	+ "\t"

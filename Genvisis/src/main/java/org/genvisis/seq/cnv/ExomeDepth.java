@@ -432,8 +432,7 @@ public class ExomeDepth {
 
 		public String getCNVPlotScript(double bufferPercent) {
 			SeqCNVariant[] cnvs = processCNVs();
-			ArrayList<SeqCNVariant> tmp = CNVariant.sortByQuality(cnvs, 1);
-			cnvs = tmp.toArray(new SeqCNVariant[tmp.size()]);
+			CNVariant.sortInPlaceByQuality(cnvs, true);
 			String script = "";
 			script += "load(\"" + rDafrexomeDepthOutput + "\")\n";
 			for (SeqCNVariant cnv : cnvs) {
@@ -629,9 +628,9 @@ public class ExomeDepth {
 				allTmp.add(element);
 			}
 		}
-		allTmp = CNVariant.sortByQuality(allTmp.toArray(new SeqCNVariant[allTmp.size()]), 1);
-		LocusSet<SeqCNVariant> set = new LocusSet<SeqCNVariant>(allTmp.toArray(new SeqCNVariant[allTmp.size()]),
-																														true, log) {
+		SeqCNVariant[] cnvs = allTmp.toArray(new SeqCNVariant[allTmp.size()]);
+		CNVariant.sortInPlaceByQuality(cnvs, true);
+		LocusSet<SeqCNVariant> set = new LocusSet<SeqCNVariant>(cnvs, true, log) {
 
 			/**
 			 * 

@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -186,8 +187,8 @@ public class ChromatinAccessibility {
 
 					for (int j = 0; j < CLASSES.length; j++) {
 						for (int k = 0; k <= 25; k++) {
-							segs[i][j][k] =
-														Segment.sortSegments(Segment.toArray(allSeg.elementAt(j).elementAt(k)));
+							segs[i][j][k] = Segment.toArray(allSeg.elementAt(j).elementAt(k));
+							Arrays.sort(segs[i][j][k]);
 						}
 						new SegmentLists(segs[i][j]).serialize(dir + files[i] + "_" + CLASSES[j] + ".ser");
 					}
@@ -234,7 +235,8 @@ public class ChromatinAccessibility {
 						}
 					}
 					Segment.mergeOverlapsAndSort(vSeg);
-					segs[files.length][j][k] = Segment.sortSegments(Segment.toArray(vSeg));
+					segs[files.length][j][k] = Segment.toArray(vSeg);
+					Arrays.sort(segs[files.length][j][k]);
 				}
 				System.out.println();
 				new SegmentLists(segs[files.length][j]).serialize(dir	+ "allFilesMerged_" + CLASSES[j]

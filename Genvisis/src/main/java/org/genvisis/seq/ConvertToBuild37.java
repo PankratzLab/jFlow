@@ -12,7 +12,6 @@ import java.util.Hashtable;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.filesys.SerialHash;
@@ -103,7 +102,7 @@ public class ConvertToBuild37 {
 		System.out.println();
 
 		if (newLocs.size() > 0) {
-			locs = HashVec.getKeys(newLocs, true, false);
+			locs = HashVec.getKeys(newLocs);
 			chrs = new byte[locs.length];
 			positions = new int[locs.length];
 			for (int i = 0; i < positions.length; i++) {
@@ -112,8 +111,8 @@ public class ConvertToBuild37 {
 				positions[i] = Integer.parseInt(line[1]);
 				locs[i] = Positions.getUCSCformat(line);
 			}
-			order = Sort.orderTwoLayers(chrs, positions, new Logger());
-			locs = Sort.putInOrder(locs, order);
+			order = Sort.getSort2DIndices(chrs, positions);
+			locs = Sort.getOrdered(locs, order);
 			if (new File(dir + "liftOver.in").exists()
 					&& Array.equals(locs, HashVec.loadFileToStringArray(dir	+ "liftOver.in", false,
 																															new int[] {0}, false),

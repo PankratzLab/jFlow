@@ -347,8 +347,8 @@ public class Files {
 		if (jobSizes == null) {
 			files = Array.toStringArray(jobNamesWithAbsolutePaths);
 		} else {
-			files = Sort.putInOrder(Array.toStringArray(jobNamesWithAbsolutePaths),
-															Sort.quicksort(Ints.toArray(jobSizes), Sort.DESCENDING));
+			int[] jobOrder = Sort.getReverseIndices(Ints.toArray(jobSizes));
+			files = Sort.getOrdered(jobNamesWithAbsolutePaths, jobOrder);
 		}
 		count = 0;
 		v = new Vector<String>();
@@ -379,8 +379,8 @@ public class Files {
 		if (jobSizes == null) {
 			commands = Array.toStringArray(commandsWithAbsolutePaths);
 		} else {
-			commands = Sort.putInOrder(	Array.toStringArray(commandsWithAbsolutePaths),
-																	Sort.quicksort(Ints.toArray(jobSizes), Sort.DESCENDING));
+			int[] jobOrder = Sort.getReverseIndices(Ints.toArray(jobSizes));
+			commands = Sort.getOrdered(commandsWithAbsolutePaths, jobOrder);
 		}
 
 		Files.writeArray(commands, batchRoot + ".chain");
@@ -1086,7 +1086,8 @@ public class Files {
 		String[] line;
 		Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
 		Hashtable<String, String[]> used = new Hashtable<String, String[]>();
-		String[] point, keys;
+		String[] point;
+		String[] keys;
 		String trav;
 
 		try {
@@ -1234,7 +1235,7 @@ public class Files {
 		}
 
 		System.out.println("Sorting rs numbers");
-		rsNums = Sort.putInOrder(rsNums);
+		Arrays.sort(rsNums);
 		used = new boolean[rsNums.length];
 		System.out.println("Writing merged filed");
 		writer = Files.getWriter(mergedFile);
@@ -2932,7 +2933,8 @@ public class Files {
 		String[] line, dirs, filenames, newFilenames;
 		String[][] substitutions;
 		boolean echo, extract;
-		int count, summedSizes;
+		int count;
+		long summedSizes = 0;
 		long[] filesizes;
 		int[] order, indices;
 
@@ -2986,12 +2988,11 @@ public class Files {
 					for (int j = 0; j < filenames.length; j++) {
 						filesizes[j] = new File(dir + "/" + filenames[j]).length();
 					}
-					order = Sort.quicksort(filesizes, Sort.DESCENDING);
+					order = Sort.getReverseIndices(filesizes);
 					if (echo) {
 						System.out.println("Searching " + dir);
 					}
 
-					summedSizes = 0;
 					for (int j = 1; j < order.length; j++) {
 						summedSizes += filesizes[order[j]];
 					}
@@ -3498,7 +3499,7 @@ public class Files {
 								rands[i] = Integer.parseInt(files[i].substring(files[i].indexOf(".")	+ 1,
 																																files[i].lastIndexOf(".")));
 							}
-							rands = Sort.putInOrder(rands);
+							Arrays.sort(rands);
 							if (rand != rands[0]) {
 								new File(trav + "." + rand + ".reserved").delete();
 								done = false;

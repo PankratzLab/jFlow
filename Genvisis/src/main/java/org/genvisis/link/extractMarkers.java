@@ -7,13 +7,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.AlleleFreq;
 import org.genvisis.common.Array;
 import org.genvisis.common.HashVec;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 public class extractMarkers {
@@ -113,7 +113,7 @@ public class extractMarkers {
 				writer.println(reader.readLine());
 
 				line = reader.readLine().split("[\\s]+");
-				indices = Sort.putInOrder(indices);
+				Arrays.sort(indices);
 				sum = Double.parseDouble(line[0]) * -1;
 				sigfigs = 0;
 				for (int j = 0; j < line.length - 3; j++) {

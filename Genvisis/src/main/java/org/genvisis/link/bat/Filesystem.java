@@ -8,7 +8,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -38,7 +37,7 @@ public class Filesystem {
 		Vector<String> orderedMarkers = new Vector<String>();
 		DoubleVector distMarkers = new DoubleVector();
 		String[] unorderedMarkers;
-		int[] key, quickkey, allAlleles, intAllelesForKey;
+		int[] key, allAlleles;
 		int numMarkers;
 		String[] markers;
 		String temp, IDed, first, second;
@@ -46,8 +45,7 @@ public class Filesystem {
 		Hashtable<String, String> handle, changes;
 		Hashtable<String, Hashtable<String, String>> hash =
 																											new Hashtable<String, Hashtable<String, String>>();
-		Enumeration<String> hashKeys;
-		Vector<String> alleles;
+		String[] alleles;
 		Vector<Vector<String>> alleleSizes;
 		int[][] problemAlleles;
 		int numMissing;
@@ -214,27 +212,16 @@ public class Filesystem {
 			if (handle.containsKey("0")) {
 				total -= Integer.valueOf(handle.get("0")).intValue();
 			}
-			hashKeys = handle.keys();
-			intAllelesForKey = new int[handle.size()];
-			alleles = new Vector<String>();
-			while (hashKeys.hasMoreElements()) {
-				temp = hashKeys.nextElement();
-				intAllelesForKey[alleles.size()] = Integer.parseInt(temp);
-				alleles.add(temp);
-			}
-			quickkey = Sort.quicksort(intAllelesForKey);
+			alleles = HashVec.getNumericKeys(handle);
 			allAlleles = new int[total];
 			alleleCount = 0;
-			numMissing = alleles.contains("0") ? 1 : 0;
+			numMissing = hash.keySet().contains("0") ? 1 : 0;
 
-			alleleFreqs[i] = new double[quickkey.length - numMissing];
-			for (int j = numMissing; j < quickkey.length; j++) {
-				alleleFreqs[i][j - numMissing] = (double) Integer	.valueOf(handle.get(alleles.elementAt(quickkey[j])))
-																													.intValue()
-																					/ (double) total;
-				for (int k = 0; k < Integer	.valueOf(handle.get(alleles.elementAt(quickkey[j])))
-																		.intValue(); k++) {
-					allAlleles[alleleCount++] = Integer.valueOf(alleles.elementAt(quickkey[j])).intValue();
+			alleleFreqs[i] = new double[alleles.length - numMissing];
+			for (int j = numMissing; j < alleles.length; j++) {
+				alleleFreqs[i][j - numMissing] = Double.valueOf(handle.get(alleles[j])) / (double) total;
+				for (int k = 0; k < Integer	.valueOf(handle.get(alleles[j])); k++) {
+					allAlleles[alleleCount++] = Integer.valueOf(alleles[j]);
 				}
 
 			}
@@ -278,7 +265,7 @@ public class Filesystem {
 	}
 
 	public static int[] spreadCheck(int[] source, String header) {
-		int[] keys = Sort.quicksort(source);
+		int[] keys = Sort.getSortedIndices(source);
 		Vector<String> missedOpportunities = new Vector<String>();
 		int[] missedOpps;
 		IntVector missedCounts = new IntVector();
@@ -346,7 +333,7 @@ public class Filesystem {
 	}
 
 	public int[] boxPlotOutliers(int[] source, String header) {
-		int[] keys = Sort.quicksort(source);
+		int[] keys = Sort.getSortedIndices(source);
 		int q1, q3, iqr, lf, uf;
 		Vector<String> missedOpportunities = new Vector<String>();
 		int[] missedOpps;

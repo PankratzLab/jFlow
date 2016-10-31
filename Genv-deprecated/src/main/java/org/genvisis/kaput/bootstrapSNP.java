@@ -151,7 +151,7 @@ public class bootstrapSNP {
 			}
 			replicates[i] = sumOfMeans / hash.size();
 		}
-		keys = Sort.quicksort(replicates);
+		keys = Sort.getSortedIndices(replicates);
 
 		results[0] = replicates[keys[(int) (NUM_BOOTSTRAP_REPS * 0.5)]];
 		results[1] = replicates[keys[(int) (NUM_BOOTSTRAP_REPS * 0.025)]];

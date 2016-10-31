@@ -19,12 +19,13 @@ public class CigarOps {
 	 * @return an array of {@link Cigar} ordered by their length matched to the reference
 	 */
 	public static int[] sortByRefMatchLength(Cigar[] cigars) {
+		//FIXME should use a comparator that operates on the reflength..
 		int[] refLengthMatch = new int[cigars.length];
 		for (int i = 0; i < cigars.length; i++) {
 			int reftmp = getRefLength(cigars[i]);
 			refLengthMatch[i] = reftmp;
 		}
-		int[] order = Sort.quicksort(refLengthMatch, Sort.DESCENDING);
+		int[] order = Sort.getReverseIndices(refLengthMatch);
 
 		return order;
 	}

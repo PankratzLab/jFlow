@@ -11,7 +11,6 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Sort;
 import org.genvisis.common.StringVector;
 import org.genvisis.common.Vectors;
 import org.genvisis.common.ext;
@@ -246,10 +245,11 @@ public class Fst {
 							} else {
 								reverse = false;
 							}
-							alleleCounts[count] =
-																	Array.toIntArray(Sort.putInOrder(	line[3].split("/"),
-																																		reverse	? new int[] {2, 1, 0}
-																																						: new int[] {0, 1, 2}));
+							String[] split = line[3].split("/");
+							if (reverse) {
+								Array.reverse(split);
+							}
+							alleleCounts[count] = Array.toIntArray(split);
 							count++;
 						}
 					}

@@ -11,7 +11,6 @@ import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 public class CNValidate implements Runnable {
@@ -280,17 +279,17 @@ public class CNValidate implements Runnable {
 	}
 
 	private static float quant(float[] array, float q) {
-		int keys[] = Sort.quicksort(array);
 		try {
 			if (q > 1 || q < 0) {
-				return (0);
+				return 0;
 			} else {
+				float[] sorted = Array.sortedCopy(array);
 				double index = (array.length + 1) * q;
 				if (index - (int) index == 0) {
-					return array[keys[(int) index - 1]];
+					return sorted[(int) index - 1];
 				} else {
-					return q * array[keys[(int) Math.floor(index) - 1]]
-									+ (1 - q) * array[keys[(int) Math.ceil(index) - 1]];
+					return q * sorted[(int) Math.floor(index) - 1]
+									+ (1 - q) * sorted[(int) Math.ceil(index) - 1];
 				}
 			}
 		} catch (Exception e) {

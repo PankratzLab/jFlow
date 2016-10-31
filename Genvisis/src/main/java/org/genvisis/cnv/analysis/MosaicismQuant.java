@@ -116,8 +116,7 @@ public class MosaicismQuant implements Calcfc {
 		double[] currentControl = sampleMosiac.getSmoothedControl().getValsInOrder();
 		double diffAverage = Array.mean(currentCase) - Array.mean(currentControl);
 		double[] shiftControl = getShift(currentControl, diffAverage, delta, halfSigma);
-		int[] shiftControlRank = Sort.quicksort(shiftControl);
-		double[] resids = getResid(shiftControl, shiftControlRank, currentCase);
+		double[] resids = getResid(shiftControl, currentCase);
 		return getSumResids(resids);
 	}
 
@@ -140,11 +139,11 @@ public class MosaicismQuant implements Calcfc {
 
 	}
 
-	private static double[] getResid(	double[] shiftControl, int[] shiftControlRank,
-																		double[] currentCase) {
-		double[] resid = new double[shiftControl.length];
+	private static double[] getResid(	double[] shiftControl, double[] currentCase) {
+		double[] resid = Arrays.copyOf(shiftControl, shiftControl.length);
+		Arrays.sort(resid);
 		for (int i = 0; i < resid.length; i++) {
-			resid[i] = currentCase[i] - shiftControl[shiftControlRank[i]];
+			resid[i] = currentCase[i] - resid[i];
 		}
 		return resid;
 	}
@@ -226,7 +225,7 @@ public class MosaicismQuant implements Calcfc {
 		SampleQC sampleQC = SampleQC.loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, new String[] {qcMetric},
 																							true, false, null);
 		double[] data = sampleQC.getDataFor(qcMetric);
-		int[] sorted = Sort.quicksort(data);
+		int[] sorted = Sort.getSortedIndices(data);
 		int sampleSortIndex = ext.indexOfStr(sampleIndex + "", Array.toStringArray(sorted));
 		int minIndex = Math.max(0, sampleSortIndex - numControls);
 		if (sampleSortIndex == minIndex) {
@@ -253,7 +252,7 @@ public class MosaicismQuant implements Calcfc {
 
 		double[] distanceToSample = Array.InplaceAbs(Array.InplaceSub(Doubles.toArray(controlData),
 																																	sampData));
-		int[] minDists = Sort.quicksort(distanceToSample);
+		int[] minDists = Sort.getSortedIndices(distanceToSample);
 
 		for (int i = 0; i < controls.length; i++) {
 			int index = minDists[i];
@@ -556,12 +555,12 @@ public class MosaicismQuant implements Calcfc {
 
 	private static class CDF {
 		BafSelection bafSelection;
-		private final int[] order;
+		private int[] order;
+		private double[] sorted;
 
 		public CDF(BafSelection bafSelection) {
 			super();
 			this.bafSelection = bafSelection;
-			order = Sort.quicksort(bafSelection.getBafs());
 		}
 
 		// public BafSelection getBafSelection() {
@@ -571,9 +570,9 @@ public class MosaicismQuant implements Calcfc {
 		public double[] getValsInOrder() {
 			double[] orderedVals = new double[bafSelection.getBafs().length];
 			for (int i = 0; i < orderedVals.length; i++) {
-				orderedVals[i] = bafSelection.getBafs()[order[i]];
+				orderedVals[i] = bafSelection.getBafs()[getOrder()[i]];
 			}
-			return orderedVals;
+			return sorted;
 		}
 
 		public double[] getVals() {
@@ -581,6 +580,9 @@ public class MosaicismQuant implements Calcfc {
 		}
 
 		public int[] getOrder() {
+			if (order == null) {
+				order = Sort.getSortedIndices(bafSelection.getBafs());
+			}
 			return order;
 		}
 

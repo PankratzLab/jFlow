@@ -371,7 +371,7 @@ public class LinePlot extends JPanel
 					xHash.put(String.valueOf(i), new String[] {String.valueOf(i)});
 				}
 				String recordName = namesHash.get(selectedNode[0])[selectedColumn];
-				keys = HashVec.getKeys(xHash, false, false);
+				keys = HashVec.getKeys(xHash, false);
 				v = new Vector<String[]>();
 				if (includeColorKeyValue) {
 					for (String key : keys) {

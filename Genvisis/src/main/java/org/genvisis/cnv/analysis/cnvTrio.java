@@ -6,7 +6,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -854,22 +856,17 @@ public class cnvTrio extends CNVariant {
 		SampleData sampleData = proj.getSampleData(0, false);
 		cnvTrio[] rawCNVTrios = loadTrios(proj.PROJECT_DIRECTORY.getValue()	+ trioResultsFile,
 																			proj.getLog());
-		ArrayList<Double> tmpMinBestDiffs = new ArrayList<Double>();
-		ArrayList<cnvTrio> tmpFilteredCnvTrios = new ArrayList<cnvTrio>();
+		List<cnvTrio> filteredCnvTrios = new ArrayList<cnvTrio>();
 		for (cnvTrio rawCNVTrio : rawCNVTrios) {
 			CNVFilterPass filterPass = trioFilter.getCNVTrioFilterPass(rawCNVTrio);
 			proj.getLog().report(filterPass.getReasonNotPassing()	+ "\t"
 														+ rawCNVTrio.getFullSummary(trioFilter.getHGBuild()));
 			if (filterPass.passedFilter()) {
-
-				tmpFilteredCnvTrios.add(rawCNVTrio);
-				tmpMinBestDiffs.add(rawCNVTrio.getMinBeastHeightDifference());
+				filteredCnvTrios.add(rawCNVTrio);
+//				inBestDiffs.add(rawCNVTrio.getMinBeastHeightDifference());
 			}
-
 		}
-		double[] beastDiffsToSort = Doubles.toArray(tmpMinBestDiffs);
-		cnvTrio[] filteredCNVTrios = tmpFilteredCnvTrios.toArray(new cnvTrio[tmpFilteredCnvTrios.size()]);
-		int[] sorted = org.genvisis.common.Sort.quicksort(beastDiffsToSort, 1);
+		Collections.sort(filteredCnvTrios);
 		try {
 			PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
 																																	+ ouput + COMBINED_TRIOS[2]));
@@ -888,8 +885,8 @@ public class cnvTrio extends CNVariant {
 			writerCNV.println(Array.toStr(PLINK_CNV_HEADER));
 			Hashtable<String, String> track = new Hashtable<String, String>();
 
-			for (int i = 0; i < filteredCNVTrios.length; i++) {
-				cnvTrio currentTrio = filteredCNVTrios[sorted[i]];
+			for (int i = 0; i < filteredCnvTrios.size(); i++) {
+				cnvTrio currentTrio = filteredCnvTrios.get(i);
 				if (!excludeFromSampleData || !trioHasExcluded(currentTrio, sampleData)) {
 					writerSummary.println(currentTrio.getFullSummary(trioFilter.getHGBuild()));
 					writerCNV.println(currentTrio.toPlinkFormat());
@@ -1076,6 +1073,14 @@ public class cnvTrio extends CNVariant {
 			computeMetrics(proj, trioFile, fileType, cnvFile, output, numThreads);
 
 		}
+	}
+
+	@Override
+	public int compareTo(Segment other) {
+		if (other instanceof cnvTrio) {
+			return Double.compare(getMinBeastHeightDifference(), ((cnvTrio)other).getMinBeastHeightDifference());
+		}
+		return super.compareTo(other);
 	}
 }
 

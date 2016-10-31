@@ -6,7 +6,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Vector;
 
 public class Unique {
@@ -15,7 +18,7 @@ public class Unique {
 		BufferedReader reader;
 		PrintWriter writer = null;
 		Hashtable<String, String> hash = new Hashtable<String, String>();
-		String[] line, keys;
+		String[] line;
 		String temp;
 		int count;
 		int[] cols;
@@ -113,11 +116,10 @@ public class Unique {
 		if (countsFile != null) {
 			try {
 				writer = new PrintWriter(new FileWriter(countsFile));
-				keys = HashVec.getKeys(hash, false, false);
-				writer.println(keys.length);
+				writer.println(hash.size());
 				writer.println();
-				for (String key : keys) {
-					writer.println(hash.get(key) + "\t" + key + "\t" + hash.get(key));
+				for (Entry<String, String> e : hash.entrySet()) {
+					writer.println(e.getValue() + "\t" + e.getKey() + "\t" + e.getValue());
 				}
 				writer.close();
 			} catch (Exception e) {
@@ -176,7 +178,6 @@ public class Unique {
 	public static String proc(String[] array, boolean sorted) {
 		Hashtable<String, Integer> hash = new Hashtable<String, Integer>();
 		StringBuilder stringBuilder;
-		String[] keys;
 		String ls, temp;
 		int count;
 
@@ -200,16 +201,15 @@ public class Unique {
 		stringBuilder.append(ls);
 
 		if (sorted) {
-			String[] aSort = getSorted(hash);
+			String[] aSort = sortKeysByCount(hash);
 			for (String element : aSort) {
 				stringBuilder.append(element);
 				stringBuilder.append(ls);
 			}
 
 		} else {
-			keys = HashVec.getKeys(hash, false, false);
-			for (String key : keys) {
-				stringBuilder.append(key + "\t" + hash.get(key));
+			for (Entry<String, Integer> e : hash.entrySet()) {
+				stringBuilder.append(e.getKey() + "\t" + e.getValue());
 				stringBuilder.append(ls);
 			}
 		}
@@ -220,22 +220,22 @@ public class Unique {
 	}
 
 	/**
-	 * @param hash count hash
-	 * @return String[] with entries ordered by the integer value of the keyset (key\tint)
+	 * @param hash Map of keys to their counts
+	 * @return String[] of (key\tcount) entries, ordered by decreasing counts
 	 */
-	private static String[] getSorted(final Hashtable<String, Integer> hash) {
+	private static String[] sortKeysByCount(final Hashtable<String, Integer> hash) {
 		int[] counts = new int[hash.keySet().size()];
-		String[] keys = new String[counts.length];
+		Map<Integer, String> keycounts = new HashMap<Integer, String>();
 		int index = 0;
-		for (String key : hash.keySet()) {
-			counts[index] = hash.get(key);
-			keys[index] = key;
+		for (Entry<String, Integer> e : hash.entrySet()) {
+			counts[index] = e.getValue();
+			keycounts.put(e.getValue(), e.getKey() + "\t" + e.getValue());
 			index++;
 		}
-		int[] order = Sort.quicksort(counts, 1);
-		String[] sorted = new String[order.length];
+		Sort.reverseSort(counts);
+		String[] sorted = new String[counts.length];
 		for (int i = 0; i < sorted.length; i++) {
-			sorted[i] = keys[order[i]] + "\t" + counts[order[i]];
+			sorted[i] = keycounts.get(counts[i]);
 		}
 		return sorted;
 	}
@@ -268,7 +268,7 @@ public class Unique {
 													+ (arrays.length == 1 ? "" : "s"));
 		}
 
-		keys = HashVec.getKeys(hash, false, false);
+		keys = HashVec.getKeys(hash, false);
 		allCounts = new String[keys.length][arrays.length + 2];
 		for (int i = 0; i < keys.length; i++) {
 			counts = hash.get(keys[i]);

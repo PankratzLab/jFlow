@@ -7,14 +7,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
 import org.genvisis.common.Files;
-import org.genvisis.common.Sort;
 
 public class maleHets {
 	public maleHets() throws IOException {
@@ -50,11 +49,11 @@ public class maleHets {
 					if (!first.equals(second)) {
 						System.out.print(".");
 						listOfErrors.add(fam + "\t" + id + "\t" + i);
-						writer.println("Individual "	+ fam + "-" + id + " is heterozygous (" + first + "/"
-														+ second + ") at marker " + i);
+						writer.println("Individual " + fam + "-" + id + " is heterozygous (" + first + "/"
+						               + second + ") at marker " + i);
 						if (hash.containsKey(fam + "-" + id)) {
-							hash.put(fam	+ "-" + id,
-												(Integer.valueOf(hash.get(fam + "-" + id)).intValue() + 1) + "");
+							hash.put(fam + "-" + id,
+							         (Integer.valueOf(hash.get(fam + "-" + id)).intValue() + 1) + "");
 						} else {
 							hash.put(fam + "-" + id, 1 + "");
 						}
@@ -143,11 +142,10 @@ public class maleHets {
 				male_identity_crises.add(temp);
 			}
 		}
-		int[] keys = Sort.quicksort(Array.toStringArray(male_identity_crises));
-		for (int key : keys) {
-			System.err.println("Warning - "	+ male_identity_crises.elementAt(key)
-													+ " is heterozygous for " + hash.get(male_identity_crises.elementAt(key))
-													+ " markers on the X chromosome");
+		Collections.sort(male_identity_crises);
+		for (String m : male_identity_crises) {
+			System.err.println("Warning - " + m + " is heterozygous for " + hash.get(m)
+			                   + " markers on the X chromosome");
 		}
 
 	}

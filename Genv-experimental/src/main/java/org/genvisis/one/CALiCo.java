@@ -272,7 +272,7 @@ public class CALiCo {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		uniqueMarkers = HashVec.getKeys(minimumPvalueHash, false, false);
+		uniqueMarkers = HashVec.getKeys(minimumPvalueHash, false);
 
 
 		// get map information
@@ -292,7 +292,7 @@ public class CALiCo {
 												+ (genes[i].equals("") ? "." : genes[i]));
 			}
 			writer.close();
-			uniqueMarkers = Sort.putInOrder(uniqueMarkers, Sort.quicksort(minPvalues));
+			uniqueMarkers = Sort.getOrdered(uniqueMarkers, Sort.getSortedIndices(minPvalues));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

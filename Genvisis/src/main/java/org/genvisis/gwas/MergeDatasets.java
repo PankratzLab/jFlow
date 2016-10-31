@@ -94,7 +94,7 @@ public class MergeDatasets {
 			}
 		}
 
-		markerNames = HashVec.getKeys(hashes, false, false);
+		markerNames = HashVec.getKeys(hashes, false);
 		try {
 			writer = new PrintWriter(new FileWriter(outputDir + CHI_SQUARE_DROPS_FILENAME));
 			writer2 = new PrintWriter(new FileWriter(outputDir + "homogeneityTests.xln"));
@@ -108,7 +108,7 @@ public class MergeDatasets {
 			Hashtable<String, String> problematicTrack = new Hashtable<String, String>();
 			for (int i = 0; i < markerNames.length; i++) {
 				hash = hashes.get(markerNames[i]);
-				keys = HashVec.getKeys(hash, false, false);
+				keys = HashVec.getKeys(hash, false);
 				alleleCounts = new int[keys.length][2];
 				genotypeCounts = new int[keys.length][2];
 				gCounts = Array.stringArray(dirs.length);
@@ -415,7 +415,7 @@ public class MergeDatasets {
 			}
 		}
 
-		keys = HashVec.getKeys(hash, false, false);
+		keys = HashVec.getKeys(hash, false);
 		Files.writeArray(keys, dir + "list.0.snps");
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "unanimousPositions.xln"));
@@ -444,7 +444,7 @@ public class MergeDatasets {
 				for (int j = 0; j < counts.length; j++) {
 					counts[j] = datasets.elementAt(j).size();
 				}
-				order = Sort.quicksort(counts, Sort.DESCENDING);
+				order = Sort.getReverseIndices(counts);
 				temp = key	+ "\t" + (order.length == 1 ? 1 : 0) + "\t" + counts[order[0]] + "\t"
 								+ Array.sum(counts) + "\t"
 								+ ((double) counts[order[0]] / (double) Array.sum(counts));

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.Vector;
@@ -15,12 +16,11 @@ import java.util.Vector;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 import com.google.common.primitives.Ints;
 
-public class Segment implements Serializable {
+public class Segment implements Serializable, Comparable<Segment> {
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -171,10 +171,10 @@ public class Segment implements Serializable {
 		 * the size of the larger CNV - otherwise we'd never call significance)
 		 */
 		int threshold = mySize > segSize
-																				? (checkLarger	? Math.min(mySize / 2, segSize)
-																											: Math.min(segSize / 2, mySize))
-																			: (checkLarger	? Math.min(segSize / 2, mySize)
-																											: Math.min(mySize / 2, segSize));
+		                                 ? (checkLarger ? Math.min(mySize / 2, segSize)
+		                                                : Math.min(segSize / 2, mySize))
+		                                 : (checkLarger ? Math.min(segSize / 2, mySize)
+		                                                : Math.min(mySize / 2, segSize));
 
 		return overlap > threshold;
 	}
@@ -237,7 +237,7 @@ public class Segment implements Serializable {
 			};
 
 			Segment[] finalRemovers = removers.mergeOverlapping().getLoci();// deal with overlapping
-																																			// removal segments
+			                                                                // removal segments
 
 			ArrayList<Segment> currentSegs = new ArrayList<Segment>();
 
@@ -270,14 +270,15 @@ public class Segment implements Serializable {
 				currentIndex++;
 			}
 
-			LocusSet<Segment> finalSet = new LocusSet<Segment>(	currentSegs.toArray(new Segment[currentSegs.size()]),
-																													true, log) {
-				/**
-				* 
-				*/
-				private static final long serialVersionUID = 1L;
+			LocusSet<Segment> finalSet =
+			                           new LocusSet<Segment>(currentSegs.toArray(new Segment[currentSegs.size()]),
+			                                                 true, log) {
+				                           /**
+				                           * 
+				                           */
+				                           private static final long serialVersionUID = 1L;
 
-			};
+			                           };
 			int totalBpRemaining = 0;
 			LocusSet<Segment> finalMergedSet = finalSet.mergeOverlapping();
 
@@ -329,8 +330,8 @@ public class Segment implements Serializable {
 				Segment tail = new Segment(getChr(), intersection.getStop() + 1, getStop());
 				cleaned = new Segment[] {tail};
 			} else {
-				String error = "Un accounted for remove"	+ getUCSClocation() + " trying to remove "
-												+ seg.getUCSClocation();
+				String error = "Un accounted for remove" + getUCSClocation() + " trying to remove "
+				               + seg.getUCSClocation();
 				log.reportTimeError(error);
 				throw new IllegalStateException(error);
 			}
@@ -346,8 +347,8 @@ public class Segment implements Serializable {
 		int numBpRemoved = getSize() - numBpRemaining;
 
 		if (numBpRemoved != bpShouldHaveBeenRemoved) {
-			String error = "BUG: "	+ numBpRemoved + " base pairs were removed, but "
-											+ bpShouldHaveBeenRemoved + " should have been removed";
+			String error = "BUG: " + numBpRemoved + " base pairs were removed, but "
+			               + bpShouldHaveBeenRemoved + " should have been removed";
 			error += "\nOriginal: " + getUCSClocation() + " Removed: " + seg.getUCSClocation();
 			if (cleaned != null) {
 				for (Segment element : cleaned) {
@@ -368,6 +369,15 @@ public class Segment implements Serializable {
 		return new String[] {"chr", "start", "stop"};
 	}
 
+	@Override
+	public int compareTo(Segment o) {
+		int c = Byte.compare(getChr(), o.getChr());
+		if (c == 0) {
+			c = Integer.compare(this.getStart(), o.getStart());
+		}
+		return c;
+	}
+
 	public static boolean addIfAbsent(Segment seg, Vector<Segment> exons) {
 		for (int i = 0; i < exons.size(); i++) {
 			if (seg.equals(exons.elementAt(i))) {
@@ -386,7 +396,7 @@ public class Segment implements Serializable {
 				splits.put(segments[i].getChr() + "", new Vector<Segment>());
 			}
 			splits.get(segments[i].getChr() + "")
-						.add(buffer > 0 ? segments[i].getBufferedSegment(buffer) : segments[i]);
+			      .add(buffer > 0 ? segments[i].getBufferedSegment(buffer) : segments[i]);
 		}
 		ArrayList<Segment> merged = new ArrayList<Segment>();
 		for (String chr : splits.keySet()) {
@@ -395,7 +405,9 @@ public class Segment implements Serializable {
 			merged.addAll(tmp);
 		}
 
-		return sortSegments(merged.toArray(new Segment[merged.size()]));
+		Segment[] sorted = merged.toArray(new Segment[merged.size()]);
+		Arrays.sort(sorted);
+		return sorted;
 	}
 
 	// this method must be run separately for each chromosome
@@ -425,7 +437,7 @@ public class Segment implements Serializable {
 				start = segBoundaries[i][0];
 				stop = segBoundaries[i][1];
 				while (i + count < segBoundaries.length
-								&& (segBoundaries[i + count][0] <= stop || segBoundaries[i + count][0] == -1)) {
+				       && (segBoundaries[i + count][0] <= stop || segBoundaries[i + count][0] == -1)) {
 					stop = Math.max(stop, segBoundaries[i + count][1]);
 					segBoundaries[i + count][0] = -1;
 					count++;
@@ -458,17 +470,13 @@ public class Segment implements Serializable {
 
 	public static int[][] convertListToSortedBoundaries(Vector<Segment> segs) {
 		int[][] segBoundaries = new int[segs.size()][2];
-		int[] starts, keys;
 
-		starts = new int[segs.size()];
-		for (int i = 0; i < segs.size(); i++) {
-			starts[i] = segs.elementAt(i).getStart();
-		}
-		keys = Sort.quicksort(starts);
+		Segment[] arr = segs.toArray(new Segment[segs.size()]);
+		Arrays.sort(arr);
 
 		for (int i = 0; i < segs.size(); i++) {
-			segBoundaries[i][0] = segs.elementAt(keys[i]).getStart();
-			segBoundaries[i][1] = segs.elementAt(keys[i]).getStop();
+			segBoundaries[i][0] = arr[i].getStart();
+			segBoundaries[i][1] = arr[i].getStop();
 		}
 
 		return segBoundaries;
@@ -482,39 +490,6 @@ public class Segment implements Serializable {
 		}
 
 		return list;
-	}
-
-	public static int[] quicksort(Segment[] array) {
-		return quicksort(array, true);
-	}
-
-	public static int[] quicksort(Segment[] array, boolean verbose) {
-		byte[] chrs;
-		int[] positions;
-
-		chrs = new byte[array.length];
-		positions = new int[array.length];
-		for (int i = 0; i < array.length; i++) {
-			chrs[i] = array[i].chr;
-			positions[i] = array[i].start;
-		}
-
-		return Sort.orderTwoLayers(chrs, positions, verbose, new Logger());
-	}
-
-	public static Segment[] putInOrder(Segment[] array, int[] order) {
-		Segment[] newArray;
-
-		newArray = new Segment[array.length];
-		for (int i = 0; i < order.length; i++) {
-			newArray[i] = array[order[i]];
-		}
-
-		return newArray;
-	}
-
-	public static Segment[] sortSegments(Segment[] array) {
-		return putInOrder(array, quicksort(array));
 	}
 
 	public static int binarySearchForOverlap(Segment seg, Segment[] orderedList) {
@@ -591,7 +566,7 @@ public class Segment implements Serializable {
 			if (orderedList[mid].overlaps(seg)) {
 				return mid;
 			} else if (seg.chr < orderedList[mid].chr
-									|| (seg.chr == orderedList[mid].chr && seg.start < orderedList[mid].start)) {
+			           || (seg.chr == orderedList[mid].chr && seg.start < orderedList[mid].start)) {
 				high = mid - 1;
 			} else {
 				low = mid + 1;
@@ -608,10 +583,10 @@ public class Segment implements Serializable {
 		while (low <= high) {
 			mid = low + (high - low) / 2;
 			if (orderedList[mid].getChr() == seg.getChr()
-					&& orderedList[mid].getStart() == seg.getStart()) {
+			    && orderedList[mid].getStart() == seg.getStart()) {
 				return mid;
 			} else if (seg.chr < orderedList[mid].chr
-									|| (seg.chr == orderedList[mid].chr && seg.start < orderedList[mid].start)) {
+			           || (seg.chr == orderedList[mid].chr && seg.start < orderedList[mid].start)) {
 				high = mid - 1;
 			} else {
 				low = mid + 1;
@@ -634,7 +609,7 @@ public class Segment implements Serializable {
 				while (overlapping) {
 					if ((mid - 1) >= 0) {
 						if (orderedList[mid - 1].getChr() == seg.getChr()
-								&& orderedList[mid - 1].overlaps(seg)) {
+						    && orderedList[mid - 1].overlaps(seg)) {
 							mid = mid - 1;
 						} else {
 							overlapping = false;
@@ -645,7 +620,7 @@ public class Segment implements Serializable {
 				}
 				return mid;
 			} else if (seg.chr < orderedList[mid].chr
-									|| (seg.chr == orderedList[mid].chr && seg.start < orderedList[mid].start)) {
+			           || (seg.chr == orderedList[mid].chr && seg.start < orderedList[mid].start)) {
 				high = mid - 1;
 			} else {
 				low = mid + 1;
@@ -683,7 +658,7 @@ public class Segment implements Serializable {
 	}
 
 	public static Segment[] loadUCSCregions(String filename, int column, boolean ignoreFirstLine,
-																					Logger log) {
+	                                        Logger log) {
 		BufferedReader reader;
 		Vector<Segment> v = new Vector<Segment>();
 
@@ -723,25 +698,25 @@ public class Segment implements Serializable {
 	}
 
 	public static Segment[] loadRegions(String filename, int chrCol, int startCol, int stopCol,
-																			boolean ignoreFirstLine) {
+	                                    boolean ignoreFirstLine) {
 		return loadRegions(filename, chrCol, startCol, stopCol, ignoreFirstLine ? 1 : 0, true, true, 0);
 	}
 
 	public static Segment[] loadRegions(String filename, int chrCol, int startCol, int stopCol,
-																			int skipNumLines, boolean sorted, boolean inclusiveStart,
-																			boolean inclusiveStop, int bpBuffer) {
+	                                    int skipNumLines, boolean sorted, boolean inclusiveStart,
+	                                    boolean inclusiveStop, int bpBuffer) {
+		Segment[] regions = loadRegions(filename, chrCol, startCol, stopCol, skipNumLines,
+		                                inclusiveStart, inclusiveStop, bpBuffer);
 		if (sorted) {
-			return sortSegments(loadRegions(filename, chrCol, startCol, stopCol, skipNumLines,
-																			inclusiveStart, inclusiveStop, bpBuffer));
-		} else {
-			return loadRegions(	filename, chrCol, startCol, stopCol, skipNumLines, inclusiveStart,
-													inclusiveStop, bpBuffer);
+			Arrays.sort(regions);
 		}
+
+		return regions;
 	}
 
 	public static Segment[] loadRegions(String filename, int chrCol, int startCol, int stopCol,
-																			int skipNumLines, boolean inclusiveStart,
-																			boolean inclusiveStop, int bpBuffer) {
+	                                    int skipNumLines, boolean inclusiveStart,
+	                                    boolean inclusiveStop, int bpBuffer) {
 		BufferedReader reader;
 		Vector<Segment> v = new Vector<Segment>();
 		String[] line;
@@ -754,10 +729,10 @@ public class Segment implements Serializable {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				v.add(new Segment(Positions.chromosomeNumber(line[chrCol]),
-													(inclusiveStart	? Integer.parseInt(line[startCol])
-																					: Integer.parseInt(line[startCol]) + 1) - bpBuffer,
-													(inclusiveStop	? Integer.parseInt(line[stopCol])
-																					: Integer.parseInt(line[stopCol]) - 1) + bpBuffer));
+				                  (inclusiveStart ? Integer.parseInt(line[startCol])
+				                                  : Integer.parseInt(line[startCol]) + 1) - bpBuffer,
+				                  (inclusiveStop ? Integer.parseInt(line[stopCol])
+				                                 : Integer.parseInt(line[stopCol]) - 1) + bpBuffer));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
@@ -819,8 +794,8 @@ public class Segment implements Serializable {
 
 		try {
 			reader = Files.getAppropriateReader(firstFile);
-			writer = new PrintWriter(new FileWriter(firstFile	+ "_filteredOn_"
-																							+ ext.removeDirectoryInfo(secondFile) + ".out"));
+			writer = new PrintWriter(new FileWriter(firstFile + "_filteredOn_"
+			                                        + ext.removeDirectoryInfo(secondFile) + ".out"));
 			while (reader.ready()) {
 				temp = reader.readLine();
 				line = temp.trim().split("[\\s]+");
@@ -919,11 +894,11 @@ public class Segment implements Serializable {
 		secondFile = "D:/Logan/Cosmic/cosmic_gene_positions.txt";
 		firstInSecond = true;
 
-		String usage = "\n"	+ "filesys.SegmentLists requires 0-1 arguments\n"
-										+ "   (1) first .bed filename (i.e. firstFile=onTarget.bed (default))\n"
-										+ "   (2) second .bed filename (i.e. secondFile=genesOfInterest.bed (default))\n"
-										+ "   (3) find segments in first that overlap any segment in second (i.e. -firstInSecond (not the default))\n"
-										+ "";
+		String usage = "\n" + "filesys.SegmentLists requires 0-1 arguments\n"
+		               + "   (1) first .bed filename (i.e. firstFile=onTarget.bed (default))\n"
+		               + "   (2) second .bed filename (i.e. secondFile=genesOfInterest.bed (default))\n"
+		               + "   (3) find segments in first that overlap any segment in second (i.e. -firstInSecond (not the default))\n"
+		               + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

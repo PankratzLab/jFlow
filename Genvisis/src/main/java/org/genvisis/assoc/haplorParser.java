@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -226,7 +227,7 @@ public class haplorParser {
 			hapFreqs[i] = Double.valueOf(line[3 + numMarkers]).doubleValue();
 			writer.println((i + 1) + "\t" + haplotypes[i] + "\t" + hapFreqs[i]);
 		}
-		hapKeys = Sort.quicksort(haplotypes);
+		hapKeys = Sort.getSortedIndices(haplotypes);
 		writer.println("\n");
 		for (int i = 0; i < haplotypes.length; i++) {
 			writer.println((i + 1) + "\t" + haplotypes[hapKeys[i]] + "\t" + hapFreqs[hapKeys[i]]);
@@ -357,14 +358,13 @@ public class haplorParser {
 	public String translateHap(String hap_pair, String[] haps) throws IOException {
 		String[] line = hap_pair.split("[/]+");
 		String[] pair = new String[line.length];
-		int[] keys;
 
 		for (int i = 0; i < line.length; i++) {
 			pair[i] = haps[Integer.valueOf(line[i]).intValue() - 1];
 		}
-		keys = Sort.quicksort(pair);
+		Arrays.sort(pair);
 
-		return pair[keys[0]] + "\t" + pair[keys[1]];
+		return pair[0] + "\t" + pair[1];
 	}
 
 	public String compHap(String hap, String target) throws IOException {

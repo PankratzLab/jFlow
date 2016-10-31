@@ -10,13 +10,13 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 
 import javax.swing.JOptionPane;
 
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SerialFloatArray;
 
@@ -290,7 +290,7 @@ public class QQPlot {
 					return null;
 				}
 
-				pvals[i] = Sort.putInOrder(pvals[i]);
+				Arrays.sort(pvals[i]);
 			} catch (FileNotFoundException fnfe) {
 				log.reportError("Error - missing file: \"" + filenames[i] + "\"");
 				error = false;
@@ -328,7 +328,6 @@ public class QQPlot {
 		PrintWriter writer;
 		int count, length;
 		float[] array;
-		int[] order;
 		float[][] dists;
 
 		if (max == -1) {
@@ -347,7 +346,7 @@ public class QQPlot {
 				log.report(i + "");
 			}
 			array = SerialFloatArray.load(dir + prefix + "." + i + ".results", false).getArray();
-			order = Sort.quicksort(array);
+			Arrays.sort(array);
 			if (i == 1) {
 				length = array.length;
 				dists = new float[length][count];
@@ -355,7 +354,7 @@ public class QQPlot {
 				log.reportError("Error - mismatched number of p-values at rep " + i);
 			}
 			for (int j = 0; j < array.length; j++) {
-				dists[j][i - 1] = array[order[j]];
+				dists[j][i - 1] = array[j];
 				if (j == array.length - 1 && (dists[j][i - 1] + "").equalsIgnoreCase("NaN")) {
 					log.reportError("Error - rep " + i + " has NaNs");
 				}

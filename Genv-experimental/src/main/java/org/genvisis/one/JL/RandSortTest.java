@@ -56,7 +56,7 @@ public class RandSortTest {
 			// for (String ma : snpPositions.keySet()) {
 			//
 			// }
-			markerNames = HashVec.getKeys(snpPositions, false, false);
+			markerNames = HashVec.getKeys(snpPositions, false);
 		}
 		log.report(ext.getTime() + "\tdone marker data from " + markerDatabase);
 
@@ -91,7 +91,7 @@ public class RandSortTest {
 		new MarkerSet(markerNames, chrs, positions, t).serialize(output);
 
 		// timse = System.currentTimeMillis();
-		Sort.orderTwoLayers(chrs, positions, log);
+		Sort.getSort2DIndices(chrs, positions);
 		System.out.println(ext.getTimeElapsed(time) + " for original");
 
 	}

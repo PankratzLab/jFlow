@@ -32,13 +32,11 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 
-import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.ProgressBarDialog;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Distance;
 import org.genvisis.stats.Maths;
@@ -403,7 +401,6 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 		Vector<PlotPoint> layer;
 		String trav;
 		String[] keys;
-		int[] order;
 		int step;
 		long time;
 		ProgressBarDialog prog;
@@ -853,9 +850,8 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 
 			// Draw those points with layer>0.
 			keys = HashVec.getKeys(layers);
-			order = Sort.quicksort(Array.toIntArray(keys));
 			for (int i = 0; i < keys.length && flow; i++) {
-				layer = layers.get(keys[order[i]]);
+				layer = layers.get(keys[i]);
 				for (int j = 0; j < layer.size(); j++) {
 					if (layer.elementAt(j).getType() != PlotPoint.NOT_A_NUMBER) {
 						drawPoint(g, layer.elementAt(j));

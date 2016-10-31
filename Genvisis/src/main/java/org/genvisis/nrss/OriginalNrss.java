@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -335,7 +336,7 @@ public class OriginalNrss {
 		for (int i = 0; i < pval_window.length; i++) {
 			pval_window[i] = pvalues[lowIndex + i];
 		}
-		keys = Sort.quicksort(pval_window);
+		keys = Sort.getSortedIndices(pval_window);
 
 		count = 0;
 		stats[2] = 1;
@@ -749,7 +750,6 @@ public class OriginalNrss {
 		File[] files, dirs;
 		DoubleVector[][] dvs;
 		DoubleVector trav;
-		int[] keys;
 		String col;
 
 		dirs = new File(".").listFiles(new FilenameFilter() {
@@ -778,9 +778,9 @@ public class OriginalNrss {
 						trav.add(Double.parseDouble(line[column]));
 					}
 					reader.close();
-					keys = Sort.quicksort(trav, Sort.DESCENDING);
+					Collections.sort(trav, Collections.reverseOrder());
 					for (int k = 0; k < levelsDeep && trav.size() > k; k++) {
-						dvs[i][k].add(trav.elementAt(keys[k]));
+						dvs[i][k].add(trav.elementAt(k));
 					}
 				} catch (FileNotFoundException fnfe) {
 					System.err.println("Error: file \""	+ file.getName()

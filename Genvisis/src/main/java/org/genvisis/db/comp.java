@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -901,7 +902,7 @@ public class comp {
 																			: "") + "dir",
 														(logistic ? "Odds ratio (95% CI)   " : "Beta (95% CI)         "),
 														"Factor", "Mean +/- SD", "Failures", "p-value"};
-			writer.println(Array.toStr(order == null ? line : Sort.putInOrder(line, order)));
+			writer.println(Array.toStr(order == null ? line : Sort.getOrdered(line, order)));
 
 			for (int i = 1; i <= M; i++) {
 				// count = 0;
@@ -947,7 +948,7 @@ public class comp {
 					e.printStackTrace();
 				}
 
-				writer.println(Array.toStr(order == null ? line : Sort.putInOrder(line, order)));
+				writer.println(Array.toStr(order == null ? line : Sort.getOrdered(line, order)));
 			}
 			writer.println();
 			writer.println();
@@ -1434,18 +1435,18 @@ public class comp {
 		try {
 			writer = new PrintWriter(new FileWriter(factorNames[indices[1]]	+ "_"
 																							+ factorNames[indices[2]] + "_hwe.out"));
-			orderedAlleles = Sort.putInOrder(Ints.toArray(iv));
+			Collections.sort(iv);
 			if (iv.size() == 3) {
-				alleleLabels = new String[] {orderedAlleles[0]	+ "/" + orderedAlleles[0],
-																			orderedAlleles[0] + "/" + orderedAlleles[1],
-																			orderedAlleles[0] + "/" + orderedAlleles[2],
-																			orderedAlleles[1] + "/" + orderedAlleles[1],
-																			orderedAlleles[1] + "/" + orderedAlleles[2],
-																			orderedAlleles[2] + "/" + orderedAlleles[2]};
+				alleleLabels = new String[] {iv.get(0)	+ "/" + iv.get(0),
+																			iv.get(0) + "/" + iv.get(1),
+																			iv.get(0) + "/" + iv.get(2),
+																			iv.get(1) + "/" + iv.get(1),
+																			iv.get(1) + "/" + iv.get(2),
+																			iv.get(2) + "/" + iv.get(2)};
 			} else if (iv.size() < 3) {
-				alleleLabels = new String[] {orderedAlleles[0]	+ "/" + orderedAlleles[0],
-																			orderedAlleles[0] + "/" + orderedAlleles[1],
-																			orderedAlleles[1] + "/" + orderedAlleles[1]};
+				alleleLabels = new String[] {iv.get(0)	+ "/" + iv.get(0),
+																			iv.get(0) + "/" + iv.get(1),
+																			iv.get(1) + "/" + iv.get(1)};
 			} else {
 				System.err.println("Error - HWE is not currently set up to handle more than 3 alleles");
 				System.err.println("   (found " + Array.toStr(iv.toArray()) + ")");

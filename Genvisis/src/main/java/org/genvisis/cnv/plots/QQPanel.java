@@ -147,7 +147,7 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
 
 		count = 0;
 		for (int i = 0; i < pvals.length; i++) {
-			keys = Sort.quicksort(pvals[i]);
+			keys = Sort.getSortedIndices(pvals[i]);
 
 			for (int j = 0; j < pvals[i].length; j++) {
 				if (rotated) {

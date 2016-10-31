@@ -108,7 +108,7 @@ public class ParseRawSNPsOld48 {
 				System.exit(1);
 			}
 		}
-		snpOrder = Sort.quicksort(snpPositions);
+		snpOrder = Sort.getSortedIndices(snpPositions);
 
 		indIDs = new int[v.size()];
 
@@ -142,7 +142,7 @@ public class ParseRawSNPsOld48 {
 		}
 		writer.println();
 
-		keys = Sort.quicksort(indIDs);
+		keys = Sort.getSortedIndices(indIDs);
 		for (int i = 0; i < indIDs.length; i++) {
 			line = v.elementAt(keys[i]);
 			writer.print(line[0] + "\t" + line[1] + "\t" + line[2]);

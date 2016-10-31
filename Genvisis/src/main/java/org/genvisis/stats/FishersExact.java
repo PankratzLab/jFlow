@@ -2,11 +2,12 @@ package org.genvisis.stats;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Date;
 
 import org.genvisis.common.Array;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
+
 
 public class FishersExact {
 	public static double calc(int[][] matrix) {
@@ -77,7 +78,7 @@ public class FishersExact {
 			lookup[i] = lookup[i - 1] + Math.log(i);
 		}
 
-		c = Sort.putInOrder(c);
+		Arrays.sort(c);
 
 		facts = new double[r.length + c.length];
 		for (int i = 0; i < r.length; i++) {
@@ -86,7 +87,7 @@ public class FishersExact {
 		for (int j = 0; j < c.length; j++) {
 			facts[r.length + j] = lookup[c[j]];
 		}
-		num = Array.sum(Sort.putInOrder(facts));
+		num = Array.sum(facts);
 
 		facts = new double[r.length * c.length + 1];
 		for (int i = 0; i < r.length; i++) {
@@ -95,9 +96,10 @@ public class FishersExact {
 			}
 		}
 		facts[0] = lookup[n];
-		denom = Array.sum(Sort.putInOrder(facts));
+		denom = Array.sum(facts);
 		pex = Math.exp(num - denom);
 
+		Arrays.sort(facts);
 		totprob = 0;
 		switch (r.length * 10 + c.length) {
 			case 22:
@@ -318,7 +320,8 @@ public class FishersExact {
 				facts[work[0].length * i + j + 1] = lookup[work[i][j]];
 			}
 		}
-		denom = Array.sumInOrder(facts, Sort.quicksort(facts)); // 14 secs
+		//FIXME MCH - I don't see any reason to sum in sorted order. If there is a reason, it should be documented
+		denom = Array.sum(Array.sortedCopy(facts));
 		temp = Math.exp(num - denom);
 		if (temp <= pex) {
 			return temp;

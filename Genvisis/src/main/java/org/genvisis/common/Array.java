@@ -2,12 +2,17 @@ package org.genvisis.common;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.Vector;
 
 import org.genvisis.stats.Maths;
@@ -340,6 +345,24 @@ public class Array {
 	}
 
 	/**
+	 * Creates an integer array from the contents of a string list
+	 *
+	 * @param array array of Strings to be converted
+	 * @return array of the converted integers
+	 */
+	public static int[] toIntArray(List<String> list) {
+		int[] arr = new int[list.size()];
+		for (int i = 0; i < list.size(); i++) {
+			try {
+				arr[i] = Integer.parseInt(list.get(i));
+			} catch (NumberFormatException nfe) {
+				System.err.println("Error - failed to convert '" + list.get(i) + "' into an integer");
+			}
+		}
+		return arr;
+	}
+
+	/**
 	 * Creates an integer array from the contents of a byte array
 	 *
 	 * @param array array of Strings to be converted
@@ -624,6 +647,18 @@ public class Array {
 		for (int i = 0; i < array.length; i++) {
 			try {
 				arr[i] = (byte) array[i];
+			} catch (NumberFormatException nfe) {
+				System.err.println("Error - failed to convert '" + array[i] + "' into a byte");
+			}
+		}
+		return arr;
+	}
+
+	public static byte[] toByteArray(String[] array) {
+		byte[] arr = new byte[array.length];
+		for (int i = 0; i < array.length; i++) {
+			try {
+				arr[i] = Byte.valueOf(array[i]);
 			} catch (NumberFormatException nfe) {
 				System.err.println("Error - failed to convert '" + array[i] + "' into a byte");
 			}
@@ -1464,7 +1499,7 @@ public class Array {
 		double[] quantiles;
 		int[] order;
 
-		order = Sort.quicksort(array);
+		order = Sort.getSortedIndices(array);
 		quantiles = new double[array.length];
 		for (int i = 0; i < quantiles.length; i++) {
 			quantiles[order[i]] = ((double) i + 1) / ((double) quantiles.length + 1);
@@ -1581,7 +1616,6 @@ public class Array {
 	public static double[] bootstrap(double[] array, int numReps, boolean verbose) {
 		double[] results = new double[3];
 		double[] replicates = new double[numReps];
-		int[] keys;
 		int progress = 0;
 		double sum;
 
@@ -1607,10 +1641,10 @@ public class Array {
 			System.out.println();
 		}
 
-		keys = Sort.quicksort(replicates);
-		results[0] = replicates[keys[(int) (numReps * 0.5)]];
-		results[1] = replicates[keys[(int) (numReps * 0.025)]];
-		results[2] = replicates[keys[(int) (numReps * 0.975)]];
+		Arrays.sort(replicates);
+		results[0] = replicates[(int) (numReps * 0.5)];
+		results[1] = replicates[(int) (numReps * 0.025)];
+		results[2] = replicates[(int) (numReps * 0.975)];
 
 		return results;
 	}
@@ -1629,7 +1663,7 @@ public class Array {
 			return Double.NaN;
 		}
 
-		int keys[] = Sort.quicksort(array);
+		int[] keys = Sort.getSortedIndices(array);
 
 		try {
 			if (q > 1 || q < 0) {
@@ -1663,7 +1697,7 @@ public class Array {
 			return Double.NaN;
 		}
 
-		int keys[] = Sort.quicksort(array);
+		int[] keys = Sort.getSortedIndices(array);
 
 		try {
 			if (q > 1 || q < 0) {
@@ -1697,11 +1731,11 @@ public class Array {
 			return Float.NaN;
 		}
 
-		int keys[] = Sort.quicksort(array);
+		int[] keys = Sort.getSortedIndices(array);
 
 		try {
 			if (q > 1 || q < 0) {
-				return (0);
+				return 0f;
 			} else {
 				double index = (array.length + 1) * q;
 				if (index - (int) index == 0) {
@@ -1725,7 +1759,7 @@ public class Array {
 	 * @return specified quantile of the array
 	 */
 	public static int quantWithExtremeForTie(int[] array, double q) {
-		int keys[] = Sort.quicksort(array);
+		int keys[] = Sort.getSortedIndices(array);
 
 		try {
 			if (q > 1 || q < 0) {
@@ -1754,7 +1788,7 @@ public class Array {
 	 * @return specified quantiles of the array
 	 */
 	public static float[] quants(float[] array, double[] qs) {
-		int keys[] = Sort.quicksort(array);
+		int keys[] = Sort.getSortedIndices(array);
 		float[] quantiles;
 
 		quantiles = new float[qs.length];
@@ -1788,7 +1822,7 @@ public class Array {
 	 * @return specified quantiles of the array
 	 */
 	public static double[] quantsExclusive(double[] array, double[] qs) {
-		int keys[] = Sort.quicksort(array);
+		int keys[] = Sort.getSortedIndices(array);
 		double[] quantiles;
 
 		quantiles = new double[qs.length];
@@ -1879,6 +1913,17 @@ public class Array {
 	 */
 	public static String toStr(String[] array) {
 		return toStr(array, null, "\t", null);
+	}
+
+	/**
+	 * @see #toStr(String[])
+	 */
+	public static String toStr(Collection<String> c) {
+		return toStr(c, "\t");
+	}
+
+	public static String toStr(Collection<String> c, String delim) {
+		return toStr(c.toArray(new String[c.size()]), delim);
 	}
 
 
@@ -2585,34 +2630,19 @@ public class Array {
 	 * @return array of the unique Strings
 	 */
 	public static String[] unique(String[] array) {
-		Hashtable<String, String> hash = new Hashtable<String, String>();
-		String[] newArray = new String[array.length];
-		int count = 0;
+		Set<String> filter = new LinkedHashSet<String>();
 
 		for (int i = 0; i < array.length; i++) {
-			if (!hash.containsKey(array[i])) {
-				newArray[count] = array[i];
-				count++;
-				hash.put(array[i], array[i]);
-			}
+			filter.add(array[i]);
 		}
-		return Array.subArray(newArray, 0, count);
+
+		return filter.toArray(new String[filter.size()]);
 	}
 
-	/**
-	 * Returns an array of the unique Strings
-	 *
-	 * @param array an array of Strings
-	 * @return array of the unique Strings
-	 */
-	public static String[] uniqueOldSlowForLargeArrays(String[] array) {
-		Vector<String> v = new Vector<String>(array.length);
+	public static <T extends Number> List<T> unique(List<T> list) {
+		Set<T> filter = new LinkedHashSet<T>(list);
 
-		for (String element : array) {
-			HashVec.addIfAbsent(element, v);
-		}
-
-		return Array.toStringArray(v);
+		return new ArrayList<T>(filter);
 	}
 
 	// /**
@@ -3390,7 +3420,7 @@ public class Array {
 			hash.put(element, count + "");
 		}
 
-		keys = Sort.putInOrder(HashVec.getKeys(hash));
+		keys = HashVec.getKeys(hash);
 		summary = new String[keys.length][2];
 		for (int i = 0; i < summary.length; i++) {
 			summary[i][0] = keys[i];
@@ -3589,13 +3619,13 @@ public class Array {
 	 * @return iqr of the array
 	 */
 	public static double iqrExclusive(double[] array) {
-		int[] keys = Sort.quicksort(array);
-
 		if (array.length < 2) {
 			System.err.println("Error - can't calculate an IQR for an array with "	+ array.length
 													+ " datapoint(s)");
 			return -1;
 		}
+
+		int[] keys = Sort.getSortedIndices(array);
 
 		double iqr = 0;
 		try {
@@ -3615,14 +3645,15 @@ public class Array {
 	 * @return iqr of the array
 	 */
 	public static float iqrExclusive(float[] array) {
-		int[] keys = Sort.quicksort(array);
-		float iqr = 0;
-
 		if (array.length < 2) {
 			System.err.println("Error - can't calculate an IQR for an array with "	+ array.length
 													+ " datapoint(s)");
 			return -1;
 		}
+
+		int[] keys = Sort.getSortedIndices(array);
+		float iqr = 0;
+
 		try {
 			iqr = array[keys[(int) Math.floor(array.length * 0.75)]]
 						- array[keys[(int) Math.floor(array.length * 0.25)]];
@@ -3897,23 +3928,69 @@ public class Array {
 	 */
 	public static String[] reverse(String[] forward) {
 		String[] reverse = new String[forward.length];
-		int index = forward.length - 1;
-		for (int i = 0; i < reverse.length; i++) {
-			reverse[i] = forward[index];
-			index--;
+		return reverse(forward, reverse);
+	}
+
+	/**
+	 * As {@link #reverse(String[])} but happens in place
+	 */
+	public static String[] reverseInPlace(String[] forward) {
+		return reverse(forward, forward);
+	}
+
+	private static String[] reverse(String[] forward, String[] reverse) {
+		for (int i = 0; i < (reverse.length + 1) / 2; i++) {
+			String t = forward[i];
+			reverse[i] = forward[forward.length - 1 - i];
+			reverse[forward.length - 1 - i] = t;
 		}
 		return reverse;
 	}
 
 	/**
-	 * Reverses the entries of the array, first becomes last, etc
+	 * Creates a new array holding the reverse entries of the given array
 	 */
 	public static int[] reverse(int[] forward) {
 		int[] reverse = new int[forward.length];
-		int index = forward.length - 1;
-		for (int i = 0; i < reverse.length; i++) {
-			reverse[i] = forward[index];
-			index--;
+		return reverse(forward, reverse);
+	}
+
+	/**
+	 * As {@link #reverse(int[])} but happens in place
+	 */
+	public static int[] reverseInPlace(int[] forward) {
+		return reverse(forward, forward);
+	}
+
+	private static int[] reverse(int[] forward, int[] reverse) {
+		for (int i = 0; i < (reverse.length + 1) / 2; i++) {
+			int t = forward[i];
+			reverse[i] = forward[forward.length - 1 - i];
+			reverse[forward.length - 1 - i] = t;
+		}
+		return reverse;
+	}
+
+	/**
+	 * Creates a new array holding the reverse entries of the given array
+	 */
+	public static long[] reverse(long[] forward) {
+		long[] reverse = new long[forward.length];
+		return reverse(forward, reverse);
+	}
+
+	/**
+	 * As {@link #reverse(long[])} but happens in place
+	 */
+	public static long[] reverseInPlace(long[] forward) {
+		return reverse(forward, forward);
+	}
+
+	private static long[] reverse(long[] forward, long[] reverse) {
+		for (int i = 0; i < (reverse.length + 1) / 2; i++) {
+			long t = forward[i];
+			reverse[i] = forward[forward.length - 1 - i];
+			reverse[forward.length - 1 - i] = t;
 		}
 		return reverse;
 	}
@@ -3932,14 +4009,25 @@ public class Array {
 	}
 
 	/**
-	 * Reverses the entries of the array, first becomes last, etc
+	 * Creates a new array holding the reverse entries of the given array
 	 */
 	public static double[] reverse(double[] forward) {
 		double[] reverse = new double[forward.length];
-		int index = forward.length - 1;
-		for (int i = 0; i < reverse.length; i++) {
-			reverse[i] = forward[index];
-			index--;
+		return reverse(forward, reverse);
+	}
+
+	/**
+	 * As {@link #reverse(double[])} but happens in place
+	 */
+	public static double[] reverseInPlace(double[] forward) {
+		return reverse(forward, forward);
+	}
+
+	private static double[] reverse(double[] forward, double[] reverse) {
+		for (int i = 0; i < (reverse.length + 1) / 2; i++) {
+			double t = forward[i];
+			reverse[i] = forward[forward.length - 1 - i];
+			reverse[forward.length - 1 - i] = t;
 		}
 		return reverse;
 	}
@@ -3968,24 +4056,6 @@ public class Array {
 			arr[i] = srcArr[i][index];
 		}
 		return arr;
-	}
-
-	/**
-	 * Copies an array exactly
-	 *
-	 * @param array an array of integers
-	 * @return copy of array
-	 */
-	public static int[] copyArray(int[] array) {
-		int[] newArray;
-
-
-		newArray = new int[array.length];
-		for (int i = 0; i < array.length; i++) {
-			newArray[i] = array[i];
-		}
-
-		return newArray;
 	}
 
 	/**
@@ -4168,16 +4238,18 @@ public class Array {
 	 *         neither
 	 */
 	public static int determineType(double[] array, boolean allow21) {
-		Hashtable<String, String> hash;
-
-		hash = new Hashtable<String, String>();
-		for (int i = 0; hash.size() < 3 && i < array.length; i++) {
+		List<BigDecimal> bds = new ArrayList<BigDecimal>();
+		// Find the first two non-NaN doubles
+		for (int i = 0; bds.size() < 3 && i < array.length; i++) {
 			if (!Double.isNaN(array[i])) {
-				hash.put(ext.formDeci(array[i], 2), "");
+				BigDecimal bd = BigDecimal.valueOf(array[i]).round(new MathContext(2));
+				bds.add(bd);
 			}
 		}
 
-		return determineType(allow21, Array.toDoubleArray(HashVec.getKeys(hash)));
+		Collections.sort(bds);
+
+		return determineType(allow21, new double[]{bds.get(0).doubleValue(), bds.get(1).doubleValue()});
 	}
 
 	/**
@@ -4834,6 +4906,35 @@ public class Array {
 		return newArray;
 	}
 
+	/**
+	 * Helper method to avoid modification of original data structure
+	 *
+	 * @return a sorted copy of the given array
+	 */
+	public static double[] sortedCopy(double[] array) {
+		double[] sorted = Arrays.copyOf(array, array.length);
+		Arrays.sort(sorted);
+		return sorted;
+	}
+
+	/**
+	 * As {@link Array#sortedCopy(double[])} for float arrays.
+	 */
+	public static float[] sortedCopy(float[] array) {
+		float[] sorted = Arrays.copyOf(array, array.length);
+		Arrays.sort(sorted);
+		return sorted;
+	}
+
+	/**
+	 * As {@link Array#sortedCopy(double[])} for object arrays.
+	 */
+	public static <T> T[] sortedCopy(T[] array) {
+		T[] sorted = Arrays.copyOf(array, array.length);
+		Arrays.sort(sorted);
+		return sorted;
+	}
+
 	public static void main(String[] args) {
 		double[] data = {	11.8, 0.93, 1.76, 14, 16.5, 17.1, 32.5, 33.4, 16.8, 21.5, 13.1, 22.2, 22.2, 16,
 											16.2};
@@ -4842,6 +4943,8 @@ public class Array {
 
 		System.out.println(Array.toStr(quantiles(data)));
 
+		System.out.println(1.1 - (int) 1 == 0.1); //false
+		System.out.println(Math.abs((1.1 - 1) - 0.1) <= 0.00000001); //true
 
 		// double alleleFreq = 0.2;
 		// double stdev = 0.12;
@@ -4858,5 +4961,4 @@ public class Array {
 		// Files.writeList(Array.toStringArray(array), "oi.xln");
 
 	}
-
 }

@@ -5,9 +5,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.Pedigree;
@@ -16,9 +18,12 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Quantiles;
+
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
 
 /**
  * Class that automates adding sample QC metrics to sample data, and also parses the qc metrics to
@@ -518,16 +523,21 @@ public class SampleQC {
 	 * Creates sample data friendly class titles for column headers
 	 */
 	private static String getClassForQuantile(Quantiles quantiles, String qcTitle, int numQ) {
-		String thisClass = "CLASS=QUANTILE_" + numQ + "_" + qcTitle;
-		int[] uniqLabels = Array.toIntArray(Array.unique(Array.toStringArray(quantiles.getQuantileMembershipAsRoundedInt())));
-		double[] uniqQs =
-										Array.toDoubleArray(Array.unique(Array.toStringArray(quantiles.getQuantileMembership())));
-		int[] orderLabels = Sort.quicksort(uniqLabels);
-		int[] orderQs = Sort.quicksort(uniqQs);
-		for (int i = 0; i < orderLabels.length; i++) {
-			thisClass += ";" + uniqLabels[orderLabels[i]] + "=q_" + ext.formDeci(uniqQs[orderQs[i]], 3);
+		StringBuilder thisClass = new StringBuilder("CLASS=QUANTILE_");
+		thisClass.append(numQ);
+		thisClass.append("_");
+		thisClass.append(qcTitle);
+		List<Integer> uniqLabels = Array.unique(Ints.asList(quantiles.getQuantileMembershipAsRoundedInt()));
+		List<Double> uniqQs = Array.unique(Doubles.asList(quantiles.getQuantileMembership()));
+		Collections.sort(uniqLabels);
+		Collections.sort(uniqQs);
+		for (int i = 0; i < uniqLabels.size(); i++) {
+			thisClass.append(";");
+			thisClass.append(uniqLabels.get(i));
+			thisClass.append("=q_");
+			thisClass.append(ext.formDeci(uniqQs.get(i), 3));
 		}
-		return thisClass;
+		return thisClass.toString();
 	}
 
 	private static boolean verifyAllProjectSamples(	Project proj, String lrrSdToLoad,

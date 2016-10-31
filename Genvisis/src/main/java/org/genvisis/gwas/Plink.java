@@ -637,12 +637,12 @@ public class Plink {
 				writer = new PrintWriter(new FileWriter(genomeFileRoot	+ "_" + (i == 0 ? "keep" : "drop")
 																								+ ".dat"));
 				trav = i == 0 ? in : out;
-				ids = HashVec.getKeys(trav, false, false);
+				ids = HashVec.getKeys(trav, false);
 				ranks = new int[ids.length];
 				for (int j = 0; j < ids.length; j++) {
 					ranks[j] = Integer.parseInt(trav.get(ids[j]));
 				}
-				order = Sort.quicksort(ranks);
+				order = Sort.getSortedIndices(ranks);
 				for (int j = 0; j < ids.length; j++) {
 					writer.println(ids[order[j]]);
 				}
@@ -687,7 +687,7 @@ public class Plink {
 			trav = HashVec.loadFileToHashString("ofInterest.txt", new int[] {0, 1}, new int[] {-7}, false,
 																					"\t", false, false, false);
 			log.report("Found file 'ofInterest.txt' with " + trav.size() + " records");
-			ids = HashVec.getKeys(trav, false, false);
+			ids = HashVec.getKeys(trav, false);
 			counts = new int[3];
 			for (String id : ids) {
 				if (in.containsKey(id)) {

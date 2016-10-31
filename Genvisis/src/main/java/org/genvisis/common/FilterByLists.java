@@ -7,10 +7,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Vector;
-
-import com.google.common.primitives.Ints;
 
 public class FilterByLists {
 	public static void fromParameters(String controlFile, Logger log) {
@@ -114,7 +113,8 @@ public class FilterByLists {
 		String[] line;
 		String temp, key;
 		boolean isFirstLine;
-		String[] keepKeys, delKeys;
+		String[] keepKeys;
+		String[] delKeys;
 		Vector<String> v;
 		IntVector iv;
 		int[] order;
@@ -125,13 +125,13 @@ public class FilterByLists {
 		}
 
 		if (reportMissingElements && keepsHash != null) {
-			keepKeys = HashVec.getKeys(keepsHash, true, false);
+			keepKeys = HashVec.getKeys(keepsHash);
 		} else {
 			keepKeys = null;
 		}
 
 		if (reportMissingElements && deletesHash != null) {
-			delKeys = HashVec.getKeys(deletesHash, true, false);
+			delKeys = HashVec.getKeys(deletesHash);
 		} else {
 			delKeys = null;
 		}
@@ -175,36 +175,32 @@ public class FilterByLists {
 		if (reportMissingElements) {
 			if (keepsHash != null) {
 				v = new Vector<String>();
-				iv = new IntVector();
 				for (int i = 0; i < keepKeys.length; i++) {
 					if (!keepsHash.get(keepKeys[i]).equals("")) {
 						v.add(keepKeys[i]);
-						iv.add(Integer.parseInt(keepsHash.get(keepKeys[i])));
 					}
 				}
 				if (v.size() > 0) {
 					System.err.println("Warning - the following were found in the keeps list but not in the data file:");
-					order = Sort.quicksort(Ints.toArray(iv));
+					Collections.sort(v);
 					for (int i = 0; i < v.size(); i++) {
-						System.err.println(v.elementAt(order[i]));
+						System.err.println(v.get(i));
 					}
 				}
 			}
 
 			if (deletesHash != null) {
 				v = new Vector<String>();
-				iv = new IntVector();
 				for (int i = 0; i < delKeys.length; i++) {
 					if (!deletesHash.get(delKeys[i]).equals("")) {
 						v.add(delKeys[i]);
-						iv.add(Integer.parseInt(deletesHash.get(delKeys[i])));
 					}
 				}
 				if (v.size() > 0) {
 					System.err.println("Warning - the following were found in the deletes list but not in the data file:");
-					order = Sort.quicksort(Ints.toArray(iv));
+					Collections.sort(v);
 					for (int i = 0; i < v.size(); i++) {
-						System.err.println(v.elementAt(order[i]));
+						System.err.println(v.get(i));
 					}
 				}
 			}

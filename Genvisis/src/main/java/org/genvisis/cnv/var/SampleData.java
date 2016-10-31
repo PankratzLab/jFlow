@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.swing.SwingUtilities;
@@ -34,7 +35,6 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariantHash;
@@ -210,7 +210,6 @@ public class SampleData {
 		// Hashtable<String,IndiPheno> sampleHash;
 		String filename;
 		CountVector sexCountHash;
-		int[] sexValues;
 		String[] ids;
 		Logger log;
 
@@ -378,8 +377,7 @@ public class SampleData {
 
 			if (log.getLevel() >= 1) {
 				if (sexClassIndex != -1) {
-					sexValues = Array.toIntArray(sexCountHash.getValues());
-					sexValues = Sort.putInOrder(sexValues, Sort.quicksort(sexValues, Sort.DESCENDING));
+					int[] sexValues = Array.toIntArray(sexCountHash.getValues());
 					if (Array.countIf(sexValues, 2) == 0) {
 						log.reportError("Warning - no females listed in SampleData file; make sure 1=male and 2=female in the coding");
 						// proj.message("descending "+ Array.toStr(sexValues, " ")+"\tError - warning no females
@@ -1006,7 +1004,7 @@ public class SampleData {
 		String bakFile;
 		String inLine;
 		String colorKeyHeader;
-		String[] keys;
+		Set<String> keys;
 		boolean covar, negativeValues, largerThanByte;
 		String trav;
 
@@ -1029,7 +1027,7 @@ public class SampleData {
 		covar = false;
 		negativeValues = false;
 		largerThanByte = false;
-		keys = HashVec.getKeys(colorKeyValue, false, false);
+		keys = colorKeyValue.keySet();
 		for (String key : keys) {
 			trav = colorKeyValue.get(key);
 			if (!ext.isMissingValue(trav) && !ext.isValidInteger(trav)) {

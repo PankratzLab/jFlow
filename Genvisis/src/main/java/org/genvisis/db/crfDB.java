@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -16,7 +17,6 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Elision;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.LogisticRegression;
@@ -369,10 +369,11 @@ public class crfDB {
 				reader.close();
 			}
 
-			int[] keys = Sort.quicksort(Array.toStringArray(idCollection));
+			String[] sortedIds = Array.toStringArray(idCollection);
+			Arrays.sort(sortedIds);
 
 			for (int i = 0; i < idCollection.size(); i++) {
-				unique_id = idCollection.elementAt(keys[i]);
+				unique_id = sortedIds[i];
 				allData = hash.get(unique_id);
 				for (int fn = 0; fn < numFiles; fn++) {
 					if (allData[fn] == null) {
@@ -813,7 +814,7 @@ public class crfDB {
 			log.reportError(temp);
 
 			for (int i = 0; i < idCollection.size(); i++) {
-				unique_id = idCollection.elementAt(keys[i]);
+				unique_id = sortedIds[i];
 				writer.print(unique_id + (filenameKey[0][1].split(":").length == 2
 																																							? "\t"
 																																								+ unique_id.substring(0,
@@ -822,7 +823,7 @@ public class crfDB {
 																																							+ Integer	.valueOf(unique_id.substring(5))
 																																												.intValue()
 																																						: ""));
-				allData = hash.get(idCollection.elementAt(keys[i]));
+				allData = hash.get(sortedIds[i]);
 				for (int j = 0; j < allData[numFiles].length; j++) {
 					writer.print(dropFromFinal[j] ? "" : "\t" + allData[numFiles][j]);
 				}

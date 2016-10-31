@@ -188,7 +188,7 @@ public class simulateNullDistribution {
 		}
 		System.out.println("Allele frequencies were permuted one per family ("	+ numParticipants
 												+ " from " + fams.length + " families)");
-		keys = Sort.quicksort(alleles, Sort.ASCENDING);
+		keys = Sort.getReverseIndices(alleles);
 		line = targets.split(",");
 		targetIndices = new int[line.length];
 		for (int i = 0; i < line.length; i++) {

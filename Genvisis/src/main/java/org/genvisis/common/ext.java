@@ -23,6 +23,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -1161,6 +1162,10 @@ public class ext {
 		}
 	}
 
+	public static String listWithCommas(List<String> list) {
+		return listWithCommas(list.toArray(new String[list.size()]));
+	}
+
 	public static String listWithCommas(String[] list) {
 		return listWithCommas(list, true);
 	}
@@ -1182,24 +1187,26 @@ public class ext {
 	}
 
 	public static String listRanges(int[] array) {
-		String str;
-		int[] ordered;
-
 		if (array.length == 0) {
 			return "";
 		}
 
-		ordered = Sort.putInOrder(array);
-		str = ordered[0] + "";
+		StringBuilder sb = new StringBuilder();
+		int[] ordered = Arrays.copyOf(array, array.length);
+		Arrays.sort(ordered);
+
+		sb.append(ordered[0]);
 		for (int i = 1; i < ordered.length; i++) {
 			if (ordered[i] - ordered[i - 1] > 1) {
-				str += "," + ordered[i];
+				sb.append(",");
+				sb.append(ordered[i]);
 			} else if (i + 1 == ordered.length || ordered[i + 1] - ordered[i] > 1) {
-				str += "-" + ordered[i];
+				sb.append("-");
+				sb.append(ordered[i]);
 			}
 		}
 
-		return str;
+		return sb.toString();
 	}
 
 	public static String capitalizeFirst(String str) {

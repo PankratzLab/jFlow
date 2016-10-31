@@ -58,7 +58,7 @@ public class DossierMerge {
 
 
 		count = 0;
-		keys = HashVec.getKeys(citationHash, true, true);
+		keys = HashVec.getNumericKeys(citationHash);
 		for (int i = 0; i < keys.length; i++) {
 			pmid = keys[keys.length - i - 1];
 			citation = citationHash.remove(pmid);

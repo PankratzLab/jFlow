@@ -23,7 +23,6 @@ import org.genvisis.cnv.gui.LaunchAction;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -114,7 +113,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 		if (invalidBytes.size() > 0) {
 			proj.message("Invalid color codes for MosaicPlot in "	+ mosaicColorFile
 										+ " (must be an integer < 128):\n"
-										+ Array.toStr(HashVec.getKeys(invalidBytes, false, false), "\n\t"));
+										+ Array.toStr(invalidBytes, "\n\t"));
 		}
 
 

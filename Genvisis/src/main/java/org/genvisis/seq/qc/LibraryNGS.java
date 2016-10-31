@@ -13,6 +13,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
+import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 
@@ -869,10 +870,10 @@ public class LibraryNGS implements Serializable {
 				return loadSerial(SerializedFiles.getSerializedFileName(null, fullPathToBaitLibrary));
 			}
 			log.report(ext.getTime() + " Info - loading baits library from " + fullPathToBaitLibrary);
-			ArrayList<String> tmpTargetIDs = new ArrayList<String>(9000000);
-			ArrayList<String> tmpProbeIDs = new ArrayList<String>(9000000);
-			ArrayList<Segment> tmpBaits = new ArrayList<Segment>(9000000);
-			ArrayList<Double> tmpGCContent = new ArrayList<Double>(9000000);
+			List<String> tmpTargetIDs = new ArrayList<String>(9000000);
+			List<String> tmpProbeIDs = new ArrayList<String>(9000000);
+			List<Segment> tmpBaits = new ArrayList<Segment>(9000000);
+			List<Double> tmpGCContent = new ArrayList<Double>(9000000);
 			try {
 				BufferedReader reader = Files.getAppropriateReader(fullPathToBaitLibrary);
 				int[] indices = ext.indexFactors(	reader.readLine().trim().split("\t"), BAITS_HEADER, true,
@@ -914,7 +915,7 @@ public class LibraryNGS implements Serializable {
 			Segment[] baits = new Segment[numBaits];
 			double[] gcContentOfBait = new double[numBaits];
 
-			int[] sortedOrder = Segment.quicksort(tmpBaits.toArray(new Segment[tmpBaits.size()]));
+			int[] sortedOrder = Sort.getSortedIndices(tmpBaits);
 			for (int i = 0; i < sortedOrder.length; i++) {
 				targetIDs[i] = (tmpTargetIDs.get(sortedOrder[i]));
 				probeIDs[i] = (tmpProbeIDs.get(sortedOrder[i]));

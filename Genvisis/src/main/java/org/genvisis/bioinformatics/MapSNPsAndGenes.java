@@ -218,7 +218,7 @@ public class MapSNPsAndGenes {
 				for (int j = 0; j < dists.length; j++) {
 					dists[j] = Math.abs(dists[j]);
 				}
-				order = Sort.quicksort(dists);
+				order = Sort.getSortedIndices(dists);
 				for (int j = 0; j < geneNames.length; j++) {
 					if (dists[j] == 0) {
 						finalGenes[i][0] = finalGenes[i][0] == null	? geneNames[j]
@@ -230,7 +230,7 @@ public class MapSNPsAndGenes {
 				if (finalGenes[i][1] == null) {
 					finalGenes[i][1] = geneNames[order[0]];
 				}
-				finalGenes[i][2] = Array.toStr(Sort.putInOrder(geneNames, order), "|");
+				finalGenes[i][2] = Array.toStr(Sort.getOrdered(geneNames, order), "|");
 			}
 		}
 

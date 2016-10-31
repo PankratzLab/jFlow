@@ -922,8 +922,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             }
 
             // Draw those points with layer>0.
-            keys = HashVec.getKeys(layers);
-            order = Sort.quicksort(Array.toIntArray(keys));
+            keys = HashVec.getNumericKeys(layers);
+            order = Sort.getSortedIndices(keys);
             for (int i = 0; i < keys.length && flow; i++) {
                 layer = layers.get(keys[order[i]]);
                 for (int j = 0; j < layer.size(); j++) {

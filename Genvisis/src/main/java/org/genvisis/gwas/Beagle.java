@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -983,7 +985,7 @@ public class Beagle {
 		String[][] intervalStartAndStopMarkers;
 		SnpMarkerSet markerSet;
 		String[] markerNames;
-		int[][] intervalIndices;
+		Map<Segment, int[]> intervalIndices;
 		Segment[] intervals, segs;
 		Segment seg;
 		int[] positions, order;
@@ -1027,30 +1029,30 @@ public class Beagle {
 		chrs = markerSet.getChrs();
 		positions = markerSet.getPositions();
 
-		intervalIndices = new int[intervalStartAndStopMarkers.length][2];
+		intervalIndices = new HashMap<Segment, int[]>();
 		intervals = new Segment[intervalStartAndStopMarkers.length];
 		System.out.println("Aligning to the following segments:");
 		for (int i = 0; i < intervalStartAndStopMarkers.length; i++) {
+			int[] indices = new int[2];
 			for (int j = 0; j < 2; j++) {
-				intervalIndices[i][j] = ext.indexOfStr(intervalStartAndStopMarkers[i][j], markerNames);
-				if (intervalIndices[i][j] == -1) {
+				indices[j] = ext.indexOfStr(intervalStartAndStopMarkers[i][j], markerNames);
+				if (indices[j] == -1) {
 					System.err.println("Error - marker '"	+ intervalStartAndStopMarkers[i][j]
 															+ "' not found in plink.map; aborting");
 					System.exit(1);
 				}
 				if (chr == -1) {
-					chr = chrs[intervalIndices[i][j]];
-				} else if (chr != chrs[intervalIndices[i][j]]) {
+					chr = chrs[indices[j]];
+				} else if (chr != chrs[indices[j]]) {
 					System.err.println("Error - markers are on different chromosomes; can only process one chromosome at a time");
 				}
 			}
-			intervals[i] = new Segment(	chr, positions[intervalIndices[i][0]],
-																	positions[intervalIndices[i][1]]);
+			intervals[i] = new Segment(	chr, positions[indices[0]],
+																	positions[indices[1]]);
+			intervalIndices.put(intervals[i], indices);
 			System.out.println(intervals[i].getUCSClocation());
 		}
-		order = Segment.quicksort(intervals);
-		intervals = Segment.putInOrder(intervals, order);
-		intervalIndices = Matrix.putInOrder(intervalIndices, order);
+		Arrays.sort(intervals);
 
 		hashes = new Hashtable<String, Hashtable<String, Vector<String[]>>>();
 		for (int i = 0; i < intervals.length; i++) {
@@ -1085,11 +1087,12 @@ public class Beagle {
 								System.out.print(".");
 							}
 
-							data = new String[intervalIndices[i][1] - intervalIndices[i][0] + 2];
+							int[] indices = intervalIndices.get(intervals[i]);
+							data = new String[indices[1] - indices[0] + 2];
 							for (int j = start; j < stop; j++) {
-								if (j >= intervalIndices[i][0] && j <= intervalIndices[i][1]) {
+								if (j >= indices[0] && j <= indices[1]) {
 									if (Double.parseDouble(probs[j - start]) >= 0.500) {
-										data[j - intervalIndices[i][0] + 1] = alleles[j - start];
+										data[j - indices[0] + 1] = alleles[j - start];
 									}
 								}
 							}
@@ -1124,7 +1127,8 @@ public class Beagle {
 																																			":", "@")
 																								+ ".xln"));
 				writer.print("IID\tPairing(s)");
-				for (int j = intervalIndices[i][0]; j <= intervalIndices[i][1]; j++) {
+				int[] indices = intervalIndices.get(intervals[i]);
+				for (int j = indices[0]; j <= indices[1]; j++) {
 					writer.print("\t" + markerNames[j]);
 				}
 				writer.println();
@@ -1234,9 +1238,9 @@ public class Beagle {
 		values = cv.getValues();
 		counts = cv.getCounts();
 
-		order = Sort.quicksort(values);
-		values = Sort.putInOrder(values, order);
-		counts = Sort.putInOrder(counts, order);
+		order = Sort.getSortedIndices(values);
+		values = Sort.getOrdered(values, order);
+		counts = Sort.getOrdered(counts, order);
 
 		means = new double[2][values.length + 1];
 		meanCounts = new int[2][values.length + 1];

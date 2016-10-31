@@ -12,6 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 
 import javax.swing.JPopupMenu;
@@ -31,7 +32,6 @@ import org.genvisis.common.CountVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Sort;
 
 // TODO Needs some cleanup, especially MouseMoved, MouseClicked, and generatePoints
 public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
@@ -464,7 +464,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				hash.put(point.getLayer() + "", "");
 			}
 		}
-		setLayersInBase(Array.toByteArray(Sort.putInOrder(Array.toIntArray(HashVec.getKeys(hash)))));
+		// sort layers as bytes
+		byte[] layers = Array.toByteArray(HashVec.getKeys(hash, false));
+		Arrays.sort(layers);
+		setLayersInBase(layers);
 		generateRectangles();
 		setSwapable(false);
 		if (sp.getCurrentClusterFilter() >= 0) {

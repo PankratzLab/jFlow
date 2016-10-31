@@ -1,12 +1,12 @@
 package org.genvisis.stats;
 
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Matrix;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 public class CTable {
@@ -34,7 +34,6 @@ public class CTable {
 	public CTable(String[] array1, String[] array2) {
 		String index;
 		Vector<String> rowLabelVector, columnLabelVector;
-		String[] rowLabelList, columnLabelList;
 
 		if (array1.length != array2.length) {
 			System.err.println("Error - arrays are not of the same length");
@@ -56,16 +55,16 @@ public class CTable {
 			HashVec.addIfAbsent(array2[i], columnLabelVector);
 		}
 
-		rowLabelList = Sort.putInOrder(Array.toStringArray(rowLabelVector));
-		columnLabelList = Sort.putInOrder(Array.toStringArray(columnLabelVector));
-		rowLabels = new String[rowLabelList.length][2];
-		columnLabels = new String[columnLabelList.length][2];
+		Collections.sort(rowLabelVector);
+		Collections.sort(columnLabelVector);
+		rowLabels = new String[rowLabelVector.size()][2];
+		columnLabels = new String[columnLabelVector.size()][2];
 		// for(int i=0; i<array1.length; i++) {
-		for (int i = 0; i < rowLabelList.length; i++) {
-			rowLabels[i][0] = rowLabels[i][1] = rowLabelList[i];
+		for (int i = 0; i < rowLabelVector.size(); i++) {
+			rowLabels[i][0] = rowLabels[i][1] = rowLabelVector.get(i);
 		}
-		for (int i = 0; i < columnLabelList.length; i++) {
-			columnLabels[i][0] = columnLabels[i][1] = columnLabelList[i];
+		for (int i = 0; i < columnLabelVector.size(); i++) {
+			columnLabels[i][0] = columnLabels[i][1] = columnLabelVector.get(i);
 		}
 		// Need to add missing value processing here
 

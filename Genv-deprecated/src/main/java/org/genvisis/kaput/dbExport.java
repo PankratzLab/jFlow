@@ -96,7 +96,7 @@ public class dbExport {
 
 		dv = new DoubleVector();
 		if (filename.equals("")) {
-			keys = Sort.quicksort(Array.toStringArray(inds));
+			keys = Sort.getSortedIndices(Array.toStringArray(inds));
 			for (int i = 0; i < inds.size(); i++) {
 				trav = inds.elementAt(keys[i]);
 				writer.println(formatData(uniqueIDs ? trav : trav.substring(0, 5),
@@ -161,7 +161,7 @@ public class dbExport {
 			}
 
 			if (filename.equals("")) {
-				keys = Sort.quicksort(Array.toStringArray(inds));
+				keys = Sort.getSortedIndices(Array.toStringArray(inds));
 				for (int i = 0; i < inds.size(); i++) {
 					trav = inds.elementAt(keys[i]);
 					data = hash.get(trav);

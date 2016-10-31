@@ -62,7 +62,7 @@ public class SurvivalGraph {
 
 		classes = Array.toStringArray(classV);
 		ages = Array.toStringArray(ageV);
-		keys = Sort.quicksort(Array.toDoubleArray(ages));
+		keys = Sort.getSortedIndices(ages);
 		fams = HashVec.getKeys(hash);
 		counts = new double[classes.length][ages.length];
 		for (String fam : fams) {

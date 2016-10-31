@@ -6,9 +6,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Vector;
 
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 public class procAOO {
@@ -116,7 +116,6 @@ public class procAOO {
 	public String pertinent(Vector<String> phenos) {
 		// ext.formDeci 1, true for aoo --> 4, true for the others
 		String str = "";
-		int[] keys;
 		int size = phenos.size();
 		double[] realPhenos;
 		double total = 0;
@@ -130,19 +129,19 @@ public class procAOO {
 			}
 			str += ext.formDeci(total / size, DECIMAL_POINTS, true) + "\t";
 
-			keys = Sort.quicksort(realPhenos);
-			str += ext.formDeci(realPhenos[keys[0]], 1) + "\t";
-			str += ext.formDeci(realPhenos[keys[realPhenos.length - 1]], 1) + "\t";
+			Arrays.sort(realPhenos);
+			str += ext.formDeci(realPhenos[0], 1) + "\t";
+			str += ext.formDeci(realPhenos[realPhenos.length - 1], 1) + "\t";
 
 			if (size > 1) {
-				str += ext.formDeci(realPhenos[keys[1]], 1) + "\t";
-				str += ext.formDeci(realPhenos[keys[realPhenos.length - 2]], 1) + "\t";
+				str += ext.formDeci(realPhenos[1], 1) + "\t";
+				str += ext.formDeci(realPhenos[realPhenos.length - 2], 1) + "\t";
 
 				total = 0;
 				// count = 0;
-				for (int i = 0; i < keys.length - 1; i++) {
-					for (int j = i + 1; j < keys.length; j++) {
-						total += realPhenos[keys[j]] - realPhenos[keys[i]];
+				for (int i = 0; i < realPhenos.length - 1; i++) {
+					for (int j = i + 1; j < realPhenos.length; j++) {
+						total += realPhenos[j] - realPhenos[i];
 						// count++;
 					}
 				}

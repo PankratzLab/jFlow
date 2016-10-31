@@ -8,9 +8,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Vector;
 
 import javax.swing.JOptionPane;
@@ -21,7 +27,6 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 public class AnnotationCollection implements Serializable, TextExport {
@@ -68,9 +73,9 @@ public class AnnotationCollection implements Serializable, TextExport {
 			for (int i = 0; markers != null && i < markers.size(); i++) {
 				removeAnnotationForMarker(markers.elementAt(i), c);
 			}
-			System.out.println(ext.listWithCommas(HashVec.getKeys(annotationMarkerLists, true, false)));
+			System.out.println(ext.listWithCommas(HashVec.getKeys(annotationMarkerLists)));
 			annotationMarkerLists.remove(c + "");
-			System.out.println(ext.listWithCommas(HashVec.getKeys(annotationMarkerLists, true, false)));
+			System.out.println(ext.listWithCommas(HashVec.getKeys(annotationMarkerLists)));
 			System.out.println();
 		}
 
@@ -132,12 +137,13 @@ public class AnnotationCollection implements Serializable, TextExport {
 	}
 
 	public void dumpLists(String outputDir) {
-		String[] list, keysAnnotations, keysMarkers;
+		String[] list;
+		List<String> keysAnnotations, keysMarkers;
 		String[][] matrix;
 		Vector<String> annotationsVector;
 		String annotationsOfTheMarker;
 
-		keysAnnotations = HashVec.getKeys(annotationMarkerLists);
+		keysAnnotations = HashVec.getKeyList(annotationMarkerLists);
 		for (String keysAnnotation : keysAnnotations) {
 			Files.writeArray(	Array.toStringArray(annotationMarkerLists.get(keysAnnotation)),
 												outputDir																												+ "annotation_" + keysAnnotation + "_" + ext.replaceWithLinuxSafeCharacters(getDescriptionForComment(	keysAnnotation.charAt(0),
@@ -149,24 +155,26 @@ public class AnnotationCollection implements Serializable, TextExport {
 
 		list = new String[markerAnnotations.size()];
 		matrix = new String[markerAnnotations.size() + 2][];
-		matrix[0] = Array.addStrToArray("", keysAnnotations, 0);
-		matrix[1] = Array.addStrToArray("MarkerName", keysAnnotations, 0);
+		keysAnnotations.add(0, "");
+		matrix[0] = keysAnnotations.toArray(new String[keysAnnotations.size()]);
+		keysAnnotations.add(0, "MarkerName");
+		matrix[1] = keysAnnotations.toArray(new String[keysAnnotations.size()]);
 		for (int i = 1; i < matrix[1].length; i++) {
 			matrix[1][i] = getDescriptionForComment(matrix[1][i].charAt(0), false, false);
 		}
-		keysMarkers = HashVec.getKeys(markerAnnotations);
+		keysMarkers = HashVec.getKeyList(markerAnnotations);
 		for (int i = 0; i < list.length; i++) {
-			annotationsVector = markerAnnotations.get(keysMarkers[i]);
+			annotationsVector = markerAnnotations.get(keysMarkers.get(i));
 			annotationsOfTheMarker = "";
-			matrix[i + 2] = Array.stringArray(keysAnnotations.length + 1, "0");
-			matrix[i + 2][0] = keysMarkers[i];
+			matrix[i + 2] = Array.stringArray(keysAnnotations.size() + 1, "0");
+			matrix[i + 2][0] = keysMarkers.get(i);
 			for (int j = 0; j < annotationsVector.size(); j++) {
 				annotationsOfTheMarker += (j == 0 ? "" : ";")
 																	+ commentsHash.get(annotationsVector.elementAt(j)
 																																			.toCharArray()[0]);
-				matrix[i + 2][ext.indexOfStr(annotationsVector.elementAt(j), keysAnnotations) + 1] = "1";
+				matrix[i + 2][keysAnnotations.indexOf(annotationsVector.elementAt(j)) + 1] = "1";
 			}
-			list[i] = keysMarkers[i] + "\t" + annotationsOfTheMarker;
+			list[i] = keysMarkers.get(i) + "\t" + annotationsOfTheMarker;
 		}
 		Files.writeArray(list, outputDir + "annotations_list.xln");
 		Files.writeMatrix(matrix, outputDir + "annotations_matrix.xln", "\t");
@@ -270,27 +278,27 @@ public class AnnotationCollection implements Serializable, TextExport {
 	}
 
 
+	/**
+	 * @return Comments keys sorted by the descriptions they map to
+	 */
 	public char[] getKeys() {
-		String[] commentDescriptions;
-		char[] result;
-		Enumeration<Character> keys;
-		char key;
-		Hashtable<String, Character> temp;
 
-		temp = new Hashtable<String, Character>(commentsHash.size() + 1, (float) 1.00);
-		keys = commentsHash.keys();
-		commentDescriptions = new String[commentsHash.size()];
-		for (int i = 0; i < commentDescriptions.length; i++) {
-			key = keys.nextElement();
-			commentDescriptions[i] = commentsHash.get(key);
-			temp.put(commentDescriptions[i], key);
-		}
-		commentDescriptions = Sort.putInOrder(commentDescriptions);
+		List<String> values = new ArrayList<String>(commentsHash.size());
+		Map<String, Character> reverseMap = new HashMap<String, Character>();
 
-		result = new char[commentsHash.size()];
-		for (int i = 0; i < commentDescriptions.length; i++) {
-			result[i] = temp.get(commentDescriptions[i]);
+		for (Entry<Character, String> e : commentsHash.entrySet()) {
+			reverseMap.put(e.getValue(), e.getKey());
+			values.add(e.getValue());
 		}
+
+		Collections.sort(values);
+
+		char[] result = new char[values.size()];
+
+		for (int i=0; i<values.size(); i++) {
+			result[i] = reverseMap.get(values.get(i));
+		}
+
 		return result;
 	}
 

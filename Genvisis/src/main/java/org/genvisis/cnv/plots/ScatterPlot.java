@@ -3209,10 +3209,10 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 				String[] vals = proj.DISPLAY_MARKERS_FILENAMES.getValue();
 				HashSet<String> mnemonics = new HashSet<String>();
 				if ("alpha".equals(ae.getActionCommand())) {
-					int[] indices = Sort.quicksort(vals);
-					for (int indice : indices) {
+					int[] indices = Sort.getSortedIndices(vals);
+					for (int index : indices) {
 						JMenuItem listEntry = new JMenuItem();
-						String[] tmp = vals[indice].split("/");
+						String[] tmp = vals[index].split("/");
 						String mnemChar = tmp[tmp.length - 1].charAt(0) + "";
 						int cnt = 1;
 						while (mnemonics.contains(mnemChar) && cnt < tmp[tmp.length - 1].length()) {
@@ -3223,8 +3223,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 							listEntry.setMnemonic(mnemChar.charAt(0));
 						}
 						listEntry.addActionListener(loadFileListener);
-						listEntry.setActionCommand(vals[indice]);
-						listEntry.setText(vals[indice]);
+						listEntry.setActionCommand(vals[index]);
+						listEntry.setText(vals[index]);
 						previousListItem.add(listEntry);
 					}
 				} else if ("time".equals(ae.getActionCommand())) {
@@ -3233,7 +3233,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 						File f = new File(vals[i]);
 						times[i] = f.lastModified();
 					}
-					int[] indices = Sort.quicksort(times);
+					int[] indices = Sort.getSortedIndices(times);
 					for (int i = indices.length - 1; i >= 0; i--) {
 						JMenuItem listEntry = new JMenuItem();
 						String[] tmp = vals[indices[i]].split("/");

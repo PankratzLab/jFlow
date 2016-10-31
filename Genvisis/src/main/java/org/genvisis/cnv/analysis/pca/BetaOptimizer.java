@@ -9,9 +9,11 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
@@ -37,8 +39,8 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Numbers;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
+import org.genvisis.common.SciStringComparator;
 import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.Sort;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
@@ -557,7 +559,6 @@ public class BetaOptimizer {
 																																																												summHeader),
 																																																					ext.indexOfStr(	"numSamples",
 																																																													summHeader)},
-																																															"\t",
 																																															false,
 																																															false);
 
@@ -580,14 +581,15 @@ public class BetaOptimizer {
 				// new String[] { "==", "==" }, "|");
 				String[][] altLegends = null;
 				if (currentInfo != null) {
-					String[][] tmpLegends = new String[2][currentInfo.size()];
+					String[] tmpMethods = new String[currentInfo.size()];
+					Map<String, String> legendMap = new HashMap<String, String>();
 					int ind = 0;
 					for (String method : currentInfo.keySet()) {
 						String[] inf = currentInfo.get(method).get(0).split("\t");
 						String legend = method + " (m=" + inf[0] + ", s=" + inf[1] + ")";
 
-						tmpLegends[0][ind] = method;
-						tmpLegends[1][ind] = legend;
+						tmpMethods[ind] = method;
+						legendMap.put(method, legend);
 
 						// if (method == (ext.rootOf(samplesToBuildModels) + "_" + ORDER_TYPE.NATURAL)) {
 						// titleExtra += "\n" + method + " markers = " + currentInfo.get(method).get(0);
@@ -599,13 +601,12 @@ public class BetaOptimizer {
 
 						ind++;
 					}
-					int[] sort = Sort.quicksort(tmpLegends[0]);
+					Arrays.sort(tmpMethods, new SciStringComparator());
 					altLegends = new String[2][currentInfo.size()];
 
-					for (int i = 0; i < sort.length; i++) {
-						altLegends[0][i] = tmpLegends[0][sort[i]];
-						altLegends[1][i] = tmpLegends[1][sort[i]];
-
+					for (int i = 0; i < tmpMethods.length; i++) {
+						altLegends[0][i] = tmpMethods[i];
+						altLegends[1][i] = legendMap.get(tmpMethods[i]);
 					}
 				}
 

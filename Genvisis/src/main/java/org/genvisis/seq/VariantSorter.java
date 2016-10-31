@@ -146,7 +146,7 @@ public class VariantSorter {
 			}
 		}
 
-		Collapsed.writeList(Collapsed.getKeys(variants), dir + "siftInput.dat");
+		Collapsed.writeList(HashVec.getKeys(variants), dir + "siftInput.dat");
 
 		siftInfo = new Hashtable<String, String>();
 		if (Collapsed.exists(dir + "siftOutput.dat", false)) {
@@ -172,7 +172,7 @@ public class VariantSorter {
 			}
 		}
 
-		genes = Collapsed.getKeys(hash);
+		genes = HashVec.getKeys(hash);
 		favHits = new Hashtable<String, Vector<String>>();
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "bins.xln"));
@@ -262,7 +262,7 @@ public class VariantSorter {
 			e.printStackTrace();
 		}
 
-		genes = Collapsed.getKeys(favHits);
+		genes = HashVec.getKeys(favHits);
 		for (String gene2 : genes) {
 			Collapsed.writeList(Collapsed.toStringArray(favHits.get(gene2)), dir + gene2 + ".out");
 		}
@@ -426,7 +426,7 @@ public class VariantSorter {
 			}
 		}
 
-		genes = Collapsed.getKeys(hash);
+		genes = HashVec.getKeys(hash);
 		favHits = new Hashtable<String, Vector<String>>();
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "bins.xln"));
@@ -446,7 +446,7 @@ public class VariantSorter {
 			e.printStackTrace();
 		}
 
-		genes = Collapsed.getKeys(favHits);
+		genes = HashVec.getKeys(favHits);
 		for (String gene : genes) {
 			Collapsed.writeList(Collapsed.toStringArray(favHits.get(gene)), dir + gene + ".out");
 		}

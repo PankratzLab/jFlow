@@ -11,6 +11,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.genvisis.common.Collapsed;
+import org.genvisis.common.HashVec;
 
 public class VariantSorter {
 	public static final double MAF_LOWER_BOUND = 0.01;
@@ -141,7 +142,7 @@ public class VariantSorter {
 			}
 		}
 
-		Collapsed.writeList(Collapsed.getKeys(variants), dir + "siftInput.txt");
+		Collapsed.writeList(HashVec.getKeys(variants), dir + "siftInput.txt");
 
 		siftInfo = new Hashtable<String, String>();
 		if (Collapsed.exists(dir + "siftOutput.txt", false)) {
@@ -167,7 +168,7 @@ public class VariantSorter {
 			}
 		}
 
-		genes = Collapsed.getKeys(hash);
+		genes = HashVec.getKeys(hash);
 		favHits = new Hashtable<String, Vector<String>>();
 		try {
 			writer = new PrintWriter(new FileWriter(dir + "bins.xln"));
@@ -247,7 +248,7 @@ public class VariantSorter {
 			e.printStackTrace();
 		}
 
-		genes = Collapsed.getKeys(favHits);
+		genes = HashVec.getKeys(favHits);
 		for (String gene2 : genes) {
 			Collapsed.writeList(Collapsed.toStringArray(favHits.get(gene2)), dir + gene2 + ".out");
 		}

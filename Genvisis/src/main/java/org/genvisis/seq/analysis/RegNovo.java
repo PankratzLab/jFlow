@@ -338,7 +338,7 @@ public class RegNovo {
 		all.addAll(controls);
 		all.addAll(exclude);
 
-		Segment[] segsSorted = Segment.sortSegments(segs);
+		Segment[] segsSorted = Array.sortedCopy(segs);
 		vpop.getLog().reportTimeInfo("Scanning " + segsSorted.length + " segments");
 
 		String alleleSummary = ext.addToRoot(output, ".alleleSummary");

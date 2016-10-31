@@ -9,6 +9,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,7 +34,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
-import org.genvisis.common.Sort;
+import org.genvisis.common.SciStringComparator;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 
@@ -460,9 +461,9 @@ public class PennCNV {
 				writer.print("\t" + element);
 			}
 			writer.println();
-			int[] keys = Sort.quicksort(Array.toStringArray(v));
+			Collections.sort(v);
 			for (int i = 0; i < v.size(); i++) {
-				sampleID = v.elementAt(keys[i]);
+				sampleID = v.get(i);
 				data = hash.get(sampleID);
 				ids = sampleData.lookup(sampleID);
 				writer.print(sampleID + "\t" + (ids == null ? "NotInSampleData\t" + sampleID : ids[1]));
@@ -612,7 +613,9 @@ public class PennCNV {
 		SampleData sampleData;
 		String famIndPair;
 		Hashtable<String, String> hash;
-		String[] ids, fams, inds;
+		String[] ids;
+		List<String> inds;
+		String[] fams;
 		long time;
 		int sex;
 		Logger log;
@@ -683,9 +686,10 @@ public class PennCNV {
 			// FilterCalls.stdFilters(dir, ext.rootOf(filename)+".cnv", MAKE_UCSC_TRACKS);
 
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".fam"));
-			fams = HashVec.getKeys(pedinfo, true, true);
+			fams = HashVec.getNumericKeys(pedinfo);
 			for (String fam : fams) {
-				inds = Sort.putInOrder(Array.toStringArray(pedinfo.get(fam)), true);
+				inds = pedinfo.get(fam);
+				Collections.sort(inds, new SciStringComparator());
 				for (String ind : inds) {
 					ids = sampleData.lookup(fam + "\t" + ind);
 					if (ids != null) {

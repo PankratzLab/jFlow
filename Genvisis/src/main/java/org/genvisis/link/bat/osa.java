@@ -65,7 +65,7 @@ public class osa {
 		for (int i = 0; i < IDs.size(); i++) {
 			covars[i] = Double.valueOf(hash.get(IDs.elementAt(i))).doubleValue();
 		}
-		keys = Sort.quicksort(covars);
+		keys = Sort.getSortedIndices(covars);
 		hash.clear();
 
 		for (int chromosome = start; chromosome <= stop; chromosome++) {

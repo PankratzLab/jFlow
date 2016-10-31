@@ -126,7 +126,7 @@ public class lodsForExcel {
 			}
 			reader.close();
 
-			poslar = HashVec.getKeys(hash, true, true);
+			poslar = HashVec.getNumericKeys(hash);
 			for (int j = Integer.parseInt(poslar[0]); j <= Integer.parseInt(poslar[poslar.length
 																																							- 1]); j++) {
 				if (!hash.containsKey(j + "")) {
@@ -168,7 +168,7 @@ public class lodsForExcel {
 				mapFailure.add(chr + "");
 			}
 
-			poslar = HashVec.getKeys(hash, true, true);
+			poslar = HashVec.getNumericKeys(hash);
 			for (int meth = 0; meth < DATA_POINTS.length; meth++) {
 				count = Integer.parseInt(poslar[0]);
 				prev = -999;
@@ -203,7 +203,7 @@ public class lodsForExcel {
 				}
 			}
 
-			poslar = HashVec.getKeys(hash, true, true);
+			poslar = HashVec.getNumericKeys(hash);
 			try {
 				writer = new PrintWriter(new FileWriter("excel" + chrome + ".xls"));
 				writer.println("Marker\tPosition\tAdj.Position\t" + Array.toStr(DATA_POINTS, "\t"));

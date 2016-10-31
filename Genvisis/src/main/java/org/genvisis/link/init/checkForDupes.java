@@ -9,12 +9,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
 import org.genvisis.common.Files;
-import org.genvisis.common.Sort;
 
 public class checkForDupes {
 	public checkForDupes(boolean fix) throws IOException {
@@ -27,7 +26,6 @@ public class checkForDupes {
 		String[] line;
 		String[][] dupeGenos;
 		int numAgree, numDisagree;
-		int[] keys;
 		String bakFilename;
 		int count = 0;
 		String skipped = "";
@@ -160,8 +158,9 @@ public class checkForDupes {
 							line = hashGenos.get(trav + "/CO");
 
 							if (line.length > 1) {
-								keys = Sort.quicksort(Array.toStringArray(DNAs), Sort.DESCENDING);
-								writer.print(DNAs.elementAt(keys[0]) + "\t" + trav.replace('-', '\t'));
+								Collections.sort(DNAs);
+								Collections.reverse(DNAs);
+								writer.print(DNAs.get(0) + "\t" + trav.replace('-', '\t'));
 								for (int i = 3; i < line.length; i++) {
 									writer.print("\t" + line[i]);
 								}

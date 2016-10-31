@@ -5,14 +5,15 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Vector;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
+
 
 public class diff {
 	public static void addFileToQueue(String filename) {
@@ -20,7 +21,6 @@ public class diff {
 		Calendar midnight;
 		long fingerprint;
 		long[] prints;
-		int[] order;
 
 		midnight = Calendar.getInstance();
 		midnight.set(Calendar.HOUR_OF_DAY, 0);
@@ -51,9 +51,9 @@ public class diff {
 				for (int j = 0; j < files.length; j++) {
 					prints[j] = Long.parseLong(files[j].substring(0, files[j].indexOf(".")));
 				}
-				order = Sort.quicksort(prints);
-				if (fingerprint == prints[order[0]]) {
-					runDiff(filename, HashVec.loadFileToStringArray(prints[order[1]]	+ ".difftemp", false,
+				Arrays.sort(prints);
+				if (fingerprint == prints[0]) {
+					runDiff(filename, HashVec.loadFileToStringArray(prints[1]	+ ".difftemp", false,
 																													null, false)[0]);
 					deleteAll();
 					return;

@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -2221,7 +2222,7 @@ public class SeqMeta {
 
 		System.out.println("Read in all data in " + ext.getTimeElapsed(time));
 
-		geneNames = HashVec.getKeys(hash, false, false);
+		geneNames = HashVec.getKeys(hash, false);
 		chrs = new byte[geneNames.length];
 		positions = new int[geneNames.length];
 		for (int i = 0; i < geneNames.length; i++) {
@@ -2232,7 +2233,7 @@ public class SeqMeta {
 
 		System.out.println("Coalated positions at " + ext.getTimeElapsed(time));
 
-		indices = Sort.orderTwoLayers(chrs, positions, log);
+		indices = Sort.getSort2DIndices(chrs, positions);
 
 		System.out.println("Finished sorting at " + ext.getTimeElapsed(time));
 
@@ -3661,7 +3662,7 @@ public class SeqMeta {
 					}
 				}
 				pvals = Array.removeNaN(pvals);
-				pvals = Sort.putInOrder(pvals);
+				Arrays.sort(pvals);
 				if (count > 1) {
 					writer.println(temp	+ "\t" + pvals[pvals.length - 1] + "\t"
 													+ Array.sum(Array.subArray(pvals, 0, pvals.length - 1)) + "\t"

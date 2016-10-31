@@ -2201,7 +2201,7 @@ public class VCFOps {
 	public static QueryInterval[] convertSegsToQI(Segment[] segs, VCFHeader vcfHeader, int bpBuffer,
 																								boolean optimize, Logger log) {
 		QueryInterval[] qIntervals = new QueryInterval[segs.length];
-		segs = Segment.sortSegments(segs);
+		segs = Array.sortedCopy(segs);
 		for (int i = 0; i < qIntervals.length; i++) {
 			String sequenceName = Positions.getChromosomeUCSC(segs[i].getChr(), true);
 

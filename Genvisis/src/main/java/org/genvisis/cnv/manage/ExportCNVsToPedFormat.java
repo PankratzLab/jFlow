@@ -8,9 +8,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map.Entry;
 import java.util.Vector;
 
 import javax.swing.JFileChooser;
@@ -52,7 +54,6 @@ public class ExportCNVsToPedFormat {
 		String[] line;
 		byte currentCN;
 		long time;
-		String[] tempSampleList;
 		String[] finalSampleList;
 		int cnvIndex;
 		boolean done;
@@ -179,11 +180,11 @@ public class ExportCNVsToPedFormat {
 		log.report("Generated hashtable of positions in " + ext.getTimeElapsed(time));
 
 		time = new Date().getTime();
-		allChrPosSegs = Segment.sortSegments(allChrPosSegs);
+		Arrays.sort(allChrPosSegs);
 		log.report("Sorted positions in " + ext.getTimeElapsed(time));
 
 		time = new Date().getTime();
-		cnvs = CNVariant.sort(cnvs);
+		CNVariant.sortCNVsInPlace(cnvs);
 		log.report("Sorted CNVariants in " + ext.getTimeElapsed(time));
 
 		cnvIndex = 0;
@@ -243,16 +244,14 @@ public class ExportCNVsToPedFormat {
 				}
 			}
 
-			tempSampleList = HashVec.getKeys(sampleListHashFromCnvOrPedData, false, false);
 			finalSampleList = new String[sampleListHashFromCnvOrPedData.size()];
-			for (int i = 0; i < tempSampleList.length; i++) {
+			for (Entry<String, String> e : sampleListHashFromCnvOrPedData.entrySet()) {
 				if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)
 						&& !fileFormat.equals(PLINK_BINARY_FORMAT) && !fileFormat.equals(PLINK_TEXT_FORMAT)) {
-					finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = ext.replaceAllWith(tempSampleList[i],
-																																																												"\t",
-																																																												"-");
+					finalSampleList[Integer.parseInt(e.getValue())] =
+					                                                ext.replaceAllWith(e.getKey(), "\t", "-");
 				} else {
-					finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = tempSampleList[i];
+					finalSampleList[Integer.parseInt(e.getValue())] = e.getKey();
 				}
 			}
 

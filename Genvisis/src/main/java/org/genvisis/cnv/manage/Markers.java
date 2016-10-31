@@ -51,7 +51,7 @@ public class Markers {
 					snpPositions.remove(element);
 				}
 			}
-			markerNames = HashVec.getKeys(snpPositions, false, false);
+			markerNames = HashVec.getKeys(snpPositions, false);
 		}
 
 		reportMarkers = new HashSet<String>();
@@ -116,7 +116,7 @@ public class Markers {
 			return null;
 		}
 
-		keys = Sort.orderTwoLayers(chrs, positions, log);
+		keys = Sort.getSort2DIndices(chrs, positions);
 
 		new MarkerSet(markerNames, chrs, positions, keys).serialize(output);
 

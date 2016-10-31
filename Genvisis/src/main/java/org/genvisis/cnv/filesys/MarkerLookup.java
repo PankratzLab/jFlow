@@ -1,9 +1,10 @@
 package org.genvisis.cnv.filesys;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 
-import org.genvisis.common.HashVec;
 import org.genvisis.common.SerializedFiles;
 
 public class MarkerLookup implements Serializable {
@@ -36,7 +37,7 @@ public class MarkerLookup implements Serializable {
 	}
 
 	public String[] getMarkerList() {
-		return HashVec.getKeys(hash, false, false);
+		return hash.keySet().toArray(new String[hash.size()]);
 	}
 
 	public String getFirstMarkerDataRafFilename() {
@@ -44,21 +45,19 @@ public class MarkerLookup implements Serializable {
 	}
 
 	public String[] getMarkerDataRafFilenames() {
-		Hashtable<String, String> filenames;
+		Set<String> filenames;
 		String[] line;
 		String[] listOfMarkersInMarkerLookup;
 
-		filenames = new Hashtable<String, String>();
+		filenames = new HashSet<String>();
 
 		listOfMarkersInMarkerLookup = getMarkerList();
 		for (String element : listOfMarkersInMarkerLookup) {
 			line = get(element).split("[\\s]+");
-			if (!filenames.containsKey(line[0])) {
-				filenames.put(line[0], "");
-			}
+			filenames.add(line[0]);
 		}
 
-		return HashVec.getKeys(filenames, false, false);
+		return filenames.toArray(new String[filenames.size()]);
 	}
 
 }

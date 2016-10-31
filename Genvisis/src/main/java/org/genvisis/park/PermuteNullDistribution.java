@@ -12,7 +12,6 @@ import java.util.Vector;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.LogisticRegression;
@@ -96,8 +95,7 @@ public class PermuteNullDistribution {
 			vString.add(fam);
 		}
 
-		sizes = Array	.toStr(Sort.putInOrder(Array.toIntArray(HashVec.getKeys(countHash))), "\t")
-									.split("[\\s]+");
+		sizes = HashVec.getNumericKeys(countHash);
 		depMatrix = new double[sizes.length][][];
 		indepMatrix = new double[sizes.length][][][];
 		pheno = new Vector<String>();

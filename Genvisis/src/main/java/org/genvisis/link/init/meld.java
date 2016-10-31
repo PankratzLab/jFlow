@@ -7,12 +7,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 public class meld {
@@ -21,7 +20,7 @@ public class meld {
 		PrintWriter writer = null, dupes, mismatchedMarkers, mismatchGenotypes;
 		String temp, id;
 		Vector<String> individuals = new Vector<String>();
-		int[] key, store;
+		int[] store;
 		Hashtable<String, String> hash = new Hashtable<String, String>();
 		Hashtable<String, String> differs = new Hashtable<String, String>();
 		Vector<Hashtable<String, String>> offs;
@@ -51,13 +50,13 @@ public class meld {
 				line2 = readers[1].readLine().split("[\t]+");
 				if (line1.length != line2.length) {
 					if (line1.length > line2.length) {
-						System.err.println("Error - 1/chromosome"	+ chr + ".dat has "
-																+ (line1.length - line2.length)
-																+ " more columns (markers?) than 2/chromosome" + chr + ".dat");
+						System.err.println("Error - 1/chromosome" + chr + ".dat has "
+						                   + (line1.length - line2.length)
+						                   + " more columns (markers?) than 2/chromosome" + chr + ".dat");
 					} else {
-						System.err.println("Error - 2/chromosome"	+ chr + ".dat has "
-																+ (line2.length - line1.length)
-																+ " more columns (markers?) than 1/chromosome" + chr + ".dat");
+						System.err.println("Error - 2/chromosome" + chr + ".dat has "
+						                   + (line2.length - line1.length)
+						                   + " more columns (markers?) than 1/chromosome" + chr + ".dat");
 					}
 					System.exit(1);
 				}
@@ -104,7 +103,7 @@ public class meld {
 									store[(k - 3) / 2]++;
 									if (offs.elementAt((k - 3) / 2).containsKey(off + "")) {
 										offCount = Integer.valueOf(offs.elementAt((k - 3) / 2).get(off + "")).intValue()
-																+ 1;
+										           + 1;
 									} else {
 										offCount = 1;
 									}
@@ -128,10 +127,10 @@ public class meld {
 					}
 				}
 
-				key = Sort.quicksort(Array.toStringArray(individuals));
+				Collections.sort(individuals);
 
-				for (int element : key) {
-					writer.println(hash.get(individuals.elementAt(element)));
+				for (String i : individuals) {
+					writer.println(hash.get(i));
 				}
 
 				mismatchedMarkers.println("Chromosome " + chr);
@@ -150,8 +149,8 @@ public class meld {
 							}
 							totalOffCount += offCount;
 						}
-						temp = (int) (100 * (double) maxOffCount / totalOffCount)	+ "% shifted "
-										+ (maxOff > 0 ? "+" + maxOff : "" + maxOff);
+						temp = (int) (100 * (double) maxOffCount / totalOffCount) + "% shifted "
+						       + (maxOff > 0 ? "+" + maxOff : "" + maxOff);
 					}
 					mismatchedMarkers.println(markerNames[j + 3] + "\t" + store[j] + "\t" + temp);
 				}
@@ -165,17 +164,16 @@ public class meld {
 			writer.close();
 		}
 
-		key = Sort.quicksort(Array.toStringArray(individuals));
+		Collections.sort(individuals);
 
-		for (int element : key) {
-			if (differs.containsKey(individuals.elementAt(element))) {
-				mismatchGenotypes.println(individuals.elementAt(element)	+ "\t"
-																	+ differs.get(individuals.elementAt(element)));
+		for (String i : individuals) {
+			if (differs.containsKey(i)) {
+				mismatchGenotypes.println(i + "\t" + differs.get(i));
 			}
 		}
 
-		System.err.println("Overall error rate was "	+ diffs + "/" + (sames + diffs) + " ("
-												+ ((double) diffs / (double) (sames + diffs) * 100) + "%)");
+		System.err.println("Overall error rate was " + diffs + "/" + (sames + diffs) + " ("
+		                   + ((double) diffs / (double) (sames + diffs) * 100) + "%)");
 
 		mismatchedMarkers.close();
 		mismatchGenotypes.close();

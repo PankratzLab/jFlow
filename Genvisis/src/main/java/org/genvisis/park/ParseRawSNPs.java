@@ -230,7 +230,7 @@ public class ParseRawSNPs {
 																+ line[indices[0]] + ")");
 					}
 				}
-				keys = Sort.quicksort(values);
+				keys = Sort.getSortedIndices(values);
 
 				line = checkCall.getKeys();
 				if (line.length > 4) {

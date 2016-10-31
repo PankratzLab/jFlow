@@ -4,12 +4,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Hashtable;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SciStringComparator;
 import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 public class SampleList implements Serializable {
@@ -81,10 +82,10 @@ public class SampleList implements Serializable {
 		}
 
 		countAt = 0;
-		keys = Sort.quicksort(files);
+		Arrays.sort(files, new SciStringComparator());
 		samples = new String[files.length];
 		for (int i = 0; i < samples.length; i++) {
-			samples[i] = files[keys[i]].substring(0, files[keys[i]].lastIndexOf("."));
+			samples[i] = files[i].substring(0, files[i].lastIndexOf("."));
 			if (samples[i].contains("@")) {
 				countAt++;
 			}

@@ -470,7 +470,7 @@ public class LogisticRegression extends RegressionModel {
 				numAffs++;
 			}
 		}
-		keys = Sort.quicksort(dv);
+		keys = Sort.getSortedIndices(dv);
 		space = new double[dv.size() - 1][4];
 		for (int i = 0; i < dv.size() - 1; i++) {
 			space[i][0] = dv.elementAt(keys[i]) + (dv.elementAt(keys[i + 1]) - dv.elementAt(keys[i])) / 2;

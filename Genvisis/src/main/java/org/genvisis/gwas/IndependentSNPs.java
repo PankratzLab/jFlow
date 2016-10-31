@@ -322,10 +322,10 @@ public class IndependentSNPs {
 				}
 			}
 
-			keys = Sort.quicksort(positions);
-			subset = Sort.putInOrder(subset, keys);
-			positions = Sort.putInOrder(positions, keys);
-			pvals = Sort.putInOrder(pvals, keys);
+			keys = Sort.getSortedIndices(positions);
+			subset = Sort.getOrdered(subset, keys);
+			positions = Sort.getOrdered(positions, keys);
+			pvals = Sort.getOrdered(pvals, keys);
 
 			beforeIndices = Ints.toArray(beforeIndicesVector);
 			beforeIndex = 0;
@@ -502,7 +502,7 @@ public class IndependentSNPs {
 		for (int i = 0; i < values.length; i++) {
 			values[i] = Double.parseDouble(tags.elementAt(i).split("[\\s]+")[2]);
 		}
-		order = Sort.quicksort(values);
+		order = Sort.getSortedIndices(values);
 
 		finalList = new String[numSNPs];
 		for (int i = 0; i < numSNPs; i++) {
@@ -665,7 +665,7 @@ public class IndependentSNPs {
 												log);
 				data = HashVec.loadFileToStringMatrix(dir	+ param[0] + "_" + param[1] + "_" + param[2]
 																							+ "_tags.xln", false, new int[] {0, 1, 2, 3}, false);
-				keys = Sort.quicksort(Array.toDoubleArray(Matrix.extractColumn(data, 2)));
+				keys = Sort.getSortedIndices(Matrix.extractColumn(data, 2));
 
 				bins = new int[7];
 				failRate = -1;

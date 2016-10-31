@@ -100,8 +100,8 @@ public class Quantiles {
 	private static double[] determineQuantileMembership(double[] data, double[] quantiles,
 																											double[] qs, Logger log) {
 		double[] quantileMembership = new double[data.length];
-		int keysData[] = Sort.quicksort(data);
-		int keysQuant[] = Sort.quicksort(quantiles);
+		int keysData[] = Sort.getSortedIndices(data);
+		int keysQuant[] = Sort.getSortedIndices(quantiles);
 		int currentQuantileIndex = 0;
 		for (int i = 0; i < data.length; i++) {
 			// System.out.println(data[keysData[i]]+"\t"+i);

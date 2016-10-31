@@ -135,7 +135,7 @@ public class Transformations {
 	}
 
 	public static double[] rankTransform(double[] array) {
-		int[] order = Sort.quicksort(array);
+		int[] order = Sort.getSortedIndices(array);
 		double[] newData = new double[array.length];
 		int count = 0, plus;
 
@@ -171,7 +171,7 @@ public class Transformations {
 
 	public static double[] standardizeRange(double[] data, double finalMin, double finalMax) {
 		double[] newData = new double[data.length];
-		int[] keys = Sort.quicksort(data);
+		int[] keys = Sort.getSortedIndices(data);
 		double min = data[keys[0]];
 		double max = data[keys[data.length - 1]];
 

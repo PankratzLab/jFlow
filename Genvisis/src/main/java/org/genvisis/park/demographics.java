@@ -8,12 +8,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.genvisis.common.Array;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 public class demographics {
@@ -141,7 +140,7 @@ public class demographics {
 		}
 		writer.println(count + " families");
 
-		int[] keys = Sort.quicksort(Array.toStringArray(aoos));
+		Collections.sort(aoos);
 		meanAOO = 0;
 		for (int i = 0; i < aoos.size(); i++) {
 			meanAOO += Double.valueOf(aoos.elementAt(i)).doubleValue();
@@ -158,8 +157,8 @@ public class demographics {
 		} else {
 			writer.println("Age of onset information estimated from " + aoos.size() + " individuals:");
 			writer.println(ext.formDeci(meanAOO, 1, true)	+ " \u00B1 " + ext.formDeci(stdev, 1, true)
-											+ " (" + aoos.elementAt(keys[0]) + "-"
-											+ aoos.elementAt(keys[keys.length > 1 ? keys.length - 1 : 0]) + ")");
+											+ " (" + aoos.elementAt(0) + "-"
+											+ aoos.elementAt(aoos.size() - 1) + ")");
 		}
 
 		total = bb_bs_ss[0] + bb_bs_ss[1] + bb_bs_ss[2];

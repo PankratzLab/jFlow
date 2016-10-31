@@ -999,7 +999,7 @@ public class GinsburgDavid {
 																				EXPLORE_HET.length)] = Double.parseDouble(allResults[model][i][j][k][1]);
 						}
 					}
-					keys = Sort.quicksort(array, Sort.DESCENDING);
+					keys = Sort.getReverseIndices(array);
 					writer.print(markerNames[k] + "\t" + chrHash.get(markerNames[k]));
 					for (int i = 0; i < 3; i++) {
 						indices = Matrix.indicesInMatrix(keys[i], EXPLORE_HET.length);

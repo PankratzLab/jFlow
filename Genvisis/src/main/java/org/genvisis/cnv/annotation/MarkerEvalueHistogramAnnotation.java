@@ -5,8 +5,8 @@ import java.util.Hashtable;
 import java.util.List;
 
 import org.genvisis.common.Array;
+import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Sort;
 import org.genvisis.stats.Histogram.DynamicHistogram;
 
 import htsjdk.variant.variantcontext.VariantContext;
@@ -32,20 +32,14 @@ public class MarkerEvalueHistogramAnnotation extends HistogramAnnotation {
 	}
 
 	public void setDataToExactHistogram() {
-		double[] tmp = new double[exactHistogram.keySet().size()];
-		int index = 0;
+		String[] numericKeys = HashVec.getNumericKeys(exactHistogram);
 
-		for (String key : exactHistogram.keySet()) {
-			tmp[index] = Double.parseDouble(key);
-			index++;
-		}
-		int[] indices = Sort.trickSort(tmp);
 		ArrayList<String> data = new ArrayList<String>();
-		for (int indice : indices) {
-			data.add(tmp[indice] + "");
-			data.add(exactHistogram.get(tmp[indice] + "") + "");
+		for (String key : numericKeys) {
+			data.add(key);
+			data.add(exactHistogram.get(key).toString());
 		}
-		setData(Array.toStr(Array.toStringArray(data), DEFUALT_DELIMITER));
+		setData(Array.toStr(data, DEFUALT_DELIMITER));
 	}
 
 	public void addExactHistogram(double d) {

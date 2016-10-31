@@ -2,6 +2,7 @@ package org.genvisis.common;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Vector;
 
 public class Matrix {
@@ -481,6 +482,25 @@ public class Matrix {
 				continue;
 			}
 			array[i] = data[i][col];
+		}
+
+		return array;
+	}
+
+	/**
+	 * As {@link #extractColumn(int[][], int)} but for lists.
+	 */
+	public static int[] extractColumn(List<int[]> data, int col) {
+		if (data == null) {
+			return null;
+		}
+		int[] array = new int[data.size()];
+
+		for (int i = 0; i < array.length; i++) {
+			if (data.get(i) == null) {
+				continue;
+			}
+			array[i] = data.get(i)[col];
 		}
 
 		return array;

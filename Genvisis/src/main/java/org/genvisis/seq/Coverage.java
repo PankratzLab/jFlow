@@ -64,7 +64,7 @@ public class Coverage {
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename) + "_list.xln"));
 			writer.println("Sample\tIndex\t" + Array.toStr(COVERAGE_HEADER));
-			inds = HashVec.getKeys(hashes, false, false);
+			inds = HashVec.getKeys(hashes, false);
 			for (int i = 0; i < inds.length; i++) {
 				System.out.println("Analyzing indiviudal " + (i + 1) + " of " + inds.length);
 				hash = hashes.get(inds[i]);

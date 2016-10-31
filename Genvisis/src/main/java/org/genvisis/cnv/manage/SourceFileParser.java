@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map.Entry;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
@@ -570,7 +571,6 @@ public class SourceFileParser implements Runnable {
 																				int fileNumber) {
 		PrintWriter writer;
 		String filename;
-		String[] keys;
 		Logger log;
 
 		log = proj.getLog();
@@ -579,10 +579,9 @@ public class SourceFileParser implements Runnable {
 		log.report("Writing to file {" + filename + "}...", false, true);
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
-			keys = HashVec.getKeys(hash, false, false);
 			writer.println("SNP\t" + Array.toStr(Sample.ALL_STANDARD_GENOTYPE_FIELDS));
-			for (String key : keys) {
-				writer.println(key + "\t" + Array.toStr(hash.get(key)));
+			for (Entry<String, String[]> entry : hash.entrySet()) {
+				writer.println(entry.getKey() + "\t" + Array.toStr(entry.getValue()));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -1334,7 +1333,7 @@ public class SourceFileParser implements Runnable {
 		}
 
 		PSF.checkInterrupted();
-		keysKeys = Sort.quicksort(keys); // very important
+		keysKeys = Sort.getSortedIndices(keys); // very important
 		fingerprint = proj.getMarkerSet().getFingerprint();
 		log.report("There are "	+ markerNames.length + " markers being processed (fingerprint: "
 								+ fingerprint + ")");

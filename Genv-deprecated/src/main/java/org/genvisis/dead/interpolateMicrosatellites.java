@@ -123,7 +123,7 @@ public class interpolateMicrosatellites {
 			v.add(id + " (" + trav + ")");
 		}
 		if (v.size() > 0) {
-			keys = Sort.quicksort(Array.toStringArray(v));
+			keys = Sort.getSortedIndices(Array.toStringArray(v));
 			System.err.println("Warning - the following IDs did not have an original entry.");
 			for (int i = 0; i < v.size(); i++) {
 				System.err.println("        - " + v.elementAt(keys[i]));

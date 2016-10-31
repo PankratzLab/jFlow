@@ -3,6 +3,7 @@ package org.genvisis.one.JL;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
@@ -44,7 +45,8 @@ public class parkGenes {
 				genLocs.add(element);
 			}
 		}
-		Segment[] segs = Segment.sortSegments(genLocs.toArray(new GeneData[genLocs.size()]));
+		Segment[] segs = genLocs.toArray(new GeneData[genLocs.size()]);
+		Arrays.sort(segs);
 		for (int i = 0; i < set.getLoci().length; i++) {
 			if (Segment.overlapsAny(set.getLoci()[i], segs)) {
 				found.add(set.getLoci()[i]);

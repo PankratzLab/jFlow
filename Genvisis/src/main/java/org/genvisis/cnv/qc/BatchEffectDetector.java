@@ -5,13 +5,13 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
 /**
@@ -36,10 +36,7 @@ public class BatchEffectDetector {
 				// workflow to generate -> " + proj.MARKER_METRICS_FILENAME.getValue());
 			}
 			ExtProjectDataParser parser = MarkerMetrics.developParser(proj, qcFile);
-			double[] lrrSD = parser.getNumericDataForTitle("SD_LRR");
-
-			String[] markers = Array.subArray(proj.getMarkerNames(), parser.getDataPresent());
-			int[] order = Sort.trickSort(lrrSD, markers);
+			MarkerLRRPair[] pairs = getPairs(proj, parser);
 
 			ArrayList<String> markersToUse = new ArrayList<String>();
 
@@ -47,11 +44,11 @@ public class BatchEffectDetector {
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(summary));
 				writer.println("MarkerName\tSD_RANK\tSD");
-				for (int i = 0; i < order.length; i++) {
+				for (int i = 0; i < pairs.length; i++) {
 					if (markersToUse.size() < numMarks) {
-						String mark = markers[order[i]];
+						String mark = pairs[i].getMarker();
 						markersToUse.add(mark);
-						writer.println(mark + "\t" + (i + 1) + "\t" + lrrSD[order[i]]);
+						writer.println(mark + "\t" + (i + 1) + "\t" + pairs[i].getLrrSD());
 					} else {
 						break;
 					}
@@ -65,6 +62,20 @@ public class BatchEffectDetector {
 			return null;
 
 		}
+	}
+
+	private static MarkerLRRPair[] getPairs(Project proj, ExtProjectDataParser parser) {
+		double[] lrrSD = parser.getNumericDataForTitle("SD_LRR");
+		String[] markers = Array.subArray(proj.getMarkerNames(), parser.getDataPresent());
+		MarkerLRRPair[] pairs = new MarkerLRRPair[lrrSD.length];
+
+		for (int i=0; i<pairs.length; i++) {
+			pairs[i] = new MarkerLRRPair(lrrSD[i], markers[i]);
+		}
+
+		Arrays.sort(pairs);
+
+		return pairs;
 	}
 
 	private static void run(Project proj, String outDir, int numMarks,
@@ -132,4 +143,36 @@ public class BatchEffectDetector {
 		}
 	}
 
+	/**
+	 * Encapsulates a marker and lrrSD pairing, enabling easy unified sorting on lrr first and then
+	 * marker.
+	 */
+	private static class MarkerLRRPair implements Comparable<MarkerLRRPair> {
+		private final double lrrSD;
+		private final String marker;
+
+		public MarkerLRRPair(double lrrSD, String marker) {
+			this.lrrSD = lrrSD;
+			this.marker = marker;
+		}
+
+		public double getLrrSD() {
+			return lrrSD;
+		}
+
+		public String getMarker() {
+			return marker;
+		}
+
+		@Override
+		public int compareTo(MarkerLRRPair o) {
+			int c = Double.compare(lrrSD, o.lrrSD);
+
+			if (c == 0) {
+				c = marker.compareTo(o.marker);
+			}
+
+			return c;
+		}
+	}
 }

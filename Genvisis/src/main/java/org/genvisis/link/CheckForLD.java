@@ -60,7 +60,7 @@ public class CheckForLD {
 				}
 				reader.close();
 
-				keys = HashVec.getKeys(hash, true, true);
+				keys = HashVec.getNumericKeys(hash);
 				writer = new PrintWriter(new FileWriter(dir + checkDir + "check" + ext.chrome(i) + ".pre"));
 				for (String key : keys) {
 					writer.println(hash.get(key));

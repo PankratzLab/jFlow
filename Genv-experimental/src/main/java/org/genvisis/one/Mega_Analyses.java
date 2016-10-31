@@ -20,7 +20,6 @@ import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Numbers;
 import org.genvisis.common.Sort;
-import org.genvisis.common.StringVector;
 import org.genvisis.common.Unique;
 import org.genvisis.common.Zip;
 import org.genvisis.common.ext;
@@ -224,7 +223,7 @@ public class Mega_Analyses {
 
 		System.out.println("Comparing");
 		missingFrom2 = new Vector<String>();
-		keys = HashVec.getKeys(hash1, false, false);
+		keys = HashVec.getKeys(hash1, false);
 		try {
 			writer = new PrintWriter(new FileWriter("discordant.out"));
 			writer.println("MikeBeta\tMikeSE\tNathanBeta\tNathanSE");
@@ -259,7 +258,7 @@ public class Mega_Analyses {
 			e.printStackTrace();
 		}
 		Files.writeArray(Array.toStringArray(missingFrom2), "missingFrom2.out");
-		Files.writeArray(HashVec.getKeys(hash2, false, false), "missingFrom1.out");
+		Files.writeArray(HashVec.getKeys(hash2, false), "missingFrom1.out");
 
 
 	}
@@ -621,7 +620,7 @@ public class Mega_Analyses {
 			}
 		}
 
-		StringVector keys;
+		String[] keys;
 		ByteVector chrs;
 		IntVector positions;
 		Vector<String> v;
@@ -630,12 +629,12 @@ public class Mega_Analyses {
 		Hashtable<String, String> refChrHash;
 		int[] order;
 
-		keys = new StringVector(HashVec.getKeys(hash, false, false));
+		keys = HashVec.getKeys(hash, false);
 		chrs = new ByteVector();
 		positions = new IntVector();
-		initSize = keys.size();
+		initSize = keys.length;
 		for (int i = 0; i < initSize; i++) {
-			v = hash.get(keys.elementAt(i));
+			v = hash.get(keys[i]);
 			chr = -1;
 			pos = -1;
 			for (int j = 0; j < v.size(); j++) {
@@ -655,18 +654,18 @@ public class Mega_Analyses {
 		refChrHash = new SnpMarkerSet(IMPUTATION_MAP, SnpMarkerSet.PLINK_MAP_FORMAT_WITHOUT_CM, false,
 																	log).getChrHash();
 
-		order = Sort.orderTwoLayers(Bytes.toArray(chrs), Ints.toArray(positions), log);
+		order = Sort.getSort2DIndices(Bytes.toArray(chrs), Ints.toArray(positions));
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_positions.xln"));
 			writer.println("MarkerName\tChr\tPosition\tAltLoc\trefChr\trefPos\trefAgree\tStudy/chr/pos");
 			for (int element : order) {
-				v = hash.get(keys.elementAt(element));
-				writer.println(keys.elementAt(element)	+ "\t" + chrs.elementAt(element) + "\t"
+				v = hash.get(keys[element]);
+				writer.println(keys[element]	+ "\t" + chrs.elementAt(element) + "\t"
 												+ positions.elementAt(element) + "\t" + (element < initSize ? 0 : 1)
-												+ "\t" + (refChrHash.containsKey(keys.elementAt(element))
-																																										? refChrHash.get(keys.elementAt(element))
+												+ "\t" + (refChrHash.containsKey(keys[element])
+																																										? refChrHash.get(keys[element])
 																																											+ "\t"
-																																										+ (refChrHash	.get(keys.elementAt(element))
+																																										+ (refChrHash	.get(keys[element])
 																																																	.split("[\\s]+")[1].equals(positions.elementAt(element)
 																																																															+ "")	? "1"
 																																																																		: "0")
@@ -926,8 +925,7 @@ public class Mega_Analyses {
 		if (Math.random() < 2 || subset != null) {
 			line = HashVec.loadFileToStringArray(subset, true, new int[] {0}, false);
 		} else {
-			line = HashVec.getKeys(	HashVec.loadFileToHashSet(DIR + "filtered/allSNPs.txt", false), false,
-															false);
+			line = HashVec.loadFileToHashSet(DIR + "filtered/allSNPs.txt", false).toArray(new String[0]);
 		}
 
 		for (int i = 0; i < metasoftParams.length; i++) {

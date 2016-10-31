@@ -189,7 +189,7 @@ public class BamOps {
 																								int bpBuffer, boolean optimize, boolean chr,
 																								Logger log) {
 		QueryInterval[] qIntervals = new QueryInterval[segs.length];
-		segs = Segment.sortSegments(segs);
+		segs = Array.sortedCopy(segs);
 		for (int i = 0; i < qIntervals.length; i++) {
 			String sequenceName = Positions.getChromosomeUCSC(segs[i].getChr(), chr);
 			int referenceIndex = sFileHeader.getSequenceIndex(sequenceName);

@@ -188,7 +188,7 @@ public class kNN {
 				}
 				distances[j] = Math.sqrt(distances[j]);
 			}
-			keys = Sort.quicksort(distances);
+			keys = Sort.getSortedIndices(distances);
 
 			sum = 0;
 			for (int j = 0; j < K; j++) {

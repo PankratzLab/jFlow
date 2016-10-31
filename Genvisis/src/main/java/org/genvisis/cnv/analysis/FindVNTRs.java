@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -21,7 +22,8 @@ public class FindVNTRs {
 	public static void find(String filename) {
 		BufferedReader reader;
 		PrintWriter writer;
-		String[] line, keys, values;
+		String[] line, values;
+		String[] keys;
 		int[] counts;
 		String trav;
 		Hashtable<String, Vector<String>> hash;

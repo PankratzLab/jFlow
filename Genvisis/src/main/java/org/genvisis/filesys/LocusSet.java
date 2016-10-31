@@ -59,7 +59,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 	}
 
 	public void sort() {
-		loci = putInOrder(loci, Segment.quicksort(loci, false));
+		Arrays.sort(loci);
 		sorted = true;
 	}
 

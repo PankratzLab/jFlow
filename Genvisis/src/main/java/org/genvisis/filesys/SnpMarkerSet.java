@@ -661,8 +661,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		anchorChrs = nearbyThese.getChrs();
 		anchorPositions = nearbyThese.getPositions();
 
-		anchorOrder = Sort.orderTwoLayers(anchorChrs, anchorPositions, new Logger());
-		localOrder = Sort.orderTwoLayers(chrs, positions, new Logger());
+		anchorOrder = Sort.getSort2DIndices(anchorChrs, anchorPositions);
+		localOrder = Sort.getSort2DIndices(chrs, positions);
 
 		anchorIndex = localIndex = 0;
 		overlaps = Array.booleanArray(positions.length, false);
@@ -840,18 +840,18 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	public void sortMarkers() {
 		int[] keys;
 
-		keys = Sort.orderTwoLayers(chrs, positions, new Logger());
-		rsNumbers = Sort.putInOrder(rsNumbers, keys);
-		chrs = Sort.putInOrder(chrs, keys);
-		positions = Sort.putInOrder(positions, keys);
+		keys = Sort.getSort2DIndices(chrs, positions);
+		rsNumbers = Sort.getOrdered(rsNumbers, keys);
+		chrs = Sort.getOrdered(chrs, keys);
+		positions = Sort.getOrdered(positions, keys);
 		if (alleles != null) {
-			alleles = Sort.putInOrder(alleles, keys);
+			alleles = Sort.getOrdered(alleles, keys);
 		}
 		if (centiMorgans != null) {
-			centiMorgans = Sort.putInOrder(centiMorgans, keys);
+			centiMorgans = Sort.getOrdered(centiMorgans, keys);
 		}
 		if (annotation != null) {
-			annotation = Sort.putInOrder(annotation, keys);
+			annotation = Sort.getOrdered(annotation, keys);
 		}
 	}
 

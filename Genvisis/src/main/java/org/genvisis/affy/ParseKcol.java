@@ -839,7 +839,7 @@ public class ParseKcol implements Runnable {
 		if (keys == null) {
 			return;
 		}
-		keysKeys = Sort.quicksort(keys); // very important
+		keysKeys = Sort.getSortedIndices(keys); // very important
 		fingerprint = proj.getMarkerSet().getFingerprint();
 		System.out.println("There are "	+ markerNames.length + " markers being processed (fingerprint: "
 												+ fingerprint + ")");
@@ -1492,7 +1492,7 @@ public class ParseKcol implements Runnable {
 			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()	+ "alleleLookup"
 																							+ (fileNumber > 0 ? "_atFile" + fileNumber : "")
 																							+ ".xln"));
-			keys = HashVec.getKeys(hash, false, false);
+			keys = HashVec.getKeys(hash, false);
 			writer.println("SNP\t" + Array.toStr(Sample.ALL_STANDARD_GENOTYPE_FIELDS));
 			for (String key : keys) {
 				writer.println(key + "\t" + Array.toStr(hash.get(key)));

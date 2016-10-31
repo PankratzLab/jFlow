@@ -62,8 +62,7 @@ public class CountHash {
 	}
 
 	public void sortValuesAlphanumerically() {
-		values = HashVec.getKeys(hash);
-		values = Sort.putInOrder(values, Array.isAllNumbers(values));
+		values = HashVec.getNumericKeys(hash);
 	}
 
 	public int getSize() {

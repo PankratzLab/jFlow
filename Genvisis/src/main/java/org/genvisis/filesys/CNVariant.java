@@ -8,9 +8,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.cnv.hmm.PennHmm;
@@ -20,7 +23,6 @@ import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.Sort;
 import org.genvisis.common.StringVector;
 import org.genvisis.common.ext;
 
@@ -217,34 +219,21 @@ public class CNVariant extends Segment {
 	}
 
 	public static CNVariant[] toCNVariantArray(Vector<CNVariant> v) {
-		CNVariant[] cnvs;
-
-		cnvs = new CNVariant[v == null ? 0 : v.size()];
-		for (int i = 0; i < cnvs.length; i++) {
-			cnvs[i] = v.elementAt(i);
-		}
-		return cnvs;
+		return v.toArray(new CNVariant[v.size()]);
 	}
 
-	public static CNVariant[] sortCNVs(CNVariant[] array) {
-		CNVariant[] newArray;
-		int[] keys;
+	public static CNVariant[] sortCNVsInPlace(CNVariant[] array) {
+		Arrays.sort(array);
 
-		keys = quicksort(array);
-		newArray = new CNVariant[array.length];
-		for (int i = 0; i < keys.length; i++) {
-			newArray[i] = array[keys[i]];
-		}
-
-		return newArray;
+		return array;
 	}
 
 	public static CNVariant[] loadPlinkFile(String filename, boolean jar) {
-		return CNVariant.sortCNVs(CNVariant.toCNVariantArray(loadPlinkFile(filename, null, true, jar)));
+		return CNVariant.sortCNVsInPlace(CNVariant.toCNVariantArray(loadPlinkFile(filename, null, true, jar)));
 	}
 
 	public static CNVariant[] loadPlinkFile(String filename, boolean includeLOH, boolean jar) {
-		return CNVariant.sortCNVs(CNVariant.toCNVariantArray(loadPlinkFile(	filename, null, includeLOH,
+		return CNVariant.sortCNVsInPlace(CNVariant.toCNVariantArray(loadPlinkFile(	filename, null, includeLOH,
 																																				jar)));
 	}
 
@@ -347,7 +336,7 @@ public class CNVariant extends Segment {
 				}
 			}
 		}
-		consensus = sortCNVs(CNVariant.toCNVariantArray(v));
+		consensus = sortCNVsInPlace(CNVariant.toCNVariantArray(v));
 
 		try {
 			writer = new PrintWriter(new FileWriter(ext.rootOf(file1)	+ "_" + ext.rootOf(file2)
@@ -614,25 +603,29 @@ public class CNVariant extends Segment {
 		return newArray;
 	}
 
-	public static CNVariant[] sort(CNVariant[] array) {
-		return putInOrder(array, quicksort(array));
+	/**
+	 * Copies and sorts the given array. For in-place sorting use {@link #sortInPlaceByQuality}
+	 *
+	 * @param array sort by the quality scores
+	 * @return Sorted array
+	 */
+	public static <T extends CNVariant> T[] sortByQuality(final T[] array, final boolean reverse) {
+		T[] toSort = Arrays.copyOf(array, array.length);
+		return sortInPlaceByQuality(toSort, reverse);
 	}
 
-	/**
-	 * @param array sort by the quality scores
-	 * @return
-	 */
-	public static <T extends CNVariant> ArrayList<T> sortByQuality(final T[] array, int direction) {
-		double[] scores = new double[array.length];
-		for (int i = 0; i < array.length; i++) {
-			scores[i] = array[i].getScore();
-		}
-		int[] order = Sort.quicksort(scores, direction);
-		ArrayList<T> sorted = new ArrayList<T>(array.length);
-		for (int element : order) {
-			sorted.add(array[element]);
-		}
-		return sorted;
+	public static <T extends CNVariant> T[] sortInPlaceByQuality(final T[] array, final boolean reverse) {
+		Arrays.sort(array, new Comparator<T>() {
+
+			@Override
+			public int compare(T o1, T o2) {
+				T t1 = reverse ? o2 : o1;
+				T t2 = reverse ? o1 : o2;
+				return Double.compare(t1.getScore(), t2.getScore());
+			}
+			
+		});
+		return array;
 	}
 
 	@Override

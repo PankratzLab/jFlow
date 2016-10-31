@@ -7,6 +7,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map.Entry;
 
 import org.genvisis.common.Aliases;
 import org.genvisis.common.Files;
@@ -74,21 +76,13 @@ public class Hits {
 
 	public void writeHits(String filename) {
 		PrintWriter writer;
-		String[] keys;
-		int[] order;
-		double[] values;
 
-		keys = HashVec.getKeys(hash, false, false);
-		values = new double[keys.length];
-		for (int i = 0; i < keys.length; i++) {
-			values[i] = hash.get(keys[i]);
-		}
-		order = Sort.quicksort(values);
+		List<Entry<String, Double>> entries = Sort.entriesSortedByValues(hash);
 
 		try {
 			writer = new PrintWriter(new FileWriter(filename));
-			for (int element : order) {
-				writer.println(keys[element] + "\t" + values[element]);
+			for (Entry<String, Double> e : entries) {
+				writer.println(e.getKey() + "\t" + e.getValue());
 			}
 			writer.close();
 		} catch (Exception e) {

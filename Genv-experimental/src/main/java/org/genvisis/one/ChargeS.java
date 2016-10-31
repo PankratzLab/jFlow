@@ -294,7 +294,7 @@ public class ChargeS {
 																										annotationFile.endsWith(".csv"), "\t", true,
 																										false, false);
 			log.report("Getting keys");
-			keys = HashVec.getKeys(annotationHash, false, false);
+			keys = HashVec.getKeys(annotationHash, false);
 			log.report("Removing quotes");
 			for (String key : keys) {
 				if (key.contains("\"")) {
@@ -624,7 +624,7 @@ public class ChargeS {
 																										annotationFile.endsWith(".csv"), "\t", true,
 																										false, false);
 			log.report("Getting keys");
-			keys = HashVec.getKeys(annotationHash, false, false);
+			keys = HashVec.getKeys(annotationHash, false);
 			log.report("Removing quotes");
 			for (String key : keys) {
 				if (key.contains("\"")) {

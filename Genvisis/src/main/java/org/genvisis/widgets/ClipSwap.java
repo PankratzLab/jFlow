@@ -1,6 +1,7 @@
 package org.genvisis.widgets;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 
@@ -10,7 +11,6 @@ import org.genvisis.common.Array;
 import org.genvisis.common.DoubleVector;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.Unique;
@@ -20,6 +20,7 @@ import org.genvisis.gwas.MetaAnalysis;
 import org.genvisis.stats.Histogram;
 
 import com.google.common.primitives.Doubles;
+
 
 public class ClipSwap {
 	public static final String CONTRACT_EXPAND_DELIM = "^";
@@ -188,7 +189,8 @@ public class ClipSwap {
 			}
 		}
 
-		values = HashVec.getKeys(hash);
+		values = hash.toArray(new String[hash.size()]);
+		Arrays.sort(values);
 		result = Array.toStr(values) + "\r\n";
 		for (String line : lines) {
 			for (int j = 0; j < values.length; j++) {

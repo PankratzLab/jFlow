@@ -259,33 +259,6 @@ public class Collapsed {
 		}
 	}
 
-	@SuppressWarnings({"rawtypes"})
-	public static String[] getKeys(Hashtable hash) {
-		return getKeys(hash, true, false);
-	}
-
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	public static String[] getKeys(Hashtable hash, boolean sort, boolean treatAsNumbers) {
-		String[] array = new String[hash.size()];
-		Enumeration<String> enumer = hash.keys();
-		int count = 0;
-
-		try {
-			while (enumer.hasMoreElements()) {
-				array[count++] = enumer.nextElement();
-			}
-		} catch (Exception e) {
-			System.err.println("Error - hash keys were not Strings");
-			e.printStackTrace();
-		}
-
-		if (sort) {
-			return Sort.putInOrder(array, treatAsNumbers);
-		} else {
-			return array;
-		}
-	}
-
 	/**
 	 * Prints an array of objects separated by a tab
 	 *

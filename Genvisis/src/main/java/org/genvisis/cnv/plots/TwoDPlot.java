@@ -28,6 +28,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1119,7 +1121,7 @@ public class TwoDPlot extends JPanel
 		String[] inLine, outLine;
 		int selectedColumnX, selectedColumnY = -1;
 		String selectedFileX, selectedFileY = null;
-		String[] keys;
+		Set<String> keys;
 		int currentClass;
 		String[] ids;
 		byte colorCode;
@@ -1191,7 +1193,7 @@ public class TwoDPlot extends JPanel
 
 		genParseData = new ArrayList<String>();
 
-		keys = HashVec.getKeys(xData, false, false);
+		keys = xData.keySet();
 
 		String[] dataHeaderX = dataColumnsHash.get(selectedFileX);
 		String[] dataHeaderY = selectedFileY == null ? null : dataColumnsHash.get(selectedFileY);
@@ -1287,7 +1289,7 @@ public class TwoDPlot extends JPanel
 		String[] inLine, outLine;
 		int selectedColumn;
 		String selectedFile;
-		String[] keys;
+		Set<String> keys;
 		ArrayList<String[]> v;
 		int currentClass;
 		String[] ids;
@@ -1361,7 +1363,7 @@ public class TwoDPlot extends JPanel
 										inLine[selectedColumn]);
 				}
 			}
-			keys = HashVec.getKeys(xHash, false, false);
+			keys = xHash.keySet();
 			v = new ArrayList<String[]>();
 			for (String key : keys) {
 				inLine = xHash.get(key);

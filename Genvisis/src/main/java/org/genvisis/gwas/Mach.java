@@ -1251,7 +1251,7 @@ public class Mach {
 			System.out.println("Found " + regionKeys.length + " regions to parse");
 		} else {
 			batchFilename = "intExtract";
-			regionKeys = HashVec.getKeys(regionMarkerHashes, true, true);
+			regionKeys = HashVec.getNumericKeys(regionMarkerHashes);
 			System.out.println("Markers are distributed across " + regionKeys.length + " chromosomes");
 		}
 
@@ -1619,7 +1619,7 @@ public class Mach {
 					line = v.elementAt(j).split("[\\s]+");
 					values[j] = Double.parseDouble(line[2]);
 				}
-				order = Sort.quicksort(values);
+				order = Sort.getSortedIndices(values);
 				for (int j = 0; j < Math.min(order.length, size); j++) {
 					line = v.elementAt(order[j]).split("[\\s]+");
 					writer.println(line[0] + "\t" + line[1]);

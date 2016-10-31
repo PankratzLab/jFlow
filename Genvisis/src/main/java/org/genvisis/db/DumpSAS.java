@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -17,9 +18,9 @@ import org.genvisis.common.CountHash;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.parse.LookupTable;
+
 
 public class DumpSAS {
 	// public static final String DEFAULT_SAS_EXECUTABLE =
@@ -535,7 +536,8 @@ public class DumpSAS {
 
 					hash = hashes.get(file);
 					keys = HashVec.getKeys(hash);
-					indices = Sort.putInOrder(ext.indexFactors(keys, header, true, false));
+					indices = ext.indexFactors(keys, header, true, false);
+					Arrays.sort(indices);
 					for (int indice : indices) {
 						writer.print(" '"	+ header[indice] + "'=" + header[indice]
 													+ (hash	.get(header[indice])
@@ -546,7 +548,7 @@ public class DumpSAS {
 					writer.println();
 				}
 				writer.close();
-				Files.writeArray(HashVec.getKeys(masterIDs, true, false), idfile);
+				Files.writeArray(HashVec.getKeys(masterIDs), idfile);
 				if (error) {
 					log.reportError("\nFailed to generate all bits of "	+ crffile
 													+ "; the hits algorithm was not attempted");
