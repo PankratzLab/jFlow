@@ -36,10 +36,10 @@ public class PhaserNGS {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "phaser.log");
 		String[] bams = Files.listFullPaths(bamDir, ".bam", false);
-//		VCFOps.extractSegments(	vcf, "/Volumes/Beta/ref/strTargets.bed", 10, bamDir,
-//														ext.parseDirectoryOfFile(vcf) + "extracted/", false, true, false, 1,
-//														log);
-//		System.exit(1);
+		// VCFOps.extractSegments( vcf, "/Volumes/Beta/ref/mica.targets.bed", 10, bamDir,
+		// ext.parseDirectoryOfFile(vcf) + "extracted/", false, true, false, 1,
+		// log);
+		// System.exit(1);
 		for (String bam : bams) {
 			phase(phaserPy, bam, vcf, outDir, log);
 		}

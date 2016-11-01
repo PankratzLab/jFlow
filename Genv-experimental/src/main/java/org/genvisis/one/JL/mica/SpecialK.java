@@ -134,17 +134,14 @@ public class SpecialK {
 			results.append("\t" + kmers.key.get(repeat) + "|" + repeat);
 			resultsBasic.append("\t" + kmers.key.get(repeat) + "|" + repeat);
 		}
+
+		results.append("\t" + OTHER + "/" + TOTAL);
+		resultsBasic.append("\t" + OTHER + "/" + TOTAL);
 		for (int i = 0; i < 3; i++) {
 			results.append("\t" + toMerge.get("SAMPLE"));
 		}
-		results.append("\tOtherCounts\n");
-		resultsBasic.append("\tOtherCounts\n");
 
 		for (int i = 0; i < bams.length; i++) {
-			// if (i > 10) {
-			// break;
-			// }
-			int countOther = 0;
 			HashMap<String, Integer> countMapAll = getCountMap().countMap;
 			SamReader reader = BamOps.getDefaultReader(bams[i], ValidationStringency.STRICT);
 			QueryInterval[] queryInterestIntervals = BamOps.convertSegsToQI(new Segment[] { loc },
@@ -153,18 +150,24 @@ public class SpecialK {
 			log.reportTimeInfo("Analyzing " + bams[i]);
 			while (sIterator.hasNext()) {
 				SAMRecord samRecord = sIterator.next();
+				// samRecord.getUnclippedEnd() == samRecord.getAlignmentEnd()
+				// && samRecord.getUnclippedStart() ==
+				// samRecord.getAlignmentStart()
+				// &&
 				if (samRecord.getAlignmentStart() < loc.getStart() && samRecord.getAlignmentEnd() > loc.getStop()) {
 					String seq = samRecord.getReadString();
 					boolean found = false;
-					for (String repeats : countMapAll.keySet()) {
+					HashSet<String> toIter = new HashSet<>();
+					toIter.addAll(countMapAll.keySet());
+					for (String repeats : toIter) {
 						String[] combos = repeats.split(AND);
 						boolean foundAll = true;
 						for (String repeat : combos) {
-							if (!seq.toUpperCase().contains(repeat) && !repeat.equals(OTHER)) {
+							if (!seq.toUpperCase().contains(repeat) && !repeat.equals(OTHER) && !repeat.equals(TOTAL)) {
 								foundAll = false;
 							}
 						}
-						if (foundAll) {
+						if (foundAll && !repeats.equals(OTHER) && !repeats.equals(TOTAL)) {
 							countMapAll.put(repeats, countMapAll.get(repeats) + 1);
 							found = true;
 						}
@@ -183,11 +186,14 @@ public class SpecialK {
 			for (String repeat : allRepeats) {
 				results.append("\t" + countMapAll.get(repeat));
 				resultsBasic.append("\t" + countMapAll.get(repeat));
-
 			}
-			results.append("\t" + toMerge.get(samp) + "\t" + countOther + "\n");
-			resultsBasic.append("\t" + countOther + "\n");
+			double propOther = countMapAll.get(TOTAL) > 0 ? (double) countMapAll.get(OTHER) / countMapAll.get(TOTAL)
+					: 0;
+			results.append("\t" + propOther);
+			resultsBasic.append("\t" + propOther);
 
+			results.append("\t" + toMerge.get(samp) + "\n");
+			resultsBasic.append("\n");
 			try {
 				reader.close();
 			} catch (IOException e) {
