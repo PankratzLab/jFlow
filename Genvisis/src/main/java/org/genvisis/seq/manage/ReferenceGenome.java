@@ -6,6 +6,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.Array;
 import org.genvisis.common.Array.BYTE_DECODE_FORMAT;
 import org.genvisis.common.Logger;
@@ -21,7 +23,7 @@ import htsjdk.samtools.reference.ReferenceSequence;
 import htsjdk.variant.variantcontext.VariantContext;
 
 public class ReferenceGenome {
-	public static final String DEFAULT_REFERENCE = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
+	public static final GENOME_BUILD DEFAULT_BUILD = GENOME_BUILD.HG19;
 	private final String referenceFasta;
 	private IndexedFastaSequenceFile indexedFastaSequenceFile;
 	private byte[] currentSeq;
@@ -29,6 +31,10 @@ public class ReferenceGenome {
 	private int defaultBuffer;
 	private ReferenceSequence referenceSequence;
 	private final Logger log;
+	
+	public ReferenceGenome(GENOME_BUILD genomeBuild, Logger log) {
+		this(Resources.genome(genomeBuild, log).getFASTA().get(), log);
+	}
 
 	public ReferenceGenome(String referenceFasta, Logger log) {
 		super();

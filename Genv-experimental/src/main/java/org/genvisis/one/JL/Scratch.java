@@ -69,7 +69,7 @@ public class Scratch {
 		// Files.writeArrayList(go, dir + "merge");
 
 		// Project proj = new Project("C:/workspace/Genvisis/projects/Cushings.properties", false);
-		// generateGCModel(proj, new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
+		// generateGCModel(proj, new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 		// proj.getLog()), 1000000);
 		//
 		//

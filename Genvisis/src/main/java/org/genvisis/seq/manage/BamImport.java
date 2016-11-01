@@ -329,7 +329,7 @@ public class BamImport {
 				}
 			}
 			ReferenceGenome referenceGenome =
-																			new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
+																			new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																													log);
 			log.reportTimeInfo("Found " + bamsToImport.length + " bam files to import");
 			AnalysisSets analysisSet = generateAnalysisSet(	proj, binBed, captureBed, optionalVCF,
@@ -700,8 +700,8 @@ public class BamImport {
 				MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks,
 																		proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), base, false, true,
 																		0, null, null, null, null, false, false, true, false, true,
-																		false, null, -1, -1, GENOME_BUILD.HG19,
-																		MitoPipeline.DEFAULT_PVAL_OPTS, null, false, true);
+																		false, -1, -1, GENOME_BUILD.HG19, MitoPipeline.DEFAULT_PVAL_OPTS,
+																		null, false, true);
 
 				String pcCorrectedFile = ext.addToRoot(	proj.getPropertyFilename(),
 																								"."													+ proj.INTENSITY_PC_NUM_COMPONENTS.getValue()

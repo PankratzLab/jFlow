@@ -149,7 +149,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 		}
 
 		if (valid) {
-			valid = Files.exists(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue());
+			valid = Files.exists(proj.getReferenceGenomeFASTAFilename());
 			if (valid) {
 				valid = annotations != null;
 				if (!valid) {
@@ -157,7 +157,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 				}
 			} else {
 				proj.getLog().reportTimeError("Could not find required file "
-																			+ proj.REFERENCE_GENOME_FASTA_FILENAME.getValue());
+																			+ proj.getReferenceGenomeFASTAFilename());
 			}
 		}
 
@@ -209,7 +209,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 			builder.setOption(Options.INDEX_ON_THE_FLY);
 			builder.setOption(Options.DO_NOT_WRITE_GENOTYPES);
 
-			String refGenome = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
+			String refGenome = proj.getReferenceGenomeFASTAFilename();
 			proj.getLog().reportTimeInfo("Using reference genome" + refGenome);
 
 			SAMSequenceDictionary samSequenceDictionary =

@@ -816,9 +816,8 @@ public class MosaicismQuant implements Calcfc {
 		String out = rootOut + ".txt";
 		String ser = rootOut + ".ser";
 		if (!Files.exists(ser)) {
-			ReferenceGenome referenceGenome =
-																			new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
-																													proj.getLog());
+			ReferenceGenome referenceGenome = new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
+																														proj.getLog());
 
 			LocusSet<Segment> set = referenceGenome.getBins(bpWindow);
 			MosaicQuantProducer mProducer = new MosaicQuantProducer(proj, proj.getSamples(), set,
@@ -883,7 +882,7 @@ public class MosaicismQuant implements Calcfc {
 		MarkerSet markerSet = proj.getMarkerSet();
 		int[][] indices = markerSet.getIndicesByChr();
 		// ReferenceGenome referenceGenome = new
-		// ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog());
+		// ReferenceGenome(proj.getReferenceGenomeFASTAFilename(), proj.getLog());
 		// LocusSet<Segment> set = referenceGenome.getBins(500000);
 		// Segment segTest = new Segment("chr17:42,963,198-78,940,173");
 		// Segment segTest = new Segment("chr17:42,963,198-78,940,173");

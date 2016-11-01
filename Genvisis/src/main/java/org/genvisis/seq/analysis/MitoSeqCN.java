@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -41,7 +42,7 @@ public class MitoSeqCN {
 	 * @param fileOfBams bam files to estimate mtDNA CN for
 	 * @param outDir output directory for results
 	 * @param captureBed defining targeted capture regions
-	 * @param referenceGenomeFasta reference genomve
+	 * @param genomeBuild reference genome build
 	 * @param aName assembly name
 	 * @param aType assembly type
 	 * @param numthreads
@@ -49,7 +50,7 @@ public class MitoSeqCN {
 	 * @return the name of the output file
 	 */
 	public static String run(	String fileOfBams, String outDir, String captureBed,
-														String referenceGenomeFasta, ASSEMBLY_NAME aName, ASSAY_TYPE aType,
+														GENOME_BUILD genomeBuild, ASSEMBLY_NAME aName, ASSAY_TYPE aType,
 														int numthreads, Logger log) {
 		new File(outDir).mkdirs();
 
@@ -58,7 +59,7 @@ public class MitoSeqCN {
 		if (!Files.exists(output)) {
 			String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] {0}, true);
 			log.reportTimeInfo("Detected " + bams.length + " bam files");
-			ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
+			ReferenceGenome referenceGenome = new ReferenceGenome(genomeBuild, log);
 			BedOps.verifyBedIndex(captureBed, log);
 			LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome	.getBins(20000)
 																																			.autosomal(true, log);
@@ -88,7 +89,7 @@ public class MitoSeqCN {
 				throw new IllegalArgumentException("Required contig for "+ aName + " is missing ( "
 																						+ aName.getMitoContig() + " ," + aName.getxContig()
 																						+ ", " + aName.getyContig() + " from "
-																						+ referenceGenomeFasta);
+																						+ referenceGenome.getReferenceFasta());
 			} else {
 				int mitoLength = referenceGenome.getContigLength(aName.getMitoContig());
 				log.reportTimeInfo("Mitochondrial genome length = " + mitoLength);

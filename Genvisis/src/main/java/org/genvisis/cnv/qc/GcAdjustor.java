@@ -913,7 +913,7 @@ public class GcAdjustor {
 		 * snp,
 		 */
 		public static GcModel generateSnpWindowModel(Project proj, int snpWindow) {
-			String refGenome = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
+			String refGenome = proj.getReferenceGenomeFASTAFilename();
 			if (!Files.exists(refGenome)) {
 				proj.getLog().reportFileNotFound(refGenome);
 				return null;

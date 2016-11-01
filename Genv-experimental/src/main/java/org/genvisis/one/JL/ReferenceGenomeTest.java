@@ -15,13 +15,13 @@ public class ReferenceGenomeTest {
 
 		// basic
 		ReferenceGenome referenceGenome =
-																		new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
+																		new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																												proj.getLog());
 		// String[] test1 = referenceGenome.getSequenceFor(new Segment((byte) 26, 1, 50));
 
 		// other testing
 		String[] test = referenceGenome.getSequenceFor(new Segment((byte) 26, 1, 50));
-		String[] bah = Files.getFirstNLinesOfFile(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), 2,
+		String[] bah = Files.getFirstNLinesOfFile(proj.getReferenceGenomeFASTAFilename(), 2,
 																							proj.getLog());
 		System.out.println(Array.toStr(test));
 		System.out.println(Array.toStr(bah));
@@ -90,7 +90,7 @@ public class ReferenceGenomeTest {
 
 		// basic
 		ReferenceGenome referenceGenome =
-																		new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
+																		new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																												proj.getLog());
 		Segment[] markerSegs = new Segment[proj.getMarkerNames().length];
 		MarkerSet markerSet = proj.getMarkerSet();

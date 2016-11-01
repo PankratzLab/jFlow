@@ -307,9 +307,9 @@ public class MitoPipeline {
 																		String betaOptFile, String pedFile, String sampleMapCsv,
 																		boolean recomputeLRR_PCs, boolean recomputeLRR_Median,
 																		boolean sampLrr, boolean doAbLookup, boolean imputeMeanForNaN,
-																		boolean gcCorrect, String refGenomeFasta, int bpGcModel,
-																		int regressionDistance, GENOME_BUILD build, double[] pvalOpt,
-																		String betaFile, boolean plot, boolean skipEval) {
+																		boolean gcCorrect, int bpGcModel, int regressionDistance,
+																		GENOME_BUILD build, double[] pvalOpt, String betaFile,
+																		boolean plot, boolean skipEval) {
 		String sampleDirectory;
 		SampleList sampleList;
 		Logger log;
@@ -410,8 +410,8 @@ public class MitoPipeline {
 							estimateMtDNACN(proj, numThreads, medianMarkers, numComponents, outputBase,
 															homosygousOnly, markerCallRateFilter, betaOptFile, pedFile,
 															recomputeLRR_PCs, recomputeLRR_Median, sampLrr, imputeMeanForNaN,
-															gcCorrect, refGenomeFasta, bpGcModel, regressionDistance, build,
-															pvalOpt, betaFile, plot, skipEval, log);
+															gcCorrect, bpGcModel, regressionDistance, build, pvalOpt, betaFile,
+															plot, skipEval, log);
 						}
 					}
 				}
@@ -425,10 +425,9 @@ public class MitoPipeline {
 																			double markerCallRateFilter, String betaOptFile,
 																			String pedFile, boolean recomputeLRR_PCs,
 																			boolean recomputeLRR_Median, boolean sampLrr,
-																			boolean imputeMeanForNaN, boolean gcCorrect,
-																			String refGenomeFasta, int bpGcModel, int regressionDistance,
-																			GENOME_BUILD build, double[] pvalOpt, String betaFile,
-																			boolean plot, boolean skipEval, Logger log) {
+																			boolean imputeMeanForNaN, boolean gcCorrect, int bpGcModel,
+																			int regressionDistance, GENOME_BUILD build, double[] pvalOpt,
+																			String betaFile, boolean plot, boolean skipEval, Logger log) {
 		GcAdjustorParameters params = null;
 		String samps = proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES;
 
@@ -468,23 +467,17 @@ public class MitoPipeline {
 															+ Array.booleanArraySum(sampsToUseRecompute) + " samples from "
 														+ samps);
 			}
-			if ((refGenomeFasta != null && !Files.exists(refGenomeFasta))
-					&& Files.exists(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue())) {
-				proj.getLog()
-						.reportTimeWarning("Command line reference genome did not exist or was not provided, using default "
-																	+ proj.REFERENCE_GENOME_FASTA_FILENAME.getValue()
-																+ " , but will likely not be required");
-				refGenomeFasta = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
-			}
 			Resource gmodelBase = Resources.genome(build, log).getModelBase();
-			if (!Files.exists(proj.GC_MODEL_FILENAME.getValue())
-						&& (refGenomeFasta == null || !Files.exists(refGenomeFasta))
-					&& gmodelBase.isAvailable()) {
-				log.reportTimeWarning("Generating gcModel for "	+ build.getBuild() + " at "
-															+ proj.GC_MODEL_FILENAME.getValue() + " from " + gmodelBase.get());
-				proj.getLog().setLevel(3);
-				PennCNV.gcModel(proj, gmodelBase.get(), proj.GC_MODEL_FILENAME.getValue(), 100);
-				refGenomeFasta = null;
+
+			String refGenomeFasta = null;
+			if (!Files.exists(proj.GC_MODEL_FILENAME.getValue())) {
+				refGenomeFasta = proj.getReferenceGenomeFASTAFilename();
+				if (refGenomeFasta == null) {
+					log.reportTimeWarning("Generating gcModel for "	+ build.getBuild() + " at "
+																+ proj.GC_MODEL_FILENAME.getValue() + " from " + gmodelBase.get());
+					proj.getLog().setLevel(3);
+					PennCNV.gcModel(proj, gmodelBase.get(), proj.GC_MODEL_FILENAME.getValue(), 100);
+				}
 			}
 			if (Files.exists(refGenomeFasta) || Files.exists(proj.GC_MODEL_FILENAME.getValue())) {// TODO,
 																																														// after
@@ -499,9 +492,6 @@ public class MitoPipeline {
 																																														// demand
 																																														// a
 																																														// refGenome
-				if (refGenomeFasta != null && Files.exists(refGenomeFasta)) {
-					proj.REFERENCE_GENOME_FASTA_FILENAME.setValue(refGenomeFasta);
-				}
 				// try {
 				GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
 				gAdjustorBuilder.regressionDistance(regressionDistance);
@@ -523,8 +513,6 @@ public class MitoPipeline {
 				// }
 			} else {
 				proj.getLog().reportTimeError("Can not gc correct values without a valid reference genome");
-				proj.getLog()
-						.reportTimeError("please supply a valid reference genome (full path) with the \"ref=\" argument");
 			}
 		}
 		PrincipalComponentsApply pcApply = PCA.generateFullPCA(	proj, numComponents, outputBase,
@@ -927,7 +915,6 @@ public class MitoPipeline {
 		boolean homosygousOnly = true;
 		boolean doAbLookup = false;
 		boolean plot = false;
-		String referenceGenomeFasta = null;
 		String gcmodel = null;
 		int regressionDistance = GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0];
 		int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;
@@ -1014,8 +1001,6 @@ public class MitoPipeline {
 							+ imputeMeanForNaN + " (default))\n";
 		// usage += " (22) gc correct Log R Ratios, cannot be used with recomputeLRR options (i.e.
 		// gcCorrect=" + gcCorrect + " (default))\n";
-		// usage += " (22) A reference genome file used to assign gc content to each marker (i.e. ref=
-		// (no default))\n";
 		// usage += " (23) base-pair bins for the gc model generated from the reference (i.e.
 		// bpGcModel=" + bpGcModel + " (default))\n";
 		// usage += " (27) regression distance for the gc adjustment (i.e. regressionDistance=" +
@@ -1071,9 +1056,6 @@ public class MitoPipeline {
 				requiredArray[1] = true;
 			} else if (arg.startsWith("pedFile=")) {
 				pedFile = ext.parseStringArg(arg, null);
-				numArgs--;
-			} else if (arg.startsWith("ref=")) {
-				referenceGenomeFasta = ext.parseStringArg(arg, null);
 				numArgs--;
 			} else if (arg.startsWith("mapFile=")) {
 				sampleMapCsv = ext.parseStringArg(arg, null);
@@ -1241,18 +1223,13 @@ public class MitoPipeline {
 																					proj.getLog());
 				}
 				// proj.GC_MODEL_FILENAME.setValue(gcmodel);
-				if (referenceGenomeFasta != null) {
-					proj.getLog().reportTimeWarning("Ignoring reference genome " + referenceGenomeFasta);
-					proj.REFERENCE_GENOME_FASTA_FILENAME.setValue("Ignore");
-				}
 			}
 
 			result = catAndCaboodle(proj, numThreads, medianMarkers, numComponents, output,
 															homosygousOnly, markerQC, markerCallRateFilter, useFile, betaOptFile,
 															pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median,
 															recompSampleSpecific, doAbLookup, imputeMeanForNaN, gcCorrect,
-															referenceGenomeFasta, bpGcModel, regressionDistance, build, pvalOpt,
-															betaFile, plot, false);
+															bpGcModel, regressionDistance, build, pvalOpt, betaFile, plot, false);
 			attempts++;
 			if (result == 41 || result == 40) {
 				proj.getLog().report("Attempting to restart pipeline once to fix SampleList problem");

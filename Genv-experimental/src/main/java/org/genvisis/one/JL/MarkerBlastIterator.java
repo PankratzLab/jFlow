@@ -134,7 +134,7 @@ public class MarkerBlastIterator {
 			}
 		}
 		ReferenceGenome referenceGenome =
-																		new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
+																		new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																												proj.getLog());
 
 		for (MarkerBlastResult result : results) {
@@ -560,7 +560,7 @@ public class MarkerBlastIterator {
 
 		Hashtable<String, Integer> indices = proj.getMarkerIndices();
 		ReferenceGenome referenceGenome =
-																		new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
+																		new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																												proj.getLog());
 
 		for (MarkerBlastResult result : results) {

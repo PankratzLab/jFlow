@@ -1,5 +1,7 @@
 package org.genvisis.seq.manage;
 
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -58,14 +60,16 @@ public class VCFMerge {
 		int numArgs = args.length;
 		String[] vcfs = null;
 		String mergeOut = null;
-		String referenceGenomeFasta = ReferenceGenome.DEFAULT_REFERENCE;
+		String referenceGenome = null;
+		GENOME_BUILD genomeBuild = ReferenceGenome.DEFAULT_BUILD;
 		String gatk = GATK.DEFAULT_GATK;
 		int numthreads = 1;
 		String usage = "\n" + "seq.manage.VCFMerge requires 0-1 arguments\n";
 		usage += "   (1) comma delimited full paths to vcf files (i.e. vcfs= (no default))\n" + "";
 		usage += "   (2) full path to the merged output (i.e. mergeOut= (no default))\n" + "";
 		usage += "   (3) full path to the gatk directory (i.e. gatk=" + gatk + " (default))\n" + "";
-		usage += "   (4) full path to the reference genome  (i.e. ref=" + gatk + " (default))\n" + "";
+		usage += "   (4) full path to the reference genome  (i.e. ref=refGenome.fasta (default is for "
+							+ genomeBuild + "))\n" + "";
 		usage += PSF.Ext.getNumThreadsCommand(5, numthreads);
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -81,7 +85,7 @@ public class VCFMerge {
 				gatk = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("ref=")) {
-				referenceGenomeFasta = arg.split("=")[1];
+				referenceGenome = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numthreads = ext.parseIntArg(arg);
@@ -95,8 +99,11 @@ public class VCFMerge {
 			System.exit(1);
 		}
 		try {
-			merge(vcfs, mergeOut, gatk, referenceGenomeFasta, numthreads,
-						new Logger(vcfs == null ? null : ext.addToRoot(vcfs[0], "mergeLog.log")));
+			Logger log = new Logger(vcfs == null ? null : ext.addToRoot(vcfs[0], "mergeLog.log"));
+			if (referenceGenome == null) {
+				referenceGenome = Resources.genome(genomeBuild, log).getFASTA().get();
+			}
+			merge(vcfs, mergeOut, gatk, referenceGenome, numthreads, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -18,6 +18,7 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.genvisis.common.Files;
 import org.genvisis.common.HttpDownloadUtility;
 import org.genvisis.common.Logger;
+import org.genvisis.filesys.FASTA;
 import org.genvisis.seq.manage.VCFOps;
 
 /**
@@ -145,16 +146,15 @@ public final class Resources {
 	 */
 	public static class Shapeit extends AbstractResourceFactory {
 		public Shapeit(Logger log) {
-			super(DEFAULT_LOCAL_DIR + BIN_DIR + "/shapeit" + File.separator,
-						"",
-						log, Shapeit.class);
+			super(DEFAULT_LOCAL_DIR + BIN_DIR + "/shapeit" + File.separator, "", log, Shapeit.class);
 		}
 
 		/**
 		 * @return A resource for the shapeit app
 		 */
 		public Resource getShapeit() {
-			return getTarGzResource(localPath() + "bin/shapeit", "https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz");
+			return getTarGzResource(localPath()	+ "bin/shapeit",
+															"https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz");
 		}
 	}
 
@@ -271,6 +271,13 @@ public final class Resources {
 		 */
 		public Resource getGenes() {
 			return getResource(build.getBuild() + "/genes" + build.getBuildInt() + ".xln");
+		}
+
+		/**
+		 * @return The reference genome FASTA for this {@link GENOME_BUILD}
+		 */
+		public Resource getFASTA() {
+			return getFASTAResource(getPath() + ".fa");
 		}
 
 		/**
@@ -547,6 +554,14 @@ public final class Resources {
 		protected Resource getVCFResource(String localPath, String remotePath) {
 			return new VCFResource(localPath, remotePath, log);
 		}
+		
+		protected Resource getFASTAResource(String rsrc) {
+			return getFASTAResource(localPath + rsrc, remotePath + rsrc);
+		}
+
+		protected Resource getFASTAResource(String localPath, String remotePath) {
+			return new FASTAResource(localPath, remotePath, log);
+		}
 
 		protected Resource getResource(String rsrc) {
 			return getResource(localPath + rsrc, remotePath + rsrc);
@@ -614,36 +629,35 @@ public final class Resources {
 					// Sort out the directories and files. Ensure the directories are all created first.
 					if (entry.isDirectory()) {
 						dirs.add(entry);
-					}
-					else {
+					} else {
 						files.add(entry);
 					}
 				}
 
-					/** If the entry is a directory, create the directory. **/
+				/** If the entry is a directory, create the directory. **/
 				for (TarArchiveEntry e : dirs) {
-						File f = new File(destination + e.getName());
-						f.mkdirs();
+					File f = new File(destination + e.getName());
+					f.mkdirs();
 				}
 
-					/**
-					 * If the entry is a file,write the decompressed file to the disk and close destination
-					 * stream.
-					 **/
+				/**
+				 * If the entry is a file,write the decompressed file to the disk and close destination
+				 * stream.
+				 **/
 				for (TarArchiveEntry e : files) {
-						int count;
-						byte[] data = new byte[BUFFER];
-						String fileName = destination + e.getName();
-						File f = new File(fileName).getParentFile();
-						f.mkdirs();
+					int count;
+					byte[] data = new byte[BUFFER];
+					String fileName = destination + e.getName();
+					File f = new File(fileName).getParentFile();
+					f.mkdirs();
 
-						FileOutputStream fos = new FileOutputStream(fileName);
-						BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER);
+					FileOutputStream fos = new FileOutputStream(fileName);
+					BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER);
 
-						while ((count = tarIn.read(data, 0, BUFFER)) != -1) {
-							dest.write(data, 0, count);
-						}
-						dest.close();
+					while ((count = tarIn.read(data, 0, BUFFER)) != -1) {
+						dest.write(data, 0, count);
+					}
+					dest.close();
 				}
 
 				/** Close the input stream **/
@@ -673,7 +687,32 @@ public final class Resources {
 		public String get() {
 			String path = super.get();
 			if (path != null && index.get() == null) {
-				log().reportError("Warning: no index found for vcf file: " + path);
+				log().reportTimeWarning("no index found for vcf file: " + path);
+			}
+			return path;
+		}
+	}
+
+	/**
+	 * FASTA Resource with accompanying index and dictionary files
+	 */
+	public static class FASTAResource extends AbstractResource {
+		private Resource index;
+		private Resource dictionary;
+
+		public FASTAResource(String path, String url, Logger log) {
+			super(path, url, log);
+			index = new DefaultResource(FASTA.getIndex(path), FASTA.getIndex(url), log);
+			dictionary = new DefaultResource(FASTA.getDictionary(path), FASTA.getDictionary(url), log);
+		}
+
+		public String get() {
+			String path = super.get();
+			if (path != null && index.get() == null) {
+				log().reportTimeWarning("no index found for FASTA file: " + path);
+			}
+			if (path != null && dictionary.get() == null) {
+				log().reportTimeWarning("no dictionary found for FASTA file: " + path);
 			}
 			return path;
 		}
@@ -754,7 +793,8 @@ public final class Resources {
 			if (isLocallyAvailable(localPath)) {
 				return localPath;
 			}
-			log.report("Resource is not available at " + localPath + ", will attempt to download from " + remotePath);
+			log.report("Resource is not available at "	+ localPath + ", will attempt to download from "
+									+ remotePath);
 
 			if (!downloadResource(remotePath, localPath)) {
 				log.reportError("Download failed for: " + remotePath);
@@ -778,8 +818,7 @@ public final class Resources {
 
 		@Override
 		public boolean isAvailable(boolean showHint) {
-			boolean isAvailable = isLocallyAvailable(localPath)
-														|| isRemotelyAvailable(remotePath);
+			boolean isAvailable = isLocallyAvailable(localPath) || isRemotelyAvailable(remotePath);
 
 			if (!isAvailable) {
 				log.reportTimeError("Could not find local file "	+ localPath

@@ -388,9 +388,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			annotationLoader = new MarkerAnnotationLoader(proj, new AnalysisParams[] {blastParams},
 																										annoFile, proj.getMarkerSet(), true);
 		}
-		String fastaFile = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
+		String fastaFile = proj.getReferenceGenomeFASTAFilename();
 		if (Files.exists(fastaFile)) {
-			referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
+			referenceGenome = new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																						proj.getLog());
 		}
 

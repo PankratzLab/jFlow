@@ -1261,10 +1261,10 @@ public class GenvisisWorkflow {
 	// GcAdjustorParameters params = null;
 	// if (gcCorrect) {
 	// if ((refGenomeFasta != null && !Files.exists(refGenomeFasta)) &&
-	// Files.exists(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue())) {
+	// Files.exists(proj.getReferenceGenomeFASTAFilename())) {
 	// proj.getLog().reportTimeWarning("Command line reference genome did not exist or was not
-	// provided, using default " + proj.REFERENCE_GENOME_FASTA_FILENAME.getValue());
-	// refGenomeFasta = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
+	// provided, using default " + proj.getReferenceGenomeFASTAFilename());
+	// refGenomeFasta = proj.getReferenceGenomeFASTAFilename();
 	// }
 	// if (Files.exists(refGenomeFasta) || Files.exists(proj.GC_MODEL_FILENAME.getValue())) {// TODO,
 	// after evaluating reference genome based gc model files, will demand a refGenome
@@ -1693,7 +1693,6 @@ public class GenvisisWorkflow {
 			String pedFile = null;
 			String useFile = null;
 			boolean sampLrr = true;
-			String refGenomeFasta = null;
 			boolean plot = false;
 			int retCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC, markerCallRateFilter,
 																		useFile, proj.getSampleList(), proj.getLog());
@@ -1701,9 +1700,9 @@ public class GenvisisWorkflow {
 				MitoPipeline.estimateMtDNACN(	proj, numThreads, medianMarkers, numComponents, outputBase,
 																			homozygousOnly, markerCallRateFilter, betaOptFile, pedFile,
 																			recomputeLRR_PCs, recomputeLRR_Median, sampLrr,
-																			imputeMeanForNaN, gcCorrect, refGenomeFasta, bpGcModel,
-																			regressionDistance, proj.GENOME_BUILD_VERSION.getValue(),
-																			pvalOpt, betaFile, plot, false, proj.getLog());
+																			imputeMeanForNaN, gcCorrect, bpGcModel, regressionDistance,
+																			proj.GENOME_BUILD_VERSION.getValue(), pvalOpt,
+																			betaFile, plot, false, proj.getLog());
 			} else {
 				setFailed();
 			}

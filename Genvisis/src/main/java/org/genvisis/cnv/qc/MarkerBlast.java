@@ -83,10 +83,9 @@ public class MarkerBlast {
 																					int maxAlignmentsReported, int numThreads,
 																					boolean reportToTmp, boolean annotateGCContent,
 																					boolean doBlast) {
-		String fastaDb = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
+		String fastaDb = proj.getReferenceGenomeFASTAFilename();
 		if (!Files.exists(fastaDb) && doBlast) {
-			proj.getLog().reportTimeError("Was not able to find reference genome defined by "
-																		+ proj.REFERENCE_GENOME_FASTA_FILENAME.getName());
+			proj.getLog().reportTimeError("Unable to find or obtain reference genome");
 			return null;
 		} else {
 			double evalueCutoff = 10000;
@@ -353,7 +352,7 @@ public class MarkerBlast {
 			MarkerSet markerSet = proj.getMarkerSet();
 			// SequenceLookup sequenceLookup = new SequenceLookup(proj.getLog());
 			ReferenceGenome referenceGenome =
-																			Files.exists(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue())	? new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
+																			Files.exists(proj.getReferenceGenomeFASTAFilename())	? new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																																																													proj.getLog())
 																																																		: null;
 			if (referenceGenome == null) {
@@ -1087,7 +1086,6 @@ public class MarkerBlast {
 		int reportWordSize = -1;
 		int maxAlignmentsReported = DEFAULT_MAX_ALIGNMENTS_REPORTED;
 		boolean annotateGCContent = DEFAULT_ANNOTATE_GC_CONTENT;
-		String referenceGenomeFasta = null;
 		boolean doBlast = DEFAULT_DO_BLAST;
 		// boolean report = true;
 		FILE_SEQUENCE_TYPE fSequence_TYPE = FILE_SEQUENCE_TYPE.MANIFEST_FILE;
@@ -1112,10 +1110,6 @@ public class MarkerBlast {
 		usage +=
 					"   (9) skip the blast analysis and simply add the manifest annotations (i.e. -noBlast (not the default))\n"
 							+ ", Options are:\n ";
-		usage +=
-					"   (10) full path to a reference genome if not using the project's default (i.e. ref= ( no default))\n"
-							+ ", Options are:\n ";
-
 		for (int i = 0; i < FILE_SEQUENCE_TYPE.values().length; i++) {
 			usage += FILE_SEQUENCE_TYPE.values()[i] + "\n";
 		}
@@ -1129,9 +1123,6 @@ public class MarkerBlast {
 				numArgs--;
 			} else if (arg.startsWith("fileSeq=")) {
 				fileSeq = ext.parseStringArg(arg, "");
-				numArgs--;
-			} else if (arg.startsWith("ref=")) {
-				referenceGenomeFasta = ext.parseStringArg(arg, "");
 				numArgs--;
 			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(arg);
@@ -1175,9 +1166,6 @@ public class MarkerBlast {
 			}
 			if (proj == null) {
 				System.err.println("Invalid project");
-			}
-			if (referenceGenomeFasta != null) {
-				proj.REFERENCE_GENOME_FASTA_FILENAME.setValue(referenceGenomeFasta);
 			}
 			if (reportWordSize == -1) {
 				switch (proj.getArrayType()) {

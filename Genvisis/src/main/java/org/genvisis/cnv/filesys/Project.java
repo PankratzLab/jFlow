@@ -28,6 +28,7 @@ import javax.swing.JProgressBar;
 
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.prop.BooleanProperty;
 import org.genvisis.cnv.prop.DoubleProperty;
@@ -387,11 +388,6 @@ public class Project implements PropertyChangeListener {
 																																				PropertyKeys.KEY_SEX_CENTROIDS_FEMALE_FILENAME,
 																																				"", GROUP.CENTROIDS, true,
 																																				"", false);
-	public FileProperty REFERENCE_GENOME_FASTA_FILENAME =
-																											new FileProperty(	this,
-																																				PropertyKeys.KEY_REFERENCE_GENOME_FASTA_FILENAME,
-																																				"", GROUP.GLOBAL, true,
-																																				"hg19_canonical.fa", false);
 	public FileProperty GENOME_CLUSTER_FILENAME = new FileProperty(	this,
 																																	PropertyKeys.KEY_GENOME_CLUSTER_FILENAME,
 																																	"", GROUP.DATA_CLEANING, true,
@@ -630,7 +626,7 @@ public class Project implements PropertyChangeListener {
 		updateProperty(proj.MARKERSET_FILENAME, ".bim", "marker set");
 		proj.saveProperties(new Property[] {proj.SAMPLELIST_FILENAME, proj.MARKERLOOKUP_FILENAME,
 																				proj.MARKERSET_FILENAME});
-		
+
 		proj.updateImportMetaFile();
 	}
 
@@ -689,7 +685,8 @@ public class Project implements PropertyChangeListener {
 		if (Files.exists(file)) {
 			@SuppressWarnings("unchecked")
 			HashMap<String, String> map =
-			  (HashMap<String, String>) SerializedFiles.readSerial(	file, false, log, false);
+																	(HashMap<String, String>) SerializedFiles.readSerial(	file, false,
+																																												log, false);
 			return map;
 		} else {
 			return new HashMap<String, String>();
@@ -787,7 +784,7 @@ public class Project implements PropertyChangeListener {
 	public void setPropertyFilename(String projectPropertiesFilename) {
 		this.projectPropertiesFilename = projectPropertiesFilename;
 	}
-	
+
 	public MarkerSet getMarkerSet() {
 		if (markerSet == null) {
 			markerSet = loadMarkerSet();
@@ -1608,6 +1605,14 @@ public class Project implements PropertyChangeListener {
 			GENETRACK_FILENAME.setValue(geneTrackFilename);
 		}
 		return geneTrackFilename;
+	}
+
+	/**
+	 * @return Filename of reference genome FASTA from local resources directory. May cause the
+	 *         reference to be downloaded.
+	 */
+	public String getReferenceGenomeFASTAFilename() {
+		return Resources.genome(GENOME_BUILD_VERSION.getValue(), log).getFASTA().get();
 	}
 
 	/**

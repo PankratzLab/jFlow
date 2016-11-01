@@ -86,7 +86,7 @@ public class GcLook {
 		String out = dir + "gcLook.txt";
 
 		ReferenceGenome referenceGenome =
-																		new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(),
+																		new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																												proj.getLog());
 
 		ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
