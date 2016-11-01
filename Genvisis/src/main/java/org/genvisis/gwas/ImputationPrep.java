@@ -196,8 +196,7 @@ public class ImputationPrep {
 	private String generateFilteredPlinkset() {
 		MarkerSet markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
-		ABLookup projAB = new ABLookup(markerNames, proj.AB_LOOKUP_FILENAME.getValue(), true, true,
-																	 log);
+		ABLookup projAB = new ABLookup(proj, markerNames);
 		Set<String> keepMarkers = Sets.newHashSet();
 		char[][] lookup = projAB.getLookup().clone();
 		char[] refAlleles = new char[lookup.length];

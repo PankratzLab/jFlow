@@ -741,7 +741,7 @@ public class MarkerBlast {
 			if (loc.getChr() > 0) {
 				if (!isIndel()) {
 					String[] tmp;
-					if (loc.getStart() > referenceGenome.getContigLength(loc) || referenceGenome == null) {
+					if (referenceGenome == null || loc.getStart() > referenceGenome.getContigLength(loc)) {
 						tmp = new String[] {"N"};
 					} else {
 						tmp = referenceGenome.getSequenceFor(loc);
