@@ -46,7 +46,7 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 	}
 
 	public boolean hasPerfectMatch(Logger log) {
-		return getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH, log).isEmpty();
+		return !getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH, log).isEmpty();
 	}
 
 	public int getNumOffTarget(Logger log) {
