@@ -8,9 +8,19 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
+import org.genvisis.cnv.annotation.markers.AnnotationParser;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
+import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
+import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
+import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -18,61 +28,61 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 
 public class MarkerSet implements Serializable, TextExport {
 	public static final long serialVersionUID = 1L;
-	public static final char[] ALLELES = {'A', 'C', 'G', 'T', 'I', 'D'};
-	// TODO these alleles were recently added, should they not be from some place else??
 
 	private final long fingerprint;
 	private final String[] markerNames;
 	private final byte[] chrs;
 	private final int[] positions;
-	// private char[][] abAlleles;
+	private char[][] abAlleles;
 
 	public MarkerSet(String[] markerNames, byte[] chrs, int[] positions) {
-		if (markerNames.length != chrs.length || markerNames.length != positions.length) {
-			System.err.println("Error - mismatched number of markers and positions");
-			System.exit(1);
-		}
-
-		this.markerNames = markerNames;
-		this.chrs = chrs;
-		this.positions = positions;
-		fingerprint = fingerprint(markerNames);
+		this(markerNames, chrs, positions, null);
 	}
 
-	public MarkerSet(String[] rawMarkerNames, byte[] rawChrs, int[] rawPositions, int[] keys) {
-		if (rawMarkerNames.length != rawChrs.length || rawMarkerNames.length != rawPositions.length
-				|| rawMarkerNames.length != keys.length) {
-			System.err.println("Error - mismatched number of markers and positions/keys");
-			System.exit(1);
+	public MarkerSet(String[] markerNames, byte[] chrs, int[] positions, char[][] abAlleles) {
+		int numMarkers = markerNames.length;
+		if (numMarkers != chrs.length || numMarkers != positions.length
+				|| (abAlleles != null && numMarkers != abAlleles.length)) {
+			throw new IllegalArgumentException(this.getClass().getName()
+																				 + " cannot be constructed with mismatched list of Markers and positions or AB Alleles");
 		}
-
-		markerNames = new String[rawMarkerNames.length];
-		chrs = new byte[rawChrs.length];
-		positions = new int[rawPositions.length];
-
-		for (int i = 0; i < keys.length; i++) {
-			markerNames[i] = rawMarkerNames[keys[i]];
-			chrs[i] = rawChrs[keys[i]];
-			positions[i] = rawPositions[keys[i]];
-		}
-
+		this.markerNames = markerNames.clone();
+		this.chrs = chrs.clone();
+		this.positions = positions.clone();
+		this.abAlleles = abAlleles == null ? null : abAlleles.clone();
 		fingerprint = fingerprint(markerNames);
 	}
 
 	public String[] getMarkerNames() {
-		return markerNames;
+		return markerNames.clone();
 	}
 
 	public byte[] getChrs() {
-		return chrs;
+		return chrs.clone();
 	}
 
 	public int[] getPositions() {
-		return positions;
+		return positions.clone();
+	}
+
+	public char[][] getABAlleles() {
+		return abAlleles == null ? null : abAlleles.clone();
+	}
+
+	public Map<String, Integer> getMarkerIndices() {
+		String[] markerNames = getMarkerNames();
+		Map<String, Integer> indices = Maps.newHashMap();
+		for (int i = 0; i < markerNames.length; i++) {
+			indices.put(markerNames[i], i);
+		}
+		return indices;
 	}
 
 	public int[][] getPositionsByChr() {
@@ -157,6 +167,144 @@ public class MarkerSet implements Serializable, TextExport {
 		return (MarkerSet) SerializedFiles.readSerial(filename, jar, true);
 	}
 
+	public static MarkerSet parseFromBLASTAnnotation(MarkerSet naiveMarkerSet, String blastAnnotation,
+																									 Logger log) {
+		String[] markerNames = naiveMarkerSet.getMarkerNames();
+		byte[] chrs = new byte[markerNames.length];
+		int[] positions = new int[markerNames.length];
+		char[][] abLookup = new char[markerNames.length][];
+		if (!Files.exists(blastAnnotation)) {
+			log.reportTimeWarning("Could not find " + blastAnnotation
+														+ ", cannot generate BLAST Annotation based Marker Set");
+			return null;
+		}
+		Map<String, MarkerBlastAnnotation> masterMarkerList = MarkerBlastAnnotation.initForMarkers(markerNames);
+		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(null, blastAnnotation,
+																																				 naiveMarkerSet, true, log);
+		annotationLoader.setReportEvery(10000);
+		List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
+		parsers.add(masterMarkerList);
+		annotationLoader.fillAnnotations(null, parsers, QUERY_TYPE.ONE_TO_ONE);
+
+		int missingABcount = 0;
+		int missingPositionCount = 0;
+		int ambiguousPositionCount = 0;
+		for (int i = 0; i < markerNames.length; i++) {
+
+			MarkerBlastAnnotation markerBlastAnnotation = masterMarkerList.get(markerNames[i]);
+			try {
+				abLookup[i] = ABLookup.parseABFromMarkerSeqAnnotation(markerBlastAnnotation.getMarkerSeqAnnotation());
+			} catch (NullPointerException npe) {
+				missingABcount++;
+			}
+			boolean ambiguousPosition = false;
+			List<BlastAnnotation> perfectMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
+																																										 log);
+			BlastAnnotation bestMatch = null;
+			if (perfectMatches.size() == 1) {
+				bestMatch = perfectMatches.get(0);
+			} else if (!perfectMatches.isEmpty()) {
+				// TODO implement liftOver here to check which match is actually in naiveMarkerSet
+				ambiguousPosition = true;
+				bestMatch = closestChrMatch(naiveMarkerSet.getChrs()[i], naiveMarkerSet.getPositions()[i],
+																		perfectMatches);
+				if (bestMatch == null) {
+					log.reportTimeWarning("Arbitrarily selecting first of " + perfectMatches.size()
+																+ " perfect matches for " + markerNames[i]
+																+ ", none of which are on the same chromosome as indicated by the array");
+					bestMatch = perfectMatches.get(0);
+				}
+			} else {
+				// Otherwise, choose lowest e-value match from non-perfect matches
+				List<BlastAnnotation> onTargetMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
+																																												log);
+				List<BlastAnnotation> offTargetMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS,
+																																												 log);
+				Set<BlastAnnotation> nonPerfectMatches = Sets.newHashSet();
+				nonPerfectMatches.addAll(onTargetMatches);
+				nonPerfectMatches.addAll(offTargetMatches);
+				List<BlastAnnotation> bestMatches = Lists.newArrayList();
+				double bestMatchEVal = Double.MAX_VALUE;
+				for (BlastAnnotation annotation : nonPerfectMatches) {
+					double eVal = annotation.geteValue();
+					if (eVal < bestMatchEVal) {
+						bestMatches = Lists.newArrayList(annotation);
+						bestMatchEVal = eVal;
+					} else if (eVal == bestMatchEVal) {
+						bestMatches.add(annotation);
+					}
+				}
+				if (bestMatches.size() == 1) {
+					bestMatch = bestMatches.get(0);
+				} else if (!bestMatches.isEmpty()) {
+					//
+					ambiguousPosition = true;
+					bestMatch = closestChrMatch(naiveMarkerSet.getChrs()[i], naiveMarkerSet.getPositions()[i],
+																			bestMatches);
+					if (bestMatch == null) {
+						log.reportTimeWarning("Arbitrarily selecting first of " + bestMatches.size()
+																	+ " best matches with identical E-values for " + markerNames[i]
+																	+ ", none of which are on the same chromosome as indicated by the array");
+						bestMatch = bestMatches.get(0);
+					}
+				}
+			}
+			if (bestMatch == null) {
+				missingPositionCount++;
+				chrs[i] = 0;
+				positions[i] = 0;
+			} else {
+				Segment seg = bestMatch.getRefLoc();
+				chrs[i] = seg.getChr();
+				positions[i] = seg.getStart();
+			}
+			if (ambiguousPosition) {
+				ambiguousPositionCount++;
+			}
+		}
+		if (missingABcount > 0) {
+			log.reportError("Warning - there " + (missingABcount > 1 ? "were " : "was ")
+											+ missingABcount + " marker" + (missingABcount > 1 ? "s" : "")
+											+ " without an AB value");
+		}
+		if (ambiguousPositionCount > 0) {
+			log.reportError("Warning - there " + (ambiguousPositionCount > 1 ? "were " : "was ")
+											+ ambiguousPositionCount + " marker" + (ambiguousPositionCount > 1 ? "s" : "")
+											+ " with ambiguous BLAST matches");
+		}
+		if (missingPositionCount > 0) {
+			log.reportError("Warning - there " + (missingPositionCount > 1 ? "were " : "was ")
+											+ missingPositionCount + " marker" + (missingPositionCount > 1 ? "s" : "")
+											+ " missing a BLAST result and association position");
+		}
+		return new MarkerSet(markerNames, chrs, positions, abLookup);
+
+
+	}
+
+	public static BlastAnnotation closestChrMatch(byte naiveChr, int naivePosition,
+																								Iterable<BlastAnnotation> matches) {
+		// If more than one match, try choosing one with chr that matches naiveChr (chr
+		// won't be affected by build) and closest position to naivePosition
+		BlastAnnotation bestMatch = null;
+		for (BlastAnnotation annotation : matches) {
+			if (annotation.getRefLoc().getChr() == naiveChr) {
+				if (bestMatch == null) {
+					bestMatch = annotation;
+				} else {
+					if (Math.abs(naivePosition
+											 - annotation.getRefLoc().getStart()) < Math.abs(
+																																			 naivePosition
+																																			 - bestMatch.getRefLoc()
+																																									.getStart())) {
+						bestMatch = annotation;
+					}
+				}
+			}
+		}
+		return bestMatch;
+	}
+
 	public static long fingerprint(String[] names) {
 		long sum, trav;
 
@@ -232,7 +380,7 @@ public class MarkerSet implements Serializable, TextExport {
 			}
 			reader.close();
 
-			new MarkerSet(markerNames, chrs, positions).serialize(filename + ".ser");
+			new MarkerSet(markerNames, chrs, positions, null).serialize(filename + ".ser");
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \"" + filename + "\" not found in current directory");
 			System.exit(1);
@@ -305,7 +453,7 @@ public class MarkerSet implements Serializable, TextExport {
 		}
 
 		private PreparedMarkerSet(MarkerSet markerSet) {
-			super(markerSet.markerNames, markerSet.chrs, markerSet.positions);
+			super(markerSet.markerNames, markerSet.chrs, markerSet.positions, null);
 			indicesByChr = super.getIndicesByChr();
 			positionsByChr = super.getPositionsByChr();
 

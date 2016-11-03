@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Map;
 
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
@@ -101,7 +102,7 @@ public class MarkerBlastIterator {
 															 int blastWordSize, int numThreads, boolean reportToTmp,
 															 String[] otherMarkersToExtract) throws FileNotFoundException {
 		Logger log = proj.getLog();
-		final Hashtable<String, Integer> indices = proj.getMarkerIndices();
+		final Map<String, Integer> indices = proj.getMarkerIndices();
 		final int[] blastWordSizes = new int[] {blastWordSize};
 		final int[] reportWordSizes = new int[] {0};
 		final byte[] chrs = proj.getMarkerSet().getChrs();
@@ -553,7 +554,7 @@ public class MarkerBlastIterator {
 		byte[] chrs = proj.getMarkerSet().getChrs();
 		int[] pos = proj.getMarkerSet().getPositions();
 
-		Hashtable<String, Integer> indices = proj.getMarkerIndices();
+		Map<String, Integer> indices = proj.getMarkerIndices();
 		ReferenceGenome referenceGenome = new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 																													proj.getLog());
 

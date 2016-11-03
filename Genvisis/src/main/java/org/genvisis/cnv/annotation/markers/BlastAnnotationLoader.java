@@ -2,16 +2,15 @@ package org.genvisis.cnv.annotation.markers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
 import org.genvisis.cnv.filesys.MarkerSet;
-import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ArraySpecialList.ArrayBlastAnnotationList;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
@@ -26,19 +25,20 @@ import htsjdk.variant.variantcontext.VariantContext;
 public class BlastAnnotationLoader extends AnnotationFileLoader {
 	private final byte[] chrs;
 	private final int[] pos;
-	private final Hashtable<String, Integer> markerIndices;
+	private final Map<String, Integer> markerIndices;
 
 	/**
-	 * @param proj
 	 * @param annotationFilename the file created by a {@link BlastAnnotationWriter} run
+	 * @param markerSet {@link MarkerSet} to load
 	 * @param indexRequired , should always be set to true
+	 * @param log
 	 */
-	public BlastAnnotationLoader(Project proj, String annotationFilename, boolean indexRequired) {
-		super(proj, null, BlastAnnotationTypes.getBaseAnnotations(), annotationFilename, indexRequired);
-		MarkerSet markerSet = proj.getMarkerSet();
+	public BlastAnnotationLoader(String annotationFilename, MarkerSet markerSet,
+															 boolean indexRequired, Logger log) {
+		super(null, BlastAnnotationTypes.getBaseAnnotations(), annotationFilename, indexRequired, log);
 		chrs = markerSet.getChrs();
 		pos = markerSet.getPositions();
-		markerIndices = proj.getMarkerIndices();
+		markerIndices = markerSet.getMarkerIndices();
 	}
 
 	/**
@@ -52,7 +52,7 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 
 		if (ArrayUtils.unique(markers).length != markers.length) {
 			String error = "Internal error, markers for blast annotation retrieval must be unique";
-			proj.getLog().reportError(error);
+			log.reportError(error);
 			throw new IllegalArgumentException(error);
 		}
 
@@ -67,15 +67,15 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 		int count = 0;
 		while (annotationQuery.hasNext()) {
 			count++;
-			if (count % proj.MAX_MARKERS_LOADED_PER_CYCLE.getValue() == 0) {
-				proj.getLog().reportTimeInfo("Loaded " + count + " annotations");
+			if (count % 10000 == 0) {
+				log.reportTimeInfo("Loaded " + count + " annotations");
 			}
 			VariantContext vc = annotationQuery.next();
 			if (otherQueries != null) {
 				for (AnnotationParser[] annotationParsers : otherQueries) {
 					for (AnnotationParser annotationParser : annotationParsers) {
-						if (annotationParser.shouldAnnotateWith(vc, proj.getLog())) {
-							annotationParser.parseAnnotation(vc, proj.getLog());
+						if (annotationParser.shouldAnnotateWith(vc, log)) {
+							annotationParser.parseAnnotation(vc, log);
 						}
 					}
 				}
@@ -83,11 +83,10 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 			String id = vc.getID();
 			int annoIndex = ext.indexOfStr(id, markers);
 			if (annoIndex < 0) {
-				proj.getLog()
-						.reportTimeWarning("Query has returned un-desired marker " + id + ", ignoring");
+				log.reportTimeWarning("Query has returned un-desired marker " + id + ", ignoring");
 			} else {
 				found[annoIndex] = true;
-				blastAnnotations[annoIndex].parseAnnotation(vc, proj.getLog());
+				blastAnnotations[annoIndex].parseAnnotation(vc, log);
 			}
 		}
 		if (ArrayUtils.booleanArraySum(found) != markers.length) {
@@ -98,11 +97,11 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 					error += "\nMissing " + markers[i];
 				}
 			}
-			proj.getLog().reportError(error);
-			proj.getLog().reportError(ArrayUtils.toStr(markers));
+			log.reportError(error);
+			log.reportError(ArrayUtils.toStr(markers));
 			// throw new IllegalStateException(error);
 		} else {
-			proj.getLog().reportTimeInfo("Loaded " + markers.length + " marker annotations");
+			log.reportTimeInfo("Loaded " + markers.length + " marker annotations");
 		}
 		return blastAnnotations;
 	}

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -340,7 +341,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 								 + proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)
 								 + "; using original genotypes");
 		}
-		Hashtable<String, Integer> projectIndices = proj.getMarkerIndices();
+		Map<String, Integer> projectIndices = proj.getMarkerIndices();
 		if (params != null && recomputeLRR) {
 			proj.getLog()
 					.reportError("recompute lrr was flagged AND gc correction parameters were passed to data load of median markers");

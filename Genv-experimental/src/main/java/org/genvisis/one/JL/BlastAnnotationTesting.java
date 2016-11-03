@@ -22,7 +22,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 
-import com.google.common.collect.Lists;
+import com.googlecode.charts4j.collect.Lists;
 
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
@@ -53,10 +53,12 @@ public class BlastAnnotationTesting {
 		// long time = System.currentTimeMillis();
 
 		proj.getLog().reportTimeInfo("Loading " + t.size() + " markers");
-		BlastAnnotationLoader blastAnnotationLoader = new BlastAnnotationLoader(proj, annoFile, true);
+		BlastAnnotationLoader blastAnnotationLoader = new BlastAnnotationLoader(annoFile,
+																																						proj.getMarkerSet(),
+																																						true, proj.getLog());
 
 		// MarkerBlastResult[] markerBlastResults =
-		// blastAnnotationLoader.loadBlastAnnotationsFor(Array.toStringArray(t), null);
+		// blastAnnotationLoader.loadBlastAnnotationsFor(ArrayUtils.toStringArray(t), null);
 		// proj.getLog().reportTimeElapsed(time);
 		// for (int i = 0; i < markerBlastResults.length; i++) {
 		// for (int j = 0; j < markerBlastResults[i].getAnnotationLists().length; j++) {
@@ -83,17 +85,17 @@ public class BlastAnnotationTesting {
 
 		// Writing:
 		BlastAnnotationWriter blastAnnotation = new BlastAnnotationWriter(proj, null, annoFile,
-																																			blastResultFiles,
-																																			null, minAlignmentLength,
-																																			maxGaps, maxMismatches, 15);
+																																			blastResultFiles, null,
+																																			minAlignmentLength, maxGaps,
+																																			maxMismatches, 15);
 		blastAnnotation.summarizeResultFiles(true);
 		blastAnnotation.close();
 
 		// Annotation annotation = new Annotation(VCFHeaderLineType.String, null, 1, "test analysis ",
 		// "a test analysis addition", "DSDF") {
 		// };
-		blastAnnotation = new BlastAnnotationWriter(proj, null, annoFile, blastResultFiles,
-																								null, minAlignmentLength, maxGaps, maxMismatches, 15);
+		blastAnnotation = new BlastAnnotationWriter(proj, null, annoFile, blastResultFiles, null,
+																								minAlignmentLength, maxGaps, maxMismatches, 15);
 		blastAnnotation.summarizeResultFiles(true);
 		blastAnnotation.close();
 		// (Project proj, Annotation[] annotations, String annotationFilename, boolean overWriteExisting
@@ -129,15 +131,16 @@ public class BlastAnnotationTesting {
 		// t.add(markers[200003]);
 
 		Map<String, MarkerBlastAnnotation> blastResults = MarkerBlastAnnotation.initForMarkers(ArrayUtils.toStringArray(t));
-		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(proj, null,
+		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(null,
 																																				 proj.BLAST_ANNOTATION_FILENAME.getValue(),
-																																				 proj.getMarkerSet(), true);
+																																				 proj.getMarkerSet(), true,
+																																				 proj.getLog());
 		List<Map<String, ? extends AnnotationParser>> toparse = Lists.newArrayList();
 		toparse.add(blastResults);
 		annotationLoader.fillAnnotations(ArrayUtils.toStringArray(t), toparse,
 																		 QUERY_TYPE.DISCRETE_LIST);
 		for (MarkerBlastAnnotation blastResult : blastResults.values()) {
-			// System.out.println(Array.toStr(blastResults[i].getAlignmentHistogram(proj)));
+			// System.out.println(ArrayUtils.toStr(blastResults[i].getAlignmentHistogram(proj)));
 		}
 	}
 

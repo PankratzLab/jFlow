@@ -88,7 +88,8 @@ public class RandSortTest {
 			t[i] = posits[i].getIndex();
 		}
 		System.out.println(ext.getTimeElapsed(time) + " for new");
-		new MarkerSet(markerNames, chrs, positions, t).serialize(output);
+		new MarkerSet(Sort.getOrdered(markerNames, t), Sort.getOrdered(chrs, t),
+									Sort.getOrdered(positions, t)).serialize(output);
 
 		// timse = System.currentTimeMillis();
 		Sort.getSort2DIndices(chrs, positions);

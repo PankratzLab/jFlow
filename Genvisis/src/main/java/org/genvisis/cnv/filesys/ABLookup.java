@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -145,7 +144,7 @@ public class ABLookup {
 		return lookup;
 	}
 
-	private static char[] parseABFromAnnotation(MarkerSeqAnnotation markerSeqAnnotation) {
+	public static char[] parseABFromMarkerSeqAnnotation(MarkerSeqAnnotation markerSeqAnnotation) {
 		Strand strand = markerSeqAnnotation.getStrand();
 		Allele A = markerSeqAnnotation.getA();
 		Allele B = markerSeqAnnotation.getB();
@@ -234,8 +233,8 @@ public class ABLookup {
 						} else {
 							log.reportError("Error - different genotype (" + trav
 															+ ") than anything seen before ("
-															+ ArrayUtils.toStr(genotypesSeen[j], "/") + ") for marker "
-															+ markerNames[j] + " and sample " + samples[i]);
+															+ ArrayUtils.toStr(genotypesSeen[j], "/")
+															+ ") for marker " + markerNames[j] + " and sample " + samples[i]);
 						}
 					}
 				}
@@ -243,11 +242,11 @@ public class ABLookup {
 		}
 
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()
-																							+ "AB_breakdown.xln"));
+			writer = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+																					+ "AB_breakdown.xln");
 			writer.println("Marker\tG11\tG12\tG22\tG11 counts\tG12 counts\tG22 counts\tMean Theta G11\tMean Theta G12\tMean Theta G22\torder\tA allele\tB allele");
-			writer2 = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + "posssible_"
-																							 + DEFAULT_AB_FILE));
+			writer2 = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + "posssible_"
+																					 + DEFAULT_AB_FILE);
 			writer2.println("Marker\tA\tB");
 			// int countMissing;
 			lookup = new char[markerNames.length][];
@@ -375,9 +374,10 @@ public class ABLookup {
 				markerNames = markerSet.getMarkerNames();
 
 				Map<String, MarkerBlastAnnotation> masterMarkerList = MarkerBlastAnnotation.initForMarkers(markerNames);
-				MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(proj, null,
+				MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(null,
 																																						 proj.BLAST_ANNOTATION_FILENAME.getValue(),
-																																						 markerSet, true);
+																																						 markerSet,
+																																						 true, proj.getLog());
 				annotationLoader.setReportEvery(10000);
 				List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
 				parsers.add(masterMarkerList);
@@ -388,8 +388,8 @@ public class ABLookup {
 
 				for (String markerName : markerNames) {
 					int indx = indices.get(markerName);
-					lookup[indx] = parseABFromAnnotation(masterMarkerList.get(markerName)
-																															 .getMarkerSeqAnnotation());
+					lookup[indx] = parseABFromMarkerSeqAnnotation(masterMarkerList.get(markerName)
+																																				.getMarkerSeqAnnotation());
 				}
 				return;
 
@@ -510,7 +510,7 @@ public class ABLookup {
 																	 Object... args) {
 		ABLookup abLookup = new ABLookup();
 
-		if (!Files.exists(outfile)) {
+		if (!Files.exists(outfile, false, true)) {
 			switch (parseSource) {
 				case GENCLUSTER:
 					abLookup.parseFromGenotypeClusterCenters(proj);
@@ -617,9 +617,10 @@ public class ABLookup {
 
 		MarkerSet markerSet = proj.getMarkerSet();
 		Map<String, MarkerBlastAnnotation> masterMarkerList = MarkerBlastAnnotation.initForMarkers(markerNames);
-		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(proj, null,
+		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(null,
 																																				 proj.BLAST_ANNOTATION_FILENAME.getValue(),
-																																				 markerSet, true);
+																																				 markerSet,
+																																				 true, proj.getLog());
 		annotationLoader.setReportEvery(10000);
 		List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
 		parsers.add(masterMarkerList);
@@ -628,8 +629,8 @@ public class ABLookup {
 		int missing = 0;
 		for (int i = 0; i < markerNames.length; i++) {
 			try {
-				lookup[i] = parseABFromAnnotation(masterMarkerList.get(markerNames[i])
-																													.getMarkerSeqAnnotation());
+				lookup[i] = parseABFromMarkerSeqAnnotation(masterMarkerList.get(markerNames[i])
+																																	 .getMarkerSeqAnnotation());
 			} catch (NullPointerException npe) {
 				if (verbose) {
 					proj.getLog().reportError("no AB value for marker '" + markerNames[i] + "'");
@@ -638,8 +639,9 @@ public class ABLookup {
 			}
 		}
 		if (missing > 0) {
-			proj.getLog().reportError("Warning - there " + (missing > 1 ? "were " : "was ") + missing
-																+ " marker" + (missing > 1 ? "s" : "") + " without an AB value");
+			proj.getLog()
+					.reportError("Warning - there " + (missing > 1 ? "were " : "was ") + missing
+											 + " marker" + (missing > 1 ? "s" : "") + " without an AB value");
 			if (allOrNothing) {
 				lookup = null;
 			}
@@ -793,8 +795,8 @@ public class ABLookup {
 		markersWithNoLink = new Vector<String>();
 		try {
 			reader = Files.getAppropriateReader(incompleteABlookupFilename);
-			writer = new PrintWriter(new FileWriter(ext.addToRoot(incompleteABlookupFilename,
-																														"_filledIn")));
+			writer = Files.getAppropriateWriter(ext.addToRoot(incompleteABlookupFilename,
+																												"_filledIn"));
 			if (updatingPlinkFile) {
 				markerIndex = 1;
 				first = 4;
@@ -808,8 +810,8 @@ public class ABLookup {
 				first = colIndices[1];
 				second = colIndices[2];
 				if (markerIndex == -1 || first == -1 || second == -1) {
-					log.reportError(incompleteABlookupFilename + " does not contain required columns: "
-													+ Joiner.on("\t").join(AB_LOOKUP_COLS));
+					log.reportError(incompleteABlookupFilename + " does not contain required columns: " +
+													Joiner.on("\t").join(AB_LOOKUP_COLS));
 					reader.close();
 					writer.close();
 					return false;
@@ -893,10 +895,11 @@ public class ABLookup {
 						MarkerData markerData = markerDataLoader.requestMarkerData(i);
 						// markerNames[i] = markerNames[i] + "\t" + markerData.getFrequencyOfB(null, null,
 						// clusterFilterCollection, proj.getFloat(proj.GC_THRESHOLD));
-						markerNames[i] = markerNames[i] + "\t"
-														 + markerData.getFrequencyOfB(null, null, clusterFilterCollection,
-																													proj.GC_THRESHOLD.getValue().floatValue(),
-																													log);
+						markerNames[i] = markerNames[i] + "\t" + markerData.getFrequencyOfB(null, null,
+																																								clusterFilterCollection,
+																																								proj.GC_THRESHOLD.getValue()
+																																																 .floatValue(),
+																																								log);
 						markerDataLoader.releaseIndex(i);
 					}
 				}
@@ -944,8 +947,7 @@ public class ABLookup {
 		c.parseWithExit(args);
 
 		proj = new Project(c.get(CLI.ARG_PROJ), false);
-		outfile = Files.firstPathToFileThatExists(c.get(CLI.ARG_OUTFILE), "",
-																							proj.PROJECT_DIRECTORY.getValue());
+		outfile = proj.PROJECT_DIRECTORY.getValue() + c.get(CLI.ARG_OUTFILE);
 		if (c.has(FLAGS_APPLYAB)) {
 			applyABLookupToFullSampleFiles(proj);
 		} else if (c.has(FLAGS_VCF)) {

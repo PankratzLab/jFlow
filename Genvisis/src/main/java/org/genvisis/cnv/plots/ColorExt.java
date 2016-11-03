@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -168,7 +169,7 @@ public class ColorExt {
 				HashMap<String, Color> cols = parseColors(header[classIndex]);
 				Hashtable<String, ColorItem<String>> manager = new Hashtable<String, ColorExt.ColorItem<String>>();
 				Hashtable<String, String> lookup = new Hashtable<String, String>();
-				Hashtable<String, Integer> indices = proj.getMarkerIndices();
+				Map<String, Integer> indices = proj.getMarkerIndices();
 				try {
 
 					for (String key : cols.keySet()) {

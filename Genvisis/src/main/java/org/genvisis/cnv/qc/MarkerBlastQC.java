@@ -34,12 +34,6 @@ public class MarkerBlastQC {
 		return ext.rootRootOf(blastVCF) + "_OneHitWonders.txt";
 	}
 
-	public static void getMarkerPositions(Project proj, String blastVCF, String outFile, Logger log) {
-		MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(proj, null, blastVCF,
-																																							 null, true);
-		// TODO Finish?
-	}
-
 	public static void getOneHitWonders(Project proj, String blastVCF, String outFile,
 																			double crossHybePercent, Logger log) {
 		if (blastVCF == null) {
@@ -50,15 +44,16 @@ public class MarkerBlastQC {
 		}
 		MarkerSet markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
-		MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(proj, null,
+		MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(null,
 																																							 proj.BLAST_ANNOTATION_FILENAME.getValue(),
 																																							 proj.getMarkerSet(),
-																																							 true);
+																																							 true,
+																																							 log);
 		markerAnnotationLoader.setReportEvery(500000);
 		Map<String, MarkerGCAnnotation> gcAnnotations = MarkerGCAnnotation.initForMarkers(proj,
 																																											markerNames,
 																																											markerAnnotationLoader.getMarkerSet(),
-																																											markerAnnotationLoader.getIndices());
+																																											markerAnnotationLoader.getMarkerIndices());
 		Map<String, MarkerBlastAnnotation> blastResults = MarkerBlastAnnotation.initForMarkers(markerNames);
 		List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
 		parsers.add(gcAnnotations);

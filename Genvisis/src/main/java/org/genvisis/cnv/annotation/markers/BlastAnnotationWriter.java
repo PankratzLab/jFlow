@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.Map;
 
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
@@ -41,8 +42,8 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 	public BlastAnnotationWriter(Project proj, AnalysisParams[] analysisParams, String outputFile,
 															 String[] blastResultFiles, MarkerFastaEntry[] markerFastaEntries,
-															 int minAlignmentLength,
-															 int maxGaps, int maxMismatches, int maxAlignmentsReported) {
+															 int minAlignmentLength, int maxGaps, int maxMismatches,
+															 int maxAlignmentsReported) {
 		super(proj, analysisParams,
 					ArrayUtils.concatAll(BlastAnnotationTypes.getBaseAnnotations(),
 															 new Annotation[] {MarkerBlastHistogramAnnotation.getDefaultBlastAnnotation()},
@@ -100,7 +101,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 			}
 		}
 
-		Hashtable<String, Integer> markerIndices = proj.getMarkerIndices();
+		Map<String, Integer> markerIndices = proj.getMarkerIndices();
 
 		for (String element : blastResultFile) {
 			proj.getLog().reportTimeInfo("Loading results from " + element);

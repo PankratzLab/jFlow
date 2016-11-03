@@ -264,7 +264,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 	private ReferenceGenome referenceGenome = null;
 
 	private BlastParams blastParams = null;
-	private Hashtable<String, Integer> markerProjectIndices;
+	private Map<String, Integer> markerProjectIndices;
 	private final HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<String, PlinkMarkerLoader>();
 
 	private BlastFrame blastFrame;
@@ -388,8 +388,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		if (Files.exists(annoFile)) {
 			hasAnnotationFile = true;
 			blastParams = new BlastParams(log);
-			annotationLoader = new MarkerAnnotationLoader(proj, new AnalysisParams[] {blastParams},
-																										annoFile, proj.getMarkerSet(), true);
+			annotationLoader = new MarkerAnnotationLoader(new AnalysisParams[] {blastParams}, annoFile,
+																										proj.getMarkerSet(), true, log);
 		}
 		String fastaFile = proj.getReferenceGenomeFASTAFilename();
 		if (Files.exists(fastaFile)) {
@@ -1480,7 +1480,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		return markerList[markerIndex];
 	}
 
-	public Hashtable<String, Integer> getMarkerProjectIndices() {
+	public Map<String, Integer> getMarkerProjectIndices() {
 		return markerProjectIndices;
 	}
 
@@ -4213,7 +4213,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			try {
 				gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, masterMarkerList,
 																													annotationLoader.getMarkerSet(),
-																													annotationLoader.getIndices());
+																													annotationLoader.getMarkerIndices());
 				blastResults = MarkerBlastAnnotation.initForMarkers(masterMarkerList);
 				List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
 				parsers.add(blastResults);

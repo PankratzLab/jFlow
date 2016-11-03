@@ -16,7 +16,7 @@ import htsjdk.variant.vcf.VCFHeaderLineType;
 public class MarkerGCAnnotation extends LocusAnnotation implements AnnotationParser {
 
 	public enum GC_TYPE {
-		MARKER_GC_CONTENT;
+												MARKER_GC_CONTENT;
 	}
 
 	private boolean found;
@@ -50,8 +50,8 @@ public class MarkerGCAnnotation extends LocusAnnotation implements AnnotationPar
 	}
 
 	public static Map<String, MarkerGCAnnotation> initForMarkers(Project proj, String[] markers,
-																															 MarkerSet markerSet,
-																															 Hashtable<String, Integer> indices) {
+																										MarkerSet markerSet,
+																										Map<String, Integer> indices) {
 		if (markerSet == null) {
 			markerSet = proj.getMarkerSet();
 		}
@@ -65,9 +65,9 @@ public class MarkerGCAnnotation extends LocusAnnotation implements AnnotationPar
 			builder.annotations(new AnnotationData[] {getGCAnnotationDatas()});
 			int index = indices.get(marker);
 			markerGCAnnotations.put(marker, new MarkerGCAnnotation(builder, marker,
-																														 new Segment(markerSet.getChrs()[index],
-																																				 markerSet.getPositions()[index],
-																																				 markerSet.getPositions()[index])));
+																											new Segment(markerSet.getChrs()[index],
+																																	markerSet.getPositions()[index],
+																																	markerSet.getPositions()[index])));
 		}
 		return markerGCAnnotations;
 	}

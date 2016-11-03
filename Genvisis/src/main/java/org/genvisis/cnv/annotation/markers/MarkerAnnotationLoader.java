@@ -1,11 +1,10 @@
 package org.genvisis.cnv.annotation.markers;
 
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
 import org.genvisis.cnv.filesys.MarkerSet;
-import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Logger;
 import org.genvisis.filesys.Segment;
 
 /**
@@ -13,36 +12,31 @@ import org.genvisis.filesys.Segment;
  */
 public class MarkerAnnotationLoader extends AnnotationFileLoader {
 	private final MarkerSet markerSet;
-	private final Hashtable<String, Integer> indices;
 	private final byte[] chrs;
 	private final int[] pos;
-	private final Hashtable<String, Integer> markerIndices;
+	private final Map<String, Integer> markerIndices;
 
 	/**
-	 * @param proj
 	 * @param annotationFilename
-	 * @param markerSet will be loaded if null, can save time if it is already available
+	 * @param markerSet MarkerSet to load
 	 * @param indexRequired should always be true for now
+	 * @param log
 	 */
-	public MarkerAnnotationLoader(Project proj, AnalysisParams[] params, String annotationFilename,
-																MarkerSet markerSet, boolean indexRequired) {
-		super(proj, params, null, annotationFilename, indexRequired);
-		if (markerSet == null) {
-			markerSet = proj.getMarkerSet();
-		}
-		indices = proj.getMarkerIndices();
+	public MarkerAnnotationLoader(AnalysisParams[] params, String annotationFilename, MarkerSet markerSet,
+																boolean indexRequired, Logger log) {
+		super(params, null, annotationFilename, indexRequired, log);
 		this.markerSet = markerSet;
 		chrs = markerSet.getChrs();
 		pos = markerSet.getPositions();
-		markerIndices = proj.getMarkerIndices();
+		markerIndices = markerSet.getMarkerIndices();
 	}
 
 	public MarkerSet getMarkerSet() {
 		return markerSet;
 	}
 
-	public Hashtable<String, Integer> getIndices() {
-		return indices;
+	public Map<String, Integer> getMarkerIndices() {
+		return markerIndices;
 	}
 
 	/**
@@ -55,8 +49,7 @@ public class MarkerAnnotationLoader extends AnnotationFileLoader {
 															QUERY_TYPE qOrder) {
 		Segment[] markerSegments = null;
 		if (markers == null && qOrder != QUERY_TYPE.DISCRETE_LIST) {
-			proj.getLog()
-					.reportTimeWarning("No marker names were provided, searching entire annotation file");
+			log.reportTimeWarning("No marker names were provided, searching entire annotation file");
 		} else {
 			markerSegments = getSegmentsForMarkers(markers);
 		}
