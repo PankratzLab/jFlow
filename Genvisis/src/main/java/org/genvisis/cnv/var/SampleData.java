@@ -384,8 +384,8 @@ public class SampleData {
 						// listed in SampleData file; make sure 1=male and 2=female in the coding");
 					}
 				} else {
-					proj.message("Error - variable names '"	+ Array.toStr(EUPHEMISMS, "/")
-												+ "' was not found in the SampleData file; make sure 1=male and 2=female in the coding");
+					log.reportError("Error - variable names '"	+ Array.toStr(EUPHEMISMS, "/")
+												+ "' was not found in the SampleData file; recommend running Sex Check step");
 				}
 			}
 		} catch (FileNotFoundException fnfe) {
