@@ -8,6 +8,7 @@ import java.util.concurrent.Callable;
 
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
@@ -55,7 +56,7 @@ public class SexCheck {
 			writer.println(Array.toStr(SEX_CHECK_HEADER));
 			while (train.hasNext()) {
 				SexCheckResults sexCheckResults = train.next();
-				writer.println(sexCheckResults.getSample()	+ "\t" + sexCheckResults.getBamFile() + "\t"
+				writer.println(sexCheckResults.getSample()+ "\t" + sexCheckResults.getBamFile() + "\t"
 												+ sexCheckResults.getNumXReads() + "\t" + sexCheckResults.getNumYReads()
 												+ "\t" + sexCheckResults.getPropX() + "\t" + sexCheckResults.getPropY());
 				writer.flush();
@@ -125,7 +126,7 @@ public class SexCheck {
 		reader.indexing();
 		SexCheckResults sexCheckResults = new SexCheckResults(0, 0, bamFile, bamFile);
 		if (!reader.hasIndex()) {
-			log.reportError("Error - the bam file "	+ bamFile
+			log.reportError("Error - the bam file "+ bamFile
 											+ " must have a \".bai\" index file associated with it, halting");
 			try {
 				reader.close();
@@ -180,12 +181,12 @@ public class SexCheck {
 				}
 			}
 			if (totalReads % 1000000 == 0) {
-				log.reportTimeInfo("Sample: "	+ sample + " Read " + totalReads + " from chrs " + X + " and "
+				log.reportTimeInfo("Sample: "+ sample + " Read " + totalReads + " from chrs " + X + " and "
 														+ Y + ", " + goodReads + " passed standard filter, " + numXReads
 														+ " chr " + X + ", " + numYReads + " chr " + Y);
 			}
 		}
-		log.reportTimeInfo("Sample: "	+ sample + " Finished with " + totalReads + " from chrs " + X
+		log.reportTimeInfo("Sample: "+ sample + " Finished with " + totalReads + " from chrs " + X
 												+ " and " + Y + ", " + goodReads + " passed standard filter, " + numXReads
 												+ " chr " + X + ", " + numYReads + " chr " + Y);
 
@@ -274,7 +275,13 @@ public class SexCheck {
 	 * @param log
 	 */
 	public static void checkSex(String dir, String fullPathTooutput, int numThreads, Logger log) {
-		String[] bamFiles = Files.listFullPaths(dir, ".bam", false);
+		String[] bamFiles;
+		if (Files.isDirectory(dir)) {
+
+			bamFiles = Files.listFullPaths(dir, ".bam", false);
+		} else {
+			bamFiles = HashVec.loadFileToStringArray(fullPathTooutput, false, new int[] {0}, true);
+		}
 		if (bamFiles.length < 1) {
 			log.reportTimeError("Did not find any bam files in directory " + dir);
 		} else {
