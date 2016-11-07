@@ -729,6 +729,9 @@ public class SexChecks {
 		out.close();
 	}
 
+	/**
+	 * Maps complete code (e.g. "1=Male") to definitive sex
+	 */
 	public static int mapEstimatedSexToSex(String estCode) {
 		String[] estCodes = EST_SEX_HEADER.split(";");
 		for (int i = 1; i < estCodes.length; i++) {
@@ -737,6 +740,13 @@ public class SexChecks {
 			}
 		}
 		return 0;
+	}
+
+	/**
+	 * returns the trinary (0=unknown, 1=male, 2=female) sex for the given code value (e.g. "1")
+	 */
+	public static int getMappedSex(String estimatedValue) {
+		return EST_SEX_MAPPING[Integer.parseInt(estimatedValue)];
 	}
 
 	public static void sexCheck(Project proj, boolean appendToSampleData) {
