@@ -27,6 +27,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
+import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.TransposeData;
@@ -811,11 +812,20 @@ public class Project implements PropertyChangeListener {
 
 	private MarkerSet loadMarkerSet() {
 		if (Files.exists(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue())) {
-			return MarkerSet.load(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue());
+			MarkerSet naiveMarkerSet = MarkerSet.load(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue());
+			MarkerSet returnMarkerSet = null;
+			if (Files.exists(BLAST_ANNOTATION_FILENAME.getValue())) {
+				returnMarkerSet = MarkerSet.parseFromBLASTAnnotation(naiveMarkerSet, BLAST_ANNOTATION_FILENAME.getValue(), log);
+			}
+			if (returnMarkerSet == null) {
+				returnMarkerSet = naiveMarkerSet;
+			}
+			return PreparedMarkerSet.getPreparedMarkerSet(returnMarkerSet);
 		} else {
 			getLog().reportFileNotFound(MARKERSET_FILENAME.getValue());
 			return null;
 		}
+		
 	}
 
 	public String[] getMarkerNames() {
@@ -1685,15 +1695,10 @@ public class Project implements PropertyChangeListener {
 	}
 
 	/**
-	 * @return Hashtable with the indices of each marker in the project
+	 * @return Map with the indices of each marker in the project
 	 */
-	public Hashtable<String, Integer> getMarkerIndices() {
-		String[] markerNames = getMarkerNames();
-		Hashtable<String, Integer> indices = new Hashtable<String, Integer>();
-		for (int i = 0; i < markerNames.length; i++) {
-			indices.put(markerNames[i], i);
-		}
-		return indices;
+	public Map<String, Integer> getMarkerIndices() {
+		return markerSet.getMarkerIndices();
 	}
 
 	/**
