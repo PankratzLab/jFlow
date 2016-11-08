@@ -111,7 +111,7 @@ public class Pipeline {
 			Files.write(bamFile, bamList);
 			String result = MitoSeqCN.run(bamList, mitoDir,
 																		ngsSample.getaType() == ASSAY_TYPE.WGS ? null : captureBed,
-																		genomeBuild, ngsSample.getaName(), ngsSample.getaType(),
+																		genomeBuild, null, ngsSample.getaName(), ngsSample.getaType(),
 																		numthreads, log);
 
 			ArrayList<String> input = new ArrayList<String>();
@@ -298,7 +298,7 @@ public class Pipeline {
 		String projectFile = projectDir + projectName + ".properties";
 		if (!Files.exists(projectFile)) {
 			new File(projectDir).mkdirs();
-			Files.writeArray(	new String[] {"PROJECT_NAME="	+ projectName,
+			Files.writeArray(	new String[] {"PROJECT_NAME="+ projectName,
 																			"PROJECT_DIRECTORY=" + projectDir},
 												projectFile);
 		}

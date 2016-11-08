@@ -50,8 +50,8 @@ public class MitoSeqCN {
 	 * @return the name of the output file
 	 */
 	public static String run(	String fileOfBams, String outDir, String captureBed,
-														GENOME_BUILD genomeBuild, ASSEMBLY_NAME aName, ASSAY_TYPE aType,
-														int numthreads, Logger log) {
+														GENOME_BUILD genomeBuild, String referenceGenomeFasta,
+														ASSEMBLY_NAME aName, ASSAY_TYPE aType, int numthreads, Logger log) {
 		new File(outDir).mkdirs();
 
 		String output = outDir + ext.rootOf(fileOfBams) + "_mtDNACN.summary.txt";
@@ -59,7 +59,10 @@ public class MitoSeqCN {
 		if (!Files.exists(output)) {
 			String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] {0}, true);
 			log.reportTimeInfo("Detected " + bams.length + " bam files");
-			ReferenceGenome referenceGenome = new ReferenceGenome(genomeBuild, log);
+			ReferenceGenome referenceGenome = genomeBuild == null
+																														? new ReferenceGenome(referenceGenomeFasta,
+																																									log)
+																														: new ReferenceGenome(genomeBuild, log);
 			BedOps.verifyBedIndex(captureBed, log);
 			LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome	.getBins(20000)
 																																			.autosomal(true, log);
@@ -345,13 +348,13 @@ public class MitoSeqCN {
 		String outDir = "mitoWES/";
 		int numthreads = 24;
 		String captureBed = "AgilentCaptureRegions.txt";
-
+		String referenceGenome = "hg19.fa";
 		String usage = "\n"+ "seq.analysis.mitoSeqCN requires 0-1 arguments\n"
 										+ "   (1) file of Bams (i.e. bams=" + fileOfBams + " (default))\n"
 										+ "   (2) output directory (i.e. outDir=" + outDir + " (default))\n"
 										+ "   (3) number of threads (i.e. "
 										+ PSF.Ext.getNumThreadsCommand(3, numthreads) + "\n"
-										+ "   (4) reference genome (i.e. ref=" + outDir + " (default))\n"
+										+ "   (4) reference genome (i.e. ref=" + referenceGenome + " (default))\n"
 										+ "   (5)  capture Regions (i.e. captureBed=" + captureBed + " (default))\n" +
 
 										"";
@@ -370,6 +373,7 @@ public class MitoSeqCN {
 				numthreads = ext.parseIntArg(arg);
 				numArgs--;
 			} else if (arg.startsWith("ref=")) {
+				referenceGenome = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("captureBed=")) {
 				captureBed = arg.split("=")[1];
@@ -382,9 +386,8 @@ public class MitoSeqCN {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		// run(fileOfBams, outDir, captureBed, referenceGenome,
-		// ASSEMBLY_NAME.HG19, ASSAY_TYPE.WGS, numthreads,
-		// new Logger());
+		run(fileOfBams, outDir, captureBed, null, referenceGenome, ASSEMBLY_NAME.HG19, ASSAY_TYPE.WXS,
+				numthreads, new Logger());
 
 	}
 }
