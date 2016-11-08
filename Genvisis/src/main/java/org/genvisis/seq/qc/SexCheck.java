@@ -280,7 +280,7 @@ public class SexCheck {
 
 			bamFiles = Files.listFullPaths(dir, ".bam", false);
 		} else {
-			bamFiles = HashVec.loadFileToStringArray(fullPathTooutput, false, new int[] {0}, true);
+			bamFiles = HashVec.loadFileToStringArray(dir, false, new int[] {0}, true);
 		}
 		if (bamFiles.length < 1) {
 			log.reportTimeError("Did not find any bam files in directory " + dir);
