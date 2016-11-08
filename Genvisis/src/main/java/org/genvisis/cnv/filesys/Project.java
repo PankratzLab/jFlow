@@ -1698,7 +1698,7 @@ public class Project implements PropertyChangeListener {
 	 * @return Map with the indices of each marker in the project
 	 */
 	public Map<String, Integer> getMarkerIndices() {
-		return markerSet.getMarkerIndices();
+		return getMarkerSet().getMarkerIndices();
 	}
 
 	/**
