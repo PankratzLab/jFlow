@@ -647,27 +647,47 @@ public class SexChecks {
 
 		SampleData sampleData = proj.getSampleData(0, false);
 		String resultsDir = new File(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false)).getParent() + "/";
+		Hashtable<String, String> estSex = new Hashtable<String, String>();
+		Hashtable<String, String> binarySex = new Hashtable<String, String>();
+		Hashtable<String, String> pedigreeMap = null;
+		final String pedFile = proj.PEDIGREE_FILENAME.getValue();
+		if (Files.exists(pedFile)) {
+			log.report("Loading Pedigree file, assuming standard pedigree.dat file format (FID, IID, FA, MO, SEX, PHENO, DNA)");
+			pedigreeMap = HashVec.loadFileToHashString(pedFile, 6, new int[]{4}, "\t", false, false);
+		}
 
 		try {
 			writer = new PrintWriter(new FileWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true,
 																																											false)));
 			writer.println(Array.toStr(SEX_HEADER));
+
 			for (int i = 0; i < sampleNames.length; i++) {
 				lookup = sampleData.lookup(sampleNames[i]);
 				famIndPair = lookup == null ? null : lookup[1];
+				int sex = sexes[i];
+				int binSex = EST_SEX_MAPPING[sex];
+
+				if (pedigreeMap != null && binSex == 0 && pedigreeMap.containsKey(sampleNames[i])) {
+					binSex = Integer.parseInt(pedigreeMap.get(sampleNames[i]));
+				}
+
+				writer.print(sampleNames[i] + "\t");
 				if (famIndPair == null) {
 					log.reportError("Error - no data for sample '" + sampleNames[i] + "'");
-					writer.print(sampleNames[i] + "\t" + ".\t.\t-9");
+					// famIndPair has a tab in it so it's actually 2 columns
+					writer.print(".\t.\t-9");
 				} else {
-					writer.print(sampleNames[i]	+ "\t" + famIndPair + "\t"
-												+ sampleData.getSexForIndividual(sampleNames[i]));
+					writer.print(famIndPair + "\t" + binSex);
 				}
-				int sex = sexes[i];
 				writer.println("\t"	+ sex + "\t" + ("".equals(notes[i]) ? "." : notes[i]) + "\t"
 												+ (uncertains[i] ? "1" : "0") + "\t" + (qcPassedSamples[i] ? "0" : "1")
 												+ "\t" + elrrMedX[i] + "\t" + elrrMedY[i] + "\t"
 												+ (elrrMedY[i] / elrrMedX[i]) + "\t" + pctXHets[i] + "\t" + pctXBaf15_85[i]
 												+ "\t" + lrrMedX[i] + "\t" + lrrMedY[i]);
+				if (appendToSampleData) {
+					estSex.put(sampleNames[i], Integer.toString(sex));
+					binarySex.put(sampleNames[i], Integer.toString(binSex));
+				}
 				// Create sex-specific region files for any "unusual" sex call to allow easy review
 				//TODO it would be nice to add these to Trailer automatically but not clear if that requires a UI, and public API
 				String dna = lookup == null ? sampleNames[i] : lookup[0];
@@ -685,11 +705,11 @@ public class SexChecks {
 			log.reportException(e);
 		}
 		if (appendToSampleData) {
-			Hashtable<String, String> linkData = new Hashtable<String, String>();
-			for (int i = 0; i < sampleNames.length; i++) {
-				linkData.put(sampleNames[i], Integer.toString(sexes[i]));
+			if (!sampleData.addData(binarySex, "DNA", new String[] {"CLASS=Sex"}, ".", "",
+															log)) {
+				log.reportError("Error - failed to write Binarized Sex to sample data file");
 			}
-			if (!sampleData.addData(linkData, "DNA", new String[] {"CLASS=" + EST_SEX_HEADER}, ".", "",
+			if (!sampleData.addData(estSex, "DNA", new String[] {"CLASS=" + EST_SEX_HEADER}, ".", "",
 															log)) {
 				log.reportError("Error - failed to write Estimated Sex to sample data file");
 			}

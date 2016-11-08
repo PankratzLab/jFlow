@@ -77,7 +77,6 @@ import org.genvisis.cnv.plots.SexPlot;
 import org.genvisis.cnv.plots.StratPlot;
 import org.genvisis.cnv.plots.Trailer;
 import org.genvisis.cnv.plots.TwoDPlot;
-import org.genvisis.cnv.qc.EstimatedSex;
 import org.genvisis.cnv.qc.MarkerBlastQC;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
@@ -144,7 +143,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 	public static final String POPULATIONBAF = "Compute Population BAF file";
 	public static final String GCMODEL = "Compute GC model file";
 	public static final String CUSTOM_CENTROIDS = "Compute custom centroids file";
-	public static final String APPLY_ESTIMATED_SEX = "Convert estimated sexes to male/female values";
 
 	public static final String DENOVO_CNV = "De Novo CNV";
 	public static final String EXPORT_CNVS = "Export CNVs to Pedfile format";
@@ -199,7 +197,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		MENUS.put("Tools",
 							Arrays.asList(new String[] {GENERATE_ABLOOKUP, EXPORT_TO_PLINK,
 																					GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS,
-																					POPULATIONBAF, GCMODEL, CUSTOM_CENTROIDS, APPLY_ESTIMATED_SEX, DENOVO_CNV,
+																					POPULATIONBAF, GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV,
 																					EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS,
 																					GENERATE_DEMO_PACKAGE, ADD_QC_TO_SAMPLE_DATA, TEST}));
 		MENUS.put("Help", Arrays.asList(new String[] {"Contents", "Search", "About"}));
@@ -991,8 +989,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 										proj.PROJECT_DIRECTORY.getValue() + "genome/");
 
 
-			} else if (command.equals(APPLY_ESTIMATED_SEX)) {
-				EstimatedSex.apply(proj, true);
 			} else if (command.equals(GCMODEL)) {
 				org.genvisis.cnv.analysis.PennCNV.gcModel(proj,
 																									Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS,
