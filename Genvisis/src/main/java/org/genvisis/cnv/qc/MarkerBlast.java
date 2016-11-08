@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -169,7 +170,7 @@ public class MarkerBlast {
 																																							doBlast ? tmps
 																																											: new String[] {},
 																																							entries,
-																																							reportWordSize,
+																																						entries, reportWordSize,
 																																							proj.getArrayType()
 																																									.getProbeLength(),
 																																							proj.getArrayType()
@@ -512,11 +513,13 @@ public class MarkerBlast {
 							if (alleleLookup) {
 								alleleParser.parse(proj.getArrayType(), strand, null);
 							}
+<<<<<<< Upstream, based on origin/master
 							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.A.getTag(), tmpSeq[0],
 																							 tmpSeq[1], strand, interrogationPosition,
 																							 markerSegment, TOP_BOT.NA, TOP_BOT.NA,
 																							 alleleParser.getA(), alleleParser.getB(),
 																							 alleleParser.getRef(), alleleParser.getAlts()));
+<<<<<<< Upstream, based on origin/master
 							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B.getTag(), tmpSeq[1],
 																							 tmpSeq[1], strand, interrogationPosition,
 																							 markerSegment, TOP_BOT.NA, TOP_BOT.NA,
@@ -749,7 +752,6 @@ public class MarkerBlast {
 						tmp = new String[] {"N"};
 					} else {
 						tmp = referenceGenome.getSequenceFor(loc);
-
 					}
 					if (tmp.length != 1) {// don't think we need multiple
 						throw new IllegalArgumentException("base query must be length one ("
