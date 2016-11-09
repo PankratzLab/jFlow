@@ -1613,6 +1613,8 @@ public class GenvisisWorkflow {
 
 	};
 
+	// FIXME http://genvisis.org/MitoPipeline/#illumina_marker_lists has illumina markers.. this should be linked to, or
+	// these steps split or something...
 	static final STEP S14_CREATE_PCS = new STEP("Create Principal Components File and Mitochondrial Copy-Number Estimates File",
 																							"",
 																							new String[][] {{"[Transpose Data into Marker-Dominant Files] step must have been run already or must be selected and valid."},
