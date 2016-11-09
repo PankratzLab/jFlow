@@ -192,7 +192,7 @@ public class AnalysisFormats implements Runnable {
 		// Create the scripts for building cnvs from the penncnv data
 		// TODO: sex checks (3rd flag) - should probably determine if they would be
 		// appropriate or not.
-		PennCNV.doBatch(proj, true, true, true, false, 1, true, null, null, null, false, true, false,
+		PennCNV.doBatch(proj, true, true, true, true, 1, true, null, null, null, false, true, false,
 										threadCount);
 	}
 
