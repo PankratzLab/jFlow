@@ -60,6 +60,7 @@ import org.genvisis.one.ben.fcs.gating.GateTreePanel;
 import org.genvisis.one.ben.fcs.gating.Gating;
 import org.genvisis.one.ben.fcs.gating.Workbench;
 import org.genvisis.one.ben.fcs.sub.DataExportGUI;
+import org.genvisis.one.ben.fcs.sub.EMInitializer;
 import org.genvisis.one.ben.fcs.sub.EMModel;
 import org.xml.sax.SAXException;
 
@@ -460,6 +461,9 @@ public class FCSPlot extends JPanel
 				break;
 		}
 		fcsPanel.setXAxis(scale);
+        if (dataLoader != null) {
+          dataLoader.setScaleForParam(getXDataName(), scale);
+        }
 	}
 
 	public void setYScale(AXIS_SCALE scale) {
@@ -473,6 +477,9 @@ public class FCSPlot extends JPanel
 				break;
 		}
 		fcsPanel.setYAxis(scale);
+		if (dataLoader != null) {
+		  dataLoader.setScaleForParam(getYDataName(), scale);
+		}
 	}
 
 	public void setPlotType(PLOT_TYPE type) {
@@ -597,6 +604,9 @@ public class FCSPlot extends JPanel
 			if (!backgating && !leafgating && parentGate != null) {
 				boolean[] gating = parentGate.gate(dataLoader);
 				data = Array.subArray(data, gating);
+				if (fullClusterAssigns != null) {
+				  clusterAssigns = Array.subArray(fullClusterAssigns, gating);
+				}
 			}
 		}
 		return data;
@@ -703,6 +713,7 @@ public class FCSPlot extends JPanel
 		} else {
 		  currentSampleID = workbench.addNewSample(filename, applyTemplate);
 		}
+        refreshGating();
 		
 		if (loadedData.containsKey(filename)) {
 			if (display) {
@@ -801,12 +812,12 @@ public class FCSPlot extends JPanel
 	}
 	
 	protected HashMap<Gate, boolean[]> gateAllDataForLeafGates() {
-	  ArrayList<Gate> leafGates = getGatingStrategy().getAllLeafGates();
+	  HashSet<Gate> leafGates = getGatingStrategy().getAllLeafGates();
 	  HashMap<Gate, boolean[]> gatings = new HashMap<Gate, boolean[]>();
 	  log.reportTime("Gating on " + leafGates.size() + " leaf gates...");
 	  long t1 = System.currentTimeMillis();
-	  for (int i = 0; i < leafGates.size(); i++) {
-	    gatings.put(leafGates.get(i), leafGates.get(i).gate(dataLoader));
+	  for (Gate g : leafGates) {
+	    gatings.put(g, g.gate(dataLoader));
 	  }
 	  log.reportTimeElapsed("Gating complete - ", t1);
 	  return gatings;
@@ -845,6 +856,7 @@ public class FCSPlot extends JPanel
 		}
 		resetForNewData(newDataLoader);
 		parent.setTitle(ext.rootOf(newDataLoader.getLoadedFile()) + "  --  " + TITLE_STR);
+		refreshGating();
 		updateGUI();
 	}
 
@@ -995,6 +1007,7 @@ public class FCSPlot extends JPanel
 		fcsPanel.clearGating();
 	}
 
+	int[] fullClusterAssigns = null;
 	int[] clusterAssigns = null;
 	
 	public int[] getClusterAssignments() {
@@ -1002,11 +1015,12 @@ public class FCSPlot extends JPanel
 	}
 	
 	private void setupEM() {
-	  ArrayList<String> params = new ArrayList<>();
-	  params.add(getXDataName());
-	  params.add(getYDataName());
-	  EMModel model = EMModel.run(dataLoader, params);
-	  clusterAssigns = model.getClusterAssigns();
+//	  ArrayList<String> params = new ArrayList<>();
+//	  params.add(getXDataName());
+//	  params.add(getYDataName());
+	  EMModel model = EMModel.run(dataLoader);
+	  fullClusterAssigns = model.getClusterAssigns();
+	  clusterAssigns = fullClusterAssigns;
 	  updateGUI();
 	}
 	

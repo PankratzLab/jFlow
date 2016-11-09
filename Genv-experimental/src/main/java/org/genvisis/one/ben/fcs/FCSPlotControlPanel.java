@@ -790,6 +790,7 @@ public class FCSPlotControlPanel extends JPanel {
 	protected void loadGatingFile(String newFile) {
 		prevGateDir = ext.parseDirectoryOfFile(newFile);
 		plot.loadWorkspaceFile(newFile);
+		plot.refreshGating();
 		gateFileLabel.setText("<html><p>" + newFile + "</p></html>");
 		gateFileLabel.setVisible(true);
 		gateFileTitle.setVisible(true);

@@ -2,6 +2,8 @@ package org.genvisis.one.ben.fcs.gating;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -60,22 +62,25 @@ public class GateFileReader {
       Element e = (Element) samples.item(i);
       String fcsFile = ((Element) e.getElementsByTagName("DataSet").item(0)).getAttribute("uri");
       
+      Element transforms = ((Element) e.getElementsByTagName("Transformations").item(0));
+      parseTransforms(transforms);
+      
       Element sampleNode = (Element) e.getElementsByTagName("SampleNode").item(0);
       String id = sampleNode.getAttribute("sampleID");
       SampleNode sn = new SampleNode();
-      sn.id = id;
       if (fcsFile.startsWith("file:\\")) {
         fcsFile = fcsFile.substring("file:\\".length());
       } else if (fcsFile.startsWith("file:/")) {
         fcsFile = fcsFile.substring(6);
       } 
+      sn.id = sampleNode.getAttribute("name");
       sn.fcsFile = fcsFile;
       sn.sampleNode = sampleNode;
       sn.doc = doc;
       Gating gs = new Gating();
       gs.setFile(file);
       NodeList nodes = sampleNode.getElementsByTagName("Population");
-      gs.gateMap = GateFileUtils.buildPopGraph(nodes);
+      gs.gateMap = GateFileUtils.buildPopGraph(nodes, true);
       gs.gateRoots = GateFileUtils.connectGates(gs.gateMap);
       gs.paramGateMap = GateFileUtils.parameterizeGates(gs.gateMap);
       for (Gate g : gs.gateMap.values()) {
@@ -87,6 +92,33 @@ public class GateFileReader {
     }
     
     return wb;
+  }
+
+  private static void parseTransforms(Element transforms) {
+    NodeList nList = transforms.getChildNodes();
+    for (int i = 0, count = nList.getLength(); i < count; i++) {
+      Node n = nList.item(i);
+      if (!n.getNodeName().startsWith("transforms:")) continue; 
+      
+      String param = ((Element) ((Element) n).getElementsByTagName("data-type:parameter").item(0)).getAttribute("data-type:name");
+      if (n.getNodeName().endsWith("linear")) {
+        String min = ((Element) n).getAttribute("transforms:minRange");
+        String max = ((Element) n).getAttribute("transforms:maxRange");
+        String gain = ((Element) n).getAttribute("gain");
+//        System.out.println();
+      } else if (n.getNodeName().endsWith("biex")) {
+        String len = ((Element) n).getAttribute("transforms:length");
+        String rng = ((Element) n).getAttribute("transforms:maxRange");
+        String neg = ((Element) n).getAttribute("transforms:neg");
+        String wid = ((Element) n).getAttribute("transforms:width");
+        String pos = ((Element) n).getAttribute("transforms:pos");
+//        System.out.println();
+      } else if (n.getNodeName().endsWith("log")) {
+        ((Element) n).getAttribute("transforms:offset");
+        ((Element) n).getAttribute("transforms:decades");
+//        System.out.println();
+      }
+    }
   }
   
   public static Gating readFlowJoGatingFile(String filename)
@@ -220,7 +252,7 @@ public class GateFileReader {
             ((Element) getFirstChild(dimNode, "data-type:fcs-dimension"))
                 .getAttribute("data-type:name");
         RectangleGateDimension gd =
-            new RectangleGateDimension((RectangleGate) gate, param, DEFAULT_SCALE);
+            new RectangleGateDimension((RectangleGate) gate, param);
         String min = ((Element) dimNode).getAttribute("gating:min");
         String max = ((Element) dimNode).getAttribute("gating:max");
         // ((Element) dimNode).getAttribute("yRatio"); // TODO dunno what yRatio is used for yet
@@ -278,7 +310,7 @@ public class GateFileReader {
         String param =
             ((Element) getFirstChild(dimNode, "data-type:fcs-dimension"))
                 .getAttribute("data-type:name");
-        GateDimension gd = new GateDimension(gate, param, DEFAULT_SCALE);
+        GateDimension gd = new GateDimension(gate, param);
         gd.paramName = param;
         gate.dimensions.add(gd);
       }
@@ -291,7 +323,7 @@ public class GateFileReader {
             Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
         ((PolygonGate) gate).addVertex(fX, fY);
       }
-      ((PolygonGate) gate).prepGating();
+//      ((PolygonGate) gate).prepGating();
     } else if ("QuadrantGate".equals(gateType)) {
       gate = new QuadrantGate();
 

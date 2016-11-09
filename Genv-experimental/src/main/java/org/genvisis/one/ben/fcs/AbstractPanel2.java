@@ -573,7 +573,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
     PolyTransformer pt = new PolyTransformer();
 
-    public void drawAll(Graphics g, boolean base) {
+    public synchronized void drawAll(Graphics g, boolean base) {
         float minimumObservedRawX, maximumObservedRawX, minimumObservedRawY, maximumObservedRawY;
         double[] plotMinMaxStep; // needs to be double, else x <= plotXmax can be inexact and leave off
                                                             // the last tick mark
@@ -2577,7 +2577,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
       return getXAxis().getTransform().inverseX(mouseX);
     }
     
-    public abstract class AxisTransform {
+    public static abstract class AxisTransform {
       AbstractPanel2 panel;
       public AxisTransform(AbstractPanel2 pnl) {
         this.panel = pnl;

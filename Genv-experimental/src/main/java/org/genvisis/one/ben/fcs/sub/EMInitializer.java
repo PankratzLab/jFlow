@@ -18,6 +18,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 
 import edu.stanford.facs.logicle.Logicle;
 
@@ -51,7 +52,9 @@ public class EMInitializer {
     return m.transpose().getData();
   }
   
-  static final String[] DATA_COLUMNS = {
+  public static final String[] DATA_COLUMNS = {
+//      "FSC-A",
+//      "SSC-A",
       "Comp-BB515-A (CD27)",
       "Comp-PE-CF594-A (HLA-DR)",
       "Comp-PE-Cy7-A (CD19)",
@@ -64,9 +67,24 @@ public class EMInitializer {
       "Comp-BV 711-A (CD45RA)"
   };
   
-  static final int CLUSTERS = 18;
+  public static final AXIS_SCALE[] DATA_SCALES = {
+//    AXIS_SCALE.LIN,
+//    AXIS_SCALE.LIN,
+    AXIS_SCALE.BIEX,
+    AXIS_SCALE.BIEX,
+    AXIS_SCALE.BIEX,
+    AXIS_SCALE.BIEX,
+    AXIS_SCALE.BIEX,
+    AXIS_SCALE.BIEX,
+    AXIS_SCALE.BIEX,
+    AXIS_SCALE.BIEX,
+    AXIS_SCALE.BIEX,
+    AXIS_SCALE.BIEX,
+  };
   
-  static final String DATA_DIR = "F:/Flow/controlFCS/";
+  static final int CLUSTERS = 43;
+  
+  static final String DATA_DIR = "F:/Flow/controlFCS/sampling/";
   static final String DIST_DIR = "F:/Flow/controlFCS/dists/";
   static final String DATA_EXT = ".xln";
   static final Logger log = new Logger();
@@ -108,13 +126,13 @@ public class EMInitializer {
     
     Logicle[] scales = new Logicle[DATA_COLUMNS.length];
     for (int i = 0; i < scales.length; i++) {
-      scales[i] = getLogicle(data[i]);
+      scales[i] = DATA_SCALES[i] == AXIS_SCALE.BIEX ? getLogicle(data[i]) : null;
     }
 
     double[][] transformed = new double[data.length][data[0].length];
     for (int i = 0; i < scales.length; i++) {
       for (int j = 0; j < data[0].length; j++) {
-        transformed[i][j] = scales[i].scale(data[i][j]);
+        transformed[i][j] = DATA_SCALES[i] == AXIS_SCALE.BIEX ? scales[i].scale(data[i][j]) : data[i][j];
       }
     }
 

@@ -13,12 +13,16 @@ import java.util.Random;
 
 import org.genvisis.common.Array;
 import org.genvisis.common.Numbers;
+import org.genvisis.one.ben.fcs.AbstractPanel2;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 //import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
 import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
+import org.genvisis.one.ben.fcs.sub.EMModel;
+
+import edu.stanford.facs.logicle.Logicle;
 
 public abstract class Gate {
 
@@ -35,15 +39,11 @@ public abstract class Gate {
   // protected HashMap<String, boolean[]> gatingCache = new HashMap<String, boolean[]>();
   protected int displayLevel = 0;
   
-  
-  static final HashSet<String> allGateIDsEver = new HashSet<String>();
   static final Random rand = new Random();
 
   private static String generateID() {
     String id;
-    do {
-      id = "ID" + (rand.nextInt(35000000) + 35000000);
-    } while(allGateIDsEver.contains(id));
+    id = "ID" + (rand.nextInt(35000000) + 35000000);
     return id;
   }
 
@@ -60,12 +60,39 @@ public abstract class Gate {
       parentGate = parentGate2;
       parentID = parentGate2.id;
     }
-    if (allGateIDsEver.contains(id)) {
-      System.err.println("ERROR --- DUPLICATE ID: " + id);
-    }
     this.id = id;
-    allGateIDsEver.add(id);
     this.popName = popName;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    result = prime * result + ((popName == null) ? 0 : popName.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    Gate other = (Gate) obj;
+    if (id == null) {
+      if (other.id != null)
+        return false;
+    } else if (!id.equals(other.id))
+      return false;
+    if (popName == null) {
+      if (other.popName != null)
+        return false;
+    } else if (!popName.equals(other.popName))
+      return false;
+    return true;
   }
 
   public Gate getParentGate() {
@@ -191,7 +218,7 @@ public abstract class Gate {
     public Gate copy(Gate parentGate) {
       RectangleGate rg = new RectangleGate(parentGate, this.popName);
       for (int i = 0; i < this.dimensions.size(); i++) {
-        rg.dimensions.add(new RectangleGateDimension(rg, this.dimensions.get(i).paramName, this.dimensions.get(i).scale, ((RectangleGateDimension) this.dimensions.get(i)).getMin(), ((RectangleGateDimension) this.dimensions.get(i)).getMax()));
+        rg.dimensions.add(new RectangleGateDimension(rg, this.dimensions.get(i).paramName, ((RectangleGateDimension) this.dimensions.get(i)).getMin(), ((RectangleGateDimension) this.dimensions.get(i)).getMax()));
       }
       rg.setLevel(this.getLevel());
       for (Gate c : children) {
@@ -229,12 +256,12 @@ public abstract class Gate {
       // if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
       // return gatingCache.get(dataLoader.getLoadedFile());
       // }
-      boolean[] includes =  parentGate == null ? new boolean[dataLoader.getCount()] : parentGate.gate(dataLoader);
+      boolean[] includes = parentGate == null ? new boolean[dataLoader.getCount()] : parentGate.gate(dataLoader);
       parentGating = parentGate == null ? Array.booleanArray(dataLoader.getCount(), true) : Arrays.copyOf(includes, includes.length);
       boolean[][] paramIncludes = new boolean[dimensions.size()][dataLoader.getCount()];
       for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
         RectangleGateDimension rgd = (RectangleGateDimension) dimensions.get(p);
-        if (!dataLoader.getAllDisplayableNames(DATA_SET.ALL).contains(rgd.paramName)) {
+        if (!dataLoader.containsParam(rgd.paramName)) {
           return null;
         }
         double[] paramData = dataLoader.getData(rgd.paramName, true);
@@ -273,22 +300,32 @@ public abstract class Gate {
     private static int range = 262144; // TODO make this dynamic based on data loader param range
                                        // (set when dims are set) - may have different ranges for
                                        // each dim
-    private static ArrayList<Rectangle> DEFAULT_RECTS = new ArrayList<Rectangle>();
-    private static ArrayList<Rectangle> rects = new ArrayList<Rectangle>();
+//    private static ArrayList<Rectangle> DEFAULT_RECTS = new ArrayList<Rectangle>();
+//    private static ArrayList<Rectangle> rects = new ArrayList<Rectangle>();
     private static int binStep = range / gateResolution;
+    private static Rectangle[][] rectArray;
     static {
-      rects = prepRects();
-      DEFAULT_RECTS = rects;
+//      rects = prepRects();
+//      DEFAULT_RECTS = rects;
+      setupRects();
     }
-    static ArrayList<Rectangle> prepRects() {
-      ArrayList<Rectangle> rects = new ArrayList<Rectangle>();
+    static void setupRects() {
+      rectArray = new Rectangle[gateResolution * 2][gateResolution * 2];
       for (int i = -gateResolution; i < gateResolution; i++) {
         for (int j = -gateResolution; j < gateResolution; j++) {
-          rects.add(new Rectangle(i * binStep + binStep / 2, j * binStep + binStep / 2, binStep, binStep));
+          rectArray[i + gateResolution][j + gateResolution] = new Rectangle(i * binStep + binStep / 2, j * binStep + binStep / 2, binStep, binStep);
         }
       }
-      return rects;
     }
+//    static ArrayList<Rectangle> prepRects() {
+//      ArrayList<Rectangle> rects = new ArrayList<Rectangle>();
+//      for (int i = -gateResolution; i < gateResolution; i++) {
+//        for (int j = -gateResolution; j < gateResolution; j++) {
+//          rects.add(new Rectangle(i * binStep + binStep / 2, j * binStep + binStep / 2, binStep, binStep));
+//        }
+//      }
+//      return rects;
+//    }
 
     private final ArrayList<Double> verticesX = new ArrayList<Double>();
     private final ArrayList<Double> verticesY = new ArrayList<Double>();
@@ -329,9 +366,9 @@ public abstract class Gate {
 
     public void setShouldMimicFlowJoGating(boolean mimic) {
       mimicFlowJo = mimic;
-      if (mimicFlowJo) {
-        prepGating();
-      }
+//      if (mimicFlowJo) {
+//        prepGating();
+//      }
       parentGating = null;
       transformedPath = null;
     }
@@ -351,9 +388,9 @@ public abstract class Gate {
       myPath = pth;
       parentGating = null;
       resetVertices();
-      if (mimicFlowJo) {
-        prepGating();
-      }
+//      if (mimicFlowJo) {
+//        prepGating();
+//      }
       transformedPath = null;
       // clearCache();
     }
@@ -389,30 +426,29 @@ public abstract class Gate {
       return path;
     }
     
-    private Path2D transformPath() {
+    private Path2D transformPath(FCSDataLoader dataLoader) {
       Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
       AxisTransform xTr, yTr;
-      boolean x, y;
-      x = getDimensions().get(0).scale == AXIS_SCALE.LIN;
-      y = getDimensions().get(1).scale == AXIS_SCALE.LIN;
-      xTr = getDimensions().get(0).scale.getTransform();
-      yTr = getDimensions().get(1).scale.getTransform();
+      xTr = dataLoader.getParamTransform(getDimensions().get(0).paramName);
+      yTr = dataLoader.getParamTransform(getDimensions().get(1).paramName);
       if (verticesX.isEmpty() || verticesY.isEmpty()) {
         resetVertices();
       }
-      path.moveTo(x ? verticesX.get(0) : xTr.scaleX(verticesX.get(0)), y ? verticesY.get(0) : yTr.scaleY(verticesY.get(0)));
+//      path.moveTo(x ? verticesX.get(0) : (xTr.scaleX(verticesX.get(0)) * gateResolution), y ? verticesY.get(0) : (yTr.scaleY(verticesY.get(0)) * gateResolution));
+      path.moveTo(xTr.scaleX(verticesX.get(0)), yTr.scaleY(verticesY.get(0)));
       for (int i = 1; i < verticesX.size(); i++) {
-        path.lineTo(x ? verticesX.get(i) : xTr.scaleX(verticesX.get(i)), y ? verticesY.get(i) : yTr.scaleY(verticesY.get(i)));
+        path.lineTo(xTr.scaleX(verticesX.get(i)), yTr.scaleY(verticesY.get(i)));
       }
       path.closePath();
       return path;
     }
     
+
     @Override
     public Gate copy(Gate parentGate) {
       PolygonGate pg = new PolygonGate(parentGate, this.popName, this.mimicFlowJo);
       for (int i = 0; i < this.dimensions.size(); i++) {
-        pg.addDimension(new GateDimension(pg, this.dimensions.get(i).paramName, this.dimensions.get(i).scale));
+        pg.addDimension(new GateDimension(pg, this.dimensions.get(i).paramName));
       }
       pg.setLevel(this.getLevel());
       pg.setPath((Path2D) this.myPath.clone());
@@ -433,12 +469,13 @@ public abstract class Gate {
         myPath = constructPath();
       }
       if (transformedPath == null) {
-        transformedPath = transformPath();
+        transformedPath = transformPath(dataLoader);
+        prepGating(dataLoader);
       }
       double[][] paramData = new double[dimensions.size()][];
       for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
         GateDimension gd = dimensions.get(p);
-        if (!dataLoader.getAllDisplayableNames(DATA_SET.ALL).contains(gd.paramName)) {
+        if (!dataLoader.containsParam(gd.paramName)) {
           return null;
         }
         paramData[p] = dataLoader.getData(gd.paramName, true);
@@ -446,14 +483,31 @@ public abstract class Gate {
       if (includes == null) {
         return includes;
       }
+
+      boolean xT, yT;
+      AxisTransform xTr, yTr;
+      xTr = dataLoader.getParamTransform(getDimensions().get(0).paramName);
+      yTr = dataLoader.getParamTransform(getDimensions().get(1).paramName);
       for (int i = 0; i < dataLoader.getCount(); i++) {
         if (parentGate != null && !includes[i]) {
           continue;
         }
         boolean include = false;
         if (mimicFlowJo) {
+//          int xInd, yInd;
+//          xInd = (int) (dataLoader.getScaleForParam(getDimensions().get(0).paramName) == AXIS_SCALE.LIN ? ((paramData[0][i] / binStep) + gateResolution) : xTr.scaleX(paramData[0][i]));
+//          yInd = (int) (dataLoader.getScaleForParam(getDimensions().get(1).paramName) == AXIS_SCALE.LIN ? ((paramData[1][i] / binStep) + gateResolution) : yTr.scaleY(paramData[1][i]));
+//          if (myRects.contains(rectArray[xInd][yInd])) {
+//            include = true;
+//          }
+          
+          double x, y;
+          x = xTr.scaleX(paramData[0][i]);
+          y = yTr.scaleY(paramData[1][i]);
           for (Rectangle rect : myRects) {
-            if (rect.contains(paramData[0][i], paramData[1][i])) {
+//            if (rect.contains(xT ? paramData[0][i] : xTr.scaleX(paramData[0][i]) * gateResolution * binStep, yT ? paramData[1][i] : yTr.scaleY(paramData[1][i]) * gateResolution * binStep)) {
+//            if (rect.contains(paramData[0][i], paramData[1][i])) {
+            if (rect.contains(x, y)) {
               include = true;
               break;
             }
@@ -462,8 +516,11 @@ public abstract class Gate {
 //          if (myPath.contains(paramData[0][i], paramData[1][i])) {
 //            include = true;
 //          }
-          double x = dimensions.get(0).scale == AXIS_SCALE.LIN ? paramData[0][i] : dimensions.get(0).scale.getTransform().scaleX(paramData[0][i]);
-          double y = dimensions.get(1).scale == AXIS_SCALE.LIN ? paramData[1][i] : dimensions.get(1).scale.getTransform().scaleY(paramData[1][i]);
+          
+//          double x = paramData[0][i];
+//          double y = paramData[1][i];
+          double x = xTr.scaleX(paramData[0][i]);
+          double y = yTr.scaleY(paramData[1][i]);
           if (transformedPath.contains(x, y)) {
             include = true;
           }
@@ -475,18 +532,44 @@ public abstract class Gate {
       return includes;
     }
 
-    void prepGating() {
+    void prepGating(FCSDataLoader dataLoader) {
+
+      AxisTransform xTr, yTr;
+//      boolean xT, yT;
+      xTr = dataLoader.getParamTransform(getDimensions().get(0).paramName);
+      yTr = dataLoader.getParamTransform(getDimensions().get(1).paramName);
+      
       ArrayList<Rectangle> vertexRects = new ArrayList<Rectangle>();
-      for (Rectangle r : rects) {
-        for (int i = 0; i < verticesX.size(); i++) {
-          double x, y;
-          x = verticesX.get(i);
-          y = verticesY.get(i);
-          if (r.contains(x, y)) {
-            vertexRects.add(r);
-          }
-        }
+      for (int i = 0; i < verticesX.size(); i++) {
+//        double x, y;
+        int xInd, yInd;
+//        xInd = (int) (dataLoader.getScaleForParam(getDimensions().get(0).paramName) == AXIS_SCALE.LIN ? ((verticesX.get(i) / binStep) + gateResolution) : xTr.scaleX(verticesX.get(i)));
+//        yInd = (int) (dataLoader.getScaleForParam(getDimensions().get(1).paramName) == AXIS_SCALE.LIN ? ((verticesY.get(i) / binStep) + gateResolution) : yTr.scaleY(verticesY.get(i)));
+        xInd = (int) ((xTr.scaleX(verticesX.get(i)) / binStep) + gateResolution);
+        yInd = (int) ((yTr.scaleY(verticesY.get(i)) / binStep) + gateResolution);
+//        x = verticesX.get(i);
+//        y = verticesY.get(i);
+//        for (int j = 0; j < rectArray.length; j++) {
+//          for (int k = 0; k < rectArray[j].length; k++) {
+//            if (rectArray[j][k].contains(x, y)) {
+//              vertexRects.add(rectArray[j][k]);
+//            }
+//          }
+//        }
+        vertexRects.add(rectArray[xInd][yInd]);
       }
+//      for (Rectangle r : rects) {
+//        for (int i = 0; i < verticesX.size(); i++) {
+//          double x, y;
+//          x = xT ? verticesX.get(i) : xTr.scaleX(verticesX.get(i)) * gateResolution * binStep;
+//          y = yT ? verticesY.get(i) : yTr.scaleY(verticesY.get(i)) * gateResolution * binStep;
+////          x = verticesX.get(i);
+////          y = verticesY.get(i);
+//          if (r.contains(x, y)) {
+//            vertexRects.add(r);
+//          }
+//        }
+//      }
 
       double xSum = 0, ySum = 0;
       for (Rectangle r : vertexRects) {
@@ -537,20 +620,35 @@ public abstract class Gate {
         }
       });
 
+      double x1 = vertexRects.get(0).getCenterX();
+      double y1 = vertexRects.get(0).getCenterY();
       Path2D path = new Path2D.Double();
-      path.moveTo(vertexRects.get(0).getCenterX(), vertexRects.get(0).getCenterY());
+//      path.moveTo(xT ? x1 : xTr.scaleX(x1) * gateResolution * binStep, yT ? y1 : yTr.scaleY(y1) * gateResolution * binStep);
+      path.moveTo(x1, y1);
       for (int i = 1; i < vertexRects.size(); i++) {
-        path.lineTo(vertexRects.get(i).getCenterX(), vertexRects.get(i).getCenterY());
+        x1 = vertexRects.get(i).getCenterX();
+        y1 = vertexRects.get(i).getCenterY();
+//        path.lineTo(xT ? x1 : xTr.scaleX(x1) * gateResolution * binStep, yT ? y1 : yTr.scaleY(y1) * gateResolution * binStep);
+        path.lineTo(x1, y1);
       }
       path.closePath();
 
       myRects.clear();
-      for (Rectangle rect : rects) {
-        if (vertexRects.contains(rect) || path.contains(rect)
-            || (path.intersects(rect) && path.contains(rect.getCenterX(), rect.getCenterY()))) {
-          myRects.add(rect);
+      for (int i = 0; i < rectArray.length; i++) {
+        for (int j = 0; j < rectArray[i].length; j++) {
+          Rectangle rect = rectArray[i][j];
+          if (vertexRects.contains(rect) || path.contains(rect)
+              || (path.intersects(rect) && path.contains(rect.getCenterX(), rect.getCenterY()))) {
+            myRects.add(rect);
+          }
         }
       }
+//      for (Rectangle rect : rects) {
+//        if (vertexRects.contains(rect) || path.contains(rect)
+//            || (path.intersects(rect) && path.contains(rect.getCenterX(), rect.getCenterY()))) {
+//          myRects.add(rect);
+//        }
+//      }
     }
 
     public void setGateResolution(int res) {
@@ -560,9 +658,10 @@ public abstract class Gate {
       gateResolution = res;
       binStep = range / gateResolution;
       if (res == DEFAULT_GATE_RESOLUTION) {
-        rects = DEFAULT_RECTS;
-      } else {
-        rects = prepRects();
+//        rects = DEFAULT_RECTS;
+//      } else {
+//        rects = prepRects();
+        setupRects();
       }
     }
 
@@ -576,9 +675,9 @@ public abstract class Gate {
     public void transform(AffineTransform at) {
       myPath.transform(at);
       resetVertices();
-      if (mimicFlowJo) {
-        prepGating();
-      }
+//      if (mimicFlowJo) {
+//        prepGating();
+//      }
       parentGating = null;
       transformedPath = null;
     }

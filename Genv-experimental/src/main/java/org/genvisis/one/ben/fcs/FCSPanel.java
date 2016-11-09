@@ -43,28 +43,32 @@ import org.genvisis.one.ben.fcs.sub.RectangleGateEditor;
 public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMotionListener {
   public static final long serialVersionUID = 3L;
   public static final int LOOKUP_RESOLUTION = 20;
-  public static final Color[] DEFAULT_COLORS = {
-      new Color(33, 31, 53), // dark dark
-      new Color(201, 30, 10), // deep red
-      new Color(94, 88, 214), // light purple
-      new Color(189, 243, 61), // light green
-      new Color(217, 109, 194), // pink
-      new Color(33, 87, 0), // dark green
-      new Color(23, 58, 172), // dark blue
-      new Color(140, 20, 180), // deep purple
-      new Color(182, 182, 182), // light grey
-      new Color(220, 220, 220), // very light grey
-      new Color(0, 0, 128), // ALL KINDS OF BLUES
-      new Color(55, 129, 252), // light blue
-      new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
-      new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
-      new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
-      new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
-      new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
-      new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
-      new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
-      new Color(224, 255, 255),
-
+  public static final Color[] DEFAULT_COLORS = new Color[50];
+  {
+    
+    DEFAULT_COLORS[0] = new Color(33, 31, 53); // dark dark
+    DEFAULT_COLORS[1] = new Color(201, 30, 10);  // deep red
+    DEFAULT_COLORS[2] = new Color(94, 88, 214); // light purple
+    DEFAULT_COLORS[3] = new Color(189, 243, 61); // light green
+    DEFAULT_COLORS[4] = new Color(217, 109, 194); // pink
+    DEFAULT_COLORS[5] = new Color(33, 87, 0); // dark green
+    DEFAULT_COLORS[6] = new Color(23, 58, 172); // dark blue
+    DEFAULT_COLORS[7] = new Color(140, 20, 180); // deep purple
+    DEFAULT_COLORS[8] = new Color(0, 0, 128); // ALL KINDS OF BLUES
+    DEFAULT_COLORS[9] = new Color(55, 129, 252); // light blue
+    int[][] cols = ParulaColorMap.getParulaMap(40);
+    for (int i = 10; i < DEFAULT_COLORS.length; i++) {
+      DEFAULT_COLORS[i] = new Color(cols[i-10][0], cols[i-10][1], cols[i-10][2]);
+    }
+//      new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
+//      new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
+//      new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
+//      new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
+//      new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
+//      new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
+//      new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
+//      new Color(224, 255, 255),
+      
   };
   private static final byte POINT_SIZE = 1;
 
@@ -141,6 +145,10 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
   private boolean isHistogram() {
     return yCol != null && yCol.equals(FCSPlot.HISTOGRAM_COL);
+  }
+  
+  private boolean isHeatmap() {
+    return chartType == PLOT_TYPE.HEATMAP;
   }
 
   private void setLines() {
@@ -313,18 +321,13 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
     ArrayList<GenericLine> lineList = new ArrayList<GenericLine>();
     if (showMedSD[0] || showMedSD[1]) {
-      xMed = columnsChangedX || dataChanged || Double.isNaN(xMed) ? Array.median(xData) : xMed;
-      xMin =
-          columnsChangedX || dataChanged || Double.isNaN(xMin) ? Math.min(Math.min(0, plotXmin)
-              - xMed, Array.min(xData) - xMed) : xMin;
-      xMax =
-          columnsChangedX || dataChanged || Double.isNaN(xMax) ? Math.max(plotXmax + xMed,
-              Array.max(xData) + xMed) : xMax;
-      if (showMedSD[0]) {
-        lineList.add(new GenericLine((float) xMed, (float) xMin, (float) xMed, (float) xMax,
-            (byte) 1, (byte) 8, (byte) 1, 0, false));
+      xMed = columnsChangedX || dataChanged || Double.isNaN(xMed) ? (xData.length == 0 ? Double.NaN : Array.median(xData)) : xMed;
+      xMin = columnsChangedX || dataChanged || Double.isNaN(xMin) ? (xData.length == 0 ? Double.NaN : Math.min(Math.min(0, plotXmin) - xMed, Array.min(xData) - xMed)) : xMin;
+      xMax = columnsChangedX || dataChanged || Double.isNaN(xMax) ? (xData.length == 0 ? Double.NaN : Math.max(plotXmax + xMed, Array.max(xData) + xMed)) : xMax;
+      if (showMedSD[0] && !Double.isNaN(xMed) && !Double.isNaN(xMin) && !Double.isNaN(xMax)) {
+        lineList.add(new GenericLine((float) xMed, (float) xMin, (float) xMed, (float) xMax, (byte) 1, (byte) 8, (byte) 1, 0, false));
       }
-      if (showMedSD[1]) {
+      if (showMedSD[1] && !Double.isNaN(xMed) && !Double.isNaN(xMin) && !Double.isNaN(xMax)) {
         xSD = columnsChangedX || dataChanged || Double.isNaN(xSD) ? Array.stdev(xData, false) : xSD;
         lineList.add(new GenericLine((float) (xMed - xSD), (float) xMin, (float) (xMed - xSD),
             (float) xMax, (byte) 1, (byte) 9, (byte) 1, 0, false));
@@ -333,18 +336,14 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       }
     }
     if (showMedSD[2] || showMedSD[3]) {
-      yMed = columnsChangedY || dataChanged || Double.isNaN(yMed) ? Array.median(yData) : yMed;
-      yMin =
-          columnsChangedY || dataChanged || Double.isNaN(yMax) ? Math.min(Math.min(0, plotYmin)
-              - yMed, Array.min(yData)) : yMin;
-      yMax =
-          columnsChangedY || dataChanged || Double.isNaN(yMin) ? Math.max(plotYmax + yMed,
-              Array.max(yData)) : yMax;
-      if (showMedSD[2]) {
+      yMed = columnsChangedY || dataChanged || Double.isNaN(yMed) ? (yData.length == 0 ? Double.NaN : Array.median(yData)) : yMed;
+      yMin = columnsChangedY || dataChanged || Double.isNaN(yMax) ? (yData.length == 0 ? Double.NaN : Math.min(Math.min(0, plotYmin) - yMed, Array.min(yData))) : yMin;
+      yMax = columnsChangedY || dataChanged || Double.isNaN(yMin) ? (yData.length == 0 ? Double.NaN : Math.max(plotYmax + yMed, Array.max(yData))) : yMax;
+      if (showMedSD[2] && !Double.isNaN(yMed) && !Double.isNaN(yMin) && !Double.isNaN(yMax)) {
         lineList.add(new GenericLine((float) yMin, (float) yMed, (float) yMax, (float) yMed,
             (byte) 1, (byte) 8, (byte) 1, 0, false));
       }
-      if (showMedSD[3]) {
+      if (showMedSD[3] && !Double.isNaN(yMed) && !Double.isNaN(yMin) && !Double.isNaN(yMax)) {
         ySD = columnsChangedY || dataChanged || Double.isNaN(ySD) ? Array.stdev(yData, false) : ySD;
         lineList.add(new GenericLine((float) yMin, (float) (yMed - ySD), (float) yMax,
             (float) (yMed - ySD), (byte) 1, (byte) 9, (byte) 1, 0, false));
@@ -374,13 +373,15 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       }
     }
 //    if (gatesChanged) {
+    if (!isHeatmap()) {
       updateGateColor();
+    }
 //    }
   }
 
   private void refreshNonBaseLayers(boolean fullRedraw) {
     updateGating();
-    if (!isHistogram()) {
+    if (!isHistogram() && !isHeatmap()) {
       updateGateColor();
     }
     if (fullRedraw) {
@@ -442,7 +443,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
   private void assignClusterColors() {
     int[] clustered = fcp.getClusterAssignments();
     for (int i = 0; i < points.length; i++) {
-      points[i].setVisible(true);
+      points[i].setVisible(clustered[i] != 0);
       points[i].setColor((byte) clustered[i]);
     }
   }
@@ -763,12 +764,10 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 } while ((msgCode = ("".equals(name) ? 1 : (fcp.duplicateGateName(name) ? 2 : 0))) > 0);
                 if (name != null) {
                   RectangleGate rg = new RectangleGate(fcp.getParentGate(), name);
-                  rg.addDimension(new GateDimension.RectangleGateDimension(rg, xCol, fcp
-                      .getXScale(), (float) getXValueFromXPixel(startX),
+                  rg.addDimension(new GateDimension.RectangleGateDimension(rg, xCol, (float) getXValueFromXPixel(startX),
                       (float) getXValueFromXPixel(mouseEndX)));
                   if (!isHistogram()) {
-                    rg.addDimension(new GateDimension.RectangleGateDimension(rg, yCol, fcp
-                        .getYScale(), (float) getYValueFromYPixel(startY),
+                    rg.addDimension(new GateDimension.RectangleGateDimension(rg, yCol, (float) getYValueFromYPixel(startY),
                         (float) getYValueFromYPixel(mouseEndY)));
                   }
                   rg.setColor(3);
@@ -815,8 +814,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                   }
                   path.closePath();
                   PolygonGate pg = new PolygonGate(fcp.getParentGate(), name);
-                  pg.addDimension(new GateDimension(pg, xCol, fcp.getXScale()));
-                  pg.addDimension(new GateDimension(pg, yCol, fcp.getYScale()));
+                  pg.addDimension(new GateDimension(pg, xCol));
+                  pg.addDimension(new GateDimension(pg, yCol));
                   pg.setPath(path);
                   pg.setShouldMimicFlowJoGating(fcp.isDrawPolysAsFlowJo());
                   pg.setColor(3);

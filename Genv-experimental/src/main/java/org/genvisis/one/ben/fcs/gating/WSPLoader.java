@@ -4,11 +4,16 @@ import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -27,9 +32,12 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
 import org.genvisis.common.Numbers;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
+import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
+import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.gating.Gate.BooleanGate;
 import org.genvisis.one.ben.fcs.gating.Gate.EllipsoidGate;
@@ -38,11 +46,15 @@ import org.genvisis.one.ben.fcs.gating.Gate.QuadrantGate;
 import org.genvisis.one.ben.fcs.gating.Gate.RectangleGate;
 import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 import org.genvisis.one.ben.fcs.gating.Workbench.SampleNode;
+import org.genvisis.one.ben.fcs.sub.EMInitializer;
+import org.genvisis.one.ben.fcs.sub.EMModel;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import edu.stanford.facs.logicle.Logicle;
 
 public class WSPLoader {
 
@@ -51,9 +63,7 @@ public class WSPLoader {
     {"panel 2", "p2"},
   };
   
-  private ArrayList<String> autoGates = new ArrayList<String>();
-  
-  public void load(String file) throws ParserConfigurationException, SAXException, IOException {
+  public <T extends SampleProcessor> void load(String file, Class<T> processorClass) throws ParserConfigurationException, SAXException, IOException {
     long t1 = System.currentTimeMillis();
     long t2 = System.currentTimeMillis();
     
@@ -105,6 +115,9 @@ public class WSPLoader {
       Element e = (Element) samples.item(i);
       String fcsFile = ((Element) e.getElementsByTagName("DataSet").item(0)).getAttribute("uri");
       
+      Element transforms = ((Element) e.getElementsByTagName("Transformations").item(0));
+      parseTransforms(transforms);
+      
       Element sampleNode = (Element) e.getElementsByTagName("SampleNode").item(0);
       String id = sampleNode.getAttribute("sampleID");
       SampleNode sn = new SampleNode();
@@ -114,13 +127,19 @@ public class WSPLoader {
       } else if (fcsFile.startsWith("file:/")) {
         fcsFile = fcsFile.substring(6);
       } 
-      sn.fcsFile = fcsFile;
+      try {
+        sn.fcsFile = URLDecoder.decode(fcsFile, "utf-8");
+      } catch (UnsupportedEncodingException e2) {
+        System.err.println("Error - " + e2.getMessage());
+        sn.fcsFile = fcsFile;
+      }
+      System.out.println("DECODED: " + sn.fcsFile);
       sn.sampleNode = sampleNode;
       sn.doc = doc;
       Gating gs = new Gating();
       gs.setFile(file);
       NodeList nodes = sampleNode.getElementsByTagName("Population");
-      gs.gateMap = GateFileUtils.buildPopGraph(nodes);
+      gs.gateMap = GateFileUtils.buildPopGraph(nodes, true);
       gs.gateRoots = GateFileUtils.connectGates(gs.gateMap);
       gs.paramGateMap = GateFileUtils.parameterizeGates(gs.gateMap);
       for (Gate g : gs.gateMap.values()) {
@@ -169,9 +188,8 @@ public class WSPLoader {
             @Override
             public void run() {
               try {
-                
-                updateGating(sn);
-                
+                  processorClass.getConstructor(WSPLoader.class).newInstance(WSPLoader.this).processSample(sn);
+                  
               } catch (IOException e) {
                 System.err.println("Error - " + e.getMessage());
                 // do not re-add to queue
@@ -179,6 +197,10 @@ public class WSPLoader {
                 System.gc();
                 queue.add(sn);
                 // cleanup and re-add to queue
+              } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+                  | NoSuchMethodException | SecurityException  e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
               }
             }
           };
@@ -216,107 +238,237 @@ public class WSPLoader {
     System.out.println("Total: " + ext.getTimeElapsed(t2));
   }
   
-  private void updateGating(SampleNode sn) throws IOException {
-    NodeList nList = sn.sampleNode.getElementsByTagName("Population"); 
-    // annoOffsetX/annoOffsetY ???
-    // panelState ???
-    HashMap<String, Element> map = new HashMap<String, Element>();
-    HashMap<String, Element> mapG = new HashMap<String, Element>();
-    for (int i = 0; i < nList.getLength(); i++) {
-      Element e = (Element) nList.item(i);
-      Element g = (Element) e.getElementsByTagName("Gate").item(0);
-      map.put(g.getAttribute("gating:id"), e);
-      mapG.put(g.getAttribute("gating:id"), g);
+  private void parseTransforms(Element transforms) {
+    NodeList nList = transforms.getChildNodes();
+    for (int i = 0, count = nList.getLength(); i < count; i++) {
+      Node n = nList.item(i);
+      if (!n.getNodeName().startsWith("transforms:")) continue; 
+      
+      String param = ((Element) ((Element) n).getElementsByTagName("data-type:parameter").item(0)).getAttribute("data-type:name");
+      if (n.getNodeName().endsWith("linear")) {
+        String min = ((Element) n).getAttribute("transforms:minRange");
+        String max = ((Element) n).getAttribute("transforms:maxRange");
+        String gain = ((Element) n).getAttribute("gain");
+//        System.out.println();
+      } else if (n.getNodeName().endsWith("biex")) {
+        String len = ((Element) n).getAttribute("transforms:length");
+        String rng = ((Element) n).getAttribute("transforms:maxRange");
+        String neg = ((Element) n).getAttribute("transforms:neg");
+        String wid = ((Element) n).getAttribute("transforms:width");
+        String pos = ((Element) n).getAttribute("transforms:pos");
+//        System.out.println();
+      } else if (n.getNodeName().endsWith("log")) {
+        ((Element) n).getAttribute("transforms:offset");
+        ((Element) n).getAttribute("transforms:decades");
+//        System.out.println();
+      }
+    }
+  }
+
+  abstract class SampleProcessor {
+    public abstract void processSample(SampleNode sn) throws IOException;
+  }
+  
+  
+  
+  abstract class AbstractSampleProcessor extends SampleProcessor {
+    NodeList popList;
+    HashMap<String, Element> popMap = new HashMap<String, Element>();
+    HashMap<String, Element> gateMap = new HashMap<String, Element>();
+    FCSDataLoader d;
+    
+    private AbstractSampleProcessor() {}
+    
+    void loadPopsAndGates(SampleNode sn) {
+      popList = sn.sampleNode.getElementsByTagName("Population"); 
+      // annoOffsetX/annoOffsetY ???
+      // panelState ???
+      for (int i = 0; i < popList.getLength(); i++) {
+        Element e = (Element) popList.item(i);
+        Element g = (Element) e.getElementsByTagName("Gate").item(0);
+        popMap.put(g.getAttribute("gating:id"), e);
+        gateMap.put(g.getAttribute("gating:id"), g);
+      }
     }
     
-    // TODO load data file
-    FCSDataLoader d = new FCSDataLoader();
-    d.loadData(sn.fcsFile);
+    void loadData(SampleNode sn) throws IOException {
+      long t1 = System.currentTimeMillis();
+      d = new FCSDataLoader();
+      d.loadData(sn.fcsFile);
+      while(d.getLoadState() != LOAD_STATE.LOADED) {
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+        }
+      }
+      (new Logger()).reportTimeElapsed("Loaded FCS ... ", t1);
+    }
     
-//    HashMap<String, boolean[]> gatingMap = new HashMap<String, boolean[]>();
+  }
+  
+  class DataDumper extends AbstractSampleProcessor {
+    public DataDumper() {
+      // TODO Auto-generated constructor stub
+    }
+    @Override
+    public void processSample(SampleNode sn) throws IOException {
+      loadData(sn);
+      for (String param : d.getAllDisplayableNames(DATA_SET.ALL)) {
+        double[] data = d.getData(param, true);
+        double[] mm = Array.minMax(data);
+        System.out.println(param + " min: " + mm[0] + "; max: " + mm[1]);
+      }
+    }
     
-    for (String gateName : sn.gating.allNames) {
-      Gate gate = sn.gating.gateMap.get(gateName);
+  }
+  
+  class LeafDataExporter extends AbstractSampleProcessor {
+
+    private static final int SAMPLE_SIZE = 1000;
+    
+    public void processSample(SampleNode sn) throws IOException {
+      if (!Files.exists(sn.fcsFile)) return;
+      loadPopsAndGates(sn);
+      loadData(sn);
       
-//      if (gate.children.isEmpty()) {
-//        continue;
-//      }
-//      if (autoGates.contains(gateName)) {
-//        // TODO adjust gate
-//      } else {
-//        continue;
-//      }
-      
-      String id = gate.getID();
-      Element p = map.get(id);
-      
-      if (d != null) {
-        boolean[] gating = gate.gate(d);
-//        gatingMap.put(gate.getName() == null || gate.getName().equals("") ? gate.getID() : gate.getName(), gating);
-        p.setAttribute("count", "" + Array.booleanArraySum(gating));
+      ArrayList<String> params = new ArrayList<>();
+      for (String s : EMInitializer.DATA_COLUMNS) {
+        params.add(s);
+      }
+      HashSet<Gate> leafGates = sn.gating.getAllLeafGates();
+//      leafGates.add(sn.gating.getRootGates().get(0));
+      HashSet<Gate> map = new HashSet<>();
+      for (Gate g : leafGates) {
+        map.add(g);
+      }
+      String outputFileRoot = ext.verifyDirFormat(ext.parseDirectoryOfFile(sn.fcsFile)) + "sampling/" + ext.rootOf(sn.fcsFile, true) + "_";
+      System.out.println("Exporting data for " + map.size() + " gates : " + params.toString());
+      for (Gate g : map) {
+        String outputFile = outputFileRoot + g.getID() + "_" + g.getDimensions().get(0).paramName + "_" + g.getDimensions().get(1).paramName + ".xln";
+        System.out.println("... to file " + outputFile);
+        PrintWriter writer = Files.getAppropriateWriter(outputFile);
+        for (int i = 0; i < params.size(); i++) {
+          writer.print(params.get(i));
+          if (i < params.size() - 1) {
+            writer.print("\t");
+          }
+        }
+        writer.println();
+        boolean[] incl = g.gate(d);
+        int[] indices = Array.booleanArrayToIndices(incl);
+        Random rand = new Random();
+        for (int i = 0; i < SAMPLE_SIZE; i++) {
+          int ind = indices[rand.nextInt(indices.length)];
+          double[] line = d.getDataLine(params, ind);
+          for (int l = 0; l < line.length; l++) {
+            writer.print(line[l]);
+            if (l < line.length - 1) {
+              writer.print("\t");
+            }
+          }
+          writer.println();
+        }
+        writer.flush();
+        writer.close();
       }
       
-      Element g = mapG.get(gate.getID());
-
-      if (gate instanceof PolygonGate) {
-        Element actGate = (Element) g.getElementsByTagName("gating:PolygonGate").item(0);
-        NodeList nList2 = g.getElementsByTagName("data-type:fcs-dimension");
-        int first = ((Element) nList.item(0)).getAttribute("data-type:name").equals(gate.getDimensions().get(0).paramName) ? 0 : 1;
-        int second = first == 0 ? 1 : 0;
-        nList2 = g.getElementsByTagName("gating:vertex");
-        for (int i = nList2.getLength() - 1; i >= 0; i--) {
-          actGate.removeChild(nList2.item(i));
-        }
-        Path2D path = ((PolygonGate) gate).getPath();
-        PathIterator pi = path.getPathIterator(null);
-        while (!pi.isDone()) {
-          double[] coords = new double[6];
-          int type = pi.currentSegment(coords);
-          if (type == PathIterator.SEG_CLOSE) {
-            pi.next();
-            continue;
-          }
-          Element vert = sn.doc.createElement("gating:vertex");
-          Element vert1 = sn.doc.createElement("gating:coordinate");
-          Element vert2 = sn.doc.createElement("gating:coordinate");
-
-          vert1.setAttribute("data-type:value", coords[first] + "");
-          vert2.setAttribute("data-type:value", coords[second] + "");
-
-          vert.appendChild(vert2);
-          vert.appendChild(vert1);
-          actGate.appendChild(vert);
-          pi.next();
-        }
-
-      } else if (gate instanceof RectangleGate) {
-        Element actGate = (Element) g.getElementsByTagName("gating:RectangleGate").item(0);
-        NodeList nList2 = actGate.getElementsByTagName("gating:dimension");
-        for (int i = nList2.getLength() - 1; i >= 0; i--) {
-          actGate.removeChild(nList2.item(i));
+      d.emptyAndReset();
+      System.gc();
+      
+    }
+    
+  }
+  
+  class BasicSampleProcessor extends AbstractSampleProcessor {
+    
+    public void processSample(SampleNode sn) throws IOException {
+      loadPopsAndGates(sn);
+      loadData(sn);
+      
+      
+      for (String gateName : sn.gating.allNames) {
+        Gate gate = sn.gating.gateMap.get(gateName);
+        
+  //      if (gate.children.isEmpty()) {
+  //        continue;
+  //      }
+  //      if (autoGates.contains(gateName)) {
+  //        // TODO adjust gate
+  //      } else {
+  //        continue;
+  //      }
+        
+        String id = gate.getID();
+        Element p = popMap.get(id);
+        
+        if (d != null) {
+          boolean[] gating = gate.gate(d);
+  //        gatingMap.put(gate.getName() == null || gate.getName().equals("") ? gate.getID() : gate.getName(), gating);
+          p.setAttribute("count", "" + Array.booleanArraySum(gating));
         }
         
-        for (GateDimension gd : gate.getDimensions()) {
-          Element dim1 = sn.doc.createElement("gating:dimension");
-          
-          if (gd instanceof RectangleGateDimension) {
-              RectangleGateDimension rgd = (RectangleGateDimension) gd;
-              if (Numbers.isFinite(rgd.getMax())) {
-                  dim1.setAttribute("gating:max", "" + Math.max(((RectangleGateDimension) gd).getMin(), ((RectangleGateDimension) gd).getMax()));
-              }
-              if (Numbers.isFinite(rgd.getMin())) {
-                  dim1.setAttribute("gating:min", "" + Math.min(((RectangleGateDimension) gd).getMin(), ((RectangleGateDimension) gd).getMax()));
-              }
+        Element g = gateMap.get(gate.getID());
+  
+        if (gate instanceof PolygonGate) {
+          Element actGate = (Element) g.getElementsByTagName("gating:PolygonGate").item(0);
+          NodeList nList2 = g.getElementsByTagName("data-type:fcs-dimension");
+          int first = ((Element) popList.item(0)).getAttribute("data-type:name").equals(gate.getDimensions().get(0).paramName) ? 0 : 1;
+          int second = first == 0 ? 1 : 0;
+          nList2 = g.getElementsByTagName("gating:vertex");
+          for (int i = nList2.getLength() - 1; i >= 0; i--) {
+            actGate.removeChild(nList2.item(i));
+          }
+          Path2D path = ((PolygonGate) gate).getPath();
+          PathIterator pi = path.getPathIterator(null);
+          while (!pi.isDone()) {
+            double[] coords = new double[6];
+            int type = pi.currentSegment(coords);
+            if (type == PathIterator.SEG_CLOSE) {
+              pi.next();
+              continue;
+            }
+            Element vert = sn.doc.createElement("gating:vertex");
+            Element vert1 = sn.doc.createElement("gating:coordinate");
+            Element vert2 = sn.doc.createElement("gating:coordinate");
+  
+            vert1.setAttribute("data-type:value", coords[first] + "");
+            vert2.setAttribute("data-type:value", coords[second] + "");
+  
+            vert.appendChild(vert2);
+            vert.appendChild(vert1);
+            actGate.appendChild(vert);
+            pi.next();
           }
   
-          Element dim2 = sn.doc.createElement("data-type:fcs-dimension"); 
-          dim2.setAttribute("data-type:name", gd.getParam());
-          dim1.appendChild(dim2);
-          actGate.appendChild(dim1);
+        } else if (gate instanceof RectangleGate) {
+          Element actGate = (Element) g.getElementsByTagName("gating:RectangleGate").item(0);
+          NodeList nList2 = actGate.getElementsByTagName("gating:dimension");
+          for (int i = nList2.getLength() - 1; i >= 0; i--) {
+            actGate.removeChild(nList2.item(i));
+          }
+          
+          for (GateDimension gd : gate.getDimensions()) {
+            Element dim1 = sn.doc.createElement("gating:dimension");
+            
+            if (gd instanceof RectangleGateDimension) {
+                RectangleGateDimension rgd = (RectangleGateDimension) gd;
+                if (Numbers.isFinite(rgd.getMax())) {
+                    dim1.setAttribute("gating:max", "" + Math.max(((RectangleGateDimension) gd).getMin(), ((RectangleGateDimension) gd).getMax()));
+                }
+                if (Numbers.isFinite(rgd.getMin())) {
+                    dim1.setAttribute("gating:min", "" + Math.min(((RectangleGateDimension) gd).getMin(), ((RectangleGateDimension) gd).getMax()));
+                }
+            }
+    
+            Element dim2 = sn.doc.createElement("data-type:fcs-dimension"); 
+            dim2.setAttribute("data-type:name", gd.getParam());
+            dim1.appendChild(dim2);
+            actGate.appendChild(dim1);
+          }
+          
         }
         
       }
-      
     }
   }
   
@@ -331,8 +483,40 @@ public class WSPLoader {
   
   
   public static void main(String[] args) {
+    
+    boolean test = false ;
+    if (test) {
+      
+      int len = 256; // always 
+      double rng = 262144; // usual
+      double wid = -100;
+      double neg = 0; // 0 to 1
+      
+      double min = -1622.427;
+      double minScaled = 0.2700580836366186;
+      double minLog10 = 3.21016516512701;
+      
+      double zeroScaledDefaults = 0.3691031216541514;
+      double zeroInverseDefaults = -14160.344323553594;
+      
+      
+      double T = rng;
+      double W = Math.log10(Math.abs(wid));
+      double M = Math.log10(T);
+      double A = Math.min(neg, 1);
+      Logicle l = new Logicle(T, W, M, A);
+      
+      
+      
+      return;
+    }
+    
+    
     try {
-      new WSPLoader().load("F:/Flow/713-715.wsp");
+//      new WSPLoader().load("F:/Flow/713-715.wsp", AbstractSampleProcessor.class);
+//      new WSPLoader().load("F:/Flow/controlFCS/10-Aug-2016 ctl B.wsp", LeafDataExporter.class);
+      new WSPLoader().load("F:/Flow/controlFCS/10-Aug-2016 ctl B.wsp", DataDumper.class);
+      
     } catch (ParserConfigurationException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -366,7 +550,7 @@ class GateFileUtils {
     return paramGates;
   }
 
-  static HashMap<String, Gate> buildPopGraph(NodeList allGates) {
+  static HashMap<String, Gate> buildPopGraph(NodeList allGates, boolean flowJo) {
     HashMap<String, Gate> gateMap = new HashMap<String, Gate>();
     for (int i = 0, count = allGates.getLength(); i < count; i++) {
       Element popNode = (Element) allGates.item(i);
@@ -390,7 +574,7 @@ class GateFileUtils {
         }
       }
       if (actualGateNode != null) {
-        Gate newGate = buildGate(popName, id, parentID, actualGateNode);
+        Gate newGate = buildGate(popName, id, parentID, actualGateNode, flowJo);
         gateMap.put(id, newGate);
 
         if (popName != null && !popName.equals("")) {
@@ -403,7 +587,7 @@ class GateFileUtils {
   }
 
   static ArrayList<Gate> connectGates(HashMap<String, Gate> gateMap) {
-    ArrayList<Gate> rootGates = new ArrayList<Gate>();
+    HashSet<Gate> rootGates = new HashSet<Gate>();
     for (Gate g : gateMap.values()) {
       if (null != g.parentID && !"".equals(g.parentID)) {
         g.parentGate = gateMap.get(g.parentID);
@@ -412,10 +596,29 @@ class GateFileUtils {
         rootGates.add(g);
       }
     }
-    return rootGates;
+    return new ArrayList<Gate>(rootGates);
   }
-
-  static Gate buildGate(String popName, String id, String parentID, Node gateNode) {
+  
+  private static HashSet<String> LIN_PARAMS = new HashSet<>();
+  {
+    LIN_PARAMS.add("time");
+    LIN_PARAMS.add("fsc-a");
+    LIN_PARAMS.add("fsc-w");
+    LIN_PARAMS.add("fsc-h");
+    LIN_PARAMS.add("ssc-a");
+    LIN_PARAMS.add("ssc-w");
+    LIN_PARAMS.add("ssc-h");
+    LIN_PARAMS.add("time");
+  }
+  private static AXIS_SCALE getAxisScaleHardcoded(String param) {
+    if (LIN_PARAMS.contains(param.toLowerCase())) {
+      return AXIS_SCALE.LIN;
+    } else {
+      return AXIS_SCALE.BIEX;
+    }
+  }
+  
+  static Gate buildGate(String popName, String id, String parentID, Node gateNode, boolean flowJo) {
     String gateType = gateNode.getNodeName().substring(7); // 7 = "gating:".length()
     Gate gate = null;
     if ("RectangleGate".equals(gateType)) {
@@ -423,11 +626,8 @@ class GateFileUtils {
       ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
       for (int i = 0; i < dimNodes.size(); i++) {
         Node dimNode = dimNodes.get(i);
-        String param =
-            ((Element) getFirstChild(dimNode, "data-type:fcs-dimension"))
-                .getAttribute("data-type:name");
-        RectangleGateDimension gd =
-            new RectangleGateDimension((RectangleGate) gate, param, AXIS_SCALE.LIN);
+        String param = ((Element) getFirstChild(dimNode, "data-type:fcs-dimension")).getAttribute("data-type:name");
+        RectangleGateDimension gd = new RectangleGateDimension((RectangleGate) gate, param);
         String min = ((Element) dimNode).getAttribute("gating:min");
         String max = ((Element) dimNode).getAttribute("gating:max");
         // ((Element) dimNode).getAttribute("yRatio"); // TODO dunno what yRatio is used for yet
@@ -485,7 +685,7 @@ class GateFileUtils {
         String param =
             ((Element) getFirstChild(dimNode, "data-type:fcs-dimension"))
                 .getAttribute("data-type:name");
-        GateDimension gd = new GateDimension(gate, param, AXIS_SCALE.LIN);
+        GateDimension gd = new GateDimension(gate, param);
         gd.paramName = param;
         gate.dimensions.add(gd);
       }
@@ -498,7 +698,8 @@ class GateFileUtils {
             Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
         ((PolygonGate) gate).addVertex(fX, fY);
       }
-      ((PolygonGate) gate).prepGating();
+//      ((PolygonGate) gate).prepGating();
+      ((PolygonGate) gate).setShouldMimicFlowJoGating(flowJo);
     } else if ("QuadrantGate".equals(gateType)) {
       gate = new QuadrantGate();
 
@@ -533,3 +734,4 @@ class GateFileUtils {
   }
   
 }
+

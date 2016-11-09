@@ -14,6 +14,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.util.Pair;
 import org.genvisis.common.Array;
 import org.genvisis.common.Logger;
+import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
 
@@ -38,7 +39,7 @@ public class EMModel {
     }
     return decCnt;
   }
-
+  
   private static Logicle getBiexScale(double max) {
     double w = 2; // linear decades // W=1 is weird, W=3 -> "scale() didn't
                   // converge"
@@ -48,7 +49,7 @@ public class EMModel {
     return new Logicle(max, Math.min(w, decCnt / 2), decCnt, a);
   }
 
-  private static Logicle getLogicle(double[] data) {
+  public static Logicle getLogicle(double[] data) {
     return getBiexScale(Array.max(data));
   }
 
@@ -58,22 +59,23 @@ public class EMModel {
     double[][] transformed = new double[data.length][data[0].length];
     for (int i = 0; i < mehs.length; i++) {
       for (int j = 0; j < data[0].length; j++) {
-        transformed[i][j] = mehs[i].scale(data[i][j]);
+        transformed[i][j] = EMInitializer.DATA_SCALES[i] == AXIS_SCALE.BIEX ? mehs[i].scale(data[i][j]) : data[i][j];
       }
     }
     log.report("Finished transforming data to Logicle scale");
     return transformed;
   }
 
-  private static double[][] process(FCSDataLoader dataLoader, ArrayList<String> params, Logger log) {
-    double[][] data = new double[params.size()][];
-    for (int i = 0; i < params.size(); i++) {
-      data[i] = dataLoader.getData(params.get(i), true);
+  private static double[][] process(FCSDataLoader dataLoader, Logger log) {
+    
+    double[][] data = new double[EMInitializer.DATA_COLUMNS.length][];
+    for (int i = 0; i < EMInitializer.DATA_COLUMNS.length; i++) {
+      data[i] = dataLoader.getData(EMInitializer.DATA_COLUMNS[i], true);
     }
 
-    Logicle[] mehs = new Logicle[params.size()];
+    Logicle[] mehs = new Logicle[EMInitializer.DATA_COLUMNS.length];
     for (int i = 0; i < mehs.length; i++) {
-      mehs[i] = getLogicle(data[i]);
+      mehs[i] = EMInitializer.DATA_SCALES[i] == AXIS_SCALE.BIEX ? getLogicle(data[i]) : null;
     }
     return transformData(data, mehs, log);
   }
@@ -150,7 +152,11 @@ public class EMModel {
       }
     }
     initialMix = MultivariateNormalMixtureExpectationMaximization.estimate(newInit, clusters);
-
+    
+    return fit(transposed, initialMix);
+  }
+  
+  private static MultivariateNormalMixtureExpectationMaximization fit(double[][] transposed, MixtureMultivariateNormalDistribution initialMix) {
     MultivariateNormalMixtureExpectationMaximization mle = new MultivariateNormalMixtureExpectationMaximization(transposed);
 
     mle.fit(initialMix, 2000, 1E-5);
@@ -158,48 +164,50 @@ public class EMModel {
     return mle;
   }
   
-  public static EMModel run(FCSDataLoader loader, ArrayList<String> params) {
+  public static EMModel run(FCSDataLoader loader) {
     if (loader.getLoadState() != LOAD_STATE.LOADED) {
       System.err.println("Error - data not loaded yet; please wait a while and try again.");
       return null;
     }
     Logger log = new Logger();
     long t1 = System.currentTimeMillis();
-    double[][] transformed = process(loader, params, log);
+    double[][] transformed = process(loader, log);
     double[][] transposed = transpose(transformed);
     
-    double[][] initData = selectMaxVarInitialMix(transposed, .1, log);
+    MultivariateNormalMixtureExpectationMaximization mnmem = fit(transposed, EMInitializer.load(EMInitializer.DIST_DIR));
     
-    MultivariateNormalMixtureExpectationMaximization mnmem = null;
-
-    try {
-      MultivariateNormalMixtureExpectationMaximization mnmem1 = getClusters(transposed, initData, 4, log);
-      mnmem = mnmem1;
-    } catch (Exception e) {
-      System.err.println("Error - 4 clusters failed: " + e.getMessage());
-      for (int clust = 6; clust > 1; clust--) {
-        try {
-          MultivariateNormalMixtureExpectationMaximization mnmem1 = getClusters(transposed, initData, clust, log);
-          mnmem = mnmem1;
-          break;
-        } catch (Exception e1) {
-          System.out.println("Clustering " + clust + " -- " + e1.getMessage());
-        }
-      }
-    }
-    
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        for (int clust = 2; clust < 4; clust++) {
-          MultivariateNormalMixtureExpectationMaximization mnmem1 = getClusters(transposed, initData, clust, log);
-          System.out.println("LogL - " + clust + ": " + mnmem1.getLogLikelihood());
-        }
-      }
-    }).run();
-    
-    System.out.println("LogL - 4: " + mnmem.getLogLikelihood());
-
+//    double[][] initData = selectMaxVarInitialMix(transposed, .1, log);
+//    
+//    MultivariateNormalMixtureExpectationMaximization mnmem = null;
+//
+//    try {
+//      MultivariateNormalMixtureExpectationMaximization mnmem1 = getClusters(transposed, initData, 4, log);
+//      mnmem = mnmem1;
+//    } catch (Exception e) {
+//      System.err.println("Error - 4 clusters failed: " + e.getMessage());
+//      for (int clust = 6; clust > 1; clust--) {
+//        try {
+//          MultivariateNormalMixtureExpectationMaximization mnmem1 = getClusters(transposed, initData, clust, log);
+//          mnmem = mnmem1;
+//          break;
+//        } catch (Exception e1) {
+//          System.out.println("Clustering " + clust + " -- " + e1.getMessage());
+//        }
+//      }
+//    }
+//    
+//    new Thread(new Runnable() {
+//      @Override
+//      public void run() {
+//        for (int clust = 2; clust < 4; clust++) {
+//          MultivariateNormalMixtureExpectationMaximization mnmem1 = getClusters(transposed, initData, clust, log);
+//          System.out.println("LogL - " + clust + ": " + mnmem1.getLogLikelihood());
+//        }
+//      }
+//    }).run();
+//    
+//    System.out.println("LogL - 4: " + mnmem.getLogLikelihood());
+//
     log.reportTimeElapsed("Clustered in ", t1);
     
     return new EMModel(mnmem, transformed);

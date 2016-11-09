@@ -79,6 +79,7 @@ public class Gating {
   }
 
   public void addRootGate(Gate g) {
+    if (gateRoots.contains(g)) return;
     gateRoots.add(g);
     for (GateDimension gd : g.dimensions) {
       ArrayList<Gate> gates = paramGateMap.get(gd.paramName);
@@ -103,7 +104,7 @@ public class Gating {
   public void deleteGate(Gate g) {
     deleteGate(g, gateRoots);
   }
-
+  
   private boolean deleteGate(Gate g, ArrayList<Gate> gates) {
     if (gates.contains(g)) {
       gates.remove(g);
@@ -135,18 +136,18 @@ public class Gating {
     fileName = filename2;
   }
 
-  public ArrayList<Gate> getAllLeafGates() {
+  public HashSet<Gate> getAllLeafGates() {
     return getLeafGates(getRootGates());
   }
   
-  public ArrayList<Gate> getLeafGates(Gate parentGate) {
+  public HashSet<Gate> getLeafGates(Gate parentGate) {
     ArrayList<Gate> g = new ArrayList<Gate>();
     g.add(parentGate);
     return getLeafGates(g);
   }
   
-  private ArrayList<Gate> getLeafGates(ArrayList<Gate> parentGates) {
-    ArrayList<Gate> leafs = new ArrayList<Gate>();
+  private HashSet<Gate> getLeafGates(ArrayList<Gate> parentGates) {
+    HashSet<Gate> leafs = new HashSet<Gate>();
     for (Gate g : parentGates) {
       if (g.getChildGates().isEmpty()) {
         leafs.add(g);

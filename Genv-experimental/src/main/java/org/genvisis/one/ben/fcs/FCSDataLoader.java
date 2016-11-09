@@ -28,6 +28,9 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
+import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
+
+import edu.stanford.facs.logicle.Logicle;
 
 public class FCSDataLoader {
 
@@ -54,7 +57,10 @@ public class FCSDataLoader {
   private volatile LOAD_STATE state = LOAD_STATE.UNLOADED;
 
   ArrayList<String> paramNamesInOrder;
-  private ArrayList<AXIS_SCALE> scales;
+  ArrayList<String> paramShortNamesInOrder;
+  ArrayList<String> paramLongNamesInOrder;
+  private HashMap<String, AXIS_SCALE> paramScales;
+  private HashMap<String, AxisTransform> paramTransforms;
   private final ArrayList<Integer> ranges;
   LinkedHashSet<String> compensatedNames;
   HashMap<String, Integer> compensatedIndices;
@@ -80,7 +86,10 @@ public class FCSDataLoader {
 
   public FCSDataLoader() {
     paramNamesInOrder = new ArrayList<String>();
-    scales = new ArrayList<AXIS_SCALE>();
+    paramShortNamesInOrder = new ArrayList<String>();
+    paramLongNamesInOrder = new ArrayList<String>();
+    paramScales = new HashMap<>();
+    paramTransforms = new HashMap<String, AxisTransform>();
     ranges = new ArrayList<Integer>();
     compensatedNames = new LinkedHashSet<String>();
     compensatedIndices = new HashMap<String, Integer>();
@@ -94,7 +103,10 @@ public class FCSDataLoader {
       /* wouldn't this be what we want? */}
     setState(LOAD_STATE.UNLOADED);
     paramNamesInOrder = new ArrayList<String>();
-    scales = new ArrayList<AXIS_SCALE>();
+    paramShortNamesInOrder = new ArrayList<String>();
+    paramLongNamesInOrder = new ArrayList<String>();
+    paramScales = new HashMap<>();
+    paramTransforms = new HashMap<String, AxisTransform>();
     compensatedNames = new LinkedHashSet<String>();
     compensatedIndices = new HashMap<String, Integer>();
     eventCount = -1;
@@ -276,6 +288,10 @@ public class FCSDataLoader {
         actName = shortName + " (" + name + ")";
       }
       paramNamesInOrder.add(actName);
+      paramShortNamesInOrder.add(shortName);
+      if (name != null) {
+        paramLongNamesInOrder.add(name);
+      }
       names.put(shortName, actName);
 
       String axisKeywork = "P" + (i + 1) + "DISPLAY";
@@ -286,7 +302,8 @@ public class FCSDataLoader {
         System.err.println("Warning - no axis scale set for parameter " + paramNamesInOrder.get(i)
             + "; assuming a linear scale.");
       };
-      scales.add(scale);
+      paramScales.put(actName, scale);
+      paramTransforms.put(actName, getDefaultTransform(scale));
 
       String rangeKeyword = "$P" + (i + 1) + "R";
       int rng = -1;
@@ -305,6 +322,8 @@ public class FCSDataLoader {
     for (int i = 0, count = arr.length; i < count; i++) {
       compensatedNames.add(names.get(arr[i]));
       compensatedIndices.put(names.get(arr[i]), i);
+      paramScales.put(COMPENSATED_PREPEND + names.get(arr[i]), getScaleForParam(names.get(arr[i])));
+      paramTransforms.put(COMPENSATED_PREPEND + names.get(arr[i]), getDefaultTransform(getScaleForParam(names.get(arr[i]))));
     }
 
     if (dataObj.getType() == CFCSData.LISTMODE) {
@@ -336,6 +355,69 @@ public class FCSDataLoader {
     }
   }
 
+  private AxisTransform getDefaultTransform(AXIS_SCALE scale) {
+    switch (scale) {
+      case LOG:
+        System.err.println("Error - NO DEFINED AXIS TRANSFORM FOR LOG AXES!");
+      case BIEX:
+        return createBiexAxisTransform();
+      case LIN:
+      default:
+        return createPassthroughTransform();
+    }
+  }
+
+  private static AxisTransform createPassthroughTransform() {
+    return new AxisTransform(null) {
+      @Override
+      public double scaleY(double val) { return val; }
+      @Override
+      public double scaleX(double val) { return val; }
+      @Override
+      public double inverseY(double val) { return val; }
+      @Override
+      public double inverseX(double val) { return val; }
+    };
+  }
+  
+  private static AxisTransform createBiexAxisTransform() {
+    double DEFAULT_T = 262144;
+    double DEFAULT_W = Math.log10(Math.abs(-100));
+    double DEFAULT_M = Math.log10(DEFAULT_T);
+    double DEFAULT_A = Math.min(0, 1);
+    Logicle lgl = new Logicle(DEFAULT_T, DEFAULT_W, DEFAULT_M, DEFAULT_A);
+    
+    int DEFAULT_RESOLUTION = 256;
+    int resolution = DEFAULT_RESOLUTION;
+    
+    return new AxisTransform(null) {
+      
+      @Override
+      public double scaleY(double val) {
+        return lgl.scale(val) * DEFAULT_T;
+      }
+      
+      @Override
+      public double scaleX(double val) {
+        return lgl.scale(val) * DEFAULT_T;
+      }
+      
+      @Override
+      public double inverseY(double val) {
+        return lgl.inverse(val / DEFAULT_T);
+      }
+      
+      @Override
+      public double inverseX(double val) {
+        return lgl.inverse(val / DEFAULT_T);
+      }
+    };
+  }
+  
+  public AxisTransform getParamTransform(String param) {
+    return paramTransforms.get(getInternalParamName(param));
+  }
+  
   Thread loadInBGThread = new Thread(new Runnable() {
     @Override
     public void run() {
@@ -394,16 +476,16 @@ public class FCSDataLoader {
     // TODO set as internal obj to CFCS objects???
 
   }
-
-  public double[] getData(String columnName, boolean waitIfNecessary) {
+  
+  public double[] getData(String colName, boolean waitIfNecessary) {
+    String columnName = colName.startsWith(COMPENSATED_PREPEND) ? COMPENSATED_PREPEND + getInternalParamName(colName.substring(COMP_LEN)) : getInternalParamName(colName);
     LOAD_STATE currState = getLoadState();
     if (columnName.startsWith(COMPENSATED_PREPEND)) {
       if (currState == LOAD_STATE.LOADED) {
         if (isTransposed) {
           return compensatedData[compensatedIndices.get(columnName.substring(COMP_LEN))];
         } else {
-          return Matrix.extractColumn(compensatedData,
-              compensatedIndices.get(columnName.substring(COMP_LEN)));
+          return Matrix.extractColumn(compensatedData, compensatedIndices.get(columnName.substring(COMP_LEN)));
         }
       } else {
         if (currState != LOAD_STATE.UNLOADED && waitIfNecessary) {
@@ -446,6 +528,83 @@ public class FCSDataLoader {
     }
   }
 
+  private String getInternalParamName(String name) {
+    String nm = name;
+    boolean prepend = nm.startsWith(COMPENSATED_PREPEND); 
+    if (prepend) {
+      nm = nm.substring(COMP_LEN);
+    }
+    int ind = paramNamesInOrder.indexOf(nm);
+    if (ind != -1) {
+      return prepend ? COMPENSATED_PREPEND + nm : nm;
+    } else if ((ind = paramShortNamesInOrder.indexOf(nm)) != -1) {
+      return prepend ? COMPENSATED_PREPEND + paramNamesInOrder.get(ind) : paramNamesInOrder.get(ind);
+    } else if ((ind = paramLongNamesInOrder.indexOf(nm)) != -1) {
+      return prepend ? COMPENSATED_PREPEND + paramNamesInOrder.get(ind) : paramNamesInOrder.get(ind);
+    }
+    return prepend ? COMPENSATED_PREPEND + nm : nm;
+  }
+  
+  public double[] getDataLine(ArrayList<String> params, int ind) {
+    double[] line = new double[params.size()];
+    
+    LOAD_STATE currState = getLoadState();
+    for (int i = 0; i < params.size(); i++) {
+      String columnName = getInternalParamName(params.get(i));
+      if (columnName.startsWith(COMPENSATED_PREPEND)) {
+        if (currState == LOAD_STATE.LOADED) {
+          if (isTransposed) {
+            line[i] = compensatedData[compensatedIndices.get(columnName.substring(COMP_LEN))][ind];
+          } else {
+            line[i] = compensatedData[ind][compensatedIndices.get(columnName.substring(COMP_LEN))];
+          }
+        } else {
+          if (currState != LOAD_STATE.UNLOADED) {
+            while ((currState = getLoadState()) != LOAD_STATE.LOADED) {
+              Thread.yield();
+            }
+            if (isTransposed) {
+              line[i] = compensatedData[compensatedIndices.get(columnName.substring(COMP_LEN))][ind];
+            } else {
+              line[i] = compensatedData[ind][compensatedIndices.get(columnName.substring(COMP_LEN))];
+            }
+          } else {
+            line[i] = Double.NaN;
+          }
+        }
+      } else {
+        if (currState == LOAD_STATE.UNLOADED) {
+          line[i] = Double.NaN;
+        } else {
+          if (currState == LOAD_STATE.LOADING) {
+            line[i] = Double.NaN;
+          } else {
+            if (currState != LOAD_STATE.LOADED) {
+              while ((currState = getLoadState()) != LOAD_STATE.LOADED) {
+                Thread.yield();
+              }
+            }
+            // TODO WARNING, RETURNED DATA /MAY/ BE INCOMPLETE
+            if (isTransposed) {
+              line[i] = allData[paramNamesInOrder.indexOf(columnName)][ind];
+            } else {
+              line[i] = allData[ind][paramNamesInOrder.indexOf(columnName)];
+            }
+          }
+        }
+      }
+    }
+    return line;
+  }
+
+  public boolean containsParam(String paramName) {
+    String nm = paramName;
+    if (paramName.startsWith(COMPENSATED_PREPEND)) {
+      nm = paramName.substring(COMP_LEN);
+    }
+    return (compensatedNames.contains(nm) || paramNamesInOrder.contains(nm)) || paramShortNamesInOrder.contains(nm) || paramLongNamesInOrder.contains(nm);
+  }
+  
   public ArrayList<String> getAllDisplayableNames(DATA_SET set) {
     ArrayList<String> names = new ArrayList<String>();
     switch (set) {
@@ -601,10 +760,13 @@ public class FCSDataLoader {
   // }
 
   public AXIS_SCALE getScaleForParam(String string) {
-    int i =
-        paramNamesInOrder.indexOf(string.startsWith(COMPENSATED_PREPEND) ? string
-            .substring(COMP_LEN) : string);
-    return i == -1 ? AXIS_SCALE.LIN : scales.get(i);
+    AXIS_SCALE scale = paramScales.get(getInternalParamName(string));
+    return scale == null ? AXIS_SCALE.LIN : scale;
+  }
+
+  public void setScaleForParam(String dataName, AXIS_SCALE scale) {
+    paramScales.put(getInternalParamName(dataName), scale);
+    paramTransforms.put(getInternalParamName(dataName), getDefaultTransform(scale));
   }
 
 }

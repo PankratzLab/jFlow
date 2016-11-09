@@ -1,6 +1,14 @@
 package org.genvisis.one.ben.fcs.gating;
 
+import java.io.File;
+import java.io.IOError;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.HashMap;
+
+import org.genvisis.common.ext;
 
 public class Workbench {
   
@@ -26,8 +34,13 @@ public class Workbench {
   
   public String addNewSample(String fcsFile, boolean applyTemplate) {
     SampleNode sn = new SampleNode();
-    sn.id = getNewSampleID();
-    sn.fcsFile = fcsFile;
+    try {
+      sn.fcsFile = URLDecoder.decode(fcsFile, "utf-8");
+    } catch (UnsupportedEncodingException e) {
+      System.err.println("Error - " + e.getMessage());
+      sn.fcsFile = fcsFile;
+    }
+    sn.id = ext.removeDirectoryInfo(sn.fcsFile);//getNewSampleID();
     if (applyTemplate) {
       sn.gating = templateGating.copy(fcsFile);
     } else {
@@ -38,7 +51,7 @@ public class Workbench {
   }
   
   private String getNewSampleID() {
-    int id = samples.size();
+    int id = samples.size() + 1;
     boolean done = false;
     notDone : while (!done) {
       if (samples.containsKey("" + id)) {
@@ -68,6 +81,16 @@ public class Workbench {
       if (sn.fcsFile.equals(filename)) {
         return true;
       }
+      try {
+        String f1 = URLDecoder.decode(new File(sn.fcsFile).getCanonicalPath(), "UTF-8");
+        String f2 = URLDecoder.decode(new File(filename).getCanonicalPath(), "UTF-8");
+        if (f1.equals(f2)) {
+          return true;
+        }
+      } catch (IOException e) {}
+      if ((new File(sn.fcsFile)).equals(new File(filename))) {
+        return true;
+      }
     }
     return false;
   }
@@ -75,6 +98,16 @@ public class Workbench {
   public String getSampleID(String filename) {
     for (SampleNode sn : samples.values()) {
       if (sn.fcsFile.equals(filename)) {
+        return sn.id;
+      }
+      try {
+        String f1 = URLDecoder.decode(new File(sn.fcsFile).getCanonicalPath(), "UTF-8");
+        String f2 = URLDecoder.decode(new File(filename).getCanonicalPath(), "UTF-8");
+        if (f1.equals(f2)) {
+          return sn.id;
+        }
+      } catch (IOException e) {}
+      if ((new File(sn.fcsFile)).equals(new File(filename))) {
         return sn.id;
       }
     }
