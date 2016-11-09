@@ -134,7 +134,7 @@ public class PennHmm {
 
 	@Override
 	public String toString() {
-		return "PennHmm [M="	+ M + ", N=" + N + ", pi=" + Arrays.toString(pi) + ", a="
+		return "PennHmm [M="+ M + ", N=" + N + ", pi=" + Arrays.toString(pi) + ", a="
 						+ Arrays.toString(a) + ", B1=" + B1.toString() + ", B2=" + B2.toString() + ", B3="
 						+ B3.toString() + "]";
 	}
@@ -257,7 +257,7 @@ public class PennHmm {
 				p += (1 - uf) * pfb / 2;
 			} else {
 				OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
-				OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1	- bStatus.getB_mean()[0],
+				OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1- bStatus.getB_mean()[0],
 																													Math.pow(bStatus.getB_sd()[0], 2));
 
 				p += (1 - uf) * (1 - pfb) * opdfGaussian.probability(o);
@@ -270,7 +270,7 @@ public class PennHmm {
 				p += (1 - uf) * pfb * pfb / 2;
 			} else {
 				OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
-				OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1	- bStatus.getB_mean()[0],
+				OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1- bStatus.getB_mean()[0],
 																													Math.pow(bStatus.getB_sd()[0], 2));
 				OpdfGaussian opdfGaussian5 = bStatus.getGaussians()[3];
 				p += (1 - uf) * (1 - pfb) * (1 - pfb) * opdfGaussian.probability(o);
@@ -284,7 +284,7 @@ public class PennHmm {
 				p += (1 - uf) * pfb / 2;
 			} else {
 				OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
-				OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1	- bStatus.getB_mean()[0],
+				OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1- bStatus.getB_mean()[0],
 																													Math.pow(bStatus.getB_sd()[0], 2));
 
 				p += (1 - uf) * (1 - pfb) * opdfGaussian.probability(o);
@@ -297,10 +297,10 @@ public class PennHmm {
 				p += (1 - uf) * pfb * pfb * pfb / 2;
 			} else {
 				OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
-				OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1	- bStatus.getB_mean()[0],
+				OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1- bStatus.getB_mean()[0],
 																													Math.pow(bStatus.getB_sd()[0], 2));
 				OpdfGaussian opdfGaussian33 = bStatus.getGaussians()[2];
-				OpdfGaussian opdfGaussianMinus33 = new OpdfGaussian(1	- bStatus.getB_mean()[2],
+				OpdfGaussian opdfGaussianMinus33 = new OpdfGaussian(1- bStatus.getB_mean()[2],
 																														Math.pow(bStatus.getB_sd()[2], 2));
 
 				p += (1 - uf) * (1 - pfb) * (1 - pfb) * (1 - pfb) * opdfGaussian.probability(o);
@@ -315,10 +315,10 @@ public class PennHmm {
 				p += (1 - uf) * pfb * pfb * pfb * pfb / 2;
 			} else {
 				OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
-				OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1	- bStatus.getB_mean()[0],
+				OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1- bStatus.getB_mean()[0],
 																													Math.pow(bStatus.getB_sd()[0], 2));
 				OpdfGaussian opdfGaussian25 = bStatus.getGaussians()[1];
-				OpdfGaussian opdfGaussianMinus25 = new OpdfGaussian(1	- bStatus.getB_mean()[1],
+				OpdfGaussian opdfGaussianMinus25 = new OpdfGaussian(1- bStatus.getB_mean()[1],
 																														Math.pow(bStatus.getB_sd()[1], 2));
 				OpdfGaussian opdfGaussian5 = bStatus.getGaussians()[3];
 
@@ -400,7 +400,7 @@ public class PennHmm {
 	public static ViterbiResult ViterbiLogNP_CHMM(PennHmm pennHmm, double[] o1, double[] o2,
 																								double[] pfb, final int[] snpdist,
 																								final boolean[] copyNumberOnlyDef) {
-		if (o1.length != o2.length	|| o1.length != pfb.length || o1.length != snpdist.length
+		if (o1.length != o2.length|| o1.length != pfb.length || o1.length != snpdist.length
 				|| o1.length != copyNumberOnlyDef.length) {
 			String error = "BUG: mismatched array lengths";
 			pennHmm.getLog().reportTimeError(error);
@@ -520,7 +520,7 @@ public class PennHmm {
 			indexStateChange = new ArrayList<int[]>();
 			ArrayList<CNVariant> tmp = new ArrayList<CNVariant>();
 			if (positions.length != q.length) {
-				String error = "Have "	+ q.length + " state sequences, but " + positions.length
+				String error = "Have "+ q.length + " state sequences, but " + positions.length
 												+ " positions";
 				proj.getLog().reportTimeError(error);
 				throw new IllegalArgumentException(error);
@@ -535,7 +535,7 @@ public class PennHmm {
 
 					int currentCN = getStateCN(states[i]);
 
-					if (currentCN != normalState) {// CN 3 denotes LOH.
+					if (currentCN != normalState && positions[i] > 0) {// CN 3 denotes LOH.
 
 						if (foundSignal && currentCN != currentFind) {// new, adjacent cnv
 							builder.stop(positions[i - 1]);
@@ -611,7 +611,7 @@ public class PennHmm {
 				}
 			}
 			if (numNonNormalStates != numTotalMarkers) {
-				String error = "BUG: detected "	+ numNonNormalStates
+				String error = "BUG: detected "+ numNonNormalStates
 												+ " non-normal states, but collapsed to " + numTotalMarkers + " markers";
 				error += "\nSample: " + fid + "\t" + fid;
 				proj.getLog().reportTimeError(error);
@@ -622,7 +622,7 @@ public class PennHmm {
 				throw new IllegalStateException(error);
 			} else if (verbose) {
 				proj.getLog()
-						.reportTimeInfo("Found "	+ cnvs.getLoci().length + " cnvs over " + numTotalMarkers
+						.reportTimeInfo("Found "+ cnvs.getLoci().length + " cnvs over " + numTotalMarkers
 														+ " total markers covering " + cnvs.getBpCovered()
 														+ " bp on chromosome " + currentChr);
 			}
@@ -690,7 +690,7 @@ public class PennHmm {
 			gaussians = new OpdfGaussian[b_mean.length];
 			for (int i = 0; i < b_mean.length; i++) {
 				if (!Numbers.isFinite(b_sd[i]) || !Numbers.isFinite(b_mean[i]) || b_sd[i] <= 0) {
-					throw new IllegalArgumentException("Invalid b status mean:"	+ b_mean[i] + " sd: "
+					throw new IllegalArgumentException("Invalid b status mean:"+ b_mean[i] + " sd: "
 																							+ b_sd[i]);
 				}
 				gaussians[i] = new OpdfGaussian(b_mean[i], Math.pow(b_sd[i], 2));
@@ -717,7 +717,7 @@ public class PennHmm {
 
 		@Override
 		public String toString() {
-			return "BStatus [b_mean="	+ Arrays.toString(b_mean) + ", b_sd=" + Arrays.toString(b_sd)
+			return "BStatus [b_mean="+ Arrays.toString(b_mean) + ", b_sd=" + Arrays.toString(b_sd)
 							+ ", gaussians=" + Arrays.toString(gaussians) + ", b_uf=" + b_uf + "]";
 		}
 
@@ -728,7 +728,7 @@ public class PennHmm {
 			b_sd = b_sdToSet;
 			for (int i = 0; i < b_mean.length; i++) {
 				if (!Numbers.isFinite(b_sd[i]) || !Numbers.isFinite(b_mean[i]) || b_sd[i] <= 0) {
-					throw new IllegalArgumentException("Invalid b status mean:"	+ b_mean[i] + " sd: "
+					throw new IllegalArgumentException("Invalid b status mean:"+ b_mean[i] + " sd: "
 																							+ b_sd[i]);
 				}
 				gaussians[i] = new OpdfGaussian(b_mean[i], Math.pow(b_sd[i], 2));
@@ -747,16 +747,16 @@ public class PennHmm {
 			for (int j = 0; j < converted.getN(); j++) {
 				if (i != j) {
 					if (i == 3) {
-						tmpA[i][j] = pennHmm.getA()[i][j]	* (1 - Math.exp(-dist / D / 1000))
+						tmpA[i][j] = pennHmm.getA()[i][j]* (1 - Math.exp(-dist / D / 1000))
 													/ (1 - Math.exp(-5000 / D / 1000));
 					} else {
-						tmpA[i][j] = pennHmm.getA()[i][j]	* (1 - Math.exp(-dist / D))
+						tmpA[i][j] = pennHmm.getA()[i][j]* (1 - Math.exp(-dist / D))
 													/ (1 - Math.exp(-5000 / D));
 					}
 					if (tmpA[i][j] > 1) {
 						pennHmm	.getLog()
 										.reportTimeWarning("Off-diagonal cell A[%i][%i] (%f to %f by %i) in transition matrix is over boundary of 1 (HMM model is not optimized). Assign 0.999 as the value instead.\n"
-																					+ i + "\t" + j + "\t" + pennHmm.getA()[i][j] + "\t"
+																				+ i + "\t" + j + "\t" + pennHmm.getA()[i][j] + "\t"
 																				+ tmpA[i][j] + "\t" + dist);
 						tmpA[i][j] = 0.999; /*
 																 * maximum possible off-diagonal value (since state3 frequency is
@@ -814,7 +814,7 @@ public class PennHmm {
 
 			int[] indices = Ints.toArray(indicestmp);
 			if (indices.length != current.getNumMarkers()) {
-				String error = "BUG: could not reconstruct original markers, found "	+ indices.length
+				String error = "BUG: could not reconstruct original markers, found "+ indices.length
 												+ " and should have found " + current.getNumMarkers() + "Sample FID: "
 												+ current.getFamilyID() + " IID: " + current.getIndividualID();
 				log.reportTimeError(error);
