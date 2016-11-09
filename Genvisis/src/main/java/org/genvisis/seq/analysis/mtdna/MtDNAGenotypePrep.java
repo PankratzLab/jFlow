@@ -71,12 +71,25 @@ public class MtDNAGenotypePrep {
 
 					@Override
 					public Boolean call() throws Exception {
-						String sampleName = BamOps.getSampleName(bamFile, log);
-						String rootOut = outDir + sampleName + "_UUUUU-UUUUU_L001_.fastq";
-						String r1 = ext.addToRoot(rootOut, "R1_001");
-						String r2 = ext.addToRoot(rootOut, "R2_001");
+						String sampleName = null;
+						try {
+							sampleName = BamOps.getSampleName(bamFile, log);
+							String rootOut = outDir + sampleName + "_UUUUU-UUUUU_L001_.fastq";
+							String r1 = ext.addToRoot(rootOut, "R1_001");
+							String r2 = ext.addToRoot(rootOut, "R2_001");
+							boolean success = convertToFasta(bamFile, samToFastQ, r1, r2, log);
 
-						return convertToFasta(bamFile, samToFastQ, r1, r2, log);
+							if (!success) {
+								log.reportTimeError("Could not parse " + bamFile + ", removing any output");
+								new File(r1).delete();
+								new File(r2).delete();
+							}
+							return success;
+						} catch (Exception e) {
+							log.reportTimeError("Could not process " + bamFile);
+							log.reportException(e);
+						}
+						return false;
 					}
 				};
 				index++;
