@@ -31,7 +31,7 @@ public class SeqVariables {
 															/**
 															* 
 															*/
-															HG19("chrMT", "chrX", "chrY", true),
+															HG19("chrM", "chrX", "chrY", true),
 															/**
 															* 
 															*/

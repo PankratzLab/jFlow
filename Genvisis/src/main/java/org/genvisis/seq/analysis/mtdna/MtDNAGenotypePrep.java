@@ -47,8 +47,8 @@ public class MtDNAGenotypePrep {
 																						false, false, log);
 	}
 
-	private static void prepBams(	String bams, final String outDir, final String samToFastQ,
-																int numThreads) {
+	private static void prepBams(	String bams, final String outDir, final String tag,
+																final String samToFastQ, int numThreads) {
 		new File(outDir).mkdirs();
 		final Logger log = new Logger(outDir + "mtdnaPrep.log");
 		final String[] bamsFiles = HashVec.loadFileToStringArray(bams, false, new int[] {0}, true);
@@ -74,7 +74,8 @@ public class MtDNAGenotypePrep {
 						String sampleName = null;
 						try {
 							sampleName = BamOps.getSampleName(bamFile, log);
-							String rootOut = outDir + sampleName + "_UUUUU-UUUUU_L001_.fastq";
+							String rootOut = outDir+ (tag == null ? "" : tag + "-") + sampleName
+																+ "_UUUUU-UUUUU_L001_.fastq";
 							String r1 = ext.addToRoot(rootOut, "R1_001");
 							String r2 = ext.addToRoot(rootOut, "R2_001");
 							boolean success = convertToFasta(bamFile, samToFastQ, r1, r2, log);
@@ -112,10 +113,12 @@ public class MtDNAGenotypePrep {
 		c.addArgWithDefault("bams", "file listing bam files to analyze, one per line", "bams.txt");
 		c.addArgWithDefault("outDir", "output directory", "out/");
 		c.addArgWithDefault("samToFastq", "full path to SamToFastq.jar", "SamToFastq.jar");
+		c.addArgWithDefault("tag", "custom ID tag to add to files", null);
+
 		c.addArgWithDefault("threads", "number of threads", "24");
 		c.parseWithExit(args);
 
-		prepBams(c.get("bams"), c.get("outDir"), c.get("samToFastq"), c.getI("threads"));
+		prepBams(c.get("bams"), c.get("outDir"), c.get("tag"), c.get("samToFastq"), c.getI("threads"));
 
 	}
 
