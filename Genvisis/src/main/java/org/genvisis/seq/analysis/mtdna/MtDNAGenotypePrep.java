@@ -101,6 +101,11 @@ public class MtDNAGenotypePrep {
 			public void shutdown() {
 				//
 			}
+
+			@Override
+			public void remove() {
+				//
+			}
 		};
 		WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(prepProducer, numThreads, 10, log);
 		while (train.hasNext()) {

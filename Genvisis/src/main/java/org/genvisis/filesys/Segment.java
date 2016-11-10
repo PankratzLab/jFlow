@@ -13,6 +13,7 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.Vector;
 
+import org.genvisis.cnv.util.Java6Helper;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -371,9 +372,9 @@ public class Segment implements Serializable, Comparable<Segment> {
 
 	@Override
 	public int compareTo(Segment o) {
-		int c = Byte.compare(getChr(), o.getChr());
+		int c = getChr() - o.getChr();
 		if (c == 0) {
-			c = Integer.compare(this.getStart(), o.getStart());
+			c = Java6Helper.compare(this.getStart(), o.getStart());
 		}
 		return c;
 	}

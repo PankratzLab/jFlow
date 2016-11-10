@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.genvisis.cnv.util.Java6Helper;
+
 public class Sort {
 
 	/**
@@ -372,12 +374,12 @@ public class Sort {
 
 		@Override
 		public int compareTo(IndexedByteInt other) {
-			int c = Byte.compare(b, other.b);
+			int c = b - other.b;
 			if (c == 0) {
-				c = Integer.compare(i, other.i);
+				c = Java6Helper.compare(i, other.i);
 			}
 			if (c == 0) {
-				c = Integer.compare(index, other.index);
+				c = Java6Helper.compare(index, other.index);
 			}
 			return c;
 		}
@@ -411,7 +413,7 @@ public class Sort {
 				c = c2.compareTo(other.c2);
 			}
 			if (c == 0) {
-				c = Integer.compare(index, other.index);
+				c = Java6Helper.compare(index, other.index);
 			}
 			return c;
 		}
@@ -439,12 +441,12 @@ public class Sort {
 
 		@Override
 		public int compareTo(IndexedIntInt other) {
-			int c = Integer.compare(i1, other.i1);
+			int c = Java6Helper.compare(i1, other.i1);
 			if (c == 0) {
-				c = Integer.compare(i2, other.i2);
+				c = Java6Helper.compare(i2, other.i2);
 			}
 			if (c == 0) {
-				c = Integer.compare(index, other.index);
+				c = Java6Helper.compare(index, other.index);
 			}
 			return c;
 		}
