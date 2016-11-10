@@ -253,7 +253,7 @@ public class PennCNV {
 				writer = new PrintWriter(new FileWriter(resultsDir + "list" + (i + 1) + ".txt"));
 				for (int j = i * step; j < Math.min(files.length, (i + 1) * step); j++) {
 					if (files[j].endsWith(".gz")) {
-						writer.println("`gunzip -c " + files[j] + "`");
+						writer.println("`gunzip -c " + dataDir + files[j] + "`");
 					} else {
 						writer.println(files[j]);
 					}
