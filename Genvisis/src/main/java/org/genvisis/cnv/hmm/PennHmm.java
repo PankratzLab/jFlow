@@ -12,8 +12,8 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Numbers;
 import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.CNVariant.CNVBuilder;
 import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.CNVariant.CNVBuilder;
 import org.genvisis.stats.Stats;
 
 import com.google.common.primitives.Ints;
@@ -604,8 +604,8 @@ public class PennHmm {
 				numTotalMarkers += cnvs.getLoci()[i].getNumMarkers();
 			}
 			int numNonNormalStates = 0;
-			for (int element : q) {
-				if (element != normalState) {
+			for (int i = 0; i < q.length; i++) {
+				if (q[i] != normalState && positions[i] > 0) {
 					// && q[i] != 3
 					numNonNormalStates++;
 				}
