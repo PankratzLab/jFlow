@@ -2,7 +2,9 @@ package org.genvisis.one.JL.mica;
 
 import java.io.File;
 
+import org.genvisis.CLI;
 import org.genvisis.common.Logger;
+import org.genvisis.one.JL.quickAnno;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
 
@@ -20,7 +22,13 @@ public class AddId {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		String vcfFile = "/Volumes/Beta/data/MICA/data/plink/gatk.mica.nodDup.chr6.mica.targets.hg19_multianno.eff.vcf";
+
+		CLI c = new CLI(AddId.class);
+
+		c.addArgWithDefault("vcf", "vcf to annotate with default methods", "a.vcf");
+		c.parseWithExit(args);
+		
+		String vcfFile = c.get("vcf");
 		VCFOps.verifyIndex(vcfFile, new Logger());
 		String out = VCFOps.getAppropriateRoot(vcfFile, false) + ".ids.vcf";
 		VCFFileReader reader = new VCFFileReader(new File(vcfFile), true);
