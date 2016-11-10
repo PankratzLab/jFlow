@@ -72,10 +72,21 @@ public class AnalysisFormats implements Runnable {
 
 	}
 
-	@SuppressWarnings("unchecked")
 	public static void penncnv(	final Project proj, final String[] samples,
 															final HashSet<String> markersToWrite, String subDir,
 															int threadCount) {
+		exportPenncnvSamples(proj, samples, markersToWrite, subDir, threadCount);
+
+		// Create the scripts for building cnvs from the penncnv data
+		// TODO: sex checks (3rd flag) - should probably determine if they would be
+		// appropriate or not.
+		PennCNV.doBatch(proj, true, true, true, false, 1, true, null, null, null, false, true, false,
+										threadCount);
+	}
+
+	public static void exportPenncnvSamples(final Project proj, final String[] samples,
+	                                        final HashSet<String> markersToWrite, String subDir,
+	                                        int threadCount) {
 		final String[] markerNames = proj.getMarkerNames();
 		final boolean jar;
 		final boolean gzip;
@@ -188,12 +199,6 @@ public class AnalysisFormats implements Runnable {
 		} catch (InterruptedException e) {
 			log.report("Sample export was interrupted - exported sample files may not be complete or correct.");
 		}
-
-		// Create the scripts for building cnvs from the penncnv data
-		// TODO: sex checks (3rd flag) - should probably determine if they would be
-		// appropriate or not.
-		PennCNV.doBatch(proj, true, true, true, false, 1, true, null, null, null, false, true, false,
-										threadCount);
 	}
 
 	public static boolean[] getChromosomalMarkersOnly(Project proj) {
