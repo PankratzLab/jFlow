@@ -348,7 +348,7 @@ public class GATK {
 																							snpEffResult.getLog());
 			snpEffResult.setFail(!progress);
 		} else {
-			log.reportError("Error - could not annotate input vcf "	+ snpEffResult.getInputVCF()
+			log.reportError("Error - could not annotate input vcf "+ snpEffResult.getInputVCF()
 											+ " with SNPEFF results");
 		}
 		return snpEffResult;
@@ -522,11 +522,11 @@ public class GATK {
 			}
 		}
 		if (dbSnpFile == null) {
-			log.reportError("Warning - did not detect a file containing \""	+ DB_SNP_FILE
+			log.reportError("Warning - did not detect a file containing \""+ DB_SNP_FILE
 											+ "\" in the file name, will not annotate variants");
 		} else {
 			if (verbose) {
-				log.report(ext.getTime()	+ " Info - will annotate variants from " + bamFile
+				log.report(ext.getTime()+ " Info - will annotate variants from " + bamFile
 										+ " with db snp file " + dbSnpFile);
 			}
 			input = Array.concatAll(input, new String[] {dbSnpFile});
@@ -662,7 +662,7 @@ public class GATK {
 			this.outputDir = outputDir;
 			cgpVCF = outputDir + VCFOps.getAppropriateRoot(baseVCF, true) + "postCGP.vcf.gz";
 			filtVCF = outputDir + VCFOps.getAppropriateRoot(baseVCF, true) + "postCGP.Gfiltered.vcf.gz";
-			denovoVCF = outputDir	+ VCFOps.getAppropriateRoot(baseVCF, true)
+			denovoVCF = outputDir+ VCFOps.getAppropriateRoot(baseVCF, true)
 									+ "postCGP.Gfiltered.deNovos.vcf.gz";
 			this.log = log;
 			fail = false;
@@ -978,8 +978,16 @@ public class GATK {
 																						(altLog == null ? log : altLog));
 	}
 
-	public boolean jointGenotypeGVCFs(String[] inputGVCFs, String output, int numWithinSampleThreads,
-																		Logger altLog) {
+	/**
+	 * @param inputGVCFs
+	 * @param output
+	 * @param restrictContig restrict genotyping to only this contig
+	 * @param numWithinSampleThreads
+	 * @param altLog
+	 * @return
+	 */
+	public boolean jointGenotypeGVCFs(String[] inputGVCFs, String output, String restrictContig,
+																		int numWithinSampleThreads, Logger altLog) {
 		String[] inputs = new String[] {referenceGenomeFasta};
 		inputs = Array.concatAll(inputs, inputGVCFs);
 		String[] inputGVCFArgs = new String[inputGVCFs.length * 2];
@@ -993,6 +1001,11 @@ public class GATK {
 		String[] command = new String[] {	javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T,
 																			GENOTYPEGVCFS, R, referenceGenomeFasta, O, output, NT,
 																			numWithinSampleThreads + ""};
+		if (restrictContig != null) {
+			String[] restriction = new String[] {L, restrictContig};
+			command = Array.concatAll(command, restriction);
+			log.reportTimeInfo("Restricting joint genotyping to " + restrictContig);
+		}
 		command = Array.concatAll(command, inputGVCFArgs);
 		return CmdLine.runCommandWithFileChecks(command, "", inputs, new String[] {output}, verbose,
 																						overWriteExistingOutput, true,
@@ -1091,7 +1104,7 @@ public class GATK {
 			recalibration_plots = ext.rootOf(realigned_dedup_reads_bam, false) + RECALIBRATION_PLOTS;
 			if (baseId.split(BWA_Analysis.FileNameParser.SPLIT).length != 3) {
 				barcode = "";
-				log.reportTimeWarning("The current baseId "	+ baseId + " did not have 3 "
+				log.reportTimeWarning("The current baseId "+ baseId + " did not have 3 "
 															+ BWA_Analysis.FileNameParser.SPLIT
 															+ " - delimited fields, assuming no barcodes are present in the ids");
 			} else {
