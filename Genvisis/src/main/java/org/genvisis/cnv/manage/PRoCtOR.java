@@ -62,11 +62,12 @@ public class PRoCtOR {
 		PrincipalComponentsApply pcApply = PCA.generateFullPCA(	proj, numComponents, outputBase,
 																														recomputeLRR_PCs, true, null,
 																														proj.getLog());
-		proj.getLog().reportTime("Extrapolated PCs file: " + pcApply.getExtrapolatedPCsFile());
+		proj.getLog().reportTime("Setting PCs file: " + pcApply.getExtrapolatedPCsFile());
+		proj.INTENSITY_PC_FILENAME.setValue(pcApply.getExtrapolatedPCsFile());
 		PennCNVPrep.prepExport(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
 														numMarkerThreads, LS_TYPE.REGULAR, false);
 		PennCNVPrep.exportSpecialPennCNV(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
-																			numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false);
+	numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false);
 	}
 
 	public static void main(String[] args) {
