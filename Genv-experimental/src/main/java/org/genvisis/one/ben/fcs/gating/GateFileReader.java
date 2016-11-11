@@ -161,11 +161,17 @@ public class GateFileReader {
   private static HashMap<String, ArrayList<Gate>> parameterizeGates(HashMap<String, Gate> gateMap) {
     HashMap<String, ArrayList<Gate>> paramGates = new HashMap<String, ArrayList<Gate>>();
     for (Gate g : gateMap.values()) {
-      for (GateDimension gd : g.dimensions) {
-        ArrayList<Gate> gates = paramGates.get(gd.paramName);
+      ArrayList<Gate> gates = paramGates.get(g.getXDimension().paramName);
+      if (gates == null) {
+        gates = new ArrayList<Gate>();
+        paramGates.put(g.getXDimension().paramName, gates);
+      }
+      gates.add(g);
+      if (g.getYDimension() != null) {
+        gates = paramGates.get(g.getYDimension().paramName);
         if (gates == null) {
           gates = new ArrayList<Gate>();
-          paramGates.put(gd.paramName, gates);
+          paramGates.put(g.getYDimension().paramName, gates);
         }
         gates.add(g);
       }
@@ -248,9 +254,7 @@ public class GateFileReader {
       ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
       for (int i = 0; i < dimNodes.size(); i++) {
         Node dimNode = dimNodes.get(i);
-        String param =
-            ((Element) getFirstChild(dimNode, "data-type:fcs-dimension"))
-                .getAttribute("data-type:name");
+        String param = ((Element) getFirstChild(dimNode, "data-type:fcs-dimension")).getAttribute("data-type:name");
         RectangleGateDimension gd =
             new RectangleGateDimension((RectangleGate) gate, param);
         String min = ((Element) dimNode).getAttribute("gating:min");
@@ -259,7 +263,11 @@ public class GateFileReader {
         gd.paramName = param;
         gd.setMin("".equals(min) ? Float.NEGATIVE_INFINITY : Float.parseFloat(min));
         gd.setMax("".equals(max) ? Float.POSITIVE_INFINITY : Float.parseFloat(max));
-        gate.dimensions.add(gd);
+        if (i == 0) {
+          gate.setXDimension(gd);
+        } else if (i == 1) {
+          gate.setYDimension(gd);
+        }
       }
     } else if ("EllipsoidGate".equals(gateType)) {
       gate = new EllipsoidGate();
@@ -312,7 +320,11 @@ public class GateFileReader {
                 .getAttribute("data-type:name");
         GateDimension gd = new GateDimension(gate, param);
         gd.paramName = param;
-        gate.dimensions.add(gd);
+        if (i == 0) {
+          gate.setXDimension(gd);
+        } else if (i == 1) {
+          gate.setYDimension(gd);
+        }
       }
       ArrayList<Node> vertexNodes = getChildNodes(gateNode, "gating:vertex");
       for (Node n : vertexNodes) {

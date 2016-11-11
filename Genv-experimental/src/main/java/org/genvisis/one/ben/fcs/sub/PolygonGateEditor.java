@@ -91,12 +91,12 @@ public class PolygonGateEditor extends JDialog {
 			contentPanel.add(lbl, "cell 3 3,alignx center");
 		}
 		{
-			GateDimension xAxis = gate.getDimensions().get(0);
+			GateDimension xAxis = gate.getXDimension();
 			lblXAxis = new JLabel(xAxis.getParam());
 			contentPanel.add(lblXAxis, "cell 1 4,alignx center");
 		}
 		{
-			GateDimension yAxis = gate.getDimensions().get(1);
+			GateDimension yAxis = gate.getYDimension();
 			lblYAxis = new JLabel(yAxis.getParam());
 			contentPanel.add(lblYAxis, "cell 3 4,alignx center");
 		}

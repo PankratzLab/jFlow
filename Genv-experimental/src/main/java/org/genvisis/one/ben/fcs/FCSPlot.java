@@ -829,8 +829,8 @@ public class FCSPlot extends JPanel
       for (Gate g : children) {
         // boolean x = false;
         boolean y = getYDataName().equals(FCSPlot.HISTOGRAM_COL) ? true : false;
-        if (g.getDimensions().size() == 1) {
-          if (y && g.getDimensions().get(0).getParam().equals(getXDataName())) {
+        if (g.getYDimension() == null) {
+          if (y && g.getXDimension().getParam().equals(getXDataName())) {
             gateList.add(g);
           }
           continue;
@@ -839,11 +839,11 @@ public class FCSPlot extends JPanel
         if (y) {
           continue;
         }
-        if (g.getDimensions().size() > 2) {
-          continue; // can't vis. multi-dim gates // TODO fix for 3D
-        }
-        if (g.getDimensions().get(0).getParam().equals(getXDataName())
-            && g.getDimensions().get(1).getParam().equals(getYDataName())) {
+//        if (g.getDimensions().size() > 2) {
+//          continue; // can't vis. multi-dim gates // TODO fix for 3D
+//        }
+        if (g.getXDimension().getParam().equals(getXDataName())
+            && g.getYDimension().getParam().equals(getYDataName())) {
           gateList.add(g);
         }
       }
@@ -990,11 +990,10 @@ public class FCSPlot extends JPanel
 			parentGate = null;
 		} else {
 			parentGate = gate;
-			ArrayList<GateDimension> gd = gate.getDimensions();
-			GateDimension gdX = gd.get(0);
+			GateDimension gdX = gate.getXDimension();
 			setXDataName(gdX.getParam());
-			if (gd.size() == 2) {
-				GateDimension gdY = gd.get(1);
+			if (gate.getYDimension() != null) {
+				GateDimension gdY = gate.getYDimension();
 				setYDataName(gdY.getParam());
 			} else {
 				setPlotType(PLOT_TYPE.HISTOGRAM);

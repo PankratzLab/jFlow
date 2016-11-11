@@ -344,7 +344,7 @@ public class WSPLoader {
       String outputFileRoot = ext.verifyDirFormat(ext.parseDirectoryOfFile(sn.fcsFile)) + "sampling/" + ext.rootOf(sn.fcsFile, true) + "_";
       System.out.println("Exporting data for " + map.size() + " gates : " + params.toString());
       for (Gate g : map) {
-        String outputFile = outputFileRoot + g.getID() + "_" + g.getDimensions().get(0).paramName + "_" + g.getDimensions().get(1).paramName + ".xln";
+        String outputFile = outputFileRoot + g.getID() + "_" + g.getXDimension().paramName + "_" + g.getYDimension().paramName + ".xln";
         System.out.println("... to file " + outputFile);
         PrintWriter writer = Files.getAppropriateWriter(outputFile);
         for (int i = 0; i < params.size(); i++) {
@@ -412,7 +412,7 @@ public class WSPLoader {
         if (gate instanceof PolygonGate) {
           Element actGate = (Element) g.getElementsByTagName("gating:PolygonGate").item(0);
           NodeList nList2 = g.getElementsByTagName("data-type:fcs-dimension");
-          int first = ((Element) popList.item(0)).getAttribute("data-type:name").equals(gate.getDimensions().get(0).paramName) ? 0 : 1;
+          int first = ((Element) popList.item(0)).getAttribute("data-type:name").equals(gate.getXDimension().paramName) ? 0 : 1;
           int second = first == 0 ? 1 : 0;
           nList2 = g.getElementsByTagName("gating:vertex");
           for (int i = nList2.getLength() - 1; i >= 0; i--) {
@@ -447,20 +447,37 @@ public class WSPLoader {
             actGate.removeChild(nList2.item(i));
           }
           
-          for (GateDimension gd : gate.getDimensions()) {
-            Element dim1 = sn.doc.createElement("gating:dimension");
+          GateDimension gd = gate.getXDimension();
+          Element dim1 = sn.doc.createElement("gating:dimension");
+          
+          if (gd instanceof RectangleGateDimension) {
+              RectangleGateDimension rgd = (RectangleGateDimension) gd;
+              if (Numbers.isFinite(rgd.getMax())) {
+                  dim1.setAttribute("gating:max", "" + Math.max(((RectangleGateDimension) gd).getMin(), ((RectangleGateDimension) gd).getMax()));
+              }
+              if (Numbers.isFinite(rgd.getMin())) {
+                  dim1.setAttribute("gating:min", "" + Math.min(((RectangleGateDimension) gd).getMin(), ((RectangleGateDimension) gd).getMax()));
+              }
+          }
+  
+          Element dim2 = sn.doc.createElement("data-type:fcs-dimension"); 
+          dim2.setAttribute("data-type:name", gd.getParam());
+          dim1.appendChild(dim2);
+          actGate.appendChild(dim1);
+          if ((gd = gate.getYDimension()) != null) {
+            dim1 = sn.doc.createElement("gating:dimension");
             
             if (gd instanceof RectangleGateDimension) {
-                RectangleGateDimension rgd = (RectangleGateDimension) gd;
-                if (Numbers.isFinite(rgd.getMax())) {
-                    dim1.setAttribute("gating:max", "" + Math.max(((RectangleGateDimension) gd).getMin(), ((RectangleGateDimension) gd).getMax()));
-                }
-                if (Numbers.isFinite(rgd.getMin())) {
-                    dim1.setAttribute("gating:min", "" + Math.min(((RectangleGateDimension) gd).getMin(), ((RectangleGateDimension) gd).getMax()));
-                }
+              RectangleGateDimension rgd = (RectangleGateDimension) gd;
+              if (Numbers.isFinite(rgd.getMax())) {
+                dim1.setAttribute("gating:max", "" + Math.max(((RectangleGateDimension) gd).getMin(), ((RectangleGateDimension) gd).getMax()));
+              }
+              if (Numbers.isFinite(rgd.getMin())) {
+                dim1.setAttribute("gating:min", "" + Math.min(((RectangleGateDimension) gd).getMin(), ((RectangleGateDimension) gd).getMax()));
+              }
             }
-    
-            Element dim2 = sn.doc.createElement("data-type:fcs-dimension"); 
+            
+            dim2 = sn.doc.createElement("data-type:fcs-dimension"); 
             dim2.setAttribute("data-type:name", gd.getParam());
             dim1.appendChild(dim2);
             actGate.appendChild(dim1);
@@ -538,11 +555,17 @@ class GateFileUtils {
   static HashMap<String, ArrayList<Gate>> parameterizeGates(HashMap<String, Gate> gateMap) {
     HashMap<String, ArrayList<Gate>> paramGates = new HashMap<String, ArrayList<Gate>>();
     for (Gate g : gateMap.values()) {
-      for (GateDimension gd : g.dimensions) {
-        ArrayList<Gate> gates = paramGates.get(gd.paramName);
+      ArrayList<Gate> gates = paramGates.get(g.getXDimension().paramName);
+      if (gates == null) {
+        gates = new ArrayList<Gate>();
+        paramGates.put(g.getXDimension().paramName, gates);
+      }
+      gates.add(g);
+      if (g.getYDimension() != null) {
+        gates = paramGates.get(g.getYDimension().paramName);
         if (gates == null) {
           gates = new ArrayList<Gate>();
-          paramGates.put(gd.paramName, gates);
+          paramGates.put(g.getYDimension().paramName, gates);
         }
         gates.add(g);
       }
@@ -634,7 +657,11 @@ class GateFileUtils {
         gd.paramName = param;
         gd.setMin("".equals(min) ? Float.NEGATIVE_INFINITY : Float.parseFloat(min));
         gd.setMax("".equals(max) ? Float.POSITIVE_INFINITY : Float.parseFloat(max));
-        gate.dimensions.add(gd);
+        if (i == 0) {
+          gate.setXDimension(gd);
+        } else if (i == 1) {
+          gate.setYDimension(gd);
+        }
       }
     } else if ("EllipsoidGate".equals(gateType)) {
       gate = new EllipsoidGate();
@@ -687,7 +714,11 @@ class GateFileUtils {
                 .getAttribute("data-type:name");
         GateDimension gd = new GateDimension(gate, param);
         gd.paramName = param;
-        gate.dimensions.add(gd);
+        if (i == 0) {
+          gate.setXDimension(gd);
+        } else if (i == 1) {
+          gate.setYDimension(gd);
+        }
       }
       ArrayList<Node> vertexNodes = getChildNodes(gateNode, "gating:vertex");
       for (Node n : vertexNodes) {

@@ -20,11 +20,17 @@ public class Gating {
     if (g2.getName() != null && !g2.getName().equals("")) {
       gateMap.put(g2.getName(), g2);
     }
-    for (GateDimension gd : g2.dimensions) {
-      ArrayList<Gate> gates = paramGateMap.get(gd.paramName);
+    ArrayList<Gate> gates = paramGateMap.get(g2.getXDimension().paramName);
+    if (gates == null) {
+      gates = new ArrayList<Gate>();
+      paramGateMap.put(g2.getXDimension().paramName, gates);
+    }
+    gates.add(g2);
+    if (g2.getYDimension() != null) {
+      gates = paramGateMap.get(g2.getYDimension().paramName);
       if (gates == null) {
         gates = new ArrayList<Gate>();
-        paramGateMap.put(gd.paramName, gates);
+        paramGateMap.put(g2.getYDimension().paramName, gates);
       }
       gates.add(g2);
     }
@@ -67,7 +73,7 @@ public class Gating {
     }
     ArrayList<Gate> ret = new ArrayList<Gate>();
     for (Gate g : gates) {
-      if (g.dimensions.size() == 1) {
+      if (g.getYDimension() == null) {
         ret.add(g);
       }
     }
@@ -81,11 +87,17 @@ public class Gating {
   public void addRootGate(Gate g) {
     if (gateRoots.contains(g)) return;
     gateRoots.add(g);
-    for (GateDimension gd : g.dimensions) {
-      ArrayList<Gate> gates = paramGateMap.get(gd.paramName);
+    ArrayList<Gate> gates = paramGateMap.get(g.getXDimension().paramName);
+    if (gates == null) {
+      gates = new ArrayList<Gate>();
+      paramGateMap.put(g.getXDimension().paramName, gates);
+    }
+    gates.add(g);
+    if (g.getYDimension() != null) {
+      gates = paramGateMap.get(g.getYDimension().paramName);
       if (gates == null) {
         gates = new ArrayList<Gate>();
-        paramGateMap.put(gd.paramName, gates);
+        paramGateMap.put(g.getYDimension().paramName, gates);
       }
       gates.add(g);
     }
@@ -116,8 +128,9 @@ public class Gating {
       for (Gate c : g.children) {
         deleteGate(c);
       }
-      for (GateDimension gd : g.getDimensions()) {
-        paramGateMap.get(gd.paramName).remove(g);
+      paramGateMap.get(g.getXDimension().paramName).remove(g);
+      if (g.getYDimension() != null) {
+        paramGateMap.get(g.getYDimension().paramName).remove(g);
       }
       return true;
     } else {

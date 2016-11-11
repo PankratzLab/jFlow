@@ -2584,10 +2584,12 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
       }
       
       int[] getScreenX() {
-        return new int[]{this.panel.axisYWidth, this.panel.getWidth() - AbstractPanel2.WIDTH_BUFFER};
+//        return new int[]{this.panel.axisYWidth, this.panel.getWidth() - AbstractPanel2.WIDTH_BUFFER};
+        return new int[]{this.panel.canvasSectionMinimumX, this.panel.canvasSectionMaximumX};
       }
       int[] getScreenY() {
-        return new int[]{this.panel.axisXHeight, this.panel.getHeight() - AbstractPanel2.HEAD_BUFFER};
+//        return new int[]{this.panel.axisXHeight, this.panel.getHeight() - AbstractPanel2.HEAD_BUFFER};
+        return new int[]{this.panel.canvasSectionMinimumY, this.panel.canvasSectionMaximumY};
       }
       double[] getPlotX() {
         return new double[]{this.panel.plotXmin, this.panel.plotXmax};
@@ -2609,12 +2611,15 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         linTrans = new LinearTransform(pnl);
       }
   
+      int max = 262144;
+      
       @Override
       public double scaleX(double val) {
         double[] plotMinMax = getPlotX();
         Logicle l = getBiexScale(true);
         double bi = l.scale(val);
         return linTrans.scaleX(plotMinMax[1] * bi);
+//        return linTrans.scaleX(max * bi);
       }
   
       @Override
@@ -2623,6 +2628,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         Logicle l = getBiexScale(false);
         double bi = l.scale(val);
         return linTrans.scaleY(plotMinMax[1] * bi);
+//        return linTrans.scaleY(max * bi);
       }
   
       @Override
@@ -2630,6 +2636,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         double[] plotMinMax = getPlotX();
         Logicle l = getBiexScale(true);
         return l.inverse(linTrans.inverseX(val) / plotMinMax[1]);
+//        return l.inverse(linTrans.inverseX(val) / max);
       }
   
       @Override
@@ -2637,6 +2644,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         double[] plotMinMax = getPlotY();
         Logicle l = getBiexScale(false);
         return l.inverse(linTrans.inverseY(val) / plotMinMax[1]);
+//        return l.inverse(linTrans.inverseY(val) / max);
       }
     }
     

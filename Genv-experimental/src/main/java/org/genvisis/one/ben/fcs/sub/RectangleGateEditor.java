@@ -258,7 +258,7 @@ public class RectangleGateEditor extends JDialog {
 		lblID.setText(gate.getID());
 		txtName.setText(gate.getName());
 
-		RectangleGateDimension xAxis = (RectangleGateDimension) gate.getDimensions().get(0);
+		RectangleGateDimension xAxis = (RectangleGateDimension) gate.getXDimension();
 
 		lblXAxis.setText(xAxis.getParam());
 
@@ -272,8 +272,8 @@ public class RectangleGateEditor extends JDialog {
 		txtXMax.setEnabled(!xMaxUnbnd);
 		txtXMax.setText(xMaxUnbnd ? "" : xAxis.getMax() + "");
 
-		if (gate.getDimensions().size() == 2) {
-			RectangleGateDimension yAxis = (RectangleGateDimension) gate.getDimensions().get(1);
+		if (gate.getYDimension() != null) {
+			RectangleGateDimension yAxis = (RectangleGateDimension) gate.getYDimension();
 			lblYAxis.setText(yAxis.getParam());
 
 			boolean yMinUnbnd = !Numbers.isFinite(yAxis.getMin());

@@ -156,7 +156,7 @@ public class SerializedFiles {
 
 	public static boolean writeSerial(Object o, String filename, boolean gzip) {
 		ObjectOutputStream oos;
-
+		
 		try {
 			if (gzip) {
 				oos = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(filename)));

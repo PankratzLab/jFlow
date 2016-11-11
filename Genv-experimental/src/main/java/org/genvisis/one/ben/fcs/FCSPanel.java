@@ -166,8 +166,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       }
       RectangleGate rect = (RectangleGate) g;
       float xMin, xMax;
-      xMin = rect.getDimension(xCol).getMin();
-      xMax = rect.getDimension(xCol).getMax();
+      xMin = ((RectangleGateDimension) rect.getXDimension()).getMin();
+      xMax = ((RectangleGateDimension) rect.getXDimension()).getMax();
       if (!Numbers.isFinite(xMin)) {
         xMin = Integer.MIN_VALUE;
       }
@@ -398,7 +398,10 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     polys.clear();
 
     ArrayList<Gate> gatesForPlot = fcp.getGatingForCurrentPlot();
-
+//    fcp.dataLoader.setBiexRangeX(canvasSectionMinimumX, canvasSectionMaximumX);
+//    fcp.dataLoader.setBiexRangeY(canvasSectionMinimumY, canvasSectionMaximumY);
+    fcp.dataLoader.paramTransforms.put(fcp.getXDataName(), AXIS_SCALE.BIEX.getTransform());
+    
     for (Gate g : gatesForPlot) {
       boolean[] gt = g.gate(fcp.dataLoader);
       if (gt == null) {
@@ -415,8 +418,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       gating.add(gt);
       if (g instanceof RectangleGate) {
         RectangleGate rg = (RectangleGate) g;
-        RectangleGateDimension rgdX = rg.getDimension(xCol);
-        RectangleGateDimension rgdY = isHistogram() ? null : rg.getDimension(yCol);
+        RectangleGateDimension rgdX = (RectangleGateDimension) rg.getXDimension();
+        RectangleGateDimension rgdY = isHistogram() ? null : (RectangleGateDimension) rg.getYDimension();
         boolean editable =
             selectedGates.contains(g) || mouseGates.contains(g) || draggingVertexRects.contains(g);
         float xMin, xMax, yMin, yMax;
@@ -555,8 +558,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     for (int i = 0; i < gating.size(); i++) {
       if (gating.get(i) instanceof RectangleGate) {
         RectangleGate rect = (RectangleGate) gating.get(i);
-        RectangleGateDimension gdX = rect.getDimension(xCol);
-        RectangleGateDimension gdY = rect.getDimension(yCol);
+        RectangleGateDimension gdX = (RectangleGateDimension) rect.getXDimension();
+        RectangleGateDimension gdY = (RectangleGateDimension) rect.getYDimension();
         boolean aX =
             Numbers.isFinite(gdX.getMin())
                 && Math.abs(getXPixel(gdX.getMin()) - tempX) < DEFAULT_NEARBY_DIST;
@@ -587,13 +590,13 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     for (int i = gating.size() - 1; i >= 0; i--) {
       if (gating.get(i) instanceof RectangleGate) {
         RectangleGate rect = (RectangleGate) gating.get(i);
-        RectangleGateDimension gdX = rect.getDimension(xCol);
+        RectangleGateDimension gdX = (RectangleGateDimension) rect.getXDimension();
         double xLow, xHigh, yLow, yHigh;
         xLow = !Numbers.isFinite(gdX.getMin()) ? Integer.MIN_VALUE : getXPixel(gdX.getMin());
         xHigh = !Numbers.isFinite(gdX.getMax()) ? Integer.MAX_VALUE : getXPixel(gdX.getMax());
         if (xLow <= tempX && xHigh >= tempX) {
           if (!isHistogram()) {
-            RectangleGateDimension gdY = rect.getDimension(yCol);
+            RectangleGateDimension gdY = (RectangleGateDimension) rect.getYDimension();
             yHigh = !Numbers.isFinite(gdY.getMin()) ? Integer.MIN_VALUE : getYPixel(gdY.getMin());
             yLow = !Numbers.isFinite(gdY.getMax()) ? Integer.MAX_VALUE : getYPixel(gdY.getMax());
             if (yLow <= tempY && yHigh >= tempY) {
@@ -643,7 +646,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     if (g instanceof PolygonGate) {
       p = new Area(((PolygonGate) g).getPath());
     } else if (g instanceof RectangleGate) {
-      RectangleGateDimension rgd1 = ((RectangleGate) g).getDimension(xCol);
+      RectangleGateDimension rgd1 = (RectangleGateDimension) ((RectangleGate) g).getXDimension();
       double min, max, minY, maxY;
       min =
           !Numbers.isFinite(rgd1.getMin()) ? Integer.MIN_VALUE : Math.min(rgd1.getMin(),
@@ -651,8 +654,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       max =
           !Numbers.isFinite(rgd1.getMax()) ? Integer.MAX_VALUE : Math.max(rgd1.getMin(),
               rgd1.getMax());
-      if (g.getDimensions().size() == 2) {
-        RectangleGateDimension rgd2 = ((RectangleGate) g).getDimension(yCol);
+      if (g.getYDimension() != null) {
+        RectangleGateDimension rgd2 = (RectangleGateDimension) ((RectangleGate) g).getYDimension();
         minY =
             !Numbers.isFinite(rgd2.getMin()) ? Integer.MIN_VALUE : Math.min(rgd2.getMin(),
                 rgd2.getMax());
@@ -675,7 +678,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
           lvl++;
         }
       } else if (gP instanceof RectangleGate) {
-        RectangleGateDimension rgd1 = ((RectangleGate) gP).getDimension(xCol);
+        RectangleGateDimension rgd1 = (RectangleGateDimension) ((RectangleGate) gP).getXDimension();
         double min, max, minY, maxY;
         min =
             !Numbers.isFinite(rgd1.getMin()) ? Integer.MIN_VALUE : Math.min(rgd1.getMin(),
@@ -683,8 +686,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         max =
             !Numbers.isFinite(rgd1.getMax()) ? Integer.MAX_VALUE : Math.max(rgd1.getMin(),
                 rgd1.getMax());
-        if (gP.getDimensions().size() == 2) {
-          RectangleGateDimension rgd2 = ((RectangleGate) gP).getDimension(yCol);
+        if (gP.getYDimension() != null) {
+          RectangleGateDimension rgd2 = (RectangleGateDimension) ((RectangleGate) gP).getYDimension();
           minY =
               !Numbers.isFinite(rgd2.getMin()) ? Integer.MIN_VALUE : Math.min(rgd2.getMin(),
                   rgd2.getMax());
@@ -764,10 +767,10 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 } while ((msgCode = ("".equals(name) ? 1 : (fcp.duplicateGateName(name) ? 2 : 0))) > 0);
                 if (name != null) {
                   RectangleGate rg = new RectangleGate(fcp.getParentGate(), name);
-                  rg.addDimension(new GateDimension.RectangleGateDimension(rg, xCol, (float) getXValueFromXPixel(startX),
+                  rg.setXDimension(new GateDimension.RectangleGateDimension(rg, xCol, (float) getXValueFromXPixel(startX),
                       (float) getXValueFromXPixel(mouseEndX)));
                   if (!isHistogram()) {
-                    rg.addDimension(new GateDimension.RectangleGateDimension(rg, yCol, (float) getYValueFromYPixel(startY),
+                    rg.setYDimension(new GateDimension.RectangleGateDimension(rg, yCol, (float) getYValueFromYPixel(startY),
                         (float) getYValueFromYPixel(mouseEndY)));
                   }
                   rg.setColor(3);
@@ -814,8 +817,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                   }
                   path.closePath();
                   PolygonGate pg = new PolygonGate(fcp.getParentGate(), name);
-                  pg.addDimension(new GateDimension(pg, xCol));
-                  pg.addDimension(new GateDimension(pg, yCol));
+                  pg.setXDimension(new GateDimension(pg, xCol));
+                  pg.setYDimension(new GateDimension(pg, yCol));
                   pg.setPath(path);
                   pg.setShouldMimicFlowJoGating(fcp.isDrawPolysAsFlowJo());
                   pg.setColor(3);
@@ -940,8 +943,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         } else {
           // RECTS
           for (RectangleGate rect : closeRects) {
-            RectangleGateDimension gdX = rect.getDimension(xCol);
-            RectangleGateDimension gdY = rect.getDimension(yCol);
+            RectangleGateDimension gdX = (RectangleGateDimension) rect.getXDimension();
+            RectangleGateDimension gdY = (RectangleGateDimension) rect.getYDimension();
             selectedGates.remove(rect);
             mouseGates.remove(rect);
 
@@ -1147,11 +1150,11 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
               if (!rge.isCancelled()) {
                 g.setName(rge.getName());
-                RectangleGateDimension xDim = (RectangleGateDimension) g.getDimensions().get(0);
+                RectangleGateDimension xDim = (RectangleGateDimension) g.getXDimension();
                 xDim.setMin(rge.getXMin());
                 xDim.setMax(rge.getXMax());
-                if (g.getDimensions().size() == 2) {
-                  RectangleGateDimension yDim = (RectangleGateDimension) g.getDimensions().get(1);
+                if (g.getYDimension() != null) {
+                  RectangleGateDimension yDim = (RectangleGateDimension) g.getYDimension();
                   yDim.setMin(rge.getYMin());
                   yDim.setMax(rge.getYMax());
                 }
@@ -1289,7 +1292,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
           
           for (Gate gr : selectedGates) {
             if (gr instanceof RectangleGate) {
-              RectangleGateDimension gdX = ((RectangleGate) gr).getDimension(xCol);
+              RectangleGateDimension gdX = (RectangleGateDimension) ((RectangleGate) gr).getXDimension();
               if (Numbers.isFinite(gdX.getMax())) {
 //                gdX.setMax((float) (gdX.getMax() + dX));
                 gdX.setMax((float) getXValueFromXPixel(getXPixel(gdX.getMax()) + diffX));
@@ -1306,7 +1309,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 gdX.setMax(x1);
               }
               if (!isHistogram()) {
-                RectangleGateDimension gdY = ((RectangleGate) gr).getDimension(yCol);
+                RectangleGateDimension gdY = (RectangleGateDimension) ((RectangleGate) gr).getYDimension();
                 if (Numbers.isFinite(gdY.getMin())) {
                   gdY.setMin((float) (gdY.getMin() + dY));
 //                  gdY.setMin((float) getYValueFromYPixel(getYPixel(gdY.getMin()) + diffY));
@@ -1353,7 +1356,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
           for (Gate gr : mouseGates) {
             if (gr instanceof RectangleGate) {
               if (!selectedGates.contains(gr)) {
-                RectangleGateDimension gdX = ((RectangleGate) gr).getDimension(xCol);
+                RectangleGateDimension gdX = (RectangleGateDimension) ((RectangleGate) gr).getXDimension();
                 if (Numbers.isFinite(gdX.getMax())) {
                   gdX.setMax((float) (gdX.getMax() + dX));
 //                  gdX.setMax((float) getXValueFromXPixel(getXPixel(gdX.getMax()) + diffX));
@@ -1370,7 +1373,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                   gdX.setMax(x1);
                 }
                 if (!isHistogram()) {
-                  RectangleGateDimension gdY = ((RectangleGate) gr).getDimension(yCol);
+                  RectangleGateDimension gdY = (RectangleGateDimension) ((RectangleGate) gr).getYDimension();
                   if (Numbers.isFinite(gdY.getMin())) {
                     gdY.setMin((float) (gdY.getMin() + dY));
 //                    gdY.setMin((float) getYValueFromYPixel(getYPixel(gdY.getMin()) + diffY));
@@ -1432,7 +1435,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
           float tempNewX, tempNewY;
 
           RectangleGate rg = draggingVertexRects.get(i);
-          RectangleGateDimension rgdX = rg.getDimension(xCol);
+          RectangleGateDimension rgdX = (RectangleGateDimension) rg.getXDimension();
           /*
            * 1 ----- 2 
            * |       | 
@@ -1475,7 +1478,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
           }
 
           if (!isHistogram()) {
-            RectangleGateDimension rgdY = rg.getDimension(yCol);
+            RectangleGateDimension rgdY = (RectangleGateDimension) rg.getYDimension();
             tempNewY = (float) getYValueFromYPixel(mouseEndY);
 
             switch (draggingVertexInds.get(i)) {

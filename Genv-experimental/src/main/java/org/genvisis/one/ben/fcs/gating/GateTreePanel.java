@@ -178,15 +178,13 @@ public class GateTreePanel extends JPanel {
 	private void addGatesToTree(DefaultMutableTreeNode root, Gate g) {
 		StringBuilder ident = new StringBuilder();
 		ident.append(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
-
-		ident.append(" (");
-		ArrayList<GateDimension> dims = g.getDimensions();
-		for (int i = 0; i < dims.size(); i++) {
-			ident.append(dims.get(i).paramName);
-			if (i < dims.size() - 1) {
-				ident.append(" v ");
-			}
-		}
+    
+        ident.append(" (");
+        ident.append(g.getXDimension().paramName);
+        if (g.getYDimension() != null) {
+          ident.append(" v ");
+          ident.append(g.getYDimension().paramName);
+        }
 		ident.append(")");
 		DefaultMutableTreeNode child = new DefaultMutableTreeNode(ident.toString(), true);
 		gateMap.put(child, g);
