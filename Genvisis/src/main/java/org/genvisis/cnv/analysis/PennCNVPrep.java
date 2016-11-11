@@ -530,6 +530,9 @@ public class PennCNVPrep {
 	public static PrincipalComponentsResiduals loadPcResids(Project proj, int numComponents) {
 		// String pcFile = proj.getFilename(proj.INTENSITY_PC_FILENAME);
 		String pcFile = proj.INTENSITY_PC_FILENAME.getValue();
+		if (numComponents <= 0) {
+			numComponents = proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS);
+		}
 		PrincipalComponentsResiduals pcResids;
 		if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + ext.removeDirectoryInfo(pcFile))) {
 			proj.getLog().report("Info - loading " + ext.removeDirectoryInfo(pcFile));
@@ -537,7 +540,7 @@ public class PennCNVPrep {
 			// Integer.parseInt(proj.getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false,
 			// false, null);
 			pcResids = new PrincipalComponentsResiduals(proj, ext.removeDirectoryInfo(pcFile), null,
-																									proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS),
+																									numComponents,
 																									false, 0, false, false, null);
 		} else {
 			proj.getLog()
