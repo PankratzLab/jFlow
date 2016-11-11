@@ -671,6 +671,9 @@ public class Project implements PropertyChangeListener {
 	private void updateImportMetaFile() {
 		List<Property<?>> importProps = getProperties(GROUP.IMPORT);
 		String file = DATA_DIRECTORY.getValue() + IMPORT_FILE;
+		if (!Files.exists(DATA_DIRECTORY.getValue())) {
+		  new File(file).mkdirs();
+		}
 		HashMap<String, String> propMap = new HashMap<String, String>();
 		for (Property<?> p : importProps) {
 			propMap.put(p.getName(), p.getValueString());
