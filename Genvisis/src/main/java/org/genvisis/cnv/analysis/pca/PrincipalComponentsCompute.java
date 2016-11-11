@@ -500,10 +500,10 @@ public class PrincipalComponentsCompute {
 			}
 		}
 
-		if (sorted.size() != tracker.size()) {
+		if (tracker.size() != 0) {
 			proj.getLog()
 			    .reportError("Warning: only found " + sorted.size()
-			                 + " markers present in this project, of " + tracker.size()
+			                 + " markers present in this project, of " + (sorted.size() + tracker.size())
 			                 + " input markers. Please double-check that the "
 			                 + PropertyKeys.KEY_INTENSITY_PC_MARKERS_FILENAME
 			                 + " property is appropriate for this project.");
