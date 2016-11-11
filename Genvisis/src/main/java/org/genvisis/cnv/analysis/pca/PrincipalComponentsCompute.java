@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.factory.DecompositionFactory;
@@ -18,6 +19,7 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.MDL;
+import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
@@ -478,9 +480,8 @@ public class PrincipalComponentsCompute {
 	 * @return
 	 */
 	public static String[] sortByProjectMarkers(Project proj, String[] markers) {
-		String[] projectMarkers, sorted;
+		String[] projectMarkers;
 		HashSet<String> tracker;
-		int index;
 
 		projectMarkers = proj.getMarkerNames();
 		tracker = new HashSet<String>();
@@ -490,18 +491,25 @@ public class PrincipalComponentsCompute {
 				tracker.add(marker2);
 			}
 		}
+		List<String> sorted = new ArrayList<String>();
 
-		index = 0;
-		sorted = new String[tracker.size()];
 		for (String projectMarker : projectMarkers) {
 			if (tracker.contains(projectMarker)) {
-				sorted[index] = projectMarker;
+				sorted.add(projectMarker);
 				tracker.remove(projectMarker);
-				index++;
 			}
 		}
 
-		return sorted;
+		if (sorted.size() != tracker.size()) {
+			proj.getLog()
+			    .reportError("Warning: only found " + sorted.size()
+			                 + " markers present in this project, of " + tracker.size()
+			                 + " input markers. Please double-check that the "
+			                 + PropertyKeys.KEY_INTENSITY_PC_MARKERS_FILENAME
+			                 + " property is appropriate for this project.");
+		}
+
+		return sorted.toArray(new String[sorted.size()]);
 	}
 
 	/**
