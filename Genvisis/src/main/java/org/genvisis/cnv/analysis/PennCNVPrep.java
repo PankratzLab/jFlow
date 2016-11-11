@@ -723,6 +723,7 @@ public class PennCNVPrep {
 		String[] markers;
 		PrincipalComponentsResiduals principalComponentsResiduals = loadPcResids(proj, numComponents);
 		if (principalComponentsResiduals == null) {
+			proj.getLog().reportError("Error: no principal component residuals for project");
 			return;
 		}
 		int[] sex = getSampleSex(proj);

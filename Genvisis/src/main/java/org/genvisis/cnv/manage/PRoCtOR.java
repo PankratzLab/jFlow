@@ -62,7 +62,7 @@ public class PRoCtOR {
 		PrincipalComponentsApply pcApply = PCA.generateFullPCA(	proj, numComponents, outputBase,
 																														recomputeLRR_PCs, true, null,
 																														proj.getLog());
-		pcApply.getExtrapolatedPCsFile();
+		proj.getLog().reportTime("Extrapolated PCs file: " + pcApply.getExtrapolatedPCsFile());
 		PennCNVPrep.prepExport(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
 														numMarkerThreads, LS_TYPE.REGULAR, false);
 		PennCNVPrep.exportSpecialPennCNV(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
