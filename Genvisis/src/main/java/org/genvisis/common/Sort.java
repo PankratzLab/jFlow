@@ -117,6 +117,9 @@ public class Sort {
 
 	private static int[] getSortedIndices(SortableWrapper w) {
 		int[] indices = new int[w.size()];
+		if (w.size() == 0) {
+		  return indices;
+		}
 		for (int i = 1; i < indices.length; i++) {
 			indices[i] = i;
 		}
