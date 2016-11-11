@@ -265,8 +265,7 @@ public class PennCNVPrep {
 																														proj.getSamples(), true, proj.getLog(),
 																														true, true);
 		String[] subSamples = Array.subArray(proj.getSamples(), samplesToExport);
-		String dir = proj.PROJECT_DIRECTORY.getValue() + "shadowSamples/";
-		new File(dir).mkdirs();
+		String dir = sampleDir(proj);
 		proj.getLog().report("Info - checking for existing files in " + dir + "...");
 		boolean allExist = true;
 		for (int i = 0; i < subSamples.length; i++) {
@@ -589,6 +588,19 @@ public class PennCNVPrep {
 		return sex;
 	}
 
+	private static String sampleDir(Project proj) {
+		return ensureExists(proj.PROJECT_DIRECTORY.getValue() + "shadowSamples/");
+	}
+
+	private static String transposedDir(Project proj) {
+		return ensureExists(proj.PROJECT_DIRECTORY.getValue() + "shadowTransposed/");
+	}
+
+	private static String ensureExists(String dir) {
+		new File(dir).mkdirs();
+		return dir;
+	}
+
 	private static String[] getSortedFileNames(Project proj, String dir, String tmpDir) {
 		String[] markers = proj.getMarkerNames();
 		ArrayList<String> files = new ArrayList<String>();
@@ -648,7 +660,7 @@ public class PennCNVPrep {
 			Hashtable<String, Future<Hashtable<String, Float>>> tmpResults = new Hashtable<String, Future<Hashtable<String, Float>>>();
 			String[] sortedFileNames = getSortedFileNames(proj, dir, tmpDir);
 			Hashtable<String, Float> outliers = new Hashtable<String, Float>();
-			String outlierFile = proj.PROJECT_DIRECTORY.getValue() + "shadowSamples/outliers.ser";
+			String outlierFile = sampleDir(proj) + "outliers.ser";
 			for (int i = 0; i < batches.length; i++) {
 
 				PennCNVPrep specialPennCNVFormat = new PennCNVPrep(	proj, null, null, null, null, null,
@@ -688,8 +700,8 @@ public class PennCNVPrep {
 			} catch (InterruptedException e) {
 				proj.getLog().reportException(e);
 			}
-			proj.SAMPLE_DIRECTORY.setValue("shadowSamples/");
-			proj.MARKER_DATA_DIRECTORY.setValue("shadowTransposed/");
+			proj.SAMPLE_DIRECTORY.setValue(sampleDir(proj));
+			proj.MARKER_DATA_DIRECTORY.setValue(transposedDir(proj));
 			if (outliers.size() == 0) {// usually caused by skipping sample export, so will generate it
 				proj.NUM_THREADS.setValue(numMarkerThreads * numThreads);
 				proj.verifyAndGenerateOutliers(true);
@@ -697,6 +709,7 @@ public class PennCNVPrep {
 				SerializedFiles.writeSerial(outliers, outlierFile);
 			}
 
+			proj.getLog().report("Saving shadow project properties to: " + proj.PROJECT_DIRECTORY.getValue() + "shadow.properties");
 			proj.saveProperties(proj.PROJECT_DIRECTORY.getValue() + "shadow.properties");
 		} else {
 			prepExport(	proj, dir, tmpDir, numComponents, markerFile, numThreads, numMarkerThreads, lType,
