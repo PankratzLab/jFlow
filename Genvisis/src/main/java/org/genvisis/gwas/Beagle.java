@@ -208,7 +208,7 @@ public class Beagle {
 			writer.println("splitByChrAlt2 plink");
 			writer.println("cp " + root + ".list split/");
 			writer.println("cd split");
-			writer.println("java -jar/home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
+			writer.println("java -jar /home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
 											+ " gwas.Beagle -prepFiles list=" + root + ".list step=" + step);
 			writer.println("for chr in {1..23}");
 			writer.println("do");
