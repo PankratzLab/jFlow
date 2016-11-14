@@ -56,12 +56,11 @@ public class gatherSimwalk2 {
 						do {
 							for (int j = 0; j < 11; j++) {
 								st = new StringTokenizer(reader.readLine());
-								pos = Double.valueOf(st.nextToken()).doubleValue();
+								pos = Double.parseDouble(st.nextToken());
 								temp = st.nextToken();
-								if (temp.equals("NaN")) {
+								lod = Double.parseDouble(temp);
+								if (Double.isNaN(lod)) {
 									lod = -998;
-								} else {
-									lod = Double.valueOf(temp).doubleValue();
 								}
 								if (lod > max_lod) {
 									max_lod = lod;

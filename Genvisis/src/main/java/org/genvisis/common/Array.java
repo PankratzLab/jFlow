@@ -809,7 +809,7 @@ public class Array {
 		double sum = 0;
 
 		for (double element : array) {
-			// if ((array[i]+"").equals("NaN")) {
+			// if (Double.isNaN(array[i])) {
 			// System.err.println("Are you sure you want to sum: "+array[i]);
 			// }
 			sum += element;
@@ -1148,7 +1148,7 @@ public class Array {
 		sum = 0;
 		count = 0;
 		for (int i = 0; i < array.length; i++) {
-			if (filter[i] == filterValue && (!ignoreNaN || !(array[i] + "").equals("NaN"))) {
+			if (filter[i] == filterValue && (!ignoreNaN || !Double.isNaN(array[i]))) {
 				sum += array[i];
 				count++;
 			}

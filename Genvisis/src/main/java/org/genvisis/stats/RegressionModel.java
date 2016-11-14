@@ -481,7 +481,7 @@ public abstract class RegressionModel {
 		Vector<String> depCount = new Vector<String>();
 
 		for (int i = 0; i < deps.length && depCount.size() <= 2; i++) {
-			if (!(deps[i] + "").equals("NaN")) {
+			if (!Double.isNaN(deps[i])) {
 				HashVec.addIfAbsent(deps[i] + "", depCount);
 			}
 		}

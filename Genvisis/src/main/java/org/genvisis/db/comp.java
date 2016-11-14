@@ -297,8 +297,6 @@ public class comp {
 					}
 				}
 				for (int i = 0; i < M + 1; i++) {
-					// if (Double.isNaN(dataline[i])) { // important, "NaN" doesn't parse as Double.NaN for
-					// some reason
 					if (ext.isMissingValue(line[indices[i]])) {
 						dataline[i] = Double.MIN_VALUE;
 					} else {

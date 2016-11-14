@@ -1462,7 +1462,7 @@ public class Metal {
 				}
 				numNull = 0;
 				for (int i = 0; i < roots.length; i++) {
-					if ((freqs[i] + "").equals("NaN")) {
+					if (Double.isNaN(freqs[i])) {
 						numNull++;
 					}
 				}
@@ -1473,7 +1473,7 @@ public class Metal {
 						writer.print(line[0] + "\t" + refAlleles[0] + "\t" + refAlleles[1]);
 						for (int i = 0; i < roots.length; i++) {
 							writer.print("\t"
-														+ ((freqs[i] + "").equals("NaN")	? "."
+														+ (Double.isNaN(freqs[i])	? "."
 																															: ext.formDeci(freqs[i], 4, true)));
 						}
 						if (numNull > 0) {

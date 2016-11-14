@@ -421,7 +421,7 @@ public class LeastSquares extends RegressionModel {
 			// }
 
 			meanY += Y[0][i];
-			// if ((Y[0][i]+"").equals("NaN")) {
+			// if (Double.isNaN(Y[0][i])) {
 			// System.err.println("Error - record #"+(i+1)+" is NaN");
 			// }
 			X[0][i] = 1;

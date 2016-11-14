@@ -738,7 +738,7 @@ public class Matrix {
 		for (int i = 0; i < use.length; i++) {
 			use[i] = true;
 			for (double[] element : matrix) {
-				if ((element[i] + "").equals("NaN")) {
+				if (Double.isNaN(element[i])) {
 					use[i] = false;
 				}
 			}

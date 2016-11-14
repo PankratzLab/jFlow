@@ -355,7 +355,7 @@ public class QQPlot {
 			}
 			for (int j = 0; j < array.length; j++) {
 				dists[j][i - 1] = array[j];
-				if (j == array.length - 1 && (dists[j][i - 1] + "").equalsIgnoreCase("NaN")) {
+				if (j == array.length - 1 && Float.isNaN(dists[j][i - 1])) {
 					log.reportError("Error - rep " + i + " has NaNs");
 				}
 			}

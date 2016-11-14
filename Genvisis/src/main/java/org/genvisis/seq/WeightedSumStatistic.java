@@ -161,7 +161,7 @@ public class WeightedSumStatistic {
 		int count;
 
 		stat = getStat();
-		if ((stat + "").equalsIgnoreCase("NaN")) {
+		if (Double.isNaN(stat)) {
 			return 1.1;
 		}
 
