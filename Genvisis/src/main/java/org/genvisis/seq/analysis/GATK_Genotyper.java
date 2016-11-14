@@ -454,8 +454,8 @@ public class GATK_Genotyper {
 																		String annoBuild, String regionsFile, MergeVCF mergeVCF,
 																		ANNOVCF annoVCF, String restrictionContig, boolean verbose,
 																		boolean overwriteExisting, boolean batch, boolean annotate,
-																		int numThreads, int memoryInMB, int wallTimeInHours,
-																		Logger log) {
+																		boolean skipRecalibration, int numThreads, int memoryInMB,
+																		int wallTimeInHours, Logger log) {
 		GATK gatk = new GATK(	gATKLocation, referenceGenomeFasta, null, null, null, verbose,
 													overwriteExisting, log);
 		gatk.setDbSnpTraining(dbSnpTraining);
@@ -488,12 +488,18 @@ public class GATK_Genotyper {
 					jGatkGenotyper.setOutput(newOutput);
 					jGatkGenotyper.initOutputs();// now starting with the subset vcf
 				}
-				progress = genotyper.runRecalibration(jGatkGenotyper);
-				if (progress) {
-					progress = genotyper.determineTsTV(jGatkGenotyper.getRecalSNP_Indel_VCF_File());
-					if (progress && annotate) {
-						genotyper.annotateVCF(jGatkGenotyper.getRecalSNP_Indel_VCF_File(), annoBuild, mergeVCF,
-																	annoVCF);
+				if (skipRecalibration) {
+					if (annotate) {
+						genotyper.annotateVCF(jGatkGenotyper.output, annoBuild, mergeVCF, annoVCF);
+					}
+				} else {
+					progress = genotyper.runRecalibration(jGatkGenotyper);
+					if (progress) {
+						if (progress && annotate) {
+							genotyper.annotateVCF(jGatkGenotyper.getRecalSNP_Indel_VCF_File(), annoBuild,
+																		mergeVCF, annoVCF);
+							genotyper.determineTsTV(jGatkGenotyper.getRecalSNP_Indel_VCF_File());
+						}
 					}
 				}
 			}
@@ -665,6 +671,7 @@ public class GATK_Genotyper {
 		boolean annotate = true;
 		String regionsFile = null;
 		String logFile = "GATK_GENOTYPE.log";
+		boolean skipRecalibration = false;
 		MergeVCF mergeVCF = null;
 		ANNOVCF annoVCF = null;
 		String usage = "\n" + "seq.GATK_Genotyper requires 2 argument\n";
@@ -729,6 +736,9 @@ public class GATK_Genotyper {
 
 		usage += "   (27) restrict genotyping to a specific contig ( (i.e. "+ "chrM"
 							+ " ( no default))\n" + "";
+		usage +=
+					"   (28) since targeted sequencing, or mtDNA genotyping will generally fail variant recalibration, skip it and see caveats here https://software.broadinstitute.org/gatk/gatkdocs/org_broadinstitute_gatk_tools_walkers_variantrecalibration_VariantRecalibrator.php ( (i.e. "
+							+ "-skipRecal" + " ( not the default))\n" + "";
 
 		// usage += " (18) log file name (i.e. " + MILLS + " ( no default))\n" + "";
 
@@ -797,6 +807,9 @@ public class GATK_Genotyper {
 			} else if (arg.startsWith(SNPEFF.SNP_EFF_NO_ANNO_COMMAND)) {
 				annotate = false;
 				numArgs--;
+			} else if (arg.startsWith("-skipRecal")) {
+				skipRecalibration = true;
+				numArgs--;
 			} else if (arg.startsWith(OUTPUT_COMMAND)) {
 				output = ext.parseStringArg(arg, "");
 				numArgs--;
@@ -845,7 +858,8 @@ public class GATK_Genotyper {
 										fileOfGVCFs, hapMapTraining, omniTraining, thousandGTraining, dbSnpTraining,
 										millsIndelTraining, snpEffLocation, snpSiftLocation, annovarLocation, annoBuild,
 										regionsFile, mergeVCF, annoVCF, restrictionContig, verbose, overwriteExisting,
-										batch, annotate, numThreads, memoryInMB, wallTimeInHours, log);
+										batch, annotate, skipRecalibration, numThreads, memoryInMB, wallTimeInHours,
+										log);
 		}
 	}
 }
