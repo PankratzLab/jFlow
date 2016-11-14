@@ -284,12 +284,12 @@ public abstract class RegressionModel {
 
 		for (int i = 0; i < use.length; i++) {
 			use[i] = true;
-			if ((deps[i] + "").equals("NaN")) {
+			if (Double.isNaN(deps[i])) {
 				countNoDeps++;
 				use[i] = false;
 			}
 			for (int j = 0; j < indeps[i].length; j++) {
-				if (use[i] && (indeps[i][j] + "").equals("NaN")) {
+				if (use[i] && Double.isNaN(indeps[i][j])) {
 					countNoIndeps++;
 					use[i] = false;
 				}
