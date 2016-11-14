@@ -36,7 +36,7 @@ public class FocusedRegion {
 
 
 	private static void focus(String bamFile, String ref, String outDir, String vcf, Segment seg,
-														int numthreads) {
+														String variantSet, int numthreads) {
 		new File(outDir).mkdirs();
 
 		String output = outDir+ ext.replaceWithLinuxSafeCharacters(seg.getUCSClocation(), true)
@@ -62,7 +62,10 @@ public class FocusedRegion {
 		String segFile = ext.addToRoot(output, ".segs");
 
 		Files.write(seg.getChromosomeUCSC() + "\t" + seg.getStart() + "\t" + seg.getStop(), segFile);
-		VCFOps.extractSegments(vcf, segFile, 0, null, outDir, false, true, true, false, null, 1, log);
+		String subOut = outDir + "extract/";
+		new File(subOut).mkdirs();
+		VCFOps.extractSegments(	vcf, segFile, 0, bamFile, subOut, false, true, true, true,
+														new String[] {variantSet}, numthreads, log);
 	}
 
 	private static class FocusResults {
@@ -136,6 +139,7 @@ public class FocusedRegion {
 		String segment = "chr18:20715728-20716571";
 		String ref = "hg19.fa";
 		String vcf = "a.vcf";
+		String variantSet = ".variant";
 
 		int numthreads = 24;
 		CLI c = new CLI(FocusedRegion.class);
@@ -144,11 +148,15 @@ public class FocusedRegion {
 
 		c.addArgWithDefault("seg", "segment to focus", segment);
 		c.addArgWithDefault("bams", "file of bams", bams);
+		c.addArgWithDefault("variantSet",
+												"variant set mapping bam samples to vcf samples, set to \"\" if none",
+												variantSet);
+
 		c.addArgWithDefault("ref", "reference genome", ref);
 		c.addArgWithDefault("threads", "number of threads", Integer.toString(numthreads));
 		c.parseWithExit(args);
 		focus(c.get("bams"), c.get("ref"), c.get("outDir"), c.get("vcf"), new Segment(c.get("seg")),
-					c.getI("threads"));
+					c.get("variantSet"), c.getI("threads"));
 
 	}
 }
