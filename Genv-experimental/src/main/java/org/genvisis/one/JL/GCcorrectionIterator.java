@@ -43,7 +43,7 @@ public class GCcorrectionIterator {
 			String currentSub = batchRoot + "gcmodel_bp_" + bpModel + ".pbs";
 			pbs.add(currentSub);
 			ArrayList<String> command = new ArrayList<String>();
-			command.add("java -cp ~/parkGC.jar one.JL.GCcorrectionIterator ");
+			command.add("java -jar ~/parkGC.jar one.JL.GCcorrectionIterator ");
 			command.add("proj=" + proj.PROJECT_PROPERTIES_FILENAME.getValue());
 			command.add("numthreads=" + numThreads);
 			command.add("bpGcModel=" + bpModel);

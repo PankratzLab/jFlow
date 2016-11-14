@@ -442,7 +442,7 @@ public class ExtractPlots {
 			for (int i = 0; i < reps; i++) {
 				// writer.println("jcp gwas.ExtractPlots
 				// file="+prefix+(char)(i+97)+".txt");
-				writer.println("java -cp /home/genanal/"	+ org.genvisis.common.PSF.Java.GENVISIS
+				writer.println("java -jar /home/genanal/"	+ org.genvisis.common.PSF.Java.GENVISIS
 												+ " gwas.ExtractPlots file=" + prefix + (char) (i + 97) + ".txt");
 
 			}

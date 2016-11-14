@@ -155,7 +155,7 @@ public class GATK_Genotyper {
 										String baseName) {
 		// TODO, change classpath
 		String command = Array.toStr(PSF.Load.getAllModules(), "\n");
-		command += "\njava -cp parkGATK.jar -Xmx" + memoryInMB + "m seq.analysis.GATK_Genotyper ";
+		command += "\njava -Xmx" + memoryInMB + "m -jar parkGATK.jar seq.analysis.GATK_Genotyper ";
 		command += GATK_LanePrep.ROOT_INPUT_COMMAND + jointGATKGenotyper.getRootInputDir() + SPACE;
 		command += GATK_LanePrep.ROOT_OUTPUT_COMMAND + rootOutputDir + SPACE;
 		command += GATK_LanePrep.REFERENCE_GENOME_COMMAND + gatk.getReferenceGenomeFasta() + SPACE;

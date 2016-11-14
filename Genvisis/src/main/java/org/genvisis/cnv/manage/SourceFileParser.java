@@ -1539,7 +1539,7 @@ public class SourceFileParser implements Runnable {
 		if (filename != null) {
 			log.reportError("\nSuch a file was found: " + filename);
 			log.reportError("\nIn order to process it use the command:");
-			log.reportError("   java -cp [package_name].jar cnv.manage.Markers proj="
+			log.reportError("   java -jar [package_name].jar cnv.manage.Markers proj="
 											+ proj.getPropertyFilename() + " snps=" + filename);
 			return 7;
 		}

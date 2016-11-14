@@ -440,7 +440,7 @@ public class WeightedSumStatistic {
 				line = model.split("[\\s]+");
 				writer.println("plink --bfile allThree --recode --keep " + line[0] + " --extract "
 				               + line[1]);
-				writer.println("java -cp /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS
+				writer.println("java -jar /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS
 				               + " seq.WeightedSumStatistic set=" + line[1]);
 				writer.println();
 			}

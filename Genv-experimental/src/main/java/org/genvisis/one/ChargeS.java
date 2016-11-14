@@ -222,7 +222,7 @@ public class ChargeS {
 	// filenames += localDir+filename+"1.out,5=pMeta;";
 	// }
 	// }
-	// Files.write("java -cp /home/npankrat/vis.jar cnv.plots.QQPlot files=\""+filenames.substring(0,
+	// Files.write("java -jar /home/npankrat/vis.jar cnv.plots.QQPlot files=\""+filenames.substring(0,
 	// filenames.length()-1)+"\" maxToPlot=10", localDir+"plotQQs.bat");
 	// }
 	//

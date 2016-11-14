@@ -777,7 +777,7 @@ public class ABLookup {
 												+ " does not exist, marker data can not be loaded and frequency of B allele will not be reported in "
 												+ output
 												+ ".\n If you would like to obtain the frequency of B allele for these markers, please transpose the data and then run the following");
-						log.report("java -cp /your/path/to/"	+ org.genvisis.common.PSF.Java.GENVISIS
+						log.report("java -jar /your/path/to/"	+ org.genvisis.common.PSF.Java.GENVISIS
 												+ " cnv.filesys.ABLookup proj=" + proj.getPropertyFilename()
 												+ " incompleteAB=" + incompleteABlookupFilename + " mapFile=" + mapFile);
 					}

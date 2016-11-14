@@ -881,7 +881,7 @@ public class PlinkData {
 												+ (invalidAbLookups.size() == 1	? " was one marker "
 																											: "were "	+ invalidAbLookups.size()
 																												+ " markers")
-											+ " with an invalid set of AB lookup codes that had been manually reclustered and now needs a full complement. Run \"java -cp Genvisis.jar cnv.filesys.ABLookup -h\" for options on how to fill these in, and check "
+											+ " with an invalid set of AB lookup codes that had been manually reclustered and now needs a full complement. Run \"java -jar genvisis.jar cnv.filesys.ABLookup -h\" for options on how to fill these in, and check "
 											+ proj.getProperty(proj.DATA_DIRECTORY)
 											+ "invalid_AB_codes.out for a list of variants that this affects.");
 				try {

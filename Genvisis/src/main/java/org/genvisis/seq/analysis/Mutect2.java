@@ -503,7 +503,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 	private static void getJava(ArrayList<String> command) {
 		command.add("java");
 		command.add("-Xmx62000m");
-		command.add("-cp");
+		command.add("-jar");
 		command.add("~/genvisisMutect.jar");
 		command.add("seq.analysis.Mutect2");
 

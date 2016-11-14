@@ -353,7 +353,7 @@ public class FAST {
                 e.printStackTrace();
               }
               String metalDir = ext.parseDirectoryOfFile(metalCRF);
-              CmdLine.run(new String[] {"java", "-cp", decodedPath, "Launch", metalCRF}, metalDir,
+              CmdLine.run(new String[] {"java", "-jar", decodedPath, "Launch", metalCRF}, metalDir,
                   System.out, System.err, factorLog, false);
               factorLog
                   .report(ext.getTime() + "]\tRunning HitWindows analysis on METAL results...");
@@ -444,7 +444,7 @@ public class FAST {
   // String metalName = "metal_" + factorName + "_" + popName + "_sex.crf";
   // Files.write(metaSex.toString(), ext.verifyDirFormat(popDir.getAbsolutePath()) + metalName);
   // runMetal.append("cd ").append(ext.verifyDirFormat(popDir.getAbsolutePath())).append("\n");
-  // runMetal.append("java -cp ~/" + common.PSF.Java.GENVISIS + " Launch
+  // runMetal.append("java -jar ~/" + common.PSF.Java.GENVISIS + " Launch
   // ").append(metalName).append("\n");
   // }
   // }
@@ -454,7 +454,7 @@ public class FAST {
   // Files.write(metaFileContents.toString(), ext.verifyDirFormat(factorDir.getAbsolutePath()) +
   // metalName);
   // runMetal.append("cd ").append(ext.verifyDirFormat(factorDir.getAbsolutePath())).append("\n");
-  // runMetal.append("java -cp ~/" + common.PSF.Java.GENVISIS + " Launch
+  // runMetal.append("java -jar ~/" + common.PSF.Java.GENVISIS + " Launch
   // ").append(metalName).append("\n");
   // }
   // }
@@ -657,7 +657,7 @@ public class FAST {
         }
       }
       String metalCmd =
-          "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " gwas.FAST rundir=" + runDir
+          "java -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS + " gwas.FAST rundir=" + runDir
               + study + " data=" + dataFile + " gcMetal=" + gcMetal + " -process";
       Files.qsub(runDir + "step3_" + study + "_processAndMetaAnalyze.qsub", metalCmd, QSUB_RAM_MB,
           QSUB_TIME_HRS, QSUB_THREADS);
@@ -745,11 +745,11 @@ public class FAST {
     scriptInputWriter.close();
 
     String command =
-        "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " one.ScriptExecutor file=\""
+        "java -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS + " one.ScriptExecutor file=\""
             + runDir + "input.txt\" token=took threads=" + QSUB_THREADS;
     String procFileOut = buildFinalFilename();
     String processCommand =
-        "cd \"" + runDir + "\"\njava -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS
+        "cd \"" + runDir + "\"\njava -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS
             + " gwas.FAST -convert -concat -writePVals -hitWindows out=\"" + procFileOut
             + "\" results=\"" + runDir + "output/\" trait=\"" + traitFile + "\"";
     Files.qsub(runDir + RUN_SCRIPT_NAME, command, QSUB_RAM_MB, QSUB_TIME_HRS, QSUB_THREADS);

@@ -46,26 +46,15 @@ public class PSF {
 		}
 
 		public static String[] buildJavaJar(String jarFile) {
-			String[] javaJar = Array.concatAll(buildJava(), new String[] {JAR});
-			if (jarFile != null) {
-				javaJar = Array.concatAll(javaJar, new String[] {jarFile});
-			}
-			return javaJar;
+			return new String[] {JAVA, JAR, jarFile};
 		}
 
 		public static String[] buildJavaCP(String fullPathTojarFile) {
-			String[] javaJar = Array.concatAll(buildJava(), new String[] {CP});
-			if (fullPathTojarFile != null) {
-				javaJar = Array.concatAll(javaJar, new String[] {fullPathTojarFile});
-			}
-			return javaJar;
+			return new String[] {JAVA, CP, fullPathTojarFile};
 		}
 
 		public static String[] buildJavaCPXMX(String fullPathTojarFile, String cp, int memoryInMb) {
-			String[] javaGenCP = buildJavaCP(fullPathTojarFile);
-			String[] add = new String[] {XMX + memoryInMb + "m", cp};
-			return Array.concatAll(javaGenCP, add);
-
+			return new String[]{JAVA, XMX + memoryInMb + "m", CP, cp, JAR, fullPathTojarFile};
 		}
 	}
 

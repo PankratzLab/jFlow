@@ -28,11 +28,11 @@ public class PrincipalComponentsValidate {
 	public static final String OUTSAMP = ".outsample.txt";
 	private static final String BATCH = "b";
 	private static final String JAVA = "/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/bin/java ";
-	private static final String CP = "-cp /home/pankrat2/lanej/park2.jar ";
+	private static final String JAR = "-jar /home/pankrat2/lanej/park2.jar ";
 	private static final String MT_PIPE = " cnv.manage.MitoPipeline ";
 	private static final String VAL_PIPE = " cnv.analysis.pca.PrincipalComponentsValidate ";
 
-	private static final String XMX = " -Xmx23g ";
+	private static final String XMX = "-Xmx23g ";
 	private static final int MEMORY_MB = 23000;
 	private static final double WALLTIME = 48;
 
@@ -150,7 +150,7 @@ public class PrincipalComponentsValidate {
 		// String command = JAVA + CP + XMX + VAL_PIPE + "proj=" +
 		// proj.getFilename(proj.PROJECT_PROPERTIES_FILENAME) + " dir=" + dir + BATCH + "[%0]/" + "
 		// numThreads=" + numThreads;
-		String command = JAVA	+ CP + XMX + VAL_PIPE + "proj="
+		String command = JAVA	+ XMX + JAR + VAL_PIPE + "proj="
 											+ proj.PROJECT_PROPERTIES_FILENAME.getValue() + " dir=" + dir + BATCH
 											+ "[%0]/" + "  numThreads=" + numThreads;
 		command += " startAtComponent="	+ startAtComponent + " stopAtComponent=" + stopAtComponent
@@ -692,7 +692,7 @@ public class PrincipalComponentsValidate {
 		// proj.getFilename(proj.PROJECT_PROPERTIES_FILENAME) + " PCmarkers=" + pcMarkers + "
 		// numComponents=[%1] medianMarkers=" + proj.getProjectDir() + mtMarkers + " useFile=" + curDir
 		// + BATCH + "_[%0] output=" + dir + BATCH + "_[%0]";
-		String command = JAVA	+ CP + XMX + MT_PIPE + "proj="
+		String command = JAVA	+ XMX + JAR + MT_PIPE + "proj="
 											+ proj.PROJECT_PROPERTIES_FILENAME.getValue() + " PCmarkers=" + pcMarkers
 											+ " numComponents=[%1]  medianMarkers=" + proj.PROJECT_DIRECTORY.getValue()
 											+ mtMarkers + " useFile=" + curDir + BATCH + "_[%0] output=" + dir + BATCH

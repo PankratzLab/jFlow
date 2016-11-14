@@ -322,7 +322,7 @@ public class MitoPipeline {
 		if (memoryAvailable < RECOMMENDED_MEMORY) {
 			log.reportError("\nWarning - "	+ ext.prettyUpSize(memoryAvailable, 1)
 											+ " may not be enough RAM to get the job done; add the following -Xmx argument at the command line to increase the amount of memory to the Java virtual machine");
-			log.reportError("java -Xmx10g -cp /path/to/genvisis.jar ... ");
+			log.reportError("java -Xmx10g -jar /path/to/genvisis.jar ... ");
 			log.reportError("which will allocate 10 Gb of RAM (likewise, you can set it to -Xmx2g for 2 GB or -Xmx250 for 250Gb)\n");
 		}
 

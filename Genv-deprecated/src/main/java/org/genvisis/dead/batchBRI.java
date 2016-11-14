@@ -32,7 +32,7 @@ public class batchBRI {
 			writer.println("cd " + SNPS[i] + SNP_POS[i]);
 			writer.println("cd probands");
 			writer.println("copy probands_struct.dat struct.dat");
-			writer.println("java -cp "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
+			writer.println("java -jar "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
 											+ "-cases.dat" + opReps);
 			writer.println("move BRI_summary.out probands-BRI_summary.out");
 			writer.println("del struct.dat");
@@ -41,12 +41,12 @@ public class batchBRI {
 			for (String element : CUT3) {
 				writer.println("cd " + element);
 				writer.println("copy struct111-.dat struct.dat");
-				writer.println("java -cp "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
+				writer.println("java -jar "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
 												+ "-cases.dat" + opReps);
 				writer.println("move BRI_summary.out 111-BRI_summary.out");
 				writer.println("del struct.dat");
 				writer.println("copy struct100-.dat struct.dat");
-				writer.println("java -cp "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
+				writer.println("java -jar "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
 												+ "-cases.dat" + opReps);
 				writer.println("move BRI_summary.out 100-BRI_summary.out");
 				writer.println("del struct.dat");
@@ -55,7 +55,7 @@ public class batchBRI {
 			writer.println("cd ..");
 			writer.println("cd originalSFH");
 			writer.println("copy 64SFH_struct.dat struct.dat");
-			writer.println("java -cp "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
+			writer.println("java -jar "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
 											+ "-cases.dat" + opReps);
 			writer.println("move BRI_summary.out 64SFH-BRI_summary.out");
 			writer.println("del struct.dat");
@@ -64,12 +64,12 @@ public class batchBRI {
 			for (String element : CUT3) {
 				writer.println("cd " + element);
 				writer.println("copy struct111-.dat struct.dat");
-				writer.println("java -cp "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
+				writer.println("java -jar "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
 												+ "-cases.dat" + opReps);
 				writer.println("move BRI_summary.out 111-BRI_summary.out");
 				writer.println("del struct.dat");
 				writer.println("copy struct100-.dat struct.dat");
-				writer.println("java -cp "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
+				writer.println("java -jar "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
 												+ "-cases.dat" + opReps);
 				writer.println("move BRI_summary.out 100-BRI_summary.out");
 				writer.println("del struct.dat");
@@ -78,7 +78,7 @@ public class batchBRI {
 			writer.println("cd ..");
 			writer.println("cd expandedSFH");
 			writer.println("copy struct100-.dat struct.dat");
-			writer.println("java -cp "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
+			writer.println("java -jar "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
 											+ "-cases.dat" + opReps);
 			writer.println("move BRI_summary.out 100-BRI_summary.out");
 			writer.println("del struct.dat");
@@ -86,17 +86,17 @@ public class batchBRI {
 
 			writer.println("cd controls");
 			writer.println("copy CARES1-struct.dat struct.dat");
-			writer.println("java -cp "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
+			writer.println("java -jar "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
 											+ "-controls.dat");
 			writer.println("move BRI_summary.out CARES1-BRI_summary.out");
 			writer.println("del struct.dat");
 			writer.println("copy CARES2-struct.dat struct.dat");
-			writer.println("java -cp "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
+			writer.println("java -jar "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
 											+ "-controls.dat");
 			writer.println("move BRI_summary.out CARES2-BRI_summary.out");
 			writer.println("del struct.dat");
 			writer.println("copy LOAD-struct.dat struct.dat");
-			writer.println("java -cp "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
+			writer.println("java -jar "	+ jarPath + " park.countBRI file=" + genoPath + "BRI3-" + SNPS[i]
 											+ "-controls.dat");
 			writer.println("move BRI_summary.out LOAD-BRI_summary.out");
 			writer.println("del struct.dat");

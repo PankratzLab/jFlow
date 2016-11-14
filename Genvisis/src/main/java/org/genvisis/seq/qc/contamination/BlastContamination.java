@@ -25,7 +25,7 @@ public class BlastContamination {
 	private final Hashtable<String, Integer> taxonCounts;
 
 	public BlastContamination(String currentDB, WorkerTrain<BlastResultsSummary[]> train,
-														Logger log) {
+	                          Logger log) {
 		super();
 		this.train = train;
 		taxonCounts = new Hashtable<String, Integer>();
@@ -53,10 +53,10 @@ public class BlastContamination {
 
 	// public static void batch(String)
 
-	public static void setup(	String dbDir, String fastaqDir, String fileOfFastqs, int numReads,
-														int numReadsPerThread, int blastWordSize, int reportWordSize,
-														int numSampThreads, String outputDir, String outputRoot, int numBatches,
-														int memoryInMB, int wallTimeInHours, Logger log) {
+	public static void setup(String dbDir, String fastaqDir, String fileOfFastqs, int numReads,
+	                         int numReadsPerThread, int blastWordSize, int reportWordSize,
+	                         int numSampThreads, String outputDir, String outputRoot, int numBatches,
+	                         int memoryInMB, int wallTimeInHours, Logger log) {
 		String[] fastaDbs = Files.toFullPaths(Files.list(dbDir, "nt.", "nsq", true, false), dbDir);
 		String[] fastaqs = null;
 		if (fastaDbs.length == 0) {
@@ -95,31 +95,31 @@ public class BlastContamination {
 
 		if (numBatches > 1) {
 			batchIt(dbDir, numReads, numReadsPerThread, blastWordSize, reportWordSize, numSampThreads,
-							outputDir, outputRoot, numBatches, memoryInMB, wallTimeInHours, log, fastaqs);
+			        outputDir, outputRoot, numBatches, memoryInMB, wallTimeInHours, log, fastaqs);
 
 		} else {
 			String outputFile = outputDir + outputRoot;
 			Logger newLog = new Logger(ext.rootOf(outputFile, false) + ".log");
-			runContams(	fastaDbs, numReads, fastaqs, numSampThreads, numReadsPerThread, blastWordSize,
-									reportWordSize, outputFile, newLog);
+			runContams(fastaDbs, numReads, fastaqs, numSampThreads, numReadsPerThread, blastWordSize,
+			           reportWordSize, outputFile, newLog);
 		}
 
 	}
 
-	private static void runContams(	String[] fastaDbs, int numReads, String[] fastaqs,
-																	int numSampThreads, int numReadsPerThread, int blastWordSize,
-																	int reportWordSize, String outputFile, Logger log) {
+	private static void runContams(String[] fastaDbs, int numReads, String[] fastaqs,
+	                               int numSampThreads, int numReadsPerThread, int blastWordSize,
+	                               int reportWordSize, String outputFile, Logger log) {
 		ArrayList<Hashtable<String, Integer>> popCounts = new ArrayList<Hashtable<String, Integer>>();
 		for (int i = 0; i < fastaqs.length; i++) {
 			Hashtable<String, Integer> allCounts = new Hashtable<String, Integer>();
 			for (int j = 0; j < fastaDbs.length; j++) {
-				log.reportTimeInfo("Currently processing file "	+ ext.removeDirectoryInfo(fastaqs[i]) + " ("
-														+ i + " of " + fastaqs.length + ") .fastqs; (" + j + " of "
-														+ fastaDbs.length + ") dbs");
-				Hashtable<String, Integer> curCounts = runContam(	ext.rootOf(fastaDbs[j], false), numReads,
-																													fastaqs[i], numSampThreads,
-																													numReadsPerThread, blastWordSize,
-																													reportWordSize, log).getTaxonCounts();
+				log.reportTimeInfo("Currently processing file " + ext.removeDirectoryInfo(fastaqs[i]) + " ("
+				                   + i + " of " + fastaqs.length + ") .fastqs; (" + j + " of "
+				                   + fastaDbs.length + ") dbs");
+				Hashtable<String, Integer> curCounts = runContam(ext.rootOf(fastaDbs[j], false), numReads,
+				                                                 fastaqs[i], numSampThreads,
+				                                                 numReadsPerThread, blastWordSize,
+				                                                 reportWordSize, log).getTaxonCounts();
 				allCounts = ext.addHashCounts(allCounts, curCounts);
 			}
 			popCounts.add(allCounts);
@@ -155,22 +155,22 @@ public class BlastContamination {
 	}
 
 	private static BlastContamination runContam(String fastaDb, int numReads, String fastaq,
-																							int numSampThreads, int numReadsPerThread,
-																							int blastWordSize, int reportWordSize, Logger log) {
+	                                            int numSampThreads, int numReadsPerThread,
+	                                            int blastWordSize, int reportWordSize, Logger log) {
 		BlastFastaq bFastaq = new BlastFastaq(fastaq, numReads, fastaDb, blastWordSize, reportWordSize,
-																					numReadsPerThread, log);
+		                                      numReadsPerThread, log);
 		WorkerTrain<BlastResultsSummary[]> train = new WorkerTrain<BlastResultsSummary[]>(bFastaq,
-																																											numSampThreads,
-																																											10, log);
+		                                                                                  numSampThreads,
+		                                                                                  10, log);
 		BlastContamination blastContamination = new BlastContamination(fastaDb, train, new Logger());
 		blastContamination.runContam();
 		return blastContamination;
 	}
 
 	private static void batchIt(String dbDir, int numReads, int numReadsPerThread, int blastWordSize,
-															int reportWordSize, int numSampThreads, String outputDir,
-															String outputRoot, int numBatches, int memoryInMB,
-															int wallTimeInHours, Logger log, String[] fastaqs) {
+	                            int reportWordSize, int numSampThreads, String outputDir,
+	                            String outputRoot, int numBatches, int memoryInMB,
+	                            int wallTimeInHours, Logger log, String[] fastaqs) {
 		ArrayList<String[]> splits = Array.splitUpArray(fastaqs, numBatches, log);
 		String command = Array.toStr(PSF.Load.getAllModules(), "\n");
 		String[][] batches = new String[splits.size()][1];
@@ -178,8 +178,8 @@ public class BlastContamination {
 			batches[i][0] = "batch_" + i + "_" + outputRoot;
 			Files.writeArray(splits.get(i), outputDir + batches[i][0] + ".txt");
 		}
-		command += "\njava -cp "	+ PSF.Java.GENVISIS + " -Xmx" + memoryInMB
-								+ "m seq.qc.contamination.BlastContamination" + PSF.Ext.SPACE;
+		command += "\njava -Xmx" + memoryInMB + "m -jar " + PSF.Java.GENVISIS
+		           + " seq.qc.contamination.BlastContamination" + PSF.Ext.SPACE;
 		command += FASTQ_LIST_FILE + outputDir + "[%0].txt" + PSF.Ext.SPACE;
 		command += DB_DIR + dbDir + PSF.Ext.SPACE;
 		command += NUM_READS + numReads + PSF.Ext.SPACE;
@@ -193,8 +193,8 @@ public class BlastContamination {
 
 		// command += PSF.Ext.MEMORY_MB + memoryInMB + PSF.Ext.SPACE;
 		// command += PSF.Ext.WALLTIME_HRS + wallTimeInHours + PSF.Ext.SPACE;
-		Files.qsub("Contam"	+ outputRoot, command, batches, memoryInMB, wallTimeInHours,
-								numSampThreads);
+		Files.qsub("Contam" + outputRoot, command, batches, memoryInMB, wallTimeInHours,
+		           numSampThreads);
 	}
 
 	private static final String FASTQ_LIST_FILE = "fastqFile=";
@@ -225,29 +225,29 @@ public class BlastContamination {
 		String outputRoot = "contam";
 		int numBatches = 1;
 		String usage = "\n" + "seq.qc.contamination.BlastContamination requires 0-1 arguments\n";
-		usage += "   (1) full path to directory containing nt* database files (i.e. "	+ DB_DIR + dbDir
-							+ " (default))\n" + "";
-		usage += "   (2) full path to directory containing *.fastq files (i.e. "	+ FASTQ_DIR
-							+ " (no default))\n" + "";
-		usage += "   (3) number of reads to blast from each *.fastq file (i.e. "	+ NUM_READS + numReads
-							+ " (default))\n" + "";
-		usage += "   (4) number of reads to blast on each thread (i.e. "	+ NUM_READS_THREAD
-							+ numReadsPerThread + " (default))\n" + "";
-		usage += "   (5) blast word size to intialize search (i.e. "	+ BLAST_WORD_SIZE + blastWordSize
-							+ " (default))\n" + "";
-		usage += "   (6) blast word size to report (i.e. "	+ REPORT_WORD_SIZE + reportWordSize
-							+ " (default))\n" + "";
-		usage += "   (7) full path to output directory (i.e. "	+ OUTPUT_DIR + outputDir
-							+ " (default))\n" + "";
-		usage += "   (8) root output (relative to output directory) (i.e. "	+ OUTPUT_ROOT + outputRoot
-							+ " (default))\n" + "";
-		usage += "   (9) number of batches to break up the job into (i.e. "	+ NUM_BATCHES + numBatches
-							+ " (default))\n" + "";
+		usage += "   (1) full path to directory containing nt* database files (i.e. " + DB_DIR + dbDir
+		         + " (default))\n" + "";
+		usage += "   (2) full path to directory containing *.fastq files (i.e. " + FASTQ_DIR
+		         + " (no default))\n" + "";
+		usage += "   (3) number of reads to blast from each *.fastq file (i.e. " + NUM_READS + numReads
+		         + " (default))\n" + "";
+		usage += "   (4) number of reads to blast on each thread (i.e. " + NUM_READS_THREAD
+		         + numReadsPerThread + " (default))\n" + "";
+		usage += "   (5) blast word size to intialize search (i.e. " + BLAST_WORD_SIZE + blastWordSize
+		         + " (default))\n" + "";
+		usage += "   (6) blast word size to report (i.e. " + REPORT_WORD_SIZE + reportWordSize
+		         + " (default))\n" + "";
+		usage += "   (7) full path to output directory (i.e. " + OUTPUT_DIR + outputDir
+		         + " (default))\n" + "";
+		usage += "   (8) root output (relative to output directory) (i.e. " + OUTPUT_ROOT + outputRoot
+		         + " (default))\n" + "";
+		usage += "   (9) number of batches to break up the job into (i.e. " + NUM_BATCHES + numBatches
+		         + " (default))\n" + "";
 		usage += PSF.Ext.getNumThreadsCommand(10, numSampThreads);
 		usage += PSF.Ext.getWallTimeCommand(11, wallTimeInHours);
 		usage += PSF.Ext.getMemoryMbCommand(12, memoryInMB);
 		usage += "   (13) full path to a file listing full paths of fastqs to use (i.e. "
-							+ FASTQ_LIST_FILE + fileOfFastqs + " (default))\n" + "";
+		         + FASTQ_LIST_FILE + fileOfFastqs + " (default))\n" + "";
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
 				System.err.println(usage);
@@ -304,8 +304,8 @@ public class BlastContamination {
 		}
 		try {
 			setup(dbDir, fastaqDir, fileOfFastqs, numReads, numReadsPerThread, blastWordSize,
-						reportWordSize, numSampThreads, outputDir, outputRoot, numBatches, memoryInMB,
-						wallTimeInHours, new Logger());
+			      reportWordSize, numSampThreads, outputDir, outputRoot, numBatches, memoryInMB,
+			      wallTimeInHours, new Logger());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

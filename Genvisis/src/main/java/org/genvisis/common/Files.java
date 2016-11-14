@@ -61,7 +61,7 @@ public class Files {
 	// public static final String ROOT_DIRECTORY = "/export/home/npankrat/"; // alcatraz
 	// public static final String ROOT_DIRECTORY = "/state/partition1/npankrat/"; // indiviudal nodes
 	public static final String JAVA = "/usr/java/latest/bin/java";
-	public static final String JCP = JAVA	+ " -cp /home/npankrat/"
+	public static final String JCP = JAVA	+ " -jar /home/npankrat/"
 																		+ org.genvisis.common.PSF.Java.GENVISIS;
 	public static final String SERIALIZED_FILE_EXTENSION = ".ser";
 
@@ -268,7 +268,7 @@ public class Files {
 					writer.println("rep=0");
 					writer.println("total_reps=0");
 					writer.println("while [ -e \"plug\" ]; do ");
-					writer.println("    rep=$(java -cp "	+ ROOT_DIRECTORY
+					writer.println("    rep=$(java -jar "	+ ROOT_DIRECTORY
 													+ org.genvisis.common.PSF.Java.GENVISIS
 													+ " common.Files -nextRep patterns=" + Array.toStr(patterns, ",")
 													+ " lastRep=$rep wait=1000)");
@@ -385,7 +385,7 @@ public class Files {
 
 		Files.writeArray(commands, batchRoot + ".chain");
 		Files.qsub(batchRoot	+ ".pbs",
-								"cd "			+ dirToSwitchToBeforeRunning + "\njava -cp ~/"
+								"cd "			+ dirToSwitchToBeforeRunning + "\njava -jar ~/"
 													+ org.genvisis.common.PSF.Java.GENVISIS + " one.ScriptExecutor file="
 													+ batchRoot + ".chain threads=" + numProcs,
 								totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs);

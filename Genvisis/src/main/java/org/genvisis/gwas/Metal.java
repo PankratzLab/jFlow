@@ -1134,12 +1134,12 @@ public class Metal {
 					files[i] = params.elementAt(i).trim().split("[\\s]+")[0];
 				}
 			}
-			Files.writeArray(	new String[] {"java -cp /home/npankrat/"
+			Files.writeArray(	new String[] {"java -jar /home/npankrat/"
 																				+ org.genvisis.common.PSF.Java.GENVISIS
 																			+ " gwas.Metal test=ADD results=" + files[0]
 																			+ " method=logistic freq=plink.frq -se -metal out=" + files[0]
 																			+ ".se.metal",
-																			"java -cp /home/npankrat/"
+																			"java -jar /home/npankrat/"
 																												+ org.genvisis.common.PSF.Java.GENVISIS
 																											+ " gwas.Metal test=ADD results=" + files[1]
 																											+ " method=logistic freq=plink.frq -se -metal out="

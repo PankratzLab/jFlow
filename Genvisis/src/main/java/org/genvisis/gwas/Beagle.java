@@ -195,7 +195,7 @@ public class Beagle {
 				writer.println("cp " + file + " " + root + "/");
 			}
 			writer.println("cd " + root + "/");
-			writer.println("java -cp /home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
+			writer.println("java -jar /home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
 											+ " gwas.Beagle pair=" + filename);
 			if (files.length == 1) {
 				writer.println("plink --bfile ../plink --keep " + filename + " --make-bed");
@@ -208,7 +208,7 @@ public class Beagle {
 			writer.println("splitByChrAlt2 plink");
 			writer.println("cp " + root + ".list split/");
 			writer.println("cd split");
-			writer.println("java -cp /home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
+			writer.println("java -jar/home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
 											+ " gwas.Beagle -prepFiles list=" + root + ".list step=" + step);
 			writer.println("for chr in {1..23}");
 			writer.println("do");

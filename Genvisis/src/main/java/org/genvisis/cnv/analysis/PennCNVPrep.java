@@ -850,7 +850,7 @@ public class PennCNVPrep {
 		int sampleChunks = 10;
 		// Ex - Recommend modifying this to run the corrections
 
-		// java -cp " + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNVPrep batch=100
+		// java -jar " + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNVPrep batch=100
 		// proj=/home/usr/projects/x.properties classPath=/yourPathTo/" + common.PSF.Java.GENVISIS + "
 		// dir=PennCNVPrep/ numComponents=40
 

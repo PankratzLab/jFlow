@@ -218,7 +218,7 @@ public class AffyPowerTools {
 			log.report("Warning - a line buffer size was not provided , setting to default of "
 									+ DEFUALT_LINE_BUFFER);
 		}
-		String affySNP6TablesSNPCommand = javaLocation	+ " -Xmx" + totalMemory + "m -cp " + javaCp + " "
+		String affySNP6TablesSNPCommand = javaLocation	+ " -Xmx" + totalMemory + "m -jar " + javaCp + " "
 																			+ AFFY_TABLES_CLASS + " calls=" + affyResultsDir
 																			+ AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "[%0]/"
 																			+ AFFY_ANALYSIS_OUTPUTS_PREFIXES[0] + "[%0]"
@@ -231,7 +231,7 @@ public class AffyPowerTools {
 																			+ AFFY_ANALYSIS_OUTPUTS_SUFFIXES[0] + " out=" + projectSource
 																			+ "[%0]/" + " numLinesBuffer=" + numLinesBuffer + " -"
 																			+ AFFY_GENVISIS_OUTPUTS_PREFIXES[0];
-		String affySNP6TablesCNCommand = javaLocation	+ " -Xmx" + totalMemory + "m -cp " + javaCp + " "
+		String affySNP6TablesCNCommand = javaLocation	+ " -Xmx" + totalMemory + "m -jar " + javaCp + " "
 																			+ AFFY_TABLES_CLASS + " sig=" + affyResultsDir
 																			+ AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]/"
 																			+ AFFY_ANALYSIS_OUTPUTS_PREFIXES[1] + "[%0]"
@@ -255,7 +255,7 @@ public class AffyPowerTools {
 	public static void mergeFiles(String pbsDir, String affyResultsDir, String projectSource,
 																int numJobs, int totalMemory, double walltimeRequestedInHours,
 																String javaLocation, String javaCp, Logger log) {
-		String mergeCommand = javaLocation	+ " -cp " + javaCp + " " + AFFY_TABLES_CLASS
+		String mergeCommand = javaLocation	+ " -jar " + javaCp + " " + AFFY_TABLES_CLASS
 													+ "-merge affyResultsDir=" + affyResultsDir + " out=" + projectSource
 													+ " threads=" + numJobs;
 		String[] mergeCommands = new String[1];
@@ -273,11 +273,11 @@ public class AffyPowerTools {
 		help += "A few tips to parse the results of genotyping and summarizing in "	+ affyResultsDir
 						+ "...\n";
 		help += "If you did not split up the analysis you can simply run:\n";
-		help += "(1) "	+ javaLocation + " -cp " + javaCp + " " + AFFY_TABLES_CLASS
+		help += "(1) "	+ javaLocation + " -jar " + javaCp + " " + AFFY_TABLES_CLASS
 						+ " calls=YourCallsHere(.calls.txt) conf=YourConfidenceHere(.confidences.txt) sig=YourSignalHere(.summary.txt) out="
 						+ affyResultsDir + "SNP/ numLinesBuffer=" + numLinesBuffer + " -"
 						+ AFFY_GENVISIS_OUTPUTS_PREFIXES[0];
-		help += "(2) "	+ javaLocation + "  -cp " + javaCp + " " + AFFY_TABLES_CLASS
+		help += "(2) "	+ javaLocation + "  -jar " + javaCp + " " + AFFY_TABLES_CLASS
 						+ " sig=YourSignalHere(.summary.txt) out=" + affyResultsDir + "CN/ numLinesBuffer="
 						+ numLinesBuffer + " -" + AFFY_GENVISIS_OUTPUTS_PREFIXES[1];
 		help += "\nIf you have split up the analysis you can either:\n";
@@ -287,7 +287,7 @@ public class AffyPowerTools {
 					"Please note that the number of jobs and batches must equal the number of jobs and batches from -gtsum ";
 		help += "The final steps for importing into GENVISIS are to:\n";
 		help += "(1) create a project file\n";
-		help += "(2) run "	+ javaLocation + " -cp " + javaCp + " " + AFFY_TABLES_CLASS
+		help += "(2) run "	+ javaLocation + " -jar " + javaCp + " " + AFFY_TABLES_CLASS
 						+ " -merge affyResultsDir=" + affyResultsDir + " proj=Your Project file \n";
 		return help;
 	}
@@ -323,7 +323,7 @@ public class AffyPowerTools {
 		help += "(1) Run each of the commands  found in this log \n";
 		help += "(2) Submit the .PBS files to a compute cluster\n";
 		help += "\nAfter genotyping and summarizing please run the following for more information:";
-		help += "java -cp \""	+ org.genvisis.common.PSF.Java.GENVISIS
+		help += "java -jar \""	+ org.genvisis.common.PSF.Java.GENVISIS
 						+ "\" affy.AffyPowerTools -parseTables  pbsDir=" + pbsDir + " affyResultsDir="
 						+ affyResultsDir + " numSNPJobs=" + numSNPJobs + " numCNJobs=" + numCNJobs
 						+ " numSNPBatches=" + numSNPBatches + " numCNBatches=" + numCNBatches
@@ -860,7 +860,7 @@ public class AffyPowerTools {
 
 				affySumJobs[i] = summarizeCommand;
 
-				String affySNP6TablesCommand = "/soft/java/jdk1.7.0_45/bin/java -cp "	+ park + " "
+				String affySNP6TablesCommand = "/soft/java/jdk1.7.0_45/bin/java -jar "	+ park + " "
 																				+ javaClass + " proj=" + project + " calls=" + outDir
 																				+ affyGenofolderOut + jobID + "/" + birdseedCalls + " conf="
 																				+ outDir + affyGenofolderOut + jobID + "/" + birdseedConf

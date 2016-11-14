@@ -1163,7 +1163,7 @@ public class CALiCo {
 		}
 		qqFiles.add(root + "_NWeighted1.out" + ",7=" + ext.rootOf(root + "_NWeighted"));
 
-		Files.write("java -cp C:/home/npankrat/vis.jar cnv.plots.QQPlot files=\""
+		Files.write("java -jar C:/home/npankrat/vis.jar cnv.plots.QQPlot files=\""
 									+ Array.toStr(Array.toStringArray(qqFiles), ";") + "\" maxToPlot=10",
 								dir + "plotQQs.bat");
 		dir = dir.substring(dir.substring(0, dir.length() - 1).lastIndexOf("/") + 1, dir.length());

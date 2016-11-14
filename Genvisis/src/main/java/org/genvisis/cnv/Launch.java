@@ -1516,7 +1516,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		bat += "#Script must be in the same directory as vis.jar\r\n";
 		bat += "for %%x in (%0) do set BatchPath=%%~dpsx\r\n";
 		bat += "for %%x in (%BatchPath%) do set BatchPath=%%~dpsx\r\n";
-		bat += "java  -Xmx22000m -cp %BatchPath%/genvisis.jar cnv.Launch  %*\r\n";
+		bat += "java  -Xmx22000m -jar %BatchPath%/genvisis.jar cnv.Launch  %*\r\n";
 		bat += "PAUSE\r\n";
 		return bat;
 	}
@@ -1531,7 +1531,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener {
 		sh += "#Script must be in the same directory as vis.jar\n";
 		sh += "prefix=`dirname $(readlink $0 || echo $0)`\n";
 		sh += "exec java -Xmx2000m \\\n";
-		sh += "	-cp \"$prefix\"/genvisis.jar cnv.Launch \"$@\"\n";
+		sh += "	-jar \"$prefix\"/genvisis.jar cnv.Launch \"$@\"\n";
 		return sh;
 	}
 

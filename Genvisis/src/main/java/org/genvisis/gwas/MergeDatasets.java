@@ -266,7 +266,7 @@ public class MergeDatasets {
 			writer = new PrintWriter(new FileWriter(dir	+ "batchMerge"
 																							+ (Files.isWindows() ? ".bat" : "")));
 			for (String subdir : subdirs) {
-				writer.println("java -cp /home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
+				writer.println("java -jar /home/npankrat/"	+ org.genvisis.common.PSF.Java.GENVISIS
 												+ " filesys.SnpMarkerSet file=" + subdir + commonPlinkRoot + ".bim");
 			}
 			writer.println();

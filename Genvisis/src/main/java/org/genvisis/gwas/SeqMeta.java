@@ -1918,7 +1918,7 @@ public class SeqMeta {
 					System.err.println("Error - why are there no files for "	+ phenotypes[i][0] + " "
 															+ methods[m][0]);
 				}
-				Files.write("java -cp /home/npankrat/vis.jar cnv.plots.QQPlot files=\""
+				Files.write("java -jar /home/npankrat/vis.jar cnv.plots.QQPlot files=\""
 											+ filenames.substring(0, filenames.length() - 1) + "\" maxToPlot=10",
 										localDir + "plotQQs_mac" + macThresholdTotal + ".bat");
 			}
@@ -3324,7 +3324,7 @@ public class SeqMeta {
 				localDir = ext.parseDirectoryOfFile(file);
 				Files.qsub(dir	+ "batchRuns/" + ext.rootOf(file)
 										+ ".qsub",
-										"cd "				+ localDir + "\njava -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS
+										"cd "				+ localDir + "\njava -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS
 																+ " gwas.SeqMeta dir=" + localDir + " metalSensitivity="
 																+ ext.removeDirectoryInfo(file),
 										25000, 3, 1);
