@@ -473,7 +473,7 @@ public class MergeExtractPipeline {
           new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile,
               dataSources.get(i).mapFile, regionsFile, markersFile,
               renameMarkers ? dataSources.get(i).label : "", verbose, log);
-      dd1 = DosageData.combine(dd1, dd2, DosageData.COMBINE_OP.OVERWRITE_IF_ALL_MISSING, log);
+      dd1 = DosageData.combine(dd1, dd2, DosageData.COMBINE_OP.EITHER_IF_OTHER_MISSING, log);
       dd2 = null;
       System.gc();
     }
