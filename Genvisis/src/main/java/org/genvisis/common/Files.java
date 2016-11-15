@@ -3792,7 +3792,7 @@ public class Files {
 				qsubs = qsub(	"", ext.rootOf(filename) + (i + 1) + ".#", start, stop,
 											(changeToCurrentWorkingDirectoryFirst ? "cd " + ext.pwd() + "\n" : "")
 																																							+ lines[i],
-											patterns, 5000, 24, null);
+											patterns, 62000, 24, null);
 				v.add(qsubs[0]);
 			}
 			writeArray(Array.toStringArray(v), "master." + ext.rootOf(filename));
@@ -3802,10 +3802,10 @@ public class Files {
 				lines = Array.addStrToArray("cd " + ext.pwd(), lines);
 			}
 			if (start == stop) {
-				qsub(ext.rootOf(filename) + ".qsub", Array.toStr(lines, "\n"), 5000, 24, 1);
+				qsub(ext.rootOf(filename) + ".qsub", Array.toStr(lines, "\n"), 62000, 24, 1);
 			} else {
 				qsubs = qsub(	"", ext.rootOf(filename) + "#", start, stop, Array.toStr(lines, "\n"),
-											patterns, 5000, 24, null);
+											patterns, 62000, 24, null);
 				if (qsubs.length > 1) {
 					writeArray(qsubs, "master." + ext.rootOf(filename));
 					Files.chmod("master." + ext.rootOf(filename));
