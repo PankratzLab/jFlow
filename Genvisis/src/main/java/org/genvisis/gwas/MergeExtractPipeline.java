@@ -458,21 +458,22 @@ public class MergeExtractPipeline {
     }
 
     System.gc();
-
+    boolean verbose = false;
+    
     log.reportTime("Merging data...");
     log.reportTime("Starting from data file: " + dataSources.get(0).dataFile);
     DosageData dd1 =
         new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile,
             dataSources.get(0).mapFile, regionsFile, markersFile,
-            renameMarkers ? dataSources.get(0).label : "", true, null);
+            renameMarkers ? dataSources.get(0).label : "", verbose, log);
     for (int i = 1; i < dataSources.size(); i++) {
       System.gc();
       log.reportTime("... merging with data file: " + dataSources.get(i).dataFile);
       DosageData dd2 =
           new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile,
               dataSources.get(i).mapFile, regionsFile, markersFile,
-              renameMarkers ? dataSources.get(i).label : "", true, null);
-      dd1 = DosageData.combine(dd1, dd2, DosageData.COMBINE_OP.DROP, log);
+              renameMarkers ? dataSources.get(i).label : "", verbose, log);
+      dd1 = DosageData.combine(dd1, dd2, DosageData.COMBINE_OP.OVERWRITE_IF_ALL_MISSING, log);
       dd2 = null;
       System.gc();
     }

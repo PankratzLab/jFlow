@@ -558,7 +558,7 @@ public class DosageData implements Serializable {
 					                                                  : markerNamePrepend + "_")
 					                 + markerNames[i];
 				}
-				markerSet.convertMarkerNamesToRSnumbers(markerNames, true, log); // resets/recreates the
+				markerSet.convertMarkerNamesToRSnumbers(markerNames, verbose, log); // resets/recreates the
 				                                                                 // SnpMarkerSet's internal
 				                                                                 // RSnumber/non-RS marker
 				                                                                 // lists
@@ -1174,242 +1174,285 @@ public class DosageData implements Serializable {
 		return markersToKeep;
 	}
 
-	public static enum COMBINE_OP {
-																	FAIL, DROP;
-	}
+  public static enum COMBINE_OP {
+    FAIL, DROP, OVERWRITE_IF_ALL_MISSING;
+  }
 
-	public static DosageData combine(DosageData dd1, DosageData dd2, COMBINE_OP onDupeOp,
-	                                 Logger log) {
-		if (!dd1.isEmpty() && !dd2.isEmpty()) {
-			// let through
-		} else if (dd1.isEmpty() && !dd2.isEmpty()) {
-			log.reportError("Warning - DosageData {1} provided to combine() was empty.");
-			return dd2;
-		} else if (!dd1.isEmpty() && dd2.isEmpty()) {
-			log.reportError("Warning - DosageData {2} provided to combine() was empty.");
-			return dd1;
-		} else if (dd1.isEmpty() && dd2.isEmpty()) {
-			log.reportError("Warning - both DosageData objects provided to combine() were empty.");
-			return dd1;
-		}
+  public static DosageData combine(DosageData dd1, DosageData dd2, COMBINE_OP onDupeOp, Logger log) {
+    if (!dd1.isEmpty() && !dd2.isEmpty()) {
+      // let through
+    } else if (dd1.isEmpty() && !dd2.isEmpty()) {
+      log.reportError("Warning - DosageData {1} provided to combine() was empty.");
+      return dd2;
+    } else if (!dd1.isEmpty() && dd2.isEmpty()) {
+      log.reportError("Warning - DosageData {2} provided to combine() was empty.");
+      return dd1;
+    } else if (dd1.isEmpty() && dd2.isEmpty()) {
+      log.reportError("Warning - both DosageData objects provided to combine() were empty.");
+      return dd1;
+    }
 
-		byte missingChr = 0;
-		int missingPos = 0;
-		char[] missingAlleles = null;
-		float missingDosage = Float.NaN;
-		float missingGeno = Float.NaN;
+    byte missingChr = 0;
+    int missingPos = 0;
+    char[] missingAlleles = null;
+    float missingDosage = Float.NaN;
+    float missingGeno = Float.NaN;
 
-		String[][] dd1Ids = dd1.ids;
-		String[][] dd2Ids = dd2.ids;
-		HashMap<String, Integer> dd1IdsAndIndices = new HashMap<String, Integer>();
-		HashMap<String, Integer> dd2IdsAndIndices = new HashMap<String, Integer>();
-		HashSet<String> duplicatedIDs = new HashSet<String>();
-		LinkedHashSet<String> idSet = new LinkedHashSet<String>(); // use to ensure uniqueness and order
-		for (int s = 0; s < dd1Ids.length; s++) {
-			String id = dd1Ids[s][0] + "\t" + dd1Ids[s][1];
-			idSet.add(id);
-			dd1IdsAndIndices.put(id, s);
-		}
-		for (int s = 0; s < dd2Ids.length; s++) {
-			String id = dd2Ids[s][0] + "\t" + dd2Ids[s][1];
-			dd2IdsAndIndices.put(id, s);
-			boolean alreadyPresent = !idSet.add(id);
-			if (alreadyPresent) {
-				duplicatedIDs.add(id);
-			}
-		}
-		if (duplicatedIDs.size() > 0) {
-			log.report(duplicatedIDs.size() + " duplicate sample IDs found, out of " + dd2Ids.length
-			           + " samples present.");
-		}
+    String[][] dd1Ids = dd1.ids;
+    String[][] dd2Ids = dd2.ids;
+    HashMap<String, Integer> dd1IdsAndIndices = new HashMap<String, Integer>();
+    HashMap<String, Integer> dd2IdsAndIndices = new HashMap<String, Integer>();
+    HashSet<String> duplicatedIDs = new HashSet<String>();
+    LinkedHashSet<String> idSet = new LinkedHashSet<String>(); // use to ensure uniqueness and order
+    for (int s = 0; s < dd1Ids.length; s++) {
+      String id = dd1Ids[s][0] + "\t" + dd1Ids[s][1];
+      idSet.add(id);
+      dd1IdsAndIndices.put(id, s);
+    }
+    for (int s = 0; s < dd2Ids.length; s++) {
+      String id = dd2Ids[s][0] + "\t" + dd2Ids[s][1];
+      dd2IdsAndIndices.put(id, s);
+      boolean alreadyPresent = !idSet.add(id);
+      if (alreadyPresent) {
+        duplicatedIDs.add(id);
+      }
+    }
+    if (duplicatedIDs.size() > 0) {
+      log.report(duplicatedIDs.size() + " duplicate sample IDs found, out of " + dd2Ids.length
+          + " samples present.");
+    }
 
-		String[] dd1Mkrs = dd1.markerSet.getMarkerNames();
-		String[] dd2Mkrs = dd2.markerSet.getMarkerNames();
-		LinkedHashSet<String> markers = new LinkedHashSet<String>();
-		HashMap<String, Integer> dd1MarkersAndIndices = new HashMap<String, Integer>();
-		for (int i = 0; i < dd1Mkrs.length; i++) {
-			dd1MarkersAndIndices.put(dd1Mkrs[i], i);
-			markers.add(dd1Mkrs[i]);
-		}
-		HashSet<Integer> duplicatedMarkerIndices = new HashSet<Integer>();
-		HashMap<String, Integer> dd2MarkersAndIndices = new HashMap<String, Integer>();
-		HashSet<String> droppedMarkers = new HashSet<String>();
-		for (int i = 0; i < dd2Mkrs.length; i++) {
-			dd2MarkersAndIndices.put(dd2Mkrs[i], i);
+    String[] dd1Mkrs = dd1.markerSet.getMarkerNames();
+    String[] dd2Mkrs = dd2.markerSet.getMarkerNames();
+    LinkedHashSet<String> markers = new LinkedHashSet<String>();
+    HashMap<String, Integer> dd1MarkersAndIndices = new HashMap<String, Integer>();
+    for (int i = 0; i < dd1Mkrs.length; i++) {
+      dd1MarkersAndIndices.put(dd1Mkrs[i], i);
+      markers.add(dd1Mkrs[i]);
+    }
+    HashSet<Integer> duplicatedMarkerIndices = new HashSet<Integer>();
+    HashMap<String, Integer> dd2MarkersAndIndices = new HashMap<String, Integer>();
+    HashSet<String> droppedMarkers = new HashSet<String>();
+    for (int i = 0; i < dd2Mkrs.length; i++) {
+      dd2MarkersAndIndices.put(dd2Mkrs[i], i);
 
-			boolean alreadyPresentMkr = !markers.add(dd2Mkrs[i]);
-			if (alreadyPresentMkr) {
-				log.reportTime("Duplicate marker: " + dd2Mkrs[i]);
+      boolean alreadyPresentMkr = !markers.add(dd2Mkrs[i]);
+      if (alreadyPresentMkr) {
+        log.reportTime("Duplicate marker: " + dd2Mkrs[i]);
 
-				duplicatedMarkerIndices.add(i);
-				if (duplicatedIDs.size() > 0) {
+        duplicatedMarkerIndices.add(i);
+        if (duplicatedIDs.size() > 0) {
 
-					if (onDupeOp == COMBINE_OP.FAIL) {
-						log.reportTimeError("Error - cannot combine data sets with duplicated marker AND sample names.  Yet.");
-						// TODO combining values when marker and sample are the same?
-						System.exit(1);
-					} else if (onDupeOp == COMBINE_OP.DROP) {
-						log.reportTimeWarning("cannot combine data sets with duplicated marker AND sample names.  Marker "
-						                      + dd2Mkrs[i] + " will be dropped");
-						droppedMarkers.add(dd2Mkrs[i]);
-					}
-				}
-			}
-		}
+          if (onDupeOp == COMBINE_OP.FAIL) {
+            log.reportTimeError("Error - cannot combine data sets with duplicated marker AND sample names.  Yet.");
+            // TODO combining values when marker and sample are the same?
+            System.exit(1);
+          } else if (onDupeOp == COMBINE_OP.DROP) {
+            log.reportTimeWarning("cannot combine data sets with duplicated marker AND sample names.  Marker "
+                + dd2Mkrs[i] + " will be dropped");
+            droppedMarkers.add(dd2Mkrs[i]);
+          } else if (onDupeOp == COMBINE_OP.OVERWRITE_IF_ALL_MISSING) {
 
-		DosageData ddNew = new DosageData();
-		ddNew.ids = new String[idSet.size()][];
-		Iterator<String> iter = idSet.iterator();
-		int ind = 0;
-		while (iter.hasNext()) {
-			ddNew.ids[ind++] = iter.next().split("\t");
-		}
-		idSet = null; // can now refer to ddNew.ids
+          }
+        }
+      }
+    }
 
-		// don't use merge, as it sorts markers after merging
-		// ddNew.markerSet = SnpMarkerSet.merge(dd1.markerSet, dd2.markerSet);
-		byte[] chrSrc, chrSrc2;
-		char[][] alleleSrc, alleleSrc2;
-		int[] posSrc, posSrc2;
+    DosageData ddNew = new DosageData();
+    ddNew.ids = new String[idSet.size()][];
+    Iterator<String> iter = idSet.iterator();
+    int ind = 0;
+    while (iter.hasNext()) {
+      ddNew.ids[ind++] = iter.next().split("\t");
+    }
+    idSet = null; // can now refer to ddNew.ids
 
-		for (String s : droppedMarkers) {
-			markers.remove(s);
-		}
+    // don't use merge, as it sorts markers after merging
+    // ddNew.markerSet = SnpMarkerSet.merge(dd1.markerSet, dd2.markerSet);
+    byte[] chrSrc, chrSrc2;
+    char[][] alleleSrc, alleleSrc2;
+    int[] posSrc, posSrc2;
 
-		ddNew.alleles = new char[markers.size()][];
-		ddNew.chrs = new byte[markers.size()];
-		ddNew.positions = new int[markers.size()];
+    for (String s : droppedMarkers) {
+      markers.remove(s);
+    }
 
-		chrSrc = dd1.chrs == null ? dd1.markerSet.getChrs() : dd1.chrs;
-		alleleSrc = dd1.alleles == null ? dd1.markerSet.getAlleles() : dd1.alleles;
-		posSrc = dd1.positions == null ? dd1.markerSet.getPositions() : dd1.positions;
+    ddNew.alleles = new char[markers.size()][];
+    ddNew.chrs = new byte[markers.size()];
+    ddNew.positions = new int[markers.size()];
 
-		chrSrc2 = dd2.chrs == null ? dd2.markerSet.getChrs() : dd2.chrs;
-		alleleSrc2 = dd2.alleles == null ? dd2.markerSet.getAlleles() : dd2.alleles;
-		posSrc2 = dd2.positions == null ? dd2.markerSet.getPositions() : dd2.positions;
+    chrSrc = dd1.chrs == null ? dd1.markerSet.getChrs() : dd1.chrs;
+    alleleSrc = dd1.alleles == null ? dd1.markerSet.getAlleles() : dd1.alleles;
+    posSrc = dd1.positions == null ? dd1.markerSet.getPositions() : dd1.positions;
 
-		String[] mkrs = new String[markers.size()];
-		Iterator<String> markerIter = markers.iterator();
-		int m = 0;
-		while (markerIter.hasNext()) {
-			String mkr = markerIter.next();
+    chrSrc2 = dd2.chrs == null ? dd2.markerSet.getChrs() : dd2.chrs;
+    alleleSrc2 = dd2.alleles == null ? dd2.markerSet.getAlleles() : dd2.alleles;
+    posSrc2 = dd2.positions == null ? dd2.markerSet.getPositions() : dd2.positions;
 
-			mkrs[m] = mkr;
-			if (dd1MarkersAndIndices.containsKey(mkr)) {
-				ind = dd1MarkersAndIndices.get(mkr);
-				ddNew.chrs[m] = chrSrc == null ? missingChr : chrSrc[ind];
-				ddNew.alleles[m] = alleleSrc == null ? missingAlleles : alleleSrc[ind];
-				ddNew.positions[m] = posSrc == null ? missingPos : posSrc[ind];
-			} else if (dd2MarkersAndIndices.containsKey(mkr)) {
-				ind = dd2MarkersAndIndices.get(mkr);
-				ddNew.chrs[m] = chrSrc2 == null ? missingChr : chrSrc2[ind];
-				ddNew.alleles[m] = alleleSrc2 == null ? missingAlleles : alleleSrc2[ind];
-				ddNew.positions[m] = posSrc2 == null ? missingPos : posSrc2[ind];
-			} else {
-				ddNew.chrs[m] = missingChr;
-				ddNew.alleles[m] = missingAlleles;
-				ddNew.positions[m] = missingPos;
-			}
-			m++;
-		}
+    String[] mkrs = new String[markers.size()];
+    Iterator<String> markerIter = markers.iterator();
+    int m = 0;
+    while (markerIter.hasNext()) {
+      String mkr = markerIter.next();
 
-		ddNew.markerSet = new SnpMarkerSet(mkrs, ddNew.chrs, ddNew.positions, ddNew.alleles, null,
-		                                   false, true);
+      mkrs[m] = mkr;
+      if (dd1MarkersAndIndices.containsKey(mkr)) {
+        ind = dd1MarkersAndIndices.get(mkr);
+        ddNew.chrs[m] = chrSrc == null ? missingChr : chrSrc[ind];
+        ddNew.alleles[m] = alleleSrc == null ? missingAlleles : alleleSrc[ind];
+        ddNew.positions[m] = posSrc == null ? missingPos : posSrc[ind];
+      } else if (dd2MarkersAndIndices.containsKey(mkr)) {
+        ind = dd2MarkersAndIndices.get(mkr);
+        ddNew.chrs[m] = chrSrc2 == null ? missingChr : chrSrc2[ind];
+        ddNew.alleles[m] = alleleSrc2 == null ? missingAlleles : alleleSrc2[ind];
+        ddNew.positions[m] = posSrc2 == null ? missingPos : posSrc2[ind];
+      } else {
+        ddNew.chrs[m] = missingChr;
+        ddNew.alleles[m] = missingAlleles;
+        ddNew.positions[m] = missingPos;
+      }
+      m++;
+    }
 
-		int dd1NumGeno = dd1.genotypeProbabilities == null ? (dd1.dosageValues == null ? 0 : 1)
-		                                                   : dd1.genotypeProbabilities[0][0].length;
-		int dd2NumGeno = dd2.genotypeProbabilities == null ? (dd2.dosageValues == null ? 0 : 1)
-		                                                   : dd2.genotypeProbabilities[0][0].length;
+    ddNew.markerSet =
+        new SnpMarkerSet(mkrs, ddNew.chrs, ddNew.positions, ddNew.alleles, null, false, true);
 
-		boolean dosageOverride = false;
-		if ((dd1NumGeno > 1 || dd2NumGeno > 1) && dd1NumGeno != dd2NumGeno) {
-			log.reportTimeError("Warning - cannot combine different numbers of genotype probabilities - result data will be imputed dosages.");
-			dosageOverride = true;
-		}
-		int ddNewNumGeno = dosageOverride ? 1 : Math.min(dd1NumGeno, dd2NumGeno);
-		if (ddNewNumGeno == 0) {
-			log.reportTimeError("Error - cannot combine data sets when a dataset is missing both genotype and dosage data [dataset "
-			                    + (dd1NumGeno == 0 ? "1" : "2") + "]");
-			System.exit(1);
-		}
+    int dd1NumGeno =
+        dd1.genotypeProbabilities == null ? (dd1.dosageValues == null ? 0 : 1)
+            : dd1.genotypeProbabilities[0][0].length;
+    int dd2NumGeno =
+        dd2.genotypeProbabilities == null ? (dd2.dosageValues == null ? 0 : 1)
+            : dd2.genotypeProbabilities[0][0].length;
 
-		if ((dosageOverride || dd1NumGeno == 1) && dd2NumGeno > 1 && dd2.dosageValues == null) {
-			dd2.computeDosageValues(log);
-		} else if (dd1NumGeno > 1 && (dosageOverride || dd2NumGeno == 1) && dd1.dosageValues == null) {
-			dd1.computeDosageValues(log);
-		}
+    boolean dosageOverride = false;
+    if ((dd1NumGeno > 1 || dd2NumGeno > 1) && dd1NumGeno != dd2NumGeno) {
+      log.reportTimeError("Warning - cannot combine different numbers of genotype probabilities - result data will be imputed dosages.");
+      dosageOverride = true;
+    }
+    int ddNewNumGeno = dosageOverride ? 1 : Math.min(dd1NumGeno, dd2NumGeno);
+    if (ddNewNumGeno == 0) {
+      log.reportTimeError("Error - cannot combine data sets when a dataset is missing both genotype and dosage data [dataset "
+          + (dd1NumGeno == 0 ? "1" : "2") + "]");
+      System.exit(1);
+    }
 
-		ddNew.genotypeProbabilities =
-		                            ddNewNumGeno > 1 ? new float[markers.size()][ddNew.ids.length][ddNewNumGeno]
-		                                             : null;
-		ddNew.dosageValues = ddNewNumGeno == 1 ? new float[markers.size()][ddNew.ids.length] : null;
+    if ((dosageOverride || dd1NumGeno == 1) && dd2NumGeno > 1 && dd2.dosageValues == null) {
+      dd2.computeDosageValues(log);
+    } else if (dd1NumGeno > 1 && (dosageOverride || dd2NumGeno == 1) && dd1.dosageValues == null) {
+      dd1.computeDosageValues(log);
+    }
 
-		if (ddNewNumGeno > 1) {
-			// combine genotypeProbs
-			markerIter = markers.iterator();
-			m = 0;
-			while (markerIter.hasNext()) {
-				String mkr = markerIter.next();
+    ddNew.genotypeProbabilities =
+        ddNewNumGeno > 1 ? new float[markers.size()][ddNew.ids.length][ddNewNumGeno] : null;
+    ddNew.dosageValues = ddNewNumGeno == 1 ? new float[markers.size()][ddNew.ids.length] : null;
 
-				for (int s = 0; s < ddNew.ids.length; s++) {
-					String id = ddNew.ids[s][0] + "\t" + ddNew.ids[s][1];
+    if (ddNewNumGeno > 1) {
+      // combine genotypeProbs
+      markerIter = markers.iterator();
+      m = 0;
+      while (markerIter.hasNext()) {
+        String mkr = markerIter.next();
 
-					if (dd1MarkersAndIndices.containsKey(mkr) && dd1IdsAndIndices.containsKey(id)) {
-						ddNew.genotypeProbabilities[m][s] =
-						                                  dd1.genotypeProbabilities[dd1MarkersAndIndices.get(mkr)][dd1IdsAndIndices.get(id)];
-					} else if (dd2MarkersAndIndices.containsKey(mkr) && dd2IdsAndIndices.containsKey(id)) {
-						ddNew.genotypeProbabilities[m][s] =
-						                                  dd2.genotypeProbabilities[dd2MarkersAndIndices.get(mkr)][dd2IdsAndIndices.get(id)];
-					} else {
-						ddNew.genotypeProbabilities[m][s] = Array.floatArray(ddNewNumGeno, missingGeno);
-					}
+        for (int s = 0; s < ddNew.ids.length; s++) {
+          String id = ddNew.ids[s][0] + "\t" + ddNew.ids[s][1];
 
-				}
+          if (dd1MarkersAndIndices.containsKey(mkr) && dd1IdsAndIndices.containsKey(id)) {
+            ddNew.genotypeProbabilities[m][s] =
+                dd1.genotypeProbabilities[dd1MarkersAndIndices.get(mkr)][dd1IdsAndIndices.get(id)];
+            if (checkMissing(ddNew.genotypeProbabilities[m][s], missingGeno)
+                && dd2MarkersAndIndices.containsKey(mkr) && dd2IdsAndIndices.containsKey(id)) {
+              log.reportTimeWarning("replacing missing genotype data with dd2 data");
+              ddNew.genotypeProbabilities[m][s] =
+                  dd2.genotypeProbabilities[dd2MarkersAndIndices.get(mkr)][dd2IdsAndIndices.get(id)];
+            }
+          } else if (dd2MarkersAndIndices.containsKey(mkr) && dd2IdsAndIndices.containsKey(id)) {
+            ddNew.genotypeProbabilities[m][s] =
+                dd2.genotypeProbabilities[dd2MarkersAndIndices.get(mkr)][dd2IdsAndIndices.get(id)];
+            if (checkMissing(ddNew.genotypeProbabilities[m][s], missingGeno)
+                && dd1MarkersAndIndices.containsKey(mkr) && dd1IdsAndIndices.containsKey(id)) {
+              log.reportTimeWarning("replacing missing genotype data with dd1 data");
+              ddNew.genotypeProbabilities[m][s] =
+                  dd1.genotypeProbabilities[dd1MarkersAndIndices.get(mkr)][dd1IdsAndIndices.get(id)];
+            }
+          } else {
+            ddNew.genotypeProbabilities[m][s] = Array.floatArray(ddNewNumGeno, missingGeno);
+          }
 
-				m++;
-			}
-		} else if (ddNewNumGeno == 1) {
+        }
 
-			markerIter = markers.iterator();
-			m = 0;
-			while (markerIter.hasNext()) {
-				String mkr = markerIter.next();
+        m++;
+      }
+    } else if (ddNewNumGeno == 1) {
 
-				for (int s = 0; s < ddNew.ids.length; s++) {
-					String id = ddNew.ids[s][0] + "\t" + ddNew.ids[s][1];
-					if (dd1MarkersAndIndices.containsKey(mkr)) {
-						ddNew.dosageValues[m][s] =
-						                         dd1.dosageValues[dd1MarkersAndIndices.get(mkr)][dd1IdsAndIndices.get(id)];
-					} else if (dd2MarkersAndIndices.containsKey(mkr)) {
-						ddNew.dosageValues[m][s] =
-						                         dd2.dosageValues[dd2MarkersAndIndices.get(mkr)][dd2IdsAndIndices.get(id)];
-					} else {
-						ddNew.dosageValues[m][s] = missingDosage;
-					}
-				}
+      markerIter = markers.iterator();
+      m = 0;
+      while (markerIter.hasNext()) {
+        String mkr = markerIter.next();
 
-				m++;
-			}
-		}
+        for (int s = 0; s < ddNew.ids.length; s++) {
+          String id = ddNew.ids[s][0] + "\t" + ddNew.ids[s][1];
+          if (dd1MarkersAndIndices.containsKey(mkr)) {
+            ddNew.dosageValues[m][s] =
+                dd1.dosageValues[dd1MarkersAndIndices.get(mkr)][dd1IdsAndIndices.get(id)];
+            if (checkMissing(ddNew.dosageValues[m][s], missingDosage)
+                && dd2MarkersAndIndices.containsKey(mkr) && dd2IdsAndIndices.containsKey(id)) {
+              log.reportTimeWarning("replacing missing dosage data with dd2 data");
+              ddNew.dosageValues[m][s] =
+                  dd2.dosageValues[dd2MarkersAndIndices.get(mkr)][dd2IdsAndIndices.get(id)];
+            }
+          } else if (dd2MarkersAndIndices.containsKey(mkr)) {
+            ddNew.dosageValues[m][s] =
+                dd2.dosageValues[dd2MarkersAndIndices.get(mkr)][dd2IdsAndIndices.get(id)];
+            ddNew.dosageValues[m][s] =
+                dd2.dosageValues[dd2MarkersAndIndices.get(mkr)][dd2IdsAndIndices.get(id)];
+            if (checkMissing(ddNew.dosageValues[m][s], missingGeno)
+                && dd1MarkersAndIndices.containsKey(mkr) && dd1IdsAndIndices.containsKey(id)) {
+              log.reportTimeWarning("replacing missing genotype data with dd1 data");
+              ddNew.dosageValues[m][s] =
+                  dd1.dosageValues[dd1MarkersAndIndices.get(mkr)][dd1IdsAndIndices.get(id)];
+            }
+          } else {
+            ddNew.dosageValues[m][s] = missingDosage;
+          }
+        }
 
-		int[] keys = Sort.getSort2DIndices(ddNew.chrs, ddNew.positions);
-		ddNew.chrs = Sort.getOrdered(ddNew.chrs, keys);
-		ddNew.positions = Sort.getOrdered(ddNew.positions, keys);
-		if (ddNew.alleles != null) {
-			ddNew.alleles = Sort.getOrdered(ddNew.alleles, keys);
-		}
-		ddNew.markerSet.sortMarkers();
-		if (ddNew.genotypeProbabilities != null) {
-			ddNew.genotypeProbabilities = Sort.getOrdered(ddNew.genotypeProbabilities, keys);
-		}
-		if (ddNew.dosageValues != null) {
-			ddNew.dosageValues = Sort.getOrdered(ddNew.dosageValues, keys);
-		}
+        m++;
+      }
+    }
 
-		return ddNew;
-	}
+    int[] keys = Sort.getSort2DIndices(ddNew.chrs, ddNew.positions);
+    ddNew.chrs = Sort.getOrdered(ddNew.chrs, keys);
+    ddNew.positions = Sort.getOrdered(ddNew.positions, keys);
+    if (ddNew.alleles != null) {
+      ddNew.alleles = Sort.getOrdered(ddNew.alleles, keys);
+    }
+    ddNew.markerSet.sortMarkers();
+    if (ddNew.genotypeProbabilities != null) {
+      ddNew.genotypeProbabilities = Sort.getOrdered(ddNew.genotypeProbabilities, keys);
+    }
+    if (ddNew.dosageValues != null) {
+      ddNew.dosageValues = Sort.getOrdered(ddNew.dosageValues, keys);
+    }
 
-	public static void convert(String dosageFile, String idFile, String mapFile, int fromFormat,
+    return ddNew;
+  }
+
+  private static boolean checkMissing(float f, float missingGeno) {
+    boolean missNaN = Float.isNaN(missingGeno);
+    if (missNaN && !Float.isNaN(f)) return false;
+    if (Float.compare(f, missingGeno) != 0) return false;
+    return true;
+  }
+  private static boolean checkMissing(float[] fs, float missingGeno) {
+    boolean missNaN = Float.isNaN(missingGeno);
+    for (float f : fs) {
+      if (missNaN && !Float.isNaN(f)) return false;
+      if (Float.compare(f, missingGeno) != 0) return false;
+    }
+    return true;
+  }
+
+  public static void convert(String dosageFile, String idFile, String mapFile, int fromFormat,
 	                           String outfile, String mapOut, String extract, int toFormat,
 	                           boolean awk, boolean verbose, Logger log) {
 		convert(dosageFile, idFile, mapFile, PARAMETERS[fromFormat], outfile, mapOut, extract,
