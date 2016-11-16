@@ -287,7 +287,7 @@ public class PlinkMendelianChecker {
 	}
 
 
-	void run() {
+	public void run() {
 		Pedigree ped;
 		SampleData sampleData = null;
 		SampleQC sampQC = null;
