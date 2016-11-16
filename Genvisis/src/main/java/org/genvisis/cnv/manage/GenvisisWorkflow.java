@@ -39,6 +39,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Ancestry;
+import org.genvisis.gwas.PlinkMendelianChecker;
 import org.genvisis.gwas.Qc;
 
 import com.google.common.base.Joiner;
@@ -1102,6 +1103,13 @@ public class GenvisisWorkflow {
 				}
 			}
 			Qc.fullGamut(dir, null, keepUnrelatedsOnly, proj.getLog());
+			if (new File(dir + "genome/plink.genome").exists()) {
+				proj.GENOME_CLUSTER_FILENAME.setValue(dir + "genome/plink.genome");
+				proj.saveProperties();
+			}
+			if (!keepUnrelatedsOnly) {
+				new PlinkMendelianChecker(proj).run();
+			}
 			if (!skipAncestry) {
 				String ancestryDir = dir + Qc.ANCESTRY_DIR;
 				Ancestry.runPipeline(	ancestryDir, putativeWhites, hapMapPlinkRoot, proj,
@@ -1177,6 +1185,13 @@ public class GenvisisWorkflow {
 
 			String command = Files.getRunString()	+ " gwas.Qc dir=" + dir
 												+ " keepGenomeInfoForRelatedsOnly=" + keepUnrelatedsOnly;
+			command += "\n";
+			command += Files.getRunString() + " org.genvisis.cnv.filesys.Project proj=" + proj.getPropertyFilename();
+			command += " " + proj.GENOME_CLUSTER_FILENAME.getName() + "=" + dir + "genome/plink.genome";
+			if (!keepUnrelatedsOnly) {
+				command += "\n";
+				command += Files.getRunString() + " org.genvisis.gwas.PlinkMendelianChecker proj=" + proj.getPropertyFilename();
+			}
 			if (!skipAncestry) {
 				String ancestryDir = dir + Qc.ANCESTRY_DIR;
 				command += "\n";
