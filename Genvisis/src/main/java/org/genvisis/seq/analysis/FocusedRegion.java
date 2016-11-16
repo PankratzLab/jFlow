@@ -64,7 +64,7 @@ public class FocusedRegion {
 		Files.write(seg.getChromosomeUCSC() + "\t" + seg.getStart() + "\t" + seg.getStop(), segFile);
 		String subOut = outDir + "extract/";
 		new File(subOut).mkdirs();
-		VCFOps.extractSegments(	vcf, segFile, 0, bamFile, subOut, false, true, true, true,
+		VCFOps.extractSegments(	vcf, segFile, 300, bamFile, subOut, false, true, true, true,
 														new String[] {variantSet}, numthreads, log);
 	}
 
