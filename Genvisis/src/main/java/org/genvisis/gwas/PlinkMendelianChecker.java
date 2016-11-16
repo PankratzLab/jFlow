@@ -437,10 +437,20 @@ public class PlinkMendelianChecker {
 		if (genomeFile != null && (new File(genomeFile)).exists()) {
 			System.out.println(ext.getTime() + "]\tLoading GenomicCluster data...");
 			gl = GenomeLoader.run(genomeFile, pairs);
+		} else {
+			project.getLog()
+			       .reportTimeWarning("No Genome data found - output will be limited. Is "
+			                          + project.GENOME_CLUSTER_FILENAME.getName()
+			                          + " set appropriately?");
 		}
 		if (mendelFile != null && (new File(mendelFile)).exists()) {
 			System.out.println(ext.getTime() + "]\tLoading MendelianError data...");
 			ml = MendelLoader.run(mendelFile);
+		} else {
+			project.getLog()
+			       .reportTimeWarning("Mendelian data not found"
+			                          + (mendelFile == null ? "" : " at " + mendelFile)
+			                          + " - output will be limited");
 		}
 
 		StringBuilder sb;
