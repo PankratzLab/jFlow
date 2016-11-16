@@ -471,7 +471,7 @@ public class PlinkMendelianChecker {
 
 		sb.append("COMPLETE_TRIO").append("\t");
 
-		System.out.println(ext.getTime() + "]\tWriting result data...");
+		System.out.println(ext.getTime() + "]\tWriting result data to " + outDir + "trios.xln");
 
 		int missingCount = 0;
 
