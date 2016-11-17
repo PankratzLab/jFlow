@@ -1,12 +1,62 @@
 package org.genvisis.stats;
 
 import java.math.BigInteger;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import org.genvisis.common.Array;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 public class Maths {
-	// these are the valid operators that will be searched for in the following order
-	public static final String[] OPERATORS = {"<=", "<", ">=", ">", "=", "!"};
+
+	
+	public static enum OPERATOR {
+		// Valid operators that will be searched for in the following order:
+		LESS_THAN_OR_EQUAL("<="),
+		LESS_THAN("<"),
+		GREATER_THAN_OR_EQUAL(">="),
+		GREATER_THAN(">"),
+		EQUAL("="),
+		NOT("!");
+		
+		private static final Map<String, OPERATOR> SYMBOL_MAP;
+		static {
+			ImmutableMap.Builder<String, OPERATOR> builder = ImmutableMap.builder();
+			for (OPERATOR operator : OPERATOR.values()) {
+				builder.put(operator.getSymbol(), operator);
+			}
+			SYMBOL_MAP = builder.build();
+		}
+		
+		private final String symbol;
+		
+		OPERATOR(String symbol) {
+			this.symbol = symbol;
+		}
+
+		public String getSymbol() {
+			return symbol;
+		}
+		
+		public static OPERATOR forSymbol(String symbol) {
+			return SYMBOL_MAP.get(symbol);
+		}
+		
+	}
+	
+	public static final List<String> OPERATORS;
+	static {
+		ImmutableList.Builder<String> builder = ImmutableList.builder();
+		for (OPERATOR operator : OPERATOR.values()) {
+			builder.add(operator.getSymbol());
+		}
+		OPERATORS = builder.build();
+	}
 
 	public static double limit(double d, double min, double max) {
 		return d < min ? min : (d > max ? max : d);
