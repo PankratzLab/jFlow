@@ -181,9 +181,9 @@ public class VCOps {
 		try {
 			jExps = VariantContextUtils.initializeMatchExps(names, expressions);
 		} catch (IllegalArgumentException ile) {
-			log.reportTimeError("Could not intitialize the jexl expressions:");
-			log.reportTimeError("Names: " + Array.toStr(names));
-			log.reportTimeError("JEXLs: " + Array.toStr(expressions));
+			log.reportError("Could not intitialize the jexl expressions:");
+			log.reportError("Names: " + Array.toStr(names));
+			log.reportError("JEXLs: " + Array.toStr(expressions));
 			log.reportException(ile);
 		}
 		return jExps;
@@ -328,7 +328,7 @@ public class VCOps {
 					use = geno.isHomVar();
 					break;
 				default:
-					log.reportTimeError("Invalid alt context type " + type);
+					log.reportError("Invalid alt context type " + type);
 					break;
 			}
 			if (use) {
@@ -348,7 +348,7 @@ public class VCOps {
 					} catch (IllegalStateException ise) {
 						if (verbose) {
 							// TODO, report?
-							log.reportTimeError("Could not compute appropriate allele Depths");
+							log.reportError("Could not compute appropriate allele Depths");
 							log.reportException(ise);
 						}
 					}
@@ -417,7 +417,7 @@ public class VCOps {
 		List<Allele> varAlleles = vc.getAlleles();
 
 		if (gAlleles.size() != 2 && g.hasAD()) {
-			log.reportTimeError("Number of alleles must equal 2, return AD[0,0]");
+			log.reportError("Number of alleles must equal 2, return AD[0,0]");
 			return AD;
 		} else if (gAlleles.size() == 0 || !g.hasAD()) {
 			String error = "Invalid Allele retrieval";
@@ -434,12 +434,12 @@ public class VCOps {
 				if (gAD.length != varAlleles.size()) {
 					if (verbose) {
 						String error = "an allelic depth must be present for every allele in the variant";
-						log.reportTimeError(error);
-						log.reportTimeError(varAlleles.toString());
-						log.reportTimeError(gAlleles.toString());
-						log.reportTimeError(Array.toStr(gAD) + " > " + Array.toStr(AD));
-						log.reportTimeError(vc.toStringWithoutGenotypes());
-						log.reportTimeError(g.toString());
+						log.reportError(error);
+						log.reportError(varAlleles.toString());
+						log.reportError(gAlleles.toString());
+						log.reportError(Array.toStr(gAD) + " > " + Array.toStr(AD));
+						log.reportError(vc.toStringWithoutGenotypes());
+						log.reportError(g.toString());
 					}
 					return null;
 				}
@@ -473,12 +473,12 @@ public class VCOps {
 				if (gAlleleIndices.size() > 2 || gAlleleIndices.size() == 0) {
 					if (verbose) {
 
-						log.reportTimeError("Invalid Allelic depth extraction");
-						log.reportTimeError(varAlleles.toString());
-						log.reportTimeError(gAlleles.toString());
-						log.reportTimeError(Array.toStr(gAD) + " > " + Array.toStr(AD));
-						log.reportTimeError(vc.toStringWithoutGenotypes());
-						log.reportTimeError(g.toString());
+						log.reportError("Invalid Allelic depth extraction");
+						log.reportError(varAlleles.toString());
+						log.reportError(gAlleles.toString());
+						log.reportError(Array.toStr(gAD) + " > " + Array.toStr(AD));
+						log.reportError(vc.toStringWithoutGenotypes());
+						log.reportError(g.toString());
 					}
 					throw new IllegalStateException("Invalid Allelic depth extraction");
 				}
@@ -490,12 +490,12 @@ public class VCOps {
 					} else {
 						if (verbose) {
 
-							log.reportTimeError("Invalid Allelic depth extraction for 1 index");
-							log.reportTimeError(varAlleles.toString());
-							log.reportTimeError(gAlleles.toString());
-							log.reportTimeError(Array.toStr(gAD) + " > " + Array.toStr(AD));
-							log.reportTimeError(vc.toStringWithoutGenotypes());
-							log.reportTimeError(g.toString());
+							log.reportError("Invalid Allelic depth extraction for 1 index");
+							log.reportError(varAlleles.toString());
+							log.reportError(gAlleles.toString());
+							log.reportError(Array.toStr(gAD) + " > " + Array.toStr(AD));
+							log.reportError(vc.toStringWithoutGenotypes());
+							log.reportError(g.toString());
 						}
 						throw new IllegalStateException("Invalid Allelic depth extraction for 1 index");
 					}
@@ -511,35 +511,35 @@ public class VCOps {
 																					// anyways we do not test AD[0]
 					if (verbose) {
 
-						log.reportTimeError("Invalid Het allele depth, Het non-ref " + g.isHetNonRef());
-						log.reportTimeError(varAlleles.toString());
-						log.reportTimeError(gAlleles.toString());
-						log.reportTimeError(Array.toStr(gAD) + " > " + Array.toStr(AD));
-						log.reportTimeError(vc.toStringWithoutGenotypes());
-						log.reportTimeError(g.toString());
+						log.reportError("Invalid Het allele depth, Het non-ref " + g.isHetNonRef());
+						log.reportError(varAlleles.toString());
+						log.reportError(gAlleles.toString());
+						log.reportError(Array.toStr(gAD) + " > " + Array.toStr(AD));
+						log.reportError(vc.toStringWithoutGenotypes());
+						log.reportError(g.toString());
 					}
 					throw new IllegalStateException("Invalid Het allele depth");
 				} else if (g.isHomVar()	&& AD[1] == 0 && Array.sum(gAD) > 0
 										&& Array.sum(gAD) != Array.sum(AD)) {
 					if (verbose) {
 
-						log.reportTimeError("Invalid Hom Var allele depth");
-						log.reportTimeError(varAlleles.toString());
-						log.reportTimeError(gAlleles.toString());
-						log.reportTimeError(Array.toStr(gAD) + " > " + Array.toStr(AD));
-						log.reportTimeError(vc.toStringWithoutGenotypes());
-						log.reportTimeError(g.toString());
+						log.reportError("Invalid Hom Var allele depth");
+						log.reportError(varAlleles.toString());
+						log.reportError(gAlleles.toString());
+						log.reportError(Array.toStr(gAD) + " > " + Array.toStr(AD));
+						log.reportError(vc.toStringWithoutGenotypes());
+						log.reportError(g.toString());
 					}
 					throw new IllegalStateException("Invalid Hom Var  allele depth");
 				} else if (g.isHomRef() && AD[0] == 0 && Array.sum(gAD) > 0) {
 					if (verbose) {
 
-						log.reportTimeError("Invalid Hom Ref allele depth");
-						log.reportTimeError(varAlleles.toString());
-						log.reportTimeError(gAlleles.toString());
-						log.reportTimeError(Array.toStr(gAD) + " > " + Array.toStr(AD));
-						log.reportTimeError(vc.toStringWithoutGenotypes());
-						log.reportTimeError(g.toString());
+						log.reportError("Invalid Hom Ref allele depth");
+						log.reportError(varAlleles.toString());
+						log.reportError(gAlleles.toString());
+						log.reportError(Array.toStr(gAD) + " > " + Array.toStr(AD));
+						log.reportError(vc.toStringWithoutGenotypes());
+						log.reportError(g.toString());
 					}
 					throw new IllegalStateException("Invalid Hom Ref allele depth");
 				}

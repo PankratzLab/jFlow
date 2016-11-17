@@ -969,12 +969,12 @@ public class DosageData implements Serializable {
 
     boolean dosageOverride = false;
     if ((dd1NumGeno > 1 || dd2NumGeno > 1) && dd1NumGeno != dd2NumGeno) {
-      log.reportTimeError("Warning - cannot combine different numbers of genotype probabilities - result data will be imputed dosages.");
+      log.reportError("Warning - cannot combine different numbers of genotype probabilities - result data will be imputed dosages.");
       dosageOverride = true;
     }
     int ddNewNumGeno = dosageOverride ? 1 : Math.min(dd1NumGeno, dd2NumGeno);
     if (ddNewNumGeno == 0) {
-      log.reportTimeError("Error - cannot combine data sets when a dataset is missing both genotype and dosage data [dataset " + (dd1NumGeno == 0 ? "1" : "2") + "]");
+      log.reportError("Error - cannot combine data sets when a dataset is missing both genotype and dosage data [dataset " + (dd1NumGeno == 0 ? "1" : "2") + "]");
       System.exit(1);
     }
 
@@ -1029,7 +1029,7 @@ public class DosageData implements Serializable {
         if (duplicatedIDs.size() > 0) {
 
           if (onDupeOp == COMBINE_OP.FAIL) {
-            log.reportTimeError("Error - cannot combine data sets with duplicated marker AND sample names.  Yet.");
+            log.reportError("Error - cannot combine data sets with duplicated marker AND sample names.  Yet.");
             // TODO combining values when marker and sample are the same?
             System.exit(1);
           } else if (onDupeOp == COMBINE_OP.DROP) {
@@ -1206,7 +1206,7 @@ public class DosageData implements Serializable {
               // easy, set to missing, though why would this occur?  Weird...
               ddNew.genotypeProbabilities[m][s] = dd1Data; // set to missingGeno
             } else if (!miss1 && !miss2) {
-              log.reportTimeError("Error - valid genotype data in both DosageData objects for ID/MKR: \"" + id + "\" / \"" + mkr + "\" - data will be set to missing.");
+              log.reportError("Error - valid genotype data in both DosageData objects for ID/MKR: \"" + id + "\" / \"" + mkr + "\" - data will be set to missing.");
               ddNew.genotypeProbabilities[m][s] = Array.floatArray(ddNewNumGeno, missingGeno);
             }
           } else {
@@ -1272,7 +1272,7 @@ public class DosageData implements Serializable {
             // easy, set to missing, though why would this occur?  Weird...
             ddNew.dosageValues[m][s] = missingDosage; // set to missingGeno
           } else if (!miss1 && !miss2) {
-            log.reportTimeError("Error - valid dosage data in both DosageData objects for ID/MKR: \"" + id + "\" / \"" + mkr + "\" - data will be set to missing.");
+            log.reportError("Error - valid dosage data in both DosageData objects for ID/MKR: \"" + id + "\" / \"" + mkr + "\" - data will be set to missing.");
             ddNew.dosageValues[m][s] = missingDosage;
           }
           

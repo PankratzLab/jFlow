@@ -31,7 +31,7 @@ public class PrimerBuffer {
 			BufferedReader reader = Files.getAppropriateReader(queryFile);
 			int[] header = ext.indexFactors(reader.readLine().trim().split("\t"), HEADER, true, true);
 			if (Array.countIf(header, -1) > 0) {
-				log.reportTimeError("Did not detect complete header "	+ Array.toStr(HEADER) + " in "
+				log.reportError("Did not detect complete header "	+ Array.toStr(HEADER) + " in "
 														+ queryFile);
 				return;
 			}

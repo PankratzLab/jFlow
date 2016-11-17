@@ -207,12 +207,12 @@ public class Segment implements Serializable, Comparable<Segment> {
 	public Segment getIntersection(Segment seg, Logger log) {
 		if (chr != seg.chr) {
 			String error = "merging segments on different chromosomes";
-			log.reportTimeError(error);
+			log.reportError(error);
 			throw new IllegalArgumentException(error);
 		}
 		if (!overlaps(seg)) {
 			String error = "segments do not overlap";
-			log.reportTimeError(error);
+			log.reportError(error);
 			throw new IllegalArgumentException(error);
 		}
 		return new Segment(chr, Math.max(start, seg.start), Math.min(stop, seg.stop));
@@ -289,14 +289,14 @@ public class Segment implements Serializable, Comparable<Segment> {
 			if (getSize() - totalBasePairsToRemove != totalBpRemaining) {
 
 				String error = "BUG: did not remove segments properly";
-				log.reportTimeError(error);
+				log.reportError(error);
 				throw new IllegalStateException(error);
 			}
 
 			for (Segment element : segsToRemove) {
 				if (finalMergedSet.getOverLappingLoci(element) != null) {
 					String error = "BUG: not all segments were properly removed";
-					log.reportTimeError(error);
+					log.reportError(error);
 					throw new IllegalStateException(error);
 				}
 			}
@@ -333,7 +333,7 @@ public class Segment implements Serializable, Comparable<Segment> {
 			} else {
 				String error = "Un accounted for remove" + getUCSClocation() + " trying to remove "
 				               + seg.getUCSClocation();
-				log.reportTimeError(error);
+				log.reportError(error);
 				throw new IllegalStateException(error);
 			}
 		}
@@ -356,7 +356,7 @@ public class Segment implements Serializable, Comparable<Segment> {
 					error += "\n New: " + element.getUCSClocation();
 				}
 			}
-			log.reportTimeError(error);
+			log.reportError(error);
 			throw new IllegalStateException(error);
 		}
 		return cleaned;

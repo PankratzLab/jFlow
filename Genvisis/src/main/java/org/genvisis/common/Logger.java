@@ -93,14 +93,6 @@ public class Logger implements Serializable {
 		report(ext.getTime() + " Warning - " + str, true, true);
 	}
 
-	/**
-	 * @param str report this string with a time stamp and error message
-	 */
-	public void reportTimeError(String str) {
-		String version = getVersion();
-		reportError(version + ext.getTime() + " Error - " + str, true, true);
-	}
-
 	private static String getVersion() {
 		String v = "[Genvisis - version unknown] ";
 		try {
@@ -116,7 +108,7 @@ public class Logger implements Serializable {
 	 */
 	public void reportFileNotFound(String filename) {
 		String str = "file \"" + filename + "\" not found in current directory";
-		reportTimeError(str);
+		reportError(str);
 	}
 
 	/**
@@ -125,7 +117,7 @@ public class Logger implements Serializable {
 	 */
 	public void reportFilesNotFound(String[] filenames) {
 		if (filenames == null) {
-			reportTimeError("No file handles provided");
+			reportError("No file handles provided");
 		} else {
 			boolean haveMissing = false;
 			for (int i = 0; i < filenames.length; i++) {
@@ -145,7 +137,7 @@ public class Logger implements Serializable {
 	 */
 	public void reportIOException(String filename) {
 		String str = "could not read file \"" + filename + "\"";
-		reportTimeError(str);
+		reportError(str);
 	}
 
 	public void report(String str) {
@@ -200,11 +192,13 @@ public class Logger implements Serializable {
 													int levelRequiredToReport) {
 		PrintWriter writer;
 
+		String msg = getVersion() + ext.getTime() + "Error -\t" + err;
+
 		if (level >= levelRequiredToReport && reportToScreen) {
 			if (line) {
-				System.err.println(err);
+				System.err.println(msg);
 			} else {
-				System.err.print(err);
+				System.err.print(msg);
 			}
 		}
 
@@ -318,4 +312,5 @@ public class Logger implements Serializable {
 
 		return memory;
 	}
+
 }

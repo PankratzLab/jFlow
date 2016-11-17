@@ -103,7 +103,7 @@ public class VCFTally implements Serializable {
 			all.addAll(cases);
 			all.addAll(controls);
 			if (cases.size() >= controls.size()) {
-				log.reportTimeError("Since the case/control ratio is gte 0.5, a filtering procedure to remove minor alleles that are not alternate alleles may exclude informative variants, please add more controls");
+				log.reportError("Since the case/control ratio is gte 0.5, a filtering procedure to remove minor alleles that are not alternate alleles may exclude informative variants, please add more controls");
 			}
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(outputList, false));
@@ -176,7 +176,7 @@ public class VCFTally implements Serializable {
 				e.printStackTrace();
 			}
 		} else {
-			log.reportTimeError("THIS is the case/control method, sorry");
+			log.reportError("THIS is the case/control method, sorry");
 		}
 	}
 
@@ -185,10 +185,10 @@ public class VCFTally implements Serializable {
 		trackersControl = new TallyTracker[SNPEFF_NAMES.length];
 		log.reportTimeInfo("Using vpopulation to report");
 		if (!vpop.getSubPop().containsKey(VCFOps.VcfPopulation.CASE)) {
-			log.reportTimeError("Vpopulation must contain " + VCFOps.VcfPopulation.CASE);
+			log.reportError("Vpopulation must contain " + VCFOps.VcfPopulation.CASE);
 		}
 		if (!vpop.getSubPop().containsKey(VCFOps.VcfPopulation.CONTROL)) {
-			log.reportTimeError("Vpopulation must contain " + VCFOps.VcfPopulation.CONTROL);
+			log.reportError("Vpopulation must contain " + VCFOps.VcfPopulation.CONTROL);
 		}
 		trackersCase = new TallyTracker[SNPEFF_NAMES.length];
 
@@ -411,7 +411,7 @@ public class VCFTally implements Serializable {
 				for (int chrIndex = 0; chrIndex < gDatas[chr].length; chrIndex++) {
 					if (gDatas[chr][chrIndex].getChr() < curChr
 							|| gDatas[chr][chrIndex].getStart() < curPos) {
-						log.reportTimeError("Unsorted Genetrack!");
+						log.reportError("Unsorted Genetrack!");
 						return;
 					} else {
 						curChr = gDatas[chr][chrIndex].getChr();
@@ -558,7 +558,7 @@ public class VCFTally implements Serializable {
 
 		public void addTally(String gene, float num, float mac) {
 			if (!tally.containsKey(gene)) {
-				log.reportTimeError("Could not find " + gene + " in the initialized tally");
+				log.reportError("Could not find " + gene + " in the initialized tally");
 			} else {
 				tally.put(gene, tally.get(gene) + num);
 				tallyMAC.put(gene, tallyMAC.get(gene) + mac);

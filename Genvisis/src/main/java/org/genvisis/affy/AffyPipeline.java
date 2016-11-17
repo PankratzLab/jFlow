@@ -60,11 +60,11 @@ public class AffyPipeline {
 		this.full = full;
 		this.log = log;
 		if (!new File(aptExeDir).exists()) {
-			log.reportTimeError(aptExeDir + " did not exist (Affy exe directory)");
+			log.reportError(aptExeDir + " did not exist (Affy exe directory)");
 			throw new IllegalArgumentException();
 		}
 		if (!new File(aptLibDir).exists()) {
-			log.reportTimeError(aptLibDir + " did not exist (Affy lib directory)");
+			log.reportError(aptLibDir + " did not exist (Affy lib directory)");
 			throw new IllegalArgumentException();
 		}
 		validatePreReq();
@@ -75,7 +75,7 @@ public class AffyPipeline {
 
 		for (int i = 0; i < AFFY_LIB_FILES.values().length; i++) {
 			if (!Files.exists(aptLibDir + AFFY_LIB_FILES.values()[i].getLibFile(full))) {
-				log.reportTimeError(aptLibDir	+ AFFY_LIB_FILES.values()[i].getLibFile(full)
+				log.reportError(aptLibDir	+ AFFY_LIB_FILES.values()[i].getLibFile(full)
 														+ " did not exist");
 				throw new IllegalArgumentException();
 			}
@@ -84,7 +84,7 @@ public class AffyPipeline {
 		for (int i = 0; i < AFFY_ANALYSIS_TYPES.values().length; i++) {
 			String exeFile = aptExeDir + AFFY_ANALYSIS_TYPES.values()[i].getExe();
 			if (!Files.exists(exeFile)) {
-				log.reportTimeError(exeFile + " did not exist");
+				log.reportError(exeFile + " did not exist");
 				throw new IllegalArgumentException();
 			} else {
 				Files.chmod(exeFile, false);
@@ -423,18 +423,18 @@ public class AffyPipeline {
 		boolean error = false;
 		for (String celFile : celFiles) {
 			if (uniq.containsKey(ext.removeDirectoryInfo(celFile))) {
-				log.reportTimeError(ext.removeDirectoryInfo(celFile)
+				log.reportError(ext.removeDirectoryInfo(celFile)
 														+ " was seen multiple times, perhaps across directories");
 				error = true;
 			} else {
 				uniq.put(ext.removeDirectoryInfo(celFile), ext.removeDirectoryInfo(celFile));
 			}
 			if (celFile.length() != celFile.replaceAll("[\\s]+", "").length()) {
-				log.reportTimeError(celFile + " contained whitespace");
+				log.reportError(celFile + " contained whitespace");
 			}
 		}
 		if (error) {
-			log.reportTimeError("Invalid cel file list, apt will not run");
+			log.reportError("Invalid cel file list, apt will not run");
 			throw new IllegalArgumentException();
 		}
 	}
@@ -454,7 +454,7 @@ public class AffyPipeline {
 		validateCelSelection(celFiles, log);
 		log.reportTimeInfo("Found " + celFiles.length + " .cel files to process");
 		if (markerPositions == null || !Files.exists(markerPositions)) {
-			log.reportTimeError("Could not find marker position file " + markerPositions);
+			log.reportError("Could not find marker position file " + markerPositions);
 			Resource markerPos = Resources.affy(log).genome(build).getMarkerPositions();
 			if (!markerPos.isAvailable()) {
 				throw new IllegalArgumentException();
@@ -464,7 +464,7 @@ public class AffyPipeline {
 			}
 		}
 		if (quantNormTarget == null || !Files.exists(quantNormTarget)) {
-			log.reportTimeError("A valid target sketch file is required, and available from http://www.openbioinformatics.org/penncnv/download/gw6.tar.gz");
+			log.reportError("A valid target sketch file is required, and available from http://www.openbioinformatics.org/penncnv/download/gw6.tar.gz");
 			throw new IllegalArgumentException();
 		}
 		if (full) {

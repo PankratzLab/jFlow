@@ -346,7 +346,7 @@ public class Rscript {
 			Hashtable<String, String> plotVars = new Hashtable<String, String>();
 			for (RScatter rScatter : rScatters) {
 				if (plotVars.containsKey(rScatter.getPlotVar())) {
-					log.reportTimeError("Multiple plot vars " + rScatter.getPlotVar());
+					log.reportError("Multiple plot vars " + rScatter.getPlotVar());
 					valid = false;
 				} else {
 					plotVars.put(rScatter.getPlotVar(), rScatter.getPlotVar());
@@ -477,7 +477,7 @@ public class Rscript {
 				log.reportFileNotFound(file);
 				return null;
 			} else if (!Files.headerOfFileContainsAll(file, HEADER, log)) {
-				log.reportTimeError("Geom text " + file + "  must have header " + Array.toStr(HEADER));
+				log.reportError("Geom text " + file + "  must have header " + Array.toStr(HEADER));
 				return null;
 			} else {
 				ArrayList<GeomText> geomTexts = new ArrayList<GeomText>();
@@ -840,7 +840,7 @@ public class Rscript {
 		public void setrSafeAltYColumnNames(String[] rSafeAltYColumnNames) {
 			if (rSafeAltYColumnNames.length != rSafeYColumns.length) {
 				valid = false;
-				log.reportTimeError("alternate y -column names must be the same length as available data");
+				log.reportError("alternate y -column names must be the same length as available data");
 				rSafeYColumns = null;
 
 			}
@@ -1201,7 +1201,7 @@ public class Rscript {
 
 				} else if (sType == SCATTER_TYPE.BASIC_POINT) {
 					if (rSafeYColumns.length > 1) {
-						log.reportTimeError(SCATTER_TYPE.BASIC_POINT
+						log.reportError(SCATTER_TYPE.BASIC_POINT
 																+ " demands a single x and single y value");
 						return null;
 					}
@@ -1357,7 +1357,7 @@ public class Rscript {
 
 				if (!Files.headerOfFileContainsAll(dataFile, dataYvalueColumns, false, log)) {
 
-					log.reportTimeError("Could not find all Y value columns in " + dataFile);
+					log.reportError("Could not find all Y value columns in " + dataFile);
 					int[] indices = ext.indexFactors(	dataYvalueColumns, Files.getHeaderOfFile(dataFile, log),
 																						true, false);
 					boolean[] extract = Array.booleanArray(indices.length, false);
@@ -1372,27 +1372,27 @@ public class Rscript {
 					log.reportTimeWarning("Using available columns\t\t\n"
 																+ Array.toStr(dataYvalueColumns, "\n"));
 					if (dataYvalueColumns.length < 1) {
-						log.reportTimeError("Could not find any Y value columns, invalid plotting");
+						log.reportError("Could not find any Y value columns, invalid plotting");
 						valid = false;
 					}
 				}
 				if (!Files.headerOfFileContainsAll(dataFile, new String[] {dataXvalueColumn}, log)) {
 					valid = false;
-					log.reportTimeError("Could not find all X value column in " + dataFile);
+					log.reportError("Could not find all X value column in " + dataFile);
 				} else {
 					if (xRange != null && xRange.length != 2) {
 						valid = false;
-						log.reportTimeError("x range must be length 2");
+						log.reportError("x range must be length 2");
 					} else {
 						if (yRange != null && yRange.length != 2) {
 							valid = false;
-							log.reportTimeError("y range must be length 2");
+							log.reportError("y range must be length 2");
 						}
 					}
 				}
 				if (colorColumn != null
 						&& !Files.headerOfFileContainsAll(dataFile, new String[] {colorColumn}, log)) {
-					log.reportTimeError("Could not find color column in " + dataFile);
+					log.reportError("Could not find color column in " + dataFile);
 					valid = false;
 				}
 

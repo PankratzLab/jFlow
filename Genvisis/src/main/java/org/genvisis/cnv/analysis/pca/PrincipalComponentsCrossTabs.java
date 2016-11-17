@@ -75,7 +75,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 		try {
 			extSampleFileParser = builder.build(getProj(), fullPathToAlternateDataFile);
 		} catch (FileNotFoundException e) {
-			getProj().getLog().reportTimeError("Could not read file " + fullPathToAlternateDataFile);
+			getProj().getLog().reportError("Could not read file " + fullPathToAlternateDataFile);
 			e.printStackTrace();
 		}
 		extSampleFileParser.loadData();
@@ -106,7 +106,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 		if (additionalData != null) {
 			if (additionalDataTitles == null || additionalDataTitles.length != additionalData.length) {
 				pCorrelation.getProj().getLog()
-										.reportTimeError("Additional data must have identical lengths");
+										.reportError("Additional data must have identical lengths");
 				return null;
 			} else {
 				for (int i = 0; i < additionalData.length; i++) {

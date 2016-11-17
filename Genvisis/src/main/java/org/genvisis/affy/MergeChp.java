@@ -57,7 +57,7 @@ public class MergeChp implements Runnable {
 		// check source directory
 		String[] dirList = Files.listDirectories(affyResultsDir, false);
 		if (!affyResultsDir.equals("") && !new File(affyResultsDir).exists()) {
-			log.reportTimeError("the Project source location is invalid: " + affyResultsDir);
+			log.reportError("the Project source location is invalid: " + affyResultsDir);
 			return;
 		}
 
@@ -93,11 +93,11 @@ public class MergeChp implements Runnable {
 						reader.close();
 
 					} catch (FileNotFoundException fnfe) {
-						log.reportTimeError("Error: file \""	+ files[j] + "\" not found in " + affyResultsDir
+						log.reportError("Error: file \""	+ files[j] + "\" not found in " + affyResultsDir
 																+ dirList[i]);
 						return;
 					} catch (IOException ioe) {
-						log.reportTimeError("Error reading file \""	+ affyResultsDir + dirList[i] + files[j]
+						log.reportError("Error reading file \""	+ affyResultsDir + dirList[i] + files[j]
 																+ "\"");
 						return;
 					}

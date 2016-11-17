@@ -2867,7 +2867,7 @@ public class Files {
 																	int keyColumn, String[] newColumnNameTags, String[] skipKeys,
 																	Logger log) {
 		if (newColumnNameTags.length != orginalFiles.length) {
-			log.reportTimeError("Name tags must be the same length as files");
+			log.reportError("Name tags must be the same length as files");
 			return null;
 		}
 		try {
@@ -2895,7 +2895,7 @@ public class Files {
 						String[] oLine = readers[i].readLine().trim().split("\t");
 						if (!key.equals(oLine[keyColumn])) {
 							String error = "Files must be in the same order as defined by the key column";
-							log.reportTimeError(error);
+							log.reportError(error);
 							throw new IllegalStateException(error);
 						} else {
 							writer.print("\t" + Array.toStr(Array.subArray(oLine, columns)));
@@ -2912,7 +2912,7 @@ public class Files {
 				if (readers[i].ready()) {
 					String error = orginalFiles[i] + " still has more lines";
 
-					log.reportTimeError(error);
+					log.reportError(error);
 					throw new IllegalStateException(error);
 
 				} else {
@@ -3565,7 +3565,7 @@ public class Files {
 		} else if (Array.countIf(	ext.indexFactors(toSearch, header, true, log, verbose, false),
 															-1) > 0) {
 			if (verbose) {
-				log.reportTimeError("Searched header " + Array.toStr(header));
+				log.reportError("Searched header " + Array.toStr(header));
 			}
 			has = false;
 		}
@@ -3697,7 +3697,7 @@ public class Files {
 				}
 			}
 			reader.close();
-			log.reportTimeError("Could not find the header containing "	+ Array.toStr(containing)
+			log.reportError("Could not find the header containing "	+ Array.toStr(containing)
 													+ " in file " + filename);
 			return null;
 		} catch (FileNotFoundException fnfe) {
@@ -4053,7 +4053,7 @@ public class Files {
 			in.close();
 
 		} catch (MalformedURLException e) {
-			log.reportTimeError("malformed URL " + ftpdirAddress);
+			log.reportError("malformed URL " + ftpdirAddress);
 			e.printStackTrace();
 		} catch (IOException e) {
 			log.reportIOException(ftpdirAddress);

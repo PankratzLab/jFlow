@@ -133,7 +133,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 								} else {
 									proj.getLog()
-											.reportTimeError("Query id did not end with "	+ PROBE_TAG.A.getTag() + "or "
+											.reportError("Query id did not end with "	+ PROBE_TAG.A.getTag() + "or "
 																				+ PROBE_TAG.B.getTag()
 																				+ " which is required for an AFFY array");
 								}
@@ -144,7 +144,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 								} catch (IllegalArgumentException ile) {
 									proj.getLog()
-											.reportTimeError("Query id ("	+ marker
+											.reportError("Query id ("	+ marker
 																				+ ") did not end one of the following which is required for an ILLUMINA array");
 									for (int i = 0; i < PROBE_TAG.values().length; i++) {
 										proj.getLog().report(PROBE_TAG.values()[i].getTag());

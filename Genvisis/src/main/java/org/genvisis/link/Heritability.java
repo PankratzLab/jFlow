@@ -238,7 +238,7 @@ public class Heritability {
 						double pval = Double.parseDouble(toParse[3]);
 						solarEstimate[1] = pval + "";
 					} catch (NumberFormatException nfe) {
-						log.reportTimeError("Could not parse " + estString);
+						log.reportError("Could not parse " + estString);
 						reader.close();
 						return null;
 					}
@@ -252,7 +252,7 @@ public class Heritability {
 								double stError = Double.parseDouble(tmpString[3]);
 								solarEstimate[2] = stError + "";
 							} catch (NumberFormatException nfe) {
-								log.reportTimeError("Could not parse " + temp);
+								log.reportError("Could not parse " + temp);
 								reader.close();
 								return null;
 							}
@@ -272,7 +272,7 @@ public class Heritability {
 									solarEstimate[3] = kurt + "";
 
 								} catch (NumberFormatException nfe) {
-									log.reportTimeError("Could not parse " + temp);
+									log.reportError("Could not parse " + temp);
 									reader.close();
 									return null;
 								}
@@ -281,7 +281,7 @@ public class Heritability {
 								} else if (temp.contains("normal")) {
 									solarEstimate[4] = "NORMAL";
 								} else {
-									log.reportTimeError("Could not kurtosis type for " + temp);
+									log.reportError("Could not kurtosis type for " + temp);
 								}
 							}
 							log.report(temp);

@@ -70,7 +70,7 @@ public class PCImputeRace {
 	public void correctPCsToRace(String outFile) {
 		PrintWriter writer;
 		if (pc1.length != pc2.length) {
-			log.reportTimeError("PC1 and PC2 arrays must be the same length, 1 entry for each sample");
+			log.reportError("PC1 and PC2 arrays must be the same length, 1 entry for each sample");
 			return;
 		}
 
@@ -376,7 +376,7 @@ public class PCImputeRace {
 			try {
 				overallMAF = Double.toString(ext.roundToSignificantFigures(Double.parseDouble(data[2]), 4));
 			} catch (NumberFormatException nfe) {
-				log.reportTimeError("Invalid MAF (" + data[2] + ") for SNP '" + marker + "'");
+				log.reportError("Invalid MAF (" + data[2] + ") for SNP '" + marker + "'");
 				overallMAF = ".";
 			}
 
@@ -385,7 +385,7 @@ public class PCImputeRace {
 			for (int i = 0; i < raceFreqs.length; i++) {
 				String a1f;
 				if (marker == null) {
-					log.reportTimeError("SNP '" + marker + "' not found for " + raceListFiles[i]);
+					log.reportError("SNP '" + marker + "' not found for " + raceListFiles[i]);
 					a1f = ".";
 				} else {
 					String[] raceData = raceFreqs[i].get(marker).split("\t");
@@ -398,13 +398,13 @@ public class PCImputeRace {
 						} else if (A1.equals(raceA2) && A2.equals(raceA1)) {
 							a1f = Double.toString(ext.roundToSignificantFigures(1.0 - raceMaf, 4));
 						} else {
-							log.reportTimeError("Alleles for SNP '"	+ marker + "' and " + raceListFiles[i] + " ("
+							log.reportError("Alleles for SNP '"	+ marker + "' and " + raceListFiles[i] + " ("
 																	+ raceA1 + ", " + raceA2 + ") do not match overall alleles (" + A1
 																	+ ", " + A2 + " )");
 							a1f = ".";
 						}
 					} catch (NumberFormatException nfe) {
-						log.reportTimeError("Invalid MAF ("	+ raceData[2] + ") for SNP '" + marker + "' and "
+						log.reportError("Invalid MAF ("	+ raceData[2] + ") for SNP '" + marker + "' and "
 																+ raceListFiles[i]);
 						a1f = ".";
 					}

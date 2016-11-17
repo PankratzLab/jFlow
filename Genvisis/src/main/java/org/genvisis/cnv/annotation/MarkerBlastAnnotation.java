@@ -74,7 +74,7 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 		}
 		if (index < 0) {
 			String error = "Internal error: Annotation does not contain " + bType;
-			log.reportTimeError(error);
+			log.reportError(error);
 			throw new IllegalStateException(error);
 		}
 		return index;

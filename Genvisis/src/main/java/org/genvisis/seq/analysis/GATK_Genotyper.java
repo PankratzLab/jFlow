@@ -216,7 +216,7 @@ public class GATK_Genotyper {
 																																													.size()]);
 				for (int i = 0; i < workers.length; i++) {
 					if (siSampleHaplotypeCallers[i].isFail()) {
-						log.reportTimeError("Failed single sample haplotype calling for "
+						log.reportError("Failed single sample haplotype calling for "
 																+ siSampleHaplotypeCallers[i].getInputBam());
 						fail = true;
 					}

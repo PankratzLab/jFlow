@@ -115,7 +115,7 @@ public class FocusedSample {
 				focusedSample.saveToRandomAccessFile(	newSampleFileName, samp.getSampleName(),
 																							original.getLog());
 			} else {
-				original.getLog().reportTimeError("Could not load sample " + sample);
+				original.getLog().reportError("Could not load sample " + sample);
 			}
 			// TODO Auto-generated method stub
 			return focusedSample;
@@ -128,14 +128,14 @@ public class FocusedSample {
 																			boolean overwriteExisting, Logger log) {
 		boolean focused = true;
 		if (original.PROJECT_DIRECTORY.getValue().equals(newFocus.PROJECT_DIRECTORY.getValue())) {
-			log.reportTimeError("The focused project must have a different project directory than the original, halting");
+			log.reportError("The focused project must have a different project directory than the original, halting");
 			focused = false;
 		} else if (original.SAMPLE_DIRECTORY.getValue(false, true)
 																				.equals(newFocus.SAMPLE_DIRECTORY.getValue(false, true))) {
-			log.reportTimeError("The focused project must have a different sample directory than the original, halting");
+			log.reportError("The focused project must have a different sample directory than the original, halting");
 			focused = false;
 		} else if (markersToUse == null || samplesToUse == null) {
-			log.reportTimeError("Please provide subsets... if you want they can be all markers or samples");
+			log.reportError("Please provide subsets... if you want they can be all markers or samples");
 			focused = false;
 		} else {
 			log.reportTimeInfo("Markers to export = " + markersToUse.length);

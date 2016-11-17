@@ -48,12 +48,12 @@ public class VCFSamplePrep {
 																.getCorrectedIntensities();
 				} else {
 					proj.getLog()
-							.reportTimeError("Projects gcmodel file must be valid for this method, skipping gc correction");
+							.reportError("Projects gcmodel file must be valid for this method, skipping gc correction");
 
 				}
 				break;
 			default:
-				proj.getLog().reportTimeError("Invalid sample type");
+				proj.getLog().reportError("Invalid sample type");
 				break;
 		}
 		float[] xs = scale(samp.getXs(), totalDepth, normDepth);

@@ -157,7 +157,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 					title += "abs(r) > " + filterValue;
 					break;
 				default:
-					proj.getLog().reportTimeError("Invalid selection type " + selType);
+					proj.getLog().reportError("Invalid selection type " + selType);
 					break;
 
 			}
@@ -184,7 +184,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 								}
 								break;
 							default:
-								proj.getLog().reportTimeError("Invalid selection type " + selType);
+								proj.getLog().reportError("Invalid selection type " + selType);
 								break;
 						}
 					}

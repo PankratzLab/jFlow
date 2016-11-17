@@ -314,7 +314,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 				if (cvals[i] == null || cvals[i][1] == null || cvals[i][0] == null
 				    || cvals[i][0].analysisFailed() || cvals[i][1].analysisFailed()) {
 					if (verbose) {
-						proj.getLog().reportTimeError("Analysis failed for " + "Genotype cluster: " + i
+						proj.getLog().reportError("Analysis failed for " + "Genotype cluster: " + i
 						                              + " Marker " + centroid.getMarkerData().getMarkerName());
 					}
 				}

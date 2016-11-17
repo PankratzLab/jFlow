@@ -1711,7 +1711,7 @@ public class VCFSimpleTally {
 					lqs.add(element);
 				}
 			} else {
-				log.reportTimeError("JOHN you could probably remove this");
+				log.reportError("JOHN you could probably remove this");
 			}
 			log.reportTimeInfo("Loaded " + lqs.size() + " lower quality samples");
 			SimpleTallyResult caseResult = runSimpleTally(vcf, vpopsCase[i], maf, numThreads, outDir,
@@ -1740,7 +1740,7 @@ public class VCFSimpleTally {
 			try {
 				clusterAllControls = densityEnrichment(caseResult, controlResult, log);
 			} catch (IllegalStateException e) {
-				log.reportTimeError("Could not enrich");
+				log.reportError("Could not enrich");
 				e.printStackTrace();
 				return;
 			}
@@ -1773,7 +1773,7 @@ public class VCFSimpleTally {
 						try {
 							clusterSpecific = densityEnrichment(caseResult, controlSpecificResult, log);
 						} catch (IllegalStateException e) {
-							log.reportTimeError("Could not enrich");
+							log.reportError("Could not enrich");
 							e.printStackTrace();
 							return;
 						}

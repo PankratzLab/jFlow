@@ -372,7 +372,7 @@ public class BamQC {
 				try {
 					bamQCs[i] = tmpResults.get(i + "").get();
 				} catch (NullPointerException npe) {
-					log.reportTimeError("Could not get qc for " + inputbams[i]);
+					log.reportError("Could not get qc for " + inputbams[i]);
 				}
 			} catch (InterruptedException e) {
 				log.reportError("Error - in file " + inputbams[i]);

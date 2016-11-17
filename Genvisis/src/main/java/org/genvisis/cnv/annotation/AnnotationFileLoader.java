@@ -99,7 +99,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 						if (!parsers[index - 1].shouldAnnotateWith(vc, proj.getLog())) {
 							String error = "Query type was set to "	+ queryType + " but the annotation at index "
 															+ (index - 1) + " did not match";
-							proj.getLog().reportTimeError(error);
+							proj.getLog().reportError(error);
 							throw new IllegalStateException(error);
 						} else {
 							parsers[index - 1].parseAnnotation(vc, proj.getLog());
@@ -148,7 +148,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 				if (!allFound) {
 					String error = "Did not find all queries for type "	+ queryType
 													+ " , missing annotations or internal bug";
-					proj.getLog().reportTimeError(error);
+					proj.getLog().reportError(error);
 					throw new IllegalStateException(error);
 				}
 				break;
@@ -190,7 +190,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 																																indexRequired, proj.getLog());
 			return annotationIterator;
 		} else {
-			proj.getLog().reportTimeError("Invalid loader...");
+			proj.getLog().reportError("Invalid loader...");
 			return null;
 		}
 	}
@@ -203,7 +203,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 	@Override
 	public boolean validate() {
 		if (!Files.exists(annotationFilename)) {
-			proj.getLog().reportTimeError("Could not find annotation file " + annotationFilename);
+			proj.getLog().reportError("Could not find annotation file " + annotationFilename);
 			return false;
 		} else {
 			try {
@@ -223,7 +223,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 				if (annotations != null) {
 					for (int i = 0; i < annotations.length; i++) {
 						if (!vcfHeader.hasInfoLine(annotations[i].getName())) {
-							proj.getLog().reportTimeError("Could not find annotation "	+ annotations[i].getName()
+							proj.getLog().reportError("Could not find annotation "	+ annotations[i].getName()
 																						+ " in " + annotationFilename);
 							hasAllAnno = false;
 						}
@@ -234,12 +234,12 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 
 			} catch (TribbleException trib) {
 				proj.getLog()
-						.reportTimeError("Index was required and failed to load it for " + annotationFilename);
+						.reportError("Index was required and failed to load it for " + annotationFilename);
 
 				return false;
 			} catch (Exception e) {
 				proj.getLog()
-						.reportTimeError("Could not properly initialize reader for  " + annotationFilename);
+						.reportError("Could not properly initialize reader for  " + annotationFilename);
 				proj.getLog().reportException(e);
 				return false;
 

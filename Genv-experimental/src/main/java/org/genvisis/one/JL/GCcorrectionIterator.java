@@ -110,7 +110,7 @@ public class GCcorrectionIterator {
 						builder.regressionDistance(element);
 						builder.numSnpMAD(element2);
 						builders.add(new GCAdjustorBuilder(builder));
-						proj.getLog().reportTimeError("JOHN remember to remove this");
+						proj.getLog().reportError("JOHN remember to remove this");
 					}
 				}
 				proj.getLog().reportTimeInfo("Beginnning iteration group for gc model "	+ bpModel + " ("

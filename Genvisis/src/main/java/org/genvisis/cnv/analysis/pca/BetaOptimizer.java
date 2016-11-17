@@ -797,7 +797,7 @@ public class BetaOptimizer {
 		int ambi = 0;
 
 		if (Array.countIf(indices, -1) > 0) {
-			log.reportTimeError("Did not detect proper header in "	+ betaFile + ", requires "
+			log.reportError("Did not detect proper header in "	+ betaFile + ", requires "
 													+ Array.toStr(BETA_HEADER));
 			return null;
 		} else {

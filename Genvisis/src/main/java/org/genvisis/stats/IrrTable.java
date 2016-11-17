@@ -63,7 +63,7 @@ public class IrrTable {
 	 */
 	public double getPercentAgreementFor(int ratingCategory) {
 		if (!agreementIndex.containsKey(ratingCategory)) {
-			log.reportTimeError("Could not find rating category " + ratingCategory + " ");
+			log.reportError("Could not find rating category " + ratingCategory + " ");
 			return Double.NaN;
 		}
 		double percentAgreement = 0;
@@ -115,7 +115,7 @@ public class IrrTable {
 		int shouldHave = ratings.length * ratings[0].length;
 
 		if (totalRated != shouldHave) {
-			log.reportTimeError("Found "	+ totalRated + " total ratings and was expecting " + shouldHave
+			log.reportError("Found "	+ totalRated + " total ratings and was expecting " + shouldHave
 													+ " total ratings");
 			parsed = false;
 		} else {
@@ -129,7 +129,7 @@ public class IrrTable {
 				}
 				if (agree) {
 					if (!agreementIndex.containsKey(current)) {
-						log.reportTimeError("Could not find rating " + current + " in data set");
+						log.reportError("Could not find rating " + current + " in data set");
 					}
 					judgedAgreementsByCategory[agreementIndex.get(current)]++;
 					judgedAgreementsBySample[i] = 1;
@@ -154,7 +154,7 @@ public class IrrTable {
 	public boolean addRatings(int judge, int[] judgedRatings) {
 		boolean added = true;
 		if (judgedRatings.length != ratings[judge].length) {
-			log.reportTimeError("Mismatched array size for judge "	+ judge + ", trying to add "
+			log.reportError("Mismatched array size for judge "	+ judge + ", trying to add "
 													+ judgedRatings.length + " judgments and should have "
 													+ ratings[judge].length);
 			added = false;
@@ -205,7 +205,7 @@ public class IrrTable {
 	private boolean addRating(int judge, int judgedRating, int subject) {
 		boolean added = true;
 		if (rated.containsKey(getJudgeSubjectKey(judge, subject))) {
-			log.reportTimeError(JUDGE	+ " " + judge + " has already rated " + SUBJECT + " " + subject
+			log.reportError(JUDGE	+ " " + judge + " has already rated " + SUBJECT + " " + subject
 													+ ", skipping");
 			added = false;
 		} else {

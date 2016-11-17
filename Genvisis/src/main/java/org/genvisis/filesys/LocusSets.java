@@ -75,7 +75,7 @@ public class LocusSets<T extends Segment> {
 				if (locusSets.get(j).getOverlappingIndices(finalUnion.getLoci()[i]) == null) {
 
 					String error = "Internal error developing union of the dataset";
-					log.reportTimeError(error);
+					log.reportError(error);
 					throw new IllegalStateException(error);
 				} else {
 

@@ -74,7 +74,7 @@ public class GenBankMtDNA {
 				VariantContextBuilder builder = new VariantContextBuilder(vcIter.next());
 				writer.add(builder.make());
 			} catch (Exception e) {
-				log.reportTimeError("could not parse vc ,skipping");
+				log.reportError("could not parse vc ,skipping");
 				log.reportException(e);
 
 			}

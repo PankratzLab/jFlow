@@ -852,7 +852,7 @@ public class CentroidCompute {
 						} else if (array.isCNOnly(markerData.getMarkerName())) {
 							if (array != ARRAY.AFFY_GW6_CN && array != ARRAY.AFFY_GW6) {
 								proj.getLog()
-										.reportTimeError("Intenstity only centroid designed for Affymetrix only");
+										.reportError("Intenstity only centroid designed for Affymetrix only");
 								return null;
 							}
 						}

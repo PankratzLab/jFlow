@@ -81,13 +81,13 @@ public class MtDNAGenotypePrep {
 							boolean success = convertToFasta(bamFile, samToFastQ, r1, r2, log);
 
 							if (!success) {
-								log.reportTimeError("Could not parse " + bamFile + ", removing any output");
+								log.reportError("Could not parse " + bamFile + ", removing any output");
 								new File(r1).delete();
 								new File(r2).delete();
 							}
 							return success;
 						} catch (Exception e) {
-							log.reportTimeError("Could not process " + bamFile);
+							log.reportError("Could not process " + bamFile);
 							log.reportException(e);
 						}
 						return false;

@@ -247,7 +247,7 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult>
 																		Logger log) {
 		StatPrep result = null;
 		if (internalEstimate.length != externalEstimate.length) {
-			log.reportTimeError("For "	+ title + ", internal n=" + internalEstimate.length
+			log.reportError("For "	+ title + ", internal n=" + internalEstimate.length
 													+ " data points do not match external n=" + externalEstimate.length
 													+ " datapoints");
 

@@ -115,7 +115,7 @@ public class MarkerMetrics {
 					}
 				} else {
 					proj.getLog()
-							.reportTimeError("Could not collapse temporary marker files to " + finalQcFile);
+							.reportError("Could not collapse temporary marker files to " + finalQcFile);
 				}
 
 				if (checkMendel) {
@@ -127,12 +127,12 @@ public class MarkerMetrics {
 						}
 					} else {
 						proj.getLog()
-								.reportTimeError("Could not collapse temporary mendel files to "
+								.reportError("Could not collapse temporary mendel files to "
 																	+ ext.rootOf(finalQcFile, false) + DEFAULT_MENDEL_FILE_SUFFIX);
 					}
 				}
 			} else {
-				proj.getLog().reportTimeError("Could not complete marker QC");
+				proj.getLog().reportError("Could not complete marker QC");
 			}
 		}
 	}
@@ -1312,12 +1312,12 @@ public class MarkerMetrics {
 				return true;
 			} else {
 				if (!Files.exists(fullPathToOutput)) {
-					proj.getLog().reportTimeError("Could not compute marker metrics on "
+					proj.getLog().reportError("Could not compute marker metrics on "
 																				+ Thread.currentThread().toString());
 					proj.getLog().reportFileNotFound(fullPathToOutput);
 				} else {
 					proj.getLog()
-							.reportTimeError("Found "	+ Files.countLines(fullPathToOutput, 1) + " markers in "
+							.reportError("Found "	+ Files.countLines(fullPathToOutput, 1) + " markers in "
 																+ fullPathToOutput + " but should have found "
 																+ markerNames.length);
 				}

@@ -23,7 +23,7 @@ public class SamRecordOps {
 		int start = samRecord.getAlignmentStart();
 		int stop = samRecord.getAlignmentEnd();
 		if (start == 0 || stop == 0) {
-			log.reportTimeError("Could not determing start and stop for " + samRecord.toString());
+			log.reportError("Could not determing start and stop for " + samRecord.toString());
 		}
 
 		return new Segment(chr, start, stop);
@@ -36,7 +36,7 @@ public class SamRecordOps {
 	public static byte getChromosome(SAMRecord samRecord, Logger log) {
 		byte chr = Positions.chromosomeNumber(samRecord.getReferenceName());
 		if (chr < 1) {
-			log.reportTimeError("Could not determine chromosome for " + samRecord.toString());
+			log.reportError("Could not determine chromosome for " + samRecord.toString());
 		}
 		return chr;
 	}

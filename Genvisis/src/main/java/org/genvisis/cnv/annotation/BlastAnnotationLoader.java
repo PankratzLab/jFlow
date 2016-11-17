@@ -52,7 +52,7 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 
 		if (Array.unique(markers).length != markers.length) {
 			String error = "Internal error, markers for blast annotation retrieval must be unique";
-			proj.getLog().reportTimeError(error);
+			proj.getLog().reportError(error);
 			throw new IllegalArgumentException(error);
 		}
 
@@ -98,8 +98,8 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 					error += "\nMissing " + markers[i];
 				}
 			}
-			proj.getLog().reportTimeError(error);
-			proj.getLog().reportTimeError(Array.toStr(markers));
+			proj.getLog().reportError(error);
+			proj.getLog().reportError(Array.toStr(markers));
 			// throw new IllegalStateException(error);
 		} else {
 			proj.getLog().reportTimeInfo("Loaded " + markers.length + " marker annotations");
@@ -176,7 +176,7 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 			}
 			if (index < 0) {
 				String error = "Internal error: Annotation does not contain " + bType;
-				log.reportTimeError(error);
+				log.reportError(error);
 				throw new IllegalStateException(error);
 			}
 			return index;

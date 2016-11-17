@@ -100,7 +100,7 @@ public class ProjectPropertiesEditor extends JFrame {
 			if (newValue instanceof File[]) {
 				for (File f : ((File[]) newValue)) {
 					if (!f.exists()) {
-						log.reportTimeError("Missing file in " + PropertyKeys.KEY_QQ_FILENAMES + ": " + f);
+						log.reportError("Missing file in " + PropertyKeys.KEY_QQ_FILENAMES + ": " + f);
 						return false;
 					}
 				}
@@ -108,7 +108,7 @@ public class ProjectPropertiesEditor extends JFrame {
 			}
 			if (newValue instanceof File) {
 				if (!((File) newValue).exists()) {
-					log.reportTimeError("Missing file in " + PropertyKeys.KEY_QQ_FILENAMES + ": " + newValue);
+					log.reportError("Missing file in " + PropertyKeys.KEY_QQ_FILENAMES + ": " + newValue);
 					return false;
 				}
 				return true;
@@ -127,7 +127,7 @@ public class ProjectPropertiesEditor extends JFrame {
 						fl = ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue()) + fl;
 					}
 					if (!Files.exists(fl)) {
-						log.reportTimeError("Missing file in " + PropertyKeys.KEY_QQ_FILENAMES + ": " + fl);
+						log.reportError("Missing file in " + PropertyKeys.KEY_QQ_FILENAMES + ": " + fl);
 						return false;
 					}
 					if (pts.length > 1) {
@@ -135,7 +135,7 @@ public class ProjectPropertiesEditor extends JFrame {
 						for (int i = 1; i < pts.length; i++) {
 							String[] sub = pts[i].split("=");
 							if (sub.length == 1 || sub.length > 2) {
-								log.reportTimeError("Malformed header replacement token (missing or extra '=' sign) in "
+								log.reportError("Malformed header replacement token (missing or extra '=' sign) in "
 																		+ PropertyKeys.KEY_QQ_FILENAMES + ": {" + pts[i] + "}");
 								return false;
 							}
@@ -143,12 +143,12 @@ public class ProjectPropertiesEditor extends JFrame {
 							try {
 								ind = Integer.parseInt(sub[0]);
 							} catch (NumberFormatException e) {
-								log.reportTimeError("Malformed header replacement token (non-integer index) in "
+								log.reportError("Malformed header replacement token (non-integer index) in "
 																		+ PropertyKeys.KEY_QQ_FILENAMES + ": {" + pts[i] + "}");
 								return false;
 							}
 							if (ind < 0 || ind >= hdr.length) {
-								log.reportTimeError("Malformed header replacement token (index < 0 or > header length [HEADER: "
+								log.reportError("Malformed header replacement token (index < 0 or > header length [HEADER: "
 																			+ Array.toStr(hdr) + "]) in " + PropertyKeys.KEY_QQ_FILENAMES
 																		+ ": {" + pts[i] + "}");
 								return false;
@@ -178,7 +178,7 @@ public class ProjectPropertiesEditor extends JFrame {
 				return newFiles;
 			} else {
 				proj.getLog()
-						.reportTimeError("setting PLINK property: new value should be a File[] (array)!");
+						.reportError("setting PLINK property: new value should be a File[] (array)!");
 				return oldValue;
 			}
 		}
@@ -200,7 +200,7 @@ public class ProjectPropertiesEditor extends JFrame {
 				return true;
 			} else {
 				proj.getLog()
-						.reportTimeError("setting PLINK property: new value should be a File[] (array)!");
+						.reportError("setting PLINK property: new value should be a File[] (array)!");
 				return false;
 			}
 		}

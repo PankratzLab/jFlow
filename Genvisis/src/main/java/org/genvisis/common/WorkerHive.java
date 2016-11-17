@@ -99,10 +99,10 @@ public class WorkerHive<T> {
 						log.reportTimeInfo("Finished " + (i + 1) + " of " + futures.size());
 					}
 				} catch (InterruptedException e) {
-					log.reportTimeError("Could not complete job on internal index " + i);
+					log.reportError("Could not complete job on internal index " + i);
 					log.reportException(e);
 				} catch (ExecutionException e) {
-					log.reportTimeError("Could not complete job on internal index " + i);
+					log.reportError("Could not complete job on internal index " + i);
 					log.reportException(e);
 				}
 			}
@@ -115,7 +115,7 @@ public class WorkerHive<T> {
 				}
 			}
 		} else {
-			log.reportTimeError("No jobs were submitted to run");
+			log.reportError("No jobs were submitted to run");
 		}
 	}
 }

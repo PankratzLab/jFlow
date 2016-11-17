@@ -148,7 +148,7 @@ public class GeneScorePipeline {
       dataSources = MergeExtractPipeline.parseDataFile(null, markerLocations, null, dataSource, 0, log);
       if (dataSources.size() == 0) {
         // error
-        log.reportTimeError("Error - no data sources loaded from file: " + dataSource);
+        log.reportError("Error - no data sources loaded from file: " + dataSource);
       } else {
         log.reportTime("Loading data file " + dataSources.get(0).dataFile);
         DosageData d0 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile, dataSources.get(0).mapFile, null, hitMkrs, true, log);
@@ -161,7 +161,7 @@ public class GeneScorePipeline {
           }
         }
         if (d0.isEmpty()) {
-          log.reportTimeError("no data for key: " + dataKey);
+          log.reportError("no data for key: " + dataKey);
         }
         data.put(dataKey, d0);
         System.gc();
@@ -1180,7 +1180,7 @@ public class GeneScorePipeline {
           dose = data.getDosageValues();
         }
         if (dose == null) {
-          log.reportTimeError("No dosage data available for {" + dataFile + "\t"
+          log.reportError("No dosage data available for {" + dataFile + "\t"
               + filePrefix.getKey() + "}");
           scoreWriter.close();
           continue;

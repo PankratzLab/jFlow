@@ -156,7 +156,7 @@ public class BlastAnnotationTypes {
 											&& blastResults.getSegment().overlaps(seg);
 				break;
 			default:
-				log.reportTimeError("Invalid annotation test " + type);
+				log.reportError("Invalid annotation test " + type);
 				break;
 		}
 		return annotatedAs;
@@ -223,7 +223,7 @@ public class BlastAnnotationTypes {
 				return BOTH;
 			} else {
 				String error = "Invalid tag instance " + tag;
-				log.reportTimeError(error);
+				log.reportError(error);
 				throw new IllegalArgumentException(error);
 			}
 		}

@@ -92,7 +92,7 @@ public class HttpDownloadUtility {
 
 			log.reportTimeInfo("Downloaded " + saveFilePath);
 		} else {
-			log.reportTimeError("No file to download. Server replied HTTP code: " + responseCode);
+			log.reportError("No file to download. Server replied HTTP code: " + responseCode);
 		}
 		httpConn.disconnect();
 		return responseCode;

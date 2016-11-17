@@ -121,7 +121,7 @@ public class PrincipalComponentsApply {
 
 			if (params != null && recomputeLRR) {
 				proj.getLog()
-						.reportTimeError("recompute lrr was flagged AND gc correction parameters were passed to data load when applying PCs");
+						.reportError("recompute lrr was flagged AND gc correction parameters were passed to data load when applying PCs");
 				return;
 			}
 			if (params != null) {

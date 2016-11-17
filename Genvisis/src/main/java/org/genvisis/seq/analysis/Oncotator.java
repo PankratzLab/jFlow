@@ -109,11 +109,11 @@ public class Oncotator {
 	private static boolean verify(String oncoDBLoc, Logger log) {
 		boolean ver = CmdLine.run(ONCOTATOR, "");
 		if (!ver) {
-			log.reportTimeError(ONCOTATOR + " was not found on the system path, cannot run ");
+			log.reportError(ONCOTATOR + " was not found on the system path, cannot run ");
 		} else {
 			ver = Files.exists(oncoDBLoc);
 			if (!ver) {
-				log.reportTimeError(ONCOTATOR	+ " db directory " + oncoDBLoc
+				log.reportError(ONCOTATOR	+ " db directory " + oncoDBLoc
 														+ " did not exist, cannot run ");
 			}
 		}

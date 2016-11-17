@@ -298,7 +298,7 @@ public class Zip {
 			int index = 0;
 			while (train.hasNext()) {
 				if (!train.next()) {
-					log.reportTimeError("Could not compress file " + files[index]);
+					log.reportError("Could not compress file " + files[index]);
 				}
 				index++;
 			}

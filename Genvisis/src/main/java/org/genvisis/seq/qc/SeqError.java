@@ -318,7 +318,7 @@ public class SeqError {
 						}
 						break;
 					default:
-						log.reportTimeError("Invalid Comparison type " + type);
+						log.reportError("Invalid Comparison type " + type);
 						break;
 				}
 				if (tally) {
@@ -367,7 +367,7 @@ public class SeqError {
 					total++;
 					break;
 				default:
-					log.reportTimeError("Invalid Mode type " + type);
+					log.reportError("Invalid Mode type " + type);
 					break;
 
 			}

@@ -86,7 +86,7 @@ public class MeAnd23 {
 			}
 		}
 		if (!merged) {
-			log.reportTimeError("Could not merge files. If the issues was strand flips /.missnp related, try running again until all problematic markers have been found and removed");
+			log.reportError("Could not merge files. If the issues was strand flips /.missnp related, try running again until all problematic markers have been found and removed");
 		}
 		return merged;
 

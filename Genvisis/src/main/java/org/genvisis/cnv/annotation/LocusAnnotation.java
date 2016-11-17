@@ -71,14 +71,14 @@ public class LocusAnnotation {
 			vc = vBuilder.make();
 		} catch (Exception e) {
 			log.reportException(e);
-			log.reportTimeError("Could not create VC at " + seg.getUCSClocation() + " for " + locusName);
-			log.reportTimeError("Ref " + ref.getDisplayString());
+			log.reportError("Could not create VC at " + seg.getUCSClocation() + " for " + locusName);
+			log.reportError("Ref " + ref.getDisplayString());
 			for (Allele alt : alts) {
-				log.reportTimeError("Alt " + alt.getDisplayString());
+				log.reportError("Alt " + alt.getDisplayString());
 
 			}
 			for (AnnotationData annotation : annotations) {
-				log.reportTimeError("Annotation: " + annotation.getData());
+				log.reportError("Annotation: " + annotation.getData());
 			}
 		}
 		return vc;

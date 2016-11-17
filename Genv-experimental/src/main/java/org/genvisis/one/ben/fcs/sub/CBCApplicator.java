@@ -78,11 +78,11 @@ public class CBCApplicator implements Runnable {
 
 	private void loadCBCs() {
 		if (cbcDir == null || "".equals(cbcDir)) {
-			log.reportTimeError("CBC directory not set!");
+			log.reportError("CBC directory not set!");
 			return;
 		}
 		if (!Files.exists(cbcDir)) {
-			log.reportTimeError("CBC directory not found: " + cbcDir);
+			log.reportError("CBC directory not found: " + cbcDir);
 			return;
 		}
 		String[] files = new File(cbcDir).list();
@@ -93,25 +93,25 @@ public class CBCApplicator implements Runnable {
 				if (!idMap.containsKey(line[0])) {
 					idMap.put(line[0], line);
 				} else {
-					log.reportTimeError("Duplicate ID in CBC data: " + line[0]);
+					log.reportError("Duplicate ID in CBC data: " + line[0]);
 				}
 			}
 		}
 		String[] hdr = Files.getHeaderOfFile(cbcDir	+ files[0], files[0].endsWith(".csv") ? "," : null,
 																					log);
 		if (hdr == null) {
-			log.reportTimeError("couldn't load header of file: " + cbcDir + files[0]);
+			log.reportError("couldn't load header of file: " + cbcDir + files[0]);
 			return;
 		}
 		panel1DataColumn = ext.indexOfStr(PNL_1_CBC_START, hdr);
 		panel2DataColumns = ext.indexFactors(PNL_2_CBC_COLS, hdr, false, false);
 		if (panel1DataColumn == -1) {
-			log.reportTimeError("missing column "	+ PNL_1_CBC_START + " from CBC file: " + cbcDir
+			log.reportError("missing column "	+ PNL_1_CBC_START + " from CBC file: " + cbcDir
 													+ files[0]);
 			return;
 		}
 		if (Array.countIf(panel2DataColumns, -1) > 0) {
-			log.reportTimeError("missing column "
+			log.reportError("missing column "
 														+ PNL_2_CBC_COLS[Arrays.asList(panel2DataColumns).indexOf(-1)]
 													+ " CBC file: " + cbcDir + files[0]);
 			return;
@@ -120,11 +120,11 @@ public class CBCApplicator implements Runnable {
 
 	private void discoverDataFiles() {
 		if (dataDir == null || "".equals(dataDir)) {
-			log.reportTimeError("data file directory not set!");
+			log.reportError("data file directory not set!");
 			return;
 		}
 		if (!Files.exists(dataDir)) {
-			log.reportTimeError("data file directory not found: " + dataDir);
+			log.reportError("data file directory not found: " + dataDir);
 			return;
 		}
 		File dataDirFile = new File(dataDir);
@@ -205,12 +205,12 @@ public class CBCApplicator implements Runnable {
 		try {
 			reader = Files.getAppropriateReader(dataDir + file);
 		} catch (FileNotFoundException e) {
-			log.reportTimeError("Data file " + file + " not found!");
+			log.reportError("Data file " + file + " not found!");
 			return;
 		}
 		outFile = getOutFile(file);
 		if (Files.exists(outFile)) {
-			log.reportTimeError("output file " + outFile + " already exists!");
+			log.reportError("output file " + outFile + " already exists!");
 			try {
 				reader.close();
 			} catch (IOException e) {
@@ -239,7 +239,7 @@ public class CBCApplicator implements Runnable {
 			}
 			writer.println(outLine.toString());
 		} catch (IOException e) {
-			log.reportTimeError("unable to read file " + file);
+			log.reportError("unable to read file " + file);
 			try {
 				reader.close();
 			} catch (IOException e1) {
@@ -295,7 +295,7 @@ public class CBCApplicator implements Runnable {
 				}
 			}
 		} catch (IOException e) {
-			log.reportTimeError("Exception occurred while reading file "	+ file
+			log.reportError("Exception occurred while reading file "	+ file
 													+ " - aborting.  Partial output file will be removed.");
 			try {
 				reader.close();
@@ -327,12 +327,12 @@ public class CBCApplicator implements Runnable {
 		try {
 			reader = Files.getAppropriateReader(dataDir + file);
 		} catch (FileNotFoundException e) {
-			log.reportTimeError("Data file " + file + " not found!");
+			log.reportError("Data file " + file + " not found!");
 			return;
 		}
 		outFile = getOutFile(file);
 		if (Files.exists(outFile)) {
-			log.reportTimeError("output file " + outFile + " already exists!");
+			log.reportError("output file " + outFile + " already exists!");
 			try {
 				reader.close();
 			} catch (IOException e) {
@@ -369,7 +369,7 @@ public class CBCApplicator implements Runnable {
 			}
 			writer.println(outLine.toString());
 		} catch (IOException e) {
-			log.reportTimeError("unable to read file " + file);
+			log.reportError("unable to read file " + file);
 			try {
 				reader.close();
 			} catch (IOException e1) {
@@ -425,7 +425,7 @@ public class CBCApplicator implements Runnable {
 				}
 			}
 		} catch (IOException e) {
-			log.reportTimeError("Exception occurred while reading file "	+ file
+			log.reportError("Exception occurred while reading file "	+ file
 													+ " - aborting.  Partial output file will be removed.");
 			try {
 				reader.close();

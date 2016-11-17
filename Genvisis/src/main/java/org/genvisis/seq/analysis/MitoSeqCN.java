@@ -293,7 +293,7 @@ public class MitoSeqCN {
 																mitoLength, genomeBinsMinusBinsCaputure.getBpCovered(),
 																bamIndexStats, estimatedReadLength, outputMTBam);
 			} catch (Exception e) {
-				log.reportTimeError("Could not process " + bam);
+				log.reportError("Could not process " + bam);
 				log.reportException(e);
 				return null;
 			}

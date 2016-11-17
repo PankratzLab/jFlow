@@ -60,19 +60,19 @@ public class BlastContamination {
 		String[] fastaDbs = Files.toFullPaths(Files.list(dbDir, "nt.", "nsq", true, false), dbDir);
 		String[] fastaqs = null;
 		if (fastaDbs.length == 0) {
-			log.reportTimeError("Did not find any \"nt\" database files listed in " + dbDir);
+			log.reportError("Did not find any \"nt\" database files listed in " + dbDir);
 			return;
 		} else {
 			log.reportTimeInfo("Found  " + fastaDbs.length + " database files to search");
 		}
 		if (fastaqDir == null && fileOfFastqs == null) {
-			log.reportTimeError("A file or directory with .fastq files must be provided");
+			log.reportError("A file or directory with .fastq files must be provided");
 			return;
 		}
 		if (fastaqDir != null && !fastaqDir.equals("")) {
 			fastaqs = Files.listFullPaths(fastaqDir, ".fastq", false);
 			if (fastaqs.length == 0) {
-				log.reportTimeError("Did not find any .fastq files listed in " + fastaqDir);
+				log.reportError("Did not find any .fastq files listed in " + fastaqDir);
 				return;
 			} else {
 				log.reportTimeInfo("Found  " + fastaqs.length + " database files to search");
@@ -82,7 +82,7 @@ public class BlastContamination {
 				log.reportTimeInfo("Attempting to load fastq files listed in " + fileOfFastqs);
 				fastaqs = HashVec.loadFileToStringArray(fileOfFastqs, false, new int[] {0}, true);
 				if (fastaqs.length == 0) {
-					log.reportTimeError("Did not find any .fastq files listed in " + fileOfFastqs);
+					log.reportError("Did not find any .fastq files listed in " + fileOfFastqs);
 					return;
 				} else {
 					log.reportTimeInfo("Found  " + fastaqs.length + " .fastq files");

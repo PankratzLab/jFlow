@@ -424,7 +424,7 @@ public class GcAdjustorParameter implements Serializable {
 			return GcAdjustorParameters.readSerial(file, proj.getLog());
 		} else {
 			proj.getLog()
-					.reportTimeError("Internal error, not enough preliminary files for gc correction");
+					.reportError("Internal error, not enough preliminary files for gc correction");
 			return null;
 		}
 	}

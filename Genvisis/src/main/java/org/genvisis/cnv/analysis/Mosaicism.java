@@ -380,8 +380,8 @@ public class Mosaicism {
 		int bpArm = seg.getSize();
 		mosaicMetric.setBpArm(bpArm);
 		if (mosSet.getLoci().length != 1 || !seg.equals(mosSet.getLoci()[0])) {
-			log.reportTimeError("Mosaic caller not in force call mode");
-			log.reportTimeError(seg.getUCSClocation()	+ " went in, and "
+			log.reportError("Mosaic caller not in force call mode");
+			log.reportError(seg.getUCSClocation()	+ " went in, and "
 													+ mosSet.getLoci()[0].getUCSClocation() + " came out");
 		} else if (seg.getChr() < 23) {// can't call chr23 yet
 			mosaicMetric.setForcedCallproportionArmMosaic(mosSet.getLoci()[0].getScore());

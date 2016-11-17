@@ -127,7 +127,7 @@ public class MDL implements Iterator<MarkerData> {
 			decompTrain.hasNext();
 			if (!decompTrain.hasNext()) {
 				String error = "Internal index error, halting";
-				proj.getLog().reportTimeError(error);
+				proj.getLog().reportError(error);
 				throw new IllegalStateException(error);
 			}
 			numLoadedForFile++;
@@ -139,12 +139,12 @@ public class MDL implements Iterator<MarkerData> {
 			markerData = decompTrain.next();
 			if (!markerData.getMarkerName().equals(markerNames[numLoaded - 1])) {
 				String error = "Internal index error - mismatched marker data found, halting";
-				proj.getLog().reportTimeError(error);
+				proj.getLog().reportError(error);
 				throw new IllegalStateException(error);
 			}
 		} catch (NullPointerException npe) {
 			proj.getLog()
-					.reportTimeError("Could not load "	+ markerNames[numLoaded - 1]
+					.reportError("Could not load "	+ markerNames[numLoaded - 1]
 														+ ", this is usually caused by a corrupt or missing outlier file");
 
 		}
@@ -240,7 +240,7 @@ public class MDL implements Iterator<MarkerData> {
 		}
 		if (missing.size() > 0) {
 			proj.getLog()
-					.reportTimeError("Could not find the following markers in the project"
+					.reportError("Could not find the following markers in the project"
 														+ Array.toStr(missing.keySet().toArray(new String[missing.size()]),
 																					"\n"));
 		}
@@ -300,7 +300,7 @@ public class MDL implements Iterator<MarkerData> {
 				String error = "mismatched number of samples between sample list (n="
 													+ proj.getSamples().length + ") and file '" + currentMarkFilename + "' (n="
 												+ numSamplesObserved + ")";
-				proj.getLog().reportTimeError(error);
+				proj.getLog().reportError(error);
 				throw new IllegalStateException(error);
 			}
 			fingerprint = Compression.bytesToLong(parameterReadBuffer,

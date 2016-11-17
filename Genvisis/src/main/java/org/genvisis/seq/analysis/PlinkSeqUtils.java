@@ -89,7 +89,7 @@ public class PlinkSeqUtils {
 		public static PseqPhenoTypes[] loadPhenos(String phenoFile, Logger log) {
 			ArrayList<PseqPhenoTypes> phenotypes = new ArrayList<PlinkSeqUtils.PseqPhenoTypes>();
 			if (phenoFile == null) {
-				log.reportTimeError("No phenotype file was provided, continuing carefully");
+				log.reportError("No phenotype file was provided, continuing carefully");
 				return null;
 			}
 			try {
@@ -100,7 +100,7 @@ public class PlinkSeqUtils {
 					if (line.startsWith("##")) {
 						String[] phenoLine = line.split(",");
 						if (phenoLine.length != 4) {
-							log.reportTimeError("Phenotype lines starting with ## must have 4 comma-delimited entries");
+							log.reportError("Phenotype lines starting with ## must have 4 comma-delimited entries");
 							return null;
 						} else {
 							phenotypes.add(new PseqPhenoTypes(phenoLine, log));
@@ -119,8 +119,8 @@ public class PlinkSeqUtils {
 			if (phenotypes.size() > 0) {
 				log.reportTimeInfo("Found " + phenotypes.size() + " phenotype(s) listed in " + phenoFile);
 			} else {
-				log.reportTimeError("Did not find any valid phenotype headers listed in " + phenoFile);
-				log.reportTimeError("\tSee: 	https://atgu.mgh.harvard.edu/plinkseq/input.shtml ");
+				log.reportError("Did not find any valid phenotype headers listed in " + phenoFile);
+				log.reportError("\tSee: 	https://atgu.mgh.harvard.edu/plinkseq/input.shtml ");
 
 				return null;
 			}
@@ -204,7 +204,7 @@ public class PlinkSeqUtils {
 		public String getProperty(PROPERTIES property) {
 			String prop = getProperty(property + "");
 			if (prop == null) {
-				log.reportTimeError("Invalid pseq property " + property);
+				log.reportError("Invalid pseq property " + property);
 			}
 			return prop;
 		}
@@ -364,7 +364,7 @@ public class PlinkSeqUtils {
 									if (curLoc == null || !curLoc.equals(line[indices[0]])) {
 										curLoc = line[indices[0]];
 										if (locMap.containsKey(curLoc)) {
-											log.reportTimeError("Multiple entries for " + curLoc);
+											log.reportError("Multiple entries for " + curLoc);
 											return;
 										} else {
 											locSummaries.add(new PlinkSeqLocSummary(curLoc, pos, nvar, alias));
@@ -460,11 +460,11 @@ public class PlinkSeqUtils {
 		public void addTest(String alocus, String apos, int aNVAR, String test, double P, double I,
 												String aAlias, String desc, BURDEN_Tests type, Logger log) {
 			if (!locus.equals(alocus) || !pos.equals(apos) || aNVAR != NVAR || !alias.equals(aAlias)) {
-				log.reportTimeError("Mismatched tests being added...");
-				log.reportTimeError(locus + "->" + alocus);
-				log.reportTimeError(pos + "->" + apos);
-				log.reportTimeError(aNVAR + "->" + NVAR);
-				log.reportTimeError(alias + "->" + alias);
+				log.reportError("Mismatched tests being added...");
+				log.reportError(locus + "->" + alocus);
+				log.reportError(pos + "->" + apos);
+				log.reportError(aNVAR + "->" + NVAR);
+				log.reportError(alias + "->" + alias);
 
 			} else {
 				PlinkSeqTestSummary plinkSeqTestSummary = new PlinkSeqTestSummary(test, P, I, desc, type);
@@ -473,7 +473,7 @@ public class PlinkSeqUtils {
 				for (int i = 0; i < BURDEN_Tests.values().length; i++) {
 					if (type == BURDEN_Tests.values()[i]) {
 						if (summaries[i] != null) {
-							log.reportTimeError("Multiple " + type + " tests for locus...");
+							log.reportError("Multiple " + type + " tests for locus...");
 						} else {
 							summaries[i] = plinkSeqTestSummary;
 						}

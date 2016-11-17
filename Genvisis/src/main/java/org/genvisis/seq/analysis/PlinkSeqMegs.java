@@ -95,7 +95,7 @@ public class PlinkSeqMegs {
 				case V_SUMMARY:
 					break;
 				default:
-					log.reportTimeError("INVALID analysis type " + type);
+					log.reportError("INVALID analysis type " + type);
 					break;
 			}
 		}

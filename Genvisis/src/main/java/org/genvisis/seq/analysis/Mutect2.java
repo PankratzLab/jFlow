@@ -277,7 +277,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 				try {
 					samples[i] = BamOps.getSampleName(bams[i]);
 				} catch (Exception e) {
-					log.reportTimeError("Could not find sample for " + bams[i]);
+					log.reportError("Could not find sample for " + bams[i]);
 					return;
 				}
 			}

@@ -255,7 +255,7 @@ public class VCFHistogram implements Serializable {
 							}
 							break;
 						default:
-							log.reportTimeError("Invalid walker " + walker);
+							log.reportError("Invalid walker " + walker);
 							break;
 					}
 				}
@@ -287,7 +287,7 @@ public class VCFHistogram implements Serializable {
 				}
 				break;
 			default:
-				log.reportTimeError("Invalid walker " + walker);
+				log.reportError("Invalid walker " + walker);
 				break;
 		}
 	}

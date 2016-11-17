@@ -78,7 +78,7 @@ public class ExomeDepth {
 																									true, false),
 														-1) > 0;
 			if (fail) {
-				log.reportTimeError("Could not detect all analysis .bam files in the complete reference set");
+				log.reportError("Could not detect all analysis .bam files in the complete reference set");
 			}
 		}
 		this.rLoc = rLoc;
@@ -150,7 +150,7 @@ public class ExomeDepth {
 		for (int i = 0; i < allReferenceBAMFiles.length; i++) {
 			String bai = ext.rootOf(allReferenceBAMFiles[i], false) + BamOps.BAI_EXT;
 			if (!Files.exists(allReferenceBAMFiles[i]) || !Files.exists(bai)) {
-				log.reportTimeError("Could not find "	+ allReferenceBAMFiles[i]
+				log.reportError("Could not find "	+ allReferenceBAMFiles[i]
 														+ " with corresponding .bai file" + bai);
 			} else {
 				allReferenceBAIFiles[i] = bai;
@@ -497,7 +497,7 @@ public class ExomeDepth {
 				String[] header = Files.getHeaderOfFile(getExomeDepthOutput(), log);
 				int[] indices = ext.indexFactors(RESULT_PARSE, header, true, false);
 				if (Array.countIf(indices, -1) > 0) {
-					log.reportTimeError("Did not find complete header "	+ Array.toStr(RESULT_PARSE) + " in "
+					log.reportError("Did not find complete header "	+ Array.toStr(RESULT_PARSE) + " in "
 															+ getExomeDepthOutput());
 				} else {
 					try {
@@ -512,7 +512,7 @@ public class ExomeDepth {
 								} else if (line[indices[0]].equals("duplication")) {
 									cn = 3;
 								} else {
-									log.reportTimeError("Invalid copy number type on line " + Array.toStr(line));
+									log.reportError("Invalid copy number type on line " + Array.toStr(line));
 									return null;
 								}
 								int nexons = Integer.parseInt(line[indices[1]]);
@@ -532,7 +532,7 @@ public class ExomeDepth {
 																													cn, score, nexons, 99, eis);
 								cnvs.add(cnVariant);
 							} catch (NumberFormatException nfe) {
-								log.reportTimeError("Invalid number on line " + Array.toStr(line));
+								log.reportError("Invalid number on line " + Array.toStr(line));
 								return null;
 							}
 						}
@@ -604,8 +604,8 @@ public class ExomeDepth {
 	public static ExomeDepthAnalysis[] callCNVs(ExomeDepth exomeDepth, String outputDir,
 																							String outputRoot, int numthreads, Logger log) {
 		if (!Files.exists(exomeDepth.getCountFile())) {
-			log.reportTimeError("Did not find " + exomeDepth.getCountFile());
-			log.reportTimeError("This is most likely caused by a failure of running Rscript");
+			log.reportError("Did not find " + exomeDepth.getCountFile());
+			log.reportError("This is most likely caused by a failure of running Rscript");
 
 			return null;
 		}

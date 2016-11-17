@@ -31,7 +31,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		super();
 		if (lociAl == null || lociAl.size() < 1) {
 			String error = "BUG: constructor call with 0 size or null in set contruction";
-			log.reportTimeError(error);
+			log.reportError(error);
 			throw new IllegalArgumentException(error);
 		}
 
@@ -151,7 +151,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		for (int i = 0; i < operateSet.getLoci().length; i++) {
 			if (toReturn.getOverLappingLoci(operateSet.getLoci()[i]) != null) {
 				String error = "BUG: found overlapping loci from the removed set in the set to be returned";
-				log.reportTimeError(error);
+				log.reportError(error);
 				throw new IllegalStateException(error);
 			}
 		}
@@ -200,7 +200,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 																															// instead to get same type returned
 
 		if (!sorted) {
-			log.reportTimeError("Internal error: must sort internal segment array prior to merge");
+			log.reportError("Internal error: must sort internal segment array prior to merge");
 			return null;
 		} else {
 			byte currentChr = -1;
@@ -267,7 +267,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 
 	public int[] getOverlappingIndices(final Segment seg) {
 		if (!sorted) {
-			log.reportTimeError("Internal error: must sort internal segment array prior to overlap search");
+			log.reportError("Internal error: must sort internal segment array prior to overlap search");
 			return null;
 		} else {
 			int[] indices = Segment.binarySearchForAllOverLappingIndices(seg, loci);
@@ -401,7 +401,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 						writer.println(loci[i].getUCSClocation());
 						break;
 					default:
-						log.reportTimeError("Invalid type " + type);
+						log.reportError("Invalid type " + type);
 						written = false;
 						break;
 				}

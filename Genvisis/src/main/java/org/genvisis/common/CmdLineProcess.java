@@ -106,7 +106,7 @@ public class CmdLineProcess implements Iterator<String> {
 						}
 
 					} else {
-						log.reportTimeError("A standard input source was not provided");
+						log.reportError("A standard input source was not provided");
 					}
 
 					break;
@@ -131,7 +131,7 @@ public class CmdLineProcess implements Iterator<String> {
 
 		} catch (IOException e) {
 			init = false;
-			log.reportTimeError("Could not initialize process " + Array.toStr(commandArray));
+			log.reportError("Could not initialize process " + Array.toStr(commandArray));
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -223,7 +223,7 @@ public class CmdLineProcess implements Iterator<String> {
 			case STOUT_CAPTURE_ITERATOR:
 				try {
 					if (proc.getInputStream() != null && proc.getInputStream().available() > 0) {
-						log.reportTimeError("The output mode was set to iterate, but there is still available bytes.");
+						log.reportError("The output mode was set to iterate, but there is still available bytes.");
 					}
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
@@ -246,7 +246,7 @@ public class CmdLineProcess implements Iterator<String> {
 						case STERR_CAPTURE_BY_LOG:
 							if (line != null) {
 								// System.out.println(line);
-								log.reportTimeError(line);
+								log.reportError(line);
 							}
 							break;
 						default:
@@ -255,7 +255,7 @@ public class CmdLineProcess implements Iterator<String> {
 					}
 				}
 			} catch (IOException e) {
-				log.reportTimeError("Could not read error stream for process "
+				log.reportError("Could not read error stream for process "
 														+ Array.toStr(commandArray, " "));
 				e.printStackTrace();
 			}

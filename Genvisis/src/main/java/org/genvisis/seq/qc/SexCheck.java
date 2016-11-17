@@ -176,7 +176,7 @@ public class SexCheck {
 				} else if (chr == Y) {
 					numYReads++;
 				} else {
-					log.reportTimeError("Invalid chromosome found in " + bamFile + ", halting");
+					log.reportError("Invalid chromosome found in " + bamFile + ", halting");
 					return new SexCheckResults(0, 0, bamFile, sample);
 				}
 			}
@@ -283,7 +283,7 @@ public class SexCheck {
 			bamFiles = HashVec.loadFileToStringArray(dir, false, new int[] {0}, true);
 		}
 		if (bamFiles.length < 1) {
-			log.reportTimeError("Did not find any bam files in directory " + dir);
+			log.reportError("Did not find any bam files in directory " + dir);
 		} else {
 			SexCheck sexCheck = new SexCheck(bamFiles, numThreads, log);
 			sexCheck.checkSex(fullPathTooutput);

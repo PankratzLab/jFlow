@@ -998,7 +998,7 @@ public class PlinkData {
 		PSF.checkInterrupted();
 
 		if (targetSamples == null) {
-			log.reportTimeError("FAM file wasn't written properly.");
+			log.reportError("FAM file wasn't written properly.");
 			return false;
 		}
 		proj.getProgressMonitor()

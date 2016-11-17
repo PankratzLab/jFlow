@@ -345,7 +345,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		Hashtable<String, Integer> projectIndices = proj.getMarkerIndices();
 		if (params != null && recomputeLRR) {
 			proj.getLog()
-					.reportTimeError("recompute lrr was flagged AND gc correction parameters were passed to data load of median markers");
+					.reportError("recompute lrr was flagged AND gc correction parameters were passed to data load of median markers");
 			return;
 		}
 		if (params != null) {
@@ -1247,11 +1247,11 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	public double[] getBasisAt(int PC) {
 		double[] basis = null;
 		if (PC <= 0) {
-			log.reportTimeError("Requested PC must be greater than 0 (one -based extraction");
+			log.reportError("Requested PC must be greater than 0 (one -based extraction");
 			return basis;
 		}
 		if (PC > numComponents) {
-			log.reportTimeError("Requested PC must be less than or equal to the total number of components ("
+			log.reportError("Requested PC must be less than or equal to the total number of components ("
 													+ numComponents + ")");
 			return basis;
 		} else {
@@ -1263,10 +1263,10 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		boolean matched = true;
 		if (data.length != samplesInPc.size()) {
 			matched = false;
-			log.reportTimeError("Input data ("	+ data.length
+			log.reportError("Input data ("	+ data.length
 													+ ") does not match the number of samples in the pc file ("
 													+ samplesInPc.size() + ")");
-			log.reportTimeError("Consider masking ");
+			log.reportError("Consider masking ");
 
 		}
 		return matched;

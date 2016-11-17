@@ -168,7 +168,7 @@ public class CBCGUI {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public void reportTimeError(String str) {
+					public void reportError(String str) {
 						// override to show message dialog and remove genvisis version number from log output
 						// super.reportTimeError(str);
 						reportError(ext.getTime() + "]\t Error - " + str, true, true);

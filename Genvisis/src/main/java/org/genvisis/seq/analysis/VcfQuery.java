@@ -526,7 +526,7 @@ public class VcfQuery {
 		Segment[] segs = Segment.loadRegions(	qParams.getSegFile(), chrColumn, startColumn, stopColumn,
 																					0, true, true, true, 0);
 		if (segs == null || segs.length < 1) {
-			log.reportTimeError("Did not find any valid segments in file " + qParams.getSegFile());
+			log.reportError("Did not find any valid segments in file " + qParams.getSegFile());
 		} else {
 			log.reportTimeInfo("Found " + segs.length + " seqments to query ");
 			String[] vcfs = new String[0];
@@ -539,7 +539,7 @@ public class VcfQuery {
 			}
 			String[] all = Array.concatAll(vcfs, gzVcfs);
 			if (all.length < 1) {
-				log.reportTimeError("Did not find any .vcf or .vcf.gz files in directory "
+				log.reportError("Did not find any .vcf or .vcf.gz files in directory "
 														+ qParams.getDir());
 			} else {
 				log.reportTimeInfo("Found " + all.length + " files to query from " + qParams.getDir());
@@ -639,7 +639,7 @@ public class VcfQuery {
 		try {
 			if (params.getSegFile() == null) {
 				log = new Logger();
-				log.reportTimeError("Must provide a valid segment file");
+				log.reportError("Must provide a valid segment file");
 			} else {
 				if (params.getOutputFileName() == null) {
 					params.setOutputFileName(ext.addToRoot(params.getSegFile(), ".query"));

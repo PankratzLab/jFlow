@@ -95,7 +95,7 @@ public class GenomeFileMergePipeline {
 												+ proj.PROJECT_NAME.getValue());
 				plink = true;
 			} else {
-				log.reportTimeError("Error - " + msg);
+				log.reportError("Error - " + msg);
 				return;
 			}
 		} else if (!Files.exists(genDir)) {
@@ -105,7 +105,7 @@ public class GenomeFileMergePipeline {
 				log.reportTime("PLINK files will be QC'd for project " + proj.PROJECT_NAME.getValue());
 				qc = true;
 			} else {
-				log.reportTimeError("Error - " + msg);
+				log.reportError("Error - " + msg);
 				return;
 			}
 		} else if (!Files.exists(genFile)) {
@@ -116,7 +116,7 @@ public class GenomeFileMergePipeline {
 												+ "; however, the output folders were found but the plink.genome file was missing, so other errors may be present.");
 				qc = true;
 			} else {
-				log.reportTimeError("Error - " + msg);
+				log.reportError("Error - " + msg);
 				return;
 			}
 		} else if (rel == null || rel.length == 0 || "".equals(rel[0]) || !Files.exists(rel[0])) {
@@ -127,7 +127,7 @@ public class GenomeFileMergePipeline {
 												+ "; however, the output folders were found but the *.genome_relateds.xln file was missing, so other errors may be present.");
 				qc = true;
 			} else {
-				log.reportTimeError("Error - " + msg);
+				log.reportError("Error - " + msg);
 				return;
 			}
 		}
@@ -142,7 +142,7 @@ public class GenomeFileMergePipeline {
 
 	private boolean checkRelatedsFile(String relFile) {
 		if (new File(relFile).length() == 0) {
-			log.reportTimeError("Error - genome relateds file "	+ relFile
+			log.reportError("Error - genome relateds file "	+ relFile
 													+ " is empty! Data from this file will not be included in the final output.");
 			return false;
 		}
@@ -156,7 +156,7 @@ public class GenomeFileMergePipeline {
 		int[] factors;
 
 		if (new File(genFile).length() == 0) {
-			log.reportTimeError("Error - genome file "	+ genFile
+			log.reportError("Error - genome file "	+ genFile
 													+ " is empty! Data from this file will not be included in the final output.");
 			return false;
 		}
@@ -168,7 +168,7 @@ public class GenomeFileMergePipeline {
 			factors = ext.indexFactors(GENOME_COLUMNS, line.trim().split("[\\s]+"), false, false);
 			for (int i = 0; i < factors.length; i++) {
 				if (factors[i] == -1) {
-					log.reportTimeError("Error - column "	+ GENOME_COLUMNS[i]
+					log.reportError("Error - column "	+ GENOME_COLUMNS[i]
 															+ " was missing from plink.genome file: " + genFile
 															+ " ; data from this file will not be included in final output.");
 					return false;
@@ -184,24 +184,24 @@ public class GenomeFileMergePipeline {
 	public void addFiles(String name, String genomeDir) {
 		String genDir = ext.verifyDirFormat(genomeDir);
 		if (!Files.exists(genDir)) {
-			log.reportTimeError("Error - genome file directory \""	+ genomeDir
+			log.reportError("Error - genome file directory \""	+ genomeDir
 													+ "\" not found! Data set will be dropped: " + name);
 			return;
 		}
 		if (!Files.exists(genDir + SEARCHFOR_GENOME)) {
-			log.reportTimeError("Error - genome file \""	+ (genDir + SEARCHFOR_GENOME)
+			log.reportError("Error - genome file \""	+ (genDir + SEARCHFOR_GENOME)
 													+ "\" not found! Data set will be dropped: " + name);
 			return;
 		}
 		String[] rel = Files.list(genDir, SEARCHFOR_RELATEDS_SUFF, false);
 		if (rel == null || rel.length == 0 || "".equals(rel[0]) || !Files.exists(genDir + rel[0])) {
-			log.reportTimeError("Error - genome relateds file matching filename pattern \"*"
+			log.reportError("Error - genome relateds file matching filename pattern \"*"
 														+ SEARCHFOR_RELATEDS_SUFF + "\" not found in directory " + genomeDir
 													+ "! Data set will be dropped: " + name);
 			return;
 		}
 		if (dataLabelSet.contains(name)) {
-			log.reportTimeError("Error - duplicate data set name: "	+ name
+			log.reportError("Error - duplicate data set name: "	+ name
 													+ ". Directory source will be dropped: " + genomeDir);
 			return;
 		}
@@ -217,17 +217,17 @@ public class GenomeFileMergePipeline {
 
 	public void addFiles(String name, String relatedsFile, String genomeFile) {
 		if (!Files.exists(genomeFile)) {
-			log.reportTimeError("Error - genome file \""	+ genomeFile
+			log.reportError("Error - genome file \""	+ genomeFile
 													+ "\" not found! Data set will be dropped: " + name);
 			return;
 		}
 		if (!Files.exists(relatedsFile)) {
-			log.reportTimeError("Error - genome relateds file \""	+ relatedsFile
+			log.reportError("Error - genome relateds file \""	+ relatedsFile
 													+ "\" not found! Data set will be dropped: " + name);
 			return;
 		}
 		if (dataLabelSet.contains(name)) {
-			log.reportTimeError("Error - duplicate data set name: "	+ name
+			log.reportError("Error - duplicate data set name: "	+ name
 													+ ". File set will be dropped: " + relatedsFile + "  |  " + genomeFile);
 			return;
 		}

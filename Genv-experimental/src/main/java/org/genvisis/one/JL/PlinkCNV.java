@@ -597,7 +597,7 @@ public class PlinkCNV {
 					log.reportTimeInfo("Nothing to report for " + result.key);
 				}
 			} else {
-				log.reportTimeError(result.key + " was not complete");
+				log.reportError(result.key + " was not complete");
 			}
 		}
 

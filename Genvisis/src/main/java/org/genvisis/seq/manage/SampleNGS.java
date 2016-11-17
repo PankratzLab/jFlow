@@ -41,7 +41,7 @@ public class SampleNGS {
 
 	public void addGeno(VariantContext vc, Genotype geno, Logger log) {
 		if (!geno.getSampleName().equals(sampleName)) {
-			log.reportTimeError("Sample names do not match");
+			log.reportError("Sample names do not match");
 		} else {
 			try {
 				int[] ad = vc == null	? geno.getAD()
@@ -87,7 +87,7 @@ public class SampleNGS {
 				gcs.add(convertGQ(f));
 				break;
 			case GENO:
-				log.reportTimeError("Invalid data type for " + type);
+				log.reportError("Invalid data type for " + type);
 				break;
 			case X:
 				xs.add(convertXY(f));
@@ -96,7 +96,7 @@ public class SampleNGS {
 				ys.add(convertXY(f));
 				break;
 			default:
-				log.reportTimeError("Invalid data type for " + type);
+				log.reportError("Invalid data type for " + type);
 				break;
 		}
 	}
@@ -104,19 +104,19 @@ public class SampleNGS {
 	private void addByte(byte b, SampleNGS.DATA_TYPE type, Logger log) {
 		switch (type) {
 			case GC:
-				log.reportTimeError("Invalid data type for " + type);
+				log.reportError("Invalid data type for " + type);
 				break;
 			case GENO:
 				geno.add(b);
 				break;
 			case X:
-				log.reportTimeError("Invalid data type for " + type);
+				log.reportError("Invalid data type for " + type);
 				break;
 			case Y:
-				log.reportTimeError("Invalid data type for " + type);
+				log.reportError("Invalid data type for " + type);
 				break;
 			default:
-				log.reportTimeError("Invalid data type for " + type);
+				log.reportError("Invalid data type for " + type);
 				break;
 		}
 	}
@@ -134,7 +134,7 @@ public class SampleNGS {
 	public Hashtable<String, Float> dump(	Project proj, Hashtable<String, Float> allOutliers,
 																				long fingerprint, Logger log) {
 		if (!verify(proj)) {
-			log.reportTimeError("Could not verify that all data has been added for sample " + sampleName);
+			log.reportError("Could not verify that all data has been added for sample " + sampleName);
 		} else {
 
 			String dir = proj.SAMPLE_DIRECTORY.getValue();

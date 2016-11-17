@@ -1365,7 +1365,7 @@ public class Sample implements Serializable {
 
 		if (Files.exists(outlierFileName)) {
 			if (verbose) {
-				proj.getLog().reportTimeError(outlierFileName + " already exists, cancelling");
+				proj.getLog().reportError(outlierFileName + " already exists, cancelling");
 			}
 		} else {
 			proj.getLog().reportTimeInfo("Did not see " + outlierFileName + ", generating now");

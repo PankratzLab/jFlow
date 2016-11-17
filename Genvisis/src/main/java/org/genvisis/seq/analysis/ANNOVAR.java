@@ -79,7 +79,7 @@ public class ANNOVAR {
 																		numthreads, log);
 		annovarResults.setFail(!progress);
 		if (!progress) {
-			log.reportTimeError("The annovar has failed :( \n This is most likely caused by not having the required database files. Please see \"http://www.openbioinformatics.org/annovar/annovar_startup.html\" for commands to download the necessary files");
+			log.reportError("The annovar has failed :( \n This is most likely caused by not having the required database files. Please see \"http://www.openbioinformatics.org/annovar/annovar_startup.html\" for commands to download the necessary files");
 		}
 		return annovarResults;
 	}

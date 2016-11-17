@@ -41,7 +41,7 @@ public class Quantiles {
 		double[] quantiles = null;
 		double[] tmp = Array.removeNaN(data);
 		if (tmp.length == 0) {
-			log.reportTimeError("Found all NaN values, setting all to quantiles 0");
+			log.reportError("Found all NaN values, setting all to quantiles 0");
 			quantiles = new double[] {.5};
 		} else {
 			quantiles = Array.quantsExclusive(tmp, qs);
@@ -141,7 +141,7 @@ public class Quantiles {
 			}
 			return qs;
 		} else {
-			log.reportTimeError("Number of Quantiles must be greater than 0");
+			log.reportError("Number of Quantiles must be greater than 0");
 			return null;
 		}
 	}
@@ -149,7 +149,7 @@ public class Quantiles {
 	public static Quantiles[] qetQuantilesFor(int numQ, double[][] variableDominantMatrix,
 																						String[] variableTitles, Logger log) {
 		if (variableTitles != null && variableTitles.length != variableDominantMatrix.length) {
-			log.reportTimeError("titles must be the same length as the data matrix, titles="
+			log.reportError("titles must be the same length as the data matrix, titles="
 													+ variableTitles.length + " vs " + variableDominantMatrix.length);
 			return null;
 		}

@@ -52,7 +52,7 @@ public class PrepSuperNovo {
 				if (write) {
 					writer.println(trioentry);
 				} else {
-					log.reportTimeError("Skipping un filled trio for " + trioentry);
+					log.reportError("Skipping un filled trio for " + trioentry);
 				}
 			}
 			writer.close();

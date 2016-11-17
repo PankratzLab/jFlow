@@ -175,7 +175,7 @@ public class StatsCrossTabs {
 			int[] order = Sort.getReverseIndices(type == VALUE_TYPE.STAT ? stats : sigs);
 			sRank = new StatsCrossTabRank(dataTitles[variableIndex], order, sigs, stats, titlesRanked);
 		} else {
-			log.reportTimeError("Variable index greater than variable array length " + data.length);
+			log.reportError("Variable index greater than variable array length " + data.length);
 		}
 		return sRank;
 	}
@@ -206,11 +206,11 @@ public class StatsCrossTabs {
 	private boolean verify() {
 		boolean verify = true;
 		if (dataTitles.length != data.length) {
-			log.reportTimeError("Data titles and data matrix must be the same size");
+			log.reportError("Data titles and data matrix must be the same size");
 			verify = false;
 		}
 		if (indeps != null && data[0].length != indeps.length) {
-			log.reportTimeError("Independant predictors and data must be the same size");
+			log.reportError("Independant predictors and data must be the same size");
 			verify = false;
 		}
 		if (sType == STAT_TYPE.LIN_REGRESSION && indeps == null) {

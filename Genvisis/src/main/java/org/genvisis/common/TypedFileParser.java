@@ -30,7 +30,7 @@ public class TypedFileParser extends FileParser {
 							numericData[i][j] = Double.parseDouble(tmp[j]);
 						} catch (NumberFormatException nfe) {
 							if (!setInvalidNumericToNaN) {
-								log.reportTimeError("Found invalid number on line " + Array.toStr(line));
+								log.reportError("Found invalid number on line " + Array.toStr(line));
 								validLine = false;
 							} else {
 								numInvalidNumerics++;
@@ -48,20 +48,20 @@ public class TypedFileParser extends FileParser {
 			}
 			return new TypedFileLine(numericData, stringData, validLine, numInvalidNumerics);
 		} catch (ArrayIndexOutOfBoundsException aiob) {
-			log.reportTimeError("Could not extract indices from line " + Array.toStr(line));
+			log.reportError("Could not extract indices from line " + Array.toStr(line));
 			if (numericColumns != null) {
 				String numeric = "";
 				for (int[] numericColumn : numericColumns) {
 					numeric += "\t" + Array.toStr(numericColumn);
 				}
-				log.reportTimeError("Indices for numeric data: " + numeric);
+				log.reportError("Indices for numeric data: " + numeric);
 			}
 			if (stringColumns != null) {
 				String string = "";
 				for (int[] stringColumn : stringColumns) {
 					string += "\t" + Array.toStr(stringColumn);
 				}
-				log.reportTimeError("Indices for numeric data: " + string);
+				log.reportError("Indices for numeric data: " + string);
 			}
 			// log.reportException(aiob);
 			// aiob.printStackTrace();

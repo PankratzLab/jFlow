@@ -207,7 +207,7 @@ public class SexChecks {
 		HashSet<String> nonCrossHybridizingMarkers;
 		String[] markerNames = markerSet.getMarkerNames();
 		if (nonCrossHybridizingMarkersFile == null) {
-			log.reportTimeError("No file of markers that do not cross hybridize was provided, all X and Y chromosome markers will be used to determine sex baselines");
+			log.reportError("No file of markers that do not cross hybridize was provided, all X and Y chromosome markers will be used to determine sex baselines");
 			nonCrossHybridizingMarkers = new HashSet<String>(Arrays.asList(markerNames));
 		} else {
 			log.report("Using "	+ nonCrossHybridizingMarkersFile

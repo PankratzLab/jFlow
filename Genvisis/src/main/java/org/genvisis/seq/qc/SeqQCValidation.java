@@ -183,7 +183,7 @@ public class SeqQCValidation {
 			}
 
 		} else {
-			log.reportTimeError("Not implemented yet");
+			log.reportError("Not implemented yet");
 		}
 		return comps.toArray(new String[comps.size()][]);
 	}

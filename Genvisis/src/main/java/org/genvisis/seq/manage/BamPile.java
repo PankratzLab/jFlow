@@ -171,7 +171,7 @@ public class BamPile extends Segment implements Serializable {
 			referenceMask[4] = false;
 		}
 		if (Array.booleanArraySum(referenceMask) != 4) {
-			log.reportTimeError("Invalid number of alternate allele possibilities, found "
+			log.reportError("Invalid number of alternate allele possibilities, found "
 													+ Array.booleanArraySum(referenceMask) + " with ref allele" + refAllele);
 
 		}
@@ -204,7 +204,7 @@ public class BamPile extends Segment implements Serializable {
 			referenceMask[4] = true;
 		}
 		if (Array.booleanArraySum(referenceMask) != 1) {
-			log.reportTimeError("Invalid number of reference allele possibilities");
+			log.reportError("Invalid number of reference allele possibilities");
 		}
 		return (Array.sum(Array.subArray(counts, referenceMask)));
 	}
@@ -258,7 +258,7 @@ public class BamPile extends Segment implements Serializable {
 		int mapQ = samRecord.getMappingQuality();
 		if (mapQ == 255) {
 			String error = "Detected invalid mapping quality (255)";
-			log.reportTimeError(error);
+			log.reportError(error);
 			throw new IllegalArgumentException(error);
 		} else {
 			// System.out.println(toPile.getSize());
@@ -313,7 +313,7 @@ public class BamPile extends Segment implements Serializable {
 
 			if (numBasesWithMismatch > numBasesOverlap) {
 				String error = "Internal Error: Found more reads with mismatching bases than total reads";
-				log.reportTimeError(error);
+				log.reportError(error);
 				throw new IllegalStateException(error);
 			}
 		}
@@ -354,7 +354,7 @@ public class BamPile extends Segment implements Serializable {
 			avgMapQ[4] += mapQ;
 		} else {
 			String error = "Invalid base " + b + " for regular base tracking";
-			log.reportTimeError(error);
+			log.reportError(error);
 			throw new IllegalArgumentException(error);
 		}
 	}

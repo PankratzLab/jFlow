@@ -138,25 +138,25 @@ public class BlastParams implements AnalysisParams {
 					try {
 						maxAlignmentsReported = Integer.parseInt(element.split("=")[1]);
 					} catch (NumberFormatException nfe) {
-						log.reportTimeError("Could not parse max alignments reported " + element);
+						log.reportError("Could not parse max alignments reported " + element);
 					}
 				} else if (element.startsWith(parseKeys[3])) {
 					try {
 						reportWordSize = Integer.parseInt(element.split("=")[1]);
 					} catch (NumberFormatException nfe) {
-						log.reportTimeError("Could not parse reportWordSize " + element);
+						log.reportError("Could not parse reportWordSize " + element);
 					}
 				} else if (element.startsWith(parseKeys[4])) {
 					try {
 						blastWordSize = Integer.parseInt(element.split("=")[1]);
 					} catch (NumberFormatException nfe) {
-						log.reportTimeError("Could not parse blastWordSize " + element);
+						log.reportError("Could not parse blastWordSize " + element);
 					}
 				} else if (element.startsWith(parseKeys[5])) {
 					try {
 						evalueCutoff = Double.parseDouble(element.split("=")[1]);
 					} catch (NumberFormatException nfe) {
-						log.reportTimeError("Could not parse evalueCutoff " + element);
+						log.reportError("Could not parse evalueCutoff " + element);
 					}
 				} else if (element.startsWith(parseKeys[6])) {
 					dateStamp = element.split("=")[1];
@@ -164,7 +164,7 @@ public class BlastParams implements AnalysisParams {
 					try {
 						markerFingerPrint = Long.parseLong(element.split("=")[1]);
 					} catch (NumberFormatException nfe) {
-						log.reportTimeError("Could not parse marker fingerprint " + element);
+						log.reportError("Could not parse marker fingerprint " + element);
 					}
 				} else if (element.startsWith(parseKeys[8])) {
 					String[] tmpS = element.split("=");

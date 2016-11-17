@@ -260,7 +260,7 @@ public class GoogleMash implements Serializable {
 					int tmpHits = Integer.parseInt(result);
 					setHits(tmpHits);
 				} catch (NumberFormatException nfe) {
-					log.reportTimeError("invalid number " + result);
+					log.reportError("invalid number " + result);
 				}
 			}
 			return hasCount;

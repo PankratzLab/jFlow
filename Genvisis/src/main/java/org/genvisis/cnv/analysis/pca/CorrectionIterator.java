@@ -181,7 +181,7 @@ public class CorrectionIterator implements Serializable {
 			// break;
 			case WITH_QC_BUILDERS:
 				if (!Files.exists(samplesToBuildModels)) {
-					log.reportTimeError("Model building type was set to "	+ bType + " but the sample file "
+					log.reportError("Model building type was set to "	+ bType + " but the sample file "
 															+ samplesToBuildModels + " did not exist");
 					valid = false;
 				} else {
@@ -840,7 +840,7 @@ public class CorrectionIterator implements Serializable {
 						int[] indices = ext.indexFactors(	toExtract, Files.getHeaderOfFile(tmpHerit, log), true,
 																							false);
 						if (Array.countIf(indices, -1) > 0) {
-							log.reportTimeError("Could not find " + Array.toStr(toExtract) + " in " + tmpHerit);
+							log.reportError("Could not find " + Array.toStr(toExtract) + " in " + tmpHerit);
 							return null;
 						}
 						PrintWriter writer = new PrintWriter(new FileWriter(heritSummary));
@@ -1513,7 +1513,7 @@ public class CorrectionIterator implements Serializable {
 								scatters.add(iterationResult.plotRank(log));
 							} else {
 								if (iterationResult.getBasicPrep() == null) {
-									log.reportTimeError("must have data basic prep object");
+									log.reportError("must have data basic prep object");
 									return null;
 								} else {
 

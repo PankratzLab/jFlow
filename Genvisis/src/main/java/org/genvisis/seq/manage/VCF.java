@@ -112,7 +112,7 @@ public class VCF {
 		}
 		for (int i = 0; i < toDump.length; i++) {
 			if (!vcfFileReader.getFileHeader().hasInfoLine(toDump[i])) {
-				log.reportTimeError("Could not find common info field " + toDump[i] + " in " + vcfFile);
+				log.reportError("Could not find common info field " + toDump[i] + " in " + vcfFile);
 				return false;
 			}
 		}

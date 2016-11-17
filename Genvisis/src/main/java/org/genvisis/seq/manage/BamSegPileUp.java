@@ -91,7 +91,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
 					boolean overlaps = samRecordSegment.overlaps(cs);
 					if (!overlaps) {
 						String error = "non overlapping record returned for query";
-						log.reportTimeError(error);
+						log.reportError(error);
 						throw new IllegalStateException(error);
 					} else {
 						currentPile.addRecord(samRecord, currentRef, filterNGS.getPhreadScoreFilter(), log);

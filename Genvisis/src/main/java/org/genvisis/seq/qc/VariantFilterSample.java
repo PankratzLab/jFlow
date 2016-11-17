@@ -97,7 +97,7 @@ public class VariantFilterSample {
 					vcPass.setPassingContext(VCOps.setTheseSamplesToMissing(vc, samplesToSetMissing));
 					break;
 				default:
-					log.reportTimeError("Invalid method " + method);
+					log.reportError("Invalid method " + method);
 					return null;
 			}
 		} else {
@@ -111,7 +111,7 @@ public class VariantFilterSample {
 					vcPass.setPassingContext(VCOps.setTheseSamplesToMissing(vc, samplesToSetMissing));
 					break;
 				default:
-					log.reportTimeError("Invalid method " + method);
+					log.reportError("Invalid method " + method);
 					return null;
 			}
 		}

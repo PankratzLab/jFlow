@@ -354,35 +354,35 @@ public class MergeExtractPipeline {
   public void run() {
     initLog();
     if (dataSources.size() == 0) {
-      log.reportTimeError("no data sources specified!");
+      log.reportError("no data sources specified!");
       return;
     }
     if (getOutputDataFile() == null || "".equals(getOutputDataFile())) {
-      log.reportTimeError("output data file name not specified!");
+      log.reportError("output data file name not specified!");
       return;
     }
     if (Files.exists(getOutputDataFile()) && !overwrite) {
-      log.reportTimeError("output data file already exists!  Please remove file or set -overwrite flag, and re-run.");
+      log.reportError("output data file already exists!  Please remove file or set -overwrite flag, and re-run.");
       return;
     }
     if (getOutputMapFile() == null || "".equals(getOutputMapFile())) {
-      log.reportTimeError("output map file name not specified!");
+      log.reportError("output map file name not specified!");
       return;
     }
     if (Files.exists(getOutputMapFile()) && !overwrite) {
-      log.reportTimeError("output map file already exists!  Please remove file or set -overwrite flag, and re-run.");
+      log.reportError("output map file already exists!  Please remove file or set -overwrite flag, and re-run.");
       return;
     }
     if (regionsFile == null) {
       log.reportTimeWarning("no regions file specified; all data will be exported.");
     } else if (!Files.exists(regionsFile)) {
-      log.reportTimeError("specified regions file not found; please check file path and try again.");
+      log.reportError("specified regions file not found; please check file path and try again.");
       return;
     }
     if (markersFile == null) {
       log.reportTimeWarning("no markers file specified; all markers will be exported.");
     } else if (!Files.exists(markersFile)) {
-      log.reportTimeError("specified markers file not found; please check file path and try again.");
+      log.reportError("specified markers file not found; please check file path and try again.");
       return;
     }
 
@@ -434,7 +434,7 @@ public class MergeExtractPipeline {
       log.report("Running PLINK merge command: " + mergeCommand);
       boolean result = CmdLine.runDefaults(mergeCommand, dir);
       if (!result) {
-        log.reportTimeError("PLINK merge command failed.  Please check output for errors and try again.");
+        log.reportError("PLINK merge command failed.  Please check output for errors and try again.");
         return;
       }
       dataSources.add(new DataSource(null, dir, PSF.Plink.getBED(outRoot), PSF.Plink

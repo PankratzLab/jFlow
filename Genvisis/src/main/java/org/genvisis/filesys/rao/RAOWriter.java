@@ -75,7 +75,7 @@ public class RAOWriter {
 																										false);
 		if (!fullPathToFile.endsWith(RAO_EXT)) {
 			String error = "Invalid file extension, " + fullPathToFile + " must end with " + RAO_EXT;
-			log.reportTimeError(error);
+			log.reportError(error);
 		} else {
 			try {
 				RandomAccessFile file = new RandomAccessFile(fullPathToFile, "rw");

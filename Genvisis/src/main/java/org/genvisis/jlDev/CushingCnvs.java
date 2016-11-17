@@ -468,7 +468,7 @@ public class CushingCnvs {
 																															plinkResults.get(j).getLoci()[0]
 																																															.getData().length,
 																															Double.NaN)));
-						log.reportTimeError("Could not find overlapping plink results for "
+						log.reportError("Could not find overlapping plink results for "
 																+ currentCNV.toPlinkFormat());
 					} else {
 						// int minEmp1Index = -1;

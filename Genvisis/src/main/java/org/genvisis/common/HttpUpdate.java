@@ -304,11 +304,11 @@ public class HttpUpdate {
 							log.reportTimeInfo("New version of Genvisis can be found at " + newJarFile);
 						}
 					} catch (IOException e) {
-						log.reportTimeError("Could not download " + remoteJarStatus.getJarChecked());
+						log.reportError("Could not download " + remoteJarStatus.getJarChecked());
 						e.printStackTrace();
 					}
 				} else {
-					log.reportTimeError("Could not download " + remoteJarStatus.getJarChecked());
+					log.reportError("Could not download " + remoteJarStatus.getJarChecked());
 				}
 			}
 			dispose();
@@ -325,7 +325,7 @@ public class HttpUpdate {
 		if (remoteJarStatus.getStatus() == CHECK_STATUS.OK) {
 			new UpdateInfo(dir, remoteJarStatus, new Logger());
 		} else {
-			log.reportTimeError("Unable to fetch updates");
+			log.reportError("Unable to fetch updates");
 		}
 	}
 

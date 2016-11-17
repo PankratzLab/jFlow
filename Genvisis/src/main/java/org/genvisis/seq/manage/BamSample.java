@@ -219,7 +219,7 @@ public class BamSample {
 			if (Double.isNaN(normDepth[j])) {
 				String error = "Found invalid normalized depth for "+ bamFile + ", bin "
 												+ markerSet.getMarkerNames()[j];
-				proj.getLog().reportTimeError(error);
+				proj.getLog().reportError(error);
 				if (markerSet.getMarkerNames()[j].contains(NGS_MARKER_TYPE.OFF_TARGET.getFlag())) {
 					normDepth[j] = 1;
 				} else {

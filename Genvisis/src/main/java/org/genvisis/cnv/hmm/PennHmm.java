@@ -355,28 +355,28 @@ public class PennHmm {
 				int n = -1;
 				double[][] a = null;
 				if (!M.startsWith("M=")) {
-					log.reportTimeError("cannot read M annotation from HMM file");
+					log.reportError("cannot read M annotation from HMM file");
 					return null;
 				} else {
 					m = Integer.parseInt(M.replaceAll("M=", ""));
 				}
 				String N = reader.readLine().trim();
 				if (!N.startsWith("N=")) {
-					log.reportTimeError("cannot read N annotation from HMM file");
+					log.reportError("cannot read N annotation from HMM file");
 					return null;
 				} else {
 					n = Integer.parseInt(N.replaceAll("N=", ""));
 				}
 				String aTag = reader.readLine().trim();
 				if (!aTag.startsWith("A:")) {
-					log.reportTimeError("cannot read A: annotation from HMM file");
+					log.reportError("cannot read A: annotation from HMM file");
 					return null;
 				} else {
 					a = loadMatrix(reader, m, n);
 				}
 				String bTag = reader.readLine().trim();
 				if (!bTag.startsWith("B:")) {
-					log.reportTimeError("cannot read B: annotation from HMM file");
+					log.reportError("cannot read B: annotation from HMM file");
 					return null;
 				} else {
 					loadMatrix(reader, m, n);
@@ -403,7 +403,7 @@ public class PennHmm {
 		if (o1.length != o2.length|| o1.length != pfb.length || o1.length != snpdist.length
 				|| o1.length != copyNumberOnlyDef.length) {
 			String error = "BUG: mismatched array lengths";
-			pennHmm.getLog().reportTimeError(error);
+			pennHmm.getLog().reportError(error);
 			error += "\nO1 Length: " + o1.length + "\n";
 			error += "O2 Length: " + o2.length + "\n";
 			error += "pfb Length: " + pfb.length + "\n";
@@ -522,7 +522,7 @@ public class PennHmm {
 			if (positions.length != q.length) {
 				String error = "Have "+ q.length + " state sequences, but " + positions.length
 												+ " positions";
-				proj.getLog().reportTimeError(error);
+				proj.getLog().reportError(error);
 				throw new IllegalArgumentException(error);
 			} else {
 				boolean foundSignal = false;
@@ -614,9 +614,9 @@ public class PennHmm {
 				String error = "BUG: detected "+ numNonNormalStates
 												+ " non-normal states, but collapsed to " + numTotalMarkers + " markers";
 				error += "\nSample: " + fid + "\t" + fid;
-				proj.getLog().reportTimeError(error);
+				proj.getLog().reportError(error);
 				for (int i = 0; i < tmp.size(); i++) {
-					proj.getLog().reportTimeError(tmp.get(i).toPlinkFormat());
+					proj.getLog().reportError(tmp.get(i).toPlinkFormat());
 
 				}
 				throw new IllegalStateException(error);
@@ -653,7 +653,7 @@ public class PennHmm {
 		String atag = reader.readLine();
 		if (!atag.startsWith(tag)) {
 			String error = "cannot read " + tag + " annotation from HMM file, invalid file format";
-			log.reportTimeError(error);
+			log.reportError(error);
 			throw new IllegalStateException(error);
 		} else {
 			String[] line = reader.readLine().trim().split("[\\s]+");
@@ -817,7 +817,7 @@ public class PennHmm {
 				String error = "BUG: could not reconstruct original markers, found "+ indices.length
 												+ " and should have found " + current.getNumMarkers() + "Sample FID: "
 												+ current.getFamilyID() + " IID: " + current.getIndividualID();
-				log.reportTimeError(error);
+				log.reportError(error);
 				throw new IllegalStateException(error);
 			}
 

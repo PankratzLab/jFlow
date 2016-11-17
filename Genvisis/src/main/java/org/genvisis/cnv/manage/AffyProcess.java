@@ -69,11 +69,11 @@ public class AffyProcess {
 
 	public void matchCn() {
 		if (proj.getArrayType() != ARRAY.AFFY_GW6_CN) {
-			log.reportTimeError("Array type must be " + ARRAY.AFFY_GW6_CN + ", halting");
+			log.reportError("Array type must be " + ARRAY.AFFY_GW6_CN + ", halting");
 			valid = false;
 
 		} else if (chpFiles == null || chpFiles.length == 0) {
-			log.reportTimeError("No files detected to parse");
+			log.reportError("No files detected to parse");
 			valid = false;
 		} else if (!verifyAffy(chpFiles, "CHP", AFFY_CHP_HEADER, log)) {
 			valid = false;
@@ -92,7 +92,7 @@ public class AffyProcess {
 																+ " in the filename, this pattern is used to match chp files to CN5.CNCHP files and is likely an internal error ");
 				}
 				if (Files.getLineContaining(chpFiles[i], "\t", AFFY_CHP_HEADER, log) == null) {
-					log.reportTimeError("Currently chp files must have at least the following columns "
+					log.reportError("Currently chp files must have at least the following columns "
 															+ Array.toStr(AFFY_CHP_HEADER));
 					valid = false;
 				} else {
@@ -110,7 +110,7 @@ public class AffyProcess {
 					}
 					if (match == null) {
 						foundAll = false;
-						log.reportTimeError("Could not find matching "	+ CN_C5_PATTERN + " file for CHP file "
+						log.reportError("Could not find matching "	+ CN_C5_PATTERN + " file for CHP file "
 																+ chpFiles[i]);
 					} else {
 						cn5chpFiles[i] = dir + match;
@@ -220,7 +220,7 @@ public class AffyProcess {
 							log2Ratio = Double.parseDouble(line[indices[1]]);
 							log2Ratio = Math.pow(log2Ratio, 2);
 						} catch (NumberFormatException nfe) {
-							log.reportTimeError("Could not parse Log2Ratio on line " + Array.toStr(line));
+							log.reportError("Could not parse Log2Ratio on line " + Array.toStr(line));
 						}
 						for (int i = 0; i < AFFY_CHP_HEADER.length; i++) {
 							switch (i) {
@@ -243,7 +243,7 @@ public class AffyProcess {
 									writer.print("\t" + log2Ratio);//
 									break;
 								default:
-									log.reportTimeError("Internal error, mismatched CN reporting on index " + i);
+									log.reportError("Internal error, mismatched CN reporting on index " + i);
 									break;
 							}
 						}
@@ -264,7 +264,7 @@ public class AffyProcess {
 
 			return true;
 		} else {
-			log.reportTimeError("Could not find appropriate headers");
+			log.reportError("Could not find appropriate headers");
 			return false;
 		}
 	}
@@ -273,9 +273,9 @@ public class AffyProcess {
 		boolean valid = true;
 		for (String file : files) {
 			if (Files.getLineContaining(file, "\t", header, log) == null) {
-				log.reportTimeError("Currently "	+ type + " files must have at least the following columns "
+				log.reportError("Currently "	+ type + " files must have at least the following columns "
 														+ Array.toStr(header));
-				log.reportTimeError(file + " did not contain a line with  the required columns");
+				log.reportError(file + " did not contain a line with  the required columns");
 
 				return false;
 			}

@@ -90,7 +90,7 @@ public class CnvBamQC {
 					writer.print("\tDEL");
 
 				} else {
-					log.reportTimeError("Invalid cnv " + currentCnVariant.toPlinkFormat());
+					log.reportError("Invalid cnv " + currentCnVariant.toPlinkFormat());
 					writer.close();
 					return;
 				}
@@ -190,7 +190,7 @@ public class CnvBamQC {
 				} else if (cnvs[index].getCN() < 2) {
 					writers[1].println(Array.toStr(line));
 				} else {
-					log.reportTimeError("Invalid cnv " + cnvs[index].toPlinkFormat());
+					log.reportError("Invalid cnv " + cnvs[index].toPlinkFormat());
 					return null;
 				}
 				index++;
@@ -369,7 +369,7 @@ public class CnvBamQC {
 			if (ext.rootOf(bams[i]).contains(cnVariant.getIndividualID())) {
 				if (index > 0) {
 					String error = "Multiple bam files found for " + cnVariant.getIndividualID();
-					log.reportTimeError(error);
+					log.reportError(error);
 					throw new IllegalStateException(error);
 
 				} else {
@@ -380,7 +380,7 @@ public class CnvBamQC {
 		if (index < 0) {
 			String error = "Could not find corresponding bam file for sample "
 											+ cnVariant.getIndividualID();
-			log.reportTimeError(error);
+			log.reportError(error);
 			throw new IllegalStateException(error);
 		}
 		return index;

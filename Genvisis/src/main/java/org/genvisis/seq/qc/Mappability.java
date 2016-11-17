@@ -263,7 +263,7 @@ public class Mappability<SEGMENT extends Segment> {
 				MappabilityResult<CNVariant> cnMapp = cnMappability.getMappabilityResults().get(i);
 				GeneData[] overlappingGenes = gLocusSet.getOverLappingLoci(cnMapp.getT());
 				if (overlappingGenes == null) {
-					log.reportTimeError("Could not find overlapping gene for "
+					log.reportError("Could not find overlapping gene for "
 															+ cnMapp.getT().toAnalysisString());
 				} else {
 					for (GeneData overlappingGene : overlappingGenes) {
@@ -344,13 +344,13 @@ public class Mappability<SEGMENT extends Segment> {
 
 				} catch (NumberFormatException nfe) {
 					String error = "Could not convert " + bedFeature.getName() + " to mappability score";
-					log.reportTimeError(error);
+					log.reportError(error);
 					throw new IllegalArgumentException(error);
 				}
 				if (mapScore < 0) {
 					String error = "Could not convert "	+ bedFeature.getName()
 													+ " to mappability score, negative mapScore";
-					log.reportTimeError(error);
+					log.reportError(error);
 					throw new IllegalArgumentException(error);
 				}
 				Segment union = bedSeg.getIntersection(t, log);
@@ -361,7 +361,7 @@ public class Mappability<SEGMENT extends Segment> {
 						if (element.getBedFeature().getName() == null
 								|| element.getBedFeature().getName() == "") {
 							String error = "The call subset file is expected to have the gene name in the fourth column";
-							log.reportTimeError(error);
+							log.reportError(error);
 							throw new IllegalArgumentException(error);
 						}
 						subsetNamesAl.add(element.getBedFeature().getName().split("_")[0]);
@@ -387,7 +387,7 @@ public class Mappability<SEGMENT extends Segment> {
 			if (averageMapScore > 1) {
 				System.out.println(averageMapScore + "\t" + cumulativeMapScore + "\t" + numBases);
 				String error = "Detected an average mapping score greater than 1";
-				log.reportTimeError(error);
+				log.reportError(error);
 				throw new IllegalArgumentException(error);
 			}
 		}

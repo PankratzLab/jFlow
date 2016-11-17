@@ -83,18 +83,18 @@ public class DuplicateConcordance {
 																						false);
 			for (int i = 0; i < markerIndices.length; i++) {
 				if (markerIndices[i] == -1) {
-					log.reportTimeError("Marker " + markerNames[i] + " could not be found in project");
+					log.reportError("Marker " + markerNames[i] + " could not be found in project");
 					return null;
 				}
 			}
 		}
 		String sampleData = proj.SAMPLE_DATA_FILENAME.getValue();
 		if (sampleData == null) {
-			log.reportTimeError("Project Sample Data file is not defined, cannot determine duplicates");
+			log.reportError("Project Sample Data file is not defined, cannot determine duplicates");
 			return null;
 		}
 		if (!Files.exists(sampleData)) {
-			log.reportTimeError("Project Sample Data file, "	+ sampleData
+			log.reportError("Project Sample Data file, "	+ sampleData
 													+ " could not be found, cannot determine duplicates");
 			return null;
 		}
@@ -104,7 +104,7 @@ public class DuplicateConcordance {
 																								false);
 		for (int i = 0; i < sampleDataIndices.length; i++) {
 			if (sampleDataIndices[i] == -1) {
-				log.reportTimeError("Could not find "	+ sampleDataCols[i]
+				log.reportError("Could not find "	+ sampleDataCols[i]
 														+ " in Sample Data file, cannot determine duplicates");
 				return null;
 			}
@@ -138,14 +138,14 @@ public class DuplicateConcordance {
 				if (!duplicateSet.isEmpty()) {
 					Sample sample1 = proj.getFullSampleFromRandomAccessFile(dna1);
 					if (sample1 == null) {
-						log.reportTimeError("Could not find data for Sample "	+ dna1
+						log.reportError("Could not find data for Sample "	+ dna1
 																+ ", will not be used to calculate concordance");
 						continue;
 					}
 					for (String dna2 : duplicateSet) {
 						Sample sample2 = proj.getFullSampleFromRandomAccessFile(dna2);
 						if (sample2 == null) {
-							log.reportTimeError("Could not find data for Sample "	+ dna2
+							log.reportError("Could not find data for Sample "	+ dna2
 																	+ ", will not be used to calculate concordance");
 							continue;
 						}
@@ -174,7 +174,7 @@ public class DuplicateConcordance {
 		}
 
 		if (pairsChecked == 0) {
-			log.reportTimeError("No duplicates could be compared, duplicate concordance cannot be calculated");
+			log.reportError("No duplicates could be compared, duplicate concordance cannot be calculated");
 			return null;
 		}
 

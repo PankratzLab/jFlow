@@ -81,7 +81,7 @@ public class ExtProjectDataParser {
 																				+ (sampleBased ? "samples" : "markers") + ", skipping");
 							}
 						} else {
-							proj.getLog().reportTimeError("Did not find "	+ data + " in project's "
+							proj.getLog().reportError("Did not find "	+ data + " in project's "
 																						+ (sampleBased ? "samples" : "markers") + ", halting");
 							typedFileParser.close();
 							return;
@@ -92,13 +92,13 @@ public class ExtProjectDataParser {
 							if (concat && (!concatMultipleStringEntries || typedFileLine.hasNumericData())) {
 								if (typedFileLine.hasNumericData()) {
 									proj.getLog()
-											.reportTimeError("Multiple entries for the same "
+											.reportError("Multiple entries for the same "
 																					+ (sampleBased ? "sample" : "marker") + " " + data
 																				+ " were found and numeric indices were requested, cannot load...");
 
 								} else {
 									proj.getLog()
-											.reportTimeError("Multiple entries for the same "
+											.reportError("Multiple entries for the same "
 																					+ (sampleBased ? "sample" : "marker") + " " + data
 																				+ " were found, consider setting the concatMultipleStringEntries option if only string data is needed");
 								}
@@ -108,7 +108,7 @@ public class ExtProjectDataParser {
 							if (typedFileLine.hasNumericData() && numericData != null) {
 								for (int i = 0; i < numericData.length; i++) {
 									if (typedFileLine.getNumInvalidNumerics() > 0 && !setInvalidNumericToNaN) {
-										proj.getLog().reportTimeError("failed to load " + numericDataTitles[i]);
+										proj.getLog().reportError("failed to load " + numericDataTitles[i]);
 										proj.getLog()
 												.reportTimeInfo("Set the setInvalidNumericToNaN flag to avoid this shutdown");
 										return;
@@ -137,7 +137,7 @@ public class ExtProjectDataParser {
 			int dataLoaded = Array.booleanArraySum(dataPresent);
 			if (requireAll && dataLoaded != dataToLoad.length) {
 				proj.getLog()
-						.reportTimeError("All data were required to be present, but did not see all of them");
+						.reportError("All data were required to be present, but did not see all of them");
 				stringData = null;
 				numericData = null;
 			} else {
@@ -152,7 +152,7 @@ public class ExtProjectDataParser {
 				}
 			}
 		} catch (IOException e) {
-			proj.getLog().reportTimeError("Error reading file " + fullPathToDataFile);
+			proj.getLog().reportError("Error reading file " + fullPathToDataFile);
 			e.printStackTrace();
 		}
 
@@ -211,11 +211,11 @@ public class ExtProjectDataParser {
 			}
 			if (header != null) {
 				if (numericDataTitles == null && stringDataTitles == null) {
-					proj.getLog().reportTimeError("Must provide valid arrays to determine indices");
+					proj.getLog().reportError("Must provide valid arrays to determine indices");
 					determined = false;
 				}
 				if (dataKeyColumnName == null) {
-					proj.getLog().reportTimeError("Must provide a data name column to determine indices");
+					proj.getLog().reportError("Must provide a data name column to determine indices");
 					determined = false;
 				}
 				determined = determineSampleIndex(determined, header);
@@ -228,7 +228,7 @@ public class ExtProjectDataParser {
 						determined = stringDataTitles.length == 0 || Array.min(tmp) >= 0;
 						if (!determined) {
 							if (verbose) {
-								proj.getLog().reportTimeError("Could not find all string indices in header "
+								proj.getLog().reportError("Could not find all string indices in header "
 																							+ Array.toStr(header));
 							}
 						} else {
@@ -247,7 +247,7 @@ public class ExtProjectDataParser {
 						determined = numericDataTitles.length == 0 || Array.min(tmp) >= 0;
 						if (!determined) {
 							proj.getLog()
-									.reportTimeError("Could not find all numeric indices"
+									.reportError("Could not find all numeric indices"
 																			+ Array.toStr(numericDataTitles) + " in header "
 																		+ Array.toStr(header));
 						} else {
@@ -258,11 +258,11 @@ public class ExtProjectDataParser {
 				}
 			} else {
 				determined = false;
-				proj.getLog().reportTimeError("Could not obtain header with current options");
+				proj.getLog().reportError("Could not obtain header with current options");
 			}
 		} else {
 			determined = false;
-			proj.getLog().reportTimeError("Header option must be flagged to use this method");
+			proj.getLog().reportError("Header option must be flagged to use this method");
 		}
 
 		return determined;
@@ -289,11 +289,11 @@ public class ExtProjectDataParser {
 		int index = stringDataTitles == null ? -1 : ext.indexOfStr(title, stringDataTitles);
 		String[] data = new String[] {};
 		if (index < 0 || stringData == null) {
-			proj.getLog().reportTimeError("Data for " + title + " was not found");
-			proj.getLog().reportTimeError(stringDataTitles == null	? "No String data Titles available"
+			proj.getLog().reportError("Data for " + title + " was not found");
+			proj.getLog().reportError(stringDataTitles == null	? "No String data Titles available"
 																															: Array.toStr(stringDataTitles));
 			if (stringData == null) {
-				proj.getLog().reportTimeError("No string data available");
+				proj.getLog().reportError("No string data available");
 			}
 		} else {
 			data = stringData[index];
@@ -313,13 +313,13 @@ public class ExtProjectDataParser {
 		int index = numericData == null ? -1 : ext.indexOfStr(title, numericDataTitles);
 		double[] data = new double[] {};
 		if (index < 0 || numericData == null) {
-			proj.getLog().reportTimeError("Data for " + title + " was not found");
+			proj.getLog().reportError("Data for " + title + " was not found");
 			proj.getLog()
-					.reportTimeError(numericData == null	? "No Numeric data Titles available"
+					.reportError(numericData == null	? "No Numeric data Titles available"
 																								: "Titles available: "
 																									+ Array.toStr(numericDataTitles));
 			if (numericData == null) {
-				proj.getLog().reportTimeError("No Numeric data available");
+				proj.getLog().reportError("No Numeric data available");
 			}
 		} else {
 			data = numericData[index];
@@ -348,7 +348,7 @@ public class ExtProjectDataParser {
 			dataKeyColumnIndex = ext.indexOfStr(dataKeyColumnName, header);
 			if (dataKeyColumnIndex < 0) {
 				proj.getLog()
-						.reportTimeError("Header must contain sample name column " + dataKeyColumnName);
+						.reportError("Header must contain sample name column " + dataKeyColumnName);
 				determined = false;
 				proj.getLog().reportError("Header found was" + Array.toStr(header));
 			}
@@ -372,13 +372,13 @@ public class ExtProjectDataParser {
 		if (typedFileParser.getNumericColumns() != null
 				&& typedFileParser.getNumericColumns().length > 1) {
 			proj.getLog()
-					.reportTimeError("Currently this method only handles one dimensionional numeric extraction, even though its an int[][]");
+					.reportError("Currently this method only handles one dimensionional numeric extraction, even though its an int[][]");
 			return;
 		}
 		if (typedFileParser.getStringColumns() != null
 				&& typedFileParser.getStringColumns().length > 1) {
 			proj.getLog()
-					.reportTimeError("Currently this method only handles one dimensionional string extraction, even though its an int[][]");
+					.reportError("Currently this method only handles one dimensionional string extraction, even though its an int[][]");
 			return;
 		}
 
@@ -431,7 +431,7 @@ public class ExtProjectDataParser {
 						.reportTimeInfo("Since no header or data titles are present, numeric titles will be the relative indices");
 			} else if (numericDataTitles != null && numericDataTitles.length != header.length - 1) {
 				proj.getLog()
-						.reportTimeError("The length of the data title ("	+ numericDataTitles.length
+						.reportError("The length of the data title ("	+ numericDataTitles.length
 															+ ") does not match the data in the file's length ("
 															+ (header.length - 1) + ")");
 				return;
@@ -461,7 +461,7 @@ public class ExtProjectDataParser {
 			}
 		} else {
 			proj.getLog()
-					.reportTimeError("Could not determine proper sample column index for treating all data as numeric");
+					.reportError("Could not determine proper sample column index for treating all data as numeric");
 		}
 	}
 

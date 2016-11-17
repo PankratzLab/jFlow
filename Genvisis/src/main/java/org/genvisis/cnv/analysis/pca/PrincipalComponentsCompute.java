@@ -464,7 +464,7 @@ public class PrincipalComponentsCompute {
 		if (proj.INTENSITY_PC_MARKERS_FILENAME.getValue() == null
 				|| !Files.exists(proj.INTENSITY_PC_MARKERS_FILENAME.getValue())) {
 			proj.getLog()
-					.reportTimeError("Internal error "	+ proj.INTENSITY_PC_MARKERS_FILENAME.getName()
+					.reportError("Internal error "	+ proj.INTENSITY_PC_MARKERS_FILENAME.getName()
 														+ " did not have a valid setting, please update in the properties file");
 		}
 		String[] markers = proj.getTargetMarkers(proj.INTENSITY_PC_MARKERS_FILENAME.getValue());
@@ -553,7 +553,7 @@ public class PrincipalComponentsCompute {
 		Logger log = proj.getLog();
 		if (parameters != null && recomputeLRR) {
 			proj.getLog()
-					.reportTimeError("recompute lrr was flagged AND gc correction parameters were passed to data load");
+					.reportError("recompute lrr was flagged AND gc correction parameters were passed to data load");
 			return null;
 		}
 		if (parameters != null) {

@@ -227,7 +227,7 @@ public class BamPileUp implements Iterator<BamPile> {
 																		previousBin.getStop() + binSize);
 				}
 			} else {
-				log.reportTimeError("Could not find valid segment for " + samRecord.toString());
+				log.reportError("Could not find valid segment for " + samRecord.toString());
 			}
 			return previousBin;
 		}

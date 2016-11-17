@@ -55,7 +55,7 @@ public class MergeDatasets {
 		} else if (dir == null) {
 			dir = "";
 		} else {
-			log.reportTimeError("Can only provide a single top directory, or multiple data dirs");
+			log.reportError("Can only provide a single top directory, or multiple data dirs");
 			return;
 		}
 		outputDir = outputDir == null ? dir : outputDir;

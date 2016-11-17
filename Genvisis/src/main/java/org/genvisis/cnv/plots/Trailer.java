@@ -2047,10 +2047,10 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 					}
 					if (pfb == null || pennHmm == null) {
 						if (pennHmm == null) {
-							proj.getLog().reportTimeError("Could not load "	+ proj.HMM_FILENAME.getName()
+							proj.getLog().reportError("Could not load "	+ proj.HMM_FILENAME.getName()
 																						+ " defined by " + proj.HMM_FILENAME.getValue());
 						} else if (pfb == null) {
-							proj.getLog().reportTimeError("Could not load "	+ proj.CUSTOM_PFB_FILENAME.getName()
+							proj.getLog().reportError("Could not load "	+ proj.CUSTOM_PFB_FILENAME.getName()
 																						+ " defined by " + proj.CUSTOM_PFB_FILENAME.getValue());
 						}
 					} else {
@@ -2193,7 +2193,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 							currentColorManager = null;
 						} else if ("GC content".equals(cmd)) {
 							if (gcModel == null) {
-								log.reportTimeError("Internal error, null gc model");
+								log.reportError("Internal error, null gc model");
 							} else {
 								currentColorManager = gcModel.getColorManager();// stored within, doesent regenerate
 							}
@@ -2227,7 +2227,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 
 
 						else {
-							log.reportTimeError("Internal error, Invalid color command");
+							log.reportError("Internal error, Invalid color command");
 						}
 						updateQCDisplay();
 					}
@@ -2283,7 +2283,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 						}
 
 						else {
-							log.reportTimeError("Internal error, Invalid color command");
+							log.reportError("Internal error, Invalid color command");
 						}
 						updateQCDisplay();
 					}
@@ -3315,7 +3315,7 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			LocusSet<MosaicRegion> mosSet = md.callMosaic(quantSeg, true);
 
 			if (mosSet.getLoci().length != 1) {
-				proj.getLog().reportTimeError("Mosaic caller not in force call mode");
+				proj.getLog().reportError("Mosaic caller not in force call mode");
 			} else {
 				addCnvsToPheno(	new CNVariant[] {mosSet.getLoci()[0]}, externalCNVs,
 												INTERNAL_CNV_TYPES.CUSTOMF);

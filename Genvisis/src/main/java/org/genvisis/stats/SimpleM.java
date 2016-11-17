@@ -45,7 +45,7 @@ public class SimpleM {
 	private boolean verify() {
 		boolean verify = true;
 		if (pcaCutoff < 0 || pcaCutoff > 1) {
-			log.reportTimeError("The cutoff must be between 0 and 1 inclusive");
+			log.reportError("The cutoff must be between 0 and 1 inclusive");
 			verify = false;
 		}
 		return verify;
@@ -73,7 +73,7 @@ public class SimpleM {
 					m = getMeff(principalComponentsCompute, pcaCutoff);
 					break;
 				default:
-					log.reportTimeError("Invalid mode " + mode);
+					log.reportError("Invalid mode " + mode);
 					break;
 			}
 			log.reportTimeInfo("Finished determining effective M using mode "	+ mode
@@ -81,7 +81,7 @@ public class SimpleM {
 			log.reportTimeInfo("Total variables = " + dataM.length + " , Inferred effective M = " + m);
 			return m;
 		} else {
-			log.reportTimeError("Cannot determine number of tests");
+			log.reportError("Cannot determine number of tests");
 			return -1;
 		}
 	}

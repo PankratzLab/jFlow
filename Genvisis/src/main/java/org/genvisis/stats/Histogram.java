@@ -451,7 +451,7 @@ public class Histogram implements Serializable {
 			double max = -1 * Double.MAX_VALUE;
 			double min = Double.MAX_VALUE;
 			if (histograms.length != titles.length) {
-				log.reportTimeError("Titles and histogram array must be the same length");
+				log.reportError("Titles and histogram array must be the same length");
 				return null;
 			}
 			try {
@@ -583,7 +583,7 @@ public class Histogram implements Serializable {
 																			String output, Logger log) {
 
 			if (histograms.length != titles.length) {
-				log.reportTimeError("Titles and histogram array must be the same length");
+				log.reportError("Titles and histogram array must be the same length");
 				return;
 			}
 			try {
@@ -602,7 +602,7 @@ public class Histogram implements Serializable {
 					for (DynamicAveragingHistogram histogram : histograms) {
 						if (histogram.getBins()[i] != currentBin) {
 							String error = "mismatched bins between histograms";
-							log.reportTimeError(error);
+							log.reportError(error);
 							writer.close();
 							throw new IllegalStateException(error);
 						}
@@ -612,7 +612,7 @@ public class Histogram implements Serializable {
 					for (int j = 0; j < histograms.length; j++) {
 						if (histograms[j].getBins()[i] != currentBin) {
 							String error = "mismatched bins between histograms";
-							log.reportTimeError(error);
+							log.reportError(error);
 							writer.close();
 							throw new IllegalStateException(error);
 						}
@@ -622,7 +622,7 @@ public class Histogram implements Serializable {
 					for (DynamicAveragingHistogram histogram : histograms) {
 						if (histogram.getBins()[i] != currentBin) {
 							String error = "mismatched bins between histograms";
-							log.reportTimeError(error);
+							log.reportError(error);
 							writer.close();
 							throw new IllegalStateException(error);
 						}

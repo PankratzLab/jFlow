@@ -77,7 +77,7 @@ public class CigarOps {
 
 		if (btop == null) {
 			String error = "Blast results must contain a \"btop\" entry in order to use this function...";
-			log.reportTimeError(error);
+			log.reportError(error);
 			throw new IllegalArgumentException(error);
 		} else if (btop.equals("NA")) {
 			cigarElements.add(new CigarElement(initialSequencLength, CigarOperator.X));
@@ -103,7 +103,7 @@ public class CigarOps {
 													+ " did not equal the query length of " + initialSequencLength;
 					error += "\n BLAST:  " + Array.toStr(blastResults.getResults());
 					error += "\n CIGAR:  " + cigar.toString();
-					log.reportTimeError(error);
+					log.reportError(error);
 					throw new IllegalArgumentException(error);
 				}
 			} else {// has gaps and or mismatches
@@ -128,7 +128,7 @@ public class CigarOps {
 							}
 						} else {
 							String error = "Non int btop strings were supposed to have length two..";
-							log.reportTimeError(error);
+							log.reportError(error);
 							throw new IllegalArgumentException(error);
 						}
 					}
@@ -144,7 +144,7 @@ public class CigarOps {
 					error += "\n BLAST:  " + Array.toStr(blastResults.getResults());
 					error += "\n CIGAR:  " + cigar.toString();
 
-					log.reportTimeError(error);
+					log.reportError(error);
 					throw new IllegalArgumentException(error);
 				}
 			}
@@ -178,14 +178,14 @@ public class CigarOps {
 													+ cigar.toString());
 			System.out.println(currentReadLength	+ "\t" + cigar.getCigarElements().size() + "\t"
 													+ original.toString());
-			log.reportTimeError(error);
+			log.reportError(error);
 			throw new IllegalStateException(error);
 		}
 
 		if (cigar != null && cigar.getReadLength() != initialSequencLength) {
 			String error = "Cigar length representation of "	+ cigar.getReadLength()
 											+ " did not equal the query length of " + initialSequencLength;
-			log.reportTimeError(error);
+			log.reportError(error);
 			throw new IllegalArgumentException(error);
 		}
 
@@ -245,7 +245,7 @@ public class CigarOps {
 				if (currentString != null) {
 					if (currentString.length() != 2) {
 						String error = "Internal error, unaccounted for string breakup length";
-						log.reportTimeError(error);
+						log.reportError(error);
 						throw new IllegalStateException(error);
 					}
 					btopBroken.add(currentString);
@@ -271,7 +271,7 @@ public class CigarOps {
 		}
 		if (currentInt != null && currentString != null) {
 			String error = "Internal error, unaccounted for breakup";
-			log.reportTimeError(error);
+			log.reportError(error);
 			throw new IllegalStateException(error);
 		}
 		if (currentInt != null) {

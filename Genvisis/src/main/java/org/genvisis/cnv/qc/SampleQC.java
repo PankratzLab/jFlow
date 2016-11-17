@@ -97,7 +97,7 @@ public class SampleQC {
 	public double[] getDataFor(String qctitle) {
 		int indexToExtract = ext.indexOfStr(qctitle, qctitles);
 		if (indexToExtract < 0) {
-			proj.getLog().reportTimeError("Invalid title " + qctitle + " returning null");
+			proj.getLog().reportError("Invalid title " + qctitle + " returning null");
 			return null;
 		} else {
 			return qcMatrix[indexToExtract];
@@ -137,7 +137,7 @@ public class SampleQC {
 			appendToSampleData(proj, hashtable, header, numQ, justQuantiles);
 		} else {
 			proj.getLog()
-					.reportTimeError("PCs are not sorted by project, currently this is not supported");
+					.reportError("PCs are not sorted by project, currently this is not supported");
 		}
 	}
 
@@ -169,7 +169,7 @@ public class SampleQC {
 			}
 			return true;
 		}
-		proj.getLog().reportTimeError("Replacing FID/IID columns in Sample Data failed");
+		proj.getLog().reportError("Replacing FID/IID columns in Sample Data failed");
 		return false;
 	}
 
@@ -182,7 +182,7 @@ public class SampleQC {
 		qcMatrix[qcTitleIndex][sampleIndex] = data;
 		qcsAdded++;
 		if (qcsAdded > qctitles.length * samples.length) {
-			proj.getLog().reportTimeError("Internal Error; too many QC metrics have been added");
+			proj.getLog().reportError("Internal Error; too many QC metrics have been added");
 		}
 	}
 
@@ -258,7 +258,7 @@ public class SampleQC {
 
 	private int removeEmptyMetrics() {
 		if (!verify()) {
-			proj.getLog().reportTimeError("Could not verify that all data was added");
+			proj.getLog().reportError("Could not verify that all data was added");
 			return -1;
 		}
 
@@ -281,7 +281,7 @@ public class SampleQC {
 
 		if (gcCorrectedLrrSd && getLrr_sdIndex() == -1) {
 			proj.getLog()
-					.reportTimeError("GC corrected LRR SD is missing, run again without selecting GC corrected LRR SD or after regenerating Sample QC file with GC correction");
+					.reportError("GC corrected LRR SD is missing, run again without selecting GC corrected LRR SD or after regenerating Sample QC file with GC correction");
 			return -1;
 		}
 
@@ -334,7 +334,7 @@ public class SampleQC {
 	private boolean addPedigreeData() {
 		Pedigree ped = proj.loadPedigree();
 		if (ped == null) {
-			proj.getLog().reportTimeError("No pedigree file found - cannot map samples to FID/IID");
+			proj.getLog().reportError("No pedigree file found - cannot map samples to FID/IID");
 			return false;
 		}
 		fidiids = new String[samples.length];
@@ -356,7 +356,7 @@ public class SampleQC {
 					mzTwinIds[sampleIndex] = mzTwinId;
 				}
 			} catch (NullPointerException npe) {
-				proj.getLog().reportTimeError("Sample "	+ ped.getiDNA(i)
+				proj.getLog().reportError("Sample "	+ ped.getiDNA(i)
 																			+ " exists in Pedigree but not in Project samples");
 			}
 		}
@@ -375,7 +375,7 @@ public class SampleQC {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (line.length != 3) {
 					proj.getLog()
-							.reportTimeError("file \""	+ duplicatesSetFile
+							.reportError("file \""	+ duplicatesSetFile
 																+ "\" contains at least one line that is not 3 columns: "
 																+ Array.toStr(line));
 					return;
@@ -393,7 +393,7 @@ public class SampleQC {
 					}
 					dupeSet.add(index);
 				} catch (NullPointerException npe) {
-					proj.getLog().reportTimeError("FID/IID pair ("	+ fidiid
+					proj.getLog().reportError("FID/IID pair ("	+ fidiid
 																				+ ") in duplicates missing from project samples");
 				}
 			}
@@ -402,9 +402,9 @@ public class SampleQC {
 			removeDuplicatesFromUse(duplicateSets);
 		} catch (FileNotFoundException fnfe) {
 			proj.getLog()
-					.reportTimeError("file \"" + duplicatesSetFile + "\" not found in current directory");
+					.reportError("file \"" + duplicatesSetFile + "\" not found in current directory");
 		} catch (IOException ioe) {
-			proj.getLog().reportTimeError("Error reading file \"" + duplicatesSetFile + "\"");
+			proj.getLog().reportError("Error reading file \"" + duplicatesSetFile + "\"");
 		}
 	}
 
@@ -576,13 +576,13 @@ public class SampleQC {
 		String lrrSdToLoad = proj.SAMPLE_QC_FILENAME.getValue();
 		SampleQC sampleQC = null;
 		if (!Files.exists(lrrSdToLoad) && !generateSampleQC) {
-			proj.getLog().reportTimeError("Could not find sample QC file " + lrrSdToLoad);
+			proj.getLog().reportError("Could not find sample QC file " + lrrSdToLoad);
 		} else {
 			if (!Files.exists(lrrSdToLoad) && generateSampleQC) {
 				proj.getLog().reportTimeInfo("Attempting to generate sample QC file " + lrrSdToLoad);
 				LrrSd.init(proj, null, null, proj.NUM_THREADS.getValue());
 				if (!Files.exists(lrrSdToLoad)) {
-					proj.getLog().reportTimeError("Could not generate sample QC file " + lrrSdToLoad);
+					proj.getLog().reportError("Could not generate sample QC file " + lrrSdToLoad);
 				}
 			}
 			proj.getLog().reportTimeInfo("Loading qc data from " + lrrSdToLoad);
@@ -594,12 +594,12 @@ public class SampleQC {
 				int sampleColumn = ext.indexOfStr(sampleColumnName, header);
 				if (Array.countIf(indicesToLoad, -1) > 0 || sampleColumn < 0) {
 					proj.getLog()
-							.reportTimeError("Could not find all desired columns in qc file " + lrrSdToLoad);
-					proj.getLog().reportTimeError("Consider re-creating "	+ lrrSdToLoad
+							.reportError("Could not find all desired columns in qc file " + lrrSdToLoad);
+					proj.getLog().reportError("Consider re-creating "	+ lrrSdToLoad
 																				+ " if sample qc has been updated");
 
 				} else if (!verifyAllProjectSamples(proj, lrrSdToLoad, sampleColumn)) {
-					proj.getLog().reportTimeError("Could not find all of the projects samples in qc file "
+					proj.getLog().reportError("Could not find all of the projects samples in qc file "
 																				+ lrrSdToLoad);
 				} else {
 					sampleQC = new SampleQC(proj, qcTitlesToLoad, gcCorrectedLrrSd);
@@ -623,7 +623,7 @@ public class SampleQC {
 						}
 					}
 					if (!sampleQC.verify()) {
-						proj.getLog().reportTimeError("Could not verify that all data has been added");
+						proj.getLog().reportError("Could not verify that all data has been added");
 						return null;
 					}
 				}
@@ -632,10 +632,10 @@ public class SampleQC {
 
 			} catch (FileNotFoundException fnfe) {
 				proj.getLog()
-						.reportTimeError("file \"" + lrrSdToLoad + "\" not found in current directory");
+						.reportError("file \"" + lrrSdToLoad + "\" not found in current directory");
 				return null;
 			} catch (IOException ioe) {
-				proj.getLog().reportTimeError("Error reading file \"" + lrrSdToLoad + "\"");
+				proj.getLog().reportError("Error reading file \"" + lrrSdToLoad + "\"");
 				return null;
 			}
 

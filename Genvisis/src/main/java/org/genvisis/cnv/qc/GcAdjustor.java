@@ -581,7 +581,7 @@ public class GcAdjustor {
 											System.out.println(positions[indicesByChr[i][j]]	+ "\t"
 																					+ (regressionDistance * currentBin) + "\t"
 																					+ regressionDistance * (1 + currentBin));
-											proj.getLog().reportTimeError("SHould not happen");
+											proj.getLog().reportError("SHould not happen");
 											System.exit(1);
 										}
 									}
@@ -937,7 +937,7 @@ public class GcAdjustor {
 					gcs[i] = gc;
 					if (Double.isNaN(gc) && seg.getChr() > 0) {
 						proj.getLog()
-								.reportTimeError("Invalid gc content returned for query "	+ seg.getChromosomeUCSC()
+								.reportError("Invalid gc content returned for query "	+ seg.getChromosomeUCSC()
 																	+ " and marker " + markerSet.getMarkerNames()[i]);
 						return null;
 					}

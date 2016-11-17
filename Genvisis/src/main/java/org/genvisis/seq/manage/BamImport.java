@@ -363,7 +363,7 @@ public class BamImport {
 
 
 		} else {
-			proj.getLog().reportTimeError(proj.ARRAY_TYPE.getName() + " must be set to " + ARRAY.NGS);
+			proj.getLog().reportError(proj.ARRAY_TYPE.getName() + " must be set to " + ARRAY.NGS);
 		}
 	}
 
@@ -401,7 +401,7 @@ public class BamImport {
 																																							.mergeOverlapping(true),
 																																			captureBuffer);//
 				} else {
-					log.reportTimeError("The bed file "+ binBed
+					log.reportError("The bed file "+ binBed
 															+ " had overlapping segments, currently non -overlapping segments are required");
 					throw new IllegalArgumentException();
 				}

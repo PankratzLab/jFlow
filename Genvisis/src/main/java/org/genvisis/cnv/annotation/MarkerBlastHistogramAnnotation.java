@@ -56,7 +56,7 @@ public class MarkerBlastHistogramAnnotation extends HistogramAnnotation {
 			if (blastAlignmentCounts.size() > 1 || !blastAlignmentCounts.get(0).equals(DEFUALT_VALUE)) {
 				if (blastAlignmentCounts.size() > proj.getArrayType().getProbeLength()) {
 					proj.getLog()
-							.reportTimeError("Aligment counts had more entries ("	+ blastAlignmentCounts.size()
+							.reportError("Aligment counts had more entries ("	+ blastAlignmentCounts.size()
 																+ " than the projects probe size ("
 																+ proj.getArrayType().getProbeLength() + ")");
 				} else {

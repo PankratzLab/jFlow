@@ -63,7 +63,7 @@ public class BaselineUnclusteredMarkers implements Serializable {
 				}
 			} else {
 				proj.getLog()
-						.reportTimeError("Could not generate Baseline Unclustered Markers File, no genotypes for samples");
+						.reportError("Could not generate Baseline Unclustered Markers File, no genotypes for samples");
 				success = false;
 				break;
 			}

@@ -198,7 +198,7 @@ public class Computel {
 		for (String file : filesToDelete) {
 			log.reportTimeInfo("Deleting file " + file);
 			if (!new File(file).delete()) {
-				log.reportTimeError("Did not delete " + file);
+				log.reportError("Did not delete " + file);
 			}
 		}
 	}

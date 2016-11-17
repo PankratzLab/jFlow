@@ -85,7 +85,7 @@ public class MarkerBlast {
 																					boolean doBlast) {
 		String fastaDb = proj.getReferenceGenomeFASTAFilename();
 		if (!Files.exists(fastaDb) && doBlast) {
-			proj.getLog().reportTimeError("Unable to find or obtain reference genome");
+			proj.getLog().reportError("Unable to find or obtain reference genome");
 			return null;
 		} else {
 			double evalueCutoff = 10000;
@@ -206,7 +206,7 @@ public class MarkerBlast {
 				break;
 			default:
 				reportWordSize = -1;
-				proj.getLog().reportTimeError("Invalid array type " + proj.getArrayType());
+				proj.getLog().reportError("Invalid array type " + proj.getArrayType());
 				break;
 		}
 		return reportWordSize;
@@ -240,7 +240,7 @@ public class MarkerBlast {
 					marker = marker.substring(0, marker.length() - tag.getTag().length());
 					break;
 				default:
-					proj.getLog().reportTimeError("Invalid Array type " + proj.getArrayType());
+					proj.getLog().reportError("Invalid Array type " + proj.getArrayType());
 					break;
 			}
 			int index = indices.get(marker);
@@ -400,12 +400,12 @@ public class MarkerBlast {
 						} else if (refStrand.equals("-")) {
 							strand = Strand.NEGATIVE;
 						} else {
-							proj.getLog().reportTimeError("Invalid RefStrand " + refStrand);
+							proj.getLog().reportError("Invalid RefStrand " + refStrand);
 							return null;
 						}
 						if (seqA.length() != seqLength) {
 							proj.getLog()
-									.reportTimeError("Sequence "	+ seqA + " did not have length "
+									.reportError("Sequence "	+ seqA + " did not have length "
 																		+ proj.ARRAY_TYPE.getValue().getProbeLength() + " "
 																		+ markerName);
 							return null;
@@ -436,7 +436,7 @@ public class MarkerBlast {
 																								alleleParser.getRef(), alleleParser.getAlts()));
 							if (seqB.length() != seqLength) {
 								proj.getLog()
-										.reportTimeError("Sequence "	+ seqB + " did not have length "
+										.reportError("Sequence "	+ seqB + " did not have length "
 																			+ proj.ARRAY_TYPE.getValue().getProbeLength() + " "
 																			+ markerName);
 								return null;
@@ -449,14 +449,14 @@ public class MarkerBlast {
 														Array.unique(parser.getStringDataForTitle("PROBE_SEQUENCE")[i].split("\t"));
 						if (tmpSeq.length != 2) {
 							proj.getLog()
-									.reportTimeError("Marker " + markerName + " did not have 2 unique probe designs");
-							proj.getLog().reportTimeError("found the following "	+ markerName + "\t"
+									.reportError("Marker " + markerName + " did not have 2 unique probe designs");
+							proj.getLog().reportError("found the following "	+ markerName + "\t"
 																						+ Array.toStr(tmpSeq));
 							return null;
 						} else {
 							if (tmpSeq[0].length() != seqLength || tmpSeq[1].length() != seqLength) {
 								proj.getLog()
-										.reportTimeError("Sequence "	+ tmpSeq[0] + " or " + tmpSeq[1]
+										.reportError("Sequence "	+ tmpSeq[0] + " or " + tmpSeq[1]
 																			+ "  did not have length "
 																			+ proj.ARRAY_TYPE.getValue().getProbeLength());
 								return null;
@@ -466,7 +466,7 @@ public class MarkerBlast {
 								if (tmpSeq[0].charAt(j) != tmpSeq[1].charAt(j)) {
 									if (interrogationPosition != -1) {
 										proj.getLog()
-												.reportTimeError("Multiple interrogation position for " + markerName);
+												.reportError("Multiple interrogation position for " + markerName);
 										return null;
 									}
 									interrogationPosition = j;
@@ -475,7 +475,7 @@ public class MarkerBlast {
 							String[] affyStrandtmp = parser.getStringDataForTitle("TARGET_STRANDEDNESS")[i].split("\t");
 							if (Array.unique(affyStrandtmp).length != 1) {
 								proj.getLog()
-										.reportTimeError("Multiple strands detected " + Array.toStr(affyStrandtmp));
+										.reportError("Multiple strands detected " + Array.toStr(affyStrandtmp));
 								return null;
 							}
 							String affyStrand = affyStrandtmp[0];
@@ -485,7 +485,7 @@ public class MarkerBlast {
 							} else if (affyStrand.equals("r")) {// MINUS seems to be for cnvi probes
 								strand = Strand.NEGATIVE;
 							} else {
-								proj.getLog().reportTimeError("Invalid AffyStrand " + affyStrand);
+								proj.getLog().reportError("Invalid AffyStrand " + affyStrand);
 								return null;
 							}
 							String aS = tmpSeq[0].substring(interrogationPosition, interrogationPosition + 1);
@@ -800,7 +800,7 @@ public class MarkerBlast {
 		switch (type) {
 			case MANIFEST_FILE:
 				if (proj.getArrayType() != ARRAY.ILLUMINA) {
-					proj.getLog().reportTimeError("Array type was set to "	+ proj.getArrayType()
+					proj.getLog().reportError("Array type was set to "	+ proj.getArrayType()
 																				+ " and this file is for " + ARRAY.ILLUMINA);
 					builder = null;
 					break;
@@ -820,7 +820,7 @@ public class MarkerBlast {
 					}
 
 				} else {
-					proj.getLog().reportTimeError("Header of " + strandReportFile + " not found");
+					proj.getLog().reportError("Header of " + strandReportFile + " not found");
 					return null;
 				}
 				String[] dataTitles = new String[] {"AlleleA_ProbeSeq", "AlleleB_ProbeSeq", "SNP",
@@ -842,7 +842,7 @@ public class MarkerBlast {
 			case AFFY_ANNOT:
 				if (proj.getArrayType() != ARRAY.AFFY_GW6 && proj.getArrayType() != ARRAY.AFFY_GW6_CN) {
 					proj.getLog()
-							.reportTimeError("Array type was set to "	+ proj.getArrayType()
+							.reportError("Array type was set to "	+ proj.getArrayType()
 																+ " and this file is for " + ARRAY.AFFY_GW6 + " or "
 																+ ARRAY.AFFY_GW6_CN);
 					builder = null;
@@ -1179,7 +1179,7 @@ public class MarkerBlast {
 						reportWordSize = 25;
 						break;
 					default:
-						proj.getLog().reportTimeError("Invalid array type " + proj.getArrayType());
+						proj.getLog().reportError("Invalid array type " + proj.getArrayType());
 						break;
 				}
 				proj.getLog().reportTimeInfo("report word size updated to default "	+ reportWordSize

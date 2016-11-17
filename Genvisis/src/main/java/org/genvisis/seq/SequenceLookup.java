@@ -27,7 +27,7 @@ public class SequenceLookup {
 	 */
 	public String getNucForCombo(String combo) {
 		if (!nucleotideLookup.containsKey(combo)) {
-			log.reportTimeError("Invalid combo " + combo);
+			log.reportError("Invalid combo " + combo);
 			return null;
 		} else {
 			return nucleotideLookup.get(combo);

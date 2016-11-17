@@ -599,7 +599,7 @@ public class VCFOps {
 
 		}
 		if (uniqIds.size() != fam.length) {
-			log.reportTimeError("Could not remedy fam file");
+			log.reportError("Could not remedy fam file");
 		} else {
 			log.reportTimeInfo("fixed fam file");
 			Files.writeMatrix(newfam, famFile, "\t");
@@ -769,7 +769,7 @@ public class VCFOps {
 					}
 					break;
 				default:
-					log.reportTimeError("Invalid type " + type);
+					log.reportError("Invalid type " + type);
 					break;
 
 			}
@@ -806,7 +806,7 @@ public class VCFOps {
 		public boolean generatePlinkSeqPheno(String output) {
 			boolean generated = false;
 			if (type != POPULATION_TYPE.CASE_CONTROL) {
-				log.reportTimeError("Population type must be set to " + POPULATION_TYPE.CASE_CONTROL);
+				log.reportError("Population type must be set to " + POPULATION_TYPE.CASE_CONTROL);
 				return generated;
 			} else if (!valid()) {
 				return generated;
@@ -841,7 +841,7 @@ public class VCFOps {
 					break;
 				case CASE_CONTROL:
 					if (!subPop.containsKey(CASE) || !subPop.containsKey(CONTROL)) {
-						log.reportTimeError("Population type was set to "+ type + ", but did not contain "
+						log.reportError("Population type was set to "+ type + ", but did not contain "
 																+ CASE + " and  " + CONTROL);
 					}
 					break;
@@ -849,9 +849,9 @@ public class VCFOps {
 					break;
 				case PC_ANCESTRY:
 					if (!superPop.containsKey(DETERMINE_ANCESTRY)) {
-						log.reportTimeError("Population type was set to "+ type + ", but did not contain "
+						log.reportError("Population type was set to "+ type + ", but did not contain "
 																+ DETERMINE_ANCESTRY);
-						log.reportTimeError(DETERMINE_ANCESTRY+ " must be present in the " + HEADER[2]
+						log.reportError(DETERMINE_ANCESTRY+ " must be present in the " + HEADER[2]
 																+ " column as a flag to determine ancestry, all other categories will be used as cluster generators");
 
 						valid = false;
@@ -859,7 +859,7 @@ public class VCFOps {
 					break;
 				case ANCHOR_BARNACLE:
 					if (!superPop.containsKey(ANCHOR) || !superPop.containsKey(BARNACLE)) {
-						log.reportTimeError("Population type was set to "+ type + ", but did not contain "
+						log.reportError("Population type was set to "+ type + ", but did not contain "
 																+ ANCHOR + " AND " + BARNACLE);
 						valid = false;
 					}
@@ -1074,7 +1074,7 @@ public class VCFOps {
 				String[] header = Files.getHeaderOfFile(fullPathToPopFile, log);
 				int[] indices = ext.indexFactors(HEADER, header, true, false);
 				if (Array.countIf(indices, -1) > 0) {
-					log.reportTimeError("Could not find required headers "+ Array.toStr(HEADER) + " in "
+					log.reportError("Could not find required headers "+ Array.toStr(HEADER) + " in "
 															+ fullPathToPopFile);
 					return null;
 				}
@@ -1118,12 +1118,12 @@ public class VCFOps {
 		String[] matchUpVpops = Files.listFullPaths(ext.parseDirectoryOfFile(vcf), ".homogeneity.vpop",
 																								false);
 		if (matchUpVpops.length < 1) {
-			log.reportTimeError("Required file(s) ending with .homogeneity.vpop in directory "
+			log.reportError("Required file(s) ending with .homogeneity.vpop in directory "
 													+ ext.parseDirectoryOfFile(vcf) + " were not found");
 			return;
 		}
 		if (!Files.exists(finalSamples)) {
-			log.reportTimeError("Required file " + finalSamples + " is missing");
+			log.reportError("Required file " + finalSamples + " is missing");
 			return;
 		}
 		String finalDir = ext.parseDirectoryOfFile(vcf) + "homogeneity/";
@@ -1424,7 +1424,7 @@ public class VCFOps {
 						}
 					}
 				} else {
-					log.reportTimeError("This method relies on the  \"snp138\" annotation, and none was detected, sorry");
+					log.reportError("This method relies on the  \"snp138\" annotation, and none was detected, sorry");
 				}
 				log.reportTimeInfo(progress + " total variants read...");
 				log.reportTimeInfo(found + " variants found...");
@@ -1952,9 +1952,9 @@ public class VCFOps {
 		boolean created = false;
 		if (!vcfFile.endsWith(VCF_EXTENSIONS.REG_VCF.getLiteral())
 				&& !vcfFile.endsWith(VCF_EXTENSIONS.GZIP_VCF.getLiteral())) {
-			log.reportTimeError("We currently can only index the following extensions");
-			log.reportTimeError(VCF_EXTENSIONS.REG_VCF.getLiteral());
-			log.reportTimeError(VCF_EXTENSIONS.GZIP_VCF.getLiteral());
+			log.reportError("We currently can only index the following extensions");
+			log.reportError(VCF_EXTENSIONS.REG_VCF.getLiteral());
+			log.reportError(VCF_EXTENSIONS.GZIP_VCF.getLiteral());
 
 		} else {
 			if (vcfFile.endsWith(VCF_EXTENSIONS.REG_VCF.getLiteral())) {

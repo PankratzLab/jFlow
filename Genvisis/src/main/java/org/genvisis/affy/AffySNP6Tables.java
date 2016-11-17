@@ -57,7 +57,7 @@ public class AffySNP6Tables {
 		} else if (callCode.equals("-1")) {
 			call = "NC";
 		} else {
-			log.reportTimeError("unknown call code: " + callCode);
+			log.reportError("unknown call code: " + callCode);
 		}
 
 		return call;
@@ -90,11 +90,11 @@ public class AffySNP6Tables {
 
 			writer = new PrintWriter(new FileWriter(filename, append));
 		} catch (FileNotFoundException fnfe) {
-			log.reportTimeError("Error: file \""	+ filename
+			log.reportError("Error: file \""	+ filename
 													+ "\" could not be written to (it's probably open)");
 			System.exit(1);
 		} catch (IOException ioe) {
-			log.reportTimeError("Error reading file \"" + filename + "\"");
+			log.reportError("Error reading file \"" + filename + "\"");
 			System.exit(2);
 		}
 
@@ -188,7 +188,7 @@ public class AffySNP6Tables {
 							chunkCount++;
 						}
 					} else {
-						log.reportTimeError("This Should Not Happen");
+						log.reportError("This Should Not Happen");
 					}
 				}
 				if (lineCount < numLinesBuffer) {
@@ -205,10 +205,10 @@ public class AffySNP6Tables {
 
 			}
 		} catch (FileNotFoundException fnfe) {
-			log.reportTimeError("Error: one of the input tables was not found in current directory");
+			log.reportError("Error: one of the input tables was not found in current directory");
 			return;
 		} catch (IOException ioe) {
-			log.reportTimeError("Error reading file \"" + "\"");
+			log.reportError("Error reading file \"" + "\"");
 		}
 		if (writers != null) {
 			for (PrintWriter writer : writers) {
@@ -267,13 +267,13 @@ public class AffySNP6Tables {
 							}
 						} else if (!callLine[0].equals(confLine[0])	|| !sigALine[0].equals(callLine[0] + "-A")
 												|| !sigBLine[0].equals(callLine[0] + "-B")) {
-							log.reportTimeError("Error: probeset identifier mismatch between calls/confidence/signal files ");
+							log.reportError("Error: probeset identifier mismatch between calls/confidence/signal files ");
 							System.exit(1);
 						} else if (!sigReader.ready()) {
-							log.reportTimeError("Error: probeset identifier discordance between calls/confidence/signal files");
+							log.reportError("Error: probeset identifier discordance between calls/confidence/signal files");
 							return;
 						} else {
-							log.reportTimeError("This Should Not Happen");
+							log.reportError("This Should Not Happen");
 							System.exit(1);
 						}
 						callLine = callReader.readLine().trim().split(delimiter, -1);
@@ -299,10 +299,10 @@ public class AffySNP6Tables {
 				log.reportTimeInfo("table headers do not match ");
 			}
 		} catch (FileNotFoundException fnfe) {
-			log.reportTimeError("Error: one of the input tables was not found in current directory");
+			log.reportError("Error: one of the input tables was not found in current directory");
 			return;
 		} catch (IOException ioe) {
-			log.reportTimeError("Error reading file \"" + "\"");
+			log.reportError("Error reading file \"" + "\"");
 		}
 		if (writers != null) {
 			for (PrintWriter writer : writers) {
@@ -338,7 +338,7 @@ public class AffySNP6Tables {
 																										false)[0] == -1));
 			header = Array.toStr(line);
 		} catch (IOException ioe) {
-			log.reportTimeError("Error reading file \"" + tableName + "\"");
+			log.reportError("Error reading file \"" + tableName + "\"");
 			return "Error reading file \"" + tableName + "\"";
 		}
 		return header;

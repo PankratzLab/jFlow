@@ -229,7 +229,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 
 		public double[] testData(double[] dataToTest, boolean verbose, LS_TYPE lType, Logger log) {
 			if (dataToTest.length != dataTest.length) {
-				log.reportTimeError("Mismatched array sizes for regression input");
+				log.reportError("Mismatched array sizes for regression input");
 			}
 			double[] result = new double[2];
 			Arrays.fill(result, Double.NaN);
@@ -274,7 +274,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 		int sampIndex = ext.indexOfStr(ManhattanTest.SAMPLE, header);
 		if (sampIndex < 0) {
 			proj.getLog()
-					.reportTimeError(fullPathToFile + " must have a header with " + ManhattanTest.SAMPLE);
+					.reportError(fullPathToFile + " must have a header with " + ManhattanTest.SAMPLE);
 			return null;
 		} else {
 			String[] titles = new String[header.length - 1];
@@ -299,7 +299,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 					int curSamp = ext.indexOfStr(line[sampIndex], proj.getSamples());
 					if (curSamp < 0) {
 						proj.getLog()
-								.reportTimeError("did not find sample " + line[sampIndex] + " in this project");
+								.reportError("did not find sample " + line[sampIndex] + " in this project");
 						return null;
 					} else {
 						for (int i = 0; i < titleIndices.length; i++) {

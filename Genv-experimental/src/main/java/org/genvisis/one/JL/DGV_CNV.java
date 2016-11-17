@@ -96,7 +96,7 @@ public class DGV_CNV {
 						String type = line[indices[5]];
 						int[] cn = copyHash.get(type);
 						if (cn.length != 1) {
-							log.reportTimeError("what type " + type);
+							log.reportError("what type " + type);
 							System.exit(1);
 						}
 
@@ -146,7 +146,7 @@ public class DGV_CNV {
 																																											// sample size
 									System.out.println(Array.toStr(line));
 									System.out.println(lineNum + "\t" + line.length + "\t" + element);
-									log.reportTimeError("Del: "	+ numDel + " and Dup: " + numDup
+									log.reportError("Del: "	+ numDel + " and Dup: " + numDup
 																			+ " does not add up to " + samples.length);
 									System.exit(1);
 								} else {
@@ -241,7 +241,7 @@ public class DGV_CNV {
 
 						if (!copyHash.containsKey(type)) {
 
-							log.reportTimeError("what type is " + type);
+							log.reportError("what type is " + type);
 							System.exit(1);
 						} else {
 							int[] types = null;
@@ -280,10 +280,10 @@ public class DGV_CNV {
 								}
 
 							} catch (Exception e) {
-								log.reportTimeError(Array.toStr(line));
+								log.reportError(Array.toStr(line));
 								log.reportException(e);
-								log.reportTimeError(element);
-								log.reportTimeError(lineNum + "");
+								log.reportError(element);
+								log.reportError(lineNum + "");
 								System.exit(1);
 
 							}

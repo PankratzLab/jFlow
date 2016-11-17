@@ -90,7 +90,7 @@ public class RegNovo {
 			int g1000Index = ext.indexOfStr("g10002014oct_all", annosToGet);
 
 			if (espIndex < 0 || g1000Index < 0) {
-				log.reportTimeError("esp6500si_all not being tested");
+				log.reportError("esp6500si_all not being tested");
 			} else {
 
 				String[] annos = VCOps.getAnnotationsFor(annosToGet, vc, ".");
@@ -115,7 +115,7 @@ public class RegNovo {
 
 		if (!vpop.getSuperPop().containsKey(OFFSPRING)
 				|| !vpop.getSuperPop().containsKey(VcfPopulation.CONTROL)) {
-			log.reportTimeError(vpop.getFileName()	+ " must contain both " + OFFSPRING + " and "
+			log.reportError(vpop.getFileName()	+ " must contain both " + OFFSPRING + " and "
 													+ VcfPopulation.CONTROL);
 			return;
 		}

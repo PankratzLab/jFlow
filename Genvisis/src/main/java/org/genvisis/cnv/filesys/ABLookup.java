@@ -707,7 +707,7 @@ public class ABLookup {
 				first = colIndices[1];
 				second = colIndices[2];
 				if (markerIndex == -1 || first == -1 || second == -1) {
-					log.reportTimeError(incompleteABlookupFilename +  " does not contain required columns: " + 
+					log.reportError(incompleteABlookupFilename +  " does not contain required columns: " + 
 															Joiner.on("\t").join(AB_LOOKUP_COLS));
 					reader.close();
 					writer.close();

@@ -39,7 +39,7 @@ public class PopGen {
 				vcfs = Files.parseRemoteFTPFiles(directory, vcfSuffix, log);
 				break;
 			default:
-				log.reportTimeError("Invalid file location " + location);
+				log.reportError("Invalid file location " + location);
 				break;
 		}
 		VARIANT_FILTER_DOUBLE[] fullPopFilters = hwePopTests == null	? VARIANT_FILTER_DOUBLE.values()
@@ -79,11 +79,11 @@ public class PopGen {
 					try {
 						writer.add(variantContext);
 					} catch (IllegalStateException is) {
-						log.reportTimeError("A variant violated vcf convention, skipping file " + vcfs[i]);
+						log.reportError("A variant violated vcf convention, skipping file " + vcfs[i]);
 						tmp.close();
 						break;
 					} catch (IllegalArgumentException ia) {
-						log.reportTimeError("A variant violated vcf convention, skipping file " + vcfs[i]);
+						log.reportError("A variant violated vcf convention, skipping file " + vcfs[i]);
 						tmp.close();
 						break;
 					}

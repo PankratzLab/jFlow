@@ -166,7 +166,7 @@ public class MarkerBlastIterator {
 									marker = marker.substring(0, marker.length() - 2);
 								} else {
 									proj.getLog()
-											.reportTimeError("Query id did not end with _A or _B which is required for an AFFY array");
+											.reportError("Query id did not end with _A or _B which is required for an AFFY array");
 								}
 
 							}
@@ -282,7 +282,7 @@ public class MarkerBlastIterator {
 					case GC_CONTENT:
 						break;
 					default:
-						proj.getLog().reportTimeError("Invalid Metric " + metric);
+						proj.getLog().reportError("Invalid Metric " + metric);
 						break;
 				}
 				for (int l = 0; l < parser.getNumericData().length; l++) {
@@ -343,7 +343,7 @@ public class MarkerBlastIterator {
 											}
 											break;
 										default:
-											proj.getLog().reportTimeError("Invalid Metric " + metric);
+											proj.getLog().reportError("Invalid Metric " + metric);
 
 											break;
 									}
@@ -590,7 +590,7 @@ public class MarkerBlastIterator {
 								marker = marker.substring(0, marker.length() - 2);
 							} else {
 								proj.getLog()
-										.reportTimeError("Query id did not end with _A or _B which is required for an AFFY array");
+										.reportError("Query id did not end with _A or _B which is required for an AFFY array");
 							}
 
 						}

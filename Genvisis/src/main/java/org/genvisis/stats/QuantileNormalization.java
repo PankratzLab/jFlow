@@ -33,21 +33,21 @@ public class QuantileNormalization {
 	public void verify() {
 		if (dataToNorm == null || dataToNorm.length < 2) {
 			String error = "Data must be present and length greater than 1";
-			log.reportTimeError(error);
+			log.reportError(error);
 			throw new IllegalArgumentException(error);
 		} else {
 			int base = 0;
 			for (int i = 0; i < dataToNorm.length; i++) {
 				if (dataToNorm[i] == null) {
 					String error = "Data arrays invalid";
-					log.reportTimeError(error);
+					log.reportError(error);
 					throw new IllegalArgumentException(error);
 				}
 				if (i == 0) {
 					base = dataToNorm[i].length;
 				} else if (base != dataToNorm[i].length) {
 					String error = "Data arrays have inconsistant length";
-					log.reportTimeError(error);
+					log.reportError(error);
 					throw new IllegalArgumentException(error);
 				}
 			}
@@ -60,7 +60,7 @@ public class QuantileNormalization {
 				if (numNan != 0 && numNan != tmp.length) {
 					String error = i	+ "\tAll indices must either have complete (non-NaN) data, or all NaN data "
 													+ numNan + " Nans out of " + tmp.length;
-					log.reportTimeError(error);
+					log.reportError(error);
 					throw new IllegalArgumentException(error);
 				}
 			}

@@ -124,7 +124,7 @@ public class CNVCaller {
 
 		if (lrrs.length != bafs.length || markerSet.getMarkerNames().length != lrrs.length) {
 			String error = "BUG: must supply entire lrr and baf data set for the project, consider using the markersToUse array to subset the analysis";
-			proj.getLog().reportTimeError(error);
+			proj.getLog().reportError(error);
 			throw new IllegalArgumentException(error);
 		}
 		if (debugMode) {
@@ -195,7 +195,7 @@ public class CNVCaller {
 					case GC_ADJUST:
 						if (gcModel == null) {
 							String error = "gc model cannot be null if adjustment " + type + " is flagged";
-							proj.getLog().reportTimeError(error);
+							proj.getLog().reportError(error);
 							throw new IllegalArgumentException();
 						} else {
 							double[] dataToCorrect = analysisLrrs;
@@ -267,7 +267,7 @@ public class CNVCaller {
 						break;
 
 					default:
-						proj.getLog().reportTimeError("Invalid adjustment type " + type);
+						proj.getLog().reportError("Invalid adjustment type " + type);
 						analysisBafs = null;
 						analysisLrrs = null;
 						break;
@@ -438,7 +438,7 @@ public class CNVCaller {
 																											chrCNVsReverseConsensus);
 				return callResult;
 			} catch (Exception e) {
-				proj.getLog().reportTimeError("Could not call cnvs for sample "	+ dna + " on chromosome "
+				proj.getLog().reportError("Could not call cnvs for sample "	+ dna + " on chromosome "
 																			+ currentChr);
 				proj.getLog().reportException(e);
 				throw new IllegalStateException("Could not call cnvs for sample "	+ dna + " on chromosome "

@@ -347,9 +347,9 @@ public class VCFImporter {
 		}
 
 		if (proj.getSamples() != null && proj.getSamples().length != samples.length) {
-			proj.getLog().reportTimeError("A different number of samples appear to be parsed in "
+			proj.getLog().reportError("A different number of samples appear to be parsed in "
 																		+ proj.SAMPLE_DIRECTORY.getValue());
-			proj.getLog().reportTimeError("Found "	+ samples.length + " samples in the vcf and "
+			proj.getLog().reportError("Found "	+ samples.length + " samples in the vcf and "
 																		+ proj.getSamples().length + " samples were parsed");
 			return;
 		}
@@ -359,7 +359,7 @@ public class VCFImporter {
 			for (String sample : samples) {
 				if (ext.indexOfStr(sample, proj.getSamples()) < 0) {
 					proj.getLog()
-							.reportTimeError("Did not find vcf sample " + sample + "in the sample directory");
+							.reportError("Did not find vcf sample " + sample + "in the sample directory");
 					haveAll = false;
 				}
 			}
@@ -443,7 +443,7 @@ public class VCFImporter {
 		processCentroids(projNorm, vcf, numThreads);
 		projNorm.LRRSD_CUTOFF.setValue(2.2);
 		projNorm.SAMPLE_CALLRATE_THRESHOLD.setValue(0.98);
-		projNorm.getLog().reportTimeError("Remember that the LRR_SD cutoff is set to 2.2");
+		projNorm.getLog().reportError("Remember that the LRR_SD cutoff is set to 2.2");
 		projNorm.saveProperties();
 		String pretendMedian = projNorm.PROJECT_DIRECTORY.getValue() + "pretendMedian.txt";
 

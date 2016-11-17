@@ -403,16 +403,16 @@ public class SourceFileParser implements Runnable {
 											line[headerData.colGenoAB1] = tmp2;
 											line[headerData.colGenoAB2] = tmp3;
 										} catch (Exception e) {
-											log.reportTimeError("Could not parse genotypes on line " + Array.toStr(line));
+											log.reportError("Could not parse genotypes on line " + Array.toStr(line));
 											log.reportException(e);
 											return;
 										}
 									}
 								} else {
-									log.reportTimeError("Inconsistant genotype call lengths");
+									log.reportError("Inconsistant genotype call lengths");
 								}
 							} else if (splitAB) {
-								log.reportTimeError("Detected previously that genotype calls should be split, but the calls on line "
+								log.reportError("Detected previously that genotype calls should be split, but the calls on line "
 																		+ Array.toStr(line) + " did not");
 								return;
 							}
@@ -1073,7 +1073,7 @@ public class SourceFileParser implements Runnable {
 			// case NGS:
 			// break;
 			default:
-				log.reportTimeError("Invalid array type " + array);
+				log.reportError("Invalid array type " + array);
 				break;
 		}
 
@@ -1397,11 +1397,11 @@ public class SourceFileParser implements Runnable {
 		if (!proj.LONG_FORMAT.getValue()) {
 			if (files.length != proj.getSamples().length) {
 				proj.getLog()
-						.reportTimeError("The number of parsed samples ("	+ proj.getSamples().length
+						.reportError("The number of parsed samples ("	+ proj.getSamples().length
 															+ ") does not equal the number of source files detected ("
 															+ files.length + ")");
 				proj.getLog()
-						.reportTimeError("Please verify source file integrity, or send us a test file to troubleshoot");
+						.reportError("Please verify source file integrity, or send us a test file to troubleshoot");
 			}
 		}
 		allOutliers = new Hashtable<String, Float>();
@@ -1996,7 +1996,7 @@ public class SourceFileParser implements Runnable {
 			while (train.hasNext()) {
 				LongFormatParseResult result = train.next();
 				if (result.count == 0) {
-					log.reportTimeError("Encountered an error processing "	+ result.fileParsed
+					log.reportError("Encountered an error processing "	+ result.fileParsed
 															+ " , halting");
 					train.shutdown();
 					return 0;
@@ -2540,16 +2540,16 @@ public class SourceFileParser implements Runnable {
 											line[headerData.colGenoAB1] = tmp2;
 											line[headerData.colGenoAB2] = tmp3;
 										} catch (Exception e) {
-											log.reportTimeError("Could not parse genotypes on line " + Array.toStr(line));
+											log.reportError("Could not parse genotypes on line " + Array.toStr(line));
 											log.reportException(e);
 											return result;
 										}
 									}
 								} else {
-									log.reportTimeError("Inconsistant genotype call lengths");
+									log.reportError("Inconsistant genotype call lengths");
 								}
 							} else if (splitAB) {
-								log.reportTimeError("Detected previously that genotype calls should be split, but the calls on line "
+								log.reportError("Detected previously that genotype calls should be split, but the calls on line "
 																		+ Array.toStr(line) + " did not");
 								return result;
 							}

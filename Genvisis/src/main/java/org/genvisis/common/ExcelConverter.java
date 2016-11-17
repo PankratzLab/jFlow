@@ -94,7 +94,7 @@ public class ExcelConverter {
 							return;
 						}
 					} catch (IllegalArgumentException ile) {
-						log.reportTimeError("Offending = " + fileParams.getSheetName());
+						log.reportError("Offending = " + fileParams.getSheetName());
 						ile.printStackTrace();
 					}
 				}

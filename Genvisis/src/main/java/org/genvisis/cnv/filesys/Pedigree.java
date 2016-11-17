@@ -220,7 +220,7 @@ public class Pedigree extends FamilyStructure {
 																																markerData.getMarkerName(),
 																																gcThreshold, log);
 			if (!pedigree.isProjectOrder()) {
-				log.reportTimeError("Pedigree file must be in project order, internal error");
+				log.reportError("Pedigree file must be in project order, internal error");
 				return null;
 			} else {
 				for (int i = 0; i < pedigree.getIDs().length; i++) {

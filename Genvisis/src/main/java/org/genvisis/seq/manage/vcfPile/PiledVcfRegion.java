@@ -47,7 +47,7 @@ class PiledVcfRegion<T extends Segment> implements Serializable {
 			String error = "Attempting to add a variant does not overlap the region of interest";
 			error += "\nCurrent region = " + region.getUCSClocation();
 			error += "\nVariant region = " + VCOps.getSegment(vc).getUCSClocation();
-			log.reportTimeError(error);
+			log.reportError(error);
 			throw new IllegalStateException(error);
 		} else {
 			for (int i = 0; i < vcfSamples.length; i++) {
@@ -66,7 +66,7 @@ class PiledVcfRegion<T extends Segment> implements Serializable {
 					noCall[i]++;
 				} else {
 					String error = "Invalid variant type with genotype " + g.toString();
-					log.reportTimeError(error);
+					log.reportError(error);
 					throw new IllegalStateException(error);
 				}
 				if (!g.isNoCall()) {

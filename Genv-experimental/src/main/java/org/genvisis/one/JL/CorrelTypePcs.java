@@ -36,7 +36,7 @@ public class CorrelTypePcs {
 										+ ext.rootOf(fullPathPcFile[0]) + "/";
 		new File(outDir).mkdirs();
 		if (fullPathPcFile.length != 2) {
-			proj.getLog().reportTimeError("Must be two pc files only");
+			proj.getLog().reportError("Must be two pc files only");
 			return;
 		}
 		String out = outDir + ext.rootOf(fullPathPcFile[0]) + "_pcs.comp.txt";

@@ -153,7 +153,7 @@ public class Blast {
 				cmdLineProcess.waitFor();
 			}
 		} else {
-			log.reportTimeError("This command can only be used on *.nix systems, apologies");
+			log.reportError("This command can only be used on *.nix systems, apologies");
 		}
 		return bSummaries;
 	}
@@ -177,20 +177,20 @@ public class Blast {
 		boolean verified = true;
 		if (!Files.exists(fastaDb) && !Files.exists("", getDBFiles(fastaDb))) {
 
-			log.reportTimeError("Could not find fasta file for database " + fastaDb);
-			log.reportTimeError(" " + fastaDb);
+			log.reportError("Could not find fasta file for database " + fastaDb);
+			log.reportError(" " + fastaDb);
 			verified = false;
 		}
 		if (!CmdLine.run(BLAST_COMMANDS.BLASTN.getCommand(), "")) {
-			log.reportTimeError("It is assumed that the program "	+ BLAST_COMMANDS.BLASTN.getCommand()
+			log.reportError("It is assumed that the program "	+ BLAST_COMMANDS.BLASTN.getCommand()
 													+ " can be found on the system's path, please install before continuing");
 			verified = false;
 		}
 		if (!Files.exists("", getDBFiles(fastaDb))
 				&& !CmdLine.run(BLAST_COMMANDS.MAKE_DB.getCommand(), "")) {
-			log.reportTimeError("It is assumed that the program "	+ BLAST_COMMANDS.BLASTN.getCommand()
+			log.reportError("It is assumed that the program "	+ BLAST_COMMANDS.BLASTN.getCommand()
 													+ " can be found on the system's path, or the following files are present...");
-			log.reportTimeError(Array.toStr(getDBFiles(fastaDb), "\n"));
+			log.reportError(Array.toStr(getDBFiles(fastaDb), "\n"));
 			verified = false;
 		}
 		return verified;
@@ -404,7 +404,7 @@ public class Blast {
 			try {
 				d = Double.parseDouble(ad);
 			} catch (NumberFormatException nfe) {
-				log.reportTimeError("Invalid number " + ad + " found ");
+				log.reportError("Invalid number " + ad + " found ");
 			}
 			return d;
 		}
@@ -414,7 +414,7 @@ public class Blast {
 			try {
 				i = Integer.parseInt(ai);
 			} catch (NumberFormatException nfe) {
-				log.reportTimeError("Invalid number " + ai + " found ");
+				log.reportError("Invalid number " + ai + " found ");
 			}
 			return i;
 		}
@@ -442,7 +442,7 @@ public class Blast {
 
 		public void addBlastResult(BlastResults blastResults, Logger log) {
 			if (!blastResults.getQueryID().equals(name)) {
-				log.reportTimeError("Query id and summary name do not match");
+				log.reportError("Query id and summary name do not match");
 			} else {
 				percentIdentityHistogram.addDataPointToHistogram(blastResults.getPercentIdentity());
 				evalueHistogram.addDataPointToHistogram(blastResults.getEvalue());

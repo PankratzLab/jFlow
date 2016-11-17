@@ -628,7 +628,7 @@ public class Array {
 			try {
 				s[i] = new String(new byte[] {b[i]}, charsetName).toUpperCase();
 			} catch (UnsupportedEncodingException e) {
-				log.reportTimeError("Could not convert reference byte "	+ b[i]
+				log.reportError("Could not convert reference byte "	+ b[i]
 														+ " to string with charsetName" + charsetName);
 				e.printStackTrace();
 			}

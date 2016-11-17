@@ -36,11 +36,11 @@ public class VCFMerge {
 								log.reportTimeInfo("Merged " + Array.toStr(vcfs, "\n") + " to " + mergeOut);
 								VCFOps.extractSamps(mergeOut, log);
 							} else {
-								log.reportTimeError("Could not merge "	+ Array.toStr(vcfs, "\n") + " to "
+								log.reportError("Could not merge "	+ Array.toStr(vcfs, "\n") + " to "
 																		+ mergeOut);
 							}
 						} else {
-							log.reportTimeError("Could not verify all index files ");
+							log.reportError("Could not verify all index files ");
 						}
 					} else {
 						log.reportFilesNotFound(vcfs);
@@ -49,7 +49,7 @@ public class VCFMerge {
 					log.reportFileExists(mergeOut);
 				}
 			} else {
-				log.reportTimeError("Must provide an output file for the merged results");
+				log.reportError("Must provide an output file for the merged results");
 			}
 		} else {
 			log.reportFilesNotFound(vcfs);

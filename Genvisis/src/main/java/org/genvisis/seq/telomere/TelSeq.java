@@ -77,7 +77,7 @@ public class TelSeq {
 			try {
 				sampleName = BamOps.getSampleName(inputBam, log);
 			} catch (Exception e) {
-				log.reportTimeError("Could not get sample name from " + inputBam);
+				log.reportError("Could not get sample name from " + inputBam);
 				log.reportException(e);
 			}
 

@@ -39,7 +39,7 @@ public class ConvertChargeToVCF {
 
 	public static void processChargeMafFile(String fullPathToFile, Logger log) {
 		if (!Files.headerOfFileContainsAll(fullPathToFile, CHARGE_HEADER, log)) {
-			log.reportTimeError("This is designed for a specific file format with header "
+			log.reportError("This is designed for a specific file format with header "
 													+ Array.toStr(CHARGE_HEADER));
 		} else {
 			VCFHeader vcfHeader = new VCFHeader();
@@ -137,13 +137,13 @@ public class ConvertChargeToVCF {
 					if (segsA[i].equals(segsASorted[indice])) {
 						order[i] = indice;
 						if (found) {
-							log.reportTimeError("multiple founds");
+							log.reportError("multiple founds");
 						}
 						found = true;
 					}
 				}
 				if (!found) {
-					log.reportTimeError("Could not find");
+					log.reportError("Could not find");
 				}
 
 			}

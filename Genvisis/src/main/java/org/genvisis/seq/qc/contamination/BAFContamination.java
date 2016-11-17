@@ -121,7 +121,7 @@ public class BAFContamination {
 	private boolean verify() {
 		boolean verfied = true;
 		if (sampBAF.length != mafs.length) {
-			log.reportTimeError("Mismatched array sizes for sample baf and pfb");
+			log.reportError("Mismatched array sizes for sample baf and pfb");
 			verfied = false;
 		}
 

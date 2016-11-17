@@ -616,7 +616,7 @@ public class LrrSd extends Parallelizable {
 		double callRateFilter = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
 
 		if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
-			log.reportTimeError("The sample qc file "	+ proj.SAMPLE_QC_FILENAME.getValue()
+			log.reportError("The sample qc file "	+ proj.SAMPLE_QC_FILENAME.getValue()
 													+ " does not exist");
 			return null;
 		}
@@ -628,7 +628,7 @@ public class LrrSd extends Parallelizable {
 														Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true, false);
 			if (!reader.ready()) {
 				reader.close();
-				log.reportTimeError("Error - QC file ("	+ proj.SAMPLE_QC_FILENAME.getValue()
+				log.reportError("Error - QC file ("	+ proj.SAMPLE_QC_FILENAME.getValue()
 														+ ") was empty");
 				return null;
 			}
@@ -638,7 +638,7 @@ public class LrrSd extends Parallelizable {
 
 			if (!checkIndices(proj, indices)) {
 				reader.close();
-				log.reportTimeError("Error - could not detect proper header in QC file ("
+				log.reportError("Error - could not detect proper header in QC file ("
 														+ proj.SAMPLE_QC_FILENAME.getValue() + ")");
 				return null;
 			}
@@ -656,7 +656,7 @@ public class LrrSd extends Parallelizable {
 					// if passes qc
 					String sample = line[indices[0]];
 					if (!sampleIndices.containsKey(sample)) {
-						log.reportTimeError("Sample "	+ sample + " is listed in "
+						log.reportError("Sample "	+ sample + " is listed in "
 																+ proj.SAMPLE_QC_FILENAME.getValue()
 																+ " but is not in the project");
 						continue;

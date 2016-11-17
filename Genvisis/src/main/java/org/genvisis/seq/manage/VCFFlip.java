@@ -77,14 +77,14 @@ public class VCFFlip {
 					for (Allele a : alleles) {
 						if (a.isReference()) {
 							if (newAlt != null) {
-								log.reportTimeError("Multiple new alts....");
+								log.reportError("Multiple new alts....");
 								return;
 							}
 							newAlt = Allele.create(a.getBases(), false);
 							newAlleles.add(Allele.create(a.getBases(), false));
 						} else {
 							if (newRef != null) {
-								log.reportTimeError("Multiple new refs...." + newRef.getBaseString());
+								log.reportError("Multiple new refs...." + newRef.getBaseString());
 							}
 							newRef = Allele.create(a.getBases(), true);
 
@@ -158,7 +158,7 @@ public class VCFFlip {
 				} catch (IllegalArgumentException ile) {
 					log.reportException(ile);
 					skipped++;
-					log.reportTimeError("Could not flip variant context "	+ vc.toStringWithoutGenotypes()
+					log.reportError("Could not flip variant context "	+ vc.toStringWithoutGenotypes()
 															+ ", reverting to original context...");
 					writerError.add(vc);
 					// writer.add(vc);

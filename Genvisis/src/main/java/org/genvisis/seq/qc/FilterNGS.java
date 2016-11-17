@@ -972,7 +972,7 @@ public class FilterNGS implements Serializable {
 					vBooleans[i] = getDNMFilter(bfilter, GENOTYPE_FLAG_INFO.EHQ_DNM, log);
 					break;
 				default:
-					log.reportTimeError("Invalid boolean filter type " + bfilter);
+					log.reportError("Invalid boolean filter type " + bfilter);
 					vBooleans[i] = null;
 					throw new IllegalArgumentException("Invalid double filter type " + bfilter);
 
@@ -1051,7 +1051,7 @@ public class FilterNGS implements Serializable {
 					vDoubles[i] = getAvgNLODFilter(dfilter, log);
 					break;
 				default:
-					log.reportTimeError("Invalid double filter type " + dfilter);
+					log.reportError("Invalid double filter type " + dfilter);
 					vDoubles[i] = null;
 					throw new IllegalArgumentException("Invalid double filter type " + dfilter);
 					// break;
@@ -1409,7 +1409,7 @@ public class FilterNGS implements Serializable {
 				filters.add(getProperlyPairedFilter());// This can be evidence of a CNV
 				break;
 			default:
-				log.reportTimeError("Invalid filter type" + type);
+				log.reportError("Invalid filter type" + type);
 				filters = null;
 				break;
 

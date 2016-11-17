@@ -65,7 +65,7 @@ public class DemoPackage {
 					if (Files.copyFileUsingFileChannels(runningJar, copyRunning, log)) {
 						log.reportTimeInfo("Finished copying " + runningJar + ", to " + copyRunning);
 					} else {
-						log.reportTimeError("Could not copy " + runningJar + " to " + copyRunning);
+						log.reportError("Could not copy " + runningJar + " to " + copyRunning);
 						fail = true;
 					}
 				}
@@ -80,20 +80,20 @@ public class DemoPackage {
 						if (Files.copyFileUsingFileChannels(other, copyOther, log)) {
 							log.reportTimeInfo("Finished copying " + other + ", to " + copyOther);
 						} else {
-							log.reportTimeError("Could not copy " + other + " to " + copyOther);
+							log.reportError("Could not copy " + other + " to " + copyOther);
 							fail = true;
 						}
 					} else {
-						log.reportTimeError("Did not detect " + other + " , halting ");
+						log.reportError("Did not detect " + other + " , halting ");
 						fail = true;
 					}
 				}
 			}
 		} else {
-			log.reportTimeError("Could not detect proper jar file, found "	+ runningJar
+			log.reportError("Could not detect proper jar file, found "	+ runningJar
 													+ " and it should have ended with "
 													+ org.genvisis.common.PSF.Java.GENVISIS);
-			log.reportTimeError("This could be because you are running from eclipse without a jar file");
+			log.reportError("This could be because you are running from eclipse without a jar file");
 			// fail = true;
 		}
 		String launchProperties = demoDirectory + LaunchProperties.DEFAULT_PROPERTIES_FILE;

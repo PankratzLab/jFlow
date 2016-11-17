@@ -142,7 +142,7 @@ public class ImputationPrep {
 			reader = Files.getAppropriateReader(referenceFile);
 			String header = reader.readLine();
 			if (header == null) {
-				log.reportTimeError("Reference file is empty");
+				log.reportError("Reference file is empty");
 				return false;
 			}
 			String delim = ext.determineDelimiter(header);
@@ -155,7 +155,7 @@ public class ImputationPrep {
 				try {
 					position = Integer.parseInt(refLine[1]);
 				} catch (NumberFormatException e) {
-					log.reportTimeError("Imputation reference file ("	+ referenceFile
+					log.reportError("Imputation reference file ("	+ referenceFile
 															+ ") contains a non-integer position: " + refLine[1]);
 					return false;
 				}
@@ -168,7 +168,7 @@ public class ImputationPrep {
 				try {
 					altFreq = Double.parseDouble(refLine[5]);
 				} catch (NumberFormatException e) {
-					log.reportTimeError("Imputation reference file ("	+ referenceFile
+					log.reportError("Imputation reference file ("	+ referenceFile
 															+ ") contains a non-numeric alternate allele frequency: "
 															+ refLine[5]);
 					return false;
@@ -364,7 +364,7 @@ public class ImputationPrep {
 			if (command.runCommand(true, true, false, true, log)) {
 				vcfs.add(outputFile);
 			} else {
-				log.reportTimeError("Could not generate VCF for chromosome " + i);
+				log.reportError("Could not generate VCF for chromosome " + i);
 			}
 		}
 		return vcfs;
@@ -375,14 +375,14 @@ public class ImputationPrep {
 		if (filteredPlinkroot == null
 				|| !PSF.Plink.allFilesExist(proj.PROJECT_DIRECTORY.getValue()	+ targetDir
 																		+ filteredPlinkroot, true)) {
-			log.reportTimeError("Could not generate a filtered plink dataset for imputation");
+			log.reportError("Could not generate a filtered plink dataset for imputation");
 			return false;
 		}
 
 		String qcPlinkroot = Qc.fullGamut(proj.PROJECT_DIRECTORY.getValue()	+ targetDir,
 																			filteredPlinkroot, true, log);
 		if (qcPlinkroot == null || !PSF.Plink.allFilesExist(qcPlinkroot, true)) {
-			log.reportTimeError("GWAS QC failed");
+			log.reportError("GWAS QC failed");
 			return false;
 		}
 		qcPlinkroot = qcPlinkroot.substring((proj.PROJECT_DIRECTORY.getValue() + targetDir).length());
@@ -391,13 +391,13 @@ public class ImputationPrep {
 		if (dedupedPlinkroot == null
 				|| !PSF.Plink.allFilesExist(proj.PROJECT_DIRECTORY.getValue()	+ targetDir
 																		+ dedupedPlinkroot, true)) {
-			log.reportTimeError("Failed to remove duplicates from exported plink dataset");
+			log.reportError("Failed to remove duplicates from exported plink dataset");
 			return false;
 		}
 
 		List<String> vcfs = exportPlinkToChrVCFs(dedupedPlinkroot);
 		if (vcfs.isEmpty()) {
-			log.reportTimeError("No VCFs were exported");
+			log.reportError("No VCFs were exported");
 			return false;
 		}
 		log.report("Succesfully exported "	+ vcfs.size() + " VCFs for imputation to "
@@ -486,7 +486,7 @@ public class ImputationPrep {
 																											"");
 		}
 		if (referenceFile == null || !Files.exists(referenceFile)) {
-			proj.getLog().reportTimeError("Reference file could not be found");
+			proj.getLog().reportError("Reference file could not be found");
 			return;
 		}
 

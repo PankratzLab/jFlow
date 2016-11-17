@@ -512,7 +512,7 @@ public class MitoPipeline {
 				// neccesary files");
 				// }
 			} else {
-				proj.getLog().reportTimeError("Can not gc correct values without a valid reference genome");
+				proj.getLog().reportError("Can not gc correct values without a valid reference genome");
 			}
 		}
 		PrincipalComponentsApply pcApply = PCA.generateFullPCA(	proj, numComponents, outputBase,
@@ -558,7 +558,7 @@ public class MitoPipeline {
 																	proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES,
 																	pvalOpt, numComponents, markerCallRateFilter, 25, numThreads);
 				} else {
-					proj.getLog().reportTimeError("Could not optimize betas due to missing files");
+					proj.getLog().reportError("Could not optimize betas due to missing files");
 				}
 			}
 		}

@@ -251,7 +251,7 @@ public class BamExtractor {
 
 				if (varset == null && !bamSampleMap.containsKey(samples[i])) {
 					verified = false;
-					log.reportTimeError("Could not find a matching bam file for sample " + samples[i]);
+					log.reportError("Could not find a matching bam file for sample " + samples[i]);
 				} else if (varset == null) {
 					verified = true;
 
@@ -267,7 +267,7 @@ public class BamExtractor {
 						}
 					}
 					if (!hasOne) {
-						log.reportTimeError("Could not find a matching bam file for sample "+ samples[i]
+						log.reportError("Could not find a matching bam file for sample "+ samples[i]
 																+ " in the following var sets" + Array.toStr(varset, ","));
 
 					}
@@ -298,7 +298,7 @@ public class BamExtractor {
 					}
 
 				} else {
-					log.reportTimeError("did not find sample " + curSample + " in the sample map");
+					log.reportError("did not find sample " + curSample + " in the sample map");
 				}
 			}
 			Files.write(dumper, output);
@@ -332,7 +332,7 @@ public class BamExtractor {
 			}
 			samples = Array.unique(Array.toStringArray(tmpSamples));
 			if (samples.length != bamFiles.length) {
-				log.reportTimeError("Detected more samples than bam files, currently this only supports single sample bam files");
+				log.reportError("Detected more samples than bam files, currently this only supports single sample bam files");
 				fail = true;
 			}
 			if (verbose) {

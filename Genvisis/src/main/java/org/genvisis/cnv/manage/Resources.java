@@ -778,12 +778,12 @@ public final class Resources {
 					HttpDownloadUtility.downloadFile(url, downloadPath, true, log);
 					return true;
 				} catch (IOException e) {
-					log.reportTimeError("Could not retrieve resource from "	+ url + " and save it to"
+					log.reportError("Could not retrieve resource from "	+ url + " and save it to"
 															+ downloadPath);
 					log.reportException(e);
 				}
 			} else {
-				log.reportTimeError("Resource is not available for download: " + url);
+				log.reportError("Resource is not available for download: " + url);
 			}
 			return false;
 		}
@@ -821,7 +821,7 @@ public final class Resources {
 			boolean isAvailable = isLocallyAvailable(localPath) || isRemotelyAvailable(remotePath);
 
 			if (!isAvailable) {
-				log.reportTimeError("Could not find local file "	+ localPath
+				log.reportError("Could not find local file "	+ localPath
 														+ " and could not download it from " + remotePath
 														+ " please manually download and save to " + localPath);
 			}

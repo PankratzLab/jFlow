@@ -274,7 +274,7 @@ public class PlinkSeq implements Serializable {
 						// return true;
 						break;
 					default:
-						log.reportTimeError("Invalid load Type " + lTypes);
+						log.reportError("Invalid load Type " + lTypes);
 						break;
 				}
 				String[] command = new String[] {PSEQ, pseqProject.getProjectNameForPseq(), loadCommand};
@@ -289,7 +289,7 @@ public class PlinkSeq implements Serializable {
 																					false, log);
 			} else {
 				loaded = false;
-				log.reportTimeError("The project "	+ pseqProject.getProjectName() + " in directory "
+				log.reportError("The project "	+ pseqProject.getProjectName() + " in directory "
 														+ pseqProject.getProjectDirectory() + " has not been loaded");
 			}
 		}
@@ -334,7 +334,7 @@ public class PlinkSeq implements Serializable {
 		switch (type) {
 			case V_ASSOC:
 				if (phenotype == null) {
-					log.reportTimeError("Must provide a phentype for " + type);
+					log.reportError("Must provide a phentype for " + type);
 					validWorker = false;
 				} else {
 					outputFile += "." + phenotype + ".txt";
@@ -354,7 +354,7 @@ public class PlinkSeq implements Serializable {
 				break;
 			case BURDEN:
 				if (phenotype == null || locGroups == null) {
-					log.reportTimeError("Must provide a phentype and a group for " + type);
+					log.reportError("Must provide a phentype and a group for " + type);
 					validWorker = false;
 				} else {
 					outputFile += "."	+ phenotype + "." + ext.replaceWithLinuxSafeCharacters(locGroups, true)
@@ -494,7 +494,7 @@ public class PlinkSeq implements Serializable {
 	private boolean verify() {
 		boolean verified = true;
 		if (!CmdLine.run(PSEQ, "")) {
-			log.reportTimeError("It is assumed that the program "	+ PSEQ
+			log.reportError("It is assumed that the program "	+ PSEQ
 													+ " can be found on the system's path, please install before continuing");
 			verified = false;
 		}

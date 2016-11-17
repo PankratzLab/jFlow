@@ -150,7 +150,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 				case V_SUMMARY:
 					break;
 				default:
-					log.reportTimeError("INVALID analysis type " + type);
+					log.reportError("INVALID analysis type " + type);
 					break;
 			}
 		}
@@ -276,11 +276,11 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 																																.getSummaries()[j2];
 										if (pstSummary.getType() != test) {
 											System.out.println(pstSummary.getType() + "\t" + test);
-											log.reportTimeError("Mismatched parsing error, halting...");
+											log.reportError("Mismatched parsing error, halting...");
 										}
 										String desc[] = pstSummary.getDesc().split("/");
 										if (desc.length != 2 && test == BURDEN_Tests.BURDEN) {
-											log.reportTimeError("Did not find two counts for burden test");
+											log.reportError("Did not find two counts for burden test");
 										}
 										curString += "\t"	+ pstSummary.getP() + "\t" + pstSummary.getI() + "\t" + ""
 																	+ pstSummary.getDesc().replaceAll("/", "::").replaceAll("/", "::")

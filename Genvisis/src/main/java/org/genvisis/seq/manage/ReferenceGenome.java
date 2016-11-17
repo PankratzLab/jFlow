@@ -87,7 +87,7 @@ public class ReferenceGenome {
 			} else {
 				String error = "BUG: End of bin for "	+ samSequenceRecord.getSequenceName()
 												+ " did not end at " + length;
-				log.reportTimeError(error);
+				log.reportError(error);
 				throw new IllegalStateException(error);
 			}
 			log.reportTimeInfo(samSequenceRecord.getSequenceName()	+ " -> " + length + "bp; "
@@ -216,7 +216,7 @@ public class ReferenceGenome {
 					requestedSeq = Array.subArray(inMemoryContig, Math.max(0, start - 1),
 																				Math.min(inMemoryContig.length - 1, stop));
 				} catch (Exception e) {
-					log.reportTimeError("Invalid query "	+ segment.getUCSClocation() + "; buffer "
+					log.reportError("Invalid query "	+ segment.getUCSClocation() + "; buffer "
 															+ defaultBuffer + "; current contig " + referenceSequence.getName());
 				}
 			} else {
@@ -264,19 +264,19 @@ public class ReferenceGenome {
 		try {
 			subTmp = Arrays.copyOfRange(currentSeq, start, stop);
 		} catch (Exception e) {
-			log.reportTimeError("Could not extract bases:");
-			log.reportTimeError("Segment: " + segment.getUCSClocation());
-			log.reportTimeError("Ref: " + referenceSequence.getName());
-			log.reportTimeError("Start : " + start);
-			log.reportTimeError("Stop : " + stop);
+			log.reportError("Could not extract bases:");
+			log.reportError("Segment: " + segment.getUCSClocation());
+			log.reportError("Ref: " + referenceSequence.getName());
+			log.reportError("Start : " + start);
+			log.reportError("Stop : " + stop);
 			return new String[] {};
 		}
 		if (!referenceSequence.getName().equals(requestedContig)) {
-			log.reportTimeError("Mismatched request");
-			log.reportTimeError("Segment: " + segment.getUCSClocation());
-			log.reportTimeError("Ref: " + referenceSequence.getName());
-			log.reportTimeError("Start : " + start);
-			log.reportTimeError("Stop : " + stop);
+			log.reportError("Mismatched request");
+			log.reportError("Segment: " + segment.getUCSClocation());
+			log.reportError("Ref: " + referenceSequence.getName());
+			log.reportError("Start : " + start);
+			log.reportError("Stop : " + stop);
 			return new String[] {};
 		}
 
@@ -286,7 +286,7 @@ public class ReferenceGenome {
 				requestedSeq[i] = new String(new byte[] {subTmp[i]}, "UTF-8").toUpperCase();
 			}
 		} catch (UnsupportedEncodingException e) {
-			log.reportTimeError("Could not convert reference byte to string");
+			log.reportError("Could not convert reference byte to string");
 			e.printStackTrace();
 		}
 		return requestedSeq;

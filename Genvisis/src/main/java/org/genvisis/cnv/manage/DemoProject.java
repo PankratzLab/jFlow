@@ -95,7 +95,7 @@ public class DemoProject extends Project {
 			copyGeneTrack(proj, this);
 
 		} else {
-			proj.getLog().reportTimeError(demoProjectDirectory
+			proj.getLog().reportError(demoProjectDirectory
 																		+ " exists and the overwrite option was not flagged, halting");
 			fail = true;
 		}
@@ -260,7 +260,7 @@ public class DemoProject extends Project {
 																				+ samplesToUse.length + " samples will be exported");
 			}
 			if (samplesToUse.length != proj.getSamples().length) {
-				proj.getLog().reportTimeError("The array length provided does ("	+ samplesToUse.length
+				proj.getLog().reportError("The array length provided does ("	+ samplesToUse.length
 																			+ ") does not contain boolean values for all samples");
 				created = false;
 				return created;
@@ -286,7 +286,7 @@ public class DemoProject extends Project {
 										.writeToTextFile(PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt");
 					getSamples();
 				} else {
-					proj.getLog().reportTimeError("Could not create focused samples, halting...");
+					proj.getLog().reportError("Could not create focused samples, halting...");
 				}
 			}
 		} else {

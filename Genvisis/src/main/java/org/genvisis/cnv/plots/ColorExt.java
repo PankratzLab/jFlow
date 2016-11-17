@@ -156,11 +156,11 @@ public class ColorExt {
 			int classIndex = ext.indexOfStartsWith("CLASS=MARKER_COLOR", header, false);
 			if (markerIndex < 0 || classIndex < 0) {
 				if (markerIndex < 0) {
-					proj.getLog().reportTimeError("Could not find any of the the following in the header of "
+					proj.getLog().reportError("Could not find any of the the following in the header of "
 																				+ file + "\n" + Array.toStr(Aliases.MARKER_NAMES, "\n"));
 				} else {
 					proj.getLog()
-							.reportTimeError("Could not find CLASS=MARKER_COLOR  in the header of " + file);
+							.reportError("Could not find CLASS=MARKER_COLOR  in the header of " + file);
 
 				}
 				return null;

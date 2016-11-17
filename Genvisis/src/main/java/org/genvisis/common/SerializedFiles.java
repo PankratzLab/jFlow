@@ -130,7 +130,7 @@ public class SerializedFiles {
 		if (writeSerial(o, filename, gzipped)) {
 			log.report("Succesfully rewrote " + filename + " as a serialized " + o.getClass().getName());
 		} else {
-			log.reportTimeError("Could not rewrite "	+ filename + " as a serialized "
+			log.reportError("Could not rewrite "	+ filename + " as a serialized "
 													+ o.getClass().getName());
 			if (Files.copyFile(backupFile, filename)) {
 				new File(backupFile).delete();
