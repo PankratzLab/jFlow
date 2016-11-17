@@ -34,19 +34,21 @@ public class PRoCtOR {
 	}
 
 	private static int getSampleChunks(Project proj, int numThreads) {
-		/*
-		 * sampleChunks = (.8 * totalRam * sampleSize) / numThreads;
-		 */
 		long mem = Runtime.getRuntime().maxMemory();
 		long samp = getMaxSampleSize(proj);
-		double sampleChunks = (0.8 * mem * numThreads) / samp;
+		// With the assumption that all samples in a given chunk can be open when a chunk is processed by a thread.
+		// Thus we want a number of chunks such that we will not run out of memory if each thread is simultaneously
+		// processing chunks of (chunk size * max_chunk_size) files.
+		// A fraction of max memory is used to account for additional files which may need to be in memory during
+		// this process (e.g. marker data)
+		double sampleChunks = (0.65 * mem) / (numThreads * samp);
 		return (int) sampleChunks;
 	}
 
 	public static void shadow(Project proj, String tmpDir, String outputBase,
 														double markerCallRateFilter, boolean recomputeLRR_PCs,
 														int numComponents, int totalThreads) {
-		int numMarkerThreads = 2;
+		int numMarkerThreads = 1;
 		int numThreads = (int) Math.ceil((double) totalThreads / (double) numMarkerThreads);
 		boolean markerQC = true;
 		String useFile = null;
