@@ -18,6 +18,7 @@ import java.util.Vector;
 import org.genvisis.stats.Maths;
 import org.genvisis.stats.ProbDist;
 
+import com.google.common.collect.Iterables;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 import com.google.common.primitives.Ints;
@@ -2410,13 +2411,13 @@ public class Array {
 	}
 
 	/**
-	 * Creates an array of Strings and copies the contents of a Vector into it
+	 * Creates an array of Strings and copies the contents of a {@link Collection} into it
 	 *
-	 * @param v vector of Strings
-	 * @return an array of Strings from the Vector
+	 * @param collection {@link Collection} of Strings
+	 * @return an array of Strings from the {@link Collection}
 	 */
-	public static String[] toStringArray(Vector<String> v) {
-		return v.toArray(new String[v.size()]);
+	public static String[] toStringArray(Collection<String> collection) {
+		return collection.toArray(new String[collection.size()]);
 	}
 
 	/**
