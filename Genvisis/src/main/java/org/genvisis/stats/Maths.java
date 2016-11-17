@@ -1,7 +1,6 @@
 package org.genvisis.stats;
 
 import java.math.BigInteger;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -9,13 +8,25 @@ import org.genvisis.common.Array;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 public class Maths {
+	
+	public static final List<String> OPERATORS;
+
+	static {
+		ImmutableList.Builder<String> builder = ImmutableList.builder();
+		for (OPERATOR operator : OPERATOR.values()) {
+			builder.add(operator.getSymbol());
+		}
+		OPERATORS = builder.build();
+	}
+
+	private Maths() {
+		// Prevent construction
+	}
 
 	
-	public static enum OPERATOR {
+	public enum OPERATOR {
 		// Valid operators that will be searched for in the following order:
 		LESS_THAN_OR_EQUAL("<="),
 		LESS_THAN("<"),
@@ -47,17 +58,28 @@ public class Maths {
 			return SYMBOL_MAP.get(symbol);
 		}
 		
+		public boolean check(double num1, double num2) {
+			switch (this) {
+				case LESS_THAN_OR_EQUAL:
+					return num1 <= num2;
+				case LESS_THAN:
+					return num1 < num2;
+				case GREATER_THAN_OR_EQUAL:
+					return num1 >= num2;
+				case GREATER_THAN:
+					return num1 > num2;
+				case EQUAL:
+					return num1 == num2;
+				case NOT:
+					return num1 != num2;
+				default:
+					System.err.println("Cannot perform check, invalid " + getClass().getName() + ":" + this.name());
+					return false;
+			}
+		}
+
 	}
 	
-	public static final List<String> OPERATORS;
-	static {
-		ImmutableList.Builder<String> builder = ImmutableList.builder();
-		for (OPERATOR operator : OPERATOR.values()) {
-			builder.add(operator.getSymbol());
-		}
-		OPERATORS = builder.build();
-	}
-
 	public static double limit(double d, double min, double max) {
 		return d < min ? min : (d > max ? max : d);
 	}
@@ -65,7 +87,7 @@ public class Maths {
 	private static BigInteger fact(int n) {
 		BigInteger fact = BigInteger.ONE;
 		for (int i = n; i > 1; i--) {
-			fact = fact.multiply(new BigInteger(i + ""));
+			fact = fact.multiply(BigInteger.valueOf(n));
 		}
 		return fact;
 	}
@@ -112,7 +134,7 @@ public class Maths {
 	}
 
 	public static double log2(double num) {
-		return (Math.log(num) / Math.log(2));
+		return Math.log(num) / Math.log(2);
 	}
 
 	public static double min(double num1, double num2) {
@@ -188,23 +210,14 @@ public class Maths {
 		return null;
 	}
 
-	public static boolean op(double num1, double num2, String operator) {
-		if (operator.equals("<=") && num1 <= num2) {
-			return true;
-		} else if (operator.equals("<") && num1 < num2) {
-			return true;
-		} else if (operator.equals(">=") && num1 >= num2) {
-			return true;
-		} else if (operator.equals(">") && num1 > num2) {
-			return true;
-		} else if (operator.equals("=") && num1 == num2) {
-			return true;
-		} else if (operator.equals("!") && num1 != num2) {
-			return true;
+	public static boolean op(double num1, double num2, String operatorSymbol) {
+		OPERATOR operator = OPERATOR.forSymbol(operatorSymbol);
+		if (operator == null) {
+			System.err.println("Cannot perform operation, " + OPERATOR.class.getName() + " for symbol " + operatorSymbol + " does not exist");
+			return false;
 		}
-		return false;
+		return operator.check(num1, num2);
 	}
-
 	public static void main(String[] args) {
 		// System.out.println(nCr(11, 5));
 		// System.out.println(Array.toStr(slopeAndIntercept(432, 234, 132, 324)));
