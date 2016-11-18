@@ -192,7 +192,7 @@ public class Logger implements Serializable {
 													int levelRequiredToReport) {
 		PrintWriter writer;
 
-		String msg = getVersion() + ext.getTime() + "Error -\t" + err;
+		String msg = getVersion() + ext.getTime() + " Error -\t" + err;
 
 		if (level >= levelRequiredToReport && reportToScreen) {
 			if (line) {
