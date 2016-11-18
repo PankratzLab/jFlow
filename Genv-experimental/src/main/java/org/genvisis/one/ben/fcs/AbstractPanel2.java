@@ -248,7 +248,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         
         
         AXIS_SCALE.LIN.setTransform(new LinearTransform(this));
-        AXIS_SCALE.LOG.setTransform(new LogTransform(this));
+        AXIS_SCALE.LOG.setTransform(new LinearTransform(this));
+//        AXIS_SCALE.BIEX.setTransform(new LinearTransform(this));
+//        AXIS_SCALE.LOG.setTransform(new LogTransform(this));
         AXIS_SCALE.BIEX.setTransform(new BiexTransform(this));
     }
 
@@ -2510,37 +2512,25 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     protected Logicle biexScaleY = null;
 
     private Logicle getBiexScale(boolean xAxis) {
-        double W = 2; // linear decades // W=1 is weird, W=3 -> "scale() didn't converge"
-        double A = 0; // negative decades
+//        double W = Math.log10(Math.abs(-100)); // == 2; linear decades // W=1 is weird, W=3 -> "scale() didn't converge"
+//        double A = 0; // negative decades
+        double DEFAULT_T = 262144;
+        double DEFAULT_W = Math.log10(Math.abs(-100));
+        double DEFAULT_M = Math.log10(DEFAULT_T);
+        double DEFAULT_A = Math.min(0, 1);
         if (xAxis) {
             if (biexScaleX != null && logPlotXMax == plotXmax) {
                 return biexScaleX;
             }
-            double dec = plotXmax;
-            double decCnt = 0;
-            while (dec > 1) {
-                dec = dec / 10d;
-                decCnt++;
-            }
-            // decCnt += dec;
-            // Logicle fl = new FastLogicle(plotXmax, W, M, A, 1); // FastLogicle causes issues (possible
-            // that parameters are incorrectly set)
-            // System.out.println("BiEx: T{" + plotXmax + "}, W{" + W + "}, M{" + decCnt + "}, A{" + A +
-            // "}");
-            return biexScaleX = new Logicle(logPlotXMax = plotXmax, Math.min(W, decCnt / 2), decCnt, A);
+//            return biexScaleX = new Logicle(logPlotXMax = plotXmax, W, Math.log10(plotXmax), A);
+            return biexScaleX = new Logicle(logPlotXMax = DEFAULT_T, DEFAULT_W, DEFAULT_M, DEFAULT_A);
         } else {
             if (biexScaleY != null && logPlotYMax == plotYmax) {
                 return biexScaleY;
             }
-            double dec = plotYmax;
-            double decCnt = 0;
-            while (dec > 1) {
-                dec = dec / 10d;
-                decCnt++;
-            }
-            // decCnt += dec;
             // Logicle fl = new FastLogicle(plotYmax, W, M, A, 1);
-            return biexScaleY = new Logicle(logPlotYMax = plotYmax, Math.min(W, decCnt / 2), decCnt, A);
+//            return biexScaleY = new Logicle(logPlotYMax = plotYmax, W, Math.log10(plotYmax), A);
+            return biexScaleY = new Logicle(logPlotYMax = DEFAULT_T, DEFAULT_W, DEFAULT_M, DEFAULT_A);
         }
     }
 
@@ -2615,36 +2605,38 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
       
       @Override
       public double scaleX(double val) {
-        double[] plotMinMax = getPlotX();
+        int[] screenMinMax = getScreenX();
         Logicle l = getBiexScale(true);
-        double bi = l.scale(val);
-        return linTrans.scaleX(plotMinMax[1] * bi);
-//        return linTrans.scaleX(max * bi);
+        return (l.scale(val) * (screenMinMax[1] - screenMinMax[0])) + screenMinMax[0];
+//        return (l.scale(val) * 512) + 256;
+//        return linTrans.scaleX((l.scale(val) * 512) + 256);
       }
   
       @Override
       public double scaleY(double val) {
-        double[] plotMinMax = getPlotY();
+        int[] screenMinMax = getScreenY();
         Logicle l = getBiexScale(false);
-        double bi = l.scale(val);
-        return linTrans.scaleY(plotMinMax[1] * bi);
-//        return linTrans.scaleY(max * bi);
+        return (l.scale(val) * (screenMinMax[1] - screenMinMax[0])) + screenMinMax[0];
+//        return (l.scale(val) * 512) + 256;
+//        return linTrans.scaleY((l.scale(val) * 512) + 256);
       }
   
       @Override
       public double inverseX(double val) {
-        double[] plotMinMax = getPlotX();
+        int[] screenMinMax = getScreenX();
         Logicle l = getBiexScale(true);
-        return l.inverse(linTrans.inverseX(val) / plotMinMax[1]);
-//        return l.inverse(linTrans.inverseX(val) / max);
+        return l.inverse((val - screenMinMax[0]) / (screenMinMax[1] - screenMinMax[0]));
+//        return l.inverse((val - 256) / 512);
+//        return l.inverse((linTrans.inverseX(val) - 256) / 512);
       }
   
       @Override
       public double inverseY(double val) {
-        double[] plotMinMax = getPlotY();
+        int[] screenMinMax = getScreenY();
         Logicle l = getBiexScale(false);
-        return l.inverse(linTrans.inverseY(val) / plotMinMax[1]);
-//        return l.inverse(linTrans.inverseY(val) / max);
+        return l.inverse((val - screenMinMax[0]) / (screenMinMax[1] - screenMinMax[0]));
+//        return l.inverse((val - 256) / 512);
+//        return l.inverse((linTrans.inverseY(val) - 256) / 512);
       }
     }
     

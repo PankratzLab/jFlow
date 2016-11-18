@@ -93,6 +93,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
   int dataCount = -1;
   String xCol = null, yCol = null;
+  AXIS_SCALE prevXScale, prevYScale;
   double xMed = Double.NaN, xMin = Double.NaN, xMax = Double.NaN, yMed = Double.NaN,
       yMin = Double.NaN, yMax = Double.NaN, xSD = Double.NaN, ySD = Double.NaN;
   PLOT_TYPE prevPlotType;
@@ -218,6 +219,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     boolean columnsChangedX = false;
     boolean columnsChangedY = false;
     boolean dataChanged = false;
+    boolean scaleChanged = false;
     boolean optionsChanged = false;
     boolean gatesChanged = false;
     {
@@ -233,11 +235,24 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       yCol = newY;
     }
     {
+      if (prevXScale == null || prevXScale != getXAxis() || prevXScale != fcp.getXScale()) {
+        scaleChanged = true;
+      }
+      if (prevYScale == null || prevYScale != getYAxis() || prevYScale != fcp.getYScale()) {
+        scaleChanged = true;
+      }
+      prevXScale = getXAxis();
+      prevYScale = getYAxis();
+    }
+    {
       int count = fcp.getDataCount();
       if (count != dataCount) {
         dataChanged = true;
       }
       dataCount = count;
+    }
+    {
+      dataChanged = dataChanged || scaleChanged;
     }
     {
       PLOT_TYPE plotType = fcp.getPlotType();
@@ -289,9 +304,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     }
 
     xData = columnsChangedX || dataChanged || xData == null ? fcp.getAxisData(false, true) : xData;
-    yData =
-        columnsChangedY || dataChanged || yData == null ? isHistogram() ? null : fcp.getAxisData(
-            false, false) : yData;
+    yData = columnsChangedY || dataChanged || yData == null ? isHistogram() ? null : fcp.getAxisData(false, false) : yData;
 
     if (isHistogram()) {
       points = new PlotPoint[0];
@@ -355,6 +368,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
     lines = lineList.toArray(new GenericLine[lineList.size()]);
     lineList = null;
+    
+//    AxisTransform xTr = fcp.dataLoader.getParamTransform(xCol);
+//    AxisTransform yTr = fcp.dataLoader.getParamTransform(yCol);
 
     byte color = 0;
     if (columnsChangedX || columnsChangedY || dataChanged) {
@@ -398,9 +414,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     polys.clear();
 
     ArrayList<Gate> gatesForPlot = fcp.getGatingForCurrentPlot();
-//    fcp.dataLoader.setBiexRangeX(canvasSectionMinimumX, canvasSectionMaximumX);
-//    fcp.dataLoader.setBiexRangeY(canvasSectionMinimumY, canvasSectionMaximumY);
-    fcp.dataLoader.paramTransforms.put(fcp.getXDataName(), AXIS_SCALE.BIEX.getTransform());
+//    fcp.dataLoader.paramTransforms.put(fcp.getXDataName(), AXIS_SCALE.BIEX.getTransform());
     
     for (Gate g : gatesForPlot) {
       boolean[] gt = g.gate(fcp.dataLoader);
@@ -416,19 +430,16 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
               + pct + "%)";
       gates.add(g);
       gating.add(gt);
-      if (g instanceof RectangleGate) {
+      if (g instanceof RectangleGate) { 
         RectangleGate rg = (RectangleGate) g;
         RectangleGateDimension rgdX = (RectangleGateDimension) rg.getXDimension();
         RectangleGateDimension rgdY = isHistogram() ? null : (RectangleGateDimension) rg.getYDimension();
-        boolean editable =
-            selectedGates.contains(g) || mouseGates.contains(g) || draggingVertexRects.contains(g);
+        boolean editable = selectedGates.contains(g) || mouseGates.contains(g) || draggingVertexRects.contains(g);
         float xMin, xMax, yMin, yMax;
         xMin = !Numbers.isFinite(rgdX.getMin()) ? Integer.MIN_VALUE : rgdX.getMin();
         xMax = !Numbers.isFinite(rgdX.getMax()) ? Integer.MAX_VALUE : rgdX.getMax();
-        yMin =
-            isHistogram() || !Numbers.isFinite(rgdY.getMin()) ? Integer.MIN_VALUE : rgdY.getMin();
-        yMax =
-            isHistogram() || !Numbers.isFinite(rgdY.getMax()) ? Integer.MAX_VALUE : rgdY.getMax();
+        yMin = isHistogram() || !Numbers.isFinite(rgdY.getMin()) ? Integer.MIN_VALUE : rgdY.getMin();
+        yMax = isHistogram() || !Numbers.isFinite(rgdY.getMax()) ? Integer.MAX_VALUE : rgdY.getMax();
         rects.add(new GenericRectangle(lbl, xMin, yMin, xMax, yMax, (byte) 1, false, false,
             (byte) 0, (byte) 99, editable));
       } else if (g instanceof PolygonGate) {

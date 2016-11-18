@@ -463,10 +463,9 @@ public abstract class Gate {
       if (verticesX.isEmpty() || verticesY.isEmpty()) {
         resetVertices();
       }
-//      path.moveTo(x ? verticesX.get(0) : (xTr.scaleX(verticesX.get(0)) * gateResolution), y ? verticesY.get(0) : (yTr.scaleY(verticesY.get(0)) * gateResolution));
-      path.moveTo(xTr.scaleX(verticesX.get(0)),yTr.scaleY(verticesY.get(0)));
+      path.moveTo(xTr.scaleX(verticesX.get(0)), yTr.scaleY(verticesY.get(0)));
       for (int i = 1; i < verticesX.size(); i++) {
-        path.lineTo(xTr.scaleX(verticesX.get(i)),  yTr.scaleY(verticesY.get(i)));
+        path.lineTo(xTr.scaleX(verticesX.get(i)), yTr.scaleY(verticesY.get(i)));
       }
       path.closePath();
       return path;
@@ -511,7 +510,6 @@ public abstract class Gate {
           dataLoader.getData(getYDimension().paramName, true)
       };
 
-      boolean xT, yT;
       AxisTransform xTr, yTr;
       xTr = dataLoader.getParamTransform(getXDimension().paramName);
       yTr = dataLoader.getParamTransform(getYDimension().paramName);
@@ -521,32 +519,18 @@ public abstract class Gate {
         }
         boolean include = false;
         if (mimicFlowJo) {
-//          int xInd, yInd;
-//          xInd = (int) (dataLoader.getScaleForParam(getDimensions().get(0).paramName) == AXIS_SCALE.LIN ? ((paramData[0][i] / binStep) + gateResolution) : xTr.scaleX(paramData[0][i]));
-//          yInd = (int) (dataLoader.getScaleForParam(getDimensions().get(1).paramName) == AXIS_SCALE.LIN ? ((paramData[1][i] / binStep) + gateResolution) : yTr.scaleY(paramData[1][i]));
-//          if (myRects.contains(rectArray[xInd][yInd])) {
-//            include = true;
-//          }
-          
           double x, y;
           x = xTr.scaleX(paramData[0][i]);
           y = yTr.scaleY(paramData[1][i]);
           for (Rectangle rect : myRects) {
-//            if (rect.contains(xT ? paramData[0][i] : xTr.scaleX(paramData[0][i]) * gateResolution * binStep, yT ? paramData[1][i] : yTr.scaleY(paramData[1][i]) * gateResolution * binStep)) {
-            if (rect.contains(paramData[0][i], paramData[1][i])) {
-//            if (rect.contains(x, y)) {
+            if (rect.contains(x, y)) {
               include = true;
               break;
             }
           }
         } else {
-//          double x = paramData[0][i];
-//          double y = paramData[1][i];
           double x = xTr.scaleX(paramData[0][i]);
           double y = yTr.scaleY(paramData[1][i]);
-//          if (myPath.contains(x, y)) {
-//            include = true;
-//          }
           if (transformedPath.contains(x, y)) {
             include = true;
           }
@@ -559,45 +543,26 @@ public abstract class Gate {
     }
 
     void prepGating(FCSDataLoader dataLoader) {
-
+      boolean xT, yT;
+      xT = dataLoader.getScaleForParam(getXDimension().paramName) == AXIS_SCALE.BIEX;
+      yT = dataLoader.getScaleForParam(getYDimension().paramName) == AXIS_SCALE.BIEX;
       AxisTransform xTr, yTr;
-//      boolean xT, yT;
       xTr = dataLoader.getParamTransform(getXDimension().paramName);
       yTr = dataLoader.getParamTransform(getYDimension().paramName);
       
       ArrayList<Rectangle> vertexRects = new ArrayList<Rectangle>();
-      for (int i = 0; i < verticesX.size(); i++) {
-//        double x, y;
-        int xInd, yInd;
-//        xInd = (int) (dataLoader.getScaleForParam(getDimensions().get(0).paramName) == AXIS_SCALE.LIN ? ((verticesX.get(i) / binStep) + gateResolution) : xTr.scaleX(verticesX.get(i)));
-//        yInd = (int) (dataLoader.getScaleForParam(getDimensions().get(1).paramName) == AXIS_SCALE.LIN ? ((verticesY.get(i) / binStep) + gateResolution) : yTr.scaleY(verticesY.get(i)));
-//        xInd = (int) ((xTr.scaleX(verticesX.get(i)) / binStep) + gateResolution);
-//        yInd = (int) ((yTr.scaleY(verticesY.get(i)) / binStep) + gateResolution);
-        xInd = (int) ((verticesX.get(i) / binStep) + gateResolution);
-        yInd = (int) ((verticesY.get(i) / binStep) + gateResolution);
-//        x = verticesX.get(i);
-//        y = verticesY.get(i);
-//        for (int j = 0; j < rectArray.length; j++) {
-//          for (int k = 0; k < rectArray[j].length; k++) {
-//            if (rectArray[j][k].contains(x, y)) {
-//              vertexRects.add(rectArray[j][k]);
-//            }
-//          }
-//        }
-        vertexRects.add(rectArray[xInd][yInd]);
+      double[] coords = new double[6];
+      PathIterator pi = transformedPath.getPathIterator(null);
+      int xInd, yInd;
+      while(!pi.isDone()) {
+        int type = pi.currentSegment(coords);
+        if (type != PathIterator.SEG_CLOSE) {
+          xInd = (int) ((xTr.inverseX(coords[0]) / binStep) + gateResolution);
+          yInd = (int) ((yTr.inverseY(coords[1]) / binStep) + gateResolution);
+          vertexRects.add(rectArray[xInd][yInd]);
+        }
+        pi.next();
       }
-//      for (Rectangle r : rects) {
-//        for (int i = 0; i < verticesX.size(); i++) {
-//          double x, y;
-//          x = xT ? verticesX.get(i) : xTr.scaleX(verticesX.get(i)) * gateResolution * binStep;
-//          y = yT ? verticesY.get(i) : yTr.scaleY(verticesY.get(i)) * gateResolution * binStep;
-////          x = verticesX.get(i);
-////          y = verticesY.get(i);
-//          if (r.contains(x, y)) {
-//            vertexRects.add(r);
-//          }
-//        }
-//      }
 
       double xSum = 0, ySum = 0;
       for (Rectangle r : vertexRects) {
@@ -651,16 +616,14 @@ public abstract class Gate {
       double x1 = vertexRects.get(0).getCenterX();
       double y1 = vertexRects.get(0).getCenterY();
       Path2D path = new Path2D.Double();
-//      path.moveTo(xT ? x1 : xTr.scaleX(x1) * gateResolution * binStep, yT ? y1 : yTr.scaleY(y1) * gateResolution * binStep);
       path.moveTo(x1, y1);
       for (int i = 1; i < vertexRects.size(); i++) {
         x1 = vertexRects.get(i).getCenterX();
         y1 = vertexRects.get(i).getCenterY();
-//        path.lineTo(xT ? x1 : xTr.scaleX(x1) * gateResolution * binStep, yT ? y1 : yTr.scaleY(y1) * gateResolution * binStep);
         path.lineTo(x1, y1);
       }
       path.closePath();
-
+      
       myRects.clear();
       for (int i = 0; i < rectArray.length; i++) {
         for (int j = 0; j < rectArray[i].length; j++) {
@@ -671,12 +634,6 @@ public abstract class Gate {
           }
         }
       }
-//      for (Rectangle rect : rects) {
-//        if (vertexRects.contains(rect) || path.contains(rect)
-//            || (path.intersects(rect) && path.contains(rect.getCenterX(), rect.getCenterY()))) {
-//          myRects.add(rect);
-//        }
-//      }
     }
 
     public void setGateResolution(int res) {

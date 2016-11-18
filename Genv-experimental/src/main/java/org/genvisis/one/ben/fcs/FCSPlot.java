@@ -60,12 +60,10 @@ import org.genvisis.one.ben.fcs.gating.GateTreePanel;
 import org.genvisis.one.ben.fcs.gating.Gating;
 import org.genvisis.one.ben.fcs.gating.Workbench;
 import org.genvisis.one.ben.fcs.sub.DataExportGUI;
-import org.genvisis.one.ben.fcs.sub.EMInitializer;
 import org.genvisis.one.ben.fcs.sub.EMModel;
 import org.xml.sax.SAXException;
 
-public class FCSPlot extends JPanel
-											implements WindowListener, ActionListener, PropertyChangeListener {
+public class FCSPlot extends JPanel implements WindowListener, ActionListener, PropertyChangeListener {
 
 	public static final String HISTOGRAM_COL = "Histogram";
 
@@ -441,12 +439,20 @@ public class FCSPlot extends JPanel
 		if (!xDataName.equals(fcsControls.getSelectedX())) {
 			fcsControls.setXData(xDataName);
 		}
+		if (dataLoader != null) {
+		  fcsControls.setScale(dataLoader.getScaleForParam(xDataName), true);
+		  setXScale(dataLoader.getScaleForParam(xDataName));
+		}
 	}
 
 	public void setYDataName(String yDataName) {
 		this.yDataName = yDataName;
 		if (!yDataName.equals(fcsControls.getSelectedY())) {
 			fcsControls.setYData(yDataName);
+		}
+		if (dataLoader != null) {
+		  fcsControls.setScale(dataLoader.getScaleForParam(yDataName), false);
+		  setYScale(dataLoader.getScaleForParam(yDataName));
 		}
 	}
 
@@ -459,7 +465,7 @@ public class FCSPlot extends JPanel
 			case BIEX:
 				fcsPanel.setForcePlotXMin(Float.NaN);
 				break;
-		}
+		} 
 		fcsPanel.setXAxis(scale);
         if (dataLoader != null) {
           dataLoader.setScaleForParam(getXDataName(), scale);
@@ -480,7 +486,7 @@ public class FCSPlot extends JPanel
 		if (dataLoader != null) {
 		  dataLoader.setScaleForParam(getYDataName(), scale);
 		}
-	}
+	}  
 
 	public void setPlotType(PLOT_TYPE type) {
 		fcsPanel.chartType = type;

@@ -30,7 +30,6 @@ import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 
-import scala.annotation.target.getter;
 import edu.stanford.facs.logicle.Logicle;
 
 public class FCSDataLoader {
@@ -380,20 +379,8 @@ public class FCSDataLoader {
       public double inverseX(double val) { return val; }
     };
   }
-  
-  static int biexResMinX = 0;
-  static int biexResMaxX = 256;
-  static int biexResMinY = 0;
-  static int biexResMaxY = 256;
-  public void setBiexRangeX(int min, int max) {
-    biexResMinX = min;
-    biexResMaxX = max;
-  }
-  public void setBiexRangeY(int min, int max) {
-    biexResMinY = min;
-    biexResMaxY = max;
-  }
-  
+
+  static boolean test2 = true;
   private static AxisTransform createBiexAxisTransform() {
     double DEFAULT_T = 262144;
     double DEFAULT_W = Math.log10(Math.abs(-100));
@@ -401,39 +388,27 @@ public class FCSDataLoader {
     double DEFAULT_A = Math.min(0, 1);
     Logicle lgl = new Logicle(DEFAULT_T, DEFAULT_W, DEFAULT_M, DEFAULT_A);
     
-    int DEFAULT_RESOLUTION = 256;
-    int resolution = DEFAULT_RESOLUTION;
-    
     return new AxisTransform(null) {
-      
-      private double scaleLin(double val, int biexMin, int biexMax) {
-        int[] screenMinMax = {biexMin, biexMax};
-        double[] plotMinMax = {lgl.inverse(0), lgl.inverse(1)};
-        return (int) ((val - plotMinMax[0]) / (plotMinMax[1] - plotMinMax[0]) * (screenMinMax[1] - screenMinMax[0])) + screenMinMax[0];
-      }
-      
       @Override
       public double scaleY(double val) {
-        return scaleLin(lgl.scale(val) * lgl.inverse(1), biexResMinY, biexResMaxY);
-//        return lgl.scale(val);
+        return scaleX(val);
       }
       
       @Override
       public double scaleX(double val) {
-        return scaleLin(lgl.scale(val) * lgl.inverse(1), biexResMinX, biexResMaxX);
-//        return lgl.scale(val);
+        return lgl.scale(val);
+//        return (lgl.scale(val) * 512) + 256;
       }
       
       @Override
       public double inverseY(double val) {
-        return lgl.inverse(val / lgl.inverse(1));
-//        return lgl.inverse(val);
+        return inverseX(val);
       }
       
       @Override
       public double inverseX(double val) {
-        return lgl.inverse(val / lgl.inverse(1));
-//        return lgl.inverse(val);
+        return lgl.inverse(val);
+//        return lgl.inverse((val - 256) / 512);
       }
     };
   }
@@ -504,12 +479,13 @@ public class FCSDataLoader {
   public double[] getData(String colName, boolean waitIfNecessary) {
     String columnName = colName.startsWith(COMPENSATED_PREPEND) ? COMPENSATED_PREPEND + getInternalParamName(colName.substring(COMP_LEN)) : getInternalParamName(colName);
     LOAD_STATE currState = getLoadState();
+    double[] data;
     if (columnName.startsWith(COMPENSATED_PREPEND)) {
       if (currState == LOAD_STATE.LOADED) {
         if (isTransposed) {
-          return compensatedData[compensatedIndices.get(columnName.substring(COMP_LEN))];
+          data = compensatedData[compensatedIndices.get(columnName.substring(COMP_LEN))];
         } else {
-          return Matrix.extractColumn(compensatedData, compensatedIndices.get(columnName.substring(COMP_LEN)));
+          data = Matrix.extractColumn(compensatedData, compensatedIndices.get(columnName.substring(COMP_LEN)));
         }
       } else {
         if (currState != LOAD_STATE.UNLOADED && waitIfNecessary) {
@@ -517,9 +493,9 @@ public class FCSDataLoader {
             Thread.yield();
           }
           if (isTransposed) {
-            return compensatedData[compensatedIndices.get(columnName.substring(COMP_LEN))];
+            data = compensatedData[compensatedIndices.get(columnName.substring(COMP_LEN))];
           } else {
-            return Matrix.extractColumn(compensatedData,
+            data = Matrix.extractColumn(compensatedData,
                 compensatedIndices.get(columnName.substring(COMP_LEN)));
           }
         } else {
@@ -543,13 +519,19 @@ public class FCSDataLoader {
           }
           // TODO WARNING, RETURNED DATA /MAY/ BE INCOMPLETE
           if (isTransposed) {
-            return allData[paramNamesInOrder.indexOf(columnName)];
+            data = allData[paramNamesInOrder.indexOf(columnName)];
           } else {
-            return Matrix.extractColumn(allData, paramNamesInOrder.indexOf(columnName));
+            data = Matrix.extractColumn(allData, paramNamesInOrder.indexOf(columnName));
           }
         }
       }
     }
+//    data = Arrays.copyOf(data, data.length);
+//    AxisTransform tran = getParamTransform(columnName);
+//    for (int i = 0; i < data.length; i++) {
+//      data[i] = tran.scaleX(data[i]);
+//    }
+    return data;
   }
 
   private String getInternalParamName(String name) {
