@@ -699,6 +699,9 @@ public class SexChecks {
 					addRegion(regionLists, sex, dna, sex == 0 ? "chr1" : "chr23", "(" + ESTIMATED_SEXES[sex].replaceAll("\\s", "") + " ) " + notes[i]);
 				}
 			}
+			writer.flush();
+			writer.close();
+			
 			writeSexRegions(regionLists, resultsDir + "sexCheck_regions.txt");
 		} catch (Exception e) {
 			log.reportError("Error writing to " + proj.SEXCHECK_RESULTS_FILENAME.getValue());
@@ -746,6 +749,7 @@ public class SexChecks {
 				out.println(line.substring(0, parIndex) + i + suffix + line.substring(parIndex));
 			}
 		}
+		out.flush();
 		out.close();
 	}
 
@@ -871,10 +875,10 @@ public class SexChecks {
 				}
 
 				writer.println(output);
-				writer.flush();
 				markerDataLoader.releaseIndex(i);
 			}
 			log.reportError("Finished in " + ext.getTimeElapsed(time));
+			writer.flush();
 			writer.close();
 		} catch (Exception e) {
 			log.reportError("Error writing results");
@@ -900,6 +904,7 @@ public class SexChecks {
 					writer.println(Array.toStr(line));
 				}
 			}
+			writer.flush();
 			writer.close();
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
@@ -1031,7 +1036,7 @@ public class SexChecks {
 			writer.print(line);
 			log.report("Identified pseudo-autosomal breakpoints from "	+ markerList.length
 									+ " markers in " + ext.getTimeElapsed(time));
-
+			writer.flush();
 			writer.close();
 		} catch (Exception e) {
 			log.reportError("Error writing results");
