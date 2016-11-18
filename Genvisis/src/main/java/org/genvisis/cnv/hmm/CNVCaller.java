@@ -832,15 +832,20 @@ public class CNVCaller {
 	/**
 	 * Possible autosomal, and sex chrs cnv calling method
 	 */
-	public static void callGenomeCnvs(Project proj, String output, String[] maleSamples,
-																		String[] femaleSamples, int[] chrsToCall, Centroids[] centroids,
+	public static void callGenomeCnvs(Project proj, String outputFile, String[] maleSamples,
+																		String[] femaleSamples, Centroids[] centroids,
 																		int minNumMarkers, double minConf,
 																		PFB_MANAGEMENT_TYPE pManagementType, int numSampleThreads,
 																		int numChrThreads) {
 		PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
-		getCallerIterator(proj, markerSet, Array.concatAll(maleSamples, femaleSamples), null, null,
+		String output = proj.PROJECT_DIRECTORY.getValue() + outputFile;
+		proj.getLog().reportTimeInfo("CNVS will be reported to " + output);
+		new File(ext.parseDirectoryOfFile(output)).mkdirs();
+		CNVCallerIterator callerIterator = getCallerIterator(proj, markerSet, Array.concatAll(maleSamples, femaleSamples), null, null,
 											centroids[0], minNumMarkers, minConf, pManagementType, numSampleThreads,
 											numChrThreads);
+		writeOutput(callerIterator, output, proj.getLog());
+		// will passing null to chrsToCall result in calling on 23/24 also?
 		boolean[] chr23 = Array.booleanArray(markerSet.getMarkerNames().length, false);
 		int[][] indicesByChr = markerSet.getIndicesByChr();
 		for (int i = 0; i < indicesByChr[23].length; i++) {
@@ -851,12 +856,18 @@ public class CNVCaller {
 		for (int i = 0; i < indicesByChr[24].length; i++) {
 			chr24[indicesByChr[24][i]] = true;
 		}
-		getCallerIterator(proj, markerSet, maleSamples, new int[] {23}, chr23, centroids[1],
+		callerIterator = getCallerIterator(proj, markerSet, maleSamples, new int[] {23}, chr23, centroids[1],
 											minNumMarkers, minConf, pManagementType, numSampleThreads, numChrThreads);
-		getCallerIterator(proj, markerSet, maleSamples, new int[] {23}, chr23, centroids[2],
+		output = proj.PROJECT_DIRECTORY.getValue() + "23_M_" + outputFile;
+		writeOutput(callerIterator, output, proj.getLog());
+		callerIterator = getCallerIterator(proj, markerSet, femaleSamples, new int[] {23}, chr23, centroids[2],
 											minNumMarkers, minConf, pManagementType, numSampleThreads, numChrThreads);
-		getCallerIterator(proj, markerSet, maleSamples, new int[] {24}, chr24, centroids[1],
+		output = proj.PROJECT_DIRECTORY.getValue() + "23_F_" + outputFile;
+		writeOutput(callerIterator, output, proj.getLog());
+		callerIterator = getCallerIterator(proj, markerSet, maleSamples, new int[] {24}, chr24, centroids[1],
 											minNumMarkers, minConf, pManagementType, numSampleThreads, numChrThreads);
+		output = proj.PROJECT_DIRECTORY.getValue() + "24_M_" + outputFile;
+		writeOutput(callerIterator, output, proj.getLog());
 
 	}
 
@@ -929,27 +940,29 @@ public class CNVCaller {
 																													centroids, minNumMarkers, minConf,
 																													pManagementType, numSampleThreads,
 																													numChrThreads);
+		writeOutput(callerIterator, output, proj.getLog());
+	}
+	
+	private static void writeOutput(CNVCallerIterator callerIterator, String output, Logger log) {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
-			int index = 0;
+			int sum = 0;
+			int cnt = 0;
 			while (callerIterator.hasNext()) {
-				index++;
+				cnt++;
 				LocusSet<CNVariant> cnvs = callerIterator.next().getChrCNVs();
+				sum += cnvs.getLoci().length;
 				for (int i = 0; i < cnvs.getLoci().length; i++) {
-
 					writer.println(cnvs.getLoci()[i].toPlinkFormat());
 				}
-				proj.getLog()
-						.reportTimeInfo("Called CNVs for " + index + " of " + samples.length + " samples");
-
 			}
+			log.reportTimeInfo("Wrote " + sum + " CNVs for " + cnt + " samples to " + output);
 			writer.close();
 		} catch (Exception e) {
-			proj.getLog().reportError("Error writing to " + output);
-			proj.getLog().reportException(e);
+			log.reportError("Error writing to " + output);
+			log.reportException(e);
 		}
-
 	}
 
 
