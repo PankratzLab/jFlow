@@ -23,13 +23,20 @@ public class ReverseAnnotate {
 		for (VariantContext vc : reader) {
 			for (Segment seg : segs) {
 				if (VCOps.getSegment(vc).overlaps(seg)) {
-					builder.append(seg.getChromosomeUCSC() + "\t" + seg.getStart() + "\t" + seg.getStop()
-							+ VCOps.getAnnotationsFor(new String[] { "" }, vc, "NOTHING"));
+					String[] toGet = new String[] { "Uniprot_name", "OXPHOS_complex" };
+					String[] annot = VCOps.getAnnotationsFor(toGet, vc, "NOTHING");
+					if (!annot[0].equals(".")) {
+						builder.append("\n" + seg.getChromosomeUCSC() + "\t" + seg.getStart() + "\t" + seg.getStop()
+								+ "\t" + annot[0]);
+						builder.append("\n" + seg.getChromosomeUCSC() + "\t" + seg.getStart() + "\t" + seg.getStop()
+								+ "\t" + annot[1]);
+					}
 				}
 			}
 		}
+		reader.close();
 		Files.write(builder.toString(), out);
-
+//		cat mtGenesannot.txt |sort|uniq|grep -v 16569 |grep -v "9207 ATP8" |grep -v "8572 ATP6">mtUniport.reg
 	}
 
 	public static void main(String[] args) {
