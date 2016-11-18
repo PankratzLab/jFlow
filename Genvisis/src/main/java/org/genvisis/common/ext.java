@@ -954,14 +954,11 @@ public class ext {
 				if (possibleIndices[i].size() > 1) {
 					if (verbose) {
 						if (log != null) {
-							log.reportError("Warning - multiple factors matched; using "
-																+ superset[possibleIndices[i].elementAt(0)] + " and not ", false,
-															true);
+							String msg = "Warning - multiple factors matched; using " + superset[possibleIndices[i].elementAt(0)] + " and not ";
 							for (int j = 1; j < possibleIndices[i].size(); j++) {
-								log.reportError((j == 1 ? "" : " or ")	+ superset[possibleIndices[i].elementAt(j)],
-																false, true);
+								msg += (j == 1 ? "" : " or ")	+ superset[possibleIndices[i].elementAt(j)];
 							}
-							log.reportError("", true, true);
+							log.reportError(msg, true, true);
 						}
 					}
 				}
