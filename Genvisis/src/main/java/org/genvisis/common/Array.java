@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
@@ -18,7 +18,8 @@ import java.util.Vector;
 import org.genvisis.stats.Maths;
 import org.genvisis.stats.ProbDist;
 
-import com.google.common.collect.Iterables;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 import com.google.common.primitives.Ints;
@@ -1917,14 +1918,41 @@ public class Array {
 	}
 
 	/**
-	 * @see #toStr(String[])
+	 * @see #toStr(Collection, String, String)
 	 */
-	public static String toStr(Collection<String> c) {
+	public static String toStr(Collection<?> c) {
 		return toStr(c, "\t");
 	}
 
-	public static String toStr(Collection<String> c, String delim) {
-		return toStr(c.toArray(new String[c.size()]), delim);
+	/**
+	 * @see #toStr(Collection, String, String)
+	 */
+	public static String toStr(Collection<?> c, String delim) {
+		return toStr(c, delim, null);
+	}
+	
+	/**
+	 * Returns a Collection of Objects as a String separated by the specified delimiter
+	 *
+	 * @param collection a Collection of Strings
+	 * @param delimiter String delimiter
+	 * @param nullValue value to use in place of nulls
+	 * @return String of printed objects
+	 */
+	public static String toStr(	final Collection<?> collection, String delimiter, String nullValue) {
+		List<String> cleanList = Lists.newArrayListWithCapacity(collection.size());
+		boolean commaDelimited;
+
+		commaDelimited = delimiter.equals(",");
+		for (Object element : collection) {
+			String elementString = element == null ? nullValue : element.toString();
+			if (commaDelimited && elementString.contains(",")) {
+				elementString = "\"" + elementString + "\"";
+			}
+			cleanList.add(elementString);
+		}
+
+		return Joiner.on(delimiter).join(cleanList);
 	}
 
 
@@ -2066,23 +2094,7 @@ public class Array {
 	 */
 	public static String toStr(	String[] array, boolean[] display, String delimiter,
 															String nullValue) {
-		String str = "";
-		int count;
-		boolean commaDelimited;
-
-		count = 0;
-		commaDelimited = delimiter.equals(",");
-		for (int i = 0; i < array.length; i++) {
-			if (display == null || display[i]) {
-				if (commaDelimited && array[i].contains(",")) {
-					array[i] = "\"" + array[i] + "\"";
-				}
-				str += (count == 0 ? "" : delimiter) + (array[i] == null ? nullValue : array[i]);
-				count++;
-			}
-		}
-
-		return str;
+			return toStr((Object[])array, display, delimiter, nullValue);
 	}
 
 	/**
@@ -2132,24 +2144,19 @@ public class Array {
 	 */
 	public static String toStr(	Object[] array, boolean[] display, String delimiter,
 															String nullValue) {
-		String str = "";
-		int count;
-		boolean commaDelimited;
-
-		count = 0;
-		commaDelimited = delimiter.equals(",");
+		boolean commaDelimited = delimiter.equals(",");
+		List<String> cleanList = Lists.newArrayList();
 		for (int i = 0; i < array.length; i++) {
 			if (display == null || display[i]) {
-				String val = array[i].toString();
+				String val = array[i] == null ? nullValue : array[i].toString();
 				if (commaDelimited && val.contains(",")) {
 					val = "\"" + val + "\"";
 				}
-				str += (count == 0 ? "" : delimiter) + (val == null ? nullValue : val);
-				count++;
+				cleanList.add(val);
 			}
 		}
 
-		return str;
+		return Joiner.on(delimiter).join(array);
 	}
 
 	/**
@@ -2438,23 +2445,24 @@ public class Array {
 	}
 
 	/**
-	 * Creates an array of Strings and copies the contents of a Vector into it in the specified order
+	 * Creates an array and copies the contents of a List into it in the specified order
+	 * @param <T>
 	 *
-	 * @param v vector of Strings
-	 * @param order order of elements
-	 * @return an array of ordered Strings from the Vector
+	 * @param list
+	 * @param order desired order of elements
+	 * @return an ordered array from the List
 	 */
-	public static String[] toStringArray(Vector<String> v, int[] order) {
-		String[] array;
-
-		array = new String[v.size()];
-		if (order.length != array.length) {
+	public static <T> T[] toStringArray(List<T> list, int[] order) {
+		if (order.length != list.size()) {
 			System.err.println("Error - order does not have the same number of elements (n="
-													+ order.length + ") as the Vector (n=" + array.length + ")");
+													+ order.length + ") as the List (n=" + list.size() + ")");
 			return null;
 		}
+		@SuppressWarnings("unchecked")
+		T[] array = (T[]) new Object[list.size()];
+		
 		for (int i = 0; i < array.length; i++) {
-			array[i] = v.elementAt(order[i]);
+			array[i] = list.get(order[i]);
 		}
 		return array;
 	}
@@ -2556,57 +2564,19 @@ public class Array {
 	}
 
 	/**
-	 * Creates an array of Strings and copies the contents of a Hashtbable into it (in the correct
-	 * order)
+	 * Creates an array and copies the Keys of a Map into it according to the order specified 
+	 * by the Values
 	 *
-	 * @param hash Hashtable of Strings as keys, and their index position as the value
-	 * @return an array of Strings from the Hashtable
+	 * @param map Map with intended index position as the Value
+	 * @return array of Keys from map indexed by Values
 	 */
-	public static String[] toStringArray(Hashtable<String, Integer> hash) {
-		Enumeration<String> enumer;
-		String[] array;
-		String trav;
-
-		enumer = hash.keys();
-		array = new String[hash.size()];
-		while (enumer.hasMoreElements()) {
-			trav = enumer.nextElement();
-			array[hash.get(trav).intValue()] = trav;
+	public static <T> T[] mapToValueSortedArray(Map<T, Integer> map) {
+		@SuppressWarnings("unchecked")
+		T[] array = (T[]) new Object[map.size()];
+		for (Map.Entry<T, Integer> entry : map.entrySet()) {
+			array[entry.getValue()] = entry.getKey();
 		}
-
 		return array;
-	}
-
-	/**
-	 * Creates an array of Strings and copies the contents of a Hashtbable into it (in the correct
-	 * order)
-	 *
-	 * @param hash Hashtable of Strings as keys, and their index position as the value
-	 * @return an array of Strings from the Hashtable
-	 */
-	public static int[] toIntArray(Hashtable<Integer, Integer> hash) {
-		Enumeration<Integer> enumer;
-		int[] array;
-		int trav;
-
-		enumer = hash.keys();
-		array = new int[hash.size()];
-		while (enumer.hasMoreElements()) {
-			trav = enumer.nextElement();
-			array[hash.get(trav).intValue()] = trav;
-		}
-
-		return array;
-	}
-
-	/**
-	 * Prints an array of Strings (culled from a Vector) separated by a tab
-	 *
-	 * @param v a Vector of Strings
-	 * @return String of printed objects
-	 */
-	public static String toStr(Vector<String> v) {
-		return toStr(toStringArray(v));
 	}
 
 	/**
@@ -2617,11 +2587,14 @@ public class Array {
 	 */
 	public static Vector<String> toStringVector(String[] array) {
 		Vector<String> v = new Vector<String>();
-		// for (int i = 0; array != null && i<array.length; i++) {
 		for (String element : array) {
 			v.add(element);
 		}
 		return v;
+	}
+	
+	public static <T> List<T> toList(T[] array) {
+		return Lists.newArrayList(array);
 	}
 
 	/**
@@ -2676,16 +2649,13 @@ public class Array {
 	 * @return altered array of Strings
 	 */
 	public static String[] insertStringAt(String str, String[] array, int pos) {
-		Vector<String> v;
-
 		if (pos < 0 || pos > array.length) {
 			throw new ArrayIndexOutOfBoundsException(pos);
 		}
+		List<String> list = toList(array);
+		list.add(pos, str);
 
-		v = toStringVector(array);
-		v.insertElementAt(str, pos);
-
-		return Array.toStringArray(v);
+		return Array.toStringArray(list);
 	}
 
 	/**
@@ -3667,12 +3637,13 @@ public class Array {
 	}
 
 	/**
-	 * Trims null values from the end of a String array
+	 * Trims null values from the end of an array
+	 * @param <T>
 	 *
 	 * @param array an array of Strings
 	 * @return trimmed array
 	 */
-	public static String[] trimArray(String[] array) {
+	public static <T> T[] trimArray(T[] array) {
 		int index;
 
 		index = array.length;
@@ -4899,8 +4870,8 @@ public class Array {
 		return valid.toArray(new String[valid.size()]);
 	}
 
-	public static String[] combine(String[] array1, String[] array2) {
-		String[] newArray = Arrays.copyOf(array1, array1.length + array2.length);
+	public static <T> T[] combine(T[] array1, T[] array2) {
+		T[] newArray = Arrays.copyOf(array1, array1.length + array2.length);
 		for (int i = array1.length; i < array1.length + array2.length; i++) {
 			newArray[i] = array2[i - array1.length];
 		}

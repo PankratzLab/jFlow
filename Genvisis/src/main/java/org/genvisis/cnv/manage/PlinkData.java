@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.Vector;
@@ -40,6 +41,7 @@ import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 
 public class PlinkData {
 	public static final String FAM_DELIMITER = " ";
@@ -648,7 +650,7 @@ public class PlinkData {
 		ClusterFilterCollection clusterFilterCollection;
 		char[][] abLookup;
 		String temp;
-		Hashtable<Integer, Integer> invalidAbLookups;
+		Map<Integer, Integer> invalidAbLookups;
 		Logger log;
 
 		log = proj.getLog();
@@ -771,7 +773,7 @@ public class PlinkData {
 			writer = new PrintWriter(new FileWriter(dir + filenameRoot + ".ped"));
 			log.report(ext.getTime() + "]\tWriting " + filenameRoot + ".ped");
 			count = 1;
-			invalidAbLookups = new Hashtable<Integer, Integer>();
+			invalidAbLookups = Maps.newHashMap();
 			temp = null;
 			while ((temp = reader.readLine()) != null) {
 				count++;
@@ -887,8 +889,7 @@ public class PlinkData {
 				try {
 					writer = new PrintWriter(new FileWriter(dir + "invalid_AB_codes.out"));
 					writer.println("MarkerNames\tA\tB");
-					indices = Array.toIntArray(invalidAbLookups);
-					for (int indice : indices) {
+					for (int indice : Array.mapToValueSortedArray(invalidAbLookups)) {
 						writer.println(markerNames[indice]	+ "\t" + abLookup[indice][0] + "\t"
 														+ abLookup[indice][1]);
 					}

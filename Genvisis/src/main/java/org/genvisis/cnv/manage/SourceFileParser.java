@@ -1292,7 +1292,7 @@ public class SourceFileParser implements Runnable {
 						}
 						reader.close();
 						// we should have all markers now...
-						markerNames = Array.toStringArray(markerNameHash);
+						markerNames = Array.mapToValueSortedArray(markerNameHash);
 						keys = Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
 																				proj.MARKERSET_FILENAME.getValue(true, true),
 																				proj.getLog());
@@ -1325,7 +1325,7 @@ public class SourceFileParser implements Runnable {
 
 
 		PSF.checkInterrupted();
-		markerNames = Array.toStringArray(markerNameHash);
+		markerNames = Array.mapToValueSortedArray(markerNameHash);
 		keys = Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
 																proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 		if (keys == null) {
