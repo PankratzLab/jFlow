@@ -67,7 +67,7 @@ public class SexChecks {
 
 	private static final float XY_ELRR_RATIO_MIN_SEED_MALE = 1.0f;
 	private static final float XY_ELRR_RATIO_MAX_SEED_MALE = 1.5f;
-	private static final float XY_ELRR_RATIO_MAX_SEED_FEMALE = 0.2f;
+	private static final float XY_ELRR_RATIO_MAX_SEED_FEMALE = 0.5f;
 	private static final float NUM_SD_FOR_HET_OUTLIERS = 4.0f;
 	private static final float NUM_SD_FOR_MALE_X_OUTLIERS = 1.5f;
 	private static final float NUM_SD_FOR_MALE_X_FULL_ANEUPLOIDY = 4.0f;
