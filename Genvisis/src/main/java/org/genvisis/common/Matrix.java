@@ -2,8 +2,8 @@ package org.genvisis.common;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.List;
-import java.util.Vector;
 
 public class Matrix {
 	/**
@@ -249,31 +249,23 @@ public class Matrix {
 	}
 
 	/**
-	 * Creates an array of an array of Strings and copies the contents of a vector into it
+	 * Creates a matrix of Strings and copies the contents of a Collection of String arrays into it
 	 *
-	 * @param v vector of String arrays
-	 * @return an array of an array of Strings from the vector
+	 * @param collection Collection of String arrays
+	 * @return an array of an array of Strings from the Collection
 	 */
-	public static String[][] toStringArrays(Vector<String[]> v) {
-		String[][] arrays = new String[v.size()][];
-		for (int i = 0; i < v.size(); i++) {
-			arrays[i] = v.elementAt(i);
-		}
-		return arrays;
+	public static String[][] toStringArrays(Collection<String[]> collection) {
+		return collection.toArray(new String[collection.size()][]);
 	}
 
 	/**
-	 * Creates a matrix of doubles and copies the contents of a vector of double arrays into it
+	 * Creates a matrix of doubles and copies the contents of a Collection of double arrays into it
 	 *
-	 * @param v a vector of double arrays
-	 * @return a matrix of doubles copied from a vector of double arrays
+	 * @param collection a Collection of double arrays
+	 * @return a matrix of doubles copied from a Collection of double arrays
 	 */
-	public static double[][] toDoubleArrays(Vector<double[]> v) {
-		double[][] matrix = new double[v.size()][];
-		for (int i = 0; i < v.size(); i++) {
-			matrix[i] = v.elementAt(i);
-		}
-		return matrix;
+	public static double[][] toDoubleArrays(Collection<double[]> collection) {
+		return collection.toArray(new double[collection.size()][]);
 	}
 
 	/**
@@ -325,47 +317,33 @@ public class Matrix {
 	}
 
 	/**
-	 * Creates a matrix of float and copies the contents of a vector of float arrays into it
+	 * Creates a matrix of float and copies the contents of a Collection of float arrays into it
 	 *
-	 * @param v a vector of float arrays
-	 * @return a matrix of floats copied from a vector of float arrays
+	 * @param collection a Collection of float arrays
+	 * @return a matrix of floats copied from a Collection of float arrays
 	 */
-	public static float[][] toFloatArrays(Vector<float[]> v) {
-		float[][] matrix = new float[v.size()][];
-		for (int i = 0; i < v.size(); i++) {
-			matrix[i] = v.elementAt(i);
-		}
-		return matrix;
+	public static float[][] toFloatArrays(Collection<float[]> collection) {
+		return collection.toArray(new float[collection.size()][]);
 	}
 
 	/**
-	 * Creates a matrix of short and copies the contents of a vector of short arrays into it
+	 * Creates a matrix of short and copies the contents of a Collection of short arrays into it
 	 *
-	 * @param v a vector of short arrays
-	 * @return a matrix of shorts copied from a vector of short arrays
+	 * @param v a Collection of short arrays
+	 * @return a matrix of shorts copied from a Collection of short arrays
 	 */
-	public static short[][] toShortArrays(Vector<short[]> v) {
-		short[][] matrix = new short[v.size()][];
-		for (int i = 0; i < v.size(); i++) {
-			matrix[i] = v.elementAt(i);
-		}
-		return matrix;
+	public static short[][] toShortArrays(Collection<short[]> collection) {
+		return collection.toArray(new short[collection.size()][]);
 	}
 
 	/**
-	 * Creates a matrix of int and copies the contents of a vector of int arrays into it
+	 * Creates a matrix of int and copies the contents of a Collection of int arrays into it
 	 *
-	 * @param v a vector of int arrays
-	 * @return a matrix of ints copied from a vector of int arrays
+	 * @param v a Collection of int arrays
+	 * @return a matrix of ints copied from a Collection of int arrays
 	 */
-	public static int[][] toMatrix(Vector<int[]> vs) {
-		int[][] matrix = new int[vs.size()][];
-
-		for (int i = 0; i < vs.size(); i++) {
-			matrix[i] = vs.elementAt(i);
-		}
-
-		return matrix;
+	public static int[][] toMatrix(Collection<int[]> collection) {
+		return collection.toArray(new int[collection.size()][]);
 	}
 
 	/**
