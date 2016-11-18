@@ -124,9 +124,9 @@ public class MStr {
 
 		CLI c = new CLI(ABLookup.class);
 		c.addArgWithDefault("vcfs", "vcf files to explore,comma-delimited list", null);
-		c.addArgWithDefault("outDir", "output directory", null);
+		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, null);
 		c.parseWithExit(args);
-		run(c.get("vcfs").split(","), c.get("outDir"));
+		run(c.get("vcfs").split(","), c.get(CLI.ARG_OUTDIR));
 	}
 
 }

@@ -200,9 +200,9 @@ public class DistributionPlot {
 
 	public static void main(String[] args) {
 		CLI c = new CLI(ABLookup.class);
-		c.addArgWithDefault("proj", "project properties file", null);
+		c.addArgWithDefault(CLI.ARG_PROJ, CLI.DESC_PROJ, null);
 		c.parseWithExit(args);
-		launch(new Project(c.get("proj"), false));
+		launch(new Project(c.get(CLI.ARG_PROJ), false));
 	}
 
 }

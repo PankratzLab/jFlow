@@ -41,7 +41,6 @@ public class VCFOpsMT {
 	private static final String HG_19_ALTS = "HG19ALTS";
 
 	private static final String VCF = "vcf";
-	private static final String OUTPUT = "out";
 
 	private static final int[] BP_DIFFS =
 																			new int[] {	73, 150, 195, 263, 408, 750, 1438, 2352, 2483,
@@ -403,7 +402,7 @@ public class VCFOpsMT {
 		String out = "chrM.rcrs.vcf";
 		CLI c = new CLI(VCFOpsMT.class);
 		c.addArgWithDefault(VCF, "a vcf file with chrM only entries to convert to rcrs", vcf);
-		c.addArgWithDefault(OUTPUT, "the rcrs output vcf", out);
+		c.addArgWithDefault(CLI.ARG_OUTFILE, "the rcrs output vcf", out);
 		convertHg19ToRCRS(vcf, ext.addToRoot(vcf, ".switch.swap"), new Logger());
 	}
 }

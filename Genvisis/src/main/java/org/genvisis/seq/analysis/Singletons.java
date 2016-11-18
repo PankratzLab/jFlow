@@ -120,20 +120,20 @@ public class Singletons {
 
 
 		c.addArgWithDefault("vcf", "vcf to annotate with default methods", "a.vcf");
-		c.addArgWithDefault("outDir", "output directory", "out/");
+		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, "out/");
 		c.addArgWithDefault("gq", "GQ threshold", "20");
 
 
 		c.parseWithExit(args);
-		detectSingletons(c.get("vcf").split(","), c.get("outDir"), 50, dotAnnos, sampsToExclude);
-		detectSingletons(c.get("vcf").split(","), c.get("outDir"), 50, dotAnnos, new HashSet<String>());
+		detectSingletons(c.get("vcf").split(","), c.get(CLI.ARG_OUTDIR), 50, dotAnnos, sampsToExclude);
+		detectSingletons(c.get("vcf").split(","), c.get(CLI.ARG_OUTDIR), 50, dotAnnos, new HashSet<String>());
 
 		dotAnnos.add("PopFreqMax");
 
-		detectSingletons(c.get("vcf").split(","), c.get("outDir"), 50, dotAnnos, sampsToExclude);
-		detectSingletons(c.get("vcf").split(","), c.get("outDir"), 50, dotAnnos, new HashSet<String>());
+		detectSingletons(c.get("vcf").split(","), c.get(CLI.ARG_OUTDIR), 50, dotAnnos, sampsToExclude);
+		detectSingletons(c.get("vcf").split(","), c.get(CLI.ARG_OUTDIR), 50, dotAnnos, new HashSet<String>());
 		dotAnnos.add("snp138");
-		detectSingletons(c.get("vcf").split(","), c.get("outDir"), 50, dotAnnos, sampsToExclude);
+		detectSingletons(c.get("vcf").split(","), c.get(CLI.ARG_OUTDIR), 50, dotAnnos, sampsToExclude);
 		// detectSingletons(c.get("vcf").split(","), c.get("outDir"), 50, dotAnnos, new
 		// HashSet<String>());
 

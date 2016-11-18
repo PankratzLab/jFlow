@@ -25,7 +25,6 @@ public class PhaserNGS {
 
 	private static final String VCF = "vcf";
 	private static final String BAM_DIR = "bamDir";
-	private static final String OUT_DIR = "outDir";
 	private static final String PHASER_PY = "phaser";
 
 	private PhaserNGS() {
@@ -91,12 +90,12 @@ public class PhaserNGS {
 		CLI c = new CLI(PhaserNGS.class);
 		c.addArgWithDefault(VCF, "vcf file for phasing", null);
 		c.addArgWithDefault(BAM_DIR, "directory of bams", null);
-		c.addArgWithDefault(OUT_DIR, "output directory", null);
+		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, null);
 		c.addArgWithDefault(PHASER_PY, "full path to phaser.py", null);
 
 
 		c.parseWithExit(args);
-		run(c.get(PHASER_PY), c.get(VCF), c.get(BAM_DIR), c.get(OUT_DIR));
+		run(c.get(PHASER_PY), c.get(VCF), c.get(BAM_DIR), c.get(CLI.ARG_OUTDIR));
 	}
 
 }

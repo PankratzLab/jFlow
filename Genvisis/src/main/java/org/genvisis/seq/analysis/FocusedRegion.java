@@ -143,7 +143,7 @@ public class FocusedRegion {
 
 		int numthreads = 24;
 		CLI c = new CLI(FocusedRegion.class);
-		c.addArgWithDefault("outDir", "output directory", outDir);
+		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, outDir);
 		c.addArgWithDefault("vcf", "vcf for extraction", vcf);
 
 		c.addArgWithDefault("seg", "segment to focus", segment);
@@ -155,7 +155,7 @@ public class FocusedRegion {
 		c.addArgWithDefault("ref", "reference genome", ref);
 		c.addArgWithDefault("threads", "number of threads", Integer.toString(numthreads));
 		c.parseWithExit(args);
-		focus(c.get("bams"), c.get("ref"), c.get("outDir"), c.get("vcf"), new Segment(c.get("seg")),
+		focus(c.get("bams"), c.get("ref"), c.get(CLI.ARG_OUTDIR), c.get("vcf"), new Segment(c.get("seg")),
 					c.get("variantSet"), c.getI("threads"));
 
 	}

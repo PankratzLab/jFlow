@@ -273,12 +273,11 @@ public class Computel {
 		c.addArgWithDefault(computel, "full computel directory (as git clone ideally)",
 												computelLocation);
 
-		final String outdir = "out";
-		c.addArgWithDefault(outdir, "the output directory for results", outDir);
+		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, outDir);
 
 		c.parseWithExit(args);
 
-		runComputel(c.get(bam), c.get(outdir), c.get(computel), new Logger());
+		runComputel(c.get(bam), c.get(CLI.ARG_OUTDIR), c.get(computel), new Logger());
 
 	}
 }

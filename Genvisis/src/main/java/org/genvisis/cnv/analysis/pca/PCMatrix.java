@@ -26,8 +26,6 @@ import org.genvisis.stats.Ttest;
  */
 public class PCMatrix {
 
-	public static final String ARGS_PROJ = "proj";
-	public static final String ARGS_OUTDIR = "out";
 	public static final String ARGS_PC_FILE = "pcFile";
 	public static final String ARGS_COLUMN = "columnTitle";
 	public static final String COLUMN_DEFAULT = "PLATE";
@@ -179,9 +177,9 @@ public class PCMatrix {
 	 */
 	public static void main(String... args) {
 		CLI c = new CLI(PCMatrix.class);
-		c.addArgWithDefault(ARGS_PROJ, "project properties filename",
+		c.addArgWithDefault(CLI.ARG_PROJ, CLI.DESC_PROJ,
 												Launch.getDefaultDebugProjectFile(false));
-		c.addArgWithDefault(ARGS_OUTDIR, "Write PC matrix to this directory.", OUT_DEFAULT);
+		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, OUT_DEFAULT);
 		c.addArgWithDefault(ARGS_COLUMN, "Sample data column to compare with PCs", COLUMN_DEFAULT);
 		c.addArg(	ARGS_PC_FILE,
 							"Input principal component file. If not specified, will use project default.", false,
@@ -189,11 +187,11 @@ public class PCMatrix {
 
 		c.parseWithExit(args);
 
-		Project proj = new Project(c.get(ARGS_PROJ), false);
+		Project proj = new Project(c.get(CLI.ARG_PROJ), false);
 		String column = c.get(ARGS_COLUMN);
 		String pcFile =
 									c.has(ARGS_PC_FILE) ? c.get(ARGS_PC_FILE) : proj.INTENSITY_PC_FILENAME.getValue();
-		String outDir = c.get(ARGS_OUTDIR);
+		String outDir = c.get(CLI.ARG_OUTDIR);
 
 		createMatrix(proj, column, pcFile, outDir);
 	}

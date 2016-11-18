@@ -43,7 +43,6 @@ public class ImputationPrep {
 																																											'C', 'G');
 	private static final double PALINDROME_MAF_LIMIT = 0.4;
 
-	public static final String ARGS_PROJ = "proj";
 	public static final String ARGS_TARGET_DIR = "dir";
 	public static final String ARGS_REFERENCE_FILE = "refFile";
 
@@ -467,7 +466,7 @@ public class ImputationPrep {
 		String referenceFile = DEFAULT_REFERENCE_FILE;
 
 		CLI c = new CLI(ImputationPrep.class);
-		c.addArgWithDefault(ARGS_PROJ, "project properties filename", projFile);
+		c.addArgWithDefault(CLI.ARG_PROJ, CLI.DESC_PROJ, projFile);
 		c.addArgWithDefault(ARGS_TARGET_DIR,
 												"generate intermediates and outputs to this directory (relative to project directory)",
 												targetDir);
@@ -476,7 +475,7 @@ public class ImputationPrep {
 
 		c.parseWithExit(args);
 
-		proj = new Project(c.get(ARGS_PROJ), false);
+		proj = new Project(c.get(CLI.ARG_PROJ), false);
 		targetDir = c.get(ARGS_TARGET_DIR);
 		referenceFile = c.get(ARGS_REFERENCE_FILE);
 		if (Files.isRelativePath(referenceFile)) {

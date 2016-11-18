@@ -33,7 +33,6 @@ import org.genvisis.sra.SRAUtils.SRAConversionResult;
  */
 public class SRAPipeline implements Callable<List<PipelinePart>> {
 	private static final String SRA_INPUT = "sraInput";
-	private static final String OUT_DIR = "outDir";
 	private static final String SRA_RUN_TABLE = "sraRunTable";
 	private static final String NUM_THREADS = "threads";
 	private static final String NUM_THREADS_PIPELINE = "threadsPipe";
@@ -331,7 +330,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		Logger log = new Logger();
 		PLATFORM platform = PLATFORM.valueOf(c.get(PLATFORM_TYPE));
 		SRARunTable srRunTable = SRARunTable.load(c.get(SRA_RUN_TABLE), platform, log);
-		String processDir = c.get(OUT_DIR) + "process/";
+		String processDir = c.get(CLI.ARG_OUTDIR) + "process/";
 		new File(processDir).mkdirs();
 
 		String processFile = processDir + "process.sh";
@@ -339,7 +338,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		ArrayList<String> sraFilesToAnalyze = new ArrayList<String>();
 		String[] sraFiles = Array.tagOn(srRunTable.getAllRunSFiles(), c.get(SRA_INPUT), ".sra");
 		for (int i = 0; i < sraFiles.length; i++) {
-			if (!Files.exists(getCompleteFile(c.get(OUT_DIR), sraFiles[i]))) {
+			if (!Files.exists(getCompleteFile(c.get(CLI.ARG_OUTDIR), sraFiles[i]))) {
 				sraFilesToAnalyze.add(sraFiles[i]);
 			}
 		}
@@ -347,7 +346,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 												+ platform + "," + (sraFiles.length - sraFilesToAnalyze.size())
 												+ " samples are already complete");
 
-		String[][] batches = batch(Array.toStringArray(sraFilesToAnalyze), c.get(OUT_DIR), c, log);
+		String[][] batches = batch(Array.toStringArray(sraFilesToAnalyze), c.get(CLI.ARG_OUTDIR), c, log);
 
 		ArrayList<String> process = new ArrayList<String>();
 		int num = 0;
@@ -367,7 +366,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 				num++;
 			}
 			process.add("cd " + processDir);// so the qsubs get placed there
-			process.add("qsub -q small " + getBatch(getBatchDirectory(c.get(OUT_DIR)), i) + ".qsub");
+			process.add("qsub -q small " + getBatch(getBatchDirectory(c.get(CLI.ARG_OUTDIR)), i) + ".qsub");
 			if (num >= 1500) {
 				Files.writeIterable(process, ext.addToRoot(processFile, "_" + processBatch));
 				num = 0;
@@ -380,9 +379,9 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		}
 		if (c.has(GENVISIS_PART) || c.has(ALL_PART)) {
 			GENOME_BUILD genomeBuild = GENOME_BUILD.valueOf(c.get(REF_GENOME_BUILD));
-			generatePrelim(	c.get(OUT_DIR), genomeBuild, c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF),
+			generatePrelim(	c.get(CLI.ARG_OUTDIR), genomeBuild, c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF),
 											log, ASSAY_TYPE.WXS);
-			generatePrelim(c.get(OUT_DIR), genomeBuild, null, null, c.get(VCF), log, ASSAY_TYPE.WGS);
+			generatePrelim(c.get(CLI.ARG_OUTDIR), genomeBuild, null, null, c.get(VCF), log, ASSAY_TYPE.WGS);
 		}
 
 	}
@@ -400,7 +399,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		ArrayList<String> baseCommand = new ArrayList<String>();
 		baseCommand.add("module load gcc/4.8.1\n");
 		baseCommand.add("java -Xmx60g -jar " + jarRun + " seq.analysis.genage.SRAPipeline");
-		baseCommand.add(OUT_DIR + "=" + c.get(OUT_DIR));
+		baseCommand.add(CLI.ARG_OUTDIR + "=" + c.get(CLI.ARG_OUTDIR));
 		baseCommand.add(SRA_RUN_TABLE + "=" + c.get(SRA_RUN_TABLE));
 		baseCommand.add(NUM_THREADS + "=" + c.get(NUM_THREADS));
 		baseCommand.add(NUM_THREADS_PIPELINE + "=" + c.get(NUM_THREADS_PIPELINE));
@@ -477,7 +476,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
 		String outDir = "out/";
 
-		c.addArgWithDefault(OUT_DIR, "the output directory for results", outDir);
+		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, outDir);
 
 		String sraRunTableDefault = "sraRuntable.txt";
 
@@ -532,13 +531,13 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		genomeBuild = GENOME_BUILD.valueOf(c.get(REF_GENOME_BUILD));
 
 		if (c.has(COMPILE)) {
-			compilePrep(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), genomeBuild,
+			compilePrep(c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(CLI.ARG_OUTDIR), genomeBuild,
 									c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF),
 									PLATFORM.valueOf(c.get(PLATFORM_TYPE)), c.getI(NUM_THREADS));
 		} else if (c.has(FULL_PIPELINE)) {
 			fullPipeline(c);
 		} else {
-			runAll(	c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(OUT_DIR), genomeBuild,
+			runAll(	c.get(SRA_INPUT), c.get(SRA_RUN_TABLE), c.get(CLI.ARG_OUTDIR), genomeBuild,
 							c.get(CAPTURE_BED), c.get(BIN_BED), c.get(VCF), c.get(COMPUTEL_LOCATION),
 							c.getI(NUM_THREADS), c.getI(NUM_THREADS_PIPELINE), c.getI(NUM_BATCHES), c,
 							c.has(CLEANUP));

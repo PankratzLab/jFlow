@@ -44,6 +44,16 @@ public class CLI {
 										STRING, NUMBER, FILE
 	}
 
+	// common argument constants
+	public static final String ARG_PROJ = "proj";
+	public static final String DESC_PROJ = "project properties filename";
+	public static final String ARG_OUTDIR = "outDir";
+	public static final String DESC_OUTDIR = "directory to write output";
+	public static final String ARG_OUTFILE = "out";
+	public static final String DESC_OUTFILE = "output filename";
+	public static final String ARG_THREADS = "threads";
+	public static final String DESC_THREADS = "number of threads";
+
 	private static final String HELP_CHAR = "h"; // short string to print usage
 	private static final String HELP_STRING = "help"; // long string to print usage
 	private static final String ARG_VALUE = "value"; // default value to print for arguments

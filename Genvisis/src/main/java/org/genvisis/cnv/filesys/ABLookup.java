@@ -40,8 +40,6 @@ public class ABLookup {
 	public static final String B_LABEL = "B";
 	public static final String[] AB_LOOKUP_COLS = new String[] {MARKER_LABEL, A_LABEL, B_LABEL};
 
-	public static final String ARGS_PROJ = "proj";
-	public static final String ARGS_OUT = "out";
 	public static final String FLAGS_CLUSTER = "parseFromGenotypeClusterCenters";
 	public static final String FLAGS_ORIGIN = "parseFromOriginalGenotypes";
 	public static final String FLAGS_VCF = "parseFromAnnotationVCF";
@@ -824,8 +822,8 @@ public class ABLookup {
 		String abLookup = "possible_AB_lookup.dat";
 
 		CLI c = new CLI(ABLookup.class);
-		c.addArgWithDefault(ARGS_PROJ, "project properties filename", projFile);
-		c.addArgWithDefault(ARGS_OUT, "parse ABLookup to this location", outfile);
+		c.addArgWithDefault(CLI.ARG_PROJ, CLI.DESC_PROJ, projFile);
+		c.addArgWithDefault(CLI.ARG_OUTFILE, CLI.DESC_OUTFILE, outfile);
 		c.addFlag(FLAGS_CLUSTER, "parse ABLookup from centroids");
 		c.addFlag(FLAGS_ORIGIN, "parse ABLookup from existing original genotypes");
 		c.addArg(ARGS_MANIFEST, "parse ABLookup from Illumina manifest file", illumina);
@@ -840,8 +838,8 @@ public class ABLookup {
 
 		c.parseWithExit(args);
 
-		proj = new Project(c.get(ARGS_PROJ), false);
-		outfile = proj.PROJECT_DIRECTORY.getValue() + c.get(ARGS_OUT);
+		proj = new Project(c.get(CLI.ARG_PROJ), false);
+		outfile = proj.PROJECT_DIRECTORY.getValue() + c.get(CLI.ARG_OUTFILE);
 		if (c.has(FLAGS_APPLYAB)) {
 			applyABLookupToFullSampleFiles(proj);
 		} else if (c.has(FLAGS_VCF)) {

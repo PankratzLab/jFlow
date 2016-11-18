@@ -116,14 +116,14 @@ public class MtDNAGenotypePrep {
 	public static void main(String[] args) {
 		CLI c = new CLI(MtDNAGenotypePrep.class);
 		c.addArgWithDefault("bams", "file listing bam files to analyze, one per line", "bams.txt");
-		c.addArgWithDefault("outDir", "output directory", "out/");
+		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, "out/");
 		c.addArgWithDefault("samToFastq", "full path to SamToFastq.jar", "SamToFastq.jar");
 		c.addArgWithDefault("tag", "custom ID tag to add to files", null);
 
-		c.addArgWithDefault("threads", "number of threads", "24");
+		c.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS, "24");
 		c.parseWithExit(args);
 
-		prepBams(c.get("bams"), c.get("outDir"), c.get("tag"), c.get("samToFastq"), c.getI("threads"));
+		prepBams(c.get("bams"), c.get(CLI.ARG_OUTDIR), c.get("tag"), c.get("samToFastq"), c.getI(CLI.ARG_THREADS));
 
 	}
 

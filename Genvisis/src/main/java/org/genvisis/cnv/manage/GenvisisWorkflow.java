@@ -912,9 +912,9 @@ public class GenvisisWorkflow {
 			String mapFile = proj.getLocationOfSNP_Map(true);
 
 			List<String> baseCommand = ImmutableList.of(Files.getRunString(), ABLookup.class.getName(),
-																									CLI.formCmdLineArg(ABLookup.ARGS_PROJ, projFile));
+																									CLI.formCmdLineArg(CLI.ARG_PROJ, projFile));
 			List<String> commandVcf = Lists.newArrayList(baseCommand);
-			commandVcf.add(CLI.formCmdLineArg(ABLookup.ARGS_OUT, filename));
+			commandVcf.add(CLI.formCmdLineArg(CLI.ARG_OUTFILE, filename));
 			commandVcf.add(CLI.formCmdLineFlag(ABLookup.FLAGS_VCF));
 
 			List<String> commandPartial = Lists.newArrayList(baseCommand);

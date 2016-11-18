@@ -231,11 +231,11 @@ public class SpecialK {
 		CLI c = new CLI(PhaserNGS.class);
 
 		c.addArgWithDefault("bams", "directory of bams", null);
-		c.addArgWithDefault("outDir", "output directory", null);
+		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, null);
 		c.addArgWithDefault("mergeFile", "mergeFile", null);
 
 		c.parseWithExit(args);
-		run(c.get("bams"), c.get("outDir"), c.get("mergeFile"));
+		run(c.get("bams"), c.get(CLI.ARG_OUTDIR), c.get("mergeFile"));
 	}
 
 }
