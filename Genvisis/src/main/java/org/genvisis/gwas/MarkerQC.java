@@ -7,8 +7,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -20,151 +25,201 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.SerialHash;
 import org.genvisis.parse.GenParser;
 import org.genvisis.stats.Maths;
+import org.genvisis.stats.Maths.OPERATOR;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 public class MarkerQC {
 	public static final String DEFAULT_FILENAME = "thresholds.properties";
-	public static final String[] FRQ_HEADER = {"CHR", "SNP", "A1", "A2", "MAF", "NCHROBS"};
-	public static final String[] LMISS_HEADER = {"CHR", "SNP", "N_MISS", "N_GENO", "F_MISS"};
-	public static final String[] HWE_HEADER = {	"CHR", "SNP", "TEST", "A1", "A2", "GENO", "O(HET)",
-																							"E(HET)", "P"};
-	public static final String[] MISSHAP_HEADER = {	"SNP", "HAPLOTYPE", "F_0", "F_1", "M_H1", "M_H2",
-																									"CHISQ", "P", "FLANKING"};
-	public static final String[] MISSTEST_HEADER = {"CHR", "SNP", "F_MISS_A", "F_MISS_U", "P"};
-	public static final String[] GENDER_ASSOC_HEADER = {"CHR", "SNP", "BP", "A1", "F_A", "F_U", "A2",
-																											"CHISQ", "P", "OR"};
+
+
+
 	public static final String[] FINAL_HEADER = {	"SNP", "CHR", "MAF", "F_MISS", "P", "HETERO p-value",
 																								"miss.hap min p-value", "P_MISS"};
 	// public static final String[] THRESHOLDS = {"snp", "chr", "maf", "f_miss", "hwe", "hetero",
 	// "minmishap", "p_miss"};
 
-	public static int parse(String dir, String[][] params, Logger log, boolean kill) {
-		BufferedReader reader;
-		String[] line;
-		Hashtable<String, String[]> hash;
-		Vector<String> v;
-		Vector<String[]> headers;
-		Vector<String> mishaps;
-		String[] markerNames;
-		String prev, trav, min;
-		long time;
-		boolean done;
 
+	private static final String[] FRQ_HEADER = {"CHR", "SNP", "A1", "A2", "MAF", "NCHROBS"};
+	private static final String[] REF_FREQ_HEADER = {"SNP", "P"};
+	private static final String[] LMISS_HEADER = {"CHR", "SNP", "N_MISS", "N_GENO", "F_MISS"};
+	private static final String[] HWE_HEADER = {"CHR", "SNP", "TEST", "A1", "A2", "GENO", "O(HET)",
+																							"E(HET)", "P"};
+	private static final String[] MISHAP_HEADER = {	"SNP", "HAPLOTYPE", "F_0", "F_1", "M_H1", "M_H2",
+																									"CHISQ", "P", "FLANKING"};
+	private static final String[] MISSTEST_HEADER = {"CHR", "SNP", "F_MISS_A", "F_MISS_U", "P"};
+	private static final String[] GENDER_ASSOC_HEADER = {	"CHR", "SNP", "BP", "A1", "F_A", "F_U", "A2",
+																												"CHISQ", "P", "OR"};
+
+	private enum METRIC {
+		// FILE("file", "markerQC.xln"),
+		// MARKERS("markers", "freq.frq", "1", "header"),
+		// CHR("chr", "freq.frq", lessThan(1), "0:1"),
+		FRQ("maf", "freq.frq", FRQ_HEADER, lessThan(0.01), "1", "4=maf"),
+		REF_FREQ_MISMATCH("ref_freq", "refFreqMismatch.dat", REF_FREQ_HEADER, lessThan(0.0001), "0",
+											"1=ref_freq"),
+		CALLRATE("callrate", "missing.lmiss", LMISS_HEADER, lessThan(0.98), "1", "$#1-4=callrate"),
+		HWE("hwe", "hardy.hwe", HWE_HEADER, lessThan(0.00001), "!2!ALL", "!2!AFF", "1", "8==hwe"),
+		// allow for the possibility of a quantitative trait, which lists the test as ALL(QT);
+		// otherwise it should only accept the UNAFF test
+		MISHAP_HETERO("mishap_hetero", "mishap.missing.hap", MISHAP_HEADER, lessThan(0.0001),
+									"!1=HETERO", "0", "7=mishap_hetero"),
+		MISHAP_MIN("mishap_min", "mishap.missing.hap", MISHAP_HEADER, lessThan(0.0001), "0", "$MIN7"),
+		P_MISS("p_miss", "test.missing.missing", MISSTEST_HEADER, lessThan(0.0001), "1", "4=p_miss"),
+		P_GENDER(	"p_gender", "gender.assoc", GENDER_ASSOC_HEADER, lessThan(1E-7), "!0<24", "1",
+							"8=p_gender"),
+		P_GENDER_MISS("p_gender_miss", "gender.missing", MISSTEST_HEADER, lessThan(0.0001), "!0<24",
+									"1", "4=p_gender_miss");
+
+		private static final Map<String, METRIC> KEY_MAP;
+		static {
+			Map<String, METRIC> keyMap = Maps.newHashMap();
+			for (METRIC metric : values()) {
+				keyMap.put(metric.getKey(), metric);
+			}
+			KEY_MAP = Collections.unmodifiableMap(keyMap);
+		}
+
+		private String key;
+		private String defaultFile;
+		private String[] fileHeader;
+		private String defaultArg;
+		private List<String> lookupArgs;
+
+		/**
+		 * @param key
+		 * @param defaultFile
+		 * @param fileHeader
+		 * @param defaultArg
+		 */
+		private METRIC(	String key, String defaultFile, String[] fileHeader, String defaultArg,
+										String... lookupArgs) {
+			this.key = key;
+			this.defaultFile = defaultFile;
+			this.fileHeader = fileHeader;
+			this.defaultArg = defaultArg;
+			this.lookupArgs = ImmutableList.copyOf(lookupArgs);
+		}
+
+		private static String lessThan(Number threshold) {
+			return OPERATOR.LESS_THAN.getSymbol() + threshold.toString();
+		}
+
+		public String getKey() {
+			return key;
+		}
+
+		public String getDefaultFile() {
+			return defaultFile;
+		}
+
+		public String[] getFileHeader() {
+			return fileHeader;
+		}
+
+		public String getDefaultArg() {
+			return defaultArg;
+		}
+
+		public String getLookupString(String dir, String filename) {
+			return generateLookupString(dir, filename, lookupArgs);
+		}
+
+		public String getExample() {
+			return generateExampleCode(key, defaultFile, defaultArg);
+		}
+
+		public static METRIC getMetric(String key) {
+			return KEY_MAP.get(key);
+		}
+
+	}
+
+	private static String generateExampleCode(String key, String file, String... args) {
+		List<String> exampleCode =  Lists.newArrayList(key + "=" + file);
+		for (String arg : args) {
+			exampleCode.add(arg);
+		}
+		return Joiner.on(',').join(exampleCode);
+	}
+	
+	private static String generateLookupString(String dir, String filename, Iterable<String> args) {
+		Collection<String> lookupTokens = Lists.newArrayList();
+		lookupTokens.add("\"" + dir + filename + "\"");
+		for (String arg : args) {
+			lookupTokens.add(arg);
+		}
+		return Joiner.on(' ').join(lookupTokens);
+	}
+
+	public static int parse(String dir, String[][] params, Logger log, boolean kill) {
 		log.report(ext.getTime());
-		time = new Date().getTime();
+		long time = new Date().getTime();
 		try {
-			v = new Vector<String>();
-			headers = new Vector<String[]>();
+			List<String> fileLookups = Lists.newArrayList();
+			List<String[]> headers = Lists.newArrayList();
 			for (int i = 3; i < params.length; i++) {
-				if (params[i][0].equals("maf")) {
-					v.add("\"" + dir + params[i][1] + "\" 1 4=" + params[i][0]);
-					headers.add(FRQ_HEADER);
-				} else if (params[i][0].equals("callrate")) {
-					v.add("\"" + dir + params[i][1] + "\" 1 $#1-4=" + params[i][0]);
-					headers.add(LMISS_HEADER);
-				} else if (params[i][0].equals("hwe")) {
-					v.add("\"" + dir + params[i][1] + "\" !2!ALL !2!AFF 1 8=" + params[i][0]); // allow for
-																																											// the
-																																											// possibility
-																																											// of a
-																																											// quantitative
-																																											// trait,
-																																											// which
-																																											// lists the
-																																											// test as
-																																											// ALL(QT);
-																																											// otherwise
-																																											// it
-																																											// should only
-																																											// accept the
-																																											// UNAFF test
-					headers.add(HWE_HEADER);
-				} else if (params[i][0].equals("mishap_hetero")) {
-					v.add("\"" + dir + params[i][1] + "\" !1=HETERO 0 7=" + params[i][0]);
-					headers.add(MISSHAP_HEADER);
-				} else if (params[i][0].equals("mishap_min")) {
-					try {
-						reader = new BufferedReader(new FileReader(dir + params[i][1]));
-						ext.checkHeader(reader.readLine().trim().split("[\\s]+"), MISSHAP_HEADER, true);
-						prev = "";
-						mishaps = new Vector<String>();
-						hash = new Hashtable<String, String[]>();
-						done = false;
-						while (!done) {
-							if (reader.ready()) {
-								line = reader.readLine().trim().split("[\\s]+");
-							} else {
-								done = true;
-								line = Array.stringArray(8, "");
-							}
-							if (!line[0].equals(prev)) {
-								min = "2";
-								for (int j = 0; j < mishaps.size(); j++) {
-									trav = mishaps.elementAt(j);
-									if (Double.parseDouble(trav) < Double.parseDouble(min)) {
-										min = trav;
-									}
+				String key = params[i][0];
+				String file = params[i][1];
+				METRIC metric = METRIC.getMetric(key);
+				if (metric != null) {
+					switch (metric) {
+						case MISHAP_MIN:
+							try {
+								prepareMishapMin(dir, file);;
+							} catch (FileNotFoundException fnfe) {
+								log.reportError("Error: file \"" + file + "\" not found in current directory");
+								log.reportException(fnfe);
+								if (kill) {
+									System.exit(1);
+								} else {
+									return 1;
 								}
-								hash.put(prev, new String[] {mishaps.size() > 0 ? min : "."});
-								mishaps.clear();
+							} catch (IOException ioe) {
+								log.reportError("Error reading file \"" + file + "\"");
+								log.reportException(ioe);
+								if (kill) {
+									System.exit(2);
+								} else {
+									return 2;
+								}
 							}
-							if (line.length >= 7 && !line[7].equals("NA")) {
-								mishaps.add(line[7]);
+							break;
+						case P_MISS:
+							if (!Files.exists(dir + file) || new File(dir + file).length() == 0) {
+								continue;
 							}
-							prev = line[0];
-						}
-						hash.put("!colNames", new String[] {params[i][0]});
-						reader.close();
-						SerialHash.createSerializedStringArrayHash(dir
-																													+ GenParser.parseSerialFilename(new String[] {params[i][1],
-																																																			"0", "$MIN7"}),
-																												hash);
-					} catch (FileNotFoundException fnfe) {
-						log.reportError("Error: file \"" + params[i][1] + "\" not found in current directory");
-						log.reportException(fnfe);
-						if (kill) {
-							System.exit(1);
-						} else {
-							return 1;
-						}
-					} catch (IOException ioe) {
-						log.reportError("Error reading file \"" + params[i][1] + "\"");
-						log.reportException(ioe);
-						if (kill) {
-							System.exit(2);
-						} else {
-							return 2;
-						}
+							break;
+						default:
+							break;
 					}
-					v.add("\"" + dir + params[i][1] + "\" 0 $MIN7");
-					headers.add(MISSHAP_HEADER);
-				} else if (params[i][0].equals("p_miss")) {
-					if (Files.exists(dir + params[i][1]) && new File(dir + params[i][1]).length() > 0) {
-						v.add("\"" + dir + params[i][1] + "\" 1 4=" + params[i][0]);
-						headers.add(MISSTEST_HEADER);
-					}
-				} else if (params[i][0].equals("p_gender")) {
-					v.add("\"" + dir + params[i][1] + "\" !0<24 1 8=" + params[i][0]);
-					headers.add(GENDER_ASSOC_HEADER);
-				} else if (params[i][0].equals("p_gender_miss")) {
-					v.add("\"" + dir + params[i][1] + "\" !0<24 1 4=" + params[i][0]);
-					headers.add(MISSTEST_HEADER);
+					fileLookups.add(metric.getLookupString(dir, file));
+					headers.add(metric.fileHeader);
 				} else {
-					log.report("Using user-defined file: " + params[i][1]);
-					v.add("\""	+ dir + params[i][1] + "\" " + (params[i].length > 3 ? params[i][3] : "0 1")
-								+ "=" + params[i][0]); // allows for additional user-defined files
+					log.report("Using user-defined file: " + file);
+					fileLookups.add(generateLookupString(	dir, file,
+																								ImmutableList.of((params[i].length > 3	? params[i][3]
+																																												: "0 1")
+																																	+ "=" + key))); // allows for
+																																									// additional
+																																									// user-defined
+																																									// files
 					headers.add(null);
+
 				}
 			}
-			markerNames =
-									HashVec.loadFileToStringArray(dir	+ params[1][1],
-																								params[1].length > 3
-																																&& params[1][3].equals("header"),
-																								new int[] {Integer.parseInt(params[1][2])}, false);
+			String[] markerNames = HashVec.loadFileToStringArray(dir	+ params[1][1],
+																														params[1].length > 3 && params[1][3].equals("header"),
+																														new int[] {Integer.parseInt(params[1][2])},
+																														false);
 			log.report("Found " + markerNames.length + " markers to parse in " + params[1][1]);
-			Files.writeArray(Array.toStringArray(v), dir + "whatGoesIn.out");
+			Files.writeIterable(fileLookups, dir + "whatGoesIn.out");
 			// Files.combine(markerNames, Array.toStringArray(v), Matrix.toStringArrays(headers),
 			// "Marker", ".", dir+params[0][1], log, true, true, false);
-			Files.combineWithLessMemory(markerNames, Array.toStringArray(v),
+			Files.combineWithLessMemory(markerNames, Array.toStringArray(fileLookups),
 																	Matrix.toStringArrays(headers), "Marker", ".", dir + params[0][1],
 																	log, true, true, false, false);
 			log.report("Finished in " + ext.getTimeElapsed(time));
@@ -177,6 +232,47 @@ public class MarkerQC {
 			}
 		}
 		return 0;
+	}
+
+	private static void prepareMishapMin(String dir, String file)	throws FileNotFoundException,
+																																IOException {
+		BufferedReader reader = new BufferedReader(new FileReader(dir + file));
+		ext.checkHeader(reader.readLine().trim().split("[\\s]+"), METRIC.MISHAP_MIN.getFileHeader(),
+										true);
+		String prev = "";
+		List<String> mishaps = Lists.newArrayList();
+		Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
+		boolean done = false;
+		while (!done) {
+			String[] line;
+			if (reader.ready()) {
+				line = reader.readLine().trim().split("[\\s]+");
+			} else {
+				done = true;
+				line = Array.stringArray(8, "");
+			}
+			if (!line[0].equals(prev)) {
+				double min = 2;
+				for (int j = 0; j < mishaps.size(); j++) {
+					double current = Double.parseDouble(mishaps.get(j));
+					if (current < min) {
+						min = current;
+					}
+				}
+				hash.put(prev, new String[] {mishaps.isEmpty() ? "." : Double.toString(min)});
+				mishaps.clear();
+			}
+			if (line.length >= 7 && !line[7].equals("NA")) {
+				mishaps.add(line[7]);
+			}
+			prev = line[0];
+		}
+		hash.put("!colNames", new String[] {METRIC.MISHAP_MIN.getKey()});
+		reader.close();
+		SerialHash.createSerializedStringArrayHash(dir
+																									+ GenParser.parseSerialFilename(new String[] {file,
+																																															"0", "$MIN7"}),
+																								hash);
 	}
 
 	public static int testThresholds(String dir, String[][] params, Logger log, boolean kill) {
@@ -358,17 +454,12 @@ public class MarkerQC {
 		String dir;
 
 		dir = "";
-		paramV = Files.parseControlFile(filename, "miss",
-																		new String[] {"file=markerQC.xln", "markers=freq.frq,1,header",
-																									"chr=freq.frq,<1,1:0", "maf=freq.frq,<0.01",
-																									"callrate=missing.lmiss,<0.98",
-																									"hwe=hardy.hwe,<0.00001",
-																									"mishap_hetero=mishap.missing.hap,<0.0001",
-																									"mishap_min=mishap.missing.hap,<0.0001",
-																									"p_miss=test.missing.missing,<0.0001",
-																									"p_gender=gender.assoc,<1E-7",
-																									"p_gender_miss=gender.missing,<0.0001"},
-																		log);
+		METRIC[] metrics = METRIC.values();
+		String[] sampleCode = new String[metrics.length];
+		for (int i = 0; i < sampleCode.length; i++) {
+			sampleCode[i] = metrics[i].getExample();
+		}
+		paramV = Files.parseControlFile(filename, "miss", sampleCode, log);
 		if (paramV != null) {
 			file = null;
 			markers = null;
@@ -380,6 +471,8 @@ public class MarkerQC {
 				record = new String[line.length + 1];
 				record[0] = key;
 				for (int j = 0; j < line.length; j++) {
+					// FIXME This is unclear and potentially unpredictable
+					// Is this an attempt to replace ":" with " " unless the ":" is a part of a filepath/url?
 					record[j + 1] = ext.replaceAllWith(line[j], ":", "QWERTY");
 					record[j + 1] = ext.replaceAllWith(record[j + 1], "QWERTY/", ":/");
 					record[j + 1] = ext.replaceAllWith(record[j + 1], "QWERTY", " ");
