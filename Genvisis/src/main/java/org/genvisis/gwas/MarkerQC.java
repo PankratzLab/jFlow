@@ -39,6 +39,8 @@ public class MarkerQC {
 
 	public static final String[] FINAL_HEADER = {	"SNP", "CHR", "MAF", "F_MISS", "P", "HETERO p-value",
 																								"miss.hap min p-value", "P_MISS"};
+	public static final String[] HWE_HEADER = {"CHR", "SNP", "TEST", "A1", "A2", "GENO", "O(HET)",
+																							"E(HET)", "P"};
 	// public static final String[] THRESHOLDS = {"snp", "chr", "maf", "f_miss", "hwe", "hetero",
 	// "minmishap", "p_miss"};
 
@@ -46,8 +48,6 @@ public class MarkerQC {
 	private static final String[] FRQ_HEADER = {"CHR", "SNP", "A1", "A2", "MAF", "NCHROBS"};
 	private static final String[] REF_FREQ_HEADER = {"SNP", "P"};
 	private static final String[] LMISS_HEADER = {"CHR", "SNP", "N_MISS", "N_GENO", "F_MISS"};
-	private static final String[] HWE_HEADER = {"CHR", "SNP", "TEST", "A1", "A2", "GENO", "O(HET)",
-																							"E(HET)", "P"};
 	private static final String[] MISHAP_HEADER = {	"SNP", "HAPLOTYPE", "F_0", "F_1", "M_H1", "M_H2",
 																									"CHISQ", "P", "FLANKING"};
 	private static final String[] MISSTEST_HEADER = {"CHR", "SNP", "F_MISS_A", "F_MISS_U", "P"};
