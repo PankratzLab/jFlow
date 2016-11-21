@@ -18,7 +18,6 @@ public class ReverseAnnotate {
 		VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 		String out = ext.parseDirectoryOfFile(vcf) + ext.rootOf(regions) + "annot.txt";
 		Segment[] segs = Segment.loadRegions(regions, 0, 1, 2, true);
-		Logger log = new Logger(out + ".log");
 		StringBuilder builder = new StringBuilder("#CHR\tBP1\tBP2\tID");
 		for (VariantContext vc : reader) {
 			for (Segment seg : segs) {

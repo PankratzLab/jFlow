@@ -27,7 +27,7 @@ public class AddId {
 
 		c.addArgWithDefault("vcf", "vcf to annotate with default methods", "a.vcf");
 		c.parseWithExit(args);
-		
+
 		String vcfFile = c.get("vcf");
 		VCFOps.verifyIndex(vcfFile, new Logger());
 		String out = VCFOps.getAppropriateRoot(vcfFile, false) + ".ids.vcf";
@@ -38,6 +38,8 @@ public class AddId {
 			String id = VCOps.getAnnotationsFor(new String[] { "snp138" }, vc, ".")[0];
 			if (".".equals(id)) {
 				id = new VCOps.LocusID(vc).getId();
+			} else {
+				id = id + "_" + new VCOps.LocusID(vc).getId();
 			}
 			VariantContextBuilder builder = new VariantContextBuilder(vc);
 			builder.id(id + "_" + VCOps.getAnnotationsFor(new String[] { "EFF" }, vc, ".")[0].split("\\(")[0]);
