@@ -299,9 +299,11 @@ public class FCSDataLoader {
       try {
         scale = AXIS_SCALE.valueOf(keys.getKeyword(axisKeywork).getKeywordValue());
       } catch (Exception e) {
-        System.err.println("Warning - no axis scale set for parameter " + paramNamesInOrder.get(i)
-            + "; assuming a linear scale.");
+        System.err.println("Warning - no axis scale set for parameter " + paramNamesInOrder.get(i) + "; assuming a linear scale.");
       };
+      if (scale == AXIS_SCALE.LOG) {
+      	scale = AXIS_SCALE.BIEX;
+      }
       paramScales.put(actName, scale);
       paramTransforms.put(actName, getDefaultTransform(scale));
 
@@ -360,61 +362,28 @@ public class FCSDataLoader {
       case LOG:
         System.err.println("Error - NO DEFINED AXIS TRANSFORM FOR LOG AXES!");
       case BIEX:
-        return createBiexAxisTransform();
+        return AxisTransform.createBiexTransform();
       case LIN:
       default:
-        return createPassthroughTransform();
+        return AxisTransform.createLinearTransform(0, 262144, 1);
     }
   }
 
-  private static AxisTransform createPassthroughTransform() {
-    return new AxisTransform(null) {
-      @Override
-      public double scaleY(double val) { return val; }
-      @Override
-      public double scaleX(double val) { return val; }
-      @Override
-      public double inverseY(double val) { return val; }
-      @Override
-      public double inverseX(double val) { return val; }
-    };
-  }
-
-  static boolean test2 = true;
-  private static AxisTransform createBiexAxisTransform() {
-    double DEFAULT_T = 262144;
-    double DEFAULT_W = Math.log10(Math.abs(-100));
-    double DEFAULT_M = Math.log10(DEFAULT_T);
-    double DEFAULT_A = Math.min(0, 1);
-    Logicle lgl = new Logicle(DEFAULT_T, DEFAULT_W, DEFAULT_M, DEFAULT_A);
-    
-    return new AxisTransform(null) {
-      @Override
-      public double scaleY(double val) {
-        return scaleX(val);
-      }
-      
-      @Override
-      public double scaleX(double val) {
-        return lgl.scale(val);
-//        return (lgl.scale(val) * 512) + 256;
-      }
-      
-      @Override
-      public double inverseY(double val) {
-        return inverseX(val);
-      }
-      
-      @Override
-      public double inverseX(double val) {
-        return lgl.inverse(val);
-//        return lgl.inverse((val - 256) / 512);
-      }
-    };
-  }
-  
   public AxisTransform getParamTransform(String param) {
     return paramTransforms.get(getInternalParamName(param));
+  }
+  
+  public void setTransformMap(HashMap<String, AxisTransform> map) {
+  	HashMap<String, AxisTransform> newMap = new HashMap<>();
+  	for (String key : map.keySet()) {
+  		String nm = getInternalParamName(key);
+  		newMap.put(nm, map.get(key));
+  	}
+  	for (String key : this.paramTransforms.keySet()) {
+  		if (newMap.containsKey(key)) continue;
+  		newMap.put(key, this.paramTransforms.get(key));
+  	}
+  	this.paramTransforms = newMap;
   }
   
   Thread loadInBGThread = new Thread(new Runnable() {
@@ -534,7 +503,7 @@ public class FCSDataLoader {
     return data;
   }
 
-  private String getInternalParamName(String name) {
+  public String getInternalParamName(String name) {
     String nm = name;
     boolean prepend = nm.startsWith(COMPENSATED_PREPEND); 
     if (prepend) {

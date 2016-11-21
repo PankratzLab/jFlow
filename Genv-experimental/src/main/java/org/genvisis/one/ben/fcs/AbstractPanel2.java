@@ -46,6 +46,7 @@ import org.genvisis.common.IntVector;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Distance;
+import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 import org.genvisis.stats.Maths;
 
 import com.google.common.primitives.Bytes;
@@ -2574,11 +2575,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
       }
       
       int[] getScreenX() {
-//        return new int[]{this.panel.axisYWidth, this.panel.getWidth() - AbstractPanel2.WIDTH_BUFFER};
         return new int[]{this.panel.canvasSectionMinimumX, this.panel.canvasSectionMaximumX};
       }
       int[] getScreenY() {
-//        return new int[]{this.panel.axisXHeight, this.panel.getHeight() - AbstractPanel2.HEAD_BUFFER};
         return new int[]{this.panel.canvasSectionMinimumY, this.panel.canvasSectionMaximumY};
       }
       double[] getPlotX() {
@@ -2592,6 +2591,41 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
       public abstract double scaleY(double val);
       public abstract double inverseX(double val);
       public abstract double inverseY(double val);
+
+			public static AxisTransform createLinearTransform(double min, double max, double gain) {
+		    return new AxisTransform(null) {
+		      @Override
+		      public double scaleY(double val) { return val; }
+		      @Override
+		      public double scaleX(double val) { return val; }
+		      @Override
+		      public double inverseY(double val) { return val; }
+		      @Override
+		      public double inverseX(double val) { return val; }
+		    };
+			}
+			
+			public static AxisTransform createBiexTransform() {
+        double T = 262144;
+        double W = Math.log10(Math.abs(-100));
+        double M = Math.log10(T);
+        double A = Math.min(0, 1);
+        return AxisTransform.createBiexTransform(T, W, M, A);
+			}
+			
+			public static AxisTransform createBiexTransform(double t, double w, double m, double a) {
+				Logicle lgl = new Logicle(t, w, m, a);
+		    return new AxisTransform(null) {
+		      @Override
+		      public double scaleY(double val) { return scaleX(val); }
+		      @Override
+		      public double scaleX(double val) { return lgl.scale(val); }
+		      @Override
+		      public double inverseY(double val) { return inverseX(val); }
+		      @Override
+		      public double inverseX(double val) { return lgl.inverse(val); }
+		    };
+			}
     }
   
     class BiexTransform extends AxisTransform {

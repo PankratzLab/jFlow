@@ -326,33 +326,63 @@ public abstract class Gate {
     private static int range = 262144; // TODO make this dynamic based on data loader param range
                                        // (set when dims are set) - may have different ranges for
                                        // each dim
-//    private static ArrayList<Rectangle> DEFAULT_RECTS = new ArrayList<Rectangle>();
-//    private static ArrayList<Rectangle> rects = new ArrayList<Rectangle>();
     private static int binStep = range / gateResolution;
-    private static Rectangle[][] rectArray;
+    private static ArrayList<Rectangle> rectsXY = new ArrayList<>();
+    private static ArrayList<Rectangle> rectsXtY = new ArrayList<>();
+    private static ArrayList<Rectangle> rectsXYt = new ArrayList<>();
+    private static ArrayList<Rectangle> rectsXtYt = new ArrayList<>();
+  	
+    private static Rectangle[][] rectsXY_arr;
+    private static Rectangle[][] rectsXtY_arr;
+    private static Rectangle[][] rectsXYt_arr;
+    private static Rectangle[][] rectsXtYt_arr;
+    
     static {
-//      rects = prepRects();
-//      DEFAULT_RECTS = rects;
-      setupRects();
+    	prepAllRects();
     }
-    static void setupRects() {
-      rectArray = new Rectangle[gateResolution * 2][gateResolution * 2];
+
+    static void prepAllRects() {
+      rectsXY_arr = new Rectangle[gateResolution * 2][gateResolution * 2];
+      rectsXtY_arr = new Rectangle[gateResolution * 2][gateResolution * 2];
+      rectsXYt_arr = new Rectangle[gateResolution * 2][gateResolution * 2];
+      rectsXtYt_arr = new Rectangle[gateResolution * 2][gateResolution * 2];
+    	
       for (int i = -gateResolution; i < gateResolution; i++) {
         for (int j = -gateResolution; j < gateResolution; j++) {
-          rectArray[i + gateResolution][j + gateResolution] = new Rectangle(i * binStep + binStep / 2, j * binStep + binStep / 2, binStep, binStep);
+        	Rectangle r = new Rectangle(i * binStep + binStep / 2, j * binStep + binStep / 2, binStep, binStep);
+          rectsXY.add(r);
+          rectsXY_arr[i + gateResolution][j + gateResolution] = r; 
         }
       }
-    }
-//    static ArrayList<Rectangle> prepRects() {
-//      ArrayList<Rectangle> rects = new ArrayList<Rectangle>();
-//      for (int i = -gateResolution; i < gateResolution; i++) {
-//        for (int j = -gateResolution; j < gateResolution; j++) {
-//          rects.add(new Rectangle(i * binStep + binStep / 2, j * binStep + binStep / 2, binStep, binStep));
-//        }
-//      }
-//      return rects;
-//    }
 
+      for (int i = -gateResolution; i < gateResolution; i++) {
+      	for (int j = -gateResolution; j < gateResolution; j++) {
+      		Rectangle r = new Rectangle(i, j * binStep + binStep / 2, 1, binStep);
+      		rectsXtY.add(r);
+          rectsXtY_arr[i + gateResolution][j + gateResolution] = r; 
+      	}
+      }
+    	
+      for (int i = -gateResolution; i < gateResolution; i++) {
+      	for (int j = -gateResolution; j < gateResolution; j++) {
+      		Rectangle r = new Rectangle(i * binStep + binStep / 2, j, binStep, 1);
+          rectsXYt.add(r);
+          rectsXYt_arr[i + gateResolution][j + gateResolution] = r; 
+      	}
+      }
+
+      for (int i = -gateResolution; i < gateResolution; i++) {
+      	for (int j = -gateResolution; j < gateResolution; j++) {
+      		Rectangle r = new Rectangle(i, j, 1, 1);
+      		rectsXtYt.add(r);
+          rectsXtYt_arr[i + gateResolution][j + gateResolution] = r; 
+      		
+      	}
+      }
+      
+    }
+    
+    
     private final ArrayList<Double> verticesX = new ArrayList<Double>();
     private final ArrayList<Double> verticesY = new ArrayList<Double>();
     private Path2D myPath;
@@ -392,9 +422,6 @@ public abstract class Gate {
 
     public void setShouldMimicFlowJoGating(boolean mimic) {
       mimicFlowJo = mimic;
-//      if (mimicFlowJo) {
-//        prepGating();
-//      }
       parentGating = null;
       transformedPath = null;
     }
@@ -417,9 +444,6 @@ public abstract class Gate {
       myPath = pth;
       parentGating = null;
       resetVertices();
-//      if (mimicFlowJo) {
-//        prepGating();
-//      }
       transformedPath = null;
       // clearCache();
     }
@@ -499,6 +523,7 @@ public abstract class Gate {
         myPath = constructPath();
       }
       if (transformedPath == null) {
+      	System.err.println("Error - nullifying transformedPath");
         transformedPath = transformPath(dataLoader);
         prepGating(dataLoader);
       }
@@ -513,6 +538,9 @@ public abstract class Gate {
       AxisTransform xTr, yTr;
       xTr = dataLoader.getParamTransform(getXDimension().paramName);
       yTr = dataLoader.getParamTransform(getYDimension().paramName);
+      boolean xT, yT;
+      xT = dataLoader.getScaleForParam(getXDimension().paramName) == AXIS_SCALE.BIEX;
+      yT = dataLoader.getScaleForParam(getYDimension().paramName) == AXIS_SCALE.BIEX;
       for (int i = 0; i < dataLoader.getCount(); i++) {
         if (parentGate != null && !includes[i]) {
           continue;
@@ -522,6 +550,12 @@ public abstract class Gate {
           double x, y;
           x = xTr.scaleX(paramData[0][i]);
           y = yTr.scaleY(paramData[1][i]);
+          if (xT) {
+          	x = x * 512 - 256;
+          }
+          if (yT) {
+          	y = y * 512 - 256;
+          }
           for (Rectangle rect : myRects) {
             if (rect.contains(x, y)) {
               include = true;
@@ -551,15 +585,38 @@ public abstract class Gate {
       yTr = dataLoader.getParamTransform(getYDimension().paramName);
       
       ArrayList<Rectangle> vertexRects = new ArrayList<Rectangle>();
+    	ArrayList<Rectangle> rects = null;
+    	Rectangle[][] rectsArray = null;
+    	if (xT && yT) {
+    		rects = rectsXtYt;
+    		rectsArray = rectsXtYt_arr;
+    	} else if (xT && !yT) {
+    		rects = rectsXtY;
+    		rectsArray = rectsXtY_arr;
+    	} else if (!xT && yT) {
+    		rects = rectsXYt;
+    		rectsArray = rectsXYt_arr;
+    	} else if (!xT && !yT) {
+    		rects = rectsXY;
+    		rectsArray = rectsXY_arr;
+    	}
       double[] coords = new double[6];
       PathIterator pi = transformedPath.getPathIterator(null);
+      double xV, yV;
       int xInd, yInd;
       while(!pi.isDone()) {
         int type = pi.currentSegment(coords);
         if (type != PathIterator.SEG_CLOSE) {
-          xInd = (int) ((xTr.inverseX(coords[0]) / binStep) + gateResolution);
-          yInd = (int) ((yTr.inverseY(coords[1]) / binStep) + gateResolution);
-          vertexRects.add(rectArray[xInd][yInd]);
+//        	xV = xT ? ((coords[0]) * 512) - 256 : coords[0];
+//        	yV = yT ? ((coords[1]) * 512) - 256 : coords[1];
+//        	for (Rectangle rect : rects) {
+//        		if (rect.contains(xV, yV)) {
+//        			vertexRects.add(rect);
+//        		}
+//        	}
+	      	xInd = (int) (xT ? ((coords[0]) * 512) : ((coords[0] / binStep) + gateResolution));
+	      	yInd = (int) (yT ? ((coords[1]) * 512) : ((coords[1] / binStep) + gateResolution));
+          vertexRects.add(rectsArray[xInd][yInd]);
         }
         pi.next();
       }
@@ -624,14 +681,11 @@ public abstract class Gate {
       }
       path.closePath();
       
+      
       myRects.clear();
-      for (int i = 0; i < rectArray.length; i++) {
-        for (int j = 0; j < rectArray[i].length; j++) {
-          Rectangle rect = rectArray[i][j];
-          if (vertexRects.contains(rect) || path.contains(rect)
-              || (path.intersects(rect) && path.contains(rect.getCenterX(), rect.getCenterY()))) {
-            myRects.add(rect);
-          }
+      for (Rectangle rect : rects) {
+        if (vertexRects.contains(rect) || path.contains(rect) || (path.intersects(rect) && path.contains(rect.getCenterX(), rect.getCenterY()))) {
+          myRects.add(rect);
         }
       }
     }
@@ -642,12 +696,7 @@ public abstract class Gate {
       }
       gateResolution = res;
       binStep = range / gateResolution;
-      if (res == DEFAULT_GATE_RESOLUTION) {
-//        rects = DEFAULT_RECTS;
-//      } else {
-//        rects = prepRects();
-        setupRects();
-      }
+      prepAllRects();
     }
 
     public void addVertex(Double fX, Double fY) {
@@ -660,9 +709,6 @@ public abstract class Gate {
     public void transform(AffineTransform at) {
       myPath.transform(at);
       resetVertices();
-//      if (mimicFlowJo) {
-//        prepGating();
-//      }
       parentGating = null;
       transformedPath = null;
     }

@@ -36,6 +36,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Numbers;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
+import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
 import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
@@ -62,6 +63,22 @@ public class WSPLoader {
     {"panel 1", "p1"},
     {"panel 2", "p2"},
   };
+  
+  private void updateGateParams(FCSDataLoader dataLoader, ArrayList<Gate> gates) {
+  	for (Gate g : gates) {
+  		String p = g.getXDimension().paramName;
+  		String d = dataLoader.getInternalParamName(p);
+  		if (!p.equals(d)) {
+  			g.getXDimension().paramName = d;
+  		}
+  		p = g.getYDimension().paramName;
+  		d = dataLoader.getInternalParamName(p);
+  		if (!p.equals(d)) {
+  			g.getYDimension().paramName = d;
+  		}
+  		updateGateParams(dataLoader, g.children);
+  	}
+  }
   
   public <T extends SampleProcessor> void load(String file, Class<T> processorClass) throws ParserConfigurationException, SAXException, IOException {
     long t1 = System.currentTimeMillis();
@@ -105,6 +122,8 @@ public class WSPLoader {
     panel1IDs = panel1 != null ? loadSampleList(panel1) : new ArrayList<String>();
     panel2IDs = panel2 != null ? loadSampleList(panel2) : new ArrayList<String>();
 
+    ArrayList<SampleNode> allSamples = new ArrayList<>();
+    
     NodeList samples = doc.getElementsByTagName("Sample");
 
     String s = ext.getTimeElapsed(t1);
@@ -116,7 +135,7 @@ public class WSPLoader {
       String fcsFile = ((Element) e.getElementsByTagName("DataSet").item(0)).getAttribute("uri");
       
       Element transforms = ((Element) e.getElementsByTagName("Transformations").item(0));
-      parseTransforms(transforms);
+      HashMap<String, AxisTransform> transformMap = parseTransforms(transforms);
       
       Element sampleNode = (Element) e.getElementsByTagName("SampleNode").item(0);
       String id = sampleNode.getAttribute("sampleID");
@@ -133,7 +152,6 @@ public class WSPLoader {
         System.err.println("Error - " + e2.getMessage());
         sn.fcsFile = fcsFile;
       }
-      System.out.println("DECODED: " + sn.fcsFile);
       sn.sampleNode = sampleNode;
       sn.doc = doc;
       Gating gs = new Gating();
@@ -146,12 +164,15 @@ public class WSPLoader {
           gs.allNames.add(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
       }
       sn.gating = gs;
+      sn.savedTransforms = transformMap;
+      
       if (panel1IDs.contains(id)) {
         panel1Nodes.put(id, sn);
       }
       if (panel2IDs.contains(id)) {
         panel2Nodes.put(id, sn);
       }
+      allSamples.add(sn);
     }
     
     s = ext.getTimeElapsed(t1);
@@ -162,14 +183,19 @@ public class WSPLoader {
     final ThreadPoolExecutor threadPool = new ThreadPoolExecutor(proc, proc, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
     final ConcurrentLinkedQueue<SampleNode> queue = new ConcurrentLinkedQueue<SampleNode>();
     
-    for (final String s1 : panel1IDs) {
-      final SampleNode sn = panel1Nodes.get(s1);
-      if (Files.exists(sn.fcsFile)) {
-        queue.add(sn);
-      } else {
-        System.err.println("Error - file not found: " + sn.fcsFile);
-      }
+    for (SampleNode sn : allSamples) {
+    	if (Files.exists(sn.fcsFile)) {
+    		queue.add(sn);
+    	}
     }
+//    for (final String s1 : panel1IDs) {
+//      final SampleNode sn = panel1Nodes.get(s1);
+//      if (Files.exists(sn.fcsFile)) {
+//        queue.add(sn);
+//      } else {
+//        System.err.println("Error - file not found: " + sn.fcsFile);
+//      }
+//    }
     new Thread(new Runnable() {
       @Override
       public void run() {
@@ -238,38 +264,49 @@ public class WSPLoader {
     System.out.println("Total: " + ext.getTimeElapsed(t2));
   }
   
-  private void parseTransforms(Element transforms) {
+  private HashMap<String, AxisTransform> parseTransforms(Element transforms) {
+  	HashMap<String, AxisTransform> map = new HashMap<>();
     NodeList nList = transforms.getChildNodes();
     for (int i = 0, count = nList.getLength(); i < count; i++) {
       Node n = nList.item(i);
       if (!n.getNodeName().startsWith("transforms:")) continue; 
       
       String param = ((Element) ((Element) n).getElementsByTagName("data-type:parameter").item(0)).getAttribute("data-type:name");
+      AxisTransform at = null;
       if (n.getNodeName().endsWith("linear")) {
         String min = ((Element) n).getAttribute("transforms:minRange");
         String max = ((Element) n).getAttribute("transforms:maxRange");
         String gain = ((Element) n).getAttribute("gain");
-//        System.out.println();
+        double m1, m2, g;
+        m1 = Double.parseDouble(min);
+        m2 = Double.parseDouble(max);
+        g = Double.parseDouble(gain);
+        at = AxisTransform.createLinearTransform(m1, m2, g);
       } else if (n.getNodeName().endsWith("biex")) {
         String len = ((Element) n).getAttribute("transforms:length");
         String rng = ((Element) n).getAttribute("transforms:maxRange");
         String neg = ((Element) n).getAttribute("transforms:neg");
         String wid = ((Element) n).getAttribute("transforms:width");
         String pos = ((Element) n).getAttribute("transforms:pos");
-//        System.out.println();
+        double T = Double.parseDouble(rng);
+        double W = Math.log10(Math.abs(Double.parseDouble(wid)));
+        double M = Double.parseDouble(pos);
+        double A = Double.parseDouble(neg);
+        at = AxisTransform.createBiexTransform(T, W, M, A);
       } else if (n.getNodeName().endsWith("log")) {
         ((Element) n).getAttribute("transforms:offset");
         ((Element) n).getAttribute("transforms:decades");
-//        System.out.println();
+        // TODO log scale
+        at = AxisTransform.createBiexTransform();
       }
+      map.put(param, at);
     }
+    return map;
   }
 
   abstract class SampleProcessor {
     public abstract void processSample(SampleNode sn) throws IOException;
   }
-  
-  
   
   abstract class AbstractSampleProcessor extends SampleProcessor {
     NodeList popList;
@@ -302,14 +339,15 @@ public class WSPLoader {
         }
       }
       (new Logger()).reportTimeElapsed("Loaded FCS ... ", t1);
+      d.setTransformMap(sn.savedTransforms);
+      updateGateParams(d, sn.gating.gateRoots);
+      sn.gating.paramGateMap = GateFileUtils.parameterizeGates(sn.gating.gateMap);
     }
     
   }
   
   class DataDumper extends AbstractSampleProcessor {
-    public DataDumper() {
-      // TODO Auto-generated constructor stub
-    }
+    public DataDumper() { /* TODO Auto-generated constructor stub */ }
     @Override
     public void processSample(SampleNode sn) throws IOException {
       loadData(sn);
@@ -319,11 +357,12 @@ public class WSPLoader {
         System.out.println(param + " min: " + mm[0] + "; max: " + mm[1]);
       }
     }
-    
   }
   
   class LeafDataExporter extends AbstractSampleProcessor {
-
+		public LeafDataExporter() {
+			// TODO Auto-generated constructor stub
+		}
     private static final int SAMPLE_SIZE = 1000;
     
     public void processSample(SampleNode sn) throws IOException {
@@ -344,7 +383,7 @@ public class WSPLoader {
       String outputFileRoot = ext.verifyDirFormat(ext.parseDirectoryOfFile(sn.fcsFile)) + "sampling/" + ext.rootOf(sn.fcsFile, true) + "_";
       System.out.println("Exporting data for " + map.size() + " gates : " + params.toString());
       for (Gate g : map) {
-        String outputFile = outputFileRoot + g.getID() + "_" + g.getXDimension().paramName + "_" + g.getYDimension().paramName + ".xln";
+        String outputFile = outputFileRoot + ext.replaceWithLinuxSafeCharacters(g.getID() + "_" + g.getXDimension().paramName + "_" + g.getYDimension().paramName + ".xln", false);
         System.out.println("... to file " + outputFile);
         PrintWriter writer = Files.getAppropriateWriter(outputFile);
         for (int i = 0; i < params.size(); i++) {
@@ -501,38 +540,11 @@ public class WSPLoader {
   
   public static void main(String[] args) {
     
-    boolean test = false ;
-    if (test) {
-      
-      int len = 256; // always 
-      double rng = 262144; // usual
-      double wid = -100;
-      double neg = 0; // 0 to 1
-      
-      double min = -1622.427;
-      double minScaled = 0.2700580836366186;
-      double minLog10 = 3.21016516512701;
-      
-      double zeroScaledDefaults = 0.3691031216541514;
-      double zeroInverseDefaults = -14160.344323553594;
-      
-      
-      double T = rng;
-      double W = Math.log10(Math.abs(wid));
-      double M = Math.log10(T);
-      double A = Math.min(neg, 1);
-      Logicle l = new Logicle(T, W, M, A);
-      
-      
-      
-      return;
-    }
-    
     
     try {
 //      new WSPLoader().load("F:/Flow/713-715.wsp", AbstractSampleProcessor.class);
-//      new WSPLoader().load("F:/Flow/controlFCS/10-Aug-2016 ctl B.wsp", LeafDataExporter.class);
-      new WSPLoader().load("F:/Flow/controlFCS/10-Aug-2016 ctl B.wsp", DataDumper.class);
+      new WSPLoader().load("F:/Flow/controlFCS/07-Nov-2016.wsp", LeafDataExporter.class);
+//      new WSPLoader().load("F:/Flow/controlFCS/10-Aug-2016 ctl B.wsp", DataDumper.class);
       
     } catch (ParserConfigurationException e) {
       // TODO Auto-generated catch block

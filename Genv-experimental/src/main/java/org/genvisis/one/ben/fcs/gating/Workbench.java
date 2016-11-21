@@ -9,6 +9,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 
 import org.genvisis.common.ext;
+import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 
 public class Workbench {
   
@@ -16,6 +17,7 @@ public class Workbench {
     String id;
     String fcsFile;
     Gating gating;
+    HashMap<String, AxisTransform> savedTransforms;
     org.w3c.dom.Element sampleNode;
     org.w3c.dom.Document doc;
     

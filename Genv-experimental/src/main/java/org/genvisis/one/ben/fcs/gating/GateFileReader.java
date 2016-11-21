@@ -11,6 +11,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.gating.Gate.BooleanGate;
 import org.genvisis.one.ben.fcs.gating.Gate.EllipsoidGate;
@@ -154,10 +155,9 @@ public class GateFileReader {
       gs.allNames.add(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
     }
 
-
     return gs;
   }
-
+  
   private static HashMap<String, ArrayList<Gate>> parameterizeGates(HashMap<String, Gate> gateMap) {
     HashMap<String, ArrayList<Gate>> paramGates = new HashMap<String, ArrayList<Gate>>();
     for (Gate g : gateMap.values()) {
