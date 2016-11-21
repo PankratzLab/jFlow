@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -392,7 +393,7 @@ public class DBGAPMerge {
 		}
 
 		public static void fromParameters(String filename, Logger log) {
-			Vector<String> params;
+			List<String> params;
 			String[] args;
 
 			params = Files.parseControlFile(filename, "dbgap",
@@ -533,7 +534,7 @@ public class DBGAPMerge {
 		}
 
 		public static void fromParameters(String filename, Logger log) {
-			Vector<String> params;
+			List<String> params;
 			String[] line, args;
 			String mapFile;
 			StringBuilder sb;

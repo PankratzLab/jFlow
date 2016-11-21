@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -2174,7 +2175,7 @@ public class FilterCalls {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 		String problematicRegionsLocation = "";
 
 		problematicRegionsLocation = Aliases.getPathToFileInReferenceDirectory(	"problematicRegions_hg19.dat",

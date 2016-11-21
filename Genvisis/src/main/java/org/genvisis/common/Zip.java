@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 import java.util.zip.GZIPInputStream;
@@ -385,7 +386,7 @@ public class Zip {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 		String[] files;
 		int minutesToSleep;
 		long time;
@@ -411,9 +412,9 @@ public class Zip {
 		if (params != null) {
 			try {
 				for (int i = 0; i < params.size(); i++) {
-					filename = params.elementAt(i);
+					filename = params.get(i);
 					if (filename.startsWith("delay_in_minutes=")) {
-						minutesToSleep = ext.parseIntArg(params.elementAt(i));
+						minutesToSleep = ext.parseIntArg(params.get(i));
 						log.report("Going to sleep for "
 												+ ext.getTimeElapsed(new Date().getTime() - minutesToSleep * 60 * 1000));
 						try {
@@ -421,7 +422,7 @@ public class Zip {
 						} catch (InterruptedException ie) {
 						}
 					} else if (filename.startsWith("outputDirectory=")) {
-						outputDirectory = ext.parseStringArg(params.elementAt(i), "");
+						outputDirectory = ext.parseStringArg(params.get(i), "");
 						log.report("Setting output directory to " + outputDirectory);
 						if (!Files.isDirectory(outputDirectory)) {
 							log.report("Output directory does not exist; attempting to create...");
@@ -432,7 +433,7 @@ public class Zip {
 							}
 						}
 					} else if (filename.startsWith("retainTimestamp=")) {
-						retainOriginalTimestamp = ext.parseBooleanArg(params.elementAt(i));
+						retainOriginalTimestamp = ext.parseBooleanArg(params.get(i));
 						log.report("The timestamp from the original file will "
 												+ (retainOriginalTimestamp ? "" : "NOT ") + "be retained");
 					} else if (Files.exists(filename)) {

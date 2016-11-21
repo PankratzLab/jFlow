@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -146,7 +147,7 @@ public class DumpSAS {
 				header = Files.getHeaderOfFile(dir + db.toLowerCase() + ".xln", "\t", log);
 				v = hash.get(db);
 				vars = Array.toStringArray(v);
-				v.insertElementAt("CAReID", 0);
+				v.add(0, "CAReID");
 				// v.insertElementAt("ID", 0);
 				indices = ext.indexFactors(Array.toStringArray(v), header, false, true);
 				writer.println("\t" + Array.toStr(Array.subArray(header, indices)));
@@ -415,7 +416,7 @@ public class DumpSAS {
 		String[] line;
 		Hashtable<String, Hashtable<String, String>> hashes;
 		Hashtable<String, String> hash, forcedIDs, masterIDs;
-		Vector<String> params, files, ids;
+		List<String> params, files, ids;
 		boolean error, foundAnID;
 		String file;
 		String[] keys, header;
@@ -455,7 +456,7 @@ public class DumpSAS {
 			hashes = new Hashtable<String, Hashtable<String, String>>();
 			files = new Vector<String>();
 			for (int i = 0; i < params.size(); i++) {
-				line = params.elementAt(i).trim().split("\t");
+				line = params.get(i).trim().split("\t");
 				if (line[0].equals("")) {
 					line[0] = ".";
 				}
@@ -486,7 +487,7 @@ public class DumpSAS {
 				writer.println(idfile + " head=IID out=" + outfile);
 				masterIDs = new Hashtable<String, String>();
 				for (int i = 0; i < files.size(); i++) {
-					file = files.elementAt(i);
+					file = files.get(i);
 					header = Files.getHeaderOfFile(rootDir + file, log);
 					writer.print(rootDir + file);
 					if (forcedIDs.containsKey(file)) {
@@ -515,7 +516,7 @@ public class DumpSAS {
 									log.reportError("More than one \"valid\" ID available for file '"	+ file
 																	+ "'; only the first will be used");
 								} else {
-									writer.print(" '" + ids.elementAt(j) + "'");
+									writer.print(" '" + ids.get(j) + "'");
 									foundAnID = true;
 									keys = Array.toStringArray(HashVec.loadFileToVec(rootDir	+ file, true,
 																																		new int[] {indices[j]}, false,

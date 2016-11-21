@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
@@ -318,7 +319,7 @@ public class Heritability {
 		PrintWriter writer, summary;
 		String[] line;
 		Hashtable<String, String> famIdHash;
-		Vector<String> params;
+		List<String> params;
 		Vector<String[]> models;
 		String pedigreeFile, dbFile;
 		String merlinExec, solarExec;
@@ -357,7 +358,7 @@ public class Heritability {
 			merlinExec = DEFAULT_MERLIN_EXEC;
 			solarExec = DEFAULT_SOLAR_EXEC;
 			for (int i = 0; i < params.size(); i++) {
-				temp = params.elementAt(i);
+				temp = params.get(i);
 
 				if (temp.startsWith("ped=")) {
 					pedigreeFile = ext.parseStringArg(temp, "failed_to_define_pedigree_file");

@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Aliases;
@@ -358,7 +359,7 @@ public class MapSNPsAndGenes {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 
 		String snpEffLoc = Aliases.getPathToFileInReferenceDirectory(	SNPEFF.SNP_EFF, true,
 																																	new Logger());

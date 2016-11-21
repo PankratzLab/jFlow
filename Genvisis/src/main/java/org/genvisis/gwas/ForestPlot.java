@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -28,7 +29,7 @@ public class ForestPlot {
 		String datafile = "hits.txt";
 		String markerListFile = null;
 		String studyListFile = null;
-		Vector<String> params;
+		List<String> params;
 		boolean studyFirst = false;
 		boolean convertToLog = false;
 
@@ -44,9 +45,9 @@ public class ForestPlot {
 																									"convertToLog=true"},
 																		log);
 		if (params != null) {
-			datafile = params.elementAt(0).trim();
+			datafile = params.get(0).trim();
 			for (int i = 1; i < params.size(); i++) {
-				trav = params.elementAt(i).trim();
+				trav = params.get(i).trim();
 				if (trav.startsWith("targets=")) {
 					markerListFile = ext.parseStringArg(trav, null);
 				} else if (trav.startsWith("order=")) {

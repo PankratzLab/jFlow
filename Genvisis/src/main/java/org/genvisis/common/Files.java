@@ -1048,25 +1048,25 @@ public class Files {
 	}
 
 	public static void mergeFromParameters(String filename, Logger log) {
-		Vector<String> paramV;
+		List<String> params;
 		String file1, file2, mergedFile;
 		int lookup1, lookup2;
 		int[] indices1, indices2;
 		boolean keepRowsUniqueToFile1, keepRowsUniqueToFile2;
 
-		paramV = Files.parseControlFile(filename, "merge",
+		params = Files.parseControlFile(filename, "merge",
 																		new String[] {"sourcefile.txt numFiles=6 sizeOfHeader=1 blockSize=1 root=list ext=.dat"},
 																		log);
-		if (paramV != null) {
-			file1 = paramV.elementAt(0);
-			lookup1 = Integer.parseInt(paramV.elementAt(1));
-			indices1 = Array.toIntArray(paramV.elementAt(2).split("[\\s]+"));
-			keepRowsUniqueToFile1 = paramV.elementAt(3).trim().toLowerCase().equals("true");
-			file2 = paramV.elementAt(4);
-			lookup2 = Integer.parseInt(paramV.elementAt(5));
-			indices2 = Array.toIntArray(paramV.elementAt(6).split("[\\s]+"));
-			keepRowsUniqueToFile2 = paramV.elementAt(7).trim().toLowerCase().equals("true");
-			mergedFile = paramV.elementAt(8);
+		if (params != null) {
+			file1 = params.get(0);
+			lookup1 = Integer.parseInt(params.get(1));
+			indices1 = Array.toIntArray(params.get(2).split("[\\s]+"));
+			keepRowsUniqueToFile1 = params.get(3).trim().toLowerCase().equals("true");
+			file2 = params.get(4);
+			lookup2 = Integer.parseInt(params.get(5));
+			indices2 = Array.toIntArray(params.get(6).split("[\\s]+"));
+			keepRowsUniqueToFile2 = params.get(7).trim().toLowerCase().equals("true");
+			mergedFile = params.get(8);
 
 			try {
 				Files.merge(file1, lookup1, indices1, keepRowsUniqueToFile1, file2, lookup2, indices2,
@@ -1155,27 +1155,27 @@ public class Files {
 	}
 
 	public static void mergeSNPlistsFromParameters(String filename, Logger log) {
-		Vector<String> paramV;
+		List<String> params;
 		String file1, file2, mergedFile;
 		int lookup1, lookup2;
 		int[] indices1;
 		boolean keepRowsUniqueToFile1, keepRowsUniqueToFile2;
 
-		paramV = Files.parseControlFile(filename, "merge",
+		params = Files.parseControlFile(filename, "merge",
 																		new String[] {"sourcefile.txt numFiles=6 sizeOfHeader=1 blockSize=1 root=list ext=.dat"},
 																		log);
-		if (paramV != null) {
-			file1 = paramV.elementAt(0);
-			lookup1 = Integer.parseInt(paramV.elementAt(1));
-			indices1 = Array.toIntArray(paramV.elementAt(2).split("[\\s]+"));
-			keepRowsUniqueToFile1 = paramV.elementAt(3).trim().toLowerCase().equals("true");
-			file2 = paramV.elementAt(4);
-			lookup2 = Integer.parseInt(paramV.elementAt(5));
-			if (!paramV.elementAt(6).equals(lookup2 + "")) {
+		if (params != null) {
+			file1 = params.get(0);
+			lookup1 = Integer.parseInt(params.get(1));
+			indices1 = Array.toIntArray(params.get(2).split("[\\s]+"));
+			keepRowsUniqueToFile1 = params.get(3).trim().toLowerCase().equals("true");
+			file2 = params.get(4);
+			lookup2 = Integer.parseInt(params.get(5));
+			if (!params.get(6).equals(lookup2 + "")) {
 				log.reportError("FYI - ignoring other indices for file2; with mergeSNPs, only presence is kept");
 			}
-			keepRowsUniqueToFile2 = paramV.elementAt(7).trim().toLowerCase().equals("true");
-			mergedFile = paramV.elementAt(8);
+			keepRowsUniqueToFile2 = params.get(7).trim().toLowerCase().equals("true");
+			mergedFile = params.get(8);
 
 			try {
 				Files.mergeSNPLists(file1, lookup1, indices1, keepRowsUniqueToFile1, file2, lookup2,
@@ -2161,7 +2161,7 @@ public class Files {
 	}
 
 	public static void transposeFromParameters(String filename, Logger log) {
-		Vector<String> paramV;
+		List<String> params;
 		String infile, outfile;
 		String[] line;
 		boolean huge;
@@ -2169,12 +2169,12 @@ public class Files {
 		long memoryAvailable, filesize;
 		int colCount, suggestedStep;
 
-		paramV = Files.parseControlFile(filename, "transpose",
+		params = Files.parseControlFile(filename, "transpose",
 																		new String[] {"sourcefile.txt out=newfile.txt forceHuge=false forceStep=-1",
 																									"# (step is only used for huge"},
 																		log);
-		if (paramV != null) {
-			line = paramV.remove(0).trim().split("[\\s]+");
+		if (params != null) {
+			line = params.remove(0).trim().split("[\\s]+");
 
 			huge = false;
 			infile = line[0];
@@ -2779,7 +2779,7 @@ public class Files {
 	}
 
 	public static void catFilesFromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 		String[] line, files;
 		int[] skips;
 		String out;
@@ -2805,7 +2805,7 @@ public class Files {
 			files = new String[params.size()];
 			skips = Array.intArray(params.size(), 0);
 			for (int i = 0; i < files.length; i++) {
-				line = params.elementAt(i).trim().split("[\\s]+");
+				line = params.get(i).trim().split("[\\s]+");
 				files[i] = line[0];
 				for (int j = 1; j < line.length; j++) {
 					if (line[j].startsWith("skip=")) {
@@ -2818,7 +2818,7 @@ public class Files {
 	}
 
 	public static void renameFilesFromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 		String[] line, files;
 		String[][] matchingFilenames;
 		boolean problem;
@@ -2833,7 +2833,7 @@ public class Files {
 			matchingFilenames = new String[params.size()][2];
 			problem = false;
 			for (int i = 0; i < matchingFilenames.length; i++) {
-				line = params.elementAt(i).trim().split("\t", -1);
+				line = params.get(i).trim().split("\t", -1);
 				if (line.length != 2) {
 					log.reportError("Error - skipping this line, invalid number of arguments (needs to be tab delimited): "
 													+ Array.toStr(line, "/"));
@@ -2932,7 +2932,7 @@ public class Files {
 	}
 
 	public static void renameFilesUsingSubstitutionsFromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 		String[] line, dirs, filenames, newFilenames;
 		String[][] substitutions;
 		boolean echo, extract;
@@ -2956,7 +2956,7 @@ public class Files {
 			substitutions = new String[params.size()][];
 			count = 0;
 			while (count < params.size()) {
-				line = params.elementAt(count).trim().split("\t", -1);
+				line = params.get(count).trim().split("\t", -1);
 				if (line[0].startsWith("echo=")) {
 					echo = ext.parseBooleanArg(line[0]);
 					params.remove(count);
@@ -3714,22 +3714,22 @@ public class Files {
 
 	public static String[][] parseControlFile(String filename, boolean tab, String command,
 																						String[] sampleCode, Logger log) {
-		Vector<String> v;
+		List<String> list;
 
-		v = parseControlFile(filename, command, sampleCode, log);
-		if (v == null) {
+		list = parseControlFile(filename, command, sampleCode, log);
+		if (list == null) {
 			return null;
 		} else {
-			return Array.splitStrings(Array.toStringArray(v), tab);
+			return Array.splitStrings(Array.toStringArray(list), tab);
 		}
 	}
 
-	public static Vector<String> parseControlFile(String filename, String command,
+	public static List<String> parseControlFile(String filename, String command,
 																								String[] sampleCode, Logger log) {
 		return parseControlFile(filename, command, Arrays.asList(sampleCode), log);
 	}
 
-	public static Vector<String> parseControlFile(String filename, String command,
+	public static List<String> parseControlFile(String filename, String command,
 																								List<String> sampleCode, Logger log) {
 		List<String> outputCode = Lists.newArrayList(sampleCode);
 		outputCode.add(0, command);
@@ -3752,7 +3752,7 @@ public class Files {
 				Files.writeIterable(outputCode, filename);
 				return null;
 			} else {
-				Vector<String> ret = new Vector<String>();
+				List<String> ret = Lists.newArrayList();
 				while (reader.ready()) {
 					String temp = reader.readLine();
 					if (!temp.startsWith("#") && !temp.trim().split("[\\s]+")[0].equals("")) {
@@ -4170,7 +4170,7 @@ public class Files {
 	}
 
 	public static void replaceAllFromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 
 		params = Files.parseControlFile(filename, "replaceAll",
 																		new String[] {"file=input.txt.gz", "out=outputFile.txt.gz",

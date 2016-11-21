@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -31,22 +32,22 @@ public class FilterSNPsByRegion {
 		int snpCol, chrCol, startCol, stopCol, posCol;
 		boolean passes;
 		int buffer;
-		Vector<String> paramV;
+		List<String> params;
 		boolean header, ucsc, regionNumber;
 		int regionNameIndex;
 
 		buffer = -1;
 
-		paramV = Files.parseControlFile(filename, "filterSNPs",
+		params = Files.parseControlFile(filename, "filterSNPs",
 																		new String[] {"regions.txt header 0 1 2 ucsc out=file.out regionNumber regionName=3",
 																									"plink.bim 1 0 3", "additonalAnnotation 0 5 6",
 																									"buffer=" + DEFAULT_BUFFER},
 																		log);
-		if (paramV == null) {
+		if (params == null) {
 			return;
 		}
 
-		line = paramV.remove(0).trim().split("[\\s]+");
+		line = params.remove(0).trim().split("[\\s]+");
 		regionsFile = line[0];
 		chrCol = startCol = stopCol = -1;
 		header = false;
@@ -99,16 +100,16 @@ public class FilterSNPsByRegion {
 		}
 
 		log.report("Looking up SNPs within these regions...");
-		line = paramV.remove(0).trim().split("[\\s]+");
+		line = params.remove(0).trim().split("[\\s]+");
 		lookupFile = line[0];
 		snpCol = Integer.parseInt(line[1]);
 		chrCol = Positions.chromosomeNumber(line[2]);
 		posCol = Integer.parseInt(line[3]);
 
-		for (int i = 0; i < paramV.size(); i++) {
-			if (paramV.elementAt(i).startsWith("buffer=")) {
-				buffer = Integer.parseInt(paramV.elementAt(i).split("=")[1]);
-				paramV.removeElementAt(i);
+		for (int i = 0; i < params.size(); i++) {
+			if (params.get(i).startsWith("buffer=")) {
+				buffer = Integer.parseInt(params.get(i).split("=")[1]);
+				params.remove(i);
 				i--;
 			}
 		}
@@ -156,11 +157,11 @@ public class FilterSNPsByRegion {
 
 		if (regionNumber) {
 			Files.writeArray(Array.toStringArray(snpsWithRegionNumbers), "snp_region_matchup.dat");
-			paramV.add("snp_region_matchup.dat 0 1=RegionNumber"
+			params.add("snp_region_matchup.dat 0 1=RegionNumber"
 									+ (regionNameIndex >= 0 ? "\t2=RegionName" : ""));
 		}
 
-		Files.combine(Array.toStringArray(snps), Array.toStringArray(paramV), "MarkerName",
+		Files.combine(Array.toStringArray(snps), Array.toStringArray(params), "MarkerName",
 									outputFilename, log, true);
 	}
 }

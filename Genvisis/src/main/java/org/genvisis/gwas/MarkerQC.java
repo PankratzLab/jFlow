@@ -454,7 +454,7 @@ public class MarkerQC {
 		Vector<String[]> v;
 		String key;
 		String[] file, markers;
-		Vector<String> paramV;
+		List<String> params;
 		String dir;
 
 		dir = "";
@@ -465,13 +465,13 @@ public class MarkerQC {
 		for (METRIC metric : metrics) {
 			sampleCode.add(metric.getExample());
 		}
-		paramV = Files.parseControlFile(filename, "miss", sampleCode.toArray(new String[sampleCode.size()]), log);
-		if (paramV != null) {
+		params = Files.parseControlFile(filename, "miss", sampleCode.toArray(new String[sampleCode.size()]), log);
+		if (params != null) {
 			file = null;
 			markers = null;
 			v = new Vector<String[]>();
-			for (int i = 0; i < paramV.size(); i++) {
-				line = paramV.elementAt(i).trim().split("=");
+			for (int i = 0; i < params.size(); i++) {
+				line = params.get(i).trim().split("=");
 				key = line[0];
 				line = line[1].trim().split(",");
 				record = new String[line.length + 1];

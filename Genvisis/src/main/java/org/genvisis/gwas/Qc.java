@@ -2,6 +2,7 @@ package org.genvisis.gwas;
 
 import java.io.File;
 import java.util.Date;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -392,7 +393,7 @@ public class Qc {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 
 		params = Files.parseControlFile(filename, "gwas.Qc",
 																		new String[] {"dir=./",

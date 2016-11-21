@@ -933,7 +933,7 @@ public class cnvTrio extends CNVariant {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 		params = Files.parseControlFile(filename, CNVTrioFilter.COMMAND_CNV_TRIO_CRF, getParserParams(),
 																		log);
 		if (params != null) {

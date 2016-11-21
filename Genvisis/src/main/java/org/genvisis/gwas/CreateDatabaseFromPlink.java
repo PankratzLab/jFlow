@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -631,7 +632,7 @@ public class CreateDatabaseFromPlink {
 	}
 
 	public static void gwafFromParamters(String filename, Logger log) {
-		Vector<String> params;
+		List<String> params;
 		String pedfile, mapfile, freqfile, rlinker, outfile;
 
 		params = Files.parseControlFile(filename, "gwaf",

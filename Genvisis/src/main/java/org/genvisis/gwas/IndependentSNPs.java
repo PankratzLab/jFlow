@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -216,7 +217,7 @@ public class IndependentSNPs {
 
 		superset = new String[iv.size()];
 		for (int j = 0; j < iv.size(); j++) {
-			superset[j] = markerNames[iv.elementAt(j)];
+			superset[j] = markerNames[iv.get(j)];
 		}
 		LDdatabase.multiUpdate(	lddbs, superset,
 														ext.replaceDirectoryCharsWithUnderscore(dir + filename, 2));
@@ -274,23 +275,23 @@ public class IndependentSNPs {
 			score = getScore(superset[j], scores, merges, missingIlluminaValues, log);
 			passes = false;
 			for (int i = 0; i < scoreThreshs.length; i++) {
-				if (score >= scoreThreshs[i] && pvalues[iv.elementAt(j)] < pThreshs[i]) {
+				if (score >= scoreThreshs[i] && pvalues[iv.get(j)] < pThreshs[i]) {
 					passes = true;
 				}
 			}
 			// if (directoryOfIlluminaScores == null || score > scoreThreshold) {
-			// if (scores.size() == 0 || score > scoreThreshold || (pvalues[iv.elementAt(j)] < 1E-4 &&
+			// if (scores.size() == 0 || score > scoreThreshold || (pvalues[iv.get(j)] < 1E-4 &&
 			// score > 0.4)) {
 			if (scores.size() == 0 || passes) {
 				trav = LDdatabase.multiHashCheck(chrHashes, superset[j], position_reportType, log);
 				if (trav == null) {
 					// log.reportError("Error - the chrHash derived from the marker file does not contain
-					// marker "+markerNames[ivs[i].elementAt(j)]);
+					// marker "+markerNames[ivs[i].get(j)]);
 					HashVec.addIfAbsent(superset[j], missingMarkers);
 					allMissingMarkers.put(superset[j], "");
-					chrIVs[0].add(iv.elementAt(j));
+					chrIVs[0].add(iv.get(j));
 				} else {
-					chrIVs[Byte.parseByte(trav.split("[\\s]+")[0])].add(iv.elementAt(j));
+					chrIVs[Byte.parseByte(trav.split("[\\s]+")[0])].add(iv.get(j));
 				}
 			}
 		}
@@ -301,9 +302,9 @@ public class IndependentSNPs {
 			positions = new int[chrIVs[chr].size()];
 			beforeIndicesVector = new IntVector();
 			for (int j = 0; j < positions.length; j++) {
-				subset[j] = markerNames[chrIVs[chr].elementAt(j)];
-				pvals[j] = pvalues[chrIVs[chr].elementAt(j)];
-				trav = LDdatabase.multiHashCheck(	chrHashes, markerNames[chrIVs[chr].elementAt(j)],
+				subset[j] = markerNames[chrIVs[chr].get(j)];
+				pvals[j] = pvalues[chrIVs[chr].get(j)];
+				trav = LDdatabase.multiHashCheck(	chrHashes, markerNames[chrIVs[chr].get(j)],
 																					position_reportType, log);
 				if (trav == null) {
 					positions[j] = j;
@@ -445,7 +446,7 @@ public class IndependentSNPs {
 			chrHash = SnpMarkerSet.loadSnpMarkerSetToChrHash(filteringDataset);
 			log.report("done");
 			for (int j = 0; j < tags.size(); j++) {
-				trav = tags.elementAt(j).split("[\\s]+")[0];
+				trav = tags.get(j).split("[\\s]+")[0];
 				if (!chrHash.containsKey(trav)) {
 					untaggedTags.add(trav + "\t1");
 				} else {
@@ -500,13 +501,13 @@ public class IndependentSNPs {
 
 		values = new double[tags.size()];
 		for (int i = 0; i < values.length; i++) {
-			values[i] = Double.parseDouble(tags.elementAt(i).split("[\\s]+")[2]);
+			values[i] = Double.parseDouble(tags.get(i).split("[\\s]+")[2]);
 		}
 		order = Sort.getSortedIndices(values);
 
 		finalList = new String[numSNPs];
 		for (int i = 0; i < numSNPs; i++) {
-			finalList[i] = tags.elementAt(order[i]);
+			finalList[i] = tags.get(order[i]);
 		}
 
 		return finalList;
@@ -706,7 +707,7 @@ public class IndependentSNPs {
 		int numSNPs = Integer.MAX_VALUE;
 		int position_reportType = DEFAULT_POSITION_REPORT_TYPE;
 		int r2_compType = DEFAULT_LD_COMPARISON_TYPE;
-		Vector<String> params;
+		List<String> params;
 
 		params = Files.parseControlFile(filename, "indep",
 																		new String[] {"resultsFile=hits.txt", "outputRoot=tags",
@@ -726,7 +727,7 @@ public class IndependentSNPs {
 																		log);
 		if (params != null) {
 			for (int i = 0; i < params.size(); i++) {
-				trav = params.elementAt(i).trim();
+				trav = params.get(i).trim();
 				if (trav.startsWith("resultsFile=")) {
 					resultsFile = ext.parseStringArg(trav, null);
 				} else if (trav.startsWith("outputRoot=")) {
