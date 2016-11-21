@@ -35,7 +35,11 @@ import com.google.common.collect.Maps;
 public class MarkerQC {
 	public static final String DEFAULT_FILENAME = "thresholds.properties";
 
-
+	public static final String DIR_KEY = "dir";
+	public static final String FILE_KEY = "file";
+	public static final String FILE_DEFAULT = "markerQC.xln";
+	public static final String MARKERS_KEY = "markers";
+	public static final String MARKERS_DEFAULT = "freq.frq";
 
 	public static final String[] FINAL_HEADER = {	"SNP", "CHR", "MAF", "F_MISS", "P", "HETERO p-value",
 																								"miss.hap min p-value", "P_MISS"};
@@ -454,12 +458,14 @@ public class MarkerQC {
 		String dir;
 
 		dir = "";
+		List<String> sampleCode = Lists.newArrayList();
+		sampleCode.add(generateExampleCode(FILE_KEY, FILE_DEFAULT));
+		sampleCode.add(generateExampleCode(MARKERS_KEY, MARKERS_DEFAULT));
 		METRIC[] metrics = METRIC.values();
-		String[] sampleCode = new String[metrics.length];
-		for (int i = 0; i < sampleCode.length; i++) {
-			sampleCode[i] = metrics[i].getExample();
+		for (METRIC metric : metrics) {
+			sampleCode.add(metric.getExample());
 		}
-		paramV = Files.parseControlFile(filename, "miss", sampleCode, log);
+		paramV = Files.parseControlFile(filename, "miss", sampleCode.toArray(new String[sampleCode.size()]), log);
 		if (paramV != null) {
 			file = null;
 			markers = null;
@@ -477,13 +483,13 @@ public class MarkerQC {
 					record[j + 1] = ext.replaceAllWith(record[j + 1], "QWERTY/", ":/");
 					record[j + 1] = ext.replaceAllWith(record[j + 1], "QWERTY", " ");
 				}
-				if (key.equals("file")) {
+				if (key.equals(FILE_KEY)) {
 					file = record;
 					file[0] = dir + file[0];
-				} else if (key.equals("dir")) {
+				} else if (key.equals(DIR_KEY)) {
 					dir = line[0];
 					System.out.println("Running out of: " + dir);
-				} else if (key.equals("markers")) {
+				} else if (key.equals(MARKERS_KEY)) {
 					if (record.length < 3) {
 						markers = new String[] {key, line[0], "0"};
 					} else {

@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -38,6 +39,8 @@ import java.util.zip.ZipOutputStream;
 import org.genvisis.filesys.SerialHash;
 import org.genvisis.parse.GenParser;
 
+import com.google.common.collect.Lists;
+import com.google.common.io.Closeables;
 import com.google.common.primitives.Ints;
 
 // class DeleteLater implements Runnable {
@@ -2280,14 +2283,14 @@ public class Files {
 	 *
 	 * @param filename the filename to search for
 	 * @param dirs the array of directories to search
-
+	 * 
 	 * @return String the full path to the file of interest if it exists in one of the directories,
 	 *         otherwise null
 	 */
 	public static String firstPathToFileThatExists(String filename, String... dirs) {
 		return firstPathToFileThatExists(dirs, filename, false, false, new Logger());
 	}
-	
+
 	/**
 	 * Searches all of the directories in the array to see if it contains the specified file
 	 *
@@ -3698,7 +3701,7 @@ public class Files {
 			}
 			reader.close();
 			log.reportError("Could not find the header containing "	+ Array.toStr(containing)
-													+ " in file " + filename);
+											+ " in file " + filename);
 			return null;
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: file \"" + filename + "\" not found in current directory");
@@ -3723,19 +3726,22 @@ public class Files {
 
 	public static Vector<String> parseControlFile(String filename, String command,
 																								String[] sampleCode, Logger log) {
-		BufferedReader reader;
-		Vector<String> v;
-		String[] line;
-		String temp;
+		return parseControlFile(filename, command, Arrays.asList(sampleCode), log);
+	}
+
+	public static Vector<String> parseControlFile(String filename, String command,
+																								List<String> sampleCode, Logger log) {
+		List<String> outputCode = Lists.newArrayList(sampleCode);
+		outputCode.add(0, command);
 
 		if (new File(filename).length() == 0) {
-			Files.writeArray(Array.addStrToArray(command, sampleCode, 0), filename);
+			Files.writeIterable(outputCode, filename);
 			return null;
 		}
-
+		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			line = reader.readLine().trim().split("[\\s]+");
+			String[] line = reader.readLine().trim().split("[\\s]+");
 			if (!line[0].equalsIgnoreCase(command)) {
 				log.reportError("Error - file must start with the line '" + command + "'");
 				reader.close();
@@ -3743,18 +3749,18 @@ public class Files {
 			}
 			if (!reader.ready()) {
 				reader.close();
-				Files.writeArray(Array.addStrToArray(command, sampleCode, 0), filename);
+				Files.writeIterable(outputCode, filename);
 				return null;
 			} else {
-				v = new Vector<String>();
+				Vector<String> ret = new Vector<String>();
 				while (reader.ready()) {
-					temp = reader.readLine();
+					String temp = reader.readLine();
 					if (!temp.startsWith("#") && !temp.trim().split("[\\s]+")[0].equals("")) {
-						v.add(temp);
+						ret.add(temp);
 					}
 				}
 				reader.close();
-				return v;
+				return ret;
 			}
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: file \"" + filename + "\" not found in current directory");
@@ -3764,6 +3770,8 @@ public class Files {
 			log.reportError("Error reading file \"" + filename + "\"");
 			log.reportException(ioe);
 			return null;
+		} finally {
+			Closeables.closeQuietly(reader);
 		}
 	}
 
