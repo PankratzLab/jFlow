@@ -559,11 +559,12 @@ public class ABLookup {
 		PrintWriter writer;
 		new File(ext.parseDirectoryOfFile(outfile)).mkdirs();
 		try {
-			writer = new PrintWriter(new FileWriter(outfile));
+			writer = Files.getAppropriateWriter(outfile);
 			writer.println(Joiner.on("\t").join(AB_LOOKUP_COLS));
 			for (int i = 0; i < markerNames.length; i++) {
 				writer.println(markerNames[i] + "\t" + lookup[i][0] + "\t" + lookup[i][1]);
 			}
+			writer.flush();
 			writer.close();
 		} catch (Exception e) {
 			log.reportError("Error writing to " + outfile);
