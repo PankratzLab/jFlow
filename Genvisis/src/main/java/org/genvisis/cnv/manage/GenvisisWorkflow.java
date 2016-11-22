@@ -919,7 +919,10 @@ public class GenvisisWorkflow {
 			List<String> commandPartial = Lists.newArrayList(baseCommand);
 			commandPartial.add(CLI.formCmdLineArg(ABLookup.ARGS_PARTAB, filename));
 			commandPartial.add(CLI.formCmdLineArg(ABLookup.ARGS_MAP, mapFile));
-
+			
+			List<String> commandProp = Lists.newArrayList(ImmutableList.of(Files.getRunString(), Project.class.getName(), CLI.formCmdLineArg(CLI.ARG_PROJ, projFile)));
+			commandProp.add(CLI.formCmdLineArg(proj.AB_LOOKUP_FILENAME.getName(), filename));
+			
 			List<String> commandApply = Lists.newArrayList(baseCommand);
 			commandApply.add(CLI.formCmdLineFlag(ABLookup.FLAGS_APPLYAB));
 
@@ -927,6 +930,7 @@ public class GenvisisWorkflow {
 
 			cmd.append(Joiner.on(" ").join(commandVcf)).append("\n");
 			cmd.append(Joiner.on(" ").join(commandPartial)).append("\n");
+			cmd.append(Joiner.on(" ").join(commandProp)).append("\n");
 			cmd.append(Joiner.on(" ").join(commandApply));
 
 			return cmd.toString();
