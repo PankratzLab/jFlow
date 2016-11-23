@@ -39,10 +39,12 @@ public class AddId {
 			if (".".equals(id)) {
 				id = new VCOps.LocusID(vc).getId();
 			} else {
-				id = id + "_" + new VCOps.LocusID(vc).getId();
+				id = id + "--" + new VCOps.LocusID(vc).getId();
 			}
 			VariantContextBuilder builder = new VariantContextBuilder(vc);
-			builder.id(id + "_" + VCOps.getAnnotationsFor(new String[] { "EFF" }, vc, ".")[0].split("\\(")[0]);
+
+			builder.id(id + "--" + VCOps.getAnnotationsFor(new String[] { "EFF" }, vc, ".")[0].split("\\(")[0]
+					+ "--PopFreqMax--" + VCOps.getAnnotationsFor(new String[] { "PopFreqMax" }, vc, ".")[0]);
 			writer.add(builder.make());
 		}
 		reader.close();
