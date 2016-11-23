@@ -1001,10 +1001,10 @@ public class PlinkData {
 		if (targetSamples == null) {
 			log.reportError("FAM file wasn't written properly.");
 			return false;
+		} else {
+			log.reportTime("Exporting data for " + targetSamples.length + " samples.");
 		}
-		proj.getProgressMonitor()
-		.beginIndeterminateTask(PROG_KEY, "Loading sample data",
-		                        ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Loading sample data", ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		allSamplesInProj = proj.getSamples();
 		indicesOfTargetSamplesInProj = getIndicesOfTargetSamplesInProj(	allSamplesInProj,
 		                                                               	targetSamples, log);
@@ -1025,12 +1025,14 @@ public class PlinkData {
 		posOfTargetMarkers = new HashMap<String, Integer>();
 		getIndicesOfTargetMarkers(proj, targetMarkers, indicesOfTargetMarkersInProj,
 															chrsOfTargetMarkers, posOfTargetMarkers, log);
+		log.reportTime("Exporting data for " + targetMarkers.length + " markers.");
 		proj.getProgressMonitor().endTask(PROG_KEY);
 
 
 		PSF.checkInterrupted();
 		if (gcThreshold < 0) {
 			gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
+			log.reportTime("GC Threshold is negative; setting GC threshold to value in project properties: {" + gcThreshold + "}");
 		}
 
 		proj.getProgressMonitor().beginIndeterminateTask(	PROG_KEY, "Creating .bed file",
