@@ -77,12 +77,61 @@ public class SampleData {
 		 * @param header
 		 */
 		public Individual(int[] indices, String[] sampleMapLine, String[] header) {
-			fid = sampleMapLine[indices[1]];
-			iid = sampleMapLine[indices[2]];
-			fa = "NA";
-			mo = "NA";
+			String tempF, tempI, tempD, tempP1, tempP2;
+			
+			tempF = sampleMapLine[indices[1]];
+			tempI = sampleMapLine[indices[2]];
+			tempP1 = sampleMapLine[indices[7]];
+			tempP2 = sampleMapLine[indices[8]];
+			tempD = sampleMapLine[indices[10]];
+
+			// set FID to FID, IID, DNA, INDEX, in that order by missingness
+			if ("".equals(tempF)) {
+				if ("".equals(tempI)) {
+					if ("".equals(tempD)) {
+						fid = sampleMapLine[indices[0]]; // INDEX
+					} else {
+						fid = tempD;
+					}
+				} else {
+					fid = tempI;
+				}
+			} else {
+				fid = tempF;
+			}
+			
+			// set IID to IID, FID, DNA, INDEX, in that order by missingness
+			if ("".equals(tempI)) {
+				if ("".equals(tempF)) {
+					if ("".equals(tempD)) {
+						iid = sampleMapLine[indices[0]]; // INDEX
+					} else {
+						iid = tempD;
+					}
+				} else {
+					iid = tempF;
+				}
+			} else {
+				iid = tempI;
+			}
+			
+			fa = "".equals(tempP1) ? "NA" : tempP1;
+			mo = "".equals(tempP2) ? "NA" : tempP2;
 			sex = indices[3] == -1 ? "NA" : parseSex(sampleMapLine[indices[3]]);
-			dna = sampleMapLine[indices[2]];
+			// set DNA to DNA, IID, FID, INDEX, in that order by missingness
+			if ("".equals(tempD)) {
+				if ("".equals(tempI)) {
+					if ("".equals(tempF)) {
+						dna = sampleMapLine[indices[0]]; // INDEX
+					} else {
+						dna = tempF;
+					}
+				} else {
+					dna = tempI;
+				}
+			} else {
+				dna = tempD;
+			}
 			aff = "NA";
 			sampleMapHeader = header;
 			this.sampleMapLine = sampleMapLine;
@@ -240,7 +289,6 @@ public class SampleData {
 		}
 
 		try {
-			// filename = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
 			filename = proj.SAMPLE_DATA_FILENAME.getValue();
 			if (!Files.exists(filename, proj.JAR_STATUS.getValue())) {
 				proj.message("SampleData file does not exist: " + filename);
@@ -252,8 +300,7 @@ public class SampleData {
 					proj.message("Generated a temporary sample data file at " + filename);
 				}
 			}
-			reader = Files.getReader(filename, proj.JAR_STATUS.getValue(), true, true); // to do, don't
-																																									// kill?
+			reader = Files.getReader(filename, proj.JAR_STATUS.getValue(), true, true);
 			header = reader.readLine().split("\t");
 			dnaIndex = ext.indexOfStr("DNA", header);
 			famIndex = ext.indexOfStr("FID", header);
@@ -486,7 +533,7 @@ public class SampleData {
 		if (indi == null) {
 			ids = lookup.get(id.toLowerCase());
 			if (ids != null) {
-				indi = sampleHash.get(ids[0]);
+				indi = sampleHash.get(ids[0].toLowerCase());
 			}
 		}
 
@@ -518,7 +565,7 @@ public class SampleData {
 		if (indi == null) {
 			ids = lookup.get(id.toLowerCase());
 			if (ids != null) {
-				indi = sampleHash.get(ids[0]);
+				indi = sampleHash.get(ids[0].toLowerCase());
 			}
 		}
 

@@ -402,9 +402,6 @@ public class MarkerMetrics {
 			time = new Date().getTime();
 			for (int i = 0; i < markerNames.length; i++) {
 				markerData = markerDataLoader.requestMarkerData(i);
-				if (i % 1000 == 0) {
-					log.report(ext.getTime() + "\tMarker " + i + " of " + markerNames.length);
-				}
 
 				markerName = markerData.getMarkerName();
 				lrrs = markerData.getLRRs();
