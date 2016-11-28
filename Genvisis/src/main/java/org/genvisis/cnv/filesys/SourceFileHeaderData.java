@@ -500,26 +500,6 @@ public class SourceFileHeaderData implements Serializable {
 			}
 			errorFiles.addAll(minSet);
 		}
-		if (numSamplesSet.size() > 1) {
-			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : numSamplesSet.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
-		}
-		if (totSamplesSet.size() > 1) {
-			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : totSamplesSet.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
-		}
 		if (headerLineIndex.size() > 1) {
 			numErrors++;
 			ArrayList<String> minSet = null;
@@ -540,16 +520,6 @@ public class SourceFileHeaderData implements Serializable {
 			}
 			errorFiles.addAll(minSet);
 		}
-		// if (sampleIndex.size() > 1) {
-		// numErrors++;
-		// ArrayList<String> minSet = null;
-		// for (ArrayList<String> set : sampleIndex.values()) {
-		// if (minSet == null || set.size() < minSet.size()) {
-		// minSet = set;
-		// }
-		// }
-		// errorFiles.addAll(minSet);
-		// }
 		if (snpIndex.size() > 1) {
 			numErrors++;
 			ArrayList<String> minSet = null;
@@ -691,8 +661,8 @@ public class SourceFileHeaderData implements Serializable {
 			errorFiles.addAll(minSet);
 		}
 
-		if (numErrors > 0 || errorFiles.size() > 0) {
-			if (errorFiles.size() > 0) {
+		if (numErrors > 0 || !errorFiles.isEmpty()) {
+			if (!errorFiles.isEmpty()) {
 				for (String file : errorFiles) {
 					log.reportError("Error - data or column mismatch suspected in source file {"	+ file
 													+ "}.  Please verify file integrity and try again.");
