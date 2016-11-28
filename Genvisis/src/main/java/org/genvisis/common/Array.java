@@ -2570,10 +2570,13 @@ public class Array {
 	 * @param map Map with intended index position as the Value
 	 * @return array of Keys from map indexed by Values
 	 */
+	@SuppressWarnings("unchecked")
 	public static <T> T[] mapToValueSortedArray(Map<T, Integer> map) {
-		@SuppressWarnings("unchecked")
-		T[] array = (T[]) new Object[map.size()];
+		T[] array = null;
 		for (Map.Entry<T, Integer> entry : map.entrySet()) {
+			if (array == null) {
+				array = (T[]) java.lang.reflect.Array.newInstance(entry.getKey().getClass(), map.size());
+			}
 			array[entry.getValue()] = entry.getKey();
 		}
 		return array;
