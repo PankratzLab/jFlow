@@ -6,6 +6,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -305,7 +306,7 @@ public class SourceFileHeaderData implements Serializable {
 				}
 				String error = doFullValidation(headers, log);
 				if (error != null) {
-					throw new Elision("Error - " + error);
+					throw new Elision(error);
 				}
 			}
 			if (progressBar != null) {
@@ -313,7 +314,7 @@ public class SourceFileHeaderData implements Serializable {
 			}
 			valid = true;
 		} catch (Elision e) {
-			log.reportException(e);
+			log.reportError(e.getMessage());
 		} catch (IOException e) {
 			log.reportException(e);
 		}
@@ -323,25 +324,22 @@ public class SourceFileHeaderData implements Serializable {
 
 	public static String doFullValidation(HashMap<String, SourceFileHeaderData> headers, Logger log) {
 		int cnt = headers.size();
-		HashMap<Integer, ArrayList<String>> numSnpsSet = new HashMap<Integer, ArrayList<String>>();
 		HashMap<Integer, ArrayList<String>> totSnpsSet = new HashMap<Integer, ArrayList<String>>();
-		HashMap<Integer, ArrayList<String>> numSamplesSet = new HashMap<Integer, ArrayList<String>>();
-		HashMap<Integer, ArrayList<String>> totSamplesSet = new HashMap<Integer, ArrayList<String>>();
 		HashMap<Integer, ArrayList<String>> headerLineIndex = new HashMap<Integer, ArrayList<String>>();
 		HashMap<Integer, ArrayList<String>> sampleID = new HashMap<Integer, ArrayList<String>>();
 		HashMap<Integer, ArrayList<String>> snpIndex = new HashMap<Integer, ArrayList<String>>();
-		HashMap<Integer, ArrayList<String>> genoAB_1 = new HashMap<Integer, ArrayList<String>>();
-		HashMap<Integer, ArrayList<String>> genoAB_2 = new HashMap<Integer, ArrayList<String>>();
-		HashMap<Integer, ArrayList<String>> genoForward_1 = new HashMap<Integer, ArrayList<String>>();
-		HashMap<Integer, ArrayList<String>> genoForward_2 = new HashMap<Integer, ArrayList<String>>();
+		HashMap<Integer, ArrayList<String>> genoAB1 = new HashMap<Integer, ArrayList<String>>();
+		HashMap<Integer, ArrayList<String>> genoAB2 = new HashMap<Integer, ArrayList<String>>();
+		HashMap<Integer, ArrayList<String>> genoForward1 = new HashMap<Integer, ArrayList<String>>();
+		HashMap<Integer, ArrayList<String>> genoForward2 = new HashMap<Integer, ArrayList<String>>();
 		HashMap<Integer, ArrayList<String>> x = new HashMap<Integer, ArrayList<String>>();
 		HashMap<Integer, ArrayList<String>> y = new HashMap<Integer, ArrayList<String>>();
 		HashMap<Integer, ArrayList<String>> theta = new HashMap<Integer, ArrayList<String>>();
 		HashMap<Integer, ArrayList<String>> r = new HashMap<Integer, ArrayList<String>>();
 		HashMap<Integer, ArrayList<String>> xRaw = new HashMap<Integer, ArrayList<String>>();
 		HashMap<Integer, ArrayList<String>> yRaw = new HashMap<Integer, ArrayList<String>>();
-		HashMap<Integer, ArrayList<String>> BAF = new HashMap<Integer, ArrayList<String>>();
-		HashMap<Integer, ArrayList<String>> LRR = new HashMap<Integer, ArrayList<String>>();
+		HashMap<Integer, ArrayList<String>> baf = new HashMap<Integer, ArrayList<String>>();
+		HashMap<Integer, ArrayList<String>> lrr = new HashMap<Integer, ArrayList<String>>();
 		HashMap<Integer, ArrayList<String>> gc = new HashMap<Integer, ArrayList<String>>();
 		for (java.util.Map.Entry<String, SourceFileHeaderData> entry : headers.entrySet()) {
 			SourceFileHeaderData headerData = entry.getValue();
@@ -351,28 +349,10 @@ public class SourceFileHeaderData implements Serializable {
 				return "Number of Files listed in Source File {"	+ entry.getKey()
 								+ "} does not equal the number of headers needing validation.  Please check source directory and extension and try again.";
 			}
-			ArrayList<String> files = numSnpsSet.get(headerData.numSnps);
-			if (files == null) {
-				files = new ArrayList<String>();
-				numSnpsSet.put(headerData.numSnps, files);
-			}
-			files.add(entry.getKey());
-			files = totSnpsSet.get(headerData.totalSnps);
+			ArrayList<String> files = totSnpsSet.get(headerData.totalSnps);
 			if (files == null) {
 				files = new ArrayList<String>();
 				totSnpsSet.put(headerData.totalSnps, files);
-			}
-			files.add(entry.getKey());
-			files = numSamplesSet.get(headerData.numSamples);
-			if (files == null) {
-				files = new ArrayList<String>();
-				numSamplesSet.put(headerData.numSamples, files);
-			}
-			files.add(entry.getKey());
-			files = totSamplesSet.get(headerData.totalSamples);
-			if (files == null) {
-				files = new ArrayList<String>();
-				totSamplesSet.put(headerData.totalSamples, files);
 			}
 			files.add(entry.getKey());
 			files = headerLineIndex.get(headerData.columnHeaderLineIndex);
@@ -387,40 +367,34 @@ public class SourceFileHeaderData implements Serializable {
 				sampleID.put(headerData.colSampleIdent, files);
 			}
 			files.add(entry.getKey());
-			// files = sampleIndex.get(entry.getValue().col_sampleIndex);
-			// if (files == null) {
-			// files = new ArrayList<String>();
-			// sampleIndex.put(entry.getValue().col_sampleIndex, files);
-			// }
-			files.add(entry.getKey());
 			files = snpIndex.get(headerData.colSnpIdent);
 			if (files == null) {
 				files = new ArrayList<String>();
 				snpIndex.put(headerData.colSnpIdent, files);
 			}
 			files.add(entry.getKey());
-			files = genoAB_1.get(headerData.colGenoAB1);
+			files = genoAB1.get(headerData.colGenoAB1);
 			if (files == null) {
 				files = new ArrayList<String>();
-				genoAB_1.put(headerData.colGenoAB1, files);
+				genoAB1.put(headerData.colGenoAB1, files);
 			}
 			files.add(entry.getKey());
-			files = genoAB_2.get(headerData.colGenoAB2);
+			files = genoAB2.get(headerData.colGenoAB2);
 			if (files == null) {
 				files = new ArrayList<String>();
-				genoAB_2.put(headerData.colGenoAB2, files);
+				genoAB2.put(headerData.colGenoAB2, files);
 			}
 			files.add(entry.getKey());
-			files = genoForward_1.get(headerData.colGeno1);
+			files = genoForward1.get(headerData.colGeno1);
 			if (files == null) {
 				files = new ArrayList<String>();
-				genoForward_1.put(headerData.colGeno1, files);
+				genoForward1.put(headerData.colGeno1, files);
 			}
 			files.add(entry.getKey());
-			files = genoForward_2.get(headerData.colGeno2);
+			files = genoForward2.get(headerData.colGeno2);
 			if (files == null) {
 				files = new ArrayList<String>();
-				genoForward_2.put(headerData.colGeno2, files);
+				genoForward2.put(headerData.colGeno2, files);
 			}
 			files.add(entry.getKey());
 			files = x.get(headerData.colX);
@@ -459,16 +433,16 @@ public class SourceFileHeaderData implements Serializable {
 				yRaw.put(headerData.colYRaw, files);
 			}
 			files.add(entry.getKey());
-			files = BAF.get(headerData.colBAF);
+			files = baf.get(headerData.colBAF);
 			if (files == null) {
 				files = new ArrayList<String>();
-				BAF.put(headerData.colBAF, files);
+				baf.put(headerData.colBAF, files);
 			}
 			files.add(entry.getKey());
-			files = LRR.get(headerData.colLRR);
+			files = lrr.get(headerData.colLRR);
 			if (files == null) {
 				files = new ArrayList<String>();
-				LRR.put(headerData.colLRR, files);
+				lrr.put(headerData.colLRR, files);
 			}
 			files.add(entry.getKey());
 			files = gc.get(headerData.colGC);
@@ -479,200 +453,148 @@ public class SourceFileHeaderData implements Serializable {
 			files.add(entry.getKey());
 		}
 		int numErrors = 0;
-		HashSet<String> errorFiles = new HashSet<String>();
-		if (numSnpsSet.size() > 1) {
+		ArrayList<String> errorMsgs = new ArrayList<String>();
+		
+		String error;
+		error = checkErrors(totSnpsSet, "Total SNPs");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : numSnpsSet.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (totSnpsSet.size() > 1) {
+		error = checkErrors(headerLineIndex, "Index of header line");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : totSnpsSet.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (headerLineIndex.size() > 1) {
+		error = checkErrors(sampleID, "Sample ID column index");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : headerLineIndex.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (sampleID.size() > 1) {
+		error = checkErrors(snpIndex, "SNP column index");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : sampleID.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (snpIndex.size() > 1) {
+		error = checkErrors(genoAB1, "AB Genotype column 1");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : snpIndex.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (genoAB_1.size() > 1) {
+		error = checkErrors(genoAB2, "AB Genotype column 2");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : genoAB_1.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (genoAB_2.size() > 1) {
+		error = checkErrors(genoForward1, "Forward Genotype column 1");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : genoAB_2.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (genoForward_1.size() > 1) {
+		error = checkErrors(genoForward2, "Forward Genotype column 2");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : genoForward_1.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (genoForward_2.size() > 1) {
+		error = checkErrors(x, "X column");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : genoForward_2.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (x.size() > 1) {
+		error = checkErrors(y, "Y column");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : x.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (y.size() > 1) {
+		error = checkErrors(theta, "Theta column");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : y.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (theta.size() > 1) {
+		error = checkErrors(r, "R column");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : theta.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (r.size() > 1) {
+		error = checkErrors(xRaw, "X Raw column");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : r.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (xRaw.size() > 1) {
+		error = checkErrors(yRaw, "Y Raw column");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : xRaw.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (yRaw.size() > 1) {
+		error = checkErrors(baf, "B Allele Freq column");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : yRaw.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (BAF.size() > 1) {
+		error = checkErrors(lrr, "Log R Ratio column");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : BAF.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
+			errorMsgs.add(error);
 		}
-		if (LRR.size() > 1) {
+		error = checkErrors(gc, "GC column");
+		if (!"".equals(error)) {
 			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : LRR.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
+			errorMsgs.add(error);
+		}
+		
+		if (numErrors > 0 || !errorMsgs.isEmpty()) {
+			if (!errorMsgs.isEmpty()) {
+				for (String s : errorMsgs) {
+					log.reportError(s);
 				}
 			}
-			errorFiles.addAll(minSet);
+			return "Found "	+ numErrors + " data or column index mismatches among source files.  Please check log for more details";
 		}
-		if (gc.size() > 1) {
-			numErrors++;
-			ArrayList<String> minSet = null;
-			for (ArrayList<String> set : gc.values()) {
-				if (minSet == null || set.size() < minSet.size()) {
-					minSet = set;
-				}
-			}
-			errorFiles.addAll(minSet);
-		}
-
-		if (numErrors > 0 || !errorFiles.isEmpty()) {
-			if (!errorFiles.isEmpty()) {
-				for (String file : errorFiles) {
-					log.reportError("Error - data or column mismatch suspected in source file {"	+ file
-													+ "}.  Please verify file integrity and try again.");
-				}
-			}
-			return "Found "	+ numErrors + " data or column index mismatches among " + errorFiles.size()
-							+ " files.  Please check log for more details";
-		}
-
+		
 		return null;
+	}
+
+	private static String checkErrors(HashMap<Integer, ArrayList<String>> valueMapping, String string) {
+		if (valueMapping.size() == 1) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder("Mismatch in ")
+														.append(string)
+														.append(" between ")
+														.append(valueMapping.size())
+														.append(" sets of values: {");
+		
+		ArrayList<Integer> values = new ArrayList<Integer>(valueMapping.keySet());
+		Collections.sort(values);
+		Collections.reverse(values);
+		
+		for (int i = 0, cnt = values.size(), cnt1 = cnt - 1; i < cnt; i++) {
+			sb.append(values.get(i));
+			if (i < cnt1) {
+				sb.append(", ");
+			}
+		}
+		
+		sb.append("} with {");
+		for (int i = 0, cnt = values.size(), cnt1 = cnt - 1; i < cnt; i++) {
+			sb.append(valueMapping.get(values.get(i)).size());
+			if (i < cnt1) {
+				sb.append(", ");
+			}
+		}
+		sb.append("} file(s) for each value, respectively.");
+		if (valueMapping.size() == 2) {
+			sb.append(" The file(s) in the second set are: ");
+			ArrayList<String> files = valueMapping.get(values.get(values.size() - 1));
+			for (int i = 0; i < files.size(); i++) {
+				sb.append(files.get(i));
+				if (i < files.size() - 1) {
+					sb.append(", ");
+				}
+			}
+			sb.append(".");
+		}
+		return sb.toString();
 	}
 
 	public static void main(String[] args) {
