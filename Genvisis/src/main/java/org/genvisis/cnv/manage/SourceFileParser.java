@@ -2153,7 +2153,7 @@ public class SourceFileParser implements Runnable {
 			fileIndex++;
 			return new LongFileFormatWorker(proj, file, idHeader, fixes, delimiter, markerNames,
 																			fingerprint, markerIndexMap, abLookup, renamedIDsHash,
-																			headers, log, fileIndex, files.length + 1);
+																			headers, log, fileIndex, files.length);
 		}
 	}
 
@@ -2266,7 +2266,7 @@ public class SourceFileParser implements Runnable {
 		try {
 			int markerCount = 0;
 
-			log.report(ext.getTime() + "]\t" + (fileIndex + 1) + " of " + numFiles + " (" + file + ")");
+			log.report(ext.getTime() + "]\t" + fileIndex + " of " + numFiles + " (" + file + ")");
 
 			// DATA_0 {"GC Score", "GCscore", "confidence","Confidence"}
 			// DATA_1 {"X Raw"}
