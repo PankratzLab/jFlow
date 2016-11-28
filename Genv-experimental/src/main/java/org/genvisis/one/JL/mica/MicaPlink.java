@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
 
 import org.genvisis.CLI;
 import org.genvisis.common.Array;
@@ -31,12 +32,14 @@ public class MicaPlink {
 	private static final String[] MPERM = new String[] { "EMP1", "EMP2" };
 	private static final String[] ASSOC = new String[] { "C_A", "C_U" };
 	private static final String[] LOC = new String[] { "BP", "A1", "A2" };
+	private static final String[] MISS = new String[] { "N_MISS", "N_GENO", "F_MISS" };
+	private static final String[] IMISS = new String[] { "MISS_PHENO", "N_MISS", "N_GENO", "F_MISS" };
 
 	private static void run(String vcf, String fam, String covars) {
 		String outDir = ext.parseDirectoryOfFile(vcf) + "micaPlink/";
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "log.log");
-		int[] gqs = new int[] { -5, 20, 50 };
+		int[] gqs = new int[] { -1, 20, 50 };
 		String[] covarsH = Array.subArray(org.genvisis.common.Files.getHeaderOfFile(covars, log), 2);
 		ArrayList<Result> results = new ArrayList<>();
 		// , 20, 50
@@ -66,43 +69,46 @@ public class MicaPlink {
 			}
 			reader.close();
 			writer.close();
-			CmdLine.run("plink2 --vcf " + filtVcf + " --out " + root + " --make-bed --keep " + covars, outDir);
+			runPlink(fam, covars, outDir, log, covarsH, results, gq, root, filtVcf, 1);
+			runPlink(fam, covars, outDir, log, covarsH, results, gq, root + "_noCovar", filtVcf, .1);
 
-			try {
-				Files.copy(new File(fam), new File(root + ".fam"));
-			} catch (IOException e) {
-				log.reportException(e);
-			}
-			String run = "plink2 --assoc counts mperm=100000 --freqx --bfile " + root + " --out " + root + " --covar "
-					+ covars + " --covar-name " + Array.toStr(covarsH, ",");
-			CmdLine.run(run, outDir);
-			String t1 = "cat " + root + ".assoc.mperm | tr -s ' ' '\t'|cut -f 2- > " + root + ".assoc.mperm.tabs";
-			String t2 = "cat " + root + ".assoc | tr -s ' ' '\t' |cut -f 2-> " + root + ".assoc.tabs";
-			org.genvisis.common.Files.write(t1 + "\n" + t2, root + ".sh");
-			org.genvisis.common.Files.chmod(root + ".sh");
-			CmdLine.run(root + ".sh", outDir);
-
-			Hashtable<String, String> mperm = HashVec.loadFileToHashString(root + ".assoc.mperm.tabs", "SNP", MPERM,
-					"\t");
-
-			Hashtable<String, String> assoc = HashVec.loadFileToHashString(root + ".assoc.tabs", "SNP", ASSOC, "\t");
-
-			Hashtable<String, String> loc = HashVec.loadFileToHashString(root + ".assoc.tabs", "SNP", LOC, "\t");
-			results.add(new Result(mperm, assoc, loc, gq));
 		}
 		String rsFile = ext.parseDirectoryOfFile(vcf) + "rsIdsOfInterest.txt";
 		Hashtable<String, String> rsOfInterest = HashVec.loadFileToHashString(rsFile, 0, new int[] { 1, 2 }, "\t",
 				true);
-	
-		HashSet<String> rsHaves = new HashSet<>();
 
+		HashSet<String> rsHaves = new HashSet<>();
+		StringBuilder builderSamp = new StringBuilder("IID");
 		StringBuilder builder = new StringBuilder(
 				"SNP\t" + Array.toStr(LOC) + "\tRSID\tRSID_OF_INTEREST\tPopFreqMax\tFunction");
 		for (Result result : results) {
-			builder.append("\t" + Array.toStr(Array.tagOn(ASSOC, "GQ_" + result.GQ, null)) + "\t"
-					+ Array.toStr(Array.tagOn(MPERM, "GQ_" + result.GQ, null)));
+			builder.append("\t"
+					+ Array.toStr(Array.tagOn(ASSOC, null,
+							"_GQ_" + result.gq + "_COVAR_" + result.covars + "_MIND_" + result.mind))
+					+ "\t"
+					+ Array.toStr(Array.tagOn(MPERM, null,
+							"_GQ_" + result.gq + "_COVAR_" + result.covars + "_MIND_" + result.mind))
+					+ "\t" + Array.toStr(Array.tagOn(MISS, null,
+							"_GQ_" + result.gq + "_COVAR_" + result.covars + "_MIND_" + result.mind)));
+			builderSamp.append("\t" + Array.toStr(
+					Array.tagOn(IMISS, null, "_GQ_" + result.gq + "_COVAR_" + result.covars + "_MIND_" + result.mind)));
 		}
+		builderSamp.append("\n");
 		builder.append("\n");
+
+		for (String samp : results.get(0).imiss.keySet()) {
+			builderSamp.append(samp);
+			for (Result result : results) {
+				if (result.imiss.get(samp) == null) {
+					builderSamp.append("\t" + Array.toStr(Array.stringArray(IMISS.length, "NA")));
+				} else {
+					builderSamp.append("\t" + result.imiss.get(samp));
+				}
+			}
+			builderSamp.append("\n");
+		}
+
+		builderSamp.append("\n");
 		for (String snp : results.get(0).assoc.keySet()) {
 			String rs = parseRSID(snp);
 			if (rsOfInterest.containsKey(rs)) {
@@ -111,15 +117,22 @@ public class MicaPlink {
 			builder.append(snp + "\t" + results.get(0).loc.get(snp) + "\t" + rs + "\t" + rsOfInterest.containsKey(rs)
 					+ "\t" + Array.toStr(getPopFunc(snp)));
 			for (Result result : results) {
-				builder.append("\t" + result.assoc.get(snp) + "\t" + result.mperm.get(snp));
+				builder.append(
+						"\t" + result.assoc.get(snp) + "\t" + result.mperm.get(snp) + "\t" + result.lmiss.get(snp));
 			}
 			builder.append("\n");
 		}
 		org.genvisis.common.Files.write(builder.toString(), outDir + "parsedResults.txt");
+		org.genvisis.common.Files.write(builderSamp.toString(), outDir + "parsedResultsSamp.txt");
+
 		ArrayList<ExcelConversionParams> excelFile = new ArrayList<ExcelConversionParams>();
 		ExcelConversionParams parsedResults = new ExcelConversionParams(outDir + "parsedResults.txt", "\t",
 				"ParsedResults");
 		excelFile.add(parsedResults);
+
+		ExcelConversionParams parsedSampResults = new ExcelConversionParams(outDir + "parsedResultsSamp.txt", "\t",
+				"SampleQC");
+		excelFile.add(parsedSampResults);
 		ExcelConversionParams famTab = new ExcelConversionParams(fam, "\t", "FamFile");
 		excelFile.add(famTab);
 
@@ -134,12 +147,52 @@ public class MicaPlink {
 		org.genvisis.common.Files.write(builderRS.toString(), rsSummary);
 		ExcelConversionParams rsTab = new ExcelConversionParams(rsSummary, "\t", "RsIdsOfInterests");
 		excelFile.add(rsTab);
-		
-		ExcelConversionParams regions = new ExcelConversionParams(ext.parseDirectoryOfFile(vcf) + "targetedRegions.txt", "\t", "TargetRegions");
+
+		ExcelConversionParams regions = new ExcelConversionParams(ext.parseDirectoryOfFile(vcf) + "targetedRegions.txt",
+				"\t", "TargetRegions");
 		excelFile.add(regions);
 
 		String output = outDir + VCFOps.getAppropriateRoot(vcf, true) + "_summary.xlsx";
 		new ExcelConverter(excelFile, output, log).convert(true);
+	}
+
+	private static void runPlink(String fam, String covars, String outDir, Logger log, String[] covarsH,
+			ArrayList<Result> results, int gq, String root, String filtVcf, double mind) {
+
+		root = root + "MIND_" + mind;
+		CmdLine.run("plink2 --vcf " + filtVcf + " --out " + root + " --make-bed "
+				+ (covars == null ? "" : "--keep " + covars), outDir);
+
+		try {
+			Files.copy(new File(fam), new File(root + ".fam"));
+		} catch (IOException e) {
+			log.reportException(e);
+		}
+		String run = "plink2 --assoc counts mperm=100000 --freqx --bfile " + root + " --out " + root
+				+ (covars == null ? ""
+						: " --covar " + covars + " --covar-name " + Array.toStr(covarsH, ",") + " --mind " + mind
+								+ " --missing");
+		CmdLine.run(run, outDir);
+		String t1 = "cat " + root + ".assoc.mperm | tr -s ' ' '\t'|cut -f 2- > " + root + ".assoc.mperm.tabs";
+		String t2 = "cat " + root + ".assoc | tr -s ' ' '\t' |cut -f 2-> " + root + ".assoc.tabs";
+		String t3 = "cat " + root + ".lmiss | tr -s ' ' '\t' |cut -f 2-> " + root + ".lmiss.tabs";
+		String t4 = "cat " + root + ".imiss | tr -s ' ' '\t' |cut -f 2-> " + root + ".imiss.tabs";
+
+		org.genvisis.common.Files.write(t1 + "\n" + t2 + "\n" + t3 + "\n" + t4, root + ".sh");
+		org.genvisis.common.Files.chmod(root + ".sh");
+		CmdLine.run(root + ".sh", outDir);
+
+		Hashtable<String, String> mperm = HashVec.loadFileToHashString(root + ".assoc.mperm.tabs", "SNP", MPERM, "\t");
+
+		Hashtable<String, String> assoc = HashVec.loadFileToHashString(root + ".assoc.tabs", "SNP", ASSOC, "\t");
+
+		Hashtable<String, String> loc = HashVec.loadFileToHashString(root + ".assoc.tabs", "SNP", LOC, "\t");
+
+		Hashtable<String, String> lmiss = HashVec.loadFileToHashString(root + ".lmiss.tabs", "SNP", MISS, "\t");
+
+		Hashtable<String, String> imiss = HashVec.loadFileToHashString(root + ".imiss.tabs", "FID", IMISS, "\t");
+
+		results.add(new Result(mperm, assoc, loc, lmiss, imiss, gq, covars != null, mind));
 	}
 
 	private static String[] getPopFunc(String snpID) {
@@ -155,18 +208,26 @@ public class MicaPlink {
 	}
 
 	private static class Result {
-		private Hashtable<String, String> mperm;
-		private Hashtable<String, String> assoc;
-		private Hashtable<String, String> loc;
-		private int GQ;
+		private Map<String, String> mperm;
+		private Map<String, String> assoc;
+		private Map<String, String> loc;
+		private int gq;
+		private double mind;
+		private boolean covars;
+		private Hashtable<String, String> lmiss;
+		private Hashtable<String, String> imiss;
 
-		public Result(Hashtable<String, String> mperm, Hashtable<String, String> assoc, Hashtable<String, String> loc,
-				int gQ) {
+		public Result(Map<String, String> mperm, Map<String, String> assoc, Map<String, String> loc,
+				Hashtable<String, String> lmiss, Hashtable<String, String> imiss, int gQ, boolean covars, double mind) {
 			super();
 			this.mperm = mperm;
 			this.assoc = assoc;
 			this.loc = loc;
-			GQ = gQ;
+			this.lmiss = lmiss;
+			this.imiss = imiss;
+			gq = gQ;
+			this.covars = covars;
+			this.mind = mind;
 		}
 
 	}
