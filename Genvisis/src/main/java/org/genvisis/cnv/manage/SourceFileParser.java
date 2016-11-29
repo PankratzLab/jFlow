@@ -1,6 +1,7 @@
 // "AB_lookup.dat" is necessary if the files do not contain {"Allele1 - AB"}/{"Allele2 - AB}
 package org.genvisis.cnv.manage;
 
+import java.awt.GraphicsEnvironment;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -1463,16 +1464,22 @@ public class SourceFileParser implements Runnable {
 
 			overwriteOptions = new String[] {"Delete All", "Customize", "Cancel parser"};
 
-			response = JOptionPane.showOptionDialog(null,
-																							"Parsed sample data files were found in "
-																											+ proj.SAMPLE_DIRECTORY.getValue() + ".\n"
-																										+ "This happens if the parser was interrupted previously, or restarted unintentionally.\n"
-																										+ "If you would like to reparse samples, select \"Delete All\" earlier files.\n"
-																										+ "Otherwise, Cancel or you can \"Customize\" and determine what to do on a sample-by-sample basis [NOT IMPLEMENTED].\n"
-																										+ "What would you like to do?",
-																							"Samples already exist", JOptionPane.DEFAULT_OPTION,
-																							JOptionPane.QUESTION_MESSAGE, null, overwriteOptions,
-																							overwriteOptions[2]);
+			if (GraphicsEnvironment.isHeadless()) {
+				proj.getLog().reportTimeWarning("Parsed sample data files were found in "
+						+ proj.SAMPLE_DIRECTORY.getValue() + ". Skipping parse of samples. If reparsing is desired, remove all " + Sample.SAMPLE_FILE_EXTENSION + " files from " + proj.SAMPLE_DIRECTORY.getValue());
+				response = 2;
+			} else {
+				response = JOptionPane.showOptionDialog(null,
+																								"Parsed sample data files were found in "
+																												+ proj.SAMPLE_DIRECTORY.getValue() + ".\n"
+																											+ "This happens if the parser was interrupted previously, or restarted unintentionally.\n"
+																											+ "If you would like to reparse samples, select \"Delete All\" earlier files.\n"
+																											+ "Otherwise, Cancel or you can \"Customize\" and determine what to do on a sample-by-sample basis [NOT IMPLEMENTED].\n"
+																											+ "What would you like to do?",
+																								"Samples already exist", JOptionPane.DEFAULT_OPTION,
+																								JOptionPane.QUESTION_MESSAGE, null,
+																								overwriteOptions, overwriteOptions[2]);
+			}
 
 			switch (response) {
 				case -1:
