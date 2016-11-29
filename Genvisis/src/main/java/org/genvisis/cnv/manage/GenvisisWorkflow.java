@@ -2206,8 +2206,9 @@ public class GenvisisWorkflow {
 				cmd	.append(Files.getRunString()).append(" cnv.filesys.Project proj=" + projPropFile)
 						.append(kvCmd).append("\n");
 			}
-			return Files.getRunString()	+ " cnv.hmm.CNVCaller proj=" + projPropFile + " out="
-							+ variables.get(this).get(4) + " threads=" + numThreads;
+			return cmd.append(Files.getRunString()).append(" cnv.hmm.CNVCaller proj=" + projPropFile)
+								.append(" out=" + variables.get(this).get(4)).append(" threads=" + numThreads)
+								.toString();
 		}
 
 	};
