@@ -1537,6 +1537,28 @@ public class ext {
 		return false;
 	}
 
+	public static double getValidDouble(String str) {
+		if (isMissingValue(str)) {
+			return 0.0;
+		}
+		try {
+			return Double.parseDouble(str);
+		} catch (NumberFormatException nfe) {
+			return 0.0;
+		}
+	}
+
+	public static int getValidInteger(String str) {
+		if (isMissingValue(str)) {
+			return 0;
+		}
+		try {
+			return Integer.parseInt(str);
+		} catch (NumberFormatException nfe) {
+			return 0;
+		}
+	}
+
 	public static boolean isValidDouble(String str) {
 		if (isMissingValue(str)) {
 			return false;
