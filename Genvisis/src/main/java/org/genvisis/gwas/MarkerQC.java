@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -29,6 +30,7 @@ import org.genvisis.stats.Maths.OPERATOR;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -43,7 +45,7 @@ public class MarkerQC {
 
 	public static final String[] FINAL_HEADER = {	"SNP", "CHR", "MAF", "F_MISS", "P", "HETERO p-value",
 																								"miss.hap min p-value", "P_MISS"};
-	public static final String[] HWE_HEADER = {"CHR", "SNP", "TEST", "A1", "A2", "GENO", "O(HET)",
+	public static final String[] HWE_HEADER = {	"CHR", "SNP", "TEST", "A1", "A2", "GENO", "O(HET)",
 																							"E(HET)", "P"};
 	// public static final String[] THRESHOLDS = {"snp", "chr", "maf", "f_miss", "hwe", "hetero",
 	// "minmishap", "p_miss"};
@@ -59,9 +61,7 @@ public class MarkerQC {
 																												"CHISQ", "P", "OR"};
 
 	private enum METRIC {
-		// FILE("file", "markerQC.xln"),
-		// MARKERS("markers", "freq.frq", "1", "header"),
-		// CHR("chr", "freq.frq", lessThan(1), "0:1"),
+
 		FRQ("maf", "freq.frq", FRQ_HEADER, lessThan(0.01), "1", "4=maf"),
 		REF_FREQ_MISMATCH("ref_freq", "refFreqMismatch.dat", REF_FREQ_HEADER, lessThan(0.0001), "0",
 											"1=ref_freq"),
@@ -78,6 +78,9 @@ public class MarkerQC {
 		P_GENDER_MISS("p_gender_miss", "gender.missing", MISSTEST_HEADER, lessThan(0.0001), "!0<24",
 									"1", "4=p_gender_miss");
 
+		private static final Set<METRIC> DEFAULTS = ImmutableSet.of(FRQ, CALLRATE, HWE, MISHAP_HETERO,
+																																MISHAP_MIN, P_MISS, P_GENDER,
+																																P_GENDER_MISS);
 		private static final Map<String, METRIC> KEY_MAP;
 		static {
 			Map<String, METRIC> keyMap = Maps.newHashMap();
@@ -143,13 +146,13 @@ public class MarkerQC {
 	}
 
 	private static String generateExampleCode(String key, String file, String... args) {
-		List<String> exampleCode =  Lists.newArrayList(key + "=" + file);
+		List<String> exampleCode = Lists.newArrayList(key + "=" + file);
 		for (String arg : args) {
 			exampleCode.add(arg);
 		}
 		return Joiner.on(',').join(exampleCode);
 	}
-	
+
 	private static String generateLookupString(String dir, String filename, Iterable<String> args) {
 		Collection<String> lookupTokens = Lists.newArrayList();
 		lookupTokens.add("\"" + dir + filename + "\"");
@@ -461,11 +464,11 @@ public class MarkerQC {
 		List<String> sampleCode = Lists.newArrayList();
 		sampleCode.add(generateExampleCode(FILE_KEY, FILE_DEFAULT));
 		sampleCode.add(generateExampleCode(MARKERS_KEY, MARKERS_DEFAULT));
-		METRIC[] metrics = METRIC.values();
-		for (METRIC metric : metrics) {
+		for (METRIC metric : METRIC.DEFAULTS) {
 			sampleCode.add(metric.getExample());
 		}
-		params = Files.parseControlFile(filename, "miss", sampleCode.toArray(new String[sampleCode.size()]), log);
+		params = Files.parseControlFile(filename, "miss",
+																		sampleCode.toArray(new String[sampleCode.size()]), log);
 		if (params != null) {
 			file = null;
 			markers = null;
