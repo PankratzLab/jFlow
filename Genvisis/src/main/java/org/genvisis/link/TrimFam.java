@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -976,9 +975,9 @@ public class TrimFam {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> paramV;
 
-		params = Files.parseControlFile(filename, "trimFam",
+		paramV = Files.parseControlFile(filename, "trimFam",
 																		new String[] {"fams.pre", "out=trimmed.pre",
 																									"renameUngenotypedFounders=false",
 																									"deleteSinglets=false", "unrelatedsOnly=false",
@@ -986,9 +985,9 @@ public class TrimFam {
 																									"allowMissing=false",
 																									"# add -h as an argument if you want a full description"},
 																		log);
-		if (params != null) {
-			params.add("logfile=" + log.getFilename());
-			main(Array.toStringArray(params));
+		if (paramV != null) {
+			paramV.addElement("logfile=" + log.getFilename());
+			main(Array.toStringArray(paramV));
 		}
 	}
 

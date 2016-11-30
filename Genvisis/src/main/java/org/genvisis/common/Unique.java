@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
@@ -137,7 +136,7 @@ public class Unique {
 	}
 
 	public static void fromParamters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> params;
 		String[] line, files;
 		int[] skips;
 		String[] delimiters;
@@ -154,7 +153,7 @@ public class Unique {
 			skips = Array.intArray(params.size(), 0);
 			delimiters = Array.stringArray(params.size(), "[\\s]+");
 			for (int i = 0; i < files.length; i++) {
-				line = params.get(i).trim().split("[\\s]+");
+				line = params.elementAt(i).trim().split("[\\s]+");
 				files[i] = line[0];
 				for (int j = 1; j < line.length; j++) {
 					if (line[j].startsWith("skip=") || line[j].startsWith("skips=")) {

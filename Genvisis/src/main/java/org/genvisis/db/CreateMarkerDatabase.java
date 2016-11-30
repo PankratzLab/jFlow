@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -32,20 +31,20 @@ public class CreateMarkerDatabase {
 	public static final String UNIQUEID = "UniqueID";
 
 	public static void createFromParameters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> paramV;
 
-		params = Files.parseControlFile(filename, "db",
+		paramV = Files.parseControlFile(filename, "db",
 																		new String[] {"file1.csv ColumnHeaderForUniqueID ColumnHeader1 ColumnHeader3 ColumnHeader5",
 																									"file2.csv ColumnHeaderForUniqueID ColumnHeader2 ColumnHeader3	ColumnHeader9",
 																									"file3.csv ColumnHeaderForUniqueID ColumnHeader9",
 																									"..."},
 																		log);
-		if (params != null) {
-			create(ext.rootOf(filename) + ".xln", params);
+		if (paramV != null) {
+			create(ext.rootOf(filename) + ".xln", paramV);
 		}
 	}
 
-	public static void create(String outfile, List<String> infoList) {
+	public static void create(String outfile, Vector<String> infoV) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, header, dataline, postHoc, requirement, options;
@@ -60,9 +59,9 @@ public class CreateMarkerDatabase {
 		int index;
 		String[][] info;
 
-		info = new String[infoList.size()][];
+		info = new String[infoV.size()][];
 		for (int i = 0; i < info.length; i++) {
-			info[i] = infoList.get(i).trim().split("[\\s]+");
+			info[i] = infoV.elementAt(i).trim().split("[\\s]+");
 			markerName = info[i][0];
 			try {
 				reader = Files.getReader(markerName, ALT_LOCS);

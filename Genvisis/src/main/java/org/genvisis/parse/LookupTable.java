@@ -1,7 +1,6 @@
 // -Xmx1024M
 package org.genvisis.parse;
 
-import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -17,7 +16,7 @@ public class LookupTable {
 		int col;
 		boolean ignoreCase, ignoreFirstLine, commaDelimited, tabDelimited;
 		String outfile;
-		List<String> params;
+		Vector<String> params;
 		String head, missingValue;
 		boolean finalHeader, hideIndex, lessMemoryButSlower, keepIntermediateFiles;
 

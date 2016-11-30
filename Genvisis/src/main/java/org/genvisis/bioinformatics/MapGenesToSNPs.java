@@ -7,7 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Aliases;
@@ -35,22 +34,22 @@ public class MapGenesToSNPs {
 		GeneTrack track;
 		int[][] locs;
 		int buffer;
-		List<String> params;
+		Vector<String> paramV;
 
 		buffer = -1;
 
-		params = Files.parseControlFile(filename, "genes",
+		paramV = Files.parseControlFile(filename, "genes",
 																		new String[] {"candidates.txt header , 0 out=file.out",
 																									"plink.bim 1 0 3", "buffer=" + DEFAULT_BUFFER},
 																		log);
-		if (params == null) {
+		if (paramV == null) {
 			return;
 		}
 		track =
 					GeneTrack.load(	Aliases.getPathToFileInReferenceDirectory(GeneSet.REFSEQ_TRACK, true, log),
 													false);
 
-		line = params.remove(0).trim().split("[\\s]+");
+		line = paramV.remove(0).trim().split("[\\s]+");
 		genesFile = line[0];
 		col = -1;
 		locCol = -1;
@@ -96,16 +95,16 @@ public class MapGenesToSNPs {
 		}
 		log.report("Looking up SNPs within these genes...");
 
-		line = params.remove(0).trim().split("[\\s]+");
+		line = paramV.remove(0).trim().split("[\\s]+");
 		lookupFile = line[0];
 		snpCol = Integer.parseInt(line[1]);
 		chrCol = Positions.chromosomeNumber(line[2]);
 		posCol = Integer.parseInt(line[3]);
 
-		for (int i = 0; i < params.size(); i++) {
-			if (params.get(i).startsWith("buffer=")) {
-				buffer = Integer.parseInt(params.get(i).split("=")[1]);
-				params.remove(i);
+		for (int i = 0; i < paramV.size(); i++) {
+			if (paramV.elementAt(i).startsWith("buffer=")) {
+				buffer = Integer.parseInt(paramV.elementAt(i).split("=")[1]);
+				paramV.removeElementAt(i);
 				i--;
 			}
 		}
@@ -147,7 +146,7 @@ public class MapGenesToSNPs {
 		}
 		log.report("Found " + snps.size() + " SNPs in these genes");
 
-		Files.combine(Array.toStringArray(snps), Array.toStringArray(params), "SNP", outputFilename,
+		Files.combine(Array.toStringArray(snps), Array.toStringArray(paramV), "SNP", outputFilename,
 									log, true);
 	}
 }

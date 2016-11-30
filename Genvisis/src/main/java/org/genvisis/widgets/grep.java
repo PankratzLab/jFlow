@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Vector;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
@@ -76,7 +75,7 @@ public class grep {
 	}
 
 	public static void fromParameters(String filename, Logger log) throws Elision {
-		List<String> params;
+		Vector<String> params;
 		String trav;
 		String inputFilename = "large_file.txt";
 		String outputFilename = "subset_of_lines_from_large_file.txt";
@@ -95,7 +94,7 @@ public class grep {
 			withs = new ArrayList<String>();
 			withouts = new ArrayList<String>();
 			for (int i = 0; i < params.size(); i++) {
-				trav = params.get(i);
+				trav = params.elementAt(i);
 				if (trav.startsWith("input=")) {
 					inputFilename = ext.parseStringArg(trav, null);
 				} else if (trav.startsWith("output=")) {

@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Files;
@@ -30,7 +29,7 @@ public class UCSCtrack {
 		int start, stop, prevStart;
 		double value;
 		boolean ignoreWhenAbsentInResultsFile, separateMap, neg_log;
-		List<String> params;
+		Vector<String> paramV;
 		boolean displayMarkerName;
 		int unplaced, par, mitochondrial;
 
@@ -42,18 +41,18 @@ public class UCSCtrack {
 		Vector<String> filters;
 		boolean passedFilter;
 
-		params = Files.parseControlFile(filename, "ucsc",
+		paramV = Files.parseControlFile(filename, "ucsc",
 																		new String[] {"plink.assoc 1 8 neg_log chr=0 start=2 stop=2 out=assoc.bed",
 																									"results.xln tab noHeader 0 1 neg_log map=plink.bim mapMarkerIndex=1 chr=0 start=3 stop=3 ignoreWhenAbsentInResultsFile",
 																									"results.csv , ignorecase 0 1 map=markers.csv mapComma header mapMarkerIndex=1 chr=0 start=3 stop=3"},
 																		log);
-		if (params == null) {
+		if (paramV == null) {
 			log.reportError("Failed...");
 			return;
 		}
 
-		while (params.size() > 0) {
-			line = params.remove(0).trim().split("[\\s]+");
+		while (paramV.size() > 0) {
+			line = paramV.remove(0).trim().split("[\\s]+");
 			resultsFile = line[0];
 			markerIndex = mapMarkerIndex = valueIndex = chrIndex = startIndex = stopIndex = -1;
 			neg_log = false;

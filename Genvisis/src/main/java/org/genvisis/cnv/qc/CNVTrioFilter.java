@@ -1,7 +1,6 @@
 package org.genvisis.cnv.qc;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
@@ -236,7 +235,7 @@ public class CNVTrioFilter extends CNVFilter {
 	}
 
 	public static void fromParametersTrio(String filename, Logger log) {
-		List<String> params;
+		Vector<String> params;
 		params = Files.parseControlFile(filename, CNVTrioFilter.COMMAND_CNV_TRIO_CRF, getParserParams(),
 																		log);
 		if (params != null) {

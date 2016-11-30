@@ -2298,7 +2298,7 @@ public class VCFOps {
 	}
 
 	public static void fromParameters(String filename, UTILITY_TYPE type, Logger log) {
-		List<String> params = new Vector<String>();
+		Vector<String> params = new Vector<String>();
 		switch (type) {
 			case CONVERT_PLINK:
 				log.reportTimeInfo("Invalid op type " + type);

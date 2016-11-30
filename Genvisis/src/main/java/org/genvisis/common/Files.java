@@ -27,7 +27,6 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -39,8 +38,6 @@ import java.util.zip.ZipOutputStream;
 import org.genvisis.filesys.SerialHash;
 import org.genvisis.parse.GenParser;
 
-import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
 import com.google.common.primitives.Ints;
 
 // class DeleteLater implements Runnable {
@@ -1048,25 +1045,25 @@ public class Files {
 	}
 
 	public static void mergeFromParameters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> paramV;
 		String file1, file2, mergedFile;
 		int lookup1, lookup2;
 		int[] indices1, indices2;
 		boolean keepRowsUniqueToFile1, keepRowsUniqueToFile2;
 
-		params = Files.parseControlFile(filename, "merge",
+		paramV = Files.parseControlFile(filename, "merge",
 																		new String[] {"sourcefile.txt numFiles=6 sizeOfHeader=1 blockSize=1 root=list ext=.dat"},
 																		log);
-		if (params != null) {
-			file1 = params.get(0);
-			lookup1 = Integer.parseInt(params.get(1));
-			indices1 = Array.toIntArray(params.get(2).split("[\\s]+"));
-			keepRowsUniqueToFile1 = params.get(3).trim().toLowerCase().equals("true");
-			file2 = params.get(4);
-			lookup2 = Integer.parseInt(params.get(5));
-			indices2 = Array.toIntArray(params.get(6).split("[\\s]+"));
-			keepRowsUniqueToFile2 = params.get(7).trim().toLowerCase().equals("true");
-			mergedFile = params.get(8);
+		if (paramV != null) {
+			file1 = paramV.elementAt(0);
+			lookup1 = Integer.parseInt(paramV.elementAt(1));
+			indices1 = Array.toIntArray(paramV.elementAt(2).split("[\\s]+"));
+			keepRowsUniqueToFile1 = paramV.elementAt(3).trim().toLowerCase().equals("true");
+			file2 = paramV.elementAt(4);
+			lookup2 = Integer.parseInt(paramV.elementAt(5));
+			indices2 = Array.toIntArray(paramV.elementAt(6).split("[\\s]+"));
+			keepRowsUniqueToFile2 = paramV.elementAt(7).trim().toLowerCase().equals("true");
+			mergedFile = paramV.elementAt(8);
 
 			try {
 				Files.merge(file1, lookup1, indices1, keepRowsUniqueToFile1, file2, lookup2, indices2,
@@ -1155,27 +1152,27 @@ public class Files {
 	}
 
 	public static void mergeSNPlistsFromParameters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> paramV;
 		String file1, file2, mergedFile;
 		int lookup1, lookup2;
 		int[] indices1;
 		boolean keepRowsUniqueToFile1, keepRowsUniqueToFile2;
 
-		params = Files.parseControlFile(filename, "merge",
+		paramV = Files.parseControlFile(filename, "merge",
 																		new String[] {"sourcefile.txt numFiles=6 sizeOfHeader=1 blockSize=1 root=list ext=.dat"},
 																		log);
-		if (params != null) {
-			file1 = params.get(0);
-			lookup1 = Integer.parseInt(params.get(1));
-			indices1 = Array.toIntArray(params.get(2).split("[\\s]+"));
-			keepRowsUniqueToFile1 = params.get(3).trim().toLowerCase().equals("true");
-			file2 = params.get(4);
-			lookup2 = Integer.parseInt(params.get(5));
-			if (!params.get(6).equals(lookup2 + "")) {
+		if (paramV != null) {
+			file1 = paramV.elementAt(0);
+			lookup1 = Integer.parseInt(paramV.elementAt(1));
+			indices1 = Array.toIntArray(paramV.elementAt(2).split("[\\s]+"));
+			keepRowsUniqueToFile1 = paramV.elementAt(3).trim().toLowerCase().equals("true");
+			file2 = paramV.elementAt(4);
+			lookup2 = Integer.parseInt(paramV.elementAt(5));
+			if (!paramV.elementAt(6).equals(lookup2 + "")) {
 				log.reportError("FYI - ignoring other indices for file2; with mergeSNPs, only presence is kept");
 			}
-			keepRowsUniqueToFile2 = params.get(7).trim().toLowerCase().equals("true");
-			mergedFile = params.get(8);
+			keepRowsUniqueToFile2 = paramV.elementAt(7).trim().toLowerCase().equals("true");
+			mergedFile = paramV.elementAt(8);
 
 			try {
 				Files.mergeSNPLists(file1, lookup1, indices1, keepRowsUniqueToFile1, file2, lookup2,
@@ -2161,7 +2158,7 @@ public class Files {
 	}
 
 	public static void transposeFromParameters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> paramV;
 		String infile, outfile;
 		String[] line;
 		boolean huge;
@@ -2169,12 +2166,12 @@ public class Files {
 		long memoryAvailable, filesize;
 		int colCount, suggestedStep;
 
-		params = Files.parseControlFile(filename, "transpose",
+		paramV = Files.parseControlFile(filename, "transpose",
 																		new String[] {"sourcefile.txt out=newfile.txt forceHuge=false forceStep=-1",
 																									"# (step is only used for huge"},
 																		log);
-		if (params != null) {
-			line = params.remove(0).trim().split("[\\s]+");
+		if (paramV != null) {
+			line = paramV.remove(0).trim().split("[\\s]+");
 
 			huge = false;
 			infile = line[0];
@@ -2283,14 +2280,14 @@ public class Files {
 	 *
 	 * @param filename the filename to search for
 	 * @param dirs the array of directories to search
-	 * 
+
 	 * @return String the full path to the file of interest if it exists in one of the directories,
 	 *         otherwise null
 	 */
 	public static String firstPathToFileThatExists(String filename, String... dirs) {
 		return firstPathToFileThatExists(dirs, filename, false, false, new Logger());
 	}
-
+	
 	/**
 	 * Searches all of the directories in the array to see if it contains the specified file
 	 *
@@ -2779,7 +2776,7 @@ public class Files {
 	}
 
 	public static void catFilesFromParameters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> params;
 		String[] line, files;
 		int[] skips;
 		String out;
@@ -2805,7 +2802,7 @@ public class Files {
 			files = new String[params.size()];
 			skips = Array.intArray(params.size(), 0);
 			for (int i = 0; i < files.length; i++) {
-				line = params.get(i).trim().split("[\\s]+");
+				line = params.elementAt(i).trim().split("[\\s]+");
 				files[i] = line[0];
 				for (int j = 1; j < line.length; j++) {
 					if (line[j].startsWith("skip=")) {
@@ -2818,7 +2815,7 @@ public class Files {
 	}
 
 	public static void renameFilesFromParameters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> params;
 		String[] line, files;
 		String[][] matchingFilenames;
 		boolean problem;
@@ -2833,7 +2830,7 @@ public class Files {
 			matchingFilenames = new String[params.size()][2];
 			problem = false;
 			for (int i = 0; i < matchingFilenames.length; i++) {
-				line = params.get(i).trim().split("\t", -1);
+				line = params.elementAt(i).trim().split("\t", -1);
 				if (line.length != 2) {
 					log.reportError("Error - skipping this line, invalid number of arguments (needs to be tab delimited): "
 													+ Array.toStr(line, "/"));
@@ -2932,7 +2929,7 @@ public class Files {
 	}
 
 	public static void renameFilesUsingSubstitutionsFromParameters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> params;
 		String[] line, dirs, filenames, newFilenames;
 		String[][] substitutions;
 		boolean echo, extract;
@@ -2956,7 +2953,7 @@ public class Files {
 			substitutions = new String[params.size()][];
 			count = 0;
 			while (count < params.size()) {
-				line = params.get(count).trim().split("\t", -1);
+				line = params.elementAt(count).trim().split("\t", -1);
 				if (line[0].startsWith("echo=")) {
 					echo = ext.parseBooleanArg(line[0]);
 					params.remove(count);
@@ -3701,7 +3698,7 @@ public class Files {
 			}
 			reader.close();
 			log.reportError("Could not find the header containing "	+ Array.toStr(containing)
-											+ " in file " + filename);
+													+ " in file " + filename);
 			return null;
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: file \"" + filename + "\" not found in current directory");
@@ -3714,34 +3711,31 @@ public class Files {
 
 	public static String[][] parseControlFile(String filename, boolean tab, String command,
 																						String[] sampleCode, Logger log) {
-		List<String> list;
+		Vector<String> v;
 
-		list = parseControlFile(filename, command, sampleCode, log);
-		if (list == null) {
+		v = parseControlFile(filename, command, sampleCode, log);
+		if (v == null) {
 			return null;
 		} else {
-			return Array.splitStrings(Array.toStringArray(list), tab);
+			return Array.splitStrings(Array.toStringArray(v), tab);
 		}
 	}
 
-	public static List<String> parseControlFile(String filename, String command,
+	public static Vector<String> parseControlFile(String filename, String command,
 																								String[] sampleCode, Logger log) {
-		return parseControlFile(filename, command, Arrays.asList(sampleCode), log);
-	}
-
-	public static List<String> parseControlFile(String filename, String command,
-																								List<String> sampleCode, Logger log) {
-		List<String> outputCode = Lists.newArrayList(sampleCode);
-		outputCode.add(0, command);
+		BufferedReader reader;
+		Vector<String> v;
+		String[] line;
+		String temp;
 
 		if (new File(filename).length() == 0) {
-			Files.writeIterable(outputCode, filename);
+			Files.writeArray(Array.addStrToArray(command, sampleCode, 0), filename);
 			return null;
 		}
-		BufferedReader reader = null;
+
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			String[] line = reader.readLine().trim().split("[\\s]+");
+			line = reader.readLine().trim().split("[\\s]+");
 			if (!line[0].equalsIgnoreCase(command)) {
 				log.reportError("Error - file must start with the line '" + command + "'");
 				reader.close();
@@ -3749,18 +3743,18 @@ public class Files {
 			}
 			if (!reader.ready()) {
 				reader.close();
-				Files.writeIterable(outputCode, filename);
+				Files.writeArray(Array.addStrToArray(command, sampleCode, 0), filename);
 				return null;
 			} else {
-				List<String> ret = Lists.newArrayList();
+				v = new Vector<String>();
 				while (reader.ready()) {
-					String temp = reader.readLine();
+					temp = reader.readLine();
 					if (!temp.startsWith("#") && !temp.trim().split("[\\s]+")[0].equals("")) {
-						ret.add(temp);
+						v.add(temp);
 					}
 				}
 				reader.close();
-				return ret;
+				return v;
 			}
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: file \"" + filename + "\" not found in current directory");
@@ -3770,8 +3764,6 @@ public class Files {
 			log.reportError("Error reading file \"" + filename + "\"");
 			log.reportException(ioe);
 			return null;
-		} finally {
-			Closeables.closeQuietly(reader);
 		}
 	}
 
@@ -4170,7 +4162,7 @@ public class Files {
 	}
 
 	public static void replaceAllFromParameters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> params;
 
 		params = Files.parseControlFile(filename, "replaceAll",
 																		new String[] {"file=input.txt.gz", "out=outputFile.txt.gz",

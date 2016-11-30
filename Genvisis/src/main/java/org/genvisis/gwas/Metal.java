@@ -13,7 +13,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.bioinformatics.MapSNPsAndGenes;
@@ -529,7 +528,7 @@ public class Metal {
 				if (mappings.size() > 0) {
 					writer.println();
 					for (int j = 0; j < mappings.size(); j++) {
-						writer.println(mappings.get(j));
+						writer.println(mappings.elementAt(j));
 					}
 					writer.println();
 				}
@@ -720,7 +719,7 @@ public class Metal {
 
 	public static void generateUniformsFromParamters(String filename, Logger log) {
 		PrintWriter writer;
-		List<String> params;
+		Vector<String> params;
 		String[] line;
 		String newControlFile, indices;
 
@@ -733,14 +732,14 @@ public class Metal {
 																									"#generates control paramters such that each file that is listed uses the same indices and names them according to the designated prefix"},
 																		log);
 		if (params != null) {
-			newControlFile = params.get(0).trim();
-			indices = params.get(1).trim();
+			newControlFile = params.elementAt(0).trim();
+			indices = params.elementAt(1).trim();
 			try {
 				writer = new PrintWriter(new FileWriter(newControlFile));
 				writer.println("lookup");
 				writer.println("TBD");
 				for (int j = 2; j < params.size(); j++) {
-					line = params.get(j).trim().split("[\\s]+");
+					line = params.elementAt(j).trim().split("[\\s]+");
 					if (line.length > 2) {
 						log.reportError("Error - requires exactly one or two paramters in lines 2 on: [filename and] prefix");
 					} else if (line.length == 1) {
@@ -758,7 +757,7 @@ public class Metal {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> params;
 		String[] inputFiles, tempFiles;
 		String outputFile;
 		Hits hits;
@@ -806,28 +805,28 @@ public class Metal {
 			outputFile = params.remove(0);
 			ArrayList<Integer> paramsToRemove = new ArrayList<Integer>();// to avoid modifying within loop
 			for (int i = 0; i < params.size(); i++) {
-				if (params.get(i).startsWith("build=")) {
-					build = ext.parseByteArg(params.get(i));
+				if (params.elementAt(i).startsWith("build=")) {
+					build = ext.parseByteArg(params.elementAt(i));
 					paramsToRemove.add(i);
 				}
-				if (params.get(i).startsWith("genomic_control=")) {
-					gcControlOn = ext.parseBooleanArg(params.get(i));
+				if (params.elementAt(i).startsWith("genomic_control=")) {
+					gcControlOn = ext.parseBooleanArg(params.elementAt(i));
 					paramsToRemove.add(i);
 				}
-				if (params.get(i).startsWith("hits_p<=")) {
-					thresholdForHits = ext.parseDoubleArg(params.get(i));
+				if (params.elementAt(i).startsWith("hits_p<=")) {
+					thresholdForHits = ext.parseDoubleArg(params.elementAt(i));
 					params.remove(i);
 				}
-				if (params.get(i).startsWith("se<=")) {
-					seThreshold = ext.parseDoubleArg(params.get(i));
+				if (params.elementAt(i).startsWith("se<=")) {
+					seThreshold = ext.parseDoubleArg(params.elementAt(i));
 					paramsToRemove.add(i);
 				}
-				if (params.get(i).startsWith("maf>=")) {
-					mafThreshold = ext.parseDoubleArg(params.get(i));
+				if (params.elementAt(i).startsWith("maf>=")) {
+					mafThreshold = ext.parseDoubleArg(params.elementAt(i));
 					paramsToRemove.add(i);
 				}
-				if (params.get(i).startsWith("customCommand=")) {
-					String[] tmp = params.get(i).split(":");
+				if (params.elementAt(i).startsWith("customCommand=")) {
+					String[] tmp = params.elementAt(i).split(":");
 					if (!customCommands.containsKey(tmp[0])) {
 						customCommands.put(tmp[0], new ArrayList<String>());
 					}
@@ -843,7 +842,7 @@ public class Metal {
 			Vector<String> remaining = new Vector<String>();
 			for (int i = 0; i < params.size(); i++) {
 				if (!paramsToRemove.contains(i)) {
-					remaining.add(params.get(i));
+					remaining.add(params.elementAt(i));
 				}
 			}
 			params = remaining;
@@ -1117,7 +1116,7 @@ public class Metal {
 
 
 	public static void generateInputFile(String filename, Logger log) {
-		List<String> params;
+		Vector<String> params;
 		String[] files;
 
 		params = Files.parseControlFile(filename, "metal",
@@ -1132,7 +1131,7 @@ public class Metal {
 			log.report(Array.toStr(Array.toStringArray(params)));
 			for (int i = 0; i < files.length; i++) {
 				if (params.size() >= i + 1) {
-					files[i] = params.get(i).trim().split("[\\s]+")[0];
+					files[i] = params.elementAt(i).trim().split("[\\s]+")[0];
 				}
 			}
 			Files.writeArray(	new String[] {"java -jar /home/npankrat/"
@@ -1173,7 +1172,7 @@ public class Metal {
 	}
 
 	public static void calculateWeightedAlleleFrequencyFromParamters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> params;
 		String[] line;
 		String freqsFile;
 		double rsqThresh, mafThresh;
@@ -1185,7 +1184,7 @@ public class Metal {
 		if (params != null) {
 			rsqThresh = -1;
 			mafThresh = -1;
-			line = params.get(0).trim().split("[\\s]+");
+			line = params.elementAt(0).trim().split("[\\s]+");
 			freqsFile = line[0];
 			for (int j = 1; j < line.length; j++) {
 				if (line[j].startsWith("Rsq>")) {
@@ -1726,11 +1725,11 @@ public class Metal {
 					agreements[j][k] += trav1.charAt(j) == trav2.charAt(k) ? 1 : 0;
 
 					// if (trav2.charAt(k) == '?') {
-					// missings2.get(k).put(keys[i], "");
+					// missings2.elementAt(k).put(keys[i], "");
 					// }
 				}
 				// if (trav1.charAt(j) == '?') {
-				// missings1.get(j).put(keys[i], "");
+				// missings1.elementAt(j).put(keys[i], "");
 				// }
 			}
 		}
@@ -1766,8 +1765,8 @@ public class Metal {
 				Files.writeArray(HashVec.getKeys(missHash1), "Study" + (i + 1) + "_missingFrom.dat");
 			}
 
-			// missHash1 = missings1.get(i);
-			// missHash2 = missings2.get(matches[i]);
+			// missHash1 = missings1.elementAt(i);
+			// missHash2 = missings2.elementAt(matches[i]);
 			// keys = HashVec.getKeys(missHash1);
 			// for (int j = 0; j < keys.length; j++) {
 			// if (missHash2.containsKey(keys[j])) {

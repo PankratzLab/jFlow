@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -1236,7 +1235,7 @@ public class Conditional {
 		PrintStream ps;
 		String[] line;
 		String trav;
-		List<String> params;
+		Vector<String> paramV;
 		String regionListFilename;
 		String[][] dirsAndPatterns;
 		String[][] markersAndChrs;
@@ -1250,7 +1249,7 @@ public class Conditional {
 		String markerName, effectAllele, refAllele, beta, se, pval, weight, freq, gc, snps;
 		boolean minmaxfreq, averagefreq, verbose, schemeIsStdErr;
 
-		params = Files.parseControlFile(controlFile, "meta",
+		paramV = Files.parseControlFile(controlFile, "meta",
 																		new String[] {"# Can set regionList file to null in order to just do a standard meta-analysis, just set first column (the directories) to .",
 																									"regionListWithAnyExtraInfoForFilenamePatterns.dat minNum=7",
 																									"progeni_genepd	progeni_genepd_[%1].txt",
@@ -1271,8 +1270,8 @@ public class Conditional {
 																									"VERBOSE ON",},
 																		log);
 
-		if (params != null) {
-			line = params.get(0).split("[\\s]+");
+		if (paramV != null) {
+			line = paramV.elementAt(0).split("[\\s]+");
 			regionListFilename = line[0];
 			minNumValids = -9;
 			for (int i = 1; i < line.length; i++) {
@@ -1291,46 +1290,46 @@ public class Conditional {
 			gc = "OFF";
 
 
-			for (int i = params.size() - 1; i > 0; i--) {
-				trav = params.get(i).trim();
+			for (int i = paramV.size() - 1; i > 0; i--) {
+				trav = paramV.elementAt(i).trim();
 				if (trav.startsWith("MARKER ")) {
-					markerName = params.remove(i).split("[\\s]+")[1];
+					markerName = paramV.remove(i).split("[\\s]+")[1];
 				} else if (trav.startsWith("ALLELE ")) {
-					line = params.remove(i).trim().split("[\\s]+");
+					line = paramV.remove(i).trim().split("[\\s]+");
 					effectAllele = line[1];
 					refAllele = line[2];
 				} else if (trav.startsWith("EFFECT ")) {
-					beta = params.remove(i).split("[\\s]+")[1];
+					beta = paramV.remove(i).split("[\\s]+")[1];
 				} else if (trav.startsWith("STDERR ")) {
-					se = params.remove(i).split("[\\s]+")[1];
+					se = paramV.remove(i).split("[\\s]+")[1];
 				} else if (trav.startsWith("PVAL ")) {
-					pval = params.remove(i).split("[\\s]+")[1];
+					pval = paramV.remove(i).split("[\\s]+")[1];
 				} else if (trav.startsWith("WEIGHT ")) {
-					weight = params.remove(i).split("[\\s]+")[1];
+					weight = paramV.remove(i).split("[\\s]+")[1];
 				} else if (trav.startsWith("SCHEME ")) {
-					schemeIsStdErr = params.remove(i).split("[\\s]+")[1].equalsIgnoreCase("STDERR");
+					schemeIsStdErr = paramV.remove(i).split("[\\s]+")[1].equalsIgnoreCase("STDERR");
 				} else if (trav.startsWith("GENOMICCONTROL ")) {
-					gc = params.remove(i).split("[\\s]+")[1];
+					gc = paramV.remove(i).split("[\\s]+")[1];
 				} else if (trav.startsWith("FREQ ")) {
-					freq = params.remove(i).split("[\\s]+")[1];
+					freq = paramV.remove(i).split("[\\s]+")[1];
 				} else if (trav.startsWith("ADDFILTER ")) {
 					snps = trav;
 				} else if (trav.startsWith("MINMAXFREQ ")) {
-					minmaxfreq = params.remove(i).split("[\\s]+")[1].equalsIgnoreCase("ON");
+					minmaxfreq = paramV.remove(i).split("[\\s]+")[1].equalsIgnoreCase("ON");
 				} else if (trav.startsWith("AVERAGEFREQ ")) {
-					averagefreq = params.remove(i).split("[\\s]+")[1].equalsIgnoreCase("ON");
+					averagefreq = paramV.remove(i).split("[\\s]+")[1].equalsIgnoreCase("ON");
 				} else if (trav.startsWith("VERBOSE ")) {
-					verbose = params.remove(i).split("[\\s]+")[1].equalsIgnoreCase("ON");
+					verbose = paramV.remove(i).split("[\\s]+")[1].equalsIgnoreCase("ON");
 				} else if (trav.split("[\\s]+").length != 2) {
-					System.err.println("Error - processing '" + params.get(i) + "'");
+					System.err.println("Error - processing '" + paramV.elementAt(i) + "'");
 				}
 			}
 
-			dirsAndPatterns = new String[params.size() - 1][2];
+			dirsAndPatterns = new String[paramV.size() - 1][2];
 			for (int i = 0; i < dirsAndPatterns.length; i++) {
-				line = params.get(1 + i).trim().split("[\\s]+");
+				line = paramV.elementAt(1 + i).trim().split("[\\s]+");
 				if (line.length != 2) {
-					System.err.println("Error - processing '" + params.get(1 + i) + "'");
+					System.err.println("Error - processing '" + paramV.elementAt(1 + i) + "'");
 					return;
 				}
 				line[0] = ext.verifyDirFormat(line[0]);

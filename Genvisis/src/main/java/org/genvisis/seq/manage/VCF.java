@@ -428,7 +428,7 @@ public class VCF {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		List<String> params = Files.parseControlFile(	filename, "VCFilt",
+		Vector<String> params = Files.parseControlFile(	filename, "VCFilt",
 																										getParserParams(ext.parseDirectoryOfFile(filename)),
 																										log);
 		if (params != null) {

@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 
 public class FilterByLists {
@@ -17,20 +16,20 @@ public class FilterByLists {
 		String[] line;
 		String filename, outputFilename;
 		int col;
-		List<String> params;
+		Vector<String> paramV;
 		boolean header;
 		String keeps, deletes;
 		boolean commaDelimited;
 
-		params = Files.parseControlFile(controlFile, "filterByLists",
+		paramV = Files.parseControlFile(controlFile, "filterByLists",
 																		new String[] {"fileToFilter.txt header 0 out=file.out",
 																									"keeps.txt", "deletes.txt"},
 																		log);
-		if (params == null) {
+		if (paramV == null) {
 			return;
 		}
 
-		line = params.remove(0).trim().split("[\\s]+");
+		line = paramV.remove(0).trim().split("[\\s]+");
 		filename = line[0];
 		header = false;
 		commaDelimited = false;
@@ -54,11 +53,11 @@ public class FilterByLists {
 			col = 0;
 		}
 		log.report("Loading data from '" + filename + "'");
-		keeps = params.remove(0);
+		keeps = paramV.remove(0);
 		if (keeps.equalsIgnoreCase("null")) {
 			keeps = null;
 		}
-		deletes = params.remove(0);
+		deletes = paramV.remove(0);
 		if (deletes.equalsIgnoreCase("null")) {
 			deletes = null;
 		}

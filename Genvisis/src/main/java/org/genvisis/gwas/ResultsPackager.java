@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -1030,7 +1029,7 @@ public class ResultsPackager {
 	}
 
 	public static void createFromParameters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> params;
 
 		params = Files.parseControlFile(filename, "results",
 																		new String[] {"dir=",

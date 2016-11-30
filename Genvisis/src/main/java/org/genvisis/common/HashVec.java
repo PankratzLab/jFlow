@@ -15,8 +15,8 @@ import java.util.Map;
 import java.util.Vector;
 
 public class HashVec {
-	public static boolean addIfAbsent(String str, List<String> list) {
-		return addIfAbsent(str, list, false);
+	public static boolean addIfAbsent(String str, Vector<String> v) {
+		return addIfAbsent(str, v, false);
 	}
 
 	/**
@@ -24,19 +24,19 @@ public class HashVec {
 	 *        the appropriate sorted index.
 	 * @return true if added
 	 */
-	public static boolean addIfAbsent(String str, List<String> list, boolean inAlphabeticalOrder) {
+	public static boolean addIfAbsent(String str, Vector<String> v, boolean inAlphabeticalOrder) {
 
 		if (inAlphabeticalOrder) {
-			int idx = Collections.binarySearch(list, str);
+			int idx = Collections.binarySearch(v, str);
 			// negative value indicates value was not present.
 			// adjust index and insert
 			if (idx < 0) {
 				idx = -(idx + 1);
-				list.add(idx, str);
+				v.insertElementAt(str, idx);
 				return true;
 			}
-		} else if (!list.contains(str)) {
-			list.add(str);
+		} else if (!v.contains(str)) {
+			v.add(str);
 			return true;
 		}
 

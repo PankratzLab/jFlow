@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -77,7 +76,7 @@ public class FilterDB {
 			header = reader.readLine().trim().split("[\\s]+");
 			for (int i = 0; i < filters.size(); i++) {
 				try {
-					filters.get(i).determineIndices(header);
+					filters.elementAt(i).determineIndices(header);
 				} catch (Elision e) {
 					log.reportException(e);
 					reader.close();
@@ -92,8 +91,8 @@ public class FilterDB {
 				result = line[0] + "\t";
 				count = 0;
 				for (int i = 0; i < filters.size(); i++) {
-					if (filters.get(i).meetsCriteria(line, log)) {
-						result += (count > 0 ? ";" : "") + filters.get(i).getLabel(line);
+					if (filters.elementAt(i).meetsCriteria(line, log)) {
+						result += (count > 0 ? ";" : "") + filters.elementAt(i).getLabel(line);
 						count++;
 					}
 				}
@@ -115,7 +114,7 @@ public class FilterDB {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> params;
 		String dbFilename, filtersFilename, output;
 		String temp;
 
@@ -132,7 +131,7 @@ public class FilterDB {
 			filtersFilename = null;
 			output = null;
 			for (int i = 0; i < params.size(); i++) {
-				temp = params.get(i);
+				temp = params.elementAt(i);
 
 				if (temp.startsWith("db=")) {
 					dbFilename = ext.parseStringArg(temp, null);

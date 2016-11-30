@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -119,7 +118,7 @@ public class SummarizePhenotype {
 		result = new String[numParameters];
 		// data = new double[modelData.size()];
 		// for (int i = 0; i < data.length; i ++) {
-		// data[i] = Double.parseDouble(modelData.get(i));
+		// data[i] = Double.parseDouble(modelData.elementAt(i));
 		// }
 
 		for (int i = 0; i < numParameters; i++) {
@@ -195,21 +194,21 @@ public class SummarizePhenotype {
 			theSize = modelData.size();
 			dataVec = new Vector<Double>(theSize);
 			for (int j = 0; j < theSize; j++) {
-				line = modelData.get(j);
+				line = modelData.elementAt(j);
 				isToInclude = true;
 				for (int k = 0; k < filters.size(); k++) {
-					if (filterText.get(k).equalsIgnoreCase("validDouble")) {
-						if (!ext.isValidDouble(line[filters.get(k)])) {
+					if (filterText.elementAt(k).equalsIgnoreCase("validDouble")) {
+						if (!ext.isValidDouble(line[filters.elementAt(k)])) {
 							isToInclude = false;
 							break;
 						}
-					} else if (filterText.get(k).equalsIgnoreCase("validInteger")) {
-						if (!ext.isValidInteger(line[filters.get(k)])) {
+					} else if (filterText.elementAt(k).equalsIgnoreCase("validInteger")) {
+						if (!ext.isValidInteger(line[filters.elementAt(k)])) {
 							isToInclude = false;
 							break;
 						}
 					} else {
-						if (!line[filters.get(k)].equalsIgnoreCase(filterText.get(k))) {
+						if (!line[filters.elementAt(k)].equalsIgnoreCase(filterText.elementAt(k))) {
 							isToInclude = false;
 							break;
 						}
@@ -223,7 +222,7 @@ public class SummarizePhenotype {
 			theSize = dataVec.size();
 			data = new double[theSize];
 			for (int j = 0; j < theSize; j++) {
-				data[j] = dataVec.get(j);
+				data[j] = dataVec.elementAt(j);
 			}
 
 			result[i] = runDescriptiveStat(data, parameters[i][1], isStdev, isBlank, isPercent, sf, log);
@@ -241,7 +240,7 @@ public class SummarizePhenotype {
 			writer = new PrintWriter(new FileWriter(filename));
 			writer.println(Array.toStr(header));
 			for (int i = 0; i < size; i++) {
-				writer.println(Array.toStr(data.get(i)));
+				writer.println(Array.toStr(data.elementAt(i)));
 			}
 			writer.close();
 		} catch (IOException e) {
@@ -411,13 +410,13 @@ public class SummarizePhenotype {
 			reader.close();
 			parameters = new String[parametersVec.size()][];
 			for (int i = 0; i < parameters.length; i++) {
-				parameters[i] = parametersVec.get(i);
+				parameters[i] = parametersVec.elementAt(i);
 			}
 
 			data = new Hashtable<String, Hashtable<String, String[]>>();
 			result = new String[modelList.size()][parametersVec.size()];
 			for (int i = 0; i < result.length; i++) {
-				modelName = modelList.get(i);
+				modelName = modelList.elementAt(i);
 				log.report("Processing model: " + modelName);
 				dataFileNames = models.get(modelName)[0];
 				variablesInModel = models.get(modelName)[1];
@@ -456,12 +455,12 @@ public class SummarizePhenotype {
 
 			writer = new PrintWriter(new FileWriter(wkDir + outFileName));
 			for (int i = 0; i < result.length; i++) {
-				writer.print("\t" + modelList.get(i));
+				writer.print("\t" + modelList.elementAt(i));
 			}
 			writer.println("");
 
 			for (int i = 0; i < result[0].length; i++) {
-				writer.print(parametersVec.get(i)[0]);
+				writer.print(parametersVec.elementAt(i)[0]);
 				for (String[] element : result) {
 					if (element != null) {
 						writer.print("\t" + element[i]);
@@ -512,7 +511,7 @@ public class SummarizePhenotype {
 	}
 
 	public static void summarizeFromParameters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> params;
 		// String wkDir;
 		String line;
 		String[] defaults;
@@ -546,7 +545,7 @@ public class SummarizePhenotype {
 		index = params.size();
 		parameters = new String[index - 2][];
 		for (int i = 0; i < index; i++) {
-			line = params.get(i);
+			line = params.elementAt(i);
 			if (!line.startsWith("#")) {
 				if (line.startsWith("in=")) {
 					phenoDataFileName = line.split("=")[1];
@@ -612,7 +611,7 @@ public class SummarizePhenotype {
 	// parameters = new String[params.size()][];
 	//// for (int i = 0; i < defaults.length; i++) {
 	// for (int i = 0; i < parameters.length; i++) {
-	// line = params.get(i).toLowerCase().split("\t");
+	// line = params.elementAt(i).toLowerCase().split("\t");
 	// for (int j = 2; j < line.length; j++) {
 	// if (! line[j].startsWith("-")) {
 	// trav = line[j].split("=");
@@ -646,7 +645,7 @@ public class SummarizePhenotype {
 	// }
 
 	public static void filesFromParameters(String modelListFileName, Logger log) {
-		List<String> params;
+		Vector<String> params;
 
 		params = Files.parseControlFile(modelListFileName, "phenotype",
 																		new String[] {"#modelName\tdataFile\tvariableList\tIdListFile",

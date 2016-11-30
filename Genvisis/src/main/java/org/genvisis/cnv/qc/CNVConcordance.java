@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
@@ -449,7 +448,7 @@ public class CNVConcordance {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		List<String> params = Files.parseControlFile(	filename, "cnvConcordance", getParserParams(),
+		Vector<String> params = Files.parseControlFile(	filename, "cnvConcordance", getParserParams(),
 																										log);
 		if (params != null) {
 			main(Array.toStringArray(params));

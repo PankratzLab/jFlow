@@ -5,7 +5,6 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.cnv.filesys.MarkerData;
@@ -427,7 +426,7 @@ public class MeanLRR {
 	}
 
 	public static void fromParameters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> params;
 
 		params = Files.parseControlFile(filename, "MeanLRR",
 																		new String[] {"proj=/home/npankrat/projects/GEDI.properties",

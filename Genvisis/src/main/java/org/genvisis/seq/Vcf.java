@@ -10,7 +10,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.common.Array;
@@ -231,7 +230,7 @@ public class Vcf {
 	}
 
 	public static void createFromParameters(String filename, Logger log) {
-		List<String> params;
+		Vector<String> params;
 
 		params = Files.parseControlFile(filename, "vcf",
 																		new String[] {"list=snps.txt",
