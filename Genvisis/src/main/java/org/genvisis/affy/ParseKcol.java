@@ -1544,7 +1544,6 @@ public class ParseKcol implements Runnable {
 		String filename = null;
 		boolean map = false;
 		int numThreads = 1;
-		// boolean parseABlookup = false;
 		boolean parseAlleleLookupFromFinalReports = false;
 		boolean combineChpFiles = false;
 		String mapOutput = "filenamesMappedToSamples.txt";
@@ -1557,8 +1556,6 @@ public class ParseKcol implements Runnable {
 										+ "   (3) map filenames to sample IDs (i.e. -mapFiles ("
 										+ (map ? "" : "not the ") + "default))\n"
 										+ "   (4) output file for mappings (i.e. out=" + mapOutput + " (default))\n" +
-										// " OR:\n"+
-										// " (1) parse AB lookup (i.e. --parseAB (not the default))\n"+
 										" OR:\n"
 										+ "   (1) parse Forward/TOP/AB/etc lookup (i.e. --parseAlleleLookup (not the default))\n"
 										+ "";
@@ -1576,9 +1573,6 @@ public class ParseKcol implements Runnable {
 			} else if (arg.startsWith("-mapFiles")) {
 				map = true;
 				numArgs--;
-				// } else if (args[i].startsWith("-parseAB")) {
-				// parseABlookup = true;
-				// numArgs--;
 			} else if (arg.startsWith("-parseAlleleLookup")) {
 				parseAlleleLookupFromFinalReports = true;
 				numArgs--;
@@ -1592,32 +1586,9 @@ public class ParseKcol implements Runnable {
 			return;
 		}
 
-		// filename = "C:/workspace/Genvisis/projects/KcolTest.properties";
-		// proj = null;
 		proj = new Project(filename, false);
-		//
-		// if (!proj.getDir(proj.SOURCE_DIRECTORY).equals("")&&!new
-		// File(proj.getDir(proj.SOURCE_DIRECTORY)).exists()) {
-		// System.err.println("Error - the project source location is invalid:
-		// "+proj.getDir(proj.SOURCE_DIRECTORY));
-		// return;
-		// }
-
-		// fileToConvert = "D:\\LOAD\\paper\\second
-		// submission\\genotype_counts\\top_hits.logistic.4pc_genotypes.txt";
-		// fileToConvert = "D:\\LOAD\\paper\\second
-		// submission\\genotype_counts\\top_hits.logistic.4pc_full_apoe_genotypes.txt";
-		// fileToConvert = "D:\\LOAD\\paper\\second
-		// submission\\genotype_counts\\top_hits.logistic.full_apoe_genotypes.txt";
-		// fileToConvert = "D:\\LOAD\\paper\\second
-		// submission\\genotype_counts\\top_hits.logistic.nocovars_genotypes.txt";
-
-		// lookupFile = "D:\\LOAD\\alleleLookup.txt";
 
 		try {
-			// if (parseABlookup) {
-			// ABLookup.parseABlookup(proj);
-			// } else
 			if (map) {
 				mapFilenamesToSamples(proj, mapOutput);
 			} else if (parseAlleleLookupFromFinalReports) {

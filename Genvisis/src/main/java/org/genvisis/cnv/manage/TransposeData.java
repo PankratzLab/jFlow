@@ -1422,13 +1422,6 @@ public class TransposeData {
 
 		proj = new Project(filename, false);
 
-		if (!proj.SOURCE_DIRECTORY.getValue(false, true).equals("")
-				&& !new File(proj.SOURCE_DIRECTORY.getValue(false, true)).exists()) {
-			System.err.println("Error - the project source location is invalid: "
-													+ proj.SOURCE_DIRECTORY.getValue(false, true));
-			return;
-		}
-
 		// transpose = true;
 		// lookup = true;
 		try {
