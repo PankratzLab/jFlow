@@ -29,9 +29,10 @@ public class PennCNVTrios {
 	}
 
 	private static void buildInputList(String trios, String pennDir) {
+		final String out = "trioInput.txt";
 		try {
 			BufferedReader r = Files.getAppropriateReader(trios);
-			PrintWriter w = Files.getAppropriateWriter("trioInput.txt");
+			PrintWriter w = Files.getAppropriateWriter(out);
 			String header = r.readLine();
 			int[] dnaIdxs = ext.indexFactors(	new String[] {"DNA", "FA_DNA", "MO_DNA"}, header.split("\t"),
 																				false, true);
@@ -70,6 +71,7 @@ public class PennCNVTrios {
 		}
 
 
+		System.out.println("Finished writing penncnv trio inputs to: " + out);
 	}
 
 	private static boolean isValidDNA(String s) {
