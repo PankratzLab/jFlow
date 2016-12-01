@@ -3,6 +3,9 @@ All notable changes to Genvisis will be documented in this file.
 
 ##[Unreleased]
 
+### Fixed
+Bug fixes for mis-indexed on the fly gc Correction (#141)
+
 ##[0.1.7]
 Genvisis is now a Maven project!
 
