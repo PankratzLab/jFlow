@@ -48,5 +48,9 @@ public class GateDimension {
     return paramName;
   }
 
+	public void setParam(String d) {
+		this.paramName = d;
+	}
+
 
 }

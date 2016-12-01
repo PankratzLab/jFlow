@@ -14,12 +14,12 @@ import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 public class Workbench {
   
   public static class SampleNode {
-    String id;
-    String fcsFile;
-    Gating gating;
-    HashMap<String, AxisTransform> savedTransforms;
-    org.w3c.dom.Element sampleNode;
-    org.w3c.dom.Document doc;
+    public String id;
+    public String fcsFile;
+    public Gating gating;
+    public HashMap<String, AxisTransform> savedTransforms;
+    public org.w3c.dom.Element sampleNode;
+    public org.w3c.dom.Document doc;
     
     public Gating getGating() {
       return gating;
@@ -55,14 +55,14 @@ public class Workbench {
   private String getNewSampleID() {
     int id = samples.size() + 1;
     boolean done = false;
-    notDone : while (!done) {
-      if (samples.containsKey("" + id)) {
+    while (!done) {
+      if (samples.containsKey(Integer.toString(id))) {
         id++;
-        continue notDone;
+        continue;
       }
       done = true;
     }
-    return id + "";
+    return Integer.toString(id);
   }
   
   public SampleNode getSample(String currentSampleID) {

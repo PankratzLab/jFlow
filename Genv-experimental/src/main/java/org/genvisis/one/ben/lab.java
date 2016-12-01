@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -22,6 +23,8 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.DosageData;
 import org.genvisis.filesys.Segment;
 import org.genvisis.gwas.MergeExtractPipeline;
+
+import com.google.common.io.Closeables;
 
 public class lab {
 
@@ -67,19 +70,21 @@ public class lab {
 	public static void filterCentromeric(	String dir, String in, String out,
 																				String markerSetFilenameToBreakUpCentromeres, int build,
 																				Logger log) {
-		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
 		CNVariant cnv;
 		Segment[] centromereMidpoints;
 		int[][] centromereBoundaries;
+		BufferedReader reader = null;
+		FileReader fr = null;
 
 		centromereBoundaries = Positions.determineCentromereBoundariesFromMarkerSet(markerSetFilenameToBreakUpCentromeres,
 																																								build, log);
 		centromereMidpoints = Positions.computeCentromereMidpoints(centromereBoundaries);
 
 		try {
-			reader = new BufferedReader(new FileReader(dir + in));
+			fr = new FileReader(dir + in);
+			reader = new BufferedReader(fr);
 			writer = new PrintWriter(new FileWriter(dir + out));
 			writer.println(reader.readLine());
 			while (reader.ready()) {
@@ -89,6 +94,7 @@ public class lab {
 					writer.println(Array.toStr(line));
 				}
 			}
+			fr.close();
 			reader.close();
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
@@ -97,6 +103,21 @@ public class lab {
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + dir + in + "\"");
 			return;
+		} finally {
+			if (fr != null) {
+				try {
+					fr.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			if (reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
@@ -148,24 +169,34 @@ public class lab {
 		boolean test = true;
 		if (test) {
 
-			String outFile = "/scratch.global/cole0482/test.db.xln.gz";
-			String mapOutFile = "/scratch.global/cole0482/mapOut.xln";
-
-
-			MergeExtractPipeline pipeline = new MergeExtractPipeline();
-			// pipeline.setMarkers(markersFile);
-			pipeline.setRunDirectory("/scratch.global/cole0482/merge/", true);
-			pipeline.setOutputFormat(DosageData.DATABASE_DOSE_FORMAT);
-			pipeline.setOutputFiles(outFile, mapOutFile);
-			pipeline.setRenameMarkers(true);
-			// pipeline.addDataSource("/scratch.global/cole0482/merge/blacks/", "gwas.bed", "gwas.bim",
-			// "gwas.fam");
-			pipeline.addDataSource(	"exome", "/scratch.global/cole0482/merge/blacks/", "exome.bed",
-															"exome.bim", "exome.fam");
-			pipeline.addDataSource(	"metab", "/scratch.global/cole0482/merge/blacks/", "metab.bed",
-															"metab.bim", "metab.fam");
-			// add more;
-			pipeline.run();
+			HashMap<Integer, Integer> testMap = new HashMap<>();
+			for (int i = 0; i < 10; i++) {
+				testMap.put(i * 2, i);
+			}
+			Integer[] testArr = Array.mapToValueSortedArray(testMap);
+			System.out.println(Array.toStr(testArr));
+			
+			
+//			Files.check32Bit();
+			
+//			String outFile = "/scratch.global/cole0482/test.db.xln.gz";
+//			String mapOutFile = "/scratch.global/cole0482/mapOut.xln";
+//
+//
+//			MergeExtractPipeline pipeline = new MergeExtractPipeline();
+//			// pipeline.setMarkers(markersFile);
+//			pipeline.setRunDirectory("/scratch.global/cole0482/merge/", true);
+//			pipeline.setOutputFormat(DosageData.DATABASE_DOSE_FORMAT);
+//			pipeline.setOutputFiles(outFile, mapOutFile);
+//			pipeline.setRenameMarkers(true);
+//			// pipeline.addDataSource("/scratch.global/cole0482/merge/blacks/", "gwas.bed", "gwas.bim",
+//			// "gwas.fam");
+//			pipeline.addDataSource(	"exome", "/scratch.global/cole0482/merge/blacks/", "exome.bed",
+//															"exome.bim", "exome.fam");
+//			pipeline.addDataSource(	"metab", "/scratch.global/cole0482/merge/blacks/", "metab.bed",
+//															"metab.bim", "metab.fam");
+//			// add more;
+//			pipeline.run();
 
 
 			// String doseFile1 =

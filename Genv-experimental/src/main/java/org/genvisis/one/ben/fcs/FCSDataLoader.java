@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
@@ -520,7 +521,7 @@ public class FCSDataLoader {
     return prepend ? COMPENSATED_PREPEND + nm : nm;
   }
   
-  public double[] getDataLine(ArrayList<String> params, int ind) {
+  public double[] getDataLine(List<String> params, int ind) {
     double[] line = new double[params.size()];
     
     LOAD_STATE currState = getLoadState();

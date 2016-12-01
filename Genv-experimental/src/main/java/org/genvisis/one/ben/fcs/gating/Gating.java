@@ -7,10 +7,10 @@ import java.util.HashSet;
 public class Gating {
   HashSet<String> allNames = new HashSet<String>();
   // ID -> Gate
-  HashMap<String, Gate> gateMap = new HashMap<String, Gate>();
+  public HashMap<String, Gate> gateMap = new HashMap<String, Gate>();
   // paramName -> list of applicable Gates
-  HashMap<String, ArrayList<Gate>> paramGateMap = new HashMap<String, ArrayList<Gate>>(); 
-  ArrayList<Gate> gateRoots = new ArrayList<Gate>();
+  public HashMap<String, ArrayList<Gate>> paramGateMap = new HashMap<String, ArrayList<Gate>>(); 
+  public ArrayList<Gate> gateRoots = new ArrayList<Gate>();
 
   private String fileName;
 
@@ -112,6 +112,9 @@ public class Gating {
     return gateRoots;
   }
 
+  public HashSet<String> getAllGateNames() {
+  	return allNames;
+  }
 
   public void deleteGate(Gate g) {
     deleteGate(g, gateRoots);

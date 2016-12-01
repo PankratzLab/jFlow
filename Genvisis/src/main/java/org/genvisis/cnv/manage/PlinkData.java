@@ -1587,22 +1587,15 @@ public class PlinkData {
 			hash.put(targetMarkers[i], i);
 		}
 
-		markerIndexHash = new HashMap<String, Integer>();
-		for (int i = 0; i < targetMarkers.length; i++) {
-			if (markerIndexHash.containsKey(targetMarkers[i])) {
-				log.reportError("Warning - duplicate marker name: " + targetMarkers[i]);
-			}
-			markerIndexHash.put(targetMarkers[i], i);
-		}
 		PSF.checkInterrupted();
 
 		subTime = new Date().getTime();
 		log.report("MarkerDataLoader initialized in " + ext.getTimeElapsed(subTime));
 		genotypesOfTargetSamples = new byte[indicesOfTargetSamplesInProj.length];
 
-		String PROG_KEY = "EXPORTBINARYBEDBATCH";
+		String progKey = "EXPORTBINARYBEDBATCH";
 
-		proj.getProgressMonitor().beginDeterminateTask(	PROG_KEY, "Exporting data to .bed file",
+		proj.getProgressMonitor().beginDeterminateTask(	progKey, "Exporting data to .bed file",
 		                                               	targetMarkers.length,
 		                                               	ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 
@@ -1641,7 +1634,7 @@ public class PlinkData {
 					genotypesOfTargetSamples[k] = genotypes[indicesOfTargetSamplesInProj[k]];
 				}
 				out.write(encodePlinkBedBytesForASingleMarkerOrSample(genotypesOfTargetSamples));
-				proj.getProgressMonitor().updateTask(PROG_KEY);
+				proj.getProgressMonitor().updateTask(progKey);
 				int targetIndex = hash.get(markerData.getMarkerName());
 				bimWriter.println(chrsOfTargetMarkers.get(markerData.getMarkerName())	+ "\t"
 						+ markerData.getMarkerName() + "\t0\t"
@@ -1659,9 +1652,8 @@ public class PlinkData {
 			log.reportException(ioe);
 		}
 
-		proj.getProgressMonitor().endTask(PROG_KEY);
-		proj.getLog()
-		.report("Finished creating binary PLINK files in " + ext.getTimeElapsed(startTime));
+		proj.getProgressMonitor().endTask(progKey);
+		proj.getLog().report("Finished creating binary PLINK files in " + ext.getTimeElapsed(startTime));
 
 
 
@@ -1749,7 +1741,7 @@ public class PlinkData {
 			while ((temp = reader.readLine()) != null) {
 				count++;
 				temp = temp.trim();
-				line = temp.split(ext.determineDelimiter(temp));
+				line = temp.split(ext.determineDelimiter(temp), -1);
 				if (temp.equals("")) {
 					// then do nothing
 				} else if (line.length < 7) {
