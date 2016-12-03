@@ -10,58 +10,80 @@ import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 /**
- * Utility for building input list for penncnv trio analysis
- * (http://penncnv.openbioinformatics.org/en/latest/user-guide/trio/)
+ * Utility for building input list for penncnv trio
+ * (http://penncnv.openbioinformatics.org/en/latest/user-guide/trio/) and joint
+ * (http://penncnv.openbioinformatics.org/en/latest/user-guide/joint/) analysis.
  *
  */
-public class PennCNVTrios {
+public class PennCNVFamilies {
 
 	public static void main(String... args) {
 		final String trios = "trios";
 		final String pennData = "pennData";
-		CLI c = new CLI(PennCNVTrios.class);
+		final String jointSize = "joint";
+
+		CLI c = new CLI(PennCNVFamilies.class);
 		c.addArg(trios, "List of known trios", true);
+		c.addArg(jointSize, "Joint chunk size. Allow ~1hr/trio. Will create [#samples]/jointSize input files.", true, CLI.Arg.NUMBER);
 		c.addArg(pennData, "Directory containing zipped, exported penncnv data", true);
 
 		c.parseWithExit(args);
 
-		buildInputList(c.get(trios), c.get(pennData));
+		buildInputList(c.get(trios), c.get(pennData), c.getI(jointSize));
 	}
 
-	private static void buildInputList(String trios, String pennDir) {
+	private static void buildInputList(String trios, String pennDir, int chunkSize) {
 		final String out = "trioInput.txt";
 		try {
 			BufferedReader r = Files.getAppropriateReader(trios);
-			PrintWriter w = Files.getAppropriateWriter(out);
+			PrintWriter writeTrios = Files.getAppropriateWriter(out);
+
+			int jointChunk = 1;
+			PrintWriter writeJoints = Files.getAppropriateWriter("jointInput" + jointChunk + ".txt");
+
 			String header = r.readLine();
 			int[] dnaIdxs = ext.indexFactors(	new String[] {"DNA", "FA_DNA", "MO_DNA"}, header.split("\t"),
 																				false, true);
+			int sample = 0;
+
 			while (r.ready()) {
 				String[] line = r.readLine().split("\t");
 
 				boolean valid = true;
-				for (int i=0; i<dnaIdxs.length; i++) {
+				for (int i = 0; i < dnaIdxs.length; i++) {
 					valid = valid && isValidDNA(line[dnaIdxs[i]]);
 				}
 				if (!valid) {
 					continue;
 				}
+				sample++;
 				StringBuilder sb = new StringBuilder();
-				for (int i=0; i<dnaIdxs.length; i++) {
+				for (int i = 0; i < dnaIdxs.length; i++) {
 					sb.append("`gunzip -c ");
 					sb.append(pennDir);
 					sb.append(line[dnaIdxs[i]]);
 					sb.append(".gz`");
-					if (i+1 < dnaIdxs.length) {
+					if (i + 1 < dnaIdxs.length) {
 						sb.append("\t");
 					}
 				}
-				w.println(sb.toString());
+				writeTrios.println(sb.toString());
+				writeJoints.println(sb.toString());
+				if (sample >= chunkSize) {
+					sample = 0;
+					jointChunk++;
+					writeJoints.flush();
+					writeJoints.close();
+
+					writeJoints = Files.getAppropriateWriter("jointInput" + jointChunk + ".txt");
+				}
 			}
 
 			r.close();
-			w.flush();
-			w.close();
+			writeTrios.flush();
+			writeTrios.close();
+			writeJoints.flush();
+			writeJoints.close();
 		} catch (FileNotFoundException exc) {
 			// TODO Auto-generated catch block
 			exc.printStackTrace();
