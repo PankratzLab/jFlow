@@ -212,7 +212,7 @@ public class CheckPed {
 			new File(outputDir).mkdirs();
 		}
 
-		String outFile = outputDir + "checkPed.txt";
+		String outFile = outputDir + "checkPed.xln";
 
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
 
