@@ -212,7 +212,7 @@ public class CheckPed {
 			new File(outputDir).mkdirs();
 		}
 
-		String outFile = outputDir + "checkPed.csv";
+		String outFile = outputDir + "checkPed.txt";
 
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
 
