@@ -206,19 +206,27 @@ public class Ancestry {
 
 			String sd = proj.SAMPLE_DATA_FILENAME.getValue();
 			String[] sdHeader = Files.getHeaderOfFile(sd, proj.getLog());
+			int fidIndex = ext.indexOfStr(	"FID",
+																		sdHeader,
+																		false,
+																		true);
+			int iidIndex = ext.indexOfStr(	"IID",
+																		sdHeader,
+																		false,
+																		true);
+			int hapIndex = ext.indexOfStr(	"Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT",
+																		sdHeader,
+																		false,
+																		true);
+			if (hapIndex < 0) {
+				proj.getLog().reportError("Cannot impute: no HapMap column in sample data.");
+				proj.getLog().reportError("Please create a column with header: \"Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT\"");
+				return;
+			}
 			Hashtable<String, Hashtable<String, String>> hapmaps = HashVec.loadFileToHashHash(sd,
-																																												ext.indexOfStr(	"FID",
-																																																				sdHeader,
-																																																				false,
-																																																				true),
-																																												ext.indexOfStr(	"IID",
-																																																				sdHeader,
-																																																				false,
-																																																				true),
-																																												ext.indexOfStr(	"Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT",
-																																																				sdHeader,
-																																																				false,
-																																																				true),
+																																												fidIndex,
+																																												iidIndex,
+																																												hapIndex,
 																																												true);
 
 			String[] fidiids = new String[pcResults.length];
@@ -241,7 +249,11 @@ public class Ancestry {
 				}
 
 				try {
-					int race = Integer.parseInt(hapmaps.get(pcResults[i][0]).get(pcResults[i][1]));
+					Hashtable<String, String> iidTable = hapmaps.get(pcResults[i][0]);
+					if (iidTable == null || !iidTable.containsKey(pcResults[i][1])) {
+						continue;
+					}
+					int race = Integer.parseInt(iidTable.get(pcResults[i][1]));
 					switch (race) {
 						case 1:
 							europeans.add(i);
