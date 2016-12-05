@@ -3,6 +3,7 @@ package org.genvisis.gwas;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.genvisis.cnv.analysis.pca.PCImputeRace;
@@ -221,20 +222,14 @@ public class Ancestry {
 			                                                                                hapIndex,
 			                                                                                true);
 
-			// only pull fidiids actually in sampledata
-			int validSize = 0;
-			for (Hashtable<String, String> t : hapmaps.values()) {
-				validSize += t.size();
-			}
 
-			String[] fidiids = new String[validSize];
-			double[] pc1 = new double[validSize];
-			double[] pc2 = new double[validSize];
+			List<String> fidiids = new ArrayList<String>();
+			List<Double> pc1 = new ArrayList<Double>();
+			List<Double> pc2 = new ArrayList<Double>();
 			ArrayList<Integer> europeans = new ArrayList<Integer>();
 			ArrayList<Integer> africans = new ArrayList<Integer>();
 			ArrayList<Integer> asians = new ArrayList<Integer>();
 
-			int j = 0;
 			for (int i = 0; i < pcResults.length; i++) {
 
 				try {
@@ -242,18 +237,17 @@ public class Ancestry {
 					if (iidTable == null || !iidTable.containsKey(pcResults[i][1])) {
 						continue;
 					}
-					fidiids[j] = pcResults[i][0] + "\t" + pcResults[i][1];
+					fidiids.add(pcResults[i][0] + "\t" + pcResults[i][1]);
 					try {
-						pc1[j] = Double.parseDouble(pcResults[i][2]);
+						pc1.add(Double.parseDouble(pcResults[i][2]));
 					} catch (NumberFormatException nfe) {
-						pc1[j] = Double.NaN;
+						pc1.add(Double.NaN);
 					}
 					try {
-						pc2[j] = Double.parseDouble(pcResults[i][3]);
+						pc2.add(Double.parseDouble(pcResults[i][3]));
 					} catch (NumberFormatException nfe) {
-						pc2[j] = Double.NaN;
+						pc2.add(Double.NaN);
 					}
-					j++;
 					int race = Integer.parseInt(iidTable.get(pcResults[i][1]));
 					switch (race) {
 						case 1:
@@ -272,10 +266,19 @@ public class Ancestry {
 					}
 				} catch (NumberFormatException nfe) {
 				}
-
-
 			}
-			PCImputeRace pcir = new PCImputeRace(proj, fidiids, pc1, pc2, Ints.toArray(europeans),
+
+			String[] fi = new String[fidiids.size()];
+			double[] p1 = new double[fidiids.size()];
+			double[] p2 = new double[fidiids.size()];
+
+			for (int i=0; i<fidiids.size(); i++) {
+				fi[i] = fidiids.get(i);
+				p1[i] = pc1.get(i);
+				p2[i] = pc2.get(i);
+			}
+
+			PCImputeRace pcir = new PCImputeRace(proj, fi, p1, p2, Ints.toArray(europeans),
 			                                     Ints.toArray(africans), Ints.toArray(asians),
 			                                     proj.getLog());
 			pcir.correctPCsToRace(dir + RACE_IMPUTATIONAS_FILENAME);
