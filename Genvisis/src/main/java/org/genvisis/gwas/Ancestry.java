@@ -234,6 +234,7 @@ public class Ancestry {
 			ArrayList<Integer> africans = new ArrayList<Integer>();
 			ArrayList<Integer> asians = new ArrayList<Integer>();
 
+			int j = 0;
 			for (int i = 0; i < pcResults.length; i++) {
 
 				try {
@@ -241,17 +242,18 @@ public class Ancestry {
 					if (iidTable == null || !iidTable.containsKey(pcResults[i][1])) {
 						continue;
 					}
-					fidiids[i] = pcResults[i][0] + "\t" + pcResults[i][1];
+					fidiids[j] = pcResults[i][0] + "\t" + pcResults[i][1];
 					try {
-						pc1[i] = Double.parseDouble(pcResults[i][2]);
+						pc1[j] = Double.parseDouble(pcResults[i][2]);
 					} catch (NumberFormatException nfe) {
-						pc1[i] = Double.NaN;
+						pc1[j] = Double.NaN;
 					}
 					try {
-						pc2[i] = Double.parseDouble(pcResults[i][3]);
+						pc2[j] = Double.parseDouble(pcResults[i][3]);
 					} catch (NumberFormatException nfe) {
-						pc2[i] = Double.NaN;
+						pc2[j] = Double.NaN;
 					}
+					j++;
 					int race = Integer.parseInt(iidTable.get(pcResults[i][1]));
 					switch (race) {
 						case 1:
