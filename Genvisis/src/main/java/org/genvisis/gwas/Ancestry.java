@@ -373,8 +373,7 @@ public class Ancestry {
 		try {
 			if (runPipeline) {
 				runPipeline(dir, putativeWhites, hapMapPlinkRoot, proj, log);
-			}
-			if (checkHomo) {
+			} else if (checkHomo) {
 				checkHomogeneity(dir, putativeWhites, dir + "plink", hapMapPlinkRoot, log);
 			} else if (run) {
 				String homogeneityDrops = parseHomogeneity(dir, log);
