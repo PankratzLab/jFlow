@@ -812,8 +812,6 @@ public class Trailer extends JFrame	implements ChrNavigator, ActionListener, Cli
 			}
 		});
 
-		System.out.println(Array.toStr(cnvFiles, "; "));
-
 		long time;
 
 		this.proj = proj;
