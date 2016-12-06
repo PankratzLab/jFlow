@@ -53,7 +53,7 @@ public class SimpleTallyGene {
 												dir + ext.rootOf(vpopFile, true) + ".lowerQualitySamples.txt");
 			}
 			VCFSimpleTally.test(subVcf, new String[] {newVpop}, omimDir, null, null, maf, true, true,
-													filter);
+													filter, false);
 			return this;
 		}
 

@@ -52,7 +52,7 @@ public class TNHetDetector {
 			for (String normalSamp : vcNormal.getSampleNames()) {
 				Genotype g = vcNormal.getGenotype(normalSamp);
 
-				if (!g.isHomRef()	&& g.isCalled()
+				if (!g.isHomRef()&& g.isCalled()
 						&& ext.indexOfStr(VCOps.getSNP_EFFImpact(vc), VCFSimpleTally.EFF) >= 0) {
 					normalHash.put(normalSamp + "_" + VCOps.getSNP_EFFGeneName(vc), g);
 				}
@@ -108,7 +108,7 @@ public class TNHetDetector {
 		tumorCase.dump(outCase);
 
 		VCFSimpleTally.test(output, new String[] {outCase}, omimDir, otherGenesOfInterest, null, maf,
-												true, true, null);
+												true, true, null, false);
 	}
 
 	private static VcfPopulation developTNVpopCase(VcfPopulation vpop) {
