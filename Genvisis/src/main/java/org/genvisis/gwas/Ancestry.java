@@ -282,11 +282,15 @@ public class Ancestry {
 			                                     Ints.toArray(africans), Ints.toArray(asians),
 			                                     proj.getLog());
 			pcir.correctPCsToRace(dir + RACE_IMPUTATIONAS_FILENAME);
+		} else {
+			proj.getLog().reportTimeWarning("Skipping imputation - output already exists: " + (dir + RACE_IMPUTATIONAS_FILENAME));
 		}
 
 		if (!Files.exists(dir + RACE_FREQS_FILENAME)) {
 			PCImputeRace.freqsByRace(dir + RACE_IMPUTATIONAS_FILENAME, dir + "plink",
 			                         dir + RACE_FREQS_FILENAME, proj.getLog());
+		} {
+			proj.getLog().reportTimeWarning("Skipping race freq calculation - output already exists: " + (dir + RACE_FREQS_FILENAME));
 		}
 
 	}
