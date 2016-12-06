@@ -2652,7 +2652,7 @@ public class SourceFileParser implements Runnable {
 		String usage = "\n"	+ "cnv.manage.ParseIllumina requires 0-1 arguments\n"
 										+ "   (1) project properties filename (i.e. proj="
 										+ org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
-										+ "   (2) number of threads to use (i.e. threads=" + numThreads
+										+ "   (2) number of threads to use (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + numThreads
 										+ " (default))\n" + " OPTIONAL:\n"
 										+ "   (3) map filenames to sample IDs (i.e. -mapFiles ("
 										+ (map ? "" : "not the ") + "default))\n"
@@ -2668,7 +2668,7 @@ public class SourceFileParser implements Runnable {
 			} else if (arg.startsWith("proj=")) {
 				filename = arg.split("=")[1];
 				numArgs--;
-			} else if (arg.startsWith("threads=")) {
+			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numThreads = Integer.parseInt(arg.split("=")[1]);
 				numArgs--;
 			} else if (arg.startsWith("-mapFiles")) {

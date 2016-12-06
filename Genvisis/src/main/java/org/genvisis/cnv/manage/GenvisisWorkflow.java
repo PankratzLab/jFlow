@@ -4,9 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.genvisis.CLI;
@@ -37,6 +37,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Ancestry;
 import org.genvisis.gwas.PlinkMendelianChecker;
@@ -48,9 +49,10 @@ import com.google.common.collect.Lists;
 
 public class GenvisisWorkflow {
 
+	private static final String PROJ_PROP_UPDATE_STR = " cnv.filesys.Project proj=";
+	private static final String SAMPLE_STEP_REQ_MSG = "[Parse Sample Files] step must have been run already or must be selected and valid.";
 	Project proj;
 	Logger log;
-	private GenvisisWorkflowGUI gui;
 	private final Launch launch;
 
 	static final STEP S1I_CREATE_MKR_POS = new STEP("Create Marker Positions (if not already exists)",
@@ -59,21 +61,19 @@ public class GenvisisWorkflow {
 																									new RequirementInputType[][] {{RequirementInputType.FILE}}) {
 
 		@Override
-		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
+		public void setNecessaryPreRunProperties(	Project proj, Map<STEP, List<String>> variables) {
 			// not needed for step
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public void run(Project proj, Map<STEP, List<String>> variables) {
 			proj.getLog().report("Generating marker positions file");
 			String filename = variables.get(this).get(0);
 			org.genvisis.cnv.manage.Markers.generateMarkerPositions(proj, filename);
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
+		public boolean[][] checkRequirements(Project proj, Map<STEP, Boolean> stepSelections, Map<STEP, List<String>> variables) {
 			return new boolean[][] {{Files.exists(variables.get(this).get(0))}};
 		}
 
@@ -87,7 +87,7 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			boolean mkrPosFile = Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false));
 			// boolean mkrSetFile =
 			// Files.exists(proj.MARKERSET_FILENAME.getValue(false,
@@ -96,7 +96,7 @@ public class GenvisisWorkflow {
 		};
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			String projFile = proj.getPropertyFilename();
 			String filename = variables.get(this).get(0);
 			return Files.getRunString() + " cnv.manage.Markers proj=" + projFile + " snps=" + filename;
@@ -115,7 +115,7 @@ public class GenvisisWorkflow {
 
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
+																							Map<STEP, List<String>> variables) {
 			String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
 			String mkrFile = variables.get(this).get(0);
 			mkrFile = ext.verifyDirFormat(mkrFile);
@@ -123,10 +123,9 @@ public class GenvisisWorkflow {
 			if (!mkrFile.equals(projFile)) {
 				proj.MARKER_POSITION_FILENAME.setValue(mkrFile);
 			}
-			int numThreads = proj.NUM_THREADS.getValue();
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(1));
-			} catch (NumberFormatException e) {
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
+			if (numThreads <= 0) {
+				numThreads = proj.NUM_THREADS.getValue();
 			}
 			if (numThreads != proj.NUM_THREADS.getValue()) {
 				proj.NUM_THREADS.setValue(numThreads);
@@ -134,12 +133,8 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public void run(Project proj, Map<STEP, List<String>> variables) {
 			int numThreads = proj.NUM_THREADS.getValue();
-			// left as unneeded/pre-run checks ensure int value
-			// try {
-			// numThreads = Integer.parseInt(variables.get(this).get(1));
-			// } catch (NumberFormatException e) {}
 			proj.getLog().report("Parsing sample files");
 			int retCode = org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, numThreads);
 			switch (retCode) {
@@ -147,22 +142,19 @@ public class GenvisisWorkflow {
 					setFailed();
 					failReasons.add("Operation failure, please check log for more information.");
 					break;
-				case 1:
-					break;
 				case 6:
 					failReasons.add("ABLookup required but wasn't found.");
+					break;
+				case 1:
+				default:
 					break;
 			}
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
-			int numThreads = -1;
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(1));
-			} catch (NumberFormatException e) {
-			}
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
 			return new boolean[][] {{stepSelections.get(S1I_CREATE_MKR_POS)
 																	&& S1I_CREATE_MKR_POS.hasRequirements(proj, stepSelections,
 																																			variables),
@@ -177,7 +169,7 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
 			boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
 			return mkrSetFile	&& Files.exists(sampleDirectory)
@@ -186,10 +178,10 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			String projPropFile = proj.getPropertyFilename();
 			StringBuilder kvCmd =
-													new StringBuilder(Files.getRunString())	.append(" cnv.filesys.Project proj=")
+													new StringBuilder(Files.getRunString())	.append(PROJ_PROP_UPDATE_STR)
 																																	.append(projPropFile);
 			StringBuilder kvPairs = new StringBuilder();
 			String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
@@ -199,20 +191,19 @@ public class GenvisisWorkflow {
 			if (!mkrFile.equals(projFile)) {
 				kvPairs.append(" MARKER_POSITION_FILENAME=").append(mkrFile);
 			}
-			int numThreads = proj.NUM_THREADS.getValue();
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(1));
-			} catch (NumberFormatException e) {
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
+			if (numThreads <= 0) {
+				numThreads = proj.NUM_THREADS.getValue();
 			}
 			if (numThreads != proj.NUM_THREADS.getValue()) {
-				kvPairs.append(" NUM_THREADS=").append(numThreads);
+				kvPairs.append(" ").append(proj.NUM_THREADS.getName()).append("=").append(numThreads);
 			}
 			StringBuilder command = new StringBuilder();
 			if (kvPairs.length() != 0) {
 				command.append(kvCmd).append(kvPairs).append("\n");
 			}
 			command	.append(Files.getRunString()).append(" cnv.manage.SourceFileParser proj=")
-							.append(projPropFile).append(" threads=").append(numThreads);
+							.append(projPropFile).append(" ").append(PSF.Ext.NUM_THREADS_COMMAND).append(numThreads);
 			return command.toString();
 		}
 
@@ -227,7 +218,7 @@ public class GenvisisWorkflow {
 
 																				@Override
 																				public void setNecessaryPreRunProperties(	Project proj,
-																																									HashMap<STEP, ArrayList<String>> variables) {
+																																									Map<STEP, List<String>> variables) {
 																					String projFile =
 																													proj.MARKER_POSITION_FILENAME.getValue(	false,
 																																																	false);
@@ -237,11 +228,9 @@ public class GenvisisWorkflow {
 																					if (!mkrFile.equals(projFile)) {
 																						proj.MARKER_POSITION_FILENAME.setValue(mkrFile);
 																					}
-																					int numThreads = proj.NUM_THREADS.getValue();
-																					try {
-																						numThreads = Integer.parseInt(variables	.get(this)
-																																										.get(1));
-																					} catch (NumberFormatException e) {
+																					int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
+																					if (numThreads <= 0) {
+																						numThreads = proj.NUM_THREADS.getValue();
 																					}
 																					if (numThreads != proj.NUM_THREADS.getValue()) {
 																						proj.NUM_THREADS.setValue(numThreads);
@@ -249,39 +238,34 @@ public class GenvisisWorkflow {
 																				}
 
 																				@Override
-																				public void run(Project proj,
-																												HashMap<STEP, ArrayList<String>> variables) {
-																					int numThreads = proj.NUM_THREADS.getValue();
-																					numThreads = Integer.parseInt(variables.get(this).get(1));
+																				public void run(Project proj, Map<STEP, List<String>> variables) {
+																					int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
+																					if (numThreads <= 0) {
+																						numThreads = proj.NUM_THREADS.getValue();
+																					}
 																					proj.getLog().report("Parsing sample files");
-																					int retCode =
-																											org.genvisis.cnv.manage.SourceFileParser.createFiles(	proj,
-																																																						numThreads);
+																					int retCode = org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, numThreads);
 																					switch (retCode) {
 																						case 0:
 																							setFailed();
 																							failReasons.add("Operation failure, please check log for more information.");
 																							break;
-																						case 1:
-																							break;
 																						case 6:
 																							failReasons.add("ABLookup required but wasn't found.");
+																							break;
+																						case 1:
+																						default:
 																							break;
 																					}
 																				}
 
 																				@Override
 																				public boolean[][] checkRequirements(	Project proj,
-																																							HashMap<STEP, Boolean> stepSelections,
-																																							HashMap<STEP, ArrayList<String>> variables) {
-																					int numThreads = -1;
-																					try {
-																						numThreads = Integer.parseInt(variables	.get(this)
-																																										.get(1));
-																					} catch (NumberFormatException e) {
-																					}
-																					return new boolean[][] {{Files.exists(ext.verifyDirFormat(variables	.get(this)
-																																																							.get(0))),},
+																																							Map<STEP, Boolean> stepSelections,
+																																							Map<STEP, List<String>> variables) {
+
+																					int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
+																					return new boolean[][] {{Files.exists(ext.verifyDirFormat(variables.get(this).get(0))),},
 																																	{numThreads > 0}};
 																				}
 
@@ -294,7 +278,7 @@ public class GenvisisWorkflow {
 
 																				@Override
 																				public boolean checkIfOutputExists(	Project proj,
-																																						HashMap<STEP, ArrayList<String>> variables) {
+																																						Map<STEP, List<String>> variables) {
 																					String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false,
 																																																	false);
 																					boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(	false,
@@ -308,10 +292,10 @@ public class GenvisisWorkflow {
 
 																				@Override
 																				public String getCommandLine(	Project proj,
-																																			HashMap<STEP, ArrayList<String>> variables) {
+																																			Map<STEP, List<String>> variables) {
 																					String projPropFile = proj.getPropertyFilename();
 																					StringBuilder kvCmd =
-																															new StringBuilder(Files.getRunString())	.append(" cnv.filesys.Project proj=")
+																															new StringBuilder(Files.getRunString())	.append(PROJ_PROP_UPDATE_STR)
 																																																			.append(projPropFile);
 																					StringBuilder kvPairs = new StringBuilder();
 																					String projFile =
@@ -324,14 +308,13 @@ public class GenvisisWorkflow {
 																						kvPairs	.append(" MARKER_POSITION_FILENAME=")
 																										.append(mkrFile);
 																					}
-																					int numThreads = proj.NUM_THREADS.getValue();
-																					try {
-																						numThreads = Integer.parseInt(variables	.get(this)
-																																										.get(1));
-																					} catch (NumberFormatException e) {
+
+																					int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
+																					if (numThreads <= 0) {
+																						numThreads = proj.NUM_THREADS.getValue();
 																					}
 																					if (numThreads != proj.NUM_THREADS.getValue()) {
-																						kvPairs.append(" NUM_THREADS=").append(numThreads);
+																						kvPairs.append(" ").append(proj.NUM_THREADS.getName()).append("=").append(numThreads);
 																					}
 																					StringBuilder command = new StringBuilder();
 																					if (kvPairs.length() != 0) {
@@ -339,8 +322,8 @@ public class GenvisisWorkflow {
 																					}
 																					command	.append(Files.getRunString())
 																									.append(" cnv.manage.SourceFileParser proj=")
-																									.append(projPropFile).append(" threads=")
-																									.append(numThreads);
+																									.append(projPropFile).append(" ")
+																									.append(PSF.Ext.NUM_THREADS_COMMAND).append(numThreads);
 																					return command.toString();
 																				}
 
@@ -366,12 +349,12 @@ public class GenvisisWorkflow {
 
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
+																							Map<STEP, List<String>> variables) {
 			// Nothing to do
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public void run(Project proj, Map<STEP, List<String>> variables) {
 			Boolean minimal = Boolean.parseBoolean(variables.get(this).get(0));
 			String pedFile = minimal ? null : variables.get(this).get(1);
 			String sampleMapCsv = minimal ? null : variables.get(this).get(2);
@@ -393,8 +376,8 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
 			String sampDir = proj.SAMPLE_DIRECTORY.getValue();
 			STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES)	? S2I_PARSE_SAMPLES
 																																			: S2A_PARSE_SAMPLES;
@@ -412,7 +395,7 @@ public class GenvisisWorkflow {
 		public Object[] getRequirementDefaults(Project proj) {
 			String pedPreset = Files.exists(proj.PEDIGREE_FILENAME.getValue())	? proj.PEDIGREE_FILENAME.getValue()
 																																					: "";
-			String sampMapPreset = pedPreset.equals("") ? getLocationOfSampleMap(proj) : null; // check
+			String sampMapPreset = "".equals(pedPreset) ? getLocationOfSampleMap(proj) : null; // check
 																																													// for
 																																													// SampleMap
 																																													// only
@@ -454,12 +437,12 @@ public class GenvisisWorkflow {
 
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			return Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false));
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			String projPropFile = proj.getPropertyFilename();
 			Boolean minimal = Boolean.parseBoolean(variables.get(this).get(0));
 			String pedFile = minimal ? "" : variables.get(this).get(1);
@@ -478,25 +461,25 @@ public class GenvisisWorkflow {
 	};
 
 	static final STEP S4_TRANSPOSE_TO_MDF = new STEP(	"Transpose Data into Marker-Dominant Files", "",
-																										new String[][] {{"[Parse Sample Files] step must have been run already or must be selected and valid."}},
+																										new String[][] {{SAMPLE_STEP_REQ_MSG}},
 																										new RequirementInputType[][] {{RequirementInputType.NONE}},
 																										S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
 
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
+																							Map<STEP, List<String>> variables) {
 			// Nothing to do here
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public void run(Project proj, Map<STEP, List<String>> variables) {
 			proj.getLog().report("Transposing data");
 			TransposeData.transposeData(proj, 2000000000, false); // compact if no LRR was provided
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
 			String sampDir = proj.SAMPLE_DIRECTORY.getValue();
 			STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES)	? S2I_PARSE_SAMPLES
 																																			: S2A_PARSE_SAMPLES;
@@ -514,13 +497,13 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			return Files.list(proj.MARKER_DATA_DIRECTORY.getValue(false, false),
 												MarkerData.MARKER_DATA_FILE_EXTENSION, false).length > 0;
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			String projPropFile = proj.getPropertyFilename();
 			StringBuilder cmd = new StringBuilder();
 			return cmd.append(Files.getRunString()).append(" cnv.manage.TransposeData -transpose proj="
@@ -539,7 +522,7 @@ public class GenvisisWorkflow {
 
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
+																							Map<STEP, List<String>> variables) {
 			String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
 			String gcOutputFile = variables.get(this).get(1);
 			if (!ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
@@ -548,15 +531,15 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public void run(Project proj, Map<STEP, List<String>> variables) {
 			String gcBaseFile = variables.get(this).get(0);
 			String gcOutputFile = variables.get(this).get(1);
 			org.genvisis.cnv.analysis.PennCNV.gcModel(proj, gcBaseFile, gcOutputFile, 100);
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
 			String gcBaseFile = variables.get(this).get(0);
 			String gcOutputFile = variables.get(this).get(1);
 			return new boolean[][] {{Files.exists(gcBaseFile)}, {!Files.exists(gcOutputFile)}};
@@ -573,14 +556,14 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			String gcOutputFile = variables.get(this).get(1);
 			boolean gcExists = Files.exists(gcOutputFile);
 			return gcExists;
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			String kvCmd = "";
 
 			String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
@@ -592,7 +575,7 @@ public class GenvisisWorkflow {
 			String projPropFile = proj.getPropertyFilename();
 			StringBuilder cmd = new StringBuilder();
 			if (kvCmd.length() > 0) {
-				cmd	.append(Files.getRunString()).append(" cnv.filesys.Project proj=" + projPropFile)
+				cmd	.append(Files.getRunString()).append(PROJ_PROP_UPDATE_STR + projPropFile)
 						.append(kvCmd).append("\n");
 			}
 			String gcBaseFile = variables.get(this).get(0);
@@ -604,7 +587,7 @@ public class GenvisisWorkflow {
 
 	};
 	static final STEP S6_SAMPLE_QC = new STEP("Run Sample QC Metrics", "",
-																						new String[][] {{"[Parse Sample Files] step must have been run already or must be selected and valid."},
+																						new String[][] {{SAMPLE_STEP_REQ_MSG},
 																														{"Number of threads to use."},},
 																						new RequirementInputType[][] {{RequirementInputType.NONE},
 																																					{RequirementInputType.NUMBER}},
@@ -612,11 +595,10 @@ public class GenvisisWorkflow {
 
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
-			int numThreads = proj.NUM_THREADS.getValue();
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(0));
-			} catch (NumberFormatException e) {
+																							Map<STEP, List<String>> variables) {
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(0));
+			if (numThreads <= 0) {
+				numThreads = proj.NUM_THREADS.getValue();
 			}
 			if (numThreads != proj.NUM_THREADS.getValue()) {
 				proj.NUM_THREADS.setValue(numThreads);
@@ -624,28 +606,18 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public void run(Project proj, Map<STEP, List<String>> variables) {
 			proj.getLog().report("Running LrrSd");
 			int numThreads = proj.NUM_THREADS.getValue();
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(0));
-			} catch (NumberFormatException e) {
-				proj.getLog()
-						.report("Couldn't parse number of threads argument: {"	+ variables.get(this).get(0)
-										+ "}, using default of {" + numThreads + "}");
-			}
-
 			LrrSd.init(proj, null, null, numThreads, false);
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
-			int numThreads = -1;
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(0));
-			} catch (NumberFormatException e) {
-			}
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
+
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(0));
+			
 			String sampDir = proj.SAMPLE_DIRECTORY.getValue();
 			STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES)	? S2I_PARSE_SAMPLES
 																																			: S2A_PARSE_SAMPLES;
@@ -663,27 +635,26 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			return Files.exists(proj.SAMPLE_QC_FILENAME.getValue(false, false));
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-			int numThreads = proj.NUM_THREADS.getValue();
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(0));
-			} catch (NumberFormatException e) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(0));
+			if (numThreads <= 0) {
+				numThreads = proj.NUM_THREADS.getValue();
 			}
 			String projPropFile = proj.getPropertyFilename();
 			StringBuilder cmd = new StringBuilder();
 			cmd	.append(Files.getRunString()).append(" cnv.qc.LrrSd").append(" proj=").append(projPropFile)
-					.append(" threads=").append(numThreads).append(" projectMarkers=TRUE");
+					.append(" ").append(PSF.Ext.NUM_THREADS_COMMAND).append(numThreads).append(" projectMarkers=TRUE");
 			return cmd.toString();
 		}
 	};
 
 	static final STEP S7_MARKER_QC = new STEP("Run Marker QC Metrics", "",
-																						new String[][] {{"[Parse Sample Files] step must have been run already or must be selected and valid."},
+																						new String[][] {{SAMPLE_STEP_REQ_MSG},
 																														{	"Export all markers in project.",
 																															"A targetMarkers files listing the markers to QC."},
 																														{"Number of threads to use."}},
@@ -695,18 +666,17 @@ public class GenvisisWorkflow {
 
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
+																							Map<STEP, List<String>> variables) {
 			// Nothing to do here
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public void run(Project proj, Map<STEP, List<String>> variables) {
 			String tgtFile = variables.get(this).get(0);
 			tgtFile = "".equals(tgtFile) ? null : tgtFile;
-			int numThreads = proj.NUM_THREADS.getValue();
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(1));
-			} catch (NumberFormatException e) {
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
+			if (numThreads <= 0) {
+				numThreads = proj.NUM_THREADS.getValue();
 			}
 			MarkerMetrics.fullQC(proj, null, tgtFile, true, numThreads);
 		}
@@ -718,16 +688,13 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
 			String mkrPosFile = proj.MARKER_POSITION_FILENAME.getValue();
 			String sampList = proj.SAMPLELIST_FILENAME.getValue();
 			String tgtFile = variables.get(this).get(0);
-			int numThreads = -1;
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(1));
-			} catch (NumberFormatException e) {
-			}
+
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
 			boolean step12 = Files.exists(mkrPosFile);
 			boolean step2 = stepSelections.get(S2I_PARSE_SAMPLES)
 											&& S2I_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variables);
@@ -737,28 +704,27 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			String markerMetricsFile = proj.MARKER_METRICS_FILENAME.getValue();
 			return Files.exists(markerMetricsFile);
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			String tgtFile = variables.get(this).get(0);
 			tgtFile = "".equals(tgtFile) ? null : tgtFile;
-			int numThreads = proj.NUM_THREADS.getValue();
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(1));
-			} catch (NumberFormatException e) {
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
+			if (numThreads <= 0) {
+				numThreads = proj.NUM_THREADS.getValue();
 			}
 			return Files.getRunString()	+ " cnv.qc.MarkerMetrics -fullQC" + " proj="
 							+ proj.getPropertyFilename() + (tgtFile == null ? "" : " markers=" + tgtFile)
-							+ " threads=" + numThreads;
+							+ " " + PSF.Ext.NUM_THREADS_COMMAND + numThreads;
 		}
 	};
 
 	static final STEP S8_SEX_CHECKS = new STEP(	"Run Sex Checks", "",
-																							new String[][] {{"[Parse Sample Files] step must have been run already or must be selected and valid."},
+																							new String[][] {{SAMPLE_STEP_REQ_MSG},
 																															{"[Create SampleData.txt File] step must have been run already or must be selected and valid."},
 																															{"Add Estimated Sex to Sample Data"},
 																															{	"Use only X and Y chromosome R values to identify sex discriminating markers",
@@ -775,16 +741,16 @@ public class GenvisisWorkflow {
 
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
+																							Map<STEP, List<String>> variables) {
 			// Nothing to do here
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public void run(Project proj, Map<STEP, List<String>> variables) {
 			proj.getLog().report("Running SexCheck");
-			boolean addToSampleData = Boolean.valueOf(variables.get(this).get(0));
+			boolean addToSampleData = Boolean.parseBoolean(variables.get(this).get(0));
 			String discriminatingMarkersFile;
-			if (Boolean.valueOf(variables.get(this).get(1))) {
+			if (Boolean.parseBoolean(variables.get(this).get(1))) {
 				discriminatingMarkersFile = null;
 			} else {
 				discriminatingMarkersFile = variables.get(this).get(2);
@@ -797,15 +763,15 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
 			String sampDir = proj.SAMPLE_DIRECTORY.getValue();
 			String sampDataFile = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
 			STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES)	? S2I_PARSE_SAMPLES
 																																			: S2A_PARSE_SAMPLES;
 			boolean checkStepParseSamples = stepSelections.get(parseStep)
 																			&& parseStep.hasRequirements(proj, stepSelections, variables);
-			boolean useRValues = Boolean.valueOf(variables.get(this).get(1));
+			boolean useRValues = Boolean.parseBoolean(variables.get(this).get(1));
 			String discriminatingMarkersFile = variables.get(this).get(2);
 			String blastVCFFile = variables.get(this).get(3);
 			return new boolean[][] {{checkStepParseSamples
@@ -828,17 +794,17 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			return Files.exists(proj.SEXCHECK_RESULTS_FILENAME.getValue());
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			String projPropFile = proj.getPropertyFilename();
 			StringBuilder cmd = new StringBuilder();
-			boolean addToSampleData = Boolean.valueOf(variables.get(this).get(0));
+			boolean addToSampleData = Boolean.parseBoolean(variables.get(this).get(0));
 			String discriminatingMarkersFile;
-			if (Boolean.valueOf(variables.get(this).get(1))) {
+			if (Boolean.parseBoolean(variables.get(this).get(1))) {
 				discriminatingMarkersFile = null;
 			} else {
 				discriminatingMarkersFile = variables.get(this).get(2);
@@ -858,18 +824,18 @@ public class GenvisisWorkflow {
 	};
 
 	static final STEP S9_GENERATE_ABLOOKUP = new STEP("Generate AB Lookup File", "",
-																										new String[][] {{"[Parse Sample Files] step must have been run already or must be selected and valid."}},
+																										new String[][] {{SAMPLE_STEP_REQ_MSG}},
 																										new RequirementInputType[][] {{RequirementInputType.NONE}},
 																										S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
 
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
+																							Map<STEP, List<String>> variables) {
 			// Nothing to do here
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public void run(Project proj, Map<STEP, List<String>> variables) {
 			String filename = proj.PROJECT_DIRECTORY.getValue()	+ ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
 			ABLookup.parseABLookup(proj, ABSource.VCF, filename);
 
@@ -886,8 +852,8 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
 			String mkrPosFile = proj.MARKER_POSITION_FILENAME.getValue();
 			String sampDir = proj.SAMPLE_DIRECTORY.getValue();
 			boolean checkStepParseSamples = stepSelections.get(S2I_PARSE_SAMPLES)
@@ -900,12 +866,12 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			return Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false));
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			String filename = proj.PROJECT_DIRECTORY.getValue()	+ ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
 			String projFile = proj.getPropertyFilename();
 			String mapFile = proj.getLocationOfSNP_Map(true);
@@ -939,7 +905,7 @@ public class GenvisisWorkflow {
 
 	static final STEP S10_RUN_PLINK =
 																	new STEP(	"Create PLINK Files", "",
-																						new String[][] {{"[Parse Sample Files] step must have been run already or must be selected and valid."},
+																						new String[][] {{SAMPLE_STEP_REQ_MSG},
 																														// {},
 																														{	"A pedigree.dat file is must exist.",
 																															"Create a minimal pedigree.dat file [will pull information from SexChecks step results]."}},
@@ -950,8 +916,8 @@ public class GenvisisWorkflow {
 
 																		@Override
 																		public void setNecessaryPreRunProperties(	Project proj,
-																																							HashMap<STEP, ArrayList<String>> variables) {
-																			if (!Boolean.valueOf(variables.get(this).get(1))) {
+																																							Map<STEP, List<String>> variables) {
+																			if (!Boolean.parseBoolean(variables.get(this).get(1))) {
 																				String projPedFile = proj.PEDIGREE_FILENAME.getValue(	false,
 																																															false);
 																				String pedFile = variables.get(this).get(0);
@@ -963,8 +929,8 @@ public class GenvisisWorkflow {
 
 																		@Override
 																		public void run(Project proj,
-																										HashMap<STEP, ArrayList<String>> variables) {
-																			if (Boolean.valueOf(variables.get(this).get(1))) {
+																										Map<STEP, List<String>> variables) {
+																			if (Boolean.parseBoolean(variables.get(this).get(1))) {
 																				proj.getLog().report("Creating Pedigree File");
 																				Pedigree.build(proj, null, null, false);
 																			}
@@ -992,8 +958,8 @@ public class GenvisisWorkflow {
 
 																		@Override
 																		public boolean[][] checkRequirements(	Project proj,
-																																					HashMap<STEP, Boolean> stepSelections,
-																																					HashMap<STEP, ArrayList<String>> variables) {
+																																					Map<STEP, Boolean> stepSelections,
+																																					Map<STEP, List<String>> variables) {
 																			String sampDir = proj.SAMPLE_DIRECTORY.getValue();
 																			String pedFile = variables.get(this).get(0);
 																			STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES)	? S2I_PARSE_SAMPLES
@@ -1021,14 +987,14 @@ public class GenvisisWorkflow {
 
 																		@Override
 																		public boolean checkIfOutputExists(	Project proj,
-																																				HashMap<STEP, ArrayList<String>> variables) {
+																																				Map<STEP, List<String>> variables) {
 																			// String fileCheck1 =
 																			// proj.PROJECT_DIRECTORY.getValue()+"gwas.map";
 																			String fileCheck2 = proj.PROJECT_DIRECTORY.getValue()
 																													+ "plink/plink.bed";
 																			// String fileCheck3 =
 																			// proj.PROJECT_DIRECTORY.getValue()+"genome/";
-																			boolean pedCheck = Boolean.valueOf(variables.get(this)
+																			boolean pedCheck = Boolean.parseBoolean(variables.get(this)
 																																									.get(1))	? Files.exists(proj.PEDIGREE_FILENAME.getValue())
 																																														: true;
 																			return /* Files.exists(fileCheck1) && */ Files.exists(fileCheck2)
@@ -1042,10 +1008,10 @@ public class GenvisisWorkflow {
 
 																		@Override
 																		public String getCommandLine(	Project proj,
-																																	HashMap<STEP, ArrayList<String>> variables) {
+																																	Map<STEP, List<String>> variables) {
 																			String kvCmd = "";
 
-																			if (!Boolean.valueOf(variables.get(this).get(1))) {
+																			if (!Boolean.parseBoolean(variables.get(this).get(1))) {
 																				String projPedFile = proj.PEDIGREE_FILENAME.getValue(	false,
 																																															false);
 																				String pedFile = variables.get(this).get(0);
@@ -1058,10 +1024,10 @@ public class GenvisisWorkflow {
 																			StringBuilder cmd = new StringBuilder();
 																			if (kvCmd.length() > 0) {
 																				cmd	.append(Files.getRunString())
-																						.append(" cnv.filesys.Project proj=")
+																						.append(PROJ_PROP_UPDATE_STR)
 																						.append(projPropFile).append(kvCmd).append("\n");
 																			}
-																			if (Boolean.valueOf(variables.get(this).get(1))) {
+																			if (Boolean.parseBoolean(variables.get(this).get(1))) {
 																				cmd	.append(Files.getRunString())
 																						.append(" cnv.filesys.Pedigree proj=")
 																						.append(projPropFile).append("\n");
@@ -1088,15 +1054,15 @@ public class GenvisisWorkflow {
 
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
+																							Map<STEP, List<String>> variables) {
 			// not needed for step
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public void run(Project proj, Map<STEP, List<String>> variables) {
 			String dir = getPlinkDir(proj, variables);
-			boolean keepUnrelatedsOnly = Boolean.valueOf(variables.get(this).get(0));
-			boolean skipAncestry = Boolean.valueOf(variables.get(this).get(1));
+			boolean keepUnrelatedsOnly = Boolean.parseBoolean(variables.get(this).get(0));
+			boolean skipAncestry = Boolean.parseBoolean(variables.get(this).get(1));
 			String putativeWhites = variables.get(this).get(2);
 			String hapMapPlinkRoot = variables.get(this).get(3);
 			if (hapMapPlinkRoot.lastIndexOf('.') > 0) {
@@ -1121,16 +1087,16 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
 			String dir = getPlinkDir(proj, variables);
-			boolean skipAncestry = Boolean.valueOf(variables.get(this).get(1));
+			boolean skipAncestry = Boolean.parseBoolean(variables.get(this).get(1));
 			boolean putativeWhitesExists = Files.exists(variables.get(this).get(2));
 			String hapMapPlinkRoot = variables.get(this).get(3);
-			if (hapMapPlinkRoot.lastIndexOf(".") > 0) {
-				String extension = hapMapPlinkRoot.substring(hapMapPlinkRoot.lastIndexOf("."));
-				if (extension.equals(".bed") || extension.equals(".bim") || extension.equals(".fam")) {
-					hapMapPlinkRoot = hapMapPlinkRoot.substring(0, hapMapPlinkRoot.lastIndexOf("."));
+			if (hapMapPlinkRoot.lastIndexOf('.') > 0) {
+				String extension = hapMapPlinkRoot.substring(hapMapPlinkRoot.lastIndexOf('.'));
+				if (".bed".equals(extension) || ".bim".equals(extension) || ".fam".equals(extension)) {
+					hapMapPlinkRoot = hapMapPlinkRoot.substring(0, hapMapPlinkRoot.lastIndexOf('.'));
 				}
 			}
 			boolean hapMapPlinkRootExists = Files.exists(hapMapPlinkRoot + ".bed")
@@ -1150,10 +1116,10 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			String dir = getPlinkDir(proj, variables);
 			boolean allExist = true;
-			boolean skipAncestry = Boolean.valueOf(variables.get(this).get(1));
+			boolean skipAncestry = Boolean.parseBoolean(variables.get(this).get(1));
 			folders: for (int i = 0; i < org.genvisis.gwas.Qc.FOLDERS_CREATED.length; i++) {
 				for (int j = 0; j < org.genvisis.gwas.Qc.FILES_CREATED[i].length; j++) {
 					if (!Files.exists(dir	+ org.genvisis.gwas.Qc.FOLDERS_CREATED[i]
@@ -1163,23 +1129,21 @@ public class GenvisisWorkflow {
 					}
 				}
 			}
-			if (!skipAncestry) {
-				if (!Files.exists(dir + Qc.ANCESTRY_DIR + "freqsByRace.xln")
-						|| !Files.exists(dir + Qc.ANCESTRY_DIR + "raceImputations.mds")) {
-					allExist = false;
-				}
+			if (!skipAncestry && (!Files.exists(dir + Qc.ANCESTRY_DIR + "freqsByRace.xln")
+						|| !Files.exists(dir + Qc.ANCESTRY_DIR + "raceImputations.mds"))) {
+				allExist = false;
 			}
 			return allExist;
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			String dir = getPlinkDir(proj, variables);
-			boolean keepUnrelatedsOnly = Boolean.valueOf(variables.get(this).get(0));
-			boolean skipAncestry = Boolean.valueOf(variables.get(this).get(1));
+			boolean keepUnrelatedsOnly = Boolean.parseBoolean(variables.get(this).get(0));
+			boolean skipAncestry = Boolean.parseBoolean(variables.get(this).get(1));
 			String putativeWhites = variables.get(this).get(2);
 			String hapMapPlinkRoot = variables.get(this).get(3);
-			if (hapMapPlinkRoot.lastIndexOf(".") > 0) {
+			if (hapMapPlinkRoot.lastIndexOf('.') > 0) {
 				String extension = hapMapPlinkRoot.substring(hapMapPlinkRoot.lastIndexOf('.'));
 				if (".bed".equals(extension) || ".bim".equals(extension) || ".fam".equals(extension)) {
 					hapMapPlinkRoot = hapMapPlinkRoot.substring(0, hapMapPlinkRoot.lastIndexOf('.'));
@@ -1207,7 +1171,7 @@ public class GenvisisWorkflow {
 			return command;
 		}
 
-		private String getPlinkDir(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		private String getPlinkDir(Project proj, Map<STEP, List<String>> variables) {
 			// This directory is also used in S10_ANNOTATE_SAMPLE_DATA, any changes should be reflected
 			// there
 			String dir = "plink/";// variables.get(this).get(0);
@@ -1219,151 +1183,8 @@ public class GenvisisWorkflow {
 
 	};
 
-	//
-	// static final STEP S14_CREATE_MT_CN_EST = new STEP("Create Mitochondrial Copy-Number Estimates
-	// File",
-	// "",
-	// new String[][]{
-	// {"[Transpose Data into Marker-Dominant Files] step must be selected and valid.", "Parsed marker
-	// data files must already exist."},
-	// {"[Create Principal Components File] step must be selected and valid.", "Extrapolated PCs file
-	// must already exist."},
-	// {"MedianMarkers file must exist."},
-	// {"FASTA Reference Genome file"},
-	// {"Number of principal components."},
-	// {"Should recompute Log-R ratio median?"},
-	// {"Should recompute Log-R ratio median?"},
-	// {"Homozygous only?"},
-	// {"GC correct?"},
-	// {"Regression distance for the GC adjustment"},
-	// {"Number of threads to use"},
-	//
-	// },
-	// new RequirementInputType[][]{
-	// {RequirementInputType.NONE, RequirementInputType.DIR},
-	// {RequirementInputType.NONE, RequirementInputType.FILE},
-	// {RequirementInputType.FILE},
-	// {RequirementInputType.FILE},
-	// {RequirementInputType.INT},
-	// {RequirementInputType.BOOL},
-	// {RequirementInputType.BOOL},
-	// {RequirementInputType.BOOL},
-	// {RequirementInputType.BOOL},
-	// {RequirementInputType.INT},
-	// {RequirementInputType.INT},
-	// }) {
-	//
-	// @Override
-	// public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>>
-	// variables) {
-	// // not needed for step
-	// }
-	//
-	// @Override
-	// public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-	// String medianMarkers = variables.get(this).get(2);
-	// String refGenomeFasta = variables.get(this).get(3);
-	// int numComponents = Integer.parseInt(variables.get(this).get(4));
-	// boolean recomputeLRR_Median = Boolean.valueOf(variables.get(this).get(5));
-	// boolean recomputeLRR_PCs = Boolean.valueOf(variables.get(this).get(6));
-	// boolean homozygousOnly = Boolean.valueOf(variables.get(this).get(7));
-	// boolean gcCorrect = Boolean.valueOf(variables.get(this).get(8));
-	// int regressionDistance = Integer.parseInt(variables.get(this).get(9));
-	// int numThreads = Integer.parseInt(variables.get(this).get(10));
-	//
-	// String outputBase = proj.PROJECT_DIRECTORY.getValue() +
-	// MitoPipeline.FILE_BASE;//variables.get(this).get(6);
-	// String extrapolatedPCsFile = MitoPipeline.FILE_BASE + PCA.FILE_EXTs[0];
-	//
-	//
-	// GcAdjustorParameters params = null;
-	// if (gcCorrect) {
-	// if ((refGenomeFasta != null && !Files.exists(refGenomeFasta)) &&
-	// Files.exists(proj.getReferenceGenomeFASTAFilename())) {
-	// proj.getLog().reportTimeWarning("Command line reference genome did not exist or was not
-	// provided, using default " + proj.getReferenceGenomeFASTAFilename());
-	// refGenomeFasta = proj.getReferenceGenomeFASTAFilename();
-	// }
-	// if (Files.exists(refGenomeFasta) || Files.exists(proj.GC_MODEL_FILENAME.getValue())) {// TODO,
-	// after evaluating reference genome based gc model files, will demand a refGenome
-	// if (refGenomeFasta != null && Files.exists(refGenomeFasta)) {
-	// proj.REFERENCE_GENOME_FASTA_FILENAME.setValue(refGenomeFasta);
-	// }
-	// // try {
-	// GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
-	// gAdjustorBuilder.regressionDistance(regressionDistance);
-	// params = GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", refGenomeFasta, gAdjustorBuilder,
-	// recomputeLRR_Median || recomputeLRR_PCs, bpGcModel, numThreads);
-	// if ((recomputeLRR_Median || recomputeLRR_PCs) && params.getCentroids() == null) {
-	// throw new IllegalStateException("Internal error, did not recieve centroids");
-	// } else if ((!recomputeLRR_Median && !recomputeLRR_PCs) && params.getCentroids() != null) {
-	// throw new IllegalStateException("Internal error, should not have recieved centroids");
-	// }
-	// recomputeLRR_Median = false;// recomputed if params has centroid
-	// recomputeLRR_PCs = false;
-	// // } catch (IllegalStateException e) {
-	// //
-	// // proj.getLog().reportTimeError("GC adjustment was flagged, but could not generate neccesary
-	// files");
-	// // }
-	// } else {
-	// proj.getLog().reportTimeError("Can not gc correct values without a valid reference genome");
-	// proj.getLog().reportTimeError("please supply a valid reference genome (full path) with the
-	// \"ref=\" argument");
-	// }
-	// }
-	//
-	// proj.getLog().report("\nComputing residuals after regressing out " + numComponents + "
-	// principal component" + (numComponents == 1 ? "" : "s") + "\n");
-	// PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, extrapolatedPCsFile,
-	// ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homozygousOnly,
-	// recomputeLRR_Median, outputBase, params);
-	// MitoPipeline.generateFinalReport(proj, outputBase, pcResids.getResidOutput());
-	// proj.setProperty(proj.INTENSITY_PC_FILENAME, extrapolatedPCsFile);
-	// proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
-	// proj.saveProperties(new Project.Property[]{proj.INTENSITY_PC_FILENAME});
-	// }
-	// @Override
-	// public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections,
-	// HashMap<STEP, ArrayList<String>> variables) {
-	// String markerDir = variables.get(this).get(0);
-	// String extrapPCFile = variables.get(this).get(1);
-	// String medianMarkers = variables.get(this).get(2);
-	// int numComponents = -1;
-	// try {
-	// numComponents = Integer.parseInt(variables.get(this).get(3));
-	// } catch (NumberFormatException e) {}
-	// return new boolean[][]{
-	// {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj,
-	// stepSelections, variables)), Files.exists(markerDir)},
-	// {(stepSelections.get(S13_CREATE_PCS) && S13_CREATE_PCS.hasRequirements(proj, stepSelections,
-	// variables)), Files.exists(extrapPCFile)},
-	// {Files.exists(medianMarkers)},
-	// {numComponents > 0},
-	// {true}, // TRUE or FALSE are both valid selections
-	// {true},
-	// };
-	// }
-	// @Override
-	// public Object[] getRequirementDefaults(Project proj) {
-	// return new String[]{proj.MARKER_DATA_DIRECTORY.getValue(false, false),
-	// proj.INTENSITY_PC_FILENAME.getValue(), "",
-	// proj.INTENSITY_PC_NUM_COMPONENTS.getValue().toString(), "", ""/*, ""*/};
-	// }
-	// @Override
-	// public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-	// // existing files will be backed up if re-run
-	// return false;
-	// }
-	// @Override
-	// public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-	// return "## << Create Mitochondrial Copy-Number Estimates File >> Not Implemented For Command
-	// Line Yet ##"; // TODO
-	// }
-	// };
-
 	static final STEP S12_MOSAIC_ARMS = new STEP(	"Create Mosaic Arms File", "",
-																								new String[][] {{"[Parse Sample Files] step must have been run already or must be selected and valid."},
+																								new String[][] {{SAMPLE_STEP_REQ_MSG},
 																																{"Number of threads to use."}},
 																								new RequirementInputType[][] {{RequirementInputType.NONE},
 																																							{RequirementInputType.NUMBER}},
@@ -1371,11 +1192,11 @@ public class GenvisisWorkflow {
 
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
-			int numThreads = proj.NUM_THREADS.getValue();
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(0));
-			} catch (NumberFormatException e) {
+																							Map<STEP, List<String>> variables) {
+
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(0));
+			if (numThreads <= 0) {
+				numThreads = proj.NUM_THREADS.getValue();
 			}
 			if (numThreads != proj.NUM_THREADS.getValue()) {
 				proj.NUM_THREADS.setValue(numThreads);
@@ -1383,28 +1204,25 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public void run(Project proj, Map<STEP, List<String>> variables) {
 			Mosaicism.findOutliers(proj);
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
 			boolean checkStepParseSamples = stepSelections.get(S2I_PARSE_SAMPLES)
 																			&& S2I_PARSE_SAMPLES.hasRequirements(	proj, stepSelections,
 																																						variables);
 			String mkrPosFile = proj.MARKERSET_FILENAME.getValue();
 			boolean step11 = Files.exists(mkrPosFile);
-			int numThreads = -1;
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(0));
-			} catch (NumberFormatException e) {
-			}
+
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(0));
 			return new boolean[][] {{checkStepParseSamples || step11}, {numThreads > 0}};
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			boolean outputCheck = Files.exists(proj.RESULTS_DIRECTORY.getValue(false, false)
 																					+ "Mosaicism.xln");
 			return outputCheck;
@@ -1416,22 +1234,22 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			String kvCmd = "";
 
-			int numThreads = proj.NUM_THREADS.getValue();
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(0));
-			} catch (NumberFormatException e) {
+
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(0));
+			if (numThreads <= 0) {
+				numThreads = proj.NUM_THREADS.getValue();
 			}
 			if (numThreads != proj.NUM_THREADS.getValue()) {
-				kvCmd += " NUM_THREADS=" + numThreads;
+				kvCmd += " " + proj.NUM_THREADS.getName() + "=" + numThreads;
 			}
 
 			String projPropFile = proj.getPropertyFilename();
 			StringBuilder cmd = new StringBuilder();
 			if (kvCmd.length() > 0) {
-				cmd	.append(Files.getRunString()).append(" cnv.filesys.Project proj=" + projPropFile)
+				cmd	.append(Files.getRunString()).append(PROJ_PROP_UPDATE_STR + projPropFile)
 						.append(kvCmd).append("\n");
 			}
 			return cmd.append(Files.getRunString())
@@ -1467,7 +1285,7 @@ public class GenvisisWorkflow {
 
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
+																							Map<STEP, List<String>> variables) {
 			double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
 			double lrrSdThreshold = Double.parseDouble(variables.get(this).get(2));
 			double projCallrateThreshold = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
@@ -1482,55 +1300,43 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-			boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(0));
+		public void run(Project proj, Map<STEP, List<String>> variables) {
+			boolean checkDuplicates = !Boolean.parseBoolean(variables.get(this).get(0));
 			String duplicatesSetFile = null;
 			if (checkDuplicates) {
 				String dir = "plink/";
 				duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue()	+ dir
 														+ "/quality_control/genome/plink.genome_duplicatesSet.dat";
 			}
-			boolean gcCorrectedLrrSd = !Boolean.valueOf(variables.get(this).get(1));
+			boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this).get(1));
 			int numQ = Integer.parseInt(variables.get(this).get(4));
-			boolean correctFidIids = Boolean.valueOf(variables.get(this).get(5));
+			boolean correctFidIids = Boolean.parseBoolean(variables.get(this).get(5));
 			SampleQC.parseAndAddToSampleData(	proj, numQ, 0, false, gcCorrectedLrrSd, duplicatesSetFile,
 																				correctFidIids);
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
 			boolean checkStepSampleQC = stepSelections.get(S6_SAMPLE_QC)
 																	&& S6_SAMPLE_QC.hasRequirements(proj, stepSelections, variables);
 			String sampleQCFile = proj.SAMPLE_QC_FILENAME.getValue();
 			boolean sampleQCFileExists = Files.exists(sampleQCFile);
 			String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue();
-			boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(0));
+			boolean checkDuplicates = !Boolean.parseBoolean(variables.get(this).get(0));
 			String dir = "plink/";
 			String duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue()	+ dir
 																	+ "/quality_control/genome/plink.genome_duplicatesSet.dat";
-			boolean gcCorrectedLrrSd = !Boolean.valueOf(variables.get(this).get(1));
+			boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this).get(1));
 			boolean gcCorrectedLrrSdExists = false;
 			if (sampleQCFileExists
 					&& ext.indexOfStr("LRR_SD_Post_Correction",
 														Files.getHeaderOfFile(sampleQCFile, proj.getLog())) != -1) {
 				gcCorrectedLrrSdExists = true;
 			}
-			double lrrSdThreshold = -1.0;
-			try {
-				lrrSdThreshold = Double.parseDouble(variables.get(this).get(2));
-			} catch (NumberFormatException nfe) {
-			}
-			double callrateThreshold = -1.0;
-			try {
-				callrateThreshold = Double.parseDouble(variables.get(this).get(3));
-			} catch (NumberFormatException nfe) {
-			}
-			int numQ = -1;
-			try {
-				numQ = Integer.parseInt(variables.get(this).get(4));
-			} catch (NumberFormatException nfe) {
-			}
+			double lrrSdThreshold = checkDoubleArgOrNeg1(variables.get(this).get(2));
+			double callrateThreshold = checkDoubleArgOrNeg1(variables.get(this).get(3));
+			int numQ = checkIntArgOrNeg1(variables.get(this).get(4));
 			return new boolean[][] {{checkStepSampleQC || sampleQCFileExists},
 															{stepSelections.get(S3_CREATE_SAMPLEDATA)
 																&& S3_CREATE_SAMPLEDATA.hasRequirements(proj, stepSelections,
@@ -1551,21 +1357,24 @@ public class GenvisisWorkflow {
 
 		@Override
 		public Object[] getRequirementDefaults(Project proj) {
-			return new Object[] {	"false", "false", proj.LRRSD_CUTOFF.getValue(),
-														proj.SAMPLE_CALLRATE_THRESHOLD.getValue(), 10, "false"};
+			return new Object[] {	false, false, proj.LRRSD_CUTOFF.getValue(),
+														proj.SAMPLE_CALLRATE_THRESHOLD.getValue(), 10, false};
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue();
 			if (!Files.exists(sampleDataFile)) {
 				return false;
 			}
-			boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(0));
+			boolean checkDuplicates = !Boolean.parseBoolean(variables.get(this).get(0));
 			String[] header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
 			if (checkDuplicates && ext.indexOfStr("DuplicateId", header, false, true) == -1) {
 				return false;
 			}
+			String[] reqHdr = {
+			                   
+			};
 			if (ext.indexOfStr("Class=Exclude", header, false, true) == -1) {
 				return false;
 			}
@@ -1588,7 +1397,7 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 
 			double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
 			double lrrSdThreshold = Double.parseDouble(variables.get(this).get(2));
@@ -1597,16 +1406,16 @@ public class GenvisisWorkflow {
 
 			String projPropFile = proj.getPropertyFilename();
 
-			boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(0));
+			boolean checkDuplicates = !Boolean.parseBoolean(variables.get(this).get(0));
 			String duplicatesSetFile = null;
 			if (checkDuplicates) {
 				String dir = "plink/";
 				duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue()	+ dir
 														+ "/quality_control/genome/plink.genome_duplicatesSet.dat";
 			}
-			boolean gcCorrectedLrrSd = !Boolean.valueOf(variables.get(this).get(1));
+			boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this).get(1));
 			int numQ = Integer.parseInt(variables.get(this).get(4));
-			boolean correctFidIids = Boolean.valueOf(variables.get(this).get(5));
+			boolean correctFidIids = Boolean.parseBoolean(variables.get(this).get(5));
 
 			String kvCmd = "";
 
@@ -1619,7 +1428,7 @@ public class GenvisisWorkflow {
 
 			StringBuilder cmd = new StringBuilder();
 			if (kvCmd.length() > 0) {
-				cmd	.append(Files.getRunString()).append(" cnv.filesys.Project proj=" + projPropFile)
+				cmd	.append(Files.getRunString()).append(PROJ_PROP_UPDATE_STR + projPropFile)
 						.append(kvCmd).append("\n");
 			}
 			cmd	.append(Files.getRunString())
@@ -1665,7 +1474,7 @@ public class GenvisisWorkflow {
 
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
+																							Map<STEP, List<String>> variables) {
 			double sampleLRRSdFilter = Double.parseDouble(variables.get(this).get(1));
 			if (sampleLRRSdFilter < 0) {
 				switch (proj.ARRAY_TYPE.getValue()) {
@@ -1691,14 +1500,14 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public void run(Project proj, Map<STEP, List<String>> variables) {
 			String medianMarkers = variables.get(this).get(0);
 			double markerCallRateFilter = Double.parseDouble(variables.get(this).get(2));
-			boolean gcCorrect = Boolean.valueOf(variables.get(this).get(3));
-			boolean imputeMeanForNaN = Boolean.valueOf(variables.get(this).get(4));
-			boolean recomputeLRR_PCs = Boolean.valueOf(variables.get(this).get(5));
-			boolean recomputeLRR_Median = Boolean.valueOf(variables.get(this).get(6));
-			boolean homozygousOnly = Boolean.valueOf(variables.get(this).get(7));
+			boolean gcCorrect = Boolean.parseBoolean(variables.get(this).get(3));
+			boolean imputeMeanForNaN = Boolean.parseBoolean(variables.get(this).get(4));
+			boolean recomputeLRR_PCs = Boolean.parseBoolean(variables.get(this).get(5));
+			boolean recomputeLRR_Median = Boolean.parseBoolean(variables.get(this).get(6));
+			boolean homozygousOnly = Boolean.parseBoolean(variables.get(this).get(7));
 			int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;// Integer.parseInt(variables.get(this).get(8));
 			int regressionDistance = Integer.parseInt(variables.get(this).get(8));
 			int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;// Integer.parseInt(variables.get(this).get(10));
@@ -1729,32 +1538,16 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
 			String markerDir = proj.MARKER_DATA_DIRECTORY.getValue();
 			String medianMkrs = variables.get(this).get(0).trim();
 			String betaOptFile = variables.get(this).get(10).trim();
 			String betaFile = variables.get(this).get(11).trim();
-			double lrrThresh = -1;
-			double callrate = -1;
-			int regressionDistance = -1;
-			int numThreads = -1;
-			try {
-				lrrThresh = Double.parseDouble(variables.get(this).get(1));
-			} catch (NumberFormatException e) {
-			}
-			try {
-				callrate = Double.parseDouble(variables.get(this).get(2));
-			} catch (NumberFormatException e) {
-			}
-			try {
-				regressionDistance = Integer.parseInt(variables.get(this).get(8));
-			} catch (NumberFormatException e) {
-			}
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(9));
-			} catch (NumberFormatException e) {
-			}
+			double lrrThresh = checkDoubleArgOrNeg1(variables.get(this).get(1));
+			double callrate = checkDoubleArgOrNeg1(variables.get(this).get(2));
+			int regressionDistance = checkIntArgOrNeg1(variables.get(this).get(8));
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(9));
 			return new boolean[][] {{(stepSelections.get(S4_TRANSPOSE_TO_MDF)
 																&& S4_TRANSPOSE_TO_MDF.hasRequirements(	proj, stepSelections,
 																																				variables))
@@ -1768,8 +1561,8 @@ public class GenvisisWorkflow {
 																																																		// selections
 															{true}, {true}, {true}, {true}, {regressionDistance > 0},
 															{numThreads > 0},
-															{betaOptFile.equals("") || Files.exists(betaOptFile)},
-															{betaFile.equals("") || Files.exists(betaFile)},};
+															{"".equals(betaOptFile) || Files.exists(betaOptFile)},
+															{"".equals(betaFile) || Files.exists(betaFile)},};
 		}
 
 		@Override
@@ -1781,7 +1574,7 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
 			String finalReport = outputBase + PCA.FILE_EXTs[0];// PrincipalComponentsResiduals.MT_REPORT_EXT[0];
 			// boolean mkrFiles = true;
@@ -1796,18 +1589,18 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			String medianMarkers = variables.get(this).get(0);
 			double lrrSD = Double.parseDouble(variables.get(this).get(1));
 			double markerCallRateFilter = Double.parseDouble(variables.get(this).get(2));
-			boolean gcCorrect = Boolean.valueOf(variables.get(this).get(3));
-			boolean imputeMeanForNaN = Boolean.valueOf(variables.get(this).get(4));
-			boolean recomputeLRR_PCs = Boolean.valueOf(variables.get(this).get(5));
-			boolean recomputeLRR_Median = Boolean.valueOf(variables.get(this).get(6));
-			boolean homozygousOnly = Boolean.valueOf(variables.get(this).get(7));
-			int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;// Integer.parseInt(variables.get(this).get(8));
+			boolean gcCorrect = Boolean.parseBoolean(variables.get(this).get(3));
+			boolean imputeMeanForNaN = Boolean.parseBoolean(variables.get(this).get(4));
+			boolean recomputeLRR_PCs = Boolean.parseBoolean(variables.get(this).get(5));
+			boolean recomputeLRR_Median = Boolean.parseBoolean(variables.get(this).get(6));
+			boolean homozygousOnly = Boolean.parseBoolean(variables.get(this).get(7));
+			int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;
 			int regressionDistance = Integer.parseInt(variables.get(this).get(8));
-			int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;// Integer.parseInt(variables.get(this).get(9));
+			int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;
 			int numThreads = Integer.parseInt(variables.get(this).get(9));
 			String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
 
@@ -1826,7 +1619,7 @@ public class GenvisisWorkflow {
 					.append(" gcCorrect=").append(gcCorrect).append(" bpGcModel=").append(bpGcModel)
 					.append(" LRRSD=").append(lrrSD).append(" markerCallRate=").append(markerCallRateFilter)
 					.append(" regressionDistance=").append(regressionDistance).append(" sampLRR=")
-					.append(sampLrr).append(" threads=").append(numThreads).append(" log=")
+					.append(sampLrr).append(" ").append(PSF.Ext.NUM_THREADS_COMMAND).append(numThreads).append(" log=")
 					.append(proj.getLog().getFilename()).append(" output=").append(outputBase);
 			if (!"".equals(betaOptFile)) {
 				cmd.append(" ").append(MitoPipeline.PC_OPT_FILE).append("=").append(betaOptFile);
@@ -1848,7 +1641,7 @@ public class GenvisisWorkflow {
 
 
 	static final STEP S15_COMPUTE_PFB = new STEP(	"Compute Population BAF files", "",
-																								new String[][] {{	"[Parse Sample Files] step must have been run already or must be selected and valid.",
+																								new String[][] {{	SAMPLE_STEP_REQ_MSG,
 																																	"A Sample subset file must exist."},
 																																{"PFB (population BAF) output file must be specified."}},
 																								new RequirementInputType[][] {{	RequirementInputType.NONE,
@@ -1858,7 +1651,7 @@ public class GenvisisWorkflow {
 
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
+																							Map<STEP, List<String>> variables) {
 			String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
 			String subSampFile = variables.get(this).get(0);
 			String setPFBFile = proj.CUSTOM_PFB_FILENAME.getValue();
@@ -1873,7 +1666,7 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public void run(Project proj, Map<STEP, List<String>> variables) {
 			org.genvisis.cnv.analysis.PennCNV.populationBAF(proj);
 		}
 
@@ -1886,8 +1679,8 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
 			String sampListFile = proj.SAMPLELIST_FILENAME.getValue();
 			String subSampFile = variables.get(this).get(0);
 			String pfbOutputFile = variables.get(this).get(1);
@@ -1904,7 +1697,7 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			String subSampFile = variables.get(this).get(0);
 			String pfbOutputFile = variables.get(this).get(1);
 			boolean pfbExists = Files.exists(pfbOutputFile)
@@ -1913,7 +1706,7 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			String kvCmd = "";
 
 			String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
@@ -1931,7 +1724,7 @@ public class GenvisisWorkflow {
 			String projPropFile = proj.getPropertyFilename();
 			StringBuilder cmd = new StringBuilder();
 			if (kvCmd.length() > 0) {
-				cmd	.append(Files.getRunString()).append(" cnv.filesys.Project proj=" + projPropFile)
+				cmd	.append(Files.getRunString()).append(PROJ_PROP_UPDATE_STR + projPropFile)
 						.append(kvCmd).append("\n");
 			}
 			return cmd.append(Files.getRunString())
@@ -1955,12 +1748,11 @@ public class GenvisisWorkflow {
 																														S5_COMPUTE_GCMODEL) {
 																										@Override
 																										public void setNecessaryPreRunProperties(	Project proj,
-																																															HashMap<STEP, ArrayList<String>> variables) {
-																											int numThreads = proj.NUM_THREADS.getValue();
-																											try {
-																												numThreads = Integer.parseInt(variables	.get(this)
-																																																.get(1));
-																											} catch (NumberFormatException e) {
+																																															Map<STEP, List<String>> variables) {
+
+																											int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
+																											if (numThreads <= 0) {
+																												numThreads = proj.NUM_THREADS.getValue();
 																											}
 																											if (numThreads != proj.NUM_THREADS.getValue()) {
 																												proj.NUM_THREADS.setValue(numThreads);
@@ -1969,7 +1761,7 @@ public class GenvisisWorkflow {
 
 																										@Override
 																										public void run(Project proj,
-																																		HashMap<STEP, ArrayList<String>> variables) {
+																																		Map<STEP, List<String>> variables) {
 																											String malePFB, femalePFB, centFilePathM,
 																													centFilePathF, newGCFile;
 																											// pennData =
@@ -1983,11 +1775,10 @@ public class GenvisisWorkflow {
 																																			+ "sexSpecific_Male.cent";
 																											centFilePathF = outputDir
 																																			+ "sexSpecific_Female.cent";
-																											int numThreads = proj.NUM_THREADS.getValue();
-																											try {
-																												numThreads = Integer.parseInt(variables	.get(this)
-																																																.get(1));
-																											} catch (NumberFormatException e) {
+
+																											int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
+																											if (numThreads <= 0) {
+																												numThreads = proj.NUM_THREADS.getValue();
 																											}
 																											String gcModelFile = variables.get(this)
 																																										.get(0);
@@ -2007,17 +1798,13 @@ public class GenvisisWorkflow {
 
 																										@Override
 																										public boolean[][] checkRequirements(	Project proj,
-																																													HashMap<STEP, Boolean> stepSelections,
-																																													HashMap<STEP, ArrayList<String>> variables) {
+																																													Map<STEP, Boolean> stepSelections,
+																																													Map<STEP, List<String>> variables) {
 																											boolean checkStepGCModel = stepSelections.get(S5_COMPUTE_GCMODEL)
 																																									&& S5_COMPUTE_GCMODEL.hasRequirements(proj,
 																																																												stepSelections, variables);
-																											int numThreads = -1;
-																											try {
-																												numThreads = Integer.parseInt(variables	.get(this)
-																																																.get(1));
-																											} catch (NumberFormatException e) {
-																											}
+
+																											int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
 																											String gcModelFile = variables.get(this)
 																																										.get(0);
 																											return new boolean[][] {{	checkStepGCModel,
@@ -2033,7 +1820,7 @@ public class GenvisisWorkflow {
 
 																										@Override
 																										public boolean checkIfOutputExists(	Project proj,
-																																												HashMap<STEP, ArrayList<String>> variables) {
+																																												Map<STEP, List<String>> variables) {
 																											String malePFB, femalePFB, centFilePathM,
 																													centFilePathF, newGCFile;
 																											// pennData =
@@ -2056,17 +1843,16 @@ public class GenvisisWorkflow {
 
 																										@Override
 																										public String getCommandLine(	Project proj,
-																																									HashMap<STEP, ArrayList<String>> variables) {
-																											int numThreads = proj.NUM_THREADS.getValue();
-																											try {
-																												numThreads = Integer.parseInt(variables	.get(this)
-																																																.get(1));
-																											} catch (NumberFormatException e) {
+																																									Map<STEP, List<String>> variables) {
+
+																											int numThreads = checkIntArgOrNeg1(variables.get(this).get(1));
+																											if (numThreads <= 0) {
+																												numThreads = proj.NUM_THREADS.getValue();
 																											}
 																											String mainCmd = Files.getRunString()
 																																					+ " cnv.filesys.Centroids proj="
 																																				+ proj.getPropertyFilename()
-																																				+ " threads=" + numThreads;
+																																				+ " " + PSF.Ext.NUM_THREADS_COMMAND + numThreads;
 																											String gcModelFile = variables.get(this)
 																																										.get(0);
 																											String gcCmd = Files.getRunString()
@@ -2096,7 +1882,7 @@ public class GenvisisWorkflow {
 																								S5_COMPUTE_GCMODEL, S15_COMPUTE_PFB) {
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
+																							Map<STEP, List<String>> variables) {
 			String hmm_P = proj.HMM_FILENAME.getValue();
 			String hmm_G = variables.get(this).get(0);
 			if (!hmm_P.equals(hmm_G)) {
@@ -2112,10 +1898,9 @@ public class GenvisisWorkflow {
 			if (!gcm_P.equals(gcm_G)) {
 				proj.GC_MODEL_FILENAME.setValue(gcm_G);
 			}
-			int numThreads = proj.NUM_THREADS.getValue();
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(3));
-			} catch (NumberFormatException e) {
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(3));
+			if (numThreads <= 0) {
+				numThreads = proj.NUM_THREADS.getValue();
 			}
 			if (numThreads != proj.NUM_THREADS.getValue()) {
 				proj.NUM_THREADS.setValue(numThreads);
@@ -2123,11 +1908,10 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-			int numThreads = proj.NUM_THREADS.getValue();
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(3));
-			} catch (NumberFormatException e) {
+		public void run(Project proj, Map<STEP, List<String>> variables) {
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(3));
+			if (numThreads <= 0) {
+				numThreads = proj.NUM_THREADS.getValue();
 			}
 			if (numThreads != proj.NUM_THREADS.getValue()) {
 				proj.NUM_THREADS.setValue(numThreads);
@@ -2144,18 +1928,14 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
 			boolean checkHMM = Files.exists(variables.get(this).get(0));
 			boolean checkPFB1 = stepSelections.get(S15_COMPUTE_PFB).booleanValue();
 			boolean checkPFB2 = Files.exists(variables.get(this).get(1));
 			boolean checkGC1 = stepSelections.get(S5_COMPUTE_GCMODEL).booleanValue();
 			boolean checkGC2 = Files.exists(variables.get(this).get(2));
-			int numThreads = -1;
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(3));
-			} catch (NumberFormatException e) {
-			}
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(3));
 			return new boolean[][] {{checkHMM}, {checkPFB1, checkPFB2}, {checkGC1, checkGC2},
 															{numThreads > 0}, {!Files.exists(variables.get(this).get(4))},};
 		}
@@ -2168,13 +1948,13 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			String output = variables.get(this).get(4);
 			return Files.exists(proj.PROJECT_DIRECTORY.getValue() + output);
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			String kvCmd = "";
 
 			String hmm_P = proj.HMM_FILENAME.getValue();
@@ -2192,29 +1972,29 @@ public class GenvisisWorkflow {
 			if (!gcm_P.equals(gcm_G)) {
 				kvCmd += " GC_MODEL_FILENAME=" + gcm_G;
 			}
-			int numThreads = proj.NUM_THREADS.getValue();
-			try {
-				numThreads = Integer.parseInt(variables.get(this).get(3));
-			} catch (NumberFormatException e) {
+
+			int numThreads = checkIntArgOrNeg1(variables.get(this).get(3));
+			if (numThreads <= 0) {
+				numThreads = proj.NUM_THREADS.getValue();
 			}
 			if (numThreads != proj.NUM_THREADS.getValue()) {
-				kvCmd += " NUM_THREADS=" + numThreads;
+				kvCmd += " " + proj.NUM_THREADS.getName() + "=" + numThreads;
 			}
 			String projPropFile = proj.getPropertyFilename();
 			StringBuilder cmd = new StringBuilder();
 			if (kvCmd.length() > 0) {
-				cmd	.append(Files.getRunString()).append(" cnv.filesys.Project proj=" + projPropFile)
+				cmd	.append(Files.getRunString()).append(PROJ_PROP_UPDATE_STR + projPropFile)
 						.append(kvCmd).append("\n");
 			}
 			return cmd.append(Files.getRunString()).append(" cnv.hmm.CNVCaller proj=" + projPropFile)
-								.append(" out=" + variables.get(this).get(4)).append(" threads=" + numThreads)
+								.append(" out=" + variables.get(this).get(4)).append(" ").append(PSF.Ext.NUM_THREADS_COMMAND).append(numThreads)
 								.toString();
 		}
 
 	};
 
 	static final STEP S18_SHADOW_SAMPLES = new STEP("Create 'Shadow' Project", "",
-																									new String[][] {{"[Parse Sample Files] step must have been run already or must be selected and valid."},
+																									new String[][] {{SAMPLE_STEP_REQ_MSG},
 																																	{"Number of principal components for correction."},
 																																	{"Output file path (relative to project directory) and baseName for principal components correction files"},
 																																	{"Call-rate filter for determining high-quality markers"},
@@ -2231,12 +2011,12 @@ public class GenvisisWorkflow {
 																									S2I_PARSE_SAMPLES, S2A_PARSE_SAMPLES) {
 		@Override
 		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {
+																							Map<STEP, List<String>> variables) {
 			// not needed for step
 		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public void run(Project proj, Map<STEP, List<String>> variables) {
 			int numComponents = Integer.parseInt(variables.get(this).get(0));
 			String outputBase = variables.get(this).get(1);
 			double markerCallRateFilter = Double.parseDouble(variables.get(this).get(2));
@@ -2249,27 +2029,13 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
-			int numComponents = -1;
-			try {
-				numComponents = Integer.parseInt(variables.get(this).get(0));
-			} catch (NumberFormatException e) {
-			}
-			variables.get(this).get(1);
-			double markerCallRateFilter = -1;
-			try {
-				markerCallRateFilter = Double.parseDouble(variables.get(this).get(2));
-			} catch (NumberFormatException e) {
-			}
-			Boolean.parseBoolean(variables.get(this).get(3));
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
+			int numComponents = checkIntArgOrNeg1(variables.get(this).get(0));
+			double markerCallRateFilter = checkDoubleArgOrNeg1(variables.get(this).get(2));
 			String tmpDir = "".equals(variables.get(this).get(4).trim())	? null
 																																		: variables.get(this).get(4);
-			int totalThreads = -1;
-			try {
-				totalThreads = Integer.parseInt(variables.get(this).get(5));
-			} catch (NumberFormatException e) {
-			}
+			int totalThreads = checkIntArgOrNeg1(variables.get(this).get(5));
 			String sampDir = proj.SAMPLE_DIRECTORY.getValue();
 			STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES)	? S2I_PARSE_SAMPLES
 																																			: S2A_PARSE_SAMPLES;
@@ -2295,14 +2061,14 @@ public class GenvisisWorkflow {
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
-			String finalReport = outputBase + PCA.FILE_EXTs[0];// PrincipalComponentsResiduals.MT_REPORT_EXT[0];
+			String finalReport = outputBase + PCA.FILE_EXTs[0];
 			return Files.exists(finalReport);
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			int numComponents = Integer.parseInt(variables.get(this).get(0));
 			String outputBase = variables.get(this).get(1);
 			double markerCallRateFilter = Double.parseDouble(variables.get(this).get(2));
@@ -2331,36 +2097,39 @@ public class GenvisisWorkflow {
 
 	}) {
 		@Override
-		public void setNecessaryPreRunProperties(	Project proj,
-																							HashMap<STEP, ArrayList<String>> variables) {}
+		public void setNecessaryPreRunProperties(	Project proj, Map<STEP, List<String>> variables) {
+			// INSERT CODE HERE
+		}
 
 		@Override
-		public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {}
+		public void run(Project proj, Map<STEP, List<String>> variables) {
+			// INSERT CODE HERE
+		}
 
 		@Override
-		public boolean[][] checkRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																					HashMap<STEP, ArrayList<String>> variables) {
+		public boolean[][] checkRequirements(	Project proj, Map<STEP, Boolean> stepSelections,
+																					Map<STEP, List<String>> variables) {
 			return new boolean[][] {};
 		}
 
 		@Override
 		public Object[] getRequirementDefaults(Project proj) {
-			return null;
+			return new Object[0];
 		}
 
 		@Override
-		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables) {
 			return false;
 		}
 
 		@Override
-		public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public String getCommandLine(Project proj, Map<STEP, List<String>> variables) {
 			return null;
 		}
 
 	};
 
-	public static abstract class STEP {
+	public abstract static class STEP {
 		public String stepName;
 		public String stepDesc;
 		public String[][] reqs;
@@ -2377,32 +2146,47 @@ public class GenvisisWorkflow {
 			failed = true;
 		}
 
-		public ArrayList<String> getFailureMessages() {
+		public List<String> getFailureMessages() {
 			return failReasons;
 		}
 
-		public abstract void setNecessaryPreRunProperties(Project proj,
-																											HashMap<STEP, ArrayList<String>> variables);
+		protected int checkIntArgOrNeg1(String val) {
+			int valInt = -1;
+			try {
+				valInt = Integer.parseInt(val);
+			} catch (NumberFormatException e) {
+				// leave as -1
+			}
+			return valInt;
+		}
+		
+		protected double checkDoubleArgOrNeg1(String val) {
+			double valDou = -1.0;
+			try {
+				valDou = Double.parseDouble(val);
+			} catch (NumberFormatException e) {
+				// leave as -1.0
+			}
+			return valDou;
+		}
+		
+		public abstract void setNecessaryPreRunProperties(Project proj, Map<STEP, List<String>> variables);
 
-		public abstract void run(Project proj, HashMap<STEP, ArrayList<String>> variables);
+		public abstract void run(Project proj, Map<STEP, List<String>> variables);
 
-		// public abstract void gracefulDeath();
 		public void gracefulDeath(Project proj) {
 			return;
 		}
 
-		public abstract boolean[][] checkRequirements(Project proj,
-																									HashMap<STEP, Boolean> stepSelections,
-																									HashMap<STEP, ArrayList<String>> variables);
+		public abstract boolean[][] checkRequirements(Project proj, Map<STEP, Boolean> stepSelections, Map<STEP, List<String>> variables);
 
-		public boolean hasRequirements(	Project proj, HashMap<STEP, Boolean> stepSelections,
-																		HashMap<STEP, ArrayList<String>> variables) {
+		public boolean hasRequirements(	Project proj, Map<STEP, Boolean> stepSelections, Map<STEP, List<String>> variables) {
 			if (stepSelections.get(this) == null || variables.get(this) == null) {
 				return false;
 			}
 			int sum = 0;
-			boolean[][] reqs = checkRequirements(proj, stepSelections, variables);
-			for (boolean[] req : reqs) {
+			boolean[][] reqrs = checkRequirements(proj, stepSelections, variables);
+			for (boolean[] req : reqrs) {
 				sum += Array.booleanArraySum(req) > 0 ? 1 : 0;
 			}
 			return sum == reqs.length;
@@ -2423,8 +2207,7 @@ public class GenvisisWorkflow {
 			return reqTypes;
 		}
 
-		public abstract boolean checkIfOutputExists(Project proj,
-																								HashMap<STEP, ArrayList<String>> variables);
+		public abstract boolean checkIfOutputExists(Project proj, Map<STEP, List<String>> variables);
 
 		public void resetRun() {
 			failed = false;
@@ -2439,7 +2222,7 @@ public class GenvisisWorkflow {
 		 */
 		public abstract Object[] getRequirementDefaults(Project proj);
 
-		public abstract String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables);
+		public abstract String getCommandLine(Project proj, Map<STEP, List<String>> variables);
 
 		STEP(	String name, String desc, String[][] requirements, RequirementInputType[][] reqTypes,
 					STEP... requiredSteps) {
@@ -2468,7 +2251,7 @@ public class GenvisisWorkflow {
 	}
 
 	public enum RequirementInputType {
-																		NONE(), FILE(), DIR(), STRING(), NUMBER(), BOOL()
+		NONE(), FILE(), DIR(), STRING(), NUMBER(), BOOL()
 	}
 
 	public GenvisisWorkflow(Project project, Launch launch) {
@@ -2478,6 +2261,7 @@ public class GenvisisWorkflow {
 	}
 
 	public void showDialogAndRun() {
+		GenvisisWorkflowGUI gui;
 		gui = new GenvisisWorkflowGUI(proj, launch);
 		if (!gui.getCancelled()) {
 			gui.setModal(true);
