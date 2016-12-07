@@ -231,8 +231,7 @@ public class PCAPrep {
 			Arrays.fill(samplesToExclude, false);
 
 			PSF.checkInterrupted();
-			MarkerMetrics.fullQC(	proj, samplesToExclude, ext.removeDirectoryInfo(markersToQCFile), false,
-														numthreads);
+			MarkerMetrics.fullQC(proj, samplesToExclude, markersToQCFile, false, numthreads);
 
 			// MarkerMetrics.fullQC(proj, samplesToExclude, null, false, numthreads);
 		}

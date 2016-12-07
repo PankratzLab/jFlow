@@ -77,11 +77,11 @@ public class MarkerMetrics {
 		if (markersToInclude != null) {
 			if (Files.exists(markersToInclude)) {
 				markerNames = HashVec.loadFileToStringArray(markersToInclude, false, new int[] {0}, false);
-
+			} else if (Files.exists(proj.PROJECT_DIRECTORY.getValue(false, true) + markersToInclude)) {
+				markerNames = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue(false, true) + markersToInclude, false, new int[] {0}, false);
 			} else {
-				markerNames =
-										HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue(false, true)
-																									+ markersToInclude, false, new int[] {0}, false);
+				proj.getLog().reportTimeWarning("Markers to QC file not found, using all markers in project: " + markersToInclude);
+				markerNames = proj.getMarkerNames();
 			}
 		} else {
 			markerNames = proj.getMarkerNames();

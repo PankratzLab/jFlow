@@ -55,8 +55,7 @@ public class PRoCtOR {
 		int sampleChunks = getSampleChunks(proj, numThreads);
 		proj.getLog().report("Using " + sampleChunks + " sample chunks");
 
-		int retCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC, markerCallRateFilter,
-																	useFile, proj.getSampleList(), proj.getLog());
+		int retCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC, markerCallRateFilter, useFile, proj.getSampleList(), proj.getLog());
 		if (retCode != 42) {
 			// TODO error
 			return;
