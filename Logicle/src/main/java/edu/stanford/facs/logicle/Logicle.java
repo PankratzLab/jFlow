@@ -65,8 +65,8 @@ public class Logicle
       throw new LogicleParameterException("M is not positive");
     if (2 * W > M)
       throw new LogicleParameterException("W is too large");
-    if (-A > W || A + W > M - W)
-      throw new LogicleParameterException("A is too large");
+//    if (-A > W || A + W > M - W)
+//      throw new LogicleParameterException("A is too large");
 
     // if we're going to bin the data make sure that
     // zero is on a bin boundary by adjusting A

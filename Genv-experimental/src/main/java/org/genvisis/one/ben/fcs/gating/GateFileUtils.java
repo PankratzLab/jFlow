@@ -3,7 +3,9 @@ package org.genvisis.one.ben.fcs.gating;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
+import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.gating.Gate.BooleanGate;
 import org.genvisis.one.ben.fcs.gating.Gate.EllipsoidGate;
@@ -17,6 +19,22 @@ import org.w3c.dom.NodeList;
 
 public class GateFileUtils {
 
+	public static void updateGateParams(FCSDataLoader dataLoader, List<Gate> gates) {
+  	for (Gate g : gates) {
+  		String p = g.getXDimension().getParam();
+  		String d = dataLoader.getInternalParamName(p);
+  		if (!p.equals(d)) {
+  			g.getXDimension().setParam(d);
+  		}
+  		p = g.getYDimension().getParam();
+  		d = dataLoader.getInternalParamName(p);
+  		if (!p.equals(d)) {
+  			g.getYDimension().setParam(d);
+  		}
+  		updateGateParams(dataLoader, g.getChildGates());
+  	}
+  }
+	
 	public static HashMap<String, ArrayList<Gate>> parameterizeGates(HashMap<String, Gate> gateMap) {
     HashMap<String, ArrayList<Gate>> paramGates = new HashMap<String, ArrayList<Gate>>();
     for (Gate g : gateMap.values()) {

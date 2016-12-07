@@ -35,12 +35,12 @@ public class GateDimension {
 
     public void setMin(float min2) {
       min = min2;
-      owner.parentGating = null;
+      owner.setChanged();
     }
 
     public void setMax(float max2) {
       max = max2;
-      owner.parentGating = null;
+      owner.setChanged();
     }
   }
 

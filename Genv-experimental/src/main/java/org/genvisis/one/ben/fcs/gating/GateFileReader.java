@@ -13,6 +13,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
+import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 import org.genvisis.one.ben.fcs.gating.Gate.BooleanGate;
 import org.genvisis.one.ben.fcs.gating.Gate.EllipsoidGate;
 import org.genvisis.one.ben.fcs.gating.Gate.PolygonGate;
@@ -39,7 +40,16 @@ public class GateFileReader {
         : readGatingMLFile(gateFile);
   }
 
-  public static Workbench loadWorkspace(String file) throws ParserConfigurationException, SAXException, IOException {
+  public static void updateWorkbench(Workbench bench, FCSDataLoader newDataLoader) {
+  	for (SampleNode sn : bench.samples.values()) {
+      if (newDataLoader != null) {
+        GateFileUtils.updateGateParams(newDataLoader, sn.gating.gateRoots);
+      }
+      sn.gating.paramGateMap = GateFileUtils.parameterizeGates(sn.gating.gateMap);
+  	}
+  }
+  
+  public static Workbench loadWorkspace(String file, FCSDataLoader dataLoader) throws ParserConfigurationException, SAXException, IOException {
     Workbench wb = new Workbench();
     
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -64,7 +74,9 @@ public class GateFileReader {
       String fcsFile = ((Element) e.getElementsByTagName("DataSet").item(0)).getAttribute("uri");
       
       Element transforms = ((Element) e.getElementsByTagName("Transformations").item(0));
-      parseTransforms(transforms);
+      if (dataLoader != null) {
+      	dataLoader.setTransformMap(parseTransforms(transforms));
+      }
       
       Element sampleNode = (Element) e.getElementsByTagName("SampleNode").item(0);
       String id = sampleNode.getAttribute("sampleID");
@@ -83,6 +95,9 @@ public class GateFileReader {
       NodeList nodes = sampleNode.getElementsByTagName("Population");
       gs.gateMap = GateFileUtils.buildPopGraph(nodes, true);
       gs.gateRoots = GateFileUtils.connectGates(gs.gateMap);
+      if (dataLoader != null) {
+        GateFileUtils.updateGateParams(dataLoader, gs.gateRoots);
+      }
       gs.paramGateMap = GateFileUtils.parameterizeGates(gs.gateMap);
       for (Gate g : gs.gateMap.values()) {
           gs.allNames.add(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
@@ -95,31 +110,46 @@ public class GateFileReader {
     return wb;
   }
 
-  private static void parseTransforms(Element transforms) {
+  private static HashMap<String, AxisTransform> parseTransforms(Element transforms) {
+  	HashMap<String, AxisTransform> map = new HashMap<>();
     NodeList nList = transforms.getChildNodes();
     for (int i = 0, count = nList.getLength(); i < count; i++) {
       Node n = nList.item(i);
-      if (!n.getNodeName().startsWith("transforms:")) continue; 
+      if (!n.getNodeName().startsWith("transforms:")) {
+      	continue; 
+      }
       
       String param = ((Element) ((Element) n).getElementsByTagName("data-type:parameter").item(0)).getAttribute("data-type:name");
+      AxisTransform at = null;
       if (n.getNodeName().endsWith("linear")) {
         String min = ((Element) n).getAttribute("transforms:minRange");
         String max = ((Element) n).getAttribute("transforms:maxRange");
         String gain = ((Element) n).getAttribute("gain");
-//        System.out.println();
+        double m1, m2, g;
+        m1 = Double.parseDouble(min);
+        m2 = Double.parseDouble(max);
+        g = Double.parseDouble(gain);
+        at = AxisTransform.createLinearTransform(m1, m2, g);
       } else if (n.getNodeName().endsWith("biex")) {
-        String len = ((Element) n).getAttribute("transforms:length");
+//        String len = ((Element) n).getAttribute("transforms:length");
         String rng = ((Element) n).getAttribute("transforms:maxRange");
         String neg = ((Element) n).getAttribute("transforms:neg");
         String wid = ((Element) n).getAttribute("transforms:width");
         String pos = ((Element) n).getAttribute("transforms:pos");
-//        System.out.println();
+        double T = Double.parseDouble(rng);
+        double W = Math.log10(Math.abs(Double.parseDouble(wid)));
+        double M = Double.parseDouble(pos);
+        double A = Double.parseDouble(neg);
+        at = AxisTransform.createBiexTransform(T, W, M, A);
       } else if (n.getNodeName().endsWith("log")) {
         ((Element) n).getAttribute("transforms:offset");
         ((Element) n).getAttribute("transforms:decades");
-//        System.out.println();
+        // TODO log scale
+        at = AxisTransform.createBiexTransform();
       }
+      map.put(param, at);
     }
+    return map;
   }
   
   public static Gating readFlowJoGatingFile(String filename)

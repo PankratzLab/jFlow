@@ -13,6 +13,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.GateFileUtils;
@@ -48,7 +49,7 @@ public class WSPLoader {
   	boolean allLoaded = true;
   	for (String f : wspFiles) {
   		try {
-				loadSampleGating(f);
+				loadSampleGating(wspDir + f);
 			} catch (ParserConfigurationException | SAXException | IOException e) {
 				log.reportException(e);
 				allLoaded = false;
@@ -133,10 +134,10 @@ public class WSPLoader {
       sn.savedTransforms = transformMap;
       
       if (panel1IDs.contains(id)) {
-        panel1Nodes.put(sn.fcsFile, sn);
+        panel1Nodes.put(ext.removeDirectoryInfo(sn.fcsFile), sn);
       }
       if (panel2IDs.contains(id)) {
-        panel2Nodes.put(sn.fcsFile, sn);
+        panel2Nodes.put(ext.removeDirectoryInfo(sn.fcsFile), sn);
       }
       allSamples.add(sn);
     }

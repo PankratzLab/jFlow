@@ -36,8 +36,7 @@ public abstract class Gate {
   protected Gate parentGate;
   protected ArrayList<Gate> children = new ArrayList<Gate>();
   protected GateDimension xDim, yDim;
-//  protected ArrayList<GateDimension> dimensions = new ArrayList<GateDimension>();
-  // protected HashMap<String, boolean[]> gatingCache = new HashMap<String, boolean[]>();
+  protected boolean changed = false;
   protected int displayLevel = 0;
   
   static final Random rand = new Random();
@@ -103,20 +102,21 @@ public abstract class Gate {
   protected boolean[] parentGating = null;
 
   public boolean[] getParentGating(FCSDataLoader dataLoader) {
-    if (parentGating == null) {
+    if (parentGating == null || (parentGate != null && parentGate.hasChanged())) {
       if (parentGate == null) {
-        return parentGating = Array.booleanArray(dataLoader.getCount(), true);
+      	parentGating = Array.booleanArray(dataLoader.getCount(), true);
       } else {
-        return parentGating = parentGate.gate(dataLoader);
+        parentGating = parentGate.gate(dataLoader);
+        if (parentGating != null) {
+        	parentGating = Arrays.copyOf(parentGate.gate(dataLoader), dataLoader.getCount());
+        }
       }
     }
+    if (parentGating == null) {
+    	System.err.println("Error - parent gating is null!  Gate " + getName() + " // parent: " + (parentGate == null ? "null" : parentGate.getName()));
+    }
     return parentGating;
-    // return this.parentGate == null ? null : this.parentGate.gate(dataLoader);
   }
-
-  // public void clearCache() {
-  // gatingCache.clear();
-  // }
 
   public String getID() {
     return id;
@@ -201,17 +201,18 @@ public abstract class Gate {
     this.yDim = gd;
   }
   
-//  public ArrayList<GateDimension> getDimensions() {
-//    return dimensions;
-//  }
-
-//  public void addDimension(GateDimension gd) {
-//    dimensions.add(gd);
-//  }
-
+  public boolean hasChanged() {
+  	boolean val = changed;
+  	changed = false;
+  	return val;
+  }
+  
+  protected void setChanged() {
+  	changed = true;
+  }
+  
   public abstract boolean[] gate(FCSDataLoader dataLoader);
   public abstract Gate copy(Gate parentGate);
-
   public abstract String getXMLTag();
 
   public static class RectangleGate extends Gate {
@@ -254,7 +255,7 @@ public abstract class Gate {
         return;
       }
       super.setXDimension(gd);
-      parentGating = null;
+      setChanged();
     }
 
     @Override
@@ -264,19 +265,19 @@ public abstract class Gate {
         return;
       }
       super.setYDimension(gd);
-      parentGating = null;
+      setChanged();
     }
-
+    
+    boolean[] gating = null;
     @Override
     public boolean[] gate(FCSDataLoader dataLoader) {
-      // if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
-      // return gatingCache.get(dataLoader.getLoadedFile());
-      // }
-      boolean[] includes = parentGate == null ? new boolean[dataLoader.getCount()] : parentGate.gate(dataLoader);
+    	if (gating != null && !hasChanged()) {
+    		return gating;
+    	}
+      boolean[] includes = parentGate == null ? new boolean[dataLoader.getCount()] : getParentGating(dataLoader);
       if (includes == null) {
         return includes;
       }
-      parentGating = parentGate == null ? Array.booleanArray(dataLoader.getCount(), true) : Arrays.copyOf(includes, includes.length);
       boolean[][] paramIncludes = new boolean[getYDimension() == null ? 1 : 2][dataLoader.getCount()];
       
       RectangleGateDimension rgd = (RectangleGateDimension) getXDimension();
@@ -304,6 +305,7 @@ public abstract class Gate {
       for (int i = 0; i < dataLoader.getCount(); i++) {
         boolean include = true;
         if (parentGate != null && !includes[i]) {
+        	includes[i] = false;
           continue;
         }
         for (int p = 0, pCount = paramIncludes.length; p < pCount; p++) {
@@ -314,8 +316,7 @@ public abstract class Gate {
         }
         includes[i] = include;
       }
-      // gatingCache.put(dataLoader.getLoadedFile(), includes);
-      return includes;
+      return gating = includes;
     }
 
   }
@@ -424,6 +425,7 @@ public abstract class Gate {
       mimicFlowJo = mimic;
       parentGating = null;
       transformedPath = null;
+      setChanged();
     }
 
     @Override
@@ -431,6 +433,7 @@ public abstract class Gate {
       super.setXDimension(gd);
       parentGating = null;
       transformedPath = null;
+      setChanged();
     }
     
     @Override
@@ -438,6 +441,7 @@ public abstract class Gate {
       super.setYDimension(gd);
       parentGating = null;
       transformedPath = null;
+      setChanged();
     }
 
     public void setPath(Path2D pth) {
@@ -445,7 +449,7 @@ public abstract class Gate {
       parentGating = null;
       resetVertices();
       transformedPath = null;
-      // clearCache();
+      setChanged();
     }
 
     private void resetVertices() {
@@ -458,8 +462,9 @@ public abstract class Gate {
         if (type != PathIterator.SEG_CLOSE) {
           addVertex(coords[0], coords[1]);
         }
-        pi.next(); // TODO may require a 'next()' to start?
+        pi.next();
       }
+      setChanged();
     }
 
     public Path2D getPath() {
@@ -476,6 +481,7 @@ public abstract class Gate {
         path.lineTo(verticesX.get(i), verticesY.get(i));
       }
       path.closePath();
+      setChanged();
       return path;
     }
     
@@ -509,21 +515,21 @@ public abstract class Gate {
       return pg;
     }
     
+    boolean[] gating = null;
     @Override
     public boolean[] gate(FCSDataLoader dataLoader) {
-      // if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
-      // return gatingCache.get(dataLoader.getLoadedFile());
-      // }
-      boolean[] includes = parentGate == null ? new boolean[dataLoader.getCount()] : parentGate.gate(dataLoader);
+    	if (gating != null && !hasChanged()) {
+    		return gating;
+    	}
+      boolean[] includes = parentGate == null ? new boolean[dataLoader.getCount()] : getParentGating(dataLoader);
       if (includes == null) {
         return includes;
       }
-      parentGating = parentGate == null ? Array.booleanArray(dataLoader.getCount(), true) : Arrays.copyOf(includes, includes.length);
       if (myPath == null) {
         myPath = constructPath();
+        changed = false;
       }
       if (transformedPath == null) {
-      	System.err.println("Error - nullifying transformedPath");
         transformedPath = transformPath(dataLoader);
         prepGating(dataLoader);
       }
@@ -571,8 +577,8 @@ public abstract class Gate {
         }
         includes[i] = include;
       }
-
-      // gatingCache.put(dataLoader.getLoadedFile(), includes);
+      
+      gating = includes;
       return includes;
     }
 
@@ -697,6 +703,7 @@ public abstract class Gate {
       gateResolution = res;
       binStep = range / gateResolution;
       prepAllRects();
+      setChanged();
     }
 
     public void addVertex(Double fX, Double fY) {
@@ -704,6 +711,7 @@ public abstract class Gate {
       verticesY.add(fY);
       parentGating = null;
       transformedPath = null;
+      setChanged();
     }
 
     public void transform(AffineTransform at) {
@@ -711,6 +719,7 @@ public abstract class Gate {
       resetVertices();
       parentGating = null;
       transformedPath = null;
+      setChanged();
     }
 
 

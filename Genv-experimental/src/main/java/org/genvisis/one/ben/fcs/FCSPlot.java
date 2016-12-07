@@ -749,7 +749,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
   
     public void loadWorkspaceFile(String gateFile) {
       try {
-        this.workbench = GateFileReader.loadWorkspace(gateFile);
+        this.workbench = GateFileReader.loadWorkspace(gateFile, dataLoader);
         saveProps();
       } catch (ParserConfigurationException e) {
         log.reportException(e);
@@ -861,6 +861,9 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 			return;
 		}
 		resetForNewData(newDataLoader);
+		if (workbench != null) {
+			GateFileReader.updateWorkbench(workbench, newDataLoader);
+		}
 		parent.setTitle(ext.rootOf(newDataLoader.getLoadedFile()) + "  --  " + TITLE_STR);
 		refreshGating();
 		updateGUI();

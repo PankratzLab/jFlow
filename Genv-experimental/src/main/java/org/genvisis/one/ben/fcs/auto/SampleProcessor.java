@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
@@ -18,30 +19,12 @@ import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
 import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.GateFileUtils;
 import org.genvisis.one.ben.fcs.gating.Workbench.SampleNode;
-import org.genvisis.one.ben.fcs.sub.EMInitializer;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 @FunctionalInterface
 interface SampleProcessor {
   public void processSample(SampleNode sn, Logger log) throws IOException;
-  
-  default void updateGateParams(FCSDataLoader dataLoader, ArrayList<Gate> gates) {
-  	for (Gate g : gates) {
-  		String p = g.getXDimension().getParam();
-  		String d = dataLoader.getInternalParamName(p);
-  		if (!p.equals(d)) {
-  			g.getXDimension().setParam(d);
-  		}
-  		p = g.getYDimension().getParam();
-  		d = dataLoader.getInternalParamName(p);
-  		if (!p.equals(d)) {
-  			g.getYDimension().setParam(d);
-  		}
-  		updateGateParams(dataLoader, g.getChildGates());
-  	}
-  }
-  
 }
 
 abstract class AbstractSampleProcessor implements SampleProcessor {
@@ -76,23 +59,59 @@ abstract class AbstractSampleProcessor implements SampleProcessor {
     }
     (new Logger()).reportTimeElapsed("Loaded FCS ... ", t1);
     d.setTransformMap(sn.savedTransforms);
-    updateGateParams(d, sn.gating.gateRoots);
+    GateFileUtils.updateGateParams(d, sn.gating.gateRoots);
     sn.gating.paramGateMap = GateFileUtils.parameterizeGates(sn.gating.gateMap);
   }
   
 }
 
+class PercentageWriter extends AbstractSampleProcessor {
+	final Map<String, Map<String, Double>> pctMap;
+	
+	public PercentageWriter(Map<String, Map<String, Double>> pctMap) {
+		this.pctMap = pctMap;
+	}
+	
+	@Override
+	public void processSample(SampleNode sn, Logger log) throws IOException {
+    if (!Files.exists(sn.fcsFile)) { 
+    	return;
+    }
+    loadPopsAndGates(sn);
+    loadData(sn);
+		
+    Map<String, Double> pcts = pctMap.get(sn.fcsFile);
+    if (pcts == null) {
+    	pcts = new HashMap<>();
+    	pctMap.put(sn.fcsFile, pcts);
+    }
+    HashSet<Gate> allGates = new HashSet<>(sn.gating.gateMap.values());
+    for (Gate g : allGates) {
+    	boolean[] gating = g.gate(d);
+    	boolean[] parent = g.getParentGating(d);
+    	int g1 = Array.booleanArraySum(gating);
+    	int g2 = Array.booleanArraySum(parent);
+    	pcts.put(g.getFullNameAndGatingPath(), ((double) g1) / (double) g2);
+    }
+
+    d.emptyAndReset();
+    d = null;
+	}
+	
+}
 
 class LeafDataSampler extends AbstractSampleProcessor {
 	private static final String FILE_EXT = ".data";
 	private int sampleSize = 1000;
 	private Map<String, PrintWriter> writers;
+	private Map<String, AtomicInteger> writeCounts;
 	private List<String> params;
 	private String fileRoot;
 	
-	public LeafDataSampler(int sampleSize, String outputFileRoot, Map<String, PrintWriter> gateWriters, List<String> paramsInOrder) { 
+	public LeafDataSampler(int sampleSize, String outputFileRoot, Map<String, PrintWriter> gateWriters, Map<String, AtomicInteger> writeCounts, List<String> paramsInOrder) { 
 		this.sampleSize = sampleSize;
 		this.writers = gateWriters;
+		this.writeCounts = writeCounts;
 		this.params = paramsInOrder;
 		this.fileRoot = outputFileRoot;
 	}
@@ -123,19 +142,21 @@ class LeafDataSampler extends AbstractSampleProcessor {
     }
     for (Gate g : map) {
     	PrintWriter writer;
+    	AtomicInteger counter;
     	synchronized(writers) {
 	    	writer = writers.get(g.getName());
 	    	if (writer == null) {
-	    		log.reportError("No output writer found for gate " + g.getName());
-	    		String filename = fileRoot + ext.replaceWithLinuxSafeCharacters(g.getID() + "_" + g.getXDimension().getParam() + "_" + g.getYDimension().getParam() + FILE_EXT, false);
+	    		String filename = fileRoot + ext.replaceWithLinuxSafeCharacters(g.getName() + "_" + g.getXDimension().getParam() + "_" + g.getYDimension().getParam() + FILE_EXT, false);
 	    		writer = Files.getAppropriateWriter(filename);
 	    		setupNewGateWriter(writer);
 	    		writers.put(g.getName(), writer);
+	    		writeCounts.put(g.getName(), counter = new AtomicInteger());
+	    	} else {
+	    		counter = writeCounts.get(g.getName());
 	    	}
     	}
       boolean[] incl = g.gate(d);
       int[] indices = Array.booleanArrayToIndices(incl);
-      log.report("Extracting " + sampleSize + " data samples from " + Array.booleanArraySum(incl) + " possible data points in file " + sn.fcsFile + " for gate " + g.getName());
       Random rand = new Random();
       for (int i = 0; i < sampleSize; i++) {
         int ind = indices[rand.nextInt(indices.length)];
@@ -147,6 +168,7 @@ class LeafDataSampler extends AbstractSampleProcessor {
 	        }
 	        writer.println();
         }
+        counter.incrementAndGet();
       }
       synchronized(writer) {
       	writer.flush();
