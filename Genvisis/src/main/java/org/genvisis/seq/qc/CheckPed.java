@@ -134,9 +134,10 @@ public class CheckPed {
 				Table<String, String, Relation> t = HashBasedTable.create();
 				for (Person p : families.get(fid)) {
 					Set<String> visited = new HashSet<String>();
+					Map<String, Double> mzIds = new HashMap<String, Double>();
 					noteVisit(visited, p, p);
 					// base, relative, relatedness, distance, searchParents, visited IID pairs, table
-					populateRelations(p, p, 1.0, 0, true, visited, t, peopleByFidIid, minRel);
+					populateRelations(p, p, 1.0, 0, true, visited, t, peopleByFidIid, mzIds, minRel);
 				}
 				familyTables.put(fid, t);
 			}
@@ -325,27 +326,29 @@ public class CheckPed {
 	private static void populateRelations(Person base, Person relation, double relatedness,
 																				int distance, boolean visitParents, Set<String> history,
 																				Table<String, String, Relation> t,
-																				Map<String, Person> peopleByFidIid, Double minRel) {
-		// Account for MZ twins
-		if (!base.individualId().equals(relation.individualId()) && base.mzEquals(relation)) {
-			relatedness = 1.0;
+																				Map<String, Person> peopleByFidIid, Map<String, Double> mzRelated, Double minRel) {
+		// Account for MZ twins - save or restore the relatedness value for the relation's MZ grouping
+		String mzId = relation.mzId();
+		if (mzId != null && !mzId.isEmpty()) {
+			if (mzRelated.containsKey(mzId)) {
+				relatedness = mzRelated.get(mzId);
+			} else {
+				mzRelated.put(mzId, relatedness);
+			}
 		}
 
-		// Updated relatedness for this relationship
-		Relation r = t.get(base.individualId(), relation.individualId());
-		if (r == null) {
-			r = new Relation(base, relation, distance);
-			t.put(base.individualId(), relation.individualId(), r);
+		// Updated relatedness for this relationship if it's above the threshold
+		if (Double.compare(relatedness, minRel) > 0) {
+			Relation r = t.get(base.individualId(), relation.individualId());
+			if (r == null) {
+				r = new Relation(base, relation, distance);
+				t.put(base.individualId(), relation.individualId(), r);
+			}
+			r.addRelation(relatedness);
 		}
-		r.addRelation(relatedness);
 
 		// Everyone visited from this individual will gain half as much relatedness
 		relatedness *= 0.5;
-
-		// Cutoff point for minRel
-		if (Double.compare(relatedness, minRel) < 0) {
-			relatedness = 0;
-		}
 
 		// recursive step - parents
 		if (visitParents) {
@@ -353,17 +356,17 @@ public class CheckPed {
 			// e.g. if this is my nephew through my aunt, I'm not related to the father
 			Person father = peopleByFidIid.get(relation.fatherId());
 			populateRelationsRecursive(	base, relation, father, relatedness, distance - 1, true, history,
-																	t, peopleByFidIid, minRel);
+																	t, peopleByFidIid, mzRelated, minRel);
 			Person mother = peopleByFidIid.get(relation.motherId());
 			populateRelationsRecursive(	base, relation, mother, relatedness, distance - 1, true, history,
-																	t, peopleByFidIid, minRel);
+																	t, peopleByFidIid, mzRelated, minRel);
 		}
 
 		// recursive step - children
 		for (Person child : relation.children()) {
 			// If we're related to this person we're half as related to their children
 			populateRelationsRecursive(	base, relation, child, relatedness, distance + 1, false, history,
-																	t, peopleByFidIid, minRel);
+																	t, peopleByFidIid, mzRelated, minRel);
 		}
 	}
 
@@ -376,11 +379,12 @@ public class CheckPed {
 																									boolean visitParents, Set<String> history,
 																									Table<String, String, Relation> t,
 																									Map<String, Person> peopleByFidIid,
-																									Double minRel) {
+																									Map<String, Double> mzRelated,
+	                                               Double minRel) {
 		if (next != null && !visited(history, relation, next)) {
 			noteVisit(history, relation, next);
 			populateRelations(base, next, relatedness, distance, visitParents, history, t, peopleByFidIid,
-												minRel);
+			                  mzRelated, minRel);
 		}
 	}
 
@@ -709,13 +713,6 @@ public class CheckPed {
 				return "0";
 			}
 			return "1";
-		}
-
-		/**
-		 * @return true iff this and the targeted person both have the same, non-empty MZ-sibling ID
-		 */
-		public boolean mzEquals(Person o) {
-			return !mzId.isEmpty() && mzId.equals(o.mzId());
 		}
 
 		public void addExtraFamilial(String fid, String iid, Relatedness r) {
