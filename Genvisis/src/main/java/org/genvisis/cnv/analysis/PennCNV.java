@@ -19,7 +19,9 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
 
+import org.ejml.alg.block.GeneratorBlockInnerMultiplication;
 import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.Resources;
@@ -703,6 +705,7 @@ public class PennCNV {
 			// FilterCalls.stdFilters(dir, ext.rootOf(filename)+".cnv", MAKE_UCSC_TRACKS);
 
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".fam"));
+			Pedigree ped = proj.loadPedigree();
 			fams = HashVec.getNumericKeys(pedinfo);
 			for (String fam : fams) {
 				inds = pedinfo.get(fam);
@@ -714,7 +717,10 @@ public class PennCNV {
 					} else {
 						sex = 0;
 					}
-					writer.println(fam + "\t" + ind + "\t0\t0\t" + Math.max(0, sex) + "\t-9");
+					int pedIndex = ped.getIndIndex(fam, ind);
+					String fa = ped.getFA(pedIndex);
+					String mo = ped.getMO(pedIndex);
+					writer.println(fam + "\t" + ind + "\t" + fa + "\t" + mo + "\t" + Math.max(0, sex) + "\t-9");
 				}
 			}
 			writer.close();
