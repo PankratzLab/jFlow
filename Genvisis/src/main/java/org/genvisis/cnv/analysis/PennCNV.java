@@ -102,7 +102,7 @@ public class PennCNV {
 		files = new File(dataDir).list(new FilenameFilter() {
 			@Override
 			public boolean accept(File file, String filename) {
-				return file.length() > 1000 && !filename.equals("chrX");
+				return file.length() > 1000 && !filename.equals("chrX") && !filename.equals("sexSpecific");
 			}
 		});
 
