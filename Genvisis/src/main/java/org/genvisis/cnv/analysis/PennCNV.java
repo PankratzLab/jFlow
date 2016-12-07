@@ -603,6 +603,7 @@ public class PennCNV {
 	public static void parseResults(Project proj, String filename, boolean denovoOnly) {
 		BufferedReader reader;
 		PrintWriter writer;
+		PrintWriter denovoWriter;
 		String[] line;
 		String temp, trav;
 		Vector<String> warnings;
@@ -618,6 +619,7 @@ public class PennCNV {
 		long time;
 		int sex;
 		Logger log;
+		boolean wroteDenovoHeader = false;
 
 		log = proj.getLog();
 		log.report("Parsing PennCNV rawcnvs...");
@@ -634,6 +636,7 @@ public class PennCNV {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".cnv"));
+			denovoWriter = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_denovo.cnv"));
 			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 			hash = new Hashtable<String, String>();
 			while (reader.ready()) {
@@ -671,16 +674,31 @@ public class PennCNV {
 					} else {
 						score = ext.formDeci(Double.parseDouble(line[7].substring(5)), 4, true);
 					}
-					if (!denovoOnly || ext.indexFactors(new String[][] {{"statepath=33"}}, line, false, false,
-					                                    false, false)[0] > 0) {
-						writer.println(famIndPair + "\t" + position[0] + "\t" + position[1] + "\t" + position[2]
-						               + "\t" + line[3].substring(line[3].indexOf("=") + 1) + "\t" + score
-						               + "\t" + line[1].substring(7));
+					boolean isDenovo = ext.indexFactors(new String[][] {{"statepath=33"}}, line, false, false,
+					                                    false, false)[0] > 0;
+
+					String copynum = line[3].substring(line[3].indexOf("=") + 1);
+					String sites = line[1].substring(7);
+					StringBuilder lineOut = new StringBuilder(famIndPair).append("\t").append(position[0])
+					                                                     .append("\t").append(position[1])
+					                                                     .append("\t").append(position[2])
+					                                                     .append("\t").append(copynum)
+					                                                     .append("\t").append(score)
+					                                                     .append("\t").append(sites);
+					if (!denovoOnly) {
+						writer.println(lineOut.toString());
+					}
+					if (isDenovo) {
+						if (!wroteDenovoHeader) {
+							denovoWriter.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+						}
+						denovoWriter.println(lineOut.toString());
 					}
 				}
 			}
 			reader.close();
 			writer.close();
+			denovoWriter.close();
 
 			// FilterCalls.stdFilters(dir, ext.rootOf(filename)+".cnv", MAKE_UCSC_TRACKS);
 
