@@ -37,7 +37,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 	private String displayMode = "Full";
 	private int probes = 0; // Default to 0 probes
 	private int minSize = 0; // Default to no minimum size
-	private int qualityScore = 0; // Default to a score of 0
+	private int qualityScore = Integer.MIN_VALUE; // Default to accept all samples until adjusted
 	private int rectangleHeight = 10; // Default rectangle height
 	CompPlot compPlot;
 
