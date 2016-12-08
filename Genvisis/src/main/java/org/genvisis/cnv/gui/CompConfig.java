@@ -24,6 +24,7 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.genvisis.cnv.analysis.PennCNV;
 import org.genvisis.cnv.plots.CompPlot;
 import org.genvisis.filesys.CNVariant;
 
@@ -37,7 +38,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 	private String displayMode = "Full";
 	private int probes = 0; // Default to 0 probes
 	private int minSize = 0; // Default to no minimum size
-	private int qualityScore = Integer.MIN_VALUE; // Default to accept all samples until adjusted
+	private int qualityScore = PennCNV.MISSING_SCORE; // Default to accept all samples until adjusted
 	private int rectangleHeight = 10; // Default rectangle height
 	CompPlot compPlot;
 
@@ -127,7 +128,7 @@ public class CompConfig extends JPanel implements ChangeListener, ActionListener
 
 		add(Box.createGlue());
 
-		qualityScoreSlider = new JSlider(0, 100, qualityScore);
+		qualityScoreSlider = new JSlider(-1, 100, qualityScore);
 		qualityScoreSlider.setMajorTickSpacing(20);
 		qualityScoreSlider.setMinorTickSpacing(10);
 		qualityScoreSlider.setPaintTicks(true);

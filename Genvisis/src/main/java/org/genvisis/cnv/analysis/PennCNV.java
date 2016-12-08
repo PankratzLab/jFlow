@@ -46,6 +46,7 @@ public class PennCNV {
 	                                       "waviness factor values", "Small-sized CNV calls",
 	                                       "NoCall rate"};
 	public static final String QC_SUMMARY_FILE = "Sample_QC.xln";
+	public static final int MISSING_SCORE = -1;
 
 	public static void batch(Project proj, int numChunks, Vector<String> execList, String pfbFile,
 	                         String gcmodelFile, String hmmFile, String scriptSubDir,
@@ -665,7 +666,7 @@ public class PennCNV {
 
 					if (line.length < 8 || !line[7].startsWith("conf=")
 					    || line[7].toUpperCase().contains("NAN")) {
-						score = "-1";
+						score = Integer.toString(MISSING_SCORE);
 						if (!warnings.contains(trav) && warnings.size() < 10) {
 							log.reportError("Warning - no conf estimates for " + trav);
 							warnings.add(trav);
