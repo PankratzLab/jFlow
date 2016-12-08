@@ -635,7 +635,7 @@ public class PennCNV {
 		sampleData = proj.getSampleData(2, false);
 		pedinfo = new Hashtable<String, Vector<String>>();
 		Pedigree ped = proj.loadPedigree();
-		Map<String, PrintWriter> denovoValWriters = new HashMap<String, PrintWriter>();
+		PrintWriter denoValWriter = null;
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".cnv"));
@@ -702,7 +702,7 @@ public class PennCNV {
 							denovoWriter.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 						}
 						denovoWriter.println(lineOut.toString());
-						writeValidation(ped, ids, copynum, line, filename, denovoValWriters, log);
+						writeValidation(ped, ids, copynum, line, filename, denoValWriter, log);
 					}
 				}
 			}
@@ -711,10 +711,8 @@ public class PennCNV {
 			if (denovoWriter != null) {
 				denovoWriter.close();
 			}
-			for (PrintWriter w : denovoValWriters.values()) {
-				if (w != null) {
-					w.close();
-				}
+			if (denoValWriter != null) {
+				denoValWriter.close();
 			}
 
 			// FilterCalls.stdFilters(dir, ext.rootOf(filename)+".cnv", MAKE_UCSC_TRACKS);
@@ -752,13 +750,13 @@ public class PennCNV {
 	}
 
 	private static void writeValidation(Pedigree ped, String[] ids, String copynum, String[] line,
-	                                    String filename, Map<String, PrintWriter> denovoValWriters, Logger log) {
+	                                    String filename, PrintWriter denoValWriter, Logger log) {
 		int pedIndex = ped.getIndIndex(ids[0], ids[1]);
 		if (pedIndex < 0) {
 			return;
 		}
-		int faIndex = Integer.parseInt(ped.getFA(pedIndex));
-		int moIndex = Integer.parseInt(ped.getMO(pedIndex));
+		int faIndex = ped.getIndexOfFaInIDs(pedIndex);
+		int moIndex = ped.getIndexOfMoInIDs(pedIndex);
 		if (faIndex < 0 || moIndex < 0) {
 			return;
 		}
@@ -767,14 +765,12 @@ public class PennCNV {
 		String faDna = ped.getiDNA(faIndex);
 		String moDna = ped.getiDNA(moIndex);
 
-		PrintWriter writer = denovoValWriters.get(copynum);
-		if (writer == null) {
+		if (denoValWriter == null) {
 			try {
 				String outfile = ext.parseDirectoryOfFile(filename)
-            + "denovoValidation_" + copynum + ".txt";
-				writer = new PrintWriter(new FileWriter(outfile));
+            + "denovoValidation.txt";
+				denoValWriter = new PrintWriter(new FileWriter(outfile));
 				log.report("Writing validation commands to: " + outfile);
-				denovoValWriters.put(copynum, writer);
 			} catch (IOException e) {
 				log.reportException(e);
 				return;
@@ -786,10 +782,7 @@ public class PennCNV {
 			return;
 		}
 
-		String childSource = getSource(line);
-		if (childSource == null) {
-			childSource = line[4];
-		}
+		String childSource = "`gunzup -c " + line[4] + ".gz`";
 
 		String faSource = childSource.replace(cDna, faDna);
 		String moSource = childSource.replace(cDna, moDna);
@@ -809,18 +802,7 @@ public class PennCNV {
 		                                                                                                             .append(bounds[1])
 		                                                                                                             .append(" -out tempfile");
 
-		writer.println(sb.toString());
-	}
-
-	private static String getSource(String[] line) {
-		for (String s : line) {
-			int startIdx = s.indexOf("`");
-			int endIdx = s.lastIndexOf("`");
-			if (startIdx > 0 && endIdx > 0 && startIdx != endIdx) {
-				return s;
-			}
-		}
-		return null;
+		denoValWriter.println(sb.toString());
 	}
 
 	private static String[] getBounds(String[] line) {
