@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -137,13 +138,11 @@ public class SkatMtDNA {
 	}
 
 	private static String filterVpop(String inputVCF, String outDir, VcfPopulation vpop, String casePop,
-			String controlPop, Logger log) {
+			String[] controlPop, Logger log) {
 		StringBuilder filter = new StringBuilder();
 		String root = outDir + VCFOps.getAppropriateRoot(inputVCF, true) + "vp" + ext.rootOf(vpop.getFileName()) + "_"
-				+ casePop + "_" + controlPop;
+				+ casePop + "_" + Array.toStr(controlPop, "_");
 		String out = root;
-
-		// if (!Files.exists(out)) {
 
 		if (!Files.exists(out + ".recode.vcf")) {
 			String excludes = root + ".excludedSamps.txt";
@@ -151,12 +150,11 @@ public class SkatMtDNA {
 			String[] samps = VCFOps.getSamplesInFile(inputVCF);
 			for (String sample : samps) {
 				String[] pop = vpop.getPopulationForInd(sample, RETRIEVE_TYPE.SUPER);
-				if (pop.length == 0 || (!pop[0].equals(casePop) && !pop[0].equals(controlPop))) {
+				if (pop.length == 0 || (!pop[0].equals(casePop) && ext.indexOfStr(pop[0], controlPop) < 0)) {
 					excluded.add(sample);
 				}
 			}
 
-			// }
 			Files.writeIterable(excluded, excludes);
 			filter.append("vcftools --vcf " + inputVCF + " --remove " + excludes + " --recode --recode-INFO-all --out "
 					+ out);
@@ -276,15 +274,14 @@ public class SkatMtDNA {
 				"All_SKAT_Data$results$P.value.bonf =p.adjust(All_SKAT_Data$results$P.value, method = \"bonferroni\", n = length(All_SKAT_Data$results$P.value))\n");
 		skatBuilder.append("write.table(x = All_SKAT_Data$results, file = \"" + root
 				+ "covar.pvalues\", row.names = FALSE, col.names = TRUE, quote = FALSE, append = FALSE,sep=\"\\t\")\n");
-		
-		skatBuilder.append(
-				"Null_Model <- SKAT_Null_Model(formula = fam$Phenotype ~ 1, out_type=\"D\")\n");
+
+		skatBuilder.append("Null_Model <- SKAT_Null_Model(formula = fam$Phenotype ~ 1, out_type=\"D\")\n");
 		skatBuilder.append("All_SKAT_Data  <- SKATBinary.SSD.All(SSD.INFO = SSD.info, obj = Null_Model) \n");
 		skatBuilder.append(
 				"All_SKAT_Data$results$P.value.bonf =p.adjust(All_SKAT_Data$results$P.value, method = \"bonferroni\", n = length(All_SKAT_Data$results$P.value))\n");
 		skatBuilder.append("write.table(x = All_SKAT_Data$results, file = \"" + root
 				+ "No.covar.pvalues\", row.names = FALSE, col.names = TRUE, quote = FALSE, append = FALSE,sep=\"\\t\")");
-		
+
 		String script = root + ".rscript";
 		Files.write(skatBuilder.toString(), script);
 		CmdLine.run("Rscript " + script, ext.parseDirectoryOfFile(root));
@@ -332,7 +329,7 @@ public class SkatMtDNA {
 		String inputVCF = "/Volumes/Beta/data/mtDNA-dev/vcf/analysis/mtvar.final.vcf";
 		String vpopFile = "/Volumes/Beta/data/mtDNA-dev/vcf/analysis/skat.vpop";
 		String cases = "CUSHING_FREQ_V2";
-		String controls = "ARIC";
+		String[] controls = new String[] { "ARIC", "CUSHINGS" };
 		String haps = "/Volumes/Beta/data/mtDNA-dev/vcf/analysis/ARIC_CUSHING_EPP_OSTEO_FP_MITO.chrM.rcrs.poly.disease.conv.hg19_multianno.eff.gatk.sed1000g.haplotypes";
 		Logger log = new Logger(outDir + "log.log");
 		String parsedHaps = parseHaplogroupFile(haps, outDir, log);
@@ -347,7 +344,8 @@ public class SkatMtDNA {
 			for (VARIANT_SETS vSets : VARIANT_SETS.values()) {
 				for (double d : mafs) {
 					String mafVcf = filterMaf(hqVcf, d, outDir, log);
-					runType(pseqDir, vType, vSets, outDir, cases, controls, log, vpop, mafVcf, parsedHaps);
+					// runType(pseqDir, vType, vSets, outDir, cases, controls,
+					// log, vpop, mafVcf, parsedHaps);
 				}
 			}
 		}
