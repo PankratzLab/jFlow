@@ -634,6 +634,8 @@ public class PennCNV {
 		warnings = new Vector<String>();
 		sampleData = proj.getSampleData(2, false);
 		pedinfo = new Hashtable<String, Vector<String>>();
+		Pedigree ped = proj.loadPedigree();
+		Map<String, PrintWriter> denovoValWriters = new HashMap<String, PrintWriter>();
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".cnv"));
@@ -674,7 +676,7 @@ public class PennCNV {
 					} else {
 						score = ext.formDeci(Double.parseDouble(line[7].substring(5)), 4, true);
 					}
-					boolean isDenovo =  false;
+					boolean isDenovo = false;
 					for (String s : line) {
 						if (s.startsWith("statepath=33") || s.startsWith("triostate=33")) {
 							isDenovo = true;
@@ -695,10 +697,12 @@ public class PennCNV {
 					}
 					if (isDenovo) {
 						if (denovoWriter == null) {
-							denovoWriter = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_denovo.cnv"));
+							denovoWriter = new PrintWriter(new FileWriter(ext.rootOf(filename, false)
+							                                              + "_denovo.cnv"));
 							denovoWriter.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 						}
 						denovoWriter.println(lineOut.toString());
+						writeValidation(ped, ids, copynum, line, filename, denovoValWriters, log);
 					}
 				}
 			}
@@ -707,11 +711,15 @@ public class PennCNV {
 			if (denovoWriter != null) {
 				denovoWriter.close();
 			}
+			for (PrintWriter w : denovoValWriters.values()) {
+				if (w != null) {
+					w.close();
+				}
+			}
 
 			// FilterCalls.stdFilters(dir, ext.rootOf(filename)+".cnv", MAKE_UCSC_TRACKS);
 
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".fam"));
-			Pedigree ped = proj.loadPedigree();
 			fams = HashVec.getNumericKeys(pedinfo);
 			for (String fam : fams) {
 				inds = pedinfo.get(fam);
@@ -726,7 +734,8 @@ public class PennCNV {
 					int pedIndex = ped.getIndIndex(fam, ind);
 					String fa = pedIndex >= 0 ? ped.getFA(pedIndex) : "0";
 					String mo = pedIndex >= 0 ? ped.getMO(pedIndex) : "0";
-					writer.println(fam + "\t" + ind + "\t" + fa + "\t" + mo + "\t" + Math.max(0, sex) + "\t-9");
+					writer.println(fam + "\t" + ind + "\t" + fa + "\t" + mo + "\t" + Math.max(0, sex)
+					               + "\t-9");
 				}
 			}
 			writer.close();
@@ -740,6 +749,90 @@ public class PennCNV {
 		}
 
 		log.report("...finished in " + ext.getTimeElapsed(time));
+	}
+
+	private static void writeValidation(Pedigree ped, String[] ids, String copynum, String[] line,
+	                                    String filename, Map<String, PrintWriter> denovoValWriters, Logger log) {
+		int pedIndex = ped.getIndIndex(ids[0], ids[1]);
+		if (pedIndex < 0) {
+			return;
+		}
+		int faIndex = Integer.parseInt(ped.getFA(pedIndex));
+		int moIndex = Integer.parseInt(ped.getMO(pedIndex));
+		if (faIndex < 0 || moIndex < 0) {
+			return;
+		}
+
+		String cDna = ped.getiDNA(pedIndex);
+		String faDna = ped.getiDNA(faIndex);
+		String moDna = ped.getiDNA(moIndex);
+
+		PrintWriter writer = denovoValWriters.get(copynum);
+		if (writer == null) {
+			try {
+				String outfile = ext.parseDirectoryOfFile(filename)
+            + "denovoValidation_" + copynum + ".txt";
+				writer = new PrintWriter(new FileWriter(outfile));
+				log.report("Writing validation commands to: " + outfile);
+				denovoValWriters.put(copynum, writer);
+			} catch (IOException e) {
+				log.reportException(e);
+				return;
+			}
+		}
+
+		String[] bounds = getBounds(line);
+		if (bounds[0] == null || bounds[1] == null) {
+			return;
+		}
+
+		String childSource = getSource(line);
+		if (childSource == null) {
+			childSource = line[4];
+		}
+
+		String faSource = childSource.replace(cDna, faDna);
+		String moSource = childSource.replace(cDna, moDna);
+
+		StringBuilder sb =
+		                new StringBuilder("/home/pankrat2/shared/bin/infer_snp_allele.pl -pfb $PFBFILE -hmm $HMMFILE").append(" -denovocn ")
+		                                                                                                             .append(copynum)
+		                                                                                                             .append(" ")
+		                                                                                                             .append(faSource)
+		                                                                                                             .append(" ")
+		                                                                                                             .append(moSource)
+		                                                                                                             .append(" ")
+		                                                                                                             .append(childSource)
+		                                                                                                             .append(" -start ")
+		                                                                                                             .append(bounds[0])
+		                                                                                                             .append(" -end ")
+		                                                                                                             .append(bounds[1])
+		                                                                                                             .append(" -out tempfile");
+
+		writer.println(sb.toString());
+	}
+
+	private static String getSource(String[] line) {
+		for (String s : line) {
+			int startIdx = s.indexOf("`");
+			int endIdx = s.lastIndexOf("`");
+			if (startIdx > 0 && endIdx > 0 && startIdx != endIdx) {
+				return s;
+			}
+		}
+		return null;
+	}
+
+	private static String[] getBounds(String[] line) {
+		String[] bounds = new String[2];
+		for (String s : line) {
+			if (s.startsWith("startsnp")) {
+				bounds[0] = s.split("=")[1];
+			} else if (s.startsWith("endsnp")) {
+				bounds[1] = s.split("=")[1];
+			}
+		}
+		return bounds;
 	}
 
 	// Available in cnv.Launch
