@@ -723,8 +723,8 @@ public class PennCNV {
 						sex = 0;
 					}
 					int pedIndex = ped.getIndIndex(fam, ind);
-					String fa = ped.getFA(pedIndex);
-					String mo = ped.getMO(pedIndex);
+					String fa = pedIndex >= 0 ? ped.getFA(pedIndex) : "0";
+					String mo = pedIndex >= 0 ? ped.getMO(pedIndex) : "0";
 					writer.println(fam + "\t" + ind + "\t" + fa + "\t" + mo + "\t" + Math.max(0, sex) + "\t-9");
 				}
 			}
