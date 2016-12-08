@@ -115,7 +115,7 @@ public abstract class Gate {
     if (parentGating == null) {
     	System.err.println("Error - parent gating is null!  Gate " + getName() + " // parent: " + (parentGate == null ? "null" : parentGate.getName()));
     }
-    return parentGating;
+    return Arrays.copyOf(parentGating, parentGating.length);
   }
 
   public String getID() {
@@ -285,19 +285,23 @@ public abstract class Gate {
         return null;
       }
       double[] paramData = dataLoader.getData(rgd.paramName, true);
+      float min = Math.min(rgd.getMin(), rgd.getMax());
+      float max = Math.max(rgd.getMin(), rgd.getMax());
       for (int i = 0; i < dataLoader.getCount(); i++) {
         // inclusive min, exclusive max - see gating-ml spec
-        paramIncludes[0][i] = (!Numbers.isFinite(rgd.getMin()) || rgd.getMin() <= paramData[i]) && (!Numbers.isFinite(rgd.getMax()) || rgd.getMax() > paramData[i]);
+        paramIncludes[0][i] = (!Numbers.isFinite(min) || min <= paramData[i]) && (!Numbers.isFinite(max) || max > paramData[i]);
       }
        
       if ((rgd = (RectangleGateDimension) getYDimension()) != null) {
         if (!dataLoader.containsParam(rgd.paramName)) {
           return null;
         }
+        min = Math.min(rgd.getMin(), rgd.getMax());
+        max = Math.max(rgd.getMin(), rgd.getMax());
         paramData = dataLoader.getData(rgd.paramName, true);
         for (int i = 0; i < dataLoader.getCount(); i++) {
           // inclusive min, exclusive max - see gating-ml spec
-          paramIncludes[1][i] = (!Numbers.isFinite(rgd.getMin()) || rgd.getMin() <= paramData[i]) && (!Numbers.isFinite(rgd.getMax()) || rgd.getMax() > paramData[i]);
+          paramIncludes[1][i] = (!Numbers.isFinite(min) || min <= paramData[i]) && (!Numbers.isFinite(max) || max > paramData[i]);
         }
         
       }

@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
@@ -22,6 +21,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 
 import javax.swing.AbstractAction;
@@ -63,7 +63,7 @@ import org.genvisis.one.ben.fcs.sub.DataExportGUI;
 import org.genvisis.one.ben.fcs.sub.EMModel;
 import org.xml.sax.SAXException;
 
-public class FCSPlot extends JPanel implements WindowListener, ActionListener, PropertyChangeListener {
+public class FCSPlot extends JPanel implements WindowListener, PropertyChangeListener {
 
 	public static final String HISTOGRAM_COL = "Histogram";
 
@@ -83,10 +83,10 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	HashSet<String> validExts;
 	Logger log;
 
-	FCSDataLoader dataLoader;
-	private Workbench workbench = new Workbench();
+	transient FCSDataLoader dataLoader;
+	private transient Workbench workbench = new Workbench();
 	private String currentSampleID = null;
-	private Gate parentGate = null;
+	private transient Gate parentGate = null;
 
 	private volatile String xDataName;
 	private volatile String yDataName;
@@ -100,11 +100,11 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	private volatile boolean leafgating = false;
 	private volatile boolean drawPolyGatesBinned = false;
 
-	private JFrame parent;
+	private JFrame parentFrame;
 
 	private static final String TITLE_STR = "jFlow";
 
-	HashSet<String> propsSetting = new HashSet<String>();
+	HashSet<String> propsSetting = new HashSet<>();
 
 	public static final String PROPERTIES_FILE = "jFlow.properties";
 
@@ -121,9 +121,8 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 					props.setProperty(PROPKEY_GATEFILE, getGatingStrategy().getFile() == null ? "" : getGatingStrategy().getFile());
 				}
 				ArrayList<String> files = fcsControls.getAddedFiles();
-				if (files.size() > 0) {
-					props.setProperty(PROPKEY_FCSFILES,
-														files.size() == 0 ? "" : Array.toStr(Array.toStringArray(files), ";"));
+				if (files.isEmpty()) {
+					props.setProperty(PROPKEY_FCSFILES, files.isEmpty() ? "" : Array.toStr(Array.toStringArray(files), ";"));
 				}
 				File f = new File(PROPERTIES_FILE);
 				OutputStream out = new FileOutputStream(f);
@@ -167,7 +166,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	private FCSPlot(String[] fileExts) {
 		log = new Logger();
 
-		validExts = new HashSet<String>();
+		validExts = new HashSet<>();
 
 		if (fileExts != null) {
 			for (String ext : fileExts) {
@@ -285,6 +284,25 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		fcsPanel.setActionMap(actionMap);
 	}
 
+	private void openFile(ActionEvent e) {
+		fcsControls.dirSelectListener.actionPerformed(e);
+	}
+	
+	private void saveImage() {
+		JFileChooser fileChooser = new JFileChooser(".");
+		int fileOpenActionSelected = fileChooser.showSaveDialog(FCSPlot.this);
+		if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
+			File fileToOpen = fileChooser.getSelectedFile();
+			fcsPanel.screenCapture(fileToOpen.toString() + ".png");
+		}
+	}
+	
+	private void doClose() {
+		setVisible(false);
+		Component parent = getParentComponent();
+		parent.dispatchEvent(new WindowEvent((JFrame) parent, WindowEvent.WINDOW_CLOSING));
+	}
+	
 	private JMenuBar menuBar() {
 		JMenuBar menuBar;
 		JMenu menu;
@@ -295,91 +313,27 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		menu.setMnemonic(KeyEvent.VK_F);
 		menuBar.add(menu);
 		menuItemOpen = new JMenuItem("Open File", KeyEvent.VK_O);
-		menuItemOpen.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				fcsControls.dirSelectListener.actionPerformed(e);
-			}
-		});
+		menuItemOpen.addActionListener(this::openFile);
 		menu.add(menuItemOpen);
 		menuItemSave = new JMenuItem("Save Current Image", KeyEvent.VK_S);
-		menuItemSave.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser(".");
-				int fileOpenActionSelected = fileChooser.showSaveDialog(FCSPlot.this);
-				if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
-					File fileToOpen = fileChooser.getSelectedFile();
-					fcsPanel.screenCapture(fileToOpen.toString() + ".png");
-				}
-			}
-		});
+		menuItemSave.addActionListener(e -> saveImage());
 		menu.add(menuItemSave);
 		
 		menuItemDump = new JMenuItem("Dump Data", KeyEvent.VK_D);
-		menuItemDump.addActionListener(new ActionListener() {
-		  @Override
-		  public void actionPerformed(ActionEvent e) {
-		    dumpData();
-		  }
-		});
+		menuItemDump.addActionListener(e -> dumpData());
 		menu.add(menuItemDump);
 
 		menuItemExport = new JMenuItem("Export Data", KeyEvent.VK_E);
-		menuItemExport.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setupDataExport();
-			}
-		});
+		menuItemExport.addActionListener(e -> setupDataExport());
 		menu.add(menuItemExport);
 
 		menuItemEM = new JMenuItem("Run EM", KeyEvent.VK_M);
-		menuItemEM.addActionListener(new ActionListener() {
-		  @Override
-		  public void actionPerformed(ActionEvent e) {
-		    setupEM();
-		  }
-		});
+		menuItemEM.addActionListener(e -> setupEM());
 		menu.add(menuItemEM);
 
 		menuItemExit = new JMenuItem("Close", KeyEvent.VK_C);
-		menuItemExit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						setVisible(false);
-						Component parent = getParentComponent();
-						parent.dispatchEvent(new WindowEvent((JFrame) parent, WindowEvent.WINDOW_CLOSING));
-					}
-				});
-			}
-		});
+		menuItemExit.addActionListener(e -> SwingUtilities.invokeLater(this::doClose));
 		menu.add(menuItemExit);
-
-		// menu = new JMenu("View");
-		// menu.setMnemonic(KeyEvent.VK_V);
-		// menuBar.add(menu);
-
-		// menuItemTestRB = new JMenuItem("Test Rainbow Bead Files", KeyEvent.VK_R);
-		// menuItemTestRB.addActionListener(new ActionListener() {
-		// @Override
-		// public void actionPerformed(ActionEvent e) {
-		// runRainbowTest();
-		// }
-		// });
-
-		// menuItemShowControls = new JMenuItem("Show ControlPanel", KeyEvent.VK_C);
-		// menuItemShowControls.addActionListener(new ActionListener() {
-		// @Override
-		// public void actionPerformed(ActionEvent e) {
-		// controlFrame.setBounds(START_X + START_WIDTH + 50, START_Y, 250, 400);
-		// controlFrame.setVisible(true);
-		// }
-		// });
-		// menu.add(menuItemShowControls);
 
 		return menuBar;
 	}
@@ -390,20 +344,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 			c = c.getParent();
 		}
 		return c;
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent ae) {
-		// String command;
-		//
-		// command = ae.getActionCommand();
-		// if (command.equals(ADD_DATA_FILE)) {
-		// addFile();
-		// } else if (command.equals(CREATE_SCREENS)) {
-		// createScreenshotsFromFile();
-		// } else {
-		// System.err.println("Error - unknown command '"+command+"'");
-		// }
 	}
 
 	public String getXDataName() {
@@ -458,12 +398,13 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 
 	public void setXScale(AXIS_SCALE scale) {
 		switch (scale) {
-			case LOG:
-			case LIN:
-				fcsPanel.setForcePlotXMin(-1);
-				break;
 			case BIEX:
 				fcsPanel.setForcePlotXMin(Float.NaN);
+				break;
+			case LOG:
+			case LIN:
+			default:
+				fcsPanel.setForcePlotXMin(-1);
 				break;
 		} 
 		fcsPanel.setXAxis(scale);
@@ -474,12 +415,13 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 
 	public void setYScale(AXIS_SCALE scale) {
 		switch (scale) {
-			case LOG:
-			case LIN:
-				fcsPanel.setForcePlotYMin(-1);
-				break;
 			case BIEX:
 				fcsPanel.setForcePlotYMin(Float.NaN);
+				break;
+			case LOG:
+			case LIN:
+			default:
+				fcsPanel.setForcePlotYMin(-1);
 				break;
 		}
 		fcsPanel.setYAxis(scale);
@@ -552,10 +494,14 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	}
 
 	@Override
-	public void windowActivated(WindowEvent e) {}
+	public void windowActivated(WindowEvent e) {
+		// unused
+	}
 
 	@Override
-	public void windowClosed(WindowEvent e) {}
+	public void windowClosed(WindowEvent e) {
+		// unused
+	}
 
 	@Override
 	public void windowClosing(WindowEvent e) {
@@ -570,18 +516,26 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	}
 
 	@Override
-	public void windowDeactivated(WindowEvent e) {}
+	public void windowDeactivated(WindowEvent e) {
+		// unused
+	}
 
 	@Override
-	public void windowDeiconified(WindowEvent e) {}
+	public void windowDeiconified(WindowEvent e) {
+		// unused
+	}
 
 	@Override
-	public void windowIconified(WindowEvent e) {}
+	public void windowIconified(WindowEvent e) {
+		// unused
+	}
 
 	@Override
-	public void windowOpened(WindowEvent e) {}
+	public void windowOpened(WindowEvent e) {
+		// unused
+		}
 
-	public ArrayList<String> getAddedFiles() {
+	public List<String> getAddedFiles() {
 		return fcsControls.getAddedFiles();
 	}
 
@@ -686,13 +640,13 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		System.gc();
 	}
 
-	private final HashMap<String, FCSDataLoader> loadedData = new HashMap<String, FCSDataLoader>();
+	private final HashMap<String, FCSDataLoader> loadedData = new HashMap<>();
 
 	public void unloadFile(final String filename) {
 		if (filename == null || !loadedData.containsKey(filename)) {
 			return;
 		}
-		boolean clearLoaded = true;
+		boolean clearLoaded = false;
 		if (dataLoader != null && dataLoader.getLoadedFile().equals(filename)) {
 			clearLoaded = true;
 		}
@@ -707,40 +661,31 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 
 
 	public void loadFile(final String filename, final boolean display) {
-		if (filename == null	|| !Files.exists(filename)
-				|| (dataLoader != null && dataLoader.getLoadedFile().equals(filename))) {
+		if (filename == null	|| !Files.exists(filename) || (dataLoader != null && dataLoader.getLoadedFile().equals(filename))) {
 			return;
 		}
 
-		// TODO
 		boolean applyTemplate = false;
-		if (workbench.containsSampleFile(filename)) {
-		  currentSampleID = workbench.getSampleID(filename);
-		} else {
-		  currentSampleID = workbench.addNewSample(filename, applyTemplate);
-		}
-        refreshGating();
+		currentSampleID = workbench.containsSampleFile(filename) ? workbench.getSampleID(filename) : workbench.addNewSample(filename, applyTemplate);
+    refreshGating();
 		
 		if (loadedData.containsKey(filename)) {
 			if (display) {
 				setData(loadedData.get(filename));
 			}
 		} else {
-			Thread dataLoaderThread = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					FCSDataLoader newDataLoader = new FCSDataLoader();
-					loadedData.put(filename, newDataLoader);
-					fcsControls.startFileLoading(newDataLoader);
-					try {
-						newDataLoader.loadData(filename);
-					} catch (IOException e) {
-						log.reportException(e);
-						return;
-					}
-					if (display) {
-						setData(newDataLoader);
-					}
+			Thread dataLoaderThread = new Thread(() -> {
+				FCSDataLoader newDataLoader = new FCSDataLoader();
+				loadedData.put(filename, newDataLoader);
+				fcsControls.startFileLoading(newDataLoader);
+				try {
+					newDataLoader.loadData(filename);
+				} catch (IOException e) {
+					log.reportException(e);
+					return;
+				}
+				if (display) {
+					setData(newDataLoader);
 				}
 			});
 			dataLoaderThread.start();
@@ -751,17 +696,14 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
       try {
         this.workbench = GateFileReader.loadWorkspace(gateFile, dataLoader);
         saveProps();
-      } catch (ParserConfigurationException e) {
-        log.reportException(e);
-      } catch (SAXException e) {
-        log.reportException(e);
-      } catch (IOException e) {
+    		refreshGating();
+      } catch (ParserConfigurationException | SAXException | IOException e) {
         log.reportException(e);
       }
     }
 
 	public void saveGating() {
-		if (getGatingStrategy().getRootGates().size() == 0) {
+		if (getGatingStrategy().getRootGates().isEmpty()) {
 			JOptionPane.showMessageDialog(this, "Error - no gates found!", "Error!", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
@@ -785,19 +727,20 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 
 	public Gating getGatingStrategy() {
 	  if (currentSampleID != null) {
-		return workbench.getSample(currentSampleID).getGating();
+	  	return workbench.getSample(currentSampleID).getGating();
 	  } else {
 	    return new Gating();
 	  }
 	}
 
 	public void clearGating() {
-	  if (currentSampleID == null) return;
+	  if (currentSampleID == null) {
+	  	return;
+	  }
 	  workbench.clearGating(currentSampleID);
-//      gating = new GatingStrategy();
-      parentGate = null;
-      gatingSelector.resetGating(getGatingStrategy(), null);
-      fcsPanel.clearGating();
+    parentGate = null;
+    gatingSelector.resetGating(getGatingStrategy(), null);
+    fcsPanel.clearGating();
 	}
 
 	public void setGating(Gating gateStrat) {
@@ -819,7 +762,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	
 	protected HashMap<Gate, boolean[]> gateAllDataForLeafGates() {
 	  HashSet<Gate> leafGates = getGatingStrategy().getAllLeafGates();
-	  HashMap<Gate, boolean[]> gatings = new HashMap<Gate, boolean[]>();
+	  HashMap<Gate, boolean[]> gatings = new HashMap<>();
 	  log.reportTime("Gating on " + leafGates.size() + " leaf gates...");
 	  long t1 = System.currentTimeMillis();
 	  for (Gate g : leafGates) {
@@ -829,32 +772,24 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	  return gatings;
 	}
 
-    public ArrayList<Gate> getGatingForCurrentPlot() {
-      ArrayList<Gate> gateList = new ArrayList<Gate>();
-      ArrayList<Gate> children = parentGate == null ? getGatingStrategy().getRootGates() : parentGate.getChildGates();
-      for (Gate g : children) {
-        // boolean x = false;
-        boolean y = getYDataName().equals(FCSPlot.HISTOGRAM_COL) ? true : false;
-        if (g.getYDimension() == null) {
-          if (y && g.getXDimension().getParam().equals(getXDataName())) {
-            gateList.add(g);
-          }
-          continue;
-        }
-        // >1 Gate Dimension
-        if (y) {
-          continue;
-        }
-//        if (g.getDimensions().size() > 2) {
-//          continue; // can't vis. multi-dim gates // TODO fix for 3D
-//        }
-        if (g.getXDimension().getParam().equals(getXDataName())
-            && g.getYDimension().getParam().equals(getYDataName())) {
+  public List<Gate> getGatingForCurrentPlot() {
+    ArrayList<Gate> gateList = new ArrayList<>();
+    ArrayList<Gate> children = parentGate == null ? getGatingStrategy().getRootGates() : parentGate.getChildGates();
+    for (Gate g : children) {
+      boolean y = getYDataName().equals(FCSPlot.HISTOGRAM_COL) ? true : false;
+      if (g.getYDimension() == null || y) {
+        if (y && g.getXDimension().getParam().equals(getXDataName())) {
           gateList.add(g);
         }
+        continue;
       }
-      return gateList;
+      if (g.getXDimension().getParam().equals(getXDataName())
+          && g.getYDimension().getParam().equals(getYDataName())) {
+        gateList.add(g);
+      }
     }
+    return gateList;
+  }
 
 	public void setData(FCSDataLoader newDataLoader) {
 		if (dataLoader != null && dataLoader.getLoadedFile().equals(newDataLoader.getLoadedFile())) {
@@ -864,13 +799,13 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		if (workbench != null) {
 			GateFileReader.updateWorkbench(workbench, newDataLoader);
 		}
-		parent.setTitle(ext.rootOf(newDataLoader.getLoadedFile()) + "  --  " + TITLE_STR);
+		parentFrame.setTitle(ext.rootOf(newDataLoader.getLoadedFile()) + "  --  " + TITLE_STR);
 		refreshGating();
 		updateGUI();
 	}
 
 	private void setParent(JFrame frame) {
-		parent = frame;
+		parentFrame = frame;
 	}
 
 	/**
@@ -901,13 +836,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		frame.setBounds(START_X, START_Y, START_WIDTH, START_HEIGHT);
 		frame.setVisible(show);
 
-		// String fcsFilename = "F:\\Flow\\2016-05-04_URB_DHS_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
-		// String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW
-		// BEADS_URB_001.fcs";
-		// String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs.gz";
-		// String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-A P1 1HR rest_002.fcs";
-		// twoDPlot.loadFile(fcsFilename);
-
 		return twoDPlot;
 	}
 
@@ -927,24 +855,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 
 	@Override
 	public void propertyChange(PropertyChangeEvent arg0) {
-		// if (propsSetting.contains(arg0.getPropertyName())) return;
-		// propsSetting.add(arg0.getPropertyName());
-		// if (arg0.getSource().equals(fcsControls)) {
-		// if (arg0.getPropertyName().equals(AbstractPanel2.X_MIN)) {
-		// fcsPanel.setForcePlotXMin(((Double)arg0.getNewValue()).floatValue());
-		// fcsPanel.setPlotXMin(((Double)arg0.getNewValue()).floatValue());
-		// } else if (arg0.getPropertyName().equals(AbstractPanel2.X_MAX)) {
-		// fcsPanel.setForcePlotXMax(((Double)arg0.getNewValue()).floatValue());
-		// fcsPanel.setPlotXMax(((Double)arg0.getNewValue()).floatValue());
-		// } else if (arg0.getPropertyName().equals(AbstractPanel2.Y_MIN)) {
-		// fcsPanel.setForcePlotYMin(((Double)arg0.getNewValue()).floatValue());
-		// fcsPanel.setPlotYMin(((Double)arg0.getNewValue()).floatValue());
-		// } else if (arg0.getPropertyName().equals(AbstractPanel2.Y_MAX)) {
-		// fcsPanel.setForcePlotYMax(((Double)arg0.getNewValue()).floatValue());
-		// fcsPanel.setPlotYMax(((Double)arg0.getNewValue()).floatValue());
-		// }
-		// updateGUI();
-		// } else
 		if (arg0.getSource().equals(fcsPanel)) {
 			if (arg0.getPropertyName().equals(AbstractPanel2.X_MIN)) {
 				fcsControls.setXMin(((Double) arg0.getNewValue()).floatValue());
@@ -957,12 +867,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 			}
 			updateGUI();
 		}
-		// SwingUtilities.invokeLater(new Runnable() {
-		// @Override
-		// public void run() {
-		// propsSetting.remove(arg0.getPropertyName());
-		// }
-		// });
 	}
 
 	public boolean isCurrentDataDisplayable() {
@@ -1007,7 +911,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 			} else {
 				setPlotType(PLOT_TYPE.HISTOGRAM);
 			}
-			// TODO set axis scales
 		}
 		if (reset) {
 			gatingSelector.resetGating(getGatingStrategy(), gate);
@@ -1023,9 +926,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	}
 	
 	private void setupEM() {
-//	  ArrayList<String> params = new ArrayList<>();
-//	  params.add(getXDataName());
-//	  params.add(getYDataName());
 	  EMModel model = EMModel.run(dataLoader);
 	  fullClusterAssigns = model.getClusterAssigns();
 	  clusterAssigns = fullClusterAssigns;
@@ -1158,11 +1058,8 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	}
 
 	public static void main(String[] args) {
-		javax.swing.SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				createGUI(true);
-			}
+		javax.swing.SwingUtilities.invokeLater(() -> {
+			createGUI(true);
 		});
 	}
 

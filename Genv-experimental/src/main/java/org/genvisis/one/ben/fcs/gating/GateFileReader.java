@@ -64,9 +64,6 @@ public class GateFileReader {
       
     }
     
-    
-    
-    
     NodeList samples = doc.getElementsByTagName("Sample");
 
     for (int i = 0, count = samples.getLength(); i < count; i++) {
@@ -178,35 +175,14 @@ public class GateFileReader {
 
     Gating gs = new Gating();
     gs.setFile(filename);
-    gs.gateMap = flowjo ? buildPopGraph(nodes) : buildGateGraph(nodes);
-    gs.gateRoots = connectGates(gs.gateMap);
-    gs.paramGateMap = parameterizeGates(gs.gateMap);
+    gs.gateMap = flowjo ? GateFileUtils.buildPopGraph(nodes, flowjo) : buildGateGraph(nodes);
+    gs.gateRoots = GateFileUtils.connectGates(gs.gateMap);
+    gs.paramGateMap = GateFileUtils.parameterizeGates(gs.gateMap);
     for (Gate g : gs.gateMap.values()) {
       gs.allNames.add(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
     }
 
     return gs;
-  }
-  
-  private static HashMap<String, ArrayList<Gate>> parameterizeGates(HashMap<String, Gate> gateMap) {
-    HashMap<String, ArrayList<Gate>> paramGates = new HashMap<String, ArrayList<Gate>>();
-    for (Gate g : gateMap.values()) {
-      ArrayList<Gate> gates = paramGates.get(g.getXDimension().paramName);
-      if (gates == null) {
-        gates = new ArrayList<Gate>();
-        paramGates.put(g.getXDimension().paramName, gates);
-      }
-      gates.add(g);
-      if (g.getYDimension() != null) {
-        gates = paramGates.get(g.getYDimension().paramName);
-        if (gates == null) {
-          gates = new ArrayList<Gate>();
-          paramGates.put(g.getYDimension().paramName, gates);
-        }
-        gates.add(g);
-      }
-    }
-    return paramGates;
   }
 
   private static HashMap<String, Gate> buildGateGraph(NodeList topGate) {
@@ -226,54 +202,6 @@ public class GateFileReader {
       gateMap.put(id, newGate);
     }
     return gateMap;
-  }
-
-  private static HashMap<String, Gate> buildPopGraph(NodeList allGates) {
-    HashMap<String, Gate> gateMap = new HashMap<String, Gate>();
-    for (int i = 0, count = allGates.getLength(); i < count; i++) {
-      Element popNode = (Element) allGates.item(i);
-      String popName = popNode.getAttribute("name");
-
-      Element gateNode = null;
-      for (int n = 0, cnt = popNode.getChildNodes().getLength(); n < cnt; n++) {
-        if (popNode.getChildNodes().item(n).getNodeName().equals("Gate")) {
-          gateNode = (Element) popNode.getChildNodes().item(n);
-          break;
-        }
-      }
-
-      String id = gateNode.getAttribute("gating:id");
-      String parentID = gateNode.getAttribute("gating:parent_id");
-      Node actualGateNode = null;
-      for (int n = 0, cnt = gateNode.getChildNodes().getLength(); n < cnt; n++) {
-        if (gateNode.getChildNodes().item(n).getNodeName().startsWith("gating:")) {
-          actualGateNode = gateNode.getChildNodes().item(n);
-          break;
-        }
-      }
-      if (actualGateNode != null) {
-        Gate newGate = buildGate(popName, id, parentID, actualGateNode);
-        gateMap.put(id, newGate);
-        if (popName != null && !popName.equals("")) {
-          gateMap.put(popName, newGate);
-        }
-      }
-
-    }
-    return gateMap;
-  }
-
-  private static ArrayList<Gate> connectGates(HashMap<String, Gate> gateMap) {
-    ArrayList<Gate> rootGates = new ArrayList<Gate>();
-    for (Gate g : gateMap.values()) {
-      if (null != g.parentID && !"".equals(g.parentID)) {
-        g.parentGate = gateMap.get(g.parentID);
-        g.parentGate.children.add(g);
-      } else {
-        rootGates.add(g);
-      }
-    }
-    return rootGates;
   }
 
   private static Gate buildGate(String popName, String id, String parentID, Node gateNode) {

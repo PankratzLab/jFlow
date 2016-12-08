@@ -15,6 +15,7 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
@@ -417,7 +418,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     rects.clear();
     polys.clear();
 
-    ArrayList<Gate> gatesForPlot = fcp.getGatingForCurrentPlot();
+    List<Gate> gatesForPlot = fcp.getGatingForCurrentPlot();
 //    fcp.dataLoader.paramTransforms.put(fcp.getXDataName(), AXIS_SCALE.BIEX.getTransform());
     
     for (Gate g : gatesForPlot) {
@@ -524,7 +525,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     int tempX = e.getX();
     int tempY = e.getY();
 
-    ArrayList<Gate> gating = fcp.getGatingForCurrentPlot();
+    List<Gate> gating = fcp.getGatingForCurrentPlot();
     ArrayList<PolygonGate> retPolys = new ArrayList<PolygonGate>();
 
     double[] coords = new double[6];
@@ -551,7 +552,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     int tempX = e.getX();
     int tempY = e.getY();
 
-    ArrayList<Gate> gating = fcp.getGatingForCurrentPlot();
+    List<Gate> gating = fcp.getGatingForCurrentPlot();
     ArrayList<PolygonGate> retPolys = new ArrayList<PolygonGate>();
 
     for (int i = 0; i < gating.size(); i++) {
@@ -570,7 +571,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     int tempX = e.getX();
     int tempY = e.getY();
 
-    ArrayList<Gate> gating = fcp.getGatingForCurrentPlot();
+    List<Gate> gating = fcp.getGatingForCurrentPlot();
     ArrayList<RectangleGate> retRects = new ArrayList<RectangleGate>();
 
     for (int i = 0; i < gating.size(); i++) {
@@ -602,7 +603,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     int tempX = e.getX();
     int tempY = e.getY();
 
-    ArrayList<Gate> gating = fcp.getGatingForCurrentPlot();
+    List<Gate> gating = fcp.getGatingForCurrentPlot();
     ArrayList<RectangleGate> retRects = new ArrayList<RectangleGate>();
 
     for (int i = gating.size() - 1; i >= 0; i--) {
@@ -615,8 +616,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         if (xLow <= tempX && xHigh >= tempX) {
           if (!isHistogram()) {
             RectangleGateDimension gdY = (RectangleGateDimension) rect.getYDimension();
-            yHigh = !Numbers.isFinite(gdY.getMin()) ? Integer.MIN_VALUE : getYPixel(gdY.getMin());
-            yLow = !Numbers.isFinite(gdY.getMax()) ? Integer.MAX_VALUE : getYPixel(gdY.getMax());
+            yHigh = !Numbers.isFinite(gdY.getMax()) ? Integer.MIN_VALUE : getYPixel(gdY.getMax());
+            yLow = !Numbers.isFinite(gdY.getMin()) ? Integer.MAX_VALUE : getYPixel(gdY.getMin());
             if (yLow <= tempY && yHigh >= tempY) {
               retRects.add(rect);
             }
@@ -686,7 +687,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       }
       p = new Area(new Rectangle2D.Double(min, minY, max - min, maxY - minY));
     }
-    ArrayList<Gate> gating = fcp.getGatingForCurrentPlot();
+    List<Gate> gating = fcp.getGatingForCurrentPlot();
     int lvl = 0;
     for (Gate gP : gating) {
       if (gP instanceof PolygonGate) {

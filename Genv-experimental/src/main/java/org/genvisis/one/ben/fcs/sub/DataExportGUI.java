@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -119,7 +120,7 @@ public class DataExportGUI extends JDialog {
 		pnl.add(lbl, "cell 0 0");
 
 		if (plot != null) {
-			ArrayList<String> files = plot.getAddedFiles();
+			List<String> files = plot.getAddedFiles();
 			String curr = plot.getCurrentFile();
 			boxes = new ArrayList<JCheckBox>();
 			for (int i = 0; i < files.size(); i++) {

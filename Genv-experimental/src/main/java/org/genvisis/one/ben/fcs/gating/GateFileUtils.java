@@ -82,7 +82,6 @@ public class GateFileUtils {
       if (actualGateNode != null) {
         Gate newGate = buildGate(popName, id, parentID, actualGateNode, flowJo);
         gateMap.put(id, newGate);
-
         if (popName != null && !popName.equals("")) {
           gateMap.put(popName, newGate);
         }
@@ -97,7 +96,9 @@ public class GateFileUtils {
     for (Gate g : gateMap.values()) {
       if (null != g.parentID && !"".equals(g.parentID)) {
         g.parentGate = gateMap.get(g.parentID);
-        g.parentGate.children.add(g);
+        if (!g.parentGate.children.contains(g)) {
+        	g.parentGate.children.add(g);
+        }
       } else {
         rootGates.add(g);
       }
@@ -114,7 +115,6 @@ public class GateFileUtils {
     LIN_PARAMS.add("ssc-a");
     LIN_PARAMS.add("ssc-w");
     LIN_PARAMS.add("ssc-h");
-    LIN_PARAMS.add("time");
   }
   private static AXIS_SCALE getAxisScaleHardcoded(String param) {
     if (LIN_PARAMS.contains(param.toLowerCase())) {
