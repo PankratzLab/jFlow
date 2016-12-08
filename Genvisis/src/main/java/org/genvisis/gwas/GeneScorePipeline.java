@@ -39,7 +39,7 @@ public class GeneScorePipeline {
   private static float DEFAULT_WINDOW_EXTENSION_THRESHOLD = (float) 0.00000005; // (float)0.00001;
   private static String[] DEFAULT_ADDL_ANNOT_VAR_NAMES = new String[0];
 
-  private static final String PLINK_FRQ_DIR = "D:/1000G/";
+  private static final String PLINK_FRQ_DIR = "N:/statgen/1000G_work/Frequencies/";
   private static final String TAG = "##";
   private static final String PLINK_FRQ_FILE_PATTERN = "chr" + TAG + "_eu_unrel.frq.xln";
   private static final String CROSS_FILTERED_DATAFILE = "bimData.xln";
