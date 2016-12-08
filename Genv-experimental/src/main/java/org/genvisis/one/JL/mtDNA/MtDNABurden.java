@@ -8,7 +8,6 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
-import org.genvisis.seq.analysis.PlinkSeqUtils.PlinkSeqBurdenResults;
 import org.genvisis.seq.analysis.mtdna.HaplogroupSelector;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
@@ -23,30 +22,24 @@ import htsjdk.variant.vcf.VCFFileReader;
 
 public class MtDNABurden {
 
+	private enum FILTER_TYPE {
+		NOT_EQUAL, CONTAINS, LESS_THAN;
+	}
+
 	private enum VARIANT_TYPES {
 		LHON_ASSOC("Associated_disease", new String[] { "Lebers_optic_atrophy", "Optic_neuropathy", "LHON" },
-				true), DISEASE_ASSOC("Associated_disease", new String[] { "-", "." },
-						false), MIT_IMPACT("MitImpact_id", new String[] { "." }, false);
+				FILTER_TYPE.CONTAINS), DISEASE_ASSOC("Associated_disease", new String[] { "-", "." },
+						FILTER_TYPE.NOT_EQUAL), MIT_IMPACT("MitImpact_id", new String[] { "." },
+								FILTER_TYPE.NOT_EQUAL), GB("mtPoly.AF", null, FILTER_TYPE.LESS_THAN);
 
 		private String flag;
 		private String[] filt;
-		private boolean contains;
+		private FILTER_TYPE fType;
 
-		private VARIANT_TYPES(String flag, String[] filt, boolean contains) {
+		private VARIANT_TYPES(String flag, String[] filt, FILTER_TYPE fType) {
 			this.flag = flag;
 			this.filt = filt;
-			this.contains = contains;
-		}
-	}
-
-	private enum VARIANT_SETS {
-		UNIPROT_NAME("Uniprot_name", false), MTDNA_FULL("mtDNAFull", true);
-		private String flag;
-		private boolean force;
-
-		private VARIANT_SETS(String flag, boolean force) {
-			this.flag = flag;
-			this.force = force;
+			this.fType = fType;
 		}
 	}
 
@@ -64,35 +57,50 @@ public class MtDNABurden {
 			int keep = 0;
 			for (VariantContext vc : reader) {
 				String annoVc = VCOps.getAnnotationsFor(new String[] { vTypes.flag }, vc, ".")[0];
-				boolean use = vTypes.contains ? false : true;
 				if (!vc.isMonomorphicInSamples()) {
-					String gb = VCOps.getAnnotationsFor(new String[] { "mtPoly.AF" }, vc, ".")[0];
-					boolean gbPass = true;
-					try {
-						double gf = Double.parseDouble(gb) / 100;
-						gbPass = gf < genBankMaf;
-					} catch (NumberFormatException nfe) {
-
-					}
-					if (gbPass) {
+					boolean use = false;
+					switch (vTypes.fType) {
+					case CONTAINS:
+						use = false;
 						for (String filt : vTypes.filt) {
-							if (!vTypes.contains) {
-								if (annoVc.equals(filt)) {
-									use = false;
-								}
-							} else {
-								if (annoVc.contains(filt)) {
-									use = true;
-								}
-
+							if (annoVc.contains(filt)) {
+								use = true;
 							}
 						}
-						if (use) {
-							keep++;
-							VariantContextBuilder builder = new VariantContextBuilder(vc);
-							builder.id(new VCOps.LocusID(vc).getId().replaceAll(":", "_"));
-							writer.add(builder.make());
+						break;
+					case LESS_THAN:
+						use = true;
+						if (vTypes == VARIANT_TYPES.GB) {
+							try {
+								double gf = Double.parseDouble(annoVc) / 100;
+								use = gf < genBankMaf;
+							} catch (NumberFormatException nfe) {
+
+							}
+						} else {
+							writer.close();
+							throw new IllegalArgumentException("Must use GB");
 						}
+						break;
+					case NOT_EQUAL:
+						use = true;
+						for (String filt : vTypes.filt) {
+							if (annoVc.equals(filt)) {
+								use = false;
+							}
+						}
+						break;
+					default:
+						break;
+
+					}
+
+					if (use) {
+						keep++;
+						VariantContextBuilder builder = new VariantContextBuilder(vc);
+						builder.id(new VCOps.LocusID(vc).getId().replaceAll(":", "_"));
+						writer.add(builder.make());
+
 					}
 				}
 			}
@@ -107,6 +115,7 @@ public class MtDNABurden {
 			CmdLine.runCommandWithFileChecks(new String[] { bat }, "", null, null, true, true, false, log);
 		}
 		return finalOut;
+
 	}
 
 	private static String filterVpop(String inputVCF, String outDir, VcfPopulation vpop, String casePop,
@@ -161,7 +170,7 @@ public class MtDNABurden {
 	private static String runIstats(String vcf, String pseqDir, String outDir, Logger log) {
 		String out = outDir + ext.rootOf(vcf) + ".istats";
 		String bat = out + ".bat";
-		String proj = "proj_" + VCFOps.getAppropriateRoot(vcf, true);
+		String proj = outDir + "proj_" + VCFOps.getAppropriateRoot(vcf, true);
 		StringBuilder istatGetter = new StringBuilder(pseqDir + "pseq " + proj + " new-project\n");
 		istatGetter.append(pseqDir + "pseq " + proj + " load-vcf --vcf " + vcf + "\n");
 		istatGetter.append(pseqDir + "pseq " + proj + " i-stats >" + out);
@@ -197,8 +206,6 @@ public class MtDNABurden {
 		filter.append("vcftools --vcf " + inputVCF + " --remove " + excludes + " --max-missing " + cr
 				+ " --recode --recode-INFO-all --out " + out1 + "\n");
 
-		// filter.append("sed -i 's/##fileformat=VCFv4.2/##fileformat=VCFv4.1/g'
-		// " + out1 + ".recode.vcf");
 		if (!Files.exists(out1 + ".recode.vcf")) {
 			String bat = out1 + ".bat";
 			Files.write(filter.toString(), bat);
@@ -209,24 +216,8 @@ public class MtDNABurden {
 		return new FilterResults(out1 + ".recode.vcf", excludes);
 	}
 
-	private static String filterMaf(String inputVCF, double maf, String outDir, Logger log) {
-		String root = outDir + VCFOps.getAppropriateRoot(inputVCF, true) + "maf" + maf;
-		StringBuilder filter = new StringBuilder();
-		filter.append("vcftools --vcf " + inputVCF + " --max-maf  " + maf + " --recode --recode-INFO-all --out " + root
-				+ "\n");
-		if (!Files.exists(root + ".recode.vcf")) {
-			String bat = root + ".bat";
-			Files.write(filter.toString(), bat);
-			Files.chmod(bat);
-			log.reportTimeInfo(filter.toString());
-			CmdLine.run(bat, outDir);
-		}
-		return root + ".recode.vcf";
-	}
-
-	private static void runPseq(String pseqDir, String outDir, String vcfIn, VARIANT_TYPES vTypes, String mtGeneFile,
-			String phe, double maf, Logger log) {
-		String vcf = filter(vcfIn, vTypes, outDir, maf, log);
+	private static void runPseq(String pseqDir, String outDir, String vcf, String mtGeneFile, String phe, double maf,
+			Logger log) {
 
 		StringBuilder builder = new StringBuilder();
 		String root = outDir + "proj_" + VCFOps.getAppropriateRoot(vcf, true);
@@ -244,9 +235,10 @@ public class MtDNABurden {
 		String results = root + ".maf" + maf + ".results";
 		if (!Files.exists(results)) {
 			builder.append(pseqDir + pse + root + "  assoc --phenotype phe1 --mask loc.group=" + ext.rootOf(mtGeneFile)
-					+ " maf=0-0.05 --tests burden fw --perm 50000 >" + results + " \n");
+					+ " maf=0-" + maf + " --tests burden fw --perm 50000 >" + results + " \n");
 
 		}
+		// String singleVar = root + ".maf" + maf + ".SingleVarresults";
 		builder.append("head -n1 " + results + " >" + outDir + "results.txt\n");
 		builder.append("grep -v \"=\\|LOCUS\" " + outDir + "*.results >>" + outDir + "results.txt\n");
 		String bat = root + ".bat";
@@ -275,21 +267,25 @@ public class MtDNABurden {
 		String caseControlVcf = filterVpop(inputVCF, outDir, vpop, cases, controls, log);
 		FilterResults filterResults = filterCR(caseControlVcf, 0.95, outDir, pseqDir, log);
 		String hqVcf = filterResults.vcf;
-		String phe = HaplogroupSelector.run(haps, "CUSHING_FREQ_V2", controls, vpopFile, filterResults.excludeFile,
-				outDir, 5, 1);
-		// System.exit(1);
 
-		double[] mafs = new double[] { 0.01, 0.05 };
-		String analysisVCF = runKeeper(hqVcf, ext.rootOf(phe, false) + HaplogroupSelector.KEEP_EXT, outDir, log);
-		runIstats(analysisVCF, pseqDir, outDir, log);
+		for (int i = 1; i < 6; i++) {
+			String phe = HaplogroupSelector.run(haps, "CUSHING_FREQ_V2", controls, vpopFile, filterResults.excludeFile,
+					outDir, 5, 1);
+			double[] mafs = new double[] { 0.001, 0.01 };
+			String analysisVCF = runKeeper(hqVcf, ext.rootOf(phe, false) + HaplogroupSelector.KEEP_EXT, outDir, log);
+			runIstats(analysisVCF, pseqDir, outDir, log);
 
-		String mtDNADefs = "/Volumes/Beta/data/mtDNA-dev/vcf/analysis/mtUniport.reg";
+			String mtDNADefs = "/Volumes/Beta/data/mtDNA-dev/vcf/analysis/mtUniport.reg";
 
-		for (VARIANT_TYPES vType : VARIANT_TYPES.values()) {
-			for (int i = 0; i < mafs.length; i++) {
-				runPseq(pseqDir, outDir, analysisVCF, vType, mtDNADefs, phe, mafs[i], log);
+			for (VARIANT_TYPES vType : VARIANT_TYPES.values()) {
+				if (vType != VARIANT_TYPES.GB) {
+					for (double maf : mafs) {
+						String vcf = filter(analysisVCF, vType, outDir, maf, log);
+						runPseq(pseqDir, outDir, vcf, mtDNADefs, phe, maf, log);
+					}
+				}
 			}
 		}
-	}
 
+	}
 }
