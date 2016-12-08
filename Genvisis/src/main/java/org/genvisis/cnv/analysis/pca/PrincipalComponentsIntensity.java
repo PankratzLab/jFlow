@@ -189,10 +189,10 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 				mergeCorrectedClusters();
 			} else {
 				fail = true;
-				proj.getLog()
-				    .reportError("Error - correction has failed for marker due to not having any genotypes "
-				                 + centroid.getMarkerData().getMarkerName()
-				                 + ", returning original x, y, and genotype values");
+//				proj.getLog()
+//				    .reportError("Error - correction has failed for marker due to not having any genotypes "
+//				                 + centroid.getMarkerData().getMarkerName()
+//				                 + ", returning original x, y, and genotype values");
 				setOriginal();
 			}
 		} else {

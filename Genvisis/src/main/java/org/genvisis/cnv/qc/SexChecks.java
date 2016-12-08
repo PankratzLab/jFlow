@@ -817,9 +817,6 @@ public class SexChecks {
 			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 			for (int i = 0; i < markerNames.length; i++) {
 				markerData = markerDataLoader.requestMarkerData(i);
-				if (i % 100 == 0) {
-					log.report(ext.getTime() + "\tMarker " + i + " of " + markerNames.length);
-				}
 
 				output = markerData.getMarkerName();
 

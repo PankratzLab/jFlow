@@ -73,9 +73,6 @@ public class ThetaOutliers {
 
 			for (int i = 0; i < markerNames.length; i++) {
 				markerData = markerDataLoader.requestMarkerData(i);
-				if (i % 100 == 0) {
-					log.report(ext.getTime() + "\tMarker " + i + " of " + markerNames.length);
-				}
 
 				if (useClusterFilters) {
 					result = reclusterNullGenotypeByTheta(markerData, clusterFilterCollection, 20, log);

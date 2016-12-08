@@ -235,10 +235,6 @@ public class PennCNVPrep {
 			                                                             false);
 			MarkerData[] markerDatas = markerDataStorage.getMarkerDatas();
 			for (int j = 0; j < markerDatas.length; j++) {
-				if ((j + 1) % 100 == 0) {
-					proj.getLog().report("Info - exporting marker " + (j + 1) + " of " + markerDatas.length
-					                     + " from file " + fileNamesOfMarkerDataInOrder[i]);
-				}
 				addData(numMarkersThisRound, pennCNVIndividuals, markerDatas[j].getBAFs(),
 				        markerDatas[j].getLRRs(), markerDatas[j].getAbGenotypes(),
 				        markerDatas[j].getMarkerName(), sampleIndicesInProject);

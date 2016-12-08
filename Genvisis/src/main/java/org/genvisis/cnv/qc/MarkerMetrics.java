@@ -193,9 +193,6 @@ public class MarkerMetrics {
 			while (mdl.hasNext()) {
 				markerData = mdl.next();
 				index++;
-				if (index % 1000 == 0) {
-					log.report(ext.getTime() + "\tMarker " + index + " of " + markerNames.length);
-				}
 
 				markerName = markerData.getMarkerName();
 				thetas = markerData.getThetas();
