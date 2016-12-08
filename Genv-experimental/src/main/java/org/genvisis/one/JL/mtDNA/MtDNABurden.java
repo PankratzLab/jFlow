@@ -8,6 +8,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.seq.analysis.PlinkSeqUtils.PlinkSeqBurdenResults;
 import org.genvisis.seq.analysis.mtdna.HaplogroupSelector;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
@@ -144,6 +145,7 @@ public class MtDNABurden {
 		String out = outputDir + ext.rootOf(inputVcf) + "_" + ext.rootOf(keepFile);
 		StringBuilder filter = new StringBuilder(
 				"vcftools --vcf " + inputVcf + " --keep " + keepFile + " --recode --recode-INFO-all --out " + out);
+
 		if (!Files.exists(out + ".recode.vcf")) {
 			String bat = out + ".bat";
 			Files.write(filter.toString(), bat);
@@ -151,6 +153,7 @@ public class MtDNABurden {
 			log.reportTimeInfo(filter.toString());
 			CmdLine.runCommandWithFileChecks(new String[] { bat }, "", null, null, true, true, false, log);
 		}
+
 		return out + ".recode.vcf";
 
 	}
@@ -244,21 +247,14 @@ public class MtDNABurden {
 					+ " maf=0-0.05 --tests burden fw --perm 50000 >" + results + " \n");
 
 		}
+		builder.append("head -n1 " + results + " >" + outDir + "results.txt\n");
+		builder.append("grep -v \"=\\|LOCUS\" " + outDir + "*.results >>" + outDir + "results.txt\n");
 		String bat = root + ".bat";
 		Files.write(builder.toString(), bat);
 		Files.chmod(bat);
 		log.reportTimeInfo(builder.toString());
+
 		CmdLine.runCommandWithFileChecks(new String[] { bat }, "", null, null, true, true, false, log);
-
-		// #run T1 and T5 tests
-		// # "$plinkseqDir"pseq projNS assoc --phenotype phe1 --mask
-		// loc.group=mtDNA maf=0-0.05 --tests burden fw --perm 50000
-		// >results.T5.mtdna.NS.txt
-		// # "$plinkseqDir"pseq projNS assoc --phenotype phe1 --mask
-		// loc.group=mtDNA maf=0-0.01 --tests burden fw --perm 50000
-		// >results.T1.mtdna.NS.txt
-		//
-
 	}
 
 	public static void main(String[] args) {
@@ -283,8 +279,10 @@ public class MtDNABurden {
 				outDir, 5, 1);
 		// System.exit(1);
 
-		double[] mafs = new double[] { 0.01 };
+		double[] mafs = new double[] { 0.01, 0.05 };
 		String analysisVCF = runKeeper(hqVcf, ext.rootOf(phe, false) + HaplogroupSelector.KEEP_EXT, outDir, log);
+		runIstats(analysisVCF, pseqDir, outDir, log);
+
 		String mtDNADefs = "/Volumes/Beta/data/mtDNA-dev/vcf/analysis/mtUniport.reg";
 
 		for (VARIANT_TYPES vType : VARIANT_TYPES.values()) {

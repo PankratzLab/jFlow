@@ -89,6 +89,7 @@ public class HaplogroupSelector {
 		ArrayList<String> samplesToKeep = new ArrayList<String>();
 		ArrayList<String> unMatched = new ArrayList<String>();
 		unMatched.add("UnMatchedSample\tHaplogroup");
+
 		for (HaploMatch haploMatch : haploMatchs) {
 			if (haploMatch.controlsMatched.size() == xfactor) {
 				samplesToKeep.add(haploMatch.sample);
@@ -172,8 +173,9 @@ public class HaplogroupSelector {
 		}
 		Collections.sort(haploMatches);// try to sort specific to general
 		HashSet<String> taken = new HashSet<String>();
-		for (int i = 0; i < xFactor; i++) {
-			for (HaploMatch haploMatch : haploMatches) {
+		for (HaploMatch haploMatch : haploMatches) {
+			for (int i = 0; i < xFactor; i++) {
+
 				HaplogroupMatchResult haplogroupMatchResult =
 																										haploTrie.getBestMatchHaplotypeSamples(haploMatch.haplogroup);
 				String sample = haplogroupMatchResult.getSample();
