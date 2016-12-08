@@ -42,7 +42,7 @@ public class PennCNVFamilies {
 			PrintWriter writeJoints = Files.getAppropriateWriter("jointInput" + jointChunk + ".txt");
 
 			String header = r.readLine();
-			int[] dnaIdxs = ext.indexFactors(	new String[] {"DNA", "FA_DNA", "MO_DNA"}, header.split("\t"),
+			int[] dnaIdxs = ext.indexFactors(	new String[] {"FA_DNA", "MO_DNA", "DNA"}, header.split("\t"),
 																				false, true);
 			int sample = 0;
 
