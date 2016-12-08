@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
 
-import org.ejml.alg.block.GeneratorBlockInnerMultiplication;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
@@ -605,7 +604,7 @@ public class PennCNV {
 	public static void parseResults(Project proj, String filename, boolean denovoOnly) {
 		BufferedReader reader;
 		PrintWriter writer;
-		PrintWriter denovoWriter;
+		PrintWriter denovoWriter = null;
 		String[] line;
 		String temp, trav;
 		Vector<String> warnings;
@@ -621,7 +620,6 @@ public class PennCNV {
 		long time;
 		int sex;
 		Logger log;
-		boolean wroteDenovoHeader = false;
 
 		log = proj.getLog();
 		log.report("Parsing PennCNV rawcnvs...");
@@ -638,7 +636,6 @@ public class PennCNV {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".cnv"));
-			denovoWriter = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_denovo.cnv"));
 			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 			hash = new Hashtable<String, String>();
 			while (reader.ready()) {
@@ -676,8 +673,13 @@ public class PennCNV {
 					} else {
 						score = ext.formDeci(Double.parseDouble(line[7].substring(5)), 4, true);
 					}
-					boolean isDenovo = ext.indexFactors(new String[][] {{"statepath=33"}}, line, false, false,
-					                                    false, false)[0] > 0;
+					boolean isDenovo =  false;
+					for (String s : line) {
+						if (s.startsWith("statepath=33") || s.startsWith("triostate=33")) {
+							isDenovo = true;
+						}
+					}
+
 
 					String copynum = line[3].substring(line[3].indexOf("=") + 1);
 					String sites = line[1].substring(7);
@@ -691,7 +693,8 @@ public class PennCNV {
 						writer.println(lineOut.toString());
 					}
 					if (isDenovo) {
-						if (!wroteDenovoHeader) {
+						if (denovoWriter == null) {
+							denovoWriter = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + "_denovo.cnv"));
 							denovoWriter.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 						}
 						denovoWriter.println(lineOut.toString());
@@ -700,7 +703,9 @@ public class PennCNV {
 			}
 			reader.close();
 			writer.close();
-			denovoWriter.close();
+			if (denovoWriter != null) {
+				denovoWriter.close();
+			}
 
 			// FilterCalls.stdFilters(dir, ext.rootOf(filename)+".cnv", MAKE_UCSC_TRACKS);
 
