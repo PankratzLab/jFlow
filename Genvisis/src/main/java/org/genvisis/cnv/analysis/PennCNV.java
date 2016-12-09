@@ -1297,7 +1297,7 @@ public class PennCNV {
 		String hmmFile = null;
 		int numThreads = 1;
 
-		String usage = "\n" + "cnv.park.PennCNV requires 0-1 arguments\n"
+		String usage = "\n" + "org.genvisis.cnv.analysis.PennCNV requires 0-1 arguments\n"
 		               + "   (0) project properties filename (i.e. proj="
 		               + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
 		               + " AND\n" + "   (1) number of chunks to split everything in to (i.e. chunks="
@@ -1437,11 +1437,11 @@ public class PennCNV {
 					hmmFile = Resources.cnv(proj.getLog()).getAllHmm().get();
 				}
 				if (pfbFile == null || !new File(pfbFile).exists()) {
-					pfbFile = Resources.cnv(proj.getLog()).genome(GENOME_BUILD.HG18).getAllPfb().get();
+					pfbFile = Resources.cnv(proj.getLog()).genome(proj.GENOME_BUILD_VERSION.getValue()).getAllPfb().get();
 				}
 				if (gcmodelFile == null || !new File(pfbFile).exists()) {
 					gcmodelFile =
-					            Resources.cnv(proj.getLog()).genome(GENOME_BUILD.HG18).getAllGcmodel().get();
+					            Resources.cnv(proj.getLog()).genome(proj.GENOME_BUILD_VERSION.getValue()).getAllGcmodel().get();
 				}
 				doBatch(proj, auto, chrx, sexCent, transformData, numChunks, separateQsubs, pfbFile,
 				        gcmodelFile, hmmFile, separateQsubs ? submit : false, recode, excludes, numThreads);
