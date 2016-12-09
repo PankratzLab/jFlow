@@ -635,7 +635,7 @@ public class PennCNV {
 		sampleData = proj.getSampleData(2, false);
 		pedinfo = new Hashtable<String, Vector<String>>();
 		Pedigree ped = proj.loadPedigree();
-		PrintWriter denoValWriter = null;
+		PrintWriter[] denoValWriter = new PrintWriter[1];
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false) + ".cnv"));
@@ -711,8 +711,8 @@ public class PennCNV {
 			if (denovoWriter != null) {
 				denovoWriter.close();
 			}
-			if (denoValWriter != null) {
-				denoValWriter.close();
+			if (denoValWriter[0] != null) {
+				denoValWriter[0].close();
 			}
 
 			// FilterCalls.stdFilters(dir, ext.rootOf(filename)+".cnv", MAKE_UCSC_TRACKS);
@@ -750,7 +750,7 @@ public class PennCNV {
 	}
 
 	private static void writeValidation(Pedigree ped, String[] ids, String copynum, String[] line,
-	                                    String filename, PrintWriter denoValWriter, Logger log) {
+	                                    String filename, PrintWriter[] denoValWriter, Logger log) {
 		int pedIndex = ped.getIndIndex(ids[0], ids[1]);
 		if (pedIndex < 0) {
 			return;
@@ -765,12 +765,11 @@ public class PennCNV {
 		String faDna = ped.getiDNA(faIndex);
 		String moDna = ped.getiDNA(moIndex);
 
-		if (denoValWriter == null) {
+		if (denoValWriter[0] == null) {
 			try {
 				String outfile = ext.parseDirectoryOfFile(filename)
             + "denovoValidation.txt";
-				denoValWriter = new PrintWriter(new FileWriter(outfile));
-				log.report("Writing validation commands to: " + outfile);
+				denoValWriter[0] = new PrintWriter(new FileWriter(outfile));
 			} catch (IOException e) {
 				log.reportException(e);
 				return;
@@ -787,6 +786,8 @@ public class PennCNV {
 		String faSource = childSource.replace(cDna, faDna);
 		String moSource = childSource.replace(cDna, moDna);
 
+		String out = faDna + "_" + moDna + "_" + cDna + "_" + bounds[0] + "_" + bounds[1];
+
 		StringBuilder sb =
 		                new StringBuilder("/home/pankrat2/shared/bin/infer_snp_allele.pl -pfb $PFBFILE -hmm $HMMFILE").append(" -denovocn ")
 		                                                                                                             .append(copynum)
@@ -800,9 +801,13 @@ public class PennCNV {
 		                                                                                                             .append(bounds[0])
 		                                                                                                             .append(" -end ")
 		                                                                                                             .append(bounds[1])
-		                                                                                                             .append(" -out tempfile");
+		                                                                                                             .append(" -out ")
+		                                                                                                             .append(out)
+		                                                                                                             .append(".gen >")
+		                                                                                                             .append(out)
+		                                                                                                             .append(".log");
 
-		denoValWriter.println(sb.toString());
+		denoValWriter[0].println(sb.toString());
 	}
 
 	private static String[] getBounds(String[] line) {
