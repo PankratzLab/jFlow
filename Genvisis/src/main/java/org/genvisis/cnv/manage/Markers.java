@@ -286,6 +286,7 @@ public class Markers {
 		log = proj.getLog();
 		time = new Date().getTime();
 		delimiter = Files.determineDelimiter(snpTable, log);
+		writer = null;
 		try {
 			if (!Files.exists(snpTable) && Files.exists(proj.PROJECT_DIRECTORY.getValue() + snpTable)) {
 				snpTable = proj.PROJECT_DIRECTORY.getValue() + snpTable;
@@ -299,9 +300,11 @@ public class Markers {
 			writer.println("Marker\tChr\tPosition");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiter);
+				if (line.length <= indices[0] || line.length < indices[1] || line.length <= indices[2]) {
+					log.reportTimeWarning("Skipping line with missing columns: " + line);
+				}
 				writer.println(line[indices[0]] + "\t" + line[indices[1]] + "\t" + line[indices[2]]);
 			}
-			writer.close();
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
 			proj.message("Error: file \""	+ snpTable + "\" not found in "
@@ -310,6 +313,10 @@ public class Markers {
 		} catch (IOException ioe) {
 			proj.message("Error reading file \"" + snpTable + "\"");
 			return;
+		} finally {
+			if (writer != null) {
+				writer.close();
+			}
 		}
 		log.report("Finished parsing "	+ proj.MARKER_POSITION_FILENAME.getValue(false, false) + " in "
 								+ ext.getTimeElapsed(time));
