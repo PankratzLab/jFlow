@@ -789,23 +789,22 @@ public class PennCNV {
 		String out = faDna + "_" + moDna + "_" + cDna + "_" + bounds[0] + "_" + bounds[1];
 
 		StringBuilder sb =
-		                new StringBuilder("/home/pankrat2/shared/bin/infer_snp_allele.pl -pfb $PFBFILE -hmm $HMMFILE").append(" -denovocn ")
+		                new StringBuilder("/home/pankrat2/shared/bin/infer_snp_allele.pl -pfbfile $PFBFILE -hmmfile $HMMFILE").append(" -denovocn ")
 		                                                                                                             .append(copynum)
-		                                                                                                             .append(" ")
+		                                                                                                             .append(" -startsnp ")
+		                                                                                                             .append(bounds[0])
+		                                                                                                             .append(" -endsnp ")
+		                                                                                                             .append(bounds[1])
+		                                                                                                             .append(" -outfile ")
+		                                                                                                             .append(out)
+		                                                                                                             .append(".gen  -logfile ")
+		                                                                                                             .append(out)
+		                                                                                                             .append(".log ")
 		                                                                                                             .append(faSource)
 		                                                                                                             .append(" ")
 		                                                                                                             .append(moSource)
 		                                                                                                             .append(" ")
-		                                                                                                             .append(childSource)
-		                                                                                                             .append(" -start ")
-		                                                                                                             .append(bounds[0])
-		                                                                                                             .append(" -end ")
-		                                                                                                             .append(bounds[1])
-		                                                                                                             .append(" -out ")
-		                                                                                                             .append(out)
-		                                                                                                             .append(".gen > ")
-		                                                                                                             .append(out)
-		                                                                                                             .append(".log");
+		                                                                                                             .append(childSource);
 
 		denoValWriter[0].println(sb.toString());
 	}
