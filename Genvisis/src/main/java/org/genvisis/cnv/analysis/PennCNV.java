@@ -803,7 +803,7 @@ public class PennCNV {
 		                                                                                                             .append(bounds[1])
 		                                                                                                             .append(" -out ")
 		                                                                                                             .append(out)
-		                                                                                                             .append(".gen >")
+		                                                                                                             .append(".gen > ")
 		                                                                                                             .append(out)
 		                                                                                                             .append(".log");
 
