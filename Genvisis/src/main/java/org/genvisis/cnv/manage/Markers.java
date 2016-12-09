@@ -301,7 +301,8 @@ public class Markers {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiter);
 				if (line.length <= indices[0] || line.length < indices[1] || line.length <= indices[2]) {
-					log.reportTimeWarning("Skipping line with missing columns: " + line);
+					log.reportTimeWarning("Skipping line with missing columns: " + Array.toStr(line));
+					continue;
 				}
 				writer.println(line[indices[0]] + "\t" + line[indices[1]] + "\t" + line[indices[2]]);
 			}
