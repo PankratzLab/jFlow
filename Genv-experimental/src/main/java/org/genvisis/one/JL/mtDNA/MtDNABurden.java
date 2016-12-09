@@ -238,7 +238,12 @@ public class MtDNABurden {
 					+ " maf=0-" + maf + " --tests burden fw --perm 50000 >" + results + " \n");
 
 		}
-		// String singleVar = root + ".maf" + maf + ".SingleVarresults";
+		String singleVar = root + ".maf" + maf + ".SingleVarResults";
+		if (!Files.exists(singleVar)) {
+			builder.append(pseqDir + pse + root + "  v-assoc --phenotype phe1 " + "--mask maf=0-" + maf + " >"
+					+ singleVar + " \n");
+		}
+
 		builder.append("head -n1 " + results + " >" + outDir + "results.txt\n");
 		builder.append("grep -v \"=\\|LOCUS\" " + outDir + "*.results >>" + outDir + "results.txt\n");
 		String bat = root + ".bat";
@@ -268,7 +273,7 @@ public class MtDNABurden {
 		FilterResults filterResults = filterCR(caseControlVcf, 0.95, outDir, pseqDir, log);
 		String hqVcf = filterResults.vcf;
 
-		for (int i = 1; i < 15; i++) {
+		for (int i = 1; i < 20; i++) {
 			String phe = HaplogroupSelector.run(haps, "CUSHING_FREQ_V2", controls, vpopFile, filterResults.excludeFile,
 					outDir, i, 1);
 			double[] mafs = new double[] { 0.001, 0.01 };
