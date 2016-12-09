@@ -62,12 +62,16 @@ public class PennCNVFamilies {
 				sample++;
 				StringBuilder sb = new StringBuilder();
 				for (int i = 0; i < dnaIdxs.length; i++) {
-					String pennDataFile = new StringBuilder().append("`gunzip -c ").append(pennDir)
-					                                         .append(line[dnaIdxs[i]]).append(".gz`")
+					sb.append("`gunzip -c ");
+
+					String pennDataFile = new StringBuilder().append(pennDir)
+					                                         .append(line[dnaIdxs[i]]).append(".gz")
 					                                         .toString();
+
 					valid = valid && new File(pennDataFile).exists();
 
 					sb.append(pennDataFile);
+					sb.append("`");
 					if (i + 1 < dnaIdxs.length) {
 						sb.append("\t");
 					}
