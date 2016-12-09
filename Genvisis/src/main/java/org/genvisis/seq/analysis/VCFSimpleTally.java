@@ -740,12 +740,13 @@ public class VCFSimpleTally {
 		private final String annotKeysFile;
 		private final String filters;
 		private final String sampleVarCounts;
+		private final String finalGeneSetSummary;
 
 		public SimpleTallyResult(	VcfPopulation controls, String finalOut, String finalOutVCF,
 															String finalsampSummary, String finalAnnot, String finalAnnotSample,
 															String finalAnnotGene, String finalGeneVariantPositions,
 															String bundleDir, String annotKeysFile, String filters,
-															String sampleVarCounts) {
+															String sampleVarCounts, String finalGeneSetSummary) {
 			super();
 			this.controls = controls;
 			// this.finalOut = finalOut;
@@ -759,6 +760,7 @@ public class VCFSimpleTally {
 			this.annotKeysFile = annotKeysFile;
 			this.filters = filters;
 			this.sampleVarCounts = sampleVarCounts;
+			this.finalGeneSetSummary = finalGeneSetSummary;
 		}
 
 		public String getFinalOutVCF() {
@@ -897,7 +899,8 @@ public class VCFSimpleTally {
 																															finalAnnot, finalAnnotSample,
 																															finalAnnotGene,
 																															finalGeneVariantPositions, bundleDir,
-																															annotKeysFile, filterFile, varCounts);
+																															annotKeysFile, filterFile, varCounts,
+																															finalGeneSetSummary);
 		simpleTallyResult.getFinalGeneVariantPositions();
 
 		String[][] genotypeAnnotations = GenotypeOps.getGenoFormatKeys(vcf, log);
@@ -1901,6 +1904,10 @@ public class VCFSimpleTally {
 			excelFile.add(varSample);
 			ExcelConversionParams gene = new ExcelConversionParams(caseWithControls, "\t", "Gene");
 			excelFile.add(gene);
+
+			ExcelConversionParams geneSetSummary = new ExcelConversionParams(	caseResult.finalGeneSetSummary,
+																																				"\t", "GeneSetSummary");
+			excelFile.add(geneSetSummary);
 			String output = caseResult.getBundleDir() + ext.rootOf(vpopsCase[i]) + "_summary.xlsx";
 			new ExcelConverter(excelFile, output, log).convert(true);
 
