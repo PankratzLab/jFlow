@@ -1,6 +1,7 @@
 package org.genvisis.cnv.analysis;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -24,7 +25,9 @@ public class PennCNVFamilies {
 
 		CLI c = new CLI(PennCNVFamilies.class);
 		c.addArg(trios, "List of known trios", true);
-		c.addArg(jointSize, "Joint chunk size. Allow ~1hr/trio. Will create [#samples]/jointSize input files.", true, CLI.Arg.NUMBER);
+		c.addArg(jointSize,
+		         "Joint chunk size. Allow ~1hr/trio. Will create [#samples]/jointSize input files.",
+		         true, CLI.Arg.NUMBER);
 		c.addArg(pennData, "Directory containing zipped, exported penncnv data", true);
 
 		c.parseWithExit(args);
@@ -42,8 +45,8 @@ public class PennCNVFamilies {
 			PrintWriter writeJoints = Files.getAppropriateWriter("jointInput" + jointChunk + ".txt");
 
 			String header = r.readLine();
-			int[] dnaIdxs = ext.indexFactors(	new String[] {"FA_DNA", "MO_DNA", "DNA"}, header.split("\t"),
-																				false, true);
+			int[] dnaIdxs = ext.indexFactors(new String[] {"FA_DNA", "MO_DNA", "DNA"}, header.split("\t"),
+			                                 false, true);
 			int sample = 0;
 
 			while (r.ready()) {
@@ -59,14 +62,21 @@ public class PennCNVFamilies {
 				sample++;
 				StringBuilder sb = new StringBuilder();
 				for (int i = 0; i < dnaIdxs.length; i++) {
-					sb.append("`gunzip -c ");
-					sb.append(pennDir);
-					sb.append(line[dnaIdxs[i]]);
-					sb.append(".gz`");
+					String pennDataFile = new StringBuilder().append("`gunzip -c ").append(pennDir)
+					                                         .append(line[dnaIdxs[i]]).append(".gz`")
+					                                         .toString();
+					valid = valid && new File(pennDataFile).exists();
+
+					sb.append(pennDataFile);
 					if (i + 1 < dnaIdxs.length) {
 						sb.append("\t");
 					}
 				}
+
+				if (!valid) {
+					continue;
+				}
+
 				writeTrios.println(sb.toString());
 				writeJoints.println(sb.toString());
 				if (sample >= chunkSize) {
