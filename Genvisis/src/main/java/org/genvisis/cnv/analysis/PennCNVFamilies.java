@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import org.genvisis.CLI;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
+import org.genvisis.gwas.PlinkMendelianChecker;
 
 /**
  * Utility for building input list for penncnv trio
@@ -54,7 +55,7 @@ public class PennCNVFamilies {
 
 				boolean valid = true;
 				for (int i = 0; i < dnaIdxs.length; i++) {
-					valid = valid && isValidDNA(line[dnaIdxs[i]]);
+					valid = valid && PlinkMendelianChecker.isValidDNA(line[dnaIdxs[i]]);
 				}
 				if (!valid) {
 					continue;
@@ -110,7 +111,4 @@ public class PennCNVFamilies {
 		System.out.println("Finished writing penncnv trio inputs to: " + out);
 	}
 
-	private static boolean isValidDNA(String s) {
-		return !s.isEmpty() && !s.equals("0") && !s.equals(".");
-	}
 }

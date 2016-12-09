@@ -999,6 +999,9 @@ public class PlinkMendelianChecker {
 		return "UN";
 	}
 
+	public static boolean isValidDNA(String s) {
+		return !s.isEmpty() && !s.equals("0") && !s.equals(".");
+	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;

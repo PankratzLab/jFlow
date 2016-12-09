@@ -799,6 +799,13 @@ public class cnvTrio extends CNVariant {
 				int[] indices = ext.indexFactors(PED_TRIO_HEADER, line, true, true);
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(SPLITS[0]);
+					String dna = line[indices[4]];
+					String faDna = line[indices[5]];
+					String moDna = line[indices[6]];
+					if (!PlinkMendelianChecker.isValidDNA(dna) || !PlinkMendelianChecker.isValidDNA(faDna)
+					    || !PlinkMendelianChecker.isValidDNA(moDna)) {
+						continue;
+					}
 					alTrio.add(new TrioQC(line[indices[0]], line[indices[1]], line[indices[2]],
 					                      line[indices[3]], line[indices[4]], line[indices[5]],
 					                      line[indices[6]]));
