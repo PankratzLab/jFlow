@@ -64,6 +64,8 @@ public class Files {
 	public static final String JCP = JAVA	+ " -jar /home/npankrat/"
 																		+ org.genvisis.common.PSF.Java.GENVISIS;
 	public static final String SERIALIZED_FILE_EXTENSION = ".ser";
+	public static final int PBS_MEM = 16384;
+	public static final int PBS_PROC = 5;
 
 	public static String getJarLocation() {
 		try {
@@ -3792,7 +3794,7 @@ public class Files {
 				qsubs = qsub(	"", ext.rootOf(filename) + (i + 1) + ".#", start, stop,
 											(changeToCurrentWorkingDirectoryFirst ? "cd " + ext.pwd() + "\n" : "")
 																																							+ lines[i],
-											patterns, 63488, 24, null);
+											patterns, PBS_MEM, PBS_PROC, null);
 				v.add(qsubs[0]);
 			}
 			writeArray(Array.toStringArray(v), "master." + ext.rootOf(filename));
@@ -3802,10 +3804,10 @@ public class Files {
 				lines = Array.addStrToArray("cd " + ext.pwd(), lines);
 			}
 			if (start == stop) {
-				qsub(ext.rootOf(filename) + ".qsub", Array.toStr(lines, "\n"), 63488, 24, 1);
+				qsub(ext.rootOf(filename) + ".qsub", Array.toStr(lines, "\n"), PBS_MEM, PBS_PROC, 1);
 			} else {
 				qsubs = qsub(	"", ext.rootOf(filename) + "#", start, stop, Array.toStr(lines, "\n"),
-											patterns, 63488, 24, null);
+											patterns, PBS_MEM, PBS_PROC, null);
 				if (qsubs.length > 1) {
 					writeArray(qsubs, "master." + ext.rootOf(filename));
 					Files.chmod("master." + ext.rootOf(filename));
