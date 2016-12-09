@@ -268,9 +268,9 @@ public class MtDNABurden {
 		FilterResults filterResults = filterCR(caseControlVcf, 0.95, outDir, pseqDir, log);
 		String hqVcf = filterResults.vcf;
 
-		for (int i = 1; i < 6; i++) {
+		for (int i = 1; i < 11; i++) {
 			String phe = HaplogroupSelector.run(haps, "CUSHING_FREQ_V2", controls, vpopFile, filterResults.excludeFile,
-					outDir, 5, 1);
+					outDir, i, 1);
 			double[] mafs = new double[] { 0.001, 0.01 };
 			String analysisVCF = runKeeper(hqVcf, ext.rootOf(phe, false) + HaplogroupSelector.KEEP_EXT, outDir, log);
 			runIstats(analysisVCF, pseqDir, outDir, log);
@@ -286,6 +286,5 @@ public class MtDNABurden {
 				}
 			}
 		}
-
 	}
 }
