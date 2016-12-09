@@ -18,6 +18,13 @@ import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class PlinkMendelianChecker {
+	public static final String FAMID = "FID";
+	public static final String INDID = "IID";
+	public static final String FATHER_ID = "FA_IID";
+	public static final String MOTHER_ID = "MO_IID";
+	public static final String IND_DNA = "DNA";
+	public static final String FATHER_DNA = "FA_DNA";
+	public static final String MOTHER_DNA = "MO_DNA";
 
 	static class Pair {
 
@@ -454,10 +461,10 @@ public class PlinkMendelianChecker {
 		}
 
 		StringBuilder sb;
-		sb = new StringBuilder().append("FID").append("\t").append("IID").append("\t").append("FA_IID")
-														.append("\t").append("MO_IID").append("\t").append("SEX").append("\t")
-														.append("DNA").append("\t").append("FA_DNA").append("\t")
-														.append("MO_DNA").append("\t");
+		sb = new StringBuilder().append(FAMID).append("\t").append(INDID).append("\t").append(FATHER_ID)
+														.append("\t").append(MOTHER_ID).append("\t").append("SEX").append("\t")
+														.append(IND_DNA).append("\t").append(FATHER_DNA).append("\t")
+														.append(MOTHER_DNA).append("\t");
 		if (gl != null) {
 			sb.append("IBD0_FATHER").append("\t").append("IBD1_FATHER").append("\t").append("IBD2_FATHER")
 				.append("\t").append("PIHAT_FATHER").append("\t").append("IBD0_MOTHER").append("\t")
