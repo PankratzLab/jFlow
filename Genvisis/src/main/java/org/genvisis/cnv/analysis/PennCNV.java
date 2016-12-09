@@ -781,7 +781,7 @@ public class PennCNV {
 			return;
 		}
 
-		String childSource = "`gunzup -c " + line[4] + ".gz`";
+		String childSource = "`gunzip -c " + line[4] + ".gz`";
 
 		String faSource = childSource.replace(cDna, faDna);
 		String moSource = childSource.replace(cDna, moDna);
