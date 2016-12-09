@@ -75,6 +75,38 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
   protected FCSPlot fcp;
 
+  int dataCount = -1;
+  String xCol = null, yCol = null;
+  AXIS_SCALE prevXScale, prevYScale;
+  double xMed = Double.NaN, xMin = Double.NaN, xMax = Double.NaN, yMed = Double.NaN,
+      yMin = Double.NaN, yMax = Double.NaN, xSD = Double.NaN, ySD = Double.NaN;
+  PLOT_TYPE prevPlotType;
+  boolean[] showMedSD = {false, false, false, false}; // xMed, xSD, yMed, ySD
+  double[] xData;
+  double[] yData;
+  ArrayList<GenericRectangle> rects = new ArrayList<>();
+  ArrayList<GenericPath> polys = new ArrayList<>();
+  ArrayList<boolean[]> gating = new ArrayList<>();
+  ArrayList<Gate> gates = new ArrayList<>();
+
+  ArrayList<GenericLine> histLines = new ArrayList<>();
+  ArrayList<double[]> tempPoly = new ArrayList<>();
+  volatile boolean forceGatesChanged = false;
+  volatile boolean lackingData = true;
+
+  boolean drag = false;
+	private static final int DEFAULT_NEARBY_DIST = 4;
+  /** mouseGates is altered during the mousePressed event */
+  private final HashSet<Gate> mouseGates = new HashSet<>();
+  /** selectedGates is only removed-from during the mousePressed event */
+  private final HashSet<Gate> selectedGates = new HashSet<>();
+
+  private final ArrayList<RectangleGate> draggingVertexRects = new ArrayList<>();
+  private final ArrayList<Integer> draggingVertexInds = new ArrayList<>();
+  private ArrayList<PolygonGate> draggingPolys = new ArrayList<>();
+  private final ArrayList<Integer> draggingPolyInds = new ArrayList<>();
+
+
   public FCSPanel(FCSPlot fcsPlot) {
     super();
     setDoubleBuffered(false);
@@ -92,26 +124,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
   }
 
-  int dataCount = -1;
-  String xCol = null, yCol = null;
-  AXIS_SCALE prevXScale, prevYScale;
-  double xMed = Double.NaN, xMin = Double.NaN, xMax = Double.NaN, yMed = Double.NaN,
-      yMin = Double.NaN, yMax = Double.NaN, xSD = Double.NaN, ySD = Double.NaN;
-  PLOT_TYPE prevPlotType;
-  boolean[] showMedSD = {false, false, false, false}; // xMed, xSD, yMed, ySD
-  double[] xData;
-  double[] yData;
-  ArrayList<GenericRectangle> rects = new ArrayList<GenericRectangle>();
-  ArrayList<GenericPath> polys = new ArrayList<GenericPath>();
-  ArrayList<boolean[]> gating = new ArrayList<boolean[]>();
-  ArrayList<Gate> gates = new ArrayList<Gate>();
-
-  ArrayList<GenericLine> histLines = new ArrayList<GenericLine>();
-  ArrayList<double[]> tempPoly = new ArrayList<double[]>();
-  volatile boolean forceGatesChanged = false;
-  volatile boolean lackingData = true;
-
-  public static enum GATING_TOOL {
+  public enum GATING_TOOL {
 
     RECT_GATE("Rectangle"), POLY_GATE("Polygon");
 
@@ -154,7 +167,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
   }
 
   private void setLines() {
-    ArrayList<GenericLine> allLines = new ArrayList<GenericLine>();
+    ArrayList<GenericLine> allLines = new ArrayList<>();
     allLines.addAll(histLines);
     if (highlightRectangle != null) {
       allLines.add(new GenericLine(highlightRectangle.getStartXValue(), (float) plotYmin,
@@ -281,7 +294,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       forceGatesChanged = false;
     }
 
-    // TODO replace with loading gates from FCSPlot (and creating gates from mouse actions)
     rectangles = rects.toArray(new GenericRectangle[rects.size()]);
     polygons = polys.toArray(new GenericPath[polys.size()]);
 
@@ -526,7 +538,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     int tempY = e.getY();
 
     List<Gate> gating = fcp.getGatingForCurrentPlot();
-    ArrayList<PolygonGate> retPolys = new ArrayList<PolygonGate>();
+    ArrayList<PolygonGate> retPolys = new ArrayList<>();
 
     double[] coords = new double[6];
     for (int i = 0; i < gating.size(); i++) {
@@ -553,7 +565,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     int tempY = e.getY();
 
     List<Gate> gating = fcp.getGatingForCurrentPlot();
-    ArrayList<PolygonGate> retPolys = new ArrayList<PolygonGate>();
+    ArrayList<PolygonGate> retPolys = new ArrayList<>();
 
     for (int i = 0; i < gating.size(); i++) {
       if (gating.get(i) instanceof PolygonGate) {
@@ -572,7 +584,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     int tempY = e.getY();
 
     List<Gate> gating = fcp.getGatingForCurrentPlot();
-    ArrayList<RectangleGate> retRects = new ArrayList<RectangleGate>();
+    ArrayList<RectangleGate> retRects = new ArrayList<>();
 
     for (int i = 0; i < gating.size(); i++) {
       if (gating.get(i) instanceof RectangleGate) {
@@ -604,7 +616,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     int tempY = e.getY();
 
     List<Gate> gating = fcp.getGatingForCurrentPlot();
-    ArrayList<RectangleGate> retRects = new ArrayList<RectangleGate>();
+    ArrayList<RectangleGate> retRects = new ArrayList<>();
 
     for (int i = gating.size() - 1; i >= 0; i--) {
       if (gating.get(i) instanceof RectangleGate) {
@@ -648,18 +660,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
    * polys if still within poly and not dragging if within N pixels of vertex, start vertex drag
    * (don't deselect everything; can drag/edit while preserving multiselect)
    */
-
-  private static final int DEFAULT_NEARBY_DIST = 4;
-  /** mouseGates is altered during the mousePressed event */
-  private final HashSet<Gate> mouseGates = new HashSet<Gate>();
-  /** selectedGates is only removed-from during the mousePressed event */
-  private final HashSet<Gate> selectedGates = new HashSet<Gate>();
-
-  private final ArrayList<RectangleGate> draggingVertexRects = new ArrayList<RectangleGate>();
-  private final ArrayList<Integer> draggingVertexInds = new ArrayList<Integer>();
-  private ArrayList<PolygonGate> draggingPolys = new ArrayList<PolygonGate>();
-  private final ArrayList<Integer> draggingPolyInds = new ArrayList<Integer>();
-
+  
   private void setGateLevel(Gate g) {
     Area p = null;
     if (g instanceof PolygonGate) {
@@ -807,62 +808,57 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
           draggingVertexInds.clear();
         }
       }
-      if (!didSelect && !didClear && !wasDrag) {
-        if (currentTool == GATING_TOOL.POLY_GATE) {
-          double tempValX = getXValueFromXPixel(mouseEndX);
-          double tempValY = getYValueFromYPixel(mouseEndY);
-          if (!tempPoly.isEmpty()) {
-            int initPtX = getXPixel(tempPoly.get(0)[0]);
-            int initPtY = getYPixel(tempPoly.get(0)[1]);
-            if (Math.abs(initPtX - mouseEndX) < 5 && Math.abs(initPtY - mouseEndY) < 5) {
-              if (tempPoly.size() > 2) {
-                String name = null;
-                int msgCode = 0;
-                do {
-                  String msg = "Gate Name:";
-                  if (msgCode == 1) {
-                    msg += " (must provide a name)";
-                  } else if (msgCode == 2) {
-                    msg += " (must be unique)";
-                  }
-                  name =
-                      JOptionPane.showInputDialog(fcp, msg, "Add Gate?",
-                          JOptionPane.QUESTION_MESSAGE);
-                } while ((msgCode = ("".equals(name) ? 1 : (fcp.duplicateGateName(name) ? 2 : 0))) > 0);
-                if (name != null) {
-                  Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-                  path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
-                  for (int i = 1; i < tempPoly.size(); ++i) {
-                    path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
-                  }
-                  path.closePath();
-                  PolygonGate pg = new PolygonGate(fcp.getParentGate(), name);
-                  pg.setXDimension(new GateDimension(pg, xCol));
-                  pg.setYDimension(new GateDimension(pg, yCol));
-                  pg.setPath(path);
-                  pg.setShouldMimicFlowJoGating(fcp.isDrawPolysAsFlowJo());
-                  pg.setColor(3);
-                  setGateLevel(pg);
-                  fcp.addGate(pg);
-                  selectedGates.add(pg);
+      if ((!didSelect && !didClear && !wasDrag) && (currentTool == GATING_TOOL.POLY_GATE)) {
+        double tempValX = getXValueFromXPixel(mouseEndX);
+        double tempValY = getYValueFromYPixel(mouseEndY);
+        if (!tempPoly.isEmpty()) {
+          int initPtX = getXPixel(tempPoly.get(0)[0]);
+          int initPtY = getYPixel(tempPoly.get(0)[1]);
+          if (Math.abs(initPtX - mouseEndX) < 5 && Math.abs(initPtY - mouseEndY) < 5) {
+            if (tempPoly.size() > 2) {
+              String name;
+              int msgCode = 0;
+              do {
+                String msg = "Gate Name:";
+                if (msgCode == 1) {
+                  msg += " (must provide a name)";
+                } else if (msgCode == 2) {
+                  msg += " (must be unique)";
                 }
+                name = JOptionPane.showInputDialog(fcp, msg, "Add Gate?", JOptionPane.QUESTION_MESSAGE);
+              } while ((msgCode = "".equals(name) ? 1 : (fcp.duplicateGateName(name) ? 2 : 0)) > 0);
+              if (name != null) {
+                Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+                path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
+                for (int i = 1; i < tempPoly.size(); ++i) {
+                  path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
+                }
+                path.closePath();
+                PolygonGate pg = new PolygonGate(fcp.getParentGate(), name);
+                pg.setXDimension(new GateDimension(pg, xCol));
+                pg.setYDimension(new GateDimension(pg, yCol));
+                pg.setPath(path);
+                pg.setShouldMimicFlowJoGating(fcp.isDrawPolysAsFlowJo());
+                pg.setColor(3);
+                setGateLevel(pg);
+                fcp.addGate(pg);
+                selectedGates.add(pg);
               }
-              tempPoly.clear();
-              highlightPoly = null;
-              setForceGatesChanged();
-              refreshNonBaseLayers(true);
-              return;
             }
+            tempPoly.clear();
+            highlightPoly = null;
+            setForceGatesChanged();
+            refreshNonBaseLayers(true);
+            return;
           }
-          tempPoly.add(new double[] {tempValX, tempValY});
-          Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-          path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
-          for (int i = 1; i < tempPoly.size(); ++i) {
-            path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
-          }
-          highlightPoly = new GenericPath(null, path, (byte) 0, (byte) 0, (byte) 99, false, true);
         }
-
+        tempPoly.add(new double[] {tempValX, tempValY});
+        Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+        path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
+        for (int i = 1; i < tempPoly.size(); ++i) {
+          path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
+        }
+        highlightPoly = new GenericPath(null, path, (byte) 0, (byte) 0, (byte) 99, false, true);
       }
       setForceGatesChanged();
       refreshNonBaseLayers(true);
@@ -1095,7 +1091,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       ArrayList<Gate> allGates = new ArrayList<Gate>();
       allGates.addAll(getPolysContainingClick(e));
       allGates.addAll(getRectsContainingClick(e));
-      if (allGates.size() == 0) {
+      if (allGates.isEmpty()) {
         return;
       }
       Gate g = allGates.get(0);
@@ -1309,9 +1305,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                     (byte) 99, true);
           }
         } else {
-          int diffX, diffY;
+          int diffX;
           diffX = mouseEndX - startX;
-          diffY = mouseEndY - startY;
           
           double dX, dY;
           dX = getXValueFromXPixel(mouseEndX) - getXValueFromXPixel(startX);
@@ -1327,7 +1322,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 gdX.setMax((float) getXValueFromXPixel(getXPixel(gdX.getMax()) + diffX));
               }
               if (Numbers.isFinite(gdX.getMin())) {
-//                gdX.setMin((float) (gdX.getMin() + dX));
                 gdX.setMin((float) getXValueFromXPixel(getXPixel(gdX.getMin()) + diffX));
               }
               if (gdX.getMin() > gdX.getMax()) {
@@ -1341,11 +1335,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 RectangleGateDimension gdY = (RectangleGateDimension) ((RectangleGate) gr).getYDimension();
                 if (Numbers.isFinite(gdY.getMin())) {
                   gdY.setMin((float) (gdY.getMin() + dY));
-//                  gdY.setMin((float) getYValueFromYPixel(getYPixel(gdY.getMin()) + diffY));
                 }
                 if (Numbers.isFinite(gdY.getMax())) {
                   gdY.setMax((float) (gdY.getMax() + dY));
-//                  gdY.setMax((float) getYValueFromYPixel(getYPixel(gdY.getMax()) + diffY));
                 }
                 if (gdY.getMin() > gdY.getMax()) {
                   float y1, y2;
@@ -1356,95 +1348,43 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 }
               }
             } else if (gr instanceof PolygonGate) {
-
-//              Path2D polyTr = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-//              double[] coords = new double[6];
-//              PathIterator path = ((PolygonGate) gr).getPath().getPathIterator(null);
-//              while (!path.isDone()) {
-//                int code = path.currentSegment(coords);
-//                switch (code) {
-//                  case PathIterator.SEG_MOVETO:
-//                    polyTr.moveTo(getXValueFromXPixel(getXPixel(coords[0]) + diffX),
-//                        getYValueFromYPixel(getYPixel(coords[1]) + diffY));
-//                    break;
-//                  case PathIterator.SEG_LINETO:
-//                    polyTr.lineTo(getXValueFromXPixel(getXPixel(coords[0]) + diffX),
-//                        getYValueFromYPixel(getYPixel(coords[1]) + diffY));
-//                    break;
-//                  case PathIterator.SEG_CLOSE:
-//                    polyTr.closePath();
-//                }
-//                path.next();
-//              }
-//              
-//              ((PolygonGate) gr).setPath(polyTr);
               ((PolygonGate) gr).transform(at);
-              
             }
           }
           for (Gate gr : mouseGates) {
-            if (gr instanceof RectangleGate) {
-              if (!selectedGates.contains(gr)) {
-                RectangleGateDimension gdX = (RectangleGateDimension) ((RectangleGate) gr).getXDimension();
-                if (Numbers.isFinite(gdX.getMax())) {
-                  gdX.setMax((float) (gdX.getMax() + dX));
-//                  gdX.setMax((float) getXValueFromXPixel(getXPixel(gdX.getMax()) + diffX));
+            if (gr instanceof RectangleGate && !selectedGates.contains(gr)) {
+              RectangleGateDimension gdX = (RectangleGateDimension) ((RectangleGate) gr).getXDimension();
+              if (Numbers.isFinite(gdX.getMax())) {
+                gdX.setMax((float) (gdX.getMax() + dX));
+              }
+              if (Numbers.isFinite(gdX.getMin())) {
+                gdX.setMin((float) (gdX.getMin() + dX));
+              }
+              if (gdX.getMin() > gdX.getMax()) {
+                float x1, x2;
+                x1 = gdX.getMin();
+                x2 = gdX.getMax();
+                gdX.setMin(x2);
+                gdX.setMax(x1);
+              }
+              if (!isHistogram()) {
+                RectangleGateDimension gdY = (RectangleGateDimension) ((RectangleGate) gr).getYDimension();
+                if (Numbers.isFinite(gdY.getMin())) {
+                  gdY.setMin((float) (gdY.getMin() + dY));
                 }
-                if (Numbers.isFinite(gdX.getMin())) {
-                  gdX.setMin((float) (gdX.getMin() + dX));
-//                  gdX.setMin((float) getXValueFromXPixel(getXPixel(gdX.getMin()) + diffX));
+                if (Numbers.isFinite(gdY.getMax())) {
+                  gdY.setMax((float) (gdY.getMax() + dY));
                 }
-                if (gdX.getMin() > gdX.getMax()) {
-                  float x1, x2;
-                  x1 = gdX.getMin();
-                  x2 = gdX.getMax();
-                  gdX.setMin(x2);
-                  gdX.setMax(x1);
-                }
-                if (!isHistogram()) {
-                  RectangleGateDimension gdY = (RectangleGateDimension) ((RectangleGate) gr).getYDimension();
-                  if (Numbers.isFinite(gdY.getMin())) {
-                    gdY.setMin((float) (gdY.getMin() + dY));
-//                    gdY.setMin((float) getYValueFromYPixel(getYPixel(gdY.getMin()) + diffY));
-                  }
-                  if (Numbers.isFinite(gdY.getMax())) {
-                    gdY.setMax((float) (gdY.getMax() + dY));
-//                    gdY.setMax((float) getYValueFromYPixel(getYPixel(gdY.getMax()) + diffY));
-                  }
-                  if (gdY.getMin() > gdY.getMax()) {
-                    float y1, y2;
-                    y1 = gdY.getMin();
-                    y2 = gdY.getMax();
-                    gdY.setMin(y2);
-                    gdY.setMax(y1);
-                  }
+                if (gdY.getMin() > gdY.getMax()) {
+                  float y1, y2;
+                  y1 = gdY.getMin();
+                  y2 = gdY.getMax();
+                  gdY.setMin(y2);
+                  gdY.setMax(y1);
                 }
               }
-            } else if (gr instanceof PolygonGate) {
-              if (!selectedGates.contains(gr)) {
-//                Path2D polyTr = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-//                double[] coords = new double[6];
-//                PathIterator path = ((PolygonGate) gr).getPath().getPathIterator(null);
-//                while (!path.isDone()) {
-//                  int code = path.currentSegment(coords);
-//                  switch (code) {
-//                    case PathIterator.SEG_MOVETO:
-//                      polyTr.moveTo(getXValueFromXPixel(getXPixel(coords[0]) + diffX),
-//                          getYValueFromYPixel(getYPixel(coords[1]) + diffY));
-//                      break;
-//                    case PathIterator.SEG_LINETO:
-//                      polyTr.lineTo(getXValueFromXPixel(getXPixel(coords[0]) + diffX),
-//                          getYValueFromYPixel(getYPixel(coords[1]) + diffY));
-//                      break;
-//                    case PathIterator.SEG_CLOSE:
-//                      polyTr.closePath();
-//                  }
-//                  path.next();
-//                }
-//                
-//                ((PolygonGate) gr).setPath(polyTr);
-                ((PolygonGate) gr).transform(at);
-              }
+            } else if (gr instanceof PolygonGate && !selectedGates.contains(gr)) {
+              ((PolygonGate) gr).transform(at);
             }
           }
           for (Gate g : selectedGates) {
@@ -1591,8 +1531,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       super.mouseDragged(e);
     }
   }
-
-  boolean drag = false;
 
   public void setForceGatesChanged() {
     forceGatesChanged = true;

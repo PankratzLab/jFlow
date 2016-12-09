@@ -2642,8 +2642,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         int[] screenMinMax = getScreenX();
         Logicle l = getBiexScale(true);
         return (l.scale(val) * (screenMinMax[1] - screenMinMax[0])) + screenMinMax[0];
-//        return (l.scale(val) * 512) + 256;
-//        return linTrans.scaleX((l.scale(val) * 512) + 256);
       }
   
       @Override
@@ -2651,8 +2649,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         int[] screenMinMax = getScreenY();
         Logicle l = getBiexScale(false);
         return (l.scale(val) * (screenMinMax[1] - screenMinMax[0])) + screenMinMax[0];
-//        return (l.scale(val) * 512) + 256;
-//        return linTrans.scaleY((l.scale(val) * 512) + 256);
       }
   
       @Override
@@ -2660,8 +2656,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         int[] screenMinMax = getScreenX();
         Logicle l = getBiexScale(true);
         return l.inverse((val - screenMinMax[0]) / (screenMinMax[1] - screenMinMax[0]));
-//        return l.inverse((val - 256) / 512);
-//        return l.inverse((linTrans.inverseX(val) - 256) / 512);
       }
   
       @Override
@@ -2669,8 +2663,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         int[] screenMinMax = getScreenY();
         Logicle l = getBiexScale(false);
         return l.inverse((val - screenMinMax[0]) / (screenMinMax[1] - screenMinMax[0]));
-//        return l.inverse((val - 256) / 512);
-//        return l.inverse((linTrans.inverseY(val) - 256) / 512);
       }
     }
     
