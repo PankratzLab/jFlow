@@ -9,12 +9,16 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.mtdna.HaplogroupSelector;
+import org.genvisis.seq.manage.GenotypeOps;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
 
+import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypeBuilder;
+import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
@@ -27,7 +31,8 @@ public class MtDNABurden {
 	}
 
 	private enum VARIANT_TYPES {
-		LHON_ASSOC("Associated_disease", new String[] { "Lebers_optic_atrophy", "Optic_neuropathy", "LHON" },
+		APOGEE("APOGEE", new String[] { "P" }, FILTER_TYPE.CONTAINS), LHON_ASSOC("Associated_disease",
+				new String[] { "Lebers_optic_atrophy", "Optic_neuropathy", "LHON" },
 				FILTER_TYPE.CONTAINS), DISEASE_ASSOC("Associated_disease", new String[] { "-", "." },
 						FILTER_TYPE.NOT_EQUAL), MIT_IMPACT("MitImpact_id", new String[] { "." },
 								FILTER_TYPE.NOT_EQUAL), GB("mtPoly.AF", null, FILTER_TYPE.LESS_THAN);
@@ -44,8 +49,8 @@ public class MtDNABurden {
 	}
 
 	private static String filter(String vcf, VARIANT_TYPES vTypes, String outDir, double genBankMaf, Logger log) {
-		String outputVCF = outDir + VCFOps.getAppropriateRoot(vcf, true) + vTypes.toString() + ".gb." + genBankMaf
-				+ ".vcf";
+		String outputVCF = outDir + VCFOps.getAppropriateRoot(vcf, true) + vTypes.toString()
+				+ (vTypes == VARIANT_TYPES.GB ? ".gb." + genBankMaf : "") + ".vcf";
 		String finalOut = ext.addToRoot(outputVCF, ".sed");
 
 		if (!Files.exists(finalOut)) {
@@ -216,6 +221,41 @@ public class MtDNABurden {
 		return new FilterResults(out1 + ".recode.vcf", excludes);
 	}
 
+	private static String makeHetVcf(String inputVcf, String outDir, Logger log) {
+		VCFFileReader reader = new VCFFileReader(new File(inputVcf), false);
+		String root = outDir + VCFOps.getAppropriateRoot(inputVcf, true) + "_HETONLY";
+		String filtVcf = root + ".vcf";
+		VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, filtVcf, VCFOps.DEFUALT_WRITER_OPTIONS,
+				new Logger());
+
+		for (VariantContext vc : reader) {
+
+			VariantContextBuilder builder = new VariantContextBuilder(vc);
+			ArrayList<Genotype> genotypes = new ArrayList<>();
+			for (Genotype g : vc.getGenotypes()) {
+				GenotypeBuilder gb = new GenotypeBuilder(g);
+				if (!g.isHet()) {
+					gb.alleles(GenotypeOps.getNoCall());
+				}
+				genotypes.add(gb.make());
+			}
+
+			GenotypesContext bc = GenotypesContext.create(genotypes);
+			builder.genotypes(bc);
+			writer.add(builder.make());
+		}
+		reader.close();
+		writer.close();
+		String finalOut = root + ".sed.vcf";
+		StringBuilder sed = new StringBuilder();
+		sed.append("sed 's/##fileformat=VCFv4.2/##fileformat=VCFv4.1/g' " + filtVcf + " > " + finalOut);
+		String bat = finalOut + ".bat";
+		Files.write(sed.toString(), bat);
+		Files.chmod(bat);
+		CmdLine.runCommandWithFileChecks(new String[] { bat }, "", null, null, true, true, false, log);
+		return finalOut;
+	}
+
 	private static void runPseq(String pseqDir, String outDir, String vcf, String mtGeneFile, String phe, double maf,
 			Logger log) {
 
@@ -273,7 +313,7 @@ public class MtDNABurden {
 		FilterResults filterResults = filterCR(caseControlVcf, 0.95, outDir, pseqDir, log);
 		String hqVcf = filterResults.vcf;
 
-		for (int i = 1; i < 20; i++) {
+		for (int i = 4; i < 20; i++) {
 			String phe = HaplogroupSelector.run(haps, "CUSHING_FREQ_V2", controls, vpopFile, filterResults.excludeFile,
 					outDir, i, 1);
 			double[] mafs = new double[] { 0.001, 0.01 };
@@ -286,7 +326,11 @@ public class MtDNABurden {
 				if (vType != VARIANT_TYPES.GB) {
 					for (double maf : mafs) {
 						String vcf = filter(analysisVCF, vType, outDir, maf, log);
+						String hetVcf = makeHetVcf(vcf, outDir, log);
+						runPseq(pseqDir, outDir, hetVcf, mtDNADefs, phe, 1, log);
 						runPseq(pseqDir, outDir, vcf, mtDNADefs, phe, maf, log);
+						String gbVCF = filter(vcf, VARIANT_TYPES.GB, outDir, maf, log);
+						runPseq(pseqDir, outDir, gbVCF, mtDNADefs, phe, 1, log);
 					}
 				}
 			}
