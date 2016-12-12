@@ -221,9 +221,9 @@ public class MtDNABurden {
 		return new FilterResults(out1 + ".recode.vcf", excludes);
 	}
 
-	private static String makeHetVcf(String inputVcf, String outDir, Logger log) {
+	private static String makeHetVcf(String inputVcf, String outDir, int gq, Logger log) {
 		VCFFileReader reader = new VCFFileReader(new File(inputVcf), false);
-		String root = outDir + VCFOps.getAppropriateRoot(inputVcf, true) + "_HETONLY";
+		String root = outDir + VCFOps.getAppropriateRoot(inputVcf, true) + "_HETONLY_GQ_" + gq;
 		String filtVcf = root + ".vcf";
 		VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, filtVcf, VCFOps.DEFUALT_WRITER_OPTIONS,
 				new Logger());
@@ -234,7 +234,7 @@ public class MtDNABurden {
 			ArrayList<Genotype> genotypes = new ArrayList<>();
 			for (Genotype g : vc.getGenotypes()) {
 				GenotypeBuilder gb = new GenotypeBuilder(g);
-				if (!g.isHet()) {
+				if (!g.isHet() || g.getGQ() < gq) {
 					gb.alleles(GenotypeOps.getNoCall());
 				}
 				genotypes.add(gb.make());
@@ -242,7 +242,10 @@ public class MtDNABurden {
 
 			GenotypesContext bc = GenotypesContext.create(genotypes);
 			builder.genotypes(bc);
-			writer.add(builder.make());
+			VariantContext hetContext = builder.make();
+			if (!hetContext.isMonomorphicInSamples()) {
+				writer.add(hetContext);
+			}
 		}
 		reader.close();
 		writer.close();
@@ -312,25 +315,35 @@ public class MtDNABurden {
 		String caseControlVcf = filterVpop(inputVCF, outDir, vpop, cases, controls, log);
 		FilterResults filterResults = filterCR(caseControlVcf, 0.95, outDir, pseqDir, log);
 		String hqVcf = filterResults.vcf;
-
-		for (int i = 4; i < 20; i++) {
+		int[] gqs = new int[] { 0, 20 };
+		for (int i = 5; i < 6; i++) {
 			String phe = HaplogroupSelector.run(haps, "CUSHING_FREQ_V2", controls, vpopFile, filterResults.excludeFile,
 					outDir, i, 1);
-			double[] mafs = new double[] { 0.001, 0.01 };
+			double[] mafs = new double[] { 0.001, 0.01, 0.05 };
 			String analysisVCF = runKeeper(hqVcf, ext.rootOf(phe, false) + HaplogroupSelector.KEEP_EXT, outDir, log);
 			runIstats(analysisVCF, pseqDir, outDir, log);
 
 			String mtDNADefs = "/Volumes/Beta/data/mtDNA-dev/vcf/analysis/mtUniport.reg";
 
+			// String hetVcfFull = makeHetVcf(analysisVCF, outDir, log);
+			// runPseq(pseqDir, outDir, hetVcfFull, mtDNADefs, phe, 1, log);
+
 			for (VARIANT_TYPES vType : VARIANT_TYPES.values()) {
 				if (vType != VARIANT_TYPES.GB) {
-					for (double maf : mafs) {
-						String vcf = filter(analysisVCF, vType, outDir, maf, log);
-						String hetVcf = makeHetVcf(vcf, outDir, log);
+					String vcf = filter(analysisVCF, vType, outDir, 1, log);
+					for (int gq : gqs) {
+						String hetVcf = makeHetVcf(vcf, outDir, gq, log);
 						runPseq(pseqDir, outDir, hetVcf, mtDNADefs, phe, 1, log);
+					}
+					for (double maf : mafs) {
+
 						runPseq(pseqDir, outDir, vcf, mtDNADefs, phe, maf, log);
 						String gbVCF = filter(vcf, VARIANT_TYPES.GB, outDir, maf, log);
 						runPseq(pseqDir, outDir, gbVCF, mtDNADefs, phe, 1, log);
+						for (int gq : gqs) {
+							String hetGbVcf = makeHetVcf(gbVCF, outDir, gq, log);
+							runPseq(pseqDir, outDir, hetGbVcf, mtDNADefs, phe, 1, log);
+						}
 					}
 				}
 			}
