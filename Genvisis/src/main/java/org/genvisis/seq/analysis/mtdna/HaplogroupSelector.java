@@ -17,6 +17,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Numbers;
 import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.mtdna.HaploTrie.HaplogroupMatchResult;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
@@ -155,7 +156,7 @@ public class HaplogroupSelector {
 		 */
 		@Override
 		public int compareTo(HaploMatch other) {
-			return -1 * Integer.compare(this.haploStringLength, other.haploStringLength);
+			return -1 * Numbers.compare(this.haploStringLength, other.haploStringLength);
 		}
 
 

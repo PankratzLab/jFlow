@@ -17,4 +17,8 @@ public final class Numbers {
 	public static boolean isFinite(Float f) {
 		return !f.isInfinite() && !f.isNaN();
 	}
+
+	public static int compare(int i1, int i2) {
+		return new Integer(i1).compareTo(new Integer(i2));
+	}
 }
