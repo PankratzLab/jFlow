@@ -71,10 +71,7 @@ public class CNVRectangles {
 		for (String key : fileMap.keySet()) {
 			if (filterFiles.contains(key)) {
 				for (CNVariant variant : fileMap.get(key)) {
-					String[] ref = referenceSamples.lookup(variant.getIndividualID());
-					if (ref == null) {
-						ref = referenceSamples.lookup(variant.getFamilyID() + "\t" + variant.getIndividualID());
-					}
+					String[] ref = referenceSamples.lookup(variant.getFamilyID() + "\t" + variant.getIndividualID());
 
 					// Set the color
 					if (sampleSet == null || (ref != null && sampleSet.contains(ref[0]))) {
