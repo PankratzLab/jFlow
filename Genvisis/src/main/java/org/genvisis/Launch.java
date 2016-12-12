@@ -67,7 +67,7 @@ public class Launch {
 																							"freq - computes weighted allele frequency",
 																							"uniform - creates a hits control file where each file listed has the same column names, only with a different prefix",
 																							"metal - perform a meta-analysis using METAL",
-																							"transform", "forest", "unique", "dir", "copy",
+																							"transform", "unique", "dir", "copy",
 																							"meta", "gwaf",
 																							"sas - merge results from a series of dumped sas.xln files in different folders",
 																							"results - merge map and frequency information into a final results file",
