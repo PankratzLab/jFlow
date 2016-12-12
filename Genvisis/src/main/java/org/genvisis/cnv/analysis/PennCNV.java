@@ -48,6 +48,10 @@ public class PennCNV {
 	public static final String QC_SUMMARY_FILE = "Sample_QC.xln";
 	public static final int MISSING_SCORE = -1;
 
+	private static final String FAFILE = "father.txt";
+	private static final String MOFILE = "mother.txt";
+	private static final String CHILDFILE = "offspring.txt";
+
 	public static void batch(Project proj, int numChunks, Vector<String> execList, String pfbFile,
 	                         String gcmodelFile, String hmmFile, String scriptSubDir,
 	                         String dataSubDir, String resultsSubDir) {
@@ -683,7 +687,6 @@ public class PennCNV {
 						}
 					}
 
-
 					String copynum = line[3].substring(line[3].indexOf("=") + 1);
 					String sites = line[1].substring(7);
 					StringBuilder lineOut = new StringBuilder(famIndPair).append("\t").append(position[0])
@@ -702,7 +705,7 @@ public class PennCNV {
 							denovoWriter.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 						}
 						denovoWriter.println(lineOut.toString());
-						writeValidation(ped, ids, copynum, line, filename, denoValWriter, log);
+						writeValidation(ped, ids, position, copynum, line, filename, denoValWriter, log);
 					}
 				}
 			}
@@ -712,6 +715,10 @@ public class PennCNV {
 				denovoWriter.close();
 			}
 			if (denoValWriter[0] != null) {
+				StringBuilder cleanup = new StringBuilder("rm ").append(FAFILE).append(" && rm ")
+				                                                .append(MOFILE).append(" && rm ")
+				                                                .append(CHILDFILE);
+				denoValWriter[0].println(cleanup.toString());
 				denoValWriter[0].close();
 			}
 
@@ -749,8 +756,9 @@ public class PennCNV {
 		log.report("...finished in " + ext.getTimeElapsed(time));
 	}
 
-	private static void writeValidation(Pedigree ped, String[] ids, String copynum, String[] line,
-	                                    String filename, PrintWriter[] denoValWriter, Logger log) {
+	private static void writeValidation(Pedigree ped, String[] ids, int[] position, String copynum,
+	                                    String[] line, String filename, PrintWriter[] denoValWriter,
+	                                    Logger log) {
 		int pedIndex = ped.getIndIndex(ids[0], ids[1]);
 		if (pedIndex < 0) {
 			return;
@@ -767,8 +775,7 @@ public class PennCNV {
 
 		if (denoValWriter[0] == null) {
 			try {
-				String outfile = ext.parseDirectoryOfFile(filename)
-            + "denovoValidation.txt";
+				String outfile = ext.parseDirectoryOfFile(filename) + "denovoValidation.txt";
 				denoValWriter[0] = new PrintWriter(new FileWriter(outfile));
 			} catch (IOException e) {
 				log.reportException(e);
@@ -781,30 +788,43 @@ public class PennCNV {
 			return;
 		}
 
-		String childSource = "`gunzip -c " + line[4] + ".gz`";
-
+		String childSource = "gunzip -c " + line[4] + ".gz";
 		String faSource = childSource.replace(cDna, faDna);
 		String moSource = childSource.replace(cDna, moDna);
 
-		String out = faDna + "_" + moDna + "_" + cDna + "_" + bounds[0] + "_" + bounds[1];
+		StringBuilder extractLine = new StringBuilder(faSource).append(" > ").append(FAFILE)
+		                                                       .append(" && ").append(moSource)
+		                                                       .append(" > ").append(MOFILE)
+		                                                       .append(" && ").append(childSource)
+		                                                       .append(" > ").append(CHILDFILE);
+
+		denoValWriter[0].println(extractLine.toString());
+
+		String out = ids[0] + "_" + ids[1] + "_" + position[0] + "_" + position[1] + "_" + position[2];
+
+		// TODO write two lines. The first runs gunzip -c father.txt, mother.txt, child.txt
+		// second line does the analysis with those files
+		// TODO write final line deleting father/mother/offspring.txt
+		// TODO update output to be fid, iid, chr, start, stop so that the log can be parsed for results
+		// that match up with the denovo cnv
 
 		StringBuilder sb =
-		                new StringBuilder("/home/pankrat2/shared/bin/infer_snp_allele.pl -pfbfile $PFBFILE -hmmfile $HMMFILE").append(" -denovocn ")
-		                                                                                                             .append(copynum)
-		                                                                                                             .append(" -startsnp ")
-		                                                                                                             .append(bounds[0])
-		                                                                                                             .append(" -endsnp ")
-		                                                                                                             .append(bounds[1])
-		                                                                                                             .append(" -outfile ")
-		                                                                                                             .append(out)
-		                                                                                                             .append(".gen  -logfile ")
-		                                                                                                             .append(out)
-		                                                                                                             .append(".log ")
-		                                                                                                             .append(faSource)
-		                                                                                                             .append(" ")
-		                                                                                                             .append(moSource)
-		                                                                                                             .append(" ")
-		                                                                                                             .append(childSource);
+		                 new StringBuilder("/home/pankrat2/shared/bin/infer_snp_allele.pl -pfbfile $PFBFILE -hmmfile $HMMFILE").append(" -denovocn ")
+		                                                                                                                       .append(copynum)
+		                                                                                                                       .append(" -startsnp ")
+		                                                                                                                       .append(bounds[0])
+		                                                                                                                       .append(" -endsnp ")
+		                                                                                                                       .append(bounds[1])
+		                                                                                                                       .append(" -outfile ")
+		                                                                                                                       .append(out)
+		                                                                                                                       .append(".gen  -logfile ")
+		                                                                                                                       .append(out)
+		                                                                                                                       .append(".log ")
+		                                                                                                                       .append(FAFILE)
+		                                                                                                                       .append(" ")
+		                                                                                                                       .append(MOFILE)
+		                                                                                                                       .append(" ")
+		                                                                                                                       .append(CHILDFILE);
 
 		denoValWriter[0].println(sb.toString());
 	}
@@ -1437,11 +1457,12 @@ public class PennCNV {
 					hmmFile = Resources.cnv(proj.getLog()).getAllHmm().get();
 				}
 				if (pfbFile == null || !new File(pfbFile).exists()) {
-					pfbFile = Resources.cnv(proj.getLog()).genome(proj.GENOME_BUILD_VERSION.getValue()).getAllPfb().get();
+					pfbFile = Resources.cnv(proj.getLog()).genome(proj.GENOME_BUILD_VERSION.getValue())
+					                   .getAllPfb().get();
 				}
 				if (gcmodelFile == null || !new File(pfbFile).exists()) {
-					gcmodelFile =
-					            Resources.cnv(proj.getLog()).genome(proj.GENOME_BUILD_VERSION.getValue()).getAllGcmodel().get();
+					gcmodelFile = Resources.cnv(proj.getLog()).genome(proj.GENOME_BUILD_VERSION.getValue())
+					                       .getAllGcmodel().get();
 				}
 				doBatch(proj, auto, chrx, sexCent, transformData, numChunks, separateQsubs, pfbFile,
 				        gcmodelFile, hmmFile, separateQsubs ? submit : false, recode, excludes, numThreads);
