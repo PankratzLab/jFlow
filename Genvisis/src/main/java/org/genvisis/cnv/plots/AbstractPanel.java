@@ -36,6 +36,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
+import org.genvisis.common.Logger;
 import org.genvisis.common.ProgressBarDialog;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Distance;
@@ -119,6 +120,8 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 	protected float[][] zoomSubsets;
 	protected IntVector prox;
 	protected int chartType;
+	
+	private Logger log;
 
 	private boolean inDrag;
 	private volatile int startX, startY;
@@ -188,6 +191,9 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 		addComponentListener(this);
 	}
 
+	public void setLog(Logger log) {
+		this.log = log;
+	}
 
 	public void createLookup(boolean value) {
 		createLookup = value;
@@ -195,7 +201,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 
 	public void setImageStatus(int status) {
 		if (DEBUGGING) {
-			System.out.println("Set image status to " + status);
+			log.report("Set image status to " + status);
 		}
 		imageStatus = status;
 	}
@@ -282,7 +288,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 		// being created
 		// while (imageStatus == IMAGE_STARTED) {
 		// if (DEBUGGING) {
-		// System.out.println("Additional call to paint before the first was completed; sleeping
+		// log.report("Additional call to paint before the first was completed; sleeping
 		// 100ms");
 		// }
 		// try {
@@ -293,12 +299,12 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 
 		if (image == null) {
 			if (DEBUGGING) {
-				System.out.println("createImage() being called from paintComponent()");
+				log.report("createImage() being called from paintComponent()");
 			}
 			createImage(); // if you remove this, you get a blank screen and at least QQPlot ends up with
 											// a double title panel
 		} else if (DEBUGGING) {
-			System.out.println("Skipping image creation");
+			log.report("Skipping image creation");
 		}
 
 		g.drawImage(image, 0, 0, AbstractPanel.this);
@@ -313,17 +319,22 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 			File imgFile = new File(filename);
 			boolean mkdirs = imgFile.mkdirs();
 			if (mkdirs || Files.exists(ext.parseDirectoryOfFile(filename))) {
-				ImageIO.write(image, "png", imgFile);
+				BufferedImage img = image;
+				while (img == null || imageStatus != IMAGE_COMPLETE) {
+					img = image;
+					Thread.yield();
+				}
+				ImageIO.write(img, "png", imgFile);
 			} else {
 				if (headless) {
-					System.err.println("Error creating directory in which to save the plot");
+					log.reportError("Error creating directory in which to save the plot");
 				} else {
 					JOptionPane.showMessageDialog(null, "Error creating directory in which to save the plot");
 				}
 			}
 		} catch (IOException ie) {
 			if (headless) {
-				System.err.println("Error while trying to save the plot");
+				log.reportError("Error while trying to save the plot");
 			} else {
 				JOptionPane.showMessageDialog(null, "Error while trying to save the plot");
 			}
@@ -437,7 +448,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 		}
 		highlightPoints();
 
-		// System.out.println("#points= "+points.length+" flow="+flow+"; base="+base);
+		// log.report("#points= "+points.length+" flow="+flow+"; base="+base);
 
 		if (points.length == 0 && (rectangles == null || rectangles.length == 0)) {
 			locLookup.clear();
@@ -449,7 +460,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 											getWidth() / 2 - g.getFontMetrics(g.getFont()).stringWidth(nullMessage) / 2,
 											getHeight() / 2);
 			}
-			// System.err.println("Error: no data. The cnv.plots.AbstractPanel.points is null.");
+			// log.reportError("Error: no data. The cnv.plots.AbstractPanel.points is null.");
 			setImageStatus(IMAGE_COMPLETE);
 			return;
 		}
@@ -522,7 +533,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 		} else {
 			if (forcePlotXmin > minimumObservedRawX) {
 				if (DEBUGGING) {
-					System.err.println("WARNING - specified [minimum X boundary : "	+ forcePlotXmin
+					log.reportError("WARNING - specified [minimum X boundary : "	+ forcePlotXmin
 															+ "] is higher than the data point with the [lowest X value : "
 															+ minimumObservedRawX + "]");
 				}
@@ -535,7 +546,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 		} else {
 			if (forcePlotXmax < maximumObservedRawX) {
 				if (DEBUGGING) {
-					System.err.println("WARNING - specified [maximum X boundary : "	+ forcePlotXmax
+					log.reportError("WARNING - specified [maximum X boundary : "	+ forcePlotXmax
 															+ "] is lower than the data point with the [highest X value : "
 															+ maximumObservedRawX + "]");
 				}
@@ -547,7 +558,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 		} else {
 			if (forcePlotYmin > minimumObservedRawY) {
 				if (DEBUGGING) {
-					System.err.println("WARNING - specified [minimum Y boundary : "	+ forcePlotYmin
+					log.reportError("WARNING - specified [minimum Y boundary : "	+ forcePlotYmin
 															+ "] is higher than the data point with the [lowest Y value : "
 															+ minimumObservedRawY + "]");
 				}
@@ -560,7 +571,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 		} else {
 			if (forcePlotYmax < maximumObservedRawY) {
 				if (DEBUGGING) {
-					System.err.println("WARNING - specified [maximum Y boundary : "	+ forcePlotYmax
+					log.reportError("WARNING - specified [maximum Y boundary : "	+ forcePlotYmax
 															+ "] is lower than the data point with the [highest Y value : "
 															+ maximumObservedRawY + "]");
 				}
@@ -582,12 +593,12 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 			minimumObservedRawY = minimumObservedRawX;
 		}
 
-		// System.out.println("MaxY: " + maximumObservedRawY);
+		// log.report("MaxY: " + maximumObservedRawY);
 
 		numberOfNaNSamples = 0;
 		if (base) {
 			if (DEBUGGING) {
-				System.out.println("Drawing base image.");
+				log.report("Drawing base image.");
 			}
 
 			titleHeight = calcTitleHeight(g, base, fontMetrics);
@@ -595,7 +606,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 			// g.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
 			g.setFont(new Font("Arial", 0, axisFontSize));
-			// System.out.println("getWidth: "+getWidth()+"\t getHeight: "+getHeight());
+			// log.report("getWidth: "+getWidth()+"\t getHeight: "+getHeight());
 
 			fontMetrics = g.getFontMetrics(g.getFont());
 			missingWidth = fontMetrics.stringWidth("X");
@@ -766,7 +777,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 		// time = new Date().getTime();
 		// prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(),
 		// getHeight(), 5000);
-		//// System.out.println("points.length: "+(points.length)+"\3*points.length:
+		//// log.report("points.length: "+(points.length)+"\3*points.length:
 		// "+3*(points.length));
 		// } else {
 		// prog = null;
@@ -780,7 +791,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 		layers = new Hashtable<String, Vector<PlotPoint>>();
 
 		// if (DEBUGGING) {
-		// System.out.println("Start block");
+		// log.report("Start block");
 		// }
 		// long blockTime = new Date().getTime();
 
@@ -804,7 +815,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 										&& (points[i].getRawX() < plotXmin
 													|| points[i].getRawX() - plotXmax > plotXmax / 1000.0
 												|| points[i].getRawY() < plotYmin || points[i].getRawY() > plotYmax)) {
-					// System.err.println("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+")
+					// log.reportError("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+")
 					// is outside of plot range.");
 				} else {
 					trav = points[i].getLayer() + "";
@@ -845,7 +856,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 			}
 
 			// if (DEBUGGING) {
-			// System.out.println("Took " + ext.getTimeElapsed(blockTime)+" to finish this block");
+			// log.report("Took " + ext.getTimeElapsed(blockTime)+" to finish this block");
 			// }
 
 			// Draw those points with layer>0.
@@ -861,9 +872,9 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 				}
 			}
 		} else {
-			System.err.println("Error - invalid chart type: " + chartType);
+			log.reportError("Error - invalid chart type: " + chartType);
 		}
-		// System.out.println("Sampled from "+getNumPointsPlottedEfficiently()+" points");
+		// log.report("Sampled from "+getNumPointsPlottedEfficiently()+" points");
 
 		if (numberOfNaNSamples > 0) {
 			g.drawString(PlotPoint.NAN_STR	+ " (n=" + numberOfNaNSamples + ")",
@@ -886,7 +897,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 		if (base && prog != null) {
 			prog.close();
 		}
-		// System.out.println("Paint time: "+ext.getTimeElapsed(time));
+		// log.report("Paint time: "+ext.getTimeElapsed(time));
 
 		// test out
 		/*
@@ -903,7 +914,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 		refreshOtherComponents();
 
 		if (DEBUGGING) {
-			System.out.println("Took "	+ ext.getTimeElapsed(fullTime) + " to draw "
+			log.report("Took "	+ ext.getTimeElapsed(fullTime) + " to draw "
 													+ (createLookup ? "(and create lookup for) " : "") + points.length
 													+ " points");
 		}
@@ -1325,7 +1336,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 			/* Resize */
 			setFlow(true);
 			if (DEBUGGING) {
-				System.err.println("Action performed in AbstractPanel");
+				log.reportError("Action performed in AbstractPanel");
 			}
 			createImage();
 			repaint();
@@ -1501,11 +1512,11 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 				// getY(point.getRawY())-30+size/2);
 				break;
 			default:
-				System.err.println("Error - invalid PlotPoint type");
+				log.reportError("Error - invalid PlotPoint type");
 		}
 	}
 
-	public static double calcStepStep(double range) {
+	public double calcStepStep(double range) {
 		String[] line;
 
 		try {
@@ -1513,7 +1524,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 			return Math.pow(10, Integer.parseInt(line[1]) - 1)
 							* (Double.parseDouble(line[0]) > 2.0 ? 5 : 1);
 		} catch (Exception e) {
-			System.err.println("Error - could not parse stepStep from range '" + range + "'");
+			log.reportError("Error - could not parse stepStep from range '" + range + "'");
 			return Double.NaN;
 		}
 	}
@@ -1586,7 +1597,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 		//// plotMin = 0;
 		//// }
 		//
-		//// System.out.println(Float.parseFloat(ext.formDeci(plotMin,
+		//// log.report(Float.parseFloat(ext.formDeci(plotMin,
 		// sf))+"\t"+Float.parseFloat(ext.formDeci(plotMax,
 		// sf))+"\t"+Float.parseFloat(ext.formDeci(plotStep, sf)));
 		//
@@ -1716,7 +1727,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 	// && points[i].getRawX()<=rawXmax
 	// && points[i].getRawY()<=rawYmax) {
 	// points[i].setHighlighted(true);
-	// System.out.println("Highlighting: "+points[i].getRawX()+","+points[i].getRawY());
+	// log.report("Highlighting: "+points[i].getRawX()+","+points[i].getRawY());
 	// } else {
 	// points[i].setHighlighted(false);
 	// }
@@ -1733,7 +1744,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 	public void highlightPoints(boolean[] array) {
 		if (points.length != array.length) {
 			if (DEBUGGING) {
-				System.err.println("Error - mismatched array size when highlighting");
+				log.reportError("Error - mismatched array size when highlighting");
 			}
 		} else {
 			for (int i = 0; i < points.length; i++) {
@@ -1753,7 +1764,7 @@ public abstract class AbstractPanel extends JPanel	implements MouseListener, Mou
 			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 			flow = true;
 			if (DEBUGGING) {
-				System.out.println("Drawing base image");
+				log.report("Drawing base image");
 			}
 			drawAll(image.createGraphics(), true);
 

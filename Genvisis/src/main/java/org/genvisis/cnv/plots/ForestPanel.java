@@ -335,7 +335,7 @@ public class ForestPanel extends AbstractPanel {
 		return retArr;
 	}
 
-	public static double calcStepStep(double range) {
+	public double calcStepStep(double range) {
 		String[] line;
 		int temp;
 		// double val;
