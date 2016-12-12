@@ -29,7 +29,6 @@ import org.genvisis.db.DumpSAS;
 import org.genvisis.db.FilterDB;
 import org.genvisis.gwas.Conditional;
 import org.genvisis.gwas.CreateDatabaseFromPlink;
-import org.genvisis.gwas.ForestPlot;
 import org.genvisis.gwas.HitWindows;
 import org.genvisis.gwas.IndependentSNPs;
 import org.genvisis.gwas.MarkerQC;
@@ -166,8 +165,6 @@ public class Launch {
 				Metal.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("transform")) {
 				Transformations.fromParameters(filename, log);
-			} else if (temp.equalsIgnoreCase("forest")) {
-				ForestPlot.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("unique")) {
 				Unique.fromParamters(filename, log);
 			} else if (temp.equalsIgnoreCase("match")) {
