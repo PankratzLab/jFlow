@@ -24,7 +24,6 @@ import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.Resources;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
@@ -47,10 +46,6 @@ public class PennCNV {
 	                                       "NoCall rate"};
 	public static final String QC_SUMMARY_FILE = "Sample_QC.xln";
 	public static final int MISSING_SCORE = -1;
-
-	private static final String FAFILE = "father.txt";
-	private static final String MOFILE = "mother.txt";
-	private static final String CHILDFILE = "offspring.txt";
 
 	public static void batch(Project proj, int numChunks, Vector<String> execList, String pfbFile,
 	                         String gcmodelFile, String hmmFile, String scriptSubDir,
@@ -715,10 +710,6 @@ public class PennCNV {
 				denovoWriter.close();
 			}
 			if (denoValWriter[0] != null) {
-				StringBuilder cleanup = new StringBuilder("rm ").append(FAFILE).append(" && rm ")
-				                                                .append(MOFILE).append(" && rm ")
-				                                                .append(CHILDFILE);
-				denoValWriter[0].println(cleanup.toString());
 				denoValWriter[0].close();
 			}
 
@@ -773,10 +764,14 @@ public class PennCNV {
 		String faDna = ped.getiDNA(faIndex);
 		String moDna = ped.getiDNA(moIndex);
 
+		String outDir = ext.parseDirectoryOfFile(filename);
+
 		if (denoValWriter[0] == null) {
 			try {
-				String outfile = ext.parseDirectoryOfFile(filename) + "denovoValidation.txt";
-				denoValWriter[0] = new PrintWriter(new FileWriter(outfile));
+				denoValWriter[0] = new PrintWriter(new FileWriter(outDir + "denovoValidation.txt"));
+				denoValWriter[0].println("export HMMFILE=");
+				denoValWriter[0].println("export PFBFILE=");
+				denoValWriter[0].println();
 			} catch (IOException e) {
 				log.reportException(e);
 				return;
@@ -791,22 +786,18 @@ public class PennCNV {
 		String childSource = "gunzip -c " + line[4] + ".gz";
 		String faSource = childSource.replace(cDna, faDna);
 		String moSource = childSource.replace(cDna, moDna);
+		String out = outDir + ids[0] + "_" + ids[1] + "_" + position[0] + "_" + position[1] + "_" + position[2];
+		String faFile = out + "_fa.txt";
+		String moFile = out + "_mo.txt";
+		String childFile = out + "_off.txt";
 
-		StringBuilder extractLine = new StringBuilder(faSource).append(" > ").append(FAFILE)
+		StringBuilder extractLine = new StringBuilder(faSource).append(" > ").append(faFile)
 		                                                       .append(" && ").append(moSource)
-		                                                       .append(" > ").append(MOFILE)
+		                                                       .append(" > ").append(moFile)
 		                                                       .append(" && ").append(childSource)
-		                                                       .append(" > ").append(CHILDFILE);
+		                                                       .append(" > ").append(childFile);
 
 		denoValWriter[0].println(extractLine.toString());
-
-		String out = ids[0] + "_" + ids[1] + "_" + position[0] + "_" + position[1] + "_" + position[2];
-
-		// TODO write two lines. The first runs gunzip -c father.txt, mother.txt, child.txt
-		// second line does the analysis with those files
-		// TODO write final line deleting father/mother/offspring.txt
-		// TODO update output to be fid, iid, chr, start, stop so that the log can be parsed for results
-		// that match up with the denovo cnv
 
 		StringBuilder sb =
 		                 new StringBuilder("/home/pankrat2/shared/bin/infer_snp_allele.pl -pfbfile $PFBFILE -hmmfile $HMMFILE").append(" -denovocn ")
@@ -820,13 +811,17 @@ public class PennCNV {
 		                                                                                                                       .append(".gen  -logfile ")
 		                                                                                                                       .append(out)
 		                                                                                                                       .append(".log ")
-		                                                                                                                       .append(FAFILE)
+		                                                                                                                       .append(faFile)
 		                                                                                                                       .append(" ")
-		                                                                                                                       .append(MOFILE)
+		                                                                                                                       .append(moFile)
 		                                                                                                                       .append(" ")
-		                                                                                                                       .append(CHILDFILE);
+		                                                                                                                       .append(childFile);
 
 		denoValWriter[0].println(sb.toString());
+		StringBuilder cleanup = new StringBuilder("rm ").append(faFile).append(" && rm ").append(moFile)
+		                                                .append(" && rm ").append(childFile);
+
+		denoValWriter[0].println(cleanup.toString());
 	}
 
 	private static String[] getBounds(String[] line) {
