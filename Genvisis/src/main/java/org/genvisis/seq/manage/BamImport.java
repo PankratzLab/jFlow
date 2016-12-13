@@ -328,9 +328,8 @@ public class BamImport {
 																												new int[] {0}, true);
 				}
 			}
-			ReferenceGenome referenceGenome =
-																			new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
-																													log);
+			ReferenceGenome referenceGenome = new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
+																														log);
 			log.reportTimeInfo("Found " + bamsToImport.length + " bam files to import");
 			AnalysisSets analysisSet = generateAnalysisSet(	proj, binBed, captureBed, optionalVCF,
 																											captureBuffer, atType, log, referenceGenome);
@@ -402,7 +401,7 @@ public class BamImport {
 																																			captureBuffer);//
 				} else {
 					log.reportError("The bed file "+ binBed
-															+ " had overlapping segments, currently non -overlapping segments are required");
+													+ " had overlapping segments, currently non -overlapping segments are required");
 					throw new IllegalArgumentException();
 				}
 			}
@@ -700,8 +699,8 @@ public class BamImport {
 				MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks,
 																		proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), base, false, true,
 																		0, null, null, null, null, false, false, true, false, true,
-																		false, -1, -1, GENOME_BUILD.HG19, MitoPipeline.DEFAULT_PVAL_OPTS,
-																		null, false, true);
+																		false, -1, -1, GENOME_BUILD.HG19,
+																		MitoPipeline.DEFAULT_PVAL_OPTS, null, false, true);
 
 				String pcCorrectedFile = ext.addToRoot(	proj.getPropertyFilename(),
 																								"."													+ proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
@@ -728,7 +727,7 @@ public class BamImport {
 																						pcCorrected.PROJECT_DIRECTORY.getValue()
 																																	+ "tmpPCCorrection/",
 																						correctionPCs, null, numthreads, 1, false,
-																						LS_TYPE.REGULAR, -1, true);
+																						LS_TYPE.REGULAR, -1, true, true);
 					// Warning currently set up for 24 threads..
 					// TODO
 					PennCNVPrep.exportSpecialPennCNV(	pcCorrected,
@@ -736,7 +735,7 @@ public class BamImport {
 																						pcCorrected.PROJECT_DIRECTORY.getValue()
 																														+ "tmpPCCorrection/",
 																						correctionPCs, null, 1, 24, true, LS_TYPE.REGULAR, 5,
-																						true);
+																						true, true);
 				}
 				pcCorrected.saveProperties();
 				if (type.getType() != null) {

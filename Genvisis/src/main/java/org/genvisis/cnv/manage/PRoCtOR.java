@@ -36,10 +36,13 @@ public class PRoCtOR {
 	private static int getSampleChunks(Project proj, int numThreads) {
 		long mem = Runtime.getRuntime().maxMemory();
 		long samp = getMaxSampleSize(proj);
-		// With the assumption that all samples in a given chunk can be open when a chunk is processed by a thread.
-		// Thus we want a number of chunks such that we will not run out of memory if each thread is simultaneously
+		// With the assumption that all samples in a given chunk can be open when a chunk is processed
+		// by a thread.
+		// Thus we want a number of chunks such that we will not run out of memory if each thread is
+		// simultaneously
 		// processing chunks of (chunk size * max_chunk_size) files.
-		// A fraction of max memory is used to account for additional files which may need to be in memory during
+		// A fraction of max memory is used to account for additional files which may need to be in
+		// memory during
 		// this process (e.g. marker data)
 		double sampleChunks = (0.65 * mem) / (numThreads * samp);
 		return (int) sampleChunks;
@@ -55,7 +58,8 @@ public class PRoCtOR {
 		int sampleChunks = getSampleChunks(proj, numThreads);
 		proj.getLog().report("Using " + sampleChunks + " sample chunks");
 
-		int retCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC, markerCallRateFilter, useFile, proj.getSampleList(), proj.getLog());
+		int retCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC, markerCallRateFilter,
+																	useFile, proj.getSampleList(), proj.getLog());
 		if (retCode != 42) {
 			// TODO error
 			return;
@@ -68,7 +72,8 @@ public class PRoCtOR {
 		PennCNVPrep.prepExport(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
 														numMarkerThreads, LS_TYPE.REGULAR, false);
 		PennCNVPrep.exportSpecialPennCNV(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
-	numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false);
+																			numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false,
+																			false);
 	}
 
 	public static void main(String[] args) {
@@ -81,7 +86,7 @@ public class PRoCtOR {
 		int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;
 		int numThreads = Runtime.getRuntime().availableProcessors();
 
-		String usage = "\n"	+ "cnv.manage.PRoCtOR requires 0-1 arguments\n"
+		String usage = "\n"+ "cnv.manage.PRoCtOR requires 0-1 arguments\n"
 										+ "   (1) project properties filename (i.e. proj=" + filename + " (default))\n"
 										+ "   (2) Number of principal components for correction (i.e. numComponents="
 										+ numComponents + " (default))\n"
