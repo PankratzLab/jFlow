@@ -66,6 +66,7 @@ public class DeNovoPValParser {
 				File f = logs.get(key);
 				if (f != null) {
 					String[] lineOut = Arrays.copyOf(line, line.length + 3);
+					Arrays.fill(lineOut, line.length, lineOut.length, ".");
 					BufferedReader dnvReader = Files.getAppropriateReader(f.getAbsolutePath());
 					boolean foundPval = false;
 					while (dnvReader.ready() && !foundPval) {
@@ -76,10 +77,10 @@ public class DeNovoPValParser {
 							for (int i=0; i<outIdxs.length; i++) {
 								lineOut[line.length + i] = dnvSplit[outIdxs[i] + 1];
 							}
-							writer.println(Array.toStr(lineOut, "\t"));
 							foundPval = true;
 						}
 					}
+					writer.println(Array.toStr(lineOut, "\t"));
 					dnvReader.close();
 				}
 			}
