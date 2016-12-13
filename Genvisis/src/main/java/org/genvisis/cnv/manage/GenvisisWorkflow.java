@@ -1852,7 +1852,7 @@ public class GenvisisWorkflow {
 																											String mainCmd = Files.getRunString()
 																																					+ " cnv.filesys.Centroids proj="
 																																				+ proj.getPropertyFilename()
-																																				+ " " + PSF.Ext.NUM_THREADS_COMMAND + numThreads;
+																																				+ " -sexSpecific " + PSF.Ext.NUM_THREADS_COMMAND + numThreads;
 																											String gcModelFile = variables.get(this)
 																																										.get(0);
 																											String gcCmd = Files.getRunString()
