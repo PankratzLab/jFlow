@@ -4,11 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CmdLine {
 	public static class Command {
@@ -171,7 +174,7 @@ public class CmdLine {
 
 	public static boolean run(String command, String dir, PrintStream os,
 														boolean ignoreIllegalStateExceptions) {
-		return run(command, dir, os, os, null, ignoreIllegalStateExceptions);
+		return run(command, dir, os, os, new Logger(), ignoreIllegalStateExceptions);
 	}
 
 	public static boolean run(Collection<String> commands, String dir, PrintStream inOs,
@@ -182,11 +185,22 @@ public class CmdLine {
 
 	public static boolean run(String command, String dir, PrintStream inOs, PrintStream errOS,
 														Logger log, boolean ignoreIllegalStateExceptions) {
-		StringTokenizer st = new StringTokenizer(command, " \t\n\r\f");
-		String[] cmdarray = new String[st.countTokens()];
-		for (int i = 0; st.hasMoreTokens(); i++) {
-			cmdarray[i] = st.nextToken();
+//		StringTokenizer st = new StringTokenizer(command, " \t\n\r\f");
+//		String[] cmdarray = new String[st.countTokens()];
+//		for (int i = 0; st.hasMoreTokens(); i++) {
+//			cmdarray[i] = st.nextToken();
+//		}
+		String regex = "[\"\']([^\"\']*)[\"\']|(\\S+)";
+		Matcher m = Pattern.compile(regex).matcher(command);
+		ArrayList<String> cmdList = new ArrayList<String>();
+		while (m.find()) {
+			if (m.group(1) != null) {
+				cmdList.add(m.group(1));
+			} else {
+				cmdList.add(m.group(2));
+			}
 		}
+		String[] cmdarray = cmdList.toArray(new String[cmdList.size()]);
 		return run(cmdarray, dir, inOs, errOS, log, ignoreIllegalStateExceptions);
 	}
 
@@ -197,6 +211,7 @@ public class CmdLine {
 		// PrintWriter writer;
 		boolean finish;
 		boolean noError;
+		String charSet = "UTF-8";
 
 		noError = true;
 
@@ -206,11 +221,16 @@ public class CmdLine {
 
 		for (String command : commandArray) {
 			if (command.contains(">") || command.contains("|")) {
-				log.reportError("FYI - the Runtime.exec command will likely not work, since it contains a pipe, write command to a file and exec that instead");
-				break;
+				if (Files.isWindows()) {
+					log.reportError("FYI - the Runtime.exec command will likely not work, since it contains a pipe or redirect, write command to a file and exec that instead");
+					break;
+				} else if (!commandArray[0].startsWith("/bin/")) { 
+					log.reportTimeWarning("FYI - the command may not work as it contains a pipe or redirect and isn't prefaced by a shell invocation (such as \"/bin/bash\").  Try prefacing the command with \"/bin/bash -c\" and wrapping the command in quotes.");
+					break;
+				}
 			}
 		}
-
+		
 		try {
 			proc = Runtime.getRuntime().exec(commandArray, null, new File(dir));
 			// if (logfile != null) {
@@ -228,10 +248,11 @@ public class CmdLine {
 						while (in.available() > 0) {
 							b = new byte[in.available()];
 							in.read(b);
+							if (inOs != null) {
+								inOs.print(new String(b, charSet));
+							}
 							if (log != null) {
-								log.report(new String(b, "UTF-8"), false, true);
-							} else if (inOs != null) {
-								inOs.print(new String(b, "UTF-8"));
+								log.report(new String(b, charSet), false, true);
 							} /*
 								 * else { }
 								 */
@@ -240,11 +261,12 @@ public class CmdLine {
 						while (err.available() > 0) {
 							b = new byte[err.available()];
 							err.read(b);
+							if (errOS != null) {
+								errOS.print(new String(b, charSet));
+							}
 							if (log != null) {
-								log.report(new String(b, "UTF-8"), false, true);
-							} else if (errOS != null) {
-								errOS.print(new String(b, "UTF-8"));
-							} /*
+								log.report(new String(b, charSet), false, true);
+							}/* else  
 								 * else { }
 								 */
 							b = null;
