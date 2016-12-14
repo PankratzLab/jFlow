@@ -58,6 +58,8 @@ public class DeNovoPValParser {
 
 			while (reader.ready()) {
 				String[] line = reader.readLine().split("\t");
+				String[] lineOut = Arrays.copyOf(line, line.length + 3);
+				Arrays.fill(lineOut, line.length, lineOut.length, ".");
 				String key = line[idxs[0]];
 				for (int i=1; i<idxs.length; i++) {
 					key += "_" + line[idxs[i]];
@@ -65,8 +67,6 @@ public class DeNovoPValParser {
 				key += ".log";
 				File f = logs.get(key);
 				if (f != null) {
-					String[] lineOut = Arrays.copyOf(line, line.length + 3);
-					Arrays.fill(lineOut, line.length, lineOut.length, ".");
 					BufferedReader dnvReader = Files.getAppropriateReader(f.getAbsolutePath());
 					boolean foundPval = false;
 					while (dnvReader.ready() && !foundPval) {
@@ -80,9 +80,9 @@ public class DeNovoPValParser {
 							foundPval = true;
 						}
 					}
-					writer.println(Array.toStr(lineOut, "\t"));
 					dnvReader.close();
 				}
+				writer.println(Array.toStr(lineOut, "\t"));
 			}
 
 			writer.close();
