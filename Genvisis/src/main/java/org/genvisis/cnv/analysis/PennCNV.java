@@ -783,6 +783,12 @@ public class PennCNV {
 			return;
 		}
 
+		outDir += "denovo" + File.separator;
+		File outFile = new File(outDir);
+		if (!outFile.exists()) {
+			outFile.mkdirs();
+		}
+
 		String childSource = "gunzip -c " + line[4] + ".gz";
 		String faSource = childSource.replace(cDna, faDna);
 		String moSource = childSource.replace(cDna, moDna);
