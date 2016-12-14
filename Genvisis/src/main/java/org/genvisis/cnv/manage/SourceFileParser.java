@@ -181,12 +181,12 @@ public class SourceFileParser implements Runnable {
 														+ Array.toStr(Sample.DATA_FIELDS[4], "/"));
 						return;
 					}
-					if (headerData.colGeno1 == -1 || headerData.colGeno2 == -1) {
-						log.reportError("Error - File format not consistent! The files need to contain "
-															+ Array.toStr(Sample.GENOTYPE_FIELDS[0], "/") + " and "
-														+ Array.toStr(Sample.GENOTYPE_FIELDS[1], "/"));
-						return;
-					}
+//					if (headerData.colGeno1 == -1 || headerData.colGeno2 == -1) {
+//						log.reportError("Error - File format not consistent! The files need to contain "
+//															+ Array.toStr(Sample.GENOTYPE_FIELDS[0], "/") + " and "
+//														+ Array.toStr(Sample.GENOTYPE_FIELDS[1], "/"));
+//						return;
+//					}
 					if ((headerData.colGenoAB1 == -1 || headerData.colGenoAB2 == -1) && abLookup == null) {
 						ignoreAB = true;
 					} else {
