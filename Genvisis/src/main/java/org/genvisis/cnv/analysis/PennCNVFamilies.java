@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.genvisis.CLI;
+import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.PlinkMendelianChecker;
@@ -23,6 +24,7 @@ public class PennCNVFamilies {
 		final String trios = "trios";
 		final String pennData = "pennData";
 		final String jointSize = "joint";
+		final String sexSpecific = "sex";
 
 		CLI c = new CLI(PennCNVFamilies.class);
 		c.addArg(trios, "List of known trios", true);
@@ -30,13 +32,14 @@ public class PennCNVFamilies {
 		         "Joint chunk size. Allow ~1hr/trio. Will create [#samples]/jointSize input files.",
 		         true, CLI.Arg.NUMBER);
 		c.addArg(pennData, "Directory containing zipped, exported penncnv data", true);
+		c.addFlag(sexSpecific, "Use samples from sex-specific subdirectores?");
 
 		c.parseWithExit(args);
 
-		buildInputList(c.get(trios), c.get(pennData), c.getI(jointSize));
+		buildInputList(c.get(trios), c.get(pennData), c.getI(jointSize), c.has(sexSpecific));
 	}
 
-	private static void buildInputList(String trios, String pennDir, int chunkSize) {
+	private static void buildInputList(String trios, String pennDir, int chunkSize, boolean sexSpecific) {
 		final String out = "trioInput.txt";
 		try {
 			BufferedReader r = Files.getAppropriateReader(trios);
@@ -45,10 +48,14 @@ public class PennCNVFamilies {
 			int jointChunk = 1;
 			PrintWriter writeJoints = Files.getAppropriateWriter("jointInput" + jointChunk + ".txt");
 
-			String header = r.readLine();
-			int[] dnaIdxs = ext.indexFactors(new String[] {"FA_DNA", "MO_DNA", "DNA"}, header.split("\t"),
+			String[] header = r.readLine().split("\t");
+			int[] dnaIdxs = ext.indexFactors(new String[] {"FA_DNA", "MO_DNA", "DNA"}, header,
 			                                 false, true);
+
+			int sexIndex = ext.indexOfStr("SEX", header, false, true);
+
 			int sample = 0;
+			int[] sexes = {1, 2, 0};
 
 			while (r.ready()) {
 				String[] line = r.readLine().split("\t");
@@ -62,12 +69,20 @@ public class PennCNVFamilies {
 				}
 				sample++;
 				StringBuilder sb = new StringBuilder();
+				sexes[2] = Integer.parseInt(line[sexIndex]);
 				for (int i = 0; i < dnaIdxs.length; i++) {
 					sb.append("`gunzip -c ");
+					String dir = pennDir;
+					if (sexSpecific) {
+						dir += "sexSpecific" + File.separator;
+						dir += sexes[i] == 1 ? "male" : "female";
+						dir += File.separator;
+					}
 
-					String pennDataFile = new StringBuilder().append(pennDir)
+					String pennDataFile = new StringBuilder().append(dir)
 					                                         .append(line[dnaIdxs[i]]).append(".gz")
 					                                         .toString();
+
 
 					valid = valid && new File(pennDataFile).exists();
 
