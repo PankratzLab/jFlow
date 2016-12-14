@@ -155,7 +155,7 @@ public class GATK_Genotyper {
 										ANNOVCF annoVCF, boolean annotate, int memoryInMB, int wallTimeInHours,
 										String baseName) {
 		String command = Array.toStr(PSF.Load.getAllModules(), "\n");
-    command += "\njava -Xmx" + memoryInMB + "m -jar ~/genvisisGATK.jar " + this.getClass().getName();
+    command += "\njava -Xmx" + memoryInMB + "m -jar ~/genvisisGATK3.6.jar " + this.getClass().getName();
 		command += GATK_LanePrep.ROOT_INPUT_COMMAND + jointGATKGenotyper.getRootInputDir() + SPACE;
 		command += GATK_LanePrep.ROOT_OUTPUT_COMMAND + rootOutputDir + SPACE;
 		command += GATK_LanePrep.REFERENCE_GENOME_COMMAND + gatk.getReferenceGenomeFasta() + SPACE;
