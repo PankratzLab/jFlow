@@ -792,6 +792,12 @@ public class PennCNV {
 		String childSource = "gunzip -c " + line[4] + ".gz";
 		String faSource = childSource.replace(cDna, faDna);
 		String moSource = childSource.replace(cDna, moDna);
+
+		if (childSource.contains("sexSpecific")) {
+			faSource = faSource.replaceAll("/female/", "/male/");
+			moSource = moSource.replaceAll("/male/", "/female/");
+		}
+
 		String out = outDir + ids[0] + "_" + ids[1] + "_" + position[0] + "_" + position[1] + "_" + position[2];
 		String faFile = out + "_fa.txt";
 		String moFile = out + "_mo.txt";
