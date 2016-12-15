@@ -1636,10 +1636,12 @@ public class PlinkData {
 				out.write(encodePlinkBedBytesForASingleMarkerOrSample(genotypesOfTargetSamples));
 				proj.getProgressMonitor().updateTask(progKey);
 				int targetIndex = hash.get(markerData.getMarkerName());
-				bimWriter.println(chrsOfTargetMarkers.get(markerData.getMarkerName())	+ "\t"
-						+ markerData.getMarkerName() + "\t0\t"
-						+ posOfTargetMarkers.get(markerData.getMarkerName()) + "\t"
-						+ abLookup[targetIndex][0] + "\t" + abLookup[targetIndex][1]); // TODO alleles[][] matching chrs[]
+				String markerName = markerData.getMarkerName();
+				Byte chr = chrsOfTargetMarkers.get(markerName);
+				Integer pos = posOfTargetMarkers.get(markerName);
+				char c1 = abLookup[targetIndex][0];
+				char c2 = abLookup[targetIndex][1];
+				bimWriter.println(chr	+ "\t" + markerName + "\t0\t" + pos + "\t" + c1 + "\t" + c2); // TODO alleles[][] matching chrs[]
 			}
 
 			out.close();
