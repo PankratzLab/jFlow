@@ -48,9 +48,10 @@ public class CrossValidation {
 		analysisFailed = false;
 		this.verbose = verbose;
 		this.lType = lType;
-		logistic = isLogistic(train_deps == null ? val_deps : train_deps);// in case we are just
-																																			// applying betas or something
-																																			// like that
+		logistic = false;//
+		// isLogistic(train_deps == null ? val_deps : train_deps);// in case we are just
+		// applying betas or something
+		// like that
 		this.log = log;
 	}
 
@@ -131,7 +132,7 @@ public class CrossValidation {
 				}
 			}
 			if (droppedNaN > 0 && verbose) {
-				log.report("Warning - "	+ droppedNaN + " "
+				log.report("Warning - "+ droppedNaN + " "
 										+ (droppedNaN > 1 ? "individuals were" : "individual was")
 										+ " not included in the residual sum of squares calculation due to missing independent or dependent variables");
 			}
