@@ -573,7 +573,7 @@ public class CNVConcordance {
 		usage = usage + "   (1) project filename  (i.e. proj=" + filename + " (no default))\n";
 		usage = usage + "   (2) cnvFile  (i.e.cnvFile=" + filename + " (no default))\n";
 		usage = usage + "   (3) duplicate file  (i.e. duplicateFile=" + filename + " (no default))\n";
-		usage = usage + "   (4) quality control file (i.e. qc=" + filename + " (no default))\n";
+		usage = usage + "   (4) quality control file (i.e. qcFile=" + filename + " (no default))\n";
 		usage = usage + "   OPTIONAL:";
 		usage = usage + "   (5) output file name  (i.e.output=" + output + " (default))\n";
 		usage = usage + "   (6) log file  (i.e. log=" + filename + " (no default))\n";
