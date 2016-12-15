@@ -541,10 +541,14 @@ public class CNVConcordance {
 																										// might have headers sprinkled throughout
 		String[] load = HashVec.loadFileToStringArray(qcFile, false, null, false);
 		double[][] qc = new double[2][load.length];
-		//skip header
-		for (int i = 1; i < load.length; i++) {
-			qc[0][i] = Double.valueOf(load[i].split("\t")[2]);
-			qc[1][i] = Double.valueOf(load[i].split("\t")[7]);
+		for (int i = 0; i < load.length; i++) {
+			String[] line = load[i].split("\t");
+			// skip header lines
+			if (line[2].contains("LRR")) {
+				continue;
+			}
+			qc[0][i] = Double.valueOf(line[2]);
+			qc[1][i] = Double.valueOf(line[7]);
 		}
 		return qc;
 	}
