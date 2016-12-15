@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.var.SampleData;
 // import org.genvisis.cnv.qc.CNVConcordance.ComparisionIndividualResults;
 // import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Array;
@@ -233,11 +234,13 @@ public class CNVConcordance {
 	private final int numCNVs;
 	private final double maxLrr;
 	private final double minCallRate;
+	private SampleData sampleData;
 
 	public CNVConcordance(Project proj, String[][] duplicates, double[] lrr, double maxLrr,
 	                      double[] callRate, double minCallRate, CNVariantHash cNVariantHash,
 	                      CNVFilter filter, int numCNVs) {
 		this.proj = proj;
+		sampleData = proj.getSampleData(SampleData.MINIMAL_SAMPLE_DATA_HEADER.length, false);
 		this.lrr = lrr;
 		this.callRate = callRate;
 		this.maxLrr = maxLrr;
@@ -278,11 +281,13 @@ public class CNVConcordance {
 					System.out.println("Warning - "	+ duplicate[0] + " has callrate < " + minCallRate + " ("
 															+ callRate[numComp] + "). Excluded from final analysis");
 				} else {
-					String ind1 = duplicate[0] + "\t" + duplicate[0];
-					String ind2 = duplicate[1] + "\t" + duplicate[1];
+					String ind1 = sampleData.lookup(duplicate[0])[1];
+					String ind2 = sampleData.lookup(duplicate[1])[1];
 					ComparisionIndividualResults results = compareInds(ind1, ind2);
 					if (results.getTotalCNVCount() > 0) {
 						allResults.add(results);
+					} else {
+						System.out.println("No common cnvs found for pair: " + duplicate[0] + ", " + duplicate[1]);
 					}
 				}
 				numComp++;
