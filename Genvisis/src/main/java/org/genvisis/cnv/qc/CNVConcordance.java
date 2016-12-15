@@ -541,7 +541,8 @@ public class CNVConcordance {
 																										// might have headers sprinkled throughout
 		String[] load = HashVec.loadFileToStringArray(qcFile, false, null, false);
 		double[][] qc = new double[2][load.length];
-		for (int i = 0; i < load.length; i++) {
+		//skip header
+		for (int i = 1; i < load.length; i++) {
 			qc[0][i] = Double.valueOf(load[i].split("\t")[2]);
 			qc[1][i] = Double.valueOf(load[i].split("\t")[7]);
 		}
