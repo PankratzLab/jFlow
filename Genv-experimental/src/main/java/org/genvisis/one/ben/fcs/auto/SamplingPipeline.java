@@ -52,7 +52,7 @@ public class SamplingPipeline {
 		}
 	};
 	
-	private static final double SAMPLING_PCT = .5;
+	private static final double SAMPLING_PCT = .25;
 	private static final int OUTLIER_SAMPLE_EVERY = 5; // every fifth sampling will be from an outlier, if possible 
 	
 	private static final String P1_DATA_ROOT = "p1.";

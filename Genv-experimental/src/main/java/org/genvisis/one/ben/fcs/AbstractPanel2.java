@@ -98,7 +98,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     }
   }
 
-  public static enum AXIS_SCALE {
+  public enum AXIS_SCALE {
     LIN("Linear"), LOG("Logarithmic"), BIEX("Biexponential");
 
     private AXIS_SCALE(String longName) {
@@ -2513,8 +2513,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     protected Logicle biexScaleY = null;
 
     private Logicle getBiexScale(boolean xAxis) {
-//        double W = Math.log10(Math.abs(-100)); // == 2; linear decades // W=1 is weird, W=3 -> "scale() didn't converge"
-//        double A = 0; // negative decades
         double DEFAULT_T = 262144;
         double DEFAULT_W = Math.log10(Math.abs(-100));
         double DEFAULT_M = Math.log10(DEFAULT_T);
@@ -2523,24 +2521,20 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             if (biexScaleX != null && logPlotXMax == plotXmax) {
                 return biexScaleX;
             }
-//            return biexScaleX = new Logicle(logPlotXMax = plotXmax, W, Math.log10(plotXmax), A);
-            return biexScaleX = new Logicle(logPlotXMax = DEFAULT_T, DEFAULT_W, DEFAULT_M, DEFAULT_A);
+            logPlotXMax = plotXmax;
+            return biexScaleX = new Logicle(DEFAULT_T, DEFAULT_W, DEFAULT_M, DEFAULT_A);
         } else {
             if (biexScaleY != null && logPlotYMax == plotYmax) {
                 return biexScaleY;
             }
-            // Logicle fl = new FastLogicle(plotYmax, W, M, A, 1);
-//            return biexScaleY = new Logicle(logPlotYMax = plotYmax, W, Math.log10(plotYmax), A);
-            return biexScaleY = new Logicle(logPlotYMax = DEFAULT_T, DEFAULT_W, DEFAULT_M, DEFAULT_A);
+            logPlotYMax = plotYmax;
+            return biexScaleY = new Logicle(DEFAULT_T, DEFAULT_W, DEFAULT_M, DEFAULT_A);
         }
     }
 
     protected int getXPixel(double x) {
       return (int) getXAxis().getTransform().scaleX(x);
     }
-
-    // Shows inaccuracy inherent in Logicle scale()/inverse() functions
-    boolean tested = false;
 
     protected int getYPixel(double y) {
       return (int) getYAxis().getTransform().scaleY(y);
@@ -2617,7 +2611,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 				Logicle lgl = new Logicle(t, w, m, a);
 		    return new AxisTransform(null) {
 		      @Override
-		      public double scaleY(double val) { return scaleX(val); }
+		      public double scaleY(double val) { 
+		      	return scaleX(val); 
+	      	}
 		      @Override
 		      public double scaleX(double val) { return lgl.scale(val); }
 		      @Override
@@ -2635,8 +2631,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         linTrans = new LinearTransform(pnl);
       }
   
-      int max = 262144;
-      
       @Override
       public double scaleX(double val) {
         int[] screenMinMax = getScreenX();
@@ -2648,7 +2642,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
       public double scaleY(double val) {
         int[] screenMinMax = getScreenY();
         Logicle l = getBiexScale(false);
-        return (l.scale(val) * (screenMinMax[1] - screenMinMax[0])) + screenMinMax[0];
+        return panel.getHeight() - ((l.scale(val) * (screenMinMax[1] - screenMinMax[0])) + screenMinMax[0]);
       }
   
       @Override
@@ -2662,7 +2656,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
       public double inverseY(double val) {
         int[] screenMinMax = getScreenY();
         Logicle l = getBiexScale(false);
-        return l.inverse((val - screenMinMax[0]) / (screenMinMax[1] - screenMinMax[0]));
+        return l.inverse((panel.getHeight() - val - screenMinMax[0]) / (screenMinMax[1] - screenMinMax[0]));
       }
     }
     

@@ -498,10 +498,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     }
     
     for (int i = 0, count = parentGating == null ? points.length : parentGating.length, index = 0; i < count; i++) {
-      if (parentGating != null) {
-        if (!parentGating[i] && !fcp.isBackgating() && !fcp.isLeafgating()) {
-          continue;
-        }
+      if (parentGating != null && !parentGating[i] && !fcp.isBackgating() && !fcp.isLeafgating()) {
+        continue;
       }
       points[index].setVisible(true);
       color = (byte) 0;
@@ -628,8 +626,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         if (xLow <= tempX && xHigh >= tempX) {
           if (!isHistogram()) {
             RectangleGateDimension gdY = (RectangleGateDimension) rect.getYDimension();
-            yHigh = !Numbers.isFinite(gdY.getMax()) ? Integer.MIN_VALUE : getYPixel(gdY.getMax());
-            yLow = !Numbers.isFinite(gdY.getMin()) ? Integer.MAX_VALUE : getYPixel(gdY.getMin());
+            yLow = !Numbers.isFinite(gdY.getMax()) ? Integer.MIN_VALUE : getYPixel(gdY.getMax());
+            yHigh = !Numbers.isFinite(gdY.getMin()) ? Integer.MAX_VALUE : getYPixel(gdY.getMin());
             if (yLow <= tempY && yHigh >= tempY) {
               retRects.add(rect);
             }

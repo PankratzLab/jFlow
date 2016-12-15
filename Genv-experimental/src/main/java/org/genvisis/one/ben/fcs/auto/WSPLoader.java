@@ -124,7 +124,7 @@ public class WSPLoader {
       Gating gs = new Gating();
       gs.setFile(file);
       NodeList nodes = sampleNode.getElementsByTagName("Population");
-      gs.gateMap = GateFileUtils.buildPopGraph(nodes, true);
+      gs.gateMap = GateFileUtils.buildPopGraph(nodes, false);
       gs.gateRoots = GateFileUtils.connectGates(gs.gateMap);
       gs.paramGateMap = GateFileUtils.parameterizeGates(gs.gateMap);
       for (Gate g : gs.gateMap.values()) {

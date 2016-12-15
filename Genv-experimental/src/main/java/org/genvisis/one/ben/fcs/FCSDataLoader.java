@@ -38,19 +38,6 @@ public class FCSDataLoader {
   private static final String COMPENSATED_PREPEND = "Comp-";
   private static final int COMP_LEN = COMPENSATED_PREPEND.length();
 
-  //
-  // public static void main(String[] args) {
-  // // String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW
-  // BEADS_URB_001.fcs";
-  // // String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs";
-  // String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-A P1 1HR rest_002.fcs";
-  // try {
-  // (new FCSDataLoader()).loadData(fcsFilename);
-  // } catch (IOException e) {
-  // e.printStackTrace();
-  // }
-  // }
-
   public static enum LOAD_STATE {
     LOADED, LOADING, PARTIALLY_LOADED, LOADING_REMAINDER, UNLOADED;
   }
@@ -131,11 +118,11 @@ public class FCSDataLoader {
     return loadedFile;
   }
 
-  private/* synchronized */void setState(LOAD_STATE state) {
+  private synchronized void setState(LOAD_STATE state) {
     this.state = state;
   }
 
-  public/* synchronized */LOAD_STATE getLoadState() {
+  public synchronized LOAD_STATE getLoadState() {
     return state;
   }
 
@@ -357,7 +344,15 @@ public class FCSDataLoader {
       System.err.println("Error - UNSUPPORTED DATA TYPE.");
     }
   }
-
+  
+  public void waitForData() {
+  	LOAD_STATE currState; 
+  	do {
+  		currState = getLoadState();
+  		Thread.yield();
+  	} while (currState != LOAD_STATE.LOADED);
+  }
+  
   private AxisTransform getDefaultTransform(AXIS_SCALE scale) {
     switch (scale) {
       case LOG:
@@ -381,7 +376,9 @@ public class FCSDataLoader {
   		newMap.put(nm, map.get(key));
   	}
   	for (String key : this.paramTransforms.keySet()) {
-  		if (newMap.containsKey(key)) continue;
+  		if (newMap.containsKey(key)) {
+  			continue;
+  		}
   		newMap.put(key, this.paramTransforms.get(key));
   	}
   	this.paramTransforms = newMap;
