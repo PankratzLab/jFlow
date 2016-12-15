@@ -522,7 +522,7 @@ public class CNVConcordance {
 	}
 
 	private static String[][] loadDuplicates(String duplicateFile) {
-		String[] load = HashVec.loadFileToStringArray(duplicateFile, false, null, false);
+		String[] load = HashVec.loadFileToStringArray(duplicateFile, false, new int[]{0,1}, false);
 		String[][] duplicates = new String[load.length][];
 		for (int i = 0; i < load.length; i++) {
 			String[] tmp = load[i].split("\t");
