@@ -41,11 +41,11 @@ public class PennCNVFamilies {
 
 	private static void buildInputList(String trios, String pennDir, int chunkSize, boolean sexSpecific) {
 		final String out = "trioInput.txt";
+		int jointChunk = 1;
 		try {
 			BufferedReader r = Files.getAppropriateReader(trios);
 			PrintWriter writeTrios = Files.getAppropriateWriter(out);
 
-			int jointChunk = 1;
 			PrintWriter writeJoints = Files.getAppropriateWriter("jointInput" + jointChunk + ".txt");
 
 			String[] header = r.readLine().split("\t");
@@ -124,6 +124,7 @@ public class PennCNVFamilies {
 
 
 		System.out.println("Finished writing penncnv trio inputs to: " + out);
+		System.out.println("Wrote " + jointChunk + " joint input files");
 	}
 
 }
