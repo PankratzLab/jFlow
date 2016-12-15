@@ -281,9 +281,19 @@ public class CNVConcordance {
 					System.out.println("Warning - "	+ duplicate[0] + " has callrate < " + minCallRate + " ("
 															+ callRate[numComp] + "). Excluded from final analysis");
 				} else {
-					String ind1 = sampleData.lookup(duplicate[0])[1];
-					String ind2 = sampleData.lookup(duplicate[1])[1];
+					// Try dna\tdna first
+					String ind1 = duplicate[0] + "\t" + duplicate[0];
+					String ind2 = duplicate[1] + "\t" + duplicate[1];
+
 					ComparisionIndividualResults results = compareInds(ind1, ind2);
+
+					if (results.getTotalCNVCount() <= 0) {
+						// Try looking up actual fid\tiid next
+						ind1 = sampleData.lookup(duplicate[0])[1];
+						ind2 = sampleData.lookup(duplicate[1])[1];
+						results = compareInds(ind1, ind2);
+					}
+
 					if (results.getTotalCNVCount() > 0) {
 						allResults.add(results);
 					} else {
