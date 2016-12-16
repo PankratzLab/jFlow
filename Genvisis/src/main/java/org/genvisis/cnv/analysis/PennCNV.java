@@ -350,7 +350,7 @@ public class PennCNV {
 		String[] header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
 		int sexInd = -1;
 		for (int i = 0; i < header.length; i++) {
-			if (("CLASS=" + SexChecks.EST_SEX_HEADER).toUpperCase().equals(header[i].toUpperCase())) {
+			if (("CLASS=" + SexChecks.EST_SEX_HEADER).equalsIgnoreCase(header[i])) {
 				sexInd = i;
 				break;
 			}
