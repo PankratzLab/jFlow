@@ -60,7 +60,7 @@ public class MitoSeqCN {
 			String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] {0}, true);
 			log.reportTimeInfo("Detected " + bams.length + " bam files");
 			ReferenceGenome referenceGenome = genomeBuild == null
-																														? new ReferenceGenome(referenceGenomeFasta,
+																															? new ReferenceGenome(referenceGenomeFasta,
 																																									log)
 																														: new ReferenceGenome(genomeBuild, log);
 			BedOps.verifyBedIndex(captureBed, log);
@@ -87,9 +87,9 @@ public class MitoSeqCN {
 			log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered()
 													+ " bp covered by reference bin regions");
 			if (!referenceGenome.hasContig(aName.getMitoContig())
-					|| !referenceGenome.hasContig(aName.getxContig())
+						|| !referenceGenome.hasContig(aName.getxContig())
 					|| !referenceGenome.hasContig(aName.getyContig())) {
-				throw new IllegalArgumentException("Required contig for "+ aName + " is missing ( "
+				throw new IllegalArgumentException("Required contig for "	+ aName + " is missing ( "
 																						+ aName.getMitoContig() + " ," + aName.getxContig()
 																						+ ", " + aName.getyContig() + " from "
 																						+ referenceGenome.getReferenceFasta());
@@ -279,7 +279,7 @@ public class MitoSeqCN {
 						numOffTarget++;
 
 						if (numOffTarget % 1000000 == 0) {
-							log.reportTimeInfo("Processing normalization-reads for sample "+ sample + " , found "
+							log.reportTimeInfo("Processing normalization-reads for sample "	+ sample + " , found "
 																	+ numOffTarget);
 						}
 					}
@@ -349,7 +349,7 @@ public class MitoSeqCN {
 		int numthreads = 24;
 		String captureBed = "AgilentCaptureRegions.txt";
 		String referenceGenome = "hg19.fa";
-		String usage = "\n"+ "seq.analysis.mitoSeqCN requires 0-1 arguments\n"
+		String usage = "\n"	+ "seq.analysis.mitoSeqCN requires 0-1 arguments\n"
 										+ "   (1) file of Bams (i.e. bams=" + fileOfBams + " (default))\n"
 										+ "   (2) output directory (i.e. outDir=" + outDir + " (default))\n"
 										+ "   (3) number of threads (i.e. "

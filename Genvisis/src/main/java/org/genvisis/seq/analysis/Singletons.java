@@ -86,7 +86,7 @@ public class Singletons {
 			}
 			reader.close();
 
-			String outFile = outDir+ ext.rootOf(vcf) + "_singleton.counts_GQ_" + gqThreshold
+			String outFile = outDir	+ ext.rootOf(vcf) + "_singleton.counts_GQ_" + gqThreshold
 												+ "_sampleRemoved_" + sampsToExclude.size() + ".txt";
 			for (String anno : dotAnnos) {
 				outFile = ext.addToRoot(outFile, anno);
@@ -94,7 +94,7 @@ public class Singletons {
 			StringBuilder buildr = new StringBuilder();
 			buildr.append("SAMPLE\tSINGLETONS\tALT_ALLELES\n");
 			for (String sample : singletonCounts.keySet()) {
-				buildr.append(sample+ "\t" + singletonCounts.get(sample) + "\t" + altCounts.get(sample)
+				buildr.append(sample	+ "\t" + singletonCounts.get(sample) + "\t" + altCounts.get(sample)
 											+ "\n");
 			}
 			for (String sample : sampsToExclude) {
@@ -126,12 +126,14 @@ public class Singletons {
 
 		c.parseWithExit(args);
 		detectSingletons(c.get("vcf").split(","), c.get(CLI.ARG_OUTDIR), 50, dotAnnos, sampsToExclude);
-		detectSingletons(c.get("vcf").split(","), c.get(CLI.ARG_OUTDIR), 50, dotAnnos, new HashSet<String>());
+		detectSingletons(	c.get("vcf").split(","), c.get(CLI.ARG_OUTDIR), 50, dotAnnos,
+											new HashSet<String>());
 
 		dotAnnos.add("PopFreqMax");
 
 		detectSingletons(c.get("vcf").split(","), c.get(CLI.ARG_OUTDIR), 50, dotAnnos, sampsToExclude);
-		detectSingletons(c.get("vcf").split(","), c.get(CLI.ARG_OUTDIR), 50, dotAnnos, new HashSet<String>());
+		detectSingletons(	c.get("vcf").split(","), c.get(CLI.ARG_OUTDIR), 50, dotAnnos,
+											new HashSet<String>());
 		dotAnnos.add("snp138");
 		detectSingletons(c.get("vcf").split(","), c.get(CLI.ARG_OUTDIR), 50, dotAnnos, sampsToExclude);
 		// detectSingletons(c.get("vcf").split(","), c.get("outDir"), 50, dotAnnos, new

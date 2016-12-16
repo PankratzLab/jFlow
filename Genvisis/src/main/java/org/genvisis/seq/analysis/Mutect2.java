@@ -85,7 +85,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		String tumorSample = BamOps.getSampleName(tumorBam);
 		index++;
 		return new MutectTumorNormalWorker(	gatk,
-																				normalBam, tumorBam, outputDir+ normalSample + "_normal_"
+																				normalBam, tumorBam, outputDir	+ normalSample + "_normal_"
 																															+ tumorSample + "_tumor" + ".vcf.gz",
 																				pon, log);
 	}
@@ -236,7 +236,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 			this.bamFile = bamFile;
 			this.ponVCF = ponVCF;
 			if (!BamOps.getSampleName(bamFile).equals(sample)) {
-				throw new IllegalArgumentException("Sample detected in bam file "+ bamFile
+				throw new IllegalArgumentException("Sample detected in bam file "	+ bamFile
 																						+ " should have been " + sample + " but saw "
 																						+ BamOps.getSampleName(bamFile) + "+ instead");
 			}
@@ -442,7 +442,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 					bamsToExtract.add(element);
 				}
 			}
-			String extractFiltDir = outputDir+ "extract_" + VCFOps.getAppropriateRoot(finalAnno, true)
+			String extractFiltDir = outputDir	+ "extract_" + VCFOps.getAppropriateRoot(finalAnno, true)
 															+ "/";
 			new File(extractFiltDir).mkdirs();
 			extractBamsTo(extractFiltDir, Array.toStringArray(bamsToExtract), finalAnno, numThreads, log);
@@ -497,7 +497,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		command.addAll(getBaseArgs(gatk, outputDir, numthreads, numSampleThreads));
 		command.add("normalBams=" + baseOut);
 
-		Files.qsub(outputDir+ "Contam.txt", Array.toStr(Array.toStringArray(command), " "), batches,
+		Files.qsub(outputDir	+ "Contam.txt", Array.toStr(Array.toStringArray(command), " "), batches,
 								62000, 40, numthreads * numSampleThreads, "small");
 	}
 
@@ -559,9 +559,9 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		ANNOVCF annoVCF = null;
 		String tparams = null;
 		String usage = "\n" + "seq.analysis.Mutect2 requires 0-1 arguments\n";
-		usage += "   (1) full path to a file of normal sample bams (i.e. normalBams="+ fileOfNormalBams
+		usage += "   (1) full path to a file of normal sample bams (i.e. normalBams="	+ fileOfNormalBams
 							+ " (default))\n" + "";
-		usage += "   (2) full path to a reference genome (i.e. ref="+ referenceGenomeFasta
+		usage += "   (2) full path to a reference genome (i.e. ref="	+ referenceGenomeFasta
 							+ " (default))\n" + "";
 		usage += "   (3) known dbsnp snps (i.e. knownSnps=" + knownSnps + " (default))\n" + "";
 		usage += "   (4) cosmic snps (i.e. cosmic=" + cosmic + " (default))\n" + "";
@@ -573,7 +573,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		usage += "   (9) gatk directory (i.e. gatk=" + gatkLocation + " (default))\n" + "";
 		usage += "   (10) type of analysis (i.e. run=" + run + " (default))\n" + "";
 		usage += "   (11) pon vcf (i.e. ponVcf= (no default))\n" + "";
-		usage += "   (12) number of threads per sample (i.e. numSampleThreads="+ numSampleThreads
+		usage += "   (12) number of threads per sample (i.e. numSampleThreads="	+ numSampleThreads
 							+ " (default))\n" + "";
 		usage +=
 					"   (13) full path to a file of tumor-normal matched (tab-delimited) bam files, normal in first column, tumor in second (i.e. tumorNormalBams= (no default))\n"

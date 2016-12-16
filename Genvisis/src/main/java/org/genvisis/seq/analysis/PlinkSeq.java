@@ -290,7 +290,7 @@ public class PlinkSeq implements Serializable {
 			} else {
 				loaded = false;
 				log.reportError("The project "	+ pseqProject.getProjectName() + " in directory "
-														+ pseqProject.getProjectDirectory() + " has not been loaded");
+												+ pseqProject.getProjectDirectory() + " has not been loaded");
 			}
 		}
 		return loaded;
@@ -495,7 +495,7 @@ public class PlinkSeq implements Serializable {
 		boolean verified = true;
 		if (!CmdLine.run(PSEQ, "")) {
 			log.reportError("It is assumed that the program "	+ PSEQ
-													+ " can be found on the system's path, please install before continuing");
+											+ " can be found on the system's path, please install before continuing");
 			verified = false;
 		}
 		return verified;

@@ -539,8 +539,7 @@ public class VcfQuery {
 			}
 			String[] all = Array.concatAll(vcfs, gzVcfs);
 			if (all.length < 1) {
-				log.reportError("Did not find any .vcf or .vcf.gz files in directory "
-														+ qParams.getDir());
+				log.reportError("Did not find any .vcf or .vcf.gz files in directory " + qParams.getDir());
 			} else {
 				log.reportTimeInfo("Found " + all.length + " files to query from " + qParams.getDir());
 				QueryResults[] queryResults = query(all, segs, qParams, numThreads, log);

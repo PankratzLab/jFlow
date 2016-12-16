@@ -71,7 +71,7 @@ public class SNPSIFT {
 		boolean progress = true;
 		if (!fail) {
 			String[] command = PSF.Java.buildJavaJar(snpSiftLocation + SNP_SIFT_JAR);
-      String[] args = new String[] {TSTV, inputVCF, PSF.Ext.CARROT, outputTsTv};
+			String[] args = new String[] {TSTV, inputVCF, PSF.Ext.CARROT, outputTsTv};
 			command = Array.concatAll(command, args);
 			String batFile = outputTsTv + ".bat";
 			command = CmdLine.prepareBatchForCommandLine(command, batFile, true, log);

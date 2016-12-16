@@ -18,11 +18,11 @@ public class BWA {
 	public static final String BWA_MEM_COMMAND = "mem";
 	public static final String BWA_COMMAND = "bwa";
 
-  private String bwaLocation;
+	private String bwaLocation;
 
-  private final boolean fail, verbose, overwriteExisting;
+	private final boolean fail, verbose, overwriteExisting;
 
-  private final Logger log;
+	private final Logger log;
 
 	public BWA(String bwaLocation, boolean overwriteExisting, boolean verbose, Logger log) {
 		super();
@@ -34,43 +34,43 @@ public class BWA {
 	}
 
 
-  public boolean bwaMEM(String fullPathToReferenceIndexedFasta, String fullPathToForwardReadFQ,
-                        String fullPathToRevereseReadFQ, String fullPathToOutputFile,
-                        String readGroup, int numThreads, Logger altLog) {
-    String[] inputFiles = new String[] {fullPathToReferenceIndexedFasta, fullPathToForwardReadFQ,
-                                        fullPathToRevereseReadFQ};
-    String[] outputFiles = new String[] {fullPathToOutputFile};
-    String[] commandArray = new String[] {bwaLocation, BWA_MEM_COMMAND, "-M", "-R", readGroup,
-                                          numThreads > 1 ? " -t " + numThreads : "",
-                                          fullPathToReferenceIndexedFasta, fullPathToForwardReadFQ,
-                                          fullPathToRevereseReadFQ, ">", fullPathToOutputFile};
-    if (!fail) {
-      String command = fullPathToOutputFile + ".bat";
-      Files.write(Array.toStr(commandArray, " "), command);
-      Files.chmod(command);
-      return CmdLine.runCommandWithFileChecks(new String[] {command}, "", inputFiles, outputFiles,
-                                              verbose, overwriteExisting, true,
-                                              altLog == null ? log : altLog);
-    } else {
-      return false;
-    }
-  }
+	public boolean bwaMEM(String fullPathToReferenceIndexedFasta, String fullPathToForwardReadFQ,
+												String fullPathToRevereseReadFQ, String fullPathToOutputFile,
+												String readGroup, int numThreads, Logger altLog) {
+		String[] inputFiles = new String[] {fullPathToReferenceIndexedFasta, fullPathToForwardReadFQ,
+																				fullPathToRevereseReadFQ};
+		String[] outputFiles = new String[] {fullPathToOutputFile};
+		String[] commandArray = new String[] {bwaLocation, BWA_MEM_COMMAND, "-M", "-R", readGroup,
+																					numThreads > 1 ? " -t " + numThreads : "",
+																					fullPathToReferenceIndexedFasta, fullPathToForwardReadFQ,
+																					fullPathToRevereseReadFQ, ">", fullPathToOutputFile};
+		if (!fail) {
+			String command = fullPathToOutputFile + ".bat";
+			Files.write(Array.toStr(commandArray, " "), command);
+			Files.chmod(command);
+			return CmdLine.runCommandWithFileChecks(new String[] {command}, "", inputFiles, outputFiles,
+																							verbose, overwriteExisting, true,
+																							altLog == null ? log : altLog);
+		} else {
+			return false;
+		}
+	}
 
-  // TODO
-  // public boolean indexReferenceGenome(String fullPathToReferenceFasta) {
-  // boolean success = false;
-  // String command = bwaLocation + " " + INDEX_COMMAND + " " + fullPathToReferenceFasta;
-  // String[] expectedOutput = new String{fullPathToReferenceFasta+"."
-  // }
+	// TODO
+	// public boolean indexReferenceGenome(String fullPathToReferenceFasta) {
+	// boolean success = false;
+	// String command = bwaLocation + " " + INDEX_COMMAND + " " + fullPathToReferenceFasta;
+	// String[] expectedOutput = new String{fullPathToReferenceFasta+"."
+	// }
 
 	public boolean isFail() {
 		return fail;
 	}
 
 
-  public String getBwaLocation() {
-    return bwaLocation;
-  }
+	public String getBwaLocation() {
+		return bwaLocation;
+	}
 
 	private boolean validBWA() {
 
@@ -98,26 +98,26 @@ public class BWA {
 		}
 	}
 
-  public static void test(String fq1, String fq2, String ref) {
-    BWA bwa = new BWA(null, true, true, new Logger("/home/pankrat2/shared/testGATK/testing.log"));
-    // bwa.indexReferenceGenome(ref);
-    String refIndex = ref;
+	public static void test(String fq1, String fq2, String ref) {
+		BWA bwa = new BWA(null, true, true, new Logger("/home/pankrat2/shared/testGATK/testing.log"));
+		// bwa.indexReferenceGenome(ref);
+		String refIndex = ref;
 
-    String finalSame = ext.rootOf(fq2, false) + ".test.sam";
+		String finalSame = ext.rootOf(fq2, false) + ".test.sam";
 
-    bwa.bwaMEM(refIndex, fq1, fq2, finalSame, "test", 8, null);
+		bwa.bwaMEM(refIndex, fq1, fq2, finalSame, "test", 8, null);
 
-  }
+	}
 
-  public static void main(String[] args) {
-    String dir = "/home/pankrat2/shared/testGATK/fastq/";
-    // String fq1 = dir + "F10004C_ATCACG_L006_R1_001.fastq";
-    // String fq2 = dir + "F10004C_ATCACG_L006_R2_001.fastq";
-    String fq1 = dir + "F10004M_ATCACG_L005_R1_001.fastq";
-    String fq2 = dir + "F10004M_ATCACG_L005_R2_001.fastq";
-    String ref = "/home/pankrat2/lanej/bin/ref/hg19_canonical.fa";
-    test(fq1, fq2, ref);
-  }
+	public static void main(String[] args) {
+		String dir = "/home/pankrat2/shared/testGATK/fastq/";
+		// String fq1 = dir + "F10004C_ATCACG_L006_R1_001.fastq";
+		// String fq2 = dir + "F10004C_ATCACG_L006_R2_001.fastq";
+		String fq1 = dir + "F10004M_ATCACG_L005_R1_001.fastq";
+		String fq2 = dir + "F10004M_ATCACG_L005_R2_001.fastq";
+		String ref = "/home/pankrat2/lanej/bin/ref/hg19_canonical.fa";
+		test(fq1, fq2, ref);
+	}
 }
 //
 // public boolean combinePairedReads(String fullPathToReferenceIndexedFasta, String

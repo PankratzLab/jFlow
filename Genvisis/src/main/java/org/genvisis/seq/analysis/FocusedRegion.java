@@ -39,7 +39,7 @@ public class FocusedRegion {
 														String variantSet, int numthreads) {
 		new File(outDir).mkdirs();
 
-		String output = outDir+ ext.replaceWithLinuxSafeCharacters(seg.getUCSClocation(), true)
+		String output = outDir	+ ext.replaceWithLinuxSafeCharacters(seg.getUCSClocation(), true)
 										+ "_focus.txt";
 
 		Logger log = new Logger(outDir + "focus.log");
@@ -155,8 +155,8 @@ public class FocusedRegion {
 		c.addArgWithDefault("ref", "reference genome", ref);
 		c.addArgWithDefault("threads", "number of threads", Integer.toString(numthreads));
 		c.parseWithExit(args);
-		focus(c.get("bams"), c.get("ref"), c.get(CLI.ARG_OUTDIR), c.get("vcf"), new Segment(c.get("seg")),
-					c.get("variantSet"), c.getI("threads"));
+		focus(c.get("bams"), c.get("ref"), c.get(CLI.ARG_OUTDIR), c.get("vcf"),
+					new Segment(c.get("seg")), c.get("variantSet"), c.getI("threads"));
 
 	}
 }

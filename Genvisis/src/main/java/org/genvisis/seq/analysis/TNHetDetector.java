@@ -52,7 +52,7 @@ public class TNHetDetector {
 			for (String normalSamp : vcNormal.getSampleNames()) {
 				Genotype g = vcNormal.getGenotype(normalSamp);
 
-				if (!g.isHomRef()&& g.isCalled()
+				if (!g.isHomRef()	&& g.isCalled()
 						&& ext.indexOfStr(VCOps.getSNP_EFFImpact(vc), VCFSimpleTally.EFF) >= 0) {
 					normalHash.put(normalSamp + "_" + VCOps.getSNP_EFFGeneName(vc), g);
 				}

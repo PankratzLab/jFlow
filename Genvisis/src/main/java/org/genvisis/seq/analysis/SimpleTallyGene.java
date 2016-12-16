@@ -49,7 +49,7 @@ public class SimpleTallyGene {
 																							false, true, true, false, null, 1, log);
 			Files.copyFile(vpopFile, newVpop);
 			if (Files.exists(ext.rootOf(vpopFile, false) + ".lowerQualitySamples.txt")) {
-				Files.copyFile(ext.rootOf(vpopFile, false)+ ".lowerQualitySamples.txt",
+				Files.copyFile(ext.rootOf(vpopFile, false)	+ ".lowerQualitySamples.txt",
 												dir + ext.rootOf(vpopFile, true) + ".lowerQualitySamples.txt");
 			}
 			VCFSimpleTally.test(subVcf, new String[] {newVpop}, omimDir, null, null, maf, true, true,

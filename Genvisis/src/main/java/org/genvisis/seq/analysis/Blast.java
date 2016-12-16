@@ -183,13 +183,13 @@ public class Blast {
 		}
 		if (!CmdLine.run(BLAST_COMMANDS.BLASTN.getCommand(), "")) {
 			log.reportError("It is assumed that the program "	+ BLAST_COMMANDS.BLASTN.getCommand()
-													+ " can be found on the system's path, please install before continuing");
+											+ " can be found on the system's path, please install before continuing");
 			verified = false;
 		}
 		if (!Files.exists("", getDBFiles(fastaDb))
 				&& !CmdLine.run(BLAST_COMMANDS.MAKE_DB.getCommand(), "")) {
 			log.reportError("It is assumed that the program "	+ BLAST_COMMANDS.BLASTN.getCommand()
-													+ " can be found on the system's path, or the following files are present...");
+											+ " can be found on the system's path, or the following files are present...");
 			log.reportError(Array.toStr(getDBFiles(fastaDb), "\n"));
 			verified = false;
 		}

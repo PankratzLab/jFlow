@@ -113,8 +113,7 @@ public class Oncotator {
 		} else {
 			ver = Files.exists(oncoDBLoc);
 			if (!ver) {
-				log.reportError(ONCOTATOR	+ " db directory " + oncoDBLoc
-														+ " did not exist, cannot run ");
+				log.reportError(ONCOTATOR + " db directory " + oncoDBLoc + " did not exist, cannot run ");
 			}
 		}
 		return ver;

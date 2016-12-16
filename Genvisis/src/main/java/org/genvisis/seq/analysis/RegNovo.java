@@ -116,7 +116,7 @@ public class RegNovo {
 		if (!vpop.getSuperPop().containsKey(OFFSPRING)
 				|| !vpop.getSuperPop().containsKey(VcfPopulation.CONTROL)) {
 			log.reportError(vpop.getFileName()	+ " must contain both " + OFFSPRING + " and "
-													+ VcfPopulation.CONTROL);
+											+ VcfPopulation.CONTROL);
 			return;
 		}
 		Set<String> offspring = vpop.getSuperPop().get(OFFSPRING);
