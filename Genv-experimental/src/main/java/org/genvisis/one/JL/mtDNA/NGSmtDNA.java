@@ -44,17 +44,17 @@ public class NGSmtDNA {
 			VCFOpsMT.convertHg19ToRCRS(cVcf, rcrsC, new Logger());
 
 			GATK gatk = new GATK(	"/Users/Kitty/bin/GenomeAnalysisTK-3.6/",
-														"/Volumes/Beta/ref/GRCh37_canon.fa", PSF.Ext.DEFAULT_MEMORY_MB, true,
-														true, log);
+														"/Volumes/Beta/ref/GRCh37_canon.fa", "MT", PSF.Ext.DEFAULT_MEMORY_MB,
+														true, true, log);
 
 			String outAnno = ext.addToRoot(rcrsC, ".poly");
 			gatk.annotateWithAnotherVCF(rcrsC, polyVCF, outAnno, new String[] {"AF", "AC"}, "mtPoly",
-																	"MT", 1);
+																	1);
 
 			String outAnnoD = ext.addToRoot(outAnno, ".disease");
 			gatk.annotateWithAnotherVCF(outAnno, diseaseTrimVCF, outAnnoD,
 																	new String[] {"AF", "AC", "DiseaseStatus", "Disease"}, "mtPoly",
-																	"MT", 1);
+																	1);
 
 			String finalOut = ext.addToRoot(outAnnoD, ".conv");
 			VCFOpsMT.convertContigs(outAnnoD, finalOut, MT_GENOME.HG19, log);

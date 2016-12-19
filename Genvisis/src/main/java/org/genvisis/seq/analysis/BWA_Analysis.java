@@ -280,6 +280,7 @@ public class BWA_Analysis {
 	public static final String ROOT_OUTPUT_COMMAND = "rootOutputDir=";
 	public static final String FILE_OF_SAMPLE_PAIRS_COMMAND = "fileOfSamplePairs=";
 	public static final String REFERENCE_GENOME_COMMAND = "referenceGenomeFasta=";
+	public static final String REGIONS_FILE_COMMAND = "regionsFile=";
 	public static final String BWA_LOCATION_COMMAND = "bwaLocation=";
 	public static final String QUIET_COMMAND = "-quiet";
 	public static final String NUM_BETWEEN_THREADS_COMMAND = "numBetweenThreads=";

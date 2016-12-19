@@ -88,6 +88,8 @@ public class GATK {
 	public static final String SNP_EFF = "SnpEff";
 	public static final String SNP_EFF_FILE = "--snpEffFile";
 	public static final String L = "-L";
+	public static final String INTERVAL_PADDING = "-ip";
+	public static final int DEFAULT_INTERVAL_PADDING = 100;
 	public static final String V = "-V";
 
 	public static final String I = "-I";
@@ -185,22 +187,22 @@ public class GATK {
 	private GATK(	String gATKLocation, String referenceGenomeFasta, String javaLocation,
 								int memoryInMB, String dbSnpKnownSites, String regionsFile, String cosmicKnownSites,
 								boolean verbose, boolean overWriteExisting, Logger log) {
-		this(	gATKLocation, referenceGenomeFasta, javaLocation, memoryInMB, verbose, overWriteExisting,
-					log);
+		this(	gATKLocation, referenceGenomeFasta, regionsFile, javaLocation, memoryInMB, verbose,
+					overWriteExisting, log);
 		this.dbSnpKnownSites = dbSnpKnownSites;
 		this.cosmicKnownSites = cosmicKnownSites;
-		this.regionsFile = regionsFile;
 	}
 
-	public GATK(String gATKLocation, String referenceGenomeFasta, int memoryInMB, boolean verbose,
-							boolean overWriteExisting, Logger log) {
-		this(gATKLocation, referenceGenomeFasta, null, memoryInMB, verbose, overWriteExisting, log);
-	}
-
-	public GATK(String GATKLocation, String referenceGenomeFasta, String javaLocation, int memoryInMB,
+	public GATK(String gATKLocation, String referenceGenomeFasta, String regionsFile, int memoryInMB,
 							boolean verbose, boolean overWriteExisting, Logger log) {
+		this(gATKLocation, referenceGenomeFasta, regionsFile, null, memoryInMB, verbose, overWriteExisting, log);
+	}
+
+	public GATK(String GATKLocation, String referenceGenomeFasta, String regionsFile, String javaLocation,
+							int memoryInMB, boolean verbose, boolean overWriteExisting, Logger log) {
 		this.gatkLocation = GATKLocation;
 		this.referenceGenomeFasta = referenceGenomeFasta;
+		this.regionsFile = regionsFile;
 		this.javaLocation = javaLocation == null ? DEFAULT_JAVA : javaLocation;
 		this.memoryInMB = memoryInMB;
 		this.verbose = verbose;
@@ -209,11 +211,11 @@ public class GATK {
 		fail = verifyGATKLocation();
 	}
 
-	public GATK(String gATKLocation, String referenceGenomeFasta, String javaLocation, int memoryInMB,
-							String[] knownSitesSnpFile, String[] knownSitesIndelFile, boolean verbose,
-							boolean overWriteExisting, Logger log) {
-		this(	gATKLocation, referenceGenomeFasta, javaLocation, memoryInMB, verbose, overWriteExisting,
-					log);
+	public GATK(String gATKLocation, String referenceGenomeFasta, String regionsFile, String javaLocation,
+							int memoryInMB, String[] knownSitesSnpFile, String[] knownSitesIndelFile,
+							boolean verbose, boolean overWriteExisting, Logger log) {
+		this(	gATKLocation, referenceGenomeFasta, regionsFile, javaLocation, memoryInMB, verbose,
+					overWriteExisting, log);
 		this.knownSitesSnpFile = knownSitesSnpFile;
 		this.knownSitesIndelFile = knownSitesIndelFile;
 	}
@@ -286,10 +288,6 @@ public class GATK {
 
 	public void setSupportingSnps(String supportingSnps) {
 		this.supportingSnps = supportingSnps;
-	}
-
-	public void setRegionsFile(String regionsFile) {
-		this.regionsFile = regionsFile;
 	}
 
 	public boolean isFail() {
@@ -453,7 +451,7 @@ public class GATK {
 
 	public boolean annotateWithAnotherVCF(String inputVcf, String annoVcf, String outVCF,
 																				String[] annotations, String resourceName,
-																				String limitContig, int numThreads) {
+																				int numThreads) {
 		String[] inputs = new String[] {inputVcf, annoVcf};
 		String[] outputs = new String[] {outVCF};
 		ArrayList<String> command = new ArrayList<String>();
@@ -466,10 +464,7 @@ public class GATK {
 		command.add(referenceGenomeFasta);
 		command.add(V);
 		command.add(inputVcf);
-		if (limitContig != null) {
-			command.add(L);
-			command.add(limitContig);
-		}
+		command.addAll(intervalCommands());
 		command.add(O);
 		command.add(outVCF);
 		command.add(RESOURCE + resourceName);
@@ -506,10 +501,7 @@ public class GATK {
 		if (useKnownIndels) {
 			command = parseAndAddToCommand(command, KNOWN, knownSitesIndelFile);
 		}
-		if (regionsFile != null) {
-			command.add(L);
-			command.add(regionsFile);
-		}
+		command.addAll(intervalCommands());
 		return CmdLine.runCommandWithFileChecks(command, "",
 																						ImmutableList.of(referenceGenomeFasta, dedup_reads_bam),
 																						ImmutableList.of(output), verbose,
@@ -541,10 +533,7 @@ public class GATK {
 			neccesaryInputFiles = handleKnownSites(neccesaryInputFiles);
 			command = parseAndAddToCommand(command, KNOWN_SITES, knownSitesIndelFile);
 			command = parseAndAddToCommand(command, KNOWN_SITES, knownSitesSnpFile);
-			if (regionsFile != null) {
-				command.add(L);
-				command.add(regionsFile);
-			}
+			command.addAll(intervalCommands());
 			return CmdLine.runCommandWithFileChecks(command, "", neccesaryInputFiles,
 																							ImmutableList.of(output), verbose,
 																							overWriteExistingOutput, true,
@@ -568,10 +557,7 @@ public class GATK {
 			neccesaryInputFiles = handleKnownSites(neccesaryInputFiles);
 			command = parseAndAddToCommand(command, KNOWN_SITES, knownSitesIndelFile);
 			command = parseAndAddToCommand(command, KNOWN_SITES, knownSitesSnpFile);
-			if (regionsFile != null) {
-				command.add(L);
-				command.add(regionsFile);
-			}
+			command.addAll(intervalCommands());
 			return CmdLine.runCommandWithFileChecks(command, "", neccesaryInputFiles,
 																							ImmutableList.of(output), verbose,
 																							overWriteExistingOutput, true,
@@ -647,10 +633,7 @@ public class GATK {
 																							dbSnpFile == null ? "" : DB_SNP,
 																							dbSnpFile == null ? "" : dbSnpFile, NCT,
 																							Integer.toString(numWithinSampleThreads));
-		if (regionsFile != null) {
-			command.add(L);
-			command.add(regionsFile);
-		}
+		command.addAll(intervalCommands());
 		return CmdLine.runCommandWithFileChecks(command, "", input,
 																						ImmutableList.of(output, getVcfIndex(output)), verbose,
 																						overWriteExistingOutput, false,
@@ -688,8 +671,7 @@ public class GATK {
 		command.add(FILTERED_ARE_UNCALLED);
 		command.add(FILTERED_RECORDS_MERGE_TYPE);
 		command.add(KEEP_IF_ANY_UNFILTERED);
-		command.add(L);
-		command.add(regionsFile);
+		command.addAll(intervalCommands());
 		command.add(O);
 		command.add(outputVcf);
 		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs,
@@ -727,8 +709,7 @@ public class GATK {
 			command.add(PON);
 			command.add(pon);
 		}
-		command.add(L);
-		command.add(regionsFile);
+		command.addAll(intervalCommands());
 		command.add(O);
 		command.add(outputVCF);
 		boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input,
@@ -740,8 +721,8 @@ public class GATK {
 		if (progress && rename && (!Files.exists(mutectTumorNormal.getReNamedFilteredVCF())
 																|| !Files.exists(mutectTumorNormal.getReNamedOutputVCF()))) {
 			log.reportTimeInfo("Re-naming samples in file " + outputVCF);
-			String normalSamp = BamOps.getSampleName(normalBam);
-			String tumorSamp = BamOps.getSampleName(tumorBam);
+			String normalSamp = BamOps.getSampleName(normalBam, log);
+			String tumorSamp = BamOps.getSampleName(tumorBam, log);
 			VCFTumorNormalOps.renameTumorNormalVCF(	outputVCF, tumorSamp, normalSamp,
 																							mutectTumorNormal.getReNamedOutputVCF(),
 																							mutectTumorNormal.getReNamedFilteredVCF(), log);
@@ -940,8 +921,7 @@ public class GATK {
 		// command.add(COSMIC);
 		// command.add(cosmicKnownSites);
 		command.add(ARTIFACT_DETECTION_MODE);
-		command.add(L);
-		command.add(regionsFile);
+		command.addAll(intervalCommands());
 		command.add(O);
 		command.add(outputVcf);
 		if (numWithinSampleThreads > 1) {
@@ -1103,13 +1083,12 @@ public class GATK {
 	/**
 	 * @param inputGVCFs
 	 * @param output
-	 * @param restrictContig restrict genotyping to only this contig
 	 * @param numWithinSampleThreads
 	 * @param altLog
 	 * @return
 	 */
-	public boolean jointGenotypeGVCFs(String[] inputGVCFs, String output, String restrictContig,
-																		int numWithinSampleThreads, Logger altLog) {
+	public boolean jointGenotypeGVCFs(String[] inputGVCFs, String output, int numWithinSampleThreads,
+																		Logger altLog) {
 		List<String> inputs = Lists.newArrayList();
 		inputs.add(referenceGenomeFasta);
 		for (String inputGVCF : inputGVCFs) {
@@ -1126,11 +1105,6 @@ public class GATK {
 																							gatkLocation + GENOME_ANALYSIS_TK, T, GENOTYPEGVCFS,
 																							R, referenceGenomeFasta, O, output, NT,
 																							Integer.toString(numWithinSampleThreads));
-		if (restrictContig != null) {
-			command.add(L);
-			command.add(restrictContig);
-			log.reportTimeInfo("Restricting joint genotyping to " + restrictContig);
-		}
 
 		return CmdLine.runCommandWithFileChecks(command, "", inputs,
 																						ImmutableList.of(output, getVcfIndex(output)), verbose,
@@ -1506,18 +1480,6 @@ public class GATK {
 	//
 	// }
 
-	private static String[] parseAndAddToCommand(	String[] command, String commandToAdd,
-																								String[] values) {
-		String[] knowns;
-		knowns = new String[values.length * 2];
-		for (int i = 0; i < values.length; i++) {
-			knowns[2 * i] = commandToAdd;
-			knowns[2 * i + 1] = values[i];
-		}
-		command = Array.concatAll(command, knowns);
-		return command;
-	}
-
 	/**
 	 * 
 	 * @param command existing List of commands
@@ -1534,9 +1496,19 @@ public class GATK {
 		}
 		return combinedCommands;
 	}
-
-	private String[] handleKnownSites(String[] neccesaryInputFiles) {
-		return Array.concatAll(neccesaryInputFiles, knownSitesIndelFile, knownSitesSnpFile);
+	
+	private List<String> intervalCommands() {
+		List<String> command = Lists.newArrayList();
+		if (regionsFile == null) {
+			log.reportTimeWarning("No regions file specified, necessary GATK calls will not be limited to"
+														+ " targeted regions. This is only recommended for Whole Genome data.");
+		} else {
+			command.add(L);
+			command.add(regionsFile);
+			command.add(INTERVAL_PADDING);
+			command.add(Integer.toString(DEFAULT_INTERVAL_PADDING));
+		}
+		return command;
 	}
 
 	private List<String> handleKnownSites(final List<String> neccesaryInputFiles) {
