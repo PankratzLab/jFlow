@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import org.genvisis.cnv.annotation.AnalysisParams;
 import org.genvisis.cnv.annotation.AnnotationData;
@@ -114,8 +115,7 @@ public class MarkerBlast {
 
 			if (doBlast && !Files.exists("", tmps)) {
 				MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type, null, false);
-				ArrayList<MarkerFastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads,
-																																	proj.getLog());
+				List<MarkerFastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, proj.getLog());
 
 				ArrayList<BlastWorker> workers = new ArrayList<Blast.BlastWorker>();
 				if (fastaEntries != null && fastaEntries.length > 0) {

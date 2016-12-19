@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
@@ -480,7 +481,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 	private static void batchPON(	int numNormalBatches, GATK gatk, String bamFilesFullPath,
 																String outputDir, int numthreads, int numSampleThreads,
 																Logger log) {
-		ArrayList<String[]> splits = Array.splitUpArray(HashVec.loadFileToStringArray(bamFilesFullPath,
+		List<String[]> splits = Array.splitUpArray(HashVec.loadFileToStringArray(bamFilesFullPath,
 																																									false,
 																																									new int[] {0},
 																																									true),

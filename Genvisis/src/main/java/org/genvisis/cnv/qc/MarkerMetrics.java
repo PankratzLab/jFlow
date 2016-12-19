@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
@@ -92,7 +93,7 @@ public class MarkerMetrics {
 			fullQC(proj, samplesToExclude, markerNames, finalQcFile, checkMendel);
 		} else {
 			WorkerHive<Boolean> hive = new WorkerHive<Boolean>(numThreads, 10, proj.getLog());
-			ArrayList<String[]> batches = Array.splitUpArray(markerNames, numThreads, proj.getLog());
+			List<String[]> batches = Array.splitUpArray(markerNames, numThreads, proj.getLog());
 			String[] tmpQc = new String[batches.size()];
 			String[] tmpMendel = new String[batches.size()];
 			for (int i = 0; i < batches.size(); i++) {

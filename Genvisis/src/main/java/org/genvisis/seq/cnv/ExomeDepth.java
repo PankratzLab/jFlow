@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -565,7 +566,7 @@ public class ExomeDepth {
 		if (numBatches > 0) {
 			log.reportTimeInfo("number of batches set to "	+ numBatches
 													+ ", preparing for batched run...");
-			ArrayList<String[]> batches = Array.splitUpArray(allReferenceBamFiles, numBatches, log);
+			List<String[]> batches = Array.splitUpArray(allReferenceBamFiles, numBatches, log);
 			for (int i = 0; i < batches.size(); i++) {
 				ExomeDepth exomeDepth = new ExomeDepth(	allReferenceBamFiles, batches.get(i), outputDir,
 																								outputRoot, Rloc, log);

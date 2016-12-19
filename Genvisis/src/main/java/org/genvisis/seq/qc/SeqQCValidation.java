@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.genvisis.common.Array;
@@ -224,8 +225,7 @@ public class SeqQCValidation {
 				}
 			}
 		}
-		ArrayList<DuplicateETwo[]> duplicateETwos =
-																							Array.splitUpArray(	deETwos.toArray(new DuplicateETwo[deETwos.size()]),
+		List<DuplicateETwo[]> duplicateETwos = Array.splitUpArray(	deETwos.toArray(new DuplicateETwo[deETwos.size()]),
 																																	numthreads, log);
 		SeqQCValidation[] setSeqQCValidations = new SeqQCValidation[SNP_SETS.length
 																																* duplicateETwos.size()];
