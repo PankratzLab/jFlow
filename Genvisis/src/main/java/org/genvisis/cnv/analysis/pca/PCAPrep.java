@@ -24,6 +24,8 @@ public class PCAPrep {
 	static final String MARKERS_TO_QC_FILE = "markers_to_QC.txt";
 	static final String MARKERS_FOR_ABCALLRATE = "markers_ABCallRate.txt";
 
+	public static final int SUCCESS_CODE = 42;
+	
 	public static String errorMessage(int errorCode) {
 		switch (errorCode) {
 			case 1:
@@ -31,7 +33,7 @@ public class PCAPrep {
 			case 2:
 			case 3:
 				return "Problem occurred when reading Sample QC (lrr_sd.xln) file - please check log for more details.";
-			case 42:
+			case SUCCESS_CODE:
 			default:
 				return "";
 		}
@@ -114,7 +116,7 @@ public class PCAPrep {
 																						// happen but we will test anyway
 			return 2;// message handled already
 		}
-		return 42;
+		return SUCCESS_CODE;
 	}
 
 	/**

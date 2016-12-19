@@ -373,12 +373,12 @@ public class GenvisisWorkflowGUI extends JDialog {
 
 			String current = fileField.getText();
 
-			String dir = current.equals("")	? proj.PROJECT_DIRECTORY.getValue(false, false)
+			String dir = "".equals(current)	? proj.PROJECT_DIRECTORY.getValue(false, false)
 																			: ext.parseDirectoryOfFile(current);
 			JFileChooser chooser = new JFileChooser(dir);
 			chooser.setMultiSelectionEnabled(false);
 			final STEP step = steps[stepIndex];
-			RequirementInputType[][] reqs = step.reqTypes;
+			RequirementInputType[][] reqs = step.getRequirementInputTypes();
 			int accum = 0;
 			RequirementInputType type = null;
 			outer: for (int i = 0; i < reqs.length; i++) {
@@ -531,8 +531,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						Grafik.scaleCheckBoxIcon(checkBox);
 						checkBox.setVerticalAlignment(SwingConstants.TOP);
 						checkBox.setHorizontalAlignment(SwingConstants.RIGHT);
-						boolean sel = false;
-						sel = Boolean.valueOf(step.getRequirementDefaults(proj)[reqIndex].toString());
+						boolean sel = Boolean.parseBoolean(step.getRequirementDefaults(proj)[reqIndex].toString());
 						checkBox.setSelected(sel);
 						reqIndex++;
 						reqInputFields.add(checkBox);
