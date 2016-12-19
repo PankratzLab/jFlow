@@ -369,8 +369,6 @@ public class PennCNV {
 					int estSex = Integer.parseInt(estSexStr);
 					estSex = SexChecks.KARYOTYPES[estSex].contains("XX") ? 2 : 1;
 					writer.println(lineData.getKey() + "\t" + estSex);
-				} else {
-					writer.println(lineData.getKey() + "\t.");
 				}
 			}
 			writer.close();
