@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.GATK.GenotypeRefiner;
 import org.genvisis.seq.analysis.GATK.Mutect;
@@ -95,7 +96,8 @@ public class GenotypeRefinement {
 		}
 		new File(outputDir).mkdirs();
 		Logger log = new Logger(outputDir + "TN.log");
-		GATK gatk = new Mutect(gatkLocation, referenceGenomeFasta, null, null, null, true, false, log);
+		GATK gatk = new Mutect(	gatkLocation, referenceGenomeFasta, PSF.Ext.DEFAULT_MEMORY_MB, null,
+														null, null, true, false, log);
 		gatk.setSupportingSnps(supportingSnps);
 		refineGenotypes(inputVcf, ped, outputDir, gatk);
 	}

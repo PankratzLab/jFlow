@@ -16,6 +16,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.Sort;
@@ -263,8 +264,9 @@ public class MapSNPsAndGenes {
 			if (input == null) {
 				// TODO error occurred!
 			}
-			output = GATK_Genotyper.annotateOnly(	input, "", "", snpEffLoc, snpEffLoc, annovarLoc,
-																						SNPEFF.BUILDS[0], true, false, log);
+			output = GATK_Genotyper.annotateOnly(	input, "", "", PSF.Ext.DEFAULT_MEMORY_MB, snpEffLoc,
+																						snpEffLoc, annovarLoc, SNPEFF.BUILDS[0], true, false,
+																						log);
 		} else if (snpEff) {
 			output = SNPEffAnnotation.pipeline(ext.rootOf(dir + snps, false)	+ "_positions.xln",
 																					SNPEffAnnotation.getDefaultConfigFile(), log);

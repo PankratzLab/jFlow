@@ -630,8 +630,8 @@ public class Array {
 			try {
 				s[i] = new String(new byte[] {b[i]}, charsetName).toUpperCase();
 			} catch (UnsupportedEncodingException e) {
-				log.reportError("Could not convert reference byte "	+ b[i]
-														+ " to string with charsetName" + charsetName);
+				log.reportError("Could not convert reference byte "	+ b[i] + " to string with charsetName"
+												+ charsetName);
 				e.printStackTrace();
 			}
 		}
@@ -1930,7 +1930,7 @@ public class Array {
 	public static String toStr(Collection<?> c, String delim) {
 		return toStr(c, delim, null);
 	}
-	
+
 	/**
 	 * Returns a Collection of Objects as a String separated by the specified delimiter
 	 *
@@ -1939,7 +1939,7 @@ public class Array {
 	 * @param nullValue value to use in place of nulls
 	 * @return String of printed objects
 	 */
-	public static String toStr(	final Collection<?> collection, String delimiter, String nullValue) {
+	public static String toStr(final Collection<?> collection, String delimiter, String nullValue) {
 		List<String> cleanList = Lists.newArrayListWithCapacity(collection.size());
 		boolean commaDelimited;
 
@@ -2094,7 +2094,7 @@ public class Array {
 	 */
 	public static String toStr(	String[] array, boolean[] display, String delimiter,
 															String nullValue) {
-			return toStr((Object[])array, display, delimiter, nullValue);
+		return toStr((Object[]) array, display, delimiter, nullValue);
 	}
 
 	/**
@@ -2424,6 +2424,7 @@ public class Array {
 
 	/**
 	 * Creates an array and copies the contents of a List into it in the specified order
+	 * 
 	 * @param <T>
 	 *
 	 * @param list
@@ -2438,7 +2439,7 @@ public class Array {
 		}
 		@SuppressWarnings("unchecked")
 		T[] array = (T[]) new Object[list.size()];
-		
+
 		for (int i = 0; i < array.length; i++) {
 			array[i] = list.get(order[i]);
 		}
@@ -2542,8 +2543,8 @@ public class Array {
 	}
 
 	/**
-	 * Creates an array and copies the Keys of a Map into it according to the order specified 
-	 * by the Values
+	 * Creates an array and copies the Keys of a Map into it according to the order specified by the
+	 * Values
 	 *
 	 * @param map Map with intended index position as the Value
 	 * @return array of Keys from map indexed by Values
@@ -2573,7 +2574,7 @@ public class Array {
 		}
 		return v;
 	}
-	
+
 	public static <T> List<T> toList(T[] array) {
 		return Lists.newArrayList(array);
 	}
@@ -3619,6 +3620,7 @@ public class Array {
 
 	/**
 	 * Trims null values from the end of an array
+	 * 
 	 * @param <T>
 	 *
 	 * @param array an array of Strings
@@ -3845,7 +3847,7 @@ public class Array {
 	 */
 	public static float[] replaceNonFinites(float[] array) {
 		float[] ret = new float[array.length];
-		for (int i=0; i<array.length; i++) {
+		for (int i = 0; i < array.length; i++) {
 			if (Numbers.isFinite(array[i])) {
 				ret[i] = array[i];
 			} else {
@@ -4202,7 +4204,8 @@ public class Array {
 
 		Collections.sort(bds);
 
-		return determineType(allow21, new double[]{bds.get(0).doubleValue(), bds.get(1).doubleValue()});
+		return determineType(	allow21,
+													new double[] {bds.get(0).doubleValue(), bds.get(1).doubleValue()});
 	}
 
 	/**
@@ -4753,7 +4756,7 @@ public class Array {
 	 * @param <T> generic: can take any type of object
 	 * @return a flat array containing the elements of all given arrays
 	 */
-	public static <T> T[] concatAll(T[] first, T[]... rest) {
+	public static <T> T[] concatAll(final T[] first, final T[]... rest) {
 		int totalLength = first.length;
 		for (T[] array : rest) {
 			totalLength += array.length;
@@ -4765,6 +4768,24 @@ public class Array {
 			offset += array.length;
 		}
 		return result;
+	}
+
+	/**
+	 * Function to concatenate an arbitrary number of Arrays to a List.
+	 * 
+	 * @param first the existing List
+	 * @param rest arrays to concatenate
+	 * @param <T> generic: can take any type of object
+	 * @return a List with all elements concatenated
+	 */
+	public static <T> List<T> concactAllToList(final List<T> first, final T[]... rest) {
+		List<T> combinedList = Lists.newArrayList(first);
+		for (T[] addition : rest) {
+			for (T element : addition) {
+				combinedList.add(element);
+			}
+		}
+		return combinedList;
 	}
 
 	public static int[][] nCr_indices(int n, int r) {
@@ -4896,8 +4917,8 @@ public class Array {
 
 		System.out.println(Array.toStr(quantiles(data)));
 
-		System.out.println(1.1 - (int) 1 == 0.1); //false
-		System.out.println(Math.abs((1.1 - 1) - 0.1) <= 0.00000001); //true
+		System.out.println(1.1 - (int) 1 == 0.1); // false
+		System.out.println(Math.abs((1.1 - 1) - 0.1) <= 0.00000001); // true
 
 		// double alleleFreq = 0.2;
 		// double stdev = 0.12;

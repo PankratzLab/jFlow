@@ -13,6 +13,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.GATK.MutectTumorNormal;
@@ -90,8 +91,9 @@ public class DeNovoMatic {
 		if (!Files.exists(renamed)) {
 			VCFTumorNormalOps.renameMergeVCF(mergeDenovoOut, renamed);
 		}
-		String annotatedVcf = GATK_Genotyper.annotateOnlyWithDefualtLocations(renamed, annoVCF, false,
-																																					false, log);
+		String annotatedVcf = GATK_Genotyper.annotateOnlyWithDefualtLocations(renamed, annoVCF,
+																																					gatk.getMemoryInMB(),
+																																					false, false, log);
 		String mergeFinal = VCFOps.getAppropriateRoot(annotatedVcf, false) + ".merged.vcf.gz";
 		if (finalVcf != null) {
 			gatk.mergeVCFs(new String[] {annotatedVcf, finalVcf}, mergeFinal, numThreads, false, log);
@@ -427,6 +429,7 @@ public class DeNovoMatic {
 		String ponVCF = null;
 		int numthreads = 1;
 		int numSampleThreads = 4;
+		int memoryInMB = PSF.Ext.DEFAULT_MEMORY_MB;
 		String outputDir = "mutect/";
 		String vpopFile = null;
 		String fileOfBams = null;
@@ -446,10 +449,12 @@ public class DeNovoMatic {
 		usage += "   (11) pon vcf (i.e. ponVcf= (no default))\n" + "";
 		usage += "   (12) number of threads per sample (i.e. numSampleThreads="	+ numSampleThreads
 							+ " (default))\n" + "";
-		usage += "   (13) full to a vpop file (i.e. vpop= (no default))\n" + "";
-		usage += "   (14) full path to a file of bams (i.e. bams= (no default))\n" + "";
+		usage += "   (13) max memory to allocate to Java heap (i.e. "	+ PSF.Ext.MEMORY_MB + memoryInMB
+							+ " (default))\n" + "";
+		usage += "   (14) full path to a vpop file (i.e. vpop= (no default))\n" + "";
+		usage += "   (15) full path to a file of bams (i.e. bams= (no default))\n" + "";
 		usage +=
-					"   (15) full path to a file of supporting snps (i.e. supportSnps= (no default))\n" + "";
+					"   (16) full path to a file of supporting snps (i.e. supportSnps= (no default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -488,6 +493,9 @@ public class DeNovoMatic {
 			} else if (arg.startsWith("numSampleThreads=")) {
 				numSampleThreads = ext.parseIntArg(arg);
 				numArgs--;
+			} else if (arg.startsWith(PSF.Ext.MEMORY_MB)) {
+				memoryInMB = ext.parseIntArg(arg);
+				numArgs--;
 			} else if (arg.startsWith(GATK_Genotyper.EXTRA_VCF_ANNOTATIONS)) {
 				annoVCF = ANNOVCF.fromArg(arg);
 				numArgs--;
@@ -507,8 +515,8 @@ public class DeNovoMatic {
 		}
 		new File(outputDir).mkdirs();
 		Logger log = new Logger(outputDir + "TN.log");
-		GATK gatk = new GATK.Mutect(gatkLocation, referenceGenomeFasta, knownSnps, regions, cosmic,
-																true, false, log);
+		GATK gatk = new GATK.Mutect(gatkLocation, referenceGenomeFasta, memoryInMB, knownSnps, regions,
+																cosmic, true, false, log);
 		try {
 			run(vpopFile, fileOfBams, outputDir, ponVCF, freqFilter, gatk, MUTECT_RUN_TYPES.CALL_SOMATIC,
 					numthreads, numSampleThreads, annoVCF, finalVCF, tparams, log);

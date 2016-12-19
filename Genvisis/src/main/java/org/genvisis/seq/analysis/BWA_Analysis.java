@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class BWA_Analysis {
@@ -721,7 +722,7 @@ public class BWA_Analysis {
 			} else if (arg.startsWith(NUMBATCHES_COMMAND)) {
 				numBatches = ext.parseIntArg(arg);
 				numArgs--;
-			} else if (arg.startsWith("memoryInMB=")) {
+			} else if (arg.startsWith(PSF.Ext.MEMORY_MB)) {
 				memoryInMB = ext.parseIntArg(arg);
 				numArgs--;
 			} else if (arg.startsWith("wallTimeInHours=")) {

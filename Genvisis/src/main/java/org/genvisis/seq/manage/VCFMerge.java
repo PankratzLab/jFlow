@@ -15,8 +15,9 @@ import org.genvisis.seq.analysis.GATK;
 public class VCFMerge {
 
 	public static void merge(	String[] vcfs, String mergeOut, String gatkLoc,
-														String referenceGenomeFasta, int numthreads, Logger log) {
-		GATK gatk = new GATK(gatkLoc, referenceGenomeFasta, true, false, log);
+														String referenceGenomeFasta, int numthreads, int memoryInMB,
+														Logger log) {
+		GATK gatk = new GATK(gatkLoc, referenceGenomeFasta, memoryInMB, true, false, log);
 		System.out.println("HID1");
 
 		if (vcfs != null) {
@@ -36,8 +37,7 @@ public class VCFMerge {
 								log.reportTimeInfo("Merged " + Array.toStr(vcfs, "\n") + " to " + mergeOut);
 								VCFOps.extractSamps(mergeOut, log);
 							} else {
-								log.reportError("Could not merge "	+ Array.toStr(vcfs, "\n") + " to "
-																		+ mergeOut);
+								log.reportError("Could not merge " + Array.toStr(vcfs, "\n") + " to " + mergeOut);
 							}
 						} else {
 							log.reportError("Could not verify all index files ");
@@ -103,7 +103,7 @@ public class VCFMerge {
 			if (referenceGenome == null) {
 				referenceGenome = Resources.genome(genomeBuild, log).getFASTA().get();
 			}
-			merge(vcfs, mergeOut, gatk, referenceGenome, numthreads, log);
+			merge(vcfs, mergeOut, gatk, referenceGenome, numthreads, PSF.Ext.DEFAULT_MEMORY_MB, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

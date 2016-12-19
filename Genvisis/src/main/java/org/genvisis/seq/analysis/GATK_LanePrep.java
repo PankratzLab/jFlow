@@ -290,6 +290,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 		command += NUM_BETWEEN_THREADS_COMMAND	+ getNumBetweenSampleThreads() + SPACE
 								+ FILE_OF_SAMPLE_PAIRS_COMMAND + getRootOutputDir() + "[%0].txt" + SPACE
 								+ NUM_WITHIN_THREADS_COMMAND + getNumWithinSampleThreads() + SPACE;
+		command += PSF.Ext.MEMORY_MB + memoryInMB + SPACE;
 		command += Picard.PICARD_LOCATION_COMMAND + getPicard().getPicardLocation() + SPACE;
 		command += GATK.GATK_LOCATION_COMMAND + getGatk().getGATKLocation() + SPACE;
 		command += GATK.KNOWN_SITES_SNP_LOCATION_COMMAND
@@ -380,7 +381,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 																Logger log) {
 		BWA bwa = new BWA(bwaLocation, overwriteExisting, verbose, log);
 		Picard picard = new Picard(picardLocation, null, overwriteExisting, verbose, log);
-		GATK gatk = new GATK(	gATKLocation, referenceGenomeFasta, null, knownSitesSnpFile,
+		GATK gatk = new GATK(	gATKLocation, referenceGenomeFasta, null, memoryInMB, knownSitesSnpFile,
 													knownSitesIndelFile, verbose, overwriteExisting, log);
 		GATK_LanePrep gLanePrep = new GATK_LanePrep(rootInputDir, rootOutputDir, referenceGenomeFasta,
 																								verbose, numSampleThreads, numOtherThreads, bwa,
@@ -581,7 +582,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 			} else if (arg.startsWith(NUMBATCHES_COMMAND)) {
 				numBatches = ext.parseIntArg(arg);
 				numArgs--;
-			} else if (arg.startsWith("memoryInMB=")) {
+			} else if (arg.startsWith(PSF.Ext.MEMORY_MB)) {
 				memoryInMB = ext.parseIntArg(arg);
 				numArgs--;
 			} else if (arg.startsWith("wallTimeInHours=")) {

@@ -2,6 +2,7 @@ package org.genvisis.one.JL;
 
 import org.genvisis.CLI;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.seq.analysis.GATK_Genotyper;
 
 /**
@@ -15,7 +16,8 @@ public class quickAnno {
 
 		c.addArgWithDefault("vcf", "vcf to annotate with default methods", "a.vcf");
 		c.parseWithExit(args);
-		GATK_Genotyper.annotateOnlyWithDefualtLocations(c.get("vcf"), null, true, false, new Logger());
+		GATK_Genotyper.annotateOnlyWithDefualtLocations(c.get("vcf"), null, PSF.Ext.DEFAULT_MEMORY_MB,
+																										true, false, new Logger());
 	}
 
 }

@@ -49,12 +49,20 @@ public class PSF {
 			return new String[] {JAVA, JAR, jarFile};
 		}
 
+		public static String[] buildJavaXMXJar(String jarFile, int memoryInMb) {
+			return new String[] {JAVA, buildXmxString(memoryInMb), JAR, jarFile};
+		}
+
 		public static String[] buildJavaCP(String fullPathTojarFile) {
 			return new String[] {JAVA, CP, fullPathTojarFile};
 		}
 
 		public static String[] buildJavaCPXMX(String fullPathTojarFile, String cp, int memoryInMb) {
-			return new String[]{JAVA, XMX + memoryInMb + "m", CP, cp, JAR, fullPathTojarFile};
+			return new String[] {JAVA, buildXmxString(memoryInMb), CP, cp, JAR, fullPathTojarFile};
+		}
+
+		public static String buildXmxString(int memoryInMb) {
+			return XMX + memoryInMb + "m";
 		}
 	}
 
@@ -129,6 +137,7 @@ public class PSF {
 		public static final String NUM_THREADS_COMMAND = "threads=";
 		public static final String OUTPUT_DIR_COMMAND = "outputdir=";
 		public static final String MEMORY_MB = "memoryInMb=";
+		public static final int DEFAULT_MEMORY_MB = 61000;
 		public static final String WALLTIME_HRS = "wallTimeInHour=";
 
 		public static String getNumThreadsCommand(int argNumber, int numThreads) {

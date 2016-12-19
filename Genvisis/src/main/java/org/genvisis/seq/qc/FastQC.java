@@ -22,6 +22,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.BWA_Analysis;
 import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
@@ -588,7 +589,7 @@ public class FastQC {
 			} else if (arg.startsWith(NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(arg);
 				numArgs--;
-			} else if (arg.startsWith("memoryInMB=")) {
+			} else if (arg.startsWith(PSF.Ext.MEMORY_MB)) {
 				// memoryInMB = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (arg.startsWith("wallTimeInHours=")) {

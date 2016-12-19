@@ -484,7 +484,7 @@ public class GATK_Genotyper {
 																		boolean annotate, boolean ignoreInbreeding,
 																		boolean skipRecalibration, int numThreads, int memoryInMB,
 																		int wallTimeInHours, Logger log) {
-		GATK gatk = new GATK(	gATKLocation, referenceGenomeFasta, null, null, null, verbose,
+		GATK gatk = new GATK(	gATKLocation, referenceGenomeFasta, null, memoryInMB, null, null, verbose,
 													overwriteExisting, log);
 		gatk.setDbSnpTraining(dbSnpTraining);
 		gatk.setHapMapTraining(hapMapTraining);
@@ -535,27 +535,27 @@ public class GATK_Genotyper {
 		}
 	}
 
-	public static String annotateOnlyWithDefualtLocations(String vcf, ANNOVCF annoVCF,
+	public static String annotateOnlyWithDefualtLocations(String vcf, ANNOVCF annoVCF, int memoryInMB,
 																												boolean verbose, boolean overwriteExisting,
 																												Logger log) {
-		return annotateOnly(vcf, AnnotationDefaults.GATK_LOC, AnnotationDefaults.REF, null, null, null,
-												null, null, null, AnnotationDefaults.SNP_EFF, null,
+		return annotateOnly(vcf, AnnotationDefaults.GATK_LOC, AnnotationDefaults.REF, memoryInMB, null,
+												null, null, null, null, null, AnnotationDefaults.SNP_EFF, null,
 												AnnotationDefaults.ANNOVAR, SNPEFF.BUILDS[0], annoVCF, verbose,
 												overwriteExisting, log);
 	}
 
 	public static String annotateOnly(String vcf, String gATKLocation, String referenceGenomeFasta,
-																		String fileOfGVCFs, String hapMapTraining, String omniTraining,
-																		String thousandGTraining, String dbSnpTraining,
-																		String millsIndelTraining, String snpEffLocation,
-																		String snpSiftLocation, String annovarLocation,
-																		String annoBuild, ANNOVCF annoVCF, boolean verbose,
-																		boolean overwriteExisting, Logger log) {
+																		int memoryInMB, String fileOfGVCFs, String hapMapTraining,
+																		String omniTraining, String thousandGTraining,
+																		String dbSnpTraining, String millsIndelTraining,
+																		String snpEffLocation, String snpSiftLocation,
+																		String annovarLocation, String annoBuild, ANNOVCF annoVCF,
+																		boolean verbose, boolean overwriteExisting, Logger log) {
 		String snpSiftLoc = snpSiftLocation;
 		if (snpSiftLoc == null || snpSiftLoc.equals(PSF.Ext.BLANK)) {
 			snpSiftLoc = snpEffLocation;
 		}
-		GATK gatk = new GATK(	gATKLocation, referenceGenomeFasta, null, null, null, verbose,
+		GATK gatk = new GATK(	gATKLocation, referenceGenomeFasta, null, memoryInMB, null, null, verbose,
 													overwriteExisting, log);
 		SNPEFF snpeff = new SNPEFF(snpEffLocation, verbose, overwriteExisting, log);
 		SNPSIFT snpsift = new SNPSIFT(snpSiftLoc, verbose, overwriteExisting, log);
@@ -566,12 +566,12 @@ public class GATK_Genotyper {
 	}
 
 	public static String annotateOnly(String vcf, String gATKLocation, String referenceGenomeFasta,
-																		String snpEffLocation, String snpSiftLocation,
+																		int memoryInMB, String snpEffLocation, String snpSiftLocation,
 																		String annovarLocation, String annoBuild, boolean verbose,
 																		boolean overwriteExisting, Logger log) {
-		return annotateOnly(vcf, gATKLocation, referenceGenomeFasta, null, null, null, null, null, null,
-												snpEffLocation, snpSiftLocation, annovarLocation, annoBuild, null, verbose,
-												overwriteExisting, log);
+		return annotateOnly(vcf, gATKLocation, referenceGenomeFasta, memoryInMB, null, null, null, null,
+												null, null, snpEffLocation, snpSiftLocation, annovarLocation, annoBuild,
+												null, verbose, overwriteExisting, log);
 	}
 
 	private static class MergeVCF {
@@ -818,7 +818,7 @@ public class GATK_Genotyper {
 			} else if (arg.startsWith(NUM_THREADS)) {
 				numThreads = ext.parseIntArg(arg);
 				numArgs--;
-			} else if (arg.startsWith("memoryInMB=")) {
+			} else if (arg.startsWith(PSF.Ext.MEMORY_MB)) {
 				memoryInMB = ext.parseIntArg(arg);
 				numArgs--;
 			} else if (arg.startsWith("wallTimeInHours=")) {
@@ -899,10 +899,10 @@ public class GATK_Genotyper {
 		}
 		if (vcfToAnnotate != null) {
 			log.reportTimeInfo("Attempting to annotate " + vcfToAnnotate);
-			annotateOnly(	vcfToAnnotate, gATKLocation, referenceGenomeFasta, fileOfGVCFs, hapMapTraining,
-										omniTraining, thousandGTraining, dbSnpTraining, millsIndelTraining,
-										snpEffLocation, snpSiftLocation, annovarLocation, annoBuild, null, verbose,
-										overwriteExisting, log);
+			annotateOnly(	vcfToAnnotate, gATKLocation, referenceGenomeFasta, memoryInMB, fileOfGVCFs,
+										hapMapTraining, omniTraining, thousandGTraining, dbSnpTraining,
+										millsIndelTraining, snpEffLocation, snpSiftLocation, annovarLocation, annoBuild,
+										null, verbose, overwriteExisting, log);
 		} else {
 			jointGenotype(rootInputDir, rootOutputDir, output, gATKLocation, referenceGenomeFasta,
 										fileOfGVCFs, hapMapTraining, omniTraining, thousandGTraining, dbSnpTraining,

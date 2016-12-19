@@ -14,6 +14,7 @@ import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
@@ -423,7 +424,8 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		}
 		log.reportTimeWarning("Attempting to annotate using default locations...");
 		String finalAnno = GATK_Genotyper.annotateOnlyWithDefualtLocations(	outMergeRenameVCF, annoVCF,
-																																				true, false, log);
+																																				gatk.getMemoryInMB(), true,
+																																				false, log);
 
 		if (finalMergeWithVCF != null) {
 			String finalMerge = VCFOps.getAppropriateRoot(finalAnno, false) + ".finalMerge.vcf.gz";
@@ -551,6 +553,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		String ponVCF = null;
 		int numthreads = 1;
 		int numSampleThreads = 4;
+		int memoryInMB = PSF.Ext.DEFAULT_MEMORY_MB;
 		int numbatches = 0;
 		String outputDir = "mutect/";
 		String tumorNormalBams = null;
@@ -575,13 +578,15 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		usage += "   (11) pon vcf (i.e. ponVcf= (no default))\n" + "";
 		usage += "   (12) number of threads per sample (i.e. numSampleThreads="	+ numSampleThreads
 							+ " (default))\n" + "";
+		usage += "   (13) max memory to allocate to Java heap (i.e. "	+ PSF.Ext.MEMORY_MB + memoryInMB
+							+ " (default))\n" + "";
 		usage +=
-					"   (13) full path to a file of tumor-normal matched (tab-delimited) bam files, normal in first column, tumor in second (i.e. tumorNormalBams= (no default))\n"
+					"   (14) full path to a file of tumor-normal matched (tab-delimited) bam files, normal in first column, tumor in second (i.e. tumorNormalBams= (no default))\n"
 							+ "";
 		usage +=
-					"   (14) full path to a final merge vcf to merge somatic calls with (i.e. finalVCF= (no default))\n"
+					"   (15) full path to a final merge vcf to merge somatic calls with (i.e. finalVCF= (no default))\n"
 							+ "";
-		usage += "   (15) full path to a vcf tallyparamFile (i.e. tparams= (no default))\n" + "";
+		usage += "   (16) full path to a vcf tallyparamFile (i.e. tparams= (no default))\n" + "";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -632,6 +637,9 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 			} else if (arg.startsWith("numSampleThreads=")) {
 				numSampleThreads = ext.parseIntArg(arg);
 				numArgs--;
+			} else if (arg.startsWith(PSF.Ext.MEMORY_MB)) {
+				memoryInMB = ext.parseIntArg(arg);
+				numArgs--;
 			} else if (arg.startsWith(GATK_Genotyper.EXTRA_VCF_ANNOTATIONS)) {
 				annoVCF = ANNOVCF.fromArg(arg);
 				numArgs--;
@@ -645,8 +653,8 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		}
 		new File(outputDir).mkdirs();
 		Logger log = new Logger(outputDir + "TN.log");
-		GATK gatk = new GATK.Mutect(gatkLocation, referenceGenomeFasta, knownSnps, regions, cosmic,
-																true, false, log);
+		GATK gatk = new GATK.Mutect(gatkLocation, referenceGenomeFasta, memoryInMB, knownSnps, regions,
+																cosmic, true, false, log);
 		switch (run) {
 			case COMBINE_NORMALS:
 			case CALL_SOMATIC:

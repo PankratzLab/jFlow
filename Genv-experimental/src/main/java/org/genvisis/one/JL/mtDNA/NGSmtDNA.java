@@ -1,15 +1,13 @@
 package org.genvisis.one.JL.mtDNA;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.GATK;
 import org.genvisis.seq.analysis.SimpleTallyGene;
-import org.genvisis.seq.analysis.TumorNormalSummary;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.manage.mtdna.GenBankMtDNA;
@@ -45,22 +43,26 @@ public class NGSmtDNA {
 
 			VCFOpsMT.convertHg19ToRCRS(cVcf, rcrsC, new Logger());
 
-			GATK gatk = new GATK("/Users/Kitty/bin/GenomeAnalysisTK-3.6/", "/Volumes/Beta/ref/GRCh37_canon.fa", true,
-					true, log);
+			GATK gatk = new GATK(	"/Users/Kitty/bin/GenomeAnalysisTK-3.6/",
+														"/Volumes/Beta/ref/GRCh37_canon.fa", PSF.Ext.DEFAULT_MEMORY_MB, true,
+														true, log);
 
 			String outAnno = ext.addToRoot(rcrsC, ".poly");
-			gatk.annotateWithAnotherVCF(rcrsC, polyVCF, outAnno, new String[] { "AF", "AC" }, "mtPoly", "MT", 1);
+			gatk.annotateWithAnotherVCF(rcrsC, polyVCF, outAnno, new String[] {"AF", "AC"}, "mtPoly",
+																	"MT", 1);
 
 			String outAnnoD = ext.addToRoot(outAnno, ".disease");
 			gatk.annotateWithAnotherVCF(outAnno, diseaseTrimVCF, outAnnoD,
-					new String[] { "AF", "AC", "DiseaseStatus", "Disease" }, "mtPoly", "MT", 1);
+																	new String[] {"AF", "AC", "DiseaseStatus", "Disease"}, "mtPoly",
+																	"MT", 1);
 
 			String finalOut = ext.addToRoot(outAnnoD, ".conv");
 			VCFOpsMT.convertContigs(outAnnoD, finalOut, MT_GENOME.HG19, log);
 
 			String remoteVcf = "/home/pankrat2/lanej/tmp/cushings/" + ext.removeDirectoryInfo(finalOut);
 			// SSH.copyLocalToRemote(finalOut, remoteVcf, log);
-			String annotateCommand = "java -jar /home/pankrat2/lanej/genvisis.jar one.JL.quickAnno vcf=" + remoteVcf;
+			String annotateCommand = "java -jar /home/pankrat2/lanej/genvisis.jar one.JL.quickAnno vcf="
+																+ remoteVcf;
 			System.out.println(annotateCommand);
 		} else {
 
@@ -71,9 +73,9 @@ public class NGSmtDNA {
 			String vpopFileEpp = "/Volumes/Beta/data/mtDNA-dev/vcf/EPP_FREQ_V2.vpop";
 
 			if (Files.exists(annoVcf)) {
-				SimpleTallyGene.run(annoVcf, vpopFileEpp, new double[] { 1.2, .01, 0.0 });
+				SimpleTallyGene.run(annoVcf, vpopFileEpp, new double[] {1.2, .01, 0.0});
 
-				SimpleTallyGene.run(annoVcf, vpopFileGermlineCushing, new double[] { 1.2, .01, 0.0 });
+				SimpleTallyGene.run(annoVcf, vpopFileGermlineCushing, new double[] {1.2, .01, 0.0});
 			}
 			// TumorNormalSummary.main(new String[] { annoVcf });
 
@@ -84,35 +86,36 @@ public class NGSmtDNA {
 	private static String trickSnpEff(String inputVCF) {
 		String outputVCF = VCFOps.getAppropriateRoot(inputVCF, false) + ".trick.vcf";
 		VCFFileReader reader = new VCFFileReader(new File(inputVCF), true);
-		VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, outputVCF, VCFOps.DEFUALT_WRITER_OPTIONS,
-				new Logger());
+		VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, outputVCF,
+																															VCFOps.DEFUALT_WRITER_OPTIONS,
+																															new Logger());
 		for (VariantContext vc : reader) {
-			String mitImpact = VCOps.getAnnotationsFor(new String[] { "MitImpact_id" }, vc, ".")[0];
-			String geneName = VCOps.getAnnotationsFor(new String[] { "Uniprot_name" }, vc, ".")[0];
+			String mitImpact = VCOps.getAnnotationsFor(new String[] {"MitImpact_id"}, vc, ".")[0];
+			String geneName = VCOps.getAnnotationsFor(new String[] {"Uniprot_name"}, vc, ".")[0];
 
 			VariantContextBuilder builder = new VariantContextBuilder(vc);
 			if (".".equals(mitImpact)) {
 				builder.attribute("SNPEFF_IMPACT", "MODERATE");
 				builder.attribute("SNPEFF_GENE_NAME", geneName);
 			}
-//			for (String att : vc.getAttributes().keySet()) {
-//				if(att.startsWith("SNPEFF")){
-//				System.out.println(att+"\t"+vc.getAttributes().get(att));
-//				}
-//			}
+			// for (String att : vc.getAttributes().keySet()) {
+			// if(att.startsWith("SNPEFF")){
+			// System.out.println(att+"\t"+vc.getAttributes().get(att));
+			// }
+			// }
 			VariantContext vcNew = builder.make();
-			
-//			for (String att : vcNew.getAttributes().keySet()) {
-//				if(att.startsWith("SNPEFF")){
-//				System.out.println("HTIT=t"+att+"\t"+vcNew.getAttributes().get(att)+"\t"+geneName);
-//				}
-//			}
-			String neEff = VCOps.getAnnotationsFor(new String[] { "SNPEFF_IMPACT" }, vcNew, ".")[0];
-			String neEffName = VCOps.getAnnotationsFor(new String[] { "SNPEFF_GENE_NAME" }, vcNew, ".")[0];
-			if(!".".equals(geneName)){
-			System.out.println(neEffName + "\t" + neEff+"\t"+geneName);
+
+			// for (String att : vcNew.getAttributes().keySet()) {
+			// if(att.startsWith("SNPEFF")){
+			// System.out.println("HTIT=t"+att+"\t"+vcNew.getAttributes().get(att)+"\t"+geneName);
+			// }
+			// }
+			String neEff = VCOps.getAnnotationsFor(new String[] {"SNPEFF_IMPACT"}, vcNew, ".")[0];
+			String neEffName = VCOps.getAnnotationsFor(new String[] {"SNPEFF_GENE_NAME"}, vcNew, ".")[0];
+			if (!".".equals(geneName)) {
+				System.out.println(neEffName + "\t" + neEff + "\t" + geneName);
 			}
-//			writer.add(builder.make());
+			// writer.add(builder.make());
 
 		}
 		return outputVCF;
