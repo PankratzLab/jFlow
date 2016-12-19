@@ -113,8 +113,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 
 		colorHash = new Hashtable<String, String>();
 		try {
-			reader = Files.getReader(	proj.MOSAIC_COLOR_CODES_FILENAME.getValue(),
-																proj.JAR_STATUS.getValue(), true, false);
+			reader = Files.getReader(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, false);
 			if (reader != null) {
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");

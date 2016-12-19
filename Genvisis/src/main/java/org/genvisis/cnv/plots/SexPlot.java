@@ -171,9 +171,10 @@ public class SexPlot extends JFrame {
 					return;
 				}
 			}
-
-			while (reader.ready()) {
-				line = reader.readLine().trim().split("\t", -1);
+			
+			String temp;
+			while ((temp = reader.readLine()) != null) {
+				line = temp.trim().split("\t", -1);
 				if (ext.isMissingValue(line[indices[4]]) || ext.isMissingValue(line[indices[5]])) {
 					System.err.println("Error - sample '"	+ line[indices[0]]
 															+ "' does not have a valid medianLRR for X or Y");
