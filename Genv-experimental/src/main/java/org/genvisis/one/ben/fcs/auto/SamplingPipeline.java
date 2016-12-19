@@ -77,18 +77,22 @@ public class SamplingPipeline {
 	boolean outliersLoaded = false;
 	boolean filesSampled = false;
 	
+	boolean isFinished = false;
+	
 	final String csvDir;
 	final String wspDir;
 	final String fcsDir;
 	final String outliersFile;
 	final String outDir;
+	final Class<? extends SampleProcessor> processorClass;
 	
-	public SamplingPipeline(String csvDir, String wspDir, String fcsDir, String outliersFile, String outDir) {
+	public SamplingPipeline(String csvDir, String wspDir, String fcsDir, String outliersFile, String outDir, Class<? extends SampleProcessor> processorClass) {
 		this.csvDir = csvDir;
 		this.wspDir = wspDir;
 		this.fcsDir = fcsDir;
 		this.outliersFile = outliersFile;
 		this.outDir = outDir;
+		this.processorClass = processorClass;
 		p1d = new HashMap<>();
 		p2d = new HashMap<>();
 		fileToPathMap1 = new HashMap<>();
@@ -111,6 +115,7 @@ public class SamplingPipeline {
 		loadWSPInfo();
 		doFileSampling();
 		doDataSampling();
+		setFinished();
 	}
 	
 	int checkPanel(String lwr) {
@@ -124,6 +129,10 @@ public class SamplingPipeline {
 	
 	private void loadFCS(File dir) {
 		String[] fcsFiles = dir.list(FCS_FILTER);
+		if (fcsFiles == null) {
+			log.reportError("No FCS files found in directory: " + dir.getAbsolutePath());
+			return;
+		}
 		for (String s : fcsFiles) {
 			int pnl = checkPanel(s.toLowerCase());
 			if (pnl == 1) {
@@ -148,7 +157,7 @@ public class SamplingPipeline {
 	}
 	
 	public void loadAnalysisData() {
-		String[] analysisFiles = (new File(csvDir)).list(CSV_FILTER);
+		String[] analysisFiles = csvDir == null ? new String[0] : (new File(csvDir)).list(CSV_FILTER);
 		
 		ArrayList<String> p1 = new ArrayList<>();
 		ArrayList<String> p2 = new ArrayList<>();
@@ -229,8 +238,16 @@ public class SamplingPipeline {
 		outliersLoaded = true;
 	}
 	
-	private boolean checkReady() {
+	protected boolean checkReady() {
 		return analysisLoaded && wspLoaded && fcsPathsLoaded && outliersLoaded;
+	}
+	
+	protected boolean checkFinished() {
+		return isFinished;
+	}
+	
+	private void setFinished() {
+		isFinished = true;
 	}
 	
 	public void doFileSampling() {
@@ -240,8 +257,12 @@ public class SamplingPipeline {
 
 		ArrayList<String> p1 = new ArrayList<>(fileToPathMap1.keySet());
 		ArrayList<String> p2 = new ArrayList<>(fileToPathMap2.keySet());
-		p1.retainAll(p1d.keySet());
-		p2.retainAll(p2d.keySet());
+		if (!p1d.isEmpty()) {
+			p1.retainAll(p1d.keySet());
+		}
+		if (!p2d.isEmpty()) {
+			p2.retainAll(p2d.keySet());
+		}
 		
 		ArrayList<String> p1O = new ArrayList<>(outliersP1);
 		ArrayList<String> p2O = new ArrayList<>(outliersP2);
@@ -255,14 +276,14 @@ public class SamplingPipeline {
 		
 		Random rand = new Random();
 		for (int i = 0; i < p1Cnt; i++) {
-			if (i > 0 && i % OUTLIER_SAMPLE_EVERY == 0) {
+			if (!p1O.isEmpty() && (i > 0 && i % OUTLIER_SAMPLE_EVERY == 0)) {
 				p1Sampling.add(p1O.get(rand.nextInt(p1O.size())));
 			} else {
 				p1Sampling.add(p1.get(rand.nextInt(p1.size())));
 			}
 		}
 		for (int i = 0; i < p2Cnt; i++) {
-			if (i > 0 && i % OUTLIER_SAMPLE_EVERY == 0) {
+			if (!p2O.isEmpty() && (i > 0 && i % OUTLIER_SAMPLE_EVERY == 0)) {
 				p2Sampling.add(p2O.get(rand.nextInt(p2O.size())));
 			} else {
 				p2Sampling.add(p2.get(rand.nextInt(p2.size())));
@@ -294,8 +315,6 @@ public class SamplingPipeline {
 	  final ThreadPoolExecutor threadPool2 = new ThreadPoolExecutor(proc, proc, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 	  final ConcurrentLinkedQueue<SampleNode> p1Queue = new ConcurrentLinkedQueue<>();
 	  final ConcurrentLinkedQueue<SampleNode> p2Queue = new ConcurrentLinkedQueue<>();
-//	  Class<? extends SampleProcessor> processorClass = LeafDataSampler.class;
-	  Class<? extends SampleProcessor> processorClass = PercentageWriter.class;
 	  
 	  for (String s : p1Sampling) {
 	  	SampleNode sn = wspLoader.panel1Nodes.get(s);
@@ -316,8 +335,8 @@ public class SamplingPipeline {
 	  	}
 	  }
   	
-	  PipelineRunnable p1Run = new PipelineRunnable(outDir + P1_DATA_ROOT, threadPool1, processorClass, p1Queue, log);
-	  PipelineRunnable p2Run = new PipelineRunnable(outDir + P2_DATA_ROOT, threadPool2, processorClass, p2Queue, log);
+	  AbstractPipelineRunnable p1Run = new AbstractPipelineRunnable(outDir + P1_DATA_ROOT, threadPool1, processorClass, p1Queue, log);
+	  AbstractPipelineRunnable p2Run = new AbstractPipelineRunnable(outDir + P2_DATA_ROOT, threadPool2, processorClass, p2Queue, log);
 	  Thread p1T = new Thread(p1Run);
 	  Thread p2T = new Thread(p2Run);
 	  p1T.start();
@@ -330,11 +349,12 @@ public class SamplingPipeline {
 	  }
 	  
 	  p1Run.cleanup();
-//	  p2Run.cleanup();
+	  p2Run.cleanup();
 	}	
 }
 
-class PipelineRunnable implements Runnable {
+// TODO refactor and move cleanup and constructor methods
+class AbstractPipelineRunnable implements Runnable {
 	final ThreadPoolExecutor threadPool;
 	final Class<? extends SampleProcessor> processorClass;
 	final Queue<SampleNode> queue;
@@ -345,8 +365,10 @@ class PipelineRunnable implements Runnable {
 	final Map<String, AtomicInteger> writeCounts;
 	final String outputFileRoot;
 	final Map<String, Map<String, Double>> resultMap;
+	final Map<String, Integer> codeMap;
+	final String outDir = "/scratch.global/cole0482/FCS/";
 	
-	public <T extends SampleProcessor> PipelineRunnable(String outputFileRoot, ThreadPoolExecutor threadPool, Class<T> processorClass, Queue<SampleNode> queue, Logger log) {
+	public <T extends SampleProcessor> AbstractPipelineRunnable(String outputFileRoot, ThreadPoolExecutor threadPool, Class<T> processorClass, Queue<SampleNode> queue, Logger log) {
 		this.threadPool = threadPool;
 		this.processorClass = processorClass;
 		this.queue = queue;
@@ -359,6 +381,7 @@ class PipelineRunnable implements Runnable {
     gateWriters = new ConcurrentHashMap<>();
     writeCounts = new ConcurrentHashMap<>();
     resultMap = new ConcurrentHashMap<>();
+    codeMap = new ConcurrentHashMap<>();
 	}
 	
   @Override
@@ -374,26 +397,23 @@ class PipelineRunnable implements Runnable {
         } catch (InterruptedException e) {}
         continue;
       }
-      Runnable run = new Runnable() {
-        @Override
-        public void run() {
-          try {
-//          	processorClass.getConstructor(int.class, String.class, Map.class, Map.class, List.class).newInstance(SAMPLING, outputFileRoot, gateWriters, writeCounts, params).processSample(sn, log);
-            processorClass.getConstructor(Map.class).newInstance(resultMap).processSample(sn, log);
-          } catch (IOException e) {
-            log.reportError(e.getMessage());
-            // do not re-add to queue
-          } catch (OutOfMemoryError e) {
-            System.gc();
-            queue.add(sn);
-            // cleanup and re-add to queue
-          } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-          	log.reportException(e);
-					} 
-        }
-      };
       log.reportTime("Submitting processing job for " + sn.fcsFile);
-      threadPool.execute(run);
+      threadPool.execute(() -> {
+        try {
+	//      	processorClass.getConstructor(int.class, String.class, Map.class, Map.class, List.class).newInstance(SAMPLING, outputFileRoot, gateWriters, writeCounts, params).processSample(sn, log);
+//	        processorClass.getConstructor(Map.class).newInstance(resultMap).processSample(sn, log);
+	        processorClass.getConstructor(Map.class, String.class).newInstance(codeMap, outDir).processSample(sn, log);
+	      } catch (IOException e) {
+	        log.reportError(e.getMessage());
+	        // do not re-add to queue
+	      } catch (OutOfMemoryError e) {
+	        System.gc();
+	        queue.add(sn);
+	        // cleanup and re-add to queue
+	      } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+	      	log.reportException(e);
+				} 
+      });
 	    try {
 	      Thread.sleep(500);
 	    } catch (InterruptedException e) {}
@@ -470,25 +490,27 @@ class PipelineRunnable implements Runnable {
 //  		entry.getValue().close();
 //  		log.reportTime("Wrote " + writeCounts.get(entry.getKey()).get() + " for gate " + entry.getKey());
 //  	}
-  	PrintWriter writer = Files.getAppropriateWriter("F:/Flow/gatingTest/p1.pcts.xln");
-  	boolean header = false;
-  	for (Entry<String, Map<String, Double>> entry : resultMap.entrySet()) {
-  		if (!header) {
-	  		StringBuilder sb = new StringBuilder();
-	  		for (String s : order) {
-	  			sb.append("\t").append(s);
-	  		}
-	  		writer.println(sb.toString());
-	  		header = true;
-  		}
-  		StringBuilder sb = new StringBuilder(entry.getKey());
-  		for (String s : order) {
-  			sb.append("\t").append(entry.getValue().get(s));
-  		}
-  		writer.println(sb.toString());
-  	}
-  	writer.flush();
-  	writer.close();
+  	
+  	
+//  	PrintWriter writer = Files.getAppropriateWriter("F:/Flow/gatingTest/p1.pcts.xln");
+//  	boolean header = false;
+//  	for (Entry<String, Map<String, Double>> entry : resultMap.entrySet()) {
+//  		if (!header) {
+//	  		StringBuilder sb = new StringBuilder();
+//	  		for (String s : order) {
+//	  			sb.append("\t").append(s);
+//	  		}
+//	  		writer.println(sb.toString());
+//	  		header = true;
+//  		}
+//  		StringBuilder sb = new StringBuilder(entry.getKey());
+//  		for (String s : order) {
+//  			sb.append("\t").append(entry.getValue().get(s));
+//  		}
+//  		writer.println(sb.toString());
+//  	}
+//  	writer.flush();
+//  	writer.close();
   }
   
 }

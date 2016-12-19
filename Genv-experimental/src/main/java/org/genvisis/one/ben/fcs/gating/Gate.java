@@ -14,11 +14,11 @@ import java.util.Random;
 import org.genvisis.common.Array;
 import org.genvisis.common.Numbers;
 import org.genvisis.one.ben.fcs.AbstractPanel2;
+import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
-//import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
-import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
+//import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
 import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 import org.genvisis.one.ben.fcs.sub.EMModel;
 
@@ -128,6 +128,16 @@ public abstract class Gate {
 
   public int getLevel() {
     return displayLevel;
+  }
+  
+  public int getGateTreeLevel() {
+  	int lvl = 0;
+  	Gate g = getParentGate();
+  	if (g != null) {
+  		lvl += 1;
+  		lvl += g.getGateTreeLevel();
+  	}
+  	return lvl;
   }
 
   public int getColorCode() {
@@ -381,7 +391,6 @@ public abstract class Gate {
       		Rectangle r = new Rectangle(i, j, 1, 1);
       		rectsXtYt.add(r);
           rectsXtYt_arr[i + gateResolution][j + gateResolution] = r; 
-      		
       	}
       }
       
@@ -491,7 +500,8 @@ public abstract class Gate {
     
     private Path2D transformPath(FCSDataLoader dataLoader) {
       Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-      AxisTransform xTr, yTr;
+      AxisTransform xTr;
+      AxisTransform yTr;
       xTr = dataLoader.getParamTransform(getXDimension().paramName);
       yTr = dataLoader.getParamTransform(getYDimension().paramName);
       if (verticesX.isEmpty() || verticesY.isEmpty()) {
@@ -532,6 +542,8 @@ public abstract class Gate {
       if (myPath == null) {
         myPath = constructPath();
         changed = false;
+        transformedPath = transformPath(dataLoader);
+        prepGating(dataLoader);
       }
       if (transformedPath == null) {
         transformedPath = transformPath(dataLoader);
@@ -551,6 +563,16 @@ public abstract class Gate {
       boolean xT, yT;
       xT = dataLoader.getScaleForParam(getXDimension().paramName) == AXIS_SCALE.BIEX;
       yT = dataLoader.getScaleForParam(getYDimension().paramName) == AXIS_SCALE.BIEX;
+    	Rectangle[][] rectsArray = null;
+    	if (xT && yT) {
+    		rectsArray = rectsXtYt_arr;
+    	} else if (xT && !yT) {
+    		rectsArray = rectsXtY_arr;
+    	} else if (!xT && yT) {
+    		rectsArray = rectsXYt_arr;
+    	} else if (!xT && !yT) {
+    		rectsArray = rectsXY_arr;
+    	}
       for (int i = 0; i < dataLoader.getCount(); i++) {
         if (parentGate != null && !includes[i]) {
           continue;
@@ -560,18 +582,32 @@ public abstract class Gate {
           double x, y;
           x = xTr.scaleX(paramData[0][i]);
           y = yTr.scaleY(paramData[1][i]);
-          if (xT) {
-          	x = x * 512 - 256;
-          }
-          if (yT) {
-          	y = y * 512 - 256;
-          }
-          for (Rectangle rect : myRects) {
-            if (rect.contains(x, y)) {
-              include = true;
-              break;
-            }
-          }
+//          if (xT) {
+//          	x = x * range;
+//          }
+//          if (yT) {
+//          	y = y * range;
+//          }
+          int xInd;
+          int yInd;
+          xInd = (int) (xT ? ((x) * (gateResolution * 2)) : ((x / binStep) + gateResolution));
+          yInd = (int) (yT ? ((y) * (gateResolution * 2)) : ((y / binStep) + gateResolution));
+	      	Rectangle rect = rectsArray[xInd][yInd];
+	      	if (myRects.contains(rect)) {
+	      		include = true;
+	      	}
+//          if (xT) {
+//          	x = x * (gateResolution * 2) - gateResolution;
+//          }
+//          if (yT) {
+//          	y = y * (gateResolution * 2) - gateResolution;
+//          }
+//          for (Rectangle rect : myRects) {
+//            if (rect.contains(x, y)) {
+//              include = true;
+//              break;
+//            }
+//          }
         } else {
           double x = xTr.scaleX(paramData[0][i]);
           double y = yTr.scaleY(paramData[1][i]);
@@ -594,7 +630,7 @@ public abstract class Gate {
       xTr = dataLoader.getParamTransform(getXDimension().paramName);
       yTr = dataLoader.getParamTransform(getYDimension().paramName);
       
-      ArrayList<Rectangle> vertexRects = new ArrayList<Rectangle>();
+      ArrayList<Rectangle> vertexRects = new ArrayList<>();
     	ArrayList<Rectangle> rects = null;
     	Rectangle[][] rectsArray = null;
     	if (xT && yT) {
@@ -612,86 +648,89 @@ public abstract class Gate {
     	}
       double[] coords = new double[6];
       PathIterator pi = transformedPath.getPathIterator(null);
-      double xV, yV;
-      int xInd, yInd;
+      int xInd;
+      int yInd;
+      Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+      int ind = 0;
       while(!pi.isDone()) {
         int type = pi.currentSegment(coords);
         if (type != PathIterator.SEG_CLOSE) {
-//        	xV = xT ? ((coords[0]) * 512) - 256 : coords[0];
-//        	yV = yT ? ((coords[1]) * 512) - 256 : coords[1];
-//        	for (Rectangle rect : rects) {
-//        		if (rect.contains(xV, yV)) {
-//        			vertexRects.add(rect);
-//        		}
-//        	}
-	      	xInd = (int) (xT ? ((coords[0]) * 512) : ((coords[0] / binStep) + gateResolution));
-	      	yInd = (int) (yT ? ((coords[1]) * 512) : ((coords[1] / binStep) + gateResolution));
+	      	xInd = (int) (xT ? ((coords[0]) * (gateResolution * 2)) : ((coords[0] / binStep) + gateResolution));
+	      	yInd = (int) (yT ? ((coords[1]) * (gateResolution * 2)) : ((coords[1] / binStep) + gateResolution));
           vertexRects.add(rectsArray[xInd][yInd]);
+          if (ind == 0) {
+          	path.moveTo(rectsArray[xInd][yInd].getCenterX(), rectsArray[xInd][yInd].getCenterY());
+          } else {
+          	path.lineTo(rectsArray[xInd][yInd].getCenterX(), rectsArray[xInd][yInd].getCenterY());
+          }
+          ind++;
         }
         pi.next();
       }
-
-      double xSum = 0, ySum = 0;
-      for (Rectangle r : vertexRects) {
-        xSum += r.getCenterX();
-        ySum += r.getCenterY();
-      }
-      final double x = xSum / vertexRects.size();
-      final double y = ySum / vertexRects.size();
-
-      // taken from:
-      // https://stackoverflow.com/questions/6989100/sort-points-in-clockwise-order
-      Collections.sort(vertexRects, new Comparator<Rectangle>() {
-        @Override
-        public int compare(Rectangle o1, Rectangle o2) {
-          if (o1.getCenterX() - x >= 0 && o2.getCenterX() - x < 0) {
-            return -1;
-          }
-          if (o1.getCenterX() - x < 0 && o2.getCenterX() - x >= 0) {
-            return 1;
-          }
-          if (o1.getCenterX() - x == 0 && o2.getCenterX() - x == 0) {
-            if (o1.getCenterY() - y >= 0 || o2.getCenterY() - y >= 0) {
-              return o1.getCenterY() > o2.getCenterY() ? -1 : 1;
-            }
-            return o2.getCenterY() > o1.getCenterY() ? -1 : 1;
-          }
-
-          // compute the cross product of vectors (center -> a) x (center -> b)
-          double det =
-              (o1.getCenterX() - x) * (o2.getCenterY() - y) - (o2.getCenterX() - x)
-                  * (o1.getCenterY() - y);
-          if (det < 0) {
-            return -1;
-          }
-          if (det > 0) {
-            return 1;
-          }
-
-          // points a and b are on the same line from the center
-          // check which point is closer to the center
-          double d1 =
-              (o1.getCenterX() - x) * (o1.getCenterX() - x) + (o1.getCenterY() - y)
-                  * (o1.getCenterY() - y);
-          double d2 =
-              (o2.getCenterX() - x) * (o2.getCenterX() - x) + (o2.getCenterY() - y)
-                  * (o2.getCenterY() - y);
-          return d1 > d2 ? -1 : d1 < d2 ? 1 : 0;
-        }
-      });
-
-      double x1 = vertexRects.get(0).getCenterX();
-      double y1 = vertexRects.get(0).getCenterY();
-      Path2D path = new Path2D.Double();
-      path.moveTo(x1, y1);
-      for (int i = 1; i < vertexRects.size(); i++) {
-        x1 = vertexRects.get(i).getCenterX();
-        y1 = vertexRects.get(i).getCenterY();
-        path.lineTo(x1, y1);
-      }
       path.closePath();
+
+//      double xSum = 0;
+//      double ySum = 0;
+//      for (Rectangle r : vertexRects) {
+//        xSum += r.getCenterX();
+//        ySum += r.getCenterY();
+//      }
+//      final double x = xSum / vertexRects.size();
+//      final double y = ySum / vertexRects.size();
+//
+//      // taken from:
+//      // https://stackoverflow.com/questions/6989100/sort-points-in-clockwise-order
+//      Collections.sort(vertexRects, new Comparator<Rectangle>() {
+//        @Override
+//        public int compare(Rectangle o1, Rectangle o2) {
+//          if (o1.getCenterX() - x >= 0 && o2.getCenterX() - x < 0) {
+//            return -1;
+//          }
+//          if (o1.getCenterX() - x < 0 && o2.getCenterX() - x >= 0) {
+//            return 1;
+//          }
+//          if (o1.getCenterX() - x == 0 && o2.getCenterX() - x == 0) {
+//            if (o1.getCenterY() - y >= 0 || o2.getCenterY() - y >= 0) {
+//              return o1.getCenterY() > o2.getCenterY() ? -1 : 1;
+//            }
+//            return o2.getCenterY() > o1.getCenterY() ? -1 : 1;
+//          }
+//
+//          // compute the cross product of vectors (center -> a) x (center -> b)
+//          double det =
+//              (o1.getCenterX() - x) * (o2.getCenterY() - y) - (o2.getCenterX() - x)
+//                  * (o1.getCenterY() - y);
+//          if (det < 0) {
+//            return -1;
+//          }
+//          if (det > 0) {
+//            return 1;
+//          }
+//
+//          // points a and b are on the same line from the center
+//          // check which point is closer to the center
+//          double d1 =
+//              (o1.getCenterX() - x) * (o1.getCenterX() - x) + (o1.getCenterY() - y)
+//                  * (o1.getCenterY() - y);
+//          double d2 =
+//              (o2.getCenterX() - x) * (o2.getCenterX() - x) + (o2.getCenterY() - y)
+//                  * (o2.getCenterY() - y);
+//          return d1 > d2 ? -1 : d1 < d2 ? 1 : 0;
+//        }
+//      });
+//
+//      double x1 = vertexRects.get(0).getCenterX();
+//      double y1 = vertexRects.get(0).getCenterY();
+//      Path2D path = new Path2D.Double();
+//      path.moveTo(x1, y1);
+//      for (int i = 1; i < vertexRects.size(); i++) {
+//        x1 = vertexRects.get(i).getCenterX();
+//        y1 = vertexRects.get(i).getCenterY();
+//        path.lineTo(x1, y1);
+//      }
+//      path.closePath();
       
-      
+      	
       myRects.clear();
       for (Rectangle rect : rects) {
         if (vertexRects.contains(rect) || path.contains(rect) || (path.intersects(rect) && path.contains(rect.getCenterX(), rect.getCenterY()))) {

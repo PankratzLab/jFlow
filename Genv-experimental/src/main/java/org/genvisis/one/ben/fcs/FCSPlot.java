@@ -121,9 +121,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 					props.setProperty(PROPKEY_GATEFILE, getGatingStrategy().getFile() == null ? "" : getGatingStrategy().getFile());
 				}
 				ArrayList<String> files = fcsControls.getAddedFiles();
-				if (files.isEmpty()) {
-					props.setProperty(PROPKEY_FCSFILES, files.isEmpty() ? "" : Array.toStr(Array.toStringArray(files), ";"));
-				}
+				props.setProperty(PROPKEY_FCSFILES, files.isEmpty() ? "" : Array.toStr(Array.toStringArray(files), ";"));
 				File f = new File(PROPERTIES_FILE);
 				OutputStream out = new FileOutputStream(f);
 				props.store(out, "");
@@ -254,7 +252,36 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				fcsControls.showGateControls();
+
+				String g1 = "ID2134458972";
+				String g2 = "ID1343278548";
+				
+				ArrayList<Gate> gates = workbench.getSample(currentSampleID).gating.getGatesForParam("Comp-BV 605-A (CD95)");
+				
+				
+				Gate gt1 = workbench.getSample(currentSampleID).gating.gateMap.get(g1);
+				Gate gt2 = workbench.getSample(currentSampleID).gating.gateMap.get(g2);
+				
+				boolean[] gating11 = gt1.gate(dataLoader);
+				boolean[] gating12 = gt1.getParentGating(dataLoader);
+				boolean[] gating121 = gt1.getParentGate().getParentGate().gate(dataLoader);
+				boolean[] gating21 = gt2.gate(dataLoader);
+				boolean[] gating22 = gt2.getParentGating(dataLoader);
+				boolean[] gating221 = gt2.getParentGate().getParentGate().gate(dataLoader);
+				
+//				gating13 should equals gating22
+				int s1, s2, s3, s4, s5, s6;
+				s1 = Array.booleanArraySum(gating11);
+				s2 = Array.booleanArraySum(gating12);
+				s4 = Array.booleanArraySum(gating21);
+				s5 = Array.booleanArraySum(gating22);
+				s6 = Array.booleanArraySum(gating221);
+				
+				System.out.println(s1 / (double) s2);
+				System.out.println(s4 / (double) s5);
+				System.out.println();
+				
+//				fcsControls.showGateControls();
 			}
 		});
 		actionMap.put("DATA", new AbstractAction() {

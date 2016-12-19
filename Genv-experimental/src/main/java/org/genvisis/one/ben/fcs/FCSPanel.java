@@ -44,42 +44,23 @@ import org.genvisis.one.ben.fcs.sub.RectangleGateEditor;
 public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMotionListener {
   public static final long serialVersionUID = 3L;
   public static final int LOOKUP_RESOLUTION = 20;
-  public static final Color[] DEFAULT_COLORS = new Color[50];
-  {
-    
-    DEFAULT_COLORS[0] = new Color(33, 31, 53); // dark dark
-    DEFAULT_COLORS[1] = new Color(201, 30, 10);  // deep red
-    DEFAULT_COLORS[2] = new Color(94, 88, 214); // light purple
-    DEFAULT_COLORS[3] = new Color(189, 243, 61); // light green
-    DEFAULT_COLORS[4] = new Color(217, 109, 194); // pink
-    DEFAULT_COLORS[5] = new Color(33, 87, 0); // dark green
-    DEFAULT_COLORS[6] = new Color(23, 58, 172); // dark blue
-    DEFAULT_COLORS[7] = new Color(140, 20, 180); // deep purple
-    DEFAULT_COLORS[8] = new Color(0, 0, 128); // ALL KINDS OF BLUES
-    DEFAULT_COLORS[9] = new Color(55, 129, 252); // light blue
-    int[][] cols = ParulaColorMap.getParulaMap(40);
-    for (int i = 10; i < DEFAULT_COLORS.length; i++) {
-      DEFAULT_COLORS[i] = new Color(cols[i-10][0], cols[i-10][1], cols[i-10][2]);
-    }
-//      new Color(100, 149, 237), new Color(72, 61, 139), new Color(106, 90, 205),
-//      new Color(123, 104, 238), new Color(132, 112, 255), new Color(0, 0, 205),
-//      new Color(65, 105, 225), new Color(0, 0, 255), new Color(30, 144, 255),
-//      new Color(0, 191, 255), new Color(135, 206, 250), new Color(135, 206, 250),
-//      new Color(70, 130, 180), new Color(176, 196, 222), new Color(173, 216, 230),
-//      new Color(176, 224, 230), new Color(175, 238, 238), new Color(0, 206, 209),
-//      new Color(72, 209, 204), new Color(64, 224, 208), new Color(0, 255, 255),
-//      new Color(224, 255, 255),
-      
-  };
   private static final byte POINT_SIZE = 1;
 
   protected FCSPlot fcp;
 
   int dataCount = -1;
-  String xCol = null, yCol = null;
-  AXIS_SCALE prevXScale, prevYScale;
-  double xMed = Double.NaN, xMin = Double.NaN, xMax = Double.NaN, yMed = Double.NaN,
-      yMin = Double.NaN, yMax = Double.NaN, xSD = Double.NaN, ySD = Double.NaN;
+  String xCol = null;
+  String yCol = null;
+  AXIS_SCALE prevXScale;
+  AXIS_SCALE prevYScale;
+  double xMed = Double.NaN;
+  double xMin = Double.NaN;
+  double xMax = Double.NaN;
+  double yMed = Double.NaN;
+  double yMin = Double.NaN;
+  double yMax = Double.NaN;
+  double xSD = Double.NaN;
+  double ySD = Double.NaN;
   PLOT_TYPE prevPlotType;
   boolean[] showMedSD = {false, false, false, false}; // xMed, xSD, yMed, ySD
   double[] xData;
@@ -93,6 +74,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
   ArrayList<double[]> tempPoly = new ArrayList<>();
   volatile boolean forceGatesChanged = false;
   volatile boolean lackingData = true;
+  
+  private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_GATE;
 
   boolean drag = false;
 	private static final int DEFAULT_NEARBY_DIST = 4;
@@ -117,13 +100,32 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     setSymmetricAxes(false);
     setZoomable(true, true);
     setLayersInBase(new byte[] {0});
-
-    setColorScheme(DEFAULT_COLORS);
+    
+    setColorScheme(createColorArray());
 
     setNullMessage("Select two variables to plot");
 
   }
-
+  
+  private Color[] createColorArray() {
+    Color[] colors = new Color[50];
+    colors[0] = new Color(33, 31, 53); // dark dark
+    colors[1] = new Color(201, 30, 10);  // deep red
+    colors[2] = new Color(94, 88, 214); // light purple
+    colors[3] = new Color(189, 243, 61); // light green
+    colors[4] = new Color(217, 109, 194); // pink
+    colors[5] = new Color(33, 87, 0); // dark green
+    colors[6] = new Color(23, 58, 172); // dark blue
+    colors[7] = new Color(140, 20, 180); // deep purple
+    colors[8] = new Color(0, 0, 128); // ALL KINDS OF BLUES
+    colors[9] = new Color(55, 129, 252); // light blue
+    int[][] cols = ParulaColorMap.getParulaMap(40);
+    for (int i = 10; i < colors.length; i++) {
+      colors[i] = new Color(cols[i-10][0], cols[i-10][1], cols[i-10][2]);
+    }
+    return colors;
+  }
+  
   public enum GATING_TOOL {
 
     RECT_GATE("Rectangle"), POLY_GATE("Polygon");
@@ -146,9 +148,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       }
       return null;
     }
-  };
-
-  private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_GATE;
+  }
 
   public void setGatingTool(GATING_TOOL tool) {
     tempPoly.clear();
@@ -176,22 +176,23 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
           highlightRectangle.getStopXValue(), (float) plotYmax, (byte) 1, (byte) 1, (byte) 99));
     }
     for (Gate g : fcp.getGatingForCurrentPlot()) {
-      if (!(g instanceof RectangleGate)) {
+      if (!(g instanceof RectangleGate)) { 
         continue;
       }
       RectangleGate rect = (RectangleGate) g;
-      float xMin, xMax;
-      xMin = ((RectangleGateDimension) rect.getXDimension()).getMin();
-      xMax = ((RectangleGateDimension) rect.getXDimension()).getMax();
-      if (!Numbers.isFinite(xMin)) {
-        xMin = Integer.MIN_VALUE;
+      float xMin1;
+      float xMax1;
+      xMin1 = ((RectangleGateDimension) rect.getXDimension()).getMin();
+      xMax1 = ((RectangleGateDimension) rect.getXDimension()).getMax();
+      if (!Numbers.isFinite(xMin1)) {
+        xMin1 = Integer.MIN_VALUE;
       }
-      if (!Numbers.isFinite(xMax)) {
-        xMax = Integer.MAX_VALUE;
+      if (!Numbers.isFinite(xMax1)) {
+        xMax1 = Integer.MAX_VALUE;
       }
-      allLines.add(new GenericLine(xMin, (float) plotYmin, xMin, (float) plotYmax, (byte) 1,
+      allLines.add(new GenericLine(xMin1, (float) plotYmin, xMin1, (float) plotYmax, (byte) 1,
           (byte) 1, (byte) 99));
-      allLines.add(new GenericLine(xMax, (float) plotYmin, xMax, (float) plotYmax, (byte) 1,
+      allLines.add(new GenericLine(xMax1, (float) plotYmin, xMax1, (float) plotYmax, (byte) 1,
           (byte) 1, (byte) 99));
     }
 
@@ -213,7 +214,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
   @Override
   public void generatePointsRectanglesAndLines() {
     byte type;
-    float xAxisValue, yAxisValue;
+    float xAxisValue;
+    float yAxisValue;
     byte size = POINT_SIZE;
     long t1 = System.currentTimeMillis();
 
@@ -236,63 +238,59 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     boolean dataChanged = false;
     boolean scaleChanged = false;
     boolean optionsChanged = false;
-    boolean gatesChanged = false;
-    {
-      String newX = fcp.getXDataName();
-      String newY = fcp.getYDataName();
-      if (xCol == null || !fcp.getXDataName().equals(xCol)) {
-        columnsChangedX = true;
-      }
-      if (yCol == null || !fcp.getYDataName().equals(yCol)) {
-        columnsChangedY = true;
-      }
-      xCol = newX;
-      yCol = newY;
+    boolean gatesChanged = false; 
+    
+    String newX = fcp.getXDataName();
+    String newY = fcp.getYDataName();
+    if (xCol == null || !fcp.getXDataName().equals(xCol)) {
+      columnsChangedX = true;
     }
-    {
-      if (prevXScale == null || prevXScale != getXAxis() || prevXScale != fcp.getXScale()) {
-        scaleChanged = true;
-      }
-      if (prevYScale == null || prevYScale != getYAxis() || prevYScale != fcp.getYScale()) {
-        scaleChanged = true;
-      }
-      prevXScale = getXAxis();
-      prevYScale = getYAxis();
+    if (yCol == null || !fcp.getYDataName().equals(yCol)) {
+      columnsChangedY = true;
     }
-    {
-      int count = fcp.getDataCount();
-      if (count != dataCount) {
-        dataChanged = true;
-      }
-      dataCount = count;
+    xCol = newX;
+    yCol = newY;
+  
+  
+    if (prevXScale == null || prevXScale != getXAxis() || prevXScale != fcp.getXScale()) {
+      scaleChanged = true;
     }
-    {
-      dataChanged = dataChanged || scaleChanged;
+    if (prevYScale == null || prevYScale != getYAxis() || prevYScale != fcp.getYScale()) {
+      scaleChanged = true;
     }
-    {
-      PLOT_TYPE plotType = fcp.getPlotType();
-      if (plotType != prevPlotType) {
-      }
-      prevPlotType = plotType;
+    prevXScale = getXAxis();
+    prevYScale = getYAxis();
+  
+  
+    int count = fcp.getDataCount();
+    if (count != dataCount) {
+      dataChanged = true;
     }
-    {
-      boolean mX = fcp.showMedian(false), mY = fcp.showMedian(true), sdX = fcp.showSD(false), sdY =
-          fcp.showSD(true);
-      if (mX != showMedSD[0] || sdX != showMedSD[1] || mY != showMedSD[2] || sdY != showMedSD[3]) {
-        optionsChanged = true;
-      }
-      showMedSD[0] = mX;
-      showMedSD[1] = sdX;
-      showMedSD[2] = mY;
-      showMedSD[3] = sdY;
+    dataCount = count;
+  
+  
+    dataChanged = dataChanged || scaleChanged;
+  
+  
+    PLOT_TYPE plotType = fcp.getPlotType();
+    if (plotType != prevPlotType) {
     }
-
-    {
-      gatesChanged =
-          rectangles != null && rectangles.length != rects.size() || polygons != null
-              && polygons.length != polys.size() || forceGatesChanged;
-      forceGatesChanged = false;
+    prevPlotType = plotType;
+  
+  
+    boolean mX = fcp.showMedian(false), mY = fcp.showMedian(true), sdX = fcp.showSD(false), sdY =
+        fcp.showSD(true);
+    if (mX != showMedSD[0] || sdX != showMedSD[1] || mY != showMedSD[2] || sdY != showMedSD[3]) {
+      optionsChanged = true;
     }
+    showMedSD[0] = mX;
+    showMedSD[1] = sdX;
+    showMedSD[2] = mY;
+    showMedSD[3] = sdY;
+  
+    gatesChanged = rectangles != null && rectangles.length != rects.size() || polygons != null && polygons.length != polys.size() || forceGatesChanged;
+    forceGatesChanged = false;
+  
 
     rectangles = rects.toArray(new GenericRectangle[rects.size()]);
     polygons = polys.toArray(new GenericPath[polys.size()]);
