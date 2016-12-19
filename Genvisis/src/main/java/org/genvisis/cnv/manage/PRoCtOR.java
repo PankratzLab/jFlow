@@ -48,7 +48,7 @@ public class PRoCtOR {
 		return (int) sampleChunks;
 	}
 
-	public static void shadow(Project proj, String tmpDir, String outputBase,
+	public static String shadow(Project proj, String tmpDir, String outputBase,
 														double markerCallRateFilter, boolean recomputeLRR_PCs,
 														int numComponents, int totalThreads) {
 		int numMarkerThreads = 1;
@@ -61,8 +61,7 @@ public class PRoCtOR {
 		int retCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC, markerCallRateFilter,
 																	useFile, proj.getSampleList(), proj.getLog());
 		if (retCode != 42) {
-			// TODO error
-			return;
+			return PCAPrep.errorMessage(retCode);
 		}
 		PrincipalComponentsApply pcApply = PCA.generateFullPCA(	proj, numComponents, outputBase,
 																														recomputeLRR_PCs, true, null,
@@ -74,6 +73,7 @@ public class PRoCtOR {
 		PennCNVPrep.exportSpecialPennCNV(	proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads,
 																			numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false,
 																			false);
+		return "";
 	}
 
 	public static void main(String[] args) {
@@ -136,7 +136,10 @@ public class PRoCtOR {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			shadow(proj, tempDir, outputBase, callrate, recomputeLRR, numComponents, numThreads);
+			String err = shadow(proj, tempDir, outputBase, callrate, recomputeLRR, numComponents, numThreads);
+			if (!"".equals(err)) {
+				System.err.println("Error - " + err);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

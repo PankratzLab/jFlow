@@ -139,13 +139,10 @@ public class GenvisisWorkflow {
 			int retCode = org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, numThreads);
 			switch (retCode) {
 				case 0:
-					setFailed();
-					failReasons.add("Operation failure, please check log for more information.");
-					break;
-				case 6:
-					failReasons.add("ABLookup required but wasn't found.");
+					setFailed("Operation failure, please check log for more information.");
 					break;
 				case 1:
+				case 6:
 				default:
 					break;
 			}
@@ -247,12 +244,9 @@ public class GenvisisWorkflow {
 																					int retCode = org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, numThreads);
 																					switch (retCode) {
 																						case 0:
-																							setFailed();
-																							failReasons.add("Operation failure, please check log for more information.");
+																							setFailed("Operation failure, please check log for more information.");
 																							break;
 																						case 6:
-																							failReasons.add("ABLookup required but wasn't found.");
-																							break;
 																						case 1:
 																						default:
 																							break;
@@ -363,14 +357,12 @@ public class GenvisisWorkflow {
 			try {
 				int retStat = SampleData.createSampleData(pedFile, sampleMapCsv, proj);
 				if (retStat == -1) {
-					setFailed();
-					failReasons.add("SampleData already exists - please delete and try again.");
+					setFailed("SampleData already exists - please delete and try again.");
 					return;
 				}
 			} catch (Elision e) {
 				String msg = e.getMessage();
-				setFailed();
-				failReasons.add(msg);
+				setFailed(msg);
 				return;
 			}
 		}
@@ -842,7 +834,7 @@ public class GenvisisWorkflow {
 			if (ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false)) {
 				ABLookup.applyABLookupToFullSampleFiles(proj, filename);
 			} else {
-				setFailed();
+				setFailed("Failed to fill in missing alleles - please check log for more info.");
 			}
 		}
 
@@ -935,8 +927,7 @@ public class GenvisisWorkflow {
 																				Pedigree.build(proj, null, null, false);
 																			}
 																			if (!Files.exists(proj.PEDIGREE_FILENAME.getValue())) {
-																				setFailed();
-																				failReasons.add("Creation of Pedigree file in [Create/Run PLINK Files] step failed.");
+																				setFailed("Creation of Pedigree file in [Create/Run PLINK Files] step failed.");
 																				return;
 																			}
 
@@ -949,8 +940,7 @@ public class GenvisisWorkflow {
 																																														-1,
 																																														true);
 																			if (!create) {
-																				setFailed();
-																				failReasons.add("Creation of initial PLINK files failed.");
+																				setFailed("Creation of initial PLINK files failed.");
 																			}
 																			proj.PLINK_DIR_FILEROOTS.addValue(proj.PROJECT_DIRECTORY.getValue()
 																																				+ "plink/plink");
@@ -1373,25 +1363,18 @@ public class GenvisisWorkflow {
 				return false;
 			}
 			String[] reqHdr = {
-			                   
+	      "Class=Exclude",
+	      "ExcludeNote",
+	      "Use",
+	      "UseNote",
+	      "Use_cnv",
+	      "Use_cnvNote"
 			};
-			if (ext.indexOfStr("Class=Exclude", header, false, true) == -1) {
-				return false;
-			}
-			if (ext.indexOfStr("ExcludeNote", header, false, true) == -1) {
-				return false;
-			}
-			if (ext.indexOfStr("Use", header, false, true) == -1) {
-				return false;
-			}
-			if (ext.indexOfStr("UseNote", header, false, true) == -1) {
-				return false;
-			}
-			if (ext.indexOfStr("Use_cnv", header, false, true) == -1) {
-				return false;
-			}
-			if (ext.indexOfStr("Use_cnvNote", header, false, true) == -1) {
-				return false;
+			int[] facts = ext.indexFactors(reqHdr, header, false, false);
+			for (int i : facts) {
+				if (i == -1) {
+					return false;
+				}
 			}
 			return true;
 		}
@@ -1533,7 +1516,7 @@ public class GenvisisWorkflow {
 																			proj.GENOME_BUILD_VERSION.getValue(), pvalOpt,
 																			betaFile, plot, false, proj.getLog());
 			} else {
-				setFailed();
+				setFailed(PCAPrep.errorMessage(retCode));
 			}
 		}
 
@@ -2024,8 +2007,11 @@ public class GenvisisWorkflow {
 			String tmpDir = "".equals(variables.get(this).get(4).trim())	? null
 																																		: variables.get(this).get(4);
 			int totalThreads = Integer.parseInt(variables.get(this).get(5));
-			PRoCtOR.shadow(	proj, tmpDir, outputBase, markerCallRateFilter, recomputeLRR_PCs,
+			String retMsg = PRoCtOR.shadow(	proj, tmpDir, outputBase, markerCallRateFilter, recomputeLRR_PCs,
 											numComponents, totalThreads);
+			if (!"".equals(retMsg)) {
+				setFailed(retMsg);
+			}
 		}
 
 		@Override
@@ -2130,20 +2116,29 @@ public class GenvisisWorkflow {
 	};
 
 	public abstract static class STEP {
-		public String stepName;
-		public String stepDesc;
-		public String[][] reqs;
+		private String stepName;
+		private String stepDesc;
+		private String[][] reqs;
 		private boolean failed = false;
-		protected ArrayList<String> failReasons = new ArrayList<String>();
+		private ArrayList<String> failReasons = new ArrayList<String>();
 		private final Set<STEP> relatedSteps;
 		public RequirementInputType[][] reqTypes;
 
+		public String getName() {
+			return this.stepName;
+		}
+		
+		public String getDescription() {
+			return this.stepDesc;
+		}
+		
 		public boolean getFailed() {
 			return failed;
 		}
 
-		protected void setFailed() {
+		protected void setFailed(String reason) {
 			failed = true;
+			failReasons.add(reason);
 		}
 
 		public List<String> getFailureMessages() {

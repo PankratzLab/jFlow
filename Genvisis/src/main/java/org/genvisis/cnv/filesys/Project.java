@@ -83,7 +83,6 @@ public class Project implements PropertyChangeListener {
 			return (T) this.getClass().getField(name).get(this);
 		} catch (Exception e) {
 			return null;
-			// throw new RuntimeException(e);
 		}
 	}
 
@@ -97,14 +96,35 @@ public class Project implements PropertyChangeListener {
 		}
 	}
 
-	public static enum GROUP {
-														PROJECT_NAME_LOCS("Project Name and Locations"), IMPORT("Import"), GLOBAL("Global"), CENTROIDS("Centroids"), DATA_EXPORT("Data Export"), MOSAIC_PLOT("MosaicPlot"), DATA_CLEANING("Data Cleaning"), CNV_FILES("CNV Files"), COMP_PLOT("CompPlot"), TRAILER("Trailer"), SCATTER_PLOT("ScatterPlot"), TWO_D_PLOT("TwoDPlot"), FOREST_PLOT("ForestPlot"), QQ_PLOT("QQ-plot"), PENN_CNV("PennCNV"), CYTO_SPECIFIC("CytoSpecific"), PC_INTENSITY_CORRECTION("PC Intensity Correction"), OPTIMIZATION_PARAMETERS("Optimization Parameters"), PLINK("Plink Directory/Filename Roots (edit to remove extension)"), COLORS("Colors"), SPECIAL_HIDDEN("HIDDEN");
+	public enum GROUP {
+		
+		PROJECT_NAME_LOCS("Project Name and Locations"), 
+		IMPORT("Import"), 
+		GLOBAL("Global"), 
+		CENTROIDS("Centroids"), 
+		DATA_EXPORT("Data Export"), 
+		MOSAIC_PLOT("MosaicPlot"), 
+		DATA_CLEANING("Data Cleaning"), 
+		CNV_FILES("CNV Files"), 
+		COMP_PLOT("CompPlot"), 
+		TRAILER("Trailer"), 
+		SCATTER_PLOT("ScatterPlot"), 
+		TWO_D_PLOT("TwoDPlot"), 
+		FOREST_PLOT("ForestPlot"), 
+		QQ_PLOT("QQ-plot"), 
+		PENN_CNV("PennCNV"), 
+		CYTO_SPECIFIC("CytoSpecific"), 
+		PC_INTENSITY_CORRECTION("PC Intensity Correction"), 
+		OPTIMIZATION_PARAMETERS("Optimization Parameters"), 
+		PLINK("Plink Directory/Filename Roots (edit to remove extension)"), 
+		COLORS("Colors"), 
+		SPECIAL_HIDDEN("HIDDEN");
 
+		String description;
+		
 		GROUP(String desc) {
 			this.description = desc;
 		}
-
-		String description;
 
 		public String getDescription() {
 			return description;
@@ -122,12 +142,6 @@ public class Project implements PropertyChangeListener {
 	                                                                     ".csv");
 	public StringProperty ID_HEADER = new StringProperty(this, PropertyKeys.KEY_ID_HEADER, "",
 	                                                     GROUP.IMPORT, false, "Sample Name");
-	// public StringProperty FID_ALIAS = new StringProperty(this, PropertyKeys.KEY_FID_ALIAS, "",
-	// GROUP.IMPORT, true, "FID;F_ID;FamID;Fam_ID;Family;FamilyID;Family_ID");
-	// public StringProperty IID_ALIAS = new StringProperty(this, PropertyKeys.KEY_IID_ALIAS, "",
-	// GROUP.IMPORT, true, "ID;IID;I_ID;IndID;Ind_ID");
-	// public StringProperty SAMPLE_ALIAS = new StringProperty(this, PropertyKeys.KEY_SAMPLE_ALIAS,
-	// "", GROUP.IMPORT, true, "Sample;DNA;DNA#");
 	public BooleanProperty PARSE_AT_AT_SYMBOL = new BooleanProperty(this,
 	                                                                PropertyKeys.KEY_PARSE_AT_AT_SYMBOL,
 	                                                                "", GROUP.IMPORT, false,

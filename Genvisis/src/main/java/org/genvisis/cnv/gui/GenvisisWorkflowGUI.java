@@ -439,8 +439,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 		chckbx.setFont(chckbx.getFont().deriveFont(Font.PLAIN, 14));
 		Grafik.scaleCheckBoxIcon(chckbx);
 		chckbx.setSelected(selected[index]);
-		chckbx.setToolTipText(step.stepDesc);
-		chckbx.setText((index + 1) + ": " + step.stepName);
+		chckbx.setToolTipText(step.getDescription());
+		chckbx.setText((index + 1) + ": " + step.getName());
 
 		checkBoxes.put(step, chckbx);
 		panel.topPanel.add(chckbx, "cell 0 0");
@@ -461,7 +461,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 		cancelStepBtns.put(step, cancelStepButton);
 		panel.topPanel.add(cancelStepButton, "cell 1 0, alignx right, hidemode 3");
 
-		JLabel descLbl = new JLabel("<html><center><p>" + step.stepDesc + "</p></center></html>");
+		JLabel descLbl = new JLabel("<html><center><p>" + step.getDescription() + "</p></center></html>");
 		descLbl.setVerticalAlignment(SwingConstants.TOP);
 		descLbl.setHorizontalAlignment(SwingConstants.LEFT);
 		descLbl.setFont(descLbl.getFont().deriveFont(Font.PLAIN));
@@ -846,11 +846,11 @@ public class GenvisisWorkflowGUI extends JDialog {
 					for (int i = 0; i < options.length; i++) {
 						if (options[i]) {
 							String cmd = steps[i].getCommandLine(proj, variables);
-							output.append("## ").append(steps[i].stepName).append("\n");
-							output.append("echo \" start ").append(steps[i].stepName).append(" at: \" `date`")
+							output.append("## ").append(steps[i].getName()).append("\n");
+							output.append("echo \" start ").append(steps[i].getName()).append(" at: \" `date`")
 										.append("\n");
 							output.append(cmd).append("\n");
-							output.append("echo \" end ").append(steps[i].stepName).append(" at: \" `date`")
+							output.append("echo \" end ").append(steps[i].getName()).append(" at: \" `date`")
 										.append("\n");
 							output.append("\n\n");
 						}
@@ -1001,7 +1001,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 			if (options[i]) {
 				STEP step = steps[i];
 				if (!step.hasRequirements(proj, selectedSteps, variables)) {
-					reqMsgs.add((i + 1) + ". " + step.stepName);
+					reqMsgs.add((i + 1) + ". " + step.getName());
 				}
 			}
 		}
