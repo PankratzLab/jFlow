@@ -46,7 +46,7 @@ public class SamplingPipeline {
 	};
 	
 	private static final double SAMPLING_PCT = .25;
-	private static final int OUTLIER_SAMPLE_EVERY = 5; // every fifth sampling will be from an outlier, if possible 
+	private static final int OUTLIER_SAMPLE_EVERY = 0; // no outlier sampling // every fifth sampling will be from an outlier, if possible 
 	
 	WSPLoader wspLoader;
 
@@ -259,6 +259,9 @@ public class SamplingPipeline {
 		p1O.retainAll(p1);
 		p2O.retainAll(p2);
 		
+		p1.removeAll(p1O);
+		p2.removeAll(p2O);
+		
 		int p1Cnt = p1.isEmpty() ? 0 : Math.max(1, (int) (p1.size() * SAMPLING_PCT));
 		int p2Cnt = p2.isEmpty() ? 0 : Math.max(1, (int) (p2.size() * SAMPLING_PCT));
 		
@@ -266,14 +269,14 @@ public class SamplingPipeline {
 		
 		Random rand = new Random();
 		for (int i = 0; i < p1Cnt; i++) {
-			if (!p1O.isEmpty() && (i > 0 && i % OUTLIER_SAMPLE_EVERY == 0)) {
+			if (!p1O.isEmpty() && OUTLIER_SAMPLE_EVERY > 0 && (i > 0 && i % OUTLIER_SAMPLE_EVERY == 0)) {
 				p1Sampling.add(p1O.get(rand.nextInt(p1O.size())));
 			} else {
 				p1Sampling.add(p1.get(rand.nextInt(p1.size())));
 			}
 		}
 		for (int i = 0; i < p2Cnt; i++) {
-			if (!p2O.isEmpty() && (i > 0 && i % OUTLIER_SAMPLE_EVERY == 0)) {
+			if (!p2O.isEmpty() && OUTLIER_SAMPLE_EVERY > 0 && (i > 0 && i % OUTLIER_SAMPLE_EVERY == 0)) {
 				p2Sampling.add(p2O.get(rand.nextInt(p2O.size())));
 			} else {
 				p2Sampling.add(p2.get(rand.nextInt(p2.size())));

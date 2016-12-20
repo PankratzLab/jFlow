@@ -66,6 +66,7 @@ abstract class AbstractSampleProcessor implements SampleProcessor {
       try {
         Thread.sleep(100);
       } catch (InterruptedException e) {
+      	// ignore
       }
     }
     (new Logger()).reportTimeElapsed("Loaded FCS ... ", t1);
