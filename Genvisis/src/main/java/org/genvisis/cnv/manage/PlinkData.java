@@ -1639,8 +1639,14 @@ public class PlinkData {
 				String markerName = markerData.getMarkerName();
 				Byte chr = chrsOfTargetMarkers.get(markerName);
 				Integer pos = posOfTargetMarkers.get(markerName);
-				char c1 = abLookup[targetIndex][0];
-				char c2 = abLookup[targetIndex][1];
+				char c1, c2;
+				if (abLookup[targetIndex] == null) {
+					c1 = 'A';
+					c2 = 'B';
+				} else {
+					c1 = abLookup[targetIndex][0];
+					c2 = abLookup[targetIndex][1];
+				}
 				bimWriter.println(chr	+ "\t" + markerName + "\t0\t" + pos + "\t" + c1 + "\t" + c2); // TODO alleles[][] matching chrs[]
 			}
 
